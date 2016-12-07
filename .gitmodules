@@ -10,3 +10,9 @@
 [submodule "seims/src/commonlibs/FileIOClass"]
 	path = seims/src/commonlibs/FileIOClass
 	url = git@github.com:lreis2415/FileIOClass.git
+[submodule "seims/src/taudem"]
+	path = seims/src/taudem
+	url = git@github.com:lreis2415/TauDEM.git
+[submodule "seims/src/metis"]
+	path = seims/src/metis
+	url = git@github.com:lreis2415/metis.git

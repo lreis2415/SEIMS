@@ -1,0 +1,3 @@
+MESSAGE(STATUS "    Compiling folder: management...")
+ADD_SUBDIRECTORY(./PLTMGT_SWAT)
+ADD_SUBDIRECTORY(./NPSMGT)

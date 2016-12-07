@@ -1,0 +1,11 @@
+insert into WaterBalance values("soil_ta0", "Empirical coefficient for estimating soil temperature","oC","STP_FP",4.768,0.0,"AC",10.0,0.0,"Y");
+insert into WaterBalance values("soil_ta1", "Empirical coefficient for estimating soil temperature","","STP_FP",0.174,0.0,"AC",1.0,0.0,"Y");
+insert into WaterBalance values("soil_ta2", "Empirical coefficient for estimating soil temperature","","STP_FP",0.163,0.0,"AC",1.0,0.0,"Y");
+insert into WaterBalance values("soil_ta3", "Empirical coefficient for estimating soil temperature","","STP_FP",0.223,0.0,"AC",1.0,0.0,"Y");
+insert into WaterBalance values("soil_tb1", "Empirical coefficient for estimating soil temperature","oC","STP_FP",-1.361,0.0,"AC",0.0,-5.0,"Y");
+insert into WaterBalance values("soil_tb2", "Empirical coefficient for estimating soil temperature","oC","STP_FP",-3.762,0.0,"AC",0.0,-5.0,"Y");
+insert into WaterBalance values("soil_td1", "Empirical coefficient for estimating soil temperature","oC","STP_FP",0.057,0.0,"AC",1.0,0.0,"Y");
+insert into WaterBalance values("soil_td2", "Empirical coefficient for estimating soil temperature","oC","STP_FP",0.339,0.0,"AC",1.0,0.0,"Y");
+insert into WaterBalance values("k_soil10", "ratio between soil temperature at 10 cm and the mean","","STP_FP",1.0,0.0,"AC",3.0,0.0,"Y");
+insert into WaterBalance values("soil_t10", "soil temperature relative to short grass cover","oC","STP_FP",-99.0,1.0,"RC",2.0,0.0,"Y");
+

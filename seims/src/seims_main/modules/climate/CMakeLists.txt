@@ -1,0 +1,3 @@
+MESSAGE(STATUS "    Compiling folder: climate...")
+ADD_SUBDIRECTORY(./ITP)
+ADD_SUBDIRECTORY(./TSD_RD)
