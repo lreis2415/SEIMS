@@ -1,3 +1,3 @@
 Welcome to the SEIMS2017 wiki!
 
-Edit online
+Test editing as submodule!
