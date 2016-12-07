@@ -19,3 +19,6 @@
 [submodule "seims/src/commonlibs/UtilsClass"]
 	path = seims/src/commonlibs/UtilsClass
 	url = git@github.com:lreis2415/UtilsClass.git
+[submodule "seims/src/commonlibs/MongoUtilClass"]
+	path = seims/src/commonlibs/MongoUtilClass
+	url = git@github.com:lreis2415/MongoUtilClass.git
