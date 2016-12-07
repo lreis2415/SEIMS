@@ -4,3 +4,9 @@
 [submodule "seims/pygeoc"]
 	path = seims/pygeoc
 	url = git@github.com:lreis2415/PyGeoC.git
+[submodule "seims/src/commonlibs/RasterClass"]
+	path = seims/src/commonlibs/RasterClass
+	url = git@github.com:lreis2415/RasterClass.git
+[submodule "seims/src/commonlibs/FileIOClass"]
+	path = seims/src/commonlibs/FileIOClass
+	url = git@github.com:lreis2415/FileIOClass.git
