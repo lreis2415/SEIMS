@@ -16,3 +16,6 @@
 [submodule "seims/src/metis"]
 	path = seims/src/metis
 	url = git@github.com:lreis2415/metis.git
+[submodule "seims/src/commonlibs/UtilsClass"]
+	path = seims/src/commonlibs/UtilsClass
+	url = git@github.com:lreis2415/UtilsClass.git

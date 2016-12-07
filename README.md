@@ -11,7 +11,7 @@ SEIMS is still under development and any constructive feedback will be welcome a
 
 Wiki
 ----------
-More information about SEIMS please refer to [SEIMS Wiki](https://github.com/seims/SEIMS/wiki).
+More information about SEIMS please refer to [SEIMS Wiki](https://github.com/lreis2415/SEIMS2017/wiki).
 
 
 Contact Us
