@@ -1,6 +1,7 @@
 - Compile and Install
   - [Windows](Windows)
   - [Linux](Linux)
+  - [macOS](macOS)
 - Run SEIMS
   - [预处理程序配置](Construct-python-env)
   - [数据准备](Data-preparation)
