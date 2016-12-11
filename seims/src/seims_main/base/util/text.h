@@ -179,8 +179,8 @@
 /// Files or database constant strings
 #define ASCIIExtension                                    ".asc"
 #define GTiffExtension                                    ".tif"
-#define MongoGridFS										"GridFS"
 #define TextExtension                                    ".txt"
+#define MongoGridFS										"GridFS"
 #define NAME_MASK                                        "MASK"
 
 #define File_Config                                            "config.fig"
