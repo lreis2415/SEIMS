@@ -1,14 +1,15 @@
-在Windows下编译SEIMS可执行文件
+Install SEIMS on Windows
 ----------------------------
 
-by Huiran Gao, Liang-Jun Zhu
+First release: Huiran Gao
+Reviewed and updated: Liang-Jun Zhu
 
-Latest Updated：May.30, 2016 
+Latest Updated：Dec.16, 2016 
 
 --------------------------
 # 目录
 
-[**1. Prerequisite**](#1-prerequisite)
+[**1. Prerequisites**](#1-prerequisites)
 
 1. [MS MPI v6（或更高版本）](#i-ms-mpi-v6（或更高版本）)
 
@@ -28,13 +29,66 @@ Latest Updated：May.30, 2016
 
 2. [Windows下SEIMS主程序的编译](#ii-windows下seims主程序的编译)
 
-# 1. Prerequisite
+# 1. Prerequisites
 
-SEIMS模型依赖一系列软件，包括Microsoft-MPI v6（或更高版本），MongoDB及MongoVUE（或No SQL for MongoDB），CMake等。
+SEIMS模型采用C++和Python编写，支持子流域-栅格双层并行计算，在Windows下推荐采用Microsoft Visual Studio进行编译安装，安装前的准备包括：
++ Microsoft Visual Studio 2010 或更高 -- C++源码编译器及IDE
++ CMake -- 管理代码编译
++ GDAL 1.x and Python -- 矢栅数据读写库
++ mongo-c-driver 1.3.5 或更高 -- 
++ MS-MPI v6 （或更高）-- 编译MPI并行程序，如TauDEM、SEIMS-MPI版本等
 
-## i. MS MPI v6（或更高版本）
+> Note: SEIMS目前只提供32-bit版本编译帮助，因此，接下来GDAL的安装、mongo-c-driver的编译均指的是32-bit版本。
+ 
+## 1. Microsoft Visual Studio
 
-Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和运行并行应用程序的消息传递接口标准，预处理程序中用于提取子流域和地形信息的TauDEM、SEIMS—_MPI并行版本都需要MPI的支持。
++ **For User**： 如果只是希望源码编译SEIMS模型，而不想安装臃肿庞大的VS，可以选择使用Microsoft Visual C++ Build Tools，目前最新版本为[2015 Update 3](https://www.visualstudio.com/downloads/#microsoft-visual-c-build-tools-2015-update-3 "microsoft-visual-c-build-tools-2015-update-3").
++ **For Developer**： 如果希望对SEIMS模型进行改进，建议采用[Microsoft Visual Studio 2010 或更高版本](https://www.visualstudio.com/downloads/ "visual-studio-downloads")进行开发。
+
+> Note: 虽然SEIMS编译理论上支持更高版本的VS，但是为了接下来的GDAL库安装方便，建议使用与[Tamas Szekeres's Windows GDAL binaries](http://www.gisinternals.com/release.php)发布版本对应的VS，比如目前其发布的GDAL安装版本对应的最高VS版本为2013。当然，如果你希望自己源码编译接下来用到的GDAL、mongo-c-driver库，那VS版本选择则不受限制。
+
+## 2. CMake
+
+CMake是一个跨平台的安装或编译工具，可以用简单的语句来描述安装或编译过程。CMake通过`CmakeLists.txt`文件能够输出各种各样的makefile或者IDE工程。
+
+CMake可以从其[官网免费下载](http://www.cmake.org/files)，推荐安装3.0以上版本，安装后添加CMake路径如`C:\Program Files (x86)\CMake`到系统环境变量`PATH`里。
+
+## 3. GDAL 1.x and Python
+
+SEIMS的矢栅数据读写基于GDAL 1.x编写，Windows下GDAL最方便的安装方式应该就是采用[Tamas Szekeres's Windows GDAL binaries](http://www.gisinternals.com/release.php)编译发布的版本。
+
+具体安装请参考博客[Installing-gdal-with-python-for-windows](https://sandbox.idre.ucla.edu/sandbox/tutorials/installing-gdal-for-windows "installing-gdal-with-python-for-windows")。
+
+安装完成之后，除了`GDAL_DATA`和`GDAL_DRIVER_PATH`外，还需要在环境变量里添加一个`GDAL_DIR`，赋值为你的GDAL安装目录，如`C:\GDAL`，以便CMake在编译时能够找得到GDAL依赖库。
+
+## 4. mongo-c-driver
+
+SEIMS数据管理采用NoSQL型数据库——MongoDB，依赖于mongo-c-driver。
+Windows下的配置步骤为：
++ 从[官网](http://mongoc.org/ "mongo-c-driver-download")下载源码压缩包，目前最新稳定版本为[1.5.0](https://github.com/mongodb/mongo-c-driver/releases/download/1.5.0/mongo-c-driver-1.5.0.tar.gz "mongo-c-driver-1.5.0")，解压缩至当前文件夹，如`C:\z_code\Repos\mongo-c-driver-1.5.0`
++ 打开cmd，依次输入如下命令，默认的安装目录为`C:\mongo-c-driver`
+```bat
+cd C:\
+mkdir mongo-c-driver
+cd C:\z_code\Repos\mongo-c-driver-1.5.0
+cd src\libbson
+cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 10 2010"
+msbuild.exe ALL_BUILD.vcxproj
+msbuild.exe INSTALL.vcxproj
+cd ..\..
+cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 10 2010"
+msbuild.exe ALL_BUILD.vcxproj
+msbuild.exe INSTALL.vcxproj
+```
+
++ 至此，`mongo-c-driver`即编译安装完成了，在`C:\mongo-c-driver`目录下能看到`bin`, `include`, `lib`文件夹。
++ 随后将`C:\mongo-c-driver`添加至环境变量，命名为`MONGOC_DIR`。
+
+> Note: 如果cmd提示找不到msbuild.exe，可以在msbuild.exe前加上绝对路径，这个文件是.NetFramework里的，比如`C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe`
+
+## 5. MS-MPI
+
+Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和运行并行应用程序的消息传递接口标准，预处理程序中用于提取子流域和地形信息的TauDEM、SEIMS_MPI并行版本都需要MPI的支持。
 
 从[MS-MPI v6](https://www.microsoft.com/en-us/download/details.aspx?id=47259)下载并分别安装msmpisdk.msi, MSMpiSetup.exe，并配置好系统环境变量。
 
@@ -66,9 +120,7 @@ MongoDB的安装及配置详解，见[MongoDB install and config](MongoDB-instal
 同样是一款非常优秀的MongoDB客户端
 
 
-## iii. CMake
 
-CMake是一个跨平台的安装或编译工具，可以用简单的语句来描述安装或编译过程。能够输出各种各样的makefile或者project文件，CMake 的组态档取名为`CmakeLists.txt`，下载[cmake-3.2.2](http://www.cmake.org/files/v3.2/cmake-3.2.3-win32-x86.exe)版本并安装，添加CMake环境变量到系统PATH变量里。
 
 [了解更多](https://cmake.org/)
 
@@ -249,6 +301,13 @@ else()
 + 打开VS工程，生成解决方案，在Debug或Release下可以看到一系列lib、dll库以及seims_omp.exe或seims.exe可执行文件。
 
 至此，由源码到VS工程的转换已经完成。
+
+```
+cmake -G "NMake Makefiles" <source path> -DCMAKE_BUILD_TYPE=Realse
+nmake install
+```
+编译好的可执行程序默认安装在`<source path>/bin`目录下。
+
 
 [返回目录](#目录)
 
