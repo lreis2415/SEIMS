@@ -2,9 +2,10 @@ Install SEIMS on Windows
 ----------------------------
 
 First release: Huiran Gao
+
 Reviewed and updated: Liang-Jun Zhu
 
-Latest Updated：Dec.16, 2016 
+Latest Updated：Dec.16, 2016
 
 --------------------------
 # 目录
@@ -35,11 +36,11 @@ SEIMS模型采用C++和Python编写，支持子流域-栅格双层并行计算�
 + Microsoft Visual Studio 2010 或更高 -- C++源码编译器及IDE
 + CMake -- 管理代码编译
 + GDAL 1.x and Python -- 矢栅数据读写库
-+ mongo-c-driver 1.3.5 或更高 -- 
++ mongo-c-driver 1.3.5 或更高 --
 + MS-MPI v6 （或更高）-- 编译MPI并行程序，如TauDEM、SEIMS-MPI版本等
 
 > Note: SEIMS目前只提供32-bit版本编译帮助，因此，接下来GDAL的安装、mongo-c-driver的编译均指的是32-bit版本。
- 
+
 ## 1. Microsoft Visual Studio
 
 + **For User**： 如果只是希望源码编译SEIMS模型，而不想安装臃肿庞大的VS，可以选择使用Microsoft Visual C++ Build Tools，目前最新版本为[2015 Update 3](https://www.visualstudio.com/downloads/#microsoft-visual-c-build-tools-2015-update-3 "microsoft-visual-c-build-tools-2015-update-3").
@@ -55,7 +56,7 @@ CMake可以从其[官网免费下载](http://www.cmake.org/files)，推荐安装
 
 ## 3. GDAL 1.x and Python
 
-SEIMS的矢栅数据读写基于GDAL 1.x编写，Windows下GDAL最方便的安装方式应该就是采用[Tamas Szekeres's Windows GDAL binaries](http://www.gisinternals.com/release.php)编译发布的版本。
+SEIMS的矢栅数据读写基于`GDAL 1.x`编写，Windows下GDAL最方便的安装方式应该就是采用[Tamas Szekeres's Windows GDAL binaries](http://www.gisinternals.com/release.php)编译发布的版本。
 
 具体安装请参考博客[Installing-gdal-with-python-for-windows](https://sandbox.idre.ucla.edu/sandbox/tutorials/installing-gdal-for-windows "installing-gdal-with-python-for-windows")。
 
@@ -153,7 +154,7 @@ C++程序包括：
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
 
 > 注意：由于目前SEIMS源码里自带的GDAL为32位编译版本，因此，目前只允许编译为32位预处理程序及SEIMS程序，后续会考虑同时加入64位版GDAL
-> 
+>
 > 因此如果是Windows x64电脑，不要打开的是Visual Studio x64 Win64 命令提示(2010)，而是需要打开Visual Studio 命令提示(2010)
 
 ```shell
@@ -174,7 +175,7 @@ cmake <SEIMS Folder>/preprocess/cpp_src/metis-5.1.0-pk
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
 
 > 注意：由于目前SEIMS源码里自带的GDAL为32位编译版本，因此，目前只允许编译为32位预处理程序及SEIMS程序，后续会考虑同时加入64位版GDAL
-> 
+>
 > 因此如果是Windows x64电脑，不要打开的是Visual Studio x64 Win64 命令提示(2010)，而是需要打开Visual Studio 命令提示(2010)
 
 
@@ -234,7 +235,7 @@ modules中包含了SEIMS功能模块组：hydrology和Hydrology_longterm为水�
 + “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools->Visual Studio 命令提示 (2010)，以**管理员方式运行**，切换到VS工程目录；
 
 > 注意：由于目前SEIMS源码里自带的GDAL为32位编译版本，因此，目前只允许编译为32位预处理程序及SEIMS程序，后续会考虑同时加入64位版GDAL
-> 
+>
 > 因此如果是Windows x64电脑，不要打开的是Visual Studio x64 Win64 命令提示(2010)，而是需要打开Visual Studio 命令提示(2010)
 
 
@@ -263,7 +264,7 @@ else()
 用于判断32位与64位机器，可修改为本地相应路径**（但是不建议这么做）**。
 + 配置编译版本
   + 默认生成OpenMP的版本，如果想生成MPI的版本，则：
-  
+
     ```shell
 	cmake <SEIMS Folder> -DSEIMSVERSION=MPI
     ```
@@ -289,7 +290,7 @@ else()
   ![](http://i.imgur.com/cZor9Ej.png)
 
   说明编译的VS版本与目前计算机版本不一致，需要更改编译命令：
-  
+
 	```shell
 	cmake -G "Visual Studio 10 2010" <source path>
 	```
@@ -310,10 +311,3 @@ nmake install
 
 
 [返回目录](#目录)
-
-
-
-
-
-
-
