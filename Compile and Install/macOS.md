@@ -82,3 +82,18 @@ sudo make install
 ```
 
 + 至此，`mongo-c-driver`即编译安装完成了，在`/usr/local/include`目录下能看到`libbson-1.0`, `libmongoc-1.0`文件夹，链接库则在`/usr/local/lib`。
+
+## . Compile and Install SEIMS
+
+```shell
+cd /Users/zhulj/Documents/code/SEIMS2017/seims
+mkdir build
+cd build
+1. clang: cmake /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release
+2. GCC: cmake /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/bin/gcc-4.9 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-4.9
+make
+make install
+```
++ 编译、安装无误后，SEIMS所有可执行程序及模块动态链接库均在`./SEIMS2017/seims/bin`。
+
++ 注意1：使用clang编译时，由于其不支持openmp，因此基于共享内存的并行计算将无法实现，因此推荐使用GCC进行编译安装。
