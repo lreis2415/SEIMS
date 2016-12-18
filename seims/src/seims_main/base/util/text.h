@@ -1,33 +1,24 @@
 /*!
  * \brief Predefined string constants used in the code
- 
+
  * \author Junzhi Liu, LiangJun Zhu, Huiran Gao
  * \version 1.1
  * \date Jun. 2010, Apr.2016
  *
- * 
+ *
  */
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
 
-// 
-// TODO - you may consider moving these to an external resource file 
-//        to make it easier to change them later 
+//
+// TODO - you may consider moving these to an external resource file
+//        to make it easier to change them later
 
 #define MODEL_NAME                            "SEIMS"
 #define SEIMS_EMAIL                                "SEIMS2015@163.com"
 #define SEIMS_SITE                                "https://github.com/seims/SEIMS/wiki"
 
-#ifndef linux
-#define Tag_ModuleDirectoryName "\\"
-#define SEP "\\"
-#define Tag_ModuleExt ".dll"
-#else
-#define Tag_ModuleDirectoryName "/"
-#define SEP "/"
-#define Tag_So "lib"
-#define Tag_ModuleExt ".so"
-#endif
+
 
 //! Constant input variables
 #define CONS_IN_ELEV                            "Elevation"
@@ -276,7 +267,7 @@
 #define Type_Single                "SINGLE"
 
 //// These maybe USELESS, right? by LJ
-////// Optional Output Data ////  
+////// Optional Output Data ////
 //#define Print_D_PREC "D_PREC"
 //#define Print_D_POET "D_POET"
 //#define Print_D_TEMP "D_TEMP"
@@ -649,7 +640,7 @@
 #define VAR_EXCP "EXCP"                             /// excess precipitation
 #define VAR_EXT_COEF "EXT_COEF"
 #define VAR_FERTILIZER_LOOKUP "FertilizerLookup"
-#define VAR_FIELDCAP "FieldCap"                     /// Soil field capacity" 
+#define VAR_FIELDCAP "FieldCap"                     /// Soil field capacity"
 #define VAR_FLAT "flat"
 #define VAR_FLOWDIR "FLOW_DIR"
 #define VAR_FLOWWIDTH "FlowWidth"
@@ -821,7 +812,7 @@
 #define VAR_PPERCO "pperco"
 #define VAR_PPT "PPT"
 #define VAR_PSP "psp"                               /// Phosphorus availability index
-#define VAR_SSP "ssp" 
+#define VAR_SSP "ssp"
 #define VAR_PTTN2CH "ptTNToCh"
 #define VAR_PTTP2CH "ptTPToCh"
 #define VAR_PTCOD2CH "ptCODToCh"
@@ -976,7 +967,7 @@
 #define VAR_SOL_TD2 "soil_td2"
 #define VAR_SOL_TMP "sol_tmp"                       /// daily average temperature of soil layer(deg C)
 #define VAR_SOL_UL "sol_ul"                       /// mm H2O
-#define VAR_SOL_WPMM "sol_wpmm"                     /// water content of soil at -1.5 MPa (wilting point)                      
+#define VAR_SOL_WPMM "sol_wpmm"                     /// water content of soil at -1.5 MPa (wilting point)
 #define VAR_SOL_ZMX "SOL_ZMX"          /// Maximum rooting depth of soil profile (mm)
 //#define VAR_SOMO "SOMO"                     /// soil moisture, deprecated and replaced by VAR_SOL_ST
 //#define VAR_SOMO_TOT  "somo_total"          /// Total soil water content in soil profile, deprecated and replaced by VAR_SOL_SW
@@ -1100,7 +1091,7 @@
 #define UNIT_LEN_M "m"                              /// Meter of length
 #define UNIT_LONLAT_DEG "degree"                    /// Degree of longitude and latitude
 #define UNIT_MELT_FACTOR "mm/deg C/day"                 /// Melt factor
-#define UNIT_NON_DIM ""                             /// Non dimension  
+#define UNIT_NON_DIM ""                             /// Non dimension
 #define UNIT_NUTR_RATIO "mg/mg"         /// mg H2O/mg Nutrient
 #define UNIT_PER_DAY "1/day"               /// rate per day
 #define UNIT_PERCENT "%"                            /// Percent
@@ -1109,7 +1100,7 @@
 #define UNIT_SPEED_MS "m/s"                         /// Speed related
 #define UNIT_SR "MJ/m2/d"                           /// Solar Radiation
 #define UNIT_STRG_M3M "m3/m"                       /// storage per meter of reach length
-#define UNIT_TEMP_DEG "deg C"                       /// Celsius degree of air temperature 
+#define UNIT_TEMP_DEG "deg C"                       /// Celsius degree of air temperature
 #define UNIT_TEMP_FACTOR "mm/deg C"                 /// temperature factor
 #define UNIT_YEAR "yr"
 #define UNIT_DAY "day"                    /// Time step (day)
