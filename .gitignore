@@ -48,3 +48,6 @@ output*
 *.tif.aux.xml
 *.tfw
 *.tif.ovr
+
+# ignore the include and lib directories after compilation and installation
+seims/include/metis.h
