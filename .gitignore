@@ -1,3 +1,5 @@
+# OS related
+.DS_Store
 # Compiled Object files
 *.slo
 *.lo
@@ -24,14 +26,13 @@
 *.lib
 
 # Executables
+bin
+build
 *.exe
 *.out
 *.app
 # Python compiled files
 *.pyc
-
-# Everything in the build directory
-build
 # PyCharm or CLion project files (JetBeans)
 .idea
 # Exclude SQLite Database, which will be reConstructor by preprocessing script
@@ -47,5 +48,3 @@ output*
 *.tif.aux.xml
 *.tfw
 *.tif.ovr
-# executables directory
-bin
