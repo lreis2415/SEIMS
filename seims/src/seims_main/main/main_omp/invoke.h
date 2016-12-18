@@ -5,7 +5,7 @@
  * \author Junzhi Liu
  * \date May 2010
  *
- * 
+ *
  */
 #pragma once
 
@@ -38,8 +38,6 @@ void checkProject(string projectPath);
 //! Check table exists or not
 void checkTable(vector<string> &tableNameList, string dbName, const char *tableName);
 
-//! Is valid IP address?
-bool isIPAddress(const char *ip);
 
 //! Is file path existed?
 bool isPathExists(const char *path);
@@ -63,10 +61,3 @@ void MainMongoDB(string, char *, int, int, int, LayeringMethod);
 //void	testSettingInput();
 //void	testSettingOutput();
 //void	testRaster();
-
-
-
-
-
-
-
