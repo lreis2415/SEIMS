@@ -47,7 +47,7 @@ CMake是一个跨平台的安装或编译工具，可以用简单的语句来描
 
 CMake可以从其[官网免费下载](http://www.cmake.org/files)安装GUI版本，推荐安装3.0以上版本，也可通过`brew install cmake`安装。
 
-## 3. GDAL 1.x and Python
+## 3. GDAL with Python
 
 SEIMS的矢栅数据读写基于`GDAL 1.x`编写，macOS下推荐使用[William Kyngesburye](http://www.kyngchaos.com/software:frameworks)维护的Framework安装包，最新的为`GDAL_Complete-1.11.dmg`。
 
