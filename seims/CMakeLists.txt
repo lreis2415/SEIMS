@@ -66,11 +66,11 @@ ENDIF ()
 ################# Install directory ##################
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 #################   Common library  ##################
-set(UTILS_INC ./commonlibs/UtilsClass)
+set(UTILS_INC ${CMAKE_INSTALL_PREFIX}/commonlibs/UtilsClass)
 set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/util.cpp ${UTILS_INC}/StringList.cpp ${UTILS_INC}/ModelException.cpp)
-set(MONGO_INC ./commonlibs/MongoUtilClass)
+set(MONGO_INC ${CMAKE_INSTALL_PREFIX}/commonlibs/MongoUtilClass)
 set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
-set(RASTER_INC ./commonlibs/RasterClass)
+set(RASTER_INC ${CMAKE_INSTALL_PREFIX}/commonlibs/RasterClass)
 set(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ##############  Stand-alone programs   ###############
 SET(FIELD_PARTITION ./src/field_partition)
@@ -81,9 +81,12 @@ SET(METIS ./src/metis)
 SET(TAUDEM ./src/taudem)
 SET(SEIMS_MAIN ./src/seims_main)
 
-ADD_SUBDIRECTORY(${METIS} bin/metis)
 ADD_SUBDIRECTORY(${TAUDEM} bin/taudem)
+ADD_SUBDIRECTORY(${METIS} bin/metis)
 
+IF(MSVC)
+  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+ENDIF()
 #SET(MODULE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/base/util/SimulationModule.cpp)
 #INCLUDE_DIRECTORIES(${BSON_INC} ${MONGO_INC} ${GDAL_HOME} ${GDAL_HOME}/include ${BASE_UTIL} ${BASE_DATA} ${BASE_MODS} ${BASE_BMPS})
 #LINK_DIRECTORIES(${GDAL_HOME}/lib ${LIB_DIR} ${PROJECT_BINARY_DIR})

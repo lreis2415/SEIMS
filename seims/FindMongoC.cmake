@@ -2,6 +2,7 @@
 #  MONGOC_FOUND - system has the MONGOC library
 #  MONGOC_INCLUDE_DIR - the MONGOC include directory
 #  MONGOC_LIBRARIES - The libraries needed to use MONGOC
+#  MONGOC_DLLS - The dynamic libraries needed to run MONGOC program on Windows
 #  MONGOC_VERSION - This is set to $major.$minor.$revision$path (eg. 0.4.1)
 
 if (UNIX)
@@ -13,7 +14,8 @@ find_path(MONGOC_INCLUDE_DIR
         NAMES
         libmongoc-1.0/mongoc.h
         HINTS
-        ${MONGOC_ROOT_DIR}
+        $ENV{MONGOC_ROOT_DIR}
+        $ENV{BSON_ROOT_DIR}
         ${_MONGOC_INCLUDEDIR}
         PATH_SUFFIXES
         include
@@ -27,7 +29,8 @@ if (WIN32 AND NOT CYGWIN)
                 NAMES
                 "mongoc-1.0"
                 HINTS
-                ${MONGOC_ROOT_DIR}
+                $ENV{MONGOC_ROOT_DIR}
+                $ENV{BSON_ROOT_DIR}
                 PATH_SUFFIXES
                 bin
                 lib
@@ -35,6 +38,16 @@ if (WIN32 AND NOT CYGWIN)
 
         mark_as_advanced(MONGOC)
         set(MONGOC_LIBRARIES ${MONGOC} ws2_32)
+        find_file(MONGOC_DLL
+                NAMES
+                "libmongoc-1.0.dll"
+                HINTS
+                $ENV{MONGOC_ROOT_DIR}
+                $ENV{BSON_ROOT_DIR}
+                PATH_SUFFIXES
+                bin
+                )
+        # message(${MONGOC_DLL})
     else ()
         # bother supporting this?
     endif ()

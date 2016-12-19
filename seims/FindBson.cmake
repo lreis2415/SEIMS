@@ -2,6 +2,7 @@
 #  BSON_FOUND - system has the BSON library
 #  BSON_INCLUDE_DIR - the BSON include directory
 #  BSON_LIBRARIES - The libraries needed to use BSON
+#  BSON_DLLS - The dynamic libraries needed to run BSON program on Windows
 #  BSON_VERSION - This is set to $major.$minor.$revision$path (eg. 0.4.1)
 
 if (UNIX)
@@ -13,7 +14,8 @@ find_path(BSON_INCLUDE_DIR
         NAMES
         libbson-1.0/bson.h
         HINTS
-        ${BSON_ROOT_DIR}
+        $ENV{MONGOC_ROOT_DIR}
+        $ENV{BSON_ROOT_DIR}
         ${_BSON_INCLUDEDIR}
         PATH_SUFFIXES
         include
@@ -27,14 +29,24 @@ if (WIN32 AND NOT CYGWIN)
                 NAMES
                 "bson-1.0"
                 HINTS
-                ${BSON_ROOT_DIR}
+                $ENV{MONGOC_ROOT_DIR}
+                $ENV{BSON_ROOT_DIR}
                 PATH_SUFFIXES
                 bin
                 lib
                 )
-
         mark_as_advanced(BSON)
         set(BSON_LIBRARIES ${BSON} ws2_32)
+        find_file(BSON_DLL
+                NAMES
+                "libbson-1.0.dll"
+                HINTS
+                $ENV{MONGOC_ROOT_DIR}
+                $ENV{BSON_ROOT_DIR}
+                PATH_SUFFIXES
+                bin
+                )
+        # message(${BSON_DLL})
     else ()
         # bother supporting this?
     endif ()
@@ -50,7 +62,6 @@ else ()
             )
 
     mark_as_advanced(BSON_LIBRARY)
-
     find_package(Threads REQUIRED)
 
     set(BSON_LIBRARIES ${BSON_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
