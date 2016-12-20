@@ -1,4 +1,4 @@
-MESSAGE(STATUS "    Compiling folder: hydrology_longterm...")
+MESSAGE(STATUS "      Compiling SEIMS_subdir: hydrology_longterm...")
 ADD_SUBDIRECTORY(./DEP_LINSLEY)
 ADD_SUBDIRECTORY(./GWA_RE)
 #ADD_SUBDIRECTORY(./IKW_REACH)

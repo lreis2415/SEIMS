@@ -8,8 +8,8 @@
 *   Date:
 *---------------------------------------------------------------------*/
 
-#ifndef NEW_WETSPA_RASTER_INCLUDE
-#define NEW_WETSPA_RASTER_INCLUDE
+#ifndef SEIMS_RASTER_CPP_INCLUDE
+#define SEIMS_RASTER_CPP_INCLUDE
 
 #include "gridfs.h"
 
