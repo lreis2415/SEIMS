@@ -1,7 +1,5 @@
 #include "SEIMS_ModuleSetting.h"
-#include "utils.h"
-#include "ModelException.h"
-#include "util.h"
+
 
 //! Constructor
 SEIMSModuleSetting::SEIMSModuleSetting(string moduleId, string setting)
