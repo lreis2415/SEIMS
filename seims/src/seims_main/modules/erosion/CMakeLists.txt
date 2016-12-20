@@ -1,4 +1,4 @@
-MESSAGE(STATUS "    Compiling folder: erosion...")
+MESSAGE(STATUS "      Compiling SEIMS_subdir: erosion...")
 # longterm model modules
 ADD_SUBDIRECTORY(./MUSLE_AS)
 ADD_SUBDIRECTORY(./IUH_SED_OL)

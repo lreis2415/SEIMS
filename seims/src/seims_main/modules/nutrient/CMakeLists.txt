@@ -1,4 +1,4 @@
-MESSAGE(STATUS "    Compiling folder: nutrient...")
+MESSAGE(STATUS "      Compiling SEIMS_subdir: nutrient...")
 ADD_SUBDIRECTORY(./AtmDep)
 ADD_SUBDIRECTORY(./NUTR_TF)
 ADD_SUBDIRECTORY(./NutrGW)
