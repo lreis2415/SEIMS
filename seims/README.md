@@ -19,8 +19,7 @@ SEIMS模型主要编程语言为C++和Python，许多代码如对栅格文件的
 
 子模块名|简介
 ---|---
-[UtilsClass](https://github.com/lreis2415/UtilsClass)|支持跨平台的时间、字符等基础操作类
-[FileIOClass](https://github.com/lreis2415/FileIOClass)|支持跨平台的文件及文件夹操作类
+[UtilsClass](https://github.com/lreis2415/UtilsClass)|支持跨平台的时间、字符串、文件IO等基础操作类
 [RasterClass](https://github.com/lreis2415/RasterClass)|基于GDAL的栅格数据读写类
 [MongoUtilClass](https://github.com/lreis2415/MongoUtilClass)|MongoDB操作类
 
