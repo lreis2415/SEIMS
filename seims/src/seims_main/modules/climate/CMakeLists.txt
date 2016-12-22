@@ -1,3 +1,3 @@
-MESSAGE(STATUS "    Compiling folder: climate...")
+MESSAGE(STATUS "      Compiling SEIMS_subdir: climate...")
 ADD_SUBDIRECTORY(./ITP)
 ADD_SUBDIRECTORY(./TSD_RD)

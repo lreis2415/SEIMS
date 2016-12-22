@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include "util.h"
+#include "text.h"
 #include "ModelException.h"
 
 using namespace std;
