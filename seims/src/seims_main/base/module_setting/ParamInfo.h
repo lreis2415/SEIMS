@@ -11,7 +11,8 @@
 
 #include <string>
 #include "MetadataInfoConst.h"
-
+#include "util.h"
+#include "text.h"
 using namespace std;
 
 /*!

@@ -14,7 +14,10 @@
 
 #include <string>
 #include <vector>
-
+#include "utils.h"
+#include "ModelException.h"
+#include "util.h"
+#include "text.h"
 using namespace std;
 
 /*!
