@@ -297,7 +297,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **d
                     {
                         if (!FloatEqual(data[i][j], NODATA_VALUE)){
 							if(FloatEqual(m_2DData[i][j], NODATA_VALUE))
-								m_2DData[i][j] = MAXFLOAT;
+								m_2DData[i][j] = MAXIMUMFLOAT;
 							if(data[i][j] <= m_2DData[i][j])
 								m_2DData[i][j] = data[i][j];
 						}
@@ -370,7 +370,7 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data)
                 case AT_Minimum:
 					if(!FloatEqual(data[rw], NODATA_VALUE)){
 						if(FloatEqual(m_1DData[rw], NODATA_VALUE))
-							m_1DData[rw] = MAXFLOAT;
+							m_1DData[rw] = MAXIMUMFLOAT;
 						if (m_1DData[rw] >= data[rw])
 							m_1DData[rw] = data[rw];
 					}
