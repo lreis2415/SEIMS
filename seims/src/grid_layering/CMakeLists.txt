@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 2.8)
 project(Grid_Layering_prj)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
+    SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ################# OS platform   ##################

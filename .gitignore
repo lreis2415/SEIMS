@@ -35,6 +35,7 @@ build
 *.pyc
 # PyCharm or CLion project files (JetBeans)
 .idea
+cmake-build*/
 # Exclude SQLite Database, which will be reConstructor by preprocessing script
 *.db3
 *.db
