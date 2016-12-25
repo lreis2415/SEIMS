@@ -1697,11 +1697,11 @@
 /// Define MongoDB related constant strings used in SEIMS and preprocess//
 /// By LiangJun Zhu, May. 4, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-#define MONG_GRIDFS_FN                "filename"
-#define MONG_GRIDFS_WEIGHT_CELLS    "NUM_CELLS"
-#define MONG_GRIDFS_WEIGHT_SITES    "NUM_SITES"
-#define MONG_GRIDFS_ID                "ID"
-#define MONG_GRIDFS_SUBBSN            "SUBBASIN"
+//#define MONG_GRIDFS_FN                "filename"
+//#define MONG_GRIDFS_WEIGHT_CELLS    "NUM_CELLS"
+//#define MONG_GRIDFS_WEIGHT_SITES    "NUM_SITES"
+//#define MONG_GRIDFS_ID                "ID"
+//#define MONG_GRIDFS_SUBBSN            "SUBBASIN"
 #define MONG_HYDRO_SITE_TYPE        "TYPE"
 #define MONG_HYDRO_SITE_LAT            "LAT"
 #define MONG_HYDRO_SITE_ELEV        "ELEVATION"
