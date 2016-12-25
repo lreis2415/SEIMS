@@ -3,9 +3,10 @@
 # Contact        : zlj@lreis.ac.cn
 # Latest updated : Dec. 20, 2016
 #
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
+    SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
 ################# SEIMS Version ##################
 IF (PARALLEL STREQUAL MPI)
