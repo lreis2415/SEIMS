@@ -1,5 +1,0 @@
-MESSAGE(STATUS "      Compiling SEIMS_subdir: base...")
-ADD_SUBDIRECTORY(./util)
-ADD_SUBDIRECTORY(./data)
-ADD_SUBDIRECTORY(./bmps)
-ADD_SUBDIRECTORY(./module_setting)
