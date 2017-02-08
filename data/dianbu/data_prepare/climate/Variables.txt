@@ -1,0 +1,8 @@
+Type	Unit
+TMEAN	deg C
+TMAX	deg C
+TMIN	deg C
+RM	%
+WS	m/s
+SR	MJ/m2/day
+P	mm

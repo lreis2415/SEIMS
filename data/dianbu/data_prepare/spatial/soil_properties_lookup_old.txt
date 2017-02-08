@@ -1,0 +1,39 @@
+## Soil physical properties (required) and chemical properties (optional) lookup table ##
+## Pre-released version prepared by LiangJun Zhu, May., 2016
+## Reference: Arnold, J.G., Kiniry, J.R., Srinivasan, R., Williams, J.R., Haney, E.B., Neitsch, S.L., 2013. SWAT 2012 Input/Output Documentation. Texas Water Resources Institute.
+### Data formate: 1) Each field are splited by TAB; 2) Values are concatenated by COMMA in individual field; 3) Values number of multi-values fields should be equal to NLAYERS; 4) Just provide the fields that have values, REQUIRED fields are necessary.
+### Here is a brief description of the variables adopted in SEIMS.
+### Variable Name	Definition
+### SEQN			(required) Sequence number of soil catogory, CAUTION: No need to be consistent with SOIL CLASS.
+### NAME			(required) Soil name, CAUTION: a soil name may have multi SEQN to represent heterogeneity according to LANDUSE or SLOPE, etc.
+### NLAYERS			(required) Soil layers number, BE AWARE that NLAYERS may be different in this lookup table.
+### SOL_Z			(required, multi-values) Depth from soil surface to bottom of layer (mm), e.g., 100, 400, 800.
+### SOL_OM			(required, multi-values) Organic matter content (% soil weight)
+### SOL_CLAY		(required, multi-values) Clay content (% soil weight), diameter < 0.002 mm
+### SOL_SILT		(required, multi-values) Silt content (% soil weight), diameter between 0.002 mm and 0.05 mm
+### SOL_SAND		(required, multi-values) Sand content (% soil weight), diameter between 0.05 mm and 2 mm
+### SOL_ROCK		(required, multi-values) Rock fragment content (% total weight), diameter > 2 mm
+### SOL_ZMX			(optional)Maximum rooting depth of soil profile(mm)
+### ANION_EXCL		(optional) Fraction of porosity (void space) from which anions are excluded, default is 0.5.
+### SOL_CRK			(optional) Potential or maximum crack volume of the soil profile expressed as a fraction of the total soil volume. 
+### SOL_BD			(optional, multi-values) Moist bulk density (Mg/m3 or g/cm3), value should between 1.1 and 1.9
+### SOL_K			(optional, multi-values) Saturated hydraulic conductivity (mm/hr)
+### SOL_WP			(optional, multi-values) Wilting point
+### SOL_FC			(optional, multi-values) Field capacity
+### SOL_AWC			(optional, multi-values) Available water capacity
+### SOL_POROSITY	(optional, multi-values) Porosity
+### SOL_USLE_K		(optional, multi-values) USLE K factor
+### SOL_ALB			(optional) Albedo when soil is moist
+### ESCO			(optional) Soil evaporation compensation factor, the default is 0.95
+### SOL_NO3			(optional, multi-values) concentration of nitrate in soil layers, mg/kg
+### SOL_ORGN		(optional, multi-values) concentration of organic nitrogen in soil layers
+### SOL_ORGP		(optional, multi-values) concentration of organic phosphorus in soil layers
+### SOL_SOLP		(optional, multi-values) concentration of soluble phosphorus in soil layers
+
+SEQN	SNAM	NLAYERS	SOL_ZMX	SOL_Z	SOL_BD	SOL_OM	CLAY	SILT	SAND	ROCK
+1	Chengbaitutian	4	180	130,230,520,1000	1.19,-9999,-9999,-9999	1.66,0.57,0.36,0.43	14.22,16.9,52.32,50.04	53.59,50.6,44.88,47.06	32.19,32.5,2.8,2.9	0,0,0,0
+2	Huangbaitutian_h	2	230	140,230	-9999,-9999	1.18,0.76	15.64,16.95	52.62,51.93	31.74,31.12	0,0
+3	Huangbaitutian_s	3	230	160,290,1000	1.23,1.58,-9999	1.65,0.55,0.79	25.92,23.66,23.32	51.07,50.72,75.14	23.01,25.62,1.54	0,0,0
+4	Magantian	4	440	140,240,430,1000	1.32,1.38,-9999,-9999	2.22,1.57,0.43,0.29	26.2,30,38.33,40.58	49.33,45.53,58.05,28.21	24.47,24.47,3.62,11.21	0,0,0,0
+5	Magantu	2	200	120,200	1.58,1.75	1.54,0.5	33,36.5	43.33,42.44	23.67,21.06	0,0
+6	Zishanitian	2	520	150,240	1.37,1.58	1.37,0.78	16.61,18.51	42.38,43.41	41.01,38.08	0,0
