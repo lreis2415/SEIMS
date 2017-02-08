@@ -1,6 +1,6 @@
 # Github使用说明
 
-为了便于群策群力完善模型，SEIMS采用Github平台进行版本控制。
+为了便于群策群力完善模型，SEIMS采用Github平台进行版本控制，采用git subtree命令管理独立子库。
 
 关于Git的详细教程，推荐阅读[廖学峰老师的网站](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/)
 
