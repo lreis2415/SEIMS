@@ -1,6 +1,6 @@
 #include "SoilTemperatureFINPL.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ClimateParams.h"
 #include "ModelException.h"
 #include <cmath>
@@ -39,7 +39,7 @@ int SoilTemperatureFINPL::Execute()
 		float t = m_tMean[i];
 		float t1 = m_t1[i];
 		float t2 = m_t2[i];
-		if (FloatEqual(m_landuse[i], LANDUSE_ID_WATR))
+		if (FloatEqual((int) m_landuse[i], LANDUSE_ID_WATR))
 		{
 			/// if current landuse is water
 			m_soilTemp[i] = t;

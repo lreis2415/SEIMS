@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: SUR_ES...")
 SET(SRC_LIST ${MODULE_SRC} ExcessRunoff.cpp api.cpp)
 ADD_LIBRARY(SUR_ES SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS SUR_ES DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET SUR_ES PROPERTY FOLDER "modules/hydrology_longterm")

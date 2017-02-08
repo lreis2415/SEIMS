@@ -4,7 +4,6 @@
  * \date June 2016
  */
 #include "BMPPlantMgtFactory.h"
-#include "utils.h"
 
 using namespace MainBMP;
 
@@ -17,7 +16,7 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenari
                 m_location.clear();
         }
         else
-                m_location = utils::SplitStringForInt(location, ',');
+                m_location = SplitStringForInt(location, ',');
 }
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory()
@@ -65,30 +64,30 @@ void BMPPlantMgtFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName)
                 float husc = 0.f;
                 bool usebaseHU = true;
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_FLD_NAME))
-                        m_name = GetStringFromBSONITER(&itertor);
+                        m_name = GetStringFromBsonIterator(&itertor);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_LUCC))
-                        m_luccID = GetIntFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, m_luccID);
                 if(m_luccID < 0) m_luccID = 1; // AGRL	Agricultural Land-Generic
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_MGTOP))
-                        mgtCode = GetIntFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, mgtCode);
                 //if (bson_iter_init_find(&itertor,bsonTable,BMP_FLD_SEQUENCE))
-                //	seqNo = GetIntFromBSONITER(&itertor);
+                //	GetNumericFromBsonIterator(&itertor, seqNo);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_YEAR))
-                        year = GetIntFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, year);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_MONTH))
-                        month = GetIntFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, month);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_DAY))
-                        day = GetIntFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, day);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_BASEHU))
-                        usebaseHU = GetBoolFromBSONITER(&itertor);
+                        usebaseHU = GetBoolFromBsonIterator(&itertor);
                 if (bson_iter_init_find(&itertor, bsonTable, BMP_PLTOP_FLD_HUSC))
-                        husc = GetFloatFromBSONITER(&itertor);
+                        GetNumericFromBsonIterator(&itertor, husc);
                 for (int i = 0; i < paramNum; i++)
                 {
                         ostringstream oss;
                         oss << BMP_PLTOP_FLD_MGT_PRE << (i + 1);
                         if (bson_iter_init_find(&itertor, bsonTable, oss.str().c_str()))
-                                m_parameters[i] = GetFloatFromBSONITER(&itertor);
+                                GetNumericFromBsonIterator(&itertor, m_parameters[i]);
                 }
                 int uniqueMgtCode = count * 1000 + mgtCode;
                 m_bmpSequence.push_back(uniqueMgtCode);

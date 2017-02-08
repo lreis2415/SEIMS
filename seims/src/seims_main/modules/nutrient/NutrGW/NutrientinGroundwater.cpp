@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <omp.h>
-#include "util.h"
+#include "utilities.h"
 
 using namespace std;
 

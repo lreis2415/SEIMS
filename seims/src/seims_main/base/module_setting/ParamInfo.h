@@ -11,8 +11,9 @@
 
 #include <string>
 #include "MetadataInfoConst.h"
-#include "util.h"
 #include "text.h"
+#include "utilities.h"
+
 using namespace std;
 
 /*!
@@ -70,9 +71,9 @@ public:
     //! Change type
     string Change;
     //! Absolute maximum value
-    float Max;
+    float Maximum;
     //! Absolute minimum value
-    float Min;
+    float Minimun;
     //! Use or not
     string Use;
     //! Dependence parameters

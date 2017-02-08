@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling test_subdir: template...")
 SET(SRC_LIST ${MODULE_SRC} template.cpp api.cpp)
 ADD_LIBRARY(template SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS template DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET template PROPERTY FOLDER "modules/test")

@@ -119,8 +119,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     if (TimeSeriesData.size() > 0 && (SiteID != -1 || SubbasinID != -1))    //time series data
     {
         ofstream fs;
-        utils util;
-        string filename = projectPath + Filename + TextExtension;
+        string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out|ios::app); /// append if more than one print item. By LJ
         if (fs.is_open())
         {
@@ -133,7 +132,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             map<time_t, float>::iterator it;
             for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++)
             {
-                fs << util.ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
+                fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                 setprecision(8) << it->second << endl;
             }
             fs.close();
@@ -144,8 +143,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     if (TimeSeriesDataForSubbasin.size() > 0 && SubbasinID != -1)    //time series data for subbasin
     {
         ofstream fs;
-        utils util;
-        string filename = projectPath + Filename + TextExtension;
+        string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out|ios::app);
         if (fs.is_open())
         {
@@ -158,7 +156,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             map<time_t, float *>::iterator it;
             for (it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++)
             {
-                fs << util.ConvertToString2(&(it->first));
+                fs << ConvertToString2(&(it->first));
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++)
                 {
                     fs << " " << right << fixed << setw(15) << setfill(' ') << setprecision(8) << (it->second)[i];
@@ -179,14 +177,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
 		{
 			bson_error_t *err = NULL;
 			mongoc_gridfs_remove_by_filename(gfs, Filename.c_str(), err);
-			clsRasterData<float>::outputToMongoDB(templateRaster, m_1DData, Filename, gfs);
+			clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
 		}
-       
-        string ascii(ASCIIExtension);
-        if (ascii.find(Suffix) != ascii.npos)
-            clsRasterData<float>::outputASCFile(templateRaster, m_1DData, projectPath + Filename + ASCIIExtension);
-        else
-            clsRasterData<float>::outputGTiff(templateRaster, m_1DData, projectPath + Filename + GTiffExtension);
+		clsRasterData<float>(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
         return;
     }
 
@@ -194,27 +187,13 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     {
         if (templateRaster == NULL)
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
-
-        float *tmpData = new float[m_nRows];
-        ostringstream oss;
-        for (int j = 0; j < m_nLayers; j++)
-        {
-            for (int i = 0; i < m_nRows; i++)
-                tmpData[i] = m_2DData[i][j];
-            oss.str("");
-            oss << projectPath << Filename << "_" << (j + 1);  // Filename_1.tif means layer 1
-            string ascii(ASCIIExtension);
-            if (ascii.find(Suffix) != ascii.npos)
-                clsRasterData<float>::outputASCFile(templateRaster, tmpData, oss.str() + ASCIIExtension);
-            else
-                clsRasterData<float>::outputGTiff(templateRaster, tmpData, oss.str() + GTiffExtension);
-        }
-        delete[] tmpData;
+		clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
+        
 		if (outToMongoDB)
 		{
 			bson_error_t *err = NULL;
 			mongoc_gridfs_remove_by_filename(gfs, Filename.c_str(), err);
-			clsRasterData<float>::outputToMongoDB(templateRaster, m_2DData, m_nLayers, Filename, gfs);
+			clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
 		}	
 		return;
     }
@@ -223,14 +202,14 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     {
         ofstream fs;
         utils util;
-        string filename = projectPath + Filename + TextExtension;
+        string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out|ios::app);
         if (fs.is_open())
         {
             map<time_t, float>::iterator it;
             for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++)
             {
-                fs << util.ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
+                fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                 setprecision(8) << it->second << endl;
             }
             fs.close();
@@ -238,7 +217,6 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         }
         return;
     }
-
     throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
                                                    " is failed. There is not result data for this file. Please check output variables of modules.");
 }
@@ -699,8 +677,8 @@ void PrintInfo::AddPrintItem(string start, string end, string file, string sufi)
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
-    itm->m_startTime = utils::ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = utils::ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
     // add it to the list
     m_PrintItems.push_back(itm);
 }
@@ -721,8 +699,8 @@ void PrintInfo::AddPrintItem(string type, string start, string end, string file,
     itm->conn = conn;
     itm->gfs = gfs;
 
-    itm->m_startTime = utils::ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = utils::ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
 
 
     type = trim(type);
@@ -756,8 +734,8 @@ void PrintInfo::AddPrintItem(string start, string end, string file, string siten
 	itm->gfs = m_outputGfs;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->m_startTime = utils::ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = utils::ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
 
     m_PrintItems.push_back(itm);
 }

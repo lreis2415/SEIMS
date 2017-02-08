@@ -26,7 +26,7 @@ Scenario::~Scenario(void)
 
 void Scenario::loadScenario()
 {
-        GetCollectionNames(m_conn, m_bmpDBName, m_bmpCollections);
+        m_bmpCollections = MongoDatabase(m_conn, m_bmpDBName).getCollectionNames();
         loadScenarioName();
         loadBMPs();
         loadBMPDetail();
@@ -34,44 +34,6 @@ void Scenario::loadScenario()
 
 void Scenario::loadScenarioName()
 {
-#ifdef SQLITE
-        /// previous version with SQLite, deprecated by Liangjun
-        //  if(!DBManager::IsTableExist(bmpPath(),TAB_BMP_SCENARIO))
-        //	throw ModelException("Scenario","loadScenarioName","The BMP database '" + bmpPath() +
-        //	"' does not exist or the there is not a table named '" + TAB_BMP_SCENARIO + "' in BMP database.");
-
-        //DBManager db;
-        //db.Open(bmpPath());
-        //try
-        //{
-        //	utils util;
-        //	ostringstream str;
-        //	str << "SELECT distinct NAME FROM " << TAB_BMP_SCENARIO << " where " <<
-        //		"ID = " << this->m_id << " or " <<
-        //		"ID = " << BASE_SCENARIO_ID <<
-        //		" order by ID DESC";
-        //	string strSQL = str.str();
-        //
-        //	slTable* tbl = db.Load(strSQL);
-        //	if(tbl->nRows > 0)
-        //	{
-        //		this->m_name = tbl->FieldValue(1,0);
-        //	}
-        //	else
-        //	{
-        //		str << "Can't find the name of scenario " << this->m_id << ".";
-        //		throw ModelException("Scenario","loadScenarioName",str.str());
-        //	}
-
-        //	delete tbl;
-        //	db.Close();
-        //}
-        //catch(...)
-        //{
-        //	db.Close();
-        //	throw;
-        //}
-#else
         vector<string>::iterator it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_SCENARIO));
         if (it == m_bmpCollections.end())
                 throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
@@ -94,7 +56,7 @@ void Scenario::loadScenarioName()
                 {
                         while (bson_iter_next(&sub_iter))
                         {
-                                m_name = GetStringFromBSONITER(&sub_iter);
+                                m_name = GetStringFromBsonIterator(&sub_iter);
                                 break;
                         }
                 }
@@ -106,60 +68,10 @@ void Scenario::loadScenarioName()
         bson_destroy(query);
         bson_destroy(reply);
         mongoc_collection_destroy(sceCollection);
-#endif
 }
 
 void Scenario::loadBMPs()
 {
-#ifdef SQLITE
-        if(!DBManager::IsTableExist(bmpPath(),TAB_BMP_INDEX))
-                throw ModelException("Scenario","loadBMPs","The BMP database '" + bmpPath() +
-                                     "' does not exist or there is not a table named '" + TAB_BMP_INDEX + "' in BMP database.");
-
-        DBManager db;
-        db.Open(bmpPath());
-        try
-        {
-                utils util;
-                ostringstream str;
-                str << "SELECT b.ID,b.Type,distribution,parameter,a.ID FROM " <<
-                        TAB_BMP_SCENARIO << " as a," << TAB_BMP_INDEX <<" as b where " <<
-                        "(a.ID = " << this->m_id << " or " <<
-                        "a.ID = " << BASE_SCENARIO_ID << " ) and (a.BMP = b.ID)" <<
-                        " order by a.ID DESC";
-
-                string strSQL = str.str();
-
-                slTable* tbl = db.Load(strSQL);
-                if(tbl->nRows > 0)
-                {
-                        for(int i=1; i<=tbl->nRows; i++)
-                        {
-                                int bmpId = atoi(tbl->FieldValue(i,0).c_str());
-                                int bmpType = atoi(tbl->FieldValue(i,1).c_str());
-                                string distribution = tbl->FieldValue(i,2);
-                                string parameter = tbl->FieldValue(i,3);
-                                int scenarioId = atoi(tbl->FieldValue(i,4).c_str());
-
-                                if(this->m_bmpFactories.find(bmpId) == this->m_bmpFactories.end())
-                                {
-                                        if(bmpType == BMP_TYPE_REACH)
-                                                this->m_bmpFactories[bmpId] = new BMPReachFactory(scenarioId,bmpId,bmpType,distribution,parameter);
-                                        if(bmpType == BMP_TYPE_AREAL_NON_STRUCTURAL)
-                                                this->m_bmpFactories[bmpId] = new BMPArealNonStructuralFactory(scenarioId,bmpId,bmpType,distribution,parameter);
-                                }
-                        }
-                }
-
-                delete tbl;
-                db.Close();
-        }
-        catch(...)
-        {
-                db.Close();
-                throw;
-        }
-#else
         vector<string>::iterator it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_INDEX));
         if (it == m_bmpCollections.end())
                 throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
@@ -185,11 +97,11 @@ void Scenario::loadBMPs()
                 string distribution = "";
                 string collectionName = "";
                 string location = "";
-                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) BMPID = (int) GetFloatFromBSONITER(&iter);
-                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) subScenario = (int) GetFloatFromBSONITER(&iter);
-                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBSONITER(&iter);
-                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_TABLE)) collectionName = GetStringFromBSONITER(&iter);
-                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_LOCATION)) location = GetStringFromBSONITER(&iter);
+                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_BMPID)) GetNumericFromBsonIterator(&iter, BMPID);
+                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_SUB)) GetNumericFromBsonIterator(&iter, subScenario);
+                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_DIST)) distribution = GetStringFromBsonIterator(&iter);
+                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_TABLE)) collectionName = GetStringFromBsonIterator(&iter);
+                if (bson_iter_init_find(&iter, info, FLD_SCENARIO_LOCATION)) location = GetStringFromBsonIterator(&iter);
 
                 int BMPType = -1;
                 int BMPPriority = -1;
@@ -204,9 +116,8 @@ void Scenario::loadBMPs()
                 while (mongoc_cursor_more(cursor2) && mongoc_cursor_next(cursor2, &info2))
                 {
                         bson_iter_t sub_iter;
-                        if (bson_iter_init_find(&sub_iter, info2, FLD_BMP_TYPE)) BMPType = (int) GetFloatFromBSONITER(&sub_iter);
-                        if (bson_iter_init_find(&sub_iter, info2, FLD_BMP_PRIORITY))
-                                BMPPriority = (int) GetFloatFromBSONITER(&sub_iter);
+                        if (bson_iter_init_find(&sub_iter, info2, FLD_BMP_TYPE)) GetNumericFromBsonIterator(&sub_iter, BMPType);
+                        if (bson_iter_init_find(&sub_iter, info2, FLD_BMP_PRIORITY)) GetNumericFromBsonIterator(&sub_iter, BMPPriority);
                 }
                 //cout<<BMPID<<","<<BMPType<<","<<distribution<<","<<parameter<<endl;
                 bson_destroy(queryBMP);
@@ -233,7 +144,6 @@ void Scenario::loadBMPs()
         mongoc_cursor_destroy(cursor);
         mongoc_collection_destroy(collection);
         mongoc_collection_destroy(collbmpidx);
-#endif
 }
 
 void Scenario::loadBMPDetail()

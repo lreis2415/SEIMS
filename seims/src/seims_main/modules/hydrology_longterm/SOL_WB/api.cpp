@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "SOL_WB.h"
 #include "SimulationModule.h"
 #include "MetadataInfo.h"

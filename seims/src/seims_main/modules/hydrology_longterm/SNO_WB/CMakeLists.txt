@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: SNO_WB...")
 SET(SRC_LIST ${MODULE_SRC} SNO_WB.cpp subbasin.cpp api.cpp)
 ADD_LIBRARY(SNO_WB SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS SNO_WB DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET SNO_WB PROPERTY FOLDER "modules/hydrology_longterm")

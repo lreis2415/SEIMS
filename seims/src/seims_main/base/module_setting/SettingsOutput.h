@@ -8,11 +8,13 @@
  */
 #pragma once
 
+#include <vector>
+
 #include "Settings.h"
 #include "PrintInfo.h"
-#include <vector>
-#include "mongoc.h"
-
+#include "utilities.h"
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
 /*!
  * \ingroup module_setting
  * \class SettingsOutput

@@ -1,9 +1,6 @@
 #include "clsSubbasin.h"
-#include "util.h"
-#include <iostream>
-#include <sstream>
-#include "ModelException.h"
-#include "clsRasterData.cpp"
+
+
 using namespace std;
 
 Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(NULL), m_isRevapChanged(true), 
@@ -103,7 +100,7 @@ m_nSubbasins(-1)
 		clsRasterData<float> *subbasinRaster = NULL;
 		try
 		{			
-			subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), rsMap[maskFileName]);			
+			subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);			
 			subbasinRaster->getRasterData(&nCells, &subbasinData);
 		}
 		catch (ModelException e)

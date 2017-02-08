@@ -14,9 +14,9 @@
 // TODO - you may consider moving these to an external resource file
 //        to make it easier to change them later
 
-#define MODEL_NAME                            "SEIMS"
+#define MODEL_NAME                                 "SEIMS"
 #define SEIMS_EMAIL                                "SEIMS2015@163.com"
-#define SEIMS_SITE                                "https://github.com/seims/SEIMS/wiki"
+#define SEIMS_SITE                                 "https://github.com/seims/SEIMS/wiki"
 
 
 
@@ -168,10 +168,10 @@
 #define VAR_SUBBASIN_PARAM						"SubbasinParam"
 #define DESC_SUBBASIN_PARAM						"Statistics of subbasin related parameters"
 /// Files or database constant strings
-#define ASCIIExtension                                    ".asc"
-#define GTiffExtension                                    ".tif"
-#define TextExtension                                    ".txt"
-#define MongoGridFS										"GridFS"
+//#define ASCIIExtension                                    ".asc"
+//#define GTiffExtension                                    ".tif"
+#define TextExtension                                    "txt"
+//#define MongoGridFS										"GridFS"
 #define NAME_MASK                                        "MASK"
 
 #define File_Config                                            "config.fig"

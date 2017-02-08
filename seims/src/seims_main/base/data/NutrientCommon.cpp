@@ -1,5 +1,4 @@
 #include "NutrientCommon.h"
-#include "util.h"
 
 NutrCommon::NutrCommon()
 {

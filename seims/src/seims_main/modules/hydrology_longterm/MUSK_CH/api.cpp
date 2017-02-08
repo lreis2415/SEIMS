@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "MUSK_CH.h"
 #include <iostream>
 #include "SimulationModule.h"

@@ -10,11 +10,11 @@
 #pragma once
 
 #include <string>
-#include "MetadataInfoConst.h"
-#include "mongoc.h"
-#include "MongoUtil.h"
-#include "ModelException.h"
 #include <map>
+#include "MetadataInfoConst.h"
+#include "text.h"
+#include "utilities.h"
+#include "MongoUtil.h"
 
 using namespace std;
 

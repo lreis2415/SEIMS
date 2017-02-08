@@ -4,11 +4,6 @@
  * \date June 2016
  */
 #include "PlantManagementOperation.h"
-#include <sstream>
-#include <iomanip>
-#include "utils.h"
-#include "BMPText.h"
-#include "util.h"
 
 using namespace MainBMP;
 using namespace PlantManagement;
