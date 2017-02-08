@@ -1,6 +1,6 @@
 #include <vector>
 #include <map>
-#include <string.h>
+#include <string>
 #include <iostream>
 #include <cmath>
 #include <sstream>
@@ -8,20 +8,10 @@
 #include <cstdlib>
 #include <algorithm>
 
-//gdal
-#include "gdal.h"
-#include "gdal_priv.h"
-#include "cpl_string.h"
-
-//mongodb
-#include "mongo.h"
-#include "bson.h"
-#include "gridfs.h"
-
-//this project
-#include "util.h"
+#include "utilities.h"
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
 #include "SubBasin.h"
-#include "Raster.cpp"
 
 using namespace std;
 
