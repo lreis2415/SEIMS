@@ -3,7 +3,7 @@
 #include "SSR_DA.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <omp.h>
 #include <stdlib.h>
 

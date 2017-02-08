@@ -4,7 +4,7 @@
 #include "PlantGrowthCommon.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
 using namespace std;
 
@@ -910,7 +910,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp)
 	/// if current landcover is paddy rice, then apply the commercial fertilizer to the top surface and pothole.
 	int lyrs = 2;
 	if (m_potVol != NULL){
-	if (FloatEqual(m_landCover[i], CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f){
+	if (FloatEqual((int) m_landCover[i], CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f){
 			lyrs = 1;
 			xx = 1.f - fertilizerSurfFrac;
 			m_potNo3[i] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN * m_cellArea; /// kg/ha * ha ==> kg

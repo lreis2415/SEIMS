@@ -36,7 +36,7 @@ int main(int argc, const char *argv[])
         i = 2;
     while (argc > i)
     {
-        if (isPathExists(argv[i]))
+        if (PathExists(string(argv[i])))
         {
             modelPath = argv[i];
             i++;

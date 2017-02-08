@@ -6,6 +6,10 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
+#include "BMPText.h"
+#include "utilities.h"
 
 using namespace std;
 namespace MainBMP

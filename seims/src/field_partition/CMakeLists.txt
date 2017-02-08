@@ -39,7 +39,7 @@ IF (OPENMP_FOUND)
 ENDIF ()
 ##############  Set common libraries   ###############
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/util.cpp ${UTILS_INC}/StringList.cpp ${UTILS_INC}/ModelException.cpp)
+set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
 SET(RASTER_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/RasterClass)
 SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ################ Add executables #################

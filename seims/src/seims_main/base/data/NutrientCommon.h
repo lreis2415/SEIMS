@@ -4,6 +4,7 @@
  * \date 2016-9-28
  */
 #pragma once
+#include "utilities.h"
 /*!
  * \class NutrCommon
  * \ingroup data

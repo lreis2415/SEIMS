@@ -9,8 +9,10 @@
  */
 #pragma once
 
+#include <fstream>
 #include "Measurement.h"
 #include "text.h"
+#include "utilities.h"
 #include "MongoUtil.h"
 
 /*!

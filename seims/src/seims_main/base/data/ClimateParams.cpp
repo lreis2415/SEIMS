@@ -5,16 +5,12 @@
  * \date April 2016
  *
  */
-#ifdef MSVC
-#pragma once
-#endif
 
-#include "ClimateParams.h"
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
+#include "ClimateParams.h"
 
 using namespace std;
 

@@ -6,17 +6,30 @@
  *
  * 
  */
-#pragma once
+#ifndef SEIMS_MODEL_MAIN
+#define SEIMS_MODEL_MAIN
 
+/// include build-in libs
 #include <string>
 #include <set>
 #include <map>
+#include <ctime>
+#include <sstream>
+
+/// include Utilities classes
+#include "utilities.h"
+/// include data related
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
+#include "ClimateParams.h"
+/// include module_setting related
 #include "SettingsInput.h"
 #include "SettingsOutput.h"
-#include "mongoc.h"
 #include "ModuleFactory.h"
-#include "utils.h"
-#include "clsRasterData.cpp"
+#include "PrintInfo.h"
+/// include SEIMS text macro definition
+#include "seims.h"
+
 
 using namespace std;
 
@@ -205,4 +218,4 @@ private:
     //! Channel time interval
     time_t m_dtCh;
 };
-
+#endif

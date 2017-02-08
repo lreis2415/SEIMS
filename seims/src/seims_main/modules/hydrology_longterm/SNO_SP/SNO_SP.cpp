@@ -3,7 +3,7 @@
 #include "ModelException.h"
 #include <math.h>
 #include <cmath>
-#include "util.h"
+#include "utilities.h"
 #include "ClimateParams.h"
 #include "PlantGrowthCommon.h"
 #include <omp.h>

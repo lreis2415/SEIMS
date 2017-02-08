@@ -13,7 +13,7 @@
 
 #include <string>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;

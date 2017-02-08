@@ -5,19 +5,13 @@
  * \date June 2010
  */
 #include "clsSimpleTxtData.h"
-#include "utils.h"
-#include <fstream>
-//#include "util.h"
-#include "ModelException.h"
-//#include <string>
 
 clsSimpleTxtData::clsSimpleTxtData(string fileName)
 {
     m_row = 0;
     m_data = NULL;
 
-    utils util;
-    if (!util.FileExists(fileName)) throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + fileName +
+    if (!FileExists(fileName)) throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + fileName +
                                                                                          " does not exist or has not read permission.");
 
     //StatusMessage(("read " + fileName + "...").c_str());
@@ -25,7 +19,6 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName)
     ifstream myfile;
     myfile.open(fileName.c_str(), ifstream::in);
     string line;
-    utils utl;
 
     //get number of lines
     if (myfile.is_open())
@@ -37,13 +30,13 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName)
             if (myfile.good())
             {
                 getline(myfile, line);
-                utl.TrimSpaces(line);
+                TrimSpaces(line);
                 if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
                 {
-                    vector<string> tokens = utl.SplitString(line, '|');
+                    vector<string> tokens = SplitString(line, '|');
                     if (tokens.size() > 0)
                     {
-                        utl.TrimSpaces(tokens[0]);
+                        TrimSpaces(tokens[0]);
                         data.push_back(float(atof(tokens[0].c_str())));//add data
                     }
                 }

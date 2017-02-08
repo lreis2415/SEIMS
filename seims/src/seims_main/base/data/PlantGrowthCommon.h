@@ -6,6 +6,7 @@
  * \date June, 2016
  */
 #pragma once
+#include "utilities.h"
 //using namespace std;
 #define MAX_CROP_LAND_USE_ID 97
 #define BARE_SOIL_LAND_USE     98

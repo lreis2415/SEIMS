@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: STP_FP...")
 SET(SRC_LIST ${MODULE_SRC} SoilTemperatureFINPL.cpp api.cpp)
 ADD_LIBRARY(STP_FP SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS STP_FP DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET STP_FP PROPERTY FOLDER "modules/hydrology_longterm")

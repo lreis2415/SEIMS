@@ -13,8 +13,8 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
         : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
 {
         m_arealSrcMgtTab = m_bmpCollection;
-        m_arealSrcIDs = utils::SplitStringForInt(location, ',');
-        vector<string> dist = utils::SplitString(distribution, '|');
+        m_arealSrcIDs = SplitStringForInt(location, ',');
+        vector<string> dist = SplitString(distribution, '|');
         if (dist.size() == 4 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER))
         {
                 m_arealSrcDistName = dist[1];
@@ -85,8 +85,8 @@ void BMPArealSrcFactory::ReadArealSourceManagements(mongoc_client_t *conn, strin
 
         collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_arealSrcMgtTab.c_str());
         if (collection == NULL)
-                throw ModelException("BMPs Scenario", "Read Areal Source Management",
-                                     "Failed to get collection: " + m_arealSrcMgtTab + ".\n");
+			throw ModelException("BMPs Scenario", "Read Areal Source Management",
+			"Failed to get collection: " + m_arealSrcMgtTab + ".\n");
         cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
 
         int count = 1; /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
@@ -175,46 +175,46 @@ ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
         m_name(""), m_seqence(-1)
 {
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME))
-                m_name = GetStringFromBSONITER(&iter);
+                m_name = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SEQUENCE))
-                m_seqence = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_seqence);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_Q))
-                m_waterVolume = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_waterVolume);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_SED))
-                m_sedimentConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_sedimentConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_TN))
-                m_TNConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_TNConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_NO3))
-                m_NO3Conc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_NO3Conc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_NH4))
-                m_NH4Conc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_NH4Conc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_ORGN))
-                m_OrgNConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_OrgNConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_TP))
-                m_TPConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_TPConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_SOLP))
-                m_SolPConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_SolPConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_ORGP))
-                m_OrgPConc = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_OrgPConc);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_COD))
-                m_COD = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_COD);
         int sYear, sMonth, sDay, eYear, eMonth, eDay;
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SYEAR))
-                sYear = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, sYear);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SMONTH))
-                sMonth = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, sMonth);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SDAY))
-                sDay = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, sDay);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_EYEAR))
-                eYear = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, eYear);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_EMONTH))
-                eMonth = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, eMonth);
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_EDAY))
-                eDay = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, eDay);
         if (sYear > 0 && sMonth > 0 && sDay > 0)
-                m_startDate = utils::ConvertYMDToTime(sYear, sMonth, sDay);
+                m_startDate = ConvertYMDToTime(sYear, sMonth, sDay);
         if (eYear > 0 && eMonth > 0 && eDay > 0)
-                m_endDate = utils::ConvertYMDToTime(eYear, eMonth, eDay);
+                m_endDate = ConvertYMDToTime(eYear, eMonth, eDay);
 }
 
 ArealSourceMgtParams::~ArealSourceMgtParams(void)
@@ -226,9 +226,9 @@ void ArealSourceMgtParams::Dump(ostream *fs)
         if (fs == NULL) return;
         *fs << "    Point Source Managements: " << endl;
         if (m_startDate != 0)
-                *fs << "      Start Date: " << utils::ConvertToString(&m_startDate) << endl;
+                *fs << "      Start Date: " << ConvertToString(&m_startDate) << endl;
         if (m_endDate != 0)
-                *fs << "      End Date: " << utils::ConvertToString(&m_endDate) << endl;
+                *fs << "      End Date: " << ConvertToString(&m_endDate) << endl;
         *fs << "      WaterVolume: " << m_waterVolume << ", Sediment: " << m_sedimentConc <<
                 ", TN: " << m_TNConc << ", NO3: " << m_NO3Conc <<
                 ", NH4: " << m_NH4Conc << ", OrgN: " << m_OrgNConc <<
@@ -245,11 +245,11 @@ ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t
         : m_nCells(-1), m_size(0.f)
 {
         if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME))
-                m_name = GetStringFromBSONITER(&iter);
+                m_name = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_PTSRCID))
-                m_arealSrcID = GetIntFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_arealSrcID);
         if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_SIZE))
-                m_size = GetFloatFromBSONITER(&iter);
+                GetNumericFromBsonIterator(&iter, m_size);
 }
 
 ArealSourceLocations::~ArealSourceLocations(void)
@@ -262,7 +262,7 @@ void ArealSourceLocations::SetValidCells(int n, float* mgtFieldIDs)
         {
                 for (int i = 0; i < n; i++)
                 {
-                        if(FloatEqual(m_arealSrcID, mgtFieldIDs[i]))
+                        if(FloatEqual(m_arealSrcID, (int) mgtFieldIDs[i]))
                                 m_cellsIndex.push_back(i);
                 }
                 vector<int>(m_cellsIndex).swap(m_cellsIndex);

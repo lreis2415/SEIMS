@@ -19,8 +19,7 @@ SEIMSModuleSetting::~SEIMSModuleSetting(void)
 //! Get settings
 void SEIMSModuleSetting::getSettings()
 {
-    utils util;
-    m_settings = util.SplitString(m_settingString, '_');
+    m_settings = SplitString(m_settingString, '_');
 }
 
 string SEIMSModuleSetting::dataTypeString() { return dataType2String(dataType()); }

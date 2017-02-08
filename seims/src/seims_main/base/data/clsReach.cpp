@@ -7,8 +7,6 @@
  *
  */
 #include "clsReach.h"
-#include "util.h"
-//#include <iostream>
 
 using namespace std;
 
@@ -18,90 +16,90 @@ clsReach::clsReach(const bson_t *&bsonTable)
     /// reset default values
     Reset();
     if (bson_iter_init_find(&iterator, bsonTable, REACH_SUBBASIN))
-        this->SubbasinID = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->SubbasinID);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_DOWNSTREAM))
-        this->DownStream = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->DownStream);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_UPDOWN_ORDER))
-        this->UpDownOrder = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->UpDownOrder);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_DOWNUP_ORDER))
-        this->DownUpOrder = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->DownUpOrder);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_WIDTH))
-        this->Width = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Width);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_SIDESLP))
-		this->SideSlope = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->SideSlope);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_LENGTH))
-        this->Length = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Length);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_DEPTH))
-        this->Depth = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Depth);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_V0))
-        this->V0 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->V0);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_AREA))
-        this->Area = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Area);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_MANNING))
-        this->Manning = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Manning);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_SLOPE))
-        this->Slope = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Slope);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_GROUP))
-        this->Group = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->Group);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_GROUPDIVIDED))
-        this->GroupDivided = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->GroupDivided);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_NUMCELLS))
-        this->NumCells = GetIntFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->NumCells);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_BC1))
-        this->bc1 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->bc1);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_BC2))
-        this->bc2 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->bc2);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_BC3))
-        this->bc3 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->bc3);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_BC4))
-        this->bc4 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->bc4);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RS1))
-        this->rs1 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rs1);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RS2))
-        this->rs2 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rs2);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RS3))
-        this->rs3 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rs3);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RS4))
-        this->rs4 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rs4);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RS5))
-        this->rs5 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rs5);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RK1))
-        this->rk1 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rk1);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RK2))
-        this->rk2 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rk2);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RK3))
-        this->rk3 = GetFloatFromBSONITER(&iterator);
+        GetNumericFromBsonIterator(&iterator, this->rk3);
     if (bson_iter_init_find(&iterator, bsonTable, REACH_RK4))
-		this->rk4 = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->rk4);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_COVER))
-		this->cover = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->cover);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_EROD))
-		this->erod = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->erod);
 	/// nutrient related
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_DISOX))
-		this->disox = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->disox);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_BOD)){
-		this->cod = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->cod);
 		if (this->cod <= 1.e-6f) this->cod = 1.e-6f;
 	}
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_ALGAE))
-		this->algae = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->algae);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_NO3))
-		this->no3 = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->no3);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_NO2))
-		this->no2 = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->no2);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_NH4))
-		this->nh4 = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->nh4);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_ORGN))
-		this->orgn = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->orgn);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_ORGP))
-		this->orgp = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->orgp);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_SOLP))
-		this->solp = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->solp);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_GWNO3))
-		this->gwno3 = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->gwno3);
 	if (bson_iter_init_find(&iterator, bsonTable, REACH_GWSOLP))
-		this->gwsolp = GetFloatFromBSONITER(&iterator);
+		GetNumericFromBsonIterator(&iterator, this->gwsolp);
 }
 
 clsReach::~clsReach(void)

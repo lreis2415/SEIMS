@@ -1,6 +1,6 @@
 #include "SOL_WB.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <cmath>
 #include <time.h>

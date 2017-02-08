@@ -13,7 +13,9 @@
 
 #include <string>
 #include <vector>
-#include "mongoc.h"
+#include "utilities.h"
+#include "MongoUtil.h"
+
 
 using namespace std;
 

@@ -16,9 +16,7 @@
 #include <sstream> 
 #include <algorithm> 
 #include <iterator> 
-#include "utils.h"
-#include "util.h"
-#include "ModelException.h"
+#include "utilities.h"
 
 using namespace std;
 

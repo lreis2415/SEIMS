@@ -1,8 +1,8 @@
 #include "ModuleFactory.h"
-#include "clsRasterData.cpp"
 
-ModuleFactory::ModuleFactory(const string &configFileName, const string &modelPath, mongoc_client_t *conn,
-                             const string &dbName, int subBasinID, LayeringMethod layingMethod, int scenarioID)
+
+ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn,
+                             string &dbName, int subBasinID, LayeringMethod layingMethod, int scenarioID)
         : m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID), 
           m_layingMethod(layingMethod), m_scenarioID(scenarioID),
 		  m_reaches(NULL), m_scenario(NULL), m_subbasins(NULL)
@@ -10,6 +10,7 @@ ModuleFactory::ModuleFactory(const string &configFileName, const string &modelPa
     Init(configFileName);
 #ifdef USE_MONGODB
     bson_error_t *err = NULL;
+	m_spatialData = NULL;
     m_spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
 	m_rsMap.clear();
     if (err != NULL)
@@ -28,8 +29,8 @@ ModuleFactory::ModuleFactory(const string &configFileName, const string &modelPa
 ModuleFactory::~ModuleFactory(void)
 {
 #ifdef USE_MONGODB
-    mongoc_gridfs_destroy(m_spatialData);
-    mongoc_client_destroy(m_conn);
+	if (m_spatialData != NULL) mongoc_gridfs_destroy(m_spatialData);
+    //mongoc_client_destroy(m_conn); // m_conn will be released in MongoClient
 #endif
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
@@ -145,14 +146,14 @@ void ModuleFactory::Init(const string &configFileName)
         string dllID = id;
         // for ITP modules, the input ids are ITP_T, ITP_P and ITP should be used as ID name
         if (id.find(MID_ITP) != string::npos)
-#ifndef linux
-            dllID = MID_ITP;
+#ifdef windows
+        dllID = MID_ITP;
 #else
-            dllID = Tag_So + string(MID_ITP);
+        dllID = Tag_So + string(MID_ITP);
 #endif
         else if (id.find(MID_TSD_RD) != string::npos)
-#ifndef linux
-            dllID = MID_TSD_RD;
+#ifdef windows
+        dllID = MID_TSD_RD;
 #else
         dllID = Tag_So + string(MID_TSD_RD);
 #endif
@@ -215,7 +216,7 @@ void ModuleFactory::GetBMPScenarioDBName()
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB))
         {
-            m_dbScenario = GetStringFromBSONITER(&iter);
+            m_dbScenario = GetStringFromBsonIterator(&iter);
             break;
         }
     }
@@ -244,21 +245,21 @@ void ModuleFactory::ReadParametersFromMongoDB()
         ParamInfo *p = new ParamInfo();
         bson_iter_t iter;
         if (bson_iter_init_find(&iter, info, PARAM_FLD_NAME))
-            p->Name = GetStringFromBSONITER(&iter);
+            p->Name = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_UNIT))
-            p->Units = GetStringFromBSONITER(&iter);
+            p->Units = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_VALUE))
-            p->Value = GetFloatFromBSONITER(&iter);
+            GetNumericFromBsonIterator(&iter, p->Value);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE))
-            p->Change = GetStringFromBSONITER(&iter);
+            p->Change = GetStringFromBsonIterator(&iter);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT))
-            p->Impact = GetFloatFromBSONITER(&iter);
+            GetNumericFromBsonIterator(&iter, p->Impact);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_MAX))
-            p->Max = GetFloatFromBSONITER(&iter);
+            GetNumericFromBsonIterator(&iter, p->Maximum);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN))
-            p->Min = GetFloatFromBSONITER(&iter);
+            GetNumericFromBsonIterator(&iter, p->Minimun);
         if (bson_iter_init_find(&iter, info, PARAM_FLD_USE))
-            p->Use = GetStringFromBSONITER(&iter);
+            p->Use = GetStringFromBsonIterator(&iter);
         m_parametersInDB[GetUpper(p->Name)] = p;
     }
     mongoc_cursor_destroy(cursor);
@@ -292,8 +293,7 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
         modules.push_back(pModule);
     }
 	double t1 = TimeCounting();
-    //clock_t t1 = clock();
-    //initial parameter (reading parameter information from database)
+    /// initial parameter (reading parameter information from database)
     //cout << "reading parameter information from database...\n";
     for (size_t i = 0; i < n; i++)
     {
@@ -318,24 +318,14 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
                 }
             }
         }
-        //cout << "\t" << id << endl;
         for (size_t j = 0; j < parameters.size(); j++)
         {
-            //cout << parameters.size() << "\t" << j << "\t";
             ParamInfo &param = parameters[j];
-            //if (param.Dimension != DT_Single)
-            //	cout << "\t\t" << param.Name << endl;
-   //         cout << "\t\t" << id << " : " << param.Name << endl;
-			//if (StringMatch(param.Name,"SOL_SOLP"))
-			//{
-			//	cout<<"error"<<endl;
-			//}
             SetData(dbName, subbasinID, m_settings[id], &param, templateRaster, settingsInput, modules[i],
                     verticalInterpolation);
         }
     }
 	double t2 = TimeCounting();
-    //clock_t t2 = clock();
     StatusMessage("Reading parameter finished.\n");
     return float(t2 - t1);
 }
@@ -377,9 +367,8 @@ void ModuleFactory::ReadDLL(string &id, string &dllID)
         return;
 
     // check if the dll file exists
-    string moduleFileName = trim(m_modulePath) + string(dllID) + string(Tag_ModuleExt);
-    utils util;
-    if (!util.FileExists(moduleFileName))
+    string moduleFileName = trim(m_modulePath) + string(dllID) + string(Tag_DyLib);
+    if (!FileExists(moduleFileName))
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
 
     //load library
@@ -460,7 +449,7 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
             {
                 if (elItm->GetText() != NULL)
                 {
-                    param->Name = GetUpper(elItm->GetText());
+                    param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     param->ClimateType = setting->dataTypeString();
 
@@ -623,7 +612,7 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
             {
                 if (elItm->GetText() != NULL)
                 {
-                    param->Name = GetUpper(elItm->GetText());
+                    param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     param->IsConstant = IsConstantInputFromName(param->Name);
                     if (setting->dataTypeString().length() > 0)
@@ -743,7 +732,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
             {
                 if (elItm->GetText() != NULL)
                 {
-                    param->Name = GetUpper(elItm->GetText());
+                    param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     if (setting->dataTypeString().size() > 0)
                         param->Name = param->Name + "_" + setting->dataTypeString();
@@ -824,7 +813,6 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<str
     bool bStatus = false;
     ifstream myfile;
     string line;
-    utils utl;
     string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
                              DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
                              DataType_RelativeAirMoisture};
@@ -843,13 +831,13 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<str
                     if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
                     {
                         // parse the line into separate item
-                        vector<string> tokens = utl.SplitString(line, '|');
+                        vector<string> tokens = SplitString(line, '|');
                         // is there anything in the token list?
                         if (tokens.size() > 0)
                         {
                             for (size_t i = 0; i < tokens.size(); i++)
                             {
-                                //utl.TrimSpaces(tokens[i]);
+                                //TrimSpaces(tokens[i]);
                                 tokens[i] = trim(tokens[i]);
                             }
                             // is there anything in the first item?
@@ -868,7 +856,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<str
                                         tokensTemp[1] += "_" + T_variables[j];
                                         if (tokens[3].find(MID_ITP) != string::npos)
                                         {
-                                            vector<string> ITPProperty = utl.SplitString(line, '_');
+                                            vector<string> ITPProperty = SplitString(line, '_');
                                             if (ITPProperty.size() == 2)
                                             {
                                                 int isVertical = atoi(ITPProperty[1].c_str());
@@ -1252,7 +1240,7 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
 #ifndef MULTIPLY_REACHES
             ReadLongTermReachInfo(m_conn, m_dbName, nSubbasin, nRows, nCols, data);
 #else
-            ReadLongTermMutltiReachInfo(m_conn, m_dbName, nRows, nCols, data);
+            ReadLongTermMultiReachInfo(m_conn, m_dbName, nRows, nCols, data);
 #endif
 #endif
         }
@@ -1304,7 +1292,7 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
         try
         {
 #ifdef USE_MONGODB
-            raster = new clsRasterData<float>(m_spatialData, remoteFileName.c_str(), templateRaster);
+            raster = new clsRasterData<float>(m_spatialData, remoteFileName.c_str(), true, templateRaster);
             string upperName = GetUpper(paraName);
             /// 1D or 2D raster data
             if (raster->is2DRaster())
@@ -1544,11 +1532,10 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
 //
 //	string line;
 //	getline(ifs, line);
-//	utils utl;
 //	for (int i = 0; i < nReaches; ++i)
 //	{
 //		getline(ifs, line);
-//		vector<string> vec = utl.SplitString(line);
+//		vector<string> vec = SplitString(line);
 //		data[0][i] = atof(vec[0].c_str());
 //		if (layeringMethod == UP_DOWN)
 //			data[1][i] = atof(vec[2].c_str());
@@ -1576,11 +1563,10 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
 //
 //	string line;
 //	getline(ifs, line);
-//	utils utl;
 //	for (int i = 0; i < nReachesAll; ++i)
 //	{
 //		getline(ifs, line);
-//		vector<string> vec = utl.SplitString(line);
+//		vector<string> vec = SplitString(line);
 //		int curSubbasin = atoi(vec[0].c_str());
 //		if (curSubbasin == nSubbasin)
 //		{

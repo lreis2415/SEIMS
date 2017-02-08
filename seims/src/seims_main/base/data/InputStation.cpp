@@ -4,15 +4,8 @@
  * \version 1.1
  * \date May 2016
  */
-#include <fstream>
-#include <sstream>
-#include <ctime>
 #include "InputStation.h"
-#include "util.h"
-#include "utils.h"
-#include "ModelException.h"
-#include "RegularMeasurement.h"
-#include "NotRegularMeasurement.h"
+
 
 using namespace std;
 
@@ -108,7 +101,7 @@ void InputStation::build_query_bson(int nSites, vector<int> &siteIDList, string 
 
 void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sitesList)
 {
-    vector<string> vecSites = utils::SplitString(sitesList, ',');
+    vector<string> vecSites = SplitString(sitesList, ',');
     int nSites = vecSites.size();
     //convert from string to int, the IDList is in order in MongoDB
     vector<int> siteIDList;
@@ -137,25 +130,19 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
         int siteIndex = -1;
         int curSiteID = -1;
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID))
-        {
-            curSiteID = GetIntFromBSONITER(&iter);
-        }
+			GetNumericFromBsonIterator(&iter, curSiteID);
         else
             throw ModelException("Measurement", "Measurement",
                                  "The Site ID field does not exist in Sites table, Please check and retry.");
         siteIDIter = find(siteIDList.begin(), siteIDList.end(), curSiteID);
         siteIndex = distance(siteIDList.begin(), siteIDIter);
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_SITE_LAT))
-        {
-            lat = GetFloatFromBSONITER(&iter);
-        }
+			GetNumericFromBsonIterator(&iter, lat);
         else
             throw ModelException("InputStation", "ReadSitesInfo", "The Lat field does not exist in Sites table.");
 
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_SITE_ELEV))
-        {
-            ele = GetFloatFromBSONITER(&iter);
-        }
+			GetNumericFromBsonIterator(&iter, ele);
         else
             throw ModelException("InputStation", "ReadSitesInfo", "The Lat field does not exist in Sites table.");
         pLat[siteIndex] = lat;

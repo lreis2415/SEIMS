@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "SNO_SP.h"
 #include <iostream>
 #include "SimulationModule.h"

@@ -6,12 +6,6 @@
  * \date June 2010
  */
 #include "SettingsInput.h"
-#include "util.h"
-#include "utils.h"
-//#include "DBManager.h"
-#include "ModelException.h"
-#include "MongoUtil.h"
-#include <cstdlib>
 
 using namespace std;
 
@@ -47,9 +41,8 @@ SettingsInput::~SettingsInput(void)
 bool SettingsInput::readDate()
 {
     //read start and end time
-    utils utl;
-    m_startDate = utl.ConvertToTime2(Value(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
-    m_endDate = utl.ConvertToTime2(Value(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
+    m_startDate = ConvertToTime2(Value(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
+    m_endDate = ConvertToTime2(Value(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
 
     if (m_startDate == -1 || m_endDate == -1) return false;
 
@@ -64,7 +57,7 @@ bool SettingsInput::readDate()
     m_mode = GetUpper(Value(Tag_Mode));
 
     //read interval
-    vector<string> dtList = utl.SplitString(Value(Tag_Interval), ',');
+    vector<string> dtList = SplitString(Value(Tag_Interval), ',');
     m_dtHs = atoi(dtList[0].c_str());
     m_dtCh = m_dtHs;
     if (dtList.size() > 1)
@@ -101,14 +94,14 @@ void SettingsInput::ReadSiteList()
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB))
         {
-            m_dbHydro = GetStringFromBSONITER(&iter);
+            m_dbHydro = GetStringFromBsonIterator(&iter);
         }
         else
             throw ModelException("SettingsInput", "ReadSiteList", "The DB field does not exist in SiteList table.");
         string siteList = "";
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_M))
         {
-            siteList = GetStringFromBSONITER(&iter);
+            siteList = GetStringFromBsonIterator(&iter);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_MeanTemperature, m_startDate, m_endDate);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_MaximumTemperature, m_startDate, m_endDate);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_MinimumTemperature, m_startDate, m_endDate);
@@ -119,14 +112,14 @@ void SettingsInput::ReadSiteList()
 
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P))
         {
-            siteList = GetStringFromBSONITER(&iter);
+            siteList = GetStringFromBsonIterator(&iter);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_Precipitation, m_startDate, m_endDate,
                                           stormMode);
         }
 
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_PET))
         {
-            siteList = GetStringFromBSONITER(&iter);
+            siteList = GetStringFromBsonIterator(&iter);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_PotentialEvapotranspiration, m_startDate,
                                           m_endDate, stormMode);
         }
@@ -164,9 +157,9 @@ bool SettingsInput::LoadSettingsInputFromMongoDB()
     {
         vector<string> tokens(2);
         if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfTag))
-            tokens[0] = GetStringFromBSONITER(&itertor);
+            tokens[0] = GetStringFromBsonIterator(&itertor);
         if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfValue))
-            tokens[1] = GetStringFromBSONITER(&itertor);
+            tokens[1] = GetStringFromBsonIterator(&itertor);
         int sz = m_Settings.size();        // get the current number of rows
         m_Settings.resize(sz + 1);        // resize with one more row
         m_Settings[sz] = tokens;
@@ -180,12 +173,11 @@ bool SettingsInput::LoadSettingsInputFromMongoDB()
 void SettingsInput::Dump(string fileName)
 {
     ofstream fs;
-    utils util;
     fs.open(fileName.c_str(), ios::out);
     if (fs.is_open())
     {
-        fs << "Start Date :" << util.ConvertToString2(&m_startDate) << endl;
-        fs << "End Date :" << util.ConvertToString2(&m_endDate) << endl;
+        fs << "Start Date :" << ConvertToString2(&m_startDate) << endl;
+        fs << "End Date :" << ConvertToString2(&m_endDate) << endl;
         fs << "Interval :" << m_dtHs << "\t" << m_dtCh << endl;
         fs.close();
     }

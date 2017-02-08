@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling main_subdir: functiontest...")
 SET(SRC_LIST main.cpp)
 ADD_EXECUTABLE(functionTest ${SRC_LIST})
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS functionTest DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET c PROPERTY FOLDER "main")

@@ -1,38 +1,10 @@
 /*!
  * \brief Implementation of invoking SEIMS
- * \author Junzhi Liu
+ * \author Junzhi Liu, Liangjun Zhu
  * \date May 2010
- *
- *
+ * \revised Feb 2017
  */
 #include "invoke.h"
-
-#define BUFSIZE 255
-
-string _GetApplicationPath()
-{
-    string RootPath;
-#ifndef linux
-    TCHAR buffer[BUFSIZE];
-    GetModuleFileName(NULL, buffer, BUFSIZE);
-    RootPath = string((char *) buffer);
-#else
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
-    static char buf[PATH_MAX];
-    int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
-    if(rslt < 0 || rslt >= PATH_MAX)
-        buf[0] = '\0';
-    else
-        buf[rslt] = '\0';
-    RootPath = buf;
-#endif
-    basic_string<char>::size_type idx = RootPath.find_last_of(SEP);
-    RootPath = RootPath.substr(0, idx + 1);
-    return RootPath;
-}
-
 
 void checkTable(vector<string> &tableNameList, string dbName, const char *tableName)
 {
@@ -49,8 +21,7 @@ void checkTable(vector<string> &tableNameList, string dbName, const char *tableN
 
 void checkDatabase(mongoc_client_t *conn, string dbName)
 {
-    vector<string> tableNames;
-    GetCollectionNames(conn, dbName, tableNames);
+	vector<string> tableNames = MongoDatabase(conn, dbName).getCollectionNames();
     checkTable(tableNames, dbName, DB_TAB_PARAMETERS);
 #ifndef MULTIPLY_REACHES
     checkTable(tableNames, dbName, DB_TAB_REACH);
@@ -63,106 +34,64 @@ void checkDatabase(mongoc_client_t *conn, string dbName)
 
 void checkProject(string projectPath)
 {
-    utils util;
     string checkFilePath = projectPath + File_Config;
-    if (!util.FileExists(checkFilePath))
+    if (!FileExists(checkFilePath))
         throw ModelException("ModelMain", "checkProject", checkFilePath +
                                                           " does not exist or has not the read permission!");
 
     checkFilePath = projectPath + File_Input;
-    if (!util.FileExists(checkFilePath))
+    if (!FileExists(checkFilePath))
         throw ModelException("ModelMain", "checkProject", checkFilePath +
                                                           " does not exist or has not the read permission!");
 
     checkFilePath = projectPath + File_Output;
-    if (!util.FileExists(checkFilePath))
+    if (!FileExists(checkFilePath))
         throw ModelException("ModelMain", "checkProject", checkFilePath +
                                                           " does not exist or has not the read permission!");
 	// create OUTPUT folder and empty it
 
 }
 
-
-
-bool isPathExists(const char *path)
-{
-    bool isExists;
-#ifndef linux
-    struct _stat fileStat;
-    isExists = (_stat(path, &fileStat) == 0) && (fileStat.st_mode & _S_IFDIR);
-#else
-    struct stat fileStat;
-    isExists = (stat(path, &fileStat) == 0) && S_ISDIR(fileStat.st_mode);
-#endif
-    return isExists;
-}
-
 void MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numThread, LayeringMethod layeringMethod)
 {
-    try
-    {
-        string exePath = _GetApplicationPath();
-        string projectPath = modelPath + SEP;
+    try{
+		/// 1. Get paths and model name
+		string exePath = GetAppPath();
         string modulePath = exePath + SEP;
-        checkProject(projectPath);
-
-        size_t nameIdx = modelPath.rfind(SEP);
-        string dbName = modelPath.substr(nameIdx + 1);
+        string projectPath = modelPath + SEP;
 		string configFile = projectPath + File_Config;
-        mongoc_client_t *conn;
-        if (!isIPAddress(host))
-            throw ModelException("MainMongoDB", "Connect to MongoDB",
-                                 "IP address: " + string(host) + "is invalid, Please check!\n");
-        mongoc_init();
-        mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
-        conn = mongoc_client_new_from_uri(uri);
-        /// Check the connection to MongoDB is success or not
-        bson_t *reply = bson_new();
-        bson_error_t *err = NULL;
-        if (!mongoc_client_get_server_status(conn, NULL, reply, err))
-            throw ModelException(MODEL_NAME, "MainMongoDB", "Failed to connect to MongoDB!\n");
-        bson_destroy(reply);
+		checkProject(projectPath);
+		size_t nameIdx = modelPath.rfind(SEP);
+		string dbName = modelPath.substr(nameIdx + 1);
+
+		/// 2. Connect to MongoDB database, and make sure the required data is available.
+		MongoClient dbclient = MongoClient(host, port);
+		mongoc_client_t *conn = dbclient.getConn();
 
         /// TODO: ADD CHECK DATABASE AND TABLE, LJ.
-        char **dbnames;
-        unsigned i;
-        bool dbExist = false;
-        dbnames = mongoc_client_get_database_names(conn, err);
-        if (err == NULL)
-        {
-            for (i = 0; dbnames[i]; i++)
-            {
-                if (StringMatch(string(dbnames[i]), dbName))
-                {
-                    dbExist = true;
-                    break;
-                }
-            }
-            bson_strfreev(dbnames);
-        }
-        if (!dbExist)
-            throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!\n");
+		vector<string> dbnames = dbclient.getDatabaseNames();
+		if (!ValueInVector(dbName, dbnames))
+			throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!\n");
         /// CHECK FINISHED
 
-        int nSubbasin = 0; // updated 2016-10-28, 0 means the whole basin. By LJ
-		/// Load Setting Input from file.in, which is deprecated now! By LJ
+		/// 3. Create main model according to subbasin number, 0 means the whole basin.
+        int nSubbasin = 0;
+		/// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
         /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
         SettingsInput *input = new SettingsInput(conn, dbName, nSubbasin);
+		/// 3.2 Constructor module factories by "config.fig" file
         ModuleFactory *factory = new ModuleFactory(configFile, modulePath, conn, dbName, nSubbasin, layeringMethod, scenarioID);
-		/// Setting Output is loaded in ModelMain.
+		/// 3.3 Constructor SEIMS model, BTW, SettingsOutput is created in ModelMain.
         ModelMain main(conn, dbName, projectPath, input, factory, nSubbasin, scenarioID, numThread, layeringMethod);
-        main.Execute();
+        
+		/// 4. Run SEIMS model and export outputs.
+		main.Execute();
 		main.Output();
-
-        mongoc_uri_destroy(uri);
-        mongoc_cleanup();
     }
-    catch (ModelException e)
-    {
+    catch (ModelException e){
         cout << e.toString() << endl;
-    }
-    catch (exception e)
-    {
+	}
+    catch (exception e){
         cout << e.what() << endl;
-    }
+	}
 }

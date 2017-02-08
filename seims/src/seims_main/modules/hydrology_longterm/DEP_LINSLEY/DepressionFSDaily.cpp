@@ -11,7 +11,7 @@
 #include "DepressionFSDaily.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <cmath>
 #include <omp.h>
 

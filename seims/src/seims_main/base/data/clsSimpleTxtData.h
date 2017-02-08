@@ -14,6 +14,8 @@
 
 #include <string>
 #include <ostream>
+#include <fstream>
+#include "utilities.h"
 
 using namespace std;
 

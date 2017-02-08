@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
 

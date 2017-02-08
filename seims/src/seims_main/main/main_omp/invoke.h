@@ -7,27 +7,19 @@
  *
  *
  */
-#pragma once
+#ifndef SEIMS_INVOKE
+#define SEIMS_INVOKE
 
-#include <string>
-#include "util.h"
-#include "tinyxml.h"
-//#include <io.h>
-#include "ParamInfo.h"
-#include "PrintInfo.h"
-//#include "DBManager.h"
-//#include "SiteInfo.h"
-#include "Settings.h"
-#include "SettingsInput.h"
-#include "SettingsOutput.h"
-#include "StringList.h"
 #include "ModelMain.h"
-#include "ModelException.h"
+/// include module_setting related
+#include "tinyxml.h"
+#include "ParamInfo.h"
+#include "Settings.h"
 
 using namespace std;
 
-//! Get the root path of the current executable (i.e., seims_omp or seims).
-string _GetApplicationPath();
+////! Get the root path of the current executable (i.e., seims_omp or seims).
+//string _GetApplicationPath();
 
 //! Check database to make sure the collections (tables) are provided
 void checkDatabase(mongoc_client_t *conn, string dbName);
@@ -38,9 +30,8 @@ void checkProject(string projectPath);
 //! Check table exists or not
 void checkTable(vector<string> &tableNameList, string dbName, const char *tableName);
 
-
-//! Is file path existed?
-bool isPathExists(const char *path);
+////! Is file path existed?
+//bool isPathExists(const char *path);
 
 /*!
  * \brief SEIMS main invoke entrance using MongoDB
@@ -54,10 +45,4 @@ bool isPathExists(const char *path);
  */
 void MainMongoDB(string, char *, int, int, int, LayeringMethod);
 
-
-//void	testMainSQLite(string,int,int,LayeringMethod); // Deprecated
-//void	testBMP();
-//void	testModule();
-//void	testSettingInput();
-//void	testSettingOutput();
-//void	testRaster();
+#endif
