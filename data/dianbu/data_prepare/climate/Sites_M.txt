@@ -1,2 +1,0 @@
-StationID	Name	LocalX	LocalY	Lon	Lat	Elevation	isOutlet
-58321	hefei	39523653.18	3528943.015	117.25	31.88	262	0
