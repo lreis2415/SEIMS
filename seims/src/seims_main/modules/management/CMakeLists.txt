@@ -1,3 +1,0 @@
-MESSAGE(STATUS "      Compiling SEIMS_subdir: management...")
-ADD_SUBDIRECTORY(./PLTMGT_SWAT)
-ADD_SUBDIRECTORY(./NPSMGT)
