@@ -7,7 +7,7 @@
 #include <cmath>
 #include "Interpolate.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <sstream>
 #include <omp.h>

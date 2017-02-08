@@ -1,5 +1,4 @@
 #include "PlantGrowthCommon.h"
-#include "util.h"
 
 PGCommon::PGCommon()
 {

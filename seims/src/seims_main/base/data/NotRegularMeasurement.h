@@ -9,10 +9,11 @@
  */
 #pragma once
 
-#include "Measurement.h"
-#include "MongoUtil.h"
 #include <map>
+#include "Measurement.h"
 #include "text.h"
+#include "utilities.h"
+#include "MongoUtil.h"
 
 /*!
  * \ingroup data

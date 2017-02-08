@@ -4,7 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <omp.h>
 
 using namespace std;

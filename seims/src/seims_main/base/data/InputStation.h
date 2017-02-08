@@ -7,13 +7,19 @@
  */
 #pragma once
 
+#include <fstream>
+#include <istream>
+#include <sstream>
+#include <ctime>
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <istream>
-#include "mongoc.h"
-#include "bson.h"
+
+#include "utilities.h"
+#include "MongoUtil.h"
 #include "Measurement.h"
+#include "RegularMeasurement.h"
+#include "NotRegularMeasurement.h"
 
 
 using namespace std;

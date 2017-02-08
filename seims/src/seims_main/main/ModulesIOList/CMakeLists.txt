@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling main_subdir: modulesiolist...")
 SET(SRC_LIST main.cpp ModulesIOList.cpp)
 ADD_EXECUTABLE(modulesiolist ${SRC_LIST})
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS modulesiolist DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET modulesiolist PROPERTY FOLDER "main")

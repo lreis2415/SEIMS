@@ -3,9 +3,13 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <iostream>
+#include <sstream>
 #include <cmath>
-#include "mongoc.h"
-#include "ModelException.h"
+
+#include "text.h"
+#include "utilities.h"
+#include "MongoUtil.h"
 #include "clsRasterData.cpp"
 using namespace std;
 

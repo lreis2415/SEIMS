@@ -23,11 +23,13 @@
 #include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
+#include "SpecifiedData.h"
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
+#include "utilities.h"
 #include "MongoUtil.h"
-#include "util.h"
-#include "utils.h"
+#include "clsRasterData.cpp"
+#include "seims.h"
 
 using namespace std;
 using namespace MainBMP;
@@ -45,7 +47,7 @@ public:
      * \param[in] subBasinID subBasinID
      * \param[in] scenarioID
      */
-    ModuleFactory(const string &configFileName, const string &modelPath, mongoc_client_t *conn, const string &dbName,
+    ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
                   int subBasinID, LayeringMethod layingMethod, int scenarioID);
 
     //! Destructor
@@ -87,7 +89,7 @@ private:
     LayeringMethod m_layingMethod;
     //! Module IDs
     vector<string> m_moduleIDs;
-#ifndef linux
+#ifdef windows
     //! .DLL (or .so) handles
     vector<HINSTANCE> m_dllHandles;
 #else

@@ -8,8 +8,6 @@
  * 
  */
 #include "NotRegularMeasurement.h"
-#include "utils.h"
-#include "ModelException.h"
 
 //! Constructor
 NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList,
@@ -69,19 +67,16 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
         {
             hasData = true;
-//			record = bson_as_json(doc,NULL);
             bson_iter_t iter;
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE))
-            {
-                value = GetFloatFromBSONITER(&iter);
-            }
+				GetNumericFromBsonIterator(&iter, value);
             else
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The Value field does not exist in DataValues table.");
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC))
             {
-                dt = GetDateTimeFromBSONITER(&iter) / 1000.f;
+                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
             }
             else
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
@@ -97,10 +92,9 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         if (!hasData)
         {
             ostringstream oss;
-            utils util;
             oss << "There are no " << siteType << " data available for sites:[" << m_siteIDList[iSite] <<
             "] in database:" << hydroDBName
-            << " during " << util.ConvertToString2(&m_startTime) << " to " << util.ConvertToString2(&m_endTime);
+            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
             throw ModelException("NotRegularMeasurement", "Constructor", oss.str());
         }
     }

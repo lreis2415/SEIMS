@@ -7,25 +7,16 @@
  * 
  */
 #include "ModelMain.h"
-#include "utils.h"
-#include "util.h"
-#include "ClimateParams.h"
-#include "ModelException.h"
-#include "PrintInfo.h"
-#include "MongoUtil.h"
-#include <ctime>
-#include <sstream>
-#include "clsRasterData.cpp"
 
-ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
-                     ModuleFactory *factory, int subBasinID, int scenarioID, int numThread,
-                     LayeringMethod layeringMethod)
+
+ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input, ModuleFactory *factory, 
+	int subBasinID /* = 1 */, int scenarioID /* = 0 */, int numThread /* = 1 */, LayeringMethod layeringMethod /* = UP_DOWN */)
         : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input), m_factory(factory),
           m_subBasinID(subBasinID), m_scenarioID(scenarioID), m_threadNum(numThread), m_layeringMethod(layeringMethod),
           m_templateRasterData(NULL), m_readFileTime(0.f), m_firstRunChannel(true), m_firstRunOverland(true),
           m_initialized(false), m_output(NULL)
 {
-    mongoc_gridfs_t *spatialData;
+    mongoc_gridfs_t *spatialData = NULL;
     bson_error_t *err = NULL;
     spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
     if (err != NULL)
@@ -224,7 +215,6 @@ void ModelMain::Step(time_t t, int yearIdx, vector<int> &moduleIndex, bool first
 
 void ModelMain::Execute()
 {
-    utils util;
     //clock_t t1 = clock();
 	double t1 = TimeCounting();
     time_t startTime = m_input->getStartTime();
@@ -234,7 +224,7 @@ void ModelMain::Execute()
 	
     for (time_t t = startTime; t < endTime; t += m_dtCh)
     {
-        cout << util.ConvertToString2(&t) << endl;
+        cout << ConvertToString2(&t) << endl;
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
@@ -312,7 +302,7 @@ void ModelMain::CheckOutput(mongoc_gridfs_t *gfs)
     ostringstream oss;
 #ifdef USE_MONGODB
 	// Read Mask raster data and add to m_rsMap in m_factory, by LJ.
-    oss << m_subBasinID << "_" << GetUpper(NAME_MASK);
+    oss << m_subBasinID << "_" << GetUpper(string(NAME_MASK));
     m_templateRasterData = new clsRasterData<float>(gfs, oss.str().c_str());
 	m_factory->AddMaskRaster(oss.str(), m_templateRasterData);
 #endif

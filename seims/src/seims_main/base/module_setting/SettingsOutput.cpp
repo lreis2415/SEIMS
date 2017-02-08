@@ -6,10 +6,6 @@
  * \date June 2010
  */
 #include "SettingsOutput.h"
-#include "util.h"
-#include "utils.h"
-#include "ModelException.h"
-#include "clsRasterData.cpp"
 
 SettingsOutput::SettingsOutput(int subBasinID, string fileName, mongoc_client_t *conn, string dbName,
                                mongoc_gridfs_t *gfs)
@@ -67,31 +63,31 @@ bool SettingsOutput::LoadSettingsOutputFromMongoDB(int subBasinID)
 		int interval = -1;
 		string sTimeStr = "", eTimeStr = "";
         if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputUSE))
-            use = GetIntFromBSONITER(&itertor);
+            GetNumericFromBsonIterator(&itertor, use);
         if (bson_iter_init_find(&itertor, bsonTable, Tag_MODCLS))
-			modCls = GetStringFromBSONITER(&itertor);
+			modCls = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputID))
-			outputID = GetStringFromBSONITER(&itertor);
+			outputID = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputDESC))
-			descprition = GetStringFromBSONITER(&itertor);
+			descprition = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_FileName))
-			outFileName = GetStringFromBSONITER(&itertor);
+			outFileName = GetStringFromBsonIterator(&itertor);
 		string coreFileName = GetCoreFileName(outFileName);
 		string suffix = GetSuffix(outFileName);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_AggType))
-			aggType = GetStringFromBSONITER(&itertor);
+			aggType = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputUNIT))
-			unit = GetStringFromBSONITER(&itertor);
+			unit = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputSubbsn))
-			subBsn = GetStringFromBSONITER(&itertor);
+			subBsn = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_StartTime))
-			sTimeStr = GetStringFromBSONITER(&itertor);
+			sTimeStr = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_EndTime))
-			eTimeStr = GetStringFromBSONITER(&itertor);
+			eTimeStr = GetStringFromBsonIterator(&itertor);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_Interval))
-			interval = GetIntFromBSONITER(&itertor);
+			GetNumericFromBsonIterator(&itertor, interval);
 		if (bson_iter_init_find(&itertor, bsonTable, Tag_IntervalUnit))
-			intervalUnit = GetStringFromBSONITER(&itertor);
+			intervalUnit = GetStringFromBsonIterator(&itertor);
 		if(use <= 0)
 			continue;
 		/// First, if OutputID does not existed in m_printInfos, then create a new one.
@@ -107,9 +103,11 @@ bool SettingsOutput::LoadSettingsOutputFromMongoDB(int subBasinID)
 		oss << subBasinID << "_";
 		string strSubbasinID = oss.str();
 		bool isRaster = false;
-		string gtiff(GTiffExtension);
-		if (gtiff.find(suffix) != gtiff.npos)
+		if (StringMatch(suffix, string(GTiffExtension)))
 			isRaster = true;
+		//string gtiff(GTiffExtension);
+		//if (gtiff.find(suffix) != gtiff.npos)
+		//	isRaster = true;
 		/// Check Tag_OutputSubbsn first
 		if (StringMatch(subBsn, Tag_Outlet)) /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
 		{
@@ -121,7 +119,7 @@ bool SettingsOutput::LoadSettingsOutputFromMongoDB(int subBasinID)
 		else if (StringMatch(subBsn, Tag_AllSubbsn) && isRaster) 
 		{
 			/// Output of all subbasins of DT_Raster1D or DT_Raster2D
-			vector<string> aggTypes = utils::SplitString(aggType, ',');
+			vector<string> aggTypes = SplitString(aggType, ',');
 			for(vector<string>::iterator it = aggTypes.begin(); it != aggTypes.end(); it++)
 				pi->AddPrintItem(*it, sTimeStr, eTimeStr, strSubbasinID + coreFileName, suffix, m_conn, m_outputGfs);
 		}
@@ -137,7 +135,7 @@ bool SettingsOutput::LoadSettingsOutputFromMongoDB(int subBasinID)
 				vector<string>(subBsns).swap(subBsns);
 			}
 			else
-				subBsns = utils::SplitString(subBsn, ',');
+				subBsns = SplitString(subBsn, ',');
 			for(vector<string>::iterator it = subBsns.begin(); it != subBsns.end(); it++)
 				pi->AddPrintItem(sTimeStr, eTimeStr, strSubbasinID + coreFileName, *it, suffix, m_conn, m_outputGfs, true);
 		}
@@ -182,15 +180,15 @@ void SettingsOutput::SetSubbasinIDs()
 		string nameTmp = "";
 		int numTmp = -1;
 		if (bson_iter_init_find(&iter, bsonTable, PARAM_FLD_NAME))
-			nameTmp = GetStringFromBSONITER(&iter);
+			nameTmp = GetStringFromBsonIterator(&iter);
 		if (bson_iter_init_find(&iter, bsonTable, PARAM_FLD_VALUE))
-			numTmp = GetIntFromBSONITER(&iter);
+			GetNumericFromBsonIterator(&iter, numTmp);
 		if(!StringMatch(nameTmp, "") && numTmp != -1)
 		{
 			if(StringMatch(nameTmp, VAR_OUTLETID))
-				m_outletID = GetIntFromBSONITER(&iter);
+				GetNumericFromBsonIterator(&iter, m_outletID);
 			else if (StringMatch(nameTmp, VAR_SUBBSNID_NUM))
-				m_nSubbasins = GetIntFromBSONITER(&iter);
+				GetNumericFromBsonIterator(&iter, m_nSubbasins);
 		}
 		else
 			throw ModelException("SettingOutput","SetSubbasinIDs","No valid values found in MongoDB!");
@@ -501,21 +499,21 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime)
 				// cout<<(*itemIt)->getStartTime()<<", "<<startTime<<endl;
 				(*itemIt)->setStartTime(startTime);
 				cout<<"WARNING: The start time of output "<<(*it)->getOutputID()<<" to "<<(*itemIt)->Filename<<" is "<<(*itemIt)->StartTime<<
-					". It's earlier than start time of time series data "<<util.ConvertToString(&startTime)<<", and will be updated."<<endl;
+					". It's earlier than start time of time series data "<<ConvertToString(&startTime)<<", and will be updated."<<endl;
                 //throw ModelException("SettingsOutput", "CheckDate",
                 //                     "The start time of output " + (*it)->getOutputID() + " to " + (*itemIt)->Filename +
                 //                     " is " + (*itemIt)->StartTime +
                 //                     ". It's earlier than start time of time series data " +
-                //                     util.ConvertToString(&startTime) +
+                //                     ConvertToString(&startTime) +
                 //                     ". Please check time setting of file.in and file.out.");
 			}
             if ((*itemIt)->getEndTime() > endTime){
 				cout<<"WARNING: The end time of output "<<(*it)->getOutputID()<<" to "<<(*itemIt)->Filename<<" is "<<(*itemIt)->EndTime<<
-					". It's later than end time of time series data "<<util.ConvertToString(&endTime)<<", and will be updated."<<endl;
+					". It's later than end time of time series data "<<ConvertToString(&endTime)<<", and will be updated."<<endl;
                 //throw ModelException("SettingsOutput", "CheckDate",
                 //                     "The end time of output " + (*it)->getOutputID() + " to " + (*itemIt)->Filename +
                 //                     " is " + (*itemIt)->EndTime + ". It's later than end time of time series data " +
-                //                     util.ConvertToString(&endTime) +
+                //                     ConvertToString(&endTime) +
                 //                     ". Please check time setting of file.in and file.out.");
 			}
         }

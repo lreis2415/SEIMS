@@ -12,8 +12,10 @@
 
 #include <string>
 #include <ostream>
-#include <mongoc.h>
-//#include "gridfs.h"
+#include <fstream>
+#include "text.h"
+#include "utilities.h"
+#include "MongoUtil.h"
 
 using namespace std;
 
@@ -79,8 +81,8 @@ private:
      * \brief Read GridFS from MongoDB
      *
      * \param[in] gfs
-     * \param[in] remoteFilename
+     * \param[in] filename
      */
-    void ReadFromMongoDB(mongoc_gridfs_t *gfs, const char *remoteFilename);
+    void ReadFromMongoDB(mongoc_gridfs_t *gfs, const char* filename);
 };
 

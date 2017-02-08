@@ -1,10 +1,5 @@
 #include "AtmosphericDeposition.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "util.h"
-#include <omp.h>
-#include <cmath>
-#include <iostream>
+
 
 using namespace std;
 

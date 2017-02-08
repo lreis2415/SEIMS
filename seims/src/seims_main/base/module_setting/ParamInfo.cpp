@@ -46,9 +46,9 @@ float ParamInfo::GetAdjustedValue()
 
 void ParamInfo::Adjust1DArray(int n, float *data)
 {
-    if (StringMatch(Use, PARAM_USE_Y))
+    if (StringMatch(Use, string(PARAM_USE_Y)))
     {
-        if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.0))
+        if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f))
         {
 #pragma omp parallel for
             for (int i = 0; i < n; i++)
@@ -57,7 +57,7 @@ void ParamInfo::Adjust1DArray(int n, float *data)
 					data[i] *= Impact;
             }
         }
-        else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0))
+        else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f))
         {
 #pragma omp parallel for
             for (int i = 0; i < n; i++)
@@ -98,8 +98,8 @@ void ParamInfo::Reset(void)
     Description = "";
     Dimension = DT_Unknown;
     Impact = 0.0;
-    Max = 0.0;
-    Min = 0.0;
+    Maximum = 0.0;
+    Minimun = 0.0;
     ModuleID = "";
     Name = "";
     Source = "";

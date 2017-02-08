@@ -7,13 +7,14 @@
  */
 #pragma once
 
-#include "Settings.h"
+#include <cstdlib>
 #include <map>
+#include <set>
+#include "Settings.h"
 #include "InputStation.h"
 #include "Scenario.h"
-#include "mongoc.h"
 #include "MongoUtil.h"
-#include <set>
+#include "utilities.h"
 
 using namespace MainBMP;
 

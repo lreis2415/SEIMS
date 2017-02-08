@@ -48,7 +48,6 @@ bool Settings::LoadSettingsFromFile(string filename)
     bool bStatus = false;
     ifstream myfile;
     string line;
-    utils utl;
     try
     {
         // open the file
@@ -64,7 +63,7 @@ bool Settings::LoadSettingsFromFile(string filename)
                     if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
                     {
                         // parse the line into separate items
-                        vector<string> tokens = utl.SplitString(line, '|');
+                        vector<string> tokens = SplitString(line, '|');
                         // is there anything in the token list?
                         if (tokens.size() > 0)
                         {

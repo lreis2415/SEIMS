@@ -14,10 +14,9 @@
 #include <iomanip>
 #include <fstream>
 #include <map>
-#include "mongoc.h"
 #include "ParamInfo.h"
-#include "util.h"
-#include "utils.h"
+#include "utilities.h"
+#include "MongoUtil.h"
 #include "clsRasterData.cpp"
 //#include "clsSpecificOutput.h"
 

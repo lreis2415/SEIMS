@@ -2,7 +2,7 @@
 #include "MUSLE_AS.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <math.h>
 #include <omp.h>
 #include <map>

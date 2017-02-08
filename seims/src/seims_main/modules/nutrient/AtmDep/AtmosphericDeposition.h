@@ -11,11 +11,14 @@
  */
 #pragma once
 #include <string>
+#include <iostream>
 #include <ctime>
 #include <cmath>
 #include <map>
+#include <omp.h>
 #include "SimulationModule.h"
-
+#include "MetadataInfo.h"
+#include "utilities.h"
 using namespace std;
 
 /** \defgroup ATMDEP

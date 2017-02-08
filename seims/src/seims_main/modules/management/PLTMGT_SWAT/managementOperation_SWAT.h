@@ -12,7 +12,7 @@
 
 #include <string>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "ClimateParams.h"
 #include "SimulationModule.h"
 #include "Scenario.h"

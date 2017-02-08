@@ -6,7 +6,7 @@
 #include "ReservoirMethod.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
 
 ReservoirMethod::ReservoirMethod(void) : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_nSoilLayers(-1), 

@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: GWA_RE...")
 SET(SRC_LIST ${MODULE_SRC} ReservoirMethod.cpp api.cpp)
 ADD_LIBRARY(GWA_RE SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS GWA_RE DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET GWA_RE PROPERTY FOLDER "modules/hydrology_longterm")

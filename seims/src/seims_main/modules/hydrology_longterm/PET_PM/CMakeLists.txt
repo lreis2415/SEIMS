@@ -1,6 +1,7 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: PET_PM...")
 SET(SRC_LIST ${MODULE_SRC} PETPenmanMonteith.cpp api.cpp)
 ADD_LIBRARY(PET_PM SHARED ${SRC_LIST})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 INSTALL(TARGETS PET_PM DESTINATION bin)
 IF (MSVC)
     SET_PROPERTY(TARGET PET_PM PROPERTY FOLDER "modules/hydrology_longterm")
