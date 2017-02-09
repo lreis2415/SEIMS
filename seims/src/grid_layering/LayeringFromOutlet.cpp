@@ -21,22 +21,22 @@ void LayeringFromOutlet(int nValidGrids, const int *dirMatrix, const int *compre
                         RasterHeader &header, int outputNoDataValue, const char *outputTxtFile,
                         const char *outputAscFile)
 {
-        clock_t t1, t2;
+        double t1, t2;
         int dirNoDataValue = header.noDataValue;
 
         // preprocessing
-        t1 = clock();
+        t1 = TimeCounting();
         int *outDegreeMatrix = GetOutDegreeMatrix(dirMatrix, nRows, nCols, dirNoDataValue);
-        t2 = clock();
+        t2 = TimeCounting();
         //cout << "Preprocessing time: " << t2 - t1 << endl;
 
 
         // perform grid layering
-        t1 = clock();
+        t1 = TimeCounting();
         int *layeringNum = NULL;
         string outputStr = GridLayeringFromOutlet(nValidGrids, dirMatrix, compressedIndex, outDegreeMatrix, nRows, nCols,
                                                   dirNoDataValue, outputNoDataValue, layeringNum);
-        t2 = clock();
+        t2 = TimeCounting();
         //cout << "Layering time: " << t2 - t1 << endl;
 
         // output layering result

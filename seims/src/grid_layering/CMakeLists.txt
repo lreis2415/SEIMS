@@ -63,7 +63,7 @@ SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ################ Add executables #################
 set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} ${MONGO_FILES} LayeringFromSource.cpp LayeringFromOutlet.cpp main.cpp Data.cpp CompressIndex.cpp FlowInOut.cpp)
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
-INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR}  ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
+INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR}  ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(grid_layering ${SOURCE_FILES})
 target_link_libraries(grid_layering ${GDAL_LIBRARY}  ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 install(TARGETS grid_layering DESTINATION bin)

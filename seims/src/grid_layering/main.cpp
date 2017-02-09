@@ -6,6 +6,9 @@
 *
 *	Revision:   Liangjun Zhu
 *   Date:       21-July-2016
+*
+*	Revision:   Liangjun Zhu
+*   Date:       9- February-2017
 *---------------------------------------------------------------------*/
 
 
@@ -13,9 +16,8 @@
 #include <sstream>
 #include <ctime>
 #include "GridLayering.h"
-#include "gridfs.h"
-#include "mongo.h"
-#include "bson.h"
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
 
 using namespace std;
 
@@ -26,6 +28,8 @@ int main(int argc, char **argv)
                 cout << "usage: grid_layering <hostIP> <port> <output_dir> <modelName> <gridFSName> <nsubbasin>\n";
                 exit(-1);
         }
+		/// set default OpenMP thread number to improve compute efficiency
+		SetDefaultOpenMPThread();
 
         const char *hostName = argv[1];
         int port = atoi(argv[2]);
@@ -34,19 +38,13 @@ int main(int argc, char **argv)
         const char *gridFSName = argv[5];
         int nSubbasins = atoi(argv[6]);
 
-        mongo conn[1];
-        gridfs gfs[1];
-        int status = mongo_connect(conn, hostName, port);
-        if (MONGO_OK != status)
-        {
-                cout << "can not connect to MongoDB.\n";
-                exit(-1);
-        }
-
-        gridfs_init(conn, modelName, gridFSName, gfs);
+		/// connect to MongoDB
+		MongoClient client = MongoClient(hostName, port);
+		mongoc_client_t* conn = client.getConn();
+		mongoc_gridfs_t* gfs = client.getGridFS(string(modelName), string(gridFSName));
 
         int outputNoDataValue = -9999;
-        clock_t t1 = clock();
+        double t1 = TimeCounting();
 		int subbasinStartID = 1;
 		if (nSubbasins == 0)
 			subbasinStartID = 0;
@@ -92,7 +90,7 @@ int main(int argc, char **argv)
                 int *outDegreeMatrixDinf = GetOutDegreeMatrix(dirMatrixDinf, nRows, nCols, dirNoDataValue);
                 int nOutputFlowOut = OutputMultiFlowOut(nRows, nCols, nValidGrids, outDegreeMatrixDinf, dirMatrixDinf,
                                                         dirNoDataValue, compressedIndex, flowOutDinf);;
-                WriteStringToMongoDB(gfs, i, "FLOWOUT_INDEX_DINF", nOutputFlowOut, (const char *) flowOutDinf);
+                WriteStringToMongoDB(gfs, i, "FLOWOUT_INDEX_DINF", nOutputFlowOut, (char *) flowOutDinf);
 
                 string layeringFileDinf = LayeringFromSourceDinf(outputDir, gfs, i, nValidGrids, angle, dirMatrixDinf,
                                                                  compressedIndex, header, outputNoDataValue);
@@ -112,8 +110,7 @@ int main(int argc, char **argv)
                 angle = NULL;
         }
 
-        clock_t t2 = clock();
-
-        //cout << t2 - t1 << endl;
+        double t2 = TimeCounting();
+        cout << "time-consuming: "<< t2 - t1 << " seconds." << endl;
         return 0;
 }

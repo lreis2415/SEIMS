@@ -15,7 +15,7 @@
 
 using namespace std;
 
-string LayeringFromSourceD8(const char *outputDir, gridfs *gfs, int id, int nValidGrids, const int *dirMatrix,
+string LayeringFromSourceD8(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nValidGrids, const int *dirMatrix,
                             const int *compressedIndex, RasterHeader &header, int outputNoDataValue)
 {
 
@@ -30,7 +30,7 @@ string LayeringFromSourceD8(const char *outputDir, gridfs *gfs, int id, int nVal
         float *flowInOutput;
         int nFlowInOutput = OutputMultiFlowOut(nRows, nCols, nValidGrids, inDegreeMatrix, reverseDirMatrix, dirNoDataValue,
                                                compressedIndex, flowInOutput);
-        WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (const char *) flowInOutput);
+        WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (char *) flowInOutput);
 
         // perform grid layering
         int *layeringGrid = NULL;
@@ -64,7 +64,7 @@ string LayeringFromSourceD8(const char *outputDir, gridfs *gfs, int id, int nVal
         return oss.str();
 }
 
-string LayeringFromSourceDinf(const char *outputDir, gridfs *gfs, int id, int nValidGrids, const float *angle,
+string LayeringFromSourceDinf(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nValidGrids, const float *angle,
                               const int *dirMatrix, const int *compressedIndex, RasterHeader &header,
                               int outputNoDataValue)
 {
@@ -82,12 +82,12 @@ string LayeringFromSourceDinf(const char *outputDir, gridfs *gfs, int id, int nV
         // reverse dir means flow in relationships
         int nFlowInOutput = OutputMultiFlowOut(nRows, nCols, nValidGrids, inDegreeMatrix, reverseDirMatrix, dirNoDataValue,
                                                compressedIndex, flowInOutput);
-        WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_DINF", nFlowInOutput, (const char *) flowInOutput);
+        WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_DINF", nFlowInOutput, (char *) flowInOutput);
 
         float *percentage;
         OutputFlowOutPercentageDinf(nRows, nCols, nValidGrids, angle, inDegreeMatrix, reverseDirMatrix, dirNoDataValue,
                                     compressedIndex, percentage);
-        WriteStringToMongoDB(gfs, id, "FLOWIN_PERCENTAGE_DINF", nFlowInOutput, (const char *) percentage);
+        WriteStringToMongoDB(gfs, id, "FLOWIN_PERCENTAGE_DINF", nFlowInOutput, (char *) percentage);
         t2 = clock();
 
         // perform grid layering
