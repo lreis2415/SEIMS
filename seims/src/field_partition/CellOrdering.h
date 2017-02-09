@@ -1,25 +1,26 @@
 #pragma once
 #include <map>
 #include <vector>
-#include "Raster.cpp"
+#include "clsRasterData.cpp"
 #include "Cell.h"
 #include "Field.h"
 #include "fieldTnode.h"
+#include "FieldPartition.h"
 // Build by Wu Hui, 2012.4.28
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
 //  into their downstream fields. This is controlled by the threshold given by user. 
 //
 using namespace std;
 
-#define IntRaster Raster<int>
-#define FloatRaster Raster<float>
+#define IntRaster clsRasterData<int>
+#define FloatRaster clsRasterData<float>
 
 class CellOrdering
 {
 public:
-	CellOrdering(Raster<int> *rsDir, Raster<int> *rsMask, FlowDirectionMethod flowDirMtd);
-	CellOrdering(Raster<int> *rsDir, Raster<int> *rsLandU, Raster<int> *rsMask, FlowDirectionMethod flowDirMtd, int threshold); 
-	CellOrdering(Raster<int> *rsDir, Raster<int> *rsLandU, Raster<int> *rsStreamLink, Raster<int> *rsMask, FlowDirectionMethod flowDirMtd, int threshold);
+	CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMethod flowDirMtd);
+	CellOrdering(IntRaster *rsDir, IntRaster *rsLandU, IntRaster *rsMask, FlowDirectionMethod flowDirMtd, int threshold); 
+	CellOrdering(IntRaster *rsDir, IntRaster *rsLandU, IntRaster *rsStreamLink, IntRaster *rsMask, FlowDirectionMethod flowDirMtd, int threshold);
 	// threshold is the number of cells which defined by user for minimal size of field 
 	~CellOrdering(void);
 
@@ -35,10 +36,10 @@ public:
 	static int FID;
 
 private:
-	Raster<int> *m_dir;
-	Raster<int> *m_mask;
-	Raster<int> *m_landu;
-	Raster<int> *m_streamlink;
+	IntRaster *m_dir;
+	IntRaster *m_mask;
+	IntRaster *m_landu;
+	IntRaster *m_streamlink;
 	FlowDirectionMethod m_flowDirMtd;
 	int m_threshold;
 	/// used to store the flow in and out relationship of cells
@@ -84,11 +85,13 @@ public:
 	void OutputCompressedFlowOut(const char* filename);
 	void OutputCompressedFlowIn(const char* filename);
 
-	void OutputLayersToMongoDB(int id, gridfs* gfs);
-	void OutputLayersToMongoDB2(int id, gridfs* gfs);
-	void OutputFlowOutToMongoDB(int id, gridfs* gfs);
-	void OutputFlowInToMongoDB(int id, gridfs* gfs);
-	int WriteStringToMongoDB(gridfs *gfs, int id, const char* type, int cellNumber, string s);
+	// Output to MongoDB is not needed here. By Liangjun
+	//void OutputLayersToMongoDB(int id, gridfs* gfs);
+	//void OutputLayersToMongoDB2(int id, gridfs* gfs);
+	//void OutputFlowOutToMongoDB(int id, gridfs* gfs);
+	//void OutputFlowInToMongoDB(int id, gridfs* gfs);
+	//int WriteStringToMongoDB(gridfs *gfs, int id, const char* type, int cellNumber, string s);
+	
 	/// build routing layers from most up cells
 	bool Execute2(int iOutlet, int jOutlet);
 	void BuildRoutingLayer2(int idOutlet);

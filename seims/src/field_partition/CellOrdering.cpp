@@ -1,11 +1,12 @@
 #pragma once
-#include "CellOrdering.h"
-#include "util.h"
 #include <iostream>
 #include <set>
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include "CellOrdering.h"
+#include "utilities.h"
+
 using namespace std;
 
 
@@ -18,8 +19,8 @@ int CellOrdering:: FID = 1;
 CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMethod flowDirMtd)
 	:m_dir(rsDir), m_mask(rsMask), m_flowDirMtd(flowDirMtd)
 {
-	m_nRows = m_dir->GetNumberOfRows();
-	m_nCols = m_dir->GetNumberofColumns();
+	m_nRows = m_dir->getRows();
+	m_nCols = m_dir->getCols();
 	m_size = m_nRows * m_nCols;
 	m_cells.resize(m_size, NULL);
 	m_layers.resize(10);
@@ -29,7 +30,8 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMet
 	{
 		for (int j = 0; j < m_nCols; ++j)
 		{
-			if ( !m_mask->IsNull(i, j) )
+			RowColCoor rc = {i, j};
+			if (!m_mask->isNoData(rc))
 			{
 				int id = i*m_nCols + j;
 				m_cells[id] = new Cell();
@@ -66,11 +68,11 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMet
 CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, IntRaster *rsMask, FlowDirectionMethod flowDirMtd, int threshold)
 	:m_dir(rsDir), m_mask(rsMask), m_landu(rsLandu), m_threshold(threshold), m_flowDirMtd(flowDirMtd), m_FieldNum(0),m_maxDegree(0)
 {
-	m_nRows = m_dir->GetNumberOfRows();
-	m_nCols = m_dir->GetNumberofColumns();
+	m_nRows = m_dir->getRows();
+	m_nCols = m_dir->getCols();
 	m_size = m_nRows * m_nCols;
 	m_cells.resize(m_size, NULL);
-	m_cellwidth = m_dir->GetXCellSize();
+	m_cellwidth = m_dir->getCellWidth();
 	//m_layers.resize(10);
 	
 	m_validCellsCount = 0;
@@ -78,7 +80,8 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, IntRaster *rsMa
 	{
 		for (int j = 0; j < m_nCols; ++j)
 		{
-			if ( !m_mask->IsNull(i, j) )
+			RowColCoor rc = {i, j};
+			if ( !m_mask->isNoData(rc) )
 			{
 				int id = i*m_nCols + j;
 				m_cells[id] = new Cell();
@@ -113,14 +116,14 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, IntRaster *rsMa
 	//m_root = new fieldTnode();
 }
 
-CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, Raster<int> *rsStreamLink, IntRaster *rsMask, FlowDirectionMethod flowDirMtd, int threshold)
+CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, IntRaster *rsStreamLink, IntRaster *rsMask, FlowDirectionMethod flowDirMtd, int threshold)
 	:m_dir(rsDir), m_mask(rsMask), m_landu(rsLandu), m_streamlink(rsStreamLink), m_flowDirMtd(flowDirMtd), m_threshold(threshold), m_FieldNum(0),m_maxDegree(0)
 {
-	m_nRows = m_dir->GetNumberOfRows();
-	m_nCols = m_dir->GetNumberofColumns();
+	m_nRows = m_dir->getRows();
+	m_nCols = m_dir->getCols();
 	m_size = m_nRows * m_nCols;
 	m_cells.resize(m_size, NULL);
-	m_cellwidth = m_dir->GetXCellSize();
+	m_cellwidth = m_dir->getCellWidth();
 	//m_layers.resize(10);
 
 	m_validCellsCount = 0;
@@ -128,7 +131,8 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster* rsLandu, Raster<int> *rs
 	{
 		for (int j = 0; j < m_nCols; ++j)
 		{
-			if ( !m_mask->IsNull(i, j) )
+			RowColCoor rc = {i, j};
+			if (!m_mask->isNoData(rc))
 			{
 				int id = i*m_nCols + j;
 				m_cells[id] = new Cell();
@@ -279,25 +283,25 @@ bool CellOrdering::ExcuteFieldsDis(int iOutlet, int jOutlet)
 
 void CellOrdering::BuildTree(void)   // tree of the land use 
 {
-	int** dir = m_dir->GetData();
-	int** LanduCode = m_landu->GetData();
+	int* dir = m_dir->getRasterDataPointer();
+	int* LanduCode = m_landu->getRasterDataPointer();
 	for (int i = 0; i < m_nRows; ++i)
 	{
 		for (int j = 0; j < m_nCols; ++j)
 		{
-			if ( m_mask->IsNull(i, j) )
+			RowColCoor rc = {i, j};
+			if (m_mask->isNoData(rc))
 				continue;
-			
+			int id = i * m_nCols + j;
 			// flow out 
-			int k = dir[i][j];
-			int outIndex = m_dirToIndexMap[dir[i][j]];
+			int k = dir[id];
+			int outIndex = m_dirToIndexMap[dir[id]];
 			int iOut = i + m_d1[outIndex];
 			int jOut = j + m_d2[outIndex];
-			int idOut = iOut*m_nCols + jOut;
-			int id = i*m_nCols + j;
+			int idOut = iOut * m_nCols + jOut;
 			m_cells[id]->SetID(id);
 			// set landuse information to cells
-			int landu = LanduCode[i][j];
+			int landu = LanduCode[id];
 			m_cells[id]->SetLanduseCode(landu);
 
 			if (iOut < 0 || iOut >= m_nRows || jOut < 0 || jOut >= m_nCols || m_cells[idOut] == NULL)
@@ -1312,7 +1316,7 @@ void CellOrdering::OutputFieldMap(const char* filename)
 {
 	IntRaster output;
 	output.Copy(*m_mask);
-	output.SetDefaultValues(output.GetNoDataValue());
+	output.replaceNoData(output.getNoDataValue());
 	Field* rootfd = m_mapfields[1];
 	int degreeRoot = 1;
 	reclassfieldid(rootfd, degreeRoot);
@@ -1334,7 +1338,8 @@ void CellOrdering::OutputFieldMap(const char* filename)
 			int ID = cells[j]->GetID();
 			int ik = ID / m_nCols;
 			int jk = ID % m_nCols;
-			output.SetValue(ik, jk, ReFID);
+			RowColCoor rc = {ik, jk};
+			output.setValue(rc, ReFID);
 		}
 	}
 	//for (int i = 0; i < m_nRows; i++)
@@ -1345,10 +1350,11 @@ void CellOrdering::OutputFieldMap(const char* filename)
 	//	}
 	//	cout<<endl;
 	//}
-	if(StringMatch(GetSuffix(string(filename)), "ASC"))
-		output.OutputArcAscii(filename);
-	else
-		output.OutputGeoTiff(filename);
+	output.outputToFile(string(filename));
+	//if(StringMatch(GetSuffix(string(filename)), "ASC"))
+	//	output.OutputArcAscii(filename);
+	//else
+	//	output.OutputGeoTiff(filename);
 }
 
 void CellOrdering::reclassFieldID()
@@ -1421,7 +1427,8 @@ void CellOrdering::BuildRoutingLayer(int idOutlet, int layerNum)
 	{
 		int row = inCells[i] / m_nCols;
 		int col = inCells[i] % m_nCols;
-		if (!m_mask->IsNull(row, col))
+		RowColCoor rc = {row, col};
+		if (!m_mask->isNoData(rc))
 			BuildRoutingLayer(inCells[i], layerNum);
 	}
 }
@@ -1482,7 +1489,7 @@ void CellOrdering::OutRoutingLayer(const char* filename)
 {
 	IntRaster output;
 	output.Copy(*m_mask);
-	output.SetDefaultValues(output.GetNoDataValue());
+	output.replaceNoData(output.getNoDataValue());
 	
 	int nn = 0;
 	for (unsigned int i = 0; i < m_layers.size(); ++i)
@@ -1492,13 +1499,13 @@ void CellOrdering::OutRoutingLayer(const char* filename)
 		{
 			int ik = m_layers[i][j] / m_nCols;
 			int jk = m_layers[i][j] % m_nCols;
-			output.SetValue(ik, jk, i+1);
+			RowColCoor rc = {ik, jk};
+			output.setValue(rc, i+1);
 			nn++;
 		}
 	}
 	//cout << "number of valid cells: " << nn << endl;
-	output.OutputGeoTiff(filename);
-	///output.OutputArcAscii(filename);
+	output.outputToFile(string(filename));
 }
 
 void CellOrdering::CalCompressedIndex(void)
@@ -1510,7 +1517,8 @@ void CellOrdering::CalCompressedIndex(void)
 	{
 		for (int j = 0; j < m_nCols; ++j)
 		{
-			if ( m_mask->IsNull(i, j) )
+			RowColCoor rc = {i, j};
+			if (m_mask->isNoData(rc))
 				continue;
 			int id = i*m_nCols + j;
 			m_compressedIndex[id] = counter;
@@ -1519,275 +1527,274 @@ void CellOrdering::CalCompressedIndex(void)
 	}
 }
 
-int CellOrdering::WriteStringToMongoDB(gridfs *gfs, int id, const char* type, int number, string s)
-{
-	bson *p = (bson*)malloc(sizeof(bson));
-	bson_init(p);
-	bson_append_int(p, "SUBBASIN", id );
-	bson_append_string(p, "TYPE", type);
-
-	ostringstream oss;
-	oss << id << "_" << type;
-	string remoteFilename = oss.str();
-
-	bson_append_string(p, "ID", remoteFilename.c_str());
-	bson_append_string(p, "DESCRIPTION", type);
-	bson_append_double(p, "NUMBER", number);
-	bson_finish(p);
-
-	gridfile gfile[1];
-	const char* pStr = s.c_str();
-	int n = s.length() + 1;
-	int index = 0;
-	gridfile_writer_init(gfile, gfs, remoteFilename.c_str(), type);
-
-	while(index < n)
-	{
-		int dataLen = 1024;
-		if (n - index < dataLen)
-			dataLen = n - index;
-		gridfile_write_buffer(gfile, pStr + index, dataLen);
-		index += dataLen;
-	}
-	
-	gridfile_set_metadata(gfile, p);
-	int flag = gridfile_writer_done(gfile);
-	gridfile_destroy(gfile);
-
-	bson_destroy(p);
-	free(p);
-
-	return flag;
-}
-
-void CellOrdering::OutputLayersToMongoDB(int id, gridfs* gfs)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ostringstream oss;
-	int layerCount = 0;
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (!m_layers[i].empty())
-			layerCount++;
-	}
-	oss << "layers: " << layerCount << endl;
-
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (m_layers[i].empty())
-			continue;
-
-		int layerSize = m_layers[i].size();
-		oss << layerSize << "\t";
-		for (int j = 0; j < layerSize; ++j)
-		{
-			oss << m_compressedIndex[m_layers[i][j]] << "\t";
-		}
-
-		oss << "\n";
-	}
-	
-	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_DOWN_UP", layerCount, oss.str());
-}
-
-void CellOrdering::OutputLayersToMongoDB2(int id, gridfs* gfs)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ostringstream oss;
-	int layerCount = 0;
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (!m_layers[i].empty())
-			layerCount++;
-	}
-	oss << "layers: " << layerCount << endl;
-
-	for (size_t i = 0; i < m_layers.size(); ++i)
-	{
-		if (m_layers[i].empty())
-			continue;
-
-		int layerSize = m_layers[i].size();
-		oss << layerSize << "\t";
-		for (int j = 0; j < layerSize; ++j)
-		{
-			oss << m_compressedIndex[m_layers[i][j]] << "\t";
-		}
-
-		oss << "\n";
-	}
-
-	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_UP_DOWN", layerCount, oss.str());
-}
-
-void CellOrdering::OutputCompressedLayer(const char* filename)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-	
-	ofstream ofs(filename);
-	
-	int layerCount = 0;
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (!m_layers[i].empty())
-			layerCount++;
-	}
-	ofs << "layers: " << layerCount << endl;
-
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (m_layers[i].empty())
-			continue;
-
-		int layerSize = m_layers[i].size();
-		ofs << layerSize << "\t";
-		for (int j = 0; j < layerSize; ++j)
-		{
-			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
-		}
-
-		ofs << "\n";
-	}
-	ofs.close();
-}
-
-void CellOrdering::OutputCompressedLayer2(const char* filename)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ofstream ofs(filename);
-
-	int layerCount = 0;
-	for (int i = int(m_layers.size()-1); i >= 0; --i)
-	{
-		if (!m_layers[i].empty())
-			layerCount++;
-	}
-	ofs << "layers: " << layerCount << endl;
-
-	for (size_t i = 0; i < m_layers.size(); ++i)
-	{
-		if (m_layers[i].empty())
-			continue;
-
-		int layerSize = m_layers[i].size();
-		ofs << layerSize << "\t";
-		for (int j = 0; j < layerSize; ++j)
-		{
-			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
-		}
-
-		ofs << "\n";
-	}
-	ofs.close();
-}
-
-void CellOrdering::OutputCompressedFlowIn(const char* filename)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ofstream ofs(filename);
-	ofs << "Cells: " << m_validCellsCount << endl;
-	for (int i = 0; i < m_nRows; ++i)
-	{
-		for (int j = 0; j < m_nCols; ++j)
-		{
-			if ( m_mask->IsNull(i, j) )
-				continue;
-			int id = i*m_nCols + j;
-
-			vector<int>& inCells = m_cells[id]->GetInCellIDs();
-			ofs << inCells.size() << "\t";
-			for (size_t k = 0; k < inCells.size(); ++k)
-				ofs << m_compressedIndex[inCells[k]] << "\t";
-			ofs << "\n";
-		}
-	}
-	ofs.close();
-}
-
-
-void CellOrdering::OutputCompressedFlowOut(const char* filename)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ofstream ofs(filename);
-	ofs << "Cells: " << m_validCellsCount << endl;
-	for (int i = 0; i < m_nRows; ++i)
-	{
-		for (int j = 0; j < m_nCols; ++j)
-		{
-			if ( m_mask->IsNull(i, j) )
-				continue;
-			int id = i*m_nCols + j;
-			int outId = m_cells[id]->GetOutCellID();
-
-			int dirValue = m_dir->At(i,j);
-			if (outId == -1)
-				ofs << -1 << "\n";
-			else
-				ofs << m_compressedIndex[outId] << "\n";
-		}
-	}
-	ofs.close();
-}
-
-void CellOrdering::OutputFlowOutToMongoDB(int id, gridfs* gfs)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ostringstream oss;
-	oss << "Cells: " << m_validCellsCount << endl;
-	for (int i = 0; i < m_nRows; ++i)
-	{
-		for (int j = 0; j < m_nCols; ++j)
-		{
-			if ( m_mask->IsNull(i, j) )
-				continue;
-			int id = i*m_nCols + j;
-			int outId = m_cells[id]->GetOutCellID();
-
-			int dirValue = m_dir->At(i,j);
-			if (outId == -1)
-				oss << -1 << "\n";
-			else
-				oss << m_compressedIndex[outId] << "\n";
-		}
-	}
-	
-	WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX", m_validCellsCount, oss.str());
-}
-
-void CellOrdering::OutputFlowInToMongoDB(int id, gridfs* gfs)
-{
-	if (m_compressedIndex.empty())
-		CalCompressedIndex();
-
-	ostringstream oss;
-	oss << "Cells: " << m_validCellsCount << endl;
-	for (int i = 0; i < m_nRows; ++i)
-	{
-		for (int j = 0; j < m_nCols; ++j)
-		{
-			if ( m_mask->IsNull(i, j) )
-				continue;
-			int id = i*m_nCols + j;
-
-			vector<int>& inCells = m_cells[id]->GetInCellIDs();
-			oss << inCells.size() << "\t";
-			for (size_t k = 0; k < inCells.size(); ++k)
-				oss << m_compressedIndex[inCells[k]] << "\t";
-			oss << "\n";
-		}
-	}
-	WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX", m_validCellsCount, oss.str());
-}
+//int CellOrdering::WriteStringToMongoDB(gridfs *gfs, int id, const char* type, int number, string s)
+//{
+//	bson *p = (bson*)malloc(sizeof(bson));
+//	bson_init(p);
+//	bson_append_int(p, "SUBBASIN", id );
+//	bson_append_string(p, "TYPE", type);
+//
+//	ostringstream oss;
+//	oss << id << "_" << type;
+//	string remoteFilename = oss.str();
+//
+//	bson_append_string(p, "ID", remoteFilename.c_str());
+//	bson_append_string(p, "DESCRIPTION", type);
+//	bson_append_double(p, "NUMBER", number);
+//	bson_finish(p);
+//
+//	gridfile gfile[1];
+//	const char* pStr = s.c_str();
+//	int n = s.length() + 1;
+//	int index = 0;
+//	gridfile_writer_init(gfile, gfs, remoteFilename.c_str(), type);
+//
+//	while(index < n)
+//	{
+//		int dataLen = 1024;
+//		if (n - index < dataLen)
+//			dataLen = n - index;
+//		gridfile_write_buffer(gfile, pStr + index, dataLen);
+//		index += dataLen;
+//	}
+//	
+//	gridfile_set_metadata(gfile, p);
+//	int flag = gridfile_writer_done(gfile);
+//	gridfile_destroy(gfile);
+//
+//	bson_destroy(p);
+//	free(p);
+//
+//	return flag;
+//}
+//
+//void CellOrdering::OutputLayersToMongoDB(int id, gridfs* gfs)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ostringstream oss;
+//	int layerCount = 0;
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (!m_layers[i].empty())
+//			layerCount++;
+//	}
+//	oss << "layers: " << layerCount << endl;
+//
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (m_layers[i].empty())
+//			continue;
+//
+//		int layerSize = m_layers[i].size();
+//		oss << layerSize << "\t";
+//		for (int j = 0; j < layerSize; ++j)
+//		{
+//			oss << m_compressedIndex[m_layers[i][j]] << "\t";
+//		}
+//
+//		oss << "\n";
+//	}
+//	
+//	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_DOWN_UP", layerCount, oss.str());
+//}
+//
+//void CellOrdering::OutputLayersToMongoDB2(int id, gridfs* gfs)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ostringstream oss;
+//	int layerCount = 0;
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (!m_layers[i].empty())
+//			layerCount++;
+//	}
+//	oss << "layers: " << layerCount << endl;
+//
+//	for (size_t i = 0; i < m_layers.size(); ++i)
+//	{
+//		if (m_layers[i].empty())
+//			continue;
+//
+//		int layerSize = m_layers[i].size();
+//		oss << layerSize << "\t";
+//		for (int j = 0; j < layerSize; ++j)
+//		{
+//			oss << m_compressedIndex[m_layers[i][j]] << "\t";
+//		}
+//
+//		oss << "\n";
+//	}
+//
+//	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_UP_DOWN", layerCount, oss.str());
+//}
+//
+//void CellOrdering::OutputCompressedLayer(const char* filename)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//	
+//	ofstream ofs(filename);
+//	
+//	int layerCount = 0;
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (!m_layers[i].empty())
+//			layerCount++;
+//	}
+//	ofs << "layers: " << layerCount << endl;
+//
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (m_layers[i].empty())
+//			continue;
+//
+//		int layerSize = m_layers[i].size();
+//		ofs << layerSize << "\t";
+//		for (int j = 0; j < layerSize; ++j)
+//		{
+//			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
+//		}
+//
+//		ofs << "\n";
+//	}
+//	ofs.close();
+//}
+//
+//void CellOrdering::OutputCompressedLayer2(const char* filename)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ofstream ofs(filename);
+//
+//	int layerCount = 0;
+//	for (int i = int(m_layers.size()-1); i >= 0; --i)
+//	{
+//		if (!m_layers[i].empty())
+//			layerCount++;
+//	}
+//	ofs << "layers: " << layerCount << endl;
+//
+//	for (size_t i = 0; i < m_layers.size(); ++i)
+//	{
+//		if (m_layers[i].empty())
+//			continue;
+//
+//		int layerSize = m_layers[i].size();
+//		ofs << layerSize << "\t";
+//		for (int j = 0; j < layerSize; ++j)
+//		{
+//			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
+//		}
+//
+//		ofs << "\n";
+//	}
+//	ofs.close();
+//}
+//
+//void CellOrdering::OutputCompressedFlowIn(const char* filename)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ofstream ofs(filename);
+//	ofs << "Cells: " << m_validCellsCount << endl;
+//	for (int i = 0; i < m_nRows; ++i)
+//	{
+//		for (int j = 0; j < m_nCols; ++j)
+//		{
+//			if ( m_mask->IsNull(i, j) )
+//				continue;
+//			int id = i*m_nCols + j;
+//
+//			vector<int>& inCells = m_cells[id]->GetInCellIDs();
+//			ofs << inCells.size() << "\t";
+//			for (size_t k = 0; k < inCells.size(); ++k)
+//				ofs << m_compressedIndex[inCells[k]] << "\t";
+//			ofs << "\n";
+//		}
+//	}
+//	ofs.close();
+//}
+//
+//void CellOrdering::OutputCompressedFlowOut(const char* filename)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ofstream ofs(filename);
+//	ofs << "Cells: " << m_validCellsCount << endl;
+//	for (int i = 0; i < m_nRows; ++i)
+//	{
+//		for (int j = 0; j < m_nCols; ++j)
+//		{
+//			if ( m_mask->IsNull(i, j) )
+//				continue;
+//			int id = i*m_nCols + j;
+//			int outId = m_cells[id]->GetOutCellID();
+//
+//			int dirValue = m_dir->At(i,j);
+//			if (outId == -1)
+//				ofs << -1 << "\n";
+//			else
+//				ofs << m_compressedIndex[outId] << "\n";
+//		}
+//	}
+//	ofs.close();
+//}
+//
+//void CellOrdering::OutputFlowOutToMongoDB(int id, gridfs* gfs)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ostringstream oss;
+//	oss << "Cells: " << m_validCellsCount << endl;
+//	for (int i = 0; i < m_nRows; ++i)
+//	{
+//		for (int j = 0; j < m_nCols; ++j)
+//		{
+//			if ( m_mask->IsNull(i, j) )
+//				continue;
+//			int id = i*m_nCols + j;
+//			int outId = m_cells[id]->GetOutCellID();
+//
+//			int dirValue = m_dir->At(i,j);
+//			if (outId == -1)
+//				oss << -1 << "\n";
+//			else
+//				oss << m_compressedIndex[outId] << "\n";
+//		}
+//	}
+//	
+//	WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX", m_validCellsCount, oss.str());
+//}
+//
+//void CellOrdering::OutputFlowInToMongoDB(int id, gridfs* gfs)
+//{
+//	if (m_compressedIndex.empty())
+//		CalCompressedIndex();
+//
+//	ostringstream oss;
+//	oss << "Cells: " << m_validCellsCount << endl;
+//	for (int i = 0; i < m_nRows; ++i)
+//	{
+//		for (int j = 0; j < m_nCols; ++j)
+//		{
+//			if ( m_mask->IsNull(i, j) )
+//				continue;
+//			int id = i*m_nCols + j;
+//
+//			vector<int>& inCells = m_cells[id]->GetInCellIDs();
+//			oss << inCells.size() << "\t";
+//			for (size_t k = 0; k < inCells.size(); ++k)
+//				oss << m_compressedIndex[inCells[k]] << "\t";
+//			oss << "\n";
+//		}
+//	}
+//	WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX", m_validCellsCount, oss.str());
+//}

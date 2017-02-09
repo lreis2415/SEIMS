@@ -5,14 +5,11 @@
 #include <sstream>
 #include <map>
 
-//gdal
 #include "gdal.h"
-#include "util.h"
-#include "time.h"
-
-#include "Raster.cpp"
+#include "utilities.h"
+#include "clsRasterData.cpp"
 #include "CellOrdering.h"
-
+#include "FieldPartition.h"
 using namespace std;
 
 map<int, int> dirToIndexMap;
@@ -20,7 +17,7 @@ map<int, int> dirToIndexMap;
 /// Check if the required raster files existed in the directory
 bool checkInputRasterName(string &dir, map<string, string>&rstFilePaths);
 /// Find outlet location according to flow direction, stream link, and DEM. Updated by LJ.
-void findOutlet(Raster<float>& rsDEM, Raster<int>& rsStreamLink, Raster<int>& rsDir, FlowDirectionMethod flowDirMtd, int& rowIndex, int& colIndex);
+void findOutlet(clsRasterData<float>& rsDEM, clsRasterData<int>& rsStreamLink, clsRasterData<int>& rsDir, FlowDirectionMethod flowDirMtd, int& rowIndex, int& colIndex);
 /// Do field partition mission.
 void DoFieldsPartition(map<string, string>&rstFilePaths, FlowDirectionMethod flowDirMtd, int threshod);
 
@@ -29,8 +26,8 @@ int main(int argc, const char* argv[])
 	GDALAllRegister();
 	/// Header print information
 	cout<<"                     Field Partition Program                        "<<endl;
-	cout<<"                           Version: 1.1                                     "<<endl;
-	cout<<"                    Compile date: 2016-6-20                      "<<endl;
+	cout<<"                           Version: 1.2                                     "<<endl;
+	cout<<"                    Compile date: 2017-2-9                      "<<endl;
 	cout<<"                        Author: Hui Wu                                   "<<endl;
 	cout<<"                     Revised: Liang-Jun Zhu                       "<<endl;
 
@@ -48,7 +45,7 @@ int main(int argc, const char* argv[])
 	}
 	else if (argc == 2)
 	{
-		if(argv[1]!= NULL)Dir = argv[1];else goto errexit;
+		if(argv[1]!= NULL)Dir = argv[1]; else goto errexit;
 		Threshod = 50;
 		flowDirMtd = (FlowDirectionMethod)0;
 	}
@@ -118,7 +115,7 @@ bool checkInputRasterName(string &dir, map<string, string>&rstFilePaths)
 	}
 	return flag;
 }
-void findOutlet(Raster<float>& rsDEM, Raster<int>& rsStreamLink, Raster<int>& rsDir, FlowDirectionMethod flowDirMtd, int& rowIndex, int& colIndex)
+void findOutlet(clsRasterData<float>& rsDEM, clsRasterData<int>& rsStreamLink, clsRasterData<int>& rsDir, FlowDirectionMethod flowDirMtd, int& rowIndex, int& colIndex)
 {
 	if (flowDirMtd)
 	{
@@ -144,18 +141,19 @@ void findOutlet(Raster<float>& rsDEM, Raster<int>& rsStreamLink, Raster<int>& rs
 		dirToIndexMap[3] = 6;
 		dirToIndexMap[2] = 7;
 	}
-	if (rsDEM.GetNumberOfRows() <= 0 || rsDEM.GetNumberofColumns() <= 0)
+	if (rsDEM.getRows() <= 0 || rsDEM.getCols() <= 0)
 	{
 		cout << "Error: the input of DEM was invalid!\n";
 		exit(-1);
 	}
 	/// updated by Liangjun Zhu, Apr. 1, 2016
 	bool flag = false;
-	for (int i = 0; i < rsStreamLink.GetNumberOfRows(); i++)
+	for (int i = 0; i < rsStreamLink.getRows(); i++)
 	{
-		for (int j = 0; j < rsStreamLink.GetNumberofColumns(); j++)
+		for (int j = 0; j < rsStreamLink.getCols(); j++)
 		{
-			if( !rsStreamLink.IsNull(i, j) && rsStreamLink.At(i,j) > 0)
+			RowColCoor rc = {i, j};
+			if( !rsStreamLink.isNoData(rc) && rsStreamLink.getValue(rc) > 0)
 			{
 				colIndex = j;
 				rowIndex = i;
@@ -171,12 +169,14 @@ void findOutlet(Raster<float>& rsDEM, Raster<int>& rsStreamLink, Raster<int>& rs
 	flag = true;
 	while (flag)
 	{
-		int index = dirToIndexMap[rsDir.At(rowIndex,colIndex)];
+		RowColCoor rc = {rowIndex,colIndex};
+		int index = dirToIndexMap[rsDir.getValue(rc)];
 		int ii = rowIndex + CellOrdering::m_d1[index];
 		int jj = colIndex + CellOrdering::m_d2[index];
-		if (ii < rsDEM.GetNumberOfRows() - 1 && jj < rsDEM.GetNumberofColumns() - 1)
+		if (ii < rsDEM.getRows() - 1 && jj < rsDEM.getCols() - 1)
 		{
-			if(rsStreamLink.IsNull(ii, jj) || rsStreamLink.At(ii,jj) <= 0)
+			RowColCoor rc_new = {ii, jj};
+			if(rsStreamLink.isNoData(rc_new) || rsStreamLink.getValue(rc_new) <= 0)
 				flag = false;
 			else
 			{
@@ -224,30 +224,14 @@ void DoFieldsPartition(map<string, string>&rstFilePaths, FlowDirectionMethod flo
 
 	cout<<"Executing ..."<<endl;
 	cout<<"\tRead input raster files..."<<endl;
-	Raster<int> rsDir, rsLandu, rsMask, rsStrLink;
-	if(GetSuffix(dirName) == "ASC")
-		rsDir.ReadFromArcAsc(dirName.c_str());
-	else
-		rsDir.ReadFromGDAL(dirName.c_str());
-	if(GetSuffix(LanduName) == "ASC")
-		rsLandu.ReadFromArcAsc(LanduName.c_str());
-	else
-		rsLandu.ReadFromGDAL(LanduName.c_str());
-	if(GetSuffix(maskName) == "ASC")
-		rsMask.ReadFromArcAsc(maskName.c_str());
-	else
-		rsMask.ReadFromGDAL(maskName.c_str());
-	if(GetSuffix(streamLinkName) == "ASC")
-		rsStrLink.ReadFromArcAsc(streamLinkName.c_str());
-	else
-		rsStrLink.ReadFromGDAL(streamLinkName.c_str());
+	IntRaster rsDir(dirName, false);
+	IntRaster rsLandu(LanduName, false);
+	IntRaster rsMask(maskName, false);
+	IntRaster rsStrLink(streamLinkName, false);
+
 	//cout<<"xll: "<<rsMask.GetXllCenter()<<", yll: "<<rsMask.GetYllCenter()<<endl;
-	Raster<float> rsDEM;
-	if(GetSuffix(demName) == "ASC")
-		rsDEM.ReadFromArcAsc(demName.c_str());
-	else
-		rsDEM.ReadFromGDAL(demName.c_str());
-	
+	clsRasterData<float> rsDEM(demName, false);
+
 	int rowIndex, colIndex;
 	cout<<"\tFind outlet location..."<<endl;
 	findOutlet(rsDEM, rsStrLink, rsDir, flowDirMtd, rowIndex, colIndex);
