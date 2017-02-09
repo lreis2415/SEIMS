@@ -599,7 +599,7 @@ string utilsFileIO::GetAppPath()
 string utilsFileIO::GetCoreFileName(const string &fullFileName)
 {
 	string::size_type start = fullFileName.find_last_of("\\");
-	if (start == string::npos || fullFileName.find_last_of("/"))
+	if (fullFileName.find_last_of("/") != string::npos)
 	{
 		start = fullFileName.find_last_of("/");
 	}
@@ -635,7 +635,7 @@ string utilsFileIO::ReplaceSuffix(const string &fullFileName, string newSuffix){
 string utilsFileIO::GetPathFromFullName(const string &fullFileName)
 {
 	string::size_type i = fullFileName.find_last_of("\\");
-	if (i == string::npos || fullFileName.find_last_of("/"))
+	if (fullFileName.find_last_of("/") != string::npos)
 	{
 		i = fullFileName.find_last_of("/");
 	}
