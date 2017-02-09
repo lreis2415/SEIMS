@@ -431,6 +431,7 @@ public:
 	static void RemoveValueInVector(T &val, vector<T> &vec);
 };
 
+
 /*!
  * \class utilsMath
  * \brief Basic mathematics related functions
