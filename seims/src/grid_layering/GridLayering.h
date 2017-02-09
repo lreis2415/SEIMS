@@ -23,7 +23,7 @@
 #define GRID_LAYERING_RASTER_INCLUDE
 
 #include <string>
-#include "gridfs.h"
+#include "MongoUtil.h"
 
 using namespace std;
 
@@ -41,15 +41,15 @@ void ReadArcAscii(const char *filename, RasterHeader &rs, int *&data);
 
 void OutputArcAscii(const char *filename, RasterHeader &rs, int *data, int noDataValue);
 
-void ReadFromMongoFloat(gridfs *gfs, const char *remoteFilename, RasterHeader &rs, float *&data);
+void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, float *&data);
 
-void ReadFromMongo(gridfs *gfs, const char *remoteFilename, RasterHeader &rs, int *&data);
+void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, int *&data);
 
-int WriteStringToMongoDB(gridfs *gfs, int id, const char *type, int number, const char *s);
+int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s);
 
 void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix);
 
-void OutputFlowOutD8(gridfs *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix, int noDataValue,
+void OutputFlowOutD8(mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix, int noDataValue,
                      const int *compressedIndex);
 
 int OutputMultiFlowOut(int nRows, int nCols, int validCount,
@@ -67,10 +67,10 @@ int *GetInDegreeMatrix(const int *dirMatrix, int nRows, int nCols, int dirNoData
 string GridLayeringFromSource(int nValidGrids, const int *dirMatrix, const int *compressedIndex, int *degreeMatrix,
                               int nRows, int nCols, int dirNoDataValue, int outputNoDataValue, int *&layeringNum);
 
-string LayeringFromSourceD8(const char *, gridfs *gfs, int id, int nValidGrids, const int *dirMatrix,
+string LayeringFromSourceD8(const char *, mongoc_gridfs_t *gfs, int id, int nValidGrids, const int *dirMatrix,
                             const int *compressedIndex, RasterHeader &header, int outputNoDataValue);
 
-string LayeringFromSourceDinf(const char *, gridfs *gfs, int id, int nValidGrids, const float *angle,
+string LayeringFromSourceDinf(const char *, mongoc_gridfs_t *gfs, int id, int nValidGrids, const float *angle,
                               const int *dirMatrix, const int *compressedIndex, RasterHeader &header,
                               int outputNoDataValue);
 
@@ -83,6 +83,6 @@ void LayeringFromOutlet(int nValidGrids, const int *dirMatrix, const int *compre
                         RasterHeader &header, int outputNoDataValue, const char *outputTxtFile,
                         const char *outputAscFile);
 
-void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, gridfs *gfs);
+void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs);
 
 #endif

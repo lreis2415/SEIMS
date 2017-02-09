@@ -52,7 +52,7 @@ void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix)
         //if(isTauDEM)
         // cout<<"TauDEM D8 to ArcGIS Done!"<<endl;
 }
-void OutputFlowOutD8(gridfs *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix,
+void OutputFlowOutD8(mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix,
                      int dirNoDataValue, const int *compressedIndex)
 {
         float *pOutput = new float[validCount];
@@ -90,7 +90,7 @@ void OutputFlowOutD8(gridfs *gfs, int id, int nRows, int nCols, int validCount, 
                 }
         }
 
-        WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX_D8", validCount, (const char *) pOutput);
+        WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX_D8", validCount, (char *) pOutput);
         delete[] pOutput;
         pOutput = NULL;
         cout<< "OutputD8FlowOutIndex done, n:" << validCount <<endl;
@@ -175,7 +175,7 @@ int OutputMultiFlowOut(int nRows, int nCols, int validCount,
         return nOutput;
 }
 
-#define PI 3.1415926f
+//#define PI 3.1415926f // defined in utils.h
 
 float GetPercentage(float angle, int di, int dj)
 {
@@ -252,7 +252,7 @@ int OutputFlowOutPercentageDinf(int nRows, int nCols, int validCount, const floa
         pOutput = new float[nOutput];
         pOutput[0] = validCount;
         int counter = 1;
-        int fromRow, fromCol;
+        //int fromRow, fromCol;
         for (int i = 0; i < nRows; ++i)
         {
                 for (int j = 0; j < nCols; ++j)
