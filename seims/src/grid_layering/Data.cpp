@@ -3,19 +3,14 @@
 *
 *	Created:	Junzhi Liu
 *	Date:		29-July-2012
-*
-*	Revision:
-*   Date:
 *---------------------------------------------------------------------*/
 
 
 #include <fstream>
+#include <iostream>
 #include <string>
 #include "GridLayering.h"
-#include <iostream>
-
-#include "mongo.h"
-#include "bson.h"
+#include "MongoUtil.h"
 
 using namespace std;
 
@@ -53,7 +48,6 @@ void ReadArcAscii(const char *filename, RasterHeader &rs, int *&data)
 
 }
 
-
 void OutputArcAscii(const char *filename, RasterHeader &rs, int *data, int noDataValue)
 {
         ofstream rasterFile(filename);
@@ -78,151 +72,73 @@ void OutputArcAscii(const char *filename, RasterHeader &rs, int *data, int noDat
         rasterFile.close();
 }
 
-
-void ReadFromMongo(gridfs *gfs, const char *remoteFilename, RasterHeader &rs, int *&data)
+void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, int *&data)
 {
-        gridfile gfile[1];
-        bson b[1];
-        bson_init(b);
-        bson_append_string(b, "filename", remoteFilename);
-        bson_finish(b);
-        int flag = gridfs_find_query(gfs, b, gfile);
-        if (0 != flag)
-        {
-                cout << "Failed in ReadFromMongoDB, Remote file: " << remoteFilename << endl;
-        }
-
-        size_t length = (size_t) gridfile_get_contentlength(gfile);
-        char *buf = (char *) malloc(length);
-        gridfile_read(gfile, length, buf);
-        float *dataMongo = (float *) buf;
-
-        bson bmeta[1];
-        gridfile_get_metadata(gfile, bmeta);
-        bson_iterator iterator[1];
-        if (bson_find(iterator, bmeta, "NCOLS"))
-                rs.nCols = bson_iterator_int(iterator);
-        if (bson_find(iterator, bmeta, "NROWS"))
-                rs.nRows = bson_iterator_int(iterator);
-        if (bson_find(iterator, bmeta, "NODATA_VALUE"))
-                rs.noDataValue = int(bson_iterator_double(iterator));
-        if (bson_find(iterator, bmeta, "XLLCENTER"))
-                rs.xll = (float) bson_iterator_double(iterator);
-        if (bson_find(iterator, bmeta, "YLLCENTER"))
-                rs.yll = (float) bson_iterator_double(iterator);
-        if (bson_find(iterator, bmeta, "CELLSIZE"))
-                rs.dx = (float) bson_iterator_double(iterator);
-
-        //bson_destroy(bmeta);
-
-        int n = rs.nRows * rs.nCols;
-        data = new int[n];
-
-        //read file
-        for (int i = 0; i < n; i++)
-                data[i] = dataMongo[i];
-
-        bson_destroy(b);
-        gridfile_destroy(gfile);
-        //gridfs_destroy(gfs);
-        //mongo_destroy(conn);
-        free(buf);
+	char* buf;
+	int length;
+	bson_t *bmeta;
+	MongoGridFS().getStreamData(string(remoteFilename), buf, length, gfs);
+	bmeta = MongoGridFS().getFileMetadata(string(remoteFilename), gfs);
+	float *dataMongo = (float *) buf;
+	GetNumericFromBson(bmeta, "NCOLS", rs.nCols);
+	GetNumericFromBson(bmeta, "NROWS", rs.nRows);
+	GetNumericFromBson(bmeta, "NODATA_VALUE", rs.noDataValue);
+	GetNumericFromBson(bmeta, "XLLCENTER", rs.xll);
+	GetNumericFromBson(bmeta, "YLLCENTER", rs.yll);
+	GetNumericFromBson(bmeta, "CELLSIZE", rs.dx);
+	bson_destroy(bmeta);
+	int n = rs.nRows * rs.nCols;
+	data = new int[n];
+#pragma omp parallel for
+	for (int i = 0; i < n; i++)
+		data[i] = (int) dataMongo[i];
+	free(buf);
+	dataMongo = NULL;
 }
 
-void ReadFromMongoFloat(gridfs *gfs, const char *remoteFilename, RasterHeader &rs, float *&data)
+void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, float *&data)
 {
-        gridfile gfile[1];
-        bson b[1];
-        bson_init(b);
-        bson_append_string(b, "filename", remoteFilename);
-        bson_finish(b);
-        int flag = gridfs_find_query(gfs, b, gfile);
-        if (0 != flag)
-        {
-                cout << "Failed in ReadFromMongoDB, Remote file: " << remoteFilename << endl;
-        }
-
-        bson bmeta[1];
-        gridfile_get_metadata(gfile, bmeta);
-        bson_iterator iterator[1];
-        if (bson_find(iterator, bmeta, "NCOLS"))
-                rs.nCols = bson_iterator_int(iterator);
-        if (bson_find(iterator, bmeta, "NROWS"))
-                rs.nRows = bson_iterator_int(iterator);
-        if (bson_find(iterator, bmeta, "NODATA_VALUE"))
-                rs.noDataValue = int(bson_iterator_double(iterator));
-        if (bson_find(iterator, bmeta, "XLLCENTER"))
-                rs.xll = (float) bson_iterator_double(iterator);
-        if (bson_find(iterator, bmeta, "YLLCENTER"))
-                rs.yll = (float) bson_iterator_double(iterator);
-        if (bson_find(iterator, bmeta, "CELLSIZE"))
-                rs.dx = (float) bson_iterator_double(iterator);
-
-        size_t n = rs.nRows * rs.nCols;
-        size_t length = (size_t) gridfile_get_contentlength(gfile);
-        if (4 * n != length)
-        {
-                cout << "The data length of " << remoteFilename << " is not consistant with metadata.\n";
-                bson_destroy(b);
-                gridfile_destroy(gfile);
-                return;
-        }
-
-        data = new float[n];
-        char *buf = (char *) data;
-        gridfile_read(gfile, length, buf);
-
-        bson_destroy(b);
-        gridfile_destroy(gfile);
+	char* buf;
+	int length;
+	bson_t *bmeta;
+	MongoGridFS().getStreamData(string(remoteFilename), buf, length, gfs);
+	bmeta = MongoGridFS().getFileMetadata(string(remoteFilename), gfs);
+	GetNumericFromBson(bmeta, "NCOLS", rs.nCols);
+	GetNumericFromBson(bmeta, "NROWS", rs.nRows);
+	GetNumericFromBson(bmeta, "NODATA_VALUE", rs.noDataValue);
+	GetNumericFromBson(bmeta, "XLLCENTER", rs.xll);
+	GetNumericFromBson(bmeta, "YLLCENTER", rs.yll);
+	GetNumericFromBson(bmeta, "CELLSIZE", rs.dx);
+	bson_destroy(bmeta);
+	int n = rs.nRows * rs.nCols;
+	if (4 * n != length){
+		cout << "The data length of " << remoteFilename << " is not consistent with metadata.\n";
+		exit(EXIT_FAILURE);
+	}
+	data = (float* ) buf;
 }
 
-int WriteStringToMongoDB(gridfs *gfs, int id, const char *type, int number, const char *s)
+int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s)
 {
-        bson *p = (bson *) malloc(sizeof(bson));
-        bson_init(p);
-        bson_append_int(p, "SUBBASIN", id);
-        bson_append_string(p, "TYPE", type);
+	bson_t p = BSON_INITIALIZER;
+	BSON_APPEND_INT32(&p, "SUBBASIN", id);
+	BSON_APPEND_UTF8(&p, "TYPE", type);
+	
+	char remoteFilename[100];
+	strprintf(remoteFilename, "%d_%s", id, type);
+	//sprintf(remoteFilename, "%d_%s", id, type);
+	BSON_APPEND_UTF8(&p, "ID", remoteFilename);
+	BSON_APPEND_UTF8(&p, "DESCRIPTION", type);
+	BSON_APPEND_DOUBLE(&p, "NUMBER", number);
+	MongoGridFS().removeFile(string(remoteFilename), gfs);
 
-        char remoteFilename[100];
-        sprintf(remoteFilename, "%d_%s", id, type);
-
-        bson_append_string(p, "ID", remoteFilename);
-        bson_append_string(p, "DESCRIPTION", type);
-        bson_append_double(p, "NUMBER", number);
-        bson_finish(p);
-
-        gridfile gfile[1];
-        /// If the file is already existed in MongoDB, if existed, then delete it!
-        gridfs_remove_filename(gfs, remoteFilename);
-        /// create a new one
-        int n = number * 4;
-        int index = 0;
-        gridfile_writer_init(gfile, gfs, remoteFilename, type);
-
-        while (index < n)
-        {
-                int dataLen = 1024;
-                if (n - index < dataLen)
-                        dataLen = n - index;
-                gridfile_write_buffer(gfile, s + index, dataLen);
-                index += dataLen;
-        }
-
-        gridfile_set_metadata(gfile, p);
-        int flag = gridfile_writer_done(gfile);
-        if (flag == MONGO_ERROR) /// if write to MongoDB failed.
-        {
-                cout<<"\t"<<string(remoteFilename)<<" output failed, please retry!"<<endl;
-        }
-        gridfile_destroy(gfile);
-
-        bson_destroy(p);
-        free(p);
-
-        return flag;
+    int n = number * 4;
+	MongoGridFS().writeStreamData(string(remoteFilename), s, n, &p, gfs);
+	bson_destroy(&p);
+	return true;
 }
 
-void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, gridfs *gfs)
+void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs)
 {
         ifstream ifs(layeringTxtFile);
         int nValidGrids, nLayers;
@@ -237,7 +153,7 @@ void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, in
                 ifs >> pLayers[i];
         ifs.close();
 
-        WriteStringToMongoDB(gfs, id, dataType, n, (const char *) pLayers);
+        WriteStringToMongoDB(gfs, id, dataType, n, (char *) pLayers);
         delete[] pLayers;
         pLayers = NULL;
 }
