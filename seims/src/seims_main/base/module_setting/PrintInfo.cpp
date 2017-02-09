@@ -175,8 +175,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         //cout << projectPath << Filename << endl;
 		if (outToMongoDB)
 		{
-			bson_error_t *err = NULL;
-			mongoc_gridfs_remove_by_filename(gfs, Filename.c_str(), err);
+			MongoGridFS().removeFile(Filename, gfs);
 			clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
 		}
 		clsRasterData<float>(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
@@ -191,8 +190,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         
 		if (outToMongoDB)
 		{
-			bson_error_t *err = NULL;
-			mongoc_gridfs_remove_by_filename(gfs, Filename.c_str(), err);
+			MongoGridFS().removeFile(Filename, gfs);
 			clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
 		}	
 		return;

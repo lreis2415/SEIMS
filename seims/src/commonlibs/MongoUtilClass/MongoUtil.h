@@ -145,6 +145,10 @@ public:
 	 */
 	mongoc_gridfs_file_t* getFile(string& gfilename, mongoc_gridfs_t* gfs = NULL);
 	/*!
+	 * \brief Remove GridFS file by name
+	 */
+	bool removeFile(string& gfilename, mongoc_gridfs_t* gfs = NULL);
+	/*!
 	 * \brief Get GridFS file names
 	 */
 	vector<string> getFileNames(mongoc_gridfs_t* gfs = NULL);
