@@ -11,4 +11,9 @@ enum LayeringMethod
     /// layering-from-outlet method
     DOWN_UP
 };
+enum FlowDirectionMethod
+{
+    TauDEM = 0,
+    ArcGIS = 1
+};
 #endif
