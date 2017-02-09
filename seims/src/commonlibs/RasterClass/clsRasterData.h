@@ -169,22 +169,11 @@ public:
      * \param filename filename with prefix, e.g. ".asc" and ".tif"
      */
     void outputToFile(string &filename);
-	///*!
- //    * \brief Write 1D raster to raster file
- //    * \param filename filename with prefix, e.g. ".asc" and ".tif"
- //    */
- //   void outputToFile(string &filename, clsRasterData<MaskT> *mask, T*& values);
-	///*!
- //    * \brief Write 2D raster to raster file, output name will be filename_LyrNum
- //    * \param filename filename with prefix, e.g. ".asc" and ".tif"
- //    */
- //   void outputToFile(string &filename, clsRasterData<MaskT> *mask, T**& values, int lyrs);
-    /*!
+	/*!
      * \brief Write 1D or 2D raster data into ASC file(s)
      * \param[in] filename \a string, output ASC file path, take the CoreName as prefix
      */
     void outputASCFile(string& filename);
-
 	/*!
      * \brief Write 1D or 2D raster data into TIFF file by GDAL
      * \param[in] filename \a string, output TIFF file path
@@ -198,18 +187,6 @@ public:
      * \param[in] gfs \a mongoc_gridfs_t
      */
     void outputToMongoDB(string& filename, mongoc_gridfs_t *gfs);
-	///*!
- //    * \brief Write 1D raster data (matrix raster data) into MongoDB
- //    * \param[in] filename \a string, output file name
- //    * \param[in] gfs \a mongoc_gridfs_t
- //    */
- //   void outputToMongoDB(string& filename, mongoc_gridfs_t *gfs, clsRasterData<MaskT> *mask, T*& values);
-	///*!
- //    * \brief Write 2D raster data (matrix raster data) into MongoDB
- //    * \param[in] filename \a string, output file name
- //    * \param[in] gfs \a mongoc_gridfs_t
- //    */
- //   void outputToMongoDB(string& filename, mongoc_gridfs_t *gfs, clsRasterData<MaskT> *mask, T**& values, int layers);
 #endif
 	/************* Get information functions ***************/
 	
@@ -368,7 +345,12 @@ public:
 
     //! Get raster header information
 	map<string, double> *getRasterHeader(void){ return &m_headers; }
-
+	//! Get raster statistics information
+	map<string, double> *getStatistics(void){ return &m_statsMap; }
+	//! Get full path name
+	string getFilePath() { return m_filePathName; }
+	//! Get core name
+	string getCoreName() { return m_coreFileName; }
 	/*!
 	 * \brief Get position index data and the data length
 	 * \param[out] datalength 
@@ -377,10 +359,11 @@ public:
     void getRasterPositionData(int& datalength, int**& positiondata);
 
     //! Get pointer of raster data
-    float *getRasterDataPointer() { return m_rasterData; }
-
+    T*& getRasterDataPointer() { return m_rasterData; }
+	//! Get pointer of position data
+	int**& getRasterPositionDataPointer() { return m_rasterPositionData; }
     //! Get pointer of 2D raster data
-    float **get2DRasterDataPointer() { return m_raster2DData; }
+    T**& get2DRasterDataPointer() { return m_raster2DData; }
 
     //! Get the spatial reference
     const char *getSRS() { return m_srs.c_str(); }
@@ -419,9 +402,15 @@ public:
 
 	//! Use mask extent or not
 	bool MaskExtented() { return m_useMaskExtent; }
-
+	bool StatisticsCalculated() { return m_statisticsCalculated; }
 	//! Get full filename
 	string GetFullFileName() { return m_filePathName; }
+	//! Get mask data pointer
+	clsRasterData<MaskT>* getMask() { return m_mask; }
+	/*!
+	 * \brief Copy clsRasterData object
+	 */
+	void Copy(clsRasterData &orgraster);
     /************* Utility functions ***************/
 
     /*!

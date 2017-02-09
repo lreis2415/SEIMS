@@ -41,7 +41,7 @@ MongoClient::MongoClient(const char *host, int port): m_host(host), m_port(port)
 	}
 }
 MongoClient::~MongoClient() {
-    mongoc_client_destroy(m_conn);
+	if (!m_conn) mongoc_client_destroy(m_conn);
 	mongoc_cleanup();
 }
 void MongoClient::_database_names() {
@@ -176,6 +176,23 @@ mongoc_gridfs_file_t* MongoGridFS::getFile(string& gfilename, mongoc_gridfs_t* g
 				"The file " + gfilename + " does not exist.");
 		}
 		return gfile;
+	}
+	catch (ModelException e){
+		cout << e.toString() << endl;
+		exit(EXIT_FAILURE);
+	}
+}
+bool MongoGridFS::removeFile(string& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
+	bool removedone = true;
+	try{
+		if (m_gfs != NULL) gfs = m_gfs;
+		if (gfs == NULL)
+			throw ModelException("MongoGridFS", "getFile",
+			"mongoc_gridfs_t must be provided for MongoGridFS!\n");
+		bson_error_t *err = NULL;
+		removedone = mongoc_gridfs_remove_by_filename(gfs, gfilename.c_str(), err);
+		if (err != NULL || !removedone) removedone = false;
+		return removedone;
 	}
 	catch (ModelException e){
 		cout << e.toString() << endl;

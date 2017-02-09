@@ -16,6 +16,8 @@
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_initialize_raster_class(){
+	m_filePathName = "";
+	m_coreFileName = "";
 	m_nCells = -1;
 	m_noDataValue = (T) NODATA_VALUE;
 	m_rasterData = NULL;
@@ -732,8 +734,6 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string& filename, mongoc_gridfs_t 
 }
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string& filename, map<string, double>& header, string& srs, T *values, int datalength) {
-	//bson_t *p = (bson_t *) malloc(sizeof(bson_t));
-	//bson_init(p);
 	bson_t p = BSON_INITIALIZER;
 	for (map<string, double>::iterator iter = header.begin(); iter != header.end(); iter++){
 		BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
@@ -741,20 +741,20 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,
 	BSON_APPEND_UTF8(&p, HEADER_RS_SRS, srs.c_str());
 	char* buf = (char* )values;
 	int buflength = datalength * sizeof(T);
-	//MongoGridFS(gfs).writeStreamData(filename, buf, buflength, p);
+	MongoGridFS().writeStreamData(filename, buf, buflength, &p, gfs);
 
-	mongoc_gridfs_file_t *gfile = NULL;
-	mongoc_gridfs_file_opt_t gopt = {0};
-	gopt.filename = filename.c_str();
-	gopt.content_type = "float"; // TODO, Is the content_type can be any STRING?
-	gopt.metadata = &p;
-	gfile = mongoc_gridfs_create_file(gfs, &gopt);
-	mongoc_iovec_t ovec;
-	ovec.iov_base = buf;
-	ovec.iov_len = buflength;
-	mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
-	mongoc_gridfs_file_save(gfile);
-	mongoc_gridfs_file_destroy(gfile);
+	//mongoc_gridfs_file_t *gfile = NULL;
+	//mongoc_gridfs_file_opt_t gopt = {0};
+	//gopt.filename = filename.c_str();
+	//gopt.content_type = "float"; // TODO, Is the content_type can be any STRING?
+	//gopt.metadata = &p;
+	//gfile = mongoc_gridfs_create_file(gfs, &gopt);
+	//mongoc_iovec_t ovec;
+	//ovec.iov_base = buf;
+	//ovec.iov_len = buflength;
+	//mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
+	//mongoc_gridfs_file_save(gfile);
+	//mongoc_gridfs_file_destroy(gfile);
 
 	bson_destroy(&p);
 }
@@ -868,7 +868,7 @@ void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, dou
     if (StringMatch(ylls, "YLLCORNER")) tmpheader[HEADER_RS_YLL] += 0.5 * tmpheader[HEADER_RS_CELLSIZE];
 
     /// get all raster values (i.e., include NODATA_VALUE, m_excludeNODATA = False)
-    T *tmprasterdata = new T[rows * cols];
+	T *tmprasterdata = new T[rows * cols];
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             rasterFile >> tempFloat;
@@ -902,7 +902,7 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
 	tmpheader[HEADER_RS_XLL] = adfGeoTransform[0] + 0.5 * tmpheader[HEADER_RS_CELLSIZE];
 	tmpheader[HEADER_RS_YLL] = adfGeoTransform[3] + (tmpheader[HEADER_RS_NROWS] - 0.5) * adfGeoTransform[5];
 	string tmpsrs = string(poDataset->GetProjectionRef());
-	/// get all raster values (i.e., include NODATA_VALUE, m_excludeNODATA = False)
+	/// get all raster values (i.e., include NODATA_VALUE)
 	T *tmprasterdata = new T[nRows * nCols];
 
 	GDALDataType dataType = poBand->GetRasterDataType();
@@ -949,6 +949,34 @@ void clsRasterData<T, MaskT>::_add_other_layer_raster_data(int row, int col, int
 	else
 		m_raster2DData[cellidx][lyr] = lyrdata[tmpPosition[0] * tmpcols + tmpPosition[1]];
 }
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::Copy(clsRasterData &orgraster){
+	m_filePathName = orgraster.getFilePath();
+	m_coreFileName = orgraster.getCoreName();
+	m_nCells = orgraster.getCellNumber();
+	m_noDataValue = (T) orgraster.getNoDataValue();
+	if (orgraster.is2DRaster()){
+		m_nLyrs = orgraster.getLayers();
+		Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, orgraster.get2DRasterDataPointer());
+	}
+	else {
+		m_rasterData = NULL;
+		Initialize1DArray(m_nCells, m_rasterData, orgraster.getRasterDataPointer());
+	}
+	m_mask = orgraster.getMask();
+	m_calcPositions = orgraster.PositionsCalculated();
+	if (m_calcPositions)
+		Initialize2DArray(m_nCells, 2, m_rasterPositionData, orgraster.getRasterPositionDataPointer());
+	m_useMaskExtent = orgraster.MaskExtented();
+	m_statisticsCalculated = orgraster.StatisticsCalculated();
+	if (m_statisticsCalculated){
+		map<string, double> *stats = orgraster.getStatistics();
+		for (map<string, double>::iterator iter = (*stats).begin(); iter != (*stats).end(); iter++) {
+			m_statsMap[iter->first] = iter->second;
+		}
+	}
+	this->copyHeader(orgraster.getRasterHeader());
+}
 /************* Utility functions ***************/
 
 template<typename T, typename MaskT>
@@ -993,12 +1021,15 @@ int* clsRasterData<T, MaskT>::getPositionByCoordinate(double x, double y, map<st
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::copyHeader(map<string, double> *maskHeader) {
-    m_headers[HEADER_RS_NCOLS] = (*maskHeader)[HEADER_RS_NCOLS];
-    m_headers[HEADER_RS_NROWS] = (*maskHeader)[HEADER_RS_NROWS];
-    m_headers[HEADER_RS_NODATA] = (*maskHeader)[HEADER_RS_NODATA];
-    m_headers[HEADER_RS_CELLSIZE] = (*maskHeader)[HEADER_RS_CELLSIZE];
-    m_headers[HEADER_RS_XLL] = (*maskHeader)[HEADER_RS_XLL];
-    m_headers[HEADER_RS_YLL] = (*maskHeader)[HEADER_RS_YLL];
+	for (map<string, double>::iterator iter = (*maskHeader).begin(); iter != (*maskHeader).end(); iter++) {
+		m_headers[iter->first] = iter->second;
+	}
+    //m_headers[HEADER_RS_NCOLS] = (*maskHeader)[HEADER_RS_NCOLS];
+    //m_headers[HEADER_RS_NROWS] = (*maskHeader)[HEADER_RS_NROWS];
+    //m_headers[HEADER_RS_NODATA] = (*maskHeader)[HEADER_RS_NODATA];
+    //m_headers[HEADER_RS_CELLSIZE] = (*maskHeader)[HEADER_RS_CELLSIZE];
+    //m_headers[HEADER_RS_XLL] = (*maskHeader)[HEADER_RS_XLL];
+    //m_headers[HEADER_RS_YLL] = (*maskHeader)[HEADER_RS_YLL];
 }
 
 template<typename T, typename MaskT>
@@ -1097,12 +1128,14 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions(){
 				if (tmpPosition[0] == -1 || tmpPosition[1] == -1) continue;
 
 				T tmpValue;
-				if (m_is2DRaster && m_nLyrs > 1){
-					vector<T> tmpValues(m_nLyrs - 1);
-					for (int lyr = 1; lyr < m_nLyrs; lyr++)
-						tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
-					values2D.push_back(tmpValues);
+				if (m_is2DRaster){
 					tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
+					if (m_nLyrs > 1){
+						vector<T> tmpValues(m_nLyrs - 1);
+						for (int lyr = 1; lyr < m_nLyrs; lyr++)
+							tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+						values2D.push_back(tmpValues);
+					}
 				}
 				else{
 					tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
@@ -1129,12 +1162,14 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions(){
 					int* tmpPosition = this->getPositionByCoordinate(tmpXY[0], tmpXY[1]);
 					if (tmpPosition[0] == -1 || tmpPosition[1] == -1) continue;
 					T tmpValue;
-					if (m_is2DRaster && m_nLyrs > 1){
-						vector<T> tmpValues(m_nLyrs - 1);
-						for (int lyr = 1; lyr < m_nLyrs; lyr++)
-							tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
-						values2D.push_back(tmpValues);
+					if (m_is2DRaster){
 						tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
+						if (m_nLyrs > 1){
+							vector<T> tmpValues(m_nLyrs - 1);
+							for (int lyr = 1; lyr < m_nLyrs; lyr++)
+								tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+							values2D.push_back(tmpValues);
+						}
 					}
 					else{
 						tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
@@ -1195,14 +1230,16 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions(){
 					|| FloatEqual((T)*it, m_noDataValue))
 				{
 					it = values.erase(it);
-					values2D.erase(data2dit + idx);
+					if (m_is2DRaster && m_nLyrs > 1){
+						values2D.erase(data2dit + idx);
+						data2dit = values2D.begin();
+					}
 					positionCols.erase(cit + idx);
 					positionRows.erase(rit + idx);
 					/// reset the iterators
 					rit = positionRows.begin();
 					cit = positionCols.begin();
 					vit = values.begin();
-					data2dit = values2D.begin();
 				}
 				else{
 					/// get new column and row number

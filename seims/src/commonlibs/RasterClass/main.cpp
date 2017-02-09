@@ -117,7 +117,9 @@ int main(int argc, const char *argv[]) {
 		cout << "  min: "<<gdalreadr2D.getMinimum(i)<<", std: "<<gdalreadr2D.getSTD(i)<<endl;
 	}
 	gdalreadr2D.outputToFile(demout2);
-
+	/// Copy 2D raster
+	clsRasterData<float> copied2DRaster;
+	copied2DRaster.Copy(gdalreadr2D);
 
 	return 0;
 }
