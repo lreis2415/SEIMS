@@ -414,6 +414,26 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
 	}
 }
 template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::setValue(RowColCoor pos, T value, int lyr /* = 1 */){
+	int idx = this->getPosition(pos.row, pos.col);
+	if (idx == -1){
+		if (m_is2DRaster)
+			m_raster2DData[pos.row * this->getCols() + pos.col][lyr] = value;
+		else
+			m_rasterData[pos.row * this->getCols() + pos.col] = value;
+	}
+	else{
+		if (m_is2DRaster)
+			m_raster2DData[idx][lyr] = value;
+		else
+			m_rasterData[idx] = value;
+	}
+}
+template<typename T, typename MaskT>
+T clsRasterData<T, MaskT>::isNoData(RowColCoor pos, int lyr /* = 1 */){
+	return FloatEqual(this->getValue(pos, lyr), m_noDataValue);
+}
+template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T** values) {
 	if (m_rasterData == NULL || (m_is2DRaster && m_raster2DData == NULL))
 		throw ModelException("claRasterData", "getValue", "Please first initialize the raster object.");
@@ -611,7 +631,7 @@ void clsRasterData<T, MaskT>::outputFileByGDAL(string& filename){
 			oss << prePath << coreName << "_" << (lyr + 1) << "." << GTiffExtension;
 			string tmpfilename = oss.str();
 			float *rasterdata1D = NULL;
-			Initialize1DArray(nRows * nCols, rasterdata1D, noDataValue);
+			Initialize1DArray(nRows * nCols, rasterdata1D, (float) noDataValue);
 			int validnum = 0;
 			for (int i = 0; i < nRows; ++i) {
 				for (int j = 0; j < nCols; ++j) {
@@ -633,10 +653,21 @@ void clsRasterData<T, MaskT>::outputFileByGDAL(string& filename){
 	}
 	else{  /// 3.2 1D raster data
 		float *rasterdata1D = NULL;
-		if (outputdirectly)
-			rasterdata1D = m_rasterData;
+		bool newbuilddata = true;
+		if (outputdirectly){
+			if (typeid(T) != typeid(float)){
+				/// copyArray() should be an common used function
+				rasterdata1D = new float[m_nCells];
+				for (int i = 0; i < m_nCells; i++)
+					rasterdata1D[i] = (float) m_rasterData[i];
+			}
+			else{
+				rasterdata1D = (float* ) m_rasterData;
+				newbuilddata = false;
+			}
+		}
 		else
-			Initialize1DArray(nRows * nCols, rasterdata1D, (T) noDataValue);
+			Initialize1DArray(nRows * nCols, rasterdata1D, (float) noDataValue);
 		int validnum = 0;
 		if (!outputdirectly) {
 			for (int i = 0; i < nRows; ++i) {
@@ -650,12 +681,12 @@ void clsRasterData<T, MaskT>::outputFileByGDAL(string& filename){
 			}
 		}
 		this->_write_single_geotiff(filename, m_headers, m_srs, rasterdata1D);
-		if (outputdirectly) rasterdata1D = NULL;
+		if (!newbuilddata) rasterdata1D = NULL;
 		else Release1DArray(rasterdata1D);
 	}
 	position = NULL;
 }
-
+#ifdef USE_MONGODB
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::outputToMongoDB(string& filename, mongoc_gridfs_t *gfs){
 	/// 1. Is there need to calculate valid position index?
@@ -758,6 +789,7 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,
 
 	bson_destroy(&p);
 }
+#endif
 /************* Read functions ***************/
 
 template<typename T, typename MaskT>
@@ -773,6 +805,7 @@ void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* 
 	this->_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData, &m_srs);
 	this->_mask_and_calculate_valid_positions();
 }
+#ifdef USE_MONGODB
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
 	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
@@ -839,6 +872,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs, string filen
 		exit(EXIT_FAILURE);
 	}
 }
+#endif
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, double> *header, T**values) {
@@ -976,6 +1010,25 @@ void clsRasterData<T, MaskT>::Copy(clsRasterData &orgraster){
 		}
 	}
 	this->copyHeader(orgraster.getRasterHeader());
+}
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::replaceNoData(T replacedv){
+	if (m_is2DRaster && m_raster2DData != NULL) {
+#pragma omp parallel for
+		for (int i = 0; i < m_nCells; i++){
+			for (int lyr = 0; lyr < m_nLyrs; lyr++){
+				if (FloatEqual(m_raster2DData[i][lyr], m_noDataValue))
+					m_raster2DData[i][lyr] = replacedv;
+			}
+		}
+	} 
+	else if (m_rasterData != NULL) {
+#pragma omp parallel for
+		for (int i = 0; i < m_nCells; i++){
+			if (FloatEqual(m_rasterData[i], m_noDataValue))
+				m_rasterData[i] = replacedv;
+		}
+	}
 }
 /************* Utility functions ***************/
 

@@ -381,7 +381,15 @@ public:
 	 * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
 	 */
     T getValue(RowColCoor pos, int lyr = 1);
-
+	/*!
+	 * \brief Set value to the given position and layer
+	 */
+	void setValue(RowColCoor pos, T value, int lyr = 1);
+	/*! 
+	 * \brief Check if the raster data is NoData via row and col
+	 * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
+	 */
+    T isNoData(RowColCoor pos, int lyr = 1);
     /*! 
 	 * \brief Get raster data at the valid cell index (both for 1D and 2D raster)
 	 * \return a float array with length as nLyrs
@@ -411,6 +419,10 @@ public:
 	 * \brief Copy clsRasterData object
 	 */
 	void Copy(clsRasterData &orgraster);
+	/*!
+	 * \brief Replace NoData value by the given value
+	 */
+	void replaceNoData(T replacedv);
     /************* Utility functions ***************/
 
     /*!
@@ -510,6 +522,7 @@ private:
 	 * \param[in] values float raster data array
      */
 	void _write_single_geotiff(string& filename, map<string, double>& header, string& srs, float *values);
+#ifdef USE_MONGODB
 	/*!
      * \brief Write full-sized raster data as GridFS file
      * If the file exists, delete it first.
@@ -519,6 +532,7 @@ private:
 	 * \param[in] values float raster data array
      */
 	void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string& filename, map<string, double>& header, string& srs, T *values, int datalength);
+#endif
 	/*!
 	 * \brief Add other layer's rater data to m_raster2DData
 	 * \param[in] row Row number be added on, e.g. 2
