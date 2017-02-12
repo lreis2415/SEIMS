@@ -8,7 +8,7 @@
 + Author: [Liangjun Zhu](http://zhulj.net)
 
 ## 1 Introduction
-+ MongoUtilClass提供基本的MongoDB数据库操作，特别是关于栅格数据的读取、拼接等。
++ MongoUtilClass提供基本的MongoDB数据库操作。
 + MongoUtilClass可单独调试，也可作为其他项目的基础类。
 
 ## 2 Install mongo-c-driver
@@ -40,6 +40,31 @@ msbuild.exe INSTALL.vcxproj
 ### 2.2 On Linux
 
 > 以CentOS为例 (Take CentOS as example)
+
++ 下载源码包，如`mongo-c-driver-1.6.0.tar.gz`
++ 解压、编译、安装，命令如下：
+
+```shell
+tar xzf mongo-c-driver-1.6.0.tar.gz
+cd mongo-c-driver-1.6.0
+./configure --disable-automatic-init-and-cleanup
+make
+make install
+```
+
++ 值得注意的是，在`./configure`时可以修改一些参数，比如GCC版本、安装目录等，比如我的配置为：`./configure --prefix=~/code/mongo-c-driver CC=~/gcc4.8.4/bin/gcc CXX=~/gcc4.8.4/bin/g++ --disable-automatic-init-and-cleanup`
++ 安装完成之后，`bin`、`include`、`lib`等目录均在`/usr/local`或自定义的安装目录下，
++ 在`/etc/profile`（对所有用户有效）或`~/.bash_profile`（对当前用户有效）内添加环境变量以及追加动态链接库目录
+
+```shell
+e.g.
+
+export MONGOC_ROOT_DIR=~/code/mongoc-c-driver
+export PKG_CONFIG_PATH=~/code/mongoc-c-driver/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=~/code/mongoc-c-driver/lib:$LD_LIBRARY_PATH
+```
+
++ 保存后，通过`source /etc/profile`或`source ~/.bash_profile`命令使设置生效
 
 
 ### 2.3 On macOS
@@ -80,5 +105,20 @@ nmake
 + 对于“仅编译安装”操作，`MongoUtilClass.exe`会自动安装在`<path-to-MongoUtilClass>\bin`目录下。
 + 对于“编译Microsoft Visual Studio工程”，`MongoUtil.sln`将保存在`<path-to-MongoUtilClass>\build`目录下。
 
-### 3.2 Unix
-对于Linux和macOS系统而言，操作与Windows类似，这里不再赘述。
+### 3.2 Linux
+
+```shell
+cd MongoUtilClass
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
++ 可执行程序`MongoUtil`默认安装于`MongoUtilClass/bin`下
++ 如果希望采用其他GCC安装版本，请在cmake命令后面追加：`-DCMAKE_C_COMPILER=~/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=~/gcc4.8.4/bin/g++`
+
+### 3.3 macOS
+
++ macOS的编译、安装步骤与Linux相同。
++ macOS下推荐采用CLion进行代码调试。
