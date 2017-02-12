@@ -3,11 +3,13 @@
 # Contact        : zlj@lreis.ac.cn
 # Latest updated : Dec. 20, 2016
 #
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
+### Active C++11 standard, cross-platform. This requires CMake 3.1+
+SET (CMAKE_CXX_STANDARD 11)
 ################# SEIMS Version ##################
 IF (PARALLEL STREQUAL MPI)
     PROJECT(SEIMS_MPI_ALL)
@@ -43,4 +45,9 @@ ENDIF()
 IF(MSVC)
   SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
+### For CLion to implement the "make install" command
+add_custom_target(install_${PROJECT_NAME}
+        $(MAKE) install
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Installing ${PROJECT_NAME}")
 MESSAGE(STATUS "All SEIMS related compiled done!")

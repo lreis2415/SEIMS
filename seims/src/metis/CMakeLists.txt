@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(METIS)
 
 set(GKLIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/GKlib" CACHE PATH "path to GKlib")
@@ -25,4 +25,9 @@ include_directories(include)
 add_subdirectory("include")
 add_subdirectory("libmetis")
 add_subdirectory("programs")
+### For CLion to implement the "make install" command
+add_custom_target(install_${PROJECT_NAME}
+        $(MAKE) install
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Installing ${PROJECT_NAME}")
 MESSAGE(STATUS "    Compiling METIS done")
