@@ -8,16 +8,17 @@ int main(int argc, const char *argv[]) {
 	SetDefaultOpenMPThread();
     std::cout << "*** Raster IO Class Demo ***\n";
 	string apppath = GetAppPath();
-    string ascdemfile = apppath + "../../data/dem_1.asc";
-	string ascdemfile2 = apppath + "../../data/dem_2.asc";
-	string ascdemfile3 = apppath + "../../data/dem_3.asc";
+    cout<<apppath<<endl;
+    string ascdemfile = apppath + "../data/dem_1.asc";
+	string ascdemfile2 = apppath + "../data/dem_2.asc";
+	string ascdemfile3 = apppath + "../data/dem_3.asc";
 
-	string ascmaskfile = apppath + "../../data/mask1.asc";
+	string ascmaskfile = apppath + "../data/mask1.asc";
 
-	string ascdemout = apppath + "../../data/raster1D_out.asc";
-	string ascdemout3 = apppath + "../../data/raster1D_out_directly.tif";
-	string ascdemout4 = apppath + "../../data/raster2D_out_directly.tif";
-	string ascdemout2 = apppath + "../../data/raster2D_out.asc";
+	string ascdemout = apppath + "../data/raster1D_out.asc";
+	string ascdemout3 = apppath + "../data/raster1D_out_directly.tif";
+	string ascdemout4 = apppath + "../data/raster2D_out_directly.tif";
+	string ascdemout2 = apppath + "../data/raster2D_out.asc";
 	/******* ASCII 1D Raster Demo *********/
 	cout<<"--  ASCII 1D Raster Demo"<<endl;
     /// 1. Constructor
@@ -74,14 +75,14 @@ int main(int argc, const char *argv[]) {
 	/******* GDAL Raster Demo *********/
 	
 	cout<<"--  1D Raster Demo by GDAL"<<endl;
-	string demfile = apppath + "../../data/dem_1.tif";
-	string demfile2 = apppath + "../../data/dem_2.tif";
-	string demfile3 = apppath + "../../data/dem_3.tif";
+	string demfile = apppath + "../data/dem_1.tif";
+	string demfile2 = apppath + "../data/dem_2.tif";
+	string demfile3 = apppath + "../data/dem_3.tif";
 
-	string maskfile = apppath + "../../data/mask1.tif";
+	string maskfile = apppath + "../data/mask1.tif";
 
-	string demout = apppath + "../../data/raster1D_out.tif";
-	string demout2 = apppath + "../../data/raster2D_out.tif";
+	string demout = apppath + "../data/raster1D_out.tif";
+	string demout2 = apppath + "../data/raster2D_out.tif";
 
 	/// 1. Constructor
 	/// 1.1 Construct a void clsRasterData instance, and assign input file path or MongoDB GridFS later.
