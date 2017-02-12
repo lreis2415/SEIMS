@@ -37,4 +37,9 @@ INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
 ################# Packages found ##################
 SET (TAUDEM_SRC ./src)
 ADD_SUBDIRECTORY(${TAUDEM_SRC})
+### For CLion to implement the "make install" command
+add_custom_target(install_${PROJECT_NAME}
+        $(MAKE) install
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Installing ${PROJECT_NAME}")
 MESSAGE(STATUS "    Compiling TauDEM done")
