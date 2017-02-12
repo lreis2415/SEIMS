@@ -17,110 +17,112 @@
 #include <time.h>
 #include <sstream>
 #include <vector>
+#ifdef SUPPORT_OMP
 #include <omp.h>
+#endif
 
 #include "clsRasterData.cpp"
 
 using namespace std;
 
-template<typename T>
-int ApplyMaskToRaster(clsRasterData<int> &mask, clsRasterData<T> &input, clsRasterData<T> &output, bool hasDefault = false,
-                      T defaultValue = -9999)
-{
-    T outputNoDataValue = -9999;
-    if (!hasDefault)
-        defaultValue = outputNoDataValue;
-
-    int xSizeMask = mask.GetNumberofColumns();
-    int ySizeMask = mask.GetNumberOfRows();
-    int nMask = xSizeMask * ySizeMask;
-    int *maskData = mask.GetData();
-    int noDataMask = mask.GetNoDataValue();
-    double xMinMask = mask.GetXMin();
-    double yMaxMask = mask.GetYMax();
-    double dxMask = mask.GetXCellSize();
-    double dyMask = mask.GetYCellSize();
-
-    int xSize = input.GetNumberofColumns();
-    int ySize = input.GetNumberOfRows();
-    double noDataValue = input.GetNoDataValue();
-    double dx = input.GetXCellSize();
-    double dy = input.GetYCellSize();
-    double xMin = input.GetXMin();
-    double xMax = xMin + xSize * dx;
-    double yMax = input.GetYMax();
-    double yMin = yMax - ySize * dy;
-
-    T *inputData = input.GetData();
-    T *outputData = output.GetData();
-
-    int iRow, iCol, iRowInput, iColInput;
-    double x, y;
-    for (int i = 0; i < nMask; ++i)
-    {
-        // values outside the mask
-        if (maskData[i] - noDataMask == 0)
-        {
-            outputData[i] = outputNoDataValue;
-            continue;
-        }
-
-        iRow = i / xSizeMask;
-        iCol = i % xSizeMask;
-
-        x = xMinMask + (iCol + 0.5) * dxMask;
-        y = yMaxMask - (iRow + 0.5) * dyMask;
-
-        if (x < xMin || x > xMax || y < yMin || y > yMax)
-        {
-            outputData[i] = defaultValue;
-            continue;
-        }
-
-        iColInput = int((x - xMin) / dx);
-        iRowInput = int((yMax - y) / dy);
-
-        outputData[i] = inputData[iRowInput * xSize + iColInput];
-
-        if (int(outputData[i]) == int(noDataValue))
-        {
-            //cout << outputData[i] << "\t" << noDataValue << "\t" << abs(outputData[i] - noDataValue) << "\t" << RASTER_MINI_VALUE << endl;
-            outputData[i] = defaultValue;
-            bool done = false;
-            int nbr = 1;
-            while (!done)
-            {
-                for (int m = -1; m <= 1; m++)
-                {
-                    for (int n = -1; n <= 1; n++)
-                    {
-                        int ii = iRowInput + m * nbr;
-                        int jj = iColInput + n * nbr;
-
-                        if (ii < 0 || jj < 0 || ii >= ySize || jj >= xSize)
-                            continue;
-
-                        if (int(inputData[ii * xSize + jj]) != int(noDataValue))
-                        {
-                            outputData[i] = inputData[ii * xSize + jj];
-                            done = true;
-                            break;
-                        }
-                    }
-                }
-                ++nbr;
-            }
-        }
-
-        //cout << iRow << "\t" <<  iCol << "\t" << outputData[i] << "\t" << noDataValue << endl;
-    }
-
-    return 0;
-}
+//template<typename T>
+//int ApplyMaskToRaster(clsRasterData<int> &mask, clsRasterData<T> &input, clsRasterData<T> &output, bool hasDefault = false,
+//                      T defaultValue = -9999)
+//{
+//    T outputNoDataValue = -9999;
+//    if (!hasDefault)
+//        defaultValue = outputNoDataValue;
+//
+//    int xSizeMask = mask.GetNumberofColumns();
+//    int ySizeMask = mask.GetNumberOfRows();
+//    int nMask = xSizeMask * ySizeMask;
+//    int *maskData = mask.GetData();
+//    int noDataMask = mask.GetNoDataValue();
+//    double xMinMask = mask.GetXMin();
+//    double yMaxMask = mask.GetYMax();
+//    double dxMask = mask.GetXCellSize();
+//    double dyMask = mask.GetYCellSize();
+//
+//    int xSize = input.GetNumberofColumns();
+//    int ySize = input.GetNumberOfRows();
+//    double noDataValue = input.GetNoDataValue();
+//    double dx = input.GetXCellSize();
+//    double dy = input.GetYCellSize();
+//    double xMin = input.GetXMin();
+//    double xMax = xMin + xSize * dx;
+//    double yMax = input.GetYMax();
+//    double yMin = yMax - ySize * dy;
+//
+//    T *inputData = input.GetData();
+//    T *outputData = output.GetData();
+//
+//    int iRow, iCol, iRowInput, iColInput;
+//    double x, y;
+//    for (int i = 0; i < nMask; ++i)
+//    {
+//        // values outside the mask
+//        if (maskData[i] - noDataMask == 0)
+//        {
+//            outputData[i] = outputNoDataValue;
+//            continue;
+//        }
+//
+//        iRow = i / xSizeMask;
+//        iCol = i % xSizeMask;
+//
+//        x = xMinMask + (iCol + 0.5) * dxMask;
+//        y = yMaxMask - (iRow + 0.5) * dyMask;
+//
+//        if (x < xMin || x > xMax || y < yMin || y > yMax)
+//        {
+//            outputData[i] = defaultValue;
+//            continue;
+//        }
+//
+//        iColInput = int((x - xMin) / dx);
+//        iRowInput = int((yMax - y) / dy);
+//
+//        outputData[i] = inputData[iRowInput * xSize + iColInput];
+//
+//        if (int(outputData[i]) == int(noDataValue))
+//        {
+//            //cout << outputData[i] << "\t" << noDataValue << "\t" << abs(outputData[i] - noDataValue) << "\t" << RASTER_MINI_VALUE << endl;
+//            outputData[i] = defaultValue;
+//            bool done = false;
+//            int nbr = 1;
+//            while (!done)
+//            {
+//                for (int m = -1; m <= 1; m++)
+//                {
+//                    for (int n = -1; n <= 1; n++)
+//                    {
+//                        int ii = iRowInput + m * nbr;
+//                        int jj = iColInput + n * nbr;
+//
+//                        if (ii < 0 || jj < 0 || ii >= ySize || jj >= xSize)
+//                            continue;
+//
+//                        if (int(inputData[ii * xSize + jj]) != int(noDataValue))
+//                        {
+//                            outputData[i] = inputData[ii * xSize + jj];
+//                            done = true;
+//                            break;
+//                        }
+//                    }
+//                }
+//                ++nbr;
+//            }
+//        }
+//
+//        //cout << iRow << "\t" <<  iCol << "\t" << outputData[i] << "\t" << noDataValue << endl;
+//    }
+//
+//    return 0;
+//}
 
 int main(int argc, char *argv[])
 {
-    //omp_set_num_threads(threadNUM);
+    SetDefaultOpenMPThread();
     GDALAllRegister();
 
     if (argc < 2)
@@ -163,33 +165,15 @@ int main(int argc, char *argv[])
     ifs.close();
 
     // read mask information
-    clsRasterData<int> maskLayer;
-    maskLayer.ReadAsInt32(maskFile.c_str());
+    clsRasterData<int> maskLayer(maskFile);
 
     // loop to mask each raster
     for (int i = 0; i < n; ++i)
     {
         cout << inputFiles[i] << endl;
-        clsRasterData<float> inputLayer;
-        inputLayer.ReadAsFloat32(inputFiles[i].c_str());
+        clsRasterData<float, int> inputLayer(inputFiles[i], true, &maskLayer, true);
 
-        clsRasterData<float> outputLayer;
-        outputLayer.CopyMask(maskLayer);
-        outputLayer.SetDataType(GDT_Float32);
-
-        if (abs(defaultValues[i] + 9999) > RASTER_MINI_VALUE)
-        {
-            cout << defaultValues[i] << endl;
-            ApplyMaskToRaster<float>(maskLayer, inputLayer, outputLayer, true, defaultValues[i]);
-        }
-        else
-            ApplyMaskToRaster<float>(maskLayer, inputLayer, outputLayer);
-
-
-        if (outputAsc)
-            outputLayer.OutputAsc(outputFiles[i].c_str());
-        else
-            outputLayer.OutputGTiff(outputFiles[i].c_str());
+        inputLayer.outputToFile(outputFiles[i]);
     }
 
     return 0;
