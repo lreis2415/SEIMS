@@ -48,7 +48,6 @@ SET(RASTER_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/RasterClass)
 SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ################ Add executables #################
 set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} mask_rasters.cpp)
-ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(mask_raster ${SOURCE_FILES})
 target_link_libraries(mask_raster ${GDAL_LIBRARY})
