@@ -209,12 +209,11 @@ void ModuleFactory::GetBMPScenarioDBName()
     const bson_t *doc;
     collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_SCENARIO);
     bson_t *filter = bson_new();
-    if (mongoc_check_version(1, 5, 0)){
-        cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-    } else {
-        cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-    }
-
+#if MONGOC_CHECK_VERSION(1, 5, 0)
+    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
+#else
+    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
+#endif
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
     {
         bson_iter_t iter;
@@ -237,11 +236,11 @@ void ModuleFactory::ReadParametersFromMongoDB()
     const bson_t *info;
     collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_PARAMETERS);
     bson_t *filter = bson_new();
-    if (mongoc_check_version(1, 5, 0)){
-        cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-    } else {
-        cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-    }
+#if MONGOC_CHECK_VERSION(1, 5, 0)
+    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
+#else
+    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
+#endif
     if (mongoc_cursor_error(cursor, err))
     {
         throw ModelException("ModuleFactory", "ReadParametersFromMongoDB",
