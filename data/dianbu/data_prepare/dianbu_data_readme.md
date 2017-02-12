@@ -31,7 +31,7 @@
 ##### 1.2 数据整理
 
 + 降水站点信息文件
-	+ `/home/zhulj/models/dianbu/data_prepare/climate/Sites_P.txt`
+	+ `~/models/dianbu/data_prepare/climate/Sites_P.txt`
 	+ 站点信息包括 站点编号(整数型)、站点名称(字符串)、投影系X坐标及Y坐标、经纬度、以及高程，如下表所示，站点信息保存为txt格式，如:
 
 |StationID|Name|LocalX|LocalY|Lon|Lat|Elevation|
@@ -41,7 +41,7 @@
 
 + 气象站点信息文件
 
-	+ 格式与降水站点一致，`/home/zhulj/models/dianbu/data_prepare/climate/Sites_M.txt`
+	+ 格式与降水站点一致，`~/models/dianbu/data_prepare/climate/Sites_M.txt`
 
 |StationID|Name|LocalX|LocalY|Lon|Lat|Elevation|
 |----|----|----|----|----|----|----|
@@ -49,7 +49,7 @@
 
 + 降水日值数据文件
 	+ 降水数据采用文本文件组织，基本格式如下：
-	+ `/home/zhulj/models/dianbu/data_prepare/climate/precipitation_dianbu_daily.txt`
+	+ `~/models/dianbu/data_prepare/climate/precipitation_dianbu_daily.txt`
 	
 |Y|M|D|StationID1|StationID2|...|
 |----|----|----|----|----|----|
@@ -58,7 +58,7 @@
 + 气象日值数据文件
 	+ 气象数据采用文本文件组织，基本格式如下：
 	+ 没有数据的属性列不写，但是必需属性需准备
-	+ `/home/zhulj/models/dianbu/data_prepare/climate/meteorology_dianbu_daily.txt`
+	+ `~/models/dianbu/data_prepare/climate/meteorology_dianbu_daily.txt`
 
 |StationID|Y|M|D|TMEAN|TMAX|TMIN|RM|WS|SSD|...|
 |----|----|----|----|----|----|----|----|----|----|----|
