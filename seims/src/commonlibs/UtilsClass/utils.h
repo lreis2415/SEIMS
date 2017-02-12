@@ -12,7 +12,9 @@
 #ifndef CLS_UTILS
 #define CLS_UTILS
 /// OpenMP support
+#ifdef SUPPORT_OMP
 #include <omp.h>
+#endif
 /// math and STL headers
 #include <cmath>
 #include <cfloat>
@@ -92,18 +94,16 @@ const float MAXIMUMFLOAT  = FLT_MAX;
 #define Tag_ModuleDirectoryName "\\"
 #define SEP "\\"
 #define Tag_DyLib ".dll"
-#elif defined linux
+#else
 #define Tag_ModuleDirectoryName "/"
 #define SEP "/"
 #define Tag_So "lib"
+#endif
+#ifdef linux
 #define Tag_DyLib ".so"
 #elif defined macos
-#define Tag_ModuleDirectoryName "/"
-#define SEP "/"
 #define Tag_DyLib ".dylib"
 #elif defined macosold
-#define Tag_ModuleDirectoryName "/"
-#define SEP "/"
 #define Tag_DyLib ".dylib"
 #endif
 
@@ -172,7 +172,7 @@ public:
      * \param[in] includeHour \a bool Include Hour?
      * \return Date time \a time_t
      */
-    static time_t ConvertToTime(string strDate, string format, bool includeHour);
+    static time_t ConvertToTime(string strDate, string const& format, bool includeHour);
 
     /*!
      * \brief Convert string to date time, string format could be "%4d-%2d-%2d %2d:%2d:%2d"
@@ -185,7 +185,7 @@ public:
      * \param[in] includeHour \a bool Include Hour?
      * \return Date time \a time_t
      */
-    static time_t ConvertToTime2(const string &strDate, const char *format, bool includeHour);
+    static time_t ConvertToTime2(string const& strDate, const char *format, bool includeHour);
 
     /*!
      * \brief Convert integer year, month, and day to date time
@@ -227,7 +227,7 @@ public:
 	 * \param[in] string
 	 * \return Uppercase string
 	*/
-	static string GetUpper(string&);
+	static string GetUpper(string const& );
 	/*!
 	 * \brief Match \a char ignore cases
 	 *
@@ -242,7 +242,7 @@ public:
 	 * \param[in] text1, text2
 	 * \return true or false
 	 */
-	static bool StringMatch(string text1, string text2);
+	static bool StringMatch(string const& text1, string const& text2);
 	/*!
      * \brief Trim Both leading and trailing spaces
 	 * \sa trim
@@ -262,7 +262,7 @@ public:
      * \param[in] item \a string information
      * \return The split strings vector
      */
-    static vector<string> SplitString(string item);
+    static vector<string> SplitString(string const& item);
 	/*!
      * \brief Splits the given string based on the given delimiter
      *
@@ -270,23 +270,23 @@ public:
      * \param[in] delimiter \a char
      * \return The split strings vector
      */
-    static vector<string> SplitString(string item, char delimiter);
+    static vector<string> SplitString(string const& item, char delimiter);
 
     /*
      * \brief Get numeric values by splitting the given string based on the given delimiter
      */
     template<typename T>
-    vector<T> SplitStringForValues(string item, char delimiter);
+    vector<T> SplitStringForValues(string const& item, char delimiter);
 
     /*
      * \brief Get int values by splitting the given string based on the given delimiter
      */
-    static vector<int> SplitStringForInt(string item, char delimiter);
+    static vector<int> SplitStringForInt(string const& item, char delimiter);
 
     /*
      * \brief Get float values by splitting the given string based on the given delimiter
      */
-    static vector<float> SplitStringForFloat(string item, char delimiter);
+    static vector<float> SplitStringForFloat(string const& item, char delimiter);
 
 	/*!
 	 * \brief Convert value to string
@@ -431,6 +431,7 @@ public:
 	static void RemoveValueInVector(T &val, vector<T> &vec);
 };
 
+
 /*!
  * \class utilsMath
  * \brief Basic mathematics related functions
@@ -534,7 +535,7 @@ public:
 	 * \return CoreFileName
 	 * \sa GetPathFromFullName
 	 */
-	static string GetCoreFileName(const string &fullFileName);
+	static string GetCoreFileName(string const& fullFileName);
 
 	/*!
 	 * \brief Return the suffix of a given file's path
@@ -543,7 +544,7 @@ public:
 	 * \return Suffix
 	 * \sa GetPathFromFullName
 	 */
-	static string GetSuffix(const string &fullFileName);
+	static string GetSuffix(string const& fullFileName);
 
 	/*!
 	 * \brief Replace the suffix by a given suffix
@@ -552,7 +553,7 @@ public:
 	 * \param[in] newSuffix
 	 * \return new fullFileName
 	 */
-	static string ReplaceSuffix(const string &fullFileName, string newSuffix);
+	static string ReplaceSuffix(string const& fullFileName, string const& newSuffix);
 
 	/*!
 	 * \brief Get Path From full file path string
@@ -561,27 +562,27 @@ public:
 	 * \return filePath string
 	 * \sa GetCoreFileName
 	 */
-	static string GetPathFromFullName(const string &fullFileName);
+	static string GetPathFromFullName(string const& fullFileName);
 	/*!
      * \brief Return a flag indicating if the given file exists
      *
      * \param[in] FileName String path of file
      * \return True if Exists, and false if not.
      */
-    static bool FileExists(string& FileName);
+    static bool FileExists(string const& FileName);
 	/*!
      * \brief Return a flag indicating if the given path exists
      *
      * \param[in] path String path
      * \return True if Exists, and false if not.
      */
-    static bool PathExists(string& path);
+    static bool PathExists(string const& path);
 	/*!
 	 * \brief Delete the given file if existed.
 	 * \param[in] filepath \string
 	 * \return 0 if deleted successful, else return nonzero value, e.g. -1.
 	 */
-	static int DeleteExistedFile(string& filepath);
+	static int DeleteExistedFile(string const& filepath);
 	/*!
 	 * \brief Find files in given paths
 	 * \param[in] lpPath, expression
@@ -611,7 +612,7 @@ public:
      * \param[in] msg \a string log message
 	 * \param[in] logpath \a string Optional
      */
-    static void Log(string& msg, string logpath = "debugInfo.log");
+    static void Log(string msg, string logpath = "debugInfo.log");
 
 	/*!
 	 * \brief Detect the available threads number
@@ -635,7 +636,7 @@ public:
 
 /************ template functions of utilsString ****************/
 template<typename T>
-vector<T> utilsString::SplitStringForValues(string item, char delimiter)
+vector<T> utilsString::SplitStringForValues(string const& item, char delimiter)
 {
 	vector<string> valueStrs = utilsString::SplitString(item, delimiter);
 	vector<T> values;

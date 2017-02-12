@@ -7,6 +7,10 @@ int main() {
 	utilsTime ut;
 	t1 = ut.TimeCounting();
 
+    int threadnum = 1;
+    SetDefaultOpenMPThread();
+
+
     cout << "*** Utils Demo ***" << endl;
 	cout << "Number of processors: " << GetAvailableThreadNum()<< endl;
 	vector<float> values;
@@ -50,10 +54,10 @@ int main() {
 	}
 	string oldpath = "C:/test/t.asc";
 	cout<<ReplaceSuffix(oldpath, "tif")<<endl;
+    cout<<ReplaceSuffix(oldpath, "txt")<<endl;
 
 	string pathtest = "C://Windows";
-	const char* tmppath = pathtest.c_str();
-	if (PathExists(string(tmppath)))
+	if (PathExists(pathtest))
 		cout<< pathtest << " exists!" <<endl;
 
 	int *array1 = new int[10];
@@ -65,15 +69,5 @@ int main() {
 	cout<<"array1 addr: "<<array1<<endl;
 	if (array1 == NULL) cout<<"array1 released!"<<endl;
 
-
-	float a1 = 1.5f;
-	int b1 = 2;
-	double c1 = 3.4;
-	twovariant<float> test1(a1);
-	test1.printboth();
-	twovariant<float, int> test2(a1, b1);
-	test2.printboth();
-	twovariant<float, double> test3(a1, c1);
-	test3.printboth();
     return 0;
 }
