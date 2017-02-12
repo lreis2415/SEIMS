@@ -4,7 +4,7 @@
 *    @Author  Wu Hui
 *    @Date 28-October-2010
 *
-*    @brief Class of IUH calculation
+*    @brief Class of Subbasin IUH calculation
 *
 *    Revision:
 *    Date:
@@ -12,14 +12,14 @@
 #pragma once
 
 #include "IUHCalculator.h"
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
 
-#include "Raster.cpp"
-#include "gridfs.h"
 
-class SubbasinIUHCalculator
-{
+class SubbasinIUHCalculator {
 public:
-    SubbasinIUHCalculator(int t, Raster<int> &rsMask, Raster<float> &rsLanduse, Raster<float> &rsTime, Raster<float> &rsDelta, gridfs *grdfs);
+    SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
+                          clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta, mongoc_gridfs_t *grdfs);
 
     virtual ~SubbasinIUHCalculator(void);
 
@@ -32,20 +32,21 @@ private:
     int dt;              //time interval in hours
     int nCells;          //number of cells
 
-    int **mask;  //value of subwatershed/subbasin
-	float **landcover; //landcover map
-    float **t0;          //flow time
-    float **delta;       //standard deviation of flow time
-    gridfs *gfs;
+    int *mask;  //value of subwatershed/subbasin
+    float *landcover; //landcover map
+    float *t0;          //flow time
+    float *delta;       //standard deviation of flow time
+    mongoc_gridfs_t *gfs;
 
     int mt;          //maximum length of IUH
-    int maxtSub;                     //maximum length of subwatershed IUH
+    int maxtSub;     //maximum length of subwatershed IUH
 
-    void readData();
+//    void readData();
 
     double IUHti(double delta0, double t00, double ti);
 
 public:
     int calCell(int id);
-	void adjustRiceField(int& mint0, int& maxt0, vector<double>& iuhRow);
+
+    void adjustRiceField(int &mint0, int &maxt0, vector<double> &iuhRow);
 };

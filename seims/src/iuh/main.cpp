@@ -1,31 +1,30 @@
-// main function of the IUH calculation
-#include "SubbasinIUHCalculator.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-//mongodb
-#include "mongo.h"
-#include "bson.h"
-#include "gridfs.h"
-#include "Raster.h"
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
+
+#include "SubbasinIUHCalculator.h"
 
 using namespace std;
 
 void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, const char *host, int port, int dt)
 {
     // connect to mongodb
-    mongo conn[1];
-    gridfs gfs[1];
-    int status = mongo_connect(conn, host, port);
+    MongoClient client = MongoClient(host, port);
+    mongoc_gridfs_t *gfs = client.getGridFS(string(modelStr), string(gridFSName));
+//    mongo conn[1];
+//    gridfs gfs[1];
+//    int status = mongo_connect(conn, host, port);
+//
+//    if (MONGO_OK != status)
+//    {
+//        cout << "can not connect to MongoDB.\n";
+//        exit(-1);
+//    }
 
-    if (MONGO_OK != status)
-    {
-        cout << "can not connect to MongoDB.\n";
-        exit(-1);
-    }
-
-    gridfs_init(conn, modelStr, gridFSName, gfs);
+//    gridfs_init(conn, modelStr, gridFSName, gfs);
 	int subbasinStartID = 1;
 	if (nSubbasins == 0) subbasinStartID = 0;
     for (int i = subbasinStartID; i <= nSubbasins; i++)
@@ -49,10 +48,10 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
         oss << i << "_LANDCOVER";
         landcoverName = oss.str();
 
-        Raster<int> rsMask;
+        clsRasterData<int> rsMask;
         rsMask.ReadFromMongoDB(gfs, maskName.c_str());
 
-        Raster<float> rsTime, rsDelta, rsLandcover;
+        clsRasterData<float> rsTime, rsDelta, rsLandcover;
         rsTime.ReadFromMongoDB(gfs, tName.c_str());
 		rsDelta.ReadFromMongoDB(gfs, deltaName.c_str());
 		rsLandcover.ReadFromMongoDB(gfs, landcoverName.c_str());
@@ -61,8 +60,7 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
         iuh.calCell(i);
     }
 
-    gridfs_destroy(gfs);
-    mongo_destroy(conn);
+    mongoc_gridfs_destroy(gfs);
 }
 
 int main(int argc, const char **argv)
