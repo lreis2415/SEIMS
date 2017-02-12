@@ -175,12 +175,7 @@ bool ExcessRunoff::CheckInputSize(const char *key, int n)
 string ExcessRunoff::getDate(time_t *date)
 {
     struct tm p;
-
-#ifndef linux
-    localtime_s(&p, date);
-#else
-    localtime_r(date, &p);
-#endif
+    LocalTime(date, &t);
 
     p.tm_year = p.tm_year + 1900;
 

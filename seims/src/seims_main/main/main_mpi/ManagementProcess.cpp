@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifndef linux
+#ifdef windows
 
 #include "Windows.h"
 

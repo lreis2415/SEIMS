@@ -3,7 +3,7 @@
 
 ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn,
                              string &dbName, int subBasinID, LayeringMethod layingMethod, int scenarioID)
-        : m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID), 
+        : m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID),
           m_layingMethod(layingMethod), m_scenarioID(scenarioID),
 		  m_reaches(NULL), m_scenario(NULL), m_subbasins(NULL)
 {
@@ -123,7 +123,7 @@ ModuleFactory::~ModuleFactory(void)
 	}
     for (size_t i = 0; i < m_dllHandles.size(); i++)
     {
-#ifndef linux
+#ifdef windows
         FreeLibrary(m_dllHandles[i]);
 #else
         dlclose(m_dllHandles[i]);
@@ -204,13 +204,17 @@ void ModuleFactory::Init(const string &configFileName)
 
 void ModuleFactory::GetBMPScenarioDBName()
 {
-    bson_t *query;
-    query = bson_new();
     mongoc_cursor_t *cursor;
     mongoc_collection_t *collection;
     const bson_t *doc;
     collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_SCENARIO);
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    bson_t *filter = bson_new();
+    if (mongoc_check_version(1, 5, 0)){
+        cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
+    } else {
+        cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
+    }
+
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
     {
         bson_iter_t iter;
@@ -220,7 +224,7 @@ void ModuleFactory::GetBMPScenarioDBName()
             break;
         }
     }
-    bson_destroy(query);
+    bson_destroy(filter);
     mongoc_cursor_destroy(cursor);
     mongoc_collection_destroy(collection);
 }
@@ -229,12 +233,15 @@ void ModuleFactory::ReadParametersFromMongoDB()
 {
     mongoc_cursor_t *cursor;
     mongoc_collection_t *collection;
-    bson_t *query;
     bson_error_t *err = NULL;
     const bson_t *info;
     collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_PARAMETERS);
-    query = bson_new();
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    bson_t *filter = bson_new();
+    if (mongoc_check_version(1, 5, 0)){
+        cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
+    } else {
+        cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
+    }
     if (mongoc_cursor_error(cursor, err))
     {
         throw ModelException("ModuleFactory", "ReadParametersFromMongoDB",
@@ -264,7 +271,7 @@ void ModuleFactory::ReadParametersFromMongoDB()
     }
     mongoc_cursor_destroy(cursor);
     mongoc_collection_destroy(collection);
-    bson_destroy(query);
+    bson_destroy(filter);
 }
 
 string ModuleFactory::GetComparableName(string &paraName)
@@ -372,7 +379,7 @@ void ModuleFactory::ReadDLL(string &id, string &dllID)
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
 
     //load library
-#ifndef linux
+#ifdef windows
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
     if (handle == NULL) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
     m_instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));
@@ -1256,7 +1263,7 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
                 data[i][1] = 0.03f; // P
                 data[i][2] = -0.65f; // T
                 data[i][3] = 0.f;    // PET
-				data[i][4] = 0.f;    // other Meteorology variables 
+				data[i][4] = 0.f;    // other Meteorology variables
             }
         }
         else
@@ -1389,37 +1396,29 @@ void ModuleFactory::UpdateInput(vector<SimulationModule *> &modules, SettingsInp
             ParamInfo &param = inputs[j];
             if (param.DependPara != NULL)
                 continue;    //the input which comes from other modules will not change when the date is change.
-#ifdef linux
-            if(strcasecmp(param.Name.c_str(), CONS_IN_ELEV) == 0
-                || strcasecmp(param.Name.c_str(),CONS_IN_LAT) == 0
-                || strcasecmp(param.Name.c_str(),CONS_IN_XPR) == 0
-                || strcasecmp(param.Name.c_str(),CONS_IN_YPR) == 0)
+
+            if(StringMatch(param.Name.c_str(), CONS_IN_ELEV) == 0
+                || StringMatch(param.Name.c_str(),CONS_IN_LAT) == 0
+                || StringMatch(param.Name.c_str(),CONS_IN_XPR) == 0
+                || StringMatch(param.Name.c_str(),CONS_IN_YPR) == 0)
                 continue;
-#else
-            if (_stricmp(param.Name.c_str(), CONS_IN_ELEV) == 0
-                || _stricmp(param.Name.c_str(), CONS_IN_LAT) == 0
-                || _stricmp(param.Name.c_str(), CONS_IN_XPR) == 0
-                || _stricmp(param.Name.c_str(), CONS_IN_YPR) == 0)
-                continue;
-#endif
+
             if (dataType.length() > 0)
             {
-                int n;
+                int datalen;
                 float *data;
 
-                inputSetting->StationData()->GetTimeSeriesData(t, dataType, &n, &data);
-#ifdef linux
-                if (strcasecmp(param.Name.c_str(), DataType_PotentialEvapotranspiration) == 0)
-#else
-                if (_stricmp(param.Name.c_str(), DataType_PotentialEvapotranspiration) == 0)
-#endif
+                inputSetting->StationData()->GetTimeSeriesData(t, dataType, &datalen, &data);
+
+                if (StringMatch(param.Name.c_str(), DataType_PotentialEvapotranspiration) == 0)
+
                 {
-                    for (int iData = 0; iData < n; iData++)
+                    for (int iData = 0; iData < datalen; iData++)
                     {
                         data[iData] *= m_parametersInDB[VAR_K_PET]->GetAdjustedValue();
                     }
                 }
-                pModule->Set1DData(DataType_Prefix_TS, n, data);
+                pModule->Set1DData(DataType_Prefix_TS, datalen, data);
             }
         }
     }
@@ -1427,17 +1426,17 @@ void ModuleFactory::UpdateInput(vector<SimulationModule *> &modules, SettingsInp
 
 /// Revised LiangJun Zhu
 /// 1. Fix code of DT_Raster2D related, 2016-5-27
-/// 2. Bugs fixed in continuous dependency, 2016-9-6 
+/// 2. Bugs fixed in continuous dependency, 2016-9-6
 void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationModule *> &modules)
 {
     size_t n = m_moduleIDs.size();
     string id = m_moduleIDs[iModule];
-    vector<ParamInfo> &inputs = m_inputs[id]; 
+    vector<ParamInfo> &inputs = m_inputs[id];
 	/// if there are no inputs from other modules for current module
 	for (vector<ParamInfo>::iterator it = inputs.begin(); it != inputs.end(); it++)
 	{
 		ParamInfo &param = *it;
-		if (StringMatch(param.Source, Source_Module) || 
+		if (StringMatch(param.Source, Source_Module) ||
 			(StringMatch(param.Source, Source_Module_Optional) && param.DependPara != NULL)){
 			break;
 		}

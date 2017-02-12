@@ -26,7 +26,7 @@
 #include <functional>
 #include <sstream>
 
-#ifndef linux
+#ifdef windows
 #include <WinSock2.h>
 #include <Windows.h>
 #include <direct.h>
@@ -309,16 +309,16 @@ string GetAppPath()
 //{
 //    std::ifstream src; // the source file
 //    std::ofstream dest; // the destination file
-// 
+//
 //    src.open (srcFileName, std::ios::binary); // open in binary to prevent jargon at the end of the buffer
 //    dest.open (destFileName, std::ios::binary); // same again, binary
 //    if (!src.is_open() || !dest.is_open())
 //        return false; // could not be copied
-// 
+//
 //    dest << src.rdbuf (); // copy the content
 //    dest.close (); // close destination file
 //    src.close (); // close source file
-// 
+//
 //    return true; // file copied successfully
 //}
 
@@ -372,4 +372,3 @@ int copyfile_linux(const char* srcfile, const char* dstfile)
     return 0;
 }
 #endif
-

@@ -8,7 +8,7 @@
  * \version 1.0
  * \date July 2015
  *
- * 
+ *
  */
 #pragma once
 
@@ -21,10 +21,8 @@
 #include "SEIMS_ModuleSetting.h"
 #include "MetadataInfoConst.h"
 
-#ifndef linux
-
+#ifdef windows
 #include <Windows.h>
-
 #endif
 
 
@@ -34,7 +32,7 @@ using namespace std;
  * \ingroup modulesiolist
  * \class ModulesIOList
  *
- * \brief 
+ * \brief
  *
  *
  *
@@ -78,7 +76,7 @@ private:
 
     string m_dllPath;
     vector<string> m_moduleIDs;
-#ifndef linux
+#ifdef windows
     vector<HINSTANCE> m_dllHandles;
 #else
     vector<void*> m_dllHandles;
@@ -126,4 +124,3 @@ private:
 
     string GetDBParamsInvokeModulesIDs(ParamInfo &paramIns);
 };
-
