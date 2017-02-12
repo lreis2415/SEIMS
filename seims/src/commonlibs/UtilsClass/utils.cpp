@@ -1,5 +1,6 @@
 #ifndef CLS_UTILS
 #include "utils.h"
+#include "utilities.h"
 
 /************ utilsTime ******************/
 utilsTime::utilsTime(void) {}
@@ -87,7 +88,7 @@ string utilsTime::ConvertToString2(const time_t *date)
 	return s;
 }
 
-time_t utilsTime::ConvertToTime(string strDate, string format, bool includeHour)
+time_t utilsTime::ConvertToTime(string strDate, string const& format, bool includeHour)
 {
 	struct tm *timeinfo;
 	time_t t;
@@ -135,7 +136,7 @@ time_t utilsTime::ConvertToTime(string strDate, string format, bool includeHour)
 	return t;
 }
 
-time_t utilsTime::ConvertToTime2(const string &strDate, const char *format, bool includeHour)
+time_t utilsTime::ConvertToTime2(string const& strDate, const char *format, bool includeHour)
 {
 	time_t t;
 	int yr;
@@ -241,14 +242,14 @@ utilsString::utilsString(void) {}
 
 utilsString::~utilsString(void) {}
 
-string utilsString::GetUpper(string& str)
+string utilsString::GetUpper(string const& str)
 {
 	string strTmp1 = string(str);
-	for (int j = 0; j < (int) strTmp1.length(); j++) strTmp1[j] = toupper(strTmp1[j]);
+	for (int j = 0; j < (int) strTmp1.length(); j++) strTmp1[j] = (char) toupper(strTmp1[j]);
 	return strTmp1;
 }
 
-void utilsString::TrimSpaces(string &str)
+void utilsString::TrimSpaces(string& str)
 {
 	// Find the first character position after excluding leading blank spaces
 	size_t startpos = str.find_first_not_of(" \t"); 
@@ -261,7 +262,7 @@ void utilsString::TrimSpaces(string &str)
 		str = str.substr(startpos, endpos - startpos + 1);
 }
 
-vector<string> utilsString::SplitString(string item, char delimiter)
+vector<string> utilsString::SplitString(string const& item, char delimiter)
 {
 	istringstream iss(item);
 	vector<string> tokens;
@@ -276,7 +277,7 @@ vector<string> utilsString::SplitString(string item, char delimiter)
 
 
 
-vector<int> utilsString::SplitStringForInt(string item, char delimiter)
+vector<int> utilsString::SplitStringForInt(string const& item, char delimiter)
 {
 	vector<string> valueStrs = utilsString::SplitString(item, delimiter);
 	vector<int> values;
@@ -286,7 +287,7 @@ vector<int> utilsString::SplitStringForInt(string item, char delimiter)
 	return values;
 }
 
-vector<float> utilsString::SplitStringForFloat(string item, char delimiter)
+vector<float> utilsString::SplitStringForFloat(string const& item, char delimiter)
 {
 	vector<string> valueStrs = utilsString::SplitString(item, delimiter);
 	vector<float> values(valueStrs.size());
@@ -295,7 +296,7 @@ vector<float> utilsString::SplitStringForFloat(string item, char delimiter)
 	return values;
 }
 
-vector<string> utilsString::SplitString(string item)
+vector<string> utilsString::SplitString(string const& item)
 {
 	istringstream iss(item);
 	vector<string> tokens;
@@ -321,7 +322,7 @@ bool utilsString::StringMatch(const char *a, const char *b)
 #endif
 }
 
-bool utilsString::StringMatch(string text1, string text2)
+bool utilsString::StringMatch(string const& text1, string const& text2)
 {
 	// convert the key to UPPERCASE for comparison
 	string strTmp1 = utilsString::GetUpper(text1);
@@ -485,7 +486,7 @@ int utilsFileIO::copyfile_unix(const char* srcfile, const char* dstfile)
 }
 #endif
 
-bool utilsFileIO::FileExists(string& FileName)
+bool utilsFileIO::FileExists(string const& FileName)
 {
 #ifdef windows
 	struct _finddata_t fdt;
@@ -500,7 +501,7 @@ bool utilsFileIO::FileExists(string& FileName)
 		return false;
 #endif
 }
-bool utilsFileIO::PathExists(string& fullpath){
+bool utilsFileIO::PathExists(string const& fullpath){
 	const char *path = fullpath.c_str();
 	bool isExists;
 #ifdef windows
@@ -512,7 +513,7 @@ bool utilsFileIO::PathExists(string& fullpath){
 #endif
 	return isExists;
 }
-int utilsFileIO::DeleteExistedFile(string& filepath)
+int utilsFileIO::DeleteExistedFile(string const& filepath)
 {
 	if (utilsFileIO::FileExists(filepath))
 		return remove(filepath.c_str());
@@ -560,7 +561,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
 		int n = (int)filename.length();
 		string ext = filename.substr(n-4, 4);
 		//cout << ext << "\t" << expression << endl;
-		if(StringMatch(ext, expression) || StringMatch(expression, ".*") 
+		if(StringMatch(ext.c_str(), expression) || StringMatch(expression, ".*")
 			|| StringMatch(expression, "*.*"))
 		{
 			ostringstream oss;
@@ -596,10 +597,10 @@ string utilsFileIO::GetAppPath()
 	return RootPath;
 }
 
-string utilsFileIO::GetCoreFileName(const string &fullFileName)
+string utilsFileIO::GetCoreFileName(string const& fullFileName)
 {
 	string::size_type start = fullFileName.find_last_of("\\");
-	if (start == string::npos || fullFileName.find_last_of("/"))
+	if (fullFileName.find_last_of("/") != string::npos)
 	{
 		start = fullFileName.find_last_of("/");
 	}
@@ -615,7 +616,7 @@ string utilsFileIO::GetCoreFileName(const string &fullFileName)
 	return fullFileName.substr(start + 1, end - start - 1);
 }
 
-string utilsFileIO::GetSuffix(const string &fullFileName)
+string utilsFileIO::GetSuffix(string const& fullFileName)
 {
 	vector<string> tokens = utilsString::SplitString(fullFileName, '.');
 	if (tokens.size() >= 2)
@@ -624,7 +625,7 @@ string utilsFileIO::GetSuffix(const string &fullFileName)
 		return "";
 }
 
-string utilsFileIO::ReplaceSuffix(const string &fullFileName, string newSuffix){
+string utilsFileIO::ReplaceSuffix(string const& fullFileName, string const& newSuffix){
 	string filedir = utilsFileIO::GetPathFromFullName(fullFileName);
 	string corename = utilsFileIO::GetCoreFileName(fullFileName);
 	string oldSuffix = utilsFileIO::GetSuffix(fullFileName);
@@ -632,10 +633,10 @@ string utilsFileIO::ReplaceSuffix(const string &fullFileName, string newSuffix){
 	return filedir + corename + "." + newSuffix;
 }
 
-string utilsFileIO::GetPathFromFullName(const string &fullFileName)
+string utilsFileIO::GetPathFromFullName(string const& fullFileName)
 {
 	string::size_type i = fullFileName.find_last_of("\\");
-	if (i == string::npos || fullFileName.find_last_of("/"))
+	if (fullFileName.find_last_of("/") != string::npos)
 	{
 		i = fullFileName.find_last_of("/");
 	}
@@ -677,7 +678,7 @@ bool utils::isIPAddress(const char *ip) {
 	}
 	return rv;
 }
-void utils::Log(string& msg, string logpath /* = "debugInfo.log" */)
+void utils::Log(string msg, string logpath /* = "debugInfo.log" */)
 {
     struct tm timeptr;
     time_t now;
@@ -692,7 +693,7 @@ void utils::Log(string& msg, string logpath /* = "debugInfo.log" */)
 #endif
     string timestamp = buffer;
     timestamp = timestamp.substr(0, timestamp.length() - 1);
-    fstream fs(logpath, ios::app);
+    fstream fs(logpath.c_str(), ios::app);
     if (fs.is_open())
     {
         fs << timestamp;
@@ -710,11 +711,11 @@ int utils::GetAvailableThreadNum(){
 	return sysinfo.dwNumberOfProcessors;
 #endif
 #ifdef linux
-	return sysconf(_SC_NPROCESSORS_ONLN);
+	return (int) sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 #ifdef macos
 	// macOS X 10.5 and later
-	return sysconf(_SC_NPROCESSORS_ONLN);
+	return (int) sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 #ifdef macosold
 	// macOS X 10.0 - 10.4
@@ -741,11 +742,14 @@ int utils::GetAvailableThreadNum(){
 }
 
 void utils::SetDefaultOpenMPThread(){
+#ifdef SUPPORT_OMP
 	// omp thread have not been set
 	if (omp_get_num_threads() <= 1){
 		// set one half of the available threads as default
 		omp_set_num_threads(GetAvailableThreadNum() / 2);
 	}
+#endif
+    /// do nothing if OMP is not supported
 }
 
 void utils::StatusMessage(const char *msg)
