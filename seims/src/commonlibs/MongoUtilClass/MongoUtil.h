@@ -57,15 +57,15 @@ public:
 	 * upon insertion of the first document into a collection.
 	 * Therefore, there is no need to create a database manually.
 	 */
-	mongoc_database_t* getDatabase(string& dbname);
+	mongoc_database_t* getDatabase(string const& dbname);
 	/*!
 	 * \brief Get Collection instance
 	 */
-	mongoc_collection_t* getCollection(string& dbname, string& collectionname);
+	mongoc_collection_t* getCollection(string const& dbname, string const& collectionname);
 	/*!
 	 * \brief Get GridFS instance
 	 */
-	mongoc_gridfs_t* getGridFS(string& dbname, string& gfsname);
+	mongoc_gridfs_t* getGridFS(string const& dbname, string const& gfsname);
 	/*!
      * \brief Get database names
      * \return Database names, vector<string>
@@ -75,14 +75,14 @@ public:
 	  * \brief Get collection names in MongoDB database
 	  * \param[in] dbName \string database name
 	  */
-	 vector<string> getCollectionNames(string& dbName);
+	 vector<string> getCollectionNames(string const& dbName);
 	 /*!
 	  * \brief Get GridFs file names in MongoDB database
 	  * \param[in] dbName \string database name
 	  * \param[in] gfs \string GridFS name
 	  * \return filenames vector<string>
 	  */
-	 vector<string> getGridFSFileNames(string& dbname, string& gfsname);
+	 vector<string> getGridFSFileNames(string const& dbname, string const& gfsname);
 
 private:
     /*!
@@ -108,7 +108,7 @@ public:
 	/*!
      * \brief Constructor, initialized by mongodb client and database name
      */
-	MongoDatabase(mongoc_client_t* conn, string& dbname);
+	MongoDatabase(mongoc_client_t* conn, string const& dbname);
 	/*!
 	 * \brief Destructor by Destroy function
 	 */
@@ -143,11 +143,11 @@ public:
 	/*!
 	 * \brief Get GridFS file by name
 	 */
-	mongoc_gridfs_file_t* getFile(string& gfilename, mongoc_gridfs_t* gfs = NULL);
+	mongoc_gridfs_file_t* getFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
 	/*!
 	 * \brief Remove GridFS file by name
 	 */
-	bool removeFile(string& gfilename, mongoc_gridfs_t* gfs = NULL);
+	bool removeFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
 	/*!
 	 * \brief Get GridFS file names
 	 */
@@ -155,15 +155,15 @@ public:
 	/*!
 	 * \brief Get metadata of a given GridFS file name
 	 */
-	bson_t* getFileMetadata(string& gfilename, mongoc_gridfs_t* gfs = NULL);
+	bson_t* getFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
 	/*!
 	 * \brief Get stream data of a given GridFS file name
 	 */
-	void getStreamData(string& gfilename, char*& databuf, int& datalength, mongoc_gridfs_t* gfs = NULL);
+	void getStreamData(string const& gfilename, char*& databuf, int& datalength, mongoc_gridfs_t* gfs = NULL);
 	/*!
 	 * \brief Write stream data to a GridFS file
 	 */
-	void writeStreamData(string& gfilename, char*& buf, int& length, const bson_t* p, mongoc_gridfs_t* gfs = NULL);
+	void writeStreamData(string const& gfilename, char*& buf, int& length, const bson_t* p, mongoc_gridfs_t* gfs = NULL);
 private:
 	mongoc_gridfs_t* m_gfs;
 };
