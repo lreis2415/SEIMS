@@ -18,6 +18,7 @@
 #include <map>
 #include <fstream>
 #include <iomanip>
+#include <typeinfo>
 /// include GDAL, required
 #include "gdal.h"
 #include "gdal_priv.h"
@@ -27,8 +28,10 @@
 #ifdef USE_MONGODB
 #include "MongoUtil.h"
 #endif
-/// include openmp
+/// include openmp if supported
+#ifdef SUPPORT_OMP
 #include <omp.h>
+#endif
 /// include utility functions
 #include "utilities.h"
 
@@ -168,17 +171,17 @@ public:
      * \brief Write raster to raster file, if 2D raster, output name will be filename_LyrNum
      * \param filename filename with prefix, e.g. ".asc" and ".tif"
      */
-    void outputToFile(string &filename);
+    void outputToFile(string filename);
 	/*!
      * \brief Write 1D or 2D raster data into ASC file(s)
      * \param[in] filename \a string, output ASC file path, take the CoreName as prefix
      */
-    void outputASCFile(string& filename);
+    void outputASCFile(string filename);
 	/*!
      * \brief Write 1D or 2D raster data into TIFF file by GDAL
      * \param[in] filename \a string, output TIFF file path
      */
-    void outputFileByGDAL(string& filename);
+    void outputFileByGDAL(string filename);
 
 #ifdef USE_MONGODB
 	/*!
@@ -186,7 +189,7 @@ public:
      * \param[in] filename \a string, output file name
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void outputToMongoDB(string& filename, mongoc_gridfs_t *gfs);
+    void outputToMongoDB(string filename, mongoc_gridfs_t *gfs);
 #endif
 	/************* Get information functions ***************/
 	
@@ -227,31 +230,31 @@ public:
 	 * \brief Get the average of raster data
 	 * \param[in] lyr optional for 1D and the first layer of 2D raster data.
 	 */
-	float getAverage(int lyr = 1) { return this->getStatistics(string(STATS_RS_MEAN), lyr); }
+	float getAverage(int lyr = 1) { return (float) this->getStatistics(string(STATS_RS_MEAN), lyr); }
 
 	/*! 
 	 * \brief Get the maximum of raster data
 	 * \sa getAverage
 	 */
-	float getMaximum(int lyr = 1) { return this->getStatistics(STATS_RS_MAX, lyr); }
+	float getMaximum(int lyr = 1) { return (float) this->getStatistics(STATS_RS_MAX, lyr); }
 
 	/*! 
 	 * \brief Get the minimum of raster data
 	 * \sa getAverage
 	 */
-	float getMinimum(int lyr = 1) { return this->getStatistics(STATS_RS_MIN, lyr); }
+	float getMinimum(int lyr = 1) { return (float) this->getStatistics(STATS_RS_MIN, lyr); }
 
 	/*! 
 	 * \brief Get the stand derivation of raster data
 	 * \sa getAverage
 	 */
-	float getSTD(int lyr = 1) { return this->getStatistics(STATS_RS_STD, lyr); }
+	float getSTD(int lyr = 1) { return (float) this->getStatistics(STATS_RS_STD, lyr); }
 
 	/*! 
 	 * \brief Get the range of raster data
 	 * \sa getAverage
 	 */
-	float getRange(int lyr = 1) { return this->getStatistics(STATS_RS_RANGE, lyr); }
+	float getRange(int lyr = 1) { return (float) this->getStatistics(STATS_RS_RANGE, lyr); }
 
 	/*! 
 	 * \brief Get the non-NoDATA number of raster data
@@ -463,7 +466,7 @@ private:
 	 * \brief check the existence of given raster file
 	 * \return True if existed, else false
 	 */
-	bool _check_raster_file_exists(string&);
+	bool _check_raster_file_exists(string);
 	/*!
 	 * \brief check the existence of given vector of raster files
 	 * \return True if all existed, else false
@@ -512,7 +515,7 @@ private:
      * \param[in] filename \a string, output ASC file path
      * \param[in] header header information
      */
-	void _write_ASC_headers(string& filename, map<string, double>& header);
+	void _write_ASC_headers(string filename, map<string, double>& header);
 	/*!
      * \brief Write single geotiff file
      * If the file exists, delete it first.
@@ -521,7 +524,7 @@ private:
 	 * \param[in] srs Coordinate system string
 	 * \param[in] values float raster data array
      */
-	void _write_single_geotiff(string& filename, map<string, double>& header, string& srs, float *values);
+	void _write_single_geotiff(string filename, map<string, double>& header, string srs, float *values);
 #ifdef USE_MONGODB
 	/*!
      * \brief Write full-sized raster data as GridFS file
@@ -531,7 +534,7 @@ private:
 	 * \param[in] srs Coordinate system string
 	 * \param[in] values float raster data array
      */
-	void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string& filename, map<string, double>& header, string& srs, T *values, int datalength);
+	void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, int datalength);
 #endif
 	/*!
 	 * \brief Add other layer's rater data to m_raster2DData
