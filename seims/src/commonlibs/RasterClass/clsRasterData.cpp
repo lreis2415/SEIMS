@@ -240,6 +240,7 @@ void clsRasterData<T, MaskT>::updateStatistics(){
 }
 
 template<typename T, typename MaskT>
+double clsRasterData<T, MaskT>::getStatistics(string  sindex, int lyr) {
 	sindex = GetUpper(sindex);
 	if (this->m_is2DRaster && m_raster2DData != NULL)  // for 2D raster data
 	{
@@ -270,6 +271,7 @@ template<typename T, typename MaskT>
 }
 
 template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::getStatistics(string  sindex, int *lyrnum, double **values){
 	if (!m_is2DRaster || m_raster2DData == NULL)
 		throw ModelException("claRasterData", "getValue", "Please initialize the raster object first.");
 	sindex = GetUpper(sindex);
