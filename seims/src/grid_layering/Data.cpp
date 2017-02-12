@@ -125,8 +125,7 @@ int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int num
 	BSON_APPEND_UTF8(&p, "TYPE", type);
 	
 	char remoteFilename[100];
-	strprintf(remoteFilename, "%d_%s", id, type);
-	//sprintf(remoteFilename, "%d_%s", id, type);
+	strprintf(remoteFilename, 100, "%d_%s", id, type);
 	BSON_APPEND_UTF8(&p, "ID", remoteFilename);
 	BSON_APPEND_UTF8(&p, "DESCRIPTION", type);
 	BSON_APPEND_DOUBLE(&p, "NUMBER", number);
