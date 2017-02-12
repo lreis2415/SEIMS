@@ -91,8 +91,8 @@ sudo make install
 cd /Users/zhulj/Documents/code/SEIMS2017/seims
 mkdir build
 cd build
-1. clang: cmake /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release
-2. GCC: cmake /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/bin/gcc-4.9 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-4.9
+1. clang: cmake .. -DCMAKE_BUILD_TYPE=Release
+2. GCC: cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/bin/gcc-4.9 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-4.9
 make
 make install
 ```
@@ -130,7 +130,3 @@ e.g.
 ```
 
 接下来，你可以选择Build All，也可以选择某一个程序进行Build等。
-
-
-
-
