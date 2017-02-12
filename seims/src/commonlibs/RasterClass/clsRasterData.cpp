@@ -60,9 +60,7 @@ clsRasterData<T, MaskT>::clsRasterData(void) {
 
 template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
-	this->_check_raster_file_exists(filename);
-	this->_initialize_raster_class();
-	this->_construct_from_single_file(filename, calcPositions, mask, useMaskExtent);
+    this->ReadFromFile(filename, calcPositions, mask, useMaskExtent);
 }
 template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
@@ -242,7 +240,6 @@ void clsRasterData<T, MaskT>::updateStatistics(){
 }
 
 template<typename T, typename MaskT>
-double clsRasterData<T, MaskT>::getStatistics(string sindex, int lyr) {
 	sindex = GetUpper(sindex);
 	if (this->m_is2DRaster && m_raster2DData != NULL)  // for 2D raster data
 	{
@@ -273,7 +270,6 @@ double clsRasterData<T, MaskT>::getStatistics(string sindex, int lyr) {
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::getStatistics(string sindex, int *lyrnum, double **values){
 	if (!m_is2DRaster || m_raster2DData == NULL)
 		throw ModelException("claRasterData", "getValue", "Please initialize the raster object first.");
 	sindex = GetUpper(sindex);
@@ -478,7 +474,7 @@ void clsRasterData<T, MaskT>::getValue(RowColCoor pos, int *nLyrs, T** values) {
 /************* Output to file functions ***************/
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::outputToFile(string filename) {
+void clsRasterData<T, MaskT>::outputToFile(string  filename) {
 	string filetype = GetUpper(GetSuffix(filename));
 	if (StringMatch(filetype, ASCIIExtension))
 		outputASCFile(filename);
@@ -489,7 +485,7 @@ void clsRasterData<T, MaskT>::outputToFile(string filename) {
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_ASC_headers(string filename, map<string, double>& header)
+void clsRasterData<T, MaskT>::_write_ASC_headers(string  filename, map<string, double>& header)
 {
 	DeleteExistedFile(filename);
 	ofstream rasterFile(filename.c_str(), ios::app|ios::out);
@@ -507,7 +503,7 @@ void clsRasterData<T, MaskT>::_write_ASC_headers(string filename, map<string, do
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::outputASCFile(string filename) {
+void clsRasterData<T, MaskT>::outputASCFile(string  filename) {
 	/// 1. Is there need to calculate valid position index?
 	int count;
 	int** position;
@@ -582,7 +578,7 @@ void clsRasterData<T, MaskT>::outputASCFile(string filename) {
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_single_geotiff(string filename, map<string, double>& header, string srs, float *values){
+void clsRasterData<T, MaskT>::_write_single_geotiff(string  filename, map<string, double>& header,string  srs, float *values){
 	/// 1. Create GeoTiff file driver
 	GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
 	char **papszOptions = poDriver->GetMetadata();
@@ -607,7 +603,7 @@ void clsRasterData<T, MaskT>::_write_single_geotiff(string filename, map<string,
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::outputFileByGDAL(string filename){
+void clsRasterData<T, MaskT>::outputFileByGDAL(string  filename){
 	/// 1. Is there need to calculate valid position index?
 	int count;
 	int** position;
@@ -690,7 +686,7 @@ void clsRasterData<T, MaskT>::outputFileByGDAL(string filename){
 }
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::outputToMongoDB(string filename, mongoc_gridfs_t *gfs){
+void clsRasterData<T, MaskT>::outputToMongoDB(string  filename, mongoc_gridfs_t *gfs){
 	/// 1. Is there need to calculate valid position index?
 	int count;
 	int** position;
@@ -766,7 +762,7 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string filename, mongoc_gridfs_t *
 	}
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, int datalength) {
+void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,string  filename, map<string, double>& header,string  srs, T *values, int datalength) {
 	bson_t p = BSON_INITIALIZER;
 	for (map<string, double>::iterator iter = header.begin(); iter != header.end(); iter++){
 		BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
@@ -793,23 +789,29 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,
 }
 #endif
 /************* Read functions ***************/
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::ReadFromFile(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */) {
+    this->_check_raster_file_exists(filename);
+    this->_initialize_raster_class();
+    this->_construct_from_single_file(filename, calcPositions, mask, useMaskExtent);
+}
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadASCFile(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */) {
+void clsRasterData<T, MaskT>::ReadASCFile(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */) {
 	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
 	this->_read_asc_file(m_filePathName, &m_headers, &m_rasterData);
 	m_srs = "";
 	this->_mask_and_calculate_valid_positions();
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+void clsRasterData<T, MaskT>::ReadByGDAL(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
 	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
 	this->_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData, &m_srs);
 	this->_mask_and_calculate_valid_positions();
 }
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
 	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
 	/// 1. Get stream data and metadata by file name
 	MongoGridFS mgfs = MongoGridFS();
@@ -877,7 +879,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs, string filen
 #endif
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, double> *header, T**values) {
+void clsRasterData<T, MaskT>::_read_asc_file(string  ascFileName, map<string, double> *header, T**values) {
     StatusMessage(("Read " + ascFileName + "...").c_str());
     ifstream rasterFile(ascFileName.c_str());
     string tmp, xlls, ylls;
@@ -918,7 +920,7 @@ void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, dou
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<string, double> *header, T**values, string* srs /* = NULL */){
+void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<string, double> *header, T**values, string* srs /* = NULL */){
 	StatusMessage(("Read " + filename + "...").c_str());
 	GDALDataset *poDataset = (GDALDataset *) GDALOpen(filename.c_str(), GA_ReadOnly);
 	if (poDataset == NULL) {

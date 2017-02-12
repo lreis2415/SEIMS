@@ -136,8 +136,16 @@ public:
     ~clsRasterData(void);
 
     /************* Read functions ***************/
+	/*!
+     * \brief Read raster data from file, mask data is optional
+     * \param[in] filename \a string
+     * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
+     * \param[in] mask \a clsRasterData<MaskT>
+     * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
+     */
+	void ReadFromFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
 
-    /*!
+	/*!
      * \brief Read raster data from ASC file, mask data is optional
      * \param[in] filename \a string
 	 * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
