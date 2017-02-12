@@ -102,7 +102,7 @@ make install
 
 ## 2.2 Installation for developers
 
-> 在Xcode 8.2下测试
+### 2.2.1 Xcode (test on Xcode 8.2)
 
 ```shell
 cd /Users/zhulj/Documents/code/SEIMS2017/seims
@@ -111,5 +111,26 @@ cd build
 cmake -G "Xcode" /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release
 ```
 + 完成之后，即可得到SEIMS项目总工程，`SEIMS_OMP_ALL.xcodeproj`，各子工程则在`build/bin`下，如SEIMS模块库工程为`build/bin/seims_omp_project/SEIMS_OMP_prj.xcodeproj`。
+
+### 2.2.2 CLion (test on CLion 2016.3.2）
+
+CLion继承了JetBrains家族的特点，工程采用CMake管理，方便、高效。在CLion中直接打开`SEIMS2017/seims`文件夹即可导入整个工程。
+
+CLion默认使用clang编译器，因此需要简单设置一下，[官网提供了三种方法](https://cmake.org/Wiki/CMake_FAQ#How_do_I_use_a_different_compiler.3F)，推荐采用第二种，即：
+
++ 打开CLion->Preferences->Build，Execution，Deployment->CMake
++ 在Generation选项卡下的CMake options中输入以下命令，以覆盖CMake的默认设置，同理为Debug和Release分别设置。
+
+```
+-D CMAKE_C_COMPILER=<your_path_to_c_compiler>
+-D CMAKE_CXX_COMPILER=<your_path_to_cxx_compiler>
+
+e.g.
+-DCMAKE_C_COMPILER=/usr/local/bin/gcc-4.9 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-4.9
+```
+
+接下来，你可以选择Build All，也可以选择某一个程序进行Build等。
+
+
 
 
