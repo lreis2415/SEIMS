@@ -1,5 +1,5 @@
 /*!
- * \brief Class to store and manage the PRINT information 
+ * \brief Class to store and manage the PRINT information
  * From the file.out file or FILE_OUT collection in MongoDB
  *
  * \author Junzhi Liu, LiangJun Zhu
@@ -10,25 +10,17 @@
 #include "PrintInfo.h"
 #include "clsRasterData.cpp"
 
-//#ifndef linux
-////#include "WinSock2i.h"
-//#include <WinSock2.h>
-//#include <windows.h>
-//#else
-//#include <unistd.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#endif
+
 //////////////////////////////////////////////
-///////////PrintInfoItem Class//////////////// 
+///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem(void) : m_Counter(-1), m_nRows(-1), m_nLayers(-1), 
+PrintInfoItem::PrintInfoItem(void) : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
 	SubbasinID(-1), SubbasinIndex(-1), SiteID(-1), SiteIndex(-1),
-	m_1DData(NULL), m_2DData(NULL), m_1DDataWithRowCol(NULL), 
+	m_1DData(NULL), m_2DData(NULL), m_1DDataWithRowCol(NULL),
 	TimeSeriesDataForSubbasinCount(-1), m_AggregationType(AT_Unknown),
 	StartTime(""), EndTime(""), m_startTime(0), m_endTime(0),
-	Filename(""), Suffix("") 
+	Filename(""), Suffix("")
 {
     TimeSeriesData.clear();
 	TimeSeriesDataForSubbasin.clear();
@@ -90,7 +82,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, float *data)
 
 void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRaster, string header)
 {
-	bool outToMongoDB = false; /// added by LJ. 
+	bool outToMongoDB = false; /// added by LJ.
 	projectPath = projectPath;
     /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
     //vector<string> outputExisted = GetGridFsFileNames(gfs);// No need to obtain the existing GridFS names.
@@ -187,12 +179,12 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         if (templateRaster == NULL)
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
 		clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
-        
+
 		if (outToMongoDB)
 		{
 			MongoGridFS().removeFile(Filename, gfs);
 			clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
-		}	
+		}
 		return;
     }
 
@@ -355,7 +347,7 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data)
 					if(!FloatEqual(data[rw], NODATA_VALUE)){
 						if(FloatEqual(m_1DData[rw], NODATA_VALUE))
 							m_1DData[rw] = MISSINGFLOAT;
-						if (m_1DData[rw] <= data[rw]) 
+						if (m_1DData[rw] <= data[rw])
 							m_1DData[rw] = data[rw];
 					}
                     break;
@@ -503,7 +495,7 @@ AggregationType PrintInfoItem::MatchAggregationType(string type)
 
 
 //////////////////////////////////////////
-///////////PrintInfo Class//////////////// 
+///////////PrintInfo Class////////////////
 //////////////////////////////////////////
 
 //void PrintInfo::setSpecificCellRasterOutput(string projectPath, string databasePath,

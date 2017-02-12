@@ -69,8 +69,8 @@ void clsInterpolationWeightData::ReadFromMongoDB(mongoc_gridfs_t *gfs, const cha
 	string wfilename = string(remoteFilename);
 	MongoGridFS mongogfs = MongoGridFS();
 	vector<string> gfilenames = mongogfs.getFileNames(gfs);
-	if (!ValueInVector(string(remoteFilename), gfilenames)){
-		string filename = remoteFilename;
+    string filename = remoteFilename;
+	if (!ValueInVector(filename, gfilenames)){
 		int index = filename.find_last_of('_');
 		string type = filename.substr(index + 1);
 		if (StringMatch(type, DataType_PotentialEvapotranspiration) || StringMatch(type, DataType_SolarRadiation)

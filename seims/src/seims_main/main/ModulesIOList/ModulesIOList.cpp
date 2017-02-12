@@ -1,10 +1,10 @@
 /*!
- * \brief 
+ * \brief
  * \author Liangjun Zhu
  * \version 1.0
  * \date July 2015
  */
-#ifndef linux
+#ifdef windows
 #include <WinSock2.h>
 #include <Windows.h>
 #else
@@ -17,12 +17,10 @@
 #include <fcntl.h>
 #endif
 
-
 #include <time.h>
 #include <string.h>
 #include <fstream>
-#include "util.h"
-#include "utils.h"
+#include "utilities.h"
 #include "ModulesIOList.h"
 #include "ModelException.h"
 #include "MetadataInfoConst.h"
@@ -35,7 +33,7 @@ string _GetApplicationPath()
 {
     string RootPath;
 
-#ifndef linux
+#ifdef windows
     TCHAR buffer[BUFSIZE];
     GetModuleFileName(NULL, buffer, BUFSIZE);
     RootPath = string((char *) buffer);
@@ -74,7 +72,7 @@ ModulesIOList::~ModulesIOList(void)
 
     for (size_t i = 0; i < m_dllHandles.size(); i++)
     {
-#ifndef linux
+#ifdef windows
         FreeLibrary(m_dllHandles[i]);
 #else
         dlclose(m_dllHandles[i]);
@@ -94,13 +92,13 @@ void ModulesIOList::Init(const string &configFileName)
         string dllID = id;
         // for ITP modules, the input ids are ITP_T, ITP_P and ITP should be used as ID name
         if (id.find(MID_ITP) != string::npos)
-#ifndef linux
+#ifdef windows
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
 #endif
         else if (id.find(MID_TSD_RD) != string::npos)
-#ifndef linux
+#ifdef windows
             dllID = MID_TSD_RD;
 #else
         dllID = Tag_So + string(MID_TSD_RD);
@@ -210,7 +208,7 @@ void ModulesIOList::ReadDLL(string &id, string &dllID)
         throw ModelException("ModulesIOList", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
 
     //load library
-#ifndef linux
+#ifdef windows
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
     if (handle == NULL) throw ModelException("ModulesIOList", "ReadDLL", "Could not load " + moduleFileName);
     m_instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));

@@ -4,12 +4,12 @@
  * \version 1.1
  * \date May 2016
  *
- * 
+ *
  */
 #include "ModelMain.h"
 
 
-ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input, ModuleFactory *factory, 
+ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input, ModuleFactory *factory,
 	int subBasinID /* = 1 */, int scenarioID /* = 0 */, int numThread /* = 1 */, LayeringMethod layeringMethod /* = UP_DOWN */)
         : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input), m_factory(factory),
           m_subBasinID(subBasinID), m_scenarioID(scenarioID), m_threadNum(numThread), m_layeringMethod(layeringMethod),
@@ -94,7 +94,7 @@ ModelMain::~ModelMain(void)
 //void ModelMain::Step(time_t time)
 //{
 //	m_factory->UpdateInput(m_simulationModules, m_input, time);
-//	
+//
 //	for (size_t i = 0; i < m_simulationModules.size(); i++)
 //	{
 //		SimulationModule *pModule = m_simulationModules[i];
@@ -103,7 +103,7 @@ ModelMain::~ModelMain(void)
 //			m_factory->GetValueFromDependencyModule(i, m_simulationModules);
 //		//cout << m_factory->GetModuleID(i) << endl;
 //		clock_t sub_t1 = clock();
-//		
+//
 //		try
 //		{
 //			pModule->SetDate(time);
@@ -116,10 +116,10 @@ ModelMain::~ModelMain(void)
 //		}
 //
 //		clock_t sub_t2 = clock();
-//		
+//
 //		m_executeTime[i] += (sub_t2 - sub_t1);
 //	}
-//	
+//
 //	Output(time);
 //	m_firstRun = false;
 //	m_firstRunOverland = false;
@@ -221,7 +221,7 @@ void ModelMain::Execute()
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
     int nHs = 0;
-	
+
     for (time_t t = startTime; t < endTime; t += m_dtCh)
     {
         cout << ConvertToString2(&t) << endl;
@@ -247,7 +247,7 @@ void ModelMain::Output()
 	//clock_t t1 = clock();
 	double t1 = TimeCounting();
 	string outputPath = m_projectPath + DB_TAB_OUT_SPATIAL + ValueToString(m_scenarioID);
-#ifndef linux
+#ifdef windows
 	if (::GetFileAttributes(outputPath.c_str()) == INVALID_FILE_ATTRIBUTES)
 	{
 		LPSECURITY_ATTRIBUTES att = NULL;
@@ -283,7 +283,7 @@ void ModelMain::Output()
         for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++)
         {
             PrintInfoItem *item = *itemIt;
-            item->Flush(m_projectPath + DB_TAB_OUT_SPATIAL + ValueToString(m_scenarioID) + SEP, 
+            item->Flush(m_projectPath + DB_TAB_OUT_SPATIAL + ValueToString(m_scenarioID) + SEP,
 				m_templateRasterData, (*it)->getOutputTimeSeriesHeader());
         }
     }
@@ -424,7 +424,7 @@ void ModelMain::Output(time_t time)
                     item->TimeSeriesData[time] = value;
                 }
 				//time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
-                else if (param->Dimension == DT_Array1D)  
+                else if (param->Dimension == DT_Array1D)
                 {
                     int index = -1;
                     if (index < 0)
