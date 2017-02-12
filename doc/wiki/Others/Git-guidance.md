@@ -1,21 +1,32 @@
 # Github使用说明
 
-为了便于群策群力完善模型，SEIMS采用Github平台进行版本控制，采用git subtree命令管理独立子库。
+为了群策群力完善模型，SEIMS采用Github平台进行版本控制，并采用git subtree命令管理独立子库。独立子库包括：
++ 1.[SEIMS wiki文档](https://github.com/lreis2415/SEIMS2017/wiki)
++ 2.[PyGeoC: 用于地学计算的简单Python包](https://github.com/lreis2415/PyGeoC)
++ 3.[TauDEM: 用于地形参数提取、子流域划分软件包](https://github.com/lreis2415/TauDEM)
++ 4.[METIS: 用于子流域层次的任务划分](https://github.com/lreis2415/metis)
++ 5.用于地学计算的C++基础类
+	+ 5.1.[UtilsClass: 字符串、时间、数组等基础操作](https://github.com/lreis2415/UtilsClass)
+	+ 5.2.[MongoUtilClass: 基于mongo-c-driver封装的MongoDB简单操作类](https://github.com/lreis2415/MongoUtilClass)
+	+ 5.3.[RasterClass: 支持ASCII、GDAL和MongoDB的读写，支持掩膜运算等的栅格类](https://github.com/lreis2415/RasterClass)
 
-关于Git的详细教程，推荐阅读[廖学峰老师的网站](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/)
+在开始之前，强烈建议阅读以下学习资料：
++ [廖学峰老师的Git教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/)
++ [常用的Git命令](http://www.codeceo.com/article/git-command-guide.html)
 
-这里主要介绍我们需要用到的一些命令操作，也可参考[常用的Git命令](http://www.codeceo.com/article/git-command-guide.html)。
 # 目录
-1. [Windows下安装Git](#windows下安装git)
+1. [Windows下安装Git](#1-windows下安装git)
 
-2. [从Github中克隆代码库及代码修改](#从github中克隆代码库及代码修改)
+2. [从Github中克隆代码库及代码修改](#2-从github中克隆代码库及代码修改)
 
-3. [代码同步与更新](#代码同步与更新)
+3. [代码同步与更新](#3-代码同步与更新)
 
-4. [克隆Wiki库](#克隆wiki库)
+4. [subtree操作](#4-subtree操作)
+
+5. [submodule操作（弃用技术，留存备忘）](#5-submodule操作) 
 
 
-## Windows下安装Git
+## 1.Windows下安装Git
 Windows下推荐使用[msysgit](http://msysgit.github.io/)的Git工具，直接下载安装即可，安装完成后，`开始 -> Git -> Git Bash`，打开一个类似命令行的窗口，说明Git安装成功了。
 安装完成后，在git bash 命令行里输入：
 
@@ -33,7 +44,7 @@ $ git config --global user.email "crazyzlj@gmail.com"
 P.S. 如何在push的时候免输密码，可以参考这个[博客](http://www.cnblogs.com/ballwql/p/3462104.html)的方法二，设置简单。
 
 [返回目录](#目录)
-## 从Github中克隆代码库及代码修改
+## 2.从Github中克隆代码库及代码修改
 配置好本地的Git环境之后，我们需要将代码库从Github上克隆到本地计算机。
 + 首先在Github.com上注册一个账号。注册好之后，需要设置SSH key，在`git bash`中输入：
 ~~~
@@ -45,7 +56,7 @@ ssh-keygen -t rsa -C crazyzlj@gmail.com
 
 一路回车，如果顺利的话，在用户目录（如`C:\Users\ZhuLJ`）里能找到`.ssh`目录，里面有`id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的密钥对，前者是私钥，后者是公钥。
 + 然后，登录Github，打开 Account Settings，SSH key页面，点Add SSH Key，Title任意填，在Key文本框里填上`id_rsa.pub`的内容，点击Add key就好啦。
-+ 打开[SEIMS模型的首页](https://github.com/seims/SEIMS)， 点击`Fork`，来创建自己账户下的SEIMS克隆，克隆结束之后，复制克隆库的**SSH**地址。下一步，我们将克隆一份代码库到本地计算机。
++ 打开[SEIMS模型的首页](https://github.com/lreis2415/SEIMS2017)， 点击`Fork`，来创建自己账户下的SEIMS克隆，克隆结束之后，复制克隆库的**SSH**地址。下一步，我们将克隆一份代码库到本地计算机。
 
 ~~~
 cd <destination folder>
@@ -78,7 +89,7 @@ Git push –u origin master
 此时，`SEIMS`拥有者`seims`就会收到你的`pull request`并处理了。
 
 [返回目录](#目录)
-## 代码同步与更新
+## 3.代码同步与更新
 以上我们知道了如何将本地的修改提交到源代码库，接下来，看看如何将**源代码库中的更新**同步到本地库中。
 
 比如其他人在`seims/SEIMS`下修改了README.md文件，现在同步到本地。
@@ -114,33 +125,65 @@ git merge upstream/master
 
 [返回目录](#目录)
 
-## 克隆Wiki库
+## 4.Subtree操作
+参考资料：[XA技术不宅的博客](http://aoxuis.me/post/2013-08-06-git-subtree)
 
-+ SEIMS所有文档采用Github Wiki进行管理，Wiki目录是独立于SEIMS代码库的，因此需要单独克隆。
-> 注意：这里需要克隆seims下的wiki，而不是你自己用户名下的，否则将无法push至seims/SEIMS.wiki!
+git subtree是一条git子命令，本质上subtree是一种合并策略，从git v1.5.2，官方就推荐使用subtree代替submodule，所以它并不需要保存`.submodule`这样的元信息，平时使用时你甚至可以忘掉有subtree的存在，只需子项目管理者在适当的时候与子项目库进行双向同步更新。
+
+### 4.1第一次添加子目录，并建立与git项目的关联
+
+建立关联总共有2条命令：
+
++ 语法：`git remote add -f <子仓库名> <子仓库地址>`
+
+解释：其中-f意思是在添加远程仓库之后，立即执行fetch。
+
++　语法：`git subtree add --prefix=<子目录名> <子仓库名> <分支> --squash`
+
+解释：`--squash`意思是把subtree的改动合并成一次commit，这样就不用拉取子项目完整的历史记录。`--prefix`之后的=等号也可以用空格。
+
+
+**示例**:
 
 ```
-cd <destination folder>
-git clone git@github.com:seims/SEIMS.wiki.git
-
-e.g.,
-cd e:/code/hydro
-git clone git@github.com:seims/SEIMS.wiki.git
+$git remote add -f wiki https://github.com/lreis2415/SEIMS2017.wiki.git 
+$git subtree add --prefix=doc/wiki wiki master --squash
 ```
 
-+ 在该目录下，会出现`SEIMS.wiki`文件夹。
+## 4.2从远程仓库更新子目录
+
+更新子目录有2条命令:
+
++ 语法：`git fetch <远程仓库名> <分支>`
+
++ 语法：`git subtree pull --prefix=<子目录名> <远程分支> <分支> --squash`
+
+**示例**:
 
 ```
-cd SEIMS.wiki
+$git fetch wiki master  
+$git subtree pull --prefix=doc/wiki wiki --squash
 ```
 
-+ Github Wiki采用Markdown语法的文本文件管理，建议利用MarkdownPad2 软件作为编辑器。 对Wiki内文章做出修改后，利用Git命令提交即可。
+## 4.3从子目录push到远程仓库（确认你有写权限）
 
-## Git 子模块 （已弃用，存档备用）
+推送子目录的变更有1条命令:
+
++ 语法：`git subtree push --prefix=<子目录名> <远程分支名> 分支`
+
+**示例**:
+
+```
+$git subtree push --prefix=doc/wiki wiki master
+```
+
+[返回目录](#目录)
+
+## 5.Submodule操作
 
 一个项目可以独立出来一些功能相对独立、允许其他人重复使用的通用模块，这个时候，就需要使用**子模块**的概念了。
 
-### 包含子模块的仓库的克隆
+### 5.1 包含子模块的仓库的克隆
 
 项目根目录下的`.submodules`文件定义了该项目的子模块列表和地址信息，如果该文件存在且不为空，那么可采取下面的方式对该项目进行克隆。
 
@@ -151,7 +194,7 @@ git clone <parent-git-path>
 git submodule update --init --recursive
 ```
 
-### 为当前项目添加子模块
+### 5.2 为当前项目添加子模块
 
 ```
 git submodule add <child-git-path> <current-store-path>
@@ -160,7 +203,7 @@ git submodule add <child-git-path> <current-store-path>
 注意：路径不能以 `/` 结尾（会造成修改不生效）、不能是现有工程已有的目录（不能顺利 Clone）
 
 
-### 删除子模块
+### 5.3 删除子模块
 To remove a submodule you need to:
 
 1. Delete the relevant section from the .gitmodules file.
