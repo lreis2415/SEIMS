@@ -1,13 +1,15 @@
 # CMake build for Windows, Linux, and macOS
 # Updated by Liang-Jun Zhu
 # zlj@lreis.ac.cn
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(Mask_Raster_prj)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+### Active C++11 standard, cross-platform. This requires CMake 3.1+
+SET (CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -36,6 +38,7 @@ ENDIF ()
 # 4. Add support for OpenMP
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)
+    add_definitions(-DSUPPORT_OMP)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 ENDIF ()
 ##############  Set common libraries   ###############
@@ -50,6 +53,11 @@ INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(mask_raster ${SOURCE_FILES})
 target_link_libraries(mask_raster ${GDAL_LIBRARY})
 install(TARGETS mask_raster DESTINATION bin)
+### For CLion to implement the "make install" command
+add_custom_target(install_${PROJECT_NAME}
+        $(MAKE) install
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Installing ${PROJECT_NAME}")
 IF(WIN32)
 	SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "ImportRaster")
 ENDIF()
