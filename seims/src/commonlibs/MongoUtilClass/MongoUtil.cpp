@@ -66,18 +66,19 @@ vector<string> MongoClient::getDatabaseNames(){
 	if (m_dbnames.empty()) this->_database_names();
 	return m_dbnames;
 }
-vector<string> MongoClient::getCollectionNames(string &dbName){
+vector<string> MongoClient::getCollectionNames(string const& dbName){
 	mongoc_database_t *database = this->getDatabase(dbName);
 	return MongoDatabase(database).getCollectionNames();
 }
-mongoc_database_t* MongoClient::getDatabase(string& dbname){
+mongoc_database_t* MongoClient::getDatabase(string const& dbname){
 	if (m_dbnames.empty()) this->_database_names();
-	if (!ValueInVector(dbname, m_dbnames)){
-		StatusMessage(("WARNING: Database " + dbname + " is not existed and will be created!\n").c_str());
+    string tmpdbname = dbname;
+	if (!ValueInVector(tmpdbname, m_dbnames)){
+		StatusMessage(("WARNING: Database " + tmpdbname + " is not existed and will be created!\n").c_str());
 	}
 	return mongoc_client_get_database(m_conn, dbname.c_str());
 }
-mongoc_collection_t* MongoClient::getCollection(string& dbname, string& collectionname){
+mongoc_collection_t* MongoClient::getCollection(string const& dbname, string const& collectionname){
 	try{
 		mongoc_database_t* db = this->getDatabase(dbname);
 		if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL))
@@ -91,7 +92,7 @@ mongoc_collection_t* MongoClient::getCollection(string& dbname, string& collecti
 		exit(EXIT_FAILURE);
 	}
 }
-mongoc_gridfs_t* MongoClient::getGridFS(string& dbname, string& gfsname){
+mongoc_gridfs_t* MongoClient::getGridFS(string const& dbname, string const& gfsname){
 	bson_error_t err;
 	mongoc_gridfs_t* gfs;
 	try{
@@ -105,7 +106,7 @@ mongoc_gridfs_t* MongoClient::getGridFS(string& dbname, string& gfsname){
 		exit(EXIT_FAILURE);
 	}
 }
-vector<string> MongoClient::getGridFSFileNames(string& dbname, string& gfsname){
+vector<string> MongoClient::getGridFSFileNames(string const& dbname, string const& gfsname){
 	mongoc_gridfs_t* gfs = this->getGridFS(dbname, gfsname);
 	return MongoGridFS(gfs).getFileNames();
 }
@@ -115,7 +116,7 @@ vector<string> MongoClient::getGridFSFileNames(string& dbname, string& gfsname){
 MongoDatabase::MongoDatabase(mongoc_database_t* db): m_db(db){
 	m_dbname = string(mongoc_database_get_name(m_db));
 }
-MongoDatabase::MongoDatabase(mongoc_client_t* conn, string& dbname){
+MongoDatabase::MongoDatabase(mongoc_client_t* conn, string const& dbname){
 	m_dbname = dbname;
 	m_db = mongoc_client_get_database(conn, m_dbname.c_str());
 }
@@ -161,7 +162,7 @@ MongoGridFS::~MongoGridFS(){
 	if (m_gfs != NULL)
 		mongoc_gridfs_destroy(m_gfs);
 }
-mongoc_gridfs_file_t* MongoGridFS::getFile(string& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
+mongoc_gridfs_file_t* MongoGridFS::getFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
 	try{
 		if (m_gfs != NULL) gfs = m_gfs;
 		if (gfs == NULL)
@@ -182,7 +183,7 @@ mongoc_gridfs_file_t* MongoGridFS::getFile(string& gfilename, mongoc_gridfs_t* g
 		exit(EXIT_FAILURE);
 	}
 }
-bool MongoGridFS::removeFile(string& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
+bool MongoGridFS::removeFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
 	bool removedone = true;
 	try{
 		if (m_gfs != NULL) gfs = m_gfs;
@@ -223,7 +224,7 @@ vector<string> MongoGridFS::getFileNames(mongoc_gridfs_t* gfs /* = NULL */){
 		exit(EXIT_FAILURE);
 	}
 }
-bson_t* MongoGridFS::getFileMetadata(string& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
+bson_t* MongoGridFS::getFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */){
 	try{
 		if (m_gfs != NULL) gfs = m_gfs;
 		if (gfs == NULL)
@@ -240,7 +241,7 @@ bson_t* MongoGridFS::getFileMetadata(string& gfilename, mongoc_gridfs_t* gfs /* 
 		exit(EXIT_FAILURE);
 	}
 }
-void MongoGridFS::getStreamData(string& gfilename, char*& databuf, int& datalength, mongoc_gridfs_t* gfs /* = NULL */){
+void MongoGridFS::getStreamData(string const& gfilename, char*& databuf, int& datalength, mongoc_gridfs_t* gfs /* = NULL */){
 	try{
 		if (m_gfs != NULL) gfs = m_gfs;
 		if (gfs == NULL)
@@ -264,7 +265,7 @@ void MongoGridFS::getStreamData(string& gfilename, char*& databuf, int& dataleng
 	}
 }
 
-void MongoGridFS::writeStreamData(string& gfilename, char*& buf, int& length, const bson_t* p, mongoc_gridfs_t* gfs /* = NULL */){
+void MongoGridFS::writeStreamData(string const& gfilename, char*& buf, int& length, const bson_t* p, mongoc_gridfs_t* gfs /* = NULL */){
 	try{
 		if (m_gfs != NULL) gfs = m_gfs;
 		if (gfs == NULL)
@@ -279,8 +280,8 @@ void MongoGridFS::writeStreamData(string& gfilename, char*& buf, int& length, co
 		gfile = mongoc_gridfs_create_file(gfs, &gopt);
 		mongoc_iovec_t ovec;
 		ovec.iov_base = buf;
-		ovec.iov_len = length;
-		size_t writesize = mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
+		ovec.iov_len = (size_t) length;
+		ssize_t writesize = mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
 		if (writesize == -1)
 			throw ModelException("MongoUtil", "writeStreamData", "Failed to write a gridfs file!\n");
 		if (!mongoc_gridfs_file_save(gfile))
@@ -344,7 +345,7 @@ bool GetBoolFromBsonIterator(bson_iter_t *iter) {
 			fltvalue = (float) vv->value.v_double;
 		else if (vv->value_type == BSON_TYPE_UTF8) {
 			string tmp = vv->value.v_utf8.str;
-			if (StringMatch(tmp, "TRUE"))
+			if (StringMatch(tmp.c_str(), "TRUE"))
 				return true;
 			else
 				return false;
