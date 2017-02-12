@@ -2,7 +2,7 @@
  * \brief Green Ampt Method to calculate infiltration and excess precipitation
  * \author Junzhi Liu
  * \date Oct. 2011
- * 
+ *
  */
 #include "StormGreenAmpt.h"
 #include "MetadataInfo.h"
@@ -215,12 +215,7 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n)
 string StormGreenAmpt::getDate(time_t *date)
 {
     struct tm p;
-
-#ifndef linux
-    localtime_s(&p, date);
-#else
-    localtime_r(date, &p);
-#endif
+    LocalTime(date, &p);
 
     p.tm_year = p.tm_year + 1900;
 

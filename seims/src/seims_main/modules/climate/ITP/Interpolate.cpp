@@ -2,7 +2,7 @@
  * \author Junzhi Liu, LiangJun Zhu
  * \date Jan. 2010
  * \revised date Apr. 2016
- * 
+ *
  */
 #include <cmath>
 #include "Interpolate.h"
@@ -32,7 +32,7 @@ void Interpolate::SetClimateDataType(float value)
     else if (FloatEqual(value, 5.0f))
         m_dataType = 2; /// PET
 	else if (FloatEqual(value, 6.0f) || FloatEqual(value, 7.0f) || FloatEqual(value, 8.0f))
-		m_dataType = 3; /// Meteorology 
+		m_dataType = 3; /// Meteorology
 }
 
 Interpolate::~Interpolate(void)
@@ -45,12 +45,12 @@ int Interpolate::Execute()
 	CheckInputData();
     if (m_output == NULL)
 		Initialize1DArray(m_nCells,m_output,0.f);
-    
+
     //cout<<"ITP: ";
     //for (int j = 0; j < m_nStatioins; ++j)
     //	cout<<m_stationData[j]<<",";
     //cout<<endl;
-    
+
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i)
     {
@@ -89,16 +89,11 @@ int Interpolate::Execute()
 
 void Interpolate::SetDate(time_t date, int yearIdx)
 {
-    m_date = date;
+  m_date = date;
 	m_yearIdx = yearIdx;
-    struct tm t;
+  struct tm t;
 	LocalTime(date, &t);
-//#ifndef linux
-//    localtime_s(&t, &m_date);
-//#else
-//    localtime_r(&m_date, &t);
-//#endif
-    m_month = t.tm_mon;
+  m_month = t.tm_mon;
 }
 
 void Interpolate::SetValue(const char *key, float value)
