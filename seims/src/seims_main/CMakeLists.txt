@@ -4,11 +4,13 @@
 # Latest updated : Dec. 18, 2016
 #
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
+### Active C++11 standard, cross-platform. This requires CMake 3.1+
+SET (CMAKE_CXX_STANDARD 11)
 ################# SEIMS Version ##################
 IF (PARALLEL STREQUAL MPI)
     PROJECT(SEIMS_MPI_prj)
@@ -66,6 +68,7 @@ ENDIF ()
 # 4. Add support for OpenMP
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)
+    add_definitions(-DSUPPORT_OMP)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 ENDIF ()
 ################# Install directory ##################
@@ -97,7 +100,11 @@ ENDIF()
 ADD_SUBDIRECTORY(${BASE_HOME})
 ADD_SUBDIRECTORY(${MODULE_HOME})
 ADD_SUBDIRECTORY(${MAIN_HOME})
-
+### For CLion to implement the "make install" command
+add_custom_target(install_${PROJECT_NAME}
+      $(MAKE) install
+      DEPENDS ${PROJECT_NAME}
+      COMMENT "Installing ${PROJECT_NAME}")
 IF (PARALLEL STREQUAL MPI)
   MESSAGE(STATUS "    Compiling SEIMS_MPI done")
 ELSE()
