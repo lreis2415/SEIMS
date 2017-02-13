@@ -1,6 +1,5 @@
 #ifndef CLS_UTILS
 #include "utils.h"
-//#include "utilities.h"
 
 /************ utilsTime ******************/
 utilsTime::utilsTime(void) {}
@@ -561,8 +560,8 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
 		int n = (int)filename.length();
 		string ext = filename.substr(n-4, 4);
 		//cout << ext << "\t" << expression << endl;
-		if(StringMatch(ext.c_str(), expression) || StringMatch(expression, ".*")
-			|| StringMatch(expression, "*.*"))
+		if(utilsString::StringMatch(ext.c_str(), expression) || utilsString::StringMatch(expression, ".*")
+			|| utilsString::StringMatch(expression, "*.*"))
 		{
 			ostringstream oss;
 			oss << lpPath << "/" <<  filename;
