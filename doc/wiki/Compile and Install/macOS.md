@@ -3,10 +3,9 @@ Install SEIMS on macOS
 
 First release: Liang-Jun Zhu
 
-Latest Updated：Dec.17, 2016
+Latest Updated：Feb.13, 2017
 
-> 测试环境为Macbook Pro 13 （Late 2016） with macOS Sierra 10.12.2
-
+> 测试环境为Macbook Pro 13 （Late 2016） with macOS Sierra 10.12.3
 
 # 1. Prerequisites
 
