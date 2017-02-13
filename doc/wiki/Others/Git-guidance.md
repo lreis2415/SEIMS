@@ -15,15 +15,15 @@
 + [常用的Git命令](http://www.codeceo.com/article/git-command-guide.html)
 
 # 目录
-1. [Windows下安装Git](#1-windows下安装git)
+1. [Windows下安装Git](#1windows下安装git)
 
-2. [从Github中克隆代码库及代码修改](#2-从github中克隆代码库及代码修改)
+2. [从Github中克隆代码库及代码修改](#2从github中克隆代码库及代码修改)
 
-3. [代码同步与更新](#3-代码同步与更新)
+3. [代码同步与更新](#3代码同步与更新)
 
-4. [subtree操作](#4-subtree操作)
+4. [subtree操作](#4subtree操作)
 
-5. [submodule操作（弃用技术，留存备忘）](#5-submodule操作) 
+5. [submodule操作（弃用技术，留存备忘）](#5submodule操作) 
 
 
 ## 1.Windows下安装Git
@@ -42,6 +42,21 @@ $ git config --global user.email "crazyzlj@gmail.com"
 这两行表示，这台机器上的所有Git仓库都使用这个配置(用户名和邮件地址)。
 
 P.S. 如何在push的时候免输密码，可以参考这个[博客](http://www.cnblogs.com/ballwql/p/3462104.html)的方法二，设置简单。
+
+<i class="fa fa-exclamation-triangle fa-2x"></i> **注意！**
+
+### 1.1.Git中AutoCRLF与SafeCRLF换行符问题
+众所周知，Windows系统和Linux/Unix系统的换行符不同，而Windows下的Git默认情况下会在提交代码时自动替换换行符LF或CR为CRLF，这样对跨平台代码造成了极大的不便。
+
+因此，我们一般约定代码采用Linux编码，即 `LF \n`。打开Git shell进行如下设置：
+
+```
+# AutoCRLF, 设置提交、检出时均不转换
+git config --global core.autocrlf false
+# SafeCRLF, 设置拒绝提交包含混合换行符的文件，并且在提交混合换行符的文件时给出警告，从而手动转换为LF换行符后提交
+git config --global core.safecrlf true
+git config --global core.safecrlf warn
+```
 
 [返回目录](#目录)
 ## 2.从Github中克隆代码库及代码修改
