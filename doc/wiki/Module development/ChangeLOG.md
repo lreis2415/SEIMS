@@ -1,5 +1,9 @@
 SEIMS CHANGE LOG
 --------------
+### 2017-2-13
++ 将通用类抽离出来，可单独调试
++ 代码实现跨平台，Windows、Linux及macOS
++ 重新组织代码，实现一键编译所有模型所需程序及动态链接库
 
 ### 2016-6-29
 + 增加了养分循环模块组，包括大气沉降ATMDEP、矿化作用MINRL、养分迁移NUTRMV、泥沙吸附NUTRSED、坡面汇流NUTROL、河道汇流NUTRCH等
