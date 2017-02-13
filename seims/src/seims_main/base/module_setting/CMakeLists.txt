@@ -1,4 +1,5 @@
 MESSAGE(STATUS "        Compiling base_subdir: module_setting...")
+SET(CMAKE_CXX_FLAGS "-fPIC")
 AUX_SOURCE_DIRECTORY(. SRC_LIST)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 ADD_LIBRARY(module_setting STATIC ${SRC_LIST})
