@@ -1,12 +1,10 @@
 Linux下SEIMS模型的编译与运行
 ----------------
-> Latest update: 2017-2-11
-
-> 以下是以192.168.6.55服务器上zhulj账号下的路径为例。
+> Latest update: 2017-2-13
 
 ## 1. 准备工作
 
-### 1.1 zhulj账号下对服务器原有配置进行了更新：
+以192.168.6.55服务器上zhulj账号下的配置为例：
 + CMake 版本更新为3.7.2，路径`~/CMake/bin/cmake`;
 + GCC编译器版本至4.8.4，路径`~/gcc4.8.4/bin`，在CMake命令中加入`-DCMAKE_C_COMPILER=~/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=~/gcc4.8.4/bin/g++`以显示定义GCC编译器路径；
 + MPICH版本至3.1.4，路径`~/mpich/bin`,同理，如果编译MPI版本，则需显示定义编译器路径：`-DCMAKE_CXX_COMPILER=~/mpich/bin/mpic++`;
@@ -30,78 +28,15 @@ Linux下SEIMS模型的编译与运行
 	scoop>=0.7.1.1
 	```
 
-### 1.2 
-
-### 程序及数据路径约定：
-
-+ SEIMS文件夹为 `~/SEIMS`
-+ 源代码文件夹为 `~/SEIMS/SEIMS`
-+ 预处理Python主程序目录 `~/SEIMS/SEIMS/preprocess`
-+ 预处理C++程序目录 `~/SEIMS/SEIMS_preprocess`
-+ SEIMS主程序及模块目录 `~/SEIMS/seims_omp`
-+ 研究区模型目录（配置文件及OUTPUT） `~/SEIMS/models`
-+ 研究区模型构建中间文件（即preprocess) `~/SEIMS/models_prepare`
-
-## 1 SEIMS_Preprocess Cpp programs
+## 2. SEIMS编译和安装
 
 ```shell
-
-	cd ~/SEIMS/SEIMS_preprocess
-	cmake ~/SEIMS/SEIMS/preprocess
-	make (or make 2>&1 | tee build_proprocess.log 用于保存编译日志)
-	cd ~/SEIMS/SEIMS/preprocess/cpp_src/metis-5.1.0-pk
-	make config
-	make
-
+cd <SEIMS root path>/seims
+mkdir build
+cd build
+/home/zhulj/CMake/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/home/zhulj/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=/home/zhulj/gcc4.8.4/bin/g++
+make (or make 2>&1 | tee build.log 用于保存编译日志)
+make install
 ```
 
-编译完成之后，预处理路径分别为：
-
-```shell
-
-	CPP_PROGRAM_DIR = ~/SEIMS/SEIMS_preprocess
-	METIS_DIR = ~/SEIMS/SEIMS/preprocess/cpp_src/metis-5.1.0-pk/build/Linux-x86_64/programs
-
-```
-
-对应于模型配置文件（`~/SEIMS/SEIMS/preprocess/*.ini`）的第7~8行
-
-## 2 SEIMS Cpp program
-
-```
-	
-	cd ~/SEIMS/seims_omp
-	cmake ~/SEIMS/SEIMS
-
-```
-
-如果看到如下信息，则可进行下一步，否则需要检查CMakeLists.txt中是否有路径错误：
-
-```
-	
-	-- Compiling folder: base...
-	-- Compiling folder: modules...
-	--     Compiling folder: climate...
-	--     Compiling folder: hydrology_longterm...
-	--     Compiling folder: erosion...
-	--     Compiling folder: nutrient...
-	--     Compiling folder: ecology...
-	--     Compiling folder: management...
-	-- Compiling folder: main...
-	-- SEIMS is Ready for you!
-	-- Configuring done
-	-- Generating done
-	-- Build files have been written to: ~/SEIMS/seims_omp
-
-```
-
-随后，
-
-```
-make (or make 2>&1 | tee build_seims.log 用于保存编译日志)
-```
-
-正常情况下，SEIMS即编译完成！
-
-## 3 Model preparation
-
+编译完成之后，SEIMS模型所有可执行文件和模块库均安装于`<SEIMS root path>/seims/bin`目录下。

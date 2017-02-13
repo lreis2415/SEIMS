@@ -26,6 +26,7 @@ Windows下GDAL最方便的安装方式应该就是采用[Tamas Szekeres's Window
 
 > 以CentOS为例 (Take CentOS as example)
 
++ 源码编译安装GDAL后，新建环境变量`export GDAL_ROOT=<GDAL_root_path>`, 如`export GDAL_ROOT=/soft/share`。
 
 ### 2.3 On macOS
 macOS下推荐使用[William Kyngesburye](http://www.kyngchaos.com/software:frameworks)维护的Framework安装包，最新的为`GDAL_Complete-1.11.dmg`。
@@ -33,16 +34,16 @@ macOS下推荐使用[William Kyngesburye](http://www.kyngchaos.com/software:fram
 + GDAL将安装在`/Library/Frameworks/GDAL.framework`。
 + 同时，测试python的GDAL包是否安装成功：
 
-```python
->>> import osgeo
->>> osgeo.__version__
-'1.11.4'
->>> from osgeo import ogr
->>> from osgeo import osr
->>> from osgeo import gdalconst
->>> from osgeo import gdal_array
->>> from osgeo import gdal
-```
+	```python
+	>>> import osgeo
+	>>> osgeo.__version__
+	'1.11.4'
+	>>> from osgeo import ogr
+	>>> from osgeo import osr
+	>>> from osgeo import gdalconst
+	>>> from osgeo import gdal_array
+	>>> from osgeo import gdal
+	```
 
 ## 3. 单独测试RasterClass模块
 
@@ -53,18 +54,18 @@ macOS下推荐使用[William Kyngesburye](http://www.kyngchaos.com/software:fram
 ### 3.1 Windows
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
 
-```shell
-cd <path-to-RasterClass>
-mkdir build
-cd build
-### 仅编译安装 ###
-cmake -G "NMake Makefiles" <path-to-RasterClass> -DCMAKE_BUILD_TYPE=Release
-nmake
-nmake install
-### 编译Microsoft Visual Studio工程 ###
-cmake <path-to-RasterClass>
-nmake
-```
+	```shell
+	cd <path-to-RasterClass>
+	mkdir build
+	cd build
+	### 仅编译安装 ###
+	cmake -G "NMake Makefiles" <path-to-RasterClass> -DCMAKE_BUILD_TYPE=Release
+	nmake
+	nmake install
+	### 编译Microsoft Visual Studio工程 ###
+	cmake <path-to-RasterClass>
+	nmake
+	```
 
 + 对于“仅编译安装”操作，`RasterClass.exe`会自动安装在`<path-to-RasterClass>\bin`目录下。
 + 对于“编译Microsoft Visual Studio工程”，`RasterClass.sln`将保存在`<path-to-RasterClass>\build`目录下。
