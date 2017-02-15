@@ -92,8 +92,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'gdal',
-        'numpy'],
+        #'gdal>=1.9.0,<2.0',
+        #'numpy>=1.9.0'
+    ],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
