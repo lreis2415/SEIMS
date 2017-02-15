@@ -132,6 +132,7 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 	```
 
 完成后，不需要打开VS2010生成解决方案，可执行文件已经编译完成，程序目录为`~\SEIMS2017\seims\bin`。
++ 右键以管理员方式运行`~\seims\bin\Firewall_for_Windows.bat`，配置防火墙规则，以防在运行Python脚本调用SEIMS程序时被防火墙阻止。
 ## 2.2 Installation for developers
 
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
