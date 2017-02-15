@@ -26,7 +26,6 @@ SEIMS预处理程序的所有输入均在`SEIMS/preprocess/config.py`中进行�
 + TXT_DB_DIR: SEIMS文本类数据库目录，如各类查找表
 + PREPROC_SCRIPT_DIR: SEIMS预处理Python脚本目录
 + CPP_PROGRAM_DIR: SEIMS预处理相关C++程序编译目录
-+ METIS_DIR: METIS程序编译目录（用于SEIMS_MPI版本）
 + MPIEXEC_DIR: MPI程序目录，如环境变量里有设置，则此项可为`None`
 
 以下为一个示例：
@@ -36,7 +35,6 @@ BASE_DATA_DIR = r'E:\data\model_data\model_dianbu_30m_longterm\data_prepare'
 TXT_DB_DIR = r'E:\code\Hydro\SEIMS\database'
 PREPROC_SCRIPT_DIR = r'E:\code\Hydro\SEIMS\preprocess'
 CPP_PROGRAM_DIR = r'D:\Compile\SEIMS_Preprocess\Release'
-METIS_DIR = r'D:\Compile\SEIMS_Preprocess\metis\programs\Release'
 MPIEXEC_DIR = None
 ```
 
