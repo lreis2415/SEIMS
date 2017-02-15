@@ -27,7 +27,6 @@ if 'PATH' in cf.sections():
     TXT_DB_DIR = cf.get('PATH', 'TXT_DB_DIR'.lower())
     PREPROC_SCRIPT_DIR = cf.get('PATH', 'PREPROC_SCRIPT_DIR'.lower())
     CPP_PROGRAM_DIR = cf.get('PATH', 'CPP_PROGRAM_DIR'.lower())
-    METIS_DIR = cf.get('PATH', 'METIS_DIR'.lower())
     MPIEXEC_DIR = cf.get('PATH', 'MPIEXEC_DIR'.lower())
     WORKING_DIR = cf.get('PATH', 'WORKING_DIR'.lower())
 else:
@@ -88,9 +87,8 @@ genIUH = True
 simuMode = Tag_Mode_Daily
 if forCluster and Tag_Cluster not in SpatialDBName.lower():
     SpatialDBName = Tag_Cluster + "_" + SpatialDBName
-if forCluster and not isPathExists(METIS_DIR):
-    raise IOError(
-        "Please Check METIS executable Directories defined in [PATH]")
+if forCluster:
+    METIS_DIR = CPP_PROGRAM_DIR
 if stormMode:
     simuMode = Tag_Mode_Storm
     if not Tag_Mode_Storm.lower() in SpatialDBName.lower():
