@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # coding=utf-8
 # Used for adjusting partitioned tasks by Metis.
-# This function is actived when forCluster is True.
+# This function is activated when forCluster is True.
 # Author: Junzhi Liu
 #
 
