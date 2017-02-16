@@ -275,7 +275,7 @@ void initNeighborD8up(tdpartition* neighbor,tdpartition* flowData,queue<node> *q
 	}
 	// If Outlets are specified
 	else {
-	//Put outlets on queue to be evalutated
+	//Put outlets on queue to be evaluated
 		queue<node> toBeEvaled;
 		for( i=0; i<numOutlets; i++) {
 			flowData->globalToLocal(outletsX[i], outletsY[i], temp.x, temp.y);
