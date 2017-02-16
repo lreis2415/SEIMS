@@ -154,6 +154,14 @@ int readoutlets(char *outletsds,char *lyrname, int uselayername,int outletslyr,O
          x[nxy] = OGR_G_GetX(geometry, 0);
 		 y[nxy] =  OGR_G_GetY(geometry, 0);
 		 int idfld =OGR_F_GetFieldIndex(hFeature1,"id");
+		 if (idfld < 0) // the unique field named "id" is not found
+		 {
+			 idfld = OGR_F_GetFieldIndex(hFeature1, "OBJECTID"); // try "OBJECTID" again, ZhuLJ, 2015/6/16
+		 }
+		 if (idfld < 0) // the unique field named "id" and "objectid" are both not found
+		 {
+			 idfld = OGR_F_GetFieldIndex(hFeature1, "POINTID"); // try "pointid" again, ZhuLJ, 2015/9/22
+		 }
 		 if (idfld >= 0)
 		   {
 			 
