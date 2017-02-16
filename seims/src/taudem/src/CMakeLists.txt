@@ -7,6 +7,7 @@ set (D8 D8FlowDirmn.cpp d8.cpp Node.cpp ${common_srcs} ${shape_srcs})
 set (D8EXTREAMUP D8flowpathextremeup.cpp D8FlowPathExtremeUpmn.cpp
      ${common_srcs} ${shape_srcs})
 set (D8HDIST D8HDistToStrm.cpp D8HDistToStrmmn.cpp ${common_srcs})
+set (D8DISTDOWN D8DistDownToStream.cpp D8DistDownToStreammn.cpp ${common_srcs})
 set (DINFAVA DinfAvalanche.cpp DinfAvalanchemn.cpp ${common_srcs})
 set (DINFCONCLIM DinfConcLimAccum.cpp DinfConcLimAccummn.cpp
      ${common_srcs} ${shape_srcs})
@@ -43,6 +44,7 @@ add_executable (areadinf ${DINFFILES})
 add_executable (d8flowdir ${D8})
 add_executable (d8flowpathextremeup ${D8EXTREAMUP})
 add_executable (d8hdisttostrm ${D8HDIST})
+add_executable (d8distdowntostream ${D8DISTDOWN})
 add_executable (dinfavalanche ${DINFAVA})
 add_executable (dinfconclimaccum ${DINFCONCLIM})
 add_executable (dinfdecayaccum ${DINFDECAY})
@@ -70,6 +72,7 @@ set (MY_TARGETS aread8
                 d8flowdir
                 d8flowpathextremeup
                 d8hdisttostrm
+                d8distdowntostream
                 dinfavalanche
                 dinfconclimaccum
                 dinfdecayaccum
