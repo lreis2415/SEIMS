@@ -6,8 +6,7 @@ import subprocess
 import numpy
 from osgeo import gdal, ogr, osr
 
-from pygeoc.utils.utils import *
-
+from ..utils.utils import *
 
 class Raster:
     '''

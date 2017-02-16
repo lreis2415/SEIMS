@@ -6,7 +6,7 @@ env:
 install: pip install tox
 
 script: 
-  - python setup.py bdist_wheel --python-tag py27
+  - python setup.py bdist_wheel --python-tag py2
 
 notifications:
   email: false

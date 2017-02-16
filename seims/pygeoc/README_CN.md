@@ -20,14 +20,14 @@
 PyGeoC采用纯Python开发（仅在Python2.x下测试），利用[Wheels](http://pythonwheels.com/)打包[发布](http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/#working-in-development-mode)，可从PyPI项目主页下载。
 也可从[PyGeoC](https://github.com/crazyzlj/PyGeoC)库的dist目录中下载。
 
-```python
-1.source distribution:
-python setup.py sdist
-2.wheel
-python setup.py bdist_wheel
-3.wheel(py27, I just test in py27 currently)
-python setup.py bdist_wheel --python-tag py27
-```
+    ```python
+    1.source distribution:
+    python setup.py sdist
+    2.wheel
+    python setup.py bdist_wheel
+    3.wheel(py27, I just test in py27 currently)
+    python setup.py bdist_wheel --python-tag py2
+    ```
 
 安装：
 + 确认本机已经安装python2.6+
