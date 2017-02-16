@@ -26,7 +26,9 @@
 *.lib
 
 # Executables
-# bin
+bin
+!/bin/*.bat
+!/bin/*.md
 build
 *.exe
 *.out
