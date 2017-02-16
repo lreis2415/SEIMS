@@ -3,8 +3,12 @@
 # Created by Liang-Jun Zhu
 # Date: 2016.11
 #
+import os
+try:
+    from pygeoc.raster import *
+except ImportError:
+    print ("ERROR: PyGeoC is not successfully installed, please check and retry!")
 
-from pygeoc.raster import *
 
 if __name__ == "__main__":
     inputdem = ".%sdata%sJamaica_dem.tif" % (os.sep, os.sep)

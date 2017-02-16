@@ -1,5 +1,5 @@
 PyGeoC
-===========
+======
 
 Python for GeoComputation --- easy, convenient, and efficient.
 
@@ -8,12 +8,12 @@ Python for GeoComputation --- easy, convenient, and efficient.
 
 
 1.Introduction
------------------
+--------------
 
 **PyGeoC** is aiming for a easy, convenient, and efficient way to implement GeoComputation.
 
 2.Download and Install
------------------------------
+----------------------
 
 PyGeoC is developed by pure Python and used `Wheels <http://pythonwheels.com/>`_ to distribute via `PyPI <https://pypi.python.org/pypi?name=PyGeoC&version=0.1&:action=display>`_.
 

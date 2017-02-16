@@ -4,10 +4,7 @@ import math
 import platform
 
 sysstr = platform.system()
-if sysstr == "Windows":
-    LF = '\n'
-elif sysstr == "Linux":
-    LF = '\r'
+
 ZERO = 1e-12
 DELTA = 1e-6
 DEFAULT_NODATA = -9999.
