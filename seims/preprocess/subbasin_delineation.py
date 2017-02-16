@@ -91,7 +91,7 @@ def CalLatDependParas():
         if lat == cellLatR.noDataValue:
             return cellLatR.noDataValue
         else:
-            if lat <= 40. and lat >= 20.:
+            if 20. <= lat <= 40.:
                 return (numpy.abs(lat - 20.)) / 20.
             elif lat > 40.:
                 return 1.
