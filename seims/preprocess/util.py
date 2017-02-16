@@ -35,7 +35,7 @@ def GetINIfile():
     # Get model configuration file name
     c = C()
     parser = argparse.ArgumentParser(
-        description="Read SEIMS Preprocessing configuration file.")
+        description="Read configuration file.")
     parser.add_argument('-ini', help="Full path of configuration file")
     args = parser.parse_args(namespace=c)
     iniFile = args.ini
@@ -72,7 +72,7 @@ def isNumericValue(x):
 
 ####  Climate Utility Functions  ####
 def IsLeapYear(year):
-    if ((year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)):
+    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
         return True
     else:
         return False
@@ -599,6 +599,7 @@ def RunExternalCmd(cmdStr):
     :param cmdStr:
     :return: output lines
     '''
+    print (cmdStr)
     process = subprocess.Popen(cmdStr, shell = True, stdout = subprocess.PIPE)
     return process.stdout.readlines()
 
