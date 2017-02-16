@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 from setuptools.command.test import test as TestCommand
-
+import pygeoc
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -38,17 +38,17 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version = '0.1.1',
+    version = pygeoc.__version__,
 
     description = 'Python for GeoComputation',
     long_description = long_description,
 
     # The project's main homepage.
-    url = 'https://github.com/lreis2415/PyGeoC',
+    url = pygeoc.__url__,
 
     # Author details
-    author = 'Liang-Jun Zhu',
-    author_email = 'zlj@lreis.ac.cn',
+    author = pygeoc.__author__,
+    author_email = pygeoc.__email__,
 
     # Choose your license
     license = 'MIT',
