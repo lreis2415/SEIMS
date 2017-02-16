@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 #    This file is aimed for Packages checking and installing for SEIMS on Linu/Unix platform.
 #
@@ -10,6 +11,3 @@
 #    See the GNU General Public License for more details.
 #
 
-
-cd pygeoc
-python setup.py install
