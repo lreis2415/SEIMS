@@ -25,11 +25,12 @@ macOS中最便捷配置GCC版本的方式是通过[Homebrew](http://brew.sh/)自
 + 输入`brew tap homebrew/versions`更新`brew`中软件版本
 + 输入`brew install gcc49`安装
 + 安装大约需要60分钟，耐心等待安装完成，可通过`gcc-4.9 --version`查看版本信息：
-```
-gcc-4.9 --version
-gcc-4.9 (Homebrew gcc49 4.9.3) 4.9.3
-Copyright (C) 2015 Free Software Foundation, Inc.
-```
+    
+    ```
+    gcc-4.9 --version
+    gcc-4.9 (Homebrew gcc49 4.9.3) 4.9.3
+    Copyright (C) 2015 Free Software Foundation, Inc.
+    ```
 
 ## 1.2. OpenMPI
 + 从[官网下载OpenMPI源码](https://www.open-mpi.org/software/ompi/v1.10/)，推荐安装1.x系列的最新版，目前最新的是1.10.4，解压至文件夹，如`/Users/zhulj/apps/openmpi-1.10.4
@@ -53,16 +54,16 @@ SEIMS的矢栅数据读写基于`GDAL 1.x`编写，macOS下推荐使用[William 
 + GDAL将安装在`/Library/Frameworks/GDAL.framework`。
 + 同时，测试python的GDAL包是否安装成功：
 
-```python
->>> import osgeo
->>> osgeo.__version__
-'1.11.4'
->>> from osgeo import ogr
->>> from osgeo import osr
->>> from osgeo import gdalconst
->>> from osgeo import gdal_array
->>> from osgeo import gdal
-```
+    ```python
+    >>> import osgeo
+    >>> osgeo.__version__
+    '1.11.4'
+    >>> from osgeo import ogr
+    >>> from osgeo import osr
+    >>> from osgeo import gdalconst
+    >>> from osgeo import gdal_array
+    >>> from osgeo import gdal
+    ```
 
 ## 1.5. mongo-c-driver
 
@@ -71,14 +72,15 @@ macOS下的配置步骤为：
 + 从[官网](http://mongoc.org/ "mongo-c-driver-download")下载源码压缩包，目前最新稳定版本为[1.5.0](https://github.com/mongodb/mongo-c-driver/releases/download/1.5.0/mongo-c-driver-1.5.0.tar.gz "mongo-c-driver-1.5.0")，解压缩至当前文件夹，如`/Users/zhulj/apps/mongo-c-driver-1.5.0`
 + 使用brew安装依赖包`brew install automake autoconf libtool pkgconfig openssl`
 + 打开终端，依次输入如下命令
-```shell
-cd /Users/zhulj/apps/mongo-c-driver-1.5.0
-export LDFLAGS="-L/usr/local/opt/openssl/lib"
-export CPPFLAGS="-I/usr/local/opt/openssl/include"
-./configure CC=gcc-4.9 CXX=g++-4.9 --prefix=/usr/local
-make
-sudo make install
-```
+
+    ```shell
+    cd /Users/zhulj/apps/mongo-c-driver-1.5.0
+    export LDFLAGS="-L/usr/local/opt/openssl/lib"
+    export CPPFLAGS="-I/usr/local/opt/openssl/include"
+    ./configure CC=gcc-4.9 CXX=g++-4.9 --prefix=/usr/local
+    make
+    sudo make install
+    ```
 
 + 至此，`mongo-c-driver`即编译安装完成了，在`/usr/local/include`目录下能看到`libbson-1.0`, `libmongoc-1.0`文件夹，链接库则在`/usr/local/lib`。
 
@@ -129,3 +131,31 @@ e.g.
 ```
 
 接下来，你可以选择Build All，也可以选择某一个程序进行Build等。
+
+## 3. python for SEIMS 依赖包的安装
+ 
+SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
+
+    ```py
+    pygeoc
+    # Preprocess
+    GDAL>=1.9.0,<2.0 (在1.4中已经安装完成)
+    numpy>=1.9.0
+    pymongo>=3.0
+    networkx>=1.10
+    Shapely>=1.5.0
+    # Postprocess
+    matplotlib>=1.5.0
+    pathlib2>=2.0.0
+    # Scenario analysis
+    deap>=1.0.2
+    scoop>=0.7.1.1
+    ```
+
+SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
++ 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
++ `python get-pip.py`
+
+对于Linux系统，执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库。
+
+安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
