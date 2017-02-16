@@ -365,9 +365,9 @@ public:
 	/*!
 	 * \brief Get position index data and the data length
 	 * \param[out] datalength 
-	 * \param[out] positiondata
+	 * \param[out] positiondata, the pointer of 2D array (pointer)
 	 */
-    void getRasterPositionData(int& datalength, int**& positiondata);
+    void getRasterPositionData(int& datalength, int*** positiondata);
 
     //! Get pointer of raster data
     T*& getRasterDataPointer() { return m_rasterData; }
@@ -434,6 +434,10 @@ public:
 	 * \brief Replace NoData value by the given value
 	 */
 	void replaceNoData(T replacedv);
+	/*!
+	 * \brief classify raster 
+	 */
+	void reclassify(map<int, T> reclassMap);
     /************* Utility functions ***************/
 
     /*!
@@ -569,6 +573,8 @@ private:
 	string m_coreFileName;
     ///< calculate valid positions or not. The default is true.
     bool m_calcPositions;
+	///< raster position data is newly allocated array (true), or just a pointer (false)
+	bool m_storePositions;
 	///< To be consistent with other datesets, keep the extent of Mask layer, even include NoDATA.
 	bool m_useMaskExtent;
     ///< raster data (1D array)
