@@ -3,8 +3,6 @@
 # @Main function entrance for preprocessing
 # @Author: Liang-Jun Zhu
 #
-import os
-import sys
 
 # MongoDB modules
 from build_db import BuildMongoDB
@@ -24,14 +22,14 @@ from util import GetINIfile, LoadConfiguration
 if __name__ == "__main__":
     # Load Configuration file
     LoadConfiguration(GetINIfile())
+    # Spatial Data derived from DEM
+    SubbasinDelineation()
     # Update SQLite Parameters.db3 database
     reConstructSQLiteDB()
     # Climate Data
     SitesMList, SitesPList = ImportHydroClimateSitesInfo()
     ImportDailyMeteoData(SitesMList)
     ImportDailyPrecData(SitesPList)
-    # Spatial Data derived from DEM
-    SubbasinDelineation()
     # Measurement Data, such as discharge, sediment yield.
     ImportMeasurementData()
     # Extract parameters from landuse, soil properties etc.
