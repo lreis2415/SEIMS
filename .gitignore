@@ -54,4 +54,9 @@ output*
 *.tif.ovr
 
 # ignore the include and lib directories after compilation and installation
-seims/include/metis.h
+seims/include
+seims/lib
+
+# pygeoc compiled whl
+dist
+*.whl
