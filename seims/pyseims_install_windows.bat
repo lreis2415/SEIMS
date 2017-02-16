@@ -12,11 +12,20 @@ REM
 
 pushd %~dp0
 cd %~dp0
+cd pygeoc
+rd /s/q dist
 REM Compile and install PyGeoC through pip
 pip install tox
 python setup.py bdist_wheel --python-tag py2
 cd dist
 for /f "delims=" %%i in ('dir /s/b "*.whl"') do (
 echo installing %%~ni ...
-pip install %%i
+pip install %%i --upgrade
 )
+cd ../..
+REM Install all dependent packages requied by SEIMS
+for /r . %%i in ("*requirements.txt") do (
+echo installing %%~ni ...
+pip install -r %%i
+)
+pause
