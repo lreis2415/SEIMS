@@ -99,10 +99,10 @@ int aread8( char* pfile, char* afile, char *datasrc, char *lyrname,int uselyrnam
 
 	if(rank==0)
 		{
-			float timeestimate=(1.2e-6*totalX*totalY/pow((double) size,0.65))/60+1;  // Time estimate in minutes
-			fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
-			fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-			fflush(stderr);
+			//float timeestimate=(1.2e-6*totalX*totalY/pow((double) size,0.65))/60+1;  // Time estimate in minutes
+			//fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
+			//fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+			//fflush(stderr);
 		}
 
 
@@ -133,7 +133,7 @@ int aread8( char* pfile, char* afile, char *datasrc, char *lyrname,int uselyrnam
 	
 
 	//Convert geo coords to grid coords
-	int *outletsX; int *outletsY;
+	int *outletsX = NULL; int *outletsY = NULL;
 	if(usingShapeFile) {
 		outletsX = new int[numOutlets];
 		outletsY = new int[numOutlets];
