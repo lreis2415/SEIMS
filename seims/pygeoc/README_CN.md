@@ -1,7 +1,7 @@
 # PyGeoC
 ***Py***thon for ***GeoC***omputation --- easy, convenient, and efficient.
 
-[![Build Status](https://travis-ci.org/crazyzlj/PyGeoC.svg?branch=master)](https://travis-ci.org/crazyzlj/PyGeoC)
+[![Build Status](https://travis-ci.org/lreis2415/PyGeoC.svg?branch=master)](https://travis-ci.org/lreis2415/PyGeoC)
 
 ## 1.Introduction
 
