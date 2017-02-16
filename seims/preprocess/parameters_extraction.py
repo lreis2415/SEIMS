@@ -135,8 +135,7 @@ def soil_parameters2(dstdir, maskFile, soilSEQNTif, soilSEQNTxt):
                         else:
                             curDict[float(SEQNs[j])] = DEFAULT_NODATA
                     replaceDicts.append(curDict)
-                    dstSoilTifs.append(dstdir + os.sep +
-                                       key + '_' + str(i + 1) + '.tif')
+                    dstSoilTifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
     # print replaceDicts
     # print(len(replaceDicts))
     # print dstSoilTifs
@@ -174,14 +173,7 @@ def landuse_parameters(dstdir, maskFile, inputLanduse, landuseFile, sqliteFile, 
     fReclassLu.write("%d\n" % (n))
     fReclassLu.write("\n".join(landuseAttrList))
     fReclassLu.close()
-    s = '"%s/reclassify" %s %s/neigh.nbr' % (
-        CPP_PROGRAM_DIR, reclassLuFile, PREPROC_SCRIPT_DIR)
-    # MPI version is problematic, do not know why, By LJ
-    # s = "mpiexec -n %d %s/reclassify %s %s/cpp_src/reclassify/neigh.nbr" % (
-    # np, CPP_PROGRAM_DIR, reclassLuFile, PREPROC_SCRIPT_DIR)
-    # if MPIEXEC_DIR is not None:
-    #     s = MPIEXEC_DIR + os.sep + s
-    # os.system(s)
+    s = '"%s/reclassify" %s' % (CPP_PROGRAM_DIR, reclassLuFile)
     RunExternalCmd(s)
     # ReclassLanduse(landuseFile, sqliteFile, dstdir)
 
