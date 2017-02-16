@@ -104,10 +104,10 @@ int outletstosrc(char *pfile, char *srcfile, char *outletsdatasrc, char *outlets
         hSRSRaster=src.getspatialref();
 		if(rank==0)
 		{
-			float timeestimate=(2e-7*srcTotalX*srcTotalY/pow((double) size,0.65))/60+1;  // Time estimate in minutes
-			fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
-			fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-			fflush(stderr);
+			//float timeestimate=(2e-7*srcTotalX*srcTotalY/pow((double) size,0.65))/60+1;  // Time estimate in minutes
+			//fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
+			//fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+			//fflush(stderr);
 		}
 
 
@@ -165,7 +165,7 @@ int outletstosrc(char *pfile, char *srcfile, char *outletsdatasrc, char *outlets
 		if(rank==0){
 
 			    OGRRegisterAll();
-		       //read exsitng outlet datasource
+		       //read existing outlet datasource
 
 		       hDSsh = OGROpen( outletsdatasrc, FALSE, NULL );
 			   if( hDSsh == NULL )
