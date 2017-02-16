@@ -148,3 +148,33 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 + VS工程编译完成之后，右键单击`INSTALL`模块，选择“生成”，即可完成SEIMS模型的安装，安装路径为`~\SEIMS2017\seims\bin`
 
 [返回目录](#目录)
+
+## 3. python for SEIMS 依赖包的安装
+ 
+SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
+
+    ```py
+    pygeoc
+    # Preprocess
+    GDAL>=1.9.0,<2.0
+    numpy>=1.9.0
+    pymongo>=3.0
+    networkx>=1.10
+    Shapely>=1.5.0
+    # Postprocess
+    matplotlib>=1.5.0
+    pathlib2>=2.0.0
+    # Scenario analysis
+    deap>=1.0.2
+    scoop>=0.7.1.1
+    ```
+
+SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
++ 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
++ `python get-pip.py`
+
+对于Linux系统，执行`sudo sh pyseims_install_windows.bat`即可自动安装完成所有依赖库。
+
+安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
+
+[返回目录](#目录)
