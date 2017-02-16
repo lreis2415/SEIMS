@@ -107,9 +107,7 @@ def FlowDirDinf(np, workingDir, filledDem, flowAngle, slope, mpiexeDir=None, exe
         exe = exeDir + os.sep + "dinfflowdir"
     else:
         exe = "dinfflowdir"
-    strCmd = strCmd + \
-        " %d %s -fel %s -ang %s -slp %s" % (np,
-                                            exe, filledDem, flowAngle, slope)
+    strCmd += " %d %s -fel %s -ang %s -slp %s" % (np, exe, filledDem, flowAngle, slope)
     print strCmd
     process = subprocess.Popen(strCmd, shell=True, stdout=subprocess.PIPE)
     runMsg = process.stdout.readlines()
@@ -129,20 +127,14 @@ def FlowAccD8(np, workingDir, flowDir, acc, outlet=None, streamSkeleton=None, mp
         exe = "aread8"
     if outlet is not None:
         if streamSkeleton is not None:
-            strCmd = strCmd + " %d %s -p %s -o %s -wg %s -ad8 %s -nc" % (
-                np, exe, flowDir, outlet, streamSkeleton, acc)
+            strCmd += " %d %s -p %s -o %s -wg %s -ad8 %s -nc" % (np, exe, flowDir, outlet, streamSkeleton, acc)
         else:
-            strCmd = strCmd + \
-                " %d %s -p %s -o %s -ad8 %s -nc" % (np,
-                                                    exe, flowDir, outlet, acc)
+            strCmd += " %d %s -p %s -o %s -ad8 %s -nc" % (np, exe, flowDir, outlet, acc)
     else:
         if streamSkeleton is not None:
-            strCmd = strCmd + \
-                " %d %s -p %s -wg %s -ad8 %s -nc" % (
-                    np, exe, flowDir, streamSkeleton, acc)
+            strCmd += " %d %s -p %s -wg %s -ad8 %s -nc" % (np, exe, flowDir, streamSkeleton, acc)
         else:
-            strCmd = strCmd + \
-                " %d %s -p %s -ad8 %s -nc" % (np, exe, flowDir, acc)
+            strCmd += " %d %s -p %s -ad8 %s -nc" % (np, exe, flowDir, acc)
     # -nc means donot consider edge contaimination
     print strCmd
     process = subprocess.Popen(strCmd, shell=True, stdout=subprocess.PIPE)
@@ -161,9 +153,7 @@ def StreamRaster(np, workingDir, acc, streamRaster, threshold=1000, mpiexeDir=No
         exe = exeDir + os.sep + "threshold"
     else:
         exe = "threshold"
-    strCmd = strCmd + \
-        " %d %s -ssa %s -thresh %s  -src %s" % (np,
-                                                exe, acc, str(threshold), streamRaster)
+    strCmd += " %d %s -ssa %s -thresh %s  -src %s" % (np, exe, acc, str(threshold), streamRaster)
     print strCmd
     process = subprocess.Popen(strCmd, shell=True, stdout=subprocess.PIPE)
     runMsg = process.stdout.readlines()
@@ -178,9 +168,9 @@ def MoveOutlet(np, workingDir, flowDir, streamRaster, outlet, modifiedOutlet, mp
     os.chdir(workingDir)
     strCmd = MPIHeader(mpiexeDir, np)
     if exeDir is not None:
-        exe = exeDir + os.sep + "moveoutletstostreams"
+        exe = exeDir + os.sep + "moveoutletstostrm"
     else:
-        exe = "moveoutletstostreams"
+        exe = "moveoutletstostrm"
     strCmd = strCmd + " %d %s -p %s -src %s -o %s -om %s" % (
         np, exe, flowDir, streamRaster, outlet, modifiedOutlet)
     print strCmd
