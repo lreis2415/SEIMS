@@ -3,15 +3,15 @@
 # @Configuration of Preprocessing for SEIMS
 # @Author Liang-Jun Zhu
 #
-
+import os
 import ConfigParser
-import errno
+from pygeoc.utils.utils import FileClass, StringClass
+from pygeoc.utils.parseConfig import getconfigfile
 from text import *
-from util import *
 
 # Load model configuration from *.ini file
 cf = ConfigParser.ConfigParser()
-cf.read(GetINIfile())
+cf.read(getconfigfile())
 # 1. Directories
 CLIMATE_DATA_DIR = None
 SPATIAL_DATA_DIR = None
@@ -31,13 +31,14 @@ if 'PATH' in cf.sections():
     WORKING_DIR = cf.get('PATH', 'WORKING_DIR'.lower())
 else:
     raise ValueError("[PATH] section MUST be existed in *.ini file.")
-if not (isPathExists(BASE_DATA_DIR) and isPathExists(MODEL_DIR) and isPathExists(TXT_DB_DIR)
-        and isPathExists(PREPROC_SCRIPT_DIR) and isPathExists(CPP_PROGRAM_DIR)):
+if not (FileClass.isfileexists(BASE_DATA_DIR) and FileClass.isfileexists(MODEL_DIR) and FileClass.isfileexists(
+        TXT_DB_DIR)
+        and FileClass.isfileexists(PREPROC_SCRIPT_DIR) and FileClass.isfileexists(CPP_PROGRAM_DIR)):
     raise IOError("Please Check Directories defined in [PATH]")
-if not isPathExists(MPIEXEC_DIR):
+if not FileClass.isfileexists(MPIEXEC_DIR):
     MPIEXEC_DIR = None
 if not os.path.isdir(WORKING_DIR):
-    try: # first try to make dirs
+    try:  # first try to make dirs
         os.mkdir(WORKING_DIR)
     except OSError as exc:
         WORKING_DIR = MODEL_DIR + os.sep + 'preprocess_output'
@@ -45,15 +46,15 @@ if not os.path.isdir(WORKING_DIR):
             os.mkdir(WORKING_DIR)
         pass
 
-if not (isPathExists(CLIMATE_DATA_DIR) and isPathExists(SPATIAL_DATA_DIR)):
+if not (FileClass.isfileexists(CLIMATE_DATA_DIR) and FileClass.isfileexists(SPATIAL_DATA_DIR)):
     raise IOError(
         "Directories named 'climate' and 'spatial' MUST BE located in [BASE_DATA_DIR]!")
 useObserved = True
-if not isPathExists(MEASUREMENT_DATA_DIR):
+if not FileClass.isfileexists(MEASUREMENT_DATA_DIR):
     MEASUREMENT_DATA_DIR = None
     useObserved = False
 useScernario = True
-if not isPathExists(BMP_DATA_DIR):
+if not FileClass.isfileexists(BMP_DATA_DIR):
     BMP_DATA_DIR = None
     useScernario = False
 
@@ -66,7 +67,7 @@ if 'MONGODB' in cf.sections():
     SpatialDBName = cf.get('MONGODB', 'SpatialDBName'.lower())
 else:
     raise ValueError("[MONGODB] section MUST be existed in *.ini file.")
-if not isIPValid(HOSTNAME):
+if not StringClass.isvalidipaddr(HOSTNAME):
     raise ValueError("HOSTNAME illegal defined in [MONGODB]!")
 
 # 3. Model related switch
@@ -125,7 +126,7 @@ if 'SPATIAL' in cf.sections():
     soilSEQNFile = SPATIAL_DATA_DIR + os.sep + cf.get('SPATIAL', 'soilSEQNFile'.lower())
     soilSEQNText = SPATIAL_DATA_DIR + os.sep + cf.get('SPATIAL', 'soilSEQNText'.lower())
     mgtFieldFile = SPATIAL_DATA_DIR + os.sep + cf.get('SPATIAL', 'mgtFieldFile'.lower())
-    if not os.path.exists(mgtFieldFile) or StringMatch(mgtFieldFile, 'none'):
+    if not os.path.exists(mgtFieldFile) or StringClass.stringmatch(mgtFieldFile, 'none'):
         mgtFieldFile = None
 else:
     raise ValueError("Spatial input file names MUST be provided in [SPATIAL]!")
@@ -134,12 +135,13 @@ else:
 isTauDEM = True
 D8AccThreshold = 0
 np = 4
-D8DownMethod = 'Surface'
+D8DownMethod = 's'
 dorm_hr = -1.
 T_base = 0.
 imperviousPercInUrbanCell = 0.3
 default_reach_depth = 5.
-defaultLanduse = 8
+defaultLanduse = -1
+defaultSoil = -1
 if 'SPATIAL' in cf.sections():
     isTauDEM = cf.getboolean('OPTIONAL_PARAMETERS', 'isTauDEMD8'.lower())
     D8AccThreshold = cf.getfloat(
@@ -153,3 +155,4 @@ if 'SPATIAL' in cf.sections():
     default_reach_depth = cf.getfloat(
         'OPTIONAL_PARAMETERS', 'default_reach_depth'.lower())
     defaultLanduse = cf.getint('OPTIONAL_PARAMETERS', 'defaultLanduse'.lower())
+    defaultSoil = cf.getint('OPTIONAL_PARAMETERS', 'defaultSoil'.lower())
