@@ -59,7 +59,7 @@ int DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> &
     rs.ReadByGDAL(dstFile, false);
 
     int nXSize = rs.getCols();
-    int nYSize = rs.getRows();
+    // int nYSize = rs.getRows();
     float noDataValue = rs.getNoDataValue();
     const char *srs = rs.getSRS();
     //cout << nXSize << "\t" << nYSize << endl;
@@ -130,7 +130,7 @@ int Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int>
     int colNum = dstFiles.size();
 	clsRasterData<float> rss(dstFiles, false);
     int nXSize = rss.getCols();
-    int nYSize = rss.getRows();
+    // int nYSize = rss.getRows();
     float noDataValue = rss.getNoDataValue();
     const char *srs = rss.getSRS();
     ///cout << nXSize << "\t" << nYSize << endl;
@@ -201,7 +201,7 @@ int DecompositeRaster(map<int, SubBasin> &bboxMap, clsRasterData<int> &rsSubbasi
     rs.ReadByGDAL(dstFile, false);
 
     int nXSize = rs.getCols();
-    int nYSize = rs.getRows();
+    // int nYSize = rs.getRows();
     float noDataValue = rs.getNoDataValue();
 
     float *rsData = rs.getRasterDataPointer();
