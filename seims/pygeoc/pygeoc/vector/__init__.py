@@ -1,1 +1,2 @@
-from vector import *
+# from vector import *
+__all__ = ['vector']
