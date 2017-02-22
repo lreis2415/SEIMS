@@ -34,7 +34,12 @@ D8DIR_AG_DELTA = {1: (0, 1),
 drow = [0, -1, -1, -1, 0, 1, 1, 1]  # row, not include itself
 dcol = [1, 1, 0, -1, -1, -1, 0, 1]  # col
 
-# D-inf flow model in TauDEM
+# CounterClockwise radian from east direction
+#        nw   n   ne
+#           \ | /
+#         w - + - e
+#           / | \
+#        sw   s   se
 e = 0
 ne = math.pi * 0.25
 n = math.pi * 0.5
@@ -43,4 +48,5 @@ w = math.pi
 sw = math.pi * 1.25
 s = math.pi * 1.5
 se = math.pi * 1.75
-Dinf_DIR_List = [e, ne, n, nw, w, sw, s, se]
+d8anglelist = [e, ne, n, nw, w, sw, s, se]
+
