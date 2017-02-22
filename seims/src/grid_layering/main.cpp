@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 		mongoc_client_t* conn = client.getConn();
 		mongoc_gridfs_t* gfs = client.getGridFS(string(modelName), string(gridFSName));
 
-        int outputNoDataValue = -9999;
+        int outputNoDataValue = (int)NODATA_VALUE;
         double t1 = TimeCounting();
 		int subbasinStartID = 1;
 		if (nSubbasins == 0)
@@ -65,9 +65,9 @@ int main(int argc, char **argv)
                 int *compressedIndex = new int[n];
                 int nValidGrids = CalCompressedIndex(n, dirMatrix, header.noDataValue, compressedIndex);
                 // if it is TauDEM flow code, then convert it to ArcGIS
-                TauDEM2ArcGIS(nRows, nCols, dirMatrix);
+                TauDEM2ArcGIS(nRows, nCols, dirMatrix, dirNoDataValue);
                 // Output flow out index to MongoDB (D8)
-                OutputFlowOutD8(gfs, i, nRows, nCols, nValidGrids, dirMatrix, header.noDataValue, compressedIndex);
+                OutputFlowOutD8(outputDir, gfs, i, nRows, nCols, nValidGrids, dirMatrix, header.noDataValue, compressedIndex);
                 // Output flow in indexes to MongoDB (D8), and write ROUTING_LAYERS from up to down
                 string layeringFile = LayeringFromSourceD8(outputDir, gfs, i, nValidGrids, dirMatrix, compressedIndex, header,
                                                            outputNoDataValue);
@@ -79,21 +79,23 @@ int main(int argc, char **argv)
                 ostringstream ossDinf;
                 ossDinf << i << "_FLOW_DIR_DINF";
                 int *dirMatrixDinf;
-                ReadFromMongo(gfs, ossDinf.str().c_str(), header, dirMatrixDinf);
+				RasterHeader dinf_header;
+                ReadFromMongo(gfs, ossDinf.str().c_str(), dinf_header, dirMatrixDinf);
 
                 ostringstream ossAngle;
                 ossAngle << i << "_FLOW_DIR_ANGLE_DINF";
                 float *angle;
-                ReadFromMongoFloat(gfs, ossAngle.str().c_str(), header, angle);
+				RasterHeader dinfang_header;
+                ReadFromMongoFloat(gfs, ossAngle.str().c_str(), dinfang_header, angle);
 
                 float *flowOutDinf;
-                int *outDegreeMatrixDinf = GetOutDegreeMatrix(dirMatrixDinf, nRows, nCols, dirNoDataValue);
+                int *outDegreeMatrixDinf = GetOutDegreeMatrix(dirMatrixDinf, nRows, nCols, dinf_header.noDataValue);
                 int nOutputFlowOut = OutputMultiFlowOut(nRows, nCols, nValidGrids, outDegreeMatrixDinf, dirMatrixDinf,
-                                                        dirNoDataValue, compressedIndex, flowOutDinf);;
+                                                        dinf_header.noDataValue, compressedIndex, flowOutDinf);
                 WriteStringToMongoDB(gfs, i, "FLOWOUT_INDEX_DINF", nOutputFlowOut, (char *) flowOutDinf);
 
                 string layeringFileDinf = LayeringFromSourceDinf(outputDir, gfs, i, nValidGrids, angle, dirMatrixDinf,
-                                                                 compressedIndex, header, outputNoDataValue);
+                                                                 compressedIndex, dinfang_header, (int) NODATA_VALUE);
                 // cout << layeringFileDinf << endl;
                 OutputLayersToMongoDB(layeringFileDinf.c_str(), "ROUTING_LAYERS_DINF", i, gfs);
 
