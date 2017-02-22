@@ -115,7 +115,7 @@ class LanduseUtilClass(object):
         f.close()
         attrDic = {}
         fields = [item.replace('"', '')
-                  for item in re.split('\t|\n', lines[0]) if item is not '']
+                  for item in re.split('\t|\n|\r\n|\r', lines[0]) if item is not '']
         n = len(fields)
         for i in range(n):
             attrDic[fields[i]] = {}
