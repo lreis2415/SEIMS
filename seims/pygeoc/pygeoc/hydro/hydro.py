@@ -1,66 +1,39 @@
 #! /usr/bin/env python
 # coding=utf-8
+import math
 
-from pygeoc.utils import FloatEqual
-from pygeoc.utils.const import *
+from ..utils.utils import StringClass
 
-
-# find downslope coordinate for D8 and D-inf flow models
-def downstream_index(DIR_VALUE, i, j):
-    drow, dcol = D8DIR_TD_DELTA[DIR_VALUE]
-    return i + drow, j + dcol
+SQ2 = math.sqrt(2.)
 
 
-def CheckOrtho(a):
-    if FloatEqual(a, e):
-        return 1
-    elif FloatEqual(a, ne):
-        return 2
-    elif FloatEqual(a, n):
-        return 3
-    elif FloatEqual(a, nw):
-        return 4
-    elif FloatEqual(a, w):
-        return 5
-    elif FloatEqual(a, sw):
-        return 6
-    elif FloatEqual(a, s):
-        return 7
-    elif FloatEqual(a, se):
-        return 8
-    else:
-        return 0
+class FlowDirectionCode(object):
+    """Definition of flow direction code and shift coordinate."""
 
+    def __init__(self, flow_model):
+        self.cell_length = {}
+        self.cell_shift = {}
+        if StringClass.stringmatch(flow_model, "TauDEM"):
+            # The value of direction is as following (TauDEM):
+            # 4  3  2
+            # 5     1
+            # 6  7  8
+            # TauDEM flow direction code
+            self.cell_length = {1: 1, 3: 1, 5: 1, 7: 1, 2: SQ2, 4: SQ2, 6: SQ2, 8: SQ2}
+            self.cell_shift = {1: [0, 1], 2: [-1, 1], 3: [-1, 0], 4: [-1, -1],
+                               5: [0, -1], 6: [1, -1], 7: [1, 0], 8: [1, 1]}
+        elif StringClass.stringmatch(flow_model, "ArcGIS"):
+            # The value of direction is as following (ArcGIS):
+            # 32 64 128
+            # 64     1
+            # 8   4  2
+            # ArcGIS flow direction code
+            self.cell_length = {1: 1, 4: 1, 16: 1, 64: 1, 2: SQ2, 8: SQ2, 32: SQ2, 128: SQ2}
+            self.cell_shift = {1 : [0, 1], 2: [1, 1], 4: [1, 0], 8: [1, -1],
+                               16: [0, -1], 32: [-1, -1], 64: [-1, 0], 128: [-1, 1]}
 
-def AssignDirCode(a):
-    d = CheckOrtho(a)
-    if d != 0:
-        down = [d]
-        return down
-    else:
-        if a < ne:  # 129 = 1+128
-            down = [1, 2]
-        elif a < n:  # 192 = 128+64
-            down = [2, 3]
-        elif a < nw:  # 96 = 64+32
-            down = [3, 4]
-        elif a < w:  # 48 = 32+16
-            down = [4, 5]
-        elif a < sw:  # 24 = 16+8
-            down = [5, 6]
-        elif a < s:  # 12 = 8+4
-            down = [6, 7]
-        elif a < se:  # 6 = 4+2
-            down = [7, 8]
-        else:  # 3 = 2+1
-            down = [8, 1]
-        return down
+    def get_cell_length(self):
+        return self.cell_length
 
-
-def downstream_index_dinf(dinfDir, i, j):
-    downDirs = AssignDirCode(dinfDir)
-    downCoors = []
-    for dir in downDirs:
-        row, col = downstream_index(dir, i, j)
-        downCoors.append([row, col])
-    return downCoors
+    def get_cell_shift(self):
+        return self.cell_shift
