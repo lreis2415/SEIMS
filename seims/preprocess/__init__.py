@@ -1,4 +1,4 @@
-'''
+"""
     This file is part of preprocess of SEIMS.
 
     SEIMS is distributed for Research and/or Education only,
@@ -8,7 +8,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
     See the GNU General Public License for more details.
-'''
+"""
+
 __author__ = "SEIMS Team"
 __version__ = "2.0"
 __revision__ = "2.0.0"
