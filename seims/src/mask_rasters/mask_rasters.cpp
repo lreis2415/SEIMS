@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < n; ++i)
     {
         cout << inputFiles[i] << endl;
-        clsRasterData<float, int> inputLayer(inputFiles[i], true, &maskLayer, true);
+        clsRasterData<float, int> inputLayer(inputFiles[i], true, &maskLayer, true, defaultValues[i]);
 
         inputLayer.outputToFile(outputFiles[i]);
     }
