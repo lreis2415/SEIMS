@@ -49,4 +49,3 @@ sw = math.pi * 1.25
 s = math.pi * 1.5
 se = math.pi * 1.75
 d8anglelist = [e, ne, n, nw, w, sw, s, se]
-

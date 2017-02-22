@@ -9,8 +9,10 @@ from osgeo import ogr
 from ..utils.utils import FileClass, UtilClass
 from ..utils.const import *
 
+
 class VectorUtilClass(object):
     """Utility function to handle vector data."""
+
     def __init__(self):
         pass
 
@@ -55,11 +57,11 @@ class VectorUtilClass(object):
             print "ERROR Output: Creation of output file failed."
             sys.exit(1)
         lyr = ds.CreateLayer(outShp.rpartition(os.sep)[2].split('.')[
-                             0], None, ogr.wkbLineString)
-    #    for field in fields:
-    #        fieldDefn = ogr.FieldDefn(field,ogr.OFTString)
-    #        fieldDefn.SetWidth(255)
-    #        lyr.CreateField(fieldDefn)
+                                 0], None, ogr.wkbLineString)
+        #    for field in fields:
+        #        fieldDefn = ogr.FieldDefn(field,ogr.OFTString)
+        #        fieldDefn.SetWidth(255)
+        #        lyr.CreateField(fieldDefn)
         for l in lineList:
             #        defn = lyr.GetLayerDefn()
             #        featureFields = ogr.Feature(defn)
