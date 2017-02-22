@@ -1,6 +1,6 @@
 # binary directory for SEIMS
-## ´æ·ÅËùÓÐSEIMS³ÌÐòºÍÄ£¿é¿â
+## å­˜æ”¾æ‰€æœ‰SEIMSç¨‹åºå’Œæ¨¡å—åº“
 
 
-+¡¡WindowsÆ½Ì¨ÏÂ£¬±àÒë°²×°Íê³ÉSEIMSºó£¬ÐèÒªÓÒ¼üÒÔ¹ÜÀíÔ±·½Ê½ÔËÐÐ`Firewall_for_Windows.bat`ÅäÖÃ·À»ðÇ½¹æÔò£¬
-ÒÔ·ÀÔÚÔËÐÐPython½Å±¾µ÷ÓÃSEIMS³ÌÐòÊ±±»·À»ðÇ½×èÖ¹¡£
++ Windowså¹³å°ä¸‹ï¼Œç¼–è¯‘å®‰è£…å®ŒæˆSEIMSåŽï¼Œéœ€è¦å³é”®ä»¥ç®¡ç†å‘˜æ–¹å¼è¿è¡Œ`Firewall_for_Windows.bat`é…ç½®é˜²ç«å¢™è§„åˆ™ï¼Œä»¥é˜²åœ¨è¿è¡ŒPythonè„šæœ¬è°ƒç”¨SEIMSç¨‹åºæ—¶è¢«é˜²ç«å¢™é˜»æ­¢ã€‚
+
