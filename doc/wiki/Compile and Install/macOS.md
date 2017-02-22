@@ -26,11 +26,11 @@ macOS中最便捷配置GCC版本的方式是通过[Homebrew](http://brew.sh/)自
 + 输入`brew install gcc49`安装
 + 安装大约需要60分钟，耐心等待安装完成，可通过`gcc-4.9 --version`查看版本信息：
     
-    ```
-    gcc-4.9 --version
-    gcc-4.9 (Homebrew gcc49 4.9.3) 4.9.3
-    Copyright (C) 2015 Free Software Foundation, Inc.
-    ```
+```
+gcc-4.9 --version
+gcc-4.9 (Homebrew gcc49 4.9.3) 4.9.3
+Copyright (C) 2015 Free Software Foundation, Inc.
+```
 
 ## 1.2. OpenMPI
 + 从[官网下载OpenMPI源码](https://www.open-mpi.org/software/ompi/v1.10/)，推荐安装1.x系列的最新版，目前最新的是1.10.4，解压至文件夹，如`/Users/zhulj/apps/openmpi-1.10.4
@@ -69,18 +69,20 @@ SEIMS的矢栅数据读写基于`GDAL 1.x`编写，macOS下推荐使用[William 
 
 SEIMS数据管理采用NoSQL型数据库——MongoDB，依赖于mongo-c-driver。
 macOS下的配置步骤为：
-+ 从[官网](http://mongoc.org/ "mongo-c-driver-download")下载源码压缩包，目前最新稳定版本为[1.5.0](https://github.com/mongodb/mongo-c-driver/releases/download/1.5.0/mongo-c-driver-1.5.0.tar.gz "mongo-c-driver-1.5.0")，解压缩至当前文件夹，如`/Users/zhulj/apps/mongo-c-driver-1.5.0`
++ 从[官网](http://mongoc.org/ "mongo-c-driver-download")下载源码压缩包，目前最新稳定版本为[1.5.0](https://github.com/mongodb/mongo-c-driver/releases/download/1.5.0/mongo-c-driver-1.5.0.tar.gz "mongo-c-driver-1.5.0")，解压缩至当前文件夹，如`/Users/zhulj/apps/mongo-c-driver-1.5.0
+
 + 使用brew安装依赖包`brew install automake autoconf libtool pkgconfig openssl`
 + 打开终端，依次输入如下命令
 
-    ```shell
-    cd /Users/zhulj/apps/mongo-c-driver-1.5.0
-    export LDFLAGS="-L/usr/local/opt/openssl/lib"
-    export CPPFLAGS="-I/usr/local/opt/openssl/include"
-    ./configure CC=gcc-4.9 CXX=g++-4.9 --prefix=/usr/local
-    make
-    sudo make install
-    ```
+	```shell
+	cd /Users/zhulj/apps/mongo-c-driver-1.5.0
+	export LDFLAGS="-L/usr/local/opt/openssl/lib"
+	export CPPFLAGS="-I/usr/local/opt/openssl/include"
+	./configure CC=gcc-4.9 CXX=g++-4.9 --prefix=/usr/local
+	make
+	sudo make install
+	```
+
 
 + 至此，`mongo-c-driver`即编译安装完成了，在`/usr/local/include`目录下能看到`libbson-1.0`, `libmongoc-1.0`文件夹，链接库则在`/usr/local/lib`。
 
@@ -97,6 +99,7 @@ cd build
 make
 make install
 ```
++ 在执行`make`命令时，可追加 `-j 4`命令利用CPU多核性能并行编译程序，提高编译速度，并行进程数最好设置为物理核数的2倍。
 + 编译、安装无误后，SEIMS所有可执行程序及模块动态链接库均在`./SEIMS2017/seims/bin`。
 
 + 注意1：使用clang编译时，由于其不支持openmp，因此基于共享内存的并行计算将无法实现，因此推荐使用GCC进行编译安装。
@@ -109,7 +112,7 @@ make install
 cd /Users/zhulj/Documents/code/SEIMS2017/seims
 mkdir build
 cd build
-cmake -G "Xcode" /Users/zhulj/Documents/code/SEIMS2017/seims -DCMAKE_BUILD_TYPE=Release
+cmake -G "Xcode" .. -DCMAKE_BUILD_TYPE=Release
 ```
 + 完成之后，即可得到SEIMS项目总工程，`SEIMS_OMP_ALL.xcodeproj`，各子工程则在`build/bin`下，如SEIMS模块库工程为`build/bin/seims_omp_project/SEIMS_OMP_prj.xcodeproj`。
 
@@ -132,7 +135,7 @@ e.g.
 
 接下来，你可以选择Build All，也可以选择某一个程序进行Build等。
 
-## 3. python for SEIMS 依赖包的安装
+## 3. Python for SEIMS 依赖包的安装
  
 SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
 
