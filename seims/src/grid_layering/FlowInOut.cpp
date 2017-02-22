@@ -4,10 +4,10 @@
 #include "GridLayering.h"
 
 using namespace std;
-void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix)
-{
+void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix, int nodata /* = (int)NODATA_VALUE */){
         /// Find out D8 coding system, TauDEM or ArcGIS
         int maxDirection = -1;
+#pragma omp parallel for
         for (int i = 0; i < nRows; ++i)
         {
                 for (int j = 0; j < nCols; ++j)
@@ -23,6 +23,7 @@ void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix)
                 isTauDEM = true;
         if (isTauDEM)
         {
+#pragma omp parallel for
                 for (int i = 0; i < nRows; ++i)
                 {
                         for (int j = 0; j < nCols; ++j)
@@ -45,50 +46,59 @@ void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix)
                                 else if(dirMatrix[index] == 8)
                                         dirMatrix[index] = 2;
                                 else
-                                        dirMatrix[index] = -9999;
+                                        dirMatrix[index] = nodata;
                         }
                 }
         }
         //if(isTauDEM)
         // cout<<"TauDEM D8 to ArcGIS Done!"<<endl;
 }
-void OutputFlowOutD8(mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix,
+void OutputFlowOutD8(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix,
                      int dirNoDataValue, const int *compressedIndex)
 {
         float *pOutput = new float[validCount];
+#pragma omp parallel for
         for (int i = 0; i < nRows; ++i)
         {
                 for (int j = 0; j < nCols; ++j)
                 {
                         int index = i * nCols + j;
-                        if (dirMatrix[index] == dirNoDataValue)
+                        if (dirMatrix[index] == dirNoDataValue || dirMatrix[index] < 0)
                                 continue;
 
                         int ci = compressedIndex[index];
                         int flow_dir = dirMatrix[index];
 
-                        if ((flow_dir & 1) && (j != nCols - 1) && (dirMatrix[index + 1] != dirNoDataValue))
+                        if ((flow_dir & 1) && (j != nCols - 1) && (dirMatrix[index + 1] != dirNoDataValue) && dirMatrix[index + 1] > 0)
                                 pOutput[ci] = compressedIndex[index + 1];
                         else if ((flow_dir & 2) && (i != nRows - 1) && (j != nCols - 1) &&
-                                 (dirMatrix[index + nCols + 1] != dirNoDataValue))
+                                 (dirMatrix[index + nCols + 1] != dirNoDataValue) && dirMatrix[index + nCols + 1] > 0)
                                 pOutput[ci] = compressedIndex[index + nCols + 1];
-                        else if ((flow_dir & 4) && (i != nRows - 1) && (dirMatrix[index + nCols] != dirNoDataValue))
+                        else if ((flow_dir & 4) && (i != nRows - 1) && (dirMatrix[index + nCols] != dirNoDataValue) && dirMatrix[index + nCols] > 0)
                                 pOutput[ci] = compressedIndex[index + nCols];
-                        else if ((flow_dir & 8) && (i != nRows - 1) && (j != 0) && (dirMatrix[index + nCols - 1] != dirNoDataValue))
+                        else if ((flow_dir & 8) && (i != nRows - 1) && (j != 0) && (dirMatrix[index + nCols - 1] != dirNoDataValue) && dirMatrix[index + nCols - 1] > 0)
                                 pOutput[ci] = compressedIndex[index + nCols - 1];
-                        else if ((flow_dir & 16) && (j != 0) && (dirMatrix[index - 1] != dirNoDataValue))
+                        else if ((flow_dir & 16) && (j != 0) && (dirMatrix[index - 1] != dirNoDataValue) && dirMatrix[index - 1] > 0)
                                 pOutput[ci] = compressedIndex[index - 1];
-                        else if ((flow_dir & 32) && (i != 0) && (j != 0) && (dirMatrix[index - nCols - 1] != dirNoDataValue))
+                        else if ((flow_dir & 32) && (i != 0) && (j != 0) && (dirMatrix[index - nCols - 1] != dirNoDataValue) && dirMatrix[index - nCols - 1] > 0)
                                 pOutput[ci] = compressedIndex[index - nCols - 1];
-                        else if ((flow_dir & 64) && (i != 0) && (dirMatrix[index - nCols] != dirNoDataValue))
+                        else if ((flow_dir & 64) && (i != 0) && (dirMatrix[index - nCols] != dirNoDataValue) && dirMatrix[index - nCols] > 0)
                                 pOutput[ci] = compressedIndex[index - nCols];
                         else if ((flow_dir & 128) && (i != 0) && (j != nCols - 1) &&
-                                 (dirMatrix[index - nCols + 1] != dirNoDataValue))
+                                 (dirMatrix[index - nCols + 1] != dirNoDataValue) && dirMatrix[index - nCols + 1] > 0)
                                 pOutput[ci] = compressedIndex[index - nCols + 1];
                         else
                                 pOutput[ci] = -1;
                 }
         }
+		// output to txt
+		ostringstream oss;
+		oss << outputDir << "/" << id << "_FLOWOUT_INDEX_D8.txt";
+		ofstream ofs(oss.str().c_str());
+		ofs << "ID\tDownstreamID" << endl;
+		for (int i = 0; i < validCount; i++)
+			ofs << i << "\t" << pOutput[i] << endl;
+		ofs.close();
 
         WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX_D8", validCount, (char *) pOutput);
         delete[] pOutput;
@@ -97,17 +107,19 @@ void OutputFlowOutD8(mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int val
 }
 
 int OutputMultiFlowOut(int nRows, int nCols, int validCount,
-                       const int *degreeMatrix, const int *dirMatrix, int dirNoDataValue, const int *compressedIndex,
+                       const int *flowInDegreeMatrix, const int *reverseDirMatrix, int dirNoDataValue, const int *compressedIndex,
                        float *&pOutput)
 {
         int nAllOut = 0;
+#pragma omp parallel for reduction(+:nAllOut)
         for (int i = 0; i < nRows; ++i)
         {
                 for (int j = 0; j < nCols; ++j)
                 {
-                        if (dirMatrix[i * nCols + j] == dirNoDataValue)
+                        if (reverseDirMatrix[i * nCols + j] == dirNoDataValue || reverseDirMatrix[i * nCols + j] < 0)
                                 continue;
-                        nAllOut += degreeMatrix[i * nCols + j];
+						//cout<<degreeMatrix[i * nCols + j]<<",";
+                        nAllOut += flowInDegreeMatrix[i * nCols + j];
                 }
         }
 
@@ -120,53 +132,71 @@ int OutputMultiFlowOut(int nRows, int nCols, int validCount,
                 for (int j = 0; j < nCols; ++j)
                 {
                         int index = i * nCols + j;
-                        if (dirMatrix[index] == dirNoDataValue)
+                        if (reverseDirMatrix[index] == dirNoDataValue || reverseDirMatrix[index] < 0)
                                 continue;
-
-                        pOutput[counter++] = degreeMatrix[index];
-
-                        int flow_dir = dirMatrix[index];
-
-                        if (flow_dir & 1)
+						/// flow in cell's number
+                        pOutput[counter++] = flowInDegreeMatrix[index];
+						/// accumulated flow in directions
+                        int acc_flowin_dir = reverseDirMatrix[index];
+						//cout << "index: " <<index<< "flowInNum: "<< pOutput[counter-1] << " accFlowInDir: " << acc_flowin_dir << " i: "<<i<<" j: "<<j<<" :";
+						/// append the compressed index of flow in cells
+                        if (acc_flowin_dir & 1)
                         {
-                                if (j != nCols - 1 && dirMatrix[index + 1] != dirNoDataValue)
+                                if (j != nCols - 1 && reverseDirMatrix[index + 1] != dirNoDataValue && reverseDirMatrix[index + 1] >= 0){
                                         pOutput[counter++] = compressedIndex[index + 1];
+										//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 2)
+                        if (acc_flowin_dir & 2)
                         {
-                                if (i != nRows - 1 && j != nCols - 1 && dirMatrix[index + nCols + 1] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index + nCols + 1];
+                                if (i != nRows - 1 && j != nCols - 1 && reverseDirMatrix[index + nCols + 1] != dirNoDataValue && reverseDirMatrix[index + nCols + 1] >= 0){
+									pOutput[counter++] = compressedIndex[index + nCols + 1];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 4)
+                        if (acc_flowin_dir & 4)
                         {
-                                if (i != nRows - 1 && dirMatrix[index + nCols] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index + nCols];
+                                if (i != nRows - 1 && reverseDirMatrix[index + nCols] != dirNoDataValue && reverseDirMatrix[index + nCols] >= 0){
+									pOutput[counter++] = compressedIndex[index + nCols];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 8)
+                        if (acc_flowin_dir & 8)
                         {
-                                if (i != nRows - 1 && j != 0 && dirMatrix[index + nCols - 1] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index + nCols - 1];
+                                if (i != nRows - 1 && j != 0 && reverseDirMatrix[index + nCols - 1] != dirNoDataValue && reverseDirMatrix[index + nCols - 1] >= 0){
+									pOutput[counter++] = compressedIndex[index + nCols - 1];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 16)
+                        if (acc_flowin_dir & 16)
                         {
-                                if (j != 0 && dirMatrix[index - 1] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index - 1];
+                                if (j != 0 && reverseDirMatrix[index - 1] != dirNoDataValue && reverseDirMatrix[index - 1] >= 0){
+									pOutput[counter++] = compressedIndex[index - 1];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 32)
+                        if (acc_flowin_dir & 32)
                         {
-                                if (i != 0 && j != 0 && dirMatrix[index - nCols - 1] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index - nCols - 1];
+                                if (i != 0 && j != 0 && reverseDirMatrix[index - nCols - 1] != dirNoDataValue && reverseDirMatrix[index - nCols - 1] >= 0){
+									pOutput[counter++] = compressedIndex[index - nCols - 1];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 64)
+                        if (acc_flowin_dir & 64)
                         {
-                                if (i != 0 && dirMatrix[index - nCols] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index - nCols];
+                                if (i != 0 && reverseDirMatrix[index - nCols] != dirNoDataValue && reverseDirMatrix[index - nCols] >= 0){
+									pOutput[counter++] = compressedIndex[index - nCols];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
-                        if (flow_dir & 128)
+                        if (acc_flowin_dir & 128)
                         {
-                                if (i != 0 && j != nCols - 1 && dirMatrix[index - nCols + 1] != dirNoDataValue)
-                                        pOutput[counter++] = compressedIndex[index - nCols + 1];
+                                if (i != 0 && j != nCols - 1 && reverseDirMatrix[index - nCols + 1] != dirNoDataValue && reverseDirMatrix[index - nCols + 1] >= 0){
+									pOutput[counter++] = compressedIndex[index - nCols + 1];
+									//cout << pOutput[counter-1] << ", ";
+								}
                         }
+						//cout<<endl;
                 }
         }
 
@@ -238,11 +268,12 @@ int OutputFlowOutPercentageDinf(int nRows, int nCols, int validCount, const floa
                                 const int *compressedIndex, float *&pOutput)
 {
         int nAllOut = 0;
+#pragma omp parallel for reduction(+:nAllOut)
         for (int i = 0; i < nRows; ++i)
         {
                 for (int j = 0; j < nCols; ++j)
                 {
-                        if (reverseDirMatrix[i * nCols + j] == dirNoDataValue)
+                        if (reverseDirMatrix[i * nCols + j] == dirNoDataValue || reverseDirMatrix[i * nCols + j] < 0)
                                 continue;
                         nAllOut += degreeMatrix[i * nCols + j];
                 }
@@ -258,50 +289,50 @@ int OutputFlowOutPercentageDinf(int nRows, int nCols, int validCount, const floa
                 for (int j = 0; j < nCols; ++j)
                 {
                         int index = i * nCols + j;
-                        if (reverseDirMatrix[index] == dirNoDataValue)
+                        if (reverseDirMatrix[index] == dirNoDataValue || reverseDirMatrix[index] < 0)
                                 continue;
 
                         pOutput[counter++] = degreeMatrix[index];
 
                         int flow_dir = reverseDirMatrix[index];
 
-                        if ((flow_dir & 1) && (j != nCols - 1) && (reverseDirMatrix[index + 1] != dirNoDataValue))
+                        if ((flow_dir & 1) && (j != nCols - 1) && (reverseDirMatrix[index + 1] != dirNoDataValue) && reverseDirMatrix[index + 1] >= 0)
                         {
                                 pOutput[counter++] = GetPercentage(angle[index + 1], 0, 1);
                         }
                         if (flow_dir & 2)
                         {
-                                if (i != nRows - 1 && j != nCols - 1 && reverseDirMatrix[index + nCols + 1] != dirNoDataValue)
+                                if (i != nRows - 1 && j != nCols - 1 && reverseDirMatrix[index + nCols + 1] != dirNoDataValue && reverseDirMatrix[index + nCols + 1] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index + nCols + 1], 1, 1);
                         }
                         if (flow_dir & 4)
                         {
-                                if (i != nRows - 1 && reverseDirMatrix[index + nCols] != dirNoDataValue)
+                                if (i != nRows - 1 && reverseDirMatrix[index + nCols] != dirNoDataValue && reverseDirMatrix[index + nCols] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index + nCols], 1, 0);
                         }
                         if (flow_dir & 8)
                         {
-                                if (i != nRows - 1 && j != 0 && reverseDirMatrix[index + nCols - 1] != dirNoDataValue)
+                                if (i != nRows - 1 && j != 0 && reverseDirMatrix[index + nCols - 1] != dirNoDataValue && reverseDirMatrix[index + nCols - 1] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index + nCols - 1], 1, -1);
                         }
                         if (flow_dir & 16)
                         {
-                                if (j != 0 && reverseDirMatrix[index - 1] != dirNoDataValue)
+                                if (j != 0 && reverseDirMatrix[index - 1] != dirNoDataValue && reverseDirMatrix[index - 1] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index - 1], 0, -1);
                         }
                         if (flow_dir & 32)
                         {
-                                if (i != 0 && j != 0 && reverseDirMatrix[index - nCols - 1] != dirNoDataValue)
+                                if (i != 0 && j != 0 && reverseDirMatrix[index - nCols - 1] != dirNoDataValue && reverseDirMatrix[index - nCols - 1] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index - nCols - 1], -1, -1);
                         }
                         if (flow_dir & 64)
                         {
-                                if (i != 0 && reverseDirMatrix[index - nCols] != dirNoDataValue)
+                                if (i != 0 && reverseDirMatrix[index - nCols] != dirNoDataValue && reverseDirMatrix[index - nCols] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index - nCols], -1, 0);
                         }
                         if (flow_dir & 128)
                         {
-                                if (i != 0 && j != nCols - 1 && reverseDirMatrix[index - nCols + 1] != dirNoDataValue)
+                                if (i != 0 && j != nCols - 1 && reverseDirMatrix[index - nCols + 1] != dirNoDataValue && reverseDirMatrix[index - nCols + 1] >= 0)
                                         pOutput[counter++] = GetPercentage(angle[index - nCols + 1], -1, 1);
                         }
                 }
