@@ -10,7 +10,6 @@ int main() {
     int threadnum = 1;
     SetDefaultOpenMPThread();
 
-
     cout << "*** Utils Demo ***" << endl;
 	cout << "Number of processors: " << GetAvailableThreadNum()<< endl;
 	vector<float> values;
@@ -69,5 +68,11 @@ int main() {
 	cout<<"array1 addr: "<<array1<<endl;
 	if (array1 == NULL) cout<<"array1 released!"<<endl;
 
+	// string match
+	const char* str1 = "elevation";
+	const char* str2 = "T_MEAN";
+	const char* str3 = "t_mean";
+	if (StringMatch(str3, str2))
+		cout << "str1 is equal to str2" << endl;
     return 0;
 }
