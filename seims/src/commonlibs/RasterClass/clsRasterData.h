@@ -98,9 +98,10 @@ public:
 	 * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
 	 * \param[in] mask \a clsRasterData<MaskT> Mask layer
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
+	 * \param[in] defalutValue Default value when mask data exceeds the raster extend.
      *
      */
-    clsRasterData(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    clsRasterData(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 	/*!
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported raster file
      * Support 1D and/or 2D raster data
@@ -110,7 +111,7 @@ public:
 	 * \param[in] mask \a clsRasterData<MaskT> Mask layer
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    clsRasterData(vector<string> filenames, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    clsRasterData(vector<string> filenames, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 	/*!
      * \brief Constructor an clsRasterData instance by 1D array data and mask
      */
@@ -130,7 +131,7 @@ public:
 	 * \param[in] mask \a clsRasterData<MaskT> Mask layer
 	 * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 #endif
 	//! Destructor, release \a m_rasterPositionData, \a m_rasterData and \a m_mask if existed.
     ~clsRasterData(void);
@@ -143,7 +144,7 @@ public:
      * \param[in] mask \a clsRasterData<MaskT>
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-	void ReadFromFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+	void ReadFromFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 
 	/*!
      * \brief Read raster data from ASC file, mask data is optional
@@ -152,7 +153,7 @@ public:
 	 * \param[in] mask \a clsRasterData<MaskT>
 	 * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadASCFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    void ReadASCFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 	/*!
      * \brief Read raster data by GDAL, mask data is optional
      * \param[in] filename \a string
@@ -160,7 +161,7 @@ public:
 	 * \param[in] mask \a clsRasterData<MaskT>
 	 * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadByGDAL(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    void ReadByGDAL(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 
 #ifdef USE_MONGODB
     /*!
@@ -171,7 +172,7 @@ public:
 	 * \param[in] mask \a clsRasterData<MaskT>
 	 * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    void ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 #endif
     /************* Write functions ***************/
 
@@ -473,7 +474,7 @@ private:
 	/*!
 	 * \brief Initialize read function for ASC, GDAL, and MongoDB
 	 */
-	void _initialize_read_function(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+	void _initialize_read_function(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 	/*!
 	 * \brief check the existence of given raster file
 	 * \return True if existed, else false
@@ -494,7 +495,7 @@ private:
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      *
      */
-    void _construct_from_single_file(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true);
+    void _construct_from_single_file(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 
 	/*!
      * \brief Read raster data from ASC file, the simply usage
@@ -567,6 +568,8 @@ private:
     int m_nCells;
     ///< noDataValue
     T m_noDataValue;
+	///< default value
+	T m_defaultValue;
     ///< raster full path, e.g. "C:/tmp/studyarea.tif"
     string m_filePathName;
 	///< core raster file name, e.g. "studyarea"
