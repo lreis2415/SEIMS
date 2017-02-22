@@ -65,35 +65,35 @@ int *GetOutDegreeMatrix(const int *dirMatrix, int nRows, int nCols, int dirNoDat
                         outDegreeMatrix[index] = 0;
 
                         int flow_dir = dirMatrix[index];
-                        if (flow_dir == dirNoDataValue)
+                        if (flow_dir == dirNoDataValue || flow_dir < 0)
                         {
                                 outDegreeMatrix[index] = dirNoDataValue;
                                 continue;
                         }
 
-                        if ((flow_dir & 1) && (j != nCols - 1) && (dirMatrix[index + 1] != dirNoDataValue))
+                        if ((flow_dir & 1) && (j != nCols - 1) && (dirMatrix[index + 1] != dirNoDataValue) && dirMatrix[index + 1] > 0)
                                 outDegreeMatrix[index]++;
 
                         if ((flow_dir & 2) && (i != nRows - 1) && (j != nCols - 1) &&
-                            (dirMatrix[index + nCols + 1] != dirNoDataValue))
+                            (dirMatrix[index + nCols + 1] != dirNoDataValue) && dirMatrix[index + nCols + 1] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 4) && (i != nRows - 1) && (dirMatrix[index + nCols] != dirNoDataValue))
+                        if ((flow_dir & 4) && (i != nRows - 1) && (dirMatrix[index + nCols] != dirNoDataValue) && dirMatrix[index + nCols] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 8) && (i != nRows - 1) && (j != 0) && (dirMatrix[index + nCols - 1] != dirNoDataValue))
+                        if ((flow_dir & 8) && (i != nRows - 1) && (j != 0) && (dirMatrix[index + nCols - 1] != dirNoDataValue) && dirMatrix[index + nCols - 1] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 16) && (j != 0) && (dirMatrix[index - 1] != dirNoDataValue))
+                        if ((flow_dir & 16) && (j != 0) && (dirMatrix[index - 1] != dirNoDataValue) && dirMatrix[index - 1] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 32) && (i != 0) && (j != 0) && (dirMatrix[index - nCols - 1] != dirNoDataValue))
+                        if ((flow_dir & 32) && (i != 0) && (j != 0) && (dirMatrix[index - nCols - 1] != dirNoDataValue) && dirMatrix[index - nCols - 1] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 64) && (i != 0) && (dirMatrix[index - nCols] != dirNoDataValue))
+                        if ((flow_dir & 64) && (i != 0) && (dirMatrix[index - nCols] != dirNoDataValue) && dirMatrix[index - nCols] > 0)
                                 outDegreeMatrix[index]++;
 
-                        if ((flow_dir & 128) && (i != 0) && (j != nCols - 1) && (dirMatrix[index - nCols + 1] != dirNoDataValue))
+                        if ((flow_dir & 128) && (i != 0) && (j != nCols - 1) && (dirMatrix[index - nCols + 1] != dirNoDataValue) && dirMatrix[index - nCols + 1] > 0)
                                 outDegreeMatrix[index]++;
                 }
         }

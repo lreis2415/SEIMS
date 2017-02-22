@@ -24,13 +24,37 @@ string LayeringFromSourceD8(const char *outputDir, mongoc_gridfs_t *gfs, int id,
         int dirNoDataValue = header.noDataValue;
 
         // preprocessing
+		/* accumulate each cell's upstream direction
+		 * e.g. cell (i, j) has three upstream source: (i, j+1), (i-1, j), (i+1, j)
+		 * then the reverseDir value of cell (i, j) is 1 + 64 + 4 = 69
+		 */
         int *reverseDirMatrix = GetReverseDirMatrix(dirMatrix, nRows, nCols, dirNoDataValue);
-        int *inDegreeMatrix = GetInDegreeMatrix(reverseDirMatrix, nRows, nCols, dirNoDataValue);
+        /* count each cell's upstream number by bitwise AND operator
+		 * e.g. cell (i, j) has a reversed direction value of 69, which stored as 1000101
+		 * 1000101 & 1 is True, and so as to 100, 1000000. So the upstream cell number is 3.
+		 */
+		int *inDegreeMatrix = GetInDegreeMatrix(reverseDirMatrix, nRows, nCols, dirNoDataValue);
 
         float *flowInOutput;
         int nFlowInOutput = OutputMultiFlowOut(nRows, nCols, nValidGrids, inDegreeMatrix, reverseDirMatrix, dirNoDataValue,
                                                compressedIndex, flowInOutput);
-        WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (char *) flowInOutput);
+        // output to txt
+		ostringstream oss;
+		oss << outputDir << "/" << id << "_FLOWIN_INDEX_D8.txt";
+		ofstream ofs_flowInD8(oss.str().c_str());
+		ofs_flowInD8 << flowInOutput[0] << endl;
+		ofs_flowInD8 << "ID\tUpstreamCount\tUpstreamID" << endl;
+		int tmpCount = 1;
+		for (int i = 0; i < flowInOutput[0]; i++){
+			int upstreamcount = flowInOutput[tmpCount++];
+			ofs_flowInD8 << i << "\t" << upstreamcount << "\t";
+			for (int j = 0; j < upstreamcount; j++)
+				ofs_flowInD8 << flowInOutput[tmpCount++] << ", ";
+			ofs_flowInD8 << endl;
+		}
+		ofs_flowInD8.close();
+
+		WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (char *) flowInOutput);
 
         // perform grid layering
         int *layeringGrid = NULL;
@@ -38,7 +62,7 @@ string LayeringFromSourceD8(const char *outputDir, mongoc_gridfs_t *gfs, int id,
                                                   dirNoDataValue, outputNoDataValue, layeringGrid);
 
         // output layering result
-        ostringstream oss;
+        // ostringstream oss;
         oss << outputDir << "/" << id << "_ROUTING_LAYERS_UP_DOWN.asc";
         //cout << oss.str().c_str() << endl;
         OutputArcAscii(oss.str().c_str(), header, layeringGrid, outputNoDataValue);
@@ -130,47 +154,46 @@ int *GetReverseDirMatrix(const int *dirMatrix, int nRows, int nCols, int dirNoDa
 {
         int n = nRows * nCols;
         int *reverseDirMatrix = new int[n];
-        int index = 0;
-
+#pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
                 reverseDirMatrix[i] = 0;
         }
-
+#pragma omp parallel for
         for (int i = 0; i < nRows; i++)
         {
                 for (int j = 0; j < nCols; j++)
                 {
-                        index = i * nCols + j;
+                        int index = i * nCols + j;
                         int flow_dir = dirMatrix[index];
-                        if (flow_dir == dirNoDataValue)
+                        if (flow_dir == dirNoDataValue || flow_dir < 0)
                         {
                                 reverseDirMatrix[index] = dirNoDataValue;
                                 continue;
                         }
 
-                        if ((flow_dir & 1) && j != nCols - 1 && dirMatrix[index + 1] != dirNoDataValue)
+                        if ((flow_dir & 1) && j != nCols - 1 && dirMatrix[index + 1] != dirNoDataValue && dirMatrix[index + 1] > 0)
                                 reverseDirMatrix[index + 1] += 16;
 
-                        if ((flow_dir & 2) && i != nRows - 1 && j != nCols - 1 && dirMatrix[index + nCols + 1] != dirNoDataValue)
+                        if ((flow_dir & 2) && i != nRows - 1 && j != nCols - 1 && dirMatrix[index + nCols + 1] != dirNoDataValue && dirMatrix[index + nCols + 1] > 0)
                                 reverseDirMatrix[index + nCols + 1] += 32;
 
-                        if ((flow_dir & 4) && i != nRows - 1 && dirMatrix[index + nCols] != dirNoDataValue)
+                        if ((flow_dir & 4) && i != nRows - 1 && dirMatrix[index + nCols] != dirNoDataValue && dirMatrix[index + nCols] > 0)
                                 reverseDirMatrix[index + nCols] += 64;
 
-                        if ((flow_dir & 8) && i != nRows - 1 && j != 0 && dirMatrix[index + nCols - 1] != dirNoDataValue)
+                        if ((flow_dir & 8) && i != nRows - 1 && j != 0 && dirMatrix[index + nCols - 1] != dirNoDataValue && dirMatrix[index + nCols - 1] > 0)
                                 reverseDirMatrix[index + nCols - 1] += 128;
 
-                        if ((flow_dir & 16) && j != 0 && dirMatrix[index - 1] != dirNoDataValue)
+                        if ((flow_dir & 16) && j != 0 && dirMatrix[index - 1] != dirNoDataValue && dirMatrix[index - 1] > 0)
                                 reverseDirMatrix[index - 1] += 1;
 
-                        if ((flow_dir & 32) && i != 0 && j != 0 && dirMatrix[index - nCols - 1] != dirNoDataValue)
+                        if ((flow_dir & 32) && i != 0 && j != 0 && dirMatrix[index - nCols - 1] != dirNoDataValue && dirMatrix[index - nCols - 1] > 0)
                                 reverseDirMatrix[index - nCols - 1] += 2;
 
-                        if ((flow_dir & 64) && i != 0 && dirMatrix[index - nCols] != dirNoDataValue)
+                        if ((flow_dir & 64) && i != 0 && dirMatrix[index - nCols] != dirNoDataValue && dirMatrix[index - nCols] > 0)
                                 reverseDirMatrix[index - nCols] += 4;
 
-                        if ((flow_dir & 128) && i != 0 && j != nCols - 1 && dirMatrix[index - nCols + 1] != dirNoDataValue)
+                        if ((flow_dir & 128) && i != 0 && j != nCols - 1 && dirMatrix[index - nCols + 1] != dirNoDataValue && dirMatrix[index - nCols + 1] > 0)
                                 reverseDirMatrix[index - nCols + 1] += 8;
                 }
         }
@@ -184,12 +207,12 @@ int *GetInDegreeMatrix(const int *reverseDirMatrix, int nRows, int nCols, int no
 {
         int n = nRows * nCols;
         int *inDegreeMatrix = new int[n];
-
+#pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
                 inDegreeMatrix[i] = 0;
                 int flow_dir = reverseDirMatrix[i];
-                if (flow_dir == noDataValue)
+                if (flow_dir == noDataValue || flow_dir < 0)
                 {
                         inDegreeMatrix[i] = noDataValue;
                         continue;
@@ -277,6 +300,9 @@ string GridLayeringFromSource(int nValidGrids, const int *dirMatrix, const int *
 {
         int n = nRows * nCols;
         layeringGrid = new int[n]; //the value in this grid is the layering number
+#pragma omp parallel for
+		for (int i = 0; i < n; i++)
+			layeringGrid[i] = outputNoDataValue;
 
         int *lastLayer = new int[n];
         int numLastLayer = 0; // the number of cells of last layer
@@ -290,9 +316,9 @@ string GridLayeringFromSource(int nValidGrids, const int *dirMatrix, const int *
                 {
                         index = i * nCols + j;
 
-                        if (dirMatrix[index] == dirNoDataValue)
+                        if (dirMatrix[index] == dirNoDataValue || dirMatrix[index] < 0)
                         {
-                                layeringGrid[index] = outputNoDataValue;
+                                continue;
                         }
                         else
                         {
