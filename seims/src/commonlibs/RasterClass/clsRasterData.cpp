@@ -20,6 +20,7 @@ void clsRasterData<T, MaskT>::_initialize_raster_class(){
 	m_coreFileName = "";
 	m_nCells = -1;
 	m_noDataValue = (T) NODATA_VALUE;
+	m_defaultValue = (T) NODATA_VALUE;
 	m_rasterData = NULL;
 	m_rasterPositionData = NULL;
 	m_mask = NULL;
@@ -46,13 +47,14 @@ void clsRasterData<T, MaskT>::_initialize_raster_class(){
 	m_initialized = true;
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_initialize_read_function(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+void clsRasterData<T, MaskT>::_initialize_read_function(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
 	if (!m_initialized) this->_initialize_raster_class();
 	if (mask != NULL) m_mask = mask;
 	m_filePathName = filename; // full path
 	m_coreFileName = GetCoreFileName(m_filePathName);
 	m_calcPositions = calcPositions;
 	m_useMaskExtent = useMaskExtent;
+	m_defaultValue = defalutValue;
 }
 template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(void) {
@@ -60,11 +62,11 @@ clsRasterData<T, MaskT>::clsRasterData(void) {
 }
 
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
-    this->ReadFromFile(filename, calcPositions, mask, useMaskExtent);
+clsRasterData<T, MaskT>::clsRasterData(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+    this->ReadFromFile(filename, calcPositions, mask, useMaskExtent, defalutValue);
 }
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
 	try{
 		this->_check_raster_file_exists(filenames);
 		this->_initialize_raster_class();
@@ -73,13 +75,13 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositi
 			throw ModelException("clsRasterData", "Constructor", "filenames must have at least one raster file path!\n");
 		/// if filenames has only one file
 		if (filenames.size() == 1){
-			this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent);
+			this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent, defalutValue);
 		}
 		else{  /// construct from multi-layers file
 			m_nLyrs = filenames.size();
 			/// 1. firstly, take the first layer as the main input, to calculate position index or 
 			///    extract by mask if stated.
-			this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent);
+			this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent, defalutValue);
 			/// 2. then, change the core file name and file path template which format is: <file dir>/CoreName_%d.<suffix>
 			m_coreFileName = SplitString(m_coreFileName, '_')[0];
 			m_filePathName = GetPathFromFullName(filenames[0]) + 
@@ -103,7 +105,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositi
 				if (StringMatch(GetUpper(GetSuffix(curfilename)), string(ASCIIExtension)))
 					this->_read_asc_file(curfilename, &tmpheader, &tmplyrdata);
 				else
-					this->_read_raster_file_by_gdal(curfilename, &tmpheader, &tmplyrdata);
+					this->_read_raster_file_by_gdal(curfilename, &tmpheader, &tmplyrdata, &m_srs);
 				if (m_calcPositions){
 					for (int i = 0; i < m_nCells; ++i) {
 						int tmpRow = m_rasterPositionData[i][0];
@@ -155,9 +157,9 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T**& values, 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
 	this->_initialize_raster_class();
-	this->ReadFromMongoDB(gfs, remoteFilename, calcPositions, mask, useMaskExtent);
+	this->ReadFromMongoDB(gfs, remoteFilename, calcPositions, mask, useMaskExtent, defalutValue);
 }
 #endif
 
@@ -181,17 +183,18 @@ bool clsRasterData<T, MaskT>::_check_raster_file_exists(vector<string>&filenames
 	}
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_construct_from_single_file(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
+void clsRasterData<T, MaskT>::_construct_from_single_file(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
 	if (mask != NULL) m_mask = mask;
 	m_filePathName = filename; // full path
 	m_coreFileName = GetCoreFileName(m_filePathName);
 	m_calcPositions = calcPositions;
 	m_useMaskExtent = useMaskExtent;
+	m_defaultValue = defalutValue;
 
 	if (StringMatch(GetUpper(GetSuffix(filename)), ASCIIExtension))
 		_read_asc_file(m_filePathName, &m_headers, &m_rasterData);
 	else
-		_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData);
+		_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData, &m_srs);
 	/******** Mask and calculate valid positions ********/
 	this->_mask_and_calculate_valid_positions();
 }
@@ -832,29 +835,29 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,
 #endif
 /************* Read functions ***************/
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromFile(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */) {
+void clsRasterData<T, MaskT>::ReadFromFile(string filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_check_raster_file_exists(filename);
     this->_initialize_raster_class();
-    this->_construct_from_single_file(filename, calcPositions, mask, useMaskExtent);
+    this->_construct_from_single_file(filename, calcPositions, mask, useMaskExtent, defalutValue);
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadASCFile(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */) {
-	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
+void clsRasterData<T, MaskT>::ReadASCFile(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */) {
+	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
 	this->_read_asc_file(m_filePathName, &m_headers, &m_rasterData);
 	m_srs = "";
 	this->_mask_and_calculate_valid_positions();
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadByGDAL(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
-	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
+void clsRasterData<T, MaskT>::ReadByGDAL(string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
 	this->_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData, &m_srs);
 	this->_mask_and_calculate_valid_positions();
 }
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */){
-	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent);
+void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+	this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
 	/// 1. Get stream data and metadata by file name
 	MongoGridFS mgfs = MongoGridFS();
 	char* buf;
@@ -875,8 +878,9 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
 	m_nLyrs = (int) m_headers[HEADER_RS_LAYERS];
 	if (m_headers.find(HEADER_RS_CELLSNUM) != m_headers.end())
 		m_nCells = (int) m_headers[HEADER_RS_CELLSNUM];
+	/// TODO (by LJ), currently data stored in MongoDB is always float. I can not find a elegant way to make it template.
 	if (m_nCells < 0)
-		m_nCells = length / sizeof(T) / m_nLyrs;
+		m_nCells = length / sizeof(float) / m_nLyrs;
 
 	/// 3. Store data.
 	try{
@@ -894,21 +898,25 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
 		else reBuildData = true;
 		/// read data directly
 		if (m_nLyrs == 1){
-			m_rasterData = (T* ) buf;
+			float *tmpdata = (float* )buf;
+			Initialize1DArray(m_nCells, m_rasterData, nodatavalue);
+			for (int i = 0; i < m_nCells; i++)
+				m_rasterData[i] = (T) tmpdata[i];
+			Release1DArray(tmpdata);
 			m_is2DRaster = false;
 		}
 		else{
-			T *tmpdata = (T *) buf;
+			float *tmpdata = (float *) buf;
 			m_raster2DData = new T *[m_nCells];
 			for (int i = 0; i < m_nCells; i++){
 				m_raster2DData[i] = new T [m_nLyrs];
 				for (int j = 0; j < m_nLyrs; j++){
 					int idx = i * m_nLyrs + j;
-					m_raster2DData[i][j] = tmpdata[idx];
+					m_raster2DData[i][j] = (T) tmpdata[idx];
 				}
 			}
 			m_is2DRaster = true;
-			tmpdata = NULL;
+			Release1DArray(tmpdata);
 		}
 		buf = NULL;
 		if (reBuildData) this->_mask_and_calculate_valid_positions();
@@ -977,6 +985,7 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<st
 		tmpheader[HEADER_RS_NCOLS] = (double) nCols;
 		tmpheader[HEADER_RS_NROWS] = (double) nRows;
 		tmpheader[HEADER_RS_NODATA] = (double) poBand->GetNoDataValue();
+		m_noDataValue = (T) poBand->GetNoDataValue();
 		double adfGeoTransform[6];
 		poDataset->GetGeoTransform(adfGeoTransform);
 		tmpheader[HEADER_RS_CELLSIZE] = adfGeoTransform[1];
@@ -1024,6 +1033,8 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<st
 				for (int j = 0; j < nCols; ++j) {
 					int index = i * nCols + j;
 					tmprasterdata[index] = (T) pData[index];
+					if ((T) pData[index] < 0)
+						tmprasterdata[index] = (T) pData[index] + 256;
 				}
 			}
 			CPLFree(pData);
@@ -1042,7 +1053,7 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<st
 		/// returned parameters
 		*header = tmpheader;
 		*values = tmprasterdata;
-		srs = &tmpsrs;
+		*srs = tmpsrs;
 	}
 	catch (ModelException e){
 		cout << e.toString() << endl;
@@ -1290,14 +1301,20 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions(){
 					tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
 					if (m_nLyrs > 1){
 						vector<T> tmpValues(m_nLyrs - 1);
-						for (int lyr = 1; lyr < m_nLyrs; lyr++)
+						for (int lyr = 1; lyr < m_nLyrs; lyr++){
 							tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+							if (FloatEqual(tmpValues[lyr - 1], m_noDataValue))
+								tmpValues[lyr - 1] = m_defaultValue;
+						}
 						values2D.push_back(tmpValues);
 					}
 				}
 				else{
 					tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
 				}
+				// cout<<tmpValue<<",";
+				if (FloatEqual(tmpValue, m_noDataValue))
+					tmpValue = m_defaultValue;
 				values.push_back(tmpValue);
 				positionRows.push_back(tmpRow);
 				positionCols.push_back(tmpCol);
@@ -1324,14 +1341,19 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions(){
 						tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
 						if (m_nLyrs > 1){
 							vector<T> tmpValues(m_nLyrs - 1);
-							for (int lyr = 1; lyr < m_nLyrs; lyr++)
+							for (int lyr = 1; lyr < m_nLyrs; lyr++){
 								tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+								if (FloatEqual(tmpValues[lyr - 1], m_noDataValue))
+									tmpValues[lyr - 1] = m_defaultValue;
+							}
 							values2D.push_back(tmpValues);
 						}
 					}
 					else{
 						tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
 					}
+					if (FloatEqual(tmpValue, m_noDataValue))
+						tmpValue = m_defaultValue;
 					positionRows.push_back(i);
 					positionCols.push_back(j);
 					/// release temporary array
