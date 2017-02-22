@@ -565,7 +565,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
             string ext = utilsFileIO::GetSuffix(filename);
             // cout << ext << "\t" << expression << endl;
             string strexpression = string(expression);
-            if(utilsString::StringMatch(ext.c_str(), expression) || strexpression.find(ext) != strexpression.npos
+            if(utilsString::StringMatch(ext.c_str(), expression) || strexpression.find(ext) != string::npos
                || utilsString::StringMatch(expression, ".*")
                || utilsString::StringMatch(expression, "*.*"))
             {
@@ -589,13 +589,27 @@ string utilsFileIO::GetAppPath()
 	GetModuleFileName(NULL, buffer, PATH_MAX);
 	RootPath = string((char *) buffer);
 #else
-	static char buf[PATH_MAX];
-	int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
-	if(rslt < 0 || rslt >= PATH_MAX)
-		buf[0] = '\0';
-	else
-		buf[rslt] = '\0';
-	RootPath = buf;
+    /// http://stackoverflow.com/a/8149380/4837280
+    int ret;
+    pid_t pid;
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+    pid = getpid();
+    ret = proc_pidpath (pid, pathbuf, sizeof(pathbuf));
+    if ( ret <= 0 ) {
+        fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
+        fprintf(stderr, "    %s\n", strerror(errno));
+    } else {
+        printf("proc %d: %s\n", pid, pathbuf);
+    }
+    RootPath = pathbuf;
+//#else
+//	static char buf[PATH_MAX];
+//	int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
+//	if(rslt < 0 || rslt >= PATH_MAX)
+//		buf[0] = '\0';
+//	else
+//		buf[rslt] = '\0';
+//	RootPath = buf;
 #endif
 	basic_string<char>::size_type idx = RootPath.find_last_of(SEP);
 	RootPath = RootPath.substr(0, idx + 1);

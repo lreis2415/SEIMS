@@ -49,6 +49,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <libproc.h>
 #endif
 
 using namespace std;

@@ -11,7 +11,9 @@
 
 #include <string>
 #include "ModelException.h"
+#ifdef SUPPORT_OMP
 #include <omp.h>
+#endif 
 #include "Scenario.h"  /// added by LJ. 2016-6-14
 #include "clsReach.h"
 #include "clsSubbasin.h"
@@ -56,7 +58,9 @@ public:
     //! Set thread number for OpenMP
     virtual void SetTheadNumber(int threadNum)
     {
+#ifdef SUPPORT_OMP
         omp_set_num_threads(threadNum);
+#endif 
     };
 
     //! Set climate data type, P, M, PET etc.
