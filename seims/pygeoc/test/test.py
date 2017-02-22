@@ -5,6 +5,6 @@ from pygeoc.vector import *
 
 if __name__ == '__main__':
     print D8DIR_TD_VALUES
-    dem = r'e:/test/pvdem.tif'
+    dem = r'd:/test/dem_30m.tif'
     demR = ReadRaster(dem)
     print RasterStatistics(dem)
