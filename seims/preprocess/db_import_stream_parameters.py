@@ -10,7 +10,7 @@ import math
 
 from osgeo import ogr
 import pymongo
-from pygeoc.raster import RasterUtilClass
+from pygeoc.raster.raster import RasterUtilClass
 from pygeoc.utils.utils import UtilClass
 
 from mpi_adjust_groups import *
@@ -135,7 +135,7 @@ def downStream(reachFile):
 
 
 def add_group_field(shpFile, subbasinFieldName, n, groupKmetis, groupPmetis, ns):
-    dsReach = ogr.Open(shpFile, update = True)
+    dsReach = ogr.Open(shpFile, update=True)
     layerReach = dsReach.GetLayer(0)
     layerDef = layerReach.GetLayerDefn()
     iCode = layerDef.GetFieldIndex(subbasinFieldName)
@@ -320,7 +320,7 @@ def GenerateReachTable(db, folder, forCluster):
             dic[REACH_GWSOLP.upper()] = 0  # 10.
 
             curFilter = {REACH_SUBBASIN.upper(): id}
-            db[DB_TAB_REACH.upper()].find_one_and_replace(curFilter, dic, upsert = True)
+            db[DB_TAB_REACH.upper()].find_one_and_replace(curFilter, dic, upsert=True)
 
     for n in nlist:
         print 'divide number: ', n

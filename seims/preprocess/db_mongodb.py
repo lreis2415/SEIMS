@@ -6,6 +6,7 @@ from pymongo.errors import ConnectionFailure
 
 class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
+
     def __init__(self, ip, port):
         try:
             self.conn = MongoClient(ip, port)

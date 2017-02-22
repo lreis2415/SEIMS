@@ -14,7 +14,7 @@ import types
 
 import numpy
 from gdal import GDT_Float32
-from pygeoc.raster import RasterUtilClass
+from pygeoc.raster.raster import RasterUtilClass
 
 from config import *
 from utility import LoadConfiguration, status_output, ReadDataItemsFromTxt

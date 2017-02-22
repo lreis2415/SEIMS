@@ -5,7 +5,7 @@
 # @Date   2016-6-16
 #
 
-from pygeoc.raster import RasterUtilClass
+from pygeoc.raster.raster import RasterUtilClass
 from pygeoc.utils.utils import MathClass
 
 from config import *
@@ -61,9 +61,9 @@ def ImportBMPTables(maindb, scenariodb):
                 if subbsnID is not None and distance is not None:
                     dic[REACH_SUBBASIN.upper()] = float(subbsnID)
                     dic[BMP_FLD_PT_DISTDOWN.upper()] = float(distance)
-                    scenariodb[bmpTabName.upper()].find_one_and_replace(dic, dic, upsert = True)
+                    scenariodb[bmpTabName.upper()].find_one_and_replace(dic, dic, upsert=True)
             else:
-                scenariodb[bmpTabName.upper()].find_one_and_replace(dic, dic, upsert = True)
+                scenariodb[bmpTabName.upper()].find_one_and_replace(dic, dic, upsert=True)
     # print 'BMP tables are imported.'
     # Write BMP database name into Model main database
     cList = maindb.collection_names()
@@ -72,7 +72,7 @@ def ImportBMPTables(maindb, scenariodb):
 
     bmpInfoDic = dict()
     bmpInfoDic[FLD_DB.upper()] = BMPScenarioDBName
-    maindb[DB_TAB_BMP_DB.upper()].find_one_and_replace(bmpInfoDic, bmpInfoDic, upsert = True)
+    maindb[DB_TAB_BMP_DB.upper()].find_one_and_replace(bmpInfoDic, bmpInfoDic, upsert=True)
     return True
 
 

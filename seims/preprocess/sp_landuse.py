@@ -10,7 +10,7 @@ import sqlite3
 import numpy
 from gdal import GDT_Float32
 from pygeoc.utils.utils import UtilClass, MathClass
-from pygeoc.raster import RasterUtilClass
+from pygeoc.raster.raster import RasterUtilClass
 
 from config import *
 from db_sqlite import reConstructSQLiteDB
