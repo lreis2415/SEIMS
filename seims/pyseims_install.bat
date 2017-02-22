@@ -23,7 +23,7 @@ echo installing %%~ni ...
 pip install %%i --upgrade
 )
 cd ../..
-REM Install all dependent packages requied by SEIMS
+REM Install all dependent packages required by SEIMS
 for /r . %%i in ("*requirements.txt") do (
 echo installing %%~ni ...
 pip install -r %%i
