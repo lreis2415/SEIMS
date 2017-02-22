@@ -14,14 +14,14 @@ Linux下SEIMS模型的编译与运行
 
 ## 2. SEIMS编译和安装
 
-    ```shell
-    cd <SEIMS root path>/seims
-    mkdir build
-    cd build
-    /home/zhulj/CMake/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/home/zhulj/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=/home/zhulj/gcc4.8.4/bin/g++
-    make (or make 2>&1 | tee build.log 用于保存编译日志)
-    make install
-    ```
+```shell
+cd <SEIMS root path>/seims
+mkdir build
+cd build
+/home/zhulj/CMake/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/home/zhulj/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=/home/zhulj/gcc4.8.4/bin/g++
+make (or make 2>&1 | tee build.log 用于保存编译日志)
+make install
+```
 
 编译完成之后，SEIMS模型所有可执行文件和模块库均安装于`<SEIMS root path>/seims/bin`目录下。
 
