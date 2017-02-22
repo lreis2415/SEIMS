@@ -546,30 +546,37 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
 
 	} while (::FindNextFile(hFind, &findFileData));
 #else
-	struct dirent *ptr;
-	DIR *dir;
-	dir = opendir(lpPath);
+	DIR *dir = opendir(lpPath);
 	//cout<<"Find existed files ..."<<endl;
-	while((ptr=readdir(dir)) != NULL)
-	{
-		if(ptr->d_name[0] == '.')
-			continue;
-
-		string filename(ptr->d_name);
-		//cout << filename<<endl;
-		int n = (int)filename.length();
-		string ext = filename.substr(n-4, 4);
-		//cout << ext << "\t" << expression << endl;
-		if(utilsString::StringMatch(ext.c_str(), expression) || utilsString::StringMatch(expression, ".*")
-			|| utilsString::StringMatch(expression, "*.*"))
-		{
-			ostringstream oss;
-			oss << lpPath << "/" <<  filename;
-			//cout<<oss.str()<<endl;
-			vecFiles.push_back(oss.str());
-		}
-	}
-	closedir(dir);
+    if (dir)
+    {
+        struct dirent* hFile;
+        errno = 0;
+        while ((hFile = readdir(dir)) != NULL )
+        {
+            if (!strcmp(hFile->d_name, ".")) continue;
+            if (!strcmp(hFile->d_name, "..")) continue;
+            
+            // in linux hidden files all start with '.'
+            if (hFile->d_name[0] == '.') continue;
+            
+            string filename(hFile->d_name);
+            // cout << filename<<endl;
+            string ext = utilsFileIO::GetSuffix(filename);
+            // cout << ext << "\t" << expression << endl;
+            string strexpression = string(expression);
+            if(utilsString::StringMatch(ext.c_str(), expression) || strexpression.find(ext) != strexpression.npos
+               || utilsString::StringMatch(expression, ".*")
+               || utilsString::StringMatch(expression, "*.*"))
+            {
+                ostringstream oss;
+                oss << lpPath << "/" <<  filename;
+                cout<<oss.str()<<endl;
+                vecFiles.push_back(oss.str());
+            }
+        } 
+        closedir(dir);
+    }
 #endif
 	return 0;
 }

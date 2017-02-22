@@ -422,6 +422,7 @@ T clsRasterData<T, MaskT>::getValue(int validCellIndex, int lyr /* = 1 */) {
 		cout << e.toString() << endl;
 	}
 }
+
 template<typename T, typename MaskT>
 T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
 	try{
@@ -451,6 +452,7 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
 		cout << e.toString() << endl;
 	}
 }
+
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::setValue(RowColCoor pos, T value, int lyr /* = 1 */){
 	int idx = this->getPosition(pos.row, pos.col);
@@ -1014,7 +1016,7 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<st
 				for (int j = 0; j < nCols; ++j) { 
 					int index = i * nCols + j;
 					tmprasterdata[index] = (T) pData[index];
-                    cout<<i<<", "<<j<<": "<<pData[index]<<","<<tmprasterdata[index]<<endl;
+                    // cout<<i<<", "<<j<<": "<<pData[index]<<","<<tmprasterdata[index]<<endl;
 				}
 			}
 			CPLFree(pData);
