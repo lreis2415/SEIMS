@@ -11,8 +11,8 @@ from gdal import GDT_Int32, GDT_Float32
 import osr
 import ogr
 import numpy
-from pygeoc.raster import RasterUtilClass
-from pygeoc.vector import VectorUtilClass
+from pygeoc.raster.raster import RasterUtilClass
+from pygeoc.vector.vector import VectorUtilClass
 from pygeoc.hydro.TauDEM import TauDEM
 from pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from pygeoc.utils.utils import UtilClass
@@ -30,9 +30,9 @@ def output_wgs84_geojson():
     # print proj_srs
     wgs84_srs = "EPSG:4326"
     shp_dir = WORKING_DIR + os.sep + DIR_NAME_GEOSHP
-    geo_json_dict = {GEOJSON_REACH : shp_dir + os.sep + reachesOut,
+    geo_json_dict = {GEOJSON_REACH: shp_dir + os.sep + reachesOut,
                      GEOJSON_SUBBSN: shp_dir + os.sep + subbasinVec,
-                     GEOJSON_BASIN : shp_dir + os.sep + basinVec,
+                     GEOJSON_BASIN: shp_dir + os.sep + basinVec,
                      GEOJSON_OUTLET: shp_dir + os.sep + outletVec}
     for jsonName in geo_json_dict:
         jsonfile = shp_dir + os.sep + jsonName
@@ -273,7 +273,7 @@ def SubbasinDelineation():
 
 if __name__ == "__main__":
     LoadConfiguration(getconfigfile())
-    SubbasinDelineation()
+    # SubbasinDelineation()
     # generate_lat_raster()
-    # mask_origin_delineated_data()
+    mask_origin_delineated_data()
     # post_process_of_delineated_data()

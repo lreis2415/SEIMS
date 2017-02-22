@@ -15,8 +15,8 @@ from db_mongodb import ConnectMongoDB
 class SiteInfo(object):
     """base class of HydroClimate site information."""
 
-    def __init__(self, ID = 0, Name = '', lat = DEFAULT_NODATA, lon = DEFAULT_NODATA,
-                 LocalX = DEFAULT_NODATA, LocalY = DEFAULT_NODATA, alti = DEFAULT_NODATA):
+    def __init__(self, ID=0, Name='', lat=DEFAULT_NODATA, lon=DEFAULT_NODATA,
+                 LocalX=DEFAULT_NODATA, LocalY=DEFAULT_NODATA, alti=DEFAULT_NODATA):
         """Initialize a SiteInfo object."""
         self.StationID = ID  # integer
         self.Name = Name  # station name, string
@@ -60,9 +60,9 @@ def ImportSitesTable(db, siteFile, siteType):
                 dic[Tag_ST_IsOutlet.upper()] = float(siteDataItems[i][j])
         dic[Tag_ST_Type.upper()] = siteType
         curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                     Tag_ST_Type.upper()     : dic[Tag_ST_Type.upper()]}
+                     Tag_ST_Type.upper(): dic[Tag_ST_Type.upper()]}
         db[Tag_ClimateDB_Sites.upper()].find_one_and_replace(
-            curfilter, dic, upsert = True)
+            curfilter, dic, upsert=True)
 
         if dic[Tag_ST_StationID.upper()] not in sitesLoc.keys():
             sitesLoc[dic[Tag_ST_StationID.upper()]] = SiteInfo(dic[Tag_ST_StationID.upper()],
@@ -91,7 +91,7 @@ def ImportVariableTable(db, varFile):
                 dic[Tag_VAR_UNIT.upper()] = varDataItems[i][j]
         # If this item existed already, then update it, otherwise insert one.
         curfilter = {Tag_VAR_Type.upper(): dic[Tag_VAR_Type.upper()]}
-        db[Tag_ClimateDB_VARs.upper()].find_one_and_replace(curfilter, dic, upsert = True)
+        db[Tag_ClimateDB_VARs.upper()].find_one_and_replace(curfilter, dic, upsert=True)
 
 
 def ImportHydroClimateSitesInfo(db):

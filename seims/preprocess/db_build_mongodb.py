@@ -79,7 +79,7 @@ class ImportMongodbClass(object):
         while not needReRun:
             needReRun = True
             for gridlyr in gridLayeringFiles:
-                if not spatial.exists(filename = gridlyr):
+                if not spatial.exists(filename=gridlyr):
                     needReRun = False
                     print "%s is not imported successfully, grid_layering will be rerun!" % gridlyr
                     UtilClass.runcommand(strCmd)

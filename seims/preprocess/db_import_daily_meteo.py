@@ -155,13 +155,13 @@ def ImportDayData(db, ClimateDateFile, sitesLoc, isFirst):
                 curDic[Tag_DT_LocalT.upper()] = dic[Tag_DT_LocalT.upper()]
                 curDic[Tag_DT_Type.upper()] = fld
                 curfilter = {Tag_DT_StationID.upper(): dic[Tag_DT_StationID.upper()],
-                             Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()],
-                             Tag_DT_Type.upper()     : fld}
+                             Tag_DT_UTC.upper(): dic[Tag_DT_UTC.upper()],
+                             Tag_DT_Type.upper(): fld}
                 if (isFirst):
                     db[DB_TAB_DATAVALUES.upper()].insert_one(curDic)
                 else:
                     db[DB_TAB_DATAVALUES.upper()].find_one_and_replace(
-                        curfilter, curDic, upsert = True)
+                        curfilter, curDic, upsert=True)
 
         if dic[Tag_DT_StationID.upper()] not in HydroClimateStats.keys():
             HydroClimateStats[dic[Tag_DT_StationID.upper()]] = climateStats()
@@ -183,38 +183,38 @@ def ImportDayData(db, ClimateDateFile, sitesLoc, isFirst):
             curDic[Tag_VAR_UNIT.upper()] = "heat units"
             curDic[Tag_VAR_Type.upper()] = DataType_YearlyHeatUnit
             curfilter = {Tag_DT_StationID.upper(): sID,
-                         Tag_VAR_Type.upper()    : DataType_YearlyHeatUnit,
-                         Tag_DT_Year.upper()     : YYYY}
+                         Tag_VAR_Type.upper(): DataType_YearlyHeatUnit,
+                         Tag_DT_Year.upper(): YYYY}
             db[Tag_ClimateDB_ANNUAL_STATS.upper()].find_one_and_replace(
-                curfilter, curDic, upsert = True)
+                curfilter, curDic, upsert=True)
             # import annual mean temperature
             curDic[Tag_VAR_Type.upper()] = DataType_MeanTemperature
             curDic[Tag_VAR_UNIT.upper()] = "deg C"
             curDic[Tag_DT_Value.upper()] = HydroClimateStats[sID].MeanTmp[YYYY]
             curfilter = {Tag_DT_StationID.upper(): sID,
-                         Tag_VAR_Type.upper()    : DataType_MeanTemperature,
-                         Tag_DT_Year.upper()     : YYYY}
+                         Tag_VAR_Type.upper(): DataType_MeanTemperature,
+                         Tag_DT_Year.upper(): YYYY}
             db[Tag_ClimateDB_ANNUAL_STATS.upper()].find_one_and_replace(
-                curfilter, curDic, upsert = True)
+                curfilter, curDic, upsert=True)
         curDic[Tag_DT_Value.upper()] = HydroClimateStats[sID].PHU0
         curDic[Tag_DT_StationID.upper()] = sID
         curDic[Tag_DT_Year.upper()] = DEFAULT_NODATA
         curDic[Tag_VAR_UNIT.upper()] = "heat units"
         curDic[Tag_VAR_Type.upper()] = Datatype_PHU0
         curfilter = {Tag_DT_StationID.upper(): sID,
-                     Tag_VAR_Type.upper()    : Datatype_PHU0,
-                     Tag_DT_Year.upper()     : DEFAULT_NODATA}
+                     Tag_VAR_Type.upper(): Datatype_PHU0,
+                     Tag_DT_Year.upper(): DEFAULT_NODATA}
         db[Tag_ClimateDB_ANNUAL_STATS.upper()].find_one_and_replace(
-            curfilter, curDic, upsert = True)
+            curfilter, curDic, upsert=True)
         # import annual mean temperature
         curDic[Tag_VAR_Type.upper()] = DataType_MeanTemperature0
         curDic[Tag_VAR_UNIT.upper()] = "deg C"
         curDic[Tag_DT_Value.upper()] = HydroClimateStats[sID].MeanTmp0
         curfilter = {Tag_DT_StationID.upper(): sID,
-                     Tag_VAR_Type.upper()    : DataType_MeanTemperature0,
-                     Tag_DT_Year.upper()     : DEFAULT_NODATA}
+                     Tag_VAR_Type.upper(): DataType_MeanTemperature0,
+                     Tag_DT_Year.upper(): DEFAULT_NODATA}
         db[Tag_ClimateDB_ANNUAL_STATS.upper()].find_one_and_replace(
-            curfilter, curDic, upsert = True)
+            curfilter, curDic, upsert=True)
 
 
 def ImportDailyMeteoData(db, siteMLoc):
