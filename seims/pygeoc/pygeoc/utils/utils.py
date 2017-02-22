@@ -119,7 +119,7 @@ class StringClass(object):
         return newStr
 
     @staticmethod
-    def splitstring(str, spliters = None):
+    def splitstring(str, spliters=None):
         """
         Split string by split character space(' ') and indent('\t') as default
         :param str:
@@ -293,8 +293,11 @@ class UtilClass(object):
         :param commands: string or list
         :return: output lines
         """
-        process = subprocess.Popen(commands, shell = True, stdout = subprocess.PIPE, stdin = open(os.devnull),
-                                   stderr = subprocess.STDOUT, universal_newlines = True)
+        use_shell = True
+        if isinstance(commands, list) or isinstance(commands, tuple):
+            use_shell = False
+        process = subprocess.Popen(commands, shell=use_shell, stdout=subprocess.PIPE, stdin=open(os.devnull),
+                                   stderr=subprocess.STDOUT, universal_newlines=True)
         return process.stdout.readlines()
 
     @staticmethod
@@ -333,7 +336,7 @@ class UtilClass(object):
         raise RuntimeError(msg)
 
     @staticmethod
-    def writelog(logfile, contentlist, MODE = 'replace'):
+    def writelog(logfile, contentlist, MODE='replace'):
         if os.path.exists(logfile):
             if MODE == 'replace':
                 os.remove(logfile)
