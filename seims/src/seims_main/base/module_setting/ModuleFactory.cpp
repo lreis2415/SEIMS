@@ -145,18 +145,20 @@ void ModuleFactory::Init(const string &configFileName)
         string id = m_moduleIDs[i];
         string dllID = id;
         // for ITP modules, the input ids are ITP_T, ITP_P and ITP should be used as ID name
-        if (id.find(MID_ITP) != string::npos)
+        if (id.find(MID_ITP) != string::npos){
 #ifdef windows
         dllID = MID_ITP;
 #else
         dllID = Tag_So + string(MID_ITP);
 #endif
-        else if (id.find(MID_TSD_RD) != string::npos)
+        }
+        else if (id.find(MID_TSD_RD) != string::npos){
 #ifdef windows
         dllID = MID_TSD_RD;
 #else
         dllID = Tag_So + string(MID_TSD_RD);
 #endif
+        }
 
 #ifdef INTEL_COMPILER
         dllID = dllID + "_intel";
@@ -914,7 +916,7 @@ void ModuleFactory::ReadConfigFile(const char *configFileName)
                 {
                     string settingString = settings[i][1];
                     string module = GetUpper(settings[i][3]);
-#ifdef linux
+#ifndef windows
                     module = Tag_So + module;
 #endif
 
