@@ -110,7 +110,7 @@ int DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> &
         BSON_APPEND_DOUBLE(&p, "NROWS", subYSize);
         BSON_APPEND_DOUBLE(&p, "XLLCENTER", rs.getXllCenter() + subbasin.xMin * cellSize);
         BSON_APPEND_DOUBLE(&p, "YLLCENTER", rs.getYllCenter() + (rs.getRows() - subbasin.yMax - 1) * cellSize);
-        BSON_APPEND_DOUBLE(&p, "LAYERS", 1.0);
+        BSON_APPEND_DOUBLE(&p, "LAYERS", rs.getLayers());
         BSON_APPEND_UTF8(&p, "SRS", srs);
 
 		char* databuf = (char* ) subData;
@@ -179,7 +179,7 @@ int Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int>
 		BSON_APPEND_DOUBLE(&p, "NROWS", subYSize);
 		BSON_APPEND_DOUBLE(&p, "XLLCENTER", rss.getXllCenter() + subbasin.xMin * cellSize);
 		BSON_APPEND_DOUBLE(&p, "YLLCENTER", rss.getYllCenter() + (rss.getRows() - subbasin.yMax - 1) * cellSize);
-		BSON_APPEND_DOUBLE(&p, "LAYERS", 1.0);
+		BSON_APPEND_DOUBLE(&p, "LAYERS", rss.getLayers());
 		BSON_APPEND_UTF8(&p, "SRS", srs);
 
 		char* databuf = (char* ) sub2DData;

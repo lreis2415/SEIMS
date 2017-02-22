@@ -30,9 +30,13 @@ void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename
 		int nSub = col + 1;
 		data[i] = new float[nSub];
 		data[i][0] = col;
-		for (int j = 1; j < nSub; j++)
+		//cout<<"index: "<<index<<",";
+		for (int j = 1; j < nSub; j++){
 			data[i][j] = floatValues[index + j];
-		index = index + nSub;
+			//cout<<data[i][j]<<",";
+		}
+		//cout<<endl;
+		index += nSub;
 	}
 	cols = nCols;
 }
