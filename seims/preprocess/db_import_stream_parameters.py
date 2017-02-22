@@ -4,35 +4,40 @@
 # Author: Junzhi Liu
 # Revised: Liang-Jun Zhu
 #
+import sys
+import networkx as nx
+import math
 
 from osgeo import ogr
-
-import networkx as nx
 import pymongo
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils.utils import UtilClass
 
-from adjust_groups import *
+from mpi_adjust_groups import *
 from config import *
-from util import *
+from utility import LoadConfiguration
+from utility import UTIL_ZERO, MINI_SLOPE
+# for test main
+from db_mongodb import ConnectMongoDB
 
 sys.setrecursionlimit(10000)
 
 
 def gridNumber(watershedFile):
-    numDic = {}
-    ds = gdal.Open(watershedFile)
-    band = ds.GetRasterBand(1)
-    data = band.ReadAsArray()
-    xsize = band.XSize
-    ysize = band.YSize
-    noDataValue = band.GetNoDataValue()
+    """Get cell number of each subbasin."""
+    numDic = dict()
+    wtsd_raster = RasterUtilClass.ReadRaster(watershedFile)
+    data = wtsd_raster.data
+    xsize = wtsd_raster.nCols
+    ysize = wtsd_raster.nRows
+    dx = wtsd_raster.dx
+    noDataValue = wtsd_raster.noDataValue
     for i in range(ysize):
         for j in range(xsize):
             k = int(data[i][j])
-            if (abs(k - noDataValue) > UTIL_ZERO):
+            if abs(k - noDataValue) > UTIL_ZERO:
                 numDic[k] = numDic.setdefault(k, 0) + 1
-    return numDic, ds.GetGeoTransform()[1]
+    return numDic, dx
 
 
 def DownstreamUpOrder(orderDic, g, node, orderNum):
@@ -105,46 +110,45 @@ def downStream(reachFile):
     # find the maximum order nubmer
     maxOrder = 0
     for k in downstreamUpOrderDic.keys():
-        if (downstreamUpOrderDic[k] > maxOrder):
+        if downstreamUpOrderDic[k] > maxOrder:
             maxOrder = downstreamUpOrderDic[k]
     # reserve the order number
     for k in downstreamUpOrderDic.keys():
         downstreamUpOrderDic[k] = maxOrder - downstreamUpOrderDic[k] + 1
 
     # assign order from the source subbasins
-    upstreamDownOrderDic = {}
+    upstreamDownOrderDic = dict()
     orderNum = 1
     nodelist = g.nodes()
-    while (len(nodelist) != 0):
+    while len(nodelist) != 0:
         nodelist = g.nodes()
         delList = []
         for node in nodelist:
-            if (g.in_degree(node) == 0):
+            if g.in_degree(node) == 0:
                 upstreamDownOrderDic[node] = orderNum
                 delList.append(node)
         for item in delList:
             g.remove_node(item)
-        orderNum = orderNum + 1
+        orderNum += 1
 
-    return downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, \
-        depthDic, slopeDic, widthDic, lenDic
+    return downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic, slopeDic, widthDic, lenDic
 
 
 def add_group_field(shpFile, subbasinFieldName, n, groupKmetis, groupPmetis, ns):
-    dsReach = ogr.Open(shpFile, update=True)
+    dsReach = ogr.Open(shpFile, update = True)
     layerReach = dsReach.GetLayer(0)
     layerDef = layerReach.GetLayerDefn()
     iCode = layerDef.GetFieldIndex(subbasinFieldName)
     iGroup = layerDef.GetFieldIndex(REACH_GROUP)
     iGroupPmetis = layerDef.GetFieldIndex(REACH_PMETIS)
-    if (iGroup < 0):
+    if iGroup < 0:
         new_field = ogr.FieldDefn(REACH_GROUP, ogr.OFTInteger)
         layerReach.CreateField(new_field)
-    if (iGroupPmetis < 0):
+    if iGroupPmetis < 0:
         new_field = ogr.FieldDefn(REACH_PMETIS, ogr.OFTInteger)
         layerReach.CreateField(new_field)
         # grid_code:feature map
-    ftmap = {}
+    ftmap = dict()
     layerReach.ResetReading()
     ft = layerReach.GetNextFeature()
     while ft is not None:
@@ -152,8 +156,8 @@ def add_group_field(shpFile, subbasinFieldName, n, groupKmetis, groupPmetis, ns)
         ftmap[id] = ft
         ft = layerReach.GetNextFeature()
 
-    groupDic = {}
-    groupDicPmetis = {}
+    groupDic = dict()
+    groupDicPmetis = dict()
     i = 0
     for node in ns:
         groupDic[node] = groupKmetis[i]
@@ -161,49 +165,51 @@ def add_group_field(shpFile, subbasinFieldName, n, groupKmetis, groupPmetis, ns)
         ftmap[node].SetField(REACH_GROUP, groupKmetis[i])
         ftmap[node].SetField(REACH_PMETIS, groupPmetis[i])
         layerReach.SetFeature(ftmap[node])
-        i = i + 1
+        i += 1
 
     layerReach.SyncToDisk()
     dsReach.Destroy()
     del dsReach
 
     # copy the reach file to new file
-    for ext in shp_ext_list:
-        prefix = os.path.splitext(shpFile)[0]
-        src = prefix + ext
-        if os.path.isfile(src): # Is the ArcGIS Shapefile with the extension existed
-            dst = prefix + "_" + str(n) + ext
-            if os.path.exists(dst):
-                os.remove(dst)
-            shutil.copy(src, dst)
+    prefix = os.path.splitext(shpFile)[0]
+    dstfile = prefix + "_" + str(n) + ".shp"
+    FileClass.copyfiles(shpFile, dstfile)
+    # for ext in shp_ext_list:
+    #     prefix = os.path.splitext(shpFile)[0]
+    #     src = prefix + ext
+    #     if os.path.isfile(src): # Is the ArcGIS Shapefile with the extension existed
+    #         dst = prefix + "_" + str(n) + ext
+    #         if os.path.exists(dst):
+    #             os.remove(dst)
+    #         shutil.copy(src, dst)
 
     return groupDic, groupDicPmetis
 
 
-def GenerateReachTable(folder, db, forCluster):
-    watershedFile = folder + os.sep + subbasinOut
-    reachFile = folder + os.sep + DIR_NAME_REACH + os.sep + reachesOut
-    subbasinFile = folder + os.sep + DIR_NAME_SUBBSN + os.sep + subbasinVec
+def GenerateReachTable(db, folder, forCluster):
+    watershedFile = folder + os.sep + DIR_NAME_GEODATA2DB + os.sep + subbasinOut  # subbasin.tif
+    reachFile = folder + os.sep + DIR_NAME_GEOSHP + os.sep + reachesOut
+    subbasinFile = folder + os.sep + DIR_NAME_GEOSHP + os.sep + subbasinVec
     # print reachFile
 
     areaDic, dx = gridNumber(watershedFile)
-    downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, \
-        depthDic, slopeDic, widthDic, lenDic = downStream(reachFile)
+    downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic, slopeDic, widthDic, lenDic = downStream(
+        reachFile)
     # for k in downStreamDic:
     # print k, downStreamDic[k]
 
     g = nx.DiGraph()
     for k in downStreamDic:
-        if (downStreamDic[k] > 0):
+        if downStreamDic[k] > 0:
             g.add_edge(k, downStreamDic[k])
 
     ns = g.nodes()
 
     # consturct the METIS input file
     metisFolder = folder + os.sep + DIR_NAME_METISOUT
-    if not os.path.exists(metisFolder):
-        os.mkdir(metisFolder)
-    metisInput = r'%s/metis.txt' % (metisFolder)
+    UtilClass.mkdir(metisFolder)
+    metisInput = r'%s/metis.txt' % metisFolder
     f = open(metisInput, 'w')
     f.write(str(len(ns)) + "\t" + str(len(g.edges())) + "\t" + "010\t1\n")
     for node in ns:
@@ -221,7 +227,7 @@ def GenerateReachTable(folder, db, forCluster):
 
     # execute metis
     nlist = [1, ]
-    if (forCluster):
+    if forCluster:
         a = [1, 2, 3, 6]
         a2 = [12 * pow(2, i) for i in range(8)]
         a.extend(a2)
@@ -258,24 +264,24 @@ def GenerateReachTable(folder, db, forCluster):
         if (upstreamDownOrderDic[k] > maxOrder):
             maxOrder = upstreamDownOrderDic[k]
 
-    dicManning = {}
+    dicManning = dict()
     a = (maxManning - minManning) / (maxOrder - minOrder)
     for id in downStreamDic.keys():
         dicManning[id] = maxManning - a * (upstreamDownOrderDic[id] - minOrder)
 
     def importReachInfo(n, downStreamDic, groupDicK, groupDicP):
         for id in downStreamDic:
-            dic = {}
+            dic = dict()
             dic[REACH_SUBBASIN.upper()] = id
             dic[REACH_DOWNSTREAM.upper()] = downStreamDic[id]
             dic[REACH_UPDOWN_ORDER.upper()] = upstreamDownOrderDic[id]
             dic[REACH_DOWNUP_ORDER.upper()] = downstreamUpOrderDic[id]
             dic[REACH_MANNING.upper()] = dicManning[id]
             dic[REACH_SLOPE] = slopeDic[id]
-            dic[REACH_V0.upper()] = math.sqrt(slopeDic[id]) * math.pow(depthDic[id], 2. / 3) \
-                / dic[REACH_MANNING.upper()]
+            dic[REACH_V0.upper()] = math.sqrt(slopeDic[id]) * math.pow(depthDic[id], 2. / 3) / dic[
+                REACH_MANNING.upper()]
             dic[REACH_NUMCELLS.upper()] = areaDic[id]
-            if (n == 1):
+            if n == 1:
                 dic[REACH_GROUP.upper()] = n
             else:
                 dic[REACH_KMETIS.upper()] = groupDicK[id]
@@ -314,18 +320,18 @@ def GenerateReachTable(folder, db, forCluster):
             dic[REACH_GWSOLP.upper()] = 0  # 10.
 
             curFilter = {REACH_SUBBASIN.upper(): id}
-            db[DB_TAB_REACH.upper()].find_one_and_replace(curFilter, dic, upsert=True)
+            db[DB_TAB_REACH.upper()].find_one_and_replace(curFilter, dic, upsert = True)
 
     for n in nlist:
         print 'divide number: ', n
-        if (n == 1):
+        if n == 1:
             importReachInfo(n, downStreamDic, {}, {})
             continue
 
         # for cluster, based on kmetis
         strCommand = '"%s/gpmetis" %s %d' % (METIS_DIR, metisInput, n)
         # result = os.popen(strCommand)
-        result = RunExternalCmd(strCommand)
+        result = UtilClass.runcommand(strCommand)
         fMetisOutput = open('%s/kmetisResult%d.txt' % (metisFolder, n), 'w')
         # for line in result.readlines():
         for line in result:
@@ -341,7 +347,7 @@ def GenerateReachTable(folder, db, forCluster):
 
         # pmetis
         strCommand = '"%s/gpmetis" -ptype=rb %s %d' % (METIS_DIR, metisInput, n)
-        result = RunExternalCmd(strCommand)
+        result = UtilClass.runcommand(strCommand)
         # result = os.popen(strCommand)
         fMetisOutput = open('%s/pmetisResult%d.txt' % (metisFolder, n), 'w')
         # for line in result.readlines():
@@ -362,18 +368,15 @@ def GenerateReachTable(folder, db, forCluster):
     db[DB_TAB_REACH.upper()].create_index([(REACH_SUBBASIN.upper(), pymongo.ASCENDING),
                                            (REACH_GROUPDIVIDED.upper(), pymongo.ASCENDING)])
 
-    print 'The reaches table is generated!'
-
 
 # TEST CODE
 if __name__ == "__main__":
-    try:
-        conn = MongoClient(host=HOSTNAME, port=PORT)
-    except ConnectionFailure, e:
-        sys.stderr.write("Could not connect to MongoDB: %s" % e)
-        sys.exit(1)
+    LoadConfiguration(getconfigfile())
+    client = ConnectMongoDB(HOSTNAME, PORT)
+    conn = client.get_conn()
     db = conn[SpatialDBName]
     if forCluster:
-        GenerateReachTable(WORKING_DIR, db, True)
+        GenerateReachTable(db, WORKING_DIR, True)
     else:
-        GenerateReachTable(WORKING_DIR, db, False)
+        GenerateReachTable(db, WORKING_DIR, False)
+    client.close()

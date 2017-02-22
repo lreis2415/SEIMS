@@ -4,15 +4,20 @@
 # @Author: Junzhi Liu
 # @Revised: Liang-Jun Zhu
 #
+import sys
+import math
+from struct import pack, unpack
 
-from struct import *
-
-from gridfs import *
+import numpy
+from gridfs import GridFS
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
 from config import *
-from util import *
+from utility import LoadConfiguration
+from utility import UTIL_ZERO
+# for test main
+from db_mongodb import ConnectMongoDB
 
 
 def cal_dis(x1, y1, x2, y2):
@@ -67,28 +72,27 @@ def thiessen(x, y, locList):
     return s, iMin
 
 
-def GenerateWeightDependentParameters(conn, subbasinID):
-    '''
+def GenerateWeightDependentParameters(conn, dbModel, subbasinID):
+    """
     Generate some parameters dependent on weight data and only should be calculated once.
     Such as PHU0 (annual average total potential heat units)
             TMEAN0 (annual average temperature)
     :return:
-    '''
-    dbModel = conn[SpatialDBName]
+    """
     spatial = GridFS(dbModel, DB_TAB_SPATIAL.upper())
     # read mask file from mongodb
     maskName = str(subbasinID) + '_MASK'
+    # is MASK existed in Database?
+    if not spatial.exists(filename = maskName):
+        return False
     # read WEIGHT_M file from mongodb
     weightMName = str(subbasinID) + '_WEIGHT_M'
-    mask = dbModel[DB_TAB_SPATIAL.upper()].files.find(
-        {"filename": maskName})[0]
-    weightM = dbModel[DB_TAB_SPATIAL.upper()].files.find(
-        {"filename": weightMName})[0]
+    mask = dbModel[DB_TAB_SPATIAL.upper()].files.find({"filename": maskName})[0]
+    weightM = dbModel[DB_TAB_SPATIAL.upper()].files.find({"filename": weightMName})[0]
     numCells = int(weightM["metadata"]["NUM_CELLS"])
     numSites = int(weightM["metadata"]["NUM_SITES"])
     # read meteorlogy sites
-    siteLists = dbModel[DB_TAB_SITELIST.upper()].find(
-        {FLD_SUBBASINID.upper(): subbasinID})
+    siteLists = dbModel[DB_TAB_SITELIST.upper()].find({FLD_SUBBASINID.upper(): subbasinID})
     siteList = siteLists.next()
     dbName = siteList[FLD_DB.upper()]
     mList = siteList.get('SITELISTM')
@@ -98,13 +102,12 @@ def GenerateWeightDependentParameters(conn, subbasinID):
     siteList = [int(item) for item in siteList]
 
     qDic = {Tag_ST_StationID.upper(): {'$in': siteList},
-            Tag_DT_Type.upper(): Datatype_PHU0}
+            Tag_DT_Type.upper()     : Datatype_PHU0}
     cursor = dbHydro[Tag_ClimateDB_ANNUAL_STATS.upper()].find(
         qDic).sort(Tag_ST_StationID.upper(), 1)
 
-    qDic2 = {Tag_ST_StationID.upper(): {'$in': siteList}, Tag_DT_Type.upper()             : DataType_MeanTemperature0.upper()}
-    cursor2 = dbHydro[Tag_ClimateDB_ANNUAL_STATS.upper()].find(
-        qDic2).sort(Tag_ST_StationID.upper(), 1)
+    qDic2 = {Tag_ST_StationID.upper(): {'$in': siteList}, Tag_DT_Type.upper(): DataType_MeanTemperature0.upper()}
+    cursor2 = dbHydro[Tag_ClimateDB_ANNUAL_STATS.upper()].find(qDic2).sort(Tag_ST_StationID.upper(), 1)
 
     idList = []
     phuList = []
@@ -140,11 +143,11 @@ def GenerateWeightDependentParameters(conn, subbasinID):
     maskData = unpack(fmt, maskData.read())
     fname = "%s_%s" % (str(subbasinID), Datatype_PHU0.upper())
     fname2 = "%s_%s" % (str(subbasinID), DataType_MeanTemperature0.upper())
-    if (spatial.exists(filename=fname)):
-        x = spatial.get_version(filename=fname)
+    if spatial.exists(filename = fname):
+        x = spatial.get_version(filename = fname)
         spatial.delete(x._id)
-    if (spatial.exists(filename=fname2)):
-        x = spatial.get_version(filename=fname2)
+    if spatial.exists(filename = fname2):
+        x = spatial.get_version(filename = fname2)
         spatial.delete(x._id)
     metaDic = mask["metadata"]
     metaDic["TYPE"] = Datatype_PHU0
@@ -156,8 +159,8 @@ def GenerateWeightDependentParameters(conn, subbasinID):
     metaDic2["ID"] = fname2
     metaDic2["DESCRIPTION"] = DataType_MeanTemperature0
 
-    myfile = spatial.new_file(filename=fname, metadata=metaDic)
-    myfile2 = spatial.new_file(filename=fname2, metadata=metaDic2)
+    myfile = spatial.new_file(filename = fname, metadata = metaDic)
+    myfile2 = spatial.new_file(filename = fname2, metadata = metaDic2)
     vaildCount = 0
     for i in range(0, ysize):
         curRow = []
@@ -165,39 +168,36 @@ def GenerateWeightDependentParameters(conn, subbasinID):
         for j in range(0, xsize):
             index = i * xsize + j
             # print index
-            if (abs(maskData[index] - noDataValue) > UTIL_ZERO):
+            if abs(maskData[index] - noDataValue) > UTIL_ZERO:
                 curRow.append(phu0Data[vaildCount])
                 curRow2.append(tmean0Data[vaildCount])
                 vaildCount += 1
             else:
                 curRow.append(noDataValue)
                 curRow2.append(noDataValue)
-        fmt = '%df' % (xsize)
+        fmt = '%df' % xsize
         myfile.write(pack(fmt, *curRow))
         myfile2.write(pack(fmt, *curRow2))
     myfile.close()
     myfile2.close()
     print "Valid Cell Number is: %d" % vaildCount
+    return True
 
 
-def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=False):
+def GenerateWeightInfo(conn, dbModel, subbasinID, stormMode = False, useRsData = False):
     '''
     Generate and import weight information using Thiessen polygon method.
-    :param conn:
-    :param modelName:
     :param subbasinID:
     :param stormMode:
     :param useRsData:
     :return:
     '''
     # print "\t Subbasin:", subbasinID
-    dbModel = conn[modelName]
     spatial = GridFS(dbModel, DB_TAB_SPATIAL.upper())
 
     # read mask file from mongodb
     maskName = str(subbasinID) + '_MASK'
-    mask = dbModel[DB_TAB_SPATIAL.upper()].files.find(
-        {"filename": maskName})[0]
+    mask = dbModel[DB_TAB_SPATIAL.upper()].files.find({"filename": maskName})[0]
 
     ysize = int(mask["metadata"]["NROWS"])
     xsize = int(mask["metadata"]["NCOLS"])
@@ -216,12 +216,12 @@ def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=F
     # count number of valid cells
     num = 0
     for i in range(0, totalLen):
-        if (abs(data[i] - noDataValue) > UTIL_ZERO):
-            num = num + 1
+        if abs(data[i] - noDataValue) > UTIL_ZERO:
+            num += 1
 
     # read stations information from database
     metadic = {
-        'SUBBASIN': subbasinID,
+        'SUBBASIN' : subbasinID,
         'NUM_CELLS': num}
 
     siteLists = dbModel[DB_TAB_SITELIST.upper()].find(
@@ -235,8 +235,7 @@ def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=F
     # print mList
     dbHydro = conn[dbName]
 
-    typeList = [DataType_Meteorology, DataType_Precipitation,
-                DataType_PotentialEvapotranspiration]
+    typeList = [DataType_Meteorology, DataType_Precipitation, DataType_PotentialEvapotranspiration]
     siteLists = [mList, pList, petList]
     if petList is None:
         del typeList[2]
@@ -251,25 +250,25 @@ def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=F
     for i in range(len(typeList)):
         fname = '%d_WEIGHT_%s' % (subbasinID, typeList[i])
         print fname
-        if (spatial.exists(filename=fname)):
-            x = spatial.get_version(filename=fname)
+        if spatial.exists(filename = fname):
+            x = spatial.get_version(filename = fname)
             spatial.delete(x._id)
         siteList = siteLists[i]
-        if siteList != None:
+        if siteList is not None:
             siteList = siteList.split(',')
             # print siteList
             siteList = [int(item) for item in siteList]
             metadic['NUM_SITES'] = len(siteList)
             # print siteList
             qDic = {Tag_ST_StationID.upper(): {'$in': siteList},
-                    Tag_ST_Type.upper(): typeList[i]}
+                    Tag_ST_Type.upper()     : typeList[i]}
             cursor = dbHydro[Tag_ClimateDB_Sites.upper()].find(
                 qDic).sort(Tag_ST_StationID.upper(), 1)
 
             # meteorology station can also be used as precipitation station
             if cursor.count() == 0 and typeList[i] == DataType_Precipitation:
                 qDic = {Tag_ST_StationID.upper(): {'$in': siteList},
-                        Tag_ST_Type.upper(): DataType_Meteorology}
+                        Tag_ST_Type.upper()     : DataType_Meteorology}
                 cursor = dbHydro[Tag_ClimateDB_Sites.upper()].find(
                     qDic).sort(Tag_ST_StationID.upper(), 1)
 
@@ -284,16 +283,14 @@ def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=F
             # print 'loclist', locList
             # interpolate using the locations
             # weightList = []
-            myfile = spatial.new_file(filename=fname, metadata=metadic)
-            fTest = open(r"%s/weight_%d_%s.txt" %
-                         (WORKING_DIR, subbasinID, typeList[i]), 'w')
+            myfile = spatial.new_file(filename = fname, metadata = metadic)
+            fTest = open(r"%s/weight_%d_%s.txt" % (WORKING_DIR + os.sep + DIR_NAME_GEODATA2DB,
+                                                   subbasinID, typeList[i]), 'w')
             for i in range(0, ysize):
                 for j in range(0, xsize):
                     index = i * xsize + j
                     # print index
-                    if (abs(data[index] - noDataValue) > UTIL_ZERO):
-                        # x = geo[0] + (j+0.5)*geo[1] + i*geo[2]
-                        # y = geo[3] + j*geo[4] + (i+0.5)*geo[5]
+                    if abs(data[index] - noDataValue) > UTIL_ZERO:
                         x = xll + j * dx
                         y = yll + (ysize - i - 1) * dx
                         nearIndex = 0
@@ -303,20 +300,16 @@ def GenerateWeightInfo(conn, modelName, subbasinID, stormMode=False, useRsData=F
                         else:
                             # line = idw(x, y, locList)
                             line, nearIndex = thiessen(x, y, LocList)
-                        # weightList.append(line)
                         myfile.write(line)
                         fmt = '%df' % (len(LocList))
-                        fTest.write("%f %f " % (x, y) +
-                                    unpack(fmt, line).__str__() + "\n")
-
-                        # print line
-            # weightStr = '\n'.join(weightList)
-            # spatial.put(weightStr, filename=fname, metadata=metadic)
+                        fTest.write("%f %f " % (x, y) + unpack(fmt, line).__str__() + "\n")
             myfile.close()
-            # fTest.close()
+            fTest.close()
+
 
 if __name__ == "__main__":
-    LoadConfiguration(GetINIfile())
+    LoadConfiguration(getconfigfile())
+
     try:
         conn = MongoClient(HOSTNAME, PORT)
     except ConnectionFailure, e:
@@ -327,7 +320,11 @@ if __name__ == "__main__":
         subbasinStartID = 0
     nSubbasins = 0
     # print subbasinStartID, nSubbasins + 1
+    client = ConnectMongoDB(HOSTNAME, PORT)
+    conn = client.get_conn()
+    db = conn[SpatialDBName]
     for i in range(subbasinStartID, nSubbasins + 1):
-        GenerateWeightInfo(conn, SpatialDBName, i, stormMode)
+        GenerateWeightInfo(conn, db, i, stormMode)
         # 　added by Liangjun, 2016-6-17
-        GenerateWeightDependentParameters(conn, i)
+        GenerateWeightDependentParameters(conn, db, i)
+    client.close()
