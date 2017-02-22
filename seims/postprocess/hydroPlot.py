@@ -327,7 +327,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID = 0):
 #                 plt.title("Simulation of %s\n" % vari_Sim[i], color="#aa0903")
 #                 plt.title("\nNash: %s, R$^2$: %s" %
 #                     (NashCoef(obs[0], simList[i], len(obs[1])),
-#                     RSquare(obs[0], simList[i], len(obs[1]))),
+#                     rsquare(obs[0], simList[i], len(obs[1]))),
 #                     color="red", loc='right')
 #                 plt.tight_layout()
 #                 plt.savefig(model_dir + os.sep + vari_Sim[i] + ".png")
@@ -381,7 +381,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID = 0):
 #                 plt.title("Simulation of %s \n" % vari_Sim[i], color = "#aa0903")
 #                 plt.title("\nNash: %s, R$^2$: %s" %
 #                           (NashCoef(obs[0], simList[i], len(obs[1])),
-#                            str(RSquare(obs[0], simList[i], len(obs[1])))), color = "red", loc = 'right')
+#                            str(rsquare(obs[0], simList[i], len(obs[1])))), color = "red", loc = 'right')
 #             else:
 #                 # Simulation without observed value
 #                 plt.plot(sim_date, simList[i], label = "Simulation", color = "green",
