@@ -28,13 +28,9 @@ Latest Updated：Feb.13, 2017
 
   2.2. [Installation for developers](#22-installation-for-developers)
 
-2. [预处理程序中C++程序的编译](#ii-预处理程序中c++程序的编译)
+[**3. Python for SEIMS 依赖库的安装**](#3-python-for-seims-依赖库的安装)
 
-[**3. SEIMS主程序的编译**](#3-seims主程序的编译)
 
-1. [SEIMS源码结构](#i-seims源码结构)
-
-2. [Windows下SEIMS主程序的编译](#ii-windows下seims主程序的编译)
 
 # 1. Prerequisites
 
@@ -149,25 +145,25 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 
 [返回目录](#目录)
 
-## 3. python for SEIMS 依赖包的安装
+## 3. Python for SEIMS 依赖库的安装
  
 SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
 
-    ```py
-    pygeoc
-    # Preprocess
-    GDAL>=1.9.0,<2.0
-    numpy>=1.9.0
-    pymongo>=3.0
-    networkx>=1.10
-    Shapely>=1.5.0
-    # Postprocess
-    matplotlib>=1.5.0
-    pathlib2>=2.0.0
-    # Scenario analysis
-    deap>=1.0.2
-    scoop>=0.7.1.1
-    ```
+```python
+pygeoc
+# Preprocess
+GDAL>=1.9.0,<2.0
+numpy>=1.9.0
+pymongo>=3.0
+networkx>=1.10
+Shapely>=1.5.0
+# Postprocess
+matplotlib>=1.5.0
+pathlib2>=2.0.0
+# Scenario analysis
+deap>=1.0.2
+scoop>=0.7.1.1
+```
 
 SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
 + 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
