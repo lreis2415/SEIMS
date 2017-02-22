@@ -29,21 +29,21 @@ Linux下SEIMS模型的编译与运行
  
 SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
 
-    ```py
-    pygeoc
-    # Preprocess
-    GDAL>=1.9.0,<2.0
-    numpy>=1.9.0
-    pymongo>=3.0
-    networkx>=1.10
-    Shapely>=1.5.0
-    # Postprocess
-    matplotlib>=1.5.0
-    pathlib2>=2.0.0
-    # Scenario analysis
-    deap>=1.0.2
-    scoop>=0.7.1.1
-    ```
+```py
+pygeoc
+# Preprocess
+GDAL>=1.9.0,<2.0
+numpy>=1.9.0
+pymongo>=3.0
+networkx>=1.10
+Shapely>=1.5.0
+# Postprocess
+matplotlib>=1.5.0
+pathlib2>=2.0.0
+# Scenario analysis
+deap>=1.0.2
+scoop>=0.7.1.1
+```
 
 SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
 + 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
