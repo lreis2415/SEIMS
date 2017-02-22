@@ -23,9 +23,10 @@ make (or make 2>&1 | tee build.log 用于保存编译日志)
 make install
 ```
 
-编译完成之后，SEIMS模型所有可执行文件和模块库均安装于`<SEIMS root path>/seims/bin`目录下。
++ 在执行`make`命令时，可追加 `-j 4`命令利用CPU多核性能并行编译程序，提高编译速度，并行进程数最好设置为物理核数的2倍。
++ 编译完成之后，SEIMS模型所有可执行文件和模块库均安装于`<SEIMS root path>/seims/bin`目录下。
 
-## 3. python for SEIMS 依赖包的安装
+## 3. Python for SEIMS 依赖包的安装
  
 SEIMS预处理、后处理、率定、情景分析等所需的Python依赖库及版本要求如下：
 
