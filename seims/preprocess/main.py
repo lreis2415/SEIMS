@@ -4,35 +4,24 @@
 # @Author: Liang-Jun Zhu
 #
 
-# MongoDB modules
-from build_db import BuildMongoDB
-# HydroClimate modules
-from hydroclimate_sites import ImportHydroClimateSitesInfo
-from import_measurement import ImportMeasurementData
-from MeteorologicalDaily import ImportDailyMeteoData
-from parameters_extraction import ExtractParameters
-from PrecipitationDaily import ImportDailyPrecData
-# Spatial modules
-from subbasin_delineation import SubbasinDelineation
-# Intermediate SQLite database
-from txt2db3 import reConstructSQLiteDB
+# pygeoc
+from pygeoc.utils.parseConfig import getconfigfile
 # Load configuration file
-from util import GetINIfile, LoadConfiguration
+from utility import LoadConfiguration
+
+# Spatial delineation
+from sd_delineation import SubbasinDelineation
+# Spatial parameters extraction
+from sp_extraction import ExtractSpatialParameters
+# MongoDB modules
+from db_build_mongodb import BuildMongoDB
 
 if __name__ == "__main__":
     # Load Configuration file
-    LoadConfiguration(GetINIfile())
-    # Spatial Data derived from DEM
+    LoadConfiguration(getconfigfile())
+    # Spatial delineation by TauDEM
     SubbasinDelineation()
-    # Update SQLite Parameters.db3 database
-    reConstructSQLiteDB()
-    # Climate Data
-    SitesMList, SitesPList = ImportHydroClimateSitesInfo()
-    ImportDailyMeteoData(SitesMList)
-    ImportDailyPrecData(SitesPList)
-    # Measurement Data, such as discharge, sediment yield.
-    ImportMeasurementData()
-    # Extract parameters from landuse, soil properties etc.
-    ExtractParameters()
+    # Extract spatial parameters for reaches, landuse, soil, etc.
+    ExtractSpatialParameters()
     # Import to MongoDB database
     BuildMongoDB()

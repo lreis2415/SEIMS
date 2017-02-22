@@ -5,8 +5,10 @@
 #
 import sqlite3
 
+from pygeoc.utils.utils import UtilClass
 from config import *
-from util import *
+from utility import LoadConfiguration, ReadDataItemsFromTxt
+from utility import DEFAULT_NODATA
 
 
 def txt2Sqlite(dataFiles, dbFile):
@@ -79,14 +81,17 @@ def importData2Sqlite(dataImport, dbFile):
 
 def reConstructSQLiteDB():
     # If the database file existed, DELETE it.
-    sqlPath = TXT_DB_DIR + os.sep + sqliteFile
-    if os.path.exists(sqlPath):
-        os.remove(sqlPath)
-    dataFiles = [[Tag_Params, init_params]]
+    db_dir = WORKING_DIR + os.sep + DIR_NAME_IMPORT2DB
+    UtilClass.mkdir(db_dir)
+    sql_path = db_dir + os.sep + sqlite_file
+    if os.path.exists(sql_path):
+        os.remove(sql_path)
+    data_files = [[Tag_Params, init_params]]
     for df in lookup_tabs:
-        dataFiles.append([Tag_Lookup, df])
-    txt2Sqlite(dataFiles, sqlPath)
+        data_files.append([Tag_Lookup, df])
+    txt2Sqlite(data_files, sql_path)
 
 
 if __name__ == "__main__":
+    LoadConfiguration(getconfigfile())
     reConstructSQLiteDB()

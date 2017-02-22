@@ -4,13 +4,16 @@
 # Author: Junzhi Liu
 # Revised: Liang-Jun Zhu
 #
+import sys
+
 import pymongo
 from osgeo import ogr
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 from shapely.wkt import loads
 
 from config import *
+# for test main
+from utility import LoadConfiguration
+from db_mongodb import ConnectMongoDB
 
 
 def OGRWkt2Shapely(input_shape, idField):
@@ -45,8 +48,8 @@ def FindSites(db, hydroDBName, subbasinFile, subbasinIdField, thiessenFileList, 
         dic[FLD_DB.upper()] = hydroDBName
         dic[FLD_MODE.upper()] = mode
         curFileter = {FLD_SUBBASINID.upper(): id,
-                      FLD_DB.upper(): hydroDBName,
-                      FLD_MODE.upper(): mode}
+                      FLD_DB.upper()        : hydroDBName,
+                      FLD_MODE.upper()      : mode}
         for metroID in range(0, n):
             thiessenFile = thiessenFileList[metroID]
             # print thiessenFile
@@ -66,7 +69,7 @@ def FindSites(db, hydroDBName, subbasinFile, subbasinIdField, thiessenFileList, 
 
             siteField = '%s%s' % (DB_TAB_SITELIST.upper(), siteType)
             dic[siteField] = siteListStr
-        db[DB_TAB_SITELIST.upper()].find_one_and_replace(curFileter, dic, upsert=True)
+        db[DB_TAB_SITELIST.upper()].find_one_and_replace(curFileter, dic, upsert = True)
 
     db[DB_TAB_SITELIST.upper()].create_index([(FLD_SUBBASINID.upper(), pymongo.ASCENDING),
                                               (FLD_MODE.upper(), pymongo.ASCENDING)])
@@ -76,20 +79,15 @@ def FindSites(db, hydroDBName, subbasinFile, subbasinIdField, thiessenFileList, 
 
 # TEST CODE
 if __name__ == "__main__":
-    hostname = '127.0.0.1'
-    port = 27017
-    try:
-        conn = MongoClient(host=hostname, port=27017)
-        print "Connected successfully"
-    except ConnectionFailure, e:
-        sys.stderr.write("Could not connect to MongoDB: %s" % e)
-        sys.exit(1)
-
+    LoadConfiguration(getconfigfile())
+    client = ConnectMongoDB(HOSTNAME, PORT)
+    conn = client.get_conn()
+    db = conn[SpatialDBName]
     thiessenFileList = [MeteorSitesThiessen, PrecSitesThiessen]
     typeList = [DataType_Meteorology, DataType_Precipitation]
-    db = conn[SpatialDBName]
     if not forCluster:
         basinFile = WORKING_DIR + os.sep + basinVec
         FindSites(db, ClimateDBName, basinFile, FLD_BASINID, thiessenFileList, typeList, 'DAILY')
-    subbasinFile = WORKING_DIR + os.sep + DIR_NAME_SUBBSN + os.sep + subbasinVec  # subbasin.shp, for MPI version
+    subbasinFile = WORKING_DIR + os.sep + DIR_NAME_GEOSHP + os.sep + subbasinVec  # subbasin.shp, for MPI version
     FindSites(db, ClimateDBName, subbasinFile, FLD_SUBBASINID, thiessenFileList, typeList, 'DAILY')
+    client.close()

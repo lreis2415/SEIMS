@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # coding=utf-8
-# @ Constant strings used in SEIMS, means both in
+# @ Constant strings used in SEIMS, both in
 #   data preprocessing and SEIMS modules
 # @Author: Liang-Jun Zhu
 #
@@ -14,13 +14,16 @@ Tag_Mode_Daily = "DAILY"
 Tag_CLIM_STORM_Suf = "storm_cmorph"
 
 # Names for folders in output workspace for Spatial data preprocessing
-DIR_NAME_TAUDEM = "taudir"
-DIR_NAME_REACH = "reaches"
-DIR_NAME_SUBBSN = "subbasins"
+DIR_NAME_LOG = "runtime_log"
+DIR_NAME_TAUDEM = "taudem_delineated"
+DIR_NAME_GEODATA2DB = "spatial_raster"
+DIR_NAME_GEOSHP = "spatial_shp"
+# DIR_NAME_REACH = "reaches"
+# DIR_NAME_SUBBSN = "subbasins"
 DIR_NAME_LAYERINFO = "layering_info"
 DIR_NAME_METISOUT = "metis_output"
-DIR_NAME_TIFFIMPORT = "tif_files"
-DIR_NAME_LOOKUP = "lookup"
+DIR_NAME_IMPORT2DB = "imported_monogodb"
+DIR_NAME_LOOKUP = "lookup_tables"
 # File names
 FILE_IN = "file.in"
 FILE_OUT = "file.out"
@@ -31,7 +34,7 @@ init_params = 'model_param_ini'
 lookup_tabs = ['SoilLookup', 'LanduseLookup', 'TillageLookup',
                'UrbanLookup', 'CropLookup', 'FertilizerLookup']
 CROP_FILE = 'CropLookup.txt'
-sqliteFile = "Parameter.db3"
+sqlite_file = "Parameter.db3"
 
 # CROP, LANDUSE, and SOIL attribute are imported to mongoDB
 # Match to the new lookup table of SWAT 2012 rev.637. LJ
@@ -87,7 +90,6 @@ SOL_NH4 = "SOL_NH                                                               
 SOL_ORGN = "SOL_ORGN"
 SOL_ORGP = "SOL_ORGP"
 SOL_SOLP = "SOL_SOLP"
-
 
 # Climate datatype tags, MUST BE coincident with text.h in SEIMS
 # /src/base/util/text.h
@@ -173,8 +175,8 @@ REACH_AREA = "AREA"
 REACH_SIDESLP = "SIDE_SLOPE"
 REACH_MANNING = "MANNING"
 REACH_SLOPE = "SLOPE"
-REACH_KMETIS = 'KMETIS' # GROUP_KMETIS is too long for ArcGIS Shapefile
-REACH_PMETIS = 'PMETIS' # the same reason
+REACH_KMETIS = 'KMETIS'  # GROUP_KMETIS is too long for ArcGIS Shapefile
+REACH_PMETIS = 'PMETIS'  # the same reason
 REACH_BC1 = 'BC1'
 REACH_BC2 = 'BC2'
 REACH_BC3 = 'BC3'
@@ -190,17 +192,17 @@ REACH_RS4 = 'RS4'
 REACH_RS5 = 'RS5'
 # reach erosion related parameters, 2016-8-16, LJ
 REACH_COVER = 'COVER'  # -0.05 - 0.6
-REACH_EROD = 'EROD'   # -0.001 - 1
+REACH_EROD = 'EROD'  # -0.001 - 1
 # nutrient routing related parameters
 REACH_DISOX = 'DISOX'  # 0-50 mg/L
-REACH_BOD = 'BOD'     # 0-1000 mg/L
+REACH_BOD = 'BOD'  # 0-1000 mg/L
 REACH_ALGAE = 'ALGAE'  # 0-200 mg/L
-REACH_ORGN = 'ORGN'   # 0-100 mg/L
-REACH_NH4 = 'NH4'     # 0-50 mg/L
-REACH_NO2 = 'NO2'     # 0-100 mg/L
-REACH_NO3 = 'NO3'     # 0-50 mg/L
-REACH_ORGP = 'ORGP'   # 0-25 mg/L
-REACH_SOLP = 'SOLP'   # 0-25 mg/L
+REACH_ORGN = 'ORGN'  # 0-100 mg/L
+REACH_NH4 = 'NH4'  # 0-50 mg/L
+REACH_NO2 = 'NO2'  # 0-100 mg/L
+REACH_NO3 = 'NO3'  # 0-50 mg/L
+REACH_ORGP = 'ORGP'  # 0-25 mg/L
+REACH_SOLP = 'SOLP'  # 0-25 mg/L
 # groundwater related parameters
 REACH_GWNO3 = 'GWNO3'  # 0-1000 mg/L
 REACH_GWSOLP = 'GWSOLP'  # 0-1000 mg/L
@@ -226,7 +228,6 @@ FLD_CONF_SUBBSN = "SUBBASIN"
 FLD_CONF_FILENAME = "FILENAME"
 FLD_CONF_USE = "USE"
 
-
 FLD_LINKNO = "LINKNO"
 FLD_DSLINKNO = "DSLINKNO"
 
@@ -247,9 +248,6 @@ flowDirDinf = "flowDirDinfTau.tif"
 dirCodeDinf = "dirCodeDinfTau.tif"
 slopeDinf = "slopeDinfTau.tif"
 weightDinf = "weightDinfTau.tif"
-cellLat = "cellLatOrg.tif"
-daylMin = "dayLenMinOrg.tif"
-dormhr = "dormhrOrg.tif"
 
 modifiedOutlet = "outletM.shp"
 streamSkeleton = "streamSkeleton.tif"
@@ -271,18 +269,19 @@ flowDirOut = "flow_dir.tif"
 streamLinkOut = "stream_link.tif"
 # masked and output to mongoDB file names
 slopeM = "slope.tif"
-filldemM = "dem.tif"
+filleddemM = "dem.tif"
 accM = "acc.tif"
 streamOrderM = "stream_order.tif"
 flowDirDinfM = "flow_dir_angle_dinf.tif"
 dirCodeDinfM = "flow_dir_dinf.tif"
 slopeDinfM = "slope_dinf.tif"
 weightDinfM = "weight_dinf.tif"
-cellLatM = "celllat.tif"
-daylMinM = "dayLenMin.tif"
-dormhrM = "dormhr.tif"
+cellLat = "celllat.tif"
+daylMin = "dayLenMin.tif"
+dormhr = "dormhr.tif"
 dist2StreamD8M = "dist2Stream.tif"
 
+outletVec = "outlet.shp"
 subbasinVec = "subbasin.shp"
 basinVec = "basin.shp"
 chwidthName = "chwidth.tif"
@@ -310,17 +309,19 @@ delta_sFile = "delta_s.tif"
 # potential runoff coefficient
 runoff_coefFile = "runoff_co.tif"
 
-# GeoJson format files (WGS 1984 coordinate)
+# GeoJson format files (WGS84 coordinate)
 GEOJSON_REACH = "river.json"
 GEOJSON_SUBBSN = "subbasin.json"
+GEOJSON_BASIN = "basin.json"
 GEOJSON_OUTLET = "outlet.json"
 # Other filenames used in preprocessing
 FN_STATUS_DELINEATION = "status_SubbasinDelineation.txt"
-FN_STATUS_MASKRASTERS = "maskDemConfig.txt"
-FN_STATUS_MASKLANDUSE = "maskLanduseConfig.txt"
-FN_STATUS_GENSUBBSN = "status_GenerateSubbasins.txt"
-FN_STATUS_EXTRACTPARAM = "status_ExtractParameters.txt"
+FN_STATUS_EXTRACTSOILPARAM = "status_ExtractSoilParameters.txt"
+FN_STATUS_EXTRACTLANDUSEPARAM = "status_ExtractLanduseParameters.txt"
+FN_STATUS_EXTRACTTERRAINPARAM = "status_ExtractTerrainParameters.txt"
 FN_STATUS_MONGO = "status_BuildMongoDB.txt"
+FN_CONFIG_MASKRASTERS = "config_maskDelineatedRaster.txt"
+FN_CONFIG_RECLASSIFYLU = "config_reclassLanduseConfig.txt"
 # Header information of raster data (Derived from Mask.tif)
 HEADER_RS_TAB = "Header"
 HEADER_RS_NODATA = "NODATA_VALUE"
