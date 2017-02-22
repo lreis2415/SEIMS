@@ -950,7 +950,7 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         name = param->Name;
         //cout << param->Name << " " << param->BasicName << endl;
     }
-    //cout << "set " + name + " for module " + m_ModuleID << endl;
+	StatusMessage(("set " + name + " data").c_str());
     //clock_t start = clock();
     //const char *paramName = name.c_str(); // not used variable. LJ
     ostringstream oss;
@@ -1298,7 +1298,7 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
         try
         {
 #ifdef USE_MONGODB
-            raster = new clsRasterData<float>(m_spatialData, remoteFileName.c_str(), true, templateRaster);
+            raster = new clsRasterData<float>(m_spatialData, remoteFileName.c_str(), true, templateRaster, true);
             string upperName = GetUpper(paraName);
             /// 1D or 2D raster data
             if (raster->is2DRaster())
@@ -1396,10 +1396,8 @@ void ModuleFactory::UpdateInput(vector<SimulationModule *> &modules, SettingsInp
             if (param.DependPara != NULL)
                 continue;    //the input which comes from other modules will not change when the date is change.
 
-            if(StringMatch(param.Name.c_str(), CONS_IN_ELEV) == 0
-                || StringMatch(param.Name.c_str(),CONS_IN_LAT) == 0
-                || StringMatch(param.Name.c_str(),CONS_IN_XPR) == 0
-                || StringMatch(param.Name.c_str(),CONS_IN_YPR) == 0)
+            if(StringMatch(param.Name.c_str(), CONS_IN_ELEV) || StringMatch(param.Name.c_str(),CONS_IN_LAT)
+                || StringMatch(param.Name.c_str(),CONS_IN_XPR) || StringMatch(param.Name.c_str(),CONS_IN_YPR))
                 continue;
 
             if (dataType.length() > 0)
@@ -1409,7 +1407,7 @@ void ModuleFactory::UpdateInput(vector<SimulationModule *> &modules, SettingsInp
 
                 inputSetting->StationData()->GetTimeSeriesData(t, dataType, &datalen, &data);
 
-                if (StringMatch(param.Name.c_str(), DataType_PotentialEvapotranspiration) == 0)
+                if (StringMatch(param.Name.c_str(), DataType_PotentialEvapotranspiration))
 
                 {
                     for (int iData = 0; iData < datalen; iData++)
