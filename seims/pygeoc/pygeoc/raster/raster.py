@@ -24,7 +24,7 @@ class Raster(object):
         7. GetValueByXY(x, y)
     """
 
-    def __init__(self, nRows, nCols, data, noDataValue = None, geotransform = None, srs = None):
+    def __init__(self, nRows, nCols, data, noDataValue=None, geotransform=None, srs=None):
         self.nRows = nRows
         self.nCols = nCols
         self.data = numpy.copy(data)
@@ -166,7 +166,7 @@ class RasterUtilClass(object):
         return Raster(ySizeMask, xSizeMask, mask, DEFAULT_NODATA, maskGeotrans, srs)
 
     @staticmethod
-    def RasterReclassify(srcfile, vDict, dstfile, gdaltype = GDT_Float32):
+    def RasterReclassify(srcfile, vDict, dstfile, gdaltype=GDT_Float32):
         """Reclassify raster."""
         srcR = RasterUtilClass.ReadRaster(srcfile)
         srcData = srcR.data
@@ -209,7 +209,7 @@ class RasterUtilClass(object):
         f.close()
 
     @staticmethod
-    def Raster2GeoTIFF(tif, geotif, gdalType = gdal.GDT_Float32):
+    def Raster2GeoTIFF(tif, geotif, gdalType=gdal.GDT_Float32):
         """Convering Raster format to GeoTIFF."""
         rstFile = RasterUtilClass.ReadRaster(tif)
         RasterUtilClass.WriteGTiffFile(geotif, rstFile.nRows, rstFile.nCols, rstFile.data,
