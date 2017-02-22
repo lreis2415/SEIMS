@@ -9,8 +9,6 @@ import sqlite3
 from struct import pack
 
 from gridfs import GridFS
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 from pygeoc.utils.utils import MathClass
 
 from config import *
@@ -55,7 +53,7 @@ def ImportModelParameters(sqlite_file, db):
                 else:
                     dic[field_list[i].upper()] = items[i]
             curfilter = {PARAM_FLD_NAME.upper(): dic[PARAM_FLD_NAME.upper()], Tag_DT_Type.upper(): tablename}
-            db[DB_TAB_PARAMETERS.upper()].find_one_and_replace(curfilter, dic, upsert = True)
+            db[DB_TAB_PARAMETERS.upper()].find_one_and_replace(curfilter, dic, upsert=True)
     db[DB_TAB_PARAMETERS.upper()].create_index(PARAM_FLD_NAME.upper())
     c.close()
     conn.close()
@@ -102,11 +100,11 @@ def ImportLookupTables(db, sqlite_file):
             # import to mongoDB as GridFS
             spatial = GridFS(db, DB_TAB_SPATIAL.upper())
             # delete if the tablename file existed already.
-            if spatial.exists(filename = tablename.upper()):
-                x = spatial.get_version(filename = tablename.upper())
+            if spatial.exists(filename=tablename.upper()):
+                x = spatial.get_version(filename=tablename.upper())
                 spatial.delete(x._id)
             metadic = {META_LOOKUP_ITEM_COUNT.upper(): nRow, META_LOOKUP_FIELD_COUNT.upper(): nCol}
-            curLookupGridFS = spatial.new_file(filename = tablename.upper(), metadata = metadic)
+            curLookupGridFS = spatial.new_file(filename=tablename.upper(), metadata=metadic)
             header = [nRow]
             fmt = '%df' % 1
             s = pack(fmt, *header)
@@ -146,7 +144,7 @@ def ImportModelConfiguration(db):
         fileInDict[FLD_CONF_TAG] = values[0]
         fileInDict[FLD_CONF_VALUE] = values[1]
         db[DB_TAB_FILE_IN.upper()].find_one_and_replace(
-            fileInDict, fileInDict, upsert = True)
+            fileInDict, fileInDict, upsert=True)
 
     outFieldArray = fileOutItems[0]
     outDataArray = fileOutItems[1:]
@@ -180,11 +178,11 @@ def ImportModelConfiguration(db):
                 fileOutDict[FLD_CONF_SUBBSN] = item[i]
         if fileOutDict.keys() is []:
             raise ValueError("There are not any valid output item stored in file.out!")
-        curFileter = {FLD_CONF_MODCLS  : fileOutDict[FLD_CONF_MODCLS],
+        curFileter = {FLD_CONF_MODCLS: fileOutDict[FLD_CONF_MODCLS],
                       FLD_CONF_OUTPUTID: fileOutDict[FLD_CONF_OUTPUTID],
-                      FLD_CONF_STIME   : fileOutDict[FLD_CONF_STIME],
-                      FLD_CONF_ETIME   : fileOutDict[FLD_CONF_ETIME]}
-        db[DB_TAB_FILE_OUT].find_one_and_replace(curFileter, fileOutDict, upsert = True)
+                      FLD_CONF_STIME: fileOutDict[FLD_CONF_STIME],
+                      FLD_CONF_ETIME: fileOutDict[FLD_CONF_ETIME]}
+        db[DB_TAB_FILE_OUT].find_one_and_replace(curFileter, fileOutDict, upsert=True)
 
 
 if __name__ == "__main__":
