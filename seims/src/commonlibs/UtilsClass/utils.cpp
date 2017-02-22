@@ -754,6 +754,6 @@ void utils::SetDefaultOpenMPThread(){
 void utils::StatusMessage(const char *msg)
 {
 	/// Just for debugging ///
-	/// cout << msg << endl;
+	// cout << msg << endl;
 }
 #endif
