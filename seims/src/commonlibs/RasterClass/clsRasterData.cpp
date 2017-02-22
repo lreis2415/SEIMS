@@ -1007,12 +1007,14 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string  filename, map<st
 			}
 			CPLFree(pData);
 		} else if (dataType == GDT_Int32) {
-			long *pData = (long *) CPLMalloc(sizeof(int) * nCols * nRows);
+			//long *pData = (long *) CPLMalloc(sizeof(long) * nCols * nRows);
+            int32_t *pData = (int32_t *) CPLMalloc(sizeof(int32_t) * nCols * nRows);
 			poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Int32, 0, 0);
 			for (int i = 0; i < nRows; ++i) {
-				for (int j = 0; j < nCols; ++j) {
+				for (int j = 0; j < nCols; ++j) { 
 					int index = i * nCols + j;
 					tmprasterdata[index] = (T) pData[index];
+                    cout<<i<<", "<<j<<": "<<pData[index]<<","<<tmprasterdata[index]<<endl;
 				}
 			}
 			CPLFree(pData);
