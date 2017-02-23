@@ -1,14 +1,5 @@
 # Github使用说明
-
-为了群策群力完善模型，SEIMS采用Github平台进行版本控制，并采用git subtree命令管理独立子库。独立子库包括：
-+ 1.[SEIMS wiki文档](https://github.com/lreis2415/SEIMS2017/wiki)
-+ 2.[PyGeoC: 用于地学计算的简单Python包](https://github.com/lreis2415/PyGeoC)
-+ 3.[TauDEM: 用于地形参数提取、子流域划分软件包](https://github.com/lreis2415/TauDEM)
-+ 4.[METIS: 用于子流域层次的任务划分](https://github.com/lreis2415/metis)
-+ 5.用于地学计算的C++基础类
-	+ 5.1.[UtilsClass: 字符串、时间、数组等基础操作](https://github.com/lreis2415/UtilsClass)
-	+ 5.2.[MongoUtilClass: 基于mongo-c-driver封装的MongoDB简单操作类](https://github.com/lreis2415/MongoUtilClass)
-	+ 5.3.[RasterClass: 支持ASCII、GDAL和MongoDB的读写，支持掩膜运算等的栅格类](https://github.com/lreis2415/RasterClass)
+---------------
 
 在开始之前，强烈建议阅读以下学习资料：
 + [廖学峰老师的Git教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/)
