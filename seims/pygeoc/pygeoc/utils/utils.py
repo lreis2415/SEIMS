@@ -293,6 +293,7 @@ class UtilClass(object):
         :param commands: string or list
         :return: output lines
         """
+        print (commands)
         use_shell = True
         if isinstance(commands, list) or isinstance(commands, tuple):
             use_shell = False
