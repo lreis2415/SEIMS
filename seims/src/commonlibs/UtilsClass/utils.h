@@ -50,9 +50,10 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
+#endif
+#if (defined macos) ||  (defined macosold)
 #include <libproc.h>
 #endif
-
 using namespace std;
 
 /*!
