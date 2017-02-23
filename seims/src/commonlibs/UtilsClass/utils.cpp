@@ -588,7 +588,7 @@ string utilsFileIO::GetAppPath()
 	TCHAR buffer[PATH_MAX];
 	GetModuleFileName(NULL, buffer, PATH_MAX);
 	RootPath = string((char *) buffer);
-#else
+#elif (defined macos) || (defined macosold)
     /// http://stackoverflow.com/a/8149380/4837280
     int ret;
     pid_t pid;
@@ -602,14 +602,14 @@ string utilsFileIO::GetAppPath()
         printf("proc %d: %s\n", pid, pathbuf);
     }
     RootPath = pathbuf;
-//#else
-//	static char buf[PATH_MAX];
-//	int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
-//	if(rslt < 0 || rslt >= PATH_MAX)
-//		buf[0] = '\0';
-//	else
-//		buf[rslt] = '\0';
-//	RootPath = buf;
+#else
+	static char buf[PATH_MAX];
+	int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
+	if(rslt < 0 || rslt >= PATH_MAX)
+		buf[0] = '\0';
+	else
+		buf[rslt] = '\0';
+	RootPath = buf;
 #endif
 	basic_string<char>::size_type idx = RootPath.find_last_of(SEP);
 	RootPath = RootPath.substr(0, idx + 1);
