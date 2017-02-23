@@ -7,8 +7,7 @@
 
 using namespace std;
 
-class ModulesTest : public SimulationModule
-{
+class ModulesTest : public SimulationModule {
 private:
     /// valid cells number
     int m_nCells;

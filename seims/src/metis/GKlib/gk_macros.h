@@ -16,7 +16,7 @@
 #define gk_max(a, b) ((a) >= (b) ? (a) : (b))
 #define gk_min(a, b) ((a) >= (b) ? (b) : (a))
 #define gk_max3(a, b, c) ((a) >= (b) && (a) >= (c) ? (a) : ((b) >= (a) && (b) >= (c) ? (b) : (c)))
-#define gk_SWAP(a, b, tmp) do {(tmp) = (a); (a) = (b); (b) = (tmp);} while(0) 
+#define gk_SWAP(a, b, tmp) do {(tmp) = (a); (a) = (b); (b) = (tmp);} while(0)
 #define INC_DEC(a, b, val) do {(a) += (val); (b) -= (val);} while(0)
 #define sign(a, b) ((a >= 0 ? b : -b))
 
@@ -50,7 +50,7 @@
  *-------------------------------------------------------------*/
 #define GKSETJMP() (setjmp(gk_return_to_entry))
 #define gk_sigcatch() (setjmp(gk_jbufs[gk_cur_jbufs]))
- 
+
 
 /*-------------------------------------------------------------
  * Debuging memory leaks
@@ -64,7 +64,7 @@
     }
 #else
 #   define MALLOC_CHECK(ptr) ;
-#endif 
+#endif
 
 
 /*-------------------------------------------------------------
@@ -75,13 +75,13 @@
      for (i=1; i<n; i++) a[i] += a[i-1]; \
      for (i=n; i>0; i--) a[i] = a[i-1]; \
      a[0] = 0; \
-   } while(0) 
+   } while(0)
 
 #define SHIFTCSR(i, n, a) \
    do { \
      for (i=n; i>0; i--) a[i] = a[i-1]; \
      a[0] = 0; \
-   } while(0) 
+   } while(0)
 
 
 /*-------------------------------------------------------------
@@ -94,7 +94,7 @@
         abort();                                                \
     }
 
-#define GKASSERTP(expr,msg)                                          \
+#define GKASSERTP(expr, msg)                                          \
     if (!(expr)) {                                               \
         printf("***ASSERTION failed on line %d of file %s: " #expr "\n", \
               __LINE__, __FILE__);                               \
@@ -109,7 +109,7 @@
               __LINE__, __FILE__);                               \
     }
 
-#define GKCUASSERTP(expr,msg)                                          \
+#define GKCUASSERTP(expr, msg)                                          \
     if (!(expr)) {                                               \
         printf("***ASSERTION failed on line %d of file %s: " #expr "\n", \
               __LINE__, __FILE__);                               \
@@ -128,7 +128,7 @@
         assert(expr);                                                \
     }
 
-#   define ASSERTP(expr,msg)                                          \
+#   define ASSERTP(expr, msg)                                          \
     if (!(expr)) {                                               \
         printf("***ASSERTION failed on line %d of file %s: " #expr "\n", \
               __LINE__, __FILE__);                               \
@@ -139,7 +139,7 @@
 #else
 #   define ASSERT(expr) ;
 #   define ASSERTP(expr,msg) ;
-#endif 
+#endif
 
 #ifndef NDEBUG2
 #   define ASSERT2 ASSERT
@@ -148,6 +148,5 @@
 #   define ASSERT2(expr) ;
 #   define ASSERTP2(expr,msg) ;
 #endif
-
 
 #endif

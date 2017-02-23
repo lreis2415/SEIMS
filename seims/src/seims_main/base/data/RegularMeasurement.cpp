@@ -12,8 +12,7 @@
 //! Constructor
 RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
-        : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval)
-{
+    : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
     int nSites = m_siteIDList.size();
 
     /// build query statement
@@ -25,8 +24,7 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
     BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
     BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
     ostringstream ossIndex;
-    for (int iSite = 0; iSite < nSites; iSite++)
-    {
+    for (int iSite = 0; iSite < nSites; iSite++) {
         ossIndex.str("");
         ossIndex << iSite;
         BSON_APPEND_INT32(child3, ossIndex.str().c_str(), m_siteIDList[iSite]);
@@ -63,50 +61,47 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
     int stationIDLast = -1;
     int stationID = -1;
     int iSite = -1;
-	vector<int>::size_type index = 0;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
-    {
+    vector<int>::size_type index = 0;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID))
-			GetNumericFromBsonIterator(&iter, stationID);
-        else
+        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
+            GetNumericFromBsonIterator(&iter, stationID);
+        } else {
             throw ModelException("Measurement", "Measurement", "The Value field does not exist in DataValues table.");
-        if (stationID != stationIDLast)
-        {
+        }
+        if (stationID != stationIDLast) {
             iSite++;
             index = 0;
             stationIDLast = stationID;
         }
 
-        if (m_siteData.size() < (index + 1))
-        {
+        if (m_siteData.size() < (index + 1)) {
             float *pData = new float[nSites];
-            for (int i = 0; i < nSites; i++)
+            for (int i = 0; i < nSites; i++) {
                 pData[i] = 0.f;
+            }
             m_siteData.push_back(pData);
         }
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE))
-			GetNumericFromBsonIterator(&iter, value);
-        else
+        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
+            GetNumericFromBsonIterator(&iter, value);
+        } else {
             throw ModelException("RegularMeasurement", "Constructor",
                                  "The Value field does not exist in DataValues table.");
+        }
         m_siteData[index][iSite] = value;
         index++;
     }
-    if (index <= 0)
-    {
+    if (index <= 0) {
         ostringstream oss;
         oss << "There are no " << siteType << " data available for sites:[" << sitesList << "] in database:" <<
-        hydroDBName
-        << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+            hydroDBName
+            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
-    }
-    else if (iSite + 1 != nSites)
-    {
+    } else if (iSite + 1 != nSites) {
         ostringstream oss;
         oss << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
-        " for sites:[" << sitesList << "] in database:" << hydroDBName
-        << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+            " for sites:[" << sitesList << "] in database:" << hydroDBName
+            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     bson_destroy(query);
@@ -114,29 +109,28 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
     mongoc_collection_destroy(collection);
 }
 
-
-RegularMeasurement::~RegularMeasurement(void)
-{
-	for (vector<float *>::iterator it = m_siteData.begin(); it != m_siteData.end();){
-        if (*it != NULL){
-			delete[] *it;
-			*it = NULL;
-		}
-		it = m_siteData.erase(it);
-	}
+RegularMeasurement::~RegularMeasurement(void) {
+    for (vector<float *>::iterator it = m_siteData.begin(); it != m_siteData.end();) {
+        if (*it != NULL) {
+            delete[] *it;
+            *it = NULL;
+        }
+        it = m_siteData.erase(it);
+    }
     m_siteData.clear();
-    if(pData != NULL) Release1DArray(pData);
+    if (pData != NULL) Release1DArray(pData);
 }
 
-float *RegularMeasurement::GetSiteDataByTime(time_t t)
-{
+float *RegularMeasurement::GetSiteDataByTime(time_t t) {
     int index = (t - m_startTime) / m_interval;
 
-    if (index < 0)
+    if (index < 0) {
         index = 0;
+    }
 
     int nSites = m_siteIDList.size();
-    for (int i = 0; i < nSites; i++)
+    for (int i = 0; i < nSites; i++) {
         pData[i] = m_siteData[index][i];
+    }
     return pData;
 }

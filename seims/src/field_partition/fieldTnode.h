@@ -11,16 +11,17 @@
 
 using namespace std;
 
-class fieldTnode
-{
+class fieldTnode {
 public:
-	fieldTnode(void);
-	~fieldTnode(void);
-	// build tree struct
-	fieldTnode* m_Tparent;
-	vector<fieldTnode*> m_Tchildren;
-	int m_degree;
-	vector<Field*> m_childFieldsVec;
-	Field* m_field;
+    fieldTnode(void);
+
+    ~fieldTnode(void);
+
+    // build tree struct
+    fieldTnode *m_Tparent;
+    vector<fieldTnode *> m_Tchildren;
+    int m_degree;
+    vector<Field *> m_childFieldsVec;
+    Field *m_field;
 
 };

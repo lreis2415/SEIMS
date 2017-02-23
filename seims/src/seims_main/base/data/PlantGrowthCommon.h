@@ -6,6 +6,7 @@
  * \date June, 2016
  */
 #pragma once
+
 #include "utilities.h"
 //using namespace std;
 #define MAX_CROP_LAND_USE_ID 97
@@ -19,8 +20,7 @@
  * \brief A basic class for plant growth modules using a simplified version of EPIC model
  *
  */
-class PGCommon
-{
+class PGCommon {
 public:
     /// Constructor
     PGCommon(void);
@@ -53,15 +53,13 @@ public:
     //the adjusted radiation-use efficiency by vapor pressure deficit
     float RadiationUseEfficiencyAdjustByVPD(float vpd, float radiationUseEfficiencyDeclineRateWithVPD) const;
 
-
     static float getNormalization(float distribution);
 
     static bool IsTree(int m_classification) { return m_classification == 7; }
 
-    static bool IsAnnual(int m_classification)
-    {
+    static bool IsAnnual(int m_classification) {
         return
-                m_classification == 1 ||
+            m_classification == 1 ||
                 m_classification == 2 ||
                 m_classification == 4 ||
                 m_classification == 5;
@@ -69,26 +67,23 @@ public:
 
     bool IsLegume(int m_classification) const { return m_classification <= 3; }
 
-    bool IsPerennial(int m_classification) const
-    {
+    bool IsPerennial(int m_classification) const {
         return
-                m_classification == 3 ||
+            m_classification == 3 ||
                 m_classification == 6;
     }
 
-    bool IsCoolSeasonAnnual(int m_classification) const
-    {
+    bool IsCoolSeasonAnnual(int m_classification) const {
         return
-                m_classification == 2 ||
+            m_classification == 2 ||
                 m_classification == 5;
     }
 
     bool IsGrain(int m_classification) const { return m_classification == 4; }
 
-    bool IsPlant(int luID) const
-    {
+    bool IsPlant(int luID) const {
         return luID <= MAX_CROP_LAND_USE_ID &&
-               luID != WATER_LAND_USE_ID;
+            luID != WATER_LAND_USE_ID;
     }
 
 public:

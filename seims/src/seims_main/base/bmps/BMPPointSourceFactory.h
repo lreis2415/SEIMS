@@ -12,288 +12,291 @@
 
 using namespace MainBMP;
 
-namespace MainBMP
-{
-        /*!
-         * \class PointSourceLocations
-         * \ingroup MainBMP
-         *
-         * \brief Base class of point BMP, mainly store location related parameters
-         *
-         */
-        class PointSourceLocations
-        {
+namespace MainBMP {
+/*!
+ * \class PointSourceLocations
+ * \ingroup MainBMP
+ *
+ * \brief Base class of point BMP, mainly store location related parameters
+ *
+ */
+class PointSourceLocations {
 public:
-                /*!
-                 * \brief Constructor, parse point BMP location related parameters from bson object
-                 * \param[in] bsonTab Query result from MongoDB
-                 * \param[in] iter Iterator of bsonTab
-                 */
-                PointSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
+    /*!
+     * \brief Constructor, parse point BMP location related parameters from bson object
+     * \param[in] bsonTab Query result from MongoDB
+     * \param[in] iter Iterator of bsonTab
+     */
+    PointSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
 
-                /// Destructor
-                ~PointSourceLocations(void);
+    /// Destructor
+    ~PointSourceLocations(void);
 
-                /// Output
-                void Dump(ostream *fs);
+    /// Output
+    void Dump(ostream *fs);
 
-                /// Get point source ID
-                int GetPointSourceID() {
-                        return m_pointSrcID;
-                }
+    /// Get point source ID
+    int GetPointSourceID() {
+        return m_pointSrcID;
+    }
 
-                /// name
-                string GetPointSourceName() {
-                        return m_name;
-                }
+    /// name
+    string GetPointSourceName() {
+        return m_name;
+    }
 
-                /// Lat
-                float GetLat() {
-                        return m_lat;
-                }
+    /// Lat
+    float GetLat() {
+        return m_lat;
+    }
 
-                /// Lon
-                float GetLon() {
-                        return m_lon;
-                }
+    /// Lon
+    float GetLon() {
+        return m_lon;
+    }
 
-                /// localX
-                float GetLocalX() {
-                        return m_localX;
-                }
+    /// localX
+    float GetLocalX() {
+        return m_localX;
+    }
 
-                /// localY
-                float GetLocalY() {
-                        return m_localY;
-                }
+    /// localY
+    float GetLocalY() {
+        return m_localY;
+    }
 
-                /// Located subbasin ID
-                int GetSubbasinID() {
-                        return m_subbasinID;
-                }
+    /// Located subbasin ID
+    int GetSubbasinID() {
+        return m_subbasinID;
+    }
 
-                /// size
-                float GetSize() {
-                        return m_size;
-                }
+    /// size
+    float GetSize() {
+        return m_size;
+    }
 
-                /// Distance to the downstream reach
-                float GetDistanceDown() {
-                        return m_distDown;
-                }
+    /// Distance to the downstream reach
+    float GetDistanceDown() {
+        return m_distDown;
+    }
 
 private:
-                /// ID of point source
-                int m_pointSrcID;
-                /// name
-                string m_name;
-                /// Lat
-                float m_lat;
-                /// Lon
-                float m_lon;
-                /// localX
-                float m_localX;
-                /// localY
-                float m_localY;
-                /// Located subbasin ID
-                int m_subbasinID;
-                /// size
-                float m_size;
-                /// Distance to the downstream reach
-                float m_distDown;
-        };
+    /// ID of point source
+    int m_pointSrcID;
+    /// name
+    string m_name;
+    /// Lat
+    float m_lat;
+    /// Lon
+    float m_lon;
+    /// localX
+    float m_localX;
+    /// localY
+    float m_localY;
+    /// Located subbasin ID
+    int m_subbasinID;
+    /// size
+    float m_size;
+    /// Distance to the downstream reach
+    float m_distDown;
+};
 
-        /*!
-         * \class PointSourceParameters
-         * \ingroup MainBMP
-         *
-         * \brief Point source management parameters
-         *
-         */
-        class PointSourceMgtParams
-        {
+/*!
+ * \class PointSourceParameters
+ * \ingroup MainBMP
+ *
+ * \brief Point source management parameters
+ *
+ */
+class PointSourceMgtParams {
 public:
-                /*!
-                 * \brief Constructor, parse point source management parameters from bson object
-                 * \param[in] bsonTab Query result from MongoDB
-                 * \param[in] iter Iterator of bsonTab
-                 */
-                PointSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
+    /*!
+     * \brief Constructor, parse point source management parameters from bson object
+     * \param[in] bsonTab Query result from MongoDB
+     * \param[in] iter Iterator of bsonTab
+     */
+    PointSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
 
-                /// Destructor
-                ~PointSourceMgtParams(void);
+    /// Destructor
+    ~PointSourceMgtParams(void);
 
-                /// Output
-                void Dump(ostream *fs);
+    /// Output
+    void Dump(ostream *fs);
 
-                /// Get start date of the current management operation
-                time_t GetStartDate(){
-                        return m_startDate;
-                }
-                /// Get end date
-                time_t GetEndDate(){
-                        return m_endDate;
-                }
-                /// Get sequence number
-                int GetSequence() {
-                        return m_seqence;
-                }
+    /// Get start date of the current management operation
+    time_t GetStartDate() {
+        return m_startDate;
+    }
 
-                /// Get subScenario name
-                string GetSubScenarioName() {
-                        return m_name;
-                }
+    /// Get end date
+    time_t GetEndDate() {
+        return m_endDate;
+    }
 
-                /// Get water volume
-                float GetWaterVolume() {
-                        return m_waterVolume;
-                }
+    /// Get sequence number
+    int GetSequence() {
+        return m_seqence;
+    }
 
-                /// Get sediment concentration
-                float GetSedment() {
-                        return m_sedimentConc;
-                }
+    /// Get subScenario name
+    string GetSubScenarioName() {
+        return m_name;
+    }
 
-                /// Get sediment concentration
-                float GetTN() {
-                        return m_TNConc;
-                }
+    /// Get water volume
+    float GetWaterVolume() {
+        return m_waterVolume;
+    }
 
-                /// Get NO3 concentration
-                float GetNO3() {
-                        return m_NO3Conc;
-                }
+    /// Get sediment concentration
+    float GetSedment() {
+        return m_sedimentConc;
+    }
 
-                /// Get NH4 concentration
-                float GetNH4() {
-                        return m_NH4Conc;
-                }
+    /// Get sediment concentration
+    float GetTN() {
+        return m_TNConc;
+    }
 
-                /// Get OrgN concentration
-                float GetOrgN() {
-                        return m_OrgNConc;
-                }
+    /// Get NO3 concentration
+    float GetNO3() {
+        return m_NO3Conc;
+    }
 
-                /// Get TP concentration
-                float GetTP() {
-                        return m_TPConc;
-                }
+    /// Get NH4 concentration
+    float GetNH4() {
+        return m_NH4Conc;
+    }
 
-                /// Get SolP concentration
-                float GetSolP() {
-                        return m_SolPConc;
-                }
+    /// Get OrgN concentration
+    float GetOrgN() {
+        return m_OrgNConc;
+    }
 
-                /// Get OrgP concentration
-                float GetOrgP() {
-                        return m_OrgPConc;
-                }
+    /// Get TP concentration
+    float GetTP() {
+        return m_TPConc;
+    }
 
-                /// Get COD concentration
-                float GetCOD(){
-                        return m_COD;
-                }
+    /// Get SolP concentration
+    float GetSolP() {
+        return m_SolPConc;
+    }
+
+    /// Get OrgP concentration
+    float GetOrgP() {
+        return m_OrgPConc;
+    }
+
+    /// Get COD concentration
+    float GetCOD() {
+        return m_COD;
+    }
+
 private:
-                /// subSecenario name
-                string m_name;
-                /// Sequence number of management
-                int m_seqence;
-                /// Start date
-                time_t m_startDate;
-                /// End date
-                time_t m_endDate;
-                ///  Q	Water volume	m3/'size'/day ('Size' may be one cattle or one pig, depends on PTSRC code)
-                float m_waterVolume;
-                /// Sed	Sediment concentration	g/cm3, or Mg/m3
-                float m_sedimentConc;
-                ///	TN	Total Nitrogen concentration mg/L
-                float m_TNConc;
-                ///	NO3	Nitrate Nitrogen concentration	mg/L
-                float m_NO3Conc;
-                /// NH4	Ammonium Nitrogen concentration	mg/L
-                float m_NH4Conc;
-                ///	ORGN	Organic Nitrogen concentration	mg/L
-                float m_OrgNConc;
-                ///	TP	Total phosphorus concentration	mg/L
-                float m_TPConc;
-                ///	SOLP	Soluble phosphorus concentration	mg/L
-                float m_SolPConc;
-                ///	ORGP	Organic phosphorus concentration	mg/L
-                float m_OrgPConc;
-                /// COD  mg/L
-                float m_COD;
-        };
+    /// subSecenario name
+    string m_name;
+    /// Sequence number of management
+    int m_seqence;
+    /// Start date
+    time_t m_startDate;
+    /// End date
+    time_t m_endDate;
+    ///  Q	Water volume	m3/'size'/day ('Size' may be one cattle or one pig, depends on PTSRC code)
+    float m_waterVolume;
+    /// Sed	Sediment concentration	g/cm3, or Mg/m3
+    float m_sedimentConc;
+    ///	TN	Total Nitrogen concentration mg/L
+    float m_TNConc;
+    ///	NO3	Nitrate Nitrogen concentration	mg/L
+    float m_NO3Conc;
+    /// NH4	Ammonium Nitrogen concentration	mg/L
+    float m_NH4Conc;
+    ///	ORGN	Organic Nitrogen concentration	mg/L
+    float m_OrgNConc;
+    ///	TP	Total phosphorus concentration	mg/L
+    float m_TPConc;
+    ///	SOLP	Soluble phosphorus concentration	mg/L
+    float m_SolPConc;
+    ///	ORGP	Organic phosphorus concentration	mg/L
+    float m_OrgPConc;
+    /// COD  mg/L
+    float m_COD;
+};
 
-        /*!
-         * \class BMPPointSrcFactory
-         * \ingroup MainBMP
-         *
-         * \brief Base class of point source BMPs.
-         * Actually, include point pollution sources, such as sewage outlet of animal farm.
-         *
-         */
-        class BMPPointSrcFactory: public BMPFactory
-        {
+/*!
+ * \class BMPPointSrcFactory
+ * \ingroup MainBMP
+ *
+ * \brief Base class of point source BMPs.
+ * Actually, include point pollution sources, such as sewage outlet of animal farm.
+ *
+ */
+class BMPPointSrcFactory : public BMPFactory {
 public:
-                /// Constructor
-                BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                                   string distribution, string collection, string location);
+    /// Constructor
+    BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
+                       string distribution, string collection, string location);
 
-                /// Destructor
-                ~BMPPointSrcFactory(void);
+    /// Destructor
+    ~BMPPointSrcFactory(void);
 
-                /// Load BMP parameters from MongoDB
-                void loadBMP(mongoc_client_t *conn, string &bmpDBName);
+    /// Load BMP parameters from MongoDB
+    void loadBMP(mongoc_client_t *conn, string &bmpDBName);
 
-                /// Output
-                void Dump(ostream *fs);
+    /// Output
+    void Dump(ostream *fs);
 
-                /*!
-                 * \brief Load point BMP location related parameters from MongoDB
-                 * \param[in] conn mongoc client instance
-                 * \param[in] bmpDBName BMP Scenario database
-                 */
-                void ReadPointSourceManagements(mongoc_client_t *conn, string &bmpDBName);
+    /*!
+     * \brief Load point BMP location related parameters from MongoDB
+     * \param[in] conn mongoc client instance
+     * \param[in] bmpDBName BMP Scenario database
+     */
+    void ReadPointSourceManagements(mongoc_client_t *conn, string &bmpDBName);
 
-                /*!
-                 * \brief Load point BMP location related parameters from MongoDB
-                 * \param[in] conn mongoc client instance
-                 * \param[in] bmpDBName BMP Scenario database
-                 */
-                void ReadPointSourceLocations(mongoc_client_t *conn, string &bmpDBName);
+    /*!
+     * \brief Load point BMP location related parameters from MongoDB
+     * \param[in] conn mongoc client instance
+     * \param[in] bmpDBName BMP Scenario database
+     */
+    void ReadPointSourceLocations(mongoc_client_t *conn, string &bmpDBName);
 
-                vector<int>&GetPointSrcMgtSeqs(){
-                        return m_pointSrcMgtSeqs;
-                }
-                map<int, PointSourceMgtParams *>&GetPointSrcMgtMap(){
-                        return m_pointSrcMgtMap;
-                }
-                vector<int>&GetPointSrcIDs(){
-                        return m_pointSrcIDs;
-                }
-                map<int, PointSourceLocations *>&GetPointSrcLocsMap(){
-                        return m_pointSrcLocsMap;
-                }
+    vector<int> &GetPointSrcMgtSeqs() {
+        return m_pointSrcMgtSeqs;
+    }
+
+    map<int, PointSourceMgtParams *> &GetPointSrcMgtMap() {
+        return m_pointSrcMgtMap;
+    }
+
+    vector<int> &GetPointSrcIDs() {
+        return m_pointSrcIDs;
+    }
+
+    map<int, PointSourceLocations *> &GetPointSrcLocsMap() {
+        return m_pointSrcLocsMap;
+    }
+
 private:
-                /// Code of point source
-                int m_pointSrc;
-                /// Collection of point source management parameters
-                string m_pointSrcMgtTab;
-                /// Sequences of point source managements
-                vector<int> m_pointSrcMgtSeqs;
-                /* Map of point source management parameters
-                 * Key: Scheduled sequence number, unique
-                 * Value: Pointer of PointBMPParamters instance
-                 */
-                map<int, PointSourceMgtParams *> m_pointSrcMgtMap;
-                /// Collection of point source locations
-                string m_pointSrcDistTab;
-                /// IDs of point source of current subScenario
-                vector<int> m_pointSrcIDs;
-                /* Map of point source BMP location related parameters
-                 * Key: PTSRCID, unique
-                 * Value: Pointer of PointBMPParamters instance
-                 */
-                map<int, PointSourceLocations *> m_pointSrcLocsMap;
-        };
+    /// Code of point source
+    int m_pointSrc;
+    /// Collection of point source management parameters
+    string m_pointSrcMgtTab;
+    /// Sequences of point source managements
+    vector<int> m_pointSrcMgtSeqs;
+    /* Map of point source management parameters
+     * Key: Scheduled sequence number, unique
+     * Value: Pointer of PointBMPParamters instance
+     */
+    map<int, PointSourceMgtParams *> m_pointSrcMgtMap;
+    /// Collection of point source locations
+    string m_pointSrcDistTab;
+    /// IDs of point source of current subScenario
+    vector<int> m_pointSrcIDs;
+    /* Map of point source BMP location related parameters
+     * Key: PTSRCID, unique
+     * Value: Pointer of PointBMPParamters instance
+     */
+    map<int, PointSourceLocations *> m_pointSrcLocsMap;
+};
 }

@@ -46,105 +46,107 @@ email:  dtarb@usu.edu
 #include "linearpart.h"
 #include "createpart.h"
 #include "tiffIO.h"
+
 using namespace std;
 
-int lengtharea(char *plenfile, char*ad8file, char *ssfile, float *p)
-{
-	MPI_Init(NULL,NULL);{
+int lengtharea(char *plenfile, char *ad8file, char *ssfile, float *p) {
+    MPI_Init(NULL, NULL);
+    {
 
-	int rank,size;
-	MPI_Comm_rank(MCW,&rank);
-	MPI_Comm_size(MCW,&size);
-	if(rank==0)printf("LengthArea version %s\n",TDVERSION);
+        int rank, size;
+        MPI_Comm_rank(MCW, &rank);
+        MPI_Comm_size(MCW, &size);
+        if (rank == 0)printf("LengthArea version %s\n", TDVERSION);
 
-	double begin,end;
+        double begin, end;
 
-	//Create tiff object, read and store header info
-	tiffIO plen(plenfile, FLOAT_TYPE);
-	long totalX = plen.getTotalX();
-	long totalY = plen.getTotalY();
-	double dxA = plen.getdxA();
-	double dyA = plen.getdyA();
-	if(rank==0)
-		{
-			float timeestimate=(1e-7*totalX*totalY/pow((double) size,1))/60+1;  // Time estimate in minutes
-			fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
-			fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-			fflush(stderr);
-		}
+        //Create tiff object, read and store header info
+        tiffIO plen(plenfile, FLOAT_TYPE);
+        long totalX = plen.getTotalX();
+        long totalY = plen.getTotalY();
+        double dxA = plen.getdxA();
+        double dyA = plen.getdyA();
+        if (rank == 0) {
+            float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
+            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            fprintf(stderr,
+                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            fflush(stderr);
+        }
 
 
-	//Create partition and read data
-	tdpartition *plenData;
-	plenData = CreateNewPartition(plen.getDatatype(), totalX, totalY, dxA, dyA, plen.getNodata());
-	int nx = plenData->getnx();
-	int ny = plenData->getny();
-	int xstart, ystart;
-	plenData->localToGlobal(0, 0, xstart, ystart);
-	plen.read(xstart, ystart, ny, nx, plenData->getGridPointer());
+        //Create partition and read data
+        tdpartition *plenData;
+        plenData = CreateNewPartition(plen.getDatatype(), totalX, totalY, dxA, dyA, plen.getNodata());
+        int nx = plenData->getnx();
+        int ny = plenData->getny();
+        int xstart, ystart;
+        plenData->localToGlobal(0, 0, xstart, ystart);
+        plen.read(xstart, ystart, ny, nx, plenData->getGridPointer());
 
-	tdpartition *ad8Data;
-	tiffIO ad8(ad8file, LONG_TYPE);
-	if(!plen.compareTiff(ad8)) return 1;  //And maybe an unhappy error message
-	ad8Data = CreateNewPartition(ad8.getDatatype(), totalX, totalY, dxA, dyA, ad8.getNodata());
-	ad8.read(xstart, ystart, ad8Data->getny(), ad8Data->getnx(), ad8Data->getGridPointer());
-	
-	//Begin timer
-	begin = MPI_Wtime();
+        tdpartition *ad8Data;
+        tiffIO ad8(ad8file, LONG_TYPE);
+        if (!plen.compareTiff(ad8)) return 1;  //And maybe an unhappy error message
+        ad8Data = CreateNewPartition(ad8.getDatatype(), totalX, totalY, dxA, dyA, ad8.getNodata());
+        ad8.read(xstart, ystart, ad8Data->getny(), ad8Data->getnx(), ad8Data->getGridPointer());
 
-	//Create empty partition to store new information
-	tdpartition *ss;
-	ss = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+        //Begin timer
+        begin = MPI_Wtime();
 
-	long i,j;
-	float tempplen=0.0;
-	int32_t tempad8=0;
-	short tempss=0;
-	
-	//Share information and set borders to zero
-	plenData->share();
-	ad8Data->share();
-	ss->clearBorders();
+        //Create empty partition to store new information
+        tdpartition *ss;
+        ss = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+
+        long i, j;
+        float tempplen = 0.0;
+        int32_t tempad8 = 0;
+        short tempss = 0;
+
+        //Share information and set borders to zero
+        plenData->share();
+        ad8Data->share();
+        ss->clearBorders();
 
 // Compute sa		
-	for(j=0; j<ny; j++) {
-			for(i=0; i<nx; i++ ) {
-				plenData->getData(i,j,tempplen);
-				ad8Data->getData(i,j,tempad8);				
-				if(tempplen >= 0.0){					
-					tempss = (tempad8 >= (p[0]* pow(tempplen,p[1]))) ? 1: 0;
-					ss->setData(i,j,tempss);
-				}
-				
-			}
- 		}
+        for (j = 0; j < ny; j++) {
+            for (i = 0; i < nx; i++) {
+                plenData->getData(i, j, tempplen);
+                ad8Data->getData(i, j, tempad8);
+                if (tempplen >= 0.0) {
+                    tempss = (tempad8 >= (p[0] * pow(tempplen, p[1]))) ? 1 : 0;
+                    ss->setData(i, j, tempss);
+                }
 
-		//Pass information
-		ss->addBorders();		
+            }
+        }
 
-		//Clear out borders
-		ss->clearBorders();
+        //Pass information
+        ss->addBorders();
 
-	//Stop timer
-	end = MPI_Wtime();
- 	double compute, temp;
-        compute = end-begin;
+        //Clear out borders
+        ss->clearBorders();
 
-        MPI_Allreduce (&compute, &temp, 1, MPI_DOUBLE, MPI_SUM, MCW);
-        compute = temp/size;
+        //Stop timer
+        end = MPI_Wtime();
+        double compute, temp;
+        compute = end - begin;
 
+        MPI_Allreduce(&compute, &temp, 1, MPI_DOUBLE, MPI_SUM, MCW);
+        compute = temp / size;
 
-	if( rank == 0) 
-		printf("Compute time: %f\n",compute);
+        if (rank == 0) {
+            printf("Compute time: %f\n", compute);
+        }
 
-	//Create and write TIFF file
-	short aNodata = -32768;
-	tiffIO sss(ssfile, SHORT_TYPE, &aNodata, ad8);
-	sss.write(xstart, ystart, ny, nx, ss->getGridPointer());
+        //Create and write TIFF file
+        short aNodata = -32768;
+        tiffIO sss(ssfile, SHORT_TYPE, &aNodata, ad8);
+        sss.write(xstart, ystart, ny, nx, ss->getGridPointer());
 
-	//Brackets force MPI-dependent objects to go out of scope before Finalize is called
-	}MPI_Finalize();
+        //Brackets force MPI-dependent objects to go out of scope before Finalize is called
+    }
+    MPI_Finalize();
 
-	return 0;
+    return 0;
 }
 

@@ -29,20 +29,19 @@ using namespace std;
  * \brief Aggregation type for OUTPUT
  *
  */
-enum AggregationType
-{
+enum AggregationType {
     /// unknown
-            AT_Unknown = 0,
+        AT_Unknown = 0,
     /// sum
-            AT_Sum = 1,
+        AT_Sum = 1,
     /// average
-            AT_Average = 2,
+        AT_Average = 2,
     /// minimum
-            AT_Minimum = 3,
+        AT_Minimum = 3,
     /// maximum
-            AT_Maximum = 4,
+        AT_Maximum = 4,
     /// output values of specific cells
-            AT_SpecificCells = 5
+        AT_SpecificCells = 5
 };
 
 /*!
@@ -52,8 +51,7 @@ enum AggregationType
  * \brief Class stores a single output item of an OuputID 
  *
  */
-class PrintInfoItem
-{
+class PrintInfoItem {
 private:
     //! Counter of time series data, i.e., how many data has been aggregated.
     int m_Counter;
@@ -88,7 +86,7 @@ public:
     int m_nLayers;
     //! For 2D raster/array data
     float **m_2DData;
-    
+
     //! For time series data of a single subbasin, DT_Single
     map<time_t, float> TimeSeriesData;
     //! For time series data of a single subbasin, DT_Raster1D or DT_Array1D
@@ -100,15 +98,15 @@ public:
     void add1DTimeSeriesResult(time_t, int n, float *data);
 
     //! used only by PET_TS???
-	///< The site id
-    int SiteID;       
-	///< The site index in output array1D variable
-    int SiteIndex;    
+    ///< The site id
+    int SiteID;
+    ///< The site index in output array1D variable
+    int SiteIndex;
 
-	///< The subbasin id
-    int SubbasinID;  
-	///< The subbasin index
-    int SubbasinIndex;   
+    ///< The subbasin id
+    int SubbasinID;
+    ///< The subbasin index
+    int SubbasinIndex;
 
     //! Start time string
     string StartTime;
@@ -116,24 +114,29 @@ public:
     time_t m_startTime;
 
     //! get start time \a time_t
-	time_t getStartTime(){return m_startTime;};
-	//! set start time \a time_t
-	void setStartTime(time_t &st){m_startTime = st;}
+    time_t getStartTime() { return m_startTime; };
+
+    //! set start time \a time_t
+    void setStartTime(time_t &st) { m_startTime = st; }
+
     //! End time string
     string EndTime;
     //! End time  \a time_t
     time_t m_endTime;
 
     //! Get end time  \a time_t
-	time_t getEndTime(){return m_endTime;};
-	//! set end time \a time_t
-	void setEndTime(time_t &st){m_endTime = st;}
+    time_t getEndTime() { return m_endTime; };
+
+    //! set end time \a time_t
+    void setEndTime(time_t &st) { m_endTime = st; }
+
     //! file suffix, e.g., txt, tif, asc, etc.
     string Suffix;
     //! output filename without suffix
     string Filename;
-	//! Aggregation type string
-	string AggType;
+    //! Aggregation type string
+    string AggType;
+
     //! create "output" folder to store all results
     void Flush(string, clsRasterData<float> *, string);
 
@@ -152,16 +155,16 @@ public:
     void AggregateData2D(time_t time, int nRows, int nCols, float **data);
 
     //! Set the Aggregation type
-	void setAggregationType(AggregationType type){m_AggregationType = type;};
+    void setAggregationType(AggregationType type) { m_AggregationType = type; };
 
     //! Get the Aggregation type
-	AggregationType getAggregationType(void){return m_AggregationType;};
+    AggregationType getAggregationType(void) { return m_AggregationType; };
 
     //! convert the given string into a matching Aggregation type
     static AggregationType MatchAggregationType(string type);
 
 private:
-	//! Aggregation type of current print item
+    //! Aggregation type of current print item
     AggregationType m_AggregationType;
 };
 
@@ -174,21 +177,20 @@ private:
  *
  *
  */
-class PrintInfo
-{
+class PrintInfo {
 public:
-	//! Time interval of output
+    //! Time interval of output
     int m_Interval;
-	//! Unit of time interval, which can only be DAY, HR, SEC.
+    //! Unit of time interval, which can only be DAY, HR, SEC.
     string m_IntervalUnits;
-	//! Module index of the OutputID
+    //! Module index of the OutputID
     int m_moduleIndex;
 
     //! Unique Output ID, which should be one of "VAR_" defined in text.h and Output of any modules.
     string m_OutputID;
-	//! The calibration parameters corresponding to the output id, if stated.
+    //! The calibration parameters corresponding to the output id, if stated.
     ParamInfo *m_param;
-	//! For one OutputID, there may be several output items, e.g., different time period, different subbasin ID. etc.
+    //! For one OutputID, there may be several output items, e.g., different time period, different subbasin ID. etc.
     vector<PrintInfoItem *> m_PrintItems;
 
 
@@ -196,51 +198,53 @@ public:
 private:
     //! Selected subbasin IDs for time series data, vector container
     vector<int> m_subbasinSeleted;
-	//! Selected subbasin IDs for time series data, float array
+    //! Selected subbasin IDs for time series data, float array
     float *m_subbasinSelectedArray;
 public:
-	//! Constructor, initialize an empty instance
+    //! Constructor, initialize an empty instance
     PrintInfo(void);
-	//! Destructor
+
+    //! Destructor
     ~PrintInfo(void);
 
     //! Get the number of output items
-	int		ItemCount(void){return m_PrintItems.size();};
+    int ItemCount(void) { return m_PrintItems.size(); };
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
-    void	getSubbasinSelected(int *count, float **subbasins);
+    void getSubbasinSelected(int *count, float **subbasins);
 
     //! Set the OutputID for this object
-	void	setOutputID(string id){m_OutputID = id;};
+    void setOutputID(string id) { m_OutputID = id; };
 
     //! Get the OutputId for this object
-	string	getOutputID(void){return m_OutputID;};
+    string getOutputID(void) { return m_OutputID; };
 
-	//! Get Header string (all field names) for current OutputID. TODO, how to make it more flexible? By LJ.
-    string	getOutputTimeSeriesHeader(void);
+    //! Get Header string (all field names) for current OutputID. TODO, how to make it more flexible? By LJ.
+    string getOutputTimeSeriesHeader(void);
 
     //! Set the interval
-	void	setInterval(int interval){m_Interval = interval;};
+    void setInterval(int interval) { m_Interval = interval; };
 
     //! Get the interval
-	int		getInterval(void){return m_Interval;};
+    int getInterval(void) { return m_Interval; };
 
     //! Set the interval units
-	void	setIntervalUnits(string units){m_IntervalUnits = units;};
+    void setIntervalUnits(string units) { m_IntervalUnits = units; };
 
     //! Get the interval units
-	string	getIntervalUnits(void){return m_IntervalUnits;};
+    string getIntervalUnits(void) { return m_IntervalUnits; };
 
     //! Add an output item with the given start time, end time and file name
-    void	AddPrintItem(string start, string end, string file, string sufi);
+    void AddPrintItem(string start, string end, string file, string sufi);
 
     //! Add an output item with the given start time, end time and file name, for MongoDB
-    void	AddPrintItem(string type, string start, string end, string file, string sufi, mongoc_client_t *conn,
+    void AddPrintItem(string type, string start, string end, string file, string sufi, mongoc_client_t *conn,
                       mongoc_gridfs_t *gfs);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
-	void	AddPrintItem(string start, string end, string file, string sitename, string sufi,mongoc_client_t *conn,
-		mongoc_gridfs_t *gfs, bool isSubbasin);
+    void AddPrintItem(string start, string end, string file, string sitename, string sufi, mongoc_client_t *conn,
+                      mongoc_gridfs_t *gfs, bool isSubbasin);
+
     //! Get a reference to the output item located at the given index position
     PrintInfoItem *getPrintInfoItem(int index);
 };

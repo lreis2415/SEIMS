@@ -26,8 +26,7 @@ using namespace std;
  * \brief Soil redistribution calculation
  *
  */
-class SRD_MB : public SimulationModule
-{
+class SRD_MB : public SimulationModule {
 public:
     //! Constructor
     SRD_MB(void);

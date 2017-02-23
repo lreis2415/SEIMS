@@ -31,8 +31,7 @@ using namespace std;
  * \brief Calculate snow melt by Degree-Day method
  * 
  */
-class SNO_DD : public SimulationModule
-{
+class SNO_DD : public SimulationModule {
 public:
     //! Constructor
     SNO_DD(void);
@@ -50,37 +49,37 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-	bool CheckInputData(void);
+    bool CheckInputData(void);
 
-	void initialOutputs();
+    void initialOutputs();
 
 private:
     //! Valid cells number
     int m_nCells;
-	//! Mean air temperature at which snow melt will occur, sub_smtmp
-	float m_t0;
-	//! fraction coefficient of precipitation as snow
-	float m_kblow;
-	//! Snowfall temperature, i.e., precipitation as snow
-	float m_tsnow;
-	//! temperature impact factor
+    //! Mean air temperature at which snow melt will occur, sub_smtmp
+    float m_t0;
+    //! fraction coefficient of precipitation as snow
+    float m_kblow;
+    //! Snowfall temperature, i.e., precipitation as snow
+    float m_tsnow;
+    //! temperature impact factor
     float m_csnow;
-	//! Rainfall impact factor
+    //! Rainfall impact factor
     float m_crain;
 
-	//float m_swe0;
-	//float m_swe;
-	//float m_lastSWE;
-	
-	//! mean temperature
+    //float m_swe0;
+    //float m_swe;
+    //float m_lastSWE;
+
+    //! mean temperature
     float *m_tMean;
-	//! net precipitation
+    //! net precipitation
     float *m_Pnet;
 
-	//! snow redistribution
-	float *m_SR;
-	//! snow sublimation, snoev in SWAT in etact.f
-	float *m_SE;
+    //! snow redistribution
+    float *m_SR;
+    //! snow sublimation, snoev in SWAT in etact.f
+    float *m_SE;
 
     //result
     /// Snow melt

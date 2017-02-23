@@ -16,8 +16,7 @@
 
 using namespace std;
 
-class ExcessRunoff : public SimulationModule
-{
+class ExcessRunoff : public SimulationModule {
 public:
     ExcessRunoff(void);
 
@@ -107,7 +106,6 @@ private:
     float *m_ks;
     /// initial soil moisture
     float *m_initSoilMoisture;
-
 
     // output
     /// the excess precipitation (mm) of the total nCells

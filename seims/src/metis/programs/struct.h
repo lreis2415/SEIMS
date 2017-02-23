@@ -17,53 +17,52 @@
 /*! This data structure stores the various command line arguments */
 /*************************************************************************/
 typedef struct {
-  idx_t ptype;
-  idx_t objtype;
-  idx_t ctype;
-  idx_t iptype;
-  idx_t rtype;
+    idx_t ptype;
+    idx_t objtype;
+    idx_t ctype;
+    idx_t iptype;
+    idx_t rtype;
 
-  idx_t no2hop;
-  idx_t minconn;
-  idx_t contig;
+    idx_t no2hop;
+    idx_t minconn;
+    idx_t contig;
 
-  idx_t nooutput;
+    idx_t nooutput;
 
-  idx_t balance;
-  idx_t ncuts;
-  idx_t niter;
+    idx_t balance;
+    idx_t ncuts;
+    idx_t niter;
 
-  idx_t gtype;
-  idx_t ncommon;
+    idx_t gtype;
+    idx_t ncommon;
 
-  idx_t seed;
-  idx_t dbglvl;
+    idx_t seed;
+    idx_t dbglvl;
 
-  idx_t nparts;
+    idx_t nparts;
 
-  idx_t nseps;
-  idx_t ufactor;
-  idx_t pfactor;
-  idx_t compress;
-  idx_t ccorder;
+    idx_t nseps;
+    idx_t ufactor;
+    idx_t pfactor;
+    idx_t compress;
+    idx_t ccorder;
 
-  char *filename;
-  char *outfile;
-  char *xyzfile;
-  char *tpwgtsfile;
-  char *ubvecstr;
+    char *filename;
+    char *outfile;
+    char *xyzfile;
+    char *tpwgtsfile;
+    char *ubvecstr;
 
-  idx_t wgtflag;
-  idx_t numflag;
-  real_t *tpwgts;
-  real_t *ubvec;
+    idx_t wgtflag;
+    idx_t numflag;
+    real_t *tpwgts;
+    real_t *ubvec;
 
-  real_t iotimer;
-  real_t parttimer;
-  real_t reporttimer;
+    real_t iotimer;
+    real_t parttimer;
+    real_t reporttimer;
 
-  size_t maxmemory;
+    size_t maxmemory;
 } params_t;
 
-
-#endif 
+#endif

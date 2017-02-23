@@ -9,9 +9,7 @@
 
 using namespace std;
 
-
-class UnsaturatedFlow : public SimulationModule
-{
+class UnsaturatedFlow : public SimulationModule {
 private:
 
     int m_cellSize;

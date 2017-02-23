@@ -19,8 +19,7 @@ using namespace std;
  *
  * \brief Base class for variable data
  */
-class base_VariableData
-{
+class base_VariableData {
 protected:
     ///< dimension type for the dataset, \sa dimensionTypes
     dimensionTypes m_Dimension;

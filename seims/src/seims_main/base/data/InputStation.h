@@ -21,7 +21,6 @@
 #include "RegularMeasurement.h"
 #include "NotRegularMeasurement.h"
 
-
 using namespace std;
 
 /*!
@@ -33,8 +32,7 @@ using namespace std;
  *
  *
  */
-class InputStation
-{
+class InputStation {
 public:
     //! Constructor
     InputStation(mongoc_client_t *conn, time_t dtHillslope, time_t dtChannel);

@@ -23,7 +23,9 @@ using namespace std;
 
 //#define DEBUG_OUTPUT
 
-int MasterProcess(map<int, Subbasin *> &subbasinMap, set<int> &groupSet, const char *outputFile);
+int MasterProcess(map < int, Subbasin * > &subbasinMap, set < int > &groupSet, const
+char *outputFile
+);
 
 void CalculateProcess(int rank, int nSlaves, MPI_Comm slaveComm,
                       string &projectPath, string &modulePath, const char *host, int port, const char *dbName,

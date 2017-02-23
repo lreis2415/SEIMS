@@ -21,11 +21,9 @@
 #include <setjmp.h>
 #include <assert.h>
 
-
 #if defined(ENABLE_OPENMP)
-  #include <omp.h>
+#include <omp.h>
 #endif
-
 
 #include <metis.h>
 #include "../libmetis/rename.h"
@@ -38,14 +36,13 @@
 #include "struct.h"
 #include "proto.h"
 
-
 #if defined(COMPILER_GCC)
 extern char* strdup (const char *);
 #endif
 
 #if defined(COMPILER_MSC)
 #if defined(rint)
-  #undef rint
+#undef rint
 #endif
 #define rint(x) ((idx_t)((x)+0.5))  /* MSC does not have rint() function */
 #define __func__ "dummy-function"

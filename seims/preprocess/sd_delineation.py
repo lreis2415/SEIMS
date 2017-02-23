@@ -30,9 +30,9 @@ def output_wgs84_geojson():
     # print proj_srs
     wgs84_srs = "EPSG:4326"
     shp_dir = WORKING_DIR + os.sep + DIR_NAME_GEOSHP
-    geo_json_dict = {GEOJSON_REACH: shp_dir + os.sep + reachesOut,
+    geo_json_dict = {GEOJSON_REACH : shp_dir + os.sep + reachesOut,
                      GEOJSON_SUBBSN: shp_dir + os.sep + subbasinVec,
-                     GEOJSON_BASIN: shp_dir + os.sep + basinVec,
+                     GEOJSON_BASIN : shp_dir + os.sep + basinVec,
                      GEOJSON_OUTLET: shp_dir + os.sep + outletVec}
     for jsonName in geo_json_dict:
         jsonfile = shp_dir + os.sep + jsonName

@@ -4,7 +4,9 @@
  * \date 2016-9-28
  */
 #pragma once
+
 #include "utilities.h"
+
 /*!
  * \class NutrCommon
  * \ingroup data
@@ -12,8 +14,7 @@
  * \brief A basic class for nutrient cycling modules
  *
  */
-class NutrCommon
-{
+class NutrCommon {
 public:
     /// Constructor
     NutrCommon(void);

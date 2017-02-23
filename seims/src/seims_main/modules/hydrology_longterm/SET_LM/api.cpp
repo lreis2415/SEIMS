@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new SET_LM();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res;
     MetadataInfo mdi;
 
@@ -24,7 +24,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.SetClass("Evapotranspiration from soil",
                  "Calculate the amount of the evapotranspiration from soil water reservoir within the time step.");
     mdi.SetDescription(
-            "The method relating ET linearly with actual soil moisture used in the original WetSpa will be the default method to estimate actual ET from the soil water reservoir.");
+        "The method relating ET linearly with actual soil moisture used in the original WetSpa will be the default method to estimate actual ET from the soil water reservoir.");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID("SET_LM");
     mdi.SetName("SET_LM");

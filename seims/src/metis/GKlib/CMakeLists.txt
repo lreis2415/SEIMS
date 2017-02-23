@@ -8,14 +8,14 @@ include(GKlibSystem.cmake)
 
 include_directories(".")
 add_library(GKlib STATIC ${GKlib_sources})
-if(UNIX)
-  target_link_libraries(GKlib m)
-endif(UNIX)
+if (UNIX)
+    target_link_libraries(GKlib m)
+endif (UNIX)
 
 include_directories("test")
 add_subdirectory("test")
 
 install(TARGETS GKlib
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 install(FILES ${GKlib_includes} DESTINATION include)

@@ -24,8 +24,7 @@
  *
  *
  */
-class NotRegularMeasurement : public Measurement
-{
+class NotRegularMeasurement : public Measurement {
 public:
     /*!
      * \brief Constructor
@@ -50,9 +49,9 @@ public:
 
 private:
     //! time list of site data
-    vector<vector<time_t> > m_timeList;
+    vector <vector<time_t>> m_timeList;
     //! site data corresponding to m_timeList
-    vector<vector<float> > m_valueList;
+    vector <vector<float>> m_valueList;
     //! index
     vector<int> m_curIndexList;
 };

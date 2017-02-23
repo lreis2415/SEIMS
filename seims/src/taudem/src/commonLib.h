@@ -61,44 +61,59 @@ email:  dtarb@usu.edu
 
 #define TDVERSION "5.3.7"
 
-enum DATA_TYPE
-	{ SHORT_TYPE,
-	  LONG_TYPE,
-	  FLOAT_TYPE,
-	  DOUBLE_TYPE,
-	  UNKNOWN_TYPE,
-	  INVALID_DATA_TYPE = -1
-	};
+enum DATA_TYPE {
+    SHORT_TYPE,
+    LONG_TYPE,
+    FLOAT_TYPE,
+    DOUBLE_TYPE,
+    UNKNOWN_TYPE,
+    INVALID_DATA_TYPE = -1
+};
 
 //TODO: revisit this structure to see where it is used
 struct node {
-	int x;
-	int y;
+    int x;
+    int y;
 };
 
-const double PI =  3.14159265359;
+const double PI = 3.14159265359;
 const short MISSINGSHORT = -32768;
 
 const long MISSINGLONG = -2147483647;
-const float MISSINGFLOAT = -1*FLT_MAX;
+const float MISSINGFLOAT = -1 * FLT_MAX;
 const float MINEPS = 1E-5f;
 
-const int d1[9] = { 0,1, 1, 0,-1,-1,-1,0,1};
-const int d2[9] = { 0,0,-1,-1,-1, 0, 1,1,1};
+const int d1[9] = {0, 1, 1, 0, -1, -1, -1, 0, 1};
+const int d2[9] = {0, 0, -1, -1, -1, 0, 1, 1, 1};
 
 
 
 //  TODO adjust this for different dx and dy
 //const double aref[10] = { -atan2((double)1,(double)1), 0., -aref[0],(double)(0.5*PI),PI-aref[2],(double)PI,
-                       // PI+aref[2],(double)(1.5*PI),2.*PI-aref[2],(double)(2.*PI) };   // DGT is concerned that this assumes square grids.  For different dx and dx needs adjustment
+// PI+aref[2],(double)(1.5*PI),2.*PI-aref[2],(double)(2.*PI) };   // DGT is concerned that this assumes square grids.  For different dx and dx needs adjustment
 
-int nameadd( char*,char*,const char*);
-double prop( float a, int k, double dx1 , double dy1);
+int nameadd(char *, char *, const char *);
+double prop(float a, int k, double dx1, double dy1);
 char *getLayername(char *inputogrfile);
 const char *getOGRdrivername(char *datasrcnew);
-void getlayerfail(OGRDataSourceH hDS1,char * outletsds, int outletslyr);
-int readoutlets(char *outletsds,char *lyrname,int uselayername, int outletslyr, OGRSpatialReferenceH hSRSRaster, int *noutlets, double*& x, double*& y);
-int readoutlets(char *outletsds,char *lyrname,int uselayername, int outletslyr, OGRSpatialReferenceH  hSRSraster,int *noutlets, double*& x, double*& y, int*& id);
+void getlayerfail(OGRDataSourceH hDS1, char *outletsds, int outletslyr);
+int readoutlets(char *outletsds,
+                char *lyrname,
+                int uselayername,
+                int outletslyr,
+                OGRSpatialReferenceH hSRSRaster,
+                int *noutlets,
+                double *&x,
+                double *&y);
+int readoutlets(char *outletsds,
+                char *lyrname,
+                int uselayername,
+                int outletslyr,
+                OGRSpatialReferenceH hSRSraster,
+                int *noutlets,
+                double *&x,
+                double *&y,
+                int *&id);
 
 #include <queue>
 #include "linearpart.h"

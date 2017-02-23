@@ -11,8 +11,7 @@ using namespace std;
 /*
  * \TODO Should this SubbasinStruct be integrated into Subbasin class defined in clsSubbasin of data module. by LJ
  */
-struct SubbasinStruct
-{
+struct SubbasinStruct {
     float qOutlet; // flow out the subbasin outlet
     bool calculated; // whether this subbasin is already calculated
     int rank;
@@ -22,8 +21,7 @@ struct SubbasinStruct
     int group;
     vector<SubbasinStruct *> upStreams;
 
-    SubbasinStruct(int id, int group) : qOutlet(0.f), calculated(false), rank(-1), downStream(NULL), disToOutlet(-1)
-    {
+    SubbasinStruct(int id, int group) : qOutlet(0.f), calculated(false), rank(-1), downStream(NULL), disToOutlet(-1) {
         this->id = id;
         this->group = group;
     }
@@ -47,8 +45,9 @@ int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasi
  * read subbasin topology information from MongoDB
  * \TODO, clean up the old commented code as soon as the development completed. by LJ
  */
-int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<int, SubbasinStruct *> &subbasins, set<int> &groupSet,
-	int decompostionPlan, const char *groupField);
+int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<int, SubbasinStruct *> &subbasins,
+                                 set<int> &groupSet,
+                                 int decompostionPlan, const char *groupField);
 
 //int GetGroupCount(mongo *conn, const char *dbName, int decompostionPlan);
 //

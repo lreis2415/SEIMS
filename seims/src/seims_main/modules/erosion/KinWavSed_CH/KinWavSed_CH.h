@@ -30,8 +30,7 @@ using namespace std;
  * \brief Kinematic wave method for channel flow erosion and deposition
  *
  */
-class KinWavSed_CH : public SimulationModule
-{
+class KinWavSed_CH : public SimulationModule {
 public:
     //! Constructor
     KinWavSed_CH(void);
@@ -101,7 +100,7 @@ private:
     /// stream id of downstream
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
     /**
     *	@brief reach links
     *
@@ -109,7 +108,6 @@ private:
     *	value: vector of cell index
     */
     map<int, vector<int> > m_reachs;
-
 
     /// cell width of grid map (m)
     float m_CellWith;
@@ -178,7 +176,6 @@ private:
 
     float *m_chanV;
     float *m_chanVol;
-
 
 private:
 
@@ -258,7 +255,6 @@ private:
 *	@param dx      dx: length of the cell, corrected for slope (DX map in LISEM)
 */
     float complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj1i, float Sji1, float alpha, float dt, float dx);
-
 
     void WaterVolumeCalc(int iReach, int iCell, int id);  //m3
 

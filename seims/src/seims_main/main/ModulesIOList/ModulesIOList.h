@@ -25,7 +25,6 @@
 #include <Windows.h>
 #endif
 
-
 using namespace std;
 
 /*!
@@ -40,30 +39,30 @@ using namespace std;
 string _GetApplicationPath();
 
 /// Write text to a file.
-void writeText(string &filename, vector<vector<string> > &data);
+void writeText(string &filename, vector <vector<string>> &data);
 
-void writeText(string &filename, vector<string> &data);
+void writeText(string &filename, vector <string> &data);
 
-void writeText(string &filename, map<string, vector<string> > &data);
+void writeText(string &filename, map <string, vector<string>> &data);
 
 string DimentionType2String(dimensionTypes dimtyp);
 
-class ModulesIOList
-{
+class ModulesIOList {
 public:
     ModulesIOList(const string &ModuleIDsFile, const string &dllPath);
 
     ~ModulesIOList(void);
 
-    vector<vector<string> > moduleInfoList;
-    map<string, vector<string> > moduleParamsInfoList; ///< map<paramId, veector<unit,description,dimentionType,inputModuleIDs,outputModuleIDs> >
-    map<string, vector<string> > paramsInfoList;
+    vector <vector<string>> moduleInfoList;
+    map <string, vector<string>>
+        moduleParamsInfoList; ///< map<paramId, veector<unit,description,dimentionType,inputModuleIDs,outputModuleIDs> >
+    map <string, vector<string>> paramsInfoList;
 
     void FindOutputParameter(string &outputID, int &iModule, ParamInfo *&paraInfo);
 
     string GetModuleID(int i) { return m_moduleIDs[i]; }
 
-    vector<string> GetModuleIDs() { return m_moduleIDs; }
+    vector <string> GetModuleIDs() { return m_moduleIDs; }
 
 private:
     typedef SimulationModule *(*InstanceFunction)(void);
@@ -71,28 +70,27 @@ private:
     typedef const char *(*MetadataFunction)(void);
 
     /// function pointers used to create class instance
-    map<string, InstanceFunction> m_instanceFuncs;
-    map<string, MetadataFunction> m_metadataFuncs;
+    map <string, InstanceFunction> m_instanceFuncs;
+    map <string, MetadataFunction> m_metadataFuncs;
 
     string m_dllPath;
-    vector<string> m_moduleIDs;
+    vector <string> m_moduleIDs;
 #ifdef windows
     vector<HINSTANCE> m_dllHandles;
 #else
-    vector<void*> m_dllHandles;
+    vector<void *> m_dllHandles;
 #endif
     map<string, SEIMSModuleSetting *> m_settings;
     map<string, const char *> m_metadata;
-    map<string, vector<ParamInfo> > m_parameters;
-    map<string, vector<ParamInfo> > m_inputs;
-    map<string, vector<ParamInfo> > m_outputs;
-
+    map <string, vector<ParamInfo>> m_parameters;
+    map <string, vector<ParamInfo>> m_inputs;
+    map <string, vector<ParamInfo>> m_outputs;
 
 private:
     /// read the config.fig file and initialize
     void Init(const string &configFileName);
 
-    bool LoadModuleInfoFromFile(const char *filename, vector<vector<string> > &settings);
+    bool LoadModuleInfoFromFile(const char *filename, vector <vector<string>> &settings);
 
     void ReadModulesListFile(const char *configFileName);
 

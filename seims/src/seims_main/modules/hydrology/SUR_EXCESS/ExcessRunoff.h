@@ -16,8 +16,7 @@
 
 using namespace std;
 
-class ExcessRunoff : public SimulationModule
-{
+class ExcessRunoff : public SimulationModule {
 public:
     ExcessRunoff(void);
 
@@ -91,7 +90,6 @@ private:
 
     /// cumulative infiltration depth (m)
     float *m_accumuDepth;
-
 
     // output
     /// the excess precipitation (mm) of the total nCells

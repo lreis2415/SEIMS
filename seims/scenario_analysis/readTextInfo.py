@@ -10,10 +10,12 @@ import scoop
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from RelativeImportModules import *
+
 # import util module located in SEIMS/preprocess
 if __package__ is None:
-    __package__ = import_parents(level=2)
+    __package__ = import_parents(level = 2)
 from ..preprocess.util import *
+
 
 def delSpecialStr(line):
     '''
@@ -171,6 +173,7 @@ def selectBMPatRandom(arr):
     n = random.randint(0, aLen - 1)
     return arr[n]
 
+
 def getPointConfig(scenario, bmps_point, point_source, start_index, end_index):
     '''
     :param scenario: scenario array
@@ -215,7 +218,7 @@ def decodPointScenario(id, pointConfig, ptsrc):
     return scenario_Table
 
 
-def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID=0):
+def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID = 0):
     TIME_Start = datetime.datetime.strptime(timeStart, "%Y-%m-%d")
     TIME_End = datetime.datetime.strptime(timeEnd, "%Y-%m-%d")
     ## Read simulation txt
@@ -237,7 +240,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID=0):
                     if LF in line:
                         line = line.split(LF)[0]
                         break
-                strList = SplitStr(StripStr(line), spliters=" ")
+                strList = SplitStr(StripStr(line), spliters = " ")
                 if len(strList) == 3:
                     dateStr = strList[0] + " " + strList[1]
                     simDatetime = datetime.datetime.strptime(dateStr, "%Y-%m-%d %H:%M:%S")
@@ -251,6 +254,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID=0):
     else:
         raise IOError("%s is not exist" % simData)
 
+
 # String Array to float/int Array
 def StrtoFltArr(arr):
     newArr = []
@@ -258,11 +262,13 @@ def StrtoFltArr(arr):
         newArr.append(float(arr[i]))
     return newArr
 
+
 def StrtoIntArr(arr):
     newArr = []
     for i in range(len(arr)):
         newArr.append(int(arr[i]))
     return newArr
+
 
 def printInfo(Str):
     if platform.system() is "Windows":
@@ -270,27 +276,30 @@ def printInfo(Str):
     else:
         scoop.logger.warn(Str)
 
+
 def createForld(forldPath):
     ## Create forld
     if not isPathExists(forldPath):
         os.makedirs(forldPath)
 
+
 def createPlot(pop, model_Workdir, num_Gens, size_Pops, GenID):
     front = numpy.array([ind.fitness.values for ind in pop])
     # Plot
     plt.figure(GenID)
-    plt.title("Pareto frontier of Scenarios Optimization\n", color="#aa0903")
+    plt.title("Pareto frontier of Scenarios Optimization\n", color = "#aa0903")
     plt.xlabel("cost(Yuan)")
     plt.ylabel("contaminants(t)")
-    plt.scatter(front[:, 0], front[:, 1], c="r", alpha=0.8, s=12)
-    plt.title("\nPopulation: %d, Generation: %d" % (size_Pops, GenID), color="green", fontsize=9, loc='right')
+    plt.scatter(front[:, 0], front[:, 1], c = "r", alpha = 0.8, s = 12)
+    plt.title("\nPopulation: %d, Generation: %d" % (size_Pops, GenID), color = "green", fontsize = 9, loc = 'right')
     imgPath = model_Workdir + os.sep + "NSGAII_OUTPUT"
     createForld(imgPath)
     pngFullpath = imgPath + os.sep + "Gen_" \
-                  + str(num_Gens) + "_Pop_" + str(size_Pops)+ os.sep + "Pareto_Gen_" \
+                  + str(num_Gens) + "_Pop_" + str(size_Pops) + os.sep + "Pareto_Gen_" \
                   + str(GenID) + "_Pop_" + str(size_Pops) + ".png"
     plt.savefig(pngFullpath)
     # plt.show()
+
 
 def getSceIDlist(scenarios_info):
     # Get scenarios info
@@ -305,18 +314,20 @@ def getSceIDlist(scenarios_info):
         idlist.append(id)
     return idlist
 
-def delScefromMongoByID(scenarios_info, hostname, port, dbname, delsce=True):
+
+def delScefromMongoByID(scenarios_info, hostname, port, dbname, delsce = True):
     if delsce == True:
         idList = getSceIDlist(scenarios_info)
         client = MongoClient(hostname, port)
         db = client[dbname]
         collection = db.BMP_SCENARIOS
         for id in idList:
-            collection.remove({"ID":id})
+            collection.remove({"ID": id})
     else:
         return
 
-def delModelOutfile(model_workdir, scenarios_info, delfile=True):
+
+def delModelOutfile(model_workdir, scenarios_info, delfile = True):
     if delfile == True:
         idList = getSceIDlist(scenarios_info)
         print idList
@@ -331,7 +342,6 @@ def delModelOutfile(model_workdir, scenarios_info, delfile=True):
                 os.rmdir(outfilename)
     else:
         return
-
 
 # if __name__ == "__main__":
 #     delModelOutfile("D:\SEIMS_model\Model_data\model_dianbu2_30m_longterm", "D:\SEIMS_model\Model_data\model_dianbu2_30m_longterm\NSGAII_OUTPUT\scenarios_info.txt", delfile=True)
@@ -376,4 +386,3 @@ def delModelOutfile(model_workdir, scenarios_info, delfile=True):
 #     print 'bmps_cattle_cost ', bmps_cattle_cost
 #     print 'bmps_pig_cost ', bmps_pig_cost
 #     print 'bmps_sewage_cost ', bmps_sewage_cost
-

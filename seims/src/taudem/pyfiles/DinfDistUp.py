@@ -24,8 +24,8 @@ desc = arcpy.Describe(inlyr2)
 slp = str(desc.catalogPath)
 arcpy.AddMessage("Input Slope Grid: " + slp)
 
-propthresh=arcpy.GetParameterAsText(3)
-arcpy.AddMessage("Input Proportion Threshold: "+propthresh)
+propthresh = arcpy.GetParameterAsText(3)
+arcpy.AddMessage("Input Proportion Threshold: " + propthresh)
 
 statisticalmethod = arcpy.GetParameterAsText(4)
 arcpy.AddMessage("Statistical Method: " + statisticalmethod)
@@ -33,8 +33,8 @@ arcpy.AddMessage("Statistical Method: " + statisticalmethod)
 distancemethod = arcpy.GetParameterAsText(5)
 arcpy.AddMessage("Distance Method: " + distancemethod)
 
-edgecontamination=arcpy.GetParameterAsText(6)
-arcpy.AddMessage("Edge Contamination: "+edgecontamination)
+edgecontamination = arcpy.GetParameterAsText(6)
+arcpy.AddMessage("Edge Contamination: " + edgecontamination)
 
 # Input Number of Processes
 inputProc = arcpy.GetParameterAsText(7)
@@ -75,7 +75,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	   # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)

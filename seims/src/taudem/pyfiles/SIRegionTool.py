@@ -128,12 +128,12 @@ def _validate_args(dem, parreg_in, shp, shp_att_name, parreg, att):
         raise Utils.ValidationException("File path '(%s)' for output parameter attribute table (parameter '--att') "
                                         "does not exist." % att_dir)
 
-    #TODO: check the extension of the parreg grid file is 'tif'
+        # TODO: check the extension of the parreg grid file is 'tif'
 
 
 def _create_parameter_region_grid(dem, shp, shp_att_name, parreg_in, parreg):
     if os.path.exists(parreg):
-            os.remove(parreg)
+        os.remove(parreg)
 
     if shp is None and parreg_in is None:
         Utils.initialize_output_raster_file(dem, parreg, initial_data=1, data_type=gdal.GDT_UInt32)
@@ -146,13 +146,13 @@ def _create_parameter_region_grid(dem, shp, shp_att_name, parreg_in, parreg):
         if shp:
 
             # This environment settings needed  for the arcpy.PlogonToRaster_conversion function
-            #env.extent = dem
-            #env.snapRaster = dem
-            #print (">>> setting the environment for polygon to raster conversion")
+            # env.extent = dem
+            # env.snapRaster = dem
+            # print (">>> setting the environment for polygon to raster conversion")
             # TODO: try if we can use the gdal api to convert shape file to raster instead of arcpy
             # Ref: https://pcjericks.github.io/py-gdalogr-cookbook/raster_layers.html
-            #utils.initialize_output_raster_file(dem, parreg, initial_data=1, data_type=gdal.GDT_Int32)
-            #target_ds = gdal.Open(parreg)
+            # utils.initialize_output_raster_file(dem, parreg, initial_data=1, data_type=gdal.GDT_Int32)
+            # target_ds = gdal.Open(parreg)
 
             # For some reason the gdal RasterizeLayer function works with a in memory output raster dataset only
             target_ds = _create_in_memory_raster(dem, data_type=gdal.GDT_UInt32)
@@ -170,7 +170,7 @@ def _create_parameter_region_grid(dem, shp, shp_att_name, parreg_in, parreg):
             source_ds = None
 
             # arcpy.PolygonToRaster_conversion(shp, shp_att_name, temp_shp_raster, "CELL_CENTER", "NONE", str(pixelWidth))
-            #arcpy.ResetEnvironments()
+            # arcpy.ResetEnvironments()
 
         elif parreg_in:
             # TODO: This one only gets the grid cell size to the size in dem file
@@ -178,10 +178,10 @@ def _create_parameter_region_grid(dem, shp, shp_att_name, parreg_in, parreg):
             temp_parreg = os.path.join(os.path.dirname(dem), 'temp_parreg.tif')
             if os.path.exists(temp_parreg):
                 arcpy.Delete_management(temp_parreg)
-                #os.remove(temp_parreg)
+                # os.remove(temp_parreg)
             target_ds = _create_in_memory_raster(dem, data_type=gdal.GDT_UInt32)
-            #utils.initialize_output_raster_file(dem, parreg, initial_data=utils.NO_DATA_VALUE, data_type=gdal.GDT_UInt32)
-            #arcpy.Resample_management(parreg_in, parreg, str(pixelWidth), "NEAREST")
+            # utils.initialize_output_raster_file(dem, parreg, initial_data=utils.NO_DATA_VALUE, data_type=gdal.GDT_UInt32)
+            # arcpy.Resample_management(parreg_in, parreg, str(pixelWidth), "NEAREST")
             arcpy.Resample_management(parreg_in, temp_parreg, str(pixelWidth), "NEAREST")
             # save the in memory output raster to the disk
             source_ds = gdal.Open(temp_parreg, GA_ReadOnly)
@@ -220,7 +220,6 @@ def _create_in_memory_raster(base_raster, data_type):
 
 def _create_parameter_attribute_table_text_file(parreg, parreg_in, shp, att, att_tmin, att_tmax, att_cmin, att_cmax,
                                                 att_phimin, att_phimax, att_soildens):
-
     param_ids = []
     if shp or parreg_in:
         # read the parameter grid file to create a list of unique grid cell values

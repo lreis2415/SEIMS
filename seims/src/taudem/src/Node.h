@@ -38,17 +38,16 @@ email:  dtarb@usu.edu
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
 struct Node {
-	int x;
-	int y;
-	Node *parent;
-	short attr;
-	short ID;
+    int x;
+    int y;
+    Node *parent;
+    short attr;
+    short ID;
 };
 
-
-void merge( Node *A, Node *B) ;
-void collapse( Node *A );
-void setAttr( Node *A, int newAttr );
-int getAttr( Node *A );
-void setID( Node *A, int newID );
-int getID( Node *A );
+void merge(Node *A, Node *B);
+void collapse(Node *A);
+void setAttr(Node *A, int newAttr);
+int getAttr(Node *A);
+void setID(Node *A, int newID);
+int getID(Node *A);

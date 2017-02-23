@@ -44,112 +44,114 @@ email:  dtarb@usu.edu
 #include "linearpart.h"
 #include "createpart.h"
 #include "tiffIO.h"
+
 using namespace std;
 
-int twigrid(char *slopefile,char *areafile,char *twifile)
-{
-	MPI_Init(NULL,NULL);{
+int twigrid(char *slopefile, char *areafile, char *twifile) {
+    MPI_Init(NULL, NULL);
+    {
 
-	//Only used for timing
-	int rank,size;
-	MPI_Comm_rank(MCW,&rank);
-	MPI_Comm_size(MCW,&size);
-	if(rank==0)printf("Topographic Wetness Index version %s\n",TDVERSION);
+        //Only used for timing
+        int rank, size;
+        MPI_Comm_rank(MCW, &rank);
+        MPI_Comm_size(MCW, &size);
+        if (rank == 0)printf("Topographic Wetness Index version %s\n", TDVERSION);
 
-	double begin,end;
+        double begin, end;
 
-	//Create tiff object, read and store header info
-	tiffIO slp(slopefile, FLOAT_TYPE);
-	long totalX = slp.getTotalX();
-	long totalY = slp.getTotalY();
-	double dxA = slp.getdxA();
-	double dyA = slp.getdyA();
-	if(rank==0)
-		{
-			float timeestimate=(1e-7*totalX*totalY/pow((double) size,1))/60+1;  // Time estimate in minutes
-			fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
-			fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-			fflush(stderr);
-		}
+        //Create tiff object, read and store header info
+        tiffIO slp(slopefile, FLOAT_TYPE);
+        long totalX = slp.getTotalX();
+        long totalY = slp.getTotalY();
+        double dxA = slp.getdxA();
+        double dyA = slp.getdyA();
+        if (rank == 0) {
+            float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
+            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            fprintf(stderr,
+                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            fflush(stderr);
+        }
 
-	//Create partition and read data
-	tdpartition *slpData;
-	slpData = CreateNewPartition(slp.getDatatype(), totalX, totalY, dxA, dyA, slp.getNodata());
-	int nx = slpData->getnx();
-	int ny = slpData->getny();
-	int xstart, ystart;
-	slpData->localToGlobal(0, 0, xstart, ystart);
-	slp.read(xstart, ystart, ny, nx, slpData->getGridPointer());
+        //Create partition and read data
+        tdpartition *slpData;
+        slpData = CreateNewPartition(slp.getDatatype(), totalX, totalY, dxA, dyA, slp.getNodata());
+        int nx = slpData->getnx();
+        int ny = slpData->getny();
+        int xstart, ystart;
+        slpData->localToGlobal(0, 0, xstart, ystart);
+        slp.read(xstart, ystart, ny, nx, slpData->getGridPointer());
 
-	tdpartition *scaData;
-	tiffIO sca(areafile, FLOAT_TYPE);
-	if(!slp.compareTiff(sca)) return 1;  //And maybe an unhappy error message
-	scaData = CreateNewPartition(sca.getDatatype(), totalX, totalY, dxA, dyA, sca.getNodata());
-	sca.read(xstart, ystart, scaData->getny(), scaData->getnx(), scaData->getGridPointer());
-	
-	//Begin timer
-	begin = MPI_Wtime();
+        tdpartition *scaData;
+        tiffIO sca(areafile, FLOAT_TYPE);
+        if (!slp.compareTiff(sca)) return 1;  //And maybe an unhappy error message
+        scaData = CreateNewPartition(sca.getDatatype(), totalX, totalY, dxA, dyA, sca.getNodata());
+        sca.read(xstart, ystart, scaData->getny(), scaData->getnx(), scaData->getGridPointer());
 
-	//Create empty partition to store new information
-	tdpartition *sar;
-	sar = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, -1.0f);
+        //Begin timer
+        begin = MPI_Wtime();
 
-	long i,j;
-	float tempslp=0;
-	float tempsca=0;
-	float tempsar=0;
-	
-	//Share information and set borders to zero
-	slpData->share();
-	scaData->share();
-	sar->clearBorders();
+        //Create empty partition to store new information
+        tdpartition *sar;
+        sar = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, -1.0f);
+
+        long i, j;
+        float tempslp = 0;
+        float tempsca = 0;
+        float tempsar = 0;
+
+        //Share information and set borders to zero
+        slpData->share();
+        scaData->share();
+        sar->clearBorders();
 
 // Compute sar		
-	for(j=0; j<ny; j++) {
-			for(i=0; i<nx; i++ ) {
-				slpData->getData(i,j,tempslp);
-				scaData->getData(i,j,tempsca);
-				if(!scaData->isNodata(i,j) && !slpData->isNodata(i,j)){
-					if(tempslp>0.0 && tempsca > 0.0){
-					   tempsar=log(tempsca/tempslp);
-					   sar->setData(i,j,tempsar);
-					}
-					else
-					   sar->setToNodata(i,j);				
-				}
-				else
-					sar->setToNodata(i,j);
-			}
-		}
+        for (j = 0; j < ny; j++) {
+            for (i = 0; i < nx; i++) {
+                slpData->getData(i, j, tempslp);
+                scaData->getData(i, j, tempsca);
+                if (!scaData->isNodata(i, j) && !slpData->isNodata(i, j)) {
+                    if (tempslp > 0.0 && tempsca > 0.0) {
+                        tempsar = log(tempsca / tempslp);
+                        sar->setData(i, j, tempsar);
+                    } else {
+                        sar->setToNodata(i, j);
+                    }
+                } else {
+                    sar->setToNodata(i, j);
+                }
+            }
+        }
 
-		//Pass information
-		sar->addBorders();		
+        //Pass information
+        sar->addBorders();
 
-		//Clear out borders
-		sar->clearBorders();
+        //Clear out borders
+        sar->clearBorders();
 
-	//Stop timer
-	end = MPI_Wtime();
-	double compute, temp;
-        compute = end-begin;
+        //Stop timer
+        end = MPI_Wtime();
+        double compute, temp;
+        compute = end - begin;
 
-        MPI_Allreduce (&compute, &temp, 1, MPI_DOUBLE, MPI_SUM, MCW);
-        compute = temp/size;
+        MPI_Allreduce(&compute, &temp, 1, MPI_DOUBLE, MPI_SUM, MCW);
+        compute = temp / size;
 
+        if (rank == 0) {
+            printf("Compute time: %f\n", compute);
+        }
 
-        if( rank == 0)
-                printf("Compute time: %f\n",compute);
+        //Create and write TIFF file
+        float aNodata = -1.0f;
+        char prefix[5] = "twi";
+        tiffIO sarr(twifile, FLOAT_TYPE, &aNodata, slp);
+        sarr.write(xstart, ystart, ny, nx, sar->getGridPointer());
 
-	//Create and write TIFF file
-	float aNodata = -1.0f;
-	char prefix[5] = "twi";
-	tiffIO sarr(twifile, FLOAT_TYPE, &aNodata, slp);
-	sarr.write(xstart, ystart, ny, nx, sar->getGridPointer());
+        //Brackets force MPI-dependent objects to go out of scope before Finalize is called
+    }
+    MPI_Finalize();
 
-	//Brackets force MPI-dependent objects to go out of scope before Finalize is called
-	}MPI_Finalize();
-
-	return 0;
+    return 0;
 }
 
  

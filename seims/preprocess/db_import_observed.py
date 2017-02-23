@@ -111,9 +111,9 @@ def ImportData(db, ObsTxtsList, sitesInfoTxtsList):
                 curSubbasinIDStr = curSubbasinIDStr[:-1]
                 siteDic[Tag_ST_SubbasinID.upper()] = curSubbasinIDStr
                 curfilter = {Tag_ST_StationID.upper(): siteDic[Tag_ST_StationID.upper()],
-                             Tag_ST_Type.upper(): siteDic[Tag_ST_Type.upper()]}
+                             Tag_ST_Type.upper()     : siteDic[Tag_ST_Type.upper()]}
                 # print (curfilter)
-                db[Tag_ClimateDB_Sites.upper()].find_one_and_replace(curfilter, siteDic, upsert=True)
+                db[Tag_ClimateDB_Sites.upper()].find_one_and_replace(curfilter, siteDic, upsert = True)
 
                 varDic = {}
                 varDic[Tag_ST_Type.upper()] = type[j]
@@ -166,9 +166,9 @@ def ImportData(db, ObsTxtsList, sitesInfoTxtsList):
             dic[Tag_DT_UTC.upper()] = datetime.datetime(
                 utcTime[0], utcTime[1], utcTime[2], utcTime[3])
             curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                         Tag_DT_Type.upper(): dic[Tag_DT_Type.upper()],
-                         Tag_DT_UTC.upper(): dic[Tag_DT_UTC.upper()]}
-            db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert=True)
+                         Tag_DT_Type.upper()     : dic[Tag_DT_Type.upper()],
+                         Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
+            db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
     # 3. Add measurement data with unit converted
     # loop variables list
     addedDics = []
@@ -194,16 +194,16 @@ def ImportData(db, ObsTxtsList, sitesInfoTxtsList):
                 # update the Type name
                 dic[Tag_ST_Type.upper()] = curType + "Conc"
                 curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                             Tag_DT_Type.upper(): curType,
-                             Tag_DT_UTC.upper(): dic[Tag_DT_UTC.upper()]}
-                db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert=True)
+                             Tag_DT_Type.upper()     : curType,
+                             Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
+                db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
                 dic[Tag_ST_Type.upper()] = curType
 
             # find discharge on current day
-            filter = {Tag_ST_Type.upper(): "Q",
-                      Tag_DT_UTC.upper(): dic[Tag_DT_UTC.upper()],
+            filter = {Tag_ST_Type.upper()     : "Q",
+                      Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()],
                       Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()]}
-            QDic = db[Tag_ClimateDB_Measurement.upper()].find_one(filter=filter)
+            QDic = db[Tag_ClimateDB_Measurement.upper()].find_one(filter = filter)
 
             q = -9999.
             if QDic is not None:  # and QDic.has_key(Tag_DT_Value.upper()):
@@ -222,9 +222,9 @@ def ImportData(db, ObsTxtsList, sitesInfoTxtsList):
     # import to MongoDB
     for dic in addedDics:
         curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                     Tag_DT_Type.upper(): dic[Tag_DT_Type.upper()],
-                     Tag_DT_UTC.upper(): dic[Tag_DT_UTC.upper()]}
-        db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert=True)
+                     Tag_DT_Type.upper()     : dic[Tag_DT_Type.upper()],
+                     Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
+        db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
 
 
 def ImportMeasurementData(db):

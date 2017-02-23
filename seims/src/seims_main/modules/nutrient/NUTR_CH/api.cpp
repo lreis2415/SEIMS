@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new NUTR_CH();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
 
@@ -32,35 +32,35 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
 #ifdef STORM_MODEL
     mdi.AddParameter(Tag_ChannelTimeStep,UNIT_SECOND,DESC_TIMESTEP,File_Input,DT_Single);  //for long term model // this method is daily time interval based.
 #else
-	/// in Module Settings: time_t SettingsInput::getDtDaily() const{return 86400;}
-    mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single); 
+    /// in Module Settings: time_t SettingsInput::getDtDaily() const{return 86400;}
+    mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
 #endif
-    
+
     mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
 
     /// input from hillslope
-	//nutrient from surface water
-	mdi.AddInput(VAR_SUR_NO3_TOCH, UNIT_KG, DESC_SUR_NO3_CH, Source_Module, DT_Array1D);
-	mdi.AddInput(VAR_SUR_SOLP_TOCH, UNIT_KG, DESC_SUR_SOLP_CH, Source_Module, DT_Array1D);
-	mdi.AddInput(VAR_SEDORGN_TOCH, UNIT_KG, DESC_SEDORGN_CH, Source_Module, DT_Array1D);
-	mdi.AddInput(VAR_SEDORGP_TOCH, UNIT_KG, DESC_SEDORGP_CH, Source_Module, DT_Array1D);
-	//mdi.AddInput(VAR_SEDMINPA_TOCH, UNIT_KG, DESC_SEDMINPA_CH, Source_Module, DT_Array1D);
-	//mdi.AddInput(VAR_SEDMINPS_TOCH, UNIT_KG, DESC_SEDMINPS_CH, Source_Module, DT_Array1D);
-	//nutrient from interflow
-	mdi.AddInput(VAR_LATNO3_TOCH, UNIT_KG, DESC_LATNO3_CH, Source_Module, DT_Array1D);
-	//nutrient from ground water
-	mdi.AddInput(VAR_NO3GW_TOCH, UNIT_KG, DESC_NO3GW_CH, Source_Module, DT_Array1D);
-	mdi.AddInput(VAR_MINPGW_TOCH, UNIT_KG, DESC_MINPGW_CH, Source_Module, DT_Raster1D);
+    //nutrient from surface water
+    mdi.AddInput(VAR_SUR_NO3_TOCH, UNIT_KG, DESC_SUR_NO3_CH, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SUR_SOLP_TOCH, UNIT_KG, DESC_SUR_SOLP_CH, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SEDORGN_TOCH, UNIT_KG, DESC_SEDORGN_CH, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_SEDORGP_TOCH, UNIT_KG, DESC_SEDORGP_CH, Source_Module, DT_Array1D);
+    //mdi.AddInput(VAR_SEDMINPA_TOCH, UNIT_KG, DESC_SEDMINPA_CH, Source_Module, DT_Array1D);
+    //mdi.AddInput(VAR_SEDMINPS_TOCH, UNIT_KG, DESC_SEDMINPS_CH, Source_Module, DT_Array1D);
+    //nutrient from interflow
+    mdi.AddInput(VAR_LATNO3_TOCH, UNIT_KG, DESC_LATNO3_CH, Source_Module, DT_Array1D);
+    //nutrient from ground water
+    mdi.AddInput(VAR_NO3GW_TOCH, UNIT_KG, DESC_NO3GW_CH, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_MINPGW_TOCH, UNIT_KG, DESC_MINPGW_CH, Source_Module, DT_Raster1D);
 
-	///////////////////////////////
+    ///////////////////////////////
     mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, Source_Module, DT_Array1D);
-    
-	// output
+
+    // output
     mdi.AddOutput(VAR_CH_NO3, UNIT_CONCENTRATION, DESC_CH_NO3, DT_Array1D);
     mdi.AddOutput(VAR_CH_SOLP, UNIT_CONCENTRATION, DESC_CH_SOLP, DT_Array1D);
-	mdi.AddOutput(VAR_CH_ORGN, UNIT_CONCENTRATION, DESC_CH_ORGN, DT_Array1D);
-	mdi.AddOutput(VAR_CH_ORGP, UNIT_CONCENTRATION, DESC_CH_SOLP, DT_Array1D);
+    mdi.AddOutput(VAR_CH_ORGN, UNIT_CONCENTRATION, DESC_CH_ORGN, DT_Array1D);
+    mdi.AddOutput(VAR_CH_ORGP, UNIT_CONCENTRATION, DESC_CH_SOLP, DT_Array1D);
 
     res = mdi.GetXMLDocument();
 

@@ -32,8 +32,7 @@ using namespace std;
  * \brief Calculate snow melt by snowpack daily method from SWAT
  * 
  */
-class SNO_SP : public SimulationModule
-{
+class SNO_SP : public SimulationModule {
 public:
     //! Constructor
     SNO_SP(void);
@@ -53,65 +52,65 @@ public:
 
     bool CheckInputData(void);
 
-	void initialOutputs();
+    void initialOutputs();
+
 private:
     //! Valid cells number
     int m_nCells;
-	//! Mean air temperature at which snow melt will occur, sub_smtmp
+    //! Mean air temperature at which snow melt will occur, sub_smtmp
     float m_t0;
-	//! fraction coefficient of precipitation as snow
+    //! fraction coefficient of precipitation as snow
     float m_kblow;
-	//! Snowfall temperature, i.e., precipitation as snow
+    //! Snowfall temperature, i.e., precipitation as snow
     float m_tsnow;
-	//! Initial snow water equivalent
+    //! Initial snow water equivalent
     //float m_swe0;
 
-	/*Snow pack temperature lag factor (0-1), sub_timp in SWAT
-	* 1 = no lag (snow pack temp=current day air temp) 
-	* as the lag factor goes to zero, the snow pack's 
-	* temperature will be less influenced by the current day's 
-	* air temperature
-	*/
+    /*Snow pack temperature lag factor (0-1), sub_timp in SWAT
+    * 1 = no lag (snow pack temp=current day air temp)
+    * as the lag factor goes to zero, the snow pack's
+    * temperature will be less influenced by the current day's
+    * air temperature
+    */
     float m_lagSnow;
-	//! Maximum melt rate for snow during year, sub_smfmx
+    //! Maximum melt rate for snow during year, sub_smfmx
     float m_csnow6;
-	//! Minimum melt rate for snow during year, sub_smfmn
+    //! Minimum melt rate for snow during year, sub_smfmn
     float m_csnow12;
-	//! Minimum snow water content that corresponds to 100% snow cover, mm H2O, SNOCOVMX
-	float m_snowCoverMax;
-	//! Fraction of SNOCOVMX that corresponds to 50% snow cover, SNO50COV
-	float m_snowCover50;
-	//! 1st shape parameter for snow cover equation
-	float m_snowCoverCoef1;
-	//! 2nd shape parameter for snow cover equation
-	float m_snowCoverCoef2;
+    //! Minimum snow water content that corresponds to 100% snow cover, mm H2O, SNOCOVMX
+    float m_snowCoverMax;
+    //! Fraction of SNOCOVMX that corresponds to 50% snow cover, SNO50COV
+    float m_snowCover50;
+    //! 1st shape parameter for snow cover equation
+    float m_snowCoverCoef1;
+    //! 2nd shape parameter for snow cover equation
+    float m_snowCoverCoef2;
 
-	//! average snow accumulation of the watershed
+    //! average snow accumulation of the watershed
     //float m_swe;
-	//! snow water equivalent of last time step
+    //! snow water equivalent of last time step
     //float m_lastSWE;
 
-	//! Mean temperature
+    //! Mean temperature
     float *m_tMean;
-	//! Max temperature
+    //! Max temperature
     float *m_tMax;
-	//! Net precipitation
+    //! Net precipitation
     float *m_Pnet;
-	
-	//! snow redistribution
+
+    //! snow redistribution
     float *m_SR;
-	//! snow sublimation, snoev in SWAT in etact.f
+    //! snow sublimation, snoev in SWAT in etact.f
     float *m_SE;
-	
 
     //! temperature of snow pack, snotmp in SWAT
     float *m_packT;
 
-	/// outputs
+    /// outputs
 
     //! amount of water in snow melt, snomlt in SWAT
     float *m_SM;
-	//! snow accumulation, sno_hru in SWAT
+    //! snow accumulation, sno_hru in SWAT
     float *m_SA;
 };
 

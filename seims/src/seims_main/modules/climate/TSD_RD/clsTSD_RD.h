@@ -27,14 +27,13 @@ using namespace std;
  * \brief Read Time Series Data, e.g., Maximum temperature.
  *
  */
-class clsTSD_RD : public SimulationModule
-{
+class clsTSD_RD : public SimulationModule {
 private:
     /// data row number
     int m_Rows;
     /// time series data
     float *m_Data;
-	int counter;
+    int counter;
 public:
     clsTSD_RD(void);
 

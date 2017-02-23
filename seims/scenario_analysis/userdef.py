@@ -10,12 +10,14 @@ import uuid
 from math import *
 from scenario import *
 
+
 # Model
 def __uniqueid__():
     id = int(str(uuid.uuid4().fields[-1])[:8])
     while True:
         yield id
         id += 1
+
 
 def calBenefitandCost(individual):
     Sce = Scenario()
@@ -24,7 +26,7 @@ def calBenefitandCost(individual):
     # ms = float(random.randint(0, 1000))
     # time.sleep(ms / 1000.)
 
-    #Sce.getIdfromMongo()
+    # Sce.getIdfromMongo()
     Sce.setId(__uniqueid__().next())
     Sce.attributes = individual
     Sce.decoding()
@@ -38,11 +40,13 @@ def calBenefitandCost(individual):
     f2 = Sce.benefit_env
     return f1, f2
 
+
 def test(individual):
     g = sum(individual) / len(individual)
     f1 = sum(individual)
     f2 = sin(g) * (1 - sqrt(f1))
     return f1, f2
+
 
 ######################################
 # GA Mutations                       #

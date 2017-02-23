@@ -19,14 +19,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new NutrientCH_IKW();
 }
 
 //! function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao");
     mdi.SetClass(MCLS_NutCHRout, MCLSDESC_NutCHRout);
@@ -38,9 +38,9 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("NutCHRout.html");
 
-	// set the parameters
-	mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-	mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
+    // set the parameters
+    mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_RNUM1, UNIT_NON_DIM, DESC_RNUM1, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_IGROPT, UNIT_NON_DIM, DESC_IGROPT, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_AI0, UNIT_NUT_RATIO, DESC_AI0, Source_ParameterDB, DT_Single);
@@ -65,7 +65,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     //mdi.AddParameter(VAR_VSF, UNIT_NON_DIM, DESC_VSF, Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_WATTEMP, UNIT_TEMP_DEG, DESC_WATTEMP, Source_ParameterDB, DT_Array1D);
-	/// TODO, plz refers to MUSK_CH to add a function "SetReaches" to handle this datatype "DT_Reach". By LJ
+    /// TODO, plz refers to MUSK_CH to add a function "SetReaches" to handle this datatype "DT_Reach". By LJ
     mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
 
     mdi.AddParameter(VAR_DAYLEN, UNIT_TIMESTEP_HOUR, DESC_DAYLEN, Source_ParameterDB, DT_Raster1D);
@@ -75,15 +75,15 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
 
 
     // set the output variables
-	mdi.AddOutput(VAR_AL_OUTLET, UNIT_DENSITY_L, DESC_AL_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_ON_OUTLET, UNIT_DENSITY_L, DESC_ON_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_OP_OUTLET, UNIT_DENSITY_L, DESC_OP_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_AN_OUTLET, UNIT_DENSITY_L, DESC_AN_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_NIN_OUTLET, UNIT_DENSITY_L, DESC_NIN_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_NAN_OUTLET, UNIT_DENSITY_L, DESC_NAN_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_DP_OUTLET, UNIT_DENSITY_L, DESC_DP_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_COD_OUTLET, UNIT_DENSITY_L, DESC_COD_OUTLET, DT_Single);
-	mdi.AddOutput(VAR_CHL_OUTLET, UNIT_DENSITY_L, DESC_CHL_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_AL_OUTLET, UNIT_DENSITY_L, DESC_AL_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_ON_OUTLET, UNIT_DENSITY_L, DESC_ON_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_OP_OUTLET, UNIT_DENSITY_L, DESC_OP_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_AN_OUTLET, UNIT_DENSITY_L, DESC_AN_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_NIN_OUTLET, UNIT_DENSITY_L, DESC_NIN_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_NAN_OUTLET, UNIT_DENSITY_L, DESC_NAN_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_DP_OUTLET, UNIT_DENSITY_L, DESC_DP_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_COD_OUTLET, UNIT_DENSITY_L, DESC_COD_OUTLET, DT_Single);
+    mdi.AddOutput(VAR_CHL_OUTLET, UNIT_DENSITY_L, DESC_CHL_OUTLET, DT_Single);
 
     mdi.AddOutput(VAR_SOXY, UNIT_DENSITY_L, DESC_SOXY, DT_Array1D);
     mdi.AddOutput(VAR_ALGAE, UNIT_DENSITY_L, DESC_ALGAE, DT_Array1D);
@@ -96,7 +96,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.AddOutput(VAR_RCH_COD, UNIT_DENSITY_L, DESC_RCH_COD, DT_Array1D);
     //mdi.AddOutput(VAR_RCH_DOX, UNIT_DENSITY_L, DESC_RCH_DOX, DT_Array1D);
     mdi.AddOutput(VAR_CHLORA, UNIT_DENSITY_L, DESC_CHLORA, DT_Array1D);
-
 
     string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];

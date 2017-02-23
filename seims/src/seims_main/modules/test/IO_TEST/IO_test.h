@@ -10,8 +10,7 @@
 using namespace MainBMP;
 using namespace std;
 
-class IO_TEST : public SimulationModule
-{
+class IO_TEST : public SimulationModule {
 private:
     /// valid cells number
     int m_nCells;
@@ -19,8 +18,8 @@ private:
     float *m_raster1D;
     /// maximum number of soil layers
     int m_soilLayers;
-	/// soil layers
-	float *m_nSoilLayrs;
+    /// soil layers
+    float *m_nSoilLayrs;
     /// input 2D raster data
     float **m_raster2D;
     /// output 1D raster data

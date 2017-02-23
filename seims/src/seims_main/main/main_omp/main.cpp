@@ -14,8 +14,7 @@
 #define USE_MONGODB
 #endif
 
-int main(int argc, const char *argv[])
-{
+int main(int argc, const char *argv[]) {
     GDALAllRegister();
     string modelPath = "";
     int scenarioID = -1;  /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
@@ -23,79 +22,69 @@ int main(int argc, const char *argv[])
     int numThread = 1;
     LayeringMethod layeringMethod = UP_DOWN;
     char mongodbIP[16];
-    stringcpy(mongodbIP,"127.0.0.1");
+    stringcpy(mongodbIP, "127.0.0.1");
     int port = 27017;
-    if (argc < 2)
-    {
+    if (argc < 2) {
         cout << "Error: To run the program, use either the Simple Usage option or Usage option as below." << endl;
         goto errexit;
-    }
-    else if (argc > 2)
+    } else if (argc > 2) {
         i = 1;
-    else
+    } else {
         i = 2;
-    while (argc > i)
-    {
-        if (PathExists(string(argv[i])))
-        {
+    }
+    while (argc > i) {
+        if (PathExists(string(argv[i]))) {
             modelPath = argv[i];
             i++;
-        }
-        else
+        } else {
             goto errexit;
-        if (argc > i)
-        {
-            if (atoi(argv[i]) > 0)
-            {
+        }
+        if (argc > i) {
+            if (atoi(argv[i]) > 0) {
                 numThread = atoi(argv[i]);
                 i++;
-            }
-            else
+            } else {
                 goto errexit;
+            }
         }
-        if (argc > i)
-        {
-            if (atoi(argv[i]) == 0 || atoi(argv[i]) == 1)
-            {
-                if (atoi(argv[i]) == 0)
+        if (argc > i) {
+            if (atoi(argv[i]) == 0 || atoi(argv[i]) == 1) {
+                if (atoi(argv[i]) == 0) {
                     layeringMethod = UP_DOWN;
-                else
+                } else {
                     layeringMethod = DOWN_UP;
+                }
                 i++;
-            }
-            else
+            } else {
                 goto errexit;
+            }
         }
-        if (argc > i)
-        {
-            if (isIPAddress(argv[i]))
-            {
-                stringcpy(mongodbIP,argv[i]);
+        if (argc > i) {
+            if (isIPAddress(argv[i])) {
+                stringcpy(mongodbIP, argv[i]);
                 i++;
-                if (argc > i && atoi(argv[i]) > 0)
-                {
+                if (argc > i && atoi(argv[i]) > 0) {
                     port = atoi(argv[i]);
                     i++;
-                }
-                else
+                } else {
                     goto errexit;
-            }
-            else
+                }
+            } else {
                 goto errexit;
+            }
         }
-        if (argc > i)
-        {
-            if (atoi(argv[i]) >= 0)
-            {
+        if (argc > i) {
+            if (atoi(argv[i]) >= 0) {
                 scenarioID = atoi(argv[i]);
                 i++;
-            }
-            else
+            } else {
                 goto errexit;
+            }
         }
     }
-    if (argc == 2)
+    if (argc == 2) {
         modelPath = argv[1];
+    }
 
     //cout<<modelPath<<endl;
     //cout<<numThread<<endl;
@@ -105,8 +94,7 @@ int main(int argc, const char *argv[])
     //omp_set_num_threads(2);
 
 #ifdef MAIN
-    while (modelPath.length() == 0)
-    {
+    while (modelPath.length() == 0) {
         cout << "Please input the model path:" << endl;
         cin >> modelPath;
     }

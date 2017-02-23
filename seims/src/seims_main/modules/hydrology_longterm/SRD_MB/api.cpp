@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new SRD_MB();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -37,9 +37,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.AddParameter("swe0", "mm", "Initial snow water equivalent", "ParameterDB_Snow", DT_Single);
 
     //8 single parameter
-    mdi.AddParameter("shc_crop ", "m",
+    mdi.AddParameter("shc_crop ",
+                     "m",
                      "snow holding capacity of cropland with conventional tillage used to calculate land cover weighting factor",
-                     "ParameterDB_Snow", DT_Single);
+                     "ParameterDB_Snow",
+                     DT_Single);
     mdi.AddParameter("k_slope", "-", "Slope coefficient in wind direction", "ParameterDB_Snow", DT_Single);
     mdi.AddParameter("k_curvature", "-", "Curvature coefficient in wind direction", "ParameterDB_Snow", DT_Single);
     mdi.AddParameter("ut0", "m/s", "Threshold wind speed at -27 degree for starting the redistribution of sno",

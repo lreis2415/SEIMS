@@ -13,8 +13,7 @@
 
 #include "IUHCalculator.h"
 
-class WatershedIUHCalculator : public IUHCalculator
-{
+class WatershedIUHCalculator : public IUHCalculator {
 public:
     WatershedIUHCalculator(string inputfile, string watershedfile,
                            string stream_networkfile, string t0file, string deltafile,
@@ -28,16 +27,15 @@ public:
 
     virtual ~WatershedIUHCalculator(void);
 
-
 private:
     string runoffCoFile;
     string uhCellFile, uhSubFile, uhWatershedFile;
 
     vector<double> runoffSub;             //subwatershed runoff coefficient
-    vector<vector<double> > runoffCo;    //potential runoff coefficient
+    vector <vector<double>> runoffCo;    //potential runoff coefficient
 
-    vector<vector<double> > uhCell, uh1;      //IUH from cell to watershed outlet
-    vector<vector<double> > uhSub, uh2;       //IUH from each subwatershed
+    vector <vector<double>> uhCell, uh1;      //IUH from cell to watershed outlet
+    vector <vector<double>> uhSub, uh2;       //IUH from each subwatershed
     vector<double> uhWatershed, uh3; //IUH of watershed
 
     int maxtSub;                     //maximum length of subwatershed IUH

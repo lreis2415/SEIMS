@@ -12,14 +12,12 @@
 //! Constructor
 NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList,
                                              string siteType, time_t startTime, time_t endTime)
-        : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime)
-{
+    : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime) {
     int nSites = m_siteIDList.size();
     m_valueList.resize(nSites);
     m_timeList.resize(nSites);
     m_curIndexList.resize(nSites, 0);
-    for (int iSite = 0; iSite < nSites; iSite++)
-    {
+    for (int iSite = 0; iSite < nSites; iSite++) {
         /// build query statement
         bson_t *query = bson_new();
         bson_t *child = bson_new();
@@ -64,23 +62,22 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         float value;
         time_t dt;
         bool hasData = false;
-        while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
-        {
+        while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
             hasData = true;
             bson_iter_t iter;
-            if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE))
-				GetNumericFromBsonIterator(&iter, value);
-            else
+            if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
+                GetNumericFromBsonIterator(&iter, value);
+            } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The Value field does not exist in DataValues table.");
-
-            if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC))
-            {
-                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
             }
-            else
+
+            if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
+                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
+            } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The UTCDateTime field does not exist in DataValues table.");
+            }
 
             m_timeList[iSite].push_back(dt);
             m_valueList[iSite].push_back(value);
@@ -89,22 +86,20 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         mongoc_cursor_destroy(cursor);
         mongoc_collection_destroy(collection);
 
-        if (!hasData)
-        {
+        if (!hasData) {
             ostringstream oss;
             oss << "There are no " << siteType << " data available for sites:[" << m_siteIDList[iSite] <<
-            "] in database:" << hydroDBName
-            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                "] in database:" << hydroDBName
+                << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
             throw ModelException("NotRegularMeasurement", "Constructor", oss.str());
         }
     }
 }
 
 //! Destructor
-NotRegularMeasurement::~NotRegularMeasurement(void)
-{
+NotRegularMeasurement::~NotRegularMeasurement(void) {
     if (pData != NULL) Release1DArray(pData);
-    for (vector<vector<float> >::iterator it = m_valueList.begin(); it != m_valueList.end();)
+    for (vector < vector < float > > ::iterator it = m_valueList.begin(); it != m_valueList.end();)
     {
         it = m_valueList.erase(it);
     }
@@ -112,18 +107,17 @@ NotRegularMeasurement::~NotRegularMeasurement(void)
 }
 
 //! Get site data by time
-float *NotRegularMeasurement::GetSiteDataByTime(time_t t)
-{
-    for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); iSite++)
-    {
-        vector<time_t> &tlist = m_timeList[iSite];
+float *NotRegularMeasurement::GetSiteDataByTime(time_t t) {
+    for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); iSite++) {
+        vector <time_t> &tlist = m_timeList[iSite];
         vector<float> &vlist = m_valueList[iSite];
         size_t curIndex = m_curIndexList[iSite];
 
         // find the index for current time
         // the nearest record before t
-        while (curIndex < tlist.size() && tlist[curIndex] <= t)
+        while (curIndex < tlist.size() && tlist[curIndex] <= t) {
             curIndex++;
+        }
         curIndex--;
 
         //if (curIndex < 0)
@@ -133,8 +127,8 @@ float *NotRegularMeasurement::GetSiteDataByTime(time_t t)
         //}
         //else
         //{
-            pData[iSite] = vlist[curIndex];
-            m_curIndexList[iSite] = curIndex;
+        pData[iSite] = vlist[curIndex];
+        m_curIndexList[iSite] = curIndex;
         //}
     }
     return pData;

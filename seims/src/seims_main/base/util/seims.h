@@ -4,15 +4,13 @@
  * \enum LayeringMethod
  * \brief Grid layering method for routing and parallel computing
  */
-enum LayeringMethod
-{
+enum LayeringMethod {
     /// layering-from-source method
-    UP_DOWN,
+        UP_DOWN,
     /// layering-from-outlet method
-    DOWN_UP
+        DOWN_UP
 };
-enum FlowDirectionMethod
-{
+enum FlowDirectionMethod {
     TauDEM = 0,
     ArcGIS = 1
 };

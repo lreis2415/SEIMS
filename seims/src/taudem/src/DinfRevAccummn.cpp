@@ -37,7 +37,7 @@ email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
-  
+
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
@@ -45,101 +45,77 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
+int main(int argc, char **argv) {
+    char angfile[MAXLN], wgfile[MAXLN], raccfile[MAXLN], dmaxfile[MAXLN];
+    int err, i;
 
-int main(int argc,char **argv)
-{
-   char angfile[MAXLN],wgfile[MAXLN],raccfile[MAXLN],dmaxfile[MAXLN];
-   int err,i;
-   
-   if(argc < 2)
-    {  
-       printf("Error: To run this program, use either the Simple Usage option or\n");
-	   printf("the Usage with Specific file names option\n");
-	   goto errexit;  
+    if (argc < 2) {
+        printf("Error: To run this program, use either the Simple Usage option or\n");
+        printf("the Usage with Specific file names option\n");
+        goto errexit;
+    } else if (argc > 2) {
+        i = 1;
+//		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
+    } else {
+        i = 2;
+//		printf("You are running %s with the Simple Usage option.\n", argv[0]);
+    }
+    while (argc > i) {
+        if (strcmp(argv[i], "-ang") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(angfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-wg") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(wgfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-racc") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(raccfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-dmax") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(dmaxfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
+    }
+    if (argc == 2) {
+        nameadd(angfile, argv[1], "ang");
+        nameadd(wgfile, argv[1], "wg");
+        nameadd(raccfile, argv[1], "racc");
+        nameadd(dmaxfile, argv[1], "dmax");
+    }
+    if ((err = dsaccum(angfile, wgfile, raccfile, dmaxfile)) != 0) {
+        printf("dsaccum error %d\n", err);
     }
 
-   else if(argc > 2)
-	{
-		i = 1;
-//		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
-	}
-	else {
-		i = 2;
-//		printf("You are running %s with the Simple Usage option.\n", argv[0]);
-	}
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-ang")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(angfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-wg")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(wgfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-racc")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(raccfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-dmax")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(dmaxfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}		
-		else 
-		{
-			goto errexit;
-		}
-	}
-	if( argc == 2) {
-		nameadd(angfile,argv[1],"ang");
-		nameadd(wgfile,argv[1],"wg");
-		nameadd(raccfile,argv[1],"racc");
-		nameadd(dmaxfile,argv[1],"dmax");
-	}  
-	if((err=dsaccum(angfile,wgfile,raccfile,dmaxfile)) != 0)
-        printf("dsaccum error %d\n",err);
+    return 0;
 
-	return 0;
-
-	errexit:
-	   printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
-	   printf("Usage with specific file names:\n %s -ang <angfile>\n",argv[0]);
-       printf("-wg <wgfile> -racc <depfile> -dmax <maxfile>\n");
-	   printf("<basefilename> is the name of the raw digital elevation model\n");
-	   printf("<angfile> is the D-infinity flow direction input file.\n");
-	   printf("<wgfile> is the input weight grid file.\n");
-	   printf("<depfile> is the output reverse accumulation grid file.\n");
-	   printf("<maxfile> is the output maximum downslope grid file.\n");
-	   printf("The following are appended to the file names\n");
-       printf("before the files are opened:\n");
-       printf("ang    D-infinity flow direction input file\n");
-	   printf("wg    Input weight grid\n");
-	   printf("racc   output reverse accumulation grid\n");
-	   printf("dmax    Output transport limitted accumulation grid\n");
-	   printf("tdep   output maximum downslope grid\n");
-       exit(0); 
+    errexit:
+    printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
+    printf("Usage with specific file names:\n %s -ang <angfile>\n", argv[0]);
+    printf("-wg <wgfile> -racc <depfile> -dmax <maxfile>\n");
+    printf("<basefilename> is the name of the raw digital elevation model\n");
+    printf("<angfile> is the D-infinity flow direction input file.\n");
+    printf("<wgfile> is the input weight grid file.\n");
+    printf("<depfile> is the output reverse accumulation grid file.\n");
+    printf("<maxfile> is the output maximum downslope grid file.\n");
+    printf("The following are appended to the file names\n");
+    printf("before the files are opened:\n");
+    printf("ang    D-infinity flow direction input file\n");
+    printf("wg    Input weight grid\n");
+    printf("racc   output reverse accumulation grid\n");
+    printf("dmax    Output transport limitted accumulation grid\n");
+    printf("tdep   output maximum downslope grid\n");
+    exit(0);
 }

@@ -37,7 +37,7 @@ for idx, sceneID in enumerate(ScenarioIDs):
         filename = r'%s\OUTPUT%s\%d_CH_%s.txt' % (baseFolder, sceneID, subbasinID, par)
         parDict[par] = round(SumByFile(filename, year) / 1000., 2)
         reduceDict[par] = round(baseParDict[par] - parDict[par], 2)
-        reduceRateDict[par] = round(reduceDict[par]/baseParDict[par], 2)
+        reduceRateDict[par] = round(reduceDict[par] / baseParDict[par], 2)
     print ScenarioNames[idx], parDict
     print "    reduce, ", reduceDict
     print "    reduceRate, ", reduceRateDict

@@ -21,8 +21,7 @@ using namespace std;
 /** 
 *    @brief This class is the base class of IUH calculation.
 */
-class IUHCalculator
-{
+class IUHCalculator {
 public:
     IUHCalculator(string inputfile, string watershedfile,
                   string stream_networkfile, string t0file, string deltafile);
@@ -51,11 +50,11 @@ protected:
     int nCells;          //number of cells
     int nLinks;          //number of links
 
-    vector<vector<int> > watershed;  //value of subwatershed/subbasin
-    vector<vector<int> > strnetwork;  // value of stream network, used to define stream link
-    vector<vector<int> > link;   //calculated from watershed and stream network
-    vector<vector<double> > t0;          //flow time
-    vector<vector<double> > delta;       //standard deviation of flow time
+    vector <vector<int>> watershed;  //value of subwatershed/subbasin
+    vector <vector<int>> strnetwork;  // value of stream network, used to define stream link
+    vector <vector<int>> link;   //calculated from watershed and stream network
+    vector <vector<double>> t0;          //flow time
+    vector <vector<double>> delta;       //standard deviation of flow time
     //vector< vector<double> > runoffCo;    //potential runoff coefficient
 
 /**

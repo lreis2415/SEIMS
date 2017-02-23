@@ -25,8 +25,7 @@ using namespace std;
  * \brief Interflow routing using implicit finite difference method
  *
  */
-class InterFlow_IKW : public SimulationModule
-{
+class InterFlow_IKW : public SimulationModule {
 public:
     //! Constructor
     InterFlow_IKW(void);

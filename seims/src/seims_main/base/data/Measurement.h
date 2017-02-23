@@ -16,7 +16,6 @@
 #include "utilities.h"
 #include "MongoUtil.h"
 
-
 using namespace std;
 
 /*!
@@ -24,8 +23,7 @@ using namespace std;
  * \class Measurement
  * \brief Get HydroClimate measurement data from MongoDB
  */
-class Measurement
-{
+class Measurement {
 public:
     /*!
      * \brief Constructor

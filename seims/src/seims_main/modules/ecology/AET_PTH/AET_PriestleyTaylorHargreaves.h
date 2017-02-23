@@ -32,8 +32,7 @@ using namespace std;
  * \brief Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods
  * Actual soil evaporation is also calculated.
  */
-class AET_PT_H : public SimulationModule
-{
+class AET_PT_H : public SimulationModule {
 private:
     /// valid cells number
     int m_nCells;
@@ -41,8 +40,8 @@ private:
     float *m_lai;
     /// potential evapotranspiration on current day
     float *m_pet;
-	/// Evaporation loss from canopy storage
-	float *m_canEvp;
+    /// Evaporation loss from canopy storage
+    float *m_canEvp;
     /// depression storage capacity
     float *m_depSt;
     /// soil evaporation compensation factor, if not set or existed, it will be assigned 0.95 as default.
@@ -54,8 +53,8 @@ private:
     int m_soilLayers;
     /// soil depth
     float **m_soilDepth;
-	/// soil thickness
-	float **m_soilThick;
+    /// soil thickness
+    float **m_soilThick;
     /// amount of water available to plants in soil layer at field capacity (FC-WP)
     float **m_solFC;
     /// amount of residue on soil surface (kg/ha)
@@ -70,8 +69,8 @@ private:
     float *m_snowSB;
     /// soil storage of each soil layer, mm H2O
     float **m_soilStorage;
-	/// soil water storage in soil profile (mm)
-	float *m_soilStorageProfile;
+    /// soil water storage in soil profile (mm)
+    float *m_soilStorageProfile;
     /// add output variables
 
     /// maximum amount of transpiration (plant et)  that can occur on current day in HRU, ep_max in SWAT
@@ -115,7 +114,7 @@ private:
      */
     bool CheckInputSize(const char *, int);
 
-	//! initialize outputs
-	void initialOutputs();
+    //! initialize outputs
+    void initialOutputs();
 };
 

@@ -34,7 +34,8 @@ void CombineRasterResults(string &folder, string &sVar, string &fileType, int nS
 //void CombineRasterResultsMongo(gridfs *gfs, string &sVar, int nSubbasins, string &outputRaster);
 void CombineRasterResultsMongo(mongoc_gridfs_t *gfs, string &sVar, int nSubbasins, string &outputRaster);
 
-int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, string &projectPath, string &outputFile);
+int MasterProcess(map < int, SubbasinStruct * > &subbasinMap, set < int > &groupSet, string & projectPath,
+                  string & outputFile);
 
 void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                       string &projectPath, string &modulePath, const char *host, int port, const char *dbName,

@@ -48,83 +48,71 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 //#include "tardemlib.h"
 
-int peukerdouglas(char *felfile,char *ssfile,float *p);
+int peukerdouglas(char *felfile, char *ssfile, float *p);
 
-int main(int argc,char **argv)  
-{
-   char felfile[MAXLN],ssfile[MAXLN];
-   int err;
-   float p[3];
-      
-   if(argc < 2) goto errexit;
-   //  Specify default weights
-   p[0]=0.4;  p[1]=0.1;  p[2]=0.05;
-   if(argc == 2)
-	{
+int main(int argc, char **argv) {
+    char felfile[MAXLN], ssfile[MAXLN];
+    int err;
+    float p[3];
+
+    if (argc < 2) goto errexit;
+    //  Specify default weights
+    p[0] = 0.4;
+    p[1] = 0.1;
+    p[2] = 0.05;
+    if (argc == 2) {
 //		printf("You are running %s with the simple use option.\n", argv[0]);
-		nameadd(felfile,argv[1],"fel");
-		nameadd(ssfile,argv[1],"ss");
+        nameadd(felfile, argv[1], "fel");
+        nameadd(ssfile, argv[1], "ss");
     }
-   if(argc > 2)
-   {
+    if (argc > 2) {
 //		printf("You are running %s with the specific file names option.\n", argv[0]);
-        int i=1;	
-		while(argc > i)
-		{
-			if(strcmp(argv[i],"-fel")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(felfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-ss")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(ssfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-		   else if(strcmp(argv[i],"-par")==0)
-			{
-				i++;
-				if(argc > i+2)
-				{
-					sscanf(argv[i],"%f",&p[0]);
-					i++;
-					sscanf(argv[i],"%f",&p[1]);
-					i++;
-					sscanf(argv[i],"%f",&p[2]);
-					i++;
-				}
-				else goto errexit;
-			}
-		   else goto errexit;
-		}
-   }
-    if( (err=peukerdouglas(felfile,ssfile,p)) != 0)
-        printf("Peuker Douglas Error %d\n",err);
+        int i = 1;
+        while (argc > i) {
+            if (strcmp(argv[i], "-fel") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(felfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-ss") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(ssfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-par") == 0) {
+                i++;
+                if (argc > i + 2) {
+                    sscanf(argv[i], "%f", &p[0]);
+                    i++;
+                    sscanf(argv[i], "%f", &p[1]);
+                    i++;
+                    sscanf(argv[i], "%f", &p[2]);
+                    i++;
+                } else { goto errexit; }
+            } else { goto errexit; }
+        }
+    }
+    if ((err = peukerdouglas(felfile, ssfile, p)) != 0) {
+        printf("Peuker Douglas Error %d\n", err);
+    }
 
-	return 0;
-errexit:
-   printf("Simple Use:\n %s <basefilename>\n",argv[0]);
-   printf("Use with specific file names:\n %s -fel <elevationfile>\n",argv[0]);
-   printf("-ss <streamsource> [-par <weightMiddle> <weightSide> <weightDiagonal>]\n");
-   printf("<basefilename> is the name of the base digital elevation model without suffixes for simple input. 'fel' will be appended. \n");
-   printf("<elevationfile> is the name of the elevation input file.\n");
-   printf("<streamsource> is the name of the stream source file output.\n");
-   printf("The elevation input is smoothed by averaging using the center and eight surrounding grid cells.\n");
-   printf("<weightMiddle> is the weight given to the center cell in the smoothing of the input elevations.\n");
-   printf("<weightSide> is the weight given to the 4 side cells in the smoothing of the input elevations.\n");
-   printf("<weightDiagonal> is the weight given to the 4 diagonal cells in the smoothing of the input elevations.\n");
-   printf("Default weights are 0.4 0.1 0.05 if -par is not specified.\n");
-   return 0; 
+    return 0;
+    errexit:
+    printf("Simple Use:\n %s <basefilename>\n", argv[0]);
+    printf("Use with specific file names:\n %s -fel <elevationfile>\n", argv[0]);
+    printf("-ss <streamsource> [-par <weightMiddle> <weightSide> <weightDiagonal>]\n");
+    printf(
+        "<basefilename> is the name of the base digital elevation model without suffixes for simple input. 'fel' will be appended. \n");
+    printf("<elevationfile> is the name of the elevation input file.\n");
+    printf("<streamsource> is the name of the stream source file output.\n");
+    printf("The elevation input is smoothed by averaging using the center and eight surrounding grid cells.\n");
+    printf("<weightMiddle> is the weight given to the center cell in the smoothing of the input elevations.\n");
+    printf("<weightSide> is the weight given to the 4 side cells in the smoothing of the input elevations.\n");
+    printf("<weightDiagonal> is the weight given to the 4 diagonal cells in the smoothing of the input elevations.\n");
+    printf("Default weights are 0.4 0.1 0.05 if -par is not specified.\n");
+    return 0;
 } 
    
 

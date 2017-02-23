@@ -25,8 +25,7 @@ using namespace std;
  * \brief Green Ampt Method to calculate infiltration and excess precipitation
  *
  */
-class StormGreenAmpt : public SimulationModule
-{
+class StormGreenAmpt : public SimulationModule {
 public:
     //! Constructor
     StormGreenAmpt(void);
@@ -129,7 +128,6 @@ private:
     float *m_capillarySuction;
     /// cumulative infiltration depth (m)
     float *m_accumuDepth;
-
 
     // output
     /// infiltration map of watershed (mm) of the total nCells

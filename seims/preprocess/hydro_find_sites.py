@@ -48,8 +48,8 @@ def FindSites(db, hydroDBName, subbasinFile, subbasinIdField, thiessenFileList, 
         dic[FLD_DB.upper()] = hydroDBName
         dic[FLD_MODE.upper()] = mode
         curFileter = {FLD_SUBBASINID.upper(): id,
-                      FLD_DB.upper(): hydroDBName,
-                      FLD_MODE.upper(): mode}
+                      FLD_DB.upper()        : hydroDBName,
+                      FLD_MODE.upper()      : mode}
         for metroID in range(0, n):
             thiessenFile = thiessenFileList[metroID]
             # print thiessenFile
@@ -69,7 +69,7 @@ def FindSites(db, hydroDBName, subbasinFile, subbasinIdField, thiessenFileList, 
 
             siteField = '%s%s' % (DB_TAB_SITELIST.upper(), siteType)
             dic[siteField] = siteListStr
-        db[DB_TAB_SITELIST.upper()].find_one_and_replace(curFileter, dic, upsert=True)
+        db[DB_TAB_SITELIST.upper()].find_one_and_replace(curFileter, dic, upsert = True)
 
     db[DB_TAB_SITELIST.upper()].create_index([(FLD_SUBBASINID.upper(), pymongo.ASCENDING),
                                               (FLD_MODE.upper(), pymongo.ASCENDING)])

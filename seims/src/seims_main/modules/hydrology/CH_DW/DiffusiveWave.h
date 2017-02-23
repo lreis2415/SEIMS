@@ -25,8 +25,7 @@ using namespace std;
  * \brief Routing in the channel
  *
  */
-class DiffusiveWave : public SimulationModule
-{
+class DiffusiveWave : public SimulationModule {
 public:
     //! Constructor
     DiffusiveWave(void);
@@ -120,7 +119,6 @@ private:
     /// discharge at subasin outlet
     float *m_qSubbasin;
 
-
     // id of the outlet
     int m_idOutlet;
     /// id of the cell which the water of the upstream subbasin flows into
@@ -149,7 +147,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
     /// reach manning's n
     float *m_reachN;
     /// stream order

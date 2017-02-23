@@ -10,28 +10,26 @@
 
 #include <GKlib.h>
 
-
-
 /*************************************************************************
 * This file randomly permutes the contents of an array.
 * flag == 0, don't initialize perm
 * flag == 1, set p[i] = i 
 **************************************************************************/
-void gk_RandomPermute(size_t n, int *p, int flag)
-{
-  gk_idx_t i, u, v;
-  int tmp;
+void gk_RandomPermute(size_t n, int *p, int flag) {
+    gk_idx_t i, u, v;
+    int tmp;
 
-  if (flag == 1) {
-    for (i=0; i<n; i++)
-      p[i] = i;
-  }
+    if (flag == 1) {
+        for (i = 0; i < n; i++) {
+            p[i] = i;
+        }
+    }
 
-  for (i=0; i<n/2; i++) {
-    v = RandomInRange(n);
-    u = RandomInRange(n);
-    gk_SWAP(p[v], p[u], tmp);
-  }
+    for (i = 0; i < n / 2; i++) {
+        v = RandomInRange(n);
+        u = RandomInRange(n);
+        gk_SWAP(p[v], p[u], tmp);
+    }
 }
 
 
@@ -59,50 +57,44 @@ store in CSF format the list of elements belonging in each partition.
   each set. The size of this array should be n.
 */
 /************************************************************************/
-void gk_array2csr(size_t n, size_t range, int *array, int *ptr, int *ind)
-{
-  gk_idx_t i;
+void gk_array2csr(size_t n, size_t range, int *array, int *ptr, int *ind) {
+    gk_idx_t i;
 
-  gk_iset(range+1, 0, ptr);
+    gk_iset(range + 1, 0, ptr);
 
-  for (i=0; i<n; i++) 
-    ptr[array[i]]++;
+    for (i = 0; i < n; i++) {
+        ptr[array[i]]++;
+    }
 
-  /* Compute the ptr, ind structure */
-  MAKECSR(i, range, ptr);
-  for (i=0; i<n; i++)
-    ind[ptr[array[i]]++] = i;
-  SHIFTCSR(i, range, ptr);
+    /* Compute the ptr, ind structure */
+    MAKECSR(i, range, ptr);
+    for (i = 0; i < n; i++) {
+        ind[ptr[array[i]]++] = i;
+    }
+    SHIFTCSR(i, range, ptr);
 }
-
-
 
 /*************************************************************************
 * This function returns the log2(x)
 **************************************************************************/
-int gk_log2(int a)
-{
-  gk_idx_t i;
+int gk_log2(int a) {
+    gk_idx_t i;
 
-  for (i=1; a > 1; i++, a = a>>1);
-  return i-1;
+    for (i = 1; a > 1; i++, a = a >> 1);
+    return i - 1;
 }
-
 
 /*************************************************************************
 * This function checks if the argument is a power of 2
 **************************************************************************/
-int gk_ispow2(int a)
-{
-  return (a == (1<<gk_log2(a)));
+int gk_ispow2(int a) {
+    return (a == (1 << gk_log2(a)));
 }
-
 
 /*************************************************************************
 * This function returns the log2(x)
 **************************************************************************/
-float gk_flog2(float a)
-{
-  return log(a)/log(2.0);
+float gk_flog2(float a) {
+    return log(a) / log(2.0);
 }
 

@@ -37,9 +37,6 @@
 #define CMD_DBGLVL              1000
 #define CMD_HELP                1001
 
-
-
-
 /* The text labels for PTypes */
 static char ptypenames[][15] = {"rb", "kway"};
 

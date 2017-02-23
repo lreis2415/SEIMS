@@ -34,7 +34,7 @@ arcpy.AddMessage("Output Distance To Streams: " + dist)
 cmd = 'mpiexec -n ' + inputProc + ' D8HDistToStrm -p ' + '"' + p + '"' + ' -src ' + '"' + src + '"' + \
       ' -dist ' + '"' + dist + '"' + ' -thresh ' + thresh
 
-arcpy.AddMessage("\nCommand Line: "+cmd)
+arcpy.AddMessage("\nCommand Line: " + cmd)
 
 # Submit command to operating system
 os.system(cmd)
@@ -44,7 +44,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)

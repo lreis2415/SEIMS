@@ -33,8 +33,7 @@ using namespace std;
  * \brief Penman Monteith Method to Compute PET
  *
  */
-class PETPenmanMonteith : public SimulationModule
-{
+class PETPenmanMonteith : public SimulationModule {
 public:
     //! Constructor
     PETPenmanMonteith(void);

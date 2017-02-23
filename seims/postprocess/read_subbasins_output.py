@@ -37,10 +37,10 @@ def read_subbasins_output(files, years):
 if __name__ == "__main__":
     modeloutputdir = r'C:\z_code\Hydro\SEIMS\model_data\dingguang\model_dingguang_30m_longterm\OUTPUT0'
     inputfiles = {'TNout': ['0_CH_TN'], 'TPout': ['0_CH_TP'], 'CODout': ['0_CH_COD'],
-                  'TNin': ['0_SUR_NH4_TOCH', '0_SUR_NO3_TOCH', '0_SEDORGNTOCH', '0_NO3GWTOCH',
-                           '0_LATNO3TOCH', '0_ptTNToCh'],
-                  'TPin': ['0_SUR_SOLP_TOCH', '0_SEDMINPATOCH', '0_SEDMINPSTOCH', '0_SEDORGPTOCH',
-                           '0_MINPGWTOCH', '0_ptTPToCh'],
+                  'TNin' : ['0_SUR_NH4_TOCH', '0_SUR_NO3_TOCH', '0_SEDORGNTOCH', '0_NO3GWTOCH',
+                            '0_LATNO3TOCH', '0_ptTNToCh'],
+                  'TPin' : ['0_SUR_SOLP_TOCH', '0_SEDMINPATOCH', '0_SEDMINPSTOCH', '0_SEDORGPTOCH',
+                            '0_MINPGWTOCH', '0_ptTPToCh'],
                   'CODin': ['0_SUR_COD_TOCH', '0_ptCODTOCH']}
     years = [2014]
     strs = "subbasin\\variable-year "
@@ -61,4 +61,3 @@ if __name__ == "__main__":
                 printdict[subid] += " %f" % subdict.get(year)
     for subid, subvalues in printdict.items():
         print ("%s" % (subvalues))
-

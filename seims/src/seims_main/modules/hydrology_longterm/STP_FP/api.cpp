@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new SoilTemperatureFINPL();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -41,12 +41,12 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.AddParameter(VAR_K_SOIL10, UNIT_NON_DIM, DESC_K_SOIL10, Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_SOIL_T10, UNIT_NON_DIM, DESC_SOIL_T10, Source_ParameterDB, DT_Raster1D);
-	mdi.AddParameter(VAR_LANDUSE, UNIT_NON_DIM, DESC_LANDUSE, Source_ParameterDB, DT_Raster1D);
-	/// mean air temperature
+    mdi.AddParameter(VAR_LANDUSE, UNIT_NON_DIM, DESC_LANDUSE, Source_ParameterDB, DT_Raster1D);
+    /// mean air temperature
     mdi.AddInput(DataType_MeanTemperature, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
-	/// mean air temperature of the day(d-1)
-    mdi.AddInput(VAR_TMEAN1, UNIT_TEMP_DEG, DESC_TMEAN1, Source_Module, DT_Raster1D);  
-	/// mean air temperature of the day(d-2)
+    /// mean air temperature of the day(d-1)
+    mdi.AddInput(VAR_TMEAN1, UNIT_TEMP_DEG, DESC_TMEAN1, Source_Module, DT_Raster1D);
+    /// mean air temperature of the day(d-2)
     mdi.AddInput(VAR_TMEAN2, UNIT_TEMP_DEG, DESC_TMEAN2, Source_Module, DT_Raster1D);
     /// output soil temperature
     mdi.AddOutput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, DT_Raster1D);

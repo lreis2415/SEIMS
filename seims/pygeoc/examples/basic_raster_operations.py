@@ -4,11 +4,11 @@
 # Date: 2016.11
 #
 import os
+
 try:
     from pygeoc.raster import *
 except ImportError:
     print ("ERROR: PyGeoC is not successfully installed, please check and retry!")
-
 
 if __name__ == "__main__":
     inputdem = ".%sdata%sJamaica_dem.tif" % (os.sep, os.sep)
@@ -21,4 +21,3 @@ if __name__ == "__main__":
     # basic statistics, nodata is excluded
     print ("mean: %f, max: %f, min: %f" % (demr.GetAverage(), demr.GetMax(), demr.GetMin()))
     print ("std: %f, sum: %f" % (demr.GetSTD(), demr.GetSum()))
-

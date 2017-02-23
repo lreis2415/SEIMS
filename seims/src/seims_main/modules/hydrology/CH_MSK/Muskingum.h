@@ -31,8 +31,7 @@ using namespace std;
  * \ingroup CH_MSK
  * \brief 
  */
-struct MuskWeights
-{
+struct MuskWeights {
     float c1;
     float c2;
     float c3;
@@ -40,8 +39,7 @@ struct MuskWeights
     float dt;
 };
 
-class Muskingum : public SimulationModule
-{
+class Muskingum : public SimulationModule {
 public:
     //! Constructor
     Muskingum(void);
@@ -75,12 +73,12 @@ public:
 
 private:
     /// deal with positive and negative float numbers
-    float Power(float a, float n)
-    {
-        if (a >= 0)
+    float Power(float a, float n) {
+        if (a >= 0) {
             return pow(a, n);
-        else
+        } else {
             return -pow(-a, n);
+        }
     }
 
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
@@ -189,7 +187,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
 
     /// stream order
     float *m_streamOrder;
