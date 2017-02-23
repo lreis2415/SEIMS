@@ -19,6 +19,7 @@ More information about SEIMS please refer to [SEIMS Wiki](https://github.com/lre
 ### 3.1.Get source code
 
 + Download or clone from [Github](https://github.com/lreis2415/SEIMS2017/tree/master). A useful Github guidiance can be found [here](https://github.com/lreis2415/SEIMS2017/wiki/Git-guidance).
++ Read the [basic code structure](https://github.com/lreis2415/SEIMS2017/blob/master/seims/README.md).
 
 ### 3.2.Compile and Install
 
