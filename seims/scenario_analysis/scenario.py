@@ -13,6 +13,7 @@ from subprocess import PIPE
 from config import *
 from readTextInfo import *
 
+
 class Scenario:
     def __init__(self):
         self.id = None
@@ -129,9 +130,10 @@ class Scenario:
     def benefit(self):
         printInfo("Scenario ID: " + str(self.id))
         startT = time.time()
-        cmdStr = "%s %s %d %d %s %d %d" % (model_Exe, model_Workdir, threadsNum, layeringMethod, HOSTNAME, PORT, self.id)
+        cmdStr = "%s %s %d %d %s %d %d" % (
+        model_Exe, model_Workdir, threadsNum, layeringMethod, HOSTNAME, PORT, self.id)
         # print cmdStr
-        process = Popen(cmdStr, shell=True, stdout=PIPE)
+        process = Popen(cmdStr, shell = True, stdout = PIPE)
         while process.stdout.readline() != "":
             line = process.stdout.readline().split("\n")
             if line[0] != "" and len(line[0]) == 20:
@@ -142,12 +144,12 @@ class Scenario:
         process.wait()
         time.sleep(1)
         if process.returncode == 0:
-        # if True:
+            # if True:
             dataDir = model_Workdir + os.sep + "OUTPUT" + str(self.id)
             polluteList = ['CH_COD', 'CH_TN', 'CH_TP']
             polluteWt = [27., 4., 1.]
             for pp in range(len(polluteList)):
-                simData = ReadSimfromTxt(timeStart, timeEnd, dataDir, polluteList[pp], subbasinID=0)
+                simData = ReadSimfromTxt(timeStart, timeEnd, dataDir, polluteList[pp], subbasinID = 0)
                 self.benefit_env += sum(simData) / polluteWt[pp]
         # print self.benefit_env
         printInfo("cost_eco: " + str(self.cost_eco))
@@ -161,4 +163,3 @@ class Scenario:
                   + "\t" + str(self.attributes) + LF
         outfile.write(infoStr)
         outfile.close()
-

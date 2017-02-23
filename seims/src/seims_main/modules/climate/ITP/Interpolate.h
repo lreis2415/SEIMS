@@ -24,14 +24,15 @@ using namespace std;
  * \brief Interpolation
  *
  */
-class Interpolate : public SimulationModule
-{
+class Interpolate : public SimulationModule {
 public:
-	//! Constructor
+    //! Constructor
     Interpolate();
-	//! Destructor
+
+    //! Destructor
     ~Interpolate(void);
-	//! Set data type
+
+    //! Set data type
     void SetClimateDataType(float value);
 
     int Execute();

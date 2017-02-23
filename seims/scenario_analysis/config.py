@@ -2,6 +2,7 @@
 
 import ConfigParser
 from readTextInfo import *
+
 # import util module located in SEIMS/preprocess
 if __package__ is None:
     __package__ = import_parents(level = 2)

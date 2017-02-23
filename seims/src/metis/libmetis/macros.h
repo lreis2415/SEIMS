@@ -29,7 +29,7 @@
 
 /* gets the appropriate option value */
 #define GETOPTION(options, idx, defval) \
-            ((options) == NULL || (options)[idx] == -1 ? defval : (options)[idx]) 
+            ((options) == NULL || (options)[idx] == -1 ? defval : (options)[idx])
 
 /* converts a user provided ufactor into a real ubfactor */
 #define I2RUBFACTOR(ufactor) (1.0+0.001*(ufactor))
@@ -48,7 +48,7 @@
      ASSERT(lptr[i] == -1); \
      lind[n] = i; \
      lptr[i] = (n)++;\
-   } while(0) 
+   } while(0)
 
 #define ListDelete(n, lind, lptr, i) \
    do { \
@@ -56,7 +56,7 @@
      lind[lptr[i]] = lind[--(n)]; \
      lptr[lind[n]] = lptr[i]; \
      lptr[i] = -1; \
-   } while(0) 
+   } while(0)
 
 
 /*************************************************************************
@@ -97,8 +97,7 @@
        if (bndptr[i] == -1 && myrinfo->ed > 0) \
          BNDInsert(nbnd, bndind, bndptr, i); \
      } \
-   } while(0) 
-
+   } while(0)
 
 #define UpdateAdjacentVertexInfoAndBND(ctrl, vid, adjlen, me, from, to, \
             myrinfo, ewgt, nbnd, bndptr, bndind, bndtype) \
@@ -167,8 +166,7 @@
      } \
      \
      ASSERT(CheckRInfo(ctrl, myrinfo));\
-   } while(0) 
-
+   } while(0)
 
 #define UpdateQueueInfo(queue, vstatus, vid, me, from, to, myrinfo, oldnnbrs, \
             nupd, updptr, updind, bndtype) \
@@ -212,7 +210,7 @@
          } \
        } \
      } \
-   } while(0) 
+   } while(0)
 
 
 
@@ -253,6 +251,5 @@
         vtmp[adids[to][k]] = 0; \
     } \
   } while (0)
-
 
 #endif

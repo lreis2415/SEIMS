@@ -9,7 +9,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -57,7 +57,7 @@ add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
-IF(WIN32)
-	SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "ImportRaster")
-ENDIF()
+IF (WIN32)
+    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "ImportRaster")
+ENDIF ()
 MESSAGE(STATUS "    Compiling Mask Raster done")

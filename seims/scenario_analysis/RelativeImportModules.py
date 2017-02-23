@@ -23,15 +23,15 @@ from pathlib2 import Path
 #         from ... import module
 #         from ...module.submodule import thing
 
-def import_parents(level=1):
+def import_parents(level = 1):
     global __package__
     file = Path(__file__).resolve()
     parent, top = file.parent, file.parents[level]
     __package__ = '.'.join(parent.parts[len(top.parts):])
     sys.path.append(str(top))
-    importlib.import_module(__package__) # won't be needed after that
+    importlib.import_module(__package__)  # won't be needed after that
     return __package__
 
 
 if __name__ == '__main__' and __package__ is None:
-    import_parents(level=1)
+    import_parents(level = 1)

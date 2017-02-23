@@ -10,7 +10,7 @@ if __name__ == "__main__":
     LoadConfiguration(GetINIfile())
 
     try:
-        conn = MongoClient(host=HOSTNAME, port=PORT)
+        conn = MongoClient(host = HOSTNAME, port = PORT)
     except ConnectionFailure:
         sys.stderr.write("Could not connect to MongoDB: %s" % ConnectionFailure.message)
         sys.exit(1)
@@ -50,4 +50,3 @@ if __name__ == "__main__":
 
     # Create multi hydrographs, updated by LJ
     CreatePlot2(dateArr, preci, dataSimList, PLOT_VARS, MODEL_DIR, ClimateDB)
-

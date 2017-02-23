@@ -28,12 +28,11 @@
 
 using namespace std;
 
-struct RasterHeader
-{
-        int noDataValue;
-        int nRows, nCols;
-        double xll, yll;
-        double dx;
+struct RasterHeader {
+    int noDataValue;
+    int nRows, nCols;
+    double xll, yll;
+    double dx;
 };
 
 int CalCompressedIndex(int n, int *mask, int noDataValue, int *compressedIndex);
@@ -48,9 +47,10 @@ void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeade
 
 int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s);
 
-void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix, int nodata = (int)NODATA_VALUE);
+void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix, int nodata = (int) NODATA_VALUE);
 
-void OutputFlowOutD8(const char *outdir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount, const int *dirMatrix, int noDataValue,
+void OutputFlowOutD8(const char *outdir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount,
+                     const int *dirMatrix, int noDataValue,
                      const int *compressedIndex);
 
 int OutputMultiFlowOut(int nRows, int nCols, int validCount,

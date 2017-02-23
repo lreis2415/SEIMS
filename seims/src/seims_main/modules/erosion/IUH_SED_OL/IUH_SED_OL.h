@@ -28,8 +28,7 @@ using namespace std;
  * \brief IUH overland method to calculate overland flow routing
  * 
  */
-class IUH_SED_OL : public SimulationModule
-{
+class IUH_SED_OL : public SimulationModule {
 public:
     IUH_SED_OL(void);
 
@@ -43,7 +42,7 @@ public:
 
     virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
 
-	virtual void SetSubbasins(clsSubbasins *);
+    virtual void SetSubbasins(clsSubbasins *);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -59,28 +58,28 @@ private:
     int m_nCells;
     /// cell width of the grid (m)
     float m_CellWidth;
-	/// cell area
-	float m_cellArea;
+    /// cell area
+    float m_cellArea;
     /// the total number of subbasins
-	int m_nSubbasins;
-	//! subbasin IDs
-	vector<int> m_subbasinIDs;
+    int m_nSubbasins;
+    //! subbasin IDs
+    vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
     float *m_subbasin;
 
-	/// subbasins information
-	clsSubbasins *m_subbasinsInfo;
+    /// subbasins information
+    clsSubbasins *m_subbasinsInfo;
     /// start time of IUH for each grid cell
     ///float* m_uhminCell;
     /// end time of IUH for each grid cell
     ///float* m_uhmaxCell;
-    
+
     /// IUH of each grid cell (1/s)
     float **m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
-	/// sediment yield in each cell
-	float *m_sedYield;
+    /// sediment yield in each cell
+    float *m_sedYield;
 
     /*/// length of rainfall series
     int m_nr;*/
@@ -89,19 +88,19 @@ private:
 
     //temporary
 
-	/// the maximum of second column of OL_IUH plus 1.
+    /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
-	/// store the sediment of each cell in each day between min time and max time
-	float **m_cellSed;
+    /// store the sediment of each cell in each day between min time and max time
+    float **m_cellSed;
 
-	//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
     //output
-	/// sediment to streams 
-	float *m_sedtoCh;
-	/// sediment to channel at each cell at current time step
-	float *m_sedOL;
+    /// sediment to streams
+    float *m_sedtoCh;
+    /// sediment to channel at each cell at current time step
+    float *m_sedOL;
 
-	//! intial outputs
+    //! intial outputs
     void initialOutputs();
 };
 

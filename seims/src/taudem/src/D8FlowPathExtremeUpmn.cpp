@@ -52,124 +52,107 @@ email:  dtarb@usu.edu
 #include <stdlib.h>
 #include "commonLib.h"
 
-int d8flowpathextremeup(char *pfile, char*safile, char *ssafile, int usemax, char* datasrc,char* lyrname,int uselyrname,int lyrno,int useoutlets, int contcheck);
+int d8flowpathextremeup(char *pfile,
+                        char *safile,
+                        char *ssafile,
+                        int usemax,
+                        char *datasrc,
+                        char *lyrname,
+                        int uselyrname,
+                        int lyrno,
+                        int useoutlets,
+                        int contcheck);
 
-int main(int argc,char **argv)  
-{
-   char pfile[MAXLN],safile[MAXLN], ssafile[MAXLN],datasrc[MAXLN],lyrname[MAXLN];
-   int err, useoutlets,contcheck,usemax,lyrno=0,uselyrname=0;
-      
-   if(argc < 2) goto errexit;
-   usemax=1;  // Set defaults
-   useoutlets=0;
-   contcheck=1;
-   if(argc == 2)
-	{
+int main(int argc, char **argv) {
+    char pfile[MAXLN], safile[MAXLN], ssafile[MAXLN], datasrc[MAXLN], lyrname[MAXLN];
+    int err, useoutlets, contcheck, usemax, lyrno = 0, uselyrname = 0;
+
+    if (argc < 2) goto errexit;
+    usemax = 1;  // Set defaults
+    useoutlets = 0;
+    contcheck = 1;
+    if (argc == 2) {
 //		printf("You are running %s with the simple use option.\n", argv[0]);
-		nameadd(pfile,argv[1],"p");
-		nameadd(safile,argv[1],"sa");
-		nameadd(ssafile,argv[1],"ssa");
+        nameadd(pfile, argv[1], "p");
+        nameadd(safile, argv[1], "sa");
+        nameadd(ssafile, argv[1], "ssa");
     }
-   if(argc > 2)
-   {
+    if (argc > 2) {
 //		printf("You are running %s with the specific file names option.\n", argv[0]);
-        int i=1;	
-		while(argc > i)
-		{
-			if(strcmp(argv[i],"-p")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(pfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-sa")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(safile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-ssa")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(ssafile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-o")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(datasrc,argv[i]);
-					i++;
-					useoutlets=1;
-				}
-				else goto errexit;
-			}
+        int i = 1;
+        while (argc > i) {
+            if (strcmp(argv[i], "-p") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(pfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-sa") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(safile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-ssa") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(ssafile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-o") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(datasrc, argv[i]);
+                    i++;
+                    useoutlets = 1;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-lyrno") == 0) {
+                i++;
+                if (argc > i) {
+                    sscanf(argv[i], "%d", &lyrno);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-lyrname") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(lyrname, argv[i]);
+                    uselyrname = 1;
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-min") == 0) {
+                i++;
+                usemax = 0;
+            } else if (strcmp(argv[i], "-nc") == 0) {
+                i++;
+                contcheck = 0;
+            } else { goto errexit; }
+        }
+    }
+    if ((err = d8flowpathextremeup(pfile,
+                                   safile,
+                                   ssafile,
+                                   usemax,
+                                   datasrc,
+                                   lyrname,
+                                   uselyrname,
+                                   lyrno,
+                                   useoutlets,
+                                   contcheck)) != 0) {
+                                       printf("Flow Path Extreme Up Error %d\n", err);
+    }
 
-			   else if(strcmp(argv[i],"-lyrno")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				sscanf(argv[i],"%d",&lyrno);
-				i++;											
-			}
-			else goto errexit;
-		}
-
-	   
-	 else if(strcmp(argv[i],"-lyrname")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(lyrname,argv[i]);
-		        uselyrname = 1;
-				i++;											
-			}
-			else goto errexit;
-		}
-
-
-		   else if(strcmp(argv[i],"-min")==0)
-			{
-				i++;
-				usemax=0;
-			}
-			else if(strcmp(argv[i],"-nc")==0)
-			{
-				i++;
-				contcheck=0;
-			}
-		   else goto errexit;
-		}
-   }
-    if((err=d8flowpathextremeup(pfile, safile, ssafile, usemax, datasrc,lyrname,uselyrname,lyrno, useoutlets, contcheck)) != 0)
-        printf("Flow Path Extreme Up Error %d\n",err);
-
-	return 0;
-errexit:
-   printf("Simple Use:\n %s <basefilename>\n",argv[0]);
-   printf("Use with specific file names:\n %s -p <pfile>\n",argv[0]);
-   printf("-sa <safile> -ssa <ssafile> [-min] [-nc] [-o <outletsfile>]\n");
-   printf("<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'p', 'sa' and 'ssa' will be appended. \n");
-   printf("<pfile> is the name of D8 flow directions file.\n");
-   printf("<safile> is the name of input file with values from which extreme upslope is to be found.\n");
-   printf("<ssa> is the name of the output file with extreme upslope values.\n");
-   printf("-min indicates to search for a minimum (default is max)\n");
-   printf("-nc indicates to override edge contamination checking (checking is on by default)\n");
-   return 0; 
+    return 0;
+    errexit:
+    printf("Simple Use:\n %s <basefilename>\n", argv[0]);
+    printf("Use with specific file names:\n %s -p <pfile>\n", argv[0]);
+    printf("-sa <safile> -ssa <ssafile> [-min] [-nc] [-o <outletsfile>]\n");
+    printf(
+        "<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'p', 'sa' and 'ssa' will be appended. \n");
+    printf("<pfile> is the name of D8 flow directions file.\n");
+    printf("<safile> is the name of input file with values from which extreme upslope is to be found.\n");
+    printf("<ssa> is the name of the output file with extreme upslope values.\n");
+    printf("-min indicates to search for a minimum (default is max)\n");
+    printf("-nc indicates to override edge contamination checking (checking is on by default)\n");
+    return 0;
 } 
    

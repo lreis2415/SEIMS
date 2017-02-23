@@ -23,8 +23,7 @@ using namespace std;
  * \class clsReach
  * \brief Class to store reach related parameters from REACHES table
  */
-class clsReach
-{
+class clsReach {
 public:
     //! Constructor
     clsReach(const bson_t *&bsonTab);
@@ -63,7 +62,7 @@ public:
 
     float GetWidth() { return this->Width; }
 
-	float GetSideSlope() {return this->SideSlope;}
+    float GetSideSlope() { return this->SideSlope; }
 
     float GetBc1() { return this->bc1; }
 
@@ -91,31 +90,32 @@ public:
 
     float GetRk4() { return this->rk4; }
 
-	float GetCover(){return this->cover;}
+    float GetCover() { return this->cover; }
 
-	float GetErod(){return this->erod;}
+    float GetErod() { return this->erod; }
 
-	float GetDisOxygen(){return this->disox;}
+    float GetDisOxygen() { return this->disox; }
 
-	float GetCOD(){return this->cod;}
+    float GetCOD() { return this->cod; }
 
-	float GetAlgae(){return this->algae;}
+    float GetAlgae() { return this->algae; }
 
-	float GetOrgN(){return this->orgn;}
+    float GetOrgN() { return this->orgn; }
 
-	float GetNH4(){return this->nh4;}
+    float GetNH4() { return this->nh4; }
 
-	float GetNO2(){return this->no2;}
+    float GetNO2() { return this->no2; }
 
-	float GetNO3(){return this->no3;}
+    float GetNO3() { return this->no3; }
 
-	float GetOrgP(){return this->orgp;}
+    float GetOrgP() { return this->orgp; }
 
-	float GetSolP(){return this->solp;}
+    float GetSolP() { return this->solp; }
 
-	float GetGWNO3(){return this->gwno3;}
+    float GetGWNO3() { return this->gwno3; }
 
-	float GetGWSolP(){return this->gwsolp;}
+    float GetGWSolP() { return this->gwsolp; }
+
 private:
     //! Subbasin area
     float Area;
@@ -145,8 +145,8 @@ private:
     float V0;
     //! Width
     float Width;
-	/// inverse of the channel side slope
-	float SideSlope;
+    /// inverse of the channel side slope
+    float SideSlope;
     /// rate constant for biological oxidation of NH3 to NO2 in reach at 20 deg C
     float bc1;
     /// rate constant for biological oxidation of NO2 to NO3 in reach at 20 deg C
@@ -173,33 +173,33 @@ private:
     float rk3;
     /// sediment oxygen demand rate in reach at 20 deg C (mg O2/ ((m**2)*day))
     float rk4;
-	/// erosion related
-	/// cover factoer
-	float cover;
-	/// erodibility factor
-	float erod;
-	/// Concentration of nitrate in groundwater contribution to streamflow from subbasin (mg N/l).
-	float gwno3;
-	/// Concentration of soluble phosphorus in groundwater contribution to streamflow from subbasin (mg P/l).
-	float gwsolp;
-	/// Initial dissolved oxygen concentration in the reach.	[mg /l]
-	float disox;
-	/// Initial biochemical oxygen demand in the reach .	[mg /l]. note that, this is different with cbod in SWAT
-	float cod;
-	/// Initial chlorophyll-a concentration in the reach.	[mg /l]
-	float algae;
-	/// Initial organic nitrogen concentration in the reach.	[mg /l]
-	float orgn;
-	/// Initial ammonia concentration in the reach.	[mg /l]
-	float nh4;
-	/// Initial nitrite concentration in the reach
-	float no2;
-	/// Initial nitrate concentration in the reach
-	float no3;
-	/// Initial organic phosphorus concentration in the reach.	[mg /l]
-	float orgp;
-	/// Initial dissolved phosphorus concentration in the reach.	[mg /l]
-	float solp;
+    /// erosion related
+    /// cover factoer
+    float cover;
+    /// erodibility factor
+    float erod;
+    /// Concentration of nitrate in groundwater contribution to streamflow from subbasin (mg N/l).
+    float gwno3;
+    /// Concentration of soluble phosphorus in groundwater contribution to streamflow from subbasin (mg P/l).
+    float gwsolp;
+    /// Initial dissolved oxygen concentration in the reach.	[mg /l]
+    float disox;
+    /// Initial biochemical oxygen demand in the reach .	[mg /l]. note that, this is different with cbod in SWAT
+    float cod;
+    /// Initial chlorophyll-a concentration in the reach.	[mg /l]
+    float algae;
+    /// Initial organic nitrogen concentration in the reach.	[mg /l]
+    float orgn;
+    /// Initial ammonia concentration in the reach.	[mg /l]
+    float nh4;
+    /// Initial nitrite concentration in the reach
+    float no2;
+    /// Initial nitrate concentration in the reach
+    float no3;
+    /// Initial organic phosphorus concentration in the reach.	[mg /l]
+    float orgp;
+    /// Initial dissolved phosphorus concentration in the reach.	[mg /l]
+    float solp;
 };
 
 /*!
@@ -209,8 +209,7 @@ private:
  * \brief Read and store all reaches information as input parameters
  *
  */
-class clsReaches
-{
+class clsReaches {
 public:
     /*!
      * \brief Constructor
@@ -233,7 +232,7 @@ public:
     int GetReachNumber() { return this->m_reachNum; }
 
     /// Get reach IDs (vector)
-    vector<int>& GetReachIDs() { return this->m_reachIDs; }
+    vector<int> &GetReachIDs() { return this->m_reachIDs; }
 
 private:
     /// reaches number

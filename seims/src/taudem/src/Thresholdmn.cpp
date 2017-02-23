@@ -45,87 +45,69 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
-int threshold(char *ssafile,char *srcfile,char *maskfile, float thresh, int usemask);
+int threshold(char *ssafile, char *srcfile, char *maskfile, float thresh, int usemask);
 
-int main(int argc,char **argv)  
-{
-   char ssafile[MAXLN],srcfile[MAXLN], maskfile[MAXLN];
-   int err, usemask;
-   float thresh;
-      
-   if(argc < 2) goto errexit;
-   usemask=0;  // Set defaults
-   thresh=100.;
-   if(argc == 2)
-	{
-		//printf("You are running %s with the simple use option.\n", argv[0]);
-		nameadd(ssafile,argv[1],"ssa");
-		nameadd(srcfile,argv[1],"src");
+int main(int argc, char **argv) {
+    char ssafile[MAXLN], srcfile[MAXLN], maskfile[MAXLN];
+    int err, usemask;
+    float thresh;
+
+    if (argc < 2) goto errexit;
+    usemask = 0;  // Set defaults
+    thresh = 100.;
+    if (argc == 2) {
+        //printf("You are running %s with the simple use option.\n", argv[0]);
+        nameadd(ssafile, argv[1], "ssa");
+        nameadd(srcfile, argv[1], "src");
     }
-   if(argc > 2)
-   {
-		//printf("You are running %s with the specific file names option.\n", argv[0]);
-        int i=1;	
-		while(argc > i)
-		{
-			if(strcmp(argv[i],"-ssa")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(ssafile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-src")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(srcfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-mask")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(maskfile,argv[i]);
-					i++;
-					usemask=1;
-				}
-				else goto errexit;
-			}
-		   else if(strcmp(argv[i],"-thresh")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					sscanf(argv[i],"%f",&thresh);
-					i++;
-				}
-				else goto errexit;
-			}
-		   else goto errexit;
-		}
-   }
-    if( (err=threshold(ssafile,srcfile,maskfile,thresh,usemask)) != 0)
-        printf("Threshold Error %d\n",err);
+    if (argc > 2) {
+        //printf("You are running %s with the specific file names option.\n", argv[0]);
+        int i = 1;
+        while (argc > i) {
+            if (strcmp(argv[i], "-ssa") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(ssafile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-src") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(srcfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-mask") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(maskfile, argv[i]);
+                    i++;
+                    usemask = 1;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-thresh") == 0) {
+                i++;
+                if (argc > i) {
+                    sscanf(argv[i], "%f", &thresh);
+                    i++;
+                } else { goto errexit; }
+            } else { goto errexit; }
+        }
+    }
+    if ((err = threshold(ssafile, srcfile, maskfile, thresh, usemask)) != 0) {
+        printf("Threshold Error %d\n", err);
+    }
 
-	return 0;
-errexit:
-   printf("Simple Use:\n %s <basefilename>\n",argv[0]);
-   printf("Use with specific file names:\n %s -fel <ssafile>\n",argv[0]);
-   printf("-ss <srcfile> [-thresh <thresholdvalue>] [-mask <maskfile>]\n");
-   printf("<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'ssa' and 'src' will be appended. \n");
-   printf("<ssafile> is the name of file to be thresholded.\n");
-   printf("<srcfile> is the name of file with the thresholded output.\n");
-   printf("<maskfile> is the name of a file that masks the domain.\n");
-   printf("<thresholdvalue> is the value of the threshold.\n");
-   printf("The threshold logic is src = ((ssa >= thresh) & (mask >=0)) ? 1:0.\n");
-   return 0; 
+    return 0;
+    errexit:
+    printf("Simple Use:\n %s <basefilename>\n", argv[0]);
+    printf("Use with specific file names:\n %s -fel <ssafile>\n", argv[0]);
+    printf("-ss <srcfile> [-thresh <thresholdvalue>] [-mask <maskfile>]\n");
+    printf(
+        "<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'ssa' and 'src' will be appended. \n");
+    printf("<ssafile> is the name of file to be thresholded.\n");
+    printf("<srcfile> is the name of file with the thresholded output.\n");
+    printf("<maskfile> is the name of a file that masks the domain.\n");
+    printf("<thresholdvalue> is the value of the threshold.\n");
+    printf("The threshold logic is src = ((ssa >= thresh) & (mask >=0)) ? 1:0.\n");
+    return 0;
 } 
    

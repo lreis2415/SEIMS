@@ -25,8 +25,7 @@ using namespace std;
  *
  * \brief 
  */
-class clsInterpolationWeightData
-{
+class clsInterpolationWeightData {
 public:
     //! Constructor
     clsInterpolationWeightData(string weightFileName);
@@ -83,6 +82,6 @@ private:
      * \param[in] gfs
      * \param[in] filename
      */
-    void ReadFromMongoDB(mongoc_gridfs_t *gfs, const char* filename);
+    void ReadFromMongoDB(mongoc_gridfs_t *gfs, const char *filename);
 };
 

@@ -22,13 +22,13 @@ arcpy.AddMessage("Considering4way: " + considering4way)
 maskgrid = arcpy.GetParameterAsText(2)
 if arcpy.Exists(maskgrid):
     desc = arcpy.Describe(maskgrid)
-    mkgr=str(desc.catalogPath)
-    arcpy.AddMessage("Input Mask Grid: "+mkgr)
+    mkgr = str(desc.catalogPath)
+    arcpy.AddMessage("Input Mask Grid: " + mkgr)
 
 # Get the Input No. of Processes
 #
-inputProc=arcpy.GetParameterAsText(3)
-arcpy.AddMessage(" Number of Processes: "+inputProc)
+inputProc = arcpy.GetParameterAsText(3)
+arcpy.AddMessage(" Number of Processes: " + inputProc)
 
 # Get the output file
 #
@@ -45,13 +45,13 @@ if arcpy.Exists(maskgrid):
 if arcpy.Exists(maskgrid) and considering4way == 'true':
     cmd = cmd + ' -depmask ' + '"' + mkgr + '"' + ' -4way '
 
-arcpy.AddMessage("\nCommand Line: "+cmd)
+arcpy.AddMessage("\nCommand Line: " + cmd)
 os.system(cmd)
 process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
@@ -59,24 +59,3 @@ arcpy.AddMessage(message)
 #  Calculate statistics so that grids display with correct bounds
 arcpy.AddMessage('Calculate Statistics\n')
 arcpy.CalculateStatistics_management(outFile)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

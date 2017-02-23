@@ -23,6 +23,7 @@ class IntermediateFiles(object):
     sca_max_raster = 'scamax.tif'
     si_control_file = 'Si_Control.txt'
 
+
 # for the format of the input control file see python script file "ArcGISStabilityIndex.py"
 
 
@@ -47,8 +48,10 @@ def main():
                                                 IntermediateFiles.sca_min_raster)
         temp_raster_file_sca_max = os.path.join(params_dict[ParameterNames.temporary_output_files_directory],
                                                 IntermediateFiles.sca_max_raster)
-        _taudem_area_dinf(temp_raster_file_weight_min, params_dict[ParameterNames.demang_file], temp_raster_file_sca_min)
-        _taudem_area_dinf(temp_raster_file_weight_max, params_dict[ParameterNames.demang_file], temp_raster_file_sca_max)
+        _taudem_area_dinf(temp_raster_file_weight_min, params_dict[ParameterNames.demang_file],
+                          temp_raster_file_sca_min)
+        _taudem_area_dinf(temp_raster_file_weight_max, params_dict[ParameterNames.demang_file],
+                          temp_raster_file_sca_max)
 
     messages = _generate_combined_stability_index_grid(params_dict)
     for msg in messages:
@@ -183,7 +186,6 @@ def _validate_args(params, params_dict):
 
 
 def _taudem_area_dinf(weight_grid_file, demang_grid_file, output_sca_file):
-
     # mpiexec -n 4 Areadinf -ang demang.tif -wg demdpsi.tif -sca demsac.tif
     # taudem_funtion_to_run = 'mpiexec -n 4 Areadinf'
     taudem_function_to_run = 'Areadinf'
@@ -204,11 +206,10 @@ def _taudem_area_dinf(weight_grid_file, demang_grid_file, output_sca_file):
 
 
 def _generate_combined_stability_index_grid(params_dict):
-
     # TauDEMm SinmapSI calling format
     # mpiexec -n 4 SinmapSI -slp demslp.tif -sca demsca.tif -calpar demcalp.txt -cal demcal.tif -si demsi.tif -sat demsat.tif -par 0.0009 0.00135 9.81 1000 -scamin scamin.tif -scamax scamax.tif
 
-    #taudem_function_to_run = r'E:\SoftwareProjects\TauDEM\Taudem5PCVS2010\x64\Release\SinmapSI'
+    # taudem_function_to_run = r'E:\SoftwareProjects\TauDEM\Taudem5PCVS2010\x64\Release\SinmapSI'
     taudem_function_to_run = 'SinmapSI'
 
     cmd = taudem_function_to_run + \
@@ -218,7 +219,7 @@ def _generate_combined_stability_index_grid(params_dict):
           ' -cal ' + params_dict[ParameterNames.cal_grid_file] + \
           ' -si ' + params_dict[ParameterNames.csi_grid_file] + \
           ' -sat ' + params_dict[ParameterNames.sat_grid_file] + \
-          ' -par ' + params_dict[ParameterNames.min_terrain_recharge] + ' ' +\
+          ' -par ' + params_dict[ParameterNames.min_terrain_recharge] + ' ' + \
           params_dict[ParameterNames.max_terrain_recharge] + ' ' + params_dict[ParameterNames.gravity] + ' ' + \
           params_dict[ParameterNames.rhow]
 
@@ -249,6 +250,7 @@ def _delete_intermediate_output_files(parm_dict):
         file_to_delete = os.path.join(parm_dict[ParameterNames.temporary_output_files_directory], file_name)
         if os.path.isfile(file_to_delete):
             os.remove(file_to_delete)
+
 
 if __name__ == '__main__':
     try:

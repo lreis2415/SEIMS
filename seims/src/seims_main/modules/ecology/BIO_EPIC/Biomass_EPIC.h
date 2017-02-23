@@ -30,8 +30,7 @@ using namespace std;
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
  * incorporated a simplified version of the EPIC plant growth model as in SWAT rev. 637
  */
-class Biomass_EPIC : public SimulationModule
-{
+class Biomass_EPIC : public SimulationModule {
 public:
     //! Constructor
     Biomass_EPIC(void);
@@ -90,8 +89,8 @@ private:
     float *m_soilALB;
     /// soil depth of all layers
     float **m_soilDepth;
-	/// soil thickness of all layers
-	float **m_soilThick;
+    /// soil thickness of all layers
+    float **m_soilThick;
 
     /// amount of water available to plants in soil layer at field capacity (fc - wp water), sol_fc in SWAT
     float **m_soilAWC;
@@ -103,15 +102,15 @@ private:
     float **m_soilStorage;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
     float *m_soilStorageProfile;
-    
+
     /**  crop or land cover related parameters  **/
 
-	///amount of residue on soil surface (kg/ha)
-	float *m_sol_rsdin;
-	/// amount of residue on soil surface (10 mm surface)
-	float *m_sol_cov;
-	/// amount of organic matter in the soil layer classified as residue, sol_rsd |kg/ha in SWAT
-	float **m_sol_rsd;
+    ///amount of residue on soil surface (kg/ha)
+    float *m_sol_rsdin;
+    /// amount of residue on soil surface (10 mm surface)
+    float *m_sol_cov;
+    /// amount of organic matter in the soil layer classified as residue, sol_rsd |kg/ha in SWAT
+    float **m_sol_rsd;
     /// land cover status code, 0 means no crop while 1 means land cover growing
     float *m_igro;
     /// land cover/crop  classification:1-7, i.e., IDC
@@ -225,7 +224,7 @@ private:
     /// water uptake normalization parameter, NOT ALLOWED TO MODIFIED BY USERS
     float uobw;
     /// current rooting depth
-    float* m_soilRD;
+    float *m_soilRD;
 
     /**  set output variables  **/
 

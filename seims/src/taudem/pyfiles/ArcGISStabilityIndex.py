@@ -70,7 +70,7 @@ arcpy.AddMessage('\nProcess started:\n')
 start_message = "Please wait a few seconds. Computation is in progress ..."
 arcpy.AddMessage('\n' + start_message + '\n')
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
 
     if start_message not in line:

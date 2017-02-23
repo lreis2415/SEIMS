@@ -45,8 +45,7 @@ using namespace std;
  * 
  */
 
-class IUH_IF : public SimulationModule
-{
+class IUH_IF : public SimulationModule {
 public:
     IUH_IF(void);
 

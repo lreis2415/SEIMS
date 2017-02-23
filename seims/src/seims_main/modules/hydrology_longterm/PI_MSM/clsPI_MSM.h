@@ -28,11 +28,10 @@ using namespace std;
  * 
  */
 
-class clsPI_MSM : public SimulationModule
-{
+class clsPI_MSM : public SimulationModule {
 private:
     //five parameters
-    
+
     float m_Pi_b;
     float m_Init_IS;
     float *m_maxSt;
@@ -40,9 +39,9 @@ private:
 
     //two input variables
 
-	//! Precipitation
+    //! Precipitation
     float *m_P;
-	//! PET
+    //! PET
     float *m_PET;
 
     //! state variable, the initial value equal to 0
@@ -50,18 +49,18 @@ private:
 
     //three results
 
-	//! Interception loss
+    //! Interception loss
     float *m_interceptionLoss;
-	//! Evaporation loss
+    //! Evaporation loss
     float *m_evaporation;
-	//! Net precipitation
+    //! Net precipitation
     float *m_netPrecipitation;
 
     //!  number of valid cells
     int m_nCells;
 
     //! previous date
-    time_t m_dateLastTimeStep; 
+    time_t m_dateLastTimeStep;
 public:
     virtual void Set1DData(const char *key, int nRows, float *data);
 
@@ -72,7 +71,6 @@ public:
     virtual int Execute(void);
 
 private:
-
 
     /**
     *	@brief check the input data. Make sure all the input data is available.
@@ -90,10 +88,11 @@ private:
     */
     bool CheckInputSize(const char *, int);
 
-	/*!
+    /*!
      * \brief Initialize output variables for the first run of the entire simulation
      */
     void initialOutputs();
+
 public:
     //! Constructor
     clsPI_MSM(void);

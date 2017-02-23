@@ -29,8 +29,7 @@ using namespace std;
  * \brief Hargreaves method to Compute PET
  *
  */
-class PETHargreaves : public SimulationModule
-{
+class PETHargreaves : public SimulationModule {
 public:
     //! Constructor
     PETHargreaves(void);

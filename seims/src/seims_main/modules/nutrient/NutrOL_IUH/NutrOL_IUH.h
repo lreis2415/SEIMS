@@ -30,8 +30,7 @@ using namespace std;
  *
  */
 
-class NutrOL_IUH : public SimulationModule
-{
+class NutrOL_IUH : public SimulationModule {
 public:
     NutrOL_IUH(void);
 
@@ -40,8 +39,10 @@ public:
     virtual void SetValue(const char *key, float value);
 
     virtual void Set1DData(const char *key, int n, float *data);
+
     //virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
     virtual int Execute();
+
     //virtual void GetValue(const char* key, float* value);
     virtual void Get1DData(const char *key, int *n, float **data);
     //virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data);
@@ -65,32 +66,32 @@ private:
     /// channel width (zero for non-channel cells)
     //float *m_chWidth;
     /// stream link
-	//float *m_streamLink;
+    //float *m_streamLink;
 
-	/// IUH of each grid cell (1/s)
-	float **m_iuhCell;
-	/// the number of columns of Ol_iuh
-	int m_iuhCols;
-	/// the total number of sub-basins
-	int m_nsub;
-	/// subbasin grid ( sub-watersheds ID)
-	float *m_subbasin;
+    /// IUH of each grid cell (1/s)
+    float **m_iuhCell;
+    /// the number of columns of Ol_iuh
+    int m_iuhCols;
+    /// the total number of sub-basins
+    int m_nsub;
+    /// subbasin grid ( sub-watersheds ID)
+    float *m_subbasin;
 
-	//temporary
-	int m_cellNutrCols;
-	//float **m_cellFlow;
-	float **m_cellsurqno3;
-	float **m_celllatno3;
-	float **m_cellno3gw;
-	float **m_cellsurqsolp;
-	float **m_cellminpgw;
-	float **m_cellsedorgn;
-	float **m_cellsedorgp;
-	float **m_cellsedminpa;
-	float **m_cellsedminps;
-	//float **m_cellammo;
-	//float **m_cellnitrite;
-	float **m_cellcod;
+    //temporary
+    int m_cellNutrCols;
+    //float **m_cellFlow;
+    float **m_cellsurqno3;
+    float **m_celllatno3;
+    float **m_cellno3gw;
+    float **m_cellsurqsolp;
+    float **m_cellminpgw;
+    float **m_cellsedorgn;
+    float **m_cellsedorgp;
+    float **m_cellsedminpa;
+    float **m_cellsedminps;
+    //float **m_cellammo;
+    //float **m_cellnitrite;
+    float **m_cellcod;
 
     /// amount of nitrate transported with lateral flow
     float *m_latno3;
@@ -112,23 +113,23 @@ private:
     float *m_sedminps;
     /// amount of ammonium transported with lateral flow	// No calculation before
     //float* m_ammo;
-	/// amount of nitrite transported with lateral flow	// No calculation before
-	//float* m_nitrite;
+    /// amount of nitrite transported with lateral flow	// No calculation before
+    //float* m_nitrite;
     /// carbonaceous oxygen demand of surface runoff
     float *m_cod;
 
-	// Variables to calculate the ratio that flow and sediment into channel
-	/// sediment from soil erosion (kg)
-	float *m_Soer;
-	/// sediment in flow (kg)
-	float *m_Sed_kg;
-	/// sediment from soil erosion (mm)
-	float *m_Suru;
-	/// sediment in flow (mm)
-	float *m_Q_Flow;
+    // Variables to calculate the ratio that flow and sediment into channel
+    /// sediment from soil erosion (kg)
+    float *m_Soer;
+    /// sediment in flow (kg)
+    float *m_Sed_kg;
+    /// sediment from soil erosion (mm)
+    float *m_Suru;
+    /// sediment in flow (mm)
+    float *m_Q_Flow;
 
     /// output data
-	////////////////////// For each bassin/////////////////////
+    ////////////////////// For each bassin/////////////////////
     /// NO3-N in surface runoff (kg)
     float *m_surqno3ToCh;
     /// NO3-N in lateral flow (kg)
@@ -181,29 +182,29 @@ private:
 //     */
 //     float NutToChannel(int id, float nut);
 
-	/*!
+    /*!
     *	\brief Calculate the ratio between sediment in flow and soil loss caused by water erosion.
     *
     *	\param ID The id of cell in grid map
     *	\return the ratio between sediment in flow and soil loss caused by water erosion
     */
-	float CalculateSedinFlowFraction(int id);
+    float CalculateSedinFlowFraction(int id);
 
-	float CalculateFlowFraction(int id);
+    float CalculateFlowFraction(int id);
 
-	/*!
+    /*!
     *	\brief Calculate the ratio between sediment in flow and soil loss caused by water erosion.
     *
-	*	\param id, The id of cell in grid map
-	*	\param nutr, nutrient in surface runoff, lateral flow or groundwater.
-	*	\param cellNutr, temporary variable
-	*	\param ratio, ratio that flow and sediment into channel
-	*
+    *	\param id, The id of cell in grid map
+    *	\param nutr, nutrient in surface runoff, lateral flow or groundwater.
+    *	\param cellNutr, temporary variable
+    *	\param ratio, ratio that flow and sediment into channel
+    *
     *	\return the new nutrient value
     */
-	float **GetnewNutrient(int id, float *nutr, float **cellNutr, float ratio);
-	
-	float GettotalNutr(float *NutrToCh);
+    float **GetnewNutrient(int id, float *nutr, float **cellNutr, float ratio);
+
+    float GettotalNutr(float *NutrToCh);
 };
 
 #endif

@@ -17,7 +17,6 @@ GDALFileDriver = FileDriver("ESRI Shapefile", "GTiff")
 
 
 def initialize_output_raster_file(base_raster_file, output_raster_file, initial_data=0.0, data_type=gdal.GDT_Float32):
-
     """
     Creates an raster file based on the dimension, projection, and cell size of an input raster file using specified
     initial data value of specified data type

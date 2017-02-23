@@ -9,7 +9,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -35,10 +35,10 @@ IF (WIN32)
     include(FindBson.cmake)
     include(FindMongoC.cmake)
     # 3. MPI
-    SET (MPI_LIB $ENV{MSMPI_LIB32})
-    SET (MPI_HOME $ENV{MSMPI_BIN})
-    SET (MPI_INCLUDE_PATH $ENV{MSMPI_INC})
-    SET (MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
+    SET(MPI_LIB $ENV{MSMPI_LIB32})
+    SET(MPI_HOME $ENV{MSMPI_BIN})
+    SET(MPI_INCLUDE_PATH $ENV{MSMPI_INC})
+    SET(MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
 ELSE ()
     # 1. GDAL CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
     find_package(GDAL REQUIRED)
@@ -66,16 +66,16 @@ SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ################ Add executables #################
 set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} ${MONGO_FILES} LayeringFromSource.cpp LayeringFromOutlet.cpp main.cpp Data.cpp CompressIndex.cpp FlowInOut.cpp)
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
-INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR}  ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
+INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(grid_layering ${SOURCE_FILES})
-target_link_libraries(grid_layering ${GDAL_LIBRARY}  ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
+target_link_libraries(grid_layering ${GDAL_LIBRARY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 install(TARGETS grid_layering DESTINATION bin)
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
-IF(WIN32)
-	SET_PROPERTY(TARGET grid_layering PROPERTY FOLDER "GridLayering")
-ENDIF()
+IF (WIN32)
+    SET_PROPERTY(TARGET grid_layering PROPERTY FOLDER "GridLayering")
+ENDIF ()
 MESSAGE(STATUS "    Compiling Grid Layering done")

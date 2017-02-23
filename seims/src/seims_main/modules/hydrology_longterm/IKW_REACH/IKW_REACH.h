@@ -30,8 +30,7 @@ using namespace std;
  * \brief Overland routing using 4-point implicit finite difference method
  * 
  */
-struct MuskWeights
-{
+struct MuskWeights {
     float c1;
     float c2;
     float c3;
@@ -40,8 +39,7 @@ struct MuskWeights
     int n;  // number of division of the origin time step
 };
 
-class IKW_REACH : public SimulationModule
-{
+class IKW_REACH : public SimulationModule {
 public:
     IKW_REACH(void);
 
@@ -67,8 +65,7 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType()
-    {
+    virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_CHANNEL;
     };
 
@@ -141,7 +138,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
 
     // id the reaches
     float *m_reachId;

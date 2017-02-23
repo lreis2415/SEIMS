@@ -47,8 +47,7 @@ using namespace std;
  * \brief A simple fill and spill method method to calculate depression storage
  * 
  */
-class DepressionFSDaily : public SimulationModule
-{
+class DepressionFSDaily : public SimulationModule {
 public:
     //! Constructor
     DepressionFSDaily(void);
@@ -71,10 +70,10 @@ public:
 private:
     /// valid cells number
     int m_nCells;
-	/// impound/release 
-	float *m_impoundTriger;
-	/// pothole volume, mm
-	float *m_potVol;
+    /// impound/release
+    float *m_impoundTriger;
+    /// pothole volume, mm
+    float *m_potVol;
     /// initial depression storage coefficient
     float m_depCo;
     /// depression storage capacity (mm)

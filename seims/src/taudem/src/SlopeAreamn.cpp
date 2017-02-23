@@ -47,88 +47,70 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
-int main(int argc,char **argv)  
-{
-   char slopefile[MAXLN],scafile[MAXLN], safile[MAXLN];
-   float p[2];
-   int err;
-      
-   if(argc < 2) goto errexit;
-   // Set defaults
-   p[0]=2;  //  m exponent
-   p[1]=1;  // n exponent
-   if(argc == 2)
-	{
-//		printf("You are running %s with the simple use option.\n", argv[0]);
-		nameadd(slopefile,argv[1],"slp");
-		nameadd(scafile,argv[1],"sca");
-		nameadd(safile,argv[1],"sa");
-    }
-   if(argc > 2)
-   {
-//		printf("You are running %s with the specific file names option.\n", argv[0]);
-        int i=1;	
-		while(argc > i)
-		{
-			if(strcmp(argv[i],"-slp")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(slopefile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-sca")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(scafile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-sa")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(safile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-par")==0)
-			{
-				i++;
-				if(argc > i+1)
-				{
-					sscanf(argv[i],"%f",&p[0]);
-					i++;
-					sscanf(argv[i],"%f",&p[1]);
-					i++;
-				}
-				else goto errexit;
-			}
-		    else goto errexit;
-		}
-   }
-    if((err=slopearea(slopefile,scafile, safile,p)) != 0)
-        printf("SlopeArea Error %d\n",err);
+int main(int argc, char **argv) {
+    char slopefile[MAXLN], scafile[MAXLN], safile[MAXLN];
+    float p[2];
+    int err;
 
-	return 0;
-errexit:
-   printf("Simple Use:\n %s <basefilename>\n",argv[0]);
-   printf("Use with specific file names:\n %s -slp <slopefile>\n",argv[0]);
-   printf("-sca <scafile> -sa <safile> [-par <m> <n>] \n");
-   printf("<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'slp', 'sca' and 'sa' will be appended. \n");
-   printf("<slopefile> is the name of the input slope file.\n");
-   printf("<scafile> is the name of input contributing area file.\n");
-   printf("<safile> is the name of the output file with the result slope^m x (contributing area)^n.\n");
-   printf("<m> is the exponent on slope, default value 2 if not specified.\n");
-   printf("<n> is the exponent on contributing area, default value 1 if not specified.\n");
-   return 0; 
+    if (argc < 2) goto errexit;
+    // Set defaults
+    p[0] = 2;  //  m exponent
+    p[1] = 1;  // n exponent
+    if (argc == 2) {
+//		printf("You are running %s with the simple use option.\n", argv[0]);
+        nameadd(slopefile, argv[1], "slp");
+        nameadd(scafile, argv[1], "sca");
+        nameadd(safile, argv[1], "sa");
+    }
+    if (argc > 2) {
+//		printf("You are running %s with the specific file names option.\n", argv[0]);
+        int i = 1;
+        while (argc > i) {
+            if (strcmp(argv[i], "-slp") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(slopefile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-sca") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(scafile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-sa") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(safile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-par") == 0) {
+                i++;
+                if (argc > i + 1) {
+                    sscanf(argv[i], "%f", &p[0]);
+                    i++;
+                    sscanf(argv[i], "%f", &p[1]);
+                    i++;
+                } else { goto errexit; }
+            } else { goto errexit; }
+        }
+    }
+    if ((err = slopearea(slopefile, scafile, safile, p)) != 0) {
+        printf("SlopeArea Error %d\n", err);
+    }
+
+    return 0;
+    errexit:
+    printf("Simple Use:\n %s <basefilename>\n", argv[0]);
+    printf("Use with specific file names:\n %s -slp <slopefile>\n", argv[0]);
+    printf("-sca <scafile> -sa <safile> [-par <m> <n>] \n");
+    printf(
+        "<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'slp', 'sca' and 'sa' will be appended. \n");
+    printf("<slopefile> is the name of the input slope file.\n");
+    printf("<scafile> is the name of input contributing area file.\n");
+    printf("<safile> is the name of the output file with the result slope^m x (contributing area)^n.\n");
+    printf("<m> is the exponent on slope, default value 2 if not specified.\n");
+    printf("<n> is the exponent on contributing area, default value 1 if not specified.\n");
+    return 0;
 } 
    

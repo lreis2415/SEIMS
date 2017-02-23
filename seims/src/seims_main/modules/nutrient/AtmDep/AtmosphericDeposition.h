@@ -10,6 +10,7 @@
  *        3. Remove output of m_sol_no3, which is redundant and unnecessary
  */
 #pragma once
+
 #include <string>
 #include <iostream>
 #include <ctime>
@@ -19,6 +20,7 @@
 #include "SimulationModule.h"
 #include "MetadataInfo.h"
 #include "utilities.h"
+
 using namespace std;
 
 /** \defgroup ATMDEP
@@ -29,8 +31,7 @@ using namespace std;
  * \class AtmosphericDeposition
  * \ingroup ATMDEP
  */
-class AtmosphericDeposition : public SimulationModule
-{
+class AtmosphericDeposition : public SimulationModule {
 public:
     AtmosphericDeposition(void);
 
@@ -53,7 +54,8 @@ public:
 
     bool CheckInputData(void);
 
-	void initialOutputs();
+    void initialOutputs();
+
 private:
 
     /// size of array
@@ -62,7 +64,7 @@ private:
     //float m_cellWidth;
     ///// soil layers
     //float *m_nSoilLayers;
-    
+
     /// maximum soil layers
     int m_soiLayers;
 
@@ -86,7 +88,7 @@ private:
 
     ///amount of ammonium in layer (kg/ha)
     float **m_sol_nh4;
-	/// amount of nitrate in layer (kg/ha)
+    /// amount of nitrate in layer (kg/ha)
     float **m_sol_no3;
 
     /// temporaries
@@ -95,8 +97,8 @@ private:
     float m_addrnh4;
     /// ammonium added by rainfall (kg/ha)
     float m_addrno3;
-    
-	/// outputs
+
+    /// outputs
 
     /// amount of NO3 added to soil by rainfall in watershed on current day (kg/ha)
     float m_wshd_rno3;

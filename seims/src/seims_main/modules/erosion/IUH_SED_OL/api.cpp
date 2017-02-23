@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new IUH_SED_OL();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -34,12 +34,12 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.AddParameter(VAR_OL_IUH, UNIT_NON_DIM, DESC_OL_IUH, Source_ParameterDB, DT_Array2D);
 
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
-	mdi.AddParameter(VAR_SUBBASIN_PARAM, UNIT_NON_DIM, DESC_SUBBASIN_PARAM, Source_ParameterDB, DT_Subbasin);
+    mdi.AddParameter(VAR_SUBBASIN_PARAM, UNIT_NON_DIM, DESC_SUBBASIN_PARAM, Source_ParameterDB, DT_Subbasin);
 
-	mdi.AddInput(VAR_SOER, UNIT_KG, DESC_SOER, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SOER, UNIT_KG, DESC_SOER, Source_Module, DT_Raster1D);
 
-	mdi.AddOutput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, DT_Array1D);
-	mdi.AddOutput(VAR_SEDYLD, UNIT_KG, DESC_SEDYLD, DT_Raster1D);
+    mdi.AddOutput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, DT_Array1D);
+    mdi.AddOutput(VAR_SEDYLD, UNIT_KG, DESC_SEDYLD, DT_Raster1D);
 
     // set the dependencies
     //mdi.AddDependency("DEP_FS", "Depression Storage module");

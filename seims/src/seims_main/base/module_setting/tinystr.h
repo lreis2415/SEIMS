@@ -56,7 +56,6 @@ distribution.
 #define TIXML_EXPLICIT
 #endif
 
-
 /*
    TiXmlString is an emulation of a subset of the std::string template.
    Its purpose is to allow compiling TinyXML on compilers with no or poor STL support.
@@ -64,8 +63,7 @@ distribution.
    The buffer allocation is made by a simplistic power of 2 like mechanism : if we increase
    a string and there's no more room, we allocate a buffer twice as big as we need.
 */
-class TiXmlString
-{
+class TiXmlString {
 public :
     // The size type used
     typedef size_t size_type;
@@ -75,68 +73,56 @@ public :
 
 
     // TiXmlString empty constructor
-    TiXmlString() : rep_(&nullrep_)
-    {
+    TiXmlString() : rep_(&nullrep_) {
     }
 
     // TiXmlString copy constructor
-    TiXmlString(const TiXmlString &copy) : rep_(0)
-    {
+    TiXmlString(const TiXmlString &copy) : rep_(0) {
         init(copy.length());
         memcpy(start(), copy.data(), length());
     }
 
     // TiXmlString constructor, based on a string
-    TIXML_EXPLICIT TiXmlString(const char *copy) : rep_(0)
-    {
+    TIXML_EXPLICIT TiXmlString(const char *copy) : rep_(0) {
         init(static_cast<size_type>( strlen(copy)));
         memcpy(start(), copy, length());
     }
 
     // TiXmlString constructor, based on a string
-    TIXML_EXPLICIT TiXmlString(const char *str, size_type len) : rep_(0)
-    {
+    TIXML_EXPLICIT TiXmlString(const char *str, size_type len) : rep_(0) {
         init(len);
         memcpy(start(), str, len);
     }
 
     // TiXmlString destructor
-    ~TiXmlString()
-    {
+    ~TiXmlString() {
         quit();
     }
 
     // = operator
-    TiXmlString &operator=(const char *copy)
-    {
+    TiXmlString &operator=(const char *copy) {
         return assign(copy, (size_type) strlen(copy));
     }
 
     // = operator
-    TiXmlString &operator=(const TiXmlString &copy)
-    {
+    TiXmlString &operator=(const TiXmlString &copy) {
         return assign(copy.start(), copy.length());
     }
 
-
     // += operator. Maps to append
-    TiXmlString &operator+=(const char *suffix)
-    {
+    TiXmlString &operator+=(const char *suffix) {
         return append(suffix, static_cast<size_type>( strlen(suffix)));
     }
 
     // += operator. Maps to append
-    TiXmlString &operator+=(char single)
-    {
+    TiXmlString &operator+=(char single) {
         return append(&single, 1);
     }
 
     // += operator. Maps to append
-    TiXmlString &operator+=(const TiXmlString &suffix)
-    {
+    TiXmlString &operator+=(const TiXmlString &suffix) {
         return append(suffix.data(), suffix.length());
     }
-
 
     // Convert a TiXmlString into a null-terminated char *
     const char *c_str() const { return rep_->str; }
@@ -156,41 +142,34 @@ public :
     // Return capacity of string
     size_type capacity() const { return rep_->capacity; }
 
-
     // single char extraction
-    const char &at(size_type index) const
-    {
+    const char &at(size_type index) const {
         assert(index < length());
         return rep_->str[index];
     }
 
     // [] operator
-    char &operator[](size_type index) const
-    {
+    char &operator[](size_type index) const {
         assert(index < length());
         return rep_->str[index];
     }
 
     // find a char in a string. Return TiXmlString::npos if not found
-    size_type find(char lookup) const
-    {
+    size_type find(char lookup) const {
         return find(lookup, 0);
     }
 
     // find a char in a string from an offset. Return TiXmlString::npos if not found
-    size_type find(char tofind, size_type offset) const
-    {
+    size_type find(char tofind, size_type offset) const {
         if (offset >= length()) return npos;
 
-        for (const char *p = c_str() + offset; *p != '\0'; ++p)
-        {
+        for (const char *p = c_str() + offset; *p != '\0'; ++p) {
             if (*p == tofind) return static_cast< size_type >( p - c_str());
         }
         return npos;
     }
 
-    void clear()
-    {
+    void clear() {
         //Lee:
         //The original was just too strange, though correct:
         //	TiXmlString().swap(*this);
@@ -208,8 +187,7 @@ public :
 
     TiXmlString &append(const char *str, size_type len);
 
-    void swap(TiXmlString &other)
-    {
+    void swap(TiXmlString &other) {
         Rep *r = rep_;
         rep_ = other.rep_;
         other.rep_ = r;
@@ -225,16 +203,13 @@ private:
 
     char *finish() const { return rep_->str + rep_->size; }
 
-    struct Rep
-    {
+    struct Rep {
         size_type size, capacity;
         char str[1];
     };
 
-    void init(size_type sz, size_type cap)
-    {
-        if (cap)
-        {
+    void init(size_type sz, size_type cap) {
+        if (cap) {
             // Lee: the original form:
             //	rep_ = static_cast<Rep*>(operator new(sizeof(Rep) + cap));
             // doesn't work in some cases of new being overloaded. Switching
@@ -246,17 +221,13 @@ private:
 
             rep_->str[rep_->size = sz] = '\0';
             rep_->capacity = cap;
-        }
-        else
-        {
+        } else {
             rep_ = &nullrep_;
         }
     }
 
-    void quit()
-    {
-        if (rep_ != &nullrep_)
-        {
+    void quit() {
+        if (rep_ != &nullrep_) {
             // The rep_ is really an array of ints. (see the allocator, above).
             // Cast it back before delete, so the compiler won't incorrectly call destructors.
             delete[] (reinterpret_cast<int *>( rep_ ));
@@ -268,15 +239,12 @@ private:
 
 };
 
-
-inline bool operator==(const TiXmlString &a, const TiXmlString &b)
-{
+inline bool operator==(const TiXmlString &a, const TiXmlString &b) {
     return (a.length() == b.length())                // optimization on some platforms
-           && (strcmp(a.c_str(), b.c_str()) == 0);    // actual compare
+        && (strcmp(a.c_str(), b.c_str()) == 0);    // actual compare
 }
 
-inline bool operator<(const TiXmlString &a, const TiXmlString &b)
-{
+inline bool operator<(const TiXmlString &a, const TiXmlString &b) {
     return strcmp(a.c_str(), b.c_str()) < 0;
 }
 
@@ -302,25 +270,21 @@ TiXmlString operator+(const TiXmlString &a, const char *b);
 
 TiXmlString operator+(const char *a, const TiXmlString &b);
 
-
 /*
    TiXmlOutStream is an emulation of std::ostream. It is based on TiXmlString.
    Only the operators that we need for TinyXML have been developped.
 */
-class TiXmlOutStream : public TiXmlString
-{
+class TiXmlOutStream : public TiXmlString {
 public :
 
     // TiXmlOutStream << operator.
-    TiXmlOutStream &operator<<(const TiXmlString &in)
-    {
+    TiXmlOutStream &operator<<(const TiXmlString &in) {
         *this += in;
         return *this;
     }
 
     // TiXmlOutStream << operator.
-    TiXmlOutStream &operator<<(const char *in)
-    {
+    TiXmlOutStream &operator<<(const char *in) {
         *this += in;
         return *this;
     }

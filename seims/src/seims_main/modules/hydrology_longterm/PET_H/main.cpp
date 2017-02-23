@@ -4,8 +4,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     //August 1st, 2nd
     //float tMean[] = {23.5f, 20.5f};
     //float tMax[] = {32.0f, 27.0f};

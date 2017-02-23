@@ -5,8 +5,7 @@
 
 using namespace std;
 
-class subbasin
-{
+class subbasin {
 public:
     subbasin(int);
 

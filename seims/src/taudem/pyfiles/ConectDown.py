@@ -11,7 +11,7 @@ import subprocess
 # Inputs
 inlyr = arcpy.GetParameterAsText(0)
 desc = arcpy.Describe(inlyr)
-p=str(desc.catalogPath)
+p = str(desc.catalogPath)
 arcpy.AddMessage("\nInput D8 Flow Direction Grid: " + p)
 coord_sys = desc.spatialReference
 arcpy.AddMessage("Spatial Reference: " + str(coord_sys.name))
@@ -35,17 +35,17 @@ arcpy.AddMessage("Input Number of Processes: " + inputProc)
 
 # Output
 om = arcpy.GetParameterAsText(5)
-arcpy.AddMessage("Output Outlet file: "+om)
+arcpy.AddMessage("Output Outlet file: " + om)
 
 # Output
 omd = arcpy.GetParameterAsText(6)
-arcpy.AddMessage("Output MovedOutlet file: "+omd)
+arcpy.AddMessage("Output MovedOutlet file: " + omd)
 
 # Construct command
 cmd = 'mpiexec -n ' + inputProc + ' ConnectDown -p ' + '"' + p + '"' + ' -ad8 ' + '"' + \
       ad8 + '"' + ' -w ' + '"' + ws + '"' + ' -o ' + '"' + om + '"' + ' -od ' + '"' + omd + '"' + ' -d ' + mvdistance
 
-arcpy.AddMessage("\nCommand Line: "+cmd)
+arcpy.AddMessage("\nCommand Line: " + cmd)
 
 # Submit command to operating system
 os.system(cmd)
@@ -55,9 +55,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
-
-

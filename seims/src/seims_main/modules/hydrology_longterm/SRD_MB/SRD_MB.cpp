@@ -7,8 +7,7 @@
 
 #include <omp.h>
 
-SRD_MB::SRD_MB(void)
-{
+SRD_MB::SRD_MB(void) {
     // set default values for member variables
     this->m_Date = -1;
     this->m_t_wind = -99.0f;
@@ -42,37 +41,44 @@ SRD_MB::SRD_MB(void)
     m_isInitial = true;
 }
 
-SRD_MB::~SRD_MB(void)
-{
+SRD_MB::~SRD_MB(void) {
     //// cleanup
     if (this->m_w != NULL) delete[] this->m_w;
     if (this->m_wt != NULL) delete[] this->m_wt;
     if (this->m_SR != NULL) delete[] this->m_SR;
 }
 
-bool SRD_MB::CheckInputData(void)
-{
+bool SRD_MB::CheckInputData(void) {
     if (this->m_Date <= 0) throw ModelException("SRD_MB", "CheckInputData", "You have not set the time.");
-    if (m_nCells <= 0)
+    if (m_nCells <= 0) {
         throw ModelException("SRD_MB", "CheckInputData", "The dimension of the input data can not be less than zero.");
-    if (this->m_tMin == NULL)
+    }
+    if (this->m_tMin == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The min temperature data can not be NULL.");
-    if (this->m_tMax == NULL)
+    }
+    if (this->m_tMax == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The max temperature data can not be NULL.");
+    }
     if (this->m_ws == NULL) throw ModelException("SRD_MB", "CheckInputData", "The wind speed data can not be NULL.");
-    if (this->m_kblow == -99)
+    if (this->m_kblow == -99) {
         throw ModelException("SRD_MB", "CheckInputData",
                              "The fraction coefficient of snow blowing into or out of the watershed can not be NULL.");
-    if (this->m_Pnet == NULL)
+    }
+    if (this->m_Pnet == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The net precipitation data can not be NULL.");
-    if (this->m_curva_wind == NULL)
+    }
+    if (this->m_curva_wind == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The curvature wind data can not be NULL.");
-    if (this->m_slope_wind == NULL)
+    }
+    if (this->m_slope_wind == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The slope wind data can not be NULL.");
-    if (this->m_shc == NULL)
+    }
+    if (this->m_shc == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The snow hold capacity data can not be NULL.");
-    if (this->m_SA == NULL)
+    }
+    if (this->m_SA == NULL) {
         throw ModelException("SRD_MB", "CheckInputData", "The snow hold capacity data can not be NULL.");
+    }
 
     if (this->m_tsnow == -99) throw ModelException("SRD_MB", "CheckInputData", "The t_snow can not be -99.");
     if (this->m_ut0 == -99) throw ModelException("SRD_MB", "CheckInputData", "The ut0 can not be -99.");
@@ -84,45 +90,40 @@ bool SRD_MB::CheckInputData(void)
     if (this->m_swe == -99) throw ModelException("SRD_MB", "CheckInputData", "The swe can not be -99.");
     if (this->m_swe0 == -99) throw ModelException("SRD_MB", "CheckInputData", "The swe0 can not be -99.");
 
-    if (this->m_wsSize <= 0)
+    if (this->m_wsSize <= 0) {
         throw ModelException("SRD_MB", "CheckInputData",
                              "The dimension of the wind speed data can not be less than zero.");
+    }
 
     return true;
 }
 
-void SRD_MB::initialOutputs()
-{
-    if (m_nCells <= 0)
+void SRD_MB::initialOutputs() {
+    if (m_nCells <= 0) {
         throw ModelException("SRD_MB", "CheckInputData", "The dimension of the input data can not be less than zero.");
-    if (m_SR == NULL)
-    {
+    }
+    if (m_SR == NULL) {
         m_SR = new float[this->m_nCells];
-        for (int rw = 0; rw < this->m_nCells; rw++)
-        {
+        for (int rw = 0; rw < this->m_nCells; rw++) {
             m_SR[rw] = 0.0f;
         }
     }
 }
 
-int SRD_MB::Execute()
-{
+int SRD_MB::Execute() {
     this->CheckInputData();
 
     this->initialOutputs();
 
     //the first time
-    if (m_isInitial)
-    {
+    if (m_isInitial) {
         int count = 0;
-        for (int i = 0; i < this->m_nCells; i++)
-        {
-            if ((this->m_tMin[i] + this->m_tMax[i]) / 2 < this->m_tsnow)
-            {
+        for (int i = 0; i < this->m_nCells; i++) {
+            if ((this->m_tMin[i] + this->m_tMax[i]) / 2 < this->m_tsnow) {
                 this->m_SA[i] = this->m_swe0;
                 count++;
             }    //winter
-            else this->m_SA[i] = 0.0f;                        // other seasons
+            else { this->m_SA[i] = 0.0f; }                        // other seasons
         }
 
         m_swe = this->m_swe0 * count / this->m_nCells;
@@ -132,10 +133,10 @@ int SRD_MB::Execute()
     if (this->m_lastSWE == -99.0f) this->m_lastSWE = this->m_swe;
     if (m_swe < 0.01)    //all cells have not snow, so snow redistribution is 0.
     {
-        if (this->m_lastSWE >= 0.01)
-        {
-            for (int rw = 0; rw < this->m_nCells; rw++)
+        if (this->m_lastSWE >= 0.01) {
+            for (int rw = 0; rw < this->m_nCells; rw++) {
                 m_SR[rw] = 0.0f;
+            }
         }
 
         this->m_lastSWE = this->m_swe;
@@ -148,18 +149,17 @@ int SRD_MB::Execute()
     if (m_wt == NULL)   //get wt. wt is constant for the watershed, so save it in m_wt to save time.
     {
         m_wt = new float[this->m_nCells];
-        for (int rw = 0; rw < this->m_nCells; rw++)
+        for (int rw = 0; rw < this->m_nCells; rw++) {
             m_wt[rw] = 1.0f + 1 / this->m_k_slope * this->m_slope_wind[rw] +
-                       1 / this->m_k_curvature * this->m_curva_wind[rw];
+                1 / this->m_k_curvature * this->m_curva_wind[rw];
+        }
     }
 
     float totalW = 0.0f;
-    for (int rw = 0; rw < this->m_nCells; rw++)
-    {
+    for (int rw = 0; rw < this->m_nCells; rw++) {
         float wl = 1.0f;
         float shc = this->m_shc[rw] * 1000;
-        if (this->m_swe < shc)
-        {
+        if (this->m_swe < shc) {
             wl = shc / this->m_shc_crop + this->m_swe * (1 - shc / this->m_shc_crop) / shc;
         }
 
@@ -172,11 +172,10 @@ int SRD_MB::Execute()
     for (int rw = 0; rw < this->m_wsSize; rw++) u += this->m_ws[rw];
     u /= this->m_wsSize;
 
-    for (int rw = 0; rw < this->m_nCells; rw++)
-    {
+    for (int rw = 0; rw < this->m_nCells; rw++) {
         float snow = this->m_SA[rw];
         float tmean = (this->m_tMin[rw] + this->m_tMax[rw]) /
-                      2; //if the temperature is higher than t0, the redistribution is 0
+            2; //if the temperature is higher than t0, the redistribution is 0
         if (tmean < this->m_tsnow) snow += (1 + this->m_kblow) * this->m_Pnet[rw];
         if (snow <
             0.01)            // if snow is lower than a very small positive value (0.01), consider it is equal to 0.
@@ -185,8 +184,7 @@ int SRD_MB::Execute()
             continue;
         }
 
-        if (tmean >= this->m_t0)
-        {
+        if (tmean >= this->m_t0) {
             this->m_SR[rw] = 0.0f;
             continue;
         }
@@ -202,29 +200,25 @@ int SRD_MB::Execute()
 
         float sr = scp * ww;
 
-        if (abs(sr) <= snow) this->m_SR[rw] = sr;
-        else this->m_SR[rw] = snow;
+        if (abs(sr) <= snow) { this->m_SR[rw] = sr; }
+        else { this->m_SR[rw] = snow; }
     }
 
     this->m_lastSWE = this->m_swe;
     return 0;
 }
 
-bool SRD_MB::CheckInputSize(const char *key, int n)
-{
-    if (n <= 0)
-    {
+bool SRD_MB::CheckInputSize(const char *key, int n) {
+    if (n <= 0) {
         throw ModelException("SRD_MB", "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
-    if (this->m_nCells != n)
-    {
-        if (this->m_nCells <= 0) this->m_nCells = n;
-        else
-        {
+    if (this->m_nCells != n) {
+        if (this->m_nCells <= 0) { this->m_nCells = n; }
+        else {
             throw ModelException("SRD_MB", "CheckInputSize", "Input data for " + string(key) +
-                                                             " is invalid. All the input data should have same size.");
+                " is invalid. All the input data should have same size.");
             return false;
         }
     }
@@ -232,36 +226,32 @@ bool SRD_MB::CheckInputSize(const char *key, int n)
     return true;
 }
 
-void SRD_MB::SetValue(const char *key, float data)
-{
+void SRD_MB::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, "ThreadNum"))
-    {
+    if (StringMatch(s, "ThreadNum")) {
         omp_set_num_threads((int) data);
-    }
-    else if (StringMatch(s, "K_blow")) this->m_kblow = data;
-    else if (StringMatch(s, "shc_crop")) this->m_shc_crop = data;
-    else if (StringMatch(s, "k_slope")) this->m_k_slope = data;
-    else if (StringMatch(s, "k_curvature")) this->m_k_curvature = data;
-    else if (StringMatch(s, "ut0")) this->m_ut0 = data;
-    else if (StringMatch(s, "u0")) this->m_u0 = data;
-    else if (StringMatch(s, "t_wind")) this->m_t_wind = data;
-    else if (StringMatch(s, "SWE")) this->m_swe = data;
-    else if (StringMatch(s, "swe0")) this->m_swe0 = data;
-    else if (StringMatch(s, "T0")) this->m_t0 = data;
-    else if (StringMatch(s, "T_snow")) this->m_tsnow = data;
-    else
+    } else if (StringMatch(s, "K_blow")) { this->m_kblow = data; }
+    else if (StringMatch(s, "shc_crop")) { this->m_shc_crop = data; }
+    else if (StringMatch(s, "k_slope")) { this->m_k_slope = data; }
+    else if (StringMatch(s, "k_curvature")) { this->m_k_curvature = data; }
+    else if (StringMatch(s, "ut0")) { this->m_ut0 = data; }
+    else if (StringMatch(s, "u0")) { this->m_u0 = data; }
+    else if (StringMatch(s, "t_wind")) { this->m_t_wind = data; }
+    else if (StringMatch(s, "SWE")) { this->m_swe = data; }
+    else if (StringMatch(s, "swe0")) { this->m_swe0 = data; }
+    else if (StringMatch(s, "T0")) { this->m_t0 = data; }
+    else if (StringMatch(s, "T_snow")) { this->m_tsnow = data; }
+    else {
         throw ModelException("SRD_MB", "SetValue", "Parameter " + s +
-                                                   " does not exist in SRD_MB method. Please contact the module developer.");
+            " does not exist in SRD_MB method. Please contact the module developer.");
+    }
 
 }
 
-void SRD_MB::Set1DData(const char *key, int n, float *data)
-{
+void SRD_MB::Set1DData(const char *key, int n, float *data) {
     //check the input data
     string s(key);
-    if (StringMatch(s, "T_WS"))
-    {
+    if (StringMatch(s, "T_WS")) {
         this->m_ws = data;
         this->m_wsSize = n;
         return;
@@ -269,29 +259,28 @@ void SRD_MB::Set1DData(const char *key, int n, float *data)
 
     this->CheckInputSize(key, n);
 
-    if (StringMatch(s, "slope_wind")) this->m_slope_wind = data;
-    else if (StringMatch(s, "curva_wind")) this->m_curva_wind = data;
-    else if (StringMatch(s, "shc")) this->m_shc = data;
-    else if (StringMatch(s, "D_NEPR")) this->m_Pnet = data;
-    else if (StringMatch(s, "D_SNAC")) this->m_SA = data;
-    else if (StringMatch(s, "D_TMIN")) this->m_tMin = data;
-    else if (StringMatch(s, "D_TMAX")) this->m_tMax = data;
-    else
+    if (StringMatch(s, "slope_wind")) { this->m_slope_wind = data; }
+    else if (StringMatch(s, "curva_wind")) { this->m_curva_wind = data; }
+    else if (StringMatch(s, "shc")) { this->m_shc = data; }
+    else if (StringMatch(s, "D_NEPR")) { this->m_Pnet = data; }
+    else if (StringMatch(s, "D_SNAC")) { this->m_SA = data; }
+    else if (StringMatch(s, "D_TMIN")) { this->m_tMin = data; }
+    else if (StringMatch(s, "D_TMAX")) { this->m_tMax = data; }
+    else {
         throw ModelException("SRD_MB", "SetValue", "Parameter " + s +
-                                                   " does not exist in SRD_MB method. Please contact the module developer.");
+            " does not exist in SRD_MB method. Please contact the module developer.");
+    }
 
 }
 
-void SRD_MB::Get1DData(const char *key, int *n, float **data)
-{
+void SRD_MB::Get1DData(const char *key, int *n, float **data) {
     string s(key);
-    if (StringMatch(s, "SNRD"))
-    {
+    if (StringMatch(s, "SNRD")) {
         *data = this->m_SR;
-    }
-    else
+    } else {
         throw ModelException("SRD_MB", "getResult", "Result " + s +
-                                                    " does not exist in SRD_MB method. Please contact the module developer.");
+            " does not exist in SRD_MB method. Please contact the module developer.");
+    }
 
     *n = this->m_nCells;
 }

@@ -59,8 +59,7 @@ using namespace std;
  * \brief Modified Rational Method to calculate infiltration and excess precipitation
  * 
  */
-class SUR_MR : public SimulationModule
-{
+class SUR_MR : public SimulationModule {
 public:
     //! Constructor
     SUR_MR(void);
@@ -98,22 +97,22 @@ private:
     int m_nSoilLayers;
     /// soil layers number of each cell
     float *m_soilLayers;
- //   /// soil depth (mm)
- //   float **m_soilDepth;
-	///// soil thickness (mm)
-	//float **m_soilThick;
+    //   /// soil depth (mm)
+    //   float **m_soilDepth;
+    ///// soil thickness (mm)
+    //float **m_soilThick;
 
- //   /// soil porosity, mm H2O/mm Soil
- //   float **m_porosity;
- //   /// water content of soil at field capacity, mm H2O/mm Soil
-	//float **m_fieldCap;
-	///// water content of soil at wilting point, mm H2O/mm Soil
-	//float **m_wiltingPoint;
-	
-	///mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
-	float **m_sol_awc;
-	/// amount of water held in the soil layer at saturation (sat - wp water), mm H2O, sol_sumul of SWAT
-	float *m_sol_sumsat;
+    //   /// soil porosity, mm H2O/mm Soil
+    //   float **m_porosity;
+    //   /// water content of soil at field capacity, mm H2O/mm Soil
+    //float **m_fieldCap;
+    ///// water content of soil at wilting point, mm H2O/mm Soil
+    //float **m_wiltingPoint;
+
+    ///mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
+    float **m_sol_awc;
+    /// amount of water held in the soil layer at saturation (sat - wp water), mm H2O, sol_sumul of SWAT
+    float *m_sol_sumsat;
     /// initial soil water storage fraction related to field capacity (FC-WP)
     float *m_initSoilStorage;
 
@@ -143,19 +142,19 @@ private:
     /// soil temperature obtained from the soil temperature module (deg C)
     float *m_soilTemp;
 
-	/// pothole volume, mm
-	float *m_potVol;
-	/// impound trigger
-	float *m_impoundTrig;
+    /// pothole volume, mm
+    float *m_potVol;
+    /// impound trigger
+    float *m_impoundTrig;
     // output
     /// the excess precipitation (mm) of the total nCells, which could be depressed or generated surface runoff
     float *m_pe;
     /// infiltration map of watershed (mm) of the total nCells
-	float *m_infil;
-	/// soil water storage (mm)
-	float **m_soilStorage;
-	/// soil water storage in soil profile (mm)
-	float *m_soilStorageProfile;
+    float *m_infil;
+    /// soil water storage (mm)
+    float **m_soilStorage;
+    /// soil water storage in soil profile (mm)
+    float *m_soilStorageProfile;
 
     /// initial output for the first run
     void initialOutputs();

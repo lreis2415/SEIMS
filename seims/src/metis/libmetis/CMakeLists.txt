@@ -7,13 +7,13 @@ add_library(metis ${METIS_LIBRARY_TYPE} ${GKlib_sources} ${metis_sources})
 IF (MSVC)
     SET_PROPERTY(TARGET metis PROPERTY FOLDER "METIS_PACKAGE")
 ENDIF ()
-if(UNIX)
-  target_link_libraries(metis m)
-endif()
+if (UNIX)
+    target_link_libraries(metis m)
+endif ()
 
-if(METIS_INSTALL)
-  install(TARGETS metis
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION lib
-    ARCHIVE DESTINATION lib)
-endif()
+if (METIS_INSTALL)
+    install(TARGETS metis
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION lib
+            ARCHIVE DESTINATION lib)
+endif ()

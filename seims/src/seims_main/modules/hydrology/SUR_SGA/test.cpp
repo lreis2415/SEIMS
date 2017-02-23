@@ -7,15 +7,13 @@ using namespace std;
 
 #define N 1
 
-
-void InitValue(float *a, int n, float value)
-{
-    for (int i = 0; i < n; ++i)
+void InitValue(float *a, int n, float value) {
+    for (int i = 0; i < n; ++i) {
         a[i] = value;
+    }
 }
 
-int main()
-{
+int main() {
     int threadCount = 10;
 
     StormGreenAmpt ga;
@@ -85,8 +83,7 @@ int main()
     t1 = clock();
 
     //#pragma omp parallel for
-    for (int i = 0; i < 200; i++)
-    {
+    for (int i = 0; i < 200; i++) {
         ga.Execute();
         float *p;
         int n;
@@ -97,7 +94,6 @@ int main()
     t2 = clock();
 
     cout << t2 - t1 << endl;
-
 
     return 0;
 }

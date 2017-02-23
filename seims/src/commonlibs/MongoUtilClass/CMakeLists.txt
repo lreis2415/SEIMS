@@ -9,7 +9,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -33,7 +33,7 @@ IF (OPENMP_FOUND)
 ENDIF ()
 ################ Add executables #################
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp  ${UTILS_INC}/ModelException.cpp)
+set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
 set(SOURCE_FILES main.cpp MongoUtil.cpp)
 include_directories(${UTILS_INC} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR})
 add_executable(MongoUtil ${SOURCE_FILES} ${UTILS_FILES})

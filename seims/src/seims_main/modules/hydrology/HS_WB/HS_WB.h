@@ -26,8 +26,7 @@ using namespace std;
  * \brief 
  *
  */
-class HS_WB : public SimulationModule
-{
+class HS_WB : public SimulationModule {
 private:
 
     int m_nCells;
@@ -98,7 +97,6 @@ public:
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
     virtual int Execute(void);
-
 
 private:
     void initialOutputs();

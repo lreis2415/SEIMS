@@ -56,27 +56,27 @@ last "." if any  */
 
 //int flood(char *demfile, char *newfile, char * flowfile, short useflowfile, 
 //		  char *newflowfile, bool LoadIntoRam = true);
-int flood(char *demfile, char *newfile, char * flowfile, short useflowfile);
+int flood(char *demfile, char *newfile, char *flowfile, short useflowfile);
 /*  Removes pits using the flooding algorithm.  Original data in demfile (input), 
   pit filled elevations in newfile (output). */
 
-int setdird8(char *demfile, char *pointfile, char *slopefile, char * flowFile,
-			 short useflowfile);
+int setdird8(char *demfile, char *pointfile, char *slopefile, char *flowFile,
+             short useflowfile);
 //int setdird8(char *demfile, char *pointfile, char *slopefile, char * flowFile,
 //			 short useflowfile, bool LoadIntoRam = true); 
 /*  Sets D8 flow directions.  Elevation data in demfile (input),  D8 flow directions in 
-pointfile (output).  D8 slopes on slopefile (output).  */ 
+pointfile (output).  D8 slopes on slopefile (output).  */
 
-int setdir( char* demfile, char* angfile, char *slopefile, char *flowfile, int useflowfile);
+int setdir(char *demfile, char *angfile, char *slopefile, char *flowfile, int useflowfile);
 //int setdir(char *demfile, char *angfile, char *slopefile, char * flowfile, 
 //			 short useflowfile, bool LoadIntoMemory = true);
 /*  Sets Dinf flow directions.  Elevation data in demfile (input),  Dinf flow angles in 
-angfile (output).  Dinf slopes on slopefile (output).  */ 
+angfile (output).  Dinf slopes on slopefile (output).  */
 
 //int aread8(char *pfile, char *afile, double *x, double *y, long nxy, int doall, 
 //		   char *wfile, int usew, int contcheck);
-int aread8(char *pfile,char *afile, char *shfile, char *wfile, int useOutlets,
-		   int usew, int contcheck);
+int aread8(char *pfile, char *afile, char *shfile, char *wfile, int useOutlets,
+           int usew, int contcheck);
 /*  Computes D8 contributing areas, using D8 pointers from pfile (input).  Result is returned
 in afile (output).  x and y are outlet coordinates which may be optionally supplied.  
 doall is flag:  0 means use outlet coordinates as outlet, 1 means compute whole grid.
@@ -87,8 +87,8 @@ contcheck is flag:  0 means do not check for edge contamination,
 
 //int area(char *pfile, char *afile, double *x, double *y, long nxy, int doall,
 //		 char *wfile, int usew, int contcheck,bool inRam = true);
-int area(char *pfile, char *afile, char *shfile, char *wfile, int useOutlets, 
-		  int usew, int contcheck);
+int area(char *pfile, char *afile, char *shfile, char *wfile, int useOutlets,
+         int usew, int contcheck);
 /*  Computes Dinf contributing areas, using Dinf angles from pfile (input).  Result is returned
 in afile (output).  x and y are outlet coordinates which may be optionally supplied.  
 doall is flag:  0 means use outlet coordinates as outlet, 1 means compute whole grid.
@@ -98,7 +98,7 @@ contcheck is flag:  0 means do not check for edge contamination,
                     1 means check for edge contamination  */
 
 int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *maskfile,
-		char* datasrc,char* lyrname,int uselyrname,int lyrno, int useMask, int useOutlets, int thresh);
+            char *datasrc, char *lyrname, int uselyrname, int lyrno, int useMask, int useOutlets, int thresh);
 //int gridnet(char *pfile,char *plenfile,char *tlenfile,char *gordfile,char *maskfile,
 //			double *x, double *y,long nxy, int useMask, int useOutlets, int thresh);
 /*  Uses D8 flow drections in pfile (input) with optional basin maskfile (input)
@@ -110,13 +110,21 @@ mask is a flag with value 0 if there is no mask file, 1 if there is.
 outlet is a flag with value 0 if no outlet is specifies, 1 if it is.
 thresh is the mask threshold used in >= test.  */
 
-int gagewatershed( char *pfile,char *wfile, char* datasrc,char* lyrname,int uselyrname,int lyrno, char *idfile,int writeid, int writeupid,char *upidfile) ;
+int gagewatershed(char *pfile,
+                  char *wfile,
+                  char *datasrc,
+                  char *lyrname,
+                  int uselyrname,
+                  int lyrno,
+                  char *idfile,
+                  int writeid,
+                  int writeupid,
+                  char *upidfile);
 
-
-int source(char *areafile,char *slopefile,char *plenfile,char *dirfile, 
-		   char *srcfile, char *elvfile, char *gordfile, char *scafile,
-		   char *fdrfile, int ipar,float *p, int nxy, double *x, double *y, 
-		   int contcheck, int dropan, int masksca);
+int source(char *areafile, char *slopefile, char *plenfile, char *dirfile,
+           char *srcfile, char *elvfile, char *gordfile, char *scafile,
+           char *fdrfile, int ipar, float *p, int nxy, double *x, double *y,
+           int contcheck, int dropan, int masksca);
 /*  Defines a channel network raster grid based on a channel network delineation method
 areafile (input): grid with D8 contributing area 'ad8'.
 slopefile (input): slopes used only in method 2 ('slp' recommended)
@@ -149,8 +157,23 @@ masksca:  flag to indicate that locations with sca no data are to be excluded
 //			 char *ad8file, char *elevfile, char *treefile, char *coordfile, 
 //			 double *xnode, double *ynode, int nxy, long usetrace, long *idnodes);
 
-int  netsetup(char *pfile,char *srcfile,char *ordfile,char *ad8file,char *elevfile,char *treefile, char *coordfile, 
-			 char *outletsds, char *lyrname,int uselayername, int lyrno, char *wfile, char *streamnetsrc, char *streamnetlyr,long useOutlets, long ordert, bool verbose) ; 
+int netsetup(char *pfile,
+             char *srcfile,
+             char *ordfile,
+             char *ad8file,
+             char *elevfile,
+             char *treefile,
+             char *coordfile,
+             char *outletsds,
+             char *lyrname,
+             int uselayername,
+             int lyrno,
+             char *wfile,
+             char *streamnetsrc,
+             char *streamnetlyr,
+             long useOutlets,
+             long ordert,
+             bool verbose);
 
 //int netsetup(char *demfile, int method,
 //			 float p1,float p2,float p3,float p4, long xr,long yr, int contcheck);
@@ -179,21 +202,38 @@ method (input): integer designating method.
 p[4] (input):  4 element array containing parameters
 xr, yr (input):  x and y coordinates of outlet.   
 contcheck:  flag to indicate edge contamination checking  */
-int netexC(short **dir, int **area, char *treefile, char *coordfile, char *ordfile, int nx, int ny, int itresh, 
-		   int icr, int &icend, double dx, double dy, double *bndbox,double csize, int filetype, int err, short *inodes, 
-		   short *jnodes,long nnodes, long *idnodes);
+int netexC(short **dir,
+           int **area,
+           char *treefile,
+           char *coordfile,
+           char *ordfile,
+           int nx,
+           int ny,
+           int itresh,
+           int icr,
+           int &icend,
+           double dx,
+           double dy,
+           double *bndbox,
+           double csize,
+           int filetype,
+           int err,
+           short *inodes,
+           short *jnodes,
+           long nnodes,
+           long *idnodes);
 void netpropC(short **dir, int **area, float **elev, char *coordfile, int icr, int icmax,
-			   double dx, double dy,int nx, int ny, 
-			   double *bndbox, double csize,int err);
-bool isnode2C(int i , int j , short *inodes, short *jnodes, int nnodes,int &nodeno);
-bool isnodeC(int mnext, int mag, int i , int j , short *inodes, short *jnodes, int nnodes);
-bool strtC(int i,int j,int **area,short **dir, long nx, long ny, int igx, int igy,int itresh);
+              double dx, double dy, int nx, int ny,
+              double *bndbox, double csize, int err);
+bool isnode2C(int i, int j, short *inodes, short *jnodes, int nnodes, int &nodeno);
+bool isnodeC(int mnext, int mag, int i, int j, short *inodes, short *jnodes, int nnodes);
+bool strtC(int i, int j, int **area, short **dir, long nx, long ny, int igx, int igy, int itresh);
 
-int dropan(char *areafile,char *slopefile,char *plenfile,char *dirfile, 
-		   char *srcfile, char *elevfile, char *gordfile, char *scafile,
-		   char *fdrfile, int ipar,float *p, int nxy, double *x, double *y, 
-		   int contcheck,int nthresh,int *thresholds, int *n1, int *n2,
-		   float *s1, float *s2, float *s1sq, float *s2sq, float *length,long masksca);
+int dropan(char *areafile, char *slopefile, char *plenfile, char *dirfile,
+           char *srcfile, char *elevfile, char *gordfile, char *scafile,
+           char *fdrfile, int ipar, float *p, int nxy, double *x, double *y,
+           int contcheck, int nthresh, int *thresholds, int *n1, int *n2,
+           float *s1, float *s2, float *s1sq, float *s2sq, float *length, long masksca);
 
 //void arclinks(char *coordfile,char *treefile,char *outfile, int *ilink, float *amin);
 /*  Reads tree data files and outputs Arc Export format file.  An element for each link
@@ -211,7 +251,7 @@ outfile (output):  Arc Export format file '*.e00'
 ilink (input):  Link number to define outlet if a subset is required (use 0 for whole tree)
 amin (input):  Area threshold to prune grid (use 0 for whole tree)   */
 
-int subbasinsetup(char *pfile, char *wfile,char *treefile,char *coordfile,char *shpfile, int ordert,int subbno);
+int subbasinsetup(char *pfile, char *wfile, char *treefile, char *coordfile, char *shpfile, int ordert, int subbno);
 /*  Sets up subwatersheds each with their unique number
 pfile (input): grid of D8 flow directions 'p'
 wfile (output):  grid of watershed identifiers 'w'
@@ -226,9 +266,9 @@ area at one or a set of grid cells, from each grid cell.
 angfile (input):  The grid of Dinf angles.
 dgfile (input):  The set of cells whose dependence is to be evaluated.  This is a grid of 1's and 0's.
 depfile (output):  The grid containing the dependence function.  */
-  
+
 //int atanbgrid(char *slopefile,char *areafile,char *atanbfile, int diskbasedflag);
-int atanbgrid(char *slopefile,char *areafile,char *atanbfile);
+int atanbgrid(char *slopefile, char *areafile, char *atanbfile);
 /*  Computes slope to area ratio (inverse of TopModel wetness index S/A at each point
    Inverse to avoid divide by 0 for 0 slope    
 	slopefile - the slope grid
@@ -247,52 +287,84 @@ int distgrid(char *pfile, char *srcfile, char *distfile, int thresh);
 
     distfile is the output grid of distances to channels
  */
-int topsetup(char *atanbfile, char *distfile, char *raincoordfile, char *flowcoordfile, 
-			 char *treefile, char *coordfile, char *pfile, char *wfile, char *elevfile, 
-			 char *trigridfile, char *anngridfile, char *modelspcfile, char *basinparfile, char *reachareafile,
-			 char tfilenamelist[16][1024], char gfilenamelist[16][1024], 
-			 int ntgpairs, int methods[16], float fixedpval[16],int calibp[16], 
-			 int tgpair[16], int tcol[16], float ncpar[7],int dotrigrid, char *moelfile, short ver, 
-			 char *nodelinkfile, int markthresh, char *dcatchfile, int usemoel, char *cefile) ;
+int topsetup(char *atanbfile, char *distfile, char *raincoordfile, char *flowcoordfile,
+             char *treefile, char *coordfile, char *pfile, char *wfile, char *elevfile,
+             char *trigridfile, char *anngridfile, char *modelspcfile, char *basinparfile, char *reachareafile,
+             char tfilenamelist[16][1024], char gfilenamelist[16][1024],
+             int ntgpairs, int methods[16], float fixedpval[16], int calibp[16],
+             int tgpair[16], int tcol[16], float ncpar[7], int dotrigrid, char *moelfile, short ver,
+             char *nodelinkfile, int markthresh, char *dcatchfile, int usemoel, char *cefile);
 
-
-//int dmarea(char *angfile, char *adecfile, char *dmfile, double *x, double *y, long nxy, 
+//int dmarea(char *angfile, char *adecfile, char *dmfile, double *x, double *y, long nxy,
 //		 char *wfile, int usew, int contcheck);
-int dmarea(char* angfile,char* adecfile,char* dmfile,char* datasrc,char* lyrname,int uselyrname,int lyrno,char* wfile,
-		   int useOutlets,int usew,int contcheck);
+int dmarea(char *angfile,
+           char *adecfile,
+           char *dmfile,
+           char *datasrc,
+           char *lyrname,
+           int uselyrname,
+           int lyrno,
+           char *wfile,
+           int useOutlets,
+           int usew,
+           int contcheck);
 
 //int dsaccum(char *angfile,char *wgfile, char *depfile, char *maxfile, int touch, float wgval);
-int dsaccum(char *angfile,char *wgfile, char *raccfile, char *dmaxfile);
+int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile);
 
 //int tlaccum(char *pfile, char *wfile, char *tcfile, char *tlafile, char *depfile, 
 //			char *cfile, char *coutfile,
 //			double  *x, double *y, int nxy,   int usec, int contcheck);
-int tlaccum(char *angfile, char *tsupfile, char *tcfile, char *tlafile, char *depfile, 
-			char *cinfile, char *coutfile, char* datasrc,char* lyrname,int uselyrname,int lyrno, int useOutlets, int usec, 
-			int contcheck);
+int tlaccum(char *angfile,
+            char *tsupfile,
+            char *tcfile,
+            char *tlafile,
+            char *depfile,
+            char *cinfile,
+            char *coutfile,
+            char *datasrc,
+            char *lyrname,
+            int uselyrname,
+            int lyrno,
+            int useOutlets,
+            int usec,
+            int contcheck);
 /*int tlaccum(char *pfile, char *wfile, char *tcfile, char *tlafile, char *depfile, 
 			char *cfile, char *coutfile,
 			double  *x, double *y, int nxy,   int usec, int contcheck, ItkCallback * callback = NULL);*/
 
 
-int dsllArea(char* angfile,char* ctptfile,char* dmfile,char* datasrc,char* lyrname,int uselyrname,int lyrno,char* qfile, char* dgfile, 
-		   int useOutlets, int contcheck, float cSol);
+int dsllArea(char *angfile,
+             char *ctptfile,
+             char *dmfile,
+             char *datasrc,
+             char *lyrname,
+             int uselyrname,
+             int lyrno,
+             char *qfile,
+             char *dgfile,
+             int useOutlets,
+             int contcheck,
+             float cSol);
 
 /*int dsllArea(char *pfile, char *afile, char *dmfile, double *x, double *y,  long nxy, 
 		 char *wfile, char *indicatorFile, int contcheck, float cSol,ItkCallback * callback = NULL);  */
 
 //int outletstosrc(char *pfile, char *srcfile,char *ad8file, long *xnode, long *ynode, int nxy,int max_dist,long *ismoved,  long *dist_moved);
-int outletstosrc(char *pfile, char *srcfile,char *outletshpfile, char *outletmovedfile, int maxdist);
+int outletstosrc(char *pfile, char *srcfile, char *outletshpfile, char *outletmovedfile, int maxdist);
 //This function duplicates a part of the netsetup() to trace the oulets to the src, if their coordinates
 ///are not on the river.
 //gridconversion function:Ajay (2003-2004)
-int gridconvert(char *ipFile,char* opFile,int ipdataformat,int opdataformat,int opfiletype);
+int gridconvert(char *ipFile, char *opFile, int ipdataformat, int opdataformat, int opfiletype);
 
-int sloped(char *pfile,char* felfile,char* slpdfile, double dn);
+int sloped(char *pfile, char *felfile, char *slpdfile, double dn);
 //  Function to compute slope in a D8 downslope direction over a distance dn.
 
 //This function return the statistics of a grid, demarked by a sample region represented by an index frid
-int gridstat(char *grdname /*Path to grid to compute statistics*/, char *idgrid/*Path to the idgrid (sampling region)*/, long ind, double *statlist/*this array hold all the statistics information*/);
+int gridstat(char *grdname /*Path to grid to compute statistics*/,
+             char *idgrid/*Path to the idgrid (sampling region)*/,
+             long ind,
+             double *statlist/*this array hold all the statistics information*/);
 // *grdname ->Path to grid to compute statistics 
 // *idgrid  ->Path to the idgrid (sampling region) 
 // ind -> index number by which the sampling region is marked
@@ -308,14 +380,29 @@ int risetoridgegrd(char *angfile, char *felfile, char *rtrfile, int method, int 
 int droptostreamgrd(char *angfile, char *felfile, char *srcfile, char *vsfile, int method);
 
 //This functions returns a grid indicating avalanche runout along Dinf flow directions
-int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile, char *dmfile, float thresh, float alpha, int path);
+int avalancherunoutgrd(char *angfile,
+                       char *felfile,
+                       char *assfile,
+                       char *rzfile,
+                       char *dmfile,
+                       float thresh,
+                       float alpha,
+                       int path);
 //This function returns a grid of slope^m*sca^n
-int slopearea(char *slopefile, char*scafile, char *safile, float *p);
+int slopearea(char *slopefile, char *scafile, char *safile, float *p);
 //This function returns a grid of 1 and 0 indicating if areaD8 >= M*plen^y
-int lengtharea(char *plenfile, char*ad8file, char *ssfile, float *p);
+int lengtharea(char *plenfile, char *ad8file, char *ssfile, float *p);
 //This function returns an indicator (1,0) grid of grid cells that have values >= the input grid
-int threshold(char *ssafile,char *srcfile,char *maskfile, float thresh, int usemask);
+int threshold(char *ssafile, char *srcfile, char *maskfile, float thresh, int usemask);
 //This function creates a grid that has combined stability index (SINMAP)
-int sindexcombined(char *slopefile,  char *scaterrainfile, char *scarminroadfile,char* scarmaxroadfile,
-           char *tergridfile, char *terparfile, char *satfile,char* sincombinedfile,double Rminter,double Rmaxter, 
-		   double *par);
+int sindexcombined(char *slopefile,
+                   char *scaterrainfile,
+                   char *scarminroadfile,
+                   char *scarmaxroadfile,
+                   char *tergridfile,
+                   char *terparfile,
+                   char *satfile,
+                   char *sincombinedfile,
+                   double Rminter,
+                   double Rmaxter,
+                   double *par);

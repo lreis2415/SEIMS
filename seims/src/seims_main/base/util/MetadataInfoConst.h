@@ -69,30 +69,29 @@ const string TagDependencies = "dependencies";
  * \brief enum of dimension data types
  *
  */
-enum dimensionTypes
-{
+enum dimensionTypes {
     /// Unknown type
-            DT_Unknown = -1,
+        DT_Unknown = -1,
     /// Single numeric
-            DT_Single = 0,
+        DT_Single = 0,
     /// 1D array, e.g., maximum temperature of sites
-            DT_Array1D = 1,
+        DT_Array1D = 1,
     /// 2D array
-            DT_Array2D = 2,
+        DT_Array2D = 2,
     /// 3D array, currently not used
-            DT_Array3D = 3,
+        DT_Array3D = 3,
     /// 1D date array
-            DT_Array1DDateValue = 4,
+        DT_Array1DDateValue = 4,
     /// Raster data, same as DT_Array1D
-            DT_Raster1D = 5,
+        DT_Raster1D = 5,
     /// 2D raster, e.g., multi-layers of soil properties
-            DT_Raster2D = 6,
+        DT_Raster2D = 6,
     /// Scenario used by BMPs
-            DT_Scenario = 7,
+        DT_Scenario = 7,
     /// Reach parameters
-            DT_Reach = 8,
-	/// Subbasin instances
-			DT_Subbasin = 9
+        DT_Reach = 8,
+    /// Subbasin instances
+        DT_Subbasin = 9
     ///// Lookup tables, TODO LJ
     //        DT_LookupTable = 9,
     ///// Lapse rate array, TODO need more detail description

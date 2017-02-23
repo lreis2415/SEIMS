@@ -25,8 +25,7 @@ using namespace std;
  *
  *
  */
-class ParamInfo
-{
+class ParamInfo {
 public:
     //! Construct an empty instance.
     ParamInfo(void);
@@ -88,7 +87,7 @@ public:
     bool OutputToOthers;
     //! Basic name
     string BasicName;
-	//! whether is initialized 
-	bool initialized;
+    //! whether is initialized
+    bool initialized;
 };
 

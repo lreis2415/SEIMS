@@ -30,8 +30,7 @@ using namespace MainBMP;
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
  * 
  */
-class MGTOpt_SWAT : public SimulationModule
-{
+class MGTOpt_SWAT : public SimulationModule {
 private:
     /*
     * Plant management factory derived from BMPs Scenario
@@ -108,8 +107,8 @@ private:
     ///    sol_solp(:,:) |kg P/ha       |amount of inorganic phosphorus stored in solution
     float **m_soilSolP;
 
-	/// minimum temperature for plant growth
-	float *m_tBase;
+    /// minimum temperature for plant growth
+    float *m_tBase;
     /** Temporary parameters**/
 
     /// Sequence number of management operations done in the previous time step run
@@ -127,8 +126,8 @@ private:
     float *m_CN2;
     /// plant growth code, 0 or 1
     float *m_igro;
-	/// land cover/crop  classification:1-7, i.e., IDC
-	float *m_landCoverCls;
+    /// land cover/crop  classification:1-7, i.e., IDC
+    float *m_landCoverCls;
     /// Harvest index target, defined in plant operation and used in harvest/kill operation
     float *m_HarvestIdxTarg;
     /// Biomass target
@@ -211,32 +210,32 @@ private:
      *   = 2 Century model
 	 */
     int m_CbnModel;
-	/**** 1 - C-FARM model ****/
-	/// manure organic carbon in soil, kg/ha
-	float **m_soilManureC;
-	/// manure organic nitrogen in soil, kg/ha
-	float **m_soilManureN;
-	/// manure organic phosphorus in soil, kg/ha
-	float **m_soilManureP;
-	/**** 2 - CENTURY model ****/
-	float **m_sol_HSN; /// slow Nitrogen pool in soil, equals to soil active organic n pool in SWAT
-	float **m_sol_LM; /// metabolic litter SOM pool
-	float **m_sol_LMC; /// metabolic litter C pool
-	float **m_sol_LMN; /// metabolic litter N pool
-	float **m_sol_LSC; /// structural litter C pool
-	float **m_sol_LSN; /// structural litter N pool
-	float **m_sol_LS; /// structural litter SOM pool
-	float **m_sol_LSL; /// lignin weight in structural litter
-	float **m_sol_LSLC; /// lignin amount in structural litter pool
-	float **m_sol_LSLNC; /// non-lignin part of the structural litter C
+    /**** 1 - C-FARM model ****/
+    /// manure organic carbon in soil, kg/ha
+    float **m_soilManureC;
+    /// manure organic nitrogen in soil, kg/ha
+    float **m_soilManureN;
+    /// manure organic phosphorus in soil, kg/ha
+    float **m_soilManureP;
+    /**** 2 - CENTURY model ****/
+    float **m_sol_HSN; /// slow Nitrogen pool in soil, equals to soil active organic n pool in SWAT
+    float **m_sol_LM; /// metabolic litter SOM pool
+    float **m_sol_LMC; /// metabolic litter C pool
+    float **m_sol_LMN; /// metabolic litter N pool
+    float **m_sol_LSC; /// structural litter C pool
+    float **m_sol_LSN; /// structural litter N pool
+    float **m_sol_LS; /// structural litter SOM pool
+    float **m_sol_LSL; /// lignin weight in structural litter
+    float **m_sol_LSLC; /// lignin amount in structural litter pool
+    float **m_sol_LSLNC; /// non-lignin part of the structural litter C
 
-	/// tillage factor on SOM decomposition, used by CENTURY model
-	float *m_tillage_switch;
-	float *m_tillage_depth;
-	float *m_tillage_days;
-	float *m_tillage_factor;
-	float **m_sol_BMN; ///
-	float **m_sol_HPN; ///
+    /// tillage factor on SOM decomposition, used by CENTURY model
+    float *m_tillage_switch;
+    float *m_tillage_depth;
+    float *m_tillage_days;
+    float *m_tillage_factor;
+    float **m_sol_BMN; ///
+    float **m_sol_HPN; ///
 
     /** Irrigation operation related **/
 
@@ -246,8 +245,8 @@ private:
     float *m_appliedWater;
     /// qird(:)        |mm H2O        |amount of water from irrigation to become surface runoff
     float *m_irrSurfQWater;
-	/// Currently, deep and shallow aquifer are not distinguished in SEIMS.
-	/// So, m_deepWaterDepth and m_shallowWaterDepth are all set to m_SBGS
+    /// Currently, deep and shallow aquifer are not distinguished in SEIMS.
+    /// So, m_deepWaterDepth and m_shallowWaterDepth are all set to m_SBGS
     ///  deepst(:)      |mm H2O        |depth of water in deep aquifer
     float *m_deepWaterDepth;
     ///shallst | mm H2O        |depth of water in shallow aquifer
@@ -295,23 +294,23 @@ private:
 
     /// stsol_rd(:) |mm            |storing last soil root depth for use in harvestkillop/killop /// defined in swu.f
     float *m_lastSoilRootDepth;
-	/**** Daily carbon change by different means (entire soil profile for each cell) ****/
-	/**** For 2-CENTURY C/N cycling model, these variables will be initialized as 0  ****/
-	/**** at the beginning of the current day ****/
-	/**** 1 harvest, 2 harvestkill, 3 harvgrain op ****/
-	float *m_grainc_d; /// 1,2,3
-	float *m_rsdc_d; /// 1, 2
-	float *m_stoverc_d; /// 2
+    /**** Daily carbon change by different means (entire soil profile for each cell) ****/
+    /**** For 2-CENTURY C/N cycling model, these variables will be initialized as 0  ****/
+    /**** at the beginning of the current day ****/
+    /**** 1 harvest, 2 harvestkill, 3 harvgrain op ****/
+    float *m_grainc_d; /// 1,2,3
+    float *m_rsdc_d; /// 1, 2
+    float *m_stoverc_d; /// 2
 
-	float *m_sedc_d;
-	float *m_surfqc_d;
-	float *m_latc_d;
-	float *m_percc_d;
-	float *m_foc_d;
-	float *m_NPPC_d;
-	float *m_soc_d;
-	float *m_rspc_d;
-	float *m_emitc_d; // include biomass_c eaten by grazing, burnt
+    float *m_sedc_d;
+    float *m_surfqc_d;
+    float *m_latc_d;
+    float *m_percc_d;
+    float *m_foc_d;
+    float *m_NPPC_d;
+    float *m_soc_d;
+    float *m_rspc_d;
+    float *m_emitc_d; // include biomass_c eaten by grazing, burnt
 
 
     /** tillage operation related **/
@@ -364,28 +363,28 @@ private:
            |1 release impounded water
 	 */
     float *m_impoundTriger;
-	/// volume of water stored in the depression/impounded area, mm
-	float *m_potVol;
-	/// maximum volume of water stored in the depression/impounded area, mm
-	float *m_potVolMax;
-	/// low depth ...., mm
-	float *m_potVolLow;
-	/// no3 amount kg
-	float *m_potNo3;
-	/// nh4 amount kg
-	float *m_potNH4;
-	/// soluble phosphorus amount, kg
-	float *m_potSolP;
-	/// field capacity (FC-WP), mm
-	float **m_sol_fc;
-	/// amount of water held in the soil layer at saturation (sat - wp water), mm
-	float **m_sol_sat;
-	/// soil water storage (mm)
-	float **m_soilStorage;
-	/// soil water storage in soil profile (mm)
-	float *m_soilStorageProfile;
-	/// flag to identify the initialization
-	bool m_initialized;
+    /// volume of water stored in the depression/impounded area, mm
+    float *m_potVol;
+    /// maximum volume of water stored in the depression/impounded area, mm
+    float *m_potVolMax;
+    /// low depth ...., mm
+    float *m_potVolLow;
+    /// no3 amount kg
+    float *m_potNo3;
+    /// nh4 amount kg
+    float *m_potNH4;
+    /// soluble phosphorus amount, kg
+    float *m_potSolP;
+    /// field capacity (FC-WP), mm
+    float **m_sol_fc;
+    /// amount of water held in the soil layer at saturation (sat - wp water), mm
+    float **m_sol_sat;
+    /// soil water storage (mm)
+    float **m_soilStorage;
+    /// soil water storage in soil profile (mm)
+    float *m_soilStorageProfile;
+    /// flag to identify the initialization
+    bool m_initialized;
 public:
     //! Constructor
     MGTOpt_SWAT(void);
@@ -401,13 +400,13 @@ public:
 
     void Get1DData(const char *key, int *n, float **data);
 
-	void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
     void Set2DData(const char *key, int n, int col, float **data);
 
     void SetScenario(Scenario *sce);
 
-	void SetSubbasins(clsSubbasins *subbasins);
+    void SetSubbasins(clsSubbasins *subbasins);
 
 private:
     /*!
@@ -471,13 +470,14 @@ private:
      * \return bool The validity of the dimension
      */
     bool CheckInputSize(const char *, int);
-	/*!
+
+    /*!
      * \brief check the input size of 2D data. Make sure all the input data have same dimension.
      *
      *
      * \param[in] key The key of the input data
      * \param[in] n The first dimension input data 
-	 * \param[in] col The second dimension of input data 
+     * \param[in] col The second dimension of input data
      * \return bool The validity of the dimension
      */
     bool CheckInputSize2D(const char *key, int n, int col);

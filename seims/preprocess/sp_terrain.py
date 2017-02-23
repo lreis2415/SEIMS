@@ -31,7 +31,7 @@ class TerrainUtilClass(object):
         pass
 
     @staticmethod
-    def flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length, flow_dir_code="TauDEM"):
+    def flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length, flow_dir_code = "TauDEM"):
         """Calculate flow length of cell."""
         flowcode = FlowDirectionCode(flow_dir_code)
         celllen = flowcode.get_cell_length()
@@ -65,7 +65,7 @@ class TerrainUtilClass(object):
         return 0
 
     @staticmethod
-    def calculate_flow_length(flow_dir_file, weight, flow_dir_code="TauDEM"):
+    def calculate_flow_length(flow_dir_file, weight, flow_dir_code = "TauDEM"):
         """Generate flow length with weight."""
         flow_dir_raster = RasterUtilClass.ReadRaster(flow_dir_file)
         fdir_data = flow_dir_raster.data
@@ -151,7 +151,7 @@ class TerrainUtilClass(object):
                                        geotrans, srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def hydrological_radius(acc_file, radius_file, storm_probability="T2"):
+    def hydrological_radius(acc_file, radius_file, storm_probability = "T2"):
         """Calculate hydrological radius."""
         acc_R = RasterUtilClass.ReadRaster(acc_file)
         xsize = acc_R.nCols
@@ -159,8 +159,8 @@ class TerrainUtilClass(object):
         noDataValue = acc_R.noDataValue
         cellsize = acc_R.dx
         data = acc_R.data
-        coeTable = {"T2": [0.05, 0.48],
-                    "T10": [0.12, 0.52],
+        coeTable = {"T2"  : [0.05, 0.48],
+                    "T10" : [0.12, 0.52],
                     "T100": [0.18, 0.55]}
         ap = coeTable[storm_probability][0]
         bp = coeTable[storm_probability][1]
@@ -209,7 +209,7 @@ class TerrainUtilClass(object):
                                        GDT_Float32)
 
     @staticmethod
-    def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file, flow_dir_code="TauDEM"):
+    def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file, flow_dir_code = "TauDEM"):
         """Calculate flow time to the main channel from each grid cell."""
         strlk_data = RasterUtilClass.ReadRaster(streamlink).data
 
@@ -228,7 +228,7 @@ class TerrainUtilClass(object):
 
     @staticmethod
     def std_of_flow_time_to_stream(streamlink, flow_dir_file, slope, radius, velocity, delta_s_file,
-                                   flow_dir_code="TauDEM"):
+                                   flow_dir_code = "TauDEM"):
         """Generate standard deviation of t0_s (flow time to the main channel from each cell)."""
         strlkR = RasterUtilClass.ReadRaster(streamlink)
         strlk_data = strlkR.data
@@ -378,7 +378,7 @@ class TerrainUtilClass(object):
             chWidthDic[k] /= chNumDic[k]
 
         # add channel width_data field to reach shp file
-        dsReach = ogr.Open(reach_shp_file, update=True)
+        dsReach = ogr.Open(reach_shp_file, update = True)
         layerReach = dsReach.GetLayer(0)
         layerDef = layerReach.GetLayerDefn()
         iLink = layerDef.GetFieldIndex(FLD_LINKNO)

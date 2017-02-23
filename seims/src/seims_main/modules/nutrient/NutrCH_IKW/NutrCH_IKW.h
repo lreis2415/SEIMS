@@ -30,8 +30,7 @@ using namespace std;
  *
  */
 
-struct MuskWeights
-{
+struct MuskWeights {
     float c1;
     float c2;
     float c3;
@@ -40,12 +39,12 @@ struct MuskWeights
     int n;  ///< number of division of the origin time step
 };
 
-class NutrientCH_IKW : public SimulationModule
-{
+class NutrientCH_IKW : public SimulationModule {
 public:
     NutrientCH_IKW(void);
 
     ~NutrientCH_IKW(void);
+
     virtual void SetValue(const char *key, float value);
 
     virtual void Set1DData(const char *key, int n, float *data);
@@ -57,25 +56,26 @@ public:
     virtual void GetValue(const char *key, float *value);
 
     //virtual void Get1DData(const char *key, int *n, float **data);
-    virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data);
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
 private:
 
-	/// cell width of grid map (m)
-	float m_CellWith;
-	/// number of valid cells
-	int m_nCells;
+    /// cell width of grid map (m)
+    float m_CellWith;
+    /// number of valid cells
+    int m_nCells;
 
     /// time step (hr)
     int m_dt;
-	/// stream order
-	float *m_streamOrder;
+    /// stream order
+    float *m_streamOrder;
     /// downstream id (The value is 0 if there if no downstream reach)
-	float *m_reachDownStream;
-	/// stream link
-	float *m_streamLink;
+    float *m_reachDownStream;
+    /// stream link
+    float *m_streamLink;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
-	/**
+    vector <vector<int>> m_reachUpStream;
+    /**
     *	@brief reach links
     *	key: index of the reach
     *	value: vector of cell index
@@ -88,19 +88,19 @@ private:
     map<int, vector<int> > m_reachLayers;
     /// Reach information
     clsReaches *m_reaches;
-	/// id of source cells of reaches
-	int *m_sourceCellIds;
-	/// channel number
-	int m_chNumber;
-	/**
+    /// id of source cells of reaches
+    int *m_sourceCellIds;
+    /// channel number
+    int m_chNumber;
+    /**
     *	\brief 2d array of flow in cells
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
     float **m_flowInIndex;
     /// flow out index
-	float *m_flowOutIndex;
-	/// map from subbasin id to index of the array
-	map<int, int> m_idToIndex;
+    float *m_flowOutIndex;
+    /// map from subbasin id to index of the array
+    map<int, int> m_idToIndex;
 
     /// input data
     /// bank flow recession constant
@@ -235,7 +235,7 @@ private:
     // saturation concentration of dissolved oxygen (mg/L)
     float m_soxy;
 
-	// Outlet
+    // Outlet
 
 private:
 
@@ -278,7 +278,7 @@ private:
 
     void initialOutputs();
 
-	float GetNutrInFlow(int iReach, int iCell, int id, float* Nutr, float** CHNutr);
+    float GetNutrInFlow(int iReach, int iCell, int id, float *Nutr, float **CHNutr);
 
     //void GetCoefficients(float reachLength, float v0, MuskWeights& weights);
 };

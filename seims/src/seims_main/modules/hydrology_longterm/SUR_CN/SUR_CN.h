@@ -46,8 +46,7 @@ using namespace std;
  * \brief SCS Curve Number Method to calculate infiltration and excess precipitation
  * 
  */
-class SUR_CN : public SimulationModule
-{
+class SUR_CN : public SimulationModule {
 public:
     //! Constructor
     SUR_CN(void);

@@ -12,6 +12,7 @@ from codecs import open
 from os import path
 from setuptools.command.test import test as TestCommand
 import pygeoc
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file

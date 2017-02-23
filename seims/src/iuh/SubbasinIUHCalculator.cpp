@@ -11,12 +11,11 @@ using namespace std;
 SubbasinIUHCalculator::SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
                                              clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta,
                                              mongoc_gridfs_t *grdfs)
-        : dt(t), gfs(grdfs), mt(30)
-{
+    : dt(t), gfs(grdfs), mt(30) {
     nRows = rsMask.getRows();
     nCols = rsMask.getCols();
     mask = rsMask.getRasterDataPointer();
-	landcover = rsLanduse.getRasterDataPointer();
+    landcover = rsLanduse.getRasterDataPointer();
     noDataValue = rsMask.getNoDataValue();
 
     nCells = rsMask.getValidNumber();
@@ -31,34 +30,29 @@ SubbasinIUHCalculator::SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, 
 
     uhCell.resize(nCells);
     uh1.resize(nCells);
-    for (int i = 0; i < nCells; ++i)
-    {
+    for (int i = 0; i < nCells; ++i) {
         //uhCell[i].resize(mt+1);
         uhCell[i].resize(301);
         uh1[i].resize(mt + 1);
-        for (int j = 0; j <= mt; ++j)
-        {
+        for (int j = 0; j <= mt; ++j) {
             //uhCell[i][j] = 0.0;
             uh1[i][j] = 0.0;
         }
-        for (int j = 0; j <= 300; ++j)
+        for (int j = 0; j <= 300; ++j) {
             uhCell[i][j] = 0.0;
+        }
     }
 
     t0 = rsTime.getRasterDataPointer();
     delta = rsDelta.getRasterDataPointer();
 }
 
-
-SubbasinIUHCalculator::~SubbasinIUHCalculator(void)
-{
+SubbasinIUHCalculator::~SubbasinIUHCalculator(void) {
 
 }
 
-
-int SubbasinIUHCalculator::calCell(int id)
-{
-	bson_t p = BSON_INITIALIZER;
+int SubbasinIUHCalculator::calCell(int id) {
+    bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", id);
     const char *type = "OL_IUH";
     BSON_APPEND_UTF8(&p, "TYPE", type);
@@ -101,15 +95,14 @@ int SubbasinIUHCalculator::calCell(int id)
 //	iuhf.open(iuhfile,ios_base::app|ios_base::out);
 //	iuhf<<"SubbasinID: "<<id<<endl;
 
-    for (int i = 0; i < nCells; i++){
+    for (int i = 0; i < nCells; i++) {
         //this part is the same as the corresponding part in the RiverIUHCalculator
         //start
         int mint = int(max(0.0f, t0[i] - 3.f * delta[i]) + 0.5f);    //start time of IUH
         int maxt = min(int(t0[i] + 5.f * delta[i] + 0.5f), mt);       //end time
         maxt = max(maxt, 1);
         double sumUh = 0.0;
-        for (int m = mint; m <= maxt; ++m)
-        {
+        for (int m = mint; m <= maxt; ++m) {
             double delta0 = max(0.01f, delta[i]);
             double t00 = max(0.01f, t0[i]);
             double ti = max(0.01f, float(m));
@@ -120,27 +113,22 @@ int SubbasinIUHCalculator::calCell(int id)
             //cout<<m<<endl;
         }
 
-        if (abs(sumUh) < IUHZERO)
-        {
+        if (abs(sumUh) < IUHZERO) {
             uhCell[i][0] = 1.0;
             mint = 0;
             maxt = 1;
-        }
-        else
-        {
-            for (int m = mint; m <= maxt; ++m)
-            {
+        } else {
+            for (int m = mint; m <= maxt; ++m) {
                 uhCell[i][m] = uhCell[i][m] / sumUh;  //make sum of uhCell to 1
-                if (uhCell[i][m] < 0.001 || uhCell[i][m] > 1)
+                if (uhCell[i][m] < 0.001 || uhCell[i][m] > 1) {
                     uhCell[i][m] = 0.0;
+                }
             }
         }
         //define start and end time of uh_cell
         int mint0 = 0;
-        for (int m = mint; m <= maxt; ++m)
-        {
-            if (uhCell[i][m] > 0.0005)
-            {
+        for (int m = mint; m <= maxt; ++m) {
+            if (uhCell[i][m] > 0.0005) {
                 mint0 = m;
                 break;
             }
@@ -148,10 +136,8 @@ int SubbasinIUHCalculator::calCell(int id)
         mint = mint0;   //!actual start time
 
         int maxt0 = 0;
-        for (int m = mint; m <= maxt; ++m)
-        {
-            if (uhCell[i][m] < 0.0005)
-            {
+        for (int m = mint; m <= maxt; ++m) {
+            if (uhCell[i][m] < 0.0005) {
                 maxt0 = m - 1;
                 break;
             }
@@ -161,13 +147,10 @@ int SubbasinIUHCalculator::calCell(int id)
 
         maxtSub = max(maxtSub, maxt);
         //cell IUH integration
-        if (dt >= 1)
-        {
+        if (dt >= 1) {
             double uhSum = 0.0;
-            for (int k = 0; k <= int(maxt / dt); ++k)
-            {
-                for (int x = 1; x <= dt; ++x)
-                {
+            for (int k = 0; k <= int(maxt / dt); ++k) {
+                for (int x = 1; x <= dt; ++x) {
                     uh1[i][k] += uhCell[i][k * dt + x - 1];
                 }
                 uhSum += uh1[i][k];
@@ -175,13 +158,13 @@ int SubbasinIUHCalculator::calCell(int id)
             mint0 = 0;
             maxt0 = int(maxt / dt);
 
-            for (int k = mint0; k <= maxt0; ++k)
+            for (int k = mint0; k <= maxt0; ++k) {
                 uh1[i][k] /= uhSum;
-        }
-        else
-        {
-            for (int m = mint; m <= maxt; ++m)
+            }
+        } else {
+            for (int m = mint; m <= maxt; ++m) {
                 uh1[i][m] = uhCell[i][m];
+            }
             mint0 = mint;
             maxt0 = maxt;
         }
@@ -204,8 +187,7 @@ int SubbasinIUHCalculator::calCell(int id)
         storeddata_vector.push_back((float) mint0);
         storeddata_vector.push_back((float) maxt0);
         int index = 2;
-        for (int k = mint0; k <= maxt0; k++)
-        {
+        for (int k = mint0; k <= maxt0; k++) {
             storeddata_vector.push_back((float) uh1[i][k]);
         }
 //        iuhf<<i<<",";
@@ -223,9 +205,10 @@ int SubbasinIUHCalculator::calCell(int id)
     int valuenumber = storeddata_vector.size();
     float *data = new float[valuenumber];
     int datalength = valuenumber * sizeof(float);
-    for(int i = 0; i < valuenumber; i++)
+    for (int i = 0; i < valuenumber; i++) {
         data[i] = storeddata_vector[i];
-    char* databuf = (char* )data;
+    }
+    char *databuf = (char *) data;
     MongoGridFS().writeStreamData(remoteFilename, databuf, datalength, &p, gfs);
 //    for (int i = 0; i < nRows; ++i)
 //    {
@@ -366,31 +349,27 @@ int SubbasinIUHCalculator::calCell(int id)
     return 0;
 }
 
-double SubbasinIUHCalculator::IUHti(double delta0, double t00, double ti)
-{
+double SubbasinIUHCalculator::IUHti(double delta0, double t00, double ti) {
     double tmp1 = 1 / (delta0 * sqrt(2 * 3.1416 * pow(ti, 3.0) / pow(t00, 3.0)));
     double tmp2 = pow(ti - t00, 2.0) / (2.0 * pow(delta0, 2.0) * ti / t00);
     return tmp1 * exp(-tmp2);
 }
 
-void SubbasinIUHCalculator::adjustRiceField(int& mint0, int& maxt0, vector<double>& iuhRow)
-{
-	if(maxt0 - mint0 == 0) // if water will flow to channel within one day
+void SubbasinIUHCalculator::adjustRiceField(int &mint0, int &maxt0, vector<double> &iuhRow) {
+    if (maxt0 - mint0 == 0) // if water will flow to channel within one day
     {
-		maxt0 = 1;
-		iuhRow[0] = 0.1f;
-		iuhRow[1] = 0.9f; //must make sure m_iuhCell has at least 4 columns in the readin codes
-		//maxt0 = 5;
-		//iuhRow[0] = 0.2f;
-		//iuhRow[1] = 0.46f;
-		//iuhRow[2] = 0.28f;
-		//iuhRow[3] = 0.054f;
-		//iuhRow[4] = 0.005f;
-		//iuhRow[5] = 0.001f;
-	}
-	else
-	{
-		iuhRow[1] += 0.8f*iuhRow[0];
-		iuhRow[0] = 0.2f*iuhRow[0];
-	}
+        maxt0 = 1;
+        iuhRow[0] = 0.1f;
+        iuhRow[1] = 0.9f; //must make sure m_iuhCell has at least 4 columns in the readin codes
+        //maxt0 = 5;
+        //iuhRow[0] = 0.2f;
+        //iuhRow[1] = 0.46f;
+        //iuhRow[2] = 0.28f;
+        //iuhRow[3] = 0.054f;
+        //iuhRow[4] = 0.005f;
+        //iuhRow[5] = 0.001f;
+    } else {
+        iuhRow[1] += 0.8f * iuhRow[0];
+        iuhRow[0] = 0.2f * iuhRow[0];
+    }
 }

@@ -15,7 +15,6 @@
 
 using namespace std;
 
-
 /*!
  * \ingroup util
  * \class ModelClass
@@ -25,8 +24,7 @@ using namespace std;
  *
  *
  */
-class ModelClass
-{
+class ModelClass {
 public:
     string Name;
     string Description;
@@ -38,8 +36,7 @@ public:
  *
  * \brief Model parameter information class
  */
-class Parameter
-{
+class Parameter {
 public:
     string Name;                ///< Name
     string Units;                ///< Units
@@ -54,8 +51,7 @@ public:
  *
  * \brief Module development information class
  */
-class Information
-{
+class Information {
 public:
     string Id;            ///< Module ID
     string Name;        ///< Module Name
@@ -73,8 +69,7 @@ public:
  *
  * \brief Input variable information class
  */
-class InputVariable
-{
+class InputVariable {
 public:
     string Name;                ///< Name
     string Units;                ///< Units
@@ -92,8 +87,7 @@ public:
  *
  *
  */
-class OutputVariable
-{
+class OutputVariable {
 public:
     string Name;                ///< Name
     string Units;                ///< Units
@@ -110,16 +104,15 @@ public:
  *
  *
  */
-class MetadataInfo
-{
+class MetadataInfo {
 private:
     string m_strSchemaVersion;                ///< latest XML schema version supported by this class
     ModelClass m_oClass;                    ///< class name for the module
     Information m_Info;                    ///< the general information for the module
-    vector<InputVariable> m_vInputs;        ///< list of input parameters for the module
-    vector<OutputVariable> m_vOutputs;        ///<list of output parameters for the module
-    vector<ModelClass> m_vDependencies;    ///< list of dependency classes for the module
-    vector<Parameter> m_vParameters;        ///< list of parameters for the module
+    vector <InputVariable> m_vInputs;        ///< list of input parameters for the module
+    vector <OutputVariable> m_vOutputs;        ///<list of output parameters for the module
+    vector <ModelClass> m_vDependencies;    ///< list of dependency classes for the module
+    vector <Parameter> m_vParameters;        ///< list of parameters for the module
 
     void OpenTag(string name, string attributes, int indent, string *sb);
 

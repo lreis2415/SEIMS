@@ -20,6 +20,7 @@
  *               3. 
  */
 #pragma once
+
 #include <string>
 #include <ctime>
 #include <cmath>
@@ -39,8 +40,7 @@ using namespace std;
  * \brief Sediment routing using variable channel dimension(VCD) method at daily time scale
  *
  */
-class SEDR_SBAGNOLD : public SimulationModule
-{
+class SEDR_SBAGNOLD : public SimulationModule {
 public:
     //! Constructor
     SEDR_SBAGNOLD(void);
@@ -62,9 +62,9 @@ public:
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
-	virtual void SetReaches(clsReaches *reaches);
+    virtual void SetReaches(clsReaches *reaches);
 
-	virtual void SetScenario(Scenario *sce);
+    virtual void SetScenario(Scenario *sce);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -78,8 +78,8 @@ private:
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
-	/// whether change channel dimensions, 0 - do not change, 1 - compute channel degredation
-	int m_VCD;
+    /// whether change channel dimensions, 0 - do not change, 1 - compute channel degredation
+    int m_VCD;
     /// the peak rate adjustment factor
     float m_prf;
     /// Coefficient in sediment transport equation
@@ -99,47 +99,47 @@ private:
     float *m_CrAreaCh;
     /// initial channel storage per meter of reach length (m^3/m)
     float m_Chs0;
-	/// Initial channel sediment concentration, ton/m^3, i.e., kg/L
-	float m_sedChi0;
+    /// Initial channel sediment concentration, ton/m^3, i.e., kg/L
+    float m_sedChi0;
     /// channel outflow, m^3/s
     float *m_qchOut;
 
     float *m_chOrder;
     float *m_chWidth;
     float *m_chDepth;
-	//length of reach (m)
-    float *m_chLen;      
+    //length of reach (m)
+    float *m_chLen;
     float *m_chVel;
     float *m_chSlope;
     float *m_chManning;
-	float *m_chCover;
-	float *m_chErod;
+    float *m_chCover;
+    float *m_chErod;
 
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
 
     // id the reaches
     vector<int> m_reachId;
 
-	/* point source operations
-	 * key: unique index, BMPID * 100000 + subScenarioID
-	 * value: point source management factory instance
-	 */
-	map<int, BMPPointSrcFactory*> m_ptSrcFactory;
-	/// The point source loading (kg), m_ptSub[id], id is the reach id, load from m_Scenario
-	float *m_ptSub;
+    /* point source operations
+     * key: unique index, BMPID * 100000 + subScenarioID
+     * value: point source management factory instance
+     */
+    map<int, BMPPointSrcFactory *> m_ptSrcFactory;
+    /// The point source loading (kg), m_ptSub[id], id is the reach id, load from m_Scenario
+    float *m_ptSub;
     /// reach storage (m^3) at time t
     float *m_chStorage;
-	/// reach storage of previous timestep, m^3
-	float *m_preChStorage;
+    /// reach storage of previous timestep, m^3
+    float *m_preChStorage;
     /// channel water depth, m
     float *m_chWTdepth;
-	/// channel water depth of previous timestep, m
-	float *m_preChWTDepth;
-	/// channel bankfull width, m
-	float *m_chWTWidth;
+    /// channel water depth of previous timestep, m
+    float *m_preChWTDepth;
+    /// channel bankfull width, m
+    float *m_chWTWidth;
     // OUTPUT
     /// initial reach sediment out (kg) at time t
     float *m_sedOut;
@@ -149,24 +149,24 @@ private:
     float *m_sedDep;
     /// sediment of degradation
     float *m_sedDeg;
-	/// sediment concentration (g/L, i.e., kg/m3)
-	float *m_sedConc;
-	float *m_rchSand;
-	float *m_rchSilt;
-	float *m_rchClay;
-	float *m_rchSag;
-	float *m_rchLag;
-	float *m_rchGra;
+    /// sediment concentration (g/L, i.e., kg/m3)
+    float *m_sedConc;
+    float *m_rchSand;
+    float *m_rchSilt;
+    float *m_rchClay;
+    float *m_rchSag;
+    float *m_rchLag;
+    float *m_rchGra;
 
-	float *m_rchBankEro;
-	float *m_rchDeg;
-	float *m_rchDep;
-	float *m_flplainDep;
+    float *m_rchBankEro;
+    float *m_rchDeg;
+    float *m_rchDep;
+    float *m_flplainDep;
     map<int, vector<int> > m_reachLayers;
 
     void initialOutputs();
 
-	void PointSourceLoading();
+    void PointSourceLoading();
 
     void SedChannelRouting(int i);
 

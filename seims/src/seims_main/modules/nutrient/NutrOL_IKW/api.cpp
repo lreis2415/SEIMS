@@ -19,14 +19,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new NutrientOL_IKW();
 }
 
 //! function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao");
     mdi.SetClass(MCLS_NutOLRout, MCLSDESC_NutOLRout);

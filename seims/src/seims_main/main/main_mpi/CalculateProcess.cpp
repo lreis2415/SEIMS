@@ -16,8 +16,7 @@
 
 void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                       string &projectPath, string &modulePath, const char *host, int port, const char *dbName,
-                      int nThreads, LayeringMethod layeringMethod)
-{
+                      int nThreads, LayeringMethod layeringMethod) {
     double tStart = MPI_Wtime();
 
     MPI_Request request;
@@ -34,8 +33,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     int maxTaskLen;
     //MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank == SLAVE0_RANK)
-    {
+    if (rank == SLAVE0_RANK) {
         //cout << "Number of threads: " << nThreads << endl;
 
         int nTaskAll;
@@ -109,17 +107,17 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     //////////////////////////////////////////////////////////////////////////////////////
 
     int nSubbasins = 0;
-    for (int i = 0; i < maxTaskLen; ++i)
-    {
-        if (pTasks[i] > 0)
+    for (int i = 0; i < maxTaskLen; ++i) {
+        if (pTasks[i] > 0) {
             nSubbasins++;
+        }
     }
     double t1, t2;
     double t;
     t1 = MPI_Wtime();
 
     // setup models for subbasins
-    vector<ModelMain *> modelList;
+    vector < ModelMain * > modelList;
     modelList.reserve(nSubbasins);
 
     ////////////////////////////////////////////////////////////////////
@@ -139,26 +137,28 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     //}
     //checkDatabase(conn, string(dbName));
 
-	mongoc_client_t *conn;
-	if (!isIPAddress(host))
-		throw ModelException("MainMongoDB", "Connect to MongoDB",
-		"IP address: " + string(host) + "is invalid, Please check!\n");
-	mongoc_init();
-	mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
-	conn = mongoc_client_new_from_uri(uri);
+    mongoc_client_t *conn;
+    if (!isIPAddress(host)) {
+        throw ModelException("MainMongoDB", "Connect to MongoDB",
+                             "IP address: " + string(host) + "is invalid, Please check!\n");
+    }
+    mongoc_init();
+    mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
+    conn = mongoc_client_new_from_uri(uri);
 
     // ModuleFactory *factory = new ModuleFactory(projectPath + File_Config, modulePath, conn, string(dbName));
-	int nSubbasin = 1;
-	int scenarioID = 0;
-	ModuleFactory *factory = new ModuleFactory(projectPath + File_Config, modulePath, conn, string(dbName), nSubbasin, layeringMethod, scenarioID);
+    int nSubbasin = 1;
+    int scenarioID = 0;
+    ModuleFactory *factory = new ModuleFactory(projectPath + File_Config, modulePath, conn, string(dbName), nSubbasin,
+                                               layeringMethod, scenarioID);
     string db = dbName;
     string inputFile = projectPath + File_Input;
-    for (int i = 0; i < nSubbasins; i++)
-    {
+    for (int i = 0; i < nSubbasins; i++) {
         //cout << rank << " " <<  pTasks[i] << endl;
-		SettingsInput *input = new SettingsInput(inputFile, conn, db, pTasks[i]);
+        SettingsInput *input = new SettingsInput(inputFile, conn, db, pTasks[i]);
         // ModelMain *p = new ModelMain(conn, db, projectPath, factory, pTasks[i], 0, layeringMethod);
-		ModelMain *p = new ModelMain(conn, db, projectPath, input, factory, pTasks[i], scenarioID, nThreads, layeringMethod);
+        ModelMain *p = new ModelMain(conn, db, projectPath, input, factory, pTasks[i], scenarioID, nThreads,
+                                     layeringMethod);
         //if(i == 0)
         //{
         //    SettingsInput *input = new SettingsInput(inputFile, conn, db, pTasks[i]);
@@ -173,40 +173,37 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     double *tReceive = new double[nSlaves];
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
     double ioTime = 0;
-    if (slaveRank == 0)
-    {
+    if (slaveRank == 0) {
         ioTime = Max(tReceive, nSlaves);
         //cout << "[DEBUG]\tTime of reading data -- Max:" << ioTime << "   Total:" << Sum(tReceive, nSlaves) << "\n";
-		cout << "[DEBUG]\tTime of reading data -- Max:" << ioTime << "   Total:" << Sum(nSlaves, tReceive) << "\n";
+        cout << "[DEBUG]\tTime of reading data -- Max:" << ioTime << "   Total:" << Sum(nSlaves, tReceive) << "\n";
         cout << "[DEBUG][TIMESPAN][IO]" << ioTime << endl;
     }
     t1 = MPI_Wtime();
 
     // classification according to the rank of subbasin
     vector<int> sourceBasins;
-    set<int> downStreamSet, downStreamIdSet; // used to find if the downstream subbasin of a finished subbsin is in the same process,
+    set<int> downStreamSet,
+        downStreamIdSet; // used to find if the downstream subbasin of a finished subbsin is in the same process,
     // if so, the MPI send operation is not necessary.
     // the set container is more efficient for the finding operation
     bool includeChannel = false;
-    if (modelList[0]->IncludeChannelProcesses())
-    {
+    if (modelList[0]->IncludeChannelProcesses()) {
         includeChannel = true;
-        for (int i = 0; i < nSubbasins; i++)
-        {
-            if (pRanks[i] == 1)
+        for (int i = 0; i < nSubbasins; i++) {
+            if (pRanks[i] == 1) {
                 sourceBasins.push_back(i);
-            else
-            {
+            } else {
                 downStreamSet.insert(i);//index of the array
                 downStreamIdSet.insert(pTasks[i]);//id of subbasin
             }
         }
     }
         // if no channel processes are simulated
-    else
-    {
-        for (int i = 0; i < nSubbasins; i++)
+    else {
+        for (int i = 0; i < nSubbasins; i++) {
             sourceBasins.push_back(i);
+        }
     }
 
     double tTask1, tTask2;
@@ -222,11 +219,10 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     //cout << p->getStartTime() << "\t" << p->getEndTime() << "\t" << dtCh << endl;
     utils util;
     //cout << "Whether include channel: " << includeChannel << endl;
-	time_t curTime = p->getStartTime();
-	int startYear = GetYear(curTime);
-    for ( ; curTime <= p->getEndTime(); curTime += dtCh)
-    {
-		int yearIdx = GetYear(curTime) - startYear;
+    time_t curTime = p->getStartTime();
+    int startYear = GetYear(curTime);
+    for (; curTime <= p->getEndTime(); curTime += dtCh) {
+        int yearIdx = GetYear(curTime) - startYear;
         int nHs = int(dtCh / dtHs);
 
         //if(slaveRank == 0)
@@ -238,8 +234,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
         // 1.1 the slope and channel routing of source subbasins without upstreams
         //if(rank == R)
         //	cout << "RANK" << rank << "  size:" <<  sourceBasins.size() << "  " << includeChannel << "  " << nHs << endl;
-        for (size_t j = 0; j < sourceBasins.size(); ++j)
-        {
+        for (size_t j = 0; j < sourceBasins.size(); ++j) {
             int index = sourceBasins[j];
             ModelMain *pSubbasin = modelList[index];
             //if(!pSubbasin->IsInitialized())
@@ -252,8 +247,9 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
             //if (rank == R)
             //	cout << "RANK" << rank << ":" << pTasks[index] << " Before execution" << endl;
             //modelList[index]->Step(t);
-            for (int i = 0; i < nHs; ++i)
+            for (int i = 0; i < nHs; ++i) {
                 pSubbasin->StepHillSlope(curTime + i * dtHs, yearIdx, i);
+            }
             //if (rank == R)
             //	cout << "RANK" << rank << ":" << pTasks[index] << " End Hillslope execution" << endl;
             pSubbasin->StepChannel(curTime, yearIdx);
@@ -263,8 +259,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
             pSubbasin->Output(curTime);
             //if (rank == R)
             //	cout << "RANK" << rank << ":" << pTasks[index] << " End output" << endl;
-            if (includeChannel)
-            {
+            if (includeChannel) {
                 float qOutlet = pSubbasin->GetQOutlet();
                 int subbasinID = pTasks[index];
 
@@ -273,8 +268,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
 
                 // if the downstream subbasin is in the s process,
                 // there is no need to transfer outflow to the master process
-                if (downStreamIdSet.find(pDownStream[index]) != downStreamIdSet.end())
-                {
+                if (downStreamIdSet.find(pDownStream[index]) != downStreamIdSet.end()) {
                     qMap[subbasinID] = qOutlet;
                     //if(rank == R)
                     //    cout << "qMap: " << qMap[subbasinID] << endl;
@@ -297,12 +291,12 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
         //if(rank == R)
         //	cout << "RANK:" << rank << " step 1.2\n";
 
-        if (!includeChannel)
+        if (!includeChannel) {
             continue;
+        }
 
         // 1.2 the slope routing of downstream subbasins
-        for (set<int>::iterator it = downStreamSet.begin(); it != downStreamSet.end(); ++it)
-        {
+        for (set<int>::iterator it = downStreamSet.begin(); it != downStreamSet.end(); ++it) {
             int index = *it;
             //cout << "RANK:" << rank << " " << index << endl;
             ModelMain *pSubbasin = modelList[index];
@@ -311,8 +305,9 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
             //    SettingsInput *input = new SettingsInput(inputFile, conn, db, pTasks[index]);
             //    pSubbasin->Init(input, nThreads);
             //}
-            for (int i = 0; i < nHs; ++i)
+            for (int i = 0; i < nHs; ++i) {
                 pSubbasin->StepHillSlope(curTime + i * dtHs, yearIdx, i);
+            }
         }
         tTask2 = MPI_Wtime();
         tSlope = tSlope + tTask2 - tTask1;
@@ -323,29 +318,24 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
         // if their upstream subbasins are already calculated
         set<int> toDoSet, canDoSet;
         //cout << "test rank: " << rank << " >> ";
-        for (set<int>::iterator it = downStreamSet.begin(); it != downStreamSet.end(); it++)
-        {
+        for (set<int>::iterator it = downStreamSet.begin(); it != downStreamSet.end(); it++) {
             toDoSet.insert(*it);
             //cout << pTasks[*it] << " ";
         }
         //cout << endl;
-        while (!toDoSet.empty())
-        {
+        while (!toDoSet.empty()) {
             // find all subbasins that the channel routing can be done without asking the master process
-            for (set<int>::iterator it = toDoSet.begin(); it != toDoSet.end();)
-            {
+            for (set<int>::iterator it = toDoSet.begin(); it != toDoSet.end();) {
                 int index = *it;
 
                 bool upFinished = true;
                 //ostringstream oss;
                 //oss << "rank: " << rank << " id: " << pTasks[index] << "  nUps:" << pUpNums[index] << " ups: ";
-                for (int j = 0; j < pUpNums[index]; ++j)
-                {
+                for (int j = 0; j < pUpNums[index]; ++j) {
                     int upId = pUpStream[index * MAX_UPSTREAM + j];
                     //oss << upId << ", ";
                     // if can not find upstreams, this subbasin can not be done
-                    if (qMap.find(upId) == qMap.end())
-                    {
+                    if (qMap.find(upId) == qMap.end()) {
                         upFinished = false;
                         break;
                     }
@@ -353,13 +343,12 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                 //oss << endl;
                 //cout << oss.str();
 
-                if (upFinished)
-                {
+                if (upFinished) {
                     canDoSet.insert(index);
                     toDoSet.erase(it++);
-                }
-                else
+                } else {
                     it++;
+                }
             }
 
 #ifdef DEBUG_OUTPUT
@@ -374,8 +363,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
 #endif
             // if can not find subbasins to calculate according to local information,
             // ask the master process if there are new upstream subbasins calculated
-            if (canDoSet.empty())
-            {
+            if (canDoSet.empty()) {
                 buf[0] = 2.f;
                 buf[1] = groupId;
                 buf[2] = rank;
@@ -387,15 +375,13 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                 MPI_Irecv(&msgLen, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 MPI_Wait(&request, &status);
 
-
                 float *pData = new float[msgLen];
                 MPI_Irecv(pData, msgLen, MPI_FLOAT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 MPI_Wait(&request, &status);
 
 
                 //cout << "recv rank" << rank << "  num:" << msgLen/2 << " data:";
-                for (int j = 0; j < msgLen; j += 2)
-                {
+                for (int j = 0; j < msgLen; j += 2) {
                     //cout << pData[j] << " ";
                     qMap[(int) pData[j]] = pData[j + 1];
                 }
@@ -408,34 +394,29 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                 //cout << endl;
 
                 delete pData;
-            }
-            else
-            {
+            } else {
                 //cout << "rank:" << rank << endl;
                 // sort according to the distance to outlet descendent
                 vector<int> vec;
                 set<int>::iterator it, itMax;
-                while (!canDoSet.empty())
-                {
+                while (!canDoSet.empty()) {
                     itMax = canDoSet.begin();
-                    for (it = canDoSet.begin(); it != canDoSet.end(); ++it)
-                    {
-                        if (pDis[*it] > pDis[*itMax])
+                    for (it = canDoSet.begin(); it != canDoSet.end(); ++it) {
+                        if (pDis[*it] > pDis[*itMax]) {
                             itMax = it;
+                        }
                     }
                     vec.push_back(*itMax);
                     canDoSet.erase(itMax);
                 }
 
-                for (vector<int>::iterator it = vec.begin(); it != vec.end(); ++it)
-                {
+                for (vector<int>::iterator it = vec.begin(); it != vec.end(); ++it) {
                     int index = *it;
                     ModelMain *pSubbasin = modelList[index];
 
                     //cout << "index:" << index << endl;
                     float overFlowIn = 0.f;
-                    for (int j = 0; j < pUpNums[index]; ++j)
-                    {
+                    for (int j = 0; j < pUpNums[index]; ++j) {
                         int upId = pUpStream[index * MAX_UPSTREAM + j];
                         overFlowIn += qMap[upId];
                     }
@@ -446,8 +427,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                     float qOutlet = pSubbasin->GetQOutlet();
 
                     //if(slaveRank == 7) cout << "rank: " << slaveRank << " id: " << pTasks[index] << "  downStream:" << pDownStream[index] << endl;
-                    if (downStreamIdSet.find(pDownStream[index]) != downStreamIdSet.end())
-                    {
+                    if (downStreamIdSet.find(pDownStream[index]) != downStreamIdSet.end()) {
                         qMap[pTasks[index]] = qOutlet;
                         continue;
                     }
@@ -470,8 +450,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
         tChannel = tChannel + tTask2 - tTask1;
 
         MPI_Barrier(slaveComm);
-        if (slaveRank == 0)
-        {
+        if (slaveRank == 0) {
             buf[0] = 0.f;
             MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MPI_COMM_WORLD, &request);
             MPI_Wait(&request, &status);
@@ -485,8 +464,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     t2 = MPI_Wtime();
     t = t2 - t1;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
-    if (slaveRank == 0)
-    {
+    if (slaveRank == 0) {
         double computingTime = Max(tReceive, nSlaves);
         //cout << "[DEBUG]\tnprocs: " << numprocs-1 << " Max: " << computingTime << "   Total: " << Sum(tReceive, nSlaves) << "\n";
         cout << "[DEBUG][TIMESPAN][COMPUTING]" << computingTime << "\n";
@@ -494,16 +472,14 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     }
 
     t1 = MPI_Wtime();
-    for (int i = 0; i < nSubbasins; i++)
-    {
+    for (int i = 0; i < nSubbasins; i++) {
         modelList[i]->Output();
         modelList[i]->CloseGridFS();
     }
     t2 = MPI_Wtime();
     t = t2 - t1;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
-    if (slaveRank == 0)
-    {
+    if (slaveRank == 0) {
         double outputTime = Max(tReceive, nSlaves);
         //cout << "[DEBUG][TIMESPAN][OUTPUT]" << outputTime << "\n";
     }
@@ -511,8 +487,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     double tEnd = MPI_Wtime();
     t = tEnd - tStart;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
-    if (slaveRank == 0)
-    {
+    if (slaveRank == 0) {
         double allTime = Max(tReceive, nSlaves);
         cout << "[DEBUG][TIMESPAN][TOTAL]" << allTime << "\n";
     }
@@ -520,18 +495,17 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     //cout << "Rank: " << slaveRank << "\ttime:\t" << tSlope << "\t" << tChannel << endl;
     MPI_Barrier(slaveComm);
     // tell the master process to exit
-    if (slaveRank == 0)
-    {
+    if (slaveRank == 0) {
         buf[0] = 9.f;
         MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MPI_COMM_WORLD, &request);
         MPI_Wait(&request, &status);
     }
 
     // clean up
-    for (int i = 0; i < nSubbasins; i++)
-    {
-        if (modelList[i] != NULL)
+    for (int i = 0; i < nSubbasins; i++) {
+        if (modelList[i] != NULL) {
             delete modelList[i];
+        }
     }
 
     delete[] pTasks;

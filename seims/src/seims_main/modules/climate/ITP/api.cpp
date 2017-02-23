@@ -13,14 +13,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new Interpolate();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties

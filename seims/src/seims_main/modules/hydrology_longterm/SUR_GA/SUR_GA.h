@@ -47,8 +47,7 @@ using namespace std;
 
 #include "SimulationModule.h"
 
-class SUR_GA : public SimulationModule
-{
+class SUR_GA : public SimulationModule {
 public:
     SUR_GA(void);
 

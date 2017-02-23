@@ -9,7 +9,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ### Active C++11 standard, cross-platform.
-SET (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -56,7 +56,7 @@ add_custom_target(install_${PROJECT_NAME}
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 install(TARGETS fieldpartition DESTINATION bin)
-IF(WIN32)
-	SET_PROPERTY(TARGET fieldpartition PROPERTY FOLDER "FieldPartition")
-ENDIF()
+IF (WIN32)
+    SET_PROPERTY(TARGET fieldpartition PROPERTY FOLDER "FieldPartition")
+ENDIF ()
 MESSAGE(STATUS "    Compiling FieldPartition done")

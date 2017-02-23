@@ -45,43 +45,43 @@ email:  dtarb@usu.edu
 //#include "partition.h"
 //#include "linearpart.h"
 
-tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, double dxA, double dyA, void* nodata){
-	//Currently, this just creates a new linear partition
-	//In the future, this could create any kind of partition, possibly using
-	//a "partition_type" flag as an argument
-	//Also note that any data types that can be used must be listed here
+tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, double dxA, double dyA, void *nodata) {
+    //Currently, this just creates a new linear partition
+    //In the future, this could create any kind of partition, possibly using
+    //a "partition_type" flag as an argument
+    //Also note that any data types that can be used must be listed here
 
-	tdpartition* ptr = NULL;
-	if(datatype == SHORT_TYPE){
-		ptr = new linearpart<short>;
-		ptr->init(totalx, totaly, dxA, dyA, MPI_SHORT, *((short*)nodata));
-	}else if(datatype == LONG_TYPE){
-		ptr = new linearpart<int32_t>;
-		ptr->init(totalx, totaly, dxA, dyA, MPI_INT32_T, *((int32_t*)nodata));
+    tdpartition *ptr = NULL;
+    if (datatype == SHORT_TYPE) {
+        ptr = new linearpart<short>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_SHORT, *((short *) nodata));
+    } else if (datatype == LONG_TYPE) {
+        ptr = new linearpart<int32_t>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_INT32_T, *((int32_t *) nodata));
 //		ptr = new linearpart<long>;
 //		ptr->init(totalx, totaly, dxA, dyA, MPI_LONG, *((long*)nodata));
-	}else if(datatype == FLOAT_TYPE){
-		ptr = new linearpart<float>;
-		ptr->init(totalx, totaly, dxA, dyA, MPI_FLOAT, *((float*)nodata));
-	}
-	return ptr;
+    } else if (datatype == FLOAT_TYPE) {
+        ptr = new linearpart<float>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_FLOAT, *((float *) nodata));
+    }
+    return ptr;
 }
 
-template <class type>
-tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, double dxA, double dyA, type nodata){
-	//Overloaded template version of the function
-	//Takes a constant as the nodata parameter, rather than a void pointer
-	tdpartition* ptr = NULL;
-	if(datatype == SHORT_TYPE){
-		ptr = new linearpart<short>;
-		ptr->init(totalx, totaly, dxA, dyA,MPI_SHORT, (short)nodata);
-	}else if(datatype == LONG_TYPE){
-		ptr = new linearpart<int32_t>;
-		ptr->init(totalx, totaly, dxA, dyA, MPI_INT32_T, (int32_t)nodata);
-	}else if(datatype == FLOAT_TYPE){
-		ptr = new linearpart<float>;
-		ptr->init(totalx, totaly, dxA, dyA, MPI_FLOAT, (float)nodata);
-	}
-	return ptr;
+template<class type>
+tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, double dxA, double dyA, type nodata) {
+    //Overloaded template version of the function
+    //Takes a constant as the nodata parameter, rather than a void pointer
+    tdpartition *ptr = NULL;
+    if (datatype == SHORT_TYPE) {
+        ptr = new linearpart<short>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_SHORT, (short) nodata);
+    } else if (datatype == LONG_TYPE) {
+        ptr = new linearpart<int32_t>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_INT32_T, (int32_t) nodata);
+    } else if (datatype == FLOAT_TYPE) {
+        ptr = new linearpart<float>;
+        ptr->init(totalx, totaly, dxA, dyA, MPI_FLOAT, (float) nodata);
+    }
+    return ptr;
 }
 #endif

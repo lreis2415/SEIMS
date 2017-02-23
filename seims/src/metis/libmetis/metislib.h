@@ -17,9 +17,8 @@
 #include <GKlib.h>
 
 #if defined(ENABLE_OPENMP)
-  #include <omp.h>
+#include <omp.h>
 #endif
-
 
 #include <metis.h>
 #include <rename.h>
@@ -30,10 +29,9 @@
 #include <macros.h>
 #include <proto.h>
 
-
 #if defined(COMPILER_MSC)
 #if defined(rint)
-  #undef rint
+#undef rint
 #endif
 #define rint(x) ((idx_t)((x)+0.5))  /* MSC does not have rint() function */
 #endif

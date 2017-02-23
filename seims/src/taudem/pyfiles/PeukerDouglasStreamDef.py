@@ -38,7 +38,7 @@ ogrlyr = arcpy.GetParameterAsText(7)
 if arcpy.Exists(ogrlyr):
     desc = arcpy.Describe(ogrlyr)
     shfl1 = str(desc.catalogPath)
-    extn = os.path.splitext(shfl1)[1]   # get extension of a file
+    extn = os.path.splitext(shfl1)[1]  # get extension of a file
     # if extention is shapfile do not convert into gjson other wise convert
     if extn == ".shp":
         shfl = shfl1
@@ -46,7 +46,7 @@ if arcpy.Exists(ogrlyr):
         arcpy.AddMessage("Extracting json outlet file from: " + shfl1)
         basename = os.path.basename(shfl1)  # get last part of the path
         dirname = os.path.dirname(p)  # get directory
-        arcpy.env.workspace = dirname   # does not work without specifying the workspace
+        arcpy.env.workspace = dirname  # does not work without specifying the workspace
         arcpy.FeaturesToJSON_conversion(shfl1, basename + ".json")  # convert feature to json
         shfl = os.path.join(dirname, basename + ".json")
 
@@ -78,7 +78,7 @@ arcpy.AddMessage("Output Accumulated Stream Source Grid: " + ssa)
 src = arcpy.GetParameterAsText(13)
 arcpy.AddMessage("Output Stream Raster Grid: " + src)
 
-drp=arcpy.GetParameterAsText(14)
+drp = arcpy.GetParameterAsText(14)
 if arcpy.Exists(drp):
     arcpy.AddMessage("Output Drop Analysis Table: " + drp)
 
@@ -88,7 +88,7 @@ arcpy.AddMessage("Select Threshold by Drop Analysis: " + usedroprange)
 minthresh = arcpy.GetParameterAsText(16)
 arcpy.AddMessage("Minimum Threshold Value: " + minthresh)
 
-maxthresh =arcpy.GetParameterAsText(17)
+maxthresh = arcpy.GetParameterAsText(17)
 arcpy.AddMessage("Maximum Threshold Value: " + maxthresh)
 
 numthresh = arcpy.GetParameterAsText(18)
@@ -108,7 +108,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	   # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
@@ -129,7 +129,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	   # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
@@ -140,7 +140,7 @@ if (usedroprange == 'true') and arcpy.Exists(ogrlyr):
     cmd = 'mpiexec -n ' + inputProc + ' DropAnalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
           ' -ad8 ' + '"' + ad8 + '"'
     cmd = cmd + ' -ssa ' + '"' + ssa + '"' + ' -o ' + '"' + shfl + '"' + ' -drp ' + '"' + drp + '"' + \
-        ' -par ' + minthresh + ' ' + maxthresh + ' ' + numthresh + ' '
+          ' -par ' + minthresh + ' ' + maxthresh + ' ' + numthresh + ' '
     if logspace == 'false':
         cmd = cmd + '1'
     else:
@@ -161,7 +161,7 @@ if (usedroprange == 'true') and arcpy.Exists(ogrlyr):
 
     # (threshold,rest)=line.split(' ',1)
 
-    drpfile = open(drp,"r")
+    drpfile = open(drp, "r")
     theContents = drpfile.read()
     beg, threshold = theContents.rsplit(' ', 1)
     drpfile.close()
@@ -182,13 +182,13 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	   # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
 arcpy.CalculateStatistics_management(src)
 # remove converted json file
 if arcpy.Exists(ogrlyr):
-    extn_json = os.path.splitext(shfl)[1]   # get extension of the converted json file
+    extn_json = os.path.splitext(shfl)[1]  # get extension of the converted json file
     if extn_json == ".json":
         os.remove(shfl)

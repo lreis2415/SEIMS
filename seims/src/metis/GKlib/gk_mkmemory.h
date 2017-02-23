@@ -10,7 +10,6 @@
 #ifndef _GK_MKMEMORY_H_
 #define _GK_MKMEMORY_H_
 
-
 #define GK_MKALLOC(PRFX, TYPE)\
 /*************************************************************************/\
 /*! The macro for gk_?malloc()-class of routines */\
@@ -136,7 +135,6 @@ void PRFX ## SetMatrix(TYPE **matrix, size_t ndim1, size_t ndim2, TYPE value)\
   TYPE **PRFX ## AllocMatrix(size_t ndim1, size_t ndim2, TYPE value, char *errmsg);\
   void   PRFX ## FreeMatrix(TYPE ***r_matrix, size_t ndim1, size_t ndim2);\
   void   PRFX ## SetMatrix(TYPE **matrix, size_t ndim1, size_t ndim2, TYPE value);\
-
 
 
 #endif

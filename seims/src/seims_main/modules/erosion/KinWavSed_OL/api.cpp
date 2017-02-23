@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new KinWavSed_OL();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res;
 
     MetadataInfo mdi;
@@ -58,10 +58,10 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
 
     /// set the output variables
     mdi.AddOutput(VAR_OL_DET, UNIT_KG, DESC_OL_DET, DT_Raster1D);
-	mdi.AddOutput(VAR_SED_DEP, UNIT_KG, DESC_SED_DEP, DT_Raster1D);
-	mdi.AddOutput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, DT_Raster1D);
-	mdi.AddOutput(VAR_SED_FLOW, UNIT_KG, DESC_SED_FLOW, DT_Raster1D); // add by Gao, 2016-07-27
-	mdi.AddOutput(VAR_SED_FLUX, UNIT_KG_S, DESC_SED_FLUX, DT_Raster1D); // add by Gao, 2016-07-27
+    mdi.AddOutput(VAR_SED_DEP, UNIT_KG, DESC_SED_DEP, DT_Raster1D);
+    mdi.AddOutput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, DT_Raster1D);
+    mdi.AddOutput(VAR_SED_FLOW, UNIT_KG, DESC_SED_FLOW, DT_Raster1D); // add by Gao, 2016-07-27
+    mdi.AddOutput(VAR_SED_FLUX, UNIT_KG_S, DESC_SED_FLUX, DT_Raster1D); // add by Gao, 2016-07-27
 
     mdi.AddDependency("Depression", "Depression storage module"); //for WH
     mdi.AddDependency(MCLS_OL_ROUTING, MCLSDESC_OL_ROUTING);

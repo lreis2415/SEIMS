@@ -30,8 +30,7 @@ using namespace std;
  * \brief Calculates the concentration of nutrient in reach using QUAL2E method.
  *
  */
-class NutrCH_QUAL2E : public SimulationModule
-{
+class NutrCH_QUAL2E : public SimulationModule {
 public:
     NutrCH_QUAL2E(void);
 
@@ -41,9 +40,9 @@ public:
 
     virtual void Set1DData(const char *key, int n, float *data);
 
-	virtual void SetReaches(clsReaches *reaches);
+    virtual void SetReaches(clsReaches *reaches);
 
-	virtual void SetScenario(Scenario *sce);
+    virtual void SetScenario(Scenario *sce);
 
     virtual int Execute();
 
@@ -51,32 +50,32 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-	virtual TimeStepType GetTimeStepType() {return TIMESTEP_CHANNEL;};
+    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 private:
-	// cell number
-	int m_nCells;
+    // cell number
+    int m_nCells;
     /// time step (sec)
     int m_dt;
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
     /// id the reaches
-	vector<int> m_reachId;
+    vector<int> m_reachId;
     /// reaches number
     int m_nReaches;
-	/* reach up-down layering
-	 * key: stream order
-	 * value: reach ID of current stream order
-	 */
+    /* reach up-down layering
+     * key: stream order
+     * value: reach ID of current stream order
+     */
     map<int, vector<int> > m_reachLayers;
-	/// scenario data
+    /// scenario data
 
-	/* point source operations
-	 * key: unique index, BMPID * 100000 + subScenarioID
-	 * value: point source management factory instance
-	 */
-	map<int, BMPPointSrcFactory*> m_ptSrcFactory;
+    /* point source operations
+     * key: unique index, BMPID * 100000 + subScenarioID
+     * value: point source management factory instance
+     */
+    map<int, BMPPointSrcFactory *> m_ptSrcFactory;
 
     /// input data
     float m_qUpReach;
@@ -92,8 +91,8 @@ private:
     float m_lambda0;     /// non-algal portion of the light extinction coefficient
     float m_lambda1;     /// linear algal self-shading coefficient
     float m_lambda2;     /// nonlinear algal self-shading coefficient
-	/// half saturation coefficient for light (MJ/(m2*hr))
-    float m_k_l;        
+    /// half saturation coefficient for light (MJ/(m2*hr))
+    float m_k_l;
     float m_k_n;        /// half-saturation constant for nitrogen (mg N/L)
     float m_k_p;        /// half saturation constant for phosphorus (mg P/L)
     /// algal preference factor for ammonia
@@ -111,15 +110,15 @@ private:
     float m_mumax;
     /// algal respiration rate at 20 deg C (1/day)
     float m_rhoq;
-	/// Conversion factor
-	float m_cod_n;
-	/// Reaction coefficient
-	float m_cod_k;
+    /// Conversion factor
+    float m_cod_n;
+    /// Reaction coefficient
+    float m_cod_k;
 
-	/// stream link
-	float *m_streamLink;
-	/// soil temperature (deg C)
-	float *m_soilTemp;
+    /// stream link
+    float *m_streamLink;
+    /// soil temperature (deg C)
+    float *m_soilTemp;
     /// day length for current day (h)
     float *m_daylen;
     /// solar radiation for the day (MJ/m2)
@@ -129,15 +128,15 @@ private:
     float *m_chOrder;
 
     /// channel outflow
-	float *m_qOutCh;
+    float *m_qOutCh;
     /// reach storage (m3) at time t
     float *m_chStorage;
-	/// reach storage of previous timestep
-	float *m_preChStorage;
+    /// reach storage of previous timestep
+    float *m_preChStorage;
     /// channel water depth m
     float *m_chWTdepth;
-	/// channel water depth of previous timestep, m
-	float *m_preChWTDepth;
+    /// channel water depth of previous timestep, m
+    float *m_preChWTDepth;
     /// temperature of water in reach (deg C)
     float *m_chTemp;
 
@@ -157,16 +156,16 @@ private:
     float *m_rk3;      /// rate of loss of CBOD due to settling in reach at 20 deg C (1/day)
     float *m_rk4;      /// sediment oxygen demand rate in reach at 20 deg C (mg O2/ ((m**2)*day))
 
-	/// Channel organic nitrogen concentration in basin, ppm
-	float m_chOrgNCo;
-	/// Channel organic phosphorus concentration in basin, ppm
-	float m_chOrgPCo;
+    /// Channel organic nitrogen concentration in basin, ppm
+    float m_chOrgNCo;
+    /// Channel organic phosphorus concentration in basin, ppm
+    float m_chOrgPCo;
     /// amount of nitrate transported with lateral flow
     float *m_latNO3ToCh;
     /// amount of nitrate transported with surface runoff
     float *m_surNO3ToCh;
-	/// amount of ammonian transported with surface runoff
-	float *m_surNH4ToCh;
+    /// amount of ammonian transported with surface runoff
+    float *m_surNH4ToCh;
     /// amount of soluble phosphorus in surface runoff
     float *m_surSolPToCh;
     /// cod to reach in surface runoff (kg)
@@ -188,26 +187,26 @@ private:
     /// amount of nitrite transported with lateral flow
     float *m_no2ToCh;
 
-	/// point source loadings (kg) to channel of each timestep
-	/// nitrate
-	float *m_ptNO3ToCh;
-	/// ammonia nitrogen
-	float *m_ptNH4ToCh;
-	/// Organic nitrogen
-	float *m_ptOrgNToCh;
-	/// total nitrogen
-	float *m_ptTNToCh;
-	/// soluble (dissolved) phosphorus
-	float *m_ptSolPToCh;
-	/// Organic phosphorus 
-	float *m_ptOrgPToCh;
-	/// total phosphorus
-	float *m_ptTPToCh;
-	/// COD
-	float *m_ptCODToCh;
+    /// point source loadings (kg) to channel of each timestep
+    /// nitrate
+    float *m_ptNO3ToCh;
+    /// ammonia nitrogen
+    float *m_ptNH4ToCh;
+    /// Organic nitrogen
+    float *m_ptOrgNToCh;
+    /// total nitrogen
+    float *m_ptTNToCh;
+    /// soluble (dissolved) phosphorus
+    float *m_ptSolPToCh;
+    /// Organic phosphorus
+    float *m_ptOrgPToCh;
+    /// total phosphorus
+    float *m_ptTPToCh;
+    /// COD
+    float *m_ptCODToCh;
 
-	/// channel erosion
-	float *m_chDeg;
+    /// channel erosion
+    float *m_chDeg;
 
     /// nutrient amount stored in reach
     /// algal biomass storage in reach (kg)
@@ -220,14 +219,14 @@ private:
     float *m_chNO2;
     /// nitrate storage in reach (kg)
     float *m_chNO3;
-	/// total nitrogen in reach (kg)
-	float *m_chTN;
+    /// total nitrogen in reach (kg)
+    float *m_chTN;
     /// organic phosphorus storage in reach (kg)
     float *m_chOrgP;
     /// dissolved phosphorus storage in reach (kg)
     float *m_chSolP;
-	/// total phosphorus storage in reach (kg)
-	float *m_chTP;
+    /// total phosphorus storage in reach (kg)
+    float *m_chTP;
     /// carbonaceous oxygen demand in reach (kg)
     float *m_chCOD;
     /// dissolved oxygen storage in reach (kg)
@@ -237,64 +236,64 @@ private:
     // saturation storage of dissolved oxygen (kg)
     float m_chSatDOx;
 
-	/// Outputs, both amount (kg) and concentration (mg/L)
-	/// algal biomass amount in reach (kg)
-	float *m_chOutAlgae;
-	/// algal biomass concentration in reach (mg/L)
-	float *m_chOutAlgaeConc;
-	/// chlorophyll-a biomass amount in reach (kg)
-	float *m_chOutChlora;
-	/// chlorophyll-a biomass concentration in reach (mg/L)
-	float *m_chOutChloraConc;
-	/// organic nitrogen amount in reach (kg)
-	float *m_chOutOrgN;
-	/// organic nitrogen concentration in reach (mg/L)
-	float *m_chOutOrgNConc;
-	/// organic phosphorus amount in reach (kg)
-	float *m_chOutOrgP;
-	/// organic phosphorus concentration in reach (mg/L)
-	float *m_chOutOrgPConc;
-	/// ammonia amount in reach (kg)
-	float *m_chOutNH4;
-	/// ammonia concentration in reach (mg/L)
-	float *m_chOutNH4Conc;
-	/// nitrite amount in reach (kg)
-	float *m_chOutNO2;
-	/// nitrite concentration in reach (mg/L)
-	float *m_chOutNO2Conc;
-	/// nitrate amount in reach (kg)
-	float *m_chOutNO3;
-	/// nitrate concentration in reach (mg/L)
-	float *m_chOutNO3Conc;
-	/// dissolved phosphorus amount in reach (kg)
-	float *m_chOutSolP;
-	/// dissolved phosphorus concentration in reach (mg/L)
-	float *m_chOutSolPConc;
-	/// carbonaceous oxygen demand in reach (kg)
-	float *m_chOutCOD;
-	/// carbonaceous oxygen demand concentration in reach (mg/L)
-	float *m_chOutCODConc;
-	/// dissolved oxygen amount in reach (kg)
-	float *m_chOutDOx;
-	/// dissolved oxygen concentration in reach (mg/L)
-	float *m_chOutDOxConc;
-	/// total N amount in reach (kg)
-	float *m_chOutTN;
-	/// total N concentration in reach (mg/L)
-	float *m_chOutTNConc;
-	/// total P amount in reach (kg)
-	float *m_chOutTP;
-	/// total P concentration in reach (mg/L)
-	float *m_chOutTPConc;
+    /// Outputs, both amount (kg) and concentration (mg/L)
+    /// algal biomass amount in reach (kg)
+    float *m_chOutAlgae;
+    /// algal biomass concentration in reach (mg/L)
+    float *m_chOutAlgaeConc;
+    /// chlorophyll-a biomass amount in reach (kg)
+    float *m_chOutChlora;
+    /// chlorophyll-a biomass concentration in reach (mg/L)
+    float *m_chOutChloraConc;
+    /// organic nitrogen amount in reach (kg)
+    float *m_chOutOrgN;
+    /// organic nitrogen concentration in reach (mg/L)
+    float *m_chOutOrgNConc;
+    /// organic phosphorus amount in reach (kg)
+    float *m_chOutOrgP;
+    /// organic phosphorus concentration in reach (mg/L)
+    float *m_chOutOrgPConc;
+    /// ammonia amount in reach (kg)
+    float *m_chOutNH4;
+    /// ammonia concentration in reach (mg/L)
+    float *m_chOutNH4Conc;
+    /// nitrite amount in reach (kg)
+    float *m_chOutNO2;
+    /// nitrite concentration in reach (mg/L)
+    float *m_chOutNO2Conc;
+    /// nitrate amount in reach (kg)
+    float *m_chOutNO3;
+    /// nitrate concentration in reach (mg/L)
+    float *m_chOutNO3Conc;
+    /// dissolved phosphorus amount in reach (kg)
+    float *m_chOutSolP;
+    /// dissolved phosphorus concentration in reach (mg/L)
+    float *m_chOutSolPConc;
+    /// carbonaceous oxygen demand in reach (kg)
+    float *m_chOutCOD;
+    /// carbonaceous oxygen demand concentration in reach (mg/L)
+    float *m_chOutCODConc;
+    /// dissolved oxygen amount in reach (kg)
+    float *m_chOutDOx;
+    /// dissolved oxygen concentration in reach (mg/L)
+    float *m_chOutDOxConc;
+    /// total N amount in reach (kg)
+    float *m_chOutTN;
+    /// total N concentration in reach (mg/L)
+    float *m_chOutTNConc;
+    /// total P amount in reach (kg)
+    float *m_chOutTP;
+    /// total P concentration in reach (mg/L)
+    float *m_chOutTPConc;
 
-	//intermediate variables
+    //intermediate variables
 
-	/// mean day length of each channel (hr) 
-	float *m_chDaylen;
-	/// mean solar radiation of each channel
-	float *m_chSr;
-	/// valid cell numbers of each channel
-	int *m_chCellCount;
+    /// mean day length of each channel (hr)
+    float *m_chDaylen;
+    /// mean solar radiation of each channel
+    float *m_chSr;
+    /// valid cell numbers of each channel
+    int *m_chCellCount;
 
 private:
 
@@ -312,11 +311,14 @@ private:
      * \return bool The validity of the dimension
      */
     bool CheckInputSize(const char *, int);
-	bool CheckInputCellSize(const char *key, int n);
+
+    bool CheckInputCellSize(const char *key, int n);
 
     void AddInputNutrient(int);
-	void RouteOut(int i);
-	void NutrientTransform(int i);
+
+    void RouteOut(int i);
+
+    void NutrientTransform(int i);
 
     /*!
     * \brief Corrects rate constants for temperature.
@@ -328,10 +330,11 @@ private:
      * \return float
      */
     float corTempc(float r20, float thk, float tmp);
-	/// Calculate average day length, solar radiation, and temperature for each channel
-	void ParametersSubbasinForChannel();
+
+    /// Calculate average day length, solar radiation, and temperature for each channel
+    void ParametersSubbasinForChannel();
 
     void initialOutputs();
 
-	void PointSourceLoading();
+    void PointSourceLoading();
 };

@@ -1,7 +1,7 @@
-'''
+"""
    This file is part of SEIMS and for checking the dependent packages.
 
-'''
+"""
 # 1. pygeoc
 try:
     import pygeoc

@@ -28,8 +28,7 @@ using namespace std;
  *
  *
  */
-class SEIMSModuleSetting
-{
+class SEIMSModuleSetting {
 public:
     SEIMSModuleSetting(string moduleId, string setting);
 
@@ -54,7 +53,7 @@ public:
 private:
     string m_moduleId; ///< module's ID
     string m_settingString; ///< module setting string
-    vector<string> m_settings; ///< module settings
+    vector <string> m_settings; ///< module settings
 
     void getSettings();
 

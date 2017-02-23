@@ -26,6 +26,7 @@
 #include <algorithm> 
 #include "SimulationModule.h"
 #include "Scenario.h"
+
 using namespace std;
 using namespace MainBMP;
 /** \defgroup MUSK_CH
@@ -37,8 +38,7 @@ using namespace MainBMP;
 /* 
  * \struct MuskWeights coefficients
  */
-struct MuskWeights
-{
+struct MuskWeights {
     float c1;
     float c2;
     float c3;
@@ -53,8 +53,7 @@ struct MuskWeights
  * \brief channel flow routing using Muskingum method
  *
  */
-class MUSK_CH : public SimulationModule
-{
+class MUSK_CH : public SimulationModule {
 public:
     MUSK_CH(void);
 
@@ -74,9 +73,9 @@ public:
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
-	virtual void SetScenario(Scenario *sce);
+    virtual void SetScenario(Scenario *sce);
 
-	virtual void SetReaches(clsReaches *reaches);
+    virtual void SetReaches(clsReaches *reaches);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -84,18 +83,18 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType() {return TIMESTEP_CHANNEL;};
+    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 
 private:
-	//! 
+    //!
     float m_vScalingFactor;
 
     /// time step (sec)
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
-	/// outlet ID
-	int m_outletID;
+    /// outlet ID
+    int m_outletID;
     /// The point source discharge (m3/s), m_ptSub[id], id is the reach id, load from m_Scenario
     float *m_ptSub;
 
@@ -109,19 +108,19 @@ private:
     float m_Bnk0;
     /// initial channel storage per meter of reach length (m3/m)
     //float m_Chs0;
-	
-	/// inverse of the channel side slope, by default is 2.
-	float *m_chSideSlope;
-	/// initial percentage of channel volume
-	float m_Chs0_perc;
+
+    /// inverse of the channel side slope, by default is 2.
+    float *m_chSideSlope;
+    /// initial percentage of channel volume
+    float m_Chs0_perc;
     /// the initial volume of transmission loss to the deep aquifer over the time interval (m3/s)
     float m_Vseep0;
     /// bank flow recession constant
     float m_aBank;
     /// bank storage loss coefficient
     float m_bBank;
-	///subbasin grid
-    float *m_subbasin;                
+    ///subbasin grid
+    float *m_subbasin;
     /// the subbasin area (m2)  //add to the reach parameters file
     float *m_area;
 
@@ -141,27 +140,27 @@ private:
     float *m_qsCh;
     float *m_qiCh;
     float *m_qgCh;
-	/// channel order
+    /// channel order
     float *m_chOrder;
-	/// channel width (m)
+    /// channel width (m)
     float *m_chWidth;
-	/// channel water width (m)
-	float *m_chWTWidth;
-	/// bottom width of channel (m)
-	float *m_chBtmWidth;
-	/// channel depth (m)
+    /// channel water width (m)
+    float *m_chWTWidth;
+    /// bottom width of channel (m)
+    float *m_chBtmWidth;
+    /// channel depth (m)
     float *m_chDepth;
-	/// channel water depth (m)
-	float *m_chWTdepth;
-	/// channel water depth of previous timestep (m)
-	float *m_preChWTDepth;
-	/// channel length (m)
+    /// channel water depth (m)
+    float *m_chWTdepth;
+    /// channel water depth of previous timestep (m)
+    float *m_preChWTDepth;
+    /// channel length (m)
     float *m_chLen;
-	/// channel flow velocity (m/s)
+    /// channel flow velocity (m/s)
     float *m_chVel;
-	/// bank storage (m^3)
+    /// bank storage (m^3)
     float *m_bankStorage;
-	/// groundwater recharge to channel or perennial base flow, m^3/s
+    /// groundwater recharge to channel or perennial base flow, m^3/s
     float m_deepGroundwater;
 
     /// seepage to deep aquifer
@@ -170,43 +169,43 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
 
     // the reaches id 
     //float *m_reachId;
-	vector<int> m_reachId;
+    vector<int> m_reachId;
     // for muskingum
     float m_x;
     float m_co1;
-	// IS THIS USEFUL? BY LJ
+    // IS THIS USEFUL? BY LJ
     float m_qUpReach;
-	/// scenario data
+    /// scenario data
 
-	/* point source operations
-	 * key: unique index, BMPID * 100000 + subScenarioID
-	 * value: point source management factory instance
-	 */
-	map<int, BMPPointSrcFactory*> m_ptSrcFactory;
+    /* point source operations
+     * key: unique index, BMPID * 100000 + subScenarioID
+     * value: point source management factory instance
+     */
+    map<int, BMPPointSrcFactory *> m_ptSrcFactory;
     //temporary at routing time
 
     /// reach storage (m^3) at time, t
     float *m_chStorage;
-	/// reach storage (m^3) at previous time step, t-1
-	float *m_preChStorage;
+    /// reach storage (m^3) at previous time step, t-1
+    float *m_preChStorage;
     /// reach outflow (m3/s) at time, t
     float *m_qOut;
     /// flowin discharge at the last time step
     float *m_qIn;
-	/*
-	 * reach layers
-	 * key: stream order
-	 * value: reach ID
-	 */
+    /*
+     * reach layers
+     * key: stream order
+     * value: reach ID
+     */
     map<int, vector<int> > m_reachLayers;
 
     void initialOutputs();
 
-	void PointSourceLoading();
+    void PointSourceLoading();
 
     void ChannelFlow(int i);
 
@@ -214,6 +213,6 @@ private:
 
     void GetCoefficients(float reachLength, float v0, MuskWeights &weights);
 
-	void updateWaterWidthDepth(int i);
+    void updateWaterWidthDepth(int i);
 };
 

@@ -31,7 +31,8 @@ extern void Read1DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteF
  * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
  * \param[out] data \float**&, returned data
  */
-extern void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &rows, int& cols, float **&data);
+extern void
+Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &rows, int &cols, float **&data);
 
 /*!
  * \brief Read IUH data from MongoDB database

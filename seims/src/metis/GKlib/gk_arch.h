@@ -25,24 +25,24 @@
 #endif
 #endif
 
-
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 
-
-#ifdef __MSC__ 
-  #include "ms_stdint.h"
-  #include "ms_inttypes.h"
-  #include "ms_stat.h"
+#ifdef __MSC__
+#include "ms_stdint.h"
+#include "ms_inttypes.h"
+#include "ms_stat.h"
 #else
 #ifndef SUNOS
-  #include <stdint.h>
+#include <stdint.h>
+
 #endif
-  #include <inttypes.h>
-  #include <sys/types.h>
-  #include <sys/resource.h>
-  #include <sys/time.h>
+#include <inttypes.h>
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+
 #endif
 
 
@@ -52,7 +52,6 @@
 #ifdef WIN32
 typedef ptrdiff_t ssize_t;
 #endif
-
 
 #ifdef SUNOS
 #define PTRDIFF_MAX  INT64_MAX

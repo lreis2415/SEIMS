@@ -30,13 +30,12 @@ using namespace std;
  * \brief Percolation calculated by storage routing method.
  * 
  */
-class PER_STR : public SimulationModule
-{
+class PER_STR : public SimulationModule {
 private:
     /// number of soil layers
     int m_nSoilLayers;
-	/// soil layers
-	float *m_soilLayers;
+    /// soil layers
+    float *m_soilLayers;
     /// soil thickness
     float **m_soilThick;
     /// time step
@@ -47,22 +46,22 @@ private:
     float m_frozenT;
     /// saturated conductivity
     float **m_ks;
-	/// amount of water held in the soil layer at saturation (sat - wp water), mm
-	float **m_sat;    
-	/// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-	float **m_fc;
+    /// amount of water held in the soil layer at saturation (sat - wp water), mm
+    float **m_sat;
+    /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
+    float **m_fc;
     /// soil moisture, mm H2O
     float **m_soilStorage;
-	/// amount of water stored in soil profile on current day, sol_sw in SWAT
-	float *m_soilStorageProfile;
+    /// amount of water stored in soil profile on current day, sol_sw in SWAT
+    float *m_soilStorageProfile;
     /// soil temperature
     float *m_soilT;
     /// infiltration, mm
     float *m_infil;
-	/// surface runoff, mm
-	float *m_surfQmm;
-	/// pothole volume, mm
-	float *m_potVol;
+    /// surface runoff, mm
+    float *m_surfQmm;
+    /// pothole volume, mm
+    float *m_potVol;
     /// Output: percolation
     float **m_perc;
 
@@ -100,6 +99,6 @@ private:
     */
     bool CheckInputSize(const char *, int);
 
-	void initialOutputs();
+    void initialOutputs();
 };
 

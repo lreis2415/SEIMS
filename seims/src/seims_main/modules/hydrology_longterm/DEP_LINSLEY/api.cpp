@@ -9,13 +9,13 @@
 #include "MetadataInfoConst.h"
 
 //! Get instance of SimulationModule class
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new DepressionFSDaily();
 }
 
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -32,11 +32,12 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     mdi.AddParameter(VAR_DEPREIN, UNIT_NON_DIM, DESC_DEPREIN, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_DEPRESSION, UNIT_DEPTH_MM, DESC_DEPRESSION, Source_ParameterDB, DT_Raster1D);
 
-    mdi.AddInput(VAR_INET, UNIT_DEPTH_MM, DESC_INET, Source_Module, DT_Raster1D);    //Evaporation from intercepted storage
+    mdi.AddInput(VAR_INET, UNIT_DEPTH_MM, DESC_INET, Source_Module,
+                 DT_Raster1D);    //Evaporation from intercepted storage
     mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);      //PET
     mdi.AddInput(VAR_EXCP, UNIT_DEPTH_MM, DESC_EXCP, Source_Module, DT_Raster1D);    //Excess precipitation
-	mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module_Optional, DT_Raster1D);
-	mdi.AddInput(VAR_POT_VOL, UNIT_DEPTH_MM, DESC_POT_VOL, Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module_Optional, DT_Raster1D);
+    mdi.AddInput(VAR_POT_VOL, UNIT_DEPTH_MM, DESC_POT_VOL, Source_Module_Optional, DT_Raster1D);
 
     mdi.AddOutput(VAR_DPST, UNIT_DEPTH_MM, DESC_DPST, DT_Raster1D);
     mdi.AddOutput(VAR_DEET, UNIT_DEPTH_MM, DESC_DEET, DT_Raster1D);

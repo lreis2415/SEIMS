@@ -14,23 +14,23 @@ desc = arcpy.Describe(inlyr)
 p = str(desc.catalogPath)
 arcpy.AddMessage("\nInput D8 Flow Direction file: " + p)
 
-ogrfile=arcpy.GetParameterAsText(1)
+ogrfile = arcpy.GetParameterAsText(1)
 if arcpy.Exists(ogrfile):
     desc = arcpy.Describe(ogrfile)
     shfl1 = str(desc.catalogPath)
-    extn = os.path.splitext(shfl1)[1] # get extension of a file
+    extn = os.path.splitext(shfl1)[1]  # get extension of a file
 
     # if extention is shapfile do not convert into gjson other wise convert
 
     if extn == ".shp":
-       shfl = shfl1
+        shfl = shfl1
     else:
-      arcpy.AddMessage("Extracting json outlet file from: " + shfl1)
-      basename = os.path.basename(shfl1) # get last part of the path
-      dirname = os.path.dirname(p)  # get directory
-      arcpy.env.workspace = dirname     # does not work without specifying the workspace
-      arcpy.FeaturesToJSON_conversion(shfl1, basename + ".json")   # convert feature to json
-      shfl = os.path.join(dirname,basename + ".json")
+        arcpy.AddMessage("Extracting json outlet file from: " + shfl1)
+        basename = os.path.basename(shfl1)  # get last part of the path
+        dirname = os.path.dirname(p)  # get directory
+        arcpy.env.workspace = dirname  # does not work without specifying the workspace
+        arcpy.FeaturesToJSON_conversion(shfl1, basename + ".json")  # convert feature to json
+        shfl = os.path.join(dirname, basename + ".json")
     arcpy.AddMessage("Using Outlets file: " + shfl)
 
 weightgrid = arcpy.GetParameterAsText(2)
@@ -48,7 +48,7 @@ arcpy.AddMessage("Number of Processes: " + inputProc)
 
 # Output
 ad8 = arcpy.GetParameterAsText(5)
-arcpy.AddMessage("Output D8 Contributing Area Grid: "+ad8)
+arcpy.AddMessage("Output D8 Contributing Area Grid: " + ad8)
 
 # Construct command
 cmd = 'mpiexec -n ' + inputProc + ' AreaD8 -p ' + '"' + p + '"' + ' -ad8 ' + '"' + ad8 + '"'
@@ -86,7 +86,7 @@ process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
@@ -97,8 +97,6 @@ arcpy.CalculateStatistics_management(ad8)
 
 # remove converted json file
 if arcpy.Exists(ogrfile):
-  extn_json = os.path.splitext(shfl)[1]     # get extension of the converted json file
-  if extn_json == ".json":
-    os.remove(shfl)
-
-
+    extn_json = os.path.splitext(shfl)[1]  # get extension of the converted json file
+    if extn_json == ".json":
+        os.remove(shfl)

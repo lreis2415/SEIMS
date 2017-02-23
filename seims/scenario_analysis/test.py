@@ -1,4 +1,3 @@
-
 from pymongo import MongoClient
 
 # cmdStr = "%s %s %d %d %s %d %d" % (model_Exe, model_Workdir, threadsNum, layeringMethod, HOSTNAME, PORT, 1)
@@ -17,6 +16,6 @@ db = client['BMP_Scenario_dianbu2_30m_longterm']
 collection = db.BMP_SCENARIOS
 # for i in range(10, 500):
 #     collection.remove({'ID': i})
-for i in collection.find({"ID":{"$gt":100}}):
-    #print i["ID"]
-    collection.remove({"ID":i["ID"]})
+for i in collection.find({"ID": {"$gt": 100}}):
+    # print i["ID"]
+    collection.remove({"ID": i["ID"]})

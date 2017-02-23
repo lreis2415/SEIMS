@@ -34,7 +34,7 @@ ogrlyr = arcpy.GetParameterAsText(4)
 if arcpy.Exists(ogrlyr):
     desc = arcpy.Describe(ogrlyr)
     shfl1 = str(desc.catalogPath)
-    extn = os.path.splitext(shfl1)[1]   # get extension of a file
+    extn = os.path.splitext(shfl1)[1]  # get extension of a file
     # if extention is shapfile do not convert into gjson other wise convert
     if extn == ".shp":
         shfl = shfl1
@@ -42,8 +42,8 @@ if arcpy.Exists(ogrlyr):
         arcpy.AddMessage("Extracting json outlet file from: " + shfl1)
         basename = os.path.basename(shfl1)  # get last part of the path
         dirname = os.path.dirname(p)  # get directory
-        arcpy.env.workspace = dirname   # does not work without specifying the workspace
-        arcpy.FeaturesToJSON_conversion(shfl1, basename + ".json")     # convert feature to json
+        arcpy.env.workspace = dirname  # does not work without specifying the workspace
+        arcpy.FeaturesToJSON_conversion(shfl1, basename + ".json")  # convert feature to json
         shfl = os.path.join(dirname, basename + ".json")
     arcpy.AddMessage("Using Outlets : " + shfl)
 
@@ -72,7 +72,7 @@ thresh = arcpy.GetParameterAsText(10)
 arcpy.AddMessage("Threshold(T): " + thresh)
 
 # Input Number of Processes
-inputProc=arcpy.GetParameterAsText(11)
+inputProc = arcpy.GetParameterAsText(11)
 arcpy.AddMessage("Number of Processes: " + inputProc)
 
 # Outputs
@@ -111,7 +111,7 @@ arcpy.AddMessage("\nCommand Line: " + cmd)
 # Submit command to operating system
 os.system(cmd)
 # Capture the contents of shell command and print it to the arcgis dialog box
-process=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
@@ -160,7 +160,7 @@ if (usedroprange == 'true') and arcpy.Exists(ogrlyr):
     # Submit command to operating system
     os.system(cmd)
     # Capture the contents of shell command and print it to the arcgis dialog box
-    process=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
     message = "\n"
     for line in process.stdout.readlines():
@@ -170,7 +170,7 @@ if (usedroprange == 'true') and arcpy.Exists(ogrlyr):
     arcpy.AddMessage(message)
     # (threshold,rest)=line.split(' ',1)
 
-    drpfile = open(drp,"r")
+    drpfile = open(drp, "r")
     theContents = drpfile.read()
     beg, threshold = theContents.rsplit(' ', 1)
     drpfile.close()
@@ -187,17 +187,16 @@ arcpy.AddMessage("\nCommand Line: " + cmd)
 # Submit command to operating system
 os.system(cmd)
 # Capture the contents of shell command and print it to the arcgis dialog box
-process=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 message = "\n"
 for line in process.stdout.readlines():
-    if isinstance(line, bytes):	    # true in Python 3
+    if isinstance(line, bytes):  # true in Python 3
         line = line.decode()
     message = message + line
 arcpy.AddMessage(message)
-arcpy.CalculateStatistics_management(src)   # remove converted json file
+arcpy.CalculateStatistics_management(src)  # remove converted json file
 if arcpy.Exists(ogrlyr):
-    extn_json = os.path.splitext(shfl)[1]   # get extension of the converted json file
+    extn_json = os.path.splitext(shfl)[1]  # get extension of the converted json file
     if extn_json == ".json":
         os.remove(shfl)
-

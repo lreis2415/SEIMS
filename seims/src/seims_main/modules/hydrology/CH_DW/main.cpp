@@ -10,24 +10,23 @@ using namespace std;
 
 float dx = 30.f;
 
-void SetValue(float *a, int n, float value)
-{
-    for (int i = 0; i < n; ++i)
+void SetValue(float *a, int n, float value) {
+    for (int i = 0; i < n; ++i) {
         a[i] = value;
+    }
 }
 
-void Output(float *a, int n, ofstream &ofs)
-{
-    for (int i = 0; i < n; ++i)
-        if (i % 20 == 0)
+void Output(float *a, int n, ofstream &ofs) {
+    for (int i = 0; i < n; ++i) {
+        if (i % 20 == 0) {
             ofs << a[i] * 60.f << "\t";
+        }
+    }
     ofs << endl;
 }
 
-void Test(DiffusiveWave &ikw)
-{
-    for (int i = 0; i < 1000; ++i)
-    {
+void Test(DiffusiveWave &ikw) {
+    for (int i = 0; i < 1000; ++i) {
         //cout << i << endl;
         //ikw.SetDate(i+1);
         //if (i == 180)
@@ -40,10 +39,8 @@ void Test(DiffusiveWave &ikw)
     }
 }
 
-int main(int argc, const char **argv)
-{
-    if (argc < 4)
-    {
+int main(int argc, const char **argv) {
+    if (argc < 4) {
         cout << "Usage: ikwtest RoutingLayerFile dx ThreadCount\n";
         exit(1);
     }
@@ -59,14 +56,14 @@ int main(int argc, const char **argv)
     int layerCount;
     fLayer >> tmp >> layerCount;
     float **rtLayers = new float *[layerCount];
-    for (int i = 0; i < layerCount; ++i)
-    {
+    for (int i = 0; i < layerCount; ++i) {
         int nCells;
         fLayer >> nCells;
         rtLayers[i] = new float[nCells + 1];
         rtLayers[i][0] = (float) nCells;
-        for (int j = 1; j <= nCells; ++j)
+        for (int j = 1; j <= nCells; ++j) {
             fLayer >> rtLayers[i][j];
+        }
     }
     fLayer.close();
 
@@ -75,14 +72,12 @@ int main(int argc, const char **argv)
     fFlowIn >> tmp >> cellsCount;
     float **flowIn = new float *[cellsCount];
     float *dir = new float[cellsCount];
-    for (int i = 0; i < cellsCount; ++i)
-    {
+    for (int i = 0; i < cellsCount; ++i) {
         int inNum;
         fFlowIn >> dir[i] >> tmp >> inNum;
         flowIn[i] = new float[inNum + 1];
         flowIn[i][0] = (float) inNum;
-        for (int j = 1; j <= inNum; ++j)
-        {
+        for (int j = 1; j <= inNum; ++j) {
             fFlowIn >> flowIn[i][j];
         }
     }
@@ -90,17 +85,16 @@ int main(int argc, const char **argv)
 
     clsRasterData slope("slope.txt");
     float *s0 = slope.getRasterDataPointer();
-    for (int i = 0; i < cellsCount; ++i)
-    {
-        if (abs(s0[i]) < 0.01f)
+    for (int i = 0; i < cellsCount; ++i) {
+        if (abs(s0[i]) < 0.01f) {
             s0[i] = 0.01f;
+        }
     }
     //float *s0  = new float[cellsCount];
     //SetValue(s0, cellsCount, 0.0016f);
 
     float dt = 10;
     float *mn = new float[cellsCount];
-
 
     float *sr = new float[cellsCount];
     //SetValue(mn, cellsCount, 0.025f);
@@ -149,10 +143,12 @@ int main(int argc, const char **argv)
     qFile.close();
     hFile.close();
 
-    for (int i = 0; i < layerCount; ++i)
+    for (int i = 0; i < layerCount; ++i) {
         delete[] rtLayers[i];
-    for (int i = 0; i < cellsCount; ++i)
+    }
+    for (int i = 0; i < cellsCount; ++i) {
         delete[] flowIn[i];
+    }
     delete[] rtLayers;
     delete[] flowIn;
     delete[] dir;

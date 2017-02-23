@@ -21,7 +21,7 @@
 using namespace std;
 
 //! \typdef 2D stringarray (vector)  
-typedef vector<vector<string> > string2DArray;
+typedef vector <vector<string>> string2DArray;
 
 /*!
  * \ingroup module_setting
@@ -29,8 +29,7 @@ typedef vector<vector<string> > string2DArray;
  *
  * \brief Basic setting class
  */
-class Settings
-{
+class Settings {
 public:
     //! Store setting key and values
     string2DArray m_Settings;

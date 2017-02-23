@@ -9,7 +9,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 11)
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -35,10 +35,10 @@ IF (WIN32)
     include(FindBson.cmake)
     include(FindMongoC.cmake)
     # 3. MPI
-    SET (MPI_LIB $ENV{MSMPI_LIB32})
-    SET (MPI_HOME $ENV{MSMPI_BIN})
-    SET (MPI_INCLUDE_PATH $ENV{MSMPI_INC})
-    SET (MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
+    SET(MPI_LIB $ENV{MSMPI_LIB32})
+    SET(MPI_HOME $ENV{MSMPI_BIN})
+    SET(MPI_INCLUDE_PATH $ENV{MSMPI_INC})
+    SET(MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
 ELSE ()
     # 1. GDAL CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
     find_package(GDAL REQUIRED)
@@ -75,7 +75,7 @@ add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
-IF(WIN32)
-	SET_PROPERTY(TARGET iuh PROPERTY FOLDER "IUH")
-ENDIF()
+IF (WIN32)
+    SET_PROPERTY(TARGET iuh PROPERTY FOLDER "IUH")
+ENDIF ()
 MESSAGE(STATUS "    Compiling IUH done")

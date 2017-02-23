@@ -8,14 +8,14 @@
 #include "utilities.h"
 #include "AtmosphericDeposition.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new AtmosphericDeposition();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
 
