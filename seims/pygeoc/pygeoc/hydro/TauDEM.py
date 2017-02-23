@@ -106,7 +106,7 @@ class TauDEM(object):
             if type(mpi_params) != dict:
                 TauDEM.error("The MPI settings parameter must be a dict!\n")
             if 'mpipath' in mpi_params and mpi_params['mpipath'] is not None:
-                commands.append('"' + mpi_params['mpipath'] + os.sep + 'mpiexec"')
+                commands.append(mpi_params['mpipath'] + os.sep + 'mpiexec')
             else:
                 commands.append('mpiexec')
             if 'hostfile' in mpi_params and mpi_params['hostfile'] is not None:
@@ -157,13 +157,13 @@ class TauDEM(object):
         return True
 
     @staticmethod
-    def fullpath(name, dir = None):
-        if name is None:  # name is
+    def fullpath(name, dirname = None):
+        if name is None:
             return None
         if os.sep in name:  # name is full path already
             return name
-        if dir is not None:
-            return dir + os.sep + name
+        if dirname is not None:
+            return dirname + os.sep + name
         else:
             return name
 
@@ -302,7 +302,7 @@ class TauDEM(object):
 if __name__ == "__main__":
     workingspace = r"D:\test"
     execdir = r"C:\z_code\Hydro\SEIMS2017\seims\bin"
-    log_file = "taudem.log"
+    log = "taudem.log"
     dem = "dem_30m.tif"
     feldem = "dem_fel.tif"
     flowd8 = "flowd8.tif"
