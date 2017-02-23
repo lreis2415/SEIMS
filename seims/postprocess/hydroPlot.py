@@ -3,6 +3,7 @@
 import datetime
 import os
 import matplotlib
+
 if os.name != 'nt':
     # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
@@ -14,7 +15,7 @@ from config import *
 
 
 def getDayByDay(timeStart, timeEnd):
-    oneday = datetime.timedelta(days=1)
+    oneday = datetime.timedelta(days = 1)
     timeArr = [timeStart]
     while timeArr[len(timeArr) - 1] < timeEnd:
         tempday = timeArr[len(timeArr) - 1] + oneday
@@ -86,15 +87,19 @@ def SearchObs(timeStart, timeEnd, sim, ClimateDB):
         # print "None"
         return [[-1]]
 
+
 def getObservedParameter(name):
     if '_' in name:
         name = name.split('_')[1]
     return name
+
+
 def getBaseVariableName(name):
     name = getObservedParameter(name)
     if 'Conc' in name:
         name = name.split('Conc')[0]
     return name
+
 
 def SearchObs2(timeStart, timeEnd, paramName, subbasinID, ClimateDB):
     '''
@@ -117,10 +122,10 @@ def SearchObs2(timeStart, timeEnd, paramName, subbasinID, ClimateDB):
     if Tag_ClimateDB_Measurement.upper() not in fieldList:
         return None, None
 
-    if subbasinID == 0: # for the whole basin
+    if subbasinID == 0:  # for the whole basin
         siteItems = None
         siteItems = ClimateDB[Tag_ClimateDB_Sites.upper()].find_one({
-            'TYPE': getBaseVariableName(paramName),
+            'TYPE'    : getBaseVariableName(paramName),
             'ISOUTLET': 1,
         })  # this should be unique
 
@@ -129,12 +134,12 @@ def SearchObs2(timeStart, timeEnd, paramName, subbasinID, ClimateDB):
         siteID = siteItems['STATIONID']
         for obs in ClimateDB[Tag_ClimateDB_Measurement.upper()].find({
             'LOCALDATETIME': {"$gte": TIME_Start, '$lte': TIME_End},
-            'TYPE': getObservedParameter(paramName),
-            'STATIONID': siteID}):
+            'TYPE'         : getObservedParameter(paramName),
+            'STATIONID'    : siteID}):
             # print obs['TYPE']
             obsValue.append(obs['VALUE'])
             obsDate.append(obs['LOCALDATETIME'])
-    else: # TODO, not finised yet!
+    else:  # TODO, not finised yet!
         pass
     # dateArr = GetDateArr(timeStart, timeEnd)
     # obsValueArr = numpy.zeros(len(dateArr))
@@ -148,6 +153,7 @@ def SearchObs2(timeStart, timeEnd, paramName, subbasinID, ClimateDB):
         # return (obsValueArr, obsValue)
     else:
         return None, None
+
 
 LFs = ['\r\n', '\n\r', '\r', '\n']
 
@@ -171,7 +177,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID = 0):
                     if LF in line:
                         line = line.split(LF)[0]
                         break
-                strList = SplitStr(StripStr(line), spliters=" ")
+                strList = SplitStr(StripStr(line), spliters = " ")
                 if len(strList) == 3:
                     dateStr = strList[0] + " " + strList[1]
                     simDatetime = datetime.datetime.strptime(dateStr, "%Y-%m-%d %H:%M:%S")
@@ -422,9 +428,9 @@ def CreatePlot2(sim_date, preci, simList, vari_Sim, model_dir, ClimateDB):
         ylabelStr = vari_Sim[i]
         if vari_Sim[i] in ["Q", "Qi", "QG", "QS"]:
             ylabelStr += " (m$^3$/s)"
-        elif "CONC" in vari_Sim[i].upper(): # Concentrate
+        elif "CONC" in vari_Sim[i].upper():  # Concentrate
             ylabelStr += " (mg/L)"
-        else: # amount
+        else:  # amount
             ylabelStr += " (kg)"
         # print ylabelStr
         # obs = SearchObs(timeStart, timeEnd, vari_Sim[i], ClimateDB)
@@ -434,7 +440,7 @@ def CreatePlot2(sim_date, preci, simList, vari_Sim, model_dir, ClimateDB):
         #             linewidth = 1, align = "center", hatch = "//")
         if obsValues is not None:
             p1 = ax.bar(obsDates, obsValues, label = "Observation", color = "none", edgecolor = 'black',
-                    linewidth = 1, align = "center", hatch = "//")
+                        linewidth = 1, align = "center", hatch = "//")
         p2, = ax.plot(sim_date, simList[i], label = "Simulation", color = "black",
                       marker = "o", markersize = 2, linewidth = 1)
         plt.xlabel('Date')
@@ -488,4 +494,4 @@ def CreatePlot2(sim_date, preci, simList, vari_Sim, model_dir, ClimateDB):
         #           color = "red", loc = 'right')
         plt.tight_layout()
         plt.savefig(model_dir + os.sep + vari_Sim[i] + ".png")
-    # plt.show()
+        # plt.show()

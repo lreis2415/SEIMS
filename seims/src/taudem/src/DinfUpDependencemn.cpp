@@ -38,7 +38,7 @@ email:  dtarb@usu.edu
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
 
-  
+
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
@@ -46,87 +46,67 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
+int main(int argc, char **argv) {
+    char angfile[MAXLN], dgfile[MAXLN], depfile[MAXLN];
+    int err, useOutlets = 0, usew = 0, contcheck = 1, i;
 
-int main(int argc,char **argv)
-{
-   char angfile[MAXLN],dgfile[MAXLN],depfile[MAXLN];
-   int err,useOutlets=0,usew=0,contcheck=1,i;
-   
-   if(argc < 2)
-    {  
-       printf("Error: To run this program, use either the Simple Usage option or\n");
-	   printf("the Usage with Specific file names option\n");
-	   goto errexit;  
+    if (argc < 2) {
+        printf("Error: To run this program, use either the Simple Usage option or\n");
+        printf("the Usage with Specific file names option\n");
+        goto errexit;
+    } else if (argc > 2) {
+        i = 1;
+//		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
+    } else {
+        i = 2;
+//		printf("You are running %s with the Simple Usage option.\n", argv[0]);
+    }
+    while (argc > i) {
+        if (strcmp(argv[i], "-ang") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(angfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-dg") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(dgfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-dep") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(depfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
+    }
+    if (argc == 2) {
+        nameadd(angfile, argv[1], "ang");
+        nameadd(dgfile, argv[1], "dg");
+        nameadd(depfile, argv[1], "dep");
+    }
+    if ((err = depgrd(angfile, dgfile, depfile)) != 0) {
+        printf("depgrd error %d\n", err);
     }
 
-   else if(argc > 2)
-	{
-		i = 1;
-//		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
-	}
-	else {
-		i = 2;
-//		printf("You are running %s with the Simple Usage option.\n", argv[0]);
-	}
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-ang")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(angfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-dg")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(dgfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-dep")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(depfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else 
-		{
-			goto errexit;
-		}
-	}
-	if( argc == 2) {
-		nameadd(angfile,argv[1],"ang");
-		nameadd(dgfile,argv[1],"dg");
-		nameadd(depfile,argv[1],"dep");
-	}  
-	if((err=depgrd(angfile,dgfile,depfile)) != 0)
-        printf("depgrd error %d\n",err);
+    return 0;
 
-	return 0;
-
-	errexit:
-	   printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
-	   printf("Usage with specific file names:\n %s -ang <angfile>\n",argv[0]);
-       printf("-dg <dgfile> -dp <depfile>\n");
-	   printf("<basefilename> is the name of the raw digital elevation model\n");
-	   printf("<angfile> is the D-infinity flow direction input file.\n");
-	   printf("<dgfile> is the disturbance input grid file.\n");
-	   printf("<depfile> is the flow dependence grid file.\n");
-	   printf("The following are appended to the file names\n");
-       printf("before the files are opened:\n");
-       printf("ang    D-infinity flow direction input file\n");
-	   printf("dg     disturbance grid (input)\n");
-	   printf("dep    dependence grid (input)\n");
-       exit(0);  
+    errexit:
+    printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
+    printf("Usage with specific file names:\n %s -ang <angfile>\n", argv[0]);
+    printf("-dg <dgfile> -dp <depfile>\n");
+    printf("<basefilename> is the name of the raw digital elevation model\n");
+    printf("<angfile> is the D-infinity flow direction input file.\n");
+    printf("<dgfile> is the disturbance input grid file.\n");
+    printf("<depfile> is the flow dependence grid file.\n");
+    printf("The following are appended to the file names\n");
+    printf("before the files are opened:\n");
+    printf("ang    D-infinity flow direction input file\n");
+    printf("dg     disturbance grid (input)\n");
+    printf("dep    dependence grid (input)\n");
+    exit(0);
 }

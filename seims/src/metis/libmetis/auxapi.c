@@ -20,10 +20,9 @@
            METIS.
 */
 /*************************************************************************/
-int METIS_Free(void *ptr)
-{
-  if (ptr != NULL) free(ptr);
-  return METIS_OK;
+int METIS_Free(void *ptr) {
+    if (ptr != NULL) free(ptr);
+    return METIS_OK;
 }
 
 
@@ -33,11 +32,10 @@ int METIS_Free(void *ptr)
     \param options points to an array of size at least METIS_NOPTIONS.
 */
 /*************************************************************************/
-int METIS_SetDefaultOptions(idx_t *options)
-{
-  iset(METIS_NOPTIONS, -1, options);
+int METIS_SetDefaultOptions(idx_t *options) {
+    iset(METIS_NOPTIONS, -1, options);
 
-  return METIS_OK;
+    return METIS_OK;
 }
 
 

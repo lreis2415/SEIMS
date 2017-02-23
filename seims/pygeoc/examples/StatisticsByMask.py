@@ -1,6 +1,7 @@
 from pygeoc.raster import *
 from pygeoc.utils.utils import FloatEqual
 
+
 def StatisticsByMask(simf, obsf, maskf):
     maskr = ReadRaster(maskf)
     rows = maskr.nRows
@@ -31,6 +32,8 @@ def StatisticsByMask(simf, obsf, maskf):
     ME = E / n
     RMSE = math.sqrt(E2 / n)
     return ME, RMSE
+
+
 if __name__ == "__main__":
     MaskRasterFile = r'C:\Users\ZhuLJ\Desktop\ME_RMSE_testdata\region.tif'
     SimulateRasterFile = r'C:\Users\ZhuLJ\Desktop\ME_RMSE_testdata\result.tif'

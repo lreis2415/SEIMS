@@ -15,46 +15,39 @@
 using namespace std;
 
 //// FUNCTIONS IMPLEMENTATION ////
-float MeanBarometricPressure(float &elev)
-{
+float MeanBarometricPressure(float &elev) {
     return 101.3f - elev * (0.01152f - 0.544e-6f * elev);
 }
 
-float LatentHeatVapor(float &tmean)
-{
+float LatentHeatVapor(float &tmean) {
     return 2.501f - 0.002361f * tmean;
 }
 
-int GetYear(time_t &date)
-{
+int GetYear(time_t &date) {
     struct tm dateInfo;
     LocalTime(date, &dateInfo);
     return dateInfo.tm_year;
 }
 
-int GetMonth(time_t &date)
-{
+int GetMonth(time_t &date) {
     struct tm dateInfo;
     LocalTime(date, &dateInfo);
     return dateInfo.tm_mon;
 }
 
-int GetDay(time_t &date)
-{
+int GetDay(time_t &date) {
     struct tm dateInfo;
     LocalTime(date, &dateInfo);
     return dateInfo.tm_mday;
 }
 
-int JulianDay(time_t &date)
-{
+int JulianDay(time_t &date) {
     struct tm dateInfo;
     LocalTime(date, &dateInfo);
     return dateInfo.tm_yday + 1;
 }
 
-void MaxSolarRadiation(int &day, float &lat, float &dayL, float &maxSR)
-{
+void MaxSolarRadiation(int &day, float &lat, float &dayL, float &maxSR) {
     lat = lat * PI / 180.f;
     //Calculate Daylength
     //calculate solar declination: equation 1:1.1.2 in SWAT Theory 2009, p31
@@ -72,12 +65,13 @@ void MaxSolarRadiation(int &day, float &lat, float &dayL, float &maxSR)
     float h = 0.0f;
     /// equation 1:1.1.4 in SWAT Theory 2009, p32
     float ch = -sin(lat) * tan(sd) / cos(lat);
-    if (ch > 1.f) //ch will be >= 1. if latitude exceeds +/- 66.5 deg in winter
+    if (ch > 1.f) { //ch will be >= 1. if latitude exceeds +/- 66.5 deg in winter
         h = 0.0f;
-    else if (ch >= -1.0f)
+    } else if (ch >= -1.0f) {
         h = acos(ch);
-    else
-        h = PI; //latitude exceeds +/- 66.5 deg in summer
+    } else {
+        h = PI;
+    } //latitude exceeds +/- 66.5 deg in summer
     dayL = 7.6394f * h;
     //Calculate Potential (maximum) Radiation !!
     /// equation 1:1.1.3 in SWAT Theory 2009, p31
@@ -87,19 +81,16 @@ void MaxSolarRadiation(int &day, float &lat, float &dayL, float &maxSR)
     maxSR = 30.f * dd * (h * ys + yc * sin(h));
 }
 
-float PsychrometricConst(float &tmean, float &elev)
-{
+float PsychrometricConst(float &tmean, float &elev) {
     float pb = MeanBarometricPressure(elev);
     float xl = LatentHeatVapor(tmean);
     return 1.013e-3f * pb / (0.622f * xl);
 }
 
-float SaturationVaporPressure(float &t)
-{
+float SaturationVaporPressure(float &t) {
     /// Calculate saturation vapor pressure, equation 1:2.3.2 in SWAT Theory 2009, p54
     /// Tetens (1930) and Murray (1967), ee.f in SWAT src.
-    if (!FloatEqual(t + 237.3f, UTIL_ZERO))
-    {
+    if (!FloatEqual(t + 237.3f, UTIL_ZERO)) {
         float ea = (16.78f * t - 116.9f) / (t + 237.3f);
         return exp(ea);
     }

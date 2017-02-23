@@ -47,88 +47,70 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
-int main(int argc,char **argv)  
-{
-   char plenfile[MAXLN],ad8file[MAXLN], ssfile[MAXLN];
-   float p[2];
-   int err;
-      
-   if(argc < 2) goto errexit;
-   // Set defaults
-   p[0]=0.03;  //  M coefficient
-   p[1]=1.3;  // y exponent
-   if(argc == 2)
-	{
-//		printf("You are running %s with the simple use option.\n", argv[0]);
-		nameadd(plenfile,argv[1],"plen");
-		nameadd(ad8file,argv[1],"ad8");
-		nameadd(ssfile,argv[1],"ss");
-    }
-   if(argc > 2)
-   {
-//		printf("You are running %s with the specific file names option.\n", argv[0]);
-        int i=1;	
-		while(argc > i)
-		{
-			if(strcmp(argv[i],"-plen")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(plenfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-ad8")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(ad8file,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-ss")==0)
-			{
-				i++;
-				if(argc > i)
-				{
-					strcpy(ssfile,argv[i]);
-					i++;
-				}
-				else goto errexit;
-			}
-			else if(strcmp(argv[i],"-par")==0)
-			{
-				i++;
-				if(argc > i+1)
-				{
-					sscanf(argv[i],"%f",&p[0]);
-					i++;
-					sscanf(argv[i],"%f",&p[1]);
-					i++;
-				}
-				else goto errexit;
-			}
-		    else goto errexit;
-		}
-   }
-    if((err=lengtharea(plenfile,ad8file, ssfile,p)) != 0)
-        printf("Length Area Error %d\n",err);
+int main(int argc, char **argv) {
+    char plenfile[MAXLN], ad8file[MAXLN], ssfile[MAXLN];
+    float p[2];
+    int err;
 
-	return 0;
-errexit:
-   printf("Simple Use:\n %s <basefilename>\n",argv[0]);
-   printf("Use with specific file names:\n %s -plen <plenfile>\n",argv[0]);
-   printf("-ad8 <ad8file> -ss <ssfile> [-par <M> <y>] \n");
-   printf("<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'plen', 'ad8' and 'ss' will be appended. \n");
-   printf("<plenfile> is the name of the input upslope longest path length file.\n");
-   printf("<ad8file> is the name of input contributing area file.\n");
-   printf("<ssfile> is the name of the output file with the result A >= M L^y ? 1:0.\n");
-   printf("<M> is the coefficient, default value 0.03 if not specified.\n");
-   printf("<y> is the exponent on upslope length, default value 1.3 if not specified.\n");
-   return 0; 
+    if (argc < 2) goto errexit;
+    // Set defaults
+    p[0] = 0.03;  //  M coefficient
+    p[1] = 1.3;  // y exponent
+    if (argc == 2) {
+//		printf("You are running %s with the simple use option.\n", argv[0]);
+        nameadd(plenfile, argv[1], "plen");
+        nameadd(ad8file, argv[1], "ad8");
+        nameadd(ssfile, argv[1], "ss");
+    }
+    if (argc > 2) {
+//		printf("You are running %s with the specific file names option.\n", argv[0]);
+        int i = 1;
+        while (argc > i) {
+            if (strcmp(argv[i], "-plen") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(plenfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-ad8") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(ad8file, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-ss") == 0) {
+                i++;
+                if (argc > i) {
+                    strcpy(ssfile, argv[i]);
+                    i++;
+                } else { goto errexit; }
+            } else if (strcmp(argv[i], "-par") == 0) {
+                i++;
+                if (argc > i + 1) {
+                    sscanf(argv[i], "%f", &p[0]);
+                    i++;
+                    sscanf(argv[i], "%f", &p[1]);
+                    i++;
+                } else { goto errexit; }
+            } else { goto errexit; }
+        }
+    }
+    if ((err = lengtharea(plenfile, ad8file, ssfile, p)) != 0) {
+        printf("Length Area Error %d\n", err);
+    }
+
+    return 0;
+    errexit:
+    printf("Simple Use:\n %s <basefilename>\n", argv[0]);
+    printf("Use with specific file names:\n %s -plen <plenfile>\n", argv[0]);
+    printf("-ad8 <ad8file> -ss <ssfile> [-par <M> <y>] \n");
+    printf(
+        "<basefilename> is the name of the base digital elevation model without suffixes for simple input. Suffixes 'plen', 'ad8' and 'ss' will be appended. \n");
+    printf("<plenfile> is the name of the input upslope longest path length file.\n");
+    printf("<ad8file> is the name of input contributing area file.\n");
+    printf("<ssfile> is the name of the output file with the result A >= M L^y ? 1:0.\n");
+    printf("<M> is the coefficient, default value 0.03 if not specified.\n");
+    printf("<y> is the exponent on upslope length, default value 1.3 if not specified.\n");
+    return 0;
 } 
    

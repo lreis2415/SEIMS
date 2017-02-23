@@ -39,8 +39,7 @@ using namespace std;
  * \brief A simple fill and spill method method to calculate depression storage
  *
  */
-class DepressionFS : public SimulationModule
-{
+class DepressionFS : public SimulationModule {
 public:
     //! Constructor
     DepressionFS(void);

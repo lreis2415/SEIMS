@@ -30,8 +30,7 @@ using namespace std;
  * \brief Calculate snow water balance
  * 
  */
-class SNO_WB : public SimulationModule
-{
+class SNO_WB : public SimulationModule {
 public:
     //! Constructor
     SNO_WB(void);

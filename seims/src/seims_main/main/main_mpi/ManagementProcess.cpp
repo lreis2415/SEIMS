@@ -14,31 +14,32 @@
 
 float deepGw = 0.f;
 
-int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, string &projectPath, string &outputFile)
-{
+int MasterProcess(map < int, SubbasinStruct * > &subbasinMap, set < int > &groupSet, string & projectPath,
+                  string & outputFile) {
     //cout << "Enter master process.\n";
     MPI_Request request;
     MPI_Status status;
     int nSlaves = groupSet.size();
     //cout << "nSlaves " << nSlaves << endl;
     map<int, vector<int> > groupMap;
-    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it)
+    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it) {
         groupMap[*it] = vector<int>();
+    }
 
     // get the subbasin id list of different groups
     int idOutlet = -1;
-    for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it)
-    {
+    for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
         groupMap[it->second->group].push_back(it->second->id);
-        if (it->second->downStream == NULL)
+        if (it->second->downStream == NULL) {
             idOutlet = it->second->id;
+        }
     }
     // get the maximum length of the task assignment message
     size_t maxTaskLen = 0;
-    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it)
-    {
-        if (groupMap[*it].size() > maxTaskLen)
+    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it) {
+        if (groupMap[*it].size() > maxTaskLen) {
             maxTaskLen = groupMap[*it].size();
+        }
     }
 
     int nTaskAll = maxTaskLen * groupMap.size();
@@ -52,40 +53,35 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
     int *pSendGroupId = new int[groupMap.size()]; // id of the group
 
     int iGroup = 0;
-    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it)
-    {
+    for (set<int>::iterator it = groupSet.begin(); it != groupSet.end(); ++it) {
         pSendGroupId[iGroup] = *it;
         vector<int> &vec = groupMap[*it];
         int groupIndex = iGroup * maxTaskLen;
-        for (size_t i = 0; i < vec.size(); ++i)
-        {
+        for (size_t i = 0; i < vec.size(); ++i) {
             int id = vec[i];
             pSendTask[groupIndex + i] = id;
             pSendRank[groupIndex + i] = subbasinMap[id]->rank;
             pSendDis[groupIndex + i] = subbasinMap[id]->disToOutlet;
-            if (subbasinMap[id]->downStream != NULL)
+            if (subbasinMap[id]->downStream != NULL) {
                 pSendDownStream[groupIndex + i] = subbasinMap[id]->downStream->id;
-            else
+            } else {
                 pSendDownStream[groupIndex + i] = -1;
+            }
 
             int nUps = subbasinMap[id]->upStreams.size();
             pSendUpNums[groupIndex + i] = nUps;
-            if (nUps > MAX_UPSTREAM)
-            {
+            if (nUps > MAX_UPSTREAM) {
                 cout << "The number of upstreams exceeds MAX_UPSTREAM.\n";
                 exit(-1);
             }
-            for (int j = 0; j < nUps; ++j)
-            {
+            for (int j = 0; j < nUps; ++j) {
                 pSendUpStream[MAX_UPSTREAM * (groupIndex + i) + j] = subbasinMap[id]->upStreams[j]->id;
             }
-            for (int j = nUps; j < MAX_UPSTREAM; ++j)
-            {
+            for (int j = nUps; j < MAX_UPSTREAM; ++j) {
                 pSendUpStream[MAX_UPSTREAM * (groupIndex + i) + j] = -1;
             }
         }
-        for (size_t i = vec.size(); i < maxTaskLen; ++i)
-        {
+        for (size_t i = vec.size(); i < maxTaskLen; ++i) {
             pSendTask[groupIndex + i] = -1;
             pSendRank[groupIndex + i] = -1;
             pSendDis[groupIndex + i] = -1;
@@ -113,8 +109,7 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
     float buf[MSG_LEN];
     map<int, int> waitingMap;
     ofstream fOutput(outputFile.c_str());
-    while (!finished)
-    {
+    while (!finished) {
         MPI_Irecv(&buf, MSG_LEN, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         MPI_Wait(&request, &status);
         //cout << "master info:" << int(buf[1]) << " " << buf[2] << endl;
@@ -140,15 +135,12 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
             // check waiting list
             int found = false;
             map<int, int>::iterator it;
-            for (it = waitingMap.begin(); it != waitingMap.end(); ++it)
-            {
+            for (it = waitingMap.begin(); it != waitingMap.end(); ++it) {
                 int gid = it->first;
                 int sRank = it->second;
                 vector<int> &subs = groupMap[gid];
-                for (size_t i = 0; i < subs.size(); i++)
-                {
-                    if (subbasinMap[id]->downStream->id == subs[i])
-                    {
+                for (size_t i = 0; i < subs.size(); i++) {
+                    if (subbasinMap[id]->downStream->id == subs[i]) {
                         // send message to the slave process
                         int msgLen = 2;
                         MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MPI_COMM_WORLD, &request);
@@ -171,34 +163,30 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
                     }
                 }
 
-                if (found)
+                if (found) {
                     break;
+                }
             }
 
-
-            if (id == idOutlet)
+            if (id == idOutlet) {
                 fOutput << utils::ConvertToString2(&t) << "\t" << setprecision(8) <<
-                subbasinMap[id]->qOutlet + deepGw << "\n";
-        }
-        else if (msgCode == 2) //a slave process is asking for information of the newly calculated upstream subbasins
+                        subbasinMap[id]->qOutlet + deepGw << "\n";
+            }
+        } else if (msgCode == 2) //a slave process is asking for information of the newly calculated upstream subbasins
         {
             map<int, float> transMap; // used to contain flowout of the newly calculated basins
             int gid = int(buf[1]);
             int sRank = int(buf[2]);
             vector<int> &subs = groupMap[gid];
             // loop subbasins in the group
-            for (size_t i = 0; i < subs.size(); i++)
-            {
+            for (size_t i = 0; i < subs.size(); i++) {
                 int id = subs[i];
                 // for not most upstream basins
-                if (subbasinMap[id]->rank > 1)
-                {
+                if (subbasinMap[id]->rank > 1) {
                     // find if their upstream basins are newly calculated
-                    vector<SubbasinStruct *> &ups = subbasinMap[id]->upStreams;
-                    for (size_t j = 0; j < ups.size(); j++)
-                    {
-                        if (ups[j]->calculated)
-                        {
+                    vector < SubbasinStruct * > &ups = subbasinMap[id]->upStreams;
+                    for (size_t j = 0; j < ups.size(); j++) {
+                        if (ups[j]->calculated) {
                             transMap[ups[j]->id] = ups[j]->qOutlet;
                             ups[j]->calculated = false;
                         }
@@ -206,19 +194,15 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
                 }
             }
 
-            if (transMap.empty())
-            {
+            if (transMap.empty()) {
                 waitingMap[gid] = sRank;
-            }
-            else
-            {
+            } else {
                 // tell the slave process the message length containing new information
                 int msgLen = transMap.size() * 2;
                 MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MPI_COMM_WORLD, &request);
                 float *pData = new float[msgLen];
                 int counter = 0;
-                for (map<int, float>::iterator it = transMap.begin(); it != transMap.end(); it++)
-                {
+                for (map<int, float>::iterator it = transMap.begin(); it != transMap.end(); it++) {
                     pData[2 * counter] = (float) it->first;
                     pData[2 * counter + 1] = it->second;
 
@@ -237,28 +221,23 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, s
 #endif
                 delete pData;
             }
-        }
-        else if (msgCode == 0) // reset all qOutlet informaion
+        } else if (msgCode == 0) // reset all qOutlet informaion
         {
-            for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it)
-            {
+            for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
                 it->second->calculated = false;
                 it->second->qOutlet = 0.f;
             }
 #ifdef DEBUG_OUTPUT
             cout << "master: newround" << endl;
 #endif
-        }
-        else if (msgCode == 9)
-        {
+        } else if (msgCode == 9) {
             finished = true;
             //cout << "Exit from the master process.\n";
         }
     }
     fOutput.close();
 
-    for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it)
-    {
+    for (map<int, SubbasinStruct *>::iterator it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
         delete it->second;
     }
     delete[] pSendTask;

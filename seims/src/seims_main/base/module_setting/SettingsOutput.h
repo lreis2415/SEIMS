@@ -15,6 +15,7 @@
 #include "utilities.h"
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
+
 /*!
  * \ingroup module_setting
  * \class SettingsOutput
@@ -25,8 +26,7 @@
  *
  */
 class SettingsOutput :
-        public Settings
-{
+    public Settings {
 public:
     //! Constructor, read from file.out
     SettingsOutput(int subBasinID, string fileName, mongoc_client_t *conn, string dbName, mongoc_gridfs_t *gfs);
@@ -46,10 +46,11 @@ public:
      */
     bool LoadSettingsOutputFromMongoDB(int subBasinID);
 
-	/*
-	 * \brief Read subbasin numbers, outlet ID, etc. from MongoDB
-	 */
-	void SetSubbasinIDs();
+    /*
+     * \brief Read subbasin numbers, outlet ID, etc. from MongoDB
+     */
+    void SetSubbasinIDs();
+
     //! Write output information to log file
     void Dump(string);
 
@@ -62,11 +63,11 @@ public:
 public:
     //! All the print settings
     vector<PrintInfo *> m_printInfos;
-	/* All the output settings
-	 * key: OutputID
-	 * value: \sa PrintInfo instance
-	 */
-	map<string, PrintInfo*> m_printInfosMap;
+    /* All the output settings
+     * key: OutputID
+     * value: \sa PrintInfo instance
+     */
+    map<string, PrintInfo *> m_printInfosMap;
 
 private:
     //! MongoDB client
@@ -76,10 +77,11 @@ private:
     //! Output GridFS
     mongoc_gridfs_t *m_outputGfs;
 
-	//! number of subbasins
-	int m_nSubbasins;
-	//! subbasin ID which outlet located
-	int m_outletID;
+    //! number of subbasins
+    int m_nSubbasins;
+    //! subbasin ID which outlet located
+    int m_outletID;
+
     //! Parse output settings for given subBasinID
     bool ParseOutputSettings(int);
 };

@@ -31,10 +31,10 @@ arcpy.AddMessage("Number of Processes: " + inputProc)
 
 # Output
 ss = arcpy.GetParameterAsText(5)
-arcpy.AddMessage("Output Stream Source Grid: "+ss)
+arcpy.AddMessage("Output Stream Source Grid: " + ss)
 
 # Construct command
-cmd = 'mpiexec -n ' + inputProc + ' LengthArea -plen ' + '"' + plen + '"' + ' -ad8 ' + '"' + ad8 +\
+cmd = 'mpiexec -n ' + inputProc + ' LengthArea -plen ' + '"' + plen + '"' + ' -ad8 ' + '"' + ad8 + \
       '"' + ' -ss ' + '"' + ss + '"' + ' -par ' + threshold + ' ' + exponent
 
 arcpy.AddMessage("\nCommand Line: " + cmd)

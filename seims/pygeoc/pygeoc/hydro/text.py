@@ -1,4 +1,3 @@
-
 # Field name of stream shapefile of TauDEM
 FLD_LINKNO = "LINKNO"
 FLD_DSLINKNO = "DSLINKNO"

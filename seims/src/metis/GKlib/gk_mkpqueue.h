@@ -11,7 +11,6 @@
 #ifndef _GK_MKPQUEUE_H
 #define _GK_MKPQUEUE_H
 
-
 #define GK_MKPQUEUE(FPRFX, PQT, KVT, KT, VT, KVMALLOC, KMAX, KEY_LT)\
 /*************************************************************************/\
 /*! This function creates and initializes a priority queue */\

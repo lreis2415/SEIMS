@@ -24,8 +24,7 @@
  * 
  *
  */
-class RegularMeasurement : public Measurement
-{
+class RegularMeasurement : public Measurement {
 public:
     /*!
      * \brief Constructor

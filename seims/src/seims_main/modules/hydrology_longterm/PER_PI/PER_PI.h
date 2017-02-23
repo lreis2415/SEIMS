@@ -27,20 +27,19 @@ using namespace std;
  * \brief Calculate water percolated from the soil water reservoir
  * 
  */
-class PER_PI : public SimulationModule
-{
+class PER_PI : public SimulationModule {
 private:
     /// maximum number of soil layers
     int m_soilLayers;
-	/// soil layers
-	float *m_nSoilLayers;
+    /// soil layers
+    float *m_nSoilLayers;
     ///// soil depth
     //float **m_soilDepth;
-	/// soil thickness
-	float **m_soilThick;
+    /// soil thickness
+    float **m_soilThick;
     ///// depth of the up soil layer
     //float *m_upSoilDepth;
- 
+
     /// time step
     int m_dt;
     /// valid cells number
@@ -52,27 +51,27 @@ private:
     ///// soil porosity
     //float **m_porosity;
 
-	/// amount of water held in the soil layer at saturation (sat - wp water), mm
-	float **m_sat;    
-	/// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-	float **m_fc;
-	/// water content of soil at -1.5 MPa (wilting point) mm H2O
-	float **m_wp;
+    /// amount of water held in the soil layer at saturation (sat - wp water), mm
+    float **m_sat;
+    /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
+    float **m_fc;
+    /// water content of soil at -1.5 MPa (wilting point) mm H2O
+    float **m_wp;
     /// pore size distribution index
     float **m_poreIndex;
-	/// amount of water stored in soil layers on current day, sol_st in SWAT
-	float **m_soilStorage;
-	/// amount of water stored in soil profile on current day, sol_sw in SWAT
-	float *m_soilStorageProfile;
+    /// amount of water stored in soil layers on current day, sol_st in SWAT
+    float **m_soilStorage;
+    /// amount of water stored in soil profile on current day, sol_sw in SWAT
+    float *m_soilStorageProfile;
     /// soil temperature
     float *m_soilT;
     /// infiltration (mm)
     float *m_infil;
-	/// impound/release 
-	float *m_impoundTriger;
+    /// impound/release
+    float *m_impoundTriger;
     /// Output
-	
-	///percolation (mm)
+
+    ///percolation (mm)
     float **m_perc;
 
 public:
@@ -109,7 +108,7 @@ private:
     */
     bool CheckInputSize(const char *, int);
 
-	void initialOutputs();
+    void initialOutputs();
 };
 
 

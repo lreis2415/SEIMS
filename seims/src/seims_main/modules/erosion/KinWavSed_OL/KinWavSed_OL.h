@@ -27,8 +27,7 @@ using namespace std;
  * \brief Kinematic wave method for overland flow erosion and deposition
  *
  */
-class KinWavSed_OL : public SimulationModule
-{
+class KinWavSed_OL : public SimulationModule {
 public:
     KinWavSed_OL(void);
 

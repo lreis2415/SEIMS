@@ -45,134 +45,93 @@ email:  dtarb@usu.edu
 #include <stdlib.h>
 #include "commonLib.h"
 #include "areadinf.h"
-  
-int main(int argc,char **argv)
-{
-   char pfile[MAXLN],afile[MAXLN],wfile[MAXLN],datasrc[MAXLN],lyrname[MAXLN];
-   int err,useOutlets=0,uselyrname=0,usew=0,lyrno=0,contcheck=1,i;
-      
-   if(argc < 2)
-    {  
-	   printf("Error: To run this program, use either the Simple Usage option or\n");
-	   printf("the Usage with Specific file names option\n");
-	   goto errexit; 
-    }
-    else if(argc > 2)
-	{
-		i = 1;
+
+int main(int argc, char **argv) {
+    char pfile[MAXLN], afile[MAXLN], wfile[MAXLN], datasrc[MAXLN], lyrname[MAXLN];
+    int err, useOutlets = 0, uselyrname = 0, usew = 0, lyrno = 0, contcheck = 1, i;
+
+    if (argc < 2) {
+        printf("Error: To run this program, use either the Simple Usage option or\n");
+        printf("the Usage with Specific file names option\n");
+        goto errexit;
+    } else if (argc > 2) {
+        i = 1;
 //		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
-	}
-	else {
-		i = 2;
+    } else {
+        i = 2;
 //		printf("You are running %s with the Simple Usage option.\n", argv[0]);
-	}
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-ang")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(pfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-sca")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(afile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-o")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(datasrc, argv[i]);
-				useOutlets=1;
-				i++;
-			}
-			else goto errexit;
-		}
+    }
+    while (argc > i) {
+        if (strcmp(argv[i], "-ang") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(pfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-sca") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(afile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-o") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(datasrc, argv[i]);
+                useOutlets = 1;
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-lyrno") == 0) {
+            i++;
+            if (argc > i) {
+                sscanf(argv[i], "%d", &lyrno);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-lyrname") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(lyrname, argv[i]);
+                uselyrname = 1;
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-wg") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(wfile, argv[i]);
+                usew = 1;
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-nc") == 0) {
+            i++;
+            contcheck = 0;
+        } else {
+            goto errexit;
+        }
+    }
+    if (argc == 2) {
+        nameadd(afile, argv[1], "sca");
+        nameadd(pfile, argv[1], "ang");
+    }
 
+    if ((err = area(pfile, afile, datasrc, lyrname, uselyrname, lyrno, wfile, useOutlets, usew, contcheck)) != 0) {
+        printf("area error %d\n", err);
+    }
 
-		
-		   else if(strcmp(argv[i],"-lyrno")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				sscanf(argv[i],"%d",&lyrno);
-				i++;											
-			}
-			else goto errexit;
-		}
+    return 0;
 
-	   
-	 else if(strcmp(argv[i],"-lyrname")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(lyrname,argv[i]);
-		        uselyrname = 1;
-				i++;											
-			}
-			else goto errexit;
-		}
-
-
-
-		else if(strcmp(argv[i],"-wg")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(wfile,argv[i]);
-				usew=1;
-				i++;
-			}
-			else goto errexit;
-		}
-	   else if(strcmp(argv[i],"-nc")==0)
-		{
-			i++;
-			contcheck=0;
-		}
-		else 
-		{
-			goto errexit;
-		}
-	}
-	if( argc == 2) {
-		nameadd(afile,argv[1],"sca");
-		nameadd(pfile,argv[1],"ang");
-	}   
-   
-   if((err=area(pfile,afile,datasrc,lyrname,uselyrname,lyrno,wfile,useOutlets,usew,contcheck)) != 0)
-        printf("area error %d\n",err);
-   
-
-	return 0;
-	
-errexit:
-	   printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
-	   printf("Usage with specific file names:\n %s -ang <angfile>\n",argv[0]);
-       printf("-sca <afile> [-o <shfile>] [-wg <wfile>]\n");
-	   printf("<basefilename> is the name of the raw digital elevation model\n");
-	   printf("<angfile> is the D-infinity flow direction input file.\n");
-	   printf("<afile> is the D-infinity area output file.\n");
-	   printf("[-o <shfile>] is the optional outlet shape input file.\n");
-       printf("[-wg <wfile>] is the optional weight grid input file.\n");
-       printf("The flag -nc overrides edge contamination checking\n");
-	   printf("The following are appended to the file names\n");
-       printf("before the files are opened:\n");
-       printf("sca   D-infinity contributing area file (output)\n");
-	   printf("ang   D-infinity flow direction output file\n");
-       exit(0); 
+    errexit:
+    printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
+    printf("Usage with specific file names:\n %s -ang <angfile>\n", argv[0]);
+    printf("-sca <afile> [-o <shfile>] [-wg <wfile>]\n");
+    printf("<basefilename> is the name of the raw digital elevation model\n");
+    printf("<angfile> is the D-infinity flow direction input file.\n");
+    printf("<afile> is the D-infinity area output file.\n");
+    printf("[-o <shfile>] is the optional outlet shape input file.\n");
+    printf("[-wg <wfile>] is the optional weight grid input file.\n");
+    printf("The flag -nc overrides edge contamination checking\n");
+    printf("The following are appended to the file names\n");
+    printf("before the files are opened:\n");
+    printf("sca   D-infinity contributing area file (output)\n");
+    printf("ang   D-infinity flow direction output file\n");
+    exit(0);
 } 

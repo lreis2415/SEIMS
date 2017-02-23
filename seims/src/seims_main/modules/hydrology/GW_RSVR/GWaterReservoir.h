@@ -25,8 +25,7 @@ using namespace std;
  * \brief Calculate groundwater using reservoir method
  *
  */
-class GWaterReservoir : public SimulationModule
-{
+class GWaterReservoir : public SimulationModule {
 public:
     //! Constructor
     GWaterReservoir(void);

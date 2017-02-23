@@ -24,8 +24,7 @@ using namespace std;
  * \brief Calculate percolation using Darcy law
  *
  */
-class Percolation_DARCY : public SimulationModule
-{
+class Percolation_DARCY : public SimulationModule {
 private:
     int m_timestep;
     //! Valid cells number
@@ -44,7 +43,6 @@ private:
     //float  m_ForzenT;
 
     float *m_recharge;
-
 
 public:
     //! Constructor

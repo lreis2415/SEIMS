@@ -10,7 +10,6 @@
 #ifndef _GK_MKUTILS_H_
 #define _GK_MKUTILS_H_
 
-
 #define GK_MKARRAY2CSR(PRFX, TYPE)\
 /*************************************************************************/\
 /*! The macro for gk_?array2csr() routine */\
@@ -31,7 +30,6 @@ void PRFX ## array2csr(TYPE n, TYPE range, TYPE *array, TYPE *ptr, TYPE *ind)\
     ind[ptr[array[i]]++] = i;\
   SHIFTCSR(i, range, ptr);\
 }
-
 
 #define GK_MKARRAY2CSR_PROTO(PRFX, TYPE)\
   void PRFX ## array2csr(TYPE n, TYPE range, TYPE *array, TYPE *ptr, TYPE *ind);\

@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new ImplicitKinematicWave_CH();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
 
@@ -32,7 +32,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
 
     mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-	mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
 
     mdi.AddParameter(VAR_FLOWDIR, UNIT_NON_DIM, DESC_FLOWDIR, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);

@@ -28,8 +28,7 @@ using namespace std;
  * \brief Sediment routing using variable channel dimension(VCD) method at daily time scale
  *
  */
-class NUTR_CH : public SimulationModule
-{
+class NUTR_CH : public SimulationModule {
 public:
     //! Constructor
     NUTR_CH(void);
@@ -84,7 +83,7 @@ private:
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
     /// upstream id (The value is -1 if there if no upstream reach)
-    vector<vector<int> > m_reachUpStream;
+    vector <vector<int>> m_reachUpStream;
 
     // id the reaches
     float *m_reachId;
@@ -95,22 +94,23 @@ private:
     /// reach storage (m3) at time t
     float *m_chStorage;
 
-	// input nutrient from hillslope
-	float *m_latno3ToCh;  // amount of nitrate transported with lateral flow to channel
-	float *m_sur_no3ToCh; // amount of nitrate transported with surface runoff to channel
-	float *m_sur_solpToCh;// amount of soluble phosphorus in surface runoff to channel
-	float *m_sedorgnToCh;  // amount of organic N in surface runoff to channel
-	float *m_sedorgpToCh;  // amount of organic P in surface runoff to channel
-	float *m_no3gwToCh;    // nitrate loading to reach in groundwater
-	float *m_minpgwToCh;   // soluble P loading to reach in groundwater
+    // input nutrient from hillslope
+    float *m_latno3ToCh;  // amount of nitrate transported with lateral flow to channel
+    float *m_sur_no3ToCh; // amount of nitrate transported with surface runoff to channel
+    float *m_sur_solpToCh;// amount of soluble phosphorus in surface runoff to channel
+    float *m_sedorgnToCh;  // amount of organic N in surface runoff to channel
+    float *m_sedorgpToCh;  // amount of organic P in surface runoff to channel
+    float *m_no3gwToCh;    // nitrate loading to reach in groundwater
+    float *m_minpgwToCh;   // soluble P loading to reach in groundwater
 
-	//output
-	float *m_chOrgN;    // organic nitrogen concentration in stream (mg N/L)
-	float *m_chNo3;     // NO3 concentration in stream (mg/L)
-	float *m_chOrgP;    // organic P concentration in stream (mg/L)
-	float *m_chSolP;    // solute P concentration in stream (mg/L)
+    //output
+    float *m_chOrgN;    // organic nitrogen concentration in stream (mg N/L)
+    float *m_chNo3;     // NO3 concentration in stream (mg/L)
+    float *m_chOrgP;    // organic P concentration in stream (mg/L)
+    float *m_chSolP;    // solute P concentration in stream (mg/L)
 
     void initialOutputs();
+
     void SedChannelRouting(int i);
 
 };

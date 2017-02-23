@@ -28,7 +28,7 @@ void checkDatabase(mongoc_client_t *conn, string dbName);
 void checkProject(string projectPath);
 
 //! Check table exists or not
-void checkTable(vector<string> &tableNameList, string dbName, const char *tableName);
+void checkTable(vector <string> &tableNameList, string dbName, const char *tableName);
 
 ////! Is file path existed?
 //bool isPathExists(const char *path);

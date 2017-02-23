@@ -42,51 +42,52 @@ email:  dtarb@usu.edu
 #include "stdlib.h"
 
 //Merge: used to union pixels/cells/nodes together in the same set
-void merge( Node *A, Node *B) {
-	Node *ptr1= A;
-	Node *ptr2= B;
-	while( ptr1->parent != NULL ) ptr1 = ptr1->parent;
-	while( ptr2->parent != NULL ) {
-		 ptr2 = ptr2->parent;
-	}
-	if( ptr1 !=  ptr2 )
-		ptr2->parent = ptr1;
+void merge(Node *A, Node *B) {
+    Node *ptr1 = A;
+    Node *ptr2 = B;
+    while (ptr1->parent != NULL) ptr1 = ptr1->parent;
+    while (ptr2->parent != NULL) {
+        ptr2 = ptr2->parent;
+    }
+    if (ptr1 != ptr2) {
+        ptr2->parent = ptr1;
+    }
 }
 
 //Collapses the unioned tree to decrease run time
-void collapse( Node *A ) {
-	Node *ptr = A;
-	Node *tmp = A;
-	Node *parent = ptr;
-	while( parent->parent != NULL ) parent = parent->parent;
-	while( tmp->parent != NULL ) {
-		tmp = tmp->parent;
-		ptr->parent = parent;
-	}
+void collapse(Node *A) {
+    Node *ptr = A;
+    Node *tmp = A;
+    Node *parent = ptr;
+    while (parent->parent != NULL) parent = parent->parent;
+    while (tmp->parent != NULL) {
+        tmp = tmp->parent;
+        ptr->parent = parent;
+    }
 }
 
 //setAttr of whole set
-void setAttr( Node *A, int newAttr ) {
-	Node *ptr1 = A;
-	while( ptr1->parent != NULL ) ptr1 = ptr1->parent;
-	ptr1-> attr = newAttr;
+void setAttr(Node *A, int newAttr) {
+    Node *ptr1 = A;
+    while (ptr1->parent != NULL) ptr1 = ptr1->parent;
+    ptr1->attr = newAttr;
 }
 
 //getAttr of whole set
-int getAttr( Node *A ) {
-	Node *ptr1 = A;
-	while( ptr1->parent != NULL ) ptr1 = ptr1->parent;
-	return ptr1->attr;
+int getAttr(Node *A) {
+    Node *ptr1 = A;
+    while (ptr1->parent != NULL) ptr1 = ptr1->parent;
+    return ptr1->attr;
 }
 
-void setID( Node *A, int newID ) {
-	Node *ptr1 = A;
-	while( ptr1->parent != NULL ) ptr1 = ptr1->parent;
-	ptr1-> ID = newID;
+void setID(Node *A, int newID) {
+    Node *ptr1 = A;
+    while (ptr1->parent != NULL) ptr1 = ptr1->parent;
+    ptr1->ID = newID;
 }
 
-int getID( Node *A ) {
-	Node *ptr1 = A;
-	while( ptr1->parent != NULL ) ptr1 = ptr1->parent;
-	return ptr1->ID;
+int getID(Node *A) {
+    Node *ptr1 = A;
+    while (ptr1->parent != NULL) ptr1 = ptr1->parent;
+    return ptr1->ID;
 }

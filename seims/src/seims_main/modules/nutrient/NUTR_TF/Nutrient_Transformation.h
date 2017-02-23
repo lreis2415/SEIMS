@@ -20,6 +20,7 @@
  */
 
 #pragma once
+
 #include <string>
 #include "api.h"
 #include "SimulationModule.h"
@@ -35,8 +36,7 @@ using namespace std;
  *
  */
 
-class Nutrient_Transformation : public SimulationModule
-{
+class Nutrient_Transformation : public SimulationModule {
 public:
     Nutrient_Transformation(void);
 
@@ -52,7 +52,8 @@ public:
 
     virtual void GetValue(const char *key, float *value);
 
-    virtual void Get1DData(const char* key, int* n, float** data);
+    virtual void Get1DData(const char *key, int *n, float **data);
+
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
 private:
@@ -65,116 +66,116 @@ private:
     float *m_nSoilLayers;
     /// maximum soil layers
     int m_soilLayers;
-	/* carbon modeling method
+    /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
      *   = 2 Century model
-	 */
+     */
     int m_CbnModel;
-	/* phosphorus model selection
-	 * 0: dynamic coefficient method by White et al., 2009
-	 * 1: original method
-	 */
-	int m_solP_model;
+    /* phosphorus model selection
+     * 0: dynamic coefficient method by White et al., 2009
+     * 1: original method
+     */
+    int m_solP_model;
 
-	/// days since P application
-	float *m_a_days;
-	/// days since P deficit
-	float *m_b_days;
+    /// days since P application
+    float *m_a_days;
+    /// days since P deficit
+    float *m_b_days;
 
-	/// tillage factor on SOM decomposition, used by CENTURY model
-	float *m_tillage_switch;
-	float *m_tillage_depth;
-	float *m_tillage_days;
-	float *m_tillage_factor;
+    /// tillage factor on SOM decomposition, used by CENTURY model
+    float *m_tillage_switch;
+    float *m_tillage_depth;
+    float *m_tillage_days;
+    float *m_tillage_factor;
     ///input data
-    
+
     ///rate factor for humus mineralization on active organic N
     float m_cmn;
     ///nitrogen active pool fraction. The fraction of organic nitrogen in the active pool.
     float m_nactfr;
-	/// denitrification threshold: fraction of field capacity
-	float m_sdnco;
+    /// denitrification threshold: fraction of field capacity
+    float m_sdnco;
     ///Phosphorus availability index. The fraction of fertilizer P remaining in labile pool after initial rapid phase of P sorption
     float m_psp;
-	float m_ssp;
+    float m_ssp;
     //rate coefficient for denitrification
     float m_cdn;
     ///land cover code from crop.dat
     float *m_landcover;
     ///plant residue decomposition coefficient.
     ///The fraction of residue which will decompose in a day assuming optimal moisture, temperature, C:N ratio, and C:P ratio
-	float *m_rsdco_pl;
-	///amount of residue on soil surface (kg/ha)
-	float *m_sol_cov;
-	///amount of residue on soil surface (kg/ha)
-	float *m_sol_rsdin;
-	
-	///daily average temperature of soil layer(deg C)
-	float *m_sote;
+    float *m_rsdco_pl;
+    ///amount of residue on soil surface (kg/ha)
+    float *m_sol_cov;
+    ///amount of residue on soil surface (kg/ha)
+    float *m_sol_rsdin;
+
+    ///daily average temperature of soil layer(deg C)
+    float *m_sote;
     ///percent organic matter in soil layer (%)
-	float **m_sol_om;
-	///bulk density of the soil (Mg/m3)
-	float **m_sol_bd;
-	/// percent organic carbon in soil layer (%)
-	float **m_sol_cbn;
+    float **m_sol_om;
+    ///bulk density of the soil (Mg/m3)
+    float **m_sol_bd;
+    /// percent organic carbon in soil layer (%)
+    float **m_sol_cbn;
     ///amount of water stored in the soil layer on current day(mm H2O)
     float **m_soilStorage;
     ///Water content of soil profile at field capacity(mm H2O) (FC-WP)
     float **m_sol_awc;
     ///depth to bottom of soil layer
-	float **m_sol_z;
-	///Percent of clay content
-	float **m_sol_clay;
-	/// percent of rock content
-	float **m_sol_rock;
-	/// thick of each soil layer
-	float **m_sol_thick;
-	///amount of nitrogen stored in the active organic (humic) nitrogen pool(kg N/ha)
-	float **m_sol_aorgn;
-	///amount of nitrogen stored in the fresh organic (residue) pool(kg N/ha)
-	float **m_sol_fon;
-	///amount of phosphorus stored in the fresh organic (residue) pool(kg P/ha)
-	float **m_sol_fop;
+    float **m_sol_z;
+    ///Percent of clay content
+    float **m_sol_clay;
+    /// percent of rock content
+    float **m_sol_rock;
+    /// thick of each soil layer
+    float **m_sol_thick;
+    ///amount of nitrogen stored in the active organic (humic) nitrogen pool(kg N/ha)
+    float **m_sol_aorgn;
+    ///amount of nitrogen stored in the fresh organic (residue) pool(kg N/ha)
+    float **m_sol_fon;
+    ///amount of phosphorus stored in the fresh organic (residue) pool(kg P/ha)
+    float **m_sol_fop;
     ///amount of phosphorus stored in the active mineral phosphorus pool
     float **m_sol_actp;
     ///amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool
-	float **m_sol_stap;
-	/// amount of water held in the soil layer at saturation
-	float **m_sol_wsatur;
-	/// porosity mm/mm
-	float **m_sol_por;
-	/// percent sand content of soil material
-	float **m_sand;
-	
-	///output data
-	
-	/************************************************************************/
-	/*    CENTURY model related parameters (initialized and output)  20     */
-	/************************************************************************/
-	float **m_sol_WOC; ///
-	float **m_sol_WON; ///
-	float **m_sol_BM; ///
-	float **m_sol_BMC; ///
-	float **m_sol_BMN; /// 
-	float **m_sol_HP; /// mass of OM in passive humus
-	float **m_sol_HS; /// mass of OM in slow humus
-	float **m_sol_HSC; /// mass of C present in slow humus
-	float **m_sol_HSN; /// mass of N present in slow humus
-	float **m_sol_HPC; /// mass of C present in passive humus
-	float **m_sol_HPN; /// mass of N present in passive humus
-	float **m_sol_LM; /// metabolic litter SOM pool
-	float **m_sol_LMC; /// metabolic litter C pool
-	float **m_sol_LMN; /// metabolic litter N pool
-	float **m_sol_LSC; /// structural litter C pool
-	float **m_sol_LSN; /// structural litter N pool
-	float **m_sol_LS; /// structural litter SOM pool
-	float **m_sol_LSL; /// lignin weight in structural litter
-	float **m_sol_LSLC; /// lignin amount in structural litter pool
-	float **m_sol_LSLNC; /// non-lignin part of the structural litter C
-	float **m_sol_RNMN; /// non
-	float **m_sol_RSPC; /// non
-	/************************************************************************/
+    float **m_sol_stap;
+    /// amount of water held in the soil layer at saturation
+    float **m_sol_wsatur;
+    /// porosity mm/mm
+    float **m_sol_por;
+    /// percent sand content of soil material
+    float **m_sand;
+
+    ///output data
+
+    /************************************************************************/
+    /*    CENTURY model related parameters (initialized and output)  20     */
+    /************************************************************************/
+    float **m_sol_WOC; ///
+    float **m_sol_WON; ///
+    float **m_sol_BM; ///
+    float **m_sol_BMC; ///
+    float **m_sol_BMN; ///
+    float **m_sol_HP; /// mass of OM in passive humus
+    float **m_sol_HS; /// mass of OM in slow humus
+    float **m_sol_HSC; /// mass of C present in slow humus
+    float **m_sol_HSN; /// mass of N present in slow humus
+    float **m_sol_HPC; /// mass of C present in passive humus
+    float **m_sol_HPN; /// mass of N present in passive humus
+    float **m_sol_LM; /// metabolic litter SOM pool
+    float **m_sol_LMC; /// metabolic litter C pool
+    float **m_sol_LMN; /// metabolic litter N pool
+    float **m_sol_LSC; /// structural litter C pool
+    float **m_sol_LSN; /// structural litter N pool
+    float **m_sol_LS; /// structural litter SOM pool
+    float **m_sol_LSL; /// lignin weight in structural litter
+    float **m_sol_LSLC; /// lignin amount in structural litter pool
+    float **m_sol_LSLNC; /// non-lignin part of the structural litter C
+    float **m_sol_RNMN; /// non
+    float **m_sol_RSPC; /// non
+    /************************************************************************/
     ///amount of nitrogen moving from active organic to nitrate pool in soil profile on current day in cell(kg N/ha)
     float *m_hmntl;
     ///amount of phosphorus moving from the organic to labile pool in soil profile on current day in cell(kg P/ha)
@@ -228,8 +229,8 @@ private:
     ///phosphorus moving from active mineral to stable mineral pool in watershed
     float m_wshd_pas;
 
-	/// factor which converts kg/kg soil to kg/ha, could be used in other nutrient modules
-	float **m_conv_wt;
+    /// factor which converts kg/kg soil to kg/ha, could be used in other nutrient modules
+    float **m_conv_wt;
 private:
 
     /*!
@@ -254,19 +255,22 @@ private:
      * \return void
      */
     void Mineralization_StaticCarbonMethod(int i);
-	/*!
+
+    /*!
      * \brief simulates organic C, N, and P cycling in soil using C-FARM one carbon model
-	 *        Execute when CSWAT = 1, rewrite from carbon_new.f and ndenit.f of SWAT
-	 * \TODO THIS IS ON THE TODO LIST.
+     *        Execute when CSWAT = 1, rewrite from carbon_new.f and ndenit.f of SWAT
+     * \TODO THIS IS ON THE TODO LIST.
      * \return void
      */
     void Mineralization_CFARMOneCarbonModel(int i);
-	/*!
-	 * \brief simulates organic C, N, and P cycling in soil using CENTURY model
-	 *        Execute when CSWAT = 2, rewrite from carbon_zhang.f90 and ndenit.f of SWAT
+
+    /*!
+     * \brief simulates organic C, N, and P cycling in soil using CENTURY model
+     *        Execute when CSWAT = 2, rewrite from carbon_zhang.f90 and ndenit.f of SWAT
      * \return void
      */
     void Mineralization_CENTURYModel(int i);
+
     /*!
      * \brief estimates daily mineralization (NH3 to NO3) and volatilization of NH3.
      *        rewrite from nitvol.f of SWAT
@@ -281,6 +285,7 @@ private:
      * \return void
      */
     void CalculatePflux(int i);
-	/// initial outputs
+
+    /// initial outputs
     void initialOutputs();
 };

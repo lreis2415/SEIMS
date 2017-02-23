@@ -8,14 +8,14 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new SSM_PE();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -42,8 +42,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation()
     // SNRD should be added as input when snow redistribution module is accomplished. LJ
     //mdi.AddInput(VAR_SNRD, UNIT_DEPTH_MM, DESC_SNRD, Source_Module, DT_Raster1D);	 // from snow redistribution module
     mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D); // from interpolation module
-    
-	// set the output variables
+
+    // set the output variables
     mdi.AddOutput(VAR_SNSB, UNIT_DEPTH_MM, DESC_SNSB, DT_Raster1D);
 
     // write out the XML file.

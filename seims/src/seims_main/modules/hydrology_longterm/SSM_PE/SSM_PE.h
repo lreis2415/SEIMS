@@ -19,8 +19,7 @@ using namespace std;
  * \brief Calculate distribution of snow sublimation
  * 
  */
-class SSM_PE : public SimulationModule
-{
+class SSM_PE : public SimulationModule {
 public:
     //! Constructor
     SSM_PE(void);

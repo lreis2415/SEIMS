@@ -8,6 +8,7 @@
  * 
  */
 #pragma once
+
 #include <map>
 #include <string>
 #include <vector>
@@ -34,8 +35,7 @@
 using namespace std;
 using namespace MainBMP;
 
-class ModuleFactory
-{
+class ModuleFactory {
 public:
     /*!
      * \brief Constructor of ModuleFactory from config file
@@ -55,8 +55,8 @@ public:
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
     float CreateModuleList(string dbName, int subbasinID, int numThreads, LayeringMethod layeringMethod,
-                         clsRasterData<float> *templateRaster, SettingsInput *settingsInput,
-                         vector<SimulationModule *> &modules);
+                           clsRasterData<float> *templateRaster, SettingsInput *settingsInput,
+                           vector<SimulationModule *> &modules);
 
     //! Update inputs, such climate data.
     void UpdateInput(vector<SimulationModule *> &modules, SettingsInput *input, time_t t);
@@ -70,41 +70,42 @@ public:
     //! Get Module ID by index
     string GetModuleID(int i) { return m_moduleIDs[i]; }
 
-	//! Add mask raster to m_rsMap
-	void AddMaskRaster(string, clsRasterData<float> *);
+    //! Add mask raster to m_rsMap
+    void AddMaskRaster(string, clsRasterData<float> *);
+
 private:
     typedef SimulationModule *(*InstanceFunction)(void);
 
     typedef const char *(*MetadataFunction)(void);
 
     //! Modules' instance map
-    map<string, InstanceFunction> m_instanceFuncs;
+    map <string, InstanceFunction> m_instanceFuncs;
     //! Metadata map of modules
-    map<string, MetadataFunction> m_metadataFuncs;
+    map <string, MetadataFunction> m_metadataFuncs;
     //! Module path
     string m_modulePath;
-	//! SubBasin ID
-	int m_subBasinID;
+    //! SubBasin ID
+    int m_subBasinID;
     //! Layering method, can be UP_DOWN or DOWN_UP
     LayeringMethod m_layingMethod;
     //! Module IDs
-    vector<string> m_moduleIDs;
+    vector <string> m_moduleIDs;
 #ifdef windows
     //! .DLL (or .so) handles
     vector<HINSTANCE> m_dllHandles;
 #else
-    vector<void*> m_dllHandles;
+    vector<void *> m_dllHandles;
 #endif
     //! Module settings, \a map<string, SEIMSModuleSetting*>
     map<string, SEIMSModuleSetting *> m_settings;
     //! Metadata of modules
     map<string, const char *> m_metadata;
     //! Parameters of modules
-    map<string, vector<ParamInfo> > m_parameters;
+    map <string, vector<ParamInfo>> m_parameters;
     //! Input of modules
-    map<string, vector<ParamInfo> > m_inputs;
+    map <string, vector<ParamInfo>> m_inputs;
     //! Output of modules
-    map<string, vector<ParamInfo> > m_outputs;
+    map <string, vector<ParamInfo>> m_outputs;
     //! Input settings, \sa SettingInput
     SettingsInput *m_setingsInput;
     //! IP address of MongoDB
@@ -138,20 +139,21 @@ private:
     //! Interpolation weight data map
     map<string, clsInterpolationWeightData *> m_weightDataMap;
     //! Raster data (include 1D and/or 2D) map
-    map<string, clsRasterData<float> *> m_rsMap;
+    map<string, clsRasterData < float> *>
+    m_rsMap;
     //! BMPs Scenario data
     Scenario *m_scenario;
     //! Reaches information
     clsReaches *m_reaches;
-	//! Subbasins information
-	clsSubbasins *m_subbasins;
+    //! Subbasins information
+    clsSubbasins *m_subbasins;
 
 private:
     //! Initialization, read the config.fig file and initialize
     void Init(const string &configFileName);
 
     //! Load modules setting from file
-    bool LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings);
+    bool LoadSettingsFromFile(const char *filename, vector <vector<string>> &settings);
 
     //! Read configuration file
     void ReadConfigFile(const char *configFileName);
@@ -216,8 +218,8 @@ private:
     //! Set Reaches information
     void SetReaches(SimulationModule *pModule);
 
-	//! Set Subbasins information
-	void SetSubbasins(SimulationModule *pModule);
+    //! Set Subbasins information
+    void SetSubbasins(SimulationModule *pModule);
 
     //! Read multiply reach information from file
     //void ReadMultiReachInfo(const string &filename, LayeringMethod layeringMethod, int& nRows, int& nCols, float**& data);

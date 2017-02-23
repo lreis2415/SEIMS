@@ -6,87 +6,74 @@
 
 using namespace std;
 
-class Cell
-{
+class Cell {
 public:
-	Cell(void);
-	~Cell(void);
+    Cell(void);
 
-	void AddInCellID(int idIn)
-	{
-		m_inCellIDs.push_back(idIn);
-	}
+    ~Cell(void);
 
-	std::vector<int>& GetInCellIDs()
-	{
-		return m_inCellIDs;
-	}
+    void AddInCellID(int idIn) {
+        m_inCellIDs.push_back(idIn);
+    }
 
-	void SetOutCellID(int idOut)
-	{
-		m_outCellID = idOut;
-	}
+    std::vector<int> &GetInCellIDs() {
+        return m_inCellIDs;
+    }
 
-	int GetOutCellID()
-	{
-		return m_outCellID;
-	}
+    void SetOutCellID(int idOut) {
+        m_outCellID = idOut;
+    }
 
-	void SetID(int id)
-	{
-		m_id = id;
-	}
+    int GetOutCellID() {
+        return m_outCellID;
+    }
 
-	int GetID()
-	{
-		return m_id;
-	}
+    void SetID(int id) {
+        m_id = id;
+    }
 
-	void SetLanduseCode(int code)
-	{
-		m_LanduseCode = code;
-	}
+    int GetID() {
+        return m_id;
+    }
 
-	int GetLanduseCode()
-	{
-		return m_LanduseCode;
-	}
+    void SetLanduseCode(int code) {
+        m_LanduseCode = code;
+    }
 
-	void SetFieldID(int id)
-	{
-		m_FieldID = id;
-	}
+    int GetLanduseCode() {
+        return m_LanduseCode;
+    }
 
-	int GetFieldID()
-	{
-		return m_FieldID;
-	}
+    void SetFieldID(int id) {
+        m_FieldID = id;
+    }
 
-	void SetDegree(int de)
-	{
-		m_degree = de;
-	}
+    int GetFieldID() {
+        return m_FieldID;
+    }
 
-	int GetDegree()
-	{
-		return m_degree;
-	}
+    void SetDegree(int de) {
+        m_degree = de;
+    }
 
-	bool IsMyNeighbor(Cell* iCell, int ncols);
+    int GetDegree() {
+        return m_degree;
+    }
 
-	void setNeighborCellId(int id, bool bl)
-	{
-		m_IsNeighbCellmap[id] = bl;
-	}
+    bool IsMyNeighbor(Cell *iCell, int ncols);
+
+    void setNeighborCellId(int id, bool bl) {
+        m_IsNeighbCellmap[id] = bl;
+    }
 
 private:
-	vector<int> m_inCellIDs;
-	int m_outCellID;
-	int m_id;
-	int m_LanduseCode;
-	int m_FieldID;
-	int m_degree;
+    vector<int> m_inCellIDs;
+    int m_outCellID;
+    int m_id;
+    int m_LanduseCode;
+    int m_FieldID;
+    int m_degree;
 
-	map<int, bool> m_IsNeighbCellmap;    // int: cell id, bool: if neighbour cell id, true, else false
+    map<int, bool> m_IsNeighbCellmap;    // int: cell id, bool: if neighbour cell id, true, else false
 
 };

@@ -15,7 +15,6 @@
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
 
-
 class SubbasinIUHCalculator {
 public:
     SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
@@ -23,9 +22,8 @@ public:
 
     virtual ~SubbasinIUHCalculator(void);
 
-
 private:
-    vector<vector<double> > uhCell, uh1;      //IUH from cell to watershed outlet
+    vector <vector<double>> uhCell, uh1;      //IUH from cell to watershed outlet
 
     int noDataValue;
     int nRows, nCols;    //number of rows and columns

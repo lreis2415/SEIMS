@@ -19,6 +19,7 @@
 #include "api.h"
 #include "SimulationModule.h"
 #include "NutrientCommon.h"
+
 using namespace std;
 /** \defgroup NUTRSED
  * \ingroup Nutrient
@@ -33,8 +34,7 @@ using namespace std;
  *
  */
 
-class NutrientTransportSediment : public SimulationModule
-{
+class NutrientTransportSediment : public SimulationModule {
 public:
     NutrientTransportSediment(void);
 
@@ -46,7 +46,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-	virtual void SetSubbasins(clsSubbasins *);
+    virtual void SetSubbasins(clsSubbasins *);
 
     virtual int Execute();
 
@@ -57,26 +57,26 @@ public:
 private:
     /// cell width of grid map (m)
     float m_cellWidth;
-	/// cell area of grid map (ha)
-	float m_cellArea;
+    /// cell area of grid map (ha)
+    float m_cellArea;
     /// number of cells
     int m_nCells;
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers
     int m_soiLayers;
-	/// soil rock content, %
-	float **m_sol_rock;
-	/// sol_ul, soil saturated water amount, mm
-	float **m_sol_wsatur;
-	/* carbon modeling method
+    /// soil rock content, %
+    float **m_sol_rock;
+    /// sol_ul, soil saturated water amount, mm
+    float **m_sol_wsatur;
+    /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
      *   = 2 Century model
-	 */
+     */
     int m_CbnModel;
-	/// enrichment ratio
-	float *m_enratio;
+    /// enrichment ratio
+    float *m_enratio;
 
     ///inputs
 
@@ -87,18 +87,17 @@ private:
     //bulk density of the soil
     float **m_sol_bd;
     // thickness of soil layer
-	float **m_soilThick;
+    float **m_soilThick;
 
-
-	/// subbasin related
-	/// the total number of subbasins
-	int m_nSubbasins;
-	//! subbasin IDs
-	vector<int> m_subbasinIDs;
-	/// subbasin grid (subbasins ID)
-	float *m_subbasin;
-	/// subbasins information
-	clsSubbasins *m_subbasinsInfo;
+    /// subbasin related
+    /// the total number of subbasins
+    int m_nSubbasins;
+    //! subbasin IDs
+    vector<int> m_subbasinIDs;
+    /// subbasin grid (subbasins ID)
+    float *m_subbasin;
+    /// subbasins information
+    clsSubbasins *m_subbasinsInfo;
 
     ///output data
     //amount of organic nitrogen in surface runoff
@@ -110,12 +109,12 @@ private:
     //amount of stable mineral phosphorus sorbed to sediment in surface runoff
     float *m_sedminps;
 
-	/// output to channel
+    /// output to channel
 
-	float *m_sedorgnToCh;  // amount of organic N in surface runoff to channel, kg
-	float *m_sedorgpToCh;  // amount of organic P in surface runoff to channel, kg
-	float *m_sedminpaToCh; // amount of active mineral P in surface runoff to channel, kg
-	float *m_sedminpsToCh; // amount of stable mineral P in surface runoff to channel, kg
+    float *m_sedorgnToCh;  // amount of organic N in surface runoff to channel, kg
+    float *m_sedorgpToCh;  // amount of organic P in surface runoff to channel, kg
+    float *m_sedminpaToCh; // amount of active mineral P in surface runoff to channel, kg
+    float *m_sedminpsToCh; // amount of stable mineral P in surface runoff to channel, kg
 
     ///input & output
     //amount of nitrogen stored in the active organic (humic) nitrogen pool, kg N/ha
@@ -132,33 +131,33 @@ private:
     float **m_sol_stap;
     //amount of phosphorus stored in the active mineral phosphorus pool, kg P/ha
     float **m_sol_actp;
-	/// for C-FARM one carbon model
-	float **m_sol_mp;
-	/// for CENTURY C/Y cycling model
-	/// inputs from other modules
-	float **m_sol_LSN;
-	float **m_sol_LMN;
-	float **m_sol_HPN;
-	float **m_sol_HSN;
-	float **m_sol_HPC;
-	float **m_sol_HSC;
-	float **m_sol_LMC;
-	float **m_sol_LSC;
-	float **m_sol_LS;
-	float **m_sol_LM;
-	float **m_sol_LSL;
-	float **m_sol_LSLC;
-	float **m_sol_LSLNC;
-	float **m_sol_BMC;
-	float **m_sol_WOC;
-	float **m_sol_perco;
-	float **m_sol_laterq;
-	/// outputs
-	float **m_sol_latC; /// lateral flow Carbon loss in each soil layer
-	float **m_sol_percoC; /// percolation Carbon loss in each soil layer
-	float *m_laterC; /// lateral flow Carbon loss in soil profile
-	float *m_percoC; /// percolation Carbon loss in soil profile
-	float *m_sedCLoss; /// amount of C lost with sediment pools 
+    /// for C-FARM one carbon model
+    float **m_sol_mp;
+    /// for CENTURY C/Y cycling model
+    /// inputs from other modules
+    float **m_sol_LSN;
+    float **m_sol_LMN;
+    float **m_sol_HPN;
+    float **m_sol_HSN;
+    float **m_sol_HPC;
+    float **m_sol_HSC;
+    float **m_sol_LMC;
+    float **m_sol_LSC;
+    float **m_sol_LS;
+    float **m_sol_LM;
+    float **m_sol_LSL;
+    float **m_sol_LSLC;
+    float **m_sol_LSLNC;
+    float **m_sol_BMC;
+    float **m_sol_WOC;
+    float **m_sol_perco;
+    float **m_sol_laterq;
+    /// outputs
+    float **m_sol_latC; /// lateral flow Carbon loss in each soil layer
+    float **m_sol_percoC; /// percolation Carbon loss in each soil layer
+    float *m_laterC; /// lateral flow Carbon loss in soil profile
+    float *m_percoC; /// percolation Carbon loss in soil profile
+    float *m_sedCLoss; /// amount of C lost with sediment pools
 
 private:
 
@@ -167,16 +166,19 @@ private:
      * \return bool The validity of the input data.
      */
     bool CheckInputData(void);
-	/*!
+
+    /*!
      * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
      * \return bool The validity of the inputs data.
      */
-	bool CheckInputData_CENTURY(void);
-	/*!
+    bool CheckInputData_CENTURY(void);
+
+    /*!
      * \brief check the input data for running C-FARM one carbon model. Make sure all the inputs data is available.
      * \return bool The validity of the inputs data.
      */
-	bool CheckInputData_CFARM(void);
+    bool CheckInputData_CFARM(void);
+
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
      *
@@ -193,15 +195,15 @@ private:
      */
     void OrgNRemovedInRunoff_StaticMethod(int i);
 
-	/*!
+    /*!
      * \brief calculates the amount of organic nitrogen removed in surface runoff.
      *        orgnswat.f of SWAT, when CSWAT = 1
-	 * \TODO THIS IS ON TODO LIST
+     * \TODO THIS IS ON TODO LIST
      * \return void
      */
     void OrgNRemovedInRunoff_CFARMOneCarbonModel(int i);
 
-	/*!
+    /*!
      * \brief calculates the amount of organic nitrogen removed in surface runoff.
      *        NCsed_leach.f90 of SWAT, when CSWAT = 2
      * \return void
@@ -214,6 +216,7 @@ private:
      * \return void
      */
     void OrgPAttachedtoSed(int i);
-	/// initial outputs
+
+    /// initial outputs
     void initialOutputs();
 };

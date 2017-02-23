@@ -19,20 +19,19 @@
 * - real variables, which can be set to single or double precision.
 **************************************************************************/
 /*typedef ptrdiff_t       gk_idx_t;       */  /* index variable */
-typedef ssize_t         gk_idx_t;         /* index variable */
-typedef int32_t         gk_int_t;         /* integer values */
-typedef uint32_t        gk_uint_t;        /* unsigned integer values */
-typedef int64_t         gk_long_t;        /* long integer values */
-typedef uint64_t        gk_ulong_t;       /* unsigned long integer values */
-typedef float           gk_real_t;        /* real type */
-typedef double          gk_dreal_t;       /* double precission real type */
-typedef double          gk_wclock_t;	  /* wall-clock time */
+typedef ssize_t gk_idx_t;         /* index variable */
+typedef int32_t gk_int_t;         /* integer values */
+typedef uint32_t gk_uint_t;        /* unsigned integer values */
+typedef int64_t gk_long_t;        /* long integer values */
+typedef uint64_t gk_ulong_t;       /* unsigned long integer values */
+typedef float gk_real_t;        /* real type */
+typedef double gk_dreal_t;       /* double precission real type */
+typedef double gk_wclock_t;      /* wall-clock time */
 
 /*#define GK_IDX_MAX PTRDIFF_MAX*/
 #define GK_IDX_MAX ((SIZE_MAX>>1)-2)
 
 #define PRIGKIDX "zd"
 #define SCNGKIDX "zd"
-
 
 #endif

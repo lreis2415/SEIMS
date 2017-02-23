@@ -16,11 +16,11 @@
 #define _LIBMETIS_DEFS_H_
 
 #define METISTITLE              "METIS 5.0 Copyright 1998-13, Regents of the University of Minnesota\n"
-#define MAXLINE			1280000
+#define MAXLINE            1280000
 
-#define LTERM			(void **) 0	/* List terminator for gk_free() */
+#define LTERM            (void **) 0    /* List terminator for gk_free() */
 
-#define HTLENGTH		((1<<11)-1)
+#define HTLENGTH        ((1<<11)-1)
 
 #define INIT_MAXNAD             200     /* Initial number of maximum number of 
                                            adjacent domains. This number will be
@@ -40,16 +40,16 @@
 #define VPQSTATUS_NOTPRESENT   3       /* The vertex is not present in the queue and
                                           has not been extracted before */
 
-#define UNMATCHED		-1
+#define UNMATCHED        -1
 
-#define LARGENIPARTS		7	/* Number of random initial partitions */
-#define SMALLNIPARTS		5	/* Number of random initial partitions */
+#define LARGENIPARTS        7    /* Number of random initial partitions */
+#define SMALLNIPARTS        5    /* Number of random initial partitions */
 
-#define COARSEN_FRACTION	0.85	/* Node reduction between succesive coarsening levels */
+#define COARSEN_FRACTION    0.85    /* Node reduction between succesive coarsening levels */
 
-#define COMPRESSION_FRACTION		0.85
+#define COMPRESSION_FRACTION        0.85
 
-#define MMDSWITCH		        120
+#define MMDSWITCH                120
 
 /* Default ufactors for the various operational modes */
 #define PMETIS_DEFAULT_UFACTOR          1

@@ -28,8 +28,7 @@ using namespace std;
  *
  *
  */
-class clsSimpleTxtData
-{
+class clsSimpleTxtData {
 public:
     //! Constructor, from text file read lines data
     clsSimpleTxtData(string fileName);

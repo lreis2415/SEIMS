@@ -38,7 +38,7 @@ email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
-  
+
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
@@ -46,120 +46,81 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "tardemlib.h"
 
-
-int main(int argc,char **argv)
-{
-   char pfile[MAXLN],wfile[MAXLN],swfile[MAXLN],datasrc[MAXLN],lyrname[MAXLN],idfile[MAXLN],upidfile[MAXLN];
-   int err,useOutlets=0,useMask=0,uselyrname=0,lyrno=0,thresh=0,i=1,writeid=0,useswg=0,writeupid=0;
-   if(argc <= 2)
-    {  	
-	   goto errexit;
+int main(int argc, char **argv) {
+    char pfile[MAXLN], wfile[MAXLN], swfile[MAXLN], datasrc[MAXLN], lyrname[MAXLN], idfile[MAXLN], upidfile[MAXLN];
+    int err, useOutlets = 0, useMask = 0, uselyrname = 0, lyrno = 0, thresh = 0, i = 1, writeid = 0, useswg = 0,
+        writeupid = 0;
+    if (argc <= 2) {
+        goto errexit;
     }
 
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-p")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(pfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-	
+    while (argc > i) {
+        if (strcmp(argv[i], "-p") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(pfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-o") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(datasrc, argv[i]);
 
-		else if(strcmp(argv[i],"-o")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(datasrc,argv[i]);
-			
-				i++;											
-			}
-			else goto errexit;
-		}
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-lyrno") == 0) {
+            i++;
+            if (argc > i) {
+                sscanf(argv[i], "%d", &lyrno);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-lyrname") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(lyrname, argv[i]);
+                uselyrname = 1;
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-gw") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(wfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-id") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(idfile, argv[i]);
+                writeid = 1;
+                i++;
+            } else { goto errexit; }
+        } else if ((strcmp(argv[i], "-upid")
+            == 0))// if subwatershed grid is used as input then write list of upstream watershed in a txt file
+        {
+            i++;
+            if (argc > i) {
+                strcpy(upidfile, argv[i]);
+                writeupid = 1;
+                i++;
+            } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
+    }
 
+    if ((err = gagewatershed(pfile, wfile, datasrc, lyrname, uselyrname, lyrno, idfile, writeid, writeupid, upidfile))
+        != 0) {
+            printf("Gage watershed error %d\n", err);
+    }
 
-		   else if(strcmp(argv[i],"-lyrno")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				sscanf(argv[i],"%d",&lyrno);
-				i++;											
-			}
-			else goto errexit;
-		}
+    return 0;
 
-	   
-	 else if(strcmp(argv[i],"-lyrname")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(lyrname,argv[i]);
-		        uselyrname = 1;
-				i++;											
-			}
-			else goto errexit;
-		}
-		
-		   
-		else if(strcmp(argv[i],"-gw")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(wfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-id")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(idfile,argv[i]);
-				writeid=1;  
-				i++;
-			}
-			else goto errexit;
-		}
-
-		else if((strcmp(argv[i],"-upid")==0))// if subwatershed grid is used as input then write list of upstream watershed in a txt file
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(upidfile,argv[i]);
-				writeupid=1;  
-				i++;
-			}
-			else goto errexit;
-		}
-	
-
-		else 
-		{
-			goto errexit;
-		}
-	}
-
-    if( (err=gagewatershed(pfile,wfile,datasrc,lyrname,uselyrname,lyrno,idfile,writeid,writeupid,upidfile)) != 0)
-        printf("Gage watershed error %d\n",err);
-
-	return 0;
-
-errexit:
-	   printf("Usage:\n %s -p <pfile> -o <outletshape> -gw <gagewatershed> [-id <idfile>]\n",argv[0]);
-	   printf("<pfile> is the name of the input D8 flow direction grid file.\n");
-	   printf("<outletshape> is the name of the input outlet shapefile.\n");
-	   printf("<gagewatershed> is the output gagewatershed grid file.\n");
-	   printf("<idfile> is optional output text file giving watershed downslope connectivity.\n\n");
-       exit(0);
+    errexit:
+    printf("Usage:\n %s -p <pfile> -o <outletshape> -gw <gagewatershed> [-id <idfile>]\n", argv[0]);
+    printf("<pfile> is the name of the input D8 flow direction grid file.\n");
+    printf("<outletshape> is the name of the input outlet shapefile.\n");
+    printf("<gagewatershed> is the output gagewatershed grid file.\n");
+    printf("<idfile> is optional output text file giving watershed downslope connectivity.\n\n");
+    exit(0);
 } 
 

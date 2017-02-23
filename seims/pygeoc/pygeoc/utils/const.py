@@ -22,14 +22,14 @@ D8DIR_TD_DELTA = {1: (0, 1),
 
 # D8DIR_TD_VALUES corresponding to ArcGIS
 D8DIR_AG_VALUES = [1, 128, 64, 32, 16, 8, 4, 2]
-D8DIR_AG_DELTA = {1: (0, 1),
+D8DIR_AG_DELTA = {1  : (0, 1),
                   128: (-1, 1),
-                  64: (-1, 0),
-                  32: (-1, -1),
-                  16: (0, -1),
-                  8: (1, -1),
-                  4: (1, 0),
-                  2: (1, 1)}
+                  64 : (-1, 0),
+                  32 : (-1, -1),
+                  16 : (0, -1),
+                  8  : (1, -1),
+                  4  : (1, 0),
+                  2  : (1, 1)}
 # drow and dcol as the same sequence as D8DIR_AG_DELTA and D8DIR_TD_DELTA
 drow = [0, -1, -1, -1, 0, 1, 1, 1]  # row, not include itself
 dcol = [1, 1, 0, -1, -1, -1, 0, 1]  # col

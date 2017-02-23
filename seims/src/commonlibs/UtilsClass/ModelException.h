@@ -18,8 +18,7 @@ using namespace std;
  * \brief Print the exception message
  */
 class ModelException :
-        public exception
-{
+    public exception {
 public:
     /*!
      * \brief Constructor
@@ -40,14 +39,13 @@ public:
      * \brief Construct error information (char* version)
      * \param[out] \a char* error information
      */
-    const char *what() const throw()
-	{
-		string descri = "\n";
-		descri = "Class:" + m_className + "\n";
-		descri += "Function:" + m_functionName + "\n";
-		descri += "Message:" + m_msg;
+    const char *what() const throw() {
+        string descri = "\n";
+        descri = "Class:" + m_className + "\n";
+        descri += "Function:" + m_functionName + "\n";
+        descri += "Message:" + m_msg;
 
-		return descri.c_str();
+        return descri.c_str();
     }
 
 private:
@@ -55,4 +53,5 @@ private:
     string m_functionName;
     string m_msg;
 };
+
 #endif

@@ -39,7 +39,7 @@ email:  dtarb@usu.edu
 */
 
 //  This software is distributed from http://hydrology.usu.edu/taudem/
-  
+
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
@@ -48,102 +48,77 @@ email:  dtarb@usu.edu
 
 int distgrid(char *pfile, char *srcfile, char *distfile, int thresh);
 
-int main(int argc,char **argv)
-{
-   char pfile[MAXLN],srcfile[MAXLN],distfile[MAXLN];
-   int err,nmain, thresh=1,i;
-   
-   if(argc < 2)
-    {  
-       printf("Error: To run this program, use either the Simple Usage option or\n");
-	   printf("the Usage with Specific file names option\n");
-	   goto errexit;
+int main(int argc, char **argv) {
+    char pfile[MAXLN], srcfile[MAXLN], distfile[MAXLN];
+    int err, nmain, thresh = 1, i;
+
+    if (argc < 2) {
+        printf("Error: To run this program, use either the Simple Usage option or\n");
+        printf("the Usage with Specific file names option\n");
+        goto errexit;
+    } else if (argc > 2) {
+        i = 1;
+        //	printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
+    } else {
+        i = 2;
+        //	printf("You are running %s with the Simple Usage option.\n", argv[0]);
     }
-   
-   else if(argc > 2)
-	{
-		i = 1;
-	//	printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
-	}
-	else {
-		i = 2;
-	//	printf("You are running %s with the Simple Usage option.\n", argv[0]);
-	}
 
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-p")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(pfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-src")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(srcfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-dist")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(distfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-thresh")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				sscanf(argv[i],"%d",&thresh);
-				i++;
-			}
-			else goto errexit;
-		}
-		else 
-		{
-			goto errexit;
-		}
-	}   
+    while (argc > i) {
+        if (strcmp(argv[i], "-p") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(pfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-src") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(srcfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-dist") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(distfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-thresh") == 0) {
+            i++;
+            if (argc > i) {
+                sscanf(argv[i], "%d", &thresh);
+                i++;
+            } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
+    }
 
-	if(argc == 2)
-	{
-		nameadd(pfile,argv[1],"p");
-		nameadd(srcfile,argv[1],"src");
-		nameadd(distfile,argv[1],"dist");
-	}
+    if (argc == 2) {
+        nameadd(pfile, argv[1], "p");
+        nameadd(srcfile, argv[1], "src");
+        nameadd(distfile, argv[1], "dist");
+    }
 
-    if(err=distgrid(pfile,srcfile,distfile,thresh) != 0)
-        printf("D8 distance error %d\n",err);
+    if (err = distgrid(pfile, srcfile, distfile, thresh) != 0) {
+        printf("D8 distance error %d\n", err);
+    }
 
+    return 0;
 
-	return 0;
-
-	errexit:
-	   printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
-       printf("Usage with specific file names:\n %s -p <pfile>\n",argv[0]);
-	   printf("-src <srcfile> -dist <distfile> [-thresh <thresh>]\n");
-  	   printf("<basefilename> is the name of the base digital elevation model\n");
-	   printf("<pfile> is the d8 flow direction input file.\n");
-       printf("<srcfile> is the stream raster input file.\n");
-       printf("<distfile> is the distance to stream output file.\n");
-	   printf("The optional <thresh> is the user input threshold number.\n");
-       printf("The following are appended to the file names\n");
-       printf("before the files are opened:\n");
-       printf("p      D8 flow directions (input)\n");
-       printf("src    stream raster file (Input)\n");
-       printf("dist   distance to stream file(output)\n");
-       exit(0);
+    errexit:
+    printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
+    printf("Usage with specific file names:\n %s -p <pfile>\n", argv[0]);
+    printf("-src <srcfile> -dist <distfile> [-thresh <thresh>]\n");
+    printf("<basefilename> is the name of the base digital elevation model\n");
+    printf("<pfile> is the d8 flow direction input file.\n");
+    printf("<srcfile> is the stream raster input file.\n");
+    printf("<distfile> is the distance to stream output file.\n");
+    printf("The optional <thresh> is the user input threshold number.\n");
+    printf("The following are appended to the file names\n");
+    printf("before the files are opened:\n");
+    printf("p      D8 flow directions (input)\n");
+    printf("src    stream raster file (Input)\n");
+    printf("dist   distance to stream file(output)\n");
+    exit(0);
 } 

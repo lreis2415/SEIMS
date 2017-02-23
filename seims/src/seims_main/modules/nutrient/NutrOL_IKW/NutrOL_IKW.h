@@ -30,8 +30,7 @@ using namespace std;
  *
  */
 
-class NutrientOL_IKW : public SimulationModule
-{
+class NutrientOL_IKW : public SimulationModule {
 public:
     NutrientOL_IKW(void);
 
@@ -68,7 +67,7 @@ private:
     /// channel width (zero for non-channel cells)
     float *m_chWidth;
     /// stream link
-	float *m_streamLink;
+    float *m_streamLink;
 
     /// amount of nitrate transported with lateral flow
     float *m_latno3;
@@ -93,14 +92,14 @@ private:
     /// carbonaceous oxygen demand of surface runoff
     float *m_cod;
 
-	/// sediment in flow (kg)
-	float *m_Sed_kg;
-	/// outgoing sediment flux (kg/s)
-	float *m_Qsn;
-	/// the distribution of overland flow detachment (kg)
-	float *m_SedDet;
-	/// sediment deposition (kg)
-	float *m_SedDep;
+    /// sediment in flow (kg)
+    float *m_Sed_kg;
+    /// outgoing sediment flux (kg/s)
+    float *m_Qsn;
+    /// the distribution of overland flow detachment (kg)
+    float *m_SedDet;
+    /// sediment deposition (kg)
+    float *m_SedDep;
 
     //test
     float *m_ChV;
@@ -169,14 +168,14 @@ private:
     */
     float NutToChannel(int i, float nut);
 
-	  /*!
-    *	\brief Calculate the ratio between sediment in flow and soil loss caused by water erosion.
-    *
-    *	\param ID The id of cell in grid map
-    *	\return the ratio between sediment in flow and soil loss caused by water erosion
-    */
-	float CalculateSedinFlowFraction(int id);
-	
+    /*!
+  *	\brief Calculate the ratio between sediment in flow and soil loss caused by water erosion.
+  *
+  *	\param ID The id of cell in grid map
+  *	\return the ratio between sediment in flow and soil loss caused by water erosion
+  */
+    float CalculateSedinFlowFraction(int id);
+
 };
 
 #endif

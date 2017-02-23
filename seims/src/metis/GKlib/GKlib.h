@@ -19,7 +19,6 @@
 #define __ICC__
 #endif
 
-
 #include "gk_arch.h" /*!< This should be here, prior to the includes */
 
 
@@ -43,23 +42,19 @@
 #include <sys/stat.h>
 
 #if defined(__WITHPCRE__)
-  #include <pcreposix.h>
+#include <pcreposix.h>
 #else
-  #if defined(USE_GKREGEX)
-    #include "gkregex.h"
-  #else
-    #include <regex.h>
-  #endif /* defined(USE_GKREGEX) */
+#if defined(USE_GKREGEX)
+#include "gkregex.h"
+#else
+#include <regex.h>
+
+#endif /* defined(USE_GKREGEX) */
 #endif /* defined(__WITHPCRE__) */
 
-
-
-#if defined(__OPENMP__) 
+#if defined(__OPENMP__)
 #include <omp.h>
 #endif
-
-
-
 
 #include <gk_types.h>
 #include <gk_struct.h>
@@ -77,7 +72,6 @@
 #include <gk_mkutils.h>
 
 #include <gk_proto.h>
-
 
 #endif  /* GKlib.h */
 

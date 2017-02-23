@@ -30,7 +30,6 @@
 /// include SEIMS text macro definition
 #include "seims.h"
 
-
 using namespace std;
 
 /*!
@@ -40,8 +39,7 @@ using namespace std;
  * \brief SEIMS OpenMP version, Class to control the whole model
  *
  */
-class ModelMain
-{
+class ModelMain {
 public:
     /*!
      * \brief Constructor
@@ -59,6 +57,7 @@ public:
     ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
               ModuleFactory *factory, int subBasinID = 1, int scenarioID = 0, int numThread = 1,
               LayeringMethod layeringMethod = UP_DOWN);
+
     //! Destructor
     ~ModelMain(void);
 
@@ -90,12 +89,12 @@ public:
     string GetModuleID(int i) { return m_factory->GetModuleID(i); }
 
     //! Get module execute time by index in ModuleFactory
-    float GetModuleExecuteTime(int i) { return (float)m_executeTime[i]; }
+    float GetModuleExecuteTime(int i) { return (float) m_executeTime[i]; }
 
     //! Get time consuming of read files
     float GetReadDataTime() { return m_readFileTime; }
 
-	//! 
+    //!
     float GetQOutlet();
 
     //! Include channel processes or not?
@@ -124,6 +123,7 @@ public:
 
     //! Execute overall modules in the entire simulation period, e.g., COST module.
     void StepOverall(time_t startT, time_t endT);
+
     //! Set Flow In Channel data for Channel-related module, e.g., CH_DW
     void SetChannelFlowIn(float value);
     //! Check module input data, date and execute module
@@ -164,7 +164,6 @@ private:
     //! Layering method
     LayeringMethod m_layeringMethod;
 
-
     /*!
      * \brief Check whether the output file is valid
      * \TODO NEED TO BE UPDATED
@@ -186,7 +185,7 @@ private:
      * \param[in] gfs \a mongoc_gridfs_t
      */
     void CheckOutput();
-	
+
     //! Check module input data, date and execute module
     void Step(time_t t, int yearIdx, vector<int> &moduleIndex, bool firstRun);
 
@@ -218,4 +217,5 @@ private:
     //! Channel time interval
     time_t m_dtCh;
 };
+
 #endif

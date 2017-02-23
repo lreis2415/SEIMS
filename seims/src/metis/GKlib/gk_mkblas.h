@@ -10,7 +10,6 @@
 #ifndef _GK_MKBLAS_H_
 #define _GK_MKBLAS_H_
 
-
 #define GK_MKBLAS(PRFX, TYPE, OUTTYPE) \
 /*************************************************************************/\
 /*! The macro for gk_?incset()-class of routines */\
@@ -181,7 +180,6 @@ TYPE *PRFX ## axpy(size_t n, TYPE alpha, TYPE *x, size_t incx, TYPE *y, size_t i
 \
   return y_in;\
 }\
-
 
 
 #define GK_MKBLAS_PROTO(PRFX, TYPE, OUTTYPE) \

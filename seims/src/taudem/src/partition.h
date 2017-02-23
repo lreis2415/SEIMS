@@ -40,84 +40,85 @@ email:  dtarb@usu.edu
 
 //#include "commonLib.h"
 #include <stdio.h>
+
 #ifndef PARTITION_H
 #define PARTITION_H
 #include "tiffIO.h"
+
 class tiffIO;
-class tdpartition{
-	protected:
-		long totalx, totaly;
-		long nx, ny;
-		double dxA, dyA, *dxc,*dyc;
-		
+class tdpartition {
+protected:
+    long totalx, totaly;
+    long nx, ny;
+    double dxA, dyA, *dxc, *dyc;
 
-	public:
-		tdpartition(){}
-		virtual ~tdpartition(){}
+public:
+    tdpartition() {}
+    virtual ~tdpartition() {}
 
-		
-		virtual bool isInPartition(int, int) = 0;
- 		virtual bool hasAccess(int, int) = 0;
-		virtual bool isNodata(long x, long y) = 0;
-	    
-		virtual void share() = 0;
-		virtual void passBorders() = 0;
-		virtual void addBorders() = 0;
-		virtual void clearBorders() = 0;
-		virtual int ringTerm(int isFinished) = 0;
+    virtual bool isInPartition(int, int) = 0;
+    virtual bool hasAccess(int, int) = 0;
+    virtual bool isNodata(long x, long y) = 0;
 
-		virtual bool globalToLocal(int globalX, int globalY, int &localX, int &localY) = 0;
-		virtual void localToGlobal(int localX, int localY, int &globalX, int &globalY) = 0;
+    virtual void share() = 0;
+    virtual void passBorders() = 0;
+    virtual void addBorders() = 0;
+    virtual void clearBorders() = 0;
+    virtual int ringTerm(int isFinished) = 0;
 
-		virtual int getGridXY(int x, int y, int *i, int *j) = 0;
-		virtual void transferPack(int*, int*, int*, int*) = 0;
+    virtual bool globalToLocal(int globalX, int globalY, int &localX, int &localY) = 0;
+    virtual void localToGlobal(int localX, int localY, int &globalX, int &globalY) = 0;
 
-		int getnx(){return nx;}
-		int getny(){return ny;}
-		int gettotalx(){return totalx;}
-		int gettotaly(){return totaly;}
-		double getdxA(){return dxA;}
-		double getdyA(){return dyA;}
+    virtual int getGridXY(int x, int y, int *i, int *j) = 0;
+    virtual void transferPack(int *, int *, int *, int *) = 0;
 
-		int *before1;
-		int *before2;
-		int *after1;
-		int *after2;
-		
-		//There are multiple copies of these functions so that classes that inherit
-		//from tdpartition can be template classes.  These classes MUST declare as
-		//their template type one of the types declared for these functions.
-		virtual void* getGridPointer(){return (void*)NULL;}
-		virtual void setToNodata(long x, long y) = 0;
+    int getnx() { return nx; }
+    int getny() { return ny; }
+    int gettotalx() { return totalx; }
+    int gettotaly() { return totaly; }
+    double getdxA() { return dxA; }
+    double getdyA() { return dyA; }
 
-		virtual void init(long totalx, long totaly, double dx_in, double dy_in, MPI_Datatype MPIt, short nd){}
-		virtual void init(long totalx, long totaly, double dx_in, double dy_in ,MPI_Datatype MPIt, int32_t nd){}
-		virtual void init(long totalx, long totaly, double dx_in, double dy_in, MPI_Datatype MPIt, float nd){}
+    int *before1;
+    int *before2;
+    int *after1;
+    int *after2;
 
+    //There are multiple copies of these functions so that classes that inherit
+    //from tdpartition can be template classes.  These classes MUST declare as
+    //their template type one of the types declared for these functions.
+    virtual void *getGridPointer() { return (void *) NULL; }
+    virtual void setToNodata(long x, long y) = 0;
 
-		virtual short getData(long, long, short&){
-			printf("Attempt to access short grid with incorrect data type\n");
-			MPI_Abort(MCW,41);return 0;
-		}
-		virtual int32_t getData(long, long, int32_t&){
-			printf("Attempt to access int32_t grid with incorrect data type\n");
-			MPI_Abort(MCW,42);return 0;
-		}
-		virtual float getData(long, long, float&){
-			printf("Attempt to access float grid with incorrect data type\n");
-			MPI_Abort(MCW,43);return 0;
-		}
-	   
+    virtual void init(long totalx, long totaly, double dx_in, double dy_in, MPI_Datatype MPIt, short nd) {}
+    virtual void init(long totalx, long totaly, double dx_in, double dy_in, MPI_Datatype MPIt, int32_t nd) {}
+    virtual void init(long totalx, long totaly, double dx_in, double dy_in, MPI_Datatype MPIt, float nd) {}
 
-		virtual void savedxdyc(tiffIO &obj ){}
-		virtual void getdxdyc(long, double&, double&){}
-	    virtual void setData(long, long, short){}
-		virtual void setData(long, long, int32_t){}
-		virtual void setData(long, long, float){}
+    virtual short getData(long, long, short &) {
+        printf("Attempt to access short grid with incorrect data type\n");
+        MPI_Abort(MCW, 41);
+        return 0;
+    }
+    virtual int32_t getData(long, long, int32_t &) {
+        printf("Attempt to access int32_t grid with incorrect data type\n");
+        MPI_Abort(MCW, 42);
+        return 0;
+    }
+    virtual float getData(long, long, float &) {
+        printf("Attempt to access float grid with incorrect data type\n");
+        MPI_Abort(MCW, 43);
+        return 0;
+    }
 
-		virtual void addToData(long, long, short){}
-		virtual void addToData(long, long, int32_t){}
-		virtual void addToData(long, long, float){}
+    virtual void savedxdyc(tiffIO &obj) {}
+    virtual void getdxdyc(long, double &, double &) {}
+    virtual void setData(long, long, short) {}
+    virtual void setData(long, long, int32_t) {}
+    virtual void setData(long, long, float) {}
+
+    virtual void addToData(long, long, short) {}
+    virtual void addToData(long, long, int32_t) {}
+    virtual void addToData(long, long, float) {}
 };
 #endif
 

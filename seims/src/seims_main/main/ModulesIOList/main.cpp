@@ -15,28 +15,25 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     string modulesListFile = "";
     string storePath = "";
     utils util;
     string moduleIOListFile = "", paramListFile = "", moduleParamListFile = "", dllPath = "";
 
     ModulesIOList *modulesIO;
-    if (argc == 2)
-    {
-        if (util.FileExists(argv[1]))
-        {
+    if (argc == 2) {
+        if (util.FileExists(argv[1])) {
             modulesListFile = argv[1];
-        }
-        else
+        } else {
             goto errexit;
-    }
-    else
+        }
+    } else {
         goto errexit;
+    }
     storePath = GetPathFromFullName(modulesListFile);
     moduleIOListFile = storePath +
-                       "module_IO_List.txt";  ///< parameters from Database, inputs from other modules or files, and outputs
+        "module_IO_List.txt";  ///< parameters from Database, inputs from other modules or files, and outputs
     paramListFile = storePath + "params_List.txt";  ///< parameters from Database as input for modules
     moduleParamListFile = storePath + "module_Params_List.txt";
     dllPath = _GetApplicationPath();

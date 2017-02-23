@@ -27,8 +27,7 @@ using namespace MainBMP;
  *
  *
  */
-class SettingsInput : public Settings
-{
+class SettingsInput : public Settings {
 public:
     //! Constructor
     SettingsInput(string fileName, mongoc_client_t *conn, string dbName, int nSubbasin = 1);
@@ -80,7 +79,7 @@ private:
     //! MongoDB client
     mongoc_client_t *m_conn;
     //! HydroClimate site list <siteType, siteIDList>
-    map<string, vector<int> > m_siteListMap;
+    map <string, vector<int>> m_siteListMap;
     //! Subbasin ID
     int m_subbasinID;
     //! Simulation mode, can be DAILY or HOURLY

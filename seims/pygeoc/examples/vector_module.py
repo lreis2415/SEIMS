@@ -1,5 +1,6 @@
-from osgeo import gdal,ogr
-import os,sys
+from osgeo import gdal, ogr
+import os, sys
+
 
 def ReadDataItemsFromTxt(txtFile):
     '''
@@ -11,16 +12,17 @@ def ReadDataItemsFromTxt(txtFile):
     dataItems = []
     for line in f:
         strLine = line.split('\n')[0]
-        if strLine !='' and strLine.find('#') < 0:
+        if strLine != '' and strLine.find('#') < 0:
             lineList = strLine.split('\t')
             dataItems.append(lineList)
     f.close()
     return dataItems
 
+
 def WriteLineShp(lineList, outShp, lineFieldsList = None):
     print "Write line shapefile: %s" % outShp
-    gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8","NO")  ## support for path in Chinese
-    gdal.SetConfigOption("SHAPE_ENCODING","")           ## suppoert for field in Chinese
+    gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "NO")  ## support for path in Chinese
+    gdal.SetConfigOption("SHAPE_ENCODING", "")  ## suppoert for field in Chinese
     ogr.RegisterAll()
     driver = ogr.GetDriverByName("ESRI Shapefile")
     if driver is None:
@@ -41,7 +43,7 @@ def WriteLineShp(lineList, outShp, lineFieldsList = None):
         else:
             fieldLength = len(lineFieldsList[0])
             for i in range(fieldLength):
-                name = 'lineName'+str(i)
+                name = 'lineName' + str(i)
                 fieldName.append(name)
             fieldNameIdx = 0
     else:
@@ -51,7 +53,7 @@ def WriteLineShp(lineList, outShp, lineFieldsList = None):
     if ds is None:
         print "ERROR Output: Creation of output file failed."
         sys.exit(1)
-    lyr = ds.CreateLayer(outShp.rpartition(os.sep)[2].split('.')[0],None,ogr.wkbLineString)
+    lyr = ds.CreateLayer(outShp.rpartition(os.sep)[2].split('.')[0], None, ogr.wkbLineString)
     ## create fields
     for fld in fieldName:
         nameField = ogr.FieldDefn(fld, ogr.OFTString)
@@ -61,7 +63,7 @@ def WriteLineShp(lineList, outShp, lineFieldsList = None):
         if len(l) > 1:
             line = ogr.Geometry(ogr.wkbLineString)
             for i in l:
-                line.AddPoint(i[0],i[1])
+                line.AddPoint(i[0], i[1])
             templine = ogr.CreateGeometryFromJson(line.ExportToJson())
             feature = ogr.Feature(lyr.GetLayerDefn())
             feature.SetGeometry(templine)
@@ -74,11 +76,13 @@ def WriteLineShp(lineList, outShp, lineFieldsList = None):
                         fieldValue = lineFieldsList[idx][idx2]
                 else:
                     fieldValue = ' '
-                #print fieldValue
+                # print fieldValue
                 feature.SetField(fld, fieldValue)
             lyr.CreateFeature(feature)
             feature.Destroy()
     ds.Destroy()
+
+
 def Points2Lines(txtFile, category, xName, yName):
     baseName = os.path.basename(txtFile).split('.')[0]
     lineShpPath = os.path.dirname(txtFile) + os.sep + baseName + '.shp'
@@ -91,7 +95,7 @@ def Points2Lines(txtFile, category, xName, yName):
     linePointsList = []
     categoryList = []
     for item in dataArray:
-        if(item[categoryIdx] not in categoryList):
+        if (item[categoryIdx] not in categoryList):
             categoryList.append(item[categoryIdx])
             linePointsList.append([[float(item[xIdx]), float(item[yIdx])]])
         else:
@@ -99,6 +103,8 @@ def Points2Lines(txtFile, category, xName, yName):
             linePointsList[idx].append([float(item[xIdx]), float(item[yIdx])])
     print linePointsList
     WriteLineShp(linePointsList, lineShpPath)
+
+
 if __name__ == "__main__":
     pointsTxt = r'E:\test\points2lines\saddle_1.txt'
     Category = 'no'

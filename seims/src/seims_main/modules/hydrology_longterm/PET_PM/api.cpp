@@ -13,8 +13,9 @@
  *
  */
 //! Get instance of SimulationModule class
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
-{
+extern "C" SEIMS_MODULE_API SimulationModule *
+
+GetInstance() {
     return new PETPenmanMonteith();
 }
 
@@ -22,8 +23,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance()
  * \ingroup PET_H
  * \brief function to return the XML Metadata document string
  */
-extern "C" SEIMS_MODULE_API const char *MetadataInformation()
-{
+extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties

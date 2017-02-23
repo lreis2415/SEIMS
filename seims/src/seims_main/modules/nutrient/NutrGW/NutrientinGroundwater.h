@@ -25,8 +25,7 @@ using namespace std;
  *
  */
 
-class NutrientinGroundwater : public SimulationModule
-{
+class NutrientinGroundwater : public SimulationModule {
 public:
     NutrientinGroundwater(void);
 
@@ -35,8 +34,11 @@ public:
     virtual void SetValue(const char *key, float value);
 
     virtual void Set1DData(const char *key, int n, float *data);
-	virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
-	virtual void SetReaches(clsReaches *reaches);
+
+    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+
+    virtual void SetReaches(clsReaches *reaches);
+
     //virtual void Set2DData(const char* key, int nRows, int nCols, float** data);
     virtual int Execute();
 
@@ -44,45 +46,45 @@ public:
     virtual void Get1DData(const char *key, int *n, float **data);
     //virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data);
 
-	virtual void SetSubbasins(clsSubbasins *subbasins);
+    virtual void SetSubbasins(clsSubbasins *subbasins);
 
 private:
     /// cell width of grid map (m)
     float m_cellWidth;
     /// number of cells
     int m_nCells;
-	/// time step (s)
-	int m_TimeStep;
+    /// time step (s)
+    int m_TimeStep;
 
     /// input data
-	/// gw0
-	float m_gw0;
+    /// gw0
+    float m_gw0;
     /// nitrate N concentration in groundwater loading to reach (mg/L, i.e. g/m3)
     float *m_gwno3Con;
-	/// kg
-	float *m_gwNO3; 
+    /// kg
+    float *m_gwNO3;
     /// soluble P concentration in groundwater loading to reach (mg/L, i.e. g/m3)
     float *m_gwSolCon;
-	/// kg
-	float *m_gwSolP;
+    /// kg
+    float *m_gwSolP;
     /// groundwater contribution to stream flow (m3/s)
-    float *m_gw_q; 
-	/// groundwater storage
-	float *m_gwStor;
-	/// amount of nitrate percolating past bottom of soil profile, kg
-	float *m_perco_no3_gw;
-	/// amount of solute P percolating past bottom of soil profile, kg
-	float *m_perco_solp_gw;
+    float *m_gw_q;
+    /// groundwater storage
+    float *m_gwStor;
+    /// amount of nitrate percolating past bottom of soil profile, kg
+    float *m_perco_no3_gw;
+    /// amount of solute P percolating past bottom of soil profile, kg
+    float *m_perco_solp_gw;
 
-	// soil related
-	/// amount of nitrogen stored in the nitrate pool in soil layer
-	float **m_sol_no3;
-	/// amount of soluble phosphorus stored in the soil layer
-	float **m_sol_solp;
-	/// max number of soil layers
-	int m_nSoilLayers;
-	/// number of soil layers of each cell
-	float *m_soilLayers;
+    // soil related
+    /// amount of nitrogen stored in the nitrate pool in soil layer
+    float **m_sol_no3;
+    /// amount of soluble phosphorus stored in the soil layer
+    float **m_sol_solp;
+    /// max number of soil layers
+    int m_nSoilLayers;
+    /// number of soil layers of each cell
+    float *m_soilLayers;
 
 
     /// outputs
@@ -92,15 +94,15 @@ private:
     /// soluble P loading to reach in groundwater to channel
     float *m_solpGwToCh;
 
-	/// subbasin related
-	/// the total number of subbasins
-	int m_nSubbasins;
-	//! subbasin IDs
-	vector<int> m_subbasinIDs;
-	/// subbasin grid (subbasins ID)
-	float *m_subbasin;
-	/// subbasins information
-	clsSubbasins *m_subbasinsInfo;
+    /// subbasin related
+    /// the total number of subbasins
+    int m_nSubbasins;
+    //! subbasin IDs
+    vector<int> m_subbasinIDs;
+    /// subbasin grid (subbasins ID)
+    float *m_subbasin;
+    /// subbasins information
+    clsSubbasins *m_subbasinsInfo;
 
 private:
 
@@ -118,6 +120,7 @@ private:
      * \return bool The validity of the dimension
      */
     bool CheckInputSize(const char *, int);
-	/// initial outputs
+
+    /// initial outputs
     void initialOutputs();
 };

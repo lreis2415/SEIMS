@@ -27,8 +27,7 @@ using namespace std;
  *           use the USLE_C, USLE_K in the calculation of splash erosion.//
  *
  */
-class SplashEro_Park : public SimulationModule
-{
+class SplashEro_Park : public SimulationModule {
 public:
     //! Constructor
     SplashEro_Park(void);

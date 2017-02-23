@@ -51,8 +51,7 @@ using namespace std;
  * \brief IUH overland method to calculate overland flow routing
  * 
  */
-class IUH_OL : public SimulationModule
-{
+class IUH_OL : public SimulationModule {
 public:
     IUH_OL(void);
 
@@ -66,7 +65,7 @@ public:
 
     virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
 
-	virtual void SetSubbasins(clsSubbasins *);
+    virtual void SetSubbasins(clsSubbasins *);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -82,24 +81,24 @@ private:
     int m_nCells;
     /// cell width of the grid (m)
     float m_CellWidth;
-	/// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
-	float m_cellArea;
+    /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
+    float m_cellArea;
     /// the total number of subbasins
-	int m_nSubbasins;
-	//! subbasin IDs
-	vector<int> m_subbasinIDs;
+    int m_nSubbasins;
+    //! subbasin IDs
+    vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
     float *m_subbasin;
 
-	/// subbasins information
-	clsSubbasins *m_subbasinsInfo;
+    /// subbasins information
+    clsSubbasins *m_subbasinsInfo;
     /// start time of IUH for each grid cell
     ///float* m_uhminCell;
     /// end time of IUH for each grid cell
     ///float* m_uhmaxCell;
-    
-	/// landcover code
-	//float *m_landcover;
+
+    /// landcover code
+    //float *m_landcover;
     /// IUH of each grid cell (1/s)
     float **m_iuhCell;
     /// the number of columns of Ol_iuh
@@ -113,18 +112,19 @@ private:
 
     //temporary
 
-	/// store the flow of each cell in each day between min time and max time
+    /// store the flow of each cell in each day between min time and max time
     float **m_cellFlow;
-	/// the maximum of second column of OL_IUH plus 1.
+    /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
 
     //output
-    
+
     /// overland flow to streams for each subbasin (m3/s)
     float *m_Q_SBOF;
-	// overland flow in each cell (mm) //added by Gao, as intermediate variable, 29 Jul 2016
-	float *m_OL_Flow;
-	//! initial outputs
+    // overland flow in each cell (mm) //added by Gao, as intermediate variable, 29 Jul 2016
+    float *m_OL_Flow;
+
+    //! initial outputs
     void initialOutputs();
 };
 

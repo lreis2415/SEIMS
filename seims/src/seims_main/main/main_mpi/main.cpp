@@ -24,11 +24,11 @@
 #include "parallel.h"
 
 using namespace std;
+
 /*
  * Deprecated
  */
-void WriteFileInOut(string &projectPath, string &startTime, string &endTime)
-{
+void WriteFileInOut(string &projectPath, string &startTime, string &endTime) {
     string fileInName = projectPath + "file.in";
     string fileOutName = projectPath + "file.out";
 
@@ -63,10 +63,8 @@ void WriteFileInOut(string &projectPath, string &startTime, string &endTime)
     fout.close();
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
-    {
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
         cout << "Usage: mpiexec -n [threadsNum] seims_mpi configFile [outputQFile]\n";
         exit(-1);
     }
@@ -74,11 +72,11 @@ int main(int argc, char *argv[])
     OGRRegisterAll();
     GDALAllRegister();
 
-
     const char *configFile = argv[1];
     string outputFile = "q.txt";
-    if (argc >= 3)
+    if (argc >= 3) {
         outputFile = argv[2];
+    }
 
 
     // read info from config file
@@ -97,29 +95,28 @@ int main(int argc, char *argv[])
     //ifsConfig >> outputFile;
     ifsConfig.close();
 
-    if (argc >= 4)
-    {
+    if (argc >= 4) {
         nThread = atoi(argv[3]);
     }
 
-    if (argc >= 5)
+    if (argc >= 5) {
         layering = atoi(argv[4]);
+    }
 
     LayeringMethod layeringMethod = DOWN_UP;
-    if (layering == 0)
+    if (layering == 0) {
         layeringMethod = UP_DOWN;
-    else
+    } else {
         layeringMethod = DOWN_UP;
+    }
 
     int nLen = projectPath.length();
-    if (projectPath.substr(nLen - 1, 1) != SEP)
-    {
+    if (projectPath.substr(nLen - 1, 1) != SEP) {
         projectPath = projectPath + SEP;
     }
 
     nLen = modulePath.length();
-    if (modulePath.substr(nLen - 1, 1) != SEP)
-    {
+    if (modulePath.substr(nLen - 1, 1) != SEP) {
         modulePath = modulePath + SEP;
     }
 
@@ -146,8 +143,7 @@ int main(int argc, char *argv[])
     int nSlaves = numprocs - 1;
     //cout << "nSlaves:" << nSlaves << endl;
 
-    if (rank == MASTER_RANK)
-    {
+    if (rank == MASTER_RANK) {
         //// connect to mongodb
         //mongo conn[1];
         //int status = mongo_connect(conn, dbAddress.c_str(), dbPort);
@@ -158,68 +154,63 @@ int main(int argc, char *argv[])
         //    cout << "can not connect to mongodb at " << dbAddress << ":" << dbPort << endl;
         //    exit(-1);
         //}
-		/// connect to mongoDB using mongo-c-driver-1.3.5 or later
-		mongoc_client_t *conn;
-		const char* host = dbAddress.c_str();
-		if (!isIPAddress(host))
-			throw ModelException("MainMPI", "Connect to MongoDB",
-			"IP address: " + string(host) + "is invalid, Please check!\n");
-		mongoc_init();
-		mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, dbPort);
-		conn = mongoc_client_new_from_uri(uri);
-		/// Check the connection to MongoDB is success or not
-		bson_t *reply = bson_new();
-		bson_error_t *err = NULL;
-		if (!mongoc_client_get_server_status(conn, NULL, reply, err))
-			throw ModelException(MODEL_NAME, "MainMongoDB", "Failed to connect to MongoDB!\n");
-		bson_destroy(reply);
+        /// connect to mongoDB using mongo-c-driver-1.3.5 or later
+        mongoc_client_t *conn;
+        const char *host = dbAddress.c_str();
+        if (!isIPAddress(host)) {
+            throw ModelException("MainMPI", "Connect to MongoDB",
+                                 "IP address: " + string(host) + "is invalid, Please check!\n");
+        }
+        mongoc_init();
+        mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, dbPort);
+        conn = mongoc_client_new_from_uri(uri);
+        /// Check the connection to MongoDB is success or not
+        bson_t *reply = bson_new();
+        bson_error_t *err = NULL;
+        if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
+            throw ModelException(MODEL_NAME, "MainMongoDB", "Failed to connect to MongoDB!\n");
+        }
+        bson_destroy(reply);
 
         // read river topology data
-        map<int, SubbasinStruct *> subbasinMap;
+        map < int, SubbasinStruct * > subbasinMap;
         set<int> groupSet;
         //ReadRiverTopology(reachFile, subbasinMap, groupSet);
         string groupMethod = "KMETIS";
         ReadReachTopologyFromMongoDB(conn, modelName.c_str(), subbasinMap, groupSet, nSlaves, REACH_KMETIS);
-        if ((size_t) nSlaves != groupSet.size())
-        {
+        if ((size_t) nSlaves != groupSet.size()) {
             groupSet.clear();
             groupMethod = "PMETIS";
             ReadReachTopologyFromMongoDB(conn, modelName.c_str(), subbasinMap, groupSet, nSlaves, REACH_PMETIS);
-            if ((size_t) nSlaves != groupSet.size())
-            {
+            if ((size_t) nSlaves != groupSet.size()) {
                 groupSet.clear();
                 groupMethod = "GROUP";
                 ReadReachTopologyFromMongoDB(conn, modelName.c_str(), subbasinMap, groupSet, nSlaves, REACH_GROUP);
-                if ((size_t) nSlaves != groupSet.size())
-                {
+                if ((size_t) nSlaves != groupSet.size()) {
                     cout << "The number of slave processes (" << nSlaves << ") is not consist with the group number(" <<
-                    groupSet.size() << ").\n";
+                         groupSet.size() << ").\n";
                     exit(-1);
                 }
             }
         }
         cout << groupMethod << ", Number of Groups:" << groupSet.size() << endl;
-        try
-        {
+        try {
             MasterProcess(subbasinMap, groupSet, projectPath, outputFile);
         }
-        catch (ModelException e)
-        {
+        catch (ModelException e) {
             cout << e.toString() << endl;
         }
-		mongoc_uri_destroy(uri);
+        mongoc_uri_destroy(uri);
         // mongo_destroy(conn);
 
         MPI_Finalize();
         return 0;
     }
-    try
-    {
+    try {
         CalculateProcess(rank, numprocs, nSlaves, slaveComm, projectPath, modulePath, dbAddress.c_str(), dbPort,
                          modelName.c_str(), nThread, layeringMethod);
     }
-    catch (ModelException e)
-    {
+    catch (ModelException e) {
         cout << e.toString() << endl;
     }
 

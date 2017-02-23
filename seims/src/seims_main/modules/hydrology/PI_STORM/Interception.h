@@ -27,8 +27,7 @@ using namespace std;
  * \brief Precipitation interception for STORM model
  *
  */
-class clsPI_STORM : public SimulationModule
-{
+class clsPI_STORM : public SimulationModule {
 private:
     //---------------------
     //five parameters

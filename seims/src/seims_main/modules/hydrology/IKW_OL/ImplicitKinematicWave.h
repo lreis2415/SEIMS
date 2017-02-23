@@ -29,8 +29,7 @@ using namespace std;
  * \brief kinematic wave method in LISEM model
  *
  */
-class ImplicitKinematicWave_OL : public SimulationModule
-{
+class ImplicitKinematicWave_OL : public SimulationModule {
 public:
     //! Constructor
     ImplicitKinematicWave_OL(void);

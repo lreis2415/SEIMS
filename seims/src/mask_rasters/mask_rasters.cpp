@@ -17,6 +17,7 @@
 #include <time.h>
 #include <sstream>
 #include <vector>
+
 #ifdef SUPPORT_OMP
 #include <omp.h>
 #endif
@@ -120,13 +121,11 @@ using namespace std;
 //    return 0;
 //}
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     SetDefaultOpenMPThread();
     GDALAllRegister();
 
-    if (argc < 2)
-    {
+    if (argc < 2) {
         cout << "A config file should be given as input.\n";
         cout << "Format of config file: \n\n";
         cout << "maskFile\n";
@@ -139,14 +138,15 @@ int main(int argc, char *argv[])
     }
 
     bool outputAsc = false;
-    if (argc >= 3 && strcmp("-asc", argv[2]) == 0)
+    if (argc >= 3 && strcmp("-asc", argv[2]) == 0) {
         outputAsc = true;
+    }
 
     const char *configFile = argv[1];
     string maskFile;
     int n = 0;
-    vector<string> inputFiles;
-    vector<string> outputFiles;
+    vector <string> inputFiles;
+    vector <string> outputFiles;
     vector<float> defaultValues;
 
     // read input information
@@ -155,8 +155,7 @@ int main(int argc, char *argv[])
     ifstream ifs(configFile);
     ifs >> maskFile;
     ifs >> n;
-    for (int i = 0; i < n; i++)
-    {
+    for (int i = 0; i < n; i++) {
         ifs >> tmp1 >> tmpVal >> tmp2;
         inputFiles.push_back(tmp1);
         defaultValues.push_back(tmpVal);
@@ -168,8 +167,7 @@ int main(int argc, char *argv[])
     clsRasterData<int> maskLayer(maskFile);
 
     // loop to mask each raster
-    for (int i = 0; i < n; ++i)
-    {
+    for (int i = 0; i < n; ++i) {
         cout << inputFiles[i] << endl;
         clsRasterData<float, int> inputLayer(inputFiles[i], true, &maskLayer, true, defaultValues[i]);
 

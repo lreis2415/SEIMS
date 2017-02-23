@@ -6,6 +6,7 @@
  *        2. 
  */
 #pragma once
+
 #include <string>
 #include <vector>
 #include <string>
@@ -27,57 +28,56 @@ using namespace std;
  * \brief --
  * 
  */
-class SSR_DA : public SimulationModule
-{
+class SSR_DA : public SimulationModule {
 private:
-	/// valid cell numbers
-	int m_nCells;
-	/// width of cell (m)
-	float m_CellWidth;
+    /// valid cell numbers
+    int m_nCells;
+    /// width of cell (m)
+    float m_CellWidth;
     /// max number of soil layers
     int m_nSoilLayers;
-	/// number of soil layers of each cell
-	float *m_soilLayers;
-	/// soil thickness
-	float **m_soilThick;
+    /// number of soil layers of each cell
+    float *m_soilLayers;
+    /// soil thickness
+    float **m_soilThick;
 
     ///// depth of the up soil layer
     //float m_upSoilDepth;
-	/// 
+    ///
     //float *m_rootDepth;
 
-	/// timestep
+    /// timestep
     int m_dt;
-	/// Interflow scale factor
+    /// Interflow scale factor
     float m_ki;
-	/// soil freezing temperature threshold, deg C
+    /// soil freezing temperature threshold, deg C
     float m_frozenT;
-	/// slope (tan)
+    /// slope (tan)
     float *m_slope;
-	/// conductivity
+    /// conductivity
     float **m_ks;
-	///// porosity (mm/mm)
+    ///// porosity (mm/mm)
     //float **m_porosity;
 
-	/// amount of water held in the soil layer at saturation (sat - wp water), mm
-	float **m_satmm;
-	/// pore size distribution index
+    /// amount of water held in the soil layer at saturation (sat - wp water), mm
+    float **m_satmm;
+    /// pore size distribution index
     float **m_poreIndex;
 
-	/// amount of water available to plants in soil layer at field capacity (AWC=FC-WP), mm
-	float **m_fcmm;
-	/// water content of soil at -1.5 MPa (wilting point) mm H2O
-	float **m_wpmm;
-	/// soil water storage (mm)
-	float **m_soilStorage;
-	/// soil water storage in soil profile (mm)
-	float *m_soilStorageProfile;
-	/// soil temperature, deg C
+    /// amount of water available to plants in soil layer at field capacity (AWC=FC-WP), mm
+    float **m_fcmm;
+    /// water content of soil at -1.5 MPa (wilting point) mm H2O
+    float **m_wpmm;
+    /// soil water storage (mm)
+    float **m_soilStorage;
+    /// soil water storage in soil profile (mm)
+    float *m_soilStorageProfile;
+    /// soil temperature, deg C
     float *m_soilT;
 
     /// channel width, m
     float *m_chWidth;
-	/// stream link 
+    /// stream link
     float *m_streamLink;
 
     /**
@@ -101,26 +101,27 @@ private:
     *	The first element in each layer is the number of cells in the layer
     */
     float **m_routingLayers;
-	/// number of routing layers
+    /// number of routing layers
     int m_nRoutingLayers;
-	/// number of subbasin
+    /// number of subbasin
     int m_nSubbasin;
     /// subbasin grid (ID of subbasin)
     float *m_subbasin;
 
     // outputs
 
-	/// subsurface runoff (mm), VAR_SSRU
+    /// subsurface runoff (mm), VAR_SSRU
     float **m_qi;
-	/// subsurface runoff volume (m3), VAR_SSRUVOL
+    /// subsurface runoff volume (m3), VAR_SSRUVOL
     float **m_qiVol;
-	/// subsurface to streams from each subbasin, the first element is the whole watershed, m3, VAR_SBIF
+    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3, VAR_SBIF
     float *m_qiSubbasin;
 
 public:
-	/// constructor
+    /// constructor
     SSR_DA(void);
-	/// destructor
+
+    /// destructor
     ~SSR_DA(void);
 
     virtual int Execute();
@@ -131,7 +132,7 @@ public:
 
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
-	virtual void SetSubbasins(clsSubbasins *subbasins);
+    virtual void SetSubbasins(clsSubbasins *subbasins);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 

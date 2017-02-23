@@ -22,8 +22,7 @@ using namespace std;
  * 
  */
 
-class SET_LM : public SimulationModule
-{
+class SET_LM : public SimulationModule {
 private:
 
     int m_nCells;

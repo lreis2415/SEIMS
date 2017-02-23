@@ -95,12 +95,10 @@ using namespace std;
 //}
 
 
-int ReadSubbasinOutlets(const char *outletFile, int nSubbasins, float **&outlets)
-{
+int ReadSubbasinOutlets(const char *outletFile, int nSubbasins, float **&outlets) {
     ifstream ifs(outletFile);
     int id;
-    for (int i = 0; i < nSubbasins; i++)
-    {
+    for (int i = 0; i < nSubbasins; i++) {
         ifs >> id >> outlets[i][0] >> outlets[i][1];
     }
     ifs.close();
@@ -108,11 +106,9 @@ int ReadSubbasinOutlets(const char *outletFile, int nSubbasins, float **&outlets
     return 0;
 }
 
-int BuildLayer(SubbasinStruct *pDownStream)
-{
-    vector<SubbasinStruct *> &ups = pDownStream->upStreams;
-    for (size_t i = 0; i < ups.size(); ++i)
-    {
+int BuildLayer(SubbasinStruct *pDownStream) {
+    vector < SubbasinStruct * > &ups = pDownStream->upStreams;
+    for (size_t i = 0; i < ups.size(); ++i) {
         ups[i]->disToOutlet = pDownStream->disToOutlet + 1;
         BuildLayer(ups[i]);
     }
@@ -155,12 +151,12 @@ int BuildLayer(SubbasinStruct *pDownStream)
 //    return groupSet.size();
 //}
 
-int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<int, SubbasinStruct *> &subbasins, set<int> &groupSet,
-                            int decompostionPlan, const char *groupField)
-{
-	bson_t *b = bson_new();
-	BSON_APPEND_INT32(b, REACH_GROUPDIVIDED, decompostionPlan);
-	
+int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<int, SubbasinStruct *> &subbasins,
+                                 set<int> &groupSet,
+                                 int decompostionPlan, const char *groupField) {
+    bson_t *b = bson_new();
+    BSON_APPEND_INT32(b, REACH_GROUPDIVIDED, decompostionPlan);
+
     //bson b[1];
     //bson_init(b);
     //bson_append_int(b, "GROUP_DIVIDE", decompostionPlan);
@@ -172,49 +168,51 @@ int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<
     //mongo_cursor_init(cursor, conn, oss.str().c_str());
     //mongo_cursor_set_query(cursor, b);
 
-	mongoc_cursor_t *cursor;
-	const bson_t *rec;
-	mongoc_collection_t *collection = NULL;
-	collection = mongoc_client_get_collection(conn, dbName, DB_TAB_REACH);
-	if (collection == NULL)
-		throw ModelException("ReadData", "ReadReachesTopologyFromMongoDB", "Failed to get collection: " + string(DB_TAB_REACH) + ".\n");
-	cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    mongoc_cursor_t *cursor;
+    const bson_t *rec;
+    mongoc_collection_t *collection = NULL;
+    collection = mongoc_client_get_collection(conn, dbName, DB_TAB_REACH);
+    if (collection == NULL) {
+        throw ModelException("ReadData", "ReadReachesTopologyFromMongoDB",
+                             "Failed to get collection: " + string(DB_TAB_REACH) + ".\n");
+    }
+    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
 
     // set subbasin
     map<int, int> downStreamMap;
     bool readFailed = true;
-	while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &rec))
-	{
-    //while (mongo_cursor_next(cursor) == MONGO_OK)
-    //{
-    //    bson &rec = cursor->current;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &rec)) {
+        //while (mongo_cursor_next(cursor) == MONGO_OK)
+        //{
+        //    bson &rec = cursor->current;
 
         int id, group;
         //bson_iterator iterator[1];
-		bson_iter_t iterator;
+        bson_iter_t iterator;
         //if (bson_find(iterator, &rec, "SUBBASIN"))
         //    id = bson_iterator_int(iterator);
-		if (bson_iter_init_find(&iterator, rec, REACH_SUBBASIN))
-			id = GetIntFromBSONITER(&iterator);
-        else
+        if (bson_iter_init_find(&iterator, rec, REACH_SUBBASIN)) {
+            id = GetIntFromBSONITER(&iterator);
+        } else {
             throw ModelException("ReadData", "ReadReachesTopologyFromMongoDB", "Subbasin ID is not found in database.");
+        }
 
         //if (bson_find(iterator, &rec, groupField))
         //    group = bson_iterator_int(iterator);
-		if (bson_iter_init_find(&iterator, rec, groupField))
-			group = GetIntFromBSONITER(&iterator);
-        else
-        {
+        if (bson_iter_init_find(&iterator, rec, groupField)) {
+            group = GetIntFromBSONITER(&iterator);
+        } else {
             return -1;
             //cout <<  "Subbasin GROUP_KMETIS or GROUP is not found in database.\n";
             //throw ModelException("ReadData", "ReadReachesTopologyFromMongoDB", "Subbasin GROUP is not found in database.");
         }
         //if (bson_find(iterator, &rec, "DOWNSTREAM"))
         //    downStreamMap[id] = bson_iterator_int(iterator);
-		if (bson_iter_init_find(&iterator, rec, REACH_DOWNSTREAM))
-			downStreamMap[id] = GetIntFromBSONITER(&iterator);
-        else
+        if (bson_iter_init_find(&iterator, rec, REACH_DOWNSTREAM)) {
+            downStreamMap[id] = GetIntFromBSONITER(&iterator);
+        } else {
             return -1;
+        }
         //throw ModelException("ReadData", "ReadReachesTopologyFromMongoDB", "Subbasin DOWNSTREAM is not found in database.");
 
         subbasins[id] = new SubbasinStruct(id, group);
@@ -222,33 +220,28 @@ int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<
         readFailed = false;
     }
 
-	bson_destroy(b);
+    bson_destroy(b);
     // mongo_cursor_destroy(cursor);
-	mongoc_cursor_destroy(cursor);
-	mongoc_collection_destroy(collection);
+    mongoc_cursor_destroy(cursor);
+    mongoc_collection_destroy(collection);
     //cout << "Size of groupSet: " << groupSet.size() << endl;
-    if (readFailed)
-    {
+    if (readFailed) {
         // bson_print(b);
-		cout << bson_as_json(b,NULL) <<endl;
+        cout << bson_as_json(b, NULL) << endl;
         cout << "The result of query in ReadReachTopologyFromMongoDB is null.\n";
         return -1;
     }
 
     // fill topology information
     SubbasinStruct *pOutlet = NULL;
-    for (map<int, int>::iterator it = downStreamMap.begin(); it != downStreamMap.end(); it++)
-    {
+    for (map<int, int>::iterator it = downStreamMap.begin(); it != downStreamMap.end(); it++) {
         int id = it->first;
         int to = it->second;
 
-        if (to > 0)
-        {
+        if (to > 0) {
             subbasins[id]->downStream = subbasins[to];
             subbasins[to]->upStreams.push_back(subbasins[id]);
-        }
-        else
-        {
+        } else {
             pOutlet = subbasins[id];
         }
     }
@@ -261,36 +254,31 @@ int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<
 
     // ranking
     bool finished = false;
-    while (!finished)
-    {
+    while (!finished) {
         finished = true;
-        for (map<int, SubbasinStruct *>::iterator it = subbasins.begin(); it != subbasins.end(); ++it)
-        {
-            if (it->second->rank < 0)
-            {
-                vector<SubbasinStruct *> &ups = it->second->upStreams;
+        for (map<int, SubbasinStruct *>::iterator it = subbasins.begin(); it != subbasins.end(); ++it) {
+            if (it->second->rank < 0) {
+                vector < SubbasinStruct * > &ups = it->second->upStreams;
                 // most upstream rivers
-                if (ups.empty())
-                {
+                if (ups.empty()) {
                     it->second->rank = 1;
-                }
-                else
+                } else
                     // max rank of upstream ranks + 1
                 {
                     int maxUpStreamRank = -1;
                     bool childrenRanked = true;
-                    for (size_t i = 0; i < ups.size(); i++)
-                    {
-                        if (ups[i]->rank < 0)
-                        {
+                    for (size_t i = 0; i < ups.size(); i++) {
+                        if (ups[i]->rank < 0) {
                             childrenRanked = false;
                             break;
                         }
-                        if (ups[i]->rank > maxUpStreamRank)
+                        if (ups[i]->rank > maxUpStreamRank) {
                             maxUpStreamRank = ups[i]->rank;
+                        }
                     }
-                    if (childrenRanked)
+                    if (childrenRanked) {
                         it->second->rank = maxUpStreamRank + 1;
+                    }
                 }
                 finished = false;
             }
@@ -300,13 +288,11 @@ int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<
     return 0;
 }
 
-int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasins, set<int> &groupSet)
-{
+int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasins, set<int> &groupSet) {
     OGRDataSource *poDS;
 
     poDS = OGRSFDriverRegistrar::Open(reachFile);
-    if (poDS == NULL)
-    {
+    if (poDS == NULL) {
         printf("OGR Open failed in function ReadRiverTopology.\n");
         return -1;
     }
@@ -317,8 +303,7 @@ int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasi
     // setup subbasins
     groupSet.clear();
     poLayer->ResetReading();
-    while ((poFeature = poLayer->GetNextFeature()) != NULL)
-    {
+    while ((poFeature = poLayer->GetNextFeature()) != NULL) {
         int id = poFeature->GetFieldAsInteger("Subbasin");
         int group = poFeature->GetFieldAsInteger("GROUP");
         subbasins[id] = new SubbasinStruct(id, group);
@@ -330,18 +315,14 @@ int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasi
     // fill topology information
     poLayer->ResetReading();
     SubbasinStruct *pOutlet = NULL;
-    while ((poFeature = poLayer->GetNextFeature()) != NULL)
-    {
+    while ((poFeature = poLayer->GetNextFeature()) != NULL) {
         int id = poFeature->GetFieldAsInteger("Subbasin");
         int to = poFeature->GetFieldAsInteger("SubbasinR");
 
-        if (to != 0)
-        {
+        if (to != 0) {
             subbasins[id]->downStream = subbasins[to];
             subbasins[to]->upStreams.push_back(subbasins[id]);
-        }
-        else
-        {
+        } else {
             pOutlet = subbasins[id];
         }
     }
@@ -352,43 +333,37 @@ int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasi
 
     // ranking
     bool finished = false;
-    while (!finished)
-    {
+    while (!finished) {
         finished = true;
-        for (map<int, SubbasinStruct *>::iterator it = subbasins.begin(); it != subbasins.end(); ++it)
-        {
-            if (it->second->rank < 0)
-            {
-                vector<SubbasinStruct *> &ups = it->second->upStreams;
+        for (map<int, SubbasinStruct *>::iterator it = subbasins.begin(); it != subbasins.end(); ++it) {
+            if (it->second->rank < 0) {
+                vector < SubbasinStruct * > &ups = it->second->upStreams;
                 // most upstream rivers
-                if (ups.empty())
-                {
+                if (ups.empty()) {
                     it->second->rank = 1;
-                }
-                else
+                } else
                     // max rank of upstream ranks + 1
                 {
                     int maxUpStreamRank = -1;
                     bool childrenRanked = true;
-                    for (size_t i = 0; i < ups.size(); i++)
-                    {
-                        if (ups[i]->rank < 0)
-                        {
+                    for (size_t i = 0; i < ups.size(); i++) {
+                        if (ups[i]->rank < 0) {
                             childrenRanked = false;
                             break;
                         }
-                        if (ups[i]->rank > maxUpStreamRank)
+                        if (ups[i]->rank > maxUpStreamRank) {
                             maxUpStreamRank = ups[i]->rank;
+                        }
                     }
-                    if (childrenRanked)
+                    if (childrenRanked) {
                         it->second->rank = maxUpStreamRank + 1;
+                    }
                 }
                 finished = false;
             }
 
         }
     }
-
 
     return 0;
 }

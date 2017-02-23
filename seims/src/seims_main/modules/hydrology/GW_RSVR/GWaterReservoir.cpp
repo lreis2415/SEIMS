@@ -22,58 +22,52 @@ GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_re
                                          m_recessionExponent(1.f), m_CellWidth(-1.f),
                                          m_deepCoefficient(0.f), m_nCells(-1), m_nReaches(-1), m_qg(NULL),
                                          m_percSubbasin(NULL), m_subbasin(NULL),
-                                         m_nCellsSubbasin(NULL), m_initStorage(0.f)
-{
+                                         m_nCellsSubbasin(NULL), m_initStorage(0.f) {
 }
 
-GWaterReservoir::~GWaterReservoir(void)
-{
-    if (m_qg != NULL)
+GWaterReservoir::~GWaterReservoir(void) {
+    if (m_qg != NULL) {
         delete[] m_qg;
+    }
 
-    if (m_nCellsSubbasin != NULL)
+    if (m_nCellsSubbasin != NULL) {
         delete[] m_nCellsSubbasin;
+    }
 
-    if (m_percSubbasin != NULL)
+    if (m_percSubbasin != NULL) {
         delete[] m_percSubbasin;
+    }
 
-    if (m_storage != NULL)
+    if (m_storage != NULL) {
         delete[] m_storage;
+    }
 }
 
-
-bool GWaterReservoir::CheckInputData()
-{
-    if (this->m_date < 0)
-    {
+bool GWaterReservoir::CheckInputData() {
+    if (this->m_date < 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "You have not set the time.");
         return false;
     }
-    if (this->m_dt < 0)
-    {
+    if (this->m_dt < 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "You have not set the time step.");
         return false;
     }
-    if (this->m_nCells <= 0)
-    {
+    if (this->m_nCells <= 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "The cell number is not set.");
         return false;
     }
 
-    if (m_CellWidth <= 0)
-    {
+    if (m_CellWidth <= 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "The cell width  is not set.");
         return false;
     }
 
-    if (m_recessionCoefficient <= 0)
-    {
+    if (m_recessionCoefficient <= 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "The base flow recession coefficient is not set.");
         return false;
     }
 
-    if (m_recharge == NULL)
-    {
+    if (m_recharge == NULL) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "The percolation is not set.");
         return false;
     }
@@ -81,43 +75,35 @@ bool GWaterReservoir::CheckInputData()
     return true;
 }
 
-bool GWaterReservoir::CheckInputSize(const char *key, int n)
-{
-    if (n <= 0)
-    {
+bool GWaterReservoir::CheckInputSize(const char *key, int n) {
+    if (n <= 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
-    if (this->m_nCells != n)
-    {
-        if (this->m_nCells <= 0)
+    if (this->m_nCells != n) {
+        if (this->m_nCells <= 0) {
             this->m_nCells = n;
-        else
-        {
+        } else {
             //throw ModelException(MID_GW_RSVR,"CheckInputSize","Input data for "+string(key) +" is invalid. All the input data should have same size.");
             ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-            m_nCells << ".\n";
+                m_nCells << ".\n";
             throw ModelException(MID_GW_RSVR, "CheckInputSize", oss.str());
         }
     }
     return true;
 }
 
-
-void GWaterReservoir::InitOutputs(void)
-{
-    if (m_qg == NULL)
-    {
+void GWaterReservoir::InitOutputs(void) {
+    if (m_qg == NULL) {
         m_qg = new float[m_nReaches + 1];
         m_percSubbasin = new float[m_nReaches + 1];
         m_nCellsSubbasin = new int[m_nReaches + 1];
         m_storage = new float[m_nReaches + 1];
 
 #pragma omp parallel for
-        for (int i = 0; i <= m_nReaches; i++)
-        {
+        for (int i = 0; i <= m_nReaches; i++) {
             m_qg[i] = 0.f;
             m_nCellsSubbasin[i] = 0;
             m_storage[i] = m_initStorage;
@@ -135,17 +121,16 @@ void GWaterReservoir::InitOutputs(void)
     }
 }
 
-int GWaterReservoir::Execute(void)
-{
+int GWaterReservoir::Execute(void) {
     InitOutputs();
     CheckInputData();
 #pragma omp parallel for
-    for (int i = 0; i <= m_nReaches; i++)
+    for (int i = 0; i <= m_nReaches; i++) {
         m_percSubbasin[i] = 0.f;
+    }
 
     // get percolation for each subbasin
-    for (int i = 0; i < m_nCells; i++)
-    {
+    for (int i = 0; i < m_nCells; i++) {
 #ifdef MULTIPLY_REACHES
         int subbasinId = (int) m_subbasin[i];
 #else
@@ -156,8 +141,7 @@ int GWaterReservoir::Execute(void)
 
     //float sum = 0.f;
 #pragma omp parallel for //reduction(+:sum)
-    for (int i = 1; i <= m_nReaches; i++)
-    {
+    for (int i = 1; i <= m_nReaches; i++) {
         float percolation = m_percSubbasin[i] * (1 - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
         float outFlowDepth = m_recessionCoefficient * pow(m_storage[i], m_recessionExponent);
@@ -173,91 +157,62 @@ int GWaterReservoir::Execute(void)
     return 0;
 }
 
-
 // set value
-void GWaterReservoir::SetValue(const char *key, float value)
-{
+void GWaterReservoir::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_HillSlopeTimeStep))
-    {
+    if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
         m_dt = value;
-    }
-    else if (StringMatch(sk, Tag_CellWidth))
-    {
+    } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
-    }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM))
-    {
+    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         omp_set_num_threads((int) value);
-    }
-    else if (StringMatch(sk, VAR_GW_KG))
-    {
+    } else if (StringMatch(sk, VAR_GW_KG)) {
         m_recessionCoefficient = value;
-    }
-    else if (StringMatch(sk, VAR_Base_ex))
-    {
+    } else if (StringMatch(sk, VAR_Base_ex)) {
         m_recessionExponent = value;
-    }
-    else if (StringMatch(sk, VAR_GW0))
-    {
+    } else if (StringMatch(sk, VAR_GW0)) {
         m_initStorage = value;
-    }
-    else if (StringMatch(sk, VAR_GWMAX))
-    {
+    } else if (StringMatch(sk, VAR_GWMAX)) {
         m_storageMax = value;
-    }
-    else
-    {
+    } else {
         throw ModelException(MID_GW_RSVR, "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
     }
 }
 
-void GWaterReservoir::Set1DData(const char *key, int n, float *data)
-{
+void GWaterReservoir::Set1DData(const char *key, int n, float *data) {
     //check the input data
     if (!this->CheckInputSize(key, n)) return;
     //set the value
     string sk(key);
-    if (StringMatch(sk, VAR_PERCO))
-    {
+    if (StringMatch(sk, VAR_PERCO)) {
         m_recharge = data;
-    }
-    else if (StringMatch(sk, VAR_SUBBSN))
+    } else if (StringMatch(sk, VAR_SUBBSN)) {
         this->m_subbasin = data;
-    else
-    {
+    } else {
         throw ModelException(MID_GW_RSVR, "Set1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 }
 
-void GWaterReservoir::Set2DData(const char *key, int nrows, int ncols, float **data)
-{
+void GWaterReservoir::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
 
-    if (StringMatch(sk, Tag_RchParam))
-    {
+    if (StringMatch(sk, Tag_RchParam)) {
         m_nReaches = ncols - 1;
-    }
-    else
+    } else {
         throw ModelException(MID_GW_RSVR, "Set2DData", "Parameter " + sk
-                                                       + " does not exist. Please contact the module developer.");
+            + " does not exist. Please contact the module developer.");
+    }
 }
 
-void GWaterReservoir::Get1DData(const char *key, int *n, float **data)
-{
+void GWaterReservoir::Get1DData(const char *key, int *n, float **data) {
     InitOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBQG))
-    {
+    if (StringMatch(sk, VAR_SBQG)) {
         *data = m_qg;
-    }
-    else if (StringMatch(sk, VAR_SBGS))
-    {
+    } else if (StringMatch(sk, VAR_SBGS)) {
         *data = m_storage;
-    }
-    else
-    {
+    } else {
         throw ModelException(MID_GW_RSVR, "Get1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }

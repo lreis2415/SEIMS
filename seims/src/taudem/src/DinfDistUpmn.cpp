@@ -48,177 +48,115 @@ email:  dtarb@usu.edu
 #include "DinfDistUp.h"
 //========================
 
-int main(int argc,char **argv)
-{
-char angfile[MAXLN],felfile[MAXLN],slpfile[MAXLN],wfile[MAXLN],rtrfile[MAXLN];
-   int err,i,statmethod=0,typemethod=0,usew=0, concheck=1;
-   float thresh=0.0;
-      
-   if(argc < 2)
-    {  
-	   printf("Error: To run this program, use either the Simple Usage option or\n");
-	   printf("the Usage with Specific file names option\n");
-	   goto errexit;
-    }
-    else if(argc > 2)
-	{
-		i = 1;
+int main(int argc, char **argv) {
+    char angfile[MAXLN], felfile[MAXLN], slpfile[MAXLN], wfile[MAXLN], rtrfile[MAXLN];
+    int err, i, statmethod = 0, typemethod = 0, usew = 0, concheck = 1;
+    float thresh = 0.0;
+
+    if (argc < 2) {
+        printf("Error: To run this program, use either the Simple Usage option or\n");
+        printf("the Usage with Specific file names option\n");
+        goto errexit;
+    } else if (argc > 2) {
+        i = 1;
 //		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
-	}
-	else {
-		i = 2;
+    } else {
+        i = 2;
 //		printf("You are running %s with the Simple Usage option.\n", argv[0]);
-	}
-	while(argc > i)
-	{
-		if(strcmp(argv[i],"-ang")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(angfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-fel")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(felfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-slp")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy( slpfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-wg")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(wfile,argv[i]);
-				usew=1;
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-du")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				strcpy(rtrfile,argv[i]);
-				i++;
-			}
-			else goto errexit;
-		}
-		else if(strcmp(argv[i],"-m")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				if(strcmp(argv[i],"h")==0)
-				{
-					typemethod=0;
-				}
-				else if(strcmp(argv[i],"v")==0)
-				{
-					typemethod=1;
-				}
-				else if(strcmp(argv[i],"p")==0)
-				{
-					typemethod=2;
-				}
-				else if(strcmp(argv[i],"s")==0)
-				{
-					typemethod=3;
-				}
-				else if(strcmp(argv[i],"ave")==0)
-				{
-					statmethod=0;
-				}
-				else if(strcmp(argv[i],"max")==0)
-				{
-					statmethod=1;
-				}
-				else if(strcmp(argv[i],"min")==0)
-				{
-					statmethod=2;
-				}
-				i++;
-				if(strcmp(argv[i],"h")==0)
-				{
-					typemethod=0;
-				}
-				else if(strcmp(argv[i],"v")==0)
-				{
-					typemethod=1;
-				}
-				else if(strcmp(argv[i],"p")==0)
-				{
-					typemethod=2;
-				}
-				else if(strcmp(argv[i],"s")==0)
-				{
-					typemethod=3;
-				}
-				else if(strcmp(argv[i],"ave")==0)
-				{
-					statmethod=0;
-				}
-				else if(strcmp(argv[i],"max")==0)
-				{
-					statmethod=1;
-				}
-				else if(strcmp(argv[i],"min")==0)
-				{
-					statmethod=2;
-				}
-				i++;				
-			}
-			else goto errexit;
-		}		
-	   else if(strcmp(argv[i],"-nc")==0)
-		{
-			i++;
-			concheck=0;
-		}
-		else if(strcmp(argv[i],"-thresh")==0)
-		{
-			i++;
-			if(argc > i)
-			{
-				sscanf(argv[i],"%f",&thresh);
-				i++;
-			}
-			else goto errexit;
-		}
-		else 
-		{
-			goto errexit;
-		}
-	}
-	if( argc == 2) {
-		nameadd(angfile,argv[1],"ang");
-		nameadd(felfile,argv[1],"fel");
-		nameadd(slpfile,argv[1],"slp");
-		nameadd(wfile,argv[1],"wg");
-		nameadd(rtrfile,argv[1],"du");
-	} 
- 
-if((err=dinfdistup(angfile,felfile,slpfile,wfile,rtrfile,statmethod,
-   typemethod,usew, concheck,thresh)) != 0)
-        printf("area error %d\n",err);   
+    }
+    while (argc > i) {
+        if (strcmp(argv[i], "-ang") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(angfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-fel") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(felfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-slp") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(slpfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-wg") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(wfile, argv[i]);
+                usew = 1;
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-du") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(rtrfile, argv[i]);
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-m") == 0) {
+            i++;
+            if (argc > i) {
+                if (strcmp(argv[i], "h") == 0) {
+                    typemethod = 0;
+                } else if (strcmp(argv[i], "v") == 0) {
+                    typemethod = 1;
+                } else if (strcmp(argv[i], "p") == 0) {
+                    typemethod = 2;
+                } else if (strcmp(argv[i], "s") == 0) {
+                    typemethod = 3;
+                } else if (strcmp(argv[i], "ave") == 0) {
+                    statmethod = 0;
+                } else if (strcmp(argv[i], "max") == 0) {
+                    statmethod = 1;
+                } else if (strcmp(argv[i], "min") == 0) {
+                    statmethod = 2;
+                }
+                i++;
+                if (strcmp(argv[i], "h") == 0) {
+                    typemethod = 0;
+                } else if (strcmp(argv[i], "v") == 0) {
+                    typemethod = 1;
+                } else if (strcmp(argv[i], "p") == 0) {
+                    typemethod = 2;
+                } else if (strcmp(argv[i], "s") == 0) {
+                    typemethod = 3;
+                } else if (strcmp(argv[i], "ave") == 0) {
+                    statmethod = 0;
+                } else if (strcmp(argv[i], "max") == 0) {
+                    statmethod = 1;
+                } else if (strcmp(argv[i], "min") == 0) {
+                    statmethod = 2;
+                }
+                i++;
+            } else { goto errexit; }
+        } else if (strcmp(argv[i], "-nc") == 0) {
+            i++;
+            concheck = 0;
+        } else if (strcmp(argv[i], "-thresh") == 0) {
+            i++;
+            if (argc > i) {
+                sscanf(argv[i], "%f", &thresh);
+                i++;
+            } else { goto errexit; }
+        } else {
+            goto errexit;
+        }
+    }
+    if (argc == 2) {
+        nameadd(angfile, argv[1], "ang");
+        nameadd(felfile, argv[1], "fel");
+        nameadd(slpfile, argv[1], "slp");
+        nameadd(wfile, argv[1], "wg");
+        nameadd(rtrfile, argv[1], "du");
+    }
+
+    if ((err = dinfdistup(angfile, felfile, slpfile, wfile, rtrfile, statmethod,
+                          typemethod, usew, concheck, thresh)) != 0) {
+                              printf("area error %d\n", err);
+    }
 
 //////Calling function
 ////int dinfdistup(char *angfile,char *felfile,char *slpfile,char *wfile, char *rtrfile,
@@ -245,27 +183,27 @@ if((err=dinfdistup(angfile,felfile,slpfile,wfile,rtrfile,statmethod,
 //}
 ////return (er);
 
-	return 0;
+    return 0;
 
-	errexit:
-	   printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
-	   printf("Usage with specific file names:\n %s -ang <angfile>\n",argv[0]);
-       printf("-fel <felfile> -slp <slpfile> [-wg <wfile>] -du <rtrfile>\n");
-  	   printf("[-m ave h] [-nc]\n");
-	   printf("<basefilename> is the name of the raw digital elevation model\n");
-	   printf("<angfile> is the D-infinity flow direction input file.\n");
-	   printf("<felfile> is the pit filled or carved elevation input file.\n");
-	   printf("<slpfile> is the D-infinity slope input file.\n");
-	   printf("<wgfile> is the D-infinity flow direction input file.\n");
-	   printf("<rtrfile> is the D-infinity distance output file.\n");
-	   printf("[-m ave h] is the optional method flag.\n");
-	   printf("The flag -nc overrides edge contamination checking\n");
-	   printf("The following are appended to the file names\n");
-       printf("before the files are opened:\n");
-       printf("ang   D-infinity contributing area file (output)\n");
-	   printf("fel   pit filled or carved elevation file\n");
-	   printf("slp   D-infinity slope input file file\n");
-	   printf("wg   weight input file\n");
-	   printf("du   distance to stream output file\n");
-       exit(0);
+    errexit:
+    printf("Simple Usage:\n %s <basefilename>\n", argv[0]);
+    printf("Usage with specific file names:\n %s -ang <angfile>\n", argv[0]);
+    printf("-fel <felfile> -slp <slpfile> [-wg <wfile>] -du <rtrfile>\n");
+    printf("[-m ave h] [-nc]\n");
+    printf("<basefilename> is the name of the raw digital elevation model\n");
+    printf("<angfile> is the D-infinity flow direction input file.\n");
+    printf("<felfile> is the pit filled or carved elevation input file.\n");
+    printf("<slpfile> is the D-infinity slope input file.\n");
+    printf("<wgfile> is the D-infinity flow direction input file.\n");
+    printf("<rtrfile> is the D-infinity distance output file.\n");
+    printf("[-m ave h] is the optional method flag.\n");
+    printf("The flag -nc overrides edge contamination checking\n");
+    printf("The following are appended to the file names\n");
+    printf("before the files are opened:\n");
+    printf("ang   D-infinity contributing area file (output)\n");
+    printf("fel   pit filled or carved elevation file\n");
+    printf("slp   D-infinity slope input file file\n");
+    printf("wg   weight input file\n");
+    printf("du   distance to stream output file\n");
+    exit(0);
 } 

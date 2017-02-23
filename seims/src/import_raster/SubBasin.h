@@ -1,12 +1,10 @@
 #pragma once
 
-class SubBasin
-{
+class SubBasin {
 public:
     SubBasin(void);
 
-    SubBasin(int xMin, int yMin, int xMax, int yMax)
-    {
+    SubBasin(int xMin, int yMin, int xMax, int yMax) {
         this->xMin = xMin;
         this->yMin = yMin;
         this->xMax = xMax;

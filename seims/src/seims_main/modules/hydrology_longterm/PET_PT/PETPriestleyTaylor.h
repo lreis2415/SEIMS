@@ -29,8 +29,7 @@ using namespace std;
  * \brief Priestley Taylor Method to Compute PET
  *
  */
-class PETPriestleyTaylor : public SimulationModule
-{
+class PETPriestleyTaylor : public SimulationModule {
 public:
     //! Constructor
     PETPriestleyTaylor(void);

@@ -13,63 +13,53 @@
 /*************************************************************************/
 /*! Testing module for gk_strstr_replace()  */
 /*************************************************************************/
-void test_strstr_replace()
-{
-  char *new_str;
-  int rc;
+void test_strstr_replace() {
+    char *new_str;
+    int rc;
 
-  rc = gk_strstr_replace("This is a simple string", "s", "S", "", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
+    rc = gk_strstr_replace("This is a simple string", "s", "S", "", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
+    rc = gk_strstr_replace("This is a simple string", "s", "S", "g", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
-  rc = gk_strstr_replace("This is a simple string", "s", "S", "g", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
+    rc = gk_strstr_replace("This is a simple SS & ss string", "s", "T", "g", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
+    rc = gk_strstr_replace("This is a simple SS & ss string", "s", "T", "ig", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
-  rc = gk_strstr_replace("This is a simple SS & ss string", "s", "T", "g", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
+    rc = gk_strstr_replace("This is a simple SS & ss string", "\\b\\w(\\w+)\\w\\b", "$1", "ig", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
+    rc = gk_strstr_replace("This is a simple SS & ss string", "\\b\\w+\\b", "word", "ig", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
-  rc = gk_strstr_replace("This is a simple SS & ss string", "s", "T", "ig", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
+    rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
+                           "(http://www\\.cs\\.umn\\.edu/)(.*)-T(\\d+)", "$1$2-P$3", "g", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
-  rc = gk_strstr_replace("This is a simple SS & ss string", "\\b\\w(\\w+)\\w\\b", "$1", "ig", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
+    rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
+                           "(\\d+)", "number:$1", "ig", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
-  rc = gk_strstr_replace("This is a simple SS & ss string", "\\b\\w+\\b", "word", "ig", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
-
-  rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
-                          "(http://www\\.cs\\.umn\\.edu/)(.*)-T(\\d+)", "$1$2-P$3", "g", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
-
-  rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
-                          "(\\d+)", "number:$1", "ig", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
-
-
-  rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
-                          "(http://www\\.cs\\.umn\\.edu/)", "[$1]", "g", &new_str);
-  printf("%d, %s.\n", rc, new_str);
-  gk_free((void **)&new_str, LTERM);
-
-
+    rc = gk_strstr_replace("http://www.cs.umn.edu/This-is-something-T12323?pp=20&page=4",
+                           "(http://www\\.cs\\.umn\\.edu/)", "[$1]", "g", &new_str);
+    printf("%d, %s.\n", rc, new_str);
+    gk_free((void **) &new_str, LTERM);
 
 }
 
-
-
-int main()
-{
-  test_strstr_replace();
+int main() {
+    test_strstr_replace();
 
 /*
   {

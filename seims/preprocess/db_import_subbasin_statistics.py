@@ -66,18 +66,18 @@ def ImportSubbasinStatistics(db):
 
     oRow, oCol = findOutletIndex(iRow, iCol)
     outletBsnID = int(streamlinkData[oRow][oCol])
-    importStatsDict = {PARAM_NAME_OUTLETID: outletBsnID, PARAM_NAME_OUTLETROW: oRow, PARAM_NAME_OUTLETCOL: oCol,
+    importStatsDict = {PARAM_NAME_OUTLETID : outletBsnID, PARAM_NAME_OUTLETROW: oRow, PARAM_NAME_OUTLETCOL: oCol,
                        PARAM_NAME_SUBBSNMAX: maxSubbasinID, PARAM_NAME_SUBBSNMIN: minSubbasinID,
                        PARAM_NAME_SUBBSNNUM: subbasinNum}
     for stat in importStatsDict.keys():
-        dic = {PARAM_FLD_NAME.upper(): stat, PARAM_FLD_DESC.upper(): stat, PARAM_FLD_UNIT.upper(): "NONE",
-               PARAM_FLD_MODS.upper(): "ALL", PARAM_FLD_VALUE.upper(): importStatsDict[stat],
+        dic = {PARAM_FLD_NAME.upper()  : stat, PARAM_FLD_DESC.upper(): stat, PARAM_FLD_UNIT.upper(): "NONE",
+               PARAM_FLD_MODS.upper()  : "ALL", PARAM_FLD_VALUE.upper(): importStatsDict[stat],
                PARAM_FLD_IMPACT.upper(): DEFAULT_NODATA, PARAM_FLD_CHANGE.upper(): PARAM_CHANGE_NC,
-               PARAM_FLD_MAX.upper(): DEFAULT_NODATA, PARAM_FLD_MIN.upper(): DEFAULT_NODATA,
-               PARAM_FLD_USE.upper(): PARAM_USE_Y, Tag_DT_Type.upper(): "WATERSHED"}
+               PARAM_FLD_MAX.upper()   : DEFAULT_NODATA, PARAM_FLD_MIN.upper(): DEFAULT_NODATA,
+               PARAM_FLD_USE.upper()   : PARAM_USE_Y, Tag_DT_Type.upper(): "WATERSHED"}
         curfilter = {PARAM_FLD_NAME.upper(): dic[PARAM_FLD_NAME.upper()]}
         # print (dic, curfilter)
-        db[DB_TAB_PARAMETERS.upper()].find_one_and_replace(curfilter, dic, upsert=True)
+        db[DB_TAB_PARAMETERS.upper()].find_one_and_replace(curfilter, dic, upsert = True)
     db[DB_TAB_PARAMETERS.upper()].create_index(PARAM_FLD_NAME.upper())
 
 
