@@ -175,8 +175,7 @@ graph_t *ReadGraph(params_t *params) {
         printf("------------------------------------------------------------------------------\n");
         exit(0);
     }
-
-    gk_free((void *) &line, LTERM);
+    gk_free((void *)&line, LTERM);
 
     return graph;
 }
@@ -456,11 +455,8 @@ void WritePartition(char *fname, idx_t *part, idx_t n, idx_t nparts) {
 
     fpout = gk_fopen(filename, "w", __func__);
 
-    for (i = 0; i < n; i++) {
-        fprintf(fpout, "%"
-    }
-    PRIDX
-    "\n", part[i]);
+    for (i = 0; i < n; i++)
+        fprintf(fpout,"%" PRIDX "\n", part[i]);
 
     gk_fclose(fpout);
 }
@@ -479,11 +475,8 @@ void WriteMeshPartition(char *fname, idx_t nparts, idx_t ne, idx_t *epart,
 
     fpout = gk_fopen(filename, "w", __func__);
 
-    for (i = 0; i < ne; i++) {
-        fprintf(fpout, "%"
-    }
-    PRIDX
-    "\n", epart[i]);
+    for (i = 0; i < ne; i++)
+        fprintf(fpout, "%" PRIDX "\n", epart[i]);
 
     gk_fclose(fpout);
 
@@ -491,14 +484,10 @@ void WriteMeshPartition(char *fname, idx_t nparts, idx_t ne, idx_t *epart,
 
     fpout = gk_fopen(filename, "w", __func__);
 
-    for (i = 0; i < nn; i++) {
-        fprintf(fpout, "%"
-    }
-    PRIDX
-    "\n", npart[i]);
+    for (i = 0; i < nn; i++)
+        fprintf(fpout, "%"PRIDX "\n", npart[i]);
 
     gk_fclose(fpout);
-
 }
 
 
@@ -514,11 +503,8 @@ void WritePermutation(char *fname, idx_t *iperm, idx_t n) {
 
     fpout = gk_fopen(filename, "w", __func__);
 
-    for (i = 0; i < n; i++) {
-        fprintf(fpout, "%"
-    }
-    PRIDX
-    "\n", iperm[i]);
+    for (i = 0; i < n; i++)
+        fprintf(fpout, "%"PRIDX "\n", iperm[i]);
 
     gk_fclose(fpout);
 }
