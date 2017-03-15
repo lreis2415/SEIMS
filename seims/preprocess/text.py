@@ -267,6 +267,7 @@ reachesOut = "reach.shp"
 subbasinOut = "subbasin.tif"
 flowDirOut = "flow_dir.tif"
 streamLinkOut = "stream_link.tif"
+hillSlopeOut = "hillslope.tif"
 # masked and output to mongoDB file names
 slopeM = "slope.tif"
 filleddemM = "dem.tif"
