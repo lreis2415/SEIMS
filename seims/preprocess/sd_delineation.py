@@ -19,6 +19,7 @@ from pygeoc.utils.utils import UtilClass
 
 from utility import LoadConfiguration, status_output, DEFAULT_NODATA
 from config import *
+from sd_hillslope import delineate_hillslopes_downstream_method
 
 
 def output_wgs84_geojson():
@@ -203,6 +204,7 @@ def post_process_of_delineated_data():
     output_subbasin_file = geodata2dbdir + os.sep + subbasinOut
     output_flow_dir_file = geodata2dbdir + os.sep + flowDirOut
     output_stream_link_file = geodata2dbdir + os.sep + streamLinkOut
+    output_hillslope_file = geodata2dbdir + os.sep + hillSlopeOut
 
     id_map = StreamnetUtil.serializestreamnet(stream_net_file, output_reach_file)
     RasterUtilClass.RasterReclassify(subbasin_file, id_map, output_subbasin_file, GDT_Int32)
@@ -221,6 +223,8 @@ def post_process_of_delineated_data():
     basin_vector = shp_dir + os.sep + basinVec
     print "Generating basin vector..."
     VectorUtilClass.raster2shp(mask_file, basin_vector, "basin", FLD_BASINID)
+    # delineate hillslope
+    delineate_hillslopes_downstream_method(output_stream_link_file, flow_dir_file_tau, output_hillslope_file)
 
 
 def generate_lat_raster():
@@ -275,5 +279,5 @@ if __name__ == "__main__":
     LoadConfiguration(getconfigfile())
     # SubbasinDelineation()
     # generate_lat_raster()
-    mask_origin_delineated_data()
-    # post_process_of_delineated_data()
+    # mask_origin_delineated_data()
+    post_process_of_delineated_data()
