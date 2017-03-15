@@ -19,6 +19,11 @@ D8DIR_TD_DELTA = {1: (0, 1),
                   6: (1, -1),
                   7: (1, 0),
                   8: (1, 1)}
+D8DIR_TD_INFLOW_VALUES = [5, 6, 7, 8, 1, 2, 3, 4]
+
+# delta row and col as the same sequence as D8DIR_AG_DELTA and D8DIR_TD_DELTA
+CCW_DROW = [0, -1, -1, -1, 0, 1, 1, 1]  # row, not include itself
+CCW_DCOL = [1, 1, 0, -1, -1, -1, 0, 1]  # col
 
 # D8DIR_TD_VALUES corresponding to ArcGIS
 D8DIR_AG_VALUES = [1, 128, 64, 32, 16, 8, 4, 2]
@@ -30,9 +35,7 @@ D8DIR_AG_DELTA = {1  : (0, 1),
                   8  : (1, -1),
                   4  : (1, 0),
                   2  : (1, 1)}
-# drow and dcol as the same sequence as D8DIR_AG_DELTA and D8DIR_TD_DELTA
-drow = [0, -1, -1, -1, 0, 1, 1, 1]  # row, not include itself
-dcol = [1, 1, 0, -1, -1, -1, 0, 1]  # col
+D8DIR_AG_INFLOW_VALUES = [16, 8, 4, 2, 1, 128, 64, 32]
 
 # CounterClockwise radian from east direction
 #        nw   n   ne
