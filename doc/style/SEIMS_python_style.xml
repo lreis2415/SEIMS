@@ -1,6 +1,5 @@
 <code_scheme name="SEIMS_python_style">
   <Python>
-    <option name="SPACE_AROUND_EQ_IN_NAMED_PARAMETER" value="true" />
     <option name="SPACE_AROUND_EQ_IN_KEYWORD_ARGUMENT" value="true" />
     <option name="DICT_ALIGNMENT" value="2" />
   </Python>
