@@ -11,6 +11,10 @@ class FlowDirectionCode(object):
     """Definition of flow direction code and shift coordinate."""
 
     def __init__(self, flow_model):
+        """
+        Initialization.
+        :param flow_model(string): Currently, "TauDEM" and "ArcGIS" are supported.
+        """
         self.cell_length = {}
         self.cell_shift = {}
         if StringClass.stringmatch(flow_model, "TauDEM"):
