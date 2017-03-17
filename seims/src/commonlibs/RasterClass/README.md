@@ -8,7 +8,7 @@
 ## 0 Build status
 RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主流操作系统（Windows、Linux、macOS）和编译器（MSVC、GCC、Clang），可编译生成32位和64位程序（操作系统支持的前提下）。
 
-以下为部分环境测试结果，目前测试代码采用的为`GDAL-1.11.5`，`mongo-c-driver-1.5.5`。
+以下为部分环境测试结果，目前测试代码采用的为`GDAL-1.11.5`，`mongo-c-driver-1.6.1`。
 
 | Environment              | Status        |
 | ------------------------ |:-------------:|
