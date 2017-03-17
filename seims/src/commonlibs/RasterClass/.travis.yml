@@ -1,0 +1,28 @@
+# This is the config file for building RasterClass with Travis-ci.org
+
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      compiler: gcc
+      language: cpp
+      sudo: required
+      cache:
+        apt: true
+        directories:
+          - $HOME/.ccache
+      env:
+        - BUILD_NAME=linux_gcc48
+        - DETAILS=""
+        - ENABLE_CXX11=1
+before_install:
+  - ./ci/travis/${BUILD_NAME}/before_install.sh
+
+install:
+  - ./ci/travis/${BUILD_NAME}/install.sh
+
+script:
+  - ./ci/travis/${BUILD_NAME}/script.sh
+
+notifications:
+  email:false

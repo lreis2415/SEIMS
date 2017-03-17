@@ -1,9 +1,26 @@
 # RasterClass
-==================
+-------------
 
 + Raster I/O class based on GDAL and MongoDB (optional).
 + 基于GDAL开源库和NoSQL数据库MongoDB的栅格数据读写类
 + Author: [Liangjun Zhu](http://zhulj.net)
+
+## 0 Build status
+RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主流操作系统（Windows、Linux、macOS）和编译器（MSVC、GCC、Clang），可编译生成32位和64位程序（操作系统支持的前提下）。
+
+以下为部分环境测试结果，目前测试代码采用的为`GDAL-1.11.5`，`mongo-c-driver-1.5.5`。
+
+| Environment              | Status        |
+| ------------------------ |:-------------:|
+| GCC 4.8 C++11            | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=gcc48_stdcpp11&label=gcc48_stdcpp11)](https://travis-ci.org/lreis2415/RasterClass) |
+| Ubuntu 14.04 64 bit      | [![Build Status]()](https://travis-ci.org/lreis2415/RasterClass) |
+| MacOS X                  | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=osx&label=osx)](https://travis-ci.org/lreis2415/RasterClass) |
+| MSVC 2010  32 & 64 bit   | [![Build status](https://ci.appveyor.com/api/projects/status/tn5oj0ipp5lmexjh/branch/trunk_vc9?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
+| MSVC 2013 32 & 64 bit    | [![Build status](https://ci.appveyor.com/api/projects/status/jtwx0pcr0y01i17p/branch/trunk?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
+| MSVC 2015 32 & 64 bit    | [![Build status](https://ci.appveyor.com/api/projects/status/tn5oj0ipp5lmexjh/branch/trunk_vc13?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
+| MinGW                    | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=mingw&label=mingw)](https://travis-ci.org/lreis2415/RasterClass) |
+| MinGW_w64                | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=mingw_w64&label=mingw_w64)](https://travis-ci.org/lreis2415/RasterClass) |
+
 
 ## 1 Introduction
 + RasterClass提供基本栅格数据的读取。
