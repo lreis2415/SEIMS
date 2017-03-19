@@ -495,7 +495,6 @@ void clsRasterData<T, MaskT>::setValue(RowColCoor pos, T value, int lyr /* = 1 *
         } else {
             m_rasterData[idx] = value;
         }
-<<<<<<< HEAD
     }
 }
 
@@ -543,55 +542,6 @@ void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **value
 }
 
 template<typename T, typename MaskT>
-=======
-    }
-}
-
-template<typename T, typename MaskT>
-T clsRasterData<T, MaskT>::isNoData(RowColCoor pos, int lyr /* = 1 */) {
-    return FloatEqual(this->getValue(pos, lyr), m_noDataValue);
-}
-
-template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **values) {
-    try {
-        if (m_rasterData == NULL || (m_is2DRaster && m_raster2DData == NULL)) {
-            throw ModelException("claRasterData", "getValue", "Please first initialize the raster object.");
-        }
-        // return NODATA if row, col, or lyr exceeds the extent
-        if (validCellIndex < 0 || validCellIndex > m_nCells || *nLyrs > m_nLyrs) {
-            return m_noDataValue;
-        }
-        /// get index according to position data if possible
-        if (m_calcPositions && m_rasterPositionData != NULL) {
-            if (m_nCells < validCellIndex) {
-                throw ModelException("clsRasterData", "getValue",
-                                     "The index is too big! There are not so many valid cell in the raster.");
-            }
-        } else {
-            throw ModelException("clsRasterData", "getValue", "The position data is not calculated!");
-        }
-        if (m_is2DRaster && m_raster2DData == NULL) {
-            T *cellValues = new T[m_nLyrs];
-            for (int i = 0; i < m_nLyrs; i++) {
-                cellValues[i] = m_raster2DData[validCellIndex][i];
-            }
-            *nLyrs = m_nLyrs;
-            *values = cellValues;
-        } else {
-            *nLyrs = 1;
-            T *cellValues = new T[1];
-            cellValues[0] = m_rasterData[validCellIndex];
-            *values = cellValues;
-        }
-    }
-    catch (ModelException e) {
-        cout << e.toString() << endl;
-    }
-}
-
-template<typename T, typename MaskT>
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
 void clsRasterData<T, MaskT>::getValue(RowColCoor pos, int *nLyrs, T **values) {
     int row = pos.row;
     int col = pos.col;
@@ -713,12 +663,8 @@ clsRasterData<T, MaskT>::_write_single_geotiff(string filename,
                                                float *values) {
     /// 1. Create GeoTiff file driver
     GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
-<<<<<<< HEAD
-    char **papszOptions = poDriver->GetMetadata();
-=======
     // char **papszOptions = poDriver->GetMetadata();
     char **papszOptions = NULL;
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
     int nRows = int(header[HEADER_RS_NROWS]);
     int nCols = int(header[HEADER_RS_NCOLS]);
     GDALDataset *poDstDS = poDriver->Create(filename.c_str(), nCols, nRows, 1, GDT_Float32, papszOptions);
@@ -1093,16 +1039,11 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
         tmpheader[HEADER_RS_YLL] = adfGeoTransform[3] + (tmpheader[HEADER_RS_NROWS] - 0.5) * adfGeoTransform[5];
         string tmpsrs = string(poDataset->GetProjectionRef());
         /// get all raster values (i.e., include NODATA_VALUE)
-<<<<<<< HEAD
-        m_nCells = nRows * nCols;
-        T *tmprasterdata = new T[m_nCells];
-=======
         int fullsize_nCells = nRows * nCols;
         if (m_nCells < 0){ /// if m_nCells has been assigned
             m_nCells = fullsize_nCells;
         }
         T *tmprasterdata = new T[fullsize_nCells];
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
         GDALDataType dataType = poBand->GetRasterDataType();
         if (dataType == GDT_Float32) {
             float *pData = (float *) CPLMalloc(sizeof(float) * nCols * nRows);
@@ -1323,13 +1264,8 @@ template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_calculate_valid_positions_from_grid_data() {
     int oldcellnumber = m_nCells;
     /// initial vectors
-<<<<<<< HEAD
-    vector <T> values;
-    vector <vector<T>> values2D; /// store layer 2~n
-=======
     vector<T> values;
     vector<vector<T> > values2D; /// store layer 2~n
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
     vector<int> positionRows;
     vector<int> positionCols;
     int nrows = (int) m_headers[HEADER_RS_NROWS];
@@ -1402,13 +1338,8 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
     if (m_mask != NULL) {
         /// 1. Get new values and positions according to Mask's position data
         /// initial vectors
-<<<<<<< HEAD
-        vector <T> values;
-        vector <vector<T>> values2D; /// store layer 2~n data (excluding the first layerS)
-=======
         vector<T> values;
         vector<vector<T> > values2D; /// store layer 2~n data (excluding the first layerS)
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
         vector<int> positionRows;
         vector<int> positionCols;
         int cols = (int) m_headers[HEADER_RS_NCOLS];
