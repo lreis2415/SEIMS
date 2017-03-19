@@ -13,7 +13,7 @@ before_script:
 
 script:
   - chmod 700 doc/doxygen/publish-doxygen
-  - "./doc/doxygen/publish-doxygen"
+  - doc/doxygen/publish-doxygen
   - cd doc/html
   - git config user.name "lreis-2415"
   - git config user.email "qincz@lreis.ac.cn"
