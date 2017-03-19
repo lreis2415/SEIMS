@@ -168,7 +168,7 @@ $git subtree add --prefix=doc/wiki wiki master --squash
 
 ```
 $git fetch wiki master  
-$git subtree pull --prefix=doc/wiki wiki --squash
+$git subtree pull --prefix=doc/wiki wiki master --squash
 ```
 
 ## 4.3从子目录push到远程仓库（确认你有写权限）
