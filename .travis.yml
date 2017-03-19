@@ -13,8 +13,24 @@ before_script:
 script:
   # push automatically generated doxygen html files to gh-pages branch
   - chmod 700 doc/doxygen/publish-doxygen
-  - "./doc/doxygen/publish-doxygen"
-  - cd doc/html
+  #- "./doc/doxygen/publish-doxygen"
+  - REPO_PATH=git@github.com:lreis2415/SEIMS.git
+  - HTML_PATH=doc/html
+  - CHANGESET=$(git rev-parse --verify HEAD)
+  # Get a clean version of the HTML documentation repo.
+  - rm -rf ${HTML_PATH}
+  - mkdir -p ${HTML_PATH}
+  - git clone -b gh-pages "${REPO_PATH}" --single-branch ${HTML_PATH}
+  # rm all the files through git to prevent stale files.
+  - cd ${HTML_PATH}
+  - git rm -rf .
+  - cd -
+  # Generate the HTML documentation.
+  #make doxygen
+  - doxygen ./doc/doxygen/Doxyfile
+  - echo "Doxygen generated done!"
+  # Create and commit the documentation repo.
+  - cd ${HTML_PATH}
   - git config user.name "lreis-2415"
   - git config user.email "qincz@lreis.ac.cn"
   - git add .
