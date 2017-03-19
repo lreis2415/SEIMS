@@ -64,4 +64,5 @@ dist
 # Do not ignore the configuration files
 !file.in
 !file.out 
-
+# ignore doxygen files
+doc/html
