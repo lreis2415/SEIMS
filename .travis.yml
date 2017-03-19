@@ -2,11 +2,6 @@ dist: trusty
 branches:
   only:
     - master
-env:
-  global:
-    - GH_REF:github.com/lreis2415/SEIMS.git
-    - secure: "E9fn8qw1oEFC74fVGVtj8h9zQD2Ygl4sMLYi8vVlUVyjhdO7bNtuHrGN9EVr9pLdCtOMGUhFHOdtEkEkkuzTlmhCBrQTxA5GSeJLIXOq2rpOk+MQ5ZGnaqVWArZ/EMdctEBtyIy7AU4JbC0sGFwXDdrAEJi3ptHFGmlGETQblhKZqa7AGe6eK7MRyLo1oYuyhLo4JCN+mStXE/c8Gw9U11X/t/CbqMB5cO+1TNPA2jFojuxxDwg/KC791hJYHDnqf0ab2+NNeoY0ZZ2r4pKhZrEDuo2Sh5qBe6SUvQd63yAcWzdv6DxP8IjJLL3lmTmzo6y0FpxGPyWnXrA3Gj1jeh5njdcShtQys7eCL6lCPf08oLQ3U6/Bkok7+lurqBWXno3FWZx+b0gSGk2f3vCWI5efv+N2nb9P003bgInlyemGUnagOOsRtnXrJNVaokJaJ9BhpSrmrPJ0jV7uO8a+HWqlck8FXqeiC9p4tIL+UtYxOGKH8BLf2qTWHkVtjt9pZwWRYCMHRBtvKV1unppdBafM9KU7PD6sFjI0qGNTfqOBP8V5UnZb5cn2kUqzcgZi6B8ji+c7pJUU9zZcuz4Vr9z8uxmxj15e1Q17Zlgdzq5Ojb3iwpJddjQjHgvfbcWsrQuek9fqgSTfcFLbWnG51tLFrDyAeE+F1gXpWbjQiEY="
-
 before_install:
   - openssl aes-256-cbc -K $encrypted_82da6839b977_key -iv $encrypted_82da6839b977_iv
     -in doc/doxygen/travisci_rsa.enc -out doc/doxygen/travisci_rsa -d
