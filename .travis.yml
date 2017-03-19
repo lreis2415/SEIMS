@@ -12,6 +12,7 @@ before_script:
   - sudo apt-get install doxygen graphviz
 
 script:
+  - chmod 700 doc/doxygen/publish-doxygen
   - "./doc/doxygen/publish-doxygen"
   - cd doc/html
   - git config user.name "lreis-2415"
