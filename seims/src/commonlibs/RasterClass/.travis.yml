@@ -1,9 +1,24 @@
 # This is the config file for building RasterClass with Travis-ci.org
-
+branches:
+  only:
+  - master
 matrix:
   fast_finish: true
   include:
+    - os: osx
+      language: cpp
+      compiler: clang
+      sudo: required
+      cache:
+        apt: true
+        directories:
+          - $HOME/.ccache
+      env:
+        - BUILD_NAME=osx_xcode
+        - DETAILS="debug build, libtool"
+        - ENABLE_CXX11=1
     - os: linux
+      dist: trusty
       compiler: gcc
       language: cpp
       sudo: required
@@ -11,12 +26,12 @@ matrix:
         apt: true
         directories:
           - $HOME/.ccache
+      services:
+        - mongodb
       env:
         - BUILD_NAME=linux_gcc48
         - DETAILS=""
         - ENABLE_CXX11=1
-before_script:
-  - chmod +x rasterclass
 before_install:
   - ./ci/travis/${BUILD_NAME}/before_install.sh
 
