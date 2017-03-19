@@ -122,18 +122,20 @@ FILE_PATTERNS          = *.c \
                          *.py \
                          *.md
 RECURSIVE              = YES
-EXCLUDE                = ./build \
-						 ./model_data \
-						 ./include \
-                         ./lib \
-                         ./src/base/module_setting/tinystr.cpp \
-                         ./src/base/module_setting/tinystr.h \
-                         ./src/base/module_setting/tinyxml.cpp \
-                         ./src/base/module_setting/tinyxml.h \
-                         ./src/base/module_setting/tinyxmlerror.cpp \
-                         ./src/base/module_setting/tinyxmlparser.cpp \
-                         ./src/base/data/sqlite3.c \
-                         ./src/base/data/sqlite3.h
+EXCLUDE                = ./doc \
+                         ./data \
+                         ./TODO \
+                         ./seims/bin \
+                         ./seims/database \
+                         ./seims/src/taudem \
+                         ./seims/src/metis \
+                         ./seims/src/seims_main/
+                         ./seims/src/seims_main/base/module_setting/tinystr.cpp \
+                         ./seims/src/seims_main/base/module_setting/tinystr.h \
+                         ./seims/src/seims_main/base/module_setting/tinyxml.cpp \
+                         ./seims/src/seims_main/base/module_setting/tinyxml.h \
+                         ./seims/src/seims_main/base/module_setting/tinyxmlerror.cpp \
+                         ./seims/src/seims_main/base/module_setting/tinyxmlparser.cpp
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
 EXCLUDE_SYMBOLS        = 
