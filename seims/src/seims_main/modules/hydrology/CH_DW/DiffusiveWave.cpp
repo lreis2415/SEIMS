@@ -5,19 +5,17 @@
  * \date Feb. 2011
  */
 
-#include "DiffusiveWave.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "util.h"
 #include <omp.h>
 #include <cmath>
 #include <iostream>
 #include <set>
 #include <sstream>
+#include "MetadataInfo.h"
+#include "ModelException.h"
+#include "utilities.h"
+#include "DiffusiveWave.h"
 
-//#define MINI_SLOPE 0.0001f  // remove to util.h
 #define MIN_FLUX 1e-9f
-//#define NODATA_VALUE -99 defined in util.h
 const float _23 = 2.0f / 3.0f;
 const float SQ2 = sqrt(2.f);
 
