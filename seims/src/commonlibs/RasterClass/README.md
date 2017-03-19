@@ -8,21 +8,7 @@
 ## 0 Build status
 RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主流操作系统（Windows、Linux、macOS）和编译器（MSVC、GCC、Clang），可编译生成32位和64位程序（操作系统支持的前提下）。
 
-<<<<<<< HEAD
-以下为部分环境测试结果，目前测试代码采用的为`GDAL-1.11.5`，`mongo-c-driver-1.6.1`。
 
-| Environment              | Status        |
-| ------------------------ |:-------------:|
-| GCC 4.8 C++11            | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=gcc48_stdcpp11&label=gcc48_stdcpp11)](https://travis-ci.org/lreis2415/RasterClass) |
-| Ubuntu 14.04 64 bit      | [![Build Status]()](https://travis-ci.org/lreis2415/RasterClass) |
-| MacOS X                  | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=osx&label=osx)](https://travis-ci.org/lreis2415/RasterClass) |
-| MSVC 2010  32 & 64 bit   | [![Build status](https://ci.appveyor.com/api/projects/status/tn5oj0ipp5lmexjh/branch/trunk_vc9?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
-| MSVC 2013 32 & 64 bit    | [![Build status](https://ci.appveyor.com/api/projects/status/jtwx0pcr0y01i17p/branch/trunk?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
-| MSVC 2015 32 & 64 bit    | [![Build status](https://ci.appveyor.com/api/projects/status/tn5oj0ipp5lmexjh/branch/trunk_vc13?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass) |
-| MinGW                    | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=mingw&label=mingw)](https://travis-ci.org/lreis2415/RasterClass) |
-| MinGW_w64                | [![Build Status](http://badges.herokuapp.com/travis/OSGeo/gdal?branch=trunk&env=BUILD_NAME=mingw_w64&label=mingw_w64)](https://travis-ci.org/lreis2415/RasterClass) |
-
-=======
 目前测试环境配置采用`GDAL-1.10.1+`，`mongo-c-driver-1.5.0+`，测试系统及编译器包括：
 
 + Linux(Unbuntu 14.04) + GCC-4.8: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/RasterClass?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/RasterClass)
@@ -30,7 +16,6 @@ RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主�
 + Windows + MSVC 2015 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/xa5c17um0kv4yc4i/branch/master?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass/branch/master)
 
 > 值得一提的是，在64位系统下，可以编译32位或64位程序，此时需要注意对应的GDAL库和mongo-c-driver库都需要编译成64位才可。利用AppVeyor构建的CI测试即全部采用64位编译。
->>>>>>> b277c27c9c0386a0b6435b96c2ea9e9a6fd6ad93
 
 ## 1 Introduction
 + RasterClass提供基本栅格数据的读取。
