@@ -33,7 +33,7 @@ namespace MainBMP {
  * Scenario contains a collection of BMPFactory.
  * Each \sa BMPFactory is corresponding to one type of BMP.
  *
- * Usage:		    (1) instantiate the class
+ * Usage:       (1) instantiate the class
  *              (2)
  * Revised:
  *              (1) Replaced SQLite by MongoDB, 2016-6-16

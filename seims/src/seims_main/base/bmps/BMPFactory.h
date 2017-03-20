@@ -1,7 +1,3 @@
-/*!
- * \brief Base class of all kind of BMPs Factory.
- * Read from BMP_SCENARIOS collection of MongoDB
- */
 #pragma once
 
 #include <iomanip>
@@ -10,6 +6,12 @@
 #include "utilities.h"
 #include "MongoUtil.h"
 
+/*!
+ * \brief Base class of all kind of BMPs Factory.
+ * Read from BMP_SCENARIOS collection of MongoDB
+ * \ingroup bmps
+ */
+ 
 namespace MainBMP {
 /*!
  * \class BMPFactory
