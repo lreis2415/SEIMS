@@ -52,7 +52,7 @@ function SaveMicrosoftMPIEnvironment ($filepath) {
 function InstallMicrosoftMPI () {
     InstallMicrosoftMPISDK $MSMPI_BASE_URL "msmpisdk.msi"
     InstallMicrosoftMPIRuntime $MSMPI_BASE_URL "MSMpiSetup.exe"
-    SaveMicrosoftMPIEnvironment "SetEnvMPI.cmd"
+    SaveMicrosoftMPIEnvironment "doc\\ci\\appveyor\\SetEnvMPI.cmd"
 }
 
 function main () {
