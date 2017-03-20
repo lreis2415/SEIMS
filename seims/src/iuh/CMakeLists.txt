@@ -34,21 +34,12 @@ IF (WIN32)
     # 2. Bson and MongoC
     include(FindBson.cmake)
     include(FindMongoC.cmake)
-    # 3. MPI
-    SET(MPI_LIB $ENV{MSMPI_LIB32})
-    SET(MPI_HOME $ENV{MSMPI_BIN})
-    SET(MPI_INCLUDE_PATH $ENV{MSMPI_INC})
-    SET(MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
 ELSE ()
     # 1. GDAL CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
     find_package(GDAL REQUIRED)
     # 2. Bson and MongoC
     include(FindBson.cmake)
     include(FindMongoC.cmake)
-    # 3. MPI
-    find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ENDIF ()
 ADD_DEFINITIONS(-DUSE_MONGODB)
 # 4. Add support for OpenMP
