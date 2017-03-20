@@ -4,7 +4,8 @@ set -e
 brew update
 brew install gdal
 # install mpich2
-brew install mpich2
+#brew install mpich2
+brew install openmpi
 echo "Installing and starting mongodb"
 brew install automake autoconf libtool pkgconfig openssl
 brew install mongodb --with-openssl
@@ -22,4 +23,3 @@ export CPPFLAGS="-I/usr/local/opt/openssl/include"
 ./configure --disable-automatic-init-and-cleanup
 make -j4
 sudo make install
-
