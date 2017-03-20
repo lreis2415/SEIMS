@@ -15,7 +15,7 @@ matrix:
           - $HOME/.ccache
       env:
         - BUILD_NAME=osx_xcode
-        - DETAILS="debug build, libtool"
+        - DETAILS=""
         - ENABLE_CXX11=1
     - os: linux
       dist: trusty
