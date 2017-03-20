@@ -33,10 +33,10 @@ matrix:
         - DETAILS=""
         - ENABLE_CXX11=1
 before_install:
-#  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 
 install:
-#  - ./doc/ci/travis/${BUILD_NAME}/install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/install.sh
 
 script:
   - ./doc/ci/travis/${BUILD_NAME}/script.sh
