@@ -57,7 +57,7 @@ install:
   #- ps: Start-Process "C:\projects\seims\MSMpiSetup.exe" -ArgumentList "/qn" -Wait
   #- ps: Start-Process "C:\projects\seims\msmpisdk.exe" -ArgumentList "/qn" -Wait
 build_script:
-  - cd C:\projects\seims
+  - cd C:\projects\seims\seims
   - ps: "ls"
   - mkdir build
   - cd build
