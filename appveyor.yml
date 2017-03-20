@@ -52,16 +52,13 @@ install:
   - cd C:\projects\seims
   - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
   - "SetEnvMPI.cmd"
-  #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/msmpisdk.msi
-  #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/MSMpiSetup.exe
-  #- ps: Start-Process "C:\projects\seims\MSMpiSetup.exe" -ArgumentList "/qn" -Wait
-  #- ps: Start-Process "C:\projects\seims\msmpisdk.exe" -ArgumentList "/qn" -Wait
 build_script:
   - cd C:\projects\seims\seims
   - ps: "ls"
   - mkdir build
   - cd build
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Release
+  # Test 64-bit version on Windows, while the default is 32-bit.
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Release -DARCH=64
   - msbuild.exe ALL_BUILD.vcxproj
   - msbuild.exe INSTALL.vcxproj
 test_script:
