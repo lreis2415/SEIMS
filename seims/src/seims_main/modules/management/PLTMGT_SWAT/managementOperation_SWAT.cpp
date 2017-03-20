@@ -161,7 +161,7 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
 
 void MGTOpt_SWAT::SetValue(const char *key, float data) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) data; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = data; }
     else {

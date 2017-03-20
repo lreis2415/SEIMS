@@ -3,9 +3,9 @@
 #include "SUR_CN.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 SUR_CN::SUR_CN(void) : m_nCells(-1), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE), m_T0(NODATA_VALUE),
                        m_Sfrozen(NODATA_VALUE),
@@ -302,7 +302,7 @@ bool SUR_CN::CheckInputSize(const char *key, int n) {
 
 void SUR_CN::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, VAR_T_SNOW)) { m_Tsnow = value; }
     else if (StringMatch(sk, VAR_T_SOIL)) { m_Tsoil = value; }
     else if (StringMatch(sk, VAR_T0)) { m_T0 = value; }

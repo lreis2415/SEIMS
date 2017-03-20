@@ -11,9 +11,9 @@
 #include <iostream>
 #include <fstream>
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -340,7 +340,7 @@ void StormGreenAmpt::SetValue(const char *key, float value) {
     if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
         m_dt = value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else {
         throw ModelException(MID_SUR_SGA, "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
     }

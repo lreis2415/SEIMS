@@ -12,9 +12,9 @@
 #include <iostream>
 #include <fstream>
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -165,7 +165,7 @@ void GWaterReservoir::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, VAR_GW_KG)) {
         m_recessionCoefficient = value;
     } else if (StringMatch(sk, VAR_Base_ex)) {

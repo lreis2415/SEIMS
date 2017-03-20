@@ -1,6 +1,6 @@
 #include "parallel.h"
 #include "mpi.h"
-#include "util.h"
+#include "utilities.h"
 
 #include <sstream>
 #include <iostream>

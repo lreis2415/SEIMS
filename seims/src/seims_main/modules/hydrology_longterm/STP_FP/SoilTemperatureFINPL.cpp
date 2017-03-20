@@ -5,7 +5,7 @@
 #include "ModelException.h"
 #include <cmath>
 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -130,7 +130,7 @@ bool SoilTemperatureFINPL::CheckInputSize(const char *key, int n) {
 
 void SoilTemperatureFINPL::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, VAR_SOL_TA0)) { m_a0 = value; }
     else if (StringMatch(sk, VAR_SOL_TA1)) { m_a1 = value; }
     else if (StringMatch(sk, VAR_SOL_TA2)) { m_a2 = value; }

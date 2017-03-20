@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <ctime>
-#include <omp.h>
+
 #include "DiffusiveWave.h"
 #include "clsRasterData.h"
 
@@ -48,7 +48,7 @@ int main(int argc, const char **argv) {
     dx = (float) atof(argv[2]);
 
     int threadCount = atoi(argv[3]);
-    omp_set_num_threads(threadCount);
+    SetOpenMPThread(threadCount);
 
     // read data from files
     ifstream fLayer(argv[1]);

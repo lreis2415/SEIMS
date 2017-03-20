@@ -9,8 +9,8 @@
 #include "InterFlow_IKW.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -188,7 +188,7 @@ int InterFlow_IKW::Execute() {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nCells = (int) m_routingLayers[iLayer][0];
-        //omp_set_num_threads(2);
+        //SetOpenMPThread(2);
 #pragma omp parallel for
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];
@@ -228,7 +228,7 @@ void InterFlow_IKW::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_KI)) {
         m_landuseFactor = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_IKW_IF, "SetSingleData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

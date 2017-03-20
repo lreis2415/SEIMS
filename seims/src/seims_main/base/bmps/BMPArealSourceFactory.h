@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <map>
 #include "BMPFactory.h"
-#include "utils.h"
+#include "utilities.h"
 
 using namespace MainBMP;
 

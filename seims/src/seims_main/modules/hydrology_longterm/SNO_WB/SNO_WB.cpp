@@ -3,8 +3,8 @@
 #include "ModelException.h"
 #include <math.h>
 #include <cmath>
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 
 SNO_WB::SNO_WB(void) {
     // set default values for member variables
@@ -218,7 +218,7 @@ void SNO_WB::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_T0)) { this->m_t0 = data; }
     else if (StringMatch(s, VAR_T_SNOW)) { this->m_tsnow = data; }
     else if (StringMatch(s, VAR_SWE0)) { this->m_swe0 = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(s, Tag_CellSize)) { this->m_nCells = (int) data; }
     else {
         throw ModelException(MID_SNO_WB, "SetValue", "Parameter " + s

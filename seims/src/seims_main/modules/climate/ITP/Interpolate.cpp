@@ -5,13 +5,10 @@
  *
  */
 #include <cmath>
-#include "Interpolate.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
 #include <sstream>
-#include <omp.h>
-#include <iostream>
+
+#include "utilities.h"
+#include "Interpolate.h"
 
 using namespace std;
 
@@ -91,7 +88,7 @@ void Interpolate::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, VAR_TSD_DT)) {
         this->SetClimateDataType(value);
         //if (value == 1.0f) m_dataType = 0;

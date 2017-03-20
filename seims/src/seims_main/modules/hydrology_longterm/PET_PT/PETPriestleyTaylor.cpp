@@ -5,7 +5,7 @@
 #include <fstream>
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 #include "ClimateParams.h" /// added by LJ, 2016
 
 using namespace std;
@@ -184,7 +184,7 @@ void PETPriestleyTaylor::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_T_SNOW)) { this->m_tSnow = value; }
     else if (StringMatch(sk, VAR_K_PET)) { m_petFactor = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else {
         throw ModelException(MID_PET_PT, "SetValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");

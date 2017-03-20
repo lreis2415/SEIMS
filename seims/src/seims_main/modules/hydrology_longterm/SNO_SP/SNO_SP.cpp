@@ -6,7 +6,7 @@
 #include "utilities.h"
 #include "ClimateParams.h"
 #include "PlantGrowthCommon.h"
-#include <omp.h>
+
 
 SNO_SP::SNO_SP(void) : m_nCells(-1),
                        m_t0(NODATA_VALUE),
@@ -199,7 +199,7 @@ void SNO_SP::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_C_SNOW12)) { this->m_csnow12 = data; }
     else if (StringMatch(s, VAR_SNOCOVMX)) { this->m_snowCoverMax = data; }
     else if (StringMatch(s, VAR_SNO50COV)) { this->m_snowCover50 = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SNO_SP, "SetValue", "Parameter " + s
             +

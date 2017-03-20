@@ -1,9 +1,9 @@
 #include "SSM_PE.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 SSM_PE::SSM_PE(void) {
     // set default values for member variables
@@ -155,7 +155,7 @@ bool SSM_PE::CheckInputSize(const char *key, int n) {
 void SSM_PE::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(s, VAR_K_BLOW)) { this->m_kblow = data; }
     else if (StringMatch(s, VAR_K_SUBLI)) { this->m_ksubli = data; }
     else if (StringMatch(s, VAR_SWE)) { this->m_swe = data; }

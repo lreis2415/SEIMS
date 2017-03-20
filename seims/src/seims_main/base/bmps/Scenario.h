@@ -12,7 +12,7 @@
 #include <vector>
 #include <ostream>
 #include <iomanip>
-#include "utils.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include "MongoUtil.h"
 #include "BMPText.h"

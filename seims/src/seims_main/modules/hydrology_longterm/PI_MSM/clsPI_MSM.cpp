@@ -12,7 +12,7 @@
 #include <math.h>
 #include <cmath>
 #include <time.h>
-#include <omp.h>
+
 
 clsPI_MSM::clsPI_MSM(void) : m_nCells(-1), m_Pi_b(-1.f), m_dateLastTimeStep(-1), m_Init_IS(0.f),
                              m_netPrecipitation(NULL), m_evaporation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
@@ -46,7 +46,7 @@ void clsPI_MSM::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_PI_B)) { this->m_Pi_b = data; }
     else if (StringMatch(s, VAR_INIT_IS)) { this->m_Init_IS = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_PI_MSM, "SetValue", "Parameter " + s + " does not exist.");
     }

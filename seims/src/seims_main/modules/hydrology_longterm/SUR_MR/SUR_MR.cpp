@@ -4,7 +4,7 @@
 #include "MetadataInfo.h"
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 SUR_MR::SUR_MR(void) : m_nCells(-1), m_dt(-1), m_nSoilLayers(-1), m_tFrozen(NODATA_VALUE),
                        m_kRunoff(NODATA_VALUE), m_pMax(NODATA_VALUE),
@@ -254,7 +254,7 @@ bool SUR_MR::CheckInputSize(const char *key, int n) {
 
 void SUR_MR::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(key, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(key, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
         m_dt = value;
         //else if (StringMatch(sk, VAR_T_SNOW))m_tSnow = value;

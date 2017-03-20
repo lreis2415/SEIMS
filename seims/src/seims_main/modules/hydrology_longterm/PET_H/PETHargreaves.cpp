@@ -5,10 +5,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "util.h"
+#include "utilities.h"
 #include "ClimateParams.h"
 #include "ModelException.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -28,7 +28,7 @@ void PETHargreaves::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_K_PET)) { m_petFactor = value; }
     else if (StringMatch(sk, VAR_PET_HCOEF)) { m_HCoef_pet = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else {
         throw ModelException(MID_PET_H, "SetValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");

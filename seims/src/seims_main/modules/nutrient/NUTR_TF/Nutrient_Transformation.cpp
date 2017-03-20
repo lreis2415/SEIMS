@@ -6,7 +6,7 @@
 #include <fstream>
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -196,7 +196,7 @@ bool Nutrient_Transformation::CheckInputData() {
 
 void Nutrient_Transformation::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, Tag_CellWidth)) { this->m_cellWidth = value; }
     else if (StringMatch(sk, VAR_NACTFR)) { this->m_nactfr = value; }
     else if (StringMatch(sk, VAR_SDNCO)) { this->m_sdnco = value; }
