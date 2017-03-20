@@ -34,21 +34,12 @@ IF (WIN32)
     # 2. Bson and MongoC
     include(FindBson.cmake)
     include(FindMongoC.cmake)
-    # 3. MPI
-    SET(MPI_LIB $ENV{MSMPI_LIB32})
-    SET(MPI_HOME $ENV{MSMPI_BIN})
-    SET(MPI_INCLUDE_PATH $ENV{MSMPI_INC})
-    SET(MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
 ELSE ()
     # 1. GDAL CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
     find_package(GDAL REQUIRED)
     # 2. Bson and MongoC
     include(FindBson.cmake)
     include(FindMongoC.cmake)
-    # 3. MPI
-    find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ENDIF ()
 # 4. Add support for OpenMP
 FIND_PACKAGE(OpenMP)
@@ -68,7 +59,6 @@ set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} ${MONGO_FILES} LayeringFromSourc
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(grid_layering ${SOURCE_FILES})
-set_target_properties(grid_layering PROPERTIES INSTALL_NAME_DIR bin)
 target_link_libraries(grid_layering ${GDAL_LIBRARY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 install(TARGETS grid_layering DESTINATION bin)
 ### For CLion to implement the "make install" command
