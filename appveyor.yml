@@ -51,7 +51,7 @@ install:
   # install MS-MPI
   - cd C:\projects\seims
   - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
-  - "SetEnvMPI.cmd"
+  - "doc\\ci\\appveyor\\SetEnvMPI.cmd"
 build_script:
   - cd C:\projects\seims\seims
   - ps: "ls"
