@@ -4,7 +4,7 @@ SEIMS is intented to be an open-source, cross-platform, and high performaced int
 
 + Linux(Unbuntu 14.04) + GCC-4.8: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/SEIMS)
 + macOS 10.12 + Clang: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=osx_xcode&label=osx_code)](https://travis-ci.org/lreis2415/SEIMS)
-+ Windows + MSVC 2015 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/xa5c17um0kv4yc4i/branch/master?svg=true)](https://ci.appveyor.com/project/lreis2415/SEIMS/branch/master)
++ Windows + MSVC 2015 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master)
 
 
 ## 1.Brief introduction
