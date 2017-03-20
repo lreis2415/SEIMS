@@ -3,12 +3,13 @@ branches:
   only:
     - master
 before_install:
+  - sudo apt-get install doxygen graphviz
+scripts:
+  # push automatically generated doxygen html files to gh-pages branch
   - openssl aes-256-cbc -K $encrypted_9c89c5b645f3_key -iv $encrypted_9c89c5b645f3_iv
     -in doc/doxygen/travisci_rsa.enc -out doc/doxygen/travisci_rsa -d
-  - sudo apt-get install doxygen graphviz
   - chmod 0600 doc/doxygen/travisci_rsa
   - cp doc/doxygen/travisci_rsa ~/.ssh/id_rsa
-  # push automatically generated doxygen html files to gh-pages branch
   - chmod 700 doc/doxygen/publish-doxygen
   - "./doc/doxygen/publish-doxygen"
 notifications:
