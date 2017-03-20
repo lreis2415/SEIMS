@@ -7,8 +7,8 @@
 #include "Muskingum.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -471,7 +471,7 @@ void Muskingum::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_MSK_X)) {
         m_msk_x = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(sk, "VelocityScalingFactor")) { /// TODO, add to mongodb database
         m_vScalingFactor = data;
     } else {

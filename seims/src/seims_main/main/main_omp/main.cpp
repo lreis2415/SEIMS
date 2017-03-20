@@ -91,7 +91,7 @@ int main(int argc, const char *argv[]) {
     //cout<<layeringMethod<<endl;
     //cout<<mongodbIP<<":"<<port<<endl;
     //cout<<scenarioID<<endl;
-    //omp_set_num_threads(2);
+    //SetOpenMPThread(2);
 
 #ifdef MAIN
     while (modelPath.length() == 0) {

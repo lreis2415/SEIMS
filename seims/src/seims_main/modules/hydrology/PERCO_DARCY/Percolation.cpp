@@ -4,7 +4,7 @@
  * \date May 2013
  */
 #include "Percolation.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <sstream>
 #include <math.h>
@@ -16,7 +16,7 @@
 #include <fstream>
 #include <string>
 
-#include <omp.h>
+
 
 Percolation_DARCY::Percolation_DARCY(void) {
     // set default values for member variables

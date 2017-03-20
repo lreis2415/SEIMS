@@ -7,13 +7,13 @@
  */
 #include "KinWavSed_OL.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <omp.h>
+
 
 using namespace std;
 
@@ -144,7 +144,7 @@ void KinWavSed_OL::SetValue(const char *key, float data) {
     } else if (StringMatch(s, VAR_OL_SED_ECO2)) {
         m_eco2 = data;//
     } else if (StringMatch(s, VAR_OL_SED_CCOE)) { m_Ccoe = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_KINWAVSED_OL, "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
@@ -613,7 +613,7 @@ int KinWavSed_OL::Execute() {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nCells = (int) m_routingLayers[iLayer][0];
-        //omp_set_num_threads(2);
+        //SetOpenMPThread(2);
 #pragma omp parallel for
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];

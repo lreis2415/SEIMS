@@ -1,9 +1,9 @@
 #include "IUH_NUTR_OL.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <map>
-#include <omp.h>
+
 
 using namespace std;
 
@@ -187,7 +187,7 @@ void IUH_NUTR_OL::SetValue(const char *key, float value) {
     if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = (int) value; }
     else if (StringMatch(sk, Tag_CellSize)) { m_nCells = (int) value; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else {
         throw ModelException(MID_IUH_NUTR_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
     }

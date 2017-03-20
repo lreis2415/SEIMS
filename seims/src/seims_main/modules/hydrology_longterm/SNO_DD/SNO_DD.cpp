@@ -1,8 +1,8 @@
 #include "SNO_DD.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 
 SNO_DD::SNO_DD(void) : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE),
                        m_tsnow(NODATA_VALUE), m_crain(NODATA_VALUE), m_csnow(NODATA_VALUE),
@@ -141,7 +141,7 @@ void SNO_DD::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_T_SNOW)) {
         this->m_tsnow = data;
         //else if (StringMatch(s, VAR_SWE0)) this->m_swe0 = data;
-    } else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    } else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SNO_DD, "SetValue", "Parameter " + s
             +

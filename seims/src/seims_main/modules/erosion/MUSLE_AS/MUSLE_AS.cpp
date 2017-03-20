@@ -4,7 +4,7 @@
 #include "ModelException.h"
 #include "utilities.h"
 #include <math.h>
-#include <omp.h>
+
 #include <map>
 
 MUSLE_AS::MUSLE_AS(void) : m_nCells(-1), m_cellWidth(-1.f), m_nsub(-1), m_nSoilLayers(-1),
@@ -177,7 +177,7 @@ void MUSLE_AS::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_DEPRATIO)) {
         m_depRatio = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_MUSLE_AS, "SetValue", "Parameter " + sk + " does not exist in current module.");
     }

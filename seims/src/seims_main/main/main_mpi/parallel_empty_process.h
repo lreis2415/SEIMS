@@ -5,7 +5,7 @@
 
 #include "ReadData.h"
 #include "mpi.h"
-#include "util.h"
+#include "utilities.h"
 
 #define WORK_TAG 0
 #define MASTER_RANK 0

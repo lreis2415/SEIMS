@@ -1,9 +1,9 @@
 #include "IUH_IF.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <map>
-#include <omp.h>
+
 
 using namespace std;
 
@@ -195,7 +195,7 @@ void IUH_IF::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, Tag_CellSize)) {
         m_nCells = (int) value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk
             +

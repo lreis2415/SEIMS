@@ -1,5 +1,5 @@
 #include "subbasin.h"
-#include "util.h"
+#include "utilities.h"
 
 subbasin::subbasin(int id) {
     this->m_id = id;

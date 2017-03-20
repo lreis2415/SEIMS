@@ -11,14 +11,14 @@
 #include "IKW_REACH.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 #include <cmath>
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <algorithm> 
-#include <omp.h>
+
 
 //#define MINI_SLOPE 0.0001f
 //#define NODATA_VALUE -9999  defined in util.h
@@ -285,7 +285,7 @@ void IKW_REACH::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
         m_dt = (int) value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, VAR_K_CHB)) {
         m_Kchb = value;
     } else if (StringMatch(sk, VAR_K_BANK)) {

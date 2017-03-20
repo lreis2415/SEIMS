@@ -11,8 +11,8 @@
 #include <cmath>
 #include <fstream>
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 
 using namespace std;
 
@@ -153,7 +153,7 @@ bool NutrOL_IUH::CheckInputData() {
 void NutrOL_IUH::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, Tag_CellSize)) { this->m_nCells = (int) value; }
     else if (StringMatch(sk, Tag_CellWidth)) { this->m_cellWidth = value; }
     else if (StringMatch(sk, Tag_HillSlopeTimeStep)) { this->m_TimeStep = value; }

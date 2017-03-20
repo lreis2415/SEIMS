@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <omp.h>
+
 
 PER_PI::PER_PI(void) : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
                        m_ks(NULL), m_sat(NULL), m_poreIndex(NULL), m_fc(NULL),
@@ -159,7 +159,7 @@ void PER_PI::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_TimeStep)) { m_dt = int(data); }
     else if (StringMatch(s, VAR_T_SOIL)) { m_frozenT = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_PER_PI, "SetValue", "Parameter " + s + " does not exist.");
     }

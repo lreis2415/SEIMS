@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include "api.h"
-#include "util.h"
+#include "utilities.h"
 #include "NutrOL_IUH.h"
 #include <iostream>
 #include "SimulationModule.h"

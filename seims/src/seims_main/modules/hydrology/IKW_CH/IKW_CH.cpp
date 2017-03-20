@@ -8,8 +8,8 @@
 #include "IKW_CH.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -492,7 +492,7 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
         //else if(StringMatch(sk, "QUPREACH"))
         //	m_qUpReach = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {
         m_manningScalingFactor = data;
     } else {

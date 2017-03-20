@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <omp.h>
+
 
 SOL_WB::SOL_WB(void) : m_nCells(-1), m_nSoilLayers(-1), m_soilLayers(NULL), m_soilThick(NULL), m_soilZMX(NULL),
                        m_pNet(NULL), m_Infil(NULL), m_ES(NULL), m_Revap(NULL),
@@ -35,7 +35,7 @@ int SOL_WB::Execute() {
 
 void SOL_WB::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SOL_WB, "SetValue", "Parameter " + s
             + " does not exist. Please contact the module developer.");

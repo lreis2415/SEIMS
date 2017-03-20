@@ -5,7 +5,7 @@
  */
 #include "HS_WB.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <cmath>
 #include <time.h>
@@ -14,7 +14,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <omp.h>
+
 
 HS_WB::HS_WB(void) : m_dtHs(-1.f), m_dtCh(-1.f), m_nReaches(-1), m_nCells(-1), m_qs(NULL), m_qi(NULL), m_subbasin(NULL),
                      m_streamLink(NULL),
@@ -101,7 +101,7 @@ int HS_WB::Execute() {
 void HS_WB::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_HS_WB, "SetValue", "Parameter " + s
             +

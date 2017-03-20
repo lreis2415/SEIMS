@@ -3,8 +3,8 @@
 #include "UnsaturatedFlow.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
-#include <omp.h>
+#include "utilities.h"
+
 
 UnsaturatedFlow::UnsaturatedFlow(void) {
     // set default values for member variables
@@ -91,7 +91,7 @@ void UnsaturatedFlow::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, "T_Soil")) { this->m_ForzenT = data; }
     else if (StringMatch(s, "ThreadNum")) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException("UnsaturatedFlow", "SetValue", "Parameter " + s +
             " does not exist in UnsaturatedFlow method. Please contact the module developer.");

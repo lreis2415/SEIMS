@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <omp.h>
+
 #include "ReservoirMethod.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
@@ -285,7 +285,7 @@ void ReservoirMethod::SetValue(const char *key, float value) {
     if (StringMatch(sk, Tag_TimeStep)) {
         m_TimeStep = int(value);
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
     } else if (StringMatch(sk, VAR_KG)) {

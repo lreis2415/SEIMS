@@ -7,7 +7,7 @@
  */
 #include "KinWavSed_CH.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <cmath>
 #include <iostream>
@@ -15,7 +15,7 @@
 #include <sstream>
 #include <cstdio>
 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -125,7 +125,7 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s + " does not exist in current module.\n");
     }

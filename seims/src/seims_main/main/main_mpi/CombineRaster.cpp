@@ -4,7 +4,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-#include "util.h"
+#include "utilities.h"
 #include "parallel.h"
 #include "clsRasterData.cpp"
 
