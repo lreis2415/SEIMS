@@ -6,7 +6,7 @@
 #include <fstream>
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -224,7 +224,7 @@ void NutrientMovementViaWater::SetSubbasins(clsSubbasins *subbasins) {
 void NutrientMovementViaWater::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     }
         //else if (StringMatch(sk, Tag_CellSize)) { this->m_nCells = value; }
     else if (StringMatch(sk, Tag_CellWidth)) {

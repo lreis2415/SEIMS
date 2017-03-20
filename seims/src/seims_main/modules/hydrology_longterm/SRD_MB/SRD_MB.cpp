@@ -3,9 +3,9 @@
 #include "ModelException.h"
 #include <math.h>
 #include <cmath>
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 SRD_MB::SRD_MB(void) {
     // set default values for member variables
@@ -229,7 +229,7 @@ bool SRD_MB::CheckInputSize(const char *key, int n) {
 void SRD_MB::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, "ThreadNum")) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(s, "K_blow")) { this->m_kblow = data; }
     else if (StringMatch(s, "shc_crop")) { this->m_shc_crop = data; }
     else if (StringMatch(s, "k_slope")) { this->m_k_slope = data; }

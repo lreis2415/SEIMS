@@ -16,7 +16,6 @@
 #include <ctime>
 #include <cmath>
 #include <map>
-#include <omp.h>
 #include "SimulationModule.h"
 #include "MetadataInfo.h"
 #include "utilities.h"

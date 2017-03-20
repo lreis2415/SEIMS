@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string>
-#include "util.h"
+#include "utilities.h"
 #include "api.h"
 #include "IO_test.h"
 #include <iostream>

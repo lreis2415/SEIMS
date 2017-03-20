@@ -5,7 +5,7 @@
  * \date Feb. 2011
  */
 
-#include <omp.h>
+
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -401,7 +401,7 @@ void DiffusiveWave::SetValue(const char *key, float data) {
         //else if(StringMatch(sk, "QUPREACH"))
         //	m_qUpReach = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {  /// TODO: add to mongodb database
         m_manningScalingFactor = data;
     } else {

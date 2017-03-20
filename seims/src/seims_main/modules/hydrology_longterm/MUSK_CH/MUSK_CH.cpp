@@ -2,7 +2,7 @@
 #include "MetadataInfo.h"
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -285,7 +285,7 @@ void MUSK_CH::SetValue(const char *key, float value) {
     if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
     else if (StringMatch(sk, VAR_VSF)) { m_vScalingFactor = value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, VAR_K_CHB)) { m_Kchb = value; }
     else if (StringMatch(sk, VAR_K_BANK)) { m_Kbank = value; }
     else if (StringMatch(sk, VAR_EP_CH)) { m_Epch = value; }

@@ -17,7 +17,7 @@
 #include <math.h>
 #include <cmath>
 #include <time.h>
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include "omp.h"
 #include <iostream>
@@ -77,7 +77,7 @@ void clsPI_STORM::SetValue(const char *key, float data) {
     } else if (StringMatch(s, VAR_INIT_IS)) {
         this->m_Init_IS = data;
     } else if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_PI_STORM, "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");

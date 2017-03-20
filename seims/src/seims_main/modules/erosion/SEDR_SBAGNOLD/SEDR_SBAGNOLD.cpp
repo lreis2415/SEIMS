@@ -2,13 +2,13 @@
 #include "MetadataInfo.h"
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 #include <cmath>
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <algorithm> 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -241,7 +241,7 @@ void SEDR_SBAGNOLD::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     }
 #ifdef STORM_MODEL
         else if (StringMatch(sk, Tag_ChannelTimeStep))

@@ -9,7 +9,7 @@
 #include "DepressionFS.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include "omp.h"
 #include <cmath>
 
@@ -119,7 +119,7 @@ void DepressionFS::SetValue(const char *key, float data) {
     if (StringMatch(sk, VAR_DEPREIN)) {
         m_depCo = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_DEP_FS, "SetSingleData", "Parameter " + sk
             +

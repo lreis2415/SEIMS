@@ -659,6 +659,11 @@ public:
     static void SetDefaultOpenMPThread();
 
     /*!
+     * \brief Set the omp thread number by given thread number
+     */
+    static void SetOpenMPThread(int n);
+
+    /*!
      * \brief Print status messages for Debug
      */
     static void StatusMessage(const char *msg);

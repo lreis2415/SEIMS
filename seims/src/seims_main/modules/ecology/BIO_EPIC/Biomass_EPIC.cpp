@@ -4,7 +4,7 @@
 #include "utilities.h"
 #include "PlantGrowthCommon.h"
 #include "ClimateParams.h"
-#include <omp.h>
+
 #include <cmath>
 
 using namespace std;
@@ -76,7 +76,7 @@ Biomass_EPIC::~Biomass_EPIC(void) {
 void Biomass_EPIC::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_CO2)) { m_co2 = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, VAR_NUPDIS)) { m_NUpDis = value; }
     else if (StringMatch(sk, VAR_PUPDIS)) { m_PUpDis = value; }
     else if (StringMatch(sk, VAR_NFIXCO)) { m_NFixCoef = value; }

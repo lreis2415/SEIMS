@@ -5,9 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 
-#include <omp.h>
+
 
 using namespace std;
 
@@ -250,7 +250,7 @@ void ExcessRunoff::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, "TimeStep")) {
         m_dt = value;
     } else if (StringMatch(sk, "ThreadNum")) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else {
         throw ModelException("SUR_ES", "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
     }

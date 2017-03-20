@@ -5,7 +5,7 @@
 #include <fstream>
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -237,7 +237,7 @@ bool NutrCH_QUAL2E::CheckInputData() {
 
 void NutrCH_QUAL2E::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
     else if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
     else if (StringMatch(sk, VAR_RNUM1)) { m_rnum1 = value; }

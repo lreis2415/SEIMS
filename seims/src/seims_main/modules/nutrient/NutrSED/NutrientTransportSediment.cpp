@@ -6,7 +6,7 @@
 #include <fstream>
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 
 using namespace std;
 
@@ -180,7 +180,7 @@ bool NutrientTransportSediment::CheckInputData_CFARM() {
 
 void NutrientTransportSediment::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
     else {

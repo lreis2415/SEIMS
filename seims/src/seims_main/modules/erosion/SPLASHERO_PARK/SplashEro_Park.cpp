@@ -1,12 +1,12 @@
 #include "SplashEro_Park.h"
 #include "MetadataInfo.h"
-#include "util.h"
+#include "utilities.h"
 #include "ModelException.h"
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <omp.h>
+
 
 using namespace std;
 
@@ -68,7 +68,7 @@ void SplashEro_Park::SetValue(const char *key, float data) {
     else if (StringMatch(s, Tag_CellSize)) { m_nCells = (int) data; }
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_OMEGA)) { m_Omega = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { omp_set_num_threads((int) data); }
+    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SplashEro_Park, "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");

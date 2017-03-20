@@ -1,10 +1,10 @@
 #include "SUR_GA.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
-#include "util.h"
+#include "utilities.h"
 #include <cmath>
 
-#include <omp.h>
+
 
 SUR_GA::SUR_GA(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
@@ -363,7 +363,7 @@ void SUR_GA::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, "ThreadNum")) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, "TimeStep")) {
         m_TimeStep = value * 60; //hour -> mimute
     } else if (StringMatch(sk, "T_snow")) {

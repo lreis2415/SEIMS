@@ -4,7 +4,7 @@
 #include "MetadataInfo.h"
 #include "ModelException.h"
 #include "utilities.h"
-#include <omp.h>
+
 #include <stdlib.h>
 
 #include <map>
@@ -167,7 +167,7 @@ int SSR_DA::Execute() {
 void SSR_DA::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) data);
+        SetOpenMPThread((int) data);
     } else if (StringMatch(s, VAR_T_SOIL)) {
         m_frozenT = data;
     } else if (StringMatch(s, VAR_KI)) {

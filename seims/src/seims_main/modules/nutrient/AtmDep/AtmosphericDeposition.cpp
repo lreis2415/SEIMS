@@ -78,7 +78,7 @@ void AtmosphericDeposition::Set1DData(const char *key, int n, float *data) {
 void AtmosphericDeposition::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        omp_set_num_threads((int) value);
+        SetOpenMPThread((int) value);
         //else if (StringMatch(sk, Tag_CellSize)) { m_nCells = value; }
         //else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     } else if (StringMatch(sk, VAR_RCN)) { m_rcn = value; }
