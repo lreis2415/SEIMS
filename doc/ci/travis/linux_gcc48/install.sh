@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-
+cd seims
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
