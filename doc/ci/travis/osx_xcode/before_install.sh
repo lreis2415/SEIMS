@@ -3,7 +3,7 @@
 set -e
 brew update
 brew install gdal
-# install mpich2
+# install mpich2, be aware, mpich2 got error on macOS!
 #brew install mpich2
 brew install openmpi
 echo "Installing and starting mongodb"

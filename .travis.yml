@@ -33,15 +33,15 @@ matrix:
         - DETAILS=""
         - ENABLE_CXX11=1
 before_install:
-  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+#  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 
 install:
-  - ./doc/ci/travis/${BUILD_NAME}/install.sh
+#  - ./doc/ci/travis/${BUILD_NAME}/install.sh
 
 script:
   - ./doc/ci/travis/${BUILD_NAME}/script.sh
   # push automatically generated doxygen html files to gh-pages branch, only once
-  - 'if [ ${BUILD_NAME} = "linux_gcc48" ]; then
+  - 'if [ $BUILD_NAME == "linux_gcc48" ]; then
       openssl aes-256-cbc -K $encrypted_9c89c5b645f3_key -iv $encrypted_9c89c5b645f3_iv
         -in doc/doxygen/travisci_rsa.enc -out doc/doxygen/travisci_rsa -d;
       sudo apt-get install doxygen graphviz;
