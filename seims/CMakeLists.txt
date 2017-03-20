@@ -26,6 +26,11 @@ ELSE ()
     PROJECT(SEIMS_OMP_ALL)
     MESSAGE(STATUS "SEIMS-OpenMP version...")
 ENDIF ()
+IF (ARCH EQUAL 64)
+    MESSAGE(STATUS "64-bit version...")
+ELSE ()
+    MESSAGE(STATUS "32-bit version...")
+ENDIF ()
 ################# Install directory ##################
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 ##############  Stand-alone programs   ###############
