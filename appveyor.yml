@@ -49,9 +49,9 @@ install:
   - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
   - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
   # install MS-MPI
+  - cd C:\projects\seims
   - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
   - "SetEnvMPI.cmd"
-  #- cd C:\projects\seims
   #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/msmpisdk.msi
   #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/MSMpiSetup.exe
   #- ps: Start-Process "C:\projects\seims\MSMpiSetup.exe" -ArgumentList "/qn" -Wait
