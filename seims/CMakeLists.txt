@@ -10,6 +10,7 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
 SET (CMAKE_CXX_STANDARD 11)
+SET (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 ################# SEIMS Version ##################
 IF (PARALLEL STREQUAL MPI)
     PROJECT(SEIMS_MPI_ALL)
