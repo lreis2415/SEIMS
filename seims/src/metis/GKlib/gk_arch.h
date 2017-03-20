@@ -57,9 +57,12 @@ typedef ptrdiff_t ssize_t;
 #define PTRDIFF_MAX  INT64_MAX
 #endif
 
-#ifdef __MSC__
+// #ifdef __MSC__
+// replace the above line by the below to solve compile error on MSVC 2013+
+//   refers to https://github.com/INMOST-DEV/INMOST/issues/14
+#if _MSC_VER < 1700
 /* MSC does not have rint() function */
-#define rint(x) ((int)((x)+0.5))  
+#define rint(x) ((int)((x)+0.5))
 
 /* MSC does not have INFINITY defined */
 #ifndef INFINITY
