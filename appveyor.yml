@@ -14,6 +14,10 @@ build:
 environment:
   global:
     GDAL_HOME: "C:\\gdal"
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    WITH_ENV: "cmd /E:ON /V:ON /C .\\doc\\ci\\appveyor\\run_with_env.cmd"
 install:
   # download compiled gdal and install it
   - ps: mkdir C:\gdal | out-null
@@ -44,12 +48,14 @@ install:
   - "SET MONGOC_ROOT_DIR=C:\\mongo-c-driver"
   - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
   - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
-  # install MS-MPI V6.0
-  - cd C:\projects\seims
-  - appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/msmpisdk.msi
-  - appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/MSMpiSetup.exe
-  - ps: Start-Process "C:\projects\seims\MSMpiSetup.exe" -ArgumentList "/qn" -Wait
-  - ps: Start-Process "C:\projects\seims\msmpisdk.exe" -ArgumentList "/qn" -Wait  
+  # install MS-MPI
+  - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
+  - "SetEnvMPI.cmd"
+  #- cd C:\projects\seims
+  #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/msmpisdk.msi
+  #- appveyor DownloadFile https://download.microsoft.com/download/6/4/A/64A7852A-A8C3-476D-908C-30501F761DF3/MSMpiSetup.exe
+  #- ps: Start-Process "C:\projects\seims\MSMpiSetup.exe" -ArgumentList "/qn" -Wait
+  #- ps: Start-Process "C:\projects\seims\msmpisdk.exe" -ArgumentList "/qn" -Wait
 build_script:
   - cd C:\projects\seims
   - ps: "ls"
