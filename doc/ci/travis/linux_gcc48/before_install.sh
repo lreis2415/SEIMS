@@ -19,7 +19,7 @@ GDAL_VERSION=1.11.5
 # install gdal from apt-get
 sudo apt-get install -qq gdal-bin libgdal-dev
 # install mpich2
-sudo apt-get install -q mpich2 libmpich2-3 libmpich2-dev
+sudo apt-get install -q libc-dev mpich2 libmpich2-dev
 # download mongo-c-driver from github, and compile and install
 cd ..
 MONGOC_VERSION=1.6.1
