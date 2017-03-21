@@ -576,12 +576,12 @@ long setPosDirDinf(tdpartition *elevDEM, tdpartition *flowDir, tdpartition *slop
                     flowDir->setToNodata(i, j);
                     //If cell is not contaminated,
                 } else {
-                    tempFloat = -1.;
+                    tempFloat = -1.f;
                     flowDir->setData(i, j, tempFloat);//set to -1
                     elevDEM->getdxdyc(j, tempdxc, tempdyc);
 
-                    float DXX[3] = {0, tempdxc, tempdyc};//tardemlib.cpp ln 1291
-                    float DD = sqrt(tempdxc * tempdxc + tempdyc * tempdyc);//tardemlib.cpp ln 1293
+                    float DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
+                    float DD = sqrt((float)tempdxc * (float)tempdxc + (float)tempdyc * (float)tempdyc);//tardemlib.cpp ln 1293
                     SET2(j,
                          i,
                          DXX,
@@ -838,10 +838,10 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         //  direction based on the artificial elevations
 
         elevDEM->getdxdyc(j, tempdxc, tempdyc);
-        float DXX[3] = {0, tempdxc, tempdyc};//tardemlib.cpp ln 1291
-        float DD = sqrt(tempdxc * tempdxc + tempdyc * tempdyc);//tardemlib.cpp ln 1293
+        float DXX[3] = {0, (float)tempdxc, (float)tempdyc};//tardemlib.cpp ln 1291
+        float DD = sqrt((float)(tempdxc * tempdxc + tempdyc * tempdyc));//tardemlib.cpp ln 1293
 
-        SET2(j, i, DXX, DD, elevDEM, elev2, flowDir, dn);    //use new elevations to calculate flowDir.
+        SET2((int)j, (int)i, DXX, DD, elevDEM, elev2, flowDir, dn);    //use new elevations to calculate flowDir.
         if (!flowDir->isNodata(i, j) && flowDir->getData(i, j, tempFloat) < 0.) //this is still a flat
         {
             que->push(temp);
