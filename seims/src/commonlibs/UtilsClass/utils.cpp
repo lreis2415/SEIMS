@@ -576,7 +576,7 @@ string utilsFileIO::GetCoreFileName(string const &fullFileName) {
     if (fullFileName.find_last_of("/") != string::npos) {
         start = fullFileName.find_last_of("/");
     }
-
+    // since string::npos is -1, these if-statement can be uncommented. Todo: be confirmed.
     if (start == string::npos) {
         start = -1;
     } // old code: start = 0; Modified by ZhuLJ, 2015/6/16
@@ -720,6 +720,13 @@ void utils::SetDefaultOpenMPThread() {
         // set one half of the available threads as default
         omp_set_num_threads(GetAvailableThreadNum() / 2);
     }
+#endif
+    /// do nothing if OMP is not supported
+}
+
+void utils::SetOpenMPThread(int n) {
+#ifdef SUPPORT_OMP
+    omp_set_num_threads(n);
 #endif
     /// do nothing if OMP is not supported
 }
