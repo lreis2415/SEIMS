@@ -1,0 +1,6 @@
+# Field name of stream shapefile of TauDEM
+FLD_LINKNO = "LINKNO"
+FLD_DSLINKNO = "DSLINKNO"
+REACH_WIDTH = "WIDTH"
+REACH_LENGTH = "LENGTH"
+REACH_DEPTH = "DEPTH"
