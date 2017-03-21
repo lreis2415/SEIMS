@@ -26,7 +26,7 @@ SEIMS模型可通过常用C++编译器（如MSVC、GCC、Clang）编译成32位�
 
 ### 2.2. 建议步骤
 
-+ 2.2.1. 详细学习[Git简明操作教程](Git-guidance)，重点掌握**Git分支管理**；
++ 2.2.1. 详细学习[Git简明操作教程](Git-guidance)，重点掌握**冲突管理**和**Git分支管理**；
 + 2.2.2. 根据实际情况选择对应操作系统对SEIMS进行编译、安装，只需编译OpenMP版本即可，[Windows](Windows)、[Linux](Linux)、[macOS](macOS)；
 + 2.2.3. 学习[SEIMS模型所需准备数据](Data-preparation)，[配置预处理程序](Construct-python-env)，并成功实现[数据预处理](Data-preprocess)（即顺利构建MongoDB数据库）；
 + 2.2.4. 按照[示例数据](Dianbu)，[配置并运行SEIMS](Executation-and-calibration)，得到结果；
