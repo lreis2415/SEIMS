@@ -38,10 +38,16 @@ git config --global core.safecrlf warn
 
 ### 2.2.C/C++
 
+## 3.Git分支管理
 
+### 3.1.各分支命名规范及功能定义
 
+|分支|命名示例|功能|
+|:---:|:---:|:---:|
+|`master`|`master`|稳定版本发布，非工作区，仅管理员可操作|
+|`dev`|`dev`|开发汇总，非工作区，开发组成员均可将完成的工作合并至此|
+|`bug-<bugcode>-<author>`|`bug-ompconfused-zlj`|bug修复，临时工作区，修复并测试完成之后，将此分支合并至`dev`，并新建`issue`说明问题之后，删除该分支|
+|`update-<module>-<author>`|`update-docs-zlj`|模块更新，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支|
+|`new-<module>-<author>`|`new-lisemsed-zlj`|新增模块，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支|
 
-
-## 2.模块编写指南
-
-
+### 3.2.分支管理场景及处理方法
