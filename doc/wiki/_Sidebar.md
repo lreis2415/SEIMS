@@ -1,3 +1,5 @@
+- SEIMS原理
+  - [总体介绍](TheoryOverall)
 - 编译和安装
   - [Windows](Windows)
   - [Linux](Linux)
@@ -15,8 +17,6 @@
   - [模块开发Demo](Module-demo)
   - [模块开发状态](Module-in-development)
   - [更新日志](ChangeLOG)
-- SEIMS原理
-  - [总体介绍](TheoryOverall)
 - 示例数据
   - [店埠河上游小流域](Dianbu)
 - 其他
