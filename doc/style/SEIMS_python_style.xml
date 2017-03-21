@@ -1,9 +1,0 @@
-<code_scheme name="SEIMS_python_style">
-  <Python>
-    <option name="SPACE_AROUND_EQ_IN_KEYWORD_ARGUMENT" value="true" />
-    <option name="DICT_ALIGNMENT" value="2" />
-  </Python>
-  <XML>
-    <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
-  </XML>
-</code_scheme>
