@@ -1,7 +1,0 @@
-MESSAGE(STATUS "      Compiling SEIMS_subdir: main...")
-#ADD_SUBDIRECTORY(./functionTest)
-#ADD_SUBDIRECTORY(./ModulesIOList)
-ADD_SUBDIRECTORY(./main_omp)
-IF (PARALLEL STREQUAL MPI)
-    ADD_SUBDIRECTORY(./main_mpi)
-ENDIF ()
