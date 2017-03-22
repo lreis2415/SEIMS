@@ -3,18 +3,6 @@
 
 #include "Interception.h"
 
-#define _USE_MATH_DEFINES
-
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#include <cmath>
-#include <time.h>
-#include "utilities.h"
-#include "ModelException.h"
-#include "omp.h"
-#include <iostream>
-
 //! Constructor
 clsPI_STORM::clsPI_STORM(void) : m_s0(NULL), m_P(NULL), m_maxInterception(NULL),
                                  m_minInterception(NULL), m_interceptionLast(NULL), m_interceptionLoss(NULL) {
