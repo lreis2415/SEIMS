@@ -1,5 +1,7 @@
-/*
- * \brief 
+/*!
+ * \brief Subsurface runoff using Darcy's law and the kinematic approximation
+ *        Water is routed cell-to-cell according to D8 flow direction
+ * \author Junzhi Liu
  * \review Liang-Jun Zhu
  * \date 2016-7-24
  * \note: 1. Add support of multi soil layers of each cells.
@@ -9,16 +11,16 @@
 
 using namespace std;
 
-/** \defgroup SSR_DA
+/*!
+ * \defgroup SSR_DA
  * \ingroup Hydrology_longterm
- * \brief --
+ * \brief Subsurface runoff using Darcy's law and the kinematic approximation
  *
  */
 
 /*!
  * \class SSR_DA
  * \ingroup SSR_DA
- * \brief --
  * 
  */
 class SSR_DA : public SimulationModule {

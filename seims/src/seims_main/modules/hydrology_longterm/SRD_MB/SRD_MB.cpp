@@ -1,10 +1,5 @@
+#include "seims.h"
 #include "SRD_MB.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include <math.h>
-#include <cmath>
-#include "utilities.h"
-
 
 
 SRD_MB::SRD_MB(void) {

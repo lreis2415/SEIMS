@@ -1,18 +1,5 @@
-/*!
- * \brief Kinematic wave routing method for overland erosion and deposition
- * \author Hui Wu
- * \date Feb. 2012
- * \revised LiangJun Zhu
- * \revised date May. 2016
- */
+#include "seims.h"
 #include "KinWavSed_OL.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 
 
 using namespace std;

@@ -4,7 +4,6 @@
  * \date June 2016
  */
 #pragma once
-//#include <stdlib.h>
 #include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
@@ -69,16 +68,16 @@ private:
     float *m_parameters;
     /// field index for where to apply the subScenario
     vector<int> m_location;
-    /*
-    ** The first element is the sequence number of plant management operations
-    ** and the second is the corresponding unique management code, i.e., index * 1000 + operationCode
-    ** m_bmpSequence[0] = 1002 means the first (1001 / 1000 = 1) operation is Irrigation (1002 % 1000 = 2)
-    */
+    /*!
+     * The first element is the sequence number of plant management operations
+     * and the second is the corresponding unique management code, i.e., index * 1000 + operationCode
+     * m_bmpSequence[0] = 1002 means the first (1001 / 1000 = 1) operation is Irrigation (1002 % 1000 = 2)
+     */
     vector<int> m_bmpSequence;
-    /*
-    ** Key is the unique management code in m_bmpSequence, e.g., 1002
-    ** Value is the corresponding PlantMangementOperation instance
-    */
+    /*!
+     * Key is the unique management code in m_bmpSequence, e.g., 1002
+     * Value is the corresponding PlantMangementOperation instance
+     */
     map<int, PlantManagementOperation *> m_bmpPlantOps;
 };
 }

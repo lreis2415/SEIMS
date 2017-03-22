@@ -12,15 +12,15 @@
  */
 enum LayeringMethod {
     /// layering-from-source method
-        UP_DOWN,
+    UP_DOWN,
     /// layering-from-outlet method
-        DOWN_UP
+    DOWN_UP
 };
 enum FlowDirectionMethod {
     TauDEM = 0,
     ArcGIS = 1
 };
-/*
+/*!
  *\brief Whether diagonal counter clockwise from east
  *       the first element is set to 0, for indexing convenient.
  *          1  0  1
@@ -32,8 +32,8 @@ enum FlowDirectionMethod {
  *          6  7  8
  */
 const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
-/*
- *	Common used const.
+/*!
+ * \brief Common used const.
  */
 const float _23 = 0.6666666666666666f;
 const float SQ2 = 1.4142135623730951f;

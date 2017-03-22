@@ -1,9 +1,5 @@
+#include "seims.h"
 #include "SSM_PE.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-
 
 SSM_PE::SSM_PE(void) {
     // set default values for member variables
@@ -132,7 +128,6 @@ int SSM_PE::Execute() {
     }
     this->m_lastSWE = this->m_swe;
     return true;
-    return 0;
 }
 
 bool SSM_PE::CheckInputSize(const char *key, int n) {

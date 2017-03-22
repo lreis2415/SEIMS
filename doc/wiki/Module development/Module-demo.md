@@ -182,7 +182,7 @@ private:
 
 按照AddParameter，AddInput，AddOutput中参数定义顺序，在构造函数中依次进行参数初始化，基本原则为：
 
-+ `DT_Single`类型数据设置为-1或者`NODATA`(`util.h`中定义)
++ `DT_Single`类型数据设置为-1或者`NODATA`(`utils.h`中定义)
 + `DT_Array1D`, `DT_Raster1D`, `DT_Array2D`和`DT_Raster2D`类型变量设置为`NULL`
 
 这里我们这样初始化：
@@ -216,10 +216,10 @@ IO_TEST::~IO_TEST(void)
 }
 ```
 
-由于释放内存频繁用到，因此，在`util.h`中定义了模板函数用于释放内存：
+由于释放内存频繁用到，因此，在`utils.h`中定义了模板函数用于释放内存：
 
 ```cpp
-#include "util.h"
+#include "utils.h"
 if(m_output1Draster != NULL) Release1DArray(m_output1Draster);
 if(m_output2Draster != NULL) Release2DArray(m_nCells, m_output2Draster)
 ```
@@ -233,7 +233,7 @@ void IO_TEST::Set1DData(const char* key, int n, float* data)
 {
 	if(!this->CheckInputSize(key,n)) return;
 	string sk(key);
-	if(StringMatch(sk, VAR_CN2)) this->m_raster1D = data;	
+	if(StringMatch(sk, VAR_CN2)) this->m_raster1D = data;
 }
 
 bool IO_TEST::CheckInputSize(const char* key, int n)
@@ -406,4 +406,3 @@ D:\Compile\SEIMS_OMP\Release\seims_omp E:\code\Hydro\SEIMS\model_data\TEST\model
 至此，一个简单的SEIMS框架下的模块便编写完成了！
 
 [返回目录](#目录)
-

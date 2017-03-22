@@ -184,7 +184,7 @@ private:
     float *m_qOut;
     /// flowin discharge at the last time step
     float *m_qIn;
-    /*
+    /*!
      * reach layers
      * key: stream order
      * value: reach ID

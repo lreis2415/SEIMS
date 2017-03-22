@@ -5,9 +5,6 @@
  * \date June 2015
  */
 #pragma once
-
-#include <string>
-#include <vector>
 #include "text.h"
 #include "utilities.h"
 

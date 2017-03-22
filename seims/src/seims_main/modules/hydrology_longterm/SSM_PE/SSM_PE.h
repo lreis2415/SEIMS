@@ -1,13 +1,16 @@
+/*!
+ * \brief
+ * \author
+ * \date
+ */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
-/** \defgroup SSM_PE
+/*!
+ * \defgroup SSM_PE
  * \ingroup Hydrology_longterm
  * \brief Distribution of snow sublimation (water equivalent) for a user defined period
  *

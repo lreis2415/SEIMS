@@ -1,6 +1,5 @@
 /*!
- * \file SNO_WB.h
- * \brief
+ * \brief Snow melt water balance
  * \author Chunping Ou
  * \date May 2011
  * \revised LiangJun Zhu
@@ -10,15 +9,11 @@
  */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
-#include <map>
-#include "subbasin.h"
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup SNO_WB
+/*!
+ * \defgroup SNO_WB
  * \ingroup Hydrology_longterm
  * \brief Calculate snow water balance
  *

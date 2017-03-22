@@ -1,12 +1,8 @@
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 
 class MUSLE_I30 : public SimulationModule {
 public:

@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "PETHargreaves.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 //! Get instance of SimulationModule class
 extern "C" SEIMS_MODULE_API SimulationModule *

@@ -5,9 +5,6 @@
  * \date May 2016
  */
 #pragma once
-
-#include <map>
-
 #include "Measurement.h"
 #include "text.h"
 #include "utilities.h"

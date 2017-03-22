@@ -1,5 +1,4 @@
 /*!
- * \file KinWavSed_CH.h
  * \brief Kinematic wave method for channel flow erosion and deposition
  * \author Hui Wu
  * \date Feb. 2012
@@ -7,15 +6,7 @@
  * \revised date May. 2016
  */
 
-#ifndef SEIMS_KinWavSed_CH_INCLUDE
-#define SEIMS_KinWavSed_CH_INCLUDE
-
-#include "api.h"
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -262,5 +253,3 @@ private:
     //void setNotAvailableInput();
 
 };
-
-#endif

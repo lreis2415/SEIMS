@@ -1,16 +1,8 @@
-/*
+/*!
  * \brief Class for managing subbasin data
  * \author Junzhi Liu, Liang-Jun Zhu
  */
 #pragma once
-
-#include <vector>
-#include <map>
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cmath>
-
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -28,7 +20,7 @@ using namespace std;
  */
 class Subbasin {
 public:
-    /*
+    /*!
      * \brief Constructor
      * \param [in] id Subbasin ID
      */
@@ -269,7 +261,7 @@ public:
     /// Set slope coefficient of each subbasin
     void SetSlopeCoefficient();
 
-    /*
+    /*!
      * \brief Get basin (watershed) scale variable (key) value
      * \param [in] key Variable name which is defined in text.h
      */
@@ -280,7 +272,8 @@ private:
     int m_nSubbasins;
     /// Subbasin IDs
     vector<int> m_subbasinIDs;
-    /* Map container to store all Subbasins information
+    /*!
+     * Map container to store all Subbasins information
      * key: Subbasin ID
      * value: Subbasin instance (pointer)
      */
