@@ -1,5 +1,4 @@
 /*!
- * \file Muskingum.h
  * \brief Routing in the channel cells using Muskingum-Cunge method.
  * \author Junzhi Liu
  * \date Feb. 2011

@@ -38,15 +38,6 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNum
                                                            m_manningScalingFactor(0.4f), m_qgDeep(100.f),
                                                            m_idOutlet(-1)//, m_qsInput(NULL)
 {
-    //m_diagonal[1] = 0;
-    //m_diagonal[2] = 1;
-    //m_diagonal[4] = 0;
-    //m_diagonal[8] = 1;
-    //m_diagonal[16] = 0;
-    //m_diagonal[32] = 1;
-    //m_diagonal[64] = 0;
-    //m_diagonal[128] = 1;
-
     m_diagonal[1] = 0;
     m_diagonal[2] = 1;
     m_diagonal[3] = 0;
