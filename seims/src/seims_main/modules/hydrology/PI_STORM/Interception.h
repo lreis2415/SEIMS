@@ -1,21 +1,13 @@
 /*!
- * \file Interception.h
  * \brief
  * \author Alex Storey, Junzhi Liu
  * \date May 2013
- *
- * 
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
 
-///typedef vector<vector<float> > double2DArray; /// NOT USED? LJ
 /** \defgroup PI_STORM
  * \ingroup Hydrology
  * \brief
@@ -76,9 +68,6 @@ public:
     virtual void SetDate(time_t date);
 
 private:
-    ////! Julian Day /// removed by LJ. Defined in ClimateParameters.h
-    //int DayOfYear(time_t);
-
     /**
     *	@brief check the input data. Make sure all the input data is available.
     *

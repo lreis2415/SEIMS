@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "utilities.h"
-#include "api.h"
 #include "clsTSD_RD.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -18,7 +12,6 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     string res;
-
     mdi.SetAuthor("Zhiqiang Yu");
     mdi.SetClass(MCLS_CLIMATE, MCLSDESC_CLIMATE);
     mdi.SetDescription(MDESC_TSD_RD);

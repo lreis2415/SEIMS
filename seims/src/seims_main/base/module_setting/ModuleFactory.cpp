@@ -936,11 +936,11 @@ void ModuleFactory::SetValue(ParamInfo *param, clsRasterData<float> *templateRas
     {
         param->Value = float(templateRaster->getCellWidth());
     } else if (StringMatch(param->Name, Tag_TimeStep)) {
-        param->Value = settingsInput->getDtDaily(); // return 86400 secs
+        param->Value = float(settingsInput->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep)) {
-        param->Value = settingsInput->getDtHillslope();
+        param->Value = float(settingsInput->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
-        param->Value = settingsInput->getDtChannel();
+        param->Value = float(settingsInput->getDtChannel());
     } else {
         if (m_parametersInDB.find(GetUpper(param->Name)) != m_parametersInDB.end()) {
             param->Value = m_parametersInDB[GetUpper(param->Name)]->GetAdjustedValue();

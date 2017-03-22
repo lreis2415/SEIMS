@@ -1,5 +1,4 @@
 /*!
- * \file IKW_CH.h
  * \brief Routing in the channel cells using implicit finite difference method
  * kinematic wave method in LISEM model
  * \author Junzhi Liu
@@ -8,14 +7,19 @@
 
 #pragma once
 
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
+/*!
+ * \brief 1-Dimensional kinematic wave method in LISEM model
+ * \author Junzhi Liu
+ * \date Feb. 2011 
+ */
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
+
+#define MIN_FLUX 1e-12f
+#define MAX_ITERS_CH 10
+
 /** \defgroup IKW_CH
  * \ingroup Hydrology
  * \brief Routing in the channel cells using implicit finite difference method
@@ -96,12 +100,12 @@ private:
     float m_manningScalingFactor;
 
     /**
-    *	@brief flow direction by the rule of ArcGIS
+    *	@brief flow direction by the rule of TauDEM
     *
     *	The value of direction is as following:
-        32 64 128
-        64     1
-        8   4  2
+         4  3  2
+         5     1
+         6  7  8
     */
     float *m_direction;
 
@@ -144,15 +148,15 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
-    /**
-    *	@brief convert direction code to whether diagonal
-    *
-    *	derived from flow direction
-        1  0  1
-        0     0
-        1  0  1
-    */
-    std::map<int, int> m_diagonal;
+    ///**
+    //*	@brief convert direction code to whether diagonal
+    //*
+    //*	derived from flow direction
+    //    1  0  1
+    //    0     0
+    //    1  0  1
+    //*/
+    //std::map<int, int> m_diagonal;
 
     /// flow length
     float **m_flowLen;

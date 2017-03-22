@@ -1,15 +1,5 @@
+#include "seims.h"
 #include "SOL_WB.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <cmath>
-#include <time.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 
 SOL_WB::SOL_WB(void) : m_nCells(-1), m_nSoilLayers(-1), m_soilLayers(NULL), m_soilThick(NULL), m_soilZMX(NULL),
                        m_pNet(NULL), m_Infil(NULL), m_ES(NULL), m_Revap(NULL),

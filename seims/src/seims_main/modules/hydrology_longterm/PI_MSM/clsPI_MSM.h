@@ -1,5 +1,4 @@
 /*!
- * \file clsPI_MSM.h
  * \brief Compute canopy interception of rainfall using Maximum Storage Method
  * \author Alex Storey
  * \date May 2011
@@ -8,10 +7,6 @@
  * 
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
@@ -27,7 +22,6 @@ using namespace std;
  * \brief Calculate the Precipitation Interception
  * 
  */
-
 class clsPI_MSM : public SimulationModule {
 private:
     //five parameters
@@ -100,4 +94,3 @@ public:
     //! Destructor
     ~clsPI_MSM(void);
 };
-

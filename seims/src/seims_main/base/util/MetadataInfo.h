@@ -1,6 +1,4 @@
 /*!
- * \file MetadataInfo.h
- * \ingroup util
  * \brief Define MetadataInfo class used by modules
  * \author Junzhi Liu
  * \version 1.0
@@ -18,11 +16,7 @@ using namespace std;
 /*!
  * \ingroup util
  * \class ModelClass
- *
- * \brief Class for model
- *
- *
- *
+ * \brief Module basic description
  */
 class ModelClass {
 public:
@@ -38,10 +32,10 @@ public:
  */
 class Parameter {
 public:
-    string Name;                ///< Name
+    string Name;                 ///< Name
     string Units;                ///< Units
-    string Description;            ///< Description
-    string Source;                ///< Source type
+    string Description;          ///< Description
+    string Source;               ///< Source type
     dimensionTypes Dimension;    ///< Data dimension type
 };
 
@@ -53,14 +47,14 @@ public:
  */
 class Information {
 public:
-    string Id;            ///< Module ID
-    string Name;        ///< Module Name
+    string Id;             ///< Module ID
+    string Name;           ///< Module Name
     string Description;    ///< Module Description
     string Version;        ///< Module Version
-    string Author;        ///< Author
-    string EMail;        ///< Email
+    string Author;         ///< Author
+    string EMail;          ///< Email
     string Website;        ///< Website
-    string Helpfile;    ///< Helpfile
+    string Helpfile;       ///< Helpfile
 };
 
 /*!
@@ -72,47 +66,39 @@ public:
 class InputVariable {
 public:
     string Name;                ///< Name
-    string Units;                ///< Units
-    string Description;            ///< Description
-    string Source;                ///< Source
-    dimensionTypes Dimension;    ///< Data dimension type
+    string Units;               ///< Units
+    string Description;         ///< Description
+    string Source;              ///< Source
+    dimensionTypes Dimension;   ///< Data dimension type
 };
 
 /*!
  * \ingroup Util
  * \class OutputVariable
- *
  * \brief Output variable information class
- *
- *
- *
  */
 class OutputVariable {
 public:
-    string Name;                ///< Name
+    string Name;                 ///< Name
     string Units;                ///< Units
-    string Description;            ///< Description
+    string Description;          ///< Description
     dimensionTypes Dimension;    ///< Data dimension type
 };
 
 /*!
  * \ingroup Util
  * \class MetadataInfo
- *
  * \brief Metadata information of module
- *
- *
- *
  */
 class MetadataInfo {
 private:
     string m_strSchemaVersion;                ///< latest XML schema version supported by this class
-    ModelClass m_oClass;                    ///< class name for the module
-    Information m_Info;                    ///< the general information for the module
-    vector <InputVariable> m_vInputs;        ///< list of input parameters for the module
-    vector <OutputVariable> m_vOutputs;        ///<list of output parameters for the module
-    vector <ModelClass> m_vDependencies;    ///< list of dependency classes for the module
-    vector <Parameter> m_vParameters;        ///< list of parameters for the module
+    ModelClass m_oClass;                      ///< class name for the module
+    Information m_Info;                       ///< the general information for the module
+    vector <InputVariable> m_vInputs;         ///< list of input parameters for the module
+    vector <OutputVariable> m_vOutputs;       ///<list of output parameters for the module
+    vector <ModelClass> m_vDependencies;      ///< list of dependency classes for the module
+    vector <Parameter> m_vParameters;         ///< list of parameters for the module
 
     void OpenTag(string name, string attributes, int indent, string *sb);
 

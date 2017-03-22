@@ -1,8 +1,5 @@
+#include "seims.h"
 #include "MUSK_CH.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
 
 using namespace std;
 
@@ -249,7 +246,7 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_MUSK_CH, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-#ifdef STORM_MODEL
+#ifdef STORM_MODE
     if(m_nreach != n-1)
     {
         if(m_nreach <=0)

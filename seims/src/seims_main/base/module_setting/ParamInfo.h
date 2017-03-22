@@ -1,5 +1,4 @@
 /*!
- * \file ParamInfo.h
  * \brief Class to store parameter item information
  *
  * \author Junzhi Liu

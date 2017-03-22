@@ -1,8 +1,9 @@
+/*
+ * \brief Non point source management
+ * \author Liang-Jun Zhu
+ * \date Jul. 2016
+ */
 #pragma once
-
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;

@@ -1,14 +1,8 @@
 /*!
- * \file SEIMS_ModuleSetting.h
- * \brief
- *
- *
- *
- * \author [your name]
+ * \brief 
+ * \author Junzhi Liu, Liang-Jun Zhu
  * \version 
  * \date June 2015
- *
- * 
  */
 #pragma once
 
@@ -22,11 +16,7 @@ using namespace std;
 /*!
  * \ingroup module_setting
  * \class SEIMSModuleSetting
- *
  * \brief 
- *
- *
- *
  */
 class SEIMSModuleSetting {
 public:

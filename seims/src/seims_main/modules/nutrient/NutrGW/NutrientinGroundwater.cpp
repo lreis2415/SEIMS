@@ -1,9 +1,5 @@
+#include "seims.h"
 #include "NutrientinGroundwater.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-
-#include "utilities.h"
 
 using namespace std;
 

@@ -1,5 +1,4 @@
 /*!
- * \file SettingsOutput.h
  * \brief Setting Outputs for SEIMS
  *
  * \author Junzhi Liu, LiangJun Zhu
@@ -19,11 +18,7 @@
 /*!
  * \ingroup module_setting
  * \class SettingsOutput
- *
  * \brief 
- *
- *
- *
  */
 class SettingsOutput :
     public Settings {

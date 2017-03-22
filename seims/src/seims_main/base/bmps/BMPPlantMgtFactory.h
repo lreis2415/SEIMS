@@ -1,12 +1,10 @@
 /*!
- * \file BMPPlantMgtFactory.h
  * \brief Plant management operations factory
  * \author Liang-Jun Zhu
  * \date June 2016
  */
 #pragma once
-
-#include <stdlib.h>
+//#include <stdlib.h>
 #include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"

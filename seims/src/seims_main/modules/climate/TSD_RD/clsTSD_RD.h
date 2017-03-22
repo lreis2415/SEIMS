@@ -1,31 +1,20 @@
-/** \defgroup TSD_RD
- * \ingroup Climate
- * \brief Read Time Series Data
- *  
- */
 /*!
- * \file clsTSD_RD.h
- * \ingroup TSD_RD
+ * \brief Read hydroclimate data
  * \author Zhiqiang Yu
  * \date Apr. 2010
- *
- * 
  */
 #pragma once
-
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;
-
+/** \defgroup TSD_RD
+ * \ingroup Climate
+ * \brief Read Time Series Data
+ */
 /*!
  * \class clsTSD_RD
  * \ingroup TSD_RD
- *
  * \brief Read Time Series Data, e.g., Maximum temperature.
- *
  */
 class clsTSD_RD : public SimulationModule {
 private:
