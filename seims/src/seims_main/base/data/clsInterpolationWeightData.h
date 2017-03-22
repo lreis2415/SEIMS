@@ -5,11 +5,6 @@
  * \date May. 2016
  */
 #pragma once
-
-#include <string>
-#include <ostream>
-#include <fstream>
-
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"

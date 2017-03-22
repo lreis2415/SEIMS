@@ -4,7 +4,7 @@
 RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
-    int nSites = m_siteIDList.size();
+    int nSites = (int) m_siteIDList.size();
 
     /// build query statement
     bson_t *query = bson_new();

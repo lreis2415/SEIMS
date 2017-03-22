@@ -1,17 +1,11 @@
 /*!
  * \brief Class to store reach related parameters from REACHES table
- *
  * \author LiangJun Zhu
  * \version 1.0
  * \date May. 2016
  *
  */
 #pragma once
-
-#include <string>
-#include <map>
-
-#include "MetadataInfoConst.h"
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -239,7 +233,8 @@ private:
     int m_reachNum;
     /// reach IDs
     vector<int> m_reachIDs;
-    /* Map container to store all reaches information
+    /*!
+     * Map container to store all reaches information
      * key: reach ID
      * value: clsReach instance (pointer)
      */
