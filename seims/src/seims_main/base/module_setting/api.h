@@ -1,4 +1,4 @@
-#ifdef windows
+#ifdef MSVC
 #ifdef MODULE_EXPORTS
 #define SEIMS_MODULE_API __declspec(dllexport)
 #else
