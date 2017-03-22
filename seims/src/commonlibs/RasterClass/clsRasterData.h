@@ -38,6 +38,13 @@
 
 using namespace std;
 
+/* Ignore warning on Windows MSVC compiler caused by GDAL.
+ * refers to http://blog.csdn.net/liminlu0314/article/details/8227518
+ */  
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning(disable: 4100 4190 4251 4275 4305 4309 4819 4996)
+#endif
+
 /*!
  * Define Raster related constant strings used for raster headers
  */
