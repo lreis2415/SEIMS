@@ -12,7 +12,8 @@
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup PER_STR
+/*!
+ * \defgroup PER_STR
  * \ingroup Hydrology_longterm
  * \brief Percolation calculated by storage routing method.
  */

@@ -1,5 +1,5 @@
 #include "seims.h"
-#include "ClimateParams.h" /// added by LJ, 2016
+#include "ClimateParams.h"
 
 #include "PETPriestleyTaylor.h"
 

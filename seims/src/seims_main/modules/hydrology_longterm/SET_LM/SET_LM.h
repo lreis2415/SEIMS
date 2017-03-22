@@ -1,15 +1,16 @@
+/*!
+ * \brief
+ * \author
+ * \date
+ */
 #pragma once
 
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
 
-/** \defgroup SET_LM
+/*!
+ * \defgroup SET_LM
  * \ingroup Hydrology_longterm
  * \brief Calculate soil Temperature
  *
@@ -21,7 +22,6 @@ using namespace std;
  * \brief Calculate soil Temperature
  * 
  */
-
 class SET_LM : public SimulationModule {
 private:
 

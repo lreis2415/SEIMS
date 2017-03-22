@@ -1,5 +1,4 @@
 /*!
- * \file SRD_MB.h
  * \brief Snow redistribution calculated by the original WetSpa algorithm.
  * \author Chunping Ou
  * \date May 2011
@@ -8,14 +7,12 @@
  */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
-/** \defgroup SRD_MB
+/*!
+ * \defgroup SRD_MB
  * \ingroup Hydrology_longterm
  * \brief Soil redistribution calculation
  */

@@ -1,6 +1,5 @@
 /*!
- * \file PETHargreaves.h
- *
+ * \brief Potential evapotranspiration using Hargreaves method
  * \author Junzhi Liu
  * \date Nov. 2010
  * \revised LiangJun Zhu
@@ -10,11 +9,8 @@
 			  3. Add m_VPD, m_dayLen as outputs, which will be used in BIO_EPIC module
 			  4. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
-#ifndef SEIMS_PET_H_INCLUDE
-#define SEIMS_PET_H_INCLUDE
+#pragma once
 
-#include <string>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
@@ -103,28 +99,3 @@ private:
     //! Initialize of output variables
     void initialOutputs();
 };
-
-#endif
-
-/////latitude of the stations   /// deprecated by LJ, May. 24, 2016
-//float *m_latitude;
-///// size of the input array, i.e., the HydroClimate sites number 
-//int m_size;
-
-
-/// MaxSolarRadiation() and JulianDay() are moved to data module to reduce code redundancy. By LJ, May., 2016
-// 	/*!
-// 	 * \brief Calculate the max solar radiation for a station of one day
-// 	 *
-// 	 *
-// 	 * \param[in] day Julian day.
-// 	 * \param[in] lat Latitude of the station
-// 	 * \return float The max solar radiation.
-// 	 */
-// 	float MaxSolarRadiation(int,float);
-
-// 	/*!
-// 	 * \brief Get the Julian day of one day
-// 	 * \return int Julian day
-// 	 */
-// 	int JulianDay(time_t);

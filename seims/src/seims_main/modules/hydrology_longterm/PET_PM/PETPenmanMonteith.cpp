@@ -1,11 +1,7 @@
-#include "PETPenmanMonteith.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
+#include "seims.h"
 #include "ClimateParams.h"
+
+#include "PETPenmanMonteith.h"
 
 
 using namespace std;

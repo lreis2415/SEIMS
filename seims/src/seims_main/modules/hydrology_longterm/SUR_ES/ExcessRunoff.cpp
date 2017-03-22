@@ -1,13 +1,5 @@
+#include "seims.h"
 #include "ExcessRunoff.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
-
 
 using namespace std;
 
@@ -142,20 +134,20 @@ bool ExcessRunoff::CheckInputSize(const char *key, int n) {
 
     return true;
 }
-
-string ExcessRunoff::getDate(time_t *date) {
-    struct tm p;
-    LocalTime(date, &t);
-
-    p.tm_year = p.tm_year + 1900;
-
-    p.tm_mon = p.tm_mon + 1;
-
-    ostringstream oss;
-    oss << p.tm_year << "-" << p.tm_mon << "-" << p.tm_mday;
-
-    return oss.str();
-}
+//
+//string ExcessRunoff::getDate(time_t *date) {
+//    struct tm p;
+//    LocalTime(*date, &t);
+//
+//    p.tm_year = p.tm_year + 1900;
+//
+//    p.tm_mon = p.tm_mon + 1;
+//
+//    ostringstream oss;
+//    oss << p.tm_year << "-" << p.tm_mon << "-" << p.tm_mday;
+//
+//    return oss.str();
+//}
 
 int ExcessRunoff::Execute(void) {
     CheckInputData();

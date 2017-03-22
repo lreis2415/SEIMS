@@ -5,6 +5,7 @@
  * \revised date Apr. 2016
  */
 #pragma once
+
 #include "SimulationModule.h"
 
 using namespace std;
