@@ -38,6 +38,9 @@ struct MuskWeights {
     float dt;
 };
 
+const float _23 = 2.0f / 3.0f;
+const float SQ2 = sqrt(2.f);
+
 class Muskingum : public SimulationModule {
 public:
     //! Constructor
@@ -71,14 +74,14 @@ public:
     float GetDelta_t(float timeStep, float fmin, float fmax);
 
 private:
-    /// deal with positive and negative float numbers
-    float Power(float a, float n) {
-        if (a >= 0) {
-            return pow(a, n);
-        } else {
-            return -pow(-a, n);
-        }
-    }
+    ///// deal with positive and negative float numbers
+    //float Power(float a, float n) {
+    //    if (a >= 0) {
+    //        return pow(a, n);
+    //    } else {
+    //        return -pow(-a, n);
+    //    }
+    //}
 
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
@@ -156,24 +159,24 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
-    /**
-    *	@brief convert direction code to whether diagonal
-    *
-    *	derived from flow direction
-        1  0  1
-        0     0
-        1  0  1
-    */
-    map<int, int> m_diagonal;
+    ///**
+    //*	@brief convert direction code to whether diagonal
+    //*
+    //*	derived from flow direction
+    //    1  0  1
+    //    0     0
+    //    1  0  1
+    //*/
+    //map<int, int> m_diagonal;
 
     /// beta in manning equation
     float m_beta;
     /// threshold for Newton iteration method
     float m_delta;
-    /// sqrt(2.f)
-    float SQ2;
-    /// 2/3
-    float TWO_THIRDS;
+    ///// sqrt(2.f)
+    //float SQ2;
+    ///// 2/3
+    //float _23;
 
     /// flow length
     float **m_flowLen;
