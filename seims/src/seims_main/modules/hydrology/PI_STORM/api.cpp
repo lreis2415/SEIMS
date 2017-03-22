@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "Interception.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -56,6 +50,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddInput("D_PET","mm", "Potential Evapotranspiration", "Module", DT_Raster1D);
-//mdi.AddOutput("INET","mm", "Evaporation From Interception Storage", DT_Raster1D);
-//mdi.AddParameter("K_pet","", "Correction Factor of PET", "ParameterDB_Interception", Single);

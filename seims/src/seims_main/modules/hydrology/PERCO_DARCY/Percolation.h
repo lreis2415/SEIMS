@@ -1,15 +1,9 @@
 /*!
- * \file Percolation.h
- * \brief
+ * \brief Calculate percolation using Darcy law
  * \author Junzhi Liu
  * \date May 2013
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
 #include "SimulationModule.h"
 
 using namespace std;

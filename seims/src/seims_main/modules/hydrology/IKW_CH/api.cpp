@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "IKW_CH.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -18,13 +12,12 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
-
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
     mdi.SetClass(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
     mdi.SetDescription(MDESC_IKW_CH);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("IKW_CH.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_IKW_CH);
     mdi.SetName(MID_IKW_CH);
     mdi.SetVersion("0.1");

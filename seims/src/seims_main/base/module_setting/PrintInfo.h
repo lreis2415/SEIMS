@@ -1,11 +1,11 @@
 /*!
- * \brief Class to store and manage the PRINT information from the file.out file
+ * \brief Class to store and manage the PRINT information
+ * From the file.out file or FILE_OUT collection in MongoDB
  *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date June 2010
  */
-
 #pragma once
 
 #include <string>
@@ -14,12 +14,11 @@
 #include <iomanip>
 #include <fstream>
 #include <map>
+
 #include "ParamInfo.h"
 #include "utilities.h"
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
-//#include "clsSpecificOutput.h"
-
 
 using namespace std;
 

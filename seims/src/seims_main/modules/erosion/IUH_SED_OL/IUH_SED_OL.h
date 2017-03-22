@@ -1,5 +1,4 @@
 /** 
-*	@file
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	2016-08-12
@@ -8,14 +7,10 @@
 */
 
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup IUH_SED_OL
  * \ingroup Hydrology_longterm
  * \brief IUH overland method to calculate overland flow routing

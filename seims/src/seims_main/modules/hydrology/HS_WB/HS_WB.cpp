@@ -1,20 +1,5 @@
-/*!
- * \brief
- * \author Junzhi Liu
- * \date May 2011
- */
+#include "seims.h"
 #include "HS_WB.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <cmath>
-#include <time.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 
 HS_WB::HS_WB(void) : m_dtHs(-1.f), m_dtCh(-1.f), m_nReaches(-1), m_nCells(-1), m_qs(NULL), m_qi(NULL), m_subbasin(NULL),
                      m_streamLink(NULL),
@@ -22,37 +7,20 @@ HS_WB::HS_WB(void) : m_dtHs(-1.f), m_dtCh(-1.f), m_nReaches(-1), m_nCells(-1), m
 }
 
 HS_WB::~HS_WB(void) {
-    if (m_qsInput != NULL) {
-        delete[] m_qsInput;
-    }
-    if (m_qiInput != NULL) {
-        delete[] m_qiInput;
-    }
-    if (m_qsTemp != NULL) {
-        delete[] m_qsTemp;
-    }
-    if (m_qiTemp != NULL) {
-        delete[] m_qiTemp;
-    }
+    if (m_qsInput != NULL) Release1DArray(m_qsInput);
+    if (m_qiInput != NULL) Release1DArray(m_qiInput);
+    if (m_qsTemp != NULL) Release1DArray(m_qsTemp);
+    if (m_qiTemp != NULL) Release1DArray(m_qiTemp);
 }
 
 void HS_WB::initialOutputs() {
     if (m_qsInput == NULL) {
         CheckInputData();
         //cout << "Number of reaches: " << m_nReaches << endl;
-
-        m_qsInput = new float[m_nReaches + 1];
-        m_qiInput = new float[m_nReaches + 1];
-        m_qsTemp = new float[m_nReaches + 1];
-        m_qiTemp = new float[m_nReaches + 1];
-
-#pragma omp parallel for
-        for (int i = 0; i <= m_nReaches; i++) {
-            m_qsInput[i] = 0.f;
-            m_qiInput[i] = 0.f;
-            m_qsTemp[i] = 0.f;
-            m_qiTemp[i] = 0.f;
-        }
+        Initialize1DArray(m_nReaches + 1, m_qsInput, 0.f);
+        Initialize1DArray(m_nReaches + 1, m_qiInput, 0.f);
+        Initialize1DArray(m_nReaches + 1, m_qsTemp, 0.f);
+        Initialize1DArray(m_nReaches + 1, m_qiTemp, 0.f);
     }
 }
 
@@ -104,8 +72,7 @@ void HS_WB::SetValue(const char *key, float data) {
         SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_HS_WB, "SetValue", "Parameter " + s
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 
@@ -117,29 +84,9 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
     if (StringMatch(s, VAR_QOVERLAND)) { this->m_qs = data; }
     else if (StringMatch(s, VAR_QSOIL)) { this->m_qi = data; }
     else if (StringMatch(s, VAR_SUBBSN)) { this->m_subbasin = data; }
-    else if (StringMatch(s, VAR_STREAM_LINK)) {
-        this->m_streamLink = data;
-
-        /*else if(StringMatch(s,"D_INLO"))				this->m_interception = data;
-        else if(StringMatch(s,"D_P"))			this->m_precipitation = data;
-        else if(StringMatch(s,"D_INET"))		this->m_ei = data;
-        else if(StringMatch(s,"D_DPST"))		this->m_depression = data;
-        else if(StringMatch(s,"D_DEET"))		this->m_ed = data;
-        else if(StringMatch(s,"D_INFIL"))		this->m_infil = data;
-        else if(StringMatch(s,"D_SOET"))		this->m_es = data;
-        else if(StringMatch(s,"D_GRRE"))		this->m_percolation = data;
-        else if(StringMatch(s,"D_Revap"))		this->m_revap = data;
-        else if(StringMatch(s,"D_SSRU"))		this->m_ri = data;
-        else if(StringMatch(s,"D_SNSB"))		this->m_se = data;
-        else if(StringMatch(s,"D_TMIN"))		this->m_tMin = data;
-        else if(StringMatch(s,"D_TMAX"))		this->m_tMax = data;
-        else if(StringMatch(s,"D_SOTE"))		this->m_soilT = data;*/
-
-    } else if (StringMatch(s, VAR_SOILDEPTH)) {
-        this->m_rootdepth = data;
-        //else if(StringMatch(s,VAR_SOMO))		this->m_soilMoisture = data;
-
-    } else if (StringMatch(s, VAR_POROST)) { this->m_porosity = data; }
+    else if (StringMatch(s, VAR_STREAM_LINK)) { this->m_streamLink = data;}
+    else if (StringMatch(s, VAR_SOILDEPTH)) { this->m_rootdepth = data;} 
+    else if (StringMatch(s, VAR_POROST)) { this->m_porosity = data; }
     else if (StringMatch(s, VAR_FIELDCAP)) { this->m_fieldCapacity = data; }
     else if (StringMatch(s, VAR_NEPR)) { m_pNet = data; }
     else {
@@ -164,8 +111,6 @@ void HS_WB::Get1DData(const char *key, int *nRows, float **data) {
 void HS_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     string s(key);
     if (StringMatch(s, VAR_SOWB)) {
-        //setValueToSubbasin();
-        //*nRows = m_subbasinSelectedCount;
         *nCols = 17;
         *data = m_soilWaterBalance;
     } else {
@@ -186,39 +131,12 @@ void HS_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 bool HS_WB::CheckInputData() {
-    //if(this->m_date <=0)				throw ModelException(MID_HS_WB,"CheckInputData","You have not set the time.");
-    if (m_nCells <= 0) {
+    if (m_nCells <= 0)
         throw ModelException(MID_HS_WB, "CheckInputData", "The dimension of the input data can not be less than zero.");
-    }
-    //if(this->m_qi  == NULL)				throw ModelException(MID_HS_WB,"CheckInputData","The interflow  can not be NULL.");
     if (this->m_qs == NULL) throw ModelException(MID_HS_WB, "CheckInputData", "The overland flow can not be NULL.");
     if (this->m_subbasin == NULL) throw ModelException(MID_HS_WB, "CheckInputData", "The subbasion can not be NULL.");
-    if (this->m_streamLink == NULL) {
+    if (this->m_streamLink == NULL)
         throw ModelException(MID_HS_WB, "CheckInputData", "The StreamLink can not be NULL.");
-    }
-
-
-    //if(this->m_precipitation == NULL)	throw ModelException(MID_HS_WB,"CheckInputData","The precipitation data can not be NULL.");
-    //if(this->m_depression  == NULL)		throw ModelException(MID_HS_WB,"CheckInputData","The depression data can not be NULL.");
-    //if(this->m_ed == NULL)				throw ModelException(MID_HS_WB,"CheckInputData","The evaporation of depression can not be NULL.");
-    //if(this->m_ei  == NULL)				throw ModelException(MID_HS_WB,"CheckInputData","The evaporation of interception can not be NULL.");
-    //if(this->m_es  == NULL)				throw ModelException(MID_HS_WB,"CheckInputData","The evaporation of soil can not be NULL.");
-    //if(this->m_infil  == NULL)			throw ModelException(MID_HS_WB,"CheckInputData","The infiltration can not be NULL.");
-    //if(this->m_interception  == NULL)	throw ModelException(MID_HS_WB,"CheckInputData","The interception can not be NULL.");
-    //
-    //if(this->m_percolation  == NULL)	throw ModelException(MID_HS_WB,"CheckInputData","The percolation data can not be NULL.");
-    //if(this->m_revap  == NULL)			throw ModelException(MID_HS_WB,"CheckInputData","The revap can not be NULL.");
-    //
-    //if(this->m_ri  == NULL)				throw ModelException(MID_HS_WB,"CheckInputData","The runoff of subsurface can not be NULL.");
-    //if(this->m_rootdepth == NULL)		throw ModelException(MID_HS_WB,"CheckInputData","The root depth can not be NULL.");
-    //
-    //
-    //if(this->m_tMin == NULL)			throw ModelException(MID_HS_WB,"CheckInputData","The min temperature can not be NULL.");
-    //if(this->m_tMax == NULL)			throw ModelException(MID_HS_WB,"CheckInputData","The max temperature can not be NULL.");
-    //if(this->m_soilT == NULL)			throw ModelException(MID_HS_WB,"CheckInputData","The soil temperature can not be NULL.");
-    //if(this->m_porosity == NULL)		throw ModelException(MID_HS_WB,"CheckInputData","The porocity can not be NULL.");
-    //if(this->m_fieldCapacity == NULL)		throw ModelException(MID_HS_WB,"CheckInputData","The field capacity can not be NULL.");
-
     return true;
 }
 

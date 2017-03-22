@@ -1,13 +1,5 @@
-/*!
- * \brief Entry point for SEIMS application.
- * \author Junzhi Liu
- * \date May 2010
- *
- * 
- */
-#include <iostream>
+#include "seims.h"
 #include "invoke.h"
-#include "gdal_priv.h"
 
 #define MAIN
 #ifndef USE_MONGODB

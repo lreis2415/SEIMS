@@ -1,17 +1,5 @@
-/*!
- * \brief A simple fill and spill method method to calculate depression storage
- * \author Junzhi Liu
- * \date Feb. 2011
- * \revised	Zhiqiang Yu	
- * \date		2011-2-15
- */
-
+#include "seims.h"
 #include "DepressionFS.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-#include "omp.h"
-#include <cmath>
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
@@ -122,8 +110,7 @@ void DepressionFS::SetValue(const char *key, float data) {
         SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_DEP_FS, "SetSingleData", "Parameter " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 
@@ -137,8 +124,7 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
         m_pet = data;
     } else {
         throw ModelException(MID_DEP_FS, "Set1DData", "Parameter " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 
@@ -154,8 +140,7 @@ void DepressionFS::Get1DData(const char *key, int *n, float **data) {
         *data = m_storageCapSurplus;
     } else {
         throw ModelException(MID_DEP_FS, "Get1DData", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 

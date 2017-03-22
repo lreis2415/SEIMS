@@ -1,12 +1,3 @@
-/*!
- * \brief Not Regular hydroclimate data
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
- *
- * 
- */
 #include "NotRegularMeasurement.h"
 
 //! Constructor
@@ -73,7 +64,7 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
             }
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
-                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
+                dt = (float) GetDatetimeFromBsonIterator(&iter) / 1000.f;
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The UTCDateTime field does not exist in DataValues table.");

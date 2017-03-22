@@ -1,19 +1,5 @@
-/*!
- * \brief Green Ampt Method to calculate infiltration and excess precipitation
- * \author Junzhi Liu
- * \date Oct. 2011
- *
- */
+#include "seims.h"
 #include "StormGreenAmpt.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
-
 
 using namespace std;
 
@@ -28,25 +14,11 @@ StormGreenAmpt::StormGreenAmpt(void) : m_infil(NULL), m_capillarySuction(NULL), 
 }
 
 StormGreenAmpt::~StormGreenAmpt(void) {
-    if (m_infil != NULL) {
-        delete[] m_infil;
-    }
-
-    if (m_infilCapacitySurplus != NULL) {
-        delete[] m_infilCapacitySurplus;
-    }
-
-    if (m_capillarySuction != NULL) {
-        delete[] m_capillarySuction;
-    }
-
-    if (m_accumuDepth != NULL) {
-        delete[] m_accumuDepth;
-    }
-
-    if (m_soilMoisture != NULL) {
-        delete[] m_soilMoisture;
-    }
+    if (m_infil != NULL) Release1DArray(m_infil);
+    if (m_infilCapacitySurplus != NULL) Release1DArray(m_infilCapacitySurplus);
+    if (m_capillarySuction != NULL) Release1DArray(m_capillarySuction);
+    if (m_accumuDepth != NULL) Release1DArray(m_accumuDepth);
+    if (m_soilMoisture != NULL) Release1DArray(m_soilMoisture);
 }
 
 void StormGreenAmpt::initialOutputs() {
@@ -187,20 +159,6 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-string StormGreenAmpt::getDate(time_t *date) {
-    struct tm p;
-    LocalTime(date, &p);
-
-    p.tm_year = p.tm_year + 1900;
-
-    p.tm_mon = p.tm_mon + 1;
-
-    ostringstream oss;
-    oss << p.tm_year << "-" << p.tm_mon << "-" << p.tm_mday;
-
-    return oss.str();
-}
-
 int StormGreenAmpt::Execute(void) {
     initialOutputs();
 
@@ -220,8 +178,9 @@ int StormGreenAmpt::Execute(void) {
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         float t = 10.f;
+        /// TODO change to m_tMean
         if (m_tMax != NULL && m_tMin != NULL) {
-            t = (m_tMax[i] + m_tMin[i]) / 2;
+            t = (m_tMax[i] + m_tMin[i]) / 2.f;
         }
         float snowMelt = 0.f;
         float snowAcc = 0.f;
@@ -310,8 +269,7 @@ float StormGreenAmpt::CalculateCapillarySuction(float por, float clay, float san
                                + 0.000344f * sand * clay - 0.049837f * por * sand
                                + 0.001608f * pow(por, 2) * pow(sand, 2)
                                + 0.001602f * pow(por, 2) * pow(clay, 2) - 0.0000136f * pow(sand, 2) * clay -
-        0.003479f * pow(clay, 2) * por
-                               - 0.000799f * pow(sand, 2) * por);
+        0.003479f * pow(clay, 2) * por - 0.000799f * pow(sand, 2) * por);
 
     return cs;
 }
