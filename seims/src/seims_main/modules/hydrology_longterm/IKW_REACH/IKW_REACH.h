@@ -12,7 +12,8 @@
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup IKW_REACH
+/*!
+ * \defgroup IKW_REACH
  * \ingroup Hydrology_longterm
  * \brief channel flow routing using Muskingum method
  *

@@ -1,5 +1,5 @@
 /*!
- * \file PETPenmanMonteith.h
+ * \brief Potential evapotranspiration using Penman Monteith Method
  * \author Junzhi Liu
  * \date Nov. 2010
  * \revised LiangJun Zhu
@@ -13,13 +13,12 @@
 			  7. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
 
-#ifndef SEIMS_PET_PM_INCLUDE
-#define SEIMS_PET_PM_INCLUDE
+#pragma once
 
-#include <string>
-#include "api.h"
 #include "SimulationModule.h"
-/** \defgroup PET_PM
+
+/*!
+ * \defgroup PET_PM
  * \ingroup Hydrology_longterm
  * \brief Penman Monteith Method to Compute PET
  *  
@@ -136,29 +135,3 @@ private:
     /// base zero total heat units (used when no land cover is growing)
     float *m_phuBase;
 };
-
-#endif
-
-
-
-///**
-//*	@brief calculates saturation vapor pressure at a given air temperature.
-//*
-//*	@param float t: mean air temperature(deg C)
-//*	@return saturation vapor pressure(kPa)
-//*/
-//float SaturationVaporPressure(float t);
-///**
-//*	@brief Calculate the max solar radiation for a station of one day
-//*
-//*	@param day Julian day.
-//*	@param lat Latitude of the station
-//*
-//*	@return float The max solar radiation.
-//*/
-//float MaxSolarRadiation(int,float);
-
-///**
-//*	@brief Get the Julian day of one day
-//*/
-//int JulianDay(time_t);

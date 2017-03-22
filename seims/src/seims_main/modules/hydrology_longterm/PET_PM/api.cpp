@@ -1,13 +1,9 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "PETPenmanMonteith.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
-/** \defgroup PET_PM
+
+#include "api.h"
+
+/*!
+ * \defgroup PET_PM
  * \ingroup Hydrology_longterm
  * \brief Calculate potential evapotranspiration using Penman-Monteith method
  *

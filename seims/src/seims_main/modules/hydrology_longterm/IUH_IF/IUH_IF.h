@@ -25,14 +25,12 @@
 */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
-/** \defgroup IUH_IF
+/*!
+ * \defgroup IUH_IF
  * \ingroup Hydrology_longterm
  * \brief IUH overland method to calculate interflow routing
  *
@@ -44,7 +42,6 @@ using namespace std;
  * \brief IUH overland method to calculate interflow routing
  * 
  */
-
 class IUH_IF : public SimulationModule {
 public:
     IUH_IF(void);

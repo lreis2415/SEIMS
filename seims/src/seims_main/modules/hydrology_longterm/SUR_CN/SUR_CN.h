@@ -27,14 +27,12 @@
 
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
-/** \defgroup SUR_CN
+/*!
+ * \defgroup SUR_CN
  * \ingroup Hydrology_longterm
  * \brief SCS Curve Number Method to calculate infiltration and excess precipitation
  *
@@ -145,9 +143,3 @@ private:
     /// initial outputs before execute main function
     void initialOutputs();
 };
-
-
-/// Initial depression storage coefficient
-//float m_Depre_in;
-/// Depression storage capacity
-//float* m_Depression;
