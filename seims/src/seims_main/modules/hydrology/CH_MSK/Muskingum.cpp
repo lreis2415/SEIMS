@@ -1,21 +1,6 @@
-/*!
- * \brief Routing in the channel cells using 4-point implicit finite difference method
- * \author Junzhi Liu
- * \date Feb. 2011
- */
-//#include "vld.h"
+#include "seims.h"
 #include "Muskingum.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 
-#include <cmath>
-#include <iostream>
-#include <set>
-#include <sstream>
-
-//#define MINI_SLOPE 0.0001f
-//#define NODATA_VALUE -99
 using namespace std;
 
 Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
@@ -23,27 +8,9 @@ Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWi
                              m_qs(NULL), m_qg(NULL), m_qi(NULL), m_chStorage(NULL), m_qCh(NULL), m_qUpCh(NULL),
                              m_prec(NULL), m_qSubbasin(NULL),
                              m_flowLen(NULL), m_alpha(NULL), m_streamLink(NULL), m_reachId(NULL), m_sourceCellIds(NULL),
-                             TWO_THIRDS(2.f / 3.f), m_msk_x(0.2f), m_vScalingFactor(3.0f), m_chS0(0.f),
+                             m_msk_x(0.2f), m_vScalingFactor(3.0f), m_chS0(0.f),
                              m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_beta(5.0f / 3), m_delta(1e-6f) {
-    //m_diagonal[1] = 0;
-    //m_diagonal[2] = 1;
-    //m_diagonal[4] = 0;
-    //m_diagonal[8] = 1;
-    //m_diagonal[16] = 0;
-    //m_diagonal[32] = 1;
-    //m_diagonal[64] = 0;
-    //m_diagonal[128] = 1;
 
-    m_diagonal[1] = 0;
-    m_diagonal[2] = 1;
-    m_diagonal[3] = 0;
-    m_diagonal[4] = 1;
-    m_diagonal[5] = 0;
-    m_diagonal[6] = 1;
-    m_diagonal[7] = 0;
-    m_diagonal[8] = 1;
-
-    SQ2 = sqrt(2.f);
 }
 
 Muskingum::~Muskingum(void) {
@@ -197,10 +164,7 @@ void Muskingum::initialOutputs() {
 
     if (m_chStorage == NULL) {
         // find source cells the reaches
-        m_sourceCellIds = new int[m_chNumber];
-        for (int i = 0; i < m_chNumber; ++i) {
-            m_sourceCellIds[i] = -1;
-        }
+        Initialize1DArray(m_chNumber, m_sourceCellIds, -1);
         for (int i = 0; i < m_nCells; i++) {
             if (FloatEqual(m_streamLink[i], NODATA_VALUE)) {
                 continue;
@@ -277,7 +241,8 @@ void Muskingum::initialOutputs() {
                 // slope length needs to be corrected by slope angle
                 dx = m_CellWidth / cos(atan(m_s0[id]));
                 int dir = (int) m_direction[id];
-                if ((int) m_diagonal[dir] == 1) {
+                //if ((int) m_diagonal[dir] == 1) {
+                if (DiagonalCCW[dir] == 1) {
                     dx = SQ2 * dx;
                 }
                 m_flowLen[i][j] = dx;

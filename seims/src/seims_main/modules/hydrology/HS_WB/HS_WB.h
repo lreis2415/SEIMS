@@ -1,17 +1,9 @@
 /*!
- * \file HS_WB.h
- * \brief
+ * \brief Hillslope water balance
  * \author Junzhi Liu
  * \date May 2011
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <map>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;

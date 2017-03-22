@@ -1,13 +1,5 @@
+#include "seims.h"
 #include "ExcessRunoff.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
-
 
 using namespace std;
 
@@ -17,27 +9,15 @@ ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL), m_accumuDepth(NULL
                                    m_sd(NULL), m_soilMoisture(NULL), m_pNet(NULL)//,m_t(NULL),
 //m_tSnow(0.0f), m_t0(1.0f),// m_snowAccu(NULL), m_snowMelt(NULL),
 //m_tSoilFrozen(-5.0f), m_sFrozen(0.5f), //m_soilTemp(NULL),
-
 {
-
 }
 
 ExcessRunoff::~ExcessRunoff(void) {
-    if (this->m_pe != NULL) {
-        delete[] m_pe;
-    }
-    if (this->m_infil != NULL) {
-        delete[] m_infil;
-    }
-    if (this->m_infilCapacitySurplus != NULL) {
-        delete[] m_infilCapacitySurplus;
-    }
-    if (this->m_accumuDepth != NULL) {
-        delete[] m_accumuDepth;
-    }
-    if (m_soilMoisture != NULL) {
-        delete[] m_soilMoisture;
-    }
+    if (m_pe != NULL) Release1DArray(m_pe);
+    if (m_infil != NULL) Release1DArray(m_infil);
+    if (m_infilCapacitySurplus != NULL) Release1DArray(m_infilCapacitySurplus);
+    if (m_accumuDepth != NULL) Release1DArray(m_accumuDepth);
+    if (m_soilMoisture != NULL) Release1DArray(m_soilMoisture);
 }
 
 void ExcessRunoff::Get1DData(const char *key, int *n, float **data) {
@@ -61,7 +41,6 @@ void ExcessRunoff::Get1DData(const char *key, int *n, float **data) {
     } else {
         throw ModelException("SUR_EXCESS", "Get1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
-
     }
 }
 
@@ -164,20 +143,20 @@ bool ExcessRunoff::CheckInputSize(const char *key, int n) {
 
     return true;
 }
-
-string ExcessRunoff::getDate(time_t *date) {
-    struct tm p;
-    LocalTime(date, &p);
-
-    p.tm_year = p.tm_year + 1900;
-
-    p.tm_mon = p.tm_mon + 1;
-
-    ostringstream oss;
-    oss << p.tm_year << "-" << p.tm_mon << "-" << p.tm_mday;
-
-    return oss.str();
-}
+//
+//string ExcessRunoff::getDate(time_t *date) {
+//    struct tm p;
+//    LocalTime(*date, &p);
+//
+//    p.tm_year = p.tm_year + 1900;
+//
+//    p.tm_mon = p.tm_mon + 1;
+//
+//    ostringstream oss;
+//    oss << p.tm_year << "-" << p.tm_mon << "-" << p.tm_mday;
+//
+//    return oss.str();
+//}
 
 int ExcessRunoff::Execute(void) {
     CheckInputData();
@@ -277,8 +256,9 @@ int ExcessRunoff::Execute(void) {
         }
 
         // check the output data
-        if (m_infil[i] < 0.0f) {
-            string datestr = getDate(&m_date);
+        if (m_infil[i] < 0.f) {
+            //string datestr = getDate(&m_date);
+            string datestr = ConvertToString(&m_date);
             ostringstream oss;
             oss << "Date: " << datestr << "\n Precipitation(mm) = " << m_pNet[i] << "\n Infiltration(mm) = " <<
                 m_infil[i] << "\n";

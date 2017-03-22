@@ -1,24 +1,7 @@
-/*!
- * \brief Routing in the overland cells using implicit finite difference method
- * kinematic wave method in LISEM model
- * \author Junzhi Liu
- * \date Feb. 2011 
- */
-
-//#include "vld.h"
+#include "seims.h"
 #include "ImplicitKinematicWave.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-#include <cmath>
-#include <iostream>
-
-#include <assert.h>
 
 using namespace std;
-
-//#define MINI_SLOPE 0.0001f
 
 ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellWidth(-1.0f),
                                                            m_s0(NULL), m_n(NULL), m_flowInIndex(NULL),
@@ -30,55 +13,16 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
                                                            m_idOutlet(-1),
                                                            m_infilCapacitySurplus(NULL), m_accumuDepth(NULL),
                                                            m_infil(NULL), m_dtStorm(-1.0f) {
-    //m_diagonal[1] = 0;
-    //m_diagonal[2] = 1;
-    //m_diagonal[4] = 0;
-    //m_diagonal[8] = 1;
-    //m_diagonal[16] = 0;
-    //m_diagonal[32] = 1;
-    //m_diagonal[64] = 0;
-    //m_diagonal[128] = 1;
-
-    m_diagonal[1] = 0;
-    m_diagonal[2] = 1;
-    m_diagonal[3] = 0;
-    m_diagonal[4] = 1;
-    m_diagonal[5] = 0;
-    m_diagonal[6] = 1;
-    m_diagonal[7] = 0;
-    m_diagonal[8] = 1;
-
-    SQ2 = sqrt(2.f);
-
 }
 
 ImplicitKinematicWave_OL::~ImplicitKinematicWave_OL(void) {
-    if (m_q != NULL) {
-        delete[] m_q;
-    }
-
-    if (m_flowWidth != NULL) {
-        delete[] m_flowWidth;
-    }
-    if (m_flowLen != NULL) {
-        delete[] m_flowLen;
-    }
-    if (m_alpha != NULL) {
-        delete[] m_alpha;
-    }
-
-    if (m_sRadian != NULL) {
-        delete[] m_sRadian;
-    }
-
-    if (m_vel != NULL) {
-        delete[] m_vel;
-    }
-
-    if (m_reInfil != NULL) {
-        delete[] m_reInfil;
-    }
-
+    if (m_q != NULL) Release1DArray(m_q);
+    if (m_flowWidth != NULL) Release1DArray(m_flowWidth);
+    if (m_flowLen != NULL) Release1DArray(m_flowLen);
+    if (m_alpha != NULL) Release1DArray(m_alpha);
+    if (m_sRadian != NULL) Release1DArray(m_sRadian);
+    if (m_vel != NULL) Release1DArray(m_vel);
+    if (m_reInfil != NULL) Release1DArray(m_reInfil);
 }
 
 bool ImplicitKinematicWave_OL::CheckInputData(void) {
@@ -139,14 +83,13 @@ void ImplicitKinematicWave_OL::initialOutputs() {
     if (m_q == NULL) {
         CheckInputData();
         m_q = new float[m_nCells];
-
         m_sRadian = new float[m_nCells];
         m_vel = new float[m_nCells];
         m_flowWidth = new float[m_nCells];
         m_flowLen = new float[m_nCells];
         m_alpha = new float[m_nCells];
         m_reInfil = new float[m_nCells];
-
+#pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_q[i] = 0.0f;
             m_reInfil[i] = 0.f;
@@ -154,7 +97,8 @@ void ImplicitKinematicWave_OL::initialOutputs() {
             // flow width
             m_flowWidth[i] = m_CellWidth;
             int dir = (int) m_direction[i];
-            if (m_diagonal[dir] == 1) {
+            //if ((int) m_diagonal[dir] == 1) {
+            if (DiagonalCCW[dir] == 1) {
                 m_flowWidth[i] = m_CellWidth / SQ2;
             }
             if (m_streamLink[i] > 0) {
@@ -169,7 +113,8 @@ void ImplicitKinematicWave_OL::initialOutputs() {
 
             // flow length needs to be corrected by slope angle
             float dx = m_CellWidth / cos(m_sRadian[i]);
-            if (m_diagonal[dir] == 1) {
+            //if ((int) m_diagonal[dir] == 1) {
+            if (DiagonalCCW[dir] == 1) {
                 dx = SQ2 * dx;
             }
             m_flowLen[i] = dx;
@@ -446,8 +391,7 @@ void ImplicitKinematicWave_OL::GetValue(const char *key, float *data) {
         *data = (float) m_idOutlet;
     } else {
         throw ModelException(MID_IKW_OL, "GetValue", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 
 }
@@ -469,8 +413,7 @@ void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) 
         *data = m_chWidth;                 //add by Wu Hui
     } else {
         throw ModelException(MID_IKW_OL, "Get1DData", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 

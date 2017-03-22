@@ -1,11 +1,3 @@
-/*!
- * \brief Settings class to store the settings information from Configuration files
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
- *
- * 
- */
 #include "Settings.h"
 
 Settings::Settings(void) {

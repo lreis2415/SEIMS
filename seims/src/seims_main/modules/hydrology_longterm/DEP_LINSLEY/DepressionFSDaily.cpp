@@ -1,19 +1,5 @@
-/*----------------------------------------------------------------------
-*	Purpose: 	A simple fill and spill method method to calculate depression storage
-*
-*	Created:	Junzhi Liu
-*	Date:		14-Febrary-2011
-*
-*	Revision:
-*   Date:
-*---------------------------------------------------------------------*/
-
+#include "seims.h"
 #include "DepressionFSDaily.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-#include <cmath>
-
 
 DepressionFSDaily::DepressionFSDaily(void) : m_nCells(-1), m_depCo(NODATA_VALUE),
                                              m_depCap(NULL),

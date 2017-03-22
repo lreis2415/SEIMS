@@ -1,11 +1,10 @@
 /*!
  * \brief Sediment routing using simplified version of Bagnold(1997) stream power equation
- * which is also the original SWAT method.
- * This module routes sediment from subbasin to basin outlet deposition is based on fall velocity and degradation on stream
- * reWrite from route.f and rtsed.f of SWAT
+ *        which is also the original SWAT method.
+ *        This module routes sediment from subbasin to basin outlet deposition is based on fall velocity and degradation on stream
+ *        reWrite from route.f and rtsed.f of SWAT
  * \author Hui Wu
  * \date Jul. 2012
-
  * \revised LiangJun Zhu
  * \date May / 2016
  * \description: 1. move m_erodibilityFactor, m_coverFactor, to reach collection of MongoDB as inputs, and is DT_Array1D
@@ -17,15 +16,8 @@
  * \date Sep. 2016
  * \description: 1. ReCheck and Update code according to route.f and rtsed.f
  *               2. Change the module name from SEDR_VCD to SEDR_SBAGNOLD
- *               3. 
  */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
 #include "SimulationModule.h"
 
 using namespace std;

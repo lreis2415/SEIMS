@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "Biomass_EPIC.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -141,15 +135,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-
-
-//mdi.AddOutput(VAR_SOMO, UNIT_DEPTH_MM, DESC_SOL_ST, DT_Raster2D);
-//mdi.AddOutput(VAR_SOL_SW, UNIT_DEPTH_MM, DESC_SOL_SW, DT_Raster1D);
-//mdi.AddOutput(VAR_SOL_NO3, UNIT_CONT_KGHA, DESC_SOL_NO3, DT_Raster2D);
-//mdi.AddOutput(VAR_SOL_SOLP, UNIT_CONT_KGHA, DESC_SOL_SOLP, DT_Raster2D);
-///mdi.AddOutput(VAR_LAIPRE, UNIT_AREA_RATIO, DESC_LAIPRE,DT_Raster1D);
-/// variables need to be initialized in this module, and also as OUTPUT
-/*mdi.AddInput(VAR_LAIDAY,UNIT_AREA_RATIO, DESC_LAIDAY,Source_Module,DT_Raster1D);  /// initialized by LAI_INIT in the first run
-mdi.AddInput(VAR_FR_PHU_ACC, UNIT_HEAT_UNIT, DESC_FR_PHU_ACC,Source_Module,DT_Raster1D);
-mdi.AddInput(VAR_PLTET_TOT, UNIT_DEPTH_MM, DESC_PLTET_TOT, Source_Module, DT_Raster1D);
-mdi.AddInput(VAR_PLTPET_TOT, UNIT_DEPTH_MM, DESC_PLTPET_TOT, Source_Module, DT_Raster1D);*/

@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "utilities.h"
-#include "api.h"
 #include "pothole_SWAT.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 

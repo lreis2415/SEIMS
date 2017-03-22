@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "GWaterReservoir.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -18,13 +12,12 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
-
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
     mdi.SetClass(MCLS_GW, MCLSDESC_GW);
     mdi.SetDescription(MDESC_GW_RSVR);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("GW_RSVR.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_GW_RSVR);
     mdi.SetName(MID_GW_RSVR);
     mdi.SetVersion("0.1");

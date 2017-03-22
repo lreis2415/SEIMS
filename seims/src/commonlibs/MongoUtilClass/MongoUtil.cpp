@@ -1,11 +1,3 @@
-/*!
- * \brief Implementation of utility functions of mongoDB
- * \author Junzhi Liu, LiangJun Zhu
- * \date May 2016
- *
- * 
- */
-
 #include "MongoUtil.h"
 
 using namespace std;

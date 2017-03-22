@@ -1,15 +1,13 @@
 /*!
  * \brief Not Regular hydroclimate data
- *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date May 2016
- *
- * 
  */
 #pragma once
 
 #include <map>
+
 #include "Measurement.h"
 #include "text.h"
 #include "utilities.h"

@@ -1,9 +1,11 @@
+/*
+ * \brief Base class for implementation of BMP configuration
+ * \author Liang-Jun Zhu
+ */
 #pragma once
-
-#include <iomanip>
-#include <map>
-#include "BMPText.h"
 #include "utilities.h"
+
+#include "BMPText.h"
 #include "MongoUtil.h"
 
 /*!

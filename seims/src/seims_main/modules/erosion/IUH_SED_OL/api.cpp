@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "IUH_SED_OL.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -17,7 +11,6 @@ GetInstance() {
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
-
     // set the information properties
     mdi.SetAuthor("Wu Hui; Zhiqiang Yu");
     mdi.SetClass(MCLS_OL_ROUTING, MCLSDESC_OL_ROUTING);

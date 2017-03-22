@@ -8,8 +8,6 @@
  * 
  */
 #pragma once
-
-#include <fstream>
 #include "Measurement.h"
 #include "text.h"
 #include "utilities.h"
@@ -18,11 +16,7 @@
 /*!
  * \ingroup data
  * \class RegularMeasurement
- *
  * \brief Regular hydroclimate data, e.g., daily data
- *
- * 
- *
  */
 class RegularMeasurement : public Measurement {
 public:

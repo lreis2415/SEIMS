@@ -1,9 +1,3 @@
-/*!
- * \brief Implementation of invoking SEIMS
- * \author Junzhi Liu, Liangjun Zhu
- * \date May 2010
- * \revised Feb 2017
- */
 #include "invoke.h"
 
 void checkTable(vector <string> &tableNameList, string dbName, const char *tableName) {
