@@ -1,14 +1,6 @@
-/*!
- * \brief Class to store and manage the PRINT information
- * From the file.out file or FILE_OUT collection in MongoDB
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
- */
 #include "ModelException.h"
 #include "PrintInfo.h"
-#include "clsRasterData.cpp"
+//#include "clsRasterData.cpp"
 
 
 //////////////////////////////////////////////

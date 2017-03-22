@@ -1,9 +1,8 @@
 /*!
- * \ingroup data
  * \brief Define Raster class to handle raster data
  *
- * 1. Using GDAL and MongoDB (currently, mongo-c-driver 1.5.0 is supported)
- * 2. Array1D and Array2D raster data are supported
+ *        1. Using GDAL and MongoDB (currently, mongo-c-driver 1.5.0 is supported)
+ *        2. Array1D and Array2D raster data are supported
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
  * \date Apr. 2011
@@ -37,6 +36,13 @@
 #include "utilities.h"
 
 using namespace std;
+
+/* Ignore warning on Windows MSVC compiler caused by GDAL.
+ * refers to http://blog.csdn.net/liminlu0314/article/details/8227518
+ */  
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning(disable: 4100 4190 4251 4275 4305 4309 4819 4996)
+#endif
 
 /*!
  * Define Raster related constant strings used for raster headers
@@ -77,7 +83,7 @@ struct RowColCoor {
 
 /*!
  * \class clsRasterData
- *
+ * \ingroup data
  * \brief Raster data (1D and 2D) I/O class
  * Support I/O between TIFF, ASCII file or/and MongoBD database.
  */

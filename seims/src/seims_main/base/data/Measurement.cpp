@@ -1,11 +1,3 @@
-/*!
- * \brief Measurement class to store HydroClimate site data
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
- *
- * 
- */
 #include "Measurement.h"
 
 Measurement::Measurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType, time_t startTime,

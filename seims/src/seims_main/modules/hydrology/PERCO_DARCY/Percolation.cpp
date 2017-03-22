@@ -1,22 +1,5 @@
-/*!
- * \brief Calculate percolation using Darcy law
- * \author Junzhi Liu
- * \date May 2013
- */
+#include "seims.h"
 #include "Percolation.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <sstream>
-#include <math.h>
-#include <cmath>
-#include <time.h>
-#include <stdio.h>
-
-#include <iostream>
-#include <fstream>
-#include <string>
-
-
 
 Percolation_DARCY::Percolation_DARCY(void) {
     // set default values for member variables
@@ -39,7 +22,7 @@ Percolation_DARCY::Percolation_DARCY(void) {
 }
 
 Percolation_DARCY::~Percolation_DARCY(void) {
-    if (m_recharge == NULL) delete[] m_recharge;
+    if (m_recharge == NULL) Release1DArray(m_recharge);
 }
 
 //Execute module
@@ -47,7 +30,7 @@ int Percolation_DARCY::Execute() {
 
     if (m_recharge == NULL) {
         CheckInputData();
-        m_recharge = new float[this->m_nCells];
+        m_recharge = new float[m_nCells];
     }
 
 #pragma omp parallel for
@@ -92,14 +75,13 @@ int Percolation_DARCY::Execute() {
 }
 
 void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
-    initialOutputs();
     string s(key);
     if (StringMatch(s, VAR_PERCO)) {
-        *data = this->m_recharge;
+        *data = m_recharge;
     } else {
         throw ModelException(MID_PERCO_DARCY, "Get1DData", "Result " + s + " does not exist.");
     }
-    *nRows = this->m_nCells;
+    *nRows = m_nCells;
 }
 
 void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
@@ -109,7 +91,7 @@ void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
 
     if (StringMatch(s, VAR_CONDUCT)) { this->m_Conductivity = data; }
     else if (StringMatch(s, VAR_POROST)) { this->m_Porosity = data; }
-    else if (StringMatch(s, VAR_POREID)) { this->m_Poreindex = data; }
+    else if (StringMatch(s, VAR_POREIDX)) { this->m_Poreindex = data; }
     else if (StringMatch(s, VAR_SOL_ST)) { this->m_Moisture = data; }
     else if (StringMatch(s, VAR_FIELDCAP)) { this->m_FieldCapacity = data; }
     else if (StringMatch(s, VAR_SOILDEPTH)) {

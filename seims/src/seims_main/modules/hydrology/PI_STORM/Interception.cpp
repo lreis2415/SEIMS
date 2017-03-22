@@ -1,14 +1,7 @@
-/*!
- * \brief
- * \author Alex Storey, Junzhi Liu
- * \date May 2013
- *
- * 
- */
-#include "Interception.h"
-#include "MetadataInfo.h"
-#include "api.h"
+#include "seims.h"
 #include "ClimateParams.h"
+
+#include "Interception.h"
 
 #define _USE_MATH_DEFINES
 
@@ -85,7 +78,6 @@ void clsPI_STORM::SetValue(const char *key, float data) {
 }
 
 void clsPI_STORM::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
     string s(key);
     if (StringMatch(s, VAR_INLO)) { *data = this->m_interceptionLoss; }
     else if (StringMatch(s, VAR_NEPR)) { *data = this->m_netPrecipitation; }

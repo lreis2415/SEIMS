@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "ReservoirMethod.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -71,4 +65,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);

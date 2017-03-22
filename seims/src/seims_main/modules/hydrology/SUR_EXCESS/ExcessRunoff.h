@@ -1,17 +1,11 @@
 /** 
-*	@file
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	31-Octobor-2011
-*
-*	@brief	Green Ampt Method to calculate infiltration and excess precipitation
+*	@brief	Green-Ampt Method to calculate infiltration and excess precipitation
 *
 */
-
-#ifndef SEIMS_STORM_GA_INCLUDE
-#define SEIMS_STORM_GA_INCLUDE
-
-#include <string>
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -58,7 +52,7 @@ private:
 
     void clearInputs(void);
 
-    string getDate(time_t *date);
+    //string getDate(time_t *date);
 
 private:
 
@@ -105,5 +99,3 @@ private:
     float *m_infilCapacitySurplus;
 
 };
-
-#endif

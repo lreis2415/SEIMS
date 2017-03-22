@@ -1,4 +1,3 @@
-#pragma once
 /*
  * Revision:    Liang-Jun Zhu
  * Date:        2016-7-28
@@ -7,14 +6,9 @@
  *              3. 
  *
  */
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <map>
-#include "clsSubbasin.h"
+#pragma once
 #include "SimulationModule.h"
-#include "api.h"
+#include "clsSubbasin.h"
 
 using namespace std;
 

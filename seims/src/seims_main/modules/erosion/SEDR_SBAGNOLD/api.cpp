@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SEDR_SBAGNOLD.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -24,12 +18,12 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetClass(MCLS_SED_ROUTING, MCLSDESC_SED_ROUTING);
     mdi.SetDescription(MDESC_SEDR_SBAGNOLD);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("SEDR_SBAGNOLD.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_SEDR_SBAGNOLD);
     mdi.SetName(MID_SEDR_SBAGNOLD);
     mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
-#ifdef STORM_MODEL
+#ifdef STORM_MODE
     mdi.AddParameter(Tag_ChannelTimeStep,UNIT_SECOND,DESC_TIMESTEP,File_Input,DT_Single);
 #else
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single); // daily model

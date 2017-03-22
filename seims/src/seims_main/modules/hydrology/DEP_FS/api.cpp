@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "DepressionFS.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -24,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetClass(MCLS_DEP, MCLSDESC_DEP);
     mdi.SetDescription(MDESC_DEP_FS);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("DEP_FS.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_DEP_FS);
     mdi.SetName(MID_DEP_FS);
     mdi.SetVersion("0.1");

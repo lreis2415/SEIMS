@@ -1,13 +1,4 @@
-/*!
- * \author Junzhi Liu, LiangJun Zhu
- * \date Jan. 2010
- * \revised date Apr. 2016
- *
- */
-#include <cmath>
-#include <sstream>
-
-#include "utilities.h"
+#include "seims.h"
 #include "Interpolate.h"
 
 using namespace std;

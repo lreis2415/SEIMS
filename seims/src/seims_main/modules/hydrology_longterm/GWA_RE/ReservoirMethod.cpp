@@ -1,12 +1,5 @@
-#include <set>
-#include <cmath>
-#include <iostream>
-#include <fstream>
-
+#include "seims.h"
 #include "ReservoirMethod.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 
 ReservoirMethod::ReservoirMethod(void) : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_nSoilLayers(-1),
                                          m_soilDepth(NULL), m_soilLayers(NULL), m_soilThick(NULL), m_Slope(NULL),

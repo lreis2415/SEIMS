@@ -1,10 +1,3 @@
-/*!
- * \brief Setting Outputs for SEIMS
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
- */
 #include "SettingsOutput.h"
 
 SettingsOutput::SettingsOutput(int subBasinID, string fileName, mongoc_client_t *conn, string dbName,

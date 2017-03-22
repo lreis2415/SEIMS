@@ -1,12 +1,10 @@
 /*!
  * \brief Utilities class to handle string, date time, basic mathematics, and file.
- * classes includes: utilsTime, utilsString, utilsArray, utilsMath, utilsFileIO.
- *
+ *        classes includes: utilsTime, utilsString, utilsArray, utilsMath, utilsFileIO.
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
  * \revised Dec. 2016
- * 
  */
 
 #ifndef CLS_UTILS
@@ -19,6 +17,7 @@
 #include <cmath>
 #include <cfloat>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <iterator>
 /// time
@@ -125,6 +124,18 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define strprintf snprintf
 #define StringTok strtok_r
 #define StringScanf sscanf
+#endif
+
+/*
+ * Avoid the compile error on MSVC like this:
+ *   warning C4251: ¡®CLASS_TEST::m_structs¡¯ : 
+ *           class ¡®std::vector<_Ty>¡¯ needs to have dll-interface to be used by clients of class 
+ * refers to http://www.cnblogs.com/duboway/p/3332057.html
+ */
+#ifdef MSVC
+#define DLL_STL_LIST(STL_API, STL_TYPE) \
+    template class STL_API std::allocator< STL_TYPE >; \
+    template class STL_API std::vector<STL_TYPE, std::allocator< STL_TYPE > >;
 #endif
 
 static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};

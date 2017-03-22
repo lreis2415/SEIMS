@@ -3,9 +3,8 @@
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date May 2016
- *
- * 
  */
+
 #ifndef SEIMS_MODEL_MAIN
 #define SEIMS_MODEL_MAIN
 
@@ -16,8 +15,8 @@
 #include <ctime>
 #include <sstream>
 
-/// include Utilities classes
-#include "utilities.h"
+/// include utility classes and const definition of SEIMS
+#include "seims.h"
 /// include data related
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
@@ -27,8 +26,6 @@
 #include "SettingsOutput.h"
 #include "ModuleFactory.h"
 #include "PrintInfo.h"
-/// include SEIMS text macro definition
-#include "seims.h"
 
 using namespace std;
 
@@ -217,5 +214,4 @@ private:
     //! Channel time interval
     time_t m_dtCh;
 };
-
 #endif

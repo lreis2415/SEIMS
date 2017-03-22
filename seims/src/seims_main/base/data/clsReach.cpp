@@ -1,11 +1,3 @@
-/*!
- * \brief Class to store reach related parameters from REACHES table
- *
- * \author LiangJun Zhu
- * \version 1.0
- * \date May. 2016
- *
- */
 #include "clsReach.h"
 
 using namespace std;

@@ -1,12 +1,7 @@
-#include "PETPriestleyTaylor.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
+#include "seims.h"
 #include "ClimateParams.h" /// added by LJ, 2016
+
+#include "PETPriestleyTaylor.h"
 
 using namespace std;
 
