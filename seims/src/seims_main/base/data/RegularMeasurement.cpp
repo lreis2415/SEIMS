@@ -1,12 +1,3 @@
-/*!
- * \brief Regular measurements
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
- *
- * 
- */
 #include "RegularMeasurement.h"
 
 //! Constructor

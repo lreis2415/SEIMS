@@ -1,20 +1,10 @@
 /*!
- * \file clsSimpleTxtData.h
  * \brief A simple text read class
- *
- *
- *
  * \author Junzhi Liu
  * \version 1.0
  * \date June 2010
- *
- * 
  */
 #pragma once
-
-#include <string>
-#include <ostream>
-#include <fstream>
 #include "utilities.h"
 
 using namespace std;
@@ -48,4 +38,3 @@ private:
     //! lines data
     float *m_data;
 };
-

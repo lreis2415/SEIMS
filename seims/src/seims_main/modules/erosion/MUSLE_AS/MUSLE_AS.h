@@ -6,14 +6,10 @@
  * \revised date May. 2016
  */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup MUSLE_AS
  * \ingroup Erosion
  * \brief use MUSLE method to calculate sediment yield of each cell

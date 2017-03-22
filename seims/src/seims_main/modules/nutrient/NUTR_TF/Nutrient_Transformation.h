@@ -20,9 +20,6 @@
  */
 
 #pragma once
-
-#include <string>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;

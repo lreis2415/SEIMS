@@ -1,14 +1,5 @@
-#include <string.h>
-#include <math.h>
+#include "seims.h"
 #include "SSR_DA.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-#include <stdlib.h>
-
-#include <map>
-#include <iostream>
 
 SSR_DA::SSR_DA(void) : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_CellWidth(-1.f), m_nSubbasin(-1),
                        m_frozenT(NODATA_VALUE), m_ki(NODATA_VALUE),

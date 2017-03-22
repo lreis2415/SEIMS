@@ -4,33 +4,26 @@
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.2
  * \date June 2010
- *
- * 
  */
 #pragma once
 
-#include <map>
 #include <string>
-#include <vector>
-#include <time.h>
 #include <fstream>
-#include "SEIMS_ModuleSetting.h"
-#include "SimulationModule.h"
-#include "MetadataInfoConst.h"
-#include "ModelException.h"
+#include <ctime>
+#include <vector>
+#include <map>
+
 #include "tinyxml.h"
+
+#include "seims.h"
+#include "SEIMS_ModuleSetting.h"
 #include "MetadataInfo.h"
+#include "SimulationModule.h"
 #include "ParamInfo.h"
-#include "Scenario.h"
-#include "clsReach.h"
-#include "clsSubbasin.h"
 #include "SpecifiedData.h"
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
-#include "utilities.h"
-#include "MongoUtil.h"
-#include "clsRasterData.cpp"
-#include "seims.h"
+
 
 using namespace std;
 using namespace MainBMP;

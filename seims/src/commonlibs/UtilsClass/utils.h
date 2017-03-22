@@ -1,12 +1,10 @@
 /*!
  * \brief Utilities class to handle string, date time, basic mathematics, and file.
- * classes includes: utilsTime, utilsString, utilsArray, utilsMath, utilsFileIO.
- *
+ *        classes includes: utilsTime, utilsString, utilsArray, utilsMath, utilsFileIO.
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
  * \revised Dec. 2016
- * 
  */
 
 #ifndef CLS_UTILS
@@ -19,6 +17,7 @@
 #include <cmath>
 #include <cfloat>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <iterator>
 /// time

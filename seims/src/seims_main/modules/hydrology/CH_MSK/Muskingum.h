@@ -3,14 +3,7 @@
  * \author Junzhi Liu
  * \date Feb. 2011
  */
-
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
 #include "SimulationModule.h"
 
 using namespace std;
@@ -37,9 +30,6 @@ struct MuskWeights {
     float c4;
     float dt;
 };
-
-const float _23 = 2.0f / 3.0f;
-const float SQ2 = sqrt(2.f);
 
 class Muskingum : public SimulationModule {
 public:

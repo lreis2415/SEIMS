@@ -1,9 +1,3 @@
-/*!
- * \brief Implementation of BMPPointSrcFactory class.
- * \author Liang-Jun Zhu
- * \date July 2016
- *
- */
 #include "BMPPointSourceFactory.h"
 
 using namespace MainBMP;

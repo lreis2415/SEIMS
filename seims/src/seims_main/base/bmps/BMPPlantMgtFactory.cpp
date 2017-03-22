@@ -1,8 +1,3 @@
-/*!
- * \brief Plant management operations factory
- * \author Liang-Jun Zhu
- * \date June 2016
- */
 #include "BMPPlantMgtFactory.h"
 
 using namespace MainBMP;

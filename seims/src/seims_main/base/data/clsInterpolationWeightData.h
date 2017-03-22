@@ -1,18 +1,15 @@
 /*!
- * \file clsInterpolationWeightData.h
- * \brief 
- * Update mongo-c-driver from v0.6 to v1.3.5
+ * \brief Methods for clsInterpolationWeightData class
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
  * \date May. 2016
- *
- * 
  */
 #pragma once
 
 #include <string>
 #include <ostream>
 #include <fstream>
+
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"

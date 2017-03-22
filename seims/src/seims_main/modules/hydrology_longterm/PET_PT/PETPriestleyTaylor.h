@@ -1,5 +1,4 @@
 /*
- *
  * \author Junzhi Liu
  * \date Nov. 2010
  * \revised LiangJun Zhu
@@ -9,11 +8,7 @@
 			  3. Add m_VPD, m_dayLen as outputs, which will be used in BIO_EPIC module
 			  4. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
-#ifndef SEIMS_PET_PRIESTTAYLOR_INCLUDE
-#define SEIMS_PET_PRIESTTAYLOR_INCLUDE
-
-#include <string>
-#include "api.h"
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -106,5 +101,3 @@ private:
     /// vapor pressure deficit
     float *m_vpd;
 };
-
-#endif

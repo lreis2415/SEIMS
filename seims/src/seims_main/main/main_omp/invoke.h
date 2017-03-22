@@ -1,10 +1,8 @@
 /*!
- * \ingroup main
- * \brief Main header file for the application
- * \author Junzhi Liu
+ * \brief Implementation of invoking SEIMS, the main entrance.
+ * \author Junzhi Liu, Liangjun Zhu
  * \date May 2010
- *
- *
+ * \revised Feb 2017
  */
 #ifndef SEIMS_INVOKE
 #define SEIMS_INVOKE
