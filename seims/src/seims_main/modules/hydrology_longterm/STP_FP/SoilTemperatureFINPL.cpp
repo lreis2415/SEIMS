@@ -1,11 +1,7 @@
-#include "SoilTemperatureFINPL.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
+#include "seims.h"
 #include "ClimateParams.h"
-#include "ModelException.h"
-#include <cmath>
 
-
+#include "SoilTemperatureFINPL.h"
 
 using namespace std;
 

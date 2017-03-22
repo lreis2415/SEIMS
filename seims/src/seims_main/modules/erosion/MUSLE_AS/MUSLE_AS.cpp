@@ -1,11 +1,5 @@
-#include <cmath>
+#include "seims.h"
 #include "MUSLE_AS.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-#include <math.h>
-
-#include <map>
 
 MUSLE_AS::MUSLE_AS(void) : m_nCells(-1), m_cellWidth(-1.f), m_nsub(-1), m_nSoilLayers(-1),
                            m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),

@@ -1,16 +1,10 @@
 /*!
- * \file InterFlow_IKW.h
  * \brief Interflow routing using implicit finite difference method
- * kinematic wave method in LISEM model
+ *        1D kinematic wave method in LISEM model
  * \author Junzhi Liu
  * \date Feb. 2011 
  */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
 #include "SimulationModule.h"
 
 using namespace std;
@@ -114,11 +108,5 @@ private:
     float *m_h;
     /// return flow
     float *m_hReturnFlow;
-
-    //////////////////////////////////////////////////////////////////////////
-    // the following are intermediate variables
-
-    /// sqrt(2.0f)
-    float SQ2;
 };
 

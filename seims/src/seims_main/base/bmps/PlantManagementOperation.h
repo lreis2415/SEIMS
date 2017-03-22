@@ -1,15 +1,11 @@
 /*!
+ * \brief Plant management operation class
  * \author Liang-Jun Zhu
  * \date June 2016
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include <sstream>
-#include <iomanip>
-#include "BMPText.h"
 #include "utilities.h"
+#include "BMPText.h"
 
 using namespace std;
 namespace MainBMP {

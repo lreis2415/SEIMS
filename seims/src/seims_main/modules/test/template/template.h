@@ -1,8 +1,11 @@
+/*!
+ * \brief Brief description of this module
+ * \author 
+ * \date 
+ * \note Detail description about the implementation.
+ */
 #pragma once
 
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;

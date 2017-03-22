@@ -1,11 +1,5 @@
-#include <iostream>
+#include "seims.h"
 #include "Biomass_EPIC.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "PlantGrowthCommon.h"
-#include "ClimateParams.h"
-
-#include <cmath>
 
 using namespace std;
 

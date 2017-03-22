@@ -9,19 +9,12 @@
  * \description: 1. ReWrite according to percmain.f and sat_excess.f of SWAT
  */
 #pragma once
-
-#include "api.h"
 #include "SimulationModule.h"
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
 
 using namespace std;
 /** \defgroup PER_STR
  * \ingroup Hydrology_longterm
  * \brief Percolation calculated by storage routing method.
- *
  */
 
 /*!

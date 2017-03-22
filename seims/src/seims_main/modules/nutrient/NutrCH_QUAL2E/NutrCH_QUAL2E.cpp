@@ -1,11 +1,5 @@
-#include <iostream>
+#include "seims.h"
 #include "NutrCH_QUAL2E.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
 
 using namespace std;
 

@@ -1,8 +1,5 @@
-#include "api.h"
-#include <iostream>
+#include "seims.h"
 #include "pothole_SWAT.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
 
 using namespace std;
 

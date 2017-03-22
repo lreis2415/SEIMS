@@ -1,5 +1,4 @@
 /** 
-*	@file
 *	@version	1.0
 *	@author    Wu Hui
 *	@date	24-January-2011
@@ -28,17 +27,12 @@
 *	Description:
 *	1.	Unify the code style.
 *	2.	Replace VAR_SUBBASIN with VAR_SUBBASIN_PARAM, which is common used by several modules.
-*	3.	
 */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup IUH_OL
  * \ingroup Hydrology_longterm
  * \brief IUH overland method to calculate overland flow routing

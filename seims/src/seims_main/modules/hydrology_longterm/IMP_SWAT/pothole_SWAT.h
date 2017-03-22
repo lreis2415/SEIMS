@@ -10,10 +10,6 @@
  * \description: 1. Update all related variables after the simulation of pothole.
  */
 #pragma once
-
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;

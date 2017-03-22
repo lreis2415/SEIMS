@@ -1,12 +1,3 @@
-/*!
- * \brief Regular measurements
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
- *
- * 
- */
 #include "RegularMeasurement.h"
 
 //! Constructor
@@ -122,7 +113,7 @@ RegularMeasurement::~RegularMeasurement(void) {
 }
 
 float *RegularMeasurement::GetSiteDataByTime(time_t t) {
-    int index = (t - m_startTime) / m_interval;
+    int index = int((t - m_startTime) / m_interval);
 
     if (index < 0) {
         index = 0;

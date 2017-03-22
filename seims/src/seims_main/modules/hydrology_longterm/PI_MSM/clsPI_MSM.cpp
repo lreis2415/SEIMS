@@ -1,18 +1,7 @@
-#include "clsPI_MSM.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "api.h"
+#include "seims.h"
 #include "ClimateParams.h"
-#include "utilities.h"
 
-#define _USE_MATH_DEFINES
-
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#include <cmath>
-#include <time.h>
-
+#include "clsPI_MSM.h"
 
 clsPI_MSM::clsPI_MSM(void) : m_nCells(-1), m_Pi_b(-1.f), m_dateLastTimeStep(-1), m_Init_IS(0.f),
                              m_netPrecipitation(NULL), m_evaporation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
@@ -159,7 +148,7 @@ bool clsPI_MSM::CheckInputData() {
                              "The minimum interception storage capacity can not be NULL.");
     }
 
-    if (this->m_Pi_b > 1.5 || this->m_Pi_b < 0.5) {
+    if (this->m_Pi_b > 1.5f || this->m_Pi_b < 0.5f) {
         throw ModelException(MID_PI_MSM, "CheckInputData",
                              "The interception storage capacity exponent can not be " + ValueToString(this->m_Pi_b) +
                                  ". It should between 0.5 and 1.5.");

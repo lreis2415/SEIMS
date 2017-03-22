@@ -1,12 +1,5 @@
-/*!
- * \author Zhiqiang Yu
- * \date Apr. 2010
- */
-#include "api.h"
-#include <iostream>
+#include "seims.h"
 #include "clsTSD_RD.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
 
 using namespace std;
 

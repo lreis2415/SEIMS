@@ -1,10 +1,5 @@
-#include <math.h>
-#include <iostream>
+#include "seims.h"
 #include "SUR_MR.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
 
 SUR_MR::SUR_MR(void) : m_nCells(-1), m_dt(-1), m_nSoilLayers(-1), m_tFrozen(NODATA_VALUE),
                        m_kRunoff(NODATA_VALUE), m_pMax(NODATA_VALUE),

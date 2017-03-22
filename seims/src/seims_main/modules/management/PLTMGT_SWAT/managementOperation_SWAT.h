@@ -9,13 +9,9 @@
  *               2. Update fertilizer operation for paddy rice, i.e., ExecuteFertilizerOperation()
  */
 #pragma once
-
-#include <string>
-#include "api.h"
-#include "utilities.h"
-#include "ClimateParams.h"
 #include "SimulationModule.h"
 #include "Scenario.h"
+#include "ClimateParams.h"
 
 using namespace std;
 using namespace MainBMP;

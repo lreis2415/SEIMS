@@ -1,9 +1,3 @@
-/*!
- * \brief Implementation of BMPArealSrcFactory class.
- * \author Liang-Jun Zhu
- * \date July 2016
- *
- */
 #include "BMPArealSourceFactory.h"
 
 using namespace MainBMP;

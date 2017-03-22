@@ -10,15 +10,7 @@
  *        3. Remove output of m_sol_no3, which is redundant and unnecessary
  */
 #pragma once
-
-#include <string>
-#include <iostream>
-#include <ctime>
-#include <cmath>
-#include <map>
 #include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
 
 using namespace std;
 
