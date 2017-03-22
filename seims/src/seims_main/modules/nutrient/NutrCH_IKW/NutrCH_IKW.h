@@ -1,4 +1,3 @@
-
 /*!
  * \file NutrCH_IKW.h
  * \brief Calculates in-stream nutrient transformations.
@@ -10,10 +9,6 @@
 #ifndef SEIMS_NutCHRout_PARAMS_INCLUDE
 #define SEIMS_NutCHRout_PARAMS_INCLUDE
 
-#include <string>
-#include <map>
-#include <vector>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;

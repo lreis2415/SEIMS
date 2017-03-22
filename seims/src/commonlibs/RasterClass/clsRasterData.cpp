@@ -1538,7 +1538,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             }
             //SetDefaultOpenMPThread();
 #pragma omp parallel for
-            for (int k = 0; (size_t) k < positionRows.size(); ++k) {
+            for (int k = 0; k < positionRows.size(); ++k) {
                 int newIdx = positionRows.at(k) * ncols + positionCols.at(k);
                 if (m_is2DRaster) {
                     m_raster2DData[newIdx][0] = values.at(k);

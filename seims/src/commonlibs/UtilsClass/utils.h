@@ -39,7 +39,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #else
-
 #include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -55,6 +54,7 @@
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
 #endif
+
 using namespace std;
 
 /*!
@@ -128,8 +128,8 @@ const float MAXIMUMFLOAT = FLT_MAX;
 
 /*
  * Avoid the compile error on MSVC like this:
- *   warning C4251: ¡®CLASS_TEST::m_structs¡¯ : 
- *           class ¡®std::vector<_Ty>¡¯ needs to have dll-interface to be used by clients of class 
+ *   warning C4251: 'CLASS_TEST::m_structs':
+ *           class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class
  * refers to http://www.cnblogs.com/duboway/p/3332057.html
  */
 #ifdef MSVC

@@ -1,18 +1,5 @@
-/*//
- * \file NutrientCHRoute.cpp
- * \ingroup NutCHRout
- * \author Huiran Gao
- * \date Jun 2016
- */
-
-#include <iostream>
+#include "seims.h"
 #include "NutrCH_IKW.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
 
 using namespace std;
 

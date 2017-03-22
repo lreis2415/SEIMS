@@ -1,13 +1,12 @@
 /*!
  * \brief Functions for climate related intermediate parameters, 
- *  e.g., saturation vapor pressure, max solar radiation.
+ *          e.g., saturation vapor pressure, max solar radiation.
  * \ingroup data
  * \author LiangJun Zhu
  * \date April 2016
  *
  */
 #pragma once
-
 #include <string>
 
 using namespace std;

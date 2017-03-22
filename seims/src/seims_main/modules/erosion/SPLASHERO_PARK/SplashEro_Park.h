@@ -1,17 +1,10 @@
 /*!
- * \file SplashEro_Park.h
  * \brief Park Equation for splash erosion, and Foster Equation for overland flow soil detachment
  *           use the USLE_C, USLE_K in the calculation of splash erosion.
  * \author Hui Wu
  * \date Feb. 2012
  */
 #pragma once
-#ifndef SEIMS_SplashEro_Park_INCLUDE
-#define SEIMS_SplashEro_Park_INCLUDE
-
-#include <string>
-#include <ctime>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
@@ -110,5 +103,3 @@ private:
     float *m_DETSplash;
 
 };
-
-#endif

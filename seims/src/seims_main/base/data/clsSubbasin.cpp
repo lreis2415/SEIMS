@@ -74,161 +74,77 @@ void Subbasin::setSlope(float *slope) {
 //////////////////////////////////////////////////////////////////////////
 //////////  clsSubbasins                           ///////////////////////
 ////////////////////////////////////////////////////////////////////////// 
-clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData < float> *
-
-> &rsMap,
-int prefixID
-):
-m_nSubbasins(-1)
-{
-m_subbasinIDs.
-
-clear();
-
-m_subbasinsInfo.
-
-clear();
+clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap,
+                           int prefixID): m_nSubbasins(-1) {
+    m_subbasinIDs.clear();
+    m_subbasinsInfo.clear();
 
 // read subbasin data
-int nCells = -1;
-float *subbasinData = NULL;
-float cellWidth = NODATA_VALUE;
-ostringstream oss;
-oss << prefixID << "_" <<
-NAME_MASK;
-string maskFileName = GetUpper(oss.str());
-oss.str("");
-oss << prefixID << "_" <<
-VAR_SUBBSN;
-string subbasinFileName = GetUpper(oss.str());
-oss.str("");
+    int nCells = -1;
+    float *subbasinData = NULL;
+    float cellWidth = NODATA_VALUE;
+    ostringstream oss;
+    oss << prefixID << "_" << NAME_MASK;
+    string maskFileName = GetUpper(oss.str());
+    oss.str("");
+    oss << prefixID << "_" << VAR_SUBBSN;
+    string subbasinFileName = GetUpper(oss.str());
+    oss.str("");
 
-if (rsMap.
-find(maskFileName)
-== rsMap.
+    if (rsMap.find(maskFileName) == rsMap.end()) // if mask not loaded yet
+        throw ModelException("clsSubbasins", "Constructor", "MASK data has not been loaded yet!");
 
-end()
+    if (rsMap.find(subbasinFileName) == rsMap.end()) // if subbasin not loaded yet
+    {
+        clsRasterData<float> *subbasinRaster = NULL;
+        try {
+            subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
+            subbasinRaster->
+                    getRasterData(&nCells, &subbasinData
+            );
+        }
+        catch (ModelException e) {
+            cout << e.toString() << endl;
+            return;
+        }
+        rsMap[subbasinFileName] = subbasinRaster;
+        cellWidth = subbasinRaster->getCellWidth();
+    } else
+        rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData);
 
-) // if mask not loaded yet
-throw ModelException("clsSubbasins", "Constructor", "MASK data has not been loaded yet!");
-
-if (rsMap.
-find(subbasinFileName)
-== rsMap.
-
-end()
-
-) // if subbasin not loaded yet
-{
-clsRasterData<float> *subbasinRaster = NULL;
-try
-{
-subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
-subbasinRaster->
-getRasterData(&nCells, &subbasinData
-);
-}
-catch (
-ModelException e
-)
-{
-cout << e.
-
-toString()
-
-<<
-endl;
-return;
-}
-rsMap[subbasinFileName] =
-subbasinRaster;
-cellWidth = subbasinRaster->getCellWidth();
-}
-else
-rsMap[subbasinFileName]->
-getRasterData(&nCells, &subbasinData
-);
-
-m_nSubbasins = 0;
+    m_nSubbasins = 0;
 // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
-map<int, vector < int> *>
-cellListMap;
-for (
-int i = 0;
-i<nCells;
-i++)
-{
-int subID = int(subbasinData[i]);
-if (cellListMap.
-find(subID)
-== cellListMap.
-
-end()
-
-)
-cellListMap[subID] = new
-vector<int>;
-cellListMap[subID]->
-push_back(i);
-}
-m_nSubbasins = cellListMap.size();
-for (map<int, vector < int>*>
-::iterator it = cellListMap.begin();
-it != cellListMap.
-
-end();
-
-it++)
-{
+    map<int, vector<int> *>cellListMap;
+    for (int i = 0; i < nCells; i++) {
+        int subID = int(subbasinData[i]);
+        if (cellListMap.find(subID) == cellListMap.end())
+            cellListMap[subID] = new vector<int>;
+        cellListMap[subID]->push_back(i);
+    }
+    m_nSubbasins = cellListMap.size();
+    for (map<int, vector<int> *>::iterator it = cellListMap.begin(); it != cellListMap.end(); it++) {
 // swap for saving memory
-vector<int>(*it
-->second).
-swap(*it
-->second);
-int subID = it->first;
-m_subbasinIDs.
-push_back(subID);
-Subbasin *newSub = new Subbasin(subID);
-int nCellsTmp = it->second->size();
-int *tmp = new int[nCellsTmp];
-for (
-int j = 0;
-j<nCellsTmp;
-j++)
-tmp[j] = it->second->
-at(j);
-newSub->
-setCellList(nCellsTmp, tmp
-);
-newSub->
-setArea(cellWidth
-*
-cellWidth *nCellsTmp
-);
-m_subbasinsInfo[subID] =
-newSub;
-}
-vector<int>(m_subbasinIDs)
-.
-swap(m_subbasinIDs);
+        vector<int>(*it->second).swap(*it->second);
+        int subID = it->first;
+        m_subbasinIDs.push_back(subID);
+        Subbasin *newSub = new Subbasin(subID);
+        int nCellsTmp = it->second->size();
+        int *tmp = new int[nCellsTmp];
+        for (int j = 0; j < nCellsTmp; j++)
+            tmp[j] = it->second->at(j);
+        newSub->setCellList(nCellsTmp, tmp);
+        newSub->setArea(cellWidth * cellWidth * nCellsTmp);
+        m_subbasinsInfo[subID] = newSub;
+    }
+    vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
 
 // release cellListMap to save memory
-for (map<int, vector < int>*>
-::iterator it = cellListMap.begin();
-it != cellListMap.
-
-end();
-
-)
-{
-if (it->second != NULL)
-delete it->
-second;
-it = cellListMap.erase(it);
-}
-cellListMap.
-
-clear();
+    for (map<int, vector<int> *>::iterator it = cellListMap.begin(); it != cellListMap.end();) {
+        if (it->second != NULL)
+            delete it->second;
+        it = cellListMap.erase(it);
+    }
+    cellListMap.clear();
 
 }
 
