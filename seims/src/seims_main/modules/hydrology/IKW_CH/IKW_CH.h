@@ -12,9 +12,18 @@
 #include <cmath>
 #include <map>
 #include <vector>
+
 #include "SimulationModule.h"
 
 using namespace std;
+
+
+#define MIN_FLUX 1e-12f
+#define MAX_ITERS_CH 10
+
+const float _23 = 2.0f / 3.0f;
+const float SQ2 = sqrt(2.f);
+
 /** \defgroup IKW_CH
  * \ingroup Hydrology
  * \brief Routing in the channel cells using implicit finite difference method
@@ -95,12 +104,12 @@ private:
     float m_manningScalingFactor;
 
     /**
-    *	@brief flow direction by the rule of ArcGIS
+    *	@brief flow direction by the rule of TauDEM
     *
     *	The value of direction is as following:
-        32 64 128
-        64     1
-        8   4  2
+         4  3  2
+         5     1
+         6  7  8
     */
     float *m_direction;
 
@@ -143,15 +152,15 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
-    /**
-    *	@brief convert direction code to whether diagonal
-    *
-    *	derived from flow direction
-        1  0  1
-        0     0
-        1  0  1
-    */
-    std::map<int, int> m_diagonal;
+    ///**
+    //*	@brief convert direction code to whether diagonal
+    //*
+    //*	derived from flow direction
+    //    1  0  1
+    //    0     0
+    //    1  0  1
+    //*/
+    //std::map<int, int> m_diagonal;
 
     /// flow length
     float **m_flowLen;

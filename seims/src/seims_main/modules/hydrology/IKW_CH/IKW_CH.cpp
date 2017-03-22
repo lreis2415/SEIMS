@@ -1,28 +1,19 @@
 /*!
- * \brief Routing in the channel cells using implicit finite difference method
- * kinematic wave method in LISEM model
+ * \brief 1-Dimensional kinematic wave method in LISEM model
  * \author Junzhi Liu
  * \date Feb. 2011 
  */
-//#include "vld.h"
-#include "IKW_CH.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
 #include <cmath>
 #include <iostream>
 #include <set>
 #include <sstream>
 
-//#define MINI_SLOPE 0.0001f
-//#define NODATA_VALUE -9999
+#include "MetadataInfo.h"
+#include "ModelException.h"
+#include "utilities.h"
+#include "seims.h"
 
-#define MIN_FLUX 1e-12f
-#define MAX_ITERS_CH 10
-
-const float _23 = 2.0f / 3.0f;
-const float SQ2 = sqrt(2.f);
+#include "IKW_CH.h"
 
 using namespace std;
 
@@ -38,14 +29,14 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNum
                                                            m_manningScalingFactor(0.4f), m_qgDeep(100.f),
                                                            m_idOutlet(-1)//, m_qsInput(NULL)
 {
-    m_diagonal[1] = 0;
-    m_diagonal[2] = 1;
-    m_diagonal[3] = 0;
-    m_diagonal[4] = 1;
-    m_diagonal[5] = 0;
-    m_diagonal[6] = 1;
-    m_diagonal[7] = 0;
-    m_diagonal[8] = 1;
+    //m_diagonal[1] = 0;
+    //m_diagonal[2] = 1;
+    //m_diagonal[3] = 0;
+    //m_diagonal[4] = 1;
+    //m_diagonal[5] = 0;
+    //m_diagonal[6] = 1;
+    //m_diagonal[7] = 0;
+    //m_diagonal[8] = 1;
 }
 
 ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
@@ -272,7 +263,7 @@ void ImplicitKinematicWave_CH::initialOutputs() {
                 //// slope length needs to be corrected by slope angle
                 //dx = m_CellWidth / cos(m_sRadian[id]);
                 //int dir = (int)m_direction[id];
-                //if ((int)m_diagonal[dir] == 1)
+                //if (DiagonalCCW[dir] == 1) {
                 //	dx = SQ2*dx;
                 //m_flowLen[i][j] = dx;
 
@@ -301,7 +292,8 @@ void ImplicitKinematicWave_CH::initialOutputs2() {
             // slope length needs to be corrected by slope angle
             dx = m_CellWidth / cos(m_sRadian[id]);
             int dir = (int) m_direction[id];
-            if ((int) m_diagonal[dir] == 1) {
+            //if ((int) m_diagonal[dir] == 1) {
+            if (DiagonalCCW[dir] == 1) {
                 dx = SQ2 * dx;
             }
             m_flowLen[i][j] = dx;
@@ -573,7 +565,6 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols
             +
                 " does not exist in current module. Please contact the module developer.");
     }
-
 }
 
 void ImplicitKinematicWave_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
