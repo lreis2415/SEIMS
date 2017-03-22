@@ -1,5 +1,4 @@
 /*!
- * \file ImplicitKinematicWave.h
  * \brief Routing in the overland cells using implicit finite difference method
  * kinematic wave method in LISEM model
  * \author Junzhi Liu
