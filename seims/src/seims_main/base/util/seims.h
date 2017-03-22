@@ -1,5 +1,11 @@
-#ifndef SEIMS_HEADER
-#define SEIMS_HEADER
+/*!
+ * \brief The SEIMS related definitions and utilities header.
+ * \author Liang-Jun Zhu
+ * \date 2017-3-22
+ */
+#pragma once
+#include "text.h"
+#include "utilities.h"
 /*!
  * \enum LayeringMethod
  * \brief Grid layering method for routing and parallel computing
@@ -25,5 +31,9 @@ enum FlowDirectionMethod {
  *          5     1
  *          6  7  8
  */
-int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
-#endif
+const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
+/*
+ *	Common used const.
+ */
+const float _23 = 0.6666666666666666f;
+const float SQ2 = 1.4142135623730951f;

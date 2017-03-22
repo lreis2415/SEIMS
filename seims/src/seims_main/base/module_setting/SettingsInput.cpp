@@ -1,10 +1,3 @@
-/*!
- * \brief Setting Inputs for SEIMS
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
- */
 #include "SettingsInput.h"
 
 using namespace std;

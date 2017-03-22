@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "HS_WB.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -17,7 +11,6 @@ GetInstance() {
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
-
     mdi.SetAuthor("Junzhi Liu");
     mdi.SetClass(MCLS_HS_HYDRO, MCLSDESC_HS_HYDRO);
     mdi.SetDescription(MDESC_HS_WB);
@@ -51,22 +44,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddInput("D_P","mm","precipitation","Module",DT_Raster);
-//
-//mdi.AddInput("D_INLO","mm", "Interception Loss Distribution","Module", DT_Raster);			//interception
-//mdi.AddInput("D_INET","mm", "Evaporation From Interception Storage","Module", DT_Raster);	//EI
-//mdi.AddInput("D_DPST","mm", "depression storage","Module", DT_Raster);						//depression
-//mdi.AddInput("D_DEET","mm", "evaporation from depression storage","Module", DT_Raster);	//depression ED
-//mdi.AddInput("D_INFIL","mm","Infiltration map of watershed","Module", DT_Raster);		    //infiltration from infiltration module
-//mdi.AddInput("D_SOET","mm","soil evapotranpiration","Module",DT_Raster);					//actual evapotranspiration
-//mdi.AddInput("D_GRRE","mm","percolation","Module",DT_Raster);								//percolation
-//mdi.AddInput("D_Revap","mm","revap","Module",DT_Raster);									//revap
-//mdi.AddInput("D_SURU","mm","surface runoff","Module",DT_Raster);							//depression RS
-//mdi.AddInput("D_SSRU","mm","subsurface runoff","Module",DT_Raster);						//subsurface runoff RI
-//mdi.AddInput("T_RG","mm","groundwater runoff","Module",DT_Array1D);									//groundwater runoff RG  special,not distribution data
-//mdi.AddInput("D_SOMO","mm","Distribution of soil moisture","Module",DT_Raster);
-//mdi.AddInput("D_SNSB","mm", "snow sublimation","Module",DT_Raster);						//snow sublimation SE
-//mdi.AddInput("D_TMIN","oC","min temperature","Module",DT_Raster);							//interpolation
-//mdi.AddInput("D_TMAX","oC","max temperature","Module",DT_Raster);							//interpolation
-//mdi.AddInput("D_SOTE","oC", "Soil Temperature","Module", DT_Raster);						//soil temperature
-

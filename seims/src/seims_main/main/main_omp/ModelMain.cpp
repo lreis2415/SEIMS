@@ -1,11 +1,3 @@
-/*!
- * \brief Control the simulation of SEIMS
- * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date May 2016
- *
- *
- */
 #include "ModelMain.h"
 
 ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,

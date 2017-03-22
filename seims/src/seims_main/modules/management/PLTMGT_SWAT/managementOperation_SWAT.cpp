@@ -1,10 +1,7 @@
-#include "api.h"
-#include <iostream>
-#include "managementOperation_SWAT.h"
+#include "seims.h"
 #include "PlantGrowthCommon.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
+
+#include "managementOperation_SWAT.h"
 
 using namespace std;
 

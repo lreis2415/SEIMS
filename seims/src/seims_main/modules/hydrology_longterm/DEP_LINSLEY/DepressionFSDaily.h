@@ -24,18 +24,13 @@
 *	Revision:    LiangJunZhu
 *	Date    :    2016-7-14
 *	Description:
-*	1. 
 *---------------------------------------------------------------------*/
 
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup DEP_LINSLEY
  * \ingroup Hydrology_longterm
  * \brief A simple fill and spill method method to calculate depression storage

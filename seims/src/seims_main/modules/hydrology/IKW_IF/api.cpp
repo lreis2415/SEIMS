@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "InterFlow_IKW.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -18,13 +12,12 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
-
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
     mdi.SetClass(MCLS_INTERFLOW, MCLSDESC_INTERFLOW);
     mdi.SetDescription(MDESC_IKW_IF);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("IKW_IF.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_IKW_IF);
     mdi.SetName(MID_IKW_IF);
     mdi.SetVersion("0.1");
@@ -45,7 +38,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddParameter(VAR_CONDUCT, UNIT_WTRDLT_MMH, DESC_CONDUCT, Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(VAR_POROST, UNIT_STRG_M3M, DESC_POROST, Source_ParameterDB, DT_Array2D);
-    mdi.AddParameter(VAR_POREID, UNIT_NON_DIM, DESC_POREID, Source_ParameterDB, DT_Array2D);
+    mdi.AddParameter(VAR_POREIDX, UNIT_NON_DIM, DESC_POREIDX, Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(VAR_FIELDCAP, UNIT_STRG_M3M, DESC_FIELDCAP, Source_ParameterDB, DT_Array2D);
 
     mdi.AddParameter(VAR_KI, UNIT_NON_DIM, DESC_KI, Source_ParameterDB, DT_Single);

@@ -1,18 +1,4 @@
-/*!
- * \brief 1-Dimensional kinematic wave method in LISEM model
- * \author Junzhi Liu
- * \date Feb. 2011 
- */
-#include <cmath>
-#include <iostream>
-#include <set>
-#include <sstream>
-
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 #include "seims.h"
-
 #include "IKW_CH.h"
 
 using namespace std;
@@ -29,14 +15,6 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNum
                                                            m_manningScalingFactor(0.4f), m_qgDeep(100.f),
                                                            m_idOutlet(-1)//, m_qsInput(NULL)
 {
-    //m_diagonal[1] = 0;
-    //m_diagonal[2] = 1;
-    //m_diagonal[3] = 0;
-    //m_diagonal[4] = 1;
-    //m_diagonal[5] = 0;
-    //m_diagonal[6] = 1;
-    //m_diagonal[7] = 0;
-    //m_diagonal[8] = 1;
 }
 
 ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {

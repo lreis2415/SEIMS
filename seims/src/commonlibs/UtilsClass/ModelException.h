@@ -1,5 +1,5 @@
 /*!
- * \brief Define ModelException class
+ * \brief ModelException class
  * \author Junzhi Liu
  * \version 1.1
  * \date Jun. 2010

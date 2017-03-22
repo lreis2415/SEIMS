@@ -1,15 +1,3 @@
-/*!
- * \brief Base class of variable data
- *
- * Base class used to store various versions of the variable data
- *
- * \author Junzhi Liu
- * \version 1.1
- * \date Jun. 2010
- *
- * 
- */
-
 #include "base_VariableData.h"
 
 base_VariableData::base_VariableData(void) {

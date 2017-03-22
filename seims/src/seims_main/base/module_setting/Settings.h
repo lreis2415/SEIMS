@@ -1,12 +1,9 @@
 /*!
- * \file Settings.h
  * \ingroup module_setting
  * \brief Settings class to store the settings information from Configuration files
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date June 2010
- *
- * 
  */
 #pragma once
 
@@ -16,6 +13,7 @@
 #include <sstream> 
 #include <algorithm> 
 #include <iterator> 
+
 #include "utilities.h"
 
 using namespace std;
@@ -53,4 +51,3 @@ protected:
     //! input setting file path
     string m_settingFileName;
 };
-

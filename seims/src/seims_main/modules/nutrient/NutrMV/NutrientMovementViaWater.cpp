@@ -1,12 +1,5 @@
-#include <iostream>
+#include "seims.h"
 #include "NutrientMovementViaWater.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
 
 using namespace std;
 

@@ -1,5 +1,4 @@
 /*!
- * \file clsReach.h
  * \brief Class to store reach related parameters from REACHES table
  *
  * \author LiangJun Zhu
@@ -11,6 +10,7 @@
 
 #include <string>
 #include <map>
+
 #include "MetadataInfoConst.h"
 #include "text.h"
 #include "utilities.h"

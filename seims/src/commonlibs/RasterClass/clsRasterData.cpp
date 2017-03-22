@@ -1,14 +1,3 @@
-/*!
- * \brief Implementation of clsRasterData class
- *
- * 1. Using GDAL and MongoDB (currently, mongo-c-driver 1.5.0)
- * 2. Array1D and Array2D raster data are supported
- * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
- * \date Apr. 2011
- * \revised May. 2016
- *
- */
 #ifndef CLS_RASTER_DATA
 
 #include "clsRasterData.h"

@@ -1,5 +1,4 @@
 /** 
-*	@file
 *	@version	1.0
 *	@author    Wu Hui
 *	@date	24-January-2011
@@ -34,18 +33,10 @@
 *	Date:		2016-7-27
 *	Description:
 *	1.	Move subbasin class to base/data module for sharing with other modules
-*	2.	
 */
-
-#ifndef SEIMS_GWA_RESERVOIR_METHOD_INCLUED
-#define SEIMS_GWA_RESERVOIR_METHOD_INCLUED
-
-#include <string>
-#include <vector>
-#include <map>
-#include "api.h"
-#include "clsSubbasin.h"
+#pragma once
 #include "SimulationModule.h"
+#include "clsSubbasin.h"
 
 using namespace std;
 /** \defgroup GWA_RE
@@ -202,6 +193,3 @@ private:
      */
     void setSubbasinInfos();
 };
-
-#endif
-

@@ -1,20 +1,4 @@
-/*!
- * \brief routing in the channel cells using 4-point implicit finite difference method
- * \author Junzhi Liu
- * \version 1.0
- * \date Feb. 2011
- */
-
-#include <cmath>
-#include <iostream>
-#include <set>
-#include <sstream>
-
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 #include "seims.h"
-
 #include "DiffusiveWave.h"
 
 using namespace std;
@@ -27,14 +11,6 @@ DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), 
                                      m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL), m_reachId(NULL),
                                      m_sourceCellIds(NULL),
                                      m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_manningScalingFactor(0.f) {
-    //m_diagonal[1] = 0;
-    //m_diagonal[2] = 1;
-    //m_diagonal[3] = 0;
-    //m_diagonal[4] = 1;
-    //m_diagonal[5] = 0;
-    //m_diagonal[6] = 1;
-    //m_diagonal[7] = 0;
-    //m_diagonal[8] = 1;
 }
 
 //! Destructor

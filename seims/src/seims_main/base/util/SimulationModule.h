@@ -8,14 +8,19 @@
  * \data Jun. 2016
  */
 #pragma once
-
 #include <string>
-#include "ModelException.h"
-
+#include <fstream>
+#include <ostream>
+#include <ctime>
+#include <cmath>
+#include <map>
+#include <vector>
+#include <iomanip>
 #ifdef SUPPORT_OMP
 #include <omp.h>
 #endif
 
+#include "ModelException.h"
 #include "Scenario.h"  /// added by LJ. 2016-6-14
 #include "clsReach.h"
 #include "clsSubbasin.h"
@@ -26,10 +31,10 @@ using namespace MainBMP;
  * \enum TimeStepType
  */
 enum TimeStepType {
-    TIMESTEP_HILLSLOPE, /**< Hillslope scale */
-    TIMESTEP_CHANNEL, /**< Channel scale */
-    TIMESTEP_ECOLOGY, /**< Ecology scale, currently not necessary? */
-    TIMESTEP_SIMULATION /**< Whole simulation scale */
+    TIMESTEP_HILLSLOPE,   /**< Hillslope scale */
+    TIMESTEP_CHANNEL,     /**< Channel scale */
+    TIMESTEP_ECOLOGY,     /**< Ecology scale, currently not necessary? */
+    TIMESTEP_SIMULATION   /**< Whole simulation scale */
 };
 
 /*!

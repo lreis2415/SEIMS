@@ -16,7 +16,7 @@
 
 #define MODEL_NAME                                 "SEIMS"
 #define SEIMS_EMAIL                                "SEIMS2015@163.com"
-#define SEIMS_SITE                                 "https://github.com/seims/SEIMS/wiki"
+#define SEIMS_SITE                                 "https://github.com/lreis2415/SEIMS"
 
 
 

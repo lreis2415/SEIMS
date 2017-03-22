@@ -1,12 +1,3 @@
-/*!
- * \brief Class to store parameter item information
- *
- * \author Junzhi Liu
- * \version 1.0
- * \date June 2010
- *
- * 
- */
 #include "ParamInfo.h"
 
 using namespace std;

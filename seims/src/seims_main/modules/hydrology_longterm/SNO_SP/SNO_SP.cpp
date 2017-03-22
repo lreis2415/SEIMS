@@ -1,12 +1,8 @@
-#include "SNO_SP.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include <math.h>
-#include <cmath>
-#include "utilities.h"
+#include "seims.h"
 #include "ClimateParams.h"
 #include "PlantGrowthCommon.h"
 
+#include "SNO_SP.h"
 
 SNO_SP::SNO_SP(void) : m_nCells(-1),
                        m_t0(NODATA_VALUE),
