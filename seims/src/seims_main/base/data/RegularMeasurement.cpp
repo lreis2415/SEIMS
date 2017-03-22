@@ -122,7 +122,7 @@ RegularMeasurement::~RegularMeasurement(void) {
 }
 
 float *RegularMeasurement::GetSiteDataByTime(time_t t) {
-    int index = (t - m_startTime) / m_interval;
+    int index = int((t - m_startTime) / m_interval);
 
     if (index < 0) {
         index = 0;
