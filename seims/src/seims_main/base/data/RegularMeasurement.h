@@ -8,10 +8,10 @@
  * 
  */
 #pragma once
-#include "Measurement.h"
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
+#include "Measurement.h"
 
 /*!
  * \ingroup data

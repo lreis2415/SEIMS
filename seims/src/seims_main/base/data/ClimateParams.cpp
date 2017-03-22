@@ -1,7 +1,3 @@
-#include <cmath>
-#include <iostream>
-#include <fstream>
-
 #include "utilities.h"
 
 #include "ClimateParams.h"

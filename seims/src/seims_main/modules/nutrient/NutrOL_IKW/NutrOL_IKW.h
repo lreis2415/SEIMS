@@ -1,6 +1,4 @@
-
 /*!
- * \file NutrientOLRoute.h
  * \brief Calculates the concentration of nutrient in overland flow.
  * \author Huiran Gao
  * \date Jun 2016
@@ -10,10 +8,6 @@
 #ifndef SEIMS_NutOLRout_PARAMS_INCLUDE
 #define SEIMS_NutOLRout_PARAMS_INCLUDE
 
-#include <string>
-#include <map>
-#include <vector>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;

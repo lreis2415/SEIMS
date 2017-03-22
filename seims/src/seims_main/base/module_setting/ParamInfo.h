@@ -7,8 +7,6 @@
  *
  */
 #pragma once
-
-#include <string>
 #include "MetadataInfoConst.h"
 #include "text.h"
 #include "utilities.h"

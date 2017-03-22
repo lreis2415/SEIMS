@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------
-*	Purpose: 	channel flow routing using Muskingum method
+*	Purpose: 	channel flow routing using ikw method
 *
 *	Created:	Junzhi Liu
 *	Date:		26-Jule-2012
@@ -9,12 +9,6 @@
 *---------------------------------------------------------------------*/
 
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
 #include "SimulationModule.h"
 
 using namespace std;

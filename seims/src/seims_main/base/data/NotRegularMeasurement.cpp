@@ -4,7 +4,7 @@
 NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList,
                                              string siteType, time_t startTime, time_t endTime)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime) {
-    int nSites = m_siteIDList.size();
+    int nSites = (int) m_siteIDList.size();
     m_valueList.resize(nSites);
     m_timeList.resize(nSites);
     m_curIndexList.resize(nSites, 0);
@@ -47,7 +47,6 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         mongoc_cursor_t *cursor;
         mongoc_collection_t *collection;
         const bson_t *doc;
-//		char *record;
         collection = mongoc_client_get_collection(m_conn, hydroDBName.c_str(), DB_TAB_DATAVALUES);
         cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
         float value;
@@ -64,7 +63,7 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
             }
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
-                dt = (float) GetDatetimeFromBsonIterator(&iter) / 1000.f;
+                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The UTCDateTime field does not exist in DataValues table.");

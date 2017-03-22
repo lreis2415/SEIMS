@@ -1,7 +1,5 @@
+#include "seims.h"
 #include "MUSLE_I30.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 
 MUSLE_I30::MUSLE_I30(void) {
     // set default values for member variables

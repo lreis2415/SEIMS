@@ -1,17 +1,5 @@
-/*//
- * \file NutrOL_IUH.cpp
- * \ingroup NutrOL
- * \author Huiran Gao
- * \date Jun 2016
- */
-
-#include <iostream>
+#include "seims.h"
 #include "NutrOL_IUH.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
 
 
 using namespace std;

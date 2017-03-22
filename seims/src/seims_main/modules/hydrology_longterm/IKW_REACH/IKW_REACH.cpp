@@ -1,33 +1,10 @@
-/*----------------------------------------------------------------------
-*	Purpose: 	Overland routing using 4-point implicit finite difference method
-*
-*	Created:	Junzhi Liu
-*	Date:		23-Febrary-2011
-*
-*	Revision:
-*   Date:
-*---------------------------------------------------------------------*/
 //#include "vld.h"
+#include "seims.h"
 #include "IKW_REACH.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-#include <cmath>
-#include <iostream>
-#include <set>
-#include <sstream>
-#include <algorithm> 
-
-
-//#define MINI_SLOPE 0.0001f
-//#define NODATA_VALUE -9999  defined in util.h
 
 #define MIN_FLUX 1e-12f
 #define MAX_ITERS_CH 10
 
-const float _23 = 2.0f / 3.0f;
-const float SQ2 = sqrt(2.f);
 using namespace std;
 
 IKW_REACH::IKW_REACH(void) : m_dt(-1), m_nreach(-1), m_Kchb(NODATA_VALUE),
@@ -190,8 +167,7 @@ void IKW_REACH::initialOutputs() {
 int IKW_REACH::Execute() {
     initialOutputs();
 
-    map < int, vector < int > > ::iterator
-    it;
+    map <int, vector<int> >::iterator it;
     for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.

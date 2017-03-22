@@ -5,7 +5,6 @@
  *
  */
 #pragma once
-//#include <stdlib.h>
 #include "utilities.h"
 #include "BMPFactory.h"
 
@@ -283,7 +282,8 @@ private:
     string m_pointSrcMgtTab;
     /// Sequences of point source managements
     vector<int> m_pointSrcMgtSeqs;
-    /* Map of point source management parameters
+    /*!
+     * Map of point source management parameters
      * Key: Scheduled sequence number, unique
      * Value: Pointer of PointBMPParamters instance
      */
@@ -292,7 +292,8 @@ private:
     string m_pointSrcDistTab;
     /// IDs of point source of current subScenario
     vector<int> m_pointSrcIDs;
-    /* Map of point source BMP location related parameters
+    /*!
+     * Map of point source BMP location related parameters
      * Key: PTSRCID, unique
      * Value: Pointer of PointBMPParamters instance
      */

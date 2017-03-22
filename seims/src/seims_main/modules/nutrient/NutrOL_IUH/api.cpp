@@ -1,23 +1,6 @@
-/*!
- * \file api.cpp
- * \brief Define MetadataInfo of NutOLRout module.
-/*!
- * \file api.cpp
- * \ingroup NutOLRout
- * \author Huiran Gao
- * \date Jun 2016
- */
-
-
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "NutrOL_IUH.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
