@@ -11,7 +11,12 @@
 #include <cmath>
 #include <map>
 #include <vector>
+
 #include "SimulationModule.h"
+
+#define MIN_FLUX 1e-9f
+const float _23 = 2.0f / 3.0f;
+const float SQ2 = sqrt(2.f);
 
 using namespace std;
 /** \defgroup CH_DW
@@ -54,44 +59,31 @@ public:
     bool CheckInputData(void);
 
 private:
-    ///// deal with positive and negative float numbers /// Defined in util.h
-    //float Power(float a, float n)
-    //{
-    //	if (a >= 0)
-    //		return pow(a, n);
-    //	else
-    //		return -pow(-a, n);
-    //}
     void ChannelFlow(int iReach, int iCell, int id);
 
     void initialOutputs();
 
     ///< Valid cells number
     int m_nCells;
-
     ///< cell width of the grid (m)
     float m_CellWidth;
-
-    float m_dt;///< time step (second)
-
-    float *m_s0;
+    ///< time step (second)
+    float m_dt;
     ///< slope (percent)
+    float *m_s0;
     /// channel width (raster type to keep consistent with the one in IKW_CH, zero for overland cells)
     float *m_chWidth;
+    /// elevation
     float *m_elevation;
-
     /// stream link
     float *m_streamLink;
     /// manning scaling factor
     float m_manningScalingFactor;
-
     /**
-    *	@brief flow direction by the rule of ArcGIS
-    *
-    *	The value of direction is as following:
-        32 64 128
-        64     1
-        8   4  2
+    *	@brief flow direction by the rule of TauDEM
+    *   4  3  2
+    *   5     1
+    *   6  7  8
     */
     float *m_direction;
 
@@ -128,15 +120,15 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
-    /**
-    *	@brief convert direction code to whether diagonal
-    *
-    *	derived from flow direction
-        1  0  1
-        0     0
-        1  0  1
-    */
-    std::map<int, int> m_diagonal;
+    ///** Deprecated, and m_diagonal is defined as DiagonalCCW in seims.h
+    //*	@brief convert direction code to whether diagonal
+    //*
+    //*	derived from flow direction
+    //    1  0  1
+    //    0     0
+    //    1  0  1
+    //*/
+    //std::map<int, int> m_diagonal;
 
     /// flow length
     float **m_flowLen;
