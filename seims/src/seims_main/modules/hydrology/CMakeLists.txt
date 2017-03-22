@@ -1,5 +1,4 @@
 MESSAGE(STATUS "      Compiling SEIMS_subdir: hydrology...")
-# strom model modules, need to be updated and tested. By LJ
 ADD_SUBDIRECTORY(./CH_DW)
 ADD_SUBDIRECTORY(./CH_MSK)
 ADD_SUBDIRECTORY(./DEP_FS)
