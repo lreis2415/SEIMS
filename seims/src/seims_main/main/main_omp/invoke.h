@@ -1,6 +1,5 @@
 /*!
  * \ingroup main
- * \file invoke.h
  * \brief Main header file for the application
  * \author Junzhi Liu
  * \date May 2010
