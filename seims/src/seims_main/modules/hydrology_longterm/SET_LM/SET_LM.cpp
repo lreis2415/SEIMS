@@ -1,10 +1,5 @@
+#include "seims.h"
 #include "SET_LM.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-
-#include <iostream>
 
 using namespace std;
 

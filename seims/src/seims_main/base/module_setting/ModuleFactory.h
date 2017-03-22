@@ -6,13 +6,6 @@
  * \date June 2010
  */
 #pragma once
-
-#include <string>
-#include <fstream>
-#include <ctime>
-#include <vector>
-#include <map>
-
 #include "tinyxml.h"
 
 #include "seims.h"

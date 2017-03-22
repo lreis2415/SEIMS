@@ -1,11 +1,5 @@
+#include "seims.h"
 #include "SplashEro_Park.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 
 
 using namespace std;

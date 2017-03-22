@@ -7,6 +7,8 @@
  * \date Feb. 2017
  * 
  */
+#ifndef MODEL_UTILITIES_HEADER
+#define MODEL_UTILITIES_HEADER
 #include "utils.h"
 #include "ModelException.h"
 
@@ -75,4 +77,6 @@
 #define SetDefaultOpenMPThread     utils::SetDefaultOpenMPThread
 #define SetOpenMPThread            utils::SetOpenMPThread
 #define StatusMessage              utils::StatusMessage
+#endif
+
 #endif

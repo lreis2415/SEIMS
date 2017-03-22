@@ -1,14 +1,7 @@
-#include "PETHargreaves.h"
-#include "MetadataInfo.h"
-#include <vector>
-#include <cmath>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include "utilities.h"
+#include "seims.h"
 #include "ClimateParams.h"
-#include "ModelException.h"
 
+#include "PETHargreaves.h"
 
 using namespace std;
 

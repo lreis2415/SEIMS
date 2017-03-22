@@ -39,7 +39,7 @@ public:
     virtual float *GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites() { return m_siteIDList.size(); }
+    int NumberOfSites() { return (int) m_siteIDList.size(); }
 
     //! Get HydroClimate site type, "M" or "P"
     string Type() { return m_type; }

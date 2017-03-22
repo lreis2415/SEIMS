@@ -1,12 +1,7 @@
-#include "SUR_GA.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-#include <cmath>
+#include "seims.h"
+#include "SUR_GreenAmpt.h"
 
-
-
-SUR_GA::SUR_GA(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
+SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
                        m_CN2(NULL), m_P_NET(NULL), m_cellSize(-1), m_fieldCap(NULL), m_wiltingPoint(NULL),
                        m_soilMoisture(NULL), m_INFRate(NULL),
@@ -18,7 +13,7 @@ SUR_GA::SUR_GA(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosit
 
 }
 
-SUR_GA::~SUR_GA(void) {
+SUR_GreenAmpt::~SUR_GreenAmpt(void) {
     //// cleanup
     if (this->m_PE != NULL) {
         delete[] this->m_PE;
@@ -33,130 +28,130 @@ SUR_GA::~SUR_GA(void) {
     if (this->m_INFRate != NULL) delete[] this->m_INFRate;
 }
 
-bool SUR_GA::CheckInputData(void) {
+bool SUR_GreenAmpt::CheckInputData(void) {
     if (this->m_date < 0) {
-        throw ModelException("SUR_GA", "CheckInputData", "You have not set the time.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "You have not set the time.");
         return false;
     }
 
     if (this->m_cellSize <= 0) {
-        throw ModelException("SUR_GA", "CheckInputData", "The cell number of the input can not be less than zero.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The cell number of the input can not be less than zero.");
         return false;
     }
 
     if (this->m_Conductivity == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The saturated hydraulic conductivity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_porosity == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The soil porosity of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil porosity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_clay == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The percent of clay content of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_sand == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The percent of sand content of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_rootDepth == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The root depth of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The root depth of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_CN2 == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The CN under moisture condition II of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_P_NET == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The net precipitation of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The net precipitation of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_fieldCap == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The water content of soil at field capacity of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_wiltingPoint == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The plant wilting point moisture of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_soilMoisture == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The soil moisture of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil moisture of the input data can not be NULL.");
         return false;
     }
 
     //if (this->m_INFRate == NULL)
     //{
-    //	throw ModelException("SUR_GA","CheckInputData","The initial infiltration rate of the input data can not be NULL.");
+    //	throw ModelException("SUR_GreenAmpt","CheckInputData","The initial infiltration rate of the input data can not be NULL.");
     //	return false;
     //}
 
     if (FloatEqual(this->m_Sfrozen, NODATA_VALUE)) {
-        throw ModelException("SUR_GA", "CheckInputData", "The frozen soil moisture of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The frozen soil moisture of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SD == NULL) {
-        throw ModelException("SUR_GA",
+        throw ModelException("SUR_GreenAmpt",
                              "CheckInputData",
                              "The depression storage or the depression storage capacity and depression storage coefficient of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_tMax == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The maximum temperature of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The maximum temperature of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_tMin == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The minimum temperature of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The minimum temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_Tsnow, NODATA_VALUE)) {
-        throw ModelException("SUR_GA", "CheckInputData", "The snowfall temperature of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snowfall temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_Tsoil, NODATA_VALUE)) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The soil freezing temperature of the input data can not be NULL.");
         return false;
     }
 
     if (FloatEqual(this->m_T0, NODATA_VALUE)) {
-        throw ModelException("SUR_GA", "CheckInputData",
+        throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The snowmelt threshold temperature of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SM == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The snowmelt of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snowmelt of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_SA == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The snow accumulation of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The snow accumulation of the input data can not be NULL.");
         return false;
     }
 
     if (this->m_TS == NULL) {
-        throw ModelException("SUR_GA", "CheckInputData", "The soil temperature of the input data can not be NULL.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The soil temperature of the input data can not be NULL.");
         return false;
     }
 
@@ -168,9 +163,9 @@ bool SUR_GA::CheckInputData(void) {
     return true;
 }
 
-void SUR_GA::initalOutputs() {
+void SUR_GreenAmpt::initalOutputs() {
     if (m_cellSize <= 0) {
-        throw ModelException("SUR_GA", "CheckInputData", "The dimension of the input data can not be less than zero.");
+        throw ModelException("SUR_GreenAmpt", "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
     // allocate the output variables
     if (this->m_PE == NULL) {
@@ -195,7 +190,7 @@ void SUR_GA::initalOutputs() {
     }
 }
 
-int SUR_GA::Execute() {
+int SUR_GreenAmpt::Execute() {
     this->CheckInputData();
 
     this->initalOutputs();
@@ -333,7 +328,7 @@ int SUR_GA::Execute() {
             oss << "Cell(Row:" << m_mask[iCell][0] << ", Col:" << m_mask[iCell][1] << "\n Infiltration =" <<
                 m_INFIL[iCell]
                 << "\n Precipitation(mm) = " << pNet << "\n InfiltrationRate(m/h) = " << rateinf << "\n";
-            throw ModelException("SUR_GA", "Execute",
+            throw ModelException("SUR_GreenAmpt", "Execute",
                                  "Output data error: infiltration is out of reasonable range. Where:\n"
                                      + oss.str() + "Please contact the module developer. ");
         }
@@ -341,16 +336,16 @@ int SUR_GA::Execute() {
     return 0;
 }
 
-bool SUR_GA::CheckInputSize(const char *key, int n) {
+bool SUR_GreenAmpt::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException("SUR_GA", "CheckInputSize",
+        throw ModelException("SUR_GreenAmpt", "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
         return false;
     }
     if (this->m_cellSize != n) {
         if (this->m_cellSize <= 0) { this->m_cellSize = n; }
         else {
-            throw ModelException("SUR_GA", "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException("SUR_GreenAmpt", "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
             return false;
         }
@@ -359,7 +354,7 @@ bool SUR_GA::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void SUR_GA::SetValue(const char *key, float value) {
+void SUR_GreenAmpt::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, "ThreadNum")) {
@@ -375,14 +370,14 @@ void SUR_GA::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, "s_frozen")) {
         this->m_Sfrozen = value;
     } else {
-        throw ModelException("SUR_GA", "SetValue", "Parameter " + sk
+        throw ModelException("SUR_GreenAmpt", "SetValue", "Parameter " + sk
             +
-                " does not exist in SUR_GA method. Please contact the module developer.");
+                " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
 }
 
-void SUR_GA::Set1DData(const char *key, int n, float *data) {
+void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
 
     this->CheckInputSize(key, n);
 
@@ -435,27 +430,27 @@ void SUR_GA::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, "D_SOTE")) {
         m_TS = data;
     } else {
-        throw ModelException("SUR_GA", "SetValue", "Parameter " + sk +
-            " does not exist in SUR_GA method. Please contact the module developer.");
+        throw ModelException("SUR_GreenAmpt", "SetValue", "Parameter " + sk +
+            " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
 }
 
-void SUR_GA::Get1DData(const char *key, int *n, float **data) {
+void SUR_GreenAmpt::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     if (StringMatch(sk, "INFIL")) {
         *data = m_INFIL;
     } else if (StringMatch(sk, "EXCP")) {
         *data = m_PE;
     } else {
-        throw ModelException("SUR_GA", "getResult", "Result " + sk +
-            " does not exist in SUR_GA method. Please contact the module developer.");
+        throw ModelException("SUR_GreenAmpt", "getResult", "Result " + sk +
+            " does not exist in SUR_GreenAmpt method. Please contact the module developer.");
     }
 
     *n = this->m_cellSize;
 }
 
-float SUR_GA::Calculate_CN(int cell) {
+float SUR_GreenAmpt::Calculate_CN(int cell) {
     float sw, s, CNday, xx;
 
     s = 0.;
@@ -476,7 +471,7 @@ float SUR_GA::Calculate_CN(int cell) {
     return CNday;
 }
 
-void SUR_GA::initalW1W2() {
+void SUR_GreenAmpt::initalW1W2() {
     this->m_w1 = new float[this->m_cellSize];
     this->m_w2 = new float[this->m_cellSize];
     this->m_sMax = new float[this->m_cellSize];
@@ -511,7 +506,7 @@ void SUR_GA::initalW1W2() {
     }
 }
 
-void SUR_GA::initialWFMP() {
+void SUR_GreenAmpt::initialWFMP() {
     m_wfmp = new float[m_cellSize];
     for (int i = 0; i < this->m_cellSize; i++) {
         float sol_por = m_porosity[i];
@@ -523,7 +518,7 @@ void SUR_GA::initialWFMP() {
     }
 }
 
-float SUR_GA::Calculate_WFMP(float sol_por, float sol_clay,
+float SUR_GreenAmpt::Calculate_WFMP(float sol_por, float sol_clay,
                              float sand) //this function calculated the wetting front matric potential
 {
     float wfmp = 10.0f * exp(6.5309f - 7.32561f * sol_por + 3.809479f * pow(sol_por, 2) + 0.001583f *

@@ -14,30 +14,30 @@
 // TODO - you may consider moving these to an external resource file
 //        to make it easier to change them later
 
-#define MODEL_NAME                                 "SEIMS"
-#define SEIMS_EMAIL                                "SEIMS2015@163.com"
-#define SEIMS_SITE                                 "https://github.com/lreis2415/SEIMS"
+#define MODEL_NAME                             "SEIMS"
+#define SEIMS_EMAIL                            "SEIMS2015@163.com"
+#define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
 
 
 //! Constant input variables
-#define CONS_IN_ELEV                            "Elevation"
+#define CONS_IN_ELEV                           "Elevation"
 #define CONS_IN_LAT                            "Latitude"
 #define CONS_IN_XPR                            "xpr"
 #define CONS_IN_YPR                            "ypr"
 
 //! Climate data type
-#define DataType_Precipitation                            "P"                    //1, Suffix of precipitation data
-#define DataType_MeanTemperature                    "TMEAN"        //2
-#define DataType_MinimumTemperature            "TMIN"            //3
-#define DataType_MaximumTemperature            "TMAX"            //4
-#define DataType_PotentialEvapotranspiration    "PET"                //5
-#define DataType_SolarRadiation                        "SR"                //6
-#define DataType_WindSpeed                            "WS"                //7
-#define DataType_RelativeAirMoisture                "RM"                //8
-#define DataType_Meteorology                            "M"                  // Suffix of meteorology data
-#define DataType_Prefix_TS                                "T"                   // Prefix of time series data
-#define DataType_Prefix_DIS                                "D"                   // Prefix of distributed data
+#define DataType_Precipitation                 "P"             //1, Suffix of precipitation data
+#define DataType_MeanTemperature               "TMEAN"         //2
+#define DataType_MinimumTemperature            "TMIN"          //3
+#define DataType_MaximumTemperature            "TMAX"          //4
+#define DataType_PotentialEvapotranspiration   "PET"           //5
+#define DataType_SolarRadiation                "SR"            //6
+#define DataType_WindSpeed                     "WS"            //7
+#define DataType_RelativeAirMoisture           "RM"            //8
+#define DataType_Meteorology                   "M"             // Suffix of meteorology data
+#define DataType_Prefix_TS                     "T"             // Prefix of time series data
+#define DataType_Prefix_DIS                    "D"             // Prefix of distributed data
 
 //! Tags
 #define Tag_Configuration "Configuration"
@@ -170,7 +170,7 @@
 //#define ASCIIExtension                                    ".asc"
 //#define GTiffExtension                                    ".tif"
 #define TextExtension                                    "txt"
-//#define MongoGridFS										"GridFS"
+//#define MongoGridFS                                        "GridFS"
 #define NAME_MASK                                        "MASK"
 
 #define File_Config                                            "config.fig"
@@ -245,7 +245,7 @@
 #define SITELIST_TABLE_STORM    "STORMSITELIST"
 
 //! define string constants used in the code, also used in the mongoDB.SiteList table's header
-//#define Tag_NoDataValue			"NoDataValue"
+//#define Tag_NoDataValue            "NoDataValue"
 
 #define Tag_Mode                            "MODE"
 #define Tag_Mode_Storm            "STORM"
@@ -275,12 +275,12 @@
 //#define Print_D_NEPR "D_NEPR"
 
 ///// 2D Soil Attribute Data ///
-//#define Print_2D_CONDUCTIVITY	"Conductivity_2D"
-//#define Print_2D_POROSITY		"Porosity_2D"
-//#define Print_2D_POREINDEX		"Poreindex_2D"
-//#define Print_2D_FIELDCAP		"FieldCap_2D"
-//#define Print_2D_WILTINGPOINT	"WiltingPoint_2D"
-//#define Print_2D_DENSITY		"Density_2D"
+//#define Print_2D_CONDUCTIVITY    "Conductivity_2D"
+//#define Print_2D_POROSITY        "Porosity_2D"
+//#define Print_2D_POREINDEX        "Poreindex_2D"
+//#define Print_2D_FIELDCAP        "FieldCap_2D"
+//#define Print_2D_WILTINGPOINT    "WiltingPoint_2D"
+//#define Print_2D_DENSITY        "Density_2D"
 
 //////////////////////////////////////////////////////////////////////////
 /// Define models' ID and description in SEIMS  //////////////////////////
@@ -1716,12 +1716,12 @@
 /// Define Raster/ related constant strings used in SEIMS and preprocess//
 /// By LiangJun Zhu, May. 5, 2016  ///////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-#define HEADER_RS_NODATA    "NODATA_VALUE"
+#define HEADER_RS_NODATA     "NODATA_VALUE"
 #define HEADER_RS_XLL        "XLLCENTER"
 #define HEADER_RS_YLL        "YLLCENTER"
-#define HEADER_RS_NROWS        "NROWS"
-#define HEADER_RS_NCOLS        "NCOLS"
-#define HEADER_RS_CELLSIZE    "CELLSIZE"
-#define HEADER_RS_LAYERS        "LAYERS"
-#define HEADER_RS_SRS                "SRS"
+#define HEADER_RS_NROWS      "NROWS"
+#define HEADER_RS_NCOLS      "NCOLS"
+#define HEADER_RS_CELLSIZE   "CELLSIZE"
+#define HEADER_RS_LAYERS     "LAYERS"
+#define HEADER_RS_SRS        "SRS"
 #endif

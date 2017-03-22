@@ -194,7 +194,7 @@ ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSRC_FLD_COD)) {
         GetNumericFromBsonIterator(&iter, m_COD);
     }
-    int sYear, sMonth, sDay, eYear, eMonth, eDay;
+    int sYear = -1, sMonth = -1, sDay = -1, eYear = -1, eMonth = -1, eDay = -1;
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SYEAR)) {
         GetNumericFromBsonIterator(&iter, sYear);
     }
@@ -269,7 +269,7 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
             }
         }
         vector<int>(m_cellsIndex).swap(m_cellsIndex);
-        m_nCells = m_cellsIndex.size();
+        m_nCells = (int) m_cellsIndex.size();
     } else {
         throw ModelException("ArealSourceLocations", "SetValidCells",
                              "The array size of must be greater than 0 and the array must not be NULL.");
