@@ -5,15 +5,7 @@
  *            1. Replaced SQLite by MongoDB to manager BMP scenario data.
  */
 #pragma once
-
-#include <fstream>
-#include <string>
-#include <map>
-#include <vector>
-#include <ostream>
-#include <iomanip>
 #include "utilities.h"
-#include "ModelException.h"
 #include "MongoUtil.h"
 #include "BMPText.h"
 #include "BMPFactory.h"

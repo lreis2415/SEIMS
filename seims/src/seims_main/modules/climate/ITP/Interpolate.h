@@ -1,14 +1,10 @@
 /*!
- * \author Junzhi Liu
+ * \brief Interpolate function for site based data, e.g. precipitation
+ * \author Junzhi Liu, LiangJun Zhu
  * \date Jan. 2010
- *
- * 
+ * \revised date Apr. 2016
  */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <fstream>
 #include "SimulationModule.h"
 
 using namespace std;
@@ -83,7 +79,6 @@ private:
     float **m_lapseRate;
     /// month
     int m_month;
-
     /// interpolation result
     float *m_output;
 };

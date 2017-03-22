@@ -1,5 +1,4 @@
 /** 
-* @file
 * @version	1.1
 * @author	Junzhi Liu
 * @date	5-January-2011
@@ -8,11 +7,7 @@
 * @brief	Finn Plauborg Method to Compute Soil Temperature
 *
 */
-#ifndef SEIMS_STP_FP_INCLUDE
-#define SEIMS_STP_FP_INCLUDE
-
-#include <string>
-#include "api.h"
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -99,5 +94,3 @@ private:
     */
     bool CheckInputSize(const char *, int);
 };
-
-#endif

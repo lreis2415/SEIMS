@@ -5,11 +5,7 @@
  */
 
 #pragma once
-
-#include <string>
-#include "api.h"
 #include "SimulationModule.h"
-#include "ModelException.h"
 
 using namespace std;
 /** \defgroup NutrGW

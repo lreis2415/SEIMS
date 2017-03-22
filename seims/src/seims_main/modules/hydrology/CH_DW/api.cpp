@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include <iostream>
-#include "api.h"
-#include "utilities.h"
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
 #include "DiffusiveWave.h"
+
+#include "api.h"
 
 
 //! Get instance of SimulationModule class

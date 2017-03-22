@@ -1,5 +1,4 @@
 /** 
-*	@file
 *	@version	1.3
 *	@author    Junzhi Liu
 *	@date	19-January-2011
@@ -39,14 +38,10 @@
 */
 
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup SUR_MR
  * \ingroup Hydrology_longterm
  * \brief Modified Rational Method to calculate infiltration and excess precipitation
@@ -159,9 +154,3 @@ private:
     /// initial output for the first run
     void initialOutputs();
 };
-
-
-/*/// maximum temperature
-float *m_tMax;
-/// minimum temperature
-float *m_tMin;*/

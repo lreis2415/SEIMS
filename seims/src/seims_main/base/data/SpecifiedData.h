@@ -1,7 +1,10 @@
-#include "utilities.h"
-#include "MongoUtil.h"
+/*
+ * \brief
+ * \author Junzhi Liu
+ */
+#pragma once
 #include "seims.h"
-#include "text.h"
+#include "MongoUtil.h"
 
 /*!
  * \brief Read 1D array data from MongoDB database

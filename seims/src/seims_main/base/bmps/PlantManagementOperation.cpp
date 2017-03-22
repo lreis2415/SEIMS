@@ -1,8 +1,3 @@
-/*!
- * \brief
- * \author Liang-Jun Zhu
- * \date June 2016
- */
 #include "PlantManagementOperation.h"
 
 using namespace MainBMP;

@@ -1,9 +1,3 @@
-/*!
- * \brief 
- * \author Junzhi Liu
- * \version 1.0
- * \date June 2010
- */
 #include "clsSimpleTxtData.h"
 
 clsSimpleTxtData::clsSimpleTxtData(string fileName) {

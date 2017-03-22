@@ -1,3 +1,7 @@
+/*
+ * \brief Class for managing subbasin data
+ * \author Junzhi Liu, Liang-Jun Zhu
+ */
 #pragma once
 
 #include <vector>

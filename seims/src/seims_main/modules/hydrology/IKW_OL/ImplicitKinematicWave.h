@@ -1,23 +1,16 @@
 /*!
- * \file ImplicitKinematicWave.h
- * \brief Routing in the overland cells using implicit finite difference method
- * kinematic wave method in LISEM model
+ * \brief Routing in the overland cells using 1D kinematic wave method in LISEM model
  * \author Junzhi Liu
  * \date Feb. 2011 
  */
-
 #pragma once
-
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
 #include "SimulationModule.h"
 
 using namespace std;
 
 #define MIN_FLUX 1e-12f /// \def minimum flux (m3/s) in kinematic wave
 #define MAX_ITERS 10
+
 /** \defgroup IKW_OL
  * \ingroup Hydrology
  * \brief Routing in the overland cells using implicit finite difference method
@@ -54,15 +47,6 @@ public:
     bool CheckInputData(void);
 
 private:
-    ///// deal with positive and negative float numbers
-    //float Power(float a, float n)
-    //{
-    //	if (a >= 0)
-    //		return pow(a, n);
-    //	else
-    //		return -pow(-a, n);
-    //}
-
     float GetNewQ(float qIn, float qLast, float surplus, float alpha, float dt, float dx);
 
     void OverlandFlow(int id);
@@ -88,9 +72,9 @@ private:
     *	@brief flow direction by the rule of ArcGIS
     *
     *	The value of direction is as following:
-        32 64 128
-        64     1
-        8   4  2
+        4  3  2
+        5     1
+        6  7  8
     */
     float *m_direction;
     /**
@@ -137,15 +121,6 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
     // the following are intermediate variables
-    /**
-    *	@brief convert direction code to whether diagonal
-    *
-    *	derived from flow direction
-        1  0  1
-        0     0
-        1  0  1
-    */
-    std::map<int, int> m_diagonal;
 
     /// flow width of each cell
     float *m_flowWidth;
@@ -157,8 +132,5 @@ private:
     float *m_alpha;
     /// slope (radian)
     float *m_sRadian;
-
-    /// sqrt(2.0f)
-    float SQ2;
 };
 

@@ -12,26 +12,26 @@
 
 #ifdef CLS_UTILS
 /// Class utilsTime
-#define TimeCounting            utilsTime::TimeCounting
-#define isLeapYear                utilsTime::isLeapYear
-#define ConvertToString            utilsTime::ConvertToString
-#define ConvertToString2        utilsTime::ConvertToString2
+#define TimeCounting             utilsTime::TimeCounting
+#define isLeapYear               utilsTime::isLeapYear
+#define ConvertToString          utilsTime::ConvertToString
+#define ConvertToString2         utilsTime::ConvertToString2
 #define ConvertToTime            utilsTime::ConvertToTime
-#define ConvertToTime2            utilsTime::ConvertToTime2
-#define ConvertYMDToTime        utilsTime::ConvertYMDToTime
-#define GetDateInfoFromTimet    utilsTime::GetDateInfoFromTimet
+#define ConvertToTime2           utilsTime::ConvertToTime2
+#define ConvertYMDToTime         utilsTime::ConvertYMDToTime
+#define GetDateInfoFromTimet     utilsTime::GetDateInfoFromTimet
 #define LocalTime                utilsTime::LocalTime
 
 /// Class utilsString
-#define GetUpper                utilsString::GetUpper
-#define StringMatch                utilsString::StringMatch
+#define GetUpper                  utilsString::GetUpper
+#define StringMatch               utilsString::StringMatch
 #define TrimSpaces                utilsString::TrimSpaces
-#define trim                    utilsString::trim
-#define SplitString                utilsString::SplitString
-#define SplitStringForValues    utilsString::SplitStringForValues
-#define SplitStringForInt        utilsString::SplitStringForInt
+#define trim                      utilsString::trim
+#define SplitString               utilsString::SplitString
+#define SplitStringForValues      utilsString::SplitStringForValues
+#define SplitStringForInt         utilsString::SplitStringForInt
 #define SplitStringForFloat       utilsString::SplitStringForFloat
-#define ValueToString            utilsString::ValueToString
+#define ValueToString             utilsString::ValueToString
 
 /// Class utilsArray
 #define Initialize1DArray         utilsArray::Initialize1DArray
@@ -73,6 +73,6 @@
 #define Log                        utils::Log
 #define GetAvailableThreadNum      utils::GetAvailableThreadNum
 #define SetDefaultOpenMPThread     utils::SetDefaultOpenMPThread
-#define SetOpenMPThread     utils::SetOpenMPThread
+#define SetOpenMPThread            utils::SetOpenMPThread
 #define StatusMessage              utils::StatusMessage
 #endif

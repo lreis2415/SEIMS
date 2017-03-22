@@ -5,24 +5,19 @@
  * \date Oct. 2011
  * 
  */
-///USELESS? LJ
-//#ifndef SEIMS_STORM_GA_INCLUDE
-//#define SEIMS_STORM_GA_INCLUDE
 #pragma once
-
-#include <string>
 #include "SimulationModule.h"
 
 using namespace std;
 /** \defgroup SUR_SGA
  * \ingroup Hydrology
- * \brief  Green Ampt Method to calculate infiltration and excess precipitation
+ * \brief  Green-Ampt Method to calculate infiltration and excess precipitation
  */
 /*!
  * \class StormGreenAmpt
  * \ingroup SUR_SGA
  *
- * \brief Green Ampt Method to calculate infiltration and excess precipitation
+ * \brief Green-Ampt Method to calculate infiltration and excess precipitation
  *
  */
 class StormGreenAmpt : public SimulationModule {
@@ -68,9 +63,7 @@ private:
     //bool CheckOutputData(float* output1, float* output2);
 
     void clearInputs(void);
-
-    string getDate(time_t *date);
-
+    
 private:
 
     /// time step(seconds)
@@ -102,11 +95,11 @@ private:
     /// snow accumulation from the snow balance module (mm) at t+1 timestep
     float *m_snowAccu;
 
-    /// threshold soil freezing temperature (��)
+    /// threshold soil freezing temperature
     float m_tSoilFrozen;
     /// frozen soil moisture relative to saturation above which no infiltration occur (m3/m3)
     float m_sFrozen;
-    /// soil temperature obtained from the soil temperature module (��)
+    /// soil temperature obtained from the soil temperature module
     float *m_soilTemp;
 
     /// parameters used in GA method
@@ -146,4 +139,3 @@ private:
     void initialOutputs();
 
 };
-///#endif

@@ -1,18 +1,11 @@
 /*!
  * \brief Measurement class to store HydroClimate site data
  *
- *
- *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date May 2016
- *
- * 
  */
 #pragma once
-
-#include <string>
-#include <vector>
 #include "utilities.h"
 #include "MongoUtil.h"
 

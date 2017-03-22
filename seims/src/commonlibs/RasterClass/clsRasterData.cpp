@@ -1,14 +1,3 @@
-/*!
- * \brief Implementation of clsRasterData class
- *
- * 1. Using GDAL and MongoDB (currently, mongo-c-driver 1.5.0)
- * 2. Array1D and Array2D raster data are supported
- * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
- * \date Apr. 2011
- * \revised May. 2016
- *
- */
 #ifndef CLS_RASTER_DATA
 
 #include "clsRasterData.h"
@@ -90,7 +79,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector <string> filenames, bool calcPosit
         if (filenames.size() == 1) {
             this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent, defalutValue);
         } else {  /// construct from multi-layers file
-            m_nLyrs = filenames.size();
+            m_nLyrs = (int) filenames.size();
             /// 1. firstly, take the first layer as the main input, to calculate position index or
             ///    extract by mask if stated.
             this->_construct_from_single_file(filenames[0], calcPositions, mask, useMaskExtent, defalutValue);
@@ -110,7 +99,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector <string> filenames, bool calcPosit
             Release1DArray(m_rasterData);
             /// take the first layer as mask, and useMaskExtent is true, and no need to calculate position data
             //for (vector<string>::iterator iter = filenames.begin(); iter != filenames.end(); iter++){
-            for (int fileidx = 1; fileidx < filenames.size(); fileidx++) {
+            for (size_t fileidx = 1; fileidx < filenames.size(); fileidx++) {
                 map<string, double> tmpheader;
                 T *tmplyrdata = NULL;
                 string curfilename = filenames.at(fileidx);
@@ -443,6 +432,7 @@ T clsRasterData<T, MaskT>::getValue(int validCellIndex, int lyr /* = 1 */) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return m_noDataValue;
     }
 }
 
@@ -477,6 +467,7 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return m_noDataValue;
     }
 }
 
@@ -1547,7 +1538,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             }
             //SetDefaultOpenMPThread();
 #pragma omp parallel for
-            for (int k = 0; k < positionRows.size(); ++k) {
+            for (int k = 0; (size_t) k < positionRows.size(); ++k) {
                 int newIdx = positionRows.at(k) * ncols + positionCols.at(k);
                 if (m_is2DRaster) {
                     m_raster2DData[newIdx][0] = values.at(k);

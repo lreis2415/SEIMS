@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "StormGreenAmpt.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -24,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetClass(MCLS_SUR_RUNOFF, MCLSDESC_SUR_RUNOFF);
     mdi.SetDescription(MDESC_SUR_SGA);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("SUR_SGA.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_SUR_SGA);
     mdi.SetName(MID_SUR_SGA);
     mdi.SetVersion("0.1");
@@ -55,15 +49,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddParameter("t_soil","degree Celsius","threshold soil freezing temperature","ParameterDB_WaterBalance",DT_Single);
-
-//mdi.AddParameter("T0","degree Celsius","snowmelt threshold temperature","ParameterDB_Snow",DT_Single);
-//mdi.AddParameter("T_snow","degree Celsius","snowfall temperature","ParameterDB_Snow",DT_Single);
-//mdi.AddParameter("s_frozen", "m3/m3", "frozen soil moisture","ParameterDB_WaterBalance", DT_Single);
-
-//mdi.AddInput("D_TEMP","oC","Air temperature","Module", DT_Raster);
-//mdi.AddInput("D_SOMO","m3/m3","The soil moisture","Module", DT_Raster);
-//mdi.AddInput("D_SNAC","mm","The snow accumulation","Module",DT_Raster);
-//mdi.AddInput("D_SNME","mm","The snowmelt","Module",DT_Raster);
-
-//mdi.AddOutput("EXCP", "mm","The excess precipitation", DT_Raster);

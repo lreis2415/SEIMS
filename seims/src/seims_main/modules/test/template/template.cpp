@@ -1,8 +1,6 @@
-#include "api.h"
-#include <iostream>
+//#include "vld.h"
+#include "seims.h"
 #include "template.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
 
 using namespace std;
 

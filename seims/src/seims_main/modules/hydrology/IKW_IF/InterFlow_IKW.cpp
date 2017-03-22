@@ -1,18 +1,6 @@
-/*!
- * \brief Interflow routing using implicit finite difference method
- * kinematic wave method in LISEM model
- * \author Junzhi Liu
- * \date Feb. 2011 
- */
-
 //#include "vld.h"
+#include "seims.h"
 #include "InterFlow_IKW.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-#include <cmath>
-#include <iostream>
 
 using namespace std;
 
@@ -22,7 +10,6 @@ InterFlow_IKW::InterFlow_IKW(void) : m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0
                                      m_flowInIndex(NULL), m_routingLayers(NULL), m_nLayers(-1),
                                      m_q(NULL), m_h(NULL), m_sr(NULL), m_streamLink(NULL), m_hReturnFlow(NULL),
                                      m_soilDepth(NULL) {
-    SQ2 = sqrt(2.f);
 }
 
 InterFlow_IKW::~InterFlow_IKW(void) {
@@ -252,7 +239,7 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
         this->m_ks = data;
     } else if (StringMatch(s, VAR_POROST)) {
         this->m_porosity = data;
-    } else if (StringMatch(s, VAR_POREID)) {
+    } else if (StringMatch(s, VAR_POREIDX)) {
         this->m_poreIndex = data;
     } else if (StringMatch(s, VAR_SOL_ST)) {
         this->m_soilMoistrue = data;

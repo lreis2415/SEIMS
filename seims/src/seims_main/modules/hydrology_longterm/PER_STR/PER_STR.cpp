@@ -1,17 +1,5 @@
+#include "seims.h"
 #include "PER_STR.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <sstream>
-#include <math.h>
-#include <cmath>
-#include <time.h>
-#include <stdio.h>
-
-#include <iostream>
-#include <fstream>
-#include <string>
-
 
 PER_STR::PER_STR(void) : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
                          m_ks(NULL), m_sat(NULL), m_fc(NULL),

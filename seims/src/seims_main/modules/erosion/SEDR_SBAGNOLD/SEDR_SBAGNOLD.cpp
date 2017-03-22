@@ -1,14 +1,5 @@
+#include "seims.h"
 #include "SEDR_SBAGNOLD.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-
-#include <cmath>
-#include <iostream>
-#include <set>
-#include <sstream>
-#include <algorithm> 
-
 
 using namespace std;
 
@@ -243,11 +234,11 @@ void SEDR_SBAGNOLD::SetValue(const char *key, float value) {
     if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) value);
     }
-#ifdef STORM_MODEL
-        else if (StringMatch(sk, Tag_ChannelTimeStep))
-        {
-            m_dt = (int) value;
-        }
+#ifdef STORM_MODE
+    else if (StringMatch(sk, Tag_ChannelTimeStep))
+    {
+        m_dt = (int) value;
+    }
 #else
     else if (StringMatch(sk, Tag_TimeStep)) {
         m_dt = (int) value;

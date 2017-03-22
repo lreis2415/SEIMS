@@ -1,20 +1,5 @@
-/*!
- * \brief Calculate groundwater using reservoir method
- * \author Junzhi Liu
- * \date Oct. 2011
- * \revesed LiangJun Zhu
- * \note Change the module name from GWATER_RESERVOIR to GW_RSVR
- */
+#include "seims.h"
 #include "GWaterReservoir.h"
-#include "MetadataInfo.h"
-#include <cmath>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include "ModelException.h"
-#include "utilities.h"
-
-
 
 using namespace std;
 
@@ -26,21 +11,10 @@ GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_re
 }
 
 GWaterReservoir::~GWaterReservoir(void) {
-    if (m_qg != NULL) {
-        delete[] m_qg;
-    }
-
-    if (m_nCellsSubbasin != NULL) {
-        delete[] m_nCellsSubbasin;
-    }
-
-    if (m_percSubbasin != NULL) {
-        delete[] m_percSubbasin;
-    }
-
-    if (m_storage != NULL) {
-        delete[] m_storage;
-    }
+    if (m_qg != NULL) Release1DArray(m_qg);
+    if (m_nCellsSubbasin != NULL) Release1DArray(m_nCellsSubbasin);
+    if (m_percSubbasin != NULL) Release1DArray(m_percSubbasin);
+    if (m_storage != NULL) Release1DArray(m_storage);
 }
 
 bool GWaterReservoir::CheckInputData() {
@@ -97,17 +71,10 @@ bool GWaterReservoir::CheckInputSize(const char *key, int n) {
 
 void GWaterReservoir::InitOutputs(void) {
     if (m_qg == NULL) {
-        m_qg = new float[m_nReaches + 1];
-        m_percSubbasin = new float[m_nReaches + 1];
-        m_nCellsSubbasin = new int[m_nReaches + 1];
-        m_storage = new float[m_nReaches + 1];
-
-#pragma omp parallel for
-        for (int i = 0; i <= m_nReaches; i++) {
-            m_qg[i] = 0.f;
-            m_nCellsSubbasin[i] = 0;
-            m_storage[i] = m_initStorage;
-        }
+        Initialize1DArray(m_nReaches + 1, m_qg, 0.f);
+        Initialize1DArray(m_nReaches + 1, m_nCellsSubbasin, 0);
+        Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
+        Initialize1DArray(m_nReaches + 1, m_storage, m_percSubbasin);
 
 #ifdef MULTIPLY_REACHES
         for (int i = 0; i < m_nCells; i++)
@@ -142,11 +109,11 @@ int GWaterReservoir::Execute(void) {
     //float sum = 0.f;
 #pragma omp parallel for //reduction(+:sum)
     for (int i = 1; i <= m_nReaches; i++) {
-        float percolation = m_percSubbasin[i] * (1 - m_deepCoefficient) / m_nCellsSubbasin[i];
+        float percolation = m_percSubbasin[i] * (1.f - m_deepCoefficient) / m_nCellsSubbasin[i];
         // depth of groundwater runoff(mm)
         float outFlowDepth = m_recessionCoefficient * pow(m_storage[i], m_recessionExponent);
         // groundwater flow out of the subbasin at time t (m3/s)
-        m_qg[i] = outFlowDepth / 1000 * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
+        m_qg[i] = outFlowDepth / 1000.f * m_nCellsSubbasin[i] * m_CellWidth * m_CellWidth / m_dt;
         //sum = sum + m_qg[i];
 
         // water balance (mm)

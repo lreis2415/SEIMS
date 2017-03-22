@@ -1,11 +1,3 @@
-/*!
- * \brief Implement of ModelException class
- * \author Junzhi Liu
- * \version 1.1
- * \date Jun. 2010
- *
- * 
- */
 #include "ModelException.h"
 
 ModelException::ModelException(string className, string functionName, string msg) {
