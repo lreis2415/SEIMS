@@ -1,5 +1,4 @@
 /*!
- * \file IKW_CH.h
  * \brief Routing in the channel cells using implicit finite difference method
  * kinematic wave method in LISEM model
  * \author Junzhi Liu
