@@ -1,20 +1,18 @@
 /*!
- * \brief Routing in the overland cells using implicit finite difference method
- * kinematic wave method in LISEM model
+ * \brief Routing in the overland cells using 1D kinematic wave method in LISEM model
  * \author Junzhi Liu
  * \date Feb. 2011 
  */
+#include <cmath>
+#include <iostream>
+#include <assert.h>
 
-//#include "vld.h"
-#include "ImplicitKinematicWave.h"
 #include "MetadataInfo.h"
 #include "ModelException.h"
 #include "utilities.h"
+#include "seims.h"
 
-#include <cmath>
-#include <iostream>
-
-#include <assert.h>
+#include "ImplicitKinematicWave.h"
 
 using namespace std;
 
@@ -39,16 +37,16 @@ ImplicitKinematicWave_OL::ImplicitKinematicWave_OL(void) : m_nCells(-1), m_CellW
     //m_diagonal[64] = 0;
     //m_diagonal[128] = 1;
 
-    m_diagonal[1] = 0;
-    m_diagonal[2] = 1;
-    m_diagonal[3] = 0;
-    m_diagonal[4] = 1;
-    m_diagonal[5] = 0;
-    m_diagonal[6] = 1;
-    m_diagonal[7] = 0;
-    m_diagonal[8] = 1;
+    //m_diagonal[1] = 0;
+    //m_diagonal[2] = 1;
+    //m_diagonal[3] = 0;
+    //m_diagonal[4] = 1;
+    //m_diagonal[5] = 0;
+    //m_diagonal[6] = 1;
+    //m_diagonal[7] = 0;
+    //m_diagonal[8] = 1;
 
-    SQ2 = sqrt(2.f);
+    //SQ2 = sqrt(2.f);
 
 }
 
@@ -154,7 +152,8 @@ void ImplicitKinematicWave_OL::initialOutputs() {
             // flow width
             m_flowWidth[i] = m_CellWidth;
             int dir = (int) m_direction[i];
-            if (m_diagonal[dir] == 1) {
+            //if ((int) m_diagonal[dir] == 1) {
+            if (DiagonalCCW[dir] == 1) {
                 m_flowWidth[i] = m_CellWidth / SQ2;
             }
             if (m_streamLink[i] > 0) {
@@ -169,7 +168,8 @@ void ImplicitKinematicWave_OL::initialOutputs() {
 
             // flow length needs to be corrected by slope angle
             float dx = m_CellWidth / cos(m_sRadian[i]);
-            if (m_diagonal[dir] == 1) {
+            //if ((int) m_diagonal[dir] == 1) {
+            if (DiagonalCCW[dir] == 1) {
                 dx = SQ2 * dx;
             }
             m_flowLen[i] = dx;

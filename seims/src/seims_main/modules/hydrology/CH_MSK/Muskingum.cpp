@@ -279,7 +279,7 @@ void Muskingum::initialOutputs() {
                 dx = m_CellWidth / cos(atan(m_s0[id]));
                 int dir = (int) m_direction[id];
                 //if ((int) m_diagonal[dir] == 1) {
-                if ((int) DiagonalCCW[dir] == 1) {
+                if (DiagonalCCW[dir] == 1) {
                     dx = SQ2 * dx;
                 }
                 m_flowLen[i][j] = dx;
