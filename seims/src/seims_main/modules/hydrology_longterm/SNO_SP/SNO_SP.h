@@ -1,6 +1,5 @@
 /*!
- * \file SNO_SP.h
- * \brief
+ * \brief Snow melt by snowpack daily method from SWAT
  * \author Zhiqiang Yu
  * \date May 2011
  * \revised LiangJun Zhu
@@ -16,7 +15,8 @@
 
 using namespace std;
 
-/** \defgroup SNO_SP
+/*!
+ * \defgroup SNO_SP
  * \ingroup Hydrology_longterm
  * \brief Calculate snow melt by snowpack daily method from SWAT
  *

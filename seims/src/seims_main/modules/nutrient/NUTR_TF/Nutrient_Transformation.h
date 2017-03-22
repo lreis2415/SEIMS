@@ -1,6 +1,6 @@
 /*!
  * \brief Daily nitrogen and phosphorus mineralization and immobilization.
- * From nminrl.f, nitvol.f, pminrl.f, and pminrl2.f of SWAT
+ *        From nminrl.f, nitvol.f, pminrl.f, and pminrl2.f of SWAT
  * \author Huiran Gao
  * \date April 2016
  *
@@ -11,7 +11,8 @@
  *        3. m_hmntl etc. variables should be DT_Raster1D rather than DT_Single since they are soil profile values in cell!
  */
 
-/** \defgroup NUTR_TF
+/*!
+ * \defgroup NUTR_TF
  * \ingroup Nutrient
  * \brief Daily nitrogen and phosphorus mineralization and immobilization.
  * From nminrl.f, nitvol.f, pminrl.f, and pminrl2.f of SWAT
@@ -32,7 +33,6 @@ using namespace std;
  *  Considering fresh organic material (plant residue) and active and stable humus material.
  *
  */
-
 class Nutrient_Transformation : public SimulationModule {
 public:
     Nutrient_Transformation(void);

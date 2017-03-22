@@ -1,5 +1,4 @@
 /*!
- * \file NutrientMovementViaWater.h
  * \brief Simulates the loss of nitrate and phosphorus via surface runoff, 
  *        lateral flow, tile flow, and percolation out of the profile.
  *        Method of SWAT

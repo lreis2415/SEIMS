@@ -1,21 +1,30 @@
-/** 
-*	@file
+/**
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	31-Octobor-2011
 *
-*	@brief	Green Ampt Method to calculate infiltration and excess precipitation
+*	@brief	Calculate infiltration and excess precipitation
 *
 */
 
-#ifndef SEIMS_STORM_GA_INCLUDE
-#define SEIMS_STORM_GA_INCLUDE
+#pragma once
 
-#include <string>
 #include "SimulationModule.h"
 
 using namespace std;
+/*!
+ * \defgroup SUR_ES
+ * \ingroup Hydrology_longterm
+ * \brief Calculate infiltration and excess precipitation
+ *
+ */
 
+/*!
+ * \class ExcessRunoff
+ * \ingroup SUR_ES
+ * \brief Calculate infiltration and excess precipitation
+ *
+ */
 class ExcessRunoff : public SimulationModule {
 public:
     ExcessRunoff(void);
@@ -58,7 +67,7 @@ private:
 
     void clearInputs(void);
 
-    string getDate(time_t *date);
+//    string getDate(time_t *date);
 
 private:
 
@@ -77,11 +86,11 @@ private:
     float *m_snowMelt;
     /// snow accumulation from the snow balance module (mm) at t+1 timestep
     float *m_snowAccu;
-    /// threshold soil freezing temperature (��)
+    /// threshold soil freezing temperature (deg C)
     float m_tFrozen;
     /// frozen soil moisture relative to saturation above which no infiltration occur (m3/m3)
     float m_sFrozen;
-    /// soil temperature obtained from the soil temperature module (��)
+    /// soil temperature obtained from the soil temperature module (deg C)
     float *m_soilTemp;
 
     /// count of valid cells
@@ -114,5 +123,3 @@ private:
     float *m_infil;
 
 };
-
-#endif

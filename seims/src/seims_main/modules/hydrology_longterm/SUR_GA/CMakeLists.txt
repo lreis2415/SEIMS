@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: SUR_GA...")
-SET(SRC_LIST ${MODULE_SRC} SUR_GA.cpp api.cpp)
+SET(SRC_LIST ${MODULE_SRC} SUR_GreenAmpt.cpp api.cpp)
 ADD_LIBRARY(SUR_GA SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(SUR_GA util data bmps module_setting)

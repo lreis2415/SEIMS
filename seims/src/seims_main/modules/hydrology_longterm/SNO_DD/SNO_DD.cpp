@@ -1,7 +1,5 @@
+#include "seims.h"
 #include "SNO_DD.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
 
 
 SNO_DD::SNO_DD(void) : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE),

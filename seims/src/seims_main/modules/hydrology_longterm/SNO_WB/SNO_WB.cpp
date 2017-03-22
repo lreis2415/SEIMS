@@ -1,9 +1,5 @@
+#include "seims.h"
 #include "SNO_WB.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include <math.h>
-#include <cmath>
-#include "utilities.h"
 
 
 SNO_WB::SNO_WB(void) {

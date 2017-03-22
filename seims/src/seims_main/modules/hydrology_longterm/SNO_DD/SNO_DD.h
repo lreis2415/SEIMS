@@ -1,5 +1,4 @@
 /*!
- * \file SNO_DD.h
  * \brief
  * \author Chunping Ou
  * \date May 2011
@@ -12,14 +11,12 @@
  */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
-/** \defgroup SNO_DD
+/*!
+ * \defgroup SNO_DD
  * \ingroup Hydrology_longterm
  * \brief Calculate snow melt by Degree-Day method
  *
