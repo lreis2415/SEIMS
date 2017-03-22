@@ -1,5 +1,4 @@
 /*!
- * \file KinWavSed_OL.h
  * \brief Kinematic wave routing method for overland erosion and deposition
  * \author Hui Wu
  * \date Feb. 2012
@@ -7,12 +6,8 @@
  * \revised date May. 2016
  */
 
-#ifndef SEIMS_KinWavSed_OL_INCLUDE
-#define SEIMS_KinWavSed_OL_INCLUDE
+#pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
 #include "SimulationModule.h"
 
 using namespace std;
@@ -222,5 +217,3 @@ private:
     float *m_fract;
 
 };
-
-#endif

@@ -23,8 +23,9 @@ public:
     ~NutrCommon(void);
 
 public:
-    /* Calculate enrichment ratio for nutrient transport with runoff and sediment
-	 * enrsb.f of SWAT
+    /*!
+     * \brief Calculate enrichment ratio for nutrient transport with runoff and sediment
+	 *           enrsb.f of SWAT
 	 * \param sedyld sediment yield, kg
 	 * \param surfq surface runoff, mm
 	 * \param area area, ha

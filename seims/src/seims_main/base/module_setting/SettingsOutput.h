@@ -6,12 +6,9 @@
  * \date June 2010
  */
 #pragma once
-
-#include <vector>
-
+#include "utilities.h"
 #include "Settings.h"
 #include "PrintInfo.h"
-#include "utilities.h"
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
 
@@ -35,13 +32,13 @@ public:
     //! Load output setting from file
     bool LoadSettingsFromFile(int subBasinID, string fileOutPath);
 
-    /*
+    /*!
      * \brief Load output setting from MongoDB
-     * Which is combination of \sa LoadSettingsFromFile() and ParseOutputSettings()
+     *        Which is combination of \sa LoadSettingsFromFile() and \sa ParseOutputSettings()
      */
     bool LoadSettingsOutputFromMongoDB(int subBasinID);
 
-    /*
+    /*!
      * \brief Read subbasin numbers, outlet ID, etc. from MongoDB
      */
     void SetSubbasinIDs();
@@ -58,7 +55,8 @@ public:
 public:
     //! All the print settings
     vector<PrintInfo *> m_printInfos;
-    /* All the output settings
+    /*!
+     * All the output settings
      * key: OutputID
      * value: \sa PrintInfo instance
      */

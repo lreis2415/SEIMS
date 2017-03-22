@@ -1,17 +1,11 @@
-#include <stdio.h>
-#include <string>
+#include "SUR_GreenAmpt.h"
+
 #include "api.h"
-#include "utilities.h"
-#include "SUR_GA.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
 GetInstance() {
-    return new SUR_GA();
+    return new SUR_GreenAmpt();
 }
 
 // function to return the XML Metadata document string
@@ -23,9 +17,9 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetClass("Surface runoff", "Calculate infiltration and excess precipitation.");
     mdi.SetDescription("Green and Ampt method to calculate infiltration and excess precipitation.");
     mdi.SetEmail("");
-    mdi.SetHelpfile("SUR_GA.chm");
-    mdi.SetID("SUR_GA");
-    mdi.SetName("SUR_GA");
+    mdi.SetHelpfile("SUR_GreenAmpt.chm");
+    mdi.SetID("SUR_GreenAmpt");
+    mdi.SetName("SUR_GreenAmpt");
     mdi.SetVersion("0.1");
     mdi.SetWebsite("http://www.website.com");
 

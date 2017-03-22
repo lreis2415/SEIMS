@@ -1,18 +1,19 @@
-/*
+/*!
  * Revision:    Liang-Jun Zhu
  * Date:        2016-7-28
  * Description: 1. Move subbasin class to base/data/clsSubbasin, to keep consistent with other modules
  *              2. Code cleanup
- *              3. 
  *
  */
 #pragma once
+
 #include "SimulationModule.h"
 #include "clsSubbasin.h"
 
 using namespace std;
 
-/** \defgroup SOL_WB
+/*!
+ * \defgroup SOL_WB
  * \ingroup Hydrology_longterm
  * \brief Soil water balance calculation
  *
@@ -120,7 +121,7 @@ private:
     //!
     void initialOutputs();
 
-    /*
+    /*!
      * \brief Set parameter values to subbasins
      */
     void setValueToSubbasins(void);

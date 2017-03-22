@@ -1,21 +1,5 @@
-/*!
- * \brief Kinematic wave method for channel flow erosion and deposition
- * \author Hui Wu
- * \date Feb. 2012
- * \revised LiangJun Zhu
- * \revised date May. 2016
- */
+#include "seims.h"
 #include "KinWavSed_CH.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdio>
-
-
 
 using namespace std;
 
@@ -138,7 +122,7 @@ void KinWavSed_CH::GetValue(const char *key, float *value) {
         it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
-        int iLastCell = m_reachs[reachId].size() - 1;
+        int iLastCell = (int) m_reachs[reachId].size() - 1;
         *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
         //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
     } else {
@@ -760,13 +744,13 @@ int KinWavSed_CH::Execute() {
     for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int nReaches = it->second.size();
+        int nReaches = (int) it->second.size();
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < nReaches; ++i) {
             int reachIndex = it->second[i]; // index in the array
             vector<int> &vecCells = m_reachs[reachIndex];
-            int n = vecCells.size();
+            int n = (int) vecCells.size();
             for (int iCell = 0; iCell < n; ++iCell) {
                 ChannelflowSedRouting(reachIndex, iCell, vecCells[iCell]);
             }

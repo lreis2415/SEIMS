@@ -1,8 +1,5 @@
+#include "seims.h"
 #include "IUH_IF.h"
-#include "MetadataInfo.h"
-#include "ModelException.h"
-#include "utilities.h"
-#include <map>
 
 
 using namespace std;

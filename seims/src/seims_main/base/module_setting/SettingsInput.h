@@ -6,16 +6,11 @@
  * \date June 2010
  */
 #pragma once
-
-#include <cstdlib>
-#include <map>
-#include <set>
-
+#include "utilities.h"
 #include "Settings.h"
 #include "InputStation.h"
 #include "Scenario.h"
 #include "MongoUtil.h"
-#include "utilities.h"
 
 using namespace MainBMP;
 
@@ -86,9 +81,6 @@ private:
     //! Simulation mode, can be DAILY or HOURLY
     string m_mode;
 private:
-
-    //void buildTimeQuery(time_t startTime, time_t endTime, bson_t* query);/// Deprecated
-    //void buildQuery(const set<int>& idSet, const string& type, bson_t* query);/// Deprecated
     bool LoadSettingsFromFile(string, string);
 
     bool LoadSettingsInputFromMongoDB();

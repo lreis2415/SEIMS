@@ -1,4 +1,4 @@
-/*
+/*!
  * \brief
  * \author Junzhi Liu
  */

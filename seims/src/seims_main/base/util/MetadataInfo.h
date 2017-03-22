@@ -6,9 +6,7 @@
  */
 #pragma once
 
-#include <sstream>
-#include <string>
-#include <vector>
+#include "utilities.h"
 #include "MetadataInfoConst.h"
 
 using namespace std;

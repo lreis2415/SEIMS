@@ -11,7 +11,8 @@
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup STP_FP
+/*!
+ * \defgroup STP_FP
  * \ingroup Hydrology_longterm
  * \brief Finn Plauborg Method to Compute Soil Temperature
  *

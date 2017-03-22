@@ -39,19 +39,28 @@
 
 #pragma once
 
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
+/*!
+ * \defgroup SUR_GA
+ * \ingroup Hydrology_longterm
+ * \brief Green-Ampt Method to calculate infiltration and excess precipitation
+ *
+ */
 
-class SUR_GA : public SimulationModule {
+/*!
+ * \class SUR_GreenAmpt
+ * \ingroup SUR_GA
+ * \brief Green-Ampt Method to calculate infiltration and excess precipitation
+ *
+ */
+class SUR_GreenAmpt : public SimulationModule {
 public:
-    SUR_GA(void);
+    SUR_GreenAmpt(void);
 
-    ~SUR_GA(void);
+    ~SUR_GreenAmpt(void);
 
     virtual int Execute();
 
