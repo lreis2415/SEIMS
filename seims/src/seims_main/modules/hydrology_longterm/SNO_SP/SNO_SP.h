@@ -12,14 +12,10 @@
  * 
  */
 #pragma once
-
-#include <string>
-#include <ctime>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup SNO_SP
  * \ingroup Hydrology_longterm
  * \brief Calculate snow melt by snowpack daily method from SWAT

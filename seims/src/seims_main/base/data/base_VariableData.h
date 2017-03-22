@@ -1,14 +1,11 @@
 /*!
- * \file base_VariableData.h
- * \brief Base class used to store input and output variable datasets
+ * \brief Base class of variable data
+ *        Base class used to store input and output variable datasets
  * \author Junzhi Liu
  * \version 1.1
  * \date Jun. 2010
  */
-
 #pragma once
-
-#include <string>
 #include "MetadataInfoConst.h"
 
 using namespace std;

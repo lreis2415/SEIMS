@@ -6,13 +6,7 @@
  * \date 2016-5-29
  */
 #pragma once
-
-#include "api.h"
 #include "SimulationModule.h"
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
 
 using namespace std;
 /** \defgroup PER_PI

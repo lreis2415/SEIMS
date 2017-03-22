@@ -1,10 +1,3 @@
-/*!
- * \brief Methods for clsInterpolationWeightData class
- *
- * \author Junzhi Liu, LiangJun Zhu
- * \version 2.0
- * \date May. 2016, Feb 2017
- */
 #include "clsInterpolationWeightData.h"
 
 using namespace std;

@@ -6,17 +6,9 @@
  */
 #pragma once
 
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
-
 #include "SimulationModule.h"
 
 #define MIN_FLUX 1e-9f
-const float _23 = 2.0f / 3.0f;
-const float SQ2 = sqrt(2.f);
 
 using namespace std;
 /** \defgroup CH_DW

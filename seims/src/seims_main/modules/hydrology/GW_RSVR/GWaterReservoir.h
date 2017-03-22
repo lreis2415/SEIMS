@@ -1,15 +1,11 @@
 /*!
- * \file GWaterReservoir.h
  * \brief Calculate groundwater using reservoir method
  * \author Junzhi Liu
  * \date Oct. 2011
  * \revesed LiangJun Zhu
  * \note Change the module name from GWATER_RESERVOIR to GW_RSVR
  */
-
 #pragma once
-
-#include <string>
 #include "SimulationModule.h"
 
 using namespace std;

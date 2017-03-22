@@ -1,15 +1,5 @@
+#include "seims.h"
 #include "PER_PI.h"
-#include "MetadataInfo.h"
-#include "utilities.h"
-#include "ModelException.h"
-#include <sstream>
-#include <cmath>
-#include <time.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-
 
 PER_PI::PER_PI(void) : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
                        m_ks(NULL), m_sat(NULL), m_poreIndex(NULL), m_fc(NULL),

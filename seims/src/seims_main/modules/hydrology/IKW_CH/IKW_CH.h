@@ -7,22 +7,18 @@
 
 #pragma once
 
-#include <string>
-#include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
-
+/*!
+ * \brief 1-Dimensional kinematic wave method in LISEM model
+ * \author Junzhi Liu
+ * \date Feb. 2011 
+ */
+#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
 
-
 #define MIN_FLUX 1e-12f
 #define MAX_ITERS_CH 10
-
-const float _23 = 2.0f / 3.0f;
-const float SQ2 = sqrt(2.f);
 
 /** \defgroup IKW_CH
  * \ingroup Hydrology

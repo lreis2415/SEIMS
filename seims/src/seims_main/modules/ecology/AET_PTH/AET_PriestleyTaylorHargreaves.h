@@ -9,14 +9,8 @@
  * \date: 2016-7-15
  * \description: 1. Code reformat with common functions, such as Release1DArray.
  *               2. VAR_SNSB should be output other than input.
- *               3. 
- * 
  */
 #pragma once
-
-#include <string>
-#include "api.h"
-#include "utilities.h"
 #include "SimulationModule.h"
 
 using namespace std;

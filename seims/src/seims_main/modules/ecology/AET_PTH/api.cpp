@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
-#include "utilities.h"
-#include "api.h"
 #include "AET_PriestleyTaylorHargreaves.h"
+
+#include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *
 
@@ -18,7 +12,6 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
     string res;
-
     mdi.SetAuthor("LiangJun Zhu");
     mdi.SetClass(MCLS_AET, MCLSDESC_AET);
     mdi.SetDescription(MDESC_AET_PTH);

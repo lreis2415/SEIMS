@@ -1,21 +1,14 @@
 /*
- * 
+ * \brief 
  * \review Liang-Jun Zhu
  * \date 2016-7-24
  * \note: 1. Add support of multi soil layers of each cells.
- *        2. 
  */
 #pragma once
-
-#include <string>
-#include <vector>
-#include <string>
-#include <sstream>
-#include "api.h"
+#include "SimulationModule.h"
 
 using namespace std;
 
-#include "SimulationModule.h"
 /** \defgroup SSR_DA
  * \ingroup Hydrology_longterm
  * \brief --
