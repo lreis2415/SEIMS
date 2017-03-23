@@ -2,7 +2,7 @@
 
 ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
                      ModuleFactory *factory,
-                     int subBasinID /* = 1 */, int scenarioID /* = 0 */, int numThread /* = 1 */,
+                     int subBasinID /* = 1 */, int scenarioID /* = -1 */, int numThread /* = 1 */,
                      LayeringMethod layeringMethod /* = UP_DOWN */)
     : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input),
       m_factory(factory),
@@ -15,11 +15,12 @@ ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, S
     if (err != NULL) {
         throw ModelException("MainMongoDB", "ModelMain", "Failed to get GridFS: " + string(DB_TAB_SPATIAL) + ".\n");
     }
-    string outputScene = string(DB_TAB_OUT_SPATIAL) + ValueToString(m_scenarioID);
-    m_outputGfs = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), outputScene.c_str(), err);
+    m_outputScene = string(DB_TAB_OUT_SPATIAL);
+    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
+        m_outputScene  += ValueToString(m_scenarioID);
+    m_outputGfs = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), m_outputScene.c_str(), err);
     if (err != NULL) {
-        throw ModelException("MainMongoDB", "ModelMain",
-                             "Failed to create output GridFS: " + outputScene + ".\n");
+        throw ModelException("MainMongoDB", "ModelMain", "Failed to create output GridFS: " + m_outputScene + ".\n");
     }
 
     m_dtDaily = m_input->getDtDaily();
@@ -230,7 +231,7 @@ void ModelMain::Execute() {
 void ModelMain::Output() {
     //clock_t t1 = clock();
     double t1 = TimeCounting();
-    string outputPath = m_projectPath + DB_TAB_OUT_SPATIAL + ValueToString(m_scenarioID);
+    string outputPath = m_projectPath + m_outputScene;
 #ifdef windows
     if (::GetFileAttributes(outputPath.c_str()) == INVALID_FILE_ATTRIBUTES)
     {
@@ -262,8 +263,7 @@ void ModelMain::Output() {
         vector<PrintInfoItem *>::iterator itemIt;
         for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
             PrintInfoItem *item = *itemIt;
-            item->Flush(m_projectPath + DB_TAB_OUT_SPATIAL + ValueToString(m_scenarioID) + SEP,
-                        m_templateRasterData, (*it)->getOutputTimeSeriesHeader());
+            item->Flush(m_projectPath + m_outputScene + SEP, m_templateRasterData, (*it)->getOutputTimeSeriesHeader());
         }
     }
     //clock_t t2 = clock();

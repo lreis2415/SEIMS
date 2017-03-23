@@ -47,7 +47,7 @@ public:
      * \param[in] input \sa SettingInput, input setting information
      * \param[in] factory \sa ModuleFactory, module factory instance
      * \param[in] subBasinID subBasinID, default is 1
-     * \param[in] scenarioID Scenario ID, default is 0
+     * \param[in] scenarioID Scenario ID, default is -1
      * \param[in] numThread Thread number for OpenMP, default is 1
      * \param[in] layeringMethod Layering method, default is UP_DOWN
      */
@@ -136,6 +136,8 @@ private:
     string m_dbName;
     //! Scenario ID
     int m_scenarioID;
+    //! Output scenario identifier, e.g. output1 means scenario 1
+    string m_outputScene;
     //! thread number for omp
     int m_threadNum;
     //! SubBasin ID
