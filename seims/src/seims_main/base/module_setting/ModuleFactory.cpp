@@ -848,7 +848,6 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
     catch (...) {
         throw ModelException("ModuleFactory", "ReadConfigFile", "Failed!");
     }
-
 }
 
 void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,

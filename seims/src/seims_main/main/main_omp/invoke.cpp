@@ -49,7 +49,7 @@ void MainMongoDB(string modelPath, char *host, int port, int scenarioID, int num
     try {
         /// 1. Get paths and model name
         string exePath = GetAppPath();
-        string modulePath = exePath + SEP;
+        string modulePath = exePath;
         string projectPath = modelPath + SEP;
         string configFile = projectPath + File_Config;
         checkProject(projectPath);
