@@ -127,16 +127,10 @@ private:
     int m_id;
     /// Scenario Name, e.g., base scenario
     string m_name;
-
-    /*!
-     * Model path, used to find BMP.db3 in previous version
-     * \deprecated now because of the use of MongoDB
-     */
-    //string m_projectPath;
 private:
     /*!
-     * Map of BMPs Factory
-     * the Key is unique BMP ID, and the value is \sa BMPFactory
+     * \brief Map of BMPs Factory
+     *        the Key is unique BMP ID, and the value is \sa BMPFactory
      */
     map<int, BMPFactory *> m_bmpFactories;
 

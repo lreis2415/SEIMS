@@ -16,15 +16,13 @@
 using namespace std;
 using namespace MainBMP;
 /** \defgroup PLTMGT_SWAT
- * \ingroup Ecology
+ * \ingroup Management
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
  */
 /*!
  * \class MGTOpt_SWAT
  * \ingroup PLTMGT_SWAT
- *
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
- * 
  */
 class MGTOpt_SWAT : public SimulationModule {
 private:

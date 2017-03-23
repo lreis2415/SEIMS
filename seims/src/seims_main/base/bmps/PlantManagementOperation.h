@@ -10,9 +10,9 @@
 using namespace std;
 namespace MainBMP {
 /*!
- * \addtogroup PlantManagement
  * \ingroup MainBMP
- * \brief Plant management related operations
+ * \brief Base namespace for Plant management related operations
+ * \author Liang-Jun Zhu
  */
 namespace PlantManagement {
 /*!
