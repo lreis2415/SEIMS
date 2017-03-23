@@ -16,6 +16,7 @@
 /// math and STL headers
 #include <cmath>
 #include <cfloat>
+#include <array>
 #include <vector>
 #include <map>
 #include <algorithm>
