@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 # coding=utf-8
+## @package hydro
+#  Hydrology relation functions
+#
 import math
 
 from ..utils.utils import StringClass
