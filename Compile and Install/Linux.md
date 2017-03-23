@@ -46,10 +46,10 @@ deap>=1.0.2
 scoop>=0.7.1.1
 ```
 
-SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
-+ 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
-+ `python get-pip.py`
++ SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
+  + 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+  + `python get-pip.py`
 
-对于Linux系统，执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库。
++ 执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库，包括SEIMS自带的`PyGeoC`。
 
-安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
++ 安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
