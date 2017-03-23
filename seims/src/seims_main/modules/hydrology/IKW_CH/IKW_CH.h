@@ -17,8 +17,6 @@
 
 using namespace std;
 
-#define MIN_FLUX 1e-12f
-#define MAX_ITERS_CH 10
 
 /** \defgroup IKW_CH
  * \ingroup Hydrology
