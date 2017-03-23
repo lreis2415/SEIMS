@@ -1,5 +1,5 @@
 /*!
- * \brief Base class for implementation of BMP configuration
+ * \brief Base namespace for implementation of BMP configuration
  * \author Liang-Jun Zhu
  */
 #pragma once
@@ -10,10 +10,9 @@
 
 /*!
  * \brief Base class of all kind of BMPs Factory.
- * Read from BMP_SCENARIOS collection of MongoDB
+ *        Read from BMP_SCENARIOS collection of MongoDB
  * \ingroup bmps
  */
- 
 namespace MainBMP {
 /*!
  * \class BMPFactory
