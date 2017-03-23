@@ -159,7 +159,8 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T **&values, 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, 
+    clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_initialize_raster_class();
     this->ReadFromMongoDB(gfs, remoteFilename, calcPositions, mask, useMaskExtent, defalutValue);
 }
@@ -852,7 +853,8 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string  filename, mongoc_gridfs_t 
     }
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,string  filename, map<string, double>& header,string  srs, T *values, int datalength) {
+void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,string  filename, 
+    map<string, double>& header,string  srs, T *values, int datalength) {
     bson_t p = BSON_INITIALIZER;
     for (map<string, double>::iterator iter = header.begin(); iter != header.end(); iter++){
         BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
@@ -910,7 +912,8 @@ void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, 
+    clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
     /// 1. Get stream data and metadata by file name
     MongoGridFS mgfs = MongoGridFS();
