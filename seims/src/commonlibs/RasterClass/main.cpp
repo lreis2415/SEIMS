@@ -50,6 +50,11 @@ int main(int argc, const char *argv[]) {
     cout << "valid cell number: " << readr.getValidNumber() << endl;
     cout << "mean: " << readr.getAverage() << ", max: " << readr.getMaximum() << endl;
     cout << "min: " << readr.getMinimum() << ", std: " << readr.getSTD() << endl;
+    /// get value
+    cout << "value on (1, 1): " << readr.getValue(RowColCoor(1, 1)) << endl;
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+    cout << "value on (1, 1), C++11 version: " << readr.getValue({1, 1}) << endl;
+#endif
     cout << endl << endl;
     /// 3. Output raster to file
     readr.outputToFile(ascdemout);
@@ -73,9 +78,23 @@ int main(int argc, const char *argv[]) {
         cout << "  mean: " << readr2D.getAverage(i) << ", max: " << readr2D.getMaximum(i) << endl;
         cout << "  min: " << readr2D.getMinimum(i) << ", std: " << readr2D.getSTD(i) << endl;
     }
+    /// get value
+    int nlyrs = 0;
+    float *cellvalues = NULL;
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+    readr2D.getValue({5, 5}, &nlyrs, &cellvalues);
+#else
+    readr2D.getValue(RowColCoor(5, 5), &nlyrs, &cellvalues);
+#endif
+    if (nlyrs > 0 && cellvalues != NULL){
+        cout << "there are " << nlyrs << " layers, and value on (1, 1) are: ";
+        for (int i = 0; i < nlyrs; i++)
+            cout << cellvalues[i] << ", ";
+        cout << endl;
+    }
     readr2D.outputToFile(ascdemout2);
     /******* GDAL Raster Demo *********/
-
+    cout << endl << endl;
     cout << "--  1D Raster Demo by GDAL" << endl;
     string demfile = apppath + "../data/dem_1.tif";
     string demfile2 = apppath + "../data/dem_2.tif";

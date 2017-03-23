@@ -330,7 +330,9 @@ void clsRasterData<T, MaskT>::getStatistics(string sindex, int *lyrnum, double *
 
 template<typename T, typename MaskT>
 int clsRasterData<T, MaskT>::getPosition(int row, int col) {
-    if (m_calcPositions || m_rasterPositionData == NULL) return -1;
+    if (m_calcPositions || m_rasterPositionData == NULL){
+        return this->getCols() * row + col;
+    }
     for (int i = 0; i < m_nCells; i++) {
         if (row == m_rasterPositionData[i][0] && col == m_rasterPositionData[i][1]) {
             return i;
@@ -471,6 +473,13 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
     }
 }
 
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+template<typename T, typename MaskT>
+T clsRasterData<T, MaskT>::getValue(initializer_list<int> poslist, int lyr /* = 1 */){
+    return getValue(RowColCoor(*poslist.begin(), *(poslist.end() - 1)), lyr);
+}
+#endif
+
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::setValue(RowColCoor pos, T value, int lyr /* = 1 */) {
     int idx = this->getPosition(pos.row, pos.col);
@@ -497,12 +506,13 @@ T clsRasterData<T, MaskT>::isNoData(RowColCoor pos, int lyr /* = 1 */) {
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **values) {
     try {
-        if (m_rasterData == NULL || (m_is2DRaster && m_raster2DData == NULL)) {
+        if (m_rasterData == NULL && (m_is2DRaster && m_raster2DData == NULL)) {
             throw ModelException("claRasterData", "getValue", "Please first initialize the raster object.");
         }
-        // return NODATA if row, col, or lyr exceeds the extent
+        // return NULL if row, col, or lyr exceeds the extent
         if (validCellIndex < 0 || validCellIndex > m_nCells || *nLyrs > m_nLyrs) {
-            return m_noDataValue;
+            *nLyrs = -1;
+            *values = NULL;
         }
         /// get index according to position data if possible
         if (m_calcPositions && m_rasterPositionData != NULL) {
@@ -510,10 +520,11 @@ void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **value
                 throw ModelException("clsRasterData", "getValue",
                                      "The index is too big! There are not so many valid cell in the raster.");
             }
-        } else {
-            throw ModelException("clsRasterData", "getValue", "The position data is not calculated!");
-        }
-        if (m_is2DRaster && m_raster2DData == NULL) {
+        } 
+        //else {
+        //    throw ModelException("clsRasterData", "getValue", "The position data is not calculated!");
+        //}
+        if (m_is2DRaster && m_raster2DData != NULL) {
             T *cellValues = new T[m_nLyrs];
             for (int i = 0; i < m_nLyrs; i++) {
                 cellValues[i] = m_raster2DData[validCellIndex][i];
@@ -544,6 +555,13 @@ void clsRasterData<T, MaskT>::getValue(RowColCoor pos, int *nLyrs, T **values) {
         this->getValue(validCellIndex, nLyrs, values);
     }
 }
+
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::getValue(initializer_list<int> poslist, int *nLyrs, T **values){
+    getValue(RowColCoor(*poslist.begin(), *(poslist.end() - 1)), nLyrs, values);
+}
+#endif
 
 /************* Output to file functions ***************/
 
@@ -1381,7 +1399,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             for (int i = 0; i < maskRows; ++i) {
                 for (int j = 0; j < maskCols; ++j) {
                     /// check mask data
-                    RowColCoor pos = {i, j};
+                    RowColCoor pos(i, j);
                     if (FloatEqual(m_mask->getValue(pos), m_mask->getNoDataValue())) continue;
                     double *tmpXY = m_mask->getCoordinateByRowCol(i, j);
                     /// get current raster value by XY
