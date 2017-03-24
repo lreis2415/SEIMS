@@ -4,8 +4,6 @@ set -e
 brew update
 brew install gdal
 echo "Installing and starting mongodb"
-brew unlink openssl
-brew uninstall openssl
 brew install automake autoconf libtool pkgconfig openssl
 brew install mongodb
 # install mpich2, be aware, mpich2 got error on macOS!
