@@ -59,7 +59,7 @@
 /// Class utilsFileIO
 #ifndef windows
 #define copyfile_unix             utilsFileIO::copyfile_unix
-#endif
+#endif /* windows */
 #define GetAppPath                utilsFileIO::GetAppPath
 #define GetCoreFileName           utilsFileIO::GetCoreFileName
 #define GetSuffix                 utilsFileIO::GetSuffix
@@ -77,6 +77,6 @@
 #define SetDefaultOpenMPThread     utils::SetDefaultOpenMPThread
 #define SetOpenMPThread            utils::SetOpenMPThread
 #define StatusMessage              utils::StatusMessage
-#endif
+#endif /* CLS_UTILS */
 
-#endif
+#endif /* MODEL_UTILITIES_HEADER */

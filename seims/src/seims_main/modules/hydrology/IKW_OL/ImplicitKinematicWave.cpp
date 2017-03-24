@@ -168,7 +168,7 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
         return (0);
     }
 
-    Qkx = max(Qkx, MIN_FLUX);
+    Qkx = MAX(Qkx, MIN_FLUX);
 
     count = 0;
     do {
