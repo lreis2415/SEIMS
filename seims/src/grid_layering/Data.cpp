@@ -67,7 +67,7 @@ void OutputArcAscii(const char *filename, RasterHeader &rs, int *data, int noDat
 
 void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, int *&data) {
     char *buf;
-    int length;
+    size_t length;
     bson_t *bmeta;
     MongoGridFS().getStreamData(string(remoteFilename), buf, length, gfs);
     bmeta = MongoGridFS().getFileMetadata(string(remoteFilename), gfs);
@@ -91,7 +91,7 @@ void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeade
 
 void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, float *&data) {
     char *buf;
-    int length;
+    size_t length;
     bson_t *bmeta;
     MongoGridFS().getStreamData(string(remoteFilename), buf, length, gfs);
     bmeta = MongoGridFS().getFileMetadata(string(remoteFilename), gfs);
@@ -122,7 +122,7 @@ int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int num
     BSON_APPEND_DOUBLE(&p, "NUMBER", number);
     MongoGridFS().removeFile(string(remoteFilename), gfs);
 
-    int n = number * 4;
+    size_t n = number * sizeof(float);
     MongoGridFS().writeStreamData(string(remoteFilename), s, n, &p, gfs);
     bson_destroy(&p);
     return true;

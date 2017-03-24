@@ -188,7 +188,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
         //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
         return false;
     }
-#ifdef STORM_MODEL
+#ifdef STORM_MODE
     if(m_nreach != n-1)
     {
         if(m_nreach <=0)
@@ -213,7 +213,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
         }
     }
-#endif
+#endif /* STORM_MODE */
     return true;
 }
 

@@ -62,7 +62,7 @@ void clsInterpolationWeightData::ReadFromMongoDB(mongoc_gridfs_t *gfs, const cha
         }
     }
     char *databuf;
-    int datalength;
+    size_t datalength;
     mongogfs.getStreamData(wfilename, databuf, datalength, gfs);
     mongoc_gridfs_file_t *gfile = NULL;
     bson_error_t *err = NULL;

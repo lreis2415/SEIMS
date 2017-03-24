@@ -1,10 +1,9 @@
 #include "seims.h"
 #include "invoke.h"
 
-#define MAIN
 #ifndef USE_MONGODB
 #define USE_MONGODB
-#endif
+#endif /* USE_MONGODB */
 
 int main(int argc, const char *argv[]) {
     GDALAllRegister();
@@ -85,7 +84,6 @@ int main(int argc, const char *argv[]) {
     //cout<<scenarioID<<endl;
     //SetOpenMPThread(2);
 
-#ifdef MAIN
     while (modelPath.length() == 0) {
         cout << "Please input the model path:" << endl;
         cin >> modelPath;
@@ -93,8 +91,6 @@ int main(int argc, const char *argv[]) {
 #ifdef USE_MONGODB
     MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
 #endif /* USE_MONGODB */
-
-#endif /* MAIN */
 
     //system("pause");
     return 0;
