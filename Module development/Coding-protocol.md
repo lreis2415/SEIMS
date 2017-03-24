@@ -38,6 +38,26 @@ git config --global core.safecrlf warn
 
 ### 2.2.C/C++
 
+#### 2.2.1.注释规范
++ SEIMS采用Doxygen代码注释规范，在Visual Studio中配合VA Assist插件可高效插入注释，[查看详细配置](https://github.com/lreis2415/SEIMS/wiki/Develop-environment#%E5%BC%80%E5%8F%91%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7-vassistx%E4%BB%8B%E7%BB%8D)。**以下为补充Tips**。
++ `#ifndef ... #endif`宏命令之后要注释上这是对应的哪个宏命令，以防嵌套使用时混淆不清，尤其是中间代码过长的时候，如：
+	```cpp
+	#ifdef windows
+	#define Tag_ModuleDirectoryName "\\"
+	#define SEP "\\"
+	#define Tag_DyLib ".dll"
+	#else
+	#define Tag_ModuleDirectoryName "/"
+	#define SEP "/"
+	#define Tag_So "lib"
+	#endif /* windows */
+	#ifdef linux
+	#define Tag_DyLib ".so"
+	#elif (defined macos) || (defined macosold)
+	#define Tag_DyLib ".dylib"
+	#endif /* linux */
+	```
+
 ## 3.Git分支管理
 
 ### 3.1.各分支命名规范及功能定义
