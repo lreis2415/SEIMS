@@ -7,6 +7,8 @@ brew install gdal
 #brew install mpich2
 brew install openmpi
 echo "Installing and starting mongodb"
+brew unlink openssl
+brew uninstall openssl
 brew install automake autoconf libtool pkgconfig openssl
 brew install mongodb --with-openssl
 # create a folder for mongodb to prevent an error on mac osx
