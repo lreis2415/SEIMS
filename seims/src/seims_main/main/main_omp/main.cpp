@@ -1,10 +1,9 @@
 #include "seims.h"
 #include "invoke.h"
 
-#define MAIN
 #ifndef USE_MONGODB
 #define USE_MONGODB
-#endif
+#endif /* USE_MONGODB */
 
 int main(int argc, const char *argv[]) {
     GDALAllRegister();
@@ -85,38 +84,24 @@ int main(int argc, const char *argv[]) {
     //cout<<scenarioID<<endl;
     //SetOpenMPThread(2);
 
-#ifdef MAIN
     while (modelPath.length() == 0) {
         cout << "Please input the model path:" << endl;
         cin >> modelPath;
     }
 #ifdef USE_MONGODB
     MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
-#endif
-
-#endif
-
-#ifdef TEST
-    // run the model
-    //Run(strTmp);
-    //testSettingInput();
-    //testBMP();
-    //testSettingOutput();
-
-    //testModule();
-    //testRaster();
-#endif
+#endif /* USE_MONGODB */
 
     //system("pause");
     return 0;
     errexit:
     cout << "Simple Usage:\n " << argv[0] << " <ModelPath>" << endl;
     cout << "\tBy default: " << endl;
-    cout << "\t\tThe MongoDB IP is 127.0.0.1 (i.e., localhost), and the port is 27017." << endl;
     cout << "\t\tThe threads or processor number is 1." << endl;
-    cout << "\t\tThe Layering Method is UP_DOWN." << endl;
+    cout << "\t\tThe Layering Method is 0, which means UP_DOWN." << endl;
+    cout << "\t\tThe MongoDB IP is 127.0.0.1 (i.e., localhost), and the port is 27017." << endl;
     cout << "\t\tThe Scenario ID is 0" << endl << endl;
-    cout << "Usage: " << argv[0] << "<ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID>]" << endl;
+    cout << "Complete Usage: " << argv[0] << " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID>]" << endl;
     cout << "\t<ModelPath> is the path of the configuration of the Model." << endl;
     cout << "\t<threadsNum> must be greater or equal than 1." << endl;
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN and DOWN_UP respectively." << endl;

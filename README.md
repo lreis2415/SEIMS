@@ -20,7 +20,7 @@ Currently, only Chinese-version wiki is provided and hosted on Github, English-v
 ### 3.1.Get source code
 
 + Download or clone from [Github](https://github.com/lreis2415/SEIMS). A useful Github guidiance can be found [here](https://github.com/lreis2415/SEIMS/wiki/Git-guidance).
-+ Read the [basic code structure](https://github.com/lreis2415/SEIMS/master/seims/README.md).
++ Read the [basic code structure](https://github.com/lreis2415/SEIMS/blob/master/seims/README.md).
 
 ### 3.2.Compile and Install
 

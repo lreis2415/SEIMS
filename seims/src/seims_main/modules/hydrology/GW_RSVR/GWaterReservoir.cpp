@@ -84,7 +84,7 @@ void GWaterReservoir::InitOutputs(void) {
         }
 #else
         m_nCellsSubbasin[1] = m_nCells;
-#endif
+#endif /* MULTIPLY_REACHES */
     }
 }
 
@@ -102,7 +102,7 @@ int GWaterReservoir::Execute(void) {
         int subbasinId = (int) m_subbasin[i];
 #else
         int subbasinId = 1;
-#endif
+#endif /* MULTIPLY_REACHES */
         m_percSubbasin[subbasinId] += m_recharge[i];
     }
 
