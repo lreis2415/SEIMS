@@ -108,7 +108,7 @@ int DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> &
         BSON_APPEND_UTF8(&p, "SRS", srs);
 
         char *databuf = (char *) subData;
-        int datalength = sizeof(float) * subXSize * subYSize;
+        size_t datalength = sizeof(float) * subXSize * subYSize;
         MongoGridFS().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
         bson_destroy(&p);
 
@@ -174,7 +174,7 @@ int Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int>
         BSON_APPEND_UTF8(&p, "SRS", srs);
 
         char *databuf = (char *) sub2DData;
-        int datalength = sizeof(float) * subCellNum * colNum;
+        size_t datalength = sizeof(float) * subCellNum * colNum;
         MongoGridFS().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
         bson_destroy(&p);
         databuf = NULL;

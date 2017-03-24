@@ -7,7 +7,15 @@
 #include "SimulationModule.h"
 
 using namespace std;
-
+/** \defgroup NPSMGT
+ * \ingroup Management
+ * \brief Non point source management
+ */
+/*!
+ * \class NPS_Management
+ * \ingroup NPSMGT
+ * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
+ */
 class NPS_Management : public SimulationModule {
 private:
     /// valid cells number
@@ -20,7 +28,8 @@ private:
     float m_timestep;
     /// management fields raster
     float *m_mgtFields;
-    /* areal source operations
+    /*!
+     * areal source operations
      * key: unique index, BMPID * 100000 + subScenarioID
      * value: areal source management factory instance
      */

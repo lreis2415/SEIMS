@@ -204,7 +204,7 @@ int SubbasinIUHCalculator::calCell(int id) {
     vector<float>(storeddata_vector).swap(storeddata_vector);
     int valuenumber = storeddata_vector.size();
     float *data = new float[valuenumber];
-    int datalength = valuenumber * sizeof(float);
+    size_t datalength = valuenumber * sizeof(float);
     for (int i = 0; i < valuenumber; i++) {
         data[i] = storeddata_vector[i];
     }

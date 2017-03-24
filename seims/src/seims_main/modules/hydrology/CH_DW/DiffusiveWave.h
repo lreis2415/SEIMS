@@ -8,8 +8,6 @@
 
 #include "SimulationModule.h"
 
-#define MIN_FLUX 1e-9f
-
 using namespace std;
 /** \defgroup CH_DW
  * \ingroup Hydrology

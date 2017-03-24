@@ -8,8 +8,6 @@
 
 using namespace std;
 
-#define MIN_FLUX 1e-12f /// \def minimum flux (m3/s) in kinematic wave
-#define MAX_ITERS 10
 
 /** \defgroup IKW_OL
  * \ingroup Hydrology
