@@ -2,7 +2,7 @@
 
 void Read1DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &num, float *&data) {
     char *databuf = NULL;
-    int datalength;
+    size_t datalength;
     MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
     float *floatValues = (float *) databuf;
     num = datalength / 4;
@@ -11,7 +11,7 @@ void Read1DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename
 
 void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &rows, int &cols, float **&data) {
     char *databuf = NULL;
-    int datalength;
+    size_t datalength;
     MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
     float *floatValues = (float *) databuf;
 
@@ -44,7 +44,7 @@ void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename
 
 void ReadIUHFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &n, float **&data) {
     char *databuf = NULL;
-    int datalength;
+    size_t datalength;
     MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
     float *floatValues = (float *) databuf;
 

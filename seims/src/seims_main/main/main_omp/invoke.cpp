@@ -16,7 +16,7 @@ void checkDatabase(mongoc_client_t *conn, string dbName) {
     checkTable(tableNames, dbName, DB_TAB_PARAMETERS);
 #ifndef MULTIPLY_REACHES
     checkTable(tableNames, dbName, DB_TAB_REACH);
-#endif
+#endif /* not MULTIPLY_REACHES */
     checkTable(tableNames, dbName, DB_TAB_SPATIAL);
     //checkTable(tableNames, dbName, DB_TAB_LOOKUP_LANDUSE);
     //checkTable(tableNames, dbName, DB_TAB_LOOKUP_SOIL);

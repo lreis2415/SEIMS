@@ -23,7 +23,7 @@ double utilsTime::TimeCounting() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.;
-#endif
+#endif /* windows */
 }
 
 string utilsTime::ConvertToString(const time_t *date) {
@@ -32,7 +32,7 @@ string utilsTime::ConvertToString(const time_t *date) {
     localtime_s(&dateInfo, date);
 #else
     localtime_r(date, &dateInfo);
-#endif
+#endif /* windows */
     if (dateInfo.tm_isdst > 0) {
         dateInfo.tm_hour -= 1;
     }
@@ -49,7 +49,7 @@ string utilsTime::ConvertToString2(const time_t *date) {
     localtime_s(&dateInfo, date);
 #else
     localtime_r(date, &dateInfo);
-#endif
+#endif /* windows */
     if (dateInfo.tm_isdst > 0) {
         if (dateInfo.tm_hour != 0) {
             dateInfo.tm_hour -= 1;
@@ -91,19 +91,9 @@ time_t utilsTime::ConvertToTime(string strDate, string const &format, bool inclu
 
     try {
         if (includeHour) {
-            StringScanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy, &hr);
-//#ifdef MSVC
-//			sscanf_s(strDate.c_str(), format.c_str(), &yr, &mn, &dy, &hr);
-//#else
-//			sscanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy, &hr);
-//#endif
+            stringscanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy, &hr);
         } else {
-            StringScanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy);
-//#ifdef MSVC
-//			sscanf_s(strDate.c_str(), format.c_str(), &yr, &mn, &dy);
-//#else
-//			sscanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy);
-//#endif
+            stringscanf(strDate.c_str(), format.c_str(), &yr, &mn, &dy);
         }
 
         timeinfo = new struct tm;
@@ -134,19 +124,9 @@ time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool
 
     try {
         if (includeHour) {
-            StringScanf(strDate.c_str(), format, &yr, &mn, &dy, &hr, &m, &s);
-//#ifdef MSVC
-//			sscanf_s(strDate.c_str(), format, &yr, &mn, &dy, &hr, &m, &s);
-//#else
-//			sscanf(strDate.c_str(), format, &yr, &mn, &dy, &hr, &m, &s);
-//#endif
+            stringscanf(strDate.c_str(), format, &yr, &mn, &dy, &hr, &m, &s);
         } else {
-            StringScanf(strDate.c_str(), format, &yr, &mn, &dy);
-//#ifdef MSVC
-//			sscanf_s(strDate.c_str(), format, &yr, &mn, &dy);
-//#else
-//			sscanf(strDate.c_str(), format, &yr, &mn, &dy);
-//#endif
+            stringscanf(strDate.c_str(), format, &yr, &mn, &dy);
         }
 
         struct tm timeinfo;
@@ -190,7 +170,7 @@ int utilsTime::GetDateInfoFromTimet(time_t *t, int *year, int *month, int *day) 
     localtime_s(&dateInfo, t);
 #else
     localtime_r(t, &dateInfo);
-#endif
+#endif /* windows */
     if (dateInfo.tm_isdst > 0) {
         dateInfo.tm_hour -= 1;
     }
@@ -198,12 +178,7 @@ int utilsTime::GetDateInfoFromTimet(time_t *t, int *year, int *month, int *day) 
     char dateString[30];
     strftime(dateString, 30, "%Y-%m-%d %X", &dateInfo);
     int hour, min, sec;
-    StringScanf(dateString, "%4d-%2d-%2d %2d:%2d:%2d", year, month, day, &hour, &min, &sec);
-//#ifdef MSVC
-//	sscanf_s(dateString, "%4d-%2d-%2d %2d:%2d:%2d", year, month, day, &hour, &min, &sec);
-//#else
-//	sscanf(dateString, "%4d-%2d-%2d %2d:%2d:%2d", year, month, day, &hour, &min, &sec);
-//#endif
+    stringscanf(dateString, "%4d-%2d-%2d %2d:%2d:%2d", year, month, day, &hour, &min, &sec);
     return 0;
 }
 
@@ -212,7 +187,7 @@ void utilsTime::LocalTime(time_t date, struct tm *t) {
     localtime_s(t, &date);
 #else
     localtime_r(&date, t);
-#endif
+#endif /* windows */
 }
 
 /************ utilsString ****************/
@@ -285,11 +260,7 @@ vector <string> utilsString::SplitString(string const &item) {
 }
 
 bool utilsString::StringMatch(const char *a, const char *b) {
-#ifdef windows
-    return _stricmp(a, b) == 0;
-#else
     return strcasecmp(a, b) == 0;
-#endif
 }
 
 bool utilsString::StringMatch(string const &text1, string const &text2) {
@@ -439,7 +410,7 @@ int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
     return 0;
 }
 
-#endif
+#endif /* not windows */
 
 bool utilsFileIO::FileExists(string const &FileName) {
 #ifdef windows
@@ -454,7 +425,7 @@ bool utilsFileIO::FileExists(string const &FileName) {
     } else {
         return false;
     }
-#endif
+#endif /* windows */
 }
 
 bool utilsFileIO::PathExists(string const &fullpath) {
@@ -466,7 +437,7 @@ bool utilsFileIO::PathExists(string const &fullpath) {
 #else
     struct stat fileStat;
     isExists = (stat(path, &fileStat) == 0) && S_ISDIR(fileStat.st_mode);
-#endif
+#endif /* windows */
     return isExists;
 }
 
@@ -531,7 +502,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <s
         }
         closedir(dir);
     }
-#endif
+#endif /* windows */
     return 0;
 }
 
@@ -555,7 +526,7 @@ string utilsFileIO::GetAppPath() {
         printf("proc %d: %s\n", pid, pathbuf);
     }
     RootPath = pathbuf;
-#else
+#else /* other linux/unix-like OS */
     static char buf[PATH_MAX];
     int rslt = readlink("/proc/self/exe", buf, PATH_MAX);
     if (rslt < 0 || rslt >= PATH_MAX) {
@@ -564,7 +535,7 @@ string utilsFileIO::GetAppPath() {
         buf[rslt] = '\0';
     }
     RootPath = buf;
-#endif
+#endif /* windows */
     basic_string<char>::size_type idx = RootPath.find_last_of(SEP);
     RootPath = RootPath.substr(0, idx + 1);
 
@@ -628,7 +599,7 @@ bool utils::isIPAddress(const char *ip) {
     int tmp1, tmp2, tmp3, tmp4, i;
 
     while (1) {
-        i = StringScanf(ip, "%d.%d.%d.%d", &tmp1, &tmp2, &tmp3, &tmp4);
+        i = stringscanf(ip, "%d.%d.%d.%d", &tmp1, &tmp2, &tmp3, &tmp4);
         if (i != 4) {
             rv = false;
             //cout << "IP Address format is not correct!" << endl;
@@ -663,7 +634,7 @@ void utils::Log(string msg, string logpath /* = "debugInfo.log" */) {
 #else
     localtime_r(&now, &timeptr);
     asctime_r(&timeptr, buffer);
-#endif
+#endif /* windows */
     string timestamp = buffer;
     timestamp = timestamp.substr(0, timestamp.length() - 1);
     fstream fs(logpath.c_str(), ios::app);
@@ -681,14 +652,14 @@ int utils::GetAvailableThreadNum() {
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
-#endif
+#endif /* windows */
 #ifdef linux
     return (int) sysconf(_SC_NPROCESSORS_ONLN);
-#endif
+#endif /* linux */
 #ifdef macos
     // macOS X 10.5 and later
     return (int) sysconf(_SC_NPROCESSORS_ONLN);
-#endif
+#endif /* macOS X 10.5 and later */
 #ifdef macosold
     // macOS X 10.0 - 10.4
     int mib[4];
@@ -710,7 +681,7 @@ int utils::GetAvailableThreadNum() {
             numCPU = 1;
     }
     return numCPU;
-#endif
+#endif /* macOS X 10.0 - 10.4 */
 }
 
 void utils::SetDefaultOpenMPThread() {
@@ -720,20 +691,22 @@ void utils::SetDefaultOpenMPThread() {
         // set one half of the available threads as default
         omp_set_num_threads(GetAvailableThreadNum() / 2);
     }
-#endif
+#endif /* SUPPORT_OMP */
     /// do nothing if OMP is not supported
 }
 
 void utils::SetOpenMPThread(int n) {
 #ifdef SUPPORT_OMP
     omp_set_num_threads(n);
-#endif
+#endif /* SUPPORT_OMP */
     /// do nothing if OMP is not supported
 }
 
 void utils::StatusMessage(const char *msg) {
     /// Just for debugging ///
-    // cout << msg << endl;
+#ifdef _DEBUG
+    cout << msg << endl;
+#endif /* DEBUG */
 }
 
-#endif
+#endif /* CLS_UTILS */

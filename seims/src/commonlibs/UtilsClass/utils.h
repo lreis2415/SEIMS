@@ -12,7 +12,7 @@
 /// OpenMP support
 #ifdef SUPPORT_OMP
 #include <omp.h>
-#endif
+#endif /* SUPPORT_OMP */
 /// math and STL headers
 #include <cmath>
 #include <cfloat>
@@ -50,11 +50,11 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
+#endif /* windows */
 
-#endif
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
-#endif
+#endif /* macos */
 
 using namespace std;
 
@@ -67,33 +67,33 @@ using namespace std;
  */
 #ifndef NODATA_VALUE
 #define NODATA_VALUE    -9999.0f
-#endif
+#endif /* NODATA_VALUE */
 const float MISSINGFLOAT = -1 * FLT_MAX;
 const float MAXIMUMFLOAT = FLT_MAX;
 #ifndef PATH_MAX
 #define PATH_MAX 1024
-#endif
+#endif /* PATH_MAX */
 /**
  * \def ZERO
  * \brief zero value used in numeric calculation
  */
 #ifndef UTIL_ZERO
 #define UTIL_ZERO        1.0e-6f
-#endif
+#endif /* UTIL_ZERO */
 /**
  * \def PI
  * \brief PI value used in numeric calculation
  */
 #ifndef PI
 #define PI                3.14159265358979323846f
-#endif
+#endif /* PI */
 /**
  * \def MINI_SLOPE
  * \brief Minimum slope gradient
  */
 #ifndef MINI_SLOPE
 #define MINI_SLOPE        0.0001f
-#endif
+#endif /* MINI_SLOPE */
 
 #ifdef windows
 #define Tag_ModuleDirectoryName "\\"
@@ -103,29 +103,31 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define Tag_ModuleDirectoryName "/"
 #define SEP "/"
 #define Tag_So "lib"
-#endif
+#endif /* windows */
 #ifdef linux
 #define Tag_DyLib ".so"
-#elif defined macos
+#elif (defined macos) || (defined macosold)
 #define Tag_DyLib ".dylib"
-#elif defined macosold
-#define Tag_DyLib ".dylib"
-#endif
+#endif /* linux */
 
 // define some macro for string related built-in functions
 #ifdef MSVC
 #define stringcat strcat_s
 #define stringcpy strcpy_s
 #define strprintf sprintf_s
-#define StringTok strtok_s
-#define StringScanf sscanf_s
+#define strtok strtok_s
+#define stringscanf sscanf_s
 #else
 #define stringcat strcat
 #define stringcpy strcpy
 #define strprintf snprintf
-#define StringTok strtok_r
-#define StringScanf sscanf
-#endif
+#define strtok strtok_r
+#define stringscanf sscanf
+#endif /* MSVC */
+
+#if defined(__MINGW32_VERSION) || defined(_MSC_VER)
+#define strcasecmp stricmp
+#endif /* defined(__MINGW32_VERSION) || defined(_MSC_VER) */
 
 /*
  * Avoid the compile error on MSVC like this:
@@ -137,7 +139,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define DLL_STL_LIST(STL_API, STL_TYPE) \
     template class STL_API std::allocator< STL_TYPE >; \
     template class STL_API std::vector<STL_TYPE, std::allocator< STL_TYPE > >;
-#endif
+#endif /* MSVC */
 
 static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -559,7 +561,7 @@ public:
      */
     static int copyfile_unix(const char *srcfile, const char *dstfile);
 
-#endif
+#endif /* not windows */
 
     /*!
      * \brief Get the root path of the current executable file
@@ -917,4 +919,4 @@ void utilsArray::RemoveValueInVector(T &val, vector <T> &vec) {
     }
 }
 
-#endif
+#endif /* CLS_UTILS */

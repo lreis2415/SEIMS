@@ -1,3 +1,4 @@
+#include "vld.h"
 #include "clsRasterData.cpp"
 #include "utilities.h"
 #include "MongoUtil.h"

@@ -625,7 +625,7 @@ private:
      * \param[in] srs Coordinate system string
      * \param[in] values float raster data array
      */
-    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, int datalength);
+    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
 #endif
 
     /*!
@@ -687,4 +687,4 @@ private:
     bool m_initialized;
 };
 
-#endif
+#endif /* CLS_RASTER_DATA */
