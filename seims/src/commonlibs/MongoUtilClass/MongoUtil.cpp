@@ -56,12 +56,12 @@ void MongoClient::_database_names() {
     vector<string>(m_dbnames).swap(m_dbnames);
 }
 
-vector <string> MongoClient::getDatabaseNames() {
+vector<string> MongoClient::getDatabaseNames() {
     if (m_dbnames.empty()) this->_database_names();
     return m_dbnames;
 }
 
-vector <string> MongoClient::getCollectionNames(string const &dbName) {
+vector<string> MongoClient::getCollectionNames(string const &dbName) {
     mongoc_database_t *database = this->getDatabase(dbName);
     return MongoDatabase(database).getCollectionNames();
 }
@@ -107,7 +107,7 @@ mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsn
     }
 }
 
-vector <string> MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname) {
+vector<string> MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname) {
     mongoc_gridfs_t *gfs = this->getGridFS(dbname, gfsname);
     return MongoGridFS(gfs).getFileNames();
 }
@@ -128,8 +128,8 @@ MongoDatabase::~MongoDatabase() {
     mongoc_database_destroy(m_db);
 }
 
-vector <string> MongoDatabase::getCollectionNames() {
-    vector <string> collNameList;
+vector<string> MongoDatabase::getCollectionNames() {
+    vector<string> collNameList;
     try {
         mongoc_cursor_t *cursor;
         bson_error_t *err = NULL;
@@ -143,7 +143,7 @@ vector <string> MongoDatabase::getCollectionNames() {
         while (mongoc_cursor_next(cursor, &doc)) {
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, "name")) {
                 string tmp = GetStringFromBsonIterator(&iter);
-                vector <string> tmpList = SplitString(tmp, '.');
+                vector<string> tmpList = SplitString(tmp, '.');
                 vector<string>::iterator tmpIter = find(collNameList.begin(), collNameList.end(), tmpList[0]);
                 if (tmpIter == collNameList.end()) {
                     collNameList.push_back(tmpList[0]);
@@ -213,14 +213,14 @@ bool MongoGridFS::removeFile(string const &gfilename, mongoc_gridfs_t *gfs /* = 
     }
 }
 
-vector <string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
+vector<string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
     try {
         if (m_gfs != NULL) gfs = m_gfs;
         if (gfs == NULL) {
             throw ModelException("MongoGridFS", "getFileNames",
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
-        vector <string> filesExisted;
+        vector<string> filesExisted;
         bson_t *query = bson_new();
         bson_init(query);
         mongoc_gridfs_file_list_t *glist = mongoc_gridfs_find_with_opts(gfs, query, NULL);
