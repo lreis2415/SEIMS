@@ -257,7 +257,7 @@ void ModelMain::Output() {
             remove((*it).c_str());
         }
     }
-#endif
+#endif /* windows */
     vector<PrintInfo *>::iterator it;
     for (it = this->m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         vector<PrintInfoItem *>::iterator itemIt;
@@ -283,7 +283,7 @@ void ModelMain::CheckOutput(mongoc_gridfs_t *gfs) {
     oss << m_subBasinID << "_" << GetUpper(string(NAME_MASK));
     m_templateRasterData = new clsRasterData<float>(gfs, oss.str().c_str());
     m_factory->AddMaskRaster(oss.str(), m_templateRasterData);
-#endif
+#endif /* USE_MONGODB */
 }
 
 void ModelMain::OutputExecuteTime() {

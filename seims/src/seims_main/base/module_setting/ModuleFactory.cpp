@@ -20,14 +20,14 @@ ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_c
         m_scenario = new Scenario(m_conn, m_dbScenario, m_scenarioID);
         //m_scenario->Dump("e:\\test\\bmpScenario.txt");/// Write BMPs Scenario Information to Text file
     }
-#endif
+#endif /* USE_MONGODB */
 }
 
 ModuleFactory::~ModuleFactory(void) {
 #ifdef USE_MONGODB
     if (m_spatialData != NULL) mongoc_gridfs_destroy(m_spatialData);
     //mongoc_client_destroy(m_conn); // m_conn will be released in MongoClient
-#endif
+#endif /* USE_MONGODB */
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
     for (map<string, SEIMSModuleSetting *>::iterator it = m_settings.begin(); it != m_settings.end();) {
@@ -110,7 +110,7 @@ ModuleFactory::~ModuleFactory(void) {
         FreeLibrary(m_dllHandles[i]);
 #else
         dlclose(m_dllHandles[i]);
-#endif
+#endif /* windows */
     }
 }
 
@@ -118,7 +118,7 @@ void ModuleFactory::Init(const string &configFileName) {
     ReadConfigFile(configFileName.c_str());
 #ifdef USE_MONGODB
     ReadParametersFromMongoDB();
-#endif
+#endif /* USE_MONGODB */
 
     size_t n = m_moduleIDs.size();
     // read all the .dll or .so and create objects
@@ -131,24 +131,24 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
-#endif
+#endif /* USE_MONGODB */
         } else if (id.find(MID_TSD_RD) != string::npos) {
 #ifdef windows
             dllID = MID_TSD_RD;
 #else
             dllID = Tag_So + string(MID_TSD_RD);
-#endif
+#endif /* USE_MONGODB */
         }
 
 #ifdef INTEL_COMPILER
         dllID = dllID + "_intel";
-#endif
+#endif /* INTEL_COMPILER */
 #ifdef INTEL_COMPILER_SINGLE
         dllID = dllID + "_intel_single";
-#endif
+#endif /* INTEL_COMPILER_SINGLE */
 #ifdef SINGLE
         dllID = dllID + "_single";
-#endif
+#endif /* SINGLE */
         // load function pointers from DLL
         ReadDLL(id, dllID);
 
@@ -193,7 +193,7 @@ void ModuleFactory::GetBMPScenarioDBName() {
     cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
 #else
     cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif
+#endif /* MONGOC_CHECK_VERSION */
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
@@ -217,7 +217,7 @@ void ModuleFactory::ReadParametersFromMongoDB() {
     cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
 #else
     cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif
+#endif /* MONGOC_CHECK_VERSION */
     if (mongoc_cursor_error(cursor, err)) {
         throw ModelException("ModuleFactory", "ReadParametersFromMongoDB",
                              "Nothing found in the collection: " + string(DB_TAB_PARAMETERS) + ".\n");
@@ -370,7 +370,7 @@ void ModuleFactory::ReadDLL(string &id, string &dllID) {
     }
     m_instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     m_metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
-#endif
+#endif /* windows */
     m_dllHandles.push_back(handle);
     if (m_instanceFuncs[id] == NULL) {
         throw ModelException("ModuleFactory", "ReadDLL",
@@ -832,7 +832,7 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
                     string module = GetUpper(settings[i][3]);
 #ifndef windows
                     module = Tag_So + module;
-#endif
+#endif /* not windows */
 
                     SEIMSModuleSetting *moduleSetting = new SEIMSModuleSetting(module, settingString);
                     if (moduleSetting->dataTypeString().length() > 0) {
@@ -972,7 +972,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         try {
 #ifdef USE_MONGODB
             Read1DArrayFromMongoDB(m_spatialData, remoteFileName, n, data);
-#endif
+#endif /* USE_MONGODB */
             if (templateRaster->getCellNumber() != n) {
                 throw ModelException("ModuleFactory", "Set1DArray",
                                      "The data length derived from Read1DArrayFromMongoDB in " + remoteFileName
@@ -992,7 +992,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
             ostringstream ossWeightFile;
             ossWeightFile << dbName << remoteFileName << TextExtension;
             clsInterpolationWeightData *weightData = new clsInterpolationWeightData(ossWeightFile.str());*/
-#endif
+#endif /* USE_MONGODB */
         weightData->getWeightData(&n, &data);
         m_weightDataMap[remoteFileName] = weightData;
     }
@@ -1031,7 +1031,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         try {
 #ifdef USE_MONGODB
             Read1DArrayFromMongoDB(m_spatialData, remoteFileName, n, data);
-#endif
+#endif /* USE_MONGODB */
         }
         catch (ModelException e) {
             cout << e.toString() << endl;
@@ -1085,13 +1085,13 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
             }
 #ifdef USE_MONGODB
             Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
-#endif
+#endif /* USE_MONGODB */
         } else if (StringMatch(paraName, Tag_FLOWIN_INDEX_D8) || StringMatch(paraName, Tag_FLOWIN_INDEX_DINF)
             || StringMatch(paraName, Tag_FLOWIN_PERCENTAGE_DINF) || StringMatch(paraName, Tag_FLOWOUT_INDEX_DINF)
             || StringMatch(paraName, Tag_ROUTING_LAYERS_DINF)) {
 #ifdef USE_MONGODB
             Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
-#endif
+#endif /* USE_MONGODB */
         } else if (StringMatch(paraName, TAG_OUT_OL_IUH)) {
             ReadIUHFromMongoDB(m_spatialData, remoteFileName, nRows, data);
         } else if (StringMatch(paraName, Tag_ReachParameter)) {
@@ -1100,16 +1100,16 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
             ReadReachInfoFromMongoDB(m_layingMethod, m_conn,dbName, nSubbasin, nRows, nCols, data);
 #else
             ReadMutltiReachInfoFromMongoDB(m_layingMethod, m_conn, dbName, nRows, nCols, data);
-#endif
-#endif
+#endif /* not MULTIPLY_REACHES */
+#endif /* USE_MONGODB */
         } else if (StringMatch(paraName, Tag_RchParam)) {
 #ifdef USE_MONGODB
 #ifndef MULTIPLY_REACHES
             ReadLongTermReachInfo(m_conn, m_dbName, nSubbasin, nRows, nCols, data);
 #else
             ReadLongTermMultiReachInfo(m_conn, m_dbName, nRows, nCols, data);
-#endif
-#endif
+#endif /* not MULTIPLY_REACHES */
+#endif /* USE_MONGODB */
         } else if (StringMatch(paraName, Tag_LapseRate)) /// Match to the format of DT_Array2D, By LJ.
         {
             nRows = 12;
@@ -1126,7 +1126,7 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
         } else {
 #ifdef USE_MONGODB
             Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
-#endif
+#endif /* USE_MONGODB */
             //throw ModelException("ModuleFactory", "Set2DData", "Failed reading file " + remoteFileName);
         }
     }
@@ -1167,7 +1167,7 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
                 if (data != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
                     m_parametersInDB[upperName]->Adjust1DRaster(n, data);
             }
-#endif
+#endif /* USE_MONGODB */
         }
         catch (ModelException e) {
             cout << e.toString() << endl;
