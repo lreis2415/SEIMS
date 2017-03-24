@@ -785,52 +785,47 @@ template<typename T>
 void
 utilsMath::basicStatistics(T **values, int num, int lyrs, double ***derivedvalues, T exclude /* = (T) NODATA_VALUE */) {
     double **tmpstats = new double *[6];
-    double *maxv = NULL;
-    utilsArray::Initialize1DArray(lyrs, maxv, (double) MISSINGFLOAT);
-    double *minv = NULL;
-    utilsArray::Initialize1DArray(lyrs, minv, (double) MAXIMUMFLOAT);
-    double *validnum = NULL;
-    utilsArray::Initialize1DArray(lyrs, validnum, 0.);
+    for (int i = 0; i < 6 ; i++) {
+        tmpstats[i] = new double[lyrs];
+    }
+    for (int j = 0; j < lyrs ; j++) {
+        tmpstats[0][j] = 0.;                   /// valid number
+        tmpstats[1][j] = 0.;                   /// mean
+        tmpstats[2][j] = (double)MISSINGFLOAT; /// maximum
+        tmpstats[3][j] = (double)MAXIMUMFLOAT; /// minimum
+        tmpstats[4][j] = 0.;                   /// std
+        tmpstats[5][j] = 0.;                   /// range
+    }
     double *sumv = NULL;
     utilsArray::Initialize1DArray(lyrs, sumv, 0.);
-    double *std = NULL;
-    utilsArray::Initialize1DArray(lyrs, std, 0.);
-    double *range = NULL;
-    utilsArray::Initialize1DArray(lyrs, range, 0.);
     for (int i = 0; i < num; i++) {
         for (int j = 0; j < lyrs; j++) {
             if (utilsMath::FloatEqual(values[i][j], exclude)) continue;
-            if (maxv[j] < values[i][j]) maxv[j] = values[i][j];
-            if (minv[j] > values[i][j]) minv[j] = values[i][j];
-            validnum[j] += 1;
+            if (tmpstats[2][j] < values[i][j]) tmpstats[2][j] = values[i][j];
+            if (tmpstats[3][j] > values[i][j]) tmpstats[3][j] = values[i][j];
+            tmpstats[0][j] += 1;
             sumv[j] += values[i][j];
         }
     }
-    double *mean = new double[lyrs];
+
     for (int j = 0; j < lyrs; j++) {
-        range[j] = maxv[j] - minv[j];
-        mean[j] = sumv[j] / validnum[j];
+        tmpstats[5][j] = tmpstats[2][j] - tmpstats[3][j];
+        tmpstats[1][j] = sumv[j] / tmpstats[0][j];
     }
     for (int j = 0; j < lyrs; j++) {
         double tmpstd = 0;
 #pragma omp parallel for reduction(+:tmpstd)
         for (int i = 0; i < num; i++) {
             if (!utilsMath::FloatEqual(values[i][j], exclude)) {
-                tmpstd += (values[i][j] - mean[j]) * (values[i][j] - mean[j]);
+                tmpstd += (values[i][j] - tmpstats[1][j]) * (values[i][j] - tmpstats[1][j]);
             }
         }
-        std[j] = tmpstd;
+        tmpstats[4][j] = tmpstd;
     }
     for (int j = 0; j < lyrs; j++) {
-        std[j] = sqrt(std[j] / validnum[j]);
+        tmpstats[4][j] = sqrt(tmpstats[4][j] / tmpstats[0][j]);
     }
-
-    tmpstats[0] = validnum;
-    tmpstats[1] = mean;
-    tmpstats[2] = maxv;
-    tmpstats[3] = minv;
-    tmpstats[4] = std;
-    tmpstats[5] = range;
+    utilsArray::Release1DArray(sumv);
     *derivedvalues = tmpstats;
 }
 
@@ -856,25 +851,31 @@ void utilsArray::Initialize1DArray(int row, T *&data, T *&iniData) {
 template<typename T>
 void utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) {
     data = new T *[row];
+    //printf("The addr of 2D array: %p\n", data);
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         data[i] = new T[col];
+        //printf("%p, ", data[i]);
         for (int j = 0; j < col; j++) {
             data[i][j] = initialValue;
         }
     }
+    //printf("\n");
 }
 
 template<typename T>
 void utilsArray::Initialize2DArray(int row, int col, T **&data, T **&iniData) {
     data = new T *[row];
+    //printf("The addr of 2D array: %p\n", data);
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         data[i] = new T[col];
+        //printf("%p, ", data[i]);
         for (int j = 0; j < col; j++) {
             data[i][j] = iniData[i][j];
         }
     }
+    //printf("\n");
 }
 
 template<typename T>
@@ -885,15 +886,18 @@ void utilsArray::Release1DArray(T *&data) {
 
 template<typename T>
 void utilsArray::Release2DArray(int row, T **&data) {
+    //printf("Release 2D array, the addr starts at: %p\n", data);
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         if (data[i] != NULL) {
+            //printf("%p, ", data[i]);
             delete[] data[i];
             data[i] = NULL;
         }
     }
     delete[] data;
     data = NULL;
+    //printf("\n");
 }
 
 template<typename T>

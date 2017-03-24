@@ -11,7 +11,9 @@
 *   Date:       9- February-2017
 *---------------------------------------------------------------------*/
 
-
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <sstream>
 #include <ctime>

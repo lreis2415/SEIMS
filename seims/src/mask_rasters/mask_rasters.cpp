@@ -1,16 +1,16 @@
-/***************************************************************************
-*
-* Purpose: Get subset of a input raster according to mask. 
-*
-*
-* Author:  Junzhi Liu
-* E-mail:  liujz@lreis.ac.cn
-****************************************************************************
-* Copyright (c) 2013. Junzhi Liu
-* 
-****************************************************************************/
+/*!
+ * \brief Get subset of a input raster according to mask
+ *
+ * \author Liang-Jun Zhu, Junzhi Liu
+ * \date Feb. 2017
+ * E-mail:  zlj@lreis.ac.cn
+ * Copyright (c) 2017. Liang-Jun Zhu
+ * 
+ */
 
-
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -25,101 +25,6 @@
 #include "clsRasterData.cpp"
 
 using namespace std;
-
-//template<typename T>
-//int ApplyMaskToRaster(clsRasterData<int> &mask, clsRasterData<T> &input, clsRasterData<T> &output, bool hasDefault = false,
-//                      T defaultValue = -9999)
-//{
-//    T outputNoDataValue = -9999;
-//    if (!hasDefault)
-//        defaultValue = outputNoDataValue;
-//
-//    int xSizeMask = mask.GetNumberofColumns();
-//    int ySizeMask = mask.GetNumberOfRows();
-//    int nMask = xSizeMask * ySizeMask;
-//    int *maskData = mask.GetData();
-//    int noDataMask = mask.GetNoDataValue();
-//    double xMinMask = mask.GetXMin();
-//    double yMaxMask = mask.GetYMax();
-//    double dxMask = mask.GetXCellSize();
-//    double dyMask = mask.GetYCellSize();
-//
-//    int xSize = input.GetNumberofColumns();
-//    int ySize = input.GetNumberOfRows();
-//    double noDataValue = input.GetNoDataValue();
-//    double dx = input.GetXCellSize();
-//    double dy = input.GetYCellSize();
-//    double xMin = input.GetXMin();
-//    double xMax = xMin + xSize * dx;
-//    double yMax = input.GetYMax();
-//    double yMin = yMax - ySize * dy;
-//
-//    T *inputData = input.GetData();
-//    T *outputData = output.GetData();
-//
-//    int iRow, iCol, iRowInput, iColInput;
-//    double x, y;
-//    for (int i = 0; i < nMask; ++i)
-//    {
-//        // values outside the mask
-//        if (maskData[i] - noDataMask == 0)
-//        {
-//            outputData[i] = outputNoDataValue;
-//            continue;
-//        }
-//
-//        iRow = i / xSizeMask;
-//        iCol = i % xSizeMask;
-//
-//        x = xMinMask + (iCol + 0.5) * dxMask;
-//        y = yMaxMask - (iRow + 0.5) * dyMask;
-//
-//        if (x < xMin || x > xMax || y < yMin || y > yMax)
-//        {
-//            outputData[i] = defaultValue;
-//            continue;
-//        }
-//
-//        iColInput = int((x - xMin) / dx);
-//        iRowInput = int((yMax - y) / dy);
-//
-//        outputData[i] = inputData[iRowInput * xSize + iColInput];
-//
-//        if (int(outputData[i]) == int(noDataValue))
-//        {
-//            //cout << outputData[i] << "\t" << noDataValue << "\t" << abs(outputData[i] - noDataValue) << "\t" << RASTER_MINI_VALUE << endl;
-//            outputData[i] = defaultValue;
-//            bool done = false;
-//            int nbr = 1;
-//            while (!done)
-//            {
-//                for (int m = -1; m <= 1; m++)
-//                {
-//                    for (int n = -1; n <= 1; n++)
-//                    {
-//                        int ii = iRowInput + m * nbr;
-//                        int jj = iColInput + n * nbr;
-//
-//                        if (ii < 0 || jj < 0 || ii >= ySize || jj >= xSize)
-//                            continue;
-//
-//                        if (int(inputData[ii * xSize + jj]) != int(noDataValue))
-//                        {
-//                            outputData[i] = inputData[ii * xSize + jj];
-//                            done = true;
-//                            break;
-//                        }
-//                    }
-//                }
-//                ++nbr;
-//            }
-//        }
-//
-//        //cout << iRow << "\t" <<  iCol << "\t" << outputData[i] << "\t" << noDataValue << endl;
-//    }
-//
-//    return 0;
-//}
 
 int main(int argc, char *argv[]) {
     SetDefaultOpenMPThread();
