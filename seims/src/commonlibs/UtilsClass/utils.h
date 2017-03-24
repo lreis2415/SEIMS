@@ -126,7 +126,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #endif /* MSVC */
 
 #if defined(__MINGW32_VERSION) || defined(_MSC_VER)
-#define strcasecmp stricmp
+#define strcasecmp _stricmp
 #endif /* defined(__MINGW32_VERSION) || defined(_MSC_VER) */
 
 /*
