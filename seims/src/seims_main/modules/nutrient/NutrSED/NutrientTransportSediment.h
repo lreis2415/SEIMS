@@ -1,7 +1,6 @@
 /*!
  * \brief Nutrient removed and lost in surface runoff.
- *        Support three carbon model, static method (orgn.f), C-FARM one carbon model (orgncswat.f),
- *                                    and CENTURY C/N cycling model (NCsed_leach.f90) from SWAT
+ *        Support three carbon model, static method (orgn.f), C-FARM one carbon model (orgncswat.f), and CENTURY C/N cycling model (NCsed_leach.f90) from SWAT
  *        As for phosphorus, psed.f of SWAT calculates the attached to sediment in surface runoff.
  * \author Huiran Gao
  * \date April 2016
