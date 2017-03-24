@@ -271,7 +271,7 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
             throw ModelException(MID_MUSK_CH, "CheckInputSize", oss.str());
         }
     }
-#endif
+#endif /* STORM_MODE */
     return true;
 }
 
