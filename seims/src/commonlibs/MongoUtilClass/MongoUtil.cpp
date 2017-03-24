@@ -261,7 +261,7 @@ bson_t *MongoGridFS::getFileMetadata(string const &gfilename, mongoc_gridfs_t *g
 void
 MongoGridFS::getStreamData(string const &gfilename,
                            char *&databuf,
-                           int &datalength,
+                           size_t &datalength,
                            mongoc_gridfs_t *gfs /* = NULL */) {
     try {
         if (m_gfs != NULL) gfs = m_gfs;
@@ -270,12 +270,11 @@ MongoGridFS::getStreamData(string const &gfilename,
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
         mongoc_gridfs_file_t *gfile = this->getFile(gfilename, gfs);
-        size_t length = (size_t) mongoc_gridfs_file_get_length(gfile);
-        datalength = length;
-        databuf = (char *) malloc(length);
+        datalength = (size_t)mongoc_gridfs_file_get_length(gfile);
+        databuf = (char *)malloc(datalength);
         mongoc_iovec_t iov;
         iov.iov_base = databuf;
-        iov.iov_len = length;
+        iov.iov_len = datalength;
         mongoc_stream_t *stream;
         stream = mongoc_stream_gridfs_new(gfile);
         mongoc_stream_readv(stream, &iov, 1, -1, 0);
@@ -287,7 +286,7 @@ MongoGridFS::getStreamData(string const &gfilename,
     }
 }
 
-void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, int &length, const bson_t *p,
+void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, size_t &length, const bson_t *p,
                                   mongoc_gridfs_t *gfs /* = NULL */) {
     try {
         if (m_gfs != NULL) gfs = m_gfs;
@@ -304,7 +303,7 @@ void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, int &leng
         gfile = mongoc_gridfs_create_file(gfs, &gopt);
         mongoc_iovec_t ovec;
         ovec.iov_base = buf;
-        ovec.iov_len = (size_t) length;
+        ovec.iov_len = length;
         ssize_t writesize = mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
         if (writesize == -1) {
             throw ModelException("MongoUtil", "writeStreamData", "Failed to write a gridfs file!\n");
