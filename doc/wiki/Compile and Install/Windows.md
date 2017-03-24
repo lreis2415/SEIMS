@@ -122,7 +122,7 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
 
 	```shell
-	cd ~\SEIMS2017\seims
+	cd ~\SEIMS\seims
 	mkdir build
 	cd build
 	cmake -G "NMake Makefiles" .. -DCMAKE_BUILD_TYPE=Release
@@ -133,7 +133,7 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 + 或者采用指定VS版本及位数的方式：
 
     ```shell
-    cd ~\SEIMS2017\seims
+    cd ~\SEIMS\seims
     mkdir build
     cd build
     # 编译32位版本，-DARCH=32 为默认，添加与否均可
@@ -144,21 +144,21 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 	msbuild.exe INSTALL.vcxproj
     ```
 
-完成后，不需要打开VS2010生成解决方案，可执行文件已经编译完成，程序目录为`~\SEIMS2017\seims\bin`。
-+ 右键以管理员方式运行`~\seims\bin\Firewall_for_Windows.bat`，配置防火墙规则，以防在运行Python脚本调用SEIMS程序时被防火墙阻止。
+完成后，不需要打开VS2010生成解决方案，可执行文件已经编译完成，程序目录为`~\SEIMS\seims\bin`。
 ## 2.2 Installation for developers
 
 + 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
 
 	```shell
-	cd ~\SEIMS2017\seims
+	cd ~\SEIMS----------7\seims
 	mkdir build
 	cd build
 	cmake ..
 	```
 
 + 然后用VS2010打开< build >文件夹下的`SEIMS_OMP_ALL.sln`，即为整个SEIMS模型的VS工程，打开`build\bin`目录可以分别找到子工程，比如SEIMS模块库工程等。
-+ VS工程编译完成之后，右键单击`INSTALL`模块，选择“生成”，即可完成SEIMS模型的安装，安装路径为`~\SEIMS2017\seims\bin`
++ VS工程编译完成之后，右键单击`INSTALL`模块，选择“生成”，即可完成SEIMS模型的安装，安装路径为`~\SEIMS\seims\bin`
++ 安装完成SEIMS后，需要右键以管理员方式运行`~\SEIMS\seims\Firewall_for_Windows.bat`配置防火墙规则，以防在运行Python脚本调用SEIMS程序时被防火墙阻止。
 
 [返回目录](#目录)
 
