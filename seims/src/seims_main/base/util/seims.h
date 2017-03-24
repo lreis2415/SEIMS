@@ -38,6 +38,6 @@ const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
 const float _23 = 0.6666666666666666f;
 const float SQ2 = 1.4142135623730951f;
 
-#define MIN_FLUX        1e-12 /// \def minimum flux (m3/s) in kinematic wave
-#define MAX_ITERS_KW    10    /// \def maximum iterate number in kinematic wave method
-#define MIN_SLOPE       1e-6  /// \def minimum slope (tan value)
+#define MIN_FLUX        1e-12f /// \def minimum flux (m3/s) in kinematic wave
+#define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method
+#define MIN_SLOPE       1e-6f  /// \def minimum slope (tan value)
