@@ -1,6 +1,6 @@
 Linux下SEIMS模型的编译与运行
 ----------------
-> Latest update: 2017-2-13
+> Latest update: 2017-3-23
 
 ## 1. 准备工作
 
