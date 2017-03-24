@@ -77,8 +77,14 @@ using namespace std;
  * \struct Coordinate of row and col
  */
 struct RowColCoor {
+public:
     int row;
     int col;
+    RowColCoor(void){};
+    RowColCoor(int y, int x){
+        row = y;
+        col = x;
+    }
 };
 
 /*!
@@ -430,6 +436,14 @@ public:
      */
     T getValue(RowColCoor pos, int lyr = 1);
 
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+    /*!
+     * \brief Get raster data via {row, col} and lyr (1 as default)
+     *        std::initializer_list need C++11 support.
+     */
+    T getValue(initializer_list<int> poslist, int lyr = 1);
+#endif
+
     /*!
      * \brief Set value to the given position and layer
      */
@@ -452,6 +466,14 @@ public:
 	 * \return a float array with length as nLyrs
 	 */
     void getValue(RowColCoor pos, int *nLyrs, T **values);
+
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+    /*! 
+	 * \brief Get raster data (both for 1D and 2D raster) at the {row, col)
+	 * \return a float array with length as nLyrs
+	 */
+    void getValue(initializer_list<int> poslist, int *nLyrs, T **values);
+#endif
 
     //! Is 2D raster data?
     bool is2DRaster() { return m_is2DRaster; }
@@ -603,7 +625,7 @@ private:
      * \param[in] srs Coordinate system string
      * \param[in] values float raster data array
      */
-    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, int datalength);
+    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
 #endif
 
     /*!
@@ -665,4 +687,4 @@ private:
     bool m_initialized;
 };
 
-#endif
+#endif /* CLS_RASTER_DATA */

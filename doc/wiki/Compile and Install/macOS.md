@@ -3,9 +3,9 @@ Install SEIMS on macOS
 
 First release: Liang-Jun Zhu
 
-Latest Updated：Feb.13, 2017
+Latest Updated：Mar.23, 2017
 
-> 测试环境为Macbook Pro 13 （Late 2016） with macOS Sierra 10.12.3
+> Note: 测试环境为Macbook Pro 13 （Late 2016） with macOS Sierra 10.12.3
 
 # 1. Prerequisites
 
@@ -16,7 +16,6 @@ SEIMS模型采用C++和Python编写，支持子流域-栅格双层并行计算�
 + GDAL 1.x with Python -- 矢栅数据读写库
 + mongo-c-driver 1.3.5 或更高 -- NoSQL数据库MongoDB的驱动库
 
-> Note: SEIMS目前只提供32-bit版本编译帮助，因此，接下来GDAL的安装、mongo-c-driver的编译均指的是32-bit版本。
 
 ## 1.1. GCC49
 macOS中最便捷配置GCC版本的方式是通过[Homebrew](http://brew.sh/)自动安装。
@@ -88,6 +87,11 @@ macOS下的配置步骤为：
 
 # 2. Compilation and Installation
 
+使用CMake编译SEIMS时有3个可选参数：
+1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
+2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
+3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
+
 ## 2.1 Installation for users
 
 ```shell
@@ -155,10 +159,10 @@ deap>=1.0.2
 scoop>=0.7.1.1
 ```
 
-SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
-+ 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
-+ `python get-pip.py`
++ SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
+  + 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+  + `python get-pip.py`
 
-对于Linux系统，执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库。
++ 执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库，包括SEIMS自带的`PyGeoC`。
 
-安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
++ 安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。

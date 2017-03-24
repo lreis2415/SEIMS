@@ -27,8 +27,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMet
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            RowColCoor rc = {i, j};
-            if (!m_mask->isNoData(rc)) {
+            if (!m_mask->isNoData(RowColCoor(i, j))) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -72,8 +71,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            RowColCoor rc = {i, j};
-            if (!m_mask->isNoData(rc)) {
+            if (!m_mask->isNoData(RowColCoor(i, j))) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -118,8 +116,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsSt
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            RowColCoor rc = {i, j};
-            if (!m_mask->isNoData(rc)) {
+            if (!m_mask->isNoData(RowColCoor(i, j))) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -264,8 +261,7 @@ void CellOrdering::BuildTree(void)   // tree of the land use
     int *LanduCode = m_landu->getRasterDataPointer();
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            RowColCoor rc = {i, j};
-            if (m_mask->isNoData(rc)) {
+            if (m_mask->isNoData(RowColCoor(i, j))) {
                 continue;
             }
             int id = i * m_nCols + j;
@@ -758,9 +754,9 @@ void CellOrdering::MergeSameFatherSameLanduseField(int id) {
         /*if(m_fields[iid] == NULL)
             continue;*/
         MergeSameFatherSameLanduseField(iid);
-    }                                               //�������
+    }
     for (int i = 0; i < nsize - 1; i++) {
-        int f1, f2;                   //merge f1 to f2
+        int f1, f2;  //merge f1 to f2
         f1 = inFields[i];
         if (m_fields[f1] == NULL) {
             continue;
@@ -1254,8 +1250,7 @@ void CellOrdering::OutputFieldMap(const char *filename) {
             int ID = cells[j]->GetID();
             int ik = ID / m_nCols;
             int jk = ID % m_nCols;
-            RowColCoor rc = {ik, jk};
-            output.setValue(rc, ReFID);
+            output.setValue(RowColCoor(ik, jk), ReFID);
         }
     }
     //for (int i = 0; i < m_nRows; i++)
@@ -1332,8 +1327,7 @@ void CellOrdering::BuildRoutingLayer(int idOutlet, int layerNum) {
     for (unsigned int i = 0; i < inCells.size(); ++i) {
         int row = inCells[i] / m_nCols;
         int col = inCells[i] % m_nCols;
-        RowColCoor rc = {row, col};
-        if (!m_mask->isNoData(rc)) {
+        if (!m_mask->isNoData(RowColCoor(row, col))) {
             BuildRoutingLayer(inCells[i], layerNum);
         }
     }
@@ -1397,8 +1391,7 @@ void CellOrdering::OutRoutingLayer(const char *filename) {
         for (int j = 0; j < layerSize; ++j) {
             int ik = m_layers[i][j] / m_nCols;
             int jk = m_layers[i][j] % m_nCols;
-            RowColCoor rc = {ik, jk};
-            output.setValue(rc, i + 1);
+            output.setValue(RowColCoor(ik, jk), i + 1);
             nn++;
         }
     }
@@ -1412,8 +1405,7 @@ void CellOrdering::CalCompressedIndex(void) {
     int counter = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            RowColCoor rc = {i, j};
-            if (m_mask->isNoData(rc)) {
+            if (m_mask->isNoData(RowColCoor(i, j))) {
                 continue;
             }
             int id = i * m_nCols + j;

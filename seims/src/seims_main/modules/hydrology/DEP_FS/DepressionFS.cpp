@@ -41,7 +41,7 @@ bool DepressionFS::CheckInputData(void) {
         throw ModelException(MID_DEP_FS, "CheckInputData",
                              "The parameter: evaporation from the interception storage has not been set.");
     }
-#endif
+#endif /* not STORM_MODE */
     return true;
 }
 

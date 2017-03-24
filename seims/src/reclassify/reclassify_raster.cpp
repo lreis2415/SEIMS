@@ -21,7 +21,7 @@
 
 #ifdef SUPPORT_OMP
 #include <omp.h>
-#endif
+#endif /* SUPPORT_OMP */
 
 #include "clsRasterData.cpp"
 

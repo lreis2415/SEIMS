@@ -159,11 +159,12 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T **&values, 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions /* = true */, 
+    clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_initialize_raster_class();
     this->ReadFromMongoDB(gfs, remoteFilename, calcPositions, mask, useMaskExtent, defalutValue);
 }
-#endif
+#endif /* USE_MONGODB */
 
 template<typename T, typename MaskT>
 bool clsRasterData<T, MaskT>::_check_raster_file_exists(string filename) {
@@ -176,6 +177,7 @@ bool clsRasterData<T, MaskT>::_check_raster_file_exists(string filename) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return false;
     }
 }
 
@@ -186,6 +188,7 @@ bool clsRasterData<T, MaskT>::_check_raster_file_exists(vector <string> &filenam
             return false;
         }
     }
+    return true;
 }
 
 template<typename T, typename MaskT>
@@ -296,6 +299,7 @@ double clsRasterData<T, MaskT>::getStatistics(string sindex, int lyr) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return m_noDataValue;
     }
 }
 
@@ -330,7 +334,9 @@ void clsRasterData<T, MaskT>::getStatistics(string sindex, int *lyrnum, double *
 
 template<typename T, typename MaskT>
 int clsRasterData<T, MaskT>::getPosition(int row, int col) {
-    if (m_calcPositions || m_rasterPositionData == NULL) return -1;
+    if (m_calcPositions || m_rasterPositionData == NULL){
+        return this->getCols() * row + col;
+    }
     for (int i = 0; i < m_nCells; i++) {
         if (row == m_rasterPositionData[i][0] && col == m_rasterPositionData[i][1]) {
             return i;
@@ -471,6 +477,13 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
     }
 }
 
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+template<typename T, typename MaskT>
+T clsRasterData<T, MaskT>::getValue(initializer_list<int> poslist, int lyr /* = 1 */){
+    return getValue(RowColCoor(*poslist.begin(), *(poslist.end() - 1)), lyr);
+}
+#endif /* !defined(MSVC) || _MSC_VER >= 1800 */
+
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::setValue(RowColCoor pos, T value, int lyr /* = 1 */) {
     int idx = this->getPosition(pos.row, pos.col);
@@ -497,12 +510,13 @@ T clsRasterData<T, MaskT>::isNoData(RowColCoor pos, int lyr /* = 1 */) {
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **values) {
     try {
-        if (m_rasterData == NULL || (m_is2DRaster && m_raster2DData == NULL)) {
+        if (m_rasterData == NULL && (m_is2DRaster && m_raster2DData == NULL)) {
             throw ModelException("claRasterData", "getValue", "Please first initialize the raster object.");
         }
-        // return NODATA if row, col, or lyr exceeds the extent
+        // return NULL if row, col, or lyr exceeds the extent
         if (validCellIndex < 0 || validCellIndex > m_nCells || *nLyrs > m_nLyrs) {
-            return m_noDataValue;
+            *nLyrs = -1;
+            *values = NULL;
         }
         /// get index according to position data if possible
         if (m_calcPositions && m_rasterPositionData != NULL) {
@@ -510,10 +524,11 @@ void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **value
                 throw ModelException("clsRasterData", "getValue",
                                      "The index is too big! There are not so many valid cell in the raster.");
             }
-        } else {
-            throw ModelException("clsRasterData", "getValue", "The position data is not calculated!");
-        }
-        if (m_is2DRaster && m_raster2DData == NULL) {
+        } 
+        //else {
+        //    throw ModelException("clsRasterData", "getValue", "The position data is not calculated!");
+        //}
+        if (m_is2DRaster && m_raster2DData != NULL) {
             T *cellValues = new T[m_nLyrs];
             for (int i = 0; i < m_nLyrs; i++) {
                 cellValues[i] = m_raster2DData[validCellIndex][i];
@@ -544,6 +559,13 @@ void clsRasterData<T, MaskT>::getValue(RowColCoor pos, int *nLyrs, T **values) {
         this->getValue(validCellIndex, nLyrs, values);
     }
 }
+
+#if (!defined(MSVC) || _MSC_VER >= 1800)
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::getValue(initializer_list<int> poslist, int *nLyrs, T **values){
+    getValue(RowColCoor(*poslist.begin(), *(poslist.end() - 1)), nLyrs, values);
+}
+#endif /* !defined(MSVC) || _MSC_VER >= 1800 */
 
 /************* Output to file functions ***************/
 
@@ -834,32 +856,19 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string  filename, mongoc_gridfs_t 
     }
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,string  filename, map<string, double>& header,string  srs, T *values, int datalength) {
+void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, 
+    map<string, double>& header, string srs, T *values, size_t datalength) {
     bson_t p = BSON_INITIALIZER;
     for (map<string, double>::iterator iter = header.begin(); iter != header.end(); iter++){
         BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
     }
     BSON_APPEND_UTF8(&p, HEADER_RS_SRS, srs.c_str());
     char* buf = (char* )values;
-    int buflength = datalength * sizeof(T);
+    size_t buflength = datalength * sizeof(T);
     MongoGridFS().writeStreamData(filename, buf, buflength, &p, gfs);
-
-    //mongoc_gridfs_file_t *gfile = NULL;
-    //mongoc_gridfs_file_opt_t gopt = {0};
-    //gopt.filename = filename.c_str();
-    //gopt.content_type = "float"; // TODO, Is the content_type can be any STRING?
-    //gopt.metadata = &p;
-    //gfile = mongoc_gridfs_create_file(gfs, &gopt);
-    //mongoc_iovec_t ovec;
-    //ovec.iov_base = buf;
-    //ovec.iov_len = buflength;
-    //mongoc_gridfs_file_writev(gfile, &ovec, 1, 0);
-    //mongoc_gridfs_file_save(gfile);
-    //mongoc_gridfs_file_destroy(gfile);
-
     bson_destroy(&p);
 }
-#endif
+#endif /* USE_MONGODB */
 
 /************* Read functions ***************/
 template<typename T, typename MaskT>
@@ -892,12 +901,13 @@ void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
+void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, 
+    clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
     /// 1. Get stream data and metadata by file name
     MongoGridFS mgfs = MongoGridFS();
     char* buf;
-    int length;
+    size_t length;
     mgfs.getStreamData(filename, buf, length, gfs);
     bson_t *bmeta = mgfs.getFileMetadata(filename, gfs);
     /// 2. Retrieve raster header values
@@ -962,7 +972,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
         exit(EXIT_FAILURE);
     }
 }
-#endif
+#endif /* USE_MONGODB */
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, double> *header, T **values) {
@@ -1381,7 +1391,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             for (int i = 0; i < maskRows; ++i) {
                 for (int j = 0; j < maskCols; ++j) {
                     /// check mask data
-                    RowColCoor pos = {i, j};
+                    RowColCoor pos(i, j);
                     if (FloatEqual(m_mask->getValue(pos), m_mask->getNoDataValue())) continue;
                     double *tmpXY = m_mask->getCoordinateByRowCol(i, j);
                     /// get current raster value by XY
@@ -1456,7 +1466,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             typename vector<vector < T> > ::iterator
             data2dit = values2D.begin();
             for (typename vector<T>::iterator it = values.begin(); it != values.end();) {
-                int idx = distance(vit, it);
+                int64_t idx = distance(vit, it);
                 int tmpr = positionRows.at(idx);
                 int tmpc = positionCols.at(idx);
 
@@ -1563,4 +1573,4 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
     }
 }
 
-#endif
+#endif /* CLS_RASTER_DATA */

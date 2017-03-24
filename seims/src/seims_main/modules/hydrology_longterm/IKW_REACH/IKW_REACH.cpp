@@ -2,8 +2,6 @@
 #include "seims.h"
 #include "IKW_REACH.h"
 
-#define MIN_FLUX 1e-12f
-#define MAX_ITERS_CH 10
 
 using namespace std;
 
@@ -188,7 +186,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
         //StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
         return false;
     }
-#ifdef STORM_MODEL
+#ifdef STORM_MODE
     if(m_nreach != n-1)
     {
         if(m_nreach <=0)
@@ -213,7 +211,7 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
             throw ModelException("IKW_REACH", "CheckInputSize", oss.str());
         }
     }
-#endif
+#endif /* STORM_MODE */
     return true;
 }
 
@@ -462,7 +460,7 @@ float IKW_REACH::GetNewQ(float qIn, float qLast, float surplus, float alpha, flo
         Qkx = max(Qkx, MIN_FLUX);
         count++;
         //qDebug() << count << fQkx << Qkx;
-    } while (fabs(fQkx) > _epsilon && count < MAX_ITERS_CH);
+    } while (fabs(fQkx) > _epsilon && count < MAX_ITERS_KW);
 
     if (Qkx != Qkx) {
         throw ModelException("IKW_OL", "GetNewQ", "Error in iteration!");
