@@ -41,7 +41,6 @@ SEIMS模型采用C++和Python编写，支持子流域-栅格双层并行计算�
 + mongo-c-driver 1.5+ -- 读写MongoDB
 + MS-MPI v6 （或更高）-- 编译MPI并行程序，如TauDEM、SEIMS-MPI版本等
 
-
 ## 1.1 Microsoft Visual Studio
 
 + **For User**： 如果只是希望源码编译SEIMS模型，而不想安装臃肿庞大的VS，可以选择使用Microsoft Visual C++ Build Tools，比如[2015 Update 3](https://www.visualstudio.com/downloads/#microsoft-visual-c-build-tools-2015-update-3 "microsoft-visual-c-build-tools-2015-update-3").
@@ -110,6 +109,11 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 > Note: 建议采用默认安装路径安装MPI
 
 # 2. Compilation and Installation
+
+使用CMake编译SEIMS时有3个可选参数：
+1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
+2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
+3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
 
 ## 2.1 Installation for users
 
