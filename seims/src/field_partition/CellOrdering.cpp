@@ -754,9 +754,9 @@ void CellOrdering::MergeSameFatherSameLanduseField(int id) {
         /*if(m_fields[iid] == NULL)
             continue;*/
         MergeSameFatherSameLanduseField(iid);
-    }                                               //�������
+    }
     for (int i = 0; i < nsize - 1; i++) {
-        int f1, f2;                   //merge f1 to f2
+        int f1, f2;  //merge f1 to f2
         f1 = inFields[i];
         if (m_fields[f1] == NULL) {
             continue;
