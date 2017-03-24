@@ -60,7 +60,6 @@ string SEIMSModuleSetting::channelRoutingMethod(int methodIndex) {
             throw ModelException("SEIMSModuleSetting", "needDoVerticalInterpolation", "Module " + m_moduleId +
                 " does not appoint vertical interpolation in the third column.");
         }
-
         return m_settings.at(methodIndex);
     }
 }

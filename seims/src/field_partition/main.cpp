@@ -139,7 +139,7 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     bool flag = false;
     for (int i = 0; i < rsStreamLink.getRows(); i++) {
         for (int j = 0; j < rsStreamLink.getCols(); j++) {
-            RowColCoor rc = {i, j};
+            RowColCoor rc(i, j);
             if (!rsStreamLink.isNoData(rc) && rsStreamLink.getValue(rc) > 0) {
                 colIndex = j;
                 rowIndex = i;
@@ -155,12 +155,12 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     /// cout<<rowIndex<<","<<colIndex<<endl;
     flag = true;
     while (flag) {
-        RowColCoor rc = {rowIndex, colIndex};
+        RowColCoor rc(rowIndex, colIndex);
         int index = dirToIndexMap[rsDir.getValue(rc)];
         int ii = rowIndex + CellOrdering::m_d1[index];
         int jj = colIndex + CellOrdering::m_d2[index];
         if (ii < rsDEM.getRows() - 1 && jj < rsDEM.getCols() - 1) {
-            RowColCoor rc_new = {ii, jj};
+            RowColCoor rc_new(ii, jj);
             if (rsStreamLink.isNoData(rc_new) || rsStreamLink.getValue(rc_new) <= 0) {
                 flag = false;
             } else {

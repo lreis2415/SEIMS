@@ -83,7 +83,7 @@ void InputStation::build_query_bson(int nSites, vector<int> &siteIDList, string 
 
 void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sitesList) {
     vector <string> vecSites = SplitString(sitesList, ',');
-    int nSites = vecSites.size();
+    int nSites = (int) vecSites.size();
     //convert from string to int, the IDList is in order in MongoDB
     vector<int> siteIDList;
     for (int iSite = 0; iSite < nSites; iSite++) {
@@ -150,11 +150,9 @@ void InputStation::ReadSitesData(string hydroDBName, string sitesList, string si
 
     //clock_t start = clock();
     if (stormMode) {
-        m_measurement[siteType] = new NotRegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate,
-                                                            endDate);
+        m_measurement[siteType] = new NotRegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate, endDate);
     } else {
-        m_measurement[siteType] = new RegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate, endDate,
-                                                         m_dtHs);
+        m_measurement[siteType] = new RegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate, endDate, m_dtHs);
     }
     //clock_t end = clock();
     //cout << "Read measurement " << siteType << " " << end - start << endl;

@@ -78,3 +78,8 @@
  * \brief Ecology related modules
  *
  */
+/** \defgroup Management
+ * \ingroup Modules
+ * \brief BMPs or NPS related modules
+ *
+ */
