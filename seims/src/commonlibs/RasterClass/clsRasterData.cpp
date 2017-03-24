@@ -64,7 +64,7 @@ clsRasterData<T, MaskT>::clsRasterData(string filename, bool calcPositions /* = 
 }
 
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(vector <string> filenames, bool calcPositions /* = true */,
+clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositions /* = true */,
                                        clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */,
                                        T defalutValue /* = (T) NODATA_VALUE */) {
     try {
@@ -182,7 +182,7 @@ bool clsRasterData<T, MaskT>::_check_raster_file_exists(string filename) {
 }
 
 template<typename T, typename MaskT>
-bool clsRasterData<T, MaskT>::_check_raster_file_exists(vector <string> &filenames) {
+bool clsRasterData<T, MaskT>::_check_raster_file_exists(vector<string> &filenames) {
     for (vector<string>::iterator it = filenames.begin(); it != filenames.end(); it++) {
         if (!this->_check_raster_file_exists(*it)) {
             return false;
@@ -235,7 +235,9 @@ void clsRasterData<T, MaskT>::calculateStatistics() {
         m_statsMap2D[STATS_RS_MIN] = derivedvs[3];
         m_statsMap2D[STATS_RS_STD] = derivedvs[4];
         m_statsMap2D[STATS_RS_RANGE] = derivedvs[5];
-        /// derivedvs will be released on the destructor function by releaseStatsMap2D().
+        /// 1D array elements of derivedvs will be released by the destructor: releaseStatsMap2D()
+        delete[] derivedvs;
+        derivedvs = NULL;
     } else {
         double *derivedv = NULL;
         basicStatistics(m_rasterData, m_nCells, &derivedv, m_noDataValue);
@@ -1117,23 +1119,37 @@ template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_add_other_layer_raster_data(int row, int col, int cellidx, int lyr,
                                                            map<string, double> lyrheader, T *lyrdata) {
     int tmpcols = (int) lyrheader[HEADER_RS_NCOLS];
-    double *tmpXY = this->getCoordinateByRowCol(row, col);
+    XYCoor tmpXY = this->getCoordinateByRowCol(row, col);
     /// get current raster layer's value by XY
-    int *tmpPosition = this->getPositionByCoordinate(tmpXY[0], tmpXY[1], &lyrheader);
-    if (tmpPosition[0] == -1 || tmpPosition[1] == -1) {
+    RowCol tmpPosition = this->getPositionByCoordinate(tmpXY.first, tmpXY.second, &lyrheader);
+    if (tmpPosition.first == -1 || tmpPosition.second == -1) {
         m_raster2DData[cellidx][lyr] = m_noDataValue;
     } else {
-        m_raster2DData[cellidx][lyr] = lyrdata[tmpPosition[0] * tmpcols + tmpPosition[1]];
+        m_raster2DData[cellidx][lyr] = lyrdata[tmpPosition.first * tmpcols + tmpPosition.second];
     }
 }
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::Copy(clsRasterData &orgraster) {
+    if (m_is2DRaster && m_raster2DData != NULL && m_nCells > 0) {
+        Release2DArray(m_nCells, m_raster2DData);
+    }
+    if (!m_is2DRaster && m_rasterData != NULL) {
+        Release1DArray(m_rasterData);
+    }
+    if (m_rasterPositionData != NULL) {
+        Release2DArray(2, m_rasterPositionData);
+    }
+    if (m_statisticsCalculated) {
+        releaseStatsMap2D();
+    }
+    _initialize_raster_class();
     m_filePathName = orgraster.getFilePath();
     m_coreFileName = orgraster.getCoreName();
     m_nCells = orgraster.getCellNumber();
     m_noDataValue = (T) orgraster.getNoDataValue();
     if (orgraster.is2DRaster()) {
+        m_is2DRaster = true;
         m_nLyrs = orgraster.getLayers();
         Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, orgraster.get2DRasterDataPointer());
     } else {
@@ -1208,19 +1224,16 @@ void clsRasterData<T, MaskT>::reclassify(map<int, T> reclassMap) {
 /************* Utility functions ***************/
 
 template<typename T, typename MaskT>
-double *clsRasterData<T, MaskT>::getCoordinateByRowCol(int row, int col) {
+XYCoor clsRasterData<T, MaskT>::getCoordinateByRowCol(int row, int col) {
     double xllCenter = this->getXllCenter();
     double yllCenter = this->getYllCenter();
     double cs = this->getCellWidth();
     double nrows = this->getRows();
-    double *xy = new double[2];
-    xy[0] = xllCenter + col * cs;
-    xy[1] = yllCenter + (nrows - row - 1) * cs;
-    return xy;
+    return XYCoor(xllCenter + col * cs, yllCenter + (nrows - row - 1) * cs);
 }
 
 template<typename T, typename MaskT>
-int *clsRasterData<T, MaskT>::getPositionByCoordinate(double x, double y, map<string, double> *header /* = NULL */) {
+RowCol clsRasterData<T, MaskT>::getPositionByCoordinate(double x, double y, map<string, double> *header /* = NULL */) {
     if (header == NULL) {
         header = &m_headers;
     }
@@ -1230,22 +1243,17 @@ int *clsRasterData<T, MaskT>::getPositionByCoordinate(double x, double y, map<st
     float dy = dx;
     int nRows = (int) (*header)[HEADER_RS_NROWS];
     int nCols = (int) (*header)[HEADER_RS_NCOLS];
-
-    int *position = new int[2];
-
+    
     double xmin = xllCenter - dx / 2.;
     double xMax = xmin + dx * nCols;
 
     double ymin = yllCenter - dy / 2.;
     double yMax = ymin + dy * nRows;
     if ((x > xMax || x < xllCenter) || (y > yMax || y < yllCenter)) {
-        position[0] = -1;
-        position[1] = -1;
+        return RowCol(-1, -1);
     } else {
-        position[0] = (int) ((yMax - y) / dy); //calculate from ymax
-        position[1] = (int) ((x - xmin) / dx); //calculate from xmin
+        return RowCol((int)((yMax - y) / dy), (int)((x - xmin) / dx));
     }
-    return position;
 }
 
 template<typename T, typename MaskT>
@@ -1284,7 +1292,7 @@ void clsRasterData<T, MaskT>::_calculate_valid_positions_from_grid_data() {
             if (FloatEqual(double(tempFloat), double(m_noDataValue))) continue;
             values.push_back(tempFloat);
             if (m_is2DRaster && m_nLyrs > 1) {
-                vector <T> tmpv(m_nLyrs - 1);
+                vector<T> tmpv(m_nLyrs - 1);
                 for (int lyr = 1; lyr < m_nLyrs; lyr++) {
                     tmpv[lyr - 1] = m_raster2DData[idx][lyr];
                 }
@@ -1297,7 +1305,7 @@ void clsRasterData<T, MaskT>::_calculate_valid_positions_from_grid_data() {
     /// swap vector to save memory
     vector<T>(values).swap(values);
     if (m_is2DRaster && m_nLyrs > 1) {
-        vector < vector < T > > (values2D).swap(values2D);
+        vector<vector<T> > (values2D).swap(values2D);
     }
     vector<int>(positionRows).swap(positionRows);
     vector<int>(positionCols).swap(positionCols);
@@ -1353,18 +1361,18 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             for (int i = 0; i < nValidMaskNumber; ++i) {
                 int tmpRow = validPosition[i][0];
                 int tmpCol = validPosition[i][1];
-                double *tmpXY = m_mask->getCoordinateByRowCol(tmpRow, tmpCol);
+                XYCoor tmpXY = m_mask->getCoordinateByRowCol(tmpRow, tmpCol);
                 /// get current raster value by XY
-                int *tmpPosition = this->getPositionByCoordinate(tmpXY[0], tmpXY[1]);
-                if (tmpPosition[0] == -1 || tmpPosition[1] == -1) continue;
+                RowCol tmpPosition = this->getPositionByCoordinate(tmpXY.first, tmpXY.second);
+                if (tmpPosition.first == -1 || tmpPosition.second == -1) continue;
 
                 T tmpValue;
                 if (m_is2DRaster) {
-                    tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
+                    tmpValue = m_raster2DData[tmpPosition.first * cols + tmpPosition.second][0];
                     if (m_nLyrs > 1) {
-                        vector <T> tmpValues(m_nLyrs - 1);
+                        vector<T> tmpValues(m_nLyrs - 1);
                         for (int lyr = 1; lyr < m_nLyrs; lyr++) {
-                            tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+                            tmpValues[lyr - 1] = m_raster2DData[tmpPosition.first * cols + tmpPosition.second][lyr];
                             if (FloatEqual(tmpValues[lyr - 1], m_noDataValue)) {
                                 tmpValues[lyr - 1] = m_defaultValue;
                             }
@@ -1372,7 +1380,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
                         values2D.push_back(tmpValues);
                     }
                 } else {
-                    tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
+                    tmpValue = m_rasterData[tmpPosition.first * cols + tmpPosition.second];
                 }
                 // cout<<tmpValue<<",";
                 if (FloatEqual(tmpValue, m_noDataValue)) {
@@ -1381,9 +1389,6 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
                 values.push_back(tmpValue);
                 positionRows.push_back(tmpRow);
                 positionCols.push_back(tmpCol);
-                /// release temporary array
-                Release1DArray(tmpXY);
-                Release1DArray(tmpPosition);
             }
         } else {
             int maskRows = m_mask->getRows();
@@ -1391,19 +1396,18 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             for (int i = 0; i < maskRows; ++i) {
                 for (int j = 0; j < maskCols; ++j) {
                     /// check mask data
-                    RowColCoor pos(i, j);
-                    if (FloatEqual(m_mask->getValue(pos), m_mask->getNoDataValue())) continue;
-                    double *tmpXY = m_mask->getCoordinateByRowCol(i, j);
+                    if (FloatEqual(m_mask->getValue(RowColCoor(i, j)), m_mask->getNoDataValue())) continue;
+                    XYCoor tmpXY = m_mask->getCoordinateByRowCol(i, j);
                     /// get current raster value by XY
-                    int *tmpPosition = this->getPositionByCoordinate(tmpXY[0], tmpXY[1]);
-                    if (tmpPosition[0] == -1 || tmpPosition[1] == -1) continue;
+                    RowCol tmpPosition = this->getPositionByCoordinate(tmpXY.first, tmpXY.second);
+                    if (tmpPosition.first == -1 || tmpPosition.second == -1) continue;
                     T tmpValue;
                     if (m_is2DRaster) {
-                        tmpValue = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][0];
+                        tmpValue = m_raster2DData[tmpPosition.first * cols + tmpPosition.second][0];
                         if (m_nLyrs > 1) {
-                            vector <T> tmpValues(m_nLyrs - 1);
+                            vector<T> tmpValues(m_nLyrs - 1);
                             for (int lyr = 1; lyr < m_nLyrs; lyr++) {
-                                tmpValues[lyr - 1] = m_raster2DData[tmpPosition[0] * cols + tmpPosition[1]][lyr];
+                                tmpValues[lyr - 1] = m_raster2DData[tmpPosition.first * cols + tmpPosition.second][lyr];
                                 if (FloatEqual(tmpValues[lyr - 1], m_noDataValue)) {
                                     tmpValues[lyr - 1] = m_defaultValue;
                                 }
@@ -1411,22 +1415,19 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
                             values2D.push_back(tmpValues);
                         }
                     } else {
-                        tmpValue = m_rasterData[tmpPosition[0] * cols + tmpPosition[1]];
+                        tmpValue = m_rasterData[tmpPosition.first * cols + tmpPosition.second];
                     }
                     if (FloatEqual(tmpValue, m_noDataValue)) {
                         tmpValue = m_defaultValue;
                     }
                     positionRows.push_back(i);
                     positionCols.push_back(j);
-                    /// release temporary array
-                    Release1DArray(tmpXY);
-                    Release1DArray(tmpPosition);
                 }
             }
         }
         /// swap vector to save memory
         if (m_is2DRaster && m_nLyrs > 1) {
-            vector < vector < T > > (values2D).swap(values2D);
+            vector< vector< T > > (values2D).swap(values2D);
         }
         vector<T>(values).swap(values);
         vector<int>(positionRows).swap(positionRows);
@@ -1463,7 +1464,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             vector<int>::iterator rit = positionRows.begin();
             vector<int>::iterator cit = positionCols.begin();
             typename vector<T>::iterator vit = values.begin();
-            typename vector<vector < T> > ::iterator
+            typename vector<vector< T> > ::iterator
             data2dit = values2D.begin();
             for (typename vector<T>::iterator it = values.begin(); it != values.end();) {
                 int64_t idx = distance(vit, it);
@@ -1492,7 +1493,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             }
             /// swap vector to save memory
             vector<T>(values).swap(values);
-            if (m_is2DRaster && m_nLyrs > 1) vector < vector < T > > (values2D).swap(values2D);
+            if (m_is2DRaster && m_nLyrs > 1) vector< vector< T > > (values2D).swap(values2D);
             vector<int>(positionRows).swap(positionRows);
             vector<int>(positionCols).swap(positionCols);
         }
