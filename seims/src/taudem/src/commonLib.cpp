@@ -230,8 +230,10 @@ void initNeighborDinfup(tdpartition *neighbor, tdpartition *flowData, queue <nod
             finished = neighbor->ringTerm(finished);
         }
 
-        delete bufferAbove;
-        delete bufferBelow;
+        delete[] bufferAbove;
+        delete[] bufferBelow;
+        bufferAbove = NULL;
+        bufferBelow = NULL;
     }
 }
 
@@ -368,8 +370,10 @@ void initNeighborD8up(tdpartition *neighbor, tdpartition *flowData, queue <node>
             }
             finished = neighbor->ringTerm(finished);
         }
-        delete bufferAbove;
-        delete bufferBelow;
+        delete[] bufferAbove;
+        delete[] bufferBelow;
+        bufferAbove = NULL;
+        bufferBelow = NULL;
     }
 }
 

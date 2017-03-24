@@ -243,7 +243,7 @@ void SEDR_SBAGNOLD::SetValue(const char *key, float value) {
     else if (StringMatch(sk, Tag_TimeStep)) {
         m_dt = (int) value;
     }
-#endif
+#endif /* STORM_MODE */
     else if (StringMatch(sk, VAR_P_RF)) {
         m_prf = value;
     } else if (StringMatch(sk, VAR_SPCON)) {

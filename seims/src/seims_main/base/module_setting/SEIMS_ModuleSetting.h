@@ -21,22 +21,23 @@ public:
 
     ~SEIMSModuleSetting(void);
 
+    ///< data type
     float dataType();
 
     ///< climate data type for TSD and ITP
     string dataTypeString();
 
-    ///< data type
+    ///< vertical interpolation information for ITP
     bool needDoVerticalInterpolation();
 
-    ///< vertical interpolation information for ITP
+    ///< get channel flow routing method
     string channelFlowRoutingMethod();
 
-    ///< get channel flow routing method
+    ///< get channel sediment routing method
     string channelSedimentRoutingMethod();
 
-    ///< get channel sediment routing method
-    string channelNutrientRoutingMethod();///< get channel nutrient routing method
+    ///< get channel nutrient routing method
+    string channelNutrientRoutingMethod();
 private:
     string m_moduleId; ///< module's ID
     string m_settingString; ///< module setting string

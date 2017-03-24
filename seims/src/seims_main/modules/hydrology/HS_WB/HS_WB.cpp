@@ -43,7 +43,7 @@ int HS_WB::Execute() {
             reachId = int(m_streamLink[i]);
 #else
             reachId = 1;
-#endif
+#endif /* MULTIPLY_REACHES */
             m_qsTemp[reachId] += m_qs[i];
             if (m_qi != NULL) {
                 m_qiTemp[reachId] += m_qi[i];
