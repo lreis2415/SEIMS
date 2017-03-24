@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include "utilities.h"
 
 using namespace std;

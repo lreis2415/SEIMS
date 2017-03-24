@@ -214,9 +214,9 @@ void utilsString::TrimSpaces(string &str) {
     }
 }
 
-vector <string> utilsString::SplitString(string const &item, char delimiter) {
+vector<string> utilsString::SplitString(string const &item, char delimiter) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     while (std::getline(iss, field, delimiter)) {
@@ -226,7 +226,7 @@ vector <string> utilsString::SplitString(string const &item, char delimiter) {
 }
 
 vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<int> values;
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back(atoi((*it).c_str()));
@@ -236,7 +236,7 @@ vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
 }
 
 vector<float> utilsString::SplitStringForFloat(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<float> values(valueStrs.size());
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back((float) atof((*it).c_str()));
@@ -244,9 +244,9 @@ vector<float> utilsString::SplitStringForFloat(string const &item, char delimite
     return values;
 }
 
-vector <string> utilsString::SplitString(string const &item) {
+vector<string> utilsString::SplitString(string const &item) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     iss >> field;
@@ -449,7 +449,7 @@ int utilsFileIO::DeleteExistedFile(string const &filepath) {
     }
 }
 
-int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <string> &vecFiles) {
+int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
 #ifdef windows
     char szFind[MAX_PATH];
     stringcpy(szFind, lpPath);
@@ -561,7 +561,7 @@ string utilsFileIO::GetCoreFileName(string const &fullFileName) {
 }
 
 string utilsFileIO::GetSuffix(string const &fullFileName) {
-    vector <string> tokens = utilsString::SplitString(fullFileName, '.');
+    vector<string> tokens = utilsString::SplitString(fullFileName, '.');
     if (tokens.size() >= 2) {
         return tokens[tokens.size() - 1];
     } else {
