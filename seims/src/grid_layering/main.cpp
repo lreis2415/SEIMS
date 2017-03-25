@@ -104,11 +104,13 @@ int main(int argc, char **argv) {
         delete[] dirMatrixDinf;
         delete[] outDegreeMatrixDinf;
         delete[] angle;
+        delete[] flowOutDinf;
         dirMatrix = NULL;
         compressedIndex = NULL;
         dirMatrixDinf = NULL;
         outDegreeMatrixDinf = NULL;
         angle = NULL;
+        flowOutDinf = NULL;
     }
 
     double t2 = TimeCounting();
