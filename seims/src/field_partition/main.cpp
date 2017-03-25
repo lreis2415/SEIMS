@@ -7,8 +7,8 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <set>
 
-#include "gdal.h"
 #include "utilities.h"
 #include "clsRasterData.cpp"
 #include "CellOrdering.h"
