@@ -205,7 +205,6 @@ int OutputMultiFlowOut(int nRows, int nCols, int validCount,
     }
 
     cout << "OutputMultiFlowOut n:" << nOutput << "\t" << nOutput - counter << endl;
-
     return nOutput;
 }
 
