@@ -109,6 +109,7 @@ void BMPPointSrcFactory::ReadPointSourceLocations(mongoc_client_t *conn, string 
             m_pointSrcLocsMap[curPtSrcID] = curPtSrcLoc;
         } else {
             RemoveValueInVector(curPtSrcID, m_pointSrcIDs);
+            delete curPtSrcLoc;
         }
     }
     bson_destroy(b);

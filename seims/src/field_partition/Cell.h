@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <stdlib.h>
+#include <iostream>
 
 using namespace std;
 
@@ -73,7 +74,5 @@ private:
     int m_LanduseCode;
     int m_FieldID;
     int m_degree;
-
-    map<int, bool> m_IsNeighbCellmap;    // int: cell id, bool: if neighbour cell id, true, else false
-
+    map<int, bool> m_IsNeighbCellmap;    // int: cell id, bool: if neighbor cell id, true, else false
 };

@@ -81,5 +81,5 @@ private:
     /// month
     int m_month;
     /// interpolation result
-    float *m_output;
+    float *m_itpOutput;
 };

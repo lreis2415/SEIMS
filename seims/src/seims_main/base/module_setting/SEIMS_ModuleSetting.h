@@ -1,5 +1,5 @@
 /*!
- * \brief 
+ * \brief User-defined module information in config.fig
  * \author Junzhi Liu, Liang-Jun Zhu
  * \version 
  * \date June 2015
@@ -17,7 +17,7 @@ using namespace std;
  */
 class SEIMSModuleSetting {
 public:
-    SEIMSModuleSetting(string moduleId, string setting);
+    SEIMSModuleSetting(string &moduleId, string &setting);
 
     ~SEIMSModuleSetting(void);
 
@@ -39,11 +39,14 @@ public:
     ///< get channel nutrient routing method
     string channelNutrientRoutingMethod();
 private:
+    ///< Copy constructor is unusable.
+    SEIMSModuleSetting(const SEIMSModuleSetting& ) = delete;
+    ///< Copy assignment is unusable.
+    SEIMSModuleSetting& operator=(const SEIMSModuleSetting& ) = delete;
+private:
     string m_moduleId; ///< module's ID
     string m_settingString; ///< module setting string
     vector <string> m_settings; ///< module settings
-
-    void getSettings();
 
     string channelRoutingMethod(int);
 

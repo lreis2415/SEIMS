@@ -11,8 +11,7 @@ PlantManagementOperation::PlantManagementOperation(int mgtOp, bool usebaseHU, fl
 }
 
 PlantManagementOperation::~PlantManagementOperation() {
-    /// This destruct function should not be executed!
-    cout << "The destruct function of PlantManagementOperation class should not be executed!" << endl;
+    /// There are no allocated memory to release!
 }
 
 /// Plant

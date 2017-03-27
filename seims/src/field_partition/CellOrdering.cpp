@@ -437,7 +437,6 @@ void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
     //int count = 0;
     while (downFieldIDs.size() > 0 && !(downFieldIDs.size() == 1 && *downID == 1)) {
         for (downID = downFieldIDs.begin(); downID != downFieldIDs.end(); downID++) {
-            //int count2=0;
             if (*downID != 1) /// downstream field is not the root field (i.e., outlet)
             {
                 /// If FieldID (*it) existed in m_mapfields
@@ -450,7 +449,6 @@ void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
                 if (downField->GetOutFieldID()) {
                     downFieldIDs2.insert(downField->GetOutFieldID());
                 }
-                //cout<<count2++<<endl;
             }
         }
         downFieldIDs.clear();
@@ -458,7 +456,8 @@ void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
             downFieldIDs.insert(*curID);
         }
         downFieldIDs2.clear();
-        //cout<<count++<<", "<<downFieldIDs.size()<<endl;
+        downID = downFieldIDs.begin();
+        //cout<<"Iterator num: "<<count++<<", downFieldIDs num: "<<downFieldIDs.size()<<", downID: "<<*downID<<endl;
     }
     cout << "\t\t\tThere are " << m_mapfields.size() << " fields left before merge fields from root field" << endl;
     Field *rootfd = m_mapfields[1];
@@ -1287,7 +1286,7 @@ void CellOrdering::reclassFieldID() {
 
 void CellOrdering::OutputFieldRelationship(const char *filename) {
     ofstream rasterFile(filename);
-    int m_FieldNum = m_mapfields.size();
+    size_t m_FieldNum = m_mapfields.size();
     //write header
     rasterFile << " Relationship of the fields ---- field number:\n " << m_FieldNum << "\n";
     rasterFile << " FID  " << "downstreamFID  " << "Area(ha)  " << "LanduseID  " << "Degree" << "\n";
@@ -1305,7 +1304,7 @@ void CellOrdering::OutputFieldRelationship(const char *filename) {
         LANDU = m_mapfields[FID]->GetLanduseCode();
         degree = m_mapfields[FID]->GetDegree();
         vector < Cell * > &cells = m_mapfields[FID]->GetCells();
-        int n = cells.size();
+        int n = (int) cells.size();
         Area = n * m_cellwidth * m_cellwidth / 10000;         // ha, 0.01km2
 
         rasterFile << " " << ReFID << "\t" << ReoutFID << "\t" << Area << "\t" << LANDU << "\t" << degree << endl;
@@ -1387,8 +1386,8 @@ void CellOrdering::OutRoutingLayer(const char *filename) {
 
     int nn = 0;
     for (unsigned int i = 0; i < m_layers.size(); ++i) {
-        int layerSize = m_layers[i].size();
-        for (int j = 0; j < layerSize; ++j) {
+        size_t layerSize = m_layers[i].size();
+        for (size_t j = 0; j < layerSize; ++j) {
             int ik = m_layers[i][j] / m_nCols;
             int jk = m_layers[i][j] % m_nCols;
             output.setValue(RowColCoor(ik, jk), i + 1);
