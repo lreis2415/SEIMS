@@ -40,6 +40,13 @@ void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename
         index += nSub;
     }
     cols = nCols;
+    /// release memory
+    if (floatValues != NULL) {
+        Release1DArray(floatValues);
+    }
+    if (databuf != NULL) {
+        databuf = NULL;
+    }
 }
 
 void ReadIUHFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &n, float **&data) {
@@ -63,8 +70,13 @@ void ReadIUHFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, in
         }
         index = index + nSub;
     }
-    Release1DArray(floatValues);
-    databuf = NULL;
+    /// release memory
+    if (floatValues != NULL) {
+        Release1DArray(floatValues);
+    }
+    if (databuf != NULL) {
+        databuf = NULL;
+    }
 }
 
 void ReadLongTermMultiReachInfo(mongoc_client_t *conn, string &dbName, int &nr, int &nc, float **&data) {
@@ -151,10 +163,9 @@ void ReadLongTermMultiReachInfo(mongoc_client_t *conn, string &dbName, int &nr, 
     nr = nAttr;
     nc = nReaches + 1;
 
-    for (i = 0; i < nReaches; i++) {
-        delete[] tmpData[i];
+    if (tmpData != NULL) {
+        Release2DArray(nReaches, tmpData);
     }
-    delete[] tmpData;
     bson_destroy(b);
     mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
@@ -242,10 +253,9 @@ void ReadLongTermReachInfo(mongoc_client_t *conn, string &dbName, int subbasinID
     nr = nAttr;
     nc = nReaches + 1;
 
-    for (i = 0; i < nReaches; i++) {
-        delete[] tmpData[i];
+    if (tmpData != NULL) {
+        Release2DArray(nReaches, tmpData);
     }
-    delete[] tmpData;
     bson_destroy(b);
     mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
@@ -276,7 +286,7 @@ void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client
                              "Failed to get document number of collection: " + string(DB_TAB_REACH) + ".\n");
     }
     cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-    vector <vector<float>> vecReaches;
+    vector<vector<float> > vecReaches;
     float id = 0.f, upDownOrder = 0.f, downUpOrder = 0.f, downStreamID = 0.f, manning = 0.f, v0 = 0.f;
 
     bson_iter_t itertor;

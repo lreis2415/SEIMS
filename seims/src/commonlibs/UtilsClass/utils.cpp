@@ -222,6 +222,7 @@ vector<string> utilsString::SplitString(string const &item, char delimiter) {
     while (std::getline(iss, field, delimiter)) {
         tokens.push_back(field);
     }
+    vector<string>(tokens).swap(tokens);
     return tokens;
 }
 
@@ -504,6 +505,43 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
     }
 #endif /* windows */
     return 0;
+}
+
+bool utilsFileIO::CleanDirectory(string dirpath) {
+    try{
+#ifdef windows
+        if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES)
+        {
+            LPSECURITY_ATTRIBUTES att = NULL;
+            ::CreateDirectory(dirpath.c_str(), att);
+        }
+        else
+        {
+            vector<string> existedFiles;
+            utilsFileIO::FindFiles(dirpath.c_str(), "*.*", existedFiles);
+            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++)
+                remove((*it).c_str());
+        }
+#else
+        if (access(outputPath.c_str(), F_OK) != 0) {
+            mkdir(outputPath.c_str(), 0777);
+        }
+        else {
+            vector <string> existedFiles;
+            utilsFileIO::FindFiles(outputPath.c_str(), ".*", existedFiles);
+            //cout<<existedFiles.size()<<endl;
+            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++) {
+                //cout<<*it<<endl;
+                remove((*it).c_str());
+            }
+        }
+#endif /* windows */
+        return true;
+    }
+    catch (...) {
+        cout << "Create or clean directory: " << dirpath << " failed!" << endl;
+        return false;
+    }
 }
 
 string utilsFileIO::GetAppPath() {

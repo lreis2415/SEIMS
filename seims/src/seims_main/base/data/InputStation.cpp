@@ -8,8 +8,8 @@ InputStation::InputStation(mongoc_client_t *conn, time_t dtHillslope, time_t dtC
 }
 
 InputStation::~InputStation(void) {
-    for (map<string, Measurement *>::iterator it = m_measurement.begin();
-         it != m_measurement.end();) {
+    StatusMessage("Start to release InputStation data ...");
+    for (map<string, Measurement *>::iterator it = m_measurement.begin(); it != m_measurement.end();) {
         if (it->second != NULL) {
             delete it->second;
             it->second = NULL;

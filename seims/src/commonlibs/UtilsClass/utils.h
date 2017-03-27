@@ -562,7 +562,10 @@ public:
     static int copyfile_unix(const char *srcfile, const char *dstfile);
 
 #endif /* not windows */
-
+    /*!
+     * \brief Clean a directory if exists, otherwise create it.
+     */
+    static bool CleanDirectory(string dirpath);
     /*!
      * \brief Get the root path of the current executable file
      * \return \a string root path

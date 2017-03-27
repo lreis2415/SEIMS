@@ -92,7 +92,9 @@ int main(int argc, const char *argv[]) {
         cin >> modelPath;
     }
 #ifdef USE_MONGODB
-    MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
+    if (MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod) != 0) {
+        cout << "SEIMS aborts with an ERROR!" << endl;
+    }
 #endif /* USE_MONGODB */
 
     //system("pause");

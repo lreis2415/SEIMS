@@ -40,6 +40,6 @@ void checkTable(vector <string> &tableNameList, string dbName, const char *table
  * \param[in] numThread \a int, thread number for OpenMP
  * \param[in] layingMethod \sa LayeringMethod, method for sequencing Grid
  */
-void MainMongoDB(string, char *, int, int, int, LayeringMethod);
+int MainMongoDB(string, char *, int, int, int, LayeringMethod);
 
 #endif
