@@ -105,7 +105,6 @@ int PETPriestleyTaylor::Execute() {
         if (m_tMean[i] > 0.f && m_phutot[i] > 0.01f) {
             m_phuBase[i] += m_tMean[i] / m_phutot[i];
         }
-
         /// compute net radiation
         /// net short-wave radiation for PET, etpot.f in SWAT src
         float raShortWave = m_sr[i] * (1.0f - 0.23f);
@@ -122,11 +121,18 @@ int PETPriestleyTaylor::Execute() {
         float satVaporPressure = SaturationVaporPressure(m_tMean[i]);
         float actualVaporPressure = 0.f;
         if (m_rhd[i] > 1) {   /// IF percent unit.
-            actualVaporPressure = m_rhd[i] * satVaporPressure * 0.01f;
-        } else {
-            actualVaporPressure = m_rhd[i] * satVaporPressure;
+            m_rhd[i] *= 0.01f;
+        } else if (m_rhd[i] < UTIL_ZERO) {
+            m_rhd[i] = UTIL_ZERO;
+        }
+        actualVaporPressure = m_rhd[i] * satVaporPressure;
+        if (actualVaporPressure < UTIL_ZERO) {
+            actualVaporPressure = UTIL_ZERO;
         }
         m_vpd[i] = satVaporPressure - actualVaporPressure;
+        if (m_vpd[i] < 0.f) {
+            m_vpd[i] = 0.f;
+        }
         float rbo = -(0.34f - 0.139f * sqrt(actualVaporPressure));
         //cloud cover factor
         float rto = 0.0f;
@@ -154,6 +160,12 @@ int PETPriestleyTaylor::Execute() {
 
         float petValue = pet_alpha * (dlt / (dlt + gma)) * raNet / latentHeat;
         m_pet[i] = m_petFactor * max(0.f, petValue);
+        if (m_pet[i] != m_pet[i]) {
+            cout << "cell id: " << i << ", pet: " << m_pet[i] << ", meanT: " << m_tMean[i] <<
+                ", rhd: " << m_rhd[i] << ", rbo: " << rbo << ", sr: "<< m_sr[i] << ", m_srMax: "
+                << m_srMax << ", rto: " << rto << ", satVaporPressure: " << satVaporPressure << endl;
+            throw ModelException(MID_PET_PT, "Execute", "Calculation error occurred!\n");
+        }
     }
     return 0;
 }
