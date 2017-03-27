@@ -2,7 +2,7 @@
 
 ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
                      ModuleFactory *factory,
-                     int subBasinID /* = 1 */, int scenarioID /* = -1 */, int numThread /* = 1 */,
+                     int subBasinID /* = 0 */, int scenarioID /* = -1 */, int numThread /* = 1 */,
                      LayeringMethod layeringMethod /* = UP_DOWN */)
     : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input),
       m_factory(factory),
@@ -22,7 +22,7 @@ ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, S
     if (err != NULL) {
         throw ModelException("MainMongoDB", "ModelMain", "Failed to create output GridFS: " + m_outputScene + ".\n");
     }
-
+    /* time-step of daily, hillslope, and channel scales */
     m_dtDaily = m_input->getDtDaily();
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
@@ -32,7 +32,7 @@ ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, S
     CheckOutput(spatialData);
 
     m_readFileTime = factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
-                                               m_templateRasterData, m_input, m_simulationModules);
+                                               m_templateRasterData, m_simulationModules);
     //cout << "Read file time: " << m_readFileTime << endl;
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
@@ -52,34 +52,90 @@ ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, S
     mongoc_gridfs_destroy(spatialData);
 }
 
+ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
+                     LayeringMethod layeringMethod /* = UP_DOWN */, int subBasinID /* = 0 */, 
+                     int scenarioID /* = 0 */, int numThread /* = 1 */):
+                     m_client(mongoClient), m_dbName(dbName), m_projectPath(projectPath), 
+                     m_modulePath(modulePath), m_layeringMethod(layeringMethod), m_subBasinID(subBasinID),
+                     m_scenarioID(scenarioID), m_threadNum(numThread) {
+    m_conn = m_client->getConn();
+    /// 1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
+    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
+    m_input = new SettingsInput(m_conn, m_dbName, m_subBasinID);
+    
+    /// 2 Constructor module factories by "config.fig" file
+    string configFile = m_projectPath + SEP + File_Config;
+    m_factory = new ModuleFactory(configFile, m_modulePath, m_conn, m_dbName, m_subBasinID, 
+                                  m_layeringMethod, m_scenarioID, m_input);
+    
+    /// 3 Constructor output instance by "FILE_OUT" collection
+    m_outputScene = string(DB_TAB_OUT_SPATIAL);
+    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
+        m_outputScene += ValueToString(m_scenarioID);
+    m_outputGfs = m_client->getGridFS(m_dbName, m_outputScene);
+    m_output = new SettingsOutput(m_subBasinID, m_conn, dbName, m_outputGfs);
+
+    /// 4 Check database
+    mongoc_gridfs_t *spatialData = m_client->getGridFS(m_dbName, string(DB_TAB_SPATIAL));
+    /* time-step of daily, hillslope, and channel scales */
+    m_dtDaily = m_input->getDtDaily();
+    m_dtHs = m_input->getDtHillslope();
+    m_dtCh = m_input->getDtChannel();
+    CheckOutput(spatialData);  /// load m_templateRasterData
+
+    /// 5 Create module list and load data from MongoDB
+    m_readFileTime = m_factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
+                                                 m_templateRasterData, m_simulationModules);
+    StatusMessage(("Read file time: " + ValueToString(m_readFileTime) + " sec.").c_str());
+    size_t n = m_simulationModules.size();
+    m_executeTime.resize(n, 0.f);
+    for (size_t i = 0; i < n; i++) {
+        SimulationModule *pModule = m_simulationModules[i];
+        switch (pModule->GetTimeStepType()) {
+        case TIMESTEP_HILLSLOPE:m_hillslopeModules.push_back(i);
+            break;
+        case TIMESTEP_CHANNEL:m_channelModules.push_back(i);
+            break;
+        case TIMESTEP_ECOLOGY:m_ecoModules.push_back(i);
+        case TIMESTEP_SIMULATION:m_overallModules.push_back(i);
+        }
+    }
+    /// 6 Check the validation of settings of output files, e.g. filename and time ranges
+    CheckOutput();
+
+    /// 7 Destroy the GridFS instance of Spatial database, which will not be used
+    mongoc_gridfs_destroy(spatialData);
+}
+
 ModelMain::~ModelMain(void) {
     StatusMessage("Start to release ModelMain ...");
-    try {
-        if (this->m_templateRasterData != NULL) delete this->m_templateRasterData;
-        for (map<string, ParamInfo *>::iterator it = m_parameters.begin(); it != m_parameters.end();) {
-            if (it->second != NULL) {
-                delete it->second;
-            }
-            it->second = NULL;
-            it = m_parameters.erase(it);
+    for (map<string, ParamInfo *>::iterator it = m_parameters.begin(); it != m_parameters.end();) {
+        if (it->second != NULL) {
+            delete it->second;
         }
-        m_parameters.clear();
-        if (this->m_input != NULL) {
-            delete this->m_input;
-        }
-        if (this->m_output != NULL) {
-            delete this->m_output;
-        }
-        if (m_outputGfs != NULL) {
-            ModelMain::CloseGridFS();
-        }
-        if (!m_conn) {
-            mongoc_client_destroy(m_conn);
-        }
+        it->second = NULL;
+        it = m_parameters.erase(it);
     }
-    catch (exception e) {
-        cout << e.what() << endl;
+    m_parameters.clear();
+    ///m_templateRasterData, i.e. 0_MASK raster, will be released in m_rsMap during releasing m_factory.
+    if (m_templateRasterData != NULL) m_templateRasterData = NULL;
+    if (m_output != NULL) {
+        delete m_output;
     }
+    StatusMessage("Close the output GridFS ...");
+    if (m_outputGfs != NULL) {
+        ModelMain::CloseGridFS();
+    }
+    if (m_factory != NULL) {
+        delete m_factory;
+        m_factory = NULL;
+    }
+    if (m_input != NULL) {
+        delete m_input;
+        m_input = NULL;
+    }
+    /// m_client will be release by MongoClient.
+    m_conn = NULL;
 }
 
 //void ModelMain::Step(time_t time)
@@ -137,7 +193,7 @@ float ModelMain::GetQOutlet() {
 //}
 
 void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
-    m_factory->UpdateInput(m_simulationModules, m_input, t);
+    m_factory->UpdateInput(m_simulationModules, t);
 
     for (size_t i = 0; i < m_hillslopeModules.size(); i++) {
         int index = m_hillslopeModules[i];
@@ -232,32 +288,7 @@ void ModelMain::Output() {
     //clock_t t1 = clock();
     double t1 = TimeCounting();
     string outputPath = m_projectPath + m_outputScene;
-#ifdef windows
-    if (::GetFileAttributes(outputPath.c_str()) == INVALID_FILE_ATTRIBUTES)
-    {
-        LPSECURITY_ATTRIBUTES att = NULL;
-        ::CreateDirectory(outputPath.c_str(), att);
-    }
-    else
-    {
-        vector<string> existedFiles;
-        FindFiles(outputPath.c_str(),"*.*",existedFiles);
-        for(vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++)
-            remove((*it).c_str());
-    }
-#else
-    if (access(outputPath.c_str(), F_OK) != 0) {
-        mkdir(outputPath.c_str(), 0777);
-    } else {
-        vector <string> existedFiles;
-        FindFiles(outputPath.c_str(), ".*", existedFiles);
-        //cout<<existedFiles.size()<<endl;
-        for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++) {
-            //cout<<*it<<endl;
-            remove((*it).c_str());
-        }
-    }
-#endif /* windows */
+    CleanDirectory(outputPath);
     vector<PrintInfo *>::iterator it;
     for (it = this->m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         vector<PrintInfoItem *>::iterator itemIt;

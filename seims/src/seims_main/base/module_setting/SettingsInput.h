@@ -75,7 +75,7 @@ private:
     //! MongoDB client
     mongoc_client_t *m_conn;
     //! HydroClimate site list <siteType, siteIDList>
-    map <string, vector<int>> m_siteListMap;
+    map<string, vector<int> > m_siteListMap;
     //! Subbasin ID
     int m_subbasinID;
     //! Simulation mode, can be DAILY or HOURLY

@@ -210,6 +210,9 @@ int SubbasinIUHCalculator::calCell(int id) {
     }
     char *databuf = (char *) data;
     MongoGridFS().writeStreamData(remoteFilename, databuf, datalength, &p, gfs);
+    delete[] data;
+    data = NULL;
+    databuf = NULL;
 //    for (int i = 0; i < nRows; ++i)
 //    {
 //        for (int j = 0; j < nCols; ++j)

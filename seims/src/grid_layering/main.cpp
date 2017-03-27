@@ -11,7 +11,9 @@
 *   Date:       9- February-2017
 *---------------------------------------------------------------------*/
 
-
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <sstream>
 #include <ctime>
@@ -102,11 +104,13 @@ int main(int argc, char **argv) {
         delete[] dirMatrixDinf;
         delete[] outDegreeMatrixDinf;
         delete[] angle;
+        delete[] flowOutDinf;
         dirMatrix = NULL;
         compressedIndex = NULL;
         dirMatrixDinf = NULL;
         outDegreeMatrixDinf = NULL;
         angle = NULL;
+        flowOutDinf = NULL;
     }
 
     double t2 = TimeCounting();

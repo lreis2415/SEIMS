@@ -95,8 +95,8 @@ int ReservoirMethod::Execute() {
         revap = (fPET - fEI - fED - fES - plantEP) * m_gwStore[subID] / m_GWMAX;
         if (revap != revap) {
             cout << "fPET: " << fPET << ", fEI: " << fEI << ", fED: " << fED << ", fES: " << fES << ", plantEP: "
-                 << plantEP
-                 << "gwStore: " << subID << "," << m_gwStore[subID] << endl;
+                << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
+            throw ModelException(MID_GWA_RE, "Execute", "revap calculation wrong!");
         }
         revap = max(revap, 0.f);
         revap = min(revap, perco);
