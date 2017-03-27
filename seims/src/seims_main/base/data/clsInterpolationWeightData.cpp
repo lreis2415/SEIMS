@@ -2,10 +2,10 @@
 
 using namespace std;
 
-clsInterpolationWeightData::clsInterpolationWeightData(string weightFileName) {
-    m_fileName = weightFileName;
-    m_weightData = NULL;
-}
+//clsInterpolationWeightData::clsInterpolationWeightData(string weightFileName) {
+//    m_fileName = weightFileName;
+//    m_weightData = NULL;
+//}
 
 clsInterpolationWeightData::clsInterpolationWeightData(mongoc_gridfs_t *gfs, const char *remoteFilename) {
     m_fileName = remoteFilename;
@@ -15,7 +15,7 @@ clsInterpolationWeightData::clsInterpolationWeightData(mongoc_gridfs_t *gfs, con
 
 clsInterpolationWeightData::~clsInterpolationWeightData(void) {
     if (m_weightData != NULL) {
-        delete[] m_weightData;
+        Release1DArray(m_weightData);
     }
 }
 
@@ -50,7 +50,8 @@ void clsInterpolationWeightData::dump(string fileName) {
 void clsInterpolationWeightData::ReadFromMongoDB(mongoc_gridfs_t *gfs, const char *remoteFilename) {
     string wfilename = string(remoteFilename);
     MongoGridFS mongogfs = MongoGridFS();
-    vector <string> gfilenames = mongogfs.getFileNames(gfs);
+    vector <string> gfilenames;
+    mongogfs.getFileNames(gfilenames, gfs);
     string filename = remoteFilename;
     if (!ValueInVector(filename, gfilenames)) {
         int index = filename.find_last_of('_');

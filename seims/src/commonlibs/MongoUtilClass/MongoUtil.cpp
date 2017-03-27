@@ -25,16 +25,20 @@ MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
     catch (exception e) {
         cout << e.what() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
 MongoClient::~MongoClient() {
-    if (!m_conn) mongoc_client_destroy(m_conn);
+    StatusMessage("Releasing MongoClient ...");
+    if (m_conn) {
+        StatusMessage("Close database connection ...");
+        mongoc_client_destroy(m_conn);
+    }
     mongoc_cleanup();
 }
 
@@ -61,9 +65,9 @@ vector<string> MongoClient::getDatabaseNames() {
     return m_dbnames;
 }
 
-vector<string> MongoClient::getCollectionNames(string const &dbName) {
+void MongoClient::getCollectionNames(string const &dbName, vector<string>&collNames) {
     mongoc_database_t *database = this->getDatabase(dbName);
-    return MongoDatabase(database).getCollectionNames();
+    MongoDatabase(database).getCollectionNames(collNames);
 }
 
 mongoc_database_t *MongoClient::getDatabase(string const &dbname) {
@@ -87,7 +91,7 @@ mongoc_collection_t *MongoClient::getCollection(string const &dbname, string con
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
@@ -103,13 +107,13 @@ mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsn
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
-vector<string> MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname) {
+void MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname, vector<string>&fileExists) {
     mongoc_gridfs_t *gfs = this->getGridFS(dbname, gfsname);
-    return MongoGridFS(gfs).getFileNames();
+    MongoGridFS(gfs).getFileNames(fileExists);
 }
 
 ///////////////////////////////////////////////////
@@ -128,8 +132,7 @@ MongoDatabase::~MongoDatabase() {
     mongoc_database_destroy(m_db);
 }
 
-vector<string> MongoDatabase::getCollectionNames() {
-    vector<string> collNameList;
+void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
     try {
         mongoc_cursor_t *cursor;
         bson_error_t *err = NULL;
@@ -151,11 +154,10 @@ vector<string> MongoDatabase::getCollectionNames() {
             }
         }
         vector<string>(collNameList).swap(collNameList);
-        return collNameList;
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -190,7 +192,7 @@ mongoc_gridfs_file_t *MongoGridFS::getFile(string const &gfilename, mongoc_gridf
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
@@ -209,18 +211,18 @@ bool MongoGridFS::removeFile(string const &gfilename, mongoc_gridfs_t *gfs /* = 
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
-vector<string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
+void MongoGridFS::getFileNames(vector<string>&filesExisted, mongoc_gridfs_t *gfs /* = NULL */) {
     try {
         if (m_gfs != NULL) gfs = m_gfs;
         if (gfs == NULL) {
             throw ModelException("MongoGridFS", "getFileNames",
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
-        vector<string> filesExisted;
+        //vector<string> filesExisted;
         bson_t *query = bson_new();
         bson_init(query);
         mongoc_gridfs_file_list_t *glist = mongoc_gridfs_find_with_opts(gfs, query, NULL);
@@ -231,11 +233,11 @@ vector<string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
         }
         mongoc_gridfs_file_list_destroy(glist);
         vector<string>(filesExisted).swap(filesExisted);
-        return filesExisted;
+        //return filesExisted;
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -254,7 +256,7 @@ bson_t *MongoGridFS::getFileMetadata(string const &gfilename, mongoc_gridfs_t *g
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
@@ -282,7 +284,7 @@ MongoGridFS::getStreamData(string const &gfilename,
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -315,7 +317,7 @@ void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, size_t &l
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -340,7 +342,7 @@ string GetStringFromBsonIterator(bson_iter_t *iter) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return "";
     }
 }
 
@@ -356,7 +358,7 @@ string GetStringFromBson(bson_t *bmeta, const char *key) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return "";
     }
 }
 
@@ -388,7 +390,7 @@ bool GetBoolFromBsonIterator(bson_iter_t *iter) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
@@ -404,7 +406,7 @@ bool GetBoolFromBson(bson_t *bmeta, const char *key) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
@@ -426,7 +428,7 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t *iter) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return -1;
     }
 }
 
@@ -442,6 +444,6 @@ time_t GetDatetimeFromBson(bson_t *bmeta, const char *key) {
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return -1;
     }
 }

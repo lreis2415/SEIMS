@@ -105,7 +105,7 @@ void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, Raster
     int n = rs.nRows * rs.nCols;
     if (4 * n != length) {
         cout << "The data length of " << remoteFilename << " is not consistent with metadata.\n";
-        exit(EXIT_FAILURE);
+        return;
     }
     data = (float *) buf;
 }

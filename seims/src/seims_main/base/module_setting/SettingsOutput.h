@@ -56,7 +56,7 @@ public:
     //! All the print settings
     vector<PrintInfo *> m_printInfos;
     /*!
-     * All the output settings
+     * \brief All the output settings
      * key: OutputID
      * value: \sa PrintInfo instance
      */

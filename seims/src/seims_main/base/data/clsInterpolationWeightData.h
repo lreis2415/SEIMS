@@ -20,7 +20,7 @@ using namespace std;
 class clsInterpolationWeightData {
 public:
     //! Constructor
-    clsInterpolationWeightData(string weightFileName);
+    //clsInterpolationWeightData(string weightFileName);
 
     /*!
      * \brief Overload constructor
@@ -30,7 +30,7 @@ public:
      */
     clsInterpolationWeightData(mongoc_gridfs_t *gfs, const char *remoteFilename);
 
-    //! Deconstructor
+    //! Destructor
     ~clsInterpolationWeightData(void);
 
     /*!
