@@ -523,12 +523,12 @@ bool utilsFileIO::CleanDirectory(string dirpath) {
                 remove((*it).c_str());
         }
 #else
-        if (access(outputPath.c_str(), F_OK) != 0) {
-            mkdir(outputPath.c_str(), 0777);
+        if (access(dirpath.c_str(), F_OK) != 0) {
+            mkdir(dirpath.c_str(), 0777);
         }
         else {
             vector <string> existedFiles;
-            utilsFileIO::FindFiles(outputPath.c_str(), ".*", existedFiles);
+            utilsFileIO::FindFiles(dirpath.c_str(), ".*", existedFiles);
             //cout<<existedFiles.size()<<endl;
             for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++) {
                 //cout<<*it<<endl;
