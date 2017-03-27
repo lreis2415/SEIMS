@@ -27,4 +27,6 @@
 
 + 7.地块划分程序field_partition，目前存在内存泄漏问题没有解决，主要是Field和Cell两个类的问题。
 
++ 8.增加单元测试代码，利用[DownloadProject](https://github.com/Crascit/DownloadProject)在CMake构建工程的时候自动克隆[GoogleTest](https://github.com/google/googletest)，并在项目编译之前自动编译，从而可供UnitTest自动构建、测试。在CMake命令后追加`-DUNITTEST=1`开启单元测试。参考[这篇博客](https://crascit.com/2015/07/25/cmake-gtest/)。
+
 
