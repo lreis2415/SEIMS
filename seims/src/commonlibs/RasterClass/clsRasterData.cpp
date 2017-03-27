@@ -24,15 +24,15 @@ void clsRasterData<T, MaskT>::_initialize_raster_class() {
     const char *RASTER_HEADERS[8] = {HEADER_RS_NCOLS, HEADER_RS_NROWS, HEADER_RS_XLL, HEADER_RS_YLL, HEADER_RS_CELLSIZE,
                                      HEADER_RS_NODATA, HEADER_RS_LAYERS, HEADER_RS_CELLSNUM};
     for (int i = 0; i < 6; i++) {
-        m_headers[RASTER_HEADERS[i]] = NODATA_VALUE;
+        m_headers.insert(make_pair(RASTER_HEADERS[i], NODATA_VALUE));
     }
-    m_headers[HEADER_RS_LAYERS] = 1.;
-    m_headers[HEADER_RS_CELLSNUM] = -1.;
+    m_headers.insert(make_pair(HEADER_RS_LAYERS, 1.));
+    m_headers.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
     string statsnames[6] = {STATS_RS_VALIDNUM, STATS_RS_MIN, STATS_RS_MAX, STATS_RS_MEAN
         STATS_RS_STD, STATS_RS_RANGE};
     for (int i = 0; i < 6; i++) {
-        m_statsMap[statsnames[i]] = NODATA_VALUE;
-        m_statsMap2D[statsnames[i]] = NULL;
+        m_statsMap.insert(make_pair(statsnames[i], NODATA_VALUE));
+        m_statsMap2D.insert(map<string, double *>::value_type(statsnames[i], NULL));
     }
     m_initialized = true;
 }
@@ -129,6 +129,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositi
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return;
     }
 }
 
@@ -229,24 +230,24 @@ void clsRasterData<T, MaskT>::calculateStatistics() {
     if (m_is2DRaster && m_raster2DData != NULL) {
         double **derivedvs;
         basicStatistics(m_raster2DData, m_nCells, m_nLyrs, &derivedvs, m_noDataValue);
-        m_statsMap2D[STATS_RS_VALIDNUM] = derivedvs[0];
-        m_statsMap2D[STATS_RS_MEAN] = derivedvs[1];
-        m_statsMap2D[STATS_RS_MAX] = derivedvs[2];
-        m_statsMap2D[STATS_RS_MIN] = derivedvs[3];
-        m_statsMap2D[STATS_RS_STD] = derivedvs[4];
-        m_statsMap2D[STATS_RS_RANGE] = derivedvs[5];
+        m_statsMap2D.insert(make_pair(STATS_RS_VALIDNUM, derivedvs[0]));
+        m_statsMap2D.insert(make_pair(STATS_RS_MEAN, derivedvs[1]));
+        m_statsMap2D.insert(make_pair(STATS_RS_MAX, derivedvs[2]));
+        m_statsMap2D.insert(make_pair(STATS_RS_MIN, derivedvs[3]));
+        m_statsMap2D.insert(make_pair(STATS_RS_STD, derivedvs[4]));
+        m_statsMap2D.insert(make_pair(STATS_RS_RANGE, derivedvs[5]));
         /// 1D array elements of derivedvs will be released by the destructor: releaseStatsMap2D()
         delete[] derivedvs;
         derivedvs = NULL;
     } else {
         double *derivedv = NULL;
         basicStatistics(m_rasterData, m_nCells, &derivedv, m_noDataValue);
-        m_statsMap[STATS_RS_VALIDNUM] = derivedv[0];
-        m_statsMap[STATS_RS_MEAN] = derivedv[1];
-        m_statsMap[STATS_RS_MAX] = derivedv[2];
-        m_statsMap[STATS_RS_MIN] = derivedv[3];
-        m_statsMap[STATS_RS_STD] = derivedv[4];
-        m_statsMap[STATS_RS_RANGE] = derivedv[5];
+        m_statsMap.insert(make_pair(STATS_RS_VALIDNUM, derivedv[0]));
+        m_statsMap.insert(make_pair(STATS_RS_MEAN, derivedv[1]));
+        m_statsMap.insert(make_pair(STATS_RS_MAX, derivedv[2]));
+        m_statsMap.insert(make_pair(STATS_RS_MIN, derivedv[3]));
+        m_statsMap.insert(make_pair(STATS_RS_STD, derivedv[4]));
+        m_statsMap.insert(make_pair(STATS_RS_RANGE, derivedv[5]));
         Release1DArray(derivedv);
     }
     this->m_statisticsCalculated = true;
@@ -327,10 +328,10 @@ void clsRasterData<T, MaskT>::getStatistics(string sindex, int *lyrnum, double *
             this->calculateStatistics();
         }
         *values = it->second;
-        return;
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return;
     }
 }
 
@@ -390,8 +391,10 @@ void clsRasterData<T, MaskT>::getRasterData(int *nRows, T **data) {
         } else {
             throw ModelException("claRasterData", "getRasterData", "Please initialize the raster object first.");
         }
-    } catch (ModelException e) {
+    } 
+    catch (ModelException e) {
         cout << e.toString() << endl;
+        return;
     }
 }
 
@@ -546,6 +549,7 @@ void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **value
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return;
     }
 }
 
@@ -971,7 +975,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
     }
     catch (ModelException e){
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 #endif /* USE_MONGODB */
@@ -987,21 +991,21 @@ void clsRasterData<T, MaskT>::_read_asc_file(string ascFileName, map<string, dou
     map<string, double> tmpheader;
     /// read header
     rasterFile >> tmp >> cols;
-    tmpheader[HEADER_RS_NCOLS] = double(cols);
+    tmpheader.insert(make_pair(HEADER_RS_NCOLS, double(cols)));
     rasterFile >> tmp >> rows;
-    tmpheader[HEADER_RS_NROWS] = double(rows);
+    tmpheader.insert(make_pair(HEADER_RS_NROWS, double(rows)));
     rasterFile >> xlls >> tempFloat;
-    tmpheader[HEADER_RS_XLL] = tempFloat;
+    tmpheader.insert(make_pair(HEADER_RS_XLL, tempFloat));
     rasterFile >> ylls >> tempFloat;
-    tmpheader[HEADER_RS_YLL] = tempFloat;
+    tmpheader.insert(make_pair(HEADER_RS_YLL, tempFloat));
     rasterFile >> tmp >> tempFloat;
-    tmpheader[HEADER_RS_CELLSIZE] = tempFloat;
+    tmpheader.insert(make_pair(HEADER_RS_CELLSIZE, tempFloat));
     rasterFile >> tmp >> noData;
-    tmpheader[HEADER_RS_NODATA] = noData;
+    tmpheader.insert(make_pair(HEADER_RS_NODATA, noData));
     m_noDataValue = (T) noData;
     /// default is center, if corner, then:
-    if (StringMatch(xlls, "XLLCORNER")) tmpheader[HEADER_RS_XLL] += 0.5 * tmpheader[HEADER_RS_CELLSIZE];
-    if (StringMatch(ylls, "YLLCORNER")) tmpheader[HEADER_RS_YLL] += 0.5 * tmpheader[HEADER_RS_CELLSIZE];
+    if (StringMatch(xlls, "XLLCORNER")) tmpheader.at(HEADER_RS_XLL) += 0.5 * tmpheader.at(HEADER_RS_CELLSIZE);
+    if (StringMatch(ylls, "YLLCORNER")) tmpheader.at(HEADER_RS_YLL) += 0.5 * tmpheader.at(HEADER_RS_CELLSIZE);
 
     /// get all raster values (i.e., include NODATA_VALUE, m_excludeNODATA = False)
     T *tmprasterdata = new T[rows * cols];
@@ -1031,15 +1035,17 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
         map<string, double> tmpheader;
         int nRows = poBand->GetYSize();
         int nCols = poBand->GetXSize();
-        tmpheader[HEADER_RS_NCOLS] = (double) nCols;
-        tmpheader[HEADER_RS_NROWS] = (double) nRows;
-        tmpheader[HEADER_RS_NODATA] = (double) poBand->GetNoDataValue();
+        tmpheader.insert(make_pair(HEADER_RS_NCOLS, (double) nCols));
+        tmpheader.insert(make_pair(HEADER_RS_NROWS, (double)nRows));
+        tmpheader.insert(make_pair(HEADER_RS_NODATA, (double)poBand->GetNoDataValue()));
         m_noDataValue = (T) poBand->GetNoDataValue();
         double adfGeoTransform[6];
         poDataset->GetGeoTransform(adfGeoTransform);
-        tmpheader[HEADER_RS_CELLSIZE] = adfGeoTransform[1];
-        tmpheader[HEADER_RS_XLL] = adfGeoTransform[0] + 0.5 * tmpheader[HEADER_RS_CELLSIZE];
-        tmpheader[HEADER_RS_YLL] = adfGeoTransform[3] + (tmpheader[HEADER_RS_NROWS] - 0.5) * adfGeoTransform[5];
+        tmpheader.insert(make_pair(HEADER_RS_CELLSIZE, adfGeoTransform[1]));
+        tmpheader.insert(make_pair(HEADER_RS_XLL, adfGeoTransform[0] + 0.5 * tmpheader.at(HEADER_RS_CELLSIZE)));
+        tmpheader.insert(make_pair(HEADER_RS_YLL, adfGeoTransform[3] + (tmpheader.at(HEADER_RS_NROWS) - 0.5) * adfGeoTransform[5]));
+        tmpheader.insert(make_pair(HEADER_RS_LAYERS, 1.));
+        tmpheader.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
         string tmpsrs = string(poDataset->GetProjectionRef());
         /// get all raster values (i.e., include NODATA_VALUE)
         int fullsize_nCells = nRows * nCols;
@@ -1112,13 +1118,14 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
     }
     catch (ModelException e) {
         cout << e.toString() << endl;
+        return;
     }
 }
 
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_add_other_layer_raster_data(int row, int col, int cellidx, int lyr,
                                                            map<string, double> lyrheader, T *lyrdata) {
-    int tmpcols = (int) lyrheader[HEADER_RS_NCOLS];
+    int tmpcols = (int) lyrheader.at(HEADER_RS_NCOLS);
     XYCoor tmpXY = this->getCoordinateByRowCol(row, col);
     /// get current raster layer's value by XY
     RowCol tmpPosition = this->getPositionByCoordinate(tmpXY.first, tmpXY.second, &lyrheader);
@@ -1237,12 +1244,12 @@ RowCol clsRasterData<T, MaskT>::getPositionByCoordinate(double x, double y, map<
     if (header == NULL) {
         header = &m_headers;
     }
-    double xllCenter = (*header)[HEADER_RS_XLL];
-    double yllCenter = (*header)[HEADER_RS_YLL];
-    float dx = (float) (*header)[HEADER_RS_CELLSIZE];
+    double xllCenter = (*header).at(HEADER_RS_XLL);
+    double yllCenter = (*header).at(HEADER_RS_YLL);
+    float dx = (float)(*header).at(HEADER_RS_CELLSIZE);
     float dy = dx;
-    int nRows = (int) (*header)[HEADER_RS_NROWS];
-    int nCols = (int) (*header)[HEADER_RS_NCOLS];
+    int nRows = (int)(*header).at(HEADER_RS_NROWS);
+    int nCols = (int)(*header).at(HEADER_RS_NCOLS);
     
     double xmin = xllCenter - dx / 2.;
     double xMax = xmin + dx * nCols;
@@ -1261,12 +1268,6 @@ void clsRasterData<T, MaskT>::copyHeader(map<string, double> *maskHeader) {
     for (map<string, double>::iterator iter = (*maskHeader).begin(); iter != (*maskHeader).end(); iter++) {
         m_headers[iter->first] = iter->second;
     }
-    //m_headers[HEADER_RS_NCOLS] = (*maskHeader)[HEADER_RS_NCOLS];
-    //m_headers[HEADER_RS_NROWS] = (*maskHeader)[HEADER_RS_NROWS];
-    //m_headers[HEADER_RS_NODATA] = (*maskHeader)[HEADER_RS_NODATA];
-    //m_headers[HEADER_RS_CELLSIZE] = (*maskHeader)[HEADER_RS_CELLSIZE];
-    //m_headers[HEADER_RS_XLL] = (*maskHeader)[HEADER_RS_XLL];
-    //m_headers[HEADER_RS_YLL] = (*maskHeader)[HEADER_RS_YLL];
 }
 
 template<typename T, typename MaskT>
@@ -1277,8 +1278,8 @@ void clsRasterData<T, MaskT>::_calculate_valid_positions_from_grid_data() {
     vector<vector<T> > values2D; /// store layer 2~n
     vector<int> positionRows;
     vector<int> positionCols;
-    int nrows = (int) m_headers[HEADER_RS_NROWS];
-    int ncols = (int) m_headers[HEADER_RS_NCOLS];
+    int nrows = (int)m_headers.at(HEADER_RS_NROWS);
+    int ncols = (int)m_headers.at(HEADER_RS_NCOLS);
     /// get all valid values (i.e., exclude NODATA_VALUE)
     for (int i = 0; i < nrows; ++i) {
         for (int j = 0; j < ncols; ++j) {
@@ -1311,7 +1312,7 @@ void clsRasterData<T, MaskT>::_calculate_valid_positions_from_grid_data() {
     vector<int>(positionCols).swap(positionCols);
     /// reCreate raster data array
     m_nCells = (int) values.size();
-    m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+    m_headers.at(HEADER_RS_CELLSNUM) = m_nCells;
     if (m_is2DRaster) {
         Release2DArray(oldcellnumber, m_raster2DData);
         Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, m_noDataValue);
@@ -1351,7 +1352,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
         vector<vector<T> > values2D; /// store layer 2~n data (excluding the first layerS)
         vector<int> positionRows;
         vector<int> positionCols;
-        int cols = (int) m_headers[HEADER_RS_NCOLS];
+        int cols = (int) m_headers.at(HEADER_RS_NCOLS);
         if (m_mask->PositionsCalculated()) {
             /// Get the position data from mask
             int nValidMaskNumber;
@@ -1436,7 +1437,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
         /// overwrite header information by Mask's
         this->copyHeader(m_mask->getRasterHeader());
         /// avoid to assign the Mask's NODATA
-        m_headers[HEADER_RS_NODATA] = m_noDataValue;
+        m_headers.at(HEADER_RS_NODATA) = m_noDataValue;
         m_srs = string(m_mask->getSRS());
         /// 2.1 Is the valid grid extent same as the mask data?
         bool sameExtentWithMask = true;
@@ -1456,10 +1457,10 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
         }
         /// 2.2 If do not use the extent of mask, the headers will be recalculated.
         if (!m_useMaskExtent && !sameExtentWithMask) {
-            m_headers[HEADER_RS_NCOLS] = double(newCols);
-            m_headers[HEADER_RS_NROWS] = double(newRows);
-            m_headers[HEADER_RS_XLL] += min_col * m_headers[HEADER_RS_CELLSIZE];
-            m_headers[HEADER_RS_YLL] += (m_mask->getRows() - 1 - max_row) * m_headers[HEADER_RS_CELLSIZE];
+            m_headers.at(HEADER_RS_NCOLS) = double(newCols);
+            m_headers.at(HEADER_RS_NROWS) = double(newRows);
+            m_headers.at(HEADER_RS_XLL) += min_col * m_headers.at(HEADER_RS_CELLSIZE);
+            m_headers.at(HEADER_RS_YLL) += (m_mask->getRows() - 1 - max_row) * m_headers.at(HEADER_RS_CELLSIZE);
             /// clean redundant values (i.e., NODATA)
             vector<int>::iterator rit = positionRows.begin();
             vector<int>::iterator cit = positionCols.begin();
@@ -1505,7 +1506,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
         }
         if (m_calcPositions) {
             m_nCells = (int) values.size();
-            m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+            m_headers.at(HEADER_RS_CELLSNUM) = m_nCells;
             if (m_is2DRaster && m_raster2DData != NULL) {
                 Release2DArray(oldcellnumber, m_raster2DData);
                 Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, m_noDataValue);
@@ -1534,10 +1535,10 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
                 }
             }
         } else { // reStore all cell values to m_rasterData, and the position data in case of later usage.
-            int ncols = (int) m_headers[HEADER_RS_NCOLS];
-            int nrows = (int) m_headers[HEADER_RS_NROWS];
+            int ncols = (int)m_headers.at(HEADER_RS_NCOLS);
+            int nrows = (int)m_headers.at(HEADER_RS_NROWS);
             m_nCells = ncols * nrows;
-            m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+            m_headers.at(HEADER_RS_CELLSNUM) = m_nCells;
             if (m_rasterData != NULL) Release1DArray(m_rasterData);
             Initialize1DArray(m_nCells, m_rasterData, m_noDataValue);
             if (m_is2DRaster && m_raster2DData != NULL) {
@@ -1568,7 +1569,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             _calculate_valid_positions_from_grid_data();
         } else {
             m_nCells = this->getRows() * this->getCols();
-            m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+            m_headers.at(HEADER_RS_CELLSNUM) = m_nCells;
             // do nothing
         }
     }

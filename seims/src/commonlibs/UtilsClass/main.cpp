@@ -71,6 +71,7 @@ int main() {
     cout << "array1 addr: " << array1 << endl;
     if (array1 == NULL) cout << "array1 released!" << endl;
 
+    cout << "*** String Utils Demo ***" << endl;
     // string match
     const char *str1 = "elevation";
     const char *str2 = "T_MEAN";
@@ -78,5 +79,7 @@ int main() {
     if (StringMatch(str3, str2)) {
         cout << "str1 is equal to str2" << endl;
     }
+    string itemstr = "NO,NAME,NUMBER";
+    vector<string> items = SplitString(itemstr, ',');
     return 0;
 }
