@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include "MongoUtil.h"
 
@@ -65,7 +68,7 @@ int main() {
     cout << "Totally " << gfsfilenames.size() << " files existed!" << endl;
     /// Get a given GridFS file data and metadata
     MongoGridFS mgfs = MongoGridFS(gfs);
-    int length;
+    size_t length;
     char *databuf;
     mgfs.getStreamData(string("0_AWC"), databuf, length);
     bson_t *metadata = mgfs.getFileMetadata(string("0_AWC"));
@@ -79,5 +82,6 @@ int main() {
     cout << "srs: " << srs << endl;
     /// Write a GridFS file to MongoDB
     mgfs.writeStreamData(string("AWC"), databuf, length, metadata);
+    Release1DArray(databuf);
     return 0;
 }

@@ -33,19 +33,19 @@ public:
      * \param[in] subBasinID subBasinID
      * \param[in] scenarioID
      */
+    //ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
+    //              int subBasinID, LayeringMethod layingMethod, int scenarioID);
     ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
-                  int subBasinID, LayeringMethod layingMethod, int scenarioID);
-
+        int subBasinID, LayeringMethod layingMethod, int scenarioID, SettingsInput*& input);
     //! Destructor
     ~ModuleFactory(void);
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
     float CreateModuleList(string dbName, int subbasinID, int numThreads, LayeringMethod layeringMethod,
-                           clsRasterData<float> *templateRaster, SettingsInput *settingsInput,
-                           vector<SimulationModule *> &modules);
+                           clsRasterData<float> *templateRaster, vector<SimulationModule *> &modules);
 
     //! Update inputs, such climate data.
-    void UpdateInput(vector<SimulationModule *> &modules, SettingsInput *input, time_t t);
+    void UpdateInput(vector<SimulationModule *> &modules, time_t t);
 
     //! Get value from dependency modules
     void GetValueFromDependencyModule(int iModule, vector<SimulationModule *> &modules);
@@ -87,17 +87,17 @@ private:
     //! Metadata of modules
     map<string, const char *> m_metadata;
     //! Parameters of modules
-    map <string, vector<ParamInfo>> m_parameters;
+    map<string, vector<ParamInfo>> m_moduleParameters;
     //! Input of modules
-    map <string, vector<ParamInfo>> m_inputs;
+    map<string, vector<ParamInfo>> m_moduleInputs;
     //! Output of modules
-    map <string, vector<ParamInfo>> m_outputs;
+    map<string, vector<ParamInfo>> m_moduleOutputs;
     //! Input settings, \sa SettingInput
     SettingsInput *m_setingsInput;
-    //! IP address of MongoDB
-    string m_host;
-    //! MongoDB port
-    int m_port;
+    ////! IP address of MongoDB
+    //string m_host;
+    ////! MongoDB port
+    //int m_port;
     //! Database name of the simulation model
     string m_dbName;
     //! BMPs Scenario database name
@@ -125,8 +125,7 @@ private:
     //! Interpolation weight data map
     map<string, clsInterpolationWeightData *> m_weightDataMap;
     //! Raster data (include 1D and/or 2D) map
-    map<string, clsRasterData < float> *>
-    m_rsMap;
+    map<string, clsRasterData<float> *> m_rsMap;
     //! BMPs Scenario data
     Scenario *m_scenario;
     //! Reaches information
@@ -139,7 +138,7 @@ private:
     void Init(const string &configFileName);
 
     //! Load modules setting from file
-    bool LoadSettingsFromFile(const char *filename, vector <vector<string>> &settings);
+    bool LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings);
 
     //! Read configuration file
     void ReadConfigFile(const char *configFileName);
@@ -179,16 +178,14 @@ private:
 
     //! Set data for modules, include all datatype
     void SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
-                 clsRasterData<float> *templateRaster,
-                 SettingsInput *settingsInput, SimulationModule *pModule, bool vertitalItp);
+                 clsRasterData<float> *templateRaster, SimulationModule *pModule, bool vertitalItp);
 
     //! Set single Value
-    void SetValue(ParamInfo *param, clsRasterData<float> *templateRaster, SettingsInput *settingsInput,
-                  SimulationModule *pModule);
+    void SetValue(ParamInfo *param, clsRasterData<float> *templateRaster, SimulationModule *pModule);
 
     //! Set 1D Data
     void Set1DData(string &dbName, string &paraName, string &remoteFileName, clsRasterData<float> *templateRaster,
-                   SimulationModule *pModule, SettingsInput *settingsInput, bool vertitalItp);
+                   SimulationModule *pModule, bool vertitalItp);
 
     //! Set 2D Data
     void Set2DData(string &dbName, string &paraName, int nSubbasin, string &remoteFileName,

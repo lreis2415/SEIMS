@@ -467,10 +467,6 @@ PrintInfo::PrintInfo(void) {
 }
 
 PrintInfo::~PrintInfo(void) {
-    // no need to reset the basic data type. LJ
-    //m_Interval = 0;
-    //m_IntervalUnits = "";
-    //m_OutputID = "";
     for (vector<PrintInfoItem *>::iterator it = m_PrintItems.begin(); it != m_PrintItems.end();) {
         if (*it != NULL) {
             delete *it;
@@ -479,6 +475,8 @@ PrintInfo::~PrintInfo(void) {
         it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
+    vector<PrintInfoItem *>().swap(m_PrintItems);
+    m_param = NULL;  /// since m_param has not been malloc by new, just set it to NULL
     if (m_subbasinSelectedArray != NULL) {
         Release1DArray(m_subbasinSelectedArray);
     }

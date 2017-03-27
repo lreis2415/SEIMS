@@ -67,8 +67,8 @@ bool Settings::LoadSettingsFromFile(string filename) {
     }
     catch (...) {
         myfile.close();
-        throw ModelException("Settings", "LoadSettingsFromFileOutFile",
-                             "Load output setting file: " + string(filename) + "failed!\n");
+        cout << "LoadSettingsFromFileOutFile, Load output setting file: " << string(filename) << " failed!" << endl;
+        throw;
     }
     return bStatus;
 }

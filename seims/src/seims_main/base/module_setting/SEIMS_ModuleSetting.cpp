@@ -1,21 +1,14 @@
 #include "SEIMS_ModuleSetting.h"
 
 //! Constructor
-SEIMSModuleSetting::SEIMSModuleSetting(string moduleId, string setting) {
-    m_moduleId = moduleId;
-    m_settingString = setting;
-
-    getSettings();
+SEIMSModuleSetting::SEIMSModuleSetting(string &moduleId, string &setting): 
+m_moduleId(moduleId), m_settingString(setting) {
+    m_settings = SplitString(m_settingString, '_');
 }
 
 //! Destructor
 SEIMSModuleSetting::~SEIMSModuleSetting(void) {
 
-}
-
-//! Get settings
-void SEIMSModuleSetting::getSettings() {
-    m_settings = SplitString(m_settingString, '_');
 }
 
 string SEIMSModuleSetting::dataTypeString() { return dataType2String(dataType()); }

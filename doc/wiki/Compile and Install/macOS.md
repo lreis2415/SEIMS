@@ -95,7 +95,7 @@ macOS下的配置步骤为：
 ## 2.1 Installation for users
 
 ```shell
-cd /Users/zhulj/Documents/code/SEIMS2017/seims
+cd /Users/zhulj/Documents/code/SEIMS/seims
 mkdir build
 cd build
 1. clang: cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -104,7 +104,7 @@ make
 make install
 ```
 + 在执行`make`命令时，可追加 `-j 4`命令利用CPU多核性能并行编译程序，提高编译速度，并行进程数最好设置为物理核数的2倍。
-+ 编译、安装无误后，SEIMS所有可执行程序及模块动态链接库均在`./SEIMS2017/seims/bin`。
++ 编译、安装无误后，SEIMS所有可执行程序及模块动态链接库均在`./SEIMS/seims/bin`。
 
 + 注意1：使用clang编译时，由于其不支持openmp，因此基于共享内存的并行计算将无法实现，因此推荐使用GCC进行编译安装。
 
@@ -113,7 +113,7 @@ make install
 ### 2.2.1 Xcode (test on Xcode 8.2)
 
 ```shell
-cd /Users/zhulj/Documents/code/SEIMS2017/seims
+cd /Users/zhulj/Documents/code/SEIMS/seims
 mkdir build
 cd build
 cmake -G "Xcode" .. -DCMAKE_BUILD_TYPE=Release
@@ -122,7 +122,7 @@ cmake -G "Xcode" .. -DCMAKE_BUILD_TYPE=Release
 
 ### 2.2.2 CLion (test on CLion 2016.3.2）
 
-CLion继承了JetBrains家族的特点，工程采用CMake管理，方便、高效。在CLion中直接打开`SEIMS2017/seims`文件夹即可导入整个工程。
+CLion继承了JetBrains家族的特点，工程采用CMake管理，方便、高效。在CLion中直接打开`SEIMS/seims`文件夹即可导入整个工程。
 
 CLion默认使用clang编译器，因此需要简单设置一下，[官网提供了三种方法](https://cmake.org/Wiki/CMake_FAQ#How_do_I_use_a_different_compiler.3F)，推荐采用第二种，即：
 

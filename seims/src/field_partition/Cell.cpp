@@ -1,6 +1,8 @@
 #include "Cell.h"
 
-Cell::Cell(void) : m_FieldID(-1) {
+Cell::Cell(void) : m_id(-1), m_FieldID(-1), m_outCellID(-1), m_LanduseCode(-1), 
+                   m_degree(-1), m_IsNeighbCellmap() {
+    m_inCellIDs.clear();
 }
 
 Cell::~Cell(void) {

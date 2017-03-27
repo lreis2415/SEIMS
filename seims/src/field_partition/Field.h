@@ -3,7 +3,7 @@
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
 //  into their downstream fields. This is controlled by the threshold given by user. 
 //
-#include<algorithm>
+#include <algorithm>
 #include <iterator>
 #include <vector>
 #include <map>
@@ -84,7 +84,7 @@ public:
 
     void mergeCells(vector<int> cellid1) {
         vector<int> cellid2 = m_cellsIds;
-        int sizecell = m_cellsIds.size();
+        size_t sizecell = m_cellsIds.size();
         m_cellsIds.clear();
         m_cellsIds.resize(cellid1.size() + sizecell);
         merge(cellid1.begin(), cellid1.end(), cellid2.begin(), cellid2.end(), m_cellsIds.begin());
@@ -124,15 +124,6 @@ public:
         m_ymax = -99;
     }
 
-    /*void mergeCells(std::vector<int> cellid1)   // original version: merge cells into the downstream field. This might be problematic...
-    {
-    std::vector<int> cellid2 = m_cellsIds;
-    int sizecell = m_cellsIds.size();
-    m_cellsIds.clear();
-    m_cellsIds.resize(cellid1.size() + sizecell);
-    merge(cellid1.begin(),cellid1.end(),cellid2.begin(),cellid2.end(),m_cellsIds.begin());
-    }*/
-
     int m_xmin, m_ymin, m_xmax, m_ymax;   //field's rectangle
 private:
     vector<int> m_inFieldIDs;
@@ -143,8 +134,5 @@ private:
 
     vector<int> m_cellsIds;
 
-    //-------
     vector<Cell *> m_cells;
-
-    //map<int, bool> m_IsNeighbFieldmap;    // int: field id, bool: if neighbor field id, true, else false
 };
