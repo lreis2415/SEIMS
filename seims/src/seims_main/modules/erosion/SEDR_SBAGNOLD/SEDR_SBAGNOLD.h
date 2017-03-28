@@ -6,12 +6,12 @@
  * \author Hui Wu
  * \date Jul. 2012
  * \revised LiangJun Zhu
- * \date May / 2016
+ * \date May. 2016
  * \description: 1. move m_erodibilityFactor, m_coverFactor, to reach collection of MongoDB as inputs, and is DT_Array1D
  *               2. add point source loadings from Scenario database
  *               3. add SEDRECHConc output with the unit g/cm3 (i.e., Mg/m3)
  * \revised Junzhi Liu
- * \date August / 2016
+ * \date August. 2016
  * \revised LiangJun Zhu
  * \date Sep. 2016
  * \description: 1. ReCheck and Update code according to route.f and rtsed.f
