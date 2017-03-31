@@ -14,6 +14,11 @@ Linux下SEIMS模型的编译与运行
 
 ## 2. SEIMS编译和安装
 
+使用CMake编译SEIMS时有3个可选参数：
+1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
+2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
+3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
+
 ```shell
 cd <SEIMS root path>/seims
 mkdir build
@@ -46,10 +51,10 @@ deap>=1.0.2
 scoop>=0.7.1.1
 ```
 
-SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
-+ 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
-+ `python get-pip.py`
++ SEIMS提供了自动安装脚本，脚本依赖于pip，因此请确保pip已正确安装，[参考教程](https://pip.pypa.io/en/stable/installing/)：
+  + 下载[get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+  + `python get-pip.py`
 
-对于Linux系统，执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库。
++ 执行`sudo sh pyseims_install_linux.sh`即可自动安装完成所有依赖库，包括SEIMS自带的`PyGeoC`。
 
-安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
++ 安装完成后，运行`python pyseims_check.py`检查所需python库是否已经安装成功，如果有未成功的请单独安装。
