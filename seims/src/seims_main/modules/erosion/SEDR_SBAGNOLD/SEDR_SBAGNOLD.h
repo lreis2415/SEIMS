@@ -23,7 +23,7 @@
 using namespace std;
 /** \defgroup SEDR_SBAGNOLD
  * \ingroup Erosion
- * \brief Sediment routing using simplified version of Bagnold(1997) stream power equation
+ * \brief Sediment routing using Simplified version of Bagnold(1997) stream power equation
  */
 /*!
  * \class SEDR_SBAGNOLD

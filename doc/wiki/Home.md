@@ -32,7 +32,7 @@ SEIMS模型可通过常用C++编译器（如MSVC、GCC、Clang）编译成32位�
 + 2.2.4. 按照[示例数据](Dianbu)，[配置并运行SEIMS](Executation-and-calibration)，得到结果；
 + 2.2.5. 接下来就可以自己搭建SEIMS开发环境，[以Visual Studio和PyCharm为例](Develop-environment)，并[阅读开发规范](Coding-protocol)；
 + 2.2.6. 配合现有模块及[SEIMS开发文档](https://lreis2415.github.io/SEIMS/)，学习SEIMS结构，尤其是数据组织方式、模型运行流程等；
-+ 2.2.7. 根据[模块开发Demo](Module-demo)，完整敲一遍代码，并编译、运行、调试；
++ 2.2.7. 根据[模块开发Demo](Module-demo)，熟悉模块、函数、变量的命名及[名词缩写规范](Global-abbreviation)，完整敲一遍代码，并编译、运行、调试；
 + 2.2.8. 根据[现有模块开发状态](Module-in-development)，结合需要，进行现有模块测试、增加新模块等，**请注意**这些工作都是在自定义分支下进行的，如`moduletest_musk`；
 + 2.2.9. 根据示例数据（或补充数据）进行模块测试，确定代码无误后，合并分支至`dev`，并新建`issue`供模型开发组讨论。
 

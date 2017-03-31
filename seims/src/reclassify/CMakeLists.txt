@@ -57,7 +57,7 @@ add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
-IF (WIN32)
+IF (MSVC)
     SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "ReClassify")
 ENDIF ()
 MESSAGE(STATUS "    Compiling ReClassify Raster done")
