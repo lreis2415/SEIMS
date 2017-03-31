@@ -1,7 +1,7 @@
 # CMake build for Windows, Linux, and macOS
 # Author         : LiangJun Zhu, JunZhi Liu
 # Contact        : zlj@lreis.ac.cn
-# Latest updated : Dec. 20, 2016
+# Latest updated : Mar. 31, 2017
 #
 cmake_minimum_required(VERSION 3.1)
 IF (COMMAND CMAKE_POLICY)
@@ -10,6 +10,11 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
 SET (CMAKE_CXX_STANDARD 11)
+set(CMAKE_MODULE_PATH
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+    ${CMAKE_MODULE_PATH}
+)
+include(SetThreadFlagMSVC)
 ################# SEIMS Version ##################
 IF (PARALLEL STREQUAL MPI)
     PROJECT(SEIMS_MPI_ALL)
@@ -35,6 +40,12 @@ SET(IUH ./src/iuh)
 SET(METIS ./src/metis)
 SET(TAUDEM ./src/taudem)
 SET(SEIMS_MAIN ./src/seims_main)
+# unit test is an optional configuration
+IF (UNITTEST STREQUAL 1)
+    SET(SEIMS_TEST ./src/test)
+    INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+    ADD_SUBDIRECTORY(${SEIMS_TEST} bin/test)
+ENDIF ()
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)
 ADD_SUBDIRECTORY(${GRID_LAYERING} bin/grid_layering)
