@@ -1,4 +1,5 @@
 #!/bin/sh
 
 set -e
-# TOOO some test
+# Run unittest
+./seims_ut_exec
