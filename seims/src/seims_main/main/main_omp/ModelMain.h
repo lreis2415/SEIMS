@@ -52,9 +52,12 @@ public:
      * \param[in] layeringMethod Layering method, default is UP_DOWN
      */
     ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
-              ModuleFactory *factory, int subBasinID = 1, int scenarioID = 0, int numThread = 1,
+              ModuleFactory *factory, int subBasinID = 0, int scenarioID = 0, int numThread = 1,
               LayeringMethod layeringMethod = UP_DOWN);
 
+    ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
+              LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = 0, 
+              int numThread = 1);
     //! Destructor
     ~ModelMain(void);
 
@@ -129,6 +132,7 @@ public:
     ///void	StepOverland(time_t t);/// Deprecated. LJ
 private:
     //! MongoDB Client
+    MongoClient *m_client;
     mongoc_client_t *m_conn;
     //! output GridFS to store spatial data etc.
     mongoc_gridfs_t *m_outputGfs;
@@ -199,8 +203,6 @@ private:
     bool m_initialized;
     //! Path of the project
     string m_projectPath;
-    //! Path of database
-    string m_databasePath;
     //! Path of the model
     string m_modulePath;
     //! The input setting of the model

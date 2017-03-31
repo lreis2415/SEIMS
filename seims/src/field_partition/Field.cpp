@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Field::Field(void) : m_id(-1) {
+Field::Field(void) : m_id(-1), m_inFieldIDs(), m_cellsIds(), m_cells() {
     m_xmin = -99;
     m_xmax = -99;
     m_ymin = -99;
@@ -10,11 +10,10 @@ Field::Field(void) : m_id(-1) {
 }
 
 Field::~Field(void) {
-
 }
 
 void Field::GetRetangleField(int ncols) {
-    int mysize = m_cells.size();
+    size_t mysize = m_cells.size();
     int id = m_cells[0]->GetID();
     int x = id % ncols;      // column id
     int y = id / ncols;      // line id
@@ -22,7 +21,7 @@ void Field::GetRetangleField(int ncols) {
     m_xmax = x;
     m_ymin = y;
     m_ymax = y;
-    for (int i = 1; i < mysize; i++) {
+    for (size_t i = 1; i < mysize; i++) {
         id = m_cells[i]->GetID();
         x = id % ncols;      // column id
         y = id / ncols;      // line id

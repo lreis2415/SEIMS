@@ -7,7 +7,7 @@ using namespace std;
 SplashEro_Park::SplashEro_Park(void) : m_CellWith(-1), m_nCells(-1), m_TimeStep(NODATA_VALUE), m_Omega(NODATA_VALUE),
                                        m_Slope(NULL),
                                        m_Rain(NULL), m_DETSplash(NULL), m_USLE_C(NULL), m_USLE_K(NULL),
-                                       m_Ccoe(NODATA_VALUE), m_Q(NULL), m_sr(NULL), m_depression(NULL) {
+                                       m_Q(NULL), m_sr(NULL), m_depression(NULL) {
 }
 
 SplashEro_Park::~SplashEro_Park(void) {
@@ -68,13 +68,6 @@ void SplashEro_Park::SetValue(const char *key, float data) {
             " does not exist in current module. Please contact the module developer.");
     }
 }
-//
-//string SplashEro_Park::toString(float value)
-//{
-//	ostringstream oss;
-//	oss << value;
-//	return oss.str();
-//}
 
 bool SplashEro_Park::CheckInputData() {
     if (m_date < 0) {
@@ -170,19 +163,12 @@ bool SplashEro_Park::CheckInputSize(const char *key, int n) {
 void SplashEro_Park::initialOutputs() {
     //allocate the output variable
     if (m_DETSplash == NULL) {
-        m_DETSplash = new float[m_nCells];
-        for (int i = 0; i < m_nCells; i++) {
-            m_DETSplash[i] = 0.f;
-        }
+        Initialize1DArray(m_nCells, m_DETSplash, 0.f);
     }
 }
 
 int SplashEro_Park::Execute() {
-    //set the input data which was not available right now, this will be delete when the data or module is available
-    //setNotAvailableInput();
-
     CheckInputData();
-
     initialOutputs();
     //StatusMsg("executing SplashEro_Park");
 #pragma omp parallel for

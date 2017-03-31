@@ -1,4 +1,6 @@
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include "clsRasterData.cpp"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -31,8 +33,8 @@ int main(int argc, const char *argv[]) {
     clsRasterData<float, int> readr(ascdemfile, false, &maskr, false);
     /// 1.3 Construct a clsRasterData instance from data array and mask, and output directly.
     int validmaskcells = maskr.getCellNumber();
-    float *vs;
-    float **vs2;
+    float *vs = NULL;
+    float **vs2 = NULL;
     Initialize1DArray(validmaskcells, vs, 0.f);
     Initialize2DArray(validmaskcells, 3, vs2, 0.f);
     for (int i = 0; i < validmaskcells; i++) {
@@ -41,8 +43,11 @@ int main(int argc, const char *argv[]) {
             vs2[i][j] = i * (j + 1);
         }
     }
+    /// output array to raster file and destructor the clsRasterData instance immediately
     clsRasterData<float, int>(&maskr, vs).outputToFile(ascdemout3);
     clsRasterData<float, int>(&maskr, vs2, 3).outputToFile(ascdemout4);
+    Release1DArray(vs);
+    Release2DArray(validmaskcells, vs2);
     /// 2. Get raster properties
     int cellnum = readr.getDataLength();
     int nrows = readr.getRows();
@@ -55,7 +60,7 @@ int main(int argc, const char *argv[]) {
     cout << "value on (1, 1): " << readr.getValue(RowColCoor(1, 1)) << endl;
 #if (!defined(MSVC) || _MSC_VER >= 1800)
     cout << "value on (1, 1), C++11 version: " << readr.getValue({1, 1}) << endl;
-#endif
+#endif /* C++11 supported in MSCV */
     cout << endl << endl;
     /// 3. Output raster to file
     readr.outputToFile(ascdemout);
@@ -66,7 +71,7 @@ int main(int argc, const char *argv[]) {
     /******* ASCII 2D Raster Demo *********/
     cout << "--  ASCII 2D Raster Demo" << endl;
     /// 1. Constructor, same as the 1D raster demo, but with the vector as filenames input.
-    vector <string> filenames;
+    vector<string> filenames;
     filenames.push_back(ascdemfile);
     filenames.push_back(ascdemfile2);
     filenames.push_back(ascdemfile3);
@@ -86,13 +91,14 @@ int main(int argc, const char *argv[]) {
     readr2D.getValue({5, 5}, &nlyrs, &cellvalues);
 #else
     readr2D.getValue(RowColCoor(5, 5), &nlyrs, &cellvalues);
-#endif
+#endif /* C++11 supported in MSVC */
     if (nlyrs > 0 && cellvalues != NULL){
         cout << "there are " << nlyrs << " layers, and value on (1, 1) are: ";
         for (int i = 0; i < nlyrs; i++)
             cout << cellvalues[i] << ", ";
         cout << endl;
     }
+    Release1DArray(cellvalues);
     readr2D.outputToFile(ascdemout2);
     /******* GDAL Raster Demo *********/
     cout << endl << endl;
@@ -127,7 +133,7 @@ int main(int argc, const char *argv[]) {
 
     cout << "--  2D Raster Demo by GDAL" << endl;
     /// 1. Constructor, same as the 1D raster demo, but with the vector as filenames input.
-    vector <string> demfilenames;
+    vector<string> demfilenames;
     demfilenames.push_back(demfile);
     demfilenames.push_back(demfile2);
     demfilenames.push_back(demfile3);
@@ -144,6 +150,7 @@ int main(int argc, const char *argv[]) {
     /// Copy 2D raster
     clsRasterData<float> copied2DRaster;
     copied2DRaster.Copy(gdalreadr2D);
+    copied2DRaster.setCoreName("copiedRaster");
 
     return 0;
 }

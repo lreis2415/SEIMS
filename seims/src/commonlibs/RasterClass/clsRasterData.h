@@ -8,7 +8,7 @@
  * \date Apr. 2011
  * \revised May. 2016
  * \revised Dec. 2016 Separated from SEIMS to a common library for widely use.
- * 
+ * \revised Mar. 2017 VLD check, bug fixed, function enhanced.
  */
 #ifndef CLS_RASTER_DATA
 #define CLS_RASTER_DATA
@@ -27,11 +27,11 @@
 /// include MongoDB, optional
 #ifdef USE_MONGODB
 #include "MongoUtil.h"
-#endif
+#endif /* USE_MONGODB */
 /// include openmp if supported
 #ifdef SUPPORT_OMP
 #include <omp.h>
-#endif
+#endif /* SUPPORT_OMP */
 /// include utility functions
 #include "utilities.h"
 
@@ -42,7 +42,7 @@ using namespace std;
  */  
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #pragma warning(disable: 4100 4190 4251 4275 4305 4309 4819 4996)
-#endif
+#endif /* Ignore warnings of GDAL */
 
 /*!
  * Define Raster related constant strings used for raster headers
@@ -74,7 +74,7 @@ using namespace std;
 #define GTiffExtension          "tif"
 
 /*!
- * \struct Coordinate of row and col
+ * \brief Coordinate of row and col
  */
 struct RowColCoor {
 public:
@@ -86,7 +86,8 @@ public:
         col = x;
     }
 };
-
+typedef pair<int, int> RowCol;
+typedef pair<double, double> XYCoor;
 /*!
  * \class clsRasterData
  * \ingroup data
@@ -199,7 +200,7 @@ public:
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
     void ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
-#endif
+#endif /* USE_MONGODB */
     /************* Write functions ***************/
 
     /*!
@@ -227,8 +228,16 @@ public:
      * \param[in] gfs \a mongoc_gridfs_t
      */
     void outputToMongoDB(string filename, mongoc_gridfs_t *gfs);
-#endif
-    /************* Get information functions ***************/
+#endif /* USE_MONGODB */
+
+    /************************************************************************/
+    /*    Set information functions                                         */
+    /************************************************************************/
+
+    void setCoreName(string name) { m_coreFileName = name; }
+    /************************************************************************/
+    /*    Get information functions                                         */
+    /************************************************************************/
 
     /*!
      * \brief Calculate basic statistics values in one time
@@ -442,7 +451,7 @@ public:
      *        std::initializer_list need C++11 support.
      */
     T getValue(initializer_list<int> poslist, int lyr = 1);
-#endif
+#endif /* C++11 supported in MSVC */
 
     /*!
      * \brief Set value to the given position and layer
@@ -473,7 +482,7 @@ public:
 	 * \return a float array with length as nLyrs
 	 */
     void getValue(initializer_list<int> poslist, int *nLyrs, T **values);
-#endif
+#endif /* C++11 supported in MSVC */
 
     //! Is 2D raster data?
     bool is2DRaster() { return m_is2DRaster; }
@@ -513,9 +522,9 @@ public:
 	 * \sa getPositionByCoordinate
      * \param[in] row
      * \param[in] col
-     * \return double[2]
+     * \return pair<double x, double y>
      */
-    double *getCoordinateByRowCol(int row, int col);
+    XYCoor getCoordinateByRowCol(int row, int col);
 
     /*!
      * \brief Calculate position by given coordinate
@@ -523,9 +532,9 @@ public:
      * \param[in] x
      * \param[in] y
 	 * \param[in] header Optional, header map of raster layer data, the default is m_header
-     * \return int[2] of row and col index
+     * \return pair<int row, int col>
      */
-    int *getPositionByCoordinate(double x, double y, map<string, double> *header = NULL);
+    RowCol getPositionByCoordinate(double x, double y, map<string, double> *header = NULL);
 
     /*!
      * \brief Copy header information to current Raster data
@@ -626,7 +635,7 @@ private:
      * \param[in] values float raster data array
      */
     void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
-#endif
+#endif /* USE_MONGODB */
 
     /*!
      * \brief Add other layer's rater data to m_raster2DData
