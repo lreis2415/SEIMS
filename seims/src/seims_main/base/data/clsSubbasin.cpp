@@ -15,8 +15,7 @@ Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(NULL), m_isRevapCha
 }
 
 Subbasin::~Subbasin(void) {
-    // There seems no variables need to be released! By LJ
-    //if (m_cells != NULL) Release1DArray(m_cells);
+    if (m_cells != NULL) Release1DArray(m_cells);
 }
 
 bool Subbasin::CheckInputSize(int n) {
@@ -99,9 +98,7 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
         clsRasterData<float> *subbasinRaster = NULL;
         try {
             subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
-            subbasinRaster->
-                    getRasterData(&nCells, &subbasinData
-            );
+            subbasinRaster->getRasterData(&nCells, &subbasinData);
         }
         catch (ModelException e) {
             cout << e.toString() << endl;
@@ -145,14 +142,15 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
         it = cellListMap.erase(it);
     }
     cellListMap.clear();
-
 }
 
 clsSubbasins::~clsSubbasins() {
+    StatusMessage("Release subbasin class ...");
     if (!m_subbasinsInfo.empty()) {
         for (map<int, Subbasin *>::iterator iter = m_subbasinsInfo.begin(); iter != m_subbasinsInfo.end();) {
             if (iter->second != NULL) {
                 delete iter->second;
+                iter->second = NULL;
             }
             iter = m_subbasinsInfo.erase(iter);
         }

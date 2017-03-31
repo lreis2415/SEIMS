@@ -60,6 +60,7 @@
 #ifndef windows
 #define copyfile_unix             utilsFileIO::copyfile_unix
 #endif /* windows */
+#define CleanDirectory            utilsFileIO::CleanDirectory
 #define GetAppPath                utilsFileIO::GetAppPath
 #define GetCoreFileName           utilsFileIO::GetCoreFileName
 #define GetSuffix                 utilsFileIO::GetSuffix

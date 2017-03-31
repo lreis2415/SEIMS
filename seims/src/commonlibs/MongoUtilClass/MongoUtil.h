@@ -82,7 +82,7 @@ public:
      * \brief Get collection names in MongoDB database
      * \param[in] dbName \string database name
      */
-    vector <string> getCollectionNames(string const &dbName);
+    void getCollectionNames(string const &dbName, vector<string>& collNames);
 
     /*!
      * \brief Get GridFs file names in MongoDB database
@@ -90,7 +90,7 @@ public:
      * \param[in] gfs \string GridFS name
      * \return filenames vector<string>
      */
-    vector <string> getGridFSFileNames(string const &dbname, string const &gfsname);
+    void getGridFSFileNames(string const &dbname, string const &gfsname, vector<string>& fileExisted);
 
 private:
     /*!
@@ -129,7 +129,7 @@ public:
     /*!
       * \brief Get collection names in current database
       */
-    vector <string> getCollectionNames();
+    void getCollectionNames(vector<string>&);
 
 private:
     mongoc_database_t *m_db;
@@ -171,7 +171,7 @@ public:
     /*!
      * \brief Get GridFS file names
      */
-    vector <string> getFileNames(mongoc_gridfs_t *gfs = NULL);
+    void getFileNames(vector<string>&fileExisted, mongoc_gridfs_t *gfs = NULL);
 
     /*!
      * \brief Get metadata of a given GridFS file name

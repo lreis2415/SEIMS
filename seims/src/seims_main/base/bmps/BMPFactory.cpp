@@ -10,6 +10,5 @@ BMPFactory::BMPFactory(int scenarioId, int bmpId, int subScenario, int bmpType, 
 }
 
 BMPFactory::~BMPFactory(void) {
-    /// This destruct function should not be executed!
-    cout << "The destruct function of BMPFactory class should not be executed!" << endl;
+    /// There are no allocated memory to release!
 }

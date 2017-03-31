@@ -22,7 +22,7 @@ Scenario::~Scenario(void) {
 }
 
 void Scenario::loadScenario() {
-    m_bmpCollections = MongoDatabase(m_conn, m_bmpDBName).getCollectionNames();
+    MongoDatabase(m_conn, m_bmpDBName).getCollectionNames(m_bmpCollections);
     loadScenarioName();
     loadBMPs();
     loadBMPDetail();

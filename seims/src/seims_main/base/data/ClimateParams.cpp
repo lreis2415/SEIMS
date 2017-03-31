@@ -80,9 +80,9 @@ float PsychrometricConst(float &tmean, float &elev) {
 float SaturationVaporPressure(float &t) {
     /// Calculate saturation vapor pressure, equation 1:2.3.2 in SWAT Theory 2009, p54
     /// Tetens (1930) and Murray (1967), ee.f in SWAT src.
-    if (!FloatEqual(t + 237.3f, UTIL_ZERO)) {
+    if (abs(t + 237.3f) > UTIL_ZERO) {
         float ea = (16.78f * t - 116.9f) / (t + 237.3f);
         return exp(ea);
     }
-    return 0.0f;
+    return UTIL_ZERO;
 }

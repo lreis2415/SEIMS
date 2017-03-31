@@ -1,11 +1,14 @@
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <vector>
 #include <ctime>
 #include <string>
 #include <sstream>
 #include <map>
+#include <set>
 
-#include "gdal.h"
 #include "utilities.h"
 #include "clsRasterData.cpp"
 #include "CellOrdering.h"

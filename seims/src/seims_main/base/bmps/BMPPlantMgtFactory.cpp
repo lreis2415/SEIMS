@@ -13,6 +13,9 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenari
 }
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory() {
+    if (m_parameters != NULL) {
+        Release1DArray(m_parameters);
+    }
     map<int, PlantManagementOperation *>::iterator it;
     for (it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
         if (it->second != NULL) {

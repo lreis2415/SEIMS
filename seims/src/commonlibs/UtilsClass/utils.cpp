@@ -214,19 +214,20 @@ void utilsString::TrimSpaces(string &str) {
     }
 }
 
-vector <string> utilsString::SplitString(string const &item, char delimiter) {
+vector<string> utilsString::SplitString(string const &item, char delimiter) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     while (std::getline(iss, field, delimiter)) {
         tokens.push_back(field);
     }
+    vector<string>(tokens).swap(tokens);
     return tokens;
 }
 
 vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<int> values;
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back(atoi((*it).c_str()));
@@ -236,7 +237,7 @@ vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
 }
 
 vector<float> utilsString::SplitStringForFloat(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<float> values(valueStrs.size());
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back((float) atof((*it).c_str()));
@@ -244,9 +245,9 @@ vector<float> utilsString::SplitStringForFloat(string const &item, char delimite
     return values;
 }
 
-vector <string> utilsString::SplitString(string const &item) {
+vector<string> utilsString::SplitString(string const &item) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     iss >> field;
@@ -449,7 +450,7 @@ int utilsFileIO::DeleteExistedFile(string const &filepath) {
     }
 }
 
-int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <string> &vecFiles) {
+int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
 #ifdef windows
     char szFind[MAX_PATH];
     stringcpy(szFind, lpPath);
@@ -504,6 +505,43 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <s
     }
 #endif /* windows */
     return 0;
+}
+
+bool utilsFileIO::CleanDirectory(string dirpath) {
+    try{
+#ifdef windows
+        if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES)
+        {
+            LPSECURITY_ATTRIBUTES att = NULL;
+            ::CreateDirectory(dirpath.c_str(), att);
+        }
+        else
+        {
+            vector<string> existedFiles;
+            utilsFileIO::FindFiles(dirpath.c_str(), "*.*", existedFiles);
+            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++)
+                remove((*it).c_str());
+        }
+#else
+        if (access(dirpath.c_str(), F_OK) != 0) {
+            mkdir(dirpath.c_str(), 0777);
+        }
+        else {
+            vector <string> existedFiles;
+            utilsFileIO::FindFiles(dirpath.c_str(), ".*", existedFiles);
+            //cout<<existedFiles.size()<<endl;
+            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); it++) {
+                //cout<<*it<<endl;
+                remove((*it).c_str());
+            }
+        }
+#endif /* windows */
+        return true;
+    }
+    catch (...) {
+        cout << "Create or clean directory: " << dirpath << " failed!" << endl;
+        return false;
+    }
 }
 
 string utilsFileIO::GetAppPath() {
@@ -561,7 +599,7 @@ string utilsFileIO::GetCoreFileName(string const &fullFileName) {
 }
 
 string utilsFileIO::GetSuffix(string const &fullFileName) {
-    vector <string> tokens = utilsString::SplitString(fullFileName, '.');
+    vector<string> tokens = utilsString::SplitString(fullFileName, '.');
     if (tokens.size() >= 2) {
         return tokens[tokens.size() - 1];
     } else {

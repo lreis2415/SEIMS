@@ -15,14 +15,21 @@ SettingsOutput::SettingsOutput(int subBasinID, mongoc_client_t *conn, string dbN
 
 SettingsOutput::~SettingsOutput(void) {
     StatusMessage("Start to release SettingsOutput ...");
-    for (vector<PrintInfo *>::iterator it = m_printInfos.begin(); it != m_printInfos.end();) {
-        if (*it != NULL) {
-            delete *it;
-            *it = NULL;
+    for (map<string, PrintInfo *>::iterator it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ) {
+        if (it->second != NULL) {
+            delete it->second;
+            it->second = NULL;
         }
+        it = m_printInfosMap.erase(it);
+    }
+    m_printInfosMap.clear();
+    /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
+    for (vector<PrintInfo *>::iterator it = m_printInfos.begin(); it != m_printInfos.end();) {
+        *it = NULL;
         it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
+    vector<PrintInfo*>().swap(m_printInfos);
     StatusMessage("End to release SettingsOutput ...");
 }
 

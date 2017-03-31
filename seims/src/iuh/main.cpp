@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -13,17 +16,6 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
     // connect to mongodb
     MongoClient client = MongoClient(host, port);
     mongoc_gridfs_t *gfs = client.getGridFS(string(modelStr), string(gridFSName));
-    //    mongo conn[1];
-    //    gridfs gfs[1];
-    //    int status = mongo_connect(conn, host, port);
-    //
-    //    if (MONGO_OK != status)
-    //    {
-    //        cout << "can not connect to MongoDB.\n";
-    //        exit(-1);
-    //    }
-
-    //    gridfs_init(conn, modelStr, gridFSName, gfs);
     int subbasinStartID = 1;
     if (nSubbasins == 0) subbasinStartID = 0;
     for (int i = subbasinStartID; i <= nSubbasins; i++) {
@@ -66,8 +58,8 @@ int main(int argc, const char **argv) {
     int port = atoi(argv[2]);
     const char *modelName = argv[3];
     const char *gridFSName = argv[4];
-    int dt = atoi(argv[5]);
-    int nSubbasins = atoi(argv[6]);
+    int dt = atoi(argv[5]); //time interval in hours
+    int nSubbasins = atoi(argv[6]); // the whole basin is 0
 
     MainMongoDB(modelName, gridFSName, nSubbasins, host, port, dt);
 
