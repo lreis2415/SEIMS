@@ -4,7 +4,7 @@ SEIMS开发规范
 + 开发规范的制定是为了保持模型代码的一致性和可读性。
 + 开发规法包括代码风格统一和模块编写指南
 
-## 1.代码格式
+## 1.代码风格规范
 
 ### 1.1.代码整理格式规范
 
@@ -34,13 +34,57 @@ git config --global core.safecrlf warn
 
 详见[Wiki-Github使用说明](https://github.com/lreis2415/SEIMS2017/wiki/Git-guidance)。
 
-## 2.代码风格
+### 1.4.行宽
+行宽必须限制！！！
 
-### 2.1.Python
+建议100字符为限，太长则应换行。
 
-### 2.2.C/C++
+### 1.5.括弧
+在复杂的条件表达式中，用括弧清楚地表示逻辑优先级。
 
-#### 2.2.1.注释规范
+### 1.6.断行与空白的花括号{}
+避免使用精简风格，如：
+```cpp
+if (condition) DoSomething();
+else    DoSomethingElse();
+```
+虽然这样可以节省几行空间，但是对于单步调试查看各个变量的变化情况非常不便，因此推荐采用以下两种风格：
+```cpp
+if (condition) {
+    DoSomething();
+}
+else {
+    DoSomethingElse();
+}
+```
+或者
+```cpp
+if (condition)
+{
+    DoSomething();
+}
+else 
+{
+    DoSomethingElse();
+}
+```
+
+### 1.7.分行
+不要把多条语句放在一行！！！更严格地，不要把多个变量定义在一行，以下三行都是不可取的例子。
+
+```cpp
+int a =1, b = 2;
+c = 3; d = 5.f;
+if (fFoo)  Bar();
+```
+
+### 1.8.命名大小写
+采用一个通用的做法：所有的类型、类、函数名都用Pascal形式（即所有单词的第一个字母都大写），所有的变量都用Camel形式（即第一个单词全部小写，随后单词随Pascal形式，也称lowerCamel）。
+
++ 类、类型、变量采用名词或组合名词，如Member、productInfo等；
++ 函数则用动词或动宾组合词来表示，如get/set、RenderPage()等。
+
+### 1.9.注释规范
 + SEIMS采用Doxygen代码注释规范，在Visual Studio中配合VA Assist插件可高效插入注释，[查看详细配置](https://github.com/lreis2415/SEIMS/wiki/Develop-environment#%E5%BC%80%E5%8F%91%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7-vassistx%E4%BB%8B%E7%BB%8D)。**以下为补充Tips**。
 + `#ifndef ... #endif`宏命令之后要注释上这是对应的哪个宏命令，以防嵌套使用时混淆不清，尤其是中间代码过长的时候，如：
 	```cpp
@@ -59,6 +103,9 @@ git config --global core.safecrlf warn
 	#define Tag_DyLib ".dylib"
 	#endif /* linux */
 	```
+
+## 2.代码设计规范
+
 
 ## 3.Git分支管理
 
