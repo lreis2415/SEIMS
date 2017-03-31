@@ -1,7 +1,7 @@
 # CMake build for Windows, Linux, and macOS
 # Author         : LiangJun Zhu, JunZhi Liu
 # Contact        : zlj@lreis.ac.cn
-# Latest updated : Dec. 18, 2016
+# Latest updated : Mar. 31, 2017
 #
 
 cmake_minimum_required(VERSION 3.1)
@@ -43,6 +43,8 @@ elseif (APPLE)
 else ()
     add_definitions(-Dlinux)
 endif ()
+# Set runtime library type
+include(SetThreadFlagMSVC)
 ################# Find packages ##################
 # GDAL, Bson, Mongoc, MPI, and OpenMP are required
 IF (WIN32)
@@ -54,8 +56,8 @@ IF (WIN32)
     SET(GDAL_BIN_DIR ${GDAL_DIR}\\bin)
     SET(GDAL_LIBRARY ${GDAL_LIBRARIES}\\gdal_i.lib)
     # 2. Bson and MongoC
-    include(FindBson.cmake)
-    include(FindMongoC.cmake)
+    include(FindBson)
+    include(FindMongoC)
     IF (PARALLEL STREQUAL MPI)
         # 3. MPI
         IF (ARCH EQUAL 64)
@@ -71,8 +73,8 @@ ELSE ()
     # 1. GDAL CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
     find_package(GDAL REQUIRED)
     # 2. Bson and MongoC
-    include(FindBson.cmake)
-    include(FindMongoC.cmake)
+    include(FindBson)
+    include(FindMongoC)
     IF (PARVERSION STREQUAL MPI)
         # 3. MPI
         find_package(MPI REQUIRED)
@@ -95,7 +97,6 @@ set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/MongoUtilClass)
 set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
 SET(RASTER_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/RasterClass)
 SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
-SET(FIND_BASELIB ${CMAKE_CURRENT_SOURCE_DIR}/FindBase.cmake)
 ########  Stand-alone libraries/programs   ###########
 SET(BASE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/base)
 SET(BASE_INC ${BASE_HOME}/util ${BASE_HOME}/data ${BASE_HOME}/module_setting ${BASE_HOME}/bmps)

@@ -25,4 +25,11 @@
 
 + 6.模块智能组合调整，目前SEIMS模块组织顺序依赖于输入文件`config.fig`，而一旦模块顺序出错，或者模块缺失，都会导致模拟失真或者模型出错。因此需要在`ModuleFactory`组织模块时进行智能调整。
 
++ 7.地块划分程序field_partition，目前存在内存泄漏问题没有解决，主要是Field和Cell两个类的问题。
+
++ 8.增加单元测试代码 **UPDATE By ZhuLJ on 2017-3-31**
+~~利用[DownloadProject](https://github.com/Crascit/DownloadProject)在CMake构建工程的时候自动克隆[GoogleTest](https://github.com/google/googletest)，并在项目编译之前自动编译，从而可供UnitTest自动构建、测试。在CMake命令后追加`-DUNITTEST=1`开启单元测试。参考[这篇博客](https://crascit.com/2015/07/25/cmake-gtest/)~~。
+目前，基于gtest/gmock的单元测试框架已经搭建好，后续写模块的过程中应当同步写单元测试代码！
++ 9.增加flood模拟方法。如openLISEM
+
 

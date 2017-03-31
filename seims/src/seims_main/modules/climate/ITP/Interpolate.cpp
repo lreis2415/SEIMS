@@ -4,7 +4,7 @@
 using namespace std;
 
 Interpolate::Interpolate() : m_nCells(-1), m_nStatioins(-1),
-                             m_month(-1), m_output(NULL), m_stationData(NULL), m_weights(NULL),
+                             m_month(-1), m_itpOutput(NULL), m_stationData(NULL), m_weights(NULL),
                              m_dem(NULL), m_hStations(NULL), m_lapseRate(NULL), m_vertical(false), m_dataType(0) {
 }
 
@@ -21,13 +21,13 @@ void Interpolate::SetClimateDataType(float value) {
 }
 
 Interpolate::~Interpolate(void) {
-    if (m_output != NULL) Release1DArray(m_output);
+    if (m_itpOutput != NULL) Release1DArray(m_itpOutput);
 };
 
 int Interpolate::Execute() {
     CheckInputData();
-    if (m_output == NULL) {
-        Initialize1DArray(m_nCells, m_output, 0.f);
+    if (m_itpOutput == NULL) {
+        Initialize1DArray(m_nCells, m_itpOutput, 0.f);
     }
 
     //cout<<"ITP: ";
@@ -49,8 +49,11 @@ int Interpolate::Execute() {
             //cout<<m_stationData[j]<<",";
             //cout<<endl;
             value += m_stationData[j] * m_weights[index];
-            //if(m_stationData[j] > 1.0)
-            //	cout<<"CELL:"<<i<<", Site: "<<j<<", Weight: "<<m_weights[index]<<", Value:"<<value<<";"<<endl;
+            if (value != value) {
+                cout << "CELL:" << i << ", Site: " << j << ", Weight: " << m_weights[index] <<
+                    ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
+                throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!\n");
+            }
 
             if (m_vertical) {
                 float delta = m_dem[i] - m_hStations[j];
@@ -59,7 +62,7 @@ int Interpolate::Execute() {
                 value += adjust;
             }
         }
-        m_output[i] = value;
+        m_itpOutput[i] = value;
     }
     //for (int i = 0; i < m_nCells; ++i)
     //	cout<<m_output[i]<<",";
@@ -203,7 +206,7 @@ void Interpolate::Get1DData(const char *key, int *n, float **data) {
         //throw ModelException(MID_ITP, "Get1DData", "Parameter " + sk
         //	+ " does not exist in the Interpolate module. Please contact the module developer.");
         *n = m_nCells;
-        *data = m_output;
+        *data = m_itpOutput;
 
         //cout << m_output[0] << "\t";
     }

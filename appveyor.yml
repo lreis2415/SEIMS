@@ -57,10 +57,12 @@ build_script:
   - ps: "ls"
   - mkdir build
   - cd build
-  # Test 64-bit version on Windows, while the default is 32-bit.
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Release -DARCH=64
-  - msbuild.exe ALL_BUILD.vcxproj
+  # Build 64-bit release version on Windows, and build unittest.
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1
+  - msbuild.exe SEIMS_OMP_ALL.sln /p:Configuration=Release
+  #- msbuild.exe ALL_BUILD.vcxproj
   - msbuild.exe INSTALL.vcxproj
 test_script:
-  # TODO: run demo test
+  # Run unit test. TODO to complete unittest code.
+  - C:\projects\seims\seims\bin\seims_ut_exec.exe
 
