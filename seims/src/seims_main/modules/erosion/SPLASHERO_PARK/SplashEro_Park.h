@@ -1,8 +1,13 @@
 /*!
  * \brief Park Equation for splash erosion, and Foster Equation for overland flow soil detachment
  *           use the USLE_C, USLE_K in the calculation of splash erosion.
+ *           PARK S, MITCHELL J, BUBENZER G,. Rainfall characteristics and their relation to splash erosion[J]. 
+ *                 Trans. ASAE, 1983, 26(3): 795¨C804.
  * \author Hui Wu
  * \date Feb. 2012
+ * \revised Liang-Jun Zhu
+ * \date Mar. 2017
+ * \description:  1. 
  */
 #pragma once
 #include "SimulationModule.h"
@@ -70,8 +75,6 @@ private:
 
     ///parameter calibration coefficient of splash erosion (-)
     float m_Omega;
-    ///parameter calibration coefficient of splash erosion (-)  /// NOT USED, deleted? LJ
-    float m_Ccoe;
     /// slope of map, to calculate slope gradient.
     float *m_Slope;
     /// fraction of stones on the surface, affects splash [-]
@@ -103,3 +106,5 @@ private:
     float *m_DETSplash;
 
 };
+///parameter calibration coefficient of splash erosion (-)  /// NOT USED, deleted? LJ
+//float m_Ccoe;

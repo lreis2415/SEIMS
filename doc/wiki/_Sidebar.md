@@ -16,6 +16,7 @@
   - [开发规范](Coding-protocol)
   - [模块开发Demo](Module-demo)
   - [模块开发状态](Module-in-development)
+  - [名词缩写规范](Global-abbreviation)
   - [更新日志](ChangeLOG)
 - 示例数据
   - [店埠河上游小流域](Dianbu)
