@@ -54,4 +54,4 @@ private:
     string m_msg;
 };
 
-#endif
+#endif /* MODEL_EXCEPTION */
