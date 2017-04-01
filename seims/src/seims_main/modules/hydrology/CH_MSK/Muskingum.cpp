@@ -254,13 +254,12 @@ void Muskingum::initialOutputs() {
     }
 }
 
-void Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
+bool Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
     float qUpNew = 0.f;
 
     if (iReach == 0 && iCell == 0) {
         qUpNew = m_qUpReach;
     }
-
 
     // inflow from upstream channel
     if (iCell == 0)// inflow of this cell is the last cell of the upstream reach
@@ -316,7 +315,8 @@ void Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
             cout << "Error in function Muskingum::ChannelFlow. \n";
             cout << "The weights are: " << weights.c1 << ", " << weights.c2 << ", " << weights.c3 << endl;
             cout << "qUpNew: " << qUpNew << "\tqUpPre: " << m_qUpCh[iReach][iCell] << "\tqNew: " << qNew << endl;
-            throw ModelException(MID_CH_MSK, "ChannelFlow", "Error occurred.");
+            //throw ModelException(MID_CH_MSK, "ChannelFlow", "Error occurred.");
+            return false;
         }
 
         float tmp = m_chStorage[iReach][iCell] + (qUpNew - qNew) * weights.dt;
@@ -334,6 +334,7 @@ void Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
 
     q /= stepCount;
     m_qCh[iReach][iCell] = q;
+    return true;
 }
 
 int Muskingum::Execute() {
@@ -342,7 +343,7 @@ int Muskingum::Execute() {
     CheckInputData();
 
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");
-    map < int, vector < int > > ::iterator
+    map<int, vector<int> > ::iterator
     it;
     //cout << "reach layer number: " << m_reachLayers.size() << endl;
     for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
@@ -351,6 +352,7 @@ int Muskingum::Execute() {
         int nReaches = it->second.size();
         //cout << "reach number:" << nReaches << endl;
         // the size of m_reachLayers (map) is equal to the maximum stream order
+        bool exceptionOccurredFlag = false;
 #pragma omp parallel for
         for (int i = 0; i < nReaches; ++i) {
             int reachIndex = it->second[i]; // index in the array
@@ -358,10 +360,16 @@ int Muskingum::Execute() {
             int n = vecCells.size();
             float qgEachCell = m_qg[reachIndex + 1] / n;
             for (int iCell = 0; iCell < n; ++iCell) {
-                ChannelFlow(reachIndex, iCell, vecCells[iCell], qgEachCell);
+#pragma omp flush (exceptionOccurredFlag)
+            if (!exceptionOccurredFlag) {
+                    exceptionOccurredFlag = ChannelFlow(reachIndex, iCell, vecCells[iCell], qgEachCell);
+#pragma omp flush (exceptionOccurredFlag)
+                }
+                m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
             }
-            m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
-
+        }
+        if (exceptionOccurredFlag) {
+            throw ModelException(MID_CH_MSK, "ChannelFlow", "Error occurred.");
         }
     }
     return 0;

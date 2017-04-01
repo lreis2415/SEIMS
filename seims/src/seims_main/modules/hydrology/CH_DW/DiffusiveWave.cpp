@@ -380,7 +380,7 @@ void DiffusiveWave::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {  /// TODO: add to mongodb database
         m_manningScalingFactor = data;
     } else {
-        throw ModelException(MID_CH_DW, "SetSingleData", "Parameter " + sk
+        throw ModelException(MID_CH_DW, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
 
