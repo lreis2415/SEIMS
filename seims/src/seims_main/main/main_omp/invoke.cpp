@@ -88,7 +88,7 @@ int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numT
         /// Return success
         return 0;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         exit(EXIT_FAILURE);
     }
