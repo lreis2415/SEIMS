@@ -2,4 +2,4 @@
 
 set -e
 # Run unittest
-./seims_ut_exec
+./seims/bin/seims_ut_exec
