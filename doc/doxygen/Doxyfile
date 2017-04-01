@@ -126,6 +126,7 @@ EXCLUDE                = ./doc \
                          ./data \
                          ./TODO \
                          ./seims/bin \
+                         ./seims/include \
                          ./seims/database \
                          ./seims/src/taudem \
                          ./seims/src/metis \
