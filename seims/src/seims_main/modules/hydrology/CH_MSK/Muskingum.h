@@ -64,16 +64,11 @@ public:
     float GetDelta_t(float timeStep, float fmin, float fmax);
 
 private:
-    ///// deal with positive and negative float numbers
-    //float Power(float a, float n) {
-    //    if (a >= 0) {
-    //        return pow(a, n);
-    //    } else {
-    //        return -pow(-a, n);
-    //    }
-    //}
-
-    void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
+    /*!
+     * \brief Channel flow routing based Muskingum.
+     * \return true for success, otherwise false.
+     */
+    bool ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
     void initialOutputs();
 
