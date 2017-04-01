@@ -130,6 +130,7 @@ EXCLUDE                = ./doc \
                          ./seims/database \
                          ./seims/src/taudem \
                          ./seims/src/metis \
+                         ./seims/build \
                          ./seims/src/seims_main/base/module_setting/tinystr.cpp \
                          ./seims/src/seims_main/base/module_setting/tinystr.h \
                          ./seims/src/seims_main/base/module_setting/tinyxml.cpp \
