@@ -109,7 +109,7 @@ void DepressionFS::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
     } else {
-        throw ModelException(MID_DEP_FS, "SetSingleData", "Parameter " + sk
+        throw ModelException(MID_DEP_FS, "SetValue", "Parameter " + sk
             + " does not exist in current module. Please contact the module developer.");
     }
 }
