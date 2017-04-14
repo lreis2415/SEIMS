@@ -39,13 +39,13 @@ public:
 
     virtual void SetScenario(Scenario *sce);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void GetValue(const char *key, float *value);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
+    virtual TimeStepType GetTimeStepType(void) { return TIMESTEP_CHANNEL; };
 private:
     // cell number
     int m_nCells;
@@ -327,9 +327,9 @@ private:
     float corTempc(float r20, float thk, float tmp);
 
     /// Calculate average day length, solar radiation, and temperature for each channel
-    void ParametersSubbasinForChannel();
+    void ParametersSubbasinForChannel(void);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
-    void PointSourceLoading();
+    void PointSourceLoading(void);
 };

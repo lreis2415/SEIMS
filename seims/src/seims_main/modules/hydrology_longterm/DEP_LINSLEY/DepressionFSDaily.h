@@ -50,7 +50,7 @@ public:
     //! Destructor
     ~DepressionFSDaily(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -102,6 +102,6 @@ private:
      *		variables should be initial in the Get1DData function. This
      *		initialization is realized by function initalOutputs.
      */
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

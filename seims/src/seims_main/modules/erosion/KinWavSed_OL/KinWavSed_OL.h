@@ -28,7 +28,7 @@ public:
 
     ~KinWavSed_OL(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float value);
 
@@ -58,7 +58,7 @@ private:
 
     /// static string toString(float value); replaced by ValueToString() defined in util module. by LJ
 
-    void initial();
+    void initial(void);
 
     void GetTransportCapacity(int ID);
 
@@ -67,12 +67,12 @@ private:
     /**
     *	@brief calculate the velocity of overland flow.
     */
-    void CalcuVelocityOverlandFlow();
+    void CalcuVelocityOverlandFlow(void);
 
     /**
     *	@brief calculate the velocity of overland flow.
     */
-    void CalcuVelocityChannelFlow();
+    void CalcuVelocityChannelFlow(void);
 
     /**
     *	@brief calculate the flow detachment.
@@ -126,7 +126,7 @@ private:
     float complexSedCalc(float Qj1i1, float Qj1i, float Qji1, float Sj1i, float Sji1, float alpha, float dt, float dx);
 
     //float WaterVolumeCalc(int id);  //m3
-    void WaterVolumeCalc();
+    void WaterVolumeCalc(void);
 
     //set the input data which was not available right now, this will be delete when the data or module is available
     //void setNotAvailableInput();

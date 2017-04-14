@@ -44,7 +44,7 @@ public:
 
     virtual void SetSubbasins(clsSubbasins *);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -214,5 +214,5 @@ private:
     void OrgPAttachedtoSed(int i);
 
     /// initial outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };

@@ -165,7 +165,7 @@ private:
     void ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting);
 
     //! Query and get BMP scenario database name
-    void GetBMPScenarioDBName();
+    void GetBMPScenarioDBName(void);
 
     //! Get comparable name after underscore if necessary, e.g., T_PET => use PET
     string GetComparableName(string &paraName);
@@ -174,7 +174,7 @@ private:
     ParamInfo *FindDependentParam(ParamInfo &paramInfo);
 
     //! Read parameter settings from MongoDB
-    void ReadParametersFromMongoDB();
+    void ReadParametersFromMongoDB(void);
 
     //! Set data for modules, include all datatype
     void SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,

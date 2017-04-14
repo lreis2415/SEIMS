@@ -44,7 +44,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -68,7 +68,7 @@ private:
     ///void clearInputs(void);
 
     /// initialize output variables
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     /// Mean air temperature for a given day (deg C)

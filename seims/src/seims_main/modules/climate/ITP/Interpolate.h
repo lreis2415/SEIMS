@@ -24,7 +24,7 @@ using namespace std;
 class Interpolate : public SimulationModule {
 public:
     //! Constructor
-    Interpolate();
+    Interpolate(void);
 
     //! Destructor
     ~Interpolate(void);
@@ -32,7 +32,7 @@ public:
     //! Set data type
     void SetClimateDataType(float value);
 
-    int Execute();
+    int Execute(void);
 
     void SetDate(time_t date, int yearIdx);
 
@@ -52,7 +52,7 @@ public:
      */
     bool CheckInputSize(string &key, int n, int &m_n);
 
-    void CheckInputData();
+    void CheckInputData(void);
 
 private:
     // This is the climate data type. It is used to get the specific lapse rate from lapse_rate table.

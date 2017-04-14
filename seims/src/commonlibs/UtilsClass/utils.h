@@ -154,7 +154,7 @@ public:
     /*
      *\brief Precisely and cross-platform time counting function.
      */
-    static double TimeCounting();
+    static double TimeCounting(void);
 
     /*!
      *\brief Check the given year is a leap year or not.
@@ -570,7 +570,7 @@ public:
      * \brief Get the root path of the current executable file
      * \return \a string root path
      */
-    static string GetAppPath();
+    static string GetAppPath(void);
 
     /*!
      * \brief Return the file name from a given file's path
@@ -658,7 +658,7 @@ public:
      * \brief Writes an entry to the log file. Normally only used for debug
      *
      * \param[in] msg \a string log message
-	 * \param[in] logpath \a string Optional
+     * \param[in] logpath \a string Optional
      */
     static void Log(string msg, string logpath = "debugInfo.log");
 
@@ -668,12 +668,12 @@ public:
      *    1. http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
      *    2. https://cmake.org/pipermail/cmake/2007-October/017286.html
      */
-    static int GetAvailableThreadNum();
+    static int GetAvailableThreadNum(void);
 
     /*!
      * \brief Set the default omp thread number if necessary
      */
-    static void SetDefaultOpenMPThread();
+    static void SetDefaultOpenMPThread(void);
 
     /*!
      * \brief Set the omp thread number by given thread number
