@@ -35,7 +35,7 @@ public:
 
     ~IO_TEST(void);
 
-    int Execute();
+    int Execute(void);
 
     void Set1DData(const char *key, int n, float *data);
 

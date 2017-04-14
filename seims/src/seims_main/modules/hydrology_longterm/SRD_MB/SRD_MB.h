@@ -31,7 +31,7 @@ public:
     //! Destructor
     ~SRD_MB(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -88,6 +88,6 @@ private:
     float *m_w;
     float *m_wt;
 
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

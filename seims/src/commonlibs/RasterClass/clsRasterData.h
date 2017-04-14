@@ -109,11 +109,11 @@ public:
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported raster file
      * Support 1D and/or 2D raster data
      * \sa ReadASCFile() ReadFromGDAL()
-	 * \param[in] filename Full path of the raster file
-	 * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
-	 * \param[in] mask \a clsRasterData<MaskT> Mask layer
+     * \param[in] filename Full path of the raster file
+     * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
+     * \param[in] mask \a clsRasterData<MaskT> Mask layer
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
-	 * \param[in] defalutValue Default value when mask data exceeds the raster extend.
+     * \param[in] defalutValue Default value when mask data exceeds the raster extend.
      *
      */
     clsRasterData(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL,
@@ -243,18 +243,18 @@ public:
      * \brief Calculate basic statistics values in one time
      * Mean, Max, Min, STD, Range, etc.
      */
-    void calculateStatistics();
+    void calculateStatistics(void);
 
     /*!
      * \brief Force to update basic statistics values
      * Mean, Max, Min, STD, Range, etc.
      */
-    void updateStatistics();
+    void updateStatistics(void);
 
     /*!
      * \brief Release statistics map of 2D raster data
      */
-    void releaseStatsMap2D();
+    void releaseStatsMap2D(void);
 
     /*!
      * \brief Get basic statistics value
@@ -274,9 +274,9 @@ public:
     void getStatistics(string sindex, int *lyrnum, double **values);
 
     /*! 
-	 * \brief Get the average of raster data
-	 * \param[in] lyr optional for 1D and the first layer of 2D raster data.
-	 */
+     * \brief Get the average of raster data
+     * \param[in] lyr optional for 1D and the first layer of 2D raster data.
+     */
     float getAverage(int lyr = 1) { return (float) this->getStatistics(string(STATS_RS_MEAN), lyr); }
 
     /*!
@@ -359,30 +359,30 @@ public:
     }
 
     //! Get stored cell number of raster data
-    int getCellNumber() { return m_nCells; }
+    int getCellNumber(void) { return m_nCells; }
 
     //! Get column number of raster data
-    int getCols() { return (int) m_headers[HEADER_RS_NCOLS]; }
+    int getCols(void) { return (int) m_headers[HEADER_RS_NCOLS]; }
 
     //! Get row number of raster data
-    int getRows() { return (int) m_headers[HEADER_RS_NROWS]; }
+    int getRows(void) { return (int) m_headers[HEADER_RS_NROWS]; }
 
     //! Get cell size of raster data
-    float getCellWidth() { return (float) m_headers[HEADER_RS_CELLSIZE]; }
+    float getCellWidth(void) { return (float) m_headers[HEADER_RS_CELLSIZE]; }
 
     //! Get X coordinate of left lower corner of raster data
-    double getXllCenter() { return m_headers[HEADER_RS_XLL]; }
+    double getXllCenter(void) { return m_headers[HEADER_RS_XLL]; }
 
     //! Get Y coordinate of left lower corner of raster data
-    double getYllCenter() { return m_headers[HEADER_RS_YLL]; }
+    double getYllCenter(void) { return m_headers[HEADER_RS_YLL]; }
 
     //! Get the first dimension size of raster data
-    int getDataLength() { return m_nCells; }
+    int getDataLength(void) { return m_nCells; }
 
-    int getLayers() { return m_nLyrs; }
+    int getLayers(void) { return m_nLyrs; }
 
     //! Get NoDATA value of raster data
-    T getNoDataValue() { return (T) m_headers[HEADER_RS_NODATA]; }
+    T getNoDataValue(void) { return (T) m_headers[HEADER_RS_NODATA]; }
 
     //! Get position index in 1D raster data for specific row and column, return -1 is error occurs.
     int getPosition(int row, int col);
@@ -406,10 +406,10 @@ public:
     map<string, double> *getStatistics(void) { return &m_statsMap; }
 
     //! Get full path name
-    string getFilePath() { return m_filePathName; }
+    string getFilePath(void) { return m_filePathName; }
 
     //! Get core name
-    string getCoreName() { return m_coreFileName; }
+    string getCoreName(void) { return m_coreFileName; }
 
     /*!
      * \brief Get position index data and the data length
@@ -419,24 +419,24 @@ public:
     void getRasterPositionData(int &datalength, int ***positiondata);
 
     //! Get pointer of raster data
-    T *&getRasterDataPointer() { return m_rasterData; }
+    T *&getRasterDataPointer(void) { return m_rasterData; }
 
     //! Get pointer of position data
     int **&getRasterPositionDataPointer() { return m_rasterPositionData; }
 
     //! Get pointer of 2D raster data
-    T **&get2DRasterDataPointer() { return m_raster2DData; }
+    T **&get2DRasterDataPointer(void) { return m_raster2DData; }
 
     //! Get the spatial reference
-    const char *getSRS() { return m_srs.c_str(); }
+    const char *getSRS(void) { return m_srs.c_str(); }
 
     //! Get the spatial reference string
-    string getSRSString() { return m_srs; }
+    string getSRSString(void) { return m_srs; }
 
     /*! 
-	 * \brief Get raster data at the valid cell index
-	 * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
-	 */
+     * \brief Get raster data at the valid cell index
+     * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
+     */
     T getValue(int validCellIndex, int lyr = 1);
 
     /*!
@@ -465,41 +465,41 @@ public:
     T isNoData(RowColCoor pos, int lyr = 1);
 
     /*!
-	 * \brief Get raster data at the valid cell index (both for 1D and 2D raster)
-	 * \return a float array with length as nLyrs
-	 */
+     * \brief Get raster data at the valid cell index (both for 1D and 2D raster)
+     * \return a float array with length as nLyrs
+     */
     void getValue(int validCellIndex, int *nLyrs, T **values);
 
     /*! 
-	 * \brief Get raster data (both for 1D and 2D raster) at the row and col
-	 * \return a float array with length as nLyrs
-	 */
+     * \brief Get raster data (both for 1D and 2D raster) at the row and col
+     * \return a float array with length as nLyrs
+     */
     void getValue(RowColCoor pos, int *nLyrs, T **values);
 
 #if (!defined(MSVC) || _MSC_VER >= 1800)
     /*! 
-	 * \brief Get raster data (both for 1D and 2D raster) at the {row, col)
-	 * \return a float array with length as nLyrs
-	 */
+     * \brief Get raster data (both for 1D and 2D raster) at the {row, col)
+     * \return a float array with length as nLyrs
+     */
     void getValue(initializer_list<int> poslist, int *nLyrs, T **values);
 #endif /* C++11 supported in MSVC */
 
     //! Is 2D raster data?
-    bool is2DRaster() { return m_is2DRaster; }
+    bool is2DRaster(void) { return m_is2DRaster; }
 
     //! Calculate positions or not
     bool PositionsCalculated() { return m_calcPositions; }
 
     //! Use mask extent or not
-    bool MaskExtented() { return m_useMaskExtent; }
+    bool MaskExtented(void) { return m_useMaskExtent; }
 
-    bool StatisticsCalculated() { return m_statisticsCalculated; }
+    bool StatisticsCalculated(void) { return m_statisticsCalculated; }
 
     //! Get full filename
-    string GetFullFileName() { return m_filePathName; }
+    string GetFullFileName(void) { return m_filePathName; }
 
     //! Get mask data pointer
-    clsRasterData<MaskT> *getMask() { return m_mask; }
+    clsRasterData<MaskT> *getMask(void) { return m_mask; }
 
     /*!
      * \brief Copy clsRasterData object
@@ -519,7 +519,7 @@ public:
 
     /*!
      * \brief Calculate XY coordinates by given row and col number
-	 * \sa getPositionByCoordinate
+     * \sa getPositionByCoordinate
      * \param[in] row
      * \param[in] col
      * \return pair<double x, double y>
@@ -528,10 +528,10 @@ public:
 
     /*!
      * \brief Calculate position by given coordinate
-	 * \sa getCoordinateByRowCol
+     * \sa getCoordinateByRowCol
      * \param[in] x
      * \param[in] y
-	 * \param[in] header Optional, header map of raster layer data, the default is m_header
+     * \param[in] header Optional, header map of raster layer data, the default is m_header
      * \return pair<int row, int col>
      */
     RowCol getPositionByCoordinate(double x, double y, map<string, double> *header = NULL);
@@ -598,14 +598,14 @@ private:
     /*!
      * \brief Extract by mask data and calculate position index, if necessary.
      */
-    void _mask_and_calculate_valid_positions();
+    void _mask_and_calculate_valid_positions(void);
 
     /*!
      * \brief Calculate position index from rectangle grid values, if necessary.
      * To use this function, mask should be NULL.
      *
      */
-    void _calculate_valid_positions_from_grid_data();
+    void _calculate_valid_positions_from_grid_data(void);
 
     /*!
      * \brief Write raster header information into ASC file
@@ -651,10 +651,10 @@ private:
 
 private:
     /*! cell number of raster data, i.e. the data length of \sa m_rasterData or \sa m_raster2DData
-	 * 1. all grid cell number, i.e., ncols*nrows, when m_calcPositions is False
-	 * 2. valid cell number excluding NoDATA, when m_calcPositions is True and m_useMaskExtent is False.
-	 * 3. including NoDATA where mask is valid, when m_useMaskExtent is True.
-	 */
+     * 1. all grid cell number, i.e., ncols*nrows, when m_calcPositions is False
+     * 2. valid cell number excluding NoDATA, when m_calcPositions is True and m_useMaskExtent is False.
+     * 3. including NoDATA where mask is valid, when m_useMaskExtent is True.
+     */
     int m_nCells;
     ///< noDataValue
     T m_noDataValue;

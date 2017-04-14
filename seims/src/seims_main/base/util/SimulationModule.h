@@ -51,7 +51,7 @@ public:
     virtual ~SimulationModule(void);
 
     //! Execute the simulation
-    virtual int Execute() { return -1; };
+    virtual int Execute(void) { return -1; };
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
     virtual void SetDate(time_t t, int yearIdx) {
@@ -146,17 +146,17 @@ public:
     }
 
     //! Get time step type
-    virtual TimeStepType GetTimeStepType() {
+    virtual TimeStepType GetTimeStepType(void) {
         return TIMESTEP_HILLSLOPE;
     };
 
     //! Reset subtime step
-    virtual void ResetSubTimeStep() {
+    virtual void ResetSubTimeStep(void) {
         m_tsCounter = 1;
     };
 
     //! Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
-    bool IsInputsSetDone() { return m_inputsSetDone; }
+    bool IsInputsSetDone(void) { return m_inputsSetDone; }
 
     //! Change the status of setting inputs parameters
     void SetInputsDone(bool setDone) { m_inputsSetDone = setDone; }

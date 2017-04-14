@@ -119,7 +119,7 @@ private:
     bool CheckInputSize(const char *, int);
 
     //!
-    void initialOutputs();
+    void initialOutputs(void);
 
     /*!
      * \brief Set parameter values to subbasins

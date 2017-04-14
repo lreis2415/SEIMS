@@ -39,16 +39,16 @@ public:
     virtual float *GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites() { return (int) m_siteIDList.size(); }
+    int NumberOfSites(void) { return (int) m_siteIDList.size(); }
 
     //! Get HydroClimate site type, "M" or "P"
-    string Type() { return m_type; }
+    string Type(void) { return m_type; }
 
     //! start time
-    time_t StartTime() { return m_startTime; }
+    time_t StartTime(void) { return m_startTime; }
 
     //! end time
-    time_t EndTime() { return m_endTime; }
+    time_t EndTime(void) { return m_endTime; }
 
 protected:
     //! MongoDB client object

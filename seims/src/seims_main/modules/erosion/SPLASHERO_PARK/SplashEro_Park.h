@@ -33,7 +33,7 @@ public:
     //! Destructor
     ~SplashEro_Park(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float value);
 
@@ -61,7 +61,7 @@ private:
 
     //static string toString(float value);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     //Parameters

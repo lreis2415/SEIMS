@@ -28,7 +28,7 @@ public:
 
     ~AtmosphericDeposition(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -45,7 +45,7 @@ public:
 
     bool CheckInputData(void);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
 

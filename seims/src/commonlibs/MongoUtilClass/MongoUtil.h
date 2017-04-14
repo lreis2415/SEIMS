@@ -47,12 +47,12 @@ public:
     /*!
      * \brief Destructor
      */
-    ~MongoClient();
+    ~MongoClient(void);
 
     /*!
      * \brief Get mongoc_client instance
      */
-    mongoc_client_t *getConn() { return m_conn; }
+    mongoc_client_t *getConn(void) { return m_conn; }
 
     /*!
      * \brief Get existed Database instance
@@ -96,7 +96,7 @@ private:
     /*!
      * \brief Get database names
      */
-    void _database_names();
+    void _database_names(void);
 
 private:
     const char *m_host;
@@ -124,7 +124,7 @@ public:
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoDatabase();
+    ~MongoDatabase(void);
 
     /*!
       * \brief Get collection names in current database
@@ -154,9 +154,9 @@ public:
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoGridFS();
+    ~MongoGridFS(void);
 
-    mongoc_gridfs_t *getGridFS() { return m_gfs; }
+    mongoc_gridfs_t *getGridFS(void) { return m_gfs; }
 
     /*!
      * \brief Get GridFS file by name

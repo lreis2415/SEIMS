@@ -113,7 +113,7 @@ public:
     time_t m_startTime;
 
     //! get start time \a time_t
-    time_t getStartTime() { return m_startTime; };
+    time_t getStartTime(void) { return m_startTime; };
 
     //! set start time \a time_t
     void setStartTime(time_t &st) { m_startTime = st; }
@@ -124,7 +124,7 @@ public:
     time_t m_endTime;
 
     //! Get end time  \a time_t
-    time_t getEndTime() { return m_endTime; };
+    time_t getEndTime(void) { return m_endTime; };
 
     //! set end time \a time_t
     void setEndTime(time_t &st) { m_endTime = st; }

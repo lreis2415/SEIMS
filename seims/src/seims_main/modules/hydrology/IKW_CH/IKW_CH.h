@@ -37,7 +37,7 @@ public:
     //! Destructor
     ~ImplicitKinematicWave_CH(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -57,7 +57,7 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType() {
+    virtual TimeStepType GetTimeStepType(void) {
         return TIMESTEP_CHANNEL;
     };
 
@@ -75,9 +75,9 @@ private:
 
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
-    void initialOutputs2();
+    void initialOutputs2(void);
 
     /// valid cells number
     int m_nCells;

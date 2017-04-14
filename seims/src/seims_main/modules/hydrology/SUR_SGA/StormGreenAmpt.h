@@ -1,9 +1,7 @@
 /*!
- * \file StormGreenAmpt.h
  * \brief Green Ampt Method to calculate infiltration and excess precipitation
  * \author Junzhi Liu
  * \date Oct. 2011
- * 
  */
 #pragma once
 #include "SimulationModule.h"
@@ -136,6 +134,6 @@ private:
     /// this function calculated the wetting front matric potential
     float CalculateCapillarySuction(float por, float clay, float sand);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
 };
