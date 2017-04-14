@@ -47,7 +47,7 @@ public:
 
     ~SET_LM(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 

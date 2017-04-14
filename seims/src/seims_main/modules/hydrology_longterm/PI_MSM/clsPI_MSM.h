@@ -85,7 +85,7 @@ private:
     /*!
      * \brief Initialize output variables for the first run of the entire simulation
      */
-    void initialOutputs();
+    void initialOutputs(void);
 
 public:
     //! Constructor

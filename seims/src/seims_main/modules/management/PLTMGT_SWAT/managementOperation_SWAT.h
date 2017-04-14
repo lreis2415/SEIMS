@@ -386,7 +386,7 @@ public:
     //! Destructor
     ~MGTOpt_SWAT(void);
 
-    int Execute();
+    int Execute(void);
 
     void SetValue(const char *key, float data);
 
@@ -477,21 +477,21 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs();
+    void initialOutputs(void);
 
     /// Handle lookup tables ///
 
     /// landuse lookup table
-    void initializeLanduseLookup();
+    void initializeLanduseLookup(void);
 
     /// crop lookup table
-    void initializeCropLookup();
+    void initializeCropLookup(void);
 
     /// fertilizer lookup table
-    void initializeFertilizerLookup();
+    void initializeFertilizerLookup(void);
 
     /// tillage lookup table
-    void initializeTillageLookup();
+    void initializeTillageLookup(void);
 
     /// the complementary error function
     float Erfc(float xx);

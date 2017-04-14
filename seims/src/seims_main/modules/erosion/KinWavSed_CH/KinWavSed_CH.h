@@ -30,7 +30,7 @@ public:
     ~KinWavSed_CH(void);
 
     //! Execute
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float value);
 
@@ -170,7 +170,7 @@ private:
 
 private:
 
-    void initial();
+    void initial(void);
     ///**
     //*	@brief calculate the velocity of overland flow.
     //*

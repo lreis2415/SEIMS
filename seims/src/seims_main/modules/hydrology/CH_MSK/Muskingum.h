@@ -39,7 +39,7 @@ public:
     //! Destructor
     ~Muskingum(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -70,7 +70,7 @@ private:
      */
     bool ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     /// valid cells number
     int m_nCells;

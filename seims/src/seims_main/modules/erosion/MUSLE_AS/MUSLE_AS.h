@@ -29,7 +29,7 @@ public:
     //! Destructor
     ~MUSLE_AS(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -119,7 +119,7 @@ private:
     float *m_lgaggreYield;
 
     //! initialize outputs
-    void initialOutputs();
+    void initialOutputs(void);
 
     //!
     float getPeakRunoffRate(int);

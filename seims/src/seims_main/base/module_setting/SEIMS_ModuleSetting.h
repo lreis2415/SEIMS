@@ -22,22 +22,22 @@ public:
     ~SEIMSModuleSetting(void);
 
     ///< data type
-    float dataType();
+    float dataType(void);
 
     ///< climate data type for TSD and ITP
-    string dataTypeString();
+    string dataTypeString(void);
 
     ///< vertical interpolation information for ITP
-    bool needDoVerticalInterpolation();
+    bool needDoVerticalInterpolation(void);
 
     ///< get channel flow routing method
-    string channelFlowRoutingMethod();
+    string channelFlowRoutingMethod(void);
 
     ///< get channel sediment routing method
-    string channelSedimentRoutingMethod();
+    string channelSedimentRoutingMethod(void);
 
     ///< get channel nutrient routing method
-    string channelNutrientRoutingMethod();
+    string channelNutrientRoutingMethod(void);
 private:
     ///< Copy constructor is unusable.
     SEIMSModuleSetting(const SEIMSModuleSetting& ) = delete;
