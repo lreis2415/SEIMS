@@ -127,7 +127,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositi
             m_is2DRaster = true;
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -176,7 +176,7 @@ bool clsRasterData<T, MaskT>::_check_raster_file_exists(string filename) {
         }
         return true;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return false;
     }
@@ -300,7 +300,7 @@ double clsRasterData<T, MaskT>::getStatistics(string sindex, int lyr) {
             }
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return m_noDataValue;
     }
@@ -329,7 +329,7 @@ void clsRasterData<T, MaskT>::getStatistics(string sindex, int *lyrnum, double *
         }
         *values = it->second;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -392,7 +392,7 @@ void clsRasterData<T, MaskT>::getRasterData(int *nRows, T **data) {
             throw ModelException("claRasterData", "getRasterData", "Please initialize the raster object first.");
         }
     } 
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -441,7 +441,7 @@ T clsRasterData<T, MaskT>::getValue(int validCellIndex, int lyr /* = 1 */) {
             return m_noDataValue;
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return m_noDataValue;
     }
@@ -476,7 +476,7 @@ T clsRasterData<T, MaskT>::getValue(RowColCoor pos, int lyr /* = 1 */) {
             }
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return m_noDataValue;
     }
@@ -547,7 +547,7 @@ void clsRasterData<T, MaskT>::getValue(int validCellIndex, int *nLyrs, T **value
             *values = cellValues;
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -973,7 +973,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
         buf = NULL;
         if (reBuildData) this->_mask_and_calculate_valid_positions();
     }
-    catch (ModelException e){
+    catch (ModelException& e){
         cout << e.toString() << endl;
         return;
     }
@@ -1116,7 +1116,7 @@ void clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
         *values = tmprasterdata;
         *srs = tmpsrs;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
