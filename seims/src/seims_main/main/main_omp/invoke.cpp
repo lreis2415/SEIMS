@@ -92,8 +92,12 @@ int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numT
         cout << e.toString() << endl;
         exit(EXIT_FAILURE);
     }
-    catch (exception e) {
+    catch (exception& e) {
         cout << e.what() << endl;
+        exit(EXIT_FAILURE);
+    }
+    catch (...) {
+        cout << "Unknown exception occurred!" << endl;
         exit(EXIT_FAILURE);
     }
 }
