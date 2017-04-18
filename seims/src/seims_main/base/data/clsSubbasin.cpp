@@ -100,7 +100,7 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
             subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
             subbasinRaster->getRasterData(&nCells, &subbasinData);
         }
-        catch (ModelException e) {
+        catch (ModelException& e) {
             cout << e.toString() << endl;
             return;
         }

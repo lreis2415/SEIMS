@@ -23,7 +23,7 @@ MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port
         bson_destroy(reply);
         mongoc_uri_destroy(uri);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -89,7 +89,7 @@ mongoc_collection_t *MongoClient::getCollection(string const &dbname, string con
         mongoc_database_destroy(db);
         return collection;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return NULL;
     }
@@ -105,7 +105,7 @@ mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsn
         }
         return gfs;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return NULL;
     }
@@ -155,7 +155,7 @@ void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
         }
         vector<string>(collNameList).swap(collNameList);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -190,7 +190,7 @@ mongoc_gridfs_file_t *MongoGridFS::getFile(string const &gfilename, mongoc_gridf
         }
         return gfile;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return NULL;
     }
@@ -209,7 +209,7 @@ bool MongoGridFS::removeFile(string const &gfilename, mongoc_gridfs_t *gfs /* = 
         if (err != NULL || !removedone) removedone = false;
         return removedone;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return false;
     }
@@ -235,7 +235,7 @@ void MongoGridFS::getFileNames(vector<string>&filesExisted, mongoc_gridfs_t *gfs
         vector<string>(filesExisted).swap(filesExisted);
         //return filesExisted;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -254,7 +254,7 @@ bson_t *MongoGridFS::getFileMetadata(string const &gfilename, mongoc_gridfs_t *g
         mongoc_gridfs_file_destroy(gfile);
         return mata;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return NULL;
     }
@@ -282,7 +282,7 @@ MongoGridFS::getStreamData(string const &gfilename,
         mongoc_stream_readv(stream, &iov, 1, -1, 0);
         mongoc_gridfs_file_destroy(gfile);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -315,7 +315,7 @@ void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, size_t &l
         }
         mongoc_gridfs_file_destroy(gfile);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -340,7 +340,7 @@ string GetStringFromBsonIterator(bson_iter_t *iter) {
                                  "bson iterator did not contain or can not convert to string.\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return "";
     }
@@ -356,7 +356,7 @@ string GetStringFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return "";
     }
@@ -388,7 +388,7 @@ bool GetBoolFromBsonIterator(bson_iter_t *iter) {
             return true;
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return false;
     }
@@ -404,7 +404,7 @@ bool GetBoolFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get boolean value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return false;
     }
@@ -426,7 +426,7 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t *iter) {
             throw ModelException("MongoUtil", "GetDatetimeFromBsonIterator", "Failed in get Date Time value.\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return -1;
     }
@@ -442,7 +442,7 @@ time_t GetDatetimeFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get Datetime value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return -1;
     }

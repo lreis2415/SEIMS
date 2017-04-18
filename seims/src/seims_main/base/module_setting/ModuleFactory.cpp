@@ -1010,7 +1010,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
                                          + " is not the same as the template.");
             }
         }
-        catch (ModelException e) {
+        catch (ModelException& e) {
             cout << e.toString() << endl;
             return;
         }
@@ -1067,7 +1067,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         try {
             Read1DArrayFromMongoDB(m_spatialData, remoteFileName, n, data);
         }
-        catch (ModelException e) {
+        catch (ModelException& e) {
             cout << e.toString() << endl;
             return;
         }
@@ -1154,7 +1154,7 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
             Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
         return;
     }
@@ -1193,7 +1193,7 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
             }
 #endif /* USE_MONGODB */
         }
-        catch (ModelException e) {
+        catch (ModelException& e) {
             cout << e.toString() << endl;
             return;
         }
