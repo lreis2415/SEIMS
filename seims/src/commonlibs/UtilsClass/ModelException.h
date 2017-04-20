@@ -33,7 +33,7 @@ public:
      * \brief Construct error information (string version)
      * \param[out] \a string error information
      */
-    string toString();
+    string toString(void);
 
     /*!
      * \brief Construct error information (char* version)

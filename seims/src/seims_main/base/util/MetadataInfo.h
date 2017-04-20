@@ -125,29 +125,29 @@ public:
 
     ~MetadataInfo(void);
 
-    string SchemaVersion();
+    string SchemaVersion(void);
 
     void SetClass(string name, string description);
 
-    string GetClassName();
+    string GetClassName(void);
 
-    string GetClassDescription();
+    string GetClassDescription(void);
 
     void SetID(string ID);
 
-    string GetID();
+    string GetID(void);
 
     void SetName(string name);
 
-    string GetName();
+    string GetName(void);
 
     void SetDescription(string description);
 
-    string GetDescription();
+    string GetDescription(void);
 
     void SetVersion(string version);
 
-    string GetVersion();
+    string GetVersion(void);
 
     void SetAuthor(string author);
 
@@ -155,17 +155,17 @@ public:
 
     void SetEmail(string email);
 
-    string GetEmail();
+    string GetEmail(void);
 
     void SetWebsite(string site);
 
-    string GetWebsite();
+    string GetWebsite(void);
 
     void SetHelpfile(string file);
 
-    string GetHelpfile();
+    string GetHelpfile(void);
 
-    int GetInputCount();
+    int GetInputCount(void);
 
     int AddInput(string name, string units, string desc, string source, dimensionTypes dimType);
 
@@ -181,7 +181,7 @@ public:
 
     InputVariable GetInput(int index);
 
-    int GetOutputCount();
+    int GetOutputCount(void);
 
     int AddOutput(string name, string units, string desc, dimensionTypes dimType);
 
@@ -195,7 +195,7 @@ public:
 
     OutputVariable GetOutput(int index);
 
-    int GetParameterCount();
+    int GetParameterCount(void);
 
     int AddParameter(string name, string units, string desc, string source, dimensionTypes dimType);
 
@@ -211,7 +211,7 @@ public:
 
     Parameter GetParameter(int index);
 
-    int GetDependencyCount();
+    int GetDependencyCount(void);
 
     int AddDependency(string name, string description);
 
@@ -221,5 +221,5 @@ public:
 
     ModelClass GetDependency(int index);
 
-    string GetXMLDocument();
+    string GetXMLDocument(void);
 };

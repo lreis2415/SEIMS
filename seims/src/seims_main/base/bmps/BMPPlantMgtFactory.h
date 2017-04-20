@@ -35,22 +35,22 @@ public:
     void Dump(ostream *fs);
 
     /// Get landuse / landcover ID
-    int GetLUCCID() {
+    int GetLUCCID(void) {
         return m_luccID;
     }
 
     /// Get locations
-    vector<int> &GetLocations() {
+    vector<int> &GetLocations(void) {
         return m_location;
     }
 
     /// Get operation sequence
-    vector<int> &GetOperationSequence() {
+    vector<int> &GetOperationSequence(void) {
         return m_bmpSequence;
     }
 
     /// Get operations
-    map<int, PlantManagementOperation *> &GetOperations() {
+    map<int, PlantManagementOperation *> &GetOperations(void) {
         return m_bmpPlantOps;
     }
 

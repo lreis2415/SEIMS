@@ -43,6 +43,8 @@ int main(int argc, const char *argv[]) {
             vs2[i][j] = i * (j + 1);
         }
     }
+    /// 1.4 Copy constructor
+    clsRasterData<float, int> copyReadr(readr);
     /// output array to raster file and destructor the clsRasterData instance immediately
     clsRasterData<float, int>(&maskr, vs).outputToFile(ascdemout3);
     clsRasterData<float, int>(&maskr, vs2, 3).outputToFile(ascdemout4);

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int main() {
+int main() {	
     double t1 = TimeCounting();
     // or create an utilsTime instance first
     utilsTime ut;
@@ -21,7 +21,7 @@ int main() {
     vector<int> positionCols;
     int r[10] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 5};
     int c[10] = {0, 2, 5, 3, 4, 0, 1, 2, 3, 5};
-    float v[10] = {3.1, 4.2, 1.5, 0.6, 31.2, 2.4, 8.4, 9.1, 80, 108};
+    float v[10] = {3.1f, 4.2f, 1.5f, 0.6f, 31.2f, 2.4f, 8.4f, 9.1f, 80.f, 108.f};
     for (int i = 0; i < 10; i++) {
         positionRows.push_back(r[i]);
         positionCols.push_back(c[i]);
@@ -66,10 +66,38 @@ int main() {
         array1[i] = i + 1;
     }
     int *&array2 = array1;
+
     Release1DArray(array2);
     if (array2 == NULL) cout << "array2 released!" << endl;
     cout << "array1 addr: " << array1 << endl;
     if (array1 == NULL) cout << "array1 released!" << endl;
+
+    int **array2d = NULL;
+    array2d = new int *[2];
+    for (int i = 0; i < 2; i++) {
+        array2d[i] = NULL;
+        //array2d[i] = new int[3];
+        //for (int j = 0; j < 3; j++) {
+        //    array2d[i][j] = i * 3 + j;
+        //}
+    }
+    int **array2dCopy = NULL;
+    try {
+        if (Initialize2DArray(2, 3, array2dCopy, array2d)) {
+            // do something
+        }
+        else {
+            throw exception("Exception occurred when initialize 2D array!");
+        }
+    }
+    catch (exception& e) {
+    	cout << e.what() << endl;
+    }
+    catch (...) {
+        cout << "Unknown exception occurred!" << endl;
+    }
+    if (NULL != array2d) Release2DArray(2, array2d);
+    if (NULL != array2dCopy) Release2DArray(2, array2dCopy);
 
     cout << "*** String Utils Demo ***" << endl;
     // string match

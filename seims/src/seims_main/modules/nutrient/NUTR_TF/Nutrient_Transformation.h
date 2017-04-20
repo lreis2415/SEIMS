@@ -45,7 +45,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void GetValue(const char *key, float *value);
 
@@ -284,5 +284,5 @@ private:
     void CalculatePflux(int i);
 
     /// initial outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };

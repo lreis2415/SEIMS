@@ -10,7 +10,7 @@ public:
 
     ~MUSLE_I30(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -60,7 +60,7 @@ private:
     //result
     float *m_sedimentYield;
 
-    void initalOutputs();
+    void initalOutputs(void);
 
     float getPeakRunoffRate(int);
 

@@ -50,10 +50,10 @@ public:
     time_t getDtChannel(void) const;
 
     //! Get daily time interval of simulation in sec
-    time_t getDtDaily() const;
+    time_t getDtDaily(void) const;
 
     //! Get data of input HydroClimate stations
-    InputStation *StationData();
+    InputStation *StationData(void);
 
 private:
     //! Start date of simulation
@@ -83,13 +83,13 @@ private:
 private:
     bool LoadSettingsFromFile(string, string);
 
-    bool LoadSettingsInputFromMongoDB();
+    bool LoadSettingsInputFromMongoDB(void);
 
     //! Read start and end date, simulation mode and time interval
     bool readDate(void);
 
     ///bool readTimeSeriesData(void);///Deprecated
     //! Read HydroClimate site list
-    void ReadSiteList();
+    void ReadSiteList(void);
 };
 

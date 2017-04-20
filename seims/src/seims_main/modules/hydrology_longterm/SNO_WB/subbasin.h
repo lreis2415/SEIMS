@@ -32,7 +32,7 @@ public:
 
     float getAverage(string key);
 
-    vector<int> *getCells();
+    vector<int> *getCells(void);
 
     void addP(float);
 
@@ -52,9 +52,9 @@ public:
 
     void addSA(float);
 
-    void clear();
+    void clear(void);
 
-    int getId();
+    int getId(void);
 
 public:
     //static map<int,subbasin*>* getSubbasinList(int cellCount, float* subbasinGrid, int subbasinSelectedCount, float* subbasinSelected);

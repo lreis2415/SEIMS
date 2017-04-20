@@ -97,7 +97,7 @@ private:
     /*
      * \brief initial outputs as default values
      */
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     //inputs
@@ -191,5 +191,5 @@ private:
      * \sa Subbasin
      * \sa clsSubbasins
      */
-    void setSubbasinInfos();
+    void setSubbasinInfos(void);
 };
