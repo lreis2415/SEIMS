@@ -662,7 +662,9 @@ private:
     void
     _add_other_layer_raster_data(int row, int col, int cellidx, int lyr, map<string, double> lyrheader, T *lyrdata);
 private:
-    
+    /*!
+     * \brief Operator= without implementation
+     */
     clsRasterData& operator=(const clsRasterData &another);
 private:
     /*! cell number of raster data, i.e. the data length of \sa m_rasterData or \sa m_raster2DData
