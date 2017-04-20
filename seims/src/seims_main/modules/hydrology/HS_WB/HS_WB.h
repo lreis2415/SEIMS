@@ -91,7 +91,7 @@ public:
     virtual int Execute(void);
 
 private:
-    void initialOutputs();
+    void initialOutputs(void);
 
     /**
     *	@brief check the input data. Make sure all the input data is available.

@@ -41,23 +41,23 @@ public:
     //! Output
     virtual void dump(ostream *fs) = 0;
 
-    bool &UseBaseHUSC() {
+    bool &UseBaseHUSC(void) {
         return m_useBaseHUSC;
     }
 
-    float &GetHUFraction() {
+    float &GetHUFraction(void) {
         return m_frHU;
     }
 
-    int &GetMonth() {
+    int &GetMonth(void) {
         return m_month;
     }
 
-    int &GetDay() {
+    int &GetDay(void) {
         return m_day;
     }
 
-    int &GetOperationCode() {
+    int &GetOperationCode(void) {
         return m_mgtOp;
     }
 
@@ -87,37 +87,37 @@ class PlantOperation : public PlantManagementOperation {
 public:
     PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~PlantOperation();
+    ~PlantOperation(void);
 
-    int PlantID() {
+    int PlantID(void) {
         return m_plantID;
     }
 
-    float CurYearMaturity() {
+    float CurYearMaturity(void) {
         return m_curYrMat;
     }
 
-    float HeatUnits() {
+    float HeatUnits(void) {
         return m_heatUnits;
     }
 
-    float LAIInit() {
+    float LAIInit(void) {
         return m_laiInit;
     }
 
-    float BIOInit() {
+    float BIOInit(void) {
         return m_bioInit;
     }
 
-    float HITarg() {
+    float HITarg(void) {
         return m_hiTarg;
     }
 
-    float BIOTarg() {
+    float BIOTarg(void) {
         return m_bioTarg;
     }
 
-    float CNOP() {
+    float CNOP(void) {
         return m_CNOP;
     }
 
@@ -144,29 +144,29 @@ class IrrigationOperation : public PlantManagementOperation {
 public:
     IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~IrrigationOperation();
+    ~IrrigationOperation(void);
 
-    int IRRSource() {
+    int IRRSource(void) {
         return m_irrSrc;
     }
 
-    int IRRNo() {
+    int IRRNo(void) {
         return m_irrNo;
     }
 
-    float IRRApplyDepth() {
+    float IRRApplyDepth(void) {
         return m_irrAmt;
     }
 
-    float IRRSalt() {
+    float IRRSalt(void) {
         return m_irrSalt;
     }
 
-    float IRREfficiency() {
+    float IRREfficiency(void) {
         return m_irrEfm;
     }
 
-    float IRRSQfrac() {
+    float IRRSQfrac(void) {
         return m_irrSq;
     }
 
@@ -191,17 +191,17 @@ class FertilizerOperation : public PlantManagementOperation {
 public:
     FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~FertilizerOperation();
+    ~FertilizerOperation(void);
 
-    int FertilizerID() {
+    int FertilizerID(void) {
         return m_fertID;
     }
 
-    float FertilizerKg_per_ha() {
+    float FertilizerKg_per_ha(void) {
         return m_frtKgHa;
     }
 
-    float FertilizerSurfaceFrac() {
+    float FertilizerSurfaceFrac(void) {
         return m_frtSurface;
     }
 
@@ -225,17 +225,17 @@ class PesticideOperation : public PlantManagementOperation {
 public:
     PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~PesticideOperation();
+    ~PesticideOperation(void);
 
-    int PesticideID() {
+    int PesticideID(void) {
         return m_pestID;
     }
 
-    float PesticideKg() {
+    float PesticideKg(void) {
         return m_pstKg;
     }
 
-    float PesticideDepth() {
+    float PesticideDepth(void) {
         return m_pstDep;
     }
 
@@ -258,17 +258,17 @@ public:
     HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    ~HarvestKillOperation();
+    ~HarvestKillOperation(void);
 
-    float CNOP() {
+    float CNOP(void) {
         return m_CNOP;
     }
 
-    float HarvestIndexOverride() {
+    float HarvestIndexOverride(void) {
         return m_hiOvr;
     }
 
-    float StoverFracRemoved() {
+    float StoverFracRemoved(void) {
         return m_fracHarvk;
     }
 
@@ -290,13 +290,13 @@ class TillageOperation : public PlantManagementOperation {
 public:
     TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~TillageOperation();
+    ~TillageOperation(void);
 
-    float CNOP() {
+    float CNOP(void) {
         return m_CNOP;
     }
 
-    int TillageID() {
+    int TillageID(void) {
         return m_tillID;
     }
 
@@ -318,17 +318,17 @@ public:
     HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    ~HarvestOnlyOperation();
+    ~HarvestOnlyOperation(void);
 
-    float HarvestEfficiency() {
+    float HarvestEfficiency(void) {
         return m_harvEff;
     }
 
-    float HarvestIndexResidue() {
+    float HarvestIndexResidue(void) {
         return m_hiRsd;
     }
 
-    float HarvestIndexBiomass() {
+    float HarvestIndexBiomass(void) {
         return m_hiBms;
     }
 
@@ -350,7 +350,7 @@ class KillOperation : public PlantManagementOperation {
 public:
     KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~KillOperation();
+    ~KillOperation(void);
 
     //! Output
     void dump(ostream *fs);
@@ -365,25 +365,25 @@ class GrazingOperation : public PlantManagementOperation {
 public:
     GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~GrazingOperation();
+    ~GrazingOperation(void);
 
-    int GrazingDays() {
+    int GrazingDays(void) {
         return m_grzDays;
     }
 
-    int ManureID() {
+    int ManureID(void) {
         return m_manureID;
     }
 
-    float BiomassConsumed() {
+    float BiomassConsumed(void) {
         return m_bioEat;
     }
 
-    float BiomassTrampled() {
+    float BiomassTrampled(void) {
         return m_bioTrmp;
     }
 
-    float ManureDeposited() {
+    float ManureDeposited(void) {
         return m_manureKg;
     }
 
@@ -408,33 +408,33 @@ public:
     AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~AutoIrrigationOperation();
+    ~AutoIrrigationOperation(void);
 
-    int WaterStrsIdent() {
+    int WaterStrsIdent(void) {
         return m_wstrsID;
     }
 
-    int AutoIrrSrcCode() {
+    int AutoIrrSrcCode(void) {
         return m_irrSrc;
     }
 
-    int AutoIrrSrcLocs() {
+    int AutoIrrSrcLocs(void) {
         return m_irrNoa;
     }
 
-    float AutoWtrStrsThrsd() {
+    float AutoWtrStrsThrsd(void) {
         return m_autoWstrs;
     }
 
-    float IrrigationEfficiency() {
+    float IrrigationEfficiency(void) {
         return m_irrEff;
     }
 
-    float IrrigationWaterApplied() {
+    float IrrigationWaterApplied(void) {
         return m_irrMx;
     }
 
-    float SurfaceRunoffRatio() {
+    float SurfaceRunoffRatio(void) {
         return m_irrAsq;
     }
 
@@ -461,33 +461,33 @@ public:
     AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~AutoFertilizerOperation();
+    ~AutoFertilizerOperation(void);
 
-    int FertilizerID() {
+    int FertilizerID(void) {
         return m_afertID;
     }
 
-    int NitrogenMethod() {
+    int NitrogenMethod(void) {
         return m_NStress;
     }
 
-    float NitrogenStrsFactor() {
+    float NitrogenStrsFactor(void) {
         return m_autoNStrs;
     }
 
-    float MaxMineralN() {
+    float MaxMineralN(void) {
         return m_autoNAPP;
     }
 
-    float MaxMineralNYearly() {
+    float MaxMineralNYearly(void) {
         return m_autoNYR;
     }
 
-    float FertEfficiency() {
+    float FertEfficiency(void) {
         return m_autoEff;
     }
 
-    float SurfaceFracApplied() {
+    float SurfaceFracApplied(void) {
         return m_afrtSurface;
     }
 
@@ -514,21 +514,21 @@ public:
     ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~ReleaseImpoundOperation();
+    ~ReleaseImpoundOperation(void);
 
-    int ImpoundTriger() {
+    int ImpoundTriger(void) {
         return m_impTrig;
     }
 
-    float MaxDepth() {
+    float MaxDepth(void) {
         return m_maxDepth;
     }
 
-    float UpDepth() {
+    float UpDepth(void) {
         return m_upDepth;
     }
 
-    float LowDepth() {
+    float LowDepth(void) {
         return m_lowDepth;
     }
 
@@ -552,21 +552,21 @@ public:
     ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                   float *parameters);
 
-    ~ContinuousFertilizerOperation();
+    ~ContinuousFertilizerOperation(void);
 
-    int FertilizerID() {
+    int FertilizerID(void) {
         return m_cfertID;
     }
 
-    int ApplyFrequency() {
+    int ApplyFrequency(void) {
         return m_ifrtFreq;
     }
 
-    int FertilizerDays() {
+    int FertilizerDays(void) {
         return m_fertDays;
     }
 
-    float FertilizerKg() {
+    float FertilizerKg(void) {
         return m_cfrtKg;
     }
 
@@ -590,21 +590,21 @@ public:
     ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                  float *parameters);
 
-    ~ContinuousPesticideOperation();
+    ~ContinuousPesticideOperation(void);
 
-    int PesticideID() {
+    int PesticideID(void) {
         return m_ipstID;
     }
 
-    int PesticideFrequency() {
+    int PesticideFrequency(void) {
         return m_pstFreq;
     }
 
-    float PesticideKg() {
+    float PesticideKg(void) {
         return m_cpstKg;
     }
 
-    int PesticideDays() {
+    int PesticideDays(void) {
         return m_pstDays;
     }
 
@@ -627,9 +627,9 @@ class BurningOperation : public PlantManagementOperation {
 public:
     BurningOperation(int mgtOp, bool useBaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~BurningOperation();
+    ~BurningOperation(void);
 
-    float FractionLeft() {
+    float FractionLeft(void) {
         return m_burnFrlb;
     }
 

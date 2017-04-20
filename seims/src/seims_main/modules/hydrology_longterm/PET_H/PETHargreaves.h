@@ -39,7 +39,7 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
 private:
     /// Parameters from Database
@@ -97,5 +97,5 @@ private:
     bool CheckInputSize(const char *, int);
 
     //! Initialize of output variables
-    void initialOutputs();
+    void initialOutputs(void);
 };

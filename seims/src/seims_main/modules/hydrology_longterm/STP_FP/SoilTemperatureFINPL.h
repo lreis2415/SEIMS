@@ -38,7 +38,7 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     //virtual void SetDate(time_t t);
 
@@ -76,7 +76,7 @@ private:
     /*!
      * \brief Initialize output variables for the first run of the entire simulation
      */
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     /**

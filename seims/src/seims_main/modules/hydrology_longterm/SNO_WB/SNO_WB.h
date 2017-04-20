@@ -4,7 +4,7 @@
  * \date May 2011
  * \revised LiangJun Zhu
  * \date 2016-5-29
- *  1. Remove m_isInitial and add initialOutputs()
+ *  1. Remove m_isInitial and add initialOutputs(void)
  *  2. Wind speed is DT_Raster1D
  */
 #pragma once
@@ -33,7 +33,7 @@ public:
     //! Destructor
     ~SNO_WB(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -83,7 +83,7 @@ private:
     /// removed by LJ
     ///bool m_isInitial;
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     //void setValueToSubbasin(void);
 

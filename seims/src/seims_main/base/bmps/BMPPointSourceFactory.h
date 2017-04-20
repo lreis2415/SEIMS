@@ -34,47 +34,47 @@ public:
     void Dump(ostream *fs);
 
     /// Get point source ID
-    int GetPointSourceID() {
+    int GetPointSourceID(void) {
         return m_pointSrcID;
     }
 
     /// name
-    string GetPointSourceName() {
+    string GetPointSourceName(void) {
         return m_name;
     }
 
     /// Lat
-    float GetLat() {
+    float GetLat(void) {
         return m_lat;
     }
 
     /// Lon
-    float GetLon() {
+    float GetLon(void) {
         return m_lon;
     }
 
     /// localX
-    float GetLocalX() {
+    float GetLocalX(void) {
         return m_localX;
     }
 
     /// localY
-    float GetLocalY() {
+    float GetLocalY(void) {
         return m_localY;
     }
 
     /// Located subbasin ID
-    int GetSubbasinID() {
+    int GetSubbasinID(void) {
         return m_subbasinID;
     }
 
     /// size
-    float GetSize() {
+    float GetSize(void) {
         return m_size;
     }
 
     /// Distance to the downstream reach
-    float GetDistanceDown() {
+    float GetDistanceDown(void) {
         return m_distDown;
     }
 
@@ -122,72 +122,72 @@ public:
     void Dump(ostream *fs);
 
     /// Get start date of the current management operation
-    time_t GetStartDate() {
+    time_t GetStartDate(void) {
         return m_startDate;
     }
 
     /// Get end date
-    time_t GetEndDate() {
+    time_t GetEndDate(void) {
         return m_endDate;
     }
 
     /// Get sequence number
-    int GetSequence() {
+    int GetSequence(void) {
         return m_seqence;
     }
 
     /// Get subScenario name
-    string GetSubScenarioName() {
+    string GetSubScenarioName(void) {
         return m_name;
     }
 
     /// Get water volume
-    float GetWaterVolume() {
+    float GetWaterVolume(void) {
         return m_waterVolume;
     }
 
     /// Get sediment concentration
-    float GetSedment() {
+    float GetSedment(void) {
         return m_sedimentConc;
     }
 
     /// Get sediment concentration
-    float GetTN() {
+    float GetTN(void) {
         return m_TNConc;
     }
 
     /// Get NO3 concentration
-    float GetNO3() {
+    float GetNO3(void) {
         return m_NO3Conc;
     }
 
     /// Get NH4 concentration
-    float GetNH4() {
+    float GetNH4(void) {
         return m_NH4Conc;
     }
 
     /// Get OrgN concentration
-    float GetOrgN() {
+    float GetOrgN(void) {
         return m_OrgNConc;
     }
 
     /// Get TP concentration
-    float GetTP() {
+    float GetTP(void) {
         return m_TPConc;
     }
 
     /// Get SolP concentration
-    float GetSolP() {
+    float GetSolP(void) {
         return m_SolPConc;
     }
 
     /// Get OrgP concentration
-    float GetOrgP() {
+    float GetOrgP(void) {
         return m_OrgPConc;
     }
 
     /// Get COD concentration
-    float GetCOD() {
+    float GetCOD(void) {
         return m_COD;
     }
 
@@ -259,19 +259,19 @@ public:
      */
     void ReadPointSourceLocations(mongoc_client_t *conn, string &bmpDBName);
 
-    vector<int> &GetPointSrcMgtSeqs() {
+    vector<int> &GetPointSrcMgtSeqs(void) {
         return m_pointSrcMgtSeqs;
     }
 
-    map<int, PointSourceMgtParams *> &GetPointSrcMgtMap() {
+    map<int, PointSourceMgtParams *> &GetPointSrcMgtMap(void) {
         return m_pointSrcMgtMap;
     }
 
-    vector<int> &GetPointSrcIDs() {
+    vector<int> &GetPointSrcIDs(void) {
         return m_pointSrcIDs;
     }
 
-    map<int, PointSourceLocations *> &GetPointSrcLocsMap() {
+    map<int, PointSourceLocations *> &GetPointSrcLocsMap(void) {
         return m_pointSrcLocsMap;
     }
 

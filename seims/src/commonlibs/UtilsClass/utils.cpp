@@ -83,7 +83,7 @@ string utilsTime::ConvertToString2(const time_t *date) {
 
 time_t utilsTime::ConvertToTime(string strDate, string const &format, bool includeHour) {
     struct tm *timeinfo;
-    time_t t;
+    time_t t(0);
     int yr;
     int mn;
     int dy;
@@ -107,14 +107,17 @@ time_t utilsTime::ConvertToTime(string strDate, string const &format, bool inclu
         t = mktime(timeinfo);
     }
     catch (...) {
-        throw;
+        //throw;
+        // do not throw any exceptions in library. 
+        cout << "Error occurred when convert " + strDate + " to time_t!" << endl;
+        t = 0;  // reset to 0 for convenient comparison
     }
 
     return t;
 }
 
 time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool includeHour) {
-    time_t t;
+    time_t t(0);
     int yr;
     int mn;
     int dy;
@@ -140,15 +143,16 @@ time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool
         t = mktime(&timeinfo);
     }
     catch (...) {
-        cout << "Error in ConvertToTime2.\n";
-        throw;
+        cout << "Error in ConvertToTime2!" << endl;
+        t = 0;
+        //throw;
     }
 
     return t;
 }
 
 time_t utilsTime::ConvertYMDToTime(int &year, int &month, int &day) {
-    time_t t;
+    time_t t(0);
     try {
         struct tm timeinfo;
         timeinfo.tm_year = year - 1900;
@@ -158,8 +162,9 @@ time_t utilsTime::ConvertYMDToTime(int &year, int &month, int &day) {
         t = mktime(&timeinfo);
     }
     catch (...) {
-        cout << "Error in ConvertYMDToTime.\n";
-        throw;
+        cout << "Error in ConvertYMDToTime!" << endl;
+        t = 0;
+        //throw;
     }
     return t;
 }
@@ -284,7 +289,7 @@ utilsArray::utilsArray(void) {}
 
 utilsArray::~utilsArray(void) {}
 
-void utilsArray::Output1DArrayToTxtFile(int n, float *data, const char *filename) {
+void utilsArray::Output1DArrayToTxtFile(int n, const CFLOATPTR *data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < n; ++i) {
         ofs << data[i] << "\n";
@@ -292,7 +297,7 @@ void utilsArray::Output1DArrayToTxtFile(int n, float *data, const char *filename
     ofs.close();
 }
 
-void utilsArray::Output2DArrayToTxtFile(int nRows, int nCols, float **data, const char *filename) {
+void utilsArray::Output2DArrayToTxtFile(int nRows, int nCols, const CFLOATPTR *data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < nRows; ++i) {
         for (int j = 0; j < nCols; ++j) {

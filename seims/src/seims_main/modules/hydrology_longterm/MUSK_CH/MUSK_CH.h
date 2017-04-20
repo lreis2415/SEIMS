@@ -47,7 +47,7 @@ public:
 
     ~MUSK_CH(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -71,7 +71,7 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
+    virtual TimeStepType GetTimeStepType(void) { return TIMESTEP_CHANNEL; };
 
 private:
     //!
@@ -191,9 +191,9 @@ private:
      */
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs();
+    void initialOutputs(void);
 
-    void PointSourceLoading();
+    void PointSourceLoading(void);
 
     void ChannelFlow(int i);
 

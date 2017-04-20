@@ -41,7 +41,7 @@ public:
     /*!
      * \brief Read subbasin numbers, outlet ID, etc. from MongoDB
      */
-    void SetSubbasinIDs();
+    void SetSubbasinIDs(void);
 
     //! Write output information to log file
     void Dump(string);

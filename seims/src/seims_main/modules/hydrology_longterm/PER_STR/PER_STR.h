@@ -66,7 +66,7 @@ public:
     /// Destructor
     ~PER_STR(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -93,6 +93,6 @@ private:
     */
     bool CheckInputSize(const char *, int);
 
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

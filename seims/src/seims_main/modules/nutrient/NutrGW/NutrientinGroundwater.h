@@ -36,7 +36,7 @@ public:
     virtual void SetReaches(clsReaches *reaches);
 
     //virtual void Set2DData(const char* key, int nRows, int nCols, float** data);
-    virtual int Execute();
+    virtual int Execute(void);
 
     //virtual void GetValue(const char* key, float* value);
     virtual void Get1DData(const char *key, int *n, float **data);
@@ -118,5 +118,5 @@ private:
     bool CheckInputSize(const char *, int);
 
     /// initial outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };

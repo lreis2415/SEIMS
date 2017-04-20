@@ -27,8 +27,8 @@
 *		be calculated once at the beginning. So, Add a local variable m_wfmp to store its value
 *		and a function initialWFMP to calculate its value. Wu Hui, please note that when calculating
 *		WFMP using equation 2:1.2.5 in SWAT, the unit of clay and sand is percent. You do not need
-*		to divid it by 100. See soil_phys.f in SWAT source code for detail reference.
-*	2.	The unit of time step passed from main grogram is hour rather than minute. So, it need to
+*		to divided it by 100. See soil_phys.f in SWAT source code for detail reference.
+*	2.	The unit of time step passed from main program is hour rather than minute. So, it need to
 *		be converted to minutes in function SetValue.
 *	3.	Rename some names of keys in function Set1DData.
 *	4.	Delete parameter INFRate_In and set the initial value of infiltration rate to 0.
@@ -62,7 +62,7 @@ public:
 
     ~SUR_GreenAmpt(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -148,7 +148,7 @@ private:
     float *m_w2;
     float *m_sMax;
 
-    void initalW1W2();
+    void initalW1W2(void);
 
     float Calculate_CN(int cell);
 
@@ -165,8 +165,8 @@ private:
     //add by Zhiqiang 2011-02-16
     float *m_wfmp;
 
-    void initialWFMP();
+    void initialWFMP(void);
 
-    void initalOutputs();
+    void initalOutputs(void);
 };
 

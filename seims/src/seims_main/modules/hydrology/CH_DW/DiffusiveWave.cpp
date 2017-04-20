@@ -443,8 +443,7 @@ void DiffusiveWave::Get1DData(const char *key, int *n, float **data) {
         }*/
     else {
         throw ModelException(MID_CH_DW, "Get1DData", "Output " + sk
-            +
-                " does not exist in the current module. Please contact the module developer.");
+            + " does not exist in the current module. Please contact the module developer.");
     }
 }
 
@@ -458,8 +457,7 @@ void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***
         *data = m_hCh;
     } else {
         throw ModelException(MID_CH_DW, "Get2DData", "Output " + sk
-            +
-                " does not exist in the current module. Please contact the module developer.");
+            + " does not exist in the current module. Please contact the module developer.");
     }
 
 }

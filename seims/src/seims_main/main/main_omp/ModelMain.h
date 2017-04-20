@@ -62,28 +62,28 @@ public:
     ~ModelMain(void);
 
     //! Destroy the GridFS instance
-    void CloseGridFS() { mongoc_gridfs_destroy(m_outputGfs); }
+    void CloseGridFS(void) { mongoc_gridfs_destroy(m_outputGfs); }
 
     //! Execute all the modules, create output, and write the total time-consuming.
-    void Execute();
+    void Execute(void);
 
     //! Get hillslope time interval
-    time_t getDtHillSlope() { return m_dtHs; }
+    time_t getDtHillSlope(void) { return m_dtHs; }
 
     //! Get channel time interval
-    time_t getDtChannel() { return m_dtCh; }
+    time_t getDtChannel(void) { return m_dtCh; }
 
     //! Get daily time interval
-    time_t getDtDaily() { return m_dtDaily; }
+    time_t getDtDaily(void) { return m_dtDaily; }
 
     //! Get start time of simulation
-    time_t getStartTime() { return m_input->getStartTime(); }
+    time_t getStartTime(void) { return m_input->getStartTime(); }
 
     //! Get end time of simulation
-    time_t getEndTime() { return m_input->getEndTime(); }
+    time_t getEndTime(void) { return m_input->getEndTime(); }
 
     //! Get module counts of current SEIMS
-    int GetModuleCount() { return m_simulationModules.size(); }
+    int GetModuleCount(void) { return m_simulationModules.size(); }
 
     //! Get module ID by index in ModuleFactory
     string GetModuleID(int i) { return m_factory->GetModuleID(i); }
@@ -92,25 +92,25 @@ public:
     float GetModuleExecuteTime(int i) { return (float) m_executeTime[i]; }
 
     //! Get time consuming of read files
-    float GetReadDataTime() { return m_readFileTime; }
+    float GetReadDataTime(void) { return m_readFileTime; }
 
     //!
-    float GetQOutlet();
+    float GetQOutlet(void);
 
     //! Include channel processes or not?
-    bool IncludeChannelProcesses() { return m_channelModules.size() != 0; }
+    bool IncludeChannelProcesses(void) { return m_channelModules.size() != 0; }
 
     //void	Init(SettingsInput* input, int numThread);
     //! Has the model been initialized?
-    bool IsInitialized() { return m_initialized; }
+    bool IsInitialized(void) { return m_initialized; }
 
     //! Creating output files, e.g., QOutlet.txt
-    void Output();
+    void Output(void);
 
     //! Get output at the given time
     void Output(time_t time);
 
-    void OutputExecuteTime();
+    void OutputExecuteTime(void);
 
     //! Set layering method
     void SetLayeringMethod(LayeringMethod method) { m_layeringMethod = method; }
@@ -187,7 +187,7 @@ private:
      *
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void CheckOutput();
+    void CheckOutput(void);
 
     //! Check module input data, date and execute module
     void Step(time_t t, int yearIdx, vector<int> &moduleIndex, bool firstRun);

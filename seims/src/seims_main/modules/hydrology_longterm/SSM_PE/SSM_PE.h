@@ -30,7 +30,7 @@ public:
     //! Destructor
     ~SSM_PE(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -65,6 +65,6 @@ private:
 
     bool m_isInitial;
 
-    void initialOutputs();
+    void initialOutputs(void);
 };
 
