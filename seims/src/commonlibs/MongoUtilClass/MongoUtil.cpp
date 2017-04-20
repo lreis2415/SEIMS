@@ -6,33 +6,34 @@ using namespace std;
 ////////////////  MongoClient    //////////////////
 ///////////////////////////////////////////////////
 MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port) {
-    try {
-        if (!isIPAddress(m_host)) {
-            throw ModelException("MongoClient", "Connect to MongoDB",
-                                 "IP address: " + string(m_host) + " is invalid, Please check!\n");
-        }
-        mongoc_init();
-        mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
-        m_conn = mongoc_client_new_from_uri(uri);
-        /// Check the connection to MongoDB is success or not
-        bson_t *reply = bson_new();
-        bson_error_t *err = NULL;
-        if (!mongoc_client_get_server_status(m_conn, NULL, reply, err)) {
-            throw ModelException("MongoClient", "Connect to MongoDB", "Failed to connect to MongoDB!\n");
-        }
-        bson_destroy(reply);
-        mongoc_uri_destroy(uri);
-    }
-    catch (ModelException& e) {
-        cout << e.toString() << endl;
-        return;
-    }
-    catch (exception e) {
-        cout << e.what() << endl;
-        return;
-    }
+    mongoc_init();
+    mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
+    m_conn = mongoc_client_new_from_uri(uri);
+
+    mongoc_uri_destroy(uri);
 }
 
+MongoClient *MongoClient::Init(const char *host, int port) {
+    if (!isIPAddress(host)) {
+        cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
+        return NULL;
+    }
+    mongoc_init();
+    mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
+    mongoc_client_t *conn = mongoc_client_new_from_uri(uri);
+    /// Check the connection to MongoDB is success or not
+    bson_t *reply = bson_new();
+    bson_error_t *err = NULL;
+    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
+        cout << "Failed to connect to MongoDB!" << endl;
+        return NULL;
+    }
+    bson_destroy(reply);
+    mongoc_uri_destroy(uri);
+    mongoc_client_destroy(conn);
+
+    return new MongoClient(host, port);
+}
 MongoClient::~MongoClient() {
     StatusMessage("Releasing MongoClient ...");
     if (m_conn) {
@@ -42,40 +43,31 @@ MongoClient::~MongoClient() {
     mongoc_cleanup();
 }
 
-void MongoClient::_database_names() {
-    char **dbnames;
+void MongoClient::getDatabaseNames(vector<string> &dbnames) {
+    char **dbnames_char = NULL;
     unsigned i;
     bson_error_t *err = NULL;
-    dbnames = mongoc_client_get_database_names(m_conn, err);
-    if (!m_dbnames.empty()) {
-        m_dbnames.clear();
+    dbnames_char = mongoc_client_get_database_names(m_conn, err);
+    if (!dbnames.empty()) {
+        dbnames.clear();
     } /// get clear before push database names
     if (err == NULL) {
-        for (i = 0; dbnames[i]; i++) {
+        for (i = 0; dbnames_char[i]; i++) {
             // cout<<dbnames[i]<<endl;
-            m_dbnames.push_back(string(dbnames[i]));
+            dbnames.push_back(string(dbnames_char[i]));
         }
-        bson_strfreev(dbnames);
+        bson_strfreev(dbnames_char);
     }
-    vector<string>(m_dbnames).swap(m_dbnames);
+    vector<string>(dbnames).swap(dbnames);
 }
 
-vector<string> MongoClient::getDatabaseNames() {
-    if (m_dbnames.empty()) this->_database_names();
-    return m_dbnames;
-}
-
-void MongoClient::getCollectionNames(string const &dbName, vector<string>&collNames) {
+void MongoClient::getCollectionNames(string const &dbName, vector<string> &collNames) {
     mongoc_database_t *database = this->getDatabase(dbName);
     MongoDatabase(database).getCollectionNames(collNames);
 }
 
 mongoc_database_t *MongoClient::getDatabase(string const &dbname) {
-    if (m_dbnames.empty()) this->_database_names();
-    string tmpdbname = dbname;
-    if (!ValueInVector(tmpdbname, m_dbnames)) {
-        StatusMessage(("WARNING: Database " + tmpdbname + " is not existed and will be created!\n").c_str());
-    }
+    // Get Database or create if not existed
     return mongoc_client_get_database(m_conn, dbname.c_str());
 }
 

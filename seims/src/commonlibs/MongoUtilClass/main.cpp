@@ -30,39 +30,44 @@ int main() {
     cout << "Get a MongoDB instance" << endl;
     string ip = "127.0.0.1";
     int port = 27017;
-    MongoClient client = MongoClient(ip.c_str(), port);
-    mongoc_client_t *conn = client.getConn();
-
+    MongoClient *client = MongoClient::Init(ip.c_str(), port);
+    if (NULL == client) { // return if connection to MongoDB failed
+        return -1;
+    }
+    mongoc_client_t *conn = client->getConn();
     /*!
      * Get database names, a string vector is returned.
      */
     cout << "Get database names" << endl;
-    vector <string> dbnames = client.getDatabaseNames();
+    vector<string> dbnames;
+    client->getDatabaseNames(dbnames);
     for (vector<string>::iterator it = dbnames.begin(); it != dbnames.end(); it++) {
         cout << *it << endl;
     }
     cout << endl;
 
     /// Get Database
-    mongoc_database_t *db = client.getDatabase(string("model_dianbu2_30m_longterm"));
+    mongoc_database_t *db = client->getDatabase(string("model_dianbu2_30m_longterm"));
     /// Get Collection
-    mongoc_collection_t *coll = client.getCollection(string("model_dianbu2_30m_longterm"), string("FILE_IN"));
+    mongoc_collection_t *coll = client->getCollection(string("model_dianbu2_30m_longterm"), string("FILE_IN"));
     /// Get collection names of a database
     cout << "Get collection names" << endl;
     //vector<string> colnames = client.getCollectionNames(string("model_dianbu2_30m_longterm"));
     /// another way
-    vector <string> colnames = MongoDatabase(conn, string("model_dianbu2_30m_longterm")).getCollectionNames();
+    vector <string> colnames;
+    MongoDatabase(conn, string("model_dianbu2_30m_longterm")).getCollectionNames(colnames);
     for (vector<string>::iterator it = colnames.begin(); it != colnames.end(); it++) {
         cout << *it << endl;
     }
     cout << endl;
     /// Get GridFS
-    mongoc_gridfs_t *gfs = client.getGridFS(string("model_dianbu2_30m_longterm"), string("SPATIAL"));
+    mongoc_gridfs_t *gfs = client->getGridFS(string("model_dianbu2_30m_longterm"), string("SPATIAL"));
     /// Get GridFS file names
     cout << "Get GridFS file names" << endl;
     //vector<string> gfsfilenames = client.getGridFSFileNames(string("model_dianbu2_30m_longterm"), string("SPATIAL"));
     /// another way
-    vector <string> gfsfilenames = MongoGridFS().getFileNames(gfs);
+    vector <string> gfsfilenames;
+    MongoGridFS().getFileNames(gfsfilenames, gfs);
     /// or, however, in this way, gfs will be destroyed (released) afterwards.
     //vector<string> gfsfilenames = MongoGridFS(gfs).getFileNames();
     cout << "Totally " << gfsfilenames.size() << " files existed!" << endl;
@@ -83,5 +88,8 @@ int main() {
     /// Write a GridFS file to MongoDB
     mgfs.writeStreamData(string("AWC"), databuf, length, metadata);
     Release1DArray(databuf);
+    if (NULL != client) {
+        delete client;
+    }
     return 0;
 }
