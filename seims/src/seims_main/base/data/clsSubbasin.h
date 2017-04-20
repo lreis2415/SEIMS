@@ -241,7 +241,11 @@ public:
      * \param[in] prefixID subbasin ID as prefix in MongoDB
      */
     clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
-
+    /*! \brief Check input parameters to ensure the successful constructor
+     * 
+     */
+    static clsSubbasins *Init(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap,
+                              int prefixID);
     /// Destructor
     ~clsSubbasins(void);
 

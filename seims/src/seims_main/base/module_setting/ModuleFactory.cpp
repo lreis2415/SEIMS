@@ -1181,13 +1181,18 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
             /// 1D or 2D raster data
             if (raster->is2DRaster())
             {
-                raster->get2DRasterData(&n, &lyrs, &data2D);
-                if (data2D != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
+                if (!raster->get2DRasterData(&n, &lyrs, &data2D)) {
+                    throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
+                }
+                if (m_parametersInDB.find(upperName) != m_parametersInDB.end()) {
                     m_parametersInDB[upperName]->Adjust2DRaster(n, raster->getLayers(), data2D);
+                }
             }
             else
             {
-                raster->getRasterData(&n, &data);
+                if (!raster->getRasterData(&n, &data)) {
+                    throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
+                }
                 if (data != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
                     m_parametersInDB[upperName]->Adjust1DRaster(n, data);
             }
@@ -1206,19 +1211,17 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
         //cout << remoteFileName << endl;
     }
     if (raster->is2DRaster()) {
-        raster->get2DRasterData(&n, &lyrs, &data2D);
-
-        if (data2D != NULL) {
-            string upperName = GetUpper(paraName);
-            pModule->Set2DData(paraName.c_str(), n, lyrs, data2D);
+        if (!raster->get2DRasterData(&n, &lyrs, &data2D)) {
+            throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
         }
+        string upperName = GetUpper(paraName);
+        pModule->Set2DData(paraName.c_str(), n, lyrs, data2D);
     } else {
-        raster->getRasterData(&n, &data);
-
-        if (data != NULL) {
-            string upperName = GetUpper(paraName);
-            pModule->Set1DData(paraName.c_str(), n, data);
+        if (!raster->getRasterData(&n, &data)) {
+            throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
         }
+        string upperName = GetUpper(paraName);
+        pModule->Set1DData(paraName.c_str(), n, data);
     }
 }
 
@@ -1248,7 +1251,10 @@ void ModuleFactory::AddMaskRaster(string maskName, clsRasterData<float> *maskDat
 /// Added by Liang-Jun Zhu, 2016-7-28
 void ModuleFactory::SetSubbasins(SimulationModule *pModule) {
     if (NULL == m_subbasins) {
-        m_subbasins = new clsSubbasins(m_spatialData, m_rsMap, m_subBasinID);
+        m_subbasins = clsSubbasins::Init(m_spatialData, m_rsMap, m_subBasinID);
+        if (NULL == m_subbasins) {
+            throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data can not be initialized!");
+        }
     }
     pModule->SetSubbasins(m_subbasins);
 }
