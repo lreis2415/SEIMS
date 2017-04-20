@@ -40,7 +40,7 @@ public:
 
     ~IKW_REACH(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -60,7 +60,7 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType() {
+    virtual TimeStepType GetTimeStepType(void) {
         return TIMESTEP_CHANNEL;
     };
 
@@ -159,7 +159,7 @@ private:
 
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     void ChannelFlow(int i);
 

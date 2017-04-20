@@ -24,7 +24,7 @@ public:
     clsSimpleTxtData(string fileName);
 
     //! Destructor
-    ~clsSimpleTxtData();
+    ~clsSimpleTxtData(void);
 
     //! Get line number and data
     void getData(int *nRow, float **data);

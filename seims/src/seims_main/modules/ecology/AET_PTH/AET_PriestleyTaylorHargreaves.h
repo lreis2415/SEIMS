@@ -81,7 +81,7 @@ public:
     //! Destructor
     ~AET_PT_H(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -109,6 +109,5 @@ private:
     bool CheckInputSize(const char *, int);
 
     //! initialize outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };
-

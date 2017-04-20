@@ -2,7 +2,7 @@
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	31-Octobor-2011
-*	@brief	Green-Ampt Method to calculate infiltration and excess precipitation
+*	@brief	calculate infiltration and excess precipitation
 *
 */
 #pragma once

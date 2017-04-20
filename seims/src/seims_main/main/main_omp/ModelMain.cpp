@@ -156,7 +156,7 @@ ModelMain::~ModelMain(void) {
 //			pModule->SetDate(time);
 //			pModule->Execute();
 //		}
-//		catch (ModelException e)
+//		catch (ModelException& e)
 //		{
 //			cout << e.toString();
 //			exit(-1);

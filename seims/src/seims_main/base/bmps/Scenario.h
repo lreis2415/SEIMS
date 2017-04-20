@@ -39,20 +39,20 @@ public:
     ~Scenario(void);
 
     //! Get scenario ID, base scenario iD is 0
-    int ID() {
+    int ID(void) {
         return this->m_id;
     }
 
     //! If this is base scenario
-    bool IsBaseScenario() {
+    bool IsBaseScenario(void) {
         return this->m_id == 0;
     }
 
     //! Get scenario name
-    string Name();
+    string Name(void);
 
     //! Get BMPs Factories
-    map<int, BMPFactory *> *GetBMPFactories() {
+    map<int, BMPFactory *> *GetBMPFactories(void) {
         return &m_bmpFactories;
     }
 
@@ -74,7 +74,7 @@ public:
     //BMPReachReservoir*			getReservoir(int reach);
 
     //! Get maximum reservoir id
-    int getMaxReservoirId();
+    int getMaxReservoirId(void);
 
     //-----------------------------------------------
     //areal non-structural bmp information
@@ -135,15 +135,15 @@ private:
     map<int, BMPFactory *> m_bmpFactories;
 
     /// Load scenario information
-    void loadScenario();
+    void loadScenario(void);
 
     /// Get scenario name
-    void loadScenarioName();
+    void loadScenarioName(void);
 
     /// Load each BMP in current scenario
-    void loadBMPs();
+    void loadBMPs(void);
 
     /// Load a single BMP information via \sa BMPFactory
-    void loadBMPDetail();
+    void loadBMPDetail(void);
 };
 }

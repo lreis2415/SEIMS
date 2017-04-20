@@ -83,31 +83,11 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
     float *subbasinData = NULL;
     float cellWidth = NODATA_VALUE;
     ostringstream oss;
-    oss << prefixID << "_" << NAME_MASK;
-    string maskFileName = GetUpper(oss.str());
-    oss.str("");
     oss << prefixID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
     oss.str("");
-
-    if (rsMap.find(maskFileName) == rsMap.end()) // if mask not loaded yet
-        throw ModelException("clsSubbasins", "Constructor", "MASK data has not been loaded yet!");
-
-    if (rsMap.find(subbasinFileName) == rsMap.end()) // if subbasin not loaded yet
-    {
-        clsRasterData<float> *subbasinRaster = NULL;
-        try {
-            subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
-            subbasinRaster->getRasterData(&nCells, &subbasinData);
-        }
-        catch (ModelException e) {
-            cout << e.toString() << endl;
-            return;
-        }
-        rsMap[subbasinFileName] = subbasinRaster;
-        cellWidth = subbasinRaster->getCellWidth();
-    } else
-        rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData);
+    
+    rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData);
 
     m_nSubbasins = 0;
 // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
@@ -142,6 +122,41 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
         it = cellListMap.erase(it);
     }
     cellListMap.clear();
+}
+
+clsSubbasins *clsSubbasins::Init(mongoc_gridfs_t *spatialData, map<string,
+                                 clsRasterData<float> *> &rsMap, int prefixID) {
+    ostringstream oss;
+    oss << prefixID << "_" << NAME_MASK;
+    string maskFileName = GetUpper(oss.str());
+    oss.str("");
+    oss << prefixID << "_" << VAR_SUBBSN;
+    string subbasinFileName = GetUpper(oss.str());
+    oss.str("");
+
+    if (rsMap.find(maskFileName) == rsMap.end()) { // if mask not loaded yet
+        cout << "MASK data has not been loaded yet!" << endl;
+        return NULL;
+    }
+    int nCells = -1;
+    float *subbasinData = NULL;
+    if (rsMap.find(subbasinFileName) == rsMap.end()) { // if subbasin not loaded yet
+        clsRasterData<float> *subbasinRaster = NULL;
+        subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
+        if (!subbasinRaster->getRasterData(&nCells, &subbasinData)) {
+            cout << "Subbasin data loaded failed!" << endl;
+            return NULL;
+        }
+        rsMap[subbasinFileName] = subbasinRaster;
+    }
+    else {
+        if (!rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData)) {
+            cout << "Subbasin data preloaded is unable to access!" << endl;
+            return NULL;
+        }
+    }
+
+    return new clsSubbasins(spatialData, rsMap, prefixID);
 }
 
 clsSubbasins::~clsSubbasins() {

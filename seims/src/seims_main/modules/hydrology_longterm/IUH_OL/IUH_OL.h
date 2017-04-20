@@ -51,7 +51,7 @@ public:
 
     ~IUH_OL(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -119,6 +119,6 @@ private:
     float *m_OL_Flow;
 
     //! initial outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

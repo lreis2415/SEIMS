@@ -15,9 +15,6 @@
 
 using namespace std;
 
-////! Get the root path of the current executable (i.e., seims_omp or seims).
-//string _GetApplicationPath();
-
 //! Check database to make sure the collections (tables) are provided
 void checkDatabase(mongoc_client_t *conn, string dbName);
 

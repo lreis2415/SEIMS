@@ -141,6 +141,8 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 	# 编译64位版本，此时一定确保GDAL和mongo-c-driver已配置好64位版本
 	cmake -G "Visual Studio 10 2010 Win64" .. -DARCH=64
 	msbuild.exe ALL_BUILD.vcxproj
+    # 如果编译release版本：
+    # msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release
 	msbuild.exe INSTALL.vcxproj
     ```
 

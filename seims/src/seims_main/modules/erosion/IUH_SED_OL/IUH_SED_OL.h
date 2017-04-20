@@ -29,7 +29,7 @@ public:
 
     ~IUH_SED_OL(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -96,6 +96,6 @@ private:
     float *m_sedOL;
 
     //! intial outputs
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

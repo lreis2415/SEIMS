@@ -28,87 +28,87 @@ public:
     //! Reset the contents of the object to default values
     void Reset(void);
 
-    int GetSubbasinID() { return SubbasinID; }
+    int GetSubbasinID(void) { return SubbasinID; }
 
-    float GetArea() { return this->Area; }
+    float GetArea(void) { return this->Area; }
 
-    float GetDepth() { return this->Depth; }
+    float GetDepth(void) { return this->Depth; }
 
-    int GetDownStream() { return DownStream; }
+    int GetDownStream(void) { return DownStream; }
 
-    int GetDownUpOrder() { return DownUpOrder; }
+    int GetDownUpOrder(void) { return DownUpOrder; }
 
-    int GetUpDownOrder() { return UpDownOrder; }
+    int GetUpDownOrder(void) { return UpDownOrder; }
 
-    int GetGroup() { return Group; }
+    int GetGroup(void) { return Group; }
 
-    int GetGroupDivided() { return GroupDivided; }
+    int GetGroupDivided(void) { return GroupDivided; }
 
-    float GetLength() { return this->Length; }
+    float GetLength(void) { return this->Length; }
 
-    float GetManning() { return this->Manning; }
+    float GetManning(void) { return this->Manning; }
 
-    int GetNumCells() { return this->NumCells; }
+    int GetNumCells(void) { return this->NumCells; }
 
-    float GetSlope() { return this->Slope; }
+    float GetSlope(void) { return this->Slope; }
 
-    float GetV0() { return this->V0; }
+    float GetV0(void) { return this->V0; }
 
-    float GetWidth() { return this->Width; }
+    float GetWidth(void) { return this->Width; }
 
-    float GetSideSlope() { return this->SideSlope; }
+    float GetSideSlope(void) { return this->SideSlope; }
 
-    float GetBc1() { return this->bc1; }
+    float GetBc1(void) { return this->bc1; }
 
-    float GetBc2() { return this->bc2; }
+    float GetBc2(void) { return this->bc2; }
 
-    float GetBc3() { return this->bc3; }
+    float GetBc3(void) { return this->bc3; }
 
-    float GetBc4() { return this->bc4; }
+    float GetBc4(void) { return this->bc4; }
 
-    float GetRs1() { return this->rs1; }
+    float GetRs1(void) { return this->rs1; }
 
-    float GetRs2() { return this->rs2; }
+    float GetRs2(void) { return this->rs2; }
 
-    float GetRs3() { return this->rs3; }
+    float GetRs3(void) { return this->rs3; }
 
-    float GetRs4() { return this->rs4; }
+    float GetRs4(void) { return this->rs4; }
 
-    float GetRs5() { return this->rs5; }
+    float GetRs5(void) { return this->rs5; }
 
-    float GetRk1() { return this->rk1; }
+    float GetRk1(void) { return this->rk1; }
 
-    float GetRk2() { return this->rk2; }
+    float GetRk2(void) { return this->rk2; }
 
-    float GetRk3() { return this->rk3; }
+    float GetRk3(void) { return this->rk3; }
 
-    float GetRk4() { return this->rk4; }
+    float GetRk4(void) { return this->rk4; }
 
-    float GetCover() { return this->cover; }
+    float GetCover(void) { return this->cover; }
 
-    float GetErod() { return this->erod; }
+    float GetErod(void) { return this->erod; }
 
-    float GetDisOxygen() { return this->disox; }
+    float GetDisOxygen(void) { return this->disox; }
 
-    float GetCOD() { return this->cod; }
+    float GetCOD(void) { return this->cod; }
 
-    float GetAlgae() { return this->algae; }
+    float GetAlgae(void) { return this->algae; }
 
-    float GetOrgN() { return this->orgn; }
+    float GetOrgN(void) { return this->orgn; }
 
-    float GetNH4() { return this->nh4; }
+    float GetNH4(void) { return this->nh4; }
 
-    float GetNO2() { return this->no2; }
+    float GetNO2(void) { return this->no2; }
 
-    float GetNO3() { return this->no3; }
+    float GetNO3(void) { return this->no3; }
 
-    float GetOrgP() { return this->orgp; }
+    float GetOrgP(void) { return this->orgp; }
 
-    float GetSolP() { return this->solp; }
+    float GetSolP(void) { return this->solp; }
 
-    float GetGWNO3() { return this->gwno3; }
+    float GetGWNO3(void) { return this->gwno3; }
 
-    float GetGWSolP() { return this->gwsolp; }
+    float GetGWSolP(void) { return this->gwsolp; }
 
 private:
     //! Subbasin area
@@ -217,16 +217,16 @@ public:
     clsReaches(mongoc_client_t *conn, string &dbName, string collectionName);
 
     /// Destructor
-    ~clsReaches();
+    ~clsReaches(void);
 
     /// Get single reach information by subbasin ID
     clsReach *GetReachByID(int id) { return m_reachesInfo.at(id); }
 
     /// Get reach number
-    int GetReachNumber() { return this->m_reachNum; }
+    int GetReachNumber(void) { return this->m_reachNum; }
 
     /// Get reach IDs (vector)
-    vector<int> &GetReachIDs() { return this->m_reachIDs; }
+    vector<int> &GetReachIDs(void) { return this->m_reachIDs; }
 
 private:
     /// reaches number

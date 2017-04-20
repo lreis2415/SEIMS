@@ -27,7 +27,7 @@ public:
     //! Destructor
     ~InterFlow_IKW(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -53,7 +53,7 @@ private:
 
     void FlowInSoil(int id);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     /// size
     int m_nCells;

@@ -41,17 +41,17 @@ public:
        3 - areal non-structure BMPs which are NOT corresponding to a specific structure in the watershed and will change the character of subbasins/cells.
        4 - point structural BMPs
      */
-    int bmpType() {
+    int bmpType(void) {
         return m_bmpType;
     }
 
     /// Get BMP priority
-    int bmpPriority() {
+    int bmpPriority(void) {
         return m_bmpPriority;
     }
 
     /// Get subScenario ID
-    int GetSubScenarioId() {
+    int GetSubScenarioId(void) {
         return m_subScenarioId;
     }
 

@@ -47,53 +47,46 @@ void checkProject(string projectPath) {
 }
 
 int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numThread, LayeringMethod layeringMethod) {
-    try {
-        /// 1. Get paths and model name
-        string exePath = GetAppPath();
-        string modulePath = exePath;
-        string projectPath = modelPath + SEP;
-        string configFile = projectPath + File_Config;
-        checkProject(projectPath);
-        size_t nameIdx = modelPath.rfind(SEP);
-        string dbName = modelPath.substr(nameIdx + 1);
+    /// 1. Get paths and model name
+    string exePath = GetAppPath();
+    string modulePath = exePath;
+    string projectPath = modelPath + SEP;
+    string configFile = projectPath + File_Config;
+    checkProject(projectPath);
+    size_t nameIdx = modelPath.rfind(SEP);
+    string dbName = modelPath.substr(nameIdx + 1);
 
-        /// 2. Connect to MongoDB database, and make sure the required data is available.
-        MongoClient dbclient = MongoClient(host, port);
-        //mongoc_client_t *conn = dbclient.getConn();
-
-        /// TODO: ADD CHECK DATABASE AND TABLE, LJ.
-        vector<string> dbnames = dbclient.getDatabaseNames();
-        if (!ValueInVector(dbName, dbnames)) {
-            throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!\n");
-        }
-        /// CHECK FINISHED
-
-        /// 3. Create main model according to subbasin number, 0 means the whole basin.
-        int nSubbasin = 0;
-        /// old version
-        /*/// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
-        /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
-        SettingsInput *input = new SettingsInput(conn, dbName, nSubbasin);
-        /// 3.2 Constructor module factories by "config.fig" file
-        ModuleFactory *factory = new ModuleFactory(configFile, modulePath, conn, dbName, nSubbasin, layeringMethod,
-                                                   scenarioID);
-        /// 3.3 Constructor SEIMS model, BTW, SettingsOutput is created in ModelMain.
-        ModelMain main(conn, dbName, projectPath, input, factory, nSubbasin, scenarioID, numThread, layeringMethod);*/
-        /// update by Liangjun, 3-27-2017
-        ModelMain main(&dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread);
-        /// Run SEIMS model and export outputs.
-        main.Execute();
-        main.Output();
-
-        /// Return success
-        return 0;
+    /// 2. Connect to MongoDB database, and make sure the required data is available.
+    MongoClient *dbclient = MongoClient::Init(host, port);
+    if (NULL == dbclient) {
+        throw ModelException(MODEL_NAME, "MainMongoDB", "Failed to connect to MongoDB!\n");
     }
-    catch (ModelException& e) {
-        cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+
+    /// TODO: ADD CHECK DATABASE AND TABLE, LJ.
+    vector<string> dbnames;
+    dbclient->getDatabaseNames(dbnames);
+    if (!ValueInVector(dbName, dbnames)) {
+        throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!\n");
     }
-    catch (exception e) {
-        cout << e.what() << endl;
-        exit(EXIT_FAILURE);
-    }
+    /// CHECK FINISHED
+
+    /// 3. Create main model according to subbasin number, 0 means the whole basin.
+    int nSubbasin = 0;
+    /// old version
+    /*/// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
+    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
+    SettingsInput *input = new SettingsInput(conn, dbName, nSubbasin);
+    /// 3.2 Constructor module factories by "config.fig" file
+    ModuleFactory *factory = new ModuleFactory(configFile, modulePath, conn, dbName, nSubbasin, layeringMethod,
+                                                scenarioID);
+    /// 3.3 Constructor SEIMS model, BTW, SettingsOutput is created in ModelMain.
+    ModelMain main(conn, dbName, projectPath, input, factory, nSubbasin, scenarioID, numThread, layeringMethod);*/
+    /// update by Liangjun, 3-27-2017
+    ModelMain main(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread);
+    /// Run SEIMS model and export outputs.
+    main.Execute();
+    main.Output();
+
+    /// Return success
+    return 0;
 }

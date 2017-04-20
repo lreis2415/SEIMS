@@ -34,7 +34,7 @@ public:
     void Reset(void);
 
     //! Return the adjusted value for this parameter
-    float GetAdjustedValue();
+    float GetAdjustedValue(void);
 
     //! Adjust 1D array
     void Adjust1DArray(int n, float *data);
