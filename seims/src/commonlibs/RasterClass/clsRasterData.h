@@ -9,6 +9,7 @@
  * \revised May. 2016
  * \revised Dec. 2016 Separated from SEIMS to a common library for widely use.
  * \revised Mar. 2017 VLD check, bug fixed, function enhanced.
+ * \revised Apr. 2017 Avoid try...catch block
  */
 #ifndef CLS_RASTER_DATA
 #define CLS_RASTER_DATA
@@ -154,7 +155,16 @@ public:
      */
     clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 #endif
-
+    /*!
+    * \brief Copy constructor
+    *        `clsRasterData newraster(baseraster);` will equal to
+    *        `clsRasterData newraster;
+    *         newraster.Copy(baseraster);`
+    */
+    inline clsRasterData(const clsRasterData<T, MaskT> &another) { 
+        this->_initialize_raster_class();
+        this->Copy(another); 
+    }
     //! Destructor, release \a m_rasterPositionData, \a m_rasterData and \a m_mask if existed.
     ~clsRasterData(void);
 
@@ -186,9 +196,8 @@ public:
      * \param[in] mask \a clsRasterData<MaskT>
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void
-    ReadByGDAL(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true,
-               T defalutValue = (T) NODATA_VALUE);
+    void ReadByGDAL(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, 
+                    bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 
 #ifdef USE_MONGODB
     /*!
@@ -359,7 +368,7 @@ public:
     }
 
     //! Get stored cell number of raster data
-    int getCellNumber(void) { return m_nCells; }
+    int getCellNumber(void) const { return m_nCells; }
 
     //! Get column number of raster data
     int getCols(void) { return (int) m_headers[HEADER_RS_NCOLS]; }
@@ -379,10 +388,10 @@ public:
     //! Get the first dimension size of raster data
     int getDataLength(void) { return m_nCells; }
 
-    int getLayers(void) { return m_nLyrs; }
+    int getLayers(void) const { return m_nLyrs; }
 
     //! Get NoDATA value of raster data
-    T getNoDataValue(void) { return (T) m_headers[HEADER_RS_NODATA]; }
+    T getNoDataValue(void) const { return (T) m_headers.at(HEADER_RS_NODATA); }
 
     //! Get position index in 1D raster data for specific row and column, return -1 is error occurs.
     int getPosition(int row, int col);
@@ -393,23 +402,27 @@ public:
     //! Get position index in 1D raster data for given coordinate (x,y)
     int getPosition(double x, double y);
 
-    //! Get raster data, include valid cell number and data
-    void getRasterData(int *, T **);
+    /*! \brief Get raster data, include valid cell number and data
+     * \return true if the raster data has been initialized, otherwise return false and print error info.
+     */
+    bool getRasterData(int *nRows, T **data);
 
-    //! Get 2D raster data, include valid cell number of each layer, layer number, and data
-    void get2DRasterData(int *, int *, T ***);
+    /*! \brief Get 2D raster data, include valid cell number of each layer, layer number, and data
+     * \return true if the 2D raster has been initialized, otherwise return false and print error info.
+     */
+    bool get2DRasterData(int *nRows, int *nCols, T ***data);
 
     //! Get raster header information
-    map<string, double> *getRasterHeader(void) { return &m_headers; }
+    const map<string, double> &getRasterHeader(void) const { return m_headers; }
 
     //! Get raster statistics information
-    map<string, double> *getStatistics(void) { return &m_statsMap; }
+    const map<string, double> &getStatistics(void) const { return m_statsMap; }
 
     //! Get full path name
-    string getFilePath(void) { return m_filePathName; }
+    string getFilePath(void) const { return m_filePathName; }
 
     //! Get core name
-    string getCoreName(void) { return m_coreFileName; }
+    string getCoreName(void) const { return m_coreFileName; }
 
     /*!
      * \brief Get position index data and the data length
@@ -419,13 +432,13 @@ public:
     void getRasterPositionData(int &datalength, int ***positiondata);
 
     //! Get pointer of raster data
-    T *&getRasterDataPointer(void) { return m_rasterData; }
+    T *getRasterDataPointer(void) const { return m_rasterData; }
 
     //! Get pointer of position data
-    int **&getRasterPositionDataPointer() { return m_rasterPositionData; }
+    int **getRasterPositionDataPointer(void) const { return m_rasterPositionData; }
 
     //! Get pointer of 2D raster data
-    T **&get2DRasterDataPointer(void) { return m_raster2DData; }
+    T **get2DRasterDataPointer(void) const { return m_raster2DData; }
 
     //! Get the spatial reference
     const char *getSRS(void) { return m_srs.c_str(); }
@@ -485,26 +498,26 @@ public:
 #endif /* C++11 supported in MSVC */
 
     //! Is 2D raster data?
-    bool is2DRaster(void) { return m_is2DRaster; }
+    bool is2DRaster(void) const { return m_is2DRaster; }
 
     //! Calculate positions or not
-    bool PositionsCalculated() { return m_calcPositions; }
+    bool PositionsCalculated() const { return m_calcPositions; }
 
     //! Use mask extent or not
-    bool MaskExtented(void) { return m_useMaskExtent; }
+    bool MaskExtented(void) const { return m_useMaskExtent; }
 
-    bool StatisticsCalculated(void) { return m_statisticsCalculated; }
+    bool StatisticsCalculated(void) const { return m_statisticsCalculated; }
 
     //! Get full filename
     string GetFullFileName(void) { return m_filePathName; }
 
     //! Get mask data pointer
-    clsRasterData<MaskT> *getMask(void) { return m_mask; }
+    clsRasterData<MaskT> *getMask(void) const { return m_mask; }
 
     /*!
      * \brief Copy clsRasterData object
      */
-    void Copy(clsRasterData &orgraster);
+    void Copy(const clsRasterData<T, MaskT> &orgraster);
 
     /*!
      * \brief Replace NoData value by the given value
@@ -540,7 +553,7 @@ public:
      * \brief Copy header information to current Raster data
      * \param[in] refers
      */
-    void copyHeader(map<string, double> *refers);
+    void copyHeader(const map<string, double> &refers);
 
 private:
     /*!
@@ -648,7 +661,9 @@ private:
      */
     void
     _add_other_layer_raster_data(int row, int col, int cellidx, int lyr, map<string, double> lyrheader, T *lyrdata);
-
+private:
+    
+    clsRasterData& operator=(const clsRasterData &another);
 private:
     /*! cell number of raster data, i.e. the data length of \sa m_rasterData or \sa m_raster2DData
      * 1. all grid cell number, i.e., ncols*nrows, when m_calcPositions is False
