@@ -2,13 +2,15 @@
 
 set -e
 brew update
-brew install gdal
+# Check if GDAL is already installed
+brew list gdal &>/dev/null || brew install gdal
 echo "Installing and starting mongodb"
-brew install automake autoconf libtool openssl
+# The follow dependencies will be automatically installed by mongodb
+# brew install automake autoconf libtool openssl
 brew install mongodb
 # install mpich2, be aware, mpich2 got error on macOS!
 #brew install mpich2
-brew install openmpi
+brew list openmpi &>/dev/null || brew install openmpi
 # create a folder for mongodb to prevent an error on mac osx
 sudo mkdir -p /data/db
 brew services start mongodb
