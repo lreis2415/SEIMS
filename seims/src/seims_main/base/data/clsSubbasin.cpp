@@ -127,7 +127,7 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
 clsSubbasins *clsSubbasins::Init(mongoc_gridfs_t *spatialData, map<string,
                                  clsRasterData<float> *> &rsMap, int prefixID) {
     ostringstream oss;
-    oss << prefixID << "_" << NAME_MASK;
+    oss << prefixID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
     oss.str("");
     oss << prefixID << "_" << VAR_SUBBSN;
