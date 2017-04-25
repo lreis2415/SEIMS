@@ -311,7 +311,7 @@ void ModelMain::CheckOutput(mongoc_gridfs_t *gfs) {
     ostringstream oss;
 #ifdef USE_MONGODB
     // Read Mask raster data and add to m_rsMap in m_factory, by LJ.
-    oss << m_subBasinID << "_" << GetUpper(string(NAME_MASK));
+    oss << m_subBasinID << "_" << GetUpper(string(Tag_Mask));
     m_templateRasterData = new clsRasterData<float>(gfs, oss.str().c_str());
     m_factory->AddMaskRaster(oss.str(), m_templateRasterData);
 #endif /* USE_MONGODB */
