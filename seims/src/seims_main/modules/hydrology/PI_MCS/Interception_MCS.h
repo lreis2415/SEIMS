@@ -1,6 +1,7 @@
 /*!
- * \brief Precipitation interception by Seasonal Variation of Storage Capacity method.
- *        Algorithm adapted from WetSpa, refers to WetSpa Manual p.24-26.
+ * \brief Precipitation interception based on Maximum Canopy Storage
+ *        Equation given by Aston(1979), Code adapted from openLISEM
+ *        file: lisInterception.cpp
  *        This module is STORM_MODE and LONGTERM_MODE compatibility.
  * \author Liangjun Zhu
  * \date Apr 2017
@@ -10,20 +11,15 @@
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup PI_SVSC
+/** \defgroup PI_MCS
  * \ingroup Hydrology
- * \brief Module for Precipitation Interception module by Seasonal Variation of Storage Capacity method.
+ * \brief Module for Precipitation Interception module based on Maximum Canopy Storage.
  */
 
 /*!
- * \class clsPI_SVSC
- * \ingroup PI_SVSC
- * \brief Class for Precipitation Interception module by Seasonal Variation of Storage Capacity method.
- *        1. Lookup for max. and min. interception storage capacity corresponding to summer and winter 
- *           extremes for different vegetation types.
- *        2. A simple sine-shaped variation curve is used to interpolate for continuous storage capacity.
- *        3. Hourly interception storage capacity is assumed to be constant.
- *        4. Evaporation is only accounted for LONGTERM_MODE
+ * \class clsPI_MCS
+ * \ingroup PI_MCS
+ * \brief Class for Precipitation Interception module based on Maximum Canopy Storage.
  */
 class clsPI_MCS : public SimulationModule {
 public:
