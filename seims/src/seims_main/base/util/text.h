@@ -13,8 +13,6 @@
 #define SEIMS_EMAIL                            "SEIMS2015@163.com"
 #define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
-
-
 //! Constant input variables
 #define CONS_IN_ELEV                           "Elevation"
 #define CONS_IN_LAT                            "Latitude"
