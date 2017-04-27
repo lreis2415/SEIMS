@@ -193,4 +193,5 @@ protected:
 //! CHECK_ZERO is used for single value that must not be ZERO
 #define CHECK_ZERO(moduleID, param, desc) if (param == 0 || FloatEqual(float(param), 0.f)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+
 #endif /* SIMULATION_MOUDULE_BASE */
