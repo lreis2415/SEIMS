@@ -7,6 +7,7 @@
 #ifndef SEIMS_INVOKE
 #define SEIMS_INVOKE
 
+#include "DataCenter.h"
 #include "ModelMain.h"
 /// include module_setting related
 #include "tinyxml.h"
