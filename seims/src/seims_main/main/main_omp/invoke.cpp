@@ -1,5 +1,7 @@
 #include "invoke.h"
 
+#include <memory>
+
 void checkTable(vector <string> &tableNameList, string dbName, const char *tableName) {
     //ostringstream oss;
     //oss << dbName << "." << tableName;
@@ -81,11 +83,15 @@ int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numT
                                                 scenarioID);
     /// 3.3 Constructor SEIMS model, BTW, SettingsOutput is created in ModelMain.
     ModelMain main(conn, dbName, projectPath, input, factory, nSubbasin, scenarioID, numThread, layeringMethod);*/
-    /// update by Liangjun, 3-27-2017
-    ModelMain main(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread);
+    /// update by Liangjun, 4-27-2017
+    unique_ptr<ModelMain> main(new ModelMain(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread));
+    //ModelMain main(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread);
     /// Run SEIMS model and export outputs.
-    main.Execute();
-    main.Output();
+    //main.Execute();
+    //main.Output();
+
+    main->Execute();
+    main->Output();
 
     /// Return success
     return 0;
