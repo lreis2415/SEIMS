@@ -3,7 +3,9 @@
  * \author Liang-Jun Zhu
  * \date 2017-3-22
  */
-#pragma once
+#ifndef SEIMS_HEADER
+#define SEIMS_HEADER
+
 #include "text.h"
 #include "utilities.h"
 /*!
@@ -41,3 +43,6 @@ const float SQ2 = 1.4142135623730951f;
 #define MIN_FLUX        1e-12f /// \def minimum flux (m3/s) in kinematic wave
 #define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method
 #define MIN_SLOPE       1e-6f  /// \def minimum slope (tan value)
+
+
+#endif /* SEIMS_HEADER */
