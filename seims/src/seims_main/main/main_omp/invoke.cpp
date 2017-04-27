@@ -74,6 +74,9 @@ int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numT
 
     /// 3. Create main model according to subbasin number, 0 means the whole basin.
     int nSubbasin = 0;
+    /// refactor by liangjun, May. 2017
+    unique_ptr<DataCenterMongoDB> dataCenter(new DataCenterMongoDB());
+
     /// old version
     /*/// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
     /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
