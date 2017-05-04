@@ -5,7 +5,9 @@ using namespace std;
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
 ///////////////////////////////////////////////////
-MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port) {
+MongoClient::MongoClient(const char *host, uint16_t port) : m_host(host), m_port(port) {
+    assert(isIPAddress(host));
+    assert(port > 0);
     mongoc_init();
     mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
     m_conn = mongoc_client_new_from_uri(uri);
@@ -13,7 +15,7 @@ MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port
     mongoc_uri_destroy(uri);
 }
 
-MongoClient *MongoClient::Init(const char *host, int port) {
+MongoClient *MongoClient::Init(const char *host, uint16_t port) {
     if (!isIPAddress(host)) {
         cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
         return NULL;

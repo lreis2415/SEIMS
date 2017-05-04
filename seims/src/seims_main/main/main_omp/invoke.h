@@ -25,8 +25,6 @@ void checkProject(string projectPath);
 //! Check table exists or not
 void checkTable(vector <string> &tableNameList, string dbName, const char *tableName);
 
-////! Is file path existed?
-//bool isPathExists(const char *path);
 
 /*!
  * \brief SEIMS main invoke entrance using MongoDB
@@ -36,8 +34,9 @@ void checkTable(vector <string> &tableNameList, string dbName, const char *table
  * \param[in] port \a int, port of MongoDB, 27017 is default
  * \param[in] scenarioID \a int,
  * \param[in] numThread \a int, thread number for OpenMP
- * \param[in] layingMethod \sa LayeringMethod, method for sequencing Grid
+ * \param[in] lyrMethod \sa LayeringMethod, method for sequencing Grid
  */
-int MainMongoDB(string, char *, int, int, int, LayeringMethod);
+int MainMongoDB(string modelPath, char* host, uint16_t port, int scenarioID,
+                int numThread, LayeringMethod lyrMethod);
 
 #endif
