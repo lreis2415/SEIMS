@@ -371,22 +371,22 @@ public:
     int getCellNumber(void) const { return m_nCells; }
 
     //! Get column number of raster data
-    int getCols(void) { return (int) m_headers[HEADER_RS_NCOLS]; }
+    int getCols(void) const { return (int) m_headers.at(HEADER_RS_NCOLS); }
 
     //! Get row number of raster data
-    int getRows(void) { return (int) m_headers[HEADER_RS_NROWS]; }
+    int getRows(void) const { return (int) m_headers.at(HEADER_RS_NROWS); }
 
     //! Get cell size of raster data
-    float getCellWidth(void) { return (float) m_headers[HEADER_RS_CELLSIZE]; }
+    float getCellWidth(void) const { return (float) m_headers.at(HEADER_RS_CELLSIZE); }
 
     //! Get X coordinate of left lower corner of raster data
-    double getXllCenter(void) { return m_headers[HEADER_RS_XLL]; }
+    double getXllCenter(void) const { return m_headers.at(HEADER_RS_XLL); }
 
     //! Get Y coordinate of left lower corner of raster data
-    double getYllCenter(void) { return m_headers[HEADER_RS_YLL]; }
+    double getYllCenter(void) const { return m_headers.at(HEADER_RS_YLL); }
 
     //! Get the first dimension size of raster data
-    int getDataLength(void) { return m_nCells; }
+    int getDataLength(void) const { return m_nCells; }
 
     int getLayers(void) const { return m_nLyrs; }
 
@@ -509,7 +509,7 @@ public:
     bool StatisticsCalculated(void) const { return m_statisticsCalculated; }
 
     //! Get full filename
-    string GetFullFileName(void) { return m_filePathName; }
+    string GetFullFileName(void) const { return m_filePathName; }
 
     //! Get mask data pointer
     clsRasterData<MaskT> *getMask(void) const { return m_mask; }
@@ -559,7 +559,7 @@ private:
     /*!
      * \brief Initialize all raster related variables.
      */
-    void _initialize_raster_class();
+    void _initialize_raster_class(void);
 
     /*!
      * \brief Initialize read function for ASC, GDAL, and MongoDB
@@ -571,13 +571,13 @@ private:
      * \brief check the existence of given raster file
      * \return True if existed, else false
      */
-    bool _check_raster_file_exists(string);
+    bool _check_raster_file_exists(string filename);
 
     /*!
      * \brief check the existence of given vector of raster files
      * \return True if all existed, else false
      */
-    bool _check_raster_file_exists(vector <string> &);
+    bool _check_raster_file_exists(vector<string>& filenames);
 
     /*!
      * \brief Constructor of clsRasterData instance from single file of TIFF, ASCII, or other GDAL supported raster file

@@ -146,9 +146,9 @@ static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 /*
  * Constant value type pointer
  */
-typedef const int * CINTPTR;
-typedef const float * CFLOATPTR;
-typedef const double * CDOUBLEPTR;
+typedef const int*     CINTPTR;
+typedef const float*   CFLOATPTR;
+typedef const double*  CDOUBLEPTR;
 
 /*!
  * \class utilsTime

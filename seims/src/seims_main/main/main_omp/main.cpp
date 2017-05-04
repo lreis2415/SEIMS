@@ -36,6 +36,7 @@ int main(int argc, const char *argv[]) {
         if (argc > i) {
             if (atoi(argv[i]) > 0) {
                 numThread = atoi(argv[i]);
+                assert(numThread >= 1);
                 i++;
             } else {
                 goto errexit;
@@ -59,6 +60,7 @@ int main(int argc, const char *argv[]) {
                 i++;
                 if (argc > i && atoi(argv[i]) > 0) {
                     port = atoi(argv[i]);
+                    assert(port > 0);
                     i++;
                 } else {
                     goto errexit;
@@ -70,6 +72,7 @@ int main(int argc, const char *argv[]) {
         if (argc > i) {
             if (atoi(argv[i]) >= 0) {
                 scenarioID = atoi(argv[i]);
+                assert(scenarioID > 0);
                 i++;
             } else {
                 goto errexit;
