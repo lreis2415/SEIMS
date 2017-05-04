@@ -47,7 +47,7 @@ public:
      *          So, `MongoClient *client = MongoClient::Init(host, port)`
      *          is highly recommended.
      */
-    MongoClient(const char *host, int port);
+    MongoClient(const char *host, uint16_t port);
     /*!
      * \brief Validation check before the constructor of MongoClient.
      *        1. Check IP address
@@ -59,7 +59,7 @@ public:
      *           // or other error handling code.
      *       }
      */
-    static MongoClient *Init(const char *host, int port);
+    static MongoClient *Init(const char *host, uint16_t port);
     /*!
      * \brief Destructor
      */
@@ -110,7 +110,7 @@ public:
 
 private:
     const char *m_host;
-    int m_port;
+    uint16_t m_port;
     mongoc_client_t *m_conn;
 };
 

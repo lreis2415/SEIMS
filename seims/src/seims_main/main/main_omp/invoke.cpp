@@ -1,6 +1,5 @@
 #include "invoke.h"
 
-#include <memory>
 
 void checkTable(vector <string> &tableNameList, string dbName, const char *tableName) {
     //ostringstream oss;
@@ -48,7 +47,7 @@ void checkProject(string projectPath) {
 
 }
 
-int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numThread, LayeringMethod layeringMethod) {
+int MainMongoDB(string modelPath, char *host, uint16_t port, int scenarioID, int numThread, LayeringMethod layeringMethod) {
     /// 1. Get paths and model name
     string exePath = GetAppPath();
     string modulePath = exePath;
@@ -68,31 +67,36 @@ int MainMongoDB(string modelPath, char *host, int port, int scenarioID, int numT
     vector<string> dbnames;
     dbclient->getDatabaseNames(dbnames);
     if (!ValueInVector(dbName, dbnames)) {
-        throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!\n");
+        throw ModelException(MODEL_NAME, "MainMongoDB", "Database: " + dbName + " is not existed in MongoDB!");
     }
     /// CHECK FINISHED
 
     /// 3. Create main model according to subbasin number, 0 means the whole basin.
-    int nSubbasin = 0;
+    int subbasinID = 0;
     /// refactor by liangjun, May. 2017
-    unique_ptr<DataCenterMongoDB> dataCenter(new DataCenterMongoDB());
+    unique_ptr<DataCenter> dataCenter(new DataCenterMongoDB(host, port, dbName, projectPath, modulePath,
+                                                            layeringMethod, subbasinID, scenarioID, numThread));
+    /// check the existence of all required and optional data
+    if (!dataCenter->CheckProjectData()) {
+        throw ModelException("DataCenter", "CheckProjectData", "Project data are not fully prepared!");
+    }
 
     /// old version
-    /*/// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
-    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
-    SettingsInput *input = new SettingsInput(conn, dbName, nSubbasin);
+    /// 3.1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
+    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, subbasinID);
+    //SettingsInput *input = new SettingsInput(conn, dbName, subbasinID);
     /// 3.2 Constructor module factories by "config.fig" file
-    ModuleFactory *factory = new ModuleFactory(configFile, modulePath, conn, dbName, nSubbasin, layeringMethod,
-                                                scenarioID);
+    //ModuleFactory *factory = new ModuleFactory(configFile, modulePath, conn, dbName, subbasinID, layeringMethod,
+    //                                            scenarioID);
     /// 3.3 Constructor SEIMS model, BTW, SettingsOutput is created in ModelMain.
-    ModelMain main(conn, dbName, projectPath, input, factory, nSubbasin, scenarioID, numThread, layeringMethod);*/
-    /// update by Liangjun, 4-27-2017
-    unique_ptr<ModelMain> main(new ModelMain(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread));
-    //ModelMain main(dbclient, dbName, projectPath, modulePath, layeringMethod, nSubbasin, scenarioID, numThread);
+    //ModelMain main(conn, dbName, projectPath, input, factory, subbasinID, scenarioID, numThread, layeringMethod);*/
+    //unique_ptr<ModelMain> main(new ModelMain(dbclient, dbName, projectPath, modulePath, layeringMethod, subbasinID, scenarioID, numThread));
+    //ModelMain main(dbclient, dbName, projectPath, modulePath, layeringMethod, subbasinID, scenarioID, numThread);
     /// Run SEIMS model and export outputs.
     //main.Execute();
     //main.Output();
-
+    /// update by Liangjun, 4-27-2017
+    unique_ptr<ModelMain> main(new ModelMain(dataCenter));
     main->Execute();
     main->Output();
 

@@ -8,24 +8,29 @@
 #ifndef SEIMS_MODEL_MAIN
 #define SEIMS_MODEL_MAIN
 
+
+/// include utility classes and const definition of SEIMS
+#include "seims.h"
+
+/// include module_setting related
+#include "DataCenter.h"
+#include "SettingsInput.h"
+#include "SettingsOutput.h"
+#include "ModuleFactory.h"
+#include "PrintInfo.h"
+
+/// include data related
+#include "MongoUtil.h"
+#include "clsRasterData.cpp"
+#include "ClimateParams.h"
+
 /// include build-in libs
 #include <string>
 #include <set>
 #include <map>
 #include <ctime>
 #include <sstream>
-
-/// include utility classes and const definition of SEIMS
-#include "seims.h"
-/// include data related
-#include "MongoUtil.h"
-#include "clsRasterData.cpp"
-#include "ClimateParams.h"
-/// include module_setting related
-#include "SettingsInput.h"
-#include "SettingsOutput.h"
-#include "ModuleFactory.h"
-#include "PrintInfo.h"
+#include <memory>
 
 using namespace std;
 
@@ -39,25 +44,46 @@ using namespace std;
 class ModelMain {
 public:
     /*!
-     * \brief Constructor
+     * \brief Constructor based on MongoDB, and take \sa SettingInput and \sa ModuleFactory as parameters
      *
      * \param[in] conn \a mongoc_client_t, MongoDB client
      * \param[in] dbName model name, e.g., model_dianbu30m_longterm
-     * \param[in] projectPath Path of the project, contains cofig.fig, file.in and file.out
+     * \param[in] projectPath Path of the project, contains config.fig, file.in and file.out
      * \param[in] input \sa SettingInput, input setting information
      * \param[in] factory \sa ModuleFactory, module factory instance
-     * \param[in] subBasinID subBasinID, default is 1
-     * \param[in] scenarioID Scenario ID, default is -1
+     * \param[in] subBasinID SubBasin ID, default is 0, which means the whole basin
+     * \param[in] scenarioID Scenario ID, default is -1, which means do not use Scenario
      * \param[in] numThread Thread number for OpenMP, default is 1
      * \param[in] layeringMethod Layering method, default is UP_DOWN
+     * \deprecated Deprecated because of the tight coupling with MongoDB
      */
     ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
-              ModuleFactory *factory, int subBasinID = 0, int scenarioID = 0, int numThread = 1,
+              ModuleFactory *factory, int subBasinID = 0, int scenarioID = -1, int numThread = 1,
               LayeringMethod layeringMethod = UP_DOWN);
-
+    /*!
+     * \brief Constructor based on MongoDB
+     * \param mongoClient
+     * \param dbName
+     * \param projectPath
+     * \param modulePath
+     * \param layeringMethod
+     * \param subBasinID
+     * \param scenarioID
+     * \param numThread
+     * \deprecated Deprecated because of the tight coupling with MongoDB
+     */
     ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
-              LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = 0, 
+              LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = -1,
               int numThread = 1);
+
+    /*!
+     * \brief Constructor independent to any database IO, instead of the \sa DataCenter object
+     * \param dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
+     * \param subBasinID
+     * \param scenarioID
+     * \param numThread
+     */
+    ModelMain(unique_ptr<DataCenter>& dcenter);
     //! Destructor
     ~ModelMain(void);
 

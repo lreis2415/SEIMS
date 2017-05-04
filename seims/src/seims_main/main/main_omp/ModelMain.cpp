@@ -54,7 +54,7 @@ ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, S
 
 ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
                      LayeringMethod layeringMethod /* = UP_DOWN */, int subBasinID /* = 0 */, 
-                     int scenarioID /* = 0 */, int numThread /* = 1 */):
+                     int scenarioID /* = -1 */, int numThread /* = 1 */):
                      m_client(mongoClient), m_dbName(dbName), m_projectPath(projectPath), 
                      m_modulePath(modulePath), m_layeringMethod(layeringMethod), m_subBasinID(subBasinID),
                      m_scenarioID(scenarioID), m_threadNum(numThread) {
@@ -105,6 +105,10 @@ ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath
 
     /// 7 Destroy the GridFS instance of Spatial database, which will not be used
     mongoc_gridfs_destroy(spatialData);
+}
+
+ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter) {
+
 }
 
 ModelMain::~ModelMain(void) {
