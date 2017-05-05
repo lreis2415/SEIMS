@@ -50,7 +50,7 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName) {
 }
 
 clsSimpleTxtData::~clsSimpleTxtData() {
-    if (m_data != NULL) delete[] m_data;
+    Release1DArray(m_data);
 }
 
 void clsSimpleTxtData::dump(ostream *fs) {

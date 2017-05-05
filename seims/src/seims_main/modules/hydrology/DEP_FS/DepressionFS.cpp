@@ -7,15 +7,9 @@ DepressionFS::DepressionFS(void) : m_nCells(-1),
 }
 
 DepressionFS::~DepressionFS(void) {
-    if (m_sd != NULL) {
-        delete[] m_sd;
-    }
-    if (m_sr != NULL) {
-        delete[] m_sr;
-    }
-    if (m_storageCapSurplus != NULL) {
-        delete m_storageCapSurplus;
-    }
+    Release1DArray(m_sd);
+    Release1DArray(m_sr);
+    Release1DArray(m_storageCapSurplus);
 }
 
 bool DepressionFS::CheckInputData(void) {

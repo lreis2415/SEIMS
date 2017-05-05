@@ -15,34 +15,11 @@ DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), 
 
 //! Destructor
 DiffusiveWave::~DiffusiveWave(void) {
-    if (m_hCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_hCh[i];
-        }
-        delete[] m_hCh;
-    }
-
-    if (m_qCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qCh[i];
-        }
-        delete[] m_qCh;
-    }
-
-    if (m_flowLen != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_flowLen[i];
-        }
-        delete[] m_flowLen;
-    }
-
-    if (m_sourceCellIds != NULL) {
-        delete[] m_sourceCellIds;
-    }
-
-    if (m_qSubbasin != NULL) {
-        delete[] m_qSubbasin;
-    }
+    Release2DArray(m_chNumber, m_hCh);
+    Release2DArray(m_chNumber, m_qCh);
+    Release2DArray(m_chNumber, m_flowLen);
+    Release1DArray(m_sourceCellIds);
+    Release1DArray(m_qSubbasin);
 }
 
 //! Check input data
