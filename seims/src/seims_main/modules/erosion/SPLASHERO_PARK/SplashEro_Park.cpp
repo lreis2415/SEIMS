@@ -11,9 +11,7 @@ SplashEro_Park::SplashEro_Park(void) : m_CellWith(-1), m_nCells(-1), m_TimeStep(
 }
 
 SplashEro_Park::~SplashEro_Park(void) {
-    if (m_DETSplash != NULL) {
-        delete[] m_DETSplash;
-    }
+    Release1DArray(m_DETSplash);
 }
 
 void SplashEro_Park::Get1DData(const char *key, int *n, float **data) {

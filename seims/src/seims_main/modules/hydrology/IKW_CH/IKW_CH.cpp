@@ -18,37 +18,12 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNum
 }
 
 ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
-    if (m_hCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_hCh[i];
-        }
-        delete[] m_hCh;
-    }
+    Release2DArray(m_chNumber, m_hCh);
+    Release2DArray(m_chNumber, m_qCh);
+    Release2DArray(m_chNumber, m_flowLen);
 
-    if (m_qCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qCh[i];
-        }
-        delete[] m_qCh;
-    }
-
-    if (m_flowLen != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_flowLen[i];
-        }
-        delete[] m_flowLen;
-    }
-
-    if (m_sourceCellIds != NULL) {
-        delete[] m_sourceCellIds;
-    }
-
-    if (m_qSubbasin != NULL) {
-        delete[] m_qSubbasin;
-    }
-
-    //if (m_qsInput != NULL)
-    //	delete[] m_qsInput;
+    Release1DArray(m_sourceCellIds);
+    Release1DArray(m_qSubbasin);
 }
 
 //---------------------------------------------------------------------------

@@ -14,49 +14,14 @@ Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWi
 }
 
 Muskingum::~Muskingum(void) {
-    if (m_chStorage != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_chStorage[i];
-        }
-        delete[] m_chStorage;
-    }
+    Release2DArray(m_chNumber, m_chStorage);
+    Release2DArray(m_chNumber, m_qUpCh);
+    Release2DArray(m_chNumber, m_qCh);
+    Release2DArray(m_chNumber, m_flowLen);
+    Release2DArray(m_chNumber, m_alpha);
 
-    if (m_qUpCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qUpCh[i];
-        }
-        delete[] m_qUpCh;
-    }
-
-    if (m_qCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qCh[i];
-        }
-        delete[] m_qCh;
-    }
-
-    if (m_flowLen != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_flowLen[i];
-        }
-        delete[] m_flowLen;
-    }
-
-    if (m_alpha != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_alpha[i];
-        }
-        delete[] m_alpha;
-    }
-
-    if (m_sourceCellIds != NULL) {
-        delete[] m_sourceCellIds;
-    }
-
-    if (m_qSubbasin != NULL) {
-        delete[] m_qSubbasin;
-    }
-
+    Release1DArray(m_sourceCellIds);
+    Release1DArray(m_qSubbasin);
 }
 
 float Muskingum::GetDelta_t(float timeStep, float fmin, float fmax) {

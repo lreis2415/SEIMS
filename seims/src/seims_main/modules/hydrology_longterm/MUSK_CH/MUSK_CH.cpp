@@ -3,7 +3,6 @@
 
 using namespace std;
 
-//! Constructor
 MUSK_CH::MUSK_CH(void) : m_dt(-1), m_nreach(-1), m_outletID(-1), m_Kchb(NODATA_VALUE),
                          m_Kbank(NODATA_VALUE), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0_perc(NODATA_VALUE),
                          m_aBank(NODATA_VALUE), m_chSideSlope(NULL),
@@ -19,28 +18,27 @@ MUSK_CH::MUSK_CH(void) : m_dt(-1), m_nreach(-1), m_outletID(-1), m_Kchb(NODATA_V
                          m_chWTWidth(NULL), m_chBtmWidth(NULL) {
 }
 
-//! Destructor
 MUSK_CH::~MUSK_CH(void) {
-    if (m_reachDownStream != NULL) Release1DArray(m_reachDownStream);
-    if (m_chOrder != NULL) Release1DArray(m_chOrder);
-    if (m_chWidth != NULL) Release1DArray(m_chWidth);
-    if (m_chLen != NULL) Release1DArray(m_chLen);
-    if (m_chDepth != NULL) Release1DArray(m_chDepth);
-    if (m_chVel != NULL) Release1DArray(m_chVel);
-    if (m_area != NULL) Release1DArray(m_area);
-    if (m_chStorage != NULL) Release1DArray(m_chStorage);
-    if (m_preChStorage != NULL) Release1DArray(m_preChStorage);
-    if (m_qOut != NULL) Release1DArray(m_qOut);
-    if (m_bankStorage != NULL)Release1DArray(m_bankStorage);
-    if (m_seepage != NULL)Release1DArray(m_seepage);
-    if (m_qsCh != NULL)Release1DArray(m_qsCh);
-    if (m_qiCh != NULL)Release1DArray(m_qiCh);
-    if (m_qgCh != NULL)Release1DArray(m_qgCh);
-    if (m_chWTdepth != NULL)Release1DArray(m_chWTdepth);
-    if (m_preChWTDepth != NULL)Release1DArray(m_preChWTDepth);
-    if (m_chWTWidth != NULL) Release1DArray(m_chWTWidth);
-    if (m_chBtmWidth != NULL) Release1DArray(m_chBtmWidth);
-    if (m_ptSub != NULL) Release1DArray(m_ptSub);
+    Release1DArray(m_reachDownStream);
+    Release1DArray(m_chOrder);
+    Release1DArray(m_chWidth);
+    Release1DArray(m_chLen);
+    Release1DArray(m_chDepth);
+    Release1DArray(m_chVel);
+    Release1DArray(m_area);
+    Release1DArray(m_chStorage);
+    Release1DArray(m_preChStorage);
+    Release1DArray(m_qOut);
+    Release1DArray(m_bankStorage);
+    Release1DArray(m_seepage);
+    Release1DArray(m_qsCh);
+    Release1DArray(m_qiCh);
+    Release1DArray(m_qgCh);
+    Release1DArray(m_chWTdepth);
+    Release1DArray(m_preChWTDepth);
+    Release1DArray(m_chWTWidth);
+    Release1DArray(m_chBtmWidth);
+    Release1DArray(m_ptSub);
     if (!m_ptSrcFactory.empty()) {
         for (map<int, BMPPointSrcFactory *>::iterator it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end();) {
             if (it->second != NULL) {

@@ -23,30 +23,16 @@ IKW_REACH::IKW_REACH(void) : m_dt(-1), m_nreach(-1), m_Kchb(NODATA_VALUE),
 }
 
 IKW_REACH::~IKW_REACH(void) {
-    if (m_area != NULL) delete[] m_area;
-    if (m_chStorage != NULL) delete[] m_chStorage;
-    if (m_qOut != NULL) delete[] m_qOut;
-    if (m_bankStorage != NULL) {
-        delete[] m_bankStorage;
-    }
-    if (m_seepage != NULL) {
-        delete[] m_seepage;
-    }
-    if (m_chStorage != NULL) {
-        delete[] m_chStorage;
-    }
-    if (m_qsCh != NULL) {
-        delete[] m_qsCh;
-    }
-    if (m_qiCh != NULL) {
-        delete[] m_qiCh;
-    }
-    if (m_qgCh != NULL) {
-        delete[] m_qgCh;
-    }
-    if (m_chWTdepth != NULL) {
-        delete[] m_chWTdepth;
-    }
+    Release1DArray(m_area);
+    Release1DArray(m_chStorage);
+    Release1DArray(m_qOut);
+    Release1DArray(m_bankStorage);
+    Release1DArray(m_seepage);
+    Release1DArray(m_chStorage);
+    Release1DArray(m_qsCh);
+    Release1DArray(m_qiCh);
+    Release1DArray(m_qgCh);
+    Release1DArray(m_chWTdepth);
 }
 
 bool IKW_REACH::CheckInputData(void) {
