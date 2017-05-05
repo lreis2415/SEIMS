@@ -33,73 +33,20 @@ KinWavSed_CH::KinWavSed_CH(void) : m_CellWith(-1),
 }
 
 KinWavSed_CH::~KinWavSed_CH(void) {
-    if (m_CHDETFlow != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_CHDETFlow[i];
-        }
-        delete[] m_CHDETFlow;
-    }
-    if (m_CHSedDep != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_CHSedDep[i];
-        }
-        delete[] m_CHSedDep;
-    }
-    if (m_CHSed_kg != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_CHSed_kg[i];
-        }
-        delete[] m_CHSed_kg;
-    }
-    if (m_CHSedConc != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_CHSedConc[i];
-        }
-        delete[] m_CHSedConc;
-    }
-    if (m_Qsn != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_Qsn[i];
-        }
-        delete[] m_Qsn;
-    }
-    if (m_ChVol != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_ChVol[i];
-        }
-        delete[] m_ChVol;
-    }
-    if (m_ChV != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_ChV[i];
-        }
-        delete[] m_ChV;
-    }
-    if (m_sourceCellIds != NULL) {
-        delete[] m_sourceCellIds;
-    }
-    //if(m_SedSubbasin !=NULL)
-    //	delete[] m_SedSubbasin;
+    Release2DArray(m_chNumber, m_CHDETFlow);
+    Release2DArray(m_chNumber, m_CHSedDep);
+    Release2DArray(m_chNumber, m_CHSed_kg);
+    Release2DArray(m_chNumber, m_CHSedConc);
+    Release2DArray(m_chNumber, m_Qsn);
+    Release2DArray(m_chNumber, m_ChVol);
+    Release2DArray(m_chNumber, m_ChV);
 
-    //test
-    if (m_detCH != NULL) {
-        delete[] m_detCH;
-    }
-    if (m_depCh != NULL) {
-        delete[] m_depCh;
-    }
-    if (m_routQs != NULL) {
-        delete[] m_routQs;
-    }
-    if (m_cap != NULL) {
-        delete[] m_cap;
-    }
-    if (m_chanV != NULL) {
-        delete[] m_chanV;
-    }
-    if (m_chanVol != NULL) {
-        delete[] m_chanVol;
-    }
+    Release1DArray(m_sourceCellIds);
+    Release1DArray(m_detCH);
+    Release1DArray(m_routQs);
+    Release1DArray(m_cap);
+    Release1DArray(m_chanV);
+    Release1DArray(m_chanVol);
 }
 
 void KinWavSed_CH::SetValue(const char *key, float data) {
