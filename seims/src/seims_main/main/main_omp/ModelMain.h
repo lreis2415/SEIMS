@@ -157,6 +157,8 @@ public:
     //! Execute overland modules in current step
     ///void	StepOverland(time_t t);/// Deprecated. LJ
 private:
+    //! DataCenter pointer
+    unique_ptr<DataCenter> m_dataCenter;
     //! MongoDB Client
     MongoClient *m_client;
     mongoc_client_t *m_conn;

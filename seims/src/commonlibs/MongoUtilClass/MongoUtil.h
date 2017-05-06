@@ -76,12 +76,12 @@ public:
      * upon insertion of the first document into a collection.
      * Therefore, there is no need to create a database manually.
      */
-    mongoc_database_t *getDatabase(string const &dbname);
+    mongoc_database_t* getDatabase(string const &dbname);
 
     /*!
      * \brief Get Collection instance
      */
-    mongoc_collection_t *getCollection(string const &dbname, string const &collectionname);
+    mongoc_collection_t* getCollection(string const &dbname, string const &collectionname);
 
     /*!
      * \brief Get GridFS instance
@@ -138,7 +138,7 @@ public:
     /*!
       * \brief Get collection names in current database
       */
-    void getCollectionNames(vector<string>&);
+    void getCollectionNames(vector<string>& collNames);
 
 private:
     mongoc_database_t *m_db;
@@ -146,7 +146,19 @@ private:
 };
 
 class MongoCollection {
-    // TODO
+public:
+    /*!
+    * \brief Constructor, initialized by a mongoc_collection_t* pointer
+    */
+    MongoCollection(mongoc_collection_t* coll);
+    //! Destructor
+    ~MongoCollection();
+    /*!
+     * \brief Execute query
+     */
+    mongoc_cursor_t* ExecuteQuery(bson_t* b);
+private:
+    mongoc_collection_t*      m_collection;
 };
 
 /*!

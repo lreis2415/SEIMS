@@ -90,13 +90,8 @@ int main(int argc, const char *argv[]) {
     //cout<<scenarioID<<endl;
     //SetOpenMPThread(2);
 
-    //while (modelPath.length() == 0) {
-    //    cout << "Please input the model path:" << endl;
-    //    cin >> modelPath;
-    //}
     try {
-        MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
-        return 0;
+        return MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
     }
     catch (ModelException& e) {
         cout << e.toString() << endl;

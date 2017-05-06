@@ -2,25 +2,39 @@
 
 using namespace std;
 
-SettingsInput::SettingsInput(string fileName, mongoc_client_t *conn, string dbName, int nSubbasin)
-    : m_conn(conn), m_dbName(dbName), m_subbasinID(nSubbasin) {
-    LoadSettingsFromFile(fileName, dbName);
-    if (!readDate()) {
-        throw ModelException("SettingsInput",
-                             "LoadSettingsFromFile",
-                             "The start time and end time in file.in is invalid or missed. The format would be YYYY/MM/DD/HH. Please check it.");
-    }
-    m_inputStation = new InputStation(m_conn, m_dtHs, m_dtCh);
-    ReadSiteList();
-}
+//SettingsInput::SettingsInput(string fileName, mongoc_client_t *conn, string dbName, int nSubbasin)
+//    : m_conn(conn), m_dbName(dbName), m_subbasinID(nSubbasin) {
+//    LoadSettingsFromFile(fileName, dbName);
+//    if (!readDate()) {
+//        throw ModelException("SettingsInput",
+//                             "LoadSettingsFromFile",
+//                             "The start time and end time in file.in is invalid or missed. The format would be YYYY/MM/DD/HH. Please check it.");
+//    }
+//    m_inputStation = new InputStation(m_conn, m_dtHs, m_dtCh);
+//    ReadSiteList();
+//}
+//
+//SettingsInput::SettingsInput(mongoc_client_t *conn, string dbName, int nSubbasin)
+//    : m_conn(conn), m_dbName(dbName), m_subbasinID(nSubbasin) {
+//    LoadSettingsInputFromMongoDB();
+//    if (!readDate()) {
+//        throw ModelException("SettingsInput",
+//                             "LoadSettingsFromMongoDB",
+//                             "The start time and end time in file.in is invalid or missed. The format would be YYYY/MM/DD/HH. Please check it.");
+//    }
+//    m_inputStation = new InputStation(m_conn, m_dtHs, m_dtCh);
+//    ReadSiteList();
+//}
 
-SettingsInput::SettingsInput(mongoc_client_t *conn, string dbName, int nSubbasin)
-    : m_conn(conn), m_dbName(dbName), m_subbasinID(nSubbasin) {
-    LoadSettingsInputFromMongoDB();
+SettingsInput::SettingsInput(unique_ptr<DataCenter>& dcenter) : m_isStormModel(false), Settings() {
+    Settings::SetSettingTagStrings(dcenter->getFileInStringVector());
+    if (StringMatch(Settings::GetValue(Tag_Mode), Tag_Mode_Storm)) {
+        m_isStormModel = true;
+    }
     if (!readDate()) {
         throw ModelException("SettingsInput",
-                             "LoadSettingsFromMongoDB",
-                             "The start time and end time in file.in is invalid or missed. The format would be YYYY/MM/DD/HH. Please check it.");
+                                "LoadSettingsFromFile",
+                                "The start time and end time in file.in is invalid or missed. The format would be YYYY/MM/DD/HH. Please check it.");
     }
     m_inputStation = new InputStation(m_conn, m_dtHs, m_dtCh);
     ReadSiteList();
@@ -34,8 +48,8 @@ SettingsInput::~SettingsInput(void) {
 
 bool SettingsInput::readDate() {
     //read start and end time
-    m_startDate = ConvertToTime2(Value(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
-    m_endDate = ConvertToTime2(Value(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
+    m_startDate = ConvertToTime2(GetValue(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
+    m_endDate = ConvertToTime2(GetValue(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
 
     if (m_startDate == -1 || m_endDate == -1) return false;
 
@@ -46,10 +60,10 @@ bool SettingsInput::readDate() {
         m_endDate = tmp;
     }
 
-    m_mode = GetUpper(Value(Tag_Mode));
+    m_mode = GetUpper(GetValue(Tag_Mode));
 
     //read interval
-    vector <string> dtList = SplitString(Value(Tag_Interval), ',');
+    vector <string> dtList = SplitString(GetValue(Tag_Interval), ',');
     m_dtHs = atoi(dtList[0].c_str());
     m_dtCh = m_dtHs;
     if (dtList.size() > 1) {
@@ -72,10 +86,7 @@ void SettingsInput::ReadSiteList() {
     BSON_APPEND_UTF8(query, Tag_Mode, m_mode.c_str());
 
     //string siteListTable = DB_TAB_SITELIST;
-    bool stormMode = false;
-    if (StringMatch(m_mode, Tag_Mode_Storm)) {
-        stormMode = true;
-    }
+
     mongoc_cursor_t *cursor;
     mongoc_collection_t *collection;
     const bson_t *doc;
@@ -102,13 +113,13 @@ void SettingsInput::ReadSiteList() {
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_P)) {
             siteList = GetStringFromBsonIterator(&iter);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_Precipitation, m_startDate, m_endDate,
-                                          stormMode);
+                                          m_isStormModel);
         }
 
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_PET)) {
             siteList = GetStringFromBsonIterator(&iter);
             m_inputStation->ReadSitesData(m_dbHydro, siteList, DataType_PotentialEvapotranspiration, m_startDate,
-                                          m_endDate, stormMode);
+                                          m_endDate, m_isStormModel);
         }
     }
     bson_destroy(query);
@@ -116,46 +127,46 @@ void SettingsInput::ReadSiteList() {
     mongoc_collection_destroy(collection);
 }
 
-bool SettingsInput::LoadSettingsFromFile(string filename, string dbName) {
-    //first get the SettingStrings from base class LoadSettingsFromFile function
-    if (!Settings::LoadSettingsFromFile(filename)) {
-        throw ModelException("SettingsInput", "LoadSettingsFromFile", "The file.in is invalid. Please check it.");
-    }
-    return true;
-}
+//bool SettingsInput::LoadSettingsFromFile(string filename, string dbName) {
+//    //first get the SettingStrings from base class LoadSettingsFromFile function
+//    if (!Settings::LoadSettingsFromFile(filename)) {
+//        throw ModelException("SettingsInput", "LoadSettingsFromFile", "The file.in is invalid. Please check it.");
+//    }
+//    return true;
+//}
 
-bool SettingsInput::LoadSettingsInputFromMongoDB() {
-    bson_t *b = bson_new();
-    bson_t *child1 = bson_new();
-    BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
-    bson_append_document_end(b, child1);
-    bson_destroy(child1);
-
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection;
-
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_FILEIN);
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-
-    bson_iter_t itertor;
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
-        vector <string> tokens(2);
-        if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfTag)) {
-            tokens[0] = GetStringFromBsonIterator(&itertor);
-        }
-        if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfValue)) {
-            tokens[1] = GetStringFromBsonIterator(&itertor);
-        }
-        int sz = m_Settings.size();        // get the current number of rows
-        m_Settings.resize(sz + 1);        // resize with one more row
-        m_Settings[sz] = tokens;
-    }
-    bson_destroy(b);
-    mongoc_collection_destroy(collection);
-    mongoc_cursor_destroy(cursor);
-    return true;
-}
+//bool SettingsInput::LoadSettingsInputFromMongoDB() {
+//    bson_t *b = bson_new();
+//    bson_t *child1 = bson_new();
+//    BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
+//    bson_append_document_end(b, child1);
+//    bson_destroy(child1);
+//
+//    mongoc_cursor_t *cursor;
+//    const bson_t *bsonTable;
+//    mongoc_collection_t *collection;
+//
+//    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_FILE_IN);
+//    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+//
+//    bson_iter_t itertor;
+//    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
+//        vector <string> tokens(2);
+//        if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfTag)) {
+//            tokens[0] = GetStringFromBsonIterator(&itertor);
+//        }
+//        if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfValue)) {
+//            tokens[1] = GetStringFromBsonIterator(&itertor);
+//        }
+//        int sz = m_Settings.size();        // get the current number of rows
+//        m_Settings.resize(sz + 1);        // resize with one more row
+//        m_Settings[sz] = tokens;
+//    }
+//    bson_destroy(b);
+//    mongoc_collection_destroy(collection);
+//    mongoc_cursor_destroy(cursor);
+//    return true;
+//}
 
 void SettingsInput::Dump(string fileName) {
     ofstream fs;
@@ -166,28 +177,4 @@ void SettingsInput::Dump(string fileName) {
         fs << "Interval :" << m_dtHs << "\t" << m_dtCh << endl;
         fs.close();
     }
-}
-
-InputStation *SettingsInput::StationData() {
-    return m_inputStation;
-}
-
-time_t SettingsInput::getStartTime() const {
-    return m_startDate;
-}
-
-time_t SettingsInput::getEndTime() const {
-    return m_endDate;
-}
-
-time_t SettingsInput::getDtHillslope() const {
-    return m_dtHs;
-}
-
-time_t SettingsInput::getDtChannel() const {
-    return m_dtCh;
-}
-
-time_t SettingsInput::getDtDaily() const {
-    return 86400;
 }
