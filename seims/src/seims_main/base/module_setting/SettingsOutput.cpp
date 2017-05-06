@@ -44,7 +44,7 @@ bool SettingsOutput::LoadSettingsOutputFromMongoDB(int subBasinID) {
     const bson_t *bsonTable;
     mongoc_collection_t *collection;
 
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_FILEOUT);
+    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_FILE_OUT);
     cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
 
     bson_iter_t itertor;

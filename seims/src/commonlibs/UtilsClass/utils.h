@@ -9,6 +9,7 @@
 
 #ifndef CLS_UTILS
 #define CLS_UTILS
+
 /// OpenMP support
 #ifdef SUPPORT_OMP
 #include <omp.h>
@@ -21,6 +22,8 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <cstdint>
+#include <memory>
 /// time
 #include <ctime>
 /// string
@@ -55,6 +58,8 @@
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
 #endif /* macos */
+/// assert
+#include <assert.h>
 
 using namespace std;
 
@@ -463,7 +468,7 @@ public:
     * \return True if val is in vec, otherwise False
     */
     template<typename T>
-    static bool ValueInVector(T &val, vector<T> &vec);
+    static bool ValueInVector(const T &val, vector<T> &vec);
 
     /*!
     * \brief Remove value in vector container
@@ -574,9 +579,13 @@ public:
 
 #endif /* not windows */
     /*!
+    * \brief Check the given directory path is exists or not.
+    */
+    static bool DirectoryExists(const string& dirpath);
+    /*!
      * \brief Clean a directory if exists, otherwise create it.
      */
-    static bool CleanDirectory(string dirpath);
+    static bool CleanDirectory(const string& dirpath);
     /*!
      * \brief Get the root path of the current executable file
      * \return \a string root path
@@ -649,6 +658,13 @@ public:
      * \return 0 means success
      */
     static int FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles);
+    /*!
+     * \brief Load short plain text file as string vector, ignore comments begin with '#' and empty lines
+     * \param[in] filepath Plain text file path
+     * \param[out] contentStrs Each line without CRLF or LF stored in vector
+     * \return True when read successfully, and false with empty contentStrs when failed
+     */
+    static bool LoadPlainTextFile(const string& filepath, vector<string>& contentStrs);
 };
 
 /*!
@@ -980,7 +996,10 @@ void utilsArray::Release2DArray(int row, T **&data) {
 }
 
 template<typename T>
-bool utilsArray::ValueInVector(T &val, vector<T> &vec) {
+bool utilsArray::ValueInVector(const T &val, vector<T> &vec) {
+    if (vec.empty()) {
+        return false;
+    }
     typename vector<T>::iterator findIter = find(vec.begin(), vec.end(), val);
     if (findIter == vec.end()) {
         return false;

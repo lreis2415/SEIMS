@@ -1,13 +1,17 @@
 /*!
  * \brief Setting Inputs for SEIMS
- *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
+ * \version 2.0
  * \date June 2010
+ * \revised LJ - Decoupling with Database IO
  */
-#pragma once
-#include "utilities.h"
+#ifndef SEIMS_SETTING_INPUT_H
+#define SEIMS_SETTING_INPUT_H
+
 #include "Settings.h"
+#include "DataCenter.h"
+#include "utilities.h"
+
 #include "InputStation.h"
 #include "Scenario.h"
 #include "MongoUtil.h"
@@ -17,44 +21,54 @@ using namespace MainBMP;
 /*!
  * \ingroup module_setting
  * \class SettingsInput
- *
  * \brief Input settings for SEIMS
- *
- *
- *
  */
 class SettingsInput : public Settings {
 public:
-    //! Constructor
-    SettingsInput(string fileName, mongoc_client_t *conn, string dbName, int nSubbasin = 1);
+    ////! Constructor
+    //SettingsInput(string fileName, mongoc_client_t *conn, string dbName, int nSubbasin = 0);
 
-    //! Constructor, read from MongoDB
-    SettingsInput(mongoc_client_t *conn, string dbName, int nSubbasin = 1);
+    ////! Constructor, read from MongoDB
+    //SettingsInput(mongoc_client_t *conn, string dbName, int nSubbasin = 0);
+
+    //! Constructor
+    SettingsInput(unique_ptr<DataCenter>& dcenter);
 
     //! Destructor
     ~SettingsInput(void);
 
     //! Output to log file
-    void Dump(string);
+    virtual void Dump(string);
 
     //! Get start time of simulation
-    time_t getStartTime(void) const;
+    time_t getStartTime(void) const { return m_startDate; }
 
     //! Get end time of simulation
-    time_t getEndTime(void) const;
+    time_t getEndTime(void) const { return m_endDate; }
 
     //! Get time interval for hillslope scale processes
-    time_t getDtHillslope(void) const;
+    time_t getDtHillslope(void) const { return m_dtHs; }
 
     //! Get time interval for channel scale processes
-    time_t getDtChannel(void) const;
+    time_t getDtChannel(void) const { return m_dtCh; }
 
     //! Get daily time interval of simulation in sec
-    time_t getDtDaily(void) const;
+    time_t getDtDaily(void) const { return 86400; }
 
     //! Get data of input HydroClimate stations
-    InputStation *StationData(void);
+    InputStation* StationData(void) { return m_inputStation; }
 
+private:
+    //bool LoadSettingsFromFile(string, string);
+
+    //bool LoadSettingsInputFromMongoDB(void);
+
+    //! Read start and end date, simulation mode and time interval
+    bool readDate(void);
+
+    ///bool readTimeSeriesData(void);///Deprecated
+    //! Read HydroClimate site list
+    void ReadSiteList(void);
 private:
     //! Start date of simulation
     time_t m_startDate;
@@ -80,16 +94,7 @@ private:
     int m_subbasinID;
     //! Simulation mode, can be DAILY or HOURLY
     string m_mode;
-private:
-    bool LoadSettingsFromFile(string, string);
-
-    bool LoadSettingsInputFromMongoDB(void);
-
-    //! Read start and end date, simulation mode and time interval
-    bool readDate(void);
-
-    ///bool readTimeSeriesData(void);///Deprecated
-    //! Read HydroClimate site list
-    void ReadSiteList(void);
+    //! is storm model?
+    bool m_isStormModel;
 };
-
+#endif /* SEIMS_SETTING_INPUT_H */

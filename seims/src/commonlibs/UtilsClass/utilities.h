@@ -60,6 +60,7 @@
 #ifndef windows
 #define copyfile_unix             utilsFileIO::copyfile_unix
 #endif /* windows */
+#define DirectoryExists           utilsFileIO::DirectoryExists
 #define CleanDirectory            utilsFileIO::CleanDirectory
 #define GetAppPath                utilsFileIO::GetAppPath
 #define GetCoreFileName           utilsFileIO::GetCoreFileName
@@ -70,6 +71,7 @@
 #define PathExists                utilsFileIO::PathExists
 #define DeleteExistedFile         utilsFileIO::DeleteExistedFile
 #define FindFiles                 utilsFileIO::FindFiles
+#define LoadPlainTextFile         utilsFileIO::LoadPlainTextFile
 
 /// Class utils
 #define isIPAddress                utils::isIPAddress
