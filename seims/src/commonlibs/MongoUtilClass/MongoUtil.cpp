@@ -158,7 +158,12 @@ MongoCollection::~MongoCollection(void) {
     mongoc_collection_destroy(m_collection);
 }
 mongoc_cursor_t* MongoCollection::ExecuteQuery(bson_t* b) {
-    return mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+#if MONGOC_CHECK_VERSION(1, 5, 0)
+    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
+#else
+    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+#endif /* MONGOC_CHECK_VERSION */
+    return cursor;
 }
 ///////////////////////////////////////////////////
 ////////////////  MongoGridFS  ////////////////////
