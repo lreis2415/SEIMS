@@ -134,9 +134,9 @@ vector<string>& DataCenterMongoDB::getFileInStringVector(void) {
             if (StringMatch(tokens[0], Tag_Mode)) {
                 m_modelMode = tokens[1];
             }
-            int sz = m_fileIn1DStrs.size();        // get the current number of rows
-            m_fileIn1DStrs.resize(sz + 1);        // resize with one more row
-            m_fileIn1DStrs[sz] = tokens[0] + "|" + tokens[1];
+            int sz = m_fileIn1DStrs.size(); // get the current number of rows
+            m_fileIn1DStrs.resize(sz + 1);  // resize with one more row
+            m_fileIn1DStrs[sz] = tokens[0] + "|" + tokens[1]; // keep the interface consistent
         }
         bson_destroy(b);
         mongoc_cursor_destroy(cursor);

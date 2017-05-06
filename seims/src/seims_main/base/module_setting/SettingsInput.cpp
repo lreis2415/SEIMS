@@ -63,7 +63,7 @@ bool SettingsInput::readDate() {
     m_mode = GetUpper(GetValue(Tag_Mode));
 
     //read interval
-    vector <string> dtList = SplitString(GetValue(Tag_Interval), ',');
+    vector<string> dtList = SplitString(GetValue(Tag_Interval), ',');
     m_dtHs = atoi(dtList[0].c_str());
     m_dtCh = m_dtHs;
     if (dtList.size() > 1) {
