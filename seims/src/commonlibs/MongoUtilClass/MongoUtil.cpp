@@ -64,29 +64,23 @@ void MongoClient::getDatabaseNames(vector<string> &dbnames) {
 }
 
 void MongoClient::getCollectionNames(string const &dbName, vector<string> &collNames) {
-    mongoc_database_t *database = this->getDatabase(dbName);
-    MongoDatabase(database).getCollectionNames(collNames);
+    MongoDatabase(this->getDatabase(dbName)).getCollectionNames(collNames);
 }
 
-mongoc_database_t *MongoClient::getDatabase(string const &dbname) {
+mongoc_database_t* MongoClient::getDatabase(string const &dbname) {
     // Get Database or create if not existed
     return mongoc_client_get_database(m_conn, dbname.c_str());
 }
 
-mongoc_collection_t *MongoClient::getCollection(string const &dbname, string const &collectionname) {
-    try {
-        mongoc_database_t *db = this->getDatabase(dbname);
-        if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
-            throw ModelException("MongoClient", "getCollection", "Collection " + collectionname + " is not existed!\n");
-        }
-        mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
-        mongoc_database_destroy(db);
-        return collection;
-    }
-    catch (ModelException& e) {
-        cout << e.toString() << endl;
+mongoc_collection_t* MongoClient::getCollection(string const &dbname, string const &collectionname) {
+    mongoc_database_t* db = mongoc_client_get_database(m_conn, dbname.c_str());
+    if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
+        cout << "MongoClient::getCollection, Collection " << collectionname << " is not existed!" << endl;
         return NULL;
     }
+    mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
+    mongoc_database_destroy(db);
+    return collection;
 }
 
 mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsname) {
@@ -151,10 +145,21 @@ void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
     }
     catch (ModelException& e) {
         cout << e.toString() << endl;
-        return;
+        collNameList.clear();
     }
 }
+///////////////////////////////////////////////////
+////////////////  MongoCollection  ////////////////
+///////////////////////////////////////////////////
+MongoCollection::MongoCollection(mongoc_collection_t* coll) : m_collection(coll) {
 
+}
+MongoCollection::~MongoCollection(void) {
+    mongoc_collection_destroy(m_collection);
+}
+mongoc_cursor_t* MongoCollection::ExecuteQuery(bson_t* b) {
+    return mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+}
 ///////////////////////////////////////////////////
 ////////////////  MongoGridFS  ////////////////////
 ///////////////////////////////////////////////////

@@ -178,8 +178,8 @@
 #define DB_TAB_MEASUREMENT                     "MEASUREMENT"
 #define DB_TAB_ANNSTAT                         "ANNUAL_STATS"
 #define DB_TAB_OUT_SPATIAL                     "OUTPUT"
-#define DB_TAB_FILEIN                          "FILE_IN"
-#define DB_TAB_FILEOUT                         "FILE_OUT"
+#define DB_TAB_FILE_IN                         "FILE_IN"
+#define DB_TAB_FILE_OUT                        "FILE_OUT"
 /// Fields in DB_TAB_REACH ///
 #define REACH_SUBBASIN                         "SUBBASINID"
 #define REACH_NUMCELLS                         "NUM_CELLS"

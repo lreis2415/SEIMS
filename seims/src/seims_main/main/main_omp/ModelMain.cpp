@@ -107,7 +107,7 @@ ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath
     mongoc_gridfs_destroy(spatialData);
 }
 
-ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter) {
+ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter) : m_dataCenter(move(dcenter)){
 
 }
 
