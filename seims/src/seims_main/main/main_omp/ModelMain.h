@@ -1,25 +1,27 @@
 /*!
  * \brief Control the simulation of SEIMS
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
+ * \version 2.0
  * \date May 2016
+ * \revised LJ - Refactoring, May 2017
+ *               The ModelMain class mainly focuses on the entire workflow.
  */
 
-#ifndef SEIMS_MODEL_MAIN
-#define SEIMS_MODEL_MAIN
+#ifndef SEIMS_MODEL_MAIN_H
+#define SEIMS_MODEL_MAIN_H
 
 
 /// include utility classes and const definition of SEIMS
 #include "seims.h"
 
 /// include module_setting related
-#include "DataCenter.h"
 #include "SettingsInput.h"
 #include "SettingsOutput.h"
-#include "ModuleFactory.h"
 #include "PrintInfo.h"
+#include "ModuleFactory.h"
 
 /// include data related
+#include "DataCenter.h"
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
 #include "ClimateParams.h"
@@ -72,56 +74,58 @@ public:
      * \param numThread
      * \deprecated Deprecated because of the tight coupling with MongoDB
      */
-    ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
+    ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath,
               LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = -1,
               int numThread = 1);
 
     /*!
      * \brief Constructor independent to any database IO, instead of the \sa DataCenter object
      * \param dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
-     * \param subBasinID
-     * \param scenarioID
-     * \param numThread
      */
     ModelMain(unique_ptr<DataCenter>& dcenter);
+
     //! Destructor
     ~ModelMain(void);
 
-    //! Destroy the GridFS instance
-    void CloseGridFS(void) { mongoc_gridfs_destroy(m_outputGfs); }
+//    //! Destroy the GridFS instance, deprecated
+//    void CloseGridFS(void) { mongoc_gridfs_destroy(m_outputGfs); }
 
     //! Execute all the modules, create output, and write the total time-consuming.
     void Execute(void);
 
+    /// the following five get-functions are the same in \sa SettingInput, so deprecated!
     //! Get hillslope time interval
-    time_t getDtHillSlope(void) { return m_dtHs; }
-
-    //! Get channel time interval
-    time_t getDtChannel(void) { return m_dtCh; }
-
-    //! Get daily time interval
-    time_t getDtDaily(void) { return m_dtDaily; }
-
-    //! Get start time of simulation
-    time_t getStartTime(void) { return m_input->getStartTime(); }
-
-    //! Get end time of simulation
-    time_t getEndTime(void) { return m_input->getEndTime(); }
+//    time_t getDtHillSlope(void) { return m_dtHs; }
+//
+//    //! Get channel time interval
+//    time_t getDtChannel(void) { return m_dtCh; }
+//
+//    //! Get daily time interval
+//    time_t getDtDaily(void) { return m_dtDaily; }
+//
+//    //! Get start time of simulation
+//    time_t getStartTime(void) { return m_input->getStartTime(); }
+//
+//    //! Get end time of simulation
+//    time_t getEndTime(void) { return m_input->getEndTime(); }
 
     //! Get module counts of current SEIMS
-    int GetModuleCount(void) { return m_simulationModules.size(); }
+    int GetModuleCount(void) const { return (int) m_simulationModules.size(); }
 
     //! Get module ID by index in ModuleFactory
-    string GetModuleID(int i) { return m_factory->GetModuleID(i); }
+    /// this function has not been used, so deprecated!
+    // string GetModuleID(int i) const { return m_factory->GetModuleID(i); }
 
     //! Get module execute time by index in ModuleFactory
-    float GetModuleExecuteTime(int i) { return (float) m_executeTime[i]; }
+    float GetModuleExecuteTime(int i) const { return (float) m_executeTime[i]; }
 
-    //! Get time consuming of read files
-    float GetReadDataTime(void) { return m_readFileTime; }
+    //! Get time consuming of read data
+    float GetReadDataTime(void) const { return m_readFileTime; }
 
-    //!
-    float GetQOutlet(void);
+    //! old-fashion code, deprecated
+    // besides, this function take the channel routing modules as the only and first
+    // one in m_channelModules as default. This is questionable. - LJ
+//    float GetQOutlet(void);
 
     //! Include channel processes or not?
     bool IncludeChannelProcesses(void) { return m_channelModules.size() != 0; }
@@ -151,14 +155,21 @@ public:
     void StepOverall(time_t startT, time_t endT);
 
     //! Set Flow In Channel data for Channel-related module, e.g., CH_DW
-    void SetChannelFlowIn(float value);
+    /// in my view, this is useless, and can be deprecated.
+//    void SetChannelFlowIn(float value);
     //! Check module input data, date and execute module
     ///void	Step(time_t time);/// Deprecated. LJ
     //! Execute overland modules in current step
     ///void	StepOverland(time_t t);/// Deprecated. LJ
 private:
-    //! DataCenter pointer
-    unique_ptr<DataCenter> m_dataCenter;
+    unique_ptr<DataCenter>      m_dataCenter; ///< inherited DataCenter
+    unique_ptr<SettingsInput>   m_input;      ///< The basic input settings
+    unique_ptr<SettingsOutput>  m_output;     ///< The user-defined outputs, Q, SED, etc
+    unique_ptr<ModuleFactory>   m_factory;    ///< Modules factory
+private:
+
+
+
     //! MongoDB Client
     MongoClient *m_client;
     mongoc_client_t *m_conn;
@@ -174,10 +185,10 @@ private:
     int m_threadNum;
     //! SubBasin ID
     int m_subBasinID;
-    //! Parameters information map
+    //! Parameters information map, should belong to SettingInput? LJ
     map<string, ParamInfo *> m_parameters;
-    //! Modules factory
-    ModuleFactory *m_factory;
+
+
     //! Modules list in current model run
     vector<SimulationModule *> m_simulationModules;
     //! Hillslope modules index list
@@ -233,10 +244,10 @@ private:
     string m_projectPath;
     //! Path of the model
     string m_modulePath;
-    //! The input setting of the model
-    SettingsInput *m_input;
-    //! The output setting of the model
-    SettingsOutput *m_output;
+//    //! The input setting of the model
+//    SettingsInput *m_input;
+//    //! The output setting of the model
+//    SettingsOutput *m_output;
     //! Template raster data
     clsRasterData<float> *m_templateRasterData;
     //! Daily time interval
@@ -246,4 +257,4 @@ private:
     //! Channel time interval
     time_t m_dtCh;
 };
-#endif
+#endif /* SEIMS_MODEL_MAIN_H */
