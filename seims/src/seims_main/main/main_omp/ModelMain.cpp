@@ -123,23 +123,24 @@ ModelMain::~ModelMain(void) {
     m_parameters.clear();
     ///m_templateRasterData, i.e. 0_MASK raster, will be released in m_rsMap during releasing m_factory.
     if (m_templateRasterData != NULL) m_templateRasterData = NULL;
-    if (m_output != NULL) {
-        delete m_output;
-    }
-    StatusMessage("Close the output GridFS ...");
-    if (m_outputGfs != NULL) {
-        ModelMain::CloseGridFS();
-    }
-    if (m_factory != NULL) {
-        delete m_factory;
-        m_factory = NULL;
-    }
-    if (m_input != NULL) {
-        delete m_input;
-        m_input = NULL;
-    }
-    /// m_client will be release by MongoClient.
-    m_conn = NULL;
+    /// Thanks to unique_ptr, these class instances are no need to release explicitly. - LJ
+//    if (m_output != NULL) {
+//        delete m_output;
+//    }
+//    StatusMessage("Close the output GridFS ...");
+//    if (m_outputGfs != NULL) {
+//        ModelMain::CloseGridFS();
+//    }
+//    if (m_factory != NULL) {
+//        delete m_factory;
+//        m_factory = NULL;
+//    }
+//    if (m_input != NULL) {
+//        delete m_input;
+//        m_input = NULL;
+//    }
+//    /// m_client will be release by MongoClient.
+//    m_conn = NULL;
 }
 
 //void ModelMain::Step(time_t time)
@@ -178,15 +179,15 @@ ModelMain::~ModelMain(void) {
 //	//cout << m_subBasinID << "Step\n";
 //}
 
-float ModelMain::GetQOutlet() {
-    if (m_channelModules.size() == 0) {
-        return 0.f;
-    }
-    float value;
-    int index = m_channelModules[0];
-    m_simulationModules[index]->GetValue(TAG_OUT_QOUTLET, &value);
-    return value;
-}
+//float ModelMain::GetQOutlet() {
+//    if (m_channelModules.size() == 0) {
+//        return 0.f;
+//    }
+//    float value;
+//    int index = m_channelModules[0];
+//    m_simulationModules[index]->GetValue(TAG_OUT_QOUTLET, &value);
+//    return value;
+//}
 
 //void ModelMain::StepOverland(time_t t)
 //{
@@ -288,8 +289,7 @@ void ModelMain::Execute() {
     OutputExecuteTime();
 }
 
-void ModelMain::Output() {
-    //clock_t t1 = clock();
+void ModelMain::Output(void) {
     double t1 = TimeCounting();
     string outputPath = m_projectPath + m_outputScene;
     CleanDirectory(outputPath);
@@ -301,7 +301,6 @@ void ModelMain::Output() {
             item->Flush(m_projectPath + m_outputScene + SEP, m_templateRasterData, (*it)->getOutputTimeSeriesHeader());
         }
     }
-    //clock_t t2 = clock();
     double t2 = TimeCounting();
     cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
 }
@@ -321,8 +320,8 @@ void ModelMain::CheckOutput(mongoc_gridfs_t *gfs) {
 #endif /* USE_MONGODB */
 }
 
-void ModelMain::OutputExecuteTime() {
-    for (size_t i = 0; i < m_simulationModules.size(); i++) {
+void ModelMain::OutputExecuteTime(void) {
+    for (int i = 0; i < m_simulationModules.size(); ++i) {
         cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t" << fixed << setprecision(3) <<
              m_executeTime[i] << endl;
     }
@@ -466,7 +465,7 @@ void ModelMain::Output(time_t time) {
                         if (subbasinIndex == -1) {
                             char s[20];
                             strprintf(s, 20, "%d", item->SubbasinID);
-                            throw ModelException("SettingsConfig", "Output",
+                            throw ModelException("ModelMain", "Output",
                                                  "Can't find subbasin " + string(s) + " in input sites.");
                         }
 
@@ -499,7 +498,7 @@ void ModelMain::Output(time_t time) {
     }
 }
 
-void ModelMain::SetChannelFlowIn(float value) {
-    int index = m_channelModules[0];
-    m_simulationModules[index]->SetValue(VAR_QUPREACH, value);
-}
+//void ModelMain::SetChannelFlowIn(float value) {
+//    int index = m_channelModules[0];
+//    m_simulationModules[index]->SetValue(VAR_QUPREACH, value);
+//}

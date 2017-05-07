@@ -77,13 +77,12 @@ private:
     //! Module IDs
     vector <string> m_moduleIDs;
 #ifdef windows
-    //! .DLL (or .so) handles
-    vector<HINSTANCE> m_dllHandles;
+    vector<HINSTANCE>                  m_dllHandles; ///< .DLL handles
 #else
-    vector<void *> m_dllHandles;
+    vector<void *>                     m_dllHandles; ///< .so or .dylib handles
 #endif
     //! Module settings, \a map<string, SEIMSModuleSetting*>
-    map<string, SEIMSModuleSetting *> m_settings;
+    map<string, SEIMSModuleSetting *>  m_settings;
     //! Metadata of modules
     map<string, const char *> m_metadata;
     //! Parameters of modules
