@@ -1,11 +1,13 @@
 /*!
  * \brief Class to store reach related parameters from REACHES table
  * \author LiangJun Zhu
- * \version 1.0
- * \date May. 2016
- *
+ * \version 1.1
+ * \date May. 2017
+ * \revised LJ - Update MongoDB functions
  */
-#pragma once
+#ifndef SEIMS_REACH_CLS_H
+#define SEIMS_REACH_CLS_H
+
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -206,15 +208,12 @@ private:
 class clsReaches {
 public:
     /*!
-     * \brief Constructor
-     *
-     * Query reach table from MongoDB
-     *
-     * \param[in] conn mongoc client instance
+     * \brief Constructor, query reach table from MongoDB
+     * \param[in] conn MongoClient instance
      * \param[in] dbName Database name
      * \param[in] collectionName Reach collection name
      */
-    clsReaches(mongoc_client_t *conn, string &dbName, string collectionName);
+    clsReaches(MongoClient* conn, string &dbName, string collectionName);
 
     /// Destructor
     ~clsReaches(void);
@@ -240,3 +239,4 @@ private:
      */
     map<int, clsReach *> m_reachesInfo;
 };
+#endif /* SEIMS_REACH_CLS_H */

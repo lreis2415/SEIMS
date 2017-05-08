@@ -15,7 +15,7 @@ MongoClient::MongoClient(const char *host, uint16_t port) : m_host(host), m_port
     mongoc_uri_destroy(uri);
 }
 
-MongoClient *MongoClient::Init(const char *host, uint16_t port) {
+MongoClient* MongoClient::Init(const char *host, uint16_t port) {
     if (!isIPAddress(host)) {
         cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
         return NULL;
@@ -165,6 +165,18 @@ mongoc_cursor_t* MongoCollection::ExecuteQuery(bson_t* b) {
 #endif /* MONGOC_CHECK_VERSION */
     return cursor;
 }
+
+int MongoCollection::QueryRecordsCount(void) {
+    const bson_t *qCount = bson_new();
+    bson_error_t *err = NULL;
+    int count = (int)mongoc_collection_count(m_collection, MONGOC_QUERY_NONE, qCount, 0, 0, NULL, err);
+    if (err != NULL || count < 0) {
+        cout << "ERROR: Failed to get document number of collection!" << endl;
+        return -1;
+    }
+    return count;
+}
+
 ///////////////////////////////////////////////////
 ////////////////  MongoGridFS  ////////////////////
 ///////////////////////////////////////////////////

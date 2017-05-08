@@ -45,12 +45,12 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
     }
 }
 
-void BMPArealSrcFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName) {
+void BMPArealSrcFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     ReadArealSourceManagements(conn, bmpDBName);
     ReadArealSourceLocations(conn, bmpDBName);
 }
 
-void BMPArealSrcFactory::ReadArealSourceManagements(mongoc_client_t *conn, string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -62,31 +62,25 @@ void BMPArealSrcFactory::ReadArealSourceManagements(mongoc_client_t *conn, strin
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
+
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcMgtTab)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+
     bson_iter_t iter;
+    const bson_t *bsonTable;
 
-    collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_arealSrcMgtTab.c_str());
-    if (collection == NULL) {
-        throw ModelException("BMPs Scenario", "Read Areal Source Management",
-                             "Failed to get collection: " + m_arealSrcMgtTab + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-
-    int count =
-        1; /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
+    /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
+    int count = 1; 
     while (mongoc_cursor_next(cursor, &bsonTable)) {
         m_arealSrcMgtSeqs.push_back(count);
         m_arealSrcMgtMap[count] = new ArealSourceMgtParams(bsonTable, iter);
         count++;
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::ReadArealSourceLocations(mongoc_client_t *conn, string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -94,17 +88,11 @@ void BMPArealSrcFactory::ReadArealSourceLocations(mongoc_client_t *conn, string 
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
-    bson_iter_t iter;
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcDistTab)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_arealSrcDistTab.c_str());
-    if (collection == NULL) {
-        throw ModelException("BMPs Scenario", "Read Areal Source Distributions",
-                             "Failed to get collection: " + m_arealSrcDistTab + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    bson_iter_t iter;
+    const bson_t *bsonTable;
 
     while (mongoc_cursor_next(cursor, &bsonTable)) {
         ArealSourceLocations *curArSrcLoc = new ArealSourceLocations(bsonTable, iter);
@@ -116,13 +104,12 @@ void BMPArealSrcFactory::ReadArealSourceLocations(mongoc_client_t *conn, string 
         }
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float *mgtField) {
-    for (map<int, ArealSourceLocations *>::iterator it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end();
-         it++) {
+void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
+    for (map<int, ArealSourceLocations *>::iterator it = m_arealSrcLocsMap.begin(); 
+        it != m_arealSrcLocsMap.end(); ++it) {
         ArealSourceLocations *tmpArealLoc = it->second;
         if (tmpArealLoc->GetValidCells() < 0 && tmpArealLoc->GetCellsIndex().empty()) {
             tmpArealLoc->SetValidCells(n, mgtField);

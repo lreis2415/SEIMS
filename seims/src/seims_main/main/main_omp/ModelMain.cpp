@@ -1,91 +1,133 @@
 #include "ModelMain.h"
 
-ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
-                     ModuleFactory *factory,
-                     int subBasinID /* = 0 */, int scenarioID /* = -1 */, int numThread /* = 1 */,
-                     LayeringMethod layeringMethod /* = UP_DOWN */)
-    : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input),
-      m_factory(factory),
-      m_subBasinID(subBasinID), m_scenarioID(scenarioID), m_threadNum(numThread), m_layeringMethod(layeringMethod),
-      m_templateRasterData(NULL), m_readFileTime(0.f), m_firstRunChannel(true), m_firstRunOverland(true),
-      m_initialized(false), m_output(NULL) {
-    mongoc_gridfs_t *spatialData = NULL;
-    bson_error_t *err = NULL;
-    spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
-    if (err != NULL) {
-        throw ModelException("MainMongoDB", "ModelMain", "Failed to get GridFS: " + string(DB_TAB_SPATIAL) + ".\n");
-    }
-    m_outputScene = string(DB_TAB_OUT_SPATIAL);
-    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
-        m_outputScene  += ValueToString(m_scenarioID);
-    m_outputGfs = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), m_outputScene.c_str(), err);
-    if (err != NULL) {
-        throw ModelException("MainMongoDB", "ModelMain", "Failed to create output GridFS: " + m_outputScene + ".\n");
-    }
-    /* time-step of daily, hillslope, and channel scales */
-    m_dtDaily = m_input->getDtDaily();
-    m_dtHs = m_input->getDtHillslope();
-    m_dtCh = m_input->getDtChannel();
-    /// Load Setting Output from file.out, which is deprecated now! By LJ, 2016-7-11
-    /// m_output = new SettingsOutput(m_subBasinID, m_projectPath + File_Output, m_conn, m_dbName, m_outputGfs);
-    m_output = new SettingsOutput(m_subBasinID, m_conn, dbName, m_outputGfs);
-    CheckOutput(spatialData);
+//ModelMain::ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
+//                     ModuleFactory *factory,
+//                     int subBasinID /* = 0 */, int scenarioID /* = -1 */, int numThread /* = 1 */,
+//                     LayeringMethod layeringMethod /* = UP_DOWN */)
+//    : m_conn(conn), m_dbName(dbName), m_outputGfs(NULL), m_projectPath(projectPath), m_input(input),
+//      m_factory(factory),
+//      m_subBasinID(subBasinID), m_scenarioID(scenarioID), m_threadNum(numThread), m_layeringMethod(layeringMethod),
+//      m_templateRasterData(NULL), m_readFileTime(0.f), m_firstRunChannel(true), m_firstRunOverland(true),
+//      m_initialized(false), m_output(NULL) {
+//    mongoc_gridfs_t *spatialData = NULL;
+//    bson_error_t *err = NULL;
+//    spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
+//    if (err != NULL) {
+//        throw ModelException("MainMongoDB", "ModelMain", "Failed to get GridFS: " + string(DB_TAB_SPATIAL) + ".\n");
+//    }
+//    m_outputScene = string(DB_TAB_OUT_SPATIAL);
+//    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
+//        m_outputScene  += ValueToString(m_scenarioID);
+//    m_outputGfs = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), m_outputScene.c_str(), err);
+//    if (err != NULL) {
+//        throw ModelException("MainMongoDB", "ModelMain", "Failed to create output GridFS: " + m_outputScene + ".\n");
+//    }
+//    /* time-step of daily, hillslope, and channel scales */
+//    m_dtDaily = m_input->getDtDaily();
+//    m_dtHs = m_input->getDtHillslope();
+//    m_dtCh = m_input->getDtChannel();
+//    /// Load Setting Output from file.out, which is deprecated now! By LJ, 2016-7-11
+//    /// m_output = new SettingsOutput(m_subBasinID, m_projectPath + File_Output, m_conn, m_dbName, m_outputGfs);
+//    m_output = new SettingsOutput(m_subBasinID, m_conn, dbName, m_outputGfs);
+//    CheckOutput(spatialData);
+//
+//    m_readFileTime = factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
+//                                               m_templateRasterData, m_simulationModules);
+//    //cout << "Read file time: " << m_readFileTime << endl;
+//    size_t n = m_simulationModules.size();
+//    m_executeTime.resize(n, 0.f);
+//    for (size_t i = 0; i < n; i++) {
+//        SimulationModule *pModule = m_simulationModules[i];
+//        switch (pModule->GetTimeStepType()) {
+//            case TIMESTEP_HILLSLOPE:m_hillslopeModules.push_back(i);
+//                break;
+//            case TIMESTEP_CHANNEL:m_channelModules.push_back(i);
+//                break;
+//            case TIMESTEP_ECOLOGY:m_ecoModules.push_back(i);
+//            case TIMESTEP_SIMULATION:m_overallModules.push_back(i);
+//        }
+//    }
+//
+//    CheckOutput();
+//    mongoc_gridfs_destroy(spatialData);
+//}
+//
+//ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
+//                     LayeringMethod layeringMethod /* = UP_DOWN */, int subBasinID /* = 0 */, 
+//                     int scenarioID /* = -1 */, int numThread /* = 1 */):
+//                     m_client(mongoClient), m_dbName(dbName), m_projectPath(projectPath), 
+//                     m_modulePath(modulePath), m_layeringMethod(layeringMethod), m_subBasinID(subBasinID),
+//                     m_scenarioID(scenarioID), m_threadNum(numThread) {
+//    m_conn = m_client->getConn();
+//    /// 1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
+//    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
+//    m_input = new SettingsInput(m_conn, m_dbName, m_subBasinID);
+//    
+//    /// 2 Constructor module factories by "config.fig" file
+//    string configFile = m_projectPath + SEP + File_Config;
+//    m_factory = new ModuleFactory(configFile, m_modulePath, m_conn, m_dbName, m_subBasinID, 
+//                                  m_layeringMethod, m_scenarioID, m_input);
+//    
+//    /// 3 Constructor output instance by "FILE_OUT" collection
+//    m_outputScene = string(DB_TAB_OUT_SPATIAL);
+//    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
+//        m_outputScene += ValueToString(m_scenarioID);
+//    m_outputGfs = m_client->getGridFS(m_dbName, m_outputScene);
+//    m_output = new SettingsOutput(m_subBasinID, m_conn, dbName, m_outputGfs);
+//
+//    /// 4 Check database
+//    mongoc_gridfs_t *spatialData = m_client->getGridFS(m_dbName, string(DB_TAB_SPATIAL));
+//    /* time-step of daily, hillslope, and channel scales */
+//    m_dtDaily = m_input->getDtDaily();
+//    m_dtHs = m_input->getDtHillslope();
+//    m_dtCh = m_input->getDtChannel();
+//    CheckOutput(spatialData);  /// load m_templateRasterData
+//
+//    /// 5 Create module list and load data from MongoDB
+//    m_readFileTime = m_factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
+//                                                 m_templateRasterData, m_simulationModules);
+//    StatusMessage(("Read file time: " + ValueToString(m_readFileTime) + " sec.").c_str());
+//    size_t n = m_simulationModules.size();
+//    m_executeTime.resize(n, 0.f);
+//    for (size_t i = 0; i < n; i++) {
+//        SimulationModule *pModule = m_simulationModules[i];
+//        switch (pModule->GetTimeStepType()) {
+//        case TIMESTEP_HILLSLOPE:m_hillslopeModules.push_back(i);
+//            break;
+//        case TIMESTEP_CHANNEL:m_channelModules.push_back(i);
+//            break;
+//        case TIMESTEP_ECOLOGY:m_ecoModules.push_back(i);
+//        case TIMESTEP_SIMULATION:m_overallModules.push_back(i);
+//        }
+//    }
+//    /// 6 Check the validation of settings of output files, e.g. filename and time ranges
+//    CheckOutput();
+//
+//    /// 7 Destroy the GridFS instance of Spatial database, which will not be used
+//    mongoc_gridfs_destroy(spatialData);
+//}
 
-    m_readFileTime = factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
-                                               m_templateRasterData, m_simulationModules);
-    //cout << "Read file time: " << m_readFileTime << endl;
-    size_t n = m_simulationModules.size();
-    m_executeTime.resize(n, 0.f);
-    for (size_t i = 0; i < n; i++) {
-        SimulationModule *pModule = m_simulationModules[i];
-        switch (pModule->GetTimeStepType()) {
-            case TIMESTEP_HILLSLOPE:m_hillslopeModules.push_back(i);
-                break;
-            case TIMESTEP_CHANNEL:m_channelModules.push_back(i);
-                break;
-            case TIMESTEP_ECOLOGY:m_ecoModules.push_back(i);
-            case TIMESTEP_SIMULATION:m_overallModules.push_back(i);
-        }
-    }
+ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory) : 
+m_dataCenter(move(dcenter)), m_factory(move(mfactory)) {
+    m_input = m_dataCenter->getSettingInput();
+    m_output = m_dataCenter->getSettingOutput();
 
-    CheckOutput();
-    mongoc_gridfs_destroy(spatialData);
-}
-
-ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath, 
-                     LayeringMethod layeringMethod /* = UP_DOWN */, int subBasinID /* = 0 */, 
-                     int scenarioID /* = -1 */, int numThread /* = 1 */):
-                     m_client(mongoClient), m_dbName(dbName), m_projectPath(projectPath), 
-                     m_modulePath(modulePath), m_layeringMethod(layeringMethod), m_subBasinID(subBasinID),
-                     m_scenarioID(scenarioID), m_threadNum(numThread) {
-    m_conn = m_client->getConn();
-    /// 1 Load model basic Input (e.g. simulation period) from "file.in" file or MongoDB
-    /// SettingsInput *input = new SettingsInput(projectPath + File_Input, conn, dbName, nSubbasin);
-    m_input = new SettingsInput(m_conn, m_dbName, m_subBasinID);
-    
-    /// 2 Constructor module factories by "config.fig" file
-    string configFile = m_projectPath + SEP + File_Config;
-    m_factory = new ModuleFactory(configFile, m_modulePath, m_conn, m_dbName, m_subBasinID, 
-                                  m_layeringMethod, m_scenarioID, m_input);
-    
     /// 3 Constructor output instance by "FILE_OUT" collection
-    m_outputScene = string(DB_TAB_OUT_SPATIAL);
-    if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
-        m_outputScene += ValueToString(m_scenarioID);
-    m_outputGfs = m_client->getGridFS(m_dbName, m_outputScene);
-    m_output = new SettingsOutput(m_subBasinID, m_conn, dbName, m_outputGfs);
+    //m_outputScene = string(DB_TAB_OUT_SPATIAL);
+    //if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
+    //    m_outputScene += ValueToString(m_scenarioID);
+    //m_outputGfs = m_client->getGridFS(m_dbName, m_outputScene);
 
     /// 4 Check database
-    mongoc_gridfs_t *spatialData = m_client->getGridFS(m_dbName, string(DB_TAB_SPATIAL));
+    MongoGridFS* spatialData = new MongoGridFS(m_conn->getGridFS(m_dbName, string(DB_TAB_SPATIAL)));
     /* time-step of daily, hillslope, and channel scales */
     m_dtDaily = m_input->getDtDaily();
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
-    CheckOutput(spatialData);  /// load m_templateRasterData
+    CheckAvailableOutput(spatialData);  /// load m_templateRasterData
 
     /// 5 Create module list and load data from MongoDB
-    m_readFileTime = m_factory->CreateModuleList(m_dbName, m_subBasinID, m_threadNum, m_layeringMethod,
-                                                 m_templateRasterData, m_simulationModules);
+    m_readFileTime = m_factory->CreateModuleList(m_simulationModules);
     StatusMessage(("Read file time: " + ValueToString(m_readFileTime) + " sec.").c_str());
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
@@ -101,14 +143,7 @@ ModelMain::ModelMain(MongoClient *mongoClient, string dbName, string projectPath
         }
     }
     /// 6 Check the validation of settings of output files, e.g. filename and time ranges
-    CheckOutput();
-
-    /// 7 Destroy the GridFS instance of Spatial database, which will not be used
-    mongoc_gridfs_destroy(spatialData);
-}
-
-ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter) : m_dataCenter(move(dcenter)){
-
+    CheckAvailableOutput();
 }
 
 ModelMain::~ModelMain(void) {
@@ -291,8 +326,6 @@ void ModelMain::Execute() {
 
 void ModelMain::Output(void) {
     double t1 = TimeCounting();
-    string outputPath = m_projectPath + m_outputScene;
-    CleanDirectory(outputPath);
     vector<PrintInfo *>::iterator it;
     for (it = this->m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         vector<PrintInfoItem *>::iterator itemIt;
@@ -305,7 +338,7 @@ void ModelMain::Output(void) {
     cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
 }
 
-void ModelMain::CheckOutput(mongoc_gridfs_t *gfs) {
+void ModelMain::CheckAvailableOutput(MongoGridFS* gfs) {
     if (this->m_input == NULL) return;
     if (this->m_output == NULL) return;
 
@@ -327,7 +360,7 @@ void ModelMain::OutputExecuteTime(void) {
     }
 }
 
-void ModelMain::CheckOutput() {
+void ModelMain::CheckAvailableOutput() {
     vector<PrintInfo *>::iterator it;
     for (it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();

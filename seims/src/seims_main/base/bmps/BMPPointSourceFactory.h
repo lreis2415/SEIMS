@@ -4,7 +4,9 @@
  * \date July 2016
  *
  */
-#pragma once
+#ifndef SEIMS_BMP_POINTSOURCE_H
+#define SEIMS_BMP_POINTSOURCE_H
+
 #include "utilities.h"
 #include "BMPFactory.h"
 
@@ -240,24 +242,24 @@ public:
     ~BMPPointSrcFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(mongoc_client_t *conn, string &bmpDBName);
+    void loadBMP(MongoClient* conn, string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
-     * \param[in] conn mongoc client instance
+     * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceManagements(mongoc_client_t *conn, string &bmpDBName);
+    void ReadPointSourceManagements(MongoClient* conn, string &bmpDBName);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
-     * \param[in] conn mongoc client instance
+     * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceLocations(mongoc_client_t *conn, string &bmpDBName);
+    void ReadPointSourceLocations(MongoClient* conn, string &bmpDBName);
 
     vector<int> &GetPointSrcMgtSeqs(void) {
         return m_pointSrcMgtSeqs;
@@ -300,3 +302,4 @@ private:
     map<int, PointSourceLocations *> m_pointSrcLocsMap;
 };
 }
+#endif /* SEIMS_BMP_POINTSOURCE_H */
