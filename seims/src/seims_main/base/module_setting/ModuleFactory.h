@@ -2,10 +2,13 @@
  * \brief Constructor of ModuleFactory from config file
  *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.2
- * \date June 2010
+ * \version 2.0
+ * \date May 2017
+ * \revised LJ - Refactor
  */
-#pragma once
+#ifndef SEIMS_MODULE_FACTORY_H
+#define SEIMS_MODULE_FACTORY_H
+
 #include "tinyxml.h"
 
 #include "seims.h"
@@ -16,33 +19,32 @@
 #include "SpecifiedData.h"
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
-
+#include "DataCenter.h"
 
 using namespace std;
 using namespace MainBMP;
 
 class ModuleFactory {
 public:
-    /*!
-     * \brief Constructor of ModuleFactory from config file
-     * By default, the layering method is UP_DOWN
-     * \param[in] configFileName config.fig file which contains modules list for Simulation
-     * \param[in] modelPath the path of your model
-     * \param[in] conn \a mongoc_client_t
-     * \param[in] dbName name of your model
-     * \param[in] subBasinID subBasinID
-     * \param[in] scenarioID
-     */
+    ///*!
+    // * \brief Constructor of ModuleFactory from config file
+    // * By default, the layering method is UP_DOWN
+    // * \param[in] configFileName config.fig file which contains modules list for Simulation
+    // * \param[in] modelPath the path of your model
+    // * \param[in] conn \a mongoc_client_t
+    // * \param[in] dbName name of your model
+    // * \param[in] subBasinID subBasinID
+    // * \param[in] scenarioID
+    // */
     //ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
-    //              int subBasinID, LayeringMethod layingMethod, int scenarioID);
-    ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
-        int subBasinID, LayeringMethod layingMethod, int scenarioID, SettingsInput*& input);
+    //    int subBasinID, LayeringMethod layingMethod, int scenarioID, SettingsInput*& input);
+
+    ModuleFactory(unique_ptr<DataCenter>& dcenter);
     //! Destructor
     ~ModuleFactory(void);
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
-    float CreateModuleList(string dbName, int subbasinID, int numThreads, LayeringMethod layeringMethod,
-                           clsRasterData<float> *templateRaster, vector<SimulationModule *> &modules);
+    float CreateModuleList(vector<SimulationModule *> &modules);
 
     //! Update inputs, such climate data.
     void UpdateInput(vector<SimulationModule *> &modules, time_t t);
@@ -60,10 +62,9 @@ public:
     void AddMaskRaster(string, clsRasterData<float> *);
 
 private:
+    unique_ptr<DataCenter>  m_dataCenter;
     typedef SimulationModule *(*InstanceFunction)(void);
-
     typedef const char *(*MetadataFunction)(void);
-
     //! Modules' instance map
     map <string, InstanceFunction> m_instanceFuncs;
     //! Metadata map of modules
@@ -105,9 +106,9 @@ private:
     int m_scenarioID;
 
     //! MongoDB Client
-    mongoc_client_t *m_conn;
+    MongoClient* m_conn;
     //! Mongo GridFS to store spatial data
-    mongoc_gridfs_t *m_spatialData;
+    MongoGridFS* m_spatialData;
     //! Store parameters from Database \sa m_dbName
     map<string, ParamInfo *> m_parametersInDB;
 
@@ -123,14 +124,18 @@ private:
     map<string, int> m_2DColsLenMap;
     //! Interpolation weight data map
     map<string, clsInterpolationWeightData *> m_weightDataMap;
+    //! Mask data
+    clsRasterData<float>* m_maskRaster; 
     //! Raster data (include 1D and/or 2D) map
     map<string, clsRasterData<float> *> m_rsMap;
     //! BMPs Scenario data
-    Scenario *m_scenario;
+    Scenario* m_scenario;
     //! Reaches information
-    clsReaches *m_reaches;
+    clsReaches* m_reaches;
     //! Subbasins information
-    clsSubbasins *m_subbasins;
+    clsSubbasins* m_subbasins;
+    //! Climate input stations
+    InputStation* m_climStation;
 
 private:
     //! Initialization, read the config.fig file and initialize
@@ -163,8 +168,8 @@ private:
     //! Read module's output setting from XML string
     void ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting);
 
-    //! Query and get BMP scenario database name
-    void GetBMPScenarioDBName(void);
+    ////! Query and get BMP scenario database name
+    //void GetBMPScenarioDBName(void);
 
     //! Get comparable name after underscore if necessary, e.g., T_PET => use PET
     string GetComparableName(string &paraName);
@@ -208,4 +213,4 @@ private:
     //! Read single reach information
     //void ReadSingleReachInfo(int nSubbasin, const string &filename, LayeringMethod layeringMethod, int& nAttr, int& nReaches, float**& data);
 };
-
+#endif /* SEIMS_MODULE_FACTORY_H */

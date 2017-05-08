@@ -7,7 +7,7 @@ using namespace std;
 //    m_weightData = NULL;
 //}
 
-clsInterpolationWeightData::clsInterpolationWeightData(mongoc_gridfs_t *gfs, const char *remoteFilename) {
+clsInterpolationWeightData::clsInterpolationWeightData(MongoGridFS* gfs, const char *remoteFilename) {
     m_fileName = remoteFilename;
     m_weightData = NULL;
     ReadFromMongoDB(gfs, remoteFilename);
@@ -47,11 +47,10 @@ void clsInterpolationWeightData::dump(string fileName) {
     }
 }
 
-void clsInterpolationWeightData::ReadFromMongoDB(mongoc_gridfs_t *gfs, const char *remoteFilename) {
+void clsInterpolationWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char *remoteFilename) {
     string wfilename = string(remoteFilename);
-    MongoGridFS mongogfs = MongoGridFS();
-    vector <string> gfilenames;
-    mongogfs.getFileNames(gfilenames, gfs);
+    vector<string> gfilenames;
+    gfs->getFileNames(gfilenames);
     string filename = remoteFilename;
     if (!ValueInVector(filename, gfilenames)) {
         int index = filename.find_last_of('_');
@@ -64,13 +63,10 @@ void clsInterpolationWeightData::ReadFromMongoDB(mongoc_gridfs_t *gfs, const cha
     }
     char *databuf;
     size_t datalength;
-    mongogfs.getStreamData(wfilename, databuf, datalength, gfs);
-    mongoc_gridfs_file_t *gfile = NULL;
-    bson_error_t *err = NULL;
-    gfile = mongoc_gridfs_find_one_by_filename(gfs, remoteFilename, err);
+    gfs->getStreamData(wfilename, databuf, datalength);
     m_weightData = (float *) databuf;
     /// Get metadata
-    bson_t *md = mongogfs.getFileMetadata(wfilename, gfs);
+    bson_t *md = gfs->getFileMetadata(wfilename);
     /// Get value of given keys
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, m_nRows);
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, m_nCols);

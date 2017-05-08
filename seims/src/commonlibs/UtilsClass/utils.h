@@ -332,7 +332,7 @@ public:
      * \return converted string
      */
     template<typename T>
-    static string ValueToString(T val);
+    static string ValueToString(const T val);
 };
 
 /*!
@@ -729,7 +729,7 @@ vector <T> utilsString::SplitStringForValues(string const &item, char delimiter)
 }
 
 template<typename T>
-string utilsString::ValueToString(T val) {
+string utilsString::ValueToString(const T val) {
     ostringstream oss;
     oss << val;
     return oss.str();

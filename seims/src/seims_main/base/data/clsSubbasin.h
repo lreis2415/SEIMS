@@ -1,8 +1,12 @@
 /*!
  * \brief Class for managing subbasin data
  * \author Junzhi Liu, Liang-Jun Zhu
+ * \date May 2017
+ * \revised 
  */
-#pragma once
+#ifndef SEIMS_SUBBASIN_CLS_H
+#define SEIMS_SUBBASIN_CLS_H
+
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -240,11 +244,11 @@ public:
      * \param[in] rsMap Map of rasters that have been loaded
      * \param[in] prefixID subbasin ID as prefix in MongoDB
      */
-    clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
-    /*! \brief Check input parameters to ensure the successful constructor
-     * 
+    clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
+    /*! 
+     * \brief Check input parameters to ensure the successful constructor
      */
-    static clsSubbasins *Init(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap,
+    static clsSubbasins *Init(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap,
                               int prefixID);
     /// Destructor
     ~clsSubbasins(void);
@@ -279,3 +283,4 @@ private:
      */
     map<int, Subbasin *> m_subbasinsInfo;
 };
+#endif /* SEIMS_SUBBASIN_CLS_H */

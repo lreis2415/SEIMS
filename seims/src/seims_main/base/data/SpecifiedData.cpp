@@ -1,18 +1,18 @@
 #include "SpecifiedData.h"
 
-void Read1DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &num, float *&data) {
+void Read1DArrayFromMongoDB(MongoGridFS* spatialData, string& remoteFilename, int& num, float*& data) {
     char *databuf = NULL;
     size_t datalength;
-    MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
+    spatialData->getStreamData(remoteFilename, databuf, datalength);
     float *floatValues = (float *) databuf;
     num = datalength / 4;
     data = (float *) databuf;
 }
 
-void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &rows, int &cols, float **&data) {
+void Read2DArrayFromMongoDB(MongoGridFS* spatialData, string& remoteFilename, int& rows, int& cols, float**& data) {
     char *databuf = NULL;
     size_t datalength;
-    MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
+    spatialData->getStreamData(remoteFilename, databuf, datalength);
     float *floatValues = (float *) databuf;
 
     int nRows = (int) floatValues[0];
@@ -41,18 +41,17 @@ void Read2DArrayFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename
     }
     cols = nCols;
     /// release memory
-    if (floatValues != NULL) {
-        Release1DArray(floatValues);
-    }
+    Release1DArray(floatValues);
+
     if (databuf != NULL) {
         databuf = NULL;
     }
 }
 
-void ReadIUHFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, int &n, float **&data) {
+void ReadIUHFromMongoDB(MongoGridFS* spatialData, string& remoteFilename, int& n, float**& data) {
     char *databuf = NULL;
     size_t datalength;
-    MongoGridFS().getStreamData(remoteFilename, databuf, datalength, spatialData);
+    spatialData->getStreamData(remoteFilename, databuf, datalength);
     float *floatValues = (float *) databuf;
 
     n = (int) floatValues[0];
@@ -71,15 +70,14 @@ void ReadIUHFromMongoDB(mongoc_gridfs_t *spatialData, string &remoteFilename, in
         index = index + nSub;
     }
     /// release memory
-    if (floatValues != NULL) {
-        Release1DArray(floatValues);
-    }
+    Release1DArray(floatValues);
+
     if (databuf != NULL) {
         databuf = NULL;
     }
 }
 
-void ReadLongTermMultiReachInfo(mongoc_client_t *conn, string &dbName, int &nr, int &nc, float **&data) {
+void ReadLongTermMultiReachInfo(MongoClient* conn, string& dbName, int& nr, int& nc, float**& data) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     bson_t *child2 = bson_new();
@@ -91,19 +89,17 @@ void ReadLongTermMultiReachInfo(mongoc_client_t *conn, string &dbName, int &nr, 
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection;
-    bson_error_t *err = NULL;
-
-    collection = mongoc_client_get_collection(conn, dbName.c_str(), DB_TAB_REACH);
     const bson_t *qCount = bson_new();
-    int nReaches = (int) mongoc_collection_count(collection, MONGOC_QUERY_NONE, qCount, 0, 0, NULL, err);
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(dbName, DB_TAB_REACH)));
+    int nReaches = collection->QueryRecordsCount();
+    bson_error_t *err = NULL;
+    const bson_t *bsonTable;
+
     if (err != NULL || nReaches < 0) {
         throw ModelException("MongoUtil", "ReadLongTermMutltiReachInfo",
                              "Failed to get document number of collection: " + string(DB_TAB_REACH) + ".\n");
     }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     int nAttr = 10;
     float **tmpData = new float *[nReaches];
@@ -167,11 +163,10 @@ void ReadLongTermMultiReachInfo(mongoc_client_t *conn, string &dbName, int &nr, 
         Release2DArray(nReaches, tmpData);
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void ReadLongTermReachInfo(mongoc_client_t *conn, string &dbName, int subbasinID, int &nr, int &nc, float **&data) {
+void ReadLongTermReachInfo(MongoClient* conn, string& dbName, int subbasinID, int& nr, int& nc, float**& data) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -179,18 +174,11 @@ void ReadLongTermReachInfo(mongoc_client_t *conn, string &dbName, int subbasinID
     BSON_APPEND_INT32(child1, REACH_GROUPDIVIDED, 1);
     bson_append_document_end(b, child1);
     bson_destroy(child1);
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(dbName, DB_TAB_REACH)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection;
     bson_error_t *err = NULL;
-
-    collection = mongoc_client_get_collection(conn, dbName.c_str(), DB_TAB_REACH);
-    if (err != NULL) {
-        throw ModelException("MongoUtil", "ReadLongTermMutltiReachInfo",
-                             "Failed to get collection: " + string(DB_TAB_REACH) + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    const bson_t *bsonTable;
 
     int nReaches = 1;
     int nAttr = 10;
@@ -257,12 +245,11 @@ void ReadLongTermReachInfo(mongoc_client_t *conn, string &dbName, int subbasinID
         Release2DArray(nReaches, tmpData);
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client_t *conn, string &dbName, int &nr,
-                                    int &nc, float **&data) {
+void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, MongoClient* conn, string& dbName,
+                                    int& nr, int& nc, float**& data) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     bson_t *child2 = bson_new();
@@ -274,18 +261,12 @@ void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
     const bson_t *bsonTable;
-    mongoc_collection_t *collection;
     bson_error_t *err = NULL;
 
-    collection = mongoc_client_get_collection(conn, dbName.c_str(), DB_TAB_REACH);
-//    int nReaches = (int) mongoc_collection_count(collection, MONGOC_QUERY_NONE, b, 0, 0, NULL, err);
-    if (err != NULL) {
-        throw ModelException("MongoUtil", "ReadMutltiReachInfoFromMongoDB",
-                             "Failed to get document number of collection: " + string(DB_TAB_REACH) + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(dbName, DB_TAB_REACH)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+
     vector<vector<float> > vecReaches;
     float id = 0.f, upDownOrder = 0.f, downUpOrder = 0.f, downStreamID = 0.f, manning = 0.f, v0 = 0.f;
 
@@ -318,8 +299,8 @@ void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client
         } else {
             vec[1] = downUpOrder;
         }
-        vec[2] = downStreamID;//downstream id
-        vec[3] = manning;//manning's n
+        vec[2] = downStreamID; //downstream id
+        vec[3] = manning; //manning's n
         vec[4] = v0; // v0
 
         vecReaches.push_back(vec);
@@ -340,31 +321,23 @@ void ReadMutltiReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client
     nr = nAttr;
     nc = numRec;
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void ReadReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client_t *conn, string &dbName, int subbasinID,
-                              int &nr, int &nc, float **&data) {
+void ReadReachInfoFromMongoDB(LayeringMethod layeringMethod, MongoClient* conn, string& dbName,
+                              int nSubbasin, int& nr, int& nc, float**& data) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
-    BSON_APPEND_INT32(child1, REACH_SUBBASIN, subbasinID);
+    BSON_APPEND_INT32(child1, REACH_SUBBASIN, nSubbasin);
     BSON_APPEND_INT32(child1, REACH_GROUPDIVIDED, 1);
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection;
     bson_error_t *err = NULL;
-
-    collection = mongoc_client_get_collection(conn, dbName.c_str(), DB_TAB_REACH);
-    if (err != NULL) {
-        throw ModelException("MongoUtil", "ReadReachInfoFromMongoDB",
-                             "Failed to get collection: " + string(DB_TAB_REACH) + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    const bson_t *bsonTable;
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(dbName, DB_TAB_REACH)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     int nAttr = 5;
     int nReaches = 1;
@@ -411,6 +384,5 @@ void ReadReachInfoFromMongoDB(LayeringMethod layeringMethod, mongoc_client_t *co
     nr = nAttr;
     nc = nReaches;
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }

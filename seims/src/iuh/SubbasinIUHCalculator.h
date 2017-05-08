@@ -18,7 +18,7 @@
 class SubbasinIUHCalculator {
 public:
     SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
-                          clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta, mongoc_gridfs_t *grdfs);
+                          clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta, MongoGridFS* grdfs);
 
     virtual ~SubbasinIUHCalculator(void);
 
@@ -34,7 +34,7 @@ private:
     float *landcover; //landcover map
     float *t0;          //flow time
     float *delta;       //standard deviation of flow time
-    mongoc_gridfs_t *gfs;
+    MongoGridFS* gfs;
 
     int mt;          //maximum length of IUH
     int maxtSub;     //maximum length of subwatershed IUH

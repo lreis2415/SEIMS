@@ -59,7 +59,7 @@ public:
      *           // or other error handling code.
      *       }
      */
-    static MongoClient *Init(const char *host, uint16_t port);
+    static MongoClient* Init(const char *host, uint16_t port);
     /*!
      * \brief Destructor
      */
@@ -157,6 +157,10 @@ public:
      * \brief Execute query
      */
     mongoc_cursor_t* ExecuteQuery(bson_t* b);
+    /*!
+    * \brief Query the records number
+    */
+    int QueryRecordsCount(void);
 private:
     mongoc_collection_t*      m_collection;
 };

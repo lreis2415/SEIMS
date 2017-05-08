@@ -45,44 +45,44 @@ using namespace std;
  */
 class ModelMain {
 public:
-    /*!
-     * \brief Constructor based on MongoDB, and take \sa SettingInput and \sa ModuleFactory as parameters
-     *
-     * \param[in] conn \a mongoc_client_t, MongoDB client
-     * \param[in] dbName model name, e.g., model_dianbu30m_longterm
-     * \param[in] projectPath Path of the project, contains config.fig, file.in and file.out
-     * \param[in] input \sa SettingInput, input setting information
-     * \param[in] factory \sa ModuleFactory, module factory instance
-     * \param[in] subBasinID SubBasin ID, default is 0, which means the whole basin
-     * \param[in] scenarioID Scenario ID, default is -1, which means do not use Scenario
-     * \param[in] numThread Thread number for OpenMP, default is 1
-     * \param[in] layeringMethod Layering method, default is UP_DOWN
-     * \deprecated Deprecated because of the tight coupling with MongoDB
-     */
-    ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
-              ModuleFactory *factory, int subBasinID = 0, int scenarioID = -1, int numThread = 1,
-              LayeringMethod layeringMethod = UP_DOWN);
-    /*!
-     * \brief Constructor based on MongoDB
-     * \param mongoClient
-     * \param dbName
-     * \param projectPath
-     * \param modulePath
-     * \param layeringMethod
-     * \param subBasinID
-     * \param scenarioID
-     * \param numThread
-     * \deprecated Deprecated because of the tight coupling with MongoDB
-     */
-    ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath,
-              LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = -1,
-              int numThread = 1);
+    ///*!
+    // * \brief Constructor based on MongoDB, and take \sa SettingInput and \sa ModuleFactory as parameters
+    // *
+    // * \param[in] conn \a mongoc_client_t, MongoDB client
+    // * \param[in] dbName model name, e.g., model_dianbu30m_longterm
+    // * \param[in] projectPath Path of the project, contains config.fig, file.in and file.out
+    // * \param[in] input \sa SettingInput, input setting information
+    // * \param[in] factory \sa ModuleFactory, module factory instance
+    // * \param[in] subBasinID SubBasin ID, default is 0, which means the whole basin
+    // * \param[in] scenarioID Scenario ID, default is -1, which means do not use Scenario
+    // * \param[in] numThread Thread number for OpenMP, default is 1
+    // * \param[in] layeringMethod Layering method, default is UP_DOWN
+    // * \deprecated Deprecated because of the tight coupling with MongoDB
+    // */
+    //ModelMain(mongoc_client_t *conn, string dbName, string projectPath, SettingsInput *input,
+    //          ModuleFactory *factory, int subBasinID = 0, int scenarioID = -1, int numThread = 1,
+    //          LayeringMethod layeringMethod = UP_DOWN);
+    ///*!
+    // * \brief Constructor based on MongoDB
+    // * \param mongoClient
+    // * \param dbName
+    // * \param projectPath
+    // * \param modulePath
+    // * \param layeringMethod
+    // * \param subBasinID
+    // * \param scenarioID
+    // * \param numThread
+    // * \deprecated Deprecated because of the tight coupling with MongoDB
+    // */
+    //ModelMain(MongoClient *mongoClient, string dbName, string projectPath, string modulePath,
+    //          LayeringMethod layeringMethod = UP_DOWN, int subBasinID = 0, int scenarioID = -1,
+    //          int numThread = 1);
 
     /*!
      * \brief Constructor independent to any database IO, instead of the \sa DataCenter object
      * \param dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
      */
-    ModelMain(unique_ptr<DataCenter>& dcenter);
+    ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory);
 
     //! Destructor
     ~ModelMain(void);
@@ -163,18 +163,26 @@ public:
     ///void	StepOverland(time_t t);/// Deprecated. LJ
 private:
     unique_ptr<DataCenter>      m_dataCenter; ///< inherited DataCenter
-    unique_ptr<SettingsInput>   m_input;      ///< The basic input settings
-    unique_ptr<SettingsOutput>  m_output;     ///< The user-defined outputs, Q, SED, etc
     unique_ptr<ModuleFactory>   m_factory;    ///< Modules factory
 private:
+    /************************************************************************/
+    /*   Pointer or reference of object and data derived from m_dataCenter  */
+    /************************************************************************/
+
+    SettingsInput*              m_input;      ///< The basic input settings
+    SettingsOutput*             m_output;     ///< The user-defined outputs, Q, SED, etc
+
+    
+    clsRasterData<float>*       m_templateRasterData; //! Template raster data
+    map<string, ParamInfo*>     m_parameters;///< Parameters information map, should belong to SettingInput? LJ
 
 
 
     //! MongoDB Client
-    MongoClient *m_client;
-    mongoc_client_t *m_conn;
-    //! output GridFS to store spatial data etc.
-    mongoc_gridfs_t *m_outputGfs;
+    MongoClient *m_conn;
+    //mongoc_client_t *m_conn;
+    ////! output GridFS to store spatial data etc.
+    //mongoc_gridfs_t *m_outputGfs;
     //! Model name
     string m_dbName;
     //! Scenario ID
@@ -185,8 +193,6 @@ private:
     int m_threadNum;
     //! SubBasin ID
     int m_subBasinID;
-    //! Parameters information map, should belong to SettingInput? LJ
-    map<string, ParamInfo *> m_parameters;
 
 
     //! Modules list in current model run
@@ -215,7 +221,7 @@ private:
      *
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void CheckOutput(mongoc_gridfs_t *gfs);
+    void CheckAvailableOutput(MongoGridFS* gfs);
 
     /*!
      * \brief Check whether the output file is valid
@@ -226,7 +232,7 @@ private:
      *
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void CheckOutput(void);
+    void CheckAvailableOutput(void);
 
     //! Check module input data, date and execute module
     void Step(time_t t, int yearIdx, vector<int> &moduleIndex, bool firstRun);
@@ -244,12 +250,6 @@ private:
     string m_projectPath;
     //! Path of the model
     string m_modulePath;
-//    //! The input setting of the model
-//    SettingsInput *m_input;
-//    //! The output setting of the model
-//    SettingsOutput *m_output;
-    //! Template raster data
-    clsRasterData<float> *m_templateRasterData;
     //! Daily time interval
     time_t m_dtDaily;
     //! Hillslope time interval
