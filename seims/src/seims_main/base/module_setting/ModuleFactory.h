@@ -100,10 +100,10 @@ private:
     //int m_port;
     //! Database name of the simulation model
     string m_dbName;
-    //! BMPs Scenario database name
-    string m_dbScenario;
-    //! BMPs Scenario ID
-    int m_scenarioID;
+//    //! BMPs Scenario database name
+//    string m_dbScenario;
+//    //! BMPs Scenario ID
+//    int m_scenarioID;
 
     //! MongoDB Client
     MongoClient* m_conn;

@@ -238,7 +238,6 @@ void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
     for (size_t i = 0; i < m_hillslopeModules.size(); i++) {
         int index = m_hillslopeModules[i];
         SimulationModule *pModule = m_simulationModules[index];
-        //clock_t sub_t1 = clock();
         double sub_t1 = TimeCounting();
         if (m_firstRunOverland) {
             m_factory->GetValueFromDependencyModule(index, m_simulationModules);
@@ -250,7 +249,6 @@ void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
         //cout << "\tHillslope process:" << i << endl;
         pModule->Execute();
 
-        //clock_t sub_t2 = clock();
         double sub_t2 = TimeCounting();
         m_executeTime[index] += (sub_t2 - sub_t1);
     }
@@ -268,10 +266,8 @@ void ModelMain::StepOverall(time_t startT, time_t endT) {
     for (size_t i = 0; i < m_overallModules.size(); i++) {
         int index = m_overallModules[i];
         SimulationModule *pModule = m_simulationModules[index];
-        //clock_t sub_t1 = clock();
         double sub_t1 = TimeCounting();
         pModule->Execute();
-        //clock_t sub_t2 = clock();
         double sub_t2 = TimeCounting();
         m_executeTime[index] += (sub_t2 - sub_t1);
     }
@@ -286,18 +282,15 @@ void ModelMain::Step(time_t t, int yearIdx, vector<int> &moduleIndex, bool first
             m_factory->GetValueFromDependencyModule(index, m_simulationModules);
         }
 
-        //clock_t sub_t1 = clock();
         double sub_t1 = TimeCounting();
         pModule->SetDate(t, yearIdx);
         pModule->Execute();
-        //clock_t sub_t2 = clock();
         double sub_t2 = TimeCounting();
         m_executeTime[index] += (sub_t2 - sub_t1);
     }
 }
 
 void ModelMain::Execute() {
-    //clock_t t1 = clock();
     double t1 = TimeCounting();
     time_t startTime = m_input->getStartTime();
     time_t endTime = m_input->getEndTime();
@@ -317,9 +310,7 @@ void ModelMain::Execute() {
         Output(t);
     }
     StepOverall(startTime, endTime);
-    //clock_t t2 = clock();
     double t2 = TimeCounting();
-    //cout << "time(ms):  " << t2-t1 << endl;
     cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
     OutputExecuteTime();
 }

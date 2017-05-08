@@ -142,8 +142,8 @@ public:
 
     void OutputExecuteTime(void);
 
-    //! Set layering method
-    void SetLayeringMethod(LayeringMethod method) { m_layeringMethod = method; }
+//    //! Set layering method
+//    void SetLayeringMethod(LayeringMethod method) { m_layeringMethod = method; }
 
     //! Execute channel modules in current step
     void StepChannel(time_t t, int yearIdx);
@@ -180,9 +180,6 @@ private:
 
     //! MongoDB Client
     MongoClient *m_conn;
-    //mongoc_client_t *m_conn;
-    ////! output GridFS to store spatial data etc.
-    //mongoc_gridfs_t *m_outputGfs;
     //! Model name
     string m_dbName;
     //! Scenario ID
@@ -209,28 +206,27 @@ private:
     vector<double> m_executeTime;
     //! Time consuming for read files
     float m_readFileTime;
-    //! Layering method
-    LayeringMethod m_layeringMethod;
+//    //! Layering method
+//    LayeringMethod m_layeringMethod;
 
     /*!
      * \brief Check whether the output file is valid
      * \TODO NEED TO BE UPDATED
-     * 1. The output id should be valid for moduls in config files;
+     * 1. The output id should be valid for modules in config files;
      * 2. The date range should be in the data range of file.in;
      * The method should be called after config, input and output is initialed.
      *
-     * \param[in] gfs \a mongoc_gridfs_t
+     * \param[in] gfs \a MongoGridFS
      */
     void CheckAvailableOutput(MongoGridFS* gfs);
 
     /*!
      * \brief Check whether the output file is valid
      * \TODO NEED TO BE UPDATED
-     * 1. The output id should be valid for moduls in config files;
+     * 1. The output id should be valid for modules in config files;
      * 2. The date range should be in the data range of file.in;
      * The method should be called after config, input and output is initialed.
      *
-     * \param[in] gfs \a mongoc_gridfs_t
      */
     void CheckAvailableOutput(void);
 
@@ -248,13 +244,13 @@ private:
     bool m_initialized;
     //! Path of the project
     string m_projectPath;
-    //! Path of the model
-    string m_modulePath;
-    //! Daily time interval
+//    //! Path of the model
+//    string m_modulePath;
+    //! Daily time interval, seconds
     time_t m_dtDaily;
-    //! Hillslope time interval
+    //! Hillslope time interval, seconds
     time_t m_dtHs;
-    //! Channel time interval
+    //! Channel time interval, seconds
     time_t m_dtCh;
 };
 #endif /* SEIMS_MODEL_MAIN_H */
