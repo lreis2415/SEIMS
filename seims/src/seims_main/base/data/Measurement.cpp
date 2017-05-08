@@ -1,6 +1,6 @@
 #include "Measurement.h"
 
-Measurement::Measurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType, time_t startTime,
+Measurement::Measurement(MongoClient *conn, string hydroDBName, string sitesList, string siteType, time_t startTime,
                          time_t endTime) : m_conn(conn), m_hydroDBName(hydroDBName), m_type(siteType),
                                            m_startTime(startTime), m_endTime(endTime), pData(NULL) {
     m_siteIDList = SplitStringForInt(sitesList, ',');
@@ -9,5 +9,5 @@ Measurement::Measurement(mongoc_client_t *conn, string hydroDBName, string sites
 }
 
 Measurement::~Measurement(void) {
-    if (pData != NULL) Release1DArray(pData);
+    Release1DArray(pData);
 }

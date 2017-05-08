@@ -4,8 +4,8 @@
  * \date May 2010
  * \revised Feb 2017
  */
-#ifndef SEIMS_INVOKE
-#define SEIMS_INVOKE
+#ifndef SEIMS_INVOKE_H
+#define SEIMS_INVOKE_H
 
 #include "DataCenter.h"
 #include "ModelMain.h"
@@ -15,16 +15,6 @@
 #include "Settings.h"
 
 using namespace std;
-
-//! Check database to make sure the collections (tables) are provided
-void checkDatabase(mongoc_client_t *conn, string dbName);
-
-//! Check project directory for the required input files
-void checkProject(string projectPath);
-
-//! Check table exists or not
-void checkTable(vector <string> &tableNameList, string dbName, const char *tableName);
-
 
 /*!
  * \brief SEIMS main invoke entrance using MongoDB
@@ -39,4 +29,4 @@ void checkTable(vector <string> &tableNameList, string dbName, const char *table
 int MainMongoDB(string modelPath, char* host, uint16_t port, int scenarioID,
                 int numThread, LayeringMethod lyrMethod);
 
-#endif
+#endif /* SEIMS_INVOKE_H */

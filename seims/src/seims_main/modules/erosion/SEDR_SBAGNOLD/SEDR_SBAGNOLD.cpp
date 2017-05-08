@@ -315,8 +315,8 @@ void SEDR_SBAGNOLD::Get2DData(const char *key, int *nRows, int *nCols, float ***
 
 void SEDR_SBAGNOLD::SetScenario(Scenario *sce) {
     if (sce != NULL) {
-        map < int, BMPFactory * > *tmpBMPFactories = sce->GetBMPFactories();
-        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories->begin(); it != tmpBMPFactories->end(); it++) {
+        map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
+        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
                 m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second;

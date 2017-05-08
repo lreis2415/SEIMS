@@ -71,8 +71,8 @@ void NPS_Management::Set2DData(const char *key, int n, int col, float **data) {
 
 void NPS_Management::SetScenario(Scenario *sce) {
     if (sce != NULL) {
-        map < int, BMPFactory * > *tmpBMPFactories = sce->GetBMPFactories();
-        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories->begin(); it != tmpBMPFactories->end(); it++) {
+        map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
+        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_AREALSOURCE) {
                 m_arealSrcFactory[it->first] = (BMPArealSrcFactory *) it->second;

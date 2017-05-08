@@ -105,6 +105,7 @@ int main(int argc, const char *argv[]) {
         cout << "Unknown exception occurred!" << endl;
         return -1;
     }
+    return 0;
 
     errexit:
     cout << "Simple Usage:\n " << argv[0] << " <ModelPath>" << endl;

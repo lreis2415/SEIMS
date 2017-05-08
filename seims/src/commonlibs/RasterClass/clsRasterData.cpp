@@ -160,7 +160,7 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T **&values, 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, 
+clsRasterData<T, MaskT>::clsRasterData(MongoGridFS* gfs, const char *remoteFilename,
                                        bool calcPositions /* = true */, 
                                        clsRasterData<MaskT> *mask /* = NULL */, 
                                        bool useMaskExtent /* = true */, 
@@ -747,7 +747,7 @@ void clsRasterData<T, MaskT>::outputFileByGDAL(string filename) {
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::outputToMongoDB(string  filename, mongoc_gridfs_t *gfs){
+void clsRasterData<T, MaskT>::outputToMongoDB(string filename, MongoGridFS* gfs){
     /// 1. Is there need to calculate valid position index?
     int count;
     int** position;
@@ -823,7 +823,7 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string  filename, mongoc_gridfs_t 
     }
 }
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, 
+void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(MongoGridFS* gfs, string filename,
     map<string, double>& header, string srs, T *values, size_t datalength) {
     bson_t p = BSON_INITIALIZER;
     for (map<string, double>::iterator iter = header.begin(); iter != header.end(); iter++){
@@ -832,7 +832,7 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(mongoc_gridfs_t* gfs,
     BSON_APPEND_UTF8(&p, HEADER_RS_SRS, srs.c_str());
     char* buf = (char* )values;
     size_t buflength = datalength * sizeof(T);
-    MongoGridFS().writeStreamData(filename, buf, buflength, &p, gfs);
+    gfs.writeStreamData(filename, buf, buflength, &p);
     bson_destroy(&p);
 }
 #endif /* USE_MONGODB */
@@ -868,15 +868,14 @@ void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* 
 
 #ifdef USE_MONGODB
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filename, bool calcPositions /* = true */, 
+void clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS* gfs, string filename, bool calcPositions /* = true */,
     clsRasterData<MaskT> *mask /* = NULL */, bool useMaskExtent /* = true */, T defalutValue /* = (T) NODATA_VALUE */){
     this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
     /// 1. Get stream data and metadata by file name
-    MongoGridFS mgfs = MongoGridFS();
     char* buf;
     size_t length;
-    mgfs.getStreamData(filename, buf, length, gfs);
-    bson_t *bmeta = mgfs.getFileMetadata(filename, gfs);
+    gfs->getStreamData(filename, buf, length);
+    bson_t *bmeta = gfs->getFileMetadata(filename);
     /// 2. Retrieve raster header values
     const char* RASTER_HEADERS[8] = {HEADER_RS_NCOLS, HEADER_RS_NROWS, HEADER_RS_XLL, HEADER_RS_YLL, HEADER_RS_CELLSIZE,
         HEADER_RS_NODATA, HEADER_RS_LAYERS, HEADER_RS_CELLSNUM};
@@ -892,8 +891,9 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(mongoc_gridfs_t *gfs,string  filen
     if (m_headers.find(HEADER_RS_CELLSNUM) != m_headers.end())
         m_nCells = (int) m_headers[HEADER_RS_CELLSNUM];
     /// TODO (by LJ), currently data stored in MongoDB is always float. I can not find a elegant way to make it template.
-    if (m_nCells < 0)
+    if (m_nCells < 0) {
         m_nCells = length / sizeof(float) / m_nLyrs;
+    }
 
     /// 3. Store data.
     bool reBuildData = false;

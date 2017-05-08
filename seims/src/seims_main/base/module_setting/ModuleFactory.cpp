@@ -23,32 +23,46 @@
 //#endif /* USE_MONGODB */
 //}
 
-ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, 
-                             string &dbName, int subBasinID, LayeringMethod layingMethod, 
-                             int scenarioID, SettingsInput*& input): 
-    m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID),
-    m_layingMethod(layingMethod), m_scenarioID(scenarioID), m_setingsInput(input),
-    m_subbasins(NULL), m_scenario(NULL), m_reaches(NULL) {
+//ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, 
+//                             string &dbName, int subBasinID, LayeringMethod layingMethod, 
+//                             int scenarioID, SettingsInput*& input): 
+//    m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID),
+//    m_layingMethod(layingMethod), m_scenarioID(scenarioID), m_setingsInput(input),
+//    m_subbasins(NULL), m_scenario(NULL), m_reaches(NULL) {
+//    Init(configFileName);
+//    bson_error_t *err = NULL;
+//    m_spatialData = NULL;
+//    m_spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
+//    m_rsMap.clear();
+//    if (err != NULL)
+//        throw ModelException("ModuleFactory", "Constructor", "Failed to connect to " + string(DB_TAB_SPATIAL) + " GridFS!\n");
+//
+//    if (m_scenarioID != -1) /// -1 means this model doesn't need scenario information
+//    {
+//        GetBMPScenarioDBName();
+//        m_scenario = new Scenario(m_conn, m_dbScenario, m_scenarioID);
+//        //m_scenario->Dump("e:\\test\\bmpScenario.txt");/// Write BMPs Scenario Information to Text file
+//    }
+//}
+ModuleFactory::ModuleFactory(unique_ptr<DataCenter>& dcenter) : m_dataCenter(move(dcenter)),
+m_setingsInput(NULL),
+m_subbasins(NULL), m_scenario(NULL), m_reaches(NULL), m_climStation(NULL){
+    m_modulePath = m_dataCenter->getModulePath();
+    m_dbName = m_dataCenter->getModelName();
+    m_subBasinID = m_dataCenter->getSubbasinID();
+    m_layingMethod = m_dataCenter->getLayeringMethod();
+    m_scenarioID = m_dataCenter->getScenarioID();
+    m_setingsInput = m_dataCenter->getSettingInput();
+    m_subbasins = m_dataCenter->getSubbasinData();
+    m_reaches = m_dataCenter->getReachesData();
+    m_scenario = m_dataCenter->getScenarioData();
+    m_climStation = m_dataCenter->getClimateStation();
+
+    string configFileName = m_dataCenter->getModelName() + SEP + File_Config;
     Init(configFileName);
-    bson_error_t *err = NULL;
-    m_spatialData = NULL;
-    m_spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
-    m_rsMap.clear();
-    if (err != NULL)
-        throw ModelException("ModuleFactory", "Constructor", "Failed to connect to " + string(DB_TAB_SPATIAL) + " GridFS!\n");
-
-    if (m_scenarioID != -1) /// -1 means this model doesn't need scenario information
-    {
-        GetBMPScenarioDBName();
-        m_scenario = new Scenario(m_conn, m_dbScenario, m_scenarioID);
-        //m_scenario->Dump("e:\\test\\bmpScenario.txt");/// Write BMPs Scenario Information to Text file
-    }
 }
-
 ModuleFactory::~ModuleFactory(void) {
     StatusMessage("Start to release ModuleFactory ...");
-    if (m_spatialData != NULL) mongoc_gridfs_destroy(m_spatialData);
-    //mongoc_client_destroy(m_conn); // m_conn will be released in MongoClient
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
     StatusMessage("---release map of SEIMSModuleSettings ...");
@@ -82,7 +96,7 @@ ModuleFactory::~ModuleFactory(void) {
         it = m_parametersInDB.erase(it);
     }
     m_parametersInDB.clear();
-    StatusMessage("---release Interpolation weighte data ...");
+    StatusMessage("---release Interpolation weight data ...");
     for (map<string, clsInterpolationWeightData *>::iterator it = m_weightDataMap.begin();
          it != m_weightDataMap.end();) {
         if (it->second != NULL) {
@@ -123,21 +137,7 @@ ModuleFactory::~ModuleFactory(void) {
     }
     m_2DArrayMap.clear();
 
-    if (m_scenario != NULL) {
-        StatusMessage("---release bmps scenario data ...");
-        delete m_scenario;
-        m_scenario = NULL;
-    }
-    if (m_reaches != NULL) {
-        StatusMessage("---release reaches data ...");
-        delete m_reaches;
-        m_reaches = NULL;
-    }
-    if (m_subbasins != NULL) {
-        StatusMessage("---release subbasins data ...");
-        delete m_subbasins;
-        m_subbasins = NULL;
-    }
+    
     StatusMessage("---release dynamic library handles ...");
     for (size_t i = 0; i < m_dllHandles.size(); i++) {
 #ifdef windows
@@ -198,9 +198,9 @@ void ModuleFactory::Init(const string &configFileName) {
         ReadInputSetting(id, doc, m_settings[id]);
         ReadOutputSetting(id, doc, m_settings[id]);
     }
-    map < string, vector < ParamInfo > > (m_moduleParameters).swap(m_moduleParameters);
-    map < string, vector < ParamInfo > > (m_moduleInputs).swap(m_moduleInputs);
-    map < string, vector < ParamInfo > > (m_moduleOutputs).swap(m_moduleOutputs);
+    map<string, vector<ParamInfo> > (m_moduleParameters).swap(m_moduleParameters);
+    map<string, vector<ParamInfo> > (m_moduleInputs).swap(m_moduleInputs);
+    map<string, vector<ParamInfo> >(m_moduleOutputs).swap(m_moduleOutputs);
     // set the connections among objects
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
@@ -218,41 +218,36 @@ void ModuleFactory::Init(const string &configFileName) {
     }
 }
 
-void ModuleFactory::GetBMPScenarioDBName() {
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
-    const bson_t *doc;
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_SCENARIO);
-    bson_t *filter = bson_new();
-#if MONGOC_CHECK_VERSION(1, 5, 0)
-    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-#else
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-        bson_iter_t iter;
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
-            m_dbScenario = GetStringFromBsonIterator(&iter);
-            break;
-        }
-    }
-    bson_destroy(filter);
-    mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
-}
+//void ModuleFactory::GetBMPScenarioDBName() {
+//    mongoc_cursor_t *cursor;
+//    mongoc_collection_t *collection;
+//    const bson_t *doc;
+//    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_SCENARIO);
+//    bson_t *filter = bson_new();
+//#if MONGOC_CHECK_VERSION(1, 5, 0)
+//    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
+//#else
+//    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
+//#endif /* MONGOC_CHECK_VERSION */
+//    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
+//        bson_iter_t iter;
+//        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
+//            m_dbScenario = GetStringFromBsonIterator(&iter);
+//            break;
+//        }
+//    }
+//    bson_destroy(filter);
+//    mongoc_cursor_destroy(cursor);
+//    mongoc_collection_destroy(collection);
+//}
 
 void ModuleFactory::ReadParametersFromMongoDB() {
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
     bson_error_t *err = NULL;
     const bson_t *info;
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_PARAMETERS);
     bson_t *filter = bson_new();
-#if MONGOC_CHECK_VERSION(1, 5, 0)
-    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-#else
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(m_dbName, DB_TAB_PARAMETERS)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
+
     if (mongoc_cursor_error(cursor, err)) {
         throw ModelException("ModuleFactory", "ReadParametersFromMongoDB",
                              "Nothing found in the collection: " + string(DB_TAB_PARAMETERS) + ".\n");
@@ -287,7 +282,6 @@ void ModuleFactory::ReadParametersFromMongoDB() {
         m_parametersInDB[GetUpper(p->Name)] = p;
     }
     mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
     bson_destroy(filter);
 }
 
@@ -305,13 +299,11 @@ string ModuleFactory::GetComparableName(string &paraName) {
     return compareName;
 }
 
-float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThreads, LayeringMethod layeringMethod,
-                                      clsRasterData<float> *templateRaster, vector<SimulationModule *> &modules) {
-    m_layingMethod = layeringMethod;
+float ModuleFactory::CreateModuleList(vector<SimulationModule *> &modules) {
     size_t n = m_moduleIDs.size();
     for (size_t i = 0; i < n; i++) {
         SimulationModule *pModule = GetInstance(m_moduleIDs[i]);
-        pModule->SetTheadNumber(numThreads);
+        pModule->SetTheadNumber(m_dataCenter->getThreadNumber());
         modules.push_back(pModule);
     }
     double t1 = TimeCounting();
@@ -319,7 +311,7 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
     //cout << "reading parameter information from database...\n";
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
-        vector <ParamInfo> &parameters = m_moduleParameters[id];
+        vector<ParamInfo> &parameters = m_moduleParameters[id];
 
         bool verticalInterpolation = true;
         /// Special operation for ITP module
@@ -339,7 +331,7 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
         }
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo &param = parameters[j];
-            SetData(dbName, subbasinID, m_settings[id], &param, templateRaster, modules[i],
+            SetData(m_dbName, m_subBasinID, m_settings[id], &param, m_maskRaster, modules[i],
                     verticalInterpolation);
         }
     }
@@ -854,7 +846,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector <vector<st
 }
 
 void ModuleFactory::ReadConfigFile(const char *configFileName) {
-    vector <vector<string>> settings;
+    vector<vector<string> > settings;
     LoadSettingsFromFile(configFileName, settings);
 
     try {
@@ -1035,9 +1027,8 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         /// 3. IF Meteorology sites data
     else if (StringMatch(paraName, Tag_Elevation_Meteorology)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Meteorology);
-            data = pStation->GetElevation(DataType_Meteorology);
+            n = m_climStation->NumberOfSites(DataType_Meteorology);
+            data = m_climStation->GetElevation(DataType_Meteorology);
         } else {
             return;
         }
@@ -1045,9 +1036,8 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         /// 4. IF Precipitation sites data
     else if (StringMatch(paraName, Tag_Elevation_Precipitation)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Precipitation);
-            data = pStation->GetElevation(DataType_Precipitation);
+            n = m_climStation->NumberOfSites(DataType_Precipitation);
+            data = m_climStation->GetElevation(DataType_Precipitation);
         } else {
             return;
         }
@@ -1055,9 +1045,8 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         /// 5. IF Latitude of sites
     else if (StringMatch(paraName, Tag_Latitude_Meteorology)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Meteorology);
-            data = pStation->GetLatitude(DataType_Meteorology);
+            n = m_climStation->NumberOfSites(DataType_Meteorology);
+            data = m_climStation->GetLatitude(DataType_Meteorology);
         } else {
             return;
         }
@@ -1228,7 +1217,7 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
 /// Added by Liang-Jun Zhu, 2016-6-22
 void ModuleFactory::SetScenario(SimulationModule *pModule) {
     if (NULL == m_scenario) {
-        return;
+        throw ModelException("ModuleFactory", "SetReaches", "Scenarios has not been set!");;
     } else {
         pModule->SetScenario(m_scenario);
     }
@@ -1237,7 +1226,7 @@ void ModuleFactory::SetScenario(SimulationModule *pModule) {
 /// Added by Liang-Jun Zhu, 2016-7-2
 void ModuleFactory::SetReaches(SimulationModule *pModule) {
     if (NULL == m_reaches) {
-        m_reaches = new clsReaches(m_conn, m_dbName, DB_TAB_REACH);
+        throw ModelException("ModuleFactory", "SetReaches", "Reaches has not been set!");
     }
     pModule->SetReaches(m_reaches);
 }
@@ -1251,10 +1240,7 @@ void ModuleFactory::AddMaskRaster(string maskName, clsRasterData<float> *maskDat
 /// Added by Liang-Jun Zhu, 2016-7-28
 void ModuleFactory::SetSubbasins(SimulationModule *pModule) {
     if (NULL == m_subbasins) {
-        m_subbasins = clsSubbasins::Init(m_spatialData, m_rsMap, m_subBasinID);
-        if (NULL == m_subbasins) {
-            throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data can not be initialized!");
-        }
+        throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data has not been initialized!");
     }
     pModule->SetSubbasins(m_subbasins);
 }
@@ -1280,8 +1266,7 @@ void ModuleFactory::UpdateInput(vector<SimulationModule * > &modules, time_t t) 
             if (dataType.length() > 0) {
                 int datalen;
                 float *data;
-
-                m_setingsInput->StationData()->GetTimeSeriesData(t, dataType, &datalen, &data);
+                m_climStation->GetTimeSeriesData(t, dataType, &datalen, &data);
                 if (StringMatch(param.Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int iData = 0; iData < datalen; iData++) {
                         data[iData] *= m_parametersInDB[VAR_K_PET]->GetAdjustedValue();

@@ -10,6 +10,7 @@
  * \revised Dec. 2016 Separated from SEIMS to a common library for widely use.
  * \revised Mar. 2017 VLD check, bug fixed, function enhanced.
  * \revised Apr. 2017 Avoid try...catch block
+ * \revised May. 2017 Use MongoDB wrapper
  */
 #ifndef CLS_RASTER_DATA
 #define CLS_RASTER_DATA
@@ -153,7 +154,7 @@ public:
      * \param[in] mask \a clsRasterData<MaskT> Mask layer
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
+    clsRasterData(MongoGridFS* gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 #endif
     /*!
     * \brief Copy constructor
@@ -208,7 +209,7 @@ public:
      * \param[in] mask \a clsRasterData<MaskT>
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
+    void ReadFromMongoDB(MongoGridFS* gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T)NODATA_VALUE);
 #endif /* USE_MONGODB */
     /************* Write functions ***************/
 
@@ -236,7 +237,7 @@ public:
      * \param[in] filename \a string, output file name
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void outputToMongoDB(string filename, mongoc_gridfs_t *gfs);
+    void outputToMongoDB(string filename, MongoGridFS* gfs);
 #endif /* USE_MONGODB */
 
     /************************************************************************/
@@ -647,7 +648,7 @@ private:
      * \param[in] srs Coordinate system string
      * \param[in] values float raster data array
      */
-    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
+    void _write_stream_data_as_gridfs(MongoGridFS* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
 #endif /* USE_MONGODB */
 
     /*!

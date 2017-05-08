@@ -1,7 +1,7 @@
 #include "RegularMeasurement.h"
 
 //! Constructor
-RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType,
+RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
     int nSites = (int) m_siteIDList.size();
@@ -42,23 +42,25 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
     bson_append_document_end(query, child);
     bson_destroy(child);
     //printf("%s\n", bson_as_json(query,NULL));
+
     // perform query and read measurement data
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
-    const bson_t *doc;
-    collection = mongoc_client_get_collection(m_conn, hydroDBName.c_str(), DB_TAB_DATAVALUES);
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_DATAVALUES)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+
     float value;
     int stationIDLast = -1;
     int stationID = -1;
     int iSite = -1;
     vector<int>::size_type index = 0;
+    const bson_t *doc;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
             GetNumericFromBsonIterator(&iter, stationID);
         } else {
-            throw ModelException("Measurement", "Measurement", "The Value field does not exist in DataValues table.");
+            throw ModelException("RegularMeasurement", "Constructor", 
+                "The Value field: " + string(MONG_HYDRO_DATA_SITEID) + 
+                " does not exist in DataValues table.");
         }
         if (stationID != stationIDLast) {
             iSite++;
@@ -67,7 +69,7 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
         }
 
         if (m_siteData.size() < (index + 1)) {
-            float *pData = new float[nSites];
+            float* pData = new float[nSites];
             for (int i = 0; i < nSites; i++) {
                 pData[i] = 0.f;
             }
@@ -77,7 +79,8 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
             GetNumericFromBsonIterator(&iter, value);
         } else {
             throw ModelException("RegularMeasurement", "Constructor",
-                                 "The Value field does not exist in DataValues table.");
+                "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
+                " does not exist in DataValues table.");
         }
         m_siteData[index][iSite] = value;
         index++;
@@ -97,7 +100,6 @@ RegularMeasurement::RegularMeasurement(mongoc_client_t *conn, string hydroDBName
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
 }
 
 RegularMeasurement::~RegularMeasurement(void) {
@@ -109,7 +111,6 @@ RegularMeasurement::~RegularMeasurement(void) {
         it = m_siteData.erase(it);
     }
     m_siteData.clear();
-    if (pData != NULL) Release1DArray(pData);
 }
 
 float *RegularMeasurement::GetSiteDataByTime(time_t t) {
