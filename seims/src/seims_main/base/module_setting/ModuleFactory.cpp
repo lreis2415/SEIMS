@@ -884,6 +884,8 @@ void ModuleFactory::SetValue(ParamInfo *param, FloatRaster templateRaster, Simul
         param->Value = float(m_setingsInput->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
         param->Value = float(m_setingsInput->getDtChannel());
+    } else if (StringMatch(param->Name, Tag_LayeringMethod)) {
+        param->Value = (float)m_layingMethod;
     } else {
         if (m_parametersInDB.find(GetUpper(param->Name)) != m_parametersInDB.end()) {
             param->Value = m_parametersInDB[GetUpper(param->Name)]->GetAdjustedValue();

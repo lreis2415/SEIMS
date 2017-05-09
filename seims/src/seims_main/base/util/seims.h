@@ -13,10 +13,8 @@
  * \brief Grid layering method for routing and parallel computing
  */
 enum LayeringMethod {
-    /// layering-from-source method
-    UP_DOWN,
-    /// layering-from-outlet method
-    DOWN_UP
+    UP_DOWN,   ///< layering-from-source method
+    DOWN_UP    ///< layering-from-outlet method
 };
 enum FlowDirectionMethod {
     TauDEM = 0,
