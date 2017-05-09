@@ -125,7 +125,7 @@ m_dataCenter(move(dcenter)), m_factory(move(mfactory)) {
     m_readFileTime = m_factory->CreateModuleList(m_simulationModules);
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
-    for (size_t i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         SimulationModule *pModule = m_simulationModules[i];
         switch (pModule->GetTimeStepType()) {
         case TIMESTEP_HILLSLOPE: {
