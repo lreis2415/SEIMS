@@ -30,6 +30,8 @@ public:
 
     virtual int Execute(void);
 
+    virtual void SetReaches(clsReaches *reaches);
+
     virtual void SetValue(const char *key, float data);
 
     virtual void GetValue(const char *key, float *value);
@@ -57,6 +59,8 @@ private:
     int m_nCells;
     ///< cell width of the grid (m)
     float m_CellWidth;
+    ///< layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    float m_layeringMethod;
     ///< time step (second)
     float m_dt;
     ///< slope (percent)
