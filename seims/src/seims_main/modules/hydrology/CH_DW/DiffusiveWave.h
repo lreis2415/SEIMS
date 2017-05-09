@@ -1,15 +1,16 @@
 /*!
  * \brief routing in the channel cells using 4-point implicit finite difference method
- * \author Junzhi Liu
- * \version 1.0
- * \date Feb. 2011
+ * \author Junzhi Liu, Liangjun Zhu
+ * \version 1.1
+ * \date May 2017
+ * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM
  */
 #pragma once
 
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup CH_DW
+/*! \defgroup CH_DW
  * \ingroup Hydrology
  * \brief Channel routing using diffusive wave equation.
  */

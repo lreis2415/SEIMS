@@ -222,10 +222,10 @@ public:
     clsReach *GetReachByID(int id) { return m_reachesInfo.at(id); }
 
     /// Get reach number
-    int GetReachNumber(void) { return this->m_reachNum; }
+    int GetReachNumber(void) const { return this->m_reachNum; }
 
     /// Get reach IDs (vector)
-    vector<int> &GetReachIDs(void) { return this->m_reachIDs; }
+    vector<int>& GetReachIDs(void) { return this->m_reachIDs; }
 
 private:
     /// reaches number
