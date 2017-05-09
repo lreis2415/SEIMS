@@ -120,6 +120,7 @@
 #define Tag_HillSlopeTimeStep                  "DT_HS"
 #define Tag_ChannelTimeStep                    "DT_CH"
 #define Tag_CellWidth                          "CELLWIDTH" // this is the size of a single CELL
+#define Tag_LayeringMethod                     "LayeringMethod"
 
 // D8 Flow model
 #define Tag_FLOWIN_INDEX_D8                    "FLOWIN_INDEX_D8"
@@ -1145,6 +1146,7 @@
 #define DESC_CDN "rate coefficient for denitrification"
 #define DESC_CELL_LAT "latitude of each valid cells"
 #define DESC_CellSize "numble of valid cells, i.e., excluding NODATA"
+#define DESC_LayeringMethod "Routing layering method"
 #define DESC_CellWidth "width of the cell"
 #define DESC_CH_DEP "distribution of channel sediment deposition"
 #define DESC_CH_DET "distribution of channel flow detachment"
