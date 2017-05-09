@@ -1,5 +1,5 @@
 /*!
- * \brief Methods for clsInterpolationWeightData class
+ * \brief Methods for clsITPWeightData class
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
  * \date May. 2017
@@ -15,14 +15,14 @@ using namespace std;
 
 /*!
  * \ingroup data
- * \class clsInterpolationWeightData
+ * \class clsITPWeightData
  *
  * \brief 
  */
-class clsInterpolationWeightData {
+class clsITPWeightData {
 public:
     //! Constructor
-    //clsInterpolationWeightData(string weightFileName);
+    //clsITPWeightData(string weightFileName);
 
     /*!
      * \brief Overload constructor
@@ -30,10 +30,10 @@ public:
      * \param[in] gfs MongoGridFS
      * \param[in] remoteFilename
      */
-    clsInterpolationWeightData(MongoGridFS* gfs, const char *remoteFilename);
+    clsITPWeightData(MongoGridFS* gfs, const char *remoteFilename);
 
     //! Destructor
-    ~clsInterpolationWeightData(void);
+    ~clsITPWeightData(void);
 
     /*!
      * \brief Get the weight data read from mongoDB

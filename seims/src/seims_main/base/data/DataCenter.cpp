@@ -8,20 +8,44 @@ DataCenter::DataCenter(const string modelPath, const string modulePath,
         m_modelPath(modelPath), m_modulePath(modulePath),
         m_lyrMethod(layeringMethod), m_subbasinID(subBasinID), m_scenarioID(scenarioID),
         m_threadNum(numThread), m_useScenario(false), m_outputScene(DB_TAB_OUT_SPATIAL),
-        m_outputPath(""),
-        m_input(NULL), m_output(NULL), m_scenario(NULL) {
+        m_outputPath(""), m_modelMode(""), m_nSubbasins(-1), m_outletID(-1),
+        m_input(NULL), m_output(NULL), m_climStation(NULL), m_scenario(NULL),
+        m_reaches(NULL), m_subbasins(NULL), m_maskRaster(NULL)
+{
     /// Get model name
     size_t nameIdx = modelPath.rfind(SEP);
     m_modelName = modelPath.substr(nameIdx + 1);
+    /// Check configuration files
+    m_fileInFile = modelPath + SEP + File_Input;
+    m_fileOutFile = modelPath + SEP + File_Output;
+    m_fileCfgFile = modelPath + SEP + File_Config;
+    checkConfigurationFiles();
+    /// Clean output folder
     if (m_scenarioID >= 0) { // -1 means no BMPs scenario will be simulated
         m_outputScene += ValueToString(m_scenarioID);
+        m_outputPath = m_modelPath + SEP + m_outputScene;
+        createOutputFolder();
+        /// Be aware, m_useScenario will be updated in checkModelPreparedData().
     }
-    checkConfigurationFiles();
-    createOutputFolder();
 }
 
 DataCenter::~DataCenter() {
     StatusMessage("Release DataCenter...");
+    if (m_input != NULL) {
+        StatusMessage("---release setting input data ...");
+        delete m_input;
+        m_input = NULL;
+    }
+    if (m_output != NULL) {
+        StatusMessage("---release setting output data ...");
+        delete m_output;
+        m_output = NULL;
+    }
+    if (m_climStation != NULL) {
+        StatusMessage("---release climate station data ...");
+        delete m_climStation;
+        m_climStation = NULL;
+    }
     if (m_scenario != NULL) {
         StatusMessage("---release bmps scenario data ...");
         delete m_scenario;
@@ -37,14 +61,63 @@ DataCenter::~DataCenter() {
         delete m_subbasins;
         m_subbasins = NULL;
     }
+    StatusMessage("---release map of all 1D and 2D raster data ...");
+    for (map<string, clsRasterData<float>* > ::iterator it = m_rsMap.begin(); it != m_rsMap.end();)
+    {
+        if (it->second != NULL) {
+            StatusMessage(("-----" + it->first + " ...").c_str());
+            delete it->second;
+            it->second = NULL;
+        }
+        it = m_rsMap.erase(it);
+    }
+    m_rsMap.clear();
+    StatusMessage("---release map of parameters in MongoDB ...");
+    for (map<string, ParamInfo *>::iterator it = m_initParameters.begin(); it != m_initParameters.end();) {
+        if (it->second != NULL) {
+            StatusMessage(("-----" + it->first + " ...").c_str());
+            delete it->second;
+            it->second = NULL;
+        }
+        it = m_initParameters.erase(it);
+    }
+    m_initParameters.clear();
+    StatusMessage("---release map of 1D array data ...");
+    for (map<string, float *>::iterator it = m_1DArrayMap.begin(); it != m_1DArrayMap.end();) {
+        if (it->second != NULL) {
+            StatusMessage(("-----" + it->first + " ...").c_str());
+            Release1DArray(it->second);
+        }
+        it = m_1DArrayMap.erase(it);
+    }
+    m_1DArrayMap.clear();
+    StatusMessage("---release map of 2D array data ...");
+    for (map<string, float **>::iterator it = m_2DArrayMap.begin(); it != m_2DArrayMap.end();) {
+        if (it->second != NULL) {
+            StatusMessage(("-----" + it->first + " ...").c_str());
+            Release2DArray(m_2DRowsLenMap[it->first], it->second);
+        }
+        it = m_2DArrayMap.erase(it);
+    }
+    m_2DArrayMap.clear();
+    StatusMessage("---release Interpolation weight data ...");
+    for (map<string, clsITPWeightData *>::iterator it = m_weightDataMap.begin();
+        it != m_weightDataMap.end();) {
+        if (it->second != NULL) {
+            StatusMessage(("-----" + it->first + " ...").c_str());
+            delete it->second;
+            it->second = NULL;
+        }
+        it = m_weightDataMap.erase(it);
+    }
+    m_weightDataMap.clear();
 }
 
 bool DataCenter::checkConfigurationFiles(void) {
-    string cfgNames[] = { File_Config, File_Input, File_Output };
+    string cfgNames[] = { m_fileInFile, m_fileOutFile, m_fileCfgFile };
     for (int i = 0; i < cfgNames->size(); ++i) {
-        string checkFilePath = m_modelPath + SEP + cfgNames[i]; 
-        if (!FileExists(checkFilePath)) {
-            throw ModelException("DataCenter", "checkConfigurationFiles", checkFilePath +
+        if (!FileExists(cfgNames[i])) {
+            throw ModelException("DataCenter", "checkConfigurationFiles", cfgNames[i] +
                 " does not exist or has not the read permission!");
             return false;
         }
@@ -53,7 +126,6 @@ bool DataCenter::checkConfigurationFiles(void) {
 }
 
 bool DataCenter::createOutputFolder(void) {
-    m_outputPath = m_modelPath + SEP + m_outputScene;
     return CleanDirectory(m_outputPath);
 }
 
@@ -89,11 +161,22 @@ DataCenterMongoDB::DataCenterMongoDB(const char *host, const uint16_t port, cons
     if (!checkModelPreparedData()) {
         throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "Model data has not been set up!");
     }
-
 }
 
 DataCenterMongoDB::~DataCenterMongoDB() {
-
+    StatusMessage("Release DataCenter...");
+    if (m_spatialGridFS != NULL) {
+        delete m_spatialGridFS;
+        m_spatialGridFS = NULL;
+    }
+    if (m_mainDatabase != NULL) {
+        delete m_mainDatabase;
+        m_mainDatabase = NULL;
+    }
+    if (m_mongoClient != NULL) {
+        delete m_mongoClient;
+        m_mongoClient = NULL;
+    }
 }
 
 bool DataCenterMongoDB::checkModelPreparedData(void) {
@@ -146,7 +229,10 @@ bool DataCenterMongoDB::checkModelPreparedData(void) {
     m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
     /// Read Subbasin data
     m_subbasins = new clsSubbasins(m_spatialGridFS, m_rsMap, m_subbasinID);
-
+    /// Read initial parameters
+    if (!readParametersInDB()) {
+        return false;
+    }
     return true;
 }
 
@@ -362,4 +448,162 @@ void DataCenterMongoDB::readClimateSiteList(void)
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);
+}
+
+bool DataCenterMongoDB::readParametersInDB(void) {
+    bson_error_t *err = NULL;
+    const bson_t *info;
+    bson_t *filter = bson_new();
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_PARAMETERS)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
+
+    if (mongoc_cursor_error(cursor, err)) {
+        cout << "ERROR: Nothing found in the collection: " << DB_TAB_PARAMETERS << "." << endl;
+        return false;
+    }
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
+        ParamInfo *p = new ParamInfo();
+        bson_iter_t iter;
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_NAME)) {
+            p->Name = GetStringFromBsonIterator(&iter);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_UNIT)) {
+            p->Units = GetStringFromBsonIterator(&iter);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_VALUE)) {
+            GetNumericFromBsonIterator(&iter, p->Value);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
+            p->Change = GetStringFromBsonIterator(&iter);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
+            GetNumericFromBsonIterator(&iter, p->Impact);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_MAX)) {
+            GetNumericFromBsonIterator(&iter, p->Maximum);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
+            GetNumericFromBsonIterator(&iter, p->Minimun);
+        }
+        if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
+            p->Use = GetStringFromBsonIterator(&iter);
+        }
+        if (!m_initParameters.insert(make_pair(GetUpper(p->Name), p)).second) {
+            cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
+            return false;
+        }
+    }
+    mongoc_cursor_destroy(cursor);
+    bson_destroy(filter);
+    return true;
+}
+
+FloatRaster DataCenterMongoDB::readRasterData(string& remoteFilename) {
+    FloatRaster rasterData = new clsRasterData<float>(m_spatialGridFS, remoteFilename.c_str(), true, m_maskRaster, true);
+    /// using insert() to make sure the successful insertion.
+    if (!m_rsMap.insert(make_pair(remoteFilename, rasterData)).second) {
+        delete rasterData;
+        return NULL;
+    }
+    return rasterData;
+}
+
+void DataCenterMongoDB::readItpWeightData(string& remoteFilename, int& num, float*& data) {
+    clsITPWeightData* weightData = new clsITPWeightData(m_spatialGridFS, remoteFilename.c_str());
+    weightData->getWeightData(&num, &data);
+    if (!m_weightDataMap.insert(make_pair(remoteFilename, weightData)).second) {
+        /// if insert data failed, release clsITPWeightData in case of memory leak
+        delete weightData;
+    }
+}
+
+void DataCenterMongoDB::read1DArrayData(string& paramName, string& remoteFilename, 
+                                        int& num, float*& data) {
+    char *databuf = NULL;
+    size_t datalength;
+    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    float *floatValues = (float *)databuf;
+    num = datalength / 4;
+    data = (float *)databuf;
+    if (!StringMatch(paramName, Tag_Weight)) {
+        m_1DArrayMap.insert(make_pair(remoteFilename, data));
+        m_1DLenMap.insert(make_pair(remoteFilename, num));
+    }
+}
+
+void DataCenterMongoDB::read2DArrayData(string& remoteFilename, int& rows, int& cols, float**& data) {
+    char *databuf = NULL;
+    size_t datalength;
+    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    float *floatValues = (float *)databuf;
+
+    int nRows = (int)floatValues[0];
+    int nCols = -1;
+    rows = nRows;
+    data = new float *[rows];
+    //cout<<n<<endl;
+    int index = 1;
+    for (int i = 0; i < rows; i++) {
+        int col = int(floatValues[index]); // real column
+        if (nCols < 0) {
+            nCols = col;
+        }
+        else if (nCols != col) {
+            nCols = 1;
+        }
+        int nSub = col + 1;
+        data[i] = new float[nSub];
+        data[i][0] = col;
+        //cout<<"index: "<<index<<",";
+        for (int j = 1; j < nSub; j++) {
+            data[i][j] = floatValues[index + j];
+            //cout<<data[i][j]<<",";
+        }
+        //cout<<endl;
+        index += nSub;
+    }
+    cols = nCols;
+    /// release memory
+    Release1DArray(floatValues);
+
+    if (databuf != NULL) {
+        databuf = NULL;
+    }
+    /// insert to corresponding maps
+    m_2DArrayMap.insert(make_pair(remoteFilename, data));
+    m_2DRowsLenMap.insert(make_pair(remoteFilename, nRows));
+    m_2DColsLenMap.insert(make_pair(remoteFilename, nCols));
+}
+
+void DataCenterMongoDB::readIUHData(string& remoteFilename, int& n, float**& data) {
+    char *databuf = NULL;
+    size_t datalength;
+    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    float *floatValues = (float *)databuf;
+
+    n = (int)floatValues[0];
+    data = new float *[n];
+
+    int index = 1;
+    for (int i = 0; i < n; i++) {
+        int nSub = (int)(floatValues[index + 1] - floatValues[index] + 3);
+        data[i] = new float[nSub];
+
+        data[i][0] = floatValues[index];
+        data[i][1] = floatValues[index + 1];
+        for (int j = 2; j < nSub; j++) {
+            data[i][j] = floatValues[index + j];
+        }
+        index = index + nSub;
+    }
+    /// release memory
+    Release1DArray(floatValues);
+
+    if (databuf != NULL) {
+        databuf = NULL;
+    }
+    /// insert to corresponding maps
+    m_2DArrayMap.insert(make_pair(remoteFilename, data));
+    m_2DRowsLenMap.insert(make_pair(remoteFilename, n));
+    m_2DColsLenMap.insert(make_pair(remoteFilename, 1));
 }
