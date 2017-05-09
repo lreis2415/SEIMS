@@ -832,7 +832,7 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(MongoGridFS* gfs, str
     BSON_APPEND_UTF8(&p, HEADER_RS_SRS, srs.c_str());
     char* buf = (char* )values;
     size_t buflength = datalength * sizeof(T);
-    gfs.writeStreamData(filename, buf, buflength, &p);
+    gfs->writeStreamData(filename, buf, buflength, &p);
     bson_destroy(&p);
 }
 #endif /* USE_MONGODB */
