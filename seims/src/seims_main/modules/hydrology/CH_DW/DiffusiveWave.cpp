@@ -9,12 +9,17 @@ DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), 
                                      m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
                                      m_elevation(NULL),
                                      m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL), m_reachId(NULL),
-                                     m_sourceCellIds(NULL),
+                                     m_sourceCellIds(NULL), m_layeringMethod(0.f),
                                      m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_manningScalingFactor(0.f) {
 }
 
 //! Destructor
 DiffusiveWave::~DiffusiveWave(void) {
+    Release1DArray(m_reachId);
+    Release1DArray(m_streamOrder);
+    Release1DArray(m_reachDownStream);
+    Release1DArray(m_reachN);
+
     Release2DArray(m_chNumber, m_hCh);
     Release2DArray(m_chNumber, m_qCh);
     Release2DArray(m_chNumber, m_flowLen);
@@ -348,10 +353,8 @@ void DiffusiveWave::SetValue(const char *key, float data) {
         m_nCells = (int) data;
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
-        //else if (StringMatch(sk, "ID_UPREACH"))
-        //	m_idUpReach = (int)data;
-        //else if(StringMatch(sk, "QUPREACH"))
-        //	m_qUpReach = data;
+    } else if (StringMatch(sk, Tag_LayeringMethod)) {
+        m_layeringMethod = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
     } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {  /// TODO: add to mongodb database
@@ -399,7 +402,42 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
         throw ModelException(MID_CH_DW, "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
+}
 
+void DiffusiveWave::SetReaches(clsReaches *reaches) {
+    assert(NULL != reaches);
+    m_chNumber = reaches->GetReachNumber();
+    vector<int> reachIDVec = reaches->GetReachIDs();
+    Initialize1DArray(m_chNumber, m_reachId, 0.f);
+    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
+    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
+    Initialize1DArray(m_chNumber, m_reachN, 0.f);
+    for (int i = 0; i < reachIDVec.size(); ++i) {
+        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
+        m_reachId[i] = tmpReach->GetSubbasinID();
+        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
+            m_streamOrder[i] = tmpReach->GetUpDownOrder();
+        }
+        else{
+            m_streamOrder[i] = tmpReach->GetDownUpOrder();
+        }
+        m_reachDownStream[i] = tmpReach->GetDownStream();
+        m_reachN[i] = tmpReach->GetManning();
+    }
+    for (int i = 0; i < m_chNumber; i++) {
+        m_idToIndex[(int)m_reachId[i]] = i;
+    }
+    m_reachUpStream.resize(m_chNumber);
+    for (int i = 0; i < m_chNumber; i++) {
+        int downStreamId = int(m_reachDownStream[i]);
+        if (downStreamId <= 0) {
+            continue;
+        }
+        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
+            int downStreamIndex = m_idToIndex.at(downStreamId);
+            m_reachUpStream[downStreamIndex].push_back(i);
+        }
+    }
 }
 
 //! Get 1D data
@@ -442,33 +480,10 @@ void DiffusiveWave::Get2DData(const char *key, int *nRows, int *nCols, float ***
 //! Set 2D data
 void DiffusiveWave::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ReachParameter)) {
-        m_chNumber = ncols;   // overland is nrows;
-        m_reachId = data[0];
-        m_streamOrder = data[1];
-        m_reachDownStream = data[2];
-        m_reachN = data[3];
-        for (int i = 0; i < m_chNumber; i++) {
-            m_idToIndex[(int) m_reachId[i]] = i;
-        }
-
-        m_reachUpStream.resize(m_chNumber);
-        for (int i = 0; i < m_chNumber; i++) {
-            int downStreamId = int(m_reachDownStream[i]);
-            if (downStreamId <= 0) {
-                continue;
-            }
-            if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-                int downStreamIndex = m_idToIndex.at(downStreamId);
-                m_reachUpStream[downStreamIndex].push_back(i);
-            }
-        }
-
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
         m_flowInIndex = data;
     } else {
         throw ModelException(MID_CH_DW, "Set1DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
-
 }
