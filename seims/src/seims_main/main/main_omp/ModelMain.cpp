@@ -109,55 +109,61 @@
 
 ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory) : 
 m_dataCenter(move(dcenter)), m_factory(move(mfactory)) {
+    /// Get SettingInput and SettingOutput
     m_input = m_dataCenter->getSettingInput();
     m_output = m_dataCenter->getSettingOutput();
 
-    /// 3 Constructor output instance by "FILE_OUT" collection
-    //m_outputScene = string(DB_TAB_OUT_SPATIAL);
-    //if (m_scenarioID != -1)  // -1 means no BMPs scenario will be simulated.
-    //    m_outputScene += ValueToString(m_scenarioID);
-    //m_outputGfs = m_client->getGridFS(m_dbName, m_outputScene);
-
-    /// 4 Check database
-    MongoGridFS* spatialData = new MongoGridFS(m_conn->getGridFS(m_dbName, string(DB_TAB_SPATIAL)));
-    /* time-step of daily, hillslope, and channel scales */
+    /// Get time-step of daily, hillslope, and channel scales
     m_dtDaily = m_input->getDtDaily();
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
-    CheckAvailableOutput(spatialData);  /// load m_templateRasterData
 
-    /// 5 Create module list and load data from MongoDB
+    /// 
+    m_templateRasterData = m_dataCenter->getMaskData();
+
+    /// Create module list and load data from MongoDB
     m_readFileTime = m_factory->CreateModuleList(m_simulationModules);
-    StatusMessage(("Read file time: " + ValueToString(m_readFileTime) + " sec.").c_str());
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
     for (size_t i = 0; i < n; i++) {
         SimulationModule *pModule = m_simulationModules[i];
         switch (pModule->GetTimeStepType()) {
-        case TIMESTEP_HILLSLOPE:m_hillslopeModules.push_back(i);
+        case TIMESTEP_HILLSLOPE: {
+            m_hillslopeModules.push_back(i);
             break;
-        case TIMESTEP_CHANNEL:m_channelModules.push_back(i);
+        }
+        case TIMESTEP_CHANNEL: {
+            m_channelModules.push_back(i);
             break;
-        case TIMESTEP_ECOLOGY:m_ecoModules.push_back(i);
-        case TIMESTEP_SIMULATION:m_overallModules.push_back(i);
+        }
+        case TIMESTEP_ECOLOGY: {
+            m_ecoModules.push_back(i);
+            break;
+        }
+        case TIMESTEP_SIMULATION: {
+            m_overallModules.push_back(i);
+            break;
+        }
+        default:
+            break;
         }
     }
-    /// 6 Check the validation of settings of output files, e.g. filename and time ranges
+    /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
 }
 
 ModelMain::~ModelMain(void) {
     StatusMessage("Start to release ModelMain ...");
-    for (map<string, ParamInfo *>::iterator it = m_parameters.begin(); it != m_parameters.end();) {
-        if (it->second != NULL) {
-            delete it->second;
-        }
-        it->second = NULL;
-        it = m_parameters.erase(it);
-    }
-    m_parameters.clear();
+    //for (map<string, ParamInfo *>::iterator it = m_parameters.begin(); it != m_parameters.end();) {
+    //    if (it->second != NULL) {
+    //        delete it->second;
+    //        it->second = NULL;
+    //    }
+    //    it = m_parameters.erase(it);
+    //}
+    //m_parameters.clear();
     ///m_templateRasterData, i.e. 0_MASK raster, will be released in m_rsMap during releasing m_factory.
-    if (m_templateRasterData != NULL) m_templateRasterData = NULL;
+    //if (m_templateRasterData != NULL) m_templateRasterData = NULL;
     /// Thanks to unique_ptr, these class instances are no need to release explicitly. - LJ
 //    if (m_output != NULL) {
 //        delete m_output;
@@ -329,20 +335,20 @@ void ModelMain::Output(void) {
     cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
 }
 
-void ModelMain::CheckAvailableOutput(MongoGridFS* gfs) {
-    if (this->m_input == NULL) return;
-    if (this->m_output == NULL) return;
-
-    this->m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
-
-    ostringstream oss;
-#ifdef USE_MONGODB
-    // Read Mask raster data and add to m_rsMap in m_factory, by LJ.
-    oss << m_subBasinID << "_" << GetUpper(string(Tag_Mask));
-    m_templateRasterData = new clsRasterData<float>(gfs, oss.str().c_str());
-    m_factory->AddMaskRaster(oss.str(), m_templateRasterData);
-#endif /* USE_MONGODB */
-}
+//void ModelMain::CheckAvailableOutput(MongoGridFS* gfs) {
+//    if (this->m_input == NULL) return;
+//    if (this->m_output == NULL) return;
+//
+//    this->m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
+//
+//    ostringstream oss;
+//#ifdef USE_MONGODB
+//    // Read Mask raster data and add to m_rsMap in m_factory, by LJ.
+//    oss << m_subBasinID << "_" << GetUpper(string(Tag_Mask));
+//    m_templateRasterData = new clsRasterData<float>(gfs, oss.str().c_str());
+//    m_factory->AddMaskRaster(oss.str(), m_templateRasterData);
+//#endif /* USE_MONGODB */
+//}
 
 void ModelMain::OutputExecuteTime(void) {
     for (int i = 0; i < m_simulationModules.size(); ++i) {
@@ -352,6 +358,7 @@ void ModelMain::OutputExecuteTime(void) {
 }
 
 void ModelMain::CheckAvailableOutput() {
+    m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
     vector<PrintInfo *>::iterator it;
     for (it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
@@ -364,56 +371,9 @@ void ModelMain::CheckAvailableOutput() {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
             cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
             it = m_output->m_printInfos.erase(it);
-            //throw ModelException("ModelMain", "CheckOutput", "Can't find output variable for output id " + outputid +
-            //                                                 ". Please check config.fig, file.out and module's metadata.");
         } else {
             it++;
         }
-
-        //find site index
-        //if((*it)->m_param->Dimension == DT_Array1D)
-        //{
-        //	vector<PrintInfoItem *>::iterator itemIt;
-        //	for(itemIt=(*it)->m_PrintItems.begin();itemIt<(*it)->m_PrintItems.end();itemIt++)
-        //	{
-        //		PrintInfoItem * item = *itemIt;
-
-        //		if(item->SubbasinID != -1) continue;
-
-        //		if(item->SiteID == -1) throw  ModelException("SettingsConfig","CheckOutput","The site id can't be -1 in output id "+outputid+".");
-
-        //		//because different stations can have different types of data, so when looking for the station index,
-        //		//the data type should be used.
-        //		string dataType = (*it)->getOutputID();
-        //		dataType = dataType.substr(2,dataType.length() -2);
-        //		int siteIndex = input->StationData()->getSiteIndexFromID(item->SiteID,dataType);
-
-        //		if(siteIndex == -1)
-        //		{
-        //			char s[20];
-        //			strprintf(s,20,"%d",item->SiteID);
-        //			throw ModelException("SettingsConfig","CheckOutput","Can't find site "+string(s) + " in input sites.");
-        //		}
-
-        //		item->SiteIndex = siteIndex;
-        //	}
-        //}
-
-        //for output subbasin information
-        //if((*it)->m_param->Dimension == DT_Array2D)
-        //{
-        //	int subbasinSeletedCount = -1;
-        //	float* subbasinSelected = NULL;
-        //	(*it)->getSubbasinSelected(&subbasinSeletedCount,&subbasinSelected);
-
-        //	if(subbasinSeletedCount <= 0 || subbasinSelected == NULL)
-        //		throw ModelException("SettingsConfig","CheckOutput","Can't find subbasin information of output id "+outputid+".");
-
-        //	(*it)->m_param->SubbasinSelected = subbasinSelected;
-        //	(*it)->m_param->SubbasinSelectedCount = subbasinSeletedCount;
-
-        //	if(module!=NULL) module->initialSubbasin(subbasinSeletedCount,subbasinSelected); //initial the subbasinselected parameter
-        //}
     }
 }
 
