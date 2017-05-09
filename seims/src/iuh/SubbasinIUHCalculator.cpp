@@ -209,7 +209,7 @@ int SubbasinIUHCalculator::calCell(int id) {
         data[i] = storeddata_vector[i];
     }
     char *databuf = (char *) data;
-    gfs.writeStreamData(remoteFilename, databuf, datalength, &p);
+    gfs->writeStreamData(remoteFilename, databuf, datalength, &p);
     delete[] data;
     data = NULL;
     databuf = NULL;
