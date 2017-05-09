@@ -148,7 +148,7 @@
 #define Tag_ROUTING_LAYERS_MFD_MD              "ROUTING_LAYERS_MFD_MD"
 
 //#define Tag_ReachParameter                     "ReachParameter"
-#define Tag_RchParam                           "RchParam"
+//#define Tag_RchParam                           "RchParam"
 /// Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM
 #define VAR_REACH_PARAM                        "ReachParam"
 #define DESC_REACH_PARAM                       "Reach parameters such as stream order, manning's n and downstream subbasin id"
