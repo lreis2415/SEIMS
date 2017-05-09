@@ -2,14 +2,13 @@
  * \brief Control the simulation of SEIMS
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
- * \date May 2016
+ * \date May 2017
  * \revised LJ - Refactoring, May 2017
  *               The ModelMain class mainly focuses on the entire workflow.
  */
 
 #ifndef SEIMS_MODEL_MAIN_H
 #define SEIMS_MODEL_MAIN_H
-
 
 /// include utility classes and const definition of SEIMS
 #include "seims.h"
@@ -80,7 +79,8 @@ public:
 
     /*!
      * \brief Constructor independent to any database IO, instead of the \sa DataCenter object
-     * \param dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
+     * \param[in] dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
+     * \param[in] mfactory \sa ModuleFactory, assemble the module workspace
      */
     ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory);
 
@@ -162,19 +162,22 @@ public:
     //! Execute overland modules in current step
     ///void	StepOverland(time_t t);/// Deprecated. LJ
 private:
+    /************************************************************************/
+    /*             Input parameters                                         */
+    /************************************************************************/
+
     unique_ptr<DataCenter>      m_dataCenter; ///< inherited DataCenter
     unique_ptr<ModuleFactory>   m_factory;    ///< Modules factory
 private:
     /************************************************************************/
-    /*   Pointer or reference of object and data derived from m_dataCenter  */
+    /*   Pointer or reference of object and data derived from input params  */
     /************************************************************************/
 
     SettingsInput*              m_input;      ///< The basic input settings
     SettingsOutput*             m_output;     ///< The user-defined outputs, Q, SED, etc
 
-    
     clsRasterData<float>*       m_templateRasterData; //! Template raster data
-    map<string, ParamInfo*>     m_parameters;///< Parameters information map, should belong to SettingInput? LJ
+    map<string, ParamInfo*>     m_parameters;///< Parameters information map
 
 
 
@@ -209,24 +212,22 @@ private:
 //    //! Layering method
 //    LayeringMethod m_layeringMethod;
 
-    /*!
-     * \brief Check whether the output file is valid
-     * \TODO NEED TO BE UPDATED
-     * 1. The output id should be valid for modules in config files;
-     * 2. The date range should be in the data range of file.in;
-     * The method should be called after config, input and output is initialed.
-     *
-     * \param[in] gfs \a MongoGridFS
-     */
-    void CheckAvailableOutput(MongoGridFS* gfs);
+    ///*!
+    // * \brief Check whether the output file is valid
+    // * \TODO NEED TO BE UPDATED
+    // * 1. The output id should be valid for modules in config files;
+    // * 2. The date range should be in the data range of file.in;
+    // * The method should be called after config, input and output is initialed.
+    // *
+    // * \param[in] gfs \a MongoGridFS
+    // */
+    //void CheckAvailableOutput(MongoGridFS* gfs);
 
     /*!
-     * \brief Check whether the output file is valid
-     * \TODO NEED TO BE UPDATED
+     * \brief Check whether the validation of outputs
      * 1. The output id should be valid for modules in config files;
      * 2. The date range should be in the data range of file.in;
-     * The method should be called after config, input and output is initialed.
-     *
+     * \caution The method should be called after config, input and output are initialized.
      */
     void CheckAvailableOutput(void);
 

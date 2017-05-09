@@ -2,29 +2,29 @@
 
 using namespace std;
 
-//clsInterpolationWeightData::clsInterpolationWeightData(string weightFileName) {
+//clsITPWeightData::clsITPWeightData(string weightFileName) {
 //    m_fileName = weightFileName;
 //    m_weightData = NULL;
 //}
 
-clsInterpolationWeightData::clsInterpolationWeightData(MongoGridFS* gfs, const char *remoteFilename) {
+clsITPWeightData::clsITPWeightData(MongoGridFS* gfs, const char *remoteFilename) {
     m_fileName = remoteFilename;
     m_weightData = NULL;
     ReadFromMongoDB(gfs, remoteFilename);
 }
 
-clsInterpolationWeightData::~clsInterpolationWeightData(void) {
+clsITPWeightData::~clsITPWeightData(void) {
     if (m_weightData != NULL) {
         Release1DArray(m_weightData);
     }
 }
 
-void clsInterpolationWeightData::getWeightData(int *n, float **data) {
+void clsITPWeightData::getWeightData(int *n, float **data) {
     *n = m_nRows;
     *data = m_weightData;
 }
 
-void clsInterpolationWeightData::dump(ostream *fs) {
+void clsITPWeightData::dump(ostream *fs) {
     if (fs == NULL) return;
 
     int index = 0;
@@ -38,7 +38,7 @@ void clsInterpolationWeightData::dump(ostream *fs) {
     }
 }
 
-void clsInterpolationWeightData::dump(string fileName) {
+void clsITPWeightData::dump(string fileName) {
     ofstream fs;
     fs.open(fileName.c_str(), ios::out);
     if (fs.is_open()) {
@@ -47,7 +47,7 @@ void clsInterpolationWeightData::dump(string fileName) {
     }
 }
 
-void clsInterpolationWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char *remoteFilename) {
+void clsITPWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char *remoteFilename) {
     string wfilename = string(remoteFilename);
     vector<string> gfilenames;
     gfs->getFileNames(gfilenames);
