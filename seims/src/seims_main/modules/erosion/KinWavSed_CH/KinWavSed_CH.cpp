@@ -5,7 +5,7 @@ using namespace std;
 
 KinWavSed_CH::KinWavSed_CH(void) : m_CellWith(-1),
                                    m_nCells(-1),
-                                   m_TimeStep(NODATA_VALUE),
+                                   m_TimeStep(NODATA_VALUE), m_layeringMethod(0.f),
                                    m_chNumber(-1),
                                    m_Slope(NULL),
                                    m_chWidth(NULL),
@@ -33,6 +33,11 @@ KinWavSed_CH::KinWavSed_CH(void) : m_CellWith(-1),
 }
 
 KinWavSed_CH::~KinWavSed_CH(void) {
+    Release1DArray(m_reachId);
+    Release1DArray(m_streamOrder);
+    Release1DArray(m_reachDownStream);
+    Release1DArray(m_ChManningN);
+    
     Release2DArray(m_chNumber, m_CHDETFlow);
     Release2DArray(m_chNumber, m_CHSedDep);
     Release2DArray(m_chNumber, m_CHSed_kg);
@@ -57,6 +62,7 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
     else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
+    else if (StringMatch(s, Tag_LayeringMethod)) {m_layeringMethod = data; }
     else {
         throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s + " does not exist in current module.\n");
     }
@@ -125,27 +131,7 @@ void KinWavSed_CH::Get1DData(const char *key, int *n, float **data) {
 
 void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ReachParameter)) {
-        m_chNumber = ncols; // overland is nrows;
-        m_reachId = data[0];
-        m_streamOrder = data[1];
-        m_reachDownStream = data[2];
-        m_ChManningN = data[3];          //  "Manning_nCh"
-        for (int i = 0; i < m_chNumber; i++) {
-            m_idToIndex[(int) m_reachId[i]] = i;
-        }
-
-        m_reachUpStream.resize(m_chNumber);
-        for (int i = 0; i < m_chNumber; i++) {
-            int downStreamId = int(m_reachDownStream[i]);
-            if (downStreamId == 0) {
-                continue;
-            }
-            int downStreamIndex = m_idToIndex[downStreamId];
-            m_reachUpStream[downStreamIndex].push_back(i);
-        }
-
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
         m_flowInIndex = data;
     } else if (StringMatch(sk, VAR_HCH)) {
         m_ChannelWH = data;
@@ -157,6 +143,42 @@ void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data
             + " does not exist. Please contact the module developer.");
     }
 
+}
+
+void KinWavSed_CH::SetReaches(clsReaches *reaches) {
+    assert(NULL != reaches);
+    m_chNumber = reaches->GetReachNumber();
+    vector<int> reachIDVec = reaches->GetReachIDs();
+    Initialize1DArray(m_chNumber, m_reachId, 0.f);
+    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
+    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
+    Initialize1DArray(m_chNumber, m_ChManningN, 0.f);
+    for (int i = 0; i < reachIDVec.size(); ++i) {
+        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
+        m_reachId[i] = tmpReach->GetSubbasinID();
+        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
+            m_streamOrder[i] = tmpReach->GetUpDownOrder();
+        }
+        else{
+            m_streamOrder[i] = tmpReach->GetDownUpOrder();
+        }
+        m_reachDownStream[i] = tmpReach->GetDownStream();
+        m_ChManningN[i] = tmpReach->GetManning();
+    }
+    for (int i = 0; i < m_chNumber; i++) {
+        m_idToIndex[(int)m_reachId[i]] = i;
+    }
+    m_reachUpStream.resize(m_chNumber);
+    for (int i = 0; i < m_chNumber; i++) {
+        int downStreamId = int(m_reachDownStream[i]);
+        if (downStreamId <= 0) {
+            continue;
+        }
+        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
+            int downStreamIndex = m_idToIndex.at(downStreamId);
+            m_reachUpStream[downStreamIndex].push_back(i);
+        }
+    }
 }
 
 void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
