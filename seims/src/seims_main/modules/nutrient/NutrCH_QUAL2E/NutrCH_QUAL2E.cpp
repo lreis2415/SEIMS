@@ -9,13 +9,16 @@ NutrCH_QUAL2E::NutrCH_QUAL2E(void) :
     m_ai0(-1.f), m_ai1(-1.f), m_ai2(-1.f), m_ai3(-1.f), m_ai4(-1.f), m_ai5(-1.f),
     m_ai6(-1.f), m_lambda0(-1.f), m_lambda1(-1.f), m_lambda2(-1.f), m_cod_n(-1), m_cod_k(-1),
     m_k_l(-1.f), m_k_n(-1.f), m_k_p(-1.f), m_p_n(-1.f), tfact(-1.f), m_mumax(-1.f), m_rhoq(-1.f),
-    m_streamLink(NULL),
-    m_daylen(NULL), m_sra(NULL), m_bankStorage(NULL), m_qOutCh(NULL), m_chStorage(NULL), m_preChStorage(NULL),
+    m_streamLink(NULL), m_soilTemp(NULL), m_daylen(NULL), m_sra(NULL), 
+    m_bankStorage(NULL), m_chOrder(NULL), m_qOutCh(NULL), m_chStorage(NULL), m_preChStorage(NULL),
     m_chWTdepth(NULL), m_preChWTDepth(NULL), m_chTemp(NULL),
+    m_bc1(NULL), m_bc2(NULL), m_bc3(NULL), m_bc4(NULL),
+    m_rs1(NULL), m_rs2(NULL), m_rs3(NULL), m_rs4(NULL), m_rs5(NULL),
+    m_rk1(NULL), m_rk2(NULL), m_rk3(NULL), m_rk4(NULL),
     m_latNO3ToCh(NULL), m_surNO3ToCh(NULL), m_surNH4ToCh(NULL), m_surSolPToCh(NULL), m_gwNO3ToCh(NULL),
     m_gwSolPToCh(NULL), m_sedOrgNToCh(NULL), m_sedOrgPToCh(NULL), m_sedMinPAToCh(NULL),
     m_sedMinPSToCh(NULL), m_no2ToCh(NULL), m_surCodToCh(NULL),
-    m_chSr(NULL), m_chDaylen(NULL), m_chCellCount(NULL), m_soilTemp(NULL),
+    m_chSr(NULL), m_chDaylen(NULL), m_chCellCount(NULL),
     // reaches related
     m_reachDownStream(NULL), m_chOrgNCo(NODATA_VALUE), m_chOrgPCo(NODATA_VALUE),
     // point source loadings to channel
@@ -28,12 +31,13 @@ NutrCH_QUAL2E::NutrCH_QUAL2E(void) :
     m_chOrgP(NULL), m_chSolP(NULL), m_chTP(NULL), m_chCOD(NULL), m_chDOx(NULL), m_chChlora(NULL),
     m_chSatDOx(NODATA_VALUE),
     // nutrient amount outputs of channels
-    m_chOutAlgae(NULL), m_chOutChlora(NULL), m_chOutOrgN(NULL), m_chOutOrgP(NULL), m_chOutNH4(NULL),
-    m_chOutNO2(NULL), m_chOutNO3(NULL), m_chOutSolP(NULL), m_chOutCOD(NULL), m_chOutDOx(NULL),
+    m_chOutChlora(NULL), m_chOutAlgae(NULL), m_chOutOrgN(NULL), m_chOutOrgP(NULL), m_chOutNH4(NULL),
+    m_chOutNO2(NULL), m_chOutNO3(NULL), m_chOutSolP(NULL), m_chOutDOx(NULL), m_chOutCOD(NULL), 
+    m_chOutTN(NULL), m_chOutTP(NULL),
     // nutrient concentration outputs of channels
     m_chOutAlgaeConc(NULL), m_chOutChloraConc(NULL), m_chOutOrgNConc(NULL), m_chOutOrgPConc(NULL),
     m_chOutNH4Conc(NULL), m_chOutNO2Conc(NULL), m_chOutNO3Conc(NULL), m_chOutSolPConc(NULL), m_chOutCODConc(NULL),
-    m_chOutDOxConc(NULL) {
+    m_chOutDOxConc(NULL), m_chOutTNConc(NULL), m_chOutTPConc(NULL) {
 }
 
 NutrCH_QUAL2E::~NutrCH_QUAL2E(void) {
@@ -181,7 +185,8 @@ bool NutrCH_QUAL2E::CheckInputSize(const char *key, int n) {
 bool NutrCH_QUAL2E::CheckInputData() {
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_dt, "m_dt");
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_nReaches, "m_nReaches");
-    CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_qUpReach, "m_qUpReach");
+    CHECK_DATA(MID_NUTRCH_QUAL2E, m_qUpReach < 0.f, m_qUpReach, "should greater or equal than 0.");
+    //CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_qUpReach, "m_qUpReach");
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_rnum1, "m_rnum1");
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, igropt, "igropt");
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_cod_n, "m_cod_n");
