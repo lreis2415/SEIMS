@@ -72,7 +72,6 @@ int main(int argc, const char *argv[]) {
         if (argc > i) {
             if (atoi(argv[i]) >= 0) {
                 scenarioID = atoi(argv[i]);
-                assert(scenarioID > 0);
                 i++;
             } else {
                 goto errexit;

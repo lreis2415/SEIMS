@@ -47,9 +47,60 @@ int main() {
     cout << endl;
 
     /// Get Database
-    mongoc_database_t *db = client->getDatabase(string("model_dianbu2_30m_longterm"));
+    string modelname = "model_dianbu2_30m_demo";
+    mongoc_database_t *db = client->getDatabase(modelname);
     /// Get Collection
-    mongoc_collection_t *coll = client->getCollection(string("model_dianbu2_30m_longterm"), string("FILE_IN"));
+    string collname = "FILE_IN";
+    mongoc_collection_t *coll = client->getCollection(modelname, collname);
+    /// Fetch all the record in collection FILE_IN
+    /*******Begin*********/
+    bson_t* b = bson_new();
+
+    unique_ptr<MongoCollection> collection(new MongoCollection(client->getCollection(modelname, collname)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+
+    bson_iter_t itertor;
+    const bson_t* bsonTable;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
+        if (bson_iter_init_find(&itertor, bsonTable, "TAG")) {
+            cout << GetStringFromBsonIterator(&itertor) << ": ";
+        }
+        if (bson_iter_init_find(&itertor, bsonTable, "VALUE")) {
+            cout << GetStringFromBsonIterator(&itertor) << endl;
+        }
+    }
+    bson_destroy(b);
+    mongoc_cursor_destroy(cursor);
+
+    b = BCON_NEW("$query", "{", "NAME", "{", "$in", "[", BCON_UTF8("OUTLET_ID"),
+        BCON_UTF8("SUBBASINID_NUM"), "]", "}", "}");
+
+    //mongoc_collection_t* c2 = client->getCollection(modelname, "PARAMETERS");
+    //cursor = mongoc_collection_find(c2, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    //cursor = mongoc_collection_find_with_opts(c2, b, NULL, NULL);
+    unique_ptr<MongoCollection> collection2(new MongoCollection(client->getCollection(modelname, "PARAMETERS")));
+    cursor = collection2->ExecuteQuery(b);
+
+    bson_error_t *err = NULL;
+    if (mongoc_cursor_error(cursor, err)) {
+        cout << "ERROR: Nothing found for subbasin number and outlet ID." << endl;
+    }
+    bson_iter_t iter;
+    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
+        string nameTmp = "";
+        int numTmp = -1;
+        if (bson_iter_init_find(&iter, bsonTable, "NAME")) {
+            cout<< "NAME: "<<GetStringFromBsonIterator(&iter);
+        }
+        if (bson_iter_init_find(&iter, bsonTable, "VALUE")) {
+            GetNumericFromBsonIterator(&iter, numTmp);
+            cout << ", VALUE: " << numTmp << endl;
+        }
+    }
+    bson_destroy(b);
+    mongoc_cursor_destroy(cursor);
+    /*******End*********/
+
     /// Get collection names of a database
     cout << "Get collection names" << endl;
     //vector<string> colnames = client.getCollectionNames(string("model_dianbu2_30m_longterm"));

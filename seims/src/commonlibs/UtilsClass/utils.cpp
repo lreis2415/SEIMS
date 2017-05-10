@@ -81,9 +81,12 @@ string utilsTime::ConvertToString2(const time_t *date) {
     return s;
 }
 
-time_t utilsTime::ConvertToTime(string strDate, string const &format, bool includeHour) {
+time_t utilsTime::ConvertToTime(const string& strDate, string const &format, bool includeHour) {
     struct tm *timeinfo;
     time_t t(0);
+    if (utilsString::StringMatch(strDate, "")) {
+        return t;
+    }
     int yr;
     int mn;
     int dy;
@@ -118,6 +121,9 @@ time_t utilsTime::ConvertToTime(string strDate, string const &format, bool inclu
 
 time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool includeHour) {
     time_t t(0);
+    if (utilsString::StringMatch(strDate, "")) {
+        return t;
+    }
     int yr;
     int mn;
     int dy;
