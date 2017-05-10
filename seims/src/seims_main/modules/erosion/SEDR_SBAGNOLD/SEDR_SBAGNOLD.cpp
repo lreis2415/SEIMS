@@ -7,7 +7,7 @@ SEDR_SBAGNOLD::SEDR_SBAGNOLD(void) : m_dt(-1), m_nreach(-1), m_sedtoCh(NULL), m_
                                      m_sedChi0(NODATA_VALUE),
                                      m_ptSub(NULL), m_chStorage(NULL), m_preChStorage(NULL), m_sedOut(NULL), m_VCD(-1),
                                      m_reachDownStream(NULL), m_chOrder(NULL), m_chWidth(NULL),
-                                     m_chLen(NULL), m_chDepth(NULL), m_chVel(NULL), m_chCover(NULL), m_chErod(NULL),
+                                     m_chLen(NULL), m_chDepth(NULL), m_chVel(NULL), m_chSlope(NULL), m_chCover(NULL), m_chErod(NULL),
                                      m_qchOut(NULL),
                                      m_prf(NODATA_VALUE), m_spcon(NODATA_VALUE), m_spexp(NODATA_VALUE),
                                      m_vcrit(NODATA_VALUE),
