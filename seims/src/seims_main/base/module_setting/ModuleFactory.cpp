@@ -1,6 +1,14 @@
 #include "ModuleFactory.h"
 
-ModuleFactory::ModuleFactory(unique_ptr<DataCenter>& dcenter) : m_dataCenter(move(dcenter))
+ModuleFactory::ModuleFactory(DataCenterMongoDB* dataCenter) :m_dataCenter(dataCenter),
+                                                            m_parametersInDB(m_dataCenter->getInitParameters()),
+                                                            m_rsMap(dataCenter->getRasterDataMap()),
+                                                            m_1DArrayMap(m_dataCenter->get1DArrayMap()),
+                                                            m_1DLenMap(m_dataCenter->get1DArrayLenMap()),
+                                                            m_2DArrayMap(m_dataCenter->get2DArrayMap()),
+                                                            m_2DRowsLenMap(m_dataCenter->get2DArrayRowsMap()),
+                                                            m_2DColsLenMap(m_dataCenter->get2DArrayColsMap()),
+                                                            m_weightDataMap(m_dataCenter->getItpWeightDataMap())
 {
     m_dbName = m_dataCenter->getModelName();
     m_moduleCfgFile = m_dataCenter->getFileCfgFullPath();
@@ -9,13 +17,13 @@ ModuleFactory::ModuleFactory(unique_ptr<DataCenter>& dcenter) : m_dataCenter(mov
     m_layingMethod = m_dataCenter->getLayeringMethod();
 
     m_setingsInput = m_dataCenter->getSettingInput();
-    m_subbasins = m_dataCenter->getSubbasinData();
-    m_reaches = m_dataCenter->getReachesData();
     m_scenario = m_dataCenter->getScenarioData();
+    m_reaches = m_dataCenter->getReachesData();
+    m_subbasins = m_dataCenter->getSubbasinData();
     m_climStation = m_dataCenter->getClimateStation();
-    m_parametersInDB = m_dataCenter->getInitParameters();
-    string configFileName = m_dataCenter->getModelName() + SEP + File_Config;
-    Init(configFileName);
+    m_maskRaster = m_dataCenter->getMaskData();
+
+    Init(m_dataCenter->getFileCfgFullPath());
 }
 ModuleFactory::~ModuleFactory(void) {
     StatusMessage("Start to release ModuleFactory ...");
@@ -1015,17 +1023,7 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
 //#endif /* not MULTIPLY_REACHES */
     } else if (StringMatch(paraName, Tag_LapseRate)) /// Match to the format of DT_Array2D, By LJ.
     {
-        nRows = 12;
-        nCols = 5;
-        data = new float *[nRows];
-        for (int i = 0; i < nRows; i++) {
-            data[i] = new float[nCols];
-            data[i][0] = 4.f; /// element number
-            data[i][1] = 0.03f; // P
-            data[i][2] = -0.65f; // T
-            data[i][3] = 0.f;    // PET
-            data[i][4] = 0.f;    // other Meteorology variables
-        }
+        m_dataCenter->setLapseData(remoteFileName, nRows, nCols, data);
     } else {
         m_dataCenter->read2DArrayData(remoteFileName, nRows, nCols, data);
     }
