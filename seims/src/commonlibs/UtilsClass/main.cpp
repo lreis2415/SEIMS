@@ -75,11 +75,10 @@ int main() {
     int **array2d = NULL;
     array2d = new int *[2];
     for (int i = 0; i < 2; i++) {
-        array2d[i] = NULL;
-        //array2d[i] = new int[3];
-        //for (int j = 0; j < 3; j++) {
-        //    array2d[i][j] = i * 3 + j;
-        //}
+        array2d[i] = new int[3];
+        for (int j = 0; j < 3; j++) {
+            array2d[i][j] = i * 3 + j;
+        }
     }
     int **array2dCopy = NULL;
     try {
@@ -87,7 +86,7 @@ int main() {
             // do something
         }
         else {
-            throw exception("Exception occurred when initialize 2D array!");
+            throw exception();
         }
     }
     catch (exception& e) {
