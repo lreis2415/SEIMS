@@ -29,7 +29,7 @@ public:
      * \brief Constructor of ModuleFactory from \sa DataCenter
      * \param[in] dcenter
      */
-    ModuleFactory(unique_ptr<DataCenter>& dcenter);
+    ModuleFactory(DataCenterMongoDB* dcenter);
     //! Destructor
     ~ModuleFactory(void);
 
@@ -115,7 +115,7 @@ private:
 
 private:
     //! input parameter, DataCenter
-    unique_ptr<DataCenter>  m_dataCenter;
+    DataCenterMongoDB*                 m_dataCenter;
 private:
     /************************************************************************/
     /*           Derived parameters                                         */
@@ -123,45 +123,41 @@ private:
     //! Database name of the simulation model
     string                             m_dbName;
     //! Module configuration file
-    string                             m_moduleCfgFile;
+    string                              m_moduleCfgFile;
     //! Module path, without SEP(/ or \) at the end
-    string                             m_modulePath;
+    string                              m_modulePath;
     //! SubBasin ID
-    int                                m_subBasinID;
+    int                                 m_subBasinID;
     //! Layering method, can only be UP_DOWN or DOWN_UP
-    LayeringMethod                     m_layingMethod;
-    ////! MongoDB Client
-    //MongoClient*                       m_conn;
-    ////! MongoDB GridFS to store spatial data
-    //MongoGridFS*                       m_spatialData;
+    LayeringMethod                      m_layingMethod;
     //! Initial parameters from Database
-    map<string, ParamInfo *>           m_parametersInDB;
+    map<string, ParamInfo *>&           m_parametersInDB;
     //! Input settings, \sa SettingInput
-    SettingsInput*                     m_setingsInput;
+    SettingsInput*                      m_setingsInput;
     //! BMPs Scenario data
-    Scenario*                          m_scenario;
+    Scenario*                           m_scenario;
     //! Reaches information
-    clsReaches*                        m_reaches;
+    clsReaches*                         m_reaches;
     //! Subbasins information
-    clsSubbasins*                      m_subbasins;
+    clsSubbasins*                       m_subbasins;
     //! Climate input stations
-    InputStation*                      m_climStation;
+    InputStation*                       m_climStation;
     //! Mask data
-    clsRasterData<float>*              m_maskRaster;
+    clsRasterData<float>*               m_maskRaster;
     //! Raster data (include 1D and/or 2D) map
-    map<string, clsRasterData<float>*> m_rsMap;
+    map<string, clsRasterData<float>*>& m_rsMap;
     //! 1D array data map, e.g. FLOWOUT_INDEX_D8
-    map<string, float *>               m_1DArrayMap;
+    map<string, float *>&               m_1DArrayMap;
     //! 1D array data length map
-    map<string, int>                   m_1DLenMap;
+    map<string, int>&                   m_1DLenMap;
     //! 2D array data map, e.g. ROUTING_LAYERS
-    map<string, float **>              m_2DArrayMap;
+    map<string, float **>&              m_2DArrayMap;
     //! Row number of 2D array data map
-    map<string, int>                   m_2DRowsLenMap;
+    map<string, int>&                   m_2DRowsLenMap;
     //! Col number of 2D array data map, CAUTION that nCols may not same for all rows
-    map<string, int>                   m_2DColsLenMap;
+    map<string, int>&                   m_2DColsLenMap;
     //! Interpolation weight data map
-    map<string, clsITPWeightData *>    m_weightDataMap;
+    map<string, clsITPWeightData *>&    m_weightDataMap;
 private:
     /************************************************************************/
     /*           Parameters created during constructor                      */

@@ -569,8 +569,8 @@ void MUSK_CH::ChannelFlow(int i) {
     }
     qIn += qsUp + qiUp + qgUp;
     //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
-    qIn +=
-        m_qUpReach; // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
+    qIn += m_qUpReach; 
+    // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
     //if(i == 12)
     //	cout <<"surfaceQ: "<< m_qsSub[i] << ", subsurfaceQ: " << qiSub << ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
     //	", UPsurfaceQ: "<<qsUp<<", UPsubsurface: "<<qiUp<<", UPground: "<<qgUp<<", \n";

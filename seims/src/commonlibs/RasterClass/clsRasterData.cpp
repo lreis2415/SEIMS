@@ -910,6 +910,7 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS* gfs, string filename,
     if (m_nLyrs == 1){
         float *tmpdata = (float* )buf;
         Initialize1DArray(m_nCells, m_rasterData, nodatavalue);
+#pragma parallel omp for
         for (int i = 0; i < m_nCells; i++)
             m_rasterData[i] = (T) tmpdata[i];
         Release1DArray(tmpdata);
