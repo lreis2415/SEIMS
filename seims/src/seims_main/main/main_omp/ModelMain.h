@@ -82,7 +82,7 @@ public:
      * \param[in] dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
      * \param[in] mfactory \sa ModuleFactory, assemble the module workspace
      */
-    ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory);
+    ModelMain(DataCenterMongoDB* dcenter, ModuleFactory* mfactory);
 
     //! Destructor
     ~ModelMain(void);
@@ -166,8 +166,8 @@ private:
     /*             Input parameters                                         */
     /************************************************************************/
 
-    unique_ptr<DataCenter>      m_dataCenter; ///< inherited DataCenter
-    unique_ptr<ModuleFactory>   m_factory;    ///< Modules factory
+    DataCenterMongoDB*          m_dataCenter; ///< inherited DataCenter
+    ModuleFactory*              m_factory;    ///< Modules factory
 private:
     /************************************************************************/
     /*   Pointer or reference of object and data derived from input params  */

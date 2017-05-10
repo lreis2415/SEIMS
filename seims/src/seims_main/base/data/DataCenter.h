@@ -121,6 +121,14 @@ public:
      * \param[out] data \float*&, returned data
      */
     virtual void readIUHData(string& remoteFilename, int& n, float**& data) = 0;
+    /*!
+     * \brief Make lapse 2D array data and insert to m_2DArrayMap
+     * \param[in] remoteFilename \string data file name
+     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols
+     * \param[out] data \float**&, returned data
+     */
+    virtual void setLapseData(string& remoteFilename, int& rows, int& cols, float**& data);
 public:
     /**** Accessors: Set and Get *****/
 
@@ -161,8 +169,9 @@ public:
     virtual vector<string>& getFileInStringVector(void);
     /*!
     * \brief Get file.out configuration
+    * \param[in] originOutputs \sa OriginalOutputItem
     */
-    virtual vector<OriginalOutputItem>& getFileOutVector(void) = 0;
+    virtual bool getFileOutVector(vector<OriginalOutputItem*>& originOutputs) = 0;
     /*!
     * \brief Get subbasin number and outlet ID
     */
@@ -243,9 +252,10 @@ public:
      */
     virtual vector<string>& getFileInStringVector(void);
     /*!
-     * \brief Get file.out configuration from FILE_OUT collection
+     * \brief Get file.out configuration
+     * \param[in] originOutputs \sa OriginalOutputItem
      */
-    virtual vector<OriginalOutputItem>& getFileOutVector(void);
+    virtual bool getFileOutVector(vector<OriginalOutputItem*>& originOutputs);
     /*!
      * \brief Get subbasin number and outlet ID
      */

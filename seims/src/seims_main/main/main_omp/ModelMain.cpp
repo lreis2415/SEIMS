@@ -107,8 +107,8 @@
 //    mongoc_gridfs_destroy(spatialData);
 //}
 
-ModelMain::ModelMain(unique_ptr<DataCenter>& dcenter, unique_ptr<ModuleFactory>& mfactory) : 
-m_dataCenter(move(dcenter)), m_factory(move(mfactory)) {
+ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
+m_dataCenter(dataCenter), m_factory(factory){
     /// Get SettingInput and SettingOutput
     m_input = m_dataCenter->getSettingInput();
     m_output = m_dataCenter->getSettingOutput();
@@ -118,7 +118,7 @@ m_dataCenter(move(dcenter)), m_factory(move(mfactory)) {
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
 
-    /// 
+    /// Get mask raster data
     m_templateRasterData = m_dataCenter->getMaskData();
 
     /// Create module list and load data from MongoDB
@@ -172,14 +172,14 @@ ModelMain::~ModelMain(void) {
 //    if (m_outputGfs != NULL) {
 //        ModelMain::CloseGridFS();
 //    }
-//    if (m_factory != NULL) {
-//        delete m_factory;
-//        m_factory = NULL;
-//    }
-//    if (m_input != NULL) {
-//        delete m_input;
-//        m_input = NULL;
-//    }
+    if (m_factory != NULL) {
+        delete m_factory;
+        m_factory = NULL;
+    }
+    if (m_dataCenter != NULL) {
+        delete m_dataCenter;
+        m_dataCenter = NULL;
+    }
 //    /// m_client will be release by MongoClient.
 //    m_conn = NULL;
 }
