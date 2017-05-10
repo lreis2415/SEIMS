@@ -94,19 +94,13 @@ void SUR_MR::initialOutputs() {
     }
     // allocate the output variables
     if (m_pe == NULL) {
-        m_pe = new float[m_nCells];
-        m_infil = new float[m_nCells];
-        m_soilStorage = new float *[m_nCells];
-        m_soilStorageProfile = new float[m_nCells];
+        Initialize1DArray(m_nCells, m_pe, 0.f);
+        Initialize1DArray(m_nCells, m_infil, 0.f);
+        Initialize1DArray(m_nCells, m_soilStorageProfile, 0.f);
+        Initialize2DArray(m_nCells, m_nSoilLayers, m_soilStorage, NODATA_VALUE);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            Initialize1DArray(m_nSoilLayers, m_soilStorage[i], NODATA_VALUE);
-            m_pe[i] = 0.f;
-            m_infil[i] = 0.f;
-            m_soilStorageProfile[i] = 0.f;
-            for (int j = 0; j < (int) m_soilLayers[i]; j++) {
-                /// mm
-                //m_soilStorage[i][j] = m_initSoilStorage[i] * (m_fieldCap[i][j] - m_wiltingPoint[i][j]) * m_soilThick[i][j]; 
+            for (int j = 0; j < (int) m_soilLayers[i]; j++) { /// mm
                 if (m_initSoilStorage[i] >= 0.f && m_initSoilStorage[i] <= 1.f && m_sol_awc[i][j] >= 0.f) {
                     m_soilStorage[i][j] = m_initSoilStorage[i] * m_sol_awc[i][j];
                 } else {

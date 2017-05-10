@@ -541,8 +541,8 @@ void IKW_REACH::ChannelFlow(int i) {
         qgUp += m_qgCh[upReachId];
     }
     qIn += qsUp + qiUp + qgUp;
-    qIn +=
-        m_qUpReach; // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
+    qIn += m_qUpReach; 
+    // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
 
     // 3. water from bank storage
     float bankOut = m_bankStorage[i] * (1 - exp(-m_aBank));
