@@ -205,7 +205,7 @@ public:
      * \param[in] includeHour \a bool Include Hour?
      * \return Date time \a time_t
      */
-    static time_t ConvertToTime(string strDate, string const &format, bool includeHour);
+    static time_t ConvertToTime(const string& strDate, string const &format, bool includeHour);
 
     /*!
      * \brief Convert string to date time, string format could be "%4d-%2d-%2d %2d:%2d:%2d"
