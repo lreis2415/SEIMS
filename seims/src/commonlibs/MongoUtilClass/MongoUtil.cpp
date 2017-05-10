@@ -157,12 +157,16 @@ MongoCollection::MongoCollection(mongoc_collection_t* coll) : m_collection(coll)
 MongoCollection::~MongoCollection(void) {
     mongoc_collection_destroy(m_collection);
 }
-mongoc_cursor_t* MongoCollection::ExecuteQuery(bson_t* b) {
-#if MONGOC_CHECK_VERSION(1, 5, 0)
-    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
-#else
+mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
+    // printf("%s\n", bson_as_json(b, NULL));
+    // TODO: mongoc_collection_find should be deprecated, however, mongoc_collection_find_with_opts
+    //       may not work in my Windows 10. So, uncomment the following code when I figure it out. LJ
+//#if MONGOC_CHECK_VERSION(1, 5, 0)
+//    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
+//#else
+//    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+//#endif /* MONGOC_CHECK_VERSION */
     mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
     return cursor;
 }
 
