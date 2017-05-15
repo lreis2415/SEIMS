@@ -66,11 +66,18 @@ int main() {
         array1[i] = i + 1;
     }
     int *&array2 = array1;
-
-    Release1DArray(array2);
-    if (array2 == NULL) cout << "array2 released!" << endl;
-    cout << "array1 addr: " << array1 << endl;
-    if (array1 == NULL) cout << "array1 released!" << endl;
+    int *array3(NULL);
+    int *array4(NULL);
+    Initialize1DArray(5, array3, 10);
+    Initialize1DArray(6, array4, 20);
+    // Batch release
+    BatchRelease1DArray(array1, array3, array4, NULL);
+    //Release1DArray(array2);
+    //if (array2 == NULL) cout << "array2 released!" << endl;
+    //cout << "array1 addr: " << array1 << endl;
+    //if (array1 == NULL) cout << "array1 released!" << endl;
+    //Release1DArray(array3);
+    //Release1DArray(array4);
 
     int **array2d = NULL;
     array2d = new int *[2];
@@ -96,8 +103,10 @@ int main() {
     catch (...) {
         cout << "Unknown exception occurred!" << endl;
     }
-    if (NULL != array2d) Release2DArray(2, array2d);
-    if (NULL != array2dCopy) Release2DArray(2, array2dCopy);
+    BatchRelease2DArray(2, array2d, array2dCopy, NULL);
+    //Release2DArray(2, array2d);
+    //Release2DArray(2, array2dCopy);
+
 
     cout << "*** String Utils Demo ***" << endl;
     // string match
