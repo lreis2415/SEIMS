@@ -4,7 +4,7 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
- * \revised Dec. 2016
+ * \updated May. 2017
  */
 
 #ifndef CLS_UTILS
@@ -59,7 +59,9 @@
 #include <libproc.h>
 #endif /* macos */
 /// assert
-#include <assert.h>
+#include <cassert>
+/// variable arguments
+#include <cstdarg>
 
 using namespace std;
 
@@ -405,7 +407,28 @@ public:
      */
     template<typename T>
     static void Release2DArray(int row, T **&data);
-
+    /*!
+     * \brief Batch release of 1D array
+     *        Variable arguments with the end of NULL.
+     * \param[in] data, data2, ... , dataN, NULL
+     * \usage BatchRelease1DArray(array1, array2, array3, NULL);
+     * \caution After batch release, the variable will not be set to NULL.
+     *          So, do not use these variables any more.
+     *          BTW, this function will not cause memory leak.
+     *          USE WITH ALL CAUTIONS CLEARLY AWARED.
+     */
+    template<typename T>
+    static void BatchRelease1DArray(T* data, ...);
+    /*!
+    * \brief Batch release of 2D array, \sa BatchRelease1DArray
+    *        Variable arguments with the end of NULL.
+    * \param[in] nrows Rows
+    * \param[in] data, data2, ... , dataN, NULL
+    * \usage BatchRelease2DArray(rows, array1, array2, array3, NULL);
+    * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
+    */
+    template<typename T>
+    static void BatchRelease2DArray(int nrows, T** data, ...);
     /*!
      * \brief Write 1D array to a file
      *
@@ -993,6 +1016,32 @@ void utilsArray::Release2DArray(int row, T **&data) {
     }
     delete[] data;
     data = NULL;
+}
+
+template<typename T>
+void utilsArray::BatchRelease1DArray(T* data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release1DArray(data);
+    T*& argValue = va_arg(arg_ptr, T*);
+    while (NULL != argValue) {
+        utilsArray::Release1DArray(argValue);
+        argValue = va_arg(arg_ptr, T*);
+    }
+    va_end(arg_ptr);
+}
+
+template<typename T>
+void utilsArray::BatchRelease2DArray(int nrows, T** data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release2DArray(nrows, data);
+    T**& argValue = va_arg(arg_ptr, T**);
+    while (NULL != argValue) {
+        utilsArray::Release2DArray(nrows, argValue);
+        argValue = va_arg(arg_ptr, T**);
+    }
+    va_end(arg_ptr);
 }
 
 template<typename T>

@@ -40,6 +40,8 @@
 #define Initialize2DArray         utilsArray::Initialize2DArray
 #define Release1DArray            utilsArray::Release1DArray
 #define Release2DArray            utilsArray::Release2DArray
+#define BatchRelease1DArray       utilsArray::BatchRelease1DArray
+#define BatchRelease2DArray       utilsArray::BatchRelease2DArray
 #define Output1DArrayToTxtFile    utilsArray::Output1DArrayToTxtFile
 #define Output2DArrayToTxtFile    utilsArray::Output2DArrayToTxtFile
 #define Read1DArrayFromTxtFile    utilsArray::Read1DArrayFromTxtFile
