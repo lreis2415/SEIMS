@@ -166,12 +166,12 @@ public:
     /*!
     * \brief Get file.in configuration
     */
-    virtual vector<string>& getFileInStringVector(void);
+    virtual bool getFileInStringVector(void);
     /*!
     * \brief Get file.out configuration
     * \param[in] originOutputs \sa OriginalOutputItem
     */
-    virtual bool getFileOutVector(vector<OriginalOutputItem*>& originOutputs) = 0;
+    virtual bool getFileOutVector(void) = 0;
     /*!
     * \brief Get subbasin number and outlet ID
     */
@@ -202,8 +202,9 @@ public:
     const int                m_threadNum;     ///< Thread number for OpenMP
     bool                     m_useScenario;   ///< Model Scenario
     string                   m_outputScene;   ///< Output scenario identifier, e.g. output1 means scenario 1
-    string                   m_outputPath;    ///< Output path according to m_outputScene
+    string                   m_outputPath;    ///< Output path (with / in the end) according to m_outputScene
     vector<string>           m_fileIn1DStrs;  ///< file.in configuration
+    vector<OrgOutItem>       m_OriginOutItems;///< file.out configuration
     string                   m_modelMode;     ///< Storm or Longterm model
     int                      m_nSubbasins;    ///< Number of subbasins
     int                      m_outletID;      ///< Outlet subbasin ID
@@ -215,13 +216,13 @@ public:
     clsSubbasins*            m_subbasins;     ///< Subbasins information
     FloatRaster              m_maskRaster;    ///< Mask data
     map<string, FloatRaster> m_rsMap;         ///< Map of spatial data, both 1D and 2D
-    map<string, ParamInfo*>  m_initParameters; ///< Store parameters from Database
+    map<string, ParamInfo*>  m_initParameters;///< Store parameters from Database
     map<string, float* >     m_1DArrayMap;    ///< 1D array data map, e.g. FLOWOUT_INDEX_D8
     map<string, int>         m_1DLenMap;      ///< 1D array data length map
     map<string, float** >    m_2DArrayMap;    ///< 2D array data map, e.g. ROUTING_LAYERS
     map<string, int>         m_2DRowsLenMap;  ///< Row number of 2D array data map
     map<string, int>         m_2DColsLenMap;  ///< Col number of 2D array data map, CAUTION that nCols may not same for all rows
-    map<string, clsITPWeightData *> m_weightDataMap;///< Interpolation weight data map
+    map<string, clsITPWeightData *> m_weightDataMap; ///< Interpolation weight data map
 };
 /*!
  * \ingroup data
@@ -250,12 +251,12 @@ public:
     /*!
      * \brief Get file.in configuration from FILE_IN collection
      */
-    virtual vector<string>& getFileInStringVector(void);
+    virtual bool getFileInStringVector(void);
     /*!
      * \brief Get file.out configuration
      * \param[in] originOutputs \sa OriginalOutputItem
      */
-    virtual bool getFileOutVector(vector<OriginalOutputItem*>& originOutputs);
+    virtual bool getFileOutVector(void);
     /*!
      * \brief Get subbasin number and outlet ID
      */
