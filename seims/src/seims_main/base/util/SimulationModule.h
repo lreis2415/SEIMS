@@ -7,7 +7,14 @@
  * \revised Liang-Jun Zhu
  * \data Jun. 2016
  */
-#pragma once
+#ifndef SIMULATION_MOUDULE_BASE
+#define SIMULATION_MOUDULE_BASE
+
+#include "ModelException.h"
+#include "Scenario.h"  /// added by LJ. 2016-6-14
+#include "clsReach.h"
+#include "clsSubbasin.h"
+
 #include <string>
 #include <fstream>
 #include <ostream>
@@ -19,11 +26,6 @@
 #ifdef SUPPORT_OMP
 #include <omp.h>
 #endif
-
-#include "ModelException.h"
-#include "Scenario.h"  /// added by LJ. 2016-6-14
-#include "clsReach.h"
-#include "clsSubbasin.h"
 
 using namespace std;
 using namespace MainBMP;
@@ -172,3 +174,24 @@ protected:
     bool m_inputsSetDone;
 };
 
+/*!
+ * Macros for CheckInputData function
+ * BE REMEMBER OF SEMICOLON!
+ */
+//! CHECK_DATA is used for the unforeseen situation
+#define CHECK_DATA(moduleID, expression, param, desc) if ((expression)) \
+                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+//! CHECK_POINTER is used for 1D or 2D raster and other pointer of data
+#define CHECK_POINTER(moduleID, param, desc) if (NULL == param) \
+                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+//! CHECK_POSITIVE is used for single value that must be positive
+#define CHECK_POSITIVE(moduleID, param, desc) if (param <= 0) \
+                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+//! CHECK_NEGATIVE is used for single value that must be negative
+#define CHECK_NEGATIVE(moduleID, param, desc) if (param >= 0) \
+                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+//! CHECK_ZERO is used for single value that must not be ZERO
+#define CHECK_ZERO(moduleID, param, desc) if (param == 0 || FloatEqual(float(param), 0.f)) \
+                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+
+#endif /* SIMULATION_MOUDULE_BASE */

@@ -4,7 +4,9 @@
  * \date 2016-6-16
  *            1. Replaced SQLite by MongoDB to manager BMP scenario data.
  */
-#pragma once
+#ifndef SEIMS_SCENARIO_H
+#define SEIMS_SCENARIO_H
+
 #include "utilities.h"
 #include "MongoUtil.h"
 #include "BMPText.h"
@@ -33,27 +35,23 @@ namespace MainBMP {
 class Scenario {
 public:
     //! Constructor according to BMP database name and scenario ID
-    Scenario(mongoc_client_t *conn, string dbName, int scenarioID = 0);
+    Scenario(MongoClient *conn, string dbName, int scenarioID = 0);
 
     //! Destructor
     ~Scenario(void);
 
     //! Get scenario ID, base scenario iD is 0
-    int ID(void) {
-        return this->m_id;
-    }
+    int ID(void) const { return m_id; }
 
     //! If this is base scenario
-    bool IsBaseScenario(void) {
-        return this->m_id == 0;
-    }
+    bool IsBaseScenario(void) const { return m_id == 0; }
 
     //! Get scenario name
     string Name(void);
 
     //! Get BMPs Factories
-    map<int, BMPFactory *> *GetBMPFactories(void) {
-        return &m_bmpFactories;
+    map<int, BMPFactory *>& GetBMPFactories(void) {
+        return m_bmpFactories;
     }
 
     //! Write all BMPs information of this scenario to a text file
@@ -65,64 +63,13 @@ public:
     //! Load time series data from database for some reach structure, \sa BMPReachFactory
     void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
 
-public:
-    ////! Get reach structure as \sa BMPReachFlowDiversion
-    //BMPReachFlowDiversion*	getFlowDiversion(int reach);
-    ////! Get reach structure as \sa BMPReachPointSource
-    //BMPReachPointSource*		getPointSource(int reach);
-    ////! Get reach structure as \sa BMPReachReservoir
-    //BMPReachReservoir*			getReservoir(int reach);
-
-    //! Get maximum reservoir id
-    int getMaxReservoirId(void);
-
-    //-----------------------------------------------
-    //areal non-structural bmp information
-
-    /*/// Get planting operation at current time
-       NonStructural::ManagementOperationPlant* getOperationPlant(
-        int validCellIndex,int startYear,time_t currentTime){
-            return (NonStructural::ManagementOperationPlant*)getOperation(validCellIndex,startYear,currentTime,BMP_TYPE_CROP);};
-
-       /// Get harvest operation at current time
-       NonStructural::ManagementOperationHarvest* getOperationHarvest(
-        int validCellIndex,int startYear,time_t currentTime)
-       {return (NonStructural::ManagementOperationHarvest*)getOperation(validCellIndex,startYear,currentTime,BMP_TYPE_CROP,true);};
-
-       /// Get fertilizer operation at current time
-       NonStructural::ManagementOperationFertilizer* getOperationFertilizer(
-        int validCellIndex,int startYear,time_t currentTime)
-       {return (NonStructural::ManagementOperationFertilizer*)getOperation(validCellIndex,startYear,currentTime,BMP_TYPE_FERTILIZER);};
-
-       /// Get tillage operation at current time
-       NonStructural::ManagementOperationTillage* getOperationTillage(
-        int validCellIndex,int startYear,time_t currentTime)
-       {return (NonStructural::ManagementOperationTillage*)getOperation(validCellIndex,startYear,currentTime,BMP_TYPE_TILLAGE);};
-     */
-    //-----------------------------------------------
-
-private:
-    /// Get reach structural BMP information according to the given reach ID and reach BMP ID
-    //BMPReach* getReachStructure(int reach,int reachBMPid);
-    /*!
-     * \brief Get crop/landcover management operation BMP information
-     *
-     * \param[in] validCellIndex location index
-     * \param[in] startYear starting year of current growth period
-     * \param[in] currentTime current time date
-     * \param[in] BMPid BMP ID which should be found in BMP database
-     * \param[in] useSecond Use second opertion or not
-     * \return \sa MnagemetnOperation pointer
-     */
-    //NonStructural::ManagementOperation* getOperation(
-    //	int validCellIndex,int startYear,time_t currentTime,int BMPid,bool useSecond = false);
 private:
     //! MongoDB client object, added by Liangjun
-    mongoc_client_t *m_conn;
+    MongoClient* m_conn;
     /// MongoDB name of BMP
     string m_bmpDBName;
     /// Collections in BMP database used for data checking
-    vector <string> m_bmpCollections;
+    vector<string> m_bmpCollections;
     /// Scenario ID, e.g., 0
     int m_id;
     /// Scenario Name, e.g., base scenario
@@ -147,3 +94,4 @@ private:
     void loadBMPDetail(void);
 };
 }
+#endif /* SEIMS_SCENARIO_H */

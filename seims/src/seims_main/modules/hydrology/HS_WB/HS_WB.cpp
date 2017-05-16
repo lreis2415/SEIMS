@@ -119,15 +119,20 @@ void HS_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     }
 }
 
-void HS_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
-    string sk(key);
+//void HS_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
+////    string sk(key);
+////
+////    if (StringMatch(sk, Tag_RchParam)) {
+////        m_nReaches = ncols - 1;
+////    } else {
+////        throw ModelException(MID_HS_WB, "Set2DData", "Parameter " + sk
+////            + " does not exist. Please contact the module developer.");
+////    }
+//}
 
-    if (StringMatch(sk, Tag_RchParam)) {
-        m_nReaches = ncols - 1;
-    } else {
-        throw ModelException(MID_HS_WB, "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
-    }
+void HS_WB::SetReaches(clsReaches *reaches) {
+    assert(NULL != reaches);
+    m_nReaches = reaches->GetReachNumber();
 }
 
 bool HS_WB::CheckInputData() {

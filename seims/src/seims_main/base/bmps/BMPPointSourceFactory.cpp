@@ -42,12 +42,12 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
     }
 }
 
-void BMPPointSrcFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName) {
+void BMPPointSrcFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     ReadPointSourceManagements(conn, bmpDBName);
     ReadPointSourceLocations(conn, bmpDBName);
 }
 
-void BMPPointSrcFactory::ReadPointSourceManagements(mongoc_client_t *conn, string &bmpDBName) {
+void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -59,17 +59,12 @@ void BMPPointSrcFactory::ReadPointSourceManagements(mongoc_client_t *conn, strin
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
-    bson_iter_t iter;
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_pointSrcMgtTab)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_pointSrcMgtTab.c_str());
-    if (collection == NULL) {
-        throw ModelException("BMPs Scenario", "Read Point Source Management",
-                             "Failed to get collection: " + m_pointSrcMgtTab + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    bson_iter_t iter;
+    const bson_t *bsonTable;
+
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     int count = 1;
     while (mongoc_cursor_next(cursor, &bsonTable)) {
@@ -78,11 +73,10 @@ void BMPPointSrcFactory::ReadPointSourceManagements(mongoc_client_t *conn, strin
         count++;
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPPointSrcFactory::ReadPointSourceLocations(mongoc_client_t *conn, string &bmpDBName) {
+void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -90,17 +84,11 @@ void BMPPointSrcFactory::ReadPointSourceLocations(mongoc_client_t *conn, string 
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
-    bson_iter_t iter;
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_pointSrcDistTab)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_pointSrcDistTab.c_str());
-    if (collection == NULL) {
-        throw ModelException("BMPs Scenario", "Read Point Source Locations",
-                             "Failed to get collection: " + m_pointSrcDistTab + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    bson_iter_t iter;
+    const bson_t *bsonTable;
 
     while (mongoc_cursor_next(cursor, &bsonTable)) {
         PointSourceLocations *curPtSrcLoc = new PointSourceLocations(bsonTable, iter);
@@ -113,7 +101,6 @@ void BMPPointSrcFactory::ReadPointSourceLocations(mongoc_client_t *conn, string 
         }
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 

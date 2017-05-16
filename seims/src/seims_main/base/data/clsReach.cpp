@@ -167,7 +167,7 @@ void clsReach::Reset(void) {
     rs5 = 0.05f;
 }
 
-clsReaches::clsReaches(mongoc_client_t *conn, string &dbName, string collectionName) {
+clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     bson_t *child2 = bson_new();
@@ -179,44 +179,36 @@ clsReaches::clsReaches(mongoc_client_t *conn, string &dbName, string collectionN
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
-    bson_error_t *err = NULL;
-
-    collection = mongoc_client_get_collection(conn, dbName.c_str(), collectionName.c_str());
-    if (collection == NULL) {
-        throw ModelException("clsReaches", "ReadAllReachInfo", "Failed to get collection: " + collectionName + ".\n");
-    }
-    const bson_t *qCount = bson_new();
-    this->m_reachNum = (int) mongoc_collection_count(collection, MONGOC_QUERY_NONE, qCount, 0, 0, NULL, err);
-    if (err != NULL || this->m_reachNum < 0) {
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(dbName, collectionName)));
+    this->m_reachNum = collection->QueryRecordsCount();
+    if (this->m_reachNum < 0) {
+        bson_destroy(b);
         throw ModelException("clsReaches", "ReadAllReachInfo",
                              "Failed to get document number of collection: " + collectionName + ".\n");
     }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    const bson_t *bsonTable;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
         clsReach *curReach = new clsReach(bsonTable);
-        m_reachesInfo[curReach->GetSubbasinID()] = curReach;
+        m_reachesMap[curReach->GetSubbasinID()] = curReach;
         this->m_reachIDs.push_back(curReach->GetSubbasinID());
     }
     vector<int>(m_reachIDs).swap(m_reachIDs);
 
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
-    ///
 }
 
 clsReaches::~clsReaches() {
-    if (!m_reachesInfo.empty()) {
-        for (map<int, clsReach *>::iterator iter = m_reachesInfo.begin(); iter != m_reachesInfo.end();) {
+    StatusMessage("Release clsReach...");
+    if (!m_reachesMap.empty()) {
+        for (map<int, clsReach *>::iterator iter = m_reachesMap.begin(); iter != m_reachesMap.end();) {
             if (iter->second != NULL) {
                 delete iter->second;
+                iter->second = NULL;
             }
-            iter = m_reachesInfo.erase(iter);
+            iter = m_reachesMap.erase(iter);
         }
-        m_reachesInfo.clear();
+        m_reachesMap.clear();
     }
 }

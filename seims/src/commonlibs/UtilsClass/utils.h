@@ -4,11 +4,12 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
- * \revised Dec. 2016
+ * \updated May. 2017
  */
 
 #ifndef CLS_UTILS
 #define CLS_UTILS
+
 /// OpenMP support
 #ifdef SUPPORT_OMP
 #include <omp.h>
@@ -21,6 +22,8 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <cstdint>
+#include <memory>
 /// time
 #include <ctime>
 /// string
@@ -55,6 +58,10 @@
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
 #endif /* macos */
+/// assert
+#include <cassert>
+/// variable arguments
+#include <cstdarg>
 
 using namespace std;
 
@@ -146,9 +153,9 @@ static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 /*
  * Constant value type pointer
  */
-typedef const int * CINTPTR;
-typedef const float * CFLOATPTR;
-typedef const double * CDOUBLEPTR;
+typedef const int*     CINTPTR;
+typedef const float*   CFLOATPTR;
+typedef const double*  CDOUBLEPTR;
 
 /*!
  * \class utilsTime
@@ -200,7 +207,7 @@ public:
      * \param[in] includeHour \a bool Include Hour?
      * \return Date time \a time_t
      */
-    static time_t ConvertToTime(string strDate, string const &format, bool includeHour);
+    static time_t ConvertToTime(const string& strDate, string const &format, bool includeHour);
 
     /*!
      * \brief Convert string to date time, string format could be "%4d-%2d-%2d %2d:%2d:%2d"
@@ -327,7 +334,7 @@ public:
      * \return converted string
      */
     template<typename T>
-    static string ValueToString(T val);
+    static string ValueToString(const T val);
 };
 
 /*!
@@ -400,7 +407,28 @@ public:
      */
     template<typename T>
     static void Release2DArray(int row, T **&data);
-
+    /*!
+     * \brief Batch release of 1D array
+     *        Variable arguments with the end of NULL.
+     * \param[in] data, data2, ... , dataN, NULL
+     * \usage BatchRelease1DArray(array1, array2, array3, NULL);
+     * \caution After batch release, the variable will not be set to NULL.
+     *          So, do not use these variables any more.
+     *          BTW, this function will not cause memory leak.
+     *          USE WITH ALL CAUTIONS CLEARLY AWARED.
+     */
+    template<typename T>
+    static void BatchRelease1DArray(T*& data, ...);
+    /*!
+    * \brief Batch release of 2D array, \sa BatchRelease1DArray
+    *        Variable arguments with the end of NULL.
+    * \param[in] nrows Rows
+    * \param[in] data, data2, ... , dataN, NULL
+    * \usage BatchRelease2DArray(rows, array1, array2, array3, NULL);
+    * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
+    */
+    template<typename T>
+    static void BatchRelease2DArray(int nrows, T**& data, ...);
     /*!
      * \brief Write 1D array to a file
      *
@@ -408,7 +436,7 @@ public:
      *
      * \param[in] n, data, filename
      */
-    static void Output1DArrayToTxtFile(int n, const CFLOATPTR *data, const char *filename);
+    static void Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename);
 
     /*!
      * \brief Write 2D array to a file
@@ -463,7 +491,7 @@ public:
     * \return True if val is in vec, otherwise False
     */
     template<typename T>
-    static bool ValueInVector(T &val, vector<T> &vec);
+    static bool ValueInVector(const T &val, vector<T> &vec);
 
     /*!
     * \brief Remove value in vector container
@@ -574,9 +602,13 @@ public:
 
 #endif /* not windows */
     /*!
+    * \brief Check the given directory path is exists or not.
+    */
+    static bool DirectoryExists(const string& dirpath);
+    /*!
      * \brief Clean a directory if exists, otherwise create it.
      */
-    static bool CleanDirectory(string dirpath);
+    static bool CleanDirectory(const string& dirpath);
     /*!
      * \brief Get the root path of the current executable file
      * \return \a string root path
@@ -649,6 +681,13 @@ public:
      * \return 0 means success
      */
     static int FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles);
+    /*!
+     * \brief Load short plain text file as string vector, ignore comments begin with '#' and empty lines
+     * \param[in] filepath Plain text file path
+     * \param[out] contentStrs Each line without CRLF or LF stored in vector
+     * \return True when read successfully, and false with empty contentStrs when failed
+     */
+    static bool LoadPlainTextFile(const string& filepath, vector<string>& contentStrs);
 };
 
 /*!
@@ -713,7 +752,7 @@ vector <T> utilsString::SplitStringForValues(string const &item, char delimiter)
 }
 
 template<typename T>
-string utilsString::ValueToString(T val) {
+string utilsString::ValueToString(const T val) {
     ostringstream oss;
     oss << val;
     return oss.str();
@@ -980,7 +1019,36 @@ void utilsArray::Release2DArray(int row, T **&data) {
 }
 
 template<typename T>
-bool utilsArray::ValueInVector(T &val, vector<T> &vec) {
+void utilsArray::BatchRelease1DArray(T*& data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release1DArray(data);
+    T* argValue = va_arg(arg_ptr, T*);
+    while (NULL != argValue) {
+        utilsArray::Release1DArray(argValue);
+        argValue = va_arg(arg_ptr, T*);
+    }
+    va_end(arg_ptr);
+}
+
+template<typename T>
+void utilsArray::BatchRelease2DArray(int nrows, T**& data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release2DArray(nrows, data);
+    T** argValue = va_arg(arg_ptr, T**);
+    while (NULL != argValue) {
+        utilsArray::Release2DArray(nrows, argValue);
+        argValue = va_arg(arg_ptr, T**);
+    }
+    va_end(arg_ptr);
+}
+
+template<typename T>
+bool utilsArray::ValueInVector(const T &val, vector<T> &vec) {
+    if (vec.empty()) {
+        return false;
+    }
     typename vector<T>::iterator findIter = find(vec.begin(), vec.end(), val);
     if (findIter == vec.end()) {
         return false;

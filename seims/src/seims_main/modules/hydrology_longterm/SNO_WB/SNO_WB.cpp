@@ -28,26 +28,7 @@ SNO_WB::SNO_WB(void) {
 }
 
 SNO_WB::~SNO_WB(void) {
-    if (this->m_SA != NULL) delete[] this->m_SA;
-
-    /*if(this->m_subbasinList != NULL)
-    {
-        map<int,subbasin*>::iterator it;
-        for(it=this->m_subbasinList->begin();it!=this->m_subbasinList->end();it++)
-        {
-            if(it->second != NULL) delete it->second;
-        }
-        delete this->m_subbasinList;
-    }*/
-
-    /*if(m_snowWaterBalance!=NULL)
-    {
-        for(int i=0;i<this->m_subbasinSelectedCount;i++)
-        {
-            if(m_snowWaterBalance[i] != NULL) delete [] m_snowWaterBalance[i];
-        }
-        delete [] m_snowWaterBalance;
-    }*/
+    Release1DArray(m_SA);
 }
 
 bool SNO_WB::CheckInputData(void) {

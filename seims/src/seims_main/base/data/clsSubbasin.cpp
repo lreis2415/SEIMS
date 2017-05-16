@@ -15,7 +15,7 @@ Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(NULL), m_isRevapCha
 }
 
 Subbasin::~Subbasin(void) {
-    if (m_cells != NULL) Release1DArray(m_cells);
+    Release1DArray(m_cells);
 }
 
 bool Subbasin::CheckInputSize(int n) {
@@ -39,22 +39,6 @@ void Subbasin::setCellList(int nCells, int *cells) {
     m_cells = cells;
 }
 
-//void Subbasin::setSoilLayers(int nCells, int *soilLayers)
-//{
-//	CheckInputSize(nCells);
-//	m_nSoilLayers = soilLayers;
-//}
-//void Subbasin::setParameter4Groundwater(float rv_co, float GW0, float GWMAX, float kg, float base_ex, float cellWidth, int timeStep)
-//{
-//    m_dp_co = rv_co;
-//    m_GW = GW0;
-//    m_GWMAX = GWMAX;
-//    m_kg = kg;
-//    m_base_ex = base_ex;
-//    m_cellArea = cellWidth * cellWidth;
-//	m_Area = m_nCells * m_cellArea;
-//    m_QGConvert = 1.f * cellWidth * cellWidth / (timeStep) / 1000.f; // mm ==> m3/s
-//}
 // Note: Since slope is calculated by drop divided by distance in TauDEM,
 //		 the average should be calculated after doing atan().
 //		 By LJ, 2016-7-27
@@ -73,7 +57,7 @@ void Subbasin::setSlope(float *slope) {
 //////////////////////////////////////////////////////////////////////////
 //////////  clsSubbasins                           ///////////////////////
 ////////////////////////////////////////////////////////////////////////// 
-clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap,
+clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap,
                            int prefixID): m_nSubbasins(-1) {
     m_subbasinIDs.clear();
     m_subbasinsInfo.clear();
@@ -124,10 +108,10 @@ clsSubbasins::clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterDa
     cellListMap.clear();
 }
 
-clsSubbasins *clsSubbasins::Init(mongoc_gridfs_t *spatialData, map<string,
-                                 clsRasterData<float> *> &rsMap, int prefixID) {
+clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterData<float> *> &rsMap, 
+                                 int prefixID) {
     ostringstream oss;
-    oss << prefixID << "_" << NAME_MASK;
+    oss << prefixID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
     oss.str("");
     oss << prefixID << "_" << VAR_SUBBSN;
@@ -198,43 +182,6 @@ float clsSubbasins::subbasin2basin(string key) {
         } else if (StringMatch(key, VAR_GW_Q)) {
             temp += sub->getGW() * nCount;
         }
-/*
-		else if (StringMatch(key, "P"))
-			temp += sub->getPCP() * nCount;
-		else if (StringMatch(key, "NetP"))
-			return m_pNet / m_cells.size();
-		else if (StringMatch(key, "Interception"))
-			return m_Interception / m_cells.size();
-		else if (StringMatch(key, "InterceptionET"))
-			return m_interceptionET / m_cells.size();
-		else if (StringMatch(key, "DepressionET"))
-			return m_DepressionET / m_cells.size();
-		else if (StringMatch(key, "Infiltration"))
-			return m_Infiltration / m_cells.size();
-		else if (StringMatch(key, "Total_ET"))
-			return m_TotalET / m_cells.size();
-		else if (StringMatch(key, "Soil_ET"))
-			return m_soilET / m_cells.size();
-		else if (StringMatch(key, "Net_Percolation"))
-			return m_NetPercolation / m_cells.size();
-		else if (StringMatch(key, "Revap"))
-			return m_Revap / m_cells.size();
-		else if (StringMatch(key, "RS"))
-			return m_RS / m_cells.size();
-		else if (StringMatch(key, "RI"))
-			return m_RI / m_cells.size();
-		else if (StringMatch(key, "RG"))
-			return m_RG / m_cells.size();
-		else if (StringMatch(key, "R"))
-			return m_R / m_cells.size();
-		else if (StringMatch(key, "S_MOI"))
-			return m_S_MOI / m_cells.size();
-		else if (StringMatch(key, "T"))
-			return m_T / m_cells.size();
-		else if (StringMatch(key, "Soil_T"))
-			return m_Soil_T / m_cells.size();
-		else if (StringMatch(key, "MoistureDepth"))
-			return m_moistureDepth / m_cells.size();*/
 
         totalCount += nCount;
     }

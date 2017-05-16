@@ -4,7 +4,8 @@
  * \date Aug 2016
  *
  */
-#pragma once
+#ifndef SEIMS_BMP_AREALSOURCE_H
+#define SEIMS_BMP_AREALSOURCE_H
 
 #include "utilities.h"
 #include "BMPFactory.h"
@@ -160,7 +161,7 @@ public:
         return m_OrgPConc;
     }
 
-    /// Get COD concentrantion
+    /// Get COD concentration
     float GetCOD(void) {
         return m_COD;
     }
@@ -214,7 +215,7 @@ public:
     ~BMPArealSrcFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(mongoc_client_t *conn, string &bmpDBName);
+    void loadBMP(MongoClient* conn, string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);
@@ -224,14 +225,14 @@ public:
      * \param[in] conn mongoc client instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceManagements(mongoc_client_t *conn, string &bmpDBName);
+    void ReadArealSourceManagements(MongoClient* conn, string &bmpDBName);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
      * \param[in] conn mongoc client instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceLocations(mongoc_client_t *conn, string &bmpDBName);
+    void ReadArealSourceLocations(MongoClient* conn, string &bmpDBName);
 
     string GetArealSrcDistName(void) {
         return m_arealSrcDistName;
@@ -286,3 +287,4 @@ private:
     map<int, ArealSourceLocations *> m_arealSrcLocsMap;
 };
 }
+#endif /* SEIMS_BMP_AREALSOURCE_H */

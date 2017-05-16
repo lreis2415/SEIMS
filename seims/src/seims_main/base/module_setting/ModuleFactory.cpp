@@ -1,54 +1,32 @@
 #include "ModuleFactory.h"
 
-//ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn,
-//                             string &dbName, int subBasinID, LayeringMethod layingMethod, int scenarioID)
-//    : m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID),
-//      m_layingMethod(layingMethod), m_scenarioID(scenarioID),
-//      m_reaches(NULL), m_scenario(NULL), m_subbasins(NULL) {
-//    Init(configFileName);
-//#ifdef USE_MONGODB
-//    bson_error_t *err = NULL;
-//    m_spatialData = NULL;
-//    m_spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
-//    m_rsMap.clear();
-//    if (err != NULL)
-//        throw ModelException("ModuleFactory", "Constructor", "Failed to connect to " + string(DB_TAB_SPATIAL) + " GridFS!\n");
-//
-//    if (m_scenarioID != -1) /// -1 means this model doesn't need scenario information
-//    {
-//        GetBMPScenarioDBName();
-//        m_scenario = new Scenario(m_conn, m_dbScenario, m_scenarioID);
-//        //m_scenario->Dump("e:\\test\\bmpScenario.txt");/// Write BMPs Scenario Information to Text file
-//    }
-//#endif /* USE_MONGODB */
-//}
+ModuleFactory::ModuleFactory(DataCenterMongoDB* dataCenter) :m_dataCenter(dataCenter),
+                                                            m_parametersInDB(m_dataCenter->getInitParameters()),
+                                                            m_rsMap(dataCenter->getRasterDataMap()),
+                                                            m_1DArrayMap(m_dataCenter->get1DArrayMap()),
+                                                            m_1DLenMap(m_dataCenter->get1DArrayLenMap()),
+                                                            m_2DArrayMap(m_dataCenter->get2DArrayMap()),
+                                                            m_2DRowsLenMap(m_dataCenter->get2DArrayRowsMap()),
+                                                            m_2DColsLenMap(m_dataCenter->get2DArrayColsMap()),
+                                                            m_weightDataMap(m_dataCenter->getItpWeightDataMap())
+{
+    m_dbName = m_dataCenter->getModelName();
+    m_moduleCfgFile = m_dataCenter->getFileCfgFullPath();
+    m_modulePath = m_dataCenter->getModulePath();
+    m_subBasinID = m_dataCenter->getSubbasinID();
+    m_layingMethod = m_dataCenter->getLayeringMethod();
 
-ModuleFactory::ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, 
-                             string &dbName, int subBasinID, LayeringMethod layingMethod, 
-                             int scenarioID, SettingsInput*& input): 
-    m_modulePath(modelPath), m_conn(conn), m_dbName(dbName), m_subBasinID(subBasinID),
-    m_layingMethod(layingMethod), m_scenarioID(scenarioID), m_setingsInput(input),
-    m_subbasins(NULL), m_scenario(NULL), m_reaches(NULL) {
-    Init(configFileName);
-    bson_error_t *err = NULL;
-    m_spatialData = NULL;
-    m_spatialData = mongoc_client_get_gridfs(m_conn, m_dbName.c_str(), DB_TAB_SPATIAL, err);
-    m_rsMap.clear();
-    if (err != NULL)
-        throw ModelException("ModuleFactory", "Constructor", "Failed to connect to " + string(DB_TAB_SPATIAL) + " GridFS!\n");
+    m_setingsInput = m_dataCenter->getSettingInput();
+    m_scenario = m_dataCenter->getScenarioData();
+    m_reaches = m_dataCenter->getReachesData();
+    m_subbasins = m_dataCenter->getSubbasinData();
+    m_climStation = m_dataCenter->getClimateStation();
+    m_maskRaster = m_dataCenter->getMaskData();
 
-    if (m_scenarioID != -1) /// -1 means this model doesn't need scenario information
-    {
-        GetBMPScenarioDBName();
-        m_scenario = new Scenario(m_conn, m_dbScenario, m_scenarioID);
-        //m_scenario->Dump("e:\\test\\bmpScenario.txt");/// Write BMPs Scenario Information to Text file
-    }
+    Init(m_dataCenter->getFileCfgFullPath());
 }
-
 ModuleFactory::~ModuleFactory(void) {
     StatusMessage("Start to release ModuleFactory ...");
-    if (m_spatialData != NULL) mongoc_gridfs_destroy(m_spatialData);
-    //mongoc_client_destroy(m_conn); // m_conn will be released in MongoClient
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
     StatusMessage("---release map of SEIMSModuleSettings ...");
@@ -61,7 +39,7 @@ ModuleFactory::~ModuleFactory(void) {
         it = m_settings.erase(it);
     }
     m_settings.clear();
-    map<string, SEIMSModuleSetting *>().swap(m_settings);
+
     StatusMessage("---release map of metadata of modules ...");
     for (map<string, const char *>::iterator it = m_metadata.begin(); it != m_metadata.end();) {
         if (it->second != NULL) {
@@ -72,72 +50,7 @@ ModuleFactory::~ModuleFactory(void) {
         it = m_metadata.erase(it);
     }
     m_metadata.clear();
-    StatusMessage("---release map of parameters in MongoDB ...");
-    for (map<string, ParamInfo *>::iterator it = m_parametersInDB.begin(); it != m_parametersInDB.end();) {
-        if (it->second != NULL) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            delete it->second;
-            it->second = NULL;
-        }
-        it = m_parametersInDB.erase(it);
-    }
-    m_parametersInDB.clear();
-    StatusMessage("---release Interpolation weighte data ...");
-    for (map<string, clsInterpolationWeightData *>::iterator it = m_weightDataMap.begin();
-         it != m_weightDataMap.end();) {
-        if (it->second != NULL) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            delete it->second;
-            it->second = NULL;
-        }
-        it = m_weightDataMap.erase(it);
-    }
-    m_weightDataMap.clear();
-    StatusMessage("---release map of all 1D and 2D raster data ...");
-    for (map<string, clsRasterData<float>* > ::iterator it = m_rsMap.begin(); it != m_rsMap.end();)
-    {
-        if (it->second != NULL) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            delete it->second;
-            it->second = NULL;
-        }
-        it = m_rsMap.erase(it);
-    }
-    m_rsMap.clear();
-    StatusMessage("---release map of 1D array data ...");
-    for (map<string, float *>::iterator it = m_1DArrayMap.begin(); it != m_1DArrayMap.end();) {
-        if (it->second != NULL) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            Release1DArray(it->second);
-        }
-        it = m_1DArrayMap.erase(it);
-    }
-    m_1DArrayMap.clear();
-    StatusMessage("---release map of 2D array data ...");
-    for (map<string, float **>::iterator it = m_2DArrayMap.begin(); it != m_2DArrayMap.end();) {
-        if (it->second != NULL) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            Release2DArray(m_2DRowsLenMap[it->first], it->second);
-        }
-        it = m_2DArrayMap.erase(it);
-    }
-    m_2DArrayMap.clear();
 
-    if (m_scenario != NULL) {
-        StatusMessage("---release bmps scenario data ...");
-        delete m_scenario;
-        m_scenario = NULL;
-    }
-    if (m_reaches != NULL) {
-        StatusMessage("---release reaches data ...");
-        delete m_reaches;
-        m_reaches = NULL;
-    }
-    if (m_subbasins != NULL) {
-        StatusMessage("---release subbasins data ...");
-        delete m_subbasins;
-        m_subbasins = NULL;
-    }
     StatusMessage("---release dynamic library handles ...");
     for (size_t i = 0; i < m_dllHandles.size(); i++) {
 #ifdef windows
@@ -151,9 +64,6 @@ ModuleFactory::~ModuleFactory(void) {
 
 void ModuleFactory::Init(const string &configFileName) {
     ReadConfigFile(configFileName.c_str());
-#ifdef USE_MONGODB
-    ReadParametersFromMongoDB();
-#endif /* USE_MONGODB */
 
     size_t n = m_moduleIDs.size();
     // read all the .dll or .so and create objects
@@ -166,15 +76,14 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
-#endif /* USE_MONGODB */
+#endif /* windows */
         } else if (id.find(MID_TSD_RD) != string::npos) {
 #ifdef windows
             dllID = MID_TSD_RD;
 #else
             dllID = Tag_So + string(MID_TSD_RD);
-#endif /* USE_MONGODB */
+#endif /* windows */
         }
-
 #ifdef INTEL_COMPILER
         dllID = dllID + "_intel";
 #endif /* INTEL_COMPILER */
@@ -184,6 +93,7 @@ void ModuleFactory::Init(const string &configFileName) {
 #ifdef SINGLE
         dllID = dllID + "_single";
 #endif /* SINGLE */
+
         // load function pointers from DLL
         ReadDLL(id, dllID);
 
@@ -198,9 +108,9 @@ void ModuleFactory::Init(const string &configFileName) {
         ReadInputSetting(id, doc, m_settings[id]);
         ReadOutputSetting(id, doc, m_settings[id]);
     }
-    map < string, vector < ParamInfo > > (m_moduleParameters).swap(m_moduleParameters);
-    map < string, vector < ParamInfo > > (m_moduleInputs).swap(m_moduleInputs);
-    map < string, vector < ParamInfo > > (m_moduleOutputs).swap(m_moduleOutputs);
+    map<string, vector<ParamInfo> > (m_moduleParameters).swap(m_moduleParameters);
+    map<string, vector<ParamInfo> > (m_moduleInputs).swap(m_moduleInputs);
+    map<string, vector<ParamInfo> >(m_moduleOutputs).swap(m_moduleOutputs);
     // set the connections among objects
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
@@ -218,79 +128,6 @@ void ModuleFactory::Init(const string &configFileName) {
     }
 }
 
-void ModuleFactory::GetBMPScenarioDBName() {
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
-    const bson_t *doc;
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_SCENARIO);
-    bson_t *filter = bson_new();
-#if MONGOC_CHECK_VERSION(1, 5, 0)
-    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-#else
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-        bson_iter_t iter;
-        if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
-            m_dbScenario = GetStringFromBsonIterator(&iter);
-            break;
-        }
-    }
-    bson_destroy(filter);
-    mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
-}
-
-void ModuleFactory::ReadParametersFromMongoDB() {
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
-    bson_error_t *err = NULL;
-    const bson_t *info;
-    collection = mongoc_client_get_collection(m_conn, m_dbName.c_str(), DB_TAB_PARAMETERS);
-    bson_t *filter = bson_new();
-#if MONGOC_CHECK_VERSION(1, 5, 0)
-    cursor = mongoc_collection_find_with_opts(collection, filter, NULL, NULL);
-#else
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, filter, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
-    if (mongoc_cursor_error(cursor, err)) {
-        throw ModelException("ModuleFactory", "ReadParametersFromMongoDB",
-                             "Nothing found in the collection: " + string(DB_TAB_PARAMETERS) + ".\n");
-    }
-    while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
-        ParamInfo *p = new ParamInfo();
-        bson_iter_t iter;
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_NAME)) {
-            p->Name = GetStringFromBsonIterator(&iter);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_UNIT)) {
-            p->Units = GetStringFromBsonIterator(&iter);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_VALUE)) {
-            GetNumericFromBsonIterator(&iter, p->Value);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_CHANGE)) {
-            p->Change = GetStringFromBsonIterator(&iter);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_IMPACT)) {
-            GetNumericFromBsonIterator(&iter, p->Impact);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_MAX)) {
-            GetNumericFromBsonIterator(&iter, p->Maximum);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
-            GetNumericFromBsonIterator(&iter, p->Minimun);
-        }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
-            p->Use = GetStringFromBsonIterator(&iter);
-        }
-        m_parametersInDB[GetUpper(p->Name)] = p;
-    }
-    mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
-    bson_destroy(filter);
-}
-
 string ModuleFactory::GetComparableName(string &paraName) {
     if (paraName.length() <= 2) {
         return paraName;
@@ -305,13 +142,11 @@ string ModuleFactory::GetComparableName(string &paraName) {
     return compareName;
 }
 
-float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThreads, LayeringMethod layeringMethod,
-                                      clsRasterData<float> *templateRaster, vector<SimulationModule *> &modules) {
-    m_layingMethod = layeringMethod;
+float ModuleFactory::CreateModuleList(vector<SimulationModule *> &modules) {
     size_t n = m_moduleIDs.size();
     for (size_t i = 0; i < n; i++) {
         SimulationModule *pModule = GetInstance(m_moduleIDs[i]);
-        pModule->SetTheadNumber(numThreads);
+        pModule->SetTheadNumber(m_dataCenter->getThreadNumber());
         modules.push_back(pModule);
     }
     double t1 = TimeCounting();
@@ -319,7 +154,7 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
     //cout << "reading parameter information from database...\n";
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
-        vector <ParamInfo> &parameters = m_moduleParameters[id];
+        vector<ParamInfo> &parameters = m_moduleParameters[id];
 
         bool verticalInterpolation = true;
         /// Special operation for ITP module
@@ -339,12 +174,13 @@ float ModuleFactory::CreateModuleList(string dbName, int subbasinID, int numThre
         }
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo &param = parameters[j];
-            SetData(dbName, subbasinID, m_settings[id], &param, templateRaster, modules[i],
+            SetData(m_dbName, m_subBasinID, m_settings[id], &param, m_maskRaster, modules[i],
                     verticalInterpolation);
         }
     }
     double t2 = TimeCounting();
-    StatusMessage("Reading parameter finished.\n");
+    float timeconsume = float(t2 - t1);
+    StatusMessage(("Reading parameter finished, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
     return float(t2 - t1);
 }
 
@@ -367,9 +203,6 @@ ParamInfo *ModuleFactory::FindDependentParam(ParamInfo &paramInfo) {
             }
         }
     }
-    //TODO: Currently, there are too many bugs in api.cpp of most modules.
-    //      in the future, all input and output should be verified.
-    //      this throw sentence should be uncommented by then. By LJ.
     if (!StringMatch(paramInfo.Source, Source_Module_Optional)) {
         throw ModelException("ModuleFactory", "FindDependentParam",
                              "Can not find input for " + paraName + " of " + paramInfo.ModuleID +
@@ -383,9 +216,8 @@ void ModuleFactory::ReadDLL(string &id, string &dllID) {
     if (m_instanceFuncs.find(id) != m_instanceFuncs.end()) {
         return;
     }
-
     // check if the dll file exists
-    string moduleFileName = trim(m_modulePath) + string(dllID) + string(Tag_DyLib);
+    string moduleFileName = trim(m_modulePath) + SEP + string(dllID) + string(Tag_DyLib);
     if (!FileExists(moduleFileName)) {
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
     }
@@ -414,12 +246,7 @@ void ModuleFactory::ReadDLL(string &id, string &dllID) {
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: MetadataInformation");
     }
-
-    //cout<<"Read DLL: "<<moduleFileName<<endl;
-}
-
-SimulationModule *ModuleFactory::GetInstance(string &moduleID) {
-    return m_instanceFuncs[moduleID]();
+    StatusMessage(("Read DLL: " + moduleFileName).c_str());
 }
 
 dimensionTypes ModuleFactory::MatchType(string strType) {
@@ -442,8 +269,8 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
 }
 
 void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting) {
-    m_moduleParameters.insert(map < string, vector < ParamInfo > > ::value_type(moduleID, vector<ParamInfo>()));
-    vector <ParamInfo> &vecPara = m_moduleParameters[moduleID];
+    m_moduleParameters.insert(make_pair(moduleID, vector<ParamInfo>()));
+    vector<ParamInfo> &vecPara = m_moduleParameters.at(moduleID);
 
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
 
@@ -479,13 +306,18 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_MeanTemperature) ||
                             StringMatch(setting->dataTypeString(), DataType_MinimumTemperature) ||
-                            StringMatch(setting->dataTypeString(), DataType_MaximumTemperature)) {
-                                param->Name +=
-                                    "_M";  //The weight coefficient file is same for TMEAN, TMIN and TMAX, so just need to read one file named "Weight_M"
-                            } else {
-                                param->Name += "_" +
-                                    setting->dataTypeString();
-                        }    //combine weight and data type. e.g. Weight + PET = Weight_PET, this combined string must be the same with the parameter column in the climate table of parameter database.
+                            StringMatch(setting->dataTypeString(), DataType_MaximumTemperature)) 
+                        {
+                            //The weight coefficient file is same for TMEAN, TMIN and TMAX, 
+                            //  so just need to read one file named "Weight_M"
+                            param->Name += "_M";  
+                                
+                        } else {
+                            // Combine weight and data type. e.g. Weight + PET = Weight_PET, 
+                            //  this combined string must be the same with the parameter column 
+                            //  in the climate table of parameter database.    
+                            param->Name += "_" + setting->dataTypeString();
+                        }
                     }
 
                     //special process for interpolation modules
@@ -589,8 +421,8 @@ bool ModuleFactory::IsConstantInputFromName(string &name) {
 }
 
 void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting) {
-    m_moduleInputs.insert(map < string, vector < ParamInfo > > ::value_type(moduleID, vector<ParamInfo>()));
-    vector <ParamInfo> &vecPara = m_moduleInputs[moduleID];
+    m_moduleInputs.insert(make_pair(moduleID, vector<ParamInfo>()));
+    vector <ParamInfo> &vecPara = m_moduleInputs.at(moduleID);
 
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
 
@@ -651,19 +483,6 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
 
             elItm = NULL;
 
-
-            //string keyName = GetUpper(param->Name);
-            //string dataTypeString = dataType2String(climateDataType);
-            //if(m_setting->dataTypeString().length() > 0) keyName += "_"+m_setting->dataTypeString();		// if the module has corresponding climate data type,
-            //param->Name = keyName;
-            //m_inputs[keyName] = param;
-
-            //if(!StringMatch(param->Source,"module")) param->InitialInputOriginalName();
-
-            // add to the list
-            //m_inputs[GetUpper(param->Name)] = param;
-            //m_inputs.push_back(param);
-
             // input must have these values
             if (param->Name.size() <= 0) {
                 delete param;
@@ -695,8 +514,8 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
 }
 
 void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting) {
-    m_moduleOutputs.insert(map < string, vector < ParamInfo > > ::value_type(moduleID, vector<ParamInfo>()));
-    vector <ParamInfo> &vecPara = m_moduleOutputs[moduleID];
+    m_moduleOutputs.insert(make_pair(moduleID, vector<ParamInfo>()));
+    vector <ParamInfo> &vecPara = m_moduleOutputs.at(moduleID);
 
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
 
@@ -752,14 +571,6 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
             // add to the list
             param->IsOutput = true;
 
-
-            //string keyName = GetUpper(param->Name);
-            //string dataTypeString = m_setting->dataTypeString();
-            //if(dataTypeString.length() > 0) keyName += "_"+dataTypeString;		// if the module has corresponding climate data type,
-            //param->Name = keyName;																	// the key of m_outputs is a string contains param name and data type. e.g. D_P
-            //m_outputs[keyName] = param;
-
-
             // output variable must have these values
             if (param->Name.size() <= 0) {
                 delete param;
@@ -782,79 +593,61 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
     }
 }
 
-bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector <vector<string>> &settings) {
-    bool bStatus = false;
-    ifstream myfile;
-    string line;
+bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string>>& settings) {
+    vector<string> cfgStrs;
+    if (!LoadPlainTextFile(filename, cfgStrs)) {
+        return false;
+    }
     string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
                              DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
                              DataType_RelativeAirMoisture};
-    try {
-        // open the file
-        myfile.open(filename, ios::in);
-        if (myfile.is_open()) {
-            while (!myfile.eof()) {
-                if (myfile.good()) {
-                    getline(myfile, line);
-                    line = trim(line);
-                    if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
-                    {
-                        // parse the line into separate item
-                        vector <string> tokens = SplitString(line, '|');
-                        // is there anything in the token list?
-                        if (tokens.size() > 0) {
-                            for (size_t i = 0; i < tokens.size(); i++) {
-                                //TrimSpaces(tokens[i]);
-                                tokens[i] = trim(tokens[i]);
-                            }
-                            // is there anything in the first item?
-                            if (tokens[0].size() > 0) {
-                                // there is something to add so resize the header list to append it
-                                int sz = settings.size(); // get the current number of rows
-                                if (tokens[3].find(MID_ITP) != string::npos ||
-                                    tokens[3].find(MID_TSD_RD) != string::npos) {
-                                    settings.resize(sz + 7);
+    for (vector<string>::iterator iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
+        // parse the line into separate item
+        vector<string> tokens = SplitString(*iter, '|');
+        // is there anything in the token list?
+        if (tokens.size() > 0) {
+            for (size_t i = 0; i < tokens.size(); i++) {
+                //TrimSpaces(tokens[i]);
+                tokens[i] = trim(tokens[i]);
+            }
+            // is there anything in the first item?
+            if (tokens[0].size() > 0) {
+                // there is something to add so resize the header list to append it
+                int sz = settings.size(); // get the current number of rows
+                if (tokens[3].find(MID_ITP) != string::npos ||
+                    tokens[3].find(MID_TSD_RD) != string::npos) {
+                    settings.resize(sz + 7);
 
-                                    for (size_t j = 0; j < 7; j++) {
-                                        vector <string> tokensTemp(tokens);
-                                        tokensTemp[1] += "_" + T_variables[j];
-                                        if (tokens[3].find(MID_ITP) != string::npos) {
-                                            vector <string> ITPProperty = SplitString(line, '_');
-                                            if (ITPProperty.size() == 2) {
-                                                int isVertical = atoi(ITPProperty[1].c_str());
-                                                if (isVertical) {
-                                                    tokensTemp[1] += "_1";
-                                                } else {
-                                                    tokensTemp[1] += "_0";
-                                                }
-                                            }
-                                        }
-                                        settings[sz + j] = tokensTemp;
-                                    }
-                                } else {
-                                    settings.resize(sz + 1);        // resize with one more row
-                                    settings[sz] = tokens;
+                    for (size_t j = 0; j < 7; j++) {
+                        vector<string> tokensTemp(tokens);
+                        tokensTemp[1] += "_" + T_variables[j];
+                        if (tokens[3].find(MID_ITP) != string::npos) {
+                            vector<string> ITPProperty = SplitString(*iter, '_');
+                            if (ITPProperty.size() == 2) {
+                                int isVertical = atoi(ITPProperty[1].c_str());
+                                if (isVertical) {
+                                    tokensTemp[1] += "_1";
                                 }
-                                bStatus = true; // consider this a success
-                            } // if there is nothing in the first item of the token list there is nothing to add to the header list
+                                else {
+                                    tokensTemp[1] += "_0";
+                                }
+                            }
                         }
+                        settings[sz + j] = tokensTemp;
                     }
                 }
-            }
-            bStatus = true;
-            myfile.close();
+                else {
+                    settings.resize(sz + 1);        // resize with one more row
+                    settings[sz] = tokens;
+                }
+            } // if there is nothing in the first item of the token list there is nothing to add to the header list
         }
     }
-    catch (...) {
-        myfile.close();
-        cout << "LoadSettingsFromFile Failed, Please check the format of config.fig" << endl;
-        throw;
-    }
-    return bStatus;
+    return true;
 }
 
 void ModuleFactory::ReadConfigFile(const char *configFileName) {
-    vector <vector<string>> settings;
+    vector<vector<string> > settings;
     LoadSettingsFromFile(configFileName, settings);
 
     try {
@@ -886,8 +679,7 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
 }
 
 void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
-                            clsRasterData<float> *templateRaster, SimulationModule *pModule, bool vertitalItp) {
-    //set the parameter data to the module
+                            FloatRaster templateRaster, SimulationModule *pModule, bool vertitalItp) {
     string name = param->BasicName;
     if (setting->dataTypeString().size() == 0
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
@@ -898,8 +690,6 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         //cout << param->Name << " " << param->BasicName << endl;
     }
     StatusMessage(("set " + name + " data").c_str());
-    //clock_t start = clock();
-    //const char *paramName = name.c_str(); // not used variable. LJ
     ostringstream oss;
     int tmp = name.find("LOOKUP");
     if (tmp < 0) {
@@ -913,7 +703,6 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         } else {
             oss << "_M";
         }
-        //oss << "_" << setting->dataTypeString();
     }
     string remoteFileName = oss.str();
 
@@ -926,15 +715,11 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
             break;
         case DT_Array2D:Set2DData(dbName, name, nSubbasin, remoteFileName, templateRaster, pModule);
             break;
-        case DT_Array3D:
-            /// Currently, no 3D array data encountered
-            break;
+        case DT_Array3D:break;
         case DT_Array1DDateValue:break;
         case DT_Raster1D:SetRaster(dbName, name, remoteFileName, templateRaster, pModule);
             break;
-        case DT_Raster2D:
-            /// Fix by LiangJun Zhu, 5-27-2016
-            SetRaster(dbName, name, remoteFileName, templateRaster, pModule);
+        case DT_Raster2D:SetRaster(dbName, name, remoteFileName, templateRaster, pModule);
             break;
         case DT_Scenario:SetScenario(pModule);
             break;
@@ -942,22 +727,11 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
             break;
         case DT_Subbasin:SetSubbasins(pModule);
             break;
-            //case DT_SiteInformation:
-            //    break;
-            //case DT_LapseRateArray:
-            //    //SetLapseRateArray();
-            //    break;
-            //case DT_LookupTable:
-            //    break;
         default:break;
     }
-    //clock_t end = clock();
-    //if(param->Dimension != DT_Single)
-    //	cout << name << "\t" << end-start << endl;
 }
 
-void ModuleFactory::SetValue(ParamInfo *param, clsRasterData<float> *templateRaster, SimulationModule *pModule) {
-    //get parameter data
+void ModuleFactory::SetValue(ParamInfo *param, FloatRaster templateRaster, SimulationModule *pModule) {
     if (StringMatch(param->Name, Tag_DataType)) {
         // the data type is got from config.fig
         return;
@@ -973,6 +747,8 @@ void ModuleFactory::SetValue(ParamInfo *param, clsRasterData<float> *templateRas
         param->Value = float(m_setingsInput->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
         param->Value = float(m_setingsInput->getDtChannel());
+    } else if (StringMatch(param->Name, Tag_LayeringMethod)) {
+        param->Value = (float)m_layingMethod;
     } else {
         if (m_parametersInDB.find(GetUpper(param->Name)) != m_parametersInDB.end()) {
             param->Value = m_parametersInDB[GetUpper(param->Name)]->GetAdjustedValue();
@@ -982,9 +758,8 @@ void ModuleFactory::SetValue(ParamInfo *param, clsRasterData<float> *templateRas
     pModule->SetValue(param->Name.c_str(), param->Value);
 }
 
-void
-ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileName, clsRasterData<float> *templateRaster,
-                         SimulationModule *pModule, bool vertitalItp) {
+void ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileName, 
+                              FloatRaster templateRaster, SimulationModule *pModule, bool vertitalItp) {
     int n;
     float *data = NULL;
     /// the data has been read before, which stored in m_1DArrayMap
@@ -994,7 +769,7 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
         return;
     }
     else if (m_weightDataMap.find(remoteFileName) != m_weightDataMap.end()) {
-        clsInterpolationWeightData *weightData = m_weightDataMap.at(remoteFileName);
+        clsITPWeightData *weightData = m_weightDataMap.at(remoteFileName);
         weightData->getWeightData(&n, &data);
         pModule->Set1DData(paraName.c_str(), n, data);
         return;
@@ -1002,92 +777,58 @@ ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileNam
     /// the data has not been read yet.
     /// 1. IF FLOWOUT_INDEX_D8
     if (StringMatch(paraName, Tag_FLOWOUT_INDEX_D8)) {
-        try {
-            Read1DArrayFromMongoDB(m_spatialData, remoteFileName, n, data);
-            if (templateRaster->getCellNumber() != n) {
-                throw ModelException("ModuleFactory", "Set1DArray",
-                                     "The data length derived from Read1DArrayFromMongoDB in " + remoteFileName
-                                         + " is not the same as the template.");
-            }
-        }
-        catch (ModelException& e) {
-            cout << e.toString() << endl;
-            return;
+        m_dataCenter->read1DArrayData(paraName, remoteFileName, n, data);
+        if (templateRaster->getCellNumber() != n) {
+            throw ModelException("ModuleFactory", "Set1DArray",
+                "The data length derived from Read1DArray in " + remoteFileName
+                + " is not the same as the template.");
         }
     }
-        /// 2. IF Weight data
+    /// 2. IF Weight data
     else if (StringMatch(paraName, Tag_Weight)) {
-#ifdef USE_MONGODB
-        clsInterpolationWeightData *weightData = new clsInterpolationWeightData(m_spatialData, remoteFileName.c_str());
-        /*#else
-            ostringstream ossWeightFile;
-            ossWeightFile << dbName << remoteFileName << TextExtension;
-            clsInterpolationWeightData *weightData = new clsInterpolationWeightData(ossWeightFile.str());*/
-#endif /* USE_MONGODB */
-        weightData->getWeightData(&n, &data);
-        /// m_weightDataMap[remoteFileName] = weightData; /// replaced by the below code
-        /// update by Liangjun, 3-25-2017
-        if (!m_weightDataMap.insert(make_pair(remoteFileName, weightData)).second) {
-            /// if insert data failed
-            delete weightData;
-        }
+        m_dataCenter->readItpWeightData(remoteFileName, n, data);
     }
-        /// 3. IF Meteorology sites data
+    /// 3. IF Meteorology sites data
     else if (StringMatch(paraName, Tag_Elevation_Meteorology)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Meteorology);
-            data = pStation->GetElevation(DataType_Meteorology);
+            n = m_climStation->NumberOfSites(DataType_Meteorology);
+            data = m_climStation->GetElevation(DataType_Meteorology);
         } else {
             return;
         }
     }
-        /// 4. IF Precipitation sites data
+    /// 4. IF Precipitation sites data
     else if (StringMatch(paraName, Tag_Elevation_Precipitation)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Precipitation);
-            data = pStation->GetElevation(DataType_Precipitation);
+            n = m_climStation->NumberOfSites(DataType_Precipitation);
+            data = m_climStation->GetElevation(DataType_Precipitation);
         } else {
             return;
         }
     }
-        /// 5. IF Latitude of sites
+    /// 5. IF Latitude of sites
     else if (StringMatch(paraName, Tag_Latitude_Meteorology)) {
         if (vertitalItp) {
-            InputStation *pStation = m_setingsInput->StationData();
-            n = pStation->NumberOfSites(DataType_Meteorology);
-            data = pStation->GetLatitude(DataType_Meteorology);
+            n = m_climStation->NumberOfSites(DataType_Meteorology);
+            data = m_climStation->GetLatitude(DataType_Meteorology);
         } else {
             return;
         }
     }
-        /// 6. IF any other 1D arrays, such as Heat units of all simulation years (HUTOT)
+    /// 6. IF any other 1D arrays, such as Heat units of all simulation years (HUTOT)
     else {
-        try {
-            Read1DArrayFromMongoDB(m_spatialData, remoteFileName, n, data);
-        }
-        catch (ModelException& e) {
-            cout << e.toString() << endl;
-            return;
-        }
+        m_dataCenter->read1DArrayData(paraName, remoteFileName, n, data);
     }
 
-    if (data == NULL) {
+    if (NULL == data) {
         throw ModelException("ModuleFactory", "Set1DData", "Failed reading file " + remoteFileName);
-    }
-
-    /// interpolation weight data is stored in m_weightDataMap
-    if (!StringMatch(paraName, Tag_Weight)) {
-        m_1DArrayMap[remoteFileName] = data;
-        m_1DLenMap[remoteFileName] = n;
     }
 
     pModule->Set1DData(paraName.c_str(), n, data);
 }
 
 void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, string &remoteFileName,
-                              clsRasterData<float> *templateRaster, SimulationModule *pModule) {
+                              FloatRaster templateRaster, SimulationModule *pModule) {
     int nRows = 0;
     int nCols = 1;
     float **data;
@@ -1105,106 +846,63 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
     }
     /// Check if the data is already loaded
     if (m_2DArrayMap.find(remoteFileName) != m_2DArrayMap.end()) {
-        data = m_2DArrayMap[remoteFileName];
-        nRows = m_2DRowsLenMap[remoteFileName];
-        nCols = m_2DColsLenMap[remoteFileName];
+        data = m_2DArrayMap.at(remoteFileName);
+        nRows = m_2DRowsLenMap.at(remoteFileName);
+        nCols = m_2DColsLenMap.at(remoteFileName);
 
         pModule->Set2DData(paraName.c_str(), nRows, nCols, data);
         return;
     }
-    /// Load data from MongoDB
-    try {
+    /// Load data from DataCenter
+    if (StringMatch(paraName, Tag_ROUTING_LAYERS) || StringMatch(paraName, Tag_ROUTING_LAYERS_DINF)){
         // Routing layering data based on different flow model
-        if (StringMatch(paraName, Tag_ROUTING_LAYERS) || StringMatch(paraName, Tag_ROUTING_LAYERS_DINF)){
-            Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
+        m_dataCenter->read2DArrayData(remoteFileName, nRows, nCols, data);
+    } else if (StringMatch(paraName, Tag_FLOWIN_INDEX_D8) || StringMatch(paraName, Tag_FLOWIN_INDEX_DINF)
+        || StringMatch(paraName, Tag_FLOWIN_PERCENTAGE_DINF) || StringMatch(paraName, Tag_FLOWOUT_INDEX_DINF)) {
         // Flow in and flow out data based on different flow model
-        } else if (StringMatch(paraName, Tag_FLOWIN_INDEX_D8) || StringMatch(paraName, Tag_FLOWIN_INDEX_DINF)
-            || StringMatch(paraName, Tag_FLOWIN_PERCENTAGE_DINF) || StringMatch(paraName, Tag_FLOWOUT_INDEX_DINF)) {
-            Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
-        // Overland flow IUH
-        } else if (StringMatch(paraName, TAG_OUT_OL_IUH)) {
-            ReadIUHFromMongoDB(m_spatialData, remoteFileName, nRows, data);
-        // Reach parameters, the following two should be combined to one! TODO by liangjun
-        } else if (StringMatch(paraName, Tag_ReachParameter)) {
-#ifndef MULTIPLY_REACHES
-            ReadReachInfoFromMongoDB(m_layingMethod, m_conn,dbName, nSubbasin, nRows, nCols, data);
-#else
-            ReadMutltiReachInfoFromMongoDB(m_layingMethod, m_conn, dbName, nRows, nCols, data);
-#endif /* not MULTIPLY_REACHES */
-        } else if (StringMatch(paraName, Tag_RchParam)) {
-#ifndef MULTIPLY_REACHES
-            ReadLongTermReachInfo(m_conn, m_dbName, nSubbasin, nRows, nCols, data);
-#else
-            ReadLongTermMultiReachInfo(m_conn, m_dbName, nRows, nCols, data);
-#endif /* not MULTIPLY_REACHES */
-        } else if (StringMatch(paraName, Tag_LapseRate)) /// Match to the format of DT_Array2D, By LJ.
-        {
-            nRows = 12;
-            nCols = 5;
-            data = new float *[nRows];
-            for (int i = 0; i < nRows; i++) {
-                data[i] = new float[nCols];
-                data[i][0] = 4.f; /// element number
-                data[i][1] = 0.03f; // P
-                data[i][2] = -0.65f; // T
-                data[i][3] = 0.f;    // PET
-                data[i][4] = 0.f;    // other Meteorology variables
-            }
-        } else {
-            Read2DArrayFromMongoDB(m_spatialData, remoteFileName, nRows, nCols, data);
-        }
+        m_dataCenter->read2DArrayData(remoteFileName, nRows, nCols, data);
+    } else if (StringMatch(paraName, TAG_OUT_OL_IUH)) { // Overland flow IUH
+        m_dataCenter->readIUHData(remoteFileName, nRows, data);
+    } else if (StringMatch(paraName, Tag_LapseRate)) /// Match to the format of DT_Array2D, By LJ.
+    {
+        m_dataCenter->setLapseData(remoteFileName, nRows, nCols, data);
+    } else {
+        m_dataCenter->read2DArrayData(remoteFileName, nRows, nCols, data);
     }
-    catch (ModelException& e) {
-        cout << e.toString() << endl;
-        return;
-    }
-
-    m_2DArrayMap[remoteFileName] = data;
-    m_2DRowsLenMap[remoteFileName] = nRows;
-    m_2DColsLenMap[remoteFileName] = nCols;  /// be aware that the nCols may not same for all rows
 
     pModule->Set2DData(paraName.c_str(), nRows, nCols, data);
 }
 
 void
-ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileName, clsRasterData<float> *templateRaster,
+ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileName, FloatRaster templateRaster,
                          SimulationModule *pModule) {
     int n, lyrs;
     float *data = NULL;
     float **data2D = NULL;
-    clsRasterData<float> *raster = NULL;
+    FloatRaster raster = NULL;
     if (m_rsMap.find(remoteFileName) == m_rsMap.end()) {
-        try {
-#ifdef USE_MONGODB
-            raster = new clsRasterData<float>(m_spatialData, remoteFileName.c_str(), true, templateRaster, true);
-            string upperName = GetUpper(paraName);
-            /// 1D or 2D raster data
-            if (raster->is2DRaster())
-            {
-                if (!raster->get2DRasterData(&n, &lyrs, &data2D)) {
-                    throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
-                }
-                if (m_parametersInDB.find(upperName) != m_parametersInDB.end()) {
-                    m_parametersInDB[upperName]->Adjust2DRaster(n, raster->getLayers(), data2D);
-                }
-            }
-            else
-            {
-                if (!raster->getRasterData(&n, &data)) {
-                    throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
-                }
-                if (data != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
-                    m_parametersInDB[upperName]->Adjust1DRaster(n, data);
-            }
-#endif /* USE_MONGODB */
+        raster = m_dataCenter->readRasterData(remoteFileName);
+        if (NULL == raster) {
+            throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
         }
-        catch (ModelException& e) {
-            cout << e.toString() << endl;
-            return;
+        string upperName = GetUpper(paraName);
+        /// 1D or 2D raster data
+        if (raster->is2DRaster())
+        {
+            if (!raster->get2DRasterData(&n, &lyrs, &data2D)) {
+                throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
+            }
+            if (m_parametersInDB.find(upperName) != m_parametersInDB.end()) {
+                m_parametersInDB[upperName]->Adjust2DRaster(n, raster->getLayers(), data2D);
+            }
         }
-        // m_rsMap[remoteFileName] = raster; /// using insert() to make sure the successful insertion.
-        if (!m_rsMap.insert(make_pair(remoteFileName, raster)).second) {
-            delete raster;
+        else
+        {
+            if (!raster->getRasterData(&n, &data)) {
+                throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
+            }
+            if (data != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
+                m_parametersInDB[upperName]->Adjust1DRaster(n, data);
         }
     } else {
         raster = m_rsMap.at(remoteFileName);
@@ -1227,8 +925,8 @@ ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileNam
 
 /// Added by Liang-Jun Zhu, 2016-6-22
 void ModuleFactory::SetScenario(SimulationModule *pModule) {
-    if (NULL == m_scenario) {
-        return;
+    if (NULL == m_scenario && NULL == m_dataCenter->getScenarioData()) {
+        throw ModelException("ModuleFactory", "SetScenario", "Scenarios has not been set!");;
     } else {
         pModule->SetScenario(m_scenario);
     }
@@ -1236,25 +934,17 @@ void ModuleFactory::SetScenario(SimulationModule *pModule) {
 
 /// Added by Liang-Jun Zhu, 2016-7-2
 void ModuleFactory::SetReaches(SimulationModule *pModule) {
-    if (NULL == m_reaches) {
-        m_reaches = new clsReaches(m_conn, m_dbName, DB_TAB_REACH);
+    if (NULL == m_reaches && NULL == m_dataCenter->getReachesData()) {
+        throw ModelException("ModuleFactory", "SetReaches", "Reaches has not been set!");
     }
     pModule->SetReaches(m_reaches);
 }
 
-void ModuleFactory::AddMaskRaster(string maskName, clsRasterData<float> *maskData) {
-    if (m_rsMap.find(maskName) == m_rsMap.end()) { // not loaded yet
-        m_rsMap[maskName] = maskData;
-    }
-}
 
 /// Added by Liang-Jun Zhu, 2016-7-28
 void ModuleFactory::SetSubbasins(SimulationModule *pModule) {
-    if (NULL == m_subbasins) {
-        m_subbasins = clsSubbasins::Init(m_spatialData, m_rsMap, m_subBasinID);
-        if (NULL == m_subbasins) {
-            throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data can not be initialized!");
-        }
+    if (NULL == m_subbasins && NULL == m_dataCenter->getSubbasinData()) {
+        throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data has not been initialized!");
     }
     pModule->SetSubbasins(m_subbasins);
 }
@@ -1280,8 +970,7 @@ void ModuleFactory::UpdateInput(vector<SimulationModule * > &modules, time_t t) 
             if (dataType.length() > 0) {
                 int datalen;
                 float *data;
-
-                m_setingsInput->StationData()->GetTimeSeriesData(t, dataType, &datalen, &data);
+                m_climStation->GetTimeSeriesData(t, dataType, &datalen, &data);
                 if (StringMatch(param.Name.c_str(), DataType_PotentialEvapotranspiration)) {
                     for (int iData = 0; iData < datalen; iData++) {
                         data[iData] *= m_parametersInDB[VAR_K_PET]->GetAdjustedValue();
@@ -1371,71 +1060,3 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
         }
     }
 }
-
-//void ModuleFactory::ReadMultiReachInfo(const string &filename, LayeringMethod layeringMethod, int& nAttr, int& nReaches, float**& data)
-//{
-//	ifstream ifs(filename.c_str());
-//	int nAll;
-//	ifs >> nReaches >> nAll;
-//	nAttr = 5;
-//	data = new float*[nAttr];
-//	for (int i = 0; i < nAttr; i++)
-//	{
-//		data[i] = new float[nReaches];
-//	}
-//
-//	string line;
-//	getline(ifs, line);
-//	for (int i = 0; i < nReaches; ++i)
-//	{
-//		getline(ifs, line);
-//		vector<string> vec = SplitString(line);
-//		data[0][i] = atof(vec[0].c_str());
-//		if (layeringMethod == UP_DOWN)
-//			data[1][i] = atof(vec[2].c_str());
-//		else
-//			data[1][i] = atof(vec[3].c_str());
-//		data[2][i] = atof(vec[1].c_str());//downstream id
-//		data[3][i] = atof(vec[4].c_str());//Manning's n
-//		data[4][i] = atof(vec[5].c_str());
-//	}
-//	ifs.close();
-//}
-
-//void ModuleFactory::ReadSingleReachInfo(int nSubbasin, const string &filename, LayeringMethod layeringMethod, int& nAttr, int& nReaches, float**& data)
-//{
-//	ifstream ifs(filename.c_str());
-//	int nReachesAll, nAll;
-//	ifs >> nReachesAll >> nAll;
-//	nReaches = 1;
-//	nAttr = 5;
-//	data = new float*[nAttr];
-//	for (int i = 0; i < nAttr; i++)
-//	{
-//		data[i] = new float[nReaches];
-//	}
-//
-//	string line;
-//	getline(ifs, line);
-//	for (int i = 0; i < nReachesAll; ++i)
-//	{
-//		getline(ifs, line);
-//		vector<string> vec = SplitString(line);
-//		int curSubbasin = atoi(vec[0].c_str());
-//		if (curSubbasin == nSubbasin)
-//		{
-//			data[0][0] = atof(vec[0].c_str());
-//			if (layeringMethod == UP_DOWN)
-//				data[1][0] = atof(vec[2].c_str());
-//			else
-//				data[1][0] = atof(vec[3].c_str());
-//			data[2][0] = atof(vec[1].c_str());//downstream id
-//			data[3][0] = atof(vec[4].c_str());//Manning's n
-//			data[4][0] = atof(vec[5].c_str());
-//
-//			//cout << data[0][0] << "\t" << data[1][0] << "\t" << data[2][0] << "\t" << data[3][0] << "\t" << data[4][0] << "\n";
-//			break;
-//		}
-//	}
-//	ifs.close();
-//}

@@ -4,9 +4,10 @@
  * \date May 2010
  * \revised Feb 2017
  */
-#ifndef SEIMS_INVOKE
-#define SEIMS_INVOKE
+#ifndef SEIMS_INVOKE_H
+#define SEIMS_INVOKE_H
 
+#include "DataCenter.h"
 #include "ModelMain.h"
 /// include module_setting related
 #include "tinyxml.h"
@@ -14,18 +15,6 @@
 #include "Settings.h"
 
 using namespace std;
-
-//! Check database to make sure the collections (tables) are provided
-void checkDatabase(mongoc_client_t *conn, string dbName);
-
-//! Check project directory for the required input files
-void checkProject(string projectPath);
-
-//! Check table exists or not
-void checkTable(vector <string> &tableNameList, string dbName, const char *tableName);
-
-////! Is file path existed?
-//bool isPathExists(const char *path);
 
 /*!
  * \brief SEIMS main invoke entrance using MongoDB
@@ -35,8 +24,9 @@ void checkTable(vector <string> &tableNameList, string dbName, const char *table
  * \param[in] port \a int, port of MongoDB, 27017 is default
  * \param[in] scenarioID \a int,
  * \param[in] numThread \a int, thread number for OpenMP
- * \param[in] layingMethod \sa LayeringMethod, method for sequencing Grid
+ * \param[in] lyrMethod \sa LayeringMethod, method for sequencing Grid
  */
-int MainMongoDB(string, char *, int, int, int, LayeringMethod);
+int MainMongoDB(string modelPath, char* host, uint16_t port, int scenarioID,
+                int numThread, LayeringMethod lyrMethod);
 
-#endif
+#endif /* SEIMS_INVOKE_H */

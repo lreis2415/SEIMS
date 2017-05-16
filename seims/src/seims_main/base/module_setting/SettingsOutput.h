@@ -1,11 +1,13 @@
 /*!
  * \brief Setting Outputs for SEIMS
- *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
- * \date June 2010
+ * \version 2.0
+ * \date May 2017
+ * \revised LJ - Refactor, decoupling with database IO
  */
-#pragma once
+#ifndef SEIMS_SETTING_OUTPUT_H
+#define SEIMS_SETTING_OUTPUT_H
+
 #include "utilities.h"
 #include "Settings.h"
 #include "PrintInfo.h"
@@ -14,44 +16,49 @@
 
 /*!
  * \ingroup module_setting
+ * \struct OrgOutItem
+ */
+struct OrgOutItem
+{
+public:
+    OrgOutItem() {};
+    ~OrgOutItem() {};
+public:
+    string modCls = "";
+    string outputID = "";
+    string descprition = "";
+    string outFileName = "";
+    string aggType = "";
+    string unit = "";
+    string subBsn = "";
+    string intervalUnit = "";
+    string sTimeStr = "";
+    string eTimeStr = "";
+    int interval = -1;
+    int use = -1;
+};
+/*!
+ * \ingroup module_setting
  * \class SettingsOutput
  * \brief 
  */
-class SettingsOutput :
-    public Settings {
+class SettingsOutput :public Settings {
 public:
-    //! Constructor, read from file.out
-    SettingsOutput(int subBasinID, string fileName, mongoc_client_t *conn, string dbName, mongoc_gridfs_t *gfs);
-
-    //! Constructor, read from MongoDB
-    SettingsOutput(int subBasinID, mongoc_client_t *conn, string dbName, mongoc_gridfs_t *gfs);
+    //! Constructor
+    SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
 
     //! Destructor
     ~SettingsOutput(void);
 
-    //! Load output setting from file
-    bool LoadSettingsFromFile(int subBasinID, string fileOutPath);
-
-    /*!
-     * \brief Load output setting from MongoDB
-     *        Which is combination of \sa LoadSettingsFromFile() and \sa ParseOutputSettings()
-     */
-    bool LoadSettingsOutputFromMongoDB(int subBasinID);
-
-    /*!
-     * \brief Read subbasin numbers, outlet ID, etc. from MongoDB
-     */
-    void SetSubbasinIDs(void);
-
+    //! Init function
+    static SettingsOutput* Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
+    
     //! Write output information to log file
     void Dump(string);
 
     //! Check date of output settings
     void checkDate(time_t, time_t);
-    //! is output be an ASC file? Deprecated by LJ
-    //bool isOutputASCFile(void);
 
-    ///void setSpecificCellRasterOutput(string projectPath,string databasePath,clsRasterData* templateRasterData);
 public:
     //! All the print settings
     vector<PrintInfo *> m_printInfos;
@@ -63,18 +70,9 @@ public:
     map<string, PrintInfo *> m_printInfosMap;
 
 private:
-    //! MongoDB client
-    mongoc_client_t *m_conn;
-    //! Parameter database name
-    string m_dbName;
-    //! Output GridFS
-    mongoc_gridfs_t *m_outputGfs;
-
     //! number of subbasins
     int m_nSubbasins;
     //! subbasin ID which outlet located
     int m_outletID;
-
-    //! Parse output settings for given subBasinID
-    bool ParseOutputSettings(int);
 };
+#endif /* SEIMS_SETTING_OUTPUT_H */
