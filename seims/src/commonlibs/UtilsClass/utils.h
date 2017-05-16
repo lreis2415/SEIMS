@@ -418,7 +418,7 @@ public:
      *          USE WITH ALL CAUTIONS CLEARLY AWARED.
      */
     template<typename T>
-    static void BatchRelease1DArray(T* data, ...);
+    static void BatchRelease1DArray(T*& data, ...);
     /*!
     * \brief Batch release of 2D array, \sa BatchRelease1DArray
     *        Variable arguments with the end of NULL.
@@ -428,7 +428,7 @@ public:
     * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
     */
     template<typename T>
-    static void BatchRelease2DArray(int nrows, T** data, ...);
+    static void BatchRelease2DArray(int nrows, T**& data, ...);
     /*!
      * \brief Write 1D array to a file
      *
@@ -1019,11 +1019,11 @@ void utilsArray::Release2DArray(int row, T **&data) {
 }
 
 template<typename T>
-void utilsArray::BatchRelease1DArray(T* data, ...) {
+void utilsArray::BatchRelease1DArray(T*& data, ...) {
     va_list arg_ptr;
     va_start(arg_ptr, data);
     utilsArray::Release1DArray(data);
-    T*& argValue = va_arg(arg_ptr, T*);
+    T* argValue = va_arg(arg_ptr, T*);
     while (NULL != argValue) {
         utilsArray::Release1DArray(argValue);
         argValue = va_arg(arg_ptr, T*);
@@ -1032,11 +1032,11 @@ void utilsArray::BatchRelease1DArray(T* data, ...) {
 }
 
 template<typename T>
-void utilsArray::BatchRelease2DArray(int nrows, T** data, ...) {
+void utilsArray::BatchRelease2DArray(int nrows, T**& data, ...) {
     va_list arg_ptr;
     va_start(arg_ptr, data);
     utilsArray::Release2DArray(nrows, data);
-    T**& argValue = va_arg(arg_ptr, T**);
+    T** argValue = va_arg(arg_ptr, T**);
     while (NULL != argValue) {
         utilsArray::Release2DArray(nrows, argValue);
         argValue = va_arg(arg_ptr, T**);
