@@ -13,13 +13,7 @@
 #include "utilities.h"
 #include "MongoUtil.h"
 #include "clsRasterData.cpp"
-//
-//#include <string>
-//#include <vector>
-//#include <time.h>
-//#include <iomanip>
-//#include <fstream>
-//#include <map>
+
 using namespace std;
 
 /*!
