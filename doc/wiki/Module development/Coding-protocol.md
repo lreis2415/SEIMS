@@ -125,7 +125,7 @@ if (fFoo)  Bar();
 
 ### 3.2.分支管理一般步骤
 
-+ 3.2.1. 加入SEIMS开发组（https://github.com/orgs/lreis2415/teams/watershed_modeling），直接`clone`实验室账号下的SEIMS库（git@github.com:lreis2415/SEIMS.git）即可，不用`fork`到自己账号下；
++ 3.2.1. [加入SEIMS开发组](https://github.com/orgs/lreis2415/teams/watershed_modeling)，直接`clone`实验室账号下的SEIMS库（git@github.com:lreis2415/SEIMS.git）即可，不用`fork`到自己账号下；
 + 3.2.2. 发现代码中出现了bug、某个文档需要修改、某个模块需要更新、亦或是需要增加一个新的模块等，新建一个分支，修复它，合并至dev分支，并新建issue告知大家，也是备忘，完后删除这个分支，流程如下：
 
   ```
