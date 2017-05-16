@@ -10,9 +10,9 @@ IUH_OL::IUH_OL(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), 
 }
 
 IUH_OL::~IUH_OL(void) {
-    if (m_Q_SBOF != NULL) Release1DArray(m_Q_SBOF);
-    if (m_cellFlow != NULL) Release2DArray(m_nCells, m_cellFlow);
-    if (m_OL_Flow != NULL) Release1DArray(m_OL_Flow);
+    Release1DArray(m_Q_SBOF);
+    Release2DArray(m_nCells, m_cellFlow);
+    Release1DArray(m_OL_Flow);
 }
 
 bool IUH_OL::CheckInputData(void) {
@@ -53,7 +53,6 @@ void IUH_OL::initialOutputs() {
     if (m_cellArea <= 0.f) m_cellArea = m_CellWidth * m_CellWidth;
     if (this->m_Q_SBOF == NULL) {
         Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.f);
-        m_cellFlow = new float *[m_nCells];
         for (int i = 0; i < m_nCells; i++) {
             m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }

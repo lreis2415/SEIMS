@@ -120,6 +120,7 @@
 #define Tag_HillSlopeTimeStep                  "DT_HS"
 #define Tag_ChannelTimeStep                    "DT_CH"
 #define Tag_CellWidth                          "CELLWIDTH" // this is the size of a single CELL
+#define Tag_LayeringMethod                     "LayeringMethod"
 
 // D8 Flow model
 #define Tag_FLOWIN_INDEX_D8                    "FLOWIN_INDEX_D8"
@@ -146,8 +147,8 @@
 #define Tag_FLOWOUT_PERCENTAGE_MFD_MD          "FLOWOUT_PERCENTAGE_MFD_MD"
 #define Tag_ROUTING_LAYERS_MFD_MD              "ROUTING_LAYERS_MFD_MD"
 
-#define Tag_ReachParameter                     "ReachParameter"
-#define Tag_RchParam                           "RchParam"
+//#define Tag_ReachParameter                     "ReachParameter"
+//#define Tag_RchParam                           "RchParam"
 /// Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM
 #define VAR_REACH_PARAM                        "ReachParam"
 #define DESC_REACH_PARAM                       "Reach parameters such as stream order, manning's n and downstream subbasin id"
@@ -178,8 +179,8 @@
 #define DB_TAB_MEASUREMENT                     "MEASUREMENT"
 #define DB_TAB_ANNSTAT                         "ANNUAL_STATS"
 #define DB_TAB_OUT_SPATIAL                     "OUTPUT"
-#define DB_TAB_FILEIN                          "FILE_IN"
-#define DB_TAB_FILEOUT                         "FILE_OUT"
+#define DB_TAB_FILE_IN                         "FILE_IN"
+#define DB_TAB_FILE_OUT                        "FILE_OUT"
 /// Fields in DB_TAB_REACH ///
 #define REACH_SUBBASIN                         "SUBBASINID"
 #define REACH_NUMCELLS                         "NUM_CELLS"
@@ -1145,6 +1146,7 @@
 #define DESC_CDN "rate coefficient for denitrification"
 #define DESC_CELL_LAT "latitude of each valid cells"
 #define DESC_CellSize "numble of valid cells, i.e., excluding NODATA"
+#define DESC_LayeringMethod "Routing layering method"
 #define DESC_CellWidth "width of the cell"
 #define DESC_CH_DEP "distribution of channel sediment deposition"
 #define DESC_CH_DET "distribution of channel flow detachment"
