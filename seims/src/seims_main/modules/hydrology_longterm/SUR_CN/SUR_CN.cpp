@@ -16,19 +16,13 @@ SUR_CN::SUR_CN(void) : m_nCells(-1), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE
 
 SUR_CN::~SUR_CN(void) {
     //// cleanup output variables
-    if (m_PE != NULL)delete[] m_PE;
-    if (m_INFIL != NULL)delete[] m_INFIL;
-    if (m_soilMoisture != NULL) {
-        for (int i = 0; i < m_nCells; i++) {
-            delete[] m_soilMoisture[i];
-        }
-        delete[] m_soilMoisture;
-        m_soilMoisture = NULL;
-    }
+    Release1DArray(m_PE);
+    Release1DArray(m_INFIL);
+    Release2DArray(m_nCells, m_soilMoisture);
     /// clean up temporary variables
-    if (m_w1 != NULL) delete[] m_w1;
-    if (m_w2 != NULL) delete[] m_w2;
-    if (m_sMax != NULL) delete[] m_sMax;
+    Release1DArray(m_w1);
+    Release1DArray(m_w2);
+    Release1DArray(m_sMax);
 }
 
 bool SUR_CN::CheckInputData(void) {

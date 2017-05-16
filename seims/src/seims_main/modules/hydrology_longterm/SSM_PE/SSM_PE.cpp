@@ -23,8 +23,7 @@ SSM_PE::SSM_PE(void) {
 }
 
 SSM_PE::~SSM_PE(void) {
-    //// cleanup
-    if (this->m_SE != NULL) delete[] this->m_SE;
+    Release1DArray(m_SE);
 }
 
 bool SSM_PE::CheckInputData(void) {

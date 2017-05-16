@@ -2,7 +2,9 @@
  * \brief Base namespace for implementation of BMP configuration
  * \author Liang-Jun Zhu
  */
-#pragma once
+#ifndef SEIMS_BMP_FACTORY_H
+#define SEIMS_BMP_FACTORY_H
+
 #include "utilities.h"
 
 #include "BMPText.h"
@@ -31,7 +33,7 @@ public:
     virtual ~BMPFactory(void);
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(mongoc_client_t *conn, string &bmpDBName) = 0;
+    virtual void loadBMP(MongoClient* conn, string &bmpDBName) = 0;
 
     /// Load BMP parameters from SQLite
     ///virtual void loadBMP(string bmpDatabasePath) = 0;
@@ -79,3 +81,4 @@ protected:
     string m_location;
 };
 }
+#endif /* SEIMS_BMP_FACTORY_H */

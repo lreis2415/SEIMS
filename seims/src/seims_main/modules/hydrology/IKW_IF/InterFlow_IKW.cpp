@@ -13,15 +13,9 @@ InterFlow_IKW::InterFlow_IKW(void) : m_nCells(-1), m_dt(-1.0f), m_CellWidth(-1.0
 }
 
 InterFlow_IKW::~InterFlow_IKW(void) {
-    if (m_h != NULL) {
-        delete[] m_h;
-    }
-    if (m_q != NULL) {
-        delete[] m_q;
-    }
-    if (m_hReturnFlow != NULL) {
-        delete[] m_hReturnFlow;
-    }
+    Release1DArray(m_h);
+    Release1DArray(m_q);
+    Release1DArray(m_hReturnFlow);
 }
 
 bool InterFlow_IKW::CheckInputData(void) {
