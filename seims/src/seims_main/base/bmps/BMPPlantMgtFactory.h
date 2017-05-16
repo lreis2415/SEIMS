@@ -3,13 +3,16 @@
  * \author Liang-Jun Zhu
  * \date June 2016
  */
-#pragma once
+#ifndef SEIMS_BMP_PLANTMGT_H
+#define SEIMS_BMP_PLANTMGT_H
+
 #include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
 
 using namespace MainBMP;
 using namespace PlantManagement;
+
 namespace MainBMP {
 /*!
  * \class BMPPlantMgtFactory
@@ -29,7 +32,7 @@ public:
     ~BMPPlantMgtFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(mongoc_client_t *conn, string &bmpDBName);
+    void loadBMP(MongoClient* conn, string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);
@@ -81,3 +84,4 @@ private:
     map<int, PlantManagementOperation *> m_bmpPlantOps;
 };
 }
+#endif /* SEIMS_BMP_PLANTMGT_H */

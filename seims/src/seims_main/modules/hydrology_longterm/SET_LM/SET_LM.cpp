@@ -9,9 +9,7 @@ SET_LM::SET_LM(void) : m_nSoilLayers(2), m_nCells(-1), m_fc(NULL), m_wp(NULL), m
 }
 
 SET_LM::~SET_LM(void) {
-    if (m_soilET != NULL) {
-        delete[] m_soilET;
-    }
+    Release1DArray(m_soilET);
 }
 
 //Execute module

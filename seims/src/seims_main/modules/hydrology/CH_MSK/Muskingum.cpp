@@ -3,7 +3,7 @@
 
 using namespace std;
 
-Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f),
+Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_layeringMethod(0.f),
                              m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_chWidth(NULL),
                              m_qs(NULL), m_qg(NULL), m_qi(NULL), m_chStorage(NULL), m_qCh(NULL), m_qUpCh(NULL),
                              m_prec(NULL), m_qSubbasin(NULL),
@@ -14,49 +14,19 @@ Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWi
 }
 
 Muskingum::~Muskingum(void) {
-    if (m_chStorage != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_chStorage[i];
-        }
-        delete[] m_chStorage;
-    }
+    Release1DArray(m_reachId);
+    Release1DArray(m_streamOrder);
+    Release1DArray(m_reachDownStream);
+    Release1DArray(m_v0);
+    
+    Release2DArray(m_chNumber, m_chStorage);
+    Release2DArray(m_chNumber, m_qUpCh);
+    Release2DArray(m_chNumber, m_qCh);
+    Release2DArray(m_chNumber, m_flowLen);
+    Release2DArray(m_chNumber, m_alpha);
 
-    if (m_qUpCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qUpCh[i];
-        }
-        delete[] m_qUpCh;
-    }
-
-    if (m_qCh != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_qCh[i];
-        }
-        delete[] m_qCh;
-    }
-
-    if (m_flowLen != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_flowLen[i];
-        }
-        delete[] m_flowLen;
-    }
-
-    if (m_alpha != NULL) {
-        for (int i = 0; i < m_chNumber; ++i) {
-            delete[] m_alpha[i];
-        }
-        delete[] m_alpha;
-    }
-
-    if (m_sourceCellIds != NULL) {
-        delete[] m_sourceCellIds;
-    }
-
-    if (m_qSubbasin != NULL) {
-        delete[] m_qSubbasin;
-    }
-
+    Release1DArray(m_sourceCellIds);
+    Release1DArray(m_qSubbasin);
 }
 
 float Muskingum::GetDelta_t(float timeStep, float fmin, float fmax) {
@@ -435,12 +405,10 @@ void Muskingum::SetValue(const char *key, float data) {
         m_nCells = (int) data;
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
+    } else if (StringMatch(sk, Tag_LayeringMethod)) {
+        m_layeringMethod = data;
     } else if (StringMatch(sk, VAR_CHS0)) {
         m_chS0 = data;
-        //else if (StringMatch(sk, "ID_UPREACH"))
-        //	m_idUpReach = (int)data;
-        //else if(StringMatch(sk, "QUPREACH"))
-        //	m_qUpReach = data;
     } else if (StringMatch(sk, VAR_MSK_X)) {
         m_msk_x = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
@@ -521,31 +489,7 @@ void Muskingum::Get2DData(const char *key, int *nRows, int *nCols, float ***data
 
 void Muskingum::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ReachParameter)) {
-        m_chNumber = ncols;  // overland is nrows
-        float *m_reachId = data[0];
-        m_streamOrder = data[1];
-        m_reachDownStream = data[2];
-
-        m_v0 = data[4];
-
-        for (int i = 0; i < m_chNumber; i++) {
-            m_idToIndex[(int) m_reachId[i]] = i;
-        }
-
-        m_reachUpStream.resize(m_chNumber);
-        for (int i = 0; i < m_chNumber; i++) {
-            int downStreamId = int(m_reachDownStream[i]);
-            if (downStreamId == 0) {
-                continue;
-            }
-            if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-                int downStreamIndex = m_idToIndex.at(downStreamId);
-                m_reachUpStream[downStreamIndex].push_back(i);
-            }
-        }
-
-    } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
+    if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
         m_flowInIndex = data;
     } else {
         throw ModelException(MID_CH_MSK, "Set1DData", "Parameter " + sk
@@ -553,3 +497,38 @@ void Muskingum::Set2DData(const char *key, int nrows, int ncols, float **data) {
     }
 }
 
+void Muskingum::SetReaches(clsReaches *reaches) {
+    assert(NULL != reaches);
+    m_chNumber = reaches->GetReachNumber();
+    vector<int> reachIDVec = reaches->GetReachIDs();
+    Initialize1DArray(m_chNumber, m_reachId, 0.f);
+    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
+    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
+    Initialize1DArray(m_chNumber, m_v0, 0.f);
+    for (int i = 0; i < reachIDVec.size(); ++i) {
+        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
+        m_reachId[i] = tmpReach->GetSubbasinID();
+        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
+            m_streamOrder[i] = tmpReach->GetUpDownOrder();
+        }
+        else{
+            m_streamOrder[i] = tmpReach->GetDownUpOrder();
+        }
+        m_reachDownStream[i] = tmpReach->GetDownStream();
+        m_v0[i] = tmpReach->GetV0();
+    }
+    for (int i = 0; i < m_chNumber; i++) {
+        m_idToIndex[(int)m_reachId[i]] = i;
+    }
+    m_reachUpStream.resize(m_chNumber);
+    for (int i = 0; i < m_chNumber; i++) {
+        int downStreamId = int(m_reachDownStream[i]);
+        if (downStreamId <= 0) {
+            continue;
+        }
+        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
+            int downStreamIndex = m_idToIndex.at(downStreamId);
+            m_reachUpStream[downStreamIndex].push_back(i);
+        }
+    }
+}
