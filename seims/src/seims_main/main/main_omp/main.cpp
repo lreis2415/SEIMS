@@ -9,7 +9,9 @@
 #endif /* USE_MONGODB */
 
 int main(int argc, const char *argv[]) {
-    //GDALAllRegister();
+    /// Register GDAL
+    GDALAllRegister();
+    /// Read input parameters
     string modelPath = "";
     int scenarioID = -1;  /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int i = 0;
