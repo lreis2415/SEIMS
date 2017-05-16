@@ -19,6 +19,28 @@ using namespace std;
 const char *RASTER_HEADERS[8] = {HEADER_RS_NCOLS, HEADER_RS_NROWS, HEADER_RS_XLL, HEADER_RS_YLL, HEADER_RS_CELLSIZE,
                                  HEADER_RS_NODATA, HEADER_RS_LAYERS, HEADER_RS_SRS};
 
+
+struct OrgOutItem
+{
+public:
+    OrgOutItem() {};
+    ~OrgOutItem() {};
+public:
+    string modCls;
+    string outputID;
+    string descprition;
+    string outFileName;
+    string aggType;
+    string unit;
+    string subBsn;
+    string dataType;
+    string intervalUnit;
+    string sTimeStr;
+    string eTimeStr;
+    int interval;
+    int use;
+};
+
 int main() {
     cout << "*** MongoUtil Demo ***" << endl;
     /*!
@@ -90,7 +112,8 @@ int main() {
         string nameTmp = "";
         int numTmp = -1;
         if (bson_iter_init_find(&iter, bsonTable, "NAME")) {
-            cout<< "NAME: "<<GetStringFromBsonIterator(&iter);
+            nameTmp = GetStringFromBsonIterator(&iter);
+            cout << "NAME: " << nameTmp;
         }
         if (bson_iter_init_find(&iter, bsonTable, "VALUE")) {
             GetNumericFromBsonIterator(&iter, numTmp);
@@ -99,6 +122,7 @@ int main() {
     }
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
+
     /*******End*********/
 
     /// Get collection names of a database
