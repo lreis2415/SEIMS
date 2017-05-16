@@ -60,7 +60,9 @@ ModelMain::~ModelMain(void) {
 
 void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
     m_factory->UpdateInput(m_simulationModules, t);
-
+    if (m_hillslopeModules.empty()) {
+        return;
+    }
     for (size_t i = 0; i < m_hillslopeModules.size(); i++) {
         int index = m_hillslopeModules[i];
         SimulationModule *pModule = m_simulationModules[index];
@@ -82,6 +84,9 @@ void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
 }
 
 void ModelMain::StepChannel(time_t t, int yearIdx) {
+    if (m_channelModules.empty()) {
+        return;
+    }
     for (size_t i = 0; i < m_channelModules.size(); i++) {
         int index = m_channelModules[i];
         SimulationModule *pModule = m_simulationModules[index];
@@ -98,6 +103,9 @@ void ModelMain::StepChannel(time_t t, int yearIdx) {
 }
 
 void ModelMain::StepOverall(time_t startT, time_t endT) {
+    if (m_overallModules.empty()) {
+        return;
+    }
     for (size_t i = 0; i < m_overallModules.size(); i++) {
         int index = m_overallModules[i];
         SimulationModule *pModule = m_simulationModules[index];
