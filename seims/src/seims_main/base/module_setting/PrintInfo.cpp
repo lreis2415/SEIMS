@@ -60,7 +60,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, float *data) {
 
 void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRaster, string header) {
     //bool outToMongoDB = false; /// added by LJ.
-    projectPath = projectPath + SEP;
+    //projectPath = projectPath + SEP;
     /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
     //vector<string> outputExisted = GetGridFsFileNames(gfs);// No need to obtain the existing GridFS names.
     /// Filename should appended by AggregateType to avoiding the same names. By LJ, 2016-7-12

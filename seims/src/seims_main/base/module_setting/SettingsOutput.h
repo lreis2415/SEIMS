@@ -16,10 +16,14 @@
 
 /*!
  * \ingroup module_setting
- * \struct OutputItem
+ * \struct OrgOutItem
  */
-struct OriginalOutputItem
+struct OrgOutItem
 {
+public:
+    OrgOutItem() {};
+    ~OrgOutItem() {};
+public:
     string modCls = "";
     string outputID = "";
     string descprition = "";
@@ -27,7 +31,6 @@ struct OriginalOutputItem
     string aggType = "";
     string unit = "";
     string subBsn = "";
-    string dataType = "";
     string intervalUnit = "";
     string sTimeStr = "";
     string eTimeStr = "";
@@ -42,13 +45,13 @@ struct OriginalOutputItem
 class SettingsOutput :public Settings {
 public:
     //! Constructor
-    SettingsOutput(int subbasinNum, int outletID, vector<OriginalOutputItem*>& outputItems);
+    SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
 
     //! Destructor
     ~SettingsOutput(void);
 
     //! Init function
-    static SettingsOutput* Init(int subbasinNum, int outletID, vector<OriginalOutputItem*>& outputItems);
+    static SettingsOutput* Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
     
     //! Write output information to log file
     void Dump(string);

@@ -1,53 +1,53 @@
 #include "SettingsOutput.h"
 
-SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OriginalOutputItem*>& outputItems) :
+SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems) :
                                m_nSubbasins(subbasinNum), m_outletID(outletID) 
 {
-    for (vector<OriginalOutputItem*>::iterator iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
-        string coreFileName = GetCoreFileName((*iter)->outFileName);
-        string suffix = GetSuffix((*iter)->outFileName);
+    for (vector<OrgOutItem>::iterator iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
+        string coreFileName = GetCoreFileName((*iter).outFileName);
+        string suffix = GetSuffix((*iter).outFileName);
         /// First, if OutputID does not existed in m_printInfos, then create a new one.
-        if (m_printInfosMap.find((*iter)->outputID) == m_printInfosMap.end()) {
-            m_printInfosMap[(*iter)->outputID] = new PrintInfo();
-            m_printInfosMap[(*iter)->outputID]->setOutputID((*iter)->outputID);/// set the OUTPUTID for the new PrintInfo
+        if (m_printInfosMap.find((*iter).outputID) == m_printInfosMap.end()) {
+            m_printInfosMap[(*iter).outputID] = new PrintInfo();
+            m_printInfosMap[(*iter).outputID]->setOutputID((*iter).outputID);/// set the OUTPUTID for the new PrintInfo
         }
         PrintInfo *pi = NULL; /// reset the pointer
-        pi = m_printInfosMap[(*iter)->outputID];
+        pi = m_printInfosMap[(*iter).outputID];
 
         bool isRaster = false;
         if (StringMatch(suffix, string(GTiffExtension))) {
             isRaster = true;
         }
         /// Check Tag_OutputSubbsn first
-        if (StringMatch((*iter)->subBsn, Tag_Outlet)) /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
+        if (StringMatch((*iter).subBsn, Tag_Outlet)) /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
         {
-            pi->setInterval((*iter)->interval);
-            pi->setIntervalUnits((*iter)->intervalUnit);
-            pi->AddPrintItem((*iter)->sTimeStr, (*iter)->eTimeStr, coreFileName, ValueToString(m_outletID), suffix, true);
+            pi->setInterval((*iter).interval);
+            pi->setIntervalUnits((*iter).intervalUnit);
+            pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix, true);
         }
-        else if (StringMatch((*iter)->subBsn, Tag_AllSubbsn) && isRaster) {
+        else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
             /// Output of all subbasins of DT_Raster1D or DT_Raster2D
-            vector<string> aggTypes = SplitString((*iter)->aggType, ',');
+            vector<string> aggTypes = SplitString((*iter).aggType, ',');
             for (vector<string>::iterator it = aggTypes.begin(); it != aggTypes.end(); it++) {
-                pi->AddPrintItem(*it, (*iter)->sTimeStr, (*iter)->eTimeStr, coreFileName, suffix);
+                pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix);
             }
         }
         else // subbasin IDs is provided
         {
-            pi->setInterval((*iter)->interval);
-            pi->setIntervalUnits((*iter)->intervalUnit);
+            pi->setInterval((*iter).interval);
+            pi->setIntervalUnits((*iter).intervalUnit);
             vector<string> subBsns;
-            if (StringMatch((*iter)->subBsn, Tag_AllSubbsn)) {
+            if (StringMatch((*iter).subBsn, Tag_AllSubbsn)) {
                 for (int i = 0; i <= m_nSubbasins; i++) {
                     subBsns.push_back(ValueToString(i));
                 }
                 vector<string>(subBsns).swap(subBsns);
             }
             else {
-                subBsns = SplitString((*iter)->subBsn, ',');
+                subBsns = SplitString((*iter).subBsn, ',');
             }
             for (vector<string>::iterator it = subBsns.begin(); it != subBsns.end(); it++) {
-                pi->AddPrintItem((*iter)->sTimeStr, (*iter)->eTimeStr, coreFileName, *it, suffix, true);
+                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, *it, suffix, true);
             }
         }
     }
@@ -57,7 +57,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OriginalOut
     vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
 }
 
-SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, vector<OriginalOutputItem*>& outputItems) {
+SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems) {
     if (outputItems.empty()) {
         return NULL;
     }
@@ -98,6 +98,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                      << ", and will be updated." << endl;
             }
             if ((*itemIt)->getEndTime() > endTime) {
+                (*itemIt)->setEndTime(endTime);
                 cout << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                      << " is " << (*itemIt)->EndTime <<
                      ". It's later than end time of time series data " << ConvertToString(&endTime)
