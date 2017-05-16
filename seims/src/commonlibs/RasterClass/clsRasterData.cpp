@@ -107,7 +107,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> filenames, bool calcPositi
         for (size_t fileidx = 1; fileidx < filenames.size(); fileidx++) {
             map<string, double> tmpheader;
             T *tmplyrdata = NULL;
-            string curfilename = filenames.at(fileidx);
+            string curfilename = filenames[fileidx];
             if (StringMatch(GetUpper(GetSuffix(curfilename)), string(ASCIIExtension))) {
                 this->_read_asc_file(curfilename, &tmpheader, &tmplyrdata);
             } else {
