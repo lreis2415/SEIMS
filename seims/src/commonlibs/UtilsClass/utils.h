@@ -436,7 +436,7 @@ public:
      *
      * \param[in] n, data, filename
      */
-    static void Output1DArrayToTxtFile(int n, const CFLOATPTR *data, const char *filename);
+    static void Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename);
 
     /*!
      * \brief Write 2D array to a file

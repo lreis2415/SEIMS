@@ -295,7 +295,7 @@ utilsArray::utilsArray(void) {}
 
 utilsArray::~utilsArray(void) {}
 
-void utilsArray::Output1DArrayToTxtFile(int n, const CFLOATPTR *data, const char *filename) {
+void utilsArray::Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < n; ++i) {
         ofs << data[i] << "\n";
