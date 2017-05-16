@@ -14,9 +14,9 @@ int MainMongoDB(string modelPath, char *host, uint16_t port, int scenarioID, int
                                                           subbasinID, scenarioID, numThread);
     /// Create module factory
     ModuleFactory* moduleFactory = new ModuleFactory(dataCenter);
-    /// Create SEIMS model by dataCenter and moduleFactory and execute it
-    //ModelMain* main = new ModelMain(dataCenter, moduleFactory);
+    /// Create SEIMS model by dataCenter and moduleFactory
     unique_ptr<ModelMain> main(new ModelMain(dataCenter, moduleFactory));
+    /// Execute model and write outputs
     main->Execute();
     main->Output();
 
