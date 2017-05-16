@@ -53,6 +53,8 @@ public:
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
+    virtual void SetReaches(clsReaches *reaches);
+
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputSizeChannel(const char *key, int n);
@@ -74,7 +76,8 @@ private:
 
     /// valid cells number
     int m_nCells;
-
+    //! layering method
+    float m_layeringMethod;
     /// Muskingum weighting factor
     float m_msk_x;
     /// initial channel storage m3/m

@@ -5,7 +5,9 @@ using namespace std;
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
 ///////////////////////////////////////////////////
-MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port) {
+MongoClient::MongoClient(const char *host, uint16_t port) : m_host(host), m_port(port) {
+    assert(isIPAddress(host));
+    assert(port > 0);
     mongoc_init();
     mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
     m_conn = mongoc_client_new_from_uri(uri);
@@ -13,7 +15,7 @@ MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port
     mongoc_uri_destroy(uri);
 }
 
-MongoClient *MongoClient::Init(const char *host, int port) {
+MongoClient* MongoClient::Init(const char *host, uint16_t port) {
     if (!isIPAddress(host)) {
         cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
         return NULL;
@@ -62,29 +64,23 @@ void MongoClient::getDatabaseNames(vector<string> &dbnames) {
 }
 
 void MongoClient::getCollectionNames(string const &dbName, vector<string> &collNames) {
-    mongoc_database_t *database = this->getDatabase(dbName);
-    MongoDatabase(database).getCollectionNames(collNames);
+    MongoDatabase(this->getDatabase(dbName)).getCollectionNames(collNames);
 }
 
-mongoc_database_t *MongoClient::getDatabase(string const &dbname) {
+mongoc_database_t* MongoClient::getDatabase(string const &dbname) {
     // Get Database or create if not existed
     return mongoc_client_get_database(m_conn, dbname.c_str());
 }
 
-mongoc_collection_t *MongoClient::getCollection(string const &dbname, string const &collectionname) {
-    try {
-        mongoc_database_t *db = this->getDatabase(dbname);
-        if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
-            throw ModelException("MongoClient", "getCollection", "Collection " + collectionname + " is not existed!\n");
-        }
-        mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
-        mongoc_database_destroy(db);
-        return collection;
-    }
-    catch (ModelException& e) {
-        cout << e.toString() << endl;
+mongoc_collection_t* MongoClient::getCollection(string const &dbname, string const &collectionname) {
+    mongoc_database_t* db = mongoc_client_get_database(m_conn, dbname.c_str());
+    if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
+        cout << "MongoClient::getCollection, Collection " << collectionname << " is not existed!" << endl;
         return NULL;
     }
+    mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
+    mongoc_database_destroy(db);
+    return collection;
 }
 
 mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsname) {
@@ -149,8 +145,40 @@ void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
     }
     catch (ModelException& e) {
         cout << e.toString() << endl;
-        return;
+        collNameList.clear();
     }
+}
+///////////////////////////////////////////////////
+////////////////  MongoCollection  ////////////////
+///////////////////////////////////////////////////
+MongoCollection::MongoCollection(mongoc_collection_t* coll) : m_collection(coll) {
+
+}
+MongoCollection::~MongoCollection(void) {
+    mongoc_collection_destroy(m_collection);
+}
+mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
+    // printf("%s\n", bson_as_json(b, NULL));
+    // TODO: mongoc_collection_find should be deprecated, however, mongoc_collection_find_with_opts
+    //       may not work in my Windows 10. So, uncomment the following code when I figure it out. LJ
+//#if MONGOC_CHECK_VERSION(1, 5, 0)
+//    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
+//#else
+//    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+//#endif /* MONGOC_CHECK_VERSION */
+    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    return cursor;
+}
+
+int MongoCollection::QueryRecordsCount(void) {
+    const bson_t *qCount = bson_new();
+    bson_error_t *err = NULL;
+    int count = (int)mongoc_collection_count(m_collection, MONGOC_QUERY_NONE, qCount, 0, 0, NULL, err);
+    if (err != NULL || count < 0) {
+        cout << "ERROR: Failed to get document number of collection!" << endl;
+        return -1;
+    }
+    return count;
 }
 
 ///////////////////////////////////////////////////

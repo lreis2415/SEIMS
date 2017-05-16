@@ -636,8 +636,6 @@ void Biomass_EPIC::DistributePlantET(int i) {    /// swu.f of SWAT
         m_plantEPDay[i] = xx;
     }
     Release1DArray(wuse);
-    //delete[] wuse;
-    //wuse = NULL;
 }
 
 void Biomass_EPIC::CalTempStress(int i) {

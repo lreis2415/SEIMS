@@ -1,10 +1,12 @@
 /*!
- * \brief
+ * \brief HydroClimate site information
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
  * \date May 2016
  */
-#pragma once
+#ifndef SEIMS_CLIMATE_STATION_H
+#define SEIMS_CLIMATE_STATION_H
+
 #include "utilities.h"
 #include "MongoUtil.h"
 #include "Measurement.h"
@@ -16,28 +18,24 @@ using namespace std;
 /*!
  * \ingroup data
  * \class InputStation
- *
  * \brief HydroClimate sites information
- *
- *
- *
  */
 class InputStation {
 public:
     //! Constructor
-    InputStation(mongoc_client_t *conn, time_t dtHillslope, time_t dtChannel);
+    InputStation(MongoClient *conn, time_t dtHillslope, time_t dtChannel);
 
     //! Destructor
     ~InputStation(void);
 
     //! Get site number of given site type
-    int NumberOfSites(string siteType) { return m_numSites[siteType]; }
+    int NumberOfSites(string siteType) const { return m_numSites.at(siteType); }
 
     //! Get elevations of given site type
-    float *GetElevation(string type) { return m_elevation[type]; }
+    float* GetElevation(string type) const { return m_elevation.at(type); }
 
     //! Get latitudes of given site type
-    float *GetLatitude(string type) { return m_latitude[type]; }
+    float* GetLatitude(string type) const { return m_latitude.at(type); }
 
     /*!
      * \brief Get time series data
@@ -47,7 +45,7 @@ public:
      * \param[out] nRow data item number
      * \param[out] data time series data
      */
-    void GetTimeSeriesData(time_t time, string type, int *nRow, float **data);
+    void GetTimeSeriesData(time_t time, string type, int* nRow, float** data);
 
     /*!
      * \brief Read data of each site type
@@ -64,7 +62,7 @@ public:
 
 private:
     //! MongoDB client object
-    mongoc_client_t *m_conn;
+    MongoClient* m_conn;
     //! Channel scale time interval
     time_t m_dtCh;
     //! Hillslope scale time interval
@@ -97,4 +95,4 @@ private:
      */
     void ReadSitesInfo(string siteType, string hydroDBName, string sitesList);
 };
-
+#endif /* SEIMS_CLIMATE_STATION_H */
