@@ -177,7 +177,7 @@ void ImplicitKinematicWave_CH::initialOutputs() {
         }
 
         //for(int i = 0; i < m_chNumber; i++)
-        //	cout << m_sourceCellIds[i] << endl;
+        //    cout << m_sourceCellIds[i] << endl;
 
         // get the cells in reaches according to flow direction
         for (int iCh = 0; iCh < m_chNumber; iCh++) {
@@ -215,16 +215,6 @@ void ImplicitKinematicWave_CH::initialOutputs() {
             for (int j = 0; j < n; ++j) {
                 m_hCh[i][j] = 0.f;
                 m_qCh[i][j] = 0.f;
-
-                //id = m_reachs[i][j];
-                //
-                //// slope length needs to be corrected by slope angle
-                //dx = m_CellWidth / cos(m_sRadian[id]);
-                //int dir = (int)m_direction[id];
-                //if (DiagonalCCW[dir] == 1) {
-                //	dx = SQ2*dx;
-                //m_flowLen[i][j] = dx;
-
             }
         }
 
@@ -353,11 +343,6 @@ int ImplicitKinematicWave_CH::Execute() {
             m_qSubbasin[reachIndex] = m_qCh[reachIndex][n - 1];
         }
     }
-    //cout << endl;
-
-    //m_qsInput[0] = 0.f;
-    //for(int i = 1; i <= m_chNumber; i++)
-    //	m_qsInput[0] += m_qsInput[i];
 
     return 0;
 }
@@ -405,9 +390,6 @@ void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
         *value = m_qCh[reachId][iLastCell];
-        //*value = m_hToChannel[m_idOutlet];
-        //*value = m_qs[m_idOutlet];
-        //*value = m_qs[m_idOutlet] + m_qCh[reachId][iLastCell];
     } else if (StringMatch(sk, VAR_QTOTAL)) {
         map < int, vector < int > > ::iterator
         it = m_reachLayers.end();
@@ -415,9 +397,6 @@ void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
         *value = m_qCh[reachId][iLastCell] + m_qgDeep;
-        //*value = m_hToChannel[m_idOutlet];
-        //*value = m_qs[m_idOutlet];
-        //*value = m_qs[m_idOutlet] + m_qCh[reachId][iLastCell];
     }
 
 }
@@ -486,22 +465,9 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
     if (StringMatch(sk, VAR_QRECH)) {
         *data = m_qSubbasin;
     }
-        //else if(StringMatch(sk,"SBOF_IKW"))
-        //{
-        //	*data = m_qsInput;
-        //}
-        /*else if (StringMatch(sk, "CHWATH"))
-        {
-        *data = m_chwath;
-        }
-        else if (StringMatch(sk, "CHQCH"))
-        {
-        *data = m_chwath;
-        }*/
     else {
         throw ModelException(MID_IKW_CH, "Get1DData", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 
 }
@@ -518,8 +484,7 @@ void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols
         *data = m_hCh;
     } else {
         throw ModelException(MID_IKW_CH, "Get2DData", "Output " + sk
-            +
-                " does not exist in current module. Please contact the module developer.");
+            + " does not exist in current module. Please contact the module developer.");
     }
 }
 
