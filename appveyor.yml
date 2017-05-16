@@ -55,14 +55,19 @@ install:
 build_script:
   - cd C:\projects\seims\seims
   - ps: "ls"
-  - mkdir build
-  - cd build
-  # Build 64-bit release version on Windows, and build unittest.
+  - mkdir buildlongterm64
+  - cd buildlongterm64
+  # Build 64-bit LONGTERM release version on Windows, and build unittest.
   - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1
-  - msbuild.exe SEIMS_OMP_ALL.sln /p:Configuration=Release
-  #- msbuild.exe ALL_BUILD.vcxproj
+  - msbuild.exe SEIMS_LONGTERM_OMP_x64_ALL.sln /p:Configuration=Release
+  - msbuild.exe INSTALL.vcxproj
+  # Build 64-bit STORM release version on Windows, and build unittest.
+  - cd ..
+  - mkdir buildstorm64
+  - cd buildstorm64
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1
+  - msbuild.exe SEIMS_STORM_OMP_x64_ALL.sln /p:Configuration=Release
   - msbuild.exe INSTALL.vcxproj
 test_script:
   # Run unit test. TODO to complete unittest code.
   - C:\projects\seims\seims\bin\seims_ut_exec.exe
-
