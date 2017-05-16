@@ -10,6 +10,7 @@
  * \revised Dec. 2016 Separated from SEIMS to a common library for widely use.
  * \revised Mar. 2017 VLD check, bug fixed, function enhanced.
  * \revised Apr. 2017 Avoid try...catch block
+ * \revised May. 2017 Use MongoDB wrapper
  */
 #ifndef CLS_RASTER_DATA
 #define CLS_RASTER_DATA
@@ -153,7 +154,7 @@ public:
      * \param[in] mask \a clsRasterData<MaskT> Mask layer
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    clsRasterData(mongoc_gridfs_t *gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
+    clsRasterData(MongoGridFS* gfs, const char *remoteFilename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 #endif
     /*!
     * \brief Copy constructor
@@ -208,7 +209,7 @@ public:
      * \param[in] mask \a clsRasterData<MaskT>
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadFromMongoDB(mongoc_gridfs_t *gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
+    void ReadFromMongoDB(MongoGridFS* gfs, string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = NULL, bool useMaskExtent = true, T defalutValue = (T)NODATA_VALUE);
 #endif /* USE_MONGODB */
     /************* Write functions ***************/
 
@@ -236,7 +237,7 @@ public:
      * \param[in] filename \a string, output file name
      * \param[in] gfs \a mongoc_gridfs_t
      */
-    void outputToMongoDB(string filename, mongoc_gridfs_t *gfs);
+    void outputToMongoDB(string filename, MongoGridFS* gfs);
 #endif /* USE_MONGODB */
 
     /************************************************************************/
@@ -371,22 +372,22 @@ public:
     int getCellNumber(void) const { return m_nCells; }
 
     //! Get column number of raster data
-    int getCols(void) { return (int) m_headers[HEADER_RS_NCOLS]; }
+    int getCols(void) const { return (int) m_headers.at(HEADER_RS_NCOLS); }
 
     //! Get row number of raster data
-    int getRows(void) { return (int) m_headers[HEADER_RS_NROWS]; }
+    int getRows(void) const { return (int) m_headers.at(HEADER_RS_NROWS); }
 
     //! Get cell size of raster data
-    float getCellWidth(void) { return (float) m_headers[HEADER_RS_CELLSIZE]; }
+    float getCellWidth(void) const { return (float) m_headers.at(HEADER_RS_CELLSIZE); }
 
     //! Get X coordinate of left lower corner of raster data
-    double getXllCenter(void) { return m_headers[HEADER_RS_XLL]; }
+    double getXllCenter(void) const { return m_headers.at(HEADER_RS_XLL); }
 
     //! Get Y coordinate of left lower corner of raster data
-    double getYllCenter(void) { return m_headers[HEADER_RS_YLL]; }
+    double getYllCenter(void) const { return m_headers.at(HEADER_RS_YLL); }
 
     //! Get the first dimension size of raster data
-    int getDataLength(void) { return m_nCells; }
+    int getDataLength(void) const { return m_nCells; }
 
     int getLayers(void) const { return m_nLyrs; }
 
@@ -509,7 +510,7 @@ public:
     bool StatisticsCalculated(void) const { return m_statisticsCalculated; }
 
     //! Get full filename
-    string GetFullFileName(void) { return m_filePathName; }
+    string GetFullFileName(void) const { return m_filePathName; }
 
     //! Get mask data pointer
     clsRasterData<MaskT> *getMask(void) const { return m_mask; }
@@ -559,7 +560,7 @@ private:
     /*!
      * \brief Initialize all raster related variables.
      */
-    void _initialize_raster_class();
+    void _initialize_raster_class(void);
 
     /*!
      * \brief Initialize read function for ASC, GDAL, and MongoDB
@@ -571,13 +572,13 @@ private:
      * \brief check the existence of given raster file
      * \return True if existed, else false
      */
-    bool _check_raster_file_exists(string);
+    bool _check_raster_file_exists(string filename);
 
     /*!
      * \brief check the existence of given vector of raster files
      * \return True if all existed, else false
      */
-    bool _check_raster_file_exists(vector <string> &);
+    bool _check_raster_file_exists(vector<string>& filenames);
 
     /*!
      * \brief Constructor of clsRasterData instance from single file of TIFF, ASCII, or other GDAL supported raster file
@@ -647,7 +648,7 @@ private:
      * \param[in] srs Coordinate system string
      * \param[in] values float raster data array
      */
-    void _write_stream_data_as_gridfs(mongoc_gridfs_t* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
+    void _write_stream_data_as_gridfs(MongoGridFS* gfs, string filename, map<string, double>& header, string srs, T *values, size_t datalength);
 #endif /* USE_MONGODB */
 
     /*!

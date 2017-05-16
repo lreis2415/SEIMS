@@ -37,10 +37,9 @@ SRD_MB::SRD_MB(void) {
 }
 
 SRD_MB::~SRD_MB(void) {
-    //// cleanup
-    if (this->m_w != NULL) delete[] this->m_w;
-    if (this->m_wt != NULL) delete[] this->m_wt;
-    if (this->m_SR != NULL) delete[] this->m_SR;
+    Release1DArray(m_w);
+    Release1DArray(m_wt);
+    Release1DArray(m_SR);
 }
 
 bool SRD_MB::CheckInputData(void) {

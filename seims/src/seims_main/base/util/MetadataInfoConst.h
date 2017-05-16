@@ -1,12 +1,11 @@
 /*!
- * \file MetadataInfoConst.h
  * \brief Define some const variables used by MetadataInfo class
  *
  * This file contains string constants for the MetadataInfo XML Schema.
  *
- * \author Junzhi Liu
- * \version 1.1
- * \date Jun. 2010
+ * \author Junzhi Liu, Liangjun Zhu
+ * \version 1.2
+ * \date May 2017
  *
  * 
  */
@@ -67,37 +66,17 @@ const string TagDependencies = "dependencies";
  * \enum dimensionTypes
  * \ingroup util
  * \brief enum of dimension data types
- *
  */
 enum dimensionTypes {
-    /// Unknown type
-        DT_Unknown = -1,
-    /// Single numeric
-        DT_Single = 0,
-    /// 1D array, e.g., maximum temperature of sites
-        DT_Array1D = 1,
-    /// 2D array
-        DT_Array2D = 2,
-    /// 3D array, currently not used
-        DT_Array3D = 3,
-    /// 1D date array
-        DT_Array1DDateValue = 4,
-    /// Raster data, same as DT_Array1D
-        DT_Raster1D = 5,
-    /// 2D raster, e.g., multi-layers of soil properties
-        DT_Raster2D = 6,
-    /// Scenario used by BMPs
-        DT_Scenario = 7,
-    /// Reach parameters
-        DT_Reach = 8,
-    /// Subbasin instances
-        DT_Subbasin = 9
-    ///// Lookup tables, TODO LJ
-    //        DT_LookupTable = 9,
-    ///// Lapse rate array, TODO need more detail description
-    //        DT_LapseRateArray = 10,
-    ///// Hydrological or meteorological site information
-    //        DT_SiteInformation = 11
+    DT_Unknown          = -1, ///< Unknown type
+    DT_Single           = 0,  ///< Single numeric
+    DT_Array1D          = 1,  ///< 1D array, e.g., maximum temperature of sites
+    DT_Array2D          = 2,  ///< 2D array
+    DT_Array3D          = 3,  ///< 3D array, currently not used
+    DT_Array1DDateValue = 4,  ///< 1D date array
+    DT_Raster1D         = 5,  ///< Raster data, same as DT_Array1D
+    DT_Raster2D         = 6,  ///< 2D raster, e.g., multi-layers of soil properties
+    DT_Scenario         = 7,  ///< Scenario used by BMPs
+    DT_Reach            = 8,  ///< Reach parameters
+    DT_Subbasin         = 9   ///< Subbasin instances
 };
-
-

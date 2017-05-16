@@ -10,7 +10,7 @@ using namespace std;
 
 SubbasinIUHCalculator::SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
                                              clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta,
-                                             mongoc_gridfs_t *grdfs)
+                                             MongoGridFS* grdfs)
     : dt(t), gfs(grdfs), mt(30) {
     nRows = rsMask.getRows();
     nCols = rsMask.getCols();
@@ -209,7 +209,7 @@ int SubbasinIUHCalculator::calCell(int id) {
         data[i] = storeddata_vector[i];
     }
     char *databuf = (char *) data;
-    MongoGridFS().writeStreamData(remoteFilename, databuf, datalength, &p, gfs);
+    gfs->writeStreamData(remoteFilename, databuf, datalength, &p);
     delete[] data;
     data = NULL;
     databuf = NULL;

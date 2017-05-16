@@ -50,6 +50,8 @@ public:
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    
+    virtual void SetReaches(clsReaches *reaches);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -81,9 +83,10 @@ private:
 
     /// valid cells number
     int m_nCells;
-
     /// cell width of the grid (m)
     float m_CellWidth;
+    //! layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    float m_layeringMethod;
     /// time step (second)
     float m_dt;
 

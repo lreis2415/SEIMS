@@ -1,28 +1,27 @@
 #include "Scenario.h"
 
 namespace MainBMP {
-Scenario::Scenario(mongoc_client_t *conn, string dbName, int scenarioID) :
-    m_conn(conn), m_bmpDBName(dbName) {
-    if (scenarioID >= 0) {
-        this->m_id = scenarioID;
-    } else {
-        throw ModelException("LoadBMPsScenario", "InitiateScenario",
-                             "The scenario ID must be greater than or equal to 0.\n");
-    }
+Scenario::Scenario(MongoClient* conn, string dbName, int scenarioID) :
+    m_conn(conn), m_bmpDBName(dbName), m_id(scenarioID) {
+    assert(m_id >= 0);
     loadScenario();
 }
 
 Scenario::~Scenario(void) {
+    StatusMessage("Releasing Scenario...");
     map<int, BMPFactory *>::iterator it;
     for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end();) {
-        if (it->second != NULL) delete (it->second);
+        if (it->second != NULL) {
+            delete (it->second);
+            it->second = NULL;
+        }
         it = m_bmpFactories.erase(it);
     }
     m_bmpFactories.clear();
 }
 
 void Scenario::loadScenario() {
-    MongoDatabase(m_conn, m_bmpDBName).getCollectionNames(m_bmpCollections);
+    m_conn->getCollectionNames(m_bmpDBName, m_bmpCollections);
     loadScenarioName();
     loadBMPs();
     loadBMPDetail();
@@ -35,8 +34,7 @@ void Scenario::loadScenarioName() {
             "' does not exist or there is not a table named '" +
             TAB_BMP_SCENARIO + "' in BMP database.");
     }
-    mongoc_collection_t *sceCollection;
-    sceCollection = mongoc_client_get_collection(m_conn, m_bmpDBName.c_str(), TAB_BMP_SCENARIO);
+    mongoc_collection_t *sceCollection = m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO);
     /// Find the unique scenario name
     bson_t *query = bson_new(), *reply = bson_new();
     query = BCON_NEW("distinct", BCON_UTF8(TAB_BMP_SCENARIO), "key", FLD_SCENARIO_NAME,
@@ -73,9 +71,10 @@ void Scenario::loadBMPs() {
     bson_t *query = bson_new();
     BSON_APPEND_INT32(query, FLD_SCENARIO_ID, m_id);
     //cout<<bson_as_json(query, NULL)<<endl;
-    mongoc_collection_t *collection = mongoc_client_get_collection(m_conn, m_bmpDBName.c_str(), TAB_BMP_SCENARIO);
-    mongoc_collection_t *collbmpidx = mongoc_client_get_collection(m_conn, m_bmpDBName.c_str(), TAB_BMP_INDEX);
-    mongoc_cursor_t *cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
+    unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_INDEX)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+    
     bson_error_t *err = NULL;
     if (mongoc_cursor_error(cursor, err)) {
         throw ModelException("BMP Scenario", "loadBMPs",
@@ -100,8 +99,9 @@ void Scenario::loadBMPs() {
         int BMPPriority = -1;
         bson_t *queryBMP = bson_new();
         BSON_APPEND_INT32(queryBMP, FLD_BMP_ID, BMPID);
-        mongoc_cursor_t *cursor2 = mongoc_collection_find(collbmpidx, MONGOC_QUERY_NONE, 0, 0, 0, queryBMP, NULL,
-                                                          NULL);
+
+        mongoc_cursor_t* cursor2 = collbmpidx->ExecuteQuery(queryBMP);
+
         if (mongoc_cursor_error(cursor2, err)) {
             throw ModelException("BMP Scenario", "loadBMPs",
                                  "There are no record with BMP ID: " + ValueToString(BMPID));
@@ -139,14 +139,12 @@ void Scenario::loadBMPs() {
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
-    mongoc_collection_destroy(collbmpidx);
 }
 
 void Scenario::loadBMPDetail() {
     map<int, BMPFactory *>::iterator it;
     for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
-        it->second->loadBMP(this->m_conn, m_bmpDBName);
+        it->second->loadBMP(m_conn, m_bmpDBName);
     }
 }
 

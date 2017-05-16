@@ -2,9 +2,8 @@
 
 using namespace std;
 
-InputStation::InputStation(mongoc_client_t *conn, time_t dtHillslope, time_t dtChannel) : m_conn(conn),
-                                                                                          m_dtHs(dtHillslope),
-                                                                                          m_dtCh(dtChannel) {
+InputStation::InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel) : 
+    m_conn(conn), m_dtHs(dtHillslope), m_dtCh(dtChannel) {
 }
 
 InputStation::~InputStation(void) {
@@ -95,10 +94,9 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     build_query_bson(nSites, siteIDList, siteType, query);
     //printf("%s\n",bson_as_json(query,NULL));
 
-    mongoc_cursor_t *cursor;
-    mongoc_collection_t *collection;
-    collection = mongoc_client_get_collection(m_conn, hydroDBName.c_str(), DB_TAB_SITES);
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_SITES)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+
     const bson_t *record = NULL;
     float *pEle = new float[nSites];
     float *pLat = new float[nSites];
@@ -137,7 +135,6 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     }
 
     mongoc_cursor_destroy(cursor);
-    mongoc_collection_destroy(collection);
     bson_destroy(query);
     m_elevation[siteType] = pEle;
     m_latitude[siteType] = pLat;

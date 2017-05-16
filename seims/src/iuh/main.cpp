@@ -14,8 +14,11 @@ using namespace std;
 
 void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, const char *host, int port, int dt) {
     // connect to mongodb
-    MongoClient client = MongoClient(host, port);
-    mongoc_gridfs_t *gfs = client.getGridFS(string(modelStr), string(gridFSName));
+    MongoClient* client = MongoClient::Init(host, port);
+    if (NULL == client) {
+        throw ModelException("DataCenterMongoDB", "Constructor", "Failed to connect to MongoDB!");
+    }
+    MongoGridFS* gfs = new MongoGridFS(client->getGridFS(string(modelStr), string(gridFSName)));
     int subbasinStartID = 1;
     if (nSubbasins == 0) subbasinStartID = 0;
     for (int i = subbasinStartID; i <= nSubbasins; i++) {
@@ -49,20 +52,32 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
         SubbasinIUHCalculator iuh(dt, rsMask, rsLandcover, rsTime, rsDelta, gfs);
         iuh.calCell(i);
     }
-
-    mongoc_gridfs_destroy(gfs);
 }
 
 int main(int argc, const char **argv) {
-    const char *host = argv[1];
-    int port = atoi(argv[2]);
-    const char *modelName = argv[3];
-    const char *gridFSName = argv[4];
-    int dt = atoi(argv[5]); //time interval in hours
-    int nSubbasins = atoi(argv[6]); // the whole basin is 0
+    try { 	
+        const char *host = argv[1];
+        int port = atoi(argv[2]);
+        const char *modelName = argv[3];
+        const char *gridFSName = argv[4];
+        int dt = atoi(argv[5]); //time interval in hours
+        int nSubbasins = atoi(argv[6]); // the whole basin is 0
 
-    MainMongoDB(modelName, gridFSName, nSubbasins, host, port, dt);
+        MainMongoDB(modelName, gridFSName, nSubbasins, host, port, dt);
 
-    cout << " IUH calculation is OK!" << endl;
+        cout << " IUH calculation is OK!" << endl;
+    }
+    catch (ModelException& e) {
+        cout << e.toString() << endl;
+        return -1;
+    }
+    catch (exception& e) {
+    	cout << e.what() << endl;
+        return -1;
+    }
+    catch (...) {
+        cout << "Unknown exception occurred!" << endl;
+        return -1;
+    }
     return 0;
 }
