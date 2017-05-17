@@ -43,6 +43,8 @@ int main(int argc, const char *argv[]) {
             vs2[i][j] = i * (j + 1);
         }
     }
+    /// 1.4 Copy constructor
+    clsRasterData<float, int> copyReadr(readr);
     /// output array to raster file and destructor the clsRasterData instance immediately
     clsRasterData<float, int>(&maskr, vs).outputToFile(ascdemout3);
     clsRasterData<float, int>(&maskr, vs2, 3).outputToFile(ascdemout4);
@@ -66,8 +68,9 @@ int main(int argc, const char *argv[]) {
     readr.outputToFile(ascdemout);
     /// 4. Output raster data to MongoDB
     MongoClient client = MongoClient("127.0.0.1", 27017);
-    mongoc_gridfs_t *gfs = client.getGridFS(string("test"), string("spatial"));
-    readr.outputToMongoDB(string("testImport"), gfs);
+    MongoGridFS gfs = MongoGridFS(client.getGridFS(string("test"), string("spatial")));
+    readr.outputToMongoDB(string("testImport"), &gfs);
+
     /******* ASCII 2D Raster Demo *********/
     cout << "--  ASCII 2D Raster Demo" << endl;
     /// 1. Constructor, same as the 1D raster demo, but with the vector as filenames input.

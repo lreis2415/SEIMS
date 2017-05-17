@@ -14,18 +14,13 @@ SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NU
 }
 
 SUR_GreenAmpt::~SUR_GreenAmpt(void) {
-    //// cleanup
-    if (this->m_PE != NULL) {
-        delete[] this->m_PE;
-    }
-    if (this->m_INFIL != NULL) {
-        delete[] this->m_INFIL;
-    }
-    if (this->m_w1 != NULL) delete[] this->m_w1;
-    if (this->m_w2 != NULL) delete[] this->m_w2;
-    if (this->m_sMax != NULL) delete[] this->m_sMax;
-    if (this->m_wfmp != NULL) delete[] this->m_wfmp;
-    if (this->m_INFRate != NULL) delete[] this->m_INFRate;
+    Release1DArray(m_PE);
+    Release1DArray(m_INFIL);
+    Release1DArray(m_w1);
+    Release1DArray(m_w2);
+    Release1DArray(m_sMax);
+    Release1DArray(m_wfmp);
+    Release1DArray(m_INFRate);
 }
 
 bool SUR_GreenAmpt::CheckInputData(void) {

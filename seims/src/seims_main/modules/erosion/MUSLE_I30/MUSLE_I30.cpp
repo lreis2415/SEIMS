@@ -32,11 +32,10 @@ MUSLE_I30::MUSLE_I30(void) {
 }
 
 MUSLE_I30::~MUSLE_I30(void) {
-    //// cleanup
-    if (this->m_sedimentYield != NULL) delete[] this->m_sedimentYield;
-    if (this->m_usle_ls != NULL) delete[] this->m_usle_ls;
-    if (this->m_slopeForPq != NULL) delete[] this->m_slopeForPq;
-    if (this->m_alpha_month != NULL) delete[] this->m_alpha_month;
+    Release1DArray(m_sedimentYield);
+    Release1DArray(m_usle_ls);
+    Release1DArray(m_slopeForPq);
+    Release1DArray(m_alpha_month);
 }
 
 bool MUSLE_I30::CheckInputData(void) {

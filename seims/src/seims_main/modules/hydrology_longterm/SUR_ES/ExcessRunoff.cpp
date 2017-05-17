@@ -13,15 +13,9 @@ ExcessRunoff::ExcessRunoff(void) : m_infil(NULL), m_pe(NULL),
 }
 
 ExcessRunoff::~ExcessRunoff(void) {
-    if (this->m_pe != NULL) {
-        delete[] m_pe;
-    }
-    if (this->m_infil != NULL) {
-        delete[] m_infil;
-    }
-    if (m_soilMoisture != NULL) {
-        delete[] m_soilMoisture;
-    }
+    Release1DArray(m_pe);
+    Release1DArray(m_infil);
+    Release1DArray(m_soilMoisture);
 }
 
 void ExcessRunoff::Get1DData(const char *key, int *n, float **data) {

@@ -4,7 +4,7 @@
  * \date May 2011
  * \revised LiangJun Zhu
  * \date 2016-7-13
- *  1. Remove m_isInitial and add initialOutputs()
+ *  1. Remove m_isInitial and add initialOutputs(void)
  *  2. Add VAR_SWE as output, so this module will be not dependent on others
  *  3. Add net precipitation as output, and added water amount of snow melt
  * 
@@ -36,7 +36,7 @@ public:
     //! Destructor
     ~SNO_DD(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -48,7 +48,7 @@ public:
 
     bool CheckInputData(void);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     //! Valid cells number

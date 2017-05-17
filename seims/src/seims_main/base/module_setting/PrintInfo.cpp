@@ -24,17 +24,9 @@ PrintInfoItem::PrintInfoItem(void) : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
 
 PrintInfoItem::~PrintInfoItem(void) {
     StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
-
-    if (m_1DDataWithRowCol != NULL) {
-        Release2DArray(m_Counter, m_1DDataWithRowCol);
-    }
-    if (m_1DData != NULL) {
-        Release1DArray(m_1DData);
-    }
-    if (m_2DData != NULL) {
-        Release2DArray(m_nRows, m_2DData);
-    }
-    TimeSeriesData.clear();
+    Release2DArray(m_Counter, m_1DDataWithRowCol);
+    Release1DArray(m_1DData);
+    Release2DArray(m_nRows, m_2DData);
 
     for (map<time_t, float *>::iterator it = TimeSeriesDataForSubbasin.begin();
          it != TimeSeriesDataForSubbasin.end();) {
@@ -67,8 +59,8 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, float *data) {
 }
 
 void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRaster, string header) {
-    bool outToMongoDB = false; /// added by LJ.
-    projectPath = projectPath;
+    //bool outToMongoDB = false; /// added by LJ.
+    //projectPath = projectPath + SEP;
     /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
     //vector<string> outputExisted = GetGridFsFileNames(gfs);// No need to obtain the existing GridFS names.
     /// Filename should appended by AggregateType to avoiding the same names. By LJ, 2016-7-12
@@ -76,12 +68,12 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         Filename = Filename + "_" + AggType;
     }
     StatusMessage(("Creating output file " + Filename + "...").c_str());
-    if (!outToMongoDB) {
-        bson_error_t *err = NULL;
-        /// delete the chunks
-        mongoc_collection_t *chunk = mongoc_gridfs_get_chunks(gfs);
-        mongoc_collection_drop(chunk, err);
-    }
+    //if (!outToMongoDB) {
+    //    bson_error_t *err = NULL;
+    //    /// delete the chunks
+    //    mongoc_collection_t *chunk = mongoc_gridfs_get_chunks(gfs);
+    //    mongoc_collection_drop(chunk, err);
+    //}
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
@@ -147,10 +139,10 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
         //cout << projectPath << Filename << endl;
-        if (outToMongoDB) {
-            MongoGridFS().removeFile(Filename, gfs);
-            clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
-        }
+        //if (outToMongoDB) {
+        //    MongoGridFS().removeFile(Filename, gfs);
+        //    clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
+        //}
         clsRasterData<float>(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
         return;
     }
@@ -162,10 +154,10 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         }
         clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
 
-        if (outToMongoDB) {
-            MongoGridFS().removeFile(Filename, gfs);
-            clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
-        }
+        //if (outToMongoDB) {
+        //    MongoGridFS().removeFile(Filename, gfs);
+        //    clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
+        //}
         return;
     }
 
@@ -598,8 +590,7 @@ void PrintInfo::AddPrintItem(string start, string end, string file, string sufi)
     m_PrintItems.push_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string type, string start, string end, string file, string sufi, mongoc_client_t *conn,
-                             mongoc_gridfs_t *gfs) {
+void PrintInfo::AddPrintItem(string type, string start, string end, string file, string sufi) {
     // create a new object instance
     PrintInfoItem *itm = new PrintInfoItem();
 
@@ -609,8 +600,6 @@ void PrintInfo::AddPrintItem(string type, string start, string end, string file,
     itm->EndTime = end;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->conn = conn;
-    itm->gfs = gfs;
 
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
     itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
@@ -630,8 +619,7 @@ void PrintInfo::AddPrintItem(string type, string start, string end, string file,
 }
 
 void
-PrintInfo::AddPrintItem(string start, string end, string file, string sitename, string sufi, mongoc_client_t *m_conn,
-                        mongoc_gridfs_t *m_outputGfs, bool isSubbasin) {
+PrintInfo::AddPrintItem(string start, string end, string file, string sitename, string sufi, bool isSubbasin) {
     PrintInfoItem *itm = new PrintInfoItem();
 
     if (!isSubbasin) { itm->SiteID = atoi(sitename.c_str()); }
@@ -642,8 +630,6 @@ PrintInfo::AddPrintItem(string start, string end, string file, string sitename, 
     }
     itm->StartTime = start;
     itm->EndTime = end;
-    itm->conn = m_conn;
-    itm->gfs = m_outputGfs;
     itm->Filename = file;
     itm->Suffix = sufi;
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);

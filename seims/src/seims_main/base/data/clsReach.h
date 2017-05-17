@@ -1,11 +1,14 @@
 /*!
  * \brief Class to store reach related parameters from REACHES table
  * \author LiangJun Zhu
- * \version 1.0
- * \date May. 2016
- *
+ * \version 1.1
+ * \date May. 2017
+ * \revised LJ - Update MongoDB functions
+ *             - Get 1D arrays of reach properties to keep synchronization among modules
  */
-#pragma once
+#ifndef SEIMS_REACH_CLS_H
+#define SEIMS_REACH_CLS_H
+
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -13,7 +16,59 @@
 using namespace std;
 
 /*!
-* \ingroup data
+ * \ingroup data
+ * \enum ReachAttr
+ * \TODO Find a more elegant way to read, store, and get reaches attributes.
+ */
+enum ReachAttr
+{
+    subbasinid,
+    num_cells,
+    group,
+    group_divide,
+    kmetis,
+    pmetis,
+    downstream,
+    up_down_order,
+    down_up_order,
+    width,
+    side_slope,
+    length,
+    depth,
+    v0,
+    area,
+    manning,
+    slope,
+    bc1,
+    bc2,
+    bc3,
+    bc4,
+    rs1,
+    rs2,
+    rs3,
+    rs4,
+    rs5,
+    rk1,
+    rk2,
+    rk3,
+    rk4,
+    cover,
+    erod,
+    disox,
+    bod,
+    algae,
+    orgn,
+    nh4,
+    no2,
+    no3,
+    orgp,
+    solp,
+    gwno3,
+    gwsolp,
+    attrcount
+};
+/*!
+ * \ingroup data
  * \class clsReach
  * \brief Class to store reach related parameters from REACHES table
  */
@@ -28,87 +83,47 @@ public:
     //! Reset the contents of the object to default values
     void Reset(void);
 
-    int GetSubbasinID() { return SubbasinID; }
-
-    float GetArea() { return this->Area; }
-
-    float GetDepth() { return this->Depth; }
-
-    int GetDownStream() { return DownStream; }
-
-    int GetDownUpOrder() { return DownUpOrder; }
-
-    int GetUpDownOrder() { return UpDownOrder; }
-
-    int GetGroup() { return Group; }
-
-    int GetGroupDivided() { return GroupDivided; }
-
-    float GetLength() { return this->Length; }
-
-    float GetManning() { return this->Manning; }
-
-    int GetNumCells() { return this->NumCells; }
-
-    float GetSlope() { return this->Slope; }
-
-    float GetV0() { return this->V0; }
-
-    float GetWidth() { return this->Width; }
-
-    float GetSideSlope() { return this->SideSlope; }
-
-    float GetBc1() { return this->bc1; }
-
-    float GetBc2() { return this->bc2; }
-
-    float GetBc3() { return this->bc3; }
-
-    float GetBc4() { return this->bc4; }
-
-    float GetRs1() { return this->rs1; }
-
-    float GetRs2() { return this->rs2; }
-
-    float GetRs3() { return this->rs3; }
-
-    float GetRs4() { return this->rs4; }
-
-    float GetRs5() { return this->rs5; }
-
-    float GetRk1() { return this->rk1; }
-
-    float GetRk2() { return this->rk2; }
-
-    float GetRk3() { return this->rk3; }
-
-    float GetRk4() { return this->rk4; }
-
-    float GetCover() { return this->cover; }
-
-    float GetErod() { return this->erod; }
-
-    float GetDisOxygen() { return this->disox; }
-
-    float GetCOD() { return this->cod; }
-
-    float GetAlgae() { return this->algae; }
-
-    float GetOrgN() { return this->orgn; }
-
-    float GetNH4() { return this->nh4; }
-
-    float GetNO2() { return this->no2; }
-
-    float GetNO3() { return this->no3; }
-
-    float GetOrgP() { return this->orgp; }
-
-    float GetSolP() { return this->solp; }
-
-    float GetGWNO3() { return this->gwno3; }
-
-    float GetGWSolP() { return this->gwsolp; }
+    int GetSubbasinID(void) { return this->SubbasinID; }
+    float GetArea(void) { return this->Area; }
+    float GetDepth(void) { return this->Depth; }
+    int GetDownStream(void) { return this->DownStream; }
+    int GetDownUpOrder(void) { return this->DownUpOrder; }
+    int GetUpDownOrder(void) { return this->UpDownOrder; }
+    int GetGroup(void) { return this->Group; }
+    int GetGroupDivided(void) { return this->GroupDivided; }
+    float GetLength(void) { return this->Length; }
+    float GetManning(void) { return this->Manning; }
+    int GetNumCells(void) { return this->NumCells; }
+    float GetSlope(void) { return this->Slope; }
+    float GetV0(void) { return this->V0; }
+    float GetWidth(void) { return this->Width; }
+    float GetSideSlope(void) { return this->SideSlope; }
+    float GetBc1(void) { return this->bc1; }
+    float GetBc2(void) { return this->bc2; }
+    float GetBc3(void) { return this->bc3; }
+    float GetBc4(void) { return this->bc4; }
+    float GetRs1(void) { return this->rs1; }
+    float GetRs2(void) { return this->rs2; }
+    float GetRs3(void) { return this->rs3; }
+    float GetRs4(void) { return this->rs4; }
+    float GetRs5(void) { return this->rs5; }
+    float GetRk1(void) { return this->rk1; }
+    float GetRk2(void) { return this->rk2; }
+    float GetRk3(void) { return this->rk3; }
+    float GetRk4(void) { return this->rk4; }
+    float GetCover(void) { return this->cover; }
+    float GetErod(void) { return this->erod; }
+    float GetDisOxygen(void) { return this->disox; }
+    float GetCOD(void) { return this->cod; }
+    float GetAlgae(void) { return this->algae; }
+    float GetOrgN(void) { return this->orgn; }
+    float GetNH4(void) { return this->nh4; }
+    float GetNO2(void) { return this->no2; }
+    float GetNO3(void) { return this->no3; }
+    float GetOrgP(void) { return this->orgp; }
+    float GetSolP(void) { return this->solp; }
+    float GetGWNO3(void) { return this->gwno3; }
+    float GetGWSolP(void) { return this->gwsolp; }
 
 private:
     //! Subbasin area
@@ -176,23 +191,23 @@ private:
     float gwno3;
     /// Concentration of soluble phosphorus in groundwater contribution to streamflow from subbasin (mg P/l).
     float gwsolp;
-    /// Initial dissolved oxygen concentration in the reach.	[mg /l]
+    /// Initial dissolved oxygen concentration in the reach. [mg /l]
     float disox;
-    /// Initial biochemical oxygen demand in the reach .	[mg /l]. note that, this is different with cbod in SWAT
+    /// Initial biochemical oxygen demand in the reach. [mg /l]. note that, this is different with cbod in SWAT
     float cod;
-    /// Initial chlorophyll-a concentration in the reach.	[mg /l]
+    /// Initial chlorophyll-a concentration in the reach. [mg /l]
     float algae;
-    /// Initial organic nitrogen concentration in the reach.	[mg /l]
+    /// Initial organic nitrogen concentration in the reach. [mg /l]
     float orgn;
-    /// Initial ammonia concentration in the reach.	[mg /l]
+    /// Initial ammonia concentration in the reach. [mg /l]
     float nh4;
     /// Initial nitrite concentration in the reach
     float no2;
     /// Initial nitrate concentration in the reach
     float no3;
-    /// Initial organic phosphorus concentration in the reach.	[mg /l]
+    /// Initial organic phosphorus concentration in the reach. [mg /l]
     float orgp;
-    /// Initial dissolved phosphorus concentration in the reach.	[mg /l]
+    /// Initial dissolved phosphorus concentration in the reach. [mg /l]
     float solp;
 };
 
@@ -206,27 +221,30 @@ private:
 class clsReaches {
 public:
     /*!
-     * \brief Constructor
-     *
-     * Query reach table from MongoDB
-     *
-     * \param[in] conn mongoc client instance
+     * \brief Constructor, query reach table from MongoDB
+     * \param[in] conn MongoClient instance
      * \param[in] dbName Database name
      * \param[in] collectionName Reach collection name
      */
-    clsReaches(mongoc_client_t *conn, string &dbName, string collectionName);
+    clsReaches(MongoClient* conn, string &dbName, string collectionName);
 
     /// Destructor
-    ~clsReaches();
+    ~clsReaches(void);
 
     /// Get single reach information by subbasin ID
-    clsReach *GetReachByID(int id) { return m_reachesInfo.at(id); }
+    clsReach *GetReachByID(int id) { return m_reachesMap.at(id); }
 
     /// Get reach number
-    int GetReachNumber() { return this->m_reachNum; }
+    int GetReachNumber(void) const { return this->m_reachNum; }
 
     /// Get reach IDs (vector)
-    vector<int> &GetReachIDs() { return this->m_reachIDs; }
+    vector<int>& GetReachIDs(void) { return this->m_reachIDs; }
+
+    /*!
+     * \brief Get 1D array of reach property
+     * \TODO Implement later. LJ
+     */
+    void GetReachesSingleProperty(const char *key, float **data) {};
 
 private:
     /// reaches number
@@ -238,5 +256,12 @@ private:
      * key: reach ID
      * value: clsReach instance (pointer)
      */
-    map<int, clsReach *> m_reachesInfo;
+    map<int, clsReach *> m_reachesMap;
+
+    /*! 2D array to store all reaches properties
+     * Row index is the index of reach property
+     * Col index is the index of m_reachIDs
+     */
+    float** m_reachesProperties;
 };
+#endif /* SEIMS_REACH_CLS_H */

@@ -36,7 +36,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void GetValue(const char *key, float *value);
 
@@ -206,7 +206,7 @@ private:
 	 * 2. nitrate loss with subsurface flow (routing considered)
 	 * 3. nitrate loss with percolation
      */
-    void NitrateLoss();
+    void NitrateLoss(void);
 
     /*!
      * \brief Calculates the amount of phosphorus lost from the soil
@@ -214,13 +214,13 @@ private:
      *        to the second layer via percolation.
      *		 rewrite from solp.f of SWAT
      */
-    void PhosphorusLoss();
+    void PhosphorusLoss(void);
 
     /*
      * \brief compute loadings of chlorophyll-a, BOD, and dissolved oxygen to the main channel
      *        rewrite from subwq.f of SWAT
      */
-    void SubbasinWaterQuality();
+    void SubbasinWaterQuality(void);
     ///*!
     // * \brief Calculate enrichment ratio.
     // * enrsb.f of SWAT
@@ -228,11 +228,7 @@ private:
     // */
     //float *CalculateEnrRatio();
 
-    void initialOutputs();
+    void initialOutputs(void);
 
-    void SumBySubbasin();
+    void SumBySubbasin(void);
 };
-
-
-
-

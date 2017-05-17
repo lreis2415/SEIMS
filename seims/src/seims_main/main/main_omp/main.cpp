@@ -1,4 +1,4 @@
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 #include "seims.h"
@@ -9,7 +9,9 @@
 #endif /* USE_MONGODB */
 
 int main(int argc, const char *argv[]) {
+    /// Register GDAL
     GDALAllRegister();
+    /// Read input parameters
     string modelPath = "";
     int scenarioID = -1;  /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int i = 0;
@@ -36,6 +38,7 @@ int main(int argc, const char *argv[]) {
         if (argc > i) {
             if (atoi(argv[i]) > 0) {
                 numThread = atoi(argv[i]);
+                assert(numThread >= 1);
                 i++;
             } else {
                 goto errexit;
@@ -59,6 +62,7 @@ int main(int argc, const char *argv[]) {
                 i++;
                 if (argc > i && atoi(argv[i]) > 0) {
                     port = atoi(argv[i]);
+                    assert(port > 0);
                     i++;
                 } else {
                     goto errexit;
@@ -87,18 +91,23 @@ int main(int argc, const char *argv[]) {
     //cout<<scenarioID<<endl;
     //SetOpenMPThread(2);
 
-    while (modelPath.length() == 0) {
-        cout << "Please input the model path:" << endl;
-        cin >> modelPath;
+    try {
+        return MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
     }
-#ifdef USE_MONGODB
-    if (MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod) != 0) {
-        cout << "SEIMS aborts with an ERROR!" << endl;
+    catch (ModelException& e) {
+        cout << e.toString() << endl;
+        return -1;
     }
-#endif /* USE_MONGODB */
-
-    //system("pause");
+    catch (exception& e) {
+        cout << e.what() << endl;
+        return -1;
+    }
+    catch (...) {
+        cout << "Unknown exception occurred!" << endl;
+        return -1;
+    }
     return 0;
+
     errexit:
     cout << "Simple Usage:\n " << argv[0] << " <ModelPath>" << endl;
     cout << "\tBy default: " << endl;
