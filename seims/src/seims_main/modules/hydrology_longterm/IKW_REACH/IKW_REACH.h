@@ -1,13 +1,10 @@
-/*----------------------------------------------------------------------
-*	Purpose: 	channel flow routing using ikw method
-*
-*	Created:	Junzhi Liu
-*	Date:		26-Jule-2012
-*
-*	Revision:
-*   Date:
-*---------------------------------------------------------------------*/
-
+/*!
+ * \brief channel flow routing using ikw method
+ * \author Junzhi Liu, Liangjun Zhu
+ * \date May 2017
+ * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM
+ *               Algorithm review and code clean
+ */
 #pragma once
 #include "SimulationModule.h"
 
@@ -40,7 +37,7 @@ public:
 
     ~IKW_REACH(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -50,9 +47,11 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+//    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+    virtual void SetReaches(clsReaches *reaches);
 
     bool CheckInputSize(const char *key, int n);
 
@@ -60,7 +59,7 @@ public:
 
     bool CheckInputData(void);
 
-    virtual TimeStepType GetTimeStepType() {
+    virtual TimeStepType GetTimeStepType(void) {
         return TIMESTEP_CHANNEL;
     };
 
@@ -71,7 +70,8 @@ private:
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
-
+    //! layering method
+    float m_layeringMethod;
     ///// diversion loss (Vdiv) of the river reach .. m_Vid[id], id is the reach id
     //float *m_Vdiv;
     ///// The point source discharge .. m_Vpoint[id], id is the reach id
@@ -159,7 +159,7 @@ private:
 
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     void ChannelFlow(int i);
 

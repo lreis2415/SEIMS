@@ -24,6 +24,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetVersion("0.1");
     mdi.SetWebsite(SEIMS_SITE);
 
+    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
     mdi.AddParameter(VAR_K_CHB, UNIT_WTRDLT_MMH, DESC_K_CHB, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_K_BANK, UNIT_WTRDLT_MMH, DESC_K_BANK, Source_ParameterDB, DT_Single);
@@ -38,7 +39,9 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_QUPREACH, UNIT_NON_DIM, DESC_QUPREACH, Source_ParameterDB, DT_Single);
     //mdi.AddParameter(VAR_MSF, UNIT_NON_DIM, DESC_MSF, Source_ParameterDB, DT_Single);
 
-    mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
+    //mdi.AddParameter(Tag_RchParam, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
+    // add reach information
+    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
     //mdi.AddParameter(VAR_VDIV, UNIT_VOL_M3, DESC_VDIV, DT_Array1D);
     //mdi.AddParameter(VAR_VPOINT, UNIT_VOL_M3, DESC_VPOINT, "diversionloss.txt", DT_Array1D);
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);

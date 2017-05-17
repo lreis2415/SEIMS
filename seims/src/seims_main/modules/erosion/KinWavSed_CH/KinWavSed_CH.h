@@ -10,7 +10,7 @@
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup KinWavSed_CH
+/*! \defgroup KinWavSed_CH
  * \ingroup Erosion
  * \brief Kinematic wave method for channel flow erosion and deposition
  */
@@ -30,7 +30,7 @@ public:
     ~KinWavSed_CH(void);
 
     //! Execute
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float value);
 
@@ -43,6 +43,8 @@ public:
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+    virtual void SetReaches(clsReaches *reaches);
 
     /**
     *	@brief check the input data. Make sure all the input data is available.
@@ -106,6 +108,8 @@ private:
     int m_nCells;
     /// length of time step (s)
     float m_TimeStep;
+    //! layering method
+    float m_layeringMethod;
     ///calibration coefficient of transport capacity
     float m_ChTcCo;
     /// calibration coefficient of channel flow detachment
@@ -170,7 +174,7 @@ private:
 
 private:
 
-    void initial();
+    void initial(void);
     ///**
     //*	@brief calculate the velocity of overland flow.
     //*

@@ -4,11 +4,12 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
- * \revised Dec. 2016
+ * \updated May. 2017
  */
 
 #ifndef CLS_UTILS
 #define CLS_UTILS
+
 /// OpenMP support
 #ifdef SUPPORT_OMP
 #include <omp.h>
@@ -21,6 +22,8 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <cstdint>
+#include <memory>
 /// time
 #include <ctime>
 /// string
@@ -55,6 +58,10 @@
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
 #endif /* macos */
+/// assert
+#include <cassert>
+/// variable arguments
+#include <cstdarg>
 
 using namespace std;
 
@@ -143,6 +150,13 @@ const float MAXIMUMFLOAT = FLT_MAX;
 
 static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+/*
+ * Constant value type pointer
+ */
+typedef const int*     CINTPTR;
+typedef const float*   CFLOATPTR;
+typedef const double*  CDOUBLEPTR;
+
 /*!
  * \class utilsTime
  * \brief Time related functions
@@ -154,7 +168,7 @@ public:
     /*
      *\brief Precisely and cross-platform time counting function.
      */
-    static double TimeCounting();
+    static double TimeCounting(void);
 
     /*!
      *\brief Check the given year is a leap year or not.
@@ -193,7 +207,7 @@ public:
      * \param[in] includeHour \a bool Include Hour?
      * \return Date time \a time_t
      */
-    static time_t ConvertToTime(string strDate, string const &format, bool includeHour);
+    static time_t ConvertToTime(const string& strDate, string const &format, bool includeHour);
 
     /*!
      * \brief Convert string to date time, string format could be "%4d-%2d-%2d %2d:%2d:%2d"
@@ -248,7 +262,7 @@ public:
      * \param[in] string
      * \return Uppercase string
     */
-    static string GetUpper(string const &);
+    static string GetUpper(string const &s);
 
     /*!
      * \brief Match \a char ignore cases
@@ -257,7 +271,7 @@ public:
      * \return true or false
      * \sa StringMatch()
      */
-    static bool StringMatch(const char *, const char *);
+    static bool StringMatch(const char *a, const char *b);
 
     /*!
      * \brief Match Strings in UPPERCASE manner
@@ -320,7 +334,7 @@ public:
      * \return converted string
      */
     template<typename T>
-    static string ValueToString(T val);
+    static string ValueToString(const T val);
 };
 
 /*!
@@ -337,9 +351,10 @@ public:
      * \param[in] row
      * \param[in] data
      * \param[in] initialValue
+     * \return True if succeed, else false and the error message will print as well.
      */
     template<typename T>
-    static void Initialize1DArray(int row, T *&data, T initialValue);
+    static bool Initialize1DArray(int row, T *&data, T initialValue);
 
     /*!
      * \brief Initialize DT_Array1D data based on an existed array
@@ -347,9 +362,10 @@ public:
      * \param[in] row
      * \param[in] data
      * \param[in] iniData
+     * \return True if succeed, else false and the error message will print as well.
      */
     template<typename T>
-    static void Initialize1DArray(int row, T *&data, T *&iniData);
+    static bool Initialize1DArray(int row, T *&data, const T *iniData);
 
     /*!
      * \brief Initialize DT_Array2D data
@@ -358,20 +374,22 @@ public:
      * \param[in] col
      * \param[in] data
      * \param[in] initialValue
+     * \return True if succeed, else false and the error message will print as well.
      */
     template<typename T>
-    static void Initialize2DArray(int row, int col, T **&data, T initialValue);
+    static bool Initialize2DArray(int row, int col, T **&data, T initialValue);
 
     /*!
      * \brief Initialize DT_Array2D data based on an existed array
-     *
+     * The usage of `const T * const *` is refers to http://blog.csdn.net/pmt123456/article/details/50813564
      * \param[in] row
      * \param[in] col
      * \param[in] data
-     * \param[in] iniData
+     * \param[in] iniData, the dimension MUST BE (row, col)
+     * \return True if succeed, else false and the error message will print as well.
      */
     template<typename T>
-    static void Initialize2DArray(int row, int col, T **&data, T **&iniData);
+    static bool Initialize2DArray(int row, int col, T **&data, const T * const *iniData);
 
     /*!
      * \brief Release DT_Array1D data
@@ -389,7 +407,28 @@ public:
      */
     template<typename T>
     static void Release2DArray(int row, T **&data);
-
+    /*!
+     * \brief Batch release of 1D array
+     *        Variable arguments with the end of NULL.
+     * \param[in] data, data2, ... , dataN, NULL
+     * \usage BatchRelease1DArray(array1, array2, array3, NULL);
+     * \caution After batch release, the variable will not be set to NULL.
+     *          So, do not use these variables any more.
+     *          BTW, this function will not cause memory leak.
+     *          USE WITH ALL CAUTIONS CLEARLY AWARED.
+     */
+    template<typename T>
+    static void BatchRelease1DArray(T*& data, ...);
+    /*!
+    * \brief Batch release of 2D array, \sa BatchRelease1DArray
+    *        Variable arguments with the end of NULL.
+    * \param[in] nrows Rows
+    * \param[in] data, data2, ... , dataN, NULL
+    * \usage BatchRelease2DArray(rows, array1, array2, array3, NULL);
+    * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
+    */
+    template<typename T>
+    static void BatchRelease2DArray(int nrows, T**& data, ...);
     /*!
      * \brief Write 1D array to a file
      *
@@ -397,7 +436,7 @@ public:
      *
      * \param[in] n, data, filename
      */
-    static void Output1DArrayToTxtFile(int n, float *data, const char *filename);
+    static void Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename);
 
     /*!
      * \brief Write 2D array to a file
@@ -406,7 +445,7 @@ public:
      *
      * \param[in] nRows, nCols, data, filename
      */
-    static void Output2DArrayToTxtFile(int nRows, int nCols, float **data, const char *filename);
+    static void Output2DArrayToTxtFile(int nRows, int nCols, const CFLOATPTR *data, const char *filename);
 
     /*!
      * \brief Read 1D array from file
@@ -452,7 +491,7 @@ public:
     * \return True if val is in vec, otherwise False
     */
     template<typename T>
-    static bool ValueInVector(T &val, vector <T> &vec);
+    static bool ValueInVector(const T &val, vector<T> &vec);
 
     /*!
     * \brief Remove value in vector container
@@ -461,7 +500,7 @@ public:
     * \param[in] vec Vector container, data type is consistent with val
     */
     template<typename T>
-    static void RemoveValueInVector(T &val, vector <T> &vec);
+    static void RemoveValueInVector(T &val, vector<T> &vec);
 };
 
 /*!
@@ -497,7 +536,7 @@ public:
      * \return max value
      */
     template<typename T>
-    static T Max(T *a, int n);
+    static T Max(const T *a, int n);
 
     /*!
      * \brief Sum of a numeric array
@@ -509,7 +548,7 @@ public:
      * \return sum
      */
     template<typename T>
-    static T Sum(int row, T *&data);
+    static T Sum(int row, const T *data);
 
     /*!
      * \brief Sum of a numeric array
@@ -520,7 +559,7 @@ public:
      * \return sum
      */
     template<typename T>
-    static T Sum(int row, int *&idx, T *&data);
+    static T Sum(int row, int *&idx, const T *data);
 
     /*!
      * \brief calculate basic statistics at one time
@@ -530,7 +569,7 @@ public:
      * \param[in] exclude optional, excluded value, e.g. NoDATA, the default is -9999
      */
     template<typename T>
-    static void basicStatistics(T *values, int num, double **derivedvalues, T exclude = (T) NODATA_VALUE);
+    static void basicStatistics(const T *values, int num, double **derivedvalues, T exclude = (T)NODATA_VALUE);
 
     /*!
      * \brief calculate basic statistics at one time for 2D raster data
@@ -541,7 +580,7 @@ public:
      * \param[in] exclude optional, excluded value, e.g. NoDATA, the default is -9999
      */
     template<typename T>
-    static void basicStatistics(T **values, int num, int lyrs, double ***derivedvalues, T exclude = (T) NODATA_VALUE);
+    static void basicStatistics(const T * const *values, int num, int lyrs, double ***derivedvalues, T exclude = (T)NODATA_VALUE);
 };
 
 /*!
@@ -563,14 +602,18 @@ public:
 
 #endif /* not windows */
     /*!
+    * \brief Check the given directory path is exists or not.
+    */
+    static bool DirectoryExists(const string& dirpath);
+    /*!
      * \brief Clean a directory if exists, otherwise create it.
      */
-    static bool CleanDirectory(string dirpath);
+    static bool CleanDirectory(const string& dirpath);
     /*!
      * \brief Get the root path of the current executable file
      * \return \a string root path
      */
-    static string GetAppPath();
+    static string GetAppPath(void);
 
     /*!
      * \brief Return the file name from a given file's path
@@ -637,7 +680,14 @@ public:
      * \param[out] vecFiles
      * \return 0 means success
      */
-    static int FindFiles(const char *lpPath, const char *expression, vector <string> &vecFiles);
+    static int FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles);
+    /*!
+     * \brief Load short plain text file as string vector, ignore comments begin with '#' and empty lines
+     * \param[in] filepath Plain text file path
+     * \param[out] contentStrs Each line without CRLF or LF stored in vector
+     * \return True when read successfully, and false with empty contentStrs when failed
+     */
+    static bool LoadPlainTextFile(const string& filepath, vector<string>& contentStrs);
 };
 
 /*!
@@ -658,7 +708,7 @@ public:
      * \brief Writes an entry to the log file. Normally only used for debug
      *
      * \param[in] msg \a string log message
-	 * \param[in] logpath \a string Optional
+     * \param[in] logpath \a string Optional
      */
     static void Log(string msg, string logpath = "debugInfo.log");
 
@@ -668,12 +718,12 @@ public:
      *    1. http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
      *    2. https://cmake.org/pipermail/cmake/2007-October/017286.html
      */
-    static int GetAvailableThreadNum();
+    static int GetAvailableThreadNum(void);
 
     /*!
      * \brief Set the default omp thread number if necessary
      */
-    static void SetDefaultOpenMPThread();
+    static void SetDefaultOpenMPThread(void);
 
     /*!
      * \brief Set the omp thread number by given thread number
@@ -702,7 +752,7 @@ vector <T> utilsString::SplitStringForValues(string const &item, char delimiter)
 }
 
 template<typename T>
-string utilsString::ValueToString(T val) {
+string utilsString::ValueToString(const T val) {
     ostringstream oss;
     oss << val;
     return oss.str();
@@ -721,7 +771,7 @@ bool utilsMath::FloatEqual(T v1, T v2) {
 }
 
 template<typename T>
-T utilsMath::Max(T *a, int n) {
+T utilsMath::Max(const T *a, int n) {
     T m = a[0];
     for (int i = 1; i < n; i++) {
         if (a[i] > m) {
@@ -732,7 +782,7 @@ T utilsMath::Max(T *a, int n) {
 }
 
 template<typename T>
-T utilsMath::Sum(int row, T *&data) {
+T utilsMath::Sum(int row, const T *data) {
     T tmp = 0;
 #pragma omp parallel for reduction(+:tmp)
     for (int i = 0; i < row; i++) {
@@ -742,7 +792,7 @@ T utilsMath::Sum(int row, T *&data) {
 }
 
 template<typename T>
-T utilsMath::Sum(int row, int *&idx, T *&data) {
+T utilsMath::Sum(int row, int *&idx, const T *data) {
     T tmp = 0;
 #pragma omp parallel for reduction(+:tmp)
     for (int i = 0; i < row; i++) {
@@ -753,7 +803,7 @@ T utilsMath::Sum(int row, int *&idx, T *&data) {
 }
 
 template<typename T>
-void utilsMath::basicStatistics(T *values, int num, double **derivedvalues, T exclude /* = (T) NODATA_VALUE */) {
+void utilsMath::basicStatistics(const T *values, int num, double **derivedvalues, T exclude /* = (T) NODATA_VALUE */) {
     double *tmpstats = new double[6];
     double maxv = MISSINGFLOAT;
     double minv = MAXIMUMFLOAT;
@@ -786,7 +836,7 @@ void utilsMath::basicStatistics(T *values, int num, double **derivedvalues, T ex
 
 template<typename T>
 void
-utilsMath::basicStatistics(T **values, int num, int lyrs, double ***derivedvalues, T exclude /* = (T) NODATA_VALUE */) {
+utilsMath::basicStatistics(const T * const *values, int num, int lyrs, double ***derivedvalues, T exclude /* = (T) NODATA_VALUE */) {
     double **tmpstats = new double *[6];
     for (int i = 0; i < 6 ; i++) {
         tmpstats[i] = new double[lyrs];
@@ -834,77 +884,171 @@ utilsMath::basicStatistics(T **values, int num, int lyrs, double ***derivedvalue
 
 /************ template functions of utilsTime ******************/
 template<typename T>
-void utilsArray::Initialize1DArray(int row, T *&data, T initialValue) {
-    data = new T[row];
+bool utilsArray::Initialize1DArray(int row, T *&data, T initialValue) {
+    if (NULL != data) {
+        cout << "The input 1D array pointer is not NULL, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T[row];
+    if (NULL == data) {
+        cout << "Bad memory allocated during 1D array initialization!" << endl;
+        return false;
+    }
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         data[i] = initialValue;
     }
+    return true;
 }
 
 template<typename T>
-void utilsArray::Initialize1DArray(int row, T *&data, T *&iniData) {
-    data = new T[row];
+bool utilsArray::Initialize1DArray(int row, T *&data, const T *iniData) {
+    if (NULL != data) {
+        cout << "The input 1D array pointer is not NULL, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow) T[row];
+    if (NULL == data) {
+        cout << "Bad memory allocated during 1D array initialization!" << endl;
+        return false;
+    }
+    if (NULL == iniData) {
+        cout << "The input parameter iniData MUST NOT be NULL!" << endl;
+        return false;
+    }
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         data[i] = iniData[i];
     }
+    return true;
 }
 
 template<typename T>
-void utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) {
-    data = new T *[row];
-    //printf("The addr of 2D array: %p\n", data);
-#pragma omp parallel for
+bool utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) {
+    if (NULL != data) {
+        cout << "The input 2D array pointer is not NULL, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow) T *[row];
+    if (NULL == data) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        return false;
+    }
+    int badAlloc = 0;
+#pragma omp parallel for reduction(+:badAlloc)
     for (int i = 0; i < row; i++) {
-        data[i] = new T[col];
-        //printf("%p, ", data[i]);
+        data[i] = new(nothrow) T[col];
+        if (NULL == data[i]) {
+            badAlloc++;
+        }
         for (int j = 0; j < col; j++) {
             data[i][j] = initialValue;
         }
     }
-    //printf("\n");
+    if (badAlloc > 0) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        utilsArray::Release2DArray(row, data);
+        return false;
+    }
+    return true;
 }
 
 template<typename T>
-void utilsArray::Initialize2DArray(int row, int col, T **&data, T **&iniData) {
-    data = new T *[row];
-    //printf("The addr of 2D array: %p\n", data);
-#pragma omp parallel for
+bool utilsArray::Initialize2DArray(int row, int col, T **&data, const T * const *iniData) {
+    if (NULL != data) {
+        cout << "The input 2D array pointer is not NULL, without initialized!" << endl;
+        return false;
+    }
+    data = new(nothrow)T *[row];
+    if (NULL == data) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        return false;
+    }
+    int badAlloc = 0;
+    int errorAccess = 0;
+#pragma omp parallel for reduction(+:badAlloc, errorAccess)
     for (int i = 0; i < row; i++) {
-        data[i] = new T[col];
-        //printf("%p, ", data[i]);
-        for (int j = 0; j < col; j++) {
-            data[i][j] = iniData[i][j];
+        data[i] = new(nothrow)T[col];
+        if (NULL == data[i]) {
+            badAlloc++;
+        }
+        if (NULL == iniData[i]) {
+            errorAccess++;
+        }
+        else {
+            for (int j = 0; j < col; j++) {
+                data[i][j] = iniData[i][j];
+            }
         }
     }
-    //printf("\n");
+    if (badAlloc > 0) {
+        cout << "Bad memory allocated during 2D array initialization!" << endl;
+        utilsArray::Release2DArray(row, data);
+        return false;
+    }
+    if (errorAccess > 0) {
+        cout << "NULL pointer existed in iniData during 2D array initialization!" << endl;
+        utilsArray::Release2DArray(row, data);
+        return false;
+    }
+    return true;
 }
 
 template<typename T>
 void utilsArray::Release1DArray(T *&data) {
-    delete[] data;
-    data = NULL;
+    if (NULL != data) {
+        delete[] data;
+        data = NULL;
+    }
 }
 
 template<typename T>
 void utilsArray::Release2DArray(int row, T **&data) {
-    //printf("Release 2D array, the addr starts at: %p\n", data);
+    if (NULL == data) {
+        return;
+    }
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
         if (data[i] != NULL) {
-            //printf("%p, ", data[i]);
             delete[] data[i];
             data[i] = NULL;
         }
     }
     delete[] data;
     data = NULL;
-    //printf("\n");
 }
 
 template<typename T>
-bool utilsArray::ValueInVector(T &val, vector <T> &vec) {
+void utilsArray::BatchRelease1DArray(T*& data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release1DArray(data);
+    T* argValue = va_arg(arg_ptr, T*);
+    while (NULL != argValue) {
+        utilsArray::Release1DArray(argValue);
+        argValue = va_arg(arg_ptr, T*);
+    }
+    va_end(arg_ptr);
+}
+
+template<typename T>
+void utilsArray::BatchRelease2DArray(int nrows, T**& data, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, data);
+    utilsArray::Release2DArray(nrows, data);
+    T** argValue = va_arg(arg_ptr, T**);
+    while (NULL != argValue) {
+        utilsArray::Release2DArray(nrows, argValue);
+        argValue = va_arg(arg_ptr, T**);
+    }
+    va_end(arg_ptr);
+}
+
+template<typename T>
+bool utilsArray::ValueInVector(const T &val, vector<T> &vec) {
+    if (vec.empty()) {
+        return false;
+    }
     typename vector<T>::iterator findIter = find(vec.begin(), vec.end(), val);
     if (findIter == vec.end()) {
         return false;
@@ -914,7 +1058,7 @@ bool utilsArray::ValueInVector(T &val, vector <T> &vec) {
 }
 
 template<typename T>
-void utilsArray::RemoveValueInVector(T &val, vector <T> &vec) {
+void utilsArray::RemoveValueInVector(T &val, vector<T> &vec) {
     typename vector<T>::iterator Iter = vec.begin();
     for (; Iter != vec.end(); Iter++) {
         if (*Iter == val) {

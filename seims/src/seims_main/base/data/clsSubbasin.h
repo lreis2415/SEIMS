@@ -1,8 +1,12 @@
 /*!
  * \brief Class for managing subbasin data
  * \author Junzhi Liu, Liang-Jun Zhu
+ * \date May 2017
+ * \revised 
  */
-#pragma once
+#ifndef SEIMS_SUBBASIN_CLS_H
+#define SEIMS_SUBBASIN_CLS_H
+
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -170,51 +174,51 @@ public:
     // Get functions
 
     //! Get subbasin ID
-    int getId() { return m_id; };
+    int getId(void) { return m_id; };
 
     //! Get valid cells number
-    int getCellCount() { return m_nCells; };
+    int getCellCount(void) { return m_nCells; };
 
     //! Get index of valid cells
-    int *getCells() { return m_cells; };
+    int *getCells(void) { return m_cells; };
 
     ////! Get soil layers number of valid cells
     //int *getSoilLayers(){return m_nSoilLayers;};
     //! Get the output flag (true mean output), the function will be deprecated. By LJ
-    bool getIsOutput() { return m_isOutput; };
+    bool getIsOutput(void) { return m_isOutput; };
 
     //! area of subbasin
-    float getArea() { return m_Area; }
+    float getArea(void) { return m_Area; }
 
     //! Get the Revap change flat (true mean changed from last time step)
-    bool getIsRevapChanged() { return m_isRevapChanged; };
+    bool getIsRevapChanged(void) { return m_isRevapChanged; };
 
     //! Get average PET
-    float getPET() { return m_PET; };
+    float getPET(void) { return m_PET; };
 
     //! Get average percolation (mm)
-    float getPerco() { return m_PERCO; };
+    float getPerco(void) { return m_PERCO; };
 
     //! Get average deep percolation (mm)
-    float getPerde() { return m_PERDE; };
+    float getPerde(void) { return m_PERDE; };
 
     //! Get average slope (%)
-    float getSlope() { return m_slope; };
+    float getSlope(void) { return m_slope; };
 
     //! Get slope coefficient of basin
-    float getSlopeCoef() { return m_slopeCoefficient; };
+    float getSlopeCoef(void) { return m_slopeCoefficient; };
 
     //! groundwater revaporization
-    float getEG() { return m_Revap; };
+    float getEG(void) { return m_Revap; };
 
     //! Get groundwater storage
-    float getGW() { return m_GW; };
+    float getGW(void) { return m_GW; };
 
     //! Get groundwater discharge
-    float getQG() { return m_QG; };
+    float getQG(void) { return m_QG; };
 
     //! Get groundwater runoff
-    float getRG() { return m_RG; };
+    float getRG(void) { return m_RG; };
 
     /*
      * \brief Get basin (watershed) scale variable (key) value
@@ -240,22 +244,26 @@ public:
      * \param[in] rsMap Map of rasters that have been loaded
      * \param[in] prefixID subbasin ID as prefix in MongoDB
      */
-    clsSubbasins(mongoc_gridfs_t *spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
-
+    clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
+    /*! 
+     * \brief Check input parameters to ensure the successful constructor
+     */
+    static clsSubbasins *Init(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap,
+                              int prefixID);
     /// Destructor
-    ~clsSubbasins();
+    ~clsSubbasins(void);
 
     /// Get single reach information by subbasin ID
     Subbasin *GetSubbasinByID(int id) { return m_subbasinsInfo.at(id); }
 
     /// Get subbasin number
-    int GetSubbasinNumber() { return this->m_nSubbasins; }
+    int GetSubbasinNumber(void) { return this->m_nSubbasins; }
 
     /// Get subbasin IDs
-    vector<int> &GetSubbasinIDs() { return this->m_subbasinIDs; }
+    vector<int> &GetSubbasinIDs(void) { return this->m_subbasinIDs; }
 
     /// Set slope coefficient of each subbasin
-    void SetSlopeCoefficient();
+    void SetSlopeCoefficient(void);
 
     /*!
      * \brief Get basin (watershed) scale variable (key) value
@@ -275,3 +283,4 @@ private:
      */
     map<int, Subbasin *> m_subbasinsInfo;
 };
+#endif /* SEIMS_SUBBASIN_CLS_H */

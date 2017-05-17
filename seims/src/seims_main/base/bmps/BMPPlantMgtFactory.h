@@ -3,13 +3,16 @@
  * \author Liang-Jun Zhu
  * \date June 2016
  */
-#pragma once
+#ifndef SEIMS_BMP_PLANTMGT_H
+#define SEIMS_BMP_PLANTMGT_H
+
 #include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
 
 using namespace MainBMP;
 using namespace PlantManagement;
+
 namespace MainBMP {
 /*!
  * \class BMPPlantMgtFactory
@@ -29,28 +32,28 @@ public:
     ~BMPPlantMgtFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(mongoc_client_t *conn, string &bmpDBName);
+    void loadBMP(MongoClient* conn, string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);
 
     /// Get landuse / landcover ID
-    int GetLUCCID() {
+    int GetLUCCID(void) {
         return m_luccID;
     }
 
     /// Get locations
-    vector<int> &GetLocations() {
+    vector<int> &GetLocations(void) {
         return m_location;
     }
 
     /// Get operation sequence
-    vector<int> &GetOperationSequence() {
+    vector<int> &GetOperationSequence(void) {
         return m_bmpSequence;
     }
 
     /// Get operations
-    map<int, PlantManagementOperation *> &GetOperations() {
+    map<int, PlantManagementOperation *> &GetOperations(void) {
         return m_bmpPlantOps;
     }
 
@@ -81,3 +84,4 @@ private:
     map<int, PlantManagementOperation *> m_bmpPlantOps;
 };
 }
+#endif /* SEIMS_BMP_PLANTMGT_H */

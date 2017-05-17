@@ -11,16 +11,8 @@ IUH_IF::IUH_IF(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), 
 }
 
 IUH_IF::~IUH_IF(void) {
-    //// cleanup
-    if (m_Q_SBIF != NULL) {
-        delete[] m_Q_SBIF;
-    }
-    if (this->m_cellFlow != NULL) {
-        for (int i = 0; i < this->m_nCells; i++) {
-            if (this->m_cellFlow[i] != NULL) delete[] this->m_cellFlow[i];
-        }
-        delete[] this->m_cellFlow;
-    }
+    Release1DArray(m_Q_SBIF);
+    Release2DArray(m_nCells, m_cellFlow);
 }
 
 bool IUH_IF::CheckInputData(void) {

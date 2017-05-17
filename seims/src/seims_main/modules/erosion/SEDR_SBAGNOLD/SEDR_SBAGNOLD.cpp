@@ -7,7 +7,7 @@ SEDR_SBAGNOLD::SEDR_SBAGNOLD(void) : m_dt(-1), m_nreach(-1), m_sedtoCh(NULL), m_
                                      m_sedChi0(NODATA_VALUE),
                                      m_ptSub(NULL), m_chStorage(NULL), m_preChStorage(NULL), m_sedOut(NULL), m_VCD(-1),
                                      m_reachDownStream(NULL), m_chOrder(NULL), m_chWidth(NULL),
-                                     m_chLen(NULL), m_chDepth(NULL), m_chVel(NULL), m_chCover(NULL), m_chErod(NULL),
+                                     m_chLen(NULL), m_chDepth(NULL), m_chVel(NULL), m_chSlope(NULL), m_chCover(NULL), m_chErod(NULL),
                                      m_qchOut(NULL),
                                      m_prf(NODATA_VALUE), m_spcon(NODATA_VALUE), m_spexp(NODATA_VALUE),
                                      m_vcrit(NODATA_VALUE),
@@ -315,8 +315,8 @@ void SEDR_SBAGNOLD::Get2DData(const char *key, int *nRows, int *nCols, float ***
 
 void SEDR_SBAGNOLD::SetScenario(Scenario *sce) {
     if (sce != NULL) {
-        map < int, BMPFactory * > *tmpBMPFactories = sce->GetBMPFactories();
-        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories->begin(); it != tmpBMPFactories->end(); it++) {
+        map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
+        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
                 m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second;

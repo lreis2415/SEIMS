@@ -6,14 +6,8 @@
  * \version 1.1
  * \date June 2010
  */
-#pragma once
-
-#include <string>
-#include <vector>
-#include <time.h>
-#include <iomanip>
-#include <fstream>
-#include <map>
+#ifndef SEIMS_PRINTINFO_H
+#define SEIMS_PRINTINFO_H
 
 #include "ParamInfo.h"
 #include "utilities.h"
@@ -26,21 +20,14 @@ using namespace std;
  * \enum AggregationType
  * \ingroup module_setting
  * \brief Aggregation type for OUTPUT
- *
  */
 enum AggregationType {
-    /// unknown
-        AT_Unknown = 0,
-    /// sum
-        AT_Sum = 1,
-    /// average
-        AT_Average = 2,
-    /// minimum
-        AT_Minimum = 3,
-    /// maximum
-        AT_Maximum = 4,
-    /// output values of specific cells
-        AT_SpecificCells = 5
+    AT_Unknown       = 0, ///< unknown
+    AT_Sum           = 1, ///< sum
+    AT_Average       = 2, ///< average
+    AT_Minimum       = 3, ///< minimum
+    AT_Maximum       = 4, ///< maximum
+    AT_SpecificCells = 5  ///< specific cells
 };
 
 /*!
@@ -62,12 +49,12 @@ private:
 //		clsRasterData* templateRasterData,string outputID);
 
 public:
-    //! MongoDB client
-    mongoc_client_t *conn;
-    //! Database name
-    string dbName;
-    //! GridFS
-    mongoc_gridfs_t *gfs;
+    ////! MongoDB client
+    //mongoc_client_t *conn;
+    ////! Database name
+    //string dbName;
+    ////! GridFS
+    //mongoc_gridfs_t *gfs;
 
     //! Constructor
     PrintInfoItem(void);
@@ -113,7 +100,7 @@ public:
     time_t m_startTime;
 
     //! get start time \a time_t
-    time_t getStartTime() { return m_startTime; };
+    time_t getStartTime(void) { return m_startTime; };
 
     //! set start time \a time_t
     void setStartTime(time_t &st) { m_startTime = st; }
@@ -124,7 +111,7 @@ public:
     time_t m_endTime;
 
     //! Get end time  \a time_t
-    time_t getEndTime() { return m_endTime; };
+    time_t getEndTime(void) { return m_endTime; };
 
     //! set end time \a time_t
     void setEndTime(time_t &st) { m_endTime = st; }
@@ -170,11 +157,7 @@ private:
 /*!
  * \ingroup module_setting
  * \class PrintInfo
- *
  * \brief 
- *
- *
- *
  */
 class PrintInfo {
 public:
@@ -207,7 +190,7 @@ public:
     ~PrintInfo(void);
 
     //! Get the number of output items
-    int ItemCount(void) { return m_PrintItems.size(); };
+    int ItemCount(void) const { return (int) m_PrintItems.size(); };
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
     void getSubbasinSelected(int *count, float **subbasins);
@@ -216,7 +199,7 @@ public:
     void setOutputID(string id) { m_OutputID = id; };
 
     //! Get the OutputId for this object
-    string getOutputID(void) { return m_OutputID; };
+    string getOutputID(void) const { return m_OutputID; };
 
     //! Get Header string (all field names) for current OutputID. TODO, how to make it more flexible? By LJ.
     string getOutputTimeSeriesHeader(void);
@@ -231,19 +214,18 @@ public:
     void setIntervalUnits(string units) { m_IntervalUnits = units; };
 
     //! Get the interval units
-    string getIntervalUnits(void) { return m_IntervalUnits; };
+    string getIntervalUnits(void) const { return m_IntervalUnits; };
 
     //! Add an output item with the given start time, end time and file name
     void AddPrintItem(string start, string end, string file, string sufi);
 
-    //! Add an output item with the given start time, end time and file name, for MongoDB
-    void AddPrintItem(string type, string start, string end, string file, string sufi, mongoc_client_t *conn,
-                      mongoc_gridfs_t *gfs);
+    //! Add an output item with the given start time, end time and file name
+    void AddPrintItem(string type, string start, string end, string file, string sufi);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
-    void AddPrintItem(string start, string end, string file, string sitename, string sufi, mongoc_client_t *conn,
-                      mongoc_gridfs_t *gfs, bool isSubbasin);
+    void AddPrintItem(string start, string end, string file, string sitename, string sufi, bool isSubbasin);
 
     //! Get a reference to the output item located at the given index position
     PrintInfoItem *getPrintInfoItem(int index);
 };
+#endif /* SEIMS_PRINTINFO_H */

@@ -1,15 +1,16 @@
 /*!
  * \brief routing in the channel cells using 4-point implicit finite difference method
- * \author Junzhi Liu
- * \version 1.0
- * \date Feb. 2011
+ * \author Junzhi Liu, Liangjun Zhu
+ * \version 1.1
+ * \date May 2017
+ * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM
  */
 #pragma once
 
 #include "SimulationModule.h"
 
 using namespace std;
-/** \defgroup CH_DW
+/*! \defgroup CH_DW
  * \ingroup Hydrology
  * \brief Channel routing using diffusive wave equation.
  */
@@ -28,7 +29,9 @@ public:
     //! Destructor
     ~DiffusiveWave(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
+
+    virtual void SetReaches(clsReaches *reaches);
 
     virtual void SetValue(const char *key, float data);
 
@@ -51,12 +54,14 @@ public:
 private:
     void ChannelFlow(int iReach, int iCell, int id);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     ///< Valid cells number
     int m_nCells;
     ///< cell width of the grid (m)
     float m_CellWidth;
+    ///< layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    float m_layeringMethod;
     ///< time step (second)
     float m_dt;
     ///< slope (percent)
