@@ -13,20 +13,19 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenari
 }
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory() {
-    if (m_parameters != NULL) {
-        Release1DArray(m_parameters);
-    }
+    Release1DArray(m_parameters);
     map<int, PlantManagementOperation *>::iterator it;
     for (it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
         if (it->second != NULL) {
             delete it->second;
+            it->second = NULL;
         }
         it = m_bmpPlantOps.erase(it);
     }
     m_bmpPlantOps.clear();
 }
 
-void BMPPlantMgtFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName) {
+void BMPPlantMgtFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -38,16 +37,10 @@ void BMPPlantMgtFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName) {
     bson_destroy(child1);
     bson_destroy(child2);
 
-    mongoc_cursor_t *cursor;
-    const bson_t *bsonTable;
-    mongoc_collection_t *collection = NULL;
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_bmpCollection)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    collection = mongoc_client_get_collection(conn, bmpDBName.c_str(), m_bmpCollection.c_str());
-    if (collection == NULL) {
-        throw ModelException("BMPs Scenario", "Read Plant Management Operations",
-                             "Failed to get collection: " + m_bmpCollection + ".\n");
-    }
-    cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    const bson_t *bsonTable;
     bson_iter_t itertor;
     int paramNum = 10;
     m_parameters = new float[paramNum];
@@ -159,7 +152,6 @@ void BMPPlantMgtFactory::loadBMP(mongoc_client_t *conn, string &bmpDBName) {
         count++;
     }
     bson_destroy(b);
-    mongoc_collection_destroy(collection);
     mongoc_cursor_destroy(cursor);
 }
 

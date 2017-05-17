@@ -35,7 +35,7 @@ public:
 
     ~UnsaturatedFlow(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void Set1DData(const char *key, int nRows, float *data);
 

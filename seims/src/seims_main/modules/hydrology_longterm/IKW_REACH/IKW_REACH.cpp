@@ -5,7 +5,7 @@
 
 using namespace std;
 
-IKW_REACH::IKW_REACH(void) : m_dt(-1), m_nreach(-1), m_Kchb(NODATA_VALUE),
+IKW_REACH::IKW_REACH(void) : m_dt(-1), m_layeringMethod(0.f), m_nreach(-1), m_Kchb(NODATA_VALUE),
                              m_Kbank(NODATA_VALUE), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
                              m_aBank(NODATA_VALUE),
                              m_bBank(NODATA_VALUE), m_subbasin(NULL), m_qsSub(NULL),
@@ -23,30 +23,26 @@ IKW_REACH::IKW_REACH(void) : m_dt(-1), m_nreach(-1), m_Kchb(NODATA_VALUE),
 }
 
 IKW_REACH::~IKW_REACH(void) {
-    if (m_area != NULL) delete[] m_area;
-    if (m_chStorage != NULL) delete[] m_chStorage;
-    if (m_qOut != NULL) delete[] m_qOut;
-    if (m_bankStorage != NULL) {
-        delete[] m_bankStorage;
-    }
-    if (m_seepage != NULL) {
-        delete[] m_seepage;
-    }
-    if (m_chStorage != NULL) {
-        delete[] m_chStorage;
-    }
-    if (m_qsCh != NULL) {
-        delete[] m_qsCh;
-    }
-    if (m_qiCh != NULL) {
-        delete[] m_qiCh;
-    }
-    if (m_qgCh != NULL) {
-        delete[] m_qgCh;
-    }
-    if (m_chWTdepth != NULL) {
-        delete[] m_chWTdepth;
-    }
+    Release1DArray(m_reachId);
+    Release1DArray(m_chOrder);
+    Release1DArray(m_reachDownStream);
+    Release1DArray(m_chDepth);
+    Release1DArray(m_chWidth);
+    Release1DArray(m_chLen);
+    Release1DArray(m_chVel);
+    Release1DArray(m_chManning);
+    Release1DArray(m_chSlope);
+    
+    Release1DArray(m_area);
+    Release1DArray(m_chStorage);
+    Release1DArray(m_qOut);
+    Release1DArray(m_bankStorage);
+    Release1DArray(m_seepage);
+    Release1DArray(m_chStorage);
+    Release1DArray(m_qsCh);
+    Release1DArray(m_qiCh);
+    Release1DArray(m_qgCh);
+    Release1DArray(m_chWTdepth);
 }
 
 bool IKW_REACH::CheckInputData(void) {
@@ -256,6 +252,8 @@ void IKW_REACH::SetValue(const char *key, float value) {
 
     if (StringMatch(sk, VAR_QUPREACH)) {
         m_qUpReach = value;
+    } else if (StringMatch(sk, Tag_LayeringMethod)) {
+        m_layeringMethod = value;
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
         m_dt = (int) value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
@@ -370,40 +368,85 @@ void IKW_REACH::Get2DData(const char *key, int *nRows, int *nCols, float ***data
 
 }
 
-void IKW_REACH::Set2DData(const char *key, int nrows, int ncols, float **data) {
-    string sk(key);
-
-    if (StringMatch(sk, Tag_RchParam)) {
-        m_nreach = ncols - 1;
-
-        m_reachId = data[0];
-        m_reachDownStream = data[1];
-        m_chOrder = data[2];
-        m_chWidth = data[3];
-        m_chLen = data[4];
-        m_chDepth = data[5];
-        m_chVel = data[6];
-        m_area = data[7];
-        m_chManning = data[8];
-        m_chSlope = data[9];
-
-        m_reachUpStream.resize(m_nreach + 1);
-        if (m_nreach > 1) {
-            for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
-            {
-                int downStreamId = int(m_reachDownStream[i]);
-                if (downStreamId <= 0) {
-                    continue;
-                }
-                m_reachUpStream[downStreamId].push_back(i);
-            }
+void IKW_REACH::SetReaches(clsReaches *reaches) {
+    assert(NULL != reaches);
+    m_nreach = reaches->GetReachNumber();
+    vector<int> reachIDVec = reaches->GetReachIDs();
+    Initialize1DArray(m_nreach, m_reachId, 0.f);
+    Initialize1DArray(m_nreach, m_reachDownStream, 0.f);
+    Initialize1DArray(m_nreach, m_chOrder, 0.f);
+    Initialize1DArray(m_nreach, m_chWidth, 0.f);
+    Initialize1DArray(m_nreach, m_chLen, 0.f);
+    Initialize1DArray(m_nreach, m_chDepth, 0.f);
+    Initialize1DArray(m_nreach, m_chVel, 0.f);
+    Initialize1DArray(m_nreach, m_area, 0.f);
+    Initialize1DArray(m_nreach, m_chManning, 0.f);
+    Initialize1DArray(m_nreach, m_chSlope, 0.f);
+    for (int i = 0; i < reachIDVec.size(); ++i) {
+        clsReach *tmpReach = reaches->GetReachByID(reachIDVec[i]);
+        m_reachId[i] = tmpReach->GetSubbasinID();
+        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
+            m_chOrder[i] = tmpReach->GetUpDownOrder();
         }
-    } else {
-        throw ModelException("IKW_REACH", "Set2DData", "Parameter " + sk
-            + " does not exist. Please contact the module developer.");
+        else{
+            m_chOrder[i] = tmpReach->GetDownUpOrder();
+        }
+        m_chWidth[i] = tmpReach->GetWidth();
+        m_chLen[i] = tmpReach->GetLength();
+        m_chDepth[i] = tmpReach->GetDepth();
+        m_chVel[i] = tmpReach->GetV0();
+        m_area[i] = tmpReach->GetArea();
+        m_chManning[i] = tmpReach->GetManning();
+        m_chSlope[i] = tmpReach->GetSlope();
     }
 
+    m_reachUpStream.resize(m_nreach + 1);
+    if (m_nreach > 1) {
+        for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
+        {
+            int downStreamId = int(m_reachDownStream[i]);
+            if (downStreamId <= 0) {
+                continue;
+            }
+            m_reachUpStream[downStreamId].push_back(i);
+        }
+    }
 }
+
+//void IKW_REACH::Set2DData(const char *key, int nrows, int ncols, float **data) {
+//    string sk(key);
+//
+//    if (StringMatch(sk, Tag_RchParam)) {
+//        m_nreach = ncols - 1;
+//
+//        m_reachId = data[0];
+//        m_reachDownStream = data[1];
+//        m_chOrder = data[2];
+//        m_chWidth = data[3];
+//        m_chLen = data[4];
+//        m_chDepth = data[5];
+//        m_chVel = data[6];
+//        m_area = data[7];
+//        m_chManning = data[8];
+//        m_chSlope = data[9];
+//
+//        m_reachUpStream.resize(m_nreach + 1);
+//        if (m_nreach > 1) {
+//            for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
+//            {
+//                int downStreamId = int(m_reachDownStream[i]);
+//                if (downStreamId <= 0) {
+//                    continue;
+//                }
+//                m_reachUpStream[downStreamId].push_back(i);
+//            }
+//        }
+//    } else {
+//        throw ModelException("IKW_REACH", "Set2DData", "Parameter " + sk
+//            + " does not exist. Please contact the module developer.");
+//    }
+//
+//}
 
 //---------------------------------------------------------------------------
 // modified from OpenLISEM
@@ -498,8 +541,8 @@ void IKW_REACH::ChannelFlow(int i) {
         qgUp += m_qgCh[upReachId];
     }
     qIn += qsUp + qiUp + qgUp;
-    qIn +=
-        m_qUpReach; // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
+    qIn += m_qUpReach; 
+    // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
 
     // 3. water from bank storage
     float bankOut = m_bankStorage[i] * (1 - exp(-m_aBank));

@@ -4,7 +4,7 @@
  * \date May 2011
  * \revised LiangJun Zhu
  * \date 2016-5-29
- *  1. Remove m_isInitial and add initialOutputs()
+ *  1. Remove m_isInitial and add initialOutputs(void)
  *  2. Add m_snowCoverMax and m_snowCover50 to adjust for areal extent of snow cover.
  *  3. ReWrite the execute code according to snom.f of SWAT.
  *  4. In this version, snow melt is added to net precipitation.
@@ -36,7 +36,7 @@ public:
     //! Destructor
     ~SNO_SP(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -48,7 +48,7 @@ public:
 
     bool CheckInputData(void);
 
-    void initialOutputs();
+    void initialOutputs(void);
 
 private:
     //! Valid cells number

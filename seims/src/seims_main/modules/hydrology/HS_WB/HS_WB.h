@@ -81,17 +81,18 @@ public:
 
     virtual void Set1DData(const char *key, int nRows, float *data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
-    //void setValue(const char* key, int nRows, int nCols, float** data);
     virtual void Get1DData(const char *key, int *nRows, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
+    virtual void SetReaches(clsReaches *reaches);
+
     virtual int Execute(void);
 
 private:
-    void initialOutputs();
+    void initialOutputs(void);
 
     /**
     *	@brief check the input data. Make sure all the input data is available.

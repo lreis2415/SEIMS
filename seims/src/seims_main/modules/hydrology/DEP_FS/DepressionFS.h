@@ -43,7 +43,7 @@ public:
     //! Destructor
     ~DepressionFS(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -77,7 +77,7 @@ private:
     /// surplus of storage capacity
     float *m_storageCapSurplus;
 
-    void initialOutputs();
+    void initialOutputs(void);
 
     /// whether check inputs, TODO Is it useless? By LJ
     bool m_checkInput;

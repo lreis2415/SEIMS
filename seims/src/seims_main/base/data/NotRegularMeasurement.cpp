@@ -1,7 +1,6 @@
 #include "NotRegularMeasurement.h"
 
-//! Constructor
-NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydroDBName, string sitesList,
+NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList,
                                              string siteType, time_t startTime, time_t endTime)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime) {
     int nSites = (int) m_siteIDList.size();
@@ -43,15 +42,15 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         bson_append_document_end(query, child);
         bson_destroy(child);
         //printf("%s\n", bson_as_json(query,NULL));
+
         // perform query and read measurement data
-        mongoc_cursor_t *cursor;
-        mongoc_collection_t *collection;
-        const bson_t *doc;
-        collection = mongoc_client_get_collection(m_conn, hydroDBName.c_str(), DB_TAB_DATAVALUES);
-        cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+        unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_DATAVALUES)));
+        mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+
         float value;
         time_t dt;
         bool hasData = false;
+        const bson_t *doc;
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
             hasData = true;
             bson_iter_t iter;
@@ -59,14 +58,16 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
                 GetNumericFromBsonIterator(&iter, value);
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
-                                     "The Value field does not exist in DataValues table.");
+                    "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
+                    " does not exist in DataValues table.");
             }
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
                 dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
-                                     "The UTCDateTime field does not exist in DataValues table.");
+                    "The Value field: " + string(MONG_HYDRO_DATA_UTC) +
+                    " does not exist in DataValues table.");
             }
 
             m_timeList[iSite].push_back(dt);
@@ -74,7 +75,6 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
         }
         bson_destroy(query);
         mongoc_cursor_destroy(cursor);
-        mongoc_collection_destroy(collection);
 
         if (!hasData) {
             ostringstream oss;
@@ -88,19 +88,18 @@ NotRegularMeasurement::NotRegularMeasurement(mongoc_client_t *conn, string hydro
 
 //! Destructor
 NotRegularMeasurement::~NotRegularMeasurement(void) {
-    if (pData != NULL) Release1DArray(pData);
-    for (vector < vector < float > > ::iterator it = m_valueList.begin(); it != m_valueList.end();)
-    {
-        it = m_valueList.erase(it);
-    }
-    m_valueList.clear();
+    // no need to release explicitly
+    //for (vector<vector<float> >::iterator it = m_valueList.begin(); it != m_valueList.end();)
+    //{
+    //    it = m_valueList.erase(it);
+    //}
+    //m_valueList.clear();
 }
 
-//! Get site data by time
 float *NotRegularMeasurement::GetSiteDataByTime(time_t t) {
-    for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); iSite++) {
-        vector <time_t> &tlist = m_timeList[iSite];
-        vector<float> &vlist = m_valueList[iSite];
+    for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); ++iSite) {
+        vector<time_t>& tlist = m_timeList[iSite];
+        vector<float>& vlist = m_valueList[iSite];
         size_t curIndex = m_curIndexList[iSite];
 
         // find the index for current time

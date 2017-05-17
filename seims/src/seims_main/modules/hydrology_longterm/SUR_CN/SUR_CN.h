@@ -52,7 +52,7 @@ public:
     //! Destructor
     ~SUR_CN(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -135,11 +135,11 @@ private:
     float *m_sMax;
 
     /// initialize m_w1 and m_w2
-    void initalW1W2();
+    void initalW1W2(void);
 
     /// Calculation SCS-CN number
     float Calculate_CN(float sm, int cell);
 
     /// initial outputs before execute main function
-    void initialOutputs();
+    void initialOutputs(void);
 };

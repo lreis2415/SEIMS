@@ -1,11 +1,13 @@
 /*!
  * \brief Measurement class to store HydroClimate site data
- *
  * \author Junzhi Liu, LiangJun Zhu
- * \version 1.1
+ * \version 2.0
  * \date May 2016
+ * \revised LJ - Replace mongoc_client_t by MongoClient interface
  */
-#pragma once
+#ifndef SEIMS_MEASUREMENT_H
+#define SEIMS_MEASUREMENT_H
+
 #include "utilities.h"
 #include "MongoUtil.h"
 
@@ -23,14 +25,14 @@ public:
      *
      * Initialize Measurement instance from MongoDB
      *
-     * \param[in] conn \a mongoc_client_t, MongoDB client
+     * \param[in] conn \a MongoClient, MongoDB client
      * \param[in] hydroDBName \a string, HydroClimate database name
      * \param[in] siteType \a string, site type
      * \param[in] startDate \a time_t, start date time
      * \param[in] endDate \a time_t, end date time
      */
-    Measurement(mongoc_client_t *conn, string hydroDBName, string sitesList, string siteType, time_t startDate,
-                time_t endDate);
+    Measurement(MongoClient *conn, string hydroDBName, string sitesList, string siteType, 
+                time_t startDate, time_t endDate);
 
     //! Destructor
     virtual ~Measurement(void);
@@ -39,20 +41,20 @@ public:
     virtual float *GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites() { return (int) m_siteIDList.size(); }
+    int NumberOfSites(void) const { return (int) m_siteIDList.size(); }
 
     //! Get HydroClimate site type, "M" or "P"
-    string Type() { return m_type; }
+    string Type(void) const { return m_type; }
 
     //! start time
-    time_t StartTime() { return m_startTime; }
+    time_t StartTime(void) const { return m_startTime; }
 
     //! end time
-    time_t EndTime() { return m_endTime; }
+    time_t EndTime(void) const { return m_endTime; }
 
 protected:
     //! MongoDB client object
-    mongoc_client_t *m_conn;
+    MongoClient* m_conn;
     //! HydroClimate database name
     string m_hydroDBName;
     //! Site IDs list
@@ -64,6 +66,6 @@ protected:
     //! End time
     time_t m_endTime;
     //!	Measurement data of all sites in given date
-    float *pData;
+    float* pData;
 };
-
+#endif /* SEIMS_MEASUREMENT_H */

@@ -48,7 +48,7 @@ public:
 
     ~IUH_IF(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -96,6 +96,6 @@ private:
     /// interflow to streams for each subbasin (m3/s)
     float *m_Q_SBIF;
 
-    void initialOutputs();
+    void initialOutputs(void);
 };
 

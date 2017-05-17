@@ -39,7 +39,7 @@ public:
     //! Destructor
     ~Muskingum(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -53,6 +53,8 @@ public:
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
+    virtual void SetReaches(clsReaches *reaches);
+
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputSizeChannel(const char *key, int n);
@@ -64,22 +66,18 @@ public:
     float GetDelta_t(float timeStep, float fmin, float fmax);
 
 private:
-    ///// deal with positive and negative float numbers
-    //float Power(float a, float n) {
-    //    if (a >= 0) {
-    //        return pow(a, n);
-    //    } else {
-    //        return -pow(-a, n);
-    //    }
-    //}
+    /*!
+     * \brief Channel flow routing based Muskingum.
+     * \return true for success, otherwise false.
+     */
+    bool ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
-    void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
-
-    void initialOutputs();
+    void initialOutputs(void);
 
     /// valid cells number
     int m_nCells;
-
+    //! layering method
+    float m_layeringMethod;
     /// Muskingum weighting factor
     float m_msk_x;
     /// initial channel storage m3/m

@@ -203,7 +203,7 @@ public:
     //! Destructor
     ~IMP_SWAT(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -242,7 +242,7 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs();
+    void initialOutputs(void);
 
     /*!
      * \brief Simulates depressional areas that do not

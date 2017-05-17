@@ -34,8 +34,8 @@ int Interpolate::Execute() {
     //for (int j = 0; j < m_nStatioins; ++j)
     //	cout<<m_stationData[j]<<",";
     //cout<<endl;
-
-#pragma omp parallel for
+    size_t errCount = 0;
+#pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; ++i) {
         int index = 0;
         float value = 0.f;
@@ -46,13 +46,13 @@ int Interpolate::Execute() {
         //cout<<endl;
         for (int j = 0; j < m_nStatioins; ++j) {
             index = i * m_nStatioins + j;
+            value += m_stationData[j] * m_weights[index];
             //cout<<m_stationData[j]<<",";
             //cout<<endl;
-            value += m_stationData[j] * m_weights[index];
             if (value != value) {
+                errCount++;
                 cout << "CELL:" << i << ", Site: " << j << ", Weight: " << m_weights[index] <<
                     ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
-                throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!\n");
             }
 
             if (m_vertical) {
@@ -64,9 +64,12 @@ int Interpolate::Execute() {
         }
         m_itpOutput[i] = value;
     }
+    if (errCount > 0) {
+        throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!\n");
+    }
     //for (int i = 0; i < m_nCells; ++i)
-    //	cout<<m_output[i]<<",";
-    //Output1DArrayToTxtFile(m_nCells, m_output, "G:\\data_m\\itp.txt");
+    //	cout<<m_itpOutput[i]<<",";
+    //Output1DArrayToTxtFile(m_nCells, m_itpOutput, "itp.txt");
     return true;
 }
 

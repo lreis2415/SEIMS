@@ -34,7 +34,7 @@ public:
     //! Destructor
     ~Biomass_EPIC(void);
 
-    virtual int Execute();
+    virtual int Execute(void);
 
     virtual void SetValue(const char *key, float data);
 
@@ -164,7 +164,7 @@ private:
     /// Rate of decline in radiation use efficiency per unit increase in vapor pressure deficit, wavp in SWAT
     float *m_wavp;
 
-    /**  parameters need to be initialized in this module if they are NULL, i.e., in initialOutputs()  **/
+    /**  parameters need to be initialized in this module if they are NULL, i.e., in initialOutputs(void)  **/
     /// canopy height (m)
     float *m_cht;
     /// albedo in the current day
@@ -320,7 +320,7 @@ private:
     void CheckDormantStatus(int i);
 
     /// initialize output variables
-    void initialOutputs();
+    void initialOutputs(void);
 };
 
 /// the following two variables can be temporary variables to save memory.

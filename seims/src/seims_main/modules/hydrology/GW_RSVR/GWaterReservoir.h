@@ -31,12 +31,13 @@ public:
 
     virtual void Set1DData(const char *key, int n, float *data);
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+//    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void SetValue(const char *key, float value);
-
-    //virtual void GetValue(const char* key, float* value);
+    
     virtual void Get1DData(const char *key, int *n, float **data);
+
+    virtual void SetReaches(clsReaches *reaches);
 
     virtual int Execute(void);
 

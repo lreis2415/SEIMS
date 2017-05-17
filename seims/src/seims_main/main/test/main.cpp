@@ -5,7 +5,7 @@
  * \version 1.0
  * \date Mar. 2017
  */
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 #include "seims.h"

@@ -28,7 +28,7 @@ UnsaturatedFlow::UnsaturatedFlow(void) {
 }
 
 UnsaturatedFlow::~UnsaturatedFlow(void) {
-    if (m_D_SOET != NULL) delete[] this->m_D_SOET;
+    Release1DArray(m_D_SOET);
 }
 
 //Execute module

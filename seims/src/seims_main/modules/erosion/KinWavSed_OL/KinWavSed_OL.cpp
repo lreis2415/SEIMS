@@ -17,40 +17,17 @@ KinWavSed_OL::KinWavSed_OL(void) : m_CellWidth(-1), m_nCells(-1), m_TimeStep(NOD
 }
 
 KinWavSed_OL::~KinWavSed_OL(void) {
-    if (m_Ctrans != NULL) {
-        delete[] m_Ctrans;
-    }
-    if (m_DETOverland != NULL) {
-        delete[] m_DETOverland;
-    }
-    if (m_SedDep != NULL) {
-        delete[] m_SedDep;
-    }
-    if (m_SedToChannel != NULL) {
-        delete[] m_SedToChannel;
-    }
-    if (m_Sed_kg != NULL) {
-        delete[] m_Sed_kg;
-    }
-    if (m_Vol != NULL) {
-        delete[] m_Vol;
-    }
-    if (m_V != NULL) {
-        delete[] m_V;
-    }
-    if (m_Qsn != NULL) {
-        delete[] m_Qsn;
-    }
-    //test
-    if (m_ChV != NULL) {
-        delete[] m_ChV;
-    }
-    if (m_QV != NULL) {
-        delete[] m_QV;
-    }
-    if (m_fract != NULL) {
-        delete[] m_fract;
-    }
+    Release1DArray(m_Ctrans);
+    Release1DArray(m_DETOverland);
+    Release1DArray(m_SedDep);
+    Release1DArray(m_SedToChannel);
+    Release1DArray(m_Sed_kg);
+    Release1DArray(m_Vol);
+    Release1DArray(m_V);
+    Release1DArray(m_Qsn);
+    Release1DArray(m_ChV);
+    Release1DArray(m_QV);
+    Release1DArray(m_fract);
 }
 
 void KinWavSed_OL::Get1DData(const char *key, int *n, float **data) {
