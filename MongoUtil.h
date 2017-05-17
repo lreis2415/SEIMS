@@ -1,6 +1,6 @@
 /*!
  * \brief Utility functions of MongoDB
- * Currently, mongo-c-driver 1.5.0 is supported.
+ *        Currently, mongo-c-driver 1.3.5 or later is supported.
  * \author Junzhi Liu, LiangJun Zhu
  * \date May 2016
  * \revised Feb 2017
@@ -9,10 +9,12 @@
 #ifndef MONGO_UTILS
 #define MONGO_UTILS
 
-#include <mongoc.h>
 #include <vector>
 #include <string>
 #include <set>
+
+#include <mongoc.h>
+
 #include "utilities.h"
 
 using namespace std;
@@ -25,8 +27,8 @@ using namespace std;
  * \author Liangjun Zhu
  */
 #define MONG_GRIDFS_FN                "filename"
-#define MONG_GRIDFS_WEIGHT_CELLS    "NUM_CELLS"
-#define MONG_GRIDFS_WEIGHT_SITES    "NUM_SITES"
+#define MONG_GRIDFS_WEIGHT_CELLS      "NUM_CELLS"
+#define MONG_GRIDFS_WEIGHT_SITES      "NUM_SITES"
 #define MONG_GRIDFS_ID                "ID"
 #define MONG_GRIDFS_SUBBSN            "SUBBASIN"
 
@@ -179,13 +181,13 @@ public:
     /*!
      * \brief Get stream data of a given GridFS file name
      */
-    void getStreamData(string const &gfilename, char *&databuf, int &datalength, mongoc_gridfs_t *gfs = NULL);
+    void getStreamData(string const &gfilename, char *&databuf, size_t &datalength, mongoc_gridfs_t *gfs = NULL);
 
     /*!
      * \brief Write stream data to a GridFS file
      */
     void
-    writeStreamData(string const &gfilename, char *&buf, int &length, const bson_t *p, mongoc_gridfs_t *gfs = NULL);
+    writeStreamData(string const &gfilename, char *&buf, size_t &length, const bson_t *p, mongoc_gridfs_t *gfs = NULL);
 
 private:
     mongoc_gridfs_t *m_gfs;
