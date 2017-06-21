@@ -3,7 +3,7 @@ SET(SRC_LIST ReadData.cpp main.cpp ManagementProcess.cpp CalculateProcess.cpp Co
 ADD_EXECUTABLE(seims_mpi ${SRC_LIST})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(seims_mpi util data bmps module_setting main_mongodb ${GDAL_LIBRARY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES} ${CMAKE_DL_LIBS})
-INSTALL(TARGETS seims_mpi DESTINATION bin)
+INSTALL(TARGETS seims_mpi DESTINATION ${INSTALL_DIR})
 IF (MSVC)
     SET_PROPERTY(TARGET seims_mpi PROPERTY FOLDER "main")
 ENDIF ()
