@@ -91,6 +91,8 @@ macOS下的配置步骤为：
 1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
 2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
 3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
+4. `-DUNITTEST`，用于指定是否编译基于Googletest的单元测试模块
+5. `-DINSTALL_PREFIX`，用于指定安装路径，如不指定，默认为源码目录下的`bin`文件夹。
 
 ## 2.1 Installation for users
 
