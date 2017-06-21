@@ -91,7 +91,7 @@ target_link_libraries(${PROJECT_TEST_NAME} ${PROJECT_LIB_NAME} gtest gmock_main)
 # 2. Add target_link_libraries(${PROJECT_TEST_NAME} MODULEID) in this file
 target_link_libraries(${PROJECT_TEST_NAME} util)
 add_test(${PROJECT_TEST_NAME} ${PROJECT_TEST_NAME})
-install(TARGETS ${PROJECT_TEST_NAME} DESTINATION bin)
+install(TARGETS ${PROJECT_TEST_NAME} DESTINATION ${INSTALL_DIR})
 IF (MSVC)
     SET_PROPERTY(TARGET ${PROJECT_TEST_NAME} PROPERTY FOLDER "unittest")
 ENDIF ()

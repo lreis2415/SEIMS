@@ -55,7 +55,7 @@ add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
-install(TARGETS fieldpartition DESTINATION bin)
+install(TARGETS fieldpartition DESTINATION ${INSTALL_DIR})
 IF (WIN32)
     SET_PROPERTY(TARGET fieldpartition PROPERTY FOLDER "FieldPartition")
 ENDIF ()

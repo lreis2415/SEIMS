@@ -38,7 +38,7 @@ set(SOURCE_FILES main.cpp MongoUtil.cpp)
 include_directories(${UTILS_INC} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR})
 add_executable(MongoUtil ${SOURCE_FILES} ${UTILS_FILES})
 target_link_libraries(MongoUtil ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
-install(TARGETS MongoUtil DESTINATION bin)
+install(TARGETS MongoUtil DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
@@ -50,7 +50,7 @@ add_custom_target(install_${PROJECT_NAME}
 # Just remain for backup. -- LJ
 # IF(WIN32)
 #   # for compile executables
-#   install(FILES ${BSON_DLL} ${MONGOC_DLL} DESTINATION bin)
+#   install(FILES ${BSON_DLL} ${MONGOC_DLL} DESTINATION ${INSTALL_DIR})
 #   # for build vs project
 #   IF(MSVC)
 #     SET(EXTERNAL_DLLS ${BSON_DLL} ${MONGOC_DLL})
