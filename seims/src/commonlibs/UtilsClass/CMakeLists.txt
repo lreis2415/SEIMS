@@ -38,7 +38,7 @@ IF (OPENMP_FOUND)
 ENDIF ()
 set(SOURCE_FILES main.cpp utils.cpp ModelException.cpp)
 add_executable(UtilsClass ${SOURCE_FILES})
-install(TARGETS UtilsClass DESTINATION bin)
+install(TARGETS UtilsClass DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install

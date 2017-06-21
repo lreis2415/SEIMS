@@ -98,7 +98,7 @@ set(MY_TARGETS aread8
 
 foreach (c_target ${MY_TARGETS})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARY})
-    install(TARGETS ${c_target} DESTINATION bin)
+    install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
     IF (MSVC)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM")
     ENDIF ()
