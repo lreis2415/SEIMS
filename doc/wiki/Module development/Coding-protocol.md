@@ -141,4 +141,4 @@ if (fFoo)  Bar();
   git branch -d bug-IFoundU-zlj
   # 去提交一个issue告知大家吧！https://github.com/lreis2415/SEIMS/issues
   ```
-
++ 3.2.3.删除远程分支。如果某个分支工作已经完成，且已经合并至`dev`分支，在本地可以直接通过`git branch -d tmpbranch`命令删除，远程分支则可推送一个空分支到远程分支，实现删除`git push origin :tmpbranch`
