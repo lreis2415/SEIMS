@@ -60,7 +60,7 @@ ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(grid_layering ${SOURCE_FILES})
 target_link_libraries(grid_layering ${GDAL_LIBRARY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
-install(TARGETS grid_layering DESTINATION bin)
+install(TARGETS grid_layering DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
