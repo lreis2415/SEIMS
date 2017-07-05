@@ -13,7 +13,6 @@ import sqlite3
 import numpy
 from gdal import GDT_Float32
 
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.db_sqlite import reconstruct_sqlite_db_file
 from seims.preprocess.utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
@@ -346,6 +345,7 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     LanduseUtilClass.parameters_extraction(seims_cfg)
 

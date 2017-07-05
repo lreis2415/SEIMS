@@ -4,7 +4,6 @@
     @author   : Liangjun Zhu
     @changelog: 17-06-30  lj - initial version modified from QSWAT 1.4
 """
-from seims.preprocess.config import parse_ini_configuration
 
 
 class MergeSubbasins(object):
@@ -20,6 +19,7 @@ class MergeSubbasins(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     MergeSubbasins.merge_to_downstream_qswat(seims_cfg)
 

@@ -15,7 +15,6 @@ import os
 import numpy
 from gdal import GDT_Float32
 
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
 from seims.preprocess.utility import status_output, read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -795,6 +794,7 @@ class SoilUtilClass(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SoilUtilClass.parameters_extraction(seims_cfg)
 

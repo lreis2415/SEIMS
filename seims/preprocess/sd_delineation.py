@@ -13,7 +13,6 @@ import ogr
 import osr
 from gdal import GDT_Int32, GDT_Float32
 
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.sd_hillslope import DelineateHillslope
 from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM
 from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
@@ -315,6 +314,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

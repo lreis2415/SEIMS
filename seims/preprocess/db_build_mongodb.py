@@ -12,7 +12,6 @@ from struct import pack
 from gridfs import GridFS
 
 from seims.preprocess.bmp_import_scenario import ImportScenario2Mongo
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.db_import_interpolation_weights import ImportWeightData
 from seims.preprocess.db_import_meteorology import ImportMeteoData
 from seims.preprocess.db_import_model_parameters import ImportParam2Mongo
@@ -216,6 +215,7 @@ class ImportMongodbClass(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     ImportMongodbClass.workflow(seims_cfg)
 

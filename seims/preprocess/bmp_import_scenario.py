@@ -7,8 +7,6 @@
 """
 import os
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import DBTableNames
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -99,6 +97,8 @@ class ImportScenario2Mongo(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
