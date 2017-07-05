@@ -4,14 +4,13 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-07-04  lj - reorganize according to pylint and google style
+                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
 """
 import datetime
 import time
 
 from pymongo import ASCENDING
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import DBTableNames, DataValueFields, DataType
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.utils.utils import StringClass
@@ -26,6 +25,8 @@ class ImportPrecipitation(object):
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = []
+        bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
+        count = 0
         for i in range(3, len(clim_flds)):
             station_id.append(clim_flds[i])
         for i, clim_data_item in enumerate(clim_data_items):
@@ -68,10 +69,18 @@ class ImportPrecipitation(object):
                              DataValueFields.type: cur_dic[DataValueFields.type],
                              DataValueFields.utc: cur_dic[DataValueFields.utc]}
                 if is_first:
-                    db[DBTableNames.data_values].insert_one(cur_dic)
+                    # db[DBTableNames.data_values].insert_one(cur_dic)
+                    bulk.insert(cur_dic)
                 else:
-                    db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
-                                                                      upsert=True)
+                    # db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
+                    #                                                   upsert=True)
+                    bulk.find(curfilter).replace_one(cur_dic)
+                count += 1
+                if count % 500 == 0:  # execute each 500 records
+                    bulk.execute()
+                    bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
+        if count % 500 != 0:
+            bulk.execute()
         # Create index
         db[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
                                                    (DataValueFields.type, ASCENDING),
@@ -91,12 +100,17 @@ class ImportPrecipitation(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
     hydroclim_db = conn[seims_cfg.climate_db]
-
+    import time
+    st = time.time()
     ImportPrecipitation.workflow(seims_cfg, hydroclim_db)
+    et = time.time()
+    print et - st
 
     client.close()
 

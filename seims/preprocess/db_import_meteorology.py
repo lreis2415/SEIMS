@@ -3,7 +3,8 @@
 """Meteorological daily data import, and calculate related statistical values
     @author   : Liangjun Zhu, Junzhi Liu, Fang Shen
     @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reorganize
+                17-06-26  lj - reorganize according to pylint and google style
+                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
 """
 import datetime
 import math
@@ -11,8 +12,6 @@ import time
 
 from pymongo import ASCENDING
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
 from seims.preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
@@ -83,6 +82,9 @@ class ImportMeteoData(object):
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
                 raise ValueError("Meteorological Daily data is invalid, please Check!")
+        # Create bulk object
+        bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
+        count = 0
         for i, cur_clim_data_item in enumerate(clim_data_items):
             if i == 0:
                 continue
@@ -153,15 +155,26 @@ class ImportMeteoData(object):
                     curfilter = {DataValueFields.id: dic[DataValueFields.id],
                                  DataValueFields.utc: dic[DataValueFields.utc],
                                  DataValueFields.type: fld}
+                    # Old code, insert or update one item a time, which is quite inefficiency
+                    # Update by using bulk operation interface. lj
                     if is_first:
-                        db[DBTableNames.data_values].insert_one(cur_dic)
+                        # db[DBTableNames.data_values].insert_one(cur_dic)
+                        bulk.insert(cur_dic)
                     else:
-                        db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
-                                                                          upsert=True)
+                        # db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
+                        #                                                   upsert=True)
+                        bulk.find(curfilter).replace_one(cur_dic)
+                    count += 1
+                    if count % 500 == 0:  # execute each 500 records
+                        bulk.execute()
+                        bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
 
             if dic[DataValueFields.id] not in hydro_climate_stats.keys():
                 hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
             hydro_climate_stats[dic[DataValueFields.id]].add_item(dic)
+        # execute the remained records
+        if count % 500 != 0:
+            bulk.execute()
         for item, cur_climate_stats in hydro_climate_stats.items():
             cur_climate_stats.annual_stats()
         # Create index
@@ -215,7 +228,7 @@ class ImportMeteoData(object):
     def workflow(cfg, clim_db):
         """Workflow"""
         print ("Import Daily Meteorological Data... ")
-        site_m_loc = HydroClimateUtilClass.query_climate_sites(cfg, clim_db, 'M')
+        site_m_loc = HydroClimateUtilClass.query_climate_sites(clim_db, 'M')
         c_list = clim_db.collection_names()
         tables = [DBTableNames.data_values, DBTableNames.annual_stats]
         first_import = False
@@ -228,13 +241,17 @@ class ImportMeteoData(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
     db = conn[seims_cfg.climate_db]
-
+    import time
+    st = time.time()
     ImportMeteoData.workflow(seims_cfg, db)
-
+    et = time.time()
+    print et-st
     client.close()
 
 
