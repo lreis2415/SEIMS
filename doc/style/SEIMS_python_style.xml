@@ -1,7 +1,7 @@
 <code_scheme name="SEIMS_python_style">
+  <option name="RIGHT_MARGIN" value="100" />
   <Python>
-    <option name="SPACE_AROUND_EQ_IN_KEYWORD_ARGUMENT" value="true" />
-    <option name="DICT_ALIGNMENT" value="2" />
+    <option name="USE_CONTINUATION_INDENT_FOR_ARGUMENTS" value="true" />
   </Python>
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
