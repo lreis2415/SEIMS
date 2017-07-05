@@ -53,7 +53,7 @@ void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix, int nodata /* = (int)N
     // cout<<"TauDEM D8 to ArcGIS Done!"<<endl;
 }
 
-void OutputFlowOutD8(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount,
+bool OutputFlowOutD8(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount,
                      const int *dirMatrix,
                      int dirNoDataValue, const int *compressedIndex) {
     float *pOutput = new float[validCount];
@@ -106,11 +106,16 @@ void OutputFlowOutD8(const char *outputDir, mongoc_gridfs_t *gfs, int id, int nR
         ofs << i << "\t" << pOutput[i] << endl;
     }
     ofs.close();
-
-    WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX_D8", validCount, (char *) pOutput);
+    bool flag = true;
+    if (WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX_D8", validCount, (char *) pOutput)) {
+        cout << "OutputD8FlowOutIndex done, n:" << validCount << endl;
+    } 
+    else {
+        flag = false;
+    }
     delete[] pOutput;
     pOutput = NULL;
-    cout << "OutputD8FlowOutIndex done, n:" << validCount << endl;
+    return flag;
 }
 
 int OutputMultiFlowOut(int nRows, int nCols, int validCount,
