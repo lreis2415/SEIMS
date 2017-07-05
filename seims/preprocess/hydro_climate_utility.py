@@ -7,6 +7,8 @@
 """
 import math
 
+from seims.preprocess.text import DBTableNames, StationFields
+
 
 class HydroClimateUtilClass(object):
     """Hydro-Climate utility functions."""
@@ -44,11 +46,42 @@ class HydroClimateUtilClass(object):
         w = HydroClimateUtilClass.ws(lat, d)
         nn = 24. * w / math.pi
         # Extraterrestrial radiation for daily periods
-        ra = (24. * 60. * 0.082 * HydroClimateUtilClass.dr(doy) / math.pi) *\
+        ra = (24. * 60. * 0.082 * HydroClimateUtilClass.dr(doy) / math.pi) * \
              (w * math.sin(lat) * math.sin(d) + math.cos(lat) * math.cos(d) * math.sin(w))
         return (a + b * n / nn) * ra
 
     @staticmethod
-    def query_climate_sites(cfg, clim_db, site_type):
+    def query_climate_sites(clim_db, site_type):
         """Query climate sites information, return a dict with stationID as key."""
-        pass
+        from seims.preprocess.db_import_sites import SiteInfo
+        sites_loc = dict()
+        sites_coll = clim_db[DBTableNames.sites]
+        find_results = sites_coll.find({StationFields.type: site_type})
+        for dic in find_results:
+            sites_loc[dic[StationFields.id]] = SiteInfo(dic[StationFields.id],
+                                                        dic[StationFields.name],
+                                                        dic[StationFields.lat],
+                                                        dic[StationFields.lon],
+                                                        dic[StationFields.x],
+                                                        dic[StationFields.y],
+                                                        dic[StationFields.elev])
+        return sites_loc
+
+
+def main():
+    """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
+    seims_cfg = parse_ini_configuration()
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    hydroclim_db = conn[seims_cfg.climate_db]
+
+    site_m = HydroClimateUtilClass.query_climate_sites(hydroclim_db, 'M')
+    site_p = HydroClimateUtilClass.query_climate_sites(hydroclim_db, 'P')
+
+    client.close()
+
+
+if __name__ == "__main__":
+    main()

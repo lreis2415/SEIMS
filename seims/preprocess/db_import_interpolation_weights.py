@@ -11,8 +11,7 @@ from struct import pack, unpack
 import numpy
 from gridfs import GridFS
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB, MongoQuery
+from seims.preprocess.db_mongodb import MongoQuery
 from seims.preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields
 from seims.preprocess.utility import UTIL_ZERO
@@ -322,6 +321,8 @@ class ImportWeightData(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

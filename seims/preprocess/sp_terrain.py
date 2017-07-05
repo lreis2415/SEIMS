@@ -17,7 +17,6 @@ import numpy
 import ogr
 from gdal import GDT_Float32
 
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from seims.preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
@@ -486,6 +485,7 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     TerrainUtilClass.parameters_extration(seims_cfg)
 

@@ -10,8 +10,6 @@ from osgeo import ogr
 from pymongo import ASCENDING
 from shapely.wkt import loads
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 from seims.pygeoc.pygeoc.utils.utils import StringClass
@@ -50,11 +48,11 @@ class ImportHydroClimateSites(object):
     @staticmethod
     def sites_table(db, site_file, site_type):
         """Import HydroClimate sites table"""
-        sites_loc = {}
+        sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
         site_flds = site_data_items[0]
         for i in range(1, len(site_data_items)):
-            dic = {}
+            dic = dict()
             for j in range(len(site_data_items[i])):
                 if StringClass.string_match(site_flds[j], StationFields.id):
                     dic[StationFields.id] = int(site_data_items[i][j])
@@ -199,6 +197,8 @@ class ImportHydroClimateSites(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
