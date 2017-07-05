@@ -6,9 +6,8 @@
 *
 *	Revision:   Liangjun Zhu
 *   Date:       21-July-2016
-*
-*	Revision:   Liangjun Zhu
-*   Date:       9- February-2017
+*               9-February-2017
+*               4-July-2017  Check if success after import layering to MongoDB
 *---------------------------------------------------------------------*/
 
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
@@ -67,13 +66,38 @@ int main(int argc, char **argv) {
         // if it is TauDEM flow code, then convert it to ArcGIS
         TauDEM2ArcGIS(nRows, nCols, dirMatrix, dirNoDataValue);
         // Output flow out index to MongoDB (D8)
-        OutputFlowOutD8(outputDir, gfs, i, nRows, nCols, nValidGrids, dirMatrix, header.noDataValue, compressedIndex);
+        int max_loop = 3;
+        int cur_loop = 1;
+        while (cur_loop < max_loop) {
+            if (!OutputFlowOutD8(outputDir, gfs, i, nRows, nCols, nValidGrids, 
+                                dirMatrix, header.noDataValue, compressedIndex)) {
+                cur_loop++;
+            }
+            else
+                break;
+        }
+        if (cur_loop == max_loop) {
+            cout << "ERROR! Exceed the max. tries times, please contact the developers!" << endl;
+            exit(EXIT_FAILURE);
+        }
+        
         // Output flow in indexes to MongoDB (D8), and write ROUTING_LAYERS from up to down
         string layeringFile = LayeringFromSourceD8(outputDir, gfs, i, nValidGrids, dirMatrix, compressedIndex, header,
                                                    outputNoDataValue);
         //cout << layeringFile << endl;
         // Output ROUTING_LAYERS_UP_DOWN (D8) to MongoDB
-        OutputLayersToMongoDB(layeringFile.c_str(), "ROUTING_LAYERS_UP_DOWN", i, gfs);
+        cur_loop = 1;
+        while (cur_loop < max_loop) {
+            if (!OutputLayersToMongoDB(layeringFile.c_str(), "ROUTING_LAYERS_UP_DOWN", i, gfs)) {
+                cur_loop++;
+            }
+            else
+                break;
+        }
+        if (cur_loop == max_loop) {
+            cout << "ERROR! Exceed the max. tries times, please contact the developers!" << endl;
+            exit(EXIT_FAILURE);
+        }
 
         // The following code is for D-infinite algorithm
         ostringstream ossDinf;

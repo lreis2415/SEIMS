@@ -110,7 +110,7 @@ void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, Raster
     data = (float *) buf;
 }
 
-int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s) {
+bool WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s) {
     bson_t p = BSON_INITIALIZER;
     BSON_APPEND_INT32(&p, "SUBBASIN", id);
     BSON_APPEND_UTF8(&p, "TYPE", type);
@@ -125,10 +125,15 @@ int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int num
     size_t n = number * sizeof(float);
     MongoGridFS().writeStreamData(string(remoteFilename), s, n, &p, gfs);
     bson_destroy(&p);
-    return true;
+    if (NULL == MongoGridFS().getFile(remoteFilename, gfs)) {
+        return false;
+    } 
+    else {
+        return true;
+    }
 }
 
-void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs) {
+bool OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs) {
     ifstream ifs(layeringTxtFile);
     int nValidGrids, nLayers;
     ifs >> nValidGrids >> nLayers;
@@ -142,8 +147,11 @@ void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, in
         ifs >> pLayers[i];
     }
     ifs.close();
-
-    WriteStringToMongoDB(gfs, id, dataType, n, (char *) pLayers);
+    bool flag = true;
+    if (!WriteStringToMongoDB(gfs, id, dataType, n, (char *)pLayers)) {
+        flag = false;
+    }
     delete[] pLayers;
     pLayers = NULL;
+    return flag;
 }

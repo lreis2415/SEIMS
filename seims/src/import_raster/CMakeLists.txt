@@ -67,6 +67,6 @@ add_custom_target(install_${PROJECT_NAME}
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 IF (WIN32)
-    SET_PROPERTY(TARGET import_raster PROPERTY FOLDER "ImportRaster")
+    SET_PROPERTY(TARGET import_raster PROPERTY FOLDER "RasterUtility")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Import Raster done")
