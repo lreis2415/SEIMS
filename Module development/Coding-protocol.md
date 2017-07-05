@@ -39,6 +39,10 @@ git config --global core.safecrlf warn
 
 建议100字符为限，太长则应换行。
 
+PyCharm中的设置为：File->Settings->Editor->Code Style->Default Opetions->Right margin (columns): 100
+
+随后使用Code->Reformat Code (Ctrl+Alt+L)时便会自动换行了。当然自动的并不一定是最好的，还是需要自己手动调整。
+
 ### 1.5.括弧
 在复杂的条件表达式中，用括弧清楚地表示逻辑优先级。
 
@@ -103,10 +107,27 @@ if (fFoo)  Bar();
 	#define Tag_DyLib ".dylib"
 	#endif /* linux */
 	```
-
++ SEIMS中Python代码注释采用Google风格的docstring，在PyCharm中设置为：
+    `File --> Settings --> Tools --> Python Integrated Tools --> Google`
 ## 2.代码设计规范
-
-
+建议阅读：[Google开源项目风格指南（中文版）](http://zh-google-styleguide.readthedocs.io/en/latest/contents/)
+### 2.1.Python
++ 运行pylint检查代码中潜在bug或警告，并改正。默认地，pylint会产生很多警告信息，有些是我们不希望看到的，可通过`--disable=`禁止，比如：
+    + 变量、函数、类命名不规范，invalid-name (C0103)
+    + 函数参数过多（多于5个），虽然参数多了风格不好，但是对于变参数的函数设计来讲，参数多于5个很常见，too-many-arguments (R0913)
+    + 某个函数有太多局部变量，too-many-locals (R0914)
+    + 没必要的括弧，如为了兼容python3在print后加的括弧，superfluous-parens (C0325)
+    ```bash
+    pylint C:\z_code\Hydro\SEIMS\seims\preprocess --files-output=y --disable=C0103,R0913,R0914,C0325
+    ```
++ 导入包或模块时，应使用模块的全路径，而非相对路径
+    ```python
+    # Spatial delineation
+    from seims.preprocess.sd_delineation import SpatialDelineation
+    ```
++ 命名约定
+    `module_name, package_name, ClassName, method_name, ExceptionName, function_name, GLOBAL_VAR_NAME, instance_var_name, function_parameter_name, local_var_name.`
+    
 ## 3.Git分支管理
 
 ### 3.1.各分支命名规范及功能定义
