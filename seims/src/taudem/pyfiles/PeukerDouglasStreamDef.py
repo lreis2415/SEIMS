@@ -137,7 +137,7 @@ arcpy.CalculateStatistics_management(ssa)
 
 if (usedroprange == 'true') and arcpy.Exists(ogrlyr):
     # Construct third command
-    cmd = 'mpiexec -n ' + inputProc + ' DropAnalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
+    cmd = 'mpiexec -n ' + inputProc + ' dropanalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
           ' -ad8 ' + '"' + ad8 + '"'
     cmd = cmd + ' -ssa ' + '"' + ssa + '"' + ' -o ' + '"' + shfl + '"' + ' -drp ' + '"' + drp + '"' + \
           ' -par ' + minthresh + ' ' + maxthresh + ' ' + numthresh + ' '
