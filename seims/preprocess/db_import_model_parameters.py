@@ -10,8 +10,6 @@ import sqlite3
 
 from numpy import unique
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.db_sqlite import reconstruct_sqlite_db_file
 from seims.preprocess.text import SQLiteParaUtils, ModelParamFields, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
@@ -248,6 +246,8 @@ class ImportParam2Mongo(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

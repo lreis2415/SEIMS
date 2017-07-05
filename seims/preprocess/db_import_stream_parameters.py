@@ -13,8 +13,6 @@ import networkx as nx
 from osgeo import ogr
 from pymongo import ASCENDING
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.mpi_adjust_groups import adjust_group_result
 from seims.preprocess.utility import UTIL_ZERO, MINI_SLOPE
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -458,6 +456,8 @@ class ImportReaches2Mongo(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

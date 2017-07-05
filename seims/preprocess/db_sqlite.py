@@ -8,7 +8,6 @@
 import os
 import sqlite3
 
-from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.text import ModelParamFields
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 from seims.pygeoc.pygeoc.utils.utils import UtilClass
@@ -104,6 +103,7 @@ def reconstruct_sqlite_db_file(cfg):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     reconstruct_sqlite_db_file(seims_cfg)
 
