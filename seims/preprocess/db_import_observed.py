@@ -4,13 +4,12 @@
     @author   : Liangjun Zhu, Fang Shen
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
+                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 TODO: Check the location of observed stations and add subbasinID field.
 """
 import datetime
 import time
 
-from seims.preprocess.config import parse_ini_configuration
-from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -133,6 +132,8 @@ class ImportObservedData(object):
                         variable_lists.append(var_dic)
         site_ids = list(set(site_ids))
         # 2. Read measurement data and import to MongoDB
+        bulk = db[DBTableNames.observes].initialize_ordered_bulk_op()
+        count = 0
         for measDataFile in obs_txts_list:
             # print measDataFile
             obs_data_items = read_data_items_from_txt(measDataFile)
@@ -177,7 +178,14 @@ class ImportObservedData(object):
                 curfilter = {StationFields.id: dic[StationFields.id],
                              DataValueFields.type: dic[DataValueFields.type],
                              DataValueFields.utc: dic[DataValueFields.utc]}
-                db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+                bulk.find(curfilter).replace_one(dic)
+                count += 1
+                if count % 500 ==0:
+                    bulk.execute()
+                    bulk = db[DBTableNames.observes].initialize_ordered_bulk_op()
+                # db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+        if count % 500 != 0:
+            bulk.execute()
         # 3. Add measurement data with unit converted
         # loop variables list
         added_dics = []
@@ -213,11 +221,11 @@ class ImportObservedData(object):
                 cur_filter = {StationFields.type: "Q",
                               DataValueFields.utc: dic[DataValueFields.utc],
                               StationFields.id: dic[StationFields.id]}
-                QDic = db[DBTableNames.observes].find_one(filter=cur_filter)
+                q_dic = db[DBTableNames.observes].find_one(filter=cur_filter)
 
                 q = -9999.
-                if QDic is not None:  # and QDic.has_key(DataValueFields.value):
-                    q = QDic[DataValueFields.value]
+                if q_dic is not None:  # and q_dic.has_key(DataValueFields.value):
+                    q = q_dic[DataValueFields.value]
                 else:
                     continue
                 if cur_unit == "mg/L":
@@ -272,12 +280,17 @@ class ImportObservedData(object):
 
 def main():
     """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
     hydroclim_db = conn[seims_cfg.climate_db]
-
+    import time
+    st = time.time()
     ImportObservedData.workflow(seims_cfg, hydroclim_db)
+    et = time.time()
+    print et - st
 
     client.close()
 
