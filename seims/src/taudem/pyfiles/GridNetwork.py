@@ -56,7 +56,7 @@ tlen = arcpy.GetParameterAsText(7)
 arcpy.AddMessage("Output Total Upslope Length Grid: " + tlen)
 
 # Construct command
-cmd = 'mpiexec -n ' + inputProc + ' GridNet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + \
+cmd = 'mpiexec -n ' + inputProc + ' gridnet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + \
       ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"'
 if arcpy.Exists(ogrfile):
     cmd = cmd + ' -o ' + '"' + shfl + '"'
@@ -65,13 +65,13 @@ if arcpy.Exists(maskgrid):
 
 # TODO: Delete these commented code line (Pabitra, Dt:9/16/2016)
 ##if arcpy.Exists(shapefile) and arcpy.Exists(maskgrid):
-##    cmd = 'mpiexec -n ' + inputProc + ' GridNet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -o ' + '"' + shapefile + '"' + ' -mask ' + '"' + maskgrid + '"' + ' -thresh ' + maskthreshold
+##    cmd = 'mpiexec -n ' + inputProc + ' gridnet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -o ' + '"' + shapefile + '"' + ' -mask ' + '"' + maskgrid + '"' + ' -thresh ' + maskthreshold
 ##elif arcpy.Exists(shapefile):
-##    cmd = 'mpiexec -n ' + inputProc + ' GridNet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -o ' + '"' + shapefile + '"'
+##    cmd = 'mpiexec -n ' + inputProc + ' gridnet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -o ' + '"' + shapefile + '"'
 ##elif arcpy.Exists(maskgrid):
-##    cmd = 'mpiexec -n ' + inputProc + ' GridNet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -mask ' + '"' + maskgrid + '"' + ' -thresh ' + maskthreshold
+##    cmd = 'mpiexec -n ' + inputProc + ' gridnet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"' + ' -mask ' + '"' + maskgrid + '"' + ' -thresh ' + maskthreshold
 ##else:
-##    cmd = 'mpiexec -n ' + inputProc + ' GridNet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"'
+##    cmd = 'mpiexec -n ' + inputProc + ' gridnet -p ' + '"' + p + '"' + ' -plen ' + '"' + plen + '"' + ' -tlen ' + '"' + tlen + '"' + ' -gord ' + '"' + gord + '"'
 
 arcpy.AddMessage("\nCommand Line: " + cmd)
 
