@@ -58,6 +58,6 @@ add_custom_target(install_${PROJECT_NAME}
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 IF (MSVC)
-    SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "ReClassify")
+    SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "RasterUtility")
 ENDIF ()
 MESSAGE(STATUS "    Compiling ReClassify Raster done")

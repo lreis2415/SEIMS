@@ -58,6 +58,6 @@ add_custom_target(install_${PROJECT_NAME}
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 IF (WIN32)
-    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "ImportRaster")
+    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "RasterUtility")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Mask Raster done")
