@@ -1,14 +1,15 @@
 #! /usr/bin/env python
-# coding=utf-8
-# @Utility functions
-# @Author: Junzhi Liu
-# @Revised: Liang-Jun Zhu
-#
+# -*- coding: utf-8 -*-
+"""Global variables and utility functions
+    @author   : Liangjun Zhu, Junzhi Liu
+    @changelog: 16-06-16  first implementation version
+                17-06-22  reformat according to pylint and google style
+"""
+
 import math
 import sys
 
-from pygeoc.utils.parseConfig import getconfigfile
-from pygeoc.utils.utils import UtilClass
+from seims.pygeoc.pygeoc.utils.utils import UtilClass
 
 # Global variables
 UTIL_ZERO = 1.e-6
@@ -18,59 +19,46 @@ SQ2 = math.sqrt(2.)
 LFs = ['\r\n', '\n\r', '\r', '\n']
 
 
-def LoadConfiguration(inifile):
-    command = '%s %s/config.py -ini %s' % (sys.executable, UtilClass.currentpath(), inifile)
-    UtilClass.runcommand(command)
+def load_ini_configuration(inifile):
+    """Parse ini configuration file
+    deprecated by config.parse_ini_configuration() lj, 17-06-23
+    Args:
+        inifile: ini full path
+    """
+    command = '%s %s/config.py -ini %s' % (sys.executable, UtilClass.current_path(), inifile)
+    UtilClass.run_command(command)
 
 
 def status_output(status_msg, percent, file_object):
-    """Print status and flush to file."""
+    """Print status and flush to file.
+    Args:
+        status_msg: status message
+        percent: percentage rate of progress
+        file_object: file handler
+    """
     print ("[Output] %d..., %s" % (percent, status_msg))
     file_object.write("%d, %s\n" % (percent, status_msg))
     file_object.flush()
 
 
-def ReadDataItemsFromTxt(txtFile):
+def read_data_items_from_txt(txt_file):
+    """Read data items include title from text file, each data element are split by TAB.
+    Args:
+        txt_file: full path of text data file
+    Returns:
+        2D data array
     """
-    Read data items include title from text file
-    :param txtFile: data file
-    :return: 2D data array
-    """
-    f = open(txtFile)
-    dataItems = []
+    f = open(txt_file)
+    data_items = []
     for line in f:
-        strLine = line
+        str_line = line
         for LF in LFs:
             if LF in line:
-                strLine = line.split(LF)[0]
+                str_line = line.split(LF)[0]
                 break
 
-        # strLine = line.split(LF)[0]
-        if strLine != '' and strLine.find('#') < 0:
-            lineList = strLine.split('\t')
-            dataItems.append(lineList)
+        if str_line != '' and str_line.find('#') < 0:
+            line_list = str_line.split('\t')
+            data_items.append(line_list)
     f.close()
-    return dataItems
-
-
-#  TEST CODE
-if __name__ == "__main__":
-    LoadConfiguration(getconfigfile())
-    # p = r'E:\data\model_data\model_dianbu_10m_longterm\data_prepare\spatial'
-    # print GetFileNameWithSuffixes(p,['.tif','.txt'])
-    # print GetFullPathWithSuffixes(p,['.tif','.txt'])
-    # dist2Stream = r'E:\data_m\SEIMS\dianbu_30m_output\dist2Stream.tif'
-    # R = ReadRaster(dist2Stream)
-    # print "XMin: %f" % R.xMin
-    # print "XMax: %f" % R.xMax
-    # print "YMin: %f" % R.yMin
-    # print "YMax: %f" % R.yMax
-    # print "Mean: %f" % R.GetAverage()
-    # print "Max : %f" % R.GetMax()
-    # print "Min : %f" % R.GetMin()
-    # print "Sum : %f" % R.GetSum()
-    # print "STD : %f" % R.GetSTD()
-    # print "Value at (x, y): %f" % R.GetValueByXY(39542419.65, 3543174.289)
-    datafile = r'G:\code_zhulj\SEIMS\model_data\dianbu\data_prepare\climate\Sites_P.txt'
-    data = ReadDataItemsFromTxt(datafile)
-    print (data)
+    return data_items

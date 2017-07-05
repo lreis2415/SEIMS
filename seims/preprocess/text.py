@@ -1,358 +1,424 @@
 #! /usr/bin/env python
-# coding=utf-8
-# @ Constant strings used in SEIMS, both in
-#   data preprocessing and SEIMS modules
-# @Author: Liang-Jun Zhu
-#
+# -*- coding: utf-8 -*-
+"""Constant strings used in SEIMS, both in preprocessing and SEIMS modules (C++)
+    @author   : Liangjun Zhu
+    @changelog: 16-12-07  lj - rewrite for version 2.0
+                17-06-23  lj - reorganize as basic class other than Global variables
+"""
+import os
 
-# Simulation Model related tages
-Tag_Model = "model"
-Tag_Cluster = "cluster"
-Tag_Mode = "MODE"
-Tag_Mode_Storm = "STORM"
-Tag_Mode_Daily = "DAILY"
-Tag_CLIM_STORM_Suf = "storm_cmorph"
 
-# Names for folders in output workspace for Spatial data preprocessing
-DIR_NAME_LOG = "runtime_log"
-DIR_NAME_TAUDEM = "taudem_delineated"
-DIR_NAME_GEODATA2DB = "spatial_raster"
-DIR_NAME_GEOSHP = "spatial_shp"
-# DIR_NAME_REACH = "reaches"
-# DIR_NAME_SUBBSN = "subbasins"
-DIR_NAME_LAYERINFO = "layering_info"
-DIR_NAME_METISOUT = "metis_output"
-DIR_NAME_IMPORT2DB = "imported_monogodb"
-DIR_NAME_LOOKUP = "lookup_tables"
-# File names
-FILE_IN = "file.in"
-FILE_OUT = "file.out"
-# Regenerated SQLite database of Parameters for SEIMS
-Tag_Params = "param"
-Tag_Lookup = "lookup"
-init_params = 'model_param_ini'
-lookup_tabs = ['SoilLookup', 'LanduseLookup', 'TillageLookup',
-               'UrbanLookup', 'CropLookup', 'FertilizerLookup']
-CROP_FILE = 'CropLookup.txt'
-sqlite_file = "Parameter.db3"
+class ModelNameUtils(object):
+    """Simulation Model related tags"""
+    Model = "model"
+    Cluster = "cluster"
+    Mode = "MODE"
+    Storm = "STORM"
+    Daily = "DAILY"
+    StormClimateDBSuffix = "storm_cmorph"
 
-# CROP, LANDUSE, and SOIL attribute are imported to mongoDB
-# Match to the new lookup table of SWAT 2012 rev.637. LJ
-CROP_ATTR_LIST = ["IDC", "BIO_E", "HVSTI", "BLAI", "FRGRW1", "LAIMX1", "FRGRW2",
-                  "LAIMX2", "DLAI", "CHTMX", "RDMX", "T_OPT", "T_BASE", "CNYLD",
-                  "CPYLD", "BN1", "BN2", "BN3", "BP1", "BP2", "BP3", "WSYF",
-                  "USLE_C", "GSI", "VPDFR", "FRGMAX", "WAVP", "CO2HI", "BIOEHI",
-                  "RSDCO_PL", "OV_N", "CN2A", "CN2B", "CN2C", "CN2D", "FERTFIELD",
-                  "ALAI_MIN", "BIO_LEAF", "MAT_YRS", "BMX_TREES", "EXT_COEF", "BM_DIEOFF"]
+    @staticmethod
+    def standardize_spatial_dbname(is4cluster, is4storm, spatialdbname):
+        """standardize spatial database name"""
+        if is4cluster and ModelNameUtils.Cluster not in spatialdbname.lower():
+            spatialdbname = ModelNameUtils.Cluster + "_" + spatialdbname
+        if is4storm:
+            if not ModelNameUtils.Storm.lower() in spatialdbname.lower():
+                spatialdbname = spatialdbname + "_" + ModelNameUtils.Storm.lower()
+        if not ModelNameUtils.Model in spatialdbname.lower():
+            spatialdbname = ModelNameUtils.Model + "_" + spatialdbname
+        if is4cluster and (not ModelNameUtils.Cluster.lower() in spatialdbname.lower()):
+            spatialdbname = ModelNameUtils.Cluster.lower() + "_" + spatialdbname
+        return spatialdbname
 
-# USLE_C is extracted from cropLookup database
-LANDUSE_ATTR_LIST = ["CN2A", "CN2B", "CN2C", "CN2D", "ROOTDEPTH", "MANNING",
-                     "INTERC_MAX", "INTERC_MIN", "SHC", "SOIL_T10",
-                     "PET_FR", "PRC_ST1", "PRC_ST2", "PRC_ST3", "PRC_ST4",
-                     "PRC_ST5", "PRC_ST6", "PRC_ST7", "PRC_ST8", "PRC_ST9",
-                     "PRC_ST10", "PRC_ST11", "PRC_ST12", "SC_ST1", "SC_ST2",
-                     "SC_ST3", "SC_ST4", "SC_ST5", "SC_ST6", "SC_ST7", "SC_ST8",
-                     "SC_ST9", "SC_ST10", "SC_ST11", "SC_ST12", "DSC_ST1", "DSC_ST2",
-                     "DSC_ST3", "DSC_ST4", "DSC_ST5", "DSC_ST6", "DSC_ST7", "DSC_ST8",
-                     "DSC_ST9", "DSC_ST10", "DSC_ST11", "DSC_ST12"]
+    @staticmethod
+    def standardize_climate_dbname(climatedbname):
+        """standardize climate database name"""
+        if climatedbname is not None:
+            climatedbname = climatedbname + "_" + ModelNameUtils.StormClimateDBSuffix
+        return climatedbname
 
-# Metadata field names
-META_LOOKUP_ITEM_COUNT = 'ITEM_COUNT'
-META_LOOKUP_FIELD_COUNT = 'FIELD_COUNT'
 
-# SOIL PARAMETERS NAMES, which will be appeared in MongoDB
-SOL_SEQN = "SEQN"
-SOL_NAME = "SNAM"
-# required inputs
-SOL_NLYRS = "SOILLAYERS"
-SOL_Z = "SOL_Z"
-SOL_OM = "SOL_OM"
-SOL_CLAY = "SOL_CLAY"
-SOL_SILT = "SOL_SILT"
-SOL_SAND = "SOL_SAND"
-SOL_ROCK = "SOL_ROCK"
-# optional inputs, which can be auto-calculated
-SOL_ZMX = "SOL_ZMX"
-SOL_ANIONEXCL = "ANION_EXCL"
-SOL_CRK = "SOL_CRK"
-SOL_BD = "SOL_BD"
-SOL_K = "SOL_K"
-SOL_WP = "SOL_WP"
-SOL_FC = "SOL_FC"
-SOL_AWC = "SOL_AWC"
-SOL_POROSITY = "SOL_POROSITY"
-SOL_USLE_K = "SOL_USLE_K"
-SOL_ALB = "SOL_ALB"
-ESCO = "ESCO"
-# soil N and P concentrate
-SOL_NO3 = "SOL_NO3"
-SOL_NH4 = "SOL_NH                                                                                                  4"
-SOL_ORGN = "SOL_ORGN"
-SOL_ORGP = "SOL_ORGP"
-SOL_SOLP = "SOL_SOLP"
+class ModelCfgUtils(object):
+    """Model configuration utility names"""
+    _FILE_IN = "file.in"
+    _FILE_OUT = "file.out"
+    _FILE_CFG = "config.fig"
 
-# Climate datatype tags, MUST BE coincident with text.h in SEIMS
-# /src/base/util/text.h
-# BE AWARE: TMIN, TMAX, WS, Residual is required, and TMEAN, PET, SR is optional
-# WHEN SR is not provided, the SSD MUST be there!
+    def __init__(self, model_dir):
+        """assign model config file paths"""
+        self.filein = model_dir + os.sep + ModelCfgUtils._FILE_IN
+        self.fileout = model_dir + os.sep + ModelCfgUtils._FILE_OUT
+        self.filecfg = model_dir + os.sep + ModelCfgUtils._FILE_CFG
 
-DataType_Precipitation = "P"  # 1, Suffix of precipitation data
-DataType_MeanTemperature = "TMEAN"  # 2
-DataType_MinimumTemperature = "TMIN"  # 3
-DataType_MaximumTemperature = "TMAX"  # 4
-DataType_PotentialEvapotranspiration = "PET"  # 5
-DataType_SolarRadiation = "SR"  # 6
-DataType_WindSpeed = "WS"  # 7
-DataType_RelativeAirMoisture = "RM"  # 8
-DataType_SunDurationHour = "SSD"  # 9
-DataType_YearlyHeatUnit = "PHUTOT"
-Datatype_PHU0 = "PHU0"
-DataType_MeanTemperature0 = "TMEAN0"
 
-DataType_Meteorology = "M"  # Suffix of meteorology data
-DataType_Prefix_TS = "T"  # Prefix of time series data
-DataType_Prefix_DIS = "D"  # Prefix of distributed data
-Tag_DT_StationID = 'StationID'
-Tag_DT_Year = 'Y'
-Tag_DT_Month = 'M'
-Tag_DT_Day = 'D'
-Tag_DT_Type = 'Type'
-Tag_DT_LocalT = 'LocalDateTime'
-Tag_DT_Zone = 'UTCOffset'
-Tag_DT_UTC = 'UTCDateTime'
-Tag_DT_Value = 'Value'
+class DirNameUtils(object):
+    """Names for folders in output workspace for Spatial data preprocessing"""
+    _Log = "runtime_log"
+    _TauDEM = "taudem_delineated"
+    _GeoData2DB = "spatial_raster"
+    _GeoShp = "spatial_shp"
+    _LayerInfo = "layering_info"
+    _Metis = "metis_output"
+    _Import2DB = "imported_monogodb"
+    _Lookup = "lookup_tables"
 
-Tag_ClimateDB_ANNUAL_STATS = 'Annual_Stats'
-Tag_ClimateDB_Measurement = 'Measurement'
-Tag_ClimateDB_VARs = 'Variables'
-Tag_VAR_ID = 'ID'
-Tag_VAR_Type = 'Type'
-Tag_VAR_UNIT = 'Unit'
-Tag_VAR_IsReg = 'IsRegular'
-Tag_VAR_Time = 'TimeSupport'
+    def __init__(self, pre_dir):
+        """prepare output directories"""
+        self.log = pre_dir + os.sep + DirNameUtils._Log
+        self.taudem = pre_dir + os.sep + DirNameUtils._TauDEM
+        self.geodata2db = pre_dir + os.sep + DirNameUtils._GeoData2DB
+        self.geoshp = pre_dir + os.sep + DirNameUtils._GeoShp
+        self.layerinfo = pre_dir + os.sep + DirNameUtils._LayerInfo
+        self.metis = pre_dir + os.sep + DirNameUtils._Metis
+        self.import2db = pre_dir + os.sep + DirNameUtils._Import2DB
+        self.lookup = pre_dir + os.sep + DirNameUtils._Lookup
 
-Tag_ClimateDB_Sites = "Sites"
-Tag_ST_StationID = 'StationID'
-Tag_ST_SubbasinID = 'SubbasinID'
-Tag_ST_StationName = 'Name'
-Tag_ST_LocalX = 'LocalX'
-Tag_ST_LocalY = 'LocalY'
-Tag_ST_LocalPrjID = 'LocalPrjID'
-Tag_ST_Longitude = 'Lon'
-Tag_ST_Latitude = 'Lat'
-Tag_ST_DatumID = 'DatumID'
-Tag_ST_Elevation = 'Elevation'
-Tag_ST_Type = 'Type'
-Tag_ST_IsOutlet = 'isOutlet'
-Tag_ST_UNIT = 'Unit'
 
-# Table Names required in MongoDB
-DB_TAB_PARAMETERS = "parameters"
-DB_TAB_LOOKUP_LANDUSE = "LanduseLookup"
-DB_TAB_LOOKUP_SOIL = "SoilLookup"
-DB_TAB_SPATIAL = "spatial"
-DB_TAB_SITES = "Sites"
-DB_TAB_DATAVALUES = "Data_Values"
-DB_TAB_MEASUREMENT = "Measurements"
-DB_TAB_SITELIST = "SiteList"
-DB_TAB_REACH = "reaches"
-DB_TAB_BMP_DB = "BMPDatabase"
-DB_TAB_FILE_IN = "FILE_IN"
-DB_TAB_FILE_OUT = "FILE_OUT"
-### Fields in DB_TAB_REACH
-REACH_SUBBASIN = "SUBBASINID"
-REACH_NUMCELLS = "NUM_CELLS"
-REACH_GROUP = "GROUP"
-REACH_GROUPDIVIDED = "GROUP_DIVIDE"
-REACH_DOWNSTREAM = "DOWNSTREAM"
-REACH_UPDOWN_ORDER = "UP_DOWN_ORDER"
-REACH_DOWNUP_ORDER = "DOWN_UP_ORDER"
-REACH_WIDTH = "WIDTH"
-REACH_LENGTH = "LENGTH"
-REACH_DEPTH = "DEPTH"
-REACH_V0 = "V0"
-REACH_AREA = "AREA"
-REACH_SIDESLP = "SIDE_SLOPE"
-REACH_MANNING = "MANNING"
-REACH_SLOPE = "SLOPE"
-REACH_KMETIS = 'KMETIS'  # GROUP_KMETIS is too long for ArcGIS Shapefile
-REACH_PMETIS = 'PMETIS'  # the same reason
-REACH_BC1 = 'BC1'
-REACH_BC2 = 'BC2'
-REACH_BC3 = 'BC3'
-REACH_BC4 = 'BC4'
-REACH_RK1 = 'RK1'
-REACH_RK2 = 'RK2'
-REACH_RK3 = 'RK3'
-REACH_RK4 = 'RK4'
-REACH_RS1 = 'RS1'
-REACH_RS2 = 'RS2'
-REACH_RS3 = 'RS3'
-REACH_RS4 = 'RS4'
-REACH_RS5 = 'RS5'
-# reach erosion related parameters, 2016-8-16, LJ
-REACH_COVER = 'COVER'  # -0.05 - 0.6
-REACH_EROD = 'EROD'  # -0.001 - 1
-# nutrient routing related parameters
-REACH_DISOX = 'DISOX'  # 0-50 mg/L
-REACH_BOD = 'BOD'  # 0-1000 mg/L
-REACH_ALGAE = 'ALGAE'  # 0-200 mg/L
-REACH_ORGN = 'ORGN'  # 0-100 mg/L
-REACH_NH4 = 'NH4'  # 0-50 mg/L
-REACH_NO2 = 'NO2'  # 0-100 mg/L
-REACH_NO3 = 'NO3'  # 0-50 mg/L
-REACH_ORGP = 'ORGP'  # 0-25 mg/L
-REACH_SOLP = 'SOLP'  # 0-25 mg/L
-# groundwater related parameters
-REACH_GWNO3 = 'GWNO3'  # 0-1000 mg/L
-REACH_GWSOLP = 'GWSOLP'  # 0-1000 mg/L
-# Field in SiteList table or other tables, such as subbasin.shp
-FLD_SUBBASINID = 'SUBBASINID'
-FLD_BASINID = 'BASIN'
-FLD_MODE = 'MODE'
-FLD_DB = 'DB'
+class SQLiteParaUtils(object):
+    """Regenerated SQLite database of Parameters for SEIMS
+    TODO: The intermediate SQLite db should be deprecated in the future version.
+    """
+    Tag_Params = "param"
+    Tag_Lookup = "lookup"
+    init_params = 'model_param_ini'
+    lookup_tabs = ['SoilLookup', 'LanduseLookup', 'TillageLookup',
+                   'UrbanLookup', 'CropLookup', 'FertilizerLookup']
+    _CROP_FILE = 'CropLookup.txt'
+    _SQLITE_FILE = "Parameter.db3"
 
-# Field in Model Configuration Collections, FILE_IN and FILE_OUT
-FLD_CONF_TAG = "TAG"
-FLD_CONF_VALUE = "VALUE"
-FLD_CONF_MODCLS = "MODULE_CLASS"
-FLD_CONF_OUTPUTID = "OUTPUTID"
-FLD_CONF_DESC = "DESCRIPTION"
-FLD_CONF_UNIT = "UNIT"
-FLD_CONF_TYPE = "TYPE"
-FLD_CONF_STIME = "STARTTIME"
-FLD_CONF_ETIME = "ENDTIME"
-FLD_CONF_INTERVAL = "INTERVAL"
-FLD_CONF_INTERVALUNIT = "INTERVAL_UNIT"
-FLD_CONF_SUBBSN = "SUBBASIN"
-FLD_CONF_FILENAME = "FILENAME"
-FLD_CONF_USE = "USE"
+    def __init__(self, in_dir, out_dir):
+        """assign text file path and output sqlite db file path"""
+        self.crop_file = in_dir + os.sep + SQLiteParaUtils._CROP_FILE
+        self.sqlite_file = out_dir + os.sep + SQLiteParaUtils._SQLITE_FILE
+        self.init_params_file = in_dir + os.sep + SQLiteParaUtils.init_params + '.txt'
 
-FLD_LINKNO = "LINKNO"
-FLD_DSLINKNO = "DSLINKNO"
 
-BMP_FLD_PT_DISTDOWN = "DIST2REACH"
+class DataType(object):
+    """Climate datatype tags, MUST BE coincident with text.h in SEIMS.
+    """
+    p = "P"  # DataType_Precipitation, 1, Suffix of precipitation data
+    m = "M"  # Meterological
+    mean_tmp = "TMEAN"  # DataType_MeanTemperature, 2
+    min_tmp = "TMIN"  # DataType_MinimumTemperature, 3
+    max_tmp = "TMAX"  # DataType_MaximumTemperature, 4
+    pet = "PET"  # DataType_PotentialEvapotranspiration, 5
+    sr = "SR"  # DataType_SolarRadiation, 6
+    ws = "WS"  # DataType_WindSpeed, 7
+    rm = "RM"  # DataType_RelativeAirMoisture, 8
+    ssd = "SSD"  # DataType_SunDurationHour, 9
+    phu_tot = "PHUTOT"  # DataType_YearlyHeatUnit
+    phu0 = "PHU0"  # Datatype_PHU0
+    mean_tmp0 = "TMEAN0"  # DataType_MeanTemperature0, multiply annuals
 
-# Field metadata in MongoDB
 
-# Spatial Data related string or values
-# intermediate data files' names
-filledDem = "demFilledTau.tif"
-flowDir = "flowDirTauD8.tif"
-slope = "slopeTau.tif"
-acc = "accTauD8.tif"
-accWithWeight = "accTauD8WithWeight.tif"
-streamRaster = "streamRasterTau.tif"
+class ModelParamFields(object):
+    """Model parameters fields."""
+    # field names in parameter table of MongoDB
+    name = "NAME"
+    desc = "DESCRIPTION"
+    unit = "UNIT"
+    module = "MODULE"
+    value = "VALUE"
+    impact = "IMPACT"
+    change = "CHANGE"
+    max = "MAX"
+    min = "MIN"
+    use = "USE"
+    type = "TYPE"
+    # available values
+    change_rc = "RC"
+    change_ac = "AC"
+    change_nc = "NC"
+    use_y = "Y"
+    use_n = "N"
 
-flowDirDinf = "flowDirDinfTau.tif"
-dirCodeDinf = "dirCodeDinfTau.tif"
-slopeDinf = "slopeDinfTau.tif"
-weightDinf = "weightDinfTau.tif"
 
-modifiedOutlet = "outletM.shp"
-streamSkeleton = "streamSkeleton.tif"
-streamOrder = "streamOrderTau.tif"
-chNetwork = "chNetwork.txt"
-chCoord = "chCoord.txt"
-streamNet = "streamNet.shp"
-dist2StreamD8 = "dist2StreamD8Org.tif"
-subbasin = "subbasinTau.tif"
-mask_to_ext = "mask.tif"
-# masked file names
-subbasinM = "subbasinTauM.tif"
-flowDirM = "flowDirTauM.tif"
-streamRasterM = "streamRasterTauM.tif"
-# output to mongoDB file names
-reachesOut = "reach.shp"
-subbasinOut = "subbasin.tif"
-flowDirOut = "flow_dir.tif"
-streamLinkOut = "stream_link.tif"
-hillSlopeOut = "hillslope.tif"
-# masked and output to mongoDB file names
-slopeM = "slope.tif"
-filleddemM = "dem.tif"
-accM = "acc.tif"
-streamOrderM = "stream_order.tif"
-flowDirDinfM = "flow_dir_angle_dinf.tif"
-dirCodeDinfM = "flow_dir_dinf.tif"
-slopeDinfM = "slope_dinf.tif"
-weightDinfM = "weight_dinf.tif"
-cellLat = "celllat.tif"
-daylMin = "dayLenMin.tif"
-dormhr = "dormhr.tif"
-dist2StreamD8M = "dist2Stream.tif"
+class ModelCfgFields(object):
+    """Model configuration fields.
+        field in Model Configuration Collections, FILE_IN and FILE_OUT
+    """
+    tag = "TAG"
+    value = "VALUE"
+    mod_cls = "MODULE_CLASS"
+    output_id = "OUTPUTID"
+    desc = "DESCRIPTION"
+    unit = "UNIT"
+    type = "TYPE"
+    stime = "STARTTIME"
+    etime = "ENDTIME"
+    interval = "INTERVAL"
+    interval_unit = "INTERVAL_UNIT"
+    subbsn = "SUBBASIN"
+    filename = "FILENAME"
+    use = "USE"
 
-outletVec = "outlet.shp"
-subbasinVec = "subbasin.shp"
-basinVec = "basin.shp"
-chwidthName = "chwidth.tif"
 
-landuseMFile = "landuse.tif"
-cropMFile = "LANDCOVER.tif"  # added by LJ.
-soiltypeMFile = "soiltype.tif"
-mgtFieldMFile = "mgt_fields.tif"
+class SubbsnStatsName(object):
+    """Variable name of subbasin statistics"""
+    outlet = "OUTLET_ID"
+    o_row = "OUTLET_ROW"
+    o_col = "OUTLET_COL"
+    subbsn_max = "SUBBASINID_MAX"
+    subbsn_min = "SUBBASINID_MIN"
+    subbsn_num = "SUBBASINID_NUM"
 
-soilTexture = "SOIL_TEXTURE.tif"
-hydroGroup = "HYDRO_GROUP.tif"
-usleK = "USLE_K.tif"
 
-initSoilMoist = "moist_in.tif"
-depressionFile = "depression.tif"
+class DataValueFields(object):
+    """DATA_VALUES collection"""
+    id = 'STATIONID'
+    y = 'Y'
+    m = 'M'
+    d = 'D'
+    type = 'TYPE'
+    local_time = 'LOCALDATETIME'
+    time_zone = 'UTCOFFSET'
+    utc = 'UTCDATETIME'
+    value = 'VALUE'
 
-CN2File = "CN2.tif"
-radiusFile = "radius.tif"
-ManningFile = "MANNING.tif"
-velocityFile = "velocity.tif"
-# flow time to the main river from each grid cell
-t0_sFile = "t0_s.tif"
-# standard deviation of t0_s
-delta_sFile = "delta_s.tif"
-# potential runoff coefficient
-runoff_coefFile = "runoff_co.tif"
 
-# GeoJson format files (WGS84 coordinate)
-GEOJSON_REACH = "river.json"
-GEOJSON_SUBBSN = "subbasin.json"
-GEOJSON_BASIN = "basin.json"
-GEOJSON_OUTLET = "outlet.json"
-# Other filenames used in preprocessing
-FN_STATUS_DELINEATION = "status_SubbasinDelineation.txt"
-FN_STATUS_EXTRACTSOILPARAM = "status_ExtractSoilParameters.txt"
-FN_STATUS_EXTRACTLANDUSEPARAM = "status_ExtractLanduseParameters.txt"
-FN_STATUS_EXTRACTTERRAINPARAM = "status_ExtractTerrainParameters.txt"
-FN_STATUS_MONGO = "status_BuildMongoDB.txt"
-FN_CONFIG_MASKRASTERS = "config_maskDelineatedRaster.txt"
-FN_CONFIG_RECLASSIFYLU = "config_reclassLanduseConfig.txt"
-# Header information of raster data (Derived from Mask.tif)
-HEADER_RS_TAB = "Header"
-HEADER_RS_NODATA = "NODATA_VALUE"
-HEADER_RS_XLL = "XLLCENTER"
-HEADER_RS_YLL = "YLLCENTER"
-HEADER_RS_NROWS = "NROWS"
-HEADER_RS_NCOLS = "NCOLS"
-HEADER_RS_CELLSIZE = "CELLSIZE"
+class VariableDesc(object):
+    """Variable description"""
+    id = "ID"
+    type = "TYPE"
+    unit = "UNIT"
+    is_regular = "ISREGULAR"
+    time = "TIMESUPPORT"
 
-# Fields in parameter table of MongoDB
-PARAM_FLD_NAME = "NAME"
-PARAM_FLD_DESC = "DESCRIPTION"
-PARAM_FLD_UNIT = "UNIT"
-PARAM_FLD_MODS = "MODULE"
-PARAM_FLD_VALUE = "VALUE"
-PARAM_FLD_IMPACT = "IMPACT"
-PARAM_FLD_CHANGE = "CHANGE"
-PARAM_FLD_MAX = "MAX"
-PARAM_FLD_MIN = "MIN"
-PARAM_FLD_USE = "USE"
-PARAM_CHANGE_RC = "RC"
-PARAM_CHANGE_AC = "AC"
-PARAM_CHANGE_NC = "NC"
-PARAM_USE_Y = "Y"
-PARAM_USE_N = "N"
 
-# subbasin related parameters name, which will be imported into MongoDB
-PARAM_NAME_OUTLETID = "OUTLET_ID"
-PARAM_NAME_OUTLETROW = "OUTLET_ROW"
-PARAM_NAME_OUTLETCOL = "OUTLET_COL"
-PARAM_NAME_SUBBSNMAX = "SUBBASINID_MAX"
-PARAM_NAME_SUBBSNMIN = "SUBBASINID_MIN"
-PARAM_NAME_SUBBSNNUM = "SUBBASINID_NUM"
+class StationFields(object):
+    """Hydro-climate station sites."""
+    id = 'STATIONID'
+    subbsn = 'SUBBASINID'
+    name = 'NAME'
+    x = 'LOCALX'
+    y = 'LOCALY'
+    prj = 'LOCALPRJID'
+    lon = 'LON'
+    lat = 'LAT'
+    datum = 'DATUMID'
+    elev = 'ELEVATION'
+    type = 'TYPE'
+    outlet = 'ISOUTLET'
+    unit = 'UNIT'
+
+
+class FieldNames(object):
+    """Field name used in MongoDB, Shapefile, etc."""
+    # Field in SiteList table or other tables, such as subbasin.shp
+    subbasin_id = 'SUBBASINID'
+    basin = 'BASIN'
+    mode = 'MODE'
+    db = 'DB'
+    # sitelist table of main database
+    site_p = 'SITELISTP'
+    site_m = 'SITELISTM'
+    site_pet = 'SITELISTPET'
+
+
+class TauDEMFilesUtils(object):
+    """predefined TauDEM resulted file names"""
+    # intermediate data
+    _FILLEDDEM = "demFilledTau.tif"
+    _D8FLOWDIR = "flowDirTauD8.tif"
+    _SLOPE = "slopeTau.tif"
+    _D8ACC = "accTauD8.tif"
+    _D8ACCWITHWEIGHT = "accTauD8WithWeight.tif"
+    _STREAMRASTER = "streamRasterTau.tif"
+    _FLOWDIRDINF = "flowDirDinfTau.tif"
+    _DIRCODEDINF = "dirCodeDinfTau.tif"
+    _WEIGHTDINF = "weightDinfTau.tif"
+    _SLOPEDINF = "slopeDinfTau.tif"
+    _MODIFIEDOUTLET = "outletM.shp"
+    _STREAMSKELETON = "streamSkeleton.tif"
+    _STREAMORDER = "streamOrderTau.tif"
+    _CHNETWORK = "chNetwork.txt"
+    _CHCOORD = "chCoord.txt"
+    _STREAMNET = "streamNet.shp"
+    _DIST2STREAMD8 = "dist2StreamD8Org.tif"
+    _SUBBASIN = "subbasinTau.tif"
+    # masked file names
+    _SUBBASINM = "subbasinTauM.tif"
+    _D8FLOWDIRM = "flowDirTauM.tif"
+    _STREAMRASTERM = "streamRasterTauM.tif"
+
+    def __init__(self, tau_dir):
+        """assign taudem resulted file path"""
+        self.filldem = tau_dir + os.sep + self._FILLEDDEM
+        self.d8flow = tau_dir + os.sep + self._D8FLOWDIR
+        self.slp = tau_dir + os.sep + self._SLOPE
+        self.d8acc = tau_dir + os.sep + self._D8ACC
+        self.d8acc_weight = tau_dir + os.sep + self._D8ACCWITHWEIGHT
+        self.stream_raster = tau_dir + os.sep + self._STREAMRASTER
+        self.dinf = tau_dir + os.sep + self._FLOWDIRDINF
+        self.dinf_d8dir = tau_dir + os.sep + self._DIRCODEDINF
+        self.dinf_weight = tau_dir + os.sep + self._WEIGHTDINF
+        self.dinf_slp = tau_dir + os.sep + self._SLOPEDINF
+        self.outlet_m = tau_dir + os.sep + self._MODIFIEDOUTLET
+        self.stream_pd = tau_dir + os.sep + self._STREAMSKELETON
+        self.stream_order = tau_dir + os.sep + self._STREAMORDER
+        self.channel_net = tau_dir + os.sep + self._CHNETWORK
+        self.channel_coord = tau_dir + os.sep + self._CHCOORD
+        self.streamnet_shp = tau_dir + os.sep + self._STREAMNET
+        self.dist2stream_d8 = tau_dir + os.sep + self._DIST2STREAMD8
+        self.subbsn = tau_dir + os.sep + self._SUBBASIN
+        self.subbsn_m = tau_dir + os.sep + self._SUBBASINM
+        self.d8flow_m = tau_dir + os.sep + self._D8FLOWDIRM
+        self.stream_m = tau_dir + os.sep + self._STREAMRASTERM
+
+
+class SpatialNamesUtils(object):
+    """predefined raster file names which are ready for importing to database"""
+    _MASK_TO_EXT = "mask.tif"
+    # output to mongoDB file names
+    _SUBBASINOUT = "subbasin.tif"
+    _FLOWDIROUT = "flow_dir.tif"
+    _STREAMLINKOUT = "stream_link.tif"
+    _HILLSLOPEOUT = "hillslope.tif"
+    # masked and output to mongoDB file names
+    _SLOPEM = "slope.tif"
+    _FILLEDDEMM = "dem.tif"
+    _ACCM = "acc.tif"
+    _STREAMORDERM = "stream_order.tif"
+    _FLOWDIRDINFM = "flow_dir_angle_dinf.tif"
+    _DIRCODEDINFM = "flow_dir_dinf.tif"
+    _WEIGHTDINFM = "weight_dinf.tif"
+    _SLOPEDINFM = "slope_dinf.tif"
+    _CELLLAT = "celllat.tif"
+    _DAYLMIN = "dayLenMin.tif"
+    _DORMHR = "dormhr.tif"
+    _DIST2STREAMD8M = "dist2Stream.tif"
+    _CHWIDTH = "chwidth.tif"
+    _LANDUSEMFILE = "landuse.tif"
+    _CROPMFILE = "LANDCOVER.tif"  # added by LJ.
+    _SOILTYPEMFILE = "soiltype.tif"
+    _MGTFIELDMFILE = "mgt_fields.tif"
+    _SOILTEXTURE = "SOIL_TEXTURE.tif"
+    _HYDROGROUP = "HYDRO_GROUP.tif"
+    _USLEK = "USLE_K.tif"
+    _INITSOILMOIST = "moist_in.tif"
+    _DEPRESSIONFILE = "depression.tif"
+    _CN2FILE = "CN2.tif"
+    _RADIUSFILE = "radius.tif"
+    _MANNINGFILE = "MANNING.tif"
+    _VELOCITYFILE = "velocity.tif"
+    # flow time to the main river from each grid cell
+    _T0_SFILE = "t0_s.tif"
+    # standard deviation of t0_s
+    _DELTA_SFILE = "delta_s.tif"
+    # potential runoff coefficient
+    _RUNOFF_COEFFILE = "runoff_co.tif"
+
+    def __init__(self, spa_dir):
+        """assign spatial data file paths"""
+        self.mask = spa_dir + os.sep + self._MASK_TO_EXT
+        self.subbsn = spa_dir + os.sep + self._SUBBASINOUT
+        self.d8flow = spa_dir + os.sep + self._FLOWDIROUT
+        self.stream_link = spa_dir + os.sep + self._STREAMLINKOUT
+        self.hillslope = spa_dir + os.sep + self._HILLSLOPEOUT
+        self.slope = spa_dir + os.sep + self._SLOPEM
+        self.filldem = spa_dir + os.sep + self._FILLEDDEMM
+        self.d8acc = spa_dir + os.sep + self._ACCM
+        self.stream_order = spa_dir + os.sep + self._STREAMORDERM
+        self.dinf = spa_dir + os.sep + self._FLOWDIRDINFM
+        self.dinf_d8dir = spa_dir + os.sep + self._DIRCODEDINFM
+        self.dinf_weight = spa_dir + os.sep + self._WEIGHTDINFM
+        self.dinf_slp = spa_dir + os.sep + self._SLOPEDINFM
+        self.cell_lat = spa_dir + os.sep + self._CELLLAT
+        self.dayl_min = spa_dir + os.sep + self._DAYLMIN
+        self.dorm_hr = spa_dir + os.sep + self._DORMHR
+        self.dist2stream_d8 = spa_dir + os.sep + self._DIST2STREAMD8M
+        self.chwidth = spa_dir + os.sep + self._CHWIDTH
+        self.landuse = spa_dir + os.sep + self._LANDUSEMFILE
+        self.crop = spa_dir + os.sep + self._CROPMFILE
+        self.soil_type = spa_dir + os.sep + self._SOILTYPEMFILE
+        self.mgt_field = spa_dir + os.sep + self._MGTFIELDMFILE
+        self.soil_texture = spa_dir + os.sep + self._SOILTEXTURE
+        self.hydro_group = spa_dir + os.sep + self._HYDROGROUP
+        self.usle_k = spa_dir + os.sep + self._USLEK
+        self.init_somo = spa_dir + os.sep + self._INITSOILMOIST
+        self.depression = spa_dir + os.sep + self._DEPRESSIONFILE
+        self.cn2 = spa_dir + os.sep + self._CN2FILE
+        self.radius = spa_dir + os.sep + self._RADIUSFILE
+        self.manning = spa_dir + os.sep + self._MANNINGFILE
+        self.velocity = spa_dir + os.sep + self._VELOCITYFILE
+        self.t0_s = spa_dir + os.sep + self._T0_SFILE
+        self.delta_s = spa_dir + os.sep + self._DELTA_SFILE
+        self.runoff_coef = spa_dir + os.sep + self._RUNOFF_COEFFILE
+
+
+class VectorNameUtils(object):
+    """predefined vector(shp and geojson) file names"""
+    # GeoJson format files (WGS84 coordinate)
+    _GEOJSON_REACH = "river.json"
+    _GEOJSON_SUBBSN = "subbasin.json"
+    _GEOJSON_BSN = "basin.json"
+    _GEOJSON_OUTLET = "outlet.json"
+    _SHP_OUTLET = "outlet.shp"
+    _SHP_SUBBSN = "subbasin.shp"
+    _SHP_BSN = "basin.shp"
+    _SHP_REACH = "reach.shp"
+
+    def __init__(self, shp_dir):
+        """assign vector files path"""
+        self.json_reach = shp_dir + os.sep + VectorNameUtils._GEOJSON_REACH
+        self.json_subbsn = shp_dir + os.sep + VectorNameUtils._GEOJSON_SUBBSN
+        self.json_bsn = shp_dir + os.sep + VectorNameUtils._GEOJSON_BSN
+        self.json_outlet = shp_dir + os.sep + VectorNameUtils._GEOJSON_OUTLET
+        self.reach = shp_dir + os.sep + VectorNameUtils._SHP_REACH
+        self.subbsn = shp_dir + os.sep + VectorNameUtils._SHP_SUBBSN
+        self.bsn = shp_dir + os.sep + VectorNameUtils._SHP_BSN
+        self.outlet = shp_dir + os.sep + VectorNameUtils._SHP_OUTLET
+
+
+class LogNameUtils(object):
+    """predefined log file names"""
+    _STATUS_DELINEATION = "status_SubbasinDelineation.txt"
+    _STATUS_EXTRACTSOILPARAM = "status_ExtractSoilParameters.txt"
+    _STATUS_EXTRACTLANDUSEPARAM = "status_ExtractLanduseParameters.txt"
+    _STATUS_EXTRACTTERRAINPARAM = "status_ExtractTerrainParameters.txt"
+    _STATUS_MONGO = "status_BuildMongoDB.txt"
+    _CONFIG_MASKRASTERS = "config_maskDelineatedRaster.txt"
+    _CONFIG_RECLASSIFYLU = "config_reclassLanduseConfig.txt"
+
+    def __init__(self, log_dir):
+        """assign log file path"""
+        self.delineation = log_dir + os.sep + LogNameUtils._STATUS_DELINEATION
+        self.extract_soil = log_dir + os.sep + LogNameUtils._STATUS_EXTRACTSOILPARAM
+        self.extract_lu = log_dir + os.sep + LogNameUtils._STATUS_EXTRACTLANDUSEPARAM
+        self.extract_terrain = log_dir + os.sep + LogNameUtils._STATUS_EXTRACTTERRAINPARAM
+        self.build_mongo = log_dir + os.sep + LogNameUtils._STATUS_MONGO
+        self.mask_cfg = log_dir + os.sep + LogNameUtils._CONFIG_MASKRASTERS
+        self.reclasslu_cfg = log_dir + os.sep + LogNameUtils._CONFIG_RECLASSIFYLU
+
+
+class RasterMetadata(object):
+    """Header information of raster data (Derived from Mask.tif)"""
+    tab_name = "Header"
+    nodata = "NODATA_VALUE"
+    xll = "XLLCENTER"
+    yll = "YLLCENTER"
+    nrows = "NROWS"
+    ncols = "NCOLS"
+    cellsize = "CELLSIZE"
+    subbasin = "SUBBASIN"
+    cellnum = "NUM_CELLS"
+    # for weight data
+    site_num = "NUM_SITES"
+
+
+class DBTableNames(object):
+    """Predefined MongoDB database collection names."""
+    # Main model database
+    gridfs_spatial = "SPATIAL"
+    main_sitelist = "SITELIST"
+    main_parameter = "PARAMETERS"
+    main_filein = "FILE_IN"
+    main_fileout = "FILE_OUT"
+    main_scenario = "BMPDATABASE"
+    # hydro-climate database
+    data_values = "DATA_VALUES"
+    annual_stats = 'ANNUAL_STATS'
+    observes = 'MEASUREMENT'
+    var_desc = 'VARIABLES'
+    sites = "SITES"
