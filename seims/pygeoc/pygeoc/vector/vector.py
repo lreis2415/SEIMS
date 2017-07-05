@@ -1,13 +1,19 @@
 #! /usr/bin/env python
-# coding=utf-8
+# -*- coding: utf-8 -*-
+"""Vector related Classes and Functions
+
+    author: Liangjun Zhu
+    changlog: 12-04-12 jz - origin version
+              16-07-01 lj - reorganized for pygeoc
+              17-06-25 lj - check by pylint and reformat by Google style
+"""
 
 import os
 import sys
 
 from osgeo import ogr
 
-from ..utils.utils import FileClass, UtilClass
-from ..utils.const import *
+from ..utils.utils import FileClass, UtilClass, sysstr
 
 
 class VectorUtilClass(object):
@@ -19,50 +25,52 @@ class VectorUtilClass(object):
     @staticmethod
     def raster2shp(rasterfile, vectorshp, layername, fieldname):
         """Convert raster to ESRI shapefile"""
-        FileClass.removefiles(vectorshp)
-        FileClass.checkfileexists(rasterfile)
+        FileClass.remove_files(vectorshp)
+        FileClass.check_file_exists(rasterfile)
         # raster to polygon vector
         if sysstr == 'Windows':
             exepath = '"%s/Scripts/gdal_polygonize.py"' % sys.exec_prefix
         else:
-            exepath = FileClass.getexecutablefullpath("gdal_polygonize.py")
-        strCmd = '%s -f "ESRI Shapefile" %s %s %s %s' % (exepath, rasterfile, vectorshp, layername, fieldname)
-        print strCmd
-        print UtilClass.runcommand(strCmd)
+            exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
+        str_cmd = '%s -f "ESRI Shapefile" %s %s %s %s' % (
+            exepath, rasterfile, vectorshp, layername, fieldname)
+        print (str_cmd)
+        print (UtilClass.run_command(str_cmd))
 
     @staticmethod
     def convert2geojson(jsonfile, src_srs, dst_srs, src_file):
+        """convert shapefile to geojson file"""
         if os.path.exists(jsonfile):
             os.remove(jsonfile)
-        if platform.system() == 'Windows':
+        if sysstr == 'Windows':
             exepath = '"%s/Lib/site-packages/osgeo/ogr2ogr"' % sys.exec_prefix
         else:
-            exepath = FileClass.getexecutablefullpath("ogr2ogr")
+            exepath = FileClass.get_executable_fullpath("ogr2ogr")
         # os.system(s)
-        s = '%s -f GeoJSON -s_srs "%s" -t_srs %s %s %s' % (exepath, src_srs, dst_srs, jsonfile, src_file)
-        UtilClass.runcommand(s)
+        s = '%s -f GeoJSON -s_srs "%s" -t_srs %s %s %s' % (
+            exepath, src_srs, dst_srs, jsonfile, src_file)
+        UtilClass.run_command(s)
 
     @staticmethod
-    def WriteLineShp(lineList, outShp):
+    def write_line_shp(line_list, out_shp):
         """Export ESRI Shapefile -- Line feature"""
-        print "Write line shapefile: %s" % outShp
+        print ("Write line shapefile: %s" % out_shp)
         driver = ogr.GetDriverByName("ESRI Shapefile")
         if driver is None:
-            print "ESRI Shapefile driver not available."
+            print ("ESRI Shapefile driver not available.")
             sys.exit(1)
-        if os.path.exists(outShp):
-            driver.DeleteDataSource(outShp)
-        ds = driver.CreateDataSource(outShp.rpartition(os.sep)[0])
+        if os.path.exists(out_shp):
+            driver.DeleteDataSource(out_shp)
+        ds = driver.CreateDataSource(out_shp.rpartition(os.sep)[0])
         if ds is None:
-            print "ERROR Output: Creation of output file failed."
+            print ("ERROR Output: Creation of output file failed.")
             sys.exit(1)
-        lyr = ds.CreateLayer(outShp.rpartition(os.sep)[2].split('.')[
-                                 0], None, ogr.wkbLineString)
+        lyr = ds.CreateLayer(out_shp.rpartition(os.sep)[2].split('.')[0], None, ogr.wkbLineString)
         #    for field in fields:
         #        fieldDefn = ogr.FieldDefn(field,ogr.OFTString)
         #        fieldDefn.SetWidth(255)
         #        lyr.CreateField(fieldDefn)
-        for l in lineList:
+        for l in line_list:
             #        defn = lyr.GetLayerDefn()
             #        featureFields = ogr.Feature(defn)
             #        for field in fields:

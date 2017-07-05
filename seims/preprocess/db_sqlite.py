@@ -1,97 +1,112 @@
 #! /usr/bin/env python
-# coding=utf-8
-# @ Import parameters and lookup tables to SQLite database
-# @Author: Liang-Jun Zhu, Fang Shen
-#
+# -*- coding: utf-8 -*-
+"""Import parameters and lookup tables to SQLite database
+    @author   : Liangjun Zhu, Fang Shen
+    @changelog: 16-12-07  lj - rewrite for version 2.0
+                17-07-05  lj - reorganize according to pylint and gogle style
+"""
+import os
 import sqlite3
 
-from pygeoc.utils.utils import UtilClass
-from config import *
-from utility import LoadConfiguration, ReadDataItemsFromTxt
-from utility import DEFAULT_NODATA
+from seims.preprocess.config import parse_ini_configuration
+from seims.preprocess.text import ModelParamFields
+from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
+from seims.pygeoc.pygeoc.utils.utils import UtilClass
 
 
-def txt2Sqlite(dataFiles, dbFile):
-    dataImport = {}  # format: {tabName:[fieldName, Units, dataRows]}
-    for dataFileItem in dataFiles:
-        # print dataFileItem
-        dataPath = TXT_DB_DIR + os.sep + dataFileItem[1] + ".txt"
-        dataItems = ReadDataItemsFromTxt(dataPath)
-        # print dataItems
-        if dataFileItem[0] == Tag_Params:
-            fieldNames = dataItems[0][1:]
-            units = dataItems[1][1:]
-            CHANGE_IDX = fieldNames.index(PARAM_FLD_CHANGE) + 1
-            IMPACT_IDX = fieldNames.index(PARAM_FLD_IMPACT) + 1
-            MAX_IDX = fieldNames.index(PARAM_FLD_MAX) + 1
-            MIN_IDX = fieldNames.index(PARAM_FLD_MIN) + 1
-            for i in range(2, len(dataItems)):
-                curDataItem = dataItems[i]
-                # print curDataItem
-                if curDataItem[CHANGE_IDX] == PARAM_CHANGE_NC or curDataItem[CHANGE_IDX] == '':
-                    curDataItem[IMPACT_IDX] = 0
-                if curDataItem[CHANGE_IDX] == PARAM_CHANGE_RC and curDataItem[IMPACT_IDX] == '':
-                    curDataItem[IMPACT_IDX] = 1
-                if curDataItem[CHANGE_IDX] == PARAM_CHANGE_AC and curDataItem[IMPACT_IDX] == '':
-                    curDataItem[IMPACT_IDX] = 0
-                if curDataItem[MAX_IDX] == '':
-                    curDataItem[MAX_IDX] = DEFAULT_NODATA
-                if curDataItem[MIN_IDX] == '':
-                    curDataItem[MIN_IDX] = DEFAULT_NODATA
-                if curDataItem[0] in dataImport.keys():
-                    dataImport[curDataItem[0]][2].append(curDataItem[1:])
+def txt_to_sqlite(cfg, data_files, db_file):
+    """Read data from text file."""
+    data_import = dict()  # format: {tabName:[fieldName, Units, dataRows]}
+    for data_file in data_files:
+        # print data_file
+        data_items = read_data_items_from_txt(data_file)
+        # print data_items
+        if data_file[0] == cfg.sqlitecfgs.Tag_Params:
+            field_names = data_items[0][1:]
+            units = data_items[1][1:]
+            change_idx = field_names.index(ModelParamFields.change) + 1
+            impact_idx = field_names.index(ModelParamFields.impact) + 1
+            max_idx = field_names.index(ModelParamFields.max) + 1
+            min_idx = field_names.index(ModelParamFields.min) + 1
+            for i in range(2, len(data_items)):
+                cur_data_item = data_items[i]
+                # print cur_data_item
+                if cur_data_item[change_idx] == ModelParamFields.change_nc\
+                        or cur_data_item[change_idx] == '':
+                    cur_data_item[impact_idx] = 0
+                if cur_data_item[change_idx] == ModelParamFields.change_rc\
+                        and cur_data_item[impact_idx] == '':
+                    cur_data_item[impact_idx] = 1
+                if cur_data_item[change_idx] == ModelParamFields.change_ac\
+                        and cur_data_item[impact_idx] == '':
+                    cur_data_item[impact_idx] = 0
+                if cur_data_item[max_idx] == '':
+                    cur_data_item[max_idx] = DEFAULT_NODATA
+                if cur_data_item[min_idx] == '':
+                    cur_data_item[min_idx] = DEFAULT_NODATA
+                if cur_data_item[0] in data_import.keys():
+                    data_import[cur_data_item[0]][2].append(cur_data_item[1:])
                 else:
-                    dataImport[curDataItem[0]] = [
-                        fieldNames, units, [curDataItem[1:]]]
+                    data_import[cur_data_item[0]] = [
+                        field_names, units, [cur_data_item[1:]]]
 
         else:
-            fieldNames = dataItems[0]
-            units = dataItems[1]
-            if dataFileItem[1] not in dataImport:
-                dataImport[dataFileItem[1]] = [fieldNames, units, []]
-            for i in range(2, len(dataItems)):
-                dataImport[dataFileItem[1]][2].append(dataItems[i])
-    # print dataImport
-    importData2Sqlite(dataImport, dbFile)
+            field_names = data_items[0]
+            units = data_items[1]
+            if data_file[1] not in data_import:
+                data_import[data_file[1]] = [field_names, units, []]
+            for i in range(2, len(data_items)):
+                data_import[data_file[1]][2].append(data_items[i])
+    # print data_import
+    import_data_to_sqlite(data_import, db_file)
 
 
-def importData2Sqlite(dataImport, dbFile):
-    conn = sqlite3.connect(dbFile)
+def import_data_to_sqlite(data_import, db_file):
+    """Import text to SQLite database."""
+    conn = sqlite3.connect(db_file)
     cur = conn.cursor()
-    for tabName in dataImport.keys():
-        flds = dataImport[tabName][0]
-        unitTypes = dataImport[tabName][1]
-        dataRow = dataImport[tabName][2]
-        fieldNameStr = ''
+    for tab_name, v in data_import.items():
+        flds = v[0]
+        unit_types = v[1]
+        data_row = v[2]
+        field_name_str = ''
         for i in range(len(flds)):
-            fieldNameStr += flds[i] + ' ' + unitTypes[i] + ' DEFAULT NULL,'
-        create_table_sql = '''CREATE TABLE IF NOT EXISTS %s (%s)''' % (
-            tabName, fieldNameStr[:-1])
+            field_name_str += flds[i] + ' ' + unit_types[i] + ' DEFAULT NULL,'
+        create_table_sql = '''CREATE TABLE IF NOT EXISTS %s (%s)''' % (tab_name,
+                                                                       field_name_str[:-1])
         # print create_table_sql
         cur.execute(create_table_sql)
-        load_sql = '''insert into %(table)s values (%(arg)s)''' % {'table': tabName, 'arg': ','.join(
-            ['?' for i in range(0, len(flds))]), }
+        # construct a string like '?,?,?,...'
+        tmp_arg = ','.join(['?' for i in range(0, len(flds))])
+        load_sql = '''insert into %(table)s values (%(arg)s)''' % {'table': tab_name,
+                                                                   'arg': tmp_arg}
         # print load_sql
-        for singledatarow in dataRow:
+        for singledatarow in data_row:
             cur.execute(load_sql, singledatarow)
     conn.commit()
     cur.close()
     conn.close()
 
 
-def reConstructSQLiteDB():
+def reconstruct_sqlite_db_file(cfg):
+    """ReConstruct SQLite database file."""
     # If the database file existed, DELETE it.
-    db_dir = WORKING_DIR + os.sep + DIR_NAME_IMPORT2DB
+    db_dir = cfg.dirs.import2db
     UtilClass.mkdir(db_dir)
-    sql_path = db_dir + os.sep + sqlite_file
+    sql_path = cfg.sqlitecfgs.sqlite_file
     if os.path.exists(sql_path):
         os.remove(sql_path)
-    data_files = [[Tag_Params, init_params]]
-    for df in lookup_tabs:
-        data_files.append([Tag_Lookup, df])
-    txt2Sqlite(data_files, sql_path)
+    data_files = [[cfg.sqlitecfgs.Tag_Params, cfg.sqlitecfgs.init_params_file]]
+    for df in cfg.sqlitecfgs.lookup_tabs:
+        data_files.append([cfg.sqlitecfgs.Tag_Lookup, cfg.txt_db_dir + os.sep + df + '.txt'])
+    txt_to_sqlite(cfg, data_files, sql_path)
+
+
+def main():
+    """TEST CODE"""
+    seims_cfg = parse_ini_configuration()
+    reconstruct_sqlite_db_file(seims_cfg)
 
 
 if __name__ == "__main__":
-    LoadConfiguration(getconfigfile())
-    reConstructSQLiteDB()
+    main()

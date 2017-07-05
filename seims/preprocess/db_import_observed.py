@@ -1,267 +1,286 @@
 #! /usr/bin/env python
-# coding=utf-8
-# @Import measurement data, such as discharge, sediment yield, and nutrient export etc.
-# @Author: Fang Shen
-# @Revised: Liang-Jun Zhu
-# @Description: Check the location of observed stations and add subbasinID field. 2016-10-31, TODO, not finished yet!
-#
-import time
+# -*- coding: utf-8 -*-
+"""Import measurement data, such as discharge, sediment yield, and nutrient export etc.
+    @author   : Liangjun Zhu, Fang Shen
+    @changelog: 16-12-07  lj - rewrite for version 2.0
+                17-06-26  lj - reorganize according to pylint and google style
+                TODO: Check the location of observed stations and add subbasinID field.
+"""
 import datetime
+import time
 
-from pygeoc.raster.raster import RasterUtilClass
-
-from config import *
-from utility import LoadConfiguration, ReadDataItemsFromTxt
-# for test main
-from db_mongodb import ConnectMongoDB
-
-
-def matchSubbasin(siteDict):
-    """
-    Match the ID of subbasin
-        1. Read the coordinates of each subbasin's outlet, and
-           the outlet ID of the whole basin (not finished yet)
-        2. If the isOutlet field equals to
-           2.1 - 0, then return the subbasinID of the site's location
-           2.2 - 1, then return the outlet ID of the whole basiin
-           2.3 - 2, then return the outlet ID of nearest subbasin
-           2.4 - 3, then return the outlet IDs of the conjunct subbasins
-    :param siteDict:
-    :return:
-    """
-    subbasinRasterFile = WORKING_DIR + os.sep + DIR_NAME_GEODATA2DB + os.sep + subbasinOut
-    subbasinRaster = RasterUtilClass.ReadRaster(subbasinRasterFile)
-    localx = siteDict.get(Tag_ST_LocalX.upper())
-    localy = siteDict.get(Tag_ST_LocalY.upper())
-    siteType = siteDict.get(Tag_ST_IsOutlet.upper())
-    subbasinID = subbasinRaster.GetValueByXY(localx, localy)
-    if subbasinID is None and siteType != 1:  # the site is not inside the basin and not the outlet either.
-        return False, None
-    if siteType == 0:
-        return True, [subbasinID]
-    elif siteType == 1:
-        return True, [subbasinID]  # TODO, get outlet ID of the whole basin, refers to gen_subbasin.py
-    elif siteType == 2:
-        return True, [subbasinID]  # TODO
+from seims.preprocess.config import parse_ini_configuration
+from seims.preprocess.db_mongodb import ConnectMongoDB
+from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
+from seims.preprocess.utility import read_data_items_from_txt
+from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
+from seims.pygeoc.pygeoc.utils.utils import StringClass, FileClass
 
 
-def ImportData(db, ObsTxtsList, sitesInfoTxtsList):
+class ImportObservedData(object):
     """
     Import observed values for current model. The procedure including several steps:
         1. Read monitor station information, filter by LocalX and LocalY coordinates,
            and store variables information (siteDic) and station IDs (siteIDs)
         2. Read observed data and import to MongoDB
         3. Add observed data with unit converted
-
-    :param db:
-    :param ObsTxtsList:
-    :param sitesInfoTxtsList:
-    :return: True or False
     """
-    # 1. Read monitor station information, and store variables information and station IDs
-    variableLists = []
-    siteIDs = []
-    for siteFile in sitesInfoTxtsList:
-        siteDataItems = ReadDataItemsFromTxt(siteFile)
-        siteFlds = siteDataItems[0]
-        for i in range(1, len(siteDataItems)):
-            dic = {}
-            for j in range(len(siteDataItems[i])):
-                if StringClass.stringmatch(siteFlds[j], Tag_ST_StationID):
-                    dic[Tag_ST_StationID.upper()] = int(siteDataItems[i][j])
-                    siteIDs.append(dic[Tag_ST_StationID.upper()])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_StationName):
-                    dic[Tag_ST_StationName.upper()] = StringClass.stripstring(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_Type):
-                    type = StringClass.splitstring(StringClass.stripstring(siteDataItems[i][j]), ',')
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_Latitude):
-                    dic[Tag_ST_Latitude.upper()] = float(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_Longitude):
-                    dic[Tag_ST_Longitude.upper()] = float(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_LocalX):
-                    dic[Tag_ST_LocalX.upper()] = float(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_LocalY):
-                    dic[Tag_ST_LocalY.upper()] = float(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_UNIT):
-                    dic[Tag_ST_UNIT.upper()] = StringClass.stripstring(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_Elevation):
-                    dic[Tag_ST_Elevation.upper()] = float(siteDataItems[i][j])
-                elif StringClass.stringmatch(siteFlds[j], Tag_ST_IsOutlet):
-                    dic[Tag_ST_IsOutlet.upper()] = float(siteDataItems[i][j])
 
-            for j in range(len(type)):
-                siteDic = {}
-                siteDic[Tag_ST_StationID.upper()] = dic[Tag_ST_StationID.upper()]
-                siteDic[Tag_ST_StationName.upper()] = dic[Tag_ST_StationName.upper()]
-                siteDic[Tag_ST_Type.upper()] = type[j]
-                siteDic[Tag_ST_Latitude.upper()] = dic[Tag_ST_Latitude.upper()]
-                siteDic[Tag_ST_Longitude.upper()] = dic[Tag_ST_Longitude.upper()]
-                siteDic[Tag_ST_LocalX.upper()] = dic[Tag_ST_LocalX.upper()]
-                siteDic[Tag_ST_LocalY.upper()] = dic[Tag_ST_LocalY.upper()]
-                siteDic[Tag_ST_Elevation.upper()] = dic[Tag_ST_Elevation.upper()]
-                siteDic[Tag_ST_IsOutlet.upper()] = dic[Tag_ST_IsOutlet.upper()]
-                # Add SubbasinID field
-                matched, curSubbasinID = matchSubbasin(siteDic)
-                if not matched:
-                    break
-                curSubbasinIDStr = ''
-                for id in curSubbasinID:
-                    if id is not None:
-                        curSubbasinIDStr += str(id) + ','
-                curSubbasinIDStr = curSubbasinIDStr[:-1]
-                siteDic[Tag_ST_SubbasinID.upper()] = curSubbasinIDStr
-                curfilter = {Tag_ST_StationID.upper(): siteDic[Tag_ST_StationID.upper()],
-                             Tag_ST_Type.upper()     : siteDic[Tag_ST_Type.upper()]}
-                # print (curfilter)
-                db[Tag_ClimateDB_Sites.upper()].find_one_and_replace(curfilter, siteDic, upsert = True)
+    @staticmethod
+    def match_subbasin(subbsn_file, site_dict):
+        """
+        Match the ID of subbasin
+            1. Read the coordinates of each subbasin's outlet, and
+               the outlet ID of the whole basin (not finished yet)
+            2. If the isOutlet field equals to
+               2.1 - 0, then return the subbasin_id of the site's location
+               2.2 - 1, then return the outlet ID of the whole basiin
+               2.3 - 2, then return the outlet ID of nearest subbasin
+               2.4 - 3, then return the outlet IDs of the conjunct subbasins
+        """
+        subbasin_raster = RasterUtilClass.read_raster(subbsn_file)
+        localx = site_dict.get(StationFields.x)
+        localy = site_dict.get(StationFields.y)
+        site_type = site_dict.get(StationFields.outlet)
+        subbasin_id = subbasin_raster.get_value_by_xy(localx, localy)
+        if subbasin_id is None and site_type != 1:
+            # the site is not inside the basin and not the outlet either.
+            return False, None
+        if site_type == 0:
+            return True, [subbasin_id]
+        elif site_type == 1:
+            return True, [subbasin_id]  # TODO, get outlet ID of the whole basin
+        elif site_type == 2:
+            return True, [subbasin_id]  # TODO
 
-                varDic = {}
-                varDic[Tag_ST_Type.upper()] = type[j]
-                varDic[Tag_ST_UNIT.upper()] = dic[Tag_ST_UNIT.upper()]
-                if varDic not in variableLists:
-                    variableLists.append(varDic)
-                    # curfilter = {Tag_ST_Type.upper(): varDic[Tag_ST_Type.upper()]}
-                    # db[Tag_ClimateDB_VARs.upper()].find_one_and_replace(curfilter, varDic, upsert = True)
-    siteIDs = list(set(siteIDs))
-    # 2. Read measurement data and import to MongoDB
-    for measDataFile in ObsTxtsList:
-        # print measDataFile
-        measDataItems = ReadDataItemsFromTxt(measDataFile)
-        # If the data items is EMPTY or only have one header row, then goto
-        # next data file.
-        if measDataItems == [] or len(measDataItems) == 1:
-            continue
-        measFlds = measDataItems[0]
-        requiredFlds = [Tag_ST_StationID.upper(), Tag_DT_Year.upper(), Tag_DT_Month.upper(),
-                        Tag_DT_Day.upper(), Tag_DT_Type.upper(), Tag_DT_Value.upper()]
-        for fld in requiredFlds:
-            if not StringClass.stringinlist(fld, measFlds):  # data can not meet the request!
-                raise ValueError("The %s cann't meet the required format!" % measDataFile)
-        for i in range(1, len(measDataItems)):
-            dic = {}
-            curY = 0
-            curM = 0
-            curD = 0
-            for j in range(len(measDataItems[i])):
-                if StringClass.stringmatch(measFlds[j], Tag_ST_StationID):
-                    dic[Tag_ST_StationID.upper()] = int(measDataItems[i][j])
-                    # if current site ID is not included, goto next data item
-                    if dic[Tag_ST_StationID.upper()] not in siteIDs:
-                        continue
-                elif StringClass.stringmatch(measFlds[j], Tag_DT_Year):
-                    curY = int(measDataItems[i][j])
-                elif StringClass.stringmatch(measFlds[j], Tag_DT_Month):
-                    curM = int(measDataItems[i][j])
-                elif StringClass.stringmatch(measFlds[j], Tag_DT_Day):
-                    curD = int(measDataItems[i][j])
-                elif StringClass.stringmatch(measFlds[j], Tag_DT_Type):
-                    dic[Tag_DT_Type.upper()] = measDataItems[i][j]
-                elif StringClass.stringmatch(measFlds[j], Tag_DT_Value):
-                    dic[Tag_DT_Value.upper()] = float(measDataItems[i][j])
-            dt = datetime.datetime(curY, curM, curD, 0, 0)
-            sec = time.mktime(dt.timetuple())
-            utcTime = time.gmtime(sec)
-            dic[Tag_DT_LocalT.upper()] = dt
-            dic[Tag_DT_Zone.upper()] = time.timezone / 3600
-            dic[Tag_DT_UTC.upper()] = datetime.datetime(
-                utcTime[0], utcTime[1], utcTime[2], utcTime[3])
-            curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                         Tag_DT_Type.upper()     : dic[Tag_DT_Type.upper()],
-                         Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
-            db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
-    # 3. Add measurement data with unit converted
-    # loop variables list
-    addedDics = []
-    for curVar in variableLists:
-        # print curVar
-        # if the unit is mg/L, then change the Type name with the suffix "Conc",
-        # and convert the corresponding data to kg if the discharge data is
-        # available.
-        curType = curVar[Tag_ST_Type.upper()]
-        curUnit = curVar[Tag_ST_UNIT.upper()]
-        # Find data by Type
-        for item in db[Tag_ClimateDB_Measurement.upper()].find({Tag_ST_Type.upper(): curType}):
-            # print item
-            dic = {}
-            dic[Tag_ST_StationID.upper()] = item[Tag_ST_StationID.upper()]
-            dic[Tag_DT_Value.upper()] = item[Tag_DT_Value.upper()]
-            dic[Tag_ST_Type.upper()] = item[Tag_ST_Type.upper()]
-            dic[Tag_DT_LocalT.upper()] = item[Tag_DT_LocalT.upper()]
-            dic[Tag_DT_Zone.upper()] = item[Tag_DT_Zone.upper()]
-            dic[Tag_DT_UTC.upper()] = item[Tag_DT_UTC.upper()]
+    @staticmethod
+    def data_from_txt(db, obs_txts_list, sites_info_txts_list, subbsn_file):
+        """
+        Read observed data from txt file
+        Args:
+            db: hydro-climate dababase
+            obs_txts_list: txt file paths of observed data
+            sites_info_txts_list: txt file paths of site information
+            subbsn_file: subbasin raster file
 
-            if curUnit == "mg/L":
-                # update the Type name
-                dic[Tag_ST_Type.upper()] = curType + "Conc"
-                curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                             Tag_DT_Type.upper()     : curType,
-                             Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
-                db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
-                dic[Tag_ST_Type.upper()] = curType
+        Returns:
+            True or False
+        """
+        # 1. Read monitor station information, and store variables information and station IDs
+        variable_lists = []
+        site_ids = []
+        for site_file in sites_info_txts_list:
+            site_data_items = read_data_items_from_txt(site_file)
+            site_flds = site_data_items[0]
+            for i in range(1, len(site_data_items)):
+                dic = {}
+                for j in range(len(site_data_items[i])):
+                    if StringClass.string_match(site_flds[j], StationFields.id):
+                        dic[StationFields.id] = int(site_data_items[i][j])
+                        site_ids.append(dic[StationFields.id])
+                    elif StringClass.string_match(site_flds[j], StationFields.name):
+                        dic[StationFields.name] = StringClass.strip_string(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.type):
+                        types = StringClass.split_string(StringClass.strip_string(
+                                site_data_items[i][j]), ',')
+                    elif StringClass.string_match(site_flds[j], StationFields.lat):
+                        dic[StationFields.lat] = float(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.lon):
+                        dic[StationFields.lon] = float(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.x):
+                        dic[StationFields.x] = float(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.y):
+                        dic[StationFields.y] = float(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.unit):
+                        dic[StationFields.unit] = StringClass.strip_string(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.elev):
+                        dic[StationFields.elev] = float(site_data_items[i][j])
+                    elif StringClass.string_match(site_flds[j], StationFields.outlet):
+                        dic[StationFields.outlet] = float(site_data_items[i][j])
 
-            # find discharge on current day
-            filter = {Tag_ST_Type.upper()     : "Q",
-                      Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()],
-                      Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()]}
-            QDic = db[Tag_ClimateDB_Measurement.upper()].find_one(filter = filter)
+                for j, cur_type in enumerate(types):
+                    site_dic = dict()
+                    site_dic[StationFields.id] = dic[StationFields.id]
+                    site_dic[StationFields.name] = dic[StationFields.name]
+                    site_dic[StationFields.type] = cur_type
+                    site_dic[StationFields.lat] = dic[StationFields.lat]
+                    site_dic[StationFields.lon] = dic[StationFields.lon]
+                    site_dic[StationFields.x] = dic[StationFields.x]
+                    site_dic[StationFields.y] = dic[StationFields.y]
+                    site_dic[StationFields.elev] = dic[StationFields.elev]
+                    site_dic[StationFields.outlet] = dic[StationFields.outlet]
+                    # Add SubbasinID field
+                    matched, cur_subbsn_id = ImportObservedData.match_subbasin(subbsn_file,
+                                                                               site_dic)
+                    if not matched:
+                        break
+                    cur_subbsn_id_str = ''
+                    for tmp_id in cur_subbsn_id:
+                        if tmp_id is not None:
+                            cur_subbsn_id_str += str(tmp_id) + ','
+                    cur_subbsn_id_str = cur_subbsn_id_str[:-1]
+                    site_dic[StationFields.id] = cur_subbsn_id_str
+                    curfilter = {StationFields.id: site_dic[StationFields.id],
+                                 StationFields.type: site_dic[StationFields.type]}
+                    # print (curfilter)
+                    db[DBTableNames.sites].find_one_and_replace(curfilter, site_dic,
+                                                                upsert=True)
 
-            q = -9999.
-            if QDic is not None:  # and QDic.has_key(Tag_DT_Value.upper()):
-                q = QDic[Tag_DT_Value.upper()]
-            else:
+                    var_dic = dict()
+                    var_dic[StationFields.type] = types[j]
+                    var_dic[StationFields.unit] = dic[StationFields.unit]
+                    if var_dic not in variable_lists:
+                        variable_lists.append(var_dic)
+        site_ids = list(set(site_ids))
+        # 2. Read measurement data and import to MongoDB
+        for measDataFile in obs_txts_list:
+            # print measDataFile
+            obs_data_items = read_data_items_from_txt(measDataFile)
+            # If the data items is EMPTY or only have one header row, then goto
+            # next data file.
+            if obs_data_items == [] or len(obs_data_items) == 1:
                 continue
-            if curUnit == "mg/L":
-                # convert mg/L to kg
-                dic[Tag_DT_Value.upper()] = round(dic[Tag_DT_Value.upper()] * q * 86400. / 1000., 2)
-            elif curUnit == "kg":
-                dic[Tag_ST_Type.upper()] = curType + "Conc"
-                # convert kg to mg/L
-                dic[Tag_DT_Value.upper()] = round(dic[Tag_DT_Value.upper()] / q * 1000. / 86400., 2)
-            # add new data item
-            addedDics.append(dic)
-    # import to MongoDB
-    for dic in addedDics:
-        curfilter = {Tag_ST_StationID.upper(): dic[Tag_ST_StationID.upper()],
-                     Tag_DT_Type.upper()     : dic[Tag_DT_Type.upper()],
-                     Tag_DT_UTC.upper()      : dic[Tag_DT_UTC.upper()]}
-        db[Tag_ClimateDB_Measurement.upper()].find_one_and_replace(curfilter, dic, upsert = True)
+            obs_flds = obs_data_items[0]
+            required_flds = [StationFields.id, DataValueFields.y, DataValueFields.m,
+                             DataValueFields.d, DataValueFields.type, DataValueFields.value]
+            for fld in required_flds:
+                if not StringClass.string_in_list(fld, obs_flds):  # data can not meet the request!
+                    raise ValueError("The %s cann't meet the required format!" % measDataFile)
+            for i in range(1, len(obs_data_items)):
+                dic = dict()
+                cur_y = 0
+                cur_m = 0
+                cur_d = 0
+                for j in range(len(obs_data_items[i])):
+                    if StringClass.string_match(obs_flds[j], StationFields.id):
+                        dic[StationFields.id] = int(obs_data_items[i][j])
+                        # if current site ID is not included, goto next data item
+                        if dic[StationFields.id] not in site_ids:
+                            continue
+                    elif StringClass.string_match(obs_flds[j], DataValueFields.y):
+                        cur_y = int(obs_data_items[i][j])
+                    elif StringClass.string_match(obs_flds[j], DataValueFields.m):
+                        cur_m = int(obs_data_items[i][j])
+                    elif StringClass.string_match(obs_flds[j], DataValueFields.d):
+                        cur_d = int(obs_data_items[i][j])
+                    elif StringClass.string_match(obs_flds[j], DataValueFields.type):
+                        dic[DataValueFields.type] = obs_data_items[i][j]
+                    elif StringClass.string_match(obs_flds[j], DataValueFields.value):
+                        dic[DataValueFields.value] = float(obs_data_items[i][j])
+                dt = datetime.datetime(cur_y, cur_m, cur_d, 0, 0)
+                sec = time.mktime(dt.timetuple())
+                utc_time = time.gmtime(sec)
+                dic[DataValueFields.local_time] = dt
+                dic[DataValueFields.time_zone] = time.timezone / 3600
+                dic[DataValueFields.utc] = datetime.datetime(utc_time[0], utc_time[1],
+                                                             utc_time[2], utc_time[3])
+                curfilter = {StationFields.id: dic[StationFields.id],
+                             DataValueFields.type: dic[DataValueFields.type],
+                             DataValueFields.utc: dic[DataValueFields.utc]}
+                db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+        # 3. Add measurement data with unit converted
+        # loop variables list
+        added_dics = []
+        for curVar in variable_lists:
+            # print curVar
+            # if the unit is mg/L, then change the Type name with the suffix "Conc",
+            # and convert the corresponding data to kg if the discharge data is
+            # available.
+            cur_type = curVar[StationFields.type]
+            cur_unit = curVar[StationFields.unit]
+            # Find data by Type
+            for item in db[DBTableNames.observes].find({StationFields.type: cur_type}):
+                # print item
+                dic = dict()
+                dic[StationFields.id] = item[StationFields.id]
+                dic[DataValueFields.value] = item[DataValueFields.value]
+                dic[StationFields.type] = item[StationFields.type]
+                dic[DataValueFields.local_time] = item[DataValueFields.local_time]
+                dic[DataValueFields.time_zone] = item[DataValueFields.time_zone]
+                dic[DataValueFields.utc] = item[DataValueFields.utc]
 
+                if cur_unit == "mg/L":
+                    # update the Type name
+                    dic[StationFields.type] = cur_type + "Conc"
+                    curfilter = {StationFields.id: dic[StationFields.id],
+                                 DataValueFields.type: cur_type,
+                                 DataValueFields.utc: dic[DataValueFields.utc]}
+                    db[DBTableNames.observes].find_one_and_replace(curfilter, dic,
+                                                                   upsert=True)
+                    dic[StationFields.type] = cur_type
 
-def ImportMeasurementData(db):
-    """
-    This function mainly to import measurement data to MongoDB
-    data type may include Q (discharge, m3/s), tn, tp, etc.
-    the required parameters that defined in configuration file (*.ini)
-    :param MEASUREMENT_DATA_DIR: MEASUREMENT_DATA_DIR of measurement data files
-    """
-    if not useObserved:
-        return False
-    cList = db.collection_names()
-    if not StringClass.stringinlist(Tag_ClimateDB_Measurement.upper(), cList):
-        db.create_collection(Tag_ClimateDB_Measurement.upper())
-    else:
-        db.drop_collection(Tag_ClimateDB_Measurement.upper())
-    if not StringClass.stringinlist(Tag_ClimateDB_Sites.upper(), cList):
-        db.create_collection(Tag_ClimateDB_Sites.upper())
-    if not StringClass.stringinlist(Tag_ClimateDB_VARs.upper(), cList):
-        db.create_collection(Tag_ClimateDB_VARs.upper())
+                # find discharge on current day
+                cur_filter = {StationFields.type: "Q",
+                              DataValueFields.utc: dic[DataValueFields.utc],
+                              StationFields.id: dic[StationFields.id]}
+                QDic = db[DBTableNames.observes].find_one(filter=cur_filter)
 
-    fileList = FileClass.getfullfilenamebysuffixes(MEASUREMENT_DATA_DIR, ['.txt'])
-    measFileList = []
-    siteLoc = []
-    for fl in fileList:
-        if StringClass.issubstring('observed_', fl):
-            measFileList.append(fl)
+                q = -9999.
+                if QDic is not None:  # and QDic.has_key(DataValueFields.value):
+                    q = QDic[DataValueFields.value]
+                else:
+                    continue
+                if cur_unit == "mg/L":
+                    # convert mg/L to kg
+                    dic[DataValueFields.value] = round(
+                            dic[DataValueFields.value] * q * 86400. / 1000., 2)
+                elif cur_unit == "kg":
+                    dic[StationFields.type] = cur_type + "Conc"
+                    # convert kg to mg/L
+                    dic[DataValueFields.value] = round(
+                            dic[DataValueFields.value] / q * 1000. / 86400., 2)
+                # add new data item
+                added_dics.append(dic)
+        # import to MongoDB
+        for dic in added_dics:
+            curfilter = {StationFields.id: dic[StationFields.id],
+                         DataValueFields.type: dic[DataValueFields.type],
+                         DataValueFields.utc: dic[DataValueFields.utc]}
+            db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+
+    @staticmethod
+    def workflow(cfg, db):
+        """
+        This function mainly to import measurement data to MongoDB
+        data type may include Q (discharge, m3/s), tn, tp, etc.
+        the required parameters that defined in configuration file (*.ini)
+        :param observe_dir: observe_dir of measurement data files
+        """
+        if not cfg.use_observed:
+            return False
+        c_list = db.collection_names()
+        if not StringClass.string_in_list(DBTableNames.observes, c_list):
+            db.create_collection(DBTableNames.observes)
         else:
-            siteLoc.append(fl)
-    ImportData(db, measFileList, siteLoc)
-    return True
+            db.drop_collection(DBTableNames.observes)
+        if not StringClass.string_in_list(DBTableNames.sites, c_list):
+            db.create_collection(DBTableNames.sites)
+        if not StringClass.string_in_list(DBTableNames.var_desc, c_list):
+            db.create_collection(DBTableNames.var_desc)
+
+        file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt'])
+        meas_file_list = []
+        site_loc = []
+        for fl in file_list:
+            if StringClass.is_substring('observed_', fl):
+                meas_file_list.append(fl)
+            else:
+                site_loc.append(fl)
+        ImportObservedData.data_from_txt(db, meas_file_list, site_loc, cfg.spatials.subbsn)
+        return True
+
+
+def main():
+    """TEST CODE"""
+    seims_cfg = parse_ini_configuration()
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    hydroclim_db = conn[seims_cfg.climate_db]
+
+    ImportObservedData.workflow(seims_cfg, hydroclim_db)
+
+    client.close()
 
 
 if __name__ == "__main__":
-    LoadConfiguration(getconfigfile())
-    client = ConnectMongoDB(HOSTNAME, PORT)
-    conn = client.get_conn()
-    db = conn[ClimateDBName]
-    ImportMeasurementData(db)
-    client.close()
+    main()
