@@ -5,7 +5,6 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-29  lj - reformat according to pylint and google style
 """
-
 # Load configuration file
 from seims.preprocess.config import parse_ini_configuration
 # MongoDB modules
