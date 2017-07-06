@@ -53,11 +53,11 @@ class ImportObservedData(object):
             return True, [subbasin_id]  # TODO
 
     @staticmethod
-    def data_from_txt(db, obs_txts_list, sites_info_txts_list, subbsn_file):
+    def data_from_txt(hydro_clim_db, obs_txts_list, sites_info_txts_list, subbsn_file):
         """
         Read observed data from txt file
         Args:
-            db: hydro-climate dababase
+            hydro_clim_db: hydro-climate dababase
             obs_txts_list: txt file paths of observed data
             sites_info_txts_list: txt file paths of site information
             subbsn_file: subbasin raster file
@@ -122,8 +122,8 @@ class ImportObservedData(object):
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
                     # print (curfilter)
-                    db[DBTableNames.sites].find_one_and_replace(curfilter, site_dic,
-                                                                upsert=True)
+                    hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, site_dic,
+                                                                           upsert=True)
 
                     var_dic = dict()
                     var_dic[StationFields.type] = types[j]
@@ -132,7 +132,7 @@ class ImportObservedData(object):
                         variable_lists.append(var_dic)
         site_ids = list(set(site_ids))
         # 2. Read measurement data and import to MongoDB
-        bulk = db[DBTableNames.observes].initialize_ordered_bulk_op()
+        bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
         count = 0
         for measDataFile in obs_txts_list:
             # print measDataFile
@@ -180,10 +180,10 @@ class ImportObservedData(object):
                              DataValueFields.utc: dic[DataValueFields.utc]}
                 bulk.find(curfilter).replace_one(dic)
                 count += 1
-                if count % 500 ==0:
+                if count % 500 == 0:
                     bulk.execute()
-                    bulk = db[DBTableNames.observes].initialize_ordered_bulk_op()
-                # db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+                    bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
+                    # db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
         if count % 500 != 0:
             bulk.execute()
         # 3. Add measurement data with unit converted
@@ -197,7 +197,7 @@ class ImportObservedData(object):
             cur_type = curVar[StationFields.type]
             cur_unit = curVar[StationFields.unit]
             # Find data by Type
-            for item in db[DBTableNames.observes].find({StationFields.type: cur_type}):
+            for item in hydro_clim_db[DBTableNames.observes].find({StationFields.type: cur_type}):
                 # print item
                 dic = dict()
                 dic[StationFields.id] = item[StationFields.id]
@@ -213,15 +213,15 @@ class ImportObservedData(object):
                     curfilter = {StationFields.id: dic[StationFields.id],
                                  DataValueFields.type: cur_type,
                                  DataValueFields.utc: dic[DataValueFields.utc]}
-                    db[DBTableNames.observes].find_one_and_replace(curfilter, dic,
-                                                                   upsert=True)
+                    hydro_clim_db[DBTableNames.observes].find_one_and_replace(curfilter, dic,
+                                                                              upsert=True)
                     dic[StationFields.type] = cur_type
 
                 # find discharge on current day
                 cur_filter = {StationFields.type: "Q",
                               DataValueFields.utc: dic[DataValueFields.utc],
                               StationFields.id: dic[StationFields.id]}
-                q_dic = db[DBTableNames.observes].find_one(filter=cur_filter)
+                q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
 
                 q = -9999.
                 if q_dic is not None:  # and q_dic.has_key(DataValueFields.value):
@@ -244,7 +244,7 @@ class ImportObservedData(object):
             curfilter = {StationFields.id: dic[StationFields.id],
                          DataValueFields.type: dic[DataValueFields.type],
                          DataValueFields.utc: dic[DataValueFields.utc]}
-            db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
+            hydro_clim_db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
 
     @staticmethod
     def workflow(cfg, db):
