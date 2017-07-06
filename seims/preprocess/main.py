@@ -5,6 +5,7 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-29  lj - reformat according to pylint and google style
 """
+import time
 # Load configuration file
 from seims.preprocess.config import parse_ini_configuration
 # MongoDB modules
@@ -17,6 +18,7 @@ from seims.preprocess.sp_extraction import extract_spatial_parameters
 
 def main():
     """Main entrance for the whole preprocessing workflow"""
+    start_time = time.time()
     # Parse Configuration file
     seims_cfg = parse_ini_configuration()
     # Spatial delineation by TauDEM
@@ -26,6 +28,8 @@ def main():
     # Import to MongoDB database
     ImportMongodbClass.workflow(seims_cfg)
 
+    end_time = time.time()
+    print ("SEIMS preprocess done, time-consuming: %.2f seconds." % (end_time - start_time))
 
 if __name__ == "__main__":
     main()

@@ -92,10 +92,10 @@ class ImportWeightData(object):
         weight_m_name = str(subbsn_id) + '_WEIGHT_M'
         mask = maindb[DBTableNames.gridfs_spatial].files.find({"filename": mask_name})[0]
         weight_m = maindb[DBTableNames.gridfs_spatial].files.find({"filename": weight_m_name})[0]
-        num_cells = int(weight_m["metadata"][RasterMetadata.site_num])
+        num_cells = int(weight_m["metadata"][RasterMetadata.cellnum])
         num_sites = int(weight_m["metadata"][RasterMetadata.site_num])
-        # read meteorlogy sites
-        site_lists = maindb[DBTableNames.sites].find({FieldNames.subbasin_id: subbsn_id})
+        # read meteorology sites
+        site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
         site_list = site_lists.next()
         db_name = site_list[FieldNames.db]
         m_list = site_list.get(FieldNames.site_m)
@@ -104,13 +104,13 @@ class ImportWeightData(object):
         site_list = m_list.split(',')
         site_list = [int(item) for item in site_list]
 
-        qDic = {StationFields.id: {'$in': site_list},
-                StationFields.type: DataType.phu0}
-        cursor = hydro_clim_db[DBTableNames.annual_stats].find(qDic).sort(StationFields.id, 1)
+        q_dic = {StationFields.id: {'$in': site_list},
+                 StationFields.type: DataType.phu0}
+        cursor = hydro_clim_db[DBTableNames.annual_stats].find(q_dic).sort(StationFields.id, 1)
 
-        qDic2 = {StationFields.id: {'$in': site_list},
-                 StationFields.type: DataType.mean_tmp0}
-        cursor2 = hydro_clim_db[DBTableNames.annual_stats].find(qDic2).sort(StationFields.id, 1)
+        q_dic2 = {StationFields.id: {'$in': site_list},
+                  StationFields.type: DataType.mean_tmp0}
+        cursor2 = hydro_clim_db[DBTableNames.annual_stats].find(q_dic2).sort(StationFields.id, 1)
 
         id_list = []
         phu_list = []
@@ -126,6 +126,7 @@ class ImportWeightData(object):
 
         weight_m_data = spatial_gfs.get(weight_m["_id"])
         total_len = num_cells * num_sites
+        # print (total_len)
         fmt = '%df' % (total_len,)
         weight_m_data = unpack(fmt, weight_m_data.read())
 
@@ -226,9 +227,7 @@ class ImportWeightData(object):
         # read stations information from database
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num}
-
-        site_lists = db_model[DBTableNames.main_sitelist].find(
-                {FieldNames.subbasin_id: subbsn_id})
+        site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
         site_list = site_lists.next()
         clim_db_name = site_list[FieldNames.db]
         p_list = site_list.get(FieldNames.site_p)
@@ -289,14 +288,14 @@ class ImportWeightData(object):
                                                         subbsn_id, type_list[type_i]), 'w')
                 for y in range(0, ysize):
                     for x in range(0, xsize):
-                        index = y * xsize + x
+                        index = int(y * xsize + x)
                         # print index
                         if abs(data[index] - nodata_value) > UTIL_ZERO:
-                            x = xll + x * dx
-                            y = yll + (ysize - y - 1) * dx
+                            x_coor = xll + x * dx
+                            y_coor = yll + (ysize - y - 1) * dx
                             near_index = 0
                             # print locList
-                            line, near_index = ImportWeightData.thiessen(x, y, loc_list)
+                            line, near_index = ImportWeightData.thiessen(x_coor, y_coor, loc_list)
                             myfile.write(line)
                             fmt = '%df' % (len(loc_list))
                             f_test.write("%f %f " % (x, y) + unpack(fmt, line).__str__() + "\n")

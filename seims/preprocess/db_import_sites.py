@@ -46,7 +46,7 @@ class ImportHydroClimateSites(object):
     """
 
     @staticmethod
-    def sites_table(db, site_file, site_type):
+    def sites_table(hydro_clim_db, site_file, site_type):
         """Import HydroClimate sites table"""
         sites_loc = dict()
         site_data_items = read_data_items_from_txt(site_file)
@@ -74,7 +74,7 @@ class ImportHydroClimateSites(object):
             dic[StationFields.type] = site_type
             curfilter = {StationFields.id: dic[StationFields.id],
                          StationFields.type: dic[StationFields.type]}
-            db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
+            hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
 
             if dic[StationFields.id] not in sites_loc.keys():
                 sites_loc[dic[StationFields.id]] = SiteInfo(dic[StationFields.id],
@@ -84,8 +84,8 @@ class ImportHydroClimateSites(object):
                                                             dic[StationFields.x],
                                                             dic[StationFields.y],
                                                             dic[StationFields.elev])
-        db[DBTableNames.sites].create_index([(StationFields.id, ASCENDING),
-                                             (StationFields.type, ASCENDING)])
+        hydro_clim_db[DBTableNames.sites].create_index([(StationFields.id, ASCENDING),
+                                                        (StationFields.type, ASCENDING)])
         return sites_loc
 
     @staticmethod
@@ -159,12 +159,12 @@ class ImportHydroClimateSites(object):
                 slist = [str(item) for item in site_list]
                 site_list_str = ','.join(slist)
 
-                site_field = '%s%s' % (DBTableNames.sites, site_type)
+                site_field = '%s%s' % (DBTableNames.main_sitelist, site_type)
                 dic[site_field] = site_list_str
-            maindb[DBTableNames.sites].find_one_and_replace(cur_fileter, dic, upsert=True)
+            maindb[DBTableNames.main_sitelist].find_one_and_replace(cur_fileter, dic, upsert=True)
 
-        maindb[DBTableNames.sites].create_index([(FieldNames.subbasin_id, ASCENDING),
-                                                 (FieldNames.mode, ASCENDING)])
+        maindb[DBTableNames.main_sitelist].create_index([(FieldNames.subbasin_id, ASCENDING),
+                                                         (FieldNames.mode, ASCENDING)])
         # print 'Meteorology sites table was generated.'
 
     @staticmethod
