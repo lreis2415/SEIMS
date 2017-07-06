@@ -67,10 +67,13 @@ ssh-keygen -t rsa -C crazyzlj@gmail.com
 ~~~
 cd <destination folder>
 git clone git@github.com:<yourname>/SEIMS.git
-
+#推荐只克隆dev分支，用法（需要有git-1.7.10以上版本）：
+git clone <url> --branch <branch> --single-branch
 e.g.,
 cd e:/code/hydro
 git clone git@github.com:crazyzlj/SEIMS.git
+#只克隆dev分支示例：
+git clone git@github.com:crazyzlj/SEIMS.git --branch dev --single-branch
 ~~~
 
 + 随后，`cd`到克隆库目录，添加上游远程仓库，这一步**很重要**，关系到之后的代码同步和更新：
