@@ -40,7 +40,7 @@ class ImportScenario2Mongo(object):
         bmp_tabs_path = []
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
-            bmp_tabs_path.append(cfg.bmp_scenario_db + os.sep + f)
+            bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
 
         # create if collection not existed
         c_list = scenario_db.collection_names()
@@ -53,8 +53,7 @@ class ImportScenario2Mongo(object):
         subbasin_r = RasterUtilClass.read_raster(cfg.spatials.subbsn)
         dist2stream_r = RasterUtilClass.read_raster(cfg.spatials.dist2stream_d8)
         # End reading
-        for j, tmp_bmp_tabs in enumerate(bmp_tabs_path):
-            bmp_txt = tmp_bmp_tabs
+        for j, bmp_txt in enumerate(bmp_tabs_path):
             bmp_tab_name = bmp_tabs[j]
             data_array = read_data_items_from_txt(bmp_txt)
             field_array = data_array[0]

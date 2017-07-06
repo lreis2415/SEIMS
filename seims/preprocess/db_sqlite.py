@@ -10,25 +10,28 @@ import sqlite3
 
 from seims.preprocess.text import ModelParamFields
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.utils.utils import UtilClass
+from seims.pygeoc.pygeoc.utils.utils import UtilClass, FileClass
 
 
 def txt_to_sqlite(cfg, data_files, db_file):
     """Read data from text file."""
     data_import = dict()  # format: {tabName:[fieldName, Units, dataRows]}
-    for data_file in data_files:
-        # print data_file
-        data_items = read_data_items_from_txt(data_file)
+    for tag_file_list in data_files:
+        # print tag_file_list
+        data_items = read_data_items_from_txt(tag_file_list[1])
+        data_core_name = FileClass.get_core_name_without_suffix(tag_file_list[1])
         # print data_items
-        if data_file[0] == cfg.sqlitecfgs.Tag_Params:
+        if tag_file_list[0] == cfg.sqlitecfgs.Tag_Params:
             field_names = data_items[0][1:]
             units = data_items[1][1:]
             change_idx = field_names.index(ModelParamFields.change) + 1
             impact_idx = field_names.index(ModelParamFields.impact) + 1
             max_idx = field_names.index(ModelParamFields.max) + 1
             min_idx = field_names.index(ModelParamFields.min) + 1
-            for i in range(2, len(data_items)):
-                cur_data_item = data_items[i]
+
+            for i, cur_data_item in enumerate(data_items):
+                if i < 2:
+                    continue
                 # print cur_data_item
                 if cur_data_item[change_idx] == ModelParamFields.change_nc\
                         or cur_data_item[change_idx] == '':
@@ -52,11 +55,11 @@ def txt_to_sqlite(cfg, data_files, db_file):
         else:
             field_names = data_items[0]
             units = data_items[1]
-            if data_file[1] not in data_import:
-                data_import[data_file[1]] = [field_names, units, []]
+            if data_core_name not in data_import:
+                data_import[data_core_name] = [field_names, units, []]
             for i in range(2, len(data_items)):
-                data_import[data_file[1]][2].append(data_items[i])
-    # print data_import
+                data_import[data_core_name][2].append(data_items[i])
+    # print (data_import)
     import_data_to_sqlite(data_import, db_file)
 
 
@@ -69,11 +72,11 @@ def import_data_to_sqlite(data_import, db_file):
         unit_types = v[1]
         data_row = v[2]
         field_name_str = ''
-        for i in range(len(flds)):
-            field_name_str += flds[i] + ' ' + unit_types[i] + ' DEFAULT NULL,'
+        for i, fld in enumerate(flds):
+            field_name_str += fld + ' ' + unit_types[i] + ' DEFAULT NULL,'
         create_table_sql = '''CREATE TABLE IF NOT EXISTS %s (%s)''' % (tab_name,
                                                                        field_name_str[:-1])
-        # print create_table_sql
+        # print (create_table_sql)
         cur.execute(create_table_sql)
         # construct a string like '?,?,?,...'
         tmp_arg = ','.join(['?' for i in range(0, len(flds))])
