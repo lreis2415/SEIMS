@@ -359,16 +359,18 @@ class UtilClass(object):
                                    stderr=subprocess.STDOUT, universal_newlines=True,
                                    creationflags=subprocess_flags)
 
+        if process.stdout is None:
+            return ['']
         out_lines = process.stdout.readlines()
         err = False
         for line in out_lines:
             if 'ERROR' in line.upper():
                 err = True
                 break
-        if err or process.returncode != 0:
-            raise RuntimeError("ERROR occurred when running subprocess!")
+        if err or (process.returncode is not None and process.returncode != 0):
+            raise subprocess.CalledProcessError(-1, commands,
+                                                "ERROR occurred when running subprocess!")
         return out_lines
-
 
     @staticmethod
     def current_path():
