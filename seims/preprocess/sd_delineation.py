@@ -40,13 +40,13 @@ class SpatialDelineation(object):
                              "coordinate, which is required!" % cfg.dem)
         # print proj_srs
         wgs84_srs = "EPSG:4326"
-        geo_json_dict = {"reach": cfg.vecs.json_reach,
-                         "subbasin": cfg.vecs.json_subbsn,
-                         "basin": cfg.vecs.json_bsn,
-                         "outlet": cfg.vecs.json_outlet}
-        for jsonName, jsonfile in geo_json_dict:
-            VectorUtilClass.convert2geojson(jsonfile, proj_srs, wgs84_srs,
-                                            geo_json_dict.get(jsonName))
+        geo_json_dict = {"reach": [cfg.vecs.reach, cfg.vecs.json_reach],
+                         "subbasin": [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
+                         "basin": [cfg.vecs.bsn, cfg.vecs.json_bsn],
+                         "outlet": [cfg.vecs.outlet, cfg.vecs.json_outlet]}
+        for jsonName, shp_json_list in geo_json_dict.items():
+            VectorUtilClass.convert2geojson(shp_json_list[1], proj_srs, wgs84_srs,
+                                            shp_json_list[0])
 
     @staticmethod
     def original_delineation(cfg):
@@ -181,7 +181,7 @@ class SpatialDelineation(object):
                           cfg.taudems.dist2stream_d8]
         # output masked files
         output_files = [cfg.taudems.subbsn_m, cfg.taudems.d8flow_m, cfg.taudems.stream_m,
-                        cfg.spatials.slope, cfg.spatials.filldem, cfg.taudems.d8acc,
+                        cfg.spatials.slope, cfg.spatials.filldem, cfg.spatials.d8acc,
                         cfg.spatials.stream_order, cfg.spatials.dinf, cfg.spatials.dinf_d8dir,
                         cfg.spatials.dinf_slp, cfg.spatials.dinf_weight,
                         cfg.spatials.dist2stream_d8]
@@ -304,7 +304,7 @@ class SpatialDelineation(object):
         SpatialDelineation.original_delineation(cfg)
         # 2. Mask delineated raster by subbasin
         SpatialDelineation.mask_origin_delineated_data(cfg)
-        # 3. Post processing, such as serialize strean ID, mask dataset etc.
+        # 3. Post processing, such as serialize stream ID, mask dataset etc.
         SpatialDelineation.post_process_of_delineated_data(cfg)
         # 4. Convert current coordinate to WGS84 and convert shapefile to GeoJson.
         SpatialDelineation.output_wgs84_geojson(cfg)
