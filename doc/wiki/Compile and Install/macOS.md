@@ -63,6 +63,23 @@ SEIMS的矢栅数据读写基于`GDAL 1.x`编写，macOS下推荐使用[William 
     >>> from osgeo import gdal_array
     >>> from osgeo import gdal
     ```
++ 此外，还应将GDAL自带可执行程序的安装目录添加至环境变量PATH中，以便可以直接在Terminal中调用GDAL程序：
+参考[这篇博客](http://architectryan.com/2012/10/02/add-to-the-path-on-mac-os-x-mountain-lion/#.WV47mtOGOu5)
+    ```bash
+    ~ sudo nano /etc/paths
+    # Enter your password, when prompted.
+    # Go to the bottom of the file, and enter the path you wish to add.
+    /Library/Frameworks/GDAL.framework/Programs
+    # Hit control-x to quit.
+    # Enter “Y” to save the modified buffer.
+    # To test it, in new terminal window, type:
+    ~ echo $PATH
+    /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Frameworks/GDAL.framework/Programs
+    # 测试
+    ~ gdalinfo --version
+    
+    GDAL 1.11.4, released 2016/01/25
+    ```
 
 ## 1.5. mongo-c-driver
 
