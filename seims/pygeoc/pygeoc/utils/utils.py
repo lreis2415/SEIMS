@@ -438,5 +438,7 @@ def get_config_file():
     parser.add_argument('-ini', help="Full path of configuration file")
     args = parser.parse_args(namespace=c)
     ini_file = args.ini
-    FileClass.check_file_exists(ini_file)
+    if not FileClass.is_file_exists(ini_file):
+        print ("Usage: -ini <full path to the configuration file.>")
+        exit(0)
     return ini_file
