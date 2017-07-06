@@ -90,20 +90,20 @@ class MathClass(object):
             raise ValueError("The size of observed and simulated values must be "
                              "the same for R-square calculation!")
         n = len(obsvalues)
-        obsAvg = sum(obsvalues) / n
-        predAvg = sum(simvalues) / n
-        obsMinusAvgSq = 0.
-        predMinusAvgSq = 0.
-        obsPredMinusAvgs = 0.
+        obs_avg = sum(obsvalues) / n
+        pred_avg = sum(simvalues) / n
+        obs_minus_avg_sq = 0.
+        pred_minus_avg_sq = 0.
+        obs_pred_minus_avgs = 0.
         for i in range(n):
-            obsMinusAvgSq += pow((obsvalues[i] - obsAvg), 2.)
-            predMinusAvgSq += pow((simvalues[i] - predAvg), 2.)
-            obsPredMinusAvgs += (obsvalues[i] - obsAvg) * (simvalues[i] - predAvg)
+            obs_minus_avg_sq += pow((obsvalues[i] - obs_avg), 2.)
+            pred_minus_avg_sq += pow((simvalues[i] - pred_avg), 2.)
+            obs_pred_minus_avgs += (obsvalues[i] - obs_avg) * (simvalues[i] - pred_avg)
         # Calculate R-square
-        yy = (pow(obsMinusAvgSq, 0.5) * pow(predMinusAvgSq, 0.5))
+        yy = (pow(obs_minus_avg_sq, 0.5) * pow(pred_minus_avg_sq, 0.5))
         if yy == 0.:
             return 1.
-        return pow((obsPredMinusAvgs / yy), 2.)
+        return pow((obs_pred_minus_avgs / yy), 2.)
 
     @staticmethod
     def rmse(list1, list2):
@@ -250,7 +250,7 @@ class FileClass(object):
     @staticmethod
     def get_executable_fullpath(name):
         """get the full path of a given executable name"""
-        if sysstr == 'Windows': # not test yet
+        if sysstr == 'Windows':  # not test yet
             findout = UtilClass.run_command('where %s' % name)
         else:
             findout = UtilClass.run_command('which %s' % name)
@@ -291,6 +291,13 @@ class FileClass(object):
         for name in FileClass.get_filename_by_suffixes(dir_src, suffixes):
             full_paths.append(dir_src + os.sep + name)
         return full_paths
+
+    @staticmethod
+    def get_core_name_without_suffix(file_path):
+        """Return core file name without suffix."""
+        file_name = os.path.basename(file_path)
+        core_name = file_name.split('.')[0]
+        return core_name
 
 
 class DateClass(object):
