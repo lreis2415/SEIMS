@@ -74,7 +74,10 @@ class ImportPrecipitation(object):
                 else:
                     # db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
                     #                                                   upsert=True)
-                    bulk.find(curfilter).replace_one(cur_dic)
+                    if db[DBTableNames.data_values].find(curfilter).count() != 0:
+                        bulk.find(curfilter).replace_one(cur_dic)
+                    else:
+                        bulk.insert(cur_dic)
                 count += 1
                 if count % 500 == 0:  # execute each 500 records
                     bulk.execute()
@@ -94,6 +97,8 @@ class ImportPrecipitation(object):
         first_import = False
         if not StringClass.string_in_list(DBTableNames.data_values, c_list):
             clim_db.create_collection(DBTableNames.data_values)
+            first_import = True
+        if clim_db[DBTableNames.data_values].find({DataValueFields.type: DataType.p}).count() == 0:
             first_import = True
         ImportPrecipitation.regular_data_from_txt(clim_db, cfg.prec_data, first_import)
 

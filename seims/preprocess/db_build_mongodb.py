@@ -64,7 +64,7 @@ class ImportMongodbClass(object):
                                                                DBTableNames.gridfs_spatial,
                                                                cfg.hostname, cfg.port,
                                                                cfg.dirs.import2db)
-        print (str_cmd)
+        # print (str_cmd)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
@@ -131,24 +131,28 @@ class ImportMongodbClass(object):
     @staticmethod
     def iuh(cfg, n_subbasins):
         """Invoke IUH program"""
+        if not cfg.cluster:
+            n_subbasins = 0
         if cfg.gen_iuh:
             dt = 24
             str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
                                                       cfg.spatial_db,
                                                       DBTableNames.gridfs_spatial,
                                                       dt, n_subbasins)
-            print (str_cmd)
+            # print (str_cmd)
             UtilClass.run_command(str_cmd)
 
     @staticmethod
-    def grid_layering(cfg, n_subbsn):
+    def grid_layering(cfg, n_subbasins):
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.rmmkdir(layering_dir)
+        if not cfg.cluster:
+            n_subbasins = 0
         str_cmd = '"%s/grid_layering" %s %d %s %s %s %d' % (
             cfg.seims_bin, cfg.hostname, cfg.port, layering_dir,
-            cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbsn)
-        print (str_cmd)
+            cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
+        # print (str_cmd)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
@@ -218,6 +222,7 @@ def main():
     from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     ImportMongodbClass.workflow(seims_cfg)
+    # ImportMongodbClass.grid_layering(seims_cfg, 0)
 
 
 if __name__ == "__main__":
