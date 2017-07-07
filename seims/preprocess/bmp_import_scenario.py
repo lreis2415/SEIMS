@@ -5,7 +5,7 @@
     @changelog: 16-06-16  first implementation version
                 17-06-22  improve according to pylint and google style
 """
-import os
+from os import sep as SEP
 
 from seims.preprocess.text import DBTableNames
 from seims.preprocess.utility import read_data_items_from_txt
@@ -40,7 +40,7 @@ class ImportScenario2Mongo(object):
         bmp_tabs_path = []
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
-            bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
+            bmp_tabs_path.append(cfg.scenario_dir + SEP + f)
 
         # create if collection not existed
         c_list = scenario_db.collection_names()
@@ -82,7 +82,7 @@ class ImportScenario2Mongo(object):
                     scenario_db[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
                                                                            upsert=True)
         # print 'BMP tables are imported.'
-        # Write BMP database name into Model main database
+        # Write BMP database name into Model workflow database
         c_list = main_db.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_scenario, c_list):
             main_db.create_collection(DBTableNames.main_scenario)

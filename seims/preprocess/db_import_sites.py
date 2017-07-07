@@ -4,11 +4,10 @@
     @author   : Liangjun Zhu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-07-04  lj - reorganize according to pylint and google style
-                17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in main database
+                17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
 """
-from osgeo import ogr
+from osgeo.ogr import Open as ogr_Open
 from pymongo import ASCENDING
-from shapely.wkt import loads
 
 from seims.preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
@@ -41,7 +40,7 @@ class SiteInfo(object):
 class ImportHydroClimateSites(object):
     """Import hydro-climate sites information.
        1. Find meteorology and precipitation sites in study area, and save at SITELIST
-          of the main database
+          of the workflow database
        2. Import geographic information of each sites to Hydro-Climate database.
     """
 
@@ -107,15 +106,18 @@ class ImportHydroClimateSites(object):
     @staticmethod
     def ogrwkt2shapely(input_shape, id_field):
         """Return shape objects list and ids list"""
+        from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
-        shp = ogr.Open(input_shape)
+        shp = ogr_Open(input_shape)
         lyr = shp.GetLayer()
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
-            wkt_feat = loads(feat.geometry().ExportToWkt())
+            wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
+            if isinstance(id_field, unicode):
+                id_field = id_field.encode()
             id_index = feat.GetFieldIndex(id_field)
             id_list.append(feat.GetField(id_index))
         return shapely_objects, id_list
@@ -192,6 +194,7 @@ class ImportHydroClimateSites(object):
         ImportHydroClimateSites.variable_table(clim_db, cfg.hydro_climate_vars)
         site_m_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.Meteo_sites, DataType.m)
         site_p_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.prec_sites, DataType.p)
+        # print (site_m_loc, site_p_loc)
         return site_m_loc, site_p_loc
 
 

@@ -12,19 +12,15 @@ from seims.preprocess.config import parse_ini_configuration
 from seims.preprocess.db_build_mongodb import ImportMongodbClass
 # Spatial delineation
 from seims.preprocess.sd_delineation import SpatialDelineation
-# Spatial parameters extraction
-from seims.preprocess.sp_extraction import extract_spatial_parameters
 
 
-def main():
+def workflow():
     """Main entrance for the whole preprocessing workflow"""
     start_time = time.time()
     # Parse Configuration file
     seims_cfg = parse_ini_configuration()
     # Spatial delineation by TauDEM
     SpatialDelineation.workflow(seims_cfg)
-    # Extract spatial parameters for reaches, landuse, soil, etc.
-    extract_spatial_parameters(seims_cfg)
     # Import to MongoDB database
     ImportMongodbClass.workflow(seims_cfg)
 
@@ -32,4 +28,4 @@ def main():
     print ("SEIMS preprocess done, time-consuming: %.2f seconds." % (end_time - start_time))
 
 if __name__ == "__main__":
-    main()
+    workflow()

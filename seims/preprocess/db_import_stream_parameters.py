@@ -10,7 +10,9 @@ import sys
 from math import sqrt
 
 import networkx as nx
-from osgeo import ogr
+from osgeo.ogr import OFTInteger
+from osgeo.ogr import Open as ogr_Open
+from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from pymongo import ASCENDING
 
 from seims.preprocess.mpi_adjust_groups import adjust_group_result
@@ -131,7 +133,7 @@ class ImportReaches2Mongo(object):
         slope_dic = {}
         width_dic = {}
         len_dic = {}
-        ds_reach = ogr.Open(reach_shp)
+        ds_reach = ogr_Open(reach_shp)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
         if not is_taudem:  # For ArcSWAT
@@ -229,17 +231,17 @@ class ImportReaches2Mongo(object):
             group_dic: group dict
             group_dic_pmetis: pmetis dict
         """
-        ds_reach = ogr.Open(shp_file, update=True)
+        ds_reach = ogr_Open(shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
         i_code = layer_def.GetFieldIndex(subbasin_field_name)
         i_group = layer_def.GetFieldIndex(ImportReaches2Mongo._GROUP)
         i_group_pmetis = layer_def.GetFieldIndex(ImportReaches2Mongo._PMETIS)
         if i_group < 0:
-            new_field = ogr.FieldDefn(ImportReaches2Mongo._GROUP, ogr.OFTInteger)
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._GROUP, OFTInteger)
             layer_reach.CreateField(new_field)
         if i_group_pmetis < 0:
-            new_field = ogr.FieldDefn(ImportReaches2Mongo._PMETIS, ogr.OFTInteger)
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._PMETIS, OFTInteger)
             layer_reach.CreateField(new_field)
             # grid_code:feature map
         ftmap = dict()
