@@ -45,7 +45,10 @@ P.S. 如何在push的时候免输密码，可以参考这个[博客](http://www.
 # AutoCRLF, 设置提交、检出时均不转换
 git config --global core.autocrlf false
 # SafeCRLF, 设置拒绝提交包含混合换行符的文件，并且在提交混合换行符的文件时给出警告，从而手动转换为LF换行符后提交
+# 对于Windows设置为true
 git config --global core.safecrlf true
+# 对于linux设置为false
+git config --global core.safecrlf false
 # 同时，在SEIMS/.gitattributes里我们已经设置了一些例外，如Windows批处理文件.bat即为CRLF
 ```
 
