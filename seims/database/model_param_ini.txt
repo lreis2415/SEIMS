@@ -1,6 +1,5 @@
 ## Table title (columns are split by Tab!)
 TYPE	NAME	DESCRIPTION	UNIT	MODULE	VALUE	IMPACT	CHANGE	MAX	MIN	USE
-TEXT	TEXT	TEXT	TEXT	TEXT	REAL	REAL	VARCHAR(2)	REAL	REAL	VARCHAR(1)
 Discharge	a_bnk	bank flow recession constant	none	ALL	0.2	0	AC	1	0	Y
 Sediment	adj_pkr	peak rate adjustment factor	none	MUSLE_I30	1	0	AC	1	0.1	Y
 Nutrient	ai0	Ratio of chlorophyll-a to algal biomass	ug/mg	NutCHRout	50	0	AC	100	1.00E+01	Y
@@ -150,9 +149,6 @@ Sediment	rain_yrs	number of yeares of data used to obtain values for RAINHHMX	no
 Sediment	RandRough	The random roughness	cm	SplashEro_KinEen	-9999	0	NC	20	0.05	Y
 Nutrient	rca	Atmospheric deposition of ammonium	mg/L	ATMDEP	2	1	RC	2	0	Y
 Nutrient	rcn	Atmospheric deposition of nitrate	mg/L	ATMDEP	1	1	RC	1	0	Y
-Discharge	Reach	Reach properties	none	ALL	-9999	0	NC	-9999	-9999	Y
-Discharge	ReachParameter	the parameters of each reach	none	ALL	-9999		NC	-9999	-9999	Y
-Discharge	ReachParameter	Reach parameters such as mannning's n, upstream subbasins and so on.	none	ALL	-9999	0	AC	-9999	-9999	N
 WaterBalance	Residual	soil residual moisture	m3/m3	ALL	-9999	1	RC	1.2	0.8	Y
 Nutrient	rhoq	Algal respiration rate at 20 deg C	1/day	NutCHRout	0.3	1	RC	0.05	0.5	Y
 Nutrient	rk1	Carbonaceous biological oxygen demand deoxygenation rate coefficient in the reach at 20 deg C	1/day	NutCHRout	1.71	1	RC	3.4	0.02	Y
