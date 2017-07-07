@@ -11,8 +11,11 @@ import os
 import subprocess
 
 import numpy
-from gdal import GDT_Float32
-from osgeo import gdal, ogr, osr
+from osgeo.gdal import GDT_Float32, GDT_Int32
+from osgeo.gdal import GetDriverByName as gdal_GetDriverByName
+from osgeo.gdal import Open as gdal_Open
+from osgeo.ogr import Open as ogr_Open
+from osgeo.osr import SpatialReference as osr_SpatialReference
 
 from ..utils.utils import UtilClass, DEFAULT_NODATA, DELTA
 
@@ -149,7 +152,7 @@ class RasterUtilClass(object):
         Returns:
             Raster object.
         """
-        ds = gdal.Open(raster_file)
+        ds = gdal_Open(raster_file)
         band = ds.GetRasterBand(1)
         data = band.ReadAsArray()
         xsize = band.XSize
@@ -158,7 +161,7 @@ class RasterUtilClass(object):
         nodata_value = band.GetNoDataValue()
         geotrans = ds.GetGeoTransform()
 
-        srs = osr.SpatialReference()
+        srs = osr_SpatialReference()
         srs.ImportFromWkt(ds.GetProjection())
         # print srs.ExportToProj4()
         if nodata_value is None:
@@ -218,7 +221,7 @@ class RasterUtilClass(object):
 
         mask_geotrans = [x_min_mask, dx, 0, y_max_mask, 0, -dx]
         RasterUtilClass.write_gtiff_file(outmaskfile, y_size_mask, x_size_mask, mask,
-                                         mask_geotrans, srs, DEFAULT_NODATA, gdal.GDT_Int32)
+                                         mask_geotrans, srs, DEFAULT_NODATA, GDT_Int32)
         return Raster(y_size_mask, x_size_mask, mask, DEFAULT_NODATA, mask_geotrans, srs)
 
     @staticmethod
@@ -252,7 +255,7 @@ class RasterUtilClass(object):
             nodata_value: nodata value
             gdal_type: output raster data type, GDT_Float32 as default
         """
-        driver = gdal.GetDriverByName("GTiff")
+        driver = gdal_GetDriverByName("GTiff")
         ds = driver.Create(f_name, n_cols, n_rows, 1, gdal_type)
         ds.SetGeoTransform(geotransform)
         ds.SetProjection(srs.ExportToWkt())
@@ -322,7 +325,7 @@ class RasterUtilClass(object):
         Returns:
             min, max, mean, std
         """
-        ds = gdal.Open(raster_file)
+        ds = gdal_Open(raster_file)
         band = ds.GetRasterBand(1)
         minv, maxv, meanv, std = band.ComputeStatistics(False)
         return minv, maxv, meanv, std
@@ -337,7 +340,7 @@ class RasterUtilClass(object):
             temp_dir: directory to store the spilt rasters
         """
         UtilClass.rmmkdir(temp_dir)
-        ds = ogr.Open(split_shp)
+        ds = ogr_Open(split_shp)
         lyr = ds.GetLayer(0)
         lyr.ResetReading()
         ft = lyr.GetNextFeature()
@@ -347,7 +350,7 @@ class RasterUtilClass(object):
                 cur_file_name = r.split(os.sep)[-1]
                 outraster = temp_dir + os.sep + cur_file_name.replace('.tif', '_%s.tif' %
                                                                       cur_field_name.replace(
-                                                                          ' ', '_'))
+                                                                              ' ', '_'))
                 subprocess.call(['gdalwarp', r, outraster, '-cutline', split_shp,
                                  '-crop_to_cutline', '-cwhere',
                                  "'%s'='%s'" % (field_name, cur_field_name), '-dstnodata',
