@@ -9,13 +9,14 @@
               1.1. Add stream order modification, according to depression.ave of WetSpa.
               1.2. Add another depressional storage method according to SWAT, depstor.f
 """
-import math
-import sqlite3
+from math import exp, sqrt
 import sys
 
 import numpy
-import ogr
-from gdal import GDT_Float32
+from osgeo.ogr import OFTReal
+from osgeo.ogr import Open as ogr_Open
+from osgeo.ogr import FieldDefn as ogr_FieldDefn
+from osgeo.gdal import GDT_Float32
 
 from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from seims.preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
@@ -89,33 +90,26 @@ class TerrainUtilClass(object):
         return length
 
     @staticmethod
-    def depression_capacity(sqlite_file, landuse_file, slope_file, soil_texture_file,
+    def depression_capacity(maindb, landuse_file, slope_file, soil_texture_file,
                             depression_file, imper_perc=0.3):
         """Initialize depression capacity according to landuse, soil, and slope.
         Args:
-            sqlite_file: SQLite file of initial model parameters
+            maindb: main MongoDatabase
             landuse_file: landuse raster file
             slope_file: slope raster file
             soil_texture_file: soil texture file
             depression_file: resulted depression raster file
             imper_perc: impervious percent in urban cell, 0.3 as default
         """
-        # read landuselookup table from sqlite
+        # read landuselookup table from MongoDB
         st_fields = ["DSC_ST%d" % (i,) for i in range(1, 13)]
-        sql_landuse = 'select LANDUSE_ID,%s from LanduseLookup' % (','.join(st_fields),)
-
-        conn = sqlite3.connect(sqlite_file)
-        cursor = conn.cursor()
-        cursor.execute(sql_landuse)
-
-        dep_sd0 = {}
-        for row in cursor:
-            tmpid = int(row[0])
-            dep_sd0[tmpid] = [float(item) for item in row[1:]]
-
-        cursor.close()
-        conn.close()
-        # end read data
+        query_result = maindb['LANDUSELOOKUP'].find()
+        if query_result is None:
+            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+        dep_sd0 = dict()
+        for row in query_result:
+            tmpid = row.get('LANDUSE_ID')
+            dep_sd0[tmpid] = [float(row.get(item)) for item in st_fields]
 
         landu_r = RasterUtilClass.read_raster(landuse_file)
         landu_data = landu_r.data
@@ -147,7 +141,7 @@ class TerrainUtilClass(object):
             except Exception:
                 depression_grid0 = dep_sd0[landu_id][last_stid]
 
-            depression_grid = math.exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
             # TODO, check if it is  (landu_id >= 98)? By LJ
             if landu_id == 106 or landu_id == 107 or landu_id == 105:
                 return 0.5 * imper_perc + (1. - imper_perc) * depression_grid
@@ -224,7 +218,7 @@ class TerrainUtilClass(object):
     @staticmethod
     def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file,
                             flow_dir_code="TauDEM"):
-        """Calculate flow time to the main channel from each grid cell."""
+        """Calculate flow time to the workflow channel from each grid cell."""
         strlk_data = RasterUtilClass.read_raster(streamlink).data
 
         vel_r = RasterUtilClass.read_raster(velocity)
@@ -245,7 +239,7 @@ class TerrainUtilClass(object):
     @staticmethod
     def std_of_flow_time_to_stream(streamlink, flow_dir_file, slope, radius, velocity, delta_s_file,
                                    flow_dir_code="TauDEM"):
-        """Generate standard deviation of t0_s (flow time to the main channel from each cell)."""
+        """Generate standard deviation of t0_s (flow time to the workflow channel from each cell)."""
         strlk_r = RasterUtilClass.read_raster(streamlink)
         strlk_data = strlk_r.data
         rad_data = RasterUtilClass.read_raster(radius).data
@@ -285,7 +279,7 @@ class TerrainUtilClass(object):
             if abs(vel - nodata_value) < UTIL_ZERO:
                 return nodata_value
             else:
-                return math.sqrt(sqr) / 3600.
+                return sqrt(sqr) / 3600.
 
         cal_delta_s_numpy = numpy.frompyfunc(cal_delta_s, 2, 1)
         delta_s = cal_delta_s_numpy(vel_data, delta_s_sqr)
@@ -399,17 +393,17 @@ class TerrainUtilClass(object):
             ch_width_dic[k] /= ch_num_dic[k]
 
         # add channel width_data field to reach shp file
-        ds_reach = ogr.Open(reach_shp_file, update=True)
+        ds_reach = ogr_Open(reach_shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
         i_link = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
         i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
         i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
         if i_width < 0:
-            new_field = ogr.FieldDefn(ImportReaches2Mongo._WIDTH, ogr.OFTReal)
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._WIDTH, OFTReal)
             layer_reach.CreateField(new_field)
         if i_depth < 0:
-            new_field = ogr.FieldDefn(ImportReaches2Mongo._DEPTH, ogr.OFTReal)
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._DEPTH, OFTReal)
             layer_reach.CreateField(new_field)
             # grid_code:feature map
         # ftmap = {}
@@ -430,7 +424,7 @@ class TerrainUtilClass(object):
         del ds_reach
 
     @staticmethod
-    def parameters_extration(cfg):
+    def parameters_extration(cfg, maindb):
         """Main entrance for terrain related spatial parameters extraction."""
         f = open(cfg.logs.extract_terrain, 'w')
         # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
@@ -448,8 +442,7 @@ class TerrainUtilClass(object):
         soil_texture_file = cfg.spatials.soil_texture
         landuse_file = cfg.spatials.landuse
         depression_file = cfg.spatials.depression
-        sqlite_dbfile = cfg.sqlitecfgs.sqlite_file
-        TerrainUtilClass.depression_capacity(sqlite_dbfile, landuse_file, soil_texture_file,
+        TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
                                              slope_file, depression_file, cfg.imper_perc_in_urban)
         # 2. Calculate inputs for IUH
         if cfg.gen_iuh:
@@ -486,8 +479,13 @@ class TerrainUtilClass(object):
 def main():
     """TEST CODE"""
     from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
-    TerrainUtilClass.parameters_extration(seims_cfg)
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
+
+    TerrainUtilClass.parameters_extration(seims_cfg, main_db)
 
 
 if __name__ == '__main__':

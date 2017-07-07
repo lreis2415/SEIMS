@@ -5,10 +5,10 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
 """
-import math
+from math import sqrt, pow
 from struct import pack, unpack
 
-import numpy
+from numpy import zeros as np_zeros
 from gridfs import GridFS
 
 from seims.preprocess.db_mongodb import MongoQuery
@@ -25,7 +25,7 @@ class ImportWeightData(object):
         """calculate distance between two points"""
         dx = x2 - x1
         dy = y2 - y1
-        return math.sqrt(dx * dx + dy * dy)
+        return sqrt(dx * dx + dy * dy)
 
     @staticmethod
     def idw(x, y, loc_list):
@@ -36,7 +36,7 @@ class ImportWeightData(object):
         sum_dist = 0
         for pt in loc_list:
             dis = ImportWeightData.cal_dis(x, y, pt[0], pt[1])
-            coef = math.pow(dis, -ex)
+            coef = pow(dis, -ex)
             coef_list.append(coef)
             sum_dist += coef
         weight_list = []
@@ -131,9 +131,9 @@ class ImportWeightData(object):
         weight_m_data = unpack(fmt, weight_m_data.read())
 
         # calculate PHU0
-        phu0_data = numpy.zeros(num_cells)
+        phu0_data = np_zeros(num_cells)
         # calculate TMEAN0
-        tmean0_data = numpy.zeros(num_cells)
+        tmean0_data = np_zeros(num_cells)
         for i in range(num_cells):
             for j in range(num_sites):
                 phu0_data[i] += phu_list[j] * weight_m_data[i * num_sites + j]
@@ -193,7 +193,7 @@ class ImportWeightData(object):
 
         Args:
             conn:
-            db_model: main database object
+            db_model: workflow database object
             subbsn_id: subbasin id
             storm_mode: is storm mode or not
             geodata2dbdir: directory to store weight data as txt file

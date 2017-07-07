@@ -7,8 +7,8 @@
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 TODO: Check the location of observed stations and add subbasinID field.
 """
-import datetime
 import time
+from datetime import datetime
 
 from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
 from seims.preprocess.utility import read_data_items_from_txt
@@ -168,13 +168,13 @@ class ImportObservedData(object):
                         dic[DataValueFields.type] = obs_data_items[i][j]
                     elif StringClass.string_match(obs_flds[j], DataValueFields.value):
                         dic[DataValueFields.value] = float(obs_data_items[i][j])
-                dt = datetime.datetime(cur_y, cur_m, cur_d, 0, 0)
+                dt = datetime(cur_y, cur_m, cur_d, 0, 0)
                 sec = time.mktime(dt.timetuple())
                 utc_time = time.gmtime(sec)
                 dic[DataValueFields.local_time] = dt
                 dic[DataValueFields.time_zone] = time.timezone / 3600
-                dic[DataValueFields.utc] = datetime.datetime(utc_time[0], utc_time[1],
-                                                             utc_time[2], utc_time[3])
+                dic[DataValueFields.utc] = datetime(utc_time[0], utc_time[1],
+                                                    utc_time[2], utc_time[3])
                 curfilter = {StationFields.id: dic[StationFields.id],
                              DataValueFields.type: dic[DataValueFields.type],
                              DataValueFields.utc: dic[DataValueFields.utc]}

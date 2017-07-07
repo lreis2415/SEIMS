@@ -5,18 +5,18 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
-import os
-import sqlite3
+from struct import pack
 
+from gridfs import GridFS
 from numpy import unique
+from pymongo import ASCENDING
 
-from seims.preprocess.db_sqlite import reconstruct_sqlite_db_file
-from seims.preprocess.text import SQLiteParaUtils, ModelParamFields, \
+from seims.preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, DEFAULT_NODATA
+from seims.pygeoc.pygeoc.utils.utils import StringClass, DEFAULT_NODATA, MathClass
 
 
 class ImportParam2Mongo(object):
@@ -25,60 +25,59 @@ class ImportParam2Mongo(object):
     """
 
     @staticmethod
-    def initial_params_from_sqlite(cfg, maindb):
+    def initial_params_from_txt(cfg, maindb):
         """
-        import initial calibration parameters from SQLite database file.
+        import initial calibration parameters from txt data file.
         Args:
             cfg: SEIMS config object
             maindb: MongoDB database object
         """
-        sqlite_file = cfg.sqlitecfgs.sqlite_file
-        if FileClass.is_file_exists(sqlite_file):
-            os.remove(sqlite_file)
-        reconstruct_sqlite_db_file(cfg)
         # delete if existed, create if not existed
         c_list = maindb.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
             maindb.create_collection(DBTableNames.main_parameter)
         else:
             maindb.drop_collection(DBTableNames.main_parameter)
-        # read sqlite database
-        sqlite_conn = sqlite3.connect(sqlite_file)
-        sql_cursor = sqlite_conn.cursor()
-        # get all the table_name
-        sql_cursor.execute("select name from sqlite_master where type='table' order by name;")
-        table_list = sql_cursor.fetchall()
-        # Find parameter table list excluding "XXLookup"
-        table_list = [item[0].encode("ascii") for item in table_list if (
-            item[0].lower().find(SQLiteParaUtils.Tag_Lookup) < 0)]
-        # print table_list
-        field_list = [ModelParamFields.name, ModelParamFields.desc,
-                      ModelParamFields.unit, ModelParamFields.module,
-                      ModelParamFields.value, ModelParamFields.impact,
-                      ModelParamFields.change, ModelParamFields.max,
-                      ModelParamFields.min, ModelParamFields.use]
-        for table_name in table_list:
-            # print table_name
-            str_sql = "select * from %s;" % (table_name,)
-            cur = sql_cursor.execute(str_sql)
-            records = cur.fetchall()
-            for items in records:
-                dic = dict()
-                dic[ModelParamFields.type] = table_name
-
-                for i, v in enumerate(items):
-                    # if type(items[i]) == type('a') or type(items[i]) == type(u'a'):  # bad style
-                    if isinstance(v, str) or isinstance(v, unicode):
-                        dic[field_list[i]] = v.encode('ascii')
+        # create bulk operator
+        bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
+        field_names = data_items[0][0:]
+        # print (field_names)
+        for i, cur_data_item in enumerate(data_items):
+            if i == 0:
+                continue
+            # print cur_data_item
+            # initial one default blank parameter dict.
+            data_import = {ModelParamFields.name: '', ModelParamFields.desc: '',
+                           ModelParamFields.unit: '', ModelParamFields.module: '',
+                           ModelParamFields.value: DEFAULT_NODATA,
+                           ModelParamFields.impact: DEFAULT_NODATA,
+                           ModelParamFields.change: 'NC',
+                           ModelParamFields.max: DEFAULT_NODATA,
+                           ModelParamFields.min: DEFAULT_NODATA,
+                           ModelParamFields.use: 'N',
+                           ModelParamFields.type: ''}
+            for k, v in data_import.items():
+                idx = field_names.index(k)
+                if cur_data_item[idx] == '':
+                    if StringClass.string_match(k, ModelParamFields.change_ac):
+                        data_import[k] = 0
+                    elif StringClass.string_match(k, ModelParamFields.change_rc):
+                        data_import[k] = 1
+                    elif StringClass.string_match(k, ModelParamFields.change_nc):
+                        data_import[k] = 0
+                else:
+                    if MathClass.isnumerical(cur_data_item[idx]):
+                        data_import[k] = float(cur_data_item[idx])
                     else:
-                        dic[field_list[i]] = v
-                curfilter = {ModelParamFields.name: dic[ModelParamFields.name],
-                             ModelParamFields.type: table_name}
-                maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
-                                                                         upsert=True)
-        maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
-        sql_cursor.close()
-        sqlite_conn.close()
+                        data_import[k] = cur_data_item[idx]
+            bulk.insert(data_import)
+        # execute import operators
+        bulk.execute()
+        # create index by parameter's type and name by ascending order.
+        maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
+                                                          (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
     def subbasin_statistics(cfg, maindb):
@@ -237,11 +236,81 @@ class ImportParam2Mongo(object):
                                                                    upsert=True)
 
     @staticmethod
+    def lookup_tables_as_collection_and_gridfs(cfg, maindb):
+        """Import lookup tables (from txt file) as Collection and GridFS
+        Args:
+            cfg: SEIMS config object
+            maindb: workflow model database
+        """
+        for tablename, txt_file in cfg.paramcfgs.lookup_tabs_dict.items():
+            # import each lookup table as a collection and GridFS file.
+            c_list = maindb.collection_names()
+            if not StringClass.string_in_list(tablename.upper(), c_list):
+                maindb.create_collection(tablename.upper())
+            else:
+                maindb.drop_collection(tablename.upper())
+            # initial bulk operator
+            bulk = maindb[tablename.upper()].initialize_ordered_bulk_op()
+            # delete if the tablename gridfs file existed
+            spatial = GridFS(maindb, DBTableNames.gridfs_spatial)
+            if spatial.exists(filename=tablename.upper()):
+                x = spatial.get_version(filename=tablename.upper())
+                spatial.delete(x._id)
+
+            # read data items
+            data_items = read_data_items_from_txt(txt_file)
+            field_names = data_items[0][0:]
+            item_values = []  # import as gridfs file
+            for i, cur_data_item in enumerate(data_items):
+                if i == 0:
+                    continue
+                data_import = dict()  # import as Collection
+                item_value = []  # import as gridfs file
+                for idx, fld in enumerate(field_names):
+                    if MathClass.isnumerical(cur_data_item[idx]):
+                        tmp_value = float(cur_data_item[idx])
+                        data_import[fld] = tmp_value
+                        item_value.append(tmp_value)
+                    else:
+                        data_import[fld] = cur_data_item[idx]
+                bulk.insert(data_import)
+                if len(item_value) > 0:
+                    item_values.append(item_value)
+            bulk.execute()
+            # begin import gridfs file
+            n_row = len(item_values)
+            # print (item_values)
+            if n_row >= 1:
+                n_col = len(item_values[0])
+                for i in range(n_row):
+                    if n_col != len(item_values[i]):
+                        raise ValueError("Please check %s to make sure each item has "
+                                         "the same numeric dimension. The size of first "
+                                         "row is: %d, and the current data item is: %d" %
+                                         (tablename, n_col, len(item_values[i])))
+                    else:
+                        item_values[i].insert(0, n_col)
+
+                metadic = {ModelParamDataUtils.item_count: n_row,
+                           ModelParamDataUtils.field_count: n_col}
+                cur_lookup_gridfs = spatial.new_file(filename=tablename.upper(), metadata=metadic)
+                header = [n_row]
+                fmt = '%df' % 1
+                s = pack(fmt, *header)
+                cur_lookup_gridfs.write(s)
+                fmt = '%df' % (n_col + 1)
+                for i in range(n_row):
+                    s = pack(fmt, *item_values[i])
+                    cur_lookup_gridfs.write(s)
+                cur_lookup_gridfs.close()
+
+    @staticmethod
     def workflow(cfg, maindb):
         """Workflow"""
-        ImportParam2Mongo.initial_params_from_sqlite(cfg, maindb)
+        ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
         ImportParam2Mongo.model_io_configuration(cfg, maindb)
         ImportParam2Mongo.subbasin_statistics(cfg, maindb)
+        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
 
 
 def main():

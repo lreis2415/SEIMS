@@ -5,11 +5,11 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
-import ConfigParser
+from configparser import ConfigParser
 import os
 
 from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
-    VectorNameUtils, SpatialNamesUtils, TauDEMFilesUtils, SQLiteParaUtils
+    VectorNameUtils, SpatialNamesUtils, TauDEMFilesUtils, ModelParamDataUtils
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
 
 
@@ -114,7 +114,7 @@ class SEIMSConfig(object):
         self.taudems = TauDEMFilesUtils(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
-        self.sqlitecfgs = SQLiteParaUtils(self.txt_db_dir, self.dirs.import2db)
+        self.paramcfgs = ModelParamDataUtils(self.txt_db_dir)
 
         if not FileClass.is_file_exists(self.clim_dir):
             print ("The CLIMATE_DATA_DIR is not existed, try the default folder name 'climate'.")
@@ -214,7 +214,7 @@ class SEIMSConfig(object):
 
 def parse_ini_configuration():
     """Load model configuration from *.ini file"""
-    cf = ConfigParser.ConfigParser()
+    cf = ConfigParser()
     ini_file = get_config_file()
     cf.read(ini_file)
     return SEIMSConfig(cf)

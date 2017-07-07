@@ -6,27 +6,13 @@
                 17-06-22  reformat according to pylint and google style
 """
 
-import math
-import sys
-
-from seims.pygeoc.pygeoc.utils.utils import UtilClass
-
 # Global variables
 UTIL_ZERO = 1.e-6
 MINI_SLOPE = 0.0001
 DEFAULT_NODATA = -9999.
-SQ2 = math.sqrt(2.)
+SQ2 = 1.4142135623730951
+PI = 3.141592653589793
 LFs = ['\r\n', '\n\r', '\r', '\n']
-
-
-def load_ini_configuration(inifile):
-    """Parse ini configuration file
-    deprecated by config.parse_ini_configuration() lj, 17-06-23
-    Args:
-        inifile: ini full path
-    """
-    command = '%s %s/config.py -ini %s' % (sys.executable, UtilClass.current_path(), inifile)
-    UtilClass.run_command(command)
 
 
 def status_output(status_msg, percent, file_object):

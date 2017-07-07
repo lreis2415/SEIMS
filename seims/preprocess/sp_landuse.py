@@ -5,15 +5,15 @@
     @changelog: 13-01-10  jz - initial implementation
                 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                17-07-07  lj - remove SQLite database file as intermediate file
 """
-import os
-import re
-import sqlite3
+from os import sep as SEP
+from re import split as re_split
 
-import numpy
-from gdal import GDT_Float32
+from numpy import frompyfunc as np_frompyfunc
+from osgeo.gdal import GDT_Float32
 
-from seims.preprocess.db_sqlite import reconstruct_sqlite_db_file
+from seims.preprocess.text import ModelParamDataUtils
 from seims.preprocess.utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -22,61 +22,41 @@ from seims.pygeoc.pygeoc.utils.utils import UtilClass, MathClass, FileClass, Str
 
 class LanduseUtilClass(object):
     """Landuse/Landcover related utility functions."""
-    # CROP, LANDUSE, and SOIL attribute are imported to mongoDB
-    # Match to the new lookup table of SWAT 2012 rev.637. lj
-    _CROP_ATTR_LIST = ["IDC", "BIO_E", "HVSTI", "BLAI", "FRGRW1", "LAIMX1", "FRGRW2",
-                       "LAIMX2", "DLAI", "CHTMX", "RDMX", "T_OPT", "T_BASE", "CNYLD",
-                       "CPYLD", "BN1", "BN2", "BN3", "BP1", "BP2", "BP3", "WSYF",
-                       "USLE_C", "GSI", "VPDFR", "FRGMAX", "WAVP", "CO2HI", "BIOEHI",
-                       "RSDCO_PL", "OV_N", "CN2A", "CN2B", "CN2C", "CN2D", "FERTFIELD",
-                       "ALAI_MIN", "BIO_LEAF", "MAT_YRS", "BMX_TREES", "EXT_COEF", "BM_DIEOFF"]
-    _LANDUSE_ATTR_LIST = ["CN2A", "CN2B", "CN2C", "CN2D", "ROOTDEPTH", "MANNING",
-                          "INTERC_MAX", "INTERC_MIN", "SHC", "SOIL_T10",
-                          "PET_FR", "PRC_ST1", "PRC_ST2", "PRC_ST3", "PRC_ST4",
-                          "PRC_ST5", "PRC_ST6", "PRC_ST7", "PRC_ST8", "PRC_ST9",
-                          "PRC_ST10", "PRC_ST11", "PRC_ST12", "SC_ST1", "SC_ST2",
-                          "SC_ST3", "SC_ST4", "SC_ST5", "SC_ST6", "SC_ST7", "SC_ST8",
-                          "SC_ST9", "SC_ST10", "SC_ST11", "SC_ST12", "DSC_ST1", "DSC_ST2",
-                          "DSC_ST3", "DSC_ST4", "DSC_ST5", "DSC_ST6", "DSC_ST7", "DSC_ST8",
-                          "DSC_ST9", "DSC_ST10", "DSC_ST11", "DSC_ST12"]
 
     def __init__(self):
         """Empty"""
         pass
 
     @staticmethod
-    def export_landuse_lookup_files(sqlite3_dbname, property_namelist, str_sql, dst_dir):
-        """export landuse lookup tables to txt file from SQLite database.
-        Args:
-            sqlite3_dbname: SQLite file
-            property_namelist: properties be exported
-            str_sql: sql query sentence
-            dst_dir: lookup tables directory
-        """
+    def export_landuse_lookup_files_from_mongodb(cfg, maindb):
+        """export landuse lookup tables to txt file from MongoDB."""
+        lookup_dir = cfg.dirs.lookup
+        property_namelist = ModelParamDataUtils.landuse_fields
         property_map = {}
-        conn = sqlite3.connect(sqlite3_dbname)
-        cursor = conn.cursor()
-
-        cursor.execute(str_sql)
-        property_namelist.append("USLE_P")
-        for row in cursor:
+        property_namelist.append('USLE_P')
+        query_result = maindb['LANDUSELOOKUP'].find()
+        if query_result is None:
+            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+        count = 0
+        for row in query_result:
             # print row
-            prop_id = int(row[0])
-            value_map = {}
+            value_map = dict()
             for i, p_name in enumerate(property_namelist):
-                if p_name == "USLE_P":  # Currently, USLE_P is set as 1 for all landuse.
+                if StringClass.string_match(p_name, "USLE_P"):
+                    # Currently, USLE_P is set as 1 for all landuse.
                     value_map[p_name] = 1
                 else:
-                    if p_name == "Manning":
-                        value_map[p_name] = row[i + 1] * 10
+                    if StringClass.string_match(p_name, "Manning"):
+                        value_map[p_name] = row.get(p_name) * 10
                     else:
-                        value_map[p_name] = row[i + 1]
-            property_map[prop_id] = value_map
+                        value_map[p_name] = row.get(p_name)
+            count += 1
+            property_map[count] = value_map
 
         n = len(property_map)
-        UtilClass.rmmkdir(dst_dir)
+        UtilClass.rmmkdir(lookup_dir)
         for propertyName in property_namelist:
-            f = open("%s/%s.txt" % (dst_dir, propertyName,), 'w')
+            f = open("%s/%s.txt" % (lookup_dir, propertyName,), 'w')
             f.write("%d\n" % n)
             for prop_id in property_map:
                 s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
@@ -114,7 +94,7 @@ class LanduseUtilClass(object):
                 lu_id = i
                 break
         data_items = lc_data_items[1:]
-        replace_dicts = {}
+        replace_dicts = dict()
         for item in data_items:
             for i, v in enumerate(item):
                 if i != lu_id:
@@ -126,7 +106,7 @@ class LanduseUtilClass(object):
 
         # Generate GTIFF
         for item, v in replace_dicts.items():
-            filename = dst_dir + os.sep + item + '.tif'
+            filename = dst_dir + SEP + item + '.tif'
             print (filename)
             RasterUtilClass.raster_reclassify(landcover_file, v, filename)
         return replace_dicts['LANDCOVER'].values()
@@ -138,15 +118,15 @@ class LanduseUtilClass(object):
         f = open(crop_lookup_file)
         lines = f.readlines()
         f.close()
-        attr_dic = {}
+        attr_dic = dict()
         fields = [item.replace('"', '')
-                  for item in re.split('\t|\n|\r\n|\r', lines[0]) if item is not '']
+                  for item in re_split('\t|\n|\r\n|\r', lines[0]) if item is not '']
         n = len(fields)
         for i in range(n):
-            attr_dic[fields[i]] = {}
-        for line in lines[2:]:
+            attr_dic[fields[i]] = dict()
+        for line in lines[1:]:
             items = [item.replace('"', '')
-                     for item in re.split('\t', line) if item is not '']
+                     for item in re_split('\t', line) if item is not '']
             cur_id = int(items[0])
 
             for i in range(n):
@@ -169,15 +149,15 @@ class LanduseUtilClass(object):
         dst_crop_tifs = []
         for i in range(n):
             cur_attr = attr_names[i]
-            cur_dict = {}
+            cur_dict = dict()
             dic = attr_map[cur_attr]
             for code in land_cover_codes:
-                if code == DEFAULT_NODATA:
+                if MathClass.floatequal(code, DEFAULT_NODATA):
                     continue
                 if code not in cur_dict.keys():
-                    cur_dict[code] = dic[code]
+                    cur_dict[code] = dic.get(code)
             replace_dicts.append(cur_dict)
-            dst_crop_tifs.append(dst_dir + os.sep + cur_attr + '.tif')
+            dst_crop_tifs.append(dst_dir + SEP + cur_attr + '.tif')
         # print replace_dicts
         # print(len(replace_dicts))
         # print dst_crop_tifs
@@ -188,21 +168,18 @@ class LanduseUtilClass(object):
             RasterUtilClass.raster_reclassify(landcover_file, replace_dicts[i], v)
 
     @staticmethod
-    def generate_cn2(dbname, landuse_file, hydrogroup_file, cn2_filename):
+    def generate_cn2(maindb, landuse_file, hydrogroup_file, cn2_filename):
         """Generate CN2 raster."""
-        str_sql_lu = 'select LANDUSE_ID, CN2A, CN2B, CN2C, CN2D from LanduseLookup'
-        conn = sqlite3.connect(dbname)
-        cursor = conn.cursor()
+        query_result = maindb['LANDUSELOOKUP'].find()
+        if query_result is None:
+            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
         # cn2 list for each landuse type and hydrological soil group
-        cn2_map = {}
-        cursor.execute(str_sql_lu)
-        for row in cursor:
-            lu_id = int(row[0])
-            cn2_list = []
-            for i in range(4):
-                cn2_list.append(float(row[i + 1]))
+        cn2_map = dict()
+        for row in query_result:
+            lu_id = row.get('LANDUSE_ID')
+            cn2_list = [row.get('CN2A'), row.get('CN2B'), row.get('CN2C'), row.get('CN2D')]
             cn2_map[lu_id] = cn2_list
-        # print cn2Map
+        # print (cn2Map)
         lu_r = RasterUtilClass.read_raster(landuse_file)
         data_landuse = lu_r.data
         xsize = lu_r.nCols
@@ -221,35 +198,28 @@ class LanduseUtilClass(object):
                 hg = int(hg) - 1
                 return cn2_map[lucc_id][hg]
 
-        cal_cn2_numpy = numpy.frompyfunc(cal_cn2, 2, 1)
+        cal_cn2_numpy = np_frompyfunc(cal_cn2, 2, 1)
         data_prop = cal_cn2_numpy(data_landuse, data_hg)
         RasterUtilClass.write_gtiff_file(cn2_filename, ysize, xsize, data_prop, lu_r.geotrans,
                                          lu_r.srs, nodata_value, GDT_Float32)
 
     @staticmethod
-    def generate_runoff_coefficent(sqlite_file, landuse_file, slope_file, soil_texture_file,
+    def generate_runoff_coefficent(maindb, landuse_file, slope_file, soil_texture_file,
                                    runoff_coeff_file, imper_perc=0.3):
         """Generate potential runoff coefficient."""
-        # read landuselookup table from sqlite
+        # read landuselookup table from MongoDB
         prc_fields = ["PRC_ST%d" % (i,) for i in range(1, 13)]
         sc_fields = ["SC_ST%d" % (i,) for i in range(1, 13)]
-        sql_landuse = 'select LANDUSE_ID, %s, %s from LanduseLookup' % (
-            ','.join(prc_fields), ','.join(sc_fields))
+        query_result = maindb['LANDUSELOOKUP'].find()
+        if query_result is None:
+            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
 
-        conn = sqlite3.connect(sqlite_file)
-        cursor = conn.cursor()
-        cursor.execute(sql_landuse)
-
-        runoff_c0 = {}
-        runoff_s0 = {}
-        for row in cursor:
-            tmpid = int(row[0])
-            runoff_c0[tmpid] = [float(item) for item in row[1:13]]
-            runoff_s0[tmpid] = [float(item) for item in row[13:25]]
-
-        cursor.close()
-        conn.close()
-        # end read data
+        runoff_c0 = dict()
+        runoff_s0 = dict()
+        for row in query_result:
+            tmpid = row.get('LANDUSE_ID')
+            runoff_c0[tmpid] = [float(row.get(item)) for item in prc_fields]
+            runoff_s0[tmpid] = [float(row.get(item)) for item in sc_fields]
 
         landu_raster = RasterUtilClass.read_raster(landuse_file)
         landu_data = landu_raster.data
@@ -285,7 +255,7 @@ class LanduseUtilClass(object):
             else:
                 return coef2
 
-        coef_cal_numpy = numpy.frompyfunc(coef_cal, 3, 1)
+        coef_cal_numpy = np_frompyfunc(coef_cal, 3, 1)
         coef = coef_cal_numpy(landu_data, soil_texture_array, slo_data)
 
         RasterUtilClass.write_gtiff_file(runoff_coeff_file, ysize, xsize, coef,
@@ -293,50 +263,43 @@ class LanduseUtilClass(object):
                                          GDT_Float32)
 
     @staticmethod
-    def parameters_extraction(cfg):
+    def parameters_extraction(cfg, maindb):
         """Landuse spatial parameters extraction."""
         f = open(cfg.logs.extract_soil, 'w')
         # 1. Generate landuse lookup tables
-        status_output("Generating landuse lookup tables from Sqlite database...", 10, f)
-        str_sql = 'select landuse_id, ' + ','.join(LanduseUtilClass._LANDUSE_ATTR_LIST) \
-                  + ' from LanduseLookup'
-        sqlite3db = cfg.sqlitecfgs.sqlite_file
-        if not FileClass.is_file_exists(sqlite3db):
-            reconstruct_sqlite_db_file(cfg)
-        lookup_dir = cfg.dirs.lookup
-        LanduseUtilClass.export_landuse_lookup_files(sqlite3db, LanduseUtilClass._LANDUSE_ATTR_LIST,
-                                                     str_sql, lookup_dir)
+        status_output("Generating landuse lookup tables from MongoDB...", 10, f)
+        LanduseUtilClass.export_landuse_lookup_files_from_mongodb(cfg, maindb)
         # 2. Reclassify landuse parameters by lookup tables
         status_output("Generating landuse attributes...", 20, f)
         lookup_lu_config_file = cfg.logs.reclasslu_cfg
         LanduseUtilClass.reclassify_landuse_parameters(cfg.seims_bin, lookup_lu_config_file,
                                                        cfg.dirs.geodata2db,
-                                                       cfg.spatials.landuse, lookup_dir,
-                                                       LanduseUtilClass._LANDUSE_ATTR_LIST,
+                                                       cfg.spatials.landuse, cfg.dirs.lookup,
+                                                       ModelParamDataUtils.landuse_fields,
                                                        cfg.default_landuse)
         # 3. Generate crop parameters
         if cfg.gen_crop:
             status_output("Generating crop/landcover_init_param attributes...", 30, f)
-            crop_lookup_file = cfg.sqlitecfgs.crop_file
+            crop_lookup_file = cfg.paramcfgs.crop_file
             LanduseUtilClass.reclassify_landcover_parameters(cfg.spatials.landuse,
                                                              cfg.spatials.crop,
                                                              cfg.landcover_init_param,
                                                              crop_lookup_file,
-                                                             LanduseUtilClass._CROP_ATTR_LIST,
+                                                             ModelParamDataUtils.crop_fields,
                                                              cfg.dirs.geodata2db)
         # 4. Generate Curve Number according to landuse
         if cfg.gen_cn:
             status_output("Calculating CN numbers...", 40, f)
             hg_file = cfg.spatials.hydro_group
             cn2_filename = cfg.spatials.cn2
-            LanduseUtilClass.generate_cn2(sqlite3db, cfg.spatials.landuse, hg_file, cn2_filename)
+            LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename)
         # 5. Generate runoff coefficient
         if cfg.gen_runoff_coef:
             status_output("Calculating potential runoff coefficient...", 50, f)
             slope_file = cfg.spatials.slope
             soil_texture_raster = cfg.spatials.soil_texture
             runoff_coef_file = cfg.spatials.runoff_coef
-            LanduseUtilClass.generate_runoff_coefficent(sqlite3db, cfg.spatials.landuse, slope_file,
+            LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
                                                         soil_texture_raster,
                                                         runoff_coef_file, cfg.imper_perc_in_urban)
         status_output("Landuse/Landcover related spatial parameters extracted done!", 100, f)
@@ -346,8 +309,13 @@ class LanduseUtilClass(object):
 def main():
     """TEST CODE"""
     from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
-    LanduseUtilClass.parameters_extraction(seims_cfg)
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
+
+    LanduseUtilClass.parameters_extraction(seims_cfg, main_db)
 
 
 if __name__ == '__main__':
