@@ -22,7 +22,8 @@ from shutil import copy, rmtree
 sysstr = platform.system()
 
 # Global constants
-PI = 3.1415926
+SQ2 = 1.4142135623730951
+PI = 3.141592653589793
 ZERO = 1e-12
 DELTA = 1e-6
 DEFAULT_NODATA = -9999.
@@ -30,6 +31,7 @@ DEFAULT_NODATA = -9999.
 
 class MathClass(object):
     """Basic math related."""
+
     def __init__(self):
         pass
 
@@ -125,6 +127,7 @@ class MathClass(object):
 class StringClass(object):
     """String handling class
     """
+
     def __init__(self):
         """Empty"""
         pass
@@ -200,6 +203,7 @@ class StringClass(object):
 
 class FileClass(object):
     """File IO related"""
+
     def __init__(self):
         """Empty"""
         pass
