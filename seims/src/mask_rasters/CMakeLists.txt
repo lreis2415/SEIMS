@@ -51,13 +51,13 @@ set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} mask_rasters.cpp)
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(mask_raster ${SOURCE_FILES})
 target_link_libraries(mask_raster ${GDAL_LIBRARY})
-install(TARGETS mask_raster DESTINATION bin)
+install(TARGETS mask_raster DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 IF (WIN32)
-    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "ImportRaster")
+    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "RasterUtility")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Mask Raster done")

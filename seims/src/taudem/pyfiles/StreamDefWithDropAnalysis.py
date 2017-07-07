@@ -76,7 +76,7 @@ src = arcpy.GetParameterAsText(12)
 arcpy.AddMessage("Output Stream Raster Grid: " + src)
 
 # Construct command 1
-cmd = 'mpiexec -n ' + inputProc + ' DropAnalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
+cmd = 'mpiexec -n ' + inputProc + ' dropanalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
       ' -ad8 ' + '"' + ad8 + '"' + ' -ssa ' + '"' + ssa + '"' + ' -o ' + '"' + shfl + '"' + ' -drp ' + \
       '"' + drp + '"' + ' -par ' + minthresh + ' ' + maxthresh + ' ' + numthresh + ' '
 if logspace == 'false':

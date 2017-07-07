@@ -6,7 +6,7 @@
 ### Surface processes
 0 | Soil temperature | Finn Plauborg | STP_FP
 0 | PET | PriestleyTaylor | PET_PT
-0 | Interception | Maximum Storage | PI_MSM
+0 | Interception | Maximum Canopy Storage | PI_MCS
 0 | Snow melt | Snowpeak Daily | SNO_SP
 0 | Infiltration | Modified rational | SUR_MR
 0 | Depression and Surface Runoff | Linsley | DEP_LINSLEY

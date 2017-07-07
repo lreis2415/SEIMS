@@ -1,203 +1,331 @@
 #! /usr/bin/env python
-# coding=utf-8
-# @Import model calibration parameters
-# Author: Junzhi Liu
-# Revised: Liang-Jun Zhu
-#
-
-import sqlite3
+# -*- coding: utf-8 -*-
+"""Import model calibration parameters, model configuration information etc.
+    @author   : Liangjun Zhu
+    @changelog: 16-12-07  lj - rewrite for version 2.0
+                17-06-23  lj - reorganize as basic class
+"""
 from struct import pack
 
 from gridfs import GridFS
-from pygeoc.utils.utils import MathClass
+from numpy import unique
+from pymongo import ASCENDING
 
-from config import *
-from utility import LoadConfiguration, ReadDataItemsFromTxt
-# for test main
-from db_mongodb import ConnectMongoDB
-
-
-def ImportModelParameters(sqlite_file, db):
-    # delete if existed, create if not existed
-    cList = db.collection_names()
-    if not StringClass.stringinlist(DB_TAB_PARAMETERS.upper(), cList):
-        db.create_collection(DB_TAB_PARAMETERS.upper())
-    else:
-        db.drop_collection(DB_TAB_PARAMETERS.upper())
-    # read sqlite database
-    conn = sqlite3.connect(sqlite_file)
-    c = conn.cursor()
-    # get all the tablename
-    c.execute("select name from sqlite_master where type='table' order by name;")
-    tablelist = c.fetchall()
-    # Find parameter table list excluding "XXLookup"
-    tablelist = [item[0].encode("ascii") for item in tablelist if (
-        item[0].lower().find("lookup") < 0)]
-    # print tablelist
-
-    field_list = [PARAM_FLD_NAME.upper(), PARAM_FLD_DESC.upper(), PARAM_FLD_UNIT.upper(),
-                  PARAM_FLD_MODS.upper(), PARAM_FLD_VALUE.upper(), PARAM_FLD_IMPACT.upper(),
-                  PARAM_FLD_CHANGE.upper(), PARAM_FLD_MAX.upper(), PARAM_FLD_MIN.upper(),
-                  PARAM_FLD_USE.upper()]
-    for tablename in tablelist:
-        # print tablename
-        str_sql = "select * from %s;" % (tablename,)
-        cur = c.execute(str_sql)
-        records = cur.fetchall()
-        for items in records:
-            dic = dict()
-            dic[Tag_DT_Type.upper()] = tablename
-            for i in range(len(items)):
-                if type(items[i]) == type('a') or type(items[i]) == type(u'a'):
-                    dic[field_list[i].upper()] = items[i].encode('ascii')
-                else:
-                    dic[field_list[i].upper()] = items[i]
-            curfilter = {PARAM_FLD_NAME.upper(): dic[PARAM_FLD_NAME.upper()], Tag_DT_Type.upper(): tablename}
-            db[DB_TAB_PARAMETERS.upper()].find_one_and_replace(curfilter, dic, upsert = True)
-    db[DB_TAB_PARAMETERS.upper()].create_index(PARAM_FLD_NAME.upper())
-    c.close()
-    conn.close()
+from seims.preprocess.text import ModelParamFields, ModelParamDataUtils, \
+    DBTableNames, SubbsnStatsName, ModelCfgFields
+from seims.preprocess.utility import read_data_items_from_txt
+from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
+from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
+from seims.pygeoc.pygeoc.utils.utils import StringClass, DEFAULT_NODATA, MathClass
 
 
-def ImportLookupTables(db, sqlite_file):
+class ImportParam2Mongo(object):
+    """Import model parameters to MongoDB,
+       including default parameters, model configuration information, etc.
     """
-    :param sqlite_file: SQLite database file contains lookup tables
-    :param db: MongoDB Client
-    :return: None
-    """
-    # read sqlite database
-    conn = sqlite3.connect(sqlite_file)
-    c = conn.cursor()
-    # get all the tablename
-    c.execute("select name from sqlite_master where type='table' order by name;")
-    tablelist = c.fetchall()
-    # Find parameter table list excluding "XXLookup"
-    tablelist = [item[0].encode("ascii") for item in tablelist if (
-        item[0].lower().find("lookup") >= 0)]
-    # print tablelist
-    for tablename in tablelist:
-        # print tablename
-        str_sql = "select * from %s;" % (tablename,)
-        cur = c.execute(str_sql)
-        records = cur.fetchall()
-        itemValues = []
-        for items in records:
-            itemValue = []
-            for i in range(len(items)):
-                if MathClass.isnumerical(items[i]):
-                    itemValue.append(float(items[i]))
-            itemValues.append(itemValue)
-        nRow = len(itemValues)
-        # print itemValues
-        if nRow >= 1:
-            nCol = len(itemValues[0])
-            for i in range(nRow):
-                if nCol != len(itemValues[i]):
-                    raise ValueError(
-                        "Please check %s to make sure each item has the same numeric dimension." % tablename)
-                else:
-                    itemValues[i].insert(0, nCol)
-            # import to mongoDB as GridFS
-            spatial = GridFS(db, DB_TAB_SPATIAL.upper())
-            # delete if the tablename file existed already.
-            if spatial.exists(filename = tablename.upper()):
-                x = spatial.get_version(filename = tablename.upper())
-                spatial.delete(x._id)
-            metadic = {META_LOOKUP_ITEM_COUNT.upper(): nRow, META_LOOKUP_FIELD_COUNT.upper(): nCol}
-            curLookupGridFS = spatial.new_file(filename = tablename.upper(), metadata = metadic)
-            header = [nRow]
-            fmt = '%df' % 1
-            s = pack(fmt, *header)
-            curLookupGridFS.write(s)
-            fmt = '%df' % (nCol + 1)
-            for i in range(nRow):
-                s = pack(fmt, *itemValues[i])
-                curLookupGridFS.write(s)
-            curLookupGridFS.close()
-    c.close()
-    conn.close()
 
-
-def ImportModelConfiguration(db):
-    """
-    Import Configuration information of SEIMS, i.e., file.in and file.out
-    :return:
-    """
-    fileIn = MODEL_DIR + os.sep + FILE_IN
-    fileOut = MODEL_DIR + os.sep + FILE_OUT
-    # create if collection not existed
-    cList = db.collection_names()
-    conf_tabs = [DB_TAB_FILE_IN.upper(), DB_TAB_FILE_OUT.upper()]
-    for item in conf_tabs:
-        if not StringClass.stringinlist(item, cList):
-            db.create_collection(item)
+    @staticmethod
+    def initial_params_from_txt(cfg, maindb):
+        """
+        import initial calibration parameters from txt data file.
+        Args:
+            cfg: SEIMS config object
+            maindb: MongoDB database object
+        """
+        # delete if existed, create if not existed
+        c_list = maindb.collection_names()
+        if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
+            maindb.create_collection(DBTableNames.main_parameter)
         else:
-            db.drop_collection(item)
-    fileInItems = ReadDataItemsFromTxt(fileIn)
-    fileOutItems = ReadDataItemsFromTxt(fileOut)
+            maindb.drop_collection(DBTableNames.main_parameter)
+        # create bulk operator
+        bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
+        field_names = data_items[0][0:]
+        # print (field_names)
+        for i, cur_data_item in enumerate(data_items):
+            if i == 0:
+                continue
+            # print cur_data_item
+            # initial one default blank parameter dict.
+            data_import = {ModelParamFields.name: '', ModelParamFields.desc: '',
+                           ModelParamFields.unit: '', ModelParamFields.module: '',
+                           ModelParamFields.value: DEFAULT_NODATA,
+                           ModelParamFields.impact: DEFAULT_NODATA,
+                           ModelParamFields.change: 'NC',
+                           ModelParamFields.max: DEFAULT_NODATA,
+                           ModelParamFields.min: DEFAULT_NODATA,
+                           ModelParamFields.use: 'N',
+                           ModelParamFields.type: ''}
+            for k, v in data_import.items():
+                idx = field_names.index(k)
+                if cur_data_item[idx] == '':
+                    if StringClass.string_match(k, ModelParamFields.change_ac):
+                        data_import[k] = 0
+                    elif StringClass.string_match(k, ModelParamFields.change_rc):
+                        data_import[k] = 1
+                    elif StringClass.string_match(k, ModelParamFields.change_nc):
+                        data_import[k] = 0
+                else:
+                    if MathClass.isnumerical(cur_data_item[idx]):
+                        data_import[k] = float(cur_data_item[idx])
+                    else:
+                        data_import[k] = cur_data_item[idx]
+            bulk.insert(data_import)
+        # execute import operators
+        bulk.execute()
+        # create index by parameter's type and name by ascending order.
+        maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
+                                                          (ModelParamFields.name, ASCENDING)])
 
-    for item in fileInItems:
-        fileInDict = {}
-        values = StringClass.splitstring(StringClass.stripstring(item[0]), ['|'])
-        if len(values) != 2:
-            raise ValueError("One item should only have one Tag and one value string, split by '|'")
-        fileInDict[FLD_CONF_TAG] = values[0]
-        fileInDict[FLD_CONF_VALUE] = values[1]
-        db[DB_TAB_FILE_IN.upper()].find_one_and_replace(
-            fileInDict, fileInDict, upsert = True)
+    @staticmethod
+    def subbasin_statistics(cfg, maindb):
+        """
+        Import subbasin numbers, outlet ID, etc. to MongoDB.
+        """
+        streamlink_r = cfg.spatials.stream_link
+        flowdir_r = cfg.spatials.d8flow
+        direction_items = dict()
+        if cfg.is_TauDEM:
+            direction_items = FlowModelConst.get_cell_shift("TauDEM")
+        else:
+            direction_items = FlowModelConst.get_cell_shift("ArcGIS")
+        streamlink_d = RasterUtilClass.read_raster(streamlink_r)
+        nodata = streamlink_d.noDataValue
+        nrows = streamlink_d.nRows
+        ncols = streamlink_d.nCols
+        streamlink_data = streamlink_d.data
+        max_subbasin_id = int(streamlink_d.get_max())
+        min_subbasin_id = int(streamlink_d.get_min())
+        subbasin_num = len(unique(streamlink_data)) - 1
+        # print max_subbasin_id, min_subbasin_id, subbasin_num
+        flowdir_d = RasterUtilClass.read_raster(flowdir_r)
+        flowdir_data = flowdir_d.data
+        i_row = -1
+        i_col = -1
+        for row in range(nrows):
+            for col in range(ncols):
+                if streamlink_data[row][col] != nodata:
+                    i_row = row
+                    i_col = col
+                    # print row, col
+                    break
+            else:
+                continue
+            break
+        if i_row == -1 or i_col == -1:
+            raise ValueError("Stream link data invalid, please check and retry.")
 
-    outFieldArray = fileOutItems[0]
-    outDataArray = fileOutItems[1:]
-    # print outDataArray
-    for item in outDataArray:
-        fileOutDict = dict()
-        for i in range(len(outFieldArray)):
-            if StringClass.stringmatch(FLD_CONF_MODCLS, outFieldArray[i]):
-                fileOutDict[FLD_CONF_MODCLS] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_OUTPUTID, outFieldArray[i]):
-                fileOutDict[FLD_CONF_OUTPUTID] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_DESC, outFieldArray[i]):
-                fileOutDict[FLD_CONF_DESC] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_UNIT, outFieldArray[i]):
-                fileOutDict[FLD_CONF_UNIT] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_TYPE, outFieldArray[i]):
-                fileOutDict[FLD_CONF_TYPE] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_STIME, outFieldArray[i]):
-                fileOutDict[FLD_CONF_STIME] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_ETIME, outFieldArray[i]):
-                fileOutDict[FLD_CONF_ETIME] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_INTERVAL, outFieldArray[i]):
-                fileOutDict[FLD_CONF_INTERVAL] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_INTERVALUNIT, outFieldArray[i]):
-                fileOutDict[FLD_CONF_INTERVALUNIT] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_FILENAME, outFieldArray[i]):
-                fileOutDict[FLD_CONF_FILENAME] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_USE, outFieldArray[i]):
-                fileOutDict[FLD_CONF_USE] = item[i]
-            elif StringClass.stringmatch(FLD_CONF_SUBBSN, outFieldArray[i]):
-                fileOutDict[FLD_CONF_SUBBSN] = item[i]
-        if fileOutDict.keys() is []:
-            raise ValueError("There are not any valid output item stored in file.out!")
-        curFileter = {FLD_CONF_MODCLS  : fileOutDict[FLD_CONF_MODCLS],
-                      FLD_CONF_OUTPUTID: fileOutDict[FLD_CONF_OUTPUTID],
-                      FLD_CONF_STIME   : fileOutDict[FLD_CONF_STIME],
-                      FLD_CONF_ETIME   : fileOutDict[FLD_CONF_ETIME]}
-        db[DB_TAB_FILE_OUT].find_one_and_replace(curFileter, fileOutDict, upsert = True)
+        def flow_down_stream_idx(dir_value, i, j):
+            """Return row and col of downstream direction."""
+            drow, dcol = direction_items[int(dir_value)]
+            return i + drow, j + dcol
+
+        def find_outlet_index(r, c):
+            """Find outlet's coordinate"""
+            flag = True
+            while flag:
+                fdir = flowdir_data[r][c]
+                newr, newc = flow_down_stream_idx(fdir, r, c)
+                if newr < 0 or newc < 0 or newr >= nrows or newc >= ncols \
+                        or streamlink_data[newr][newc] == nodata:
+                    flag = False
+                else:
+                    # print newr, newc, streamlink_data[newr][newc]
+                    r = newr
+                    c = newc
+            return r, c
+
+        o_row, o_col = find_outlet_index(i_row, i_col)
+        outlet_bsn_id = int(streamlink_data[o_row][o_col])
+        import_stats_dict = {SubbsnStatsName.outlet: outlet_bsn_id,
+                             SubbsnStatsName.o_row: o_row,
+                             SubbsnStatsName.o_col: o_col,
+                             SubbsnStatsName.subbsn_max: max_subbasin_id,
+                             SubbsnStatsName.subbsn_min: min_subbasin_id,
+                             SubbsnStatsName.subbsn_num: subbasin_num}
+
+        for stat, stat_v in import_stats_dict.items():
+            dic = {ModelParamFields.name: stat,
+                   ModelParamFields.desc: stat,
+                   ModelParamFields.unit: "NONE",
+                   ModelParamFields.module: "ALL",
+                   ModelParamFields.value: stat_v,
+                   ModelParamFields.impact: DEFAULT_NODATA,
+                   ModelParamFields.change: ModelParamFields.change_nc,
+                   ModelParamFields.max: DEFAULT_NODATA,
+                   ModelParamFields.min: DEFAULT_NODATA,
+                   ModelParamFields.use: ModelParamFields.use_y,
+                   ModelParamFields.type: "SUBBASIN"}
+            curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
+            # print (dic, curfilter)
+            maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
+                                                                     upsert=True)
+        maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
+
+    @staticmethod
+    def model_io_configuration(cfg, maindb):
+        """
+        Import Input and Output Configuration of SEIMS, i.e., file.in and file.out
+        Args:
+            cfg: SEIMS config object
+            maindb: MongoDB database object
+        """
+        file_in_path = cfg.modelcfgs.filein
+        file_out_path = cfg.modelcfgs.fileout
+        # create if collection not existed
+        c_list = maindb.collection_names()
+        conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
+        for item in conf_tabs:
+            if not StringClass.string_in_list(item, c_list):
+                maindb.create_collection(item)
+            else:
+                maindb.drop_collection(item)
+        file_in_items = read_data_items_from_txt(file_in_path)
+        file_out_items = read_data_items_from_txt(file_out_path)
+
+        for item in file_in_items:
+            file_in_dict = dict()
+            values = StringClass.split_string(StringClass.strip_string(item[0]), ['|'])
+            if len(values) != 2:
+                raise ValueError("One item should only have one Tag and one value string,"
+                                 " split by '|'")
+            file_in_dict[ModelCfgFields.tag] = values[0]
+            file_in_dict[ModelCfgFields.value] = values[1]
+            maindb[DBTableNames.main_filein].find_one_and_replace(file_in_dict, file_in_dict,
+                                                                  upsert=True)
+
+        out_field_array = file_out_items[0]
+        out_data_array = file_out_items[1:]
+        # print out_data_array
+        for item in out_data_array:
+            file_out_dict = dict()
+            for i, v in enumerate(out_field_array):
+                if StringClass.string_match(ModelCfgFields.mod_cls, v):
+                    file_out_dict[ModelCfgFields.mod_cls] = item[i]
+                elif StringClass.string_match(ModelCfgFields.output_id, v):
+                    file_out_dict[ModelCfgFields.output_id] = item[i]
+                elif StringClass.string_match(ModelCfgFields.desc, v):
+                    file_out_dict[ModelCfgFields.desc] = item[i]
+                elif StringClass.string_match(ModelCfgFields.unit, v):
+                    file_out_dict[ModelCfgFields.unit] = item[i]
+                elif StringClass.string_match(ModelCfgFields.type, v):
+                    file_out_dict[ModelCfgFields.type] = item[i]
+                elif StringClass.string_match(ModelCfgFields.stime, v):
+                    file_out_dict[ModelCfgFields.stime] = item[i]
+                elif StringClass.string_match(ModelCfgFields.etime, v):
+                    file_out_dict[ModelCfgFields.etime] = item[i]
+                elif StringClass.string_match(ModelCfgFields.interval, v):
+                    file_out_dict[ModelCfgFields.interval] = item[i]
+                elif StringClass.string_match(ModelCfgFields.interval_unit, v):
+                    file_out_dict[ModelCfgFields.interval_unit] = item[i]
+                elif StringClass.string_match(ModelCfgFields.filename, v):
+                    file_out_dict[ModelCfgFields.filename] = item[i]
+                elif StringClass.string_match(ModelCfgFields.use, v):
+                    file_out_dict[ModelCfgFields.use] = item[i]
+                elif StringClass.string_match(ModelCfgFields.subbsn, v):
+                    file_out_dict[ModelCfgFields.subbsn] = item[i]
+            if file_out_dict.keys() is []:
+                raise ValueError("There are not any valid output item stored in file.out!")
+            cur_flt = {ModelCfgFields.mod_cls: file_out_dict[ModelCfgFields.mod_cls],
+                       ModelCfgFields.output_id: file_out_dict[ModelCfgFields.output_id],
+                       ModelCfgFields.stime: file_out_dict[ModelCfgFields.stime],
+                       ModelCfgFields.etime: file_out_dict[ModelCfgFields.etime]}
+            maindb[DBTableNames.main_fileout].find_one_and_replace(cur_flt, file_out_dict,
+                                                                   upsert=True)
+
+    @staticmethod
+    def lookup_tables_as_collection_and_gridfs(cfg, maindb):
+        """Import lookup tables (from txt file) as Collection and GridFS
+        Args:
+            cfg: SEIMS config object
+            maindb: workflow model database
+        """
+        for tablename, txt_file in cfg.paramcfgs.lookup_tabs_dict.items():
+            # import each lookup table as a collection and GridFS file.
+            c_list = maindb.collection_names()
+            if not StringClass.string_in_list(tablename.upper(), c_list):
+                maindb.create_collection(tablename.upper())
+            else:
+                maindb.drop_collection(tablename.upper())
+            # initial bulk operator
+            bulk = maindb[tablename.upper()].initialize_ordered_bulk_op()
+            # delete if the tablename gridfs file existed
+            spatial = GridFS(maindb, DBTableNames.gridfs_spatial)
+            if spatial.exists(filename=tablename.upper()):
+                x = spatial.get_version(filename=tablename.upper())
+                spatial.delete(x._id)
+
+            # read data items
+            data_items = read_data_items_from_txt(txt_file)
+            field_names = data_items[0][0:]
+            item_values = []  # import as gridfs file
+            for i, cur_data_item in enumerate(data_items):
+                if i == 0:
+                    continue
+                data_import = dict()  # import as Collection
+                item_value = []  # import as gridfs file
+                for idx, fld in enumerate(field_names):
+                    if MathClass.isnumerical(cur_data_item[idx]):
+                        tmp_value = float(cur_data_item[idx])
+                        data_import[fld] = tmp_value
+                        item_value.append(tmp_value)
+                    else:
+                        data_import[fld] = cur_data_item[idx]
+                bulk.insert(data_import)
+                if len(item_value) > 0:
+                    item_values.append(item_value)
+            bulk.execute()
+            # begin import gridfs file
+            n_row = len(item_values)
+            # print (item_values)
+            if n_row >= 1:
+                n_col = len(item_values[0])
+                for i in range(n_row):
+                    if n_col != len(item_values[i]):
+                        raise ValueError("Please check %s to make sure each item has "
+                                         "the same numeric dimension. The size of first "
+                                         "row is: %d, and the current data item is: %d" %
+                                         (tablename, n_col, len(item_values[i])))
+                    else:
+                        item_values[i].insert(0, n_col)
+
+                metadic = {ModelParamDataUtils.item_count: n_row,
+                           ModelParamDataUtils.field_count: n_col}
+                cur_lookup_gridfs = spatial.new_file(filename=tablename.upper(), metadata=metadic)
+                header = [n_row]
+                fmt = '%df' % 1
+                s = pack(fmt, *header)
+                cur_lookup_gridfs.write(s)
+                fmt = '%df' % (n_col + 1)
+                for i in range(n_row):
+                    s = pack(fmt, *item_values[i])
+                    cur_lookup_gridfs.write(s)
+                cur_lookup_gridfs.close()
+
+    @staticmethod
+    def workflow(cfg, maindb):
+        """Workflow"""
+        ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
+        ImportParam2Mongo.model_io_configuration(cfg, maindb)
+        ImportParam2Mongo.subbasin_statistics(cfg, maindb)
+        ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
+
+
+def main():
+    """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
+    seims_cfg = parse_ini_configuration()
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
+
+    ImportParam2Mongo.workflow(seims_cfg, main_db)
+
+    client.close()
 
 
 if __name__ == "__main__":
-    # Load Configuration file
-    LoadConfiguration(getconfigfile())
-    client = ConnectMongoDB(HOSTNAME, PORT)
-    conn = client.get_conn()
-    db = conn[SpatialDBName]
-    sqlite3db = WORKING_DIR + os.sep + DIR_NAME_IMPORT2DB + os.sep + sqlite_file
-    from db_sqlite import reConstructSQLiteDB
-
-    if not FileClass.isfileexists(sqlite3db):
-        reConstructSQLiteDB()
-    ImportModelParameters(sqlite3db, db)
-    # IMPORT LOOKUP TABLES AS GRIDFS, DT_Array2D
-    ImportLookupTables(db, sqlite3db)
-    ImportModelConfiguration(db)
-    client.close()
+    main()

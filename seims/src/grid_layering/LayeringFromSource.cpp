@@ -53,9 +53,19 @@ string LayeringFromSourceD8(const char *outputDir, mongoc_gridfs_t *gfs, int id,
         ofs_flowInD8 << endl;
     }
     ofs_flowInD8.close();
-
-    WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (char *) flowInOutput);
-
+    int max_loop = 3;
+    int cur_loop = 1;
+    while (cur_loop < max_loop) {
+        if (!WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX_D8", nFlowInOutput, (char *)flowInOutput)) {
+            cur_loop++;
+        }
+        else
+            break;
+    }
+    if (cur_loop == max_loop) {
+        cout << "ERROR! Exceed the max. tries times, please contact the developers!" << endl;
+        exit(EXIT_FAILURE);
+    }
     // perform grid layering
     int *layeringGrid = NULL;
     string outputStr = GridLayeringFromSource(nValidGrids, dirMatrix, compressedIndex, inDegreeMatrix, nRows, nCols,

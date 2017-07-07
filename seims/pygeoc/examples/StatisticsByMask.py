@@ -20,9 +20,9 @@ def StatisticsByMask(simf, obsf, maskf):
     for row in range(rows):
         for col in range(cols):
             if not maskdata[row][col] == nodata:
-                tmpx, tmpy = maskr.GetCentralCoors(row + 1, col + 1)
-                simV = simr.GetValueByXY(tmpx, tmpy)
-                obsV = obsr.GetValueByXY(tmpx, tmpy)
+                tmpx, tmpy = maskr.get_central_coors(row + 1, col + 1)
+                simV = simr.get_value_by_xy(tmpx, tmpy)
+                obsV = obsr.get_value_by_xy(tmpx, tmpy)
                 if simV is not None and obsV is not None and \
                         not simV == simNodata and not obsV == obsNodata:
                     n += 1
