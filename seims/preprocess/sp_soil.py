@@ -707,7 +707,7 @@ class SoilUtilClass(object):
             RasterUtilClass.raster_reclassify(soiltype_file, replace_dicts[i], soil_tif)
 
     @staticmethod
-    def initialsoilmoisture(acc_file, slope_file, out_file):
+    def initial_soil_moisture(acc_file, slope_file, out_file):
         """Initialize soil moisture fraction of field capacity, based on TWI"""
         acc_r = RasterUtilClass.read_raster(acc_file)
         data_acc = acc_r.data
@@ -786,7 +786,7 @@ class SoilUtilClass(object):
         acc_file = cfg.spatials.d8acc
         slope_file = cfg.spatials.slope
         out_filename = cfg.spatials.init_somo
-        SoilUtilClass.initialsoilmoisture(acc_file, slope_file, out_filename)
+        SoilUtilClass.initial_soil_moisture(acc_file, slope_file, out_filename)
 
         status_output("Soil related spatial parameters extracted done!", 100, f)
         f.close()

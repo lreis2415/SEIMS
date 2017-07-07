@@ -63,6 +63,23 @@ SEIMS的矢栅数据读写基于`GDAL 1.x`编写，macOS下推荐使用[William 
     >>> from osgeo import gdal_array
     >>> from osgeo import gdal
     ```
++ 此外，还应将GDAL自带可执行程序的安装目录添加至环境变量PATH中，以便可以直接在Terminal中调用GDAL程序：
+参考[这篇博客](http://architectryan.com/2012/10/02/add-to-the-path-on-mac-os-x-mountain-lion/#.WV47mtOGOu5)
+    ```bash
+    ~ sudo nano /etc/paths
+    # Enter your password, when prompted.
+    # Go to the bottom of the file, and enter the path you wish to add.
+    /Library/Frameworks/GDAL.framework/Programs
+    # Hit control-x to quit.
+    # Enter “Y” to save the modified buffer.
+    # To test it, in new terminal window, type:
+    ~ echo $PATH
+    /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Frameworks/GDAL.framework/Programs
+    # 测试
+    ~ gdalinfo --version
+    
+    GDAL 1.11.4, released 2016/01/25
+    ```
 
 ## 1.5. mongo-c-driver
 
@@ -89,7 +106,7 @@ macOS下的配置步骤为：
 
 使用CMake编译SEIMS时有3个可选参数：
 1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
-2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
+2. `-DARCH`，~~用于指定编译32位还是64程序(目前仅适用于Windows)，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；~~
 3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
 4. `-DUNITTEST`，用于指定是否编译基于Googletest的单元测试模块
 5. `-DINSTALL_PREFIX`，用于指定安装路径，如不指定，默认为源码目录下的`bin`文件夹。
