@@ -51,13 +51,13 @@ set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} reclassify_raster.cpp)
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(reclassify ${SOURCE_FILES})
 target_link_libraries(reclassify ${GDAL_LIBRARY})
-install(TARGETS reclassify DESTINATION bin)
+install(TARGETS reclassify DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
         DEPENDS ${PROJECT_NAME}
         COMMENT "Installing ${PROJECT_NAME}")
 IF (MSVC)
-    SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "ReClassify")
+    SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "RasterUtility")
 ENDIF ()
 MESSAGE(STATUS "    Compiling ReClassify Raster done")

@@ -74,7 +74,7 @@ endif ()
 if (GDAL_FOUND)
     target_link_libraries(RasterClass ${GDAL_LIBRARY})
 endif ()
-install(TARGETS RasterClass DESTINATION bin)
+install(TARGETS RasterClass DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install

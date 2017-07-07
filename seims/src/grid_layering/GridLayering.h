@@ -45,11 +45,11 @@ void ReadFromMongoFloat(mongoc_gridfs_t *gfs, const char *remoteFilename, Raster
 
 void ReadFromMongo(mongoc_gridfs_t *gfs, const char *remoteFilename, RasterHeader &rs, int *&data);
 
-int WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s);
+bool WriteStringToMongoDB(mongoc_gridfs_t *gfs, int id, const char *type, int number, char *s);
 
 void TauDEM2ArcGIS(int nRows, int nCols, int *&dirMatrix, int nodata = (int) NODATA_VALUE);
 
-void OutputFlowOutD8(const char *outdir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount,
+bool OutputFlowOutD8(const char *outdir, mongoc_gridfs_t *gfs, int id, int nRows, int nCols, int validCount,
                      const int *dirMatrix, int noDataValue,
                      const int *compressedIndex);
 
@@ -84,6 +84,6 @@ void LayeringFromOutlet(int nValidGrids, const int *dirMatrix, const int *compre
                         RasterHeader &header, int outputNoDataValue, const char *outputTxtFile,
                         const char *outputAscFile);
 
-void OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs);
+bool OutputLayersToMongoDB(const char *layeringTxtFile, const char *dataType, int id, mongoc_gridfs_t *gfs);
 
 #endif

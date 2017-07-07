@@ -1,24 +1,24 @@
 #! /usr/bin/env python
-# coding=utf-8
-#
-# @Author: Junzhi Liu, 2013-1-10
-# @Revised: Liang-Jun Zhu, Huiran Gao, Fang Shen
-# @Revised date: 2016-7-22
-# @Note: 1. Names and units of soil physical parameter are referred to readsol.f, soil_par.f, and soil_phys.f in SWAT
-#        2. Data validation checking is also conducted here.
-#        3. Basic protocols: a. all names are Capitalized. b. output Geotiff names may be appended in text.py
-# @Revised: Liang-Jun Zhu, 2017-2-19
-#
+# -*- coding: utf-8 -*-
+"""Extract spatial soil parameters
+    @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen
+    @changelog: 13-01-10  jz - initial implementation
+                16-07-22  lj - Names and units of soil physical parameter are referred to
+                               readsol.f, soil_par.f, and soil_phys.f in SWAT
+                             - Data validation checking is also conducted.
+                16-12-07  lj - rewrite for version 2.0
+                17-06-23  lj - reorganize as basic class
+"""
 import math
-import types
+from os import sep as SEP
 
 import numpy
-from gdal import GDT_Float32
-from pygeoc.raster.raster import RasterUtilClass
+from osgeo.gdal import GDT_Float32
 
-from config import *
-from utility import LoadConfiguration, status_output, ReadDataItemsFromTxt
-from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from seims.preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from seims.preprocess.utility import status_output, read_data_items_from_txt
+from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
+from seims.pygeoc.pygeoc.utils.utils import StringClass
 
 
 class SoilProperty(object):
@@ -74,16 +74,18 @@ class SoilProperty(object):
         SOL_ORGP (float,kg/ha): (sol_orgp) organic P concentration in soil layers
         SOL_SOLP (float,kg/ha): (sol_solp) soluble P concentration in soil layers
     """
+    _SEQN = "SEQN"
+    _NAME = "SNAM"
 
-    def __init__(self, SEQN, SNAM):
+    def __init__(self, seq_num, seq_name):
         """
         Initialize a soil property object.
         Args:
-            SEQN (int): Soil sequence number, Unique identifier
-            SNAME (str): The corresponding soil name
+            seq_num (int): Soil sequence number, Unique identifier
+            seq_name (str): The corresponding soil name
         """
-        self.SEQN = SEQN
-        self.SNAM = SNAM
+        self.SEQN = seq_num
+        self.SNAM = seq_name
         self.SOILLAYERS = DEFAULT_NODATA
         self.SOILDEPTH = []
         self.SOILTHICK = []
@@ -133,18 +135,18 @@ class SoilProperty(object):
         self.SOL_ORGP = []
         self.SOL_SOLP = []
 
-    def SoilDict(self):
+    def soil_dict(self):
         """Convert to dict"""
-        solDict = self.__dict__
-        solDict.pop(SOL_NAME)
+        sol_dict = self.__dict__
+        sol_dict.pop(SoilProperty._NAME)
         # remove the empty element
-        for ele in solDict:
-            if isinstance(solDict[ele], list) and not solDict[ele]:
-                del solDict[ele]
-        # print solDict
-        return solDict
+        for ele in sol_dict:
+            if isinstance(sol_dict[ele], list) and not sol_dict[ele]:
+                del sol_dict[ele]
+        # print sol_dict
+        return sol_dict
 
-    def CheckData(self):
+    def check_data_validation(self):
         """Check the required input, and calculate all physical and general chemical properties"""
         # set a soil layer at dep_new and adjust all lower layers
         # a septic layer:0-10mm, refers to layersplit.f in SWAT
@@ -219,8 +221,10 @@ class SoilProperty(object):
                 self.SOL_ORGP.insert(0, self.SOL_ORGP[0])
             else:
                 self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
-        if self.SOILDEPTH == [] or len(self.SOILDEPTH) != self.SOILLAYERS or DEFAULT_NODATA in self.SOILDEPTH:
-            raise IndexError("Soil depth must have a size equal to NLAYERS and should not include NODATA (-9999)!")
+        if self.SOILDEPTH == [] or len(
+                self.SOILDEPTH) != self.SOILLAYERS or DEFAULT_NODATA in self.SOILDEPTH:
+            raise IndexError("Soil depth must have a size equal to NLAYERS and "
+                             "should not include NODATA (-9999)!")
         # Calculate soil thickness of each layer
         for l in range(self.SOILLAYERS):
             if l == 0:
@@ -233,7 +237,8 @@ class SoilProperty(object):
             self.ANION_EXCL = 0.5
         if not self.OM or len(self.OM) != self.SOILLAYERS:
             raise IndexError("Soil organic matter must have a size equal to NLAYERS!")
-        elif DEFAULT_NODATA in self.OM and self.OM.index(DEFAULT_NODATA) >= 2 and self.SOILLAYERS >= 3:
+        elif DEFAULT_NODATA in self.OM and self.OM.index(
+                DEFAULT_NODATA) >= 2 and self.SOILLAYERS >= 3:
             for i in range(2, self.SOILLAYERS):
                 if self.OM[i] == DEFAULT_NODATA:
                     self.OM[i] = self.OM[i - 1] * numpy.exp(-self.SOILTHICK[i])  # mm
@@ -251,15 +256,19 @@ class SoilProperty(object):
             for i in range(self.SOILLAYERS):
                 self.SOL_N.append(self.SOL_CBN[i] / 11.)
         if not self.CLAY or len(self.CLAY) != self.SOILLAYERS or DEFAULT_NODATA in self.CLAY:
-            raise IndexError("Clay content must have a size equal to NLAYERS and should not include NODATA (-9999)!")
+            raise IndexError("Clay content must have a size equal to NLAYERS and "
+                             "should not include NODATA (-9999)!")
         if not self.SILT or len(self.SILT) != self.SOILLAYERS or DEFAULT_NODATA in self.SILT:
-            raise IndexError("Silt content must have a size equal to NLAYERS and should not include NODATA (-9999)!")
+            raise IndexError("Silt content must have a size equal to NLAYERS and "
+                             "should not include NODATA (-9999)!")
         if not self.SAND or len(self.SAND) != self.SOILLAYERS or DEFAULT_NODATA in self.SAND:
-            raise IndexError("Sand content must have a size equal to NLAYERS and should not include NODATA (-9999)!")
+            raise IndexError("Sand content must have a size equal to NLAYERS and "
+                             "should not include NODATA (-9999)!")
         if not self.ROCK or len(self.ROCK) != self.SOILLAYERS or DEFAULT_NODATA in self.ROCK:
-            raise IndexError("Rock content must have a size equal to NLAYERS and should not include NODATA (-9999)!")
+            raise IndexError("Rock content must have a size equal to NLAYERS and "
+                             "should not include NODATA (-9999)!")
 
-        # temperory variables
+        # temporary variables
         tmp_fc = []
         tmp_sat = []
         tmp_wp = []
@@ -267,19 +276,21 @@ class SoilProperty(object):
             s = self.SAND[i] * 0.01  # % -> decimal
             c = self.CLAY[i] * 0.01
             om = self.OM[i]
-            wpt = -0.024 * s + 0.487 * c + 0.006 * om + 0.005 * s * om - 0.013 * c * om + 0.068 * s * c + 0.031
+            wpt = -0.024 * s + 0.487 * c + 0.006 * om + 0.005 * s * om \
+                  - 0.013 * c * om + 0.068 * s * c + 0.031
             tmp_wp.append(1.14 * wpt - 0.02)
-            fct = -0.251 * s + 0.195 * c + 0.011 * om + 0.006 * s * om - 0.027 * c * om + 0.452 * s * c + 0.299
+            fct = -0.251 * s + 0.195 * c + 0.011 * om + 0.006 * s * om \
+                  - 0.027 * c * om + 0.452 * s * c + 0.299
             fc = fct + 1.283 * fct * fct - 0.374 * fct - 0.015
-            s33t = 0.278 * s + 0.034 * c + 0.022 * om - 0.018 * s * om - 0.027 * c * om - 0.584 * s * c + 0.078
+            s33t = 0.278 * s + 0.034 * c + 0.022 * om - 0.018 * s * om \
+                   - 0.027 * c * om - 0.584 * s * c + 0.078
             s33 = 1.636 * s33t - 0.107
             sat = fc + s33 - 0.097 * s + 0.043
             tmp_fc.append(fc)
             tmp_sat.append(sat)
 
         if self.WILTINGPOINT and len(self.WILTINGPOINT) != self.SOILLAYERS:
-            raise IndexError(
-                "Wilting point must have a size equal to soil layers number!")
+            raise IndexError("Wilting point must have a size equal to soil layers number!")
         elif not self.WILTINGPOINT:
             self.WILTINGPOINT = tmp_wp[:]
         elif DEFAULT_NODATA in self.WILTINGPOINT:
@@ -287,8 +298,7 @@ class SoilProperty(object):
                 if self.WILTINGPOINT[i] == DEFAULT_NODATA:
                     self.WILTINGPOINT[i] = tmp_wp[i]
         if self.DENSITY and len(self.DENSITY) != self.SOILLAYERS:
-            raise IndexError(
-                "Bulk density must have a size equal to soil layers number!")
+            raise IndexError("Bulk density must have a size equal to soil layers number!")
         elif not self.DENSITY or DEFAULT_NODATA in self.DENSITY:
             tmp_bd = []
             for i in range(self.SOILLAYERS):
@@ -304,8 +314,7 @@ class SoilProperty(object):
             elif not self.DENSITY:
                 self.DENSITY = tmp_bd[:]
         if self.FIELDCAP and len(self.FIELDCAP) != self.SOILLAYERS:
-            raise IndexError(
-                "Field capacity must have a size equal to soil layers number!")
+            raise IndexError("Field capacity must have a size equal to soil layers number!")
         elif not self.FIELDCAP or DEFAULT_NODATA in self.FIELDCAP:
             tmp_fc_bdeffect = []
             for i in range(self.SOILLAYERS):
@@ -314,7 +323,7 @@ class SoilProperty(object):
                 if self.DENSITY != [] and len(self.DENSITY) == self.SOILLAYERS:
                     p_df = self.DENSITY[i]
                 else:
-                    p_df = 2.65 * (1.0 - sat)
+                    p_df = 2.65 * (1. - sat)
                 sat_df = 1. - p_df / 2.65
                 tmp_fc_bdeffect.append(fc - 0.2 * (sat - sat_df))
             if DEFAULT_NODATA in self.FIELDCAP:
@@ -324,7 +333,8 @@ class SoilProperty(object):
             elif not self.FIELDCAP:
                 self.FIELDCAP = tmp_fc_bdeffect[:]
         if self.AWC and len(self.AWC) != self.SOILLAYERS:
-            raise IndexError("Available water capacity must have the size equal to soil layers number!")
+            raise IndexError(
+                    "Available water capacity must have the size equal to soil layers number!")
         elif not self.AWC:
             for i in range(self.SOILLAYERS):
                 self.AWC.append(self.FIELDCAP[i] - self.WILTINGPOINT[i])
@@ -334,7 +344,8 @@ class SoilProperty(object):
                     self.AWC[i] = self.FIELDCAP[i] - self.WILTINGPOINT[i]
 
         if self.POREINDEX and len(self.POREINDEX) != self.SOILLAYERS:
-            raise IndexError("Pore disconnectedness index must have a size equal to soil layers number!")
+            raise IndexError("Pore disconnectedness index must have a size "
+                             "equal to soil layers number!")
         elif not self.POREINDEX:
             for i in range(self.SOILLAYERS):
                 # An fitted equation proposed by Cosby et al. (1984) is adopted. By LJ, 2016-9-22
@@ -346,8 +357,7 @@ class SoilProperty(object):
                 # b = (math.log(1500.) - math.log(33.)) / (math.log(fc) - math.log(wp))
                 # self.POREINDEX.append(1.0 / b)
         if self.POROSITY and len(self.POROSITY) != self.SOILLAYERS:
-            raise IndexError(
-                "Soil Porosity must have a size equal to soil layers number!")
+            raise IndexError("Soil Porosity must have a size equal to soil layers number!")
         elif not self.POROSITY:
             for i in range(self.SOILLAYERS):
                 self.POROSITY.append(1. - self.DENSITY[i] / 2.65)  # from the theory of swat
@@ -400,8 +410,8 @@ class SoilProperty(object):
         sa = self.SAND[0] / 100.
         cl = self.CLAY[0] / 100.
         si = self.SILT[0] / 100.
-        # determine detached sediment size distribution typical for mid-western soils in USA (Foster et al., 1980)
-        # Based on SWRRB.
+        # determine detached sediment size distribution typical for mid-western soils in USA
+        #  (Foster et al., 1980) Based on SWRRB.
         self.DET_SAND = 2.49 * sa * (1. - cl)
         self.DET_SILT = 0.13 * si
         self.DET_CLAY = 0.2 * cl
@@ -436,19 +446,22 @@ class SoilProperty(object):
                 self.SOL_HK[i] = 1.
             self.SOL_WPMM.append(self.WILTINGPOINT[i] * self.SOILTHICK[i])
             self.SOL_SUMWP += self.SOL_WPMM[i]
-            self.CRDEP.append(
-                self.SOL_CRK * 0.916 * math.exp(-0.0012 * self.SOILDEPTH[i]) * self.SOILTHICK[i])
+            self.CRDEP.append(self.SOL_CRK * 0.916 * math.exp(-0.0012 * self.SOILDEPTH[i])
+                              * self.SOILTHICK[i])
 
         self.SOL_AVPOR = sumpor / self.SOILDEPTH[self.SOILLAYERS - 1]
         self.SOL_AVBD = 2.65 * (1. - self.SOL_AVPOR)
         # calculate infiltration parameters for sub-daily time step
-        self.WFSH = 10. * math.exp(6.5309 - 7.32561 * self.POROSITY[0] + 3.809479 * math.pow(self.POROSITY[0], 2) +
-                                   0.001583 * math.pow(self.CLAY[0], 2) + 0.000344 * self.SAND[0] *
-                                   self.CLAY[0] - 0.049837 * self.POROSITY[0] * self.SAND[0] + 0.001608 *
-                                   math.pow(self.POROSITY[0], 2) * math.pow(self.SAND[0], 2) + 0.001602 *
-                                   math.pow(self.POROSITY[0], 2) * math.pow(self.CLAY[0], 2) - 0.0000136 *
-                                   math.pow(self.SAND[0], 2) * self.CLAY[0] - 0.003479 * math.pow(self.CLAY[0], 2) *
-                                   self.POROSITY[0] - 0.000799 * math.pow(self.SAND[0], 2) * self.POROSITY[0])
+        self.WFSH = 10. * math.exp(6.5309 - 7.32561 * self.POROSITY[0] + 3.809479
+                                   * math.pow(self.POROSITY[0], 2) + 0.001583
+                                   * math.pow(self.CLAY[0], 2) + 0.000344 * self.SAND[0]
+                                   * self.CLAY[0] - 0.049837 * self.POROSITY[0] * self.SAND[0]
+                                   + 0.001608 * math.pow(self.POROSITY[0], 2)
+                                   * math.pow(self.SAND[0], 2) + 0.001602
+                                   * math.pow(self.POROSITY[0], 2) * math.pow(self.CLAY[0], 2)
+                                   - 0.0000136 * math.pow(self.SAND[0], 2) * self.CLAY[0]
+                                   - 0.003479 * math.pow(self.CLAY[0], 2) * self.POROSITY[0]
+                                   - 0.000799 * math.pow(self.SAND[0], 2) * self.POROSITY[0])
         if self.SOL_ALB == DEFAULT_NODATA:
             self.SOL_ALB = 0.2227 * math.exp(-1.8672 * self.SOL_CBN[0])
         if self.ESCO == DEFAULT_NODATA:
@@ -476,7 +489,8 @@ class SoilProperty(object):
                     if self.USLE_K[i] == DEFAULT_NODATA:
                         self.USLE_K[i] = tmp_usle_k[i]
         if self.SOIL_TEXTURE == DEFAULT_NODATA or self.HYDRO_GROUP == DEFAULT_NODATA:
-            st, hg, uslek = SoilUtilClass.getsoiltexture_usda(self.CLAY[0], self.SILT[0], self.SAND[0])
+            st, hg, uslek = SoilUtilClass.getsoiltexture_usda(self.CLAY[0], self.SILT[0],
+                                                              self.SAND[0])
             self.SOIL_TEXTURE = st
             self.HYDRO_GROUP = hg
         # Unit conversion for general soil chemical properties
@@ -503,22 +517,55 @@ class SoilProperty(object):
 
 class SoilUtilClass(object):
     """Soil parameters related utility functions."""
+    # SOIL PARAMETERS NAMES, which will be appeared in MongoDB
+    _SEQN = "SEQN"
+    _NAME = "SNAM"
+    # required inputs
+    _NLYRS = "SOILLAYERS"
+    _Z = "SOL_Z"
+    _OM = "SOL_OM"
+    _CLAY = "SOL_CLAY"
+    _SILT = "SOL_SILT"
+    _SAND = "SOL_SAND"
+    _ROCK = "SOL_ROCK"
+    # optional inputs, which can be auto-calculated
+    _ZMX = "SOL_ZMX"
+    _ANIONEXCL = "ANION_EXCL"
+    _CRK = "SOL_CRK"
+    _BD = "SOL_BD"
+    _K = "SOL_K"
+    _WP = "SOL_WP"
+    _FC = "SOL_FC"
+    _AWC = "SOL_AWC"
+    _POROSITY = "SOL_POROSITY"
+    _USLE_K = "SOL_USLE_K"
+    _ALB = "SOL_ALB"
+    _ESCO = "ESCO"
+    # soil N and P concentrate
+    _NO3 = "SOL_NO3"
+    _NH4 = "SOL_NH4"
+    _ORGN = "SOL_ORGN"
+    _ORGP = "SOL_ORGP"
+    _SOLP = "SOL_SOLP"
 
     def __init__(self):
+        """Empty"""
         pass
 
     @staticmethod
     def getsoiltexture_usda(clay, silt, sand):
-        """
-            The soil texture code system is from WetSpa Extension and SWAT model which is
+        """The soil texture code system is from WetSpa Extension and SWAT model which is
         based on the soil texture triangle developed by USDA.
-            The unit is percentage, silt + sand + clay [+ Rock] = 100.
+        The unit is percentage, silt + sand + clay [+ Rock] = 100.
             The corresponding default soil parameters (e.g. Ks, porosity) are stored in
         `seims/database/SoilLookup.txt`.
-        :param clay: clay content percentage
-        :param silt: silt content percentage
-        :param sand: sand content percentage
-        :return: [Soil texture ID, Hydrological soil group, USLE K factor]
+        Args:
+            clay: clay content percentage
+            silt: silt content percentage
+            sand: sand content percentage
+
+        Returns:
+            [Soil texture ID, Hydrological soil group, USLE K factor]
         """
         if clay >= 40 >= silt and sand <= 45:
             return [12, 1, 0.22]  # clay / nian tu
@@ -549,7 +596,7 @@ class SoilUtilClass(object):
     def lookup_soil_parameters(dstdir, soiltype_file, soil_lookup_file):
         """Reclassify soil parameters by lookup table."""
         #  Read soil properties from txt file
-        soil_lookup_data = ReadDataItemsFromTxt(soil_lookup_file)
+        soil_lookup_data = read_data_items_from_txt(soil_lookup_file)
         soil_instances = []
         soil_prop_flds = soil_lookup_data[0][:]
         for i in range(1, len(soil_lookup_data)):
@@ -558,62 +605,62 @@ class SoilUtilClass(object):
             cur_sname = cur_soil_data_item[1]
             cur_soil_ins = SoilProperty(cur_seqn, cur_sname)
             for j in range(2, len(soil_prop_flds)):
-                cur_flds = StringClass.splitstring(cur_soil_data_item[j], ',')  # Get field values
-                for k in range(len(cur_flds)):
-                    cur_flds[k] = float(cur_flds[k])  # Convert to float
-                if StringClass.stringmatch(soil_prop_flds[j], SOL_NLYRS):
+                cur_flds = StringClass.split_string(cur_soil_data_item[j], ',')  # Get field values
+                for k, tmpfld in enumerate(cur_flds):
+                    cur_flds[k] = float(tmpfld)  # Convert to float
+                if StringClass.string_match(soil_prop_flds[j], SoilUtilClass._NLYRS):
                     cur_soil_ins.SOILLAYERS = int(cur_flds[0])
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_Z):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._Z):
                     cur_soil_ins.SOILDEPTH = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_OM):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._OM):
                     cur_soil_ins.OM = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_CLAY):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._CLAY):
                     cur_soil_ins.CLAY = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_SILT):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._SILT):
                     cur_soil_ins.SILT = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_SAND):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._SAND):
                     cur_soil_ins.SAND = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ROCK):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ROCK):
                     cur_soil_ins.ROCK = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ZMX):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ZMX):
                     cur_soil_ins.SOL_ZMX = cur_flds[0]
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ANIONEXCL):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ANIONEXCL):
                     cur_soil_ins.ANION_EXCL = cur_flds[0]
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_CRK):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._CRK):
                     cur_soil_ins.SOL_CRK = cur_flds[0]
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_BD):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._BD):
                     cur_soil_ins.DENSITY = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_K):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._K):
                     cur_soil_ins.CONDUCTIVITY = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_WP):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._WP):
                     cur_soil_ins.WILTINGPOINT = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_FC):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._FC):
                     cur_soil_ins.FIELDCAP = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_AWC):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._AWC):
                     cur_soil_ins.AWC = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_POROSITY):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._POROSITY):
                     cur_soil_ins.POROSITY = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_USLE_K):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._USLE_K):
                     cur_soil_ins.USLE_K = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ALB):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ALB):
                     cur_soil_ins.SOL_ALB = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], ESCO):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ESCO):
                     cur_soil_ins.ESCO = cur_flds[0]
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_NO3):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._NO3):
                     cur_soil_ins.SOL_NO3 = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_NH4):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._NH4):
                     cur_soil_ins.SOL_NH4 = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ORGN):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ORGN):
                     cur_soil_ins.SOL_ORGN = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_SOLP):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._SOLP):
                     cur_soil_ins.SOL_SOLP = cur_flds
-                elif StringClass.stringmatch(soil_prop_flds[j], SOL_ORGP):
+                elif StringClass.string_match(soil_prop_flds[j], SoilUtilClass._ORGP):
                     cur_soil_ins.SOL_ORGP = cur_flds
-            cur_soil_ins.CheckData()
+            cur_soil_ins.check_data_validation()
             soil_instances.append(cur_soil_ins)
         soil_prop_dict = {}
         for sol in soil_instances:
-            cur_sol_dict = sol.SoilDict()
+            cur_sol_dict = sol.soil_dict()
             for fld in cur_sol_dict:
                 if fld in soil_prop_dict:
                     soil_prop_dict[fld].append(cur_sol_dict[fld])
@@ -624,128 +671,133 @@ class SoilUtilClass(object):
 
         replace_dicts = []
         dst_soil_tifs = []
-        seqns = soil_prop_dict[SOL_SEQN]
-        max_lyr_num = int(numpy.max(soil_prop_dict[SOL_NLYRS]))
+        seqns = soil_prop_dict[SoilUtilClass._SEQN]
+        max_lyr_num = int(numpy.max(soil_prop_dict[SoilUtilClass._NLYRS]))
         for key in soil_prop_dict:
-            if key != SOL_SEQN and key != SOL_NAME:
+            if key != SoilUtilClass._SEQN and key != SoilUtilClass._NAME:
                 key_l = 1
                 for key_v in soil_prop_dict[key]:
-                    if type(key_v) is types.ListType:
+                    if isinstance(key_v, list):
                         if len(key_v) > key_l:
                             key_l = len(key_v)
                 if key_l == 1:
                     cur_dict = {}
-                    for i in range(len(seqns)):
-                        cur_dict[float(seqns[i])] = soil_prop_dict[key][i]
+                    for i, tmpseq in enumerate(seqns):
+                        cur_dict[float(tmpseq)] = soil_prop_dict[key][i]
                     replace_dicts.append(cur_dict)
-                    dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
+                    dst_soil_tifs.append(dstdir + SEP + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
                         cur_dict = {}
-                        for j in range(len(seqns)):
-                            if i < soil_prop_dict[SOL_NLYRS][j]:
-                                cur_dict[float(seqns[j])] = soil_prop_dict[key][j][i]
+                        for j, tmpseq in enumerate(seqns):
+                            if i < soil_prop_dict[SoilUtilClass._NLYRS][j]:
+                                cur_dict[float(tmpseq)] = soil_prop_dict[key][j][i]
                             else:
                                 cur_dict[float(seqns[j])] = DEFAULT_NODATA
                         replace_dicts.append(cur_dict)
-                        dst_soil_tifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
+                        dst_soil_tifs.append(dstdir + SEP + key + '_' + str(i + 1) + '.tif')
         # print replaceDicts
         # print(len(replaceDicts))
         # print dstSoilTifs
         # print(len(dstSoilTifs))
 
         # Generate GTIFF
-        for i in range(len(dst_soil_tifs)):
-            print (dst_soil_tifs[i])
-            RasterUtilClass.RasterReclassify(soiltype_file, replace_dicts[i], dst_soil_tifs[i])
+        for i, soil_tif in enumerate(dst_soil_tifs):
+            print (soil_tif)
+            RasterUtilClass.raster_reclassify(soiltype_file, replace_dicts[i], soil_tif)
 
     @staticmethod
-    def initialsoilmoisture(acc_file, slope_file, out_file):
+    def initial_soil_moisture(acc_file, slope_file, out_file):
         """Initialize soil moisture fraction of field capacity, based on TWI"""
-        acc_R = RasterUtilClass.ReadRaster(acc_file)
-        dataAcc = acc_R.data
-        xsize = acc_R.nCols
-        ysize = acc_R.nRows
-        noDataValue = acc_R.noDataValue
-        srs = acc_R.srs
-        geotrans = acc_R.geotrans
-        dx = acc_R.dx
-        dataSlope = RasterUtilClass.ReadRaster(slope_file).data
-        cellArea = dx * dx
+        acc_r = RasterUtilClass.read_raster(acc_file)
+        data_acc = acc_r.data
+        xsize = acc_r.nCols
+        ysize = acc_r.nRows
+        nodata_value = acc_r.noDataValue
+        srs = acc_r.srs
+        geotrans = acc_r.geotrans
+        dx = acc_r.dx
+        data_slope = RasterUtilClass.read_raster(slope_file).data
+        cell_area = dx * dx
 
-        # TWI, ln(acc_file/tan(slp))
-        def wiGridCal(accvalue, slpvalue):
-            if abs(accvalue - noDataValue) < UTIL_ZERO:
+        def wi_grid_cal(accvalue, slpvalue):
+            """TWI, ln(acc_file/tan(slp))"""
+            if abs(accvalue - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
             else:
                 if abs(slpvalue) < MINI_SLOPE:
                     slpvalue = MINI_SLOPE
-                return math.log((accvalue + 1.) * cellArea / slpvalue)
+                return math.log((accvalue + 1.) * cell_area / slpvalue)
 
-        wiGridCal_numpy = numpy.frompyfunc(wiGridCal, 2, 1)
-        wiGrid = wiGridCal_numpy(dataAcc, dataSlope)
-        # wiGrid_valid = numpy.where(acc_R.validZone, wiGrid, numpy.nan)
-        # wiMax = numpy.nanmax(wiGrid_valid)
-        # wiMin = numpy.nanmin(wiGrid_valid)
+        wi_grid_cal_numpy = numpy.frompyfunc(wi_grid_cal, 2, 1)
+        wi_grid = wi_grid_cal_numpy(data_acc, data_slope)
+        # wiGrid_valid = numpy.where(acc_r.validZone, wi_grid, numpy.nan)
+        # wi_max = numpy.nanmax(wiGrid_valid)
+        # wi_min = numpy.nanmin(wiGrid_valid)
         # WARNING: numpy.nanmax and numpy.nanmin are un-stable in Linux, so
         # replaced by the for loops. By LJ
-        wiMax = -numpy.inf
-        wiMin = numpy.inf
+        wi_max = -numpy.inf
+        wi_min = numpy.inf
         for i in range(0, ysize):
             for j in range(0, xsize):
-                if wiMax < wiGrid[i][j]:
-                    wiMax = wiGrid[i][j]
-                if DEFAULT_NODATA != wiGrid[i][j] < wiMin:
-                    wiMin = wiGrid[i][j]
-        # print "TWIMax:%f, TWIMin:%f" % (wiMax, wiMin)
-        soilMoisFrMin = 0.6  # minimum relative saturation
-        soilMoisFrMax = 1.0
+                if wi_max < wi_grid[i][j]:
+                    wi_max = wi_grid[i][j]
+                if DEFAULT_NODATA != wi_grid[i][j] < wi_min:
+                    wi_min = wi_grid[i][j]
+        # print "TWIMax:%f, TWIMin:%f" % (wi_max, wi_min)
+        soil_mois_fr_min = 0.6  # minimum relative saturation
+        soil_mois_fr_max = 1.0
 
-        wiUplimit = wiMax
-        a = (soilMoisFrMax - soilMoisFrMin) / (wiUplimit - wiMin)
-        b = soilMoisFrMin - a * wiMin
+        wi_uplimit = wi_max
+        a = (soil_mois_fr_max - soil_mois_fr_min) / (wi_uplimit - wi_min)
+        b = soil_mois_fr_min - a * wi_min
 
-        def moistureCal(acc, wigrid):
-            if abs(acc - noDataValue) < UTIL_ZERO:
+        def moisture_cal(acc, wigrid):
+            """calculate soil moisture"""
+            if abs(acc - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
             else:
                 tmp = a * wigrid + b
-                if tmp > soilMoisFrMax:
-                    return soilMoisFrMax
-                elif tmp < soilMoisFrMin:
-                    return soilMoisFrMin
+                if tmp > soil_mois_fr_max:
+                    return soil_mois_fr_max
+                elif tmp < soil_mois_fr_min:
+                    return soil_mois_fr_min
                 else:
                     return tmp
 
-        moistureCal_numpy = numpy.frompyfunc(moistureCal, 2, 1)
-        moisture = moistureCal_numpy(dataAcc, wiGrid)
-        RasterUtilClass.WriteGTiffFile(out_file, ysize, xsize, moisture, geotrans, srs, DEFAULT_NODATA, GDT_Float32)
+        moisture_cal_numpy = numpy.frompyfunc(moisture_cal, 2, 1)
+        moisture = moisture_cal_numpy(data_acc, wi_grid)
+        RasterUtilClass.write_gtiff_file(out_file, ysize, xsize, moisture, geotrans, srs,
+                                         DEFAULT_NODATA, GDT_Float32)
+
+    @staticmethod
+    def parameters_extraction(cfg):
+        """Soil spatial parameters extraction."""
+        f = open(cfg.logs.extract_soil, 'w')
+
+        # 1. Calculate soil physical and chemical parameters
+        soiltype_file = cfg.spatials.soil_type
+        status_output("Calculating initial soil physical and chemical parameters...", 30, f)
+        SoilUtilClass.lookup_soil_parameters(cfg.dirs.geodata2db, soiltype_file, cfg.soil_property)
+
+        # other soil related spatial parameters
+        # 3. Initial soil moisture
+        status_output("Calculating initial soil moisture...", 40, f)
+        acc_file = cfg.spatials.d8acc
+        slope_file = cfg.spatials.slope
+        out_filename = cfg.spatials.init_somo
+        SoilUtilClass.initial_soil_moisture(acc_file, slope_file, out_filename)
+
+        status_output("Soil related spatial parameters extracted done!", 100, f)
+        f.close()
 
 
-def soil_parameters_extraction():
-    """Soil spatial parameters extraction."""
-    geodata2dbdir = WORKING_DIR + os.sep + DIR_NAME_GEODATA2DB
-    status_file = WORKING_DIR + os.sep + DIR_NAME_LOG + os.sep + FN_STATUS_EXTRACTSOILPARAM
-    f = open(status_file, 'w')
-
-    # 1. Calculate soil physical and chemical parameters
-    soiltype_file = geodata2dbdir + os.sep + soiltypeMFile
-    status_output("Calculating initial soil physical and chemical parameters...", 30, f)
-    SoilUtilClass.lookup_soil_parameters(geodata2dbdir, soiltype_file, soilSEQNText)
-
-    # other soil related spatial parameters
-    # 3. Initial soil moisture
-    status_output("Calculating initial soil moisture...", 40, f)
-    geodata2dbdir = WORKING_DIR + os.sep + DIR_NAME_GEODATA2DB
-    acc_file = geodata2dbdir + os.sep + accM
-    slope_file = geodata2dbdir + os.sep + slopeM
-    out_filename = geodata2dbdir + os.sep + initSoilMoist
-    SoilUtilClass.initialsoilmoisture(acc_file, slope_file, out_filename)
-
-    status_output("Soil related spatial parameters extracted done!", 100, f)
-    f.close()
+def main():
+    """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    seims_cfg = parse_ini_configuration()
+    SoilUtilClass.parameters_extraction(seims_cfg)
 
 
 if __name__ == "__main__":
-    LoadConfiguration(getconfigfile())
-    soil_parameters_extraction()
+    main()

@@ -1,41 +1,44 @@
 #! /usr/bin/env python
-# coding=utf-8
-# Identify depression storage capacity from slope, soil, and landuse. Algorithm from WetSpa.
-# Author: Junzhi Liu
-# Revised: Liang-Jun Zhu
-# Date: 2016-7-6
-# Note: Code optimization by using numpy.
-# TODO: 1. Add stream order modification, according to depression.ave of WetSpa.
-# TODO: 2. Add another depressional storage method according to SWAT, depstor.f
-import sqlite3
-import math
+# -*- coding: utf-8 -*-
+"""Terrain related spatial parameters extraction
+    @author   : Liangjun Zhu, Junzhi Liu
+    @changelog: 16-07-06  lj - Code optimization by numpy
+                16-12-07  lj - rewrite for version 2.0
+                17-06-27  lj - reorganize as basic class other than Global variables
+    @TODO: 1. for depression_capacity() function
+              1.1. Add stream order modification, according to depression.ave of WetSpa.
+              1.2. Add another depressional storage method according to SWAT, depstor.f
+"""
+from math import exp, sqrt
 import sys
 
 import numpy
-import ogr
-from gdal import GDT_Float32
-from pygeoc.raster.raster import RasterUtilClass
-from pygeoc.hydro.hydro import FlowDirectionCode
+from osgeo.ogr import OFTReal
+from osgeo.ogr import Open as ogr_Open
+from osgeo.ogr import FieldDefn as ogr_FieldDefn
+from osgeo.gdal import GDT_Float32
 
-from config import *
-from utility import LoadConfiguration, status_output
-from utility import UTIL_ZERO, DEFAULT_NODATA
+from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from seims.preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
+from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 
 sys.setrecursionlimit(10000)
 
 
 class TerrainUtilClass(object):
-    """Terrain related spatial parameters algorithm."""
+    """Terrain related spatial parameters algorithms."""
 
     def __init__(self):
+        """Empty"""
         pass
 
     @staticmethod
-    def flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length, flow_dir_code = "TauDEM"):
+    def flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length,
+                         flow_dir_code="TauDEM"):
         """Calculate flow length of cell."""
-        flowcode = FlowDirectionCode(flow_dir_code)
-        celllen = flowcode.get_cell_length()
-        differ = flowcode.get_cell_shift()
+        celllen = FlowModelConst.get_cell_length(flow_dir_code)
+        differ = FlowModelConst.get_cell_shift(flow_dir_code)
         # print i,j, weight[i][j]
         if i < ysize and j < xsize:
             if length[i][j] == 0:
@@ -43,15 +46,16 @@ class TerrainUtilClass(object):
                     prei = i
                     prej = j
                     wt = weight[i][j]
-                    fdirV = fdir[i][j]
-                    di = differ[fdirV][0]
-                    dj = differ[fdirV][1]
+                    fdir_v = fdir[i][j]
+                    di = differ[fdir_v][0]
+                    dj = differ[fdir_v][1]
                     i = i + di
                     j = j + dj
-                    relen = TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length,
+                    relen = TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir, cellsize,
+                                                              weight, length,
                                                               flow_dir_code)
-                    # print i,j,fdirV
-                    length[prei][prej] = cellsize * celllen[fdirV] * wt + relen
+                    # print i,j,fdir_v
+                    length[prei][prej] = cellsize * celllen[fdir_v] * wt + relen
                     return length[prei][prej]
                 else:
                     return 0
@@ -65,137 +69,140 @@ class TerrainUtilClass(object):
         return 0
 
     @staticmethod
-    def calculate_flow_length(flow_dir_file, weight, flow_dir_code = "TauDEM"):
+    def calculate_flow_length(flow_dir_file, weight, flow_dir_code="TauDEM"):
         """Generate flow length with weight."""
-        flow_dir_raster = RasterUtilClass.ReadRaster(flow_dir_file)
+        flow_dir_raster = RasterUtilClass.read_raster(flow_dir_file)
         fdir_data = flow_dir_raster.data
         xsize = flow_dir_raster.nCols
         ysize = flow_dir_raster.nRows
-        noDataValue = flow_dir_raster.noDataValue
+        nodata_value = flow_dir_raster.noDataValue
         # geotransform = flow_dir_raster.srs
         cellsize = flow_dir_raster.dx
         length = numpy.zeros((ysize, xsize))
 
         for i in range(0, ysize):
             for j in range(0, xsize):
-                if abs(fdir_data[i][j] - noDataValue) < UTIL_ZERO:
-                    length[i][j] = noDataValue
+                if abs(fdir_data[i][j] - nodata_value) < UTIL_ZERO:
+                    length[i][j] = nodata_value
                     continue
-                TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir_data, cellsize, weight, length,
-                                                  flow_dir_code)
+                TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir_data, cellsize, weight,
+                                                  length, flow_dir_code)
         return length
 
     @staticmethod
-    def depression_capacity(sqlite_file, landuse_file, slope_file, soiltexutre_file, depression_file):
+    def depression_capacity(maindb, landuse_file, slope_file, soil_texture_file,
+                            depression_file, imper_perc=0.3):
         """Initialize depression capacity according to landuse, soil, and slope.
-        TODO: 1. Add stream order modification, according to depression.ave of WetSpa.
-        TODO: 2. Add another depressional storage method according to SWAT, depstor.f
+        Args:
+            maindb: main MongoDatabase
+            landuse_file: landuse raster file
+            slope_file: slope raster file
+            soil_texture_file: soil texture file
+            depression_file: resulted depression raster file
+            imper_perc: impervious percent in urban cell, 0.3 as default
         """
-        # read landuselookup table from sqlite
+        # read landuselookup table from MongoDB
         st_fields = ["DSC_ST%d" % (i,) for i in range(1, 13)]
-        sql_landuse = 'select LANDUSE_ID,%s from LanduseLookup' % (','.join(st_fields),)
+        query_result = maindb['LANDUSELOOKUP'].find()
+        if query_result is None:
+            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+        dep_sd0 = dict()
+        for row in query_result:
+            tmpid = row.get('LANDUSE_ID')
+            dep_sd0[tmpid] = [float(row.get(item)) for item in st_fields]
 
-        conn = sqlite3.connect(sqlite_file)
-        cursor = conn.cursor()
-        cursor.execute(sql_landuse)
+        landu_r = RasterUtilClass.read_raster(landuse_file)
+        landu_data = landu_r.data
+        geotrans = landu_r.geotrans
+        srs = landu_r.srs
+        xsize = landu_r.nCols
+        ysize = landu_r.nRows
+        landu_nodata = landu_r.noDataValue
 
-        dep_sd0 = {}
-        for row in cursor:
-            id = int(row[0])
-            dep_sd0[id] = [float(item) for item in row[1:]]
+        slo_data = RasterUtilClass.read_raster(slope_file).data
+        soil_texture_array = RasterUtilClass.read_raster(soil_texture_file).data
 
-        cursor.close()
-        conn.close()
-        # end read data
+        id_omited = []
 
-        landu_R = RasterUtilClass.ReadRaster(landuse_file)
-        landu_data = landu_R.data
-        geotrans = landu_R.geotrans
-        srs = landu_R.srs
-        xsize = landu_R.nCols
-        ysize = landu_R.nRows
-        landu_nodata = landu_R.noDataValue
-
-        slo_data = RasterUtilClass.ReadRaster(slope_file).data
-        soilTextureArray = RasterUtilClass.ReadRaster(soiltexutre_file).data
-
-        idOmited = []
-
-        def calDep(landu, soilTexture, slp):
-            lastStid = 0
+        def cal_dep(landu, soil_texture, slp):
+            """Calculate depression"""
+            last_stid = 0
             if abs(landu - landu_nodata) < UTIL_ZERO:
                 return DEFAULT_NODATA
-            landuID = int(landu)
-            if landuID not in dep_sd0:
-                if landuID not in idOmited:
-                    print 'The landuse ID: %d does not exist.' % (landuID,)
-                    idOmited.append(landuID)
-            stid = int(soilTexture) - 1
+            landu_id = int(landu)
+            if landu_id not in dep_sd0:
+                if landu_id not in id_omited:
+                    print ('The landuse ID: %d does not exist.' % (landu_id,))
+                    id_omited.append(landu_id)
+            stid = int(soil_texture) - 1
             try:
-                depressionGrid0 = dep_sd0[landuID][stid]
-                lastStid = stid
-            except:
-                depressionGrid0 = dep_sd0[landuID][lastStid]
+                depression_grid0 = dep_sd0[landu_id][stid]
+                last_stid = stid
+            except Exception:
+                depression_grid0 = dep_sd0[landu_id][last_stid]
 
-            depressionGrid = math.exp(numpy.log(depressionGrid0 + 0.0001) + slp * (-9.5))
-            # TODO, check if it is  (landuID >= 98)? By LJ
-            if landuID == 106 or landuID == 107 or landuID == 105:
-                return 0.5 * imperviousPercInUrbanCell + (1. - imperviousPercInUrbanCell) * depressionGrid
+            depression_grid = exp(numpy.log(depression_grid0 + 0.0001) + slp * (-9.5))
+            # TODO, check if it is  (landu_id >= 98)? By LJ
+            if landu_id == 106 or landu_id == 107 or landu_id == 105:
+                return 0.5 * imper_perc + (1. - imper_perc) * depression_grid
             else:
-                return depressionGrid
+                return depression_grid
 
-        calDep_numpy = numpy.frompyfunc(calDep, 3, 1)
-        depStorageCap = calDep_numpy(landu_data, soilTextureArray, slo_data)
+        cal_dep_numpy = numpy.frompyfunc(cal_dep, 3, 1)
+        dep_storage_cap = cal_dep_numpy(landu_data, soil_texture_array, slo_data)
 
-        RasterUtilClass.WriteGTiffFile(depression_file, ysize, xsize, depStorageCap,
-                                       geotrans, srs, DEFAULT_NODATA, GDT_Float32)
+        RasterUtilClass.write_gtiff_file(depression_file, ysize, xsize, dep_storage_cap,
+                                         geotrans, srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def hydrological_radius(acc_file, radius_file, storm_probability = "T2"):
+    def hydrological_radius(acc_file, radius_file, storm_probability="T2"):
         """Calculate hydrological radius."""
-        acc_R = RasterUtilClass.ReadRaster(acc_file)
-        xsize = acc_R.nCols
-        ysize = acc_R.nRows
-        noDataValue = acc_R.noDataValue
-        cellsize = acc_R.dx
-        data = acc_R.data
-        coeTable = {"T2"  : [0.05, 0.48],
-                    "T10" : [0.12, 0.52],
-                    "T100": [0.18, 0.55]}
-        ap = coeTable[storm_probability][0]
-        bp = coeTable[storm_probability][1]
+        acc_r = RasterUtilClass.read_raster(acc_file)
+        xsize = acc_r.nCols
+        ysize = acc_r.nRows
+        nodata_value = acc_r.noDataValue
+        cellsize = acc_r.dx
+        data = acc_r.data
+        coe_table = {"T2": [0.05, 0.48],
+                     "T10": [0.12, 0.52],
+                     "T100": [0.18, 0.55]}
+        ap = coe_table[storm_probability][0]
+        bp = coe_table[storm_probability][1]
 
         def radius_cal(acc):
-            if abs(acc - noDataValue) < UTIL_ZERO:
+            """Calculate hydrological radius"""
+            if abs(acc - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
             return numpy.power(ap * ((acc + 1) * cellsize * cellsize / 1000000.), bp)
 
         radius_cal_numpy = numpy.frompyfunc(radius_cal, 1, 1)
         radius = radius_cal_numpy(data)
 
-        RasterUtilClass.WriteGTiffFile(radius_file, ysize, xsize, radius,
-                                       acc_R.geotrans, acc_R.srs, DEFAULT_NODATA, GDT_Float32)
+        RasterUtilClass.write_gtiff_file(radius_file, ysize, xsize, radius,
+                                         acc_r.geotrans, acc_r.srs,
+                                         DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
     def flow_velocity(slope_file, radius_file, manning_file, velocity_file):
         """velocity."""
-        slp_R = RasterUtilClass.ReadRaster(slope_file)
-        slo_data = slp_R.data
-        xsize = slp_R.nCols
-        ysize = slp_R.nRows
-        noDataValue = slp_R.noDataValue
+        slp_r = RasterUtilClass.read_raster(slope_file)
+        slp_data = slp_r.data
+        xsize = slp_r.nCols
+        ysize = slp_r.nRows
+        nodata_value = slp_r.noDataValue
 
-        rad_data = RasterUtilClass.ReadRaster(radius_file).data
-        Man_data = RasterUtilClass.ReadRaster(manning_file).data
+        rad_data = RasterUtilClass.read_raster(radius_file).data
+        man_data = RasterUtilClass.read_raster(manning_file).data
 
         vel_max = 3.0
         vel_min = 0.0001
 
         def velocity_cal(rad, man, slp):
-            if abs(slp - noDataValue) < UTIL_ZERO:
+            """Calculate velocity"""
+            if abs(slp - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
             # print rad,man,slp
-            tmp = numpy.power(man, -1) * numpy.power(rad, 2 / 3) * numpy.power(slp, 0.5)
+            tmp = numpy.power(man, -1) * numpy.power(rad, 2. / 3.) * numpy.power(slp, 0.5)
             # print tmp
             if tmp < vel_min:
                 return vel_min
@@ -204,45 +211,49 @@ class TerrainUtilClass(object):
             return tmp
 
         velocity_cal_numpy = numpy.frompyfunc(velocity_cal, 3, 1)
-        velocity = velocity_cal_numpy(rad_data, Man_data, slo_data)
-        RasterUtilClass.WriteGTiffFile(velocity_file, ysize, xsize, velocity, slp_R.geotrans, slp_R.srs, DEFAULT_NODATA,
-                                       GDT_Float32)
+        velocity = velocity_cal_numpy(rad_data, man_data, slp_data)
+        RasterUtilClass.write_gtiff_file(velocity_file, ysize, xsize, velocity, slp_r.geotrans,
+                                         slp_r.srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file, flow_dir_code = "TauDEM"):
-        """Calculate flow time to the main channel from each grid cell."""
-        strlk_data = RasterUtilClass.ReadRaster(streamlink).data
+    def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file,
+                            flow_dir_code="TauDEM"):
+        """Calculate flow time to the workflow channel from each grid cell."""
+        strlk_data = RasterUtilClass.read_raster(streamlink).data
 
-        vel_R = RasterUtilClass.ReadRaster(velocity)
-        vel_data = vel_R.data
-        xsize = vel_R.nCols
-        ysize = vel_R.nRows
-        # noDataValue = vel_R.noDataValue
+        vel_r = RasterUtilClass.read_raster(velocity)
+        vel_data = vel_r.data
+        xsize = vel_r.nCols
+        ysize = vel_r.nRows
+        # noDataValue = vel_r.noDataValue
 
-        weight = numpy.where(strlk_data <= 0, numpy.ones((ysize, xsize)), numpy.zeros((ysize, xsize)))
-        traveltime = numpy.where(vel_R.validZone, numpy.zeros((ysize, xsize)), vel_data)
+        weight = numpy.where(strlk_data <= 0, numpy.ones((ysize, xsize)),
+                             numpy.zeros((ysize, xsize)))
+        traveltime = numpy.where(vel_r.validZone, numpy.zeros((ysize, xsize)), vel_data)
         flowlen = TerrainUtilClass.calculate_flow_length(flow_dir_file, weight, flow_dir_code)
-        traveltime = numpy.where(vel_R.validZone, flowlen / (vel_data * 5. / 3.) / 3600., traveltime)
-        RasterUtilClass.WriteGTiffFile(t0_s_file, ysize, xsize, traveltime, vel_R.geotrans, vel_R.srs, DEFAULT_NODATA,
-                                       GDT_Float32)
+        traveltime = numpy.where(vel_r.validZone, flowlen / (vel_data * 5. / 3.) / 3600.,
+                                 traveltime)
+        RasterUtilClass.write_gtiff_file(t0_s_file, ysize, xsize, traveltime, vel_r.geotrans,
+                                         vel_r.srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
     def std_of_flow_time_to_stream(streamlink, flow_dir_file, slope, radius, velocity, delta_s_file,
-                                   flow_dir_code = "TauDEM"):
-        """Generate standard deviation of t0_s (flow time to the main channel from each cell)."""
-        strlkR = RasterUtilClass.ReadRaster(streamlink)
-        strlk_data = strlkR.data
-        rad_data = RasterUtilClass.ReadRaster(radius).data
-        slo_data = RasterUtilClass.ReadRaster(slope).data
+                                   flow_dir_code="TauDEM"):
+        """Generate standard deviation of t0_s (flow time to the workflow channel from each cell)."""
+        strlk_r = RasterUtilClass.read_raster(streamlink)
+        strlk_data = strlk_r.data
+        rad_data = RasterUtilClass.read_raster(radius).data
+        slo_data = RasterUtilClass.read_raster(slope).data
 
-        velR = RasterUtilClass.ReadRaster(velocity)
-        vel_data = velR.data
-        xsize = velR.nCols
-        ysize = velR.nRows
-        noDataValue = velR.noDataValue
+        vel_r = RasterUtilClass.read_raster(velocity)
+        vel_data = vel_r.data
+        xsize = vel_r.nCols
+        ysize = vel_r.nRows
+        nodata_value = vel_r.noDataValue
 
         def initial_variables(vel, strlk, slp, rad):
-            if abs(vel - noDataValue) < UTIL_ZERO:
+            """initial variables"""
+            if abs(vel - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
             if strlk <= 0:
                 tmp_weight = 1
@@ -251,8 +262,8 @@ class TerrainUtilClass(object):
             # 0 is river
             if slp < 0.0005:
                 slp = 0.0005
-            # dampGrid = vel * rad / (slp / 100. * 2.) # No need to divide 100 in
-            # my view. By LJ
+            # dampGrid = vel * rad / (slp / 100. * 2.) # No need to divide 100
+            # in my view. By LJ
             damp_grid = vel * rad / (slp * 2.)
             celerity = vel * 5. / 3.
             tmp_weight *= damp_grid * 2. / numpy.power(celerity, 3.)
@@ -264,19 +275,20 @@ class TerrainUtilClass(object):
         delta_s_sqr = TerrainUtilClass.calculate_flow_length(flow_dir_file, weight, flow_dir_code)
 
         def cal_delta_s(vel, sqr):
-            if abs(vel - noDataValue) < UTIL_ZERO:
-                return noDataValue
+            """Calculate delta s"""
+            if abs(vel - nodata_value) < UTIL_ZERO:
+                return nodata_value
             else:
-                return math.sqrt(sqr) / 3600.
+                return sqrt(sqr) / 3600.
 
         cal_delta_s_numpy = numpy.frompyfunc(cal_delta_s, 2, 1)
         delta_s = cal_delta_s_numpy(vel_data, delta_s_sqr)
 
-        RasterUtilClass.WriteGTiffFile(delta_s_file, ysize, xsize, delta_s, strlkR.geotrans, strlkR.srs,
-                                       DEFAULT_NODATA, GDT_Float32)
+        RasterUtilClass.write_gtiff_file(delta_s_file, ysize, xsize, delta_s, strlk_r.geotrans,
+                                         strlk_r.srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def calculate_latitude_dependent_parameters(lat_file, min_dayl_file, dormhr_file):
+    def calculate_latitude_dependent_parameters(lat_file, min_dayl_file, dormhr_file, dorm_hr):
         """
         Calculate latitude dependent parameters, include:
            1. minimum daylength (daylmn), 2. day length threshold for dormancy (dormhr)
@@ -289,53 +301,55 @@ class TerrainUtilClass(object):
         # values to northern hemisphere
         # the angular velocity of the earth's rotation, omega, = 15 deg/hr or
         # 0.2618 rad/hr and 2/0.2618 = 7.6394
-        cellLatR = RasterUtilClass.ReadRaster(lat_file)
-        latData = cellLatR.data
-        # daylmnData = cellLatR.data
-        zero = numpy.zeros((cellLatR.nRows, cellLatR.nCols))
-        # nodata = numpy.ones((cellLatR.nRows, cellLatR.nCols)) * cellLatR.noDataValue
+        cell_lat_r = RasterUtilClass.read_raster(lat_file)
+        lat_data = cell_lat_r.data
+        # daylmn_data = cell_lat_r.data
+        zero = numpy.zeros((cell_lat_r.nRows, cell_lat_r.nCols))
+        # nodata = numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * cell_lat_r.noDataValue
         # convert degrees to radians (2pi/360=1/57.296)
-        daylmnData = 0.4348 * numpy.abs(numpy.tan(latData / 57.296))
-        condition = daylmnData < 1.
-        daylmnData = numpy.where(condition, numpy.arccos(daylmnData), zero)
-        # condition2 = latData != cellLatR.noDataValue
-        daylmnData *= 7.6394
-        daylmnData = numpy.where(cellLatR.validZone, daylmnData, latData)
-        RasterUtilClass.WriteGTiffFile(min_dayl_file, cellLatR.nRows, cellLatR.nCols,
-                                       daylmnData, cellLatR.geotrans, cellLatR.srs, cellLatR.noDataValue, GDT_Float32)
+        daylmn_data = 0.4348 * numpy.abs(numpy.tan(lat_data / 57.296))
+        condition = daylmn_data < 1.
+        daylmn_data = numpy.where(condition, numpy.arccos(daylmn_data), zero)
+        # condition2 = lat_data != cell_lat_r.noDataValue
+        daylmn_data *= 7.6394
+        daylmn_data = numpy.where(cell_lat_r.validZone, daylmn_data, lat_data)
+        RasterUtilClass.write_gtiff_file(min_dayl_file, cell_lat_r.nRows, cell_lat_r.nCols,
+                                         daylmn_data, cell_lat_r.geotrans, cell_lat_r.srs,
+                                         cell_lat_r.noDataValue, GDT_Float32)
 
-        # calculate day length threshold for dormancy
-        def calDormHr(lat):
-            if lat == cellLatR.noDataValue:
-                return cellLatR.noDataValue
+        def cal_dorm_hr(lat):
+            """calculate day length threshold for dormancy"""
+            if lat == cell_lat_r.noDataValue:
+                return cell_lat_r.noDataValue
             else:
-                if 20. <= lat <= 40.:
+                if 20. <= lat <= 40:
                     return (numpy.abs(lat - 20.)) / 20.
                 elif lat > 40.:
                     return 1.
                 elif lat < 20.:
                     return -1.
 
-        calDormHr_numpy = numpy.frompyfunc(calDormHr, 1, 1)
+        cal_dorm_hr_numpy = numpy.frompyfunc(cal_dorm_hr, 1, 1)
 
-        # dormhrData = numpy.copy(latData)
+        # dormhr_data = numpy.copy(lat_data)
         if dorm_hr < -UTIL_ZERO:
-            dormhrData = calDormHr_numpy(latData)
+            dormhr_data = cal_dorm_hr_numpy(lat_data)
         else:
-            dormhrData = numpy.where(cellLatR.validZone, numpy.ones((cellLatR.nRows, cellLatR.nCols)) * dorm_hr,
-                                     latData)
-        RasterUtilClass.WriteGTiffFile(dormhr_file, cellLatR.nRows, cellLatR.nCols, dormhrData, cellLatR.geotrans,
-                                       cellLatR.srs, cellLatR.noDataValue, GDT_Float32)
+            dormhr_data = numpy.where(cell_lat_r.validZone,
+                                      numpy.ones((cell_lat_r.nRows, cell_lat_r.nCols)) * dorm_hr,
+                                      lat_data)
+        RasterUtilClass.write_gtiff_file(dormhr_file, cell_lat_r.nRows, cell_lat_r.nCols,
+                                         dormhr_data, cell_lat_r.geotrans, cell_lat_r.srs,
+                                         cell_lat_r.noDataValue, GDT_Float32)
 
     @staticmethod
     def calculate_channel_width(acc_file, chwidth_file):
         """Calculate channel width."""
-        accR = RasterUtilClass.ReadRaster(acc_file)
-        xsize = accR.nCols
-        ysize = accR.nRows
-        noDataValue = accR.noDataValue
-        dx = accR.dx
-        cellArea = dx * dx
+        acc_r = RasterUtilClass.read_raster(acc_file)
+        xsize = acc_r.nCols
+        ysize = acc_r.nRows
+        dx = acc_r.dx
+        cell_area = dx * dx
 
         # storm frequency   a      b
         # 2                 1      0.56
@@ -345,122 +359,134 @@ class TerrainUtilClass(object):
         b = 0.56
         # TODO: Figure out what's means, and move it to text.py or config.py. LJ
 
-        tmpOnes = numpy.ones((ysize, xsize))
-        width = tmpOnes * DEFAULT_NODATA
-        validValues = numpy.where(accR.validZone, accR.data, tmpOnes)
-        width = numpy.where(accR.validZone, numpy.power(
-            (a * (validValues + 1) * cellArea / 1000000.), b), width)
-        RasterUtilClass.WriteGTiffFile(chwidth_file, ysize, xsize, width, accR.geotrans,
-                                       accR.srs, DEFAULT_NODATA, GDT_Float32)
+        tmp_ones = numpy.ones((ysize, xsize))
+        width = tmp_ones * DEFAULT_NODATA
+        valid_values = numpy.where(acc_r.validZone, acc_r.data, tmp_ones)
+        width = numpy.where(acc_r.validZone, numpy.power((a * (valid_values + 1)
+                                                          * cell_area / 1000000.), b), width)
+        RasterUtilClass.write_gtiff_file(chwidth_file, ysize, xsize, width, acc_r.geotrans,
+                                         acc_r.srs, DEFAULT_NODATA, GDT_Float32)
         return width
 
     @staticmethod
-    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data):
-        streamLink = RasterUtilClass.ReadRaster(stream_link_file)
-        nRows = streamLink.nRows
-        nCols = streamLink.nCols
-        noDataValue = streamLink.noDataValue
-        dataStream = streamLink.data
+    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data, default_depth=5.):
+        """Add channel/reach width and default depth to ESRI shapefile"""
+        stream_link = RasterUtilClass.read_raster(stream_link_file)
+        n_rows = stream_link.nRows
+        n_cols = stream_link.nCols
+        nodata_value = stream_link.noDataValue
+        data_stream = stream_link.data
 
-        chWidthDic = dict()
-        chNumDic = dict()
+        ch_width_dic = dict()
+        ch_num_dic = dict()
 
-        for i in range(nRows):
-            for j in range(nCols):
-                if abs(dataStream[i][j] - noDataValue) > UTIL_ZERO:
-                    id = int(dataStream[i][j])
-                    chNumDic.setdefault(id, 0)
-                    chWidthDic.setdefault(id, 0)
-                    chNumDic[id] += 1
-                    chWidthDic[id] += width_data[i][j]
+        for i in range(n_rows):
+            for j in range(n_cols):
+                if abs(data_stream[i][j] - nodata_value) > UTIL_ZERO:
+                    tmpid = int(data_stream[i][j])
+                    ch_num_dic.setdefault(tmpid, 0)
+                    ch_width_dic.setdefault(tmpid, 0)
+                    ch_num_dic[tmpid] += 1
+                    ch_width_dic[tmpid] += width_data[i][j]
 
-        for k in chNumDic:
-            chWidthDic[k] /= chNumDic[k]
+        for k in ch_num_dic:
+            ch_width_dic[k] /= ch_num_dic[k]
 
         # add channel width_data field to reach shp file
-        dsReach = ogr.Open(reach_shp_file, update = True)
-        layerReach = dsReach.GetLayer(0)
-        layerDef = layerReach.GetLayerDefn()
-        iLink = layerDef.GetFieldIndex(FLD_LINKNO)
-        iWidth = layerDef.GetFieldIndex(REACH_WIDTH)
-        iDepth = layerDef.GetFieldIndex(REACH_DEPTH)
-        if iWidth < 0:
-            new_field = ogr.FieldDefn(REACH_WIDTH, ogr.OFTReal)
-            layerReach.CreateField(new_field)
-        if iDepth < 0:
-            new_field = ogr.FieldDefn(REACH_DEPTH, ogr.OFTReal)
-            layerReach.CreateField(new_field)
+        ds_reach = ogr_Open(reach_shp_file, update=True)
+        layer_reach = ds_reach.GetLayer(0)
+        layer_def = layer_reach.GetLayerDefn()
+        i_link = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
+        i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
+        i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
+        if i_width < 0:
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._WIDTH, OFTReal)
+            layer_reach.CreateField(new_field)
+        if i_depth < 0:
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._DEPTH, OFTReal)
+            layer_reach.CreateField(new_field)
             # grid_code:feature map
         # ftmap = {}
-        layerReach.ResetReading()
-        ft = layerReach.GetNextFeature()
+        layer_reach.ResetReading()
+        ft = layer_reach.GetNextFeature()
         while ft is not None:
-            id = ft.GetFieldAsInteger(iLink)
+            tmpid = ft.GetFieldAsInteger(i_link)
             w = 1
-            if id in chWidthDic.keys():
-                w = chWidthDic[id]
-            ft.SetField(REACH_WIDTH, w)
-            ft.SetField(REACH_DEPTH, default_reach_depth)
-            layerReach.SetFeature(ft)
-            ft = layerReach.GetNextFeature()
+            if tmpid in ch_width_dic.keys():
+                w = ch_width_dic[tmpid]
+            ft.SetField(ImportReaches2Mongo._WIDTH, w)
+            ft.SetField(ImportReaches2Mongo._DEPTH, default_depth)
+            layer_reach.SetFeature(ft)
+            ft = layer_reach.GetNextFeature()
 
-        layerReach.SyncToDisk()
-        dsReach.Destroy()
-        del dsReach
+        layer_reach.SyncToDisk()
+        ds_reach.Destroy()
+        del ds_reach
+
+    @staticmethod
+    def parameters_extration(cfg, maindb):
+        """Main entrance for terrain related spatial parameters extraction."""
+        f = open(cfg.logs.extract_terrain, 'w')
+        # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
+        status_output("Calculate initial channel width and added to reach.shp...", 10, f)
+        acc_file = cfg.spatials.d8acc
+        channel_width_file = cfg.spatials.chwidth
+        channel_shp_file = cfg.vecs.reach
+        streamlink_file = cfg.spatials.stream_link
+        chwidth_data = TerrainUtilClass.calculate_channel_width(acc_file, channel_width_file)
+        TerrainUtilClass.add_channel_width_to_shp(channel_shp_file, streamlink_file, chwidth_data,
+                                                  cfg.default_reach_depth)
+        # 2. Initialize depression storage capacity
+        status_output("Generating depression storage capacity...", 20, f)
+        slope_file = cfg.spatials.slope
+        soil_texture_file = cfg.spatials.soil_texture
+        landuse_file = cfg.spatials.landuse
+        depression_file = cfg.spatials.depression
+        TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
+                                             slope_file, depression_file, cfg.imper_perc_in_urban)
+        # 2. Calculate inputs for IUH
+        if cfg.gen_iuh:
+            status_output("Prepare parameters for IUH...", 30, f)
+            radius_file = cfg.spatials.radius
+            TerrainUtilClass.hydrological_radius(acc_file, radius_file, "T2")
+            manning_file = cfg.spatials.manning
+            velocity_file = cfg.spatials.velocity
+            TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
+            flow_dir_file = cfg.spatials.d8flow
+            t0_s_file = cfg.spatials.t0_s
+            flow_model_code = "TauDEM"
+            if not cfg.is_TauDEM:
+                flow_model_code = "ArcGIS"
+            TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
+                                                 t0_s_file, flow_model_code)
+            delta_s_file = cfg.spatials.delta_s
+            TerrainUtilClass.std_of_flow_time_to_stream(streamlink_file, flow_dir_file, slope_file,
+                                                        radius_file, velocity_file, delta_s_file,
+                                                        flow_model_code)
+            # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
+        # 3. Calculate position (i.e. latitude) related parameters
+        status_output("Calculate latitude dependent parameters...", 40, f)
+        lat_file = cfg.spatials.cell_lat
+        min_dayl_file = cfg.spatials.dayl_min
+        dormhr_file = cfg.spatials.dorm_hr
+        TerrainUtilClass.calculate_latitude_dependent_parameters(lat_file, min_dayl_file,
+                                                                 dormhr_file, cfg.dorm_hr)
+
+        status_output("Terrain related spatial parameters extracted done!", 100, f)
+        f.close()
 
 
-def terrain_parameters_extration():
-    """Main entrance for terrain related spatial parameters extraction. Algorithm from WetSpa.
-    """
-    status_file = WORKING_DIR + os.sep + DIR_NAME_LOG + os.sep + FN_STATUS_EXTRACTTERRAINPARAM
-    f = open(status_file, 'w')
-    geodata2dbdir = WORKING_DIR + os.sep + DIR_NAME_GEODATA2DB
-    # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
-    status_output("Calculate initial channel width and added to reach.shp...", 10, f)
-    acc_file = geodata2dbdir + os.sep + accM
-    channel_width_file = geodata2dbdir + os.sep + chwidthName
-    channel_shp_file = WORKING_DIR + os.sep + DIR_NAME_GEOSHP + os.sep + reachesOut
-    streamlink_file = geodata2dbdir + os.sep + streamLinkOut
-    chwidth_data = TerrainUtilClass.calculate_channel_width(acc_file, channel_width_file)
-    TerrainUtilClass.add_channel_width_to_shp(channel_shp_file, streamlink_file, chwidth_data)
-    # 2. Initialize depression storage capacity
-    status_output("Generating depression storage capacity...", 20, f)
-    slope_file = geodata2dbdir + os.sep + slopeM
-    soil_texture_file = geodata2dbdir + os.sep + soilTexture
-    landuse_file = geodata2dbdir + os.sep + landuseMFile
-    depression_file = geodata2dbdir + os.sep + depressionFile
-    sqlite_dbfile = WORKING_DIR + os.sep + DIR_NAME_IMPORT2DB + os.sep + sqlite_file
-    TerrainUtilClass.depression_capacity(sqlite_dbfile, landuse_file, soil_texture_file, slope_file,
-                                         depression_file)
-    # 2. Calculate IUH
-    if genIUH:
-        status_output("Prepare parameters for IUH...", 30, f)
-        radius_file = geodata2dbdir + os.sep + radiusFile
-        TerrainUtilClass.hydrological_radius(acc_file, radius_file, "T2")
-        manning_file = geodata2dbdir + os.sep + ManningFile
-        velocity_file = geodata2dbdir + os.sep + velocityFile
-        TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
-        flow_dir_file = geodata2dbdir + os.sep + flowDirOut
-        t0_s_file = geodata2dbdir + os.sep + t0_sFile
-        flow_model_code = "TauDEM"
-        if not isTauDEM:
-            flow_model_code = "ArcGIS"
-        TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file, t0_s_file, flow_model_code)
-        delta_s_file = geodata2dbdir + os.sep + delta_sFile
-        TerrainUtilClass.std_of_flow_time_to_stream(streamlink_file, flow_dir_file, slope_file, radius_file,
-                                                    velocity_file, delta_s_file, flow_model_code)
-        # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
-    # 3. Calculate position (i.e. latitude) related parameters
-    status_output("Calculate latitude dependent parameters...", 40, f)
-    lat_file = geodata2dbdir + os.sep + cellLat
-    min_dayl_file = geodata2dbdir + os.sep + daylMin
-    dormhr_file = geodata2dbdir + os.sep + dormhr
-    TerrainUtilClass.calculate_latitude_dependent_parameters(lat_file, min_dayl_file, dormhr_file)
+def main():
+    """TEST CODE"""
+    from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
+    seims_cfg = parse_ini_configuration()
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
 
-    status_output("Terrain related spatial parameters extracted done!", 100, f)
-    f.close()
+    TerrainUtilClass.parameters_extration(seims_cfg, main_db)
 
 
 if __name__ == '__main__':
-    LoadConfiguration(getconfigfile())
-    terrain_parameters_extration()
+    main()

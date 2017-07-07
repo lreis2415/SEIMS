@@ -60,7 +60,7 @@ set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} ${MONGO_FILES} SubbasinIUHCalcul
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(iuh ${SOURCE_FILES})
 target_link_libraries(iuh ${GDAL_LIBRARY} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
-install(TARGETS iuh DESTINATION bin)
+install(TARGETS iuh DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
