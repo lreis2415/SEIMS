@@ -45,8 +45,11 @@ P.S. 如何在push的时候免输密码，可以参考这个[博客](http://www.
 # AutoCRLF, 设置提交、检出时均不转换
 git config --global core.autocrlf false
 # SafeCRLF, 设置拒绝提交包含混合换行符的文件，并且在提交混合换行符的文件时给出警告，从而手动转换为LF换行符后提交
+# 对于Windows设置为true
 git config --global core.safecrlf true
-git config --global core.safecrlf warn
+# 对于linux设置为false
+git config --global core.safecrlf false
+# 同时，在SEIMS/.gitattributes里我们已经设置了一些例外，如Windows批处理文件.bat即为CRLF
 ```
 
 [返回目录](#目录)
@@ -67,10 +70,13 @@ ssh-keygen -t rsa -C crazyzlj@gmail.com
 ~~~
 cd <destination folder>
 git clone git@github.com:<yourname>/SEIMS.git
-
+#推荐只克隆dev分支，用法（需要有git-1.7.10以上版本）：
+git clone <url> --branch <branch> --single-branch
 e.g.,
 cd e:/code/hydro
 git clone git@github.com:crazyzlj/SEIMS.git
+#只克隆dev分支示例：
+git clone git@github.com:crazyzlj/SEIMS.git --branch dev --single-branch
 ~~~
 
 + 随后，`cd`到克隆库目录，添加上游远程仓库，这一步**很重要**，关系到之后的代码同步和更新：

@@ -60,7 +60,7 @@ SEIMS的矢栅数据读写基于`GDAL 1.x`编写，Windows下GDAL最方便的安
 
 + 具体安装请参考博客[Installing-gdal-with-python-for-windows](https://sandbox.idre.ucla.edu/sandbox/tutorials/installing-gdal-for-windows "installing-gdal-with-python-for-windows")。
 
-+ **注意**：安装完成之后，除了`GDAL_DATA`和`GDAL_DRIVER_PATH`外，还需要在环境变量里添加一个`GDAL_DIR`，赋值为你的GDAL安装目录，如`C:\GDAL`，以便CMake在编译时能够找得到GDAL依赖库。
++ **注意**：安装完成之后，除了`GDAL_DATA`外，还需要在环境变量里添加一个`GDAL_DIR`，赋值为你的GDAL安装目录，如`C:\GDAL`，以便CMake在编译时能够找得到GDAL依赖库。
 
 + **注意**：为了方便将来程序能够找到GDAL的诸多动态链接库，建议新建`GDAL_PATHS`环境变量`C:\GDAL;C:\GDAL\bin;C:\GDAL\bin\proj\apps;C:\GDAL\bin\gdal\apps;C:\GDAL\bin\ms\apps;C:\GDAL\bin\curl;`，并将`%GDAL_PATHS%`添加至环境变量`PATH`中。
 
@@ -114,6 +114,8 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 1. `-DPARALLEL`，不添加则默认为编译`OpenMP`版本程序，添加`-DPARALLEL=MPI`则编译MPI/OpenMP混合版本；
 2. `-DARCH`，用于指定编译32位还是64程序，需要与`GDAL`和`mongo-c-driver`版本匹配，不添加则默认为32位程序，添加`-DARCH=64`则为64位；
 3. `-DSTROM`，用于指定是否编译次降水模型，不添加默认为0，即长时段模型，添加`-DSTROM=1`则编译次降水模型。
+4. `-DUNITTEST`，用于指定是否编译基于Googletest的单元测试模块
+5. `-DINSTALL_PREFIX`，用于指定安装路径，如不指定，默认为源码目录下的`bin`文件夹。
 
 ## 2.1 Installation for users
 
@@ -141,12 +143,15 @@ Microsoft MPI (MS-MPI) 是微软基于MPICH实现的用于Windows平台开发和
 	# 编译64位版本，此时一定确保GDAL和mongo-c-driver已配置好64位版本
 	cmake -G "Visual Studio 10 2010 Win64" .. -DARCH=64
 	msbuild.exe ALL_BUILD.vcxproj
-    # 如果编译release版本：
+    # p.s.1 如果编译release版本：
     # msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release
+    # p.s.2 可通过添加/maxcpucount:4 来并行编译，提高速度
 	msbuild.exe INSTALL.vcxproj
+    # 如果编译release版本：
+    # msbuild.exe INSTALL.vcxproj /p:Configuration=Release
     ```
 
-+ 完成后，不需要打开VS2010生成解决方案，可执行文件已经编译完成，程序目录为`~\SEIMS\seims\bin`。
++ 完成后，不需要打开VS2010生成解决方案，可执行文件已经编译完成，程序目录为`~\SEIMS\seims\bin`或通过`-DINSTALL_PREFIX`指定的文件夹。
 + 右键以管理员方式运行`~\seims\bin\Firewall_for_Windows.bat`，配置防火墙规则，以防在运行Python脚本调用SEIMS程序时被防火墙阻止。
 ## 2.2 Installation for developers
 

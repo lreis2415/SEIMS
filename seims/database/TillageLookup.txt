@@ -1,5 +1,4 @@
 ITNUM	TILLNM	EFTMIX	DEPTIL	OPNAME	RRNS	CNOP_CN2	PRC	DSC
-INT	TEXT	REAL	REAL	TEXT	REAL	REAL	REAL	REAL
 1	Fallplow	0.95	150	Generic Fall Plowing Operation	75	1	1	1
 2	Sprgplow	0.5	125	Generic Spring Plowing Operation	50	1	1	1
 3	Constill	0.25	100	Generic Conservation Tillage	40	1	1	1

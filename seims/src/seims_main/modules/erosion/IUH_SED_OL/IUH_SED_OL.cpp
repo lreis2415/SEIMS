@@ -10,8 +10,8 @@ IUH_SED_OL::IUH_SED_OL(void) : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_
 }
 
 IUH_SED_OL::~IUH_SED_OL(void) {
-    if (m_sedtoCh != NULL)Release1DArray(m_sedtoCh);
-    if (m_cellSed != NULL)Release2DArray(m_nCells, m_cellSed);
+    Release1DArray(m_sedtoCh);
+    Release2DArray(m_nCells, m_cellSed);
 }
 
 bool IUH_SED_OL::CheckInputData(void) {
