@@ -198,7 +198,7 @@ class TerrainUtilClass(object):
         nodata_value = slp_r.noDataValue
 
         rad_data = RasterUtilClass.read_raster(radius_file).data
-        Man_data = RasterUtilClass.read_raster(manning_file).data
+        man_data = RasterUtilClass.read_raster(manning_file).data
 
         vel_max = 3.0
         vel_min = 0.0001
@@ -217,7 +217,7 @@ class TerrainUtilClass(object):
             return tmp
 
         velocity_cal_numpy = numpy.frompyfunc(velocity_cal, 3, 1)
-        velocity = velocity_cal_numpy(rad_data, Man_data, slp_data)
+        velocity = velocity_cal_numpy(rad_data, man_data, slp_data)
         RasterUtilClass.write_gtiff_file(velocity_file, ysize, xsize, velocity, slp_r.geotrans,
                                          slp_r.srs, DEFAULT_NODATA, GDT_Float32)
 

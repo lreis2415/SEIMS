@@ -75,16 +75,16 @@ class ImportReaches2Mongo(object):
     _GWSOLP = 'GWSOLP'  # 0-1000 mg/L
 
     @staticmethod
-    def get_subbasin_cell_count(cfg):
+    def get_subbasin_cell_count(subbsn_file):
         """Get cell number of each subbasin.
         Args:
-            cfg: SEIMS config object
+            subbsn_file: subbasin raster file.
 
         Returns:
             subbasin cell count dict and cell width
         """
         num_dic = dict()
-        wtsd_raster = RasterUtilClass.read_raster(cfg.spatials.subbsn)
+        wtsd_raster = RasterUtilClass.read_raster(subbsn_file)
         data = wtsd_raster.data
         xsize = wtsd_raster.nCols
         ysize = wtsd_raster.nRows
@@ -111,10 +111,11 @@ class ImportReaches2Mongo(object):
             ImportReaches2Mongo.stream_orders_from_outlet_up(order_dic, g, inNode[0], order_num + 1)
 
     @staticmethod
-    def down_stream(cfg):
+    def down_stream(reach_shp, is_taudem=True):
         """Construct stream order layers etc.
         Args:
-            cfg: SEIMS config object
+            reach_shp: reach ESRI shapefile.
+            is_taudem: is TauDEM or not, true is default.
 
         Returns:
             down_stream_dic: the key is stream id, and value is its downstream id
@@ -130,10 +131,10 @@ class ImportReaches2Mongo(object):
         slope_dic = {}
         width_dic = {}
         len_dic = {}
-        ds_reach = ogr.Open(cfg.vecs.reach)
+        ds_reach = ogr.Open(reach_shp)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
-        if not cfg.is_TauDEM:  # For ArcSWAT
+        if not is_taudem:  # For ArcSWAT
             ImportReaches2Mongo._LINKNO = 'FROM_NODE'
             ImportReaches2Mongo._DSLINKNO = 'TO_NODE'
             ImportReaches2Mongo._SLOPE = 'Slo2'  # TauDEM: Slope (tan); ArcSWAT: Slo2 (100*tan)
@@ -275,7 +276,8 @@ class ImportReaches2Mongo(object):
         """generate reaches table"""
         area_dic, dx = ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn)
         (downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic,
-         slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach)
+         slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach,
+                                                                       cfg.is_TauDEM)
         # for k in downStreamDic:
         #     print (k, downStreamDic[k])
 

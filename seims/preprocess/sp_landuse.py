@@ -311,7 +311,7 @@ class LanduseUtilClass(object):
         lookup_lu_config_file = cfg.logs.reclasslu_cfg
         LanduseUtilClass.reclassify_landuse_parameters(cfg.seims_bin, lookup_lu_config_file,
                                                        cfg.dirs.geodata2db,
-                                                       cfg.landuse, lookup_dir,
+                                                       cfg.spatials.landuse, lookup_dir,
                                                        LanduseUtilClass._LANDUSE_ATTR_LIST,
                                                        cfg.default_landuse)
         # 3. Generate crop parameters
