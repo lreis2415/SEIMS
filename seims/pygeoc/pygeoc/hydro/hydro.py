@@ -4,12 +4,7 @@
     author: Liangjun Zhu
     changlog: 17-06-25 lj - check by pylint and reformat by Google style
 """
-
-import math
-
-from ..utils.utils import StringClass
-
-SQ2 = math.sqrt(2.)
+from ..utils.utils import StringClass, PI, SQ2
 
 
 class FlowModelConst(object):
@@ -57,13 +52,13 @@ class FlowModelConst(object):
     #           / | \
     #        sw   s   se
     e = 0
-    ne = math.pi * 0.25
-    n = math.pi * 0.5
-    nw = math.pi * 0.75
-    w = math.pi
-    sw = math.pi * 1.25
-    s = math.pi * 1.5
-    se = math.pi * 1.75
+    ne = PI * 0.25
+    n = PI * 0.5
+    nw = PI * 0.75
+    w = PI
+    sw = PI * 1.25
+    s = PI * 1.5
+    se = PI * 1.75
     d8anglelist = [e, ne, n, nw, w, sw, s, se]
 
     @staticmethod

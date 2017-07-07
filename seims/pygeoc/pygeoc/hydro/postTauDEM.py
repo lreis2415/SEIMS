@@ -6,10 +6,9 @@
               16-07-01 lj - reorganized for pygeoc
               17-06-25 lj - check by pylint and reformat by Google style
 """
-
-import numpy
-from gdal import GDT_Int16, GDT_Float32
-from osgeo import ogr
+from numpy import frompyfunc, ones, where
+from osgeo.gdal import GDT_Int16, GDT_Float32
+from osgeo.ogr import Open as ogr_Open
 
 from ..hydro.hydro import FlowModelConst
 from ..raster.raster import RasterUtilClass
@@ -132,7 +131,7 @@ class DinfUtil(object):
         ysize = dinf_r.nRows
         nodata_value = dinf_r.noDataValue
 
-        cal_dir_code = numpy.frompyfunc(DinfUtil.compress_dinf, 2, 2)
+        cal_dir_code = frompyfunc(DinfUtil.compress_dinf, 2, 2)
         dir_code, weight = cal_dir_code(data, nodata_value)
 
         RasterUtilClass.write_gtiff_file(compdinffile, ysize, xsize, dir_code,
@@ -215,7 +214,7 @@ class StreamnetUtil(object):
             id pairs {origin: newly assigned}
         """
         FileClass.copy_files(streamnet_file, output_reach_file)
-        ds_reach = ogr.Open(output_reach_file, update=True)
+        ds_reach = ogr_Open(output_reach_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
         i_link = layer_def.GetFieldIndex(FLD_LINKNO)
@@ -288,8 +287,8 @@ class StreamnetUtil(object):
         ncols = stream_raster.nCols
         nodata = stream_raster.noDataValue
         subbain_data = RasterUtilClass.read_raster(subbasin_file).data
-        nodata_array = numpy.ones((nrows, ncols)) * nodata
-        newstream_data = numpy.where(stream_data > 0, subbain_data, nodata_array)
+        nodata_array = ones((nrows, ncols)) * nodata
+        newstream_data = where(stream_data > 0, subbain_data, nodata_array)
         RasterUtilClass.write_gtiff_file(out_stream_file, nrows, ncols, newstream_data,
                                          stream_raster.geotrans, stream_raster.srs,
                                          nodata, GDT_Int16)
