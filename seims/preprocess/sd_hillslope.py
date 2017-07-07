@@ -6,7 +6,7 @@
                 17-06-29  lj - reorganized according to pylint and google style
 """
 import numpy
-from gdal import GDT_Int16
+from osgeo.gdal import GDT_Int16
 
 from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
 from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util

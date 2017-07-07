@@ -10,21 +10,26 @@ from seims.preprocess.sp_soil import SoilUtilClass
 from seims.preprocess.sp_terrain import TerrainUtilClass
 
 
-def extract_spatial_parameters(cfg):
+def extract_spatial_parameters(cfg, maindb):
     """Main entrance for spatial parameters extraction."""
     # 1. Soil related
     SoilUtilClass.parameters_extraction(cfg)
     # 2. Landuse/Landcover related
-    LanduseUtilClass.parameters_extraction(cfg)
+    LanduseUtilClass.parameters_extraction(cfg, maindb)
     # 3. Terrain related and other spatial parameters
-    TerrainUtilClass.parameters_extration(cfg)
+    TerrainUtilClass.parameters_extration(cfg, maindb)
 
 
 def main():
     """TEST CODE"""
     from seims.preprocess.config import parse_ini_configuration
+    from seims.preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
-    extract_spatial_parameters(seims_cfg)
+    client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
+    conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
+
+    extract_spatial_parameters(seims_cfg, main_db)
 
 
 if __name__ == "__main__":

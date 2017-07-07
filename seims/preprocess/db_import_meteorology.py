@@ -6,15 +6,14 @@
                 17-06-26  lj - reorganize according to pylint and google style
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
 """
-import datetime
-import math
 import time
+from datetime import datetime
 
 from pymongo import ASCENDING
 
 from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
 from seims.preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
-from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
+from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 from seims.pygeoc.pygeoc.utils.utils import DateClass, StringClass
 
 
@@ -66,8 +65,11 @@ class ImportMeteoData(object):
     """Meteorological daily data import, and calculate related statistical values"""
 
     @staticmethod
-    def daily_data_from_txt(db, data_txt_file, sites_info_dict, is_first):
+    def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
         """Import climate data table"""
+        # delete existed precipitation data
+        climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.m})
+
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
         # PHUCalDic is used for Calculating potential heat units (PHU)
@@ -83,7 +85,7 @@ class ImportMeteoData(object):
             if not StringClass.string_in_list(fld, clim_flds):
                 raise ValueError("Meteorological Daily data is invalid, please Check!")
         # Create bulk object
-        bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
+        bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
         count = 0
         for i, cur_clim_data_item in enumerate(clim_data_items):
             if i == 0:
@@ -120,13 +122,13 @@ class ImportMeteoData(object):
                 elif StringClass.string_match(clim_flds[j], DataType.ssd):
                     cur_ssd = float(clim_data_v)
             # Date transformation
-            dt = datetime.datetime(cur_y, cur_m, cur_d, 0, 0)
+            dt = datetime(cur_y, cur_m, cur_d, 0, 0)
             sec = time.mktime(dt.timetuple())
             utc_time = time.gmtime(sec)
             dic[DataValueFields.local_time] = dt
             dic[DataValueFields.time_zone] = time.timezone / 3600
-            dic[DataValueFields.utc] = datetime.datetime(utc_time[0], utc_time[1],
-                                                         utc_time[2], utc_time[3])
+            dic[DataValueFields.utc] = datetime(utc_time[0], utc_time[1],
+                                                utc_time[2], utc_time[3])
 
             # Do if some of these data are not provided
             if DataType.mean_tmp not in dic.keys():
@@ -139,7 +141,7 @@ class ImportMeteoData(object):
                         cur_lon, cur_lat = sites_info_dict[dic[DataValueFields.id]].lon_lat()
                         dic[DataType.sr] = round(HydroClimateUtilClass.rs(DateClass.day_of_year(dt),
                                                                           float(cur_ssd), cur_lat *
-                                                                          math.pi / 180.), 1)
+                                                                          PI / 180.), 1)
             output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
                            DataType.rm, DataType.pet, DataType.ws, DataType.sr]
             for fld in output_flds:
@@ -157,20 +159,11 @@ class ImportMeteoData(object):
                                  DataValueFields.type: fld}
                     # Old code, insert or update one item a time, which is quite inefficiency
                     # Update by using bulk operation interface. lj
-                    if is_first:
-                        # db[DBTableNames.data_values].insert_one(cur_dic)
-                        bulk.insert(cur_dic)
-                    else:
-                        # db[DBTableNames.data_values].find_one_and_replace(curfilter, cur_dic,
-                        #                                                   upsert=True)
-                        if db[DBTableNames.data_values].find(curfilter).count() != 0:
-                            bulk.find(curfilter).replace_one(cur_dic)
-                        else:
-                            bulk.insert(cur_dic)
+                    bulk.insert(cur_dic)
                     count += 1
                     if count % 500 == 0:  # execute each 500 records
                         bulk.execute()
-                        bulk = db[DBTableNames.data_values].initialize_ordered_bulk_op()
+                        bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
 
             if dic[DataValueFields.id] not in hydro_climate_stats.keys():
                 hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
@@ -181,9 +174,9 @@ class ImportMeteoData(object):
         for item, cur_climate_stats in hydro_climate_stats.items():
             cur_climate_stats.annual_stats()
         # Create index
-        db[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
-                                                   (DataValueFields.type, ASCENDING),
-                                                   (DataValueFields.utc, ASCENDING)])
+        climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
+                                                       (DataValueFields.type, ASCENDING),
+                                                       (DataValueFields.utc, ASCENDING)])
         # prepare dic for MongoDB
         for s_id, stats_v in hydro_climate_stats.items():
             for YYYY in stats_v.Count.keys():
@@ -196,8 +189,8 @@ class ImportMeteoData(object):
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.phu_tot,
                              DataValueFields.y: YYYY}
-                db[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
-                                                                   upsert=True)
+                climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+                                                                       upsert=True)
                 # import annual mean temperature
                 cur_dic[VariableDesc.type] = DataType.mean_tmp
                 cur_dic[VariableDesc.unit] = "deg C"
@@ -205,8 +198,8 @@ class ImportMeteoData(object):
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.mean_tmp,
                              DataValueFields.y: YYYY}
-                db[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
-                                                                   upsert=True)
+                climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+                                                                       upsert=True)
             cur_dic[DataValueFields.value] = stats_v.PHU0
             cur_dic[DataValueFields.id] = s_id
             cur_dic[DataValueFields.y] = DEFAULT_NODATA
@@ -215,8 +208,8 @@ class ImportMeteoData(object):
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.phu0,
                          DataValueFields.y: DEFAULT_NODATA}
-            db[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
-                                                               upsert=True)
+            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+                                                                   upsert=True)
             # import annual mean temperature
             cur_dic[VariableDesc.type] = DataType.mean_tmp0
             cur_dic[VariableDesc.unit] = "deg C"
@@ -224,24 +217,15 @@ class ImportMeteoData(object):
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.mean_tmp0,
                          DataValueFields.y: DEFAULT_NODATA}
-            db[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
-                                                               upsert=True)
+            climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
+                                                                   upsert=True)
 
     @staticmethod
     def workflow(cfg, clim_db):
         """Workflow"""
         print ("Import Daily Meteorological Data... ")
         site_m_loc = HydroClimateUtilClass.query_climate_sites(clim_db, 'M')
-        c_list = clim_db.collection_names()
-        tables = [DBTableNames.data_values, DBTableNames.annual_stats]
-        first_import = False
-        for tb in tables:
-            if not StringClass.string_in_list(tb, c_list):
-                clim_db.create_collection(tb)
-                first_import = True
-        if clim_db[DBTableNames.data_values].find({DataValueFields.type: DataType.m}).count() == 0:
-            first_import = True
-        ImportMeteoData.daily_data_from_txt(clim_db, cfg.Meteo_data, site_m_loc, first_import)
+        ImportMeteoData.daily_data_from_txt(clim_db, cfg.Meteo_data, site_m_loc)
 
 
 def main():
@@ -256,7 +240,7 @@ def main():
     st = time.time()
     ImportMeteoData.workflow(seims_cfg, db)
     et = time.time()
-    print et-st
+    print et - st
     client.close()
 
 

@@ -6,26 +6,29 @@
                 16-12-07  lj - rewrite for version 2.0, improve calculation efficiency by numpy
                 17-06-23  lj - reorganize as basic class
 """
-import shutil
+from os import remove
+from shutil import copy as shutil_copy
 
-import numpy
-import ogr
-import osr
-from gdal import GDT_Int32, GDT_Float32
+from numpy import where, fromfunction
+from osgeo.gdal import GDT_Int32, GDT_Float32
+from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
+from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
+from osgeo.osr import SpatialReference as osr_SpatialReference
 
 from seims.preprocess.sd_hillslope import DelineateHillslope
+from seims.preprocess.text import FieldNames
+from seims.preprocess.utility import status_output, DEFAULT_NODATA
 from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM
 from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass
 from seims.pygeoc.pygeoc.vector.vector import VectorUtilClass
-from seims.preprocess.utility import status_output, DEFAULT_NODATA
-from seims.preprocess.text import FieldNames
 
 
 class SpatialDelineation(object):
     """Subbasin delineation based on TauDEM,
     as well as calculation of latitude dependent parameters"""
+
     # Field in SiteList table or other tables, such as subbasin.shp
     # _FLD_SUBBASINID = 'SUBBASINID'
     # _FLD_BASINID = 'BASIN'
@@ -45,6 +48,9 @@ class SpatialDelineation(object):
                          "basin": [cfg.vecs.bsn, cfg.vecs.json_bsn],
                          "outlet": [cfg.vecs.outlet, cfg.vecs.json_outlet]}
         for jsonName, shp_json_list in geo_json_dict.items():
+            # delete if geojson file already existed
+            if FileClass.is_file_exists(shp_json_list[1]):
+                remove(shp_json_list[1])
             VectorUtilClass.convert2geojson(shp_json_list[1], proj_srs, wgs84_srs,
                                             shp_json_list[0])
 
@@ -243,7 +249,7 @@ class SpatialDelineation(object):
 
         # Convert D8 encoding rule to ArcGIS
         if cfg.is_TauDEM:
-            shutil.copy(flow_dir_file_tau, output_flow_dir_file)
+            shutil_copy(flow_dir_file_tau, output_flow_dir_file)
         else:
             D8Util.convert_flowcode_td_to_ag(flow_dir_file_tau, output_flow_dir_file)
 
@@ -269,13 +275,13 @@ class SpatialDelineation(object):
         if not src_srs.ExportToProj4():
             raise ValueError("The source raster %s has not coordinate, "
                              "which is required!" % dem_file)
-        dst_srs = osr.SpatialReference()
+        dst_srs = osr_SpatialReference()
         dst_srs.ImportFromEPSG(4326)  # WGS84
         # dst_wkt = dst_srs.ExportToWkt()
-        transform = osr.CoordinateTransformation(src_srs, dst_srs)
+        transform = osr_CoordinateTransformation(src_srs, dst_srs)
 
-        point_ll = ogr.CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMin, ds.yMin))
-        point_ur = ogr.CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMax, ds.yMax))
+        point_ll = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMin, ds.yMin))
+        point_ur = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMax, ds.yMax))
 
         point_ll.Transform(transform)
         point_ur.Transform(transform)
@@ -291,8 +297,8 @@ class SpatialDelineation(object):
             """calculate latitude of cell by row number"""
             return up_lat - (row + 0.5) * delta_lat
 
-        data_lat = numpy.fromfunction(cal_cell_lat, (rows, cols))
-        data_lat = numpy.where(ds.validZone, data_lat, ds.data)
+        data_lat = fromfunction(cal_cell_lat, (rows, cols))
+        data_lat = where(ds.validZone, data_lat, ds.data)
         RasterUtilClass.write_gtiff_file(cfg.spatials.cell_lat, rows, cols, data_lat,
                                          ds.geotrans, ds.srs,
                                          ds.noDataValue, GDT_Float32)
