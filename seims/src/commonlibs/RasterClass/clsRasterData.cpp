@@ -32,7 +32,7 @@ void clsRasterData<T, MaskT>::_initialize_raster_class() {
                             STATS_RS_STD, STATS_RS_RANGE};
     for (int i = 0; i < 6; i++) {
         m_statsMap.insert(make_pair(statsnames[i], NODATA_VALUE));
-        m_statsMap2D.insert(map<string, double *>::value_type(statsnames[i], NULL));
+        m_statsMap2D.insert(map<string, double *>::value_type(statsnames[i], nullptr));
     }
     m_initialized = true;
 }
@@ -256,7 +256,9 @@ void clsRasterData<T, MaskT>::releaseStatsMap2D() {
         if (it->second != NULL) {
             Release1DArray(it->second);
         }
-        it = m_statsMap2D.erase(it);
+        m_statsMap2D.erase(it++);
+        // it = m_statsMap2D.erase(it);
+        // These two method are both recommended, but the second one is not compatible with Intel C++ Compiler.
     }
 }
 
