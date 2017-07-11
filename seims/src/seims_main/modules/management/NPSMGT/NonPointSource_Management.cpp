@@ -16,7 +16,8 @@ NPS_Management::~NPS_Management(void) {
             if (it->second != NULL) {
                 delete it->second;
             }
-            it = m_arealSrcFactory.erase(it);
+            // it = m_arealSrcFactory.erase(it);
+            m_arealSrcFactory.erase(it++);
         }
         m_arealSrcFactory.clear();
     }

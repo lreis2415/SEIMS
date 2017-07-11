@@ -1430,7 +1430,8 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
 
                 if (tmpr > max_row || tmpr < min_row || tmpc > max_col || tmpc < min_col
                     || FloatEqual((T) *it, m_noDataValue)) {
-                    it = values.erase(it);
+                    //it = values.erase(it);
+                    values.erase(it++);
                     if (m_is2DRaster && m_nLyrs > 1) {
                         values2D.erase(data2dit + idx);
                         data2dit = values2D.begin();
@@ -1450,7 +1451,8 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             }
             /// swap vector to save memory
             vector<T>(values).swap(values);
-            if (m_is2DRaster && m_nLyrs > 1) vector< vector< T > > (values2D).swap(values2D);
+            if (m_is2DRaster && m_nLyrs > 1)
+                vector<vector<T> >(values2D).swap(values2D);
             vector<int>(positionRows).swap(positionRows);
             vector<int>(positionCols).swap(positionCols);
         }

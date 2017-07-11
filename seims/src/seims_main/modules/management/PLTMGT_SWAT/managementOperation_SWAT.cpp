@@ -75,7 +75,8 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_mgtFactory.erase(it);
+            //it = m_mgtFactory.erase(it);
+            m_mgtFactory.erase(it++);
         }
         m_mgtFactory.clear();
     }
@@ -86,7 +87,8 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
                 it->second = NULL;
             }
             it->second = NULL;
-            it = m_landuseLookupMap.erase(it);
+            //it = m_landuseLookupMap.erase(it);
+            m_landuseLookupMap.erase(it++);
         }
         m_landuseLookupMap.clear();
     }
@@ -97,7 +99,8 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
                 it->second = NULL;
             }
             it->second = NULL;
-            it = m_cropLookupMap.erase(it);
+            //it = m_cropLookupMap.erase(it);
+            m_cropLookupMap.erase(it++);
         }
         m_cropLookupMap.clear();
     }
@@ -108,7 +111,8 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
                 it->second = NULL;
             }
             it->second = NULL;
-            it = m_fertilizerLookupMap.erase(it);
+            //it = m_fertilizerLookupMap.erase(it);
+            m_fertilizerLookupMap.erase(it++);
         }
         m_fertilizerLookupMap.clear();
     }
@@ -119,7 +123,8 @@ MGTOpt_SWAT::~MGTOpt_SWAT(void) {
                 it->second = NULL;
             }
             it->second = NULL;
-            it = m_tillageLookupMap.erase(it);
+            //it = m_tillageLookupMap.erase(it);
+            m_tillageLookupMap.erase(it++);
         }
         m_tillageLookupMap.clear();
     }

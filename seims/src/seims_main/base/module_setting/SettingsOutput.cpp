@@ -71,13 +71,15 @@ SettingsOutput::~SettingsOutput(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_printInfosMap.erase(it);
+        //it = m_printInfosMap.erase(it);
+        m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
     for (vector<PrintInfo *>::iterator it = m_printInfos.begin(); it != m_printInfos.end();) {
         *it = NULL;
-        it = m_printInfos.erase(it);
+        //it = m_printInfos.erase(it);
+        m_printInfos.erase(it++);
     }
     m_printInfos.clear();
     vector<PrintInfo*>().swap(m_printInfos);
