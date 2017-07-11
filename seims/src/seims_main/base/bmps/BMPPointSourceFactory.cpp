@@ -25,7 +25,8 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_pointSrcLocsMap.erase(it);
+            //it = m_pointSrcLocsMap.erase(it);
+            m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
     }
@@ -36,7 +37,8 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_pointSrcMgtMap.erase(it);
+            //it = m_pointSrcMgtMap.erase(it);
+            m_pointSrcMgtMap.erase(it++);
         }
         m_pointSrcMgtMap.clear();
     }
@@ -103,7 +105,11 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, string &bmp
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
+void BMPPointSrcFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
+    int nSubbasin, mongoc_gridfs_t *spatialData)
+{
 
+}
 void BMPPointSrcFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Point Source Management Factory: " << endl <<

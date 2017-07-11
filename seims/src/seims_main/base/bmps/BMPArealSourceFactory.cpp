@@ -118,6 +118,10 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
     m_loadedMgtFieldIDs = true;
 }
 
+void BMPArealSrcFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap, int nSubbasin, mongoc_gridfs_t *spatialData)
+{
+
+}
 void BMPArealSrcFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Point Source Management Factory: " << endl <<
@@ -262,7 +266,6 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
                              "The array size of must be greater than 0 and the array must not be NULL.");
     }
 }
-
 void ArealSourceLocations::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "      Point Source Location: " << endl <<
