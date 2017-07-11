@@ -69,7 +69,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_rsMap.erase(it);
+        //it = m_rsMap.erase(it);
+        m_rsMap.erase(it++);
     }
     m_rsMap.clear();
     StatusMessage("---release map of parameters in MongoDB ...");
@@ -79,7 +80,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_initParameters.erase(it);
+        //it = m_initParameters.erase(it);
+        m_initParameters.erase(it++);
     }
     m_initParameters.clear();
     StatusMessage("---release map of 1D array data ...");
@@ -88,7 +90,8 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release1DArray(it->second);
         }
-        it = m_1DArrayMap.erase(it);
+        //it = m_1DArrayMap.erase(it);
+        m_1DArrayMap.erase(it++);
     }
     m_1DArrayMap.clear();
     StatusMessage("---release map of 2D array data ...");
@@ -97,7 +100,8 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release2DArray(m_2DRowsLenMap[it->first], it->second);
         }
-        it = m_2DArrayMap.erase(it);
+        //it = m_2DArrayMap.erase(it);
+        m_2DArrayMap.erase(it++);
     }
     m_2DArrayMap.clear();
     StatusMessage("---release Interpolation weight data ...");
@@ -108,7 +112,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_weightDataMap.erase(it);
+        //it = m_weightDataMap.erase(it);
+        m_weightDataMap.erase(it++);
     }
     m_weightDataMap.clear();
 }

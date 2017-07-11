@@ -36,7 +36,8 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_settings.erase(it);
+        //it = m_settings.erase(it);
+        m_settings.erase(it++);
     }
     m_settings.clear();
 
@@ -47,7 +48,8 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_metadata.erase(it);
+        //it = m_metadata.erase(it);
+        m_metadata.erase(it++);
     }
     m_metadata.clear();
 
@@ -84,15 +86,16 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = Tag_So + string(MID_TSD_RD);
 #endif /* windows */
         }
-#ifdef INTEL_COMPILER
-        dllID = dllID + "_intel";
-#endif /* INTEL_COMPILER */
-#ifdef INTEL_COMPILER_SINGLE
-        dllID = dllID + "_intel_single";
-#endif /* INTEL_COMPILER_SINGLE */
-#ifdef SINGLE
-        dllID = dllID + "_single";
-#endif /* SINGLE */
+// In my view, the _intel related suffixes are useless. lj
+//#ifdef INTEL_COMPILER
+//        dllID = dllID + "_intel";
+//#endif /* INTEL_COMPILER */
+//#ifdef INTEL_COMPILER_SINGLE
+//        dllID = dllID + "_intel_single";
+//#endif /* INTEL_COMPILER_SINGLE */
+//#ifdef SINGLE
+//        dllID = dllID + "_single";
+//#endif /* SINGLE */
 
         // load function pointers from DLL
         ReadDLL(id, dllID);

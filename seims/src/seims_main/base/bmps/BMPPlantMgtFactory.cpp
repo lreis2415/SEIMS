@@ -20,7 +20,8 @@ BMPPlantMgtFactory::~BMPPlantMgtFactory() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_bmpPlantOps.erase(it);
+        //it = m_bmpPlantOps.erase(it);
+        m_bmpPlantOps.erase(it++);
     }
     m_bmpPlantOps.clear();
 }
@@ -154,7 +155,11 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
+void BMPPlantMgtFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
+                                                int nSubbasin, mongoc_gridfs_t *spatialData)
+{
 
+}
 void BMPPlantMgtFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Plant Management Factory: " << endl <<

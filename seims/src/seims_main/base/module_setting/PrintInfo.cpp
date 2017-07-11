@@ -34,7 +34,8 @@ PrintInfoItem::~PrintInfoItem(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        it = TimeSeriesDataForSubbasin.erase(it);
+        //it = TimeSeriesDataForSubbasin.erase(it);
+        TimeSeriesDataForSubbasin.erase(it++);
     }
     TimeSeriesDataForSubbasin.clear();
 
@@ -464,7 +465,8 @@ PrintInfo::~PrintInfo(void) {
             delete *it;
             *it = NULL;
         }
-        it = m_PrintItems.erase(it);
+        //it = m_PrintItems.erase(it);
+        m_PrintItems.erase(it++);
     }
     m_PrintItems.clear();
     vector<PrintInfoItem *>().swap(m_PrintItems);
