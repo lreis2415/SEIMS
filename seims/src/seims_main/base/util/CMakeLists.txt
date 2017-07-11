@@ -1,7 +1,4 @@
 MESSAGE(STATUS "        Compiling base_subdir: util...")
-IF (NOT MSVC)
-    SET(CMAKE_CXX_FLAGS "-fPIC")
-ENDIF()
 SET(SRC_LIST MetadataInfo.cpp SimulationModule.cpp ${UTILS_FILES})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 ADD_LIBRARY(util STATIC ${SRC_LIST})
