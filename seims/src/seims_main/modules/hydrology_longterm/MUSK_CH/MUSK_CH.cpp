@@ -39,15 +39,17 @@ MUSK_CH::~MUSK_CH(void) {
     Release1DArray(m_chWTWidth);
     Release1DArray(m_chBtmWidth);
     Release1DArray(m_ptSub);
-    if (!m_ptSrcFactory.empty()) {
-        for (map<int, BMPPointSrcFactory *>::iterator it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end();) {
-            if (it->second != NULL) {
-                delete it->second;
-            }
-            it = m_ptSrcFactory.erase(it);
-        }
-        m_ptSrcFactory.clear();
-    }
+    // m_ptSrcFactory will be released by DataCenter->Scenario. lj
+    //if (!m_ptSrcFactory.empty()) {
+    //    for (map<int, BMPPointSrcFactory *>::iterator it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end();) {
+    //        if (it->second != NULL) {
+    //            delete it->second;
+    //        }
+    //        // it = m_ptSrcFactory.erase(it);
+    //        m_ptSrcFactory.erase(it++);
+    //    }
+    //    m_ptSrcFactory.clear();
+    //}
 }
 
 //! Check input data
