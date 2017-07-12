@@ -9,8 +9,7 @@ IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
-### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET(CMAKE_CXX_STANDARD 11)
+
 ################# SEIMS Version ##################
 SET(SEIMSPRJ "seims")
 IF (STORM EQUAL 1)
@@ -55,6 +54,7 @@ if (NOT MSVC)
     SET (CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -fPIC -g -ggdb")
     SET (CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O2 -Wall -fPIC")
 endif ()
+
 # Set runtime library type
 include(SetThreadFlagMSVC)
 ################# Find packages ##################
@@ -112,6 +112,28 @@ IF (OPENMP_FOUND)
     add_definitions(-DSUPPORT_OMP)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 ENDIF ()
+### Active C++11 standard, cross-platform. This requires CMake 3.1+
+# SET(CMAKE_CXX_STANDARD 11) CMake may make mistake in intel c/c++ compiler
+# 12.1, so make some test when setting the C++ Standard.
+# refers to https://github.com/biicode/client/issues/10
+include(CheckCXXCompilerFlag)
+set(ENABLE_CXXFLAGS_TO_CHECK
+    -std=gnu++11
+    -std=c++11
+    -std=gnu++0x
+    -std=c++0x)
+MESSAGE(STATUS "CHECK CXX STANDARD FLAGS...")
+foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
+    string(REPLACE "-std=" "_" flag_var ${flag})
+    string(REPLACE "+" "x" flag_var ${flag_var})
+    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
+    if(COMPILER_HAS_CXX_FLAG${flag_var})
+        MESSAGE(STATUS "${flag}...yes")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+        break()
+    endif()
+endforeach()
+MESSAGE(STATUS "USED CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 ################# Install directory ##################
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
