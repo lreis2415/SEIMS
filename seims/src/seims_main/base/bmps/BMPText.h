@@ -72,6 +72,7 @@
 #define BMP_TYPE_TILEDRAIN               14
 #define BMP_TYPE_URBAN                   15
 #define BMP_TYPE_AREALSOURCE             16
+#define BMP_TYPE_AREALSTRUCT             17
 
 //// Common fields
 #define BMP_FLD_SUB                      "SUBSCENARIO"
