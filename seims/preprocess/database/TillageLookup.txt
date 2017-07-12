@@ -1,0 +1,109 @@
+ITNUM,TILLNM,EFTMIX,DEPTIL,OPNAME,RRNS,CNOP_CN2,PRC,DSC
+1,Fallplow,0.95,150,Generic Fall Plowing Operation,75,1,1,1
+2,Sprgplow,0.5,125,Generic Spring Plowing Operation,50,1,1,1
+3,Constill,0.25,100,Generic Conservation Tillage,40,1,1,1
+4,Zerotill,0.05,25,Generic No-till Mixing,10,1.015,1.015,0.985
+5,Duckftc,0.55,100,Duckfoot Cultivator,15,1,1,1
+6,Fldcge15,0.3,100,Field Cultivator Ge15ft,20,1,1,1
+7,Fldclt15,0.3,100,Field Cultivator Lt15ft,20,1,1,1
+8,Furowout,0.75,25,Furrow-out Cultivator,15,1,1,1
+9,Marker,0.45,100,Marker (cultivator),15,1,1,1
+10,Rollge15,0.5,25,Rolling Cultivator Ge15ft,15,1,1,1
+11,Rolllt15,0.5,25,Rolling Cultivator Lt15ft,15,1,1,1
+12,Rowcge15,0.25,25,Row Cultivator Ge15ft,15,1,1,1
+13,Rowclt15,0.25,25,Row Cultivator Lt15ft,15,1,1,1
+14,Discovat,0.5,25,Discovator,15,1,1,1
+15,Leveler,0.5,25,Leveler,15,1,1,1
+16,Hrw10bar,0.2,25,Harrow 10 Bar Tine 36 Ft,10,1.02,1.02,0.98
+17,Cmulge18,0.25,25,Culti-mulch Roller Ge18ft,5,1,1,1
+18,Cmullt18,0.25,25,Culti-mulch Roller Lt18ft,5,1,1,1
+19,Culpkpul,0.35,40,Culti-packer Pulverizer,5,1,1,1
+20,Landlevl,0.5,75,Land Plane-leveler,15,1,1,1
+21,Landall,0.3,150,Landall Do-all,15,1,1,1
+22,Lasrplan,0.3,150,Laser Planer,15,1,1,1
+23,Levpldis,0.75,25,Levee-plow-disc,50,1,1,1
+24,Float,0.1,60,Float,10,1,1,1
+25,Fldcdscr,0.1,60,Field Cond (scratcher),20,1,1,1
+26,Listrmid,0.15,40,Lister (middle-buster),25,1,1,1
+27,Rollgrov,0.25,60,Roller Groover,0,1,1,1
+28,Rolpkrat,0.05,40,Roller Packer Attachment,0,1,1,1
+29,Rolpkrft,0.35,40,Roller Packer Flat Roller,0,1,1,1
+30,Sandfigt,0.7,100,Sand-fighter,10,1,1,1
+31,Seedroll,0.7,100,Seedbed Roller,0,1,1,1
+32,Crustbst,0.1,60,Crust Buster,10,1,1,1
+33,Rollhrrw,0.4,60,Roller Harrow 15 Ft,5,1,1,1
+34,Triple K,0.4,100,Triple K,25,1,1,1
+35,Cult1row,0.25,25,Cultivator 1 Row,15,1.01,1.01,0.99
+36,Finhge15,0.55,100,Finishing Harrow Ge15ft,5,1,1,1
+37,Finhlt15,0.55,100,Finishing Harrow Lt15ft,5,1,1,1
+38,Flexge20,0.2,25,Flex-tine Harrow Cl Ge20ft,13,1,1,1
+39,Flexlt20,0.2,25,Flex-tine Harrow Cl Lt20ft,13,1,1,1
+40,Spiketth,0.4,75,Powered Spike Tooth Harrow,10,1,1,1
+41,Spikgt25,0.25,25,Spike Tooth Harrow Gt25ft,13,1,1,1
+42,Spikle25,0.25,25,Spike Tooth Harrow Le25ft,13,1,1,1
+43,Spthge15,0.35,25,Springtooth Harrow Ge15ft,13,1,1,1
+44,Spthlt15,0.35,25,Springtooth Harrow Lt15ft,13,1,1,1
+45,Soilfins,0.55,75,Soil Finisher,5,1,1,1
+46,Rothoe,0.1,5,Rotary Hoe,13,1.01,1.01,0.99
+47,Roterra,0.8,5,Roterra,10,1,1,1
+48,Rototill,0.8,5,Roto-tiller,13,1,1,1
+49,Rotbeddr,0.8,100,Rotovator-bedder,40,1,1,1
+50,Rowbuck,0.7,100,Rowbuck,35,1,1,1
+51,Ripper10,0.25,350,Ripper 10 Ft,15,1,1,1
+52,Midbst1r,0.7,100,Middle Buster 1 Row,35,1,1,1
+53,Rodweedr,0.3,25,Rod Weeder,10,1,1,1
+54,Rubwhwpl,0.35,5,Rubber-wheel Weed Puller,5,1,1,1
+55,Multiwdr,0.3,25,Multi-weeder,10,1,1,1
+56,Mldbge10,0.95,150,Moldboard Plow Reg Ge10b,30,1.1,1.1,0.9
+57,Chplgt21,0.3,150,Chisel Plow Gt21ft,20,1,1,1
+58,Chplgt15,0.3,150,Chisel Plow Gt15ft,20,1,1,1
+59,Chplle15,0.3,150,Chisel Plow Le15ft,20,1,1,1
+60,Cchplow,0.5,150,Coulter-chisel Plow,20,1,1,1
+61,Dkplge23,0.85,100,Disk Plow Ge23ft,50,1,1,1
+62,Dkpllt23,0.85,100,Disk Plow Lt23ft,50,1,1,1
+63,Mlbdr4-6,0.95,150,Moldboard Plow Reg 4-6b,30,1,1,1
+64,Mlbdrge7,0.95,150,Moldboard Plow Reg Ge7b,30,1,1,1
+65,Mlbdrle3,0.95,150,Moldboard Plow Reg Le3b,30,1,1,1
+66,Mlbd24-6,0.95,150,Moldboard Plow 2-way 4-6b,30,1,1,1
+67,Mldb2ge7,0.95,150,Moldboard Plow 2-way Ge7b,30,1,1,1
+68,Mldb2le3,0.95,150,Moldboard Plow 2-way Le3b,30,1,1,1
+69,Smchgt15,0.15,75,Stubble-mulch Plow Gt15ft,20,1,1,1
+70,Smchle15,0.15,75,Stubble-mulch Plow Le15ft,20,1,1,1
+71,Subchplw,0.45,350,Subsoil Chisel Plow,15,1,1,1
+72,Rowcond1,0.5,25,Row Conditioner 1 Row,10,1,1,1
+73,Hipper1r,0.5,100,Hipper 1 Row,30,1,1,1
+74,Riceroll,0.1,50,Rice Roller,0,1,1,1
+75,Paraplow,0.15,350,Paraplow,25,1,1,1
+76,Sbedhipr,0.7,350,Subsoiler-bedder Hip-rip,40,1,1,1
+77,Riprsubs,0.25,350,Deep Ripper- Subsoiler,15,1,1,1
+78,Vripper,0.25,350,V-ripper,25,1,1,1
+79,Bedrol4r,0.25,50,Bed Roller 4 Row,5,1,1,1
+80,Bedder D,0.55,150,Bedder (disk),35,1,1,1
+81,Beddhipr,0.65,150,Bedder Disk-hipper,35,1,1,1
+82,Beddkrow,0.85,100,Bedder Disk-row,40,1,1,1
+83,Bedder S,0.55,150,Bedder Shaper,30,1,1,1
+84,Dskbrmkr,0.55,150,Disk Border Maker,20,1,1,1
+85,Dkchmtil,0.55,150,Disk Chisel (mulch Tiller),25,1,1,1
+86,Offdge19,0.7,100,Offset Dis/heavduty Ge19ft,50,1,1,1
+87,Offhle13,0.7,100,Offset Dis/heavduty Le13ft,50,1,1,1
+88,Offh1418,0.6,100,Offset Dis/heavduty14-18ft,50,1,1,1
+89,Offlge19,0.55,100,Offset Dis/lghtduty Ge19ft,40,1.025,1.025,0.975
+90,Offlle13,0.55,100,Offset Dis/lghtduty Le13ft,40,1,1,1
+91,Offl1418,0.55,100,Offset Dis/lghtduty14-18ft,40,1,1,1
+92,One-wayt,0.6,100,One-way (disk Tiller),50,1,1,1
+93,Tanpge19,0.7,75,Tandem Disk Plw Ge19ft,18,1,1,1
+94,Tanple13,0.4,75,Tandem Disk Plw Le13ft,18,1,1,1
+95,Tanp1418,0.55,75,Tandem Disk Plw 14-18ft,30,1,1,1
+96,Tanrge19,0.75,100,Tandem Disk Reg Ge19ft,50,1.075,1.075,0.93
+97,Tanrle13,0.6,75,Tandem Disk Reg Le13ft,20,1,1,1
+98,Tanr1418,0.4,75,Tandem Disk Reg 14-18ft,18,1,1,1
+99,Singldis,0.45,100,Single Disk,30,1.05,1.05,0.95
+100,Pwrmulch,0.7,50,Power Mulcher,15,1,1,1
+101,Blade 10,0.25,75,Blade 10 Ft,13,1,1,1
+102,Furwdike,0.7,100,Furrow Diker,13,1,1,1
+103,Beetcult,0.25,25,Beet Cultivator  8 Row,15,1,1,1
+104,Dskplw36,0.7,100,Disk Plow Ge23ft,50,1,1,1
+105,Cltiwd36,0.3,100,Cultiweeder 36 Ft,15,1,1,1
+106,Packer40,0.35,40,Packer   40 Ft,0,1.025,1.025,0.976
+107,Rodwdr36,0.3,100,Rodweeder/10 Bar Har 36ft,20,1.03,1.03,0.971
+108,NOTILL,0,0,No Till,0,1,1,1
