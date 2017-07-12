@@ -9,17 +9,22 @@ ParamInfo::ParamInfo(void) {
 ParamInfo::~ParamInfo(void) {
 }
 
-float ParamInfo::GetAdjustedValue() {
-    float res = Value;
+float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
+    if (FloatEqual(pre_value, NODATA_VALUE)) {
+        pre_value = Value;
+    }
+    float res = pre_value;
     if (FloatEqual(res, NODATA_VALUE)) {  /// Do not change NoData value
         return res;
     }
     if (StringMatch(Use, PARAM_USE_Y)) {
-        if (StringMatch(Change, PARAM_CHANGE_RC)) {
-            res = Value * Impact;
-        } else if (StringMatch(Change, PARAM_CHANGE_AC)) {
-            res = Value + Impact;
-        } else if (Change == PARAM_CHANGE_NC) {
+        if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
+            res = pre_value * Impact;
+        } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
+            res = pre_value + Impact;
+        } else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
+            res = Impact;
+        } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
             //don't change
         }
     }
@@ -28,21 +33,28 @@ float ParamInfo::GetAdjustedValue() {
 
 void ParamInfo::Adjust1DArray(int n, float *data) {
     if (StringMatch(Use, string(PARAM_USE_Y))) {
-        if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
 #pragma omp parallel for
-            for (int i = 0; i < n; i++) {
-                if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
-                    data[i] *= Impact;
-                }
-            }
-        } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
-#pragma omp parallel for
-            for (int i = 0; i < n; i++) {
-                if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
-                    data[i] += Impact;
-                }
+        for (int i = 0; i < n; i++) {
+            if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
+                data[i] = GetAdjustedValue(data[i]);
             }
         }
+// Deprecated by lj, 2017-7-12
+//        if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
+//#pragma omp parallel for
+//            for (int i = 0; i < n; i++) {
+//                if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
+//                    data[i] *= Impact;
+//                }
+//            }
+//        } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
+//#pragma omp parallel for
+//            for (int i = 0; i < n; i++) {
+//                if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
+//                    data[i] += Impact;
+//                }
+//            }
+//        }
     }
 }
 

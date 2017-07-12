@@ -108,7 +108,8 @@ RegularMeasurement::~RegularMeasurement(void) {
             delete[] *it;
             *it = NULL;
         }
-        it = m_siteData.erase(it);
+        //it = m_siteData.erase(it);
+        m_siteData.erase(it++);
     }
     m_siteData.clear();
 }

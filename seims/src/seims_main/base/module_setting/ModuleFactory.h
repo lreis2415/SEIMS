@@ -48,6 +48,9 @@ public:
     //! Get Module ID by index
     string GetModuleID(int i) { return m_moduleIDs[i]; }
 
+    //! update BMP Parameters
+    void updateBMPOptParameter(int nSubbasin);
+
 private:
     //! Initialization, read the config.fig file and initialize
     void Init(const string &configFileName);
@@ -87,21 +90,21 @@ private:
 
     //! Set data for modules, include all datatype
     void SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
-                 FloatRaster templateRaster, SimulationModule *pModule, bool vertitalItp);
+                 FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp);
 
     //! Set single Value
-    void SetValue(ParamInfo *param, FloatRaster templateRaster, SimulationModule *pModule);
+    void SetValue(ParamInfo *param, FloatRaster *templateRaster, SimulationModule *pModule);
 
     //! Set 1D Data
-    void Set1DData(string &dbName, string &paraName, string &remoteFileName, FloatRaster templateRaster,
+    void Set1DData(string &dbName, string &paraName, string &remoteFileName, FloatRaster *templateRaster,
                    SimulationModule *pModule, bool vertitalItp);
 
     //! Set 2D Data
     void Set2DData(string &dbName, string &paraName, int nSubbasin, string &remoteFileName,
-                   FloatRaster templateRaster, SimulationModule *pModule);
+                   FloatRaster *templateRaster, SimulationModule *pModule);
 
     //! Set raster data
-    void SetRaster(string &dbName, string &paraName, string &remoteFileName, FloatRaster templateRaster,
+    void SetRaster(string &dbName, string &paraName, string &remoteFileName, FloatRaster *templateRaster,
                    SimulationModule *pModule);
 
     //! Set BMPs Scenario data
