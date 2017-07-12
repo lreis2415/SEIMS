@@ -13,7 +13,8 @@ InputStation::~InputStation(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_measurement.erase(it);
+        //it = m_measurement.erase(it);
+        m_measurement.erase(it++);
     }
     m_measurement.clear();
 
@@ -22,7 +23,8 @@ InputStation::~InputStation(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        it = m_latitude.erase(it);
+        //it = m_latitude.erase(it);
+        m_latitude.erase(it++);
     }
     m_latitude.clear();
     for (map<string, float *>::iterator it = m_elevation.begin(); it != m_elevation.end();) {
@@ -30,7 +32,8 @@ InputStation::~InputStation(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        it = m_elevation.erase(it);
+        //it = m_elevation.erase(it);
+        m_elevation.erase(it++);
     }
     m_elevation.clear();
 }

@@ -69,7 +69,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_rsMap.erase(it);
+        //it = m_rsMap.erase(it);
+        m_rsMap.erase(it++);
     }
     m_rsMap.clear();
     StatusMessage("---release map of parameters in MongoDB ...");
@@ -79,7 +80,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_initParameters.erase(it);
+        //it = m_initParameters.erase(it);
+        m_initParameters.erase(it++);
     }
     m_initParameters.clear();
     StatusMessage("---release map of 1D array data ...");
@@ -88,7 +90,8 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release1DArray(it->second);
         }
-        it = m_1DArrayMap.erase(it);
+        //it = m_1DArrayMap.erase(it);
+        m_1DArrayMap.erase(it++);
     }
     m_1DArrayMap.clear();
     StatusMessage("---release map of 2D array data ...");
@@ -97,7 +100,8 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release2DArray(m_2DRowsLenMap[it->first], it->second);
         }
-        it = m_2DArrayMap.erase(it);
+        //it = m_2DArrayMap.erase(it);
+        m_2DArrayMap.erase(it++);
     }
     m_2DArrayMap.clear();
     StatusMessage("---release Interpolation weight data ...");
@@ -108,7 +112,8 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_weightDataMap.erase(it);
+        //it = m_weightDataMap.erase(it);
+        m_weightDataMap.erase(it++);
     }
     m_weightDataMap.clear();
 }
@@ -237,7 +242,10 @@ bool DataCenterMongoDB::checkModelPreparedData(void) {
         m_scenDBName = QueryDatabaseName(query, DB_TAB_SCENARIO);
         if (m_scenDBName != "") {
             m_useScenario = true;
-            m_scenario = new Scenario(m_mongoClient, m_scenDBName, m_scenarioID);
+            m_scenario = new Scenario(m_mongoClient, m_scenDBName, m_subbasinID, m_scenarioID);
+            if (setRasterForScenario()) {
+                m_scenario->setRasterForEachBMP();
+            }
         }
     }
     /// 4. Read climate site information from Climate database
@@ -257,8 +265,9 @@ bool DataCenterMongoDB::checkModelPreparedData(void) {
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
-    clsRasterData<float> *subbasinRaster = new clsRasterData<float>(m_spatialGridFS,
-                                               subbasinFileName.c_str(), true, m_maskRaster);
+    FloatRaster* subbasinRaster = new clsRasterData<float>(m_spatialGridFS,
+                                                           subbasinFileName.c_str(), 
+                                                           true, m_maskRaster);
     m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
     /// Read Subbasin data
     m_subbasins = new clsSubbasins(m_spatialGridFS, m_rsMap, m_subbasinID);
@@ -537,8 +546,9 @@ bool DataCenterMongoDB::readParametersInDB(void) {
     return true;
 }
 
-FloatRaster DataCenterMongoDB::readRasterData(string& remoteFilename) {
-    FloatRaster rasterData = new clsRasterData<float>(m_spatialGridFS, remoteFilename.c_str(), true, m_maskRaster, true);
+FloatRaster* DataCenterMongoDB::readRasterData(const string& remoteFilename) {
+    FloatRaster* rasterData = new clsRasterData<float>(m_spatialGridFS, remoteFilename.c_str(),
+                                                       true, m_maskRaster, true);
     /// using insert() to make sure the successful insertion.
     if (!m_rsMap.insert(make_pair(remoteFilename, rasterData)).second) {
         delete rasterData;
@@ -645,4 +655,20 @@ void DataCenterMongoDB::readIUHData(string& remoteFilename, int& n, float**& dat
     m_2DArrayMap.insert(make_pair(remoteFilename, data));
     m_2DRowsLenMap.insert(make_pair(remoteFilename, n));
     m_2DColsLenMap.insert(make_pair(remoteFilename, 1));
+}
+
+bool DataCenterMongoDB::setRasterForScenario(void) {
+    if (!m_useScenario) return false;
+    if (NULL == m_scenario) return false;
+    map<string, FloatRaster*> sceneRsMap = m_scenario->getSceneRasterDataMap();
+    if (sceneRsMap.size() == 0) return false;
+    for (map<string, FloatRaster*>::iterator it = sceneRsMap.begin(); it != sceneRsMap.end(); it++) {
+        if (m_rsMap.find(it->first) == m_rsMap.end()) {
+            it->second = readRasterData(it->first);
+        }
+        else {
+            it->second = m_rsMap.at(it->first);
+        }
+    }
+    return true;
 }

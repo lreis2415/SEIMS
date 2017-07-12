@@ -42,5 +42,6 @@ const float SQ2 = 1.4142135623730951f;
 #define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method
 #define MIN_SLOPE       1e-6f  /// \def minimum slope (tan value)
 
-
+#define IntRaster       clsRasterData<int>
+#define FloatRaster     clsRasterData<float>
 #endif /* SEIMS_HEADER */
