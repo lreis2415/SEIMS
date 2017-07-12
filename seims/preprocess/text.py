@@ -44,12 +44,14 @@ class ModelCfgUtils(object):
     _FILE_IN = "file.in"
     _FILE_OUT = "file.out"
     _FILE_CFG = "config.fig"
+    _FILE_CALI = "param.cali"
 
     def __init__(self, model_dir):
         """assign model config file paths"""
         self.filein = model_dir + SEP + ModelCfgUtils._FILE_IN
         self.fileout = model_dir + SEP + ModelCfgUtils._FILE_OUT
         self.filecfg = model_dir + SEP + ModelCfgUtils._FILE_CFG
+        self.filecali = model_dir + SEP + ModelCfgUtils._FILE_CALI
 
 
 class DirNameUtils(object):
@@ -79,6 +81,7 @@ class ModelParamDataUtils(object):
     """Model parameters data file related.
     """
     _INIT_PARAM_NAME = 'model_param_ini.txt'
+    _INIT_OUTPUTS_NAME = 'AvailableOutputs.txt'
     Tag_Params = "param"
     Tag_Lookup = "lookup"
     _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.txt',
@@ -113,6 +116,7 @@ class ModelParamDataUtils(object):
         """assign text file path"""
         self.crop_file = in_dir + SEP + ModelParamDataUtils._LOOKUP_DICT.get('CropLookup')
         self.init_params_file = in_dir + SEP + ModelParamDataUtils._INIT_PARAM_NAME
+        self.init_outputs_file = in_dir + SEP + ModelParamDataUtils._INIT_OUTPUTS_NAME
         self.lookup_tabs_dict = dict()
         for k, v in ModelParamDataUtils._LOOKUP_DICT.items():
             self.lookup_tabs_dict[k] = in_dir + SEP + v
@@ -148,14 +152,12 @@ class ModelParamFields(object):
     change = "CHANGE"
     max = "MAX"
     min = "MIN"
-    use = "USE"
     type = "TYPE"
     # available values
+    change_vc = "VC"
     change_rc = "RC"
     change_ac = "AC"
     change_nc = "NC"
-    use_y = "Y"
-    use_n = "N"
 
 
 class ModelCfgFields(object):

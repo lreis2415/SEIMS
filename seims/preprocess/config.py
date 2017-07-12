@@ -114,7 +114,7 @@ class SEIMSConfig(object):
         self.taudems = TauDEMFilesUtils(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
-        self.paramcfgs = ModelParamDataUtils(self.txt_db_dir)
+        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
         if not FileClass.is_file_exists(self.clim_dir):
             print ("The CLIMATE_DATA_DIR is not existed, try the default folder name 'climate'.")
@@ -186,10 +186,10 @@ class SEIMSConfig(object):
             if not os.path.exists(self.outlet_file):
                 self.outlet_file = None
             self.landuse = self.spatial_dir + os.sep + cf.get('SPATIAL', 'landusefile')
-            self.landcover_init_param = self.spatial_dir + os.sep \
+            self.landcover_init_param = self.txt_db_dir + os.sep \
                                         + cf.get('SPATIAL', 'landcoverinitfile')
             self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
-            self.soil_property = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
+            self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
             self.mgt_field = self.spatial_dir + os.sep + cf.get('SPATIAL', 'mgtfieldfile')
             if not os.path.exists(self.mgt_field) or \
                     StringClass.string_match(self.mgt_field, 'none'):

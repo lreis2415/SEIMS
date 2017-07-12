@@ -154,9 +154,6 @@ class ImportMeteoData(object):
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                     cur_dic[DataValueFields.type] = fld
-                    curfilter = {DataValueFields.id: dic[DataValueFields.id],
-                                 DataValueFields.utc: dic[DataValueFields.utc],
-                                 DataValueFields.type: fld}
                     # Old code, insert or update one item a time, which is quite inefficiency
                     # Update by using bulk operation interface. lj
                     bulk.insert(cur_dic)

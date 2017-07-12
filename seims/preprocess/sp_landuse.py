@@ -115,18 +115,13 @@ class LanduseUtilClass(object):
     def read_crop_lookup_table(crop_lookup_file):
         """read crop lookup table"""
         FileClass.check_file_exists(crop_lookup_file)
-        f = open(crop_lookup_file)
-        lines = f.readlines()
-        f.close()
+        data_items = read_data_items_from_txt(crop_lookup_file)
         attr_dic = dict()
-        fields = [item.replace('"', '')
-                  for item in re_split('\t|\n|\r\n|\r', lines[0]) if item is not '']
+        fields = data_items[0]
         n = len(fields)
         for i in range(n):
             attr_dic[fields[i]] = dict()
-        for line in lines[1:]:
-            items = [item.replace('"', '')
-                     for item in re_split('\t', line) if item is not '']
+        for items in data_items[1:]:
             cur_id = int(items[0])
 
             for i in range(n):
