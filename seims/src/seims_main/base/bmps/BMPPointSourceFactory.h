@@ -244,6 +244,11 @@ public:
     /// Load BMP parameters from MongoDB
     void loadBMP(MongoClient* conn, string &bmpDBName);
 
+
+    /// PreUpdate parameters
+    void BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
+                                int nSubbasin, mongoc_gridfs_t *spatialData);
+
     /// Output
     void Dump(ostream *fs);
 
