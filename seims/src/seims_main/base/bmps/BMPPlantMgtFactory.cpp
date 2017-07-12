@@ -155,7 +155,11 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
+void BMPPlantMgtFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
+                                                int nSubbasin, mongoc_gridfs_t *spatialData)
+{
 
+}
 void BMPPlantMgtFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Plant Management Factory: " << endl <<
