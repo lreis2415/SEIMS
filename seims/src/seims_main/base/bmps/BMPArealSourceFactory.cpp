@@ -119,6 +119,10 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
     m_loadedMgtFieldIDs = true;
 }
 
+void BMPArealSrcFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap, int nSubbasin, mongoc_gridfs_t *spatialData)
+{
+
+}
 void BMPArealSrcFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Point Source Management Factory: " << endl <<

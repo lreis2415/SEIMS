@@ -3,13 +3,12 @@
 # Contact        : zlj@lreis.ac.cn
 # Latest updated : Mar. 31, 2017
 #
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
-### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET (CMAKE_CXX_STANDARD 11)
+
 set(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake
     ${CMAKE_MODULE_PATH}
