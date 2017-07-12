@@ -20,7 +20,8 @@ BMPPlantMgtFactory::~BMPPlantMgtFactory() {
             delete it->second;
             it->second = NULL;
         }
-        it = m_bmpPlantOps.erase(it);
+        //it = m_bmpPlantOps.erase(it);
+        m_bmpPlantOps.erase(it++);
     }
     m_bmpPlantOps.clear();
 }

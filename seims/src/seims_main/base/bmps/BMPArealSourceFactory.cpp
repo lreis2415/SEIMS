@@ -7,7 +7,7 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
     : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_arealSrcMgtTab = m_bmpCollection;
     m_arealSrcIDs = SplitStringForInt(location, ',');
-    vector <string> dist = SplitString(distribution, '|');
+    vector<string> dist = SplitString(distribution, '|');
     if (dist.size() == 4 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER)) {
         m_arealSrcDistName = dist[1];
         m_arealSrcDistTab = dist[2];
@@ -28,7 +28,8 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_arealSrcLocsMap.erase(it);
+            //it = m_arealSrcLocsMap.erase(it);
+            m_arealSrcLocsMap.erase(it++);
         }
         m_arealSrcLocsMap.clear();
     }
@@ -39,7 +40,8 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_arealSrcMgtMap.erase(it);
+            //it = m_arealSrcMgtMap.erase(it);
+            m_arealSrcMgtMap.erase(it++);
         }
         m_arealSrcMgtMap.clear();
     }
@@ -61,7 +63,6 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, string &b
     bson_append_document_end(b, child2);
     bson_destroy(child1);
     bson_destroy(child2);
-
 
     unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcMgtTab)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
@@ -262,7 +263,6 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
                              "The array size of must be greater than 0 and the array must not be NULL.");
     }
 }
-
 void ArealSourceLocations::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "      Point Source Location: " << endl <<

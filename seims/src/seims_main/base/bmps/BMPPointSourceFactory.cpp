@@ -6,8 +6,8 @@ BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenari
                                        string distribution, string collection, string location)
     : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_pointSrcMgtTab = m_bmpCollection;
-    m_pointSrcIDs = SplitStringForInt(location, ',');
-    vector <string> dist = SplitString(distribution, '|');
+    m_pointSrcIDs = SplitStringForInt(m_location, ',');
+    vector<string> dist = SplitString(m_distribution, '|');
     if (dist.size() == 3 && StringMatch(dist[0], FLD_SCENARIO_DIST_ARRAY)) {
         m_pointSrcDistTab = dist[1];
         m_pointSrc = atoi(dist[2].c_str());
@@ -25,7 +25,8 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_pointSrcLocsMap.erase(it);
+            //it = m_pointSrcLocsMap.erase(it);
+            m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
     }
@@ -36,7 +37,8 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            it = m_pointSrcMgtMap.erase(it);
+            //it = m_pointSrcMgtMap.erase(it);
+            m_pointSrcMgtMap.erase(it++);
         }
         m_pointSrcMgtMap.clear();
     }
