@@ -39,9 +39,9 @@ email:  dtarb@usu.edu
 //  This software is distributed from http://hydrology.usu.edu/taudem/
 
 
+#include "commonLib.h"
 #include <stdio.h>
 #include <string.h>
-#include "commonLib.h"
 #include <math.h>
 #include <cstddef>
 

@@ -41,9 +41,9 @@ email:  dtarb@usu.edu
 #define COMMON_H
 #include <cmath>
 #include <float.h>
-#include "mpi.h"
 #include <stdint.h>
 #include "ogr_api.h"
+#include "mpi.h"
 
 #define MCW MPI_COMM_WORLD
 #define MAX_STRING_LENGTH 255
