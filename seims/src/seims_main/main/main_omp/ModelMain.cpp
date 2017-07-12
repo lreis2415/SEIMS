@@ -44,6 +44,7 @@ m_firstRunOverland(true), m_firstRunChannel(true)
     }
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
+    m_factory->updateBMPOptParameter(m_dataCenter->getSubbasinID()); /// TODO
 }
 
 ModelMain::~ModelMain(void) {
