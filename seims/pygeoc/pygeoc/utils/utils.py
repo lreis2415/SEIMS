@@ -169,8 +169,8 @@ class StringClass(object):
                     temp_strs = src_s.split(s)
                     for temp_s in temp_strs:
                         temp_s = StringClass.strip_string(temp_s)
-                        if temp_s != '':
-                            dest_strs.append(temp_s)
+                        # if temp_s != '':
+                        dest_strs.append(temp_s)
                 src_strs = dest_strs[:]
                 dest_strs = []
             if old_dest_strs == src_strs:
