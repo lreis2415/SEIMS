@@ -171,6 +171,8 @@ class DelineateHillslope(object):
                         d = 8
                     tmprow = row + FlowModelConst.ccw_drow[d - 1]
                     tmpcol = col + FlowModelConst.ccw_dcol[d - 1]
+                    if tmprow < 0 or tmprow >= nrows or tmpcol < 0 or tmpcol >= ncols:
+                        continue
                     tmpstream = stream_data[tmprow][tmpcol]
                     if tmpstream <= 0:
                         state = True
@@ -192,6 +194,8 @@ class DelineateHillslope(object):
                         d = 8
                     tmprow = row + FlowModelConst.ccw_drow[d - 1]
                     tmpcol = col + FlowModelConst.ccw_dcol[d - 1]
+                    if tmprow < 0 or tmprow >= nrows or tmpcol < 0 or tmpcol >= ncols:
+                        continue
                     tmpstream = stream_data[tmprow][tmpcol]
                     if tmpstream <= 0:
                         # see if it flows into the stream cell at (row, col)
@@ -269,9 +273,11 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    streamf = r'C:\z_data_m\SEIMS2017\dianbu2_30m_omp\spatial_raster\stream_link.tif'
-    flowdirf = r'C:\z_data_m\SEIMS2017\dianbu2_30m_omp\taudem_delineated\flowDirTauM.tif'
-    hillslpf = r'C:\z_data_m\SEIMS2017\dianbu2_30m_omp\spatial_raster\hillslope.tif'
+    from seims.preprocess.config import parse_ini_configuration
+    seims_cfg = parse_ini_configuration()
+    streamf = seims_cfg.spatials.stream_link
+    flowdirf = seims_cfg.spatials.d8flow
+    hillslpf = seims_cfg.spatials.hillslope
     DelineateHillslope.downstream_method_whitebox(streamf, flowdirf, hillslpf, 1)
 
 

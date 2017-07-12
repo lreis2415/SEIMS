@@ -56,7 +56,6 @@ class ImportParam2Mongo(object):
                            ModelParamFields.change: 'NC',
                            ModelParamFields.max: DEFAULT_NODATA,
                            ModelParamFields.min: DEFAULT_NODATA,
-                           ModelParamFields.use: 'N',
                            ModelParamFields.type: ''}
             for k, v in data_import.items():
                 idx = field_names.index(k)
@@ -67,6 +66,8 @@ class ImportParam2Mongo(object):
                         data_import[k] = 1
                     elif StringClass.string_match(k, ModelParamFields.change_nc):
                         data_import[k] = 0
+                    elif StringClass.string_match(k, ModelParamFields.change_vc):
+                        data_import[k] = DEFAULT_NODATA  # Be careful to check NODATA when use!
                 else:
                     if MathClass.isnumerical(cur_data_item[idx]):
                         data_import[k] = float(cur_data_item[idx])
@@ -78,6 +79,31 @@ class ImportParam2Mongo(object):
         # create index by parameter's type and name by ascending order.
         maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
                                                           (ModelParamFields.name, ASCENDING)])
+
+    @staticmethod
+    def calibrated_params_from_txt(cfg, maindb):
+        """Read and update calibrated parameters."""
+        # create bulk operator
+        bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
+        # print (field_names)
+        for i, cur_data_item in enumerate(data_items):
+            data_import = dict()
+            cur_filter = dict()
+            if len(cur_data_item) < 2:
+                raise RuntimeError("param.cali at least contain NAME and IMPACT fields!")
+            data_import[ModelParamFields.name] = cur_data_item[0]
+            data_import[ModelParamFields.impact] = float(cur_data_item[1])
+            cur_filter[ModelParamFields.name] = cur_data_item[0]
+            if len(cur_data_item) >= 3:
+                if cur_data_item[2] in [ModelParamFields.change_vc, ModelParamFields.change_ac,
+                                        ModelParamFields.change_rc, ModelParamFields.change_nc]:
+                    data_import[ModelParamFields.change] = cur_data_item[2]
+
+            bulk.find(cur_filter).update({'$set': data_import})
+        # execute import operators
+        bulk.execute()
 
     @staticmethod
     def subbasin_statistics(cfg, maindb):
@@ -156,7 +182,6 @@ class ImportParam2Mongo(object):
                    ModelParamFields.change: ModelParamFields.change_nc,
                    ModelParamFields.max: DEFAULT_NODATA,
                    ModelParamFields.min: DEFAULT_NODATA,
-                   ModelParamFields.use: ModelParamFields.use_y,
                    ModelParamFields.type: "SUBBASIN"}
             curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
             # print (dic, curfilter)
@@ -173,7 +198,7 @@ class ImportParam2Mongo(object):
             maindb: MongoDB database object
         """
         file_in_path = cfg.modelcfgs.filein
-        file_out_path = cfg.modelcfgs.fileout
+        file_out_path = cfg.paramcfgs.init_outputs_file
         # create if collection not existed
         c_list = maindb.collection_names()
         conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
@@ -193,9 +218,10 @@ class ImportParam2Mongo(object):
                                  " split by '|'")
             file_in_dict[ModelCfgFields.tag] = values[0]
             file_in_dict[ModelCfgFields.value] = values[1]
-            maindb[DBTableNames.main_filein].find_one_and_replace(file_in_dict, file_in_dict,
-                                                                  upsert=True)
+            maindb[DBTableNames.main_filein].insert(file_in_dict)
 
+        # begin to import initial outputs settings
+        bulk = maindb[DBTableNames.main_fileout].initialize_unordered_bulk_op()
         out_field_array = file_out_items[0]
         out_data_array = file_out_items[1:]
         # print out_data_array
@@ -228,12 +254,36 @@ class ImportParam2Mongo(object):
                     file_out_dict[ModelCfgFields.subbsn] = item[i]
             if file_out_dict.keys() is []:
                 raise ValueError("There are not any valid output item stored in file.out!")
-            cur_flt = {ModelCfgFields.mod_cls: file_out_dict[ModelCfgFields.mod_cls],
-                       ModelCfgFields.output_id: file_out_dict[ModelCfgFields.output_id],
-                       ModelCfgFields.stime: file_out_dict[ModelCfgFields.stime],
-                       ModelCfgFields.etime: file_out_dict[ModelCfgFields.etime]}
-            maindb[DBTableNames.main_fileout].find_one_and_replace(cur_flt, file_out_dict,
-                                                                   upsert=True)
+            bulk.insert(file_out_dict)
+        bulk.execute()
+
+        # begin to import the desired outputs
+        # create bulk operator
+        bulk = maindb[DBTableNames.main_fileout].initialize_ordered_bulk_op()
+        # read initial parameters from txt file
+        data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
+        # print (field_names)
+        for i, cur_data_item in enumerate(data_items):
+            data_import = dict()
+            cur_filter = dict()
+            # print (cur_data_item)
+            if len(cur_data_item) == 7:
+                data_import[ModelCfgFields.output_id] = cur_data_item[0]
+                data_import[ModelCfgFields.type] = cur_data_item[1]
+                data_import[ModelCfgFields.stime] = cur_data_item[2]
+                data_import[ModelCfgFields.etime] = cur_data_item[3]
+                data_import[ModelCfgFields.interval] = cur_data_item[4]
+                data_import[ModelCfgFields.interval_unit] = cur_data_item[5]
+                data_import[ModelCfgFields.subbsn] = cur_data_item[6]
+                data_import[ModelCfgFields.use] = 1
+                cur_filter[ModelCfgFields.output_id] = cur_data_item[0]
+            else:
+                raise RuntimeError("Items in file.out must have 7 columns, i.e., OUTPUTID,"
+                                   "TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.")
+
+            bulk.find(cur_filter).update({'$set': data_import})
+        # execute import operators
+        bulk.execute()
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg, maindb):
@@ -308,6 +358,7 @@ class ImportParam2Mongo(object):
     def workflow(cfg, maindb):
         """Workflow"""
         ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
+        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
         ImportParam2Mongo.model_io_configuration(cfg, maindb)
         ImportParam2Mongo.subbasin_statistics(cfg, maindb)
         ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
