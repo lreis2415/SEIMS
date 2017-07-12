@@ -28,7 +28,7 @@ const int    METEO_VARS_NUM = 6;
 const string METEO_VARS[METEO_VARS_NUM] = { DataType_MeanTemperature, DataType_MaximumTemperature,
                                             DataType_MinimumTemperature, DataType_SolarRadiation,
                                             DataType_WindSpeed, DataType_RelativeAirMoisture };
-typedef clsRasterData<float>*   FloatRaster;
+
 /*!
  * \ingroup data
  * \class DataCenter
@@ -78,10 +78,10 @@ public:
      */
     virtual bool readParametersInDB(void) = 0;
     /*!
-    * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
-    * \param[in]
-    */
-    virtual FloatRaster readRasterData(string& remoteFilename) = 0;
+     * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
+     * \param[in] remoteFilename Raster file name.
+     */
+    virtual FloatRaster* readRasterData(const string& remoteFilename) = 0;
     /*!
      * \brief Read interpolated weight data and insert to m_weightDataMap
      * \param[in] remoteFilename \string data file name
@@ -129,6 +129,11 @@ public:
      * \param[out] data \float**&, returned data
      */
     virtual void setLapseData(string& remoteFilename, int& rows, int& cols, float**& data);
+    /*!
+     * \brief Set Raster data for Scenario data
+     * \return True if set successfully, otherwise false.
+     */
+    virtual bool setRasterForScenario(void) = 0;
 public:
     /**** Accessors: Set and Get *****/
 
@@ -154,8 +159,8 @@ public:
     clsSubbasins* getSubbasinData(void) { return m_subbasins; }
     clsReaches* getReachesData(void) { return m_reaches; }
     Scenario* getScenarioData(void) { return m_useScenario ? m_scenario : NULL; }
-    FloatRaster getMaskData(void) { return m_maskRaster; }
-    map<string, FloatRaster>& getRasterDataMap(void) { return m_rsMap; }
+    FloatRaster* getMaskData(void) { return m_maskRaster; }
+    map<string, FloatRaster*>& getRasterDataMap(void) { return m_rsMap; }
     map<string, ParamInfo*>& getInitParameters(void) { return m_initParameters; }
     map<string, float *>& get1DArrayMap(void) { return m_1DArrayMap; }
     map<string, int>& get1DArrayLenMap(void) { return m_1DLenMap; }
@@ -214,8 +219,8 @@ public:
     Scenario*                m_scenario;      ///< BMPs Scenario data
     clsReaches*              m_reaches;       ///< Reaches information
     clsSubbasins*            m_subbasins;     ///< Subbasins information
-    FloatRaster              m_maskRaster;    ///< Mask data
-    map<string, FloatRaster> m_rsMap;         ///< Map of spatial data, both 1D and 2D
+    FloatRaster*             m_maskRaster;    ///< Mask data
+    map<string, FloatRaster*> m_rsMap;        ///< Map of spatial data, both 1D and 2D
     map<string, ParamInfo*>  m_initParameters;///< Store parameters from Database
     map<string, float* >     m_1DArrayMap;    ///< 1D array data map, e.g. FLOWOUT_INDEX_D8
     map<string, int>         m_1DLenMap;      ///< 1D array data length map
@@ -271,9 +276,9 @@ public:
     virtual bool readParametersInDB(void);
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
-     * \param[in]
+     * \param[in] remoteFilename Raster file name.
      */
-    virtual FloatRaster readRasterData(string& remoteFilename);
+    virtual FloatRaster* readRasterData(const string& remoteFilename);
     /*!
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
      * \param[in] remoteFilename \string data file name
@@ -306,6 +311,11 @@ public:
      * \param[out] data \float*&, returned data
      */
     virtual void readIUHData(string& remoteFilename, int& n, float**& data);
+    /*!
+     * \brief Set Raster data for Scenario data
+     * \return True if set successfully, otherwise false.
+    */
+    virtual bool setRasterForScenario(void);
 public:
     /******* MongoDB specified functions *********/
 
