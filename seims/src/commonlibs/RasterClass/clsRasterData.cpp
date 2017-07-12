@@ -32,7 +32,7 @@ void clsRasterData<T, MaskT>::_initialize_raster_class() {
                             STATS_RS_STD, STATS_RS_RANGE};
     for (int i = 0; i < 6; i++) {
         m_statsMap.insert(make_pair(statsnames[i], NODATA_VALUE));
-        m_statsMap2D.insert(map<string, double *>::value_type(statsnames[i], NULL));
+        m_statsMap2D.insert(map<string, double *>::value_type(statsnames[i], nullptr));
     }
     m_initialized = true;
 }
@@ -256,7 +256,9 @@ void clsRasterData<T, MaskT>::releaseStatsMap2D() {
         if (it->second != NULL) {
             Release1DArray(it->second);
         }
-        it = m_statsMap2D.erase(it);
+        m_statsMap2D.erase(it++);
+        // it = m_statsMap2D.erase(it);
+        // These two method are both recommended, but the second one is not compatible with Intel C++ Compiler.
     }
 }
 
@@ -1428,7 +1430,8 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
 
                 if (tmpr > max_row || tmpr < min_row || tmpc > max_col || tmpc < min_col
                     || FloatEqual((T) *it, m_noDataValue)) {
-                    it = values.erase(it);
+                    //it = values.erase(it);
+                    values.erase(it++);
                     if (m_is2DRaster && m_nLyrs > 1) {
                         values2D.erase(data2dit + idx);
                         data2dit = values2D.begin();
@@ -1448,7 +1451,8 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
             }
             /// swap vector to save memory
             vector<T>(values).swap(values);
-            if (m_is2DRaster && m_nLyrs > 1) vector< vector< T > > (values2D).swap(values2D);
+            if (m_is2DRaster && m_nLyrs > 1)
+                vector<vector<T> >(values2D).swap(values2D);
             vector<int>(positionRows).swap(positionRows);
             vector<int>(positionCols).swap(positionCols);
         }
