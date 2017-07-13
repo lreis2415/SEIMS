@@ -146,6 +146,11 @@
 #define BMP_PLTOP_FLD_MGTOP              "MGT_OP"
 #define BMP_PLTOP_FLD_MGT_PRE            "MGT"
 
+/// Areal structural BMP
+#define BMP_ARSTRUCT_FLD_DESC            "DESC"
+#define BMP_ARSTRUCT_FLD_REF             "REFERENCE"
+#define BMP_ARSTRUCT_FLD_LANDUSE         "LANDUSE"
+#define BMP_ARSTRUCT_FLD_PARAMS          "PARAMETERS"
 
 ////BMP Type
 //#define BMP_TYPE_REACH                   1

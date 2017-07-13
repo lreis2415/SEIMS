@@ -83,7 +83,7 @@ private:
     //! Scenario ID, e.g., 0
     const int                    m_sceneID;
     //! Scenario Name, e.g., base scenario
-    const string                 m_name;
+    string                       m_name;
     //! Subbasin ID, 0 for the entire basin
     const int                    m_subbsnID;
 

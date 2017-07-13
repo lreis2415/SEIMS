@@ -2,18 +2,20 @@
 
 using namespace MainBMP;
 
-BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                                       string distribution, string collection, string location)
-    : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
+BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                                       const string collection, const string location) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
+{
     m_pointSrcMgtTab = m_bmpCollection;
-    m_pointSrcIDs = SplitStringForInt(m_location, ',');
-    vector<string> dist = SplitString(m_distribution, '|');
-    if (dist.size() == 3 && StringMatch(dist[0], FLD_SCENARIO_DIST_ARRAY)) {
-        m_pointSrcDistTab = dist[1];
-        m_pointSrc = atoi(dist[2].c_str());
+    m_pointSrcIDs = SplitStringForInt(m_location, '-');
+    if (m_distribution.size() == 3 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_ARRAY)) {
+        m_pointSrcDistTab = m_distribution[1];
+        m_pointSrc = atoi(m_distribution[2].c_str());
     } else {
         throw ModelException("BMPPointSourceFactory", "Initialization",
-                             "The distribution field must follow the format: ARRAY|CollectionName|PTSRC.\n");
+                             "The distribution field must follow the format: "
+                             "ARRAY|CollectionName|PTSRC.\n");
     }
 }
 
@@ -25,7 +27,6 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            //it = m_pointSrcLocsMap.erase(it);
             m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
@@ -37,19 +38,18 @@ BMPPointSrcFactory::~BMPPointSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            //it = m_pointSrcMgtMap.erase(it);
             m_pointSrcMgtMap.erase(it++);
         }
         m_pointSrcMgtMap.clear();
     }
 }
 
-void BMPPointSrcFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
+void BMPPointSrcFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     ReadPointSourceManagements(conn, bmpDBName);
     ReadPointSourceLocations(conn, bmpDBName);
 }
 
-void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, string &bmpDBName) {
+void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -78,7 +78,7 @@ void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, string &b
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, string &bmpDBName) {
+void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -105,11 +105,7 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, string &bmp
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
-void BMPPointSrcFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
-    int nSubbasin, mongoc_gridfs_t *spatialData)
-{
 
-}
 void BMPPointSrcFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Point Source Management Factory: " << endl <<

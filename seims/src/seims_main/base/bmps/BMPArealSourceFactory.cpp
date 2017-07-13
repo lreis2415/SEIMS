@@ -2,20 +2,21 @@
 
 using namespace MainBMP;
 
-BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                                       string distribution, string collection, string location)
-    : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
+BMPArealSrcFactory::BMPArealSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                                       const string collection, const string location) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
+{
     m_arealSrcMgtTab = m_bmpCollection;
-    m_arealSrcIDs = SplitStringForInt(location, ',');
-    vector<string> dist = SplitString(distribution, '|');
-    if (dist.size() == 4 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER)) {
-        m_arealSrcDistName = dist[1];
-        m_arealSrcDistTab = dist[2];
-        m_arealSrc = atoi(dist[3].c_str());
+    m_arealSrcIDs = SplitStringForInt(location, '-');
+    if (m_distribution.size() == 4 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
+        m_arealSrcDistName = m_distribution[1];
+        m_arealSrcDistTab = m_distribution[2];
+        m_arealSrc = atoi(m_distribution[3].c_str());
     } else {
-        throw ModelException("BMPArealSourceFactory",
-                             "Initialization",
-                             "The distribution field must follow the format: RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
+        throw ModelException("BMPArealSourceFactory", "Initialization",
+                             "The distribution field must follow the format: "
+                             "RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
     }
     m_loadedMgtFieldIDs = false;
 }
@@ -28,7 +29,6 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            //it = m_arealSrcLocsMap.erase(it);
             m_arealSrcLocsMap.erase(it++);
         }
         m_arealSrcLocsMap.clear();
@@ -40,19 +40,18 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
                 delete it->second;
                 it->second = NULL;
             }
-            //it = m_arealSrcMgtMap.erase(it);
             m_arealSrcMgtMap.erase(it++);
         }
         m_arealSrcMgtMap.clear();
     }
 }
 
-void BMPArealSrcFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
+void BMPArealSrcFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     ReadArealSourceManagements(conn, bmpDBName);
     ReadArealSourceLocations(conn, bmpDBName);
 }
 
-void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -81,7 +80,7 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, string &b
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -119,10 +118,6 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
     m_loadedMgtFieldIDs = true;
 }
 
-void BMPArealSrcFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap, int nSubbasin, mongoc_gridfs_t *spatialData)
-{
-
-}
 void BMPArealSrcFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Point Source Management Factory: " << endl <<
@@ -143,7 +138,7 @@ void BMPArealSrcFactory::Dump(ostream *fs) {
 
 
 /************************************************************************/
-/*                  ArealSourceMgtParams                                        */
+/*                  ArealSourceMgtParams                                */
 /************************************************************************/
 
 ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t &iter)
@@ -234,7 +229,7 @@ void ArealSourceMgtParams::Dump(ostream *fs) {
 
 
 /************************************************************************/
-/*                      ArealSourceLocations                                           */
+/*                      ArealSourceLocations                            */
 /************************************************************************/
 
 ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t &iter)

@@ -42,13 +42,13 @@ public:
      * \brief Set raster data if needed
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */
-    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap){};
     /*!
      * \brief preUpdate model parameters.
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */
     virtual void BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
-                                        const int nSubbasin, mongoc_gridfs_t *spatialData);
+        const int nSubbasin, mongoc_gridfs_t *spatialData){};
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
        2 - areal structural BMPs which are corresponding to a specific structure in the watershed and will change the character of subbasins/cells.

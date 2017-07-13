@@ -17,7 +17,6 @@ Scenario::~Scenario(void) {
             delete (it->second);
             it->second = NULL;
         }
-        //it = m_bmpFactories.erase(it);
         m_bmpFactories.erase(it++);
     }
     m_bmpFactories.clear();
@@ -103,11 +102,11 @@ void Scenario::loadBMPs(void) {
         /// check if raster data is need for the current BMP
         vector<string> dist = SplitString(distribution, '|');
         if (dist.size() >= 2 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER)) {
-            string gridfs_name = ValueToString(m_subbsnID) + "_" + GetUpper(dist[0]);
+            string gridfs_name = ValueToString(m_subbsnID) + "_" + GetUpper(dist[1]);
             if (m_sceneRsMap.find(gridfs_name) == m_sceneRsMap.end()) {
                 m_sceneRsMap.insert(make_pair(gridfs_name, nullptr));
             }
-            dist[0] = gridfs_name;
+            dist[1] = gridfs_name;
         }
 
         int BMPType = -1;
