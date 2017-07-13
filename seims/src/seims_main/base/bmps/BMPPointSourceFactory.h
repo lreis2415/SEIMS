@@ -235,19 +235,14 @@ private:
 class BMPPointSrcFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                       string distribution, string collection, string location);
-
+    BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                       const string collection, const string location);
     /// Destructor
     ~BMPPointSrcFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, string &bmpDBName);
-
-
-    /// PreUpdate parameters
-    void BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
-                                int nSubbasin, mongoc_gridfs_t *spatialData);
+    void loadBMP(MongoClient* conn, const string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);
@@ -257,14 +252,14 @@ public:
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceManagements(MongoClient* conn, string &bmpDBName);
+    void ReadPointSourceManagements(MongoClient* conn, const string &bmpDBName);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceLocations(MongoClient* conn, string &bmpDBName);
+    void ReadPointSourceLocations(MongoClient* conn, const string &bmpDBName);
 
     vector<int> &GetPointSrcMgtSeqs(void) {
         return m_pointSrcMgtSeqs;
