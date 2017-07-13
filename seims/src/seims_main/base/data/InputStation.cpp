@@ -13,7 +13,6 @@ InputStation::~InputStation(void) {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_measurement.erase(it);
         m_measurement.erase(it++);
     }
     m_measurement.clear();
@@ -23,7 +22,6 @@ InputStation::~InputStation(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        //it = m_latitude.erase(it);
         m_latitude.erase(it++);
     }
     m_latitude.clear();
@@ -32,7 +30,6 @@ InputStation::~InputStation(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        //it = m_elevation.erase(it);
         m_elevation.erase(it++);
     }
     m_elevation.clear();
