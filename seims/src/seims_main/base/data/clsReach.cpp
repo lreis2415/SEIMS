@@ -207,7 +207,6 @@ clsReaches::~clsReaches() {
                 delete iter->second;
                 iter->second = NULL;
             }
-            //iter = m_reachesMap.erase(iter);
             m_reachesMap.erase(iter++);
         }
         m_reachesMap.clear();

@@ -69,7 +69,6 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_rsMap.erase(it);
         m_rsMap.erase(it++);
     }
     m_rsMap.clear();
@@ -80,7 +79,6 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_initParameters.erase(it);
         m_initParameters.erase(it++);
     }
     m_initParameters.clear();
@@ -90,7 +88,6 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release1DArray(it->second);
         }
-        //it = m_1DArrayMap.erase(it);
         m_1DArrayMap.erase(it++);
     }
     m_1DArrayMap.clear();
@@ -100,7 +97,6 @@ DataCenter::~DataCenter() {
             StatusMessage(("-----" + it->first + " ...").c_str());
             Release2DArray(m_2DRowsLenMap[it->first], it->second);
         }
-        //it = m_2DArrayMap.erase(it);
         m_2DArrayMap.erase(it++);
     }
     m_2DArrayMap.clear();
@@ -112,7 +108,6 @@ DataCenter::~DataCenter() {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_weightDataMap.erase(it);
         m_weightDataMap.erase(it++);
     }
     m_weightDataMap.clear();
@@ -173,6 +168,7 @@ DataCenterMongoDB::DataCenterMongoDB(const char *host, const uint16_t port, cons
         DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, numThread) {
     /// Connect to MongoDB database, and make sure the required data is available.
     m_mongoClient = MongoClient::Init(m_mongodbIP, m_mongodbPort);
+    m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
     if (NULL == m_mongoClient) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to connect to MongoDB!");
     }
@@ -235,7 +231,33 @@ bool DataCenterMongoDB::checkModelPreparedData(void) {
             return false;
         }
     }
-    /// 3. Check if Scenario will be applied, Get scenario database if necessary
+    /// 3. Read climate site information from Climate database
+    m_climStation = new InputStation(m_mongoClient, m_input->getDtHillslope(), m_input->getDtChannel());
+    readClimateSiteList();
+
+    /// 4. Read Reaches data
+    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
+    /// 5. Read Mask raster data
+    ostringstream oss;
+    oss << m_subbasinID << "_" << Tag_Mask;
+    string maskFileName = GetUpper(oss.str());
+    m_maskRaster = new clsRasterData<float>(m_spatialGridFS, maskFileName.c_str());
+    m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
+    /// 6. Read Subbasin raster data
+    oss.str("");
+    oss << m_subbasinID << "_" << VAR_SUBBSN;
+    string subbasinFileName = GetUpper(oss.str());
+    FloatRaster* subbasinRaster = new clsRasterData<float>(m_spatialGridFS,
+                                                           subbasinFileName.c_str(), 
+                                                           true, m_maskRaster);
+    m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
+    // Constructor Subbasin data
+    m_subbasins = new clsSubbasins(m_spatialGridFS, m_rsMap, m_subbasinID);
+    /// 7. Read initial parameters
+    if (!readParametersInDB()) {
+        return false;
+    }
+    /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existedMainDBTabs) && m_scenarioID >= 0) {
         bson_t *query;
         query = bson_new();
@@ -247,33 +269,6 @@ bool DataCenterMongoDB::checkModelPreparedData(void) {
                 m_scenario->setRasterForEachBMP();
             }
         }
-    }
-    /// 4. Read climate site information from Climate database
-    m_climStation = new InputStation(m_mongoClient, m_input->getDtHillslope(), m_input->getDtChannel());
-    readClimateSiteList();
-
-    /// Read Reaches data
-    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
-    /// Read Mask raster data
-    m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
-    ostringstream oss;
-    oss << m_subbasinID << "_" << Tag_Mask;
-    string maskFileName = GetUpper(oss.str());
-    m_maskRaster = new clsRasterData<float>(m_spatialGridFS, maskFileName.c_str());
-    m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
-    /// Read Subbasin raster data
-    oss.str("");
-    oss << m_subbasinID << "_" << VAR_SUBBSN;
-    string subbasinFileName = GetUpper(oss.str());
-    FloatRaster* subbasinRaster = new clsRasterData<float>(m_spatialGridFS,
-                                                           subbasinFileName.c_str(), 
-                                                           true, m_maskRaster);
-    m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
-    /// Read Subbasin data
-    m_subbasins = new clsSubbasins(m_spatialGridFS, m_rsMap, m_subbasinID);
-    /// Read initial parameters
-    if (!readParametersInDB()) {
-        return false;
     }
     return true;
 }
@@ -660,7 +655,7 @@ void DataCenterMongoDB::readIUHData(string& remoteFilename, int& n, float**& dat
 bool DataCenterMongoDB::setRasterForScenario(void) {
     if (!m_useScenario) return false;
     if (NULL == m_scenario) return false;
-    map<string, FloatRaster*> sceneRsMap = m_scenario->getSceneRasterDataMap();
+    map<string, FloatRaster*> &sceneRsMap = m_scenario->getSceneRasterDataMap();
     if (sceneRsMap.size() == 0) return false;
     for (map<string, FloatRaster*>::iterator it = sceneRsMap.begin(); it != sceneRsMap.end(); it++) {
         if (m_rsMap.find(it->first) == m_rsMap.end()) {
