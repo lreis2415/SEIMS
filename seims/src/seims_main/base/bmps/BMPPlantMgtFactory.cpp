@@ -2,13 +2,15 @@
 
 using namespace MainBMP;
 
-BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                                       string distribution, string collection, string location)
-    : BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
+BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                                       const string collection, const string location) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
+{
     if (StringMatch(location, "ALL")) {
         m_location.clear();
     } else {
-        m_location = SplitStringForInt(location, ',');
+        m_location = SplitStringForInt(location, '-');
     }
 }
 
@@ -20,13 +22,12 @@ BMPPlantMgtFactory::~BMPPlantMgtFactory() {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_bmpPlantOps.erase(it);
         m_bmpPlantOps.erase(it++);
     }
     m_bmpPlantOps.clear();
 }
 
-void BMPPlantMgtFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
+void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -155,11 +156,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, string &bmpDBName) {
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
-void BMPPlantMgtFactory::BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
-                                                int nSubbasin, mongoc_gridfs_t *spatialData)
-{
 
-}
 void BMPPlantMgtFactory::Dump(ostream *fs) {
     if (fs == NULL) return;
     *fs << "Plant Management Factory: " << endl <<

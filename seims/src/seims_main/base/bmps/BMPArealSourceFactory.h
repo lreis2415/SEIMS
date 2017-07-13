@@ -209,35 +209,32 @@ private:
 class BMPArealSrcFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                       string distribution, string collection, string location);
+    BMPArealSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                       const string collection, const string location);
 
     /// Destructor
     ~BMPArealSrcFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, string &bmpDBName);
-
-    /// PreUpdate parameters
-    void BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
-                                int nSubbasin, mongoc_gridfs_t *spatialData);
+    void loadBMP(MongoClient* conn, const string &bmpDBName);
     
     /// Output
     void Dump(ostream *fs);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn mongoc client instance
+     * \param[in] conn \sa MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceManagements(MongoClient* conn, string &bmpDBName);
+    void ReadArealSourceManagements(MongoClient* conn, const string &bmpDBName);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn mongoc client instance
+     * \param[in] conn \sa MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceLocations(MongoClient* conn, string &bmpDBName);
+    void ReadArealSourceLocations(MongoClient* conn, const string &bmpDBName);
 
     string GetArealSrcDistName(void) {
         return m_arealSrcDistName;
