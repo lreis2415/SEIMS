@@ -36,7 +36,6 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_settings.erase(it);
         m_settings.erase(it++);
     }
     m_settings.clear();
@@ -48,7 +47,6 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        //it = m_metadata.erase(it);
         m_metadata.erase(it++);
     }
     m_metadata.clear();
@@ -1071,6 +1069,6 @@ void ModuleFactory::updateBMPOptParameter(int nSubbasin)
         	//iter->second->m_subScenarioId;
             	//iter->second->m_location;
         cout << "Modify BMP Params: BMP_" << iter->second->GetSubScenarioId() << endl;
-        iter->second->BMPParametersPreUpdate(m_rsMap, nSubbasin, m_spatialData);
+        //iter->second->BMPParametersPreUpdate(m_rsMap, nSubbasin, m);
     }
 }
