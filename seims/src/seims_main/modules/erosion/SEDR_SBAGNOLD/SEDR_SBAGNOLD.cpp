@@ -1,4 +1,4 @@
-﻿#include "seims.h"
+#include "seims.h"
 #include "SEDR_SBAGNOLD.h"
 
 using namespace std;
@@ -439,7 +439,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(int i) {
     //deposition and degradation
     initCon = allSediment / allWater; // kg/m^3
     //max concentration
-    maxCon = m_spcon * pow(peakVelocity, m_spexp) * 1000.f; // kg/m^3  
+    maxCon = m_spcon * pow(peakVelocity, m_spexp) * 1000.f; // kg/m^3
     //if (i == 12) cout<<"iniCon: "<<initCon<<", maxCon: "<<maxCon<<endl;
     //initial concentration,mix sufficiently
     sedDeposition = allWater * (initCon - maxCon); // kg
@@ -502,7 +502,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(int i) {
     m_rchDep[i] = sedDeposition;
     m_flplainDep[i] = 0.f;
     //if (i == 12) cout<<"\tallSediment2: "<<allSediment<<", sedDeg: "<<sedDegradation1<<", sedDeg2: "<<sedDegradation2<<
-    //	", sedDeposition: "<<sedDeposition<<", sed flow out: "<<m_sedOut[i]<<endl;
+    //", sedDeposition: "<<sedDeposition<<", sed flow out: "<<m_sedOut[i]<<endl;
 }
 
 void SEDR_SBAGNOLD::doChannelDowncuttingAndWidening(int id) {
