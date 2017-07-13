@@ -75,7 +75,10 @@ int SubbasinIUHCalculator::calCell(int id) {
 //    bson_append_double(p, "NUMBER", nCells);
 //    bson_finish(p);
 //	gridfile gfile[1];
-//	/// If the file is already existed in MongoDB, if existed, then delete it!
+
+	/// If the file is already existed in MongoDB, if existed, then delete it!
+    gfs->removeFile(remoteFilename);
+
 //    gridfs_remove_filename(gfs, remoteFilename.c_str());
 //	/// create a new one
 //    gridfile_writer_init(gfile, gfs, remoteFilename.c_str(), type);
