@@ -166,7 +166,7 @@ void ModelMain::OutputExecuteTime(void) {
 void ModelMain::CheckAvailableOutput() {
     m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
     vector<PrintInfo *>::iterator it;
-    for (it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end();) {
+    for (it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
         outputid = trim(outputid);
 
