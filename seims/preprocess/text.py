@@ -257,6 +257,7 @@ class TauDEMFilesUtils(object):
     _SLOPEDINF = "slopeDinfTau.tif"
     _MODIFIEDOUTLET = "outletM.shp"
     _STREAMSKELETON = "streamSkeleton.tif"
+    _DROPTXT = "drp.txt"
     _STREAMORDER = "streamOrderTau.tif"
     _CHNETWORK = "chNetwork.txt"
     _CHCOORD = "chCoord.txt"
@@ -291,6 +292,7 @@ class TauDEMFilesUtils(object):
         self.subbsn_m = tau_dir + SEP + self._SUBBASINM
         self.d8flow_m = tau_dir + SEP + self._D8FLOWDIRM
         self.stream_m = tau_dir + SEP + self._STREAMRASTERM
+        self.drptxt = tau_dir + SEP + self._DROPTXT
 
 
 class SpatialNamesUtils(object):
