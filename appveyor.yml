@@ -62,14 +62,14 @@ build_script:
   - cd buildlongterm64
   # Build 64-bit LONGTERM release version on Windows, and build unittest.
   - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\bin\seims_longterm
-  - msbuild.exe SEIMS_LONGTERM_OMP_x64_ALL.sln /p:Configuration=Release /maxcpucount:4
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # Build 64-bit STORM release version on Windows, and build unittest.
   - cd ..
   - mkdir buildstorm64
   - cd buildstorm64
   - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\bin\seims_storm
-  - msbuild.exe SEIMS_STORM_OMP_x64_ALL.sln /p:Configuration=Release /maxcpucount:4
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
 test_script:
   # Run unit test. TODO to complete unittest code.

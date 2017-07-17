@@ -6,8 +6,14 @@ project(UtilsClass)
 IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
 ENDIF (COMMAND CMAKE_POLICY)
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
-
+################# Install directory ##################
+IF (INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+    SET(INSTALL_DIR ${INSTALL_PREFIX})
+ELSE ()
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+    SET(INSTALL_DIR ${CMAKE_SOURCE_DIR}/bin)
+ENDIF ()
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)

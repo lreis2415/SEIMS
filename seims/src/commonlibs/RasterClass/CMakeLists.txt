@@ -7,7 +7,14 @@ IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+################# Install directory ##################
+IF (INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+    SET(INSTALL_DIR ${INSTALL_PREFIX})
+ELSE ()
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+    SET(INSTALL_DIR ${CMAKE_SOURCE_DIR}/bin)
+ENDIF ()
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
 # SET(CMAKE_CXX_STANDARD 11) CMake may make mistake in intel c/c++ compiler
 # 12.1, so make some test when setting the C++ Standard.
