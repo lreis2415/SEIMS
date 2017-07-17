@@ -5,11 +5,13 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
-from configparser import ConfigParser
 import os
 
+from configparser import ConfigParser
+
 from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
-    VectorNameUtils, SpatialNamesUtils, TauDEMFilesUtils, ModelParamDataUtils
+    VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMFilesUtils
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
 
 
