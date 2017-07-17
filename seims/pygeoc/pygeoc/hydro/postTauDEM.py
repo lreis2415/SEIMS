@@ -231,7 +231,7 @@ class StreamnetUtil(object):
         while ft is not None:
             link_id = ft.GetFieldAsInteger(i_link)
             reach_len = ft.GetFieldAsDouble(i_len)
-            if not link_id in old_id_list:
+            if link_id not in old_id_list:
                 if reach_len < DELTA:
                     downstream_id = ft.GetFieldAsInteger(i_link_downslope)
                     output_dic[link_id] = downstream_id
@@ -250,7 +250,7 @@ class StreamnetUtil(object):
         ft = layer_reach.GetNextFeature()
         while ft is not None:
             link_id = ft.GetFieldAsInteger(i_link)
-            if not link_id in id_map:
+            if link_id not in id_map:
                 layer_reach.DeleteFeature(ft.GetFID())
                 ft = layer_reach.GetNextFeature()
                 continue
