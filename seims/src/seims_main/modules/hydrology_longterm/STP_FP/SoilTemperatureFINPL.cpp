@@ -28,31 +28,40 @@ int SoilTemperatureFINPL::Execute() {
     /// initial output of m_t1 and m_t2 for the first run
     initialOutputs();
     m_julianDay = JulianDay(m_date);
-
-#pragma omp parallel for
+    size_t errCount = 0;
+#pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; ++i) {
         float t = m_tMean[i];
         float t1 = m_t1[i];
         float t2 = m_t2[i];
-        if (FloatEqual((int) m_landuse[i], LANDUSE_ID_WATR)) {
-            /// if current landuse is water
-            m_soilTemp[i] = t;
-        } else {
-            float t10 = m_a0 + m_a1 * t2 + m_a2 * t1 + m_a3 * t
-                + m_b1 * sin(w * m_julianDay) + m_d1 * cos(w * m_julianDay)
-                + m_b2 * sin(2.f * w * m_julianDay) + m_d2 * cos(2.f * w * m_julianDay);
-            m_soilTemp[i] = t10 * m_kSoil10 + m_relativeFactor[i];
-            if (m_soilTemp[i] > 60.f || m_soilTemp[i] < -90.f) {
-                ostringstream oss;
-                oss << "The calculated soil temperature at cell (" << i
-                    << ") is out of reasonable range, whose value is " << m_soilTemp[i] << ".\nJulianDay: "
-                    << m_julianDay << endl;
-                throw ModelException(MID_STP_FP, "Execute", oss.str());
-            }
+        if ((t > 60.f || t < -90.f) || (t1 > 60.f || t1 < -90.f) || (t2 > 60.f || t2 < -90.f)) {
+            cout << "cell index: " << i << ", t1: " << t1 << ", t2: " << t2 << endl;
+            errCount++;
         }
-        //save the temperature
-        m_t2[i] = m_t1[i];
-        m_t1[i] = t;
+        else{
+            if (FloatEqual((int) m_landuse[i], LANDUSE_ID_WATR)) {
+                /// if current landuse is water
+                m_soilTemp[i] = t;
+            } else {
+                float t10 = m_a0 + m_a1 * t2 + m_a2 * t1 + m_a3 * t
+                    + m_b1 * sin(w * m_julianDay) + m_d1 * cos(w * m_julianDay)
+                    + m_b2 * sin(2.f * w * m_julianDay) + m_d2 * cos(2.f * w * m_julianDay);
+                m_soilTemp[i] = t10 * m_kSoil10 + m_relativeFactor[i];
+                if (m_soilTemp[i] > 60.f || m_soilTemp[i] < -90.f) {
+                    cout << "The calculated soil temperature at cell (" << i
+                        << ") is out of reasonable range: " << m_soilTemp[i]
+                        << ". JulianDay: " << m_julianDay << ",t: "<< t << ", t1: " 
+                        << t1 << ", t2: " << t2 << ", relativeFactor: " << m_relativeFactor[i] << endl;
+                    errCount++;
+                }
+            }
+            //save the temperature
+            m_t2[i] = m_t1[i];
+            m_t1[i] = t;
+        }
+    }
+    if (errCount > 0) {
+        throw ModelException(MID_STP_FP, "Execute", "The calculation of soil temperature failed!");
     }
     return 0;
 }

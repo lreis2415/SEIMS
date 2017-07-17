@@ -44,6 +44,7 @@ m_firstRunOverland(true), m_firstRunChannel(true)
     }
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
+    m_factory->updateBMPOptParameter(m_dataCenter->getSubbasinID()); /// TODO
 }
 
 ModelMain::~ModelMain(void) {
@@ -165,7 +166,7 @@ void ModelMain::OutputExecuteTime(void) {
 void ModelMain::CheckAvailableOutput() {
     m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
     vector<PrintInfo *>::iterator it;
-    for (it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end();) {
+    for (it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
         outputid = trim(outputid);
 

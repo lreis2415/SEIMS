@@ -71,7 +71,7 @@ SettingsOutput::~SettingsOutput(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_printInfosMap.erase(it);
+        m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.

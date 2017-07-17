@@ -34,7 +34,7 @@ PrintInfoItem::~PrintInfoItem(void) {
             delete[] it->second;
             it->second = NULL;
         }
-        it = TimeSeriesDataForSubbasin.erase(it);
+        TimeSeriesDataForSubbasin.erase(it++);
     }
     TimeSeriesDataForSubbasin.clear();
 

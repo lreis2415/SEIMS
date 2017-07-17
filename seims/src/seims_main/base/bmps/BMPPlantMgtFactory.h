@@ -25,14 +25,15 @@ namespace MainBMP {
 class BMPPlantMgtFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority,
-                       string distribution, string collection, string location);
+    BMPPlantMgtFactory(const int scenarioId, const int bmpId, const int subScenario,
+                       const int bmpType, const int bmpPriority, vector<string> &distribution,
+                       const string collection, const string location);
 
     /// Destructor
     ~BMPPlantMgtFactory(void);
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, string &bmpDBName);
+    void loadBMP(MongoClient* conn, const string &bmpDBName);
 
     /// Output
     void Dump(ostream *fs);

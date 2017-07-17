@@ -13,7 +13,7 @@
 //
 using namespace std;
 
-#define IntRaster clsRasterData<int>
+#define IntRaster   clsRasterData<int>
 #define FloatRaster clsRasterData<float>
 
 class CellOrdering {

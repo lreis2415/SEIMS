@@ -605,7 +605,7 @@ class SoilUtilClass(object):
             cur_sname = cur_soil_data_item[1]
             cur_soil_ins = SoilProperty(cur_seqn, cur_sname)
             for j in range(2, len(soil_prop_flds)):
-                cur_flds = StringClass.split_string(cur_soil_data_item[j], ',')  # Get field values
+                cur_flds = StringClass.split_string(cur_soil_data_item[j], '-')  # Get field values
                 for k, tmpfld in enumerate(cur_flds):
                     cur_flds[k] = float(tmpfld)  # Convert to float
                 if StringClass.string_match(soil_prop_flds[j], SoilUtilClass._NLYRS):
