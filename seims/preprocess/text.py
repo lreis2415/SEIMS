@@ -242,59 +242,6 @@ class FieldNames(object):
     site_pet = 'SITELISTPET'
 
 
-class TauDEMFilesUtils(object):
-    """predefined TauDEM resulted file names"""
-    # intermediate data
-    _FILLEDDEM = "demFilledTau.tif"
-    _D8FLOWDIR = "flowDirTauD8.tif"
-    _SLOPE = "slopeTau.tif"
-    _D8ACC = "accTauD8.tif"
-    _D8ACCWITHWEIGHT = "accTauD8WithWeight.tif"
-    _STREAMRASTER = "streamRasterTau.tif"
-    _FLOWDIRDINF = "flowDirDinfTau.tif"
-    _DIRCODEDINF = "dirCodeDinfTau.tif"
-    _WEIGHTDINF = "weightDinfTau.tif"
-    _SLOPEDINF = "slopeDinfTau.tif"
-    _MODIFIEDOUTLET = "outletM.shp"
-    _STREAMSKELETON = "streamSkeleton.tif"
-    _DROPTXT = "drp.txt"
-    _STREAMORDER = "streamOrderTau.tif"
-    _CHNETWORK = "chNetwork.txt"
-    _CHCOORD = "chCoord.txt"
-    _STREAMNET = "streamNet.shp"
-    _DIST2STREAMD8 = "dist2StreamD8Org.tif"
-    _SUBBASIN = "subbasinTau.tif"
-    # masked file names
-    _SUBBASINM = "subbasinTauM.tif"
-    _D8FLOWDIRM = "flowDirTauM.tif"
-    _STREAMRASTERM = "streamRasterTauM.tif"
-
-    def __init__(self, tau_dir):
-        """assign taudem resulted file path"""
-        self.filldem = tau_dir + SEP + self._FILLEDDEM
-        self.d8flow = tau_dir + SEP + self._D8FLOWDIR
-        self.slp = tau_dir + SEP + self._SLOPE
-        self.d8acc = tau_dir + SEP + self._D8ACC
-        self.d8acc_weight = tau_dir + SEP + self._D8ACCWITHWEIGHT
-        self.stream_raster = tau_dir + SEP + self._STREAMRASTER
-        self.dinf = tau_dir + SEP + self._FLOWDIRDINF
-        self.dinf_d8dir = tau_dir + SEP + self._DIRCODEDINF
-        self.dinf_weight = tau_dir + SEP + self._WEIGHTDINF
-        self.dinf_slp = tau_dir + SEP + self._SLOPEDINF
-        self.outlet_m = tau_dir + SEP + self._MODIFIEDOUTLET
-        self.stream_pd = tau_dir + SEP + self._STREAMSKELETON
-        self.stream_order = tau_dir + SEP + self._STREAMORDER
-        self.channel_net = tau_dir + SEP + self._CHNETWORK
-        self.channel_coord = tau_dir + SEP + self._CHCOORD
-        self.streamnet_shp = tau_dir + SEP + self._STREAMNET
-        self.dist2stream_d8 = tau_dir + SEP + self._DIST2STREAMD8
-        self.subbsn = tau_dir + SEP + self._SUBBASIN
-        self.subbsn_m = tau_dir + SEP + self._SUBBASINM
-        self.d8flow_m = tau_dir + SEP + self._D8FLOWDIRM
-        self.stream_m = tau_dir + SEP + self._STREAMRASTERM
-        self.drptxt = tau_dir + SEP + self._DROPTXT
-
-
 class SpatialNamesUtils(object):
     """predefined raster file names which are ready for importing to database"""
     _MASK_TO_EXT = "mask.tif"
