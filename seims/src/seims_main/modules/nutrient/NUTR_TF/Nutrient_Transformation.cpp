@@ -135,12 +135,12 @@ bool Nutrient_Transformation::CheckInputData() {
     //	throw ModelException(MID_NUTR_TF, "CheckInputData", "The residue on soil surface can not be NULL.");
     //if (m_sol_rsd == NULL)
     //	throw ModelException(MID_NUTR_TF, "CheckInputData", "The organic matter in soil classified as residue can not be NULL.");
-    if (this->m_a_days == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_a_days can not be NULL.");
-    }
-    if (this->m_b_days == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_b_days can not be NULL.");
-    }
+    //if (this->m_a_days == NULL) {
+    //    throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_a_days can not be NULL.");
+    //}
+    //if (this->m_b_days == NULL) {
+    //    throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_b_days can not be NULL.");
+    //}
     if (this->m_sol_thick == NULL) {
         throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_thick can not be NULL.");
     }

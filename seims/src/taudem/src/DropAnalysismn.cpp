@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
 
     return 0;
     errexit:
-    printf("\nUse with specific file names:\n %s -slp <slopefile>\n", argv[0]);
+    printf("\nUse with specific file names:\n %s ", argv[0]);
     printf("-ad8 <ad8file> -p <dirfile> -fel <elevfile> -ssa <ssafile> -o <outletsshapefile>\n");
     printf("-drp <dropfile> [-par <min> <max> <nthresh> <steptype>] \n");
     printf("<ad8file> is the name of the input contributing area file used in calculations of drainage density. \n");

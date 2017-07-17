@@ -146,7 +146,7 @@ class ImportObservedData(object):
                              DataValueFields.d, DataValueFields.type, DataValueFields.value]
             for fld in required_flds:
                 if not StringClass.string_in_list(fld, obs_flds):  # data can not meet the request!
-                    raise ValueError("The %s cann't meet the required format!" % measDataFile)
+                    raise ValueError("The %s can not meet the required format!" % measDataFile)
             for i in range(1, len(obs_data_items)):
                 dic = dict()
                 cur_y = 0
@@ -252,7 +252,6 @@ class ImportObservedData(object):
         This function mainly to import measurement data to MongoDB
         data type may include Q (discharge, m3/s), tn, tp, etc.
         the required parameters that defined in configuration file (*.ini)
-        :param observe_dir: observe_dir of measurement data files
         """
         if not cfg.use_observed:
             return False

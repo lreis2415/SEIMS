@@ -8,7 +8,14 @@ IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
-
+################# Install directory ##################
+IF (INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+    SET(INSTALL_DIR ${INSTALL_PREFIX})
+ELSE ()
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+    SET(INSTALL_DIR ${CMAKE_SOURCE_DIR}/bin)
+ENDIF ()
 ################# Find packages ##################
 # MPI and GDAL are required
 IF (WIN32)
@@ -34,9 +41,22 @@ ELSE ()
     find_package(GDAL REQUIRED)
     # 2. MPI
     find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
+    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAGS} ${MPI_COMPILE_FLAGS})
     set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ENDIF ()
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE RelWithDebInfo)
+ENDIF()
+
+# Select flags.
+# refers to https://software.intel.com/en-us/articles/intel-cluster-toolkit-for-linux-error-when-compiling-c-aps-using-intel-mpi-library-compilation-driver-mpiicpc
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX")
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
+
 INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
 ################# Packages found ##################
 SET(TAUDEM_SRC ./src)

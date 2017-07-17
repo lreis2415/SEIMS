@@ -99,11 +99,11 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
     }
     vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
 
-// release cellListMap to save memory
+    // release cellListMap to save memory
     for (map<int, vector<int> *>::iterator it = cellListMap.begin(); it != cellListMap.end();) {
         if (it->second != NULL)
             delete it->second;
-        it = cellListMap.erase(it);
+        cellListMap.erase(it++);
     }
     cellListMap.clear();
 }
@@ -151,7 +151,7 @@ clsSubbasins::~clsSubbasins() {
                 delete iter->second;
                 iter->second = NULL;
             }
-            iter = m_subbasinsInfo.erase(iter);
+            m_subbasinsInfo.erase(iter++);
         }
         m_subbasinsInfo.clear();
     }

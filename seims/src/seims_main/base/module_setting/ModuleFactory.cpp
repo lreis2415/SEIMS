@@ -36,7 +36,7 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_settings.erase(it);
+        m_settings.erase(it++);
     }
     m_settings.clear();
 
@@ -47,7 +47,7 @@ ModuleFactory::~ModuleFactory(void) {
             delete it->second;
             it->second = NULL;
         }
-        it = m_metadata.erase(it);
+        m_metadata.erase(it++);
     }
     m_metadata.clear();
 
@@ -84,15 +84,16 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = Tag_So + string(MID_TSD_RD);
 #endif /* windows */
         }
-#ifdef INTEL_COMPILER
-        dllID = dllID + "_intel";
-#endif /* INTEL_COMPILER */
-#ifdef INTEL_COMPILER_SINGLE
-        dllID = dllID + "_intel_single";
-#endif /* INTEL_COMPILER_SINGLE */
-#ifdef SINGLE
-        dllID = dllID + "_single";
-#endif /* SINGLE */
+// In my view, the _intel related suffixes are useless. lj
+//#ifdef INTEL_COMPILER
+//        dllID = dllID + "_intel";
+//#endif /* INTEL_COMPILER */
+//#ifdef INTEL_COMPILER_SINGLE
+//        dllID = dllID + "_intel_single";
+//#endif /* INTEL_COMPILER_SINGLE */
+//#ifdef SINGLE
+//        dllID = dllID + "_single";
+//#endif /* SINGLE */
 
         // load function pointers from DLL
         ReadDLL(id, dllID);
@@ -108,8 +109,8 @@ void ModuleFactory::Init(const string &configFileName) {
         ReadInputSetting(id, doc, m_settings[id]);
         ReadOutputSetting(id, doc, m_settings[id]);
     }
-    map<string, vector<ParamInfo> > (m_moduleParameters).swap(m_moduleParameters);
-    map<string, vector<ParamInfo> > (m_moduleInputs).swap(m_moduleInputs);
+    map<string, vector<ParamInfo> >(m_moduleParameters).swap(m_moduleParameters);
+    map<string, vector<ParamInfo> >(m_moduleInputs).swap(m_moduleInputs);
     map<string, vector<ParamInfo> >(m_moduleOutputs).swap(m_moduleOutputs);
     // set the connections among objects
     for (size_t i = 0; i < n; i++) {
@@ -679,7 +680,7 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
 }
 
 void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
-                            FloatRaster templateRaster, SimulationModule *pModule, bool vertitalItp) {
+                            FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp) {
     string name = param->BasicName;
     if (setting->dataTypeString().size() == 0
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
@@ -731,7 +732,7 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
     }
 }
 
-void ModuleFactory::SetValue(ParamInfo *param, FloatRaster templateRaster, SimulationModule *pModule) {
+void ModuleFactory::SetValue(ParamInfo *param, FloatRaster *templateRaster, SimulationModule *pModule) {
     if (StringMatch(param->Name, Tag_DataType)) {
         // the data type is got from config.fig
         return;
@@ -759,7 +760,7 @@ void ModuleFactory::SetValue(ParamInfo *param, FloatRaster templateRaster, Simul
 }
 
 void ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileName, 
-                              FloatRaster templateRaster, SimulationModule *pModule, bool vertitalItp) {
+                              FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp) {
     int n;
     float *data = NULL;
     /// the data has been read before, which stored in m_1DArrayMap
@@ -828,7 +829,7 @@ void ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFi
 }
 
 void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, string &remoteFileName,
-                              FloatRaster templateRaster, SimulationModule *pModule) {
+                              FloatRaster *templateRaster, SimulationModule *pModule) {
     int nRows = 0;
     int nCols = 1;
     float **data;
@@ -873,13 +874,12 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
     pModule->Set2DData(paraName.c_str(), nRows, nCols, data);
 }
 
-void
-ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileName, FloatRaster templateRaster,
-                         SimulationModule *pModule) {
+void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileName,
+                              FloatRaster *templateRaster, SimulationModule *pModule) {
     int n, lyrs;
     float *data = NULL;
     float **data2D = NULL;
-    FloatRaster raster = NULL;
+    FloatRaster *raster = NULL;
     if (m_rsMap.find(remoteFileName) == m_rsMap.end()) {
         raster = m_dataCenter->readRasterData(remoteFileName);
         if (NULL == raster) {
@@ -1058,5 +1058,17 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
                 return;
             }
         }
+    }
+}
+// added by Huiran GAO, Feb. 2017
+void ModuleFactory::updateBMPOptParameter(int nSubbasin)
+{
+    map<int, BMPFactory *> bmpFactories = m_scenario->GetBMPFactories();
+    for (map<int, BMPFactory *>::iterator iter = bmpFactories.begin(); iter != bmpFactories.end(); iter++)
+    {
+        	//iter->second->m_subScenarioId;
+            	//iter->second->m_location;
+        cout << "Modify BMP Params: BMP_" << iter->second->GetSubScenarioId() << endl;
+        //iter->second->BMPParametersPreUpdate(m_rsMap, nSubbasin, m);
     }
 }

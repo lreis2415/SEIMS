@@ -32,11 +32,12 @@ class VectorUtilClass(object):
         FileClass.remove_files(vectorshp)
         FileClass.check_file_exists(rasterfile)
         # raster to polygon vector
-        if sysstr == 'Windows':
-            exepath = '"%s/Scripts/gdal_polygonize.py"' % sys.exec_prefix
-        else:
-            exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
-        str_cmd = '%s -f "ESRI Shapefile" %s %s %s %s' % (
+        exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
+        # if sysstr == 'Windows':
+        #     exepath = '"%s/Scripts/gdal_polygonize.py"' % sys.exec_prefix
+        # else:
+        #     exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
+        str_cmd = 'python %s -f "ESRI Shapefile" %s %s %s %s' % (
             exepath, rasterfile, vectorshp, layername, fieldname)
         print (str_cmd)
         print (UtilClass.run_command(str_cmd))
