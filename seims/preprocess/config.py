@@ -203,6 +203,18 @@ class SEIMSConfig(object):
             self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
             self.d8down_method = cf.get('OPTIONAL_PARAMETERS', 'd8downmethod')
+            if StringClass.string_match(self.d8down_method, 'surface'):
+                self.d8down_method = 's'
+            elif StringClass.string_match(self.d8down_method, 'horizontal'):
+                self.d8down_method = 'h'
+            elif StringClass.string_match(self.d8down_method, 'pythagoras'):
+                self.d8down_method = 'p'
+            elif StringClass.string_match(self.d8down_method, 'vertical'):
+                self.d8down_method = 'v'
+            else:
+                self.d8down_method = self.d8down_method.lower()
+                if self.d8down_method not in ['s', 'h', 'p', 'v']:
+                    self.d8down_method = 'h'
             self.dorm_hr = cf.getfloat('OPTIONAL_PARAMETERS', 'dorm_hr')
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',
