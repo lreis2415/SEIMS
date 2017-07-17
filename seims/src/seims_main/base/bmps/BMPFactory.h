@@ -5,10 +5,12 @@
 #ifndef SEIMS_BMP_FACTORY_H
 #define SEIMS_BMP_FACTORY_H
 
+#include "seims.h"
 #include "utilities.h"
 
 #include "BMPText.h"
 #include "MongoUtil.h"
+#include "clsRasterData.cpp"
 
 /*!
  * \brief Base class of all kind of BMPs Factory.
@@ -26,17 +28,27 @@ namespace MainBMP {
 class BMPFactory {
 public:
     /// Constructor
-    BMPFactory(int scenarioId, int bmpId, int subScenario, int bmpType, int bmpPriority, string distribution,
-               string parameter, string location);
+    BMPFactory(const int scenarioId, const int bmpId, const int subScenario, const int bmpType,
+               const int bmpPriority, vector<string> distribution, const string collection,
+               const string location);
 
     /// virtual Destructor
     virtual ~BMPFactory(void);
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, string &bmpDBName) = 0;
+    virtual void loadBMP(MongoClient *conn, const string &bmpDBName) = 0;
 
-    /// Load BMP parameters from SQLite
-    ///virtual void loadBMP(string bmpDatabasePath) = 0;
+    /*!
+     * \brief Set raster data if needed
+     * This function is not required for each BMP, so DO NOT define as pure virtual function.
+     */
+    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap){};
+    /*!
+     * \brief preUpdate model parameters.
+     * This function is not required for each BMP, so DO NOT define as pure virtual function.
+     */
+    virtual void BMPParametersPreUpdate(map<string, clsRasterData<float>*> rsMap,
+        const int nSubbasin, mongoc_gridfs_t *spatialData){};
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
        2 - areal structural BMPs which are corresponding to a specific structure in the watershed and will change the character of subbasins/cells.
@@ -61,24 +73,17 @@ public:
     virtual void Dump(ostream *fs) = 0;
 
 protected:
-    /// Scenario ID
-    int m_scenarioId;
-    /// BMP ID
-    int m_bmpId;
-    /// SubScenario ID within one BMP ID
-    int m_subScenarioId;
-    /// BMP Type
-    int m_bmpType;
-    /// BMP Priority
-    int m_bmpPriority;
-    /// Distribution of BMP
-    /// Format is [distribution data type]|[distribution parameter name]
-    /// in which distribution data type may be raster or array that stored in database
-    string m_distribution;
-    /// Collection to
-    string m_bmpCollection;
-    /// Define where the BMP will be applied
-    string m_location;
+    const int           m_scenarioId;     ///< Scenario ID
+    const int           m_bmpId;          ///< BMP ID
+    const int           m_subScenarioId;  ///< SubScenario ID within one BMP iD
+    const int           m_bmpType;        ///< BMP Type
+    const int           m_bmpPriority;    ///< BMP Priority
+    /*! Distribution vector of BMP
+     *  Origin format is [distribution data type]|[distribution parameter name]|Collection name|...
+     */
+    vector<string>      m_distribution;
+    const string        m_bmpCollection;  ///< Collection name
+    const string        m_location;       ///< Define where the BMP will be applied
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

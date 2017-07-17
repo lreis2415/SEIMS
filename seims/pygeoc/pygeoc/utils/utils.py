@@ -169,8 +169,8 @@ class StringClass(object):
                     temp_strs = src_s.split(s)
                     for temp_s in temp_strs:
                         temp_s = StringClass.strip_string(temp_s)
-                        if temp_s != '':
-                            dest_strs.append(temp_s)
+                        # if temp_s != '':
+                        dest_strs.append(temp_s)
                 src_strs = dest_strs[:]
                 dest_strs = []
             if old_dest_strs == src_strs:
@@ -355,9 +355,10 @@ class UtilClass(object):
             output lines
         """
         print (commands)
-        use_shell = True
+        use_shell = False
         if isinstance(commands, list) or isinstance(commands, tuple):
             use_shell = False
+            commands = ' '.join(c for c in commands)
         if sysstr == 'Windows':
             import ctypes
             SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
@@ -413,9 +414,11 @@ class UtilClass(object):
         if isinstance(contentlist, list) or isinstance(contentlist, tuple):
             contentstr = ''
             for content in contentlist:
-                contentstr += "%s\n" % content
+                contentstr += '%s\n' % content
             return contentstr
         else:
+            if contentlist[-1] != '\n':
+                contentlist += '\n'
             return contentlist
 
     @staticmethod
@@ -426,17 +429,20 @@ class UtilClass(object):
     @staticmethod
     def writelog(logfile, contentlist, mode='replace'):
         """write log"""
-        if os.path.exists(logfile):
-            if mode == 'replace':
-                os.remove(logfile)
-                log_status = open(logfile, 'w')
-            else:
-                log_status = open(logfile, 'a')
+        if logfile is None:  # If logfile is not assigned, just print msg.
+            print (UtilClass.print_msg(contentlist))
         else:
-            log_status = open(logfile, 'w')
-        log_status.write(UtilClass.print_msg(contentlist))
-        log_status.flush()
-        log_status.close()
+            if os.path.exists(logfile):
+                if mode == 'replace':
+                    os.remove(logfile)
+                    log_status = open(logfile, 'w')
+                else:
+                    log_status = open(logfile, 'a')
+            else:
+                log_status = open(logfile, 'w')
+            log_status.write(UtilClass.print_msg(contentlist))
+            log_status.flush()
+            log_status.close()
 
 
 class C(object):

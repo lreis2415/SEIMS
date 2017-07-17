@@ -58,7 +58,7 @@ class ImportPrecipitation(object):
             dic[DataValueFields.local_time] = dt
             dic[DataValueFields.time_zone] = time.timezone / 3600.
             dic[DataValueFields.utc] = datetime(utc_time[0], utc_time[1],
-                                                         utc_time[2], utc_time[3])
+                                                utc_time[2], utc_time[3])
 
             for j, cur_id in enumerate(station_id):
                 cur_dic = dict()
@@ -68,14 +68,7 @@ class ImportPrecipitation(object):
                 cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                 cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
                 cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
-                curfilter = {DataValueFields.id: cur_dic[DataValueFields.id],
-                             DataValueFields.type: cur_dic[DataValueFields.type],
-                             DataValueFields.utc: cur_dic[DataValueFields.utc]}
                 bulk.insert(cur_dic)
-                # if climdb[DBTableNames.data_values].find(curfilter).count() == 0:
-                #     bulk.insert(cur_dic)
-                # else:
-                #     bulk.find(curfilter).upsert().replace_one(cur_dic)
                 count += 1
                 if count % 500 == 0:  # execute each 500 records
                     bulk.execute()

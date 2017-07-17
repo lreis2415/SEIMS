@@ -7,8 +7,7 @@ IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
 ENDIF (COMMAND CMAKE_POLICY)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
-### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET(CMAKE_CXX_STANDARD 11)
+
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -36,6 +35,26 @@ IF (OPENMP_FOUND)
     add_definitions(-DSUPPORT_OMP)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 ENDIF ()
+### Active C++11 standard, cross-platform. This requires CMake 3.1+
+# SET(CMAKE_CXX_STANDARD 11) CMake may make mistake in intel c/c++ compiler
+# 12.1, so make some test when setting the C++ Standard.
+# refers to https://github.com/biicode/client/issues/10
+include(CheckCXXCompilerFlag)
+set(ENABLE_CXXFLAGS_TO_CHECK
+    -std=gnu++11 
+    -std=c++11
+    -std=gnu++0x 
+    -std=c++0x)
+
+foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
+    string(REPLACE "-std=" "_" flag_var ${flag})
+    string(REPLACE "+" "x" flag_var ${flag_var})
+    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
+    if(COMPILER_HAS_CXX_FLAG${flag_var})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+        break()
+    endif()
+endforeach()
 set(SOURCE_FILES main.cpp utils.cpp ModelException.cpp)
 add_executable(UtilsClass ${SOURCE_FILES})
 install(TARGETS UtilsClass DESTINATION ${INSTALL_DIR})

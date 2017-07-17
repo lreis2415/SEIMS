@@ -43,8 +43,8 @@ public:
         descri = "Class:" + m_className + "\n";
         descri += "Function:" + m_functionName + "\n";
         descri += "Message:" + m_msg;
-
-        return descri.c_str();
+        const char* desc_char = descri.c_str();
+        return desc_char;
     }
 
 private:

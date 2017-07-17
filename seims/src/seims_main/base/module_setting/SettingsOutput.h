@@ -21,21 +21,23 @@
 struct OrgOutItem
 {
 public:
-    OrgOutItem() {};
+    OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
+        aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
+        eTimeStr(""), interval(-1), use(-1) {};
     ~OrgOutItem() {};
 public:
-    string modCls = "";
-    string outputID = "";
-    string descprition = "";
-    string outFileName = "";
-    string aggType = "";
-    string unit = "";
-    string subBsn = "";
-    string intervalUnit = "";
-    string sTimeStr = "";
-    string eTimeStr = "";
-    int interval = -1;
-    int use = -1;
+    string modCls;
+    string outputID;
+    string descprition;
+    string outFileName;
+    string aggType;
+    string unit;
+    string subBsn;
+    string intervalUnit;
+    string sTimeStr;
+    string eTimeStr;
+    int interval;
+    int use;
 };
 /*!
  * \ingroup module_setting

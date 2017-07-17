@@ -5,11 +5,13 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
-from configparser import ConfigParser
 import os
 
+from configparser import ConfigParser
+
 from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
-    VectorNameUtils, SpatialNamesUtils, TauDEMFilesUtils, ModelParamDataUtils
+    VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMFilesUtils
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
 
 
@@ -114,7 +116,7 @@ class SEIMSConfig(object):
         self.taudems = TauDEMFilesUtils(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
-        self.paramcfgs = ModelParamDataUtils(self.txt_db_dir)
+        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
         if not FileClass.is_file_exists(self.clim_dir):
             print ("The CLIMATE_DATA_DIR is not existed, try the default folder name 'climate'.")
@@ -186,10 +188,10 @@ class SEIMSConfig(object):
             if not os.path.exists(self.outlet_file):
                 self.outlet_file = None
             self.landuse = self.spatial_dir + os.sep + cf.get('SPATIAL', 'landusefile')
-            self.landcover_init_param = self.spatial_dir + os.sep \
+            self.landcover_init_param = self.txt_db_dir + os.sep \
                                         + cf.get('SPATIAL', 'landcoverinitfile')
             self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
-            self.soil_property = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
+            self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
             self.mgt_field = self.spatial_dir + os.sep + cf.get('SPATIAL', 'mgtfieldfile')
             if not os.path.exists(self.mgt_field) or \
                     StringClass.string_match(self.mgt_field, 'none'):
@@ -203,6 +205,18 @@ class SEIMSConfig(object):
             self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
             self.d8down_method = cf.get('OPTIONAL_PARAMETERS', 'd8downmethod')
+            if StringClass.string_match(self.d8down_method, 'surface'):
+                self.d8down_method = 's'
+            elif StringClass.string_match(self.d8down_method, 'horizontal'):
+                self.d8down_method = 'h'
+            elif StringClass.string_match(self.d8down_method, 'pythagoras'):
+                self.d8down_method = 'p'
+            elif StringClass.string_match(self.d8down_method, 'vertical'):
+                self.d8down_method = 'v'
+            else:
+                self.d8down_method = self.d8down_method.lower()
+                if self.d8down_method not in ['s', 'h', 'p', 'v']:
+                    self.d8down_method = 'h'
             self.dorm_hr = cf.getfloat('OPTIONAL_PARAMETERS', 'dorm_hr')
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',

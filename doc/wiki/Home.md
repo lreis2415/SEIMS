@@ -1,7 +1,7 @@
 ## 1.基本信息
 SEIMS（Spatially Explicit Integrated Modeling System）模型是以栅格为基本模拟单元、能体现水流空间运动的全分布式水文模型，在借鉴SWAT、Wetspa、LISEM、CASC2D、DHSVM和流溪河模型等多个模型基础上开发的模块化水文模型，采用C++编写，采用共享内存（OpenMP）和消息传递（MPI）实现了子流域-基本单元的双层并行计算，并利用NoSql数据库MongoDB进行数据组织管理。
 
-SEIMS模型可通过常用C++编译器（如MSVC、GCC、Clang）编译成32位或64位程序，并运行在常见操作系统中（如Windows、Linux、macOS），master主分支在多个平台下的编译状态：
+SEIMS模型可通过常用C++编译器（如MSVC、GCC、Clang、Intel C++）编译成32位或64位程序，并运行在常见操作系统中（如Windows、Linux、macOS），master主分支在多个平台下的编译状态：
 
 [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master) [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/SEIMS) [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=osx_xcode&label=osx_clang)](https://travis-ci.org/lreis2415/SEIMS)
 
@@ -40,9 +40,10 @@ SEIMS模型可通过常用C++编译器（如MSVC、GCC、Clang）编译成32位�
 
 #### 3.1 学位论文
 
++ 高会然, 2017. 坡位功能特征指导下的 BMPs 空间配置方法. 地理科学与资源研究所,中国科学院大学, 北京. (硕士)
 + 谢军, 2015. 福建红壤区流域水土流失治理措施的情景分析--以朱溪河小流域为例. 福州大学, 福州. (硕士)
-+ 吴辉, 2014. 流域最佳管理措施空间配置优化研究, 地理科学与资源研究所. 中国科学院大学, 北京. (博士)
-+ 刘军志, 2013. 分布式水文模型的子流域-基本单元双层并行计算方法, 地理科学与资源研究所. 中国科学院大学, 北京. (博士)
++ 吴辉, 2014. 流域最佳管理措施空间配置优化研究. 地理科学与资源研究所,中国科学院大学, 北京. (博士)
++ 刘军志, 2013. 分布式水文模型的子流域-基本单元双层并行计算方法. 地理科学与资源研究所, 中国科学院大学, 北京. (博士)
 
 #### 3.2 期刊文章
 

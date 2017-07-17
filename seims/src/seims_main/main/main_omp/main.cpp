@@ -12,7 +12,7 @@ int main(int argc, const char *argv[]) {
     /// Register GDAL
     GDALAllRegister();
     /// Read input parameters
-    string modelPath = "";
+    string modelPath;
     int scenarioID = -1;  /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int i = 0;
     int numThread = 1;
@@ -92,19 +92,19 @@ int main(int argc, const char *argv[]) {
     //SetOpenMPThread(2);
 
     try {
-        return MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
+        MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
     }
     catch (ModelException& e) {
         cout << e.toString() << endl;
-        return -1;
+        exit(EXIT_FAILURE);
     }
     catch (exception& e) {
         cout << e.what() << endl;
-        return -1;
+        exit(EXIT_FAILURE);
     }
     catch (...) {
         cout << "Unknown exception occurred!" << endl;
-        return -1;
+        exit(EXIT_FAILURE);
     }
     return 0;
 

@@ -10,7 +10,7 @@
 
 #define MODEL_NAME                             "SEIMS"
 #define MODEL_VERSION                          "2017"
-#define SEIMS_EMAIL                            "SEIMS2015@163.com"
+#define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
 #define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
 //! Constant input variables
@@ -46,9 +46,10 @@
 #define Tag_Weight                             "WEIGHT"
 #define Tag_DataType                           "DATATYPE"   /// For TSD_RD module
 ///////  define parameter calibration related string constants  ///////
-#define PARAM_CHANGE_RC                        "RC"
-#define PARAM_CHANGE_AC                        "AC"
-#define PARAM_CHANGE_NC                        "NC"
+#define PARAM_CHANGE_VC                        "VC"  // replace by a value
+#define PARAM_CHANGE_RC                        "RC"  // multiply a ratio, which is diff from SWAT: * (1+ratio)
+#define PARAM_CHANGE_AC                        "AC"  // add a value
+#define PARAM_CHANGE_NC                        "NC"  // no change
 #define PARAM_FLD_NAME                         "NAME"
 #define PARAM_FLD_DESC                         "DESCRIPTION"
 #define PARAM_FLD_UNIT                         "UNIT"

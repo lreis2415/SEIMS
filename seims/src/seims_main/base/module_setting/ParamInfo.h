@@ -33,8 +33,13 @@ public:
     //! Reset the contents of the object to default values
     void Reset(void);
 
-    //! Return the adjusted value for this parameter
-    float GetAdjustedValue(void);
+    /*!
+     * \brief Return the adjusted value for this parameter
+     * \param[in] pre_value Default is NODATA_VALUE which will be treated
+     *                      as ParamInfo.Value, otherwise adjust the given value.
+     * \return adjusted float value
+     */
+    float GetAdjustedValue(float pre_value = NODATA_VALUE);
 
     //! Adjust 1D array
     void Adjust1DArray(int n, float *data);
@@ -87,4 +92,3 @@ public:
     //! whether is initialized
     bool initialized;
 };
-

@@ -18,7 +18,7 @@ from osgeo.osr import SpatialReference as osr_SpatialReference
 from seims.preprocess.sd_hillslope import DelineateHillslope
 from seims.preprocess.text import FieldNames
 from seims.preprocess.utility import status_output, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM
+from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM, TauDEMWorkflow
 from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass
@@ -60,100 +60,91 @@ class SpatialDelineation(object):
         # Check directories
         UtilClass.mkdir(cfg.workspace)
         UtilClass.mkdir(cfg.dirs.log)
-        f_status = open(cfg.logs.delineation, 'w')
-        tau_dir = cfg.dirs.taudem
-        UtilClass.mkdir(tau_dir)
-        # begin calling TauDEM
         bin_dir = cfg.seims_bin
         mpi_bin = cfg.mpi_bin
         np = cfg.np
-        dem = cfg.dem
-        filled_dem = cfg.taudems.filldem
-        flow_dir = cfg.taudems.d8flow
-        slope = cfg.taudems.slp
-        flow_dir_dinf = cfg.taudems.dinf
-        slope_dinf = cfg.taudems.dinf_slp
-        dir_code_dinf = cfg.taudems.dinf_d8dir
-        weight_dinf = cfg.taudems.dinf_weight
-        acc = cfg.taudems.d8acc
-        stream_raster = cfg.taudems.stream_raster
-        outlet_file = cfg.outlet_file
-        modified_outlet = cfg.taudems.outlet_m
-        stream_skeleton = cfg.taudems.stream_pd
-        acc_with_weight = cfg.taudems.d8acc_weight
-        stream_order = cfg.taudems.stream_order
-        ch_network = cfg.taudems.channel_net
-        ch_coord = cfg.taudems.channel_coord
-        stream_net = cfg.taudems.streamnet_shp
-        subbasin = cfg.taudems.subbsn
-        dist2_stream_d8 = cfg.taudems.dist2stream_d8
-        d8_down_method = cfg.d8down_method
+        TauDEMWorkflow.watershed_delineation(bin_dir, mpi_bin, np, cfg.dem, cfg.outlet_file,
+                                             cfg.d8acc_threshold, cfg.d8down_method,
+                                             cfg.taudems, cfg.logs.delineation)
 
-        status_output("fill DEM...", 10, f_status)
-        TauDEM.fill(np, tau_dir, dem, filled_dem, mpi_bin, bin_dir)
-        status_output("Calculating D8 and Dinf flow direction...", 20, f_status)
-        TauDEM.d8flowdir(np, tau_dir, filled_dem, flow_dir, slope, mpi_bin, bin_dir)
-        TauDEM.dinfflowdir(np, tau_dir, filled_dem, flow_dir_dinf, slope_dinf, mpi_bin, bin_dir)
-        DinfUtil.output_compressed_dinf(flow_dir_dinf, dir_code_dinf, weight_dinf)
-        status_output("D8 flow accumulation...", 40, f_status)
-        TauDEM.aread8(np, tau_dir, flow_dir, acc, None, None, mpi_bin, bin_dir)
-        status_output("Generating stream raster initially...", 50, f_status)
-        if cfg.d8acc_threshold > 0:
-            TauDEM.threshold(np, tau_dir, acc, stream_raster, cfg.d8acc_threshold, mpi_bin, bin_dir)
-        else:
-            min_accum, max_accum, mean_accum, std_accum = RasterUtilClass.raster_statistics(acc)
-            TauDEM.threshold(np, tau_dir, acc, stream_raster, mean_accum, mpi_bin, bin_dir)
-        status_output("Moving outlet to stream...", 60, f_status)
-        TauDEM.moveoutletstostrm(np, tau_dir, flow_dir, stream_raster, outlet_file,
-                                 modified_outlet, mpi_bin, bin_dir)
-
-        if cfg.d8acc_threshold <= 0:
-            status_output("Generating stream skeleton...", 65, f_status)
-            TauDEM.peukerdouglas(np, tau_dir, filled_dem, stream_skeleton, mpi_bin, bin_dir)
-            status_output("Flow accumulation with outlet...", 70, f_status)
-            TauDEM.aread8(np, tau_dir, flow_dir, acc_with_weight, modified_outlet, stream_skeleton,
-                          mpi_bin, bin_dir)
-            status_output("Drop analysis to select optimal threshold...", 75, f_status)
-            min_accum, max_accum, mean_accum, std_accum = \
-                RasterUtilClass.raster_statistics(acc_with_weight)
-            if mean_accum - std_accum < 0:
-                minthresh = mean_accum
-            else:
-                minthresh = mean_accum - std_accum
-            maxthresh = mean_accum + std_accum
-            numthresh = 20
-            logspace = 'true'
-            drp_file = 'drp.txt'
-            TauDEM.dropanalysis(np, tau_dir, filled_dem, flow_dir, acc_with_weight,
-                                acc_with_weight, modified_outlet, minthresh, maxthresh,
-                                numthresh, logspace, drp_file, mpi_bin, bin_dir)
-            drpf = open(drp_file, "r")
-            temp_contents = drpf.read()
-            (beg, threshold) = temp_contents.rsplit(' ', 1)
-            print (threshold)
-            drpf.close()
-            status_output("Generating stream raster...", 80, f_status)
-            TauDEM.threshold(np, tau_dir, acc_with_weight, stream_raster, float(threshold),
-                             mpi_bin, bin_dir)
-        else:
-            status_output("Flow accumulation with outlet...", 70, f_status)
-            TauDEM.aread8(np, tau_dir, flow_dir, acc, modified_outlet, None, mpi_bin, bin_dir)
-            status_output("Generating stream raster...", 80, f_status)
-            TauDEM.threshold(np, tau_dir, acc, stream_raster, cfg.d8acc_threshold, mpi_bin,
-                             bin_dir)
-        status_output("Generating stream net...", 90, f_status)
-        if cfg.d8acc_threshold <= 0:
-            tmp_acc = acc_with_weight
-        else:
-            tmp_acc = acc
-        TauDEM.streamnet(np, tau_dir, filled_dem, flow_dir, tmp_acc, stream_raster, modified_outlet,
-                         stream_order, ch_network,
-                         ch_coord, stream_net, subbasin, mpi_bin, bin_dir)
-        status_output("Calculating distance to stream (D8)...", 95, f_status)
-        TauDEM.d8distdowntostream(np, tau_dir, flow_dir, filled_dem, stream_raster, dist2_stream_d8,
-                                  d8_down_method, 1, mpi_bin, bin_dir)
-        status_output("Original subbasin delineation is finished!", 100, f_status)
-        f_status.close()
+        #
+        # dem = cfg.dem
+        # filled_dem = cfg.taudems.filldem
+        # flow_dir = cfg.taudems.d8flow
+        # slope = cfg.taudems.slp
+        # flow_dir_dinf = cfg.taudems.dinf
+        # slope_dinf = cfg.taudems.dinf_slp
+        # dir_code_dinf = cfg.taudems.dinf_d8dir
+        # weight_dinf = cfg.taudems.dinf_weight
+        # acc = cfg.taudems.d8acc
+        # stream_raster = cfg.taudems.stream_raster
+        # outlet_file =
+        # modified_outlet = cfg.taudems.outlet_m
+        # stream_skeleton = cfg.taudems.stream_pd
+        # acc_with_weight = cfg.taudems.d8acc_weight
+        # stream_order = cfg.taudems.stream_order
+        # ch_network = cfg.taudems.channel_net
+        # ch_coord = cfg.taudems.channel_coord
+        # stream_net = cfg.taudems.streamnet_shp
+        # subbasin = cfg.taudems.subbsn
+        # dist2_stream_d8 = cfg.taudems.dist2stream_d8
+        # d8_down_method = cfg.d8down_method
+        #
+        # status_output("fill DEM...", 10, f_status)
+        # TauDEM.fill(np, tau_dir, dem, filled_dem, mpi_bin, bin_dir)
+        # status_output("Calculating D8 and Dinf flow direction...", 20, f_status)
+        # TauDEM.d8flowdir(np, tau_dir, filled_dem, flow_dir, slope, mpi_bin, bin_dir)
+        # TauDEM.dinfflowdir(np, tau_dir, filled_dem, flow_dir_dinf, slope_dinf, mpi_bin, bin_dir)
+        # DinfUtil.output_compressed_dinf(flow_dir_dinf, dir_code_dinf, weight_dinf)
+        # status_output("D8 flow accumulation...", 40, f_status)
+        # TauDEM.aread8(np, tau_dir, flow_dir, acc, None, None, mpi_bin, bin_dir)
+        # status_output("Generating stream raster initially...", 50, f_status)
+        # min_accum, max_accum, mean_accum, std_accum = RasterUtilClass.raster_statistics(acc)
+        # TauDEM.threshold(np, tau_dir, acc, stream_raster, mean_accum, mpi_bin, bin_dir)
+        # status_output("Moving outlet to stream...", 60, f_status)
+        # TauDEM.moveoutletstostrm(np, tau_dir, flow_dir, stream_raster, outlet_file,
+        #                          modified_outlet, mpi_bin, bin_dir)
+        # status_output("Generating stream skeleton...", 65, f_status)
+        # TauDEM.peukerdouglas(np, tau_dir, filled_dem, stream_skeleton, mpi_bin, bin_dir)
+        # status_output("Flow accumulation with outlet...", 70, f_status)
+        # TauDEM.aread8(np, tau_dir, flow_dir, acc_with_weight, modified_outlet, stream_skeleton,
+        #               mpi_bin, bin_dir)
+        #
+        # threshold = cfg.d8acc_threshold
+        # if cfg.d8acc_threshold <= 0:  # find the optimal threshold using dropanalysis function
+        #     status_output("Drop analysis to select optimal threshold...", 75, f_status)
+        #     min_accum, max_accum, mean_accum, std_accum = \
+        #         RasterUtilClass.raster_statistics(acc_with_weight)
+        #     if mean_accum - std_accum < 0:
+        #         minthresh = mean_accum
+        #     else:
+        #         minthresh = mean_accum - std_accum
+        #     maxthresh = mean_accum + std_accum
+        #     numthresh = 20
+        #     logspace = 'true'
+        #     drp_file = cfg.taudems.drptxt
+        #     TauDEM.dropanalysis(np, tau_dir, filled_dem, flow_dir, acc_with_weight,
+        #                         acc_with_weight, modified_outlet, minthresh, maxthresh,
+        #                         numthresh, logspace, drp_file, mpi_bin, bin_dir)
+        #     if not FileClass.is_file_exists(drp_file):
+        #         raise RuntimeError("Dropanalysis failed and drp.txt was not created!")
+        #     drpf = open(drp_file, "r")
+        #     temp_contents = drpf.read()
+        #     (beg, threshold) = temp_contents.rsplit(' ', 1)
+        #     print (threshold)
+        #     drpf.close()
+        # status_output("Generating stream raster...", 80, f_status)
+        # TauDEM.threshold(np, tau_dir, acc_with_weight, stream_raster, float(threshold),
+        #                  mpi_bin, bin_dir)
+        # status_output("Generating stream net...", 90, f_status)
+        # TauDEM.streamnet(np, tau_dir, filled_dem, flow_dir, acc_with_weight, stream_raster,
+        #                  modified_outlet, stream_order, ch_network,
+        #                  ch_coord, stream_net, subbasin, mpi_bin, bin_dir)
+        # status_output("Calculating distance to stream (D8)...", 95, f_status)
+        # TauDEM.d8distdowntostream(np, tau_dir, flow_dir, filled_dem, stream_raster, dist2_stream_d8,
+        #                           d8_down_method, 1, mpi_bin, bin_dir)
+        # status_output("Original subbasin delineation is finished!", 100, f_status)
+        # f_status.close()
 
     @staticmethod
     def mask_raster_cpp(bin_dir, maskfile, originalfiles, outputfiles, default_values, configfile):

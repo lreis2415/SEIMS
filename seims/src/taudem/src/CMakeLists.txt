@@ -95,7 +95,6 @@ set(MY_TARGETS aread8
         threshold
         gagewatershed
         )
-
 foreach (c_target ${MY_TARGETS})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARY})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
