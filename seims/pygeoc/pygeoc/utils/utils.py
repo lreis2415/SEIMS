@@ -355,9 +355,10 @@ class UtilClass(object):
             output lines
         """
         print (commands)
-        use_shell = True
+        use_shell = False
         if isinstance(commands, list) or isinstance(commands, tuple):
             use_shell = False
+            commands = ' '.join(c for c in commands)
         if sysstr == 'Windows':
             import ctypes
             SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
