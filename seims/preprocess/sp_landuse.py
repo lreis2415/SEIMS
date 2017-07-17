@@ -8,7 +8,6 @@
                 17-07-07  lj - remove SQLite database file as intermediate file
 """
 from os import sep as SEP
-from re import split as re_split
 
 from numpy import frompyfunc as np_frompyfunc
 from osgeo.gdal import GDT_Float32
