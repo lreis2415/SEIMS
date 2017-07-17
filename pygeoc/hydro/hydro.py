@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 # coding=utf-8
+## @package hydro
+#  Hydrology relation functions
+#
 import math
 
 from ..utils.utils import StringClass
@@ -11,6 +14,10 @@ class FlowDirectionCode(object):
     """Definition of flow direction code and shift coordinate."""
 
     def __init__(self, flow_model):
+        """
+        Initialization.
+        :param flow_model(string): Currently, "TauDEM" and "ArcGIS" are supported.
+        """
         self.cell_length = {}
         self.cell_shift = {}
         if StringClass.stringmatch(flow_model, "TauDEM"):
