@@ -41,6 +41,7 @@ install:
   - ./doc/ci/travis/${BUILD_NAME}/install.sh
 
 script:
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
   - ./doc/ci/travis/${BUILD_NAME}/script.sh
   # push automatically generated doxygen html files to gh-pages branch, only once
   - 'if [ $BUILD_NAME == "linux_gcc48" ]; then
