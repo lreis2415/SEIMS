@@ -24,6 +24,7 @@ ls
 # 1. longterm
 cp *.md seims_longterm_linux_gcc48
 cp -R data seims_longterm_linux_gcc48/data
+mkdir -p seims_longterm_linux_gcc48/doc
 cp -R doc/theory seims_longterm_linux_gcc48/doc/theory
 cp -R doc/wiki seims_longterm_linux_gcc48/doc/wiki
 cp seims/*.* seims_longterm_linux_gcc48/seims
@@ -35,6 +36,7 @@ cp -R seims/calibration seims_longterm_linux_gcc48/seims/calibration
 # 2. storm
 cp *.md seims_storm_linux_gcc48
 cp -R data seims_storm_linux_gcc48/data
+mkdir -p seims_storm_linux_gcc48/doc
 cp -R doc/theory seims_storm_linux_gcc48/doc/theory
 cp -R doc/wiki seims_storm_linux_gcc48/doc/wiki
 cp seims/*.* seims_storm_linux_gcc48/seims

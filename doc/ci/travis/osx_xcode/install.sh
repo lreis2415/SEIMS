@@ -24,6 +24,7 @@ ls
 # 1. longterm
 cp *.md seims_longterm_osx_xcode
 cp -R data seims_longterm_osx_xcode/data
+mkdir -p seims_longterm_osx_xcode/doc
 cp -R doc/theory seims_longterm_osx_xcode/doc/theory
 cp -R doc/wiki seims_longterm_osx_xcode/doc/wiki
 cp seims/*.* seims_longterm_osx_xcode/seims
@@ -35,6 +36,7 @@ cp -R seims/calibration seims_longterm_osx_xcode/seims/calibration
 # 2. storm
 cp *.md seims_storm_osx_xcode
 cp -R data seims_storm_osx_xcode/data
+mkdir -p seims_storm_osx_xcode/doc
 cp -R doc/theory seims_storm_osx_xcode/doc/theory
 cp -R doc/wiki seims_storm_osx_xcode/doc/wiki
 cp seims/*.* seims_storm_osx_xcode/seims
