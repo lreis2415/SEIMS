@@ -1,7 +1,7 @@
-# This is the config file for building SEIMS with Travis-ci.org
 branches:
   only:
   - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 matrix:
   fast_finish: true
   include:
@@ -56,3 +56,16 @@ script:
 
 notifications:
   email:false
+deploy:
+  provider: releases
+  api_key:
+    secure: none
+  file: 
+    - seims_longterm_${BUILD_NAME}.zip
+    - seims_storm_${BUILD_NAME}.zip
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: lreis2415/SEIMS
+    tags: true
+    all_branches: true
