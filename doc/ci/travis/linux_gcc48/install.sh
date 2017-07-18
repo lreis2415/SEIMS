@@ -8,14 +8,14 @@ cd seims
 # longterm version
 mkdir buildlongterm
 cd buildlongterm
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=../../seims_longterm_linux_gcc48/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_longterm_linux_gcc48/seims/bin
 make -j4
 make install
 cd ..
 # storm version
 mkdir buildstorm
 cd buildstorm
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DSTORM=1 -DINSTALL_PREFIX=../../seims_storm_linux_gcc48/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DSTORM=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_storm_linux_gcc48/seims/bin
 make -j4
 make install
 cd ../..
