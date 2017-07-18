@@ -50,11 +50,15 @@ else ()
     add_definitions(-Dlinux)
 endif ()
 if (NOT MSVC)
-    SET (CMAKE_BUILD_TYPE "Release")
+    SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
     SET (CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -fPIC -g -ggdb")
     SET (CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O2 -Wall -fPIC")
 endif ()
-
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE RelWithDebInfo)
+ENDIF()
 # Set runtime library type
 include(SetThreadFlagMSVC)
 ################# Find packages ##################
@@ -90,8 +94,8 @@ ELSE ()
     IF (PARVERSION STREQUAL MPI)
         # 3. MPI
         find_package(MPI REQUIRED)
-        set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
-        set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+        set(CMAKE_CXX_FLAG "${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS}")
+        set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
     ENDIF ()
 ENDIF ()
 IF (GDAL_LIBRARY)
