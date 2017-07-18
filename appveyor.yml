@@ -106,7 +106,7 @@ artifacts:
 - path: seims_storm_win64bit
   name: seims_storm_win64bit
   type: zip
-  deploy:
+deploy:
 - provider: GitHub
   auth_token:
     secure: quf/i/fByIELebKvvhXSGEWxHKEHLuZaOo6pvDOeZ5MdunrFSJh3GGQUvlZLPGVL
