@@ -1,4 +1,4 @@
-version: SEIMS-{build}
+version: seims-{build}
 pull_requests:
   do_not_increment_build_number: true
 branches:
@@ -49,12 +49,12 @@ install:
   - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
   - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
   # install MS-MPI
-  - cd C:\projects\SEIMS
+  - cd C:\projects\seims
   - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
   - "doc\\ci\\appveyor\\SetEnvMPI.cmd"
 build_script:
   # make directory for releases
-  - cd C:\projects\SEIMS
+  - cd C:\projects\seims
   - mkdir seims_longterm_win64bit\seims\bin
   - mkdir seims_storm_win64bit\seims\bin
   - ps: "ls"
@@ -62,43 +62,43 @@ build_script:
   # Build 64-bit LONGTERM release version on Windows, and build unittest.
   - mkdir buildlongterm64
   - cd buildlongterm64
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\SEIMS\seims_longterm_win64bit\seims\bin
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_longterm_win64bit\seims\bin
   - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # Build 64-bit STORM release version on Windows, and build unittest.
   - cd ..
   - mkdir buildstorm64
   - cd buildstorm64
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\SEIMS\seims_storm_win64bit\seims\bin
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_storm_win64bit\seims\bin
   - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # copy files to releases
   # longterm
-  - copy C:\projects\SEIMS\*.md C:\projects\SEIMS\seims_longterm_win64bit
-  - xcopy C:\projects\SEIMS\data C:\projects\SEIMS\seims_longterm_win64bit\data /e /c /i /y
-  - xcopy C:\projects\SEIMS\doc\theory C:\projects\SEIMS\seims_longterm_win64bit\doc\theory /e /c /i /y
-  - xcopy C:\projects\SEIMS\doc\wiki C:\projects\SEIMS\seims_longterm_win64bit\doc\wiki /e /c /i /y
-  - copy C:\projects\SEIMS\seims\*.* C:\projects\SEIMS\seims_longterm_win64bit\seims
-  - xcopy C:\projects\SEIMS\seims\pygeoc C:\projects\SEIMS\seims_longterm_win64bit\seims\pygeoc /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\preprocess C:\projects\SEIMS\seims_longterm_win64bit\seims\preprocess /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\postprocess C:\projects\SEIMS\seims_longterm_win64bit\seims\postprocess /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\scenario_analysis C:\projects\SEIMS\seims_longterm_win64bit\seims\scenario_analysis /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\calibration C:\projects\SEIMS\seims_longterm_win64bit\seims\calibration /e /c /i /y
+  - copy C:\projects\seims\*.md C:\projects\seims\seims_longterm_win64bit
+  - xcopy C:\projects\seims\data C:\projects\seims\seims_longterm_win64bit\data /e /c /i /y
+  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_longterm_win64bit\doc\theory /e /c /i /y
+  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_longterm_win64bit\doc\wiki /e /c /i /y
+  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_longterm_win64bit\seims
+  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_longterm_win64bit\seims\pygeoc /e /c /i /y
+  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_longterm_win64bit\seims\preprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_longterm_win64bit\seims\postprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_longterm_win64bit\seims\scenario_analysis /e /c /i /y
+  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_longterm_win64bit\seims\calibration /e /c /i /y
   # storm
-  - copy C:\projects\SEIMS\*.md C:\projects\SEIMS\seims_storm_win64bit
-  - xcopy C:\projects\SEIMS\data C:\projects\SEIMS\seims_storm_win64bit\data /e /c /i /y
-  - xcopy C:\projects\SEIMS\doc\theory C:\projects\SEIMS\seims_storm_win64bit\doc\theory /e /c /i /y
-  - xcopy C:\projects\SEIMS\doc\wiki C:\projects\SEIMS\seims_storm_win64bit\doc\wiki /e /c /i /y
-  - copy C:\projects\SEIMS\seims\*.* C:\projects\SEIMS\seims_storm_win64bit\seims
-  - xcopy C:\projects\SEIMS\seims\pygeoc C:\projects\SEIMS\seims_storm_win64bit\seims\pygeoc /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\preprocess C:\projects\SEIMS\seims_storm_win64bit\seims\preprocess /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\postprocess C:\projects\SEIMS\seims_storm_win64bit\seims\postprocess /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\scenario_analysis C:\projects\SEIMS\seims_storm_win64bit\seims\scenario_analysis /e /c /i /y
-  - xcopy C:\projects\SEIMS\seims\calibration C:\projects\SEIMS\seims_storm_win64bit\seims\calibration /e /c /i /y
+  - copy C:\projects\seims\*.md C:\projects\seims\seims_storm_win64bit
+  - xcopy C:\projects\seims\data C:\projects\seims\seims_storm_win64bit\data /e /c /i /y
+  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_storm_win64bit\doc\theory /e /c /i /y
+  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_storm_win64bit\doc\wiki /e /c /i /y
+  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_storm_win64bit\seims
+  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_storm_win64bit\seims\pygeoc /e /c /i /y
+  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_storm_win64bit\seims\preprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_storm_win64bit\seims\postprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_storm_win64bit\seims\scenario_analysis /e /c /i /y
+  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_storm_win64bit\seims\calibration /e /c /i /y
 test_script:
   # Run unit test. TODO to complete unittest code.
-  - C:\projects\SEIMS\seims_longterm_win64bit\seims\bin\seims_ut_exec.exe
-  - C:\projects\SEIMS\seims_storm_win64bit\seims\bin\seims_ut_exec.exe
+  - C:\projects\seims\seims_longterm_win64bit\seims\bin\seims_ut_exec.exe
+  - C:\projects\seims\seims_storm_win64bit\seims\bin\seims_ut_exec.exe
 artifacts:
 - path: seims_longterm_win64bit
   name: seims_longterm_win64bit
