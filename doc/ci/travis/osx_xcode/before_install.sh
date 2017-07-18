@@ -8,7 +8,7 @@ echo "Installing and starting mongodb"
 # The follow dependencies will be automatically installed by mongodb
 # brew install automake autoconf libtool openssl
 brew install mongodb
-# install mpich2, be aware, mpich2 got error on macOS!
+# Install openmpi, of course mpich2 is OK as well.
 #brew install mpich2
 brew list openmpi &>/dev/null || brew install openmpi
 # create a folder for mongodb to prevent an error on mac osx
