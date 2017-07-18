@@ -63,7 +63,7 @@ build_script:
   - mkdir buildlongterm64
   - cd buildlongterm64
   - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_longterm_win64bit\seims\bin
-  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # Build 64-bit STORM release version on Windows, and build unittest.
   - cd ..
