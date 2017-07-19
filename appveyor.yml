@@ -1,4 +1,4 @@
-version: SEIMS-{build}
+version: SEIMS-Win64.{build}.{branch}
 pull_requests:
   do_not_increment_build_number: true
 branches:
@@ -109,7 +109,7 @@ artifacts:
 deploy:
 - provider: GitHub
   auth_token:
-    secure: quf/i/fByIELebKvvhXSGEWxHKEHLuZaOo6pvDOeZ5MdunrFSJh3GGQUvlZLPGVL
+    secure: /br3cLS15FA2D1MnSbZPrsRxLMfN9wNQaRZ30ye1adfFK7HOHmRmPtWZGdgZzuke
   artifact: seims_longterm_win64bit.zip,seims_storm_win64bit.zip
   force_update: true
   on:
