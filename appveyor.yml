@@ -5,6 +5,7 @@ branches:
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 image: Visual Studio 2013
 configuration: Release
+platform: x64
 services: mongodb
 build:
   parallel: true
