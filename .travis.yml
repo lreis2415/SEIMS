@@ -5,46 +5,43 @@ branches:
 matrix:
   fast_finish: true
   include:
-    - os: osx
-      language: cpp
-      compiler: clang
-      sudo: required
-      cache:
-        apt: true
-        directories:
-          - $HOME/.ccache
-      env:
-        - BUILD_NAME=osx_xcode
-        - DETAILS="libtool"
-        - ENABLE_CXX11=1
-    - os: linux
-      dist: trusty
-      compiler: gcc
-      language: cpp
-      sudo: required
-      cache:
-        apt: true
-        directories:
-          - $HOME/.ccache
-      services:
-        - mongodb
-      env:
-        - BUILD_NAME=linux_gcc48
-        - DETAILS=""
-        - ENABLE_CXX11=1
+  - os: osx
+    language: cpp
+    compiler: clang
+    sudo: required
+    cache:
+      apt: true
+      directories:
+      - $HOME/.ccache
+    env:
+    - BUILD_NAME=osx_xcode
+    - DETAILS="libtool"
+    - ENABLE_CXX11=1
+  - os: linux
+    dist: trusty
+    compiler: gcc
+    language: cpp
+    sudo: required
+    cache:
+      apt: true
+      directories:
+      - $HOME/.ccache
+    services:
+    - mongodb
+    env:
+    - BUILD_NAME=linux_gcc48
+    - DETAILS=""
+    - ENABLE_CXX11=1
 before_install:
-  - chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
-  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
-
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+- ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 install:
-  - chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
-  - ./doc/ci/travis/${BUILD_NAME}/install.sh
-
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
+- ./doc/ci/travis/${BUILD_NAME}/install.sh
 script:
-  - chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
-  - ./doc/ci/travis/${BUILD_NAME}/script.sh
-  # push automatically generated doxygen html files to gh-pages branch, only once
-  - 'if [ $BUILD_NAME == "linux_gcc48" ]; then
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
+- ./doc/ci/travis/${BUILD_NAME}/script.sh
+- 'if [ $BUILD_NAME == "linux_gcc48" ]; then
       openssl aes-256-cbc -K $encrypted_9c89c5b645f3_key -iv $encrypted_9c89c5b645f3_iv
         -in doc/doxygen/travisci_rsa.enc -out doc/doxygen/travisci_rsa -d;
       sudo apt-get install doxygen graphviz;
@@ -53,14 +50,12 @@ script:
       chmod 700 doc/doxygen/publish-doxygen;
       "./doc/doxygen/publish-doxygen";
     fi'
-
-notifications:
-  email:false
+notifications: email:false
 deploy:
   provider: releases
   api_key:
-    secure: none
-  file: 
+    secure: jgiGDho/CV4PPpKFY/SVDmeSI/oJiYUSZR3ByBNtsZa+4/EABOXQeviqQkzXbtA1Ltst7kklnQo8DXPmGpM17hB6bojSD2rX0g6NZc6qvNxu/rq3kS6YPQ4+xWZh1ZPYjx4JvXXhOUKv+6uQNhH+nmQk4lrAiWYtxhuQMIDWQ8U+QYkLauxA0Jr5XodECg6BaKpyaqg+e4NLe3b0C+92+OxRjLjb5zN+6uljH2QxKSH1gvgoIns9nQ3EOPGdseITEUyxdbQEax8HEhku05gdt4Xi/Nre4e8nvVtiajzlxnC83zo2r0o3yEjfqxlOE6ZlAf/elGWwEjv+GFsJmApNuVsuTyvKSUmpk9pZ9Scau47dmX7EY2Sw//MXGjUX/7Zedn9ilm9/gNVfZw8dpWFy/xLGckMbs6vqlNed2xhuC9aHQ2INnO9RSk4qeacIVibf3mGrMFziVLCkUdU3sIh1tPRteg3KUZHzRJOD9tjbmD+xgSs/vh+R4oDfFziu0mgBYwNsd0mvVDEqwXremi70YHXWNbyiqw2RYwoR8em8aNFr8mOiFdpgCeTtisryjPPzlSdwoD2SxRoU1dQapvBTj4+cpSDWtJ5XIEaEBaGSTB51+8jeNGYNxDed36+zbZsMX8Hlnpjmgx1nW6sPZKQHHDHq52bPgMJ60N0L7Ecrn8g=
+  file:
     - seims_longterm_${BUILD_NAME}.zip
     - seims_storm_${BUILD_NAME}.zip
   skip_cleanup: true
