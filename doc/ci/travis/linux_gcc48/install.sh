@@ -8,14 +8,14 @@ cd seims
 # longterm version
 mkdir buildlongterm
 cd buildlongterm
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=../../seims_longterm_linux_gcc48/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_longterm_linux_gcc48/seims/bin
 make -j4
 make install
 cd ..
 # storm version
 mkdir buildstorm
 cd buildstorm
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DSTORM=1 -DINSTALL_PREFIX=../../seims_storm_linux_gcc48/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DSTORM=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_storm_linux_gcc48/seims/bin
 make -j4
 make install
 cd ../..
@@ -24,6 +24,7 @@ ls
 # 1. longterm
 cp *.md seims_longterm_linux_gcc48
 cp -R data seims_longterm_linux_gcc48/data
+mkdir -p seims_longterm_linux_gcc48/doc
 cp -R doc/theory seims_longterm_linux_gcc48/doc/theory
 cp -R doc/wiki seims_longterm_linux_gcc48/doc/wiki
 cp seims/*.* seims_longterm_linux_gcc48/seims
@@ -35,6 +36,7 @@ cp -R seims/calibration seims_longterm_linux_gcc48/seims/calibration
 # 2. storm
 cp *.md seims_storm_linux_gcc48
 cp -R data seims_storm_linux_gcc48/data
+mkdir -p seims_storm_linux_gcc48/doc
 cp -R doc/theory seims_storm_linux_gcc48/doc/theory
 cp -R doc/wiki seims_storm_linux_gcc48/doc/wiki
 cp seims/*.* seims_storm_linux_gcc48/seims
