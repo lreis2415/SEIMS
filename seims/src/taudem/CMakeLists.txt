@@ -40,8 +40,8 @@ ELSE ()
     find_package(GDAL REQUIRED)
     # 2. MPI
     find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAGS} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+    set(CMAKE_CXX_FLAG "${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS}")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
 ENDIF ()
 # Set a default build type for single-configuration
 # CMake generators if no build type is set.
@@ -51,7 +51,7 @@ ENDIF()
 
 # Select flags.
 # refers to https://software.intel.com/en-us/articles/intel-cluster-toolkit-for-linux-error-when-compiling-c-aps-using-intel-mpi-library-compilation-driver-mpiicpc
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX")
 SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
