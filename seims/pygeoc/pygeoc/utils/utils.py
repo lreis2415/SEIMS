@@ -298,10 +298,18 @@ class FileClass(object):
 
     @staticmethod
     def get_core_name_without_suffix(file_path):
-        """Return core file name without suffix."""
+        """Return core file name without suffix.
+        Examples:
+            /home/zhulj/1990.01.30/test.01.tif ==> test.01
+            C:\zhulj\igsnrr\lreis.txt ==> lreis
+            /home/zhulj/dta/taudem/area8 ==> area8
+        """
         file_name = os.path.basename(file_path)
-        core_name = file_name.split('.')[0]
-        return core_name
+        core_names = file_name.split('.')[:-1]
+        if isinstance(core_names, list):
+            return '.'.join(core_names)
+        else:
+            return core_names
 
 
 class DateClass(object):
