@@ -242,7 +242,7 @@ class SpatialDelineation(object):
         if cfg.is_TauDEM:
             shutil_copy(flow_dir_file_tau, output_flow_dir_file)
         else:
-            D8Util.convert_flowcode_td_to_ag(flow_dir_file_tau, output_flow_dir_file)
+            D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
 
         # convert raster to shapefile (for subbasin and basin)
         print "Generating subbasin vector..."
