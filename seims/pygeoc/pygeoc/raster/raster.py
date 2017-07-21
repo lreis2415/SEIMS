@@ -6,18 +6,35 @@
     changlog: 12-04-12 jz - origin version
               16-07-01 lj - reorganized for pygeoc
               17-06-25 lj - check by pylint and reformat by Google style
+              17-07-20 lj - add GDALDataType dict, and WhiteBox GAT D8 code
 """
 import os
 import subprocess
 
 import numpy
-from osgeo.gdal import GDT_Float32, GDT_Int32
+from osgeo.gdal import GDT_CInt16, GDT_CInt32, GDT_CFloat32, GDT_CFloat64
+from osgeo.gdal import GDT_UInt32, GDT_Int32, GDT_Float32, GDT_Float64
+from osgeo.gdal import GDT_Unknown, GDT_Byte, GDT_UInt16, GDT_Int16
 from osgeo.gdal import GetDriverByName as gdal_GetDriverByName
 from osgeo.gdal import Open as gdal_Open
 from osgeo.ogr import Open as ogr_Open
 from osgeo.osr import SpatialReference as osr_SpatialReference
 
-from ..utils.utils import UtilClass, DEFAULT_NODATA, DELTA
+from ..utils.utils import MathClass, UtilClass, DEFAULT_NODATA, DELTA
+
+GDALDataType = {0: GDT_Unknown,  # Unknown or unspecified type
+                1: GDT_Byte,  # Eight bit unsigned integer
+                2: GDT_UInt16,  # Sixteen bit unsigned integer
+                3: GDT_Int16,  # Sixteen bit signed integer
+                4: GDT_UInt32,  # Thirty two bit unsigned integer
+                5: GDT_Int32,  # Thirty two bit signed integer
+                6: GDT_Float32,  # Thirty two bit floating point
+                7: GDT_Float64,  # Sixty four bit floating point
+                8: GDT_CInt16,  # Complex Int16
+                9: GDT_CInt32,  # Complex Int32
+                10: GDT_CFloat32,  # Complex Float32
+                11: GDT_CFloat64  # Complex Float64
+                }
 
 
 class Raster(object):
@@ -33,7 +50,8 @@ class Raster(object):
         7. get_value_by_xy(x, y)
     """
 
-    def __init__(self, n_rows, n_cols, data, nodata_value=None, geotransform=None, srs=None):
+    def __init__(self, n_rows, n_cols, data, nodata_value=None, geotransform=None,
+                 srs=None, datatype=GDT_Float32):
         """Constructor
         Args:
             n_rows: row count
@@ -42,6 +60,7 @@ class Raster(object):
             nodata_value: NODATA value, None as default
             geotransform: geographic transformation, None as default
             srs: coordinate system, None as default
+            datatype: Raster datatype
         """
         self.nRows = n_rows
         self.nCols = n_cols
@@ -49,6 +68,7 @@ class Raster(object):
         self.noDataValue = nodata_value
         self.geotrans = geotransform
         self.srs = srs
+        self.dataType = datatype
 
         self.dx = geotransform[1]
         self.xMin = geotransform[0]
@@ -57,6 +77,11 @@ class Raster(object):
         self.yMin = geotransform[3] + n_rows * geotransform[5]
         self.validZone = self.data != self.noDataValue
         self.validValues = numpy.where(self.validZone, self.data, numpy.nan)
+
+    def get_type(self):
+        """get datatype as GDALDataType"""
+        assert self.dataType in GDALDataType
+        return GDALDataType.get(self.dataType)
 
     def get_average(self):
         """Get average exclude NODATA"""
@@ -160,6 +185,7 @@ class RasterUtilClass(object):
 
         nodata_value = band.GetNoDataValue()
         geotrans = ds.GetGeoTransform()
+        type = band.DataType
 
         srs = osr_SpatialReference()
         srs.ImportFromWkt(ds.GetProjection())
@@ -168,7 +194,7 @@ class RasterUtilClass(object):
             nodata_value = DEFAULT_NODATA
         band = None
         ds = None
-        return Raster(ysize, xsize, data, nodata_value, geotrans, srs)
+        return Raster(ysize, xsize, data, nodata_value, geotrans, srs, type)
 
     @staticmethod
     def get_mask_from_raster(rasterfile, outmaskfile):
@@ -225,21 +251,31 @@ class RasterUtilClass(object):
         return Raster(y_size_mask, x_size_mask, mask, DEFAULT_NODATA, mask_geotrans, srs)
 
     @staticmethod
-    def raster_reclassify(srcfile, vDict, dstfile, gdaltype=GDT_Float32):
+    def raster_reclassify(srcfile, v_dict, dstfile, gdaltype=GDT_Float32):
         """Reclassify raster by given classifier dict.
         Args:
             srcfile: source raster file
-            vDict: classifier dict
+            v_dict: classifier dict
             dstfile: destination file path
-            gdaltype: GDT_Float32 as default.
+            gdaltype: GDT_Float32 as default. Also, it can be integer, e.g., 4 ==> GDT_UInt32
         """
         src_r = RasterUtilClass.read_raster(srcfile)
         src_data = src_r.data
         dst_data = numpy.copy(src_data)
-        for k, v in vDict.iteritems():
+        if gdaltype == GDT_Float32 and src_r.dataType != GDT_Float32:
+            gdaltype = src_r.dataType
+        no_data = src_r.noDataValue
+        # set NoDataValue to DEFAULT_NODATA
+        if gdaltype not in [GDT_Unknown, GDT_Byte]:
+            if not MathClass.floatequal(DEFAULT_NODATA, src_r.noDataValue):
+                if src_r.noDataValue not in v_dict:
+                    v_dict[src_r.noDataValue] = DEFAULT_NODATA
+                    no_data = DEFAULT_NODATA
+
+        for k, v in v_dict.iteritems():
             dst_data[src_data == k] = v
             RasterUtilClass.write_gtiff_file(dstfile, src_r.nRows, src_r.nCols, dst_data,
-                                             src_r.geotrans, src_r.srs, src_r.noDataValue, gdaltype)
+                                             src_r.geotrans, src_r.srs, no_data, gdaltype)
 
     @staticmethod
     def write_gtiff_file(f_name, n_rows, n_cols, data, geotransform, srs, nodata_value,
@@ -301,6 +337,8 @@ class RasterUtilClass(object):
             gdal_type: GDT_Float32 as default
         """
         rst_file = RasterUtilClass.read_raster(tif)
+        if gdal_type != rst_file.dataType and rst_file.dataType in GDALDataType:
+            gdal_type = rst_file.dataType
         RasterUtilClass.write_gtiff_file(geotif, rst_file.nRows, rst_file.nCols, rst_file.data,
                                          rst_file.geotrans, rst_file.srs, rst_file.noDataValue,
                                          gdal_type)
