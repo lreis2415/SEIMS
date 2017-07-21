@@ -2,4 +2,5 @@
 
 set -e
 # Run unittest
-./seims/bin/seims_ut_exec
+./seims_longterm_linux_gcc48/seims/bin/seims_ut_exec
+./seims_storm_linux_gcc48/seims/bin/seims_ut_exec
