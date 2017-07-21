@@ -5,7 +5,7 @@
     @changelog: 17-05-15  lj - initial version modified from Whitebox GAT.
                 17-06-29  lj - reorganized according to pylint and google style
                 17-07-20  lj - bug fixed of downstream_method_whitebox() method of Whitebox GAT
-                               see details at 
+                               see details at https://github.com/lreis2415/SEIMS/issues/1
 """
 import os
 
@@ -69,8 +69,7 @@ class DelineateHillslope(object):
 
         def inflow_stream_number(vrow, vcol, flowmodel="taudem"):
             """
-            Count the inflow cell number that is stream
-            And coordinates of all inflow cells
+            Count the inflow stream cell number and coordinates of all inflow cells
             Args:
                 vrow: row number
                 vcol: col number
@@ -134,7 +133,7 @@ class DelineateHillslope(object):
         def assign_hillslope_code_of_neighbors(vrow, vcol, flowmodel="taudem"):
             """set hillslope code for neighbors of current stream cell."""
             stream_coors.append((vrow, vcol))
-            in_strm_num, in_coors = inflow_stream_number(vrow, vcol)
+            in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
             strm_id = stream_data[vrow][vcol]
             # print ("Assign hillslope code for stream cell, r: %d, c: %d, ID: %d" % (vrow, vcol,
             #                                                                         int(strm_id)))
@@ -149,7 +148,7 @@ class DelineateHillslope(object):
                 if cur_d8_value <= 0 or cur_d8_value == flowd8_nodata:
                     return
                 dirv = int(cur_d8_value)  # direction code
-                d_idx = FlowModelConst.d8_dirs.get(d8alg).index(dirv)  # direction index
+                d_idx = FlowModelConst.d8_dirs.get(flowmodel).index(dirv)  # direction index
                 # look to the right side, i.e. clockwise
                 d_idx_r = d_idx
                 while True and len(in_coors) > 0:
@@ -195,16 +194,32 @@ class DelineateHillslope(object):
                             hillslope_mtx[tmp_row][tmp_col] = hillslp_ids[0]
                             # add the current cell as head stream
                             headstream_coors.append((vrow, vcol))
-                            # Deprecated code, just be caution that recursive calls is very inefficient! lj
-                            # # handle the downstream cell
-                            # if cur_d8_value <= 0 or cur_d8_value == flowd8_nodata:
-                            #     return
-                            # dirv = int(cur_d8_value)  # direction code
-                            # down_r, down_c = D8Util.downstream_index(dirv, vrow, vcol, flowmodel)
-                            # if down_r < 0 or down_r >= nrows or down_c < 0 or down_c >= ncols:
-                            #     return
-                            # if stream_data[down_r][down_c] > 0:
-                            #     assign_hillslope_code_of_neighbors(down_r, down_c, flowmodel)
+
+        def output_hillslope(method_id):
+            """Output hillslope according different stream cell value method."""
+            for (tmp_row, tmp_col) in stream_coors:
+                tmp_hillslp_ids = cal_hillslope_codes(max_id,
+                                                      stream_data[tmp_row][tmp_col])
+                if 0 < method_id < 3:
+                    hillslope_mtx[tmp_row][tmp_col] = tmp_hillslp_ids[method_id]
+                    # is head stream cell?
+                    if (tmp_row, tmp_col) in headstream_coors:
+                        hillslope_mtx[tmp_row][tmp_col] = tmp_hillslp_ids[0]
+                elif method_id == 3:
+                    hillslope_mtx[tmp_row][tmp_col] = DEFAULT_NODATA
+            # Output to raster file
+            hillslope_out_new = hillslope_out
+            dirpath = os.path.dirname(hillslope_out_new) + os.sep
+            corename = FileClass.get_core_name_without_suffix(hillslope_out_new)
+            if method_id == 1:
+                hillslope_out_new = dirpath + corename + '_right.tif'
+            elif method_id == 2:
+                hillslope_out_new = dirpath + corename + '_left.tif'
+            elif method_id == 3:
+                hillslope_out_new = dirpath + corename + '_nodata.tif'
+            RasterUtilClass.write_gtiff_file(hillslope_out_new, nrows, ncols,
+                                             hillslope_mtx,
+                                             geotrans, srs, DEFAULT_NODATA, datatype)
 
         # 1. assign a unique id to each link in the stream network if needed
         assign_stream_id = False
@@ -277,29 +292,6 @@ class DelineateHillslope(object):
                 # set the source cells
                 for (crow, ccol) in tmpcoors:
                     hillslope_mtx[crow][ccol] = hillslp_id
-
-        def output_hillslope(method_id):
-            for (tmp_row, tmp_col) in stream_coors:
-                tmp_hillslp_ids = cal_hillslope_codes(max_id, stream_data[tmp_row][tmp_col])
-                if 0 < method_id < 3:
-                    hillslope_mtx[tmp_row][tmp_col] = tmp_hillslp_ids[method_id]
-                    # is head stream cell?
-                    if (tmp_row, tmp_col) in headstream_coors:
-                        hillslope_mtx[tmp_row][tmp_col] = tmp_hillslp_ids[0]
-                elif method_id == 3:
-                    hillslope_mtx[tmp_row][tmp_col] = DEFAULT_NODATA
-            # Output to raster file
-            hillslope_out_new = hillslope_out
-            dirpath = os.path.dirname(hillslope_out_new) + os.sep
-            corename = FileClass.get_core_name_without_suffix(hillslope_out_new)
-            if method_id == 1:
-                hillslope_out_new = dirpath + corename + '_right.tif'
-            elif method_id == 2:
-                hillslope_out_new = dirpath + corename + '_left.tif'
-            elif method_id == 3:
-                hillslope_out_new = dirpath + corename + '_nodata.tif'
-            RasterUtilClass.write_gtiff_file(hillslope_out_new, nrows, ncols, hillslope_mtx,
-                                             geotrans, srs, DEFAULT_NODATA, datatype)
 
         # 4. reassign stream cell's value according to stream_value_method, and output
         if stream_value_method < 0:  # output
