@@ -1,9 +1,8 @@
-version: SEIMS-Win64.{build}
-pull_requests:
-  do_not_increment_build_number: true
+version: SEIMS-Win64.{build}.{branch}
 branches:
   only:
   - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 image: Visual Studio 2013
 configuration: Release
 platform: x64
@@ -53,25 +52,64 @@ install:
   - "powershell doc\\ci\\appveyor\\install-msmpi.ps1"
   - "doc\\ci\\appveyor\\SetEnvMPI.cmd"
 build_script:
-  # make directory for installation
-  - mkdir C:\bin\seims_longterm
-  - mkdir C:\bin\seims_storm
-  - cd C:\projects\seims\seims
+  # make directory for releases
+  - cd C:\projects\seims
+  - mkdir seims_longterm_win64bit\seims\bin
+  - mkdir seims_storm_win64bit\seims\bin
   - ps: "ls"
+  - cd seims
+  # Build 64-bit LONGTERM release version on Windows, and build unittest.
   - mkdir buildlongterm64
   - cd buildlongterm64
-  # Build 64-bit LONGTERM release version on Windows, and build unittest.
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\bin\seims_longterm
-  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_longterm_win64bit\seims\bin
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # Build 64-bit STORM release version on Windows, and build unittest.
   - cd ..
   - mkdir buildstorm64
   - cd buildstorm64
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\bin\seims_storm
-  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_storm_win64bit\seims\bin
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
+  # copy files to releases
+  # longterm
+  - copy C:\projects\seims\*.md C:\projects\seims\seims_longterm_win64bit
+  - xcopy C:\projects\seims\data C:\projects\seims\seims_longterm_win64bit\data /e /c /i /y
+  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_longterm_win64bit\doc\theory /e /c /i /y
+  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_longterm_win64bit\doc\wiki /e /c /i /y
+  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_longterm_win64bit\seims
+  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_longterm_win64bit\seims\pygeoc /e /c /i /y
+  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_longterm_win64bit\seims\preprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_longterm_win64bit\seims\postprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_longterm_win64bit\seims\scenario_analysis /e /c /i /y
+  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_longterm_win64bit\seims\calibration /e /c /i /y
+  # storm
+  - copy C:\projects\seims\*.md C:\projects\seims\seims_storm_win64bit
+  - xcopy C:\projects\seims\data C:\projects\seims\seims_storm_win64bit\data /e /c /i /y
+  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_storm_win64bit\doc\theory /e /c /i /y
+  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_storm_win64bit\doc\wiki /e /c /i /y
+  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_storm_win64bit\seims
+  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_storm_win64bit\seims\pygeoc /e /c /i /y
+  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_storm_win64bit\seims\preprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_storm_win64bit\seims\postprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_storm_win64bit\seims\scenario_analysis /e /c /i /y
+  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_storm_win64bit\seims\calibration /e /c /i /y
 test_script:
   # Run unit test. TODO to complete unittest code.
-  - C:\bin\seims_longterm\seims_ut_exec.exe
-  - C:\bin\seims_storm\seims_ut_exec.exe
+  - C:\projects\seims\seims_longterm_win64bit\seims\bin\seims_ut_exec.exe
+  - C:\projects\seims\seims_storm_win64bit\seims\bin\seims_ut_exec.exe
+artifacts:
+- path: seims_longterm_win64bit
+  name: seims_longterm_win64bit
+  type: zip
+- path: seims_storm_win64bit
+  name: seims_storm_win64bit
+  type: zip
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: /br3cLS15FA2D1MnSbZPrsRxLMfN9wNQaRZ30ye1adfFK7HOHmRmPtWZGdgZzuke
+  artifact: seims_longterm_win64bit.zip,seims_storm_win64bit.zip
+  force_update: true
+  on:
+    appveyor_repo_tag: true
