@@ -1,10 +1,11 @@
-version: SEIMS-Win64.{build}
+version: SEIMS-Win64.{build}.{branch}
 branches:
   only:
   - master
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 image: Visual Studio 2013
 configuration: Release
+platform: x64
 services: mongodb
 build:
   parallel: true
@@ -107,7 +108,7 @@ artifacts:
 deploy:
 - provider: GitHub
   auth_token:
-    secure: quf/i/fByIELebKvvhXSGEWxHKEHLuZaOo6pvDOeZ5MdunrFSJh3GGQUvlZLPGVL
+    secure: /br3cLS15FA2D1MnSbZPrsRxLMfN9wNQaRZ30ye1adfFK7HOHmRmPtWZGdgZzuke
   artifact: seims_longterm_win64bit.zip,seims_storm_win64bit.zip
   force_update: true
   on:
