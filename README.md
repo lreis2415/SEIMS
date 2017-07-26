@@ -10,7 +10,7 @@ Selected build environments：
 
 ## 1.Brief introduction
 
-The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is an integrated, modular, parallized, fully-distributed, and continuous Watershed modeling and scenario analysis system.
+The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is an integrated, modular, parallellized, fully-distributed, and continuous Watershed modeling and scenario analysis system.
 
 SEIMS is mainly written by **C++** with support of [GDAL](https://github.com/OSGeo/gdal), [Mongo-C-Driver](https://github.com/mongodb/mongo-c-driver), [OpenMP](https://en.wikipedia.org/wiki/OpenMP) and/or [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface), while **Python** is used for organizing the preprocessing, postprocessing, scenario analysis, etc. workflows. SEIMS is intented to be an open-source, cross-platform, and high performaced integrated watershed modeling system. Theoretically, SEIMS could be compiled by common used compiler (e.g. MSVC, GCC, and Clang) as 32-bit or 64-bit programs and run on any mainstream OS (e.g. Windows, Linux, and macOS).
 
