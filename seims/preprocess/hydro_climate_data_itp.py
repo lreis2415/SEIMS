@@ -17,7 +17,8 @@ from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, MathClass
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,
-                                                  time_sys_output='UTCTIME', day_divided_hour=24):
+                                                  eliminate_zero=False,
+                                                  time_sys_output='UTCTIME', day_divided_hour=0):
     """
     Interpolate not regular observed data to regular time interval data.
     Args:
@@ -33,32 +34,48 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         start_time: start time, the format must be 'YYYY-mm-dd HH:MM:SS', and the time system
                     is based on time_sys.
         end_time: end time, see also start_time.
+        eliminate_zero: Boolean flag. If true, the time interval without original records will
+                        not be output.
         time_sys_output: time system of output time_system, the format must be
                   '<time_system> [<time_zone>]', e.g.,
                   'LOCALTIME'
                   'LOCALTIME 8'
                   'UTCTIME' (default)
         day_divided_hour: If the time_interval is equal to N*1440, this parameter should be
-                          carefully specified. The value must range from 1 to 24. e.g.,
+                          carefully specified. The value must range from 0 to 23. e.g.,
                           day_divided_hour ==> day ranges (all expressed as 2013-02-03)
-                          24 ==> 2013-02-03 00:00:00 to 2013-02-03 23:59:59 (default)
-                          20 ==> 2013-02-02 20:00:00 to 2013-02-03 19:59:59
-                          8  ==> 2013-02-03 08:00:00 to 2013-02-03 07:59:59
+                          0  ==> 2013-02-03 00:00:00 to 2013-02-03 23:59:59 (default)
+                          8  ==> 2013-02-03 08:00:00 to 2013-02-04 07:59:59
+                          20 ==> 2013-02-03 20:00:00 to 2013-02-04 19:59:59
     Returns:
         The output data files are located in the same directory with the input file.
-        The nomenclature is: <field name>_<time system>_<time interval>, e.g.,
-        pcp_utctime_1440.txt, flow_localtime_60.txt
+        The nomenclature is: <field name>_<time system>_<time interval>_<nonzero>, e.g.,
+        pcp_utctime_1440_nonzero.txt, flow_localtime_60.txt
     """
     FileClass.check_file_exists(in_file)
     time_sys_input, time_zone_input = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
     data_items = read_data_items_from_txt(in_file)
     flds = data_items[0][:]
     data_items.remove(flds)
+    if not 0 <= day_divided_hour <= 23:
+        raise ValueError("Day divided hour must range from 0 to 23!")
     try:
         date_idx = flds.index('DATETIME')
         flds.remove('DATETIME')
     except ValueError:
         raise ValueError("DATETIME must be one of the fields!")
+    # available field
+    available_flds = ['FLOW', 'SED', 'PCP']
+
+    def check_avaiable_field(cur_fld):
+        """Check if the given field name is supported."""
+        support_flag = False
+        for fff in available_flds:
+            if fff.lower() in cur_fld.lower():
+                support_flag = True
+                break
+        return support_flag
+
     ord_data = OrderedDict()
     time_zone_output = time.timezone / -3600
     if time_sys_output.lower().find('local') >= 0:
@@ -81,21 +98,25 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         for i, v in enumerate(item):
             if i == date_idx:
                 continue
-            ord_data[org_datetime].append(float(v))
+            if MathClass.isnumerical(v):
+                ord_data[org_datetime].append(float(v))
+            else:
+                ord_data[org_datetime].append(v)
     # print (ord_data)
     itp_data = OrderedDict()
     out_time_delta = timedelta(minutes=time_interval)
     sdatetime = HydroClimateUtilClass.get_datetime_from_string(start_time)
     edatetime = HydroClimateUtilClass.get_datetime_from_string(end_time)
-    item_dtime = sdatetime + out_time_delta - timedelta(seconds=1)
+    item_dtime = sdatetime
     if time_interval % 1440 == 0:
         item_dtime = sdatetime.replace(hour=0, minute=0, second=0) + \
-                     timedelta(minutes=day_divided_hour * 60) - timedelta(seconds=1)
+                     timedelta(minutes=day_divided_hour * 60)
     while item_dtime <= edatetime:
         # print (item_dtime)
-        itp_data[item_dtime] = []
-        sdt = item_dtime - out_time_delta + timedelta(seconds=1)  # current start datetime
-        edt = item_dtime + timedelta(seconds=1)  # current start datetime
+        # if item_dtime.month == 12 and item_dtime.day == 31:
+        #     print ("debug")
+        sdt = item_dtime  # start datetime of records
+        edt = item_dtime + out_time_delta  # end datetime of records
         # get original data items
         org_items = []
         pre_dt = list(ord_data.keys())[0]
@@ -114,14 +135,19 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
             org_items.append([edt])  # Just add end time for compute convenient
             if org_items[0][0] < sdt:
                 org_items[0][0] = sdt  # set the begin datetime of current time interval
-        for v_idx, v_name in enumerate(flds):
-            itp_data[item_dtime].append(0)
+        # if eliminate time interval without original records
+        # initial interpolated list
+        itp_data[item_dtime] = [0.] * len(flds)
         if len(org_items) == 0:
+            if eliminate_zero:
+                itp_data.popitem()
             item_dtime += out_time_delta
             continue
         # core interpolation code
         flow_idx = -1
         for v_idx, v_name in enumerate(flds):
+            if not check_avaiable_field(v_name):
+                continue
             if 'SED' in v_name.upper():  # FLOW must be existed
                 for v_idx2, v_name2 in enumerate(flds):
                     if 'FLOW' in v_name2.upper():
@@ -130,6 +156,8 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                 if flow_idx < 0:
                     raise RuntimeError("To interpolate SED, FLOW must be provided!")
         for v_idx, v_name in enumerate(flds):
+            if not check_avaiable_field(v_name):
+                continue
             itp_value = 0.
             itp_auxiliary_value = 0.
             for org_item_idx, org_item_dtv in enumerate(org_items):
@@ -147,6 +175,10 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                 else:
                     itp_value += pre_item_dtv[v_idx + 1] * tmp_delta_secs
             if 'SED' in v_name.upper():
+                if MathClass.floatequal(itp_auxiliary_value, 0.):
+                    itp_value = 0.
+                    print ("WARNING: Flow is 0 for %s, please check!" %
+                           item_dtime.strftime('%Y-%m-%d %H:%M:%S'))
                 itp_value /= itp_auxiliary_value
             elif 'FLOW' in v_name.upper():
                 itp_value /= (out_time_delta.days * 86400 + out_time_delta.seconds)
@@ -163,7 +195,12 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     if time_sys_output == 'LOCALTIME':
         header_str = header_str + ' ' + str(time_zone_output)
     for idx, fld in enumerate(flds):
-        file_name = fld + '_' + time_sys_output + '_' + str(time_interval) + '.txt'
+        if not check_avaiable_field(fld):
+            continue
+        file_name = fld + '_' + time_sys_output + '_' + str(time_interval)
+        if eliminate_zero:
+            file_name += '_nonzero'
+        file_name += '.txt'
         out_file = work_path + os.sep + file_name
         f = open(out_file, 'w')
         f.write(header_str + '\n')
@@ -176,15 +213,15 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
 
 def main():
     """TEST CODE"""
-    data_file = r'C:\z_data\ChangTing\observed\HE3520133140\2012\2012_storm_flow_sediment_not_regular.txt'
-    #data_file = r'C:\z_data\ChangTing\climate\pcp\2014_pcp.txt'
+    data_file = r'C:\z_data\ChangTing\climate\pcp\2014_pcp_storm_non_regular.txt'
     time_interval = 1440
-    time_system = 'UTCTIME'
-    stime = '2012-01-01 00:00:00'
-    etime = '2012-12-31 23:59:59'
-    divided_hour = 24
-    interpolate_observed_data_to_regular_interval(data_file, time_interval,
-                                                  stime, etime, time_system, divided_hour)
+    stime = '2014-01-01 00:00:00'
+    etime = '2014-12-31 23:59:59'
+    elim_zero = False
+    out_time_system = 'UTCTIME'
+    divided_hour = 0
+    interpolate_observed_data_to_regular_interval(data_file, time_interval, stime, etime,
+                                                  elim_zero, out_time_system, divided_hour)
 
 
 if __name__ == "__main__":
