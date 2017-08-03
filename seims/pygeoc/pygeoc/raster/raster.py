@@ -265,17 +265,18 @@ class RasterUtilClass(object):
         if gdaltype == GDT_Float32 and src_r.dataType != GDT_Float32:
             gdaltype = src_r.dataType
         no_data = src_r.noDataValue
-        # set NoDataValue to DEFAULT_NODATA
-        if gdaltype not in [GDT_Unknown, GDT_Byte]:
-            if not MathClass.floatequal(DEFAULT_NODATA, src_r.noDataValue):
-                if src_r.noDataValue not in v_dict:
-                    v_dict[src_r.noDataValue] = DEFAULT_NODATA
-                    no_data = DEFAULT_NODATA
+        new_no_data = DEFAULT_NODATA
+        if gdaltype in [GDT_Unknown, GDT_Byte, GDT_UInt16, GDT_UInt32]:
+            new_no_data = 0
+        if not MathClass.floatequal(new_no_data, src_r.noDataValue):
+            if src_r.noDataValue not in v_dict:
+                v_dict[src_r.noDataValue] = new_no_data
+                no_data = new_no_data
 
         for k, v in v_dict.iteritems():
             dst_data[src_data == k] = v
-            RasterUtilClass.write_gtiff_file(dstfile, src_r.nRows, src_r.nCols, dst_data,
-                                             src_r.geotrans, src_r.srs, no_data, gdaltype)
+        RasterUtilClass.write_gtiff_file(dstfile, src_r.nRows, src_r.nCols, dst_data,
+                                         src_r.geotrans, src_r.srs, no_data, gdaltype)
 
     @staticmethod
     def write_gtiff_file(f_name, n_rows, n_cols, data, geotransform, srs, nodata_value,
