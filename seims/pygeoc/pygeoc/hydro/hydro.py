@@ -4,7 +4,7 @@
     author: Liangjun Zhu
     changlog: 17-06-25 lj - check by pylint and reformat by Google style
 """
-from ..raster.raster import RasterUtilClass
+from ..raster.raster import RasterUtilClass, GDALDataType
 from ..utils.utils import PI, SQ2
 from ..utils.utils import FileClass
 
@@ -130,7 +130,7 @@ class D8Util(object):
         return i + drow, j + dcol
 
     @staticmethod
-    def convert_code(in_file, out_file, in_alg="taudem", out_alg="arcgis"):
+    def convert_code(in_file, out_file, in_alg="taudem", out_alg="arcgis", datatype=None):
         """
         convert D8 flow direction code from one algorithm to another.
         Args:
@@ -138,6 +138,7 @@ class D8Util(object):
             out_file: output raster file path
             in_alg: available algorithms are in FlowModelConst.d8_dirs. "taudem" is the default
             out_alg: same as in_alg. "arcgis" is the default
+            datatype: default is None and use the datatype of the in_file
         """
         FileClass.check_file_exists(in_file)
         in_alg = in_alg.lower()
@@ -151,4 +152,7 @@ class D8Util(object):
         assert len(in_code) == len(out_code)
         for i in range(len(in_code)):
             convert_dict[in_code[i]] = out_code[i]
-        RasterUtilClass.raster_reclassify(in_file, convert_dict, out_file)
+        if datatype is not None and datatype in GDALDataType:
+            RasterUtilClass.raster_reclassify(in_file, convert_dict, out_file, datatype)
+        else:
+            RasterUtilClass.raster_reclassify(in_file, convert_dict, out_file)

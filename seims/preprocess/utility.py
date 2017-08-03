@@ -12,7 +12,7 @@ MINI_SLOPE = 0.0001
 DEFAULT_NODATA = -9999.
 SQ2 = 1.4142135623730951
 PI = 3.141592653589793
-LFs = ['\r\n', '\n\r', '\r', '\n']
+LFs = ['\r', '\n', '\r\n']
 
 
 def status_output(status_msg, percent, file_object):
@@ -51,5 +51,3 @@ def read_data_items_from_txt(txt_file):
             data_items.append(line_list)
     f.close()
     return data_items
-
-
