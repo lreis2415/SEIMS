@@ -6,8 +6,13 @@
                 17-06-23  lj - reformat according to pylint and google style
 """
 import math
+import time
+
+from datetime import datetime
 
 from seims.preprocess.text import DBTableNames, StationFields
+from seims.preprocess.utility import LFs
+from seims.pygeoc.pygeoc.utils.utils import StringClass, MathClass
 
 
 class HydroClimateUtilClass(object):
@@ -66,6 +71,44 @@ class HydroClimateUtilClass(object):
                                                         dic[StationFields.y],
                                                         dic[StationFields.elev])
         return sites_loc
+
+    @staticmethod
+    def get_datetime_from_string(formatted_str):
+        """get datetime() object from string formatted %Y-%m-%d %H:%M:%S"""
+        try:
+            org_time = time.strptime(formatted_str, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            raise ValueError("The format of DATETIME must be %Y-%m-%d %H:%M:%S!")
+        return datetime(org_time.tm_year, org_time.tm_mon, org_time.tm_mday,
+                        org_time.tm_hour, org_time.tm_min, org_time.tm_sec)
+
+    @staticmethod
+    def get_time_system_from_data_file(in_file):
+        """Get the time system from the data file. The basic format is:
+           #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
+        """
+        time_sys = 'LOCALTIME'
+        time_zone = time.timezone / -3600
+        f = open(in_file)
+        for line in f:
+            str_line = line
+            for LF in LFs:
+                if LF in line:
+                    str_line = line.split(LF)[0]
+                    break
+            if str_line[0] != '#':
+                break
+            if str_line.lower().find('utc') >= 0:
+                time_sys = 'UTCTIME'
+                time_zone = 0
+                break
+            if str_line.lower().find('local') >= 0:
+                line_list = StringClass.split_string(str_line, [','])
+                if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
+                    time_zone = -1 * int(line_list[1])
+                break
+        f.close()
+        return time_sys, time_zone
 
 
 def main():
