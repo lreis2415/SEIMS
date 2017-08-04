@@ -19,5 +19,5 @@ if __name__ == "__main__":
     print ("cell size: %f" % demr.dx)
     print ("Coornate system (if stated): %s" % demr.srs)
     # basic statistics, nodata is excluded
-    print ("mean: %f, max: %f, min: %f" % (demr.GetAverage(), demr.GetMax(), demr.GetMin()))
-    print ("std: %f, sum: %f" % (demr.GetSTD(), demr.GetSum()))
+    print ("mean: %f, max: %f, min: %f" % (demr.get_average(), demr.get_max(), demr.get_min()))
+    print ("std: %f, sum: %f" % (demr.get_std(), demr.get_sum()))

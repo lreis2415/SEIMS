@@ -22,4 +22,4 @@ __author__ = 'LiangJun Zhu'
 __email__ = 'zlj@lreis.ac.cn'
 __version__ = '0.1.2'
 __url__ = 'https://github.com/lreis2415/PyGeoC'
-__all__ = ['hydro', 'raster', 'vector', 'utils']
+__all__ = ['pygeoc']
