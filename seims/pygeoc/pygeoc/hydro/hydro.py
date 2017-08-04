@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Hydrology relation functions, e.g. FlowDirectionCode
+
     author: Liangjun Zhu
-    changlog: 17-06-25 lj - check by pylint and reformat by Google style
+
+    changlog: 17-06-25 lj - check by pylint and reformat by Google style.\n
 """
 from ..raster.raster import RasterUtilClass, GDALDataType
-from ..utils.utils import PI, SQ2
 from ..utils.utils import FileClass
+from ..utils.utils import PI, SQ2
 
 
 class FlowModelConst(object):
@@ -150,8 +152,8 @@ class D8Util(object):
         in_code = FlowModelConst.d8_dirs.get(in_alg)
         out_code = FlowModelConst.d8_dirs.get(out_alg)
         assert len(in_code) == len(out_code)
-        for i in range(len(in_code)):
-            convert_dict[in_code[i]] = out_code[i]
+        for i, tmp_in_code in enumerate(in_code):
+            convert_dict[tmp_in_code] = out_code[i]
         if datatype is not None and datatype in GDALDataType:
             RasterUtilClass.raster_reclassify(in_file, convert_dict, out_file, datatype)
         else:
