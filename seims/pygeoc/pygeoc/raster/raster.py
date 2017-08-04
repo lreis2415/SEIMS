@@ -185,7 +185,7 @@ class RasterUtilClass(object):
 
         nodata_value = band.GetNoDataValue()
         geotrans = ds.GetGeoTransform()
-        type = band.DataType
+        dttype = band.DataType
 
         srs = osr_SpatialReference()
         srs.ImportFromWkt(ds.GetProjection())
@@ -194,7 +194,7 @@ class RasterUtilClass(object):
             nodata_value = DEFAULT_NODATA
         band = None
         ds = None
-        return Raster(ysize, xsize, data, nodata_value, geotrans, srs, type)
+        return Raster(ysize, xsize, data, nodata_value, geotrans, srs, dttype)
 
     @staticmethod
     def get_mask_from_raster(rasterfile, outmaskfile):
@@ -387,12 +387,22 @@ class RasterUtilClass(object):
             cur_field_name = ft.GetFieldAsString(field_name)
             for r in rs:
                 cur_file_name = r.split(os.sep)[-1]
-                outraster = temp_dir + os.sep + cur_file_name.replace('.tif', '_%s.tif' %
-                                                                      cur_field_name.replace(
-                                                                              ' ', '_'))
+                outraster = temp_dir + os.sep + \
+                            cur_file_name.replace('.tif', '_%s.tif' %
+                                                  cur_field_name.replace(' ', '_'))
                 subprocess.call(['gdalwarp', r, outraster, '-cutline', split_shp,
                                  '-crop_to_cutline', '-cwhere',
                                  "'%s'='%s'" % (field_name, cur_field_name), '-dstnodata',
                                  '-9999'])
             ft = lyr.GetNextFeature()
         ds = None
+
+    @staticmethod
+    def get_negative_dem(raw_dem, neg_dem):
+        """Get negative DEM data."""
+        origin = RasterUtilClass.read_raster(raw_dem)
+        max_v = numpy.max(origin.data)
+        temp = origin.data < 0
+        neg = numpy.where(temp, origin.noDataValue, max_v - origin.data)
+        RasterUtilClass.write_gtiff_file(neg_dem, origin.nRows, origin.nCols, neg, origin.geotrans,
+                                         origin.srs, origin.noDataValue, origin.dataType)
