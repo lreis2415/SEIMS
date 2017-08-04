@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""post process of TauDEM
+"""post process of TauDEM.
+
     author: Liangjun Zhu
-    changlog: 12-04-12 jz - origin version
-              16-07-01 lj - reorganized for pygeoc
-              17-06-25 lj - check by pylint and reformat by Google style
+
+    changlog: 12-04-12 jz - origin version.\n
+              16-07-01 lj - reorganized for pygeoc.\n
+              17-06-25 lj - check by pylint and reformat by Google style.\n
 """
 from numpy import frompyfunc, ones, where
 from osgeo.gdal import GDT_Int16, GDT_Float32
