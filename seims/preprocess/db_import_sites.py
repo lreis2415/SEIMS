@@ -8,6 +8,7 @@
 """
 from osgeo.ogr import Open as ogr_Open
 from pymongo import ASCENDING
+from shapely.wkt import loads as shapely_loads
 
 from seims.preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
 from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
@@ -106,7 +107,6 @@ class ImportHydroClimateSites(object):
     @staticmethod
     def ogrwkt2shapely(input_shape, id_field):
         """Return shape objects list and ids list"""
-        from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
