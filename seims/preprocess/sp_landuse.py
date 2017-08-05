@@ -45,10 +45,11 @@ class LanduseUtilClass(object):
                     # Currently, USLE_P is set as 1 for all landuse.
                     value_map[p_name] = 1
                 else:
-                    if StringClass.string_match(p_name, "Manning"):
-                        value_map[p_name] = row.get(p_name) * 10
-                    else:
-                        value_map[p_name] = row.get(p_name)
+                    # I do not know why manning * 10 here. Just uncommented now. lj
+                    # if StringClass.string_match(p_name, "Manning"):
+                    #     value_map[p_name] = row.get(p_name) * 10
+                    # else:
+                    value_map[p_name] = row.get(p_name)
             count += 1
             property_map[count] = value_map
 

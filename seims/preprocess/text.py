@@ -193,9 +193,13 @@ class SubbsnStatsName(object):
 class DataValueFields(object):
     """DATA_VALUES collection"""
     id = 'STATIONID'
+    dt = 'DATETIME'
     y = 'Y'
     m = 'M'
     d = 'D'
+    hour = 'HH'
+    minute = 'MM'
+    second = 'SS'
     type = 'TYPE'
     local_time = 'LOCALDATETIME'
     time_zone = 'UTCOFFSET'
