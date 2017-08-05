@@ -106,11 +106,18 @@ class ImportHydroClimateSites(object):
     @staticmethod
     def ogrwkt2shapely(input_shape, id_field):
         """Return shape objects list and ids list"""
+        # CAUTION, IMPORTANT
+        # Because shapely is dependent on sqlite, and the version is not consistent
+        #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
+        #    must be locally imported here.
         from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
         shp = ogr_Open(input_shape)
+        if shp is None:
+            raise RuntimeError("The input ESRI Shapefile: %s is not existed or has "
+                               "no read permission!" % input_shape)
         lyr = shp.GetLayer()
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
