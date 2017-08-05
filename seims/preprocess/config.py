@@ -90,17 +90,17 @@ class SEIMSConfig(object):
             self.workspace = cf.get('PATH', 'working_dir')
         else:
             raise ValueError("[PATH] section MUST be existed in *.ini file.")
-        if not (FileClass.is_file_exists(self.base_dir)
-                and FileClass.is_file_exists(self.model_dir)
-                and FileClass.is_file_exists(self.txt_db_dir)
-                and FileClass.is_file_exists(self.preproc_script_dir)
-                and FileClass.is_file_exists(self.seims_bin)):
+        if not (FileClass.is_dir_exists(self.base_dir)
+                and FileClass.is_dir_exists(self.model_dir)
+                and FileClass.is_dir_exists(self.txt_db_dir)
+                and FileClass.is_dir_exists(self.preproc_script_dir)
+                and FileClass.is_dir_exists(self.seims_bin)):
             raise IOError("Please Check Directories defined in [PATH]. "
                           "BASE_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, "
                           "and CPP_PROGRAM_DIR are required!")
-        if not FileClass.is_file_exists(self.mpi_bin):
+        if not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None
-        if not os.path.isdir(self.workspace):
+        if not FileClass.is_dir_exists(self.workspace):
             try:  # first try to make dirs
                 os.mkdir(self.workspace)
             except OSError as exc:
@@ -118,22 +118,22 @@ class SEIMSConfig(object):
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
-        if not FileClass.is_file_exists(self.clim_dir):
+        if not FileClass.is_dir_exists(self.clim_dir):
             print ("The CLIMATE_DATA_DIR is not existed, try the default folder name 'climate'.")
             self.clim_dir = self.base_dir + os.sep + 'climate'
-            if not FileClass.is_file_exists(self.clim_dir):
+            if not FileClass.is_dir_exists(self.clim_dir):
                 raise IOError("Directories named 'climate' MUST BE located in [base_dir]!")
 
-        if not FileClass.is_file_exists(self.spatial_dir):
+        if not FileClass.is_dir_exists(self.spatial_dir):
             print ("The SPATIAL_DATA_DIR is not existed, try the default folder name 'spatial'.")
             self.spatial_dir = self.base_dir + os.sep + 'spatial'
             raise IOError("Directories named 'spatial' MUST BE located in [base_dir]!")
 
-        if not FileClass.is_file_exists(self.observe_dir):
+        if not FileClass.is_dir_exists(self.observe_dir):
             self.observe_dir = None
             self.use_observed = False
 
-        if not FileClass.is_file_exists(self.scenario_dir):
+        if not FileClass.is_dir_exists(self.scenario_dir):
             self.scenario_dir = None
             self.use_scernario = False
 

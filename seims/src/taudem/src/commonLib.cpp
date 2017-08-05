@@ -164,6 +164,8 @@ void initNeighborDinfup(tdpartition *neighbor, tdpartition *flowData, queue <nod
         while (!finished) {
             countA = 0;
             countB = 0;
+            vector<node> existed_node;
+            vector<node>::iterator existed_iter;
             while (!toBeEvaled.empty()) {
                 temp = toBeEvaled.front();
                 toBeEvaled.pop();
@@ -182,6 +184,15 @@ void initNeighborDinfup(tdpartition *neighbor, tdpartition *flowData, queue <nod
                             flowData->getdxdyc(jn, tempdxc, tempdyc);
                             p = prop(angle, (k + 4) % 8, tempdxc, tempdyc);
                             if (p > 0.) {
+                                node existed_n;
+                                existed_n.x = in;
+                                existed_n.y = jn;
+                                existed_iter = find(existed_node.begin(), existed_node.end(), existed_n);
+                                if (existed_iter != existed_node.end()){
+                                    neighbor->addToData(i, j, (short)1);
+                                    continue;
+                                }
+                                existed_node.push_back(existed_n);
                                 if (jn == -1) {
                                     bufferAbove[countA] = in;
                                     countA += 1;
