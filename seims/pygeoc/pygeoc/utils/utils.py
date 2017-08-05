@@ -237,8 +237,16 @@ class FileClass(object):
 
     @staticmethod
     def is_file_exists(filename):
-        """Check the existence of file or folder path"""
+        """Check the existence of file path."""
         if filename is None or not os.path.exists(filename) or not os.path.isfile(filename):
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def is_dir_exists(dirpath):
+        """Check the existence of folder path."""
+        if dirpath is None or not os.path.exists(dirpath) or not os.path.isdir(dirpath):
             return False
         else:
             return True
