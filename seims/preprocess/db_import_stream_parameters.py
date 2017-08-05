@@ -128,11 +128,11 @@ class ImportReaches2Mongo(object):
             width_dic: stream width dict
             len_dic: stream length dict
         """
-        down_stream_dic = {}
-        depth_dic = {}
-        slope_dic = {}
-        width_dic = {}
-        len_dic = {}
+        down_stream_dic = dict()
+        depth_dic = dict()
+        slope_dic = dict()
+        width_dic = dict()
+        len_dic = dict()
         ds_reach = ogr_Open(reach_shp)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
@@ -187,7 +187,7 @@ class ImportReaches2Mongo(object):
         print ('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins
-        downstream_up_order_dic = {}
+        downstream_up_order_dic = dict()
         ImportReaches2Mongo.stream_orders_from_outlet_up(downstream_up_order_dic, g, outlet, 1)
         # find the maximum order number
         max_order = 0
@@ -204,7 +204,7 @@ class ImportReaches2Mongo(object):
         nodelist = g.nodes()
         while len(nodelist) != 0:
             nodelist = g.nodes()
-            del_list = []
+            del_list = list()
             for node in nodelist:
                 if g.in_degree(node) == 0:
                     upstream_down_order_dic[node] = order_num

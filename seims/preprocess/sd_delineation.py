@@ -65,7 +65,7 @@ class SpatialDelineation(object):
         np = cfg.np
         TauDEMWorkflow.watershed_delineation(bin_dir, mpi_bin, np, cfg.dem, cfg.outlet_file,
                                              cfg.d8acc_threshold, cfg.d8down_method,
-                                             cfg.taudems, cfg.logs.delineation)
+                                             cfg.taudems, cfg.logs.delineation, singlebasin=True)
 
         #
         # dem = cfg.dem
