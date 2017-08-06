@@ -33,9 +33,9 @@ class ClimateStats(object):
     def add_item(self, item_dict):
         """Add mean temperature of each day. Dict MUST have {YEAR: 2017, TMEAN: 10.} at least."""
         if DataValueFields.y not in item_dict.keys():
-            raise ValueError("The hydroClimate dict must have year!")
+            raise ValueError('The hydroClimate dict must have year!')
         if DataType.mean_tmp not in item_dict.keys():
-            raise ValueError("The hydroClimate dict must have mean temperature!")
+            raise ValueError('The hydroClimate dict must have mean temperature!')
         cur_y = item_dict[DataValueFields.y]
         cur_tmp = item_dict[DataType.mean_tmp]
         if cur_y not in self.Count.keys():
@@ -87,7 +87,7 @@ class ImportMeteoData(object):
             climdb[DBTableNames.data_values].remove({'TYPE': fld})
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
-                raise ValueError("Meteorological Daily data MUST contain %s!" % fld)
+                raise ValueError('Meteorological Daily data MUST contain %s!' % fld)
         # Create bulk object
         bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
         count = 0
@@ -130,7 +130,7 @@ class ImportMeteoData(object):
                 dic[DataType.mean_tmp] = (dic[DataType.max_tmp] + dic[DataType.min_tmp]) / 2.
             if DataType.sr not in dic.keys():
                 if cur_ssd == DEFAULT_NODATA:
-                    raise ValueError(DataType.sr + " or " + DataType.ssd + " must be provided!")
+                    raise ValueError(DataType.sr + ' or ' + DataType.ssd + ' must be provided!')
                 else:
                     if dic[DataValueFields.id] in sites_info_dict.keys():
                         cur_lon, cur_lat = sites_info_dict[dic[DataValueFields.id]].lon_lat()
@@ -179,7 +179,7 @@ class ImportMeteoData(object):
                 cur_dic[DataValueFields.value] = stats_v.PHUTOT[YYYY]
                 cur_dic[DataValueFields.id] = s_id
                 cur_dic[DataValueFields.y] = YYYY
-                cur_dic[VariableDesc.unit] = "heat units"
+                cur_dic[VariableDesc.unit] = 'heat units'
                 cur_dic[VariableDesc.type] = DataType.phu_tot
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.phu_tot,
@@ -188,7 +188,7 @@ class ImportMeteoData(object):
                                                                        upsert=True)
                 # import annual mean temperature
                 cur_dic[VariableDesc.type] = DataType.mean_tmp
-                cur_dic[VariableDesc.unit] = "deg C"
+                cur_dic[VariableDesc.unit] = 'deg C'
                 cur_dic[DataValueFields.value] = stats_v.MeanTmp[YYYY]
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.mean_tmp,
@@ -198,7 +198,7 @@ class ImportMeteoData(object):
             cur_dic[DataValueFields.value] = stats_v.PHU0
             cur_dic[DataValueFields.id] = s_id
             cur_dic[DataValueFields.y] = DEFAULT_NODATA
-            cur_dic[VariableDesc.unit] = "heat units"
+            cur_dic[VariableDesc.unit] = 'heat units'
             cur_dic[VariableDesc.type] = DataType.phu0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.phu0,
@@ -207,7 +207,7 @@ class ImportMeteoData(object):
                                                                    upsert=True)
             # import annual mean temperature
             cur_dic[VariableDesc.type] = DataType.mean_tmp0
-            cur_dic[VariableDesc.unit] = "deg C"
+            cur_dic[VariableDesc.unit] = 'deg C'
             cur_dic[DataValueFields.value] = stats_v.MeanTmp0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.mean_tmp0,

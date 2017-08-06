@@ -116,11 +116,13 @@ class ImportHydroClimateSites(object):
         # print input_shape
         shp = ogr_Open(input_shape)
         if shp is None:
-            raise RuntimeError("The input ESRI Shapefile: %s is not existed or has "
-                               "no read permission!" % input_shape)
+            raise RuntimeError('The input ESRI Shapefile: %s is not existed or has '
+                               'no read permission!' % input_shape)
         lyr = shp.GetLayer()
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
+            # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)`
+            # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
             if isinstance(id_field, unicode):
