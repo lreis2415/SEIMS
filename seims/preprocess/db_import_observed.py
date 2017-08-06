@@ -151,7 +151,7 @@ class ImportObservedData(object):
 
             for fld in required_flds:
                 if not StringClass.string_in_list(fld, obs_flds):  # data can not meet the request!
-                    raise ValueError("The %s can not meet the required format!" % measDataFile)
+                    raise ValueError('The %s can not meet the required format!' % measDataFile)
             for i, cur_obs_data_item in enumerate(obs_data_items):
                 dic = dict()
                 if i == 0:
@@ -189,7 +189,7 @@ class ImportObservedData(object):
         added_dics = []
         for curVar in variable_lists:
             # print curVar
-            # if the unit is mg/L, then change the Type name with the suffix "Conc",
+            # if the unit is mg/L, then change the Type name with the suffix 'Conc',
             # and convert the corresponding data to kg if the discharge data is
             # available.
             cur_type = curVar[StationFields.type]
@@ -205,9 +205,9 @@ class ImportObservedData(object):
                 dic[DataValueFields.time_zone] = item[DataValueFields.time_zone]
                 dic[DataValueFields.utc] = item[DataValueFields.utc]
 
-                if cur_unit == "mg/L":
+                if cur_unit == 'mg/L':
                     # update the Type name
-                    dic[StationFields.type] = cur_type + "Conc"
+                    dic[StationFields.type] = cur_type + 'Conc'
                     curfilter = {StationFields.id: dic[StationFields.id],
                                  DataValueFields.type: cur_type,
                                  DataValueFields.utc: dic[DataValueFields.utc]}
@@ -216,7 +216,7 @@ class ImportObservedData(object):
                     dic[StationFields.type] = cur_type
 
                 # find discharge on current day
-                cur_filter = {StationFields.type: "Q",
+                cur_filter = {StationFields.type: 'Q',
                               DataValueFields.utc: dic[DataValueFields.utc],
                               StationFields.id: dic[StationFields.id]}
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
@@ -226,12 +226,12 @@ class ImportObservedData(object):
                     q = q_dic[DataValueFields.value]
                 else:
                     continue
-                if cur_unit == "mg/L":
+                if cur_unit == 'mg/L':
                     # convert mg/L to kg
                     dic[DataValueFields.value] = round(
                             dic[DataValueFields.value] * q * 86400. / 1000., 2)
-                elif cur_unit == "kg":
-                    dic[StationFields.type] = cur_type + "Conc"
+                elif cur_unit == 'kg':
+                    dic[StationFields.type] = cur_type + 'Conc'
                     # convert kg to mg/L
                     dic[DataValueFields.value] = round(
                             dic[DataValueFields.value] / q * 1000. / 86400., 2)
