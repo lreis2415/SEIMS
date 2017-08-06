@@ -92,7 +92,7 @@ class ImportParam2Mongo(object):
             data_import = dict()
             cur_filter = dict()
             if len(cur_data_item) < 2:
-                raise RuntimeError("param.cali at least contain NAME and IMPACT fields!")
+                raise RuntimeError('param.cali at least contain NAME and IMPACT fields!')
             data_import[ModelParamFields.name] = cur_data_item[0]
             data_import[ModelParamFields.impact] = float(cur_data_item[1])
             cur_filter[ModelParamFields.name] = cur_data_item[0]
@@ -114,9 +114,9 @@ class ImportParam2Mongo(object):
         flowdir_r = cfg.spatials.d8flow
         direction_items = dict()
         if cfg.is_TauDEM:
-            direction_items = FlowModelConst.get_cell_shift("TauDEM")
+            direction_items = FlowModelConst.get_cell_shift('TauDEM')
         else:
-            direction_items = FlowModelConst.get_cell_shift("ArcGIS")
+            direction_items = FlowModelConst.get_cell_shift('ArcGIS')
         streamlink_d = RasterUtilClass.read_raster(streamlink_r)
         nodata = streamlink_d.noDataValue
         nrows = streamlink_d.nRows
@@ -141,7 +141,7 @@ class ImportParam2Mongo(object):
                 continue
             break
         if i_row == -1 or i_col == -1:
-            raise ValueError("Stream link data invalid, please check and retry.")
+            raise ValueError('Stream link data invalid, please check and retry.')
 
         def flow_down_stream_idx(dir_value, i, j):
             """Return row and col of downstream direction."""
@@ -175,14 +175,14 @@ class ImportParam2Mongo(object):
         for stat, stat_v in import_stats_dict.items():
             dic = {ModelParamFields.name: stat,
                    ModelParamFields.desc: stat,
-                   ModelParamFields.unit: "NONE",
-                   ModelParamFields.module: "ALL",
+                   ModelParamFields.unit: 'NONE',
+                   ModelParamFields.module: 'ALL',
                    ModelParamFields.value: stat_v,
                    ModelParamFields.impact: DEFAULT_NODATA,
                    ModelParamFields.change: ModelParamFields.change_nc,
                    ModelParamFields.max: DEFAULT_NODATA,
                    ModelParamFields.min: DEFAULT_NODATA,
-                   ModelParamFields.type: "SUBBASIN"}
+                   ModelParamFields.type: 'SUBBASIN'}
             curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
             # print (dic, curfilter)
             maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
@@ -214,8 +214,8 @@ class ImportParam2Mongo(object):
             file_in_dict = dict()
             values = StringClass.split_string(StringClass.strip_string(item[0]), ['|'])
             if len(values) != 2:
-                raise ValueError("One item should only have one Tag and one value string,"
-                                 " split by '|'")
+                raise ValueError('One item should only have one Tag and one value string,'
+                                 ' split by "|"')
             file_in_dict[ModelCfgFields.tag] = values[0]
             file_in_dict[ModelCfgFields.value] = values[1]
             maindb[DBTableNames.main_filein].insert(file_in_dict)
@@ -253,7 +253,7 @@ class ImportParam2Mongo(object):
                 elif StringClass.string_match(ModelCfgFields.subbsn, v):
                     file_out_dict[ModelCfgFields.subbsn] = item[i]
             if file_out_dict.keys() is []:
-                raise ValueError("There are not any valid output item stored in file.out!")
+                raise ValueError('There are not any valid output item stored in file.out!')
             bulk.insert(file_out_dict)
         bulk.execute()
 
@@ -278,8 +278,8 @@ class ImportParam2Mongo(object):
                 data_import[ModelCfgFields.use] = 1
                 cur_filter[ModelCfgFields.output_id] = cur_data_item[0]
             else:
-                raise RuntimeError("Items in file.out must have 7 columns, i.e., OUTPUTID,"
-                                   "TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.")
+                raise RuntimeError('Items in file.out must have 7 columns, i.e., OUTPUTID,'
+                                   'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.')
 
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
@@ -334,9 +334,9 @@ class ImportParam2Mongo(object):
                 n_col = len(item_values[0])
                 for i in range(n_row):
                     if n_col != len(item_values[i]):
-                        raise ValueError("Please check %s to make sure each item has "
-                                         "the same numeric dimension. The size of first "
-                                         "row is: %d, and the current data item is: %d" %
+                        raise ValueError('Please check %s to make sure each item has '
+                                         'the same numeric dimension. The size of first '
+                                         'row is: %d, and the current data item is: %d' %
                                          (tablename, n_col, len(item_values[i])))
                     else:
                         item_values[i].insert(0, n_col)

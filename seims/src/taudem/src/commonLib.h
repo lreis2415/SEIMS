@@ -44,6 +44,7 @@ email:  dtarb@usu.edu
 #include <stdint.h>
 #include "ogr_api.h"
 #include "mpi.h"
+#include <algorithm>
 
 #define MCW MPI_COMM_WORLD
 #define MAX_STRING_LENGTH 255

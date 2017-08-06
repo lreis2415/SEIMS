@@ -133,6 +133,22 @@ class StringClass(object):
         pass
 
     @staticmethod
+    def convert_unicode2str(unicode_str):
+        """convert the input string or string list which is unicode to string."""
+        if isinstance(unicode_str, unicode):
+            return unicode_str.encode()
+        elif isinstance(unicode_str, tuple) or isinstance(unicode_str, list):
+            new_strs = list()
+            for u_str in unicode_str:
+                if isinstance(u_str, unicode):
+                    new_strs.append(u_str.encode())
+                else:
+                    new_strs.append(u_str)
+            return new_strs
+        else:  # if not supported, return what it is
+            return unicode_str
+
+    @staticmethod
     def string_match(str1, str2):
         """Compare two string regardless capital or not"""
         return str1.lower() == str2.lower()
@@ -411,21 +427,37 @@ class UtilClass(object):
         Returns:
             output lines
         """
+        commands = StringClass.convert_unicode2str(commands)
         print (commands)
+
         use_shell = False
-        if isinstance(commands, list) or isinstance(commands, tuple):
-            use_shell = False
-            commands = ' '.join(c for c in commands)
+        subprocess_flags = 0
+        startupinfo = None
         if sysstr == 'Windows':
+            if isinstance(commands, list) or isinstance(commands, tuple):
+                commands = ' '.join(c for c in commands)
             import ctypes
             SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
             ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
             subprocess_flags = 0x8000000  # win32con.CREATE_NO_WINDOW?
-        else:
-            subprocess_flags = 0
+            # this startupinfo structure prevents a console window from popping up on Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            # not sure if node outputs on stderr or stdout so capture both
+        else:  # for Linux/Unix OS, commands is better to be a list.
+            if isinstance(commands, str):
+                use_shell = True
+                # https://docs.python.org/2/library/subprocess.html
+                #     Using shell=True can be a security hazard.
+            elif isinstance(commands, list) or isinstance(commands, tuple):
+                # the executable path may be enclosed with quotes, if not windows, delete the quotes
+                if commands[0][0] == commands[0][-1] == '"' or \
+                                        commands[0][0] == commands[0][-1] == "'":
+                    commands[0] = commands[0][1:-1]
         process = subprocess.Popen(commands, shell=use_shell, stdout=subprocess.PIPE,
                                    stdin=open(os.devnull),
                                    stderr=subprocess.STDOUT, universal_newlines=True,
+                                   startupinfo=startupinfo,
                                    creationflags=subprocess_flags)
 
         if process.stdout is None:

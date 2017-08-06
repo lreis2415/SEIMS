@@ -294,18 +294,18 @@ class ImportReaches2Mongo(object):
         UtilClass.mkdir(cfg.dirs.metis)
         metis_input = r'%s/metis.txt' % cfg.dirs.metis
         f = open(metis_input, 'w')
-        f.write(str(len(ns)) + "\t" + str(len(g.edges())) + "\t" + "010\t1\n")
+        f.write(str(len(ns)) + '\t' + str(len(g.edges())) + '\t' + '010\t1\n')
         for node in ns:
             if node <= 0:
                 continue
-            f.write(str(area_dic[node]) + "\t")
+            f.write(str(area_dic[node]) + '\t')
             for e in g.out_edges(node):
                 if e[1] > 0:
-                    f.write(str(e[1]) + "\t")
+                    f.write(str(e[1]) + '\t')
             for e in g.in_edges(node):
                 if e[0] > 0:
-                    f.write(str(e[0]) + "\t")
-            f.write("\n")
+                    f.write(str(e[0]) + '\t')
+            f.write('\n')
         f.close()
 
         # execute metis
@@ -423,7 +423,7 @@ class ImportReaches2Mongo(object):
                 f_metis_output.write(line)
             f_metis_output.close()
 
-            metis_output = "%s.part.%d" % (metis_input, n)
+            metis_output = '%s.part.%d' % (metis_input, n)
             f = open(metis_output)
             lines = f.readlines()
             group_kmetis = [int(item) for item in lines]

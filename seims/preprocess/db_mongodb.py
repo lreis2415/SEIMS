@@ -21,7 +21,7 @@ class ConnectMongoDB(object):
         try:
             self.conn = MongoClient(ip, port)
         except ConnectionFailure:
-            sys.stderr.write("Could not connect to MongoDB: %s" % ConnectionFailure.message)
+            sys.stderr.write('Could not connect to MongoDB: %s' % ConnectionFailure.message)
             sys.exit(1)
 
     def get_conn(self):

@@ -58,12 +58,12 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     flds = data_items[0][:]
     data_items.remove(flds)
     if not 0 <= day_divided_hour <= 23:
-        raise ValueError("Day divided hour must range from 0 to 23!")
+        raise ValueError('Day divided hour must range from 0 to 23!')
     try:
         date_idx = flds.index('DATETIME')
         flds.remove('DATETIME')
     except ValueError:
-        raise ValueError("DATETIME must be one of the fields!")
+        raise ValueError('DATETIME must be one of the fields!')
     # available field
     available_flds = ['FLOW', 'SED', 'PCP']
 
@@ -154,7 +154,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                         flow_idx = v_idx2
                         break
                 if flow_idx < 0:
-                    raise RuntimeError("To interpolate SED, FLOW must be provided!")
+                    raise RuntimeError('To interpolate SED, FLOW must be provided!')
         for v_idx, v_name in enumerate(flds):
             if not check_avaiable_field(v_name):
                 continue
@@ -177,7 +177,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
             if 'SED' in v_name.upper():
                 if MathClass.floatequal(itp_auxiliary_value, 0.):
                     itp_value = 0.
-                    print ("WARNING: Flow is 0 for %s, please check!" %
+                    print ('WARNING: Flow is 0 for %s, please check!' %
                            item_dtime.strftime('%Y-%m-%d %H:%M:%S'))
                 itp_value /= itp_auxiliary_value
             elif 'FLOW' in v_name.upper():
