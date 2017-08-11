@@ -276,6 +276,9 @@ class ImportReaches2Mongo(object):
     @staticmethod
     def generate_reach_table(cfg, maindb):
         """generate reaches table"""
+        # remove the older reaches collection if existed
+        maindb.drop_collection(ImportReaches2Mongo._TAB_REACH)
+
         area_dic, dx = ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn)
         (downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic,
          slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach,
