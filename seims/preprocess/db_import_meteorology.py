@@ -5,9 +5,10 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
+                17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
 """
 import time
-from datetime import datetime
+from datetime import timedelta
 
 from pymongo import ASCENDING
 
@@ -32,9 +33,9 @@ class ClimateStats(object):
     def add_item(self, item_dict):
         """Add mean temperature of each day. Dict MUST have {YEAR: 2017, TMEAN: 10.} at least."""
         if DataValueFields.y not in item_dict.keys():
-            raise ValueError("The hydroClimate dict must have year!")
+            raise ValueError('The hydroClimate dict must have year!')
         if DataType.mean_tmp not in item_dict.keys():
-            raise ValueError("The hydroClimate dict must have mean temperature!")
+            raise ValueError('The hydroClimate dict must have mean temperature!')
         cur_y = item_dict[DataValueFields.y]
         cur_tmp = item_dict[DataType.mean_tmp]
         if cur_y not in self.Count.keys():
@@ -67,9 +68,9 @@ class ImportMeteoData(object):
     @staticmethod
     def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
         """Import climate data table"""
-        # delete existed precipitation data
-        climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.m})
-
+        tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
+        if tsysin == 'UTCTIME':
+            tzonein = time.timezone / -3600
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
         # PHUCalDic is used for Calculating potential heat units (PHU)
@@ -77,13 +78,16 @@ class ImportMeteoData(object):
         # format is {StationID:{Year1:[values],Year2:[Values]...}, ...}
         # PHUCalDic = {}
         # format: {StationID1: climateStats1, ...}
-        hydro_climate_stats = {}
-        required_flds = [DataValueFields.y, DataValueFields.m, DataValueFields.d,
-                         DataType.max_tmp, DataType.min_tmp,
-                         DataType.rm, DataType.ws]
+        hydro_climate_stats = dict()
+        required_flds = [DataType.max_tmp, DataType.min_tmp, DataType.rm, DataType.ws]
+        output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
+                       DataType.rm, DataType.pet, DataType.ws, DataType.sr]
+        # remove existed records
+        for fld in output_flds:
+            climdb[DBTableNames.data_values].remove({'TYPE': fld})
         for fld in required_flds:
             if not StringClass.string_in_list(fld, clim_flds):
-                raise ValueError("Meteorological Daily data is invalid, please Check!")
+                raise ValueError('Meteorological Daily data MUST contain %s!' % fld)
         # Create bulk object
         bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
         count = 0
@@ -92,19 +96,10 @@ class ImportMeteoData(object):
                 continue
             dic = dict()
             cur_ssd = DEFAULT_NODATA
-            cur_y = 0
-            cur_m = 0
-            cur_d = 0
+
             for j, clim_data_v in enumerate(cur_clim_data_item):
                 if StringClass.string_match(clim_flds[j], DataValueFields.id):
                     dic[DataValueFields.id] = int(clim_data_v)
-                elif StringClass.string_match(clim_flds[j], DataValueFields.y):
-                    cur_y = int(clim_data_v)
-                    dic[DataValueFields.y] = cur_y
-                elif StringClass.string_match(clim_flds[j], DataValueFields.m):
-                    cur_m = int(clim_data_v)
-                elif StringClass.string_match(clim_flds[j], DataValueFields.d):
-                    cur_d = int(clim_data_v)
                 elif StringClass.string_match(clim_flds[j], DataType.mean_tmp):
                     dic[DataType.mean_tmp] = float(clim_data_v)
                 elif StringClass.string_match(clim_flds[j], DataType.min_tmp):
@@ -121,29 +116,28 @@ class ImportMeteoData(object):
                     dic[DataType.rm] = float(clim_data_v) * 0.01
                 elif StringClass.string_match(clim_flds[j], DataType.ssd):
                     cur_ssd = float(clim_data_v)
-            # Date transformation
-            dt = datetime(cur_y, cur_m, cur_d, 0, 0)
-            sec = time.mktime(dt.timetuple())
-            utc_time = time.gmtime(sec)
-            dic[DataValueFields.local_time] = dt
-            dic[DataValueFields.time_zone] = time.timezone / 3600
-            dic[DataValueFields.utc] = datetime(utc_time[0], utc_time[1],
-                                                utc_time[2], utc_time[3])
+            # Get datetime and utc/local transformation
+            utc_time = HydroClimateUtilClass.get_utcdatetime_from_field_values(clim_flds,
+                                                                               cur_clim_data_item,
+                                                                               tsysin, tzonein)
+            dic[DataValueFields.local_time] = utc_time + timedelta(minutes=tzonein * 60)
+            dic[DataValueFields.time_zone] = tzonein
+            dic[DataValueFields.utc] = utc_time
+            dic[DataValueFields.y] = utc_time.year
 
             # Do if some of these data are not provided
             if DataType.mean_tmp not in dic.keys():
                 dic[DataType.mean_tmp] = (dic[DataType.max_tmp] + dic[DataType.min_tmp]) / 2.
             if DataType.sr not in dic.keys():
                 if cur_ssd == DEFAULT_NODATA:
-                    raise ValueError(DataType.sr + " or " + DataType.ssd + " must be provided!")
+                    raise ValueError(DataType.sr + ' or ' + DataType.ssd + ' must be provided!')
                 else:
                     if dic[DataValueFields.id] in sites_info_dict.keys():
                         cur_lon, cur_lat = sites_info_dict[dic[DataValueFields.id]].lon_lat()
-                        dic[DataType.sr] = round(HydroClimateUtilClass.rs(DateClass.day_of_year(dt),
-                                                                          float(cur_ssd), cur_lat *
-                                                                          PI / 180.), 1)
-            output_flds = [DataType.mean_tmp, DataType.max_tmp, DataType.min_tmp,
-                           DataType.rm, DataType.pet, DataType.ws, DataType.sr]
+                        sr = round(HydroClimateUtilClass.rs(DateClass.day_of_year(utc_time),
+                                                            float(cur_ssd), cur_lat * PI / 180.), 1)
+                        dic[DataType.sr] = sr
+
             for fld in output_flds:
                 cur_dic = dict()
                 if fld in dic.keys():
@@ -156,6 +150,10 @@ class ImportMeteoData(object):
                     cur_dic[DataValueFields.type] = fld
                     # Old code, insert or update one item a time, which is quite inefficiency
                     # Update by using bulk operation interface. lj
+                    # # find old records and remove (deprecated because of low efficiency, lj.)
+                    # curfilter = {DataValueFields.type: fld,
+                    #              DataValueFields.utc: dic[DataValueFields.utc]}
+                    # bulk.find(curfilter).upsert().replace_one(cur_dic)
                     bulk.insert(cur_dic)
                     count += 1
                     if count % 500 == 0:  # execute each 500 records
@@ -181,7 +179,7 @@ class ImportMeteoData(object):
                 cur_dic[DataValueFields.value] = stats_v.PHUTOT[YYYY]
                 cur_dic[DataValueFields.id] = s_id
                 cur_dic[DataValueFields.y] = YYYY
-                cur_dic[VariableDesc.unit] = "heat units"
+                cur_dic[VariableDesc.unit] = 'heat units'
                 cur_dic[VariableDesc.type] = DataType.phu_tot
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.phu_tot,
@@ -190,7 +188,7 @@ class ImportMeteoData(object):
                                                                        upsert=True)
                 # import annual mean temperature
                 cur_dic[VariableDesc.type] = DataType.mean_tmp
-                cur_dic[VariableDesc.unit] = "deg C"
+                cur_dic[VariableDesc.unit] = 'deg C'
                 cur_dic[DataValueFields.value] = stats_v.MeanTmp[YYYY]
                 curfilter = {DataValueFields.id: s_id,
                              VariableDesc.type: DataType.mean_tmp,
@@ -200,7 +198,7 @@ class ImportMeteoData(object):
             cur_dic[DataValueFields.value] = stats_v.PHU0
             cur_dic[DataValueFields.id] = s_id
             cur_dic[DataValueFields.y] = DEFAULT_NODATA
-            cur_dic[VariableDesc.unit] = "heat units"
+            cur_dic[VariableDesc.unit] = 'heat units'
             cur_dic[VariableDesc.type] = DataType.phu0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.phu0,
@@ -209,7 +207,7 @@ class ImportMeteoData(object):
                                                                    upsert=True)
             # import annual mean temperature
             cur_dic[VariableDesc.type] = DataType.mean_tmp0
-            cur_dic[VariableDesc.unit] = "deg C"
+            cur_dic[VariableDesc.unit] = 'deg C'
             cur_dic[DataValueFields.value] = stats_v.MeanTmp0
             curfilter = {DataValueFields.id: s_id,
                          VariableDesc.type: DataType.mean_tmp0,

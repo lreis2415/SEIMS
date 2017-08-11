@@ -90,10 +90,10 @@ class ImportWeightData(object):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
         # read WEIGHT_M file from mongodb
         weight_m_name = str(subbsn_id) + '_WEIGHT_M'
-        mask = maindb[DBTableNames.gridfs_spatial].files.find({"filename": mask_name})[0]
-        weight_m = maindb[DBTableNames.gridfs_spatial].files.find({"filename": weight_m_name})[0]
-        num_cells = int(weight_m["metadata"][RasterMetadata.cellnum])
-        num_sites = int(weight_m["metadata"][RasterMetadata.site_num])
+        mask = maindb[DBTableNames.gridfs_spatial].files.find({'filename': mask_name})[0]
+        weight_m = maindb[DBTableNames.gridfs_spatial].files.find({'filename': weight_m_name})[0]
+        num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
+        num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
         site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
         site_list = site_lists.next()
@@ -124,7 +124,7 @@ class ImportWeightData(object):
             id_list2.append(site[StationFields.id])
             tmean_list.append(site[DataValueFields.value])
 
-        weight_m_data = spatial_gfs.get(weight_m["_id"])
+        weight_m_data = spatial_gfs.get(weight_m['_id'])
         total_len = num_cells * num_sites
         # print (total_len)
         fmt = '%df' % (total_len,)
@@ -138,30 +138,30 @@ class ImportWeightData(object):
             for j in range(num_sites):
                 phu0_data[i] += phu_list[j] * weight_m_data[i * num_sites + j]
                 tmean0_data[i] += tmean_list[j] * weight_m_data[i * num_sites + j]
-        ysize = int(mask["metadata"][RasterMetadata.nrows])
-        xsize = int(mask["metadata"][RasterMetadata.ncols])
-        nodata_value = mask["metadata"][RasterMetadata.nodata]
-        mask_data = spatial_gfs.get(mask["_id"])
+        ysize = int(mask['metadata'][RasterMetadata.nrows])
+        xsize = int(mask['metadata'][RasterMetadata.ncols])
+        nodata_value = mask['metadata'][RasterMetadata.nodata]
+        mask_data = spatial_gfs.get(mask['_id'])
         total_len = xsize * ysize
         fmt = '%df' % (total_len,)
         mask_data = unpack(fmt, mask_data.read())
-        fname = "%s_%s" % (str(subbsn_id), DataType.phu0)
-        fname2 = "%s_%s" % (str(subbsn_id), DataType.mean_tmp0)
+        fname = '%s_%s' % (str(subbsn_id), DataType.phu0)
+        fname2 = '%s_%s' % (str(subbsn_id), DataType.mean_tmp0)
         if spatial_gfs.exists(filename=fname):
             x = spatial_gfs.get_version(filename=fname)
             spatial_gfs.delete(x._id)
         if spatial_gfs.exists(filename=fname2):
             x = spatial_gfs.get_version(filename=fname2)
             spatial_gfs.delete(x._id)
-        meta_dic = mask["metadata"]
-        meta_dic["TYPE"] = DataType.phu0
-        meta_dic["ID"] = fname
-        meta_dic["DESCRIPTION"] = DataType.phu0
+        meta_dic = mask['metadata']
+        meta_dic['TYPE'] = DataType.phu0
+        meta_dic['ID'] = fname
+        meta_dic['DESCRIPTION'] = DataType.phu0
 
-        meta_dic2 = mask["metadata"]
-        meta_dic2["TYPE"] = DataType.mean_tmp0
-        meta_dic2["ID"] = fname2
-        meta_dic2["DESCRIPTION"] = DataType.mean_tmp0
+        meta_dic2 = mask['metadata']
+        meta_dic2['TYPE'] = DataType.mean_tmp0
+        meta_dic2['ID'] = fname2
+        meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
 
         myfile = spatial_gfs.new_file(filename=fname, metadata=meta_dic)
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
@@ -184,7 +184,7 @@ class ImportWeightData(object):
             myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print ("Valid Cell Number is: %d" % vaild_count)
+        print ('Valid Cell Number is: %d' % vaild_count)
         return True
 
     @staticmethod
@@ -203,15 +203,15 @@ class ImportWeightData(object):
         mask_name = str(subbsn_id) + '_MASK'
         if not spatial_gfs.exists(filename=mask_name):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
-        mask = db_model[DBTableNames.gridfs_spatial].files.find({"filename": mask_name})[0]
-        ysize = int(mask["metadata"][RasterMetadata.nrows])
-        xsize = int(mask["metadata"][RasterMetadata.ncols])
-        nodata_value = mask["metadata"][RasterMetadata.nodata]
-        dx = mask["metadata"][RasterMetadata.cellsize]
-        xll = mask["metadata"][RasterMetadata.xll]
-        yll = mask["metadata"][RasterMetadata.yll]
+        mask = db_model[DBTableNames.gridfs_spatial].files.find({'filename': mask_name})[0]
+        ysize = int(mask['metadata'][RasterMetadata.nrows])
+        xsize = int(mask['metadata'][RasterMetadata.ncols])
+        nodata_value = mask['metadata'][RasterMetadata.nodata]
+        dx = mask['metadata'][RasterMetadata.cellsize]
+        xll = mask['metadata'][RasterMetadata.xll]
+        yll = mask['metadata'][RasterMetadata.yll]
 
-        data = spatial_gfs.get(mask["_id"])
+        data = spatial_gfs.get(mask['_id'])
 
         total_len = xsize * ysize
         fmt = '%df' % (total_len,)
@@ -284,7 +284,7 @@ class ImportWeightData(object):
                 # interpolate using the locations
                 # weightList = []
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                f_test = open(r"%s/weight_%d_%s.txt" % (geodata2dbdir,
+                f_test = open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,
                                                         subbsn_id, type_list[type_i]), 'w')
                 for y in range(0, ysize):
                     for x in range(0, xsize):
@@ -298,7 +298,7 @@ class ImportWeightData(object):
                             line, near_index = ImportWeightData.thiessen(x_coor, y_coor, loc_list)
                             myfile.write(line)
                             fmt = '%df' % (len(loc_list))
-                            f_test.write("%f %f " % (x, y) + unpack(fmt, line).__str__() + "\n")
+                            f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
                 myfile.close()
                 f_test.close()
 

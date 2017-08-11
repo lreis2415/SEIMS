@@ -603,7 +603,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     if (factoryID < 0) return false;
     /// 3. Figure out if any management operation should be applied, i.e., find sequence IDs (nOps)
     vector<int> tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
-    map < int, PlantManagementOperation * > tmpOperations = m_mgtFactory[factoryID]->GetOperations();
+    map <int, PlantManagementOperation *> tmpOperations = m_mgtFactory[factoryID]->GetOperations();
     // get the next should be done sequence number
     int curSeq = m_doneOpSequence[i];
     int nextSeq = -1;

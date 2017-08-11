@@ -128,11 +128,11 @@ class ImportReaches2Mongo(object):
             width_dic: stream width dict
             len_dic: stream length dict
         """
-        down_stream_dic = {}
-        depth_dic = {}
-        slope_dic = {}
-        width_dic = {}
-        len_dic = {}
+        down_stream_dic = dict()
+        depth_dic = dict()
+        slope_dic = dict()
+        width_dic = dict()
+        len_dic = dict()
         ds_reach = ogr_Open(reach_shp)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
@@ -187,7 +187,7 @@ class ImportReaches2Mongo(object):
         print ('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins
-        downstream_up_order_dic = {}
+        downstream_up_order_dic = dict()
         ImportReaches2Mongo.stream_orders_from_outlet_up(downstream_up_order_dic, g, outlet, 1)
         # find the maximum order number
         max_order = 0
@@ -204,7 +204,7 @@ class ImportReaches2Mongo(object):
         nodelist = g.nodes()
         while len(nodelist) != 0:
             nodelist = g.nodes()
-            del_list = []
+            del_list = list()
             for node in nodelist:
                 if g.in_degree(node) == 0:
                     upstream_down_order_dic[node] = order_num
@@ -276,6 +276,9 @@ class ImportReaches2Mongo(object):
     @staticmethod
     def generate_reach_table(cfg, maindb):
         """generate reaches table"""
+        # remove the older reaches collection if existed
+        maindb.drop_collection(ImportReaches2Mongo._TAB_REACH)
+
         area_dic, dx = ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn)
         (downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic,
          slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach,
@@ -294,18 +297,18 @@ class ImportReaches2Mongo(object):
         UtilClass.mkdir(cfg.dirs.metis)
         metis_input = r'%s/metis.txt' % cfg.dirs.metis
         f = open(metis_input, 'w')
-        f.write(str(len(ns)) + "\t" + str(len(g.edges())) + "\t" + "010\t1\n")
+        f.write(str(len(ns)) + '\t' + str(len(g.edges())) + '\t' + '010\t1\n')
         for node in ns:
             if node <= 0:
                 continue
-            f.write(str(area_dic[node]) + "\t")
+            f.write(str(area_dic[node]) + '\t')
             for e in g.out_edges(node):
                 if e[1] > 0:
-                    f.write(str(e[1]) + "\t")
+                    f.write(str(e[1]) + '\t')
             for e in g.in_edges(node):
                 if e[0] > 0:
-                    f.write(str(e[0]) + "\t")
-            f.write("\n")
+                    f.write(str(e[0]) + '\t')
+            f.write('\n')
         f.close()
 
         # execute metis
@@ -423,7 +426,7 @@ class ImportReaches2Mongo(object):
                 f_metis_output.write(line)
             f_metis_output.close()
 
-            metis_output = "%s.part.%d" % (metis_input, n)
+            metis_output = '%s.part.%d' % (metis_input, n)
             f = open(metis_output)
             lines = f.readlines()
             group_kmetis = [int(item) for item in lines]
