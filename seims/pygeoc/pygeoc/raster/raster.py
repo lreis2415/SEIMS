@@ -289,7 +289,7 @@ class RasterUtilClass(object):
             data: 2D array data
             geotransform: geographic transformation
             srs: coordinate system
-            nodata_value: nodata value
+            nodata_value: nodata_flow value
             gdal_type: output raster data type, GDT_Float32 as default
         """
         driver = gdal_GetDriverByName("GTiff")
@@ -309,7 +309,7 @@ class RasterUtilClass(object):
             xsize: Col count
             ysize: Row count
             geotransform: geographic transformation
-            nodata_value: nodata value
+            nodata_value: nodata_flow value
         """
         header = """NCOLS %d
     NROWS %d
