@@ -5,11 +5,13 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
+                17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
                 TODO: Check the location of observed stations and add subbasinID field.
 """
 import time
-from datetime import datetime
+from datetime import timedelta
 
+from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
 from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -137,48 +139,44 @@ class ImportObservedData(object):
         for measDataFile in obs_txts_list:
             # print measDataFile
             obs_data_items = read_data_items_from_txt(measDataFile)
+            tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
+            if tsysin == 'UTCTIME':
+                tzonein = time.timezone / -3600
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == [] or len(obs_data_items) == 1:
                 continue
             obs_flds = obs_data_items[0]
-            required_flds = [StationFields.id, DataValueFields.y, DataValueFields.m,
-                             DataValueFields.d, DataValueFields.type, DataValueFields.value]
+            required_flds = [StationFields.id, DataValueFields.type, DataValueFields.value]
+
             for fld in required_flds:
                 if not StringClass.string_in_list(fld, obs_flds):  # data can not meet the request!
-                    raise ValueError("The %s can not meet the required format!" % measDataFile)
-            for i in range(1, len(obs_data_items)):
+                    raise ValueError('The %s can not meet the required format!' % measDataFile)
+            for i, cur_obs_data_item in enumerate(obs_data_items):
                 dic = dict()
-                cur_y = 0
-                cur_m = 0
-                cur_d = 0
-                for j in range(len(obs_data_items[i])):
+                if i == 0:
+                    continue
+                for j, cur_data_value in enumerate(cur_obs_data_item):
                     if StringClass.string_match(obs_flds[j], StationFields.id):
-                        dic[StationFields.id] = int(obs_data_items[i][j])
+                        dic[StationFields.id] = int(cur_data_value)
                         # if current site ID is not included, goto next data item
                         if dic[StationFields.id] not in site_ids:
                             continue
-                    elif StringClass.string_match(obs_flds[j], DataValueFields.y):
-                        cur_y = int(obs_data_items[i][j])
-                    elif StringClass.string_match(obs_flds[j], DataValueFields.m):
-                        cur_m = int(obs_data_items[i][j])
-                    elif StringClass.string_match(obs_flds[j], DataValueFields.d):
-                        cur_d = int(obs_data_items[i][j])
                     elif StringClass.string_match(obs_flds[j], DataValueFields.type):
-                        dic[DataValueFields.type] = obs_data_items[i][j]
+                        dic[DataValueFields.type] = cur_data_value
                     elif StringClass.string_match(obs_flds[j], DataValueFields.value):
-                        dic[DataValueFields.value] = float(obs_data_items[i][j])
-                dt = datetime(cur_y, cur_m, cur_d, 0, 0)
-                sec = time.mktime(dt.timetuple())
-                utc_time = time.gmtime(sec)
-                dic[DataValueFields.local_time] = dt
-                dic[DataValueFields.time_zone] = time.timezone / 3600
-                dic[DataValueFields.utc] = datetime(utc_time[0], utc_time[1],
-                                                    utc_time[2], utc_time[3])
-                curfilter = {StationFields.id: dic[StationFields.id],
-                             DataValueFields.type: dic[DataValueFields.type],
-                             DataValueFields.utc: dic[DataValueFields.utc]}
-                bulk.find(curfilter).replace_one(dic)
+                        dic[DataValueFields.value] = float(cur_data_value)
+                utc_t = HydroClimateUtilClass.get_utcdatetime_from_field_values(obs_flds,
+                                                                                cur_obs_data_item,
+                                                                                tsysin, tzonein)
+                dic[DataValueFields.local_time] = utc_t + timedelta(minutes=tzonein * 60)
+                dic[DataValueFields.time_zone] = tzonein
+                dic[DataValueFields.utc] = utc_t
+                # curfilter = {StationFields.id: dic[StationFields.id],
+                #              DataValueFields.type: dic[DataValueFields.type],
+                #              DataValueFields.utc: dic[DataValueFields.utc]}
+                # bulk.find(curfilter).replace_one(dic)
+                bulk.insert(dic)
                 count += 1
                 if count % 500 == 0:
                     bulk.execute()
@@ -191,7 +189,7 @@ class ImportObservedData(object):
         added_dics = []
         for curVar in variable_lists:
             # print curVar
-            # if the unit is mg/L, then change the Type name with the suffix "Conc",
+            # if the unit is mg/L, then change the Type name with the suffix 'Conc',
             # and convert the corresponding data to kg if the discharge data is
             # available.
             cur_type = curVar[StationFields.type]
@@ -207,9 +205,9 @@ class ImportObservedData(object):
                 dic[DataValueFields.time_zone] = item[DataValueFields.time_zone]
                 dic[DataValueFields.utc] = item[DataValueFields.utc]
 
-                if cur_unit == "mg/L":
+                if cur_unit == 'mg/L':
                     # update the Type name
-                    dic[StationFields.type] = cur_type + "Conc"
+                    dic[StationFields.type] = cur_type + 'Conc'
                     curfilter = {StationFields.id: dic[StationFields.id],
                                  DataValueFields.type: cur_type,
                                  DataValueFields.utc: dic[DataValueFields.utc]}
@@ -218,7 +216,7 @@ class ImportObservedData(object):
                     dic[StationFields.type] = cur_type
 
                 # find discharge on current day
-                cur_filter = {StationFields.type: "Q",
+                cur_filter = {StationFields.type: 'Q',
                               DataValueFields.utc: dic[DataValueFields.utc],
                               StationFields.id: dic[StationFields.id]}
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
@@ -228,12 +226,12 @@ class ImportObservedData(object):
                     q = q_dic[DataValueFields.value]
                 else:
                     continue
-                if cur_unit == "mg/L":
+                if cur_unit == 'mg/L':
                     # convert mg/L to kg
                     dic[DataValueFields.value] = round(
                             dic[DataValueFields.value] * q * 86400. / 1000., 2)
-                elif cur_unit == "kg":
-                    dic[StationFields.type] = cur_type + "Conc"
+                elif cur_unit == 'kg':
+                    dic[StationFields.type] = cur_type + 'Conc'
                     # convert kg to mg/L
                     dic[DataValueFields.value] = round(
                             dic[DataValueFields.value] / q * 1000. / 86400., 2)
@@ -250,7 +248,7 @@ class ImportObservedData(object):
     def workflow(cfg, db):
         """
         This function mainly to import measurement data to MongoDB
-        data type may include Q (discharge, m3/s), tn, tp, etc.
+        data type may include Q (discharge, m3/s), SED (mg/L), tn (mg/L), tp (mg/L), etc.
         the required parameters that defined in configuration file (*.ini)
         """
         if not cfg.use_observed:

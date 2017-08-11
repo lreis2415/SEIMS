@@ -104,46 +104,46 @@ class ImportMongodbClass(object):
         status_output('Import model parameters', 10, f)
         ImportParam2Mongo.workflow(cfg, maindb)
         n_subbasins = MongoQuery.get_subbasin_num(maindb)
-        print ("Number of subbasins:%d" % n_subbasins)
+        print ('Number of subbasins:%d' % n_subbasins)
 
         # Extract spatial parameters for reaches, landuse, soil, etc.
         status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
         extract_spatial_parameters(cfg, maindb)
 
         # import stream parameters
-        status_output("Generating reach table with initialized parameters...", 40, f)
+        status_output('Generating reach table with initialized parameters...', 40, f)
         ImportReaches2Mongo.generate_reach_table(cfg, maindb)
 
         # import raster data to MongoDB
-        status_output("Importing raster to MongoDB....", 50, f)
+        status_output('Importing raster to MongoDB....', 50, f)
         ImportMongodbClass.spatial_rasters(cfg, n_subbasins)
 
         # Import IUH
-        status_output("Generating and importing IUH (Instantaneous Unit Hydrograph)....", 60, f)
+        status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60, f)
         ImportMongodbClass.iuh(cfg, n_subbasins)
 
         # Import grid layering data
-        status_output("Generating and importing grid layering....", 70, f)
+        status_output('Generating and importing grid layering....', 70, f)
         ImportMongodbClass.grid_layering(cfg, n_subbasins)
 
         # Import hydro-climate data
-        status_output("Import climate data....", 80, f)
+        status_output('Import climate data....', 80, f)
         ImportMongodbClass.climate_data(cfg, maindb, climatedb)
 
         # Import weight and related data, this should after ImportMongodbClass.climate_data()
-        status_output("Generating weight data for interpolation of meteorology data "
-                      "and weight dependent parameters....", 85, f)
+        status_output('Generating weight data for interpolation of meteorology data '
+                      'and weight dependent parameters....', 85, f)
         ImportWeightData.workflow(cfg, conn)
 
         # Measurement Data, such as discharge, sediment yield.
-        status_output("Import observed data, such as discharge, sediment yield....", 90, f)
+        status_output('Import observed data, such as discharge, sediment yield....', 90, f)
         ImportObservedData.workflow(cfg, climatedb)
 
         # Import BMP scenario database to MongoDB
-        status_output("Importing bmp scenario....", 95, f)
+        status_output('Importing bmp scenario....', 95, f)
         ImportScenario2Mongo.scenario_from_texts(cfg, maindb, scenariodb)
 
-        status_output("Build DB: %s finished!" % cfg.spatial_db, 100, f)
+        status_output('Build DB: %s finished!' % cfg.spatial_db, 100, f)
         f.close()
 
         # close connection to MongoDB

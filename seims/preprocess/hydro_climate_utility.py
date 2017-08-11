@@ -8,9 +8,9 @@
 import math
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from seims.preprocess.text import DBTableNames, StationFields
+from seims.preprocess.text import DBTableNames, StationFields, DataValueFields
 from seims.preprocess.utility import LFs
 from seims.pygeoc.pygeoc.utils.utils import StringClass, MathClass
 
@@ -109,6 +109,48 @@ class HydroClimateUtilClass(object):
                 break
         f.close()
         return time_sys, time_zone
+
+    @staticmethod
+    def get_utcdatetime_from_field_values(flds, values, tsys, tzone=None):
+        """Get datetime from field-value lists.
+
+        Returns:
+            utctime
+        """
+        cur_y = 0
+        cur_m = 0
+        cur_d = 0
+        cur_hh = 0
+        cur_mm = 0
+        cur_ss = 0
+        dt = None
+        for i, fld in enumerate(flds):
+            if StringClass.string_match(fld, DataValueFields.dt):
+                dt = HydroClimateUtilClass.get_datetime_from_string(values[i])
+            elif StringClass.string_match(fld, DataValueFields.y):
+                cur_y = int(values[i])
+            elif StringClass.string_match(fld, DataValueFields.m):
+                cur_m = int(values[i])
+            elif StringClass.string_match(fld, DataValueFields.d):
+                cur_d = int(values[i])
+            elif StringClass.string_match(fld, DataValueFields.hour):
+                cur_hh = int(values[i])
+            elif StringClass.string_match(fld, DataValueFields.minute):
+                cur_mm = int(values[i])
+            elif StringClass.string_match(fld, DataValueFields.second):
+                cur_ss = int(values[i])
+        # Get datetime and utc/local transformation
+        if dt is None:  # 'DATETIME' is not existed
+            if cur_y < 1900 or cur_m <= 0 and cur_d <= 0:
+                raise ValueError("Can not find TIME information from "
+                                 "fields: %s" % ' '.join(fld for fld in flds))
+            else:
+                dt = datetime(cur_y, cur_m, cur_d, cur_hh, cur_mm, cur_ss)
+        if not StringClass.string_match(tsys, 'UTCTIME'):
+            if tzone is None:
+                tzone = time.timezone / -3600  # positive value for EAST
+            dt -= timedelta(minutes=tzone * 60)
+        return dt
 
 
 def main():

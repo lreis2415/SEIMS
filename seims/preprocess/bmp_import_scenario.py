@@ -19,8 +19,8 @@ class ImportScenario2Mongo(object):
     _FLD_DB = 'DB'
     _LocalX = 'LocalX'
     _LocalY = 'LocalY'
-    _DISTDOWN = "DIST2REACH"
-    _SUBBASINID = "SUBBASINID"
+    _DISTDOWN = 'DIST2REACH'
+    _SUBBASINID = 'SUBBASINID'
 
     @staticmethod
     def scenario_from_texts(cfg, main_db, scenario_db):
@@ -34,7 +34,7 @@ class ImportScenario2Mongo(object):
         """
         if not cfg.use_scernario:
             return False
-        print ("Import BMP Scenario Data... ")
+        print ('Import BMP Scenario Data... ')
         bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt'])
         bmp_tabs = []
         bmp_tabs_path = []
