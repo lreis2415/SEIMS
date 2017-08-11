@@ -475,7 +475,7 @@ class TauDEMWorkflow(object):
 
     @staticmethod
     def watershed_delineation(bin_dir, mpi_bin, np, dem, outlet_file, thresh, d8_down_method,
-                              namecfg, logfile=None, hostfile=None):
+                              namecfg, logfile=None, hostfile=None, singlebasin=False):
         """Watershed Delineation."""
         # 1. Check directories
         tau_dir = namecfg.workspace
@@ -537,7 +537,10 @@ class TauDEMWorkflow(object):
                              mpi_bin, bin_dir, log_file=logfile, hostfile=hostfile)
         UtilClass.writelog(logfile, "[Output] %d..., %s" %
                            (70, "Flow accumulation with outlet..."), 'a')
-        TauDEM.aread8(np, tau_dir, flow_dir, acc_with_weight, None, stream_skeleton,
+        tmp_outlet = None
+        if singlebasin:
+            tmp_outlet = modified_outlet
+        TauDEM.aread8(np, tau_dir, flow_dir, acc_with_weight, tmp_outlet, stream_skeleton,
                       mpi_bin, bin_dir, log_file=logfile, hostfile=hostfile)
 
         if thresh <= 0:  # find the optimal threshold using dropanalysis function

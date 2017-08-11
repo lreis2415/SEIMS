@@ -33,10 +33,6 @@ class VectorUtilClass(object):
         FileClass.check_file_exists(rasterfile)
         # raster to polygon vector
         exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
-        # if sysstr == 'Windows':
-        #     exepath = '"%s/Scripts/gdal_polygonize.py"' % sys.exec_prefix
-        # else:
-        #     exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
         str_cmd = 'python %s -f "ESRI Shapefile" %s %s %s %s' % (
             exepath, rasterfile, vectorshp, layername, fieldname)
         print (str_cmd)
