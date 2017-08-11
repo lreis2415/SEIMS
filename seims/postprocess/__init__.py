@@ -6,7 +6,7 @@
                              Python APIs for SEIMS
  Postprocess for plotting
                               -------------------
-        author               : Liangjun Zhu, Junzhi Liu
+        author               : Liangjun Zhu, Huiran Gao, Junzhi Liu
         copyright            : (C) 2017 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
@@ -21,5 +21,5 @@
 """
 
 __author__ = "Liangjun Zhu, Huiran Gao"
-__version__ = "1.0"
-__revision__ = "1.0.0"
+__version__ = "1.1"
+__revision__ = "1.1.0"
