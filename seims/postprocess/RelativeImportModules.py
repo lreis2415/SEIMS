@@ -23,7 +23,7 @@ from pathlib2 import Path
 #         from ... import module
 #         from ...module.submodule import thing
 
-def import_parents(level = 1):
+def import_parents(level=1):
     global __package__
     file = Path(__file__).resolve()
     parent, top = file.parent, file.parents[level]
@@ -34,4 +34,4 @@ def import_parents(level = 1):
 
 
 if __name__ == '__main__' and __package__ is None:
-    import_parents(level = 1)
+    import_parents(level=1)
