@@ -37,19 +37,19 @@ class DinfUtil(object):
         if MathClass.floatequal(angle, FlowModelConst.e):
             flow_dir = 1  # 1
         elif MathClass.floatequal(angle, FlowModelConst.ne):
-            flow_dir = 128  # 2
+            flow_dir = 2  # 128
         elif MathClass.floatequal(angle, FlowModelConst.n):
-            flow_dir = 64  # 3
+            flow_dir = 3  # 64
         elif MathClass.floatequal(angle, FlowModelConst.nw):
-            flow_dir = 32  # 4
+            flow_dir = 4  # 32
         elif MathClass.floatequal(angle, FlowModelConst.w):
-            flow_dir = 16  # 5
+            flow_dir = 5  # 16
         elif MathClass.floatequal(angle, FlowModelConst.sw):
-            flow_dir = 8  # 6
+            flow_dir = 6  # 8
         elif MathClass.floatequal(angle, FlowModelConst.s):
-            flow_dir = 4  # 7
+            flow_dir = 7  # 4
         elif MathClass.floatequal(angle, FlowModelConst.se):
-            flow_dir = 2  # 8
+            flow_dir = 8  # 2
         return flow_dir
 
     @staticmethod
@@ -125,7 +125,7 @@ class DinfUtil(object):
             downslope directions
         """
         d = DinfUtil.check_orthogonal(a)
-        if d != 0:
+        if d != -1:
             down = [d]
             return down
         else:
