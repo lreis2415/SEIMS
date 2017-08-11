@@ -89,23 +89,23 @@ class SEIMSConfig(object):
             self.mpi_bin = cf.get('PATH', 'mpiexec_dir')
             self.workspace = cf.get('PATH', 'working_dir')
         else:
-            raise ValueError("[PATH] section MUST be existed in *.ini file.")
-        if not (FileClass.is_file_exists(self.base_dir)
-                and FileClass.is_file_exists(self.model_dir)
-                and FileClass.is_file_exists(self.txt_db_dir)
-                and FileClass.is_file_exists(self.preproc_script_dir)
-                and FileClass.is_file_exists(self.seims_bin)):
-            raise IOError("Please Check Directories defined in [PATH]. "
-                          "BASE_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, "
-                          "and CPP_PROGRAM_DIR are required!")
-        if not FileClass.is_file_exists(self.mpi_bin):
+            raise ValueError('[PATH] section MUST be existed in *.ini file.')
+        if not (FileClass.is_dir_exists(self.base_dir)
+                and FileClass.is_dir_exists(self.model_dir)
+                and FileClass.is_dir_exists(self.txt_db_dir)
+                and FileClass.is_dir_exists(self.preproc_script_dir)
+                and FileClass.is_dir_exists(self.seims_bin)):
+            raise IOError('Please Check Directories defined in [PATH]. '
+                          'BASE_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, '
+                          'and CPP_PROGRAM_DIR are required!')
+        if not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None
-        if not os.path.isdir(self.workspace):
+        if not FileClass.is_dir_exists(self.workspace):
             try:  # first try to make dirs
                 os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.sep + 'preprocess_output'
-                print ("WARNING: Make WORKING_DIR failed: %s. Use the default: %s" % (
+                print ('WARNING: Make WORKING_DIR failed: %s. Use the default: %s' % (
                     exc.message, self.workspace))
                 if not os.path.exists(self.workspace):
                     os.mkdir(self.workspace)
@@ -118,22 +118,22 @@ class SEIMSConfig(object):
         self.modelcfgs = ModelCfgUtils(self.model_dir)
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
-        if not FileClass.is_file_exists(self.clim_dir):
-            print ("The CLIMATE_DATA_DIR is not existed, try the default folder name 'climate'.")
+        if not FileClass.is_dir_exists(self.clim_dir):
+            print ('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.sep + 'climate'
-            if not FileClass.is_file_exists(self.clim_dir):
-                raise IOError("Directories named 'climate' MUST BE located in [base_dir]!")
+            if not FileClass.is_dir_exists(self.clim_dir):
+                raise IOError('Directories named "climate" MUST BE located in [base_dir]!')
 
-        if not FileClass.is_file_exists(self.spatial_dir):
-            print ("The SPATIAL_DATA_DIR is not existed, try the default folder name 'spatial'.")
+        if not FileClass.is_dir_exists(self.spatial_dir):
+            print ('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.sep + 'spatial'
-            raise IOError("Directories named 'spatial' MUST BE located in [base_dir]!")
+            raise IOError('Directories named "spatial" MUST BE located in [base_dir]!')
 
-        if not FileClass.is_file_exists(self.observe_dir):
+        if not FileClass.is_dir_exists(self.observe_dir):
             self.observe_dir = None
             self.use_observed = False
 
-        if not FileClass.is_file_exists(self.scenario_dir):
+        if not FileClass.is_dir_exists(self.scenario_dir):
             self.scenario_dir = None
             self.use_scernario = False
 
@@ -145,9 +145,9 @@ class SEIMSConfig(object):
             self.bmp_scenario_db = cf.get('MONGODB', 'BMPScenarioDBName')
             self.spatial_db = cf.get('MONGODB', 'SpatialDBName')
         else:
-            raise ValueError("[MONGODB] section MUST be existed in *.ini file.")
+            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
         if not StringClass.is_valid_ip_addr(self.hostname):
-            raise ValueError("HOSTNAME illegal defined in [MONGODB]!")
+            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
 
         # 3. Model related switch
         # by default, OpenMP version and daily (longterm) mode will be built
@@ -175,7 +175,7 @@ class SEIMSConfig(object):
             self.Meteo_data = self.clim_dir + os.sep + cf.get('CLIMATE', 'meteodatafile')
             self.thiessen_field = cf.get('CLIMATE', 'thiessenidfield')
         else:
-            raise ValueError("Climate input file names MUST be provided in [CLIMATE]!")
+            raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')
 
         # 5. Spatial Input
         if 'SPATIAL' in cf.sections():
@@ -197,7 +197,7 @@ class SEIMSConfig(object):
                     StringClass.string_match(self.mgt_field, 'none'):
                 self.mgt_field = None
         else:
-            raise ValueError("Spatial input file names MUST be provided in [SPATIAL]!")
+            raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
         # 6. Option parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():

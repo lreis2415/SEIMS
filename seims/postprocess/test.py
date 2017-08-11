@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import os
-import sys
 
 import matplotlib.cbook as cbook
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 
 a = "2013-10-10 23:40:00"
 # 方法:先转换为时间数组,然后转换为其他格式
@@ -32,7 +28,7 @@ try:
     # unless the encoding is set to bytes. Hovever this option was
     # not added until numpy 1.10 so this example will only work with
     # python 2 or with numpy 1.10 and later.
-    r = np.load(datafile, encoding = 'bytes').view(np.recarray)
+    r = np.load(datafile, encoding='bytes').view(np.recarray)
 except TypeError:
     r = np.load(datafile).view(np.recarray)
 
