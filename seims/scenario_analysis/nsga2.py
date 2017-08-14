@@ -2,8 +2,7 @@ import os
 import array
 import matplotlib
 
-if os.name != 'nt':
-    # Force matplotlib to not use any Xwindows backend.
+if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import scoop
