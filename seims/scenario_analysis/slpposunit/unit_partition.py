@@ -9,25 +9,7 @@ import math
 from osgeo import gdal, ogr, osr
 import subprocess
 import numpy
-import arcpy
-from arcpy.sa import *
 from util import *
-
-
-def ClipRaster(inraster, mask, outraster):
-    arcpy.CheckOutExtension("Spatial")
-    try:
-        from arcpy import env
-        arcpy.env.extent = mask
-        outExtractByMask = ExtractByMask(inraster, mask)
-        outExtractByMask.save(outraster)
-        print "Clip finished! Save as %s" % outraster
-    except Exception as e:
-        import traceback
-        tb = sys.exc_info()[2]
-        print("Line {0}".format(tb.tb_lineno))
-        print(e.message)
-
 
 def PrefieldParti(slpPos, subBasin):
     preParti = numpy.zeros((nRows, nCols))
