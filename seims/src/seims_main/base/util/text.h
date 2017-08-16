@@ -695,7 +695,7 @@
 #define VAR_POT_K "pot_k"
 #define VAR_MANNING "Manning"
 #define VAR_MAT_YRS "MAT_YRS"
-#define VAR_MGT_FIELD "mgt_fields"
+//#define VAR_MGT_FIELD "mgt_fields" // remove by lj, 08/16/17
 #define VAR_MINPGW_TOCH "minpgwToCh"
 #define VAR_MOIST_IN "Moist_in"
 #define VAR_MSF "ManningScaleFactor"                /// flow velocity scaling factor for calibration
@@ -1332,7 +1332,7 @@
 #define DESC_MAXTEMP "Maximum Celsius degree of air temperature"
 #define DESC_MEANTEMP "Mean Celsius degree of air temperature"
 #define DESC_METEOLAT "Latitude of MeteoClimate station"
-#define DESC_MGT_FIELD "Management fields"
+//#define DESC_MGT_FIELD "Management fields" // remove by lj, 08/16/17
 #define DESC_MINPGW_CH "soluble P in groundwater to channel"
 #define DESC_MINTEMP "Minimum Celsius degree of air temperature"
 #define DESC_MOIST_IN "Initial soil moisture"
