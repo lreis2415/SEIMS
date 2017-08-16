@@ -9,12 +9,6 @@ import platform
 import scoop
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
-from RelativeImportModules import *
-
-# import util module located in SEIMS/preprocess
-if __package__ is None:
-    __package__ = import_parents(level = 2)
-from ..preprocess.util import *
 
 
 def delSpecialStr(line):

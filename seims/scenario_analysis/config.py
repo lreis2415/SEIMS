@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import ConfigParser
+
 from readTextInfo import *
 
 # import util module located in SEIMS/preprocess
 if __package__ is None:
-    __package__ = import_parents(level = 2)
+    __package__ = import_parents(level=2)
 from ..preprocess.util import *
 
 # Load model configuration from *.ini file
