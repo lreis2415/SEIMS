@@ -6,7 +6,7 @@
                 16-12-07  lj - rewrite for version 2.0, improve calculation efficiency by numpy
                 17-06-23  lj - reorganize as basic class
 """
-from os import remove
+import os
 from shutil import copy as shutil_copy
 
 from numpy import where, fromfunction
@@ -17,9 +17,9 @@ from osgeo.osr import SpatialReference as osr_SpatialReference
 
 from seims.preprocess.sd_hillslope import DelineateHillslope
 from seims.preprocess.text import FieldNames
-from seims.preprocess.utility import status_output, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM, TauDEMWorkflow
-from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
+from seims.preprocess.utility import DEFAULT_NODATA
+from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMWorkflow
+from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, StreamnetUtil
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass
 from seims.pygeoc.pygeoc.vector.vector import VectorUtilClass
@@ -50,7 +50,7 @@ class SpatialDelineation(object):
         for jsonName, shp_json_list in geo_json_dict.items():
             # delete if geojson file already existed
             if FileClass.is_file_exists(shp_json_list[1]):
-                remove(shp_json_list[1])
+                os.remove(shp_json_list[1])
             VectorUtilClass.convert2geojson(shp_json_list[1], proj_srs, wgs84_srs,
                                             shp_json_list[0])
 
@@ -197,10 +197,11 @@ class SpatialDelineation(object):
         original_files.append(cfg.landuse)
         output_files.append(cfg.spatials.landuse)
         default_values.append(cfg.default_landuse)
-        # management fields
-        if cfg.mgt_field is not None and FileClass.is_file_exists(cfg.mgt_field):
-            original_files.append(cfg.mgt_field)
-            output_files.append(cfg.spatials.mgt_field)
+
+        # Additional raster file
+        for k, v in cfg.additional_rs.iteritems():
+            original_files.append(v)
+            output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
             default_values.append(DEFAULT_NODATA)
 
         config_file = cfg.logs.mask_cfg
