@@ -1,3 +1,5 @@
+# Please install the latest version of DEAP
+# pip install git+https://github.com/DEAP/deap@master
 deap>=1.0.2
 matplotlib>=1.5.0
 pathlib2>=2.0.0
