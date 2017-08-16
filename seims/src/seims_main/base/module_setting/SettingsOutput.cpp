@@ -89,15 +89,14 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
     for (it = m_printInfos.begin(); it < m_printInfos.end(); it++) {
         vector<PrintInfoItem *>::iterator itemIt;
         for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
-            if ((*itemIt)->getStartTime() < startTime) {
-                // cout<<(*itemIt)->getStartTime()<<", "<<startTime<<endl;
+            if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
                 (*itemIt)->setStartTime(startTime);
                 cout << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                      << " is " << (*itemIt)->StartTime <<
                      ". It's earlier than start time of time series data " << ConvertToString(&startTime)
                      << ", and will be updated." << endl;
             }
-            if ((*itemIt)->getEndTime() > endTime) {
+            if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
                 cout << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                      << " is " << (*itemIt)->EndTime <<
