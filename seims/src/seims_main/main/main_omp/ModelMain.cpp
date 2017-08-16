@@ -15,7 +15,7 @@ m_firstRunOverland(true), m_firstRunChannel(true)
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
 
-    /// Create module list and load data from MongoDB
+    /// Create module list and load data from MongoDB, including calibration of value, 1D data, and 2D data.
     m_readFileTime = m_factory->CreateModuleList(m_simulationModules);
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
@@ -44,7 +44,8 @@ m_firstRunOverland(true), m_firstRunChannel(true)
     }
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
-    m_factory->updateBMPOptParameter(m_dataCenter->getSubbasinID()); /// TODO
+    /// Update model data if the scenario has requested.
+    m_factory->updateParametersByScenario(m_dataCenter->getSubbasinID()); /// TODO
 }
 
 ModelMain::~ModelMain(void) {
