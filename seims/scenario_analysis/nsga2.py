@@ -14,6 +14,7 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from scenario import *
 from userdef import *
+import numpy
 
 creator.create("FitnessMin", base.Fitness, weights = (-1.0, -1.0))
 creator.create("Individuals", array.array, typecode = 'd', fitness = creator.FitnessMin)
