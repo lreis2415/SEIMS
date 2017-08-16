@@ -91,6 +91,9 @@ public:
     //! Set raster data if needed
     void setRasterData(map<string, FloatRaster*> &sceneRsMap);
 
+    //! Get management fields data
+    float* getRasterData() { return m_mgtFieldsRs; };
+
 	//! Output
 	void Dump(ostream *fs);
 
@@ -118,7 +121,7 @@ private:
 	///// BMP index in each field
 	//int* m_fieldBMPid;
     string m_mgtFieldsName;
-	FloatRaster* m_mgtFieldsRs;
+	float* m_mgtFieldsRs;
 
 	///// field raster data
 	//float* m_fieldmap;
