@@ -26,7 +26,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
-    mdi.AddParameter(VAR_MGT_FIELD, UNIT_NON_DIM, DESC_MGT_FIELD, Source_ParameterDB, DT_Raster1D);
+    // mdi.AddParameter(VAR_MGT_FIELD, UNIT_NON_DIM, DESC_MGT_FIELD, Source_ParameterDB, DT_Raster1D); // remove by lj, 08/16/17
     /// set input from other modules, all set to be optional
     mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module_Optional, DT_Raster2D);
     mdi.AddInput(VAR_SOL_NH4, UNIT_CONT_KGHA, DESC_SOL_NH4, Source_Module_Optional, DT_Raster2D);

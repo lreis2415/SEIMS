@@ -136,6 +136,15 @@ void BMPArealSrcFactory::Dump(ostream *fs) {
     }
 }
 
+void BMPArealSrcFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
+    if (sceneRsMap.find(m_arealSrcDistName) != sceneRsMap.end()) {
+        int n;
+        sceneRsMap.at(m_arealSrcDistName)->getRasterData(&n, &m_mgtFieldsRs);
+    }
+    else{
+        // raise Exception?
+    }
+}
 
 /************************************************************************/
 /*                  ArealSourceMgtParams                                */
