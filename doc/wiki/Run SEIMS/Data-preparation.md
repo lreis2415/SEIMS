@@ -15,6 +15,7 @@ Revised date  : 2016-5-31 v2.0
 接下来，分别对准备数据的搜集、整理加以介绍。
 
 # 目录
+0. [基本约定](#0-基本约定)
 
 1. [降水数据](#1-降水数据)
 
@@ -31,7 +32,32 @@ Revised date  : 2016-5-31 v2.0
 	
 	4. [植被覆盖数据](#35-植被覆盖数据及属性查找表)
 
+## 0. 基本约定
 
+文本格式的准备数据格式有如下基本约定：
++ `#`为注释行，第一行为“时制和时区”时例外
++ `,`为每行数据内，属性值之间的分割
++ '-'为每个属性值内部的一级分割
++ ':'为每个属性值内部的二级分割
+如：
+```shell
+#LOCALTIME 8
+# This line is comment.
+SUBSCENARIO,NAME,LANDUSE,PARAMETERS
+1,fengjin,7-16,Interc_max:Maximum Interception Capacity:AC:1-Conductivity:Soil hydraulic conductivity:RC:3.5
+```
+上述示例中的最后一行解析成数据字典格式如下：
+```python
+demo_dict = {
+    'SUBSCENARIO': 1,
+    'NAME':'fengjin'
+    'LANDUSE': [7, 16],
+    'PARAMETERS': [
+        ['Interc_max', 'Maximum Interception Capacity', 'AC', 1],
+        ['Conductivity', 'Soil hydraulic conductivity', 'RC', 3.5]        
+    ]
+}
+```
 
 ## 1. 降水数据
 
