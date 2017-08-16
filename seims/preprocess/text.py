@@ -271,7 +271,7 @@ class SpatialNamesUtils(object):
     _LANDUSEMFILE = "landuse.tif"
     _CROPMFILE = "LANDCOVER.tif"  # added by LJ.
     _SOILTYPEMFILE = "soiltype.tif"
-    _MGTFIELDMFILE = "mgt_fields.tif"
+    # _MGTFIELDMFILE = "mgt_fields.tif"
     _SOILTEXTURE = "SOIL_TEXTURE.tif"
     _HYDROGROUP = "HYDRO_GROUP.tif"
     _USLEK = "USLE_K.tif"
@@ -311,7 +311,7 @@ class SpatialNamesUtils(object):
         self.landuse = spa_dir + SEP + self._LANDUSEMFILE
         self.crop = spa_dir + SEP + self._CROPMFILE
         self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE
-        self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
+        # self.mgt_field = spa_dir + SEP + self._MGTFIELDMFILE
         self.soil_texture = spa_dir + SEP + self._SOILTEXTURE
         self.hydro_group = spa_dir + SEP + self._HYDROGROUP
         self.usle_k = spa_dir + SEP + self._USLEK

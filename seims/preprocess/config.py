@@ -5,6 +5,7 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
+import json
 import os
 
 from configparser import ConfigParser
@@ -63,7 +64,7 @@ class SEIMSConfig(object):
         self.landcover_init_param = None
         self.soil = None
         self.soil_property = None
-        self.mgt_field = None
+        self.additional_rs = dict()
         # 6. Option parameters
         self.is_TauDEM = True
         self.d8acc_threshold = 0
@@ -192,10 +193,18 @@ class SEIMSConfig(object):
                                         + cf.get('SPATIAL', 'landcoverinitfile')
             self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
             self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
-            self.mgt_field = self.spatial_dir + os.sep + cf.get('SPATIAL', 'mgtfieldfile')
-            if not os.path.exists(self.mgt_field) or \
-                    StringClass.string_match(self.mgt_field, 'none'):
-                self.mgt_field = None
+            additional_dict_str = cf.get('SPATIAL', 'additionalfile')
+            tmpdict = json.loads(additional_dict_str)
+            tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
+                       tmpdict.items()}
+            for k, v in tmpdict.iteritems():
+                if not FileClass.is_file_exists(v):
+                    v = self.spatial_dir + os.sep + v
+                if not FileClass.is_file_exists(v):
+                    print ('WARNING: The additional file %s MUST be located in SPATIAL_DATA_DIR, or'
+                           'provided as full file path!' % k)
+                else:
+                    self.additional_rs[k] = v
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
