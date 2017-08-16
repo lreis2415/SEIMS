@@ -51,7 +51,14 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location), 
     m_mgtFieldsRs(NULL)
 {
-    m_mgtFieldsName = distribution[1];
+    if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
+        m_mgtFieldsName = m_distribution[1];
+    }
+    else {
+        throw ModelException("BMPArealStructFactory", "Initialization",
+            "The distribution field must follow the format: "
+            "RASTER|CoreRasterName.\n");
+    }
 }
 
 BMPArealStructFactory::~BMPArealStructFactory()
@@ -90,36 +97,12 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string &bmpDBName)
     }
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
-
-	//m_bmpDBName = bmpDBName;
-	///*
-	//if (m_bmpArealStrOps.find(m_subScenarioId) == m_bmpArealStrOps.end())
-	//{
-	//	m_bmpArealStrOps.insert(map<int, vector<int>> :: value_type(m_subScenarioId, m_location));
-	//}
-	//*/
-
-	//// initial m_BMPparam
-	//string fileName = "D:\\SEIMS_model\\Model_data\\youwuzhen\\model_youwuzhen_10m_longterm\\bmpParam.xml";
-	//ReadXmlFile(fileName,m_bmpDBName);
-
-	//m_BMPparam.push_back(Params.begin()->ParamName);
-	//for (vector<struct Param>::iterator iter=Params.begin();iter!=Params.end();++iter)
-	//{
-	//	vector<string>::iterator paramIter=m_BMPparam.begin();
-	//	for(paramIter;paramIter!=m_BMPparam.end();++paramIter)
-	//	{
-	//		if(*paramIter==iter->ParamName)
-	//			break;
-	//	}
-	//	if(paramIter==m_BMPparam.end ())
-	//		m_BMPparam.push_back(iter->ParamName);
-	//}
 }
 
 void BMPArealStructFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
-        m_mgtFieldsRs = sceneRsMap.at(m_mgtFieldsName);
+        int n;
+        sceneRsMap.at(m_mgtFieldsName)->getRasterData(&n, &m_mgtFieldsRs);
     }
     else{
         // raise Exception?

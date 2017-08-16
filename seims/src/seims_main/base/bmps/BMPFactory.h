@@ -44,6 +44,11 @@ public:
      */
     virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap){};
     /*!
+    * \brief Get raster data if needed
+    * This function is not required for each BMP, so DO NOT define as pure virtual function.
+    */
+    FloatRaster* getRasterData(){};
+    /*!
      * \brief preUpdate model parameters.
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */

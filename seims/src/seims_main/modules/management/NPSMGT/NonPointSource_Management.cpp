@@ -49,10 +49,11 @@ void NPS_Management::SetValue(const char *key, float data) {
 void NPS_Management::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     CheckInputSize(key, n);
-    if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; }
-    else {
-        throw ModelException(MID_NPSMGT, "Set1DData", "Parameter " + sk + " does not exist.");
-    }
+    // mgt_field is set by Scenario data now. lj, 08/16/17
+    //if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; }
+    //else {
+    //    throw ModelException(MID_NPSMGT, "Set1DData", "Parameter " + sk + " does not exist.");
+    //}
 }
 
 void NPS_Management::Set2DData(const char *key, int n, int col, float **data) {
@@ -76,6 +77,10 @@ void NPS_Management::SetScenario(Scenario *sce) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_AREALSOURCE) {
                 m_arealSrcFactory[it->first] = (BMPArealSrcFactory *) it->second;
+            }
+            /// Set areal source locations data
+            if (NULL == m_mgtFields) {
+                m_mgtFields = ((BMPArealSrcFactory *)it->second)->getRasterData();
             }
         }
     } else {
