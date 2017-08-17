@@ -8,7 +8,7 @@
 import sys
 
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
+from pymongo.errors import ConnectionFailure, InvalidOperation
 
 from seims.preprocess.text import DBTableNames, ModelParamFields, SubbsnStatsName
 
@@ -46,3 +46,15 @@ class MongoQuery(object):
         if subbsn_num_dict is None or subbsn_num_dict.get(ModelParamFields.value) is None:
             raise RuntimeError('Subbasin number item is not existed in MongoDB!')
         return subbsn_num_dict.get(ModelParamFields.value)
+
+
+class MongoUtil(object):
+    """Some utility functions."""
+
+    @staticmethod
+    def run_bulk(bulk, errmsg=''):
+        """Execute bulk operations, do not raise exception."""
+        try:
+            bulk.execute()
+        except InvalidOperation:
+            print ('WARNING: %s' % errmsg)

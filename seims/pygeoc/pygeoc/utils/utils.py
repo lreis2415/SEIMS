@@ -434,7 +434,7 @@ class UtilClass(object):
         subprocess_flags = 0
         startupinfo = None
         if sysstr == 'Windows':
-            if isinstance(commands, list) or isinstance(commands, tuple):
+            if isinstance(commands, list):
                 commands = ' '.join(c for c in commands)
             import ctypes
             SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
@@ -449,7 +449,7 @@ class UtilClass(object):
                 use_shell = True
                 # https://docs.python.org/2/library/subprocess.html
                 #     Using shell=True can be a security hazard.
-            elif isinstance(commands, list) or isinstance(commands, tuple):
+            elif isinstance(commands, list):
                 # the executable path may be enclosed with quotes, if not windows, delete the quotes
                 if commands[0][0] == commands[0][-1] == '"' or \
                                         commands[0][0] == commands[0][-1] == "'":

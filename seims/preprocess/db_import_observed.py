@@ -11,6 +11,7 @@
 import time
 from datetime import timedelta
 
+from seims.preprocess.db_mongodb import MongoUtil
 from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
 from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
 from seims.preprocess.utility import read_data_items_from_txt
@@ -179,11 +180,11 @@ class ImportObservedData(object):
                 bulk.insert(dic)
                 count += 1
                 if count % 500 == 0:
-                    bulk.execute()
+                    MongoUtil.run_bulk(bulk)
                     bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
                     # db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
         if count % 500 != 0:
-            bulk.execute()
+            MongoUtil.run_bulk(bulk)
         # 3. Add measurement data with unit converted
         # loop variables list
         added_dics = []
