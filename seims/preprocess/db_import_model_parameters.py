@@ -11,6 +11,7 @@ from gridfs import GridFS
 from numpy import unique
 from pymongo import ASCENDING
 
+from seims.preprocess.db_mongodb import MongoUtil
 from seims.preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
 from seims.preprocess.utility import read_data_items_from_txt
@@ -75,7 +76,7 @@ class ImportParam2Mongo(object):
                         data_import[k] = cur_data_item[idx]
             bulk.insert(data_import)
         # execute import operators
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operation during initial_params_from_txt.')
         # create index by parameter's type and name by ascending order.
         maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
                                                           (ModelParamFields.name, ASCENDING)])
@@ -103,7 +104,7 @@ class ImportParam2Mongo(object):
 
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations during calibrated_params_from_txt.')
 
     @staticmethod
     def subbasin_statistics(cfg, maindb):
@@ -255,7 +256,7 @@ class ImportParam2Mongo(object):
             if file_out_dict.keys() is []:
                 raise ValueError('There are not any valid output item stored in file.out!')
             bulk.insert(file_out_dict)
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations to excute when import initial outputs settings.')
 
         # begin to import the desired outputs
         # create bulk operator
@@ -283,7 +284,7 @@ class ImportParam2Mongo(object):
 
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations to excute when import the desired outputs.')
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg, maindb):
@@ -326,7 +327,7 @@ class ImportParam2Mongo(object):
                 bulk.insert(data_import)
                 if len(item_value) > 0:
                     item_values.append(item_value)
-            bulk.execute()
+            MongoUtil.run_bulk(bulk, 'No operations during import %s.' % tablename)
             # begin import gridfs file
             n_row = len(item_values)
             # print (item_values)
