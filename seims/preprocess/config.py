@@ -8,7 +8,10 @@
 import json
 import os
 
-from configparser import ConfigParser
+try:
+    from ConfigParser import ConfigParser  # py2
+except ImportError:
+    from configparser import ConfigParser  # py3
 
 from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
     VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
@@ -20,6 +23,7 @@ class SEIMSConfig(object):
     """Parse SEIMS project configuration."""
 
     def __init__(self, cf):
+        """Initialization."""
         # 1. Directories
         self.base_dir = None
         self.clim_dir = None
