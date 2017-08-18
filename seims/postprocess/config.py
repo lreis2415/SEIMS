@@ -4,10 +4,13 @@
     @author   : Liangjun Zhu, Huiran Gao
     @changelog: 17-08-17  lj - reorganize as basic class
 """
-import datetime
 import os
+try:
+    from ConfigParser import ConfigParser  # py2
+except ImportError:
+    from configparser import ConfigParser  # py3
 
-from configparser import ConfigParser
+
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
 
 
@@ -15,6 +18,7 @@ class PostConfig(object):
     """Parse postprocess configuration of SEIMS project."""
 
     def __init__(self, cf):
+        """Initialization."""
         # 1. Directories
         self.model_dir = None
         self.scenario_id = -1
