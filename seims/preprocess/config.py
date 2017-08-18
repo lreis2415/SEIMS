@@ -143,8 +143,8 @@ class SEIMSConfig(object):
             self.hostname = cf.get('MONGODB', 'hostname')
             self.port = cf.getint('MONGODB', 'port')
             self.climate_db = cf.get('MONGODB', 'climatedbname')
-            self.bmp_scenario_db = cf.get('MONGODB', 'BMPScenarioDBName')
-            self.spatial_db = cf.get('MONGODB', 'SpatialDBName')
+            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
         else:
             raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
         if not StringClass.is_valid_ip_addr(self.hostname):
@@ -153,11 +153,11 @@ class SEIMSConfig(object):
         # 3. Model related switch
         # by default, OpenMP version and daily (longterm) mode will be built
         if 'SWITCH' in cf.sections():
-            self.cluster = cf.getboolean('SWITCH', 'forCluster')
-            self.storm_mode = cf.getboolean('SWITCH', 'stormMode')
-            self.gen_cn = cf.getboolean('SWITCH', 'genCN')
-            self.gen_runoff_coef = cf.getboolean('SWITCH', 'genRunoffCoef')
-            self.gen_crop = cf.getboolean('SWITCH', 'genCrop')
+            self.cluster = cf.getboolean('SWITCH', 'forcluster')
+            self.storm_mode = cf.getboolean('SWITCH', 'stormmode')
+            self.gen_cn = cf.getboolean('SWITCH', 'gencn')
+            self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
+            self.gen_crop = cf.getboolean('SWITCH', 'gencrop')
 
         if self.storm_mode:
             self.gen_iuh = False

@@ -6,3 +6,4 @@ networkx>=1.10
 Shapely>=1.5.0
 configparser>=3.0
 networkx>=1.11
+ConfigParser
