@@ -302,6 +302,7 @@ class TimeSeriesPlots(object):
                                    self.etime.strftime('%Y-%m-%d'))
             fpath = self.ws + os.sep + param + '-' + timerange + '.png'
             plt.savefig(fpath)
+            print ('Plot %s done, saved as: %s' % (param, fpath))
             # plt.show()
 
     def workflow(self):
