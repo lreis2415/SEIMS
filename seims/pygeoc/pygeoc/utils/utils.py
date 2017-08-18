@@ -11,13 +11,14 @@ import argparse
 import glob
 import os
 import platform
+import re
 import socket
 import subprocess
 import sys
 import time
+from datetime import datetime
 from math import sqrt
 from shutil import copy, rmtree
-import re
 
 sysstr = platform.system()
 
@@ -165,11 +166,12 @@ class StringClass(object):
         return new_str
 
     @staticmethod
-    def split_string(str_src, spliters=None):
+    def split_string(str_src, spliters=None, elim_empty=False):
         """Split string by split character space(' ') and indent('\t') as default
         Args:
             str_src: source string
             spliters: e.g. [' ', '\t'], []
+            elim_empty: Eliminate empty (i.e., '') or not.
 
         Returns:
             split sub-strings as list
@@ -185,7 +187,8 @@ class StringClass(object):
                     temp_strs = src_s.split(s)
                     for temp_s in temp_strs:
                         temp_s = StringClass.strip_string(temp_s)
-                        # if temp_s != '':
+                        if temp_s == '' and elim_empty:
+                            continue
                         if isinstance(temp_s, unicode):
                             temp_s = temp_s.encode()
                         dest_strs.append(temp_s)
@@ -241,6 +244,35 @@ class StringClass(object):
             return None
         else:
             return [float(v) for v in value_strs]
+
+    @staticmethod
+    def get_datetime(formatted_str, user_fmt=None):
+        """get datetime() object from string formatted %Y-%m-%d %H:%M:%S"""
+        date_fmts = ['%m-%d-%Y', '%Y-%m-%d', '%m-%d-%y', '%y-%m-%d']
+        date_fmts += [d.replace('-', '/') for d in date_fmts]
+        time_fmts = ['%H:%M', '%H:%M:%S']
+        fmts = date_fmts + ['%s %s' % (d, t) for d in date_fmts for t in time_fmts]
+        if user_fmt is not None:
+            if isinstance(user_fmt, str):
+                fmts.insert(0, user_fmt)
+            elif isinstance(user_fmt, list):
+                fmts = user_fmt + fmts
+            elif isinstance(user_fmt, tuple):
+                for fff in user_fmt:
+                    fmts.insert(0, fff)
+        flag = False
+        for fmt in fmts:
+            try:
+                org_time = time.strptime(formatted_str, fmt)
+                flag = True
+                break
+            except ValueError:
+                pass
+        if not flag:
+            raise ValueError('The DATETIME must be one of the formats: %s' % ','.join(fmts))
+        else:
+            return datetime(org_time.tm_year, org_time.tm_mon, org_time.tm_mday,
+                            org_time.tm_hour, org_time.tm_min, org_time.tm_sec)
 
 
 class FileClass(object):
