@@ -10,10 +10,10 @@
 """
 import time
 from datetime import timedelta
-
+from seims.preprocess.db_mongodb import MongoQuery
 from seims.preprocess.db_mongodb import MongoUtil
 from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
-from seims.preprocess.text import StationFields, DBTableNames, DataValueFields
+from seims.preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import StringClass, FileClass
@@ -29,7 +29,7 @@ class ImportObservedData(object):
     """
 
     @staticmethod
-    def match_subbasin(subbsn_file, site_dict):
+    def match_subbasin(subbsn_file, site_dict, maindb):
         """
         Match the ID of subbasin
             1. Read the coordinates of each subbasin's outlet, and
@@ -51,15 +51,17 @@ class ImportObservedData(object):
         if site_type == 0:
             return True, [subbasin_id]
         elif site_type == 1:
-            return True, [subbasin_id]  # TODO, get outlet ID of the whole basin
+            outid = int(MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.outlet))
+            return True, [outid]
         elif site_type == 2:
             return True, [subbasin_id]  # TODO
 
     @staticmethod
-    def data_from_txt(hydro_clim_db, obs_txts_list, sites_info_txts_list, subbsn_file):
+    def data_from_txt(maindb, hydro_clim_db, obs_txts_list, sites_info_txts_list, subbsn_file):
         """
         Read observed data from txt file
         Args:
+            maindb: Main spatial database
             hydro_clim_db: hydro-climate dababase
             obs_txts_list: txt file paths of observed data
             sites_info_txts_list: txt file paths of site information
@@ -75,30 +77,29 @@ class ImportObservedData(object):
             site_data_items = read_data_items_from_txt(site_file)
             site_flds = site_data_items[0]
             for i in range(1, len(site_data_items)):
-                dic = {}
-                for j in range(len(site_data_items[i])):
+                dic = dict()
+                for j, v in enumerate(site_data_items[i]):
                     if StringClass.string_match(site_flds[j], StationFields.id):
-                        dic[StationFields.id] = int(site_data_items[i][j])
+                        dic[StationFields.id] = int(v)
                         site_ids.append(dic[StationFields.id])
                     elif StringClass.string_match(site_flds[j], StationFields.name):
-                        dic[StationFields.name] = StringClass.strip_string(site_data_items[i][j])
+                        dic[StationFields.name] = StringClass.strip_string(v)
                     elif StringClass.string_match(site_flds[j], StationFields.type):
-                        types = StringClass.split_string(StringClass.strip_string(
-                                site_data_items[i][j]), ',')
+                        types = StringClass.split_string(StringClass.strip_string(v), '-')
                     elif StringClass.string_match(site_flds[j], StationFields.lat):
-                        dic[StationFields.lat] = float(site_data_items[i][j])
+                        dic[StationFields.lat] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.lon):
-                        dic[StationFields.lon] = float(site_data_items[i][j])
+                        dic[StationFields.lon] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.x):
-                        dic[StationFields.x] = float(site_data_items[i][j])
+                        dic[StationFields.x] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.y):
-                        dic[StationFields.y] = float(site_data_items[i][j])
+                        dic[StationFields.y] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.unit):
-                        dic[StationFields.unit] = StringClass.strip_string(site_data_items[i][j])
+                        dic[StationFields.unit] = StringClass.strip_string(v)
                     elif StringClass.string_match(site_flds[j], StationFields.elev):
-                        dic[StationFields.elev] = float(site_data_items[i][j])
+                        dic[StationFields.elev] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.outlet):
-                        dic[StationFields.outlet] = float(site_data_items[i][j])
+                        dic[StationFields.outlet] = float(v)
 
                 for j, cur_type in enumerate(types):
                     site_dic = dict()
@@ -112,16 +113,12 @@ class ImportObservedData(object):
                     site_dic[StationFields.elev] = dic[StationFields.elev]
                     site_dic[StationFields.outlet] = dic[StationFields.outlet]
                     # Add SubbasinID field
-                    matched, cur_subbsn_id = ImportObservedData.match_subbasin(subbsn_file,
-                                                                               site_dic)
+                    matched, cur_sids = ImportObservedData.match_subbasin(subbsn_file, site_dic,
+                                                                          maindb)
                     if not matched:
                         break
-                    cur_subbsn_id_str = ''
-                    for tmp_id in cur_subbsn_id:
-                        if tmp_id is not None:
-                            cur_subbsn_id_str += str(tmp_id) + ','
-                    cur_subbsn_id_str = cur_subbsn_id_str[:-1]
-                    site_dic[StationFields.id] = cur_subbsn_id_str
+                    cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cid is not None)
+                    site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
                     # print (curfilter)
@@ -246,7 +243,7 @@ class ImportObservedData(object):
             hydro_clim_db[DBTableNames.observes].find_one_and_replace(curfilter, dic, upsert=True)
 
     @staticmethod
-    def workflow(cfg, db):
+    def workflow(cfg, maindb, climdb):
         """
         This function mainly to import measurement data to MongoDB
         data type may include Q (discharge, m3/s), SED (mg/L), tn (mg/L), tp (mg/L), etc.
@@ -254,15 +251,15 @@ class ImportObservedData(object):
         """
         if not cfg.use_observed:
             return False
-        c_list = db.collection_names()
+        c_list = climdb.collection_names()
         if not StringClass.string_in_list(DBTableNames.observes, c_list):
-            db.create_collection(DBTableNames.observes)
+            climdb.create_collection(DBTableNames.observes)
         else:
-            db.drop_collection(DBTableNames.observes)
+            climdb.drop_collection(DBTableNames.observes)
         if not StringClass.string_in_list(DBTableNames.sites, c_list):
-            db.create_collection(DBTableNames.sites)
+            climdb.create_collection(DBTableNames.sites)
         if not StringClass.string_in_list(DBTableNames.var_desc, c_list):
-            db.create_collection(DBTableNames.var_desc)
+            climdb.create_collection(DBTableNames.var_desc)
 
         file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt'])
         meas_file_list = []
@@ -272,7 +269,8 @@ class ImportObservedData(object):
                 meas_file_list.append(fl)
             else:
                 site_loc.append(fl)
-        ImportObservedData.data_from_txt(db, meas_file_list, site_loc, cfg.spatials.subbsn)
+        ImportObservedData.data_from_txt(maindb, climdb, meas_file_list, site_loc,
+                                         cfg.spatials.subbsn)
         return True
 
 
@@ -283,10 +281,11 @@ def main():
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
+    main_db = conn[seims_cfg.spatial_db]
     hydroclim_db = conn[seims_cfg.climate_db]
     import time
     st = time.time()
-    ImportObservedData.workflow(seims_cfg, hydroclim_db)
+    ImportObservedData.workflow(seims_cfg, main_db, hydroclim_db)
     et = time.time()
     print et - st
 
