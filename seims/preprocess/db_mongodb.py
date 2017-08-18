@@ -39,13 +39,13 @@ class MongoQuery(object):
     """
 
     @staticmethod
-    def get_subbasin_num(db_model):
-        """Query subbasin number, raise exception if error occurs."""
+    def get_init_parameter_value(db_model, param_name, field=ModelParamFields.value):
+        """Query initial parameter value, raise exception if error occurs."""
         coll_param = db_model[DBTableNames.main_parameter]
-        subbsn_num_dict = coll_param.find_one({ModelParamFields.name: SubbsnStatsName.subbsn_num})
-        if subbsn_num_dict is None or subbsn_num_dict.get(ModelParamFields.value) is None:
-            raise RuntimeError('Subbasin number item is not existed in MongoDB!')
-        return subbsn_num_dict.get(ModelParamFields.value)
+        param_dict = coll_param.find_one({ModelParamFields.name: param_name})
+        if param_dict is None or param_dict.get(field) is None:
+            raise RuntimeError('%s item is not existed in MongoDB!' % param_name)
+        return param_dict.get(field)
 
 
 class MongoUtil(object):

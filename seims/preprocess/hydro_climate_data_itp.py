@@ -87,7 +87,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         time_sys_output = 'UTCTIME'
         time_zone_output = 0
     for item in data_items:
-        org_datetime = HydroClimateUtilClass.get_datetime_from_string(item[date_idx])
+        org_datetime = StringClass.get_datetime(item[date_idx])
         if time_sys_input == 'LOCALTIME':
             org_datetime -= timedelta(hours=time_zone_input)
         # now, org_datetime is UTC time.
@@ -105,8 +105,8 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     # print (ord_data)
     itp_data = OrderedDict()
     out_time_delta = timedelta(minutes=time_interval)
-    sdatetime = HydroClimateUtilClass.get_datetime_from_string(start_time)
-    edatetime = HydroClimateUtilClass.get_datetime_from_string(end_time)
+    sdatetime = StringClass.get_datetime(start_time)
+    edatetime = StringClass.get_datetime(end_time)
     item_dtime = sdatetime
     if time_interval % 1440 == 0:
         item_dtime = sdatetime.replace(hour=0, minute=0, second=0) + \
