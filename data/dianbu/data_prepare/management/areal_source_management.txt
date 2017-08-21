@@ -20,6 +20,6 @@
 ##  ORGP: Organic phosphorus concentration  kg/'size'/day
 ##  CAPEX: capital expenditures  RMB/'size'
 ##  OPEX: operation expenses  RMB/'size'/year
-##  INCOME: additional incoime  RMB/'size'/year
+##  INCOME: additional income  RMB/'size'/year
 SUBSCENARIO,NAME,ARSRC,SEQUENCE,SYear,SMonth,SDay,EYear,EMonth,EDay,Q,SED,TN,NO3,NH4,ORGN,TP,SOLP,ORGP,COD,CAPEX,OPEX,INCOME
 10001,traditional,10000,0,-9999,-9999,-9999,-9999,-9999,-9999,0,0,0,0,0,0,0,0,0,0,0,0,0
