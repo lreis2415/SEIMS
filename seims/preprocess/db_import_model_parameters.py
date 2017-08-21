@@ -33,13 +33,13 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
             maindb: MongoDB database object
         """
-        # delete if existed, create if not existed
+        # delete if existed, initialize if not existed
         c_list = maindb.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
             maindb.create_collection(DBTableNames.main_parameter)
         else:
             maindb.drop_collection(DBTableNames.main_parameter)
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
@@ -77,14 +77,14 @@ class ImportParam2Mongo(object):
             bulk.insert(data_import)
         # execute import operators
         MongoUtil.run_bulk(bulk, 'No operation during initial_params_from_txt.')
-        # create index by parameter's type and name by ascending order.
+        # initialize index by parameter's type and name by ascending order.
         maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
                                                           (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
     def calibrated_params_from_txt(cfg, maindb):
         """Read and update calibrated parameters."""
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
@@ -200,7 +200,7 @@ class ImportParam2Mongo(object):
         """
         file_in_path = cfg.modelcfgs.filein
         file_out_path = cfg.paramcfgs.init_outputs_file
-        # create if collection not existed
+        # initialize if collection not existed
         c_list = maindb.collection_names()
         conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
         for item in conf_tabs:
@@ -259,7 +259,7 @@ class ImportParam2Mongo(object):
         MongoUtil.run_bulk(bulk, 'No operations to excute when import initial outputs settings.')
 
         # begin to import the desired outputs
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_fileout].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)

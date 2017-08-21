@@ -91,7 +91,7 @@ class ModelParamDataUtils(object):
                     'CropLookup': 'CropLookup.txt',
                     'FertilizerLookup': 'FertilizerLookup.txt'}
 
-    # CROP, LANDUSE attributes(fields)
+    # CROP, LANDUSE gen_values(fields)
     # Match to the new lookup table of SWAT 2012 rev.637. lj
     crop_fields = ['IDC', 'BIO_E', 'HVSTI', 'BLAI', 'FRGRW1', 'LAIMX1', 'FRGRW2',
                    'LAIMX2', 'DLAI', 'CHTMX', 'RDMX', 'T_OPT', 'T_BASE', 'CNYLD',

@@ -265,7 +265,7 @@ class LanduseUtilClass(object):
         status_output("Generating landuse lookup tables from MongoDB...", 10, f)
         LanduseUtilClass.export_landuse_lookup_files_from_mongodb(cfg, maindb)
         # 2. Reclassify landuse parameters by lookup tables
-        status_output("Generating landuse attributes...", 20, f)
+        status_output("Generating landuse gen_values...", 20, f)
         lookup_lu_config_file = cfg.logs.reclasslu_cfg
         LanduseUtilClass.reclassify_landuse_parameters(cfg.seims_bin, lookup_lu_config_file,
                                                        cfg.dirs.geodata2db,
@@ -274,7 +274,7 @@ class LanduseUtilClass(object):
                                                        cfg.default_landuse)
         # 3. Generate crop parameters
         if cfg.gen_crop:
-            status_output("Generating crop/landcover_init_param attributes...", 30, f)
+            status_output("Generating crop/landcover_init_param gen_values...", 30, f)
             crop_lookup_file = cfg.paramcfgs.crop_file
             LanduseUtilClass.reclassify_landcover_parameters(cfg.spatials.landuse,
                                                              cfg.spatials.crop,
