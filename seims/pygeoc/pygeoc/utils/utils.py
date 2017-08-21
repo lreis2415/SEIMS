@@ -137,17 +137,22 @@ class StringClass(object):
     def convert_unicode2str(unicode_str):
         """convert the input string or string list which is unicode to string."""
         if isinstance(unicode_str, unicode):
-            return unicode_str.encode()
+            return StringClass.convert_unicode2str_num(unicode_str)
         elif isinstance(unicode_str, tuple) or isinstance(unicode_str, list):
-            new_strs = list()
-            for u_str in unicode_str:
-                if isinstance(u_str, unicode):
-                    new_strs.append(u_str.encode())
-                else:
-                    new_strs.append(u_str)
-            return new_strs
+            return [StringClass.convert_unicode2str_num(v) for v in unicode_str]
         else:  # if not supported, return what it is
             return unicode_str
+
+    @staticmethod
+    def convert_unicode2str_num(unicode_str):
+        """Convert unicode string to string, integer, or float."""
+        if isinstance(unicode_str, unicode):
+            unicode_str = unicode_str.encode()
+        if MathClass.isnumerical(unicode_str):
+            unicode_str = float(unicode_str)
+            if unicode_str % 1. == 0.:
+                unicode_str = int(unicode_str)
+        return unicode_str
 
     @staticmethod
     def string_match(str1, str2):
@@ -467,7 +472,7 @@ class UtilClass(object):
         startupinfo = None
         if sysstr == 'Windows':
             if isinstance(commands, list):
-                commands = ' '.join(c for c in commands)
+                commands = ' '.join(str(c) for c in commands)
             import ctypes
             SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
             ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
@@ -518,16 +523,17 @@ class UtilClass(object):
     def mkdir(dir_path):
         """Make directory if not existed"""
         if not os.path.isdir(dir_path) or not os.path.exists(dir_path):
-            os.mkdir(dir_path)
+            os.makedirs(dir_path)
+            # os.mkdir(dir_path)
 
     @staticmethod
     def rmmkdir(dir_path):
         """If directory existed, then remove and make; else make it."""
-        if not os.path.isdir(dir_path):
-            os.mkdir(dir_path)
+        if not os.path.isdir(dir_path) or not os.path.exists(dir_path):
+            os.makedirs(dir_path)
         else:
             rmtree(dir_path, True)
-            os.mkdir(dir_path)
+            os.makedirs(dir_path)
 
     @staticmethod
     def print_msg(contentlist):
@@ -564,6 +570,25 @@ class UtilClass(object):
             log_status.write(UtilClass.print_msg(contentlist))
             log_status.flush()
             log_status.close()
+
+    @staticmethod
+    def decode_strs_in_dict(unicode_dict):
+        """
+        Decode strings in dictionary which may contains unicode.
+        1. integer could be key, float cannot;\n
+        2. the function is called recursively
+        Args:
+            unicode_dict: {u'name': u'zhulj', u'age': u'26', u'1': [1, 2, 3]}
+
+        Returns:
+            decoded dict: {'name': 'zhulj', 'age': 26, 1: [1, 2, 3]}
+        """
+        unicode_dict = {StringClass.convert_unicode2str(k): StringClass.convert_unicode2str(v) for
+                        k, v in unicode_dict.items()}
+        for k, v in unicode_dict.items():
+            if isinstance(v, dict):
+                unicode_dict[k] = UtilClass.decode_strs_in_dict(v)
+        return unicode_dict
 
 
 class C(object):
