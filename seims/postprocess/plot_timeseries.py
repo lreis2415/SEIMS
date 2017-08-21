@@ -135,7 +135,7 @@ class TimeSeriesPlots(object):
                     data_available = True
             if data_available:
                 self.plot_vars_existed.append(v)
-        for d, vs in self.sim_data_dict.iteritems():
+        for d, vs in self.sim_data_dict.items():
             self.sim_data_value.append([d] + vs[:])
 
         # reset start time and end time
