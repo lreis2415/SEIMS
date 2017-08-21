@@ -1,206 +1,173 @@
-import os
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+"""BMPs optimization based on slope position units.
+    @author   : Huiran Gao, Liangjun Zhu
+    @changelog: 16-12-30  hr - initial implementation.\n
+                17-08-18  lj - reorganize.\n
+"""
 import array
+import os
+import random
+import time
+
 import matplotlib
-import shutil
-import matplotlib.pyplot as plt
-import scoop
-import platform
+import numpy
+
 from deap import base
-from deap import benchmarks
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from scenario import *
-from userdef import *
-
+from seims.pygeoc.pygeoc.utils.utils import UtilClass
+from seims.scenario_analysis.slpposunits.config import parse_ini_configuration
+from seims.scenario_analysis.slpposunits.scenario import SPScenario
+from seims.scenario_analysis.slpposunits.userdef import crossOver_random, crossOver_slppos
+from seims.scenario_analysis.slpposunits.userdef import mutModel_random, mutModel_slppos
+from seims.scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
+from seims.scenario_analysis.utility import print_message, delete_model_outputs
+from seims.scenario_analysis.visualization import plot_pareto_front
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when parallized by SCOOP.
-# Thus, DEAP related operations (create, register, etc.) are better defined here.
+# Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
-creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
-creator.create("Individuals", array.array, typecode='d', fitness=creator.FitnessMin)
+
+# Multiobjects: maximum the economical benefit, and maximum reduction rate of soil erosion
+creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+creator.create("Individual", array.array, typecode='d', fitness=creator.FitnessMulti)
+
+# Register NSGA-II related operations
 toolbox = base.Toolbox()
-#
-def iniPops():
-    bmpSce = Scenario()
-    bmpSce.create()
-    return bmpSce.attributes
+toolbox.register("gene_values", SPScenario.initialize_scenario)
+toolbox.register("individual", initIterateWithCfg, creator.Individual, toolbox.gene_values)
+toolbox.register("population", initRepeatWithCfg, list, toolbox.individual)
+toolbox.register("evaluate", SPScenario.scenario_effectiveness)
 
-toolbox.register("attr_float", iniPops)
-toolbox.register("individual", tools.initIterate, creator.Individuals, toolbox.attr_float)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register("evaluate", calBenefitandCost)
+# rule-based mate and mutate
+toolbox.register("mate_rule", crossOver_slppos)
+toolbox.register("mutate_rule", mutModel_slppos)
+# random-based mate and mutate
+toolbox.register("mate_random", crossOver_random)
+toolbox.register("mutate_random", mutModel_random)
 
-## if BMPs configure in rules
-if BMPs_rule:
-    toolbox.register("mate", crossOver_slppos)
-    toolbox.register("mutate", mutModel_slppos, indpb=MutateRate)
-else:
-    # toolbox.register("mate", tools.cxOnePoint)
-    toolbox.register("mate", crossOver_fields)
-    toolbox.register("mutate", mutModel_random, indpb=MutateRate)
 toolbox.register("select", tools.selNSGA2)
 
-def main(num_Gens, size_Pops, cx, seed=None):
 
-    # toolbox.register("attr_float", iniPops)
-    # toolbox.register("individual", tools.initIterate, creator.Individuals, toolbox.attr_float)
-    # toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    # toolbox.register("evaluate", calBenefitandCost)
-    # toolbox.register("mate", tools.cxOnePoint)
-    # toolbox.register("mutate", mutModel, indpb=MutateRate)
-    # toolbox.register("select", tools.selNSGA2)
+def main(cfg):
+    """Main workflow of NSAG-II based Scenario analysis."""
+    random.seed()
+    pop_size = cfg.nsga2_npop
+    gen_num = cfg.nsga2_ngens
+    rule_cfg = cfg.bmps_rule
+    cx_rate = cfg.nsga2_rcross
+    sel_rate = cfg.nsga2_rsel
+    ws = cfg.nsga2_dir
 
-    random.seed(seed)
-    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    print_message("Population: %d, Generation: %d" % (pop_size, gen_num))
+    print_message("BMPs configure method: %s" % ('rule-based' if rule_cfg else 'random-based'))
+
+    stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register("min", numpy.min, axis=0)
     stats.register("max", numpy.max, axis=0)
-    # stats.register("avg", numpy.mean, axis=0)
-    # stats.register("std", numpy.std, axis=0)
+    stats.register("avg", numpy.mean, axis=0)
+    stats.register("std", numpy.std, axis=0)
 
     logbook = tools.Logbook()
-    logbook.header = "gen", "evals", "min", "max"
-    
-    pop = toolbox.population(n=size_Pops)
+    logbook.header = "gen", "evals", "min", "max", "avg", "std"
+
+    pop = toolbox.population(cfg, n=pop_size)
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in pop if not ind.fitness.valid]
 
     try:
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
-        fitnesses = futures.map(toolbox.evaluate, invalid_ind)
-        # print "parallel-fitnesses: ",fitnesses
+        fitnesses = futures.map(toolbox.evaluate, cfg, invalid_ind)
+        # print ("parallel-fitnesses: ", fitnesses)
     except ImportError or ImportWarning:
         # serial
-        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        # print "serial-fitnesses: ",fitnesses
+        fitnesses = toolbox.map(toolbox.evaluate, cfg, invalid_ind)
+        # print ("serial-fitnesses: ", fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit
 
     # This is just to assign the crowding distance to the individuals
     # no actual selection is done
-    pop = toolbox.select(pop, size_Pops)
+    pop = toolbox.select(pop, pop_size)
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(invalid_ind), **record)
-    printInfo(logbook.stream)
+    print_message(logbook.stream)
 
     # Begin the generational process
-    for gen in range(1, num_Gens):
-        printInfo("###### Iteration: %d ######" % gen)
+    output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
+    UtilClass.writelog(cfg.logfile, output_str, mode='replace')
+    for gen in range(1, gen_num):
+        output_str = '###### Generation: %d ######\n' % gen
+        print_message(output_str)
         # Vary the population
-        offspring = tools.selTournamentDCD(pop, int(size_Pops * SelectRate))
+        offspring = tools.selTournamentDCD(pop, int(pop_size * sel_rate))
         offspring = [toolbox.clone(ind) for ind in offspring]
         for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
-            if random.random() <= cx:
-                toolbox.mate(ind1, ind2)
-            toolbox.mutate(ind1)
-            toolbox.mutate(ind2)
+            if random.random() <= cx_rate:
+                if rule_cfg:
+                    toolbox.mate_rule(ind1, ind2)
+                else:
+                    toolbox.mate_random(ind1, ind2)
+            if rule_cfg:
+                toolbox.mutate_rule(ind1)
+                toolbox.mutate_rule(ind2)
+            else:
+                toolbox.mutate_random(ind1)
+                toolbox.mutate_random(ind2)
             del ind1.fitness.values, ind2.fitness.values
-        
+
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         try:
-            # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            fitnesses = futures.map(toolbox.evaluate, invalid_ind)
+            fitnesses = futures.map(toolbox.evaluate, cfg, invalid_ind)
         except ImportError or ImportWarning:
-            # serial
-            fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+            fitnesses = toolbox.map(toolbox.evaluate, cfg, invalid_ind)
 
-        # invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
 
         # Select the next generation population
-        pop = toolbox.select(pop + offspring, size_Pops)
+        pop = toolbox.select(pop + offspring, pop_size)
+
+        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop))
+        print_message(hyper_str)
+        UtilClass.writelog(cfg.hypervlog, hyper_str, mode='append')
+
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
-        printInfo(logbook.stream)
+        print_message(logbook.stream)
 
         if gen % 1 == 0:
             # Create plot
-            createPlot(pop, model_Workdir, num_Gens, size_Pops, gen)
+            plot_pareto_front(pop, ws, len(invalid_ind), gen)
             # save in file
-            outputStr = "### Generation number: %d, Population size: %d ###" % (num_Gens, size_Pops) + LF
-            outputStr += "### Generation_%d ###" % gen + LF
-            outputStr += "cost\tbenefit\tscenario" + LF
+            output_str += 'economy\tenvironmental\tscenario\n'
             for indi in pop:
-                outputStr += str(indi.fitness.values[0]) + "\t" + str(indi.fitness.values[1]) + "\t" \
-                             + str(indi) + LF
-            outfilename = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "Gen_" \
-                           + str(GenerationsNum) + "_Pop_" + str(PopulationSize) + os.sep + "Gen_" \
-                           + str(GenerationsNum) + "_Pop_" + str(PopulationSize) + "_resultLog.txt"
-            WriteLog(outfilename, outputStr, MODE='append')
+                output_str += '%f\t%f\t%s\n' % (indi.fitness.values[0], indi.fitness.values[1],
+                                                str(indi))
+            UtilClass.writelog(cfg.logfile, output_str, mode='append')
 
-        # Delete SEIMS output files
-        delModelOutfile(model_Workdir, delfile=True)
-
-    printInfo("Final population hypervolume is %f" % hypervolume(pop, [11.0, 11.0]))
-
+        # Delete SEIMS output files, and BMP Scenario database of current generation
+        delete_model_outputs(cfg.model_dir, cfg.hostname, cfg.port, cfg.bmp_scenario_db)
 
     return pop, logbook
-        
+
+
 if __name__ == "__main__":
-    printInfo("Population: %d, Generation: %d" % (PopulationSize, GenerationsNum))
-    printInfo("BMPs configure method: %d" % BMPs_rule)
-
-    num_Gens = GenerationsNum
-    size_Pops = PopulationSize
-    cx = CrossoverRate
-    if size_Pops % 4 != 0:
-        raise ValueError("'size_Pops' must be a multiple of 4.")
-
-    # Create result forld and file
-    resultForld = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "Gen_" + str(GenerationsNum) \
-                + "_Pop_" + str(PopulationSize)
-    createForld(resultForld)
-    logText = resultForld + os.sep + "Gen_" + str(GenerationsNum) + "_Pop_" \
-              + str(PopulationSize) + "_resultLog.txt"
-    scenarios_info = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "scenarios_info.txt"
-    if os.path.isfile(logText):
-        # If exit, then delete it
-        os.remove(logText)
-    if os.path.isfile(scenarios_info):
-        os.remove(scenarios_info)
-
-    # Run NSGA-II
-    printInfo("### START TO SCENARIOS OPTIMIZING ###")
+    cfg = parse_ini_configuration()
+    print_message("### START TO SCENARIOS OPTIMIZING ###")
     startT = time.time()
-    pop, stats = main(num_Gens, size_Pops, cx)
+
+    pop, stats = main(cfg)
     pop.sort(key=lambda x: x.fitness.values)
-    printInfo(stats)
+    print_message(stats)
+
     endT = time.time()
-
-    # Create plot
-    createPlot(pop, model_Workdir, num_Gens, size_Pops, num_Gens)
-
-    # Save log
-    outputStr = "### The best ###" + LF
-    outputStr += "cost\tbenefit\tscenario" + LF
-    for indi in pop:
-        printInfo(indi)
-        outputStr += str(indi.fitness.values[0]) + "\t" + str(indi.fitness.values[1]) + "\t" \
-                     + str(indi) + LF
-    printInfo("Running time: %.2fs" % (endT - startT))
-    outputStr += "Running time: %.2fs" % (endT - startT)
-    # save as file
-    outfilename = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "Gen_" \
-                  + str(GenerationsNum) + "_Pop_" + str(PopulationSize)+ os.sep + "Gen_" \
-                  + str(GenerationsNum) + "_Pop_" + str(PopulationSize) + "_resultLog.txt"
-    WriteLog(outfilename, outputStr, MODE = 'append')
-    # outfile = file(model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "Gen_" \
-    #               + str(GenerationsNum) + "_Pop_" + str(PopulationSize)+ os.sep + "Gen_" \
-    #               + str(GenerationsNum) + "_Pop_" + str(PopulationSize) + "resultLog.txt", 'a')
-    # outfile.write(outputStr)
-    # outfile.close()
-
-    # Clear
-    # Delete SEIMS output files
-    # delModelOutfile(model_Workdir, scenarios_info, delfile=True)
-    # delScefromMongoByID(scenarios_info, HOSTNAME, PORT, BMPScenarioDBName, delsce=True)
-
-
+    print_message("Running time: %.2fs" % (endT - startT))

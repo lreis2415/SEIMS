@@ -6,25 +6,73 @@
                 17-08-18  lj - reorganization.\n
 """
 
-import os
 import datetime
-import time
+import os
 import random
-import platform
-import scoop
 import shutil
-import matplotlib.pyplot as plt
-from pymongo import MongoClient
+import time
+import uuid
+
 import numpy
+from pymongo import MongoClient
+
+import scoop
+from seims.pygeoc.pygeoc.utils.utils import MathClass
+
+
+def generate_uniqueid():
+    """Generate unique integer ID for Scenario using uuid.
+
+    Usage:
+        uniqueid = generate_uniqueid().next()
+    """
+    uid = int(str(uuid.uuid4().fields[-1])[:9])
+    while True:
+        yield uid
+        uid += 1
+
+
+def print_message(msg):
+    if os.name != 'nt':
+        scoop.logger.warn(msg)
+    else:
+        print (msg)
+
+
+def delete_scenarios_by_id(hostname, port, dbname, sid):
+    """Delete scenario data by ID in MongoDB."""
+    client = MongoClient(hostname, port)
+    db = client[dbname]
+    collection = db['BMP_SCENARIOS']
+    collection.remove({'ID': sid})
+    print ('Delete scenario: %d in MongoDB completed!' % sid)
+    client.close()
+
+
+def delete_model_outputs(model_workdir, hostname, port, dbname):
+    """Delete model outputs and scenario in MongoDB."""
+    f_list = os.listdir(model_workdir)
+    # print f_list
+    for f in f_list:
+        outfilename = model_workdir + os.sep + f
+        if os.path.isdir(outfilename):
+            if len(f) > 9:
+                if MathClass.isnumerical(f[-9:]):
+                    shutil.rmtree(outfilename)
+                    sid = int(f[-9:])
+                    delete_scenarios_by_id(hostname, port, dbname, sid)
+
+
 ## Feature count in shapefile
 def GetFeatureCount(shapefile):
     dataSource = ogr.Open(shapefile, 0)
     if dataSource is None:
-        print 'Could not open %s' % shapefile
-        os.exit(1)
+        raise ValueError('Could not open %s' % shapefile)
+
     layer = dataSource.GetLayer(0)
     fn = layer.GetFeatureCount()
     return fn
+
 
 def Count(arr, size, x, noDataValue):
     frequency = 0
@@ -34,6 +82,7 @@ def Count(arr, size, x, noDataValue):
         if (arr[i] == x):
             frequency = frequency + 1
     return frequency
+
 
 def Mode(arr, size, noDataValue):
     maxv = arr[0]
@@ -48,6 +97,7 @@ def Mode(arr, size, noDataValue):
     else:
         return numpy.sort(rangev)[-1]
 
+
 # String Array to float/int Array
 def StrtoFltArr(arr):
     newArr = []
@@ -55,11 +105,13 @@ def StrtoFltArr(arr):
         newArr.append(float(arr[i]))
     return newArr
 
+
 def StrtoIntArr(arr):
     newArr = []
     for i in range(len(arr)):
         newArr.append(int(arr[i]))
     return newArr
+
 
 def delSpecialStr(line):
     '''
@@ -193,7 +245,7 @@ def getBMPsInfo(pointBMPsFile, pointFile):
     for ss in range(len(BMPs_sewage_id)):
         BMPs_sewage.append(int(BMPs_sewage_id[ss]) - 40000)
 
-    # BMP cost
+    # BMP calculate_economy
     # BMPs_farm_cost = []
     BMPs_cattle_cost = numpy.zeros((len(BMPs_cattle) + 1))
     BMPs_pig_cost = numpy.zeros((len(BMPs_pig) + 1))
@@ -240,6 +292,7 @@ def selectBMPatRandom(arr):
     aLen = len(arr)
     n = random.randint(0, aLen - 1)
     return arr[n]
+
 
 def getFarmConfig(farm_scenario, field):
     '''
@@ -296,7 +349,8 @@ def decodPointScenario(id, pointConfig, ptsrc):
         if len(config) > 1:
             scenario_Row = ""
             scenario_Row += str(id) + "\tsName" + str(id) + "\t1\t" + str(ptsrc + config[0]) \
-                            + "\tARRAY|POINT_SOURCE_DISTRIBUTION|" + str(ptsrc) + "\tPOINT_SOURCE_MANAGEMENT\t"
+                            + "\tARRAY|POINT_SOURCE_DISTRIBUTION|" + str(
+                    ptsrc) + "\tPOINT_SOURCE_MANAGEMENT\t"
             pidArr = ""
             for pid in range(1, len(config)):
                 if pid == len(config) - 1:
@@ -344,6 +398,7 @@ def ReadSimfromTxt(timeStart, timeEnd, dataDir, sim, subbasinID=0):
     else:
         raise IOError("%s is not exist" % simData)
 
+
 def getSoilErosion(dataDir, soerfile, subbasinID=0):
     soerRaster = dataDir + os.sep + str(subbasinID) + "_" + soerfile
     soer = ReadRaster(soerRaster).data
@@ -359,38 +414,6 @@ def getSoilErosion(dataDir, soerfile, subbasinID=0):
     return soerSum
 
 
-
-def printInfo(Str):
-    if platform.system() is "Windows":
-        print Str
-    else:
-        scoop.logger.warn(Str)
-
-def createForld(forldPath):
-    ## Create forld
-    if not isPathExists(forldPath):
-        os.makedirs(forldPath)
-
-def createPlot(pop, model_Workdir, num_Gens, size_Pops, GenID):
-    front = numpy.array([ind.fitness.values for ind in pop])
-    # Plot
-    plt.figure(GenID)
-    plt.title("Pareto frontier of Scenarios Optimization\n", color="#aa0903")
-    # plt.xlabel("Economic cost(Million Yuan)")
-    plt.xlabel("Economic cost(Ten-thousand Yuan)")
-    plt.ylabel("Pollution load(t)")
-    # front[:, 0] /= 1000000.
-    front[:, 1] /= 1000.
-    plt.scatter(front[:, 0], front[:, 1], c="r", alpha=0.8, s=12)
-    plt.title("\nPopulation: %d, Generation: %d" % (size_Pops, GenID), color="green", fontsize=9, loc='right')
-    imgPath = model_Workdir + os.sep + "NSGAII_OUTPUT"
-    createForld(imgPath)
-    pngFullpath = imgPath + os.sep + "Gen_" \
-                  + str(num_Gens) + "_Pop_" + str(size_Pops)+ os.sep + "Pareto_Gen_" \
-                  + str(GenID) + "_Pop_" + str(size_Pops) + ".png"
-    plt.savefig(pngFullpath)
-    # plt.show()
-
 def getSceIDlist(scenarios_info):
     # Get scenarios info
     fieldTtextArr = []
@@ -404,30 +427,6 @@ def getSceIDlist(scenarios_info):
         idlist.append(id)
     return idlist
 
-def delScefromMongoByID(scenarios_info, hostname, port, dbname, delsce=True):
-    if delsce == True:
-        idList = getSceIDlist(scenarios_info)
-        client = MongoClient(hostname, port)
-        db = client[dbname]
-        collection = db.BMP_SCENARIOS
-        for id in idList:
-            collection.remove({"ID":id})
-        print "Delete scenarios in MongoDB completed!"
-    else:
-        return
-
-def delModelOutfile(model_workdir, delfile=True):
-    if delfile == True:
-        fList = os.listdir(model_workdir)
-        # print fList
-        for f in fList:
-            outfilename = model_workdir + os.sep + f
-            if os.path.isdir(outfilename):
-                if len(f) > 8:
-                    if isNumericValue(f[-8:]):
-                        shutil.rmtree(outfilename)
-    else:
-        return
 
 def getBMPsLocations(attr, bmps):
     locationsArr = [[]]
@@ -486,6 +485,7 @@ def getFieldArea(fieldRaster):
 
     return field_Area
 
+
 ## get all scenarios information
 def getScesInfo(f):
     textArr = []
@@ -506,53 +506,51 @@ def getScesInfo(f):
 
     return Sces_env
 
-
-
 # if __name__ == "__main__":
-    # fieldFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\spatial\mgtfield_t100.txt'
-    # pointFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\management\point_source_distribution.txt'
-    # pointBMPsFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\management\point_source_management.txt'
-    # fieldRaster = r'D:\MasterWorks\SA\data\youfang_data\Data_Youfang\field_partion_result\FieldPartion\fieldsPartion.tif'
-    # print getFieldArea(fieldRaster)
-    # Scenario
-    # fieldInfo = getFieldInfo(fieldFile)
-    # pointSource = getPointSource(pointFile)
-    # bmpsInfo = getBMPsInfo(pointBMPsFile, pointFile)
-    # field_farm = fieldInfo[1]
-    # field_lu = fieldInfo[2]
-    # farm_area = fieldInfo[3]
-    # point_cattle = pointSource[0]
-    # point_pig = pointSource[1]
-    # point_sewage = pointSource[2]
-    # farm_Num = len(field_farm)
-    # farm_Num = 1
-    # point_cattle_Num = len(point_cattle)
-    # point_pig_Num = len(point_pig)
-    # point_sewage_Num = len(point_sewage)
-    # BMP cost
-    # bmps_cattle_cost = bmpsInfo[4]
-    # bmps_pig_cost = bmpsInfo[5]
-    # bmps_sewage_cost = bmpsInfo[6]
-    # livestock farm size
-    # point_cattle_size = pointSource[3]
-    # point_pig_size = pointSource[4]
+# fieldFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\spatial\mgtfield_t100.txt'
+# pointFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\management\point_source_distribution.txt'
+# pointBMPsFile = r'D:\GaohrWS\GithubPrj\SEIMS\model_data\dianbu\data_prepare\management\point_source_management.txt'
+# fieldRaster = r'D:\MasterWorks\SA\data\youfang_data\Data_Youfang\field_partion_result\FieldPartion\fieldsPartion.tif'
+# print getFieldArea(fieldRaster)
+# Scenario
+# fieldInfo = getFieldInfo(fieldFile)
+# pointSource = getPointSource(pointFile)
+# bmpsInfo = getBMPsInfo(pointBMPsFile, pointFile)
+# field_farm = fieldInfo[1]
+# field_lu = fieldInfo[2]
+# farm_area = fieldInfo[3]
+# point_cattle = pointSource[0]
+# point_pig = pointSource[1]
+# point_sewage = pointSource[2]
+# farm_Num = len(field_farm)
+# farm_Num = 1
+# point_cattle_Num = len(point_cattle)
+# point_pig_Num = len(point_pig)
+# point_sewage_Num = len(point_sewage)
+# BMP calculate_economy
+# bmps_cattle_cost = bmpsInfo[4]
+# bmps_pig_cost = bmpsInfo[5]
+# bmps_sewage_cost = bmpsInfo[6]
+# livestock farm size
+# point_cattle_size = pointSource[3]
+# point_pig_size = pointSource[4]
 
-    # print 'field_farm ', field_farm
-    # print 'field_lu ', field_lu
-    # print 'farm_area ', farm_area
-    # print 'point_cattle ', point_cattle
-    # print 'point_pig ', point_pig
-    # print 'point_sewage ', point_sewage
-    # print 'bmps_cattle_cost ', bmps_cattle_cost
-    # print 'bmps_pig_cost ', bmps_pig_cost
-    # print 'bmps_sewage_cost ', bmps_sewage_cost
-    # print 'point_cattle_size ', point_cattle_size
-    # print 'point_pig_size ', point_pig_size
+# print 'field_farm ', field_farm
+# print 'field_lu ', field_lu
+# print 'farm_area ', farm_area
+# print 'point_cattle ', point_cattle
+# print 'point_pig ', point_pig
+# print 'point_sewage ', point_sewage
+# print 'bmps_cattle_cost ', bmps_cattle_cost
+# print 'bmps_pig_cost ', bmps_pig_cost
+# print 'bmps_sewage_cost ', bmps_sewage_cost
+# print 'point_cattle_size ', point_cattle_size
+# print 'point_pig_size ', point_pig_size
 
-    # dataDir = r'D:\SEIMS_model\Model_data\youwuzhen\model_youwuzhen_10m_longterm\OUTPUT14323685'
-    # soerfile = 'SOER_SUM.tif'
-    # Sces_env = getSoilErosion(dataDir, soerfile, subbasinID=0)
-    # print Sces_env
+# dataDir = r'D:\SEIMS_model\Model_data\youwuzhen\model_youwuzhen_10m_longterm\OUTPUT14323685'
+# soerfile = 'SOER_SUM.tif'
+# Sces_env = getSoilErosion(dataDir, soerfile, subbasinID=0)
+# print Sces_env
 
-    # model_workdir = r'D:\SEIMS_model\Model_data\youwuzhen\model_youwuzhen_10m_longterm'
-    # delModelOutfile(model_workdir, delfile=True)
+# model_workdir = r'D:\SEIMS_model\Model_data\youwuzhen\model_youwuzhen_10m_longterm'
+# delete_model_outputs(model_workdir, delfile=True)
