@@ -5,151 +5,91 @@
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
 """
+import json
+import os
+
 try:
     from ConfigParser import ConfigParser  # py2
 except ImportError:
     from configparser import ConfigParser  # py3
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
+
+from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_file
+
 
 class SAConfig(object):
     """Parse scenario analysis configuration of SEIMS project."""
+
     def __init__(self, cf):
         """Initialization."""
+        # 1. NSGA-II related parameters
+        self.nsga2_ngens = 1
+        self.nsga2_npop = 4
+        self.nsga2_rcross = 0.75
+        self.nsga2_rmut = 0.1
+        self.nsga2_rsel = 0.8
+        if 'NSGAII' in cf.sections():
+            self.nsga2_ngens = cf.getint('NSGAII', 'generationsnum')
+            self.nsga2_npop = cf.getint('NSGAII', 'populationsize')
+            self.nsga2_rcross = cf.getfloat('NSGAII', 'crossoverrate')
+            self.nsga2_rmut = cf.getfloat('NSGAII', 'mutaterate')
+            self.nsga2_rsel = cf.getfloat('NSGAII', 'selectrate')
+        else:
+            raise ValueError('[NSGAII] section MUST be existed in *.ini file.')
+        if self.nsga2_npop % 4 != 0:
+            raise ValueError('PopulationSize must be a multiple of 4.')
+        # 2. MongoDB
+        self.hostname = '127.0.0.1'  # localhost by default
+        self.port = 27017
+        self.spatial_db = ''
+        self.bmp_scenario_db = ''
+        if 'MONGODB' in cf.sections():
+            self.hostname = cf.get('MONGODB', 'hostname')
+            self.port = cf.getint('MONGODB', 'port')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
+            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
+        else:
+            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
+        if not StringClass.is_valid_ip_addr(self.hostname):
+            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+
+        # 3. SEIMS_Model
+        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+        self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+        self.seims_nthread = 1
+        self.seims_lyrmethod = 0
+        if 'SEIMS_Model' in cf.sections():
+            self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+            self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+            self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
+            self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
+        else:
+            raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
+        if not (FileClass.is_dir_exists(self.model_dir)
+                and FileClass.is_dir_exists(self.seims_bin)):
+            raise IOError('Please Check Directories defined in [PATH]. '
+                          'BIN_DIR and MODEL_DIR are required!')
+        # 4. define gen_values
+        self.nsga2_dir = self.model_dir + os.sep + 'NSGAII_OUTPUT' + os.sep + \
+                         'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
+        self.scenario_dir = self.nsga2_dir + os.sep + 'Scenarios'
+        UtilClass.rmmkdir(self.nsga2_dir)
+        UtilClass.rmmkdir(self.scenario_dir)
+        self.hypervlog = self.nsga2_dir + os.sep + 'hypervolume.txt'
+        self.scenariolog = self.nsga2_dir + os.sep + 'scenarios_info.txt'
+        self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
 
 
-
-
-
-
-    # 1. Text files directories
-    MODEL_DIR = None
-    # print cf.sections()
-    if 'PATH' in cf.sections():
-        MODEL_DIR = cf.get('PATH', 'MODEL_DIR'.lower())
-        fieldFile = cf.get('PATH', 'fieldFile'.lower())
-        pointFile = cf.get('PATH', 'pointFile'.lower())
-        pointBMPsFile = cf.get('PATH', 'pointBMPsFile'.lower())
-        scenariosInfo = cf.get('PATH', 'scenariosInfo'.lower())
-        fieldRaster = cf.get('PATH', 'fieldRaster'.lower())
-        soilErosion = cf.get('PATH', 'soilErosion'.lower())
-    else:
-        raise ValueError("[PATH] section MUST be existed in *.ini file.")
-    if not isPathExists(MODEL_DIR):
-        raise IOError("Please Check Directories defined in [PATH]")
-
-    # 2. NSGA-II
-    if 'NSGAII' in cf.sections():
-        GenerationsNum = int(cf.get('NSGAII', 'GenerationsNum'))
-        PopulationSize = int(cf.getint('NSGAII', 'PopulationSize'))
-        CrossoverRate = float(cf.get('NSGAII', 'CrossoverRate'))
-        MutateRate = float(cf.get('NSGAII', 'MutateRate'))
-        SelectRate = float(cf.get('NSGAII', 'SelectRate'))
-    else:
-        raise ValueError("[NSGAII] section MUST be existed in *.ini file.")
-
-    # 3. MongoDB
-    if 'MONGODB' in cf.sections():
-        HOSTNAME = cf.get('MONGODB', 'HOSTNAME')
-        PORT = int(cf.getint('MONGODB', 'PORT'))
-        BMPScenarioDBName = cf.get('MONGODB', 'BMPScenarioDBName'.lower())
-    else:
-        raise ValueError("[MONGODB] section MUST be existed in *.ini file.")
-    if not isIPValid(HOSTNAME):
-        raise ValueError("HOSTNAME illegal defined in [MONGODB]!")
-
-    # 3. SEIMS_Model
-    if 'SEIMS_Model' in cf.sections():
-        model_Exe = cf.get('SEIMS_Model', 'model_Exe'.lower())
-        model_Workdir = cf.get('SEIMS_Model', 'model_Workdir'.lower())
-        threadsNum = int(cf.get('SEIMS_Model', 'threadsNum'))
-        layeringMethod = int(cf.get('SEIMS_Model', 'layeringMethod'))
-        timeStart = cf.get('SEIMS_Model', 'timeStart')
-        timeEnd = cf.get('SEIMS_Model', 'timeEnd')
-    else:
-        raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
-
-    # 4. BMPs
-    # bmps_farm = []
-    # bmps_cattle = []
-    # bmps_pig = []
-    # bmps_sewage = []
-    # bmps_farm_cost = []
-    # bmps_cattle_cost = []
-    # bmps_pig_cost = []
-    # bmps_sewage_cost = []
-    bmps_areal_struct = []
-    bmps_areal_struct_cost = []
-    if 'BMPs' in cf.sections():
-        # bmps_farm_STR = cf.get('BMPs', 'bmps_farm'.lower())
-        # bmps_cattle_STR = cf.get('BMPs', 'bmps_cattle'.lower())
-        # bmps_pig_STR = cf.get('BMPs', 'bmps_pig'.lower())
-        # bmps_sewage_STR_1 = cf.get('BMPs', 'bmps_sewage_1'.lower())
-        # bmps_sewage_STR_2 = cf.get('BMPs', 'bmps_sewage_2'.lower())
-        # bmps_sewage_STR_3 = cf.get('BMPs', 'bmps_sewage_3'.lower())
-        # bmps_sewage_STR_4 = cf.get('BMPs', 'bmps_sewage_4'.lower())
-        # bmps_farm_cost_STR = cf.get('BMPs', 'bmps_farm_cost'.lower())
-        # # bmps_cattle_cost_STR = cf.get('BMPs', 'bmps_cattle_cost'.lower())
-        # # bmps_pig_cost_STR = cf.get('BMPs', 'bmps_pig_cost'.lower())
-        # # bmps_sewage_cost_STR = cf.get('BMPs', 'bmps_sewage_cost'.lower())
-        # bmps_farm = StrtoIntArr(SplitStr(StripStr(bmps_farm_STR)))
-        # bmps_cattle = StrtoIntArr(SplitStr(StripStr(bmps_cattle_STR)))
-        # bmps_pig = StrtoIntArr(SplitStr(StripStr(bmps_pig_STR)))
-        # bmps_sewage_1 = StrtoIntArr(SplitStr(StripStr(bmps_sewage_STR_1)))
-        # bmps_sewage_2 = StrtoIntArr(SplitStr(StripStr(bmps_sewage_STR_2)))
-        # bmps_sewage_3 = StrtoIntArr(SplitStr(StripStr(bmps_sewage_STR_3)))
-        # bmps_sewage_4 = StrtoIntArr(SplitStr(StripStr(bmps_sewage_STR_4)))
-        # bmps_sewage.append(bmps_sewage_1)
-        # bmps_sewage.append(bmps_sewage_2)
-        # bmps_sewage.append(bmps_sewage_3)
-        # bmps_sewage.append(bmps_sewage_4)
-        # farm_area = float(cf.get('BMPs', 'farm_area'.lower()))
-        # bmps_farm_cost = StrtoFltArr(SplitStr(StripStr(bmps_farm_cost_STR)))
-        # bmps_cattle_cost = StrtoFltArr(SplitStr(StripStr(bmps_cattle_cost_STR)))
-        # bmps_pig_cost = StrtoFltArr(SplitStr(StripStr(bmps_pig_cost_STR)))
-        # bmps_sewage_cost = StrtoFltArr(SplitStr(StripStr(bmps_sewage_cost_STR)))
-        bmps_areal_struct_STR = cf.get('BMPs', 'bmp_areal_struct'.lower())
-        bmps_areal_struct_cost_STR = cf.get('BMPs', 'bmp_areal_struct_cost'.lower())
-        bmps_areal_struct = StrtoIntArr(SplitStr(StripStr(bmps_areal_struct_STR)))
-        bmps_areal_struct_cost = StrtoFltArr(SplitStr(StripStr(bmps_areal_struct_cost_STR)))
-
-
-    else:
-        raise ValueError("[BMPs] section MUST be existed in *.ini file.")
-    # 5. Switch
-    if 'SWITCH' in cf.sections():
-        BMPs_rule = int(cf.get('SWITCH', 'BMPs_rule'.lower()))
-    else:
-        raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
-
-    # Scenario
-    # fieldInfo = getFieldInfo(fieldFile)
-    # pointSource = getPointSource(pointFile)
-    # bmpsInfo = getBMPsInfo(pointBMPsFile, pointFile)
-    #
-    # field_farm = fieldInfo[1]
-    # field_lu = fieldInfo[2]
-    # farm_area = fieldInfo[3]
-    # point_cattle = pointSource[0]
-    # point_pig = pointSource[1]
-    # point_sewage = pointSource[2]
-    #
-    # farm_Num = len(field_farm)
-    # # farm_Num = 1
-    # point_cattle_Num = len(point_cattle)
-    # point_pig_Num = len(point_pig)
-    # point_sewage_Num = len(point_sewage)
-    #
-    # # BMP cost
-    # bmps_cattle_cost = bmpsInfo[4]
-    # bmps_pig_cost = bmpsInfo[5]
-    # bmps_sewage_cost = bmpsInfo[6]
-    #
-    # # livestock farm size
-    # point_cattle_size = pointSource[3]
-    # point_pig_size = pointSource[4]
-
-    field_Num = getFieldNum(MODEL_DIR + os.sep + fieldRaster)
-    field_Area = getFieldArea(MODEL_DIR + os.sep + fieldRaster)
+        # 5. Application specific setting section [BMPs]
+        self.bmps_info = dict()
+        self.bmps_rule = False
+        if 'BMPs' in cf.sections():
+            bmpsinfostr = cf.get('BMPs', 'bmps_info')
+            self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
+        else:
+            raise ValueError("[BMPs] section MUST be existed for specific SA.")
+        self.bmps_info = json.loads(bmpsinfostr)
+        self.bmps_info = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
+                          self.bmps_info.items()}
 
 
 def parse_ini_configuration():
@@ -162,3 +102,4 @@ def parse_ini_configuration():
 
 if __name__ == '__main__':
     cfg = parse_ini_configuration()
+    print (cfg.model_dir)

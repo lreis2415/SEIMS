@@ -5,14 +5,32 @@
     @changelog: 16-09-12  hr - initial implementation.\n
                 17-08-18  lj - reorganization.\n
 """
-from config import *
-import os
-import math
 import json
-from osgeo import gdal, ogr, osr
-import numpy
+import os
 import random
 import time
+
+import matplotlib.pyplot as plt
+import numpy
+from osgeo import gdal
+
+
+def plot_pareto_front(pop, ws, pop_size, gen_id):
+    front = numpy.array([ind.fitness.values for ind in pop])
+    # Plot
+    plt.figure(gen_id)
+    plt.title('Pareto frontier of Scenarios Optimization\n', color='#aa0903')
+    # plt.xlabel('Economic calculate_economy(Million Yuan)')
+    plt.xlabel('Economic effectiveness')
+    plt.ylabel('Environmental effectiveness')
+    # front[:, 0] /= 1000000.
+    front[:, 1] /= 1000.
+    plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
+    plt.title('\nPopulation: %d, Generation: %d' % (pop_size, gen_id), color='green', fontsize=9,
+              loc='right')
+    img_path = ws + os.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
+    plt.savefig(img_path)
+    # plt.show()
 
 
 ## Extract all BMPs in each slope position
@@ -220,7 +238,9 @@ def BMPConf(dataDir, confRate=0.5):
     ## search the valley unit that not configured BMP
     for t in range(allNum):
         vly_bmp = []
-        if t not in [x[0] for x in smtBMPConf] and t not in [x[0] for x in slpBMPConf] and t not in [x[0] for x in vlyBMPConf]:
+        if t not in [x[0] for x in smtBMPConf] and t not in [x[0] for x in
+                                                             slpBMPConf] and t not in [x[0] for x in
+                                                                                       vlyBMPConf]:
             vly_bmp.append(t)
             bmpId = VlyBMPs[random.randint(0, len(VlyBMPs) - 1)]
             vly_bmp.append(bmpId)
@@ -277,7 +297,8 @@ def writeSceRaste(outdataDir, fieldPartion, BMPConf, wRaster=False):
 
     currentTime = time.ctime().split(" ")
     hms = currentTime[3].split(":")
-    timeStr = "%s%s%s%s%s%s" % (currentTime[4], currentTime[1], currentTime[2], hms[0], hms[1], hms[2])
+    timeStr = "%s%s%s%s%s%s" % (
+    currentTime[4], currentTime[1], currentTime[2], hms[0], hms[1], hms[2])
     scenarioTxt = outdataDir + os.sep + "Scenario_" + timeStr + ".txt"
     ## Write to txt
     scenarioTxt_output = open(scenarioTxt, 'w')
@@ -298,19 +319,21 @@ def writeSceRaste(outdataDir, fieldPartion, BMPConf, wRaster=False):
                 else:
                     scenario[m][n] = noDataValue
         scenarioRaster = outdataDir + os.sep + "Scenario_" + timeStr + ".tif"
-        WriteGTiffFile(scenarioRaster, nRows, nCols, scenario, geotrans, srs, noDataValue, gdal.GDT_Float32)
+        WriteGTiffFile(scenarioRaster, nRows, nCols, scenario, geotrans, srs, noDataValue,
+                       gdal.GDT_Float32)
         # print "Save current scenario raster as '%s'" % scenarioRaster
-    # print "Save current scenario info as '%s'" % scenarioTxt
+        # print "Save current scenario info as '%s'" % scenarioTxt
 
 
-def sort2D(arr):
-    col0 = [x[0] for x in arr]
-    col1 = []
-    col0_sort = numpy.sort(col0)
-    for i in range(len(col0_sort)):
-        pos = numpy.where(col0 == col0_sort[i])
-        col1.append(arr[pos[0][0]][1])
-    return col1
+#
+# def sort2D(arr):
+#     col0 = [x[0] for x in arr]
+#     col1 = []
+#     col0_sort = numpy.sort(col0)
+#     for i in range(len(col0_sort)):
+#         pos = numpy.where(col0 == col0_sort[i])
+#         col1.append(arr[pos[0][0]][1])
+#     return col1
 
 
 def BMPConf_field_Wh(dataDir, confRate=0.5):
@@ -344,7 +367,6 @@ def BMPConf_field_Wh(dataDir, confRate=0.5):
 
     return BMPConf
 
-
 # if __name__ == "__main__":
 #     dataDir = r'D:\SEIMS_model\Model_data\youwuzhen\model_youwuzhen_10m_longterm\NSGAII_OUTPUT'
 #     fieldPartion = r'D:\MasterWorks\SA\data\youfang_data\Data_Youfang\field_partion_result\FieldPartion\prePartion.tif'
@@ -352,6 +374,5 @@ def BMPConf_field_Wh(dataDir, confRate=0.5):
 #     # sce = [0.0, 1.0, 0.0, 5.0, 0.0, 5.0, 0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 3.0, 0.0, 2.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 4.0, 0.0, 0.0, 2.0, 5.0, 4.0, 0.0, 0.0, 0.0, 0.0, 3.0, 2.0, 5.0, 2.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 4.0, 1.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 3.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 2.0, 5.0, 1.0, 0.0, 4.0, 2.0, 1.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 3.0, 0.0, 3.0, 4.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 4.0, 1.0, 0.0, 0.0, 2.0, 4.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 2.0, 0.0, 2.0, 4.0, 0.0, 4.0, 2.0, 3.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 4.0, 2.0, 4.0, 5.0, 2.0, 2.0, 2.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 4.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 5.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 0.0, 0.0, 4.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 1.0, 0.0, 1.0, 0.0, 3.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 #     writeSceRaste(dataDir, fieldPartion, sce, wRaster=True)
 
-    # dataDir = r'D:\MasterWorks\SA\data\youfang_data\Data_Youfang\field_partion_result\FieldPartion'
-    # print BMPConf(dataDir, confRate=0.5)
-
+# dataDir = r'D:\MasterWorks\SA\data\youfang_data\Data_Youfang\field_partion_result\FieldPartion'
+# print BMPConf(dataDir, confRate=0.5)
