@@ -20,8 +20,8 @@ from deap.benchmarks.tools import hypervolume
 from seims.pygeoc.pygeoc.utils.utils import UtilClass
 from seims.scenario_analysis.slpposunits.config import parse_ini_configuration
 from seims.scenario_analysis.slpposunits.scenario import SPScenario
-from seims.scenario_analysis.slpposunits.userdef import crossOver_random, crossOver_slppos
-from seims.scenario_analysis.slpposunits.userdef import mutModel_random, mutModel_slppos
+from seims.scenario_analysis.slpposunits.userdef import crossover_slppos
+from seims.scenario_analysis.slpposunits.userdef import mutate_rdm, mutate_slppos
 from seims.scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from seims.scenario_analysis.utility import print_message, delete_model_outputs
 from seims.scenario_analysis.visualization import plot_pareto_front
@@ -32,25 +32,25 @@ from seims.scenario_analysis.visualization import plot_pareto_front
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
 
-# Multiobjects: maximum the economical benefit, and maximum reduction rate of soil erosion
-creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
-creator.create("Individual", array.array, typecode='d', fitness=creator.FitnessMulti)
+# Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
+creator.create('FitnessMulti', base.Fitness, weights=(-1.0, 1.0))
+creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti)
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
-toolbox.register("gene_values", SPScenario.initialize_scenario)
-toolbox.register("individual", initIterateWithCfg, creator.Individual, toolbox.gene_values)
-toolbox.register("population", initRepeatWithCfg, list, toolbox.individual)
-toolbox.register("evaluate", SPScenario.scenario_effectiveness)
+toolbox.register('gene_values', SPScenario.initialize_scenario)
+toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
+toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+toolbox.register('evaluate', SPScenario.scenario_effectiveness)
 
 # rule-based mate and mutate
-toolbox.register("mate_rule", crossOver_slppos)
-toolbox.register("mutate_rule", mutModel_slppos)
+toolbox.register('mate_rule', crossover_slppos)
+toolbox.register('mutate_rule', mutate_slppos)
 # random-based mate and mutate
-toolbox.register("mate_random", crossOver_random)
-toolbox.register("mutate_random", mutModel_random)
+toolbox.register('mate_random', tools.cxTwoPoint)
+toolbox.register('mutate_rdm', mutate_rdm)
 
-toolbox.register("select", tools.selNSGA2)
+toolbox.register('select', tools.selNSGA2)
 
 
 def main(cfg):
@@ -60,20 +60,29 @@ def main(cfg):
     gen_num = cfg.nsga2_ngens
     rule_cfg = cfg.bmps_rule
     cx_rate = cfg.nsga2_rcross
+    mut_perc = cfg.nsga2_pmut
+    mut_rate = cfg.nsga2_rmut
     sel_rate = cfg.nsga2_rsel
     ws = cfg.nsga2_dir
+    # available gene value list
+    possible_gene_values = cfg.bmps_params.keys()
+    possible_gene_values.append(0)
+    units_info = cfg.units_infos
+    slppos_tagnames = cfg.slppos_tagnames
+    suit_bmps = cfg.slppos_suit_bmps
+    gene_to_unit = cfg.gene_to_slppos
 
-    print_message("Population: %d, Generation: %d" % (pop_size, gen_num))
-    print_message("BMPs configure method: %s" % ('rule-based' if rule_cfg else 'random-based'))
+    print_message('Population: %d, Generation: %d' % (pop_size, gen_num))
+    print_message('BMPs configure method: %s' % ('rule-based' if rule_cfg else 'random-based'))
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
-    stats.register("min", numpy.min, axis=0)
-    stats.register("max", numpy.max, axis=0)
-    stats.register("avg", numpy.mean, axis=0)
-    stats.register("std", numpy.std, axis=0)
+    stats.register('min', numpy.min, axis=0)
+    stats.register('max', numpy.max, axis=0)
+    stats.register('avg', numpy.mean, axis=0)
+    stats.register('std', numpy.std, axis=0)
 
     logbook = tools.Logbook()
-    logbook.header = "gen", "evals", "min", "max", "avg", "std"
+    logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
     pop = toolbox.population(cfg, n=pop_size)
     # Evaluate the individuals with an invalid fitness
@@ -83,11 +92,11 @@ def main(cfg):
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
         fitnesses = futures.map(toolbox.evaluate, cfg, invalid_ind)
-        # print ("parallel-fitnesses: ", fitnesses)
+        # print ('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
         fitnesses = toolbox.map(toolbox.evaluate, cfg, invalid_ind)
-        # print ("serial-fitnesses: ", fitnesses)
+        # print ('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit
@@ -111,15 +120,17 @@ def main(cfg):
         for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
             if random.random() <= cx_rate:
                 if rule_cfg:
-                    toolbox.mate_rule(ind1, ind2)
+                    toolbox.mate_rule(cfg, ind1, ind2)
                 else:
                     toolbox.mate_random(ind1, ind2)
             if rule_cfg:
-                toolbox.mutate_rule(ind1)
-                toolbox.mutate_rule(ind2)
+                toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind1,
+                                    perc=mut_perc, indpb=mut_rate)
+                toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
+                                    perc=mut_perc, indpb=mut_rate)
             else:
-                toolbox.mutate_random(ind1)
-                toolbox.mutate_random(ind2)
+                toolbox.mutate_random(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
+                toolbox.mutate_random(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
             del ind1.fitness.values, ind2.fitness.values
 
         # Evaluate the individuals with an invalid fitness
@@ -162,7 +173,7 @@ def main(cfg):
 
 if __name__ == "__main__":
     cfg = parse_ini_configuration()
-    print_message("### START TO SCENARIOS OPTIMIZING ###")
+    print_message('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
     pop, stats = main(cfg)
@@ -170,4 +181,4 @@ if __name__ == "__main__":
     print_message(stats)
 
     endT = time.time()
-    print_message("Running time: %.2fs" % (endT - startT))
+    print_message('Running time: %.2fs' % (endT - startT))
