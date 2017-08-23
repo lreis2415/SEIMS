@@ -7,9 +7,11 @@
 """
 import os
 import random
-import sys
-import time
+from datetime import timedelta
+from subprocess import CalledProcessError
 
+from seims.preprocess.db_mongodb import MongoClient
+from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass
 from seims.scenario_analysis.utility import generate_uniqueid, print_message
 
 
@@ -18,30 +20,65 @@ class Scenario(object):
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
+        timerange(float): Simulation time range, read from MongoDB, the unit is year.
         economy(float): Economical effectiveness, e.g., income minus expenses
         environment(float): Environmental effectiveness, e.g., reduction rate of soil erosion
-        gen_num(integer): The number of genes of one chromosome, i.e., an individual
-        gen_values(list): BMP identifiers on each location of gene. The length is gen_num.
+        gene_num(integer): The number of genes of one chromosome, i.e., an individual
+        gene_values(list): BMP identifiers on each location of gene. The length is gen_num.
         bmp_items(dict): BMP configuration items that can be imported to MongoDB directly.
-                         The key is `bson.objectid.ObjectId`, the value is BMP parameters dict.
+                         The key is `bson.objectid.ObjectId`, the value is scenario item dict.
         rules(boolean): Config BMPs randomly or rule-based.
+        modelrun(boolean): Has SEIMS model run successfully?
     """
 
     def __init__(self, cfg):
         """Initialize."""
-        self.ID = 0.
+        self.ID = -1
+        self.timerange = 0.
         self.economy = 0.
         self.environment = 0.
+        self.worst_econ = cfg.worst_econ
+        self.worst_env = cfg.worst_env
 
-        self.gen_num = 0
-        self.gen_values = list()
+        self.gene_num = 0
+        self.gene_values = list()
         self.bmp_items = dict()
 
         self.rules = cfg.bmps_rule
+        self.bmps_info = cfg.bmps_info
+        self.bmps_retain = cfg.bmps_retain
+        # run seims related
+        self.model_dir = cfg.model_dir
+        self.modelout_dir = None
+        self.bin_dir = cfg.seims_bin
+        self.nthread = cfg.seims_nthread
+        self.lyrmethod = cfg.seims_lyrmethod
+        self.hostname = cfg.hostname
+        self.port = cfg.port
+        self.scenario_db = cfg.bmp_scenario_db
+        self.main_db = cfg.spatial_db
+        self.modelrun = False
+        # predefined directories
+        self.scenario_dir = cfg.scenario_dir
 
     def set_unique_id(self):
         """Set unique ID."""
         self.ID = generate_uniqueid().next()
+        self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
+        self.read_simulation_timerange()
+
+    def read_simulation_timerange(self):
+        """Read simulation time range from MongoDB."""
+        client = MongoClient(self.hostname, self.port)
+        db = client[self.main_db]
+        collection = db['FILE_IN']
+        stime_str = collection.find_one({'TAG': 'STARTTIME'})['VALUE']
+        etime_str = collection.find_one({'TAG': 'ENDTIME'})['VALUE']
+        stime = StringClass.get_datetime(stime_str)
+        etime = StringClass.get_datetime(etime_str)
+        dlt = etime - stime + timedelta(seconds=1)
+        self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        client.close()
 
     def rule_based_config(self, conf_rate):
         """Config available BMPs to each gene of the chromosome by rule-based method.
@@ -58,7 +95,7 @@ class Scenario(object):
         pass
 
     def decoding(self):
-        """Decoding gen_values to bmp_items
+        """Decoding gene_values to bmp_items
 
         This function should be overridden.
         """
@@ -68,27 +105,48 @@ class Scenario(object):
         """Export current scenario to MongoDB.
         Delete the same ScenarioID if existed.
         """
-        client = MongoClient(hostname, port)
-        db = client[dbname]
-        collection = db.BMP_SCENARIOS
-        keyarray = ["ID", "NAME", "BMPID", "SUBSCENARIO", "DISTRIBUTION", "COLLECTION", "LOCATION"]
-        for line in self.sce_list:
-            conf = {}
-            li_list = line.split('\t')
-            for i in range(len(li_list)):
-                if isNumericValue(li_list[i]):
-                    conf[keyarray[i]] = float(li_list[i])
-                else:
-                    conf[keyarray[i]] = str(li_list[i]).upper()
-            collection.insert(conf)
+        client = MongoClient(self.hostname, self.port)
+        db = client[self.scenario_db]
+        collection = db['BMP_SCENARIOS']
+        # find ScenarioID, remove if existed.
+        if collection.find({'ID': self.ID}).count():
+            collection.remove({'ID': self.ID})
+        for objid, bmp_item in self.bmp_items.items():
+            collection.insert_one(bmp_item)
+        client.close()
 
     def export_to_txt(self):
-        """Export current scenario information to text file."""
-        outfile = open(txtfile, 'a')
-        infoStr = str(self.id) + "\t" + str(self.economy) + "\t" + str(self.environment) \
-                  + "\t" + str(self.gen_values) + LF
-        outfile.write(infoStr)
+        """Export current scenario information to text file.
+
+        This function is better be called after `calculate_environment` and `calculate_environment`
+            or in static method, e.g., `scenario_effectiveness`.
+        """
+        ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
+        outfile = open(ofile, 'w')
+        outfile.write('Scenario ID: %d\n' % self.ID)
+        outfile.write('Gene number: %d\n' % self.gene_num)
+        outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+        outfile.write('Scenario items:\n')
+        if len(self.bmp_items) > 0:
+            for obj, item in self.bmp_items.iteritems():
+                header = item.keys()
+                break
+            outfile.write('\t'.join(header))
+            outfile.write('\n')
+            for obj, item in self.bmp_items.iteritems():
+                outfile.write('\t'.join(str(v) for v in item.values()))
+                outfile.write('\n')
+
+        outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
+                                                                              self.environment))
         outfile.close()
+
+    def export_scenario_to_gtiff(self):
+        """Export the areal BMPs to gtiff for further analysis.
+
+        This function should be overridden in inherited class.
+        """
+        pass
 
     def import_from_mongodb(self, sid):
         """Import a specified Scenario (`sid`) from MongoDB.
@@ -112,59 +170,26 @@ class Scenario(object):
         """Calculate economical effectiveness, which is application specified."""
         pass
 
-    def evaluate_environment(self):
+    def calculate_environment(self):
+        """Calculate environment effectiveness, which is application specified."""
+        pass
+
+    def execute_seims_model(self):
         """Run SEIMS for evaluating environmental effectiveness.
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.
         """
-        print_message('Scenario ID: %d' % self.ID)
+        print_message('Scenario ID: %d, running SEIMS model...' % self.ID)
 
-        # startT = time.time()
-        cmdStr = "%s %s %d %d %s %d %d" % (
-            model_Exe, model_Workdir, threadsNum, layeringMethod, HOSTNAME, PORT, self.id)
-        # print cmdStr
-        process = Popen(cmdStr, shell=True, stdout=PIPE)
-        while process.stdout.readline() != "":
-            line = process.stdout.readline().split("\n")
-            if line[0] != "" and len(line[0]) == 20:
-                lineArr = line[0].split(' ')[0].split('-')
-                if int(lineArr[2]) == 1:
-                    sys.stdout.write(str(lineArr[0]) + "-" + str(lineArr[1]) + " ")
-            continue
-        process.wait()
-
-        dataDir = model_Workdir + os.sep + "OUTPUT" + str(self.id)
-        if process.returncode == 0:
-            ## Outlet
-            # polluteList = ['SED']
-            # polluteWt = [1.]
-            # for pp in range(len(polluteList)):
-            #     simData = ReadSimfromTxt(timeStart, timeEnd, dataDir, polluteList[pp], subbasinID=0)
-            #     self.benefit_env += sum(simData) / polluteWt[pp]
-
-            ## soil loss in each cell
-            while not os.path.isfile(dataDir + os.sep + "0_" + soilErosion):
-                time.sleep(2)
-            if os.path.isfile(dataDir + os.sep + "0_" + soilErosion):
-                self.environment = getSoilErosion(dataDir, soilErosion, subbasinID=0)
-            else:
-                generationsInfoFile = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "scenarios_info.txt"
-                Sces_env = getScesInfo(generationsInfoFile)
-                self.environment = numpy.max(Sces_env)
-        else:
-            # process.kill()
-            ## If process is killed, benefit_env is replaced by average of exist benefit_env value
-            generationsInfoFile = model_Workdir + os.sep + "NSGAII_OUTPUT" + os.sep + "scenarios_info.txt"
-            Sces_env = getScesInfo(generationsInfoFile)
-            self.environment = numpy.max(Sces_env)
-
-        # Save scenario raster
-        # createForld(dataDir)
-        # writeSceRaste(dataDir, MODEL_DIR + os.sep + fieldRaster, self.gen_values, wRaster=False)
-
-        (os.linesep + "economy: " + str(self.economy))
-        ("benefit_env: " + str(self.environment))
-        # endT = time.time()
-        # print_message("SEIMS running time: %.2fs" % (endT - startT))
+        cmd_str = '%s/seims_omp %s %d %d %s %d %d' % (self.bin_dir, self.model_dir, self.nthread,
+                                                      self.lyrmethod, self.hostname, self.port,
+                                                      self.ID)
+        try:
+            UtilClass.run_command(cmd_str)
+            self.modelrun = True
+        except CalledProcessError, Exception:
+            print ('Run SEIMS model failed!')
+            self.modelrun = False
+        return self.modelrun
 
     def initialize(self):
         """Initialize a scenario.
@@ -179,12 +204,12 @@ class Scenario(object):
             self.rule_based_config(cr)
         else:
             self.random_based_config(cr)
-        if len(self.gen_values) == self.gen_num > 0:
-            return self.gen_values
+        if len(self.gene_values) == self.gene_num > 0:
+            return self.gene_values
         else:
             raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
-                               ' class, especially the overwritten rule_based_config and '
-                               'random_based_config!')
+                               ' class, especially the overwritten rule_based_config and'
+                               ' random_based_config!')
 
     @staticmethod
     def initialize_scenario(cf):
