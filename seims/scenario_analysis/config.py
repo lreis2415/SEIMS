@@ -25,12 +25,14 @@ class SAConfig(object):
         self.nsga2_ngens = 1
         self.nsga2_npop = 4
         self.nsga2_rcross = 0.75
+        self.nsga2_pmut = 0.05
         self.nsga2_rmut = 0.1
         self.nsga2_rsel = 0.8
         if 'NSGAII' in cf.sections():
             self.nsga2_ngens = cf.getint('NSGAII', 'generationsnum')
             self.nsga2_npop = cf.getint('NSGAII', 'populationsize')
             self.nsga2_rcross = cf.getfloat('NSGAII', 'crossoverrate')
+            self.nsga2_pmut = cf.getfloat('NSGAII', 'maxmutateperc')
             self.nsga2_rmut = cf.getfloat('NSGAII', 'mutaterate')
             self.nsga2_rsel = cf.getfloat('NSGAII', 'selectrate')
         else:
@@ -68,28 +70,40 @@ class SAConfig(object):
                 and FileClass.is_dir_exists(self.seims_bin)):
             raise IOError('Please Check Directories defined in [PATH]. '
                           'BIN_DIR and MODEL_DIR are required!')
-        # 4. define gen_values
-        self.nsga2_dir = self.model_dir + os.sep + 'NSGAII_OUTPUT' + os.sep + \
-                         'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
+
+        # 4. Application specific setting section [BMPs]
+        self.bmps_info = dict()
+        self.bmps_rule = False
+        self.bmps_retain = dict()
+        if 'BMPs' in cf.sections():
+            bmpsinfostr = cf.get('BMPs', 'bmps_info')
+            self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
+            if cf.has_option('BMPs', 'bmps_retain'):
+                bmpsretainstr = cf.get('BMPs', 'bmps_retain')
+                self.bmps_retain = json.loads(bmpsretainstr)
+                self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
+        else:
+            raise ValueError("[BMPs] section MUST be existed for specific SA.")
+        self.bmps_info = json.loads(bmpsinfostr)
+        self.bmps_info = UtilClass.decode_strs_in_dict(self.bmps_info)
+
+        # 5. Application specific setting section [Effectiveness]
+        self.worst_econ = 0
+        self.worst_env = 0
+        if 'Effectiveness' in cf.sections():
+            self.worst_econ = cf.getfloat('Effectiveness', 'worst_economy')
+            self.worst_env = cf.getfloat('Effectiveness', 'worst_environment')
+
+        # 6. define gene_values
+        fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
+        fn += '_rule' if self.bmps_rule else '_random'
+        self.nsga2_dir = self.model_dir + os.sep + 'NSGAII_OUTPUT' + os.sep + fn
         self.scenario_dir = self.nsga2_dir + os.sep + 'Scenarios'
         UtilClass.rmmkdir(self.nsga2_dir)
         UtilClass.rmmkdir(self.scenario_dir)
         self.hypervlog = self.nsga2_dir + os.sep + 'hypervolume.txt'
         self.scenariolog = self.nsga2_dir + os.sep + 'scenarios_info.txt'
         self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
-
-
-        # 5. Application specific setting section [BMPs]
-        self.bmps_info = dict()
-        self.bmps_rule = False
-        if 'BMPs' in cf.sections():
-            bmpsinfostr = cf.get('BMPs', 'bmps_info')
-            self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
-        else:
-            raise ValueError("[BMPs] section MUST be existed for specific SA.")
-        self.bmps_info = json.loads(bmpsinfostr)
-        self.bmps_info = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
-                          self.bmps_info.items()}
 
 
 def parse_ini_configuration():
