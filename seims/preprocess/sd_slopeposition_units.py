@@ -59,7 +59,7 @@ class SlopePositionUnits(object):
         FileClass.check_file_exists(reach_shp)
         FileClass.check_file_exists(hillslpf)
         FileClass.check_file_exists(landusef)
-        # Set gen_values of inputs
+        # Set inputs
         self.ws = os.path.dirname(slpposf)
         tag_names = sorted(tag_names, key=lambda x: x[0])
         # initialize slope position dict with up-down relationships
@@ -103,7 +103,7 @@ class SlopePositionUnits(object):
         self.data_landuse = landuser.data
         self.nodata_landuse = landuser.noDataValue
 
-        # Set gen_values of intermediate data
+        # Set intermediate data
         self.subbsin_num = -1
         self.subbsin_tree = dict()
         self.units_updwon = OrderedDict()
@@ -112,7 +112,7 @@ class SlopePositionUnits(object):
         self.slppos_ids = numpy.ones((self.nrows, self.ncols)) * DEFAULT_NODATA
         self.hierarchy_units = dict()
 
-        # Set gen_values of outputs
+        # Set gene_values of outputs
         self.outf_units_origin = self.ws + os.sep + 'slppos_units_origin_uniqueid.tif'
         self.outshp_units_origin = self.ws + os.sep + 'origin_uniqueid.shp'
         self.json_units_origin = self.ws + os.sep + 'original_updown.json'
