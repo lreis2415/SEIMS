@@ -137,7 +137,7 @@ class ImportMongodbClass(object):
 
         # Measurement Data, such as discharge, sediment yield.
         status_output('Import observed data, such as discharge, sediment yield....', 90, f)
-        ImportObservedData.workflow(cfg, climatedb)
+        ImportObservedData.workflow(cfg, maindb, climatedb)
 
         # Import BMP scenario database to MongoDB
         status_output('Importing bmp scenario....', 95, f)
