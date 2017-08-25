@@ -203,7 +203,7 @@ class ImportObservedData(object):
                 dic[DataValueFields.time_zone] = item[DataValueFields.time_zone]
                 dic[DataValueFields.utc] = item[DataValueFields.utc]
 
-                if cur_unit == 'mg/L':
+                if cur_unit == 'mg/L' or cur_unit == 'g/L':
                     # update the Type name
                     dic[StationFields.type] = cur_type + 'Conc'
                     curfilter = {StationFields.id: dic[StationFields.id],
@@ -228,6 +228,10 @@ class ImportObservedData(object):
                     # convert mg/L to kg
                     dic[DataValueFields.value] = round(
                             dic[DataValueFields.value] * q * 86400. / 1000., 2)
+                elif cur_unit == 'g/L':
+                    # convert g/L to kg
+                    dic[DataValueFields.value] = round(
+                            dic[DataValueFields.value] * q * 86400., 2)
                 elif cur_unit == 'kg':
                     dic[StationFields.type] = cur_type + 'Conc'
                     # convert kg to mg/L
