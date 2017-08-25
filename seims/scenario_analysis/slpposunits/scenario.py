@@ -10,7 +10,6 @@ import random
 import time
 from struct import unpack
 
-import bson
 import numpy
 from gridfs import GridFS
 from osgeo import osr

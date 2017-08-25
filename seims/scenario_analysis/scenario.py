@@ -9,11 +9,14 @@ import os
 import random
 from datetime import timedelta
 from subprocess import CalledProcessError
+
 from bson.objectid import ObjectId
+
 from seims.preprocess.db_mongodb import MongoClient
 from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser
-from seims.scenario_analysis.utility import generate_uniqueid, print_message
 from seims.scenario_analysis.config import SAConfig
+from seims.scenario_analysis.utility import generate_uniqueid, print_message
+
 
 class Scenario(object):
     """Base class of Scenario for SEIMS.
@@ -236,6 +239,7 @@ if __name__ == '__main__':
 
     # test the picklable of Scenario class.
     import pickle
+
     s = pickle.dumps(sceobj)
     # print (s)
     new_cfg = pickle.loads(s)

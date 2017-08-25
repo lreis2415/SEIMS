@@ -6,10 +6,9 @@
                 17-08-18  lj - reorganize.\n
 """
 import array
-import os
 import random
 import time
-
+import os
 import matplotlib
 import numpy
 
@@ -29,8 +28,9 @@ from seims.scenario_analysis.visualization import plot_pareto_front
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when parallized by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
+
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg')
+    matplotlib.use('Agg', warn=False)
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 creator.create('FitnessMulti', base.Fitness, weights=(-1.0, 1.0))
