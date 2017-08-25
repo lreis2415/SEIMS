@@ -6,7 +6,9 @@
                 17-08-18  lj - reorganization.\n
 """
 import os
-
+import matplotlib
+if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
+    matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
 
