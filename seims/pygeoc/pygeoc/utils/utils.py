@@ -124,6 +124,47 @@ class MathClass(object):
             s += pow(list1[i] - list2[i], 2.)
         return sqrt(s / n)
 
+    @staticmethod
+    def pbias(obsvalues, simvalues):
+        """Calculate PBIAS.
+        Args:
+            obsvalues: observe values array
+            simvalues: simulate values array
+
+        Returns:
+            PBIAS value (percentage), or raise exception
+        """
+        if len(obsvalues) != len(simvalues):
+            raise ValueError("The size of observed and simulated values must be"
+                             " the same for PBIAS calculation!")
+
+        def sub_pbias(x, y):
+            return (x - y) * 100
+
+        return sum(map(sub_pbias, obsvalues, simvalues)) / sum(obsvalues)
+
+    @staticmethod
+    def rsr(obsvalues, simvalues):
+        """Calculate RSR.
+        Args:
+            obsvalues: observe values array
+            simvalues: simulate values array
+
+        Returns:
+            RSR value, or raise exception
+        """
+        if len(obsvalues) != len(simvalues):
+            raise ValueError("The size of observed and simulated values must be"
+                             " the same for RSR calculation!")
+
+        def sub_rsr(x, y):
+            return (x - y) * (x - y)
+
+        mean_obs = sum(obsvalues) / len(obsvalues)
+        mobsl = [mean_obs] * len(obsvalues)
+        return sqrt(sum(map(sub_rsr, obsvalues, simvalues))) / \
+               sqrt(sum(map(sub_rsr, obsvalues, mobsl)))
+
 
 class StringClass(object):
     """String handling class
