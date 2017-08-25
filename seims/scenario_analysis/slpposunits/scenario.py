@@ -18,9 +18,9 @@ from osgeo import osr
 from seims.preprocess.db_mongodb import MongoClient
 from seims.preprocess.text import DBTableNames, RasterMetadata
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass
+from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_parser
 from seims.scenario_analysis.scenario import Scenario
-from seims.scenario_analysis.slpposunits.config import parse_ini_configuration
+from seims.scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
@@ -82,8 +82,9 @@ class SPScenario(Scenario):
                 bmp_units[gene_v] = list()
             unit_id = self.gene_to_unit[i]
             bmp_units[gene_v].append(unit_id)
+        sce_item_count = 0
         for k, v in bmp_units.iteritems():
-            obj = bson.objectid.ObjectId()
+            # obj = bson.objectid.ObjectId()
             curd = dict()
             curd['BMPID'] = self.bmps_info['BMPID']
             curd['NAME'] = 'S%d' % self.ID
@@ -92,15 +93,17 @@ class SPScenario(Scenario):
             curd['LOCATION'] = '-'.join(str(uid) for uid in v)
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
-            self.bmp_items[obj] = curd
+            self.bmp_items[sce_item_count] = curd
+            sce_item_count += 1
         # if BMPs_retain is not empty, append it.
         if len(self.bmps_retain) > 0:
             for k, v in self.bmps_retain.iteritems():
-                obj = bson.objectid.ObjectId()
+                # obj = bson.objectid.ObjectId()
                 curd = v
                 curd['NAME'] = 'S%d' % self.ID
                 curd['ID'] = self.ID
-                self.bmp_items[obj] = curd
+                self.bmp_items[sce_item_count] = curd
+                sce_item_count += 1
 
     def import_from_mongodb(self, sid):
         pass
@@ -206,35 +209,44 @@ class SPScenario(Scenario):
                                              srs, nodata_value)
             client.close()
 
-    @staticmethod
-    def initialize_scenario(cf):
-        sce = SPScenario(cf)
-        return sce.initialize()
 
-    @staticmethod
-    def scenario_effectiveness(cf, individual):
-        # 1. instantiate the inherited Scenario class.
-        sce = SPScenario(cf)
-        sce.set_unique_id()
-        setattr(sce, 'gene_values', individual)
-        # 2. decoding gene values to BMP items and exporting to MongoDB.
-        sce.decoding()
-        sce.export_to_mongodb()
-        # 3. execute SEIMS model
-        sce.execute_seims_model()
-        # 4. calculate scenario effectiveness
-        sce.calculate_economy()
-        sce.calculate_environment()
-        # 5. Save scenarios information
-        sce.export_to_txt()
-        sce.export_scenario_to_gtiff()
+def initialize_scenario(cf):
+    sce = SPScenario(cf)
+    return sce.initialize()
 
-        return sce.economy, sce.environment
+
+def scenario_effectiveness(cf, individual):
+    # 1. instantiate the inherited Scenario class.
+    sce = SPScenario(cf)
+    sce.set_unique_id()
+    setattr(sce, 'gene_values', individual)
+    # 2. decoding gene values to BMP items and exporting to MongoDB.
+    sce.decoding()
+    sce.export_to_mongodb()
+    # 3. execute SEIMS model
+    sce.execute_seims_model()
+    # 4. calculate scenario effectiveness
+    sce.calculate_economy()
+    sce.calculate_environment()
+    # 5. Save scenarios information
+    sce.export_to_txt()
+    sce.export_scenario_to_gtiff()
+
+    return sce.economy, sce.environment
 
 
 if __name__ == '__main__':
-    cfg = parse_ini_configuration()
-    init_gene_values = SPScenario.initialize_scenario(cfg)
-    econ, env = SPScenario.scenario_effectiveness(cfg, init_gene_values)
-    print ('Scenario : %s\n' % ', '.join(str(v) for v in init_gene_values))
-    print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+    cf = get_config_parser()
+    cfg = SASPUConfig(cf)
+
+    # test the picklable of SASPUConfig class
+    import pickle
+
+    s = pickle.dumps(cfg)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.units_infos)
+    # init_gene_values = SPScenario.initialize_scenario(cfg)
+    # econ, env = SPScenario.scenario_effectiveness(cfg, init_gene_values)
+    # print ('Scenario : %s\n' % ', '.join(str(v) for v in init_gene_values))
+    # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
