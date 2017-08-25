@@ -55,21 +55,25 @@ def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, in
     """
     if perc > 0.5 or perc < 0.01:
         perc = 0.02
-    mut_num = random.randint(1, int(len(individual) * perc))
+    try:
+        mut_num = random.randint(1, int(len(individual) * perc))
+    except ValueError, Exception:
+        mut_num = 1
     for m in range(mut_num):
         if random.random() < indpb:
             mpoint = random.randint(0, len(individual) - 1)
             oldgenev = individual[mpoint]
             unitid = gene2unit[mpoint]
             # begin to mutate
-            spidx = 0
-            sptag = tagnames[spidx][0]
-            spname = tagnames[spidx][1]
-            for spid, spdict in unitsinfo[spname].iteritems():
+            for spid, spdict in unitsinfo.iteritems():
                 if unitid not in spdict:
-                    spidx += 1
-                    sptag = tagnames[spidx][0]
-                    spname = tagnames[spidx][1]
+                    continue
+                sptag = -1
+                for t, n in tagnames:
+                    if spid == n:
+                        sptag = t
+                        break
+                if sptag < 0:
                     continue
                 bmps = suitbmps[sptag][:]
                 bmps = list(set(bmps))

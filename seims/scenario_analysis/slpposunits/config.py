@@ -9,14 +9,8 @@ import json
 import operator
 from collections import OrderedDict
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
-
 from seims.preprocess.db_mongodb import ConnectMongoDB
-
-from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass, StringClass, get_config_file
+from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass, StringClass, get_config_parser
 from seims.scenario_analysis.config import SAConfig
 
 
@@ -128,14 +122,14 @@ class SASPUConfig(SAConfig):
                     self.slppos_suit_bmps[sp].append(bid)
 
 
-def parse_ini_configuration():
-    """Load model configuration from *.ini file"""
-    cf = ConfigParser()
-    ini_file = get_config_file()
-    cf.read(ini_file)
-    return SASPUConfig(cf)
-
-
 if __name__ == '__main__':
-    cfg = parse_ini_configuration()
-    print (cfg.model_dir)
+    cf = get_config_parser()
+    cfg = SASPUConfig(cf)
+
+    # test the picklable of SASPUConfig class.
+    import pickle
+
+    s = pickle.dumps(cfg)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.bmps_params)

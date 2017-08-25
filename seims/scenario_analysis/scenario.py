@@ -9,11 +9,11 @@ import os
 import random
 from datetime import timedelta
 from subprocess import CalledProcessError
-
+from bson.objectid import ObjectId
 from seims.preprocess.db_mongodb import MongoClient
-from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass
+from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser
 from seims.scenario_analysis.utility import generate_uniqueid, print_message
-
+from seims.scenario_analysis.config import SAConfig
 
 class Scenario(object):
     """Base class of Scenario for SEIMS.
@@ -111,7 +111,8 @@ class Scenario(object):
         # find ScenarioID, remove if existed.
         if collection.find({'ID': self.ID}).count():
             collection.remove({'ID': self.ID})
-        for objid, bmp_item in self.bmp_items.items():
+        for objid, bmp_item in self.bmp_items.iteritems():
+            bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
         client.close()
 
@@ -226,3 +227,16 @@ class Scenario(object):
         Designed as static method, which should be instantiated in inherited class.
         """
         pass
+
+
+if __name__ == '__main__':
+    cf = get_config_parser()
+    cfg = SAConfig(cf)
+    sceobj = Scenario(cfg)
+
+    # test the picklable of Scenario class.
+    import pickle
+    s = pickle.dumps(sceobj)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.bin_dir)
