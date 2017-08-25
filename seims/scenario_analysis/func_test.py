@@ -1,7 +1,10 @@
+import pickle
+
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import StringClass
-import pickle
+
+
 class TextReader:
     """Print and number lines in a text file."""
 
@@ -23,6 +26,7 @@ class TextReader:
         state = self.__dict__.copy()
         del state['file']
         return state
+
     def __setstate__(self, state):
         self.__dict__.update(state)
         file = open(self.filename)
@@ -49,6 +53,7 @@ def main():
         sed_sum += float(item[2])
     print (sed_sum)
 
+
 def pickle_demo():
     reader = TextReader(r'D:\tmp\test.txt')
     print(reader.readline())
@@ -56,6 +61,7 @@ def pickle_demo():
     s = pickle.dumps(reader)
     new_reader = pickle.loads(s)
     print (new_reader.readline())
+
 
 if __name__ == '__main__':
     main()
