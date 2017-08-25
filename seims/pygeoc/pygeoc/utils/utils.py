@@ -20,6 +20,10 @@ from datetime import datetime
 from math import sqrt
 from shutil import copy, rmtree
 
+try:
+    from ConfigParser import ConfigParser  # py2
+except ImportError:
+    from configparser import ConfigParser  # py3
 sysstr = platform.system()
 
 # Global constants
@@ -648,3 +652,11 @@ def get_config_file():
         print ("Usage: -ini <full path to the configuration file.>")
         exit(0)
     return ini_file
+
+
+def get_config_parser():
+    """Get config parser."""
+    cf = ConfigParser()
+    ini_file = get_config_file()
+    cf.read(ini_file)
+    return cf
