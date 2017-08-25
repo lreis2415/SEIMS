@@ -3,7 +3,7 @@
 import os
 from collections import OrderedDict
 
-import matplotlib
+import matplotlib as mpl
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
@@ -15,7 +15,7 @@ from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, MathClass
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg')
+    mpl.use('Agg')
 
 
 class TimeSeriesPlots(object):
@@ -45,8 +45,8 @@ class TimeSeriesPlots(object):
         self.sim_data_value = list()
         self.sim_obs_dict = dict()
 
-    def read_modelin_setting(self):
-        """Read the mode and interval from maindb[FILE_IN]."""
+    def read_model_setting(self):
+        """Read the mode and interval from maindb[FILE_IN] and [FILE_OUT]."""
         filein_tab = self.maindb[DBTableNames.main_filein]
         self.mode = filein_tab.find_one({ModelCfgFields.tag: FieldNames.mode})[ModelCfgFields.value]
         if isinstance(self.mode, unicode):
@@ -56,6 +56,18 @@ class TimeSeriesPlots(object):
         self.interval = int(findinterval[ModelCfgFields.value])
         self.outletid = int(MongoQuery.get_init_parameter_value(self.maindb,
                                                                 SubbsnStatsName.outlet))
+        # read start time and end time from FILE_OUT
+        st = filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.stime})[ModelCfgFields.value]
+        et = filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.etime})[ModelCfgFields.value]
+        st = StringClass.get_datetime(st)
+        et = StringClass.get_datetime(et)
+        if st > self.stime:
+            self.stime = st
+        if et < self.etime:
+            self.etime = et
+        if st > self.etime > self.stime:
+            self.stime = st
+            self.etime = et
 
     def read_precipitation(self):
         """
@@ -139,6 +151,8 @@ class TimeSeriesPlots(object):
             self.sim_data_value.append([d] + vs[:])
 
         # reset start time and end time
+        if len(self.sim_data_value) == 0:
+            raise RuntimeError('No available simulate data, please check the start and end time!')
         self.stime = self.sim_data_value[0][0]
         self.etime = self.sim_data_value[-1][0]
 
@@ -222,18 +236,43 @@ class TimeSeriesPlots(object):
             }
         """
         for param, values in self.sim_obs_dict.iteritems():
-            nse_value = MathClass.nashcoef(values['Obs'], values['Sim'])
-            r2_value = MathClass.rsquare(values['Obs'], values['Sim'])
-            rmse_value = MathClass.rmse(values['Obs'], values['Sim'])
+            obsl = values['Obs'][:]
+            siml = values['Sim'][:]
+
+            # print (len(obsl), len(siml))
+            obslnew = list()
+            simlnew = list()
+            for idx, v in enumerate(obsl):
+                if v < 0.001 or siml[idx] < 0.001:
+                    continue
+                if StringClass.string_match(param, 'SED') and v < 1000:
+                    continue
+                obslnew.append(v)
+                simlnew.append(siml[idx])
+            obsl = obslnew[:]
+            siml = simlnew[:]
+
+            # print (param, obsl, siml)
+            nse_value = MathClass.nashcoef(obsl, siml)
+            r2_value = MathClass.rsquare(obsl, siml)
+            rmse_value = MathClass.rmse(obsl, siml)
+            pbias_value = MathClass.pbias(obsl, siml)
+            rsr_value = MathClass.rsr(obsl, siml)
             values['NSE'] = nse_value
             values['R-square'] = r2_value
             values['RMSE'] = rmse_value
+            values['PBIAS'] = pbias_value
+            values['RSR'] = rsr_value
+
+            print ('Statistics for %s, NSE: %.3f, R2: %.3f, PBIAS: %.3f, RSR: %.3f' %
+                   (param, nse_value, r2_value, pbias_value, rsr_value))
 
     def generate_plots(self):
         """Generate hydrographs of discharge, sediment, nutrient (amount or concentrate), etc."""
         # set ticks direction, in or out
         plt.rcParams['xtick.direction'] = 'out'
         plt.rcParams['ytick.direction'] = 'out'
+        plt.rcParams['font.family'] = 'Times New Roman'
         sim_date = self.sim_data_dict.keys()
         for i, param in enumerate(self.plot_vars_existed):
             # plt.figure(i)
@@ -242,7 +281,10 @@ class TimeSeriesPlots(object):
             if param in ['Q', 'QI', 'QG', 'QS']:
                 ylabel_str += ' (m$^3$/s)'
             elif 'CONC' in param.upper():  # Concentrate
-                ylabel_str += ' (mg/L)'
+                if 'SED' in param.upper():
+                    ylabel_str += ' (g/L)'
+                else:
+                    ylabel_str += ' (mg/L)'
             else:  # amount
                 ylabel_str += ' (kg)'
 
@@ -252,63 +294,82 @@ class TimeSeriesPlots(object):
                 obs_dates = self.sim_obs_dict[param][DataValueFields.utc]
                 obs_values = self.sim_obs_dict[param]['Obs']
             if obs_values is not None:
+                # bar graph
                 p1 = ax.bar(obs_dates, obs_values, label='Observation', color='none',
                             edgecolor='black',
-                            linewidth=1, align='center', hatch='//')
+                            linewidth=0.5, align='center', hatch='//')
+                # # line graph
+                # p1, = ax.plot(obs_dates, obs_values, label='Observation', color='black', marker='+',
+                #              markersize=2, linewidth=1)
             sim_list = [v[i + 1] for v in self.sim_data_value]
-            p2, = ax.plot(sim_date, sim_list, label='Simulation', color='black',
-                          marker='o', markersize=2, linewidth=1)
+            p2, = ax.plot(sim_date, sim_list, label='Simulation', color='red',
+                          marker='+', markersize=2, linewidth=0.8)
             plt.xlabel('Date')
             # format the ticks date axis
+            date_fmt = mdates.DateFormatter('%m-%d-%y')
             # autodates = mdates.AutoDateLocator()
-            days = mdates.DayLocator(bymonthday=range(1, 32), interval=4)
-            months = mdates.MonthLocator()
-            date_fmt = mdates.DateFormatter('%m-%d')
-            ax.xaxis.set_major_locator(months)
+            # days = mdates.DayLocator(bymonthday=range(1, 32), interval=4)
+            # months = mdates.MonthLocator()
+            # ax.xaxis.set_major_locator(months)
             ax.xaxis.set_major_formatter(date_fmt)
-            ax.xaxis.set_minor_locator(days)
+            # ax.xaxis.set_minor_locator(days)
             ax.tick_params('both', length=5, width=2, which='major')
             ax.tick_params('both', length=3, width=1, which='minor')
-            # fig.autofmt_xdate()
+            fig.autofmt_xdate(rotation=0, ha='center')
 
             plt.ylabel(ylabel_str)
             # plt.legend(bbox_to_anchor = (0.03, 0.85), loc = 2, shadow = True)
-            ax.set_ylim(float(min(sim_list)) * 0.8, float(max(sim_list)) * 1.8)
+            if obs_values is not None:
+                ymax = max(max(sim_list), max(obs_values)) * 1.5
+                ymin = min(min(sim_list), min(obs_values)) * 0.8
+            else:
+                ymax = max(sim_list) * 1.8
+                ymin = min(sim_list) * 0.8
+            ax.set_ylim(float(ymin), float(ymax))
             ax2 = ax.twinx()
             ax.tick_params(axis='x', which='both', bottom='on', top='off')
-            ax2.tick_params('y', length=5, width=2, which='major')
+            ax2.tick_params(axis='y', length=5, width=2, which='major')
             ax2.set_ylabel(r'Precipitation (mm)')
 
             pcp_date = [v[0] for v in self.pcp_date_value]
             preci = [v[1] for v in self.pcp_date_value]
-            p3 = ax2.bar(pcp_date, preci, label='Rainfall', color='black', linewidth=0,
+            p3 = ax2.bar(pcp_date, preci, label='Rainfall', color='blue', linewidth=0,
                          align='center')
             ax2.set_ylim(float(max(preci)) * 1.8, float(min(preci)) * 0.8)
             if obs_values is None or len(obs_values) < 2:
-                ax.legend([p3, p2], ['Rainfall', 'Simulation'],
-                          bbox_to_anchor=(0.03, 0.85), loc=2, shadow=True)
+                leg = ax.legend([p3, p2], ['Rainfall', 'Simulation'], ncol=2,
+                                bbox_to_anchor=(0., 1.02, 1., 0.102),
+                                borderaxespad=0.2,
+                                loc='lower left', fancybox=True)
+                plt.tight_layout(rect=(0, 0, 1, 0.93))
             else:
-                ax.legend([p3, p1, p2], ['Rainfall', 'Observation', 'Simulation'],
-                          bbox_to_anchor=(0.03, 0.85), loc=2, shadow=True)
+                leg = ax.legend([p3, p1, p2], ['Rainfall', 'Observation', 'Simulation'],
+                                bbox_to_anchor=(0., 1.02, 1., 0.102),
+                                borderaxespad=0.,
+                                ncol=3, loc='lower left', fancybox=True)
                 try:
                     nse = self.sim_obs_dict[param]['NSE']
                     r2 = self.sim_obs_dict[param]['R-square']
-                    plt.title('\nNash: %.2f, R$^2$: %.2f' % (nse, r2), color='red', loc='right')
+                    pbias = self.sim_obs_dict[param]['PBIAS']
+                    rsr = self.sim_obs_dict[param]['RSR']
+                    plt.title('\nNSE: %.2f, R$^2$: %.2f, PBIAS: %.2f%%, RSR: %.2f' %
+                              (nse, r2, pbias, rsr), color='red', loc='right')
                 except ValueError, Exception:
                     pass
-            plt.title(param, color='#aa0903')
-            plt.tight_layout()
+                plt.tight_layout()
+            leg.get_frame().set_alpha(0.5)
+            # plt.title(param, color='#aa0903')
             timerange = '%s-%s' % (self.stime.strftime('%Y-%m-%d'),
                                    self.etime.strftime('%Y-%m-%d'))
             fpath = self.ws + os.sep + param + '-' + timerange + '.png'
-            plt.savefig(fpath)
+            plt.savefig(fpath, dpi=300)
             print ('Plot %s done, saved as: %s' % (param, fpath))
             # plt.show()
 
     def workflow(self):
         """"Workflow"""
         # read model in settings from MongoDB
-        self.read_modelin_setting()
+        self.read_model_setting()
         # read precipitation from MongoDB
         self.read_precipitation()
         # read simulation from text files
