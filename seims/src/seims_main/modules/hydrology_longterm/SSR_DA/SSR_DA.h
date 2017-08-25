@@ -109,7 +109,7 @@ private:
     float **m_qi;
     /// subsurface runoff volume (m3), VAR_SSRUVOL
     float **m_qiVol;
-    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3, VAR_SBIF
+    /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF
     float *m_qiSubbasin;
 
 public:
