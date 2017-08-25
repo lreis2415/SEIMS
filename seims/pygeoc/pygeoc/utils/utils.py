@@ -541,6 +541,7 @@ class UtilClass(object):
                                    stderr=subprocess.STDOUT, universal_newlines=True,
                                    startupinfo=startupinfo,
                                    creationflags=subprocess_flags)
+        process.communicate()
 
         if process.stdout is None:
             return ['']
