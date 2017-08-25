@@ -68,12 +68,9 @@ int IUH_OL::Execute() {
     this->CheckInputData();
     this->initialOutputs();
     // delete value of last time step
-#pragma omp parallel for
-    for (int n = 0; n < m_nSubbasins + 1; n++) {
+    for (int n = 0; n <= m_nSubbasins; n++) {
         m_Q_SBOF[n] = 0.f;
     }
-    //int nt = 0;
-    //float qs_cell = 0.f;
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -114,12 +111,14 @@ int IUH_OL::Execute() {
         //if(i == 1000) cout << m_OL_Flow[i] << endl;
     }
 
-    float tmp = 0.f;
-#pragma omp parallel for reduction(+:tmp)
-    for (int n = 1; n < m_nSubbasins + 1; n++) {
-        tmp += m_Q_SBOF[n];        //get overland flow routing for entire watershed.
+    //float tmp = 0.f;
+//#pragma omp parallel for reduction(+:tmp) // there is no need to use omp
+    for (int n = 1; n <= m_nSubbasins; n++) {
+        //get overland flow routing for entire watershed.
+        //tmp += m_Q_SBOF[n];
+        m_Q_SBOF[0] += m_Q_SBOF[n];
     }
-    m_Q_SBOF[0] = tmp;
+    
     return 0;
 }
 
