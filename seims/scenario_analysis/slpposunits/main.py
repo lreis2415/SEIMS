@@ -17,9 +17,9 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from seims.pygeoc.pygeoc.utils.utils import UtilClass
-from seims.scenario_analysis.slpposunits.config import parse_ini_configuration
-from seims.scenario_analysis.slpposunits.scenario import SPScenario
+from seims.pygeoc.pygeoc.utils.utils import UtilClass, get_config_parser
+from seims.scenario_analysis.slpposunits.config import SASPUConfig
+from seims.scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
 from seims.scenario_analysis.slpposunits.userdef import crossover_slppos
 from seims.scenario_analysis.slpposunits.userdef import mutate_rdm, mutate_slppos
 from seims.scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
@@ -38,10 +38,10 @@ creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessM
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
-toolbox.register('gene_values', SPScenario.initialize_scenario)
+toolbox.register('gene_values', initialize_scenario)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
 toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
-toolbox.register('evaluate', SPScenario.scenario_effectiveness)
+toolbox.register('evaluate', scenario_effectiveness)
 
 # rule-based mate and mutate
 toolbox.register('mate_rule', crossover_slppos)
@@ -91,11 +91,11 @@ def main(cfg):
     try:
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
-        fitnesses = futures.map(toolbox.evaluate, cfg, invalid_ind)
+        fitnesses = futures.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
         # print ('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
-        fitnesses = toolbox.map(toolbox.evaluate, cfg, invalid_ind)
+        fitnesses = toolbox.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
         # print ('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
@@ -110,36 +110,42 @@ def main(cfg):
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
+    print_message(output_str)
     UtilClass.writelog(cfg.logfile, output_str, mode='replace')
-    for gen in range(1, gen_num):
+
+    for gen in range(1, gen_num + 1):
         output_str = '###### Generation: %d ######\n' % gen
         print_message(output_str)
         # Vary the population
         offspring = tools.selTournamentDCD(pop, int(pop_size * sel_rate))
         offspring = [toolbox.clone(ind) for ind in offspring]
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
-            if random.random() <= cx_rate:
+        print_message('    offspring size: %d' % len(offspring))
+        if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
+            for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+                if random.random() <= cx_rate:
+                    if rule_cfg:
+                        toolbox.mate_rule(cfg, ind1, ind2)
+                    else:
+                        toolbox.mate_random(ind1, ind2)
                 if rule_cfg:
-                    toolbox.mate_rule(cfg, ind1, ind2)
+                    toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind1,
+                                        perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
+                                        perc=mut_perc, indpb=mut_rate)
                 else:
-                    toolbox.mate_random(ind1, ind2)
-            if rule_cfg:
-                toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind1,
-                                    perc=mut_perc, indpb=mut_rate)
-                toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
-                                    perc=mut_perc, indpb=mut_rate)
-            else:
-                toolbox.mutate_random(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
-                toolbox.mutate_random(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
-            del ind1.fitness.values, ind2.fitness.values
+                    toolbox.mutate_random(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_random(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
+                del ind1.fitness.values, ind2.fitness.values
 
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        invalid_ind_size = len(invalid_ind)
+        print_message('Evaluate pop size: %d' % invalid_ind_size)
         try:
             from scoop import futures
-            fitnesses = futures.map(toolbox.evaluate, cfg, invalid_ind)
+            fitnesses = futures.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
         except ImportError or ImportWarning:
-            fitnesses = toolbox.map(toolbox.evaluate, cfg, invalid_ind)
+            fitnesses = toolbox.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
 
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
@@ -172,13 +178,23 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    cfg = parse_ini_configuration()
+    cf = get_config_parser()
+    cfg = SASPUConfig(cf)
+
+    # # test the picklable of SASPUConfig class
+    # import pickle
+    #
+    # s = pickle.dumps(cfg)
+    # # print (s)
+    # new_cfg = pickle.loads(s)
+    # print (new_cfg.units_infos)
+
     print_message('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
 
-    pop, stats = main(cfg)
-    pop.sort(key=lambda x: x.fitness.values)
-    print_message(stats)
+    fpop, fstats = main(cfg)
+    fpop.sort(key=lambda x: x.fitness.values)
+    print_message(fstats)
 
     endT = time.time()
     print_message('Running time: %.2fs' % (endT - startT))

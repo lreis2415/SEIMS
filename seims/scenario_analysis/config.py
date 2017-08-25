@@ -8,12 +8,7 @@
 import json
 import os
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
-
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_file
+from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_parser
 
 
 class SAConfig(object):
@@ -106,14 +101,14 @@ class SAConfig(object):
         self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
 
 
-def parse_ini_configuration():
-    """Load model configuration from *.ini file"""
-    cf = ConfigParser()
-    ini_file = get_config_file()
-    cf.read(ini_file)
-    return SAConfig(cf)
-
-
 if __name__ == '__main__':
-    cfg = parse_ini_configuration()
-    print (cfg.model_dir)
+    cf = get_config_parser()
+    cfg = SAConfig(cf)
+
+    # test the picklable of SAConfig class.
+    import pickle
+
+    s = pickle.dumps(cfg)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.model_dir)
