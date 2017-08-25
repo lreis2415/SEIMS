@@ -195,6 +195,9 @@ if __name__ == "__main__":
     fpop, fstats = main(cfg)
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
+    f = open(cfg.logbookfile, 'w')
+    f.write(fstats.__str__())
+    f.close()
 
     endT = time.time()
     print_message('Running time: %.2fs' % (endT - startT))
