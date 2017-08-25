@@ -6,7 +6,7 @@ SUR_MR::SUR_MR(void) : m_nCells(-1), m_dt(-1), m_nSoilLayers(-1), m_tFrozen(NODA
     //m_tSnow(NODATA_VALUE), m_t0(NODATA_VALUE), m_snowAccu(NULL), m_snowMelt(NULL),
                        m_sFrozen(NODATA_VALUE), m_runoffCo(NULL), m_initSoilStorage(NULL), m_tMean(NULL),
     // m_soilThick(NULL) ,m_fieldCap(NULL),m_wiltingPoint(NULL), m_porosity(NULL),
-                       m_sol_awc(NULL), m_sol_sumsat(NULL), m_soilLayers(NULL),
+                       m_sol_awc(NULL), m_sol_ul(NULL), m_sol_sumsat(NULL), m_soilLayers(NULL),
                        m_pNet(NULL), m_sd(NULL), m_soilTemp(NULL), m_potVol(NULL), m_impoundTrig(NULL),
                        m_pe(NULL), m_infil(NULL), m_soilStorage(NULL), m_soilStorageProfile(NULL) {
 }
@@ -107,6 +107,17 @@ void SUR_MR::initialOutputs() {
                     m_soilStorage[i][j] = 0.f;
                 }
                 m_soilStorageProfile[i] += m_soilStorage[i][j];
+            }
+        }
+    }
+    /// update (sol_sumul) amount of water held in soil profile at saturation
+    if (m_sol_sumsat == NULL && m_sol_ul != NULL) {
+        m_sol_sumsat = new float[m_nCells];
+#pragma omp parallel for
+        for (int i = 0; i < m_nCells; i++) {
+            m_sol_sumsat[i] = 0.f;
+            for (int j = 0; j < (int)m_soilLayers[i]; j++) { /// mm
+                m_sol_sumsat[i] += m_sol_ul[i][j];
             }
         }
     }
@@ -268,7 +279,7 @@ void SUR_MR::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_DPST)) { m_sd = data; }
     else if (StringMatch(sk, VAR_SOTE)) { m_soilTemp = data; }
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_soilLayers = data; }
-    else if (StringMatch(sk, VAR_SOL_SUMSAT)) { m_sol_sumsat = data; }
+    //else if (StringMatch(sk, VAR_SOL_SUMSAT)) { m_sol_sumsat = data; }
     else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
     else if (StringMatch(sk, VAR_IMPOUND_TRIG)) {
         m_impoundTrig = data;
@@ -283,12 +294,12 @@ void SUR_MR::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
     CheckInputSize(key, nrows);
     m_nSoilLayers = ncols;
-    if (StringMatch(sk, VAR_SOL_AWC)) {
-        m_sol_awc = data;
-        //else if (StringMatch(sk, VAR_FIELDCAP))m_fieldCap = data;
-        //else if (StringMatch(sk, VAR_SOILTHICK))m_soilThick = data;
-        //else if (StringMatch(sk, VAR_POROST))m_porosity = data;
-    } else {
+    if (StringMatch(sk, VAR_SOL_AWC)) { m_sol_awc = data; }
+    else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_ul = data; }
+    //else if (StringMatch(sk, VAR_FIELDCAP))m_fieldCap = data;
+    //else if (StringMatch(sk, VAR_SOILTHICK))m_soilThick = data;
+    //else if (StringMatch(sk, VAR_POROST))m_porosity = data;
+    else {
         throw ModelException(MID_SUR_MR, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }

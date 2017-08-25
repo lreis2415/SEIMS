@@ -214,8 +214,7 @@ int MUSK_CH::Execute() {
     initialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
-    map < int, vector < int > > ::iterator
-    it;
+    map <int, vector<int> >::iterator it;
     for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -330,7 +329,6 @@ void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
     }
     string sk(key);
     *n = m_nreach + 1;
-    //int m_outletID = m_reachLayers.rbegin()->second[0];
     if (StringMatch(sk, VAR_QRECH)) {
         m_qOut[0] = m_qOut[m_outletID];
         *data = m_qOut;
@@ -546,7 +544,7 @@ void MUSK_CH::ChannelFlow(int i) {
     //////////////////////////////////////////////////////////////////////////
     // first add all the inflow water
     // 1. water from this subbasin
-    float qIn = m_qsSub[i] + qiSub + qgSub + ptSub + m_deepGroundwater;  /// m^3
+    float qIn = m_qsSub[i] + qiSub + qgSub + ptSub + m_deepGroundwater;  /// m^3/s
     //if (i == m_outletID) /// this should be added to each channel. By lj
     //	qIn += m_deepGroundwater;
     // 2. water from upstream reaches
@@ -559,7 +557,7 @@ void MUSK_CH::ChannelFlow(int i) {
         qiUp += m_qiCh[upReachId];
         qgUp += m_qgCh[upReachId];
     }
-    qIn += qsUp + qiUp + qgUp;
+    qIn += (qsUp + qiUp + qgUp);
     //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
     qIn += m_qUpReach; 
     // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
