@@ -31,5 +31,10 @@
 ~~利用[DownloadProject](https://github.com/Crascit/DownloadProject)在CMake构建工程的时候自动克隆[GoogleTest](https://github.com/google/googletest)，并在项目编译之前自动编译，从而可供UnitTest自动构建、测试。在CMake命令后追加`-DUNITTEST=1`开启单元测试。参考[这篇博客](https://crascit.com/2015/07/25/cmake-gtest/)~~。
 目前，基于gtest/gmock的单元测试框架已经搭建好，后续写模块的过程中应当同步写单元测试代码！
 + 9.增加flood模拟方法。如openLISEM
++ 10.增加泥沙汇流模块，采用水流功率模型计算，目前需将SWAT中的4种模型集成进来：
+    + ~~Simplified Bagnold model (DONE)~~
+    + Kodatie model (for streams with bed material size ranging from silt to gravel)
+    + Molinas and Wu model (for primarily sand size particles)
+    + Yang sand and gravel model (for primarily sand and gravel size particles)
 
 
