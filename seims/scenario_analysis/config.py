@@ -99,6 +99,7 @@ class SAConfig(object):
         self.hypervlog = self.nsga2_dir + os.sep + 'hypervolume.txt'
         self.scenariolog = self.nsga2_dir + os.sep + 'scenarios_info.txt'
         self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
+        self.logbookfile = self.nsga2_dir + os.sep + 'logbook.txt'
 
 
 if __name__ == '__main__':
