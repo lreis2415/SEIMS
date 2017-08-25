@@ -213,10 +213,10 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
 
 def main():
     """TEST CODE"""
-    data_file = r'C:\z_data\ChangTing\climate\pcp\2014_pcp_storm_non_regular.txt'
+    data_file = r'C:\z_data\ChangTing\observed\HE3520133140\2011\2011_flowsed_storm_not_regular.txt'
     time_interval = 1440
-    stime = '2014-01-01 00:00:00'
-    etime = '2014-12-31 23:59:59'
+    stime = '2011-01-01 00:00:00'
+    etime = '2011-12-31 23:59:59'
     elim_zero = False
     out_time_system = 'UTCTIME'
     divided_hour = 0

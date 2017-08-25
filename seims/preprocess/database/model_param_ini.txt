@@ -56,8 +56,8 @@ InstreamWQ,orgp,Organic P concentration in reach on the first day,mg P/L,Channel
 Interception,BLAI,Leaf area index,none,PI_STORM,-9999,1,RC,12,0
 Interception,CoverFrac,vegetation cover fraction,none,All,-9999,1,RC,1,0
 Interception,Init_IS,Initial interception storage,mm,ALL,0,0,AC,1,0
-Interception,Interc_max,Maximum Interception Capacity,mm,ALL,-9999,1,RC,1.5,0.5
-Interception,Interc_min,Minimum Interception Capacity,mm,ALL,-9999,1,RC,1.5,0.5
+Interception,Interc_max,Maximum Interception Capacity,mm,ALL,-9999,1,RC,15,0.5
+Interception,Interc_min,Minimum Interception Capacity,mm,ALL,-9999,1,RC,15,0.
 Interception,Pi_b,Interception Storage Capacity Exponent,none,ALL,1.35,0,AC,1.5,0.5
 Nutrient,ai0,Ratio of chlorophyll-a to algal biomass,ug/mg,NutCHRout,50,0,AC,100,10
 Nutrient,ai1,Fraction of algal biomass that is nigrogen,mg/mg,NutCHRout,0.08,1,RC,0.09,0.07
@@ -135,7 +135,7 @@ Sediment,eco1,calibration coefficient-1 of transport capacity calculation,none,K
 Sediment,eco2,calibration coefficient-2 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
 Sediment,flow_acc,the number of flow accumulation cells of each cell,none,ALL,-9999,0,NC,-9999,-9999
 Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashEro_Park,0.02,1,RC,10,0.0001
-Sediment,p_rf, Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,3,1
+Sediment,p_rf, Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,30,1
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,MUSLEC_LAI,0.3,0,AC,0.5,0.1
@@ -146,9 +146,9 @@ Sediment,Spl_delratio,Splash delivery ratio,none,SplashEro_KinEen,0.1,1,RC,1,0
 Sediment,T0_s,time of concentration,hr,ALL,-9999,0,NC,-9999,-9999
 Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
-Sediment,USLE_LS_COEF,the LS coefficient,none,ALL,1,1.2,AC,10,0
+Sediment,USLE_LS_COEF,the LS coefficient,none,ALL,1,0,AC,10,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
-Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
+Sediment,vcd,channel degredation code,None,SEDR,0,0,VC,1,0
 Sediment,vcrit,critical veldeg Ctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
 Snow,c_rain,Rainfall impact factor,mm/mm/deg C/delta_t,SNO_DD,0.04,0,AC,1,0
 Snow,c_snow,temperature impact factor,mm/deg C/delta_t,SNO_DD,3,0,AC,6,0
@@ -181,15 +181,12 @@ WaterBalance,Conductivity,Soil hydraulic conductivity,mm/hr,ALL,-9999,1,RC,10,0.
 WaterBalance,Density,Soil bulk density,mg/cm3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Depre_in,Initial depression storage coefficient,none,ALL,0.2,0,AC,1,0
 WaterBalance,Depression,Depression storage capacity,mm,ALL,-9999,1,RC,5,0.5
-WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,K_run,Runoff exponent when net rainfall approaches to zero,none,SUR_MR,2.5,0,AC,5,0
 WaterBalance,k_soil10,ratio between soil temperature at 10 cm and the mean,none,STP_FP,1,0,AC,3,0
-WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
-WaterBalance,P_max,Maximum rainfall intensity when k_run = 1.0,mm,SUR_MR,30,0,AC,60,10
+WaterBalance,P_max,Maximum rainfall intensity when k_run = 1.0,mm,SUR_MR,30,0,AC,1000,10
 WaterBalance,Poreindex,Pore size distribution index,none,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,10,0.01
-WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
 WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
 WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0
@@ -207,4 +204,9 @@ WaterBalance,soil_td1,Empirical coefficient for estimating soil temperature,deg 
 WaterBalance,soil_td2,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.339,0,AC,1,0
 WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8
 WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15
+WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
+WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,1.2,0.8
+WaterB,SOL_AWC,amount of water available to plants in soil layer at field capacity (fc - wp),mm H2O,ALL,-9999,1,RC,100,0.1
+WaterB,SOL_UL,amount of water held in the soil layer at saturation (sat - wp water),mm H2O,ALL,-9999,1,RC,100,0.1
