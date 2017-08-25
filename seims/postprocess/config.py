@@ -86,6 +86,7 @@ class PostConfig(object):
             self.lang_cn = cf.getboolean('SWITCH', 'lang_cn')
 
 
+
 def parse_ini_configuration():
     """Load model configuration from *.ini file"""
     cf = ConfigParser()
