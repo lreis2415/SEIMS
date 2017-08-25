@@ -173,8 +173,8 @@ int SubbasinIUHCalculator::calCell(int id) {
         }
 
         // if landcover if rice paddy, adjust the iuh according to experience knowledge
-        //if(landcover[i][j] == 33)
-        adjustRiceField(mint0, maxt0, uh1[i]);
+        //if(landcover[i] == 33)
+            adjustRiceField(mint0, maxt0, uh1[i]);
 
 //        int nTemp = maxt0 - mint0 + 3;
 //        float *pTemp = new float[nTemp];
@@ -365,8 +365,8 @@ void SubbasinIUHCalculator::adjustRiceField(int &mint0, int &maxt0, vector<doubl
     if (maxt0 - mint0 == 0) // if water will flow to channel within one day
     {
         maxt0 = 1;
-        iuhRow[0] = 0.1f;
-        iuhRow[1] = 0.9f; //must make sure m_iuhCell has at least 4 columns in the readin codes
+        iuhRow[0] = 0.6f;  //0.6 and 0.4 are calibrated for youwuzhen, 2013-2015, daily. by lj
+        iuhRow[1] = 0.4f;  //must make sure m_iuhCell has at least 4 columns in the readin codes
         //maxt0 = 5;
         //iuhRow[0] = 0.2f;
         //iuhRow[1] = 0.46f;
