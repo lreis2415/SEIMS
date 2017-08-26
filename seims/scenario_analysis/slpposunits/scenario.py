@@ -39,6 +39,7 @@ class SPScenario(Scenario):
         self.suit_bmps = cf.slppos_suit_bmps
         self.unit_to_gene = cf.slppos_to_gene
         self.gene_to_unit = cf.gene_to_slppos
+        self.cfg_years = cf.runtime_years
 
     def rule_based_config(self, conf_rate=0.5):
         # from the first slope position of each hillslope, trace downslope
@@ -129,8 +130,8 @@ class SPScenario(Scenario):
             for luid, luarea in unit_lu.iteritems():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
-                    opex += luarea * bmpparam['OPEX'] * self.timerange
-                    income += luarea * bmpparam['INCOME'] * self.timerange
+                    opex += luarea * bmpparam['OPEX'] * self.cfg_years
+                    income += luarea * bmpparam['INCOME'] * self.cfg_years
 
         self.economy = capex + opex
         # self.economy = income - opex - capex
