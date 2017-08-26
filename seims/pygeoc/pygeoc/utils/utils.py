@@ -536,6 +536,9 @@ class UtilClass(object):
                 if commands[0][0] == commands[0][-1] == '"' or \
                                         commands[0][0] == commands[0][-1] == "'":
                     commands[0] = commands[0][1:-1]
+                for idx, v in enumerate(commands):
+                    if isinstance(v, int):  # Fix:TypeError: execv() arg 2 must contain only strings
+                        commands[idx] = str(v)
         process = subprocess.Popen(commands, shell=use_shell, stdout=subprocess.PIPE,
                                    stdin=open(os.devnull),
                                    stderr=subprocess.STDOUT, universal_newlines=True,
