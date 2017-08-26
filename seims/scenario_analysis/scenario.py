@@ -190,7 +190,7 @@ class Scenario(object):
         try:
             UtilClass.run_command(cmd_str)
             self.modelrun = True
-        except CalledProcessError, Exception:
+        except CalledProcessError or Exception:
             print ('Run SEIMS model failed!')
             self.modelrun = False
         return self.modelrun

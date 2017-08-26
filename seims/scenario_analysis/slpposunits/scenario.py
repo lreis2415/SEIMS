@@ -146,7 +146,7 @@ class SPScenario(Scenario):
                 self.environment = self.worst_env
             else:
                 rr = RasterUtilClass.read_raster(rfile)
-                soil_erosion_amount = rr.get_sum() / self.timerange
+                soil_erosion_amount = rr.get_sum() / self.timerange  # unit: year
                 base_amount = self.bmps_info['BASE_ENV']
                 # reduction rate of soil erosion
                 self.environment = (base_amount - soil_erosion_amount) / base_amount

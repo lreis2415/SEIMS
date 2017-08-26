@@ -57,7 +57,7 @@ def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, in
         perc = 0.02
     try:
         mut_num = random.randint(1, int(len(individual) * perc))
-    except ValueError, Exception:
+    except ValueError or Exception:
         mut_num = 1
     for m in range(mut_num):
         if random.random() < indpb:
