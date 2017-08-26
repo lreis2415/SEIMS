@@ -59,6 +59,8 @@ Interception,Init_IS,Initial interception storage,mm,ALL,0,0,AC,1,0
 Interception,Interc_max,Maximum Interception Capacity,mm,ALL,-9999,1,RC,15,0.5
 Interception,Interc_min,Minimum Interception Capacity,mm,ALL,-9999,1,RC,15,0.
 Interception,Pi_b,Interception Storage Capacity Exponent,none,ALL,1.35,0,AC,1.5,0.5
+Nutrient,OM,Organic matter,%,ALL,-9999,1,RC,60,0.08
+Nutrient,SOL_CBN,Organic carbon content,%,ALL,-9999,1,RC,60,0.08
 Nutrient,ai0,Ratio of chlorophyll-a to algal biomass,ug/mg,NutCHRout,50,0,AC,100,10
 Nutrient,ai1,Fraction of algal biomass that is nigrogen,mg/mg,NutCHRout,0.08,1,RC,0.09,0.07
 Nutrient,ai2,Fraction of algal biomass that is phosphorus,mg/mg,NutCHRout,0.015,1,RC,0.02,0.01
@@ -185,7 +187,7 @@ WaterBalance,K_run,Runoff exponent when net rainfall approaches to zero,none,SUR
 WaterBalance,k_soil10,ratio between soil temperature at 10 cm and the mean,none,STP_FP,1,0,AC,3,0
 WaterBalance,P_max,Maximum rainfall intensity when k_run = 1.0,mm,SUR_MR,30,0,AC,1000,10
 WaterBalance,Poreindex,Pore size distribution index,none,ALL,-9999,1,RC,1.2,0.8
-WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,0.8,0.2
 WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,10,0.01
 WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
 WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
@@ -206,7 +208,7 @@ WaterBalance,soiltemp0,Initial soil temperature,deg C,SOI_EB,-9999,1,RC,1.2,0.8
 WaterBalance,t_soil,Soil freezing temperature,deg C,ALL,-5,0,AC,0,-15
 WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
 WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
-WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
-WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05
+WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
 WaterB,SOL_AWC,amount of water available to plants in soil layer at field capacity (fc - wp),mm H2O,ALL,-9999,1,RC,100,0.1
 WaterB,SOL_UL,amount of water held in the soil layer at saturation (sat - wp water),mm H2O,ALL,-9999,1,RC,100,0.1
