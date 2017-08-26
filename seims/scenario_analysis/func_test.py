@@ -35,15 +35,7 @@ class TextReader:
         self.file = file
 
 
-def main():
-    ws = r'C:\z_data\ChangTing\seims_models\model_youwuzhen_10m_longterm'
-    sce_id = 163157379
-    rasterf = '%s\OUTPUT%d\SED_OL_SUM.tif' % (ws, sce_id)
-    r = RasterUtilClass.read_raster(rasterf)
-    rasterf2 = '%s\OUTPUT%d\SOER_SUM.tif' % (ws, sce_id)
-    r2 = RasterUtilClass.read_raster(rasterf2)
-    print ('SED_OL sum: %s, SOER sum: %f' % (r.get_sum(), r2.get_sum()))
-    sedf = '%s\OUTPUT%d\sed.txt' % (ws, sce_id)
+def sum_txt(sedf):
     sed_data = read_data_items_from_txt(sedf)
     sed_sum = 0.
     for item in sed_data:
@@ -51,7 +43,22 @@ def main():
         if len(item) < 3:
             continue
         sed_sum += float(item[2])
-    print (sed_sum)
+    return sed_sum
+
+
+def main():
+    ws = r'C:\z_data\ChangTing\seims_models\model_youwuzhen_10m_longterm'
+    sce_id = 151265071
+    rasterf = '%s\OUTPUT%d\SED_OL_SUM.tif' % (ws, sce_id)
+    r = RasterUtilClass.read_raster(rasterf)
+    rasterf2 = '%s\OUTPUT%d\SOER_SUM.tif' % (ws, sce_id)
+    r2 = RasterUtilClass.read_raster(rasterf2)
+    sedf = '%s\OUTPUT%d\SED.txt' % (ws, sce_id)
+    sed2chf = '%s\OUTPUT%d\SEDtoCH.txt' % (ws, sce_id)
+    sedsum = sum_txt(sedf)
+    sed2chsum = sum_txt(sed2chf)
+    print ('SED_OL sum: %s, SOER sum: %.2f\nSEDtoCH: %.2f, SED: %.2f' % (r.get_sum(), r2.get_sum(),
+                                                                         sed2chsum, sedsum))
 
 
 def pickle_demo():

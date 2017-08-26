@@ -16,6 +16,7 @@ from osgeo import osr
 
 from seims.preprocess.db_mongodb import MongoClient
 from seims.preprocess.text import DBTableNames, RasterMetadata
+from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_parser
 from seims.scenario_analysis.scenario import Scenario
@@ -135,24 +136,43 @@ class SPScenario(Scenario):
         # self.economy = income - opex - capex
 
     def calculate_environment(self):
-        if self.modelrun:
-            rfile = self.modelout_dir + os.sep + self.bmps_info['ENVEVAL']
-            if not FileClass.is_file_exists(rfile):
-                time.sleep(5)  # sleep 5 seconds wait for the ouput
-            if not FileClass.is_file_exists(rfile):
-                print ('WARNING: Although SEIMS model runs successfully, the desired output: %s'
-                       ' cannot be found!' % rfile)
-                self.economy = self.worst_econ
-                self.environment = self.worst_env
-            else:
-                rr = RasterUtilClass.read_raster(rfile)
-                soil_erosion_amount = rr.get_sum() / self.timerange  # unit: year
-                base_amount = self.bmps_info['BASE_ENV']
-                # reduction rate of soil erosion
-                self.environment = (base_amount - soil_erosion_amount) / base_amount
+        if not self.modelrun:  # no evaluate done
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            return
+        rfile = self.modelout_dir + os.sep + self.bmps_info['ENVEVAL']
+
+        if not FileClass.is_file_exists(rfile):
+            time.sleep(5)  # sleep 5 seconds wait for the ouput
+        if not FileClass.is_file_exists(rfile):
+            print ('WARNING: Although SEIMS model runs successfully, the desired output: %s'
+                   ' cannot be found!' % rfile)
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            return
+
+        base_amount = self.bmps_info['BASE_ENV']
+        if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
+            rr = RasterUtilClass.read_raster(rfile)
+            soil_erosion_amount = rr.get_sum() / self.timerange  # unit: year
+            # reduction rate of soil erosion
+            self.environment = (base_amount - soil_erosion_amount) / base_amount
+        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
+            sed_data = read_data_items_from_txt(rfile)
+            sed_sum = 0.
+            for item in sed_data:
+                item = StringClass.split_string(item[0], ' ', True)
+                if len(item) < 3:
+                    continue
+                try:
+                    sed_sum += float(item[2])
+                except ValueError or Exception:
+                    pass
+            self.environment = (base_amount - sed_sum) / base_amount
         else:
             self.economy = self.worst_econ
             self.environment = self.worst_env
+            return
 
     def export_scenario_to_gtiff(self):
         """Export scenario to GTiff.
@@ -238,14 +258,15 @@ if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    # test the picklable of SASPUConfig class
-    import pickle
+    # # test the picklable of SASPUConfig class
+    # import pickle
+    #
+    # s = pickle.dumps(cfg)
+    # # print (s)
+    # new_cfg = pickle.loads(s)
+    # print (new_cfg.units_infos)
 
-    s = pickle.dumps(cfg)
-    # print (s)
-    new_cfg = pickle.loads(s)
-    print (new_cfg.units_infos)
-    # init_gene_values = SPScenario.initialize_scenario(cfg)
-    # econ, env = SPScenario.scenario_effectiveness(cfg, init_gene_values)
-    # print ('Scenario : %s\n' % ', '.join(str(v) for v in init_gene_values))
-    # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+    init_gene_values = SPScenario.initialize_scenario(cfg)
+    econ, env = SPScenario.scenario_effectiveness(cfg, init_gene_values)
+    print ('Scenario : %s\n' % ', '.join(str(v) for v in init_gene_values))
+    print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
