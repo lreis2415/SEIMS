@@ -47,7 +47,7 @@ toolbox.register('evaluate', scenario_effectiveness)
 toolbox.register('mate_rule', crossover_slppos)
 toolbox.register('mutate_rule', mutate_slppos)
 # random-based mate and mutate
-toolbox.register('mate_random', tools.cxTwoPoint)
+toolbox.register('mate_rdn', tools.cxTwoPoint)
 toolbox.register('mutate_rdm', mutate_rdm)
 
 toolbox.register('select', tools.selNSGA2)
@@ -126,15 +126,15 @@ def main(cfg):
                     if rule_cfg:
                         toolbox.mate_rule(cfg, ind1, ind2)
                     else:
-                        toolbox.mate_random(ind1, ind2)
+                        toolbox.mate_rdn(ind1, ind2)
                 if rule_cfg:
                     toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind1,
                                         perc=mut_perc, indpb=mut_rate)
                     toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
                                         perc=mut_perc, indpb=mut_rate)
                 else:
-                    toolbox.mutate_random(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
-                    toolbox.mutate_random(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rdn(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rdn(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
                 del ind1.fitness.values, ind2.fitness.values
 
         # Evaluate the individuals with an invalid fitness
