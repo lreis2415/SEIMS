@@ -22,7 +22,7 @@ def plot_pareto_front(pop, ws, pop_size, gen_id):
     plt.xlabel('Economic effectiveness')
     plt.ylabel('Environmental effectiveness')
     # front[:, 0] /= 1000000.
-    front[:, 1] /= 1000.
+    # front[:, 1] /= 1000.
     plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
     plt.title('\nPopulation: %d, Generation: %d' % (pop_size, gen_id), color='green', fontsize=9,
               loc='right')

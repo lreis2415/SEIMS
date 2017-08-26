@@ -354,7 +354,7 @@ class TimeSeriesPlots(object):
                     rsr = self.sim_obs_dict[param]['RSR']
                     plt.title('\nNSE: %.2f, R$^2$: %.2f, PBIAS: %.2f%%, RSR: %.2f' %
                               (nse, r2, pbias, rsr), color='red', loc='right')
-                except ValueError, Exception:
+                except ValueError or Exception:
                     pass
                 plt.tight_layout()
             leg.get_frame().set_alpha(0.5)

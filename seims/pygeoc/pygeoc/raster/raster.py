@@ -297,7 +297,7 @@ class RasterUtilClass(object):
         ds.SetGeoTransform(geotransform)
         try:
             ds.SetProjection(srs.ExportToWkt())
-        except AttributeError, Exception:
+        except AttributeError or Exception:
             ds.SetProjection(srs)
         ds.GetRasterBand(1).SetNoDataValue(nodata_value)
         ds.GetRasterBand(1).WriteArray(data)
