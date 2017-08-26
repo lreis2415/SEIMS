@@ -133,8 +133,8 @@ def main(cfg):
                     toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
                                         perc=mut_perc, indpb=mut_rate)
                 else:
-                    toolbox.mutate_rdn(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
-                    toolbox.mutate_rdn(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
                 del ind1.fitness.values, ind2.fitness.values
 
         # Evaluate the individuals with an invalid fitness
