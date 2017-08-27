@@ -64,6 +64,8 @@ def main(cfg):
     mut_rate = cfg.nsga2_rmut
     sel_rate = cfg.nsga2_rsel
     ws = cfg.nsga2_dir
+    worst_econ = cfg.worst_econ
+    worst_env = cfg.worst_env
     # available gene value list
     possible_gene_values = cfg.bmps_params.keys()
     possible_gene_values.append(0)
@@ -153,7 +155,8 @@ def main(cfg):
         # Select the next generation population
         pop = toolbox.select(pop + offspring, pop_size)
 
-        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop))
+        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop,
+                                                                     ref=(worst_econ, worst_env)))
         print_message(hyper_str)
         UtilClass.writelog(cfg.hypervlog, hyper_str, mode='append')
 
