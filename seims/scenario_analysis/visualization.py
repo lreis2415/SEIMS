@@ -155,11 +155,12 @@ def plot_pareto_fronts_by_method(method_files, xname, yname, gens, ws):
 
 def main():
     """Main Entrance."""
-    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\sed_ol_capex'
-    method_pareto = {'Rule based': base_dir + os.sep + 'gen20_pop20_rule/runtime.log',
-                     'Random': base_dir + os.sep + 'gen20_pop20_rdm/runtime.log'}
-    xaxis = ['economy', 'Cost (10,000 USD$)', 0.]
-    yaxis = ['environmental', 'Sediment reduction rate']
+    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output'
+    method_pareto = {'Rule based': base_dir + os.sep + 'gen500_pop200_rule/runtime.log',
+                     'Random': base_dir + os.sep + 'gen500_pop200_rdm/runtime.log'}
+    # xaxis = ['economy', 'Economical benefit (1,000 USD$)']
+    xaxis = ['economy', 'Economical benefit (10,000 RMBY)']
+    yaxis = ['environment', 'Reduction rate of soil erosion']
     draw_gens = range(1, 22)
 
     plot_pareto_fronts_by_method(method_pareto, xaxis, yaxis, draw_gens, base_dir)
