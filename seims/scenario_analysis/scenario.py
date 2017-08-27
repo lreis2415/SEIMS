@@ -69,6 +69,7 @@ class Scenario(object):
         self.ID = generate_uniqueid().next()
         self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
         self.read_simulation_timerange()
+        return self.ID
 
     def read_simulation_timerange(self):
         """Read simulation time range from MongoDB."""

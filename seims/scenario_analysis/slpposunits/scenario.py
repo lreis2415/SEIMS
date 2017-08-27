@@ -239,7 +239,7 @@ def initialize_scenario(cf):
 def scenario_effectiveness(cf, individual):
     # 1. instantiate the inherited Scenario class.
     sce = SPScenario(cf)
-    sce.set_unique_id()
+    curid = sce.set_unique_id()
     setattr(sce, 'gene_values', individual)
     # 2. decoding gene values to BMP items and exporting to MongoDB.
     sce.decoding()
@@ -253,7 +253,7 @@ def scenario_effectiveness(cf, individual):
     sce.export_to_txt()
     sce.export_scenario_to_gtiff()
 
-    return sce.economy, sce.environment
+    return sce.economy, sce.environment, curid
 
 
 if __name__ == '__main__':
