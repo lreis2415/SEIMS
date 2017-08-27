@@ -34,7 +34,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 creator.create('FitnessMulti', base.Fitness, weights=(-1.0, 1.0))
-creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti)
+creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti, id=-1)
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
@@ -101,7 +101,8 @@ def main(cfg):
         # print ('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
-        ind.fitness.values = fit
+        ind.fitness.values = fit[:2]
+        ind.id = fit[2]
 
     # This is just to assign the crowding distance to the individuals
     # no actual selection is done
@@ -150,13 +151,13 @@ def main(cfg):
             fitnesses = toolbox.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
 
         for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
+            ind.fitness.values = fit[:2]
+            ind.id = fit[2]
 
         # Select the next generation population
         pop = toolbox.select(pop + offspring, pop_size)
 
-        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop,
-                                                                     ref=(worst_econ, worst_env)))
+        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop))
         print_message(hyper_str)
         UtilClass.writelog(cfg.hypervlog, hyper_str, mode='append')
 
@@ -168,10 +169,11 @@ def main(cfg):
             # Create plot
             plot_pareto_front(pop, ws, len(invalid_ind), gen)
             # save in file
-            output_str += 'economy\tenvironmental\tscenario\n'
+            output_str += 'scenario\teconomy\tenvironmental\tscenario\n'
             for indi in pop:
-                output_str += '%f\t%f\t%s\n' % (indi.fitness.values[0], indi.fitness.values[1],
-                                                str(indi))
+                output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
+                                                    indi.fitness.values[1],
+                                                    str(indi))
             UtilClass.writelog(cfg.logfile, output_str, mode='append')
 
         # Delete SEIMS output files, and BMP Scenario database of current generation
@@ -183,14 +185,6 @@ def main(cfg):
 if __name__ == "__main__":
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
-
-    # # test the picklable of SASPUConfig class
-    # import pickle
-    #
-    # s = pickle.dumps(cfg)
-    # # print (s)
-    # new_cfg = pickle.loads(s)
-    # print (new_cfg.units_infos)
 
     print_message('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
