@@ -107,15 +107,19 @@ def plot_pareto_fronts_by_method(method_files, xname, yname, gens, ws):
         markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
         fig, ax = plt.subplots(figsize=(12, 8))
         mark_idx = 0
+        gen_existed = True
         for method, valuedict in pareto_data.iteritems():
             if gen not in valuedict:
-                continue
+                gen_existed = False
+                break
             xdata = valuedict[gen][xname[0]]
             ydata = valuedict[gen][yname[0]]
             plt.scatter(xdata, ydata, marker=markers[mark_idx], s=60,
                         color='black', label=method)
             mark_idx += 1
-            # plt.plot(xdata, ydata, marker='.',  linestyle='none', alpha=0.9, label=method)
+        if not gen_existed:
+            continue
+
         xaxis = plt.gca().xaxis
         yaxis = plt.gca().yaxis
         for xlebal in xaxis.get_ticklabels():
@@ -151,9 +155,9 @@ def plot_pareto_fronts_by_method(method_files, xname, yname, gens, ws):
 
 def main():
     """Main Entrance."""
-    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\sedtoch'
-    method_pareto = {'Rule based': base_dir + os.sep + 'gen22_pop100_rule/runtime.log',
-                     'Random': base_dir + os.sep + 'gen22_pop100_rdm/runtime.log'}
+    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\sed_ol_capex'
+    method_pareto = {'Rule based': base_dir + os.sep + 'gen20_pop20_rule/runtime.log',
+                     'Random': base_dir + os.sep + 'gen20_pop20_rdm/runtime.log'}
     xaxis = ['economy', 'Cost (10,000 USD$)', 0.]
     yaxis = ['environmental', 'Sediment reduction rate']
     draw_gens = range(1, 22)
