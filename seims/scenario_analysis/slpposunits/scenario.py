@@ -133,9 +133,9 @@ class SPScenario(Scenario):
                     opex += luarea * bmpparam['OPEX'] * self.cfg_years
                     income += luarea * bmpparam['INCOME'] * self.cfg_years
 
-        self.economy = capex
+        # self.economy = capex
         # self.economy = capex + opex
-        # self.economy = income - opex - capex
+        self.economy = capex + opex - income
 
     def calculate_environment(self):
         if not self.modelrun:  # no evaluate done
