@@ -6,9 +6,11 @@
                 17-08-18  lj - reorganize.\n
 """
 import array
+import operator
+import os
 import random
 import time
-import os
+
 import matplotlib
 import numpy
 
@@ -19,7 +21,7 @@ from deap.benchmarks.tools import hypervolume
 from seims.pygeoc.pygeoc.utils.utils import UtilClass, get_config_parser
 from seims.scenario_analysis.slpposunits.config import SASPUConfig
 from seims.scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from seims.scenario_analysis.slpposunits.userdef import crossover_slppos
+from seims.scenario_analysis.slpposunits.userdef import crossover_slppos, crossover_rdm
 from seims.scenario_analysis.slpposunits.userdef import mutate_rdm, mutate_slppos
 from seims.scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from seims.scenario_analysis.utility import print_message, delete_model_outputs
@@ -33,7 +35,8 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
-creator.create('FitnessMulti', base.Fitness, weights=(-1.0, 1.0))
+multi_weight = (-1., 1.)
+creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti, id=-1)
 
 # Register NSGA-II related operations
@@ -47,7 +50,7 @@ toolbox.register('evaluate', scenario_effectiveness)
 toolbox.register('mate_rule', crossover_slppos)
 toolbox.register('mutate_rule', mutate_slppos)
 # random-based mate and mutate
-toolbox.register('mate_rdn', tools.cxTwoPoint)
+toolbox.register('mate_rdn', crossover_rdm)
 toolbox.register('mutate_rdm', mutate_rdm)
 
 toolbox.register('select', tools.selNSGA2)
@@ -76,6 +79,9 @@ def main(cfg):
 
     print_message('Population: %d, Generation: %d' % (pop_size, gen_num))
     print_message('BMPs configure method: %s' % ('rule-based' if rule_cfg else 'random-based'))
+
+    # create reference point for hypervolume
+    ref_pt = numpy.array(tuple(map(operator.mul, [worst_econ, worst_env], multi_weight))) * -1
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
@@ -122,12 +128,12 @@ def main(cfg):
         # Vary the population
         offspring = tools.selTournamentDCD(pop, int(pop_size * sel_rate))
         offspring = [toolbox.clone(ind) for ind in offspring]
-        print_message('    offspring size: %d' % len(offspring))
+        # print_message('Offspring size: %d' % len(offspring))
         if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
             for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
                 if random.random() <= cx_rate:
                     if rule_cfg:
-                        toolbox.mate_rule(cfg, ind1, ind2)
+                        toolbox.mate_rule(slppos_tagnames, ind1, ind2)
                     else:
                         toolbox.mate_rdn(ind1, ind2)
                 if rule_cfg:
@@ -143,7 +149,7 @@ def main(cfg):
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         invalid_ind_size = len(invalid_ind)
-        print_message('Evaluate pop size: %d' % invalid_ind_size)
+        # print_message('Evaluate pop size: %d' % invalid_ind_size)
         try:
             from scoop import futures
             fitnesses = futures.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
@@ -157,7 +163,7 @@ def main(cfg):
         # Select the next generation population
         pop = toolbox.select(pop + offspring, pop_size)
 
-        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop))
+        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop, ref_pt))
         print_message(hyper_str)
         UtilClass.writelog(cfg.hypervlog, hyper_str, mode='append')
 
@@ -165,16 +171,15 @@ def main(cfg):
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
         print_message(logbook.stream)
 
-        if gen % 1 == 0:
-            # Create plot
-            plot_pareto_front(pop, ws, len(invalid_ind), gen)
-            # save in file
-            output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
-            for indi in pop:
-                output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
-                                                    indi.fitness.values[1],
-                                                    str(indi))
-            UtilClass.writelog(cfg.logfile, output_str, mode='append')
+        # Create plot
+        plot_pareto_front(pop, ws, gen)
+        # save in file
+        output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
+        for indi in pop:
+            output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
+                                                indi.fitness.values[1],
+                                                str(indi))
+        UtilClass.writelog(cfg.logfile, output_str, mode='append')
 
         # Delete SEIMS output files, and BMP Scenario database of current generation
         delete_model_outputs(cfg.model_dir, cfg.hostname, cfg.port, cfg.bmp_scenario_db)

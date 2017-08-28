@@ -9,7 +9,7 @@ import os
 import random
 from datetime import timedelta
 from subprocess import CalledProcessError
-
+from pymongo.errors import NetworkTimeout
 from bson.objectid import ObjectId
 
 from seims.preprocess.db_mongodb import ConnectMongoDB
@@ -114,9 +114,13 @@ class Scenario(object):
         conn = client.get_conn()
         db = conn[self.scenario_db]
         collection = db['BMP_SCENARIOS']
-        # find ScenarioID, remove if existed.
-        if collection.find({'ID': self.ID}, no_cursor_timeout=True).count():
-            collection.remove({'ID': self.ID})
+        try:
+            # find ScenarioID, remove if existed.
+            if collection.find({'ID': self.ID}, no_cursor_timeout=True).count():
+                collection.remove({'ID': self.ID})
+        except NetworkTimeout or Exception:
+            # In case of unexpected raise
+            pass
         for objid, bmp_item in self.bmp_items.iteritems():
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)

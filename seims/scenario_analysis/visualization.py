@@ -18,7 +18,8 @@ from seims.pygeoc.pygeoc.utils.utils import StringClass
 LFs = ['\r', '\n', '\r\n']
 
 
-def plot_pareto_front(pop, ws, pop_size, gen_id):
+def plot_pareto_front(pop, ws, gen_id):
+    pop_size = len(pop)
     front = numpy.array([ind.fitness.values for ind in pop])
     # Plot
     plt.figure(gen_id)
@@ -29,7 +30,7 @@ def plot_pareto_front(pop, ws, pop_size, gen_id):
     # front[:, 0] /= 1000000.
     # front[:, 1] /= 1000.
     plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
-    plt.title('\nPopulation: %d, Generation: %d' % (pop_size, gen_id), color='green', fontsize=9,
+    plt.title('\nGeneration: %d, Population: %d' % (gen_id, pop_size), color='green', fontsize=9,
               loc='right')
     img_path = ws + os.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
     plt.savefig(img_path)
