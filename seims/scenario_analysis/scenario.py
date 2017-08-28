@@ -115,7 +115,7 @@ class Scenario(object):
         db = conn[self.scenario_db]
         collection = db['BMP_SCENARIOS']
         # find ScenarioID, remove if existed.
-        if collection.find({'ID': self.ID}).count():
+        if collection.find({'ID': self.ID}, no_cursor_timeout=True).count():
             collection.remove({'ID': self.ID})
         for objid, bmp_item in self.bmp_items.iteritems():
             bmp_item['_id'] = ObjectId()
