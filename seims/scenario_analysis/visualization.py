@@ -250,7 +250,7 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
 
 def main():
     """Main Entrance."""
-    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\0827'
+    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\0828'
     method_pareto = {'Rule based': base_dir + os.sep + 'rule/runtime.log',
                      'Random': base_dir + os.sep + 'rdm/runtime.log'}
     scenario_id = 'scenario'
