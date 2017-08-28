@@ -195,7 +195,9 @@ class SPScenario(Scenario):
                 print ('WARNING: %s is not existed, export scenario failed!' % dist_name)
                 return
 
-            slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name})[0]
+            # in case of
+            slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
+                                                                     no_cursor_timeout=True)[0]
 
             ysize = int(slpposf['metadata'][RasterMetadata.nrows])
             xsize = int(slpposf['metadata'][RasterMetadata.ncols])
@@ -252,7 +254,7 @@ def scenario_effectiveness(cf, individual):
     sce.calculate_environment()
     # 5. Save scenarios information
     sce.export_to_txt()
-    sce.export_scenario_to_gtiff()
+    # sce.export_scenario_to_gtiff()
 
     return sce.economy, sce.environment, curid
 
