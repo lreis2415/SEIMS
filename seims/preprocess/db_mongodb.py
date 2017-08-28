@@ -16,10 +16,10 @@ from seims.preprocess.text import DBTableNames, ModelParamFields, SubbsnStatsNam
 class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, maxPoolSize=None):
         """initial mongodb client by IP address and port."""
         try:
-            self.conn = MongoClient(ip, port)
+            self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
         except ConnectionFailure:
             sys.stderr.write('Could not connect to MongoDB: %s' % ConnectionFailure.message)
             sys.exit(1)
