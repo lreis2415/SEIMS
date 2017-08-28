@@ -14,19 +14,68 @@ from deap import tools
 #          Crossover (Mate)             #
 #                                       #
 
-def crossover_slppos(cfg, ind1, ind2):
+def crossover_slppos(tagnames, ind1, ind2):
     """Crossover operator based on slope position units.
     Args:
-        cfg: Configuration instance of `SASPUConfig`.
+        tagnames(list): slope position tags and names, from up to bottom of hillslope.
+                        The format is [(tag, name),...].
         ind1: The first individual participating in the crossover.
         ind2: The second individual participating in the crossover.
 
     Returns:
         A tuple of two individuals.
     """
-    tools.cxTwoPoint(ind1, ind2)
+    sp_num = len(tagnames)
+    size = min(len(ind1), len(ind2))
+    assert (size > sp_num * 2)
+
+    while True:
+        cxpoint1 = random.randint(0, size - 1)
+        cxpoint2 = random.randint(1, size)
+        if cxpoint2 < cxpoint1:  # Swap the two cx points
+            cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+        # print (cxpoint1, cxpoint2)
+        cs1 = cxpoint1 / sp_num
+        cs2 = cxpoint2 / sp_num
+        # print (cs1, cs2)
+        cxpoint1 = cs1 * sp_num
+        if cxpoint2 % sp_num != 0:
+            cxpoint2 = sp_num * (cs2 + 1)
+        if cxpoint1 == cxpoint2:
+            cxpoint2 += sp_num
+        # print (cxpoint1, cxpoint2)
+        if not (cxpoint1 == 0 and cxpoint2 == size):
+            break  # avoid change the entire genes
+    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
+        = ind2[cxpoint1:cxpoint2], ind1[cxpoint1:cxpoint2]
 
     # Check the validation according to spatial configuration rules.
+
+    return ind1, ind2
+
+
+def crossover_rdm(ind1, ind2):
+    """Crossover randomly.
+        Args:
+            ind1: The first individual participating in the crossover.
+            ind2: The second individual participating in the crossover.
+
+        Returns:
+            A tuple of two individuals.
+        """
+    size = min(len(ind1), len(ind2))
+
+    while True:
+        cxpoint1 = random.randint(0, size - 1)
+        cxpoint2 = random.randint(1, size)
+        if cxpoint2 < cxpoint1:  # Swap the two cx points
+            cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+        else:
+            cxpoint2 += 1
+        if not (cxpoint1 == 0 and cxpoint2 == size):
+            break  # avoid change the entire genes
+    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
+        = ind2[cxpoint1:cxpoint2], ind1[cxpoint1:cxpoint2]
 
     return ind1, ind2
 
@@ -53,12 +102,14 @@ def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, in
     Returns:
         A tuple of one individual.
     """
-    if perc > 0.5 or perc < 0.01:
-        perc = 0.02
+    if perc > 0.5:
+        perc = 0.5
+    elif perc < 0.01:
+        perc = 0.01
     try:
         mut_num = random.randint(1, int(len(individual) * perc))
     except ValueError or Exception:
-        mut_num = 1
+        return individual
     for m in range(mut_num):
         if random.random() < indpb:
             mpoint = random.randint(0, len(individual) - 1)
@@ -97,11 +148,16 @@ def mutate_rdm(bmps_mut_target, individual, perc, indpb):
     Returns:
         A tuple of one individual.
     """
-    if perc > 0.5 or perc < 0.01:
-        perc = 0.02
+    if perc > 0.5:
+        perc = 0.5
+    elif perc < 0.01:
+        perc = 0.01
     if 0 not in bmps_mut_target:
         bmps_mut_target.append(0)
-    mut_num = random.randint(1, int(len(individual) * perc))
+    try:
+        mut_num = random.randint(1, int(len(individual) * perc))
+    except ValueError or Exception:
+        return individual
     for m in range(mut_num):
         if random.random() < indpb:
             mpoint = random.randint(0, len(individual) - 1)

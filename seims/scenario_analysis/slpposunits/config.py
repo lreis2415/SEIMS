@@ -51,12 +51,34 @@ class SASPUConfig(SAConfig):
         self.slppos_to_gene = OrderedDict()
         self.gene_to_slppos = dict()
 
+        # method 1: (deprecated)
+        #     gene index: 0, 1, 2, ..., n
+        #     slppos unit: rdg1, rdg2,..., bks1, bks2,..., vly1, vly2...
+        # idx = 0
+        # for tag, sp in self.slppos_tagnames:
+        #     for uid in self.units_infos[sp]:
+        #         self.gene_to_slppos[idx] = uid
+        #         self.slppos_to_gene[uid] = idx
+        #         idx += 1
+        # method 2:
+        #     gene index: 0, 1, 2, ..., n
+        #     slppos unit: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         idx = 0
-        for tag, sp in self.slppos_tagnames:
-            for uid in self.units_infos[sp]:
-                self.gene_to_slppos[idx] = uid
-                self.slppos_to_gene[uid] = idx
+        spname = self.slppos_tagnames[0][1]
+        for uid, udict in self.units_infos[spname].iteritems():
+            spidx = 0
+            self.gene_to_slppos[idx] = uid
+            self.slppos_to_gene[uid] = idx
+            idx += 1
+            next_uid = udict['downslope']
+            while next_uid > 0:
+                self.gene_to_slppos[idx] = next_uid
+                self.slppos_to_gene[next_uid] = idx
                 idx += 1
+                spidx += 1
+                spname = self.slppos_tagnames[spidx][1]
+                next_uid = self.units_infos[spname][next_uid]['downslope']
+
         assert (idx == self.slppos_unit_num)
 
         # 4. SubScenario IDs and parameters read from MongoDB
