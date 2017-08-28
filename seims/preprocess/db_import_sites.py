@@ -110,7 +110,6 @@ class ImportHydroClimateSites(object):
         # Because shapely is dependent on sqlite, and the version is not consistent
         #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
         #    must be locally imported here.
-        from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
