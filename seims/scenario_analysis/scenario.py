@@ -73,8 +73,9 @@ class Scenario(object):
 
     def read_simulation_timerange(self):
         """Read simulation time range from MongoDB."""
-        client = ConnectMongoDB(self.hostname, self.port).get_conn()
-        db = client[self.main_db]
+        client = ConnectMongoDB(self.hostname, self.port)
+        conn = client.get_conn()
+        db = conn[self.main_db]
         collection = db['FILE_IN']
         stime_str = collection.find_one({'TAG': 'STARTTIME'})['VALUE']
         etime_str = collection.find_one({'TAG': 'ENDTIME'})['VALUE']
@@ -109,8 +110,9 @@ class Scenario(object):
         """Export current scenario to MongoDB.
         Delete the same ScenarioID if existed.
         """
-        client = ConnectMongoDB(self.hostname, self.port).get_conn()
-        db = client[self.scenario_db]
+        client = ConnectMongoDB(self.hostname, self.port)
+        conn = client.get_conn()
+        db = conn[self.scenario_db]
         collection = db['BMP_SCENARIOS']
         # find ScenarioID, remove if existed.
         if collection.find({'ID': self.ID}).count():

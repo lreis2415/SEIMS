@@ -186,8 +186,9 @@ class SPScenario(Scenario):
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin
             # read dist_name from MongoDB
-            client = ConnectMongoDB(self.hostname, self.port).get_conn()
-            maindb = client[self.main_db]
+            client = ConnectMongoDB(self.hostname, self.port)
+            conn = client.get_conn()
+            maindb = conn[self.main_db]
             spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
             # read file from mongodb
             if not spatial_gfs.exists(filename=dist_name):
