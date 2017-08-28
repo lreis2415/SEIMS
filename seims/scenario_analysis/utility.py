@@ -36,8 +36,9 @@ def print_message(msg):
 
 def delete_scenarios_by_id(hostname, port, dbname, sid):
     """Delete scenario data by ID in MongoDB."""
-    client = ConnectMongoDB(hostname, port).get_conn()
-    db = client[dbname]
+    client = ConnectMongoDB(hostname, port)
+    conn = client.get_conn()
+    db = conn[dbname]
     collection = db['BMP_SCENARIOS']
     collection.remove({'ID': sid})
     print ('Delete scenario: %d in MongoDB completed!' % sid)
