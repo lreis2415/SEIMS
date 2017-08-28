@@ -12,7 +12,7 @@ from subprocess import CalledProcessError
 
 from bson.objectid import ObjectId
 
-from seims.preprocess.db_mongodb import MongoClient
+from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser
 from seims.scenario_analysis.config import SAConfig
 from seims.scenario_analysis.utility import generate_uniqueid, print_message
@@ -73,7 +73,7 @@ class Scenario(object):
 
     def read_simulation_timerange(self):
         """Read simulation time range from MongoDB."""
-        client = MongoClient(self.hostname, self.port)
+        client = ConnectMongoDB(self.hostname, self.port).get_conn()
         db = client[self.main_db]
         collection = db['FILE_IN']
         stime_str = collection.find_one({'TAG': 'STARTTIME'})['VALUE']
@@ -109,7 +109,7 @@ class Scenario(object):
         """Export current scenario to MongoDB.
         Delete the same ScenarioID if existed.
         """
-        client = MongoClient(self.hostname, self.port)
+        client = ConnectMongoDB(self.hostname, self.port).get_conn()
         db = client[self.scenario_db]
         collection = db['BMP_SCENARIOS']
         # find ScenarioID, remove if existed.

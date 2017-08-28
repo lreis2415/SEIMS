@@ -169,7 +169,7 @@ def main(cfg):
             # Create plot
             plot_pareto_front(pop, ws, len(invalid_ind), gen)
             # save in file
-            output_str += 'scenario\teconomy\tenvironment\tscenario\n'
+            output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
             for indi in pop:
                 output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
                                                     indi.fitness.values[1],

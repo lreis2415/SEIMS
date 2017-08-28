@@ -14,7 +14,7 @@ import numpy
 from gridfs import GridFS
 from osgeo import osr
 
-from seims.preprocess.db_mongodb import MongoClient
+from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import DBTableNames, RasterMetadata
 from seims.preprocess.utility import read_data_items_from_txt
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
@@ -186,7 +186,7 @@ class SPScenario(Scenario):
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin
             # read dist_name from MongoDB
-            client = MongoClient(self.hostname, self.port)
+            client = ConnectMongoDB(self.hostname, self.port).get_conn()
             maindb = client[self.main_db]
             spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
             # read file from mongodb

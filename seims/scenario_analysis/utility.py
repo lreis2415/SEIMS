@@ -10,9 +10,8 @@ import os
 import shutil
 import uuid
 
-from pymongo import MongoClient
-
 import scoop
+from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.pygeoc.pygeoc.utils.utils import MathClass
 
 
@@ -37,7 +36,7 @@ def print_message(msg):
 
 def delete_scenarios_by_id(hostname, port, dbname, sid):
     """Delete scenario data by ID in MongoDB."""
-    client = MongoClient(hostname, port)
+    client = ConnectMongoDB(hostname, port).get_conn()
     db = client[dbname]
     collection = db['BMP_SCENARIOS']
     collection.remove({'ID': sid})
