@@ -218,21 +218,21 @@ class Scenario(object):
                                ' class, especially the overwritten rule_based_config and'
                                ' random_based_config!')
 
-    @staticmethod
-    def initialize_scenario(cf):
-        """Used for initial individual of population.
 
-        Designed as static method, which should be instantiated in inherited class.
-        """
-        pass
+def initialize_scenario(cf):
+    """Used for initial individual of population.
 
-    @staticmethod
-    def scenario_effectiveness(cf, individual):
-        """Used for evaluate the effectiveness of given individual.
+    Designed as static method, which should be overridden in inherited class.
+    """
+    pass
 
-        Designed as static method, which should be instantiated in inherited class.
-        """
-        pass
+
+def scenario_effectiveness(cf, individual):
+    """Used for evaluate the effectiveness of given individual.
+
+    Designed as static method, which should be overridden in inherited class.
+    """
+    pass
 
 
 if __name__ == '__main__':
