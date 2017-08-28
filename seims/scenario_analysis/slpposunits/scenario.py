@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # new_cfg = pickle.loads(s)
     # print (new_cfg.units_infos)
 
-    init_gene_values = SPScenario.initialize_scenario(cfg)
-    econ, env = SPScenario.scenario_effectiveness(cfg, init_gene_values)
-    print ('Scenario : %s\n' % ', '.join(str(v) for v in init_gene_values))
+    init_gene_values = initialize_scenario(cfg)
+    econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
+    print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
     print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
