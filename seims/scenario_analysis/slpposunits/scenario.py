@@ -10,9 +10,9 @@ import random
 import time
 from struct import unpack
 
-import numpy
 from gridfs import GridFS
 from osgeo import osr
+from pymongo.errors import NetworkTimeout
 
 from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.preprocess.text import DBTableNames, RasterMetadata
@@ -42,29 +42,72 @@ class SPScenario(Scenario):
         self.cfg_years = cf.runtime_years
 
     def rule_based_config(self, conf_rate=0.5):
-        # from the first slope position of each hillslope, trace downslope
-        #    to config BMPs
-        def config_bmp_for_unit(unit_id, slppostag):
-            if random.random() < conf_rate:
-                genidx = self.unit_to_gene[unit_id]
-                bmps = self.suit_bmps[slppostag]
-                self.gene_values[genidx] = bmps[random.randint(0, len(bmps) - 1)]
+        # from the bottom slope position of each hillslope, trace upslope
+        #    to config BMPs.
+        # Method 1: Config each slope position unit by corresponding suitable BMPs separately.
+        # Method 2: If downslope unit is not configured, the upslope unit should choose one BMP.
+        # Method 3: Based method 2, the base scheme shoule be upBMPID <= midBMPID <= downBMPID.
+        def config_bmp_for_unit(unit_id, slppostag, upsid, upgid, downsid, downgid, method=1):
+            """Config suitable BMP for the given slope position unit.
+            Args:
+                unit_id(int): Slope position unit ID
+                slppostag(int): Slope positon tag, e.g. 1, 4, 16
+                force(boolean): Force to config BMP
+                method(int): Domain knowledge based rule method.
+            Returns:
+                If configured, return (True, BMPID), otherwise return (False, 0).
+            """
+            # print ('slppos: %d, unit: %d' % (slppostag, unit_id))
+            genidx = self.unit_to_gene[unit_id]
 
-        spidx = 0
-        sptag = self.slppos_tagnames[spidx][0]
-        spname = self.slppos_tagnames[spidx][1]
-        for spid, spdict in self.units_infos[spname].iteritems():
-            spidx = 0
-            config_bmp_for_unit(spid, sptag)
-            while True:
-                down_spid = spdict['downslope']
-                if down_spid < 0:
+            bmps = get_potential_bmps(self.suit_bmps, slppostag, upsid, upgid,
+                                      downsid, downgid, method)
+
+            configed = False
+            cfg_bmp = 0
+            if random.random() > conf_rate:
+                # Do not config BMP according to probability
+                # But if no-BMP (i.e., 0) is not allowed for current unit,
+                #    it is forced to config BMP.
+                if 0 in bmps:
+                    return configed, cfg_bmp
+            # config BMP
+            if len(bmps) >= 1:
+                cfg_bmp = bmps[random.randint(0, len(bmps) - 1)]
+                self.gene_values[genidx] = cfg_bmp
+                if cfg_bmp != 0:
+                    configed = True
+                    # print ('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d, potBMPs: %s, '
+                    #        'select: %d' % (unit_id, slppostag, upgid, downgid, bmps.__str__(), cfg_bmp))
+            return configed, cfg_bmp
+
+        spname = self.slppos_tagnames[-1][1]  # the bottom slope position
+        for unitid, spdict in self.units_infos[spname].iteritems():
+            up_spid = spdict['upslope']
+            down_spid = spdict['downslope']
+            spidx = len(self.slppos_tagnames) - 1
+            sptag = self.slppos_tagnames[spidx][0]
+            up_gv = 0
+            down_gv = -1
+            config_bmp_for_unit(unitid, sptag, up_spid, up_gv, down_spid, down_gv, self.rule_mtd)
+            while True:  # trace upstream units
+                if up_spid < 0:
                     break
-                spidx += 1
+                unitid = up_spid
+                up_gv = -1
+                down_gv = -1
+                spidx -= 1
                 sptag = self.slppos_tagnames[spidx][0]
                 spname = self.slppos_tagnames[spidx][1]
-                spdict = self.units_infos[spname][down_spid]
-                config_bmp_for_unit(down_spid, sptag)
+                spdict = self.units_infos[spname][up_spid]
+                up_spid = spdict['upslope']
+                down_spid = spdict['downslope']
+                if up_spid >= 0:
+                    up_gv = self.gene_values[self.unit_to_gene[up_spid]]
+                if down_spid >= 0:
+                    down_gv = self.gene_values[self.unit_to_gene[down_spid]]
+                config_bmp_for_unit(unitid, sptag, up_spid, up_gv,
+                                    down_spid, down_gv, self.rule_mtd)
 
     def random_based_config(self, conf_rate=0.5):
         for i in range(self.gene_num):
@@ -194,10 +237,13 @@ class SPScenario(Scenario):
             if not spatial_gfs.exists(filename=dist_name):
                 print ('WARNING: %s is not existed, export scenario failed!' % dist_name)
                 return
-
-            # in case of
-            slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
-                                                                     no_cursor_timeout=True)[0]
+            try:
+                slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
+                                                                         no_cursor_timeout=True)[0]
+            except NetworkTimeout or Exception:
+                # In case of unexpected raise
+                client.close()
+                return
 
             ysize = int(slpposf['metadata'][RasterMetadata.nrows])
             xsize = int(slpposf['metadata'][RasterMetadata.ncols])
@@ -234,6 +280,40 @@ class SPScenario(Scenario):
             client.close()
 
 
+def get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue, method=1):
+    bmps = suitbmps[sptag][:]
+    bmps = list(set(bmps))
+    if 0 not in bmps:
+        bmps.append(0)
+    if method == 1:  # Without any special rule
+        pass
+    elif method == 2:
+        # If not bottom slppos and the downslope unit is configured BMP, then remove 0
+        if down_sid > 0 and down_gvalue == 0:
+            bmps.remove(0)
+    elif method == 3:
+        new_bmps = list()
+        if up_sid < 0 and down_gvalue > 0:  # the top slppos, and downslope with BMP
+            for _bid in bmps:
+                if _bid <= down_gvalue:
+                    new_bmps.append(_bid)
+        elif down_sid < 0 and up_gvalue > 0:  # the bottom slppos, and upslope with BMP
+            for _bid in bmps:
+                if up_gvalue <= _bid:
+                    new_bmps.append(_bid)
+        elif down_sid > 0 and up_sid > 0:  # middle slppos
+            for _bid in bmps:
+                if down_gvalue == 0 and up_gvalue <= _bid:
+                    new_bmps.append(_bid)
+                elif up_gvalue <= _bid <= down_gvalue:
+                    new_bmps.append(_bid)
+        else:  # Do nothing
+            pass
+        if len(new_bmps) > 0:
+            bmps = list(set(new_bmps))
+    return bmps
+
+
 def initialize_scenario(cf):
     sce = SPScenario(cf)
     return sce.initialize()
@@ -263,15 +343,14 @@ if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    # # test the picklable of SASPUConfig class
-    # import pickle
-    #
-    # s = pickle.dumps(cfg)
-    # # print (s)
-    # new_cfg = pickle.loads(s)
-    # print (new_cfg.units_infos)
+    print (cfg.gene_to_slppos)
+    print (cfg.slppos_suit_bmps)
 
     init_gene_values = initialize_scenario(cfg)
-    econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
-    print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
-    print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+    import numpy
+
+    re_genes = numpy.reshape(init_gene_values, (len(init_gene_values) / 3, 3))
+    print (re_genes)
+    # econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
+    # print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
+    # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))

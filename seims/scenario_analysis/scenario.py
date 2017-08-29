@@ -48,6 +48,7 @@ class Scenario(object):
         self.bmp_items = dict()
 
         self.rules = cfg.bmps_rule
+        self.rule_mtd = cfg.rule_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
         # run seims related

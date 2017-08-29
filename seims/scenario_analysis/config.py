@@ -69,10 +69,13 @@ class SAConfig(object):
         # 4. Application specific setting section [BMPs]
         self.bmps_info = dict()
         self.bmps_rule = False
+        self.rule_method = 1
         self.bmps_retain = dict()
         if 'BMPs' in cf.sections():
             bmpsinfostr = cf.get('BMPs', 'bmps_info')
             self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
+            if cf.has_option('BMPs', 'rule_method'):
+                self.rule_method = cf.getint('BMPs', 'rule_method')
             if cf.has_option('BMPs', 'bmps_retain'):
                 bmpsretainstr = cf.get('BMPs', 'bmps_retain')
                 self.bmps_retain = json.loads(bmpsretainstr)

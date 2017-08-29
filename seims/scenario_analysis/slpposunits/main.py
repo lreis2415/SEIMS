@@ -62,6 +62,7 @@ def main(cfg):
     pop_size = cfg.nsga2_npop
     gen_num = cfg.nsga2_ngens
     rule_cfg = cfg.bmps_rule
+    rule_mth = cfg.rule_method
     cx_rate = cfg.nsga2_rcross
     mut_perc = cfg.nsga2_pmut
     mut_rate = cfg.nsga2_rmut
@@ -76,6 +77,7 @@ def main(cfg):
     slppos_tagnames = cfg.slppos_tagnames
     suit_bmps = cfg.slppos_suit_bmps
     gene_to_unit = cfg.gene_to_slppos
+    unit_to_gene = cfg.slppos_to_gene
 
     print_message('Population: %d, Generation: %d' % (pop_size, gen_num))
     print_message('BMPs configure method: %s' % ('rule-based' if rule_cfg else 'random-based'))
@@ -137,10 +139,12 @@ def main(cfg):
                     else:
                         toolbox.mate_rdn(ind1, ind2)
                 if rule_cfg:
-                    toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind1,
-                                        perc=mut_perc, indpb=mut_rate)
-                    toolbox.mutate_rule(units_info, gene_to_unit, slppos_tagnames, suit_bmps, ind2,
-                                        perc=mut_perc, indpb=mut_rate)
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                                        suit_bmps, ind1,
+                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                                        suit_bmps, ind2,
+                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
                 else:
                     toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
                     toolbox.mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)

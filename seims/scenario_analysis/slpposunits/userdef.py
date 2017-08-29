@@ -7,7 +7,9 @@
 """
 import random
 
-from deap import tools
+from seims.pygeoc.pygeoc.utils.utils import get_config_parser
+from seims.scenario_analysis.slpposunits.config import SASPUConfig
+from seims.scenario_analysis.slpposunits.scenario import initialize_scenario,get_potential_bmps
 
 
 #                                       #
@@ -84,7 +86,8 @@ def crossover_rdm(ind1, ind2):
 #               Mutate                  #
 #                                       #
 
-def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, indpb):
+def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individual,
+                  perc, indpb, method=1):
     """
     Mutation Gene values based on slope position rules.
     Old gene value is excluded from target values.
@@ -92,12 +95,14 @@ def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, in
     Args:
         unitsinfo(dict): Slope position units information, see more detail on `SASPUConfig`.
         gene2unit(dict): Gene index to slope position unit ID.
+        unit2gene(dict): Slope position unit ID to gene index.
         tagnames(list): slope position tags and names, from up to bottom of hillslope.
                         The format is [(tag, name),...].
         suitbmps(dict): key is slope position tag, and value is available BMPs IDs list.
         individual(list or tuple): Individual to be mutated.
         perc(float): percent of gene length for mutate, default is 0.02
         indpb(float): Independent probability for each attribute to be mutated.
+        method(int): Domain knowledge based rule method.
 
     Returns:
         A tuple of one individual.
@@ -110,29 +115,59 @@ def mutate_slppos(unitsinfo, gene2unit, tagnames, suitbmps, individual, perc, in
         mut_num = random.randint(1, int(len(individual) * perc))
     except ValueError or Exception:
         return individual
+    # print ('Max mutate num: %d' % mut_num)
+    muted = list()
     for m in range(mut_num):
-        if random.random() < indpb:
+        if random.random() > indpb:
+            continue
+        # mutate will happen
+        mpoint = random.randint(0, len(individual) - 1)
+        while mpoint in muted:
             mpoint = random.randint(0, len(individual) - 1)
-            oldgenev = individual[mpoint]
-            unitid = gene2unit[mpoint]
-            # begin to mutate
-            for spid, spdict in unitsinfo.iteritems():
-                if unitid not in spdict:
-                    continue
-                sptag = -1
-                for t, n in tagnames:
-                    if spid == n:
-                        sptag = t
-                        break
-                if sptag < 0:
-                    continue
-                bmps = suitbmps[sptag][:]
-                bmps = list(set(bmps))
-                if 0 not in bmps:
-                    bmps.append(0)
-                if oldgenev in bmps:
-                    bmps.remove(oldgenev)
-                individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
+
+        oldgenev = individual[mpoint]
+        unitid = gene2unit[mpoint]
+        # begin to mutate on unitid
+        # 1. get slope position tag, and upslope and downslope unit IDs
+        sptag = -1
+        down_sid = -1  # slppos unit ID
+        down_gid = -1  # gene index
+        down_gvalue = -1  # gene value
+        up_sid = -1
+        up_gid = -1
+        up_gvalue = -1
+        for spid, spdict in unitsinfo.iteritems():
+            if unitid not in spdict:
+                continue
+            for t, n in tagnames:
+                if spid == n:
+                    sptag = t
+                    break
+            down_sid = spdict[unitid]['downslope']
+            up_sid = spdict[unitid]['upslope']
+            if down_sid > 0:
+                down_gid = unit2gene[down_sid]
+                down_gvalue = individual[down_gid]
+            if up_sid > 0:
+                up_gid = unit2gene[up_sid]
+                up_gvalue = individual[up_gid]
+        if sptag < 0:  # this circumstance may not happen, just in case.
+            continue
+
+        print ('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
+               (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
+        # get the potential BMP IDs
+
+        bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue, method)
+        # Get new BMP ID for current unit.
+        if oldgenev in bmps:
+            bmps.remove(oldgenev)
+        # print ('    method: %d, potBMPs: %s' % (method, bmps.__str__()))
+        if len(bmps) > 0:
+            individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
+            muted.append(mpoint)
+        else:  # No available BMP
+            pass
     return individual
 
 
@@ -158,9 +193,13 @@ def mutate_rdm(bmps_mut_target, individual, perc, indpb):
         mut_num = random.randint(1, int(len(individual) * perc))
     except ValueError or Exception:
         return individual
+    muted = list()
     for m in range(mut_num):
         if random.random() < indpb:
             mpoint = random.randint(0, len(individual) - 1)
+            while mpoint in muted:
+                mpoint = random.randint(0, len(individual) - 1)
+            muted.append(mpoint)
             target = bmps_mut_target[:]
             target = list(set(target))
             if individual[mpoint] in target:
@@ -168,3 +207,23 @@ def mutate_rdm(bmps_mut_target, individual, perc, indpb):
             ind = random.randint(0, len(target) - 1)
             individual[mpoint] = target[ind]
     return individual
+
+
+if __name__ == '__main__':
+    cf = get_config_parser()
+    cfg = SASPUConfig(cf)
+
+    print (cfg.gene_to_slppos)
+    print (cfg.slppos_suit_bmps)
+
+    init_gene_values = initialize_scenario(cfg)
+    print ('Initial genes: %s' % init_gene_values.__str__())
+
+    units_info = cfg.units_infos
+    slppos_tagnames = cfg.slppos_tagnames
+    suit_bmps = cfg.slppos_suit_bmps
+    gene_to_unit = cfg.gene_to_slppos
+    unit_to_gene = cfg.slppos_to_gene
+    mutate_slppos(units_info, gene_to_unit, unit_to_gene, slppos_tagnames, suit_bmps,
+                  init_gene_values, 0.2, 0.3, method=3)
+    print ('Mutated genes: %s' % init_gene_values.__str__())
