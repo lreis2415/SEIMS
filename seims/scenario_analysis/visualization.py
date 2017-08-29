@@ -251,14 +251,14 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
 
 def main():
     """Main Entrance."""
-    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_Output\0828'
-    method_pareto = {'Rule based': base_dir + os.sep + 'rule/runtime.log',
-                     'Random': base_dir + os.sep + 'rdm/runtime.log'}
+    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_OUTPUT\0828_cx_by_hillslp'
+    method_pareto = {'Rule based': base_dir + os.sep + 'rule_cxhill/runtime.log',
+                     'Random': base_dir + os.sep + 'rdm_cxhill/runtime.log'}
     scenario_id = 'scenario'
     # xaxis = ['economy', 'Economical benefit (1,000 USD$)']
     xaxis = ['economy', 'Economical benefit (10,000 RMBY)']
     yaxis = ['environment', 'Reduction rate of soil erosion']
-    draw_gens = range(1, 22)
+    draw_gens = range(1, 110)
 
     plot_pareto_fronts_by_method(method_pareto, scenario_id, xaxis, yaxis, draw_gens, base_dir)
 
