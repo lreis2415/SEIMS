@@ -37,7 +37,7 @@ class Scenario(object):
     def __init__(self, cfg):
         """Initialize."""
         self.ID = -1
-        self.timerange = 0.
+        self.timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
         self.worst_econ = cfg.worst_econ
@@ -69,8 +69,7 @@ class Scenario(object):
         """Set unique ID."""
         self.ID = generate_uniqueid().next()
         self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
-        # current version not used any more. Use self.runtime_years instead.
-        # self.read_simulation_timerange()
+        self.read_simulation_timerange()
         return self.ID
 
     def read_simulation_timerange(self):
@@ -88,6 +87,7 @@ class Scenario(object):
             self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         except NetworkTimeout or Exception:
             # In case of unexpected raise
+            self.timerange = 1.  # set default
             pass
         client.close()
 
