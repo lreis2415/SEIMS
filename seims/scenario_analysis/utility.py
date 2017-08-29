@@ -34,14 +34,15 @@ def print_message(msg):
         print (msg)
 
 
-def delete_scenarios_by_id(hostname, port, dbname, sid):
+def delete_scenarios_by_ids(hostname, port, dbname, sids):
     """Delete scenario data by ID in MongoDB."""
     client = ConnectMongoDB(hostname, port)
     conn = client.get_conn()
     db = conn[dbname]
     collection = db['BMP_SCENARIOS']
-    collection.remove({'ID': sid})
-    print ('Delete scenario: %d in MongoDB completed!' % sid)
+    for _id in sids:
+        collection.remove({'ID': _id})
+        print ('Delete scenario: %d in MongoDB completed!' % _id)
     client.close()
 
 
@@ -49,6 +50,7 @@ def delete_model_outputs(model_workdir, hostname, port, dbname):
     """Delete model outputs and scenario in MongoDB."""
     f_list = os.listdir(model_workdir)
     # print f_list
+    sids = list()
     for f in f_list:
         outfilename = model_workdir + os.sep + f
         if os.path.isdir(outfilename):
@@ -56,4 +58,6 @@ def delete_model_outputs(model_workdir, hostname, port, dbname):
                 if MathClass.isnumerical(f[-9:]):
                     shutil.rmtree(outfilename)
                     sid = int(f[-9:])
-                    delete_scenarios_by_id(hostname, port, dbname, sid)
+                    sids.append(sid)
+    if len(sids) > 0:
+        delete_scenarios_by_ids(hostname, port, dbname, sids)
