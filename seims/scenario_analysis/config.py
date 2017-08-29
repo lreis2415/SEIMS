@@ -93,6 +93,7 @@ class SAConfig(object):
             self.worst_econ = cf.getfloat('Effectiveness', 'worst_economy')
             self.worst_env = cf.getfloat('Effectiveness', 'worst_environment')
             self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
+            self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
 
         # 6. define gene_values
         fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)

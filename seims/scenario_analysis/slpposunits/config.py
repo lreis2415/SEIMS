@@ -97,7 +97,7 @@ class SASPUConfig(SAConfig):
         scenariodb = conn[self.bmp_scenario_db]
 
         bmpcoll = scenariodb[self.bmps_coll]
-        findbmps = bmpcoll.find({})
+        findbmps = bmpcoll.find({}, no_cursor_timeout=True)
         for fb in findbmps:
             fb = UtilClass.decode_strs_in_dict(fb)
             if 'SUBSCENARIO' not in fb:
