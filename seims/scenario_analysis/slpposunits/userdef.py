@@ -9,7 +9,8 @@ import random
 
 from seims.pygeoc.pygeoc.utils.utils import get_config_parser
 from seims.scenario_analysis.slpposunits.config import SASPUConfig
-from seims.scenario_analysis.slpposunits.scenario import initialize_scenario,get_potential_bmps
+from seims.scenario_analysis.slpposunits.scenario import SPScenario
+from seims.scenario_analysis.slpposunits.scenario import initialize_scenario, get_potential_bmps
 
 
 #                                       #
@@ -154,8 +155,8 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         if sptag < 0:  # this circumstance may not happen, just in case.
             continue
 
-        print ('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
-               (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
+        # print ('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
+        #        (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
         # get the potential BMP IDs
 
         bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue, method)
@@ -213,17 +214,25 @@ if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    print (cfg.gene_to_slppos)
-    print (cfg.slppos_suit_bmps)
-
-    init_gene_values = initialize_scenario(cfg)
-    print ('Initial genes: %s' % init_gene_values.__str__())
+    # print (cfg.gene_to_slppos)
+    # print (cfg.slppos_suit_bmps)
 
     units_info = cfg.units_infos
     slppos_tagnames = cfg.slppos_tagnames
     suit_bmps = cfg.slppos_suit_bmps
     gene_to_unit = cfg.gene_to_slppos
     unit_to_gene = cfg.slppos_to_gene
+    init_gene_values = initialize_scenario(cfg)
+    # print ('Initial genes: %s' % init_gene_values.__str__())sce = SPScenario(cfg)
+    sce = SPScenario(cfg)
+    curid = sce.set_unique_id()
+    setattr(sce, 'gene_values', init_gene_values)
+    sce.calculate_economy()
+    inicost = sce.economy
     mutate_slppos(units_info, gene_to_unit, unit_to_gene, slppos_tagnames, suit_bmps,
-                  init_gene_values, 0.2, 0.3, method=3)
-    print ('Mutated genes: %s' % init_gene_values.__str__())
+                  init_gene_values, 0.2, 0.3, method=1)
+    # print ('Mutated genes: %s' % init_gene_values.__str__())
+    setattr(sce, 'gene_values', init_gene_values)
+    sce.calculate_economy()
+    mutcost = sce.economy
+    print ('%.2f, %.2f' % (inicost, mutcost))

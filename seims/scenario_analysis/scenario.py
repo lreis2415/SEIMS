@@ -69,7 +69,8 @@ class Scenario(object):
         """Set unique ID."""
         self.ID = generate_uniqueid().next()
         self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
-        self.read_simulation_timerange()
+        # current version not used any more. Use self.runtime_years instead.
+        # self.read_simulation_timerange()
         return self.ID
 
     def read_simulation_timerange(self):
@@ -78,12 +79,16 @@ class Scenario(object):
         conn = client.get_conn()
         db = conn[self.main_db]
         collection = db['FILE_IN']
-        stime_str = collection.find_one({'TAG': 'STARTTIME'})['VALUE']
-        etime_str = collection.find_one({'TAG': 'ENDTIME'})['VALUE']
-        stime = StringClass.get_datetime(stime_str)
-        etime = StringClass.get_datetime(etime_str)
-        dlt = etime - stime + timedelta(seconds=1)
-        self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        try:
+            stime_str = collection.find_one({'TAG': 'STARTTIME'}, no_cursor_timeout=True)['VALUE']
+            etime_str = collection.find_one({'TAG': 'ENDTIME'}, no_cursor_timeout=True)['VALUE']
+            stime = StringClass.get_datetime(stime_str)
+            etime = StringClass.get_datetime(etime_str)
+            dlt = etime - stime + timedelta(seconds=1)
+            self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        except NetworkTimeout or Exception:
+            # In case of unexpected raise
+            pass
         client.close()
 
     def rule_based_config(self, conf_rate):
@@ -210,8 +215,8 @@ class Scenario(object):
             A list contains BMPs identifier of each gene location.
         """
         # Create configuration rate for each location randomly, 0.25 ~ 0.75
-        cr = random.randint(25, 75) / 100.
-
+        cr = random.randint(40, 60) / 100.
+        # cr = 0.75
         if self.rules:
             self.rule_based_config(cr)
         else:

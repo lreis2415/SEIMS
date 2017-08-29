@@ -10,6 +10,7 @@ import random
 import time
 from struct import unpack
 
+import numpy
 from gridfs import GridFS
 from osgeo import osr
 from pymongo.errors import NetworkTimeout
@@ -62,7 +63,7 @@ class SPScenario(Scenario):
 
             bmps = get_potential_bmps(self.suit_bmps, slppostag, upsid, upgid,
                                       downsid, downgid, method)
-
+            # print ('Config for unit: %d' % unitid)
             configed = False
             cfg_bmp = 0
             if random.random() > conf_rate:
@@ -71,14 +72,18 @@ class SPScenario(Scenario):
                 #    it is forced to config BMP.
                 if 0 in bmps:
                     return configed, cfg_bmp
+
             # config BMP
             if len(bmps) >= 1:
                 cfg_bmp = bmps[random.randint(0, len(bmps) - 1)]
                 self.gene_values[genidx] = cfg_bmp
                 if cfg_bmp != 0:
                     configed = True
-                    # print ('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d, potBMPs: %s, '
-                    #        'select: %d' % (unit_id, slppostag, upgid, downgid, bmps.__str__(), cfg_bmp))
+            # print ('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d, potBMPs: %s, '
+            #                'select: %d' % (unit_id, slppostag, upgid, downgid, bmps.__str__(), cfg_bmp))
+            # else:
+            #     print ('No suitable BMP for unit: %d, slppos: %d, upgv: %d, downgv: %d'
+            #            % (unit_id, slppostag, upgid, downgid))
             return configed, cfg_bmp
 
         spname = self.slppos_tagnames[-1][1]  # the bottom slope position
@@ -110,10 +115,13 @@ class SPScenario(Scenario):
                                     down_spid, down_gv, self.rule_mtd)
 
     def random_based_config(self, conf_rate=0.5):
+        pot_bmps = self.bmp_ids[:]
+        if 0 not in pot_bmps:
+            pot_bmps.append(0)
         for i in range(self.gene_num):
             if random.random() >= conf_rate:
                 continue
-            self.gene_values[i] = self.bmp_ids[random.randint(0, len(self.bmp_ids) - 1)]
+            self.gene_values[i] = pot_bmps[random.randint(0, len(pot_bmps) - 1)]
 
     def decoding(self):
         if self.ID < 0:
@@ -343,14 +351,24 @@ if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    print (cfg.gene_to_slppos)
-    print (cfg.slppos_suit_bmps)
+    # print (cfg.gene_to_slppos)
+    # print (cfg.slppos_suit_bmps)
 
-    init_gene_values = initialize_scenario(cfg)
-    import numpy
+    cost = list()
+    for i in range(100):
+        init_gene_values = initialize_scenario(cfg)
+        # print (init_gene_values.__str__())
+        sce = SPScenario(cfg)
+        curid = sce.set_unique_id()
+        setattr(sce, 'gene_values', init_gene_values)
+        sce.calculate_economy()
+        cost.append(sce.economy)
+    print (max(cost), min(cost), sum(cost) / len(cost))
 
-    re_genes = numpy.reshape(init_gene_values, (len(init_gene_values) / 3, 3))
-    print (re_genes)
+    # import numpy
+    #
+    # re_genes = numpy.reshape(init_gene_values, (len(init_gene_values) / 3, 3))
+    # print (re_genes)
     # econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
     # print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
     # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
