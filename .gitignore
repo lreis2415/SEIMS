@@ -70,4 +70,4 @@ doc/img/
 .nfs*
 
 # add nogit directory which contains personal test code
-seims/nogit
+seims/nogit/*
