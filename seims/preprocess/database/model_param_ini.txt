@@ -151,7 +151,7 @@ Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_LS_COEF,the LS coefficient,none,ALL,1,0,AC,10,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,VC,1,0
-Sediment,vcrit,critical veldeg Ctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
+Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
 Snow,c_rain,Rainfall impact factor,mm/mm/deg C/delta_t,SNO_DD,0.04,0,AC,1,0
 Snow,c_snow,temperature impact factor,mm/deg C/delta_t,SNO_DD,3,0,AC,6,0
 Snow,c_snow12,Melt factor on December 21,mm/deg C/day,SNO_SP,6.5,0,AC,9,6
@@ -188,7 +188,7 @@ WaterBalance,k_soil10,ratio between soil temperature at 10 cm and the mean,none,
 WaterBalance,P_max,Maximum rainfall intensity when k_run = 1.0,mm,SUR_MR,30,0,AC,1000,10
 WaterBalance,Poreindex,Pore size distribution index,none,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,0.8,0.2
-WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,10,0.01
+WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,100,0.01
 WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
 WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
 WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0

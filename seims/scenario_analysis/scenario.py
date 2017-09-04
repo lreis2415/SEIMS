@@ -9,8 +9,9 @@ import os
 import random
 from datetime import timedelta
 from subprocess import CalledProcessError
-from pymongo.errors import NetworkTimeout
+
 from bson.objectid import ObjectId
+from pymongo.errors import NetworkTimeout
 
 from seims.preprocess.db_mongodb import ConnectMongoDB
 from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser

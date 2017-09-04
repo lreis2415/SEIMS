@@ -227,7 +227,7 @@ class SPScenario(Scenario):
             self.environment = self.worst_env
             return
 
-    def export_scenario_to_gtiff(self):
+    def export_scenario_to_gtiff(self, outpath=None):
         """Export scenario to GTiff.
 
         TODO: Read Raster from MongoDB should be extracted to pygeoc.
@@ -281,8 +281,8 @@ class SPScenario(Scenario):
 
             for k, v in v_dict.iteritems():
                 slppos_data[slppos_data == k] = v
-
-            outpath = self.scenario_dir + os.sep + 'Scenario_%d.tif' % self.ID
+            if outpath is None:
+                outpath = self.scenario_dir + os.sep + 'Scenario_%d.tif' % self.ID
             RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
                                              srs, nodata_value)
             client.close()
@@ -347,7 +347,8 @@ def scenario_effectiveness(cf, individual):
     return sce.economy, sce.environment, curid
 
 
-if __name__ == '__main__':
+def main():
+    """TEST CODE"""
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
@@ -372,3 +373,7 @@ if __name__ == '__main__':
     # econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
     # print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
     # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+
+
+if __name__ == '__main__':
+    main()
