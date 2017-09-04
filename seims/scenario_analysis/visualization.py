@@ -35,6 +35,10 @@ def plot_pareto_front(pop, ws, gen_id):
     img_path = ws + os.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
     plt.savefig(img_path)
     # plt.show()
+    # close current plot in case of 'figure.max_open_warning'
+    plt.cla()
+    plt.clf()
+    plt.close()
 
 
 def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
@@ -58,9 +62,9 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
             if len(values) != 1:
                 continue
             gen = int(values[0])
-            if gen not in gens:
-                found = False
-                continue
+            # if gen not in gens:
+            #     found = False
+            #     continue
             found = True
             cur_gen = gen
             pareto_popnum[cur_gen] = list()
@@ -146,11 +150,11 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
     return genids, acc_num
 
 
-def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws):
+def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws):
     """
     Plot Pareto fronts of different method at a same generation for comparision.
     Args:
-        method_files(dict): key is method name (which also displayed in legend), value is file path.
+        method_paths(dict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
         xname(list): the first is x field name in log file, and the second on is for plot,
                      the third and forth values are low and high limit (optional).
@@ -160,7 +164,8 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
     """
     pareto_data = dict()
     acc_pop_size = dict()
-    for k, v in method_files.iteritems():
+    for k, v in method_paths.iteritems():
+        v = v + os.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname,
                                                                       yname, gens)
     # print (pareto_data)
@@ -172,14 +177,16 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
     markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
+    linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(9, 8))
     mark_idx = 0
     for method, gen_popsize in acc_pop_size.iteritems():
         xdata = gen_popsize[0]
         ydata = gen_popsize[1]
-        plt.plot(xdata, ydata, marker=markers[mark_idx], color='black', markersize=20,
-                 label=method, linewidth=1)
+        print ('Evaluated pop size: %s - %d' % (method, sum(ydata)))
+        plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
+                 label=method, linewidth=2)
         mark_idx += 1
     plt.legend(fontsize=24, loc=2)
     xaxis = plt.gca().xaxis
@@ -199,9 +206,52 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
     plt.cla()
     plt.clf()
     plt.close()
+
+    # plot Pareto points of all generations
+    mark_idx = 0
+    for method, gen_popsize in pareto_data.iteritems():
+        fig, ax = plt.subplots(figsize=(9, 8))
+        xdata = list()
+        ydata = list()
+        for gen, gendata in gen_popsize.iteritems():
+            xdata += gen_popsize[gen][xname[0]]
+            ydata += gen_popsize[gen][yname[0]]
+        plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
+                    color='black', label=method)
+        mark_idx += 1
+        xaxis = plt.gca().xaxis
+        yaxis = plt.gca().yaxis
+        for xlebal in xaxis.get_ticklabels():
+            xlebal.set_fontsize(20)
+        for ylebal in yaxis.get_ticklabels():
+            ylebal.set_fontsize(20)
+        plt.xlabel(xlabel_str, fontsize=20)
+        plt.ylabel(ylabel_str, fontsize=20)
+        # set xy axis limit
+        curxlim = ax.get_xlim()
+        if len(xname) >= 3:
+            if curxlim[0] < xname[2]:
+                ax.set_xlim(left=xname[2])
+            if len(xname) >= 4 and curxlim[1] > xname[3]:
+                ax.set_xlim(right=xname[3])
+        curylim = ax.get_ylim()
+        if len(yname) >= 3:
+            if curylim[0] < yname[2]:
+                ax.set_ylim(bottom=yname[2])
+            if len(yname) >= 4 and curylim[1] > yname[3]:
+                ax.set_ylim(top=yname[3])
+        plt.tight_layout()
+        fpath = ws + os.sep + method + '-Pareto.png'
+        plt.savefig(fpath, dpi=300)
+        print ('%s saved!' % fpath)
+        # close current plot in case of 'figure.max_open_warning'
+        plt.cla()
+        plt.clf()
+        plt.close()
+
     # plot comparision of Pareto fronts
     for gen in gens:
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(9, 8))
         mark_idx = 0
         gen_existed = True
         for method, gen_popsize in pareto_data.iteritems():
@@ -232,13 +282,13 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
         if len(xname) >= 3:
             if curxlim[0] < xname[2]:
                 ax.set_xlim(left=xname[2])
-            if len(xname) >= 4 and curxlim[1] > xname[3]:
+            if len(xname) >= 4:  # and curxlim[1] > xname[3]:
                 ax.set_xlim(right=xname[3])
         curylim = ax.get_ylim()
         if len(yname) >= 3:
             if curylim[0] < yname[2]:
                 ax.set_ylim(bottom=yname[2])
-            if len(yname) >= 4 and curylim[1] > yname[3]:
+            if len(yname) >= 4:  # and curylim[1] > yname[3]:
                 ax.set_ylim(top=yname[3])
 
         plt.legend(fontsize=24, loc=2)
@@ -252,19 +302,53 @@ def plot_pareto_fronts_by_method(method_files, sce_name, xname, yname, gens, ws)
         plt.close()
 
 
-def main():
-    """Main Entrance."""
-    base_dir = r'C:\z_data\ChangTing\seims_models\NSGA2_OUTPUT\0829_constrait'
-    method_pareto = {'Rule based': base_dir + os.sep + 'rule_mth3/runtime.log',
-                     'Random': base_dir + os.sep + 'rdm_cxhill/runtime.log'}
-    scenario_id = 'scenario'
-    # xaxis = ['economy', 'Economical benefit (1,000 USD$)']
-    xaxis = ['economy', 'Economical benefit (10,000 RMBY)']
-    yaxis = ['environment', 'Reduction rate of soil erosion']
-    draw_gens = range(1, 110)
-
-    plot_pareto_fronts_by_method(method_pareto, scenario_id, xaxis, yaxis, draw_gens, base_dir)
-
-
-if __name__ == '__main__':
-    main()
+def plot_hypervolume_by_method(method_paths, ws):
+    """Plot hypervolume"""
+    hyperv = dict()
+    for k, v in method_paths.iteritems():
+        v = v + os.sep + 'hypervolume.txt'
+        x = list()
+        y = list()
+        f = open(v)
+        for line in f:
+            values = StringClass.extract_numeric_values_from_string(line)
+            if values is None:
+                continue
+            if len(values) != 2:
+                continue
+            x.append(int(values[0]))
+            y.append(values[1])
+        f.close()
+        if len(x) == len(y) > 0:
+            hyperv[k] = [x[:], y[:]]
+    plt.rcParams['xtick.direction'] = 'out'
+    plt.rcParams['ytick.direction'] = 'out'
+    plt.rcParams['font.family'] = 'Times New Roman'
+    linestyles = ['-', '--', '-.', ':']
+    # plot accumulate pop size
+    fig, ax = plt.subplots(figsize=(10, 8))
+    mark_idx = 0
+    for method, gen_hyperv in hyperv.iteritems():
+        xdata = gen_hyperv[0]
+        ydata = gen_hyperv[1]
+        plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
+                 label=method, linewidth=2)
+        mark_idx += 1
+    plt.legend(fontsize=24, loc=2)
+    xaxis = plt.gca().xaxis
+    yaxis = plt.gca().yaxis
+    for xlebal in xaxis.get_ticklabels():
+        xlebal.set_fontsize(20)
+    for ylebal in yaxis.get_ticklabels():
+        ylebal.set_fontsize(20)
+    plt.xlabel('Generation count', fontsize=20)
+    plt.ylabel('Hypervolume', fontsize=20)
+    ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
+    plt.tight_layout()
+    fpath = ws + os.sep + 'hypervolume.png'
+    plt.savefig(fpath, dpi=300)
+    print ('%s saved!' % fpath)
+    # close current plot in case of 'figure.max_open_warning'
+    plt.cla()
+    plt.clf()
+    plt.close()
