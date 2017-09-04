@@ -7,6 +7,14 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, co
                                        const string collection, const string location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
 {
+    if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
+        m_mgtFieldsName = m_distribution[1];
+    }
+    else {
+        throw ModelException("BMPPlantMgtFactory", "Initialization",
+            "The distribution field must follow the format: "
+            "RASTER|CoreRasterName.\n");
+    }
     if (StringMatch(location, "ALL")) {
         m_location.clear();
     } else {
@@ -166,5 +174,15 @@ void BMPPlantMgtFactory::Dump(ostream *fs) {
         if (findIdx != m_bmpPlantOps.end()) {
             m_bmpPlantOps[*it]->dump(fs);
         }
+    }
+}
+
+void BMPPlantMgtFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
+    if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
+        int n;
+        sceneRsMap.at(m_mgtFieldsName)->getRasterData(&n, &m_mgtFieldsRs);
+    }
+    else{
+        // raise Exception?
     }
 }

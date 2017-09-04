@@ -1,103 +1,121 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Configuration of Scenario Analysis for SEIMS.
+    @author   : Huiran Gao, Liangjun Zhu
+    @changelog: 16-12-30  hr - initial implementation.\n
+                17-08-18  lj - reorganize as basic class.\n
+"""
+import json
+import os
 
-import ConfigParser
-from readTextInfo import *
+from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_parser
 
-# import util module located in SEIMS/preprocess
-if __package__ is None:
-    __package__ = import_parents(level = 2)
-from ..preprocess.util import *
 
-# Load model configuration from *.ini file
-cf = ConfigParser.ConfigParser()
-cf.read(GetINIfile())
-# 1. Text files directories
-MODEL_DIR = None
-# print cf.sections()
-if 'PATH' in cf.sections():
-    MODEL_DIR = cf.get('PATH', 'MODEL_DIR'.lower())
-    fieldFile = cf.get('PATH', 'fieldFile'.lower())
-    pointFile = cf.get('PATH', 'pointFile'.lower())
-    pointBMPsFile = cf.get('PATH', 'pointBMPsFile'.lower())
-    scenariosInfo = cf.get('PATH', 'scenariosInfo'.lower())
-else:
-    raise ValueError("[PATH] section MUST be existed in *.ini file.")
-if not isPathExists(MODEL_DIR):
-    raise IOError("Please Check Directories defined in [PATH]")
+class SAConfig(object):
+    """Parse scenario analysis configuration of SEIMS project."""
 
-# 2. NSGA-II
-if 'NSGAII' in cf.sections():
-    GenerationsNum = int(cf.get('NSGAII', 'GenerationsNum'))
-    PopulationSize = int(cf.getint('NSGAII', 'PopulationSize'))
-    CrossoverRate = float(cf.get('NSGAII', 'CrossoverRate'))
-    MutateRate = float(cf.get('NSGAII', 'MutateRate'))
-    SelectRate = float(cf.get('NSGAII', 'SelectRate'))
-else:
-    raise ValueError("[NSGAII] section MUST be existed in *.ini file.")
+    def __init__(self, cf):
+        """Initialization."""
+        # 1. NSGA-II related parameters
+        self.nsga2_ngens = 1
+        self.nsga2_npop = 4
+        self.nsga2_rcross = 0.75
+        self.nsga2_pmut = 0.05
+        self.nsga2_rmut = 0.1
+        self.nsga2_rsel = 0.8
+        if 'NSGAII' in cf.sections():
+            self.nsga2_ngens = cf.getint('NSGAII', 'generationsnum')
+            self.nsga2_npop = cf.getint('NSGAII', 'populationsize')
+            self.nsga2_rcross = cf.getfloat('NSGAII', 'crossoverrate')
+            self.nsga2_pmut = cf.getfloat('NSGAII', 'maxmutateperc')
+            self.nsga2_rmut = cf.getfloat('NSGAII', 'mutaterate')
+            self.nsga2_rsel = cf.getfloat('NSGAII', 'selectrate')
+        else:
+            raise ValueError('[NSGAII] section MUST be existed in *.ini file.')
+        if self.nsga2_npop % 4 != 0:
+            raise ValueError('PopulationSize must be a multiple of 4.')
+        # 2. MongoDB
+        self.hostname = '127.0.0.1'  # localhost by default
+        self.port = 27017
+        self.spatial_db = ''
+        self.bmp_scenario_db = ''
+        if 'MONGODB' in cf.sections():
+            self.hostname = cf.get('MONGODB', 'hostname')
+            self.port = cf.getint('MONGODB', 'port')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
+            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
+        else:
+            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
+        if not StringClass.is_valid_ip_addr(self.hostname):
+            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
 
-# 3. MongoDB
-if 'MONGODB' in cf.sections():
-    HOSTNAME = cf.get('MONGODB', 'HOSTNAME')
-    PORT = int(cf.getint('MONGODB', 'PORT'))
-    BMPScenarioDBName = cf.get('MONGODB', 'BMPScenarioDBName'.lower())
-else:
-    raise ValueError("[MONGODB] section MUST be existed in *.ini file.")
-if not isIPValid(HOSTNAME):
-    raise ValueError("HOSTNAME illegal defined in [MONGODB]!")
+        # 3. SEIMS_Model
+        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+        self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+        self.seims_nthread = 1
+        self.seims_lyrmethod = 0
+        if 'SEIMS_Model' in cf.sections():
+            self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+            self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+            self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
+            self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
+        else:
+            raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
+        if not (FileClass.is_dir_exists(self.model_dir)
+                and FileClass.is_dir_exists(self.seims_bin)):
+            raise IOError('Please Check Directories defined in [PATH]. '
+                          'BIN_DIR and MODEL_DIR are required!')
 
-# 3. SEIMS_Model
-if 'SEIMS_Model' in cf.sections():
-    model_Exe = cf.get('SEIMS_Model', 'model_Exe'.lower())
-    model_Workdir = cf.get('SEIMS_Model', 'model_Workdir'.lower())
-    threadsNum = int(cf.get('SEIMS_Model', 'threadsNum'))
-    layeringMethod = int(cf.get('SEIMS_Model', 'layeringMethod'))
-    timeStart = cf.get('SEIMS_Model', 'timeStart')
-    timeEnd = cf.get('SEIMS_Model', 'timeEnd')
-else:
-    raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
+        # 4. Application specific setting section [BMPs]
+        self.bmps_info = dict()
+        self.bmps_rule = False
+        self.rule_method = 1
+        self.bmps_retain = dict()
+        if 'BMPs' in cf.sections():
+            bmpsinfostr = cf.get('BMPs', 'bmps_info')
+            self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
+            if cf.has_option('BMPs', 'rule_method'):
+                self.rule_method = cf.getint('BMPs', 'rule_method')
+            if cf.has_option('BMPs', 'bmps_retain'):
+                bmpsretainstr = cf.get('BMPs', 'bmps_retain')
+                self.bmps_retain = json.loads(bmpsretainstr)
+                self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
+        else:
+            raise ValueError("[BMPs] section MUST be existed for specific SA.")
+        self.bmps_info = json.loads(bmpsinfostr)
+        self.bmps_info = UtilClass.decode_strs_in_dict(self.bmps_info)
 
-# 4. BMPs
-bmps_farm = []
-bmps_cattle = []
-bmps_pig = []
-bmps_sewage = []
-bmps_farm_cost = []
-bmps_cattle_cost = []
-bmps_pig_cost = []
-bmps_sewage_cost = []
-if 'BMPs' in cf.sections():
-    bmps_farm_STR = cf.get('BMPs', 'bmps_farm'.lower())
-    bmps_cattle_STR = cf.get('BMPs', 'bmps_cattle'.lower())
-    bmps_pig_STR = cf.get('BMPs', 'bmps_pig'.lower())
-    bmps_sewage_STR = cf.get('BMPs', 'bmps_sewage'.lower())
-    bmps_farm_cost_STR = cf.get('BMPs', 'bmps_farm_cost'.lower())
-    bmps_cattle_cost_STR = cf.get('BMPs', 'bmps_cattle_cost'.lower())
-    bmps_pig_cost_STR = cf.get('BMPs', 'bmps_pig_cost'.lower())
-    bmps_sewage_cost_STR = cf.get('BMPs', 'bmps_sewage_cost'.lower())
-    bmps_farm = StrtoIntArr(SplitStr(StripStr(bmps_farm_STR)))
-    bmps_cattle = StrtoIntArr(SplitStr(StripStr(bmps_cattle_STR)))
-    bmps_pig = StrtoIntArr(SplitStr(StripStr(bmps_pig_STR)))
-    bmps_sewage = StrtoIntArr(SplitStr(StripStr(bmps_sewage_STR)))
-    bmps_farm_cost = StrtoFltArr(SplitStr(StripStr(bmps_farm_cost_STR)))
-    bmps_cattle_cost = StrtoFltArr(SplitStr(StripStr(bmps_cattle_cost_STR)))
-    bmps_pig_cost = StrtoFltArr(SplitStr(StripStr(bmps_pig_cost_STR)))
-    bmps_sewage_cost = StrtoFltArr(SplitStr(StripStr(bmps_sewage_cost_STR)))
-else:
-    raise ValueError("[BMPs] section MUST be existed in *.ini file.")
+        # 5. Application specific setting section [Effectiveness]
+        self.worst_econ = 0
+        self.worst_env = 0
+        self.runtime_years = 0
+        if 'Effectiveness' in cf.sections():
+            self.worst_econ = cf.getfloat('Effectiveness', 'worst_economy')
+            self.worst_env = cf.getfloat('Effectiveness', 'worst_environment')
+            self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
+            self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
 
-# Scenario
-field_farm = getFieldInfo(fieldFile)[1]
-field_lu = getFieldInfo(fieldFile)[2]
-point_cattle = getPointSource(pointFile)[0]
-point_pig = getPointSource(pointFile)[1]
-point_sewage = getPointSource(pointFile)[2]
+        # 6. define gene_values
+        fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
+        fn += '_rule' if self.bmps_rule else '_random'
+        self.nsga2_dir = self.model_dir + os.sep + 'NSGAII_OUTPUT' + os.sep + fn
+        self.scenario_dir = self.nsga2_dir + os.sep + 'Scenarios'
+        UtilClass.rmmkdir(self.nsga2_dir)
+        UtilClass.rmmkdir(self.scenario_dir)
+        self.hypervlog = self.nsga2_dir + os.sep + 'hypervolume.txt'
+        self.scenariolog = self.nsga2_dir + os.sep + 'scenarios_info.txt'
+        self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
+        self.logbookfile = self.nsga2_dir + os.sep + 'logbook.txt'
 
-# farm_Num = len(getFieldInfo(fieldFile)[1])
-farm_Num = 1
-point_cattle_Num = len(point_cattle)
-point_pig_Num = len(point_pig)
-point_sewage_Num = len(point_sewage)
 
-# farm size
-point_cattle_size = getPointSource(pointFile)[3]
-point_pig_size = getPointSource(pointFile)[4]
+if __name__ == '__main__':
+    cf = get_config_parser()
+    cfg = SAConfig(cf)
+
+    # test the picklable of SAConfig class.
+    import pickle
+
+    s = pickle.dumps(cfg)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.model_dir)
