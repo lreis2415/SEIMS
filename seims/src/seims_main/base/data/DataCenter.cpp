@@ -528,9 +528,9 @@ bool DataCenterMongoDB::readParametersInDB(void) {
         if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
             GetNumericFromBsonIterator(&iter, p->Minimun);
         }
-        if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
-            p->Use = GetStringFromBsonIterator(&iter);
-        }
+        //if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
+        //    p->Use = GetStringFromBsonIterator(&iter);
+        //}
         if (!m_initParameters.insert(make_pair(GetUpper(p->Name), p)).second) {
             cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
             return false;

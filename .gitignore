@@ -66,3 +66,9 @@ dist
 # ignore doxygen files
 doc/html
 doc/img/
+#nfs files on linux
+.nfs*
+
+# add nogit directory which contains personal test code
+seims/nogit
+seims/nogit/*

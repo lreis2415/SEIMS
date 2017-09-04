@@ -1,71 +1,51 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
-User defined tools
-'''
-# @Class userdef
-# @Author Huiran GAO
-# @Date   2016-11-08
-
-import uuid
-from math import *
-from scenario import *
+"""Base classes of user defined tools for NSAG-II.
+    @author   : Huiran Gao, Liangjun Zhu
+    @changelog: 16-11-08  hr - initial implementation.\n
+                17-08-18  lj - move the original code to slpposunits.\n
+"""
 
 
-# Model
-def __uniqueid__():
-    id = int(str(uuid.uuid4().fields[-1])[:8])
-    while True:
-        yield id
-        id += 1
+# Initial tool functions supplemented to DEAP.tools
 
 
-def calBenefitandCost(individual):
-    Sce = Scenario()
+def initRepeatWithCfg(container, func, cf, n=2):
+    """Call the function `container` with a generator function corresponding
+    to the calling `n` times the function `func` with an argument `cf`.
 
-    # random.seed()
-    # ms = float(random.randint(0, 1000))
-    # time.sleep(ms / 1000.)
+    This function is an extension to the `DEAP.tools.initRepeat`.
 
-    # Sce.getIdfromMongo()
-    Sce.setId(__uniqueid__().next())
-    Sce.attributes = individual
-    Sce.decoding()
-    Sce.importoMongo(HOSTNAME, PORT, BMPScenarioDBName)
-    # Calculate benefit and cost
-    Sce.cost()
-    Sce.benefit()
-    # Save scenarios information in file
-    Sce.saveInfo(scenariosInfo)
-    f1 = Sce.cost_eco
-    f2 = Sce.benefit_env
-    return f1, f2
+    Args:
+        container: The type to put in the data from `func`.
+        func: The function that will be called n times to fill the `container`.
+        cf: the only argument of `func`, which can be any instance.
+        n: The number of times to repeat `func`.
+
+    Returns:
+        An instance of the container filled with data from func.
+    """
+    return container(func(cf) for _ in xrange(n))
 
 
-def test(individual):
-    g = sum(individual) / len(individual)
-    f1 = sum(individual)
-    f2 = sin(g) * (1 - sqrt(f1))
-    return f1, f2
+def initIterateWithCfg(container, generator, cf=None):
+    """ Call the function `container` with an iterable as
+    its only argument. The iterable must be returned by
+    the method or the object `generator` with one only
+    or without argument
 
+    This function can totally replace the `DEAP.tools.initIterate`.
 
-######################################
-# GA Mutations                       #
-######################################
+    Args:
+        container: The type to put in the data from `generator`.
+        generator: A function returning an iterable (list, tuple, ...),
+                      the content of this iterable will fill the container.
+        cf: the only argument of `generator`, which can be any instance or None.
 
-def mutModel(individual, indpb):
-    sceSize = farm_Num + point_cattle_Num + point_pig_Num + point_sewage_Num
-    field_index = farm_Num - 1
-    point_cattle_index = point_cattle_Num + field_index
-    point_pig_index = point_pig_Num + point_cattle_index
-    # point_sewage_index = point_sewage_Num + point_pig_index
-    if random.random() < indpb:
-        mpoint = random.randint(0, sceSize - 1)
-        if mpoint <= field_index:
-            individual[mpoint] = selectBMPatRandom(bmps_farm)
-        elif mpoint <= point_cattle_index:
-            individual[mpoint] = selectBMPatRandom(bmps_cattle)
-        elif mpoint <= point_pig_index:
-            individual[mpoint] = selectBMPatRandom(bmps_pig)
-        else:
-            individual[mpoint] = selectBMPatRandom(bmps_sewage)
-    return individual
+    Returns:
+        An instance of the container filled with data from the `generator`.
+    """
+    if cf is None:
+        return container(generator())
+    else:
+        return container(generator(cf))

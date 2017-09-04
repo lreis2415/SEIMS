@@ -8,6 +8,7 @@ BMPFactory::BMPFactory(const int scenarioId, const int bmpId, const int subScena
     m_scenarioId(scenarioId), m_bmpId(bmpId), m_subScenarioId(subScenario), m_bmpType(bmpType),
     m_bmpPriority(bmpPriority),
     m_distribution(distribution), m_bmpCollection(collection), m_location(location) {
+    /// Do nothing.
 }
 
 BMPFactory::~BMPFactory(void) {

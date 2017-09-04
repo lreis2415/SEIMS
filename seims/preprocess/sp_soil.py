@@ -87,53 +87,53 @@ class SoilProperty(object):
         self.SEQN = seq_num
         self.SNAM = seq_name
         self.SOILLAYERS = DEFAULT_NODATA
-        self.SOILDEPTH = []
-        self.SOILTHICK = []
-        self.OM = []
-        self.SOL_CBN = []
-        self.SOL_N = []
-        self.CLAY = []
-        self.SILT = []
-        self.SAND = []
-        self.ROCK = []
+        self.SOILDEPTH = list()
+        self.SOILTHICK = list()
+        self.OM = list()
+        self.SOL_CBN = list()
+        self.SOL_N = list()
+        self.CLAY = list()
+        self.SILT = list()
+        self.SAND = list()
+        self.ROCK = list()
         self.SOIL_TEXTURE = DEFAULT_NODATA
         self.HYDRO_GROUP = DEFAULT_NODATA
         self.SOL_ZMX = DEFAULT_NODATA
         self.ANION_EXCL = DEFAULT_NODATA
         self.SOL_CRK = DEFAULT_NODATA
-        self.DENSITY = []
-        self.SOL_AVBD = []
-        self.CONDUCTIVITY = []
-        self.SOL_HK = []
-        self.WILTINGPOINT = []
-        self.SOL_WPMM = []
+        self.DENSITY = list()
+        self.SOL_AVBD = list()
+        self.CONDUCTIVITY = list()
+        self.SOL_HK = list()
+        self.WILTINGPOINT = list()
+        self.SOL_WPMM = list()
         self.SOL_SUMWP = 0.
-        self.FIELDCAP = []
-        self.AWC = []
-        self.SOL_AWC = []
+        self.FIELDCAP = list()
+        self.AWC = list()
+        self.SOL_AWC = list()
         self.SOL_SUMAWC = 0.
-        self.POROSITY = []
-        self.POREINDEX = []
+        self.POROSITY = list()
+        self.POREINDEX = list()
         self.SOL_AVPOR = DEFAULT_NODATA
-        self.SOL_UL = []
+        self.SOL_UL = list()
         self.SOL_SUMUL = 0.
-        self.USLE_K = []
+        self.USLE_K = list()
         self.SOL_ALB = DEFAULT_NODATA
         self.WFSH = DEFAULT_NODATA
-        self.VWT = []
+        self.VWT = list()
         self.DET_SAND = DEFAULT_NODATA
         self.DET_SILT = DEFAULT_NODATA
         self.DET_CLAY = DEFAULT_NODATA
         self.DET_SMAGG = DEFAULT_NODATA
         self.DET_LGAGG = DEFAULT_NODATA
-        self.CRDEP = []
+        self.CRDEP = list()
         self.ESCO = DEFAULT_NODATA
         # Here after are general soil chemical properties
-        self.SOL_NO3 = []
-        self.SOL_NH4 = []
-        self.SOL_ORGN = []
-        self.SOL_ORGP = []
-        self.SOL_SOLP = []
+        self.SOL_NO3 = list()
+        self.SOL_NH4 = list()
+        self.SOL_ORGN = list()
+        self.SOL_ORGP = list()
+        self.SOL_SOLP = list()
 
     def soil_dict(self):
         """Convert to dict"""
@@ -221,8 +221,8 @@ class SoilProperty(object):
                 self.SOL_ORGP.insert(0, self.SOL_ORGP[0])
             else:
                 self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
-        if self.SOILDEPTH == [] or len(
-                self.SOILDEPTH) != self.SOILLAYERS or DEFAULT_NODATA in self.SOILDEPTH:
+        if len(self.SOILDEPTH) == 0 or len(self.SOILDEPTH) != self.SOILLAYERS or\
+                        DEFAULT_NODATA in self.SOILDEPTH:
             raise IndexError("Soil depth must have a size equal to NLAYERS and "
                              "should not include NODATA (-9999)!")
         # Calculate soil thickness of each layer
@@ -244,7 +244,7 @@ class SoilProperty(object):
                     self.OM[i] = self.OM[i - 1] * numpy.exp(-self.SOILTHICK[i])  # mm
         # Calculate sol_cbn = sol_om * 0.58
         if not self.SOL_CBN or len(self.SOL_CBN) != self.SOILLAYERS:
-            self.SOL_CBN = []
+            self.SOL_CBN = list()
             for i in range(self.SOILLAYERS):
                 if self.OM[i] * 0.58 < UTIL_ZERO:
                     self.SOL_CBN.append(0.1)
@@ -252,7 +252,7 @@ class SoilProperty(object):
                     self.SOL_CBN.append(self.OM[i] * 0.58)
         # Calculate sol_n = sol_cbn/11.
         if not self.SOL_N or len(self.SOL_N) != self.SOILLAYERS:
-            self.SOL_N = []
+            self.SOL_N = list()
             for i in range(self.SOILLAYERS):
                 self.SOL_N.append(self.SOL_CBN[i] / 11.)
         if not self.CLAY or len(self.CLAY) != self.SOILLAYERS or DEFAULT_NODATA in self.CLAY:
@@ -269,9 +269,9 @@ class SoilProperty(object):
                              "should not include NODATA (-9999)!")
 
         # temporary variables
-        tmp_fc = []
-        tmp_sat = []
-        tmp_wp = []
+        tmp_fc = list()
+        tmp_sat = list()
+        tmp_wp = list()
         for i in range(self.SOILLAYERS):
             s = self.SAND[i] * 0.01  # % -> decimal
             c = self.CLAY[i] * 0.01
@@ -300,7 +300,7 @@ class SoilProperty(object):
         if self.DENSITY and len(self.DENSITY) != self.SOILLAYERS:
             raise IndexError("Bulk density must have a size equal to soil layers number!")
         elif not self.DENSITY or DEFAULT_NODATA in self.DENSITY:
-            tmp_bd = []
+            tmp_bd = list()
             for i in range(self.SOILLAYERS):
                 sat = tmp_sat[i]
                 fc = tmp_fc[i]
@@ -316,11 +316,11 @@ class SoilProperty(object):
         if self.FIELDCAP and len(self.FIELDCAP) != self.SOILLAYERS:
             raise IndexError("Field capacity must have a size equal to soil layers number!")
         elif not self.FIELDCAP or DEFAULT_NODATA in self.FIELDCAP:
-            tmp_fc_bdeffect = []
+            tmp_fc_bdeffect = list()
             for i in range(self.SOILLAYERS):
                 fc = tmp_fc[i]
                 sat = tmp_sat[i]
-                if self.DENSITY != [] and len(self.DENSITY) == self.SOILLAYERS:
+                if len(self.DENSITY) != 0 and len(self.DENSITY) == self.SOILLAYERS:
                     p_df = self.DENSITY[i]
                 else:
                     p_df = 2.65 * (1. - sat)
@@ -368,7 +368,7 @@ class SoilProperty(object):
         if self.CONDUCTIVITY and len(self.CONDUCTIVITY) != self.SOILLAYERS:
             raise IndexError("Saturated conductivity must have a size equal to soil layers number!")
         elif not self.CONDUCTIVITY or DEFAULT_NODATA in self.CONDUCTIVITY:
-            tmp_k = []
+            tmp_k = list()
             for i in range(self.SOILLAYERS):
                 lamda = self.POREINDEX[i]
                 fc = tmp_fc[i]
@@ -469,19 +469,13 @@ class SoilProperty(object):
         if self.USLE_K and len(self.USLE_K) != self.SOILLAYERS:
             raise IndexError("USLE K factor must have a size equal to NLAYERS!")
         elif not self.USLE_K or DEFAULT_NODATA in self.USLE_K:
-            tmp_usle_k = []
-            for i in range(self.SOILLAYERS):  # According to Liu Baoyuan et al., (1999)
+            tmp_usle_k = list()
+            for i in range(self.SOILLAYERS):
                 sand = self.SAND[i]
                 silt = self.SILT[i]
                 clay = self.CLAY[i]
-                cbn = self.OM[i] * 0.58
-                sn = 1. - sand * 0.01
-                a = (0.2 + 0.3 * math.exp(-0.0256 * sand * (1. - silt * 0.01)))
-                b = math.pow(silt / (clay + silt), 0.3)
-                c = (1. - 0.25 * cbn / (cbn + math.exp(3.72 - 2.95 * cbn)))
-                d = (1. - 0.25 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))
-                k = a * b * c * d
-                tmp_usle_k.append(k)
+                om = self.OM[i]
+                tmp_usle_k.append(SoilProperty.usle_k_epic(sand, silt, clay, om))
             if not self.USLE_K:
                 self.USLE_K = tmp_usle_k[:]
             elif DEFAULT_NODATA in self.USLE_K:
@@ -494,7 +488,7 @@ class SoilProperty(object):
             self.SOIL_TEXTURE = st
             self.HYDRO_GROUP = hg
         # Unit conversion for general soil chemical properties
-        wt1 = []
+        wt1 = list()
         for j in range(self.SOILLAYERS):
             # g/kg => kg/ha
             wt1.append(self.DENSITY[j] * self.SOILTHICK[j] * 10.)
@@ -514,6 +508,19 @@ class SoilProperty(object):
             for j in range(self.SOILLAYERS):
                 self.SOL_ORGP[j] = self.SOL_ORGP[j] * wt1[j]
 
+    @staticmethod
+    def usle_k_epic(sand, silt, clay, om):
+        """Calculate USLE_K factor according to EPIC (Erosion Productivity Impact Calculator).
+        (Williams et al., 1983)
+        """
+        cbn = om * 0.58
+        sn = 1. - sand * 0.01
+        a = (0.2 + 0.3 * math.exp(-0.0256 * sand * (1. - silt * 0.01)))
+        b = math.pow(silt / (clay + silt), 0.3)
+        c = (1. - 0.25 * cbn / (cbn + math.exp(3.72 - 2.95 * cbn)))
+        d = (1. - 0.25 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))
+        k = a * b * c * d
+        return k
 
 class SoilUtilClass(object):
     """Soil parameters related utility functions."""
@@ -597,7 +604,7 @@ class SoilUtilClass(object):
         """Reclassify soil parameters by lookup table."""
         #  Read soil properties from txt file
         soil_lookup_data = read_data_items_from_txt(soil_lookup_file)
-        soil_instances = []
+        soil_instances = list()
         soil_prop_flds = soil_lookup_data[0][:]
         for i in range(1, len(soil_lookup_data)):
             cur_soil_data_item = soil_lookup_data[i][:]
@@ -669,8 +676,8 @@ class SoilUtilClass(object):
         # print soilPropDict.keys()
         # print soilPropDict.values()
 
-        replace_dicts = []
-        dst_soil_tifs = []
+        replace_dicts = list()
+        dst_soil_tifs = list()
         seqns = soil_prop_dict[SoilUtilClass._SEQN]
         max_lyr_num = int(numpy.max(soil_prop_dict[SoilUtilClass._NLYRS]))
         for key in soil_prop_dict:

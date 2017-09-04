@@ -1060,15 +1060,73 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
         }
     }
 }
-// added by Huiran GAO, Feb. 2017
-void ModuleFactory::updateBMPOptParameter(int nSubbasin)
+/// added by Huiran GAO, Feb. 2017
+/// redesigned by Liangjun Zhu, 08/16/17
+void ModuleFactory::updateParametersByScenario(int subbsnID)
 {
+    if (NULL == m_scenario) {
+        return;
+    }
     map<int, BMPFactory *> bmpFactories = m_scenario->GetBMPFactories();
     for (map<int, BMPFactory *>::iterator iter = bmpFactories.begin(); iter != bmpFactories.end(); iter++)
     {
-        	//iter->second->m_subScenarioId;
-            	//iter->second->m_location;
-        cout << "Modify BMP Params: BMP_" << iter->second->GetSubScenarioId() << endl;
-        //iter->second->BMPParametersPreUpdate(m_rsMap, nSubbasin, m);
+        /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
+        if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) {
+            continue;
+        }
+        cout << "Update parameters by Scenario settings." << endl;
+        map<int, BMPArealStruct*> arealbmps = ((BMPArealStructFactory*)iter->second)->getBMPsSettings();
+        float* mgtunits = ((BMPArealStructFactory*)iter->second)->getRasterData();
+        vector<int> selIDs = ((BMPArealStructFactory*)iter->second)->getUnitIDs();
+        /// Get landuse data of current subbasin ("0_" for the whole basin)
+        string lur = GetUpper(ValueToString(subbsnID) + "_" + VAR_LANDUSE);
+        int nsize = -1;
+        float* ludata = NULL;
+        m_rsMap[lur]->getRasterData(&nsize, &ludata);
+
+        map<int, BMPArealStruct*>::iterator iter2;
+        for (iter2 = arealbmps.begin();iter2 != arealbmps.end(); iter2++) {
+            cout << "  - SubScenario ID: "<< iter->second->GetSubScenarioId() << ", BMP name: " 
+                << iter2->second->getBMPName() << endl;
+            vector<int> suitablelu = iter2->second->getSuitableLanduse();
+            map<string, ParamInfo*> updateparams = iter2->second->getParameters();
+            map<string, ParamInfo*>::iterator iter3;
+            for (iter3 = updateparams.begin(); iter3 != updateparams.end(); iter3++) {
+                string paraname = iter3->second->Name;
+                cout << "   -- Parameter ID: " << paraname << endl;
+                /// Check whether the parameter is existed in m_parametersInDB.
+                ///   If existed, update the missing values, otherwise, print warning message and continue.
+                if (m_parametersInDB.find(paraname) == m_parametersInDB.end()) {
+                    cout << "      Warning: the parameter is not defined in PARAMETER table, and "
+                        " will not work as expected." << endl;
+                    continue;
+                }
+                ParamInfo* tmpparam = m_parametersInDB[paraname];
+                if (iter3->second->Change == "") {
+                    iter3->second->Change = tmpparam->Change;
+                }
+                iter3->second->Maximum = tmpparam->Maximum;
+                iter3->second->Minimun = tmpparam->Minimun;
+                // Perform update
+                string remoteFileName = GetUpper(ValueToString(subbsnID) + "_" + paraname);
+                if (m_rsMap.find(remoteFileName) == m_rsMap.end()) {
+                    cout << "      Warning: the parameter name: "<< remoteFileName << 
+                        " is not loaded as 1D or 2D raster, and "
+                        " will not work as expected." << endl;
+                    continue;
+                }
+                if (m_rsMap[remoteFileName]->is2DRaster()) {
+                    int lyr = -1;
+                    float** data2D = NULL;
+                    m_rsMap[remoteFileName]->get2DRasterData(&nsize, &lyr, &data2D);
+                    iter3->second->Adjust2DRaster(nsize, lyr, data2D, mgtunits, selIDs, ludata, suitablelu);
+                }
+                else {
+                    float* data = NULL;
+                    m_rsMap[remoteFileName]->getRasterData(&nsize, &data);
+                    iter3->second->Adjust1DRaster(nsize, data, mgtunits, selIDs, ludata, suitablelu);
+                }
+            }
+        }
     }
 }

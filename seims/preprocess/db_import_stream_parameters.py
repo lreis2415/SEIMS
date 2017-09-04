@@ -183,7 +183,8 @@ class ImportReaches2Mongo(object):
             if g.out_degree(node) == 0:
                 outlet = node
         if outlet < 0:
-            raise ValueError("Can't find outlet subbasin ID, please check!")
+            raise ValueError("Can't find outlet subbasin ID, please check the "
+                             "threshold for stream extraction!")
         print ('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins

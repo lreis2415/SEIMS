@@ -80,7 +80,8 @@ void SSR_DA::FlowInSoil(int id) {
                 /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
                 float dcIndex = 2.f * m_poreIndex[id][j] + 3.f; // pore disconnectedness index
                 k = m_ks[id][j] * pow(m_soilStorage[id][j] / maxSoilWater, dcIndex);
-                if (k < 0.f) k = 0.f;
+                if (k <= UTIL_ZERO) k = 0.f;
+                //cout << id << "\t" << j << "\t" << k << endl;
             }
             m_qi[id][j] = m_ki * s0 * k * m_dt / 3600.f * m_soilThick[id][j] / 1000.f / flowWidth; // the unit is mm
 
@@ -92,7 +93,7 @@ void SSR_DA::FlowInSoil(int id) {
             m_qi[id][j] = max(0.f, m_qi[id][j]);
 
             m_qiVol[id][j] = m_qi[id][j] / 1000.f * m_CellWidth * flowWidth; //m3
-            m_qiVol[id][j] = max(0.f, m_qiVol[id][j]);
+            m_qiVol[id][j] = max(UTIL_ZERO, m_qiVol[id][j]);
             //Adjust the moisture content in the current layer, and the layer immediately below it
             m_soilStorage[id][j] -= m_qi[id][j];
             m_soilStorageProfile[id] += m_soilStorage[id][j];
@@ -124,28 +125,55 @@ int SSR_DA::Execute() {
     }
 
     //cout << "end flowinsoil" << endl;
-    for (int i = 0; i < m_nSubbasin; i++) {
+    for (int i = 0; i <= m_nSubbasin; i++) {
         m_qiSubbasin[i] = 0.f;
     }
-
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        float qiAllLayers = 0.f;
-        if (m_streamLink[i] > 0) {
-            qiAllLayers = 0.f;
-            for (int j = 0; j < (int) m_soilLayers[i]; j++) {
-                if (m_qiVol[i][j] > UTIL_ZERO) {
-                    qiAllLayers += m_qiVol[i][j] / m_dt;
-                } /// m^3/s
+    /// using openmp for reduction an array should be pay much more attention.
+    /// here is an solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
+    /// #pragma omp parallel for reduction(+:myArray[:6]) is supported with OpenMP 4.5.
+    /// However, MSVS are using OpenMP 2.0.
+    /// Added by lj, 2017-8-23
+#pragma omp parallel
+    {
+        float *tmp_qiSubbsn = new float[m_nSubbasin + 1];
+        for (int i = 0; i <= m_nSubbasin; i++) {
+            tmp_qiSubbsn[i] = 0.f;
+        }
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_streamLink[i] > 0) {
+                float qiAllLayers = 0.f;
+                for (int j = 0; j < (int)m_soilLayers[i]; j++) {
+                    if (m_qiVol[i][j] > UTIL_ZERO) {
+                        qiAllLayers += m_qiVol[i][j] / m_dt;
+                    } /// m^3/s
+                }
+                //cout << m_nSubbasin << "\tsubbasin:" << tmp_qiSubbsn[i] << "\t" << qiAllLayers << endl;
+                tmp_qiSubbsn[int(m_subbasin[i])] += qiAllLayers;
             }
-            //cout << m_nSubbasin << "\tsubbasin:" << m_subbasin[i] << "\t" << qiAllLayers << endl;
-            //if (m_nSubbasin > 1)
-            //    m_qiSubbasin[int(m_subbasin[i])] += qiAllLayers;
-            //else
-            //    m_qiSubbasin[1] += qiAllLayers;
-            m_qiSubbasin[int(m_subbasin[i])] += qiAllLayers;
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasin; i++) {
+                m_qiSubbasin[i] += tmp_qiSubbsn[i];
+            }
         }
     }
+// Old code stye of OpenMP for reduction on an array.
+//#pragma omp parallel for
+//    for (int i = 0; i < m_nCells; i++) {
+//        float qiAllLayers = 0.f;
+//        if (m_streamLink[i] > 0) {
+//            qiAllLayers = 0.f;
+//            for (int j = 0; j < (int) m_soilLayers[i]; j++) {
+//                if (m_qiVol[i][j] > UTIL_ZERO) {
+//                    qiAllLayers += m_qiVol[i][j] / m_dt;
+//                } /// m^3/s
+//            }
+//            //cout << m_nSubbasin << "\tsubbasin:" << m_subbasin[i] << "\t" << qiAllLayers << endl;
+//            m_qiSubbasin[int(m_subbasin[i])] += qiAllLayers;
+//        }
+//    }
 
     for (int i = 1; i <= m_nSubbasin; i++) {
         //cout<<", "<<i<<": "<<m_qiSubbasin[i];

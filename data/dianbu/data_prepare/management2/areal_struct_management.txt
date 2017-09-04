@@ -1,0 +1,18 @@
+## This file define areal structural BMPs parameters.
+# SUBSCENARIO: BMP unique ID
+# NAME: BMP Name
+# DESC: BMP Description
+# REFERENCE: Literature reference
+# LANDUSE: Suitable landuse ID, if not sure, please fill in 'ALL', separated by '-', such as '2-4'
+# PARAMETERS: Spatial parameters that the BMP affects, the format MUST be:
+#             NAME1:DESC1:CHANGE1:IMPACT1-NAME2:DESC2:CHANGE2:IMPACT2-...
+#             where, NAME is the parameter's ID, which will be one of the GridFS file in SPATIAL.files
+#                    DESC is the corresponding description
+#                    CHANGE is the change method, which can be VC,RC,AC. VC: replace, RC: multiply, AC: add.
+#                    IMPACT is the impact value.
+SUBSCENARIO,NAME,DESC,REFERENCE,LANDUSE,PARAMETERS
+1,fengjin,fengjin,fengjin,7-16,Interc_max:Maximum Interception Capacity:AC:1-Conductivity:Soil hydraulic conductivity:RC:3.5-USLE_C:Cover management factor:VC:0.0008-USLE_K:Soil erodibility factor:RC:0.64
+2,shengtailincao,shengtailincao,shengtailincao,4-7-16-33,Interc_max:Maximum Interception Capacity:AC:2.5-Depression:Depression storage capacity:RC:2-Conductivity:Soil hydraulic conductivity:RC:5-USLE_C:Cover management factor:VC:0.0012-USLE_K:Soil erodibility factor:RC:0.095-USLE_P:the erosion control practice factor:RC:0.8
+3,jingjilinguo,jingjilinguo,jingjilinguo,4-7-16-33,Interc_max:Maximum Interception Capacity:AC:1.5-Depression:Depression storage capacity:RC:5-Conductivity:Soil hydraulic conductivity:RC:4-USLE_C:Cover management factor:VC:0.0015-USLE_K:Soil erodibility factor:RC:0.65-USLE_P:the erosion control practice factor:RC:0.6
+4,dixiaolingaizao,dixiaolingaizao,dixiaolingaizao,7-16,Interc_max:Maximum Interception Capacity:AC:2.5-Depression:Depression storage capacity:RC:1.5-Conductivity:Soil hydraulic conductivity:RC:3.5-USLE_C:Cover management factor:VC:0.0024-USLE_K:Soil erodibility factor:RC:0.98-USLE_P:the erosion control practice factor:RC:0.8
+5,chaguoyuanpogaiti,chaguoyuanpogaiti,chaguoyuanpogaiti,4-7-16,Interc_max:Maximum Interception Capacity:AC:1-Depression:Depression storage capacity:RC:5-Conductivity:Soil hydraulic conductivity:RC:3-USLE_C:Cover management factor:VC:0.0008-USLE_K:Soil erodibility factor:RC:0.78-USLE_P:the erosion control practice factor:RC:0.3-Slope:Slope:VC:0.001
