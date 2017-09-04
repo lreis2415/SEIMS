@@ -5,11 +5,11 @@
     @changelog: 17-08-17  lj - reorganize as basic class
 """
 import os
+
 try:
     from ConfigParser import ConfigParser  # py2
 except ImportError:
     from configparser import ConfigParser  # py3
-
 
 from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
 
@@ -84,7 +84,6 @@ class PostConfig(object):
         self.lang_cn = False
         if 'SWITCH' in cf.sections():
             self.lang_cn = cf.getboolean('SWITCH', 'lang_cn')
-
 
 
 def parse_ini_configuration():
