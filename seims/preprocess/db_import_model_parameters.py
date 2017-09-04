@@ -11,6 +11,7 @@ from gridfs import GridFS
 from numpy import unique
 from pymongo import ASCENDING
 
+from seims.preprocess.db_mongodb import MongoUtil
 from seims.preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
 from seims.preprocess.utility import read_data_items_from_txt
@@ -32,13 +33,13 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
             maindb: MongoDB database object
         """
-        # delete if existed, create if not existed
+        # delete if existed, initialize if not existed
         c_list = maindb.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_parameter, c_list):
             maindb.create_collection(DBTableNames.main_parameter)
         else:
             maindb.drop_collection(DBTableNames.main_parameter)
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
@@ -75,15 +76,15 @@ class ImportParam2Mongo(object):
                         data_import[k] = cur_data_item[idx]
             bulk.insert(data_import)
         # execute import operators
-        bulk.execute()
-        # create index by parameter's type and name by ascending order.
+        MongoUtil.run_bulk(bulk, 'No operation during initial_params_from_txt.')
+        # initialize index by parameter's type and name by ascending order.
         maindb[DBTableNames.main_parameter].create_index([(ModelParamFields.type, ASCENDING),
                                                           (ModelParamFields.name, ASCENDING)])
 
     @staticmethod
     def calibrated_params_from_txt(cfg, maindb):
         """Read and update calibrated parameters."""
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
@@ -103,7 +104,7 @@ class ImportParam2Mongo(object):
 
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations during calibrated_params_from_txt.')
 
     @staticmethod
     def subbasin_statistics(cfg, maindb):
@@ -199,7 +200,7 @@ class ImportParam2Mongo(object):
         """
         file_in_path = cfg.modelcfgs.filein
         file_out_path = cfg.paramcfgs.init_outputs_file
-        # create if collection not existed
+        # initialize if collection not existed
         c_list = maindb.collection_names()
         conf_tabs = [DBTableNames.main_filein, DBTableNames.main_fileout]
         for item in conf_tabs:
@@ -255,10 +256,10 @@ class ImportParam2Mongo(object):
             if file_out_dict.keys() is []:
                 raise ValueError('There are not any valid output item stored in file.out!')
             bulk.insert(file_out_dict)
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations to excute when import initial outputs settings.')
 
         # begin to import the desired outputs
-        # create bulk operator
+        # initialize bulk operator
         bulk = maindb[DBTableNames.main_fileout].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
@@ -283,7 +284,7 @@ class ImportParam2Mongo(object):
 
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
-        bulk.execute()
+        MongoUtil.run_bulk(bulk, 'No operations to excute when import the desired outputs.')
 
     @staticmethod
     def lookup_tables_as_collection_and_gridfs(cfg, maindb):
@@ -326,7 +327,7 @@ class ImportParam2Mongo(object):
                 bulk.insert(data_import)
                 if len(item_value) > 0:
                     item_values.append(item_value)
-            bulk.execute()
+            MongoUtil.run_bulk(bulk, 'No operations during import %s.' % tablename)
             # begin import gridfs file
             n_row = len(item_values)
             # print (item_values)

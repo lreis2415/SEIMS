@@ -27,7 +27,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
         }
         else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
             /// Output of all subbasins of DT_Raster1D or DT_Raster2D
-            vector<string> aggTypes = SplitString((*iter).aggType, ',');
+            vector<string> aggTypes = SplitString((*iter).aggType, '-');
             for (vector<string>::iterator it = aggTypes.begin(); it != aggTypes.end(); it++) {
                 pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix);
             }
@@ -44,7 +44,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
                 vector<string>(subBsns).swap(subBsns);
             }
             else {
-                subBsns = SplitString((*iter).subBsn, ',');
+                subBsns = SplitString((*iter).subBsn, '-');
             }
             for (vector<string>::iterator it = subBsns.begin(); it != subBsns.end(); it++) {
                 pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, *it, suffix, true);
@@ -89,15 +89,14 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
     for (it = m_printInfos.begin(); it < m_printInfos.end(); it++) {
         vector<PrintInfoItem *>::iterator itemIt;
         for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
-            if ((*itemIt)->getStartTime() < startTime) {
-                // cout<<(*itemIt)->getStartTime()<<", "<<startTime<<endl;
+            if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
                 (*itemIt)->setStartTime(startTime);
                 cout << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                      << " is " << (*itemIt)->StartTime <<
                      ". It's earlier than start time of time series data " << ConvertToString(&startTime)
                      << ", and will be updated." << endl;
             }
-            if ((*itemIt)->getEndTime() > endTime) {
+            if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
                 cout << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                      << " is " << (*itemIt)->EndTime <<

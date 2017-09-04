@@ -1,6 +1,11 @@
 ID,NAME,BMPID,SUBSCENARIO,DISTRIBUTION,COLLECTION,LOCATION
-0,Base1,12,0,RASTER|MGT_FIELDS,plant_management,ALL
-0,Base1,12,1,RASTER|MGT_FIELDS,plant_management,ALL
+0,Base1,17,1,RASTER|MGT_FIELDS,areal_struct_management,1-2-3
+0,Base1,17,2,RASTER|MGT_FIELDS,areal_struct_management,4-5-6
+0,Base1,17,3,RASTER|MGT_FIELDS,areal_struct_management,7-8-9
+0,Base1,17,4,RASTER|MGT_FIELDS,areal_struct_management,10-11
+0,Base1,17,5,RASTER|MGT_FIELDS,areal_struct_management,12
+0,Base1,12,0,RASTER|LANDUSE,plant_management,ALL
+0,Base1,12,1,RASTER|LANDUSE,plant_management,ALL
 0,Base1,1,10001,ARRAY|point_source_distribution|10000,point_source_management,10001-10002
 0,Base1,1,20001,ARRAY|point_source_distribution|20000,point_source_management,20001-20002-20003-20004-20005-20006-20007-20008-20009-20010-20011-20012-20013-20014-20015-20016-20017-20018-20019-20020-20021-20022-20023-20024-20025-20026-20027-20028
 0,Base1,1,40001,ARRAY|point_source_distribution|40000,point_source_management,40001

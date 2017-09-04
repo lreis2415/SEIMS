@@ -178,8 +178,11 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         }
         return;
     }
-    throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
-        " is failed. There is not result data for this file. Please check output variables of modules.");
+    //Don't throw exception, just print the warning message. by lj 08/6/17
+    //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
+    //    " is failed. There is no result data for this file. Please check output variables of modules.");
+    cout << "PrintInfoItem\n Flush\ Creating " << Filename <<
+        " is failed. There is no result data for this file. Please check output variables of modules." << endl;
 }
 
 void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **data) {
