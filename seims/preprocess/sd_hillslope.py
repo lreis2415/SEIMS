@@ -21,6 +21,23 @@ class DelineateHillslope(object):
     """Delineate hillslope for each subbasin, include header, left, and right hillslope"""
 
     @staticmethod
+    def get_subbasin_from_hillslope_id(hillslp_id, subbsin_num):
+        """Get subbasin ID from the hillslope ID and the subbasin number."""
+        remainder = (hillslp_id - subbsin_num) % 3
+        divid = (hillslp_id - subbsin_num) / 3
+        if remainder == 0:
+            return divid
+        else:
+            return divid + 1
+
+    @staticmethod
+    def cal_hs_codes(maxid, curid):
+        """Set hillslope encode IDs."""
+        return [maxid + (curid - 1) * 3 + 1,  # head
+                maxid + (curid - 1) * 3 + 2,  # right
+                maxid + (curid - 1) * 3 + 3]  # left
+
+    @staticmethod
     def downstream_method_whitebox(stream_raster, flow_dir_raster, hillslope_out, d8alg="taudem",
                                    stream_value_method=-1):
         """Algorithm modified from Whitebox GAT v3.4.0.
@@ -61,11 +78,6 @@ class DelineateHillslope(object):
                              "consistent with stream data!")
 
         # definition of utility functions
-        def cal_hillslope_codes(maxid, curid):
-            """Set hillslope encode IDs."""
-            return [maxid + (curid - 1) * 3 + 1,  # head
-                    maxid + (curid - 1) * 3 + 2,  # right
-                    maxid + (curid - 1) * 3 + 3]  # left
 
         def inflow_stream_number(vrow, vcol, flowmodel="taudem"):
             """
@@ -138,7 +150,7 @@ class DelineateHillslope(object):
             # print ("Assign hillslope code for stream cell, r: %d, c: %d, ID: %d" % (vrow, vcol,
             #                                                                         int(strm_id)))
             # set hillslope IDs
-            hillslp_ids = cal_hillslope_codes(max_id, strm_id)
+            hillslp_ids = DelineateHillslope.cal_hs_codes(max_id, strm_id)
             cur_d8_value = flowd8_data[vrow][vcol]
             if in_strm_num == 0:  # it is a one-order stream head
                 headstream_coors.append((vrow, vcol))
@@ -198,8 +210,8 @@ class DelineateHillslope(object):
         def output_hillslope(method_id):
             """Output hillslope according different stream cell value method."""
             for (tmp_row, tmp_col) in stream_coors:
-                tmp_hillslp_ids = cal_hillslope_codes(max_id,
-                                                      stream_data[tmp_row][tmp_col])
+                tmp_hillslp_ids = DelineateHillslope.cal_hs_codes(max_id,
+                                                                  stream_data[tmp_row][tmp_col])
                 if 0 < method_id < 3:
                     hillslope_mtx[tmp_row][tmp_col] = tmp_hillslp_ids[method_id]
                     # is head stream cell?

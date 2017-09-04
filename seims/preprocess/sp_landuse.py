@@ -312,6 +312,8 @@ def main():
 
     LanduseUtilClass.parameters_extraction(seims_cfg, main_db)
 
+    client.close()
+
 
 if __name__ == '__main__':
     main()

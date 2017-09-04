@@ -122,6 +122,5 @@ private:
     void initialOutputs(void);
 
     //!
-    float getPeakRunoffRate(int);
+    //float getPeakRunoffRate(int);
 };
-

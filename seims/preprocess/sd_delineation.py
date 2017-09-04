@@ -6,7 +6,7 @@
                 16-12-07  lj - rewrite for version 2.0, improve calculation efficiency by numpy
                 17-06-23  lj - reorganize as basic class
 """
-from os import remove
+import os
 from shutil import copy as shutil_copy
 
 from numpy import where, fromfunction
@@ -17,9 +17,9 @@ from osgeo.osr import SpatialReference as osr_SpatialReference
 
 from seims.preprocess.sd_hillslope import DelineateHillslope
 from seims.preprocess.text import FieldNames
-from seims.preprocess.utility import status_output, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEM, TauDEMWorkflow
-from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, DinfUtil, StreamnetUtil
+from seims.preprocess.utility import DEFAULT_NODATA
+from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMWorkflow
+from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, StreamnetUtil
 from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
 from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass
 from seims.pygeoc.pygeoc.vector.vector import VectorUtilClass
@@ -50,7 +50,7 @@ class SpatialDelineation(object):
         for jsonName, shp_json_list in geo_json_dict.items():
             # delete if geojson file already existed
             if FileClass.is_file_exists(shp_json_list[1]):
-                remove(shp_json_list[1])
+                os.remove(shp_json_list[1])
             VectorUtilClass.convert2geojson(shp_json_list[1], proj_srs, wgs84_srs,
                                             shp_json_list[0])
 
@@ -66,85 +66,6 @@ class SpatialDelineation(object):
         TauDEMWorkflow.watershed_delineation(bin_dir, mpi_bin, np, cfg.dem, cfg.outlet_file,
                                              cfg.d8acc_threshold, cfg.d8down_method,
                                              cfg.taudems, cfg.logs.delineation, singlebasin=True)
-
-        #
-        # dem = cfg.dem
-        # filled_dem = cfg.taudems.filldem
-        # flow_dir = cfg.taudems.d8flow
-        # slope = cfg.taudems.slp
-        # flow_dir_dinf = cfg.taudems.dinf
-        # slope_dinf = cfg.taudems.dinf_slp
-        # dir_code_dinf = cfg.taudems.dinf_d8dir
-        # weight_dinf = cfg.taudems.dinf_weight
-        # acc = cfg.taudems.d8acc
-        # stream_raster = cfg.taudems.stream_raster
-        # outlet_file =
-        # modified_outlet = cfg.taudems.outlet_m
-        # stream_skeleton = cfg.taudems.stream_pd
-        # acc_with_weight = cfg.taudems.d8acc_weight
-        # stream_order = cfg.taudems.stream_order
-        # ch_network = cfg.taudems.channel_net
-        # ch_coord = cfg.taudems.channel_coord
-        # stream_net = cfg.taudems.streamnet_shp
-        # subbasin = cfg.taudems.subbsn
-        # dist2_stream_d8 = cfg.taudems.dist2stream_d8
-        # d8_down_method = cfg.d8down_method
-        #
-        # status_output("fill DEM...", 10, f_status)
-        # TauDEM.fill(np, tau_dir, dem, filled_dem, mpi_bin, bin_dir)
-        # status_output("Calculating D8 and Dinf flow direction...", 20, f_status)
-        # TauDEM.d8flowdir(np, tau_dir, filled_dem, flow_dir, slope, mpi_bin, bin_dir)
-        # TauDEM.dinfflowdir(np, tau_dir, filled_dem, flow_dir_dinf, slope_dinf, mpi_bin, bin_dir)
-        # DinfUtil.output_compressed_dinf(flow_dir_dinf, dir_code_dinf, weight_dinf)
-        # status_output("D8 flow accumulation...", 40, f_status)
-        # TauDEM.aread8(np, tau_dir, flow_dir, acc, None, None, mpi_bin, bin_dir)
-        # status_output("Generating stream raster initially...", 50, f_status)
-        # min_accum, max_accum, mean_accum, std_accum = RasterUtilClass.raster_statistics(acc)
-        # TauDEM.threshold(np, tau_dir, acc, stream_raster, mean_accum, mpi_bin, bin_dir)
-        # status_output("Moving outlet to stream...", 60, f_status)
-        # TauDEM.moveoutletstostrm(np, tau_dir, flow_dir, stream_raster, outlet_file,
-        #                          modified_outlet, mpi_bin, bin_dir)
-        # status_output("Generating stream skeleton...", 65, f_status)
-        # TauDEM.peukerdouglas(np, tau_dir, filled_dem, stream_skeleton, mpi_bin, bin_dir)
-        # status_output("Flow accumulation with outlet...", 70, f_status)
-        # TauDEM.aread8(np, tau_dir, flow_dir, acc_with_weight, modified_outlet, stream_skeleton,
-        #               mpi_bin, bin_dir)
-        #
-        # threshold = cfg.d8acc_threshold
-        # if cfg.d8acc_threshold <= 0:  # find the optimal threshold using dropanalysis function
-        #     status_output("Drop analysis to select optimal threshold...", 75, f_status)
-        #     min_accum, max_accum, mean_accum, std_accum = \
-        #         RasterUtilClass.raster_statistics(acc_with_weight)
-        #     if mean_accum - std_accum < 0:
-        #         minthresh = mean_accum
-        #     else:
-        #         minthresh = mean_accum - std_accum
-        #     maxthresh = mean_accum + std_accum
-        #     numthresh = 20
-        #     logspace = 'true'
-        #     drp_file = cfg.taudems.drptxt
-        #     TauDEM.dropanalysis(np, tau_dir, filled_dem, flow_dir, acc_with_weight,
-        #                         acc_with_weight, modified_outlet, minthresh, maxthresh,
-        #                         numthresh, logspace, drp_file, mpi_bin, bin_dir)
-        #     if not FileClass.is_file_exists(drp_file):
-        #         raise RuntimeError("Dropanalysis failed and drp.txt was not created!")
-        #     drpf = open(drp_file, "r")
-        #     temp_contents = drpf.read()
-        #     (beg, threshold) = temp_contents.rsplit(' ', 1)
-        #     print (threshold)
-        #     drpf.close()
-        # status_output("Generating stream raster...", 80, f_status)
-        # TauDEM.threshold(np, tau_dir, acc_with_weight, stream_raster, float(threshold),
-        #                  mpi_bin, bin_dir)
-        # status_output("Generating stream net...", 90, f_status)
-        # TauDEM.streamnet(np, tau_dir, filled_dem, flow_dir, acc_with_weight, stream_raster,
-        #                  modified_outlet, stream_order, ch_network,
-        #                  ch_coord, stream_net, subbasin, mpi_bin, bin_dir)
-        # status_output("Calculating distance to stream (D8)...", 95, f_status)
-        # TauDEM.d8distdowntostream(np, tau_dir, flow_dir, filled_dem, stream_raster, dist2_stream_d8,
-        #                           d8_down_method, 1, mpi_bin, bin_dir)
-        # status_output("Original subbasin delineation is finished!", 100, f_status)
-        # f_status.close()
 
     @staticmethod
     def mask_raster_cpp(bin_dir, maskfile, originalfiles, outputfiles, default_values, configfile):
@@ -197,10 +118,11 @@ class SpatialDelineation(object):
         original_files.append(cfg.landuse)
         output_files.append(cfg.spatials.landuse)
         default_values.append(cfg.default_landuse)
-        # management fields
-        if cfg.mgt_field is not None and FileClass.is_file_exists(cfg.mgt_field):
-            original_files.append(cfg.mgt_field)
-            output_files.append(cfg.spatials.mgt_field)
+
+        # Additional raster file
+        for k, v in cfg.additional_rs.iteritems():
+            original_files.append(v)
+            output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
             default_values.append(DEFAULT_NODATA)
 
         config_file = cfg.logs.mask_cfg
