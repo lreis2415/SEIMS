@@ -5,20 +5,25 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
 """
+import json
 import os
 
-from configparser import ConfigParser
+try:
+    from ConfigParser import ConfigParser  # py2
+except ImportError:
+    from configparser import ConfigParser  # py3
 
 from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
     VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMFilesUtils
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
+from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_file
 
 
 class SEIMSConfig(object):
     """Parse SEIMS project configuration."""
 
     def __init__(self, cf):
+        """Initialization."""
         # 1. Directories
         self.base_dir = None
         self.clim_dir = None
@@ -63,7 +68,7 @@ class SEIMSConfig(object):
         self.landcover_init_param = None
         self.soil = None
         self.soil_property = None
-        self.mgt_field = None
+        self.additional_rs = dict()
         # 6. Option parameters
         self.is_TauDEM = True
         self.d8acc_threshold = 0
@@ -102,13 +107,15 @@ class SEIMSConfig(object):
             self.mpi_bin = None
         if not FileClass.is_dir_exists(self.workspace):
             try:  # first try to make dirs
-                os.mkdir(self.workspace)
+                UtilClass.mkdir(self.workspace)
+                # os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.sep + 'preprocess_output'
                 print ('WARNING: Make WORKING_DIR failed: %s. Use the default: %s' % (
                     exc.message, self.workspace))
                 if not os.path.exists(self.workspace):
-                    os.mkdir(self.workspace)
+                    UtilClass.mkdir(self.workspace)
+                    # os.mkdir(self.workspace)
 
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
@@ -142,8 +149,8 @@ class SEIMSConfig(object):
             self.hostname = cf.get('MONGODB', 'hostname')
             self.port = cf.getint('MONGODB', 'port')
             self.climate_db = cf.get('MONGODB', 'climatedbname')
-            self.bmp_scenario_db = cf.get('MONGODB', 'BMPScenarioDBName')
-            self.spatial_db = cf.get('MONGODB', 'SpatialDBName')
+            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
+            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
         else:
             raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
         if not StringClass.is_valid_ip_addr(self.hostname):
@@ -152,11 +159,11 @@ class SEIMSConfig(object):
         # 3. Model related switch
         # by default, OpenMP version and daily (longterm) mode will be built
         if 'SWITCH' in cf.sections():
-            self.cluster = cf.getboolean('SWITCH', 'forCluster')
-            self.storm_mode = cf.getboolean('SWITCH', 'stormMode')
-            self.gen_cn = cf.getboolean('SWITCH', 'genCN')
-            self.gen_runoff_coef = cf.getboolean('SWITCH', 'genRunoffCoef')
-            self.gen_crop = cf.getboolean('SWITCH', 'genCrop')
+            self.cluster = cf.getboolean('SWITCH', 'forcluster')
+            self.storm_mode = cf.getboolean('SWITCH', 'stormmode')
+            self.gen_cn = cf.getboolean('SWITCH', 'gencn')
+            self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
+            self.gen_crop = cf.getboolean('SWITCH', 'gencrop')
 
         if self.storm_mode:
             self.gen_iuh = False
@@ -192,10 +199,18 @@ class SEIMSConfig(object):
                                         + cf.get('SPATIAL', 'landcoverinitfile')
             self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
             self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
-            self.mgt_field = self.spatial_dir + os.sep + cf.get('SPATIAL', 'mgtfieldfile')
-            if not os.path.exists(self.mgt_field) or \
-                    StringClass.string_match(self.mgt_field, 'none'):
-                self.mgt_field = None
+            additional_dict_str = cf.get('SPATIAL', 'additionalfile')
+            tmpdict = json.loads(additional_dict_str)
+            tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
+                       tmpdict.items()}
+            for k, v in tmpdict.items():
+                if not FileClass.is_file_exists(v):
+                    v = self.spatial_dir + os.sep + v
+                if not FileClass.is_file_exists(v):
+                    print ('WARNING: The additional file %s MUST be located in SPATIAL_DATA_DIR, or'
+                           'provided as full file path!' % k)
+                else:
+                    self.additional_rs[k] = v
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
@@ -236,4 +251,4 @@ def parse_ini_configuration():
 
 if __name__ == '__main__':
     seims_cfg = parse_ini_configuration()
-    print seims_cfg.meteo_sites_thiessen
+    print (seims_cfg.meteo_sites_thiessen)

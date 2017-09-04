@@ -38,6 +38,12 @@ public:
     /// Output
     void Dump(ostream *fs);
 
+    /// Set management fields data
+    void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+
+    /// Get management fields data
+    float* getRasterData() { return m_mgtFieldsRs; };
+
     /// Get landuse / landcover ID
     int GetLUCCID(void) {
         return m_luccID;
@@ -66,6 +72,10 @@ public:
 private:
     /// subSecenario name
     string m_name;
+    /// management fields name, defined in 'distribution'
+    string m_mgtFieldsName;
+    /// management fields data (1D array raster)
+    float* m_mgtFieldsRs;
     /// landuse / landcover
     int m_luccID;
     /// parameters

@@ -104,8 +104,10 @@ private:
     ///// water content of soil at wilting point, mm H2O/mm Soil
     //float **m_wiltingPoint;
 
-    ///mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
+    /// mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
     float **m_sol_awc;
+    /// mm H2O: (sol_ul) amount of water held in the soil layer at saturation (sat - wp water)
+    float **m_sol_ul;
     /// amount of water held in the soil layer at saturation (sat - wp water), mm H2O, sol_sumul of SWAT
     float *m_sol_sumsat;
     /// initial soil water storage fraction related to field capacity (FC-WP)
