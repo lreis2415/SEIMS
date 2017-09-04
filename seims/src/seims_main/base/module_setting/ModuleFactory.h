@@ -48,8 +48,11 @@ public:
     //! Get Module ID by index
     string GetModuleID(int i) { return m_moduleIDs[i]; }
 
-    //! update BMP Parameters
-    void updateBMPOptParameter(int nSubbasin);
+    /*!
+     *\brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
+     * \sa BMPArealStructFactory, and \sa BMPArealStruct
+     */
+    void updateParametersByScenario(int subbsnID);
 
 private:
     //! Initialization, read the config.fig file and initialize

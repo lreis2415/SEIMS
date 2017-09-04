@@ -289,13 +289,16 @@ class RasterUtilClass(object):
             data: 2D array data
             geotransform: geographic transformation
             srs: coordinate system
-            nodata_value: nodata value
+            nodata_value: nodata_flow value
             gdal_type: output raster data type, GDT_Float32 as default
         """
         driver = gdal_GetDriverByName("GTiff")
         ds = driver.Create(f_name, n_cols, n_rows, 1, gdal_type)
         ds.SetGeoTransform(geotransform)
-        ds.SetProjection(srs.ExportToWkt())
+        try:
+            ds.SetProjection(srs.ExportToWkt())
+        except AttributeError or Exception:
+            ds.SetProjection(srs)
         ds.GetRasterBand(1).SetNoDataValue(nodata_value)
         ds.GetRasterBand(1).WriteArray(data)
         ds = None
@@ -309,7 +312,7 @@ class RasterUtilClass(object):
             xsize: Col count
             ysize: Row count
             geotransform: geographic transformation
-            nodata_value: nodata value
+            nodata_value: nodata_flow value
         """
         header = """NCOLS %d
     NROWS %d

@@ -27,14 +27,15 @@ class VectorUtilClass(object):
         pass
 
     @staticmethod
-    def raster2shp(rasterfile, vectorshp, layername, fieldname):
+    def raster2shp(rasterfile, vectorshp, layername=None, fieldname=None):
         """Convert raster to ESRI shapefile"""
         FileClass.remove_files(vectorshp)
         FileClass.check_file_exists(rasterfile)
         # raster to polygon vector
         exepath = FileClass.get_executable_fullpath("gdal_polygonize.py")
-        str_cmd = 'python %s -f "ESRI Shapefile" %s %s %s %s' % (
-            exepath, rasterfile, vectorshp, layername, fieldname)
+        str_cmd = 'python %s -f "ESRI Shapefile" %s %s' % (exepath, rasterfile, vectorshp)
+        if layername is not None and fieldname is not None:
+            str_cmd += ' %s %s' % (layername, fieldname)
         print (str_cmd)
         print (UtilClass.run_command(str_cmd))
 

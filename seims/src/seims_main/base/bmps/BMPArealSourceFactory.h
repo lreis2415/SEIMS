@@ -236,6 +236,12 @@ public:
      */
     void ReadArealSourceLocations(MongoClient* conn, const string &bmpDBName);
 
+    /// Set raster data if needed
+    void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+
+    /// Get management fields data
+    float* getRasterData() { return m_mgtFieldsRs; };
+
     string GetArealSrcDistName(void) {
         return m_arealSrcDistName;
     }
@@ -276,6 +282,8 @@ private:
     map<int, ArealSourceMgtParams *> m_arealSrcMgtMap;
     /// core file name of areal source locations, such as MGT_FIELDS
     string m_arealSrcDistName;
+    /// distribution data of areal source locations
+    float* m_mgtFieldsRs;
     /// areal source distribution table
     string m_arealSrcDistTab;
     /// Field IDs of areal source of current subScenario

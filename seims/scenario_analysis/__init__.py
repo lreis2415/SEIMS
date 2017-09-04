@@ -20,7 +20,8 @@
  ******************************************************************************/
 """
 
-__author__ = "Huiran Gao"
-__description__ = "Implementation of the Scenario Analysis by NSGA-II algorithm of DEAP"
-__version__ = "1.0"
-__revision__ = "1.0.0"
+__author__ = "Huiran Gao, Liangjun Zhu"
+__description__ = "Scenario Analysis by NSGA-II algorithm"
+__version__ = "1.1"
+__revision__ = "1.1.0"
+__all__ = ["slpposunits"]

@@ -193,7 +193,7 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     }
     CheckInputSize(key, n);
     if (StringMatch(sk, VAR_SUBBSN)) { m_subBsnID = data; }
-    else if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; }
+    //else if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; } // m_mgtFields is set by Scenario data
     else if (StringMatch(sk, VAR_LANDUSE)) { m_landUse = data; }
     else if (StringMatch(sk, VAR_LANDCOVER)) { m_landCover = data; }
     else if (StringMatch(sk, VAR_IDC)) {
@@ -384,6 +384,10 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
             /// calculate unique index for the key of m_mgtFactory, using Landuse_ID * 100 + subScenario
             int uniqueIdx = ((BMPPlantMgtFactory *) it->second)->GetLUCCID() * 100 + it->second->GetSubScenarioId();
             m_mgtFactory[uniqueIdx] = (BMPPlantMgtFactory *) it->second;
+            /// Set plant management spatial units
+            if (NULL == m_mgtFields) {
+                m_mgtFields = ((BMPPlantMgtFactory *)it->second)->getRasterData();
+            }
         }
     }
 }
