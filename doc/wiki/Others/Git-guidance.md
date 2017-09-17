@@ -150,7 +150,7 @@ git subtree是一条git子命令，本质上subtree是一种合并策略，从gi
 
 解释：其中-f意思是在添加远程仓库之后，立即执行fetch。
 
-+　语法：`git subtree add --prefix=<子目录名> <子仓库名> <分支> --squash`
++ 语法：`git subtree add --prefix=<子目录名> <子仓库名> <分支> --squash`
 
 解释：`--squash`意思是把subtree的改动合并成一次commit，这样就不用拉取子项目完整的历史记录。`--prefix`之后的=等号也可以用空格。
 
