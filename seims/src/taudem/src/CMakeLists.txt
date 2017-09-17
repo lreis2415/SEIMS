@@ -1,6 +1,7 @@
 set(shape_srcs ReadOutlets.cpp)
 set(common_srcs commonLib.cpp tiffIO.cpp)
 
+set(CONNECTDOWNFILES connectdownmn.cpp connectdown.cpp ${common_srcs} ${shape_srcs})
 set(D8FILES aread8mn.cpp aread8.cpp ${common_srcs} ${shape_srcs})
 set(DINFFILES areadinfmn.cpp areadinf.cpp ${common_srcs} ${shape_srcs})
 set(D8 D8FlowDirmn.cpp d8.cpp Node.cpp ${common_srcs} ${shape_srcs})
@@ -41,6 +42,7 @@ set(GAGEWATERSHED gagewatershedmn.cpp gagewatershed.cpp ${common_srcs}
 
 add_executable(aread8 ${D8FILES})
 add_executable(areadinf ${DINFFILES})
+add_executable(connectdown ${CONNECTDOWNFILES})
 add_executable(d8flowdir ${D8})
 add_executable(d8flowpathextremeup ${D8EXTREAMUP})
 add_executable(d8hdisttostrm ${D8HDIST})
@@ -69,6 +71,7 @@ add_executable(gagewatershed ${GAGEWATERSHED})
 
 set(MY_TARGETS aread8
         areadinf
+        connectdown
         d8flowdir
         d8flowpathextremeup
         d8hdisttostrm
