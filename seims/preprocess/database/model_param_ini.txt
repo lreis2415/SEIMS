@@ -22,8 +22,8 @@ Discharge,chs0,initial channel storage,m3/m,All,0,0,AC,100,0
 Discharge,chs0_perc,initial percentage of channel depth,none,ALL,0.05,0,AC,1,0
 Discharge,df_coef,Deep percolation coefficient,mm,GW_RSVR,0,0,AC,1,0
 Discharge,ep_ch,reach evaporation adjustment factor,m3/m,ALL,1,0,AC,1,0
-Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,1000,0
-Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,1000,0
+Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,50000,0
+Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,100000,0
 Discharge,k_bank,channel bank hydraulic conductivity,mm/hr,ALL,20,0,AC,150,0
 Discharge,k_chb,channel bottom hydraulic conductivity,mm/hr,ALL,0.5,0,AC,150,0
 Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001
@@ -112,7 +112,7 @@ Nutrient,rs2,Benthic (sediment) source rate for dissolved phosphorus in the reac
 Nutrient,rs3,Benthic source rate for NH4-N in the reach at 20 deg C,mg NH4-N)/((m**2)*day,NutCHRout,0.5,1,RC,1,0
 Nutrient,rs4,Rate coefficient for organic N settling in the reach at 20 deg C,1/day,NutCHRout,0.05,1,RC,0.1,0.001
 Nutrient,rs5,Organic phosphorus settling rate in the reach at 20 deg C,1/day,NutCHRout,0.05,1,RC,0.1,0.001
-Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1.02,1,RC,1,0
+Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1,1,RC,1,0
 Nutrient,tfact,Fraction of solar radiation that is photosynthetically active,none,NutCHRout,0.3,1,RC,1,0
 PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,0,0,AC,2,0
 PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,BIO_EPIC,0,1,AC,24,0
