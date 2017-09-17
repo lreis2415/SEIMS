@@ -18,7 +18,7 @@ from seims.preprocess.db_import_sites import ImportHydroClimateSites
 from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from seims.preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from seims.preprocess.sp_extraction import extract_spatial_parameters
-from seims.preprocess.text import DBTableNames
+from seims.preprocess.text import DBTableNames, SubbsnStatsName
 from seims.preprocess.utility import status_output
 from seims.pygeoc.pygeoc.utils.utils import UtilClass
 
@@ -103,8 +103,8 @@ class ImportMongodbClass(object):
         # import model parameters information to MongoDB
         status_output('Import model parameters', 10, f)
         ImportParam2Mongo.workflow(cfg, maindb)
-        n_subbasins = MongoQuery.get_subbasin_num(maindb)
-        print ('Number of subbasins:%d' % n_subbasins)
+        n_subbasins = MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.subbsn_num)
+        print ('Number of subbasins: %d' % n_subbasins)
 
         # Extract spatial parameters for reaches, landuse, soil, etc.
         status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
@@ -137,7 +137,7 @@ class ImportMongodbClass(object):
 
         # Measurement Data, such as discharge, sediment yield.
         status_output('Import observed data, such as discharge, sediment yield....', 90, f)
-        ImportObservedData.workflow(cfg, climatedb)
+        ImportObservedData.workflow(cfg, maindb, climatedb)
 
         # Import BMP scenario database to MongoDB
         status_output('Importing bmp scenario....', 95, f)
@@ -155,8 +155,9 @@ def main():
     from seims.preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
-    ImportMongodbClass.workflow(seims_cfg)
+    #ImportMongodbClass.workflow(seims_cfg)
 
+    ImportMongodbClass.iuh(seims_cfg, 0)
 
 if __name__ == "__main__":
     main()

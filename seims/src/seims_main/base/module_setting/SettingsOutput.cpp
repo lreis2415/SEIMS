@@ -27,7 +27,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
         }
         else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
             /// Output of all subbasins of DT_Raster1D or DT_Raster2D
-            vector<string> aggTypes = SplitString((*iter).aggType, ',');
+            vector<string> aggTypes = SplitString((*iter).aggType, '-');
             for (vector<string>::iterator it = aggTypes.begin(); it != aggTypes.end(); it++) {
                 pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix);
             }
@@ -44,7 +44,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
                 vector<string>(subBsns).swap(subBsns);
             }
             else {
-                subBsns = SplitString((*iter).subBsn, ',');
+                subBsns = SplitString((*iter).subBsn, '-');
             }
             for (vector<string>::iterator it = subBsns.begin(); it != subBsns.end(); it++) {
                 pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, *it, suffix, true);
