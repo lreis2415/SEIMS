@@ -220,8 +220,10 @@ tiffIO::tiffIO(char *fname, DATA_TYPE newtype, void *nd, const tiffIO &copy) {
 
 tiffIO::~tiffIO() {
 
-    delete dxc;
-    delete dyc;
+    delete[] dxc;
+    delete[] dyc;
+    dxc = NULL;
+    dyc = NULL;
 }
 
 //Read tiff file data/image values beginning at xstart, ystart (gridwide coordinates) for the numRows, and numCols indicated to memory locations specified by dest
