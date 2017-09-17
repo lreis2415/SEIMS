@@ -7,7 +7,6 @@
 """
 import math
 import time
-
 from datetime import datetime, timedelta
 
 from seims.preprocess.text import DBTableNames, StationFields, DataValueFields
@@ -73,16 +72,6 @@ class HydroClimateUtilClass(object):
         return sites_loc
 
     @staticmethod
-    def get_datetime_from_string(formatted_str):
-        """get datetime() object from string formatted %Y-%m-%d %H:%M:%S"""
-        try:
-            org_time = time.strptime(formatted_str, '%Y-%m-%d %H:%M:%S')
-        except ValueError:
-            raise ValueError("The format of DATETIME must be %Y-%m-%d %H:%M:%S!")
-        return datetime(org_time.tm_year, org_time.tm_mon, org_time.tm_mday,
-                        org_time.tm_hour, org_time.tm_min, org_time.tm_sec)
-
-    @staticmethod
     def get_time_system_from_data_file(in_file):
         """Get the time system from the data file. The basic format is:
            #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
@@ -126,7 +115,7 @@ class HydroClimateUtilClass(object):
         dt = None
         for i, fld in enumerate(flds):
             if StringClass.string_match(fld, DataValueFields.dt):
-                dt = HydroClimateUtilClass.get_datetime_from_string(values[i])
+                dt = StringClass.get_datetime(values[i])
             elif StringClass.string_match(fld, DataValueFields.y):
                 cur_y = int(values[i])
             elif StringClass.string_match(fld, DataValueFields.m):

@@ -1,165 +1,260 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Class Scenario
-# @Author Huiran GAO
-# @Date   2016-10-29
-
-import os, sys
+"""Base class of Scenario for coupling NSAG-II and SEIMS.
+    @author   : Huiran Gao, Liangjun Zhu
+    @changelog: 16-10-29  hr - initial implementation.\n
+                17-08-18  lj - redesign and rewrite.\n
+"""
+import os
 import random
-import time
-import scoop
-from pymongo import MongoClient
-from subprocess import Popen
-from subprocess import PIPE
-from config import *
-from readTextInfo import *
+from datetime import timedelta
+from subprocess import CalledProcessError
+
+from bson.objectid import ObjectId
+from pymongo.errors import NetworkTimeout
+
+from seims.preprocess.db_mongodb import ConnectMongoDB
+from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser
+from seims.scenario_analysis.config import SAConfig
+from seims.scenario_analysis.utility import generate_uniqueid, print_message
 
 
-class Scenario:
-    def __init__(self):
-        self.id = None
-        self.attributes = []
-        self.field_Num = farm_Num
-        self.point_cattle_Num = point_cattle_Num
-        self.point_pig_Num = point_pig_Num
-        self.point_sewage_Num = point_sewage_Num
-        self.sce_list = []
-        self.cost_eco = 0.
-        self.benefit_env = 0.
+class Scenario(object):
+    """Base class of Scenario for SEIMS.
 
-    def getIdfromMongo(self):
-        '''
-        set new scenario id according to the existing
-         scenario ids, i.e., the max id + 1
-        '''
-        client = MongoClient(HOSTNAME, PORT)
-        db = client[BMPScenarioDBName]
-        collection = db.BMP_SCENARIOS
-        idsList = []
-        for s in collection.find():
-            idsList.append(int(s['ID']))
-        idList = list(set(idsList))
-        self.id = idList[-1] + 1
+    Attributes:
+        ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
+        timerange(float): Simulation time range, read from MongoDB, the unit is year.
+        economy(float): Economical effectiveness, e.g., income minus expenses
+        environment(float): Environmental effectiveness, e.g., reduction rate of soil erosion
+        gene_num(integer): The number of genes of one chromosome, i.e., an individual
+        gene_values(list): BMP identifiers on each location of gene. The length is gen_num.
+        bmp_items(dict): BMP configuration items that can be imported to MongoDB directly.
+                         The key is `bson.objectid.ObjectId`, the value is scenario item dict.
+        rules(boolean): Config BMPs randomly or rule-based.
+        modelrun(boolean): Has SEIMS model run successfully?
+    """
 
-    def setId(self, id):
-        '''
-        set new scenario id by given number
-        :param id:
-        '''
-        self.id = id
+    def __init__(self, cfg):
+        """Initialize."""
+        self.ID = -1
+        self.timerange = 1.  # unit: year
+        self.economy = 0.
+        self.environment = 0.
+        self.worst_econ = cfg.worst_econ
+        self.worst_env = cfg.worst_env
 
-    def create(self):
-        # Create a scenario numeric string
-        for _ in range(self.field_Num):
-            self.attributes.append(selectBMPatRandom(bmps_farm))
-        for _ in range(self.point_cattle_Num):
-            self.attributes.append(selectBMPatRandom(bmps_cattle))
-        for _ in range(self.point_pig_Num):
-            self.attributes.append(selectBMPatRandom(bmps_pig))
-        for _ in range(self.point_sewage_Num):
-            self.attributes.append(selectBMPatRandom(bmps_sewage))
+        self.gene_num = 0
+        self.gene_values = list()
+        self.bmp_items = dict()
+
+        self.rules = cfg.bmps_rule
+        self.rule_mtd = cfg.rule_method
+        self.bmps_info = cfg.bmps_info
+        self.bmps_retain = cfg.bmps_retain
+        # run seims related
+        self.model_dir = cfg.model_dir
+        self.modelout_dir = None
+        self.bin_dir = cfg.seims_bin
+        self.nthread = cfg.seims_nthread
+        self.lyrmethod = cfg.seims_lyrmethod
+        self.hostname = cfg.hostname
+        self.port = cfg.port
+        self.scenario_db = cfg.bmp_scenario_db
+        self.main_db = cfg.spatial_db
+        self.modelrun = False
+        # predefined directories
+        self.scenario_dir = cfg.scenario_dir
+
+    def set_unique_id(self):
+        """Set unique ID."""
+        self.ID = generate_uniqueid().next()
+        self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
+        self.read_simulation_timerange()
+        return self.ID
+
+    def read_simulation_timerange(self):
+        """Read simulation time range from MongoDB."""
+        client = ConnectMongoDB(self.hostname, self.port)
+        conn = client.get_conn()
+        db = conn[self.main_db]
+        collection = db['FILE_IN']
+        try:
+            stime_str = collection.find_one({'TAG': 'STARTTIME'}, no_cursor_timeout=True)['VALUE']
+            etime_str = collection.find_one({'TAG': 'ENDTIME'}, no_cursor_timeout=True)['VALUE']
+            stime = StringClass.get_datetime(stime_str)
+            etime = StringClass.get_datetime(etime_str)
+            dlt = etime - stime + timedelta(seconds=1)
+            self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        except NetworkTimeout or Exception:
+            # In case of unexpected raise
+            self.timerange = 1.  # set default
+            pass
+        client.close()
+
+    def rule_based_config(self, conf_rate):
+        """Config available BMPs to each gene of the chromosome by rule-based method.
+
+        Virtual function that should be overridden in inherited Scenario class.
+        """
+        pass
+
+    def random_based_config(self, conf_rate):
+        """Config available BMPs to each gene of the chromosome by random-based method.
+
+        Virtual function that should be overridden in inherited Scenario class.
+        """
+        pass
 
     def decoding(self):
-        # scenario section
-        if len(self.attributes) == 0:
-            raise Exception("'attributes' cannot be Null!")
-        if self.id is None:
-            raise Exception("'id' cannot be None!")
-        field_index = self.field_Num
-        point_cattle_index = self.point_cattle_Num + field_index
-        point_pig_index = self.point_pig_Num + point_cattle_index
-        point_sewage_index = self.point_sewage_Num + point_pig_index
-        # farm field
-        for f in range(len(bmps_farm)):
-            scenario_Row = ""
-            scenario_Row += str(self.id) + "\tsName" + str(self.id) + "\t12\t"
-            farm_BMP_do = False
-            for i in range(0, field_index):
-                if self.attributes[i] == 1:
-                    farm_BMP_do = True
-                else:
-                    farm_BMP_do = False
-            if farm_BMP_do:
-                scenario_Row += str(bmps_farm[f] + 2) + "\t"
-            else:
-                scenario_Row += str(bmps_farm[f]) + "\t"
-            scenario_Row += "RASTER|MGT_FIELDS\tPLANT_MANAGEMENT\tALL"
-            self.sce_list.append(scenario_Row)
-        # point source
-        cattleConfig = getPointConfig(self.attributes, bmps_cattle, point_cattle, field_index, point_cattle_index)
-        pigConfig = getPointConfig(self.attributes, bmps_pig, point_pig, point_cattle_index, point_pig_index)
-        sewageConfig = getPointConfig(self.attributes, bmps_sewage, point_sewage, point_pig_index, point_sewage_index)
-        self.sce_list.extend(decodPointScenario(self.id, cattleConfig, 10000))
-        self.sce_list.extend(decodPointScenario(self.id, pigConfig, 20000))
-        self.sce_list.extend(decodPointScenario(self.id, sewageConfig, 40000))
+        """Decoding gene_values to bmp_items
 
-    def importoMongo(self, hostname, port, dbname):
-        '''
-        Import scenario list to MongoDB
-        :return:
-        '''
-        client = MongoClient(hostname, port)
-        db = client[dbname]
-        collection = db.BMP_SCENARIOS
-        keyarray = ["ID", "NAME", "BMPID", "SUBSCENARIO", "DISTRIBUTION", "COLLECTION", "LOCATION"]
-        for line in self.sce_list:
-            conf = {}
-            li_list = line.split('\t')
-            for i in range(len(li_list)):
-                if isNumericValue(li_list[i]):
-                    conf[keyarray[i]] = float(li_list[i])
-                else:
-                    conf[keyarray[i]] = str(li_list[i]).upper()
-            collection.insert(conf)
+        This function should be overridden.
+        """
+        pass
 
-    def cost(self):
-        if len(self.attributes) == 0:
-            raise Exception("'attributes' cannot be Null!")
-        field_index = self.field_Num
-        point_cattle_index = self.point_cattle_Num + field_index
-        point_pig_index = self.point_pig_Num + point_cattle_index
-        point_sewage_index = self.point_sewage_Num + point_pig_index
-        for i1 in range(0, field_index):
-            self.cost_eco += bmps_farm_cost[int(self.attributes[i1])]
-        for i2 in range(field_index, point_cattle_index):
-            self.cost_eco += bmps_cattle_cost[int(self.attributes[i2])] * point_cattle_size[i2 - field_index]
-        for i3 in range(point_cattle_index, point_pig_index):
-            self.cost_eco += bmps_pig_cost[int(self.attributes[i3])] * point_pig_size[i3 - point_cattle_index]
-        for i4 in range(point_pig_index, point_sewage_index):
-            self.cost_eco += bmps_sewage_cost[int(self.attributes[i4])]
+    def export_to_mongodb(self):
+        """Export current scenario to MongoDB.
+        Delete the same ScenarioID if existed.
+        """
+        client = ConnectMongoDB(self.hostname, self.port)
+        conn = client.get_conn()
+        db = conn[self.scenario_db]
+        collection = db['BMP_SCENARIOS']
+        try:
+            # find ScenarioID, remove if existed.
+            if collection.find({'ID': self.ID}, no_cursor_timeout=True).count():
+                collection.remove({'ID': self.ID})
+        except NetworkTimeout or Exception:
+            # In case of unexpected raise
+            pass
+        for objid, bmp_item in self.bmp_items.iteritems():
+            bmp_item['_id'] = ObjectId()
+            collection.insert_one(bmp_item)
+        client.close()
 
-    def benefit(self):
-        printInfo("Scenario ID: " + str(self.id))
-        startT = time.time()
-        cmdStr = "%s %s %d %d %s %d %d" % (
-        model_Exe, model_Workdir, threadsNum, layeringMethod, HOSTNAME, PORT, self.id)
-        # print cmdStr
-        process = Popen(cmdStr, shell = True, stdout = PIPE)
-        while process.stdout.readline() != "":
-            line = process.stdout.readline().split("\n")
-            if line[0] != "" and len(line[0]) == 20:
-                lineArr = line[0].split(' ')[0].split('-')
-                if int(lineArr[2]) == 1:
-                    sys.stdout.write(str(lineArr[0]) + "-" + str(lineArr[1]) + " ")
-            continue
-        process.wait()
-        time.sleep(1)
-        if process.returncode == 0:
-            # if True:
-            dataDir = model_Workdir + os.sep + "OUTPUT" + str(self.id)
-            polluteList = ['CH_COD', 'CH_TN', 'CH_TP']
-            polluteWt = [27., 4., 1.]
-            for pp in range(len(polluteList)):
-                simData = ReadSimfromTxt(timeStart, timeEnd, dataDir, polluteList[pp], subbasinID = 0)
-                self.benefit_env += sum(simData) / polluteWt[pp]
-        # print self.benefit_env
-        printInfo("cost_eco: " + str(self.cost_eco))
-        printInfo("benefit_env: " + str(self.benefit_env))
-        endT = time.time()
-        printInfo("SEIMS running time: %.2fs" % (endT - startT))
+    def export_to_txt(self):
+        """Export current scenario information to text file.
 
-    def saveInfo(self, txtfile):
-        outfile = file(txtfile, 'a')
-        infoStr = str(self.id) + "\t" + str(self.cost_eco) + "\t" + str(self.benefit_env) \
-                  + "\t" + str(self.attributes) + LF
-        outfile.write(infoStr)
+        This function is better be called after `calculate_environment` and `calculate_environment`
+            or in static method, e.g., `scenario_effectiveness`.
+        """
+        ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
+        outfile = open(ofile, 'w')
+        outfile.write('Scenario ID: %d\n' % self.ID)
+        outfile.write('Gene number: %d\n' % self.gene_num)
+        outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+        outfile.write('Scenario items:\n')
+        if len(self.bmp_items) > 0:
+            for obj, item in self.bmp_items.iteritems():
+                header = item.keys()
+                break
+            outfile.write('\t'.join(header))
+            outfile.write('\n')
+            for obj, item in self.bmp_items.iteritems():
+                outfile.write('\t'.join(str(v) for v in item.values()))
+                outfile.write('\n')
+
+        outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
+                                                                              self.environment))
         outfile.close()
+
+    def export_scenario_to_gtiff(self):
+        """Export the areal BMPs to gtiff for further analysis.
+
+        This function should be overridden in inherited class.
+        """
+        pass
+
+    def import_from_mongodb(self, sid):
+        """Import a specified Scenario (`sid`) from MongoDB.
+
+        This function should be overridden in inherited class.
+        Returns:
+            True if succeed, otherwise False.
+        """
+        pass
+
+    def import_from_txt(self, sid):
+        """Import a specified Scenario (`sid`) from text file.
+
+        This function should be overridden in inherited class.
+        Returns:
+            True if succeed, otherwise False.
+        """
+        pass
+
+    def calculate_economy(self):
+        """Calculate economical effectiveness, which is application specified."""
+        pass
+
+    def calculate_environment(self):
+        """Calculate environment effectiveness, which is application specified."""
+        pass
+
+    def execute_seims_model(self):
+        """Run SEIMS for evaluating environmental effectiveness.
+        If execution fails, the `self.economy` and `self.environment` will be set the worst values.
+        """
+        print_message('Scenario ID: %d, running SEIMS model...' % self.ID)
+
+        cmd_str = '%s/seims_omp %s %d %d %s %d %d' % (self.bin_dir, self.model_dir, self.nthread,
+                                                      self.lyrmethod, self.hostname, self.port,
+                                                      self.ID)
+        try:
+            UtilClass.run_command(cmd_str)
+            self.modelrun = True
+        except CalledProcessError or Exception:
+            print ('Run SEIMS model failed!')
+            self.modelrun = False
+        return self.modelrun
+
+    def initialize(self):
+        """Initialize a scenario.
+
+        Returns:
+            A list contains BMPs identifier of each gene location.
+        """
+        # Create configuration rate for each location randomly, 0.25 ~ 0.75
+        cr = random.randint(40, 60) / 100.
+        # cr = 0.75
+        if self.rules:
+            self.rule_based_config(cr)
+        else:
+            self.random_based_config(cr)
+        if len(self.gene_values) == self.gene_num > 0:
+            return self.gene_values
+        else:
+            raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
+                               ' class, especially the overwritten rule_based_config and'
+                               ' random_based_config!')
+
+
+def initialize_scenario(cf):
+    """Used for initial individual of population.
+
+    Designed as static method, which should be overridden in inherited class.
+    """
+    pass
+
+
+def scenario_effectiveness(cf, individual):
+    """Used for evaluate the effectiveness of given individual.
+
+    Designed as static method, which should be overridden in inherited class.
+    """
+    pass
+
+
+if __name__ == '__main__':
+    cf = get_config_parser()
+    cfg = SAConfig(cf)
+    sceobj = Scenario(cfg)
+
+    # test the picklable of Scenario class.
+    import pickle
+
+    s = pickle.dumps(sceobj)
+    # print (s)
+    new_cfg = pickle.loads(s)
+    print (new_cfg.bin_dir)

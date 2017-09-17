@@ -54,8 +54,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_DEET, UNIT_DEPTH_MM, DESC_DEET, Source_Module_Optional, DT_Raster1D); /// m_depEvapor
     mdi.AddInput(VAR_DPST, UNIT_DEPTH_MM, DESC_DPST, Source_Module_Optional, DT_Raster1D); /// m_depStorage
     mdi.AddInput(VAR_SEDYLD, UNIT_KG, DESC_SEDYLD, Source_Module, DT_Raster1D); /// m_sedYield
-    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module,
-                 DT_Array1D); /// m_sedToCh, may be updated in this module
+    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Array1D); /// m_sedToCh, may be updated in this module
     mdi.AddInput(VAR_SANDYLD, UNIT_KG, DESC_SANDYLD, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SILTYLD, UNIT_KG, DESC_SILTYLD, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_CLAYYLD, UNIT_KG, DESC_CLAYYLD, Source_Module, DT_Raster1D);
@@ -73,7 +72,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SEDMINPS, UNIT_CONT_KGHA, DESC_SEDMINPS, Source_Module, DT_Raster1D);
 
     mdi.AddInput(VAR_SBOF, UNIT_FLOW_CMS, DESC_SBOF, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_SUR_NO3_TOCH, UNIT_KG, DESC_SUR_NO3_ToCH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_SUR_NH4_TOCH, UNIT_KG, DESC_SUR_NH4_ToCH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_SUR_SOLP_TOCH, UNIT_KG, DESC_SUR_SOLP_ToCH, Source_Module, DT_Array1D);

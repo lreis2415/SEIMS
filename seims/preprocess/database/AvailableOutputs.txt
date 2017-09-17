@@ -38,7 +38,7 @@ Depression,DEET,Depression ET,mm,SUM,1970-01-01 00:00:00,1970-01-01 00:00:00,-99
 Percolation,PERCO,Percolation,mm,SUM-AVE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,PERCO.tif,0
 Erosion,SOER,soil loss caused by water erosion,kg,SUM,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SOER.tif,0
 Erosion,USLE_LS,USLE LS factor,None,MAX,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,USLE_LS.tif,0
-Erosion,SEDTOCH,Sediment to reach,kg,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,SEDtoCH.txt,0
+Erosion,SEDTOCH,Sediment to reach,kg,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,1,DAY,OUTLET,SEDtoCH.txt,0
 Erosion,SED_OL,sediment transported to channel at each cell,kg,SUM-AVE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SED_OL.tif,0
 Plant growth,SOL_COV,Residue on soil surface,kg/ha,SUM-AVE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SOL_COV.tif,0
 Plant growth,SOL_RSD,Organic matter in soil classified as residue,kg/ha,SUM-AVE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SOL_RSD.tif,0
@@ -79,10 +79,10 @@ Nutrient,WSHD_PAS,phosphorus moving from active mineral to stable mineral pool i
 Atmosphere deposition,WSHD_RNO3,average annual amount of NO3 added to soil by rainfall in watershed,kg,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,WSHD_RNO3.txt,0
 Subsurface runoff,SSRU,Subsurface runoff,mm,SUM,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SSRU.tif,0
 Subsurface runoff,SSRUVOL,Subsurface runoff volume,m3,SUM,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,SSRUVOL.tif,0
-Subsurface runoff,SBIF,Subsurface runoff discharge to streams from each subbasin,m2/s,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,SBIF.txt,0
+Subsurface runoff,SBIF,Subsurface runoff discharge to streams from each subbasin,m3/s,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,SBIF.txt,0
 Discharge,QRECH,Discharge at reach outlet of each time step,m3/s,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,1,DAY,OUTLET,Q.txt,0
 Sediment,SEDRECH,Sediment concentration,kg,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,1,DAY,OUTLET,SED.txt,0
-Sediment,SEDRECHConc,Sediment concentration,g/cm3,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,1,DAY,OUTLET,SEDConc.txt,0
+Sediment,SEDRECHConc,Sediment concentration,mg/L,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,1,DAY,OUTLET,SEDConc.txt,0
 Groundwater,REVAP,revaporization from groundwater,mm,MAX,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,ALL,REVAP.tif,0
 Groundwater,RG,groundwater runoff,mm,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,RG.txt,0
 Groundwater,SBQG,groundwater flow out of the subbasin,m3/s,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,SBQG.txt,0

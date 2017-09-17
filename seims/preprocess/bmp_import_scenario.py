@@ -42,7 +42,7 @@ class ImportScenario2Mongo(object):
             bmp_tabs.append(f.split('.')[0])
             bmp_tabs_path.append(cfg.scenario_dir + SEP + f)
 
-        # create if collection not existed
+        # initialize if collection not existed
         c_list = scenario_db.collection_names()
         for item in bmp_tabs:
             if not StringClass.string_in_list(item.upper(), c_list):
@@ -62,7 +62,10 @@ class ImportScenario2Mongo(object):
                 dic = {}
                 for i, field_name in enumerate(field_array):
                     if MathClass.isnumerical(item[i]):
-                        dic[field_name.upper()] = float(item[i])
+                        v = float(item[i])
+                        if v % 1. == 0.:
+                            v = int(v)
+                        dic[field_name.upper()] = v
                     else:
                         dic[field_name.upper()] = str(item[i]).upper()
                 if StringClass.string_in_list(ImportScenario2Mongo._LocalX, dic.keys()) and \
@@ -74,7 +77,7 @@ class ImportScenario2Mongo(object):
                             dic[ImportScenario2Mongo._LocalX.upper()],
                             dic[ImportScenario2Mongo._LocalY.upper()])
                     if subbsn_id is not None and distance is not None:
-                        dic[ImportScenario2Mongo._SUBBASINID] = float(subbsn_id)
+                        dic[ImportScenario2Mongo._SUBBASINID] = int(subbsn_id)
                         dic[ImportScenario2Mongo._DISTDOWN] = float(distance)
                         scenario_db[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
                                                                                upsert=True)
