@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from pymongo import ASCENDING
 
+from seims.preprocess.db_mongodb import MongoUtil
 from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
 from seims.preprocess.text import DBTableNames, DataValueFields, DataType
 from seims.preprocess.utility import read_data_items_from_txt
@@ -68,10 +69,10 @@ class ImportPrecipitation(object):
                 bulk.insert(cur_dic)
                 count += 1
                 if count % 500 == 0:  # execute each 500 records
-                    bulk.execute()
+                    MongoUtil.run_bulk(bulk)
                     bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
         if count % 500 != 0:
-            bulk.execute()
+            MongoUtil.run_bulk(bulk)
         # Create index
         climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
                                                        (DataValueFields.type, ASCENDING),

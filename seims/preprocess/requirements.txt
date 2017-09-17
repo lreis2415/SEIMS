@@ -6,3 +6,5 @@ networkx>=1.10
 Shapely>=1.5.0
 configparser>=3.0
 networkx>=1.11
+configparser  # python3
+ConfigParser  # python2.7+

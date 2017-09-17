@@ -8,7 +8,7 @@ echo "Installing and starting mongodb"
 # The follow dependencies will be automatically installed by mongodb
 # brew install automake autoconf libtool openssl
 brew install mongodb
-# create a folder for mongodb to prevent an error on mac osx
+# initialize a folder for mongodb to prevent an error on mac osx
 sudo mkdir -p /data/db
 brew services start mongodb
 cd ..

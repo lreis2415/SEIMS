@@ -97,7 +97,7 @@ void MUSLE_AS::initialOutputs() {
 
             float S = pow(sin(atan(m_slope[i])) / 0.0896f, 1.3f);
 
-            m_usle_ls[i] = L * S;//equation 3 in memo, LS factor
+            m_usle_ls[i] = L * S;  // LS factor
 
             m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
         }
@@ -109,14 +109,14 @@ void MUSLE_AS::initialOutputs() {
     }
 }
 
-float MUSLE_AS::getPeakRunoffRate(int cell) {
-    if (m_surfaceRunoff[cell] < 0.01f) {
-        return 0.f;
-    } else {
-        return m_cellAreaKM1 * m_slopeForPq[cell] *
-            pow(m_surfaceRunoff[cell] / 25.4f, m_cellAreaKM2);
-    } //equation 2 in memo, peak flow
-}
+//float MUSLE_AS::getPeakRunoffRate(int cell) {
+//    // peak flow
+//    if (m_surfaceRunoff[cell] < 0.01f) {
+//        return 0.f;
+//    } else {
+//        return m_cellAreaKM1 * m_slopeForPq[cell] * pow(m_surfaceRunoff[cell] / 25.4f, m_cellAreaKM2);
+//    }
+//}
 
 int MUSLE_AS::Execute() {
     CheckInputData();
@@ -125,17 +125,24 @@ int MUSLE_AS::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfaceRunoff[i] < 0.0001f || m_streamLink[i] > 0) {
             m_sedimentYield[i] = 0.f;
-        } else {
-            float q = getPeakRunoffRate(i); //equation 2 in memo, peak flow
-            float Y = 11.8f * pow(m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q, 0.56f)
-                * m_usle_k[i][0] * m_usle_ls[i] * m_usle_c[i] *
-                m_usle_p[i];    //equation 1 in memo, sediment yield
-
-            if (m_snowAccumulation[i] > 0.0001f) {
-                Y /= exp(3.f * m_snowAccumulation[i] / 25.4f);
-            }  //equation 4 in memo, the snow pack effect
-            m_sedimentYield[i] = Y * 1000.f; /// kg
+            m_sandYield[i] = 0.f;
+            m_siltYield[i] = 0.f;
+            m_clayYield[i] = 0.f;
+            m_smaggreYield[i] = 0.f;
+            m_lgaggreYield[i] = 0.f;
+            continue;
         }
+        // peak flow
+        float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfaceRunoff[i] / 25.4f, m_cellAreaKM2);
+        // sediment yield
+        float Y = 11.8f * pow(m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q, 
+                              0.56f) * m_usle_k[i][0] * m_usle_ls[i] * m_usle_c[i] * m_usle_p[i];    
+        // the snow pack effect
+        if (m_snowAccumulation[i] > 0.0001f) {
+            Y /= exp(3.f * m_snowAccumulation[i] / 25.4f);
+        }
+        m_sedimentYield[i] = Y * 1000.f; /// kg
+
         //if(i == 1000) cout << m_sedimentYield[i] << "," << m_surfaceRunoff[i] << endl;
         /// particle size distribution of sediment yield
         m_sandYield[i] = m_sedimentYield[i] * m_detachSand[i];
