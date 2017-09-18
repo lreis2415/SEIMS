@@ -7,9 +7,34 @@ IF (COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0015 NEW)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+################# Install directory ##################
+IF (INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+    SET(INSTALL_DIR ${INSTALL_PREFIX})
+ELSE ()
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+    SET(INSTALL_DIR ${CMAKE_SOURCE_DIR}/bin)
+ENDIF ()
 ### Active C++11 standard, cross-platform. This requires CMake 3.1+
-SET(CMAKE_CXX_STANDARD 11)
+# SET(CMAKE_CXX_STANDARD 11) CMake may make mistake in intel c/c++ compiler
+# 12.1, so make some test when setting the C++ Standard.
+# refers to https://github.com/biicode/client/issues/10
+include(CheckCXXCompilerFlag)
+set(ENABLE_CXXFLAGS_TO_CHECK
+    -std=gnu++11 
+    -std=c++11
+    -std=gnu++0x 
+    -std=c++0x)
+
+foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
+    string(REPLACE "-std=" "_" flag_var ${flag})
+    string(REPLACE "+" "x" flag_var ${flag_var})
+    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
+    if(COMPILER_HAS_CXX_FLAG${flag_var})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+        break()
+    endif()
+endforeach()
 ################# OS platform   ##################
 if (WIN32)
     add_definitions(-Dwindows)
@@ -74,7 +99,7 @@ endif ()
 if (GDAL_FOUND)
     target_link_libraries(RasterClass ${GDAL_LIBRARY})
 endif ()
-install(TARGETS RasterClass DESTINATION bin)
+install(TARGETS RasterClass DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install

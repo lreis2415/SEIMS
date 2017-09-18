@@ -2,11 +2,12 @@
 
 set -e
 brew update
-brew install gdal
-# download mongo-c-driver from github, and compile and install
+# Check if GDAL is already installed
+brew list gdal &>/dev/null || brew install gdal
 echo "Installing and starting mongodb"
-brew install automake autoconf libtool pkgconfig openssl
-brew install mongodb --with-openssl
+# The follow dependencies will be automatically installed by mongodb
+# brew install automake autoconf libtool openssl
+brew install mongodb
 # create a folder for mongodb to prevent an error on mac osx
 sudo mkdir -p /data/db
 brew services start mongodb
