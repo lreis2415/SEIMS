@@ -17,35 +17,34 @@ using namespace std;
  * \class ModelException
  * \brief Print the exception message
  */
-class ModelException :
-    public exception {
+class ModelException : public exception {
 public:
     /*!
      * \brief Constructor
      * \param[in] className, functionName, msg \a string
      */
-    ModelException(string, string, string);
+    ModelException(string className, string functionName, string msg);
 
     //! Destructor (void)
     ~ModelException(void) throw();
 
     /*!
      * \brief Construct error information (string version)
-     * \param[out] \a string error information
+     * \return error information
      */
-    string toString();
+    string toString(void);
 
     /*!
-     * \brief Construct error information (char* version)
-     * \param[out] \a char* error information
+     * \brief Overload function to construct error information
+     * \return \a char* error information
      */
     const char *what() const throw() {
         string descri = "\n";
         descri = "Class:" + m_className + "\n";
         descri += "Function:" + m_functionName + "\n";
         descri += "Message:" + m_msg;
-
-        return descri.c_str();
+        const char* desc_char = descri.c_str();
+        return desc_char;
     }
 
 private:
@@ -54,4 +53,4 @@ private:
     string m_msg;
 };
 
-#endif
+#endif /* MODEL_EXCEPTION */

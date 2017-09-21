@@ -1,0 +1,44 @@
+version: UtilsClass.{build}
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+image: Visual Studio 2013
+configuration: Release
+clone_folder: C:\zhulj\utilsclass
+build:
+  parallel: true
+  verbosity: minimal
+build_script:
+  # make directory for installation
+  - cd C:\zhulj\utilsclass
+  - mkdir utils_win64bit
+  - ps: "ls"
+  - mkdir build_64bit
+  - cd build_64bit
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DINSTALL_PREFIX=C:\zhulj\utilsclass\utils_win64bit
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Release
+  - cd ..
+  - mkdir build_32bit
+  - cd build_32bit
+  - cmake -G "Visual Studio 12 2013" .. -DINSTALL_PREFIX=C:\zhulj\utilsclass\utils_win32bit
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Release
+  - cd ..
+  - ps: "ls"
+artifacts:
+- path: utils_win64bit
+  name: utils_win64bit
+  type: zip
+- path: utils_win32bit
+  name: utils_win32bit
+  type: zip
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: 0QgJRUirN4LatLYsIWz/ZmkyTeATUswoDFNPc63w025BUPh62ttH6Vkoe1vpZ70x
+  artifact: utils_win64bit.zip,utils_win32bit.zip
+  force_update: true
+  on:
+    appveyor_repo_tag: true

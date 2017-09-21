@@ -81,9 +81,12 @@ string utilsTime::ConvertToString2(const time_t *date) {
     return s;
 }
 
-time_t utilsTime::ConvertToTime(string strDate, string const &format, bool includeHour) {
+time_t utilsTime::ConvertToTime(const string& strDate, string const &format, bool includeHour) {
     struct tm *timeinfo;
-    time_t t;
+    time_t t(0);
+    if (utilsString::StringMatch(strDate, "")) {
+        return t;
+    }
     int yr;
     int mn;
     int dy;
@@ -107,14 +110,20 @@ time_t utilsTime::ConvertToTime(string strDate, string const &format, bool inclu
         t = mktime(timeinfo);
     }
     catch (...) {
-        throw;
+        //throw;
+        // do not throw any exceptions in library. 
+        cout << "Error occurred when convert " + strDate + " to time_t!" << endl;
+        t = 0;  // reset to 0 for convenient comparison
     }
 
     return t;
 }
 
 time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool includeHour) {
-    time_t t;
+    time_t t(0);
+    if (utilsString::StringMatch(strDate, "")) {
+        return t;
+    }
     int yr;
     int mn;
     int dy;
@@ -140,15 +149,16 @@ time_t utilsTime::ConvertToTime2(string const &strDate, const char *format, bool
         t = mktime(&timeinfo);
     }
     catch (...) {
-        cout << "Error in ConvertToTime2.\n";
-        throw;
+        cout << "Error in ConvertToTime2!" << endl;
+        t = 0;
+        //throw;
     }
 
     return t;
 }
 
 time_t utilsTime::ConvertYMDToTime(int &year, int &month, int &day) {
-    time_t t;
+    time_t t(0);
     try {
         struct tm timeinfo;
         timeinfo.tm_year = year - 1900;
@@ -158,8 +168,9 @@ time_t utilsTime::ConvertYMDToTime(int &year, int &month, int &day) {
         t = mktime(&timeinfo);
     }
     catch (...) {
-        cout << "Error in ConvertYMDToTime.\n";
-        throw;
+        cout << "Error in ConvertYMDToTime!" << endl;
+        t = 0;
+        //throw;
     }
     return t;
 }
@@ -214,19 +225,20 @@ void utilsString::TrimSpaces(string &str) {
     }
 }
 
-vector <string> utilsString::SplitString(string const &item, char delimiter) {
+vector<string> utilsString::SplitString(string const &item, char delimiter) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     while (std::getline(iss, field, delimiter)) {
         tokens.push_back(field);
     }
+    vector<string>(tokens).swap(tokens);
     return tokens;
 }
 
 vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<int> values;
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back(atoi((*it).c_str()));
@@ -236,7 +248,7 @@ vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
 }
 
 vector<float> utilsString::SplitStringForFloat(string const &item, char delimiter) {
-    vector <string> valueStrs = utilsString::SplitString(item, delimiter);
+    vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<float> values(valueStrs.size());
     for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.push_back((float) atof((*it).c_str()));
@@ -244,9 +256,9 @@ vector<float> utilsString::SplitStringForFloat(string const &item, char delimite
     return values;
 }
 
-vector <string> utilsString::SplitString(string const &item) {
+vector<string> utilsString::SplitString(string const &item) {
     istringstream iss(item);
-    vector <string> tokens;
+    vector<string> tokens;
 
     std::string field;
     iss >> field;
@@ -283,7 +295,7 @@ utilsArray::utilsArray(void) {}
 
 utilsArray::~utilsArray(void) {}
 
-void utilsArray::Output1DArrayToTxtFile(int n, float *data, const char *filename) {
+void utilsArray::Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < n; ++i) {
         ofs << data[i] << "\n";
@@ -291,7 +303,7 @@ void utilsArray::Output1DArrayToTxtFile(int n, float *data, const char *filename
     ofs.close();
 }
 
-void utilsArray::Output2DArrayToTxtFile(int nRows, int nCols, float **data, const char *filename) {
+void utilsArray::Output2DArrayToTxtFile(int nRows, int nCols, const CFLOATPTR *data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < nRows; ++i) {
         for (int j = 0; j < nCols; ++j) {
@@ -449,11 +461,11 @@ int utilsFileIO::DeleteExistedFile(string const &filepath) {
     }
 }
 
-int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <string> &vecFiles) {
+int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
 #ifdef windows
     char szFind[MAX_PATH];
     stringcpy(szFind, lpPath);
-    stringcat(szFind, "\\");
+    stringcat(szFind, SEP);
     stringcat(szFind, expression);
 
     WIN32_FIND_DATA findFileData;
@@ -467,7 +479,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <s
 
         char fullpath[MAX_PATH];
         stringcpy(fullpath, lpPath);
-        stringcat(fullpath, "\\");
+        stringcat(fullpath, SEP);
         stringcat(fullpath, findFileData.cFileName);
 
         vecFiles.push_back(fullpath);
@@ -495,7 +507,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <s
                 || utilsString::StringMatch(expression, ".*")
                 || utilsString::StringMatch(expression, "*.*")) {
                 ostringstream oss;
-                oss << lpPath << "/" << filename;
+                oss << lpPath << SEP << filename;
                 cout << oss.str() << endl;
                 vecFiles.push_back(oss.str());
             }
@@ -504,6 +516,43 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector <s
     }
 #endif /* windows */
     return 0;
+}
+
+bool utilsFileIO::DirectoryExists(const string& dirpath) {
+#ifdef windows
+    if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+#else
+    if (access(dirpath.c_str(), F_OK) != 0) {
+#endif /* windows */
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+bool utilsFileIO::CleanDirectory(const string& dirpath) {
+    try{
+        if (utilsFileIO::DirectoryExists(dirpath)) { /// empty the directory
+            vector<string> existedFiles;
+            utilsFileIO::FindFiles(dirpath.c_str(), "*.*", existedFiles);
+            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); ++it)
+                remove((*it).c_str());
+        } 
+        else { /// create new directory
+#ifdef windows
+            LPSECURITY_ATTRIBUTES att = NULL;
+            ::CreateDirectory(dirpath.c_str(), att);
+#else
+            mkdir(dirpath.c_str(), 0777);
+#endif /* windows */
+        }
+        return true;
+    }
+    catch (...) {
+        cout << "Create or clean directory: " << dirpath << " failed!" << endl;
+        return false;
+    }
 }
 
 string utilsFileIO::GetAppPath() {
@@ -543,7 +592,7 @@ string utilsFileIO::GetAppPath() {
 }
 
 string utilsFileIO::GetCoreFileName(string const &fullFileName) {
-    string::size_type start = fullFileName.find_last_of("\\");
+    string::size_type start = fullFileName.find_last_of(SEP);
     if (fullFileName.find_last_of("/") != string::npos) {
         start = fullFileName.find_last_of("/");
     }
@@ -561,7 +610,7 @@ string utilsFileIO::GetCoreFileName(string const &fullFileName) {
 }
 
 string utilsFileIO::GetSuffix(string const &fullFileName) {
-    vector <string> tokens = utilsString::SplitString(fullFileName, '.');
+    vector<string> tokens = utilsString::SplitString(fullFileName, '.');
     if (tokens.size() >= 2) {
         return tokens[tokens.size() - 1];
     } else {
@@ -586,6 +635,37 @@ string utilsFileIO::GetPathFromFullName(string const &fullFileName) {
         return "";
     }
     return fullFileName.substr(0, i + 1);
+}
+
+bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& contentStrs) {
+    bool bStatus = false;
+    ifstream myfile;
+    string line;
+    try {
+        // open the file
+        myfile.open(filepath.c_str(), ios::in);
+        if (myfile.is_open()) {
+            while (!myfile.eof()) {
+                if (myfile.good()) {
+                    getline(myfile, line);
+                    line = utilsString::trim(line);
+                    if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
+                    {
+                        contentStrs.push_back(line);
+                        bStatus = true; // consider this a success
+                    }
+                }
+            }
+            bStatus = true;
+            myfile.close();
+            vector<string>(contentStrs).swap(contentStrs);
+        }
+    }
+    catch (...) {
+        myfile.close();
+        cout << "Load plain text file: " << filepath << " failed!" << endl;
+    }
+    return bStatus;
 }
 
 /************ utils ******************/
