@@ -4,7 +4,7 @@
  * \author Junzhi Liu, LiangJun Zhu
  * \date May 2016
  * \revised Feb 2017
- * 
+ * \note No exceptions will be thrown.
  */
 #ifndef MONGO_UTILS
 #define MONGO_UTILS
@@ -41,18 +41,34 @@ public:
     /*!
      * \brief Constructor
      * Get a client for a MongoDB instance using ip address and port number
+     * Caution: The constructor should be used with caution, since it does
+     *          not check the validation of IP address and the status of 
+     *          the database. 
+     *          So, `MongoClient *client = MongoClient::Init(host, port)`
+     *          is highly recommended.
      */
-    MongoClient(const char *host, int port);
-
+    MongoClient(const char *host, uint16_t port);
+    /*!
+     * \brief Validation check before the constructor of MongoClient.
+     *        1. Check IP address
+     *        2. Check database status
+     * \usage 
+     *       MongoClient *client = MongoClient::Init(host, port)
+     *       if (NULL == client) {
+     *           throw exception("MongoClient initialization failed!");
+     *           // or other error handling code.
+     *       }
+     */
+    static MongoClient* Init(const char *host, uint16_t port);
     /*!
      * \brief Destructor
      */
-    ~MongoClient();
+    ~MongoClient(void);
 
     /*!
      * \brief Get mongoc_client instance
      */
-    mongoc_client_t *getConn() { return m_conn; }
+    mongoc_client_t *getConn(void) { return m_conn; }
 
     /*!
      * \brief Get existed Database instance
@@ -60,12 +76,12 @@ public:
      * upon insertion of the first document into a collection.
      * Therefore, there is no need to create a database manually.
      */
-    mongoc_database_t *getDatabase(string const &dbname);
+    mongoc_database_t* getDatabase(string const &dbname);
 
     /*!
      * \brief Get Collection instance
      */
-    mongoc_collection_t *getCollection(string const &dbname, string const &collectionname);
+    mongoc_collection_t* getCollection(string const &dbname, string const &collectionname);
 
     /*!
      * \brief Get GridFS instance
@@ -76,13 +92,13 @@ public:
      * \brief Get database names
      * \return Database names, vector<string>
      */
-    vector <string> getDatabaseNames();
+    void getDatabaseNames(vector<string> &dbnames);
 
     /*!
      * \brief Get collection names in MongoDB database
      * \param[in] dbName \string database name
      */
-    vector <string> getCollectionNames(string const &dbName);
+    void getCollectionNames(string const &dbName, vector<string> &collNames);
 
     /*!
      * \brief Get GridFs file names in MongoDB database
@@ -90,19 +106,12 @@ public:
      * \param[in] gfs \string GridFS name
      * \return filenames vector<string>
      */
-    vector <string> getGridFSFileNames(string const &dbname, string const &gfsname);
-
-private:
-    /*!
-     * \brief Get database names
-     */
-    void _database_names();
+    void getGridFSFileNames(string const &dbname, string const &gfsname, vector<string>& fileExisted);
 
 private:
     const char *m_host;
-    int m_port;
+    uint16_t m_port;
     mongoc_client_t *m_conn;
-    vector <string> m_dbnames;
 };
 
 /*!
@@ -124,12 +133,12 @@ public:
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoDatabase();
+    ~MongoDatabase(void);
 
     /*!
       * \brief Get collection names in current database
       */
-    vector <string> getCollectionNames();
+    void getCollectionNames(vector<string>& collNames);
 
 private:
     mongoc_database_t *m_db;
@@ -137,7 +146,23 @@ private:
 };
 
 class MongoCollection {
-    // TODO
+public:
+    /*!
+    * \brief Constructor, initialized by a mongoc_collection_t* pointer
+    */
+    MongoCollection(mongoc_collection_t* coll);
+    //! Destructor
+    ~MongoCollection();
+    /*!
+     * \brief Execute query
+     */
+    mongoc_cursor_t* ExecuteQuery(const bson_t* b);
+    /*!
+    * \brief Query the records number
+    */
+    int QueryRecordsCount(void);
+private:
+    mongoc_collection_t*      m_collection;
 };
 
 /*!
@@ -154,9 +179,9 @@ public:
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoGridFS();
+    ~MongoGridFS(void);
 
-    mongoc_gridfs_t *getGridFS() { return m_gfs; }
+    mongoc_gridfs_t *getGridFS(void) { return m_gfs; }
 
     /*!
      * \brief Get GridFS file by name
@@ -171,7 +196,7 @@ public:
     /*!
      * \brief Get GridFS file names
      */
-    vector <string> getFileNames(mongoc_gridfs_t *gfs = NULL);
+    void getFileNames(vector<string>&fileExisted, mongoc_gridfs_t *gfs = NULL);
 
     /*!
      * \brief Get metadata of a given GridFS file name
@@ -181,13 +206,14 @@ public:
     /*!
      * \brief Get stream data of a given GridFS file name
      */
-    void getStreamData(string const &gfilename, char *&databuf, size_t &datalength, mongoc_gridfs_t *gfs = NULL);
+    void getStreamData(string const &gfilename, char *&databuf, size_t &datalength, 
+                       mongoc_gridfs_t *gfs = NULL);
 
     /*!
      * \brief Write stream data to a GridFS file
      */
-    void
-    writeStreamData(string const &gfilename, char *&buf, size_t &length, const bson_t *p, mongoc_gridfs_t *gfs = NULL);
+    void writeStreamData(string const &gfilename, char *&buf, size_t &length, 
+                         const bson_t *p, mongoc_gridfs_t *gfs = NULL);
 
 private:
     mongoc_gridfs_t *m_gfs;
@@ -198,29 +224,25 @@ private:
  * \param[in] iter \a bson_iter_t
  * \param[in] key 
  * \param[in] numericvalue, int, float, or double
+ * \return True if succeed, otherwise false.
  */
 template<typename T>
-void GetNumericFromBsonIterator(bson_iter_t *iter, T &numericvalue) {
-    try {
-        const bson_value_t *vv = bson_iter_value(iter);
-        if (vv->value_type == BSON_TYPE_INT32) {
-            numericvalue = (T) vv->value.v_int32;
-        } else if (vv->value_type == BSON_TYPE_INT64) {
-            numericvalue = (T) vv->value.v_int64;
-        } else if (vv->value_type == BSON_TYPE_DOUBLE) {
-            numericvalue = (T) vv->value.v_double;
-        } else if (vv->value_type == BSON_TYPE_UTF8) {
-            string tmp = vv->value.v_utf8.str;
-            numericvalue = (T) atof(tmp.c_str());
-        } else {
-            throw ModelException("MongoUtil", "GetNumericFromBsonIterator",
-                                 "bson iterator isn't or not contains a numeric value.\n");
-        }
+bool GetNumericFromBsonIterator(bson_iter_t *iter, T &numericvalue) {
+    const bson_value_t *vv = bson_iter_value(iter);
+    if (vv->value_type == BSON_TYPE_INT32) {
+        numericvalue = (T) vv->value.v_int32;
+    } else if (vv->value_type == BSON_TYPE_INT64) {
+        numericvalue = (T) vv->value.v_int64;
+    } else if (vv->value_type == BSON_TYPE_DOUBLE) {
+        numericvalue = (T) vv->value.v_double;
+    } else if (vv->value_type == BSON_TYPE_UTF8) {
+        string tmp = vv->value.v_utf8.str;
+        numericvalue = (T) atof(tmp.c_str());
+    } else {
+        cout << "bson iterator isn't or not contains a numeric value." << endl;
+        return false;
     }
-    catch (ModelException e) {
-        cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
-    }
+    return true;
 }
 
 /*!
@@ -228,14 +250,16 @@ void GetNumericFromBsonIterator(bson_iter_t *iter, T &numericvalue) {
  * \param[in] bmeta \a bson_t
  * \param[in] key 
  * \param[in] numericvalue, int, float, or double
+ * \return True if succeed, otherwise false.
  */
 template<typename T>
-void GetNumericFromBson(bson_t *bmeta, const char *key, T &numericvalue) {
+bool GetNumericFromBson(bson_t *bmeta, const char *key, T &numericvalue) {
     bson_iter_t iter;
     if (bson_iter_init(&iter, bmeta) && bson_iter_find(&iter, key)) {
-        GetNumericFromBsonIterator(&iter, numericvalue);
+        return GetNumericFromBsonIterator(&iter, numericvalue);
     } else {
         StatusMessage(("WARNING: GetNumericFromBson, Failed in get value of: " + string(key) + "\n").c_str());
+        return false;
     }
 }
 

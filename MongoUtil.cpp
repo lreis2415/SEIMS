@@ -5,90 +5,82 @@ using namespace std;
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
 ///////////////////////////////////////////////////
-MongoClient::MongoClient(const char *host, int port) : m_host(host), m_port(port) {
-    try {
-        if (!isIPAddress(m_host)) {
-            throw ModelException("MongoClient", "Connect to MongoDB",
-                                 "IP address: " + string(m_host) + " is invalid, Please check!\n");
-        }
-        mongoc_init();
-        mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
-        m_conn = mongoc_client_new_from_uri(uri);
-        /// Check the connection to MongoDB is success or not
-        bson_t *reply = bson_new();
-        bson_error_t *err = NULL;
-        if (!mongoc_client_get_server_status(m_conn, NULL, reply, err)) {
-            throw ModelException("MongoClient", "Connect to MongoDB", "Failed to connect to MongoDB!\n");
-        }
-        bson_destroy(reply);
-        mongoc_uri_destroy(uri);
-    }
-    catch (ModelException e) {
-        cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
-    }
-    catch (exception e) {
-        cout << e.what() << endl;
-        exit(EXIT_FAILURE);
-    }
+MongoClient::MongoClient(const char *host, uint16_t port) : m_host(host), m_port(port) {
+    assert(isIPAddress(host));
+    assert(port > 0);
+    mongoc_init();
+    mongoc_uri_t *uri = mongoc_uri_new_for_host_port(m_host, m_port);
+    m_conn = mongoc_client_new_from_uri(uri);
+
+    mongoc_uri_destroy(uri);
 }
 
+MongoClient* MongoClient::Init(const char *host, uint16_t port) {
+    if (!isIPAddress(host)) {
+        cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
+        return NULL;
+    }
+    mongoc_init();
+    mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
+    mongoc_client_t *conn = mongoc_client_new_from_uri(uri);
+    /// Check the connection to MongoDB is success or not
+    bson_t *reply = bson_new();
+    bson_error_t *err = NULL;
+    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
+        cout << "Failed to connect to MongoDB!" << endl;
+        return NULL;
+    }
+    bson_destroy(reply);
+    mongoc_uri_destroy(uri);
+    mongoc_client_destroy(conn);
+
+    return new MongoClient(host, port);
+}
 MongoClient::~MongoClient() {
-    if (!m_conn) mongoc_client_destroy(m_conn);
+    StatusMessage("Releasing MongoClient ...");
+    if (m_conn) {
+        StatusMessage("Close database connection ...");
+        mongoc_client_destroy(m_conn);
+    }
     mongoc_cleanup();
 }
 
-void MongoClient::_database_names() {
-    char **dbnames;
+void MongoClient::getDatabaseNames(vector<string> &dbnames) {
+    char **dbnames_char = NULL;
     unsigned i;
     bson_error_t *err = NULL;
-    dbnames = mongoc_client_get_database_names(m_conn, err);
-    if (!m_dbnames.empty()) {
-        m_dbnames.clear();
+    dbnames_char = mongoc_client_get_database_names(m_conn, err);
+    if (!dbnames.empty()) {
+        dbnames.clear();
     } /// get clear before push database names
     if (err == NULL) {
-        for (i = 0; dbnames[i]; i++) {
+        for (i = 0; dbnames_char[i]; i++) {
             // cout<<dbnames[i]<<endl;
-            m_dbnames.push_back(string(dbnames[i]));
+            dbnames.push_back(string(dbnames_char[i]));
         }
-        bson_strfreev(dbnames);
+        bson_strfreev(dbnames_char);
     }
-    vector<string>(m_dbnames).swap(m_dbnames);
+    vector<string>(dbnames).swap(dbnames);
 }
 
-vector <string> MongoClient::getDatabaseNames() {
-    if (m_dbnames.empty()) this->_database_names();
-    return m_dbnames;
+void MongoClient::getCollectionNames(string const &dbName, vector<string> &collNames) {
+    MongoDatabase(this->getDatabase(dbName)).getCollectionNames(collNames);
 }
 
-vector <string> MongoClient::getCollectionNames(string const &dbName) {
-    mongoc_database_t *database = this->getDatabase(dbName);
-    return MongoDatabase(database).getCollectionNames();
-}
-
-mongoc_database_t *MongoClient::getDatabase(string const &dbname) {
-    if (m_dbnames.empty()) this->_database_names();
-    string tmpdbname = dbname;
-    if (!ValueInVector(tmpdbname, m_dbnames)) {
-        StatusMessage(("WARNING: Database " + tmpdbname + " is not existed and will be created!\n").c_str());
-    }
+mongoc_database_t* MongoClient::getDatabase(string const &dbname) {
+    // Get Database or create if not existed
     return mongoc_client_get_database(m_conn, dbname.c_str());
 }
 
-mongoc_collection_t *MongoClient::getCollection(string const &dbname, string const &collectionname) {
-    try {
-        mongoc_database_t *db = this->getDatabase(dbname);
-        if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
-            throw ModelException("MongoClient", "getCollection", "Collection " + collectionname + " is not existed!\n");
-        }
-        mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
-        mongoc_database_destroy(db);
-        return collection;
+mongoc_collection_t* MongoClient::getCollection(string const &dbname, string const &collectionname) {
+    mongoc_database_t* db = mongoc_client_get_database(m_conn, dbname.c_str());
+    if (!mongoc_database_has_collection(db, collectionname.c_str(), NULL)) {
+        cout << "MongoClient::getCollection, Collection " << collectionname << " is not existed!" << endl;
+        return NULL;
     }
-    catch (ModelException e) {
-        cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
-    }
+    mongoc_collection_t *collection = mongoc_database_get_collection(db, collectionname.c_str());
+    mongoc_database_destroy(db);
+    return collection;
 }
 
 mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsname) {
@@ -101,15 +93,15 @@ mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsn
         }
         return gfs;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
-vector <string> MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname) {
+void MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname, vector<string>&fileExists) {
     mongoc_gridfs_t *gfs = this->getGridFS(dbname, gfsname);
-    return MongoGridFS(gfs).getFileNames();
+    MongoGridFS(gfs).getFileNames(fileExists);
 }
 
 ///////////////////////////////////////////////////
@@ -128,8 +120,7 @@ MongoDatabase::~MongoDatabase() {
     mongoc_database_destroy(m_db);
 }
 
-vector <string> MongoDatabase::getCollectionNames() {
-    vector <string> collNameList;
+void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
     try {
         mongoc_cursor_t *cursor;
         bson_error_t *err = NULL;
@@ -143,7 +134,7 @@ vector <string> MongoDatabase::getCollectionNames() {
         while (mongoc_cursor_next(cursor, &doc)) {
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, "name")) {
                 string tmp = GetStringFromBsonIterator(&iter);
-                vector <string> tmpList = SplitString(tmp, '.');
+                vector<string> tmpList = SplitString(tmp, '.');
                 vector<string>::iterator tmpIter = find(collNameList.begin(), collNameList.end(), tmpList[0]);
                 if (tmpIter == collNameList.end()) {
                     collNameList.push_back(tmpList[0]);
@@ -151,12 +142,43 @@ vector <string> MongoDatabase::getCollectionNames() {
             }
         }
         vector<string>(collNameList).swap(collNameList);
-        return collNameList;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        collNameList.clear();
     }
+}
+///////////////////////////////////////////////////
+////////////////  MongoCollection  ////////////////
+///////////////////////////////////////////////////
+MongoCollection::MongoCollection(mongoc_collection_t* coll) : m_collection(coll) {
+
+}
+MongoCollection::~MongoCollection(void) {
+    mongoc_collection_destroy(m_collection);
+}
+mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
+    // printf("%s\n", bson_as_json(b, NULL));
+    // TODO: mongoc_collection_find should be deprecated, however, mongoc_collection_find_with_opts
+    //       may not work in my Windows 10. So, uncomment the following code when I figure it out. LJ
+//#if MONGOC_CHECK_VERSION(1, 5, 0)
+//    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
+//#else
+//    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+//#endif /* MONGOC_CHECK_VERSION */
+    mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
+    return cursor;
+}
+
+int MongoCollection::QueryRecordsCount(void) {
+    const bson_t *qCount = bson_new();
+    bson_error_t *err = NULL;
+    int count = (int)mongoc_collection_count(m_collection, MONGOC_QUERY_NONE, qCount, 0, 0, NULL, err);
+    if (err != NULL || count < 0) {
+        cout << "ERROR: Failed to get document number of collection!" << endl;
+        return -1;
+    }
+    return count;
 }
 
 ///////////////////////////////////////////////////
@@ -188,9 +210,9 @@ mongoc_gridfs_file_t *MongoGridFS::getFile(string const &gfilename, mongoc_gridf
         }
         return gfile;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
@@ -207,20 +229,20 @@ bool MongoGridFS::removeFile(string const &gfilename, mongoc_gridfs_t *gfs /* = 
         if (err != NULL || !removedone) removedone = false;
         return removedone;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
-vector <string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
+void MongoGridFS::getFileNames(vector<string>&filesExisted, mongoc_gridfs_t *gfs /* = NULL */) {
     try {
         if (m_gfs != NULL) gfs = m_gfs;
         if (gfs == NULL) {
             throw ModelException("MongoGridFS", "getFileNames",
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
-        vector <string> filesExisted;
+        //vector<string> filesExisted;
         bson_t *query = bson_new();
         bson_init(query);
         mongoc_gridfs_file_list_t *glist = mongoc_gridfs_find_with_opts(gfs, query, NULL);
@@ -231,11 +253,11 @@ vector <string> MongoGridFS::getFileNames(mongoc_gridfs_t *gfs /* = NULL */) {
         }
         mongoc_gridfs_file_list_destroy(glist);
         vector<string>(filesExisted).swap(filesExisted);
-        return filesExisted;
+        //return filesExisted;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -252,9 +274,9 @@ bson_t *MongoGridFS::getFileMetadata(string const &gfilename, mongoc_gridfs_t *g
         mongoc_gridfs_file_destroy(gfile);
         return mata;
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 }
 
@@ -280,9 +302,9 @@ MongoGridFS::getStreamData(string const &gfilename,
         mongoc_stream_readv(stream, &iov, 1, -1, 0);
         mongoc_gridfs_file_destroy(gfile);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -313,9 +335,9 @@ void MongoGridFS::writeStreamData(string const &gfilename, char *&buf, size_t &l
         }
         mongoc_gridfs_file_destroy(gfile);
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
@@ -338,9 +360,9 @@ string GetStringFromBsonIterator(bson_iter_t *iter) {
                                  "bson iterator did not contain or can not convert to string.\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return "";
     }
 }
 
@@ -354,9 +376,9 @@ string GetStringFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return "";
     }
 }
 
@@ -386,9 +408,9 @@ bool GetBoolFromBsonIterator(bson_iter_t *iter) {
             return true;
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
@@ -402,9 +424,9 @@ bool GetBoolFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get boolean value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 }
 
@@ -424,9 +446,9 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t *iter) {
             throw ModelException("MongoUtil", "GetDatetimeFromBsonIterator", "Failed in get Date Time value.\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return -1;
     }
 }
 
@@ -440,8 +462,8 @@ time_t GetDatetimeFromBson(bson_t *bmeta, const char *key) {
                                  "Failed in get Datetime value of: " + string(key) + "\n");
         }
     }
-    catch (ModelException e) {
+    catch (ModelException& e) {
         cout << e.toString() << endl;
-        exit(EXIT_FAILURE);
+        return -1;
     }
 }
