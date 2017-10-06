@@ -1,0 +1,54 @@
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+matrix:
+  fast_finish: true
+  include:
+  - os: osx
+    language: cpp
+    compiler: clang
+    sudo: required
+    cache:
+      apt: true
+      directories:
+      - "$HOME/.ccache"
+    env:
+    - BUILD_NAME=osx_xcode
+    - DETAILS="libtool"
+    - ENABLE_CXX11=1
+  - os: linux
+    dist: trusty
+    compiler: gcc
+    language: cpp
+    sudo: required
+    cache:
+      apt: true
+      directories:
+      - "$HOME/.ccache"
+    env:
+    - BUILD_NAME=linux_gcc48
+    - DETAILS=""
+    - ENABLE_CXX11=1
+before_install:
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+- "./doc/ci/travis/${BUILD_NAME}/before_install.sh"
+install:
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
+- "./doc/ci/travis/${BUILD_NAME}/install.sh"
+script:
+- chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
+- "./doc/ci/travis/${BUILD_NAME}/script.sh"
+notifications: email:false
+deploy:
+  provider: releases
+  api_key:
+    secure: V64Vp4wt/kDDd8tKBCZIFq6j6cXiI1RgF9p0aFBY0Lo6esUq/abjvUxsjPL5N08Nl42D5FyjIYm3Tuwj+7+XIvF0fei9dj19brX+F1GUq4eyvtLgTyOa9xNNWYmkUQPaltGugleKr5Ntz0ScW9rnbXxRlH4J/tvZMMAUWEYQ/lrTns9GbqQxvD+pQCdNxJmi85HjkKiik4WO+iD0ywv5bO/jNOTOEpTxFn3Conch2hjy7mHAr4G9d0Khyv4c4zRsxuRbzjEczqXc/5niYnebMXrRu2N3kKUH6EIwlm9y9Y3vYLzHeyqPl1ruFiW7ggzyunpbe8CrhTIuZM03zhV08mTmvvxMQh9mg3Swe8Xk1GxRpzItNA7+5ZN3HCWzvWTG2DwfXuyewqaNF0xz+JEsi7+Nu8yJJ23pOYJci2a0C1DTqnYzlBGFiq1pVn8sm5d+KodlO4+ycatr9O+goxUOhLqADsS5H1ogihxw5UdwqNe9ro5M0zbqSNALGXGJ4rqcYA0c5VqVtPShqVzlHfvKjssQiz/f3XB0M548MVRc7quFjKgJ+PbVUi0HmUCImsoO0hMcDU9o4W5LsSjkiuF4BiE8Os2K4fspvUQ+E8XjpGj4ckw229VpMtWQZMBPJnFv3LBH57sxAjwdbHIYnQbBkHMbXxvNub4is7GgsGA0Fv4=
+  file: 
+    - utils_${BUILD_NAME}.zip
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: lreis2415/UtilsClass
+    tags: true
+    all_branches: true
