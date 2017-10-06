@@ -40,8 +40,11 @@ ELSE ()
     find_package(GDAL REQUIRED)
     # 2. MPI
     find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG "${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS}")
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
+    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
+    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+    IF (APPLE)
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl -headerpad_max_install_names")
+    ENDIF ()
 ENDIF ()
 # Set a default build type for single-configuration
 # CMake generators if no build type is set.
