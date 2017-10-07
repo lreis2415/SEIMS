@@ -184,6 +184,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     for method, gen_popsize in acc_pop_size.iteritems():
         xdata = gen_popsize[0]
         ydata = gen_popsize[1]
+        print (ydata)
         print ('Evaluated pop size: %s - %d' % (method, ydata[-1]))
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
