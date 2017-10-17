@@ -26,9 +26,8 @@ SEIMS模型主要编程语言为C/C++和Python，采用CMake组织代码。由�
 
 ```
 # AutoCRLF, 设置提交、检出时均不转换
-git config --global core.autocrlf false
+git config --global core.autocrlf input
 # SafeCRLF, 设置拒绝提交包含混合换行符的文件，并且在提交混合换行符的文件时给出警告，从而手动转换为LF换行符后提交
-git config --global core.safecrlf true
 git config --global core.safecrlf warn
 ```
 
@@ -91,22 +90,22 @@ if (fFoo)  Bar();
 ### 1.9.注释规范
 + SEIMS采用Doxygen代码注释规范，在Visual Studio中配合VA Assist插件可高效插入注释，[查看详细配置](https://github.com/lreis2415/SEIMS/wiki/Develop-environment#%E5%BC%80%E5%8F%91%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7-vassistx%E4%BB%8B%E7%BB%8D)。**以下为补充Tips**。
 + `#ifndef ... #endif`宏命令之后要注释上这是对应的哪个宏命令，以防嵌套使用时混淆不清，尤其是中间代码过长的时候，如：
-	```cpp
-	#ifdef windows
-	#define Tag_ModuleDirectoryName "\\"
-	#define SEP "\\"
-	#define Tag_DyLib ".dll"
-	#else
-	#define Tag_ModuleDirectoryName "/"
-	#define SEP "/"
-	#define Tag_So "lib"
-	#endif /* windows */
-	#ifdef linux
-	#define Tag_DyLib ".so"
-	#elif (defined macos) || (defined macosold)
-	#define Tag_DyLib ".dylib"
-	#endif /* linux */
-	```
+  ```cpp
+  #ifdef windows
+  #define Tag_ModuleDirectoryName "\\"
+  #define SEP "\\"
+  #define Tag_DyLib ".dll"
+  #else
+  #define Tag_ModuleDirectoryName "/"
+  #define SEP "/"
+  #define Tag_So "lib"
+  #endif /* windows */
+  #ifdef linux
+  #define Tag_DyLib ".so"
+  #elif (defined macos) || (defined macosold)
+  #define Tag_DyLib ".dylib"
+  #endif /* linux */
+  ```
 + SEIMS中Python代码注释采用Google风格的docstring，在PyCharm中设置为：
     `File --> Settings --> Tools --> Python Integrated Tools --> Google`
 ## 2.代码设计规范
@@ -127,18 +126,18 @@ if (fFoo)  Bar();
     ```
 + 命名约定
     `module_name, package_name, ClassName, method_name, ExceptionName, function_name, GLOBAL_VAR_NAME, instance_var_name, function_parameter_name, local_var_name.`
-    
+
 ## 3.Git分支管理
 
 ### 3.1.各分支命名规范及功能定义
 
-|分支|命名示例|功能|
-|:---:|:---:|:---:|
-|`master`|`master`|稳定版本发布，非工作区，仅管理员可操作|
-|`dev`|`dev`|开发汇总，非工作区，开发组成员均可将完成的工作合并至此，当`dev`足够稳定之后，合并至`master`|
-|`bug-<bugcode>-<author>`|`bug-ompconfused-zlj`|bug修复，临时工作区，修复并测试完成之后，将此分支合并至`dev`，并新建`issue`说明问题之后，删除该分支|
-|`update-<module>-<author>`|`update-docs-zlj`|模块更新，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支|
-|`new-<module>-<author>`|`new-lisemsed-zlj`|新增模块，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支|
+|             分支             |         命名示例          |                    功能                    |
+| :------------------------: | :-------------------: | :--------------------------------------: |
+|          `master`          |       `master`        |           稳定版本发布，非工作区，仅管理员可操作            |
+|           `dev`            |         `dev`         | 开发汇总，非工作区，开发组成员均可将完成的工作合并至此，当`dev`足够稳定之后，合并至`master` |
+|  `bug-<bugcode>-<author>`  | `bug-ompconfused-zlj` | bug修复，临时工作区，修复并测试完成之后，将此分支合并至`dev`，并新建`issue`说明问题之后，删除该分支 |
+| `update-<module>-<author>` |   `update-docs-zlj`   |  模块更新，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支  |
+|  `new-<module>-<author>`   |  `new-lisemsed-zlj`   |  新增模块，常驻工作区，完成后合并至`dev`、新建`issue`、删除该分支  |
 
 所以，团队合作的项目分支看起来就像这样：
 
