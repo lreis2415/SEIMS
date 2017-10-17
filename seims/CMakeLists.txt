@@ -11,7 +11,7 @@ SET(SEIMS_MAIN ./src/seims_main)
 ### unit test is an optional configuration.
 IF (UNITTEST STREQUAL 1)
     SET(SEIMS_TEST ./src/test)
-    INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+    INCLUDE_DIRECTORIES(.)
     ADD_SUBDIRECTORY(${SEIMS_TEST} bin/test)
 ENDIF ()
 ############  step into subdirectories   #############
@@ -32,6 +32,6 @@ ENDIF()
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
-        DEPENDS ${PROJECT_NAME}
+        DEPENDS ${EXT_TARGETS} ${MY_TARGETS}
         COMMENT "Installing ${PROJECT_NAME}")
 MESSAGE(STATUS "All SEIMS related compiled done!")
