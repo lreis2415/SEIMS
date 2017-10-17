@@ -83,7 +83,8 @@ int connectdown(char *pfile,
                 char *outletlyr,
                 char *movedoutletdatasrc,
                 char *movedoutletlyr,
-                int movedist) {
+                int movedist,
+                bool calmoved) {
 
     MPI_Init(NULL, NULL);
     {
@@ -119,8 +120,9 @@ int connectdown(char *pfile,
 
         //Create partition and read data
         tdpartition *wData;
-        long nodatav;
-        nodatav = (long) wIO.getNodata();
+        // not used variable, comment by ljzhu
+        // long nodatav;
+        // nodatav = (long) wIO.getNodata();
         //tdpartition *wData;
         wData = CreateNewPartition(wIO.getDatatype(), wTotalX, wTotalY, wdx, wdy, wIO.getNodata());
         int nx = wData->getnx();
@@ -734,84 +736,88 @@ int connectdown(char *pfile,
             //fflush(stdout);
             OGR_DS_Destroy(hDSsh);
 
-            const char *pszDriverName1;
-            pszDriverName1 = getOGRdrivername(movedoutletdatasrc);
-            driver = OGRGetDriverByName(pszDriverName1);
-            if (driver == NULL) {
-                printf("%s warning: driver not available.\n", pszDriverName);
-                //exit( 1 );
-            }
-            if (pszDriverName1 == "SQLite") hDSshmoved = OGROpen(movedoutletdatasrc, TRUE, NULL);
-            // create new data source if data source does not exist
-            if (hDSshmoved == NULL) {
-                hDSshmoved = OGR_Dr_CreateDataSource(driver, movedoutletdatasrc, NULL);
-            } else { hDSshmoved = hDSshmoved; }
-
-            if (hDSshmoved != NULL) {
-
-                //char *layernamemoved;
-                // extract leyer information from shapefile
-                //layernamemoved=getLayername(movedoutletshapefile);
-                //hLayer1 = OGR_DS_GetLayerByName( hDS1,layername );
-                //OGR_L_ResetReading(hLayer1);
-                if (strlen(movedoutletlyr) == 0) {
-                    char *mvoutletlayername;
-                    mvoutletlayername =
-                        getLayername(movedoutletdatasrc); // get layer name if the layer name is not provided
-                    hLayershmoved = OGR_DS_CreateLayer(hDSshmoved, mvoutletlayername, hSRSRaster, wkbPoint, NULL);
-                } else {
-                    hLayershmoved = OGR_DS_CreateLayer(hDSshmoved, movedoutletlyr, hSRSRaster, wkbPoint, NULL);
-                }// provide same spatial reference as raster in streamnetshp fil
-
-                //printf("hDSsh after: %d\n",hDSsh); fflush(stdout);
-
-
-                if (hLayershmoved == NULL) {
-                    printf("warning: Layer creation failed.\n");
+            if (calmoved) { // added by liangjun
+                const char *pszDriverName1;
+                pszDriverName1 = getOGRdrivername(movedoutletdatasrc);
+                driver = OGRGetDriverByName(pszDriverName1);
+                if (driver == NULL) {
+                    printf("%s warning: driver not available.\n", pszDriverName);
                     //exit( 1 );
                 }
+                if (pszDriverName1 == "SQLite") hDSshmoved = OGROpen(movedoutletdatasrc, TRUE, NULL);
+                // create new data source if data source does not exist
+                if (hDSshmoved == NULL) {
+                    hDSshmoved = OGR_Dr_CreateDataSource(driver, movedoutletdatasrc, NULL);
+                }
+                else { hDSshmoved = hDSshmoved; }
+
+                if (hDSshmoved != NULL) {
+
+                    //char *layernamemoved;
+                    // extract leyer information from shapefile
+                    //layernamemoved=getLayername(movedoutletshapefile);
+                    //hLayer1 = OGR_DS_GetLayerByName( hDS1,layername );
+                    //OGR_L_ResetReading(hLayer1);
+                    if (strlen(movedoutletlyr) == 0) {
+                        char *mvoutletlayername;
+                        mvoutletlayername =
+                            getLayername(movedoutletdatasrc); // get layer name if the layer name is not provided
+                        hLayershmoved = OGR_DS_CreateLayer(hDSshmoved, mvoutletlayername, hSRSRaster, wkbPoint, NULL);
+                    }
+                    else {
+                        hLayershmoved = OGR_DS_CreateLayer(hDSshmoved, movedoutletlyr, hSRSRaster, wkbPoint, NULL);
+                    }// provide same spatial reference as raster in streamnetshp fil
+
+                    //printf("hDSsh after: %d\n",hDSsh); fflush(stdout);
 
 
-
-                /* Add a few fields to the layer defn */
-                hFieldDefnshmoved = OGR_Fld_Create("id", OFTInteger);
-                OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
-                hFieldDefnshmoved = OGR_Fld_Create("id_down", OFTInteger);
-                OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
-                hFieldDefnshmoved = OGR_Fld_Create("ad8", OFTReal);
-                OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
-
-                for (i = 0; i < nxy; ++i) {
-
-                    //hFeatureshmoved=OGR_L_GetFeature(hLayershmoved,i);
-                    double x = xnode[i];  // DGT says does not need +pdx/2.0;
-                    double y = ynode[i];  // DGT +pdy/2.0;
-
-
-
-
-                    hFeatureshmoved = OGR_F_Create(OGR_L_GetLayerDefn(hLayershmoved));
-                    OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id"), wid[i]);
-                    OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id_down"), widdown[i]);
-                    OGR_F_SetFieldDouble(hFeatureshmoved,
-                                         OGR_F_GetFieldIndex(hFeatureshmoved, "ad8"),
-                                         (double) ad8max[i]);
-
-                    hGeometryshmoved = OGR_G_CreateGeometry(wkbPoint);
-                    OGR_G_SetPoint_2D(hGeometryshmoved, 0, x, y);
-                    OGR_F_SetGeometry(hFeatureshmoved, hGeometryshmoved);
-                    OGR_G_DestroyGeometry(hGeometryshmoved);
-                    if (OGR_L_CreateFeature(hLayershmoved, hFeatureshmoved) != OGRERR_NONE) {
-                        printf(" warning: Failed to create feature in shapefile.\n");
+                    if (hLayershmoved == NULL) {
+                        printf("warning: Layer creation failed.\n");
                         //exit( 1 );
                     }
-                    OGR_F_Destroy(hFeatureshmoved);
 
 
-                    // CWG should check res is not 0
+
+                    /* Add a few fields to the layer defn */
+                    hFieldDefnshmoved = OGR_Fld_Create("id", OFTInteger);
+                    OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
+                    hFieldDefnshmoved = OGR_Fld_Create("id_down", OFTInteger);
+                    OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
+                    hFieldDefnshmoved = OGR_Fld_Create("ad8", OFTReal);
+                    OGR_L_CreateField(hLayershmoved, hFieldDefnshmoved, 0);
+
+                    for (i = 0; i < nxy; ++i) {
+
+                        //hFeatureshmoved=OGR_L_GetFeature(hLayershmoved,i);
+                        double x = xnode[i];  // DGT says does not need +pdx/2.0;
+                        double y = ynode[i];  // DGT +pdy/2.0;
+
+
+
+
+                        hFeatureshmoved = OGR_F_Create(OGR_L_GetLayerDefn(hLayershmoved));
+                        OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id"), wid[i]);
+                        OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id_down"), widdown[i]);
+                        OGR_F_SetFieldDouble(hFeatureshmoved,
+                            OGR_F_GetFieldIndex(hFeatureshmoved, "ad8"),
+                            (double)ad8max[i]);
+
+                        hGeometryshmoved = OGR_G_CreateGeometry(wkbPoint);
+                        OGR_G_SetPoint_2D(hGeometryshmoved, 0, x, y);
+                        OGR_F_SetGeometry(hFeatureshmoved, hGeometryshmoved);
+                        OGR_G_DestroyGeometry(hGeometryshmoved);
+                        if (OGR_L_CreateFeature(hLayershmoved, hFeatureshmoved) != OGRERR_NONE) {
+                            printf(" warning: Failed to create feature in shapefile.\n");
+                            //exit( 1 );
+                        }
+                        OGR_F_Destroy(hFeatureshmoved);
+
+
+                        // CWG should check res is not 0
+                    }
                 }
+                OGR_DS_Destroy(hDSshmoved);
             }
-            OGR_DS_Destroy(hDSshmoved);
         }
         //if(!rank)printf("done\n.",dist, totaldone,totalnodes);
 
