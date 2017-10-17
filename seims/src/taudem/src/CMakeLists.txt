@@ -71,7 +71,7 @@ add_executable(threshold ${THRESHOLD})
 add_executable(gagewatershed ${GAGEWATERSHED})
 add_executable(twi ${TWI})
 
-set(MY_TARGETS aread8
+set(TAUDEM_APP aread8
         areadinf
         connectdown
         d8flowdir
@@ -101,10 +101,10 @@ set(MY_TARGETS aread8
         gagewatershed
         twi
         )
-foreach (c_target ${MY_TARGETS})
+foreach (c_target ${TAUDEM_APP})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
     IF (MSVC)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM")
     ENDIF ()
-endforeach (c_target ${MY_TARGETS})
+endforeach (c_target ${TAUDEM_APP})

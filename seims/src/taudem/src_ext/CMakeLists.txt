@@ -8,15 +8,15 @@ set(CURVATURE Curvature.cpp Curvaturemn.cpp ${common_srcs})
 
 add_executable(curvature ${CURVATURE})
 
-set(EXT_TARGETS curvature
+set(TAUDEM_EXT_APP curvature
         )
 # third-party programs based on TauDEM framework
-foreach (c_target ${EXT_TARGETS})
+foreach (c_target ${TAUDEM_EXT_APP})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
     IF (MSVC)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM_EXT")
     ENDIF ()
-endforeach (c_target ${EXT_TARGETS})
+endforeach (c_target ${TAUDEM_EXT_APP})
 
 
