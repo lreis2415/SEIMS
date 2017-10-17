@@ -7,4 +7,5 @@ int connectdown(char *pfile,
                 char *outletlyr,
                 char *movedoutletdatasrc,
                 char *movedoutletlyr,
-                int movedist);
+                int movedist,
+                bool calmoved);
