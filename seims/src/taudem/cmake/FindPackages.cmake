@@ -65,9 +65,3 @@ IF(WITH_OPENMP)
 Please check your compiler to make sure the support of OpenMP.")
   ENDIF()
 ENDIF()
-
-### Bson and MongoC.
-IF (WITH_MONGOC)
-  INCLUDE(cmake/FindBson.cmake)
-  INCLUDE(cmake/FindMongoC.cmake)
-ENDIF()
