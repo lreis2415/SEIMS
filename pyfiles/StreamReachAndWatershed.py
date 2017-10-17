@@ -74,7 +74,7 @@ w = arcpy.GetParameterAsText(11)
 arcpy.AddMessage("Output Watershed Grid: " + w)
 
 # Construct command
-cmd = 'mpiexec -n ' + inputProc + ' StreamNet -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
+cmd = 'mpiexec -n ' + inputProc + ' streamnet -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
       ' -ad8 ' + '"' + ad8 + '"' + ' -src ' + '"' + src + '"' + ' -ord ' + '"' + ord + '"' + ' -tree ' + \
       '"' + tree + '"' + ' -coord ' + '"' + coord + '"' + ' -net ' + '"' + net + '"' + ' -w ' + '"' + w + \
       '"'

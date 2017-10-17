@@ -41,9 +41,10 @@ email:  dtarb@usu.edu
 #define COMMON_H
 #include <cmath>
 #include <float.h>
-#include "mpi.h"
 #include <stdint.h>
 #include "ogr_api.h"
+#include "mpi.h"
+#include <algorithm>
 
 #define MCW MPI_COMM_WORLD
 #define MAX_STRING_LENGTH 255
@@ -75,7 +76,10 @@ struct node {
     int x;
     int y;
 };
-
+inline bool operator==(const node& n1, const node& n2)
+{
+    return (n1.x == n2.x) && (n1.y == n2.y);
+}
 const double PI = 3.14159265359;
 const short MISSINGSHORT = -32768;
 

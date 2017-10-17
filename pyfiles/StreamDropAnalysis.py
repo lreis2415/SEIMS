@@ -67,7 +67,7 @@ drp = arcpy.GetParameterAsText(10)
 arcpy.AddMessage("Output Drop Analysis Text File: " + drp)
 
 # Construct command
-cmd = 'mpiexec -n ' + inputProc + ' DropAnalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
+cmd = 'mpiexec -n ' + inputProc + ' dropanalysis -fel ' + '"' + fel + '"' + ' -p ' + '"' + p + '"' + \
       ' -ad8 ' + '"' + ad8 + '"' + ' -ssa ' + '"' + ssa + '"' + ' -o ' + '"' + shfl + '"' + ' -drp ' + \
       '"' + drp + '"' + ' -par ' + minthresh + ' ' + maxthresh + ' ' + numthresh + ' '
 if logspace == 'false':

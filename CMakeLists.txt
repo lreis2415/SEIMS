@@ -1,52 +1,141 @@
-# CMake build for Windows, Linux, and macOS
-# Updated by Liang-Jun Zhu
-# Description: Separated the CMakeLists.txt into two
-# zlj@lreis.ac.cn
-cmake_minimum_required(VERSION 2.8)
-project(TauDEM)
-IF (COMMAND CMAKE_POLICY)
-    CMAKE_POLICY(SET CMP0015 NEW)
-ENDIF (COMMAND CMAKE_POLICY)
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
+# ----------------------------------------------------------------------------
+#  Root CMake file for extended TauDEM.
+#
+#     Please from the off-tree build directory, invoke:
+#       $ cmake <path/to/TauDEM>
+#
+#  Routine testing platforms and compilers include:
+#     1. Windows 10 with Visual Studio 2013, MSMPI-v8, GDAL-1.11.4
+#     2. Windows 10 with mingw64 (GCC-4.9.3), MSMPI-v8, GDAL-1.11.5
+#     3. CentOS 6.2 (cluster) with GCC-4.8.4, MPICH-3.1.4, GDAL-1.9.0
+#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, Intel MPI 4.0, GDAL-1.11.5
+#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), OpenMPI-1.10.4, GDAL-1.11.4 (Framework)
+#
+#  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
+#  Latest updated: Oct. 13, 2017
+# ----------------------------------------------------------------------------
+### Disable in-source builds to prevent source tree corruption.
+IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
+  MESSAGE(FATAL_ERROR "
+FATAL: In-source builds are not allowed. 
+       You should create a separate directory for build files."
+)
+ENDIF()
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
+PROJECT(TauDEM CXX C)
 
-################# Find packages ##################
-# MPI and GDAL are required
-IF (WIN32)
-    # 1. GDAL
-    SET(GDAL_DIR $ENV{GDAL_DIR})
-    SET(GDAL_DIR $ENV{GDAL_DIR})
-    SET(GDAL_INCLUDE_DIR ${GDAL_DIR}\\include)
-    SET(GDAL_LIBRARIES ${GDAL_DIR}\\lib)
-    SET(GDAL_BIN_DIR ${GDAL_DIR}\\bin)
-    SET(GDAL_LIBRARY ${GDAL_LIBRARIES}\\gdal_i.lib)
-    # 2. MPI
-    IF (ARCH EQUAL 64)
-        SET(MPI_LIB $ENV{MSMPI_LIB64})
-    ELSE ()
-        SET(MPI_LIB $ENV{MSMPI_LIB32})
-    ENDIF ()
-    SET(MPI_HOME $ENV{MSMPI_BIN})
-    SET(MPI_INCLUDE_PATH $ENV{MSMPI_INC})
-    SET(MPI_LIBRARIES ${MPI_LIB}\\msmpi.lib)
+### Set default or specified installation directory.
+IF (INSTALL_PREFIX)
+  SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 ELSE ()
-    # for Linux and macOS
-    # 1. GDAL, CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
-    find_package(GDAL REQUIRED)
-    # 2. MPI
-    find_package(MPI REQUIRED)
-    set(CMAKE_CXX_FLAG ${CMAKE_CXX_FLAG} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-    IF (APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl -headerpad_max_install_names")
-    ENDIF ()
+  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin)
 ENDIF ()
-INCLUDE_DIRECTORIES(${GDAL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
-################# Packages found ##################
-SET(TAUDEM_SRC ./src)
+SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+
+### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
+IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
+  SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+### Allow project folders in MSVC.
+IF(MSVC)
+  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+ENDIF()
+
+### Break in case of popular CMake configuration mistakes.
+IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
+  MESSAGE(FATAL_ERROR "CMake fails to determine the bitness of the target platform.
+  Please check your CMake and compiler installation."
+)
+ENDIF()
+
+### Detect compiler and target platform architecture.
+INCLUDE(cmake/Utils.cmake)
+SET(ENABLE_CXX11 1)
+INCLUDE(cmake/DetectCXXCompiler.cmake)
+
+### Add standard paths or specified paths for Find libraries and headers.
+INCLUDE(cmake/AddFindPaths.cmake)
+#STATUS(${CMAKE_PREFIX_PATH})
+### Find packages.
+SET(WITH_MPI 1)
+SET(WITH_GDAL 1)
+INCLUDE(cmake/FindPackages.cmake)
+
+### Use statically or dynamically linked CRT? Default: dynamic
+IF(MSVC)
+  INCLUDE(cmake/CRTLinkage.cmake)
+ENDIF(MSVC)
+
+SET(TAUDEM_SRC ${CMAKE_SOURCE_DIR}/src)
+SET(TAUDEM_EXT_SRC ${CMAKE_SOURCE_DIR}/src_ext)
+
+geo_include_directories(${GDAL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
 ADD_SUBDIRECTORY(${TAUDEM_SRC})
+ADD_SUBDIRECTORY(${TAUDEM_EXT_SRC})
 ### For CLion to implement the "make install" command
-add_custom_target(install_${PROJECT_NAME}
+ADD_CUSTOM_TARGET(install_${PROJECT_NAME}
         $(MAKE) install
-        DEPENDS ${PROJECT_NAME}
+        DEPENDS ${EXT_TARGETS} ${MY_TARGETS}
         COMMENT "Installing ${PROJECT_NAME}")
-MESSAGE(STATUS "    Compiling TauDEM done")
+
+### Build platform.
+STATUS("")
+STATUS("  Platform:")
+IF(NOT CMAKE_VERSION VERSION_LESS 2.8.11 AND NOT BUILD_INFO_SKIP_TIMESTAMP)
+  STRING(TIMESTAMP TIMESTAMP "" UTC)
+  IF(TIMESTAMP)
+    STATUS("    Timestamp:"    ${TIMESTAMP})
+  ENDIF()
+ENDIF()
+STATUS("    Host:"             ${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_VERSION} ${CMAKE_HOST_SYSTEM_PROCESSOR})
+IF(CMAKE_CROSSCOMPILING)
+  STATUS("    Target:"         ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION} ${CMAKE_SYSTEM_PROCESSOR})
+ENDIF()
+STATUS("    CMake:"            ${CMAKE_VERSION})
+STATUS("    CMake generator:"  ${CMAKE_GENERATOR})
+STATUS("    CMake build tool:" ${CMAKE_BUILD_TOOL})
+IF(MSVC)
+  STATUS("    MSVC:"           ${MSVC_VERSION})
+ENDIF()
+IF(CMAKE_GENERATOR MATCHES Xcode)
+  STATUS("    Xcode:"          ${XCODE_VERSION})
+ENDIF()
+IF(NOT CMAKE_GENERATOR MATCHES "Xcode|Visual Studio")
+  STATUS("    Configuration:"  ${CMAKE_BUILD_TYPE})
+ENDIF()
+
+### C/C++ options.
+IF(CMAKE_CXX_COMPILER_VERSION)
+  SET(GEO_COMPILER_STR "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1} (ver ${CMAKE_CXX_COMPILER_VERSION})")
+ELSE()
+  SET(GEO_COMPILER_STR "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1}")
+ENDIF()
+STRING(STRIP "${GEO_COMPILER_STR}" GEO_COMPILER_STR)
+
+STATUS("")
+STATUS("  C/C++:")
+IF(ENABLE_CXX11 OR HAVE_CXX11)
+STATUS("    C++11:" HAVE_CXX11 THEN YES ELSE NO)
+ENDIF()
+STATUS("    C++ Compiler:"           ${GEO_COMPILER_STR})
+STATUS("    C++ flags (Release):"    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+STATUS("    C++ flags (Debug):"      ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+STATUS("    C Compiler:"             ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ARG1})
+STATUS("    C flags (Release):"      ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE})
+STATUS("    C flags (Debug):"        ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG})
+IF(WIN32)
+  STATUS("    Linker flags (Release):" ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
+  STATUS("    Linker flags (Debug):"   ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+ELSE()
+  STATUS("    Linker flags (Release):" ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_RELEASE})
+  STATUS("    Linker flags (Debug):"   ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_DEBUG})
+ENDIF()
+
+### Dependencies.
+STATUS("    GDAL: ${GDAL_LIBRARIES} ${GDAL_INCLUDE_DIR}")
+STATUS("    MPI: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
+
+### Auxiliary.
+STATUS("")
+STATUS("  Install path:" "${CMAKE_INSTALL_PREFIX}")
+STATUS("")
