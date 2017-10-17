@@ -59,8 +59,7 @@ endif ()
 IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 ENDIF()
-# Set runtime library type
-include(SetThreadFlagMSVC)
+
 ################# Find packages ##################
 # GDAL, Bson, Mongoc, MPI, and OpenMP are required
 IF (WIN32)
