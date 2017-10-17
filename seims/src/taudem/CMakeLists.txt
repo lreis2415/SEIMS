@@ -66,8 +66,8 @@ IF(MSVC)
   INCLUDE(cmake/CRTLinkage.cmake)
 ENDIF(MSVC)
 
-SET(TAUDEM_SRC ${CMAKE_SOURCE_DIR}/src)
-SET(TAUDEM_EXT_SRC ${CMAKE_SOURCE_DIR}/src_ext)
+SET(TAUDEM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+SET(TAUDEM_EXT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src_ext)
 
 geo_include_directories(${GDAL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
 ADD_SUBDIRECTORY(${TAUDEM_SRC})
@@ -75,7 +75,7 @@ ADD_SUBDIRECTORY(${TAUDEM_EXT_SRC})
 ### For CLion to implement the "make install" command
 ADD_CUSTOM_TARGET(install_${PROJECT_NAME}
         $(MAKE) install
-        DEPENDS ${EXT_TARGETS} ${MY_TARGETS}
+        DEPENDS ${TAUDEM_EXT_APP} ${TAUDEM_APP}
         COMMENT "Installing ${PROJECT_NAME}")
 
 ### Build platform.
