@@ -70,6 +70,7 @@ int main() {
     int *array4(NULL);
     Initialize1DArray(5, array3, 10);
     Initialize1DArray(6, array4, 20);
+
     //// Batch release
     //BatchRelease1DArray(array1, array3, array4, NULL);
     Release1DArray(array2);
