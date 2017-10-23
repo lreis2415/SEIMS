@@ -49,10 +49,15 @@ struct gk_option {
 #define optional_argument    2
 
 /* Function prototypes */
-extern int gk_getopt(int __argc, char **__argv, char *__shortopts);
-extern int gk_getopt_long(int __argc, char **__argv, char *__shortopts,
-                          struct gk_option *__longopts, int *__longind);
-extern int gk_getopt_long_only(int __argc, char **__argv,
+// refers to https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-metis
+extern int gk_getopt(int gk_argc, char **gk_argv, char *__shortopts);
+extern int gk_getopt_long(int gk_argc, char **gk_argv, char *__shortopts,
+                           struct gk_option *__longopts, int *__longind);
+//extern int gk_getopt(int __argc, char **__argv, char *__shortopts);
+//extern int gk_getopt_long(int __argc, char **__argv, char *__shortopts,
+//                          struct gk_option *__longopts, int *__longind);
+//extern int gk_getopt_long_only(int __argc, char **__argv,
+extern int gk_getopt_long_only (int gk_argc, char **gk_argv,
                                char *__shortopts, struct gk_option *__longopts, int *__longind);
 
 #endif

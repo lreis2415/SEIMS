@@ -1,9 +1,9 @@
 # ----------------------------------------------------------------------------
-#  Root CMake file for the main program of SEIMS.
+#  Root CMake file for SEIMS.
 #     Spatially Explicit Integrated Modeling System
 #
 #     Please from the off-tree build directory, invoke:
-#       $ cmake <path/to/SEIMS/seims/seims_main>
+#       $ cmake <path/to/SEIMS>
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5
@@ -31,18 +31,25 @@ IF (COMMAND CMAKE_POLICY)
 ENDIF (COMMAND CMAKE_POLICY)
 
 ### SEIMS Version.
-SET(SEIMSPRJ "seims")
+SET(PRJNAME "SEIMS")
 IF (PARALLEL STREQUAL MPI)
-    SET(SEIMSPRJ ${SEIMSPRJ}_mpi_omp)
+    SET(PRJNAME ${PRJNAME}_MPI_OMP)
+    SET(WITH_MPI 1)
+    SET(WITH_OMP 1)
     MESSAGE(STATUS "MPI&OpenMP version...")
 ELSE ()
-    SET(SEIMSPRJ ${SEIMSPRJ}_omp)
+    SET(PRJNAME ${PRJNAME}_OMP)
+    SET(WITH_OMP 1)
     MESSAGE(STATUS "OpenMP version...")
-    ADD_DEFINITIONS(-DMULTIPLY_REACHES)
 ENDIF ()
-ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB -DMODULE_EXPORTS)
-SET(SEIMSPRJ ${SEIMSPRJ}_prj)
-PROJECT(${SEIMSPRJ})
+SET(PRJNAME ${PRJNAME}_ALL)
+PROJECT(${PRJNAME})
+
+### Set cmake find path
+set(CMAKE_MODULE_PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+        ${CMAKE_MODULE_PATH}
+   )
 
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
@@ -81,52 +88,30 @@ IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
 ENDIF()
 
 ### Detect compiler and target platform architecture.
-INCLUDE(Utils)
+INCLUDE(cmake/Utils.cmake)
 SET(ENABLE_CXX11 1)
-INCLUDE(DetectCXXCompiler)
+INCLUDE(cmake/DetectCXXCompiler.cmake)
 ### Use statically or dynamically linked CRT? Default: dynamic
 IF(MSVC)
-    INCLUDE(CRTLinkage)
+    INCLUDE(cmake/CRTLinkage.cmake)
 ENDIF(MSVC)
 
 ### Add standard paths or specified paths for Find libraries and headers.
-INCLUDE(AddFindPaths)
+INCLUDE(cmake/AddFindPaths.cmake)
 # MESSAGE(STATUS ${CMAKE_PREFIX_PATH})
 
 ### Find packages.
 SET(WITH_GDAL 1)
 SET(WITH_MONGOC 1)
-INCLUDE(FindPackages)
+INCLUDE(cmake/FindPackages.cmake)
 
-##############  Set common libraries   ###############
-set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
-set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/MongoUtilClass)
-set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
-SET(RASTER_INC ${CMAKE_CURRENT_SOURCE_DIR}/../commonlibs/RasterClass)
-SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
-########  Stand-alone libraries/programs   ###########
-SET(BASE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/base)
-SET(BASE_INC ${BASE_HOME}/util ${BASE_HOME}/data ${BASE_HOME}/module_setting ${BASE_HOME}/bmps)
-SET(MODULE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/modules)
-SET(MAIN_HOME ${CMAKE_CURRENT_SOURCE_DIR}/main)
-############  Set include directories    #############
-SET(MODULE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/base/util/SimulationModule.cpp)
-geo_include_directories(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${MONGO_INC} ${RASTER_INC} ${BASE_INC})
-IF (PARALLEL STREQUAL MPI)
-    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/main/main_omp ${MPI_INCLUDE_PATH})
-    LINK_LIBRARIES(${MPI_LIBRARIES})
-ENDIF ()
-############  step into subdirectories   #############
-ADD_SUBDIRECTORY(${BASE_HOME})
-ADD_SUBDIRECTORY(${MODULE_HOME})
-ADD_SUBDIRECTORY(${MAIN_HOME})
-
-### For CLion to implement the "make install" command
-add_custom_target(install_${PROJECT_NAME}
-        $(MAKE) install
-        DEPENDS ${PROJECT_NAME}
-        COMMENT "Installing ${PROJECT_NAME}")
+# Global flag to cause add_library to create shared libraries if on, otherwise static library.
+option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." ON)
+# libraries built with hunter link against the dynamic CRT on windows
+option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+### Add subdirectories.
+ADD_SUBDIRECTORY(./seims)
+# ADD_SUBDIRECTORY(./gui)  # TODO
 
 ### Build platform.
 STATUS("")
@@ -185,7 +170,7 @@ ENDIF()
 IF(WITH_MPI)
     STATUS("    MPI: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
 ENDIF()
-STATUS("    GDAL: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
+STATUS("    GDAL: ${GDAL_LIBRARIES} ${GDAL_INCLUDE_PATH}")
 STATUS("    BSON: ${BSON_LIBRARIES} ${BSON_INCLUDE_DIR}")
 STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
 
@@ -193,8 +178,3 @@ STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
 STATUS("")
 STATUS("  Install path:" ${CMAKE_INSTALL_PREFIX})
 STATUS("")
-IF (PARALLEL STREQUAL MPI)
-    MESSAGE(STATUS "    Compiling SEIMS_MPI done")
-ELSE ()
-    MESSAGE(STATUS "    Compiling SEIMS_OMP done")
-ENDIF ()
