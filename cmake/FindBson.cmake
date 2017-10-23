@@ -14,21 +14,24 @@ find_path(BSON_INCLUDE_DIR
         NAMES
         libbson-1.0/bson.h
         HINTS
+        CMAKE_PREFIX_PATH
         $ENV{MONGOC_ROOT_DIR}
         $ENV{BSON_ROOT_DIR}
         ${_BSON_INCLUDEDIR}
         PATH_SUFFIXES
         include
         )
+IF(NOT ${BSON_INCLUDE_DIR} MATCHES "libbson-1.0")
+  set(BSON_INCLUDE_DIR "${BSON_INCLUDE_DIR}/libbson-1.0")
+ENDIF()
 
-set(BSON_INCLUDE_DIR "${BSON_INCLUDE_DIR}/libbson-1.0")
-
-if (WIN32 AND NOT CYGWIN)
+if (WIN32 AND NOT CYGWIN AND NOT MINGW)
     if (MSVC)
         find_library(BSON
                 NAMES
                 "bson-1.0"
                 HINTS
+                CMAKE_PREFIX_PATH
                 $ENV{MONGOC_ROOT_DIR}
                 $ENV{BSON_ROOT_DIR}
                 PATH_SUFFIXES
