@@ -1,5 +1,6 @@
 import os
 
+
 def createIndexFile(startpath, indexFile):
     for root, dirs, files in os.walk(startpath):
         files = [f for f in files if not f[0] == '.']
@@ -13,6 +14,7 @@ def createIndexFile(startpath, indexFile):
             for f in files:
                 indexFile.write('{}- [{}]({})\n'.format(subindent, f[:-3], f[:-3]))
 
+
 indexFile = open('_Sidebar.md', 'w')
 createIndexFile(".", indexFile)
-indexFile.close();
+indexFile.close()
