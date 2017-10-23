@@ -21,8 +21,9 @@ find_path(BSON_INCLUDE_DIR
         PATH_SUFFIXES
         include
         )
-
-set(BSON_INCLUDE_DIR "${BSON_INCLUDE_DIR}/libbson-1.0")
+IF(NOT ${BSON_INCLUDE_DIR} MATCHES "libbson-1.0")
+  set(BSON_INCLUDE_DIR "${BSON_INCLUDE_DIR}/libbson-1.0")
+ENDIF()
 
 if (WIN32 AND NOT CYGWIN AND NOT MINGW)
     if (MSVC)
