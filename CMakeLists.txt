@@ -45,6 +45,12 @@ ENDIF ()
 SET(PRJNAME ${PRJNAME}_ALL)
 PROJECT(${PRJNAME})
 
+### Set cmake find path
+set(CMAKE_MODULE_PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+        ${CMAKE_MODULE_PATH}
+   )
+
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
@@ -99,6 +105,10 @@ SET(WITH_GDAL 1)
 SET(WITH_MONGOC 1)
 INCLUDE(cmake/FindPackages.cmake)
 
+# Global flag to cause add_library to create shared libraries if on, otherwise static library.
+option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." ON)
+# libraries built with hunter link against the dynamic CRT on windows
+option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
@@ -160,9 +170,9 @@ ENDIF()
 IF(WITH_MPI)
     STATUS("    MPI: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
 ENDIF()
-STATUS("    GDAL: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
-STATUS("    BSON: ${BSON_LIBRARIES}")
-STATUS("    MongoC: ${MONGOC_LIBRARIES}")
+STATUS("    GDAL: ${GDAL_LIBRARIES} ${GDAL_INCLUDE_PATH}")
+STATUS("    BSON: ${BSON_LIBRARIES} ${BSON_INCLUDE_DIR}")
+STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
 
 ### Auxiliary.
 STATUS("")
