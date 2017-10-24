@@ -105,6 +105,9 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #ifdef windows
 #define Tag_ModuleDirectoryName "\\"
 #define SEP "\\"
+#ifndef MSVC
+#define Tag_So "lib"
+#endif
 #define Tag_DyLib ".dll"
 #else
 #define Tag_ModuleDirectoryName "/"
