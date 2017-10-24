@@ -6,11 +6,11 @@
 #       $ cmake <path/to/SEIMS>
 #
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5
-#     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1
-#     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5
-#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5
-#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5
+#     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
+#     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
+#     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
+#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5
+#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
 #  Latest updated: Oct. 17, 2017
@@ -25,23 +25,24 @@ FATAL: In-source builds are not allowed.
        You should create a separate directory for build files.")
 ENDIF()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
-IF (COMMAND CMAKE_POLICY)
-    CMAKE_POLICY(SET CMP0015 NEW)
-    SET(CMAKE_MACOSX_RPATH 1)
-ENDIF (COMMAND CMAKE_POLICY)
 
+if(POLICY CMP0015)
+    cmake_policy(SET CMP0015 NEW)
+endif()
+if(POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+endif()
 ### SEIMS Version.
 SET(PRJNAME "SEIMS")
 IF (PARALLEL STREQUAL MPI)
     SET(PRJNAME ${PRJNAME}_MPI_OMP)
     SET(WITH_MPI 1)
-    SET(WITH_OMP 1)
     MESSAGE(STATUS "MPI&OpenMP version...")
 ELSE ()
     SET(PRJNAME ${PRJNAME}_OMP)
-    SET(WITH_OMP 1)
     MESSAGE(STATUS "OpenMP version...")
 ENDIF ()
+SET(WITH_OMP 1)
 SET(PRJNAME ${PRJNAME}_ALL)
 PROJECT(${PRJNAME})
 
@@ -87,28 +88,28 @@ IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
   Please check your CMake and compiler installation.")
 ENDIF()
 
+# Global flag to cause add_library to create shared libraries if on, otherwise static library.
+option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
+# libraries built with hunter link against the dynamic CRT on windows
+option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+
 ### Detect compiler and target platform architecture.
-INCLUDE(cmake/Utils.cmake)
+INCLUDE(Utils)
 SET(ENABLE_CXX11 1)
-INCLUDE(cmake/DetectCXXCompiler.cmake)
+INCLUDE(DetectCXXCompiler)
 ### Use statically or dynamically linked CRT? Default: dynamic
 IF(MSVC)
-    INCLUDE(cmake/CRTLinkage.cmake)
+    INCLUDE(CRTLinkage)
 ENDIF(MSVC)
 
 ### Add standard paths or specified paths for Find libraries and headers.
-INCLUDE(cmake/AddFindPaths.cmake)
-# MESSAGE(STATUS ${CMAKE_PREFIX_PATH})
+INCLUDE(AddFindPaths)
 
 ### Find packages.
 SET(WITH_GDAL 1)
 SET(WITH_MONGOC 1)
-INCLUDE(cmake/FindPackages.cmake)
+INCLUDE(FindPackages)
 
-# Global flag to cause add_library to create shared libraries if on, otherwise static library.
-option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." ON)
-# libraries built with hunter link against the dynamic CRT on windows
-option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
