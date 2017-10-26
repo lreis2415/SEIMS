@@ -12,7 +12,7 @@ make install
 cd ..
 ls
 # copy files to releases
-cp *.md seims_linux_gcc48
+cp README.md seims_linux_gcc48
 cp -R data seims_linux_gcc48/data
 mkdir -p seims_linux_gcc48/doc
 cp -R doc/theory seims_linux_gcc48/doc/theory

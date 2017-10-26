@@ -21,27 +21,27 @@ ENDIF()
 # Detect Intel ICC compiler -- for -fPIC in 3rdparty ( UNIX ONLY ):
 # NOTE: The system needs to determine if the '-fPIC' option needs to be added
 #  for the 3rdparty static libs being compiled.  The CMakeLists.txt files
-#  in 3rdparty use the GEO_ICC definition being set here to determine if
+#  in 3rdparty use the CMAKE_COMPILER_IS_ICC definition being set here to determine if
 #  the -fPIC flag should be used.
 # ----------------------------------------------------------------------------
 IF(UNIX)
   IF  (__ICL)
-    SET(GEO_ICC   __ICL)
+    SET(CMAKE_COMPILER_IS_ICC   __ICL)
   ELSEIF(__ICC)
-    SET(GEO_ICC   __ICC)
+    SET(CMAKE_COMPILER_IS_ICC   __ICC)
   ELSEIF(__ECL)
-    SET(GEO_ICC   __ECL)
+    SET(CMAKE_COMPILER_IS_ICC   __ECL)
   ELSEIF(__ECC)
-    SET(GEO_ICC   __ECC)
+    SET(CMAKE_COMPILER_IS_ICC   __ECC)
   ELSEIF(__INTEL_COMPILER)
-    SET(GEO_ICC   __INTEL_COMPILER)
+    SET(CMAKE_COMPILER_IS_ICC   __INTEL_COMPILER)
   ELSEIF(CMAKE_C_COMPILER MATCHES "icc")
-    SET(GEO_ICC   icc_matches_c_compiler)
+    SET(CMAKE_COMPILER_IS_ICC   icc_matches_c_compiler)
   ENDIF()
 ENDIF()
 
 IF(MSVC AND CMAKE_C_COMPILER MATCHES "icc|icl")
-  SET(GEO_ICC   __INTEL_COMPILER_FOR_WINDOWS)
+  SET(CMAKE_COMPILER_IS_ICC   __INTEL_COMPILER_FOR_WINDOWS)
 ENDIF()
 
 IF(NOT DEFINED CMAKE_CXX_COMPILER_VERSION)

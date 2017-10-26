@@ -1,4 +1,10 @@
 MESSAGE(STATUS "        Compiling base_subdir: util...")
+IF(UNIX)
+    IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    ENDIF()
+ENDIF()
 SET(SRC_LIST MetadataInfo.cpp SimulationModule.cpp
         MetadataInfoConst.h seims.h text.h
         ${UTILS_FILES})
