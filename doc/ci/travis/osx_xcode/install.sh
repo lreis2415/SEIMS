@@ -12,7 +12,7 @@ make install
 cd ..
 ls
 # copy files to releases
-cp *.md seims_osx_xcode
+cp README.md seims_osx_xcode
 cp -R data seims_osx_xcode/data
 mkdir -p seims_osx_xcode/doc
 cp -R doc/theory seims_osx_xcode/doc/theory
