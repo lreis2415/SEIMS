@@ -2,11 +2,11 @@
 
 set -e
 # create directories to be install dirs
-mkdir -p seims_linux_gcc48/seims/bin
+mkdir -p seims_linux_gcc48/bin
 # Release version
 mkdir buildRel
 cd buildRel
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_linux_gcc48/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/home/travis/build/lreis2415/SEIMS/seims_linux_gcc48/bin
 make -j4
 make install
 cd ..
