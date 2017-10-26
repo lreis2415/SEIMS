@@ -21,7 +21,7 @@ FATAL: In-source builds are not allowed.
        You should create a separate directory for build files."
 )
 ENDIF()
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
 PROJECT(TauDEM CXX C)
 
 ### Set default or specified installation directory.
