@@ -155,7 +155,6 @@ ENDIF()
 # refers to https://github.com/biicode/client/issues/10
 include(CheckCXXCompilerFlag)
 IF(NOT MSVC AND HAVE_CXX11)
-  message(status "test which cxx11 flag")
   SET(ENABLE_CXXFLAGS_TO_CHECK
                               -std=c++11
                               -std=c++0x
