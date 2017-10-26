@@ -27,6 +27,12 @@ IF (COMMAND CMAKE_POLICY)
     SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (COMMAND CMAKE_POLICY)
 
+### Set cmake find path
+set(CMAKE_MODULE_PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+        ${CMAKE_MODULE_PATH}
+        )
+
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
@@ -148,8 +154,8 @@ ELSE()
 ENDIF()
 
 ### Dependencies.
-STATUS("    BSON: ${BSON_LIBRARIES}")
-STATUS("    MongoC: ${MONGOC_LIBRARIES}")
+STATUS("    BSON: ${BSON_LIBRARIES} ${BSON_INCLUDE_DIR}")
+STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
 
 ### Auxiliary.
 STATUS("")
