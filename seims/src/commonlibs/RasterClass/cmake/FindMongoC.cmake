@@ -14,21 +14,24 @@ find_path(MONGOC_INCLUDE_DIR
         NAMES
         libmongoc-1.0/mongoc.h
         HINTS
+        CMAKE_PREFIX_PATH
         $ENV{MONGOC_ROOT_DIR}
         $ENV{BSON_ROOT_DIR}
         ${_MONGOC_INCLUDEDIR}
         PATH_SUFFIXES
         include
         )
+IF(NOT ${MONGOC_INCLUDE_DIR} MATCHES "libmongoc-1.0")
+  set(MONGOC_INCLUDE_DIR "${MONGOC_INCLUDE_DIR}/libmongoc-1.0")
+ENDIF()
 
-set(MONGOC_INCLUDE_DIR "${MONGOC_INCLUDE_DIR}/libmongoc-1.0")
-
-if (WIN32 AND NOT CYGWIN)
+if (WIN32 AND NOT CYGWIN AND NOT MINGW)
     if (MSVC)
         find_library(MONGOC
                 NAMES
                 "mongoc-1.0"
                 HINTS
+                CMAKE_PREFIX_PATH
                 $ENV{MONGOC_ROOT_DIR}
                 $ENV{BSON_ROOT_DIR}
                 PATH_SUFFIXES
@@ -52,22 +55,18 @@ if (WIN32 AND NOT CYGWIN)
         # bother supporting this?
     endif ()
 else ()
-
     find_library(MONGOC_LIBRARY
             NAMES
             mongoc-1.0
             HINTS
+            CMAKE_PREFIX_PATH
             ${_MONGOC_LIBDIR}
             PATH_SUFFIXES
             lib
             )
-
     mark_as_advanced(MONGOC_LIBRARY)
-
     find_package(Threads REQUIRED)
-
     set(MONGOC_LIBRARIES ${MONGOC_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
-
 endif ()
 
 if (MONGOC_INCLUDE_DIR)
