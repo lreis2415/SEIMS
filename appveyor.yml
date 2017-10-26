@@ -1,4 +1,4 @@
-peakversion: SEIMS-Win64.{build}.{branch}
+version: SEIMS-Win64.{build}.{branch}
 branches:
   only:
   - master
