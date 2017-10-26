@@ -68,6 +68,6 @@ ENDIF()
 
 ### Bson and MongoC.
 IF (WITH_MONGOC)
-  INCLUDE(cmake/FindBson.cmake)
-  INCLUDE(cmake/FindMongoC.cmake)
+  INCLUDE(FindBson)
+  INCLUDE(FindMongoC)
 ENDIF()
