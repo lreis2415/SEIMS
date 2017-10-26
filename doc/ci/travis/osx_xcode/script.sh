@@ -2,4 +2,4 @@
 
 set -e
 # Run unittest
-./seims_osx_xcode/seims/bin/seims_ut_exec
+./seims_osx_xcode/bin/seims_ut_exec

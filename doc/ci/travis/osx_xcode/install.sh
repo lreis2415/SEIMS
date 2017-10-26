@@ -2,11 +2,11 @@
 
 set -e
 # create directories to be install dirs
-mkdir -p seims_osx_xcode/seims/bin
+mkdir -p seims_osx_xcode/bin
 # Release version
 mkdir buildRel
 cd buildRel
-cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/Users/travis/build/lreis2415/SEIMS/seims_osx_xcode/seims/bin
+cmake .. -DCMAKE_BUILD_TYPE=Release -DUNITTEST=1 -DINSTALL_PREFIX=/Users/travis/build/lreis2415/SEIMS/seims_osx_xcode/bin
 make -j4
 make install
 cd ..

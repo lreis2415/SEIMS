@@ -54,12 +54,12 @@ install:
 build_script:
   # make directory for releases
   - cd C:\projects\seims
-  - mkdir seims_win64bit\seims\bin
+  - mkdir seims_win64bit\bin
   - ps: "ls"
   # Build 64-bit release version on Windows, and build unittest.
   - mkdir build64Rel
   - cd build64Rel
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_win64bit\seims\bin
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_win64bit\bin
   - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # copy files to releases
@@ -68,6 +68,7 @@ build_script:
   - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_win64bit\doc\theory /e /c /i /y
   - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_win64bit\doc\wiki /e /c /i /y
   - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_win64bit\seims
+  - move C:\projects\seims\seims_win64bit\seims\Firewall_for_Windows.bat C:\projects\seims\seims_win64bit\bin
   - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_win64bit\seims\pygeoc /e /c /i /y
   - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_win64bit\seims\preprocess /e /c /i /y
   - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_win64bit\seims\postprocess /e /c /i /y
@@ -75,7 +76,7 @@ build_script:
   - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_win64bit\seims\calibration /e /c /i /y
 test_script:
   # Run unit test.
-  - C:\projects\seims\seims_win64bit\seims\bin\seims_ut_exec.exe
+  - C:\projects\seims\seims_win64bit\bin\seims_ut_exec.exe
 artifacts:
 - path: seims_win64bit
   type: zip
