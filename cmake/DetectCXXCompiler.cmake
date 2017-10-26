@@ -67,6 +67,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF()
 ENDIF()
 
+# Disables the use of the global variable errno
+# for math functions that represent a single floating-point instruction.
+# Not sure if this is safe and needed. ljzhu
+#IF(CMAKE_COMPILER_IS_GNUCXX)
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+#ENDIF()
+
+
 IF(MSVC64 OR MINGW64)
   SET(X86_64 1)
 ELSEIF(MINGW OR (MSVC AND NOT CMAKE_CROSSCOMPILING))
