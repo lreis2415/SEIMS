@@ -5,7 +5,7 @@ git subtree add --prefix=doc/wiki wiki master --squash
 git remote add -f pygeoc git@github.com:lreis2415/PyGeoC.git -m master
 git subtree add --prefix=seims/pygeoc pygeoc master --squash
 # taudem
-git remote add -f taudem git@github.com:lreis2415/TauDEM.git -m master
+git remote add -f taudem git@github.com:lreis2415/TauDEM_ext.git -m master
 git subtree add --prefix=seims/src/taudem taudem master --squash
 # metis
 git remote add -f metis git@github.com:lreis2415/metis.git -m master
