@@ -151,13 +151,24 @@ IF(ENABLE_CXX11)
     SET(HAVE_CXX11 ON)
   ENDIF()
 ENDIF()
-IF(NOT HAVE_CXX11)
-  geo_check_compiler_flag(CXX "" HAVE_CXX11 "${CMAKE_SOURCE_DIR}/cmake/checks/cxx11.cpp")
-  IF(NOT HAVE_CXX11 AND ENABLE_CXX11)
-    geo_check_compiler_flag(CXX "-std=c++11" HAVE_STD_CXX11 "${CMAKE_SOURCE_DIR}/cmake/checks/cxx11.cpp")
-    IF(HAVE_STD_CXX11)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+# refers to https://github.com/biicode/client/issues/10
+include(CheckCXXCompilerFlag)
+IF(NOT MSVC AND HAVE_CXX11)
+  message(status "test which cxx11 flag")
+  SET(ENABLE_CXXFLAGS_TO_CHECK
+                              -std=c++11
+                              -std=c++0x
+                              -std=gnu++0x
+                              -std=gnu++11)
+  foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
+    string(REPLACE "-std=" "_" flag_var ${flag})
+    string(REPLACE "+" "x" flag_var ${flag_var})
+    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
+    if(COMPILER_HAS_CXX_FLAG${flag_var})
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
       SET(HAVE_CXX11 ON)
-    ENDIF()
-  ENDIF()
+      break()
+    endif()
+  endforeach()
 ENDIF()
