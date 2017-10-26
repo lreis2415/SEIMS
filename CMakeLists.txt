@@ -51,7 +51,7 @@ set(CMAKE_MODULE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake
         ${CMAKE_MODULE_PATH}
    )
-message(status ${CMAKE_INSTALL_PREFIX})
+
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
