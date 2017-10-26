@@ -54,6 +54,7 @@ install:
 build_script:
   # make directory for releases
   - cd C:\projects\seims
+  - mkdir seims_win64bit\seims
   - mkdir seims_win64bit\bin
   - ps: "ls"
   # Build 64-bit release version on Windows, and build unittest.

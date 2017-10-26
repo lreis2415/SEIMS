@@ -3,6 +3,7 @@
 set -e
 # create directories to be install dirs
 mkdir -p seims_linux_gcc48/bin
+mkdir -p seims_linux_gcc48/seims
 # Release version
 mkdir buildRel
 cd buildRel
