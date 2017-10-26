@@ -21,8 +21,9 @@ find_path(MONGOC_INCLUDE_DIR
         PATH_SUFFIXES
         include
         )
-
-set(MONGOC_INCLUDE_DIR "${MONGOC_INCLUDE_DIR}/libmongoc-1.0")
+IF(NOT ${MONGOC_INCLUDE_DIR} MATCHES "libmongoc-1.0")
+  set(MONGOC_INCLUDE_DIR "${MONGOC_INCLUDE_DIR}/libmongoc-1.0")
+ENDIF()
 
 if (WIN32 AND NOT CYGWIN AND NOT MINGW)
     if (MSVC)
