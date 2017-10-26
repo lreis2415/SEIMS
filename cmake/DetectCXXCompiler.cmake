@@ -21,27 +21,27 @@ ENDIF()
 # Detect Intel ICC compiler -- for -fPIC in 3rdparty ( UNIX ONLY ):
 # NOTE: The system needs to determine if the '-fPIC' option needs to be added
 #  for the 3rdparty static libs being compiled.  The CMakeLists.txt files
-#  in 3rdparty use the GEO_ICC definition being set here to determine if
+#  in 3rdparty use the CMAKE_COMPILER_IS_ICC definition being set here to determine if
 #  the -fPIC flag should be used.
 # ----------------------------------------------------------------------------
 IF(UNIX)
   IF  (__ICL)
-    SET(GEO_ICC   __ICL)
+    SET(CMAKE_COMPILER_IS_ICC   __ICL)
   ELSEIF(__ICC)
-    SET(GEO_ICC   __ICC)
+    SET(CMAKE_COMPILER_IS_ICC   __ICC)
   ELSEIF(__ECL)
-    SET(GEO_ICC   __ECL)
+    SET(CMAKE_COMPILER_IS_ICC   __ECL)
   ELSEIF(__ECC)
-    SET(GEO_ICC   __ECC)
+    SET(CMAKE_COMPILER_IS_ICC   __ECC)
   ELSEIF(__INTEL_COMPILER)
-    SET(GEO_ICC   __INTEL_COMPILER)
+    SET(CMAKE_COMPILER_IS_ICC   __INTEL_COMPILER)
   ELSEIF(CMAKE_C_COMPILER MATCHES "icc")
-    SET(GEO_ICC   icc_matches_c_compiler)
+    SET(CMAKE_COMPILER_IS_ICC   icc_matches_c_compiler)
   ENDIF()
 ENDIF()
 
 IF(MSVC AND CMAKE_C_COMPILER MATCHES "icc|icl")
-  SET(GEO_ICC   __INTEL_COMPILER_FOR_WINDOWS)
+  SET(CMAKE_COMPILER_IS_ICC   __INTEL_COMPILER_FOR_WINDOWS)
 ENDIF()
 
 IF(NOT DEFINED CMAKE_CXX_COMPILER_VERSION)
@@ -66,6 +66,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     ENDIF()
   ENDIF()
 ENDIF()
+
+# Disables the use of the global variable errno
+# for math functions that represent a single floating-point instruction.
+# Not sure if this is safe and needed. ljzhu
+#IF(CMAKE_COMPILER_IS_GNUCXX)
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+#ENDIF()
+
 
 IF(MSVC64 OR MINGW64)
   SET(X86_64 1)
@@ -142,13 +151,24 @@ IF(ENABLE_CXX11)
     SET(HAVE_CXX11 ON)
   ENDIF()
 ENDIF()
-IF(NOT HAVE_CXX11)
-  geo_check_compiler_flag(CXX "" HAVE_CXX11 "${CMAKE_SOURCE_DIR}/cmake/checks/cxx11.cpp")
-  IF(NOT HAVE_CXX11 AND ENABLE_CXX11)
-    geo_check_compiler_flag(CXX "-std=c++11" HAVE_STD_CXX11 "${CMAKE_SOURCE_DIR}/cmake/checks/cxx11.cpp")
-    IF(HAVE_STD_CXX11)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+# refers to https://github.com/biicode/client/issues/10
+include(CheckCXXCompilerFlag)
+IF(NOT MSVC AND HAVE_CXX11)
+  message(status "test which cxx11 flag")
+  SET(ENABLE_CXXFLAGS_TO_CHECK
+                              -std=c++11
+                              -std=c++0x
+                              -std=gnu++0x
+                              -std=gnu++11)
+  foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
+    string(REPLACE "-std=" "_" flag_var ${flag})
+    string(REPLACE "+" "x" flag_var ${flag_var})
+    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
+    if(COMPILER_HAS_CXX_FLAG${flag_var})
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
       SET(HAVE_CXX11 ON)
-    ENDIF()
-  ENDIF()
+      break()
+    endif()
+  endforeach()
 ENDIF()
