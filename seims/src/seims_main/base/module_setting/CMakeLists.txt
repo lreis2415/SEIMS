@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling base_subdir: module_setting...")
-AUX_SOURCE_DIRECTORY(. SRC_LIST)
+FILE(GLOB SRC_LIST *.cpp *.h)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 ADD_LIBRARY(module_setting STATIC ${SRC_LIST})
 TARGET_LINK_LIBRARIES(module_setting bmps data util)

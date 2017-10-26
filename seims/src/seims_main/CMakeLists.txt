@@ -67,9 +67,3 @@ ENDIF ()
 ADD_SUBDIRECTORY(${BASE_HOME})
 ADD_SUBDIRECTORY(${MODULE_HOME})
 ADD_SUBDIRECTORY(${MAIN_HOME})
-
-#### For CLion to implement the "make install" command
-#add_custom_target(install_${SEIMSPRJ}
-#        $(MAKE) install
-#        DEPENDS ${SEIMSPRJ}
-#        COMMENT "Installing ${SEIMSPRJ}")
