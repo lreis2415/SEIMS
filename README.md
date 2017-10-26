@@ -13,7 +13,7 @@ RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主�
 
 + Linux(Unbuntu 14.04) + GCC-4.8: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/RasterClass?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/RasterClass)
 + macOS 10.12 + Clang: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/RasterClass?branch=master&env=BUILD_NAME=osx_xcode&label=osx_xcode)](https://travis-ci.org/lreis2415/RasterClass)
-+ Windows + MSVC 2013 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/xa5c17um0kv4yc4i/branch/master?svg=true)](https://ci.appveyor.com/project/crazyzlj/rasterclass/branch/master)
++ Windows + MSVC 2013 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/k11kcl47ehjco01h/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/rasterclass/branch/master)
 
 > 值得一提的是，在64位系统下，可以编译32位或64位程序，此时需要注意对应的GDAL库和mongo-c-driver库都需要编译成64位才可。利用AppVeyor构建的CI测试即全部采用64位编译。
 
