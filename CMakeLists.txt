@@ -51,12 +51,12 @@ set(CMAKE_MODULE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake
         ${CMAKE_MODULE_PATH}
    )
-
+message(status ${CMAKE_INSTALL_PREFIX})
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
-ELSE ()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/seims/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
@@ -108,6 +108,7 @@ INCLUDE(AddFindPaths)
 ### Find packages.
 SET(WITH_GDAL 1)
 SET(WITH_MONGOC 1)
+SET(WITH_OPENMP 1)
 INCLUDE(FindPackages)
 
 ### Add subdirectories.
