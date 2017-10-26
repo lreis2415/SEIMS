@@ -3,6 +3,7 @@
 set -e
 # create directories to be install dirs
 mkdir -p seims_osx_xcode/bin
+mkdir -p seims_osx_xcode/seims
 # Release version
 mkdir buildRel
 cd buildRel
