@@ -10,15 +10,15 @@ import sys
 from math import sqrt
 
 import networkx as nx
+from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTInteger
 from osgeo.ogr import Open as ogr_Open
-from osgeo.ogr import FieldDefn as ogr_FieldDefn
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import UtilClass, FileClass
 from pymongo import ASCENDING
 
-from seims.preprocess.mpi_adjust_groups import adjust_group_result
-from seims.preprocess.utility import UTIL_ZERO, MINI_SLOPE
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import UtilClass, FileClass
+from preprocess.mpi_adjust_groups import adjust_group_result
+from preprocess.utility import UTIL_ZERO, MINI_SLOPE
 
 sys.setrecursionlimit(10000)
 
@@ -464,8 +464,8 @@ class ImportReaches2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

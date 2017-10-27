@@ -40,7 +40,10 @@
 #endif
 #include <inttypes.h>
 #include <sys/types.h>
+// refers to https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-metis
+#ifndef __MINGW32__
 #include <sys/resource.h>
+#endif
 #include <sys/time.h>
 
 #endif
