@@ -143,19 +143,18 @@ IF(CMAKE_VERSION VERSION_LESS "3.1")
   endforeach()
 ENDIF()
 
-IF(ENABLE_CXX11)
-  SET(CMAKE_CXX_STANDARD 11)
-  SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-  SET(CMAKE_CXX_EXTENSIONS OFF) # use -std=c++11 instead of -std=gnu++11
-  IF(CMAKE_CXX11_COMPILE_FEATURES)
-    SET(HAVE_CXX11 ON)
-  ENDIF()
-ENDIF()
+#IF(ENABLE_CXX11)
+#  SET(CMAKE_CXX_STANDARD 11)
+#  SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+#  SET(CMAKE_CXX_EXTENSIONS OFF) # use -std=c++11 instead of -std=gnu++11
+#  IF(CMAKE_CXX11_COMPILE_FEATURES)
+#    SET(HAVE_CXX11 ON)
+#  ENDIF()
+#ENDIF()
 
 # refers to https://github.com/biicode/client/issues/10
 include(CheckCXXCompilerFlag)
-IF(NOT MSVC AND HAVE_CXX11)
-  message(status "test which cxx11 flag")
+IF(NOT MSVC AND ENABLE_CXX11)
   SET(ENABLE_CXXFLAGS_TO_CHECK
                               -std=c++11
                               -std=c++0x
@@ -167,7 +166,8 @@ IF(NOT MSVC AND HAVE_CXX11)
     check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
     if(COMPILER_HAS_CXX_FLAG${flag_var})
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-      SET(HAVE_CXX11 ON)
+      geo_list_unique(CMAKE_CXX_FLAGS)
+      SET(HAVE_CXX11 1)
       break()
     endif()
   endforeach()
