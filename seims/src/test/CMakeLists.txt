@@ -1,4 +1,4 @@
 # first build google test (gmock, gtest)
-add_subdirectory(./googletest)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest)
 # add framework unittest
-add_subdirectory(./seims_framework)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/seims_framework)
