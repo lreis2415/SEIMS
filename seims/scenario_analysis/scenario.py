@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSAG-II and SEIMS.
+"""Base class of Scenario for coupling NSAG-II and
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-10-29  hr - initial implementation.\n
                 17-08-18  lj - redesign and rewrite.\n
@@ -11,16 +11,16 @@ from datetime import timedelta
 from subprocess import CalledProcessError
 
 from bson.objectid import ObjectId
+from pygeoc.utils import UtilClass, StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
-from seims.preprocess.db_mongodb import ConnectMongoDB
-from seims.pygeoc.pygeoc.utils.utils import UtilClass, StringClass, get_config_parser
-from seims.scenario_analysis.config import SAConfig
-from seims.scenario_analysis.utility import generate_uniqueid, print_message
+from preprocess.db_mongodb import ConnectMongoDB
+from scenario_analysis.config import SAConfig
+from scenario_analysis.utility import generate_uniqueid, print_message
 
 
 class Scenario(object):
-    """Base class of Scenario for SEIMS.
+    """Base class of Scenario for
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection

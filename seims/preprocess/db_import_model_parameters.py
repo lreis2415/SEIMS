@@ -9,15 +9,15 @@ from struct import pack
 
 from gridfs import GridFS
 from numpy import unique
+from pygeoc.hydro import FlowModelConst
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING
 
-from seims.preprocess.db_mongodb import MongoUtil
-from seims.preprocess.text import ModelParamFields, ModelParamDataUtils, \
+from preprocess.db_mongodb import MongoUtil
+from preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import StringClass, DEFAULT_NODATA, MathClass
+from preprocess.utility import read_data_items_from_txt
 
 
 class ImportParam2Mongo(object):
@@ -367,8 +367,8 @@ class ImportParam2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

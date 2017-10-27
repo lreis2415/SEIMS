@@ -278,19 +278,21 @@ bool sendLink(int32_t Id, int dest) {
     MPI_Datatype PointType, oldtypes[2];
     int blockcounts[2];
 
-    MPI_Aint offsets[2], extent;
+    MPI_Aint offsets[2], lb, extent;
     MPI_Status stat;
     //set up first blocks of storage
     offsets[0] = 0;
     oldtypes[0] = MPI_LONG;
     blockcounts[0] = 2;
     //set up second block of storage
-    MPI_Type_extent(MPI_LONG, &extent);
+    // MPI_Type_extent(MPI_LONG, &extent);  // deprecated in MPI-2 standard, replaced by ljzhu
+    MPI_Type_get_extent(MPI_LONG, &lb, &extent);
     offsets[1] = 2 * extent;
     oldtypes[1] = MPI_FLOAT;
     blockcounts[1] = 3;
-    //create define it as an MPI data type and comit it.
-    MPI_Type_struct(2, blockcounts, offsets, oldtypes, &PointType);
+    //create define it as an MPI data type and commit it.
+    // MPI_Type_struct(2, blockcounts, offsets, oldtypes, &PointType); // deprecated, replaced by ljzhu
+    MPI_Type_create_struct(2, blockcounts, offsets, oldtypes, &PointType);
     MPI_Type_commit(&PointType);
 
     MPI_Status status;
@@ -345,19 +347,21 @@ bool recvLink(int src) {
     MPI_Datatype PointType, oldtypes[2];
     int blockcounts[2];
 
-    MPI_Aint offsets[2], extent;
+    MPI_Aint offsets[2], lb, extent;
     MPI_Status stat1;
     //set up first blocks of storage
     offsets[0] = 0;
     oldtypes[0] = MPI_LONG;
     blockcounts[0] = 2;
     //set up second block of storage
-    MPI_Type_extent(MPI_LONG, &extent);
+    // MPI_Type_extent(MPI_LONG, &extent);  // deprecated in MPI-2 standard, replaced by ljzhu
+    MPI_Type_get_extent(MPI_LONG, &lb, &extent);
     offsets[1] = 2 * extent;
     oldtypes[1] = MPI_FLOAT;
     blockcounts[1] = 3;
-    //create define it as an MPI data type and comit it.
-    MPI_Type_struct(2, blockcounts, offsets, oldtypes, &PointType);
+    //create define it as an MPI data type and commit it.
+    // MPI_Type_struct(2, blockcounts, offsets, oldtypes, &PointType); // deprecated in MPI-2 standard
+    MPI_Type_create_struct(2, blockcounts, offsets, oldtypes, &PointType);
     MPI_Type_commit(&PointType);
     int flag;
     //MPI_Request req;

@@ -11,7 +11,7 @@ try:
 except ImportError:
     from configparser import ConfigParser  # py3
 
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_file
+from pygeoc.utils import FileClass, StringClass, get_config_file
 
 
 class PostConfig(object):

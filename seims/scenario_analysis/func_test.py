@@ -1,8 +1,9 @@
 import pickle
 
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import StringClass
+
+from preprocess.utility import read_data_items_from_txt
 
 
 class TextReader:

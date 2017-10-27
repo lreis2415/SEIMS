@@ -5,7 +5,8 @@
     @changelog: 16-06-16  first implementation version
                 17-06-22  reformat according to pylint and google style
 """
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from pygeoc.utils import StringClass
+
 # Global variables
 UTIL_ZERO = 1.e-6
 MINI_SLOPE = 0.0001

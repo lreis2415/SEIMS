@@ -13,7 +13,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from pygeoc.utils import StringClass
 
 LFs = ['\r', '\n', '\r\n']
 

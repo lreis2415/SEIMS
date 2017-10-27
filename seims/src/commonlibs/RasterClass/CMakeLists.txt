@@ -1,41 +1,62 @@
-# CMake build for Windows, Linux, and macOS
-# Updated by Liang-Jun Zhu
-# zlj@lreis.ac.cn
-cmake_minimum_required(VERSION 3.1)
-project(RasterClass)
-IF (COMMAND CMAKE_POLICY)
-    CMAKE_POLICY(SET CMP0015 NEW)
-    SET(CMAKE_MACOSX_RPATH 1)
-ENDIF (COMMAND CMAKE_POLICY)
-################# Install directory ##################
-IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
-    SET(INSTALL_DIR ${INSTALL_PREFIX})
-ELSE ()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
-    SET(INSTALL_DIR ${CMAKE_SOURCE_DIR}/bin)
-ENDIF ()
-### Active C++11 standard, cross-platform. This requires CMake 3.1+
-# SET(CMAKE_CXX_STANDARD 11) CMake may make mistake in intel c/c++ compiler
-# 12.1, so make some test when setting the C++ Standard.
-# refers to https://github.com/biicode/client/issues/10
-include(CheckCXXCompilerFlag)
-set(ENABLE_CXXFLAGS_TO_CHECK
-    -std=gnu++11 
-    -std=c++11
-    -std=gnu++0x 
-    -std=c++0x)
+# ----------------------------------------------------------------------------
+#  Root CMake file for RasterClass.
+#
+#     Please from the off-tree build directory, invoke:
+#       $ cmake <path/to/RasterClass>
+#
+#  Routine testing platforms and compilers include:
+#     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
+#     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
+#     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
+#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5
+#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
+#
+#  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
+#  Latest updated: Oct. 26, 2017
+# ----------------------------------------------------------------------------
+IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
+    MESSAGE(FATAL_ERROR "
+FATAL: In-source builds are not allowed.
+       You should create a separate directory for build files.")
+ENDIF()
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
 
-foreach(flag ${ENABLE_CXXFLAGS_TO_CHECK})
-    string(REPLACE "-std=" "_" flag_var ${flag})
-    string(REPLACE "+" "x" flag_var ${flag_var})
-    check_cxx_compiler_flag("${flag}" COMPILER_HAS_CXX_FLAG${flag_var})
-    if(COMPILER_HAS_CXX_FLAG${flag_var})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-        break()
-    endif()
-endforeach()
-################# OS platform   ##################
+if(POLICY CMP0015)
+    cmake_policy(SET CMP0015 NEW)
+endif()
+if(POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+endif()
+
+### Project name.
+project(RasterClass)
+SET(WITH_OMP 1)
+
+### Set cmake find path
+set(CMAKE_MODULE_PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+        ${CMAKE_MODULE_PATH}
+        )
+
+### Set default or specified installation directory.
+IF (INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
+ENDIF ()
+SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+
+### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
+IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+
+### Allow project folders in MSVC.
+IF(MSVC)
+    SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+ENDIF()
+
+### OS platform.
 if (WIN32)
     add_definitions(-Dwindows)
     if (MSVC)
@@ -46,38 +67,35 @@ elseif (APPLE)
 else ()
     add_definitions(-Dlinux)
 endif ()
-################# Find packages ##################
-# 1. GDAL is recommended but not required
-IF (WIN32)
-    SET(GDAL_DIR $ENV{GDAL_DIR})
-    SET(GDAL_DIR $ENV{GDAL_DIR})
-    SET(GDAL_INCLUDE_DIR ${GDAL_DIR}\\include)
-    SET(GDAL_LIBRARIES ${GDAL_DIR}\\lib)
-    SET(GDAL_BIN_DIR ${GDAL_DIR}\\bin)
-    SET(GDAL_LIBRARY ${GDAL_LIBRARIES}\\gdal_i.lib)
-    if (EXISTS ${GDAL_LIBRARY})
-        SET(GDAL_FOUND TRUE)
-    else ()
-        SET(GDAL_FOUND FALSE)
-    endif ()
-ELSE ()
-    # CMake will find GDAL and get GDAL_INCLUDE_DIR and GDAL_LIBRARY.
-    find_package(GDAL REQUIRED)
-ENDIF ()
-if (GDAL_FOUND)
-    add_definitions(-DUSE_GDAL)
-    include_directories(${GDAL_INCLUDE_DIR})
-endif ()
-# 2. Bson and MongoC are optional
-include(FindBson.cmake)
-include(FindMongoC.cmake)
-# 3. Add support for OpenMP (if supported)
-find_package(OpenMP)
-IF (OPENMP_FOUND)
-    add_definitions(-DSUPPORT_OMP)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-ENDIF ()
-################ Add executables #################
+
+### Break in case of popular CMake configuration mistakes.
+IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
+    MESSAGE(FATAL_ERROR "CMake fails to determine the bitness of the target platform.
+  Please check your CMake and compiler installation.")
+ENDIF()
+
+# Global flag to cause add_library to create shared libraries if on, otherwise static library.
+option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
+# libraries built with hunter link against the dynamic CRT on windows
+option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+
+### Detect compiler and target platform architecture.
+INCLUDE(Utils)
+SET(ENABLE_CXX11 1)
+INCLUDE(DetectCXXCompiler)
+### Use statically or dynamically linked CRT? Default: dynamic
+IF(MSVC)
+    INCLUDE(CRTLinkage)
+ENDIF(MSVC)
+
+### Add standard paths or specified paths for Find libraries and headers.
+INCLUDE(AddFindPaths)
+
+### Find packages.
+SET(WITH_GDAL 1)
+SET(WITH_OPENMP 1)
+
+### Add executables.
 set(SOURCE_FILES clsRasterData.cpp main.cpp)
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
 set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
@@ -85,11 +103,14 @@ set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../MongoUtilClass)
 set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
 
 IF (EXISTS ${MONGO_FILES})
-    SET(USEMONGO TRUE)
+    SET(WITH_MONGOC 1)
 ENDIF ()
-if (BSON_FOUND AND MONGOC_FOUND AND USEMONGO)
+
+INCLUDE(FindPackages)
+
+if (BSON_FOUND AND MONGOC_FOUND AND WITH_MONGOC)
     add_definitions(-DUSE_MONGODB)
-    include_directories(${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${MONGO_INC})
+    geo_include_directories(${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${MONGO_INC})
     add_executable(RasterClass ${SOURCE_FILES} ${UTILS_FILES} ${MONGO_FILES})
     target_link_libraries(RasterClass ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 else ()
@@ -97,11 +118,78 @@ else ()
     add_executable(RasterClass ${SOURCE_FILES} ${UTILS_FILES})
 endif ()
 if (GDAL_FOUND)
-    target_link_libraries(RasterClass ${GDAL_LIBRARY})
+    geo_include_directories(${GDAL_INCLUDE_DIR})
+    target_link_libraries(RasterClass ${GDAL_LIBRARIES})
 endif ()
+
 install(TARGETS RasterClass DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
         $(MAKE) install
-        DEPENDS ${PROJECT_NAME}
+        DEPENDS RasterClass
         COMMENT "Installing ${PROJECT_NAME}")
+
+### Build platform.
+STATUS("")
+STATUS("  Platform:")
+IF(NOT CMAKE_VERSION VERSION_LESS 2.8.11 AND NOT BUILD_INFO_SKIP_TIMESTAMP)
+    STRING(TIMESTAMP TIMESTAMP "" UTC)
+    IF(TIMESTAMP)
+        STATUS("    Timestamp:"    ${TIMESTAMP})
+    ENDIF()
+ENDIF()
+STATUS("    Host:"             ${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_VERSION} ${CMAKE_HOST_SYSTEM_PROCESSOR})
+IF(CMAKE_CROSSCOMPILING)
+    STATUS("    Target:"         ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION} ${CMAKE_SYSTEM_PROCESSOR})
+ENDIF()
+STATUS("    CMake:"            ${CMAKE_VERSION})
+STATUS("    CMake generator:"  ${CMAKE_GENERATOR})
+STATUS("    CMake build tool:" ${CMAKE_BUILD_TOOL})
+IF(MSVC)
+    STATUS("    MSVC:"           ${MSVC_VERSION})
+ENDIF()
+IF(CMAKE_GENERATOR MATCHES Xcode)
+    STATUS("    Xcode:"          ${XCODE_VERSION})
+ENDIF()
+IF(NOT CMAKE_GENERATOR MATCHES "Xcode|Visual Studio")
+    STATUS("    Configuration:"  ${CMAKE_BUILD_TYPE})
+ENDIF()
+
+### C/C++ options.
+IF(CMAKE_CXX_COMPILER_VERSION)
+    SET(GEO_COMPILER_STR "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1} (ver ${CMAKE_CXX_COMPILER_VERSION})")
+ELSE()
+    SET(GEO_COMPILER_STR "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1}")
+ENDIF()
+STRING(STRIP "${GEO_COMPILER_STR}" GEO_COMPILER_STR)
+
+STATUS("")
+STATUS("  C/C++:")
+IF(ENABLE_CXX11 OR HAVE_CXX11)
+    STATUS("    C++11:" HAVE_CXX11 THEN YES ELSE NO)
+ENDIF()
+STATUS("    C++ Compiler:"           ${GEO_COMPILER_STR})
+STATUS("    C++ flags (Release):"    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+STATUS("    C++ flags (Debug):"      ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+STATUS("    C Compiler:"             ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ARG1})
+STATUS("    C flags (Release):"      ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE})
+STATUS("    C flags (Debug):"        ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG})
+IF(WIN32)
+    STATUS("    Linker flags (Release):" ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
+    STATUS("    Linker flags (Debug):"   ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+ELSE()
+    STATUS("    Linker flags (Release):" ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_RELEASE})
+    STATUS("    Linker flags (Debug):"   ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_DEBUG})
+ENDIF()
+
+### Dependencies.
+STATUS("    GDAL: ${GDAL_LIBRARIES} ${GDAL_INCLUDE_DIR}")
+IF(BSON_FOUND AND MONGOC_FOUND AND WITH_MONGOC)
+  STATUS("    BSON: ${BSON_LIBRARIES} ${BSON_INCLUDE_DIR}")
+  STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
+ENDIF()
+
+### Auxiliary.
+STATUS("")
+STATUS("  Install path:" ${CMAKE_INSTALL_PREFIX})
+STATUS("")

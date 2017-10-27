@@ -54,7 +54,8 @@ int main(int argc, char **argv) {
     char pfile[MAXLN], wfile[MAXLN], ad8file[MAXLN], outletdatasrc[MAXLN], outletlyr[MAXLN] = "",
         movedoutletdatasrc[MAXLN], movedoutletlyr[MAXLN] = "";
     int err, i, movedist = 10;
-    if (argc < 10) {
+    bool calmovedoutlet = false;
+    if (argc < 8) {
         printf("No simple use case for this function.\n");
         goto errexit;
     }
@@ -94,6 +95,7 @@ int main(int argc, char **argv) {
             i++;
             if (argc > i) {
                 strcpy(movedoutletdatasrc, argv[i]);
+                calmovedoutlet = true;
                 i++;
             } else { goto errexit; }
         } else if (strcmp(argv[i], "-odlyr") == 0) {
@@ -112,7 +114,8 @@ int main(int argc, char **argv) {
             goto errexit;
         }
     }
-    err = connectdown(pfile, wfile, ad8file, outletdatasrc, outletlyr, movedoutletdatasrc, movedoutletlyr, movedist);
+    err = connectdown(pfile, wfile, ad8file, outletdatasrc, outletlyr, movedoutletdatasrc, 
+        movedoutletlyr, movedist, calmovedoutlet);
     if (err != 0) {
         printf("Move down error %d\n", err);
     }
