@@ -107,6 +107,7 @@
 + 对于“编译Microsoft Visual Studio工程”，`MongoUtil.sln`将保存在`<path-to-MongoUtilClass>\build`目录下。
 
 ### 3.2 Linux
++ 打开终端，依次输入如下命令
 
 	```shell
 	cd MongoUtilClass

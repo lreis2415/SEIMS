@@ -181,7 +181,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     //Don't throw exception, just print the warning message. by lj 08/6/17
     //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
     //    " is failed. There is no result data for this file. Please check output variables of modules.");
-    cout << "PrintInfoItem\n Flush\ Creating " << Filename <<
+    cout << "PrintInfoItem\n Flush\n Creating " << Filename <<
         " is failed. There is no result data for this file. Please check output variables of modules." << endl;
 }
 

@@ -20,7 +20,7 @@
 #include <fstream>
 #include <iomanip>
 #include <typeinfo>
-#include <stdint.h>
+#include <cstdint>
 /// include GDAL, required
 #include "gdal.h"
 #include "gdal_priv.h"

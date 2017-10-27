@@ -6,12 +6,13 @@
                 17-06-29  lj - reformat according to pylint and google style
 """
 import time
+
 # Load configuration file
-from seims.preprocess.config import parse_ini_configuration
+from preprocess.config import parse_ini_configuration
 # MongoDB modules
-from seims.preprocess.db_build_mongodb import ImportMongodbClass
+from preprocess.db_build_mongodb import ImportMongodbClass
 # Spatial delineation
-from seims.preprocess.sd_delineation import SpatialDelineation
+from preprocess.sd_delineation import SpatialDelineation
 
 
 def workflow():
@@ -26,6 +27,7 @@ def workflow():
 
     end_time = time.time()
     print ("SEIMS preprocess done, time-consuming: %.2f seconds." % (end_time - start_time))
+
 
 if __name__ == "__main__":
     workflow()
