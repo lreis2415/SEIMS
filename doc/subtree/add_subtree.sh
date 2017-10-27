@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+# cmake
+git remote add -f cmake git@github.com:lreis2415/cmake.git
+git subtree add --prefix=cmake cmake master --squash
 # SEIMS wiki
 git remote add -f wiki https://github.com/lreis2415/SEIMS2017.wiki.git
 git subtree add --prefix=doc/wiki wiki master --squash

@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+# cmake
+git fetch cmake master
+git subtree pull --prefix=cmake cmake master --squash
 # SEIMS wiki
 git fetch wiki master
 git subtree pull --prefix=doc/wiki wiki master --squash
