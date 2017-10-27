@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Configuration of Scenario Analysis for SEIMS.
+"""Configuration of Scenario Analysis for
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
@@ -8,7 +8,7 @@
 import json
 import os
 
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_parser
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser
 
 
 class SAConfig(object):

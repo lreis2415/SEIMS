@@ -16,7 +16,7 @@ download_project(PROJ                googletest
 
 # Prevent GoogleTest from overriding our compiler/linker options
 # when building with Visual Studio
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 # solve the bug of error LNK2038
 # refers to https://stackoverflow.com/questions/14172856/cmake-compile-with-mt-instead-of-md
 set(CompilerFlags

@@ -10,13 +10,13 @@
 """
 import time
 from datetime import timedelta
-from seims.preprocess.db_mongodb import MongoQuery
-from seims.preprocess.db_mongodb import MongoUtil
-from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
-from seims.preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import StringClass, FileClass
+from preprocess.db_mongodb import MongoQuery
+from preprocess.db_mongodb import MongoUtil
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
+from preprocess.utility import read_data_items_from_txt
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import StringClass, FileClass
 
 
 class ImportObservedData(object):
@@ -280,8 +280,8 @@ class ImportObservedData(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

@@ -71,29 +71,26 @@ void ModuleFactory::Init(const string &configFileName) {
         string id = m_moduleIDs[i];
         string dllID = id;
         // for ITP modules, the input ids are ITP_T, ITP_P and ITP should be used as ID name
+        // The same to TSD_RD.
         if (id.find(MID_ITP) != string::npos) {
-#ifdef windows
+#ifdef MSVC
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
-#endif /* windows */
+#endif /* MSVC */
+#ifndef NDEBUG
+            dllID = dllID + "d";
+#endif /* NDEBUG */
         } else if (id.find(MID_TSD_RD) != string::npos) {
-#ifdef windows
+#ifdef MSVC
             dllID = MID_TSD_RD;
 #else
             dllID = Tag_So + string(MID_TSD_RD);
-#endif /* windows */
+#endif /* MSVC */
+#ifndef NDEBUG
+            dllID = dllID + "d";
+#endif /* NDEBUG */
         }
-// In my view, the _intel related suffixes are useless. lj
-//#ifdef INTEL_COMPILER
-//        dllID = dllID + "_intel";
-//#endif /* INTEL_COMPILER */
-//#ifdef INTEL_COMPILER_SINGLE
-//        dllID = dllID + "_intel_single";
-//#endif /* INTEL_COMPILER_SINGLE */
-//#ifdef SINGLE
-//        dllID = dllID + "_single";
-//#endif /* SINGLE */
 
         // load function pointers from DLL
         ReadDLL(id, dllID);
@@ -656,9 +653,12 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
             if (settings[i].size() > 3) {
                 string settingString = settings[i][1];
                 string module = GetUpper(settings[i][3]);
-#ifndef windows
+#ifndef MSVC
                 module = Tag_So + module;
-#endif /* not windows */
+#endif /* MSVC */
+#ifndef NDEBUG
+                module = module + "d";
+#endif /* NDEBUG */
 
                 SEIMSModuleSetting *moduleSetting = new SEIMSModuleSetting(module, settingString);
                 if (moduleSetting->dataTypeString().length() > 0) {

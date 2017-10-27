@@ -5,8 +5,8 @@
     @changelog: 17-08-17  lj - redesign and rewrite the plotting program.\n
 """
 
-from seims.postprocess.config import parse_ini_configuration
-from seims.postprocess.plot_timeseries import TimeSeriesPlots
+from config import parse_ini_configuration
+from plot_timeseries import TimeSeriesPlots
 
 
 def main():

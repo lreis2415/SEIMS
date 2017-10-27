@@ -7,11 +7,11 @@
                 17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
 """
 from osgeo.ogr import Open as ogr_Open
+from pygeoc.utils import StringClass
 from pymongo import ASCENDING
 
-from seims.preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -110,6 +110,7 @@ class ImportHydroClimateSites(object):
         # Because shapely is dependent on sqlite, and the version is not consistent
         #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
         #    must be locally imported here.
+        from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
@@ -120,7 +121,7 @@ class ImportHydroClimateSites(object):
         lyr = shp.GetLayer()
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
-            # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)`
+            # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)` in macOS
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
@@ -208,8 +209,8 @@ class ImportHydroClimateSites(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
