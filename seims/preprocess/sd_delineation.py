@@ -14,15 +14,15 @@ from osgeo.gdal import GDT_Int32, GDT_Float32
 from osgeo.ogr import CreateGeometryFromWkt as ogr_CreateGeometryFromWkt
 from osgeo.osr import CoordinateTransformation as osr_CoordinateTransformation
 from osgeo.osr import SpatialReference as osr_SpatialReference
+from pygeoc.TauDEM import TauDEMWorkflow
+from pygeoc.postTauDEM import D8Util, StreamnetUtil
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import FileClass, UtilClass
+from pygeoc.vector import VectorUtilClass
 
-from seims.preprocess.sd_hillslope import DelineateHillslope
-from seims.preprocess.text import FieldNames
-from seims.preprocess.utility import DEFAULT_NODATA
-from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMWorkflow
-from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util, StreamnetUtil
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass
-from seims.pygeoc.pygeoc.vector.vector import VectorUtilClass
+from preprocess.sd_hillslope import DelineateHillslope
+from preprocess.text import FieldNames
+from preprocess.utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -233,7 +233,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

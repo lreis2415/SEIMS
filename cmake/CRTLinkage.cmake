@@ -81,6 +81,7 @@ if(CMAKE_VERSION VERSION_GREATER "2.8.6")
     STATUS("Using half of the processors to compiling: ${N}")
     SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /MP${N} ")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP${N} ")
+    geo_list_unique(CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
   endif()
 endif()
 

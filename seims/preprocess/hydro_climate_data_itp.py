@@ -11,9 +11,10 @@ import time
 from collections import OrderedDict
 from datetime import timedelta
 
-from seims.preprocess.hydro_climate_utility import HydroClimateUtilClass
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, MathClass
+from pygeoc.utils import FileClass, StringClass, MathClass
+
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.utility import read_data_items_from_txt
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,

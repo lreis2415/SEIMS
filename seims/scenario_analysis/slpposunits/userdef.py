@@ -7,10 +7,11 @@
 """
 import random
 
-from seims.pygeoc.pygeoc.utils.utils import get_config_parser
-from seims.scenario_analysis.slpposunits.config import SASPUConfig
-from seims.scenario_analysis.slpposunits.scenario import SPScenario
-from seims.scenario_analysis.slpposunits.scenario import initialize_scenario, get_potential_bmps
+from pygeoc.utils import get_config_parser
+
+from scenario_analysis.slpposunits.config import SASPUConfig
+from scenario_analysis.slpposunits.scenario import SPScenario
+from scenario_analysis.slpposunits.scenario import initialize_scenario, get_potential_bmps
 
 
 #                                       #
