@@ -63,9 +63,10 @@ class SpatialDelineation(object):
         bin_dir = cfg.seims_bin
         mpi_bin = cfg.mpi_bin
         np = cfg.np
-        TauDEMWorkflow.watershed_delineation(bin_dir, mpi_bin, np, cfg.dem, cfg.outlet_file,
-                                             cfg.d8acc_threshold, cfg.d8down_method,
-                                             cfg.taudems, cfg.logs.delineation, singlebasin=True)
+        TauDEMWorkflow.watershed_delineation(np, cfg.dem, cfg.outlet_file, cfg.d8acc_threshold,
+                                             True,
+                                             cfg.dirs.taudem, mpi_bin, bin_dir,
+                                             cfg.logs.delineation)
 
     @staticmethod
     def mask_raster_cpp(bin_dir, maskfile, originalfiles, outputfiles, default_values, configfile):
