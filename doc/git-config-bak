@@ -7,20 +7,15 @@
 	ignorecase = true
 	hideDotFiles = dotGitOnly
 	autocrlf = false
+	safecrlf = true
 [remote "origin"]
 	url = git@github.com:lreis2415/SEIMS.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
-[remote "wiki"]
-	url = https://github.com/lreis2415/SEIMS2017.wiki.git
-	fetch = +refs/heads/*:refs/remotes/wiki/*
-[remote "pygeoc"]
-	url = git@github.com:lreis2415/PyGeoC.git
-	fetch = +refs/heads/*:refs/remotes/pygeoc/*
 [remote "taudem"]
-	url = git@github.com:lreis2415/TauDEM.git
+	url = git@github.com:lreis2415/TauDEM_ext.git
 	fetch = +refs/heads/*:refs/remotes/taudem/*
 [remote "metis"]
 	url = git@github.com:lreis2415/metis.git
@@ -34,3 +29,9 @@
 [remote "rasterclass"]
 	url = git@github.com:lreis2415/RasterClass.git
 	fetch = +refs/heads/*:refs/remotes/rasterclass/*
+[gui]
+	wmstate = normal
+	geometry = 841x483+78+78 189 218
+[remote "cmake"]
+	url = git@github.com:lreis2415/cmake.git
+	fetch = +refs/heads/*:refs/remotes/cmake/*
