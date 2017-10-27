@@ -11,8 +11,8 @@ import shutil
 import uuid
 
 import scoop
-from seims.preprocess.db_mongodb import ConnectMongoDB
-from seims.pygeoc.pygeoc.utils.utils import MathClass
+from preprocess.db_mongodb import ConnectMongoDB
+from pygeoc.utils import MathClass
 
 
 def generate_uniqueid():

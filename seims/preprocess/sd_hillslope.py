@@ -10,11 +10,10 @@
 import os
 
 import numpy
-
-from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
-from seims.pygeoc.pygeoc.hydro.postTauDEM import D8Util
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import DEFAULT_NODATA, FileClass
+from pygeoc.hydro import FlowModelConst
+from pygeoc.postTauDEM import D8Util
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import DEFAULT_NODATA, FileClass
 
 
 class DelineateHillslope(object):
@@ -317,7 +316,7 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow

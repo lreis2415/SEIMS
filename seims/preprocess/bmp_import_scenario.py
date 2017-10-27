@@ -5,12 +5,13 @@
     @changelog: 16-06-16  first implementation version
                 17-06-22  improve according to pylint and google style
 """
-from os import sep as SEP
+import os
 
-from seims.preprocess.text import DBTableNames
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import MathClass, FileClass, StringClass
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import MathClass, FileClass, StringClass
+
+from preprocess.text import DBTableNames
+from preprocess.utility import read_data_items_from_txt
 
 
 class ImportScenario2Mongo(object):
@@ -40,7 +41,7 @@ class ImportScenario2Mongo(object):
         bmp_tabs_path = []
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
-            bmp_tabs_path.append(cfg.scenario_dir + SEP + f)
+            bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
 
         # initialize if collection not existed
         c_list = scenario_db.collection_names()
