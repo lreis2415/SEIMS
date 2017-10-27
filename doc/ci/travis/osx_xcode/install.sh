@@ -18,7 +18,6 @@ cp -R data seims_osx_xcode/data
 mkdir -p seims_osx_xcode/doc
 cp -R doc/theory seims_osx_xcode/doc/theory
 cp seims/*.* seims_osx_xcode/seims
-cp -R seims/pygeoc seims_osx_xcode/seims/pygeoc
 cp -R seims/preprocess seims_osx_xcode/seims/preprocess
 cp -R seims/postprocess seims_osx_xcode/seims/postprocess
 cp -R seims/scenario_analysis seims_osx_xcode/seims/scenario_analysis
