@@ -9,19 +9,19 @@
               1.1. Add stream order modification, according to depression.ave of WetSpa.
               1.2. Add another depressional storage method according to SWAT, depstor.f
 """
-from math import exp, sqrt
 import sys
+from math import exp, sqrt
 
 import numpy
+from osgeo.gdal import GDT_Float32
+from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTReal
 from osgeo.ogr import Open as ogr_Open
-from osgeo.ogr import FieldDefn as ogr_FieldDefn
-from osgeo.gdal import GDT_Float32
+from pygeoc.hydro import FlowModelConst
+from pygeoc.raster import RasterUtilClass
 
-from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from seims.preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.hydro.hydro import FlowModelConst
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
+from preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -478,8 +478,8 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

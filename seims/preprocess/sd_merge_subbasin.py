@@ -19,7 +19,7 @@ class MergeSubbasins(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     MergeSubbasins.merge_to_downstream_qswat(seims_cfg)
 

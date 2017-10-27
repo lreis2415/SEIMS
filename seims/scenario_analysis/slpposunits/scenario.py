@@ -13,15 +13,15 @@ from struct import unpack
 import numpy
 from gridfs import GridFS
 from osgeo import osr
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import FileClass, StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
-from seims.preprocess.db_mongodb import ConnectMongoDB
-from seims.preprocess.text import DBTableNames, RasterMetadata
-from seims.preprocess.utility import read_data_items_from_txt
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, get_config_parser
-from seims.scenario_analysis.scenario import Scenario
-from seims.scenario_analysis.slpposunits.config import SASPUConfig
+from preprocess.db_mongodb import ConnectMongoDB
+from preprocess.text import DBTableNames, RasterMetadata
+from preprocess.utility import read_data_items_from_txt
+from scenario_analysis.scenario import Scenario
+from scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):

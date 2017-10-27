@@ -9,9 +9,10 @@ import json
 import operator
 from collections import OrderedDict
 
-from seims.preprocess.db_mongodb import ConnectMongoDB
-from seims.pygeoc.pygeoc.utils.utils import FileClass, UtilClass, StringClass, get_config_parser
-from seims.scenario_analysis.config import SAConfig
+from pygeoc.utils import FileClass, UtilClass, StringClass, get_config_parser
+
+from preprocess.db_mongodb import ConnectMongoDB
+from scenario_analysis.config import SAConfig
 
 
 class SASPUConfig(SAConfig):
