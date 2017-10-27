@@ -67,7 +67,6 @@ build_script:
   - copy C:\projects\seims\*.md C:\projects\seims\seims_win64bit
   - xcopy C:\projects\seims\data C:\projects\seims\seims_win64bit\data /e /c /i /y
   - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_win64bit\doc\theory /e /c /i /y
-  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_win64bit\doc\wiki /e /c /i /y
   - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_win64bit\seims
   - move C:\projects\seims\seims_win64bit\seims\Firewall_for_Windows.bat C:\projects\seims\seims_win64bit\bin
   - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_win64bit\seims\pygeoc /e /c /i /y
