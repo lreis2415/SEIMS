@@ -11,12 +11,12 @@ from os import sep as SEP
 
 from numpy import frompyfunc as np_frompyfunc
 from osgeo.gdal import GDT_Float32
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
 
-from seims.preprocess.text import ModelParamDataUtils
-from seims.preprocess.utility import status_output, read_data_items_from_txt, \
+from preprocess.text import ModelParamDataUtils
+from preprocess.utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import UtilClass, MathClass, FileClass, StringClass
 
 
 class LanduseUtilClass(object):
@@ -303,8 +303,8 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

@@ -19,12 +19,12 @@ import os
 from collections import OrderedDict
 
 import numpy
+from pygeoc.raster import RasterUtilClass, DEFAULT_NODATA
+from pygeoc.utils import FileClass
+from pygeoc.vector import VectorUtilClass
 
-from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from seims.preprocess.sd_hillslope import DelineateHillslope
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.utils.utils import FileClass
-from seims.pygeoc.pygeoc.vector.vector import VectorUtilClass
+from preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from preprocess.sd_hillslope import DelineateHillslope
 
 
 class SlopePositionUnits(object):
@@ -365,7 +365,7 @@ class SlopePositionUnits(object):
 def main():
     """Delineation slope position units with the associated information."""
     # inputs from preprocess
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
     reach_shp = seims_cfg.vecs.reach

@@ -7,11 +7,11 @@
                 17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
 """
 from osgeo.ogr import Open as ogr_Open
+from pygeoc.utils import StringClass
 from pymongo import ASCENDING
 
-from seims.preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from seims.preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -208,8 +208,8 @@ class ImportHydroClimateSites(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

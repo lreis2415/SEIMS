@@ -6,21 +6,22 @@
                 17-06-26  lj - reformat according to pylint and google style
                 17-07-07  lj - remove sqlite3 database file as intermediate data
 """
-from os import sep as SEP
+import os
 
-from seims.preprocess.bmp_import_scenario import ImportScenario2Mongo
-from seims.preprocess.db_import_interpolation_weights import ImportWeightData
-from seims.preprocess.db_import_meteorology import ImportMeteoData
-from seims.preprocess.db_import_model_parameters import ImportParam2Mongo
-from seims.preprocess.db_import_observed import ImportObservedData
-from seims.preprocess.db_import_precipitation import ImportPrecipitation
-from seims.preprocess.db_import_sites import ImportHydroClimateSites
-from seims.preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from seims.preprocess.db_mongodb import ConnectMongoDB, MongoQuery
-from seims.preprocess.sp_extraction import extract_spatial_parameters
-from seims.preprocess.text import DBTableNames, SubbsnStatsName
-from seims.preprocess.utility import status_output
-from seims.pygeoc.pygeoc.utils.utils import UtilClass
+from pygeoc.utils import UtilClass
+
+from preprocess.bmp_import_scenario import ImportScenario2Mongo
+from preprocess.db_import_interpolation_weights import ImportWeightData
+from preprocess.db_import_meteorology import ImportMeteoData
+from preprocess.db_import_model_parameters import ImportParam2Mongo
+from preprocess.db_import_observed import ImportObservedData
+from preprocess.db_import_precipitation import ImportPrecipitation
+from preprocess.db_import_sites import ImportHydroClimateSites
+from preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
+from preprocess.sp_extraction import extract_spatial_parameters
+from preprocess.text import DBTableNames, SubbsnStatsName
+from preprocess.utility import status_output
 
 
 class ImportMongodbClass(object):
@@ -49,7 +50,7 @@ class ImportMongodbClass(object):
             start_id = 1
             subbasin_file = cfg.spatials.subbsn
         for i in range(start_id, subbasin_num + 1):
-            subdir = cfg.dirs.import2db + SEP + str(i)
+            subdir = cfg.dirs.import2db + os.sep + str(i)
             UtilClass.rmmkdir(subdir)
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d %s' % (cfg.seims_bin, subbasin_file,
                                                                cfg.dirs.geodata2db,
@@ -152,12 +153,13 @@ class ImportMongodbClass(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
-    #ImportMongodbClass.workflow(seims_cfg)
+    # ImportMongodbClass.workflow(seims_cfg)
 
     ImportMongodbClass.iuh(seims_cfg, 0)
+
 
 if __name__ == "__main__":
     main()
