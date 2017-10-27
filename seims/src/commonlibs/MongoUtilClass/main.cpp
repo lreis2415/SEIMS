@@ -94,12 +94,16 @@ int main() {
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 
+    /// Fetch all the record in collection FILE_IN
+    cout << "Query records in PARAMETERS collection:" << endl;
     b = BCON_NEW("$query", "{", "NAME", "{", "$in", "[", BCON_UTF8("OUTLET_ID"),
         BCON_UTF8("SUBBASINID_NUM"), "]", "}", "}");
 
+    // Deprecated way
     //mongoc_collection_t* c2 = client->getCollection(modelname, "PARAMETERS");
     //cursor = mongoc_collection_find(c2, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-    //cursor = mongoc_collection_find_with_opts(c2, b, NULL, NULL);
+
+    // Recommended way
     unique_ptr<MongoCollection> collection2(new MongoCollection(client->getCollection(modelname, "PARAMETERS")));
     cursor = collection2->ExecuteQuery(b);
 

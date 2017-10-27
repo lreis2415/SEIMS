@@ -1,5 +1,14 @@
 MESSAGE(STATUS "        Compiling base_subdir: util...")
-SET(SRC_LIST MetadataInfo.cpp SimulationModule.cpp ${UTILS_FILES})
+IF(UNIX)
+    IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+      geo_list_unique(CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
+    ENDIF()
+ENDIF()
+SET(SRC_LIST MetadataInfo.cpp SimulationModule.cpp
+        MetadataInfoConst.h seims.h text.h
+        ${UTILS_FILES})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 ADD_LIBRARY(util STATIC ${SRC_LIST})
 INSTALL(TARGETS util DESTINATION ${INSTALL_DIR})

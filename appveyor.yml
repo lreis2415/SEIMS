@@ -25,7 +25,7 @@ install:
   - appveyor DownloadFile http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-1-11-4-mapserver-6-4-3-libs.zip -FileName gdallibs.zip
   - 7z x gdallibs.zip -oC:\gdal
   - "SET PATH=C:\\gdal;C:\\gdal\\bin;C:\\gdal\\data;C:\\gdal\\bin\\gdal\\apps;%PATH%"
-  - "SET PATH=C:\\GDAL\\bin\\ms\\apps;C:\\GDAL\\bin\\curl;C:\\GDAL\\bin\\proj\\apps;%PATH%"
+  - "SET PATH=C:\\gdal\\bin\\ms\\apps;C:\\gdal\\bin\\curl;C:\\gdal\\bin\\proj\\apps;%PATH%"
   - "SET GDAL_DATA=C:\\gdal\\bin\\gdal-data"
   - "SET GDAL_DIR=C:\\gdal"
   - ECHO "Filesystem C:/GDAL:"
@@ -54,62 +54,38 @@ install:
 build_script:
   # make directory for releases
   - cd C:\projects\seims
-  - mkdir seims_longterm_win64bit\seims\bin
-  - mkdir seims_storm_win64bit\seims\bin
+  - mkdir seims_win64bit\seims
+  - mkdir seims_win64bit\bin
   - ps: "ls"
-  - cd seims
-  # Build 64-bit LONGTERM release version on Windows, and build unittest.
-  - mkdir buildlongterm64
-  - cd buildlongterm64
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_longterm_win64bit\seims\bin
-  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
-  - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
-  # Build 64-bit STORM release version on Windows, and build unittest.
-  - cd ..
-  - mkdir buildstorm64
-  - cd buildstorm64
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DSTORM=1 -DARCH=64 -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_storm_win64bit\seims\bin
+  # Build 64-bit release version on Windows, and build unittest.
+  - mkdir build64Rel
+  - cd build64Rel
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\seims\seims_win64bit\bin
   - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Release /maxcpucount:4 /clp:Summary
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Release /maxcpucount:4
   # copy files to releases
-  # longterm
-  - copy C:\projects\seims\*.md C:\projects\seims\seims_longterm_win64bit
-  - xcopy C:\projects\seims\data C:\projects\seims\seims_longterm_win64bit\data /e /c /i /y
-  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_longterm_win64bit\doc\theory /e /c /i /y
-  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_longterm_win64bit\doc\wiki /e /c /i /y
-  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_longterm_win64bit\seims
-  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_longterm_win64bit\seims\pygeoc /e /c /i /y
-  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_longterm_win64bit\seims\preprocess /e /c /i /y
-  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_longterm_win64bit\seims\postprocess /e /c /i /y
-  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_longterm_win64bit\seims\scenario_analysis /e /c /i /y
-  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_longterm_win64bit\seims\calibration /e /c /i /y
-  # storm
-  - copy C:\projects\seims\*.md C:\projects\seims\seims_storm_win64bit
-  - xcopy C:\projects\seims\data C:\projects\seims\seims_storm_win64bit\data /e /c /i /y
-  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_storm_win64bit\doc\theory /e /c /i /y
-  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_storm_win64bit\doc\wiki /e /c /i /y
-  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_storm_win64bit\seims
-  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_storm_win64bit\seims\pygeoc /e /c /i /y
-  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_storm_win64bit\seims\preprocess /e /c /i /y
-  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_storm_win64bit\seims\postprocess /e /c /i /y
-  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_storm_win64bit\seims\scenario_analysis /e /c /i /y
-  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_storm_win64bit\seims\calibration /e /c /i /y
+  - copy C:\projects\seims\*.md C:\projects\seims\seims_win64bit
+  - xcopy C:\projects\seims\data C:\projects\seims\seims_win64bit\data /e /c /i /y
+  - xcopy C:\projects\seims\doc\theory C:\projects\seims\seims_win64bit\doc\theory /e /c /i /y
+  - xcopy C:\projects\seims\doc\wiki C:\projects\seims\seims_win64bit\doc\wiki /e /c /i /y
+  - copy C:\projects\seims\seims\*.* C:\projects\seims\seims_win64bit\seims
+  - move C:\projects\seims\seims_win64bit\seims\Firewall_for_Windows.bat C:\projects\seims\seims_win64bit\bin
+  - xcopy C:\projects\seims\seims\pygeoc C:\projects\seims\seims_win64bit\seims\pygeoc /e /c /i /y
+  - xcopy C:\projects\seims\seims\preprocess C:\projects\seims\seims_win64bit\seims\preprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\postprocess C:\projects\seims\seims_win64bit\seims\postprocess /e /c /i /y
+  - xcopy C:\projects\seims\seims\scenario_analysis C:\projects\seims\seims_win64bit\seims\scenario_analysis /e /c /i /y
+  - xcopy C:\projects\seims\seims\calibration C:\projects\seims\seims_win64bit\seims\calibration /e /c /i /y
 test_script:
-  # Run unit test. TODO to complete unittest code.
-  - C:\projects\seims\seims_longterm_win64bit\seims\bin\seims_ut_exec.exe
-  - C:\projects\seims\seims_storm_win64bit\seims\bin\seims_ut_exec.exe
+  # Run unit test.
+  - C:\projects\seims\seims_win64bit\bin\seims_ut_exec.exe
 artifacts:
-- path: seims_longterm_win64bit
-  name: seims_longterm_win64bit
-  type: zip
-- path: seims_storm_win64bit
-  name: seims_storm_win64bit
+- path: seims_win64bit
   type: zip
 deploy:
 - provider: GitHub
   auth_token:
     secure: /br3cLS15FA2D1MnSbZPrsRxLMfN9wNQaRZ30ye1adfFK7HOHmRmPtWZGdgZzuke
-  artifact: seims_longterm_win64bit.zip,seims_storm_win64bit.zip
+  artifact: seims_win64bit.zip
   force_update: true
   on:
     appveyor_repo_tag: true

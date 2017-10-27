@@ -13,10 +13,11 @@ try:
 except ImportError:
     from configparser import ConfigParser  # py3
 
-from seims.preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
+from pygeoc.TauDEM import TauDEMFilesUtils
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
+
+from preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
     VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
-from seims.pygeoc.pygeoc.hydro.TauDEM import TauDEMFilesUtils
-from seims.pygeoc.pygeoc.utils.utils import FileClass, StringClass, UtilClass, get_config_file
 
 
 class SEIMSConfig(object):
