@@ -6,7 +6,7 @@
                 17-08-18  lj - reorganization.\n
 """
 import os
-
+from collections import OrderedDict
 import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
@@ -43,8 +43,8 @@ def plot_pareto_front(pop, ws, gen_id):
 
 def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
     f = open(txt_file)
-    pareto_points = dict()
-    pareto_popnum = dict()
+    pareto_points = OrderedDict()
+    pareto_popnum = OrderedDict()
     found = False
     cur_gen = -1
     iden_idx = -1
@@ -105,7 +105,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
     f = open(txt_file)
-    pareto_popnum = dict()
+    pareto_popnum = OrderedDict()
     found = False
     cur_gen = -1
     iden_idx = -1
@@ -154,7 +154,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     """
     Plot Pareto fronts of different method at a same generation for comparision.
     Args:
-        method_paths(dict): key is method name (which also displayed in legend), value is file path.
+        method_paths(OrderedDict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
         xname(list): the first is x field name in log file, and the second on is for plot,
                      the third and forth values are low and high limit (optional).
@@ -162,8 +162,8 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         gens(list): generation to be plotted
         ws: workspace for output files
     """
-    pareto_data = dict()
-    acc_pop_size = dict()
+    pareto_data = OrderedDict()
+    acc_pop_size = OrderedDict()
     for k, v in method_paths.iteritems():
         v = v + os.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname,
@@ -177,6 +177,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
     markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
+    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'k', 'k']
     linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
     fig, ax = plt.subplots(figsize=(9, 8))
@@ -184,6 +185,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     for method, gen_popsize in acc_pop_size.iteritems():
         xdata = gen_popsize[0]
         ydata = gen_popsize[1]
+        print (ydata)
         print ('Evaluated pop size: %s - %d' % (method, ydata[-1]))
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
@@ -217,7 +219,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
             xdata += gen_popsize[gen][xname[0]]
             ydata += gen_popsize[gen][yname[0]]
         plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
-                    color='black', label=method)
+                    color=colors[mark_idx], label=method)
         mark_idx += 1
         xaxis = plt.gca().xaxis
         yaxis = plt.gca().yaxis
@@ -261,7 +263,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
             xdata = gen_popsize[gen][xname[0]]
             ydata = gen_popsize[gen][yname[0]]
             plt.scatter(xdata, ydata, marker=markers[mark_idx], s=60,
-                        color='black', label=method)
+                        color=colors[mark_idx], label=method)
             mark_idx += 1
         if not gen_existed:
             plt.cla()
@@ -291,7 +293,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
             if len(yname) >= 4:  # and curylim[1] > yname[3]:
                 ax.set_ylim(top=yname[3])
 
-        plt.legend(fontsize=24, loc=2)
+        plt.legend(fontsize=24, loc=4)  # loc 2: upper left, 4: lower right
         plt.tight_layout()
         fpath = ws + os.sep + file_name + '-gen' + str(gen) + '.png'
         plt.savefig(fpath, dpi=300)
@@ -304,7 +306,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
 
 def plot_hypervolume_by_method(method_paths, ws):
     """Plot hypervolume"""
-    hyperv = dict()
+    hyperv = OrderedDict()
     for k, v in method_paths.iteritems():
         v = v + os.sep + 'hypervolume.txt'
         x = list()
@@ -341,8 +343,8 @@ def plot_hypervolume_by_method(method_paths, ws):
         xlebal.set_fontsize(20)
     for ylebal in yaxis.get_ticklabels():
         ylebal.set_fontsize(20)
-    plt.xlabel('Generation count', fontsize=20)
-    plt.ylabel('Hypervolume', fontsize=20)
+    plt.xlabel('Generation', fontsize=20)
+    plt.ylabel('Hypervolume index', fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
     fpath = ws + os.sep + 'hypervolume.png'
