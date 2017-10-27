@@ -156,9 +156,7 @@ def main():
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
-    # ImportMongodbClass.workflow(seims_cfg)
-
-    ImportMongodbClass.iuh(seims_cfg, 0)
+    ImportMongodbClass.workflow(seims_cfg)
 
 
 if __name__ == "__main__":

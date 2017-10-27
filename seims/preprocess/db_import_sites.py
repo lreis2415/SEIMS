@@ -110,6 +110,7 @@ class ImportHydroClimateSites(object):
         # Because shapely is dependent on sqlite, and the version is not consistent
         #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
         #    must be locally imported here.
+        from shapely.wkt import loads as shapely_loads
         shapely_objects = []
         id_list = []
         # print input_shape
@@ -120,7 +121,7 @@ class ImportHydroClimateSites(object):
         lyr = shp.GetLayer()
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
-            # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)`
+            # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)` in macOS
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
