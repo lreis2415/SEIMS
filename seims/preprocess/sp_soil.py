@@ -14,11 +14,11 @@ from os import sep as SEP
 
 import numpy
 from osgeo.gdal import GDT_Float32
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import StringClass
 
-from seims.preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from seims.preprocess.utility import status_output, read_data_items_from_txt
-from seims.pygeoc.pygeoc.raster.raster import RasterUtilClass
-from seims.pygeoc.pygeoc.utils.utils import StringClass
+from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from preprocess.utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -221,7 +221,7 @@ class SoilProperty(object):
                 self.SOL_ORGP.insert(0, self.SOL_ORGP[0])
             else:
                 self.SOL_ORGP = list(numpy.zeros(self.SOILLAYERS))
-        if len(self.SOILDEPTH) == 0 or len(self.SOILDEPTH) != self.SOILLAYERS or\
+        if len(self.SOILDEPTH) == 0 or len(self.SOILDEPTH) != self.SOILLAYERS or \
                         DEFAULT_NODATA in self.SOILDEPTH:
             raise IndexError("Soil depth must have a size equal to NLAYERS and "
                              "should not include NODATA (-9999)!")
@@ -522,6 +522,7 @@ class SoilProperty(object):
         k = a * b * c * d
         return k
 
+
 class SoilUtilClass(object):
     """Soil parameters related utility functions."""
     # SOIL PARAMETERS NAMES, which will be appeared in MongoDB
@@ -801,7 +802,7 @@ class SoilUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SoilUtilClass.parameters_extraction(seims_cfg)
 
