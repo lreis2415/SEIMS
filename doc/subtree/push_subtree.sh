@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+git subtree push --prefix=cmake cmake master
 git subtree push --prefix=doc/wiki wiki master
 git subtree push --prefix=seims/pygeoc pygeoc master
 git subtree push --prefix=seims/src/taudem taudem master
