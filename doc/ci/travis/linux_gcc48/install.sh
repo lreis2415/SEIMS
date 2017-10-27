@@ -18,7 +18,6 @@ cp -R data seims_linux_gcc48/data
 mkdir -p seims_linux_gcc48/doc
 cp -R doc/theory seims_linux_gcc48/doc/theory
 cp seims/*.* seims_linux_gcc48/seims
-cp -R seims/pygeoc seims_linux_gcc48/seims/pygeoc
 cp -R seims/preprocess seims_linux_gcc48/seims/preprocess
 cp -R seims/postprocess seims_linux_gcc48/seims/postprocess
 cp -R seims/scenario_analysis seims_linux_gcc48/seims/scenario_analysis
