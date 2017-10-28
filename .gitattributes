@@ -12,6 +12,8 @@
 *.jpg   binary
 *.png   binary
 *.gif   binary
+*.tif   binary
+*.pdf   binary
 
 ###############################################################################
 # diff behavior for common document formats
@@ -30,6 +32,11 @@
 *.PDF   diff=astextplain
 *.rtf   diff=astextplain
 *.RTF   diff=astextplain
+# others
+*.xml   diff=astextplain
+*.css   diff=astextplain
+*.html   diff=astextplain
+*.js   diff=astextplain
 
 *.c text eol=lf
 *.h text eol=lf
@@ -41,5 +48,4 @@
 *.cmake text eol=lf
 *.sh text eol=lf
 *.bat text eol=crlf
-
-
+*.cmd text eol=crlf
