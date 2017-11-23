@@ -1764,12 +1764,12 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
     }
     /// 1. pothole module has been added by LJ, 2016-9-6, IMP_SWAT
     /// paddy rice module should be added!
-    m_potVolMax[i] = curOperation->MaxDepth();
+    m_potVolMax[i] = curOperation->MaxPondDepth();
     m_potVolLow[i] = curOperation->LowDepth();
     if (FloatEqual(m_impoundTriger[i], 0.f)) {
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
-        m_potVol[i] = curOperation->MaxDepth();
+        m_potVol[i] = curOperation->MaxPondDepth();
         /// force the soil water storage to field capacity
         for (int ly = 0; ly < (int) m_nSoilLayers[i]; ly++) {
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
@@ -1780,8 +1780,8 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
                 m_potVol[i] -= dep2cap;
             }
         }
-        if (m_potVol[i] < curOperation->UpDepth()) {
-            m_potVol[i] = curOperation->UpDepth();
+        if (m_potVol[i] < curOperation->MaxFitDepth()) {
+            m_potVol[i] = curOperation->MaxFitDepth();
         } /// force to reach the up depth.
         /// recompute total soil water storage
         m_soilStorageProfile[i] = 0.f;
