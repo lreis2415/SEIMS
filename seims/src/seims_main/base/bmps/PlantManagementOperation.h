@@ -520,16 +520,16 @@ public:
         return m_impTrig;
     }
 
-    float MaxDepth(void) {
-        return m_maxDepth;
+    float MaxPondDepth(void) {
+        return m_maxPondDepth;
     }
 
-    float UpDepth(void) {
-        return m_upDepth;
+    float MaxFitDepth(void) {
+        return m_maxFitDepth;
     }
 
-    float LowDepth(void) {
-        return m_lowDepth;
+    float MinFitDepth(void) {
+        return m_minFitDepth;
     }
 
     //! Output
@@ -537,9 +537,9 @@ public:
 
 private:
     int m_impTrig;
-    float m_maxDepth;
-    float m_upDepth;
-    float m_lowDepth;
+    float m_maxPondDepth;  ///< Maximum ponding depth, mm
+    float m_maxFitDepth;  ///< Maximum fitting depth, mm
+    float m_minFitDepth;  ///< Minimum fitting depth, mm
 };
 
 /*!

@@ -13,7 +13,7 @@ MINI_SLOPE = 0.0001
 DEFAULT_NODATA = -9999.
 SQ2 = 1.4142135623730951
 PI = 3.141592653589793
-LFs = ['\r', '\n', '\r\n']
+# LFs = ['\r', '\n', '\r\n']
 
 
 def status_output(status_msg, percent, file_object):
@@ -39,12 +39,11 @@ def read_data_items_from_txt(txt_file):
     f = open(txt_file)
     data_items = []
     for line in f:
-        str_line = line
-        for LF in LFs:
-            if LF in line:
-                str_line = line.split(LF)[0]
-                break
-
+        str_line = line.strip()
+        # for LF in LFs:
+        #     if LF in line:
+        #         str_line = line.split(LF)[0]
+        #         break
         if str_line != '' and str_line.find('#') < 0:
             line_list = StringClass.split_string(str_line, ['\t'])
             if len(line_list) <= 1:

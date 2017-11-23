@@ -49,6 +49,3 @@
 *.sh text eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
-
-
-

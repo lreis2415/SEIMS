@@ -213,7 +213,7 @@ class ImportParam2Mongo(object):
 
         for item in file_in_items:
             file_in_dict = dict()
-            values = StringClass.split_string(StringClass.strip_string(item[0]), ['|'])
+            values = StringClass.split_string(item[0].strip(), ['|'])
             if len(values) != 2:
                 raise ValueError('One item should only have one Tag and one value string,'
                                  ' split by "|"')
