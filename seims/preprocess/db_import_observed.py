@@ -83,9 +83,9 @@ class ImportObservedData(object):
                         dic[StationFields.id] = int(v)
                         site_ids.append(dic[StationFields.id])
                     elif StringClass.string_match(site_flds[j], StationFields.name):
-                        dic[StationFields.name] = StringClass.strip_string(v)
+                        dic[StationFields.name] = v.strip()
                     elif StringClass.string_match(site_flds[j], StationFields.type):
-                        types = StringClass.split_string(StringClass.strip_string(v), '-')
+                        types = StringClass.split_string(v.strip(), '-')
                     elif StringClass.string_match(site_flds[j], StationFields.lat):
                         dic[StationFields.lat] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.lon):
@@ -95,7 +95,7 @@ class ImportObservedData(object):
                     elif StringClass.string_match(site_flds[j], StationFields.y):
                         dic[StationFields.y] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.unit):
-                        dic[StationFields.unit] = StringClass.strip_string(v)
+                        dic[StationFields.unit] = v.strip()
                     elif StringClass.string_match(site_flds[j], StationFields.elev):
                         dic[StationFields.elev] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.outlet):
