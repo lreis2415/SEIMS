@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from pygeoc.utils import StringClass, MathClass
 
 from preprocess.text import DBTableNames, StationFields, DataValueFields
-from preprocess.utility import LFs
+# from preprocess.utility import LFs
 
 
 class HydroClimateUtilClass(object):
@@ -43,7 +43,7 @@ class HydroClimateUtilClass(object):
 
     @staticmethod
     def rs(doy, n, lat):
-        """solar radiation, n is sunshine duration"""
+        """solar radiation (MJ/m2), n is sunshine duration (hour)"""
         lat = lat * math.pi / 180.
         a = 0.25
         b = 0.5
@@ -81,11 +81,11 @@ class HydroClimateUtilClass(object):
         time_zone = time.timezone / -3600
         f = open(in_file)
         for line in f:
-            str_line = line
-            for LF in LFs:
-                if LF in line:
-                    str_line = line.split(LF)[0]
-                    break
+            str_line = line.strip()
+            # for LF in LFs:
+            #     if LF in line:
+            #         str_line = line.split(LF)[0]
+            #         break
             if str_line[0] != '#':
                 break
             if str_line.lower().find('utc') >= 0:
