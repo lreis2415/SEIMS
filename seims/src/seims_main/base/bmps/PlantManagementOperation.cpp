@@ -281,9 +281,9 @@ ReleaseImpoundOperation::ReleaseImpoundOperation(int mgtOp, bool usebaseHU, floa
     :
     PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_impTrig = int(parameters[0]);
-    m_maxDepth = float(parameters[1]);
-    m_lowDepth = float(parameters[2]);
-    m_upDepth = float(parameters[3]);
+    m_maxPondDepth = float(parameters[1]);
+    m_minFitDepth = float(parameters[2]);
+    m_maxFitDepth = float(parameters[3]);
 }
 
 ReleaseImpoundOperation::~ReleaseImpoundOperation() {
