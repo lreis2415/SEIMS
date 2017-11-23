@@ -321,7 +321,7 @@ def main():
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow
     hillslpf = seims_cfg.spatials.hillslope
-    DelineateHillslope.downstream_method_whitebox(streamf, flowdirf, hillslpf, 1)
+    DelineateHillslope.downstream_method_whitebox(streamf, flowdirf, hillslpf)
 
 
 if __name__ == '__main__':

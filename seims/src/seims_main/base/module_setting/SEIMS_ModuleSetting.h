@@ -38,7 +38,7 @@ public:
 
     ///< get channel nutrient routing method
     string channelNutrientRoutingMethod(void);
-private:
+public:
     ///< Copy constructor is unusable.
     SEIMSModuleSetting(const SEIMSModuleSetting& ) = delete;
     ///< Copy assignment is unusable.

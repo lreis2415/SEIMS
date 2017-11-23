@@ -262,7 +262,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
                 break
             xdata = gen_popsize[gen][xname[0]]
             ydata = gen_popsize[gen][yname[0]]
-            plt.scatter(xdata, ydata, marker=markers[mark_idx], s=60,
+            plt.scatter(xdata, ydata, marker=markers[mark_idx], s=100,
                         color=colors[mark_idx], label=method)
             mark_idx += 1
         if not gen_existed:

@@ -515,10 +515,10 @@ class SoilProperty(object):
         """
         cbn = om * 0.58
         sn = 1. - sand * 0.01
-        a = (0.2 + 0.3 * math.exp(-0.0256 * sand * (1. - silt * 0.01)))
+        a = (0.2 + 0.3 * math.exp(-0.256 * sand * (1. - silt * 0.01)))
         b = math.pow(silt / (clay + silt), 0.3)
         c = (1. - 0.25 * cbn / (cbn + math.exp(3.72 - 2.95 * cbn)))
-        d = (1. - 0.25 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))
+        d = (1. - 0.7 * sn / (sn + math.exp(-5.51 + 22.9 * sn)))
         k = a * b * c * d
         return k
 
