@@ -1765,7 +1765,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
     /// 1. pothole module has been added by LJ, 2016-9-6, IMP_SWAT
     /// paddy rice module should be added!
     m_potVolMax[i] = curOperation->MaxPondDepth();
-    m_potVolLow[i] = curOperation->LowDepth();
+    m_potVolLow[i] = curOperation->MinFitDepth();
     if (FloatEqual(m_impoundTriger[i], 0.f)) {
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
