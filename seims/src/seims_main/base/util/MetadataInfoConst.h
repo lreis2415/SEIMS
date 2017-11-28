@@ -9,7 +9,8 @@
  *
  * 
  */
-#pragma once
+#ifndef SEIIMS_METADATA_INFO_CONST_H
+#define SEIIMS_METADATA_INFO_CONST_H
 
 #include <string>
 
@@ -80,3 +81,5 @@ enum dimensionTypes {
     DT_Reach            = 8,  ///< Reach parameters
     DT_Subbasin         = 9   ///< Subbasin instances
 };
+
+#endif /* SEIIMS_METADATA_INFO_CONST_H */
