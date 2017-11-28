@@ -21,15 +21,6 @@
 
 using namespace std;
 
-const int MAIN_DB_TABS_REQ_NUM = 6;
-const char *MAIN_DB_TABS_REQ[] = {DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
-                                  DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL};
-
-const int METEO_VARS_NUM = 6;
-const char *METEO_VARS[] = {DataType_MeanTemperature, DataType_MaximumTemperature,
-                            DataType_MinimumTemperature, DataType_SolarRadiation,
-                            DataType_WindSpeed, DataType_RelativeAirMoisture};
-
 /*!
  * \ingroup data
  * \class DataCenter
