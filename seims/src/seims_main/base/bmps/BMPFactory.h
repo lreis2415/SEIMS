@@ -47,7 +47,7 @@ public:
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    FloatRaster* getRasterData(){};
+    float* getRasterData();
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.

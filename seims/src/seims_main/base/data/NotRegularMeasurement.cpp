@@ -1,13 +1,13 @@
 #include "NotRegularMeasurement.h"
 
-NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList,
-                                             string siteType, time_t startTime, time_t endTime)
+NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList,
+                                             string& siteType, time_t startTime, time_t endTime)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime) {
-    int nSites = (int) m_siteIDList.size();
+    size_t nSites = m_siteIDList.size();
     m_valueList.resize(nSites);
     m_timeList.resize(nSites);
     m_curIndexList.resize(nSites, 0);
-    for (int iSite = 0; iSite < nSites; iSite++) {
+    for (size_t iSite = 0; iSite < nSites; iSite++) {
         /// build query statement
         bson_t *query = bson_new();
         bson_t *child = bson_new();
@@ -86,21 +86,11 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string hydroDBNa
     }
 }
 
-//! Destructor
-NotRegularMeasurement::~NotRegularMeasurement(void) {
-    // no need to release explicitly
-    //for (vector<vector<float> >::iterator it = m_valueList.begin(); it != m_valueList.end();)
-    //{
-    //    it = m_valueList.erase(it);
-    //}
-    //m_valueList.clear();
-}
-
 float *NotRegularMeasurement::GetSiteDataByTime(time_t t) {
     for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); ++iSite) {
         vector<time_t>& tlist = m_timeList[iSite];
         vector<float>& vlist = m_valueList[iSite];
-        size_t curIndex = m_curIndexList[iSite];
+        size_t curIndex = (size_t) m_curIndexList[iSite];
 
         // find the index for current time
         // the nearest record before t
@@ -117,7 +107,7 @@ float *NotRegularMeasurement::GetSiteDataByTime(time_t t) {
         //else
         //{
         pData[iSite] = vlist[curIndex];
-        m_curIndexList[iSite] = curIndex;
+        m_curIndexList[iSite] = (int) curIndex;
         //}
     }
     return pData;
