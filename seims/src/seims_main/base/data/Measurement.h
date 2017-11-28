@@ -31,26 +31,26 @@ public:
      * \param[in] startDate \a time_t, start date time
      * \param[in] endDate \a time_t, end date time
      */
-    Measurement(MongoClient *conn, string hydroDBName, string sitesList, string siteType, 
+    Measurement(MongoClient *conn, string& hydroDBName, string& sitesList, string& siteType,
                 time_t startDate, time_t endDate);
 
     //! Destructor
-    virtual ~Measurement(void);
+    virtual ~Measurement();
 
     //! Get site data by time
     virtual float *GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites(void) const { return (int) m_siteIDList.size(); }
+    int NumberOfSites() const { return (int) m_siteIDList.size(); }
 
     //! Get HydroClimate site type, "M" or "P"
-    string Type(void) const { return m_type; }
+    string Type() const { return m_type; }
 
     //! start time
-    time_t StartTime(void) const { return m_startTime; }
+    time_t StartTime() const { return m_startTime; }
 
     //! end time
-    time_t EndTime(void) const { return m_endTime; }
+    time_t EndTime() const { return m_endTime; }
 
 protected:
     //! MongoDB client object
