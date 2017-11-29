@@ -1,10 +1,11 @@
 /*!
  * \brief Define MetadataInfo class used by modules
- * \author Junzhi Liu
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 1.0
  * \date June 2010
  */
-#pragma once
+#ifndef SEIMS_METADATA_INFO_H
+#define SEIMS_METADATA_INFO_H
 
 #include "utilities.h"
 #include "MetadataInfoConst.h"
@@ -102,7 +103,7 @@ private:
 
     void CloseTag(string name, int indent, string *sb);
 
-    void FullTag(string name, int indent, string content, string *sb);
+    void FullTag(const string& name, int indent, string& content, string *sb);
 
     void WriteClass(int indent, string *sb);
 
@@ -121,51 +122,51 @@ private:
     void DimensionTag(string tag, int indent, dimensionTypes dimType, string *sb);
 
 public:
-    MetadataInfo(void);
+    MetadataInfo();
 
-    ~MetadataInfo(void);
+    ~MetadataInfo();
 
-    string SchemaVersion(void);
+    string SchemaVersion();
 
-    void SetClass(string name, string description);
+    void SetClass(string& name, string& description);
 
-    string GetClassName(void);
+    string GetClassName();
 
-    string GetClassDescription(void);
+    string GetClassDescription();
 
     void SetID(string ID);
 
-    string GetID(void);
+    string GetID();
 
     void SetName(string name);
 
-    string GetName(void);
+    string GetName();
 
     void SetDescription(string description);
 
-    string GetDescription(void);
+    string GetDescription();
 
     void SetVersion(string version);
 
-    string GetVersion(void);
+    string GetVersion();
 
     void SetAuthor(string author);
 
-    string GetAuthor(void);
+    string GetAuthor();
 
     void SetEmail(string email);
 
-    string GetEmail(void);
+    string GetEmail();
 
     void SetWebsite(string site);
 
-    string GetWebsite(void);
+    string GetWebsite();
 
     void SetHelpfile(string file);
 
-    string GetHelpfile(void);
+    string GetHelpfile();
 
-    int GetInputCount(void);
+    int GetInputCount();
 
     int AddInput(string name, string units, string desc, string source, dimensionTypes dimType);
 
@@ -177,11 +178,11 @@ public:
 
     string GetInputSource(int index);
 
-    dimensionTypes GetInputDimension(int index);
+    // dimensionTypes GetInputDimension(int index); // Useless?
 
     InputVariable GetInput(int index);
 
-    int GetOutputCount(void);
+    int GetOutputCount();
 
     int AddOutput(string name, string units, string desc, dimensionTypes dimType);
 
@@ -191,11 +192,11 @@ public:
 
     string GetOutputDescription(int index);
 
-    dimensionTypes GetOutputDimension(int index);
+    // dimensionTypes GetOutputDimension(int index); // Useless?
 
     OutputVariable GetOutput(int index);
 
-    int GetParameterCount(void);
+    int GetParameterCount();
 
     int AddParameter(string name, string units, string desc, string source, dimensionTypes dimType);
 
@@ -207,11 +208,11 @@ public:
 
     string GetParameterSource(int index);
 
-    dimensionTypes GetParameterDimension(int index);
+    // dimensionTypes GetParameterDimension(int index); // Useless?
 
     Parameter GetParameter(int index);
 
-    int GetDependencyCount(void);
+    int GetDependencyCount();
 
     int AddDependency(string name, string description);
 
@@ -221,5 +222,7 @@ public:
 
     ModelClass GetDependency(int index);
 
-    string GetXMLDocument(void);
+    string GetXMLDocument();
 };
+
+#endif /* SEIMS_METADATA_INFO_H */
