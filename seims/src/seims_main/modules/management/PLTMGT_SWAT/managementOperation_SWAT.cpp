@@ -193,7 +193,7 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     }
     CheckInputSize(key, n);
     if (StringMatch(sk, VAR_SUBBSN)) { m_subBsnID = data; }
-    //else if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; } // m_mgtFields is set by Scenario data
+        //else if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; } // m_mgtFields is set by Scenario data
     else if (StringMatch(sk, VAR_LANDUSE)) { m_landUse = data; }
     else if (StringMatch(sk, VAR_LANDCOVER)) { m_landCover = data; }
     else if (StringMatch(sk, VAR_IDC)) {
@@ -386,7 +386,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
             m_mgtFactory[uniqueIdx] = (BMPPlantMgtFactory *) it->second;
             /// Set plant management spatial units
             if (NULL == m_mgtFields) {
-                m_mgtFields = ((BMPPlantMgtFactory *)it->second)->getRasterData();
+                m_mgtFields = ((BMPPlantMgtFactory *) it->second)->getRasterData();
             }
         }
     }
@@ -607,7 +607,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     if (factoryID < 0) return false;
     /// 3. Figure out if any management operation should be applied, i.e., find sequence IDs (nOps)
     vector<int> tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
-    map <int, PlantManagementOperation *> tmpOperations = m_mgtFactory[factoryID]->GetOperations();
+    map<int, PlantManagementOperation *> tmpOperations = m_mgtFactory[factoryID]->GetOperations();
     // get the next should be done sequence number
     int curSeq = m_doneOpSequence[i];
     int nextSeq = -1;
@@ -628,7 +628,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
             LocalTime(m_date, &dateInfo);
             if (dateInfo.tm_mon == tmpOperation->GetMonth() &&
                 dateInfo.tm_mday == tmpOperation->GetDay()) {
-                    dateDepent = true;
+                dateDepent = true;
             }
         }
         /// If husc is defined
@@ -785,7 +785,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int &factoryID, int nOp) {
 }
 
 void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
-    IrrigationOperation *curOperation = (IrrigationOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    IrrigationOperation *curOperation = (IrrigationOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     /// initialize parameters
     /// irrigation source
     int m_irrSource;
@@ -905,7 +905,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
 	 * 3. Consider paddy rice field according to Chowdary et al., 2004, 2016-10-9, by LJ.
 	 */
     //initializeFertilizerLookup();
-    FertilizerOperation *curOperation = (FertilizerOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    FertilizerOperation *curOperation = (FertilizerOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     /// fertilizer type, ifrt
     int fertilizerID = curOperation->FertilizerID();
     /// kg/ha         |amount of fertilizer applied to HRU
@@ -1078,7 +1078,7 @@ void MGTOpt_SWAT::ExecutePesticideOperation(int i, int &factoryID, int nOp) {
 void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     //// TODO: Yield is not set as outputs yet. by LJ
     /// harvkillop.f
-    HarvestKillOperation *curOperation = (HarvestKillOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    HarvestKillOperation *curOperation = (HarvestKillOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     /// initialize parameters
     float cnop = curOperation->CNOP();
     float wur = 0.f, hiad1 = 0.f;
@@ -1336,7 +1336,7 @@ void MGTOpt_SWAT::rootFraction(int i, float *&root_fr) {
 void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     /// newtillmix.f
     /// Mix residue and nutrients during tillage and biological mixing
-    TillageOperation *curOperation = (TillageOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    TillageOperation *curOperation = (TillageOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     /// initialize parameters
     int tillID = curOperation->TillageID();
     float cnop = curOperation->CNOP();
@@ -1718,7 +1718,8 @@ void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int &factoryID, int nOp) {
 }
 
 void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp) {
-    AutoIrrigationOperation *curOperation = (AutoIrrigationOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    AutoIrrigationOperation
+        *curOperation = (AutoIrrigationOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     m_autoIrrSource[i] = curOperation->AutoIrrSrcCode();
     m_autoIrrNo[i] = (curOperation->AutoIrrSrcLocs() <= 0) ? (int) m_subBsnID[i] : curOperation->AutoIrrSrcLocs();
     m_wtrStrsID[i] = curOperation->WaterStrsIdent();
@@ -1732,7 +1733,8 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp)
 }
 
 void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp) {
-    AutoFertilizerOperation *curOperation = (AutoFertilizerOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    AutoFertilizerOperation
+        *curOperation = (AutoFertilizerOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     m_fertilizerID[i] = curOperation->FertilizerID();
     m_NStressCode[i] = curOperation->NitrogenMethod();
     m_autoNStress[i] = curOperation->NitrogenStrsFactor();
@@ -1755,11 +1757,12 @@ void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp)
 
 void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp) {
     /// No more executable code here.
-    ReleaseImpoundOperation *curOperation = (ReleaseImpoundOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    ReleaseImpoundOperation
+        *curOperation = (ReleaseImpoundOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     m_impoundTriger[i] = curOperation->ImpoundTriger();
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ
-    if (m_potVol == NULL) {
+    if (m_potVol == nullptr) {
         return;
     }
     /// 1. pothole module has been added by LJ, 2016-9-6, IMP_SWAT
@@ -1785,8 +1788,9 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
         } /// force to reach the up depth.
         /// recompute total soil water storage
         m_soilStorageProfile[i] = 0.f;
-        for (int ly = 0; ly < (int) m_nSoilLayers[i]; ly++)
+        for (int ly = 0; ly < (int) m_nSoilLayers[i]; ly++) {
             m_soilStorageProfile[i] += m_soilStorage[i][ly];
+        }
     } else {
         m_potVolMax[i] = 0.f;
         m_potVolLow[i] = 0.f;
