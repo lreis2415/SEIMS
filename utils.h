@@ -1047,8 +1047,7 @@ bool utilsArray::ValueInVector(const T &val, const vector<T> &vec) {
     if (vec.empty()) {
         return false;
     }
-    typename vector<T>::iterator findIter = find(vec.begin(), vec.end(), val);
-    if (findIter == vec.end()) {
+    if (find(vec.begin(), vec.end(), val) == vec.end()) {
         return false;
     } else {
         return true;
@@ -1057,8 +1056,7 @@ bool utilsArray::ValueInVector(const T &val, const vector<T> &vec) {
 
 template<typename T>
 void utilsArray::RemoveValueInVector(T &val, vector<T> &vec) {
-    typename vector<T>::iterator Iter = vec.begin();
-    for (; Iter != vec.end(); Iter++) {
+    for (auto Iter = vec.begin(); Iter != vec.end(); Iter++) {
         if (*Iter == val) {
             Iter = vec.erase(Iter);
         }
