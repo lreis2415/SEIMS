@@ -7,8 +7,9 @@
 #ifndef SEIMS_BMP_AREALSOURCE_H
 #define SEIMS_BMP_AREALSOURCE_H
 
-#include "utilities.h"
 #include "BMPFactory.h"
+#include "utilities.h"
+
 #include "clsRasterData.cpp"
 
 using namespace MainBMP;
@@ -29,7 +30,7 @@ public:
     ArealSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~ArealSourceLocations(void);
+    ~ArealSourceLocations() = default;
 
     /// load valid cells index
     void SetValidCells(int n, float *mgtFieldIDs);
@@ -38,29 +39,19 @@ public:
     void Dump(ostream *fs);
 
     /// Get point source ID
-    int GetArealSourceID(void) {
-        return m_arealSrcID;
-    }
+    int GetArealSourceID() { return m_arealSrcID; }
 
     /// name
-    string GetArealSourceName(void) {
-        return m_name;
-    }
+    string GetArealSourceName() { return m_name; }
 
     /// index of valid cells
-    vector<int> &GetCellsIndex(void) {
-        return m_cellsIndex;
-    }
+    const vector<int> &GetCellsIndex() const { return m_cellsIndex; }
 
     /// Located subbasin ID
-    int GetValidCells(void) {
-        return m_nCells;
-    }
+    int GetValidCells() { return m_nCells; }
 
     /// size
-    float GetSize(void) {
-        return m_size;
-    }
+    float GetSize() { return m_size; }
 
 private:
     /// ID of point source
@@ -92,80 +83,52 @@ public:
     ArealSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~ArealSourceMgtParams(void);
+    ~ArealSourceMgtParams() = default;
 
     /// Output
     void Dump(ostream *fs);
 
     /// Get start date of the current management operation
-    time_t GetStartDate(void) {
-        return m_startDate;
-    }
+    time_t GetStartDate() { return m_startDate; }
 
     /// Get end date
-    time_t GetEndDate(void) {
-        return m_endDate;
-    }
+    time_t GetEndDate() { return m_endDate; }
 
     /// Get sequence number
-    int GetSequence(void) {
-        return m_seqence;
-    }
+    int GetSequence() { return m_seqence; }
 
     /// Get subScenario name
-    string GetSubScenarioName(void) {
-        return m_name;
-    }
+    string GetSubScenarioName() { return m_name; }
 
     /// Get water volume
-    float GetWaterVolume(void) {
-        return m_waterVolume;
-    }
+    float GetWaterVolume() { return m_waterVolume; }
 
     /// Get sediment concentration
-    float GetSedment(void) {
-        return m_sedimentConc;
-    }
+    float GetSedment() {        return m_sedimentConc;    }
 
     /// Get sediment concentration
-    float GetTN(void) {
-        return m_TNConc;
-    }
+    float GetTN() {        return m_TNConc;    }
 
     /// Get NO3 concentration
-    float GetNO3(void) {
-        return m_NO3Conc;
-    }
+    float GetNO3() {        return m_NO3Conc;    }
 
     /// Get NH4 concentration
-    float GetNH4(void) {
-        return m_NH4Conc;
-    }
+    float GetNH4() {        return m_NH4Conc;    }
 
     /// Get OrgN concentration
-    float GetOrgN(void) {
-        return m_OrgNConc;
-    }
+    float GetOrgN() {        return m_OrgNConc;    }
 
     /// Get TP concentration
-    float GetTP(void) {
-        return m_TPConc;
-    }
+    float GetTP() {        return m_TPConc;    }
 
     /// Get MinP concentration
-    float GetMinP(void) {
-        return m_SolPConc;
-    }
+    float GetMinP() {        return m_SolPConc;    }
 
     /// Get OrgP concentration
-    float GetOrgP(void) {
-        return m_OrgPConc;
-    }
+    float GetOrgP() {        return m_OrgPConc;    }
 
     /// Get COD concentration
-    float GetCOD(void) {
-        return m_COD;
-    }
+    float GetCOD() {        return m_COD;    }
 
 private:
     /// subSecenario name
@@ -209,64 +172,52 @@ private:
 class BMPArealSrcFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPArealSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
-                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                       const string collection, const string location);
+    BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario,
+                       int bmpType, int bmpPriority, vector<string> &distribution,
+                       const string &collection, const string &location);
 
     /// Destructor
-    ~BMPArealSrcFactory(void);
+    ~BMPArealSrcFactory() override;
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string &bmpDBName);
-    
+    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
+
     /// Output
-    void Dump(ostream *fs);
+    void Dump(ostream *fs) override;
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
      * \param[in] conn \sa MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceManagements(MongoClient* conn, const string &bmpDBName);
+    void ReadArealSourceManagements(MongoClient *conn, const string &bmpDBName);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
      * \param[in] conn \sa MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadArealSourceLocations(MongoClient* conn, const string &bmpDBName);
+    void ReadArealSourceLocations(MongoClient *conn, const string &bmpDBName);
 
     /// Set raster data if needed
-    void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+    void setRasterData(map<string, FloatRaster*> &sceneRsMap) override;
 
     /// Get management fields data
-    float* getRasterData() { return m_mgtFieldsRs; };
+    float *getRasterData() override { return m_mgtFieldsRs; };
 
-    string GetArealSrcDistName(void) {
-        return m_arealSrcDistName;
-    }
+    string GetArealSrcDistName() { return m_arealSrcDistName; }
 
-    vector<int> &GetArealSrcMgtSeqs(void) {
-        return m_arealSrcMgtSeqs;
-    }
+    const vector<int>& GetArealSrcMgtSeqs() const { return m_arealSrcMgtSeqs; }
 
-    map<int, ArealSourceMgtParams *> &GetArealSrcMgtMap(void) {
-        return m_arealSrcMgtMap;
-    }
+    const map<int, ArealSourceMgtParams*>& GetArealSrcMgtMap() const { return m_arealSrcMgtMap; }
 
-    vector<int> &GetArealSrcIDs(void) {
-        return m_arealSrcIDs;
-    }
+    const vector<int>& GetArealSrcIDs() const { return m_arealSrcIDs; }
 
-    bool GetLocationLoadStatus(void) {
-        return m_loadedMgtFieldIDs;
-    }
+    bool GetLocationLoadStatus() { return m_loadedMgtFieldIDs; }
 
     void SetArealSrcLocsMap(int n, float *mgtField);
 
-    map<int, ArealSourceLocations *> &GetArealSrcLocsMap(void) {
-        return m_arealSrcLocsMap;
-    }
+    const map<int, ArealSourceLocations*>& GetArealSrcLocsMap() const { return m_arealSrcLocsMap; }
 
 private:
     /// areal source code
@@ -279,11 +230,11 @@ private:
      * Key: Scheduled sequence number, unique
      * Value: Pointer of ArealSourceMgtParams instance
      */
-    map<int, ArealSourceMgtParams *> m_arealSrcMgtMap;
+    map<int, ArealSourceMgtParams*> m_arealSrcMgtMap;
     /// core file name of areal source locations, such as MGT_FIELDS
     string m_arealSrcDistName;
     /// distribution data of areal source locations
-    float* m_mgtFieldsRs;
+    float *m_mgtFieldsRs;
     /// areal source distribution table
     string m_arealSrcDistTab;
     /// Field IDs of areal source of current subScenario
@@ -294,7 +245,7 @@ private:
      * Key: ARSRCID, unique
      * Value: Pointer of ArealBMPLocations instance
      */
-    map<int, ArealSourceLocations *> m_arealSrcLocsMap;
+    map<int, ArealSourceLocations*> m_arealSrcLocsMap;
 };
 }
 #endif /* SEIMS_BMP_AREALSOURCE_H */

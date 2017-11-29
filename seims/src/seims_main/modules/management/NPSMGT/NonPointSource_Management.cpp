@@ -80,7 +80,7 @@ void NPS_Management::SetScenario(Scenario *sce) {
             }
             /// Set areal source locations data
             if (NULL == m_mgtFields) {
-                m_mgtFields = ((BMPArealSrcFactory *)it->second)->getRasterData();
+                m_mgtFields = ((BMPArealSrcFactory *) it->second)->getRasterData();
             }
         }
     } else {
@@ -104,18 +104,18 @@ int NPS_Management::Execute() {
         /// 2 Loop the management operations by sequence
         vector<int> tmpArealFieldIDs = it->second->GetArealSrcIDs();
         vector<int> tmpMgtSeqs = it->second->GetArealSrcMgtSeqs();
-        for (vector<int>::iterator mgtSeqIter = tmpMgtSeqs.begin(); mgtSeqIter != tmpMgtSeqs.end(); mgtSeqIter++) {
+        for (auto mgtSeqIter = tmpMgtSeqs.begin(); mgtSeqIter != tmpMgtSeqs.end(); mgtSeqIter++) {
             ArealSourceMgtParams *tmpMgtParams = it->second->GetArealSrcMgtMap().at(*mgtSeqIter);
             if (tmpMgtParams->GetStartDate() != 0 && tmpMgtParams->GetEndDate() != 0) {
                 if (m_date < tmpMgtParams->GetStartDate() || m_date > tmpMgtParams->GetEndDate()) {
                     continue;
                 }
             }
-            for (vector<int>::iterator fIDIter = tmpArealFieldIDs.begin(); fIDIter != tmpArealFieldIDs.end();
+            for (auto fIDIter = tmpArealFieldIDs.begin(); fIDIter != tmpArealFieldIDs.end();
                  fIDIter++) {
                 float deltaWtrMM = 0.f, deltaNH4 = 0.f, deltaNO3 = 0.f, deltaOrgN = 0.f;
                 float deltaMinP = 0.f, deltaOrgP = 0.f;
-                map < int, ArealSourceLocations * > tmpLocMap = it->second->GetArealSrcLocsMap();
+                map<int, ArealSourceLocations *> tmpLocMap = it->second->GetArealSrcLocsMap();
                 if (tmpLocMap.find(*fIDIter) == tmpLocMap.end()) {
                     continue;
                 }
@@ -145,24 +145,24 @@ int NPS_Management::Execute() {
                     deltaOrgP = cvt * tmpMgtParams->GetOrgP();
                 }
                 vector<int> tmpCellIdx = tmpLoc->GetCellsIndex();
-                for (vector<int>::iterator idxIter = tmpCellIdx.begin(); idxIter != tmpCellIdx.end(); idxIter++) {
+                for (auto idxIter = tmpCellIdx.begin(); idxIter != tmpCellIdx.end(); idxIter++) {
                     /// add to the top first soil layer
-                    if (deltaWtrMM > 0.f && m_soilStorage != NULL) {
+                    if (deltaWtrMM > 0.f && nullptr != m_soilStorage) {
                         m_soilStorage[*idxIter][0] += deltaWtrMM;
                     }
-                    if (deltaNO3 > 0.f && m_sol_no3 != NULL) {
+                    if (deltaNO3 > 0.f && nullptr != m_sol_no3) {
                         m_sol_no3[*idxIter][0] += deltaNO3;
                     }
-                    if (deltaNH4 > 0.f && m_sol_nh4 != NULL) {
+                    if (deltaNH4 > 0.f && nullptr != m_sol_nh4) {
                         m_sol_nh4[*idxIter][0] += deltaNH4;
                     }
-                    if (deltaMinP > 0.f && m_sol_solp != NULL) {
+                    if (deltaMinP > 0.f && nullptr != m_sol_solp) {
                         m_sol_solp[*idxIter][0] += deltaMinP;
                     }
-                    if (deltaOrgN > 0.f && m_sol_orgn != NULL) {
+                    if (deltaOrgN > 0.f && nullptr != m_sol_orgn) {
                         m_sol_orgn[*idxIter][0] += deltaOrgN;
                     }
-                    if (deltaOrgP > 0.f && m_sol_orgp != NULL) {
+                    if (deltaOrgP > 0.f && nullptr != m_sol_orgp) {
                         m_sol_orgp[*idxIter][0] += deltaOrgP;
                     }
                 }

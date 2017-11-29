@@ -663,7 +663,7 @@ void DataCenterMongoDB::readIUHData(string &remoteFilename, int &n, float **&dat
 bool DataCenterMongoDB::setRasterForScenario() {
     if (!m_useScenario) return false;
     if (nullptr == m_scenario) return false;
-    map<string, FloatRaster *> &sceneRsMap = m_scenario->getSceneRasterDataMap();
+    map<string, FloatRaster *> sceneRsMap = m_scenario->getSceneRasterDataMap();
     if (sceneRsMap.empty()) return false;
     for (auto it = sceneRsMap.begin(); it != sceneRsMap.end(); it++) {
         if (m_rsMap.find(it->first) == m_rsMap.end()) {

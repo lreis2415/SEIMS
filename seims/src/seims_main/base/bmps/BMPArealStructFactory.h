@@ -1,19 +1,21 @@
 /*!
  * \brief Areal struct BMP factory
- * \author GAO Huiran
+ * \author Huiran Gao, Liangjun Zhu
  * \date Feb. 2017
- * \revised Liangjun Zhu, 2017-7-13  partially rewrite this class, Scenario data only read from MongoDB
+ * \revised lj 2017-7-13  partially rewrite this class, Scenario data only read from MongoDB
  *                                   DataCenter will perform the data updating.
+ *          lj 2017-11-29 code style review
  */
 #ifndef SEIMS_BMP_AREALSTRUCT_H
 #define SEIMS_BMP_AREALSTRUCT_H
 
+#include "BMPFactory.h"
 #include "text.h"
 #include "utilities.h"
-#include "tinyxml.h"
-#include "BMPFactory.h"
-#include "clsRasterData.cpp"
 #include "ParamInfo.h"
+
+#include "tinyxml.h"
+#include "clsRasterData.cpp"
 
 using namespace MainBMP;
 
@@ -34,9 +36,9 @@ public:
     //! Get name
     string getBMPName(){ return m_name; }
     //! Get suitable landuse
-    vector<int>& getSuitableLanduse(){ return m_landuse; }
+    const vector<int>& getSuitableLanduse() const { return m_landuse; }
     //! Get parameters
-    map<string, ParamInfo*>& getParameters(){ return m_parameters; }
+    const map<string, ParamInfo*>& getParameters() const { return m_parameters; }
 private:
     int             m_id;          ///< unique BMP ID
     string          m_name;        ///< name
@@ -60,30 +62,30 @@ class BMPArealStructFactory: public BMPFactory
 {
 public:
     /// Constructor
-    BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
-                          const int bmpType, const int bmpPriority, vector<string> &distribution,
-                          const string collection, const string location);
+    BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
+                          int bmpType, int bmpPriority, vector<string> &distribution,
+                          const string& collection, const string& location);
     
     /// Destructor
-	~BMPArealStructFactory(void);
+	~BMPArealStructFactory() override;
 
 	//! Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string &bmpDBName);
+    void loadBMP(MongoClient* conn, const string &bmpDBName) override;
 
     //! Set raster data if needed
-    void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+    void setRasterData(map<string, FloatRaster*> &sceneRsMap) override;
 
     //! Get management fields data
-    float* getRasterData() { return m_mgtFieldsRs; };
+    float* getRasterData() override { return m_mgtFieldsRs; };
 
     //! Get effect unit IDs
-    vector<int>& getUnitIDs() { return m_unitIDs; }
+    const vector<int>& getUnitIDs() const { return m_unitIDs; }
 
     //! Get areal BMP parameters
-    map<int, BMPArealStruct*>& getBMPsSettings() { return m_bmpStructMap; }
+    const map<int, BMPArealStruct*>& getBMPsSettings() const { return m_bmpStructMap; }
 
 	//! Output
-	void Dump(ostream *fs);
+	void Dump(ostream *fs) override;
 
 private:
     //! management units file name
