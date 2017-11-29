@@ -7,10 +7,10 @@ ModelException::ModelException(string className, string functionName, string msg
     m_msg = msg;
 }
 
-ModelException::~ModelException(void) throw() {
+ModelException::~ModelException() throw() {
 }
 
-string ModelException::toString(void) {
+string ModelException::toString() {
     string descri = "";
     descri = "Class:" + m_className + "\n";
     descri += "Function:" + m_functionName + "\n";

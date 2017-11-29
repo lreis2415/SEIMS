@@ -88,7 +88,7 @@ int main() {
             array2d[i][j] = i * 3 + j;
         }
     }
-    int **array2dCopy = NULL;
+    int **array2dCopy = nullptr;
     try {
         if (Initialize2DArray(2, 3, array2dCopy, array2d)) {
             // do something
@@ -118,5 +118,16 @@ int main() {
     }
     string itemstr = "NO,NAME,NUMBER";
     vector<string> items = SplitString(itemstr, ',');
+
+    // GetCoreFileName
+    string fname1 = "c:\\test.tif";  // test
+    string fname2 = "c:\\test2";      // test2
+    string fname3 = "/home/user/test3.2017.txt";      // test3.2017
+    string fname4 = "/home/user/test4";      // test4
+
+    cout << utilsFileIO::GetCoreFileName(fname1) << endl;
+    cout << utilsFileIO::GetCoreFileName(fname2) << endl;
+    cout << utilsFileIO::GetCoreFileName(fname3) << endl;
+    cout << utilsFileIO::GetCoreFileName(fname4) << endl;
     return 0;
 }
