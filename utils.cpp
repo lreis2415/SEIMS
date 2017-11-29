@@ -4,7 +4,7 @@
 
 /************ utilsTime ******************/
 double utilsTime::TimeCounting() {
-#ifdef WIN32
+#ifdef windows
     LARGE_INTEGER li;
     if (QueryPerformanceFrequency(&li)) /// CPU supported
     {
@@ -19,7 +19,7 @@ double utilsTime::TimeCounting() {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.;
-#endif /* WIN32 */
+#endif /* windows */
 }
 
 string utilsTime::ConvertToString(const time_t *date) {
@@ -41,11 +41,11 @@ string utilsTime::ConvertToString(const time_t *date) {
 
 string utilsTime::ConvertToString2(const time_t *date) {
     struct tm dateInfo;
-#ifdef WIN32
+#ifdef windows
     localtime_s(&dateInfo, date);
 #else
     localtime_r(date, &dateInfo);
-#endif /* WIN32 */
+#endif /* windows */
     if (dateInfo.tm_isdst > 0) {
         if (dateInfo.tm_hour != 0) {
             dateInfo.tm_hour -= 1;
@@ -173,11 +173,11 @@ time_t utilsTime::ConvertYMDToTime(int &year, int &month, int &day) {
 
 int utilsTime::GetDateInfoFromTimet(time_t *t, int *year, int *month, int *day) {
     struct tm dateInfo;
-#ifdef WIN32
+#ifdef windows
     localtime_s(&dateInfo, t);
 #else
     localtime_r(t, &dateInfo);
-#endif /* WIN32 */
+#endif /* windows */
     if (dateInfo.tm_isdst > 0) {
         dateInfo.tm_hour -= 1;
     }
@@ -190,11 +190,11 @@ int utilsTime::GetDateInfoFromTimet(time_t *t, int *year, int *month, int *day) 
 }
 
 void utilsTime::LocalTime(time_t date, struct tm *t) {
-#ifdef WIN32
+#ifdef windows
     localtime_s(t, &date);
 #else
     localtime_r(&date, t);
-#endif /* WIN32 */
+#endif /* windows */
 }
 
 /************ utilsString ****************/
@@ -365,7 +365,7 @@ float utilsMath::Power(float a, float n) {
 }
 
 /************ utilsFileIO ******************/
-#ifndef WIN32
+#ifndef windows
 
 int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
     struct stat file;
@@ -404,10 +404,10 @@ int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
     return 0;
 }
 
-#endif /* WIN32 */
+#endif /* windows */
 
 bool utilsFileIO::FileExists(string const &FileName) {
-#ifdef WIN32
+#ifdef windows
     struct _finddata_t fdt;
     intptr_t ptr = _findfirst(FileName.c_str(), &fdt);
     bool found = (ptr != -1);
@@ -419,19 +419,19 @@ bool utilsFileIO::FileExists(string const &FileName) {
     } else {
         return false;
     }
-#endif /* WIN32 */
+#endif /* windows */
 }
 
 bool utilsFileIO::PathExists(string const &fullpath) {
     const char *path = fullpath.c_str();
     bool isExists;
-#ifdef WIN32
+#ifdef windows
     struct _stat fileStat;
     isExists = (_stat(path, &fileStat) == 0) && (fileStat.st_mode & _S_IFDIR);
 #else
     struct stat fileStat;
     isExists = (stat(path, &fileStat) == 0) && S_ISDIR(fileStat.st_mode);
-#endif /* WIN32 */
+#endif /* windows */
     return isExists;
 }
 
@@ -444,7 +444,7 @@ int utilsFileIO::DeleteExistedFile(const string &filepath) {
 }
 
 int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
-#ifdef WIN32
+#ifdef windows
     char szFind[MAX_PATH];
     stringcpy(szFind, lpPath);
     stringcat(szFind, SEP);
@@ -496,16 +496,16 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
         }
         closedir(dir);
     }
-#endif /* WIN32 */
+#endif /* windows */
     return 0;
 }
 
 bool utilsFileIO::DirectoryExists(const string& dirpath) {
-#ifdef WIN32
+#ifdef windows
     if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES) {
 #else
     if (access(dirpath.c_str(), F_OK) != 0) {
-#endif /* WIN32 */
+#endif /* windows */
         return false;
     }
     else {
@@ -522,12 +522,12 @@ bool utilsFileIO::CleanDirectory(const string& dirpath) {
                 remove((*it).c_str());
         } 
         else { /// create new directory
-#ifdef WIN32
+#ifdef windows
             LPSECURITY_ATTRIBUTES att = nullptr;
             ::CreateDirectory(dirpath.c_str(), att);
 #else
             mkdir(dirpath.c_str(), 0777);
-#endif /* WIN32 */
+#endif /* windows */
         }
         return true;
     }
@@ -539,7 +539,7 @@ bool utilsFileIO::CleanDirectory(const string& dirpath) {
 
 string utilsFileIO::GetAppPath() {
     string RootPath;
-#ifdef WIN32
+#ifdef windows
     TCHAR buffer[PATH_MAX];
     GetModuleFileName(nullptr, buffer, PATH_MAX);
     RootPath = string((char *) buffer);
@@ -566,7 +566,7 @@ string utilsFileIO::GetAppPath() {
         buf[rslt] = '\0';
     }
     RootPath = buf;
-#endif /* WIN32 */
+#endif /* windows */
     basic_string<char>::size_type idx = RootPath.find_last_of(SEP);
     RootPath = RootPath.substr(0, idx + 1);
 
@@ -687,13 +687,13 @@ void utils::Log(string msg, string logpath /* = "debugInfo.log" */) {
     time_t now;
     char buffer[32];
     time(&now);
-#ifdef WIN32
+#ifdef windows
     localtime_s(&timeptr, &now);
     asctime_s(buffer, 32, &timeptr);
 #else
     localtime_r(&now, &timeptr);
     asctime_r(&timeptr, buffer);
-#endif /* WIN32 */
+#endif /* windows */
     string timestamp = buffer;
     timestamp = timestamp.substr(0, timestamp.length() - 1);
     fstream fs(logpath.c_str(), ios::app);
@@ -707,11 +707,11 @@ void utils::Log(string msg, string logpath /* = "debugInfo.log" */) {
 }
 
 int utils::GetAvailableThreadNum() {
-#ifdef WIN32
+#ifdef windows
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
-#endif /* WIN32 */
+#endif /* windows */
 #ifdef linux
     return (int) sysconf(_SC_NPROCESSORS_ONLN);
 #endif /* linux */

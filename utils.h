@@ -34,7 +34,7 @@
 #include <iostream>
 #include <fstream>
 /// platform
-#ifdef WIN32
+#ifdef windows
 #include <io.h>
 //#define _WINSOCKAPI_    // stops windows.h including winsock.h // _WINSOCKAPI_ is defined by <winsock2.h>
 #include <winsock2.h>
@@ -53,7 +53,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
-#endif /* WIN32 */
+#endif /* windows */
 
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
@@ -102,7 +102,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define MINI_SLOPE        0.0001f
 #endif /* MINI_SLOPE */
 
-#ifdef WIN32
+#ifdef windows
 #define Tag_ModuleDirectoryName "\\"
 #define SEP "\\"
 #define Tag_DyLib ".dll"
@@ -110,7 +110,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define Tag_ModuleDirectoryName "/"
 #define SEP "/"
 #define Tag_So "lib"
-#endif /* WIN32 */
+#endif /* windows */
 #ifdef linux
 #define Tag_DyLib ".so"
 #elif (defined macos) || (defined macosold)
@@ -589,7 +589,7 @@ class utilsFileIO {
 public:
     utilsFileIO() = default;   //< void constructor
     ~utilsFileIO() = default;  //< void destructor
-#ifndef WIN32
+#ifndef windows
 
     /*!
      * \brief Copy file in unix-based platform
@@ -598,7 +598,7 @@ public:
      */
     static int copyfile_unix(const char *srcfile, const char *dstfile);
 
-#endif /* WIN32 */
+#endif /* windows */
     /*!
     * \brief Check the given directory path is exists or not.
     */
