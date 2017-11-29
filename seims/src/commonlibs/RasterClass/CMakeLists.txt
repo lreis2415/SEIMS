@@ -96,7 +96,7 @@ SET(WITH_GDAL 1)
 SET(WITH_OPENMP 1)
 
 ### Add executables.
-set(SOURCE_FILES clsRasterData.cpp main.cpp)
+set(SOURCE_FILES main.cpp clsRasterData.h)
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
 set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
 set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../MongoUtilClass)
