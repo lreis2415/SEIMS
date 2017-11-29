@@ -2,9 +2,9 @@
 
 using namespace MainBMP;
 
-BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                                       const string collection, const string location) :
+BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
+                                       int bmpType, int bmpPriority, vector<string> &distribution,
+                                       const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
 {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
@@ -24,11 +24,10 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, co
 
 BMPPlantMgtFactory::~BMPPlantMgtFactory() {
     Release1DArray(m_parameters);
-    map<int, PlantManagementOperation *>::iterator it;
-    for (it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_bmpPlantOps.begin(); it != m_bmpPlantOps.end();) {
+        if (nullptr != it->second) {
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_bmpPlantOps.erase(it++);
     }
@@ -166,11 +165,11 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
 }
 
 void BMPPlantMgtFactory::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (nullptr == fs) return;
     *fs << "Plant Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << " Name = " << m_name << endl;
-    for (vector<int>::iterator it = m_bmpSequence.begin(); it != m_bmpSequence.end(); it++) {
-        map<int, PlantManagementOperation *>::iterator findIdx = m_bmpPlantOps.find(*it);
+    for (auto it = m_bmpSequence.begin(); it != m_bmpSequence.end(); it++) {
+        auto findIdx = m_bmpPlantOps.find(*it);
         if (findIdx != m_bmpPlantOps.end()) {
             m_bmpPlantOps[*it]->dump(fs);
         }

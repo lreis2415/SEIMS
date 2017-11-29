@@ -731,7 +731,7 @@ void MGTOpt_SWAT::initializeTillageLookup() {
 }
 
 void MGTOpt_SWAT::ExecutePlantOperation(int i, int &factoryID, int nOp) {
-    PlantOperation *curOperation = (PlantOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    PlantOperation *curOperation = (PlantOperation *) m_mgtFactory[factoryID]->GetOperations().at(nOp);
     /// initialize parameters
     m_igro[i] = 1.f;
     m_HarvestIdxTarg[i] = curOperation->HITarg();

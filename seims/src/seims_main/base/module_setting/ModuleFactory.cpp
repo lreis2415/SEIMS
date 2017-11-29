@@ -25,27 +25,27 @@ ModuleFactory::ModuleFactory(DataCenterMongoDB* dataCenter) :m_dataCenter(dataCe
 
     Init(m_dataCenter->getFileCfgFullPath());
 }
-ModuleFactory::~ModuleFactory(void) {
+ModuleFactory::~ModuleFactory() {
     StatusMessage("Start to release ModuleFactory ...");
     /// Improved by Liangjun, 2016-7-6
     /// First release memory, then erase map element. BE CAUTION WHEN USE ERASE!!!
     StatusMessage("---release map of SEIMSModuleSettings ...");
-    for (map<string, SEIMSModuleSetting *>::iterator it = m_settings.begin(); it != m_settings.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_settings.begin(); it != m_settings.end();) {
+        if (nullptr!=it->second) {
             StatusMessage(("-----" + it->first + " ...").c_str());
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_settings.erase(it++);
     }
     m_settings.clear();
 
     StatusMessage("---release map of metadata of modules ...");
-    for (map<string, const char *>::iterator it = m_metadata.begin(); it != m_metadata.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_metadata.begin(); it != m_metadata.end();) {
+        if (nullptr!=it->second) {
             StatusMessage(("-----" + it->first + " ...").c_str());
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_metadata.erase(it++);
     }
@@ -53,11 +53,11 @@ ModuleFactory::~ModuleFactory(void) {
 
     StatusMessage("---release dynamic library handles ...");
     for (size_t i = 0; i < m_dllHandles.size(); i++) {
-#ifdef windows
+#ifdef WIN32
         FreeLibrary(m_dllHandles[i]);
 #else
         dlclose(m_dllHandles[i]);
-#endif /* windows */
+#endif /* WIN32 */
     }
     StatusMessage("End to release ModuleFactory ...");
 }
@@ -206,7 +206,7 @@ ParamInfo *ModuleFactory::FindDependentParam(ParamInfo &paramInfo) {
                              "Can not find input for " + paraName + " of " + paramInfo.ModuleID +
                                  " from other Modules.\n");
     }
-    return NULL;
+    return nullptr;
 }
 
 void ModuleFactory::ReadDLL(string &id, string &dllID) {
@@ -221,26 +221,26 @@ void ModuleFactory::ReadDLL(string &id, string &dllID) {
     }
 
     //load library
-#ifdef windows
+#ifdef WIN32
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
-    if (handle == NULL) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
+    if (handle == nullptr) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
     m_instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));
     m_metadataFuncs[id] = MetadataFunction(GetProcAddress(HMODULE(handle), "MetadataInformation"));
 #else
     void *handle = dlopen(moduleFileName.c_str(), RTLD_LAZY);
-    if (handle == NULL) {
+    if (handle == nullptr) {
         cout << dlerror() << endl;
         throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
     }
     m_instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     m_metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
-#endif /* windows */
+#endif /* WIN32 */
     m_dllHandles.push_back(handle);
-    if (m_instanceFuncs[id] == NULL) {
+    if (m_instanceFuncs[id] == nullptr) {
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: GetInstance");
     }
-    if (m_metadataFuncs[id] == NULL) {
+    if (m_metadataFuncs[id] == nullptr) {
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: MetadataInformation");
     }
@@ -274,9 +274,9 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
 
     // start getting the parameters
     TiXmlElement *eleParams = eleMetadata->FirstChildElement(TagParameters.c_str());
-    if (eleParams != NULL) {
+    if (eleParams != nullptr) {
         TiXmlElement *eleParam = eleParams->FirstChildElement(TagParameter.c_str());
-        while (eleParam != NULL) {
+        while (eleParam != nullptr) {
             // clear the object
             ParamInfo *param = new ParamInfo();
 
@@ -285,8 +285,8 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
 
             // get the parameter name
             TiXmlElement *elItm = eleParam->FirstChildElement(TagParameterName.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     param->ClimateType = setting->dataTypeString();
@@ -343,38 +343,38 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
 
             // get the parameter description
             elItm = eleParam->FirstChildElement(TagParameterDescription.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Description = elItm->GetText();
                 }
             }
 
             // get the parameter units
             elItm = eleParam->FirstChildElement(TagParameterUnits.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Units = elItm->GetText();
                 }
             }
 
             // get the parameter source
             elItm = eleParam->FirstChildElement(TagParameterSource.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Source = elItm->GetText();
                 }
             }
 
             // get the parameter dimension
             elItm = eleParam->FirstChildElement(TagParameterDimension.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Dimension = MatchType(string(elItm->GetText()));
                 }
             }
 
             // cleanup
-            elItm = NULL;
+            elItm = nullptr;
 
             // parameter must have these values
             if (param->Name.size() <= 0) {
@@ -425,9 +425,9 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
 
     TiXmlElement *eleInputs = eleMetadata->FirstChildElement(TagInputs.c_str());
-    if (eleInputs != NULL) {
+    if (eleInputs != nullptr) {
         TiXmlElement *elInput = eleInputs->FirstChildElement(TagInputVariable.c_str());
-        while (elInput != NULL) {
+        while (elInput != nullptr) {
             ParamInfo *param = new ParamInfo();
 
             // set the module id
@@ -436,8 +436,8 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
 
             // get the input variable name
             TiXmlElement *elItm = elInput->FirstChildElement(TagInputVariableName.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     param->IsConstant = IsConstantInputFromName(param->Name);
@@ -449,37 +449,37 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
 
             // get the input variable units(
             elItm = elInput->FirstChildElement(TagInputVariableUnits.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Units = elItm->GetText();
                 }
             }
 
             // get the input variable description
             elItm = elInput->FirstChildElement(TagInputVariableDescription.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Description = elItm->GetText();
                 }
             }
 
             // get the input variable source
             elItm = elInput->FirstChildElement(TagInputVariableSource.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Source = elItm->GetText();
                 }
             }
 
             // get the input variable dimension
             elItm = elInput->FirstChildElement(TagInputVariableDimension.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Dimension = MatchType(string(elItm->GetText()));
                 }
             }
 
-            elItm = NULL;
+            elItm = nullptr;
 
             // input must have these values
             if (param->Name.size() <= 0) {
@@ -518,9 +518,9 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
 
     TiXmlElement *eleOutputs = eleMetadata->FirstChildElement(TagOutputs.c_str());
-    if (eleOutputs != NULL) {
+    if (eleOutputs != nullptr) {
         TiXmlElement *elOutput = eleOutputs->FirstChildElement(TagOutputVariable.c_str());
-        while (elOutput != NULL) {
+        while (elOutput != nullptr) {
             ParamInfo *param = new ParamInfo();
 
             // set the module id
@@ -528,8 +528,8 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
             param->ClimateType = setting->dataTypeString();
             // get the output variable name
             TiXmlElement *elItm = elOutput->FirstChildElement(TagOutputVariableName.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
                     if (setting->dataTypeString().size() > 0) {
@@ -540,16 +540,16 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
 
             // get the output variable units
             elItm = elOutput->FirstChildElement(TagOutputVariableUnits.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Units = elItm->GetText();
                 }
             }
 
             // get the output variable description
             elItm = elOutput->FirstChildElement(TagOutputVariableDescription.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Description = elItm->GetText();
                 }
             }
@@ -558,13 +558,13 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
 
             // get the output variable dimension
             elItm = elOutput->FirstChildElement(TagOutputVariableDimension.c_str());
-            if (elItm != NULL) {
-                if (elItm->GetText() != NULL) {
+            if (elItm != nullptr) {
+                if (elItm->GetText() != nullptr) {
                     param->Dimension = MatchType(string(elItm->GetText()));
                 }
             }
 
-            elItm = NULL;
+            elItm = nullptr;
 
             // add to the list
             param->IsOutput = true;
@@ -762,7 +762,7 @@ void ModuleFactory::SetValue(ParamInfo *param, FloatRaster *templateRaster, Simu
 void ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFileName, 
                               FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp) {
     int n;
-    float *data = NULL;
+    float *data = nullptr;
     /// the data has been read before, which stored in m_1DArrayMap
     if (m_1DArrayMap.find(remoteFileName) != m_1DArrayMap.end()) {
         data = m_1DArrayMap.at(remoteFileName);
@@ -821,7 +821,7 @@ void ModuleFactory::Set1DData(string &dbName, string &paraName, string &remoteFi
         m_dataCenter->read1DArrayData(paraName, remoteFileName, n, data);
     }
 
-    if (NULL == data) {
+    if (nullptr == data) {
         throw ModelException("ModuleFactory", "Set1DData", "Failed reading file " + remoteFileName);
     }
 
@@ -877,12 +877,12 @@ void ModuleFactory::Set2DData(string &dbName, string &paraName, int nSubbasin, s
 void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFileName,
                               FloatRaster *templateRaster, SimulationModule *pModule) {
     int n, lyrs;
-    float *data = NULL;
-    float **data2D = NULL;
-    FloatRaster *raster = NULL;
+    float *data = nullptr;
+    float **data2D = nullptr;
+    FloatRaster *raster = nullptr;
     if (m_rsMap.find(remoteFileName) == m_rsMap.end()) {
         raster = m_dataCenter->readRasterData(remoteFileName);
-        if (NULL == raster) {
+        if (nullptr == raster) {
             throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
         }
         string upperName = GetUpper(paraName);
@@ -901,7 +901,7 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
             if (!raster->getRasterData(&n, &data)) {
                 throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
             }
-            if (data != NULL && m_parametersInDB.find(upperName) != m_parametersInDB.end())
+            if (data != nullptr && m_parametersInDB.find(upperName) != m_parametersInDB.end())
                 m_parametersInDB[upperName]->Adjust1DRaster(n, data);
         }
     } else {
@@ -925,7 +925,7 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
 
 /// Added by Liang-Jun Zhu, 2016-6-22
 void ModuleFactory::SetScenario(SimulationModule *pModule) {
-    if (NULL == m_scenario && NULL == m_dataCenter->getScenarioData()) {
+    if (nullptr == m_scenario && nullptr == m_dataCenter->getScenarioData()) {
         throw ModelException("ModuleFactory", "SetScenario", "Scenarios has not been set!");;
     } else {
         pModule->SetScenario(m_scenario);
@@ -934,7 +934,7 @@ void ModuleFactory::SetScenario(SimulationModule *pModule) {
 
 /// Added by Liang-Jun Zhu, 2016-7-2
 void ModuleFactory::SetReaches(SimulationModule *pModule) {
-    if (NULL == m_reaches && NULL == m_dataCenter->getReachesData()) {
+    if (nullptr == m_reaches && nullptr == m_dataCenter->getReachesData()) {
         throw ModelException("ModuleFactory", "SetReaches", "Reaches has not been set!");
     }
     pModule->SetReaches(m_reaches);
@@ -943,7 +943,7 @@ void ModuleFactory::SetReaches(SimulationModule *pModule) {
 
 /// Added by Liang-Jun Zhu, 2016-7-28
 void ModuleFactory::SetSubbasins(SimulationModule *pModule) {
-    if (NULL == m_subbasins && NULL == m_dataCenter->getSubbasinData()) {
+    if (nullptr == m_subbasins && nullptr == m_dataCenter->getSubbasinData()) {
         throw ModelException("ModuleFactory", "SetSubbasins", "Subbasins data has not been initialized!");
     }
     pModule->SetSubbasins(m_subbasins);
@@ -960,7 +960,7 @@ void ModuleFactory::UpdateInput(vector<SimulationModule * > &modules, time_t t) 
         string dataType = m_settings[id]->dataTypeString();
         for (size_t j = 0; j < inputs.size(); j++) {
             ParamInfo& param = inputs[j];
-            if (param.DependPara != NULL)
+            if (param.DependPara != nullptr)
                 continue;    //the input which comes from other modules will not change when the date is change.
             if (StringMatch(param.Name.c_str(), CONS_IN_ELEV)
                 || StringMatch(param.Name.c_str(), CONS_IN_LAT)
@@ -993,7 +993,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
     for (vector<ParamInfo>::iterator it = inputs.begin(); it != inputs.end(); it++) {
         ParamInfo &param = *it;
         if (StringMatch(param.Source, Source_Module) ||
-            (StringMatch(param.Source, Source_Module_Optional) && param.DependPara != NULL)) {
+            (StringMatch(param.Source, Source_Module_Optional) && param.DependPara != nullptr)) {
             break;
         }
         modules[iModule]->SetInputsDone(true);
@@ -1002,7 +1002,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
 
     for (size_t j = 0; j < inputs.size(); j++) {
         ParamInfo *dependParam = inputs[j].DependPara;
-        if (dependParam == NULL) {
+        if (dependParam == nullptr) {
             continue;
         }
 
@@ -1064,11 +1064,11 @@ void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInf
 /// redesigned by Liangjun Zhu, 08/16/17
 void ModuleFactory::updateParametersByScenario(int subbsnID)
 {
-    if (NULL == m_scenario) {
+    if (nullptr == m_scenario) {
         return;
     }
     map<int, BMPFactory *> bmpFactories = m_scenario->GetBMPFactories();
-    for (map<int, BMPFactory *>::iterator iter = bmpFactories.begin(); iter != bmpFactories.end(); iter++)
+    for (auto iter = bmpFactories.begin(); iter != bmpFactories.end(); iter++)
     {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
         if (iter->first / 100000 != BMP_TYPE_AREALSTRUCT) {
@@ -1081,7 +1081,7 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
         /// Get landuse data of current subbasin ("0_" for the whole basin)
         string lur = GetUpper(ValueToString(subbsnID) + "_" + VAR_LANDUSE);
         int nsize = -1;
-        float* ludata = NULL;
+        float* ludata = nullptr;
         m_rsMap[lur]->getRasterData(&nsize, &ludata);
 
         map<int, BMPArealStruct*>::iterator iter2;
@@ -1117,12 +1117,12 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
                 }
                 if (m_rsMap[remoteFileName]->is2DRaster()) {
                     int lyr = -1;
-                    float** data2D = NULL;
+                    float** data2D = nullptr;
                     m_rsMap[remoteFileName]->get2DRasterData(&nsize, &lyr, &data2D);
                     iter3->second->Adjust2DRaster(nsize, lyr, data2D, mgtunits, selIDs, ludata, suitablelu);
                 }
                 else {
-                    float* data = NULL;
+                    float* data = nullptr;
                     m_rsMap[remoteFileName]->getRasterData(&nsize, &data);
                     iter3->second->Adjust1DRaster(nsize, data, mgtunits, selIDs, ludata, suitablelu);
                 }
