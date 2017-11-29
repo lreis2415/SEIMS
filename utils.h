@@ -4,7 +4,7 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
  * \date Jul. 2010
- * \updated May. 2017
+ * \updated Nov. 2017
  */
 
 #ifndef CLS_UTILS
@@ -34,7 +34,7 @@
 #include <iostream>
 #include <fstream>
 /// platform
-#ifdef windows
+#ifdef WIN32
 #include <io.h>
 //#define _WINSOCKAPI_    // stops windows.h including winsock.h // _WINSOCKAPI_ is defined by <winsock2.h>
 #include <winsock2.h>
@@ -53,7 +53,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
-#endif /* windows */
+#endif /* WIN32 */
 
 #if (defined macos) || (defined macosold)
 #include <libproc.h>
@@ -73,7 +73,7 @@ using namespace std;
  * \brief NODATA value
  */
 #ifndef NODATA_VALUE
-#define NODATA_VALUE    -9999.0f
+#define NODATA_VALUE    (-9999.0f)
 #endif /* NODATA_VALUE */
 const float MISSINGFLOAT = -1 * FLT_MAX;
 const float MAXIMUMFLOAT = FLT_MAX;
@@ -102,7 +102,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define MINI_SLOPE        0.0001f
 #endif /* MINI_SLOPE */
 
-#ifdef windows
+#ifdef WIN32
 #define Tag_ModuleDirectoryName "\\"
 #define SEP "\\"
 #define Tag_DyLib ".dll"
@@ -110,7 +110,7 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define Tag_ModuleDirectoryName "/"
 #define SEP "/"
 #define Tag_So "lib"
-#endif /* windows */
+#endif /* WIN32 */
 #ifdef linux
 #define Tag_DyLib ".so"
 #elif (defined macos) || (defined macosold)
@@ -163,19 +163,17 @@ typedef const double*  CDOUBLEPTR;
  */
 class utilsTime {
 public:
-    utilsTime(void);   //< void constructor
-    ~utilsTime(void);  //< void destructor
+    utilsTime() = default;   //< void constructor
+    ~utilsTime() = default;  //< void destructor
     /*
      *\brief Precisely and cross-platform time counting function.
      */
-    static double TimeCounting(void);
+    static double TimeCounting();
 
     /*!
      *\brief Check the given year is a leap year or not.
      */
-    static bool isLeapYear(int yr) {
-        return ((yr % 4) == 0 && ((yr % 100) != 0 || (yr % 400) == 0));
-    }
+    static bool isLeapYear(int yr) {        return ((yr % 4) == 0 && ((yr % 100) != 0 || (yr % 400) == 0));    }
 
     /*!
      * \brief Convert date time to string as the format of "YYYY-MM-DD"
@@ -255,14 +253,14 @@ public:
  */
 class utilsString {
 public:
-    utilsString(void);   //< void constructor
-    ~utilsString(void);  //< void destructor
+    utilsString() = default;   //< void constructor
+    ~utilsString() = default;  //< void destructor
     /*!
      * \brief Get Uppercase of given string
      * \param[in] string
      * \return Uppercase string
     */
-    static string GetUpper(string const &s);
+    static string GetUpper(const string& s);
 
     /*!
      * \brief Match \a char ignore cases
@@ -278,7 +276,7 @@ public:
      * \param[in] text1, text2
      * \return true or false
      */
-    static bool StringMatch(string const &text1, string const &text2);
+    static bool StringMatch(const string &text1, const string &text2);
 
     /*!
      * \brief Trim Both leading and trailing spaces
@@ -301,7 +299,7 @@ public:
      * \param[in] item \a string information
      * \return The split strings vector
      */
-    static vector <string> SplitString(string const &item);
+    static vector<string> SplitString(const string &item);
 
     /*!
      * \brief Splits the given string based on the given delimiter
@@ -310,23 +308,23 @@ public:
      * \param[in] delimiter \a char
      * \return The split strings vector
      */
-    static vector <string> SplitString(string const &item, char delimiter);
+    static vector<string> SplitString(const string &item, char delimiter);
 
     /*
      * \brief Get numeric values by splitting the given string based on the given delimiter
      */
     template<typename T>
-    vector <T> SplitStringForValues(string const &item, char delimiter);
+    vector<T> SplitStringForValues(string const &item, char delimiter);
 
     /*
      * \brief Get int values by splitting the given string based on the given delimiter
      */
-    static vector<int> SplitStringForInt(string const &item, char delimiter);
+    static vector<int> SplitStringForInt(const string &item, char delimiter);
 
     /*
      * \brief Get float values by splitting the given string based on the given delimiter
      */
-    static vector<float> SplitStringForFloat(string const &item, char delimiter);
+    static vector<float> SplitStringForFloat(const string &item, char delimiter);
 
     /*!
      * \brief Convert value to string
@@ -334,7 +332,7 @@ public:
      * \return converted string
      */
     template<typename T>
-    static string ValueToString(const T val);
+    static string ValueToString(const T& val);
 };
 
 /*!
@@ -343,8 +341,8 @@ public:
  */
 class utilsArray {
 public:
-    utilsArray(void);   //< void constructor
-    ~utilsArray(void);  //< void destructor
+    utilsArray() = default;   //< void constructor
+    ~utilsArray() = default;  //< void destructor
     /*!
      * \brief Initialize DT_Array1D data
      *
@@ -409,10 +407,10 @@ public:
     static void Release2DArray(int row, T **&data);
     /*!
      * \brief Batch release of 1D array
-     *        Variable arguments with the end of NULL.
-     * \param[in] data, data2, ... , dataN, NULL
-     * \usage BatchRelease1DArray(array1, array2, array3, NULL);
-     * \caution After batch release, the variable will not be set to NULL.
+     *        Variable arguments with the end of nullptr.
+     * \param[in] data, data2, ... , dataN, nullptr
+     * \usage BatchRelease1DArray(array1, array2, array3, nullptr);
+     * \caution After batch release, the variable will not be set to nullptr.
      *          So, do not use these variables any more.
      *          BTW, this function will not cause memory leak.
      *          USE WITH ALL CAUTIONS CLEARLY AWARED.
@@ -421,10 +419,10 @@ public:
     static void BatchRelease1DArray(T*& data, ...);
     /*!
     * \brief Batch release of 2D array, \sa BatchRelease1DArray
-    *        Variable arguments with the end of NULL.
+    *        Variable arguments with the end of nullptr.
     * \param[in] nrows Rows
-    * \param[in] data, data2, ... , dataN, NULL
-    * \usage BatchRelease2DArray(rows, array1, array2, array3, NULL);
+    * \param[in] data, data2, ... , dataN, nullptr
+    * \usage BatchRelease2DArray(rows, array1, array2, array3, nullptr);
     * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
     */
     template<typename T>
@@ -491,7 +489,7 @@ public:
     * \return True if val is in vec, otherwise False
     */
     template<typename T>
-    static bool ValueInVector(const T &val, vector<T> &vec);
+    static bool ValueInVector(const T &val, const vector<T> &vec);
 
     /*!
     * \brief Remove value in vector container
@@ -509,8 +507,8 @@ public:
  */
 class utilsMath {
 public:
-    utilsMath(void);   //< void constructor
-    ~utilsMath(void);  //< void destructor
+    utilsMath() = default;   //< void constructor
+    ~utilsMath() = default;  //< void destructor
     /*!
      * \brief Whether v1 is equal to v2
      * \param[in]  v1, v2 numeric value
@@ -589,9 +587,9 @@ public:
  */
 class utilsFileIO {
 public:
-    utilsFileIO(void);   //< void constructor
-    ~utilsFileIO(void);  //< void destructor
-#ifndef windows
+    utilsFileIO() = default;   //< void constructor
+    ~utilsFileIO() = default;  //< void destructor
+#ifndef WIN32
 
     /*!
      * \brief Copy file in unix-based platform
@@ -600,7 +598,7 @@ public:
      */
     static int copyfile_unix(const char *srcfile, const char *dstfile);
 
-#endif /* not windows */
+#endif /* WIN32 */
     /*!
     * \brief Check the given directory path is exists or not.
     */
@@ -613,7 +611,7 @@ public:
      * \brief Get the root path of the current executable file
      * \return \a string root path
      */
-    static string GetAppPath(void);
+    static string GetAppPath();
 
     /*!
      * \brief Return the file name from a given file's path
@@ -672,7 +670,7 @@ public:
      * \param[in] filepath \string
      * \return 0 if deleted successful, else return nonzero value, e.g. -1.
      */
-    static int DeleteExistedFile(string const &filepath);
+    static int DeleteExistedFile(const string &filepath);
 
     /*!
      * \brief Find files in given paths
@@ -697,8 +695,8 @@ public:
  */
 class utils {
 public:
-    utils(void);   //< void constructor
-    ~utils(void);  //< void destructor
+    utils() = default;   //< void constructor
+    ~utils() = default;  //< void destructor
     /*!
      * \brief Check if the IP address is valid.
      */
@@ -718,12 +716,12 @@ public:
      *    1. http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
      *    2. https://cmake.org/pipermail/cmake/2007-October/017286.html
      */
-    static int GetAvailableThreadNum(void);
+    static int GetAvailableThreadNum();
 
     /*!
      * \brief Set the default omp thread number if necessary
      */
-    static void SetDefaultOpenMPThread(void);
+    static void SetDefaultOpenMPThread();
 
     /*!
      * \brief Set the omp thread number by given thread number
@@ -752,7 +750,7 @@ vector <T> utilsString::SplitStringForValues(string const &item, char delimiter)
 }
 
 template<typename T>
-string utilsString::ValueToString(const T val) {
+string utilsString::ValueToString(const T& val) {
     ostringstream oss;
     oss << val;
     return oss.str();
@@ -849,7 +847,7 @@ utilsMath::basicStatistics(const T * const *values, int num, int lyrs, double **
         tmpstats[4][j] = 0.;                   /// std
         tmpstats[5][j] = 0.;                   /// range
     }
-    double *sumv = NULL;
+    double *sumv = nullptr;
     utilsArray::Initialize1DArray(lyrs, sumv, 0.);
     for (int i = 0; i < num; i++) {
         for (int j = 0; j < lyrs; j++) {
@@ -885,12 +883,12 @@ utilsMath::basicStatistics(const T * const *values, int num, int lyrs, double **
 /************ template functions of utilsTime ******************/
 template<typename T>
 bool utilsArray::Initialize1DArray(int row, T *&data, T initialValue) {
-    if (NULL != data) {
-        cout << "The input 1D array pointer is not NULL, without initialized!" << endl;
+    if (nullptr != data) {
+        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
     data = new(nothrow)T[row];
-    if (NULL == data) {
+    if (nullptr == data) {
         cout << "Bad memory allocated during 1D array initialization!" << endl;
         return false;
     }
@@ -903,17 +901,17 @@ bool utilsArray::Initialize1DArray(int row, T *&data, T initialValue) {
 
 template<typename T>
 bool utilsArray::Initialize1DArray(int row, T *&data, const T *iniData) {
-    if (NULL != data) {
-        cout << "The input 1D array pointer is not NULL, without initialized!" << endl;
+    if (nullptr != data) {
+        cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
     data = new(nothrow) T[row];
-    if (NULL == data) {
+    if (nullptr == data) {
         cout << "Bad memory allocated during 1D array initialization!" << endl;
         return false;
     }
-    if (NULL == iniData) {
-        cout << "The input parameter iniData MUST NOT be NULL!" << endl;
+    if (nullptr == iniData) {
+        cout << "The input parameter iniData MUST NOT be nullptr!" << endl;
         return false;
     }
 #pragma omp parallel for
@@ -925,12 +923,12 @@ bool utilsArray::Initialize1DArray(int row, T *&data, const T *iniData) {
 
 template<typename T>
 bool utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) {
-    if (NULL != data) {
-        cout << "The input 2D array pointer is not NULL, without initialized!" << endl;
+    if (nullptr != data) {
+        cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
     data = new(nothrow) T *[row];
-    if (NULL == data) {
+    if (nullptr == data) {
         cout << "Bad memory allocated during 2D array initialization!" << endl;
         return false;
     }
@@ -938,7 +936,7 @@ bool utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) 
 #pragma omp parallel for reduction(+:badAlloc)
     for (int i = 0; i < row; i++) {
         data[i] = new(nothrow) T[col];
-        if (NULL == data[i]) {
+        if (nullptr == data[i]) {
             badAlloc++;
         }
         for (int j = 0; j < col; j++) {
@@ -955,12 +953,12 @@ bool utilsArray::Initialize2DArray(int row, int col, T **&data, T initialValue) 
 
 template<typename T>
 bool utilsArray::Initialize2DArray(int row, int col, T **&data, const T * const *iniData) {
-    if (NULL != data) {
-        cout << "The input 2D array pointer is not NULL, without initialized!" << endl;
+    if (nullptr != data) {
+        cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
         return false;
     }
     data = new(nothrow)T *[row];
-    if (NULL == data) {
+    if (nullptr == data) {
         cout << "Bad memory allocated during 2D array initialization!" << endl;
         return false;
     }
@@ -969,10 +967,10 @@ bool utilsArray::Initialize2DArray(int row, int col, T **&data, const T * const 
 #pragma omp parallel for reduction(+:badAlloc, errorAccess)
     for (int i = 0; i < row; i++) {
         data[i] = new(nothrow)T[col];
-        if (NULL == data[i]) {
+        if (nullptr == data[i]) {
             badAlloc++;
         }
-        if (NULL == iniData[i]) {
+        if (nullptr == iniData[i]) {
             errorAccess++;
         }
         else {
@@ -987,7 +985,7 @@ bool utilsArray::Initialize2DArray(int row, int col, T **&data, const T * const 
         return false;
     }
     if (errorAccess > 0) {
-        cout << "NULL pointer existed in iniData during 2D array initialization!" << endl;
+        cout << "nullptr pointer existed in iniData during 2D array initialization!" << endl;
         utilsArray::Release2DArray(row, data);
         return false;
     }
@@ -996,26 +994,26 @@ bool utilsArray::Initialize2DArray(int row, int col, T **&data, const T * const 
 
 template<typename T>
 void utilsArray::Release1DArray(T *&data) {
-    if (NULL != data) {
+    if (nullptr != data) {
         delete[] data;
-        data = NULL;
+        data = nullptr;
     }
 }
 
 template<typename T>
 void utilsArray::Release2DArray(int row, T **&data) {
-    if (NULL == data) {
+    if (nullptr == data) {
         return;
     }
 #pragma omp parallel for
     for (int i = 0; i < row; i++) {
-        if (data[i] != NULL) {
+        if (data[i] != nullptr) {
             delete[] data[i];
-            data[i] = NULL;
+            data[i] = nullptr;
         }
     }
     delete[] data;
-    data = NULL;
+    data = nullptr;
 }
 
 template<typename T>
@@ -1024,7 +1022,7 @@ void utilsArray::BatchRelease1DArray(T*& data, ...) {
     va_start(arg_ptr, data);
     utilsArray::Release1DArray(data);
     T* argValue = va_arg(arg_ptr, T*);
-    while (NULL != argValue) {
+    while (nullptr != argValue) {
         utilsArray::Release1DArray(argValue);
         argValue = va_arg(arg_ptr, T*);
     }
@@ -1037,7 +1035,7 @@ void utilsArray::BatchRelease2DArray(int nrows, T**& data, ...) {
     va_start(arg_ptr, data);
     utilsArray::Release2DArray(nrows, data);
     T** argValue = va_arg(arg_ptr, T**);
-    while (NULL != argValue) {
+    while (nullptr != argValue) {
         utilsArray::Release2DArray(nrows, argValue);
         argValue = va_arg(arg_ptr, T**);
     }
@@ -1045,7 +1043,7 @@ void utilsArray::BatchRelease2DArray(int nrows, T**& data, ...) {
 }
 
 template<typename T>
-bool utilsArray::ValueInVector(const T &val, vector<T> &vec) {
+bool utilsArray::ValueInVector(const T &val, const vector<T> &vec) {
     if (vec.empty()) {
         return false;
     }
