@@ -45,7 +45,7 @@ void clsITPWeightData::ReadFromMongoDB(MongoGridFS *gfs, const char *remoteFilen
     string wfilename = string(remoteFilename);
     vector<string> gfilenames;
     gfs->getFileNames(gfilenames);
-    string filename = remoteFilename;
+    string filename = string(remoteFilename);
     if (!ValueInVector(filename, gfilenames)) {
         size_t index = filename.find_last_of('_');
         string type = filename.substr(index + 1);
