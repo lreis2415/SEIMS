@@ -746,7 +746,6 @@
 #define VAR_PERDE "perde"
 #define VAR_PET "PET"                           /// Potential Evapotranspiration of day
 #define VAR_PET_HCOEF "HCoef_pet"                   /// Coefficient related to radiation used in Hargreaves method
-#define VAR_PET_HCOEF "HCoef_pet"                   /// Coefficient related to radiation used in Hargreaves method
 #define VAR_PHOSKD "phoskd"
 #define VAR_PHUBASE "PHUBASE"
 #define VAR_PHUPLT "PHU_PLT"
@@ -1369,7 +1368,6 @@
 #define DESC_PERCO_P "amount of soluble P percolating past bottom of soil profile"
 #define DESC_PERCO "the amount of water percolated from the soil water reservoir, i.e., groundwater recharge"
 #define DESC_PET "Potential Evapotranspiration of day"
-#define DESC_PET "Potential Evapotranspiration of day"
 #define DESC_PET_HCOEF "Coefficient related to radiation used in Hargreaves method"
 #define DESC_PET_K "Correction factor for PET"
 #define DESC_PHOSKD "Phosphorus soil partitioning coefficient"
@@ -1480,7 +1478,6 @@
 #define DESC_SNO3UP "amount of nitrate moving upward in the soil profile in watershed"
 #define DESC_SNOCOVMX "Minimum snow water content that corresponds to 100% snow cover"
 #define DESC_SNO50COV "Fraction of SNOCOVMX that corresponds to 50% snow cover"
-#define DESC_SNRD "snow blowing in or out the cell"
 #define DESC_SNRD "snow blowing in or out the cell"
 #define DESC_SNSB "snow sublimation (water equivalent)"
 #define DESC_SNWB "snow water balance for selected subbasins"
@@ -1690,4 +1687,5 @@
 #define HEADER_RS_CELLSIZE                     "CELLSIZE"
 #define HEADER_RS_LAYERS                       "LAYERS"
 #define HEADER_RS_SRS                          "SRS"
+
 #endif

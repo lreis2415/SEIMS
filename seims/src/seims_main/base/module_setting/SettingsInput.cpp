@@ -16,12 +16,9 @@ SettingsInput::SettingsInput(vector<string>& stringvector) : m_isStormModel(fals
 
 SettingsInput* SettingsInput::Init(vector<string>& stringvector) {
     if (stringvector.empty()) {
-        return NULL;
+        return nullptr;
     }
     return new SettingsInput(stringvector);
-}
-
-SettingsInput::~SettingsInput(void) {
 }
 
 bool SettingsInput::readSimulationPeriodDate() {
@@ -55,7 +52,7 @@ bool SettingsInput::readSimulationPeriodDate() {
     return true;
 }
 
-void SettingsInput::Dump(string fileName) {
+void SettingsInput::Dump(string& fileName) {
     ofstream fs;
     fs.open(fileName.c_str(), ios::out);
     if (fs.is_open()) {

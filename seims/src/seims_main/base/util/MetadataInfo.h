@@ -14,10 +14,12 @@ using namespace std;
 
 /*!
  * \ingroup util
- * \class ModelClass
+ * \struct ModelClass
  * \brief Module basic description
  */
-class ModelClass {
+struct ModelClass {
+public:
+    ModelClass():Name(""),Description(""){};
 public:
     string Name;
     string Description;
@@ -25,11 +27,13 @@ public:
 
 /*!
  * \ingroup util
- * \class Parameter
+ * \struct Parameter
  *
  * \brief Model parameter information class
  */
-class Parameter {
+struct Parameter {
+public:
+    Parameter() : Name(""), Units(""), Description(""), Source(""), Dimension(DT_Unknown) {};
 public:
     string Name;                 ///< Name
     string Units;                ///< Units
@@ -40,11 +44,14 @@ public:
 
 /*!
  * \ingroup util
- * \class Information
+ * \struct Information
  *
  * \brief Module development information class
  */
-class Information {
+struct Information {
+public:
+    Information() : Id(""), Name(""), Description(""), Version(""), Author(""),
+                    EMail(""), Website(""), Helpfile("") {};
 public:
     string Id;             ///< Module ID
     string Name;           ///< Module Name
@@ -58,11 +65,13 @@ public:
 
 /*!
  * \ingroup util
- * \class InputVariable
+ * \struct InputVariable
  *
  * \brief Input variable information class
  */
-class InputVariable {
+struct InputVariable {
+public:
+    InputVariable() : Name(""), Units(""), Description(""), Source(""), Dimension(DT_Unknown) {};
 public:
     string Name;                ///< Name
     string Units;               ///< Units
@@ -73,10 +82,12 @@ public:
 
 /*!
  * \ingroup Util
- * \class OutputVariable
+ * \struct OutputVariable
  * \brief Output variable information class
  */
-class OutputVariable {
+struct OutputVariable {
+public:
+    OutputVariable() : Name(""), Units(""), Description(""), Dimension(DT_Unknown) {};
 public:
     string Name;                 ///< Name
     string Units;                ///< Units
@@ -94,16 +105,16 @@ private:
     string m_strSchemaVersion;                ///< latest XML schema version supported by this class
     ModelClass m_oClass;                      ///< class name for the module
     Information m_Info;                       ///< the general information for the module
-    vector <InputVariable> m_vInputs;         ///< list of input parameters for the module
-    vector <OutputVariable> m_vOutputs;       ///<list of output parameters for the module
-    vector <ModelClass> m_vDependencies;      ///< list of dependency classes for the module
-    vector <Parameter> m_vParameters;         ///< list of parameters for the module
+    vector<InputVariable> m_vInputs;         ///< list of input parameters for the module
+    vector<OutputVariable> m_vOutputs;       ///<list of output parameters for the module
+    vector<ModelClass> m_vDependencies;      ///< list of dependency classes for the module
+    vector<Parameter> m_vParameters;         ///< list of parameters for the module
 
     void OpenTag(string name, string attributes, int indent, string *sb);
 
     void CloseTag(string name, int indent, string *sb);
 
-    void FullTag(const string& name, int indent, string& content, string *sb);
+    void FullTag(const string &name, int indent, string &content, string *sb);
 
     void WriteClass(int indent, string *sb);
 
@@ -128,47 +139,47 @@ public:
 
     string SchemaVersion();
 
-    void SetClass(string& name, string& description);
+    void SetClass(const char* name, const char* description);
 
     string GetClassName();
 
     string GetClassDescription();
 
-    void SetID(string ID);
+    void SetID(const char* ID);
 
     string GetID();
 
-    void SetName(string name);
+    void SetName(const char* name);
 
     string GetName();
 
-    void SetDescription(string description);
+    void SetDescription(const char* description);
 
     string GetDescription();
 
-    void SetVersion(string version);
+    void SetVersion(const char* version);
 
     string GetVersion();
 
-    void SetAuthor(string author);
+    void SetAuthor(const char* author);
 
     string GetAuthor();
 
-    void SetEmail(string email);
+    void SetEmail(const char* email);
 
     string GetEmail();
 
-    void SetWebsite(string site);
+    void SetWebsite(const char* site);
 
     string GetWebsite();
 
-    void SetHelpfile(string file);
+    void SetHelpfile(const char* file);
 
     string GetHelpfile();
 
     int GetInputCount();
 
-    int AddInput(string name, string units, string desc, string source, dimensionTypes dimType);
+    int AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType);
 
     string GetInputName(int index);
 
@@ -184,7 +195,7 @@ public:
 
     int GetOutputCount();
 
-    int AddOutput(string name, string units, string desc, dimensionTypes dimType);
+    int AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType);
 
     string GetOutputName(int index);
 
@@ -198,7 +209,7 @@ public:
 
     int GetParameterCount();
 
-    int AddParameter(string name, string units, string desc, string source, dimensionTypes dimType);
+    int AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType);
 
     string GetParameterName(int index);
 
@@ -214,7 +225,7 @@ public:
 
     int GetDependencyCount();
 
-    int AddDependency(string name, string description);
+    int AddDependency(const char* name, const char* description);
 
     string GetDependencyName(int index);
 

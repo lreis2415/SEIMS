@@ -18,13 +18,12 @@
  * \ingroup module_setting
  * \struct OrgOutItem
  */
-struct OrgOutItem
-{
+struct OrgOutItem {
 public:
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
-        aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
-        eTimeStr(""), interval(-1), use(-1) {};
-    ~OrgOutItem() {};
+                   aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
+                   eTimeStr(""), interval(-1), use(-1) {};
+    ~OrgOutItem() = default;
 public:
     string modCls;
     string outputID;
@@ -44,19 +43,19 @@ public:
  * \class SettingsOutput
  * \brief 
  */
-class SettingsOutput :public Settings {
+class SettingsOutput : public Settings {
 public:
     //! Constructor
-    SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
+    SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
 
     //! Destructor
-    ~SettingsOutput(void);
+    ~SettingsOutput() override;
 
     //! Init function
-    static SettingsOutput* Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems);
-    
+    static SettingsOutput *Init(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
+
     //! Write output information to log file
-    void Dump(string);
+    void Dump(string& filename) override;
 
     //! Check date of output settings
     void checkDate(time_t, time_t);
