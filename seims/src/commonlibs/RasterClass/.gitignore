@@ -33,6 +33,7 @@ bin
 build
 build*/
 cmake-build*
+data/result
 
 # IDE related
 .idea/
