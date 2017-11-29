@@ -3,14 +3,14 @@
 
 // private methods
 void MetadataInfo::OpenTag(string name, string attributes, int indent, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + attributes.size() + (indent * 3) + 3));
-    if (sz > (int) sb->capacity()) {
+    size_t sz = (sb->size() + (name.size() + attributes.size() + (indent * 3) + 3));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
     sb->append("<");
     sb->append(name);
-    if (attributes.size() > 0) {
+    if (!attributes.empty()) {
         sb->append(" ");
         sb->append(attributes);
     }
@@ -18,8 +18,8 @@ void MetadataInfo::OpenTag(string name, string attributes, int indent, string *s
 }
 
 void MetadataInfo::CloseTag(string name, int indent, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + (indent * 3) + 2));
-    if (sz > (int) sb->capacity()) {
+    size_t sz = (sb->size() + (name.size() + (indent * 3) + 2));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
@@ -28,9 +28,9 @@ void MetadataInfo::CloseTag(string name, int indent, string *sb) {
     sb->append(">");
 }
 
-void MetadataInfo::FullTag(string name, int indent, string content, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + content.size() + (indent * 3) + 5));
-    if (sz > (int) sb->capacity()) {
+void MetadataInfo::FullTag(const string& name, int indent, string& content, string *sb) {
+    size_t sz = (sb->size() + (name.size() + content.size() + (indent * 3) + 5));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
@@ -107,7 +107,7 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
 }
 
 void MetadataInfo::WriteInputs(int indent, string *sb) {
-    if (m_vInputs.size() > 0) {
+    if (!m_vInputs.empty()) {
         OpenTag(TagInputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vInputs.size(); idx++) {
             OpenTag(TagInputVariable, "", indent + 1, sb);
@@ -126,7 +126,7 @@ void MetadataInfo::WriteInputs(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteOutputs(int indent, string *sb) {
-    if (m_vOutputs.size() > 0) {
+    if (!m_vOutputs.empty()) {
         OpenTag(TagOutputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vOutputs.size(); idx++) {
             OpenTag(TagOutputVariable, "", indent + 1, sb);
@@ -142,7 +142,7 @@ void MetadataInfo::WriteOutputs(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteParameters(int indent, string *sb) {
-    if (m_vParameters.size() > 0) {
+    if (!m_vParameters.empty()) {
         OpenTag(TagParameters, "", indent, sb);
         for (size_t idx = 0; idx < m_vParameters.size(); idx++) {
             OpenTag(TagParameter, "", indent + 1, sb);
@@ -161,7 +161,7 @@ void MetadataInfo::WriteParameters(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteDependencies(int indent, string *sb) {
-    if (m_vDependencies.size() > 0) {
+    if (!m_vDependencies.empty()) {
         OpenTag(TagDependencies, "", indent, sb);
         for (size_t idx = 0; idx < m_vDependencies.size(); idx++) {
             OpenTag(TagClass, "", indent + 1, sb);
@@ -196,7 +196,7 @@ string MetadataInfo::SchemaVersion() {
     return m_strSchemaVersion;
 }
 
-void MetadataInfo::SetClass(string name, string description) {
+void MetadataInfo::SetClass(string& name, string& description) {
     m_oClass.Name = name;
     m_oClass.Description = description;
 }
