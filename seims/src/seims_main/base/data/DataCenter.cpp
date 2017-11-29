@@ -223,7 +223,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     /// 1. Check and get the main model database
     vector<string> existedDBNames;
     m_mongoClient->getDatabaseNames(existedDBNames);
-    if (!ValueInVector(m_modelName, existedDBNames)) {
+    if (!ValueInVector(string(m_modelName), existedDBNames)) {
         cout << "ERROR: The main model is not existed: " << m_modelName << endl;
         return false;
     }

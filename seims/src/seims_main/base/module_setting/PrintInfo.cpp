@@ -164,7 +164,6 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     if (!TimeSeriesData.empty())    /// time series data
     {
         ofstream fs;
-        utils util;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
         if (fs.is_open()) {
