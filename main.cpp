@@ -1,12 +1,10 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include "clsRasterData.cpp"
-#include "utilities.h"
-#include "MongoUtil.h"
+#include "clsRasterData.h"
 
 using namespace std;
-
+#undef USE_MONGODB
 int main(int argc, const char *argv[]) {
     GDALAllRegister();/// Register GDAL drivers, REQUIRED!
     SetDefaultOpenMPThread();
@@ -19,22 +17,25 @@ int main(int argc, const char *argv[]) {
 
     string ascmaskfile = apppath + "../data/mask1.asc";
 
-    string ascdemout = apppath + "../data/raster1D_out.asc";
-    string ascdemout3 = apppath + "../data/raster1D_out_directly.tif";
-    string ascdemout4 = apppath + "../data/raster2D_out_directly.tif";
-    string ascdemout2 = apppath + "../data/raster2D_out.asc";
+    string ascdemout = apppath + "../data/result/raster1D_out.asc";
+    string ascdemout3 = apppath + "../data/result/raster1D_out_directly.tif";
+    string ascdemout4 = apppath + "../data/result/raster2D_out_directly.tif";
+    string ascdemout2 = apppath + "../data/result/raster2D_out.asc";
     /******* ASCII 1D Raster Demo *********/
     cout << "--  ASCII 1D Raster Demo" << endl;
     /// 1. Constructor
     /// 1.1 Construct a void clsRasterData instance, and assign input file path or MongoDB GridFS later.
     clsRasterData<int> maskr;
-    maskr.ReadASCFile(ascmaskfile);
+    if (!maskr.ReadASCFile(ascmaskfile)) {
+        cout << "Failed!" << endl;
+        exit(-1);
+    }
     /// 1.2 Construct a clsRasterData instance from a full filename, with *.asc, *.tif, or others.
-    clsRasterData<float, int> readr(ascdemfile, false, &maskr, false);
+    clsRasterData<float, int> readr(ascdemfile, false, &maskr,false);//, false, &maskr, false);
     /// 1.3 Construct a clsRasterData instance from data array and mask, and output directly.
     int validmaskcells = maskr.getCellNumber();
-    float *vs = NULL;
-    float **vs2 = NULL;
+    float *vs = nullptr;
+    float **vs2 = nullptr;
     Initialize1DArray(validmaskcells, vs, 0.f);
     Initialize2DArray(validmaskcells, 3, vs2, 0.f);
     for (int i = 0; i < validmaskcells; i++) {
@@ -59,9 +60,10 @@ int main(int argc, const char *argv[]) {
     cout << "mean: " << readr.getAverage() << ", max: " << readr.getMaximum() << endl;
     cout << "min: " << readr.getMinimum() << ", std: " << readr.getSTD() << endl;
     /// get value
-    cout << "value on (1, 1): " << readr.getValue(RowColCoor(1, 1)) << endl;
 #if (!defined(MSVC) || _MSC_VER >= 1800)
     cout << "value on (1, 1), C++11 version: " << readr.getValue({1, 1}) << endl;
+#else
+    cout << "value on (1, 1): " << readr.getValue(RowColCoor(1, 1)) << endl;
 #endif /* C++11 supported in MSCV */
     cout << endl << endl;
     /// 3. Output raster to file
@@ -89,13 +91,13 @@ int main(int argc, const char *argv[]) {
     }
     /// get value
     int nlyrs = 0;
-    float *cellvalues = NULL;
+    float *cellvalues = nullptr;
 #if (!defined(MSVC) || _MSC_VER >= 1800)
     readr2D.getValue({5, 5}, &nlyrs, &cellvalues);
 #else
     readr2D.getValue(RowColCoor(5, 5), &nlyrs, &cellvalues);
 #endif /* C++11 supported in MSVC */
-    if (nlyrs > 0 && cellvalues != NULL){
+    if (nlyrs > 0 && nullptr != cellvalues){
         cout << "there are " << nlyrs << " layers, and value on (1, 1) are: ";
         for (int i = 0; i < nlyrs; i++)
             cout << cellvalues[i] << ", ";
@@ -112,8 +114,8 @@ int main(int argc, const char *argv[]) {
 
     string maskfile = apppath + "../data/mask1.tif";
 
-    string demout = apppath + "../data/raster1D_out.tif";
-    string demout2 = apppath + "../data/raster2D_out.tif";
+    string demout = apppath + "../data/result/raster1D_out.tif";
+    string demout2 = apppath + "../data/result/raster2D_out.tif";
 
     /// 1. Constructor
     /// 1.1 Construct a void clsRasterData instance, and assign input file path or MongoDB GridFS later.
