@@ -1,12 +1,14 @@
-#pragma once
+#ifndef FIELD_PARTITION_CELL_ORDERING
+#define FIELD_PARTITION_CELL_ORDERING
 
-#include <map>
-#include <vector>
-#include "clsRasterData.cpp"
 #include "Cell.h"
 #include "Field.h"
 #include "fieldTnode.h"
 #include "FieldPartition.h"
+#include "clsRasterData.h"
+
+#include <map>
+#include <vector>
 // Build by Wu Hui, 2012.4.28
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
 //  into their downstream fields. This is controlled by the threshold given by user. 
@@ -90,11 +92,11 @@ public:
 
     void CalCompressedIndex(void);
 
-    void OutputCompressedLayer(const char *filename);
+    void OutputCompressedLayer(const char *filename) {};
 
-    void OutputCompressedFlowOut(const char *filename);
+    void OutputCompressedFlowOut(const char *filename) {};
 
-    void OutputCompressedFlowIn(const char *filename);
+    void OutputCompressedFlowIn(const char *filename) {};
 
     // Output to MongoDB is not needed here. By Liangjun
     //void OutputLayersToMongoDB(int id, gridfs* gfs);
@@ -108,7 +110,7 @@ public:
 
     void BuildRoutingLayer2(int idOutlet);
 
-    void OutputCompressedLayer2(const char *filename);
+    void OutputCompressedLayer2(const char *filename) {};
 
     // added by wuhui
     bool ExcuteFieldsDis(int iOutlet, int jOutlet);
@@ -126,7 +128,7 @@ public:
 private:
     void MergeSameDegreeLanduseFields();
 
-    void AggregateSmallField();
+    void AggregateSmallField() {};
 
     void ReMergeSameLanduseField(int fieldID, int degree);
 
@@ -204,3 +206,5 @@ private:
 
     map<int, int> m_newoldfidmap;
 };
+
+#endif /* FIELD_PARTITION_CELL_ORDERING */

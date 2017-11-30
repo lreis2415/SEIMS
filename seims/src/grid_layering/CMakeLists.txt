@@ -1,6 +1,6 @@
 PROJECT(Grid_Layering)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} ${MONGO_FILES}
+set(SOURCE_FILES ${UTILS_FILES} ${MONGO_FILES}
         LayeringFromSource.cpp LayeringFromOutlet.cpp
         Data.cpp CompressIndex.cpp FlowInOut.cpp main.cpp)
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)

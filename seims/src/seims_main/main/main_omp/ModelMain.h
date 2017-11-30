@@ -21,9 +21,10 @@
 
 /// include data related
 #include "DataCenter.h"
-#include "MongoUtil.h"
-#include "clsRasterData.cpp"
 #include "ClimateParams.h"
+
+#include "MongoUtil.h"
+#include "clsRasterData.h"
 
 /// include build-in libs
 #include <string>

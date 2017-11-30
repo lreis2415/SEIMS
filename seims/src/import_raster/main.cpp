@@ -5,6 +5,12 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
+
+#include "SubBasin.h"
+#include "utilities.h"
+#include "MongoUtil.h"
+#include "clsRasterData.h"
+
 #include <vector>
 #include <map>
 #include <string>
@@ -14,11 +20,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <algorithm>
-
-#include "utilities.h"
-#include "MongoUtil.h"
-#include "clsRasterData.cpp"
-#include "SubBasin.h"
 
 using namespace std;
 
