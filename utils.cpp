@@ -225,8 +225,8 @@ vector<string> utilsString::SplitString(const string &item, char delimiter) {
     while (std::getline(iss, field, delimiter)) {
         tokens.push_back(field);
     }
-    //vector<string>(tokens).swap(tokens);
-    tokens.shrink_to_fit();
+    vector<string>(tokens).swap(tokens);
+    // tokens.shrink_to_fit(); // C++11, which may not supported by compiler
     return tokens;
 }
 
@@ -236,8 +236,8 @@ vector<int> utilsString::SplitStringForInt(const string &item, char delimiter) {
     for (auto it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.emplace_back(atoi((*it).c_str()));
     }
-    // vector<int>(values).swap(values);
-    values.shrink_to_fit();
+    vector<int>(values).swap(values);
+    // values.shrink_to_fit();
     return values;
 }
 
@@ -640,8 +640,8 @@ bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& cont
             }
             bStatus = true;
             myfile.close();
-            // vector<string>(contentStrs).swap(contentStrs);
-            contentStrs.shrink_to_fit();
+            vector<string>(contentStrs).swap(contentStrs);
+            // contentStrs.shrink_to_fit();
         }
     }
     catch (...) {

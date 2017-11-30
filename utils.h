@@ -29,7 +29,7 @@
 /// string
 #include <cstring>
 /// IO stream
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -105,6 +105,9 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #ifdef windows
 #define Tag_ModuleDirectoryName "\\"
 #define SEP "\\"
+#ifndef MSVC
+#define Tag_So "lib"
+#endif
 #define Tag_DyLib ".dll"
 #else
 #define Tag_ModuleDirectoryName "/"
