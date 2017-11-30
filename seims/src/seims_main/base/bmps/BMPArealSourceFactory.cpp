@@ -254,8 +254,8 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
                 m_cellsIndex.emplace_back(i);
             }
         }
-        // vector<int>(m_cellsIndex).swap(m_cellsIndex);
-        m_cellsIndex.shrink_to_fit();
+        vector<int>(m_cellsIndex).swap(m_cellsIndex);
+        // m_cellsIndex.shrink_to_fit();
         m_nCells = (int) m_cellsIndex.size();
     } else {
         throw ModelException("ArealSourceLocations", "SetValidCells",
