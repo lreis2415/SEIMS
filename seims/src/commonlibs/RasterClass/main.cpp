@@ -17,6 +17,9 @@ int main(int argc, const char *argv[]) {
 
     string ascmaskfile = apppath + "../data/mask1.asc";
 
+    if (!DirectoryExists("../data/result")) {
+        CleanDirectory("../data/result");
+    }
     string ascdemout = apppath + "../data/result/raster1D_out.asc";
     string ascdemout3 = apppath + "../data/result/raster1D_out_directly.tif";
     string ascdemout4 = apppath + "../data/result/raster2D_out_directly.tif";
@@ -31,7 +34,7 @@ int main(int argc, const char *argv[]) {
         exit(-1);
     }
     /// 1.2 Construct a clsRasterData instance from a full filename, with *.asc, *.tif, or others.
-    clsRasterData<float, int> readr(ascdemfile, false, &maskr,false);//, false, &maskr, false);
+    clsRasterData<float, int> readr(ascdemfile, false, &maskr, false);//, false, &maskr, false);
     /// 1.3 Construct a clsRasterData instance from data array and mask, and output directly.
     int validmaskcells = maskr.getCellNumber();
     float *vs = nullptr;
@@ -97,10 +100,11 @@ int main(int argc, const char *argv[]) {
 #else
     readr2D.getValue(RowColCoor(5, 5), &nlyrs, &cellvalues);
 #endif /* C++11 supported in MSVC */
-    if (nlyrs > 0 && nullptr != cellvalues){
+    if (nlyrs > 0 && nullptr != cellvalues) {
         cout << "there are " << nlyrs << " layers, and value on (1, 1) are: ";
-        for (int i = 0; i < nlyrs; i++)
+        for (int i = 0; i < nlyrs; i++) {
             cout << cellvalues[i] << ", ";
+        }
         cout << endl;
     }
     Release1DArray(cellvalues);
