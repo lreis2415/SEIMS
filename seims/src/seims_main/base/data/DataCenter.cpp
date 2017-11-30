@@ -394,8 +394,8 @@ bool DataCenterMongoDB::getFileOutVector() {
             m_OriginOutItems.push_back(tmpOutputItem);
         }
     }
-    //vector<OrgOutItem>(m_OriginOutItems).swap(m_OriginOutItems);
-    m_OriginOutItems.shrink_to_fit();
+    vector<OrgOutItem>(m_OriginOutItems).swap(m_OriginOutItems);
+    // m_OriginOutItems.shrink_to_fit();
     /// destroy
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);

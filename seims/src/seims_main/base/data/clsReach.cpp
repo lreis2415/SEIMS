@@ -190,8 +190,8 @@ clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName)
         m_reachesMap[curReach->GetSubbasinID()] = curReach;
         this->m_reachIDs.push_back(curReach->GetSubbasinID());
     }
-    //vector<int>(m_reachIDs).swap(m_reachIDs);
-    m_reachIDs.shrink_to_fit();
+    vector<int>(m_reachIDs).swap(m_reachIDs);
+    // m_reachIDs.shrink_to_fit();
 
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);

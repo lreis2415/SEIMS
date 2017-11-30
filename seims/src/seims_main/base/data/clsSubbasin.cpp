@@ -85,8 +85,8 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
     m_nSubbasins = (int) cellListMap.size();
     for (auto it = cellListMap.begin(); it != cellListMap.end(); it++) {
         // swap for saving memory, using shrink_to_fit() instead.
-        // vector<int>(*it->second).swap(*it->second);
-        (*it->second).shrink_to_fit();
+        vector<int>(*it->second).swap(*it->second);
+        // (*it->second).shrink_to_fit();
         int subID = it->first;
         m_subbasinIDs.push_back(subID);
         Subbasin *newSub = new Subbasin(subID);
@@ -98,8 +98,8 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
         newSub->setArea(cellWidth * cellWidth * nCellsTmp);
         m_subbasinsInfo[subID] = newSub;
     }
-    // vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
-    m_subbasinIDs.shrink_to_fit();
+    vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
+    // m_subbasinIDs.shrink_to_fit();
     // release cellListMap to save memory
     for (auto it = cellListMap.begin(); it != cellListMap.end();) {
         if (it->second != nullptr) {
