@@ -15,7 +15,7 @@
 #include "ParamInfo.h"
 
 #include "tinyxml.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace MainBMP;
 

@@ -11,8 +11,9 @@
 #include "utilities.h"
 #include "Settings.h"
 #include "PrintInfo.h"
+
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 /*!
  * \ingroup module_setting

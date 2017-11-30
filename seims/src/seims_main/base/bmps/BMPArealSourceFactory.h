@@ -10,7 +10,7 @@
 #include "BMPFactory.h"
 #include "utilities.h"
 
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace MainBMP;
 

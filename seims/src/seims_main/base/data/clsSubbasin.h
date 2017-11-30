@@ -10,7 +10,7 @@
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace std;
 

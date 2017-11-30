@@ -13,12 +13,13 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
+#include "GridLayering.h"
+#include "MongoUtil.h"
+#include "clsRasterData.h"
+
 #include <iostream>
 #include <sstream>
 #include <ctime>
-#include "GridLayering.h"
-#include "MongoUtil.h"
-#include "clsRasterData.cpp"
 
 using namespace std;
 
