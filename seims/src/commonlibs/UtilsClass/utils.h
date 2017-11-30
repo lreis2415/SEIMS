@@ -29,7 +29,7 @@
 /// string
 #include <cstring>
 /// IO stream
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <fstream>
