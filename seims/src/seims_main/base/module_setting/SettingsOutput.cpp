@@ -41,8 +41,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
                 for (int i = 0; i <= m_nSubbasins; i++) {
                     subBsns.push_back(ValueToString(i));
                 }
-                // vector<string>(subBsns).swap(subBsns); // deprecated
-                subBsns.shrink_to_fit();
+                vector<string>(subBsns).swap(subBsns); // deprecated
+                // subBsns.shrink_to_fit();
             }
             else {
                 subBsns = SplitString((*iter).subBsn, '-');
@@ -55,8 +55,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
     for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); it++) {
         m_printInfos.push_back(it->second);
     }
-    // vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
-    m_printInfos.shrink_to_fit();
+    vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
+    // m_printInfos.shrink_to_fit();
 }
 
 SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems) {
