@@ -473,12 +473,12 @@ public:
      * \brief Set value to the given position and layer
      */
 #if (!defined(MSVC) || _MSC_VER >= 1800)
-    inline T setValue(initializer_list<int> poslist, T value, int lyr = 1) {
-        return this->_setValue(*poslist.begin(), *(poslist.end() - 1), value, lyr);
+    inline void setValue(initializer_list<int> poslist, T value, int lyr = 1) {
+        this->_setValue(*poslist.begin(), *(poslist.end() - 1), value, lyr);
     }
 #else
     inline void setValue(RowColCoor pos, T value, int lyr = 1); {
-        return this->_setValue(pos.row, pos.col, value, lyr);
+        this->_setValue(pos.row, pos.col, value, lyr);
     }
 #endif
 
