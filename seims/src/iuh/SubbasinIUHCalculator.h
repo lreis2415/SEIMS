@@ -9,11 +9,12 @@
 *    Revision:
 *    Date:
 */
-#pragma once
+#ifndef IUH_SUBBASIN_CALCULATOR_H
+#define IUH_SUBBASIN_CALCULATOR_H
 
 #include "IUHCalculator.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 class SubbasinIUHCalculator {
 public:
@@ -48,3 +49,5 @@ public:
 
     void adjustRiceField(int &mint0, int &maxt0, vector<double> &iuhRow);
 };
+
+#endif /* IUH_SUBBASIN_CALCULATOR_H */
