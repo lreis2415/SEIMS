@@ -1,11 +1,19 @@
 # MongoUtilClass
-================
+----------------
 
 + Handing data with MongoDB using mongo-c-driver.
 
 + 利用mongo-c-driver操作MongoDB数据库。
 
 + Author: [Liangjun Zhu](http://zhulj.net)
+
+Selected build environments:
+
++ Windows-MSVC 2013-64bit: [![Build status](https://ci.appveyor.com/api/projects/status/b3eu2hfca1mte3ta?svg=true)](https://ci.appveyor.com/project/lreis-2415/mongoutilclass)
++ Linux(Ubuntu trusty)-GCC-4.8: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/MongoUtilClass?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/MongoUtilClass)
++ macOS-Clang-7.3: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/MongoUtilClass?branch=master&env=BUILD_NAME=osx_xcode&label=osx_clang)](https://travis-ci.org/lreis2415/MongoUtilClass)
+
+Code coverage: [![codecov](https://codecov.io/gh/lreis2415/MongoUtilClass/branch/master/graph/badge.svg)](https://codecov.io/gh/lreis2415/MongoUtilClass)
 
 ## 1 Introduction
 + MongoUtilClass提供基本的MongoDB数据库操作。
@@ -14,7 +22,7 @@
 ## 2 Install mongo-c-driver
 
 ### 2.1 On Windows
-+ Windows开发环境推荐采用Microsoft Visual Studio 2010 或更高
++ Windows开发环境推荐采用Microsoft Visual Studio 2013 或更高
 + 从[官网](http://mongoc.org/ "mongo-c-driver-download")下载源码压缩包，目前最新稳定版本为[1.5.0](https://github.com/mongodb/mongo-c-driver/releases/download/1.5.0/mongo-c-driver-1.5.0.tar.gz "mongo-c-driver-1.5.0")，解压缩至当前文件夹，如`C:\z_code\Repos\mongo-c-driver-1.5.0`
 + 打开cmd，依次输入如下命令，默认的安装目录为`C:\mongo-c-driver`
 
@@ -23,11 +31,11 @@
 	mkdir mongo-c-driver
 	cd C:\z_code\Repos\mongo-c-driver-1.5.0
 	cd src\libbson
-	cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 10 2010"
+	cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
 	msbuild.exe ALL_BUILD.vcxproj
 	msbuild.exe INSTALL.vcxproj
 	cd ..\..
-	cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 10 2010"
+	cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
 	msbuild.exe ALL_BUILD.vcxproj
 	msbuild.exe INSTALL.vcxproj
 	```
@@ -83,28 +91,40 @@
 
 + 至此，`mongo-c-driver`即编译安装完成了，在`/usr/local/include`目录下能看到`libbson-1.0`, `libmongoc-1.0`文件夹，链接库则在`/usr/local/lib`。
 
-## 3 MongoUtilClass测试
+## 3 单元测试
 + MongoUtilClass采用CMake进行跨平台编译。
++ MongoUtilClass采用[Google Test](https://github.com/google/googletest)单元测试框架。
 + MongoUtilClass需调用[UtilsClass](https://github.com/lreis2415/UtilsClass)，编译前需将其保存至MongoUtilClass**同级目录**下。
++ 所有单元测试代码统一唯一`test`文件夹下，并以`Test_XX.cpp`格式命名。
 
 ### 3.1 Windows
-+ 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
++ 打开 “开始” -> Microsoft Visual Studio 2013 -> Visual Studio Tools -> Visual Studio 命令提示(2013)，以**管理员方式**运行，依次输入以下命令：
 	
 	```shell
 	cd <path-to-MongoUtilClass>
 	mkdir build
 	cd build
-	### 仅编译安装 ###
-	cmake -G "NMake Makefiles" <path-to-MongoUtilClass> -DCMAKE_BUILD_TYPE=Release
-	nmake
-	nmake install
 	### 编译Microsoft Visual Studio工程 ###
-	cmake <path-to-MongoUtilClass>
+	cmake -G "Visual Studio 12 2013 Win64" -DUNITTEST=1 ..
 	nmake
 	```
+	
++ `MongoUtil.sln`将保存在`<path-to-MongoUtilClass>\build`目录下，编译
+运行`UnitTests_Mongo`项即可看到当前所有单元测试项的结果，如：
 
-+ 对于“仅编译安装”操作，`MongoUtilClass.exe`会自动安装在`<path-to-MongoUtilClass>\bin`目录下。
-+ 对于“编译Microsoft Visual Studio工程”，`MongoUtil.sln`将保存在`<path-to-MongoUtilClass>\build`目录下。
+    ```shell
+    Running main() from gtest_main.cc
+    [==========] Running 1 test from 1 test case.
+    [----------] Global test environment set-up.
+    [----------] 1 test from Test_Mongo
+    [ RUN      ] Test_Mongo.initMongoDB
+    [       OK ] Test_Mongo.initMongoDB (260 ms)
+    [----------] 1 test from Test_Mongo (261 ms total)
+    
+    [----------] Global test environment tear-down
+    [==========] 1 test from 1 test case ran. (262 ms total)
+    [  PASSED  ] 1 test.
+    ```
 
 ### 3.2 Linux
 + 打开终端，依次输入如下命令
@@ -114,13 +134,14 @@
 	mkdir build
 	cd build
 	cmake ..
-	make
-	make install
+	cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 ..
+    make
+    make UnitTestCoverage
 	```
-+ 可执行程序`MongoUtil`默认安装于`MongoUtilClass/bin`下
+
 + 如果希望采用其他GCC安装版本，请在cmake命令后面追加：`-DCMAKE_C_COMPILER=~/gcc4.8.4/bin/gcc -DCMAKE_CXX_COMPILER=~/gcc4.8.4/bin/g++`
 
 ### 3.3 macOS
 
-+ macOS的编译、安装步骤与Linux相同。
-+ macOS下推荐采用CLion进行代码调试。
++ 参考Linux下操作。
+
