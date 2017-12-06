@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 #include "SubbasinIUHCalculator.h"
 

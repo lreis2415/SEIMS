@@ -13,7 +13,7 @@
 
 #include "IUHCalculator.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 class SubbasinIUHCalculator {
 public:

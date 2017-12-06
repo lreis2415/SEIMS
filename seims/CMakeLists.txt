@@ -21,7 +21,6 @@ set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
 set(MONGO_INC ${COMMONLIBS_PATH}/MongoUtilClass)
 set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
 SET(RASTER_INC ${COMMONLIBS_PATH}/RasterClass)
-SET(RASTER_FILES ${RASTER_INC}/clsRasterData.cpp)
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)
 ADD_SUBDIRECTORY(${GRID_LAYERING} bin/grid_layering)

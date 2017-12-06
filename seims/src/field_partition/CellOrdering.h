@@ -2,7 +2,7 @@
 
 #include <map>
 #include <vector>
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 #include "Cell.h"
 #include "Field.h"
 #include "fieldTnode.h"

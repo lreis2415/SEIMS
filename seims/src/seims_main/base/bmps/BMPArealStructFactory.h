@@ -12,7 +12,7 @@
 #include "utilities.h"
 #include "tinyxml.h"
 #include "BMPFactory.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 #include "ParamInfo.h"
 
 using namespace MainBMP;
