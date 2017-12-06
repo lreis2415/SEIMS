@@ -18,7 +18,7 @@
 #include <ctime>
 #include "GridLayering.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace std;
 
