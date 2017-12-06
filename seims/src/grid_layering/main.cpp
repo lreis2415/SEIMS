@@ -13,12 +13,10 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include <iostream>
-#include <sstream>
-#include <ctime>
+
 #include "GridLayering.h"
-#include "MongoUtil.h"
 #include "clsRasterData.h"
+#include "MongoUtil.h"
 
 using namespace std;
 
@@ -69,18 +67,18 @@ int main(int argc, char **argv) {
         int max_loop = 3;
         int cur_loop = 1;
         while (cur_loop < max_loop) {
-            if (!OutputFlowOutD8(outputDir, gfs, i, nRows, nCols, nValidGrids, 
-                                dirMatrix, header.noDataValue, compressedIndex)) {
+            if (!OutputFlowOutD8(outputDir, gfs, i, nRows, nCols, nValidGrids,
+                                 dirMatrix, header.noDataValue, compressedIndex)) {
                 cur_loop++;
-            }
-            else
+            } else {
                 break;
+            }
         }
         if (cur_loop == max_loop) {
             cout << "ERROR! Exceed the max. tries times, please contact the developers!" << endl;
             exit(EXIT_FAILURE);
         }
-        
+
         // Output flow in indexes to MongoDB (D8), and write ROUTING_LAYERS from up to down
         string layeringFile = LayeringFromSourceD8(outputDir, gfs, i, nValidGrids, dirMatrix, compressedIndex, header,
                                                    outputNoDataValue);
@@ -90,9 +88,9 @@ int main(int argc, char **argv) {
         while (cur_loop < max_loop) {
             if (!OutputLayersToMongoDB(layeringFile.c_str(), "ROUTING_LAYERS_UP_DOWN", i, gfs)) {
                 cur_loop++;
-            }
-            else
+            } else {
                 break;
+            }
         }
         if (cur_loop == max_loop) {
             cout << "ERROR! Exceed the max. tries times, please contact the developers!" << endl;

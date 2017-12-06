@@ -102,11 +102,11 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     mongoc_cursor_destroy(cursor);
 }
 
-RegularMeasurement::~RegularMeasurement(void) {
-    for (vector<float *>::iterator it = m_siteData.begin(); it != m_siteData.end();) {
-        if (*it != NULL) {
+RegularMeasurement::~RegularMeasurement() {
+    for (auto it = m_siteData.begin(); it != m_siteData.end();) {
+        if (*it != nullptr) {
             delete[] *it;
-            *it = NULL;
+            *it = nullptr;
         }
         it = m_siteData.erase(it);
     }
@@ -120,8 +120,8 @@ float *RegularMeasurement::GetSiteDataByTime(time_t t) {
         index = 0;
     }
 
-    int nSites = m_siteIDList.size();
-    for (int i = 0; i < nSites; i++) {
+    size_t nSites = m_siteIDList.size();
+    for (size_t i = 0; i < nSites; i++) {
         pData[i] = m_siteData[index][i];
     }
     return pData;

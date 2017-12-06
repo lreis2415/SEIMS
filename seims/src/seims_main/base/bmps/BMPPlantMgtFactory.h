@@ -6,9 +6,9 @@
 #ifndef SEIMS_BMP_PLANTMGT_H
 #define SEIMS_BMP_PLANTMGT_H
 
-#include "utilities.h"
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
+#include "utilities.h"
 
 using namespace MainBMP;
 using namespace PlantManagement;
@@ -25,49 +25,39 @@ namespace MainBMP {
 class BMPPlantMgtFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPPlantMgtFactory(const int scenarioId, const int bmpId, const int subScenario,
-                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                       const string collection, const string location);
+    BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
+                       int bmpType, int bmpPriority, vector<string> &distribution,
+                       const string &collection, const string &location);
 
     /// Destructor
-    ~BMPPlantMgtFactory(void);
+    ~BMPPlantMgtFactory() override;
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string &bmpDBName);
+    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
 
     /// Output
-    void Dump(ostream *fs);
+    void Dump(ostream *fs) override;
 
     /// Set management fields data
-    void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+    void setRasterData(map<string, FloatRaster *> &sceneRsMap) override;
 
     /// Get management fields data
-    float* getRasterData() { return m_mgtFieldsRs; };
+    float *getRasterData() override { return m_mgtFieldsRs; };
 
     /// Get landuse / landcover ID
-    int GetLUCCID(void) {
-        return m_luccID;
-    }
+    int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    vector<int> &GetLocations(void) {
-        return m_location;
-    }
+    const vector<int> &GetLocations() const { return m_location; }
 
     /// Get operation sequence
-    vector<int> &GetOperationSequence(void) {
-        return m_bmpSequence;
-    }
+    const vector<int> &GetOperationSequence() const { return m_bmpSequence; }
 
     /// Get operations
-    map<int, PlantManagementOperation *> &GetOperations(void) {
-        return m_bmpPlantOps;
-    }
+    const map<int, PlantManagementOperation *> &GetOperations() const { return m_bmpPlantOps; }
 
     /// Get operation by ID
-    PlantManagementOperation *GetOperation(int ID) {
-        return m_bmpPlantOps.at(ID);
-    }
+    PlantManagementOperation *GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
 
 private:
     /// subSecenario name
@@ -75,7 +65,7 @@ private:
     /// management fields name, defined in 'distribution'
     string m_mgtFieldsName;
     /// management fields data (1D array raster)
-    float* m_mgtFieldsRs;
+    float *m_mgtFieldsRs;
     /// landuse / landcover
     int m_luccID;
     /// parameters

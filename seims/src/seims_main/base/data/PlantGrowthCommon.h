@@ -5,7 +5,9 @@
  * \revised Liang-Jun Zhu
  * \date June, 2016
  */
-#pragma once
+#ifndef SEIMS_PLANTGROWTH_COMMON_H
+#define SEIMS_PLANTGROWTH_COMMON_H
+
 #include "utilities.h"
 
 #define MAX_CROP_LAND_USE_ID   97
@@ -22,10 +24,10 @@
 class PGCommon {
 public:
     /// Constructor
-    PGCommon(void);
+    PGCommon() = default;
 
     /// Destructor
-    ~PGCommon(void);
+    ~PGCommon() = default;
 
 public:
     //get N/P shape parameter, See readplant.f of SWAT
@@ -93,4 +95,4 @@ public:
     static void calPlantStressByLimitedNP(float u1, float u2, float *uu);
 };
 
-
+#endif /* SEIMS_PLANTGROWTH_COMMON_H */
