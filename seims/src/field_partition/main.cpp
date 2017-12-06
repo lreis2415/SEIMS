@@ -10,7 +10,7 @@
 #include <set>
 
 #include "utilities.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 #include "CellOrdering.h"
 #include "FieldPartition.h"
 

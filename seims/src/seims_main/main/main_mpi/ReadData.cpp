@@ -7,7 +7,7 @@
 #include "ogrsf_frmts.h"
 
 #include "ReadData.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 #include "ModelException.h"
 #include "invoke.h"
 

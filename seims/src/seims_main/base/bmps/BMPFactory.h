@@ -10,7 +10,7 @@
 
 #include "BMPText.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 /*!
  * \brief Base class of all kind of BMPs Factory.
