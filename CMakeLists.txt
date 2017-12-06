@@ -1,8 +1,14 @@
 # ----------------------------------------------------------------------------
 #  Root CMake file for MongoUtilClass.
+#     A simple C++ wrapper of mongo-c-driver.
 #
-#     Please from the off-tree build directory, invoke:
-#       $ cmake <path/to/MongoUtilClass>
+#     Please build from the off-tree build directory, e.g.:
+#       $ mkdir -p build
+#       $ cd build
+#       $ cmake ..
+#     Optional cmake options:
+#       -DUNITTEST=1  means run unittest based gtest/gmock
+#       -DRUNCOV=1    means run code coverage based gcov and lcov
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5
@@ -13,6 +19,7 @@
 #
 #  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
 #  Latest updated: Oct. 17, 2017
+#  Copyright (C) 2017 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -35,9 +42,9 @@ set(CMAKE_MODULE_PATH
 
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
-    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
-ELSE ()
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin)
+    SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
+ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
@@ -68,31 +75,55 @@ IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
   Please check your CMake and compiler installation.")
 ENDIF()
 
-### Detect compiler and target platform architecture.
-INCLUDE(cmake/Utils.cmake)
-SET(ENABLE_CXX11 1)
-INCLUDE(cmake/DetectCXXCompiler.cmake)
+# Global flag to cause add_library to create shared libraries if on, otherwise static library.
+option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
+# libraries built with hunter link against the dynamic CRT on windows
+option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 
+### Detect compiler and target platform architecture.
+SET(WITH_OPENMP 1)
+SET(WITH_MONGOC 1)
+SET(ENABLE_CXX11 1)
+INCLUDE(Utils)
+INCLUDE(DetectCXXCompiler)
 ### Add standard paths or specified paths for Find libraries and headers.
-INCLUDE(cmake/AddFindPaths.cmake)
-MESSAGE(STATUS ${CMAKE_PREFIX_PATH})
+INCLUDE(AddFindPaths)
 ### Use statically or dynamically linked CRT? Default: dynamic
 IF(MSVC)
-    INCLUDE(cmake/CRTLinkage.cmake)
+    INCLUDE(CRTLinkage)
 ENDIF(MSVC)
 
 ### Find packages.
-SET(WITH_OPENMP 1)
-SET(WITH_MONGOC 1)
-INCLUDE(cmake/FindPackages.cmake)
+INCLUDE(FindPackages)
 
-### Add executables.
+### MongoUtilClass library
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
-set(SOURCE_FILES main.cpp MongoUtil.cpp)
+file(GLOB UTILS_FILES ${UTILS_INC}/*.cpp)
+file(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 include_directories(${UTILS_INC} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR})
-add_executable(MongoUtil ${SOURCE_FILES} ${UTILS_FILES})
+
+add_library(MongoUtil ${SOURCE_FILES} ${UTILS_FILES})
 target_link_libraries(MongoUtil ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
+if (RUNCOV STREQUAL 1)
+    set_target_properties(MongoUtil PROPERTIES COMPILE_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+    set_target_properties(MongoUtil PROPERTIES LINK_FLAGS "-coverage -lgcov")
+endif()
+
+### unittest based on gtest/gmock, which is optional.
+IF (UNITTEST STREQUAL 1)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    ### Download and compile googletest
+    include(DownloadProject)
+    download_project(PROJ                googletest
+            GIT_REPOSITORY      https://github.com/google/googletest.git
+            GIT_TAG             master
+            ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+            )
+    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    include_directories("${gtest_SOURCE_DIR}/include" "${gmock_SOURCE_DIR}/include")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+ENDIF ()
+
 install(TARGETS MongoUtil DESTINATION ${INSTALL_DIR})
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
