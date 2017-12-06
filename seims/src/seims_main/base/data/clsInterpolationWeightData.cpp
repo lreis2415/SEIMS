@@ -2,19 +2,13 @@
 
 using namespace std;
 
-//clsITPWeightData::clsITPWeightData(string weightFileName) {
-//    m_fileName = weightFileName;
-//    m_weightData = NULL;
-//}
-
-clsITPWeightData::clsITPWeightData(MongoGridFS* gfs, const char *remoteFilename) {
-    m_fileName = remoteFilename;
-    m_weightData = NULL;
+clsITPWeightData::clsITPWeightData(MongoGridFS *gfs, const char *remoteFilename) :
+    m_fileName(remoteFilename), m_weightData(nullptr) {
     ReadFromMongoDB(gfs, remoteFilename);
 }
 
-clsITPWeightData::~clsITPWeightData(void) {
-    if (m_weightData != NULL) {
+clsITPWeightData::~clsITPWeightData() {
+    if (nullptr != m_weightData) {
         Release1DArray(m_weightData);
     }
 }
@@ -25,7 +19,7 @@ void clsITPWeightData::getWeightData(int *n, float **data) {
 }
 
 void clsITPWeightData::dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (fs == nullptr) return;
 
     int index = 0;
     for (int i = 0; i < m_nRows; ++i) {
@@ -47,13 +41,13 @@ void clsITPWeightData::dump(string fileName) {
     }
 }
 
-void clsITPWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char *remoteFilename) {
+void clsITPWeightData::ReadFromMongoDB(MongoGridFS *gfs, const char *remoteFilename) {
     string wfilename = string(remoteFilename);
     vector<string> gfilenames;
     gfs->getFileNames(gfilenames);
-    string filename = remoteFilename;
+    string filename = string(remoteFilename);
     if (!ValueInVector(filename, gfilenames)) {
-        int index = filename.find_last_of('_');
+        size_t index = filename.find_last_of('_');
         string type = filename.substr(index + 1);
         if (StringMatch(type, DataType_PotentialEvapotranspiration) || StringMatch(type, DataType_SolarRadiation)
             || StringMatch(type, DataType_RelativeAirMoisture) || StringMatch(type, DataType_MeanTemperature)

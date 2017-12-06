@@ -7,8 +7,8 @@
 #ifndef SEIMS_BMP_POINTSOURCE_H
 #define SEIMS_BMP_POINTSOURCE_H
 
-#include "utilities.h"
 #include "BMPFactory.h"
+#include "utilities.h"
 
 using namespace MainBMP;
 
@@ -30,55 +30,37 @@ public:
     PointSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~PointSourceLocations(void);
+    ~PointSourceLocations() = default;
 
     /// Output
     void Dump(ostream *fs);
 
     /// Get point source ID
-    int GetPointSourceID(void) {
-        return m_pointSrcID;
-    }
+    int GetPointSourceID() { return m_pointSrcID; }
 
     /// name
-    string GetPointSourceName(void) {
-        return m_name;
-    }
+    string GetPointSourceName() { return m_name; }
 
     /// Lat
-    float GetLat(void) {
-        return m_lat;
-    }
+    float GetLat() { return m_lat; }
 
     /// Lon
-    float GetLon(void) {
-        return m_lon;
-    }
+    float GetLon() { return m_lon; }
 
     /// localX
-    float GetLocalX(void) {
-        return m_localX;
-    }
+    float GetLocalX() { return m_localX; }
 
     /// localY
-    float GetLocalY(void) {
-        return m_localY;
-    }
+    float GetLocalY() { return m_localY; }
 
     /// Located subbasin ID
-    int GetSubbasinID(void) {
-        return m_subbasinID;
-    }
+    int GetSubbasinID() { return m_subbasinID; }
 
     /// size
-    float GetSize(void) {
-        return m_size;
-    }
+    float GetSize() { return m_size; }
 
     /// Distance to the downstream reach
-    float GetDistanceDown(void) {
-        return m_distDown;
-    }
+    float GetDistanceDown() { return m_distDown; }
 
 private:
     /// ID of point source
@@ -118,80 +100,52 @@ public:
     PointSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~PointSourceMgtParams(void);
+    ~PointSourceMgtParams() = default;
 
     /// Output
     void Dump(ostream *fs);
 
     /// Get start date of the current management operation
-    time_t GetStartDate(void) {
-        return m_startDate;
-    }
+    time_t GetStartDate() { return m_startDate; }
 
     /// Get end date
-    time_t GetEndDate(void) {
-        return m_endDate;
-    }
+    time_t GetEndDate() { return m_endDate; }
 
     /// Get sequence number
-    int GetSequence(void) {
-        return m_seqence;
-    }
+    int GetSequence() { return m_seqence; }
 
     /// Get subScenario name
-    string GetSubScenarioName(void) {
-        return m_name;
-    }
+    string GetSubScenarioName() { return m_name; }
 
     /// Get water volume
-    float GetWaterVolume(void) {
-        return m_waterVolume;
-    }
+    float GetWaterVolume() { return m_waterVolume; }
 
     /// Get sediment concentration
-    float GetSedment(void) {
-        return m_sedimentConc;
-    }
+    float GetSedment() { return m_sedimentConc; }
 
     /// Get sediment concentration
-    float GetTN(void) {
-        return m_TNConc;
-    }
+    float GetTN() { return m_TNConc; }
 
     /// Get NO3 concentration
-    float GetNO3(void) {
-        return m_NO3Conc;
-    }
+    float GetNO3() { return m_NO3Conc; }
 
     /// Get NH4 concentration
-    float GetNH4(void) {
-        return m_NH4Conc;
-    }
+    float GetNH4() { return m_NH4Conc; }
 
     /// Get OrgN concentration
-    float GetOrgN(void) {
-        return m_OrgNConc;
-    }
+    float GetOrgN() { return m_OrgNConc; }
 
     /// Get TP concentration
-    float GetTP(void) {
-        return m_TPConc;
-    }
+    float GetTP() { return m_TPConc; }
 
     /// Get SolP concentration
-    float GetSolP(void) {
-        return m_SolPConc;
-    }
+    float GetSolP() { return m_SolPConc; }
 
     /// Get OrgP concentration
-    float GetOrgP(void) {
-        return m_OrgPConc;
-    }
+    float GetOrgP() { return m_OrgPConc; }
 
     /// Get COD concentration
-    float GetCOD(void) {
-        return m_COD;
-    }
+    float GetCOD() { return m_COD; }
 
 private:
     /// subSecenario name
@@ -235,47 +189,39 @@ private:
 class BMPPointSrcFactory : public BMPFactory {
 public:
     /// Constructor
-    BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
-                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                       const string collection, const string location);
+    BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
+                       int bmpType, int bmpPriority, vector<string> &distribution,
+                       const string &collection, const string &location);
     /// Destructor
-    ~BMPPointSrcFactory(void);
+    ~BMPPointSrcFactory() override;
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string &bmpDBName);
+    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
 
     /// Output
-    void Dump(ostream *fs);
+    void Dump(ostream *fs) override;
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceManagements(MongoClient* conn, const string &bmpDBName);
+    void ReadPointSourceManagements(MongoClient *conn, const string &bmpDBName);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceLocations(MongoClient* conn, const string &bmpDBName);
+    void ReadPointSourceLocations(MongoClient *conn, const string &bmpDBName);
 
-    vector<int> &GetPointSrcMgtSeqs(void) {
-        return m_pointSrcMgtSeqs;
-    }
+    const vector<int> &GetPointSrcMgtSeqs() const { return m_pointSrcMgtSeqs; }
 
-    map<int, PointSourceMgtParams *> &GetPointSrcMgtMap(void) {
-        return m_pointSrcMgtMap;
-    }
+    const map<int, PointSourceMgtParams *> &GetPointSrcMgtMap() const { return m_pointSrcMgtMap; }
 
-    vector<int> &GetPointSrcIDs(void) {
-        return m_pointSrcIDs;
-    }
+    const vector<int> &GetPointSrcIDs() const { return m_pointSrcIDs; }
 
-    map<int, PointSourceLocations *> &GetPointSrcLocsMap(void) {
-        return m_pointSrcLocsMap;
-    }
+    const map<int, PointSourceLocations *> &GetPointSrcLocsMap() const { return m_pointSrcLocsMap; }
 
 private:
     /// Code of point source

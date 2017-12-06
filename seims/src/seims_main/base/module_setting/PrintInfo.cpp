@@ -5,9 +5,9 @@
 ///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem(void) : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
+PrintInfoItem::PrintInfoItem() : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
                                      SubbasinID(-1), SubbasinIndex(-1), SiteID(-1), SiteIndex(-1),
-                                     m_1DData(NULL), m_2DData(NULL), m_1DDataWithRowCol(NULL),
+                                     m_1DData(nullptr), m_2DData(nullptr), m_1DDataWithRowCol(nullptr),
                                      TimeSeriesDataForSubbasinCount(-1), m_AggregationType(AT_Unknown),
                                      StartTime(""), EndTime(""), m_startTime(0), m_endTime(0),
                                      Filename(""), Suffix("") {
@@ -22,17 +22,17 @@ PrintInfoItem::PrintInfoItem(void) : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
 //		m_specificOutput = new clsSpecificOutput(projectPath,databasePath,templateRasterData,outputID);
 //}
 
-PrintInfoItem::~PrintInfoItem(void) {
+PrintInfoItem::~PrintInfoItem() {
     StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
     Release2DArray(m_Counter, m_1DDataWithRowCol);
     Release1DArray(m_1DData);
     Release2DArray(m_nRows, m_2DData);
 
-    for (map<time_t, float *>::iterator it = TimeSeriesDataForSubbasin.begin();
+    for (auto it = TimeSeriesDataForSubbasin.begin();
          it != TimeSeriesDataForSubbasin.end();) {
-        if (it->second != NULL) {
+        if (it->second != nullptr) {
             delete[] it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         TimeSeriesDataForSubbasin.erase(it++);
     }
@@ -49,7 +49,7 @@ bool PrintInfoItem::IsDateInRange(time_t dt) {
     return bStatus;
 }
 
-void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, float *data) {
+void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
     float *temp = new float[n];
     for (int i = 0; i < n; i++) {
         temp[i] = data[i];
@@ -84,7 +84,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             */
         return;
     }
-    if (TimeSeriesData.size() > 0 && (SiteID != -1 || SubbasinID != -1))    //time series data
+    if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1))    //time series data
     {
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
@@ -107,7 +107,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         }
         return;
     }
-    if (TimeSeriesDataForSubbasin.size() > 0 && SubbasinID != -1)    //time series data for subbasin
+    if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1)    //time series data for subbasin
     {
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
@@ -133,9 +133,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         }
         return;
     }
-    if (m_1DData != NULL && m_nRows > -1)    // ASC or GeoTIFF file
+    if (nullptr != m_1DData && m_nRows > -1)    // ASC or GeoTIFF file
     {
-        if (templateRaster == NULL) {
+        if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
         //cout << projectPath << Filename << endl;
@@ -147,9 +147,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         return;
     }
 
-    if (m_2DData != NULL && m_nRows > -1 && m_nLayers > 0) /// Multi-Layers raster data
+    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 0) /// Multi-Layers raster data
     {
-        if (templateRaster == NULL) {
+        if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
         clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
@@ -161,10 +161,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         return;
     }
 
-    if (TimeSeriesData.size() > 0)    /// time series data
+    if (!TimeSeriesData.empty())    /// time series data
     {
         ofstream fs;
-        utils util;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
         if (fs.is_open()) {
@@ -182,7 +181,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
     //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
     //    " is failed. There is no result data for this file. Please check output variables of modules.");
     cout << "PrintInfoItem\n Flush\n Creating " << Filename <<
-        " is failed. There is no result data for this file. Please check output variables of modules." << endl;
+         " is failed. There is no result data for this file. Please check output variables of modules." << endl;
 }
 
 void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **data) {
@@ -193,7 +192,7 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **d
 		}	*/
     } else {
         // check to see if there is an aggregate array to add data to
-        if (m_2DData == NULL) {
+        if (m_2DData == nullptr) {
             // create the aggregate array
             m_nRows = nRows;
             m_nLayers = nCols;
@@ -272,7 +271,7 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data) {
         }		*/
     } else {
         // check to see if there is an aggregate array to add data to
-        if (m_1DData == NULL) {
+        if (m_1DData == nullptr) {
             // create the aggregate array
             m_nRows = numrows;
             Initialize1DArray(m_nRows, m_1DData, NODATA_VALUE);
@@ -328,7 +327,7 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data) {
 
 void PrintInfoItem::AggregateData(int numrows, float **data, AggregationType type, float NoDataValue) {
     // check to see if there is an aggregate array to add data to
-    if (m_1DDataWithRowCol == NULL) {
+    if (m_1DDataWithRowCol == nullptr) {
         // create the aggregate array
         m_nRows = numrows;
         m_1DDataWithRowCol = new float *[m_nRows];
@@ -451,118 +450,114 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 //}
 
 
-PrintInfo::PrintInfo(void) {
-    m_Interval = 0;
-    m_IntervalUnits = "";
-    m_OutputID = "";
+PrintInfo::PrintInfo()
+    : m_Interval(0), m_IntervalUnits(""), m_OutputID(""), m_param(nullptr),
+      m_moduleIndex(-1), m_subbasinSelectedArray(nullptr) {
     m_PrintItems.clear();
-    m_param = NULL;
-    m_moduleIndex = -1;
-    m_subbasinSelectedArray = NULL;
 }
 
-PrintInfo::~PrintInfo(void) {
-    for (vector<PrintInfoItem *>::iterator it = m_PrintItems.begin(); it != m_PrintItems.end();) {
-        if (*it != NULL) {
+PrintInfo::~PrintInfo() {
+    for (auto it = m_PrintItems.begin(); it != m_PrintItems.end();) {
+        if (nullptr!=*it) {
             delete *it;
-            *it = NULL;
+            *it = nullptr;
         }
         it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
     vector<PrintInfoItem *>().swap(m_PrintItems);
-    m_param = NULL;  /// since m_param has not been malloc by new, just set it to NULL
-    if (m_subbasinSelectedArray != NULL) {
+    m_param = nullptr;  /// since m_param has not been malloc by new, just set it to nullptr
+    if (nullptr!=m_subbasinSelectedArray) {
         Release1DArray(m_subbasinSelectedArray);
     }
 }
 
 string PrintInfo::getOutputTimeSeriesHeader() {
-    vector <string> headers;
+    vector<string> headers;
     if (StringMatch(m_OutputID, VAR_SNWB)) {
-        headers.push_back("Time");
-        headers.push_back("P");
-        headers.push_back("P_net");
-        headers.push_back("P_blow");
-        headers.push_back("T");
-        headers.push_back("Wind");
-        headers.push_back("SR");
-        headers.push_back("SE");
-        headers.push_back("SM");
-        headers.push_back("SA");
+        headers.emplace_back("Time");
+        headers.emplace_back("P");
+        headers.emplace_back("P_net");
+        headers.emplace_back("P_blow");
+        headers.emplace_back("T");
+        headers.emplace_back("Wind");
+        headers.emplace_back("SR");
+        headers.emplace_back("SE");
+        headers.emplace_back("SM");
+        headers.emplace_back("SA");
     } else if (StringMatch(m_OutputID, VAR_SOWB)) {
-        headers.push_back("Time");
-        headers.push_back("PCP (mm)");
-        headers.push_back("meanTmp (deg C)");
-        headers.push_back("soilTmp (deg C)");
-        headers.push_back("netPcp (mm)");
-        headers.push_back("InterceptionET (mm)");
-        headers.push_back("DepressionET (mm)");
-        headers.push_back("Infiltration (mm)");
-        headers.push_back("Total_ET (mm)");
-        headers.push_back("Soil_ET (mm)");
-        headers.push_back("NetPercolation (mm)");
-        headers.push_back("Revaporization (mm)");
-        headers.push_back("SurfaceRunoff (mm)");
-        headers.push_back("SubsurfaceRunoff (mm)");
-        headers.push_back("Baseflow (mm)");
-        headers.push_back("AllRunoff (mm)");
-        headers.push_back("SoilMoisture (mm)");
-        //headers.push_back("MoistureDepth");
+        headers.emplace_back("Time");
+        headers.emplace_back("PCP (mm)");
+        headers.emplace_back("meanTmp (deg C)");
+        headers.emplace_back("soilTmp (deg C)");
+        headers.emplace_back("netPcp (mm)");
+        headers.emplace_back("InterceptionET (mm)");
+        headers.emplace_back("DepressionET (mm)");
+        headers.emplace_back("Infiltration (mm)");
+        headers.emplace_back("Total_ET (mm)");
+        headers.emplace_back("Soil_ET (mm)");
+        headers.emplace_back("NetPercolation (mm)");
+        headers.emplace_back("Revaporization (mm)");
+        headers.emplace_back("SurfaceRunoff (mm)");
+        headers.emplace_back("SubsurfaceRunoff (mm)");
+        headers.emplace_back("Baseflow (mm)");
+        headers.emplace_back("AllRunoff (mm)");
+        headers.emplace_back("SoilMoisture (mm)");
+        //headers.emplace_back("MoistureDepth");
     } else if (StringMatch(m_OutputID, VAR_GWWB)) {
-        headers.push_back("Time");
-        headers.push_back("Percolation (mm)");
-        headers.push_back("Revaporization (mm)");
-        headers.push_back("Deep Percolation (mm)");
-        headers.push_back("Baseflow (mm)");
-        headers.push_back("Groundwater storage (mm)");
-        headers.push_back("Baseflow discharge (m3/s)");
+        headers.emplace_back("Time");
+        headers.emplace_back("Percolation (mm)");
+        headers.emplace_back("Revaporization (mm)");
+        headers.emplace_back("Deep Percolation (mm)");
+        headers.emplace_back("Baseflow (mm)");
+        headers.emplace_back("Groundwater storage (mm)");
+        headers.emplace_back("Baseflow discharge (m3/s)");
     } else if (StringMatch(m_OutputID, "T_RECH")) {
-        headers.push_back("Time");
-        headers.push_back("QS");
-        headers.push_back("QI");
-        headers.push_back("QG");
-        headers.push_back("Q(m^3/s)");
-        headers.push_back("Q(mm)");
+        headers.emplace_back("Time");
+        headers.emplace_back("QS");
+        headers.emplace_back("QI");
+        headers.emplace_back("QG");
+        headers.emplace_back("Q(m^3/s)");
+        headers.emplace_back("Q(mm)");
     } else if (StringMatch(m_OutputID, "T_WABA")) {
-        headers.push_back("Time");
-        headers.push_back("Vin");
-        headers.push_back("Vside");
-        headers.push_back("Vdiv");
-        headers.push_back("Vpoint");
-        headers.push_back("Vseep");
-        headers.push_back("Vnb");
-        headers.push_back("Ech");
-        headers.push_back("Lbank");
-        headers.push_back("Vbank");
-        headers.push_back("Vout");
-        headers.push_back("Vch");
-        headers.push_back("Depth");
-        headers.push_back("Velocity");
+        headers.emplace_back("Time");
+        headers.emplace_back("Vin");
+        headers.emplace_back("Vside");
+        headers.emplace_back("Vdiv");
+        headers.emplace_back("Vpoint");
+        headers.emplace_back("Vseep");
+        headers.emplace_back("Vnb");
+        headers.emplace_back("Ech");
+        headers.emplace_back("Lbank");
+        headers.emplace_back("Vbank");
+        headers.emplace_back("Vout");
+        headers.emplace_back("Vch");
+        headers.emplace_back("Depth");
+        headers.emplace_back("Velocity");
     } else if (StringMatch(m_OutputID, "T_RSWB")) {
-        headers.push_back("Time");
-        headers.push_back("Qin(m^3/s)");
-        headers.push_back("Area(ha)");
-        headers.push_back("Storage(10^4*m^3)");
-        headers.push_back("QSout(m^3/s)");
-        headers.push_back("QIout(m^3/s)");
-        headers.push_back("QGout(m^3/s)");
-        headers.push_back("Qout(m^3/s)");
-        headers.push_back("Qout(mm)");
+        headers.emplace_back("Time");
+        headers.emplace_back("Qin(m^3/s)");
+        headers.emplace_back("Area(ha)");
+        headers.emplace_back("Storage(10^4*m^3)");
+        headers.emplace_back("QSout(m^3/s)");
+        headers.emplace_back("QIout(m^3/s)");
+        headers.emplace_back("QGout(m^3/s)");
+        headers.emplace_back("Qout(m^3/s)");
+        headers.emplace_back("Qout(mm)");
     } else if (StringMatch(m_OutputID, "T_CHSB")) {
-        headers.push_back("Time");
-        headers.push_back("SedInUpStream");
-        headers.push_back("SedInSubbasin");
-        headers.push_back("SedDeposition");
-        headers.push_back("SedDegradation");
-        headers.push_back("SedStorage");
-        headers.push_back("SedOut");
+        headers.emplace_back("Time");
+        headers.emplace_back("SedInUpStream");
+        headers.emplace_back("SedInSubbasin");
+        headers.emplace_back("SedDeposition");
+        headers.emplace_back("SedDegradation");
+        headers.emplace_back("SedStorage");
+        headers.emplace_back("SedOut");
     } else if (StringMatch(m_OutputID, "T_RESB")) {
-        headers.push_back("Time");
-        headers.push_back("ResSedIn");
-        headers.push_back("ResSedSettling");
-        headers.push_back("ResSedStorage");
-        headers.push_back("ResSedOut");
+        headers.emplace_back("Time");
+        headers.emplace_back("ResSedIn");
+        headers.emplace_back("ResSedSettling");
+        headers.emplace_back("ResSedStorage");
+        headers.emplace_back("ResSedOut");
     }
     ostringstream oss;
     vector<string>::iterator it;
@@ -576,7 +571,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
     return oss.str();
 }
 
-void PrintInfo::AddPrintItem(string start, string end, string file, string sufi) {
+void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& sufi) {
     // create a new object instance
     PrintInfoItem *itm = new PrintInfoItem();
 
@@ -590,10 +585,10 @@ void PrintInfo::AddPrintItem(string start, string end, string file, string sufi)
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
     itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
     // add it to the list
-    m_PrintItems.push_back(itm);
+    m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string type, string start, string end, string file, string sufi) {
+void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi) {
     // create a new object instance
     PrintInfoItem *itm = new PrintInfoItem();
 
@@ -618,18 +613,18 @@ void PrintInfo::AddPrintItem(string type, string start, string end, string file,
     itm->setAggregationType(enumType);
 
     // add it to the list
-    m_PrintItems.push_back(itm);
+    m_PrintItems.emplace_back(itm);
 }
 
 void
-PrintInfo::AddPrintItem(string start, string end, string file, string sitename, string sufi, bool isSubbasin) {
+PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin) {
     PrintInfoItem *itm = new PrintInfoItem();
 
     if (!isSubbasin) { itm->SiteID = atoi(sitename.c_str()); }
     else {
         itm->SubbasinID = atoi(sitename.c_str());
-        itm->SubbasinIndex = m_subbasinSeleted.size();
-        m_subbasinSeleted.push_back(itm->SubbasinID);
+        itm->SubbasinIndex = (int) m_subbasinSeleted.size();
+        m_subbasinSeleted.emplace_back(itm->SubbasinID);
     }
     itm->StartTime = start;
     itm->EndTime = end;
@@ -638,12 +633,12 @@ PrintInfo::AddPrintItem(string start, string end, string file, string sitename, 
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
     itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
 
-    m_PrintItems.push_back(itm);
+    m_PrintItems.emplace_back(itm);
 }
 
 void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
-    *count = m_subbasinSeleted.size();
-    if (m_subbasinSelectedArray == NULL && m_subbasinSeleted.size() > 0) {
+    *count = (int) m_subbasinSeleted.size();
+    if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
         m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
         int index = 0;
         vector<int>::iterator it;
@@ -656,8 +651,8 @@ void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
 }
 
 PrintInfoItem *PrintInfo::getPrintInfoItem(int index) {
-    // default is NULL
-    PrintInfoItem *res = NULL;
+    // default is nullptr
+    PrintInfoItem *res = nullptr;
 
     // is the index in the valid range
     if (index >= 0 && index < (int) m_PrintItems.size()) {

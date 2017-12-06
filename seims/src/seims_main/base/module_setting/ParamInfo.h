@@ -6,7 +6,9 @@
  * \date June 2010
  *
  */
-#pragma once
+#ifndef SEIMS_PARAMETER_INFO_H
+#define SEIMS_PARAMETER_INFO_H
+
 #include "MetadataInfoConst.h"
 #include "text.h"
 #include "utilities.h"
@@ -25,13 +27,10 @@ using namespace std;
 class ParamInfo {
 public:
     //! Construct an empty instance.
-    ParamInfo(void);
+    ParamInfo();
 
     //! Destructor
-    ~ParamInfo(void);
-
-    //! Reset the contents of the object to default values
-    void Reset(void);
+    ~ParamInfo() = default;
 
     /*!
      * \brief Return the adjusted value for this parameter
@@ -48,8 +47,8 @@ public:
     void Adjust1DRaster(int n, float *data);
 
     //! Adjust 1D Raster on selected area
-    void Adjust1DRaster(int n, float *data, float *units, vector<int> selunits,
-                        float *lu, vector<int> sellu);
+    void Adjust1DRaster(int n, float *data, const float *units, vector<int> selunits,
+                        const float *lu, vector<int> sellu);
 
     //! Adjust 2D array
     void Adjust2DArray(int n, float **data);
@@ -100,3 +99,5 @@ public:
     //! whether is initialized
     bool initialized;
 };
+
+#endif /* SEIMS_PARAMETER_INFO_H */

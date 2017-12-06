@@ -2,9 +2,9 @@
 
 using namespace MainBMP;
 
-BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                                       const string collection, const string location) :
+BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
+                                       int bmpType, int bmpPriority, vector<string> &distribution,
+                                       const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
 {
     m_pointSrcMgtTab = m_bmpCollection;
@@ -19,24 +19,24 @@ BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, co
     }
 }
 
-BMPPointSrcFactory::~BMPPointSrcFactory(void) {
+BMPPointSrcFactory::~BMPPointSrcFactory() {
     if (!m_pointSrcLocsMap.empty()) {
-        for (map<int, PointSourceLocations *>::iterator it = m_pointSrcLocsMap.begin();
+        for (auto it = m_pointSrcLocsMap.begin();
              it != m_pointSrcLocsMap.end();) {
-            if (it->second != NULL) {
+            if (nullptr != it->second) {
                 delete it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
             m_pointSrcLocsMap.erase(it++);
         }
         m_pointSrcLocsMap.clear();
     }
     if (!m_pointSrcMgtMap.empty()) {
-        for (map<int, PointSourceMgtParams *>::iterator it = m_pointSrcMgtMap.begin();
+        for (auto it = m_pointSrcMgtMap.begin();
              it != m_pointSrcMgtMap.end();) {
-            if (it->second != NULL) {
+            if (nullptr != it->second) {
                 delete it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
             m_pointSrcMgtMap.erase(it++);
         }
@@ -107,17 +107,17 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const strin
 }
 
 void BMPPointSrcFactory::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (nullptr == fs) return;
     *fs << "Point Source Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << " PTSRC: " << m_pointSrc << endl;
-    for (vector<int>::iterator it = m_pointSrcMgtSeqs.begin(); it != m_pointSrcMgtSeqs.end(); it++) {
-        map<int, PointSourceMgtParams *>::iterator findIdx = m_pointSrcMgtMap.find(*it);
+    for (auto it = m_pointSrcMgtSeqs.begin(); it != m_pointSrcMgtSeqs.end(); it++) {
+        auto findIdx = m_pointSrcMgtMap.find(*it);
         if (findIdx != m_pointSrcMgtMap.end()) {
             m_pointSrcMgtMap[*it]->Dump(fs);
         }
     }
-    for (vector<int>::iterator it = m_pointSrcIDs.begin(); it != m_pointSrcIDs.end(); it++) {
-        map<int, PointSourceLocations *>::iterator findIdx = m_pointSrcLocsMap.find(*it);
+    for (auto it = m_pointSrcIDs.begin(); it != m_pointSrcIDs.end(); it++) {
+        auto findIdx = m_pointSrcLocsMap.find(*it);
         if (findIdx != m_pointSrcLocsMap.end()) {
             m_pointSrcLocsMap[*it]->Dump(fs);
         }
@@ -169,7 +169,7 @@ PointSourceMgtParams::PointSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     if (bson_iter_init_find(&iter, bsonTable, BMP_PTSRC_FLD_COD)) {
         GetNumericFromBsonIterator(&iter, m_COD);
     }
-    int sYear, sMonth, sDay, eYear, eMonth, eDay;
+    int sYear = -1, sMonth = -1, sDay = -1, eYear = -1, eMonth = -1, eDay = -1;
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SYEAR)) {
         GetNumericFromBsonIterator(&iter, sYear);
     }
@@ -196,11 +196,8 @@ PointSourceMgtParams::PointSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-PointSourceMgtParams::~PointSourceMgtParams(void) {
-}
-
 void PointSourceMgtParams::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (nullptr == fs) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
         *fs << "      Start Date: " << ConvertToString(&m_startDate) << endl;
@@ -251,11 +248,8 @@ PointSourceLocations::PointSourceLocations(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-PointSourceLocations::~PointSourceLocations(void) {
-}
-
 void PointSourceLocations::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (nullptr == fs) return;
     *fs << "      Point Source Location: " << endl <<
         "        PTSRCID: " << m_pointSrcID << ", SubBasinID: " << m_subbasinID <<
         ", Lon: " << m_lon << ", Lat: " << m_lat <<

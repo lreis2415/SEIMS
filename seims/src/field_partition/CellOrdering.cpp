@@ -1,10 +1,11 @@
+#include "CellOrdering.h"
+#include "utilities.h"
+
 #include <iostream>
 #include <set>
 #include <fstream>
 #include <algorithm>
 #include <sstream>
-#include "CellOrdering.h"
-#include "utilities.h"
 
 using namespace std;
 
@@ -25,7 +26,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMet
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(RowColCoor(i, j))) {
+            if (!m_mask->isNoData({i, j})) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -69,7 +70,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(RowColCoor(i, j))) {
+            if (!m_mask->isNoData({i, j})) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -114,7 +115,7 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsSt
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(RowColCoor(i, j))) {
+            if (!m_mask->isNoData({i, j})) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -259,7 +260,7 @@ void CellOrdering::BuildTree(void)   // tree of the land use
     int *LanduCode = m_landu->getRasterDataPointer();
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (m_mask->isNoData(RowColCoor(i, j))) {
+            if (m_mask->isNoData({i, j})) {
                 continue;
             }
             int id = i * m_nCols + j;
@@ -1247,7 +1248,7 @@ void CellOrdering::OutputFieldMap(const char *filename) {
             int ID = cells[j]->GetID();
             int ik = ID / m_nCols;
             int jk = ID % m_nCols;
-            output.setValue(RowColCoor(ik, jk), ReFID);
+            output.setValue({ik, jk}, ReFID);
         }
     }
     //for (int i = 0; i < m_nRows; i++)
@@ -1324,7 +1325,7 @@ void CellOrdering::BuildRoutingLayer(int idOutlet, int layerNum) {
     for (unsigned int i = 0; i < inCells.size(); ++i) {
         int row = inCells[i] / m_nCols;
         int col = inCells[i] % m_nCols;
-        if (!m_mask->isNoData(RowColCoor(row, col))) {
+        if (!m_mask->isNoData({row, col})) {
             BuildRoutingLayer(inCells[i], layerNum);
         }
     }
@@ -1388,7 +1389,7 @@ void CellOrdering::OutRoutingLayer(const char *filename) {
         for (size_t j = 0; j < layerSize; ++j) {
             int ik = m_layers[i][j] / m_nCols;
             int jk = m_layers[i][j] % m_nCols;
-            output.setValue(RowColCoor(ik, jk), i + 1);
+            output.setValue({ik, jk}, i + 1);
             nn++;
         }
     }
@@ -1402,7 +1403,7 @@ void CellOrdering::CalCompressedIndex(void) {
     int counter = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (m_mask->isNoData(RowColCoor(i, j))) {
+            if (m_mask->isNoData({i, j})) {
                 continue;
             }
             int id = i * m_nCols + j;

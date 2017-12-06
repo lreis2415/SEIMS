@@ -2,11 +2,10 @@
 
 using namespace MainBMP;
 
-BMPArealSrcFactory::BMPArealSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                       const int bmpType, const int bmpPriority, vector<string> &distribution,
-                                       const string collection, const string location) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
-{
+BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario,
+                                       int bmpType, int bmpPriority, vector<string> &distribution,
+                                       const string &collection, const string &location) :
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_arealSrcMgtTab = m_bmpCollection;
     m_arealSrcIDs = SplitStringForInt(location, '-');
     if (m_distribution.size() == 4 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
@@ -16,29 +15,27 @@ BMPArealSrcFactory::BMPArealSrcFactory(const int scenarioId, const int bmpId, co
     } else {
         throw ModelException("BMPArealSourceFactory", "Initialization",
                              "The distribution field must follow the format: "
-                             "RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
+                                 "RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
     }
     m_loadedMgtFieldIDs = false;
 }
 
-BMPArealSrcFactory::~BMPArealSrcFactory(void) {
+BMPArealSrcFactory::~BMPArealSrcFactory() {
     if (!m_arealSrcLocsMap.empty()) {
-        for (map<int, ArealSourceLocations *>::iterator it = m_arealSrcLocsMap.begin();
-             it != m_arealSrcLocsMap.end();) {
-            if (it->second != NULL) {
+        for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end();) {
+            if (nullptr != it->second) {
                 delete it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
             m_arealSrcLocsMap.erase(it++);
         }
         m_arealSrcLocsMap.clear();
     }
     if (!m_arealSrcMgtMap.empty()) {
-        for (map<int, ArealSourceMgtParams *>::iterator it = m_arealSrcMgtMap.begin();
-             it != m_arealSrcMgtMap.end();) {
-            if (it->second != NULL) {
+        for (auto it = m_arealSrcMgtMap.begin(); it != m_arealSrcMgtMap.end();) {
+            if (nullptr != it->second) {
                 delete it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
             m_arealSrcMgtMap.erase(it++);
         }
@@ -46,12 +43,12 @@ BMPArealSrcFactory::~BMPArealSrcFactory(void) {
     }
 }
 
-void BMPArealSrcFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
+void BMPArealSrcFactory::loadBMP(MongoClient *conn, const string &bmpDBName) {
     ReadArealSourceManagements(conn, bmpDBName);
     ReadArealSourceLocations(conn, bmpDBName);
 }
 
-void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, const string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -64,13 +61,13 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, const str
     bson_destroy(child2);
 
     unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcMgtTab)));
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
     const bson_t *bsonTable;
 
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
-    int count = 1; 
+    int count = 1;
     while (mongoc_cursor_next(cursor, &bsonTable)) {
         m_arealSrcMgtSeqs.push_back(count);
         m_arealSrcMgtMap[count] = new ArealSourceMgtParams(bsonTable, iter);
@@ -80,7 +77,7 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, const str
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const string &bmpDBName) {
+void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient *conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -89,7 +86,7 @@ void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const strin
     bson_destroy(child1);
 
     unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcDistTab)));
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
     const bson_t *bsonTable;
@@ -107,9 +104,8 @@ void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const strin
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
-    for (map<int, ArealSourceLocations *>::iterator it = m_arealSrcLocsMap.begin(); 
-        it != m_arealSrcLocsMap.end(); ++it) {
+void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float *mgtField) {
+    for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end(); ++it) {
         ArealSourceLocations *tmpArealLoc = it->second;
         if (tmpArealLoc->GetValidCells() < 0 && tmpArealLoc->GetCellsIndex().empty()) {
             tmpArealLoc->SetValidCells(n, mgtField);
@@ -119,29 +115,28 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
 }
 
 void BMPArealSrcFactory::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (fs == nullptr) return;
     *fs << "Point Source Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << endl;
-    for (vector<int>::iterator it = m_arealSrcMgtSeqs.begin(); it != m_arealSrcMgtSeqs.end(); it++) {
-        map<int, ArealSourceMgtParams *>::iterator findIdx = m_arealSrcMgtMap.find(*it);
+    for (auto it = m_arealSrcMgtSeqs.begin(); it != m_arealSrcMgtSeqs.end(); it++) {
+        auto findIdx = m_arealSrcMgtMap.find(*it);
         if (findIdx != m_arealSrcMgtMap.end()) {
             m_arealSrcMgtMap[*it]->Dump(fs);
         }
     }
-    for (vector<int>::iterator it = m_arealSrcIDs.begin(); it != m_arealSrcIDs.end(); it++) {
-        map<int, ArealSourceLocations *>::iterator findIdx = m_arealSrcLocsMap.find(*it);
+    for (auto it = m_arealSrcIDs.begin(); it != m_arealSrcIDs.end(); it++) {
+        auto findIdx = m_arealSrcLocsMap.find(*it);
         if (findIdx != m_arealSrcLocsMap.end()) {
             m_arealSrcLocsMap[*it]->Dump(fs);
         }
     }
 }
 
-void BMPArealSrcFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
+void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *> &sceneRsMap) {
     if (sceneRsMap.find(m_arealSrcDistName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_arealSrcDistName)->getRasterData(&n, &m_mgtFieldsRs);
-    }
-    else{
+    } else {
         // raise Exception?
     }
 }
@@ -217,11 +212,8 @@ ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-ArealSourceMgtParams::~ArealSourceMgtParams(void) {
-}
-
 void ArealSourceMgtParams::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (fs == nullptr) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
         *fs << "      Start Date: " << ConvertToString(&m_startDate) << endl;
@@ -254,17 +246,16 @@ ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-ArealSourceLocations::~ArealSourceLocations(void) {
-}
 
 void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
-    if (n > 0 && mgtFieldIDs != NULL) {
+    if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
             if (FloatEqual(m_arealSrcID, (int) mgtFieldIDs[i])) {
-                m_cellsIndex.push_back(i);
+                m_cellsIndex.emplace_back(i);
             }
         }
         vector<int>(m_cellsIndex).swap(m_cellsIndex);
+        // m_cellsIndex.shrink_to_fit();
         m_nCells = (int) m_cellsIndex.size();
     } else {
         throw ModelException("ArealSourceLocations", "SetValidCells",
@@ -272,7 +263,7 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
     }
 }
 void ArealSourceLocations::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (fs == nullptr) return;
     *fs << "      Point Source Location: " << endl <<
         "        ARSRCID: " << m_arealSrcID << ", Valid Cells Number: " << m_nCells <<
         ", Size: " << m_size << endl;

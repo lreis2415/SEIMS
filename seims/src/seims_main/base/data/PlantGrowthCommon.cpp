@@ -1,11 +1,5 @@
 #include "PlantGrowthCommon.h"
 
-PGCommon::PGCommon() {
-}
-
-PGCommon::~PGCommon(void) {
-}
-
 void PGCommon::getNPShapeParameter(float fr1, float fr2, float fr3, float *shape1, float *shape2) {
     if (fr1 - fr2 < 0.0001f) fr2 = fr1 - 0.0001f;
     if (fr2 - fr3 < 0.0001f) fr3 *= 0.75f;

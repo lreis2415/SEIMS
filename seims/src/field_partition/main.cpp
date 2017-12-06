@@ -1,6 +1,13 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
+
+#include "CellOrdering.h"
+#include "FieldPartition.h"
+
+#include "clsRasterData.h"
+#include "utilities.h"
+
 #include <iostream>
 #include <vector>
 #include <ctime>
@@ -8,11 +15,6 @@
 #include <sstream>
 #include <map>
 #include <set>
-
-#include "utilities.h"
-#include "clsRasterData.h"
-#include "CellOrdering.h"
-#include "FieldPartition.h"
 
 using namespace std;
 
@@ -142,8 +144,7 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     bool flag = false;
     for (int i = 0; i < rsStreamLink.getRows(); i++) {
         for (int j = 0; j < rsStreamLink.getCols(); j++) {
-            RowColCoor rc(i, j);
-            if (!rsStreamLink.isNoData(rc) && rsStreamLink.getValue(rc) > 0) {
+            if (!rsStreamLink.isNoData({i, j}) && rsStreamLink.getValue({i, j}) > 0) {
                 colIndex = j;
                 rowIndex = i;
                 flag = true;
@@ -158,13 +159,11 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     /// cout<<rowIndex<<","<<colIndex<<endl;
     flag = true;
     while (flag) {
-        RowColCoor rc(rowIndex, colIndex);
-        int index = dirToIndexMap[rsDir.getValue(rc)];
+        int index = dirToIndexMap[rsDir.getValue({rowIndex, colIndex})];
         int ii = rowIndex + CellOrdering::m_d1[index];
         int jj = colIndex + CellOrdering::m_d2[index];
         if (ii < rsDEM.getRows() - 1 && jj < rsDEM.getCols() - 1) {
-            RowColCoor rc_new(ii, jj);
-            if (rsStreamLink.isNoData(rc_new) || rsStreamLink.getValue(rc_new) <= 0) {
+            if (rsStreamLink.isNoData({ii, jj}) || rsStreamLink.getValue({ii, jj}) <= 0) {
                 flag = false;
             } else {
                 rowIndex = ii;
