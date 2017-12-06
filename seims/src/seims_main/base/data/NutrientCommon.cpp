@@ -1,10 +1,5 @@
 #include "NutrientCommon.h"
 
-NutrCommon::NutrCommon() {
-}
-
-NutrCommon::~NutrCommon() {
-}
 
 float NutrCommon::CalEnrichmentRatio(float sedyld, float surfq, float area) {
     /// if no surface runoff, or very little sediment,

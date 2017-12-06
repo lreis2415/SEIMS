@@ -3,14 +3,14 @@
 
 // private methods
 void MetadataInfo::OpenTag(string name, string attributes, int indent, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + attributes.size() + (indent * 3) + 3));
-    if (sz > (int) sb->capacity()) {
+    size_t sz = (sb->size() + (name.size() + attributes.size() + (indent * 3) + 3));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
     sb->append("<");
     sb->append(name);
-    if (attributes.size() > 0) {
+    if (!attributes.empty()) {
         sb->append(" ");
         sb->append(attributes);
     }
@@ -18,8 +18,8 @@ void MetadataInfo::OpenTag(string name, string attributes, int indent, string *s
 }
 
 void MetadataInfo::CloseTag(string name, int indent, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + (indent * 3) + 2));
-    if (sz > (int) sb->capacity()) {
+    size_t sz = (sb->size() + (name.size() + (indent * 3) + 2));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
@@ -28,9 +28,9 @@ void MetadataInfo::CloseTag(string name, int indent, string *sb) {
     sb->append(">");
 }
 
-void MetadataInfo::FullTag(string name, int indent, string content, string *sb) {
-    int sz = (int) (sb->size() + (name.size() + content.size() + (indent * 3) + 5));
-    if (sz > (int) sb->capacity()) {
+void MetadataInfo::FullTag(const string& name, int indent, string& content, string *sb) {
+    size_t sz = (sb->size() + (name.size() + content.size() + (indent * 3) + 5));
+    if (sz > sb->capacity()) {
         sb->reserve(sz);
     }
     for (int i = 0; i < indent; i++) sb->append("   ");
@@ -107,7 +107,7 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
 }
 
 void MetadataInfo::WriteInputs(int indent, string *sb) {
-    if (m_vInputs.size() > 0) {
+    if (!m_vInputs.empty()) {
         OpenTag(TagInputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vInputs.size(); idx++) {
             OpenTag(TagInputVariable, "", indent + 1, sb);
@@ -126,7 +126,7 @@ void MetadataInfo::WriteInputs(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteOutputs(int indent, string *sb) {
-    if (m_vOutputs.size() > 0) {
+    if (!m_vOutputs.empty()) {
         OpenTag(TagOutputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vOutputs.size(); idx++) {
             OpenTag(TagOutputVariable, "", indent + 1, sb);
@@ -142,7 +142,7 @@ void MetadataInfo::WriteOutputs(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteParameters(int indent, string *sb) {
-    if (m_vParameters.size() > 0) {
+    if (!m_vParameters.empty()) {
         OpenTag(TagParameters, "", indent, sb);
         for (size_t idx = 0; idx < m_vParameters.size(); idx++) {
             OpenTag(TagParameter, "", indent + 1, sb);
@@ -161,7 +161,7 @@ void MetadataInfo::WriteParameters(int indent, string *sb) {
 }
 
 void MetadataInfo::WriteDependencies(int indent, string *sb) {
-    if (m_vDependencies.size() > 0) {
+    if (!m_vDependencies.empty()) {
         OpenTag(TagDependencies, "", indent, sb);
         for (size_t idx = 0; idx < m_vDependencies.size(); idx++) {
             OpenTag(TagClass, "", indent + 1, sb);
@@ -196,7 +196,7 @@ string MetadataInfo::SchemaVersion() {
     return m_strSchemaVersion;
 }
 
-void MetadataInfo::SetClass(string name, string description) {
+void MetadataInfo::SetClass(const char* name, const char* description) {
     m_oClass.Name = name;
     m_oClass.Description = description;
 }
@@ -209,7 +209,7 @@ string MetadataInfo::GetClassDescription() {
     return m_oClass.Description;
 }
 
-void MetadataInfo::SetID(string ID) {
+void MetadataInfo::SetID(const char* ID) {
     m_Info.Id = ID;
 }
 
@@ -217,7 +217,7 @@ string MetadataInfo::GetID() {
     return m_Info.Id;
 }
 
-void MetadataInfo::SetName(string name) {
+void MetadataInfo::SetName(const char* name) {
     m_Info.Name = name;
 }
 
@@ -225,7 +225,7 @@ string MetadataInfo::GetName() {
     return m_Info.Name;
 }
 
-void MetadataInfo::SetDescription(string description) {
+void MetadataInfo::SetDescription(const char* description) {
     m_Info.Description = description;
 }
 
@@ -233,7 +233,7 @@ string MetadataInfo::GetDescription() {
     return m_Info.Description;
 }
 
-void MetadataInfo::SetVersion(string version) {
+void MetadataInfo::SetVersion(const char* version) {
     m_Info.Version = version;
 }
 
@@ -241,7 +241,7 @@ string MetadataInfo::GetVersion() {
     return m_Info.Version;
 }
 
-void MetadataInfo::SetAuthor(string author) {
+void MetadataInfo::SetAuthor(const char* author) {
     m_Info.Author = author;
 }
 
@@ -249,7 +249,7 @@ string MetadataInfo::GetAuthor() {
     return m_Info.Author;
 }
 
-void MetadataInfo::SetEmail(string email) {
+void MetadataInfo::SetEmail(const char* email) {
     m_Info.EMail = email;
 }
 
@@ -257,7 +257,7 @@ string MetadataInfo::GetEmail() {
     return m_Info.EMail;
 }
 
-void MetadataInfo::SetWebsite(string site) {
+void MetadataInfo::SetWebsite(const char* site) {
     m_Info.Website = site;
 }
 
@@ -265,7 +265,7 @@ string MetadataInfo::GetWebsite() {
     return m_Info.Website;
 }
 
-void MetadataInfo::SetHelpfile(string file) {
+void MetadataInfo::SetHelpfile(const char* file) {
     m_Info.Helpfile = file;
 }
 
@@ -274,10 +274,11 @@ string MetadataInfo::GetHelpfile() {
 }
 
 int MetadataInfo::GetInputCount() {
-    return m_vInputs.size();
+    return (int) m_vInputs.size();
 }
 
-int MetadataInfo::AddInput(string name, string units, string desc, string source, dimensionTypes dimType) {
+// int MetadataInfo::AddInput(string name, string units, string desc, string source, dimensionTypes dimType) {
+int MetadataInfo::AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType) {
     InputVariable param;
     param.Name = name;
     param.Units = units;
@@ -286,7 +287,7 @@ int MetadataInfo::AddInput(string name, string units, string desc, string source
     param.Dimension = dimType;
 
     m_vInputs.push_back(param);
-    return m_vInputs.size();
+    return (int) m_vInputs.size();
 }
 
 string MetadataInfo::GetInputName(int index) {
@@ -343,19 +344,18 @@ string MetadataInfo::GetInputSource(int index) {
 
 InputVariable MetadataInfo::GetInput(int index) {
     InputVariable res;
-
     if (index >= 0 && index < (int) m_vInputs.size()) {
         res = m_vInputs[index];
     }
-
     return res;
 }
 
 int MetadataInfo::GetOutputCount() {
-    return m_vOutputs.size();
+    return (int) m_vOutputs.size();
 }
 
-int MetadataInfo::AddOutput(string name, string units, string desc, dimensionTypes dimType) {
+// int MetadataInfo::AddOutput(string& name, string& units, string& desc, dimensionTypes dimType) {
+int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType) {
     OutputVariable param;
     param.Name = name;
     param.Units = units;
@@ -363,7 +363,7 @@ int MetadataInfo::AddOutput(string name, string units, string desc, dimensionTyp
     param.Dimension = dimType;
 
     m_vOutputs.push_back(param);
-    return m_vOutputs.size();
+    return (int) m_vOutputs.size();
 }
 
 string MetadataInfo::GetOutputName(int index) {
@@ -407,19 +407,17 @@ string MetadataInfo::GetOutputDescription(int index) {
 
 OutputVariable MetadataInfo::GetOutput(int index) {
     OutputVariable res;
-
     if (index >= 0 && index < (int) m_vOutputs.size()) {
         res = m_vOutputs[index];
     }
-
     return res;
 }
 
 int MetadataInfo::GetParameterCount() {
-    return m_vParameters.size();
+    return (int) m_vParameters.size();
 }
 
-int MetadataInfo::AddParameter(string name, string units, string desc, string source, dimensionTypes dimType) {
+int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType) {
     Parameter param;
     param.Name = name;
     param.Units = units;
@@ -428,7 +426,7 @@ int MetadataInfo::AddParameter(string name, string units, string desc, string so
     param.Dimension = dimType;
 
     m_vParameters.push_back(param);
-    return m_vParameters.size();
+    return (int) m_vParameters.size();
 }
 
 string MetadataInfo::GetParameterName(int index) {
@@ -494,16 +492,16 @@ Parameter MetadataInfo::GetParameter(int index) {
 }
 
 int MetadataInfo::GetDependencyCount() {
-    return m_vDependencies.size();
+    return (int) m_vDependencies.size();
 }
 
-int MetadataInfo::AddDependency(string name, string description) {
+int MetadataInfo::AddDependency(const char* name, const char* description) {
     ModelClass cl;
     cl.Name = name;
     cl.Description = description;
 
     m_vDependencies.push_back(cl);
-    return m_vDependencies.size();
+    return (int) m_vDependencies.size();
 }
 
 string MetadataInfo::GetDependencyName(int index) {

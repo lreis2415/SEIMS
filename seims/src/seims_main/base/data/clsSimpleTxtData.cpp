@@ -1,9 +1,6 @@
 #include "clsSimpleTxtData.h"
 
-clsSimpleTxtData::clsSimpleTxtData(string fileName) {
-    m_row = 0;
-    m_data = NULL;
-
+clsSimpleTxtData::clsSimpleTxtData(string fileName) : m_row(0), m_data(nullptr) {
     if (!FileExists(fileName)) {
         throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + fileName +
             " does not exist or has not read permission.");
@@ -23,10 +20,10 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName) {
             if (myfile.good()) {
                 getline(myfile, line);
                 TrimSpaces(line);
-                if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
+                if ((!line.empty()) && (line[0] != '#')) // ignore comments and empty lines
                 {
-                    vector <string> tokens = SplitString(line, '|');
-                    if (tokens.size() > 0) {
+                    vector<string> tokens = SplitString(line, '|');
+                    if (!tokens.empty()) {
                         TrimSpaces(tokens[0]);
                         data.push_back(float(atof(tokens[0].c_str())));//add data
                     }
@@ -54,8 +51,8 @@ clsSimpleTxtData::~clsSimpleTxtData() {
 }
 
 void clsSimpleTxtData::dump(ostream *fs) {
-    if (fs == NULL) return;
-    if (m_data == NULL) return;
+    if (fs == nullptr) return;
+    if (m_data == nullptr) return;
     for (int i = 0; i < m_row; i++) {
         *fs << m_data[i] << endl;
     }

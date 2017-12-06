@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifdef windows
+#ifdef WIN32
 
 #include "Windows.h"
 

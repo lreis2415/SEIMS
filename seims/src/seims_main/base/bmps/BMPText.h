@@ -3,8 +3,8 @@
  * \revised Liang-Jun Zhu
  * \date 2016-6-16
  */
-#ifndef BMP_TEXT_H
-#define BMP_TEXT_H
+#ifndef SEIMS_BMP_TEXT_H
+#define SEIMS_BMP_TEXT_H
 
 //database name
 //#define BMP_DATABASE_NAME        "BMP.db3"
@@ -346,4 +346,4 @@
 #define IRR_SRC_DEEP                   4 /// divert water from deep aquifer
 #define IRR_SRC_OUTWTSD                5 /// divert water from source outside watershed
 
-#endif
+#endif /* SEIMS_BMP_TEXT_H */

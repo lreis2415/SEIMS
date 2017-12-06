@@ -47,13 +47,13 @@ enum TimeStepType {
 class SimulationModule {
 public:
     //! Constructor
-    SimulationModule(void);
+    SimulationModule();
 
     //! Destructor
-    virtual ~SimulationModule(void);
+    virtual ~SimulationModule() = default;
 
     //! Execute the simulation
-    virtual int Execute(void) { return -1; };
+    virtual int Execute() { return -1; };
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
     virtual void SetDate(time_t t, int yearIdx) {
@@ -148,17 +148,17 @@ public:
     }
 
     //! Get time step type
-    virtual TimeStepType GetTimeStepType(void) {
+    virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_HILLSLOPE;
     };
 
     //! Reset subtime step
-    virtual void ResetSubTimeStep(void) {
+    virtual void ResetSubTimeStep() {
         m_tsCounter = 1;
     };
 
     //! Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
-    bool IsInputsSetDone(void) { return m_inputsSetDone; }
+    bool IsInputsSetDone() { return m_inputsSetDone; }
 
     //! Change the status of setting inputs parameters
     void SetInputsDone(bool setDone) { m_inputsSetDone = setDone; }
@@ -182,16 +182,16 @@ protected:
 #define CHECK_DATA(moduleID, expression, param, desc) if ((expression)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
 //! CHECK_POINTER is used for 1D or 2D raster and other pointer of data
-#define CHECK_POINTER(moduleID, param, desc) if (NULL == param) \
+#define CHECK_POINTER(moduleID, param, desc) if (nullptr == (param)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
 //! CHECK_POSITIVE is used for single value that must be positive
-#define CHECK_POSITIVE(moduleID, param, desc) if (param <= 0) \
+#define CHECK_POSITIVE(moduleID, param, desc) if ((param) <= 0) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
 //! CHECK_NEGATIVE is used for single value that must be negative
-#define CHECK_NEGATIVE(moduleID, param, desc) if (param >= 0) \
+#define CHECK_NEGATIVE(moduleID, param, desc) if ((param) >= 0) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
 //! CHECK_ZERO is used for single value that must not be ZERO
-#define CHECK_ZERO(moduleID, param, desc) if (param == 0 || FloatEqual(float(param), 0.f)) \
+#define CHECK_ZERO(moduleID, param, desc) if ((param) == 0 || FloatEqual(float(param), 0.f)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
 
 #endif /* SIMULATION_MOUDULE_BASE */
