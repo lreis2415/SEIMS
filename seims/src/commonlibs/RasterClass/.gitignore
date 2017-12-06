@@ -37,3 +37,6 @@ data/result
 
 # IDE related
 .idea/
+
+# office temp file
+~$*
