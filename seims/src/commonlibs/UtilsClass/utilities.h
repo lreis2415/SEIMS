@@ -68,6 +68,7 @@
 #define GetCoreFileName           utilsFileIO::GetCoreFileName
 #define GetSuffix                 utilsFileIO::GetSuffix
 #define ReplaceSuffix             utilsFileIO::ReplaceSuffix
+#define GetAbsolutePath           utilsFileIO::GetAbsolutePath
 #define GetPathFromFullName       utilsFileIO::GetPathFromFullName
 #define FileExists                utilsFileIO::FileExists
 #define PathExists                utilsFileIO::PathExists
