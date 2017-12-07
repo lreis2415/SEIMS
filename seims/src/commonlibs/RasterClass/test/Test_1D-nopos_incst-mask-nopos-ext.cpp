@@ -63,7 +63,9 @@ public:
     }
     void TearDown() override {
         delete rs;
+        delete maskrs;
         rs = nullptr;
+        maskrs = nullptr;
     }
 protected:
     clsRasterData<float, int> *rs;
