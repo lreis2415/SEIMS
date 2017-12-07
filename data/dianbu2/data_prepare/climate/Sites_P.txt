@@ -1,0 +1,2 @@
+StationID,Name,LocalX,LocalY,Lon,Lat,Elevation,isOutlet
+62942747,HuGang,39546383.32,3536946.928,117.481221,31.955345,53,0
