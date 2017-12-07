@@ -196,22 +196,23 @@ class SEIMSConfig(object):
             if not os.path.exists(self.outlet_file):
                 self.outlet_file = None
             self.landuse = self.spatial_dir + os.sep + cf.get('SPATIAL', 'landusefile')
-            self.landcover_init_param = self.txt_db_dir + os.sep \
-                                        + cf.get('SPATIAL', 'landcoverinitfile')
+            self.landcover_init_param = self.txt_db_dir + os.sep + cf.get('SPATIAL',
+                                                                          'landcoverinitfile')
             self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
             self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
-            additional_dict_str = cf.get('SPATIAL', 'additionalfile')
-            tmpdict = json.loads(additional_dict_str)
-            tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
-                       tmpdict.items()}
-            for k, v in tmpdict.items():
-                if not FileClass.is_file_exists(v):
-                    v = self.spatial_dir + os.sep + v
-                if not FileClass.is_file_exists(v):
-                    print ('WARNING: The additional file %s MUST be located in SPATIAL_DATA_DIR, or'
-                           'provided as full file path!' % k)
-                else:
-                    self.additional_rs[k] = v
+            if cf.has_option('SPATIAL', 'additionalfile'):
+                additional_dict_str = cf.get('SPATIAL', 'additionalfile')
+                tmpdict = json.loads(additional_dict_str)
+                tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
+                           tmpdict.items()}
+                for k, v in tmpdict.items():
+                    if not FileClass.is_file_exists(v):
+                        v = self.spatial_dir + os.sep + v
+                    if not FileClass.is_file_exists(v):
+                        print ('WARNING: The additional file %s MUST be located in '
+                               'SPATIAL_DATA_DIR, or provided as full file path!' % k)
+                    else:
+                        self.additional_rs[k] = v
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
