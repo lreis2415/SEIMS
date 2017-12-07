@@ -23,4 +23,5 @@
 __author__ = "SEIMS Team"
 __version__ = "2.1"
 __revision__ = "2.1.1"
-__all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis", "nogit"]
+__all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
+           "test", "nogit"]
