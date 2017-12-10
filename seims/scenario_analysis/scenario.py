@@ -8,13 +8,13 @@
 import os
 import random
 from datetime import timedelta
-from subprocess import CalledProcessError
 
 from bson.objectid import ObjectId
-from pygeoc.utils import UtilClass, StringClass, get_config_parser
+from pygeoc.utils import StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
 from preprocess.db_mongodb import ConnectMongoDB
+from run_seims import MainSEIMS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.utility import generate_uniqueid, print_message
 
@@ -197,16 +197,9 @@ class Scenario(object):
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.
         """
         print_message('Scenario ID: %d, running SEIMS model...' % self.ID)
-
-        cmd_str = '%s/seims_omp %s %d %d %s %d %d' % (self.bin_dir, self.model_dir, self.nthread,
-                                                      self.lyrmethod, self.hostname, self.port,
-                                                      self.ID)
-        try:
-            UtilClass.run_command(cmd_str)
-            self.modelrun = True
-        except CalledProcessError or Exception:
-            print ('Run SEIMS model failed!')
-            self.modelrun = False
+        seims_obj = MainSEIMS(self.bin_dir, self.model_dir, self.nthread,
+                              self.lyrmethod, self.hostname, self.port, self.ID)
+        self.modelrun = seims_obj.run()
         return self.modelrun
 
     def initialize(self):
