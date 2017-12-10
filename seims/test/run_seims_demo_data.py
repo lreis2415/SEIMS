@@ -22,6 +22,7 @@ from preprocess.config import SEIMSConfig
 from preprocess.db_build_mongodb import ImportMongodbClass
 # Spatial delineation
 from preprocess.sd_delineation import SpatialDelineation
+from run_seims import MainSEIMS
 
 
 class ModelPaths(object):
@@ -79,13 +80,24 @@ def write_preprocess_config_file(mpaths):
     return SEIMSConfig(cf)
 
 
+def execute_seims_model(seims_cfg, sceid):
+    """Run SEIMS for evaluating environmental effectiveness.
+    If execution fails, the `self.economy` and `self.environment` will be set the worst values.
+    """
+    print ('Scenario ID: %d, running SEIMS model...' % sceid)
+    seims_obj = MainSEIMS(seims_cfg.seims_bin, seims_cfg.model_dir, sceid=sceid)
+    return seims_obj.run()
+
+
 def main():
     model_paths = ModelPaths(SEIMS_path)
     seims_cfg = write_preprocess_config_file(model_paths)
-    # Spatial delineation by TauDEM
+    # # Spatial delineation by TauDEM
     SpatialDelineation.workflow(seims_cfg)
-    # Import to MongoDB database
+    # # Import to MongoDB database
     ImportMongodbClass.workflow(seims_cfg)
+    # Run SEIMS model
+    execute_seims_model(seims_cfg, 0)
 
 
 if __name__ == "__main__":
