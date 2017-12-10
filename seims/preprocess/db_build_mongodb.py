@@ -91,7 +91,7 @@ class ImportMongodbClass(object):
     @staticmethod
     def workflow(cfg):
         """Building MongoDB workflow"""
-        f = open(cfg.logs.build_mongo, 'w')
+        f = cfg.logs.build_mongo
         # build a connection to mongodb database
         client = ConnectMongoDB(cfg.hostname, cfg.port)
         conn = client.get_conn()
@@ -145,7 +145,6 @@ class ImportMongodbClass(object):
         ImportScenario2Mongo.scenario_from_texts(cfg, maindb, scenariodb)
 
         status_output('Build DB: %s finished!' % cfg.spatial_db, 100, f)
-        f.close()
 
         # close connection to MongoDB
         client.close()
