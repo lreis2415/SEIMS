@@ -81,6 +81,10 @@ TEST_P(clsRasterDataTestIncstMaskPos, RasterIO) {
     EXPECT_NE(nullptr, maskrs->getRasterPositionDataPointer());  // m_rasterPositionData
 
     /** Get metadata, m_headers **/
+    map<string, double> header_info = maskrs->getRasterHeader();
+    EXPECT_FLOAT_EQ(header_info.at("LAYERS"), maskrs->getLayers());
+    EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), maskrs->getCellNumber());
+
     EXPECT_EQ(9, maskrs->getRows());
     EXPECT_EQ(10, maskrs->getCols());
     EXPECT_FLOAT_EQ(19.f, maskrs->getXllCenter());
@@ -98,6 +102,33 @@ TEST_P(clsRasterDataTestIncstMaskPos, RasterIO) {
     EXPECT_FLOAT_EQ(0.f, maskrs->getSTD());
     EXPECT_FLOAT_EQ(0.f, maskrs->getRange());
     EXPECT_TRUE(maskrs->StatisticsCalculated());
+
+    /** Construct new raster by the mask data and an 1D or 2D array **/
+    float *vs = nullptr;
+    float **vs2 = nullptr;
+    int validmaskcells = maskrs->getCellNumber();
+    Initialize1DArray(validmaskcells, vs, 0.f);
+    Initialize2DArray(validmaskcells, 3, vs2, 0.f);
+    for (int i = 0; i < validmaskcells; i++) {
+        vs[i] = i;
+        for (int j = 0; j < 3; j++) {
+            vs2[i][j] = i * (j + 1);
+        }
+    }
+    /// output array to raster file and destructor the clsRasterData instance immediately
+    clsRasterData<float, int>* new1draster = new clsRasterData<float, int>(maskrs, vs);
+    string oldfullname = maskrs->getFilePath();
+    string new1dfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
+        "ctor_mask-pos_array_1d" + "." + GetSuffix(oldfullname);
+    new1draster->outputToFile(new1dfullname);
+
+    clsRasterData<float, int>* new2draster = new clsRasterData<float, int>(maskrs, vs2, 3);
+    string new2dfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
+        "ctor_mask-pos_array_2d" + "." + GetSuffix(oldfullname);
+    new2draster->outputToFile(new2dfullname);
+
+    Release1DArray(vs);
+    Release2DArray(validmaskcells, vs2);
 }
 INSTANTIATE_TEST_CASE_P(MaskLayer, clsRasterDataTestIncstMaskPos,
                         Values(asc_file_chars,

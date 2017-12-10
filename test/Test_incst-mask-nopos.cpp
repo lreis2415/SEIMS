@@ -81,6 +81,10 @@ TEST_P(clsRasterDataTestIncstMaskNoPos, RasterIO) {
     EXPECT_EQ(nullptr, maskrs->getRasterPositionDataPointer());  // m_rasterPositionData
 
     /** Get metadata, m_headers **/
+    map<string, double> header_info = maskrs->getRasterHeader();
+    EXPECT_FLOAT_EQ(header_info.at("LAYERS"), maskrs->getLayers());
+    EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), maskrs->getCellNumber());
+
     EXPECT_EQ(9, maskrs->getRows());
     EXPECT_EQ(10, maskrs->getCols());
     EXPECT_FLOAT_EQ(19.f, maskrs->getXllCenter());

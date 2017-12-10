@@ -87,11 +87,6 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosNoExt, RasterIO) {
 
     EXPECT_TRUE(rs->Initialized());  // m_initialized
     EXPECT_FALSE(rs->is2DRaster());  // m_is2DRaster
-    /* When the extents of maskrs and rs are inconsistent,
-     * and m_calcPositions is false, and the extent of mask data is not used,
-     * the m_rasterPositionData will be reCalculated and allocated space
-     * for further usage, but the m_rasterData still contains NODATA.
-     */
     EXPECT_FALSE(rs->PositionsCalculated());  // m_calcPositions
     EXPECT_FALSE(rs->PositionsAllocated());  // m_storePositions
     EXPECT_FALSE(rs->MaskExtented());  // m_useMaskExtent
@@ -104,6 +99,10 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosNoExt, RasterIO) {
     EXPECT_EQ(nullptr, rs->getRasterPositionDataPointer());  // m_rasterPositionData
 
     /** Get metadata, m_headers **/
+    map<string, double> header_info = rs->getRasterHeader();
+    EXPECT_FLOAT_EQ(header_info.at("LAYERS"), rs->getLayers());
+    EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), rs->getCellNumber());
+
     EXPECT_EQ(8, rs->getRows());
     EXPECT_EQ(10, rs->getCols());
     EXPECT_FLOAT_EQ(19.f, rs->getXllCenter());
