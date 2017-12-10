@@ -57,8 +57,7 @@ int FindBoundingBox(clsRasterData<int> &rsSubbasin, map<int, SubBasin> &bboxMap)
 bool DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> &rsSubbasin, const char *dstFile,
                                mongoc_client_t *conn, mongoc_gridfs_t *gfs) {
     bool flag = true;
-    clsRasterData<float> rs;
-    rs.ReadByGDAL(dstFile, false);
+    clsRasterData<float> rs(dstFile, false);
 
     int nXSize = rs.getCols();
     // int nYSize = rs.getRows();
@@ -228,8 +227,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
  */
 int DecompositeRaster(map<int, SubBasin> &bboxMap, clsRasterData<int> &rsSubbasin, const char *dstFile,
                       const char *tmpFolder) {
-    clsRasterData<float> rs;
-    rs.ReadByGDAL(dstFile, false);
+    clsRasterData<float> rs(dstFile, false);
 
     int nXSize = rs.getCols();
     // int nYSize = rs.getRows();
