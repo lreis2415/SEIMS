@@ -10,6 +10,7 @@
               1.2. Add another depressional storage method according to SWAT, depstor.f
 """
 import sys
+import os
 from math import exp, sqrt
 
 import numpy
@@ -426,7 +427,7 @@ class TerrainUtilClass(object):
     @staticmethod
     def parameters_extration(cfg, maindb):
         """Main entrance for terrain related spatial parameters extraction."""
-        f = open(cfg.logs.extract_terrain, 'w')
+        f = cfg.logs.extract_terrain
         # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
         status_output("Calculate initial channel width and added to reach.shp...", 10, f)
         acc_file = cfg.spatials.d8acc
@@ -473,7 +474,6 @@ class TerrainUtilClass(object):
                                                                  dormhr_file, cfg.dorm_hr)
 
         status_output("Terrain related spatial parameters extracted done!", 100, f)
-        f.close()
 
 
 def main():
