@@ -99,6 +99,10 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_EQ(nullptr, rs->getRasterPositionDataPointer());  // m_rasterPositionData
 
     /** Get metadata, m_headers **/
+    map<string, double> header_info = rs->getRasterHeader();
+    EXPECT_FLOAT_EQ(header_info.at("LAYERS"), rs->getLayers());
+    EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), rs->getCellNumber());
+
     EXPECT_EQ(9, rs->getRows());  // use the extent of mask data
     EXPECT_EQ(10, rs->getCols());
     EXPECT_FLOAT_EQ(19.f, rs->getXllCenter());
@@ -215,8 +219,30 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FALSE(rs->outputToFile(fakefullname));
     string newfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
         newcorename + "." + GetSuffix(oldfullname);
+    string newfullname4mongo = GetPathFromFullName(oldfullname) + "result" + SEP +
+        newcorename + "_mongo." + GetSuffix(oldfullname);
     EXPECT_TRUE(rs->outputToFile(newfullname));
     EXPECT_TRUE(FileExists(newfullname));
+
+#ifdef USE_MONGODB
+    /** MongoDB I/O test **/
+    MongoClient *conn = MongoClient::Init("127.0.0.1", 27017);
+    ASSERT_NE(nullptr, conn);
+    string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
+    MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
+    gfs->removeFile(gfsfilename);
+    rs->outputToMongoDB(gfsfilename, gfs);
+    clsRasterData<float, int> *mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), false, maskrs, true);
+    // test mongors data
+    EXPECT_EQ(90, mongors->getCellNumber());  // m_nCells
+    EXPECT_EQ(1, mongors->getLayers());
+    EXPECT_EQ(61, mongors->getValidNumber());
+    EXPECT_EQ(22, rs->getPosition(22.05f, 37.95f));  // row 2, col 2
+    EXPECT_FLOAT_EQ(9.95683607f, rs->getAverage());
+    // output to asc/tif file for comparison
+    EXPECT_TRUE(rs->outputToFile(newfullname4mongo));
+    EXPECT_TRUE(FileExists(newfullname4mongo));
+#endif
 
     /* Get position data, which will be calculated if not existed,
      * or have inconsistent extent with mask data.*/

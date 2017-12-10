@@ -22,6 +22,7 @@
 
 /// include MongoDB, optional
 #ifdef USE_MONGODB
+
 #include "MongoUtil.h"
 
 #endif /* USE_MONGODB */
@@ -34,6 +35,7 @@
 #include "ogr_spatialref.h"
 /// include openmp if supported
 #ifdef SUPPORT_OMP
+
 #include <omp.h>
 
 #endif /* SUPPORT_OMP */
@@ -92,6 +94,7 @@ inline void print_status(string status_str) {
     cout << status_str << endl;
 #endif
 }
+
 /*!
  * \brief check the existence of given raster file
  */
@@ -102,6 +105,7 @@ inline bool _check_raster_files_exist(const string &filename) {
     }
     return true;
 }
+
 /*!
  * \brief check the existence of given vector of raster files
  * \return True if all existed, else false
@@ -134,7 +138,6 @@ public:
 
     /*!
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported raster file
-     * \sa ReadASCFile() ReadFromGDAL()
      * \param[in] filename Full path of the raster file
      * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
      * \param[in] mask \a clsRasterData<MaskT> Mask layer
@@ -147,6 +150,7 @@ public:
                            clsRasterData<MaskT> *mask = nullptr,
                            bool useMaskExtent = true,
                            T defalutValue = (T) NODATA_VALUE);
+
     /*!
      * \brief Validation check before the constructor of clsRasterData,
      *        i.e., the raster file is existed and supported.
@@ -167,7 +171,7 @@ public:
     /*!
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported raster file
      * Support 1D and/or 2D raster data
-     * \sa ReadASCFile() ReadFromGDAL()
+     * \sa ReadASCFile() ReadByGDAL()
      * \param[in] filenames Full paths vector of the 2D raster data
      * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
      * \param[in] mask \a clsRasterData<MaskT> Mask layer
@@ -178,6 +182,7 @@ public:
                            clsRasterData<MaskT> *mask = nullptr,
                            bool useMaskExtent = true,
                            T defalutValue = (T) NODATA_VALUE);
+
     /*!
      * \brief Validation check before the constructor of clsRasterData,
      *        i.e., the raster files are all existed and supported.
@@ -187,17 +192,19 @@ public:
                                          clsRasterData<MaskT> *mask = nullptr,
                                          bool useMaskExtent = true,
                                          T defalutValue = (T) NODATA_VALUE);
+
     /*!
-     * \brief Constructor an clsRasterData instance by 1D array data and mask
+     * \brief Construct an clsRasterData instance by 1D array data and mask
      */
     clsRasterData(clsRasterData<MaskT> *mask, T *&values);
 
     /*!
-     * \brief Constructor an clsRasterData instance by 2D array data and mask
+     * \brief Construct an clsRasterData instance by 2D array data and mask
      */
     clsRasterData(clsRasterData<MaskT> *mask, T **&values, int lyrs);
 
 #ifdef USE_MONGODB
+
     /*!
      * \brief Constructor based on mongoDB
      * \sa ReadFromMongoDB()
@@ -211,18 +218,32 @@ public:
     clsRasterData(MongoGridFS *gfs, const char *remoteFilename, bool calcPositions = true,
                   clsRasterData<MaskT> *mask = nullptr, bool useMaskExtent = true,
                   T defalutValue = (T) NODATA_VALUE);
-#endif
+
     /*!
-    * \brief Copy constructor
-    *        `clsRasterData newraster(baseraster);` will equal to
-    *        `clsRasterData newraster;
-    *         newraster.Copy(baseraster);`
-    */
-    inline clsRasterData(const clsRasterData<T, MaskT> &another) {
-        this->_initialize_raster_class();
-        this->Copy(another);
-    }
-    //! Destructor, release \a m_rasterPositionData, \a m_rasterData and \a m_mask if existed.
+     * \brief Validation check before the constructor of clsRasterData.
+     */
+    static clsRasterData<T, MaskT> *Init(MongoGridFS *gfs, const char *remoteFilename,
+                                         bool calcPositions = true,
+                                         clsRasterData<MaskT> *mask = nullptr,
+                                         bool useMaskExtent = true,
+                                         T defalutValue = (T) NODATA_VALUE);
+
+#endif
+
+    /*!
+     * \brief Copy constructor
+     * \usage
+     *         Method 1: clsRasterData<T> newraster(baseraster);
+     *
+     *         Method 2: clsRasterData<T> newraster;
+     *                   newraster.Copy(baseraster);
+     *
+     *         Method 3: clsRasterData<T>* newraster = new clsRasterData<T>(baseraster);
+     *                   delete newraster;
+     */
+    explicit clsRasterData(clsRasterData<T, MaskT> *another);
+
+    //! Destructor
     ~clsRasterData();
 
     /************* Read functions ***************/
@@ -236,27 +257,8 @@ public:
     bool ReadFromFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = nullptr,
                       bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
 
-    /*!
-     * \brief Read raster data from ASC file, mask data is optional
-     * \param[in] filename \a string
-     * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
-     * \param[in] mask \a clsRasterData<MaskT>
-     * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
-     */
-    bool ReadASCFile(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = nullptr,
-                     bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
-
-    /*!
-     * \brief Read raster data by GDAL, mask data is optional
-     * \param[in] filename \a string
-     * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
-     * \param[in] mask \a clsRasterData<MaskT>
-     * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
-     */
-    void ReadByGDAL(string filename, bool calcPositions = true, clsRasterData<MaskT> *mask = nullptr,
-                    bool useMaskExtent = true, T defalutValue = (T) NODATA_VALUE);
-
 #ifdef USE_MONGODB
+
     /*!
      * \brief Read raster data from MongoDB
      * \param[in] gfs \a mongoc_gridfs_t
@@ -265,12 +267,13 @@ public:
      * \param[in] mask \a clsRasterData<MaskT>
      * \param[in] useMaskExtent Use mask layer extent, even NoDATA exists.
      */
-    void ReadFromMongoDB(MongoGridFS *gfs,
+    bool ReadFromMongoDB(MongoGridFS *gfs,
                          string filename,
                          bool calcPositions = true,
                          clsRasterData<MaskT> *mask = nullptr,
                          bool useMaskExtent = true,
                          T defalutValue = (T) NODATA_VALUE);
+
 #endif /* USE_MONGODB */
     /************* Write functions ***************/
 
@@ -293,12 +296,14 @@ public:
     bool outputFileByGDAL(string filename);
 
 #ifdef USE_MONGODB
+
     /*!
      * \brief Write raster data (matrix raster data) into MongoDB
      * \param[in] filename \a string, output file name
      * \param[in] gfs \a mongoc_gridfs_t
      */
     void outputToMongoDB(string filename, MongoGridFS *gfs);
+
 #endif /* USE_MONGODB */
 
     /************************************************************************/
@@ -447,7 +452,10 @@ public:
     //! Get Y coordinate of left lower corner of raster data
     double getYllCenter() const { return m_headers.at(HEADER_RS_YLL); }
 
-    int getLayers() const { return m_nLyrs; }
+    inline int getLayers() const {
+        assert(m_nLyrs == (int) m_headers.at(HEADER_RS_LAYERS));
+        return m_nLyrs;
+    }
 
     //! Get NoDATA value of raster data
     T getNoDataValue() const { return (T) m_headers.at(HEADER_RS_NODATA); }
@@ -483,6 +491,9 @@ public:
 
     //! Get raster statistics information
     const map<string, double> &getStatistics() const { return m_statsMap; }
+
+    //! Get raster statistics information of 2D raster
+    const map<string, double *> &getStatistics2D() const { return m_statsMap2D; };
 
     //! Get full path name
     string getFilePath() const { return m_filePathName; }
@@ -529,6 +540,7 @@ public:
      * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
      */
     T getValue(int row, int col, int lyr = 1);
+
     /*!
      * \brief Get raster data (both for 1D and 2D raster) at the (row, col)
      * \return a float array with length as nLyrs
@@ -580,7 +592,7 @@ public:
     inline bool validate_row_col(int row, int col) {
         if ((row < 0 || row >= this->getRows()) || (col < 0 || col >= this->getCols())) {
             print_status("The row must between 0 and " + ValueToString(this->getRows() - 1) +
-                ", and the col must between 0 and " + ValueToString(this->getCols() - 1));
+                         ", and the col must between 0 and " + ValueToString(this->getCols() - 1));
             return false;
         } else { return true; }
     }
@@ -601,7 +613,7 @@ public:
      */
     inline bool validate_index(int idx) {
         if (idx < 0 || idx >= m_nCells) {
-            print_status("The index must between 0 and "+ValueToString(m_nCells - 1));
+            print_status("The index must between 0 and " + ValueToString(m_nCells - 1));
             return false;
         } else { return true; }
     }
@@ -615,7 +627,7 @@ public:
     /*!
      * \brief Copy clsRasterData object
      */
-    void Copy(const clsRasterData<T, MaskT> &orgraster);
+    void Copy(const clsRasterData<T, MaskT> *orgraster);
 
     /*!
      * \brief Replace NoData value by the given value
@@ -669,7 +681,6 @@ private:
     /*!
      * \brief Constructor of clsRasterData instance from single file of TIFF, ASCII, or other GDAL supported raster file
      * Support 1D and/or 2D raster data
-     * \sa ReadASCFile() ReadFromGDAL()
      * \param[in] filename Full path of the raster file
      * \param[in] calcPositions Calculate positions of valid cells excluding NODATA. The default is true.
      * \param[in] mask \a clsRasterData<T2> Mask layer
@@ -729,6 +740,7 @@ private:
     bool _write_single_geotiff(string filename, map<string, double> &header, string srs, float *values);
 
 #ifdef USE_MONGODB
+
     /*!
      * \brief Write full-sized raster data as GridFS file
      * If the file exists, delete it first.
@@ -743,6 +755,7 @@ private:
                                       string srs,
                                       T *values,
                                       size_t datalength);
+
 #endif /* USE_MONGODB */
 
     /*!
@@ -768,6 +781,7 @@ private:
      * \brief Operator= without implementation
      */
     clsRasterData &operator=(const clsRasterData &another);
+
 private:
     /*! cell number of raster data, i.e. the data length of \sa m_rasterData or \sa m_raster2DData
      * 1. all grid cell number, i.e., ncols * nrows, when m_calcPositions is False
@@ -843,7 +857,7 @@ void clsRasterData<T, MaskT>::_initialize_raster_class() {
     for (int i = 0; i < 6; i++) {
         m_headers.insert(make_pair(RASTER_HEADERS[i], NODATA_VALUE));
     }
-    m_headers.insert(make_pair(HEADER_RS_LAYERS, 1.));
+    m_headers.insert(make_pair(HEADER_RS_LAYERS, -1.));
     m_headers.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
     string statsnames[6] = {STATS_RS_VALIDNUM, STATS_RS_MIN, STATS_RS_MAX, STATS_RS_MEAN,
                             STATS_RS_STD, STATS_RS_RANGE};
@@ -961,6 +975,7 @@ clsRasterData<T, MaskT>::clsRasterData(vector<string> &filenames,
             Release1DArray(tmplyrdata);
         }
         m_is2DRaster = true;
+        m_headers.at(HEADER_RS_LAYERS) = m_nLyrs;  // repair layers count in headers
     }
 }
 
@@ -989,11 +1004,15 @@ template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T *&values) {
     this->_initialize_raster_class();
     m_mask = mask;
+    m_nLyrs = mask->getLayers();
     m_nCells = m_mask->getCellNumber();
     Initialize1DArray(m_nCells, m_rasterData, values); // DO NOT ASSIGN ARRAY DIRECTLY, IN CASE OF MEMORY ERROR!
     this->copyHeader(m_mask->getRasterHeader());
     m_defaultValue = m_mask->getDefaultValue();
     m_calcPositions = false;
+    if (mask->PositionsCalculated()) {
+        mask->getRasterPositionData(&m_nCells, &m_rasterPositionData);
+    }
     m_useMaskExtent = true;
 }
 
@@ -1007,10 +1026,14 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T **&values, 
     Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, values); // DO NOT ASSIGN ARRAY DIRECTLY!
     m_defaultValue = m_mask->getDefaultValue();
     m_useMaskExtent = true;
+    if (mask->PositionsCalculated()) {
+        mask->getRasterPositionData(&m_nCells, &m_rasterPositionData);
+    }
     m_is2DRaster = true;
 }
 
 #ifdef USE_MONGODB
+
 template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(MongoGridFS *gfs, const char *remoteFilename,
                                        bool calcPositions /* = true */,
@@ -1020,6 +1043,16 @@ clsRasterData<T, MaskT>::clsRasterData(MongoGridFS *gfs, const char *remoteFilen
     this->_initialize_raster_class();
     this->ReadFromMongoDB(gfs, remoteFilename, calcPositions, mask, useMaskExtent, defalutValue);
 }
+
+template<typename T, typename MaskT>
+clsRasterData<T, MaskT> *clsRasterData<T, MaskT>::Init(MongoGridFS *gfs, const char *remoteFilename,
+                                                       bool calcPositions /* = true */,
+                                                       clsRasterData<MaskT> *mask /* = nullptr */,
+                                                       bool useMaskExtent /* = true */,
+                                                       T defalutValue /* = (T) NODATA_VALUE */) {
+    return new clsRasterData<T, MaskT>(gfs, remoteFilename, calcPositions, mask, useMaskExtent, defalutValue);
+};
+
 #endif /* USE_MONGODB */
 
 template<typename T, typename MaskT>
@@ -1125,7 +1158,8 @@ double clsRasterData<T, MaskT>::getStatistics(string sindex, int lyr /* = 1 */) 
     {
         map<string, double *>::iterator it = m_statsMap2D.find(sindex);
         if (it != m_statsMap2D.end()) {
-            if (nullptr == it->second || !this->m_statisticsCalculated) {
+            if (nullptr == it->second || m_statisticsCalculated) {
+                m_statisticsCalculated = false;
                 this->calculateStatistics();
             }
             return m_statsMap2D.at(sindex)[lyr - 1];
@@ -1423,7 +1457,7 @@ bool clsRasterData<T, MaskT>::outputASCFile(string filename) {
     int count;
     int **position = nullptr;
     bool outputdirectly = true;
-    if (m_calcPositions) {
+    if (nullptr != m_rasterPositionData) {
         this->getRasterPositionData(&count, &position);
         outputdirectly = false;
         assert(nullptr != position);
@@ -1533,7 +1567,7 @@ bool clsRasterData<T, MaskT>::outputFileByGDAL(string filename) {
     int count;
     int **position = nullptr;
     bool outputdirectly = true;
-    if (m_calcPositions) {
+    if (nullptr != m_rasterPositionData) {
         this->getRasterPositionData(&count, &position);
         outputdirectly = false;
         assert(nullptr != position);
@@ -1609,18 +1643,17 @@ bool clsRasterData<T, MaskT>::outputFileByGDAL(string filename) {
 }
 
 #ifdef USE_MONGODB
+
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::outputToMongoDB(string filename, MongoGridFS *gfs) {
     /// 1. Is there need to calculate valid position index?
     int count;
     int **position;
     bool outputdirectly = true;
-    if (m_calcPositions && nullptr != m_rasterPositionData) {
+    if (nullptr != m_rasterPositionData) {
         this->getRasterPositionData(&count, &position);
         outputdirectly = false;
-    } else if (m_useMaskExtent && nullptr != m_mask) {
-        m_mask->getRasterPositionData(&count, &position);
-        outputdirectly = false;
+        assert(nullptr != position);
     }
     /// 2. Get raster data
     /// 2.1 2D raster data
@@ -1660,13 +1693,12 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string filename, MongoGridFS *gfs)
         if (outputdirectly) {
             rasterdata1D = m_rasterData;
         } else
-            Initialize1DArray(datalength, rasterdata1D, (T) noDataValue);
+            Initialize1DArray(datalength, rasterdata1D, noDataValue);
         int validnum = 0;
         if (!outputdirectly) {
             for (int i = 0; i < nRows; ++i) {
                 for (int j = 0; j < nCols; ++j) {
                     int index = i * nCols + j;
-
                     if (validnum < m_nCells && (position[validnum][0] == i && position[validnum][1] == j)) {
                         rasterdata1D[index] = m_rasterData[validnum];
                         validnum++;
@@ -1680,6 +1712,7 @@ void clsRasterData<T, MaskT>::outputToMongoDB(string filename, MongoGridFS *gfs)
             Release1DArray(rasterdata1D);
     }
 }
+
 template<typename T, typename MaskT>
 void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(MongoGridFS *gfs,
                                                            string filename,
@@ -1697,6 +1730,7 @@ void clsRasterData<T, MaskT>::_write_stream_data_as_gridfs(MongoGridFS *gfs,
     gfs->writeStreamData(filename, buf, buflength, &p);
     bson_destroy(&p);
 }
+
 #endif /* USE_MONGODB */
 
 /************* Read functions ***************/
@@ -1710,32 +1744,10 @@ bool clsRasterData<T, MaskT>::ReadFromFile(string filename, bool calcPositions /
     return this->_construct_from_single_file(filename, calcPositions, mask, useMaskExtent, defalutValue);
 }
 
-template<typename T, typename MaskT>
-bool clsRasterData<T, MaskT>::ReadASCFile(string filename, bool calcPositions /* = true */,
-                                          clsRasterData<MaskT> *mask /* = nullptr */,
-                                          bool useMaskExtent /* = true */,
-                                          T defalutValue /* = (T) NODATA_VALUE */) {
-    if (!_check_raster_files_exist(filename)) return false;
-    this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
-    this->_read_asc_file(m_filePathName, &m_headers, &m_rasterData);
-    m_srs = "";
-    this->_mask_and_calculate_valid_positions();
-    return true;
-}
-
-template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadByGDAL(string filename, bool calcPositions /* = true */,
-                                         clsRasterData<MaskT> *mask /* = nullptr */,
-                                         bool useMaskExtent /* = true */,
-                                         T defalutValue /* = (T) NODATA_VALUE */) {
-    this->_initialize_read_function(filename, calcPositions, mask, useMaskExtent, defalutValue);
-    this->_read_raster_file_by_gdal(m_filePathName, &m_headers, &m_rasterData, &m_srs);
-    this->_mask_and_calculate_valid_positions();
-}
-
 #ifdef USE_MONGODB
+
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS *gfs,
+bool clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS *gfs,
                                               string filename,
                                               bool calcPositions /* = true */,
                                               clsRasterData<MaskT> *mask /* = nullptr */,
@@ -1757,45 +1769,48 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS *gfs,
 
     int nRows = (int) m_headers.at(HEADER_RS_NROWS);
     int nCols = (int) m_headers.at(HEADER_RS_NCOLS);
+    m_nCells = nRows * nCols;
     m_noDataValue = (T) m_headers.at(HEADER_RS_NODATA);
     m_nLyrs = (int) m_headers.at(HEADER_RS_LAYERS);
-    if (m_headers.find(HEADER_RS_CELLSNUM) != m_headers.end()) {
-        m_nCells = (int) m_headers.at(HEADER_RS_CELLSNUM);
-    }
-    /// TODO (by LJ), currently data stored in MongoDB is always float. I can not find a elegant way to make it template.
-    if (m_nCells < 0) {
-        m_nCells = length / sizeof(float) / m_nLyrs;
-    }
 
+    /// TODO (by LJ), currently data stored in MongoDB is always float.
+    ///  I can not find an elegant way to make it templated.
+    assert(m_nCells == length / sizeof(float) / m_nLyrs);
+
+    int validcount = -1;
+    if (m_headers.find(HEADER_RS_CELLSNUM) != m_headers.end()) {
+        validcount = (int)m_headers.at(HEADER_RS_CELLSNUM);
+    }
     /// 3. Store data.
-    bool reBuildData = false;
-    /// check data length
-    if (m_nCells != nRows * nCols) {
-        if (nullptr == m_mask) {
-            print_status("When raster stored in MongoDB is not full-sized, mask data must be provided!");
-        }
-        int nValidMaskNumber = m_mask->getCellNumber();
-        if (nValidMaskNumber != m_nCells) {
-            print_status("The cell number must the same between mask and the current raster data.");
-        }
-    } else { reBuildData = true; }
+    /// check the valid values count and determine whether can read directly.
+    bool reBuildData = true;
+    if (validcount != m_nCells && m_calcPositions && m_useMaskExtent &&
+        nullptr != m_mask && validcount == m_mask->getCellNumber()) {
+        reBuildData = false;
+        m_storePositions = false;
+        m_mask->getRasterPositionData(&m_nCells, &m_rasterPositionData);
+    }
     /// read data directly
     if (m_nLyrs == 1) {
         float *tmpdata = (float *) buf;
         Initialize1DArray(m_nCells, m_rasterData, m_noDataValue);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            m_rasterData[i] = (T) tmpdata[i];
+            int tmpidx = i;
+            if (!reBuildData) tmpidx = m_rasterPositionData[i][0] * this->getCols() + m_rasterPositionData[i][1];
+            m_rasterData[i] = (T) tmpdata[tmpidx];
         }
         Release1DArray(tmpdata);
         m_is2DRaster = false;
     } else {
         float *tmpdata = (float *) buf;
-        m_raster2DData = new T *[m_nCells];
+        Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, m_noDataValue);
+#pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            m_raster2DData[i] = new T[m_nLyrs];
+            int tmpidx = i;
+            if (!reBuildData) tmpidx = m_rasterPositionData[i][0] * this->getCols() + m_rasterPositionData[i][1];
             for (int j = 0; j < m_nLyrs; j++) {
-                int idx = i * m_nLyrs + j;
+                int idx = tmpidx * m_nLyrs + j;
                 m_raster2DData[i][j] = (T) tmpdata[idx];
             }
         }
@@ -1804,8 +1819,11 @@ void clsRasterData<T, MaskT>::ReadFromMongoDB(MongoGridFS *gfs,
     }
     buf = nullptr;
     this->_check_default_value();
-    if (reBuildData) this->_mask_and_calculate_valid_positions();
+    if (reBuildData)
+        this->_mask_and_calculate_valid_positions();
+    return true;
 }
+
 #endif /* USE_MONGODB */
 
 template<typename T, typename MaskT>
@@ -1905,7 +1923,7 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
                 if (-2147483647 >= pData[index]) {
                     m_noDataValue = (T) NODATA_VALUE;
                     tmprasterdata[index] = m_noDataValue;
-                } else tmprasterdata[index] = (T) pData[index];
+                } else { tmprasterdata[index] = (T) pData[index]; }
             }
         }
         CPLFree(pData);
@@ -1918,7 +1936,7 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
                 if (-32767 >= pData[index]) {
                     m_noDataValue = (T) NODATA_VALUE;
                     tmprasterdata[index] = m_noDataValue;
-                } else tmprasterdata[index] = (T) pData[index];
+                } else { tmprasterdata[index] = (T) pData[index]; }
             }
         }
         CPLFree(pData);
@@ -1931,7 +1949,7 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
                 if (-128 >= pData[index]) {
                     m_noDataValue = (T) NODATA_VALUE;
                     tmprasterdata[index] = m_noDataValue;
-                } else tmprasterdata[index] = (T) pData[index];
+                } else { tmprasterdata[index] = (T) pData[index]; }
             }
         }
         CPLFree(pData);
@@ -1969,7 +1987,13 @@ void clsRasterData<T, MaskT>::_add_other_layer_raster_data(int row, int col, int
 }
 
 template<typename T, typename MaskT>
-void clsRasterData<T, MaskT>::Copy(const clsRasterData<T, MaskT> &orgraster) {
+clsRasterData<T, MaskT>::clsRasterData(clsRasterData<T, MaskT> *another) {
+    this->_initialize_raster_class();
+    this->Copy(another);
+}
+
+template<typename T, typename MaskT>
+void clsRasterData<T, MaskT>::Copy(const clsRasterData<T, MaskT> *orgraster) {
     if (m_is2DRaster && nullptr != m_raster2DData && m_nCells > 0) {
         Release2DArray(m_nCells, m_raster2DData);
     }
@@ -1981,36 +2005,47 @@ void clsRasterData<T, MaskT>::Copy(const clsRasterData<T, MaskT> &orgraster) {
     }
     if (m_statisticsCalculated) {
         releaseStatsMap2D();
+        m_statisticsCalculated = false;
     }
-    _initialize_raster_class();
-    m_filePathName = orgraster.getFilePath();
-    m_coreFileName = orgraster.getCoreName();
-    m_nCells = orgraster.getCellNumber();
-    m_noDataValue = orgraster.getNoDataValue();
-    m_defaultValue = orgraster.getDefaultValue();
-    if (orgraster.is2DRaster()) {
+    this->_initialize_raster_class();
+    m_filePathName = orgraster->getFilePath();
+    m_coreFileName = orgraster->getCoreName();
+    m_nCells = orgraster->getCellNumber();
+    m_nLyrs = orgraster->getLayers();
+    m_noDataValue = orgraster->getNoDataValue();
+    m_defaultValue = orgraster->getDefaultValue();
+    if (orgraster->is2DRaster()) {
         m_is2DRaster = true;
-        m_nLyrs = orgraster.getLayers();
-        Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, orgraster.get2DRasterDataPointer());
+        Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, orgraster->get2DRasterDataPointer());
     } else {
         m_rasterData = nullptr;
-        Initialize1DArray(m_nCells, m_rasterData, orgraster.getRasterDataPointer());
+        Initialize1DArray(m_nCells, m_rasterData, orgraster->getRasterDataPointer());
     }
-    m_mask = orgraster.getMask();
-    m_calcPositions = orgraster.PositionsCalculated();
+    m_mask = orgraster->getMask();
+    m_calcPositions = orgraster->PositionsCalculated();
     if (m_calcPositions) {
         m_storePositions = true;
-        Initialize2DArray(m_nCells, 2, m_rasterPositionData, orgraster.getRasterPositionDataPointer());
+        Initialize2DArray(m_nCells, 2, m_rasterPositionData, orgraster->getRasterPositionDataPointer());
     }
-    m_useMaskExtent = orgraster.MaskExtented();
-    m_statisticsCalculated = orgraster.StatisticsCalculated();
+    m_useMaskExtent = orgraster->MaskExtented();
+    m_statisticsCalculated = orgraster->StatisticsCalculated();
     if (m_statisticsCalculated) {
-        map<string, double> stats = orgraster.getStatistics();
-        for (map<string, double>::iterator iter = stats.begin(); iter != stats.end(); iter++) {
-            m_statsMap[iter->first] = iter->second;
+        if (m_is2DRaster) {
+            if (!m_statsMap2D.empty()) releaseStatsMap2D();
+            map<string, double *> stats2D = orgraster->getStatistics2D();
+            for (auto iter = stats2D.begin(); iter != stats2D.end(); iter++) {
+                double *tmpstatvalues = nullptr;
+                Initialize1DArray(m_nLyrs, tmpstatvalues, iter->second);
+                m_statsMap2D.insert(make_pair(iter->first, tmpstatvalues));
+            }
+        } else {
+            map<string, double> stats = orgraster->getStatistics();
+            for (auto iter = stats.begin(); iter != stats.end(); iter++) {
+                m_statsMap[iter->first] = iter->second;
+            }
         }
     }
-    this->copyHeader(orgraster.getRasterHeader());
+    this->copyHeader(orgraster->getRasterHeader());
 }
 
 template<typename T, typename MaskT>
@@ -2364,7 +2399,7 @@ void clsRasterData<T, MaskT>::_mask_and_calculate_valid_positions() {
         m_mask->getRasterPositionData(&m_nCells, &m_rasterPositionData);
         m_storePositions = false;
     } else if ((!m_useMaskExtent && !sameExtentWithMask && !m_calcPositions) ||
-        ((m_useMaskExtent || sameExtentWithMask) && !m_calcPositions)) {
+               ((m_useMaskExtent || sameExtentWithMask) && !m_calcPositions)) {
         // reStore raster values as fullsize array
         m_nCells = this->getCols() * this->getRows();
         store_fullsize_array = true;

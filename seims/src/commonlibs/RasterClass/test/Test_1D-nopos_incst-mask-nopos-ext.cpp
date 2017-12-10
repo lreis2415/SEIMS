@@ -100,6 +100,10 @@ TEST_P(clsRasterDataTestNoPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_EQ(nullptr, rs->getRasterPositionDataPointer());  // m_rasterPositionData
 
     /** Get metadata, m_headers **/
+    map<string, double> header_info = rs->getRasterHeader();
+    EXPECT_FLOAT_EQ(header_info.at("LAYERS"), rs->getLayers());
+    EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), rs->getCellNumber());
+
     EXPECT_EQ(9, rs->getRows());  // use the extent of mask data
     EXPECT_EQ(10, rs->getCols());
     EXPECT_FLOAT_EQ(19.f, rs->getXllCenter());
