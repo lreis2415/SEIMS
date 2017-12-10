@@ -48,6 +48,11 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
 }
 
 int main(int argc, const char **argv) {
+    if (argc < 6) {
+        cout << "Usage: " <<
+            "IUH <MongoDB HOST IP> <PORT> <modelName> <GridFSName> <dateInterval> <nSubbasins>\n";
+        exit(-1);
+    }
     try { 	
         const char *host = argv[1];
         int port = atoi(argv[2]);
