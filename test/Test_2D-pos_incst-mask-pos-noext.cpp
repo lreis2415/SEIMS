@@ -67,8 +67,8 @@ public:
 class clsRasterDataTestMultiPosIncstMaskPosNoExt : public TestWithParam<inputRasterFiles *> {
 public:
     clsRasterDataTestMultiPosIncstMaskPosNoExt() : rs(nullptr), maskrs(nullptr) {}
-    ~clsRasterDataTestMultiPosIncstMaskPosNoExt() override { delete rs; }
-    void SetUp() override {
+    virtual ~clsRasterDataTestMultiPosIncstMaskPosNoExt() { delete rs; }
+    virtual void SetUp() {
         // Read mask data with default parameters, i.e., calculate valid positions.
         maskrs = clsRasterData<int>::Init(GetParam()->mask_name, true);
         ASSERT_NE(nullptr, maskrs);
@@ -81,7 +81,7 @@ public:
         rs = clsRasterData<float, int>::Init(filenames, true, maskrs, false);
         ASSERT_NE(nullptr, rs);
     }
-    void TearDown() override {
+    virtual void TearDown() {
         delete rs;
         delete maskrs;
         rs = nullptr;
