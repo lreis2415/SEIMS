@@ -52,12 +52,13 @@ class ImportMongodbClass(object):
         for i in range(start_id, subbasin_num + 1):
             subdir = cfg.dirs.import2db + os.sep + str(i)
             UtilClass.rmmkdir(subdir)
-        str_cmd = '"%s/import_raster" %s %s %s %s %s %d %s' % (cfg.seims_bin, subbasin_file,
+        str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
                                                                cfg.dirs.geodata2db,
                                                                cfg.spatial_db,
                                                                DBTableNames.gridfs_spatial,
-                                                               cfg.hostname, cfg.port,
-                                                               cfg.dirs.import2db)
+                                                               cfg.hostname, cfg.port)
+        if cfg.cluster:
+            str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         # print (str_cmd)
         UtilClass.run_command(str_cmd)
 
