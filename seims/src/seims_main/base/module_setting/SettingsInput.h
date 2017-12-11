@@ -28,12 +28,12 @@ public:
     explicit SettingsInput(vector<string>& stringvector);
 
     //! Destructor
-    ~SettingsInput() override = default;
+    virtual ~SettingsInput() = default;
 
     static SettingsInput* Init(vector<string>& stringvector);
 
     //! Output to log file
-    void Dump(string& filename) override;
+    virtual void Dump(string& filename);
 
     //! Get start time of simulation
     time_t getStartTime() const { return m_startDate; }

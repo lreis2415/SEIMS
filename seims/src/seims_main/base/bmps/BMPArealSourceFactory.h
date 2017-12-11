@@ -177,13 +177,13 @@ public:
                        const string &collection, const string &location);
 
     /// Destructor
-    ~BMPArealSrcFactory() override;
+    virtual ~BMPArealSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
+    virtual void loadBMP(MongoClient *conn, const string &bmpDBName);
 
     /// Output
-    void Dump(ostream *fs) override;
+    virtual void Dump(ostream *fs);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
@@ -200,10 +200,10 @@ public:
     void ReadArealSourceLocations(MongoClient *conn, const string &bmpDBName);
 
     /// Set raster data if needed
-    void setRasterData(map<string, FloatRaster*> &sceneRsMap) override;
+    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap);
 
     /// Get management fields data
-    float *getRasterData() override { return m_mgtFieldsRs; };
+    virtual float *getRasterData() { return m_mgtFieldsRs; };
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 
