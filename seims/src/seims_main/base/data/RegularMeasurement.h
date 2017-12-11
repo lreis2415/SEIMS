@@ -37,10 +37,10 @@ public:
                        time_t endTime, time_t interval);
 
     //! Destructor
-    ~RegularMeasurement() override;
+    virtual ~RegularMeasurement();
 
     //! Get site date by time \a pData
-    float *GetSiteDataByTime(time_t t) override;
+    virtual float *GetSiteDataByTime(time_t t);
 
 private:
     //! site data : the first dimension is time, and the second dimension is data by sites

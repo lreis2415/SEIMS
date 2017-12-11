@@ -193,13 +193,13 @@ public:
                        int bmpType, int bmpPriority, vector<string> &distribution,
                        const string &collection, const string &location);
     /// Destructor
-    ~BMPPointSrcFactory() override;
+    virtual ~BMPPointSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
+    virtual void loadBMP(MongoClient *conn, const string &bmpDBName);
 
     /// Output
-    void Dump(ostream *fs) override;
+    virtual void Dump(ostream *fs);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
