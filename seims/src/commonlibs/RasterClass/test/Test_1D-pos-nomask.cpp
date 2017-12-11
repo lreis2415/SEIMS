@@ -39,13 +39,13 @@ const char *tif_file_chars = tif_file.c_str();
 class clsRasterDataTestPosNoMask : public TestWithParam<const char *> {
 public:
     clsRasterDataTestPosNoMask() : rs(nullptr) {}
-    ~clsRasterDataTestPosNoMask() override { delete rs; }
-    void SetUp() override {
+    virtual ~clsRasterDataTestPosNoMask() { delete rs; }
+    virtual void SetUp() {
         rs = clsRasterData<float>::Init(GetParam());  // recommended way
         //rs = new clsRasterData<float>(GetParam());  // unsafe way
         ASSERT_NE(nullptr, rs);
     }
-    void TearDown() override {
+    virtual void TearDown() {
         delete rs;
         rs = nullptr;
     }
