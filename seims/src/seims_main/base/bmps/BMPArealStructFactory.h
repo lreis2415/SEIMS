@@ -67,16 +67,16 @@ public:
                           const string& collection, const string& location);
     
     /// Destructor
-	~BMPArealStructFactory() override;
+    virtual ~BMPArealStructFactory();
 
 	//! Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string &bmpDBName) override;
+    virtual void loadBMP(MongoClient* conn, const string &bmpDBName);
 
     //! Set raster data if needed
-    void setRasterData(map<string, FloatRaster*> &sceneRsMap) override;
+    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap);
 
     //! Get management fields data
-    float* getRasterData() override { return m_mgtFieldsRs; };
+    virtual float* getRasterData() { return m_mgtFieldsRs; };
 
     //! Get effect unit IDs
     const vector<int>& getUnitIDs() const { return m_unitIDs; }
@@ -85,7 +85,7 @@ public:
     const map<int, BMPArealStruct*>& getBMPsSettings() const { return m_bmpStructMap; }
 
 	//! Output
-	void Dump(ostream *fs) override;
+    virtual void Dump(ostream *fs);
 
 private:
     //! management units file name
