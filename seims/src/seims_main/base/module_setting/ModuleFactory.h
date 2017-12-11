@@ -9,8 +9,6 @@
 #ifndef SEIMS_MODULE_FACTORY_H
 #define SEIMS_MODULE_FACTORY_H
 
-#include "tinyxml.h"
-
 #include "seims.h"
 #include "SEIMS_ModuleSetting.h"
 #include "MetadataInfo.h"
@@ -19,6 +17,9 @@
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
 #include "DataCenter.h"
+
+#include "tinyxml.h"
+
 
 using namespace std;
 using namespace MainBMP;
@@ -29,9 +30,9 @@ public:
      * \brief Constructor of ModuleFactory from \sa DataCenter
      * \param[in] dcenter
      */
-    ModuleFactory(DataCenterMongoDB* dcenter);
+    explicit ModuleFactory(DataCenterMongoDB* dcenter);
     //! Destructor
-    ~ModuleFactory(void);
+    ~ModuleFactory();
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
     float CreateModuleList(vector<SimulationModule *>& modules);
@@ -169,9 +170,9 @@ private:
     /*           Parameters created during constructor                      */
     /************************************************************************/
     //! Simulation module instance
-    typedef SimulationModule *(*InstanceFunction)(void);
+    typedef SimulationModule *(*InstanceFunction)();
     //! Simulation module metadata
-    typedef const char *(*MetadataFunction)(void);
+    typedef const char *(*MetadataFunction)();
     //! Module IDs
     vector<string>                     m_moduleIDs;
     //! instance map of modules
@@ -179,7 +180,7 @@ private:
     //! Metadata map of modules
     map<string, MetadataFunction>      m_metadataFuncs;
     //! dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
-#ifdef windows
+#ifdef WIN32
     vector<HINSTANCE>                  m_dllHandles;
 #else
     vector<void *>                     m_dllHandles;

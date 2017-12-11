@@ -22,7 +22,7 @@
 #include <omp.h>
 #endif /* SUPPORT_OMP */
 
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace std;
 

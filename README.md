@@ -33,20 +33,36 @@ Currently, only Chinese-version wiki is provided and hosted on Github, English-v
 + [Linux](https://github.com/lreis2415/SEIMS2017/wiki/Linux)
 + [macOS](https://github.com/lreis2415/SEIMS2017/wiki/macOS)
 
+Generally, with the required dependencies (i.e., cmake, C++ compiler, GDAL, mongo-c-driver), the compilation and installation should follows:
+
+```shell
+cd <path-to-SEIMS>
+mkdir build
+cd build
+cmake ..
+make -j4
+make install
+```
+
+Besides, Python 2.7+ with Numpy, GDAL, pymongo, matplotlib, etc. is also required.
+
 ### 3.3.Config MongoDB database
+
 + [Install MongoDB client and start mongo service automatically.](https://github.com/lreis2415/SEIMS2017/wiki/MongoDB-install-and-config)
-+ You may need a MongoDB IDE to view and edit data. MongoVUE, Robomongo, or Mongo Explorer for JetBrains (e.g. PyCharm, CLion) are recommended.
++ You may need a MongoDB IDE to view and edit data. MongoVUE, Robo 3T (formerly Robomongo), or Mongo Explorer for JetBrains (e.g. PyCharm, CLion) are recommended.
 
 ### 3.4.Run the Demo data
-Demo data is provided in `~/data`. SEIMS workflow can be summerized as five part.
+Demo data is provided in `~/data`. 
+### 3.5.Build your own model
+Now, you can build you own SEIMS model!
+
+SEIMS workflow can be summarized as five part.
+
 + a) [Data preparation](https://github.com/lreis2415/SEIMS2017/wiki/Data-preparation) and [Preprocessing for SEIMS](https://github.com/lreis2415/SEIMS2017/wiki/Data-preprocess)
 + b) [Run SEIMS model](https://github.com/lreis2415/SEIMS2017/wiki/Executation-and-calibration)
 + c) [Postprocess, e.g. export hydrograph](https://github.com/lreis2415/SEIMS2017/wiki/result-postprocess)
 + d) Model calibration
 + e) Scenario analysis
-
-### 3.5.Build your own model
-Now, you can build you own SEIMS model!
 
 
 Contact Us
@@ -55,4 +71,4 @@ Dr.Junzhi Liu (liujunzhi@njnu.edu.cn)
 
 Liangjun Zhu (zlj@lreis.ac.cn)
 
-*Updated: 2017-3-21*
+*Updated: 2017-12-7*

@@ -26,16 +26,16 @@ public:
     InputStation(MongoClient *conn, time_t dtHillslope, time_t dtChannel);
 
     //! Destructor
-    ~InputStation(void);
+    ~InputStation();
 
     //! Get site number of given site type
-    int NumberOfSites(string siteType) const { return m_numSites.at(siteType); }
+    int NumberOfSites(const char *site_type) const { return m_numSites.at(site_type); }
 
     //! Get elevations of given site type
-    float* GetElevation(string type) const { return m_elevation.at(type); }
+    float* GetElevation(const char *type) const { return m_elevation.at(type); }
 
     //! Get latitudes of given site type
-    float* GetLatitude(string type) const { return m_latitude.at(type); }
+    float* GetLatitude(const char *type) const { return m_latitude.at(type); }
 
     /*!
      * \brief Get time series data

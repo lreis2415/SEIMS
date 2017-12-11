@@ -3,10 +3,6 @@
 #include "utils.h"
 
 /************ utilsTime ******************/
-utilsTime::utilsTime(void) {}
-
-utilsTime::~utilsTime(void) {}
-
 double utilsTime::TimeCounting() {
 #ifdef windows
     LARGE_INTEGER li;
@@ -15,13 +11,13 @@ double utilsTime::TimeCounting() {
         double PCFreq = 0.;
         PCFreq = double(li.QuadPart);
         QueryPerformanceCounter(&li);
-        return (double)li.QuadPart / PCFreq; // seconds
+        return (double) li.QuadPart / PCFreq; // seconds
+    } else {
+        return (double) clock() / CLK_TCK;
     }
-    else
-        return (double)clock() / CLK_TCK;
 #else
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.;
 #endif /* windows */
 }
@@ -81,7 +77,7 @@ string utilsTime::ConvertToString2(const time_t *date) {
     return s;
 }
 
-time_t utilsTime::ConvertToTime(const string& strDate, string const &format, bool includeHour) {
+time_t utilsTime::ConvertToTime(const string &strDate, string const &format, bool includeHour) {
     struct tm *timeinfo;
     time_t t(0);
     if (utilsString::StringMatch(strDate, "")) {
@@ -202,11 +198,7 @@ void utilsTime::LocalTime(time_t date, struct tm *t) {
 }
 
 /************ utilsString ****************/
-utilsString::utilsString(void) {}
-
-utilsString::~utilsString(void) {}
-
-string utilsString::GetUpper(string const &str) {
+string utilsString::GetUpper(const string &str) {
     string strTmp1 = string(str);
     for (int j = 0; j < (int) strTmp1.length(); j++) strTmp1[j] = (char) toupper(strTmp1[j]);
     return strTmp1;
@@ -225,7 +217,7 @@ void utilsString::TrimSpaces(string &str) {
     }
 }
 
-vector<string> utilsString::SplitString(string const &item, char delimiter) {
+vector<string> utilsString::SplitString(const string &item, char delimiter) {
     istringstream iss(item);
     vector<string> tokens;
 
@@ -234,39 +226,41 @@ vector<string> utilsString::SplitString(string const &item, char delimiter) {
         tokens.push_back(field);
     }
     vector<string>(tokens).swap(tokens);
+    // tokens.shrink_to_fit(); // C++11, which may not supported by compiler
     return tokens;
 }
 
-vector<int> utilsString::SplitStringForInt(string const &item, char delimiter) {
+vector<int> utilsString::SplitStringForInt(const string &item, char delimiter) {
     vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<int> values;
-    for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
-        values.push_back(atoi((*it).c_str()));
+    for (auto it = valueStrs.begin(); it != valueStrs.end(); it++) {
+        values.emplace_back(atoi((*it).c_str()));
     }
     vector<int>(values).swap(values);
+    // values.shrink_to_fit();
     return values;
 }
 
-vector<float> utilsString::SplitStringForFloat(string const &item, char delimiter) {
+vector<float> utilsString::SplitStringForFloat(const string &item, char delimiter) {
     vector<string> valueStrs = utilsString::SplitString(item, delimiter);
     vector<float> values(valueStrs.size());
-    for (vector<string>::iterator it = valueStrs.begin(); it != valueStrs.end(); it++) {
-        values.push_back((float) atof((*it).c_str()));
+    for (auto it = valueStrs.begin(); it != valueStrs.end(); it++) {
+        values.emplace_back((float) atof((*it).c_str()));
     }
     return values;
 }
 
-vector<string> utilsString::SplitString(string const &item) {
+vector<string> utilsString::SplitString(const string &item) {
     istringstream iss(item);
     vector<string> tokens;
 
     std::string field;
     iss >> field;
     while (!iss.eof()) {
-        tokens.push_back(field);
+        tokens.emplace_back(field);
         iss >> field;
     }
-    tokens.push_back(field);
+    tokens.emplace_back(field);
 
     return tokens;
 }
@@ -275,7 +269,7 @@ bool utilsString::StringMatch(const char *a, const char *b) {
     return strcasecmp(a, b) == 0;
 }
 
-bool utilsString::StringMatch(string const &text1, string const &text2) {
+bool utilsString::StringMatch(const string &text1, const string &text2) {
     // convert the key to UPPERCASE for comparison
     string strTmp1 = utilsString::GetUpper(text1);
     string strTmp2 = utilsString::GetUpper(text2);
@@ -291,10 +285,6 @@ string &utilsString::trim(string &s) {
 }
 
 /************ utilsArray *****************/
-utilsArray::utilsArray(void) {}
-
-utilsArray::~utilsArray(void) {}
-
 void utilsArray::Output1DArrayToTxtFile(int n, CFLOATPTR data, const char *filename) {
     ofstream ofs(filename);
     for (int i = 0; i < n; ++i) {
@@ -360,10 +350,6 @@ void utilsArray::Read2DArrayFromString(const char *s, int &nRows, float **&data)
 }
 
 /************ utilsMath ******************/
-utilsMath::utilsMath(void) {}
-
-utilsMath::~utilsMath(void) {}
-
 float utilsMath::Expo(float xx, float upper /* = 20.f */, float lower /* = -20.f */) {
     if (xx < lower) xx = lower;
     if (xx > upper) xx = upper;
@@ -379,10 +365,6 @@ float utilsMath::Power(float a, float n) {
 }
 
 /************ utilsFileIO ******************/
-utilsFileIO::utilsFileIO(void) {}
-
-utilsFileIO::~utilsFileIO(void) {}
-
 #ifndef windows
 
 int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
@@ -422,9 +404,10 @@ int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
     return 0;
 }
 
-#endif /* not windows */
+#endif /* windows */
 
 bool utilsFileIO::FileExists(string const &FileName) {
+
 #ifdef windows
     struct _finddata_t fdt;
     intptr_t ptr = _findfirst(FileName.c_str(), &fdt);
@@ -441,7 +424,8 @@ bool utilsFileIO::FileExists(string const &FileName) {
 }
 
 bool utilsFileIO::PathExists(string const &fullpath) {
-    const char *path = fullpath.c_str();
+    string abspath = utilsFileIO::GetAbsolutePath(fullpath);
+    const char *path = abspath.c_str();
     bool isExists;
 #ifdef windows
     struct _stat fileStat;
@@ -453,45 +437,49 @@ bool utilsFileIO::PathExists(string const &fullpath) {
     return isExists;
 }
 
-int utilsFileIO::DeleteExistedFile(string const &filepath) {
-    if (utilsFileIO::FileExists(filepath)) {
-        return remove(filepath.c_str());
+int utilsFileIO::DeleteExistedFile(const string &filepath) {
+    string abspath = utilsFileIO::GetAbsolutePath(filepath);
+    if (utilsFileIO::FileExists(abspath)) {
+        return remove(abspath.c_str());
     } else {
         return -1;
     }
 }
 
 int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
+    string abspath = utilsFileIO::GetAbsolutePath(lpPath);
+    const char* newlpPath = abspath.c_str();
 #ifdef windows
     char szFind[MAX_PATH];
-    stringcpy(szFind, lpPath);
+    stringcpy(szFind, newlpPath);
     stringcat(szFind, SEP);
     stringcat(szFind, expression);
 
     WIN32_FIND_DATA findFileData;
     HANDLE hFind = ::FindFirstFile(szFind, &findFileData);
-    if (INVALID_HANDLE_VALUE == hFind)
+    if (INVALID_HANDLE_VALUE == hFind) {
         return -1;
-    do
-    {
-        if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    }
+    do {
+        if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             continue;
+        }
 
         char fullpath[MAX_PATH];
-        stringcpy(fullpath, lpPath);
+        stringcpy(fullpath, newlpPath);
         stringcat(fullpath, SEP);
         stringcat(fullpath, findFileData.cFileName);
 
-        vecFiles.push_back(fullpath);
+        vecFiles.emplace_back(fullpath);
 
     } while (::FindNextFile(hFind, &findFileData));
 #else
-    DIR *dir = opendir(lpPath);
+    DIR *dir = opendir(newlpPath);
     //cout<<"Find existed files ..."<<endl;
     if (dir) {
         struct dirent *hFile;
         errno = 0;
-        while ((hFile = readdir(dir)) != NULL) {
+        while ((hFile = readdir(dir)) != nullptr) {
             if (!strcmp(hFile->d_name, ".")) continue;
             if (!strcmp(hFile->d_name, "..")) continue;
 
@@ -507,9 +495,9 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
                 || utilsString::StringMatch(expression, ".*")
                 || utilsString::StringMatch(expression, "*.*")) {
                 ostringstream oss;
-                oss << lpPath << SEP << filename;
+                oss << newlpPath << SEP << filename;
                 cout << oss.str() << endl;
-                vecFiles.push_back(oss.str());
+                vecFiles.emplace_back(oss.str());
             }
         }
         closedir(dir);
@@ -518,48 +506,141 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
     return 0;
 }
 
-bool utilsFileIO::DirectoryExists(const string& dirpath) {
+bool utilsFileIO::DirectoryExists(const string &dirpath) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
 #ifdef windows
-    if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+    if (::GetFileAttributes(abspath.c_str()) == INVALID_FILE_ATTRIBUTES) {
 #else
-    if (access(dirpath.c_str(), F_OK) != 0) {
+        if (access(abspath.c_str(), F_OK) != 0) {
 #endif /* windows */
         return false;
-    }
-    else {
+    } else {
         return true;
     }
 }
 
-bool utilsFileIO::CleanDirectory(const string& dirpath) {
-    try{
-        if (utilsFileIO::DirectoryExists(dirpath)) { /// empty the directory
+bool utilsFileIO::CleanDirectory(const string &dirpath) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
+    try {
+        if (utilsFileIO::DirectoryExists(abspath)) { /// empty the directory
             vector<string> existedFiles;
-            utilsFileIO::FindFiles(dirpath.c_str(), "*.*", existedFiles);
-            for (vector<string>::iterator it = existedFiles.begin(); it != existedFiles.end(); ++it)
+            utilsFileIO::FindFiles(abspath.c_str(), "*.*", existedFiles);
+            for (auto it = existedFiles.begin(); it != existedFiles.end(); ++it) {
                 remove((*it).c_str());
-        } 
-        else { /// create new directory
+            }
+        } else { /// create new directory
 #ifdef windows
-            LPSECURITY_ATTRIBUTES att = NULL;
-            ::CreateDirectory(dirpath.c_str(), att);
+            LPSECURITY_ATTRIBUTES att = nullptr;
+            ::CreateDirectory(abspath.c_str(), att);
 #else
-            mkdir(dirpath.c_str(), 0777);
+            mkdir(abspath.c_str(), 0777);
 #endif /* windows */
         }
         return true;
     }
     catch (...) {
-        cout << "Create or clean directory: " << dirpath << " failed!" << endl;
+        cout << "Create or clean directory: " << abspath << " failed!" << endl;
         return false;
     }
+}
+
+bool utilsFileIO::DeleteDirectory(const string &dirpath, bool delSubdirs/* = true */) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
+    if (!utilsFileIO::DirectoryExists(abspath)) return true;
+#ifdef windows
+    bool            bSubdirectory = false;       // Flag, indicating whether
+                                                 //   subdirectories have been found
+    HANDLE          hFile;                       // Handle to directory
+    std::string     strFilePath;                 // Filepath
+    std::string     strPattern;                  // Pattern
+    WIN32_FIND_DATA FileInformation;             // File information
+
+    strPattern = abspath + SEP + "*.*";
+    hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
+    if(hFile != INVALID_HANDLE_VALUE) {
+        do {
+            if(FileInformation.cFileName[0] != '.') {
+                strFilePath.erase();
+                strFilePath = abspath + SEP + FileInformation.cFileName;
+                if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    if(delSubdirs) {
+                        // Delete subdirectory
+                        bool iRC = utilsFileIO::DeleteDirectory(strFilePath, delSubdirs);
+                        if(!iRC) return false;
+                    } else bSubdirectory = true;
+                }
+                else {
+                    // Set file attributes
+                    if(::SetFileAttributes(strFilePath.c_str(), FILE_ATTRIBUTE_NORMAL) == FALSE) {
+                        // ::GetLastError();
+                        return false;
+                    }
+                    // Delete file
+                    if(::DeleteFile(strFilePath.c_str()) == FALSE) {
+                        // ::GetLastError();
+                        return false;
+                    }
+                }
+            }
+        } while(::FindNextFile(hFile, &FileInformation) == TRUE);
+
+        // Close handle
+        ::FindClose(hFile);
+
+        DWORD dwError = ::GetLastError();
+        if(dwError != ERROR_NO_MORE_FILES) {
+            // dwError;
+            return false;
+        }
+        else {
+            if(!bSubdirectory) {
+                // Set directory attributes
+                if(::SetFileAttributes(abspath.c_str(), FILE_ATTRIBUTE_NORMAL) == FALSE) {
+                    // ::GetLastError();
+                    return false;
+                }
+                // Delete directory
+                if(::RemoveDirectory(abspath.c_str()) == FALSE) {
+                    // ::GetLastError();
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+#else
+    DIR *dir;
+    struct dirent *entry;
+    char path[PATH_MAX];
+
+    dir = opendir(abspath.c_str());
+    if (dir == NULL) {
+        perror("Error opendir()");
+        return true;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+            snprintf(path, (size_t) PATH_MAX, "%s/%s", abspath.c_str(), entry->d_name);
+            if (entry->d_type == DT_DIR && delSubdirs) {
+                utilsFileIO::DeleteDirectory(path, delSubdirs);
+            }
+            printf("Deleting: %s\n", path);
+            remove(path);
+        }
+    }
+    closedir(dir);
+    printf("Deleting: %s\n", abspath.c_str());
+    remove(abspath.c_str());
+    return true;
+#endif /* windows */
 }
 
 string utilsFileIO::GetAppPath() {
     string RootPath;
 #ifdef windows
     TCHAR buffer[PATH_MAX];
-    GetModuleFileName(NULL, buffer, PATH_MAX);
+    GetModuleFileName(nullptr, buffer, PATH_MAX);
     RootPath = string((char *) buffer);
 #elif (defined macos) || (defined macosold)
     /// http://stackoverflow.com/a/8149380/4837280
@@ -591,26 +672,30 @@ string utilsFileIO::GetAppPath() {
     return RootPath;
 }
 
+string utilsFileIO::GetAbsolutePath(string const &fullFileName) {
+#ifdef windows
+    TCHAR full_path[MAX_PATH];
+    GetFullPathName(fullFileName.c_str(), MAX_PATH, full_path, nullptr);
+#else
+    char full_path[PATH_MAX];
+    realpath(fullFileName.c_str(), full_path);
+#endif /* windows */
+    return string(full_path);
+}
+
 string utilsFileIO::GetCoreFileName(string const &fullFileName) {
-    string::size_type start = fullFileName.find_last_of(SEP);
-    if (fullFileName.find_last_of("/") != string::npos) {
-        start = fullFileName.find_last_of("/");
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    string::size_type start = abspath.find_last_of(SEP);
+    string::size_type end = abspath.find_last_of(".");
+    if (end == string::npos) {
+        end = abspath.length();
     }
-    // since string::npos is -1, these if-statement can be uncommented. Todo: be confirmed.
-    if (start == string::npos) {
-        start = -1;
-    } // old code: start = 0; Modified by ZhuLJ, 2015/6/16
-
-    string::size_type end = fullFileName.find_last_of(".");
-
-    if (end == string::npos)
-        end = fullFileName.length();
-
-    return fullFileName.substr(start + 1, end - start - 1);
+    return abspath.substr(start + 1, end - start - 1);
 }
 
 string utilsFileIO::GetSuffix(string const &fullFileName) {
-    vector<string> tokens = utilsString::SplitString(fullFileName, '.');
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    vector<string> tokens = utilsString::SplitString(abspath, '.');
     if (tokens.size() >= 2) {
         return tokens[tokens.size() - 1];
     } else {
@@ -622,34 +707,34 @@ string utilsFileIO::ReplaceSuffix(string const &fullFileName, string const &newS
     string filedir = utilsFileIO::GetPathFromFullName(fullFileName);
     string corename = utilsFileIO::GetCoreFileName(fullFileName);
     string oldSuffix = utilsFileIO::GetSuffix(fullFileName);
-    if (filedir == "" || oldSuffix == "") return "";
+    if (filedir.empty() || oldSuffix.empty()) return "";
     return filedir + corename + "." + newSuffix;
 }
 
 string utilsFileIO::GetPathFromFullName(string const &fullFileName) {
-    string::size_type i = fullFileName.find_last_of("\\");
-    if (fullFileName.find_last_of("/") != string::npos) {
-        i = fullFileName.find_last_of("/");
-    }
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    string::size_type i = abspath.find_last_of(SEP);
     if (i == string::npos) {
+        cout << "No valid path in " << fullFileName << ", please check!" << endl;
         return "";
     }
-    return fullFileName.substr(0, i + 1);
+    return abspath.substr(0, i + 1);
 }
 
-bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& contentStrs) {
+bool utilsFileIO::LoadPlainTextFile(const string &filepath, vector<string> &contentStrs) {
+    string abspath = utilsFileIO::GetAbsolutePath(filepath);
     bool bStatus = false;
     ifstream myfile;
     string line;
     try {
         // open the file
-        myfile.open(filepath.c_str(), ios::in);
+        myfile.open(abspath.c_str(), ios::in);
         if (myfile.is_open()) {
             while (!myfile.eof()) {
                 if (myfile.good()) {
                     getline(myfile, line);
                     line = utilsString::trim(line);
-                    if ((line.size() > 0) && (line[0] != '#')) // ignore comments and empty lines
+                    if ((!line.empty()) && (line[0] != '#')) // ignore comments and empty lines
                     {
                         contentStrs.push_back(line);
                         bStatus = true; // consider this a success
@@ -659,6 +744,7 @@ bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& cont
             bStatus = true;
             myfile.close();
             vector<string>(contentStrs).swap(contentStrs);
+            // contentStrs.shrink_to_fit();
         }
     }
     catch (...) {
@@ -669,16 +755,12 @@ bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& cont
 }
 
 /************ utils ******************/
-utils::utils(void) {}
-
-utils::~utils(void) {}
-
 bool utils::isIPAddress(const char *ip) {
     const char *pChar;
     bool rv = true;
     int tmp1, tmp2, tmp3, tmp4, i;
 
-    while (1) {
+    while (true) {
         i = stringscanf(ip, "%d.%d.%d.%d", &tmp1, &tmp2, &tmp3, &tmp4);
         if (i != 4) {
             rv = false;
@@ -751,12 +833,12 @@ int utils::GetAvailableThreadNum() {
     mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
 
     /* get the number of CPUs from the system */
-    sysctl(mib, 2, &numCPU, &len, NULL, 0);
+    sysctl(mib, 2, &numCPU, &len, nullptr, 0);
 
     if (numCPU < 1)
     {
         mib[1] = HW_NCPU;
-        sysctl(mib, 2, &numCPU, &len, NULL, 0);
+        sysctl(mib, 2, &numCPU, &len, nullptr, 0);
         if (numCPU < 1)
             numCPU = 1;
     }

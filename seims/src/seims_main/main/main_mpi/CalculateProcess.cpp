@@ -9,7 +9,7 @@
 #include "invoke.h"
 #include "ModuleFactory.h"
 #include "ClimateParams.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 //#include "SimulationModule.h"
 #include "mongoc.h"
 // #include "mongo.h"
