@@ -75,7 +75,7 @@ protected:
 // Since each TEST_P will invoke SetUp() and TearDown()
 // once, we put all tests in once test case. by lj.
 TEST_P(clsRasterDataTestNoPosIncstMaskNoPosExt, RasterIO) {
-    EXPECT_FALSE(maskrs->PositionsCalculated());  // At first, positions was not calc.
+    EXPECT_TRUE(maskrs->PositionsCalculated());  // When use mask's extent, positions will be calculated.
     /// 1. Test members after constructing.
     EXPECT_EQ(90, rs->getDataLength());  // m_nCells, which will be nRows * nCols
     EXPECT_EQ(90, rs->getCellNumber());  // m_nCells, which is the extent of mask data
@@ -226,7 +226,7 @@ TEST_P(clsRasterDataTestNoPosIncstMaskNoPosExt, RasterIO) {
     /* Get position data, which will be calculated if not existed */
     ncells = -1;
     int **positions = nullptr;
-    EXPECT_FALSE(maskrs->PositionsCalculated());
+    EXPECT_TRUE(maskrs->PositionsCalculated());
     rs->getRasterPositionData(&ncells, &positions);  // m_rasterPositionData
     EXPECT_TRUE(rs->PositionsCalculated());
     EXPECT_TRUE(rs->PositionsAllocated());

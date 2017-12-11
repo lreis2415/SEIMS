@@ -116,13 +116,13 @@ TEST_P(clsRasterDataTestIncstMaskPos, RasterIO) {
         }
     }
     /// output array to raster file and destructor the clsRasterData instance immediately
-    clsRasterData<float, int>* new1draster = new clsRasterData<float, int>(maskrs, vs);
+    clsRasterData<float, int> *new1draster = new clsRasterData<float, int>(maskrs, vs);
     string oldfullname = maskrs->getFilePath();
     string new1dfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
         "ctor_mask-pos_array_1d" + "." + GetSuffix(oldfullname);
     new1draster->outputToFile(new1dfullname);
 
-    clsRasterData<float, int>* new2draster = new clsRasterData<float, int>(maskrs, vs2, 3);
+    clsRasterData<float, int> *new2draster = new clsRasterData<float, int>(maskrs, vs2, 3);
     string new2dfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
         "ctor_mask-pos_array_2d" + "." + GetSuffix(oldfullname);
     new2draster->outputToFile(new2dfullname);

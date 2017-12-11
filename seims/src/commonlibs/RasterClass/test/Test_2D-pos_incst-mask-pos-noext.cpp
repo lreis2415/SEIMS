@@ -1,11 +1,11 @@
 /*!
  * @brief Test description:
  *                      CalcPositions UseMaskExtent ExtentConsistent  SingleLayer
- *        Raster data:      YES           YES            NO               NO
+ *        Raster data:      YES            NO            NO               NO
  *        Mask data  :      YES            --            NO               YES
  *
  *        TEST CASE NAME (or TEST SUITE): 
- *            clsRasterDataTestMultiPosIncstMaskPosExt
+ *            clsRasterDataTestMultiPosIncstMaskPosNoExt
  *
  *        P.S.1. Copy constructor is also tested here.
  *        P.S.2. MongoDB I/O is also tested if mongo-c-driver configured.
@@ -64,10 +64,10 @@ public:
 //can refer to the test parameter by GetParam().  In this case, the test
 //parameter is a factory function which we call in fixture's SetUp() to
 //create and store an instance of clsRasterData<float>.
-class clsRasterDataTestMultiPosIncstMaskPosExt : public TestWithParam<inputRasterFiles *> {
+class clsRasterDataTestMultiPosIncstMaskPosNoExt : public TestWithParam<inputRasterFiles *> {
 public:
-    clsRasterDataTestMultiPosIncstMaskPosExt() : rs(nullptr), maskrs(nullptr) {}
-    ~clsRasterDataTestMultiPosIncstMaskPosExt() override { delete rs; }
+    clsRasterDataTestMultiPosIncstMaskPosNoExt() : rs(nullptr), maskrs(nullptr) {}
+    ~clsRasterDataTestMultiPosIncstMaskPosNoExt() override { delete rs; }
     void SetUp() override {
         // Read mask data with default parameters, i.e., calculate valid positions.
         maskrs = clsRasterData<int>::Init(GetParam()->mask_name, true);
@@ -78,7 +78,7 @@ public:
         filenames.emplace_back(GetParam()->raster_name2);
         filenames.emplace_back(GetParam()->raster_name3);
 
-        rs = clsRasterData<float, int>::Init(filenames, true, maskrs, true);
+        rs = clsRasterData<float, int>::Init(filenames, true, maskrs, false);
         ASSERT_NE(nullptr, rs);
     }
     void TearDown() override {
@@ -94,10 +94,10 @@ protected:
 
 // Since each TEST_P will invoke SetUp() and TearDown()
 // once, we put all tests in once test case. by lj.
-TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
+TEST_P(clsRasterDataTestMultiPosIncstMaskPosNoExt, RasterIO) {
     /// 1. Test members after constructing.
-    EXPECT_EQ(73, rs->getDataLength());  // m_nCells
-    EXPECT_EQ(73, rs->getCellNumber());  // m_nCells
+    EXPECT_EQ(64, rs->getDataLength());  // m_nCells
+    EXPECT_EQ(64, rs->getCellNumber());  // m_nCells
 
     EXPECT_FLOAT_EQ(-9999.f, rs->getNoDataValue());  // m_noDataValue
     EXPECT_FLOAT_EQ(-9999.f, rs->getDefaultValue());  // m_defaultValue
@@ -108,8 +108,8 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     EXPECT_TRUE(rs->Initialized());  // m_initialized
     EXPECT_TRUE(rs->is2DRaster());  // m_is2DRaster
     EXPECT_TRUE(rs->PositionsCalculated());  // m_calcPositions
-    EXPECT_FALSE(rs->PositionsAllocated());  // m_storePositions
-    EXPECT_TRUE(rs->MaskExtented());  // m_useMaskExtent
+    EXPECT_TRUE(rs->PositionsAllocated());  // m_storePositions
+    EXPECT_FALSE(rs->MaskExtented());  // m_useMaskExtent
     EXPECT_FALSE(rs->StatisticsCalculated());  // m_statisticsCalculated
 
     ASSERT_TRUE(rs->validate_raster_data());
@@ -123,7 +123,7 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(header_info.at("LAYERS"), rs->getLayers());
     EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), rs->getCellNumber());
 
-    EXPECT_EQ(9, rs->getRows());
+    EXPECT_EQ(8, rs->getRows());
     EXPECT_EQ(10, rs->getCols());
     EXPECT_FLOAT_EQ(19.f, rs->getXllCenter());
     EXPECT_FLOAT_EQ(25.f, rs->getYllCenter());
@@ -170,24 +170,24 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     float **rs_2ddata = nullptr;
     int nlyrs = -1;
     EXPECT_TRUE(rs->get2DRasterData(&ncells, &nlyrs, &rs_2ddata));  // m_raster2DData
-    EXPECT_EQ(73, ncells);
+    EXPECT_EQ(64, ncells);
     EXPECT_EQ(3, nlyrs);
     EXPECT_NE(nullptr, rs_2ddata);
     // raster layer 1
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][0]);
-    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][0]);
-    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[27][0]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[0][0]);
+    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[63][0]);
+    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[21][0]);
     // raster layer 2
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][1]);
-    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][1]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[27][1]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[0][1]);
+    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[63][1]);
+    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[21][1]);
     // raster layer 3
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][2]);
-    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][2]);
-    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[27][2]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[0][2]);
+    EXPECT_FLOAT_EQ(9.85f, rs_2ddata[63][2]);
+    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[21][2]);
 
     // Set core file name
-    string newcorename = "dem_2D-pos_incst-mask-pos-ext";
+    string newcorename = "dem_2D-pos_incst-mask-pos-noext";
     rs->setCoreName(newcorename);
     EXPECT_EQ(newcorename, rs->getCoreName());
 
@@ -205,7 +205,7 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     /** Copy constructor **/
     clsRasterData<float, int> *copyrs = new clsRasterData<float, int>(rs);
     // Selected tests
-    EXPECT_EQ(73, copyrs->getCellNumber());  // m_nCells
+    EXPECT_EQ(64, copyrs->getCellNumber());  // m_nCells
     EXPECT_EQ(3, copyrs->getLayers());
     EXPECT_EQ(64, copyrs->getValidNumber(1));
     EXPECT_FLOAT_EQ(8.43900000f, copyrs->getAverage(3));
@@ -218,9 +218,9 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
     gfs->removeFile(gfsfilename);
     copyrs->outputToMongoDB(gfsfilename, gfs);
-    clsRasterData<float, int> *mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs, true);
+    clsRasterData<float, int> *mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs, false);
     // test mongors data
-    EXPECT_EQ(73, mongors->getCellNumber());  // m_nCells
+    EXPECT_EQ(64, mongors->getCellNumber());  // m_nCells
     EXPECT_EQ(3, mongors->getLayers());
     EXPECT_EQ(64, mongors->getValidNumber(1));
     EXPECT_FLOAT_EQ(8.43900000f, mongors->getAverage(3));
@@ -230,7 +230,7 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     delete copyrs;
 }
 
-INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTestMultiPosIncstMaskPosExt,
+INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTestMultiPosIncstMaskPosNoExt,
                         Values(new inputRasterFiles(rs1_asc, rs2_asc, rs3_asc, mask_asc_file),
                                new inputRasterFiles(rs1_tif, rs2_tif, rs3_tif, mask_tif_file)));
 #else
