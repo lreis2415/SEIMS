@@ -4,6 +4,8 @@ import os
 from collections import OrderedDict
 
 import matplotlib as mpl
+if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
+    mpl.use('Agg')
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from pygeoc.utils import FileClass, StringClass, MathClass
@@ -14,8 +16,7 @@ from preprocess.text import FieldNames, DBTableNames, DataValueFields, DataType,
 from preprocess.text import ModelCfgFields, SubbsnStatsName
 from preprocess.utility import read_data_items_from_txt
 
-if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    mpl.use('Agg')
+
 
 
 class TimeSeriesPlots(object):
