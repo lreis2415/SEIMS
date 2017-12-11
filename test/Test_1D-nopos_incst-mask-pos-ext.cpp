@@ -121,7 +121,6 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(91.42f, rs->getRange());
     EXPECT_TRUE(rs->StatisticsCalculated());
 
-
     EXPECT_NE(nullptr, rs->getMask());  // m_mask
 
     /** Test getting raster data **/

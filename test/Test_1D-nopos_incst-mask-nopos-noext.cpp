@@ -220,7 +220,7 @@ TEST_P(clsRasterDataTestNoPosIncstMaskNoPosNoExt, RasterIO) {
     /* Get position data, which will be calculated if not existed */
     ncells = -1;
     int **positions = nullptr;
-    EXPECT_FALSE(maskrs->PositionsCalculated());
+    EXPECT_TRUE(maskrs->PositionsCalculated());
     rs->getRasterPositionData(&ncells, &positions);  // m_rasterPositionData
     EXPECT_TRUE(rs->PositionsCalculated());
     EXPECT_TRUE(rs->PositionsAllocated());

@@ -241,6 +241,38 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
     EXPECT_FALSE(rs->outputToFile(fakefullname));
     string newfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
         newcorename + "." + GetSuffix(oldfullname);
+    string newfullname4mongo = GetPathFromFullName(oldfullname) + "result" + SEP +
+        newcorename + "_mongo." + GetSuffix(oldfullname);
     EXPECT_TRUE(rs->outputToFile(newfullname));
+
+#ifdef USE_MONGODB
+    /** MongoDB I/O test **/
+    MongoClient *conn = MongoClient::Init("127.0.0.1", 27017);
+    ASSERT_NE(nullptr, conn);
+    string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
+    MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
+    gfs->removeFile(gfsfilename);
+    rs->outputToMongoDB(gfsfilename, gfs);
+    clsRasterData<float> *mongors = clsRasterData<float>::Init(gfs, gfsfilename.c_str());
+    // test mongors data
+    EXPECT_EQ(545, mongors->getCellNumber());  // m_nCells
+    EXPECT_EQ(3, mongors->getLayers());
+    EXPECT_EQ(545, mongors->getValidNumber());
+    // layer 1
+    EXPECT_FLOAT_EQ(0.806f, rs->getMinimum(1));
+    EXPECT_FLOAT_EQ(8.68065321f, rs->getAverage(1));
+    EXPECT_FLOAT_EQ(0.93353500f, rs->getSTD(1));
+    EXPECT_FLOAT_EQ(9.194f, rs->getRange(1));
+    // layer 2
+    EXPECT_FLOAT_EQ(0.806f, rs->getMinimum(2));
+    EXPECT_FLOAT_EQ(9.19171165f, rs->getAverage(2));
+    EXPECT_FLOAT_EQ(5.62426552f, rs->getSTD(2));
+    EXPECT_FLOAT_EQ(97.684f, rs->getRange(2));
+    // layer 3
+    EXPECT_FLOAT_EQ(8.48936296f, rs->getAverage(3));
+    EXPECT_FLOAT_EQ(1.42141729f, rs->getSTD(3));
+    // output to asc/tif file for comparison
+    EXPECT_TRUE(mongors->outputToFile(newfullname4mongo));
+#endif
 }
 } /* namespace */

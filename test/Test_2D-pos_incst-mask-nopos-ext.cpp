@@ -2,10 +2,10 @@
  * @brief Test description:
  *                      CalcPositions UseMaskExtent ExtentConsistent  SingleLayer
  *        Raster data:      YES           YES            NO               NO
- *        Mask data  :      YES            --            NO               YES
+ *        Mask data  :      NO             --            NO               YES
  *
  *        TEST CASE NAME (or TEST SUITE): 
- *            clsRasterDataTestMultiPosIncstMaskPosExt
+ *            clsRasterDataTestMultiPosIncstMaskNoPosExt
  *
  *        P.S.1. Copy constructor is also tested here.
  *        P.S.2. MongoDB I/O is also tested if mongo-c-driver configured.
@@ -15,7 +15,7 @@
  * @cite https://github.com/google/googletest/blob/master/googletest/samples/sample7_unittest.cc
  * @version 1.0
  * @authors Liangjun Zhu (zlj@lreis.ac.cn)
- * @revised 12/08/2017 lj Initial version.
+ * @revised 12/11/2017 lj Initial version.
  *
  */
 #include "gtest/gtest.h"
@@ -64,13 +64,13 @@ public:
 //can refer to the test parameter by GetParam().  In this case, the test
 //parameter is a factory function which we call in fixture's SetUp() to
 //create and store an instance of clsRasterData<float>.
-class clsRasterDataTestMultiPosIncstMaskPosExt : public TestWithParam<inputRasterFiles *> {
+class clsRasterDataTestMultiPosIncstMaskNoPosExt : public TestWithParam<inputRasterFiles *> {
 public:
-    clsRasterDataTestMultiPosIncstMaskPosExt() : rs(nullptr), maskrs(nullptr) {}
-    ~clsRasterDataTestMultiPosIncstMaskPosExt() override { delete rs; }
+    clsRasterDataTestMultiPosIncstMaskNoPosExt() : rs(nullptr), maskrs(nullptr) {}
+    ~clsRasterDataTestMultiPosIncstMaskNoPosExt() override { delete rs; }
     void SetUp() override {
         // Read mask data with default parameters, i.e., calculate valid positions.
-        maskrs = clsRasterData<int>::Init(GetParam()->mask_name, true);
+        maskrs = clsRasterData<int>::Init(GetParam()->mask_name, false);
         ASSERT_NE(nullptr, maskrs);
         // Read raster data with the masked data
         vector<string> filenames;
@@ -94,7 +94,7 @@ protected:
 
 // Since each TEST_P will invoke SetUp() and TearDown()
 // once, we put all tests in once test case. by lj.
-TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
+TEST_P(clsRasterDataTestMultiPosIncstMaskNoPosExt, RasterIO) {
     /// 1. Test members after constructing.
     EXPECT_EQ(73, rs->getDataLength());  // m_nCells
     EXPECT_EQ(73, rs->getCellNumber());  // m_nCells
@@ -175,19 +175,22 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     EXPECT_NE(nullptr, rs_2ddata);
     // raster layer 1
     EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][0]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[6][0]);
     EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][0]);
-    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[27][0]);
+    EXPECT_FLOAT_EQ(7.62f, rs_2ddata[19][0]);
     // raster layer 2
     EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][1]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[6][1]);
     EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][1]);
-    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[27][1]);
+    EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[19][1]);
     // raster layer 3
     EXPECT_FLOAT_EQ(-9999.f, rs_2ddata[0][2]);
+    EXPECT_FLOAT_EQ(7.94f, rs_2ddata[6][2]);
     EXPECT_FLOAT_EQ(9.85f, rs_2ddata[72][2]);
-    EXPECT_FLOAT_EQ(8.89f, rs_2ddata[27][2]);
+    EXPECT_FLOAT_EQ(2.62f, rs_2ddata[19][2]);
 
     // Set core file name
-    string newcorename = "dem_2D-pos_incst-mask-pos-ext";
+    string newcorename = "dem_2D-pos_incst-mask-nopos-ext";
     rs->setCoreName(newcorename);
     EXPECT_EQ(newcorename, rs->getCoreName());
 
@@ -195,20 +198,12 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     string oldfullname = rs->getFilePath();
     string fakefullname = GetPathFromFullName(oldfullname) + "noExistDir" + SEP +
         "noOut" + "." + GetSuffix(oldfullname);
-    EXPECT_FALSE(rs->outputToFile(fakefullname));
     string newfullname = GetPathFromFullName(oldfullname) + "result" + SEP +
         newcorename + "." + GetSuffix(oldfullname);
     string newfullname4mongo = GetPathFromFullName(oldfullname) + "result" + SEP +
         newcorename + "_mongo." + GetSuffix(oldfullname);
+    EXPECT_FALSE(rs->outputToFile(fakefullname));
     EXPECT_TRUE(rs->outputToFile(newfullname));
-
-    /** Copy constructor **/
-    clsRasterData<float, int> *copyrs = new clsRasterData<float, int>(rs);
-    // Selected tests
-    EXPECT_EQ(73, copyrs->getCellNumber());  // m_nCells
-    EXPECT_EQ(3, copyrs->getLayers());
-    EXPECT_EQ(64, copyrs->getValidNumber(1));
-    EXPECT_FLOAT_EQ(8.43900000f, copyrs->getAverage(3));
 
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
@@ -217,7 +212,8 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     string gfsfilename = newfullname + "_" + GetSuffix(oldfullname);
     MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
     gfs->removeFile(gfsfilename);
-    copyrs->outputToMongoDB(gfsfilename, gfs);
+    rs->outputToMongoDB(gfsfilename, gfs);
+    // Currently, the positions data of mask still has not been calculated.
     clsRasterData<float, int> *mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs, true);
     // test mongors data
     EXPECT_EQ(73, mongors->getCellNumber());  // m_nCells
@@ -227,10 +223,20 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     // output to asc/tif file for comparison
     EXPECT_TRUE(mongors->outputToFile(newfullname4mongo));
 #endif
+
+
+    /** Copy constructor **/
+    clsRasterData<float, int> *copyrs = new clsRasterData<float, int>(rs);
+    // Selected tests
+    EXPECT_EQ(73, copyrs->getCellNumber());  // m_nCells
+    EXPECT_EQ(3, copyrs->getLayers());
+    EXPECT_EQ(64, copyrs->getValidNumber(1));
+    EXPECT_FLOAT_EQ(8.43900000f, copyrs->getAverage(3));
+
     delete copyrs;
 }
 
-INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTestMultiPosIncstMaskPosExt,
+INSTANTIATE_TEST_CASE_P(MultipleLayers, clsRasterDataTestMultiPosIncstMaskNoPosExt,
                         Values(new inputRasterFiles(rs1_asc, rs2_asc, rs3_asc, mask_asc_file),
                                new inputRasterFiles(rs1_tif, rs2_tif, rs3_tif, mask_tif_file)));
 #else

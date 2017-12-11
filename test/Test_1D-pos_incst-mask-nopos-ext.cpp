@@ -76,8 +76,8 @@ protected:
 // once, we put all tests in once test case. by lj.
 TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     /// 1. Test members after constructing.
-    EXPECT_EQ(60, rs->getDataLength());  // m_nCells
-    EXPECT_EQ(60, rs->getCellNumber());  // m_nCells
+    EXPECT_EQ(73, rs->getDataLength());  // m_nCells
+    EXPECT_EQ(73, rs->getCellNumber());  // m_nCells
 
     EXPECT_FLOAT_EQ(-9999.f, rs->getNoDataValue());  // m_noDataValue
     EXPECT_FLOAT_EQ(-9999.f, rs->getDefaultValue());  // m_defaultValue
@@ -88,7 +88,7 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_TRUE(rs->Initialized());  // m_initialized
     EXPECT_FALSE(rs->is2DRaster());  // m_is2DRaster
     EXPECT_TRUE(rs->PositionsCalculated());  // m_calcPositions
-    EXPECT_TRUE(rs->PositionsAllocated());  // m_storePositions
+    EXPECT_FALSE(rs->PositionsAllocated());  // m_storePositions
     EXPECT_TRUE(rs->MaskExtented());  // m_useMaskExtent
     EXPECT_FALSE(rs->StatisticsCalculated());  // m_statisticsCalculated
 
@@ -103,7 +103,7 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(header_info.at("LAYERS"), rs->getLayers());
     EXPECT_FLOAT_EQ(header_info.at("CELLSNUM"), rs->getCellNumber());
 
-    EXPECT_EQ(8, rs->getRows());
+    EXPECT_EQ(9, rs->getRows());
     EXPECT_EQ(10, rs->getCols());
     EXPECT_FLOAT_EQ(19.f, rs->getXllCenter());
     EXPECT_FLOAT_EQ(25.f, rs->getYllCenter());
@@ -128,11 +128,12 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     int ncells = 0;
     float *rs_data = nullptr;
     EXPECT_TRUE(rs->getRasterData(&ncells, &rs_data));  // m_rasterData
-    EXPECT_EQ(60, ncells);
+    EXPECT_EQ(73, ncells);
     EXPECT_NE(nullptr, rs_data);
-    EXPECT_FLOAT_EQ(7.94f, rs_data[0]);
-    EXPECT_FLOAT_EQ(9.85f, rs_data[59]);
-    EXPECT_FLOAT_EQ(9.75f, rs_data[16]);
+    EXPECT_FLOAT_EQ(-9999.f, rs_data[0]);
+    EXPECT_FLOAT_EQ(7.94f, rs_data[6]);
+    EXPECT_FLOAT_EQ(9.85f, rs_data[72]);
+    EXPECT_FLOAT_EQ(8.77f, rs_data[16]);
 
     float **rs_2ddata = nullptr;
     int nlyrs = -1;
@@ -143,11 +144,12 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
 
     /** Get raster cell value by various way **/
     EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(-1));
-    EXPECT_FLOAT_EQ(7.94f, rs->getValueByIndex(0));
-    EXPECT_FLOAT_EQ(9.85f, rs->getValueByIndex(59, 1));
-    EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(60, 1));
-    EXPECT_FLOAT_EQ(9.75f, rs->getValueByIndex(16));
-    EXPECT_FLOAT_EQ(9.95f, rs->getValueByIndex(18));
+    EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(0));
+    EXPECT_FLOAT_EQ(7.94f, rs->getValueByIndex(6));
+    EXPECT_FLOAT_EQ(9.85f, rs->getValueByIndex(72, 1));
+    EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(73, 1));
+    EXPECT_FLOAT_EQ(8.77f, rs->getValueByIndex(16));
+    EXPECT_FLOAT_EQ(9.33f, rs->getValueByIndex(18));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(29, 0));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(-1, 2));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValueByIndex(90, 2));
@@ -160,7 +162,7 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     rs->getValueByIndex(1, &tmp_lyr, &tmp_values);
     EXPECT_EQ(1, tmp_lyr);
     EXPECT_NE(nullptr, tmp_values);
-    EXPECT_FLOAT_EQ(7.62f, tmp_values[0]);
+    EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
 
     EXPECT_FLOAT_EQ(-9999.f, rs->getValue(-1, 0));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValue(9, 0));
@@ -168,8 +170,8 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(-9999.f, rs->getValue(0, 10));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValue(2, 4, -1));
     EXPECT_FLOAT_EQ(-9999.f, rs->getValue(2, 4, 2));
-    EXPECT_FLOAT_EQ(8.77f, rs->getValue(1, 4));
-    EXPECT_FLOAT_EQ(8.77f, rs->getValue(1, 4, 1));
+    EXPECT_FLOAT_EQ(8.77f, rs->getValue(2, 4));
+    EXPECT_FLOAT_EQ(8.77f, rs->getValue(2, 4, 1));
 
     rs->getValue(-1, 0, &tmp_lyr, &tmp_values);
     EXPECT_EQ(-1, tmp_lyr);
@@ -180,23 +182,23 @@ TEST_P(clsRasterDataTestPosIncstMaskNoPosExt, RasterIO) {
     rs->getValue(0, 0, &tmp_lyr, &tmp_values);
     EXPECT_EQ(1, tmp_lyr);
     EXPECT_NE(nullptr, tmp_values);
-    EXPECT_FLOAT_EQ(7.94f, tmp_values[0]);
-    rs->getValue(1, 1, &tmp_lyr, &tmp_values);
+    EXPECT_FLOAT_EQ(-9999.f, tmp_values[0]);
+    rs->getValue(2, 1, &tmp_lyr, &tmp_values);
     EXPECT_EQ(1, tmp_lyr);
     EXPECT_NE(nullptr, tmp_values);
     EXPECT_FLOAT_EQ(9.54f, tmp_values[0]);
 
     // Get position
-    EXPECT_EQ(8, rs->getPosition(22.05f, 37.95f));  // row 1, col 2
-    EXPECT_EQ(8, rs->getPosition(23.95f, 36.05f));
+    EXPECT_EQ(14, rs->getPosition(22.05f, 37.95f));  // row 2, col 2
+    EXPECT_EQ(14, rs->getPosition(23.95f, 36.05f));
 
     /** Set value **/
 
     // Set raster data value
-    rs->setValue(1, 4, 0.877f);
-    EXPECT_FLOAT_EQ(0.877f, rs->getValue(1, 4));
+    rs->setValue(2, 4, 0.877f);
+    EXPECT_FLOAT_EQ(0.877f, rs->getValue(2, 4));
     rs->setValue(0, 2, 1.f);
-    EXPECT_NE(1.f, rs->getValue(0, 2));
+    EXPECT_EQ(-9999.f, rs->getValue(0, 2));
 
     // update statistics
     rs->updateStatistics();  // Should be manually invoked in your project!

@@ -244,7 +244,7 @@ TEST_P(clsRasterDataTestPosIncstMaskPosExt, RasterIO) {
     /** MongoDB I/O test **/
     MongoClient *conn = MongoClient::Init("127.0.0.1", 27017);
     ASSERT_NE(nullptr, conn);
-    string gfsfilename = "dem1d_" + GetSuffix(oldfullname);
+    string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
     MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
     gfs->removeFile(gfsfilename);
     copyrs->outputToMongoDB(gfsfilename, gfs);
