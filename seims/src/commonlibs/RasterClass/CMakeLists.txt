@@ -1,8 +1,14 @@
 # ----------------------------------------------------------------------------
 #  Root CMake file for RasterClass.
+#     A simple GDAL wrapper for raster data IO with asc, tif, and MongoDB.
 #
-#     Please from the off-tree build directory, invoke:
-#       $ cmake <path/to/RasterClass>
+#     Please build from the off-tree build directory, e.g.:
+#       $ mkdir -p build
+#       $ cd build
+#       $ cmake ..
+#     Optional cmake options:
+#       -DUNITTEST=1  means run unittest based gtest/gmock
+#       -DRUNCOV=1    means run code coverage based gcov and lcov
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
@@ -12,7 +18,8 @@
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Oct. 26, 2017
+#  Latest updated: Dec. 1, 2017
+#  Copyright (C) 2017 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
     MESSAGE(FATAL_ERROR "
@@ -30,7 +37,6 @@ endif()
 
 ### Project name.
 project(RasterClass)
-SET(WITH_OMP 1)
 
 ### Set cmake find path
 set(CMAKE_MODULE_PATH
@@ -91,35 +97,65 @@ ENDIF(MSVC)
 ### Add standard paths or specified paths for Find libraries and headers.
 INCLUDE(AddFindPaths)
 
+
+### RasterClass library
+set(SOURCE_FILES clsRasterData.h)
+set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
+file(GLOB UTILS_HEADERS ${UTILS_INC}/*.h)
+set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
+set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../MongoUtilClass)
+file(GLOB MONGO_HEADERS MONGO_INC/*.h)
+set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
+
 ### Find packages.
 SET(WITH_GDAL 1)
 SET(WITH_OPENMP 1)
-
-### Add executables.
-set(SOURCE_FILES clsRasterData.cpp main.cpp)
-set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
-set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../MongoUtilClass)
-set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
-
 IF (EXISTS ${MONGO_FILES})
     SET(WITH_MONGOC 1)
 ENDIF ()
-
 INCLUDE(FindPackages)
 
 if (BSON_FOUND AND MONGOC_FOUND AND WITH_MONGOC)
     add_definitions(-DUSE_MONGODB)
     geo_include_directories(${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${MONGO_INC})
-    add_executable(RasterClass ${SOURCE_FILES} ${UTILS_FILES} ${MONGO_FILES})
+    add_library(RasterClass ${SOURCE_FILES} ${UTILS_FILES} ${UTILS_HEADERS} ${MONGO_FILES} ${MONGO_HEADERS})
     target_link_libraries(RasterClass ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 else ()
-    include_directories(${UTILS_INC})
-    add_executable(RasterClass ${SOURCE_FILES} ${UTILS_FILES})
+    geo_include_directories(${UTILS_INC})
+    add_library(RasterClass ${SOURCE_FILES} ${UTILS_FILES} ${UTILS_HEADERS})
 endif ()
 if (GDAL_FOUND)
     geo_include_directories(${GDAL_INCLUDE_DIR})
     target_link_libraries(RasterClass ${GDAL_LIBRARIES})
+endif ()
+
+### Set code coverage linkage.
+if (RUNCOV STREQUAL 1)
+    set_target_properties(RasterClass PROPERTIES COMPILE_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+    set_target_properties(RasterClass PROPERTIES LINK_FLAGS "-coverage -lgcov")
+endif()
+
+### unittest based on gtest/gmock, which is optional.
+IF (UNITTEST STREQUAL 1)
+    add_definitions(-DUNITTEST)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    ### Download and compile googletest
+    include(DownloadProject)
+    download_project(PROJ                googletest
+            GIT_REPOSITORY      https://github.com/google/googletest.git
+            GIT_TAG             master
+            ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+            )
+    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    include_directories("${gtest_SOURCE_DIR}/include" "${gmock_SOURCE_DIR}/include")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+ENDIF ()
+
+### Copy test data to build directory.
+if (MSVC)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test)
+else()
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif ()
 
 install(TARGETS RasterClass DESTINATION ${INSTALL_DIR})

@@ -1,21 +1,21 @@
 #include "Scenario.h"
 
 namespace MainBMP {
-Scenario::Scenario(MongoClient *conn, const string dbName, const int subbsnID /* = 0 */,
-                   const int scenarioID /* = 0 */) :
+Scenario::Scenario(MongoClient *conn, const string& dbName, int subbsnID /* = 0 */,
+                   int scenarioID /* = 0 */) :
     m_conn(conn), m_bmpDBName(dbName), m_subbsnID(subbsnID), m_sceneID(scenarioID) {
     assert(m_sceneID >= 0);
     assert(m_subbsnID >= 0);
     loadScenario();
 }
 
-Scenario::~Scenario(void) {
+Scenario::~Scenario() {
     StatusMessage("Releasing Scenario...");
     map<int, BMPFactory *>::iterator it;
     for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ) {
-        if (it->second != NULL) {
+        if (nullptr != it->second) {
             delete (it->second);
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_bmpFactories.erase(it++);
     }
@@ -30,8 +30,7 @@ void Scenario::loadScenario() {
 }
 
 void Scenario::loadScenarioName() {
-    vector<string>::iterator it = find(m_bmpCollections.begin(), m_bmpCollections.end(),
-                                       string(TAB_BMP_SCENARIO));
+    auto it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_SCENARIO));
     if (it == m_bmpCollections.end()) {
         throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
             "' does not exist or there is not a table named '" +
@@ -65,8 +64,8 @@ void Scenario::loadScenarioName() {
     mongoc_collection_destroy(sceCollection);
 }
 
-void Scenario::loadBMPs(void) {
-    vector<string>::iterator it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_INDEX));
+void Scenario::loadBMPs() {
+    auto it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_INDEX));
     if (it == m_bmpCollections.end()) {
         throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
             "' does not exist or there is not a table named '" +
@@ -162,14 +161,13 @@ void Scenario::loadBMPs(void) {
     mongoc_cursor_destroy(cursor);
 }
 
-void Scenario::loadBMPDetail(void) {
-    map<int, BMPFactory *>::iterator it;
-    for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
+void Scenario::loadBMPDetail() {
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
         it->second->loadBMP(m_conn, m_bmpDBName);
     }
 }
 
-void Scenario::Dump(const string fileName) {
+void Scenario::Dump(string& fileName) {
     ofstream fs;
     fs.open(fileName.c_str(), ios::ate);
     if (fs.is_open()) {
@@ -179,7 +177,7 @@ void Scenario::Dump(const string fileName) {
 }
 
 void Scenario::Dump(ostream *fs) {
-    if (fs == NULL) return;
+    if (fs == nullptr) return;
 
     *fs << "Scenario ID:" << this->m_sceneID << endl;
     *fs << "Name:" << this->m_name << endl;
@@ -190,10 +188,11 @@ void Scenario::Dump(ostream *fs) {
     }
 }
 
-void Scenario::setRasterForEachBMP(void) {
-    if (m_sceneRsMap.size() == 0) return;
-    for (map<int, BMPFactory*>::iterator it = m_bmpFactories.begin(); it != m_bmpFactories.end(); it++) {
+void Scenario::setRasterForEachBMP() {
+    if (m_sceneRsMap.empty()) return;
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); it++) {
         it->second->setRasterData(m_sceneRsMap);
     }
 }
-}
+
+} /* MainBMP */

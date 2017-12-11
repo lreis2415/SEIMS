@@ -1,17 +1,10 @@
 #include "SEIMS_ModuleSetting.h"
 
 //! Constructor
-SEIMSModuleSetting::SEIMSModuleSetting(string &moduleId, string &setting): 
-m_moduleId(moduleId), m_settingString(setting) {
+SEIMSModuleSetting::SEIMSModuleSetting(string &moduleId, string &setting) :
+    m_moduleId(moduleId), m_settingString(setting) {
     m_settings = SplitString(m_settingString, '_');
 }
-
-//! Destructor
-SEIMSModuleSetting::~SEIMSModuleSetting(void) {
-
-}
-
-string SEIMSModuleSetting::dataTypeString() { return dataType2String(dataType()); }
 
 float SEIMSModuleSetting::dataType() {
     if (m_moduleId.find(MID_ITP) == string::npos && m_moduleId.find(MID_TSD_RD) == string::npos) {
@@ -42,7 +35,7 @@ bool SEIMSModuleSetting::needDoVerticalInterpolation() {
         }
         int iIsDoVerticalInterpolation = atoi(m_settings.at(2).c_str());
 
-        return iIsDoVerticalInterpolation == 0 ? false : true;
+        return iIsDoVerticalInterpolation != 0;
     }
 }
 

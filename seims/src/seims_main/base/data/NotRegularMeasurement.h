@@ -32,14 +32,14 @@ public:
      * \param[in] startDate \a time_t, start date time
      * \param[in] endDate \a time_t, end date time
      */
-    NotRegularMeasurement(MongoClient *conn, string hydroDBName, string sitesList, string siteType,
+    NotRegularMeasurement(MongoClient *conn, string& hydroDBName, string& sitesList, string& siteType,
                           time_t startTime, time_t endTime);
 
     //! Destructor
-    ~NotRegularMeasurement(void);
+    ~NotRegularMeasurement() override = default;
 
     //! Get site date by time \a pData
-    virtual float *GetSiteDataByTime(time_t t);
+    float *GetSiteDataByTime(time_t t) override;
 
 private:
     //! time list of site data

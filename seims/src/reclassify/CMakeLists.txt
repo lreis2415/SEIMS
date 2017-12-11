@@ -1,6 +1,6 @@
 project(ReClassify)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} ${RASTER_FILES} reclassify_raster.cpp)
+set(SOURCE_FILES ${UTILS_FILES} reclassify_raster.cpp)
 geo_include_directories(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(reclassify ${SOURCE_FILES})
 target_link_libraries(reclassify ${GDAL_LIBRARIES})

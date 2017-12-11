@@ -2,11 +2,23 @@
 
 using namespace std;
 
-ParamInfo::ParamInfo(void) {
-    Reset();
-}
-
-ParamInfo::~ParamInfo(void) {
+ParamInfo::ParamInfo() : Change(""),
+                         Description(""),
+                         Dimension(DT_Unknown),
+                         Impact(0.f),
+                         Maximum(0.f),
+                         Minimun(0.f),
+                         ModuleID(""),
+                         Name(""),
+                         Source(""),
+                         Units(""),
+                         Value(0.f),
+                         DependPara(nullptr),
+                         IsConstant(false),
+                         ClimateType(""),
+                         IsOutput(false),
+                         OutputToOthers(false),
+                         initialized(false) {
 }
 
 float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
@@ -43,8 +55,8 @@ void ParamInfo::Adjust1DRaster(int n, float *data) {
     Adjust1DArray(n, data);
 }
 
-void ParamInfo::Adjust1DRaster(int n, float *data, float *units, vector<int> selunits, 
-                               float *lu, vector<int> sellu) {
+void ParamInfo::Adjust1DRaster(int n, float *data, const float *units, vector<int> selunits,
+                               const float *lu, vector<int> sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         if (FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
@@ -77,31 +89,10 @@ void ParamInfo::Adjust2DRaster(int n, int lyrs, float **data) {
     }
 }
 
-void ParamInfo::Adjust2DRaster(int n, int lyr, float **data, float *units, 
+void ParamInfo::Adjust2DRaster(int n, int lyr, float **data, float *units,
                                vector<int> selunits, float *lu, vector<int> sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         Adjust1DRaster(lyr, data[i], units, selunits, lu, sellu);
     }
-}
-
-void ParamInfo::Reset(void) {
-    Change = "";
-    Description = "";
-    Dimension = DT_Unknown;
-    Impact = 0.f;
-    Maximum = 0.f;
-    Minimun = 0.f;
-    ModuleID = "";
-    Name = "";
-    Source = "";
-    Units = "";
-    //Use = "";
-    Value = 0.f;
-    DependPara = NULL;
-    IsConstant = false;
-    ClimateType = "";
-    IsOutput = false;
-    OutputToOthers = false;
-    initialized = false;
 }

@@ -4,7 +4,9 @@
  * \version 
  * \date June 2015
  */
-#pragma once
+#ifndef SEIMS_MODULE_SETTING_H
+#define SEIMS_MODULE_SETTING_H
+
 #include "text.h"
 #include "utilities.h"
 
@@ -19,34 +21,34 @@ class SEIMSModuleSetting {
 public:
     SEIMSModuleSetting(string &moduleId, string &setting);
 
-    ~SEIMSModuleSetting(void);
+    ~SEIMSModuleSetting() = default;
 
     ///< data type
-    float dataType(void);
+    float dataType();
 
     ///< climate data type for TSD and ITP
-    string dataTypeString(void);
+    string dataTypeString() { return dataType2String(dataType()); };
 
     ///< vertical interpolation information for ITP
-    bool needDoVerticalInterpolation(void);
+    bool needDoVerticalInterpolation();
 
     ///< get channel flow routing method
-    string channelFlowRoutingMethod(void);
+    string channelFlowRoutingMethod();
 
     ///< get channel sediment routing method
-    string channelSedimentRoutingMethod(void);
+    string channelSedimentRoutingMethod();
 
     ///< get channel nutrient routing method
-    string channelNutrientRoutingMethod(void);
+    string channelNutrientRoutingMethod();
 public:
     ///< Copy constructor is unusable.
-    SEIMSModuleSetting(const SEIMSModuleSetting& ) = delete;
+    SEIMSModuleSetting(const SEIMSModuleSetting &) = delete;
     ///< Copy assignment is unusable.
-    SEIMSModuleSetting& operator=(const SEIMSModuleSetting& ) = delete;
+    SEIMSModuleSetting &operator=(const SEIMSModuleSetting &) = delete;
 private:
     string m_moduleId; ///< module's ID
     string m_settingString; ///< module setting string
-    vector <string> m_settings; ///< module settings
+    vector<string> m_settings; ///< module settings
 
     string channelRoutingMethod(int);
 
@@ -54,3 +56,5 @@ private:
 
     static string dataType2String(float);
 };
+
+#endif /* SEIMS_MODULE_SETTING_H */

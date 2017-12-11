@@ -3,7 +3,8 @@
  * \author Liang-Jun Zhu
  * \date 2016-9-28
  */
-#pragma once
+#ifndef SEIMS_NUTRIENT_COMMON_H
+#define SEIMS_NUTRIENT_COMMON_H
 
 #include "utilities.h"
 
@@ -17,10 +18,10 @@
 class NutrCommon {
 public:
     /// Constructor
-    NutrCommon(void);
+    NutrCommon() = default;
 
     /// Destructor
-    ~NutrCommon(void);
+    ~NutrCommon() = default;
 
 public:
     /*!
@@ -32,3 +33,5 @@ public:
 	 */
     static float CalEnrichmentRatio(float sedyld, float surfq, float area);
 };
+
+#endif /* SEIMS_NUTRIENT_COMMON_H */

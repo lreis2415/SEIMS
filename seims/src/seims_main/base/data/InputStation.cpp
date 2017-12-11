@@ -6,29 +6,29 @@ InputStation::InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChann
     m_conn(conn), m_dtHs(dtHillslope), m_dtCh(dtChannel) {
 }
 
-InputStation::~InputStation(void) {
+InputStation::~InputStation() {
     StatusMessage("Start to release InputStation data ...");
-    for (map<string, Measurement *>::iterator it = m_measurement.begin(); it != m_measurement.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_measurement.begin(); it != m_measurement.end();) {
+        if (it->second != nullptr) {
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_measurement.erase(it++);
     }
     m_measurement.clear();
 
-    for (map<string, float *>::iterator it = m_latitude.begin(); it != m_latitude.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_latitude.begin(); it != m_latitude.end();) {
+        if (it->second != nullptr) {
             delete[] it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_latitude.erase(it++);
     }
     m_latitude.clear();
-    for (map<string, float *>::iterator it = m_elevation.begin(); it != m_elevation.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_elevation.begin(); it != m_elevation.end();) {
+        if (it->second != nullptr) {
             delete[] it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_elevation.erase(it++);
     }
@@ -106,7 +106,7 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &record)) {
         hasData = true;
         bson_iter_t iter;
-        int siteIndex = -1;
+        long long int siteIndex = -1;
         int curSiteID = -1;
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
             GetNumericFromBsonIterator(&iter, curSiteID);

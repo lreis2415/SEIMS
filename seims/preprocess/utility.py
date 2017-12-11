@@ -5,7 +5,7 @@
     @changelog: 16-06-16  first implementation version
                 17-06-22  reformat according to pylint and google style
 """
-from pygeoc.utils import StringClass
+from pygeoc.utils import StringClass, UtilClass
 
 # Global variables
 UTIL_ZERO = 1.e-6
@@ -16,16 +16,14 @@ PI = 3.141592653589793
 # LFs = ['\r', '\n', '\r\n']
 
 
-def status_output(status_msg, percent, file_object):
+def status_output(status_msg, percent, file_name):
     """Print status and flush to file.
     Args:
         status_msg: status message
         percent: percentage rate of progress
-        file_object: file handler
+        file_name: file handler
     """
-    print ("[Output] %d..., %s" % (percent, status_msg))
-    file_object.write("%d, %s\n" % (percent, status_msg))
-    file_object.flush()
+    UtilClass.writelog(file_name, "[Output] %d..., %s" % (percent, status_msg), 'a')
 
 
 def read_data_items_from_txt(txt_file):

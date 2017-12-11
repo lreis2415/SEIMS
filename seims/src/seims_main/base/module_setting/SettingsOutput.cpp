@@ -3,7 +3,7 @@
 SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems) :
                                m_nSubbasins(subbasinNum), m_outletID(outletID) 
 {
-    for (vector<OrgOutItem>::iterator iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
+    for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
         string suffix = GetSuffix((*iter).outFileName);
         /// First, if OutputID does not existed in m_printInfos, then create a new one.
@@ -11,7 +11,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
             m_printInfosMap[(*iter).outputID] = new PrintInfo();
             m_printInfosMap[(*iter).outputID]->setOutputID((*iter).outputID);/// set the OUTPUTID for the new PrintInfo
         }
-        PrintInfo *pi = NULL; /// reset the pointer
+        PrintInfo *pi = nullptr; /// reset the pointer
         pi = m_printInfosMap[(*iter).outputID];
 
         bool isRaster = false;
@@ -28,7 +28,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
         else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
             /// Output of all subbasins of DT_Raster1D or DT_Raster2D
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
-            for (vector<string>::iterator it = aggTypes.begin(); it != aggTypes.end(); it++) {
+            for (auto it = aggTypes.begin(); it != aggTypes.end(); it++) {
                 pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix);
             }
         }
@@ -41,46 +41,47 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem>
                 for (int i = 0; i <= m_nSubbasins; i++) {
                     subBsns.push_back(ValueToString(i));
                 }
-                vector<string>(subBsns).swap(subBsns);
+                vector<string>(subBsns).swap(subBsns); // deprecated
+                // subBsns.shrink_to_fit();
             }
             else {
                 subBsns = SplitString((*iter).subBsn, '-');
             }
-            for (vector<string>::iterator it = subBsns.begin(); it != subBsns.end(); it++) {
+            for (auto it = subBsns.begin(); it != subBsns.end(); it++) {
                 pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, *it, suffix, true);
             }
         }
     }
-    for (map<string, PrintInfo *>::iterator it = m_printInfosMap.begin(); it != m_printInfosMap.end(); it++) {
+    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); it++) {
         m_printInfos.push_back(it->second);
     }
     vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
+    // m_printInfos.shrink_to_fit();
 }
 
 SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, vector<OrgOutItem>& outputItems) {
     if (outputItems.empty()) {
-        return NULL;
+        return nullptr;
     }
     return new SettingsOutput(subbasinNum, outletID, outputItems);
 }
 
-SettingsOutput::~SettingsOutput(void) {
+SettingsOutput::~SettingsOutput() {
     StatusMessage("Start to release SettingsOutput ...");
-    for (map<string, PrintInfo *>::iterator it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ) {
-        if (it->second != NULL) {
+    for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ) {
+        if (it->second != nullptr) {
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_printInfosMap.erase(it++);
     }
     m_printInfosMap.clear();
     /// All the PrintInfo instance have been released in the above code, so just set m_pringInfos to empty.
-    for (vector<PrintInfo *>::iterator it = m_printInfos.begin(); it != m_printInfos.end();) {
-        *it = NULL;
+    for (auto it = m_printInfos.begin(); it != m_printInfos.end();) {
+        *it = nullptr;
         it = m_printInfos.erase(it);
     }
     m_printInfos.clear();
-    vector<PrintInfo*>().swap(m_printInfos);
     StatusMessage("End to release SettingsOutput ...");
 }
 
@@ -107,7 +108,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
     }
 }
 
-void SettingsOutput::Dump(string fileName) {
+void SettingsOutput::Dump(string& fileName) {
     ofstream fs;
     utils util;
     fs.open(fileName.c_str(), ios::out);

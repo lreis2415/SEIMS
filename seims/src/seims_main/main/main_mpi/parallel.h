@@ -19,7 +19,7 @@
 #define MAX_UPSTREAM 4
 #define MSG_LEN 5
 
-#ifdef windows
+#ifdef WIN32
 #define SEP "\\"
 #else
 #define SEP "/"

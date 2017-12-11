@@ -2,6 +2,7 @@
 branches:
   only:
   - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 matrix:
   fast_finish: true
   include:
@@ -26,20 +27,29 @@ matrix:
         apt: true
         directories:
           - $HOME/.ccache
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - lcov
       services:
         - mongodb
       env:
         - BUILD_NAME=linux_gcc48
         - DETAILS=""
         - ENABLE_CXX11=1
+        - RUN_TESTS=true
+        - COVERAGE=false
 before_install:
-  - ./ci/travis/${BUILD_NAME}/before_install.sh
-
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 install:
-  - ./ci/travis/${BUILD_NAME}/install.sh
-
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/install.sh
 script:
-  - ./ci/travis/${BUILD_NAME}/script.sh
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
+  - ./doc/ci/travis/${BUILD_NAME}/script.sh
 
 notifications:
   email:false

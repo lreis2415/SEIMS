@@ -5,20 +5,12 @@
 #if (defined _DEBUG) && (defined MSVC) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include <vector>
-#include <map>
-#include <string>
-#include <iostream>
-#include <cmath>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <algorithm>
+
+#include "SubBasin.h"
 
 #include "utilities.h"
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
-#include "SubBasin.h"
+#include "clsRasterData.h"
 
 using namespace std;
 
@@ -65,8 +57,7 @@ int FindBoundingBox(clsRasterData<int> &rsSubbasin, map<int, SubBasin> &bboxMap)
 bool DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> &rsSubbasin, const char *dstFile,
                                mongoc_client_t *conn, mongoc_gridfs_t *gfs) {
     bool flag = true;
-    clsRasterData<float> rs;
-    rs.ReadByGDAL(dstFile, false);
+    clsRasterData<float> rs(dstFile, false);
 
     int nXSize = rs.getCols();
     // int nYSize = rs.getRows();
@@ -236,8 +227,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
  */
 int DecompositeRaster(map<int, SubBasin> &bboxMap, clsRasterData<int> &rsSubbasin, const char *dstFile,
                       const char *tmpFolder) {
-    clsRasterData<float> rs;
-    rs.ReadByGDAL(dstFile, false);
+    clsRasterData<float> rs(dstFile, false);
 
     int nXSize = rs.getCols();
     // int nYSize = rs.getRows();
