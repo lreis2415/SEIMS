@@ -189,7 +189,7 @@ void Scenario::Dump(ostream *fs) {
 }
 
 void Scenario::setRasterForEachBMP() {
-    if (!m_sceneRsMap.empty()) return;
+    if (m_sceneRsMap.empty()) return;
     for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); it++) {
         it->second->setRasterData(m_sceneRsMap);
     }
