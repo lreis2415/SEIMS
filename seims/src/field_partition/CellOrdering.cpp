@@ -1228,7 +1228,7 @@ void CellOrdering::sortReclassedfieldid() {
 
 void CellOrdering::OutputFieldMap(const char *filename) {
     IntRaster output;
-    output.Copy(*m_mask);
+    output.Copy(m_mask);
     output.replaceNoData(output.getNoDataValue());
     Field *rootfd = m_mapfields[1];
     int degreeRoot = 1;
@@ -1380,7 +1380,7 @@ void CellOrdering::BuildRoutingLayer2(int idOutlet) {
 
 void CellOrdering::OutRoutingLayer(const char *filename) {
     IntRaster output;
-    output.Copy(*m_mask);
+    output.Copy(m_mask);
     output.replaceNoData(output.getNoDataValue());
 
     int nn = 0;
