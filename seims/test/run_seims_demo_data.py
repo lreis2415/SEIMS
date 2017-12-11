@@ -18,11 +18,11 @@ seims_module_path = SEIMS_path + os.sep + 'seims'
 sys.path.append(seims_module_path)
 
 from preprocess.config import SEIMSConfig
-# MongoDB modules
 from preprocess.db_build_mongodb import ImportMongodbClass
-# Spatial delineation
 from preprocess.sd_delineation import SpatialDelineation
 from run_seims import MainSEIMS
+from postprocess.config import PostConfig
+from postprocess.plot_timeseries import TimeSeriesPlots
 
 
 class ModelPaths(object):
@@ -80,6 +80,27 @@ def write_preprocess_config_file(mpaths):
     return SEIMSConfig(cf)
 
 
+def write_postprocess_config_file(mpaths, sceid):
+    org_cfg_file = mpaths.cfg_dir + os.sep + 'postprocess_30m_omp.ini'
+    post_cfg_file = mpaths.workspace + os.sep + 'postprocess_30m_omp.ini'
+    cfg_items = list()
+    with open(org_cfg_file, 'r') as f:
+        for line in f.readlines():
+            cfg_items.append(line.strip())
+    # print cfg_items
+    cfg_items.append('[PATH]')
+    cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
+    cfg_items.append('ScenarioID = %d' % sceid)
+
+    with open(post_cfg_file, 'w') as f:
+        for item in cfg_items:
+            f.write(item + '\n')
+
+    cf = ConfigParser()
+    cf.read(post_cfg_file)
+    return PostConfig(cf)
+
+
 def execute_seims_model(seims_cfg, sceid):
     """Run SEIMS for evaluating environmental effectiveness.
     If execution fails, the `self.economy` and `self.environment` will be set the worst values.
@@ -96,8 +117,12 @@ def main():
     SpatialDelineation.workflow(seims_cfg)
     # # Import to MongoDB database
     ImportMongodbClass.workflow(seims_cfg)
-    # Run SEIMS model
-    execute_seims_model(seims_cfg, 0)
+    # # Run SEIMS model
+    scenarioID = 0
+    execute_seims_model(seims_cfg, scenarioID)
+    # hydrograph, e.g. discharge
+    post_cfg = write_postprocess_config_file(model_paths, scenarioID)
+    TimeSeriesPlots(post_cfg).workflow()
 
 
 if __name__ == "__main__":
