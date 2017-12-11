@@ -50,13 +50,13 @@ public:
     SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
 
     //! Destructor
-    ~SettingsOutput() override;
+    virtual ~SettingsOutput();
 
     //! Init function
     static SettingsOutput *Init(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
 
     //! Write output information to log file
-    void Dump(string& filename) override;
+    virtual void Dump(string& filename);
 
     //! Check date of output settings
     void checkDate(time_t, time_t);
