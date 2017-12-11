@@ -268,7 +268,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
         bson_t *query;
         query = bson_new();
         m_scenDBName = QueryDatabaseName(query, DB_TAB_SCENARIO);
-        if (m_scenDBName.empty()) {
+        if (!m_scenDBName.empty()) {
             m_useScenario = true;
             m_scenario = new Scenario(m_mongoClient, m_scenDBName, m_subbasinID, m_scenarioID);
             if (setRasterForScenario()) {
@@ -663,7 +663,7 @@ void DataCenterMongoDB::readIUHData(string &remoteFilename, int &n, float **&dat
 bool DataCenterMongoDB::setRasterForScenario() {
     if (!m_useScenario) return false;
     if (nullptr == m_scenario) return false;
-    map<string, FloatRaster *> sceneRsMap = m_scenario->getSceneRasterDataMap();
+    map<string, FloatRaster *> &sceneRsMap = m_scenario->getSceneRasterDataMap();
     if (sceneRsMap.empty()) return false;
     for (auto it = sceneRsMap.begin(); it != sceneRsMap.end(); it++) {
         if (m_rsMap.find(it->first) == m_rsMap.end()) {
