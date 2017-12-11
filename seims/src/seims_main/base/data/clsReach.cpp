@@ -133,10 +133,7 @@ clsReach::clsReach(const bson_t *&bsonTable) {
     }
 }
 
-clsReach::~clsReach(void) {
-}
-
-void clsReach::Reset(void) {
+void clsReach::Reset() {
     Area = NODATA_VALUE;
     Depth = NODATA_VALUE;
     DownStream = -1;
@@ -194,6 +191,7 @@ clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName)
         this->m_reachIDs.push_back(curReach->GetSubbasinID());
     }
     vector<int>(m_reachIDs).swap(m_reachIDs);
+    // m_reachIDs.shrink_to_fit();
 
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
@@ -202,7 +200,7 @@ clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName)
 clsReaches::~clsReaches() {
     StatusMessage("Release clsReach...");
     if (!m_reachesMap.empty()) {
-        for (map<int, clsReach *>::iterator iter = m_reachesMap.begin(); iter != m_reachesMap.end();) {
+        for (auto iter = m_reachesMap.begin(); iter != m_reachesMap.end();) {
             if (iter->second != NULL) {
                 delete iter->second;
                 iter->second = NULL;

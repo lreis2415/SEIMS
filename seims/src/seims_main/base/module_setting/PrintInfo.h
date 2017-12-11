@@ -11,8 +11,9 @@
 
 #include "ParamInfo.h"
 #include "utilities.h"
+
 #include "MongoUtil.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 using namespace std;
 
@@ -57,10 +58,10 @@ public:
     //mongoc_gridfs_t *gfs;
 
     //! Constructor
-    PrintInfoItem(void);
+    PrintInfoItem();
 
     //! Destructor
-    ~PrintInfoItem(void);
+    ~PrintInfoItem();
 
     //! Aggregated data, the second dimension contains: row, col, value
     float **m_1DDataWithRowCol;
@@ -81,7 +82,7 @@ public:
     int TimeSeriesDataForSubbasinCount;
 
     //! Add 1D time series data result to \sa TimeSeriesDataForSubbasin
-    void add1DTimeSeriesResult(time_t, int n, float *data);
+    void add1DTimeSeriesResult(time_t, int n, const float *data);
 
     //! used only by PET_TS???
     ///< The site id
@@ -100,7 +101,7 @@ public:
     time_t m_startTime;
 
     //! get start time \a time_t
-    time_t getStartTime(void) { return m_startTime; };
+    time_t getStartTime() { return m_startTime; };
 
     //! set start time \a time_t
     void setStartTime(time_t &st) { m_startTime = st; }
@@ -111,7 +112,7 @@ public:
     time_t m_endTime;
 
     //! Get end time  \a time_t
-    time_t getEndTime(void) { return m_endTime; };
+    time_t getEndTime() { return m_endTime; };
 
     //! set end time \a time_t
     void setEndTime(time_t &st) { m_endTime = st; }
@@ -144,7 +145,7 @@ public:
     void setAggregationType(AggregationType type) { m_AggregationType = type; };
 
     //! Get the Aggregation type
-    AggregationType getAggregationType(void) { return m_AggregationType; };
+    AggregationType getAggregationType() { return m_AggregationType; };
 
     //! convert the given string into a matching Aggregation type
     static AggregationType MatchAggregationType(string type);
@@ -184,13 +185,13 @@ private:
     float *m_subbasinSelectedArray;
 public:
     //! Constructor, initialize an empty instance
-    PrintInfo(void);
+    PrintInfo();
 
     //! Destructor
-    ~PrintInfo(void);
+    ~PrintInfo();
 
     //! Get the number of output items
-    int ItemCount(void) const { return (int) m_PrintItems.size(); };
+    int ItemCount() const { return (int) m_PrintItems.size(); };
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
     void getSubbasinSelected(int *count, float **subbasins);
@@ -199,31 +200,31 @@ public:
     void setOutputID(string id) { m_OutputID = id; };
 
     //! Get the OutputId for this object
-    string getOutputID(void) const { return m_OutputID; };
+    string getOutputID() const { return m_OutputID; };
 
     //! Get Header string (all field names) for current OutputID. TODO, how to make it more flexible? By LJ.
-    string getOutputTimeSeriesHeader(void);
+    string getOutputTimeSeriesHeader();
 
     //! Set the interval
     void setInterval(int interval) { m_Interval = interval; };
 
     //! Get the interval
-    int getInterval(void) { return m_Interval; };
+    int getInterval() { return m_Interval; };
 
     //! Set the interval units
-    void setIntervalUnits(string units) { m_IntervalUnits = units; };
+    void setIntervalUnits(string& units) { m_IntervalUnits = units; };
 
     //! Get the interval units
-    string getIntervalUnits(void) const { return m_IntervalUnits; };
+    string getIntervalUnits() const { return m_IntervalUnits; };
 
     //! Add an output item with the given start time, end time and file name
-    void AddPrintItem(string start, string end, string file, string sufi);
+    void AddPrintItem(string& start, string& end, string& file, string& sufi);
 
     //! Add an output item with the given start time, end time and file name
-    void AddPrintItem(string type, string start, string end, string file, string sufi);
+    void AddPrintItem(string& type, string& start, string& end, string& file, string& sufi);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
-    void AddPrintItem(string start, string end, string file, string sitename, string sufi, bool isSubbasin);
+    void AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin);
 
     //! Get a reference to the output item located at the given index position
     PrintInfoItem *getPrintInfoItem(int index);

@@ -7,7 +7,6 @@
 #ifndef SEIMS_SCENARIO_H
 #define SEIMS_SCENARIO_H
 
-#include "utilities.h"
 #include "MongoUtil.h"
 #include "BMPText.h"
 #include "BMPFactory.h"
@@ -15,6 +14,7 @@
 #include "BMPPointSourceFactory.h"
 #include "BMPArealSourceFactory.h"
 #include "BMPArealStructFactory.h"
+#include "utilities.h"
 
 using namespace std;
 
@@ -39,76 +39,75 @@ namespace MainBMP {
 class Scenario {
 public:
     //! Constructor according to BMP database name and scenario ID
-    Scenario(MongoClient *conn, const string dbName, const int subbsnID = 0, const int scenarioID = 0);
+    Scenario(MongoClient *conn, const string &dbName, int subbsnID = 0, int scenarioID = 0);
 
     //! Destructor
-    ~Scenario(void);
+    ~Scenario();
 
     //! Get scenario ID, base scenario iD is 0
-    int ID(void) const { return m_sceneID; }
+    int ID() const { return m_sceneID; }
 
     //! If this is base scenario
-    bool IsBaseScenario(void) const { return m_sceneID == 0; }
+    bool IsBaseScenario() { return m_sceneID == 0; }
 
     //! Get scenario name
-    string Name(void);
+    string Name() { return m_name; };
 
     //! Get BMPs Factories
-    map<int, BMPFactory *>& GetBMPFactories(void) {
-        return m_bmpFactories;
-    }
+    const map<int, BMPFactory *> &GetBMPFactories() const { return m_bmpFactories; }
 
     //! Write all BMPs information of this scenario to a text file
-    void Dump(const string fileName);
+    void Dump(string &fileName);
 
     //! Output all BMPs information of this scenario to ostream
     void Dump(ostream *fs);
 
     //! Load time series data from database for some reach structure, \sa BMPReachFactory
-    void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
+    //void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
 
-    //! get scenario required raster map
-    map<string, FloatRaster*>& getSceneRasterDataMap(void) { return m_sceneRsMap; }
+    //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
+    map<string, FloatRaster *> &getSceneRasterDataMap() { return m_sceneRsMap; }
 
     //! set raster data for BMPs
-    void setRasterForEachBMP(void);
+    void setRasterForEachBMP();
 
 private:
     //! MongoDB client object, added by Liangjun
-    MongoClient*                 m_conn;
+    MongoClient *m_conn;
     //! MongoDB name of BMP
-    const string                 m_bmpDBName;
+    const string m_bmpDBName;
     //! Collections in BMP database used for data checking
-    vector<string>               m_bmpCollections;
+    vector<string> m_bmpCollections;
     //! Scenario ID, e.g., 0
-    const int                    m_sceneID;
+    const int m_sceneID;
     //! Scenario Name, e.g., base scenario
-    string                       m_name;
+    string m_name;
     //! Subbasin ID, 0 for the entire basin
-    const int                    m_subbsnID;
+    const int m_subbsnID;
 
 private:
     /*!
      * \brief Map of BMPs Factory
      *        the Key is unique BMP ID, and the value is \sa BMPFactory
      */
-    map<int, BMPFactory*>        m_bmpFactories;
+    map<int, BMPFactory *> m_bmpFactories;
     /*!
      * \brief Map of spatial data of scenario data, both 1D and 2D
      */
-    map<string, FloatRaster*>    m_sceneRsMap;
+    map<string, FloatRaster *> m_sceneRsMap;
 
     /// Load scenario information
-    void loadScenario(void);
+    void loadScenario();
 
     /// Get scenario name
-    void loadScenarioName(void);
+    void loadScenarioName();
 
     /// Load each BMP in current scenario
-    void loadBMPs(void);
+    void loadBMPs();
 
     /// Load a single BMP information via \sa BMPFactory
-    void loadBMPDetail(void);
+    void loadBMPDetail();
 };
-}
+
+} /* MainBMP */
 #endif /* SEIMS_SCENARIO_H */

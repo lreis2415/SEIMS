@@ -25,40 +25,40 @@ using namespace MainBMP;
 class SettingsInput : public Settings {
 public:
     //! Constructor
-    SettingsInput(vector<string>& stringvector);
+    explicit SettingsInput(vector<string>& stringvector);
 
     //! Destructor
-    ~SettingsInput(void);
+    ~SettingsInput() override = default;
 
     static SettingsInput* Init(vector<string>& stringvector);
 
     //! Output to log file
-    virtual void Dump(string);
+    void Dump(string& filename) override;
 
     //! Get start time of simulation
-    time_t getStartTime(void) const { return m_startDate; }
+    time_t getStartTime() const { return m_startDate; }
 
     //! Get end time of simulation
-    time_t getEndTime(void) const { return m_endDate; }
+    time_t getEndTime() const { return m_endDate; }
 
     //! Get time interval for hillslope scale processes
-    time_t getDtHillslope(void) const { return m_dtHs; }
+    time_t getDtHillslope() const { return m_dtHs; }
 
     //! Get time interval for channel scale processes
-    time_t getDtChannel(void) const { return m_dtCh; }
+    time_t getDtChannel() const { return m_dtCh; }
 
     //! Get daily time interval of simulation in sec
-    time_t getDtDaily(void) const { return 86400; }
+    time_t getDtDaily() const { return 86400; }
 
     //! Get model mode
-    string& getModelMode(void) { return m_mode; }
+    string& getModelMode() { return m_mode; }
 
     //! is storm model
-    bool isStormMode(void) const { return m_isStormModel; }
+    bool isStormMode() const { return m_isStormModel; }
 
 private:
     //! Read start and end date, simulation mode and time interval
-    bool readSimulationPeriodDate(void);
+    bool readSimulationPeriodDate();
 
 private:
     //! Start date of simulation

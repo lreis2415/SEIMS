@@ -18,7 +18,7 @@ MongoClient::MongoClient(const char *host, uint16_t port) : m_host(host), m_port
 MongoClient* MongoClient::Init(const char *host, uint16_t port) {
     if (!isIPAddress(host)) {
         cout << "IP address: " + string(host) + " is invalid, Please check!" << endl;
-        return NULL;
+        return nullptr;
     }
     mongoc_init();
     mongoc_uri_t *uri = mongoc_uri_new_for_host_port(host, port);
@@ -28,7 +28,7 @@ MongoClient* MongoClient::Init(const char *host, uint16_t port) {
     bson_error_t *err = NULL;
     if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
         cout << "Failed to connect to MongoDB!" << endl;
-        return NULL;
+        return nullptr;
     }
     bson_destroy(reply);
     mongoc_uri_destroy(uri);

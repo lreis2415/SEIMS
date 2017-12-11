@@ -24,7 +24,7 @@ m_name(""), m_desc(""), m_refer(""), m_id(-1)
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_PARAMS)) {
         string params_str = GetStringFromBsonIterator(&iter);
         vector<string> params_strs = SplitString(params_str, '-');
-        for (vector<string>::iterator it = params_strs.begin(); it != params_strs.end(); it++) {
+        for (auto it = params_strs.begin(); it != params_strs.end(); it++) {
             vector<string> tmp_param_items = SplitString(*it, ':');
             assert(tmp_param_items.size() == 4);
             ParamInfo* p = new ParamInfo();
@@ -43,23 +43,22 @@ m_name(""), m_desc(""), m_refer(""), m_id(-1)
 
 BMPArealStruct::~BMPArealStruct() {
     StatusMessage("---release map of parameters in BMPArealStruct ...");
-    for (map<string, ParamInfo *>::iterator it = m_parameters.begin(); it != m_parameters.end();) {
-        if (it->second != NULL) {
+    for (auto it = m_parameters.begin(); it != m_parameters.end();) {
+        if (nullptr != it->second) {
             StatusMessage(("-----" + it->first + " ...").c_str());
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_parameters.erase(it++);
     }
     m_parameters.clear();
 }
 
-BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
-                                             const int bmpType, const int bmpPriority,
-                                             vector<string> &distribution, const string collection,
-                                             const string location): 
+BMPArealStructFactory::BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
+                                             int bmpType, int bmpPriority, vector<string> &distribution,
+                                             const string& collection, const string& location):
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location), 
-    m_mgtFieldsRs(NULL)
+    m_mgtFieldsRs(nullptr)
 {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
@@ -74,11 +73,11 @@ BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmp
 
 BMPArealStructFactory::~BMPArealStructFactory()
 {
-	//if(m_mgtFieldsRs != NULL) delete m_mgtFieldsRs;  // will be released in DataCenter
-    for (map<int, BMPArealStruct*>::iterator it = m_bmpStructMap.begin(); it != m_bmpStructMap.end(); ) {
-        if (NULL != it->second) {
+	// m_mgtFieldsRs will be released in DataCenter. No need to be released here.
+    for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end(); ) {
+        if (nullptr != it->second) {
             delete it->second;
-            it->second = NULL;
+            it->second = nullptr;
         }
         m_bmpStructMap.erase(it++);
     }
@@ -122,7 +121,7 @@ void BMPArealStructFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap)
 
 void BMPArealStructFactory::Dump(ostream *fs)
 {
-	if (fs == NULL) return;
+	if (nullptr == fs) return;
 	*fs << "Areal Structural BMP Management Factory: " << endl <<
 		"    SubScenario ID: " << m_subScenarioId << endl;
 }

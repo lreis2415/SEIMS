@@ -4,7 +4,8 @@
  * \version 1.0
  * \date June 2010
  */
-#pragma once
+#ifndef SEIMS_SIMPLE_TEXT_H
+#define SEIMS_SIMPLE_TEXT_H
 #include "utilities.h"
 
 using namespace std;
@@ -38,3 +39,5 @@ private:
     //! lines data
     float *m_data;
 };
+
+#endif /* SEIMS_SIMPLE_TEXT_H */

@@ -6,7 +6,8 @@
  * \date April 2016
  *
  */
-#pragma once
+#ifndef SEIMS_CLIMATE_PARAMS_H
+#define SEIMS_CLIMATE_PARAMS_H
 #include <string>
 
 using namespace std;
@@ -75,3 +76,5 @@ float PsychrometricConst(float &tmean, float &elev);
  * \return saturation vapor pressure(kPa)
 */
 float SaturationVaporPressure(float &t);
+
+#endif /* SEIMS_CLIMATE_PARAMS_H */

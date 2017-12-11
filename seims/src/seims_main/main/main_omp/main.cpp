@@ -32,7 +32,9 @@ int main(int argc, const char *argv[]) {
         if (PathExists(string(argv[i]))) {
             modelPath = argv[i];
             i++;
-        } else {
+        }
+        else {
+            cout << "Model folder " << argv[i] << " is not existed!" << endl;
             goto errexit;
         }
         if (argc > i) {

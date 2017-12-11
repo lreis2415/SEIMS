@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<metadata xml:lang="zh"><Esri><CreaDate>20150325</CreaDate><CreaTime>09553900</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="C:\Program Files\ArcGIS\Desktop10.0\ArcToolbox\Toolboxes\Analysis Tools.tbx\CreateThiessenPolygons" Date="20150324" Time="210211">CreateThiessenPolygons precSites5 D:\BaseData\preSites5_thiessen.shp ONLY_FID</Process></lineage></DataProperties></Esri></metadata>

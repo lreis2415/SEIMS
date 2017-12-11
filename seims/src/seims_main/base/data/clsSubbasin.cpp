@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(NULL), m_isRevapChanged(true),
+Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(nullptr), m_isRevapChanged(true),
                              m_cellArea(-1.f), m_Area(-1.f),
                              m_slope(-1.f), m_slopeCoefficient(1.f),
                              m_GWMAX(-1.f), m_kg(-1.f), m_dp_co(-1.f), m_base_ex(-1.f), m_QGConvert(-1.f),
@@ -14,7 +14,7 @@ Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(NULL), m_isRevapCha
                              m_soilET(-1.f), m_TMean(-1.f), m_SoilT(-1.f), m_interceptionET(-1.f) {
 }
 
-Subbasin::~Subbasin(void) {
+Subbasin::~Subbasin() {
     Release1DArray(m_cells);
 }
 
@@ -64,7 +64,7 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
 
 // read subbasin data
     int nCells = -1;
-    float *subbasinData = NULL;
+    float *subbasinData = nullptr;
     float cellWidth = NODATA_VALUE;
     ostringstream oss;
     oss << prefixID << "_" << VAR_SUBBSN;
@@ -77,32 +77,34 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
 // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
     map<int, vector<int> *>cellListMap;
     for (int i = 0; i < nCells; i++) {
-        int subID = int(subbasinData[i]);
+        int subID = (int) subbasinData[i];
         if (cellListMap.find(subID) == cellListMap.end())
             cellListMap[subID] = new vector<int>;
         cellListMap[subID]->push_back(i);
     }
-    m_nSubbasins = cellListMap.size();
-    for (map<int, vector<int> *>::iterator it = cellListMap.begin(); it != cellListMap.end(); it++) {
-// swap for saving memory
+    m_nSubbasins = (int) cellListMap.size();
+    for (auto it = cellListMap.begin(); it != cellListMap.end(); it++) {
+        // swap for saving memory, using shrink_to_fit() instead.
         vector<int>(*it->second).swap(*it->second);
+        // (*it->second).shrink_to_fit();
         int subID = it->first;
         m_subbasinIDs.push_back(subID);
         Subbasin *newSub = new Subbasin(subID);
-        int nCellsTmp = it->second->size();
+        int nCellsTmp = (int) it->second->size();
         int *tmp = new int[nCellsTmp];
-        for (int j = 0; j < nCellsTmp; j++)
+        for (size_t j = 0; j < nCellsTmp; j++)
             tmp[j] = it->second->at(j);
         newSub->setCellList(nCellsTmp, tmp);
         newSub->setArea(cellWidth * cellWidth * nCellsTmp);
         m_subbasinsInfo[subID] = newSub;
     }
     vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
-
+    // m_subbasinIDs.shrink_to_fit();
     // release cellListMap to save memory
-    for (map<int, vector<int> *>::iterator it = cellListMap.begin(); it != cellListMap.end();) {
-        if (it->second != NULL)
+    for (auto it = cellListMap.begin(); it != cellListMap.end();) {
+        if (it->second != nullptr) {
             delete it->second;
+        }
         cellListMap.erase(it++);
     }
     cellListMap.clear();
@@ -120,23 +122,23 @@ clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterD
 
     if (rsMap.find(maskFileName) == rsMap.end()) { // if mask not loaded yet
         cout << "MASK data has not been loaded yet!" << endl;
-        return NULL;
+        return nullptr;
     }
     int nCells = -1;
-    float *subbasinData = NULL;
+    float *subbasinData = nullptr;
     if (rsMap.find(subbasinFileName) == rsMap.end()) { // if subbasin not loaded yet
-        clsRasterData<float> *subbasinRaster = NULL;
+        clsRasterData<float> *subbasinRaster = nullptr;
         subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
         if (!subbasinRaster->getRasterData(&nCells, &subbasinData)) {
             cout << "Subbasin data loaded failed!" << endl;
-            return NULL;
+            return nullptr;
         }
         rsMap[subbasinFileName] = subbasinRaster;
     }
     else {
         if (!rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData)) {
             cout << "Subbasin data preloaded is unable to access!" << endl;
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -146,10 +148,10 @@ clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterD
 clsSubbasins::~clsSubbasins() {
     StatusMessage("Release subbasin class ...");
     if (!m_subbasinsInfo.empty()) {
-        for (map<int, Subbasin *>::iterator iter = m_subbasinsInfo.begin(); iter != m_subbasinsInfo.end();) {
-            if (iter->second != NULL) {
+        for (auto iter = m_subbasinsInfo.begin(); iter != m_subbasinsInfo.end();) {
+            if (iter->second != nullptr) {
                 delete iter->second;
-                iter->second = NULL;
+                iter->second = nullptr;
             }
             m_subbasinsInfo.erase(iter++);
         }
@@ -161,8 +163,8 @@ float clsSubbasins::subbasin2basin(string key) {
     float temp = 0.f;
     int totalCount = 0;
     int nCount;
-    Subbasin *sub = NULL;
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    Subbasin *sub = nullptr;
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         sub = m_subbasinsInfo[*it];
         nCount = sub->getCellCount();
         if (StringMatch(key, VAR_SLOPE)) {
@@ -195,7 +197,7 @@ float clsSubbasins::subbasin2basin(string key) {
 
 void clsSubbasins::SetSlopeCoefficient() {
     float basinSlope = subbasin2basin(VAR_SLOPE);
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         Subbasin *curSub = m_subbasinsInfo[*it];
         if (basinSlope <= 0.f) {
             curSub->setSlopeCoefofBasin(1.f);
