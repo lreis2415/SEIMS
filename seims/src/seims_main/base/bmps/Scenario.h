@@ -65,8 +65,8 @@ public:
     //! Load time series data from database for some reach structure, \sa BMPReachFactory
     //void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
 
-    //! get scenario required raster map
-    const map<string, FloatRaster *> &getSceneRasterDataMap() const { return m_sceneRsMap; }
+    //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
+    map<string, FloatRaster *> &getSceneRasterDataMap() { return m_sceneRsMap; }
 
     //! set raster data for BMPs
     void setRasterForEachBMP();
