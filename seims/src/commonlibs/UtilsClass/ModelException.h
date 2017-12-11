@@ -26,7 +26,7 @@ public:
     ModelException(string className, string functionName, string msg);
 
     //! Destructor (void)
-    ~ModelException() throw();
+    ~ModelException() throw() override {};
 
     /*!
      * \brief Construct error information (string version)
@@ -43,7 +43,7 @@ public:
         descri = "Class:" + m_className + "\n";
         descri += "Function:" + m_functionName + "\n";
         descri += "Message:" + m_msg;
-        const char* desc_char = descri.c_str();
+        const char *desc_char = descri.c_str();
         return desc_char;
     }
 

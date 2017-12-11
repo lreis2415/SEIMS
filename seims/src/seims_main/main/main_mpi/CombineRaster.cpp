@@ -6,7 +6,7 @@
 
 #include "utilities.h"
 #include "parallel.h"
-#include "clsRasterData.cpp"
+#include "clsRasterData.h"
 
 //#include "Raster.h"
 using namespace std;

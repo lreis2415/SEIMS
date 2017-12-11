@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
         lookupFile = lookupFolder + attrNames[i] + ".txt";
         outputFile = outputFolder + attrNames[i] + ".tif";
         clsRasterData<float> outputLayer;
-        outputLayer.Copy(typeRaster);
+        outputLayer.Copy(&typeRaster);
         map<int, float> reclassMap;
         ReadReclassMap(lookupFile.c_str(), reclassMap);
         outputLayer.reclassify(reclassMap);

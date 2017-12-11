@@ -4,18 +4,18 @@
  * \author Junzhi Liu, LiangJun Zhu
  * \date May 2016
  * \revised Feb 2017
+ *          Nov 2017 lj Add unittest based on gtest/gmock.
  * \note No exceptions will be thrown.
  */
 #ifndef MONGO_UTILS
 #define MONGO_UTILS
 
+#include "utilities.h"
+#include <mongoc.h>
+
 #include <vector>
 #include <string>
 #include <set>
-
-#include <mongoc.h>
-
-#include "utilities.h"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ public:
      *        2. Check database status
      * \usage 
      *       MongoClient *client = MongoClient::Init(host, port)
-     *       if (NULL == client) {
+     *       if (nullptr == client) {
      *           throw exception("MongoClient initialization failed!");
      *           // or other error handling code.
      *       }
@@ -63,12 +63,12 @@ public:
     /*!
      * \brief Destructor
      */
-    ~MongoClient(void);
+    ~MongoClient();
 
     /*!
      * \brief Get mongoc_client instance
      */
-    mongoc_client_t *getConn(void) { return m_conn; }
+    mongoc_client_t *getConn() { return m_conn; }
 
     /*!
      * \brief Get existed Database instance
@@ -123,7 +123,7 @@ public:
     /*!
      * \brief Constructor, initialized by a mongoc_database_t* pointer
      */
-    MongoDatabase(mongoc_database_t *db);
+    explicit MongoDatabase(mongoc_database_t *db);
 
     /*!
      * \brief Constructor, initialized by mongodb client and database name
@@ -133,7 +133,7 @@ public:
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoDatabase(void);
+    ~MongoDatabase();
 
     /*!
       * \brief Get collection names in current database
@@ -150,7 +150,7 @@ public:
     /*!
     * \brief Constructor, initialized by a mongoc_collection_t* pointer
     */
-    MongoCollection(mongoc_collection_t* coll);
+    explicit MongoCollection(mongoc_collection_t* coll);
     //! Destructor
     ~MongoCollection();
     /*!
@@ -160,7 +160,7 @@ public:
     /*!
     * \brief Query the records number
     */
-    int QueryRecordsCount(void);
+    int QueryRecordsCount();
 private:
     mongoc_collection_t*      m_collection;
 };
@@ -174,14 +174,14 @@ public:
     /*!
      * \brief Constructor, initialized by a mongoc_gridfs_t* pointer or NULL
      */
-    MongoGridFS(mongoc_gridfs_t *gfs = NULL);
+    explicit MongoGridFS(mongoc_gridfs_t *gfs = NULL);
 
     /*!
      * \brief Destructor by Destroy function
      */
-    ~MongoGridFS(void);
+    ~MongoGridFS();
 
-    mongoc_gridfs_t *getGridFS(void) { return m_gfs; }
+    mongoc_gridfs_t *getGridFS() { return m_gfs; }
 
     /*!
      * \brief Get GridFS file by name

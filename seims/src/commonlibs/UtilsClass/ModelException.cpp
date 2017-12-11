@@ -7,9 +7,6 @@ ModelException::ModelException(string className, string functionName, string msg
     m_msg = msg;
 }
 
-ModelException::~ModelException() throw() {
-}
-
 string ModelException::toString() {
     string descri = "";
     descri = "Class:" + m_className + "\n";
