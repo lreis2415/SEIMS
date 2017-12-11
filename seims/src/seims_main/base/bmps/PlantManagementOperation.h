@@ -79,7 +79,7 @@ class PlantOperation : public PlantManagementOperation {
 public:
     PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~PlantOperation() override = default;
+    virtual ~PlantOperation() = default;
 
     int PlantID() { return m_plantID; }
 
@@ -98,7 +98,7 @@ public:
     float CNOP() { return m_CNOP; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_plantID;
@@ -120,7 +120,7 @@ class IrrigationOperation : public PlantManagementOperation {
 public:
     IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~IrrigationOperation() override = default;
+    virtual ~IrrigationOperation() = default;
 
     int IRRSource() { return m_irrSrc; }
 
@@ -135,7 +135,7 @@ public:
     float IRRSQfrac() { return m_irrSq; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_irrSrc;
@@ -155,7 +155,7 @@ class FertilizerOperation : public PlantManagementOperation {
 public:
     FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~FertilizerOperation() override = default;
+    virtual ~FertilizerOperation() = default;
 
     int FertilizerID() { return m_fertID; }
 
@@ -164,7 +164,7 @@ public:
     float FertilizerSurfaceFrac() { return m_frtSurface; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_fertID;
@@ -183,7 +183,7 @@ class PesticideOperation : public PlantManagementOperation {
 public:
     PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~PesticideOperation() override = default;
+    virtual ~PesticideOperation() = default;
 
     int PesticideID() { return m_pestID; }
 
@@ -192,7 +192,7 @@ public:
     float PesticideDepth() { return m_pstDep; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_pestID;
@@ -210,7 +210,7 @@ public:
     HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    ~HarvestKillOperation() override = default;
+    virtual ~HarvestKillOperation() = default;
 
     float CNOP() { return m_CNOP; }
 
@@ -219,7 +219,7 @@ public:
     float StoverFracRemoved() { return m_fracHarvk; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     float m_CNOP;
@@ -236,14 +236,14 @@ class TillageOperation : public PlantManagementOperation {
 public:
     TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~TillageOperation() override = default;
+    virtual ~TillageOperation() = default;
 
     float CNOP() { return m_CNOP; }
 
     int TillageID() { return m_tillID; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_tillID;
@@ -260,7 +260,7 @@ public:
     HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    ~HarvestOnlyOperation() override = default;
+    virtual ~HarvestOnlyOperation() = default;
 
     float HarvestEfficiency() { return m_harvEff; }
 
@@ -269,7 +269,7 @@ public:
     float HarvestIndexBiomass() { return m_hiBms; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     float m_harvEff;
@@ -286,10 +286,10 @@ class KillOperation : public PlantManagementOperation {
 public:
     KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~KillOperation() override = default;
+    virtual ~KillOperation() = default;
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 };
 
 /*!
@@ -301,7 +301,7 @@ class GrazingOperation : public PlantManagementOperation {
 public:
     GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~GrazingOperation() override = default;
+    virtual ~GrazingOperation() = default;
 
     int GrazingDays() { return m_grzDays; }
 
@@ -314,7 +314,7 @@ public:
     float ManureDeposited() { return m_manureKg; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_grzDays;
@@ -334,7 +334,7 @@ public:
     AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~AutoIrrigationOperation() override = default;
+    virtual ~AutoIrrigationOperation() = default;
 
     int WaterStrsIdent() { return m_wstrsID; }
 
@@ -351,7 +351,7 @@ public:
     float SurfaceRunoffRatio() { return m_irrAsq; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_wstrsID;
@@ -373,7 +373,7 @@ public:
     AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~AutoFertilizerOperation() override = default;
+    virtual ~AutoFertilizerOperation() = default;
 
     int FertilizerID() { return m_afertID; }
 
@@ -390,7 +390,7 @@ public:
     float SurfaceFracApplied() { return m_afrtSurface; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_afertID;
@@ -412,7 +412,7 @@ public:
     ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    ~ReleaseImpoundOperation() override = default;
+    virtual ~ReleaseImpoundOperation() = default;
 
     int ImpoundTriger() { return m_impTrig; }
 
@@ -423,7 +423,7 @@ public:
     float MinFitDepth() { return m_minFitDepth; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_impTrig;
@@ -442,7 +442,7 @@ public:
     ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                   float *parameters);
 
-    ~ContinuousFertilizerOperation() override = default;
+    virtual ~ContinuousFertilizerOperation() = default;
 
     int FertilizerID() { return m_cfertID; }
 
@@ -453,7 +453,7 @@ public:
     float FertilizerKg() { return m_cfrtKg; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_cfertID;
@@ -472,7 +472,7 @@ public:
     ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                  float *parameters);
 
-    ~ContinuousPesticideOperation() override = default;
+    virtual ~ContinuousPesticideOperation() = default;
 
     int PesticideID() { return m_ipstID; }
 
@@ -483,7 +483,7 @@ public:
     int PesticideDays() { return m_pstDays; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     int m_ipstID;
@@ -501,12 +501,12 @@ class BurningOperation : public PlantManagementOperation {
 public:
     BurningOperation(int mgtOp, bool useBaseHU, float husc, int year, int month, int day, float *parameters);
 
-    ~BurningOperation() override = default;
+    virtual ~BurningOperation() = default;
 
     float FractionLeft() { return m_burnFrlb; }
 
     //! Output
-    void dump(ostream *fs) override;
+    virtual void dump(ostream *fs);
 
 private:
     float m_burnFrlb;
