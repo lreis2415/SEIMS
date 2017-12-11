@@ -10,7 +10,7 @@
                 17-06-23  lj - reorganize as basic class
 """
 import math
-from os import sep as SEP
+import os
 
 import numpy
 from osgeo.gdal import GDT_Float32
@@ -693,7 +693,7 @@ class SoilUtilClass(object):
                     for i, tmpseq in enumerate(seqns):
                         cur_dict[float(tmpseq)] = soil_prop_dict[key][i]
                     replace_dicts.append(cur_dict)
-                    dst_soil_tifs.append(dstdir + SEP + key + '.tif')
+                    dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
                         cur_dict = {}
@@ -703,7 +703,7 @@ class SoilUtilClass(object):
                             else:
                                 cur_dict[float(seqns[j])] = DEFAULT_NODATA
                         replace_dicts.append(cur_dict)
-                        dst_soil_tifs.append(dstdir + SEP + key + '_' + str(i + 1) + '.tif')
+                        dst_soil_tifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
         # print replaceDicts
         # print(len(replaceDicts))
         # print dstSoilTifs
@@ -781,8 +781,7 @@ class SoilUtilClass(object):
     @staticmethod
     def parameters_extraction(cfg):
         """Soil spatial parameters extraction."""
-        f = open(cfg.logs.extract_soil, 'w')
-
+        f = cfg.logs.extract_soil
         # 1. Calculate soil physical and chemical parameters
         soiltype_file = cfg.spatials.soil_type
         status_output("Calculating initial soil physical and chemical parameters...", 30, f)
@@ -797,7 +796,6 @@ class SoilUtilClass(object):
         SoilUtilClass.initial_soil_moisture(acc_file, slope_file, out_filename)
 
         status_output("Soil related spatial parameters extracted done!", 100, f)
-        f.close()
 
 
 def main():
