@@ -1,0 +1,46 @@
+version: MongoUtilClass.{build}
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+image: Visual Studio 2013
+configuration: Debug
+platform: x64
+services: mongodb
+build:
+  parallel: true
+  verbosity: minimal
+install:
+  # compile mongo-c-driver
+  - appveyor DownloadFile https://github.com/mongodb/mongo-c-driver/releases/download/1.5.5/mongo-c-driver-1.5.5.tar.gz -FileName mongo-c-driver-1.5.5.tar.gz
+  - 7z x mongo-c-driver-1.5.5.tar.gz
+  - 7z x mongo-c-driver-1.5.5.tar -oC:\
+  - cd C:\mongo-c-driver-1.5.5
+  - ps: "ls"
+  - cd src\libbson
+  - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+  - cd ..\..
+  - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+  - "SET MONGOC_ROOT_DIR=C:\\mongo-c-driver"
+  - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
+  - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
+  # clone the dependent libraries
+  - git clone -q --branch=master https://github.com/lreis2415/UtilsClass.git C:\projects\UtilsClass
+build_script:
+  # make directory for installation
+  - cd C:\projects\mongoutilclass
+  - mkdir mongo_win64bit
+  - ps: "ls"
+  - mkdir build_64bit
+  - cd build_64bit
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DUNITTEST=1 -DINSTALL_PREFIX=C:\projects\mongoutilclass\mongo_win64bit
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+  - cd ..
+  - ps: "ls"
+  # run unittest
+  - C:\projects\mongoutilclass\mongo_win64bit\UnitTests_Mongo.exe

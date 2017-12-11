@@ -8,8 +8,8 @@
 #define SEIMS_BMP_AREALSOURCE_H
 
 #include "BMPFactory.h"
-#include "utilities.h"
 
+#include "utilities.h"
 #include "clsRasterData.h"
 
 using namespace MainBMP;

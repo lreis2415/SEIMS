@@ -4,11 +4,13 @@ pull_requests:
 branches:
   only:
   - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 image: Visual Studio 2013
-configuration: Release
+configuration: Debug
 platform: x64
 services: mongodb
 build:
+  parallel: true
   verbosity: minimal
 environment:
   global:
@@ -34,12 +36,12 @@ install:
   - ps: "ls"
   - cd src\libbson
   - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
-  - msbuild.exe ALL_BUILD.vcxproj
-  - msbuild.exe INSTALL.vcxproj
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
   - cd ..\..
   - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
-  - msbuild.exe ALL_BUILD.vcxproj
-  - msbuild.exe INSTALL.vcxproj
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
   - "SET MONGOC_ROOT_DIR=C:\\mongo-c-driver"
   - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
   - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
@@ -51,10 +53,10 @@ build_script:
   - ps: "ls"
   - mkdir build
   - cd build
-  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Release
-  - msbuild.exe ALL_BUILD.vcxproj
-  - msbuild.exe INSTALL.vcxproj
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
 test_script:
   # run demo test
   - cd C:\projects\rasterclass\bin
-  - RasterClass.exe
+  - UnitTests_Raster.exe

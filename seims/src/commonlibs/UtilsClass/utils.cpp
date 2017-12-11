@@ -11,10 +11,10 @@ double utilsTime::TimeCounting() {
         double PCFreq = 0.;
         PCFreq = double(li.QuadPart);
         QueryPerformanceCounter(&li);
-        return (double)li.QuadPart / PCFreq; // seconds
+        return (double) li.QuadPart / PCFreq; // seconds
+    } else {
+        return (double) clock() / CLK_TCK;
     }
-    else
-        return (double)clock() / CLK_TCK;
 #else
     struct timeval tv;
     gettimeofday(&tv, nullptr);
@@ -77,7 +77,7 @@ string utilsTime::ConvertToString2(const time_t *date) {
     return s;
 }
 
-time_t utilsTime::ConvertToTime(const string& strDate, string const &format, bool includeHour) {
+time_t utilsTime::ConvertToTime(const string &strDate, string const &format, bool includeHour) {
     struct tm *timeinfo;
     time_t t(0);
     if (utilsString::StringMatch(strDate, "")) {
@@ -407,6 +407,7 @@ int utilsFileIO::copyfile_unix(const char *srcfile, const char *dstfile) {
 #endif /* windows */
 
 bool utilsFileIO::FileExists(string const &FileName) {
+
 #ifdef windows
     struct _finddata_t fdt;
     intptr_t ptr = _findfirst(FileName.c_str(), &fdt);
@@ -423,7 +424,8 @@ bool utilsFileIO::FileExists(string const &FileName) {
 }
 
 bool utilsFileIO::PathExists(string const &fullpath) {
-    const char *path = fullpath.c_str();
+    string abspath = utilsFileIO::GetAbsolutePath(fullpath);
+    const char *path = abspath.c_str();
     bool isExists;
 #ifdef windows
     struct _stat fileStat;
@@ -436,31 +438,35 @@ bool utilsFileIO::PathExists(string const &fullpath) {
 }
 
 int utilsFileIO::DeleteExistedFile(const string &filepath) {
-    if (utilsFileIO::FileExists(filepath)) {
-        return remove(filepath.c_str());
+    string abspath = utilsFileIO::GetAbsolutePath(filepath);
+    if (utilsFileIO::FileExists(abspath)) {
+        return remove(abspath.c_str());
     } else {
         return -1;
     }
 }
 
 int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles) {
+    string abspath = utilsFileIO::GetAbsolutePath(lpPath);
+    const char* newlpPath = abspath.c_str();
 #ifdef windows
     char szFind[MAX_PATH];
-    stringcpy(szFind, lpPath);
+    stringcpy(szFind, newlpPath);
     stringcat(szFind, SEP);
     stringcat(szFind, expression);
 
     WIN32_FIND_DATA findFileData;
     HANDLE hFind = ::FindFirstFile(szFind, &findFileData);
-    if (INVALID_HANDLE_VALUE == hFind)
+    if (INVALID_HANDLE_VALUE == hFind) {
         return -1;
-    do
-    {
-        if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    }
+    do {
+        if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             continue;
+        }
 
         char fullpath[MAX_PATH];
-        stringcpy(fullpath, lpPath);
+        stringcpy(fullpath, newlpPath);
         stringcat(fullpath, SEP);
         stringcat(fullpath, findFileData.cFileName);
 
@@ -468,7 +474,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
 
     } while (::FindNextFile(hFind, &findFileData));
 #else
-    DIR *dir = opendir(lpPath);
+    DIR *dir = opendir(newlpPath);
     //cout<<"Find existed files ..."<<endl;
     if (dir) {
         struct dirent *hFile;
@@ -489,7 +495,7 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
                 || utilsString::StringMatch(expression, ".*")
                 || utilsString::StringMatch(expression, "*.*")) {
                 ostringstream oss;
-                oss << lpPath << SEP << filename;
+                oss << newlpPath << SEP << filename;
                 cout << oss.str() << endl;
                 vecFiles.emplace_back(oss.str());
             }
@@ -500,41 +506,134 @@ int utilsFileIO::FindFiles(const char *lpPath, const char *expression, vector<st
     return 0;
 }
 
-bool utilsFileIO::DirectoryExists(const string& dirpath) {
+bool utilsFileIO::DirectoryExists(const string &dirpath) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
 #ifdef windows
-    if (::GetFileAttributes(dirpath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+    if (::GetFileAttributes(abspath.c_str()) == INVALID_FILE_ATTRIBUTES) {
 #else
-    if (access(dirpath.c_str(), F_OK) != 0) {
+        if (access(abspath.c_str(), F_OK) != 0) {
 #endif /* windows */
         return false;
-    }
-    else {
+    } else {
         return true;
     }
 }
 
-bool utilsFileIO::CleanDirectory(const string& dirpath) {
-    try{
-        if (utilsFileIO::DirectoryExists(dirpath)) { /// empty the directory
+bool utilsFileIO::CleanDirectory(const string &dirpath) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
+    try {
+        if (utilsFileIO::DirectoryExists(abspath)) { /// empty the directory
             vector<string> existedFiles;
-            utilsFileIO::FindFiles(dirpath.c_str(), "*.*", existedFiles);
-            for (auto it = existedFiles.begin(); it != existedFiles.end(); ++it)
+            utilsFileIO::FindFiles(abspath.c_str(), "*.*", existedFiles);
+            for (auto it = existedFiles.begin(); it != existedFiles.end(); ++it) {
                 remove((*it).c_str());
-        } 
-        else { /// create new directory
+            }
+        } else { /// create new directory
 #ifdef windows
             LPSECURITY_ATTRIBUTES att = nullptr;
-            ::CreateDirectory(dirpath.c_str(), att);
+            ::CreateDirectory(abspath.c_str(), att);
 #else
-            mkdir(dirpath.c_str(), 0777);
+            mkdir(abspath.c_str(), 0777);
 #endif /* windows */
         }
         return true;
     }
     catch (...) {
-        cout << "Create or clean directory: " << dirpath << " failed!" << endl;
+        cout << "Create or clean directory: " << abspath << " failed!" << endl;
         return false;
     }
+}
+
+bool utilsFileIO::DeleteDirectory(const string &dirpath, bool delSubdirs/* = true */) {
+    string abspath = utilsFileIO::GetAbsolutePath(dirpath);
+    if (!utilsFileIO::DirectoryExists(abspath)) return true;
+#ifdef windows
+    bool            bSubdirectory = false;       // Flag, indicating whether
+                                                 //   subdirectories have been found
+    HANDLE          hFile;                       // Handle to directory
+    std::string     strFilePath;                 // Filepath
+    std::string     strPattern;                  // Pattern
+    WIN32_FIND_DATA FileInformation;             // File information
+
+    strPattern = abspath + SEP + "*.*";
+    hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
+    if(hFile != INVALID_HANDLE_VALUE) {
+        do {
+            if(FileInformation.cFileName[0] != '.') {
+                strFilePath.erase();
+                strFilePath = abspath + SEP + FileInformation.cFileName;
+                if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    if(delSubdirs) {
+                        // Delete subdirectory
+                        bool iRC = utilsFileIO::DeleteDirectory(strFilePath, delSubdirs);
+                        if(!iRC) return false;
+                    } else bSubdirectory = true;
+                }
+                else {
+                    // Set file attributes
+                    if(::SetFileAttributes(strFilePath.c_str(), FILE_ATTRIBUTE_NORMAL) == FALSE) {
+                        // ::GetLastError();
+                        return false;
+                    }
+                    // Delete file
+                    if(::DeleteFile(strFilePath.c_str()) == FALSE) {
+                        // ::GetLastError();
+                        return false;
+                    }
+                }
+            }
+        } while(::FindNextFile(hFile, &FileInformation) == TRUE);
+
+        // Close handle
+        ::FindClose(hFile);
+
+        DWORD dwError = ::GetLastError();
+        if(dwError != ERROR_NO_MORE_FILES) {
+            // dwError;
+            return false;
+        }
+        else {
+            if(!bSubdirectory) {
+                // Set directory attributes
+                if(::SetFileAttributes(abspath.c_str(), FILE_ATTRIBUTE_NORMAL) == FALSE) {
+                    // ::GetLastError();
+                    return false;
+                }
+                // Delete directory
+                if(::RemoveDirectory(abspath.c_str()) == FALSE) {
+                    // ::GetLastError();
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+#else
+    DIR *dir;
+    struct dirent *entry;
+    char path[PATH_MAX];
+
+    dir = opendir(abspath.c_str());
+    if (dir == NULL) {
+        perror("Error opendir()");
+        return true;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+            snprintf(path, (size_t) PATH_MAX, "%s/%s", abspath.c_str(), entry->d_name);
+            if (entry->d_type == DT_DIR && delSubdirs) {
+                utilsFileIO::DeleteDirectory(path, delSubdirs);
+            }
+            printf("Deleting: %s\n", path);
+            remove(path);
+        }
+    }
+    closedir(dir);
+    printf("Deleting: %s\n", abspath.c_str());
+    remove(abspath.c_str());
+    return true;
+#endif /* windows */
 }
 
 string utilsFileIO::GetAppPath() {
@@ -573,26 +672,30 @@ string utilsFileIO::GetAppPath() {
     return RootPath;
 }
 
+string utilsFileIO::GetAbsolutePath(string const &fullFileName) {
+#ifdef windows
+    TCHAR full_path[MAX_PATH];
+    GetFullPathName(fullFileName.c_str(), MAX_PATH, full_path, nullptr);
+#else
+    char full_path[PATH_MAX];
+    realpath(fullFileName.c_str(), full_path);
+#endif /* windows */
+    return string(full_path);
+}
+
 string utilsFileIO::GetCoreFileName(string const &fullFileName) {
-    string::size_type start = fullFileName.find_last_of(SEP);
-    if (fullFileName.find_last_of("/") != string::npos) {
-        start = fullFileName.find_last_of("/");
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    string::size_type start = abspath.find_last_of(SEP);
+    string::size_type end = abspath.find_last_of(".");
+    if (end == string::npos) {
+        end = abspath.length();
     }
-//    // since string::npos is -1, these if-statement can be uncommented. Todo: be confirmed.
-//    if (start == string::npos) {
-//        start = -1;
-//    } // old code: start = 0; Modified by ZhuLJ, 2015/6/16
-
-    string::size_type end = fullFileName.find_last_of(".");
-
-    if (end == string::npos)
-        end = fullFileName.length();
-
-    return fullFileName.substr(start + 1, end - start - 1);
+    return abspath.substr(start + 1, end - start - 1);
 }
 
 string utilsFileIO::GetSuffix(string const &fullFileName) {
-    vector<string> tokens = utilsString::SplitString(fullFileName, '.');
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    vector<string> tokens = utilsString::SplitString(abspath, '.');
     if (tokens.size() >= 2) {
         return tokens[tokens.size() - 1];
     } else {
@@ -609,23 +712,23 @@ string utilsFileIO::ReplaceSuffix(string const &fullFileName, string const &newS
 }
 
 string utilsFileIO::GetPathFromFullName(string const &fullFileName) {
-    string::size_type i = fullFileName.find_last_of(SEP);
-    if (fullFileName.find_last_of("/") != string::npos) {
-        i = fullFileName.find_last_of("/");
-    }
+    string abspath = utilsFileIO::GetAbsolutePath(fullFileName);
+    string::size_type i = abspath.find_last_of(SEP);
     if (i == string::npos) {
+        cout << "No valid path in " << fullFileName << ", please check!" << endl;
         return "";
     }
-    return fullFileName.substr(0, i + 1);
+    return abspath.substr(0, i + 1);
 }
 
-bool utilsFileIO::LoadPlainTextFile(const string& filepath, vector<string>& contentStrs) {
+bool utilsFileIO::LoadPlainTextFile(const string &filepath, vector<string> &contentStrs) {
+    string abspath = utilsFileIO::GetAbsolutePath(filepath);
     bool bStatus = false;
     ifstream myfile;
     string line;
     try {
         // open the file
-        myfile.open(filepath.c_str(), ios::in);
+        myfile.open(abspath.c_str(), ios::in);
         if (myfile.is_open()) {
             while (!myfile.eof()) {
                 if (myfile.good()) {

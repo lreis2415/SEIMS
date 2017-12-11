@@ -15,6 +15,8 @@ RasterClass采用CMake进行跨平台代码管理，理论上，支持任何主�
 + macOS 10.12 + Clang: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/RasterClass?branch=master&env=BUILD_NAME=osx_xcode&label=osx_xcode)](https://travis-ci.org/lreis2415/RasterClass)
 + Windows + MSVC 2013 (build x64 version): [![Build status](https://ci.appveyor.com/api/projects/status/k11kcl47ehjco01h/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/rasterclass/branch/master)
 
+Code coverage: [![codecov](https://codecov.io/gh/lreis2415/RasterClass/branch/master/graph/badge.svg)](https://codecov.io/gh/lreis2415/RasterClass)
+
 > 值得一提的是，在64位系统下，可以编译32位或64位程序，此时需要注意对应的GDAL库和mongo-c-driver库都需要编译成64位才可。利用AppVeyor构建的CI测试即全部采用64位编译。
 
 ## 1 Introduction
@@ -57,30 +59,23 @@ macOS下推荐使用[William Kyngesburye](http://www.kyngchaos.com/software:fram
 	>>> from osgeo import gdal
 	```
 
-## 3. 单独测试RasterClass模块
+## 3. 单元测试
 
 + RasterClass采用CMake进行跨平台编译。
++ RasterClass采用[Google Test](https://github.com/google/googletest)单元测试框架。
 + RasterClass需调用[UtilsClass](https://github.com/lreis2415/UtilsClass)，编译前需将其保存至RasterClass**同级目录**下。
-+ 如需添加MongoDB数据库相关操作，RasterClass支持对[MongoUtilClass](https://github.com/lreis2415/MongoUtilClass)的依赖，同样地，将其保存至RasterClass**同级目录**下，mongo-c-driver的相关配置请参阅[MongoUtilClass](https://github.com/lreis2415/MongoUtilClass)库的相关帮助。
-
-### 3.1 Windows
-+ 打开 “开始” -> Microsoft Visual Studio 2010 -> Visual Studio Tools -> Visual Studio 命令提示(2010)，以**管理员方式**运行，依次输入以下命令：
-
-	```shell
-	cd <path-to-RasterClass>
-	mkdir build
-	cd build
-	### 仅编译安装 ###
-	cmake -G "NMake Makefiles" <path-to-RasterClass> -DCMAKE_BUILD_TYPE=Release
-	nmake
-	nmake install
-	### 编译Microsoft Visual Studio工程 ###
-	cmake <path-to-RasterClass>
-	nmake
-	```
-
-+ 对于“仅编译安装”操作，`RasterClass.exe`会自动安装在`<path-to-RasterClass>\bin`目录下。
-+ 对于“编译Microsoft Visual Studio工程”，`RasterClass.sln`将保存在`<path-to-RasterClass>\build`目录下。
-
-### 3.2 Unix
-对于Linux和macOS系统而言，操作与Windows类似，这里不再赘述。
++ 如需添加MongoDB数据库相关操作，RasterClass支持对[MongoUtilClass](https://github.com/lreis2415/MongoUtilClass)的依赖，
+同样地，将其保存至RasterClass**同级目录**下，mongo-c-driver的相关配置请参阅
+[MongoUtilClass](https://github.com/lreis2415/MongoUtilClass)库的相关帮助。
++ 所有单元测试代码统一存放在`test`文件夹下，并以`Test_XX.cpp`格式命名。
++ 通用编译命令
+    ```shell
+    cd <path-to-UtilsClass>
+    mkdir build
+    cd build
+    cmake .. -DUNITTEST=1
+    make
+    ./test/UnitTests_Raster
+    ```
++ 强烈推荐CLion，直接打开RasterClass目录并在CMake Options中添加`-DUNITTEST=1`，
+即可自动构建工程，方便且跨平台。
