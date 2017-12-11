@@ -30,19 +30,19 @@ public:
                        const string &collection, const string &location);
 
     /// Destructor
-    ~BMPPlantMgtFactory() override;
+    virtual ~BMPPlantMgtFactory();
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient *conn, const string &bmpDBName) override;
+    virtual void loadBMP(MongoClient *conn, const string &bmpDBName);
 
     /// Output
-    void Dump(ostream *fs) override;
+    virtual void Dump(ostream *fs);
 
     /// Set management fields data
-    void setRasterData(map<string, FloatRaster *> &sceneRsMap) override;
+    virtual void setRasterData(map<string, FloatRaster *> &sceneRsMap);
 
     /// Get management fields data
-    float *getRasterData() override { return m_mgtFieldsRs; };
+    virtual float *getRasterData() { return m_mgtFieldsRs; };
 
     /// Get landuse / landcover ID
     int GetLUCCID() { return m_luccID; }

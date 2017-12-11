@@ -36,10 +36,10 @@ public:
                           time_t startTime, time_t endTime);
 
     //! Destructor
-    ~NotRegularMeasurement() override = default;
+    virtual ~NotRegularMeasurement() = default;
 
     //! Get site date by time \a pData
-    float *GetSiteDataByTime(time_t t) override;
+    virtual float *GetSiteDataByTime(time_t t);
 
 private:
     //! time list of site data

@@ -238,44 +238,44 @@ public:
                       string &modulePath, LayeringMethod layeringMethod = UP_DOWN,
                       int subBasinID = 0, int scenarioID = -1, int numThread = 1);
     //! Destructor
-    ~DataCenterMongoDB() override;
+    virtual ~DataCenterMongoDB();
     /*!
      * \brief Make sure all the required data are presented
      */
-    bool checkModelPreparedData() override;
+    virtual bool checkModelPreparedData();
     /*!
      * \brief Get file.in configuration from FILE_IN collection
      */
-    bool getFileInStringVector() override;
+    virtual bool getFileInStringVector();
     /*!
      * \brief Get file.out configuration
      * \param[in] originOutputs \sa OriginalOutputItem
      */
-    bool getFileOutVector() override;
+    virtual bool getFileOutVector();
     /*!
      * \brief Get subbasin number and outlet ID
      */
-    bool getSubbasinNumberAndOutletID() override;
+    virtual bool getSubbasinNumberAndOutletID();
     /*!
      * \brief Read climate site data from HydroClimate database
      */
-    void readClimateSiteList() override;
+    virtual void readClimateSiteList();
     /*!
      * \brief Read initial and calibrated parameters
      */
-    bool readParametersInDB() override;
+    virtual bool readParametersInDB();
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
      * \param[in] remoteFilename Raster file name.
      */
-    FloatRaster *readRasterData(const string &remoteFilename) override;
+    virtual FloatRaster *readRasterData(const string &remoteFilename);
     /*!
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
      * \param[in] remoteFilename \string data file name
      * \param[out] num \int&, data length
      * \param[out] data \float*&, returned data
      */
-    void readItpWeightData(string &remoteFilename, int &num, float *&data) override;
+    virtual void readItpWeightData(string &remoteFilename, int &num, float *&data);
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
@@ -284,7 +284,7 @@ public:
      * \param[out] num \int&, data length
      * \param[out] data \float*&, returned data
      */
-    void read1DArrayData(string &paramName, string &remoteFilename, int &num, float *&data) override;
+    virtual void read1DArrayData(string &paramName, string &remoteFilename, int &num, float *&data);
     /*!
      * \brief Read 2D array data from MongoDB database
      * \param[in] spatialData \a MongoGridFS
@@ -293,19 +293,19 @@ public:
      * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
      * \param[out] data \float**&, returned data
      */
-    void read2DArrayData(string &remoteFilename, int &rows, int &cols, float **&data) override;
+    virtual void read2DArrayData(string &remoteFilename, int &rows, int &cols, float **&data);
     /*!
      * \brief Read IUH data from MongoDB and insert to m_2DArrayMap
      * \param[in] remoteFilename \string data file name
      * \param[out] n \int&, valid cell number
      * \param[out] data \float*&, returned data
      */
-    void readIUHData(string &remoteFilename, int &n, float **&data) override;
+    virtual void readIUHData(string &remoteFilename, int &n, float **&data);
     /*!
      * \brief Set Raster data for Scenario data
      * \return True if set successfully, otherwise false.
     */
-    bool setRasterForScenario() override;
+    virtual bool setRasterForScenario();
 public:
     /******* MongoDB specified functions *********/
 
