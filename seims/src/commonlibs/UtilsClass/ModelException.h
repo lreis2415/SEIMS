@@ -26,7 +26,7 @@ public:
     ModelException(string className, string functionName, string msg);
 
     //! Destructor (void)
-    ~ModelException() throw() override {};
+    virtual ~ModelException() throw() {};
 
     /*!
      * \brief Construct error information (string version)
