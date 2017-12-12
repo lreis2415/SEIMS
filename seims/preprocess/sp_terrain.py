@@ -21,8 +21,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
-from preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from db_import_stream_parameters import ImportReaches2Mongo
+from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -478,8 +478,8 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

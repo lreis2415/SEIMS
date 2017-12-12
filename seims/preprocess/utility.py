@@ -5,7 +5,14 @@
     @changelog: 16-06-16  first implementation version
                 17-06-22  reformat according to pylint and google style
 """
+import os
+import sys
+
 from pygeoc.utils import StringClass, UtilClass
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
 
 # Global variables
 UTIL_ZERO = 1.e-6
@@ -13,6 +20,8 @@ MINI_SLOPE = 0.0001
 DEFAULT_NODATA = -9999.
 SQ2 = 1.4142135623730951
 PI = 3.141592653589793
+
+
 # LFs = ['\r', '\n', '\r\n']
 
 

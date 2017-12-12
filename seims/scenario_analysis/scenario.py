@@ -13,10 +13,10 @@ from bson.objectid import ObjectId
 from pygeoc.utils import StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
+from config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from run_seims import MainSEIMS
-from scenario_analysis.config import SAConfig
-from scenario_analysis.utility import generate_uniqueid, print_message
+from utility import generate_uniqueid, print_message
 
 
 class Scenario(object):

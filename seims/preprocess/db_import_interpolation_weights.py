@@ -11,10 +11,10 @@ from struct import pack, unpack
 from gridfs import GridFS
 from numpy import zeros as np_zeros
 
-from preprocess.db_mongodb import MongoQuery
-from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
+from db_mongodb import MongoQuery
+from text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
-from preprocess.utility import UTIL_ZERO
+from utility import UTIL_ZERO
 
 
 class ImportWeightData(object):
@@ -320,8 +320,8 @@ class ImportWeightData(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
