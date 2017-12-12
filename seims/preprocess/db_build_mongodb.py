@@ -41,7 +41,6 @@ class ImportMongodbClass(object):
     @staticmethod
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
-        UtilClass.mkdir(cfg.dirs.import2db)
         if not cfg.cluster:  # changed by LJ, SubbasinID is 0 means the whole basin!
             subbasin_num = 0
             start_id = 0
@@ -49,15 +48,16 @@ class ImportMongodbClass(object):
         else:
             start_id = 1
             subbasin_file = cfg.spatials.subbsn
-        for i in range(start_id, subbasin_num + 1):
-            subdir = cfg.dirs.import2db + os.sep + str(i)
-            UtilClass.rmmkdir(subdir)
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
                                                                cfg.dirs.geodata2db,
                                                                cfg.spatial_db,
                                                                DBTableNames.gridfs_spatial,
                                                                cfg.hostname, cfg.port)
         if cfg.cluster:
+            UtilClass.mkdir(cfg.dirs.import2db)
+            for i in range(start_id, subbasin_num + 1):
+                subdir = cfg.dirs.import2db + os.sep + str(i)
+                UtilClass.rmmkdir(subdir)
             str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         # print (str_cmd)
         UtilClass.run_command(str_cmd)
