@@ -5,9 +5,9 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize according to pylint and google style
 """
-from preprocess.sp_landuse import LanduseUtilClass
-from preprocess.sp_soil import SoilUtilClass
-from preprocess.sp_terrain import TerrainUtilClass
+from sp_landuse import LanduseUtilClass
+from sp_soil import SoilUtilClass
+from sp_terrain import TerrainUtilClass
 
 
 def extract_spatial_parameters(cfg, maindb):
@@ -22,8 +22,8 @@ def extract_spatial_parameters(cfg, maindb):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

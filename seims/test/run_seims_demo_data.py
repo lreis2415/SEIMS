@@ -6,23 +6,21 @@
 import os
 import sys
 
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
 try:
     from ConfigParser import ConfigParser  # py2
 except ImportError:
     from configparser import ConfigParser  # py3
 from pygeoc.utils import UtilClass
 
-cur_path = UtilClass.current_path()
-SEIMS_path = os.path.abspath(cur_path + '../../..')
-seims_module_path = SEIMS_path + os.sep + 'seims'
-sys.path.append(seims_module_path)
-
 from preprocess.config import SEIMSConfig
 from preprocess.db_build_mongodb import ImportMongodbClass
 from preprocess.sd_delineation import SpatialDelineation
-from run_seims import MainSEIMS
 from postprocess.config import PostConfig
 from postprocess.plot_timeseries import TimeSeriesPlots
+from run_seims import MainSEIMS
 
 
 class ModelPaths(object):
@@ -42,7 +40,7 @@ class ModelPaths(object):
         self.scenario_dir = self.data_dir + os.sep + 'scenario'
         self.lookup_dir = self.data_dir + os.sep + 'lookup'
         self.workspace = self.base_dir + os.sep + 'workspace'
-        UtilClass.rmmkdir(self.workspace)
+        UtilClass.mkdir(self.workspace)
         print ('SEIMS binary location: %s' % self.bin_dir)
         print ('Demo data location: %s' % self.base_dir)
         print (' -- Data preprocess location: %s' % self.workspace)
@@ -111,6 +109,8 @@ def execute_seims_model(seims_cfg, sceid):
 
 
 def main():
+    cur_path = UtilClass.current_path()
+    SEIMS_path = os.path.abspath(cur_path + '../../..')
     model_paths = ModelPaths(SEIMS_path)
     seims_cfg = write_preprocess_config_file(model_paths)
     # # Spatial delineation by TauDEM

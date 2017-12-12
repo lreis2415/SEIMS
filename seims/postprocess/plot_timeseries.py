@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from collections import OrderedDict
 
 import matplotlib as mpl
+
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     mpl.use('Agg')
 import matplotlib.dates as mdates
@@ -15,8 +21,6 @@ from preprocess.db_mongodb import MongoQuery
 from preprocess.text import FieldNames, DBTableNames, DataValueFields, DataType, StationFields
 from preprocess.text import ModelCfgFields, SubbsnStatsName
 from preprocess.utility import read_data_items_from_txt
-
-
 
 
 class TimeSeriesPlots(object):

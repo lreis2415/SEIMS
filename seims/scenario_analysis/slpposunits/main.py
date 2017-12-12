@@ -19,10 +19,9 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from pygeoc.utils import UtilClass, get_config_parser
 
-from scenario_analysis.slpposunits.config import SASPUConfig
-from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.slpposunits.userdef import crossover_slppos, crossover_rdm
-from scenario_analysis.slpposunits.userdef import mutate_rdm, mutate_slppos
+from config import SASPUConfig
+from scenario import initialize_scenario, scenario_effectiveness
+from userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.utility import print_message, delete_model_outputs
 from scenario_analysis.visualization import plot_pareto_front

@@ -316,7 +316,7 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
+    from config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow
