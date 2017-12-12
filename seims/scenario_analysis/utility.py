@@ -7,6 +7,10 @@
 """
 
 import os
+import sys
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 import shutil
 import uuid
 

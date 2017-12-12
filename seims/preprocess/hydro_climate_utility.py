@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 
 from pygeoc.utils import StringClass, MathClass
 
-from preprocess.text import DBTableNames, StationFields, DataValueFields
-# from preprocess.utility import LFs
+from text import DBTableNames, StationFields, DataValueFields
+# from utility import LFs
 
 
 class HydroClimateUtilClass(object):
@@ -58,7 +58,7 @@ class HydroClimateUtilClass(object):
     @staticmethod
     def query_climate_sites(clim_db, site_type):
         """Query climate sites information, return a dict with stationID as key."""
-        from preprocess.db_import_sites import SiteInfo
+        from db_import_sites import SiteInfo
         sites_loc = dict()
         sites_coll = clim_db[DBTableNames.sites]
         find_results = sites_coll.find({StationFields.type: site_type})
@@ -145,8 +145,8 @@ class HydroClimateUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

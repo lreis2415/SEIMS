@@ -17,11 +17,11 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
+from config import SASPUConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
 from preprocess.utility import read_data_items_from_txt
 from scenario_analysis.scenario import Scenario
-from scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
