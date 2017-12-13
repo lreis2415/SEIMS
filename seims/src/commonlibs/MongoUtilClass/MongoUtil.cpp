@@ -162,11 +162,13 @@ mongoc_cursor_t* MongoCollection::ExecuteQuery(const bson_t* b) {
     // TODO: mongoc_collection_find should be deprecated, however, mongoc_collection_find_with_opts
     //       may not work in my Windows 10 both by MSVC and MINGW64.
     //       So, remove `&& !defined(windows)` when this bug fixed. LJ
-#if MONGOC_CHECK_VERSION(1, 5, 0) && !defined(windows)
-    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
-#else
+    //       Upd 12/13/2017 The new method also failed in our linux cluster (redhat 6.2 and Intel C++ 12.1)
+    //                      So, I will uncomment these code later.
+//#if MONGOC_CHECK_VERSION(1, 5, 0) && !defined(windows)
+//    mongoc_cursor_t* cursor = mongoc_collection_find_with_opts(m_collection, b, NULL, NULL);
+//#else
     mongoc_cursor_t* cursor = mongoc_collection_find(m_collection, MONGOC_QUERY_NONE, 0, 0, 0, b, NULL, NULL);
-#endif /* MONGOC_CHECK_VERSION */
+//#endif /* MONGOC_CHECK_VERSION */
     return cursor;
 }
 
