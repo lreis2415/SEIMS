@@ -4,7 +4,7 @@ set -e
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1 ..
-make
+make -j4
 ./test/UnitTests_Mongo
 cd ..
 ls
