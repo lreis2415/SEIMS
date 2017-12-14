@@ -75,6 +75,8 @@ class SAConfig(object):
         self.bmps_rule = False
         self.rule_method = 1
         self.bmps_retain = dict()
+        self.export_sce_txt = False
+        self.export_sce_tif = False
         if 'BMPs' in cf.sections():
             bmpsinfostr = cf.get('BMPs', 'bmps_info')
             self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
@@ -84,6 +86,10 @@ class SAConfig(object):
                 bmpsretainstr = cf.get('BMPs', 'bmps_retain')
                 self.bmps_retain = json.loads(bmpsretainstr)
                 self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
+            if cf.has_option('BMPs', 'export_scenario_txt'):
+                self.export_sce_txt = cf.getboolean('BMPs', 'export_scenario_txt')
+            if cf.has_option('BMPs', 'export_scenario_tif'):
+                self.export_sce_tif = cf.getboolean('BMPs', 'export_scenario_tif')
         else:
             raise ValueError("[BMPs] section MUST be existed for specific SA.")
         self.bmps_info = json.loads(bmpsinfostr)
