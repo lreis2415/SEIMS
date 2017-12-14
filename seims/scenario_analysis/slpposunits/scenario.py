@@ -232,6 +232,8 @@ class SPScenario(Scenario):
 
         TODO: Read Raster from MongoDB should be extracted to pygeoc.
         """
+        if not self.export_sce_tif:
+            return
         dist = self.bmps_info['DISTRIBUTION']
         dist_list = StringClass.split_string(dist, '|')
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
@@ -340,9 +342,9 @@ def scenario_effectiveness(cf, individual):
     # 4. calculate scenario effectiveness
     sce.calculate_economy()
     sce.calculate_environment()
-    # 5. Save scenarios information
-    sce.export_to_txt()
-    # sce.export_scenario_to_gtiff()
+    # 5. Export scenarios information
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
 
     return sce.economy, sce.environment, curid
 

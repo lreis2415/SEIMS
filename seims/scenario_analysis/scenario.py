@@ -52,6 +52,8 @@ class Scenario(object):
         self.rule_mtd = cfg.rule_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
+        self.export_sce_txt = cfg.export_sce_txt
+        self.export_sce_tif = cfg.export_sce_tif
         # run seims related
         self.model_dir = cfg.model_dir
         self.modelout_dir = None
@@ -133,12 +135,14 @@ class Scenario(object):
             collection.insert_one(bmp_item)
         client.close()
 
-    def export_to_txt(self):
+    def export_scenario_to_txt(self):
         """Export current scenario information to text file.
 
         This function is better be called after `calculate_environment` and `calculate_environment`
             or in static method, e.g., `scenario_effectiveness`.
         """
+        if not self.export_sce_txt:
+            return
         ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
         outfile = open(ofile, 'w')
         outfile.write('Scenario ID: %d\n' % self.ID)
