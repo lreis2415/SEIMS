@@ -14,10 +14,10 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING
 
-from preprocess.db_mongodb import MongoUtil
-from preprocess.text import ModelParamFields, ModelParamDataUtils, \
+from db_mongodb import MongoUtil
+from text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
-from preprocess.utility import read_data_items_from_txt
+from utility import read_data_items_from_txt
 
 
 class ImportParam2Mongo(object):
@@ -367,8 +367,8 @@ class ImportParam2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

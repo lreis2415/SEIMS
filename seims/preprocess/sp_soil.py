@@ -17,8 +17,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from preprocess.utility import status_output, read_data_items_from_txt
+from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -800,7 +800,7 @@ class SoilUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
+    from config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SoilUtilClass.parameters_extraction(seims_cfg)
 

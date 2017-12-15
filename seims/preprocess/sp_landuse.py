@@ -14,8 +14,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
 
-from preprocess.text import ModelParamDataUtils
-from preprocess.utility import status_output, read_data_items_from_txt, \
+from text import ModelParamDataUtils
+from utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
 
 
@@ -302,8 +302,8 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
-    from preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

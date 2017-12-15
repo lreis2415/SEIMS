@@ -10,18 +10,18 @@ import os
 
 from pygeoc.utils import UtilClass
 
-from preprocess.bmp_import_scenario import ImportScenario2Mongo
-from preprocess.db_import_interpolation_weights import ImportWeightData
-from preprocess.db_import_meteorology import ImportMeteoData
-from preprocess.db_import_model_parameters import ImportParam2Mongo
-from preprocess.db_import_observed import ImportObservedData
-from preprocess.db_import_precipitation import ImportPrecipitation
-from preprocess.db_import_sites import ImportHydroClimateSites
-from preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
-from preprocess.sp_extraction import extract_spatial_parameters
-from preprocess.text import DBTableNames, SubbsnStatsName
-from preprocess.utility import status_output
+from bmp_import_scenario import ImportScenario2Mongo
+from db_import_interpolation_weights import ImportWeightData
+from db_import_meteorology import ImportMeteoData
+from db_import_model_parameters import ImportParam2Mongo
+from db_import_observed import ImportObservedData
+from db_import_precipitation import ImportPrecipitation
+from db_import_sites import ImportHydroClimateSites
+from db_import_stream_parameters import ImportReaches2Mongo
+from db_mongodb import ConnectMongoDB, MongoQuery
+from sp_extraction import extract_spatial_parameters
+from text import DBTableNames, SubbsnStatsName
+from utility import status_output
 
 
 class ImportMongodbClass(object):
@@ -41,7 +41,6 @@ class ImportMongodbClass(object):
     @staticmethod
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
-        UtilClass.mkdir(cfg.dirs.import2db)
         if not cfg.cluster:  # changed by LJ, SubbasinID is 0 means the whole basin!
             subbasin_num = 0
             start_id = 0
@@ -49,15 +48,16 @@ class ImportMongodbClass(object):
         else:
             start_id = 1
             subbasin_file = cfg.spatials.subbsn
-        for i in range(start_id, subbasin_num + 1):
-            subdir = cfg.dirs.import2db + os.sep + str(i)
-            UtilClass.rmmkdir(subdir)
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
                                                                cfg.dirs.geodata2db,
                                                                cfg.spatial_db,
                                                                DBTableNames.gridfs_spatial,
                                                                cfg.hostname, cfg.port)
         if cfg.cluster:
+            UtilClass.mkdir(cfg.dirs.import2db)
+            for i in range(start_id, subbasin_num + 1):
+                subdir = cfg.dirs.import2db + os.sep + str(i)
+                UtilClass.rmmkdir(subdir)
             str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         # print (str_cmd)
         UtilClass.run_command(str_cmd)
@@ -153,7 +153,7 @@ class ImportMongodbClass(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
+    from config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
     ImportMongodbClass.workflow(seims_cfg)

@@ -17,11 +17,11 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
+from config import SASPUConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
 from preprocess.utility import read_data_items_from_txt
 from scenario_analysis.scenario import Scenario
-from scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
@@ -232,6 +232,8 @@ class SPScenario(Scenario):
 
         TODO: Read Raster from MongoDB should be extracted to pygeoc.
         """
+        if not self.export_sce_tif:
+            return
         dist = self.bmps_info['DISTRIBUTION']
         dist_list = StringClass.split_string(dist, '|')
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
@@ -340,9 +342,9 @@ def scenario_effectiveness(cf, individual):
     # 4. calculate scenario effectiveness
     sce.calculate_economy()
     sce.calculate_environment()
-    # 5. Save scenarios information
-    sce.export_to_txt()
-    # sce.export_scenario_to_gtiff()
+    # 5. Export scenarios information
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
 
     return sce.economy, sce.environment, curid
 

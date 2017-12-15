@@ -19,6 +19,10 @@
  *                                                                            *
  ******************************************************************************/
 """
+import sys
+import os
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 __author__ = "SEIMS Team"
 __version__ = "2.1"

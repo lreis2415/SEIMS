@@ -16,8 +16,8 @@ except ImportError:
 from pygeoc.TauDEM import TauDEMFilesUtils
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
 
-from preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils, \
-    VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
+from text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
 class SEIMSConfig(object):
