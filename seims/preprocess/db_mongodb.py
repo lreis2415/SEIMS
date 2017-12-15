@@ -10,7 +10,7 @@ import sys
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
 
-from preprocess.text import DBTableNames, ModelParamFields
+from text import DBTableNames, ModelParamFields
 
 
 class ConnectMongoDB(object):

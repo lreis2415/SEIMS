@@ -681,6 +681,9 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
 
 void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
                             FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp) {
+#ifdef _DEBUG
+    double stime = TimeCounting();
+#endif
     string name = param->BasicName;
     if (setting->dataTypeString().size() == 0
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
@@ -690,7 +693,6 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         name = param->Name;
         //cout << param->Name << " " << param->BasicName << endl;
     }
-    StatusMessage(("set " + name + " data").c_str());
     ostringstream oss;
     int tmp = name.find("LOOKUP");
     if (tmp < 0) {
@@ -730,6 +732,10 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
             break;
         default:break;
     }
+#ifdef _DEBUG
+    float timeconsume = float(TimeCounting() - stime);
+    StatusMessage(("Set " + name + " data done, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
+#endif
 }
 
 void ModuleFactory::SetValue(ParamInfo *param, FloatRaster *templateRaster, SimulationModule *pModule) {
@@ -886,13 +892,23 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
             throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
         }
         string upperName = GetUpper(paraName);
+        auto find_iter = m_parametersInDB.find(upperName);
+        bool adjust_data = false;
+        if (find_iter != m_parametersInDB.end()) {
+            ParamInfo* tmpParam = find_iter->second;
+            if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && !FloatEqual(tmpParam->Impact, 1.f)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && !FloatEqual(tmpParam->Impact, 0.f)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && !FloatEqual(tmpParam->Impact, NODATA_VALUE))) {
+                adjust_data = true;
+            }
+        }
         /// 1D or 2D raster data
         if (raster->is2DRaster())
         {
             if (!raster->get2DRasterData(&n, &lyrs, &data2D)) {
                 throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
             }
-            if (m_parametersInDB.find(upperName) != m_parametersInDB.end()) {
+            if (nullptr != data2D && adjust_data) {
                 m_parametersInDB[upperName]->Adjust2DRaster(n, raster->getLayers(), data2D);
             }
         }
@@ -901,8 +917,9 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
             if (!raster->getRasterData(&n, &data)) {
                 throw ModelException("ModuleFactory", "SetRaster", "Load " + remoteFileName + " failed!");
             }
-            if (data != nullptr && m_parametersInDB.find(upperName) != m_parametersInDB.end())
+            if (nullptr != data && adjust_data) {
                 m_parametersInDB[upperName]->Adjust1DRaster(n, data);
+            }
         }
     } else {
         raster = m_rsMap.at(remoteFileName);

@@ -247,18 +247,21 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     ostringstream oss;
     oss << m_subbasinID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
-    m_maskRaster = new clsRasterData<float>(m_spatialGridFS, maskFileName.c_str());
+    m_maskRaster = clsRasterData<float>::Init(m_spatialGridFS, maskFileName.c_str());
+    assert(nullptr != m_maskRaster);
     m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
     /// 6. Read Subbasin raster data
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
-    FloatRaster *subbasinRaster = new clsRasterData<float>(m_spatialGridFS,
-                                                           subbasinFileName.c_str(),
-                                                           true, m_maskRaster);
+    FloatRaster *subbasinRaster = clsRasterData<float>::Init(m_spatialGridFS,
+                                                             subbasinFileName.c_str(),
+                                                             true, m_maskRaster);
+    assert(nullptr != subbasinRaster);
     m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
     // Constructor Subbasin data
-    m_subbasins = new clsSubbasins(m_spatialGridFS, m_rsMap, m_subbasinID);
+    m_subbasins = clsSubbasins::Init(m_spatialGridFS, m_rsMap, m_subbasinID);
+    assert(nullptr != m_subbasins);
     /// 7. Read initial parameters
     if (!readParametersInDB()) {
         return false;
@@ -551,8 +554,9 @@ bool DataCenterMongoDB::readParametersInDB() {
 }
 
 FloatRaster *DataCenterMongoDB::readRasterData(const string &remoteFilename) {
-    FloatRaster *rasterData = new clsRasterData<float>(m_spatialGridFS, remoteFilename.c_str(),
-                                                       true, m_maskRaster, true);
+    FloatRaster *rasterData = clsRasterData<float>::Init(m_spatialGridFS, remoteFilename.c_str(),
+                                                         true, m_maskRaster, true);
+    assert(nullptr != rasterData);
     /// using insert() to make sure the successful insertion.
     if (!m_rsMap.insert(make_pair(remoteFilename, rasterData)).second) {
         delete rasterData;

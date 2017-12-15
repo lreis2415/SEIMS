@@ -6,13 +6,16 @@
                 17-06-29  lj - reformat according to pylint and google style
 """
 import time
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 
 # Load configuration file
-from preprocess.config import parse_ini_configuration
+from config import parse_ini_configuration
 # MongoDB modules
-from preprocess.db_build_mongodb import ImportMongodbClass
+from db_build_mongodb import ImportMongodbClass
 # Spatial delineation
-from preprocess.sd_delineation import SpatialDelineation
+from sd_delineation import SpatialDelineation
 
 
 def workflow():

@@ -106,7 +106,6 @@ Code coverage: [![codecov](https://codecov.io/gh/lreis2415/MongoUtilClass/branch
 	cd build
 	### 编译Microsoft Visual Studio工程 ###
 	cmake -G "Visual Studio 12 2013 Win64" -DUNITTEST=1 ..
-	nmake
 	```
 	
 + `MongoUtil.sln`将保存在`<path-to-MongoUtilClass>\build`目录下，编译

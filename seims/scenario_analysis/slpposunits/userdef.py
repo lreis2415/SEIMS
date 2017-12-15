@@ -9,9 +9,8 @@ import random
 
 from pygeoc.utils import get_config_parser
 
-from scenario_analysis.slpposunits.config import SASPUConfig
-from scenario_analysis.slpposunits.scenario import SPScenario
-from scenario_analysis.slpposunits.scenario import initialize_scenario, get_potential_bmps
+from config import SASPUConfig
+from scenario import SPScenario, initialize_scenario, get_potential_bmps
 
 
 #                                       #
