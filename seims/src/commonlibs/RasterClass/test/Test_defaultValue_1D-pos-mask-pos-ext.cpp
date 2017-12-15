@@ -79,7 +79,7 @@ TEST_P(clsRasterDataTestWithDefaultValue, RasterIO) {
     EXPECT_EQ(73, rs->getDataLength());  // m_nCells, which is the same as the extent of mask data
     EXPECT_EQ(73, rs->getCellNumber());  // m_nCells
 
-    EXPECT_EQ(-9999, rs->getNoDataValue());  // m_noDataValue
+    EXPECT_EQ(-2147483647, rs->getNoDataValue());  // m_noDataValue
     EXPECT_EQ(4, rs->getDefaultValue());  // m_defaultValue
 
     // m_filePathName depends on the path of build, so no need to test.

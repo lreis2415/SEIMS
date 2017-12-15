@@ -119,6 +119,16 @@ inline bool _check_raster_files_exist(vector<string> &filenames) {
     return true;
 }
 
+template<typename T1, typename T2>
+inline void _get_data_from_gdal(T1 *dst, T2 *src, int nr, int nc) {
+#pragma omp parallel for
+    for (int i = 0; i < nr; ++i) {
+        for (int j = 0; j < nc; ++j) {
+            int index = i * nc + j;
+            dst[index] = (T1)src[index];
+        }
+    }
+}
 /*!
  * \class clsRasterData
  * \ingroup data
@@ -1912,73 +1922,61 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
     }
     T *tmprasterdata = new T[fullsize_nCells];
     GDALDataType dataType = poBand->GetRasterDataType();
-    if (dataType == GDT_Float32) {
-        float *pData = (float *) CPLMalloc(sizeof(float) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Float32, 0, 0);
-#pragma omp parallel for
-        for (int i = 0; i < nRows; ++i) {
-            for (int j = 0; j < nCols; ++j) {
-                int index = i * nCols + j;
-                tmprasterdata[index] = (T) pData[index];
-            }
-        }
-        CPLFree(pData);
-    } else if (dataType == GDT_Int32) {  // 32-bit signed integer
-        //long *pData = (long *) CPLMalloc(sizeof(long) * nCols * nRows);
-        int32_t *pData = (int32_t *) CPLMalloc(sizeof(int32_t) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Int32, 0, 0);
-#pragma omp parallel for
-        for (int i = 0; i < nRows; ++i) {
-            for (int j = 0; j < nCols; ++j) {
-                int index = i * nCols + j;
-                if (-2147483647 >= pData[index]) {
-                    m_noDataValue = (T) NODATA_VALUE;
-                    tmprasterdata[index] = m_noDataValue;
-                } else { tmprasterdata[index] = (T) pData[index]; }
-            }
-        }
-        CPLFree(pData);
-    } else if (dataType == GDT_Int16) {  // 16-bit signed integer
-        short *pData = (short *) CPLMalloc(sizeof(short) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Int16, 0, 0);
-#pragma omp parallel for
-        for (int i = 0; i < nRows; ++i) {
-            for (int j = 0; j < nCols; ++j) {
-                int index = i * nCols + j;
-                if (-32767 >= pData[index]) {
-                    m_noDataValue = (T) NODATA_VALUE;
-                    tmprasterdata[index] = m_noDataValue;
-                } else { tmprasterdata[index] = (T) pData[index]; }
-            }
-        }
-        CPLFree(pData);
-    } else if (dataType == GDT_Byte) {  // 8-bit unsigned integer, -128 ~ 127,
-        char *pData = (char *) CPLMalloc(sizeof(char) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Byte, 0, 0);
-#pragma omp parallel for
-        for (int i = 0; i < nRows; ++i) {
-            for (int j = 0; j < nCols; ++j) {
-                int index = i * nCols + j;
-                if (-128 >= pData[index]) {
-                    m_noDataValue = (T) NODATA_VALUE;
-                    tmprasterdata[index] = m_noDataValue;
-                } else { tmprasterdata[index] = (T) pData[index]; }
-            }
-        }
-        CPLFree(pData);
-    } else { // others
-        double *pData = (double *) CPLMalloc(sizeof(double) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, pData, nCols, nRows, GDT_Float64, 0, 0);
-#pragma omp parallel for
-        for (int i = 0; i < nRows; ++i) {
-            for (int j = 0; j < nCols; ++j) {
-                int index = i * nCols + j;
-                tmprasterdata[index] = (T) pData[index];
-            }
-        }
+    unsigned char *uchar_data = nullptr;
+    unsigned short *ushort_data = nullptr;
+    short *short_data = nullptr;
+    unsigned int *uint_data = nullptr;
+    int *int_data = nullptr;
+    float *float_data = nullptr;
+    double *double_data = nullptr;
+    switch (dataType) {
+    case GDT_Byte:
+        uchar_data = (unsigned char *)CPLMalloc(sizeof(unsigned char) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uchar_data, nCols, nRows, GDT_Byte, 0, 0);
+        _get_data_from_gdal(tmprasterdata, uchar_data, nRows, nCols);
+        CPLFree(uchar_data);
+        break;
+    case GDT_UInt16:
+        ushort_data = (unsigned short *)CPLMalloc(sizeof(unsigned short) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, ushort_data, nCols, nRows, GDT_UInt16, 0, 0);
+        _get_data_from_gdal(tmprasterdata, ushort_data, nRows, nCols);
+        CPLFree(ushort_data);
+        break;
+    case GDT_Int16:
+        short_data = (short *)CPLMalloc(sizeof(short) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, short_data, nCols, nRows, GDT_Int16, 0, 0);
+        _get_data_from_gdal(tmprasterdata, short_data, nRows, nCols);
+        CPLFree(short_data);
+        break;
+    case GDT_UInt32:
+        uint_data = (unsigned int *)CPLMalloc(sizeof(unsigned int) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uint_data, nCols, nRows, GDT_UInt32, 0, 0);
+        _get_data_from_gdal(tmprasterdata, uint_data, nRows, nCols);
+        CPLFree(uint_data);
+        break;
+    case GDT_Int32:
+        int_data = (int *)CPLMalloc(sizeof(int) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, int_data, nCols, nRows, GDT_Int32, 0, 0);
+        _get_data_from_gdal(tmprasterdata, int_data, nRows, nCols);
+        CPLFree(int_data);
+        break;
+    case GDT_Float32:
+        float_data = (float *)CPLMalloc(sizeof(float) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, float_data, nCols, nRows, GDT_Float32, 0, 0);
+        _get_data_from_gdal(tmprasterdata, float_data, nRows, nCols);
+        CPLFree(float_data);
+        break;
+    case GDT_Float64:
+        double_data = (double *)CPLMalloc(sizeof(double) * nCols * nRows);
+        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, double_data, nCols, nRows, GDT_Float64, 0, 0);
+        _get_data_from_gdal(tmprasterdata, double_data, nRows, nCols);
+        CPLFree(double_data);
+        break;
+    default:
+        cout << "Unexpected GDALDataType: " << GDALGetDataTypeName(dataType) << endl;
+        exit(-1);
     }
     GDALClose(poDataset);
-
     /// returned parameters
     *header = tmpheader;
     *values = tmprasterdata;

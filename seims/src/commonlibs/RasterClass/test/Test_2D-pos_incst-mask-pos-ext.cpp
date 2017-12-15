@@ -218,7 +218,9 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
     MongoGridFS *gfs = new MongoGridFS(conn->getGridFS("test", "spatial"));
     gfs->removeFile(gfsfilename);
     copyrs->outputToMongoDB(gfsfilename, gfs);
+    double stime = TimeCounting();
     clsRasterData<float, int> *mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs, true);
+    cout << "Reading parameter finished, TIMESPAN " << ValueToString(TimeCounting() - stime) << " sec." << endl;
     // test mongors data
     EXPECT_EQ(73, mongors->getCellNumber());  // m_nCells
     EXPECT_EQ(3, mongors->getLayers());
