@@ -5,6 +5,10 @@
     @changelog: 17-08-17  lj - reorganize as basic class
 """
 import os
+import sys
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 try:
     from ConfigParser import ConfigParser  # py2

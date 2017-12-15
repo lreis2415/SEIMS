@@ -20,9 +20,9 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
-from preprocess.sd_hillslope import DelineateHillslope
-from preprocess.text import FieldNames
-from preprocess.utility import DEFAULT_NODATA
+from sd_hillslope import DelineateHillslope
+from text import FieldNames
+from utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -234,7 +234,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
+    from config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

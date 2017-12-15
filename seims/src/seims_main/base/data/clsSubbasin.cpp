@@ -128,7 +128,9 @@ clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterD
     float *subbasinData = nullptr;
     if (rsMap.find(subbasinFileName) == rsMap.end()) { // if subbasin not loaded yet
         clsRasterData<float> *subbasinRaster = nullptr;
-        subbasinRaster = new clsRasterData<float>(spatialData, subbasinFileName.c_str(), true, rsMap[maskFileName]);
+        subbasinRaster = clsRasterData<float>::Init(spatialData, subbasinFileName.c_str(),
+                                                    true, rsMap[maskFileName]);
+        assert(nullptr != subbasinRaster);
         if (!subbasinRaster->getRasterData(&nCells, &subbasinData)) {
             cout << "Subbasin data loaded failed!" << endl;
             return nullptr;

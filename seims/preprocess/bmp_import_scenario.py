@@ -10,8 +10,8 @@ import os
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
-from preprocess.text import DBTableNames
-from preprocess.utility import read_data_items_from_txt
+from utility import read_data_items_from_txt
+from text import DBTableNames
 
 
 class ImportScenario2Mongo(object):
@@ -100,8 +100,8 @@ class ImportScenario2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from seims.preprocess.config import parse_ini_configuration
-    from seims.preprocess.db_mongodb import ConnectMongoDB
+    from config import parse_ini_configuration
+    from db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

@@ -5,8 +5,6 @@ Selected build environments：
 
 + Windows-MSVC 2013-64bit with MSMPI-v8: [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master) 
 + Linux(Ubuntu trusty)-GCC-4.8 with MPICH2-3.0.4: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/SEIMS)
-+ macOS-Clang-7.3 with OpenMPI-2.1.1: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=osx_xcode&label=osx_clang)](https://travis-ci.org/lreis2415/SEIMS)
-
 
 ## 1.Brief introduction
 
@@ -52,7 +50,19 @@ Besides, Python 2.7+ with Numpy, GDAL, pymongo, matplotlib, etc. is also require
 + You may need a MongoDB IDE to view and edit data. MongoVUE, Robo 3T (formerly Robomongo), or Mongo Explorer for JetBrains (e.g. PyCharm, CLion) are recommended.
 
 ### 3.4.Run the Demo data
-Demo data is provided in `~/data`. 
+Demo data is provided in `~/data/dianbu2`. The common steps for testing SEIMS with the demo data are as follows:
+
+```shell
+cd SEIMS
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j4
+make install
+cd ..
+python seims/test/run_seims_demo_data.py
+```
+
 ### 3.5.Build your own model
 Now, you can build you own SEIMS model!
 
