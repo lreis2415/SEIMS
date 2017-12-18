@@ -1,120 +1,95 @@
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 
-#include "CellOrdering.h"
 #include "FieldPartition.h"
-
-#include "clsRasterData.h"
-#include "utilities.h"
-
-#include <iostream>
-#include <vector>
-#include <ctime>
-#include <string>
-#include <sstream>
-#include <map>
-#include <set>
+#include "CellOrdering.h"
 
 using namespace std;
 
-map<int, int> dirToIndexMap;
-
-/// Check if the required raster files existed in the directory
-bool checkInputRasterName(string &dir, map <string, string> &rstFilePaths);
-
-/// Find outlet location according to flow direction, stream link, and DEM. Updated by LJ.
-void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, clsRasterData<int> &rsDir,
-                FlowDirectionMethod flowDirMtd, int &rowIndex, int &colIndex);
-
-/// Do field partition mission.
-void DoFieldsPartition(map <string, string> &rstFilePaths, FlowDirectionMethod flowDirMtd, int threshod);
-
-int main(int argc, const char *argv[]) {
+int main(int argc, char **argv) {
     GDALAllRegister();
     /// Header print information
-    cout << "                     Field Partition Program                        " << endl;
-    cout << "                           Version: 1.2                                     " << endl;
-    cout << "                    Compile date: 2017-2-9                      " << endl;
-    cout << "                        Author: Hui Wu                                   " << endl;
-    cout << "                     Revised: Liang-Jun Zhu                       " << endl;
+    cout << "                    Field Partition Program 1.3                        " << endl;
+    cout << "                    Author: Hui Wu, Liang-Jun Zhu                      " << endl;
 
-    string Dir = "";
-    int Threshod = -1;
-    FlowDirectionMethod flowDirMtd;
-    map <string, string> rstFilePaths;
-    clock_t start, finish;
-    double duration = 0.;
-    start = clock();
-    if (argc < 2) {
+    int Threshod = 50;
+    FlowDirectionMethod flowDirMtd = (FlowDirectionMethod) 0;
+    double start = TimeCounting();
+    if (argc < 11) {
         cout << "Error: To run this field partition program, please follow the COMMAND." << endl;
-        goto errexit;
-    } else if (argc == 2) {
-        if (argv[1] != NULL)Dir = argv[1]; else goto errexit;
-        Threshod = 50;
-        flowDirMtd = (FlowDirectionMethod) 0;
-    } else if (argc == 3) {
-        if (argv[1] != NULL)Dir = argv[1]; else goto errexit;
-        if (argv[2] != NULL)Threshod = atoi(argv[2]); else goto errexit;
-        flowDirMtd = (FlowDirectionMethod) 0;
-    } else {
-        if (argv[1] != NULL)Dir = argv[1]; else goto errexit;
-        if (argv[2] != NULL)Threshod = atoi(argv[2]); else goto errexit;
-        if (argv[3] != NULL) {
-            if (atoi(argv[3]) - 0. < UTIL_ZERO) {
-                flowDirMtd = (FlowDirectionMethod) 0;
-            } else {
-                flowDirMtd = (FlowDirectionMethod) 1;
-            }
-        } else { goto errexit; }
+        printUsage();
+    }
+    int i = 1;
+    char demfile[PATH_MAX], lufile[PATH_MAX], mfile[PATH_MAX], dirfile[PATH_MAX], strmfile[PATH_MAX];
+    while (argc > i) {
+        if (strcmp(argv[i], "-dem") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(demfile, argv[i]);
+                if (!FileExists(demfile)) printUsage();
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-lu") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(lufile, argv[i]);
+                if (!FileExists(lufile)) printUsage();
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-mask") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(mfile, argv[i]);
+                if (!FileExists(mfile)) printUsage();
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-flow") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(dirfile, argv[i]);
+                if (!FileExists(dirfile)) printUsage();
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-stream") == 0) {
+            i++;
+            if (argc > i) {
+                strcpy(strmfile, argv[i]);
+                if (!FileExists(strmfile)) printUsage();
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-t") == 0) {
+            i++;
+            if (argc > i) {
+                Threshod = atoi(argv[i]);
+                i++;
+            } else { printUsage(); }
+        } else if (strcmp(argv[i], "-arcgis") == 0) {
+            i++;
+            flowDirMtd = (FlowDirectionMethod) 1;
+        } else { printUsage(); }
     }
 
-    if (checkInputRasterName(Dir, rstFilePaths)) {
-        DoFieldsPartition(rstFilePaths, flowDirMtd, Threshod);
-    } else {
-        goto errexit;
-    }
-    finish = clock();
+    DoFieldsPartition(dirfile, lufile, mfile, demfile, strmfile, flowDirMtd, Threshod);
 
-    duration = (double) (finish - start) / CLOCKS_PER_SEC;
+    double duration = TimeCounting() - start;
     cout << "Finished! Time-consuming (sec): " << duration << endl;
-    //system("pause");
     return 0;
+}
 
-    errexit:
-    cout << " Command: <Raster files path> [<threshold>] [<FlowDirection method>]" << endl;
-    cout
-        << "\t1. Rasters include dem, mask, landuse, flow, stream MUST be located in raster files path, the format can be ASC or GTIFF; "
-        << endl;
+void printUsage() {
+    cout << " Command: fieldpartition -dem <dem> -lu <landuse> -mask <mask> "
+        " -stream <stream> [-t <threshold>] [-arcgis]" << endl;
+    cout << "\t1. Input raster paths include dem, mask, landuse, flow_dir, "
+        "stream_link, the format can be ASC or GTIFF; " << endl;
     cout << "\t2. Threshold MUST be greater than 0, the default is 50;" << endl;
-    cout << "\t3. Flow direction method MUST be 0 (TauDEM) or 1 (ArcGIS), the default is 0." << endl;
+    cout << "\t3. -arcgis indicate ArcGIS Flow direction coding method, the default is TauDEM." << endl;
     exit(0);
 }
 
-bool checkInputRasterName(string &dir, map <string, string> &rstFilePaths) {
-    vector <string> dstFiles;
-    FindFiles(dir.c_str(), "*.*", dstFiles);
-    string rstNames[5] = {"dem", "landuse", "mask", "flow", "stream"};
-    bool flag = true;
-    for (int i = 0; i < 5; i++) {
-        for (vector<string>::iterator it = dstFiles.begin(); it != dstFiles.end(); it++) {
-            string tmpFileFullName = GetUpper(*it);
-            if (tmpFileFullName.find(GetUpper(rstNames[i])) == string::npos) {
-                flag = false;
-                continue;
-            } else {
-                flag = true;
-                rstFilePaths[GetUpper(rstNames[i])] = *it;
-                break;
-            }
-        }
-        if (!flag) return false;
-    }
-    return flag;
-}
-
-void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, clsRasterData<int> &rsDir,
+void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
                 FlowDirectionMethod flowDirMtd, int &rowIndex, int &colIndex) {
+    map<int, int> dirToIndexMap;
     if (flowDirMtd) {
         /// flow direction in ArcGIS
         dirToIndexMap[1] = 0;
@@ -136,15 +111,15 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
         dirToIndexMap[3] = 6;
         dirToIndexMap[2] = 7;
     }
-    if (rsDEM.getRows() <= 0 || rsDEM.getCols() <= 0) {
+    if (rsDEM->getRows() <= 0 || rsDEM->getCols() <= 0) {
         cout << "Error: the input of DEM was invalid!\n";
         exit(-1);
     }
     /// updated by Liangjun Zhu, Apr. 1, 2016
     bool flag = false;
-    for (int i = 0; i < rsStreamLink.getRows(); i++) {
-        for (int j = 0; j < rsStreamLink.getCols(); j++) {
-            if (!rsStreamLink.isNoData(i, j) && rsStreamLink.getValue(i, j) > 0) {
+    for (int i = 0; i < rsStreamLink->getRows(); i++) {
+        for (int j = 0; j < rsStreamLink->getCols(); j++) {
+            if (!rsStreamLink->isNoData(i, j) && rsStreamLink->getValue(i, j) > 0) {
                 colIndex = j;
                 rowIndex = i;
                 flag = true;
@@ -159,11 +134,11 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     /// cout<<rowIndex<<","<<colIndex<<endl;
     flag = true;
     while (flag) {
-        int index = dirToIndexMap[rsDir.getValue(rowIndex, colIndex)];
+        int index = dirToIndexMap[rsDir->getValue(rowIndex, colIndex)];
         int ii = rowIndex + CellOrdering::m_d1[index];
         int jj = colIndex + CellOrdering::m_d2[index];
-        if (ii < rsDEM.getRows() - 1 && jj < rsDEM.getCols() - 1) {
-            if (rsStreamLink.isNoData(ii, jj) || rsStreamLink.getValue(ii, jj) <= 0) {
+        if (ii < rsDEM->getRows() - 1 && jj < rsDEM->getCols() - 1) {
+            if (rsStreamLink->isNoData(ii, jj) || rsStreamLink->getValue(ii, jj) <= 0) {
                 flag = false;
             } else {
                 rowIndex = ii;
@@ -176,17 +151,12 @@ void findOutlet(clsRasterData<float> &rsDEM, clsRasterData<int> &rsStreamLink, c
     cout << "\t\tOutlet location: row is " << rowIndex << ", col is " << colIndex << endl;
 }
 
-void DoFieldsPartition(map <string, string> &rstFilePaths, FlowDirectionMethod flowDirMtd, int threshod) {
-    ostringstream oss;
-    string dirName, LanduName, maskName, demName, streamLinkName;
-    dirName = rstFilePaths["FLOW"];
-    LanduName = rstFilePaths["LANDUSE"];
-    maskName = rstFilePaths["MASK"];
-    demName = rstFilePaths["DEM"];
-    streamLinkName = rstFilePaths["STREAM"];
-
-    //output
+void DoFieldsPartition(const char *dirName, const char *LanduName, const char *maskName,
+                       const char *demName, const char *streamLinkName,
+                       FlowDirectionMethod flowDirMtd, int threshod) {
+    //output to tiff
     string dir = GetPathFromFullName(demName);
+    ostringstream oss;
     oss.str("");
     //oss << dir << "field_"<<threshod<<"."<<GetLower(GetSuffix(dirName));
     oss << dir << "field_" << threshod << ".tif";
@@ -209,22 +179,34 @@ void DoFieldsPartition(map <string, string> &rstFilePaths, FlowDirectionMethod f
 
     cout << "Executing ..." << endl;
     cout << "\tRead input raster files..." << endl;
-    IntRaster rsDir(dirName, false);
-    IntRaster rsLandu(LanduName, false);
-    IntRaster rsMask(maskName, false);
-    IntRaster rsStrLink(streamLinkName, false);
 
-    //cout<<"xll: "<<rsMask.GetXllCenter()<<", yll: "<<rsMask.GetYllCenter()<<endl;
-    clsRasterData<float> rsDEM(demName, false);
+    IntRaster *rsMask = IntRaster::Init(maskName, false);
+    //cout<<"xll: "<<rsMask->getXllCenter()<<", yll: "<<rsMask->getYllCenter()<<endl;
+    IntRaster *rsDir = IntRaster::Init(dirName, false);
+    IntRaster *rsLandu = IntRaster::Init(LanduName, false);
+    IntRaster *rsStrLink = IntRaster::Init(streamLinkName, false);
+    FloatRaster *rsDEM = FloatRaster::Init(demName, false);
+
+    if (nullptr == rsMask || nullptr == rsDir || nullptr == rsLandu ||
+        nullptr == rsStrLink || nullptr == rsDEM) {
+        cout << "Read raster data failed, please check!" << endl;
+        exit(-1);
+    }
 
     int rowIndex, colIndex;
     cout << "\tFind outlet location..." << endl;
     findOutlet(rsDEM, rsStrLink, rsDir, flowDirMtd, rowIndex, colIndex);
     cout << "\tInitiate field partition class ..." << endl;
-    CellOrdering cellOrdering(&rsDir, &rsLandu, &rsMask, flowDirMtd, threshod);
+    CellOrdering cellOrdering(rsDir, rsLandu, rsMask, flowDirMtd, threshod);
     cout << "\tExecute field partition ..." << endl;
     cellOrdering.ExcuteFieldsDis(rowIndex, colIndex);
     cout << "\tWrite output fields raster and flow relationship file ..." << endl;
     cellOrdering.OutputFieldMap(rsfieldFile.c_str());
     cellOrdering.OutputFieldRelationship(txtfileFile.c_str());
+
+    delete rsMask;
+    delete rsDir;
+    delete rsLandu;
+    delete rsStrLink;
+    delete rsDEM;
 }
