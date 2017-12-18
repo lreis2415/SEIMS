@@ -1,3 +1,11 @@
+/*!
+ * \brief Fields partition incorporating spatial topology.
+ * \refers Wu, Hui, A.-Xing Zhu, Jun-Zhi Liu, Yong-Bo Liu, and Jing-Chao Jiang. 2017.
+                 "Best Management Practices Optimization at Watershed Scale: Incorporating
+                  Spatial Topology among Fields." Water Resources Management,
+                  doi: 10.1007/s11269-017-1801-8.
+ * \authors Hui Wu, Liangjun Zhu
+ */
 #ifndef FIELD_PARTITION_HEADER
 #define FIELD_PARTITION_HEADER
 

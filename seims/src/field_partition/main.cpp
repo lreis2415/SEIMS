@@ -159,7 +159,7 @@ void DoFieldsPartition(const char *dirName, const char *LanduName, const char *m
     ostringstream oss;
     oss.str("");
     //oss << dir << "field_"<<threshod<<"."<<GetLower(GetSuffix(dirName));
-    oss << dir << "field_" << threshod << ".tif";
+    oss << dir << "fields_" << threshod << ".tif";
     string rsfieldFile = oss.str();
 
     oss.str("");
