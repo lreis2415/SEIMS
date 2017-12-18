@@ -2,7 +2,7 @@
  * \brief Import raster data (full size data include nodata) to MongoDB as GridFS.
  * \change  17-07-02 lj - keep import raster to MongoDB if fails and the max. loop is set to 3.
  */
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 
@@ -129,6 +129,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> 
         databuf = NULL;
         Release1DArray(subData);
     }
+    delete rs;
     return flag;
 }
 
@@ -166,7 +167,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
         int subXSize = subbasin.xMax - subbasin.xMin + 1;
         int subYSize = subbasin.yMax - subbasin.yMin + 1;
         int subCellNum = subXSize * subYSize;
-        float *sub2DData = NULL;
+        float *sub2DData = nullptr;
         Initialize1DArray(subCellNum * colNum, sub2DData, noDataValue);
 #pragma omp parallel for
         for (int i = subbasin.yMin; i <= subbasin.yMax; i++) {
@@ -209,12 +210,13 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
             break;
         }
         bson_destroy(&p);
-        databuf = NULL;
+        databuf = nullptr;
         Release1DArray(sub2DData);
     }
-    srs = NULL;
-    rssData = NULL;
-    subbasinData = NULL;
+    srs = nullptr;
+    rssData = nullptr;
+    subbasinData = nullptr;
+    delete rss;
     return flag;
 }
 
@@ -295,6 +297,7 @@ int DecompositeRaster(map<int, SubBasin> &bboxMap, clsRasterData<int> *rsSubbasi
         CPLFree(subData);
         GDALClose(poDstDS);
     }
+    delete rs;
     return 0;
 }
 
@@ -309,10 +312,6 @@ int main(int argc, char **argv) {
     /// set default OpenMP thread number to improve compute efficiency
     SetDefaultOpenMPThread();
 
-    //const char* subbasinFile = "F:\\modeldev\\integrated\\storm_model\\Debug\\model_lyg_10m\\mask.asc";
-    //const char* folder = "F:\\modeldev\\integrated\\storm_model\\Debug\\model_lyg_10m";
-    //const char* modelName = "model_lyg_10m";
-    //const char* hostname = "192.168.5.195";
     const char *subbasinFile = argv[1];
     const char *folder = argv[2];
     const char *modelName = argv[3];
@@ -423,7 +422,7 @@ int main(int argc, char **argv) {
     }
     for (size_t i = 0; i < array1DFiles.size(); ++i) {
         cout << "\t" << array1DFiles[i] << endl;
-        if (outTifFolder != NULL) {
+        if (outTifFolder != nullptr) {
             DecompositeRaster(bboxMap, rsSubbasin, array1DFiles[i].c_str(), outTifFolder);
         }
         int loop = 1;
@@ -441,5 +440,8 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
+    /// release
     mongoc_gridfs_destroy(gfs);
+    delete client;
+    delete rsSubbasin;
 }
