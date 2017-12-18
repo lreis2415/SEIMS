@@ -20,15 +20,21 @@ from postprocess.config import PostConfig
 
 
 class ModelPaths(object):
-    """Paths required for SEIMS model setting."""
+    """Paths required for SEIMS model setting.
 
-    def __init__(self, bpath):
+    Args:
+        bpath: Base path of SEIMS.
+        data_dir_name: e.g., dianbu2
+        model_dir_name: e.g., model_dianbu2_30m_demo
+    """
+
+    def __init__(self, bpath, data_dir_name, model_dir_name):
         self.mpi_bin = None
         self.bin_dir = bpath + os.sep + 'bin'
         self.prescript_dir = bpath + os.sep + 'seims' + os.sep + 'preprocess'
-        self.base_dir = bpath + os.sep + 'data' + os.sep + 'dianbu2'
+        self.base_dir = bpath + os.sep + 'data' + os.sep + data_dir_name
         self.cfg_dir = self.base_dir + os.sep + 'model_configs'
-        self.model_dir = self.base_dir + os.sep + 'model_dianbu2_30m_demo'
+        self.model_dir = self.base_dir + os.sep + model_dir_name
         self.data_dir = self.base_dir + os.sep + 'data_prepare'
         self.clim_dir = self.data_dir + os.sep + 'climate'
         self.spatial_dir = self.data_dir + os.sep + 'spatial'
@@ -39,12 +45,12 @@ class ModelPaths(object):
         UtilClass.mkdir(self.workspace)
         print ('SEIMS binary location: %s' % self.bin_dir)
         print ('Demo data location: %s' % self.base_dir)
-        print (' -- Data preprocess location: %s' % self.workspace)
+        print ('Data preprocess location: %s' % self.workspace)
 
 
-def write_preprocess_config_file(mpaths):
-    org_cfg_file = mpaths.cfg_dir + os.sep + 'preprocess_30m_omp.ini'
-    pre_cfg_file = mpaths.workspace + os.sep + 'preprocess_30m_omp.ini'
+def write_preprocess_config_file(mpaths, org_file_name):
+    org_cfg_file = mpaths.cfg_dir + os.sep + org_file_name
+    pre_cfg_file = mpaths.workspace + os.sep + org_file_name
     cfg_items = list()
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():
@@ -74,9 +80,9 @@ def write_preprocess_config_file(mpaths):
     return SEIMSConfig(cf)
 
 
-def write_postprocess_config_file(mpaths, sceid):
-    org_cfg_file = mpaths.cfg_dir + os.sep + 'postprocess_30m_omp.ini'
-    post_cfg_file = mpaths.workspace + os.sep + 'postprocess_30m_omp.ini'
+def write_postprocess_config_file(mpaths, org_file_name, sceid=0):
+    org_cfg_file = mpaths.cfg_dir + os.sep + org_file_name
+    post_cfg_file = mpaths.workspace + os.sep + org_file_name
     cfg_items = list()
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():
@@ -96,10 +102,12 @@ def write_postprocess_config_file(mpaths, sceid):
 
 
 def main():
+    """FUNCTION TESTS"""
     cur_path = UtilClass.current_path()
     SEIMS_path = os.path.abspath(cur_path + '../../..')
-    model_paths = ModelPaths(SEIMS_path)
-    seims_cfg = write_preprocess_config_file(model_paths)
+    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
+    prep_cfg = write_preprocess_config_file(model_paths, 'preprocess_30m_omp.ini')
+    postp_cfg = write_postprocess_config_file(model_paths, 'postprocess_30m_omp.ini')
 
 
 if __name__ == "__main__":
