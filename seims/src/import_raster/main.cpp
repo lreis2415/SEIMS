@@ -167,7 +167,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
         int subXSize = subbasin.xMax - subbasin.xMin + 1;
         int subYSize = subbasin.yMax - subbasin.yMin + 1;
         int subCellNum = subXSize * subYSize;
-        float *sub2DData = NULL;
+        float *sub2DData = nullptr;
         Initialize1DArray(subCellNum * colNum, sub2DData, noDataValue);
 #pragma omp parallel for
         for (int i = subbasin.yMin; i <= subbasin.yMax; i++) {
@@ -210,12 +210,12 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
             break;
         }
         bson_destroy(&p);
-        databuf = NULL;
+        databuf = nullptr;
         Release1DArray(sub2DData);
     }
-    srs = NULL;
-    rssData = NULL;
-    subbasinData = NULL;
+    srs = nullptr;
+    rssData = nullptr;
+    subbasinData = nullptr;
     delete rss;
     return flag;
 }
@@ -422,7 +422,7 @@ int main(int argc, char **argv) {
     }
     for (size_t i = 0; i < array1DFiles.size(); ++i) {
         cout << "\t" << array1DFiles[i] << endl;
-        if (outTifFolder != NULL) {
+        if (outTifFolder != nullptr) {
             DecompositeRaster(bboxMap, rsSubbasin, array1DFiles[i].c_str(), outTifFolder);
         }
         int loop = 1;
