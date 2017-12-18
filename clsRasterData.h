@@ -1922,6 +1922,7 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
     }
     T *tmprasterdata = new T[fullsize_nCells];
     GDALDataType dataType = poBand->GetRasterDataType();
+    char *char_data = nullptr;
     unsigned char *uchar_data = nullptr;
     unsigned short *ushort_data = nullptr;
     short *short_data = nullptr;
@@ -1931,10 +1932,24 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
     double *double_data = nullptr;
     switch (dataType) {
     case GDT_Byte:
-        uchar_data = (unsigned char *)CPLMalloc(sizeof(unsigned char) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uchar_data, nCols, nRows, GDT_Byte, 0, 0);
-        _get_data_from_gdal(tmprasterdata, uchar_data, nRows, nCols);
-        CPLFree(uchar_data);
+        /// For GDAL, GDT_Byte is 8-bit unsigned interger, ranges from 0 to 255.
+        /// However, ArcGIS use 8-bit signed and unsigned intergers which both will be read as GDT_Byte.
+        ///   8-bit signed integer ranges from -128 to 127.
+        /// Since both signed and unsigned integers of n bits in length can represent 2^n different values,
+        ///   there is no inherent way to distinguish signed integers from unsigned integers simply by looking
+        ///   at them; the software designer is responsible for using them correctly.
+        /// So, here I can only assume that a negative nodata indicates a 8-bit signed integer type.
+        if (m_noDataValue < 0) {  // commonly -128
+            char_data = (char *)CPLMalloc(sizeof(char) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, char_data, nCols, nRows, GDT_Byte, 0, 0);
+            _get_data_from_gdal(tmprasterdata, char_data, nRows, nCols);
+            CPLFree(char_data);
+        } else {  // commonly 255
+            uchar_data = (unsigned char *)CPLMalloc(sizeof(unsigned char) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uchar_data, nCols, nRows, GDT_Byte, 0, 0);
+            _get_data_from_gdal(tmprasterdata, uchar_data, nRows, nCols);
+            CPLFree(uchar_data);
+        }
         break;
     case GDT_UInt16:
         ushort_data = (unsigned short *)CPLMalloc(sizeof(unsigned short) * nCols * nRows);
