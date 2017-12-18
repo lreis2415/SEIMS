@@ -122,6 +122,13 @@ class SpatialDelineation(object):
 
         # Additional raster file
         for k, v in cfg.additional_rs.iteritems():
+            org_v = v
+            if not FileClass.is_file_exists(org_v):
+                v = cfg.spatial_dir + os.sep + org_v
+                if not FileClass.is_file_exists(v):
+                    print ('WARNING: The additional file %s MUST be located in '
+                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
+                    continue
             original_files.append(v)
             output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
             default_values.append(DEFAULT_NODATA)
@@ -218,6 +225,29 @@ class SpatialDelineation(object):
                                          ds.noDataValue, GDT_Float32)
 
     @staticmethod
+    def field_partition(cfg):
+        """Fields partition incorporating spatial topology.
+
+        Refers to: Wu, Hui, A.-Xing Zhu, Jun-Zhi Liu, Yong-Bo Liu, and Jing-Chao Jiang. 2017.
+                     "Best Management Practices Optimization at Watershed Scale: Incorporating
+                      Spatial Topology among Fields." Water Resources Management,
+                      doi: 10.1007/s11269-017-1801-8.
+        """
+        if not cfg.fields_partition:  # Do field partition
+            return
+        maskf = cfg.spatials.mask
+        streamf = cfg.spatials.stream_link
+        flowf = cfg.spatials.d8flow
+        luf = cfg.spatials.landuse
+        demf = cfg.spatials.filldem
+        threshs = cfg.fields_partition_thresh
+        for thresh in threshs:
+            # run command
+            UtilClass.run_command('"%s/fieldpartition" -mask %s -stream %s '
+                                  '-flow %s -lu %s -dem %s -t %d' % (cfg.seims_bin, maskf, streamf,
+                                                                     flowf, luf, demf, thresh))
+
+    @staticmethod
     def workflow(cfg):
         """Subbasin delineation workflow"""
         # 1. Originally delineated by TauDEM
@@ -230,6 +260,8 @@ class SpatialDelineation(object):
         SpatialDelineation.output_wgs84_geojson(cfg)
         # 5. Convert to WGS84 coordinate and output latitude raster.
         SpatialDelineation.generate_lat_raster(cfg)
+        # 6. Field partition based on spatial topology
+        SpatialDelineation.field_partition(cfg)
 
 
 def main():
