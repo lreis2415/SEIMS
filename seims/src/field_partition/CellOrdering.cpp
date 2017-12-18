@@ -15,55 +15,15 @@ const int CellOrdering::m_d2[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 int CellOrdering::cfid = 1;
 int CellOrdering::FID = 1;
 
-CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsMask, FlowDirectionMethod flowDirMtd)
-    : m_dir(rsDir), m_mask(rsMask), m_flowDirMtd(flowDirMtd) {
-    m_nRows = m_dir->getRows();
-    m_nCols = m_dir->getCols();
-    m_size = m_nRows * m_nCols;
-    m_cells.resize(m_size, NULL);
-    m_layers.resize(10);
 
-    m_validCellsCount = 0;
-    for (int i = 0; i < m_nRows; ++i) {
-        for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(i, j)) {
-                int id = i * m_nCols + j;
-                m_cells[id] = new Cell();
-                m_validCellsCount += 1;
-            }
-        }
-    }
-    if (m_flowDirMtd) {
-        /// ArcGIS
-        m_dirToIndexMap[1] = 0;
-        m_dirToIndexMap[2] = 1;
-        m_dirToIndexMap[4] = 2;
-        m_dirToIndexMap[8] = 3;
-        m_dirToIndexMap[16] = 4;
-        m_dirToIndexMap[32] = 5;
-        m_dirToIndexMap[64] = 6;
-        m_dirToIndexMap[128] = 7;
-    } else {
-        /// TauDEM
-        m_dirToIndexMap[1] = 0;
-        m_dirToIndexMap[8] = 1;
-        m_dirToIndexMap[7] = 2;
-        m_dirToIndexMap[6] = 3;
-        m_dirToIndexMap[5] = 4;
-        m_dirToIndexMap[4] = 5;
-        m_dirToIndexMap[3] = 6;
-        m_dirToIndexMap[2] = 7;
-    }
-}
-
-CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMask, FlowDirectionMethod flowDirMtd,
-                           int threshold)
+CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMask,
+                           FlowDirectionMethod flowDirMtd, int threshold)
     : m_dir(rsDir), m_mask(rsMask), m_landu(rsLandu), m_threshold(threshold), m_flowDirMtd(flowDirMtd),
       m_FieldNum(0), m_maxDegree(0) {
     m_nRows = m_dir->getRows();
     m_nCols = m_dir->getCols();
     m_size = m_nRows * m_nCols;
-    m_cells.resize(m_size, NULL);
+    m_cells.resize(m_size, nullptr);
     m_cellwidth = m_dir->getCellWidth();
     //m_layers.resize(10);
 
@@ -98,150 +58,76 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
         m_dirToIndexMap[3] = 6;
         m_dirToIndexMap[2] = 7;
     }
-    //m_root = new fieldTnode();
 }
 
-CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsStreamLink, IntRaster *rsMask,
-                           FlowDirectionMethod flowDirMtd, int threshold)
-    : m_dir(rsDir), m_mask(rsMask), m_landu(rsLandu), m_streamlink(rsStreamLink), m_flowDirMtd(flowDirMtd),
-      m_threshold(threshold), m_FieldNum(0), m_maxDegree(0) {
-    m_nRows = m_dir->getRows();
-    m_nCols = m_dir->getCols();
-    m_size = m_nRows * m_nCols;
-    m_cells.resize(m_size, NULL);
-    m_cellwidth = m_dir->getCellWidth();
-    //m_layers.resize(10);
-
-    m_validCellsCount = 0;
-    for (int i = 0; i < m_nRows; ++i) {
-        for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(i, j)) {
-                int id = i * m_nCols + j;
-                m_cells[id] = new Cell();
-                m_validCellsCount += 1;
-            }
-        }
-    }
-    if (m_flowDirMtd) {
-        /// ArcGIS
-        m_dirToIndexMap[1] = 0;
-        m_dirToIndexMap[2] = 1;
-        m_dirToIndexMap[4] = 2;
-        m_dirToIndexMap[8] = 3;
-        m_dirToIndexMap[16] = 4;
-        m_dirToIndexMap[32] = 5;
-        m_dirToIndexMap[64] = 6;
-        m_dirToIndexMap[128] = 7;
-    } else {
-        /// TauDEM
-        m_dirToIndexMap[1] = 0;
-        m_dirToIndexMap[8] = 1;
-        m_dirToIndexMap[7] = 2;
-        m_dirToIndexMap[6] = 3;
-        m_dirToIndexMap[5] = 4;
-        m_dirToIndexMap[4] = 5;
-        m_dirToIndexMap[3] = 6;
-        m_dirToIndexMap[2] = 7;
-    }
-    //m_root = new fieldTnode();
-}
 
 CellOrdering::~CellOrdering(void) {
-    for (int i = 0; i < m_size; ++i) {
-        delete m_cells[i];
+    if (!m_cells.empty()) {
+        for (auto it = m_cells.begin(); it != m_cells.end();) {
+            if (nullptr != *it) {
+                delete *it;
+                *it = nullptr;
+            }
+            it = m_cells.erase(it);
+        }
+        m_cells.clear();
     }
-    for (int i = 0; i < m_FieldNum; ++i) {
-        delete m_fields[i];
+    if (!m_fields.empty()) {
+        for (auto it = m_fields.begin(); it != m_fields.end();) {
+            if (nullptr != *it) {
+                delete *it;
+                *it = nullptr;
+            }
+            it = m_fields.erase(it);
+        }
+        m_fields.clear();
     }
+    if (!m_mapfields.empty()) {
+        for (auto it = m_mapfields.begin(); it != m_mapfields.end();) {
+            if (nullptr != it->second) {
+                delete it->second;
+                it->second = nullptr;
+            }
+            m_mapfields.erase(it++);
+        }
+    }
+    m_mapfields.clear();
+    if (!m_mapSameDegreefields.empty()) {
+        for (auto it = m_mapSameDegreefields.begin(); it != m_mapSameDegreefields.end();) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+                *it2 = nullptr;
+                it2 = it->second.erase(it2);
+            }
+            it->second.clear();
+            m_mapSameDegreefields.erase(it++);
+        }
+    }
+    m_mapSameDegreefields.clear();
 
-    //DestoryFieldsTree(m_root);
     FID = 1;
     cfid = 1;
 }
 
-//void CellOrdering::DestoryFieldsTree(fieldTnode * proot)
-//{
-//	if (proot != NULL)
-//	{
-//		vector<fieldTnode*> children = proot->m_Tchildren;
-//		for (size_t i=0; i<children.size(); i++)
-//		{
-//			DestoryFieldsTree(children[i]);
-//		}
-//		delete proot; 
-//	} 
-//	else
-//	{
-//		return;
-//	}
-//}
-
 //from down to up
 bool CellOrdering::Execute(int iOutlet, int jOutlet) {
     if (iOutlet < 0 || iOutlet >= m_nRows || jOutlet < 0 || jOutlet >= m_nCols) {
-        cerr << "Failed to execute the cell ordering.\n" <<
-             "The outlet location(" << iOutlet << ", " << jOutlet << ") is out of the extent of the study area.\n";
+        cerr << "Failed to execute the cell ordering.\n"
+             << "The outlet location(" << iOutlet << ", " << jOutlet
+             << ") is out of the extent of the study area." << endl;
         return false;
     }
     BuildTree();
 
     int id = iOutlet * m_nCols + jOutlet;
-    if (m_cells[id] == NULL) {
-        cerr << "Failed to execute the cell ordering.\n" <<
-             "The outlet location(" << iOutlet << ", " << jOutlet << ") is null.\n";
+    if (nullptr == m_cells[id]) {
+        cerr << "Failed to execute the cell ordering." << endl
+             << "The outlet location(" << iOutlet << ", " << jOutlet << ") is null." << endl;
         return false;
     }
     BuildRoutingLayer(id, 0);
-    //BuildRoutingLayer2(id);
-
     return true;
 }
 
-//from up to down
-bool CellOrdering::Execute2(int iOutlet, int jOutlet) {
-    if (iOutlet < 0 || iOutlet >= m_nRows || jOutlet < 0 || jOutlet >= m_nCols) {
-        cerr << "Failed to execute the cell ordering.\n" <<
-             "The outlet location(" << iOutlet << ", " << jOutlet << ") is out of the extent of the study area.\n";
-        return false;
-    }
-    BuildTree();
-
-    int id = iOutlet * m_nCols + jOutlet;
-    if (m_cells[id] == NULL) {
-        cerr << "Failed to execute the cell ordering.\n" <<
-             "The outlet location(" << iOutlet << ", " << jOutlet << ") is null.\n";
-        return false;
-    }
-    // only the following statement is different from the Execute function
-    BuildRoutingLayer2(id);
-
-    return true;
-}
-
-//bool CellOrdering::ExcuteFieldsDis(int iOutlet, int jOutlet)
-//{
-//	BuildTree();
-//	/*--------------------------------------------------------------------------
-//	Add the landuse (crop) information to the Tree, and set a thread to aggregate
-//	the small fields (number of cells < thread) into their downstream fields.
-//	---------------------------------------------------------------------------*/
-//	int id = iOutlet*m_nCols + jOutlet;
-//	if(m_cells[id] == NULL)
-//	{
-//		cerr << "Failed to execute the cell ordering.\n" <<
-//			"The outlet location(" << iOutlet << ", " << jOutlet << ") is null.\n";
-//		return false;
-//	}
-//
-//	m_cells[id]->SetFieldID(1);
-//	vector<int>& inCells = m_cells[id]->GetInCellIDs();
-//	for (unsigned int i = 0; i < inCells.size(); ++i)
-//	{
-//		BuildField(inCells[i], 1);
-//	}
-//	
-//	return true;
-//}
 
 bool CellOrdering::ExcuteFieldsDis(int iOutlet, int jOutlet) {
     cout << "\t\tBuilding tree of landuse with flow in and out information  ..." << endl;
@@ -275,7 +161,7 @@ void CellOrdering::BuildTree(void)   // tree of the land use
             int landu = LanduCode[id];
             m_cells[id]->SetLanduseCode(landu);
 
-            if (iOut < 0 || iOut >= m_nRows || jOut < 0 || jOut >= m_nCols || m_cells[idOut] == NULL) {
+            if (iOut < 0 || iOut >= m_nRows || jOut < 0 || jOut >= m_nCols || nullptr == m_cells[idOut]) {
                 m_cells[id]->SetOutCellID(-1);
             } else {
                 m_cells[id]->SetOutCellID(idOut);
@@ -347,7 +233,7 @@ void CellOrdering::BuildField(int id, Field *pfield) {
             pfield->AddInFieldID(FID);                  // set relationship of the fields
             qfield->AddCellintoField(m_cells[child]);
             qfield->SetLanduseCode(LC);
-            m_mapfields[FID] = qfield;
+            m_mapfields.insert(make_pair(FID, qfield));
             BuildField(child, qfield);
         }
     }
@@ -375,9 +261,10 @@ void CellOrdering::mergefieldsofsamefather(Field *f1, Field *f2) {
     }
     map<int, Field *>::iterator it = m_mapfields.find(f1->GetID());
     if (it != m_mapfields.end()) {
+        delete it->second;
+        it->second = nullptr;
         m_mapfields.erase(it);
     }
-    delete f1;
 }
 
 void CellOrdering::mergefieldschild2father(Field *child, Field *father) {
@@ -407,17 +294,17 @@ void CellOrdering::mergefieldschild2father(Field *child, Field *father) {
     }
     map<int, Field *>::iterator it = m_mapfields.find(child->GetID());
     if (it != m_mapfields.end()) {
+        delete it->second;
+        it->second = nullptr;
         m_mapfields.erase(it);
     }
-    //m_mapfields[child->GetID()] = NULL;
-    delete child;
 }
 
 void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
     vector<int> upperFieldIDs;
     for (map<int, Field *>::iterator it = m_mapfields.begin(); it != m_mapfields.end(); it++) {
         Field *curFld = it->second;
-        if (!curFld->GetInFieldIDs().size()) {
+        if (!curFld->GetInFieldIDs().empty()) {
             upperFieldIDs.push_back(it->first);
         }
     }
@@ -425,9 +312,9 @@ void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
     cout << "\t\t\tThere are " << upperFieldIDs.size() << " uppermost fields." << endl;
     set<int> downFieldIDs;
     set<int> downFieldIDs2;
-    for (vector<int>::iterator it = upperFieldIDs.begin(); it != upperFieldIDs.end(); it++) {
+    for (auto it = upperFieldIDs.begin(); it != upperFieldIDs.end(); it++) {
         /// get the downstream field of the current upper field
-        Field *curField = m_mapfields[*it];
+        Field *curField = m_mapfields.at(*it);
         int downFieldID = curField->GetOutFieldID();
         downFieldIDs.insert(downFieldID);
     }
@@ -451,7 +338,7 @@ void CellOrdering::MergeSameLanduseChildFieldsFromUpDown() {
             }
         }
         downFieldIDs.clear();
-        for (set<int>::iterator curID = downFieldIDs2.begin(); curID != downFieldIDs2.end(); curID++) {
+        for (auto curID = downFieldIDs2.begin(); curID != downFieldIDs2.end(); curID++) {
             downFieldIDs.insert(*curID);
         }
         downFieldIDs2.clear();
@@ -484,8 +371,8 @@ void CellOrdering::MergeSameLanduseChildFieldsOneLayer(Field *pfield) {
                 continue;
             }
             if (f1->IsFieldsNeighbor(f2, m_nCols)) {
-                mergefieldsofsamefather(f1,
-                                        f2);    //once merged, it may change the infieldIds vector, will bring some problems.
+                mergefieldsofsamefather(f1, f2);
+                //once merged, it may change the infieldIds vector, will bring some problems.
                 // to solve the problems
                 infdSize--;
                 i--;
@@ -517,8 +404,8 @@ void CellOrdering::MergeSameLanduseChildFields(Field *pfield) {
                 continue;
             }
             if (f1->IsFieldsNeighbor(f2, m_nCols)) {
-                mergefieldsofsamefather(f1,
-                                        f2);    //once merged, it may change the infieldIds vector, will bring some problems.
+                //once merged, it may change the infieldIds vector, will bring some problems.
+                mergefieldsofsamefather(f1, f2);    
                 // to solve the problems
                 infdSize--;
                 i--;
@@ -534,58 +421,6 @@ void CellOrdering::MergeSameLanduseChildFields(Field *pfield) {
     }
 }
 
-//void CellOrdering::AggregateSmallField(Field* pfield)
-//{
-//	vector<int>& chfids = pfield->GetInFieldIDs();
-//	if (!chfids.empty())   
-//	{
-//		for (size_t i = 0; i<chfids.size(); i++)
-//		{
-//			Field* qfield = m_mapfields[chfids[i]];
-//			if(qfield == NULL)
-//			{
-//				cout<<"Err happened in AggregateSmallField, please check it!\n";
-//				return;
-//			}
-//			AggregateSmallField(qfield);
-//		}
-//		int id = pfield->GetID();
-//		if (id == m_rootID)
-//		{
-//			cout<<"Aggregate Small Field is Ok!\n";
-//			return;
-//		}
-//		vector<Cell*>& mycells = pfield->GetCells();
-//		int celln = mycells.size();	
-//		if (celln <= m_threshold)      //merge this field to its father field
-//		{
-//			int outid = pfield->GetOutFieldID();
-//			Field* outfd = m_mapfields[outid];
-//			if(outfd == NULL)
-//			{
-//				cout<<"Err happened in AggregateSmallField, please check it!\n";
-//				return;
-//			}
-//			mergefieldschild2father(pfield, outfd);
-//		}
-//	}
-//	else   //leaf node
-//	{
-//		vector<Cell*>& mycells = pfield->GetCells();
-//		int celln = mycells.size();	
-//		if (celln <= m_threshold)      //merge this field to its father field
-//		{	
-//			int outid = pfield->GetOutFieldID();
-//			Field* outfd = m_mapfields[outid];
-//			if(outfd == NULL)
-//			{
-//				cout<<"Err happened in AggregateSmallField, please check it!\n";
-//				return;
-//			}
-//			mergefieldschild2father(pfield, outfd);
-//		}
-//	}
-//}
 
 void CellOrdering::AggregateSmallField(Field *pfield) {
     cout << "\t\t\tAggregate small fields ..." << endl;
@@ -599,7 +434,7 @@ void CellOrdering::AggregateSmallField(Field *pfield) {
     for (size_t i = 0; i < m_posterorderfieldId.size(); i++) {
         int id = m_posterorderfieldId[i];
         Field *pfd = m_mapfields[id];
-        vector < Cell * > &cells = pfd->GetCells();
+        vector<Cell *> &cells = pfd->GetCells();
         int ncells = cells.size();
         if (ncells < m_threshold) {
             if (id == 1)   // root
@@ -614,7 +449,7 @@ void CellOrdering::AggregateSmallField(Field *pfield) {
 
             int outid = pfd->GetOutFieldID();
             Field *outfd = m_mapfields[outid];
-            if (outfd == NULL) {
+            if (nullptr == outfd) {
                 cout << "Err happened in AggregateSmallField, please check it!\n";
                 return;
             }
@@ -661,7 +496,7 @@ void CellOrdering::remergesamelandusefield(Field *pfield)  // merge same landuse
         Field *pfd = m_mapfields[id];
         int outid = pfd->GetOutFieldID();
         Field *outfd = m_mapfields[outid];
-        if (outfd == NULL) {
+        if (nullptr == outfd) {
             cout << "Err happened in remergesamelandusefield, please check it!\n";
             return;
         }
@@ -673,40 +508,12 @@ void CellOrdering::remergesamelandusefield(Field *pfield)  // merge same landuse
     }
 }
 
-//void CellOrdering::remergesamelandusefield(Field* pfield)  // merge same landuse fields between father and children
-//{
-//	vector<int>& infieldIds = pfield->GetInFieldIDs();
-//	if (infieldIds.empty())
-//		return;
-//
-//	for (size_t i = 0; i < infieldIds.size(); i++)
-//	{
-//		int fatherlanduse = pfield->GetLanduseCode();
-//		Field* child = m_mapfields[infieldIds[i]];
-//		int childlanduse = child->GetLanduseCode();
-//		if(fatherlanduse != childlanduse)
-//			continue;
-//		else  //merge child to father field
-//			mergefieldschild2father(child, pfield);
-//	}
-//
-//	vector<int>& updatedinfieldIds = pfield->GetInFieldIDs();
-//	if (updatedinfieldIds.empty())
-//		return;
-//	for (size_t i=0; i<updatedinfieldIds.size(); i++)
-//	{
-//		Field* qfield = m_mapfields[updatedinfieldIds[i]];
-//		remergesamelandusefield(qfield);
-//	}
-//	
-//}
-
 void CellOrdering::BuildFieldsTree(int iOutlet, int jOutlet) {
     cout << "\t\tBegin from outlet to trace upstream fields ..." << endl;
     int id = iOutlet * m_nCols + jOutlet;
     m_rootID = 1;
 
-    if (m_cells[id] == NULL) {
+    if (nullptr == m_cells[id]) {
         cerr << "Failed to execute the cell ordering.\n" <<
              "The outlet location(" << iOutlet << ", " << jOutlet << ") is null.\n";
         return;
@@ -716,14 +523,13 @@ void CellOrdering::BuildFieldsTree(int iOutlet, int jOutlet) {
     pfield->SetOutFieldID(0);        /// outfieldID of outlet field is 0
     pfield->AddCellintoField(m_cells[id]);
     pfield->SetLanduseCode(m_cells[id]->GetLanduseCode());
-    m_mapfields[1] = pfield;
+    if (!m_mapfields.insert(make_pair(1, pfield)).second) exit(-1);
     cout << "\t\tFrom the children of the outlet to recursively trace upstream to build fields tree" << endl;
     BuildField(id, pfield);  // rootcellid, rootfield
     cout << "\t\t\tTotally " << m_mapfields.size() << " fields has been generated" << endl;
     cout << "\t\tMerge same field (landuse) with the same flow in ..." << endl;
-    Field *rootfd = m_mapfields[1];
+    Field *rootfd = m_mapfields.at(1);
     MergeSameLanduseChildFieldsFromUpDown();
-    //MergeSameLanduseChildFields(rootfd);
     cout << "\t\t\tTotally " << m_mapfields.size() << " fields remained after merging the same flow in adjacent fields"
          << endl;
     // aggregate the small field into its downstream field according to a given threshold
@@ -733,7 +539,6 @@ void CellOrdering::BuildFieldsTree(int iOutlet, int jOutlet) {
         AggregateSmallField(rootfd);
         remergesamelandusefield(rootfd);
         cout << "\t\t\tMerge child fields again according to same landuse ..." << endl;
-        //MergeSameLanduseChildFields(rootfd);  Deprecated by LJ
         MergeSameLanduseChildFieldsFromUpDown();
         cout << "\t\t\t\tTotally " << m_mapfields.size() << " fields remain" << endl;
     }
@@ -741,7 +546,7 @@ void CellOrdering::BuildFieldsTree(int iOutlet, int jOutlet) {
 }
 
 void CellOrdering::MergeSameFatherSameLanduseField(int id) {
-    if (m_fields[id] == NULL) {
+    if (nullptr == m_fields[id]) {
         return;
     }
     vector<int> &inFields = m_fields[id]->GetInFieldIDs();
@@ -756,12 +561,12 @@ void CellOrdering::MergeSameFatherSameLanduseField(int id) {
     for (int i = 0; i < nsize - 1; i++) {
         int f1, f2;  //merge f1 to f2
         f1 = inFields[i];
-        if (m_fields[f1] == NULL) {
+        if (nullptr == m_fields[f1]) {
             continue;
         }
         for (int j = i + 1; j < nsize; j++) {
             f2 = inFields[j];
-            if (m_fields[f2] == NULL) {
+            if (nullptr == m_fields[f2]) {
                 continue;
             }
             if (f1 == f2) {
@@ -778,7 +583,7 @@ void CellOrdering::MergeSameFatherSameLanduseField(int id) {
                 if (!inFieldID.empty()) {
                     for (size_t j = 0; j < inFieldID.size(); j++) {
                         int inID = inFieldID[j];
-                        if (m_fields[inID] != NULL) {
+                        if (nullptr != m_fields[inID]) {
                             m_fields[inID]->SetOutFieldID(f2);
                             m_fields[f2]->AddInFieldID(inID);
                         }
@@ -786,17 +591,7 @@ void CellOrdering::MergeSameFatherSameLanduseField(int id) {
                 }
                 vector<int> &cellid = m_fields[f1]->GetCellsIDs();
                 m_fields[f2]->mergeCells(cellid);
-
-                //// delete f1 in its outfield's infieldids;
-                //int outID = m_fields[f1]->GetOutFieldID();
-                //vector<int>& inF = m_fields[outID]->GetInFieldIDs();
-                //if(!inF.empty())
-                //{
-                //	vector<int>::iterator iter = find(inF.begin(), inF.end(), f1);
-                //	if (iter != inF.end()) // if find, delete it's field ID
-                //		inF.erase(iter);
-                //}
-                m_fields[f1] = NULL;
+                m_fields[f1] = nullptr;
                 // finish f1
                 break;
             }
@@ -809,179 +604,9 @@ bool greatermark(Field *f1, Field *f2) {
     return (f1->GetDegree() > f2->GetDegree());
 }
 
-void CellOrdering::MergeSameDegreeLanduseFields() {
-    for (int i = m_maxDegree - 1; i >= 0; i--)   // from the top of upstream fields to the outlet field
-    {
-        int num = m_sameDegreeFID[i].size();
-        if (num <= 1) {
-            continue;
-        }
-
-        for (int j = 0; j < num - 1; j++) {
-            int f1, f2;
-            f1 = m_sameDegreeFID[i][j];
-            /*if(f1==5)
-                int oo = 0;*/
-            if (m_fields[f1] == NULL) {
-                continue;
-            }
-
-            for (int k = j + 1; k < num; k++) {
-                f2 = m_sameDegreeFID[i][k];
-                if (m_fields[f2] == NULL) {
-                    continue;
-                }
-
-                if (f1 == f2) {
-                    cerr << "The ID of the two fields merged can not be same!\n";
-                    return;
-                }
-
-                if (m_fields[f1]->GetLanduseCode() != m_fields[f2]->GetLanduseCode()) {
-                    continue;
-                }
-                /*if((f1==102 && f2 == 105)|| (f1==105 && f2 == 102))
-                    int ooo = 0;*/
-                bool IsNeighbor = IsFieldsNeighbor(f1,
-                                                   f2);  // if two fields are neighbors, f2 is merged into f1  -- something wrong
-                // revision: if two fields are neighbors, f1 is merged into f2 -- to ensure
-                // every field (even added by other fields) being checked
-                if (IsNeighbor) {
-                    vector<int> &inFieldID = m_fields[f1]->GetInFieldIDs();   //f2
-                    if (!inFieldID.empty()) {
-                        for (size_t j = 0; j < inFieldID.size(); j++) {
-                            int inID = inFieldID[j];
-                            m_fields[inID]->SetOutFieldID(f2);     //f1
-                            m_fields[f2]->AddInFieldID(inID);     //f1
-                        }
-                    }
-                    vector<int> &cellid = m_fields[f1]->GetCellsIDs();    //f2
-                    m_fields[f2]->mergeCells(cellid);                    //f1
-
-                    // delete f1 in its outfield's infieldids;     //f2
-                    int outID = m_fields[f1]->GetOutFieldID();      //f2
-                    vector<int> &inF = m_fields[outID]->GetInFieldIDs();
-                    if (!inF.empty()) {
-                        vector<int>::iterator iter = find(inF.begin(), inF.end(), f1);      //f2
-                        if (iter != inF.end()) { // if find, delete it's field ID
-                            inF.erase(iter);
-                        }
-                    }
-                    m_fields[f1] = NULL;      //f2
-                    // finish f1
-                    break;
-                }
-            }
-        }
-    }
-}
-
-//void CellOrdering::AggregateSmallField()
-//{
-//int smallFNumber = 0;
-//vector<Field*> smallFields;
-//smallFields.resize(20, NULL);
-//for (int i = 1; i < m_FieldNum+1; ++i)
-//{
-//	if(m_fields[i] == NULL)
-//		continue;
-
-//	vector<int>& cellsinField = m_fields[i]->GetCellsIDs();
-//	if ((int)cellsinField.size() <= m_threshold)
-//	{
-//		smallFields[smallFNumber] = m_fields[i];   //  == map<smallFNumber, Field*>, smallFNuber: 0,1,2,3...
-
-//		smallFNumber++;
-//		if(smallFields.size() == smallFNumber)
-//			smallFields.resize(2*smallFNumber, NULL);
-//	}
-//}
-
-//for(vector<Field*>::iterator it=smallFields.begin(); it!=smallFields.end(); )
-//{
-//	if(* it == NULL)
-//	{
-//		it = smallFields.erase(it);
-//	}
-//	else
-//	{
-//		++it;
-//	}
-//}
-
-//sort(smallFields.begin(), smallFields.end(), greatermark);  // descending by degree of the tree
-//// aggregating
-////    method: each upstream field whose cells number is less than threshold is merged into its downstream field.
-//for (int i=0; i<smallFNumber; i++)
-//{
-//	int ID = smallFields[i]->GetID();
-//	int outID = m_fields[ID]->GetOutFieldID();
-
-//	vector<int>& inFieldID = m_fields[ID]->GetInFieldIDs();
-
-//	if (outID == 0) // if the field is outlet field
-//	{
-//		// merge one of the outlet field(root id) children to the outlet field
-//		int inf0 = inFieldID[0];
-//		for (size_t j=1;j<inFieldID.size(); j++)
-//		{
-//			int inID = inFieldID[j];
-//			m_fields[inID]->SetOutFieldID(inf0);
-//			m_fields[inf0]->AddInFieldID(inID);
-//		}
-//		m_fields[inf0]->SetOutFieldID(0);
-//		vector<int>& cellid = m_fields[ID]->GetCellsIDs();
-//		m_fields[inf0]->mergeCells(cellid);
-//		m_fields[ID] = NULL;
-//		m_rootID = inf0;
-//
-//	/*	//merge the outlet field(root id) to one of its children
-//		int oinf = inFieldID[0];
-//		vector<int>& oinFieldID = m_fields[oinf]->GetInFieldIDs();
-//		if (!inFieldID.empty())
-//		{
-//			for(size_t j=0; j<oinFieldID.size(); j++)
-//			{
-//				int inID = oinFieldID[j];
-//				m_fields[inID]->SetOutFieldID(ID);
-//				m_fields[ID]->AddInFieldID(inID);
-//			}
-//		}
-//		vector<int>& cellid = m_fields[oinf]->GetCellsIDs();
-//		m_fields[ID]->mergeCells(cellid);
-//		m_fields[oinf] = NULL;*/
-//	}
-//	else
-//	{
-//		if (!inFieldID.empty())
-//		{
-//			for (size_t j=0; j<inFieldID.size(); j++ )
-//			{
-//				int inID = inFieldID[j];
-//				m_fields[inID]->SetOutFieldID(outID);
-//				m_fields[outID]->AddInFieldID(inID);
-//			}
-//		}
-//		vector<int>& cellid = m_fields[ID]->GetCellsIDs();
-//		m_fields[outID]->mergeCells(cellid);
-
-//		// delete ith cell's FID in its outfield's infieldids;
-//		vector<int>& inF = m_fields[outID]->GetInFieldIDs();
-//		if(!inF.empty())
-//		{
-//			vector<int>::iterator iter = find(inF.begin(), inF.end(), ID);
-//			if (iter != inF.end()) // if find, delete it's field ID
-//				inF.erase(iter);
-//		}
-
-//		m_fields[ID] = NULL;
-//	}
-//}
-//}
-
 void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father and children fields with same land use
 {
-    if (m_fields[id] == NULL) {
+    if (nullptr == m_fields[id]) {
         cerr << " ReMergeSameLanduseField(int id, int degree) function: The field cannot be NULL!\n";
         return;
     }
@@ -1003,16 +628,7 @@ void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father 
         vector<int> &cellid = m_fields[id]->GetCellsIDs();
         m_fields[outid]->mergeCells(cellid);
 
-        //// delete ith cell's FID in its outfield's infieldids;
-        //vector<int>& inF = m_fields[outid]->GetInFieldIDs();
-        //if(!inF.empty())
-        //{
-        //	vector<int>::iterator iter = find(inF.begin(), inF.end(), id);
-        //	if (iter != inF.end()) // if find, delete it's field ID
-        //		inF.erase(iter);
-        //}
-
-        m_fields[id] = NULL;
+        m_fields[id] = nullptr;
     } else {
         degree++;
         m_fields[id]->SetDegree(degree);
@@ -1022,7 +638,7 @@ void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father 
         if (!inFieldID.empty()) {
             for (size_t j = 0; j < inFieldID.size(); j++) {
                 int inID = inFieldID[j];
-                if (m_fields[inID] == NULL) {
+                if (nullptr == m_fields[inID]) {
                     continue;
                 }
                 ReMergeSameLanduseField(inID, degree);
@@ -1031,176 +647,6 @@ void CellOrdering::ReMergeSameLanduseField(int id, int degree)  // merge father 
     }
 }
 
-//void CellOrdering::AggregateSmallField()
-//{
-//	int smallFNumber = 0;
-//	vector<Field*> smallFields;
-//	smallFields.resize(20, NULL);
-//	for (int i = 1; i < m_FieldNum+1; ++i)
-//	{
-//		vector<int>& cellsinField = m_fields[i]->GetCellsIDs();
-//		if ((int)cellsinField.size() <= m_threshold)
-//		{ 
-//			smallFields[smallFNumber] = m_fields[i];   //  == map<smallFNumber, Field*>, smallFNuber: 0,1,2,3...
-//
-//			smallFNumber++;
-//			if(smallFields.size() == smallFNumber)
-//				smallFields.resize(2*smallFNumber, NULL);
-//		}
-//	
-//	}
-//	for(vector<Field*>::iterator it=smallFields.begin(); it!=smallFields.end(); )
-//	{
-//		if(* it == NULL)
-//		{
-//			it = smallFields.erase(it);
-//		}
-//		else
-//		{
-//			++it;
-//		}
-//	}
-//
-//	sort(smallFields.begin(), smallFields.end(), greatermark);  // descending by degree of the tree
-//	// aggregating 
-//	//    method: each upstream field whose cells number is less than threshold is merged into its downstream field.
-//	for (int i=0; i<smallFNumber; i++)
-//	{
-//		int ID = smallFields[i]->GetID();
-//		int outID = m_fields[ID]->GetOutFieldID();
-//		if (outID == 0) // if the field is outlet field
-//			continue;
-//		
-//		vector<int>& inFieldID = m_fields[ID]->GetInFieldIDs();
-//		if (!inFieldID.empty())
-//		{
-//			for (size_t j=0; j<inFieldID.size(); j++ )
-//			{
-//				int inID = inFieldID[j];
-//				m_fields[inID]->SetOutFieldID(outID); 
-//				m_fields[outID]->AddInFieldID(inID);
-//			}
-//		} 
-//		vector<int>& cellid = m_fields[ID]->GetCellsIDs();
-//		for (unsigned int j=0; j<cellid.size(); j++)
-//		{
-//			int idc = cellid[j];
-//			m_cells[idc]->SetFieldID(outID);
-//		}
-//		// delete ith cell's FID in its outfield's infieldids;
-//		vector<int>& inF = m_fields[outID]->GetInFieldIDs();
-//		if(!inF.empty())
-//		{
-//			vector<int>::iterator iter = find(inF.begin(), inF.end(), ID);
-//			if (iter != inF.end()) // if find, delete it's field ID
-//				inF.erase(iter);
-//		}
-//		/*vector<Field*>::iterator fit = find(m_fields.begin(), m_fields.end(), m_fields[ID]);
-//		if(fit != m_fields.end())
-//			m_fields.erase(fit);*/
-//		//// delete the this small field in m_fields 
-//		//for(vector<Field*>::iterator fit=m_fields.begin(); fit!=m_fields.end(); )
-//		//{
-//		//	if(* fit == m_fields[ID])
-//		//	{
-//		//		fit = m_fields.erase(fit);
-//		//	}
-//		//	else
-//		//	{
-//		//		++fit;
-//		//	}
-//		//}
-//		m_fields[ID] = NULL;
-//	}
-//	for (size_t i=1; i<m_FieldNum+1; i++)
-//	{
-//		if(m_fields[i]!=NULL)
-//			cout<< "ID: "<<m_fields[i]->GetID()<<"    outID: "<<m_fields[i]->GetOutFieldID()<<endl;
-//
-//	}
-//}
-
-//void CellOrdering::BuildField()
-//{
-//bool done = false;
-//vector<int> flag;
-//flag.resize(m_fields.size(), 0);
-//while (!done)
-//{
-//	for (size_t i = 0; i < m_fields.size(); ++i)
-//	{
-//		if (m_fields[i] != NULL)
-//		{
-//			vector<int>& inFields = m_fields[i]->GetInFieldIDs();
-//			if (inFields.empty())
-//			{
-//				int outID = m_fields[i]->GetOutFieldID();
-//				vector<int>& cellsinField = m_fields[i]->GetCellsIDs();
-//				if ((int)cellsinField.size() <= m_threshold)
-//				{ 
-//					//m_fields[ID]->SetID(outID);
-//					for (unsigned int j=0; j<cellsinField.size(); j++)
-//					{
-//						m_cells[cellsinField[j]]->SetFieldID(outID);
-//					}
-//					m_fields[i] = NULL;
-//				}
-//			}
-//		}
-//	}
-//}
-//	int cellsize = (int) m_cells.size();
-//	if (cellsize <= 0)
-//	{
-//		cerr<< "The Number of cells cannot be less than 0.\n"; 
-//		exit(-1);
-//	}
-//	int fieldcount = 0;
-//	int fieldID = 1;
-//	m_fields[fieldcount] = new Field();
-//	m_fields[fieldcount]->SetID(fieldcount);
-//	for(int i=0; i<m_validCellsCount; i++)
-//	{
-//		Cell &eachcell = m_cells[i];
-//		eachcell.SetFieldID(fieldID);???
-//			int Lu = eachcell.GetLanduseCode();
-//		int outCellid = eachcell.GetOutCellID();
-//		if (outCellid != -1)
-//		{
-//			Cell &outcell = m_cells[outCellid];
-//			int outLu = outcell.GetLanduseCode();
-//			if (Lu != outLu)
-//			{
-//				fieldID++;
-//				outcell.SetFieldID(fieldID);
-//
-//				fieldcount++;
-//				if ((int)m_fields.size() <= fieldcount)
-//				{
-//					m_fields.resize(2*m_fields.size());
-//				}
-//				m_fields[fieldcount] = new Field();
-//				int infieldID = fieldcount-1;
-//				m_fields[infieldID]->SetOutFieldID(fieldcount);
-//				m_fields[fieldcount]->AddInFieldID(infieldID);
-//			}
-//			else
-//			{
-//
-//				outcell.SetFieldID(fieldID);
-//
-//				m_fields[fieldcount]->AddCellIDintoField(i)
-//			}
-//
-//		}
-//
-//
-//	}
-
-
-//}
-//
-//}
 void CellOrdering::reclassfieldid(Field *pfield, int degree) {
     int id = pfield->GetID();
     m_relassFID[id] = cfid;
@@ -1218,8 +664,7 @@ void CellOrdering::reclassfieldid(Field *pfield, int degree) {
 }
 
 void CellOrdering::sortReclassedfieldid() {
-    map<int, int>::iterator it;
-    for (it = m_relassFID.begin(); it != m_relassFID.end(); it++) {
+    for (auto it = m_relassFID.begin(); it != m_relassFID.end(); it++) {
         int oldid = it->first;
         int newid = it->second;
         m_newoldfidmap[newid] = oldid;
@@ -1234,16 +679,15 @@ void CellOrdering::OutputFieldMap(const char *filename) {
     int degreeRoot = 1;
     reclassfieldid(rootfd, degreeRoot);
     cout << "\t\tFinally, " << m_mapfields.size() << " fields has been build!" << endl;
-    map<int, Field *>::iterator iter;
-    for (iter = m_mapfields.begin(); iter != m_mapfields.end(); iter++) {
-        if (iter->second == NULL) {
+    for (auto iter = m_mapfields.begin(); iter != m_mapfields.end(); iter++) {
+        if (nullptr == iter->second) {
             cout << "Err happened in OutputFieldMap, check it first!\n";
             return;
         }
         Field *fd = iter->second;
         int FID = fd->GetID();
         int ReFID = m_relassFID[FID];
-        vector < Cell * > &cells = fd->GetCells();
+        vector<Cell *> &cells = fd->GetCells();
         for (size_t j = 0; j < cells.size(); j++) {
             int ID = cells[j]->GetID();
             int ik = ID / m_nCols;
@@ -1251,36 +695,11 @@ void CellOrdering::OutputFieldMap(const char *filename) {
             output.setValue(ik, jk, ReFID);
         }
     }
-    //for (int i = 0; i < m_nRows; i++)
-    //{
-    //	for (int j = 0; j < m_nCols; j++)
-    //	{
-    //		cout<<output.At(i,j)<<",";
-    //	}
-    //	cout<<endl;
-    //}
     output.outputToFile(string(filename));
     //if(StringMatch(GetSuffix(string(filename)), "ASC"))
     //	output.OutputArcAscii(filename);
     //else
     //	output.OutputGeoTiff(filename);
-}
-
-void CellOrdering::reclassFieldID() {
-    for (vector<Field *>::iterator it = m_fields.begin(); it != m_fields.end();) {
-        if (*it == NULL) {
-            it = m_fields.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    m_FieldNum = m_fields.size();
-    for (size_t i = 0; i < m_fields.size(); i++) {
-        int Fid = m_fields[i]->GetID();
-        m_relassFID[Fid] = i + 1; //Fid;
-    }
-
 }
 
 void CellOrdering::OutputFieldRelationship(const char *filename) {
@@ -1302,7 +721,7 @@ void CellOrdering::OutputFieldRelationship(const char *filename) {
         ReoutFID = m_relassFID[outFID];
         LANDU = m_mapfields[FID]->GetLanduseCode();
         degree = m_mapfields[FID]->GetDegree();
-        vector < Cell * > &cells = m_mapfields[FID]->GetCells();
+        vector<Cell *> &cells = m_mapfields[FID]->GetCells();
         int n = (int) cells.size();
         Area = n * m_cellwidth * m_cellwidth / 10000;         // ha, 0.01km2
 
@@ -1331,356 +750,3 @@ void CellOrdering::BuildRoutingLayer(int idOutlet, int layerNum) {
     }
 }
 
-/// build routing layers from most up cells
-void CellOrdering::BuildRoutingLayer2(int idOutlet) {
-    if (m_cells.empty()) {
-        cerr << "The tree structure must be built before the routing layers calculation using function BuildTree."
-             << endl;
-        return;
-    }
-
-    m_layers.clear();
-    int counter = 0;
-    bool done = false;
-    vector<int> flag;
-    flag.resize(m_cells.size(), 0);
-    while (!done) {
-        m_layers.push_back(vector<int>());
-        for (size_t i = 0; i < m_cells.size(); ++i) {
-            if (m_cells[i] != NULL) {
-                vector<int> &inCells = m_cells[i]->GetInCellIDs();
-                if (inCells.empty()) {
-                    if (i == idOutlet || (flag[i] == 0 && m_cells[i]->GetOutCellID() > 0)) {
-                        m_layers[counter].push_back(i);
-                    }
-                }
-            }
-        }
-
-        // delete this cell from the down stream cell inputs
-        for (size_t j = 0; j < m_layers[counter].size(); ++j) {
-            int id = m_layers[counter][j];
-            int outId = m_cells[id]->GetOutCellID();
-            if (id != idOutlet) {
-                vector<int> &ins = m_cells[outId]->GetInCellIDs();
-                vector<int>::iterator iter = find(ins.begin(), ins.end(), id);
-                if (iter != ins.end()) {
-                    ins.erase(iter);
-                }
-                flag[id] = 1;
-                done = false;
-            } else {
-                done = true;
-            }
-        }
-
-        ++counter;
-    }
-}
-
-void CellOrdering::OutRoutingLayer(const char *filename) {
-    IntRaster output;
-    output.Copy(m_mask);
-    output.replaceNoData(output.getNoDataValue());
-
-    int nn = 0;
-    for (unsigned int i = 0; i < m_layers.size(); ++i) {
-        size_t layerSize = m_layers[i].size();
-        for (size_t j = 0; j < layerSize; ++j) {
-            int ik = m_layers[i][j] / m_nCols;
-            int jk = m_layers[i][j] % m_nCols;
-            output.setValue(ik, jk, i + 1);
-            nn++;
-        }
-    }
-    //cout << "number of valid cells: " << nn << endl;
-    output.outputToFile(string(filename));
-}
-
-void CellOrdering::CalCompressedIndex(void) {
-    m_compressedIndex.clear();
-    m_compressedIndex.resize(m_size, -1);
-    int counter = 0;
-    for (int i = 0; i < m_nRows; ++i) {
-        for (int j = 0; j < m_nCols; ++j) {
-            if (m_mask->isNoData(i, j)) {
-                continue;
-            }
-            int id = i * m_nCols + j;
-            m_compressedIndex[id] = counter;
-            counter++;
-        }
-    }
-}
-
-//int CellOrdering::WriteStringToMongoDB(gridfs *gfs, int id, const char* type, int number, string s)
-//{
-//	bson *p = (bson*)malloc(sizeof(bson));
-//	bson_init(p);
-//	bson_append_int(p, "SUBBASIN", id );
-//	bson_append_string(p, "TYPE", type);
-//
-//	ostringstream oss;
-//	oss << id << "_" << type;
-//	string remoteFilename = oss.str();
-//
-//	bson_append_string(p, "ID", remoteFilename.c_str());
-//	bson_append_string(p, "DESCRIPTION", type);
-//	bson_append_double(p, "NUMBER", number);
-//	bson_finish(p);
-//
-//	gridfile gfile[1];
-//	const char* pStr = s.c_str();
-//	int n = s.length() + 1;
-//	int index = 0;
-//	gridfile_writer_init(gfile, gfs, remoteFilename.c_str(), type);
-//
-//	while(index < n)
-//	{
-//		int dataLen = 1024;
-//		if (n - index < dataLen)
-//			dataLen = n - index;
-//		gridfile_write_buffer(gfile, pStr + index, dataLen);
-//		index += dataLen;
-//	}
-//	
-//	gridfile_set_metadata(gfile, p);
-//	int flag = gridfile_writer_done(gfile);
-//	gridfile_destroy(gfile);
-//
-//	bson_destroy(p);
-//	free(p);
-//
-//	return flag;
-//}
-//
-//void CellOrdering::OutputLayersToMongoDB(int id, gridfs* gfs)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ostringstream oss;
-//	int layerCount = 0;
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (!m_layers[i].empty())
-//			layerCount++;
-//	}
-//	oss << "layers: " << layerCount << endl;
-//
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (m_layers[i].empty())
-//			continue;
-//
-//		int layerSize = m_layers[i].size();
-//		oss << layerSize << "\t";
-//		for (int j = 0; j < layerSize; ++j)
-//		{
-//			oss << m_compressedIndex[m_layers[i][j]] << "\t";
-//		}
-//
-//		oss << "\n";
-//	}
-//	
-//	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_DOWN_UP", layerCount, oss.str());
-//}
-//
-//void CellOrdering::OutputLayersToMongoDB2(int id, gridfs* gfs)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ostringstream oss;
-//	int layerCount = 0;
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (!m_layers[i].empty())
-//			layerCount++;
-//	}
-//	oss << "layers: " << layerCount << endl;
-//
-//	for (size_t i = 0; i < m_layers.size(); ++i)
-//	{
-//		if (m_layers[i].empty())
-//			continue;
-//
-//		int layerSize = m_layers[i].size();
-//		oss << layerSize << "\t";
-//		for (int j = 0; j < layerSize; ++j)
-//		{
-//			oss << m_compressedIndex[m_layers[i][j]] << "\t";
-//		}
-//
-//		oss << "\n";
-//	}
-//
-//	WriteStringToMongoDB(gfs, id, "ROUTING_LAYERS_UP_DOWN", layerCount, oss.str());
-//}
-//
-//void CellOrdering::OutputCompressedLayer(const char* filename)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//	
-//	ofstream ofs(filename);
-//	
-//	int layerCount = 0;
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (!m_layers[i].empty())
-//			layerCount++;
-//	}
-//	ofs << "layers: " << layerCount << endl;
-//
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (m_layers[i].empty())
-//			continue;
-//
-//		int layerSize = m_layers[i].size();
-//		ofs << layerSize << "\t";
-//		for (int j = 0; j < layerSize; ++j)
-//		{
-//			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
-//		}
-//
-//		ofs << "\n";
-//	}
-//	ofs.close();
-//}
-//
-//void CellOrdering::OutputCompressedLayer2(const char* filename)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ofstream ofs(filename);
-//
-//	int layerCount = 0;
-//	for (int i = int(m_layers.size()-1); i >= 0; --i)
-//	{
-//		if (!m_layers[i].empty())
-//			layerCount++;
-//	}
-//	ofs << "layers: " << layerCount << endl;
-//
-//	for (size_t i = 0; i < m_layers.size(); ++i)
-//	{
-//		if (m_layers[i].empty())
-//			continue;
-//
-//		int layerSize = m_layers[i].size();
-//		ofs << layerSize << "\t";
-//		for (int j = 0; j < layerSize; ++j)
-//		{
-//			ofs << m_compressedIndex[m_layers[i][j]] << "\t";
-//		}
-//
-//		ofs << "\n";
-//	}
-//	ofs.close();
-//}
-//
-//void CellOrdering::OutputCompressedFlowIn(const char* filename)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ofstream ofs(filename);
-//	ofs << "Cells: " << m_validCellsCount << endl;
-//	for (int i = 0; i < m_nRows; ++i)
-//	{
-//		for (int j = 0; j < m_nCols; ++j)
-//		{
-//			if ( m_mask->IsNull(i, j) )
-//				continue;
-//			int id = i*m_nCols + j;
-//
-//			vector<int>& inCells = m_cells[id]->GetInCellIDs();
-//			ofs << inCells.size() << "\t";
-//			for (size_t k = 0; k < inCells.size(); ++k)
-//				ofs << m_compressedIndex[inCells[k]] << "\t";
-//			ofs << "\n";
-//		}
-//	}
-//	ofs.close();
-//}
-//
-//void CellOrdering::OutputCompressedFlowOut(const char* filename)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ofstream ofs(filename);
-//	ofs << "Cells: " << m_validCellsCount << endl;
-//	for (int i = 0; i < m_nRows; ++i)
-//	{
-//		for (int j = 0; j < m_nCols; ++j)
-//		{
-//			if ( m_mask->IsNull(i, j) )
-//				continue;
-//			int id = i*m_nCols + j;
-//			int outId = m_cells[id]->GetOutCellID();
-//
-//			int dirValue = m_dir->At(i,j);
-//			if (outId == -1)
-//				ofs << -1 << "\n";
-//			else
-//				ofs << m_compressedIndex[outId] << "\n";
-//		}
-//	}
-//	ofs.close();
-//}
-//
-//void CellOrdering::OutputFlowOutToMongoDB(int id, gridfs* gfs)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ostringstream oss;
-//	oss << "Cells: " << m_validCellsCount << endl;
-//	for (int i = 0; i < m_nRows; ++i)
-//	{
-//		for (int j = 0; j < m_nCols; ++j)
-//		{
-//			if ( m_mask->IsNull(i, j) )
-//				continue;
-//			int id = i*m_nCols + j;
-//			int outId = m_cells[id]->GetOutCellID();
-//
-//			int dirValue = m_dir->At(i,j);
-//			if (outId == -1)
-//				oss << -1 << "\n";
-//			else
-//				oss << m_compressedIndex[outId] << "\n";
-//		}
-//	}
-//	
-//	WriteStringToMongoDB(gfs, id, "FLOWOUT_INDEX", m_validCellsCount, oss.str());
-//}
-//
-//void CellOrdering::OutputFlowInToMongoDB(int id, gridfs* gfs)
-//{
-//	if (m_compressedIndex.empty())
-//		CalCompressedIndex();
-//
-//	ostringstream oss;
-//	oss << "Cells: " << m_validCellsCount << endl;
-//	for (int i = 0; i < m_nRows; ++i)
-//	{
-//		for (int j = 0; j < m_nCols; ++j)
-//		{
-//			if ( m_mask->IsNull(i, j) )
-//				continue;
-//			int id = i*m_nCols + j;
-//
-//			vector<int>& inCells = m_cells[id]->GetInCellIDs();
-//			oss << inCells.size() << "\t";
-//			for (size_t k = 0; k < inCells.size(); ++k)
-//				oss << m_compressedIndex[inCells[k]] << "\t";
-//			oss << "\n";
-//		}
-//	}
-//	WriteStringToMongoDB(gfs, id, "FLOWIN_INDEX", m_validCellsCount, oss.str());
-//}

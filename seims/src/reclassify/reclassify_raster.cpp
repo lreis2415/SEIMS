@@ -9,7 +9,9 @@
 * Copyright (c) 2017. Liang-Jun Zhu, Junzhi Liu
 ****************************************************************************/
 
-
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -83,19 +85,21 @@ int main(int argc, char *argv[]) {
         outputFolder += SEP;
     }
 
-    clsRasterData<float> typeRaster(typeFile);
+    clsRasterData<float>* typeRaster = clsRasterData<float>::Init(typeFile);
 
     // loop to reclassify each attribute
     string lookupFile, outputFile;
     for (int i = 0; i < n; ++i) {
         lookupFile = lookupFolder + attrNames[i] + ".txt";
         outputFile = outputFolder + attrNames[i] + ".tif";
-        clsRasterData<float> outputLayer;
-        outputLayer.Copy(&typeRaster);
+        clsRasterData<float>* outputLayer = new clsRasterData<float>(typeRaster);
         map<int, float> reclassMap;
         ReadReclassMap(lookupFile.c_str(), reclassMap);
-        outputLayer.reclassify(reclassMap);
-        outputLayer.outputToFile(outputFile);
+        outputLayer->reclassify(reclassMap);
+        outputLayer->outputToFile(outputFile);
+        delete outputLayer;
     }
+    // release memory
+    delete typeRaster;
     return 0;
 }
