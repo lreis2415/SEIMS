@@ -1,18 +1,26 @@
 #include "Cell.h"
 
-Cell::Cell(void) : m_id(-1), m_FieldID(-1), m_outCellID(-1), m_LanduseCode(-1), 
-                   m_degree(-1), m_IsNeighbCellmap() {
-    m_inCellIDs.clear();
+Cell::Cell() : m_id(-1), m_FieldID(-1), m_outCellID(-1), m_LanduseCode(-1),
+               m_degree(-1), m_IsNeighbCellmap(), m_inCellIDs() {
 }
 
-Cell::~Cell(void) {
+Cell::Cell(const Cell &org) {
+    m_id = org.m_id;
+    m_FieldID = org.m_FieldID;
+    m_outCellID = org.m_outCellID;
+    m_LanduseCode = org.m_LanduseCode;
+    m_degree = org.m_degree;
+    map<int, bool> m_IsNeighbCellmap(org.m_IsNeighbCellmap);
+    vector<int> m_inCellIDs(org.m_inCellIDs);
+}
+
+Cell::~Cell() {
 }
 
 bool Cell::IsMyNeighbor(Cell *iCell, int nCols) {
     int id = iCell->m_id;
     map<int, bool>::iterator it = m_IsNeighbCellmap.find(id);
-    if (it != m_IsNeighbCellmap.end())  // found
-    {
+    if (it != m_IsNeighbCellmap.end()) { // found
         return it->second;
     } else {
         int i1, i2, j1, j2;
