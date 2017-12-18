@@ -98,16 +98,6 @@ def write_postprocess_config_file(mpaths, sceid):
     cf.read(post_cfg_file)
     return PostConfig(cf)
 
-
-def execute_seims_model(seims_cfg, sceid):
-    """Run SEIMS for evaluating environmental effectiveness.
-    If execution fails, the `self.economy` and `self.environment` will be set the worst values.
-    """
-    print ('Scenario ID: %d, running SEIMS model...' % sceid)
-    seims_obj = MainSEIMS(seims_cfg.seims_bin, seims_cfg.model_dir, sceid=sceid)
-    return seims_obj.run()
-
-
 def main():
     cur_path = UtilClass.current_path()
     SEIMS_path = os.path.abspath(cur_path + '../../..')
@@ -117,12 +107,6 @@ def main():
     SpatialDelineation.workflow(seims_cfg)
     # # Import to MongoDB database
     ImportMongodbClass.workflow(seims_cfg)
-    # # Run SEIMS model
-    scenarioID = 0
-    execute_seims_model(seims_cfg, scenarioID)
-    # hydrograph, e.g. discharge
-    post_cfg = write_postprocess_config_file(model_paths, scenarioID)
-    TimeSeriesPlots(post_cfg).workflow()
 
 
 if __name__ == "__main__":
