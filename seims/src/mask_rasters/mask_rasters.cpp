@@ -8,7 +8,7 @@
  * 
  */
 
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
@@ -74,7 +74,8 @@ int main(int argc, char *argv[]) {
                                                                                 maskLayer, true,
                                                                                 defaultValues[i]);
         inputLayer->outputToFile(outputFiles[i]);
+        delete inputLayer;
     }
-
+    delete maskLayer;
     return 0;
 }
