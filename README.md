@@ -60,7 +60,11 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j4
 make install
 cd ..
-python seims/test/run_seims_demo_data.py
+# Run demo data, e.g., dianbu2 watershed
+python seims/test/demo_dianbu2_preprocess.py
+python seims/test/demo_dianbu2_runmodel.py
+python seims/test/demo_dianbu2_postprocess.py
+# TO BE CONTINUED...
 ```
 
 ### 3.5.Build your own model
