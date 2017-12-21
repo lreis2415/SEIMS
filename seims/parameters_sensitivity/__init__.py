@@ -4,9 +4,9 @@
 /***************************************************************************
  pySEIMS
                              Python APIs for SEIMS
- Preprocess, postprocess, calibration, and scenario_analysis
+ Parameters sensitivity analysis based on Morris screening method and eFAST.
                               -------------------
-        author               : Liangjun Zhu, Junzhi Liu
+        author               : Liangjun Zhu
         copyright            : (C) 2017 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
@@ -20,8 +20,6 @@
  ******************************************************************************/
 """
 
-__author__ = "SEIMS Team"
-__version__ = "2.1"
-__revision__ = "2.1.1"
-__all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
-           "parameters_sensitivity", "test", "nogit"]
+__author__ = "Liangjun Zhu"
+__version__ = "1.0"
+__revision__ = "1.0.0"
