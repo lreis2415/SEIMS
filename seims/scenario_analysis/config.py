@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Configuration of Scenario Analysis for
+"""Base configuration of Scenario Analysis.
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
@@ -54,8 +54,8 @@ class SAConfig(object):
             raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
 
         # 3. SEIMS_Model
-        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
-        self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+        self.model_dir = ''
+        self.seims_bin = ''
         self.seims_nthread = 1
         self.seims_lyrmethod = 0
         if 'SEIMS_Model' in cf.sections():
