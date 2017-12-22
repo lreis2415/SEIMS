@@ -43,18 +43,13 @@ def read_data_items_from_txt(txt_file):
     Returns:
         2D data array
     """
-    f = open(txt_file)
-    data_items = []
-    for line in f:
-        str_line = line.strip()
-        # for LF in LFs:
-        #     if LF in line:
-        #         str_line = line.split(LF)[0]
-        #         break
-        if str_line != '' and str_line.find('#') < 0:
-            line_list = StringClass.split_string(str_line, ['\t'])
-            if len(line_list) <= 1:
-                line_list = StringClass.split_string(str_line, [','])
-            data_items.append(line_list)
-    f.close()
+    data_items = list()
+    with open(txt_file, 'r') as f:
+        for line in f:
+            str_line = line.strip()
+            if str_line != '' and str_line.find('#') < 0:
+                line_list = StringClass.split_string(str_line, ['\t'])
+                if len(line_list) <= 1:
+                    line_list = StringClass.split_string(str_line, [','])
+                data_items.append(line_list)
     return data_items
