@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSAG-II and
+"""Base class of Scenario for coupling NSAG-II.
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-10-29  hr - initial implementation.\n
                 17-08-18  lj - redesign and rewrite.\n
@@ -20,7 +20,7 @@ from utility import generate_uniqueid, print_message
 
 
 class Scenario(object):
-    """Base class of Scenario for
+    """Base class of Scenario Analysis.
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
