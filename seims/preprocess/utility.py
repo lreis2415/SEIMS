@@ -13,7 +13,6 @@ from pygeoc.utils import StringClass, UtilClass
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
-
 # Global variables
 UTIL_ZERO = 1.e-6
 MINI_SLOPE = 0.0001
@@ -53,3 +52,18 @@ def read_data_items_from_txt(txt_file):
                     line_list = StringClass.split_string(str_line, [','])
                 data_items.append(line_list)
     return data_items
+
+
+def sum_outlet_output(rfile):
+    """Sum the output variables in outlet txt file."""
+    data = read_data_items_from_txt(rfile)
+    sum_data = 0.
+    for item in data:
+        item = StringClass.split_string(item[0], ' ', True)
+        if len(item) < 3:
+            continue
+        try:
+            sum_data += float(item[2])
+        except ValueError or Exception:
+            pass
+    return sum_data
