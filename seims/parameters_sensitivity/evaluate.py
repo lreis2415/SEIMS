@@ -4,7 +4,10 @@
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
 """
+import os
+
 from run_seims import MainSEIMS
+from preprocess.utility import sum_outlet_output
 
 
 def build_seims_model(modelcfg_dict, cali_idx):
@@ -20,4 +23,14 @@ def evaluate_model_response(model_obj):
     run_flag = model_obj.run()
     if not run_flag:
         return None
-    model_obj.model_dir
+    output_variables = list()
+    # 1. Total flow discharge (m3/s)
+    qfile = model_obj.output_dir + os.sep + 'Q.txt'
+    qsum = sum_outlet_output(qfile)
+    output_variables.append(qsum)
+    # 2. Total sediment output (t)
+    sedfile = model_obj.output_dir + os.sep + 'SED.txt'
+    sedsum = sum_outlet_output(sedfile)
+    output_variables.append(sedsum)
+
+    return output_variables
