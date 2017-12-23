@@ -223,7 +223,7 @@ vector<string> utilsString::SplitString(const string &item, char delimiter) {
 
     std::string field;
     while (std::getline(iss, field, delimiter)) {
-        tokens.push_back(field);
+        tokens.emplace_back(field);
     }
     vector<string>(tokens).swap(tokens);
     // tokens.shrink_to_fit(); // C++11, which may not supported by compiler
@@ -237,16 +237,16 @@ vector<int> utilsString::SplitStringForInt(const string &item, char delimiter) {
         values.emplace_back(atoi((*it).c_str()));
     }
     vector<int>(values).swap(values);
-    // values.shrink_to_fit();
     return values;
 }
 
 vector<float> utilsString::SplitStringForFloat(const string &item, char delimiter) {
     vector<string> valueStrs = utilsString::SplitString(item, delimiter);
-    vector<float> values(valueStrs.size());
+    vector<float> values;
     for (auto it = valueStrs.begin(); it != valueStrs.end(); it++) {
         values.emplace_back((float) atof((*it).c_str()));
     }
+    vector<float>(values).swap(values);
     return values;
 }
 
