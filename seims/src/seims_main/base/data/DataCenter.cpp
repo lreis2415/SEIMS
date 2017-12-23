@@ -13,9 +13,11 @@ const char *METEO_VARS[] = {DataType_MeanTemperature, DataType_MaximumTemperatur
 DataCenter::DataCenter(string &modelPath, string &modulePath,
                        LayeringMethod layeringMethod /* = UP_DOWN */,
                        int subBasinID /* = 0 */, int scenarioID /* = -1 */,
+                       int calibrationID /* = -1 */,
                        int numThread /* = 1 */) :
     m_modelPath(modelPath), m_modulePath(modulePath),
     m_lyrMethod(layeringMethod), m_subbasinID(subBasinID), m_scenarioID(scenarioID),
+    m_calibrationID(calibrationID),
     m_threadNum(numThread), m_useScenario(false), m_outputScene(DB_TAB_OUT_SPATIAL),
     m_outputPath(""), m_modelMode(""), m_nSubbasins(-1), m_outletID(-1),
     m_input(nullptr), m_output(nullptr), m_climStation(nullptr), m_scenario(nullptr),
@@ -167,6 +169,7 @@ void DataCenter::setLapseData(string &remoteFilename, int &rows, int &cols, floa
 DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
                                      string &modulePath, LayeringMethod layeringMethod /* = UP_DOWN */,
                                      int subBasinID /* = 0 */, int scenarioID /* = -1 */,
+                                     int calibrationID /* = -1 */,
                                      int numThread /* = 1 */) :
     m_mongodbIP(host), m_mongodbPort(port), m_mongoClient(nullptr),
     m_mainDatabase(nullptr), m_spatialGridFS(nullptr),
@@ -543,6 +546,14 @@ bool DataCenterMongoDB::readParametersInDB() {
         //if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
         //    p->Use = GetStringFromBsonIterator(&iter);
         //}
+        if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && m_calibrationID >= 0) {
+            // Overwrite p->Impact according to calibration ID
+            string cali_values_str = GetStringFromBsonIterator(&iter);
+            vector<float> cali_values = SplitStringForFloat(cali_values_str, ',');
+            if (m_calibrationID < cali_values.size()) {
+                p->Impact = cali_values[m_calibrationID];
+            }
+        }
         if (!m_initParameters.insert(make_pair(GetUpper(p->Name), p)).second) {
             cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
             return false;
