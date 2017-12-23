@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "gtest/gtest.h"
 
-TEST(utilsFileIOTest, GetAbsolutePath) {
+TEST(TestutilsFileIO, GetAbsolutePath) {
 #ifdef windows
     // windows path style, mixed style
     EXPECT_EQ("c:\\test\\dem.tif", utilsFileIO::GetAbsolutePath("c:/test/dem.tif"));
@@ -20,7 +20,7 @@ TEST(utilsFileIOTest, GetAbsolutePath) {
 #endif /* windows */
 }
 
-TEST(utilsFileIOTest, GetPathFromFullName) {
+TEST(TestutilsFileIO, GetPathFromFullName) {
 #ifdef windows
     // windows path style, mixed style
     EXPECT_EQ("c:\\test\\", utilsFileIO::GetPathFromFullName("c:/test/dem.tif"));
@@ -41,7 +41,7 @@ TEST(utilsFileIOTest, GetPathFromFullName) {
 #endif /* windows */
 }
 
-TEST(utilsFileIOTest, GetSuffix) {
+TEST(TestutilsFileIO, GetSuffix) {
 #ifdef windows
     // windows path style, mixed style
     EXPECT_EQ("tif", utilsFileIO::GetSuffix("c:/test/dem.tif"));
@@ -59,7 +59,7 @@ TEST(utilsFileIOTest, GetSuffix) {
     EXPECT_EQ("", utilsFileIO::GetSuffix("abcdefg"));
 }
 
-TEST(utilsFileIOTest, GetCoreFileName) {
+TEST(TestutilsFileIO, GetCoreFileName) {
 #ifdef windows
     // windows path style, mixed style
     EXPECT_EQ("dem", utilsFileIO::GetCoreFileName("c:/test/dem.tif"));
@@ -76,7 +76,7 @@ TEST(utilsFileIOTest, GetCoreFileName) {
     EXPECT_EQ("abcdefg", utilsFileIO::GetCoreFileName("abcdefg"));
 }
 
-TEST(utilsFileIOTest, DirectoryExists) {
+TEST(TestutilsFileIO, DirectoryExists) {
     string testpath = utilsFileIO::GetAppPath() + "../data/delDirRecursively";
     EXPECT_TRUE(utilsFileIO::DeleteDirectory(testpath));
     EXPECT_FALSE(utilsFileIO::DirectoryExists(testpath));
