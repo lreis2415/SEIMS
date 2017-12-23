@@ -40,7 +40,8 @@ public:
      */
     DataCenter(string &modelPath, string &modulePath,
                LayeringMethod layeringMethod = UP_DOWN,
-               int subBasinID = 0, int scenarioID = -1, int numThread = 1);
+               int subBasinID = 0, int scenarioID = -1, int calibrationID = -1,
+               int numThread = 1);
     //! Destructor
     virtual ~DataCenter();
 
@@ -137,6 +138,7 @@ public:
     LayeringMethod getLayeringMethod() const { return m_lyrMethod; }
     int getSubbasinID() const { return m_subbasinID; }
     int getScenarioID() const { return m_scenarioID; }
+    int getCalibrationID() const { return m_calibrationID; }
     int getThreadNumber() const { return m_threadNum; }
     bool useScenario() const { return m_useScenario; }
     string getOutputSceneName() const { return m_outputScene; }
@@ -195,6 +197,7 @@ public:
     const LayeringMethod m_lyrMethod;     ///< Layering method
     const int m_subbasinID;    ///< Subbasin ID
     const int m_scenarioID;    ///< Scenario ID
+    const int m_calibrationID; ///< Calibration ID
     const int m_threadNum;     ///< Thread number for OpenMP
     bool m_useScenario;   ///< Model Scenario
     string m_outputScene;   ///< Output scenario identifier, e.g. output1 means scenario 1
@@ -212,7 +215,7 @@ public:
     clsSubbasins *m_subbasins;     ///< Subbasins information
     FloatRaster *m_maskRaster;    ///< Mask data
     map<string, FloatRaster *> m_rsMap;        ///< Map of spatial data, both 1D and 2D
-    map<string, ParamInfo *> m_initParameters;///< Store parameters from Database
+    map<string, ParamInfo *> m_initParameters;  ///< Store parameters from Database (PARAMETERS collection)
     map<string, float *> m_1DArrayMap;    ///< 1D array data map, e.g. FLOWOUT_INDEX_D8
     map<string, int> m_1DLenMap;      ///< 1D array data length map
     map<string, float **> m_2DArrayMap;    ///< 2D array data map, e.g. ROUTING_LAYERS
@@ -236,7 +239,8 @@ public:
      */
     DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
                       string &modulePath, LayeringMethod layeringMethod = UP_DOWN,
-                      int subBasinID = 0, int scenarioID = -1, int numThread = 1);
+                      int subBasinID = 0, int scenarioID = -1, int calibrationID = -1,
+                      int numThread = 1);
     //! Destructor
     virtual ~DataCenterMongoDB();
     /*!
@@ -262,6 +266,7 @@ public:
     virtual void readClimateSiteList();
     /*!
      * \brief Read initial and calibrated parameters
+     * \version 2017.12.23  lj - read parameters (Impact value) according to calibration ID
      */
     virtual bool readParametersInDB();
     /*!

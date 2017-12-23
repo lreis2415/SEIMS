@@ -62,6 +62,7 @@
 #define PARAM_FLD_USE                          "USE"
 #define PARAM_USE_Y                            "Y"
 #define PARAM_USE_N                            "N"
+#define PARAM_CALI_VALUES                      "CALI_VALUES"  /// for calibration
 
 ////////////  Input and Output Tags   ///////////////
 // Fields in Model Configuration Collections //
