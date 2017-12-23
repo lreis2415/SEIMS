@@ -1,9 +1,26 @@
-from SALib.sample import morris as morris_spl
-from SALib.analyze import morris as morris_alz
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Main entrance for parameters sensitivity analysis.
+    @author   : Liangjun Zhu
+    @changelog: 17-12-23  lj - initial implementation.\n
+"""
+from pygeoc.utils import get_config_parser
 
-from scoop import futures
+from sensitivity import Sensitivity
+from config import PSAConfig
 
-# 1. Read param_rng.def file
-# 2. Sampling and write to a single file and MongoDB 'PARAMETERS' collection
-# 3. Run SEIMS model based on SCOOP, and write objective output variables
-# 4. Calculate Morris elementary effects
+
+def main():
+    """MAIN FUNCTION."""
+    cf = get_config_parser()
+    cfg = PSAConfig(cf)
+    saobj = Sensitivity(cfg)
+    saobj.read_param_ranges()
+    saobj.generate_samples()
+    saobj.write_param_values_to_mongodb()
+    saobj.evaluate()
+    saobj.calc_elementary_effects()
+
+
+if __name__ == '__main__':
+    main()
