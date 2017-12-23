@@ -33,10 +33,13 @@ DataCenter::DataCenter(string &modelPath, string &modulePath,
     /// Clean output folder
     if (m_scenarioID >= 0) { // -1 means no BMPs scenario will be simulated
         m_outputScene += ValueToString(m_scenarioID);
-        m_outputPath = m_modelPath + SEP + m_outputScene + SEP;
-        createOutputFolder();
         /// Be aware, m_useScenario will be updated in checkModelPreparedData().
     }
+    if (m_calibrationID >= 0) {  // -1 means no calibration setting will be used.
+        m_outputScene += "-" + ValueToString(m_calibrationID);
+    }
+    m_outputPath = m_modelPath + SEP + m_outputScene + SEP;
+    createOutputFolder();
 }
 
 DataCenter::~DataCenter() {
@@ -174,7 +177,7 @@ DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &mo
     m_mongodbIP(host), m_mongodbPort(port), m_mongoClient(nullptr),
     m_mainDatabase(nullptr), m_spatialGridFS(nullptr),
     m_climDBName(""), m_scenDBName(""),
-    DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, numThread) {
+    DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, calibrationID, numThread) {
     /// Connect to MongoDB database, and make sure the required data is available.
     m_mongoClient = MongoClient::Init(m_mongodbIP, m_mongodbPort);
     m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));

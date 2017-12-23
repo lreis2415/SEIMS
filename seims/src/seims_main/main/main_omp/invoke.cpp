@@ -12,7 +12,7 @@ int MainMongoDB(string modelPath,
     /// Create data center according to subbasin number, 0 means the whole basin which is default for omp version.
     int subbasinID = 0;
     DataCenterMongoDB *dataCenter = new DataCenterMongoDB(host, port, modelPath, modulePath, layeringMethod,
-                                                          subbasinID, scenarioID, numThread);
+                                                          subbasinID, scenarioID, calibrationID, numThread);
     /// Create module factory
     ModuleFactory *moduleFactory = new ModuleFactory(dataCenter);
     /// Create SEIMS model by dataCenter and moduleFactory
