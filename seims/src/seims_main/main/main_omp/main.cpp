@@ -43,49 +43,43 @@ int main(int argc, const char *argv[]) {
             if (argc > i) {
                 modelPath = argv[i];
                 i++;
-            } else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-thread")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-thread")) {
             i++;
             if (argc > i) {
                 numThread = atoi(argv[i]);
                 i++;
-            } else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-lyr")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-lyr")) {
             i++;
             if (argc > i) {
-                layeringMethod = (LayeringMethod)atoi(argv[3]);
+                layeringMethod = (LayeringMethod) atoi(argv[3]);
                 i++;
-            } else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-host")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-host")) {
             i++;
             if (argc > i) {
                 stringcpy(mongodbIP, argv[i]);
                 i++;
-            } else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-port")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-port")) {
             i++;
             if (argc > i) {
                 port = atoi(argv[i]);
                 i++;
-            } else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-sce")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-sce")) {
             i++;
             if (argc > i) {
                 scenarioID = atoi(argv[i]);
                 i++;
-            }else goto errexit;
-        }
-        else if (StringMatch(argv[i], "-cali")) {
+            } else { goto errexit; }
+        } else if (StringMatch(argv[i], "-cali")) {
             i++;
             if (argc > i) {
                 calibrationID = atoi(argv[i]);
                 i++;
-            } else goto errexit;
+            } else { goto errexit; }
         }
     }
     /// Check the validation of input arguments
@@ -101,13 +95,13 @@ int main(int argc, const char *argv[]) {
     assert(port > 0);
     /// Run model.
     try {
-        MainMongoDB(modelPath, mongodbIP, port, scenarioID, numThread, layeringMethod);
+        MainMongoDB(modelPath, mongodbIP, port, scenarioID, calibrationID, numThread, layeringMethod);
     }
-    catch (ModelException& e) {
+    catch (ModelException &e) {
         cout << e.toString() << endl;
         exit(EXIT_FAILURE);
     }
-    catch (exception& e) {
+    catch (exception &e) {
         cout << e.what() << endl;
         exit(EXIT_FAILURE);
     }
@@ -118,8 +112,8 @@ int main(int argc, const char *argv[]) {
     return 0;
 
     errexit:
-    cout << "Simple Usage:\n    " << argv[0] << 
-        " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID> <CalibrationID>]" << endl;
+    cout << "Simple Usage:\n    " << argv[0] <<
+         " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID> <CalibrationID>]" << endl;
     cout << "\t<ModelPath> is the path of the configuration of the Model." << endl;
     cout << "\t<threadsNum> is thread or processor number, which must be greater or equal than 1 (default)." << endl;
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP respectively." << endl;
@@ -130,8 +124,8 @@ int main(int argc, const char *argv[]) {
     cout << "\t<CalibrationID> is the ID of Calibration which has been defined in PARAMETERS table." << endl;
     cout << "\t\tBy default, the Calibration ID is -1, which means not used." << endl;
     cout << endl;
-    cout << "Complete and recommended Usage:\n    " << argv[0] << 
-        " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
-        " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
+    cout << "Complete and recommended Usage:\n    " << argv[0] <<
+         " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
+             " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
     exit(0);
 }
