@@ -10,13 +10,12 @@ from pygeoc.utils import get_config_parser
 
 from sensitivity import Sensitivity
 from config import PSAConfig
-from scenario_analysis.utility import print_message
 
 
 def main():
     """MAIN FUNCTION."""
-    print_message('### START TO SCENARIOS OPTIMIZING ###')
-    startT = time.time()
+    print('### START TO PARAMETERS SENSITIVITY ANALYSIS ###')
+    start_t = time.time()
 
     cf = get_config_parser()
     cfg = PSAConfig(cf)
@@ -27,7 +26,8 @@ def main():
     saobj.evaluate()
     saobj.calc_elementary_effects()
 
-    print_message('Running time: %.2fs' % (time.time() - startT))
+    print('### END OF PARAMETERS SENSITIVITY ANALYSIS ###')
+    print('Running time: %.2fs' % (time.time() - start_t))
 
 
 if __name__ == '__main__':
