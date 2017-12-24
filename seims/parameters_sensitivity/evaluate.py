@@ -37,5 +37,4 @@ def evaluate_model_response(model_obj):
 
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
-    # print (output_variables)
     return output_variables
