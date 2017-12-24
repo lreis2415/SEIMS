@@ -6,7 +6,7 @@
 """
 import os
 import sys
-
+import pickle
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -111,9 +111,9 @@ class Sensitivity(object):
 
         self.param_defs = {'names': names, 'bounds': bounds,
                            'num_vars': num_vars, 'groups': groups, 'dists': dists}
-        # Save as txt file
-        with open(self.cfg.psa_outpath + os.sep + 'param_defs.txt', 'w') as f:
-            f.write(self.param_defs.__str__())
+        # Save as pickle
+        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'param_defs.pickle', 'wb')
+        pickle.dump(self.param_defs, pickle_param_defs)
 
     def generate_samples(self):
         """Sampling and write to a single file and MongoDB 'PARAMETERS' collection"""
@@ -122,9 +122,9 @@ class Sensitivity(object):
                                        optimal_trajectories=self.cfg.optimal_t,
                                        local_optimization=self.cfg.local_opt)
         self.run_count = len(self.param_values)
-        # Save as txt file
-        with open(self.cfg.psa_outpath + os.sep + 'param_values.txt', 'w') as f:
-            f.write(self.param_values.__str__())
+        # Save as pickle
+        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'param_values.pickle', 'wb')
+        pickle.dump(self.param_values, pickle_param_defs)
         # Plots a set of subplots of histograms of the input sample
         histfig = plt.figure()
         sample_histograms(histfig, self.param_values, self.param_defs, {'color': 'y'})
@@ -165,9 +165,9 @@ class Sensitivity(object):
             # serial
             self.output_values = map(evaluate_model_response, cali_models)
         # print (self.output_values)
-        # Save as txt file
-        with open(self.cfg.psa_outpath + os.sep + 'output_values.txt', 'w') as f:
-            f.write(self.output_values.__str__())
+        # Save as pickle
+        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'output_values.pickle', 'wb')
+        pickle.dump(self.output_values, pickle_param_defs)
 
     def calc_elementary_effects(self):
         """Calculate Morris elementary effects.
