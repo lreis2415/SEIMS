@@ -44,9 +44,8 @@ class MainSEIMS(object):
             self.output_dir += '-%d' % self.calibration_id
 
     def run(self):
-        # Deprecated by lj.
-        # cmd_str = '%s %s %d %d %s %d %d' % (self.seims_exec, self.model_dir, self.nthread,
-        #                                     self.lyrmtd, self.host, self.port, self.scenario_id)
+        """Run SEIMS model"""
+        UtilClass.rmmkdir(self.output_dir)
         try:
             UtilClass.run_command(self.cmd)
             self.run_success = True
