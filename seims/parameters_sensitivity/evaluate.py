@@ -5,6 +5,7 @@
     @changelog: 17-12-22  lj - initial implementation.\n
 """
 import os
+import shutil
 
 from run_seims import MainSEIMS
 from preprocess.utility import sum_outlet_output
@@ -31,6 +32,10 @@ def evaluate_model_response(model_obj):
     # 2. Total sediment output (t)
     sedfile = model_obj.output_dir + os.sep + 'SED.txt'
     sedsum = sum_outlet_output(sedfile)
+    sedsum /= 1000000.
     output_variables.append(sedsum)
 
+    # delete model output directory for saving storage
+    shutil.rmtree(model_obj.output_dir)
+    # print (output_variables)
     return output_variables

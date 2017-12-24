@@ -7,7 +7,7 @@
 import os
 import sys
 
-from pygeoc.utils import FileClass, StringClass, get_config_parser
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -49,7 +49,7 @@ class PSAConfig(object):
                           'BIN_DIR and MODEL_DIR are required!')
 
         # 3. Parameters Screening
-        self.param_range_def = 'param_rng.def'
+        self.param_range_def = 'screen_param_rng.def'
         self.N = 100
         self.num_levels = 10
         self.grid_jump = 2
@@ -76,6 +76,9 @@ class PSAConfig(object):
         self.param_range_def = self.model_dir + os.sep + self.param_range_def
         if not FileClass.is_file_exists(self.param_range_def):
             raise IOError('Parameters range definition MUST be provided!')
+        # 4. others
+        self.psa_outpath = '%s/OUTPUT-PSA-N%dL%d' % (self.model_dir, self.N, self.num_levels)
+        UtilClass.rmmkdir(self.psa_outpath)
 
 
 if __name__ == '__main__':
