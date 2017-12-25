@@ -247,16 +247,14 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     m_climStation = new InputStation(m_mongoClient, m_input->getDtHillslope(), m_input->getDtChannel());
     readClimateSiteList();
 
-    /// 4. Read Reaches data
-    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
-    /// 5. Read Mask raster data
+    /// 4. Read Mask raster data
     ostringstream oss;
     oss << m_subbasinID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
     m_maskRaster = clsRasterData<float>::Init(m_spatialGridFS, maskFileName.c_str());
     assert(nullptr != m_maskRaster);
     m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
-    /// 6. Read Subbasin raster data
+    /// 5. Read Subbasin raster data
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
@@ -268,10 +266,13 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     // Constructor Subbasin data
     m_subbasins = clsSubbasins::Init(m_spatialGridFS, m_rsMap, m_subbasinID);
     assert(nullptr != m_subbasins);
-    /// 7. Read initial parameters
+    /// 6. Read initial parameters
     if (!readParametersInDB()) {
         return false;
     }
+    /// 7. Read Reaches data
+    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
+    m_reaches->Update(m_initParameters);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existedMainDBTabs) && m_scenarioID >= 0) {
         bson_t *query;
