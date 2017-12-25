@@ -9,64 +9,14 @@
 #ifndef SEIMS_REACH_CLS_H
 #define SEIMS_REACH_CLS_H
 
+#include "ParamInfo.h"
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
 
 using namespace std;
 
-/*!
- * \ingroup data
- * \enum ReachAttr
- * \TODO Find a more elegant way to read, store, and get reaches attributes.
- */
-enum ReachAttr
-{
-    subbasinid,
-    num_cells,
-    group,
-    group_divide,
-    kmetis,
-    pmetis,
-    downstream,
-    up_down_order,
-    down_up_order,
-    width,
-    side_slope,
-    length,
-    depth,
-    v0,
-    area,
-    manning,
-    slope,
-    bc1,
-    bc2,
-    bc3,
-    bc4,
-    rs1,
-    rs2,
-    rs3,
-    rs4,
-    rs5,
-    rk1,
-    rk2,
-    rk3,
-    rk4,
-    cover,
-    erod,
-    disox,
-    bod,
-    algae,
-    orgn,
-    nh4,
-    no2,
-    no3,
-    orgp,
-    solp,
-    gwno3,
-    gwsolp,
-    attrcount
-};
+
 /*!
  * \ingroup data
  * \class clsReach
@@ -82,6 +32,8 @@ public:
 
     //! Reset the contents of the object to default values
     void Reset();
+
+    void Update(const map<string, ParamInfo *>) {};
 
     int GetSubbasinID() { return this->SubbasinID; }
     float GetArea() { return this->Area; }
@@ -245,6 +197,9 @@ public:
      * \TODO Implement later. LJ
      */
     void GetReachesSingleProperty(const char *key, float **data) {};
+
+
+    void Update(const map<string, ParamInfo *>) {};
 
 private:
     /// reaches number
