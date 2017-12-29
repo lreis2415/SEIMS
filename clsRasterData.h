@@ -1020,6 +1020,7 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T *&values) {
     m_nCells = m_mask->getCellNumber();
     Initialize1DArray(m_nCells, m_rasterData, values); // DO NOT ASSIGN ARRAY DIRECTLY, IN CASE OF MEMORY ERROR!
     this->copyHeader(m_mask->getRasterHeader());
+    m_srs = m_mask->getSRSString();
     m_defaultValue = m_mask->getDefaultValue();
     m_calcPositions = false;
     if (mask->PositionsCalculated()) {
@@ -1434,6 +1435,7 @@ void clsRasterData<T, MaskT>::setValue(int row, int col, T value, int lyr /* = 1
 template<typename T, typename MaskT>
 bool clsRasterData<T, MaskT>::outputToFile(string filename) {
     if (GetPathFromFullName(filename) == "") return false;
+    filename = GetAbsolutePath(filename);
     if (!this->validate_raster_data()) return false;
     string filetype = GetUpper(GetSuffix(filename));
     if (StringMatch(filetype, ASCIIExtension)) {
@@ -1469,6 +1471,7 @@ bool clsRasterData<T, MaskT>::_write_ASC_headers(string filename, map<string, do
 
 template<typename T, typename MaskT>
 bool clsRasterData<T, MaskT>::outputASCFile(string filename) {
+    filename = GetAbsolutePath(filename);
     /// 1. Is there need to calculate valid position index?
     int count;
     int **position = nullptr;
@@ -1489,6 +1492,7 @@ bool clsRasterData<T, MaskT>::outputASCFile(string filename) {
     /// 3.1 2D raster data
     if (m_is2DRaster) {
         string prePath = GetPathFromFullName(filename);
+        if (StringMatch(prePath, "")) return false;
         string coreName = GetCoreFileName(filename);
         for (int lyr = 0; lyr < m_nLyrs; lyr++) {
             stringstream oss;
@@ -1581,6 +1585,7 @@ bool clsRasterData<T, MaskT>::_write_single_geotiff(string filename,
 
 template<typename T, typename MaskT>
 bool clsRasterData<T, MaskT>::outputFileByGDAL(string filename) {
+    filename = GetAbsolutePath(filename);
     /// 1. Is there need to calculate valid position index?
     int count;
     int **position = nullptr;
