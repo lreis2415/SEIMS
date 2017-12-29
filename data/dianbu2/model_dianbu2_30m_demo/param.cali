@@ -4,7 +4,6 @@
 #        'K_pet,-0.3,AC'
 gw0,-50,
 cod_n,-5.5,
-VelScaleFactor,-0.5,
 K_pet,-0.3,
 nperco,0.005,
 gwrq,0.009,
@@ -14,3 +13,4 @@ sdnco,0.8,
 Runoff_co,2,
 pperco,7.5,
 phoskd,25,
+ch_n,0.5,
