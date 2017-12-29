@@ -1,51 +1,36 @@
-//#include "vld.h"
 #include "seims.h"
 #include "IKW_REACH.h"
 
 
 using namespace std;
 
-IKW_REACH::IKW_REACH(void) : m_dt(-1), m_layeringMethod(0.f), m_nreach(-1), m_Kchb(NODATA_VALUE),
-                             m_Kbank(NODATA_VALUE), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
+IKW_REACH::IKW_REACH() : m_dt(-1), m_layeringMethod(UP_DOWN), m_nreach(-1), m_Kchb(nullptr),
+                             m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0(NODATA_VALUE),
                              m_aBank(NODATA_VALUE),
-                             m_bBank(NODATA_VALUE), m_subbasin(NULL), m_qsSub(NULL),
-                             m_qiSub(NULL), m_qgSub(NULL), m_petCh(NULL), m_gwStorage(NULL), m_area(NULL),
-                             m_Vseep0(0.f), m_chManning(NULL), m_chSlope(NULL),
-                             m_bankStorage(NULL), m_seepage(NULL), m_chOrder(NULL),
-                             m_qsCh(NULL), m_qiCh(NULL), m_qgCh(NULL),
-                             m_x(0.2f), m_co1(0.7f), m_qIn(NULL), m_chStorage(NULL), m_manningScalingFactor(1.0f),
-                             m_qUpReach(0.f), m_deepGroudwater(0.f)  //90.f for fenkeng; 0 for Lyg;
-{
-    m_chWTdepth = NULL;
-
-    //m_vScalingFactor(2.5f)
-    //m_Vdiv(NULL), m_Vpoint(NULL),
+                             m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
+                             m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr), m_gwStorage(nullptr), m_area(nullptr),
+                             m_Vseep0(0.f), m_chManning(nullptr), m_chSlope(nullptr),m_chWTdepth(nullptr),
+                             m_bankStorage(nullptr), m_seepage(nullptr),
+                             m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
+                             m_x(0.2f), m_co1(0.7f), m_qIn(nullptr), m_chStorage(nullptr),
+                             m_qUpReach(0.f), m_deepGroudwater(0.f) {
 }
 
-IKW_REACH::~IKW_REACH(void) {
-    Release1DArray(m_reachId);
-    Release1DArray(m_chOrder);
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_chDepth);
-    Release1DArray(m_chWidth);
-    Release1DArray(m_chLen);
-    Release1DArray(m_chVel);
-    Release1DArray(m_chManning);
-    Release1DArray(m_chSlope);
-    
-    Release1DArray(m_area);
-    Release1DArray(m_chStorage);
-    Release1DArray(m_qOut);
-    Release1DArray(m_bankStorage);
-    Release1DArray(m_seepage);
-    Release1DArray(m_chStorage);
-    Release1DArray(m_qsCh);
-    Release1DArray(m_qiCh);
-    Release1DArray(m_qgCh);
-    Release1DArray(m_chWTdepth);
+IKW_REACH::~IKW_REACH() {
+    /// reaches related variables will be released in ~clsReaches(). By lj, 2017-12-26.
+
+    if (nullptr != m_chStorage) Release1DArray(m_chStorage);
+    if (nullptr != m_qOut) Release1DArray(m_qOut);
+    if (nullptr != m_bankStorage) Release1DArray(m_bankStorage);
+    if (nullptr != m_seepage) Release1DArray(m_seepage);
+    if (nullptr != m_chStorage) Release1DArray(m_chStorage);
+    if (nullptr != m_qsCh) Release1DArray(m_qsCh);
+    if (nullptr != m_qiCh) Release1DArray(m_qiCh);
+    if (nullptr != m_qgCh) Release1DArray(m_qgCh);
+    if (nullptr != m_chWTdepth) Release1DArray(m_chWTdepth);
 }
 
-bool IKW_REACH::CheckInputData(void) {
+bool IKW_REACH::CheckInputData() {
     if (m_dt < 0) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_dt has not been set.");
     }
@@ -54,10 +39,10 @@ bool IKW_REACH::CheckInputData(void) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_nreach has not been set.");
     }
 
-    if (FloatEqual(m_Kchb, NODATA_VALUE)) {
+    if (nullptr == m_Kchb) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: K_chb has not been set.");
     }
-    if (FloatEqual(m_Kbank, NODATA_VALUE)) {
+    if (nullptr == m_Kbank) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: K_bank has not been set.");
     }
     if (FloatEqual(m_Epch, NODATA_VALUE)) {
@@ -78,32 +63,13 @@ bool IKW_REACH::CheckInputData(void) {
     if (FloatEqual(m_Vseep0, NODATA_VALUE)) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_Vseep0 has not been set.");
     }
-    if (this->m_manningScalingFactor <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the manning scaling factor variable.");
-    }
-    if (m_subbasin == NULL) {
+    if (nullptr == m_subbasin) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: m_subbasin has not been set.");
     }
-    if (m_qsSub == NULL) {
+    if (nullptr == m_qsSub) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: Q_SBOF has not been set.");
     }
-    //if (m_qiSub == NULL)
-    //{
-    //	throw ModelException("IKW_REACH","CheckInputData","The parameter: Q_SBIF has not been set.");
-    //}
-    //if (m_qgSub == NULL)
-    //{
-    //	throw ModelException("IKW_REACH","CheckInputData","The parameter: QG_sub has not been set.");
-    //}
-/*	if (m_petCh == NULL)
-	{
-		throw ModelException("IKW_REACH","CheckInputData","The parameter: SBPET has not been set.");
-	}*/
-    //if (m_gwStorage == NULL)
-    //{
-    //	throw ModelException("IKW_REACH","CheckInputData","The parameter: GW_sub has not been set.");
-    //}
-    if (m_chWidth == NULL) {
+    if (nullptr == m_chWidth) {
         throw ModelException("IKW_REACH", "CheckInputData", "The parameter: RchParam has not been set.");
     }
     return true;
@@ -113,17 +79,9 @@ void IKW_REACH::initialOutputs() {
     if (m_nreach <= 0) {
         throw ModelException("IKW_REACH", "initialOutputs", "The cell number of the input can not be less than zero.");
     }
-
-    if (m_reachLayers.empty()) {
-        CheckInputData();
-        for (int i = 1; i <= m_nreach; i++) {
-            int order = (int) m_chOrder[i];
-            m_reachLayers[order].push_back(i);
-        }
-    }
-
+    
     //initial channel storage
-    if (m_chStorage == NULL) {
+    if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
         m_qIn = new float[m_nreach + 1];
         m_qOut = new float[m_nreach + 1];
@@ -138,10 +96,10 @@ void IKW_REACH::initialOutputs() {
         for (int i = 1; i <= m_nreach; i++) {
             float qiSub = 0.f;
             float qgSub = 0.f;
-            if (m_qiSub != NULL) {
+            if (nullptr != m_qiSub) {
                 qiSub = m_qiSub[i];
             }
-            if (m_qgSub != NULL) {
+            if (nullptr != m_qgSub) {
                 qgSub = m_qgSub[i];
             }
             m_seepage[i] = 0.f;
@@ -161,8 +119,7 @@ void IKW_REACH::initialOutputs() {
 int IKW_REACH::Execute() {
     initialOutputs();
 
-    map <int, vector<int> >::iterator it;
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = it->second.size();
@@ -211,59 +168,17 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-//bool IKW_REACH::CheckInputSizeChannel(const char* key, int n)
-//{
-//	if(n <= 0)
-//	{
-//		//StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
-//		return false;
-//	}
-//	if(m_chNumber != n)
-//	{
-//		if(m_chNumber <=0) m_chNumber = n;
-//		else
-//		{
-//			//StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-//			return false;
-//		}
-//	}
-//
-//	return true;
-//}
-
-//void IKW_REACH::GetValue(const char* key, float* value)
-//{
-//	string sk(key);
-//	if (StringMatch(sk, "QOUTLET"))
-//	{
-//		map<int, vector<int> >::iterator it = m_reachLayers.end();
-//		it--;
-//		int reachId = it->second[0];
-//		int iLastCell = m_reachs[reachId].size() - 1;
-//		*value = m_qCh[reachId][iLastCell];
-//		//*value = m_hToChannel[m_idOutlet];
-//		//*value = m_qsSub[m_idOutlet];
-//		//*value = m_qsSub[m_idOutlet] + m_qCh[reachId][iLastCell];
-//	}
-//}
-
 void IKW_REACH::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, VAR_QUPREACH)) {
         m_qUpReach = value;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = value;
+        m_layeringMethod = (LayeringMethod) int(value);
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
         m_dt = (int) value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) value);
-    } else if (StringMatch(sk, VAR_K_CHB)) {
-        m_Kchb = value;
-    } else if (StringMatch(sk, VAR_K_BANK)) {
-        m_Kbank = value;
-    } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {
-        m_manningScalingFactor = value;
     } else if (StringMatch(sk, VAR_EP_CH)) {
         m_Epch = value;
     } else if (StringMatch(sk, VAR_BNK0)) {
@@ -362,91 +277,28 @@ void IKW_REACH::Get1DData(const char *key, int *n, float **data) {
 
 void IKW_REACH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     string sk(key);
-    throw ModelException("IKW_REACH", "Get2DData", "Output " + sk
-        +
+    throw ModelException("IKW_REACH", "Get2DData", "Output " + sk +
             " does not exist in the IKW_REACH module. Please contact the module developer.");
-
 }
 
 void IKW_REACH::SetReaches(clsReaches *reaches) {
-    assert(NULL != reaches);
+    if (nullptr == reaches) {
+        throw ModelException("IKW_REACH", "SetReaches", "The reaches input can not to be NULL.");
+    }
     m_nreach = reaches->GetReachNumber();
-    vector<int> reachIDVec = reaches->GetReachIDs();
-    Initialize1DArray(m_nreach, m_reachId, 0.f);
-    Initialize1DArray(m_nreach, m_reachDownStream, 0.f);
-    Initialize1DArray(m_nreach, m_chOrder, 0.f);
-    Initialize1DArray(m_nreach, m_chWidth, 0.f);
-    Initialize1DArray(m_nreach, m_chLen, 0.f);
-    Initialize1DArray(m_nreach, m_chDepth, 0.f);
-    Initialize1DArray(m_nreach, m_chVel, 0.f);
-    Initialize1DArray(m_nreach, m_area, 0.f);
-    Initialize1DArray(m_nreach, m_chManning, 0.f);
-    Initialize1DArray(m_nreach, m_chSlope, 0.f);
-    for (int i = 0; i < reachIDVec.size(); ++i) {
-        clsReach *tmpReach = reaches->GetReachByID(reachIDVec[i]);
-        m_reachId[i] = tmpReach->GetSubbasinID();
-        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
-            m_chOrder[i] = tmpReach->GetUpDownOrder();
-        }
-        else{
-            m_chOrder[i] = tmpReach->GetDownUpOrder();
-        }
-        m_chWidth[i] = tmpReach->GetWidth();
-        m_chLen[i] = tmpReach->GetLength();
-        m_chDepth[i] = tmpReach->GetDepth();
-        m_chVel[i] = tmpReach->GetV0();
-        m_area[i] = tmpReach->GetArea();
-        m_chManning[i] = tmpReach->GetManning();
-        m_chSlope[i] = tmpReach->GetSlope();
-    }
 
-    m_reachUpStream.resize(m_nreach + 1);
-    if (m_nreach > 1) {
-        for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
-        {
-            int downStreamId = int(m_reachDownStream[i]);
-            if (downStreamId <= 0) {
-                continue;
-            }
-            m_reachUpStream[downStreamId].push_back(i);
-        }
-    }
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
+    if (nullptr == m_chLen) reaches->GetReachesSingleProperty(REACH_LENGTH, &m_chLen);
+    if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
+    if (nullptr == m_chVel) reaches->GetReachesSingleProperty(REACH_V0, &m_chVel);
+    if (nullptr == m_area) reaches->GetReachesSingleProperty(REACH_AREA, &m_area);
+    if (nullptr == m_chManning) reaches->GetReachesSingleProperty(REACH_MANNING, &m_chManning);
+    if (nullptr == m_chSlope) reaches->GetReachesSingleProperty(REACH_SLOPE, &m_chSlope);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }
-
-//void IKW_REACH::Set2DData(const char *key, int nrows, int ncols, float **data) {
-//    string sk(key);
-//
-//    if (StringMatch(sk, Tag_RchParam)) {
-//        m_nreach = ncols - 1;
-//
-//        m_reachId = data[0];
-//        m_reachDownStream = data[1];
-//        m_chOrder = data[2];
-//        m_chWidth = data[3];
-//        m_chLen = data[4];
-//        m_chDepth = data[5];
-//        m_chVel = data[6];
-//        m_area = data[7];
-//        m_chManning = data[8];
-//        m_chSlope = data[9];
-//
-//        m_reachUpStream.resize(m_nreach + 1);
-//        if (m_nreach > 1) {
-//            for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
-//            {
-//                int downStreamId = int(m_reachDownStream[i]);
-//                if (downStreamId <= 0) {
-//                    continue;
-//                }
-//                m_reachUpStream[downStreamId].push_back(i);
-//            }
-//        }
-//    } else {
-//        throw ModelException("IKW_REACH", "Set2DData", "Parameter " + sk
-//            + " does not exist. Please contact the module developer.");
-//    }
-//
-//}
 
 //---------------------------------------------------------------------------
 // modified from OpenLISEM
@@ -517,11 +369,11 @@ void IKW_REACH::ChannelFlow(int i) {
     float st0 = m_chStorage[i];
 
     float qiSub = 0.f;
-    if (m_qiSub != NULL) {
+    if (nullptr != m_qiSub) {
         qiSub = m_qiSub[i];
     }
     float qgSub = 0.f;
-    if (m_qgSub != NULL) {
+    if (nullptr != m_qgSub) {
         qgSub = m_qgSub[i];
     }
 
@@ -557,7 +409,7 @@ void IKW_REACH::ChannelFlow(int i) {
     // then subtract all the outflow water
     // 1. transmission losses to deep aquifer, which is lost from the system
     // the unit of kchb is mm/hr
-    float seepage = m_Kchb / 1000.f / 3600.f * m_chWidth[i] * m_chLen[i] * m_dt;
+    float seepage = m_Kchb[i] / 1000.f / 3600.f * m_chWidth[i] * m_chLen[i] * m_dt;
     if (qgSub < 0.001f) {
         if (m_chStorage[i] > seepage) {
             m_seepage[i] = seepage;
@@ -577,7 +429,7 @@ void IKW_REACH::ChannelFlow(int i) {
 
     // 2. calculate transmission losses to bank storage
     float dch = m_chStorage[i] / (m_chWidth[i] * m_chLen[i]);
-    float bankInLoss = 2 * m_Kbank / 1000.f / 3600.f * dch * m_chLen[i] * m_dt;   // m3/s
+    float bankInLoss = 2 * m_Kbank[i] / 1000.f / 3600.f * dch * m_chLen[i] * m_dt;   // m3/s
     bankInLoss = 0.f;
     if (m_chStorage[i] > bankInLoss) {
         m_chStorage[i] -= bankInLoss;
@@ -590,7 +442,7 @@ void IKW_REACH::ChannelFlow(int i) {
     float bankOutGw = m_bankStorage[i] * (1 - exp(-m_bBank));
     bankOutGw = 0.f;
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
-    if (m_gwStorage != NULL) {
+    if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
     }   // updated groundwater storage
 
@@ -604,7 +456,7 @@ void IKW_REACH::ChannelFlow(int i) {
 
     // 3. evaporation losses
     float et = 0.f;
-    if (m_petCh != NULL) {
+    if (nullptr != m_petCh) {
         et = m_Epch * m_petCh[i] / 1000.0f * m_chWidth[i] * m_chLen[i];    //m3
         if (m_chStorage[i] > et) {
             m_chStorage[i] -= et;
@@ -630,7 +482,7 @@ void IKW_REACH::ChannelFlow(int i) {
         float h = m_chStorage[i] / m_chWidth[i] / m_chLen[i];
         float Perim = 2.f * h + m_chWidth[i];
         float sSin = sqrt(sin(m_chSlope[i]));
-        float alpha = pow((m_manningScalingFactor * m_chManning[i]) / sSin * pow(Perim, _23), 0.6f);
+        float alpha = pow(m_chManning[i] / sSin * pow(Perim, _23), 0.6f);
 
         float lossRate = -totalLoss / m_dt / m_chWidth[i];
         //lossRate = 0.f;

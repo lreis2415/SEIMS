@@ -3,7 +3,9 @@
  * \author Junzhi Liu
  * \date Feb. 2011
  */
-#pragma once
+#ifndef SEIMS_MODULE_CH_MSK_H
+#define SEIMS_MODULE_CH_MSK_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -34,12 +36,12 @@ struct MuskWeights {
 class Muskingum : public SimulationModule {
 public:
     //! Constructor
-    Muskingum(void);
+    Muskingum();
 
     //! Destructor
-    ~Muskingum(void);
+    ~Muskingum();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -59,7 +61,7 @@ public:
 
     bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     void GetCofficients(float reachLength, float waterDepth, float s0, float v0, MuskWeights &weights);
 
@@ -76,8 +78,8 @@ private:
 
     /// valid cells number
     int m_nCells;
-    //! layering method
-    float m_layeringMethod;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     /// Muskingum weighting factor
     float m_msk_x;
     /// initial channel storage m3/m
@@ -94,8 +96,6 @@ private:
     float *m_chWidth;
     /// stream link
     float *m_streamLink;
-    /// v scaling factor used for calibration
-    float m_vScalingFactor;
 
     /**
     *	@brief Flow direction by the rule of TauDEM
@@ -161,10 +161,6 @@ private:
     float m_beta;
     /// threshold for Newton iteration method
     float m_delta;
-    ///// sqrt(2.f)
-    //float SQ2;
-    ///// 2/3
-    //float _23;
 
     /// flow length
     float **m_flowLen;
@@ -176,8 +172,8 @@ private:
     int m_chNumber;
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /// Index of upstream Ids (The value is -1 if there if no upstream reach)
+    vector<vector<int> > m_reachUpStream;
 
     /// stream order
     float *m_streamOrder;
@@ -203,3 +199,4 @@ private:
     int *m_sourceCellIds;
 };
 
+#endif /* SEIMS_MODULE_CH_MSK_H */

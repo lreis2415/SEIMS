@@ -3,26 +3,27 @@
 
 using namespace std;
 
-NutrientinGroundwater::NutrientinGroundwater(void) :
+NutrientinGroundwater::NutrientinGroundwater() :
 //input
-    m_TimeStep(-1), m_nCells(-1), m_cellWidth(-1), m_gwno3Con(NULL), m_gwSolCon(NULL), m_gw_q(NULL),
-    m_nSubbasins(-1), m_subbasin(NULL), m_subbasinsInfo(NULL), m_gwStor(NULL),
-    m_perco_no3_gw(NULL), m_perco_solp_gw(NULL), m_soilLayers(NULL), m_nSoilLayers(-1), m_sol_no3(NULL),
-    m_gwNO3(NULL), m_gwSolP(NULL), m_gw0(NODATA_VALUE),
+    m_TimeStep(-1), m_nCells(-1), m_cellWidth(-1), m_gwno3Con(nullptr), m_gwSolPCon(nullptr), m_gw_q(nullptr),
+    m_nSubbasins(-1), m_subbasin(nullptr), m_subbasinsInfo(nullptr), m_gwStor(nullptr),
+    m_perco_no3_gw(nullptr), m_perco_solp_gw(nullptr), m_soilLayers(nullptr), m_nSoilLayers(-1), m_sol_no3(nullptr),
+    m_gwNO3(nullptr), m_gwSolP(nullptr), m_gw0(NODATA_VALUE),
     //output
-    m_solpGwToCh(NULL), m_no3GwToCh(NULL) {
+    m_solpGwToCh(nullptr), m_no3GwToCh(nullptr) {
 
 }
 
-NutrientinGroundwater::~NutrientinGroundwater(void) {
-    if (m_no3GwToCh != NULL) Release1DArray(m_no3GwToCh);
-    if (m_solpGwToCh != NULL) Release1DArray(m_solpGwToCh);
-    if (m_gwNO3 != NULL) Release1DArray(m_gwNO3);
-    if (m_gwSolP != NULL) Release1DArray(m_gwSolP);
+NutrientinGroundwater::~NutrientinGroundwater() {
+    if (nullptr != m_no3GwToCh) Release1DArray(m_no3GwToCh);
+    if (nullptr != m_solpGwToCh) Release1DArray(m_solpGwToCh);
+    // m_gwNO3 and m_gwSolP will be released in ~clsReaches(). By lj, 2017-12-26
+    // if (nullptr != m_gwNO3) Release1DArray(m_gwNO3);
+    // if (nullptr != m_gwSolP) Release1DArray(m_gwSolP);
 }
 
 void NutrientinGroundwater::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_subbasinsInfo == NULL) {
+    if (nullptr == m_subbasinsInfo) {
         m_subbasinsInfo = subbasins;
         m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
@@ -63,23 +64,23 @@ bool NutrientinGroundwater::CheckInputData() {
         throw ModelException(MID_NUTRGW, "CheckInputData",
                              "The initial groundwater storage can not be less than zero.");
     }
-    if (m_gw_q == NULL) {
+    if (nullptr == m_gw_q) {
         throw ModelException(MID_NUTRGW, "CheckInputData",
                              "The groundwater contribution to stream flow data can not be NULL.");
     }
-    if (m_gwStor == NULL) {
+    if (nullptr == m_gwStor) {
         throw ModelException(MID_NUTRGW, "CheckInputData", "The groundwater storage can not be NULL.");
     }
-    if (m_perco_no3_gw == NULL) {
+    if (nullptr == m_perco_no3_gw) {
         throw ModelException(MID_NUTRGW, "CheckInputData", "The NO3 percolation to groundwater can not be NULL.");
     }
-    if (m_perco_solp_gw == NULL) {
+    if (nullptr == m_perco_solp_gw) {
         throw ModelException(MID_NUTRGW, "CheckInputData", "The solute P percolation to groundwater can not be NULL.");
     }
-    if (m_soilLayers == NULL) {
+    if (nullptr == m_soilLayers) {
         throw ModelException(MID_NUTRGW, "CheckInputData", "The soil layers number can not be NULL.");
     }
-    if (m_sol_no3 == NULL) {
+    if (nullptr == m_sol_no3) {
         throw ModelException(MID_NUTRGW, "CheckInputData", "m_sol_no3 can not be NULL.");
     }
     return true;
@@ -136,19 +137,10 @@ void NutrientinGroundwater::Set2DData(const char *key, int nRows, int nCols, flo
 }
 
 void NutrientinGroundwater::SetReaches(clsReaches *reaches) {
-    if (reaches != NULL) {
+    if (nullptr != reaches) {
         m_nSubbasins = reaches->GetReachNumber();
-        vector<int> m_reachId = reaches->GetReachIDs();
-        if (m_gwSolCon == NULL) {
-            Initialize1DArray(m_nSubbasins + 1, m_gwSolCon, 0.f);
-            Initialize1DArray(m_nSubbasins + 1, m_gwno3Con, 0.f);
-        }
-
-        for (vector<int>::iterator it = m_reachId.begin(); it != m_reachId.end(); it++) {
-            clsReach *tmpReach = reaches->GetReachByID(*it);
-            m_gwno3Con[*it] = tmpReach->GetGWNO3();
-            m_gwSolCon[*it] = tmpReach->GetGWSolP();
-        }
+        if (nullptr == m_gwno3Con) { reaches->GetReachesSingleProperty(REACH_GWNO3, &m_gwno3Con); }
+        if (nullptr == m_gwSolPCon) { reaches->GetReachesSingleProperty(REACH_GWSOLP, &m_gwSolPCon); }
     } else {
         throw ModelException(MID_NUTRGW, "SetReaches", "The reaches input can not to be NULL.");
     }
@@ -160,18 +152,18 @@ void NutrientinGroundwater::initialOutputs() {
                              "The dimension of the input data can not be less than zero.");
     }
     // allocate the output variables
-    if (m_no3GwToCh == NULL) {
+    if (nullptr == m_no3GwToCh) {
         Initialize1DArray(m_nSubbasins + 1, m_no3GwToCh, 0.f);
         Initialize1DArray(m_nSubbasins + 1, m_solpGwToCh, 0.f);
     }
-    if (m_gwNO3 == NULL) {    /// initial nutrient amount stored in groundwater
+    if (nullptr == m_gwNO3) {    /// initial nutrient amount stored in groundwater
         m_gwNO3 = new float[m_nSubbasins + 1];
         m_gwSolP = new float[m_nSubbasins + 1];
         for (int i = 1; i <= m_nSubbasins; i++) {
             Subbasin *subbasin = m_subbasinsInfo->GetSubbasinByID(i);
             float subArea = subbasin->getCellCount() * m_cellWidth * m_cellWidth;    //m2
             m_gwNO3[i] = m_gw0 * m_gwno3Con[i] * subArea / 1000000.f; /// mm * mg/L * m2 = 10^-6 kg
-            m_gwSolP[i] = m_gw0 * m_gwSolCon[i] * subArea / 1000000.f;
+            m_gwSolP[i] = m_gw0 * m_gwSolPCon[i] * subArea / 1000000.f;
         }
     }
 }
@@ -184,8 +176,7 @@ int NutrientinGroundwater::Execute() {
     //for (int j = 0; j < (int)m_soilLayers[cellid]; j++)
     //	cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
     //cout<<endl;
-    for (vector<int>::iterator iter = m_subbasinIDs.begin(); iter != m_subbasinIDs.end(); iter++) {
-        int id = *iter;
+    for (int id = 1; id <= m_nSubbasins; id++) {
         Subbasin *subbasin = m_subbasinsInfo->GetSubbasinByID(id);
         int nCells = subbasin->getCellCount();
         float subArea = nCells * m_cellWidth * m_cellWidth;    // m^2
@@ -199,15 +190,15 @@ int NutrientinGroundwater::Execute() {
         m_gwNO3[id] += m_perco_no3_gw[id]; /// nutrient amount, kg
         m_gwSolP[id] += m_perco_solp_gw[id];
         m_gwno3Con[id] = m_gwNO3[id] / tmpGwStorage * 1000.f; // kg / m^3 * 1000. = mg/L
-        m_gwSolCon[id] = m_gwSolP[id] / tmpGwStorage * 1000.f;
+        m_gwSolPCon[id] = m_gwSolP[id] / tmpGwStorage * 1000.f;
         /// 3. thirdly, calculate nutrient in groundwater runoff
         //cout<<"subID: "<<id<<", gwQ: "<<m_gw_q[id] << ", ";
         m_no3GwToCh[id] = m_gwno3Con[id] * gwqVol / 1000.f;    // g/m3 * m3 / 1000 = kg
-        m_solpGwToCh[id] = m_gwSolCon[id] * gwqVol / 1000.f;
+        m_solpGwToCh[id] = m_gwSolPCon[id] * gwqVol / 1000.f;
         //cout<<"subID: "<<id<<", gwno3Con: "<<m_gwno3Con[id] << ", no3gwToCh: "<<m_no3gwToCh[id] << ", ";
         /// 4. fourthly, calculate nutrient loss loss through revep and update no3 in the bottom soil layer
         float no3ToSoil = revap / 1000.f * m_gwno3Con[id] * 10.f;    // kg/ha  (m*10*g/m3=kg/ha)
-        float solpToSoil = revap / 1000.f * m_gwSolCon[id] * 10.f;
+        float solpToSoil = revap / 1000.f * m_gwSolPCon[id] * 10.f;
         float no3ToSoil_kg = no3ToSoil * subArea / 10000.f; /// kg/ha * m^2 / 10000.f = kg
         float solpToSoil_kg = solpToSoil * subArea / 10000.f;
         int *cells = subbasin->getCells();
@@ -227,7 +218,7 @@ int NutrientinGroundwater::Execute() {
 
         //float gwVol = subArea * m_gwStor[id] / 1000.f; //m3, memo, this m_gwStor is the resulted status of the current time step
         //m_gwno3Con[id] += (m_perco_no3_gw[id] - m_no3GwToCh[id]) * 1000.f / gwVol;
-        //m_gwSolCon[id] += (m_perco_solp_gw[id] - m_solpGwToCh[id]) * 1000.f / gwVol;
+        //m_gwSolPCon[id] += (m_perco_solp_gw[id] - m_solpGwToCh[id]) * 1000.f / gwVol;
         //cout<<"subID: "<<id<<", percoNo3: "<<m_perco_no3_gw[id]<<", gwStorage: "<<m_gwStor[id]<<", new gwno3Con: "<<m_gwno3Con[id] << ", ";
     }
     //cout<<"NutrGW, after solno3: ";
@@ -248,7 +239,7 @@ void NutrientinGroundwater::Get1DData(const char *key, int *n, float **data) {
     } else if (StringMatch(sk, VAR_GWNO3_CONC)) {
         *data = m_gwno3Con;
     } else if (StringMatch(sk, VAR_GWSOLP_CONC)) {
-        *data = m_gwSolCon;
+        *data = m_gwSolPCon;
     } else if (StringMatch(sk, VAR_GWNO3)) {
         *data = m_gwNO3;
     } else if (StringMatch(sk, VAR_GWSOLP)) {

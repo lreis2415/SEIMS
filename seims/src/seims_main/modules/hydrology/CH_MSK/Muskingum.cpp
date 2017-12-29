@@ -3,30 +3,29 @@
 
 using namespace std;
 
-Muskingum::Muskingum(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_layeringMethod(0.f),
-                             m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_chWidth(NULL),
-                             m_qs(NULL), m_qg(NULL), m_qi(NULL), m_chStorage(NULL), m_qCh(NULL), m_qUpCh(NULL),
-                             m_prec(NULL), m_qSubbasin(NULL),
-                             m_flowLen(NULL), m_alpha(NULL), m_streamLink(NULL), m_reachId(NULL), m_sourceCellIds(NULL),
-                             m_msk_x(0.2f), m_vScalingFactor(3.0f), m_chS0(0.f),
-                             m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_beta(5.0f / 3), m_delta(1e-6f) {
+Muskingum::Muskingum() : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), m_CellWidth(-1.0f), m_layeringMethod(UP_DOWN),
+                         m_s0(nullptr), m_direction(nullptr), m_reachDownStream(nullptr), m_chWidth(nullptr),
+                         m_qs(nullptr), m_qg(nullptr), m_qi(nullptr), m_chStorage(nullptr),
+                         m_qCh(nullptr), m_qUpCh(nullptr),
+                         m_prec(nullptr), m_qSubbasin(nullptr),
+                         m_flowLen(nullptr), m_alpha(nullptr), m_streamLink(nullptr),
+                         m_sourceCellIds(nullptr),
+                         m_msk_x(0.2f), m_chS0(0.f),
+                         m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_beta(5.0f / 3), m_delta(1e-6f) {
 
 }
 
-Muskingum::~Muskingum(void) {
-    Release1DArray(m_reachId);
-    Release1DArray(m_streamOrder);
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_v0);
-    
-    Release2DArray(m_chNumber, m_chStorage);
-    Release2DArray(m_chNumber, m_qUpCh);
-    Release2DArray(m_chNumber, m_qCh);
-    Release2DArray(m_chNumber, m_flowLen);
-    Release2DArray(m_chNumber, m_alpha);
+Muskingum::~Muskingum() {
+    /// reaches related variables will be released in ~clsReaches(). By lj, 2017-12-26.
 
-    Release1DArray(m_sourceCellIds);
-    Release1DArray(m_qSubbasin);
+    if (nullptr != m_chStorage) Release2DArray(m_chNumber, m_chStorage);
+    if (nullptr != m_qUpCh) Release2DArray(m_chNumber, m_qUpCh);
+    if (nullptr != m_qCh) Release2DArray(m_chNumber, m_qCh);
+    if (nullptr != m_flowLen) Release2DArray(m_chNumber, m_flowLen);
+    if (nullptr != m_alpha) Release2DArray(m_chNumber, m_alpha);
+
+    if (nullptr != m_sourceCellIds) Release1DArray(m_sourceCellIds);
+    if (nullptr != m_qSubbasin) Release1DArray(m_qSubbasin);
 }
 
 float Muskingum::GetDelta_t(float timeStep, float fmin, float fmax) {
@@ -56,7 +55,6 @@ void Muskingum::GetCofficients(float reachLength, float waterDepth, float s0, fl
     //else if (v > 3.f)
     //	v = 3.f;
     //float K = reachLength / (m_beta*v);
-    v0 = m_vScalingFactor * v0;
     float K = (4.64f - 3.64f * 0.7f) * reachLength / (m_beta * v0);
     //get delta t
     float min = 2.0f * K * x;
@@ -82,7 +80,7 @@ void Muskingum::GetCofficients(float reachLength, float waterDepth, float s0, fl
     }
 }
 
-bool Muskingum::CheckInputData(void) {
+bool Muskingum::CheckInputData() {
     if (this->m_date <= 0) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "You have not set the Date variable.");
         return false;
@@ -103,24 +101,24 @@ bool Muskingum::CheckInputData(void) {
         return false;
     }
 
-    if (m_s0 == NULL) {
+    if (nullptr == m_s0) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: slope has not been set.");
     }
-    if (m_direction == NULL) {
+    if (nullptr == m_direction) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: flow direction has not been set.");
     }
-    if (m_qs == NULL) {
+    if (nullptr == m_qs) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: H_TOCHANNEL has not been set.");
     }
 
-    if (m_chWidth == NULL) {
+    if (nullptr == m_chWidth) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: CHWIDTH has not been set.");
     }
-    if (m_streamLink == NULL) {
+    if (nullptr == m_streamLink) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: STREAM_LINK has not been set.");
     }
 
-    if (m_prec == NULL) {
+    if (nullptr == m_prec) {
         throw ModelException(MID_CH_MSK, "CheckInputData", "The parameter: D_P(precipitation) has not been set.");
     }
 
@@ -132,7 +130,7 @@ void Muskingum::initialOutputs() {
         throw ModelException(MID_CH_MSK, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
 
-    if (m_chStorage == NULL) {
+    if (nullptr == m_chStorage) {
         // find source cells the reaches
         Initialize1DArray(m_chNumber, m_sourceCellIds, -1);
         for (int i = 0; i < m_nCells; i++) {
@@ -173,12 +171,6 @@ void Muskingum::initialOutputs() {
             }
         }
 
-        if (m_reachLayers.empty()) {
-            for (int i = 0; i < m_chNumber; i++) {
-                int order = (int) m_streamOrder[i];
-                m_reachLayers[order].push_back(i);
-            }
-        }
         m_chStorage = new float *[m_chNumber];
         m_qCh = new float *[m_chNumber];
         m_qUpCh = new float *[m_chNumber];
@@ -196,7 +188,7 @@ void Muskingum::initialOutputs() {
 
             int id;
             float dx;
-            vector <MuskWeights> *vecWeights = new vector<MuskWeights>();
+            vector<MuskWeights> *vecWeights = new vector<MuskWeights>();
             for (int j = 0; j < n; ++j) {
 
                 m_qCh[i][j] = 0.f;
@@ -252,11 +244,11 @@ bool Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
     // lateral flow
     float qLat = m_prec[id] / 1000.f * area / m_dt;
 
-    if (m_qs != NULL) {
+    if (nullptr != m_qs) {
         qLat += m_qs[id];
     }
 
-    if (m_qi != NULL) {
+    if (nullptr != m_qi) {
         qLat += m_qi[id];
     }
 
@@ -330,7 +322,7 @@ int Muskingum::Execute() {
             float qgEachCell = m_qg[reachIndex + 1] / n;
             for (int iCell = 0; iCell < n; ++iCell) {
 #pragma omp flush (exceptionOccurredFlag)
-            if (!exceptionOccurredFlag) {
+                if (!exceptionOccurredFlag) {
                     exceptionOccurredFlag = ChannelFlow(reachIndex, iCell, vecCells[iCell], qgEachCell);
 #pragma omp flush (exceptionOccurredFlag)
                 }
@@ -382,8 +374,7 @@ bool Muskingum::CheckInputSizeChannel(const char *key, int n) {
 void Muskingum::GetValue(const char *key, float *value) {
     string sk(key);
     if (StringMatch(sk, VAR_QOUTLET)) {
-        map < int, vector < int > > ::iterator
-        it = m_reachLayers.end();
+        auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         //int iLastCell = m_reachs[reachId].size() - 1;
@@ -405,15 +396,13 @@ void Muskingum::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = data;
+        m_layeringMethod = (LayeringMethod) int(data);
     } else if (StringMatch(sk, VAR_CHS0)) {
         m_chS0 = data;
     } else if (StringMatch(sk, VAR_MSK_X)) {
         m_msk_x = data;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
-    } else if (StringMatch(sk, "VelocityScalingFactor")) { /// TODO, add to mongodb database
-        m_vScalingFactor = data;
     } else {
         throw ModelException(MID_CH_MSK, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
@@ -480,10 +469,8 @@ void Muskingum::Get2DData(const char *key, int *nRows, int *nCols, float ***data
         *data = m_chStorage;
     } else {
         throw ModelException(MID_CH_MSK, "Get2DData", "Output " + sk
-            +
-                " does not exist in the current module. Please contact the module developer.");
+            + " does not exist in the current module. Please contact the module developer.");
     }
-
 }
 
 void Muskingum::Set2DData(const char *key, int nrows, int ncols, float **data) {
@@ -497,37 +484,14 @@ void Muskingum::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 void Muskingum::SetReaches(clsReaches *reaches) {
-    assert(NULL != reaches);
+    if (nullptr == reaches) {
+        throw ModelException(MID_CH_MSK, "SetReaches", "The reaches input can not to be NULL.");
+    }
     m_chNumber = reaches->GetReachNumber();
-    vector<int> reachIDVec = reaches->GetReachIDs();
-    Initialize1DArray(m_chNumber, m_reachId, 0.f);
-    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
-    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
-    Initialize1DArray(m_chNumber, m_v0, 0.f);
-    for (int i = 0; i < reachIDVec.size(); ++i) {
-        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
-        m_reachId[i] = tmpReach->GetSubbasinID();
-        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
-            m_streamOrder[i] = tmpReach->GetUpDownOrder();
-        }
-        else{
-            m_streamOrder[i] = tmpReach->GetDownUpOrder();
-        }
-        m_reachDownStream[i] = tmpReach->GetDownStream();
-        m_v0[i] = tmpReach->GetV0();
-    }
-    for (int i = 0; i < m_chNumber; i++) {
-        m_idToIndex[(int)m_reachId[i]] = i;
-    }
-    m_reachUpStream.resize(m_chNumber);
-    for (int i = 0; i < m_chNumber; i++) {
-        int downStreamId = int(m_reachDownStream[i]);
-        if (downStreamId <= 0) {
-            continue;
-        }
-        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-            int downStreamIndex = m_idToIndex.at(downStreamId);
-            m_reachUpStream[downStreamIndex].push_back(i);
-        }
-    }
+
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_v0) reaches->GetReachesSingleProperty(REACH_V0, &m_v0);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }
