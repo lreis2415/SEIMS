@@ -4,6 +4,7 @@
     @author   : Liangjun Zhu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                17-12-18  lj - add field partition parameters
 """
 import json
 import os
@@ -14,7 +15,7 @@ except ImportError:
     from configparser import ConfigParser  # py3
 
 from pygeoc.TauDEM import TauDEMFilesUtils
-from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
+from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, get_config_file
 
 from text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
 from text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
@@ -69,6 +70,8 @@ class SEIMSConfig(object):
         self.landcover_init_param = None
         self.soil = None
         self.soil_property = None
+        self.fields_partition = False
+        self.fields_partition_thresh = list()
         self.additional_rs = dict()
         # 6. Option parameters
         self.is_TauDEM = True
@@ -206,13 +209,16 @@ class SEIMSConfig(object):
                 tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
                            tmpdict.items()}
                 for k, v in tmpdict.items():
-                    if not FileClass.is_file_exists(v):
-                        v = self.spatial_dir + os.sep + v
-                    if not FileClass.is_file_exists(v):
-                        print ('WARNING: The additional file %s MUST be located in '
-                               'SPATIAL_DATA_DIR, or provided as full file path!' % k)
-                    else:
-                        self.additional_rs[k] = v
+                    # Existence check has been moved to mask_origin_delineated_data()
+                    #  in sp_delineation.py
+                    self.additional_rs[k] = v
+            # Field partition
+            if cf.has_option('SPATIAL', 'field_partition_thresh'):
+                ths = cf.get('SPATIAL', 'field_partition_thresh')
+                thsv = StringClass.extract_numeric_values_from_string(ths)
+                if thsv is not None:
+                    self.fields_partition_thresh = [int(v) for v in thsv]
+                    self.fields_partition = True
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 

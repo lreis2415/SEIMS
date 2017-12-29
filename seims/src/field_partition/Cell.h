@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FIELD_PARTITION_CELL_H
+#define FIELD_PARTITION_CELL_H
 
 #include <vector>
 #include <map>
@@ -9,9 +10,11 @@ using namespace std;
 
 class Cell {
 public:
-    Cell(void);
+    Cell();
 
-    ~Cell(void);
+    Cell(const Cell &org);
+
+    ~Cell();
 
     void AddInCellID(int idIn) {
         m_inCellIDs.push_back(idIn);
@@ -76,3 +79,5 @@ private:
     int m_degree;
     map<int, bool> m_IsNeighbCellmap;    // int: cell id, bool: if neighbor cell id, true, else false
 };
+
+#endif /* FIELD_PARTITION_CELL_H */

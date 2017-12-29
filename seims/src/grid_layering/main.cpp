@@ -10,7 +10,7 @@
 *               4-July-2017  Check if success after import layering to MongoDB
 *---------------------------------------------------------------------*/
 
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 
@@ -36,9 +36,10 @@ int main(int argc, char **argv) {
     int nSubbasins = atoi(argv[6]);
 
     /// connect to MongoDB
-    MongoClient client = MongoClient(hostName, port);
-    mongoc_client_t *conn = client.getConn();
-    mongoc_gridfs_t *gfs = client.getGridFS(string(modelName), string(gridFSName));
+    MongoClient* client = MongoClient::Init(hostName, port);
+    if (nullptr == client) exit(-1);
+    mongoc_client_t *conn = client->getConn();
+    mongoc_gridfs_t *gfs = client->getGridFS(string(modelName), string(gridFSName));
 
     int outputNoDataValue = (int) NODATA_VALUE;
     double t1 = TimeCounting();
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
         angle = NULL;
         flowOutDinf = NULL;
     }
-
+    delete client;
     double t2 = TimeCounting();
     cout << "time-consuming: " << t2 - t1 << " seconds." << endl;
     return 0;

@@ -2,14 +2,24 @@
 
 using namespace std;
 
-Field::Field(void) : m_id(-1), m_inFieldIDs(), m_cellsIds(), m_cells() {
-    m_xmin = -99;
-    m_xmax = -99;
-    m_ymin = -99;
-    m_ymax = -99;
+Field::Field() : m_xmin(-99), m_xmax(-99), m_ymin(-99), m_ymax(-99),
+                 m_id(-1), m_outFieldID(-1), m_degree(-1), m_landCode(-1),
+                 m_inFieldIDs(), m_cellsIds(), m_cells() {
+
 }
 
-Field::~Field(void) {
+Field::~Field() {
+    if (!m_cells.empty()) {
+        for (auto it = m_cells.begin(); it != m_cells.end();) {
+            if (nullptr != *it) {
+                delete *it;
+                *it = nullptr;
+            }
+            *it = nullptr;
+            it = m_cells.erase(it);
+        }
+        m_cells.clear();
+    }
 }
 
 void Field::GetRetangleField(int ncols) {
@@ -77,7 +87,7 @@ bool Field::IsFieldsNeighbor(Field *fd, int ncols) {
     int rangx2 = xvec[2];
     int rangy2 = yvec[2];
 
-    vector < Cell * > &fdCells = fd->GetCells();
+    vector<Cell *> &fdCells = fd->GetCells();
     for (size_t i = 0; i < m_cells.size(); i++) {
         int mcid = m_cells[i]->GetID();
         int x = mcid % ncols;      // column id
@@ -100,4 +110,43 @@ bool Field::IsFieldsNeighbor(Field *fd, int ncols) {
         }
     }
     return false;
+}
+
+void Field::mergeCells(vector<int> cellid1) {
+    vector<int> cellid2 = m_cellsIds;
+    size_t sizecell = m_cellsIds.size();
+    m_cellsIds.clear();
+    m_cellsIds.resize(cellid1.size() + sizecell);
+    merge(cellid1.begin(), cellid1.end(), cellid2.begin(), cellid2.end(), m_cellsIds.begin());
+}
+
+void Field::mergeFieldtoMe(Field *pfield, int ncols) {
+    vector<Cell *> &pcells = pfield->GetCells();
+    // Use deep copy instead, revised by lj. 12/18/2017
+    //copy(pcells.begin(), pcells.end(), back_inserter(m_cells));
+    for (auto it = pcells.begin(); it != pcells.end(); it++) {
+        m_cells.push_back(new Cell(**it));
+    }
+    //reset_xyminmax();
+    // revised by Wu Hui, 2013.10.17
+    if (m_xmin < 0 || m_ymin < 0 || m_xmax < 0 || m_ymax < 0) {
+        GetRetangleField(ncols);
+    }
+    if (pfield->m_xmin < 0 || pfield->m_ymin < 0 || pfield->m_xmax < 0 || pfield->m_ymax < 0) {
+        pfield->GetRetangleField(ncols);
+    }
+
+    if (m_xmin > pfield->m_xmin)   // bigger and smaller are selected
+    {
+        m_xmin = pfield->m_xmin;
+    }
+    if (m_ymin > pfield->m_ymin) {
+        m_ymin = pfield->m_ymin;
+    }
+    if (m_xmax < pfield->m_xmax) {
+        m_xmax = pfield->m_xmax;
+    }
+    if (m_ymax < pfield->m_ymax) {
+        m_ymax = pfield->m_ymax;
+    }
 }
