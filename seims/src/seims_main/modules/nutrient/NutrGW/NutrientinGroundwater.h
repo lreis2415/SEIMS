@@ -23,9 +23,9 @@ using namespace std;
 
 class NutrientinGroundwater : public SimulationModule {
 public:
-    NutrientinGroundwater(void);
+    NutrientinGroundwater();
 
-    ~NutrientinGroundwater(void);
+    ~NutrientinGroundwater();
 
     virtual void SetValue(const char *key, float value);
 
@@ -36,7 +36,7 @@ public:
     virtual void SetReaches(clsReaches *reaches);
 
     //virtual void Set2DData(const char* key, int nRows, int nCols, float** data);
-    virtual int Execute(void);
+    virtual int Execute();
 
     //virtual void GetValue(const char* key, float* value);
     virtual void Get1DData(const char *key, int *n, float **data);
@@ -60,7 +60,7 @@ private:
     /// kg
     float *m_gwNO3;
     /// soluble P concentration in groundwater loading to reach (mg/L, i.e. g/m3)
-    float *m_gwSolCon;
+    float *m_gwSolPCon;
     /// kg
     float *m_gwSolP;
     /// groundwater contribution to stream flow (m3/s)
@@ -106,7 +106,7 @@ private:
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
@@ -118,5 +118,5 @@ private:
     bool CheckInputSize(const char *, int);
 
     /// initial outputs
-    void initialOutputs(void);
+    void initialOutputs();
 };

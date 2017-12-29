@@ -8,17 +8,17 @@ DiffusiveWave::DiffusiveWave(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f), 
                                      m_s0(NULL), m_direction(NULL), m_reachDownStream(NULL), m_chWidth(NULL),
                                      m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL), m_qSubbasin(NULL),
                                      m_elevation(NULL),
-                                     m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL), m_reachId(NULL),
-                                     m_sourceCellIds(NULL), m_layeringMethod(0.f),
-                                     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f), m_manningScalingFactor(0.f) {
+                                     m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL),
+                                     m_sourceCellIds(NULL), m_layeringMethod(UP_DOWN),
+                                     m_idUpReach(-1), m_idOutlet(-1), m_qUpReach(0.f) {
 }
 
 //! Destructor
 DiffusiveWave::~DiffusiveWave(void) {
-    Release1DArray(m_reachId);
-    Release1DArray(m_streamOrder);
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_reachN);
+    //Release1DArray(m_reachId);
+    //Release1DArray(m_streamOrder);
+    //Release1DArray(m_reachDownStream);
+    //Release1DArray(m_reachN);
 
     Release2DArray(m_chNumber, m_hCh);
     Release2DArray(m_chNumber, m_qCh);
@@ -47,9 +47,6 @@ bool DiffusiveWave::CheckInputData(void) {
     if (this->m_CellWidth <= 0) {
         throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the CellWidth variable.");
         return false;
-    }
-    if (this->m_manningScalingFactor <= 0) {
-        throw ModelException(MID_CH_DW, "CheckInputData", "You have not set the manning scaling factor variable.");
     }
     if (m_s0 == NULL) {
         throw ModelException(MID_CH_DW, "CheckInputData", "The parameter: slope has not been set.");
@@ -125,12 +122,6 @@ void DiffusiveWave::initialOutputs() {
             }
         }
 
-        if (m_reachLayers.empty()) {
-            for (int i = 0; i < m_chNumber; i++) {
-                int order = (int) m_streamOrder[i];
-                m_reachLayers[order].push_back(i);
-            }
-        }
         m_hCh = new float *[m_chNumber];
         m_qCh = new float *[m_chNumber];
 
@@ -226,7 +217,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     if (sf < MINI_SLOPE) {
         sf = MINI_SLOPE;
     }
-    float c = 1.f / 3600.f * m_manningScalingFactor * m_reachN[iReach] * pow(perim, _23) / sqrt(sf);
+    float c = 1.f / 3600.f * m_reachN[iReach] * pow(perim, _23) / sqrt(sf);
     c = pow(c, 0.6f);
 
     float d = 1.f;
@@ -270,9 +261,7 @@ int DiffusiveWave::Execute() {
 
     initialOutputs();
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");
-    map < int, vector < int > > ::iterator
-    it;
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = it->second.size();
@@ -332,8 +321,7 @@ bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
 void DiffusiveWave::GetValue(const char *key, float *value) {
     string sk(key);
     if (StringMatch(sk, VAR_QOUTLET)) {
-        map < int, vector < int > > ::iterator
-        it = m_reachLayers.end();
+        auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
@@ -354,16 +342,13 @@ void DiffusiveWave::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = data;
+        m_layeringMethod = (LayeringMethod) int(data);
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
-    } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {  /// TODO: add to mongodb database
-        m_manningScalingFactor = data;
     } else {
         throw ModelException(MID_CH_DW, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
-
 }
 
 //! Set 1D data
@@ -384,8 +369,6 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
         m_qi = data;
     } else if (StringMatch(sk, VAR_QOVERLAND)) {
         m_qs = data;
-        //else if(StringMatch(sk, "Manning_nCh")) /// read from reach parameters table, LJ
-        //	m_reachN = data;
     } else if (StringMatch(sk, VAR_CHWIDTH)) {
         m_chWidth = data;
     } else if (StringMatch(sk, VAR_STREAM_LINK)) {
@@ -405,39 +388,17 @@ void DiffusiveWave::Set1DData(const char *key, int n, float *data) {
 }
 
 void DiffusiveWave::SetReaches(clsReaches *reaches) {
-    assert(NULL != reaches);
+    if (nullptr == reaches) {
+        throw ModelException(MID_CH_DW, "SetReaches", "The reaches input can not to be NULL.");
+    }
     m_chNumber = reaches->GetReachNumber();
-    vector<int> reachIDVec = reaches->GetReachIDs();
-    Initialize1DArray(m_chNumber, m_reachId, 0.f);
-    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
-    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
-    Initialize1DArray(m_chNumber, m_reachN, 0.f);
-    for (int i = 0; i < reachIDVec.size(); ++i) {
-        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
-        m_reachId[i] = tmpReach->GetSubbasinID();
-        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
-            m_streamOrder[i] = tmpReach->GetUpDownOrder();
-        }
-        else{
-            m_streamOrder[i] = tmpReach->GetDownUpOrder();
-        }
-        m_reachDownStream[i] = tmpReach->GetDownStream();
-        m_reachN[i] = tmpReach->GetManning();
-    }
-    for (int i = 0; i < m_chNumber; i++) {
-        m_idToIndex[(int)m_reachId[i]] = i;
-    }
-    m_reachUpStream.resize(m_chNumber);
-    for (int i = 0; i < m_chNumber; i++) {
-        int downStreamId = int(m_reachDownStream[i]);
-        if (downStreamId <= 0) {
-            continue;
-        }
-        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-            int downStreamIndex = m_idToIndex.at(downStreamId);
-            m_reachUpStream[downStreamIndex].push_back(i);
-        }
-    }
+
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
+    if (nullptr == m_reachN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_reachN);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }
 
 //! Get 1D data
