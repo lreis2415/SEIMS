@@ -109,14 +109,6 @@ int IO_TEST::Execute() {
     /// Write Scenario Information
     // m_scenario->Dump("e:\\test\\bmpScenario2.txt");
     int nReaches = m_reaches->GetReachNumber();
-    vector<int> reachIDs = m_reaches->GetReachIDs();
-    /// Get reach information by subbasin ID
-    for (vector<int>::iterator it = reachIDs.begin(); it != reachIDs.end(); it++) {
-        clsReach *reachTest = m_reaches->GetReachByID(*it);
-        /// Get any fields of reach
-        float slope = reachTest->GetSlope();
-        //cout<<"Reach ID: "<<*it<<", Slope: "<<slope<<endl;
-    }
     return 0;
 }
 
