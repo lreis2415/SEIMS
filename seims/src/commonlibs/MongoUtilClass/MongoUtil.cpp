@@ -99,6 +99,10 @@ mongoc_gridfs_t *MongoClient::getGridFS(string const &dbname, string const &gfsn
     }
 }
 
+MongoGridFS *MongoClient::GridFS(string const &dbname, string const &gfsname) {
+    return new MongoGridFS(getGridFS(dbname, gfsname));
+}
+
 void MongoClient::getGridFSFileNames(string const &dbname, string const &gfsname, vector<string>&fileExists) {
     mongoc_gridfs_t *gfs = this->getGridFS(dbname, gfsname);
     MongoGridFS(gfs).getFileNames(fileExists);
