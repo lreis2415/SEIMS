@@ -7,7 +7,6 @@
                 17-06-23  lj - reorganize as basic class
 """
 import os
-from shutil import copy as shutil_copy
 
 from numpy import where, fromfunction
 from osgeo.gdal import GDT_Int32, GDT_Float32
@@ -105,7 +104,7 @@ class SpatialDelineation(object):
                         cfg.spatials.dinf_slp, cfg.spatials.dinf_weight,
                         cfg.spatials.dist2stream_d8]
 
-        default_values = []
+        default_values = list()
         for i in range(len(original_files)):
             default_values.append(DEFAULT_NODATA)
 
@@ -169,10 +168,7 @@ class SpatialDelineation(object):
                                               output_stream_link_file)
 
         # Convert D8 encoding rule to ArcGIS
-        if cfg.is_TauDEM:
-            shutil_copy(flow_dir_file_tau, output_flow_dir_file)
-        else:
-            D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
+        D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
 
         # convert raster to shapefile (for subbasin and basin)
         print "Generating subbasin vector..."
