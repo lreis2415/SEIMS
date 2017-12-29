@@ -8,7 +8,7 @@
  * 
  */
 
-#if (defined _DEBUG) && (defined MSVC) && (defined VLD)
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 #include <iostream>
@@ -42,11 +42,6 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    bool outputAsc = false;
-    if (argc >= 3 && strcmp("-asc", argv[2]) == 0) {
-        outputAsc = true;
-    }
-
     const char *configFile = argv[1];
     string maskFile;
     int n = 0;
@@ -69,15 +64,18 @@ int main(int argc, char *argv[]) {
     ifs.close();
 
     // read mask information
-    clsRasterData<int> maskLayer(maskFile);
+    clsRasterData<int> *maskLayer = clsRasterData<int>::Init(maskFile);
+    if (nullptr == maskLayer) exit(-1);
 
     // loop to mask each raster
     for (int i = 0; i < n; ++i) {
         cout << inputFiles[i] << endl;
-        clsRasterData<float, int> inputLayer(inputFiles[i], true, &maskLayer, true, defaultValues[i]);
-
-        inputLayer.outputToFile(outputFiles[i]);
+        clsRasterData<float, int> *inputLayer = clsRasterData<float, int>::Init(inputFiles[i], true,
+                                                                                maskLayer, true,
+                                                                                defaultValues[i]);
+        inputLayer->outputToFile(outputFiles[i]);
+        delete inputLayer;
     }
-
+    delete maskLayer;
     return 0;
 }
