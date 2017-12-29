@@ -28,6 +28,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 #else
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single); // daily model
 #endif /* STORM_MODE */
+    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(VAR_VCD, UNIT_NON_DIM, DESC_VCD, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_P_RF, UNIT_NON_DIM, DESC_P_RF, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SPCON, UNIT_NON_DIM, DESC_SPCON, Source_ParameterDB, DT_Single);

@@ -7,9 +7,11 @@
  * \revision LiangJun Zhu
  * \description 1. Add point source loadings nutrients from Scenario.
  *              2. Add ammonian transported by surface runoff
+ *              3. Reformat code style. Update clsReaches usage. 2017-12-26
  */
+#ifndef SEIMS_MODULE_NUTRCH_QUAL2E_H
+#define SEIMS_MODULE_NUTRCH_QUAL2E_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -27,9 +29,9 @@ using namespace std;
  */
 class NutrCH_QUAL2E : public SimulationModule {
 public:
-    NutrCH_QUAL2E(void);
+    NutrCH_QUAL2E();
 
-    ~NutrCH_QUAL2E(void);
+    ~NutrCH_QUAL2E();
 
     virtual void SetValue(const char *key, float value);
 
@@ -39,22 +41,24 @@ public:
 
     virtual void SetScenario(Scenario *sce);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void GetValue(const char *key, float *value);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual TimeStepType GetTimeStepType(void) { return TIMESTEP_CHANNEL; };
+    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 private:
     // cell number
     int m_nCells;
     /// time step (sec)
     int m_dt;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /// Index of upstream Ids (The value is -1 if there if no upstream reach)
+    vector<vector<int> > m_reachUpStream;
     /// id the reaches
     vector<int> m_reachId;
     /// reaches number
@@ -333,3 +337,5 @@ private:
 
     void PointSourceLoading(void);
 };
+
+#endif /* SEIMS_MODULE_NUTRCH_QUAL2E_H */
