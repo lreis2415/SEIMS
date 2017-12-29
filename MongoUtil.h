@@ -32,6 +32,8 @@ using namespace std;
 #define MONG_GRIDFS_ID                "ID"
 #define MONG_GRIDFS_SUBBSN            "SUBBASIN"
 
+class MongoGridFS;
+
 /*!
  * \class MongoClient
  * \brief Create a MongoDB Client
@@ -87,6 +89,11 @@ public:
      * \brief Get GridFS instance
      */
     mongoc_gridfs_t *getGridFS(string const &dbname, string const &gfsname);
+
+    /*!
+    * \brief Get MongoGridFS instance
+    */
+    MongoGridFS *GridFS(string const &dbname, string const &gfsname);
 
     /*!
      * \brief Get database names
