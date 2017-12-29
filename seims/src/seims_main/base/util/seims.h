@@ -5,7 +5,9 @@
  */
 #ifndef SEIMS_HEADER
 #define SEIMS_HEADER
-
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include "text.h"
 #include "utilities.h"
 /*!
