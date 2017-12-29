@@ -1,6 +1,3 @@
-#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
-#include "vld.h"
-#endif /* Run Visual Leak Detector during Debug */
 #include "seims.h"
 #include "invoke.h"
 
