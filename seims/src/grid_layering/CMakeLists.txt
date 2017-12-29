@@ -1,8 +1,7 @@
 PROJECT(Grid_Layering)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} ${MONGO_FILES}
-        LayeringFromSource.cpp LayeringFromOutlet.cpp
-        Data.cpp CompressIndex.cpp FlowInOut.cpp main.cpp)
+file(GLOB GL_SRC_FILES *.cpp)
+set(SOURCE_FILES ${UTILS_FILES} ${MONGO_FILES} ${GL_SRC_FILES})
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 geo_include_directories(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
 ADD_EXECUTABLE(grid_layering ${SOURCE_FILES})
