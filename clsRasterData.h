@@ -206,12 +206,12 @@ public:
     /*!
      * \brief Construct an clsRasterData instance by 1D array data and mask
      */
-    clsRasterData(clsRasterData<MaskT> *mask, T *&values);
+    clsRasterData(clsRasterData<MaskT> *mask, const T *&values);
 
     /*!
      * \brief Construct an clsRasterData instance by 2D array data and mask
      */
-    clsRasterData(clsRasterData<MaskT> *mask, T **&values, int lyrs);
+    clsRasterData(clsRasterData<MaskT> *mask, const T **&values, int lyrs);
 
 #ifdef USE_MONGODB
 
@@ -1013,7 +1013,7 @@ clsRasterData<T, MaskT> *clsRasterData<T, MaskT>::Init(vector<string> &filenames
 }
 
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T *&values) {
+clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, const T *&values) {
     this->_initialize_raster_class();
     m_mask = mask;
     m_nLyrs = mask->getLayers();
@@ -1030,7 +1030,7 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T *&values) {
 }
 
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, T **&values, int lyrs) {
+clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, const T **&values, int lyrs) {
     this->_initialize_raster_class();
     m_mask = mask;
     m_nLyrs = lyrs;
