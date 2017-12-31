@@ -98,12 +98,14 @@ bool GridLayeringDinf::OutputFlowIn() {
     BuildFlowInCellsArray();
     string header = "ID\tUpstreamCount\tUpstreamID";
     int datalength = m_nValidCells + m_flowInTimes + 1;
-    bool flag1 = _output_2dimension_array(m_flowin_index_name, datalength, header, m_flowInCells);
+    bool flag1 = _output_2dimension_array_txt(m_flowin_index_name, header, m_flowInCells) &&
+        _output_array_as_gfs(m_flowin_index_name, datalength, m_flowInCells);
 
     if (nullptr == m_flowInAngle) Initialize1DArray(datalength, m_flowInAngle, 0.f);
     this->_build_multi_flow_out_angle_array(m_flowdirMatrix, m_flowInNum, m_flowInAngle);
     header = "ID\tUpstreamCount\tFlowInPartition";
-    bool flag2 = _output_2dimension_array(m_flowin_angle_name, datalength, header, m_flowInAngle);
+    bool flag2 = _output_2dimension_array_txt(m_flowin_angle_name, header, m_flowInAngle) &&
+        _output_array_as_gfs(m_flowin_angle_name, datalength, m_flowInAngle);
     return flag1 && flag2;
 }
 bool GridLayeringDinf::OutputFlowOut() {
@@ -111,7 +113,8 @@ bool GridLayeringDinf::OutputFlowOut() {
     BuildFlowOutCellsArray();
     string header = "ID\tDownstreamCount\tDownstreamID";
     int datalength = m_nValidCells + m_flowOutTimes + 1;
-    return _output_2dimension_array(m_flowout_index_name, datalength, header, m_flowOutCells);
+    return _output_2dimension_array_txt(m_flowout_index_name, header, m_flowOutCells) &&
+        _output_array_as_gfs(m_flowout_index_name, datalength, m_flowOutCells);
 }
 
 float GridLayeringDinf::GetPercentage(float angle, int di, int dj) {

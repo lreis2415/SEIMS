@@ -37,7 +37,7 @@ bool GridLayeringD8::OutputFlowOut() {
 
             if ((flow_dir & 1) && (j != m_nCols - 1) && (m_flowdirMatrix[index + 1] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index + 1];
-            } else if ((flow_dir & 2) && (i != m_nRows - 1) && (j != m_nCols - 1) && 
+            } else if ((flow_dir & 2) && (i != m_nRows - 1) && (j != m_nCols - 1) &&
                 (m_flowdirMatrix[index + m_nCols + 1] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index + m_nCols + 1];
             } else if ((flow_dir & 4) && (i != m_nRows - 1) && (m_flowdirMatrix[index + m_nCols] != m_dirNoData)) {
@@ -47,11 +47,13 @@ bool GridLayeringD8::OutputFlowOut() {
                 pOutput[ci] = m_posIndex[index + m_nCols - 1];
             } else if ((flow_dir & 16) && (j != 0) && (m_flowdirMatrix[index - 1] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index - 1];
-            } else if ((flow_dir & 32) && (i != 0) && (j != 0) && (m_flowdirMatrix[index - m_nCols - 1] != m_dirNoData)) {
+            } else if ((flow_dir & 32) && (i != 0) && (j != 0)
+                && (m_flowdirMatrix[index - m_nCols - 1] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index - m_nCols - 1];
             } else if ((flow_dir & 64) && (i != 0) && (m_flowdirMatrix[index - m_nCols] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index - m_nCols];
-            } else if ((flow_dir & 128) && (i != 0) && (j != m_nCols - 1) && (m_flowdirMatrix[index - m_nCols + 1] != m_dirNoData)) {
+            } else if ((flow_dir & 128) && (i != 0) && (j != m_nCols - 1)
+                && (m_flowdirMatrix[index - m_nCols + 1] != m_dirNoData)) {
                 pOutput[ci] = m_posIndex[index - m_nCols + 1];
             } else { pOutput[ci] = -1; }
         }
@@ -64,18 +66,8 @@ bool GridLayeringD8::OutputFlowOut() {
         ofs << i << "\t" << pOutput[i] << endl;
     }
     ofs.close();
-    bool flag = false;
-    int max_loop = 3;
-    int cur_loop = 1;
-    while (cur_loop < max_loop) {
-        if (!OutputToMongoDB(m_flowout_index_name.c_str(), m_nValidCells, (char *) pOutput)) {
-            cur_loop++;
-        } else {
-            cout << "Output D8 Flow Out Index done, n: " << m_nValidCells << endl;
-            flag = true;
-            break;
-        }
-    }
+
+    bool flag = _output_array_as_gfs(m_flowout_index_name, m_nValidCells, pOutput);
     Release1DArray(pOutput);
     return flag;
 }

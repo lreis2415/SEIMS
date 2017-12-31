@@ -86,33 +86,29 @@ public:
      * \brief Build grid layers in Down-Up order from outlet
      */
     bool GridLayeringFromOutlet();
+protected:
     /*!
      * \brief Output grid layering related data to MongoDB GridFS
      */
-    bool OutputToMongoDB(const char *type, int number, char *s);
-protected:
-    /*!
-     * \brief Update down stream
-     */
-    void UpdateDownStream(int row, int col, int &numNextLayer, int *nextLayer);
-    /*!
-     * \brief Update up stream
-     */
-    void UpdateUpStream(int row, int col, int &numNextLayer, int *nextLayer);
+    bool _output_to_mongodb(const char *type, int number, char *s);
     /*!
      * \brief Constructor multiple flow out array
      */
     void _build_multi_flow_out_array(const int *compressedDir,
                                      const int *connectCount, float *&pOutput);
     /*!
-     * \brief Ouput 2D array as txt file and MongoDB-GridFS
+     * \brief Ouput 2D array as txt file
      */
-    template<typename T>
-    bool _output_2dimension_array(string name, int length, string header, const T *matrix);
+    bool _output_2dimension_array_txt(string &name, string &header, const float *matrix);
+    /*!
+    * \brief Ouput 2D array as MongoDB-GridFS
+    */
+    bool _output_array_as_gfs(string &name, int length, const float *matrix);
     /*!
      * \brief Output grid layering as tiff file and MongoDB-GridFS
      */
-    bool _output_grid_layering(string &name, int *layer_grid, string output_str);
+    bool _output_grid_layering(string &name, int layer_num, int datalength,
+                               const int *layer_grid, const float *layer_cells);
 protected:
     MongoGridFS *m_gfs;  ///< MongoDB-GridFS instance
     const char *m_outputDir;  ///< Output directory
@@ -145,8 +141,10 @@ protected:
     int *m_flowOutNum;  ///< Flow out cells number
     int m_flowOutTimes;  ///< Flow out times
     float *m_flowOutCells;  ///< \sa m_flowInCells
-    int *m_layers_updown;  ///< the value of layering number from source
+    int *m_layers_updown;  ///< the value of layering number from source, length is nRows * nCols
     int *m_layers_downup;  ///< the value of layering number from outlet
+    float *m_layerCells_updown;  ///< store cell indexes in each layers, length is ValidNum + layerNum + 1
+    float *m_layerCells_downup;  ///< store cell indexes in each layers
     /** Output file names **/
 
     string m_flowdir_name;  ///< Flow direction file name
