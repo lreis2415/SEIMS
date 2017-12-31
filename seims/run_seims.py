@@ -35,12 +35,15 @@ class MainSEIMS(object):
         # Concatenate command
         self.cmd = [self.seims_exec,
                     '-wp', self.model_dir, '-thread', str(self.nthread),
-                    '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port,
-                    '-sce', str(self.scenario_id), '-cali', str(self.calibration_id)]
+                    '-lyr', str(self.lyrmtd), '-host', self.host, '-port', self.port]
         self.output_dir = self.model_dir + os.sep + 'OUTPUT'
         if self.scenario_id >= 0:
+            self.cmd.append('-sce')
+            self.cmd.append(str(self.scenario_id))
             self.output_dir += str(self.scenario_id)
         if self.calibration_id >= 0:
+            self.cmd.append('-cali')
+            self.cmd.append(str(self.calibration_id))
             self.output_dir += '-%d' % self.calibration_id
 
     def run(self):
