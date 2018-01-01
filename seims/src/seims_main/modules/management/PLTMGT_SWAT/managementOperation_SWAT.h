@@ -8,7 +8,9 @@
  * \description: 1. Add the CENTURY model related code, mainly include fert.f, newtillmix.f, and harvestop.f
  *               2. Update fertilizer operation for paddy rice, i.e., ExecuteFertilizerOperation()
  */
-#pragma once
+#ifndef SEIMS_MODULE_PLTMGT_SWAT_H
+#define SEIMS_MODULE_PLTMGT_SWAT_H
+
 #include "SimulationModule.h"
 #include "Scenario.h"
 #include "ClimateParams.h"
@@ -379,14 +381,21 @@ private:
     float *m_soilStorageProfile;
     /// flag to identify the initialization
     bool m_initialized;
+
+    /** Temporary variables **/
+    float *tmp_rtfr;  ///< fraction of roots in each soil layer
+    float *tmp_soilMass;  ///<
+    float *tmp_soilMixedMass;  ///< mass of soil mixed for the layer
+    float *tmp_soilNotMixedMass;  ///<
+    float *tmp_smix;
 public:
     //! Constructor
-    MGTOpt_SWAT(void);
+    MGTOpt_SWAT();
 
     //! Destructor
-    ~MGTOpt_SWAT(void);
+    ~MGTOpt_SWAT();
 
-    int Execute(void);
+    int Execute();
 
     void SetValue(const char *key, float data);
 
@@ -453,7 +462,7 @@ private:
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
@@ -477,21 +486,21 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs(void);
+    void initialOutputs();
 
     /// Handle lookup tables ///
 
     /// landuse lookup table
-    void initializeLanduseLookup(void);
+    void initializeLanduseLookup();
 
     /// crop lookup table
-    void initializeCropLookup(void);
+    void initializeCropLookup();
 
     /// fertilizer lookup table
-    void initializeFertilizerLookup(void);
+    void initializeFertilizerLookup();
 
     /// tillage lookup table
-    void initializeTillageLookup(void);
+    void initializeTillageLookup();
 
     /// the complementary error function
     float Erfc(float xx);
@@ -499,3 +508,5 @@ private:
     /// distributes dead root mass through the soil profile
     void rootFraction(int i, float *&root_fr);
 };
+
+#endif /* SEIMS_MODULE_PLTMGT_SWAT_H */
