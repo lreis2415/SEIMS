@@ -4,25 +4,20 @@
 using namespace std;
 
 ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNumber(-1), m_dt(-1.0f),
-                                                           m_CellWidth(-1.0f), m_layeringMethod(0.f),
+                                                           m_CellWidth(-1.0f), m_layeringMethod(UP_DOWN),
                                                            m_sRadian(NULL), m_direction(NULL), m_reachDownStream(NULL),
                                                            m_chWidth(NULL),
                                                            m_qs(NULL), m_hCh(NULL), m_qCh(NULL), m_prec(NULL),
                                                            m_qSubbasin(NULL), m_qg(NULL),
                                                            m_flowLen(NULL), m_qi(NULL), m_streamLink(NULL),
-                                                           m_reachId(NULL), m_sourceCellIds(NULL),
+                                                           m_sourceCellIds(NULL),
                                                            m_idUpReach(-1), m_qUpReach(0.f),
-                                                           m_manningScalingFactor(0.4f), m_qgDeep(100.f),
+                                                           m_qgDeep(100.f),
                                                            m_idOutlet(-1)//, m_qsInput(NULL)
 {
 }
 
-ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
-    Release1DArray(m_reachId);
-    Release1DArray(m_streamOrder);
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_reachN);
-    
+ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {    
     Release2DArray(m_chNumber, m_hCh);
     Release2DArray(m_chNumber, m_qCh);
     Release2DArray(m_chNumber, m_flowLen);
@@ -189,12 +184,6 @@ void ImplicitKinematicWave_CH::initialOutputs() {
             }
         }
 
-        if (m_reachLayers.empty()) {
-            for (int i = 0; i < m_chNumber; i++) {
-                int order = (int) m_streamOrder[i];
-                m_reachLayers[order].push_back(i);
-            }
-        }
         m_hCh = new float *[m_chNumber];
         m_qCh = new float *[m_chNumber];
 
@@ -294,7 +283,7 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
     float Perim = 2.f * m_hCh[iReach][iCell] + m_chWidth[id];
 
     float sSin = sqrt(sin(m_sRadian[id]));
-    float alpha = pow((m_manningScalingFactor * m_reachN[iReach]) / sSin * pow(Perim, _23), 0.6f);
+    float alpha = pow(m_reachN[iReach] / sSin * pow(Perim, _23), 0.6f);
 
     float qIn = m_qCh[iReach][iCell];
 
@@ -312,11 +301,9 @@ int ImplicitKinematicWave_CH::Execute() {
     initialOutputs();
     initialOutputs2();
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
-    map < int, vector < int > > ::iterator
-    it;
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
 
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = it->second.size();
@@ -384,15 +371,13 @@ bool ImplicitKinematicWave_CH::CheckInputSizeChannel(const char *key, int n) {
 void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
     string sk(key);
     if (StringMatch(sk, VAR_QOUTLET)) {
-        map < int, vector < int > > ::iterator
-        it = m_reachLayers.end();
+        auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
         *value = m_qCh[reachId][iLastCell];
     } else if (StringMatch(sk, VAR_QTOTAL)) {
-        map < int, vector < int > > ::iterator
-        it = m_reachLayers.end();
+        auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
@@ -408,11 +393,9 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = data;
+        m_layeringMethod = (LayeringMethod) int(data);;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
-    } else if (StringMatch(sk, VAR_CH_MANNING_FACTOR)) {
-        m_manningScalingFactor = data;
     } else {
         throw ModelException(MID_IKW_CH, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
@@ -499,37 +482,15 @@ void ImplicitKinematicWave_CH::Set2DData(const char *key, int nrows, int ncols, 
 }
 
 void ImplicitKinematicWave_CH::SetReaches(clsReaches *reaches) {
-    assert(NULL != reaches);
+    if (nullptr == reaches) {
+        throw ModelException(MID_IKW_CH, "SetReaches", "The reaches input can not to be NULL.");
+    }
     m_chNumber = reaches->GetReachNumber();
-    vector<int> reachIDVec = reaches->GetReachIDs();
-    Initialize1DArray(m_chNumber, m_reachId, 0.f);
-    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
-    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
-    Initialize1DArray(m_chNumber, m_reachN, 0.f);
-    for (int i = 0; i < reachIDVec.size(); ++i) {
-        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
-        m_reachId[i] = tmpReach->GetSubbasinID();
-        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
-            m_streamOrder[i] = tmpReach->GetUpDownOrder();
-        }
-        else{
-            m_streamOrder[i] = tmpReach->GetDownUpOrder();
-        }
-        m_reachDownStream[i] = tmpReach->GetDownStream();
-        m_reachN[i] = tmpReach->GetManning();
-    }
-    for (int i = 0; i < m_chNumber; i++) {
-        m_idToIndex[(int)m_reachId[i]] = i;
-    }
-    m_reachUpStream.resize(m_chNumber);
-    for (int i = 0; i < m_chNumber; i++) {
-        int downStreamId = int(m_reachDownStream[i]);
-        if (downStreamId <= 0) {
-            continue;
-        }
-        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-            int downStreamIndex = m_idToIndex.at(downStreamId);
-            m_reachUpStream[downStreamIndex].push_back(i);
-        }
-    }
+
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
+    if (nullptr == m_reachN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_reachN);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }

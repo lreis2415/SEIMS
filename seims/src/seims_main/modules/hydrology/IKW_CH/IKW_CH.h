@@ -85,8 +85,8 @@ private:
     int m_nCells;
     /// cell width of the grid (m)
     float m_CellWidth;
-    //! layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    float m_layeringMethod;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     /// time step (second)
     float m_dt;
 
@@ -97,8 +97,6 @@ private:
 
     /// stream link
     float *m_streamLink;
-    /// manning scaling factor
-    float m_manningScalingFactor;
 
     /**
     *	@brief flow direction by the rule of TauDEM
@@ -167,15 +165,10 @@ private:
     int m_chNumber;
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /// Index of upstream Ids (The value is -1 if there if no upstream reach)
+    vector<vector<int> > m_reachUpStream;
     /// reach manning's n
     float *m_reachN;
-    /// stream order
-    float *m_streamOrder;
-
-    // id the reaches
-    float *m_reachId;
     /// map from subbasin id to index of the array
     map<int, int> m_idToIndex;
 

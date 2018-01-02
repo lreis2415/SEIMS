@@ -24,4 +24,4 @@ __author__ = "SEIMS Team"
 __version__ = "2.1"
 __revision__ = "2.1.1"
 __all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
-           "test", "nogit"]
+           "parameters_sensitivity", "test", "nogit"]

@@ -5,7 +5,9 @@
  * \revised LJ - Replace Tag_RchParam by VAR_REACH_PARAM
  *               Algorithm review and code clean
  */
-#pragma once
+#ifndef SEIMS_MODULE_IKW_REACH_H
+#define SEIMS_MODULE_IKW_REACH_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -33,11 +35,11 @@ struct MuskWeights {
 
 class IKW_REACH : public SimulationModule {
 public:
-    IKW_REACH(void);
+    IKW_REACH();
 
-    ~IKW_REACH(void);
+    ~IKW_REACH();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -55,32 +57,30 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputSizeChannel(const char *key, int n);
+    // bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
-    virtual TimeStepType GetTimeStepType(void) {
+    virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_CHANNEL;
     };
 
 private:
-    float m_manningScalingFactor;
-
     /// time step (hr)
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
-    //! layering method
-    float m_layeringMethod;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     ///// diversion loss (Vdiv) of the river reach .. m_Vid[id], id is the reach id
     //float *m_Vdiv;
     ///// The point source discharge .. m_Vpoint[id], id is the reach id
     //float *m_Vpoint;
 
     /// hydraulic conductivity of the channel bed (mm/h)
-    float m_Kchb;
+    float *m_Kchb;
     /// hydraulic conductivity of the channel bank (mm/h)
-    float m_Kbank;
+    float *m_Kbank;
     /// reach evaporation adjustment factor;
     float m_Epch;
     /// initial bank storage per meter of reach length (m3/m)
@@ -93,8 +93,8 @@ private:
     float m_aBank;
     /// bank storage loss coefficient
     float m_bBank;
-
-    float *m_subbasin;                //subbasin grid
+    /// subbasin grid
+    float *m_subbasin;
     /// the subbasin area (m2)  //add to the reach parameters file
     float *m_area;
 
@@ -115,7 +115,6 @@ private:
     float *m_qiCh;
     float *m_qgCh;
 
-    float *m_chOrder;
     float *m_chWidth;
     float *m_chDepth;
     float *m_chLen;
@@ -132,13 +131,8 @@ private:
 
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
-
-    // id the reaches
-    float *m_reachId;
-    /// map from subbasin id to index of the array
-    map<int, int> m_idToIndex;
+    /// Index of upstream Ids (The value is -1 if there if no upstream reach)
+    vector<vector<int> > m_reachUpStream;
 
     // for muskingum
     float m_x;
@@ -159,10 +153,11 @@ private:
 
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs(void);
+    void initialOutputs();
 
     void ChannelFlow(int i);
 
     float GetNewQ(float qIn, float qLast, float surplus, float alpha, float dt, float dx);
 };
 
+#endif /* SEIMS_MODULE_IKW_REACH_H */

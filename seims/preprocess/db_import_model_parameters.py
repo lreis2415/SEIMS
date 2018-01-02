@@ -114,10 +114,9 @@ class ImportParam2Mongo(object):
         streamlink_r = cfg.spatials.stream_link
         flowdir_r = cfg.spatials.d8flow
         direction_items = dict()
-        if cfg.is_TauDEM:
-            direction_items = FlowModelConst.get_cell_shift('TauDEM')
-        else:
-            direction_items = FlowModelConst.get_cell_shift('ArcGIS')
+        # Flow direction follows ArcGIS rule, which has been converted from TauDEM in
+        #    sd_delineation.post_process_of_delineated_data()
+        direction_items = FlowModelConst.get_cell_shift('ArcGIS')
         streamlink_d = RasterUtilClass.read_raster(streamlink_r)
         nodata = streamlink_d.noDataValue
         nrows = streamlink_d.nRows

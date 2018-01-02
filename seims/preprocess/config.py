@@ -74,7 +74,6 @@ class SEIMSConfig(object):
         self.fields_partition_thresh = list()
         self.additional_rs = dict()
         # 6. Option parameters
-        self.is_TauDEM = True
         self.d8acc_threshold = 0
         self.np = 4
         self.d8down_method = 's'
@@ -224,7 +223,6 @@ class SEIMSConfig(object):
 
         # 6. Option parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():
-            self.is_TauDEM = cf.getboolean('OPTIONAL_PARAMETERS', 'istaudemd8')
             self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
             self.d8down_method = cf.get('OPTIONAL_PARAMETERS', 'd8downmethod')

@@ -12,6 +12,9 @@ import random
 import time
 
 import matplotlib
+
+if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
+    matplotlib.use('Agg', warn=False)
 import numpy
 from deap import base
 from deap import creator
@@ -29,9 +32,6 @@ from scenario_analysis.visualization import plot_pareto_front
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when parallized by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
-
-if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)

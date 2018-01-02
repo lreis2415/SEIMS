@@ -20,7 +20,7 @@ from pymongo.errors import NetworkTimeout
 from config import SASPUConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
-from preprocess.utility import read_data_items_from_txt
+from preprocess.utility import sum_outlet_output
 from scenario_analysis.scenario import Scenario
 
 
@@ -211,16 +211,7 @@ class SPScenario(Scenario):
             # reduction rate of soil erosion
             self.environment = (base_amount - soil_erosion_amount) / base_amount
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
-            sed_data = read_data_items_from_txt(rfile)
-            sed_sum = 0.
-            for item in sed_data:
-                item = StringClass.split_string(item[0], ' ', True)
-                if len(item) < 3:
-                    continue
-                try:
-                    sed_sum += float(item[2])
-                except ValueError or Exception:
-                    pass
+            sed_sum = sum_outlet_output(rfile)
             self.environment = (base_amount - sed_sum) / base_amount
         else:
             self.economy = self.worst_econ

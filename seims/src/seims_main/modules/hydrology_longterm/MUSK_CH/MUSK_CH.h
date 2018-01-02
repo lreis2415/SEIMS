@@ -43,11 +43,11 @@ struct MuskWeights {
  */
 class MUSK_CH : public SimulationModule {
 public:
-    MUSK_CH(void);
+    MUSK_CH();
 
-    ~MUSK_CH(void);
+    ~MUSK_CH();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -67,29 +67,28 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputSizeChannel(const char *key, int n);
+    // bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
-    virtual TimeStepType GetTimeStepType(void) { return TIMESTEP_CHANNEL; };
+    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 
 private:
-    //!
-    float m_vScalingFactor;
-
     /// time step (sec)
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     /// outlet ID
     int m_outletID;
     /// The point source discharge (m3/s), m_ptSub[id], id is the reach id, load from m_Scenario
     float *m_ptSub;
 
     /// hydraulic conductivity of the channel bed (mm/h)
-    float m_Kchb;
+    float *m_Kchb;
     /// hydraulic conductivity of the channel bank (mm/h)
-    float m_Kbank;
+    float *m_Kbank;
     /// reach evaporation adjustment factor;
     float m_Epch;
     /// initial bank storage per meter of reach length (m3/m)
@@ -128,8 +127,6 @@ private:
     float *m_qsCh;
     float *m_qiCh;
     float *m_qgCh;
-    /// channel order
-    float *m_chOrder;
     /// channel width (m)
     float *m_chWidth;
     /// channel water width (m)
@@ -154,14 +151,15 @@ private:
     /// seepage to deep aquifer
     float *m_seepage;
 
-    /// downstream id (The value is 0 if there if no downstream reach)
+    /// downstream id (The value is -1 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /*!
+     * Index of upstream Ids (The value is -1 if there if no upstream reach)
+     * m_reachUpStream.size() = N+1
+     * m_reachUpStream[1] = [2, 3] means Reach 2 and Reach 3 flow into Reach 1.
+     */
+    vector<vector<int> > m_reachUpStream;
 
-    // the reaches id 
-    //float *m_reachId;
-    vector<int> m_reachId;
     // for muskingum
     float m_x;
     float m_co1;
@@ -186,14 +184,14 @@ private:
     float *m_qIn;
     /*!
      * reach layers
-     * key: stream order
+     * key: computing order, \sa LayeringMethod
      * value: reach ID
      */
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs(void);
+    void initialOutputs();
 
-    void PointSourceLoading(void);
+    void PointSourceLoading();
 
     void ChannelFlow(int i);
 

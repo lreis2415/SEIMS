@@ -5,8 +5,9 @@
  * \revised LiangJun Zhu
  * \revised date May. 2016
  */
+#ifndef SEIMS_MODULE_KINWAVSED_CH_H
+#define SEIMS_MODULE_KINWAVSED_CH_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -24,13 +25,13 @@ using namespace std;
 class KinWavSed_CH : public SimulationModule {
 public:
     //! Constructor
-    KinWavSed_CH(void);
+    KinWavSed_CH();
 
     //! Destructor
-    ~KinWavSed_CH(void);
+    ~KinWavSed_CH();
 
     //! Execute
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float value);
 
@@ -51,7 +52,7 @@ public:
     *
     *	@return bool The validity of the input data.
     */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /**
     *	@brief check the input size. Make sure all the input data have same dimension.
@@ -64,16 +65,10 @@ public:
 
 private:
     //Parameters
-
-    /*/// calibration coefficient
-    float m_eco1;
-    /// calibration coefficient
-    float m_eco2;*/
     /**
     *	@brief reach layers map
     *
-    *	The first element in each sub-array is the number of reaches in this sub-array
-    *	The following elements are the index of reach array
+    *	The elements are the index of reach array
     */
     map<int, vector<int> > m_reachLayers;
     /**
@@ -84,16 +79,14 @@ private:
     float **m_flowInIndex;
     /// flow out index
     float *m_flowOutIndex;
-    // id the reaches
-    float *m_reachId;
     /// channel width (zero for non-channel cells)
     float *m_chWidth;
     /// stream order
     float *m_streamOrder;
     /// stream id of downstream
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /// Index of upstream Ids (The value is -1 if there if no upstream reach)
+    vector<vector<int> > m_reachUpStream;
     /**
     *	@brief reach links
     *
@@ -108,8 +101,8 @@ private:
     int m_nCells;
     /// length of time step (s)
     float m_TimeStep;
-    //! layering method
-    float m_layeringMethod;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     ///calibration coefficient of transport capacity
     float m_ChTcCo;
     /// calibration coefficient of channel flow detachment
@@ -174,7 +167,7 @@ private:
 
 private:
 
-    void initial(void);
+    void initial();
     ///**
     //*	@brief calculate the velocity of overland flow.
     //*
@@ -257,3 +250,5 @@ private:
     //void setNotAvailableInput();
 
 };
+
+#endif /* SEIMS_MODULE_KINWAVSED_CH_H */
