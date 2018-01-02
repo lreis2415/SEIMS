@@ -25,27 +25,29 @@ sys.setrecursionlimit(10000)
 
 class ImportReaches2Mongo(object):
     """Import reaches related parameters to MongoDB."""
-    _TAB_REACH = "REACHES"
+    _TAB_REACH = 'REACHES'
     _LINKNO = 'LINKNO'
     _DSLINKNO = 'DSLINKNO'
     # Fields in _TAB_REACH
-    _SUBBASIN = "SUBBASINID"
-    _NUMCELLS = "NUM_CELLS"
-    _GROUP = "GROUP"
-    _GROUPDIVIDED = "GROUP_DIVIDE"
-    _DOWNSTREAM = "DOWNSTREAM"
-    _UPDOWN_ORDER = "UP_DOWN_ORDER"
-    _DOWNUP_ORDER = "DOWN_UP_ORDER"
-    _WIDTH = "WIDTH"
-    _LENGTH = "LENGTH"
-    _DEPTH = "DEPTH"
-    _V0 = "V0"
-    _AREA = "AREA"
-    _SIDESLP = "SIDE_SLOPE"
-    _MANNING = "MANNING"
-    _SLOPE = "SLOPE"
+    _SUBBASIN = 'SUBBASINID'
+    _NUMCELLS = 'NUM_CELLS'
+    _GROUP = 'GROUP'
+    _GROUPDIVIDED = 'GROUP_DIVIDE'
     _KMETIS = 'KMETIS'  # GROUP_KMETIS is too long for ArcGIS Shapefile
     _PMETIS = 'PMETIS'  # the same reason
+    _DOWNSTREAM = 'DOWNSTREAM'
+    _UPDOWN_ORDER = 'UP_DOWN_ORDER'
+    _DOWNUP_ORDER = 'DOWN_UP_ORDER'
+    _WIDTH = 'CH_WIDTH'
+    _LENGTH = 'CH_LEN'
+    _DEPTH = 'CH_DEPTH'
+    _V0 = 'CH_V0'
+    _AREA = 'CH_AREA'
+    _SIDESLP = 'CH_SSLP'
+    _MANNING = 'CH_N'
+    _SLOPE = 'CH_SLP'
+    _KBANK = 'CH_K_BANK'
+    _KBED = 'CH_K_BED'
     _BC1 = 'BC1'
     _BC2 = 'BC2'
     _BC3 = 'BC3'
@@ -60,8 +62,8 @@ class ImportReaches2Mongo(object):
     _RS4 = 'RS4'
     _RS5 = 'RS5'
     # reach erosion related parameters, 2016-8-16, LJ
-    _COVER = 'COVER'  # -0.05 - 0.6
-    _EROD = 'EROD'  # -0.001 - 1
+    _COVER = 'CH_COVER'  # -0.05 - 0.6
+    _EROD = 'CH_EROD'  # -0.001 - 1
     # nutrient routing related parameters
     _DISOX = 'DISOX'  # 0-50 mg/L
     _BOD = 'BOD'  # 0-1000 mg/L
@@ -144,9 +146,9 @@ class ImportReaches2Mongo(object):
         i_from = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
         i_to = layer_def.GetFieldIndex(ImportReaches2Mongo._DSLINKNO)
         i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
-        i_slope = layer_def.GetFieldIndex(ImportReaches2Mongo._SLOPE)
+        i_slope = layer_def.GetFieldIndex('Slope')
         i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
-        i_len = layer_def.GetFieldIndex(ImportReaches2Mongo._LENGTH)
+        i_len = layer_def.GetFieldIndex('Length')
 
         g = nx.DiGraph()
         ft = layer_reach.GetNextFeature()
@@ -183,8 +185,8 @@ class ImportReaches2Mongo(object):
             if g.out_degree(node) == 0:
                 outlet = node
         if outlet < 0:
-            raise ValueError("Can't find outlet subbasin ID, please check the "
-                             "threshold for stream extraction!")
+            raise ValueError('Cannot find outlet subbasin ID, please check the '
+                             'threshold for stream extraction!')
         print ('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins
@@ -282,8 +284,7 @@ class ImportReaches2Mongo(object):
 
         area_dic, dx = ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn)
         (downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic,
-         slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach,
-                                                                       cfg.is_TauDEM)
+         slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach)
         # for k in downStreamDic:
         #     print (k, downStreamDic[k])
 
@@ -368,8 +369,8 @@ class ImportReaches2Mongo(object):
                 dic[ImportReaches2Mongo._MANNING] = dic_manning[tmpid2]
                 dic[ImportReaches2Mongo._SLOPE] = slopeDic[tmpid2]
                 dic[ImportReaches2Mongo._V0] = sqrt(slopeDic[tmpid2]) * \
-                                               pow(depthDic[tmpid2], 2. / 3.) / dic[
-                                                   ImportReaches2Mongo._MANNING]
+                                               pow(depthDic[tmpid2], 2. / 3.) / \
+                                               dic[ImportReaches2Mongo._MANNING]
                 dic[ImportReaches2Mongo._NUMCELLS] = area_dic[tmpid2]
                 if n == 1:
                     dic[ImportReaches2Mongo._GROUP] = n
@@ -382,6 +383,8 @@ class ImportReaches2Mongo(object):
                 dic[ImportReaches2Mongo._DEPTH] = depthDic[tmpid2]
                 dic[ImportReaches2Mongo._AREA] = area_dic[tmpid2] * dx * dx
                 dic[ImportReaches2Mongo._SIDESLP] = 2.
+                dic[ImportReaches2Mongo._KBANK] = 20.
+                dic[ImportReaches2Mongo._KBED] = 0.5
                 dic[ImportReaches2Mongo._BC1] = 0.55
                 dic[ImportReaches2Mongo._BC2] = 1.1
                 dic[ImportReaches2Mongo._BC3] = 0.21
@@ -399,15 +402,15 @@ class ImportReaches2Mongo(object):
                 dic[ImportReaches2Mongo._EROD] = 0.1
                 dic[ImportReaches2Mongo._DISOX] = 10
                 dic[ImportReaches2Mongo._BOD] = 10
-                dic[ImportReaches2Mongo._ALGAE] = 0  # 10
-                dic[ImportReaches2Mongo._ORGN] = 0  # 10
-                dic[ImportReaches2Mongo._NH4] = 0  # 1 # 8.
-                dic[ImportReaches2Mongo._NO2] = 0  # 0.
-                dic[ImportReaches2Mongo._NO3] = 0  # 1 # 8.
-                dic[ImportReaches2Mongo._ORGP] = 0  # 10.
-                dic[ImportReaches2Mongo._SOLP] = 0  # 0.1 # 0.5
-                dic[ImportReaches2Mongo._GWNO3] = 0  # 10.
-                dic[ImportReaches2Mongo._GWSOLP] = 0  # 10.
+                dic[ImportReaches2Mongo._ALGAE] = 0
+                dic[ImportReaches2Mongo._ORGN] = 0
+                dic[ImportReaches2Mongo._NH4] = 0
+                dic[ImportReaches2Mongo._NO2] = 0
+                dic[ImportReaches2Mongo._NO3] = 0
+                dic[ImportReaches2Mongo._ORGP] = 0
+                dic[ImportReaches2Mongo._SOLP] = 0
+                dic[ImportReaches2Mongo._GWNO3] = 0
+                dic[ImportReaches2Mongo._GWSOLP] = 0
 
                 cur_filter = {ImportReaches2Mongo._SUBBASIN: tmpid2}
                 maindb[ImportReaches2Mongo._TAB_REACH].find_one_and_replace(cur_filter, dic,

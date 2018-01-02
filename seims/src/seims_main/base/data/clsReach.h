@@ -5,68 +5,17 @@
  * \date May. 2017
  * \revised LJ - Update MongoDB functions
  *             - Get 1D arrays of reach properties to keep synchronization among modules
+ *             - Code refactor. 2017-12-26
  */
 #ifndef SEIMS_REACH_CLS_H
 #define SEIMS_REACH_CLS_H
 
-#include "text.h"
-#include "utilities.h"
+#include "seims.h"
+#include "ParamInfo.h"
 #include "MongoUtil.h"
 
 using namespace std;
 
-/*!
- * \ingroup data
- * \enum ReachAttr
- * \TODO Find a more elegant way to read, store, and get reaches attributes.
- */
-enum ReachAttr
-{
-    subbasinid,
-    num_cells,
-    group,
-    group_divide,
-    kmetis,
-    pmetis,
-    downstream,
-    up_down_order,
-    down_up_order,
-    width,
-    side_slope,
-    length,
-    depth,
-    v0,
-    area,
-    manning,
-    slope,
-    bc1,
-    bc2,
-    bc3,
-    bc4,
-    rs1,
-    rs2,
-    rs3,
-    rs4,
-    rs5,
-    rk1,
-    rk2,
-    rk3,
-    rk4,
-    cover,
-    erod,
-    disox,
-    bod,
-    algae,
-    orgn,
-    nh4,
-    no2,
-    no3,
-    orgp,
-    solp,
-    gwno3,
-    gwsolp,
-    attrcount
-};
 /*!
  * \ingroup data
  * \class clsReach
@@ -80,135 +29,19 @@ public:
     //! Destructor
     ~clsReach() = default;
 
-    //! Reset the contents of the object to default values
-    void Reset();
+    //! Get parameters by name
+    float Get(const string &key);
 
-    int GetSubbasinID() { return this->SubbasinID; }
-    float GetArea() { return this->Area; }
-    float GetDepth() { return this->Depth; }
-    int GetDownStream() { return this->DownStream; }
-    int GetDownUpOrder() { return this->DownUpOrder; }
-    int GetUpDownOrder() { return this->UpDownOrder; }
-    int GetGroup() { return this->Group; }
-    int GetGroupDivided() { return this->GroupDivided; }
-    float GetLength() { return this->Length; }
-    float GetManning() { return this->Manning; }
-    int GetNumCells() { return this->NumCells; }
-    float GetSlope() { return this->Slope; }
-    float GetV0() { return this->V0; }
-    float GetWidth() { return this->Width; }
-    float GetSideSlope() { return this->SideSlope; }
-    float GetBc1() { return this->bc1; }
-    float GetBc2() { return this->bc2; }
-    float GetBc3() { return this->bc3; }
-    float GetBc4() { return this->bc4; }
-    float GetRs1() { return this->rs1; }
-    float GetRs2() { return this->rs2; }
-    float GetRs3() { return this->rs3; }
-    float GetRs4() { return this->rs4; }
-    float GetRs5() { return this->rs5; }
-    float GetRk1() { return this->rk1; }
-    float GetRk2() { return this->rk2; }
-    float GetRk3() { return this->rk3; }
-    float GetRk4() { return this->rk4; }
-    float GetCover() { return this->cover; }
-    float GetErod() { return this->erod; }
-    float GetDisOxygen() { return this->disox; }
-    float GetCOD() { return this->cod; }
-    float GetAlgae() { return this->algae; }
-    float GetOrgN() { return this->orgn; }
-    float GetNH4() { return this->nh4; }
-    float GetNO2() { return this->no2; }
-    float GetNO3() { return this->no3; }
-    float GetOrgP() { return this->orgp; }
-    float GetSolP() { return this->solp; }
-    float GetGWNO3() { return this->gwno3; }
-    float GetGWSolP() { return this->gwsolp; }
+    //! Set parameters by name
+    void Set(const string &key, float value);
 
 private:
-    //! Subbasin area
-    float Area;
-    //! Depth
-    float Depth;
-    //! Downstream reach index
-    int DownStream;
-    //! DOWN_UP stream order
-    int DownUpOrder;
-    //! Group Index
-    int Group;
-    //! Group divided
-    int GroupDivided;
-    //! Length
-    float Length;
-    //! Manning coefficient
-    float Manning;
-    //! Cell numbers
-    int NumCells;
-    //! Slope gradient
-    float Slope;
-    //! Subbasin ID
-    int SubbasinID;
-    //! UP_DOWN stream order
-    int UpDownOrder;
-    //! V0
-    float V0;
-    //! Width
-    float Width;
-    /// inverse of the channel side slope
-    float SideSlope;
-    /// rate constant for biological oxidation of NH3 to NO2 in reach at 20 deg C
-    float bc1;
-    /// rate constant for biological oxidation of NO2 to NO3 in reach at 20 deg C
-    float bc2;
-    /// rate constant for biological oxidation of organic N to ammonia in reach at 20 deg C
-    float bc3;
-    /// rate constant for biological oxidation of organic P to dissolved P in reach at 20 deg C
-    float bc4;
-    /// local algal settling rate in reach at 20 deg C (m/day)
-    float rs1;
-    /// benthos source rate for dissolved phosphorus in reach at 20 deg C (mg disP-P)/((m**2)*day)
-    float rs2;
-    /// benthos source rate for ammonia nitrogen in reach at 20 deg C (mg NH4-N)/((m**2)*day)
-    float rs3;
-    /// rate coefficient for organic nitrogen settling in reach at 20 deg C (1/day)
-    float rs4;
-    /// organic phosphorus settling rate in reach at 20 deg C (1/day)
-    float rs5;
-    /// CBOD doxygenation rate coefficient in reach at 20 deg C (1/day)
-    float rk1;
-    /// reaeration rate in accordance with Fickian diffusion in reach at 20 deg C (1/day)
-    float rk2;
-    /// rate of loss of CBOD due to settling in reach at 20 deg C (1/day)
-    float rk3;
-    /// sediment oxygen demand rate in reach at 20 deg C (mg O2/ ((m**2)*day))
-    float rk4;
-    /// erosion related
-    /// cover factoer
-    float cover;
-    /// erodibility factor
-    float erod;
-    /// Concentration of nitrate in groundwater contribution to streamflow from subbasin (mg N/l).
-    float gwno3;
-    /// Concentration of soluble phosphorus in groundwater contribution to streamflow from subbasin (mg P/l).
-    float gwsolp;
-    /// Initial dissolved oxygen concentration in the reach. [mg /l]
-    float disox;
-    /// Initial biochemical oxygen demand in the reach. [mg /l]. note that, this is different with cbod in SWAT
-    float cod;
-    /// Initial chlorophyll-a concentration in the reach. [mg /l]
-    float algae;
-    /// Initial organic nitrogen concentration in the reach. [mg /l]
-    float orgn;
-    /// Initial ammonia concentration in the reach. [mg /l]
-    float nh4;
-    /// Initial nitrite concentration in the reach
-    float no2;
-    /// Initial nitrate concentration in the reach
-    float no3;
-    /// Initial organic phosphorus concentration in the reach. [mg /l]
-    float orgp;
-    /// Initial dissolved phosphorus concentration in the reach. [mg /l]
-    float solp;
+    /*!
+     * Map container to store parameters
+     * key: parameter name
+     * value: parameter value
+     */
+    map<string, float> m_paramMap;
 };
 
 /*!
@@ -226,42 +59,60 @@ public:
      * \param[in] dbName Database name
      * \param[in] collectionName Reach collection name
      */
-    clsReaches(MongoClient* conn, string &dbName, string collectionName);
+    clsReaches(MongoClient *conn, string &dbName, string collectionName);
 
     /// Destructor
     ~clsReaches();
 
-    /// Get single reach information by subbasin ID
-    clsReach *GetReachByID(int id) { return m_reachesMap.at(id); }
+    /// Get single reach information by subbasin ID (1 ~ N)
+    inline clsReach *GetReachByID(int id) {
+        if (m_reachesMap.find(id) != m_reachesMap.end()) { return m_reachesMap.at(id); }
+        else { return nullptr; }
+    }
 
     /// Get reach number
     int GetReachNumber() const { return this->m_reachNum; }
 
-    /// Get reach IDs (vector)
-    vector<int>& GetReachIDs() { return this->m_reachIDs; }
-
     /*!
      * \brief Get 1D array of reach property
-     * \TODO Implement later. LJ
+     * \param[out[ data, 1D array with length of N+1, the first element is Reach number.
      */
-    void GetReachesSingleProperty(const char *key, float **data) {};
+    void GetReachesSingleProperty(string key, float **data);
+
+    /// Get upstream IDs
+    vector<vector<int> > GetUpStreamIDs() const { return m_reachUpStream; }
+
+    /// Get map of reach layers
+    map<int, vector<int> > GetReachLayers(LayeringMethod mtd = UP_DOWN);
+
+    /*!
+     * \brief Update reach/channel parameters according to calibration settings
+     */
+    void Update(const map<string, ParamInfo *> &caliparams_map);
 
 private:
     /// reaches number
     int m_reachNum;
-    /// reach IDs
-    vector<int> m_reachIDs;
+    /*!
+     * Index of upstream Ids (The value is -1 if there if no upstream reach)
+     * m_reachUpStream.size() = N+1
+     * m_reachUpStream[1] = [2, 3] means Reach 2 and Reach 3 flow into Reach 1.
+     */
+    vector<vector<int> > m_reachUpStream;
+    /*!
+     * Reach layers according to \a LayeringMethod
+     */
+    map<int, vector<int> > m_reachLayers;
     /*!
      * Map container to store all reaches information
-     * key: reach ID
+     * key: reach ID, 1 ~ N
      * value: clsReach instance (pointer)
      */
     map<int, clsReach *> m_reachesMap;
 
-    /*! 2D array to store all reaches properties
-     * Row index is the index of reach property
-     * Col index is the index of m_reachIDs
+    /*! Map of all reaches properties arranged as 1D array
+     * the first value is reach number
      */
-    float** m_reachesProperties;
+    map<string, float *> m_reachesPropMap;
 };
 #endif /* SEIMS_REACH_CLS_H */

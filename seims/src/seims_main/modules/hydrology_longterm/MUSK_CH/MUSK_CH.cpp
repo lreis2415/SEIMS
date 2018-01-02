@@ -3,47 +3,43 @@
 
 using namespace std;
 
-MUSK_CH::MUSK_CH(void) : m_dt(-1), m_nreach(-1), m_outletID(-1), m_Kchb(NODATA_VALUE),
-                         m_Kbank(NODATA_VALUE), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0_perc(NODATA_VALUE),
-                         m_aBank(NODATA_VALUE), m_chSideSlope(NULL),
-                         m_bBank(NODATA_VALUE), m_subbasin(NULL), m_qsSub(NULL),
-                         m_reachDownStream(NULL), m_chOrder(NULL), m_chWidth(NULL),
-                         m_chLen(NULL), m_chDepth(NULL), m_chVel(NULL), m_area(NULL),
-                         m_ptSub(NULL), m_qiSub(NULL), m_qgSub(NULL), m_petCh(NULL), m_gwStorage(NULL), m_Vseep0(0.f),
-                         m_bankStorage(NULL), m_seepage(NULL),
-                         m_qsCh(NULL), m_qiCh(NULL), m_qgCh(NULL),
-                         m_x(NODATA_VALUE), m_co1(NODATA_VALUE), m_qIn(NULL), m_chStorage(NULL), m_preChStorage(NULL),
-                         m_vScalingFactor(1.0f),
-                         m_qUpReach(0.f), m_deepGroundwater(0.f), m_chWTdepth(NULL), m_preChWTDepth(NULL),
-                         m_chWTWidth(NULL), m_chBtmWidth(NULL) {
+MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_outletID(-1), m_Kchb(nullptr),
+                     m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0_perc(NODATA_VALUE),
+                     m_aBank(NODATA_VALUE), m_chSideSlope(nullptr),
+                     m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
+                     m_reachDownStream(nullptr), m_chWidth(nullptr),
+                     m_chLen(nullptr), m_chDepth(nullptr), m_chVel(nullptr), m_area(nullptr),
+                     m_ptSub(nullptr), m_qiSub(nullptr), m_qgSub(nullptr), m_petCh(nullptr),
+                     m_gwStorage(nullptr), m_Vseep0(0.f),
+                     m_bankStorage(nullptr), m_seepage(nullptr),
+                     m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
+                     m_x(NODATA_VALUE), m_co1(NODATA_VALUE), m_qIn(nullptr), m_chStorage(nullptr),
+                     m_preChStorage(nullptr),
+                     m_qUpReach(0.f), m_deepGroundwater(0.f), m_chWTdepth(nullptr), m_preChWTDepth(nullptr),
+                     m_chWTWidth(nullptr), m_chBtmWidth(nullptr) {
 }
 
-MUSK_CH::~MUSK_CH(void) {
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_chOrder);
-    Release1DArray(m_chWidth);
-    Release1DArray(m_chLen);
-    Release1DArray(m_chDepth);
-    Release1DArray(m_chVel);
-    Release1DArray(m_area);
-    Release1DArray(m_chStorage);
-    Release1DArray(m_preChStorage);
-    Release1DArray(m_qOut);
-    Release1DArray(m_bankStorage);
-    Release1DArray(m_seepage);
-    Release1DArray(m_qsCh);
-    Release1DArray(m_qiCh);
-    Release1DArray(m_qgCh);
-    Release1DArray(m_chWTdepth);
-    Release1DArray(m_preChWTDepth);
-    Release1DArray(m_chWTWidth);
-    Release1DArray(m_chBtmWidth);
-    Release1DArray(m_ptSub);
+MUSK_CH::~MUSK_CH() {
+    /// reaches related variables will be released in ~clsReaches(). By lj, 2017-12-26.
+
+    if (nullptr != m_chStorage) Release1DArray(m_chStorage);
+    if (nullptr != m_preChStorage) Release1DArray(m_preChStorage);
+    if (nullptr != m_qOut) Release1DArray(m_qOut);
+    if (nullptr != m_bankStorage) Release1DArray(m_bankStorage);
+    if (nullptr != m_seepage) Release1DArray(m_seepage);
+    if (nullptr != m_qsCh) Release1DArray(m_qsCh);
+    if (nullptr != m_qiCh) Release1DArray(m_qiCh);
+    if (nullptr != m_qgCh) Release1DArray(m_qgCh);
+    if (nullptr != m_chWTdepth) Release1DArray(m_chWTdepth);
+    if (nullptr != m_preChWTDepth) Release1DArray(m_preChWTDepth);
+    if (nullptr != m_chWTWidth) Release1DArray(m_chWTWidth);
+    if (nullptr != m_chBtmWidth) Release1DArray(m_chBtmWidth);
+    if (nullptr != m_ptSub) Release1DArray(m_ptSub);
     // m_ptSrcFactory will be released by DataCenter->Scenario. lj
 }
 
 //! Check input data
-bool MUSK_CH::CheckInputData(void) {
+bool MUSK_CH::CheckInputData() {
     if (m_dt < 0) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_dt has not been set.");
     }
@@ -56,10 +52,10 @@ bool MUSK_CH::CheckInputData(void) {
     if (FloatEqual(m_co1, NODATA_VALUE)) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_co1 has not been set.");
     }
-    if (FloatEqual(m_Kchb, NODATA_VALUE)) {
+    if (nullptr == m_Kchb) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: K_chb has not been set.");
     }
-    if (FloatEqual(m_Kbank, NODATA_VALUE)) {
+    if (nullptr == m_Kbank) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: K_bank has not been set.");
     }
     if (FloatEqual(m_Epch, NODATA_VALUE)) {
@@ -80,23 +76,13 @@ bool MUSK_CH::CheckInputData(void) {
     if (FloatEqual(m_Vseep0, NODATA_VALUE)) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_Vseep0 has not been set.");
     }
-    if (m_subbasin == NULL) {
+    if (nullptr == m_subbasin) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_subbasin has not been set.");
     }
-    if (m_qsSub == NULL) {
+    if (nullptr == m_qsSub) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: Q_SBOF has not been set.");
     }
-    //if (m_qiSub == NULL)
-    //	throw ModelException(MID_MUSK_CH,"CheckInputData","The parameter: Q_SBIF has not been set.");
-    //if (m_qgSub == NULL)
-    //	throw ModelException(MID_MUSK_CH,"CheckInputData","The parameter: QG_sub has not been set.");
-    //if (m_petCh == NULL)
-    //	throw ModelException(MID_MUSK_CH,"CheckInputData","The parameter: SBPET has not been set.");
-    //if (m_gwStorage == NULL)
-    //{
-    //	throw ModelException(MID_MUSK_CH,"CheckInputData","The parameter: GW_sub has not been set.");
-    //}
-    if (m_chWidth == NULL) {
+    if (nullptr == m_chWidth) {
         throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: RchParam has not been set.");
     }
     return true;
@@ -107,22 +93,11 @@ void MUSK_CH::initialOutputs() {
     if (m_nreach <= 0) {
         throw ModelException(MID_MUSK_CH, "initialOutputs", "The reach number can not be less than zero.");
     }
-
-    if (m_reachLayers.empty()) {
-        for (int i = 1; i <= m_nreach; i++) {
-            if (m_chOrder == NULL) {
-                throw ModelException(MID_MUSK_CH, "initialOutputs",
-                                     "Stream order is not loaded successful from Reach table.");
-            }
-            int order = (int) m_chOrder[i];
-            m_reachLayers[order].push_back(i);
-        }
-    }
     if (m_outletID < 0) {
         m_outletID = m_reachLayers.rbegin()->second[0];
     }
     //initial channel storage
-    if (m_chStorage == NULL) {
+    if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
         m_preChStorage = new float[m_nreach + 1];
         m_qIn = new float[m_nreach + 1];
@@ -140,10 +115,10 @@ void MUSK_CH::initialOutputs() {
         for (int i = 1; i <= m_nreach; i++) {
             float qiSub = 0.f;
             float qgSub = 0.f;
-            if (m_qiSub != NULL) { // interflow (subsurface flow)
+            if (nullptr != m_qiSub) { // interflow (subsurface flow)
                 qiSub = m_qiSub[i];
             }
-            if (m_qgSub != NULL) { // groundwater
+            if (nullptr != m_qgSub) { // groundwater
                 qgSub = m_qgSub[i];
             }
             m_seepage[i] = 0.f;
@@ -168,25 +143,25 @@ void MUSK_CH::initialOutputs() {
         }
     }
     /// initialize point source loadings
-    if (m_ptSub == NULL) {
+    if (nullptr == m_ptSub) {
         Initialize1DArray(m_nreach + 1, m_ptSub, 0.f);
     }
 }
 
 void MUSK_CH::PointSourceLoading() {
     /// load point source water discharge (m3/s) on current day from Scenario
-    for (map<int, BMPPointSrcFactory *>::iterator it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); it++) {
+    for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); it++) {
         /// reset point source loading water to 0.f
         for (int i = 0; i <= m_nreach; i++) {
             m_ptSub[i] = 0.f;
         }
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
         vector<int> m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map < int, PointSourceMgtParams * > m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        map<int, PointSourceMgtParams *> m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
         vector<int> m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map < int, PointSourceLocations * > m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        map<int, PointSourceLocations *> m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (vector<int>::iterator seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); seqIter++) {
+        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); seqIter++) {
             PointSourceMgtParams *curPtMgt = m_pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
@@ -197,7 +172,7 @@ void MUSK_CH::PointSourceLoading() {
             // 1.2 Otherwise, get the water volume
             float per_wtrVol = curPtMgt->GetWaterVolume(); /// m3/'size'/day
             // 1.3 Sum up all point sources
-            for (vector<int>::iterator locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); locIter++) {
+            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); locIter++) {
                 if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
                     PointSourceLocations *curPtLoc = m_pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
@@ -214,14 +189,13 @@ int MUSK_CH::Execute() {
     initialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
-    map <int, vector<int> >::iterator it;
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int reachNum = it->second.size();
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
-        for (int i = 0; i < reachNum; ++i) {
+        for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i]; // index in the array
             ChannelFlow(reachIndex);
         }
@@ -269,11 +243,9 @@ void MUSK_CH::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
-    else if (StringMatch(sk, VAR_VSF)) { m_vScalingFactor = value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
+    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
     else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, VAR_K_CHB)) { m_Kchb = value; }
-    else if (StringMatch(sk, VAR_K_BANK)) { m_Kbank = value; }
     else if (StringMatch(sk, VAR_EP_CH)) { m_Epch = value; }
     else if (StringMatch(sk, VAR_BNK0)) { m_Bnk0 = value; }
     else if (StringMatch(sk, VAR_CHS0_PERC)) { m_Chs0_perc = value; }
@@ -376,42 +348,10 @@ void MUSK_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) 
     throw ModelException(MID_MUSK_CH, "Get2DData", "Parameter " + sk + " does not exist.");
 }
 
-////! Set 2D data
-//void MUSK_CH::Set2DData(const char *key, int nrows, int ncols, float **data)
-//{
-//    string sk(key);
-//    if (StringMatch(sk, Tag_RchParam))
-//    {
-//        m_nreach = ncols - 1;
-//
-//        m_reachId = data[0];
-//        m_reachDownStream = data[1];
-//        m_chOrder = data[2];
-//        m_chWidth = data[3];
-//        m_chLen = data[4];
-//        m_chDepth = data[5];
-//        m_chVel = data[6];
-//        m_area = data[7];
-//
-//        m_reachUpStream.resize(m_nreach + 1);
-//        if (m_nreach > 1)
-//        {
-//            for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
-//            {
-//                int downStreamId = int(m_reachDownStream[i]);
-//                if (downStreamId <= 0)
-//                    continue;
-//                m_reachUpStream[downStreamId].push_back(i);
-//            }
-//        }
-//    }
-//    else
-//        throw ModelException(MID_MUSK_CH, "Set2DData", "Parameter " + sk + " does not exist.");
-//}
 void MUSK_CH::SetScenario(Scenario *sce) {
-    if (sce != NULL) {
+    if (nullptr != sce) {
         map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
-        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
+        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
                 m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second;
@@ -423,46 +363,23 @@ void MUSK_CH::SetScenario(Scenario *sce) {
 }
 
 void MUSK_CH::SetReaches(clsReaches *reaches) {
-    if (reaches != NULL) {
-        m_nreach = reaches->GetReachNumber();
-        m_reachId = reaches->GetReachIDs();
-        if (m_reachDownStream == NULL) {
-            Initialize1DArray(m_nreach + 1, m_reachDownStream, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chOrder, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chWidth, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chLen, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chDepth, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chVel, 0.f);
-            Initialize1DArray(m_nreach + 1, m_area, 0.f);
-            Initialize1DArray(m_nreach + 1, m_chSideSlope, 2.f);
-        }
-        for (vector<int>::iterator it = m_reachId.begin(); it != m_reachId.end(); it++) {
-            int i = *it;
-            clsReach *tmpReach = reaches->GetReachByID(i);
-            m_reachDownStream[i] = (float) tmpReach->GetDownStream();
-            m_chOrder[i] = (float) tmpReach->GetUpDownOrder();
-            m_chWidth[i] = (float) tmpReach->GetWidth();
-            m_chLen[i] = (float) tmpReach->GetLength();
-            m_chDepth[i] = (float) tmpReach->GetDepth();
-            m_chVel[i] = (float) tmpReach->GetV0();
-            m_area[i] = (float) tmpReach->GetArea();
-            m_chSideSlope[i] = (float) tmpReach->GetSideSlope();
-        }
-
-        m_reachUpStream.resize(m_nreach + 1);
-        if (m_nreach > 1) {
-            for (int i = 1; i <= m_nreach; i++)// index of the reach is the equal to streamlink ID(1 to nReaches)
-            {
-                int downStreamId = int(m_reachDownStream[i]);
-                if (downStreamId <= 0) {
-                    continue;
-                }
-                m_reachUpStream[downStreamId].push_back(i);
-            }
-        }
-    } else {
+    if (nullptr == reaches) {
         throw ModelException(MID_MUSK_CH, "SetReaches", "The reaches input can not to be NULL.");
     }
+    m_nreach = reaches->GetReachNumber();
+
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
+    if (nullptr == m_chLen) reaches->GetReachesSingleProperty(REACH_LENGTH, &m_chLen);
+    if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
+    if (nullptr == m_chVel) reaches->GetReachesSingleProperty(REACH_V0, &m_chVel);
+    if (nullptr == m_area) reaches->GetReachesSingleProperty(REACH_AREA, &m_area);
+    if (nullptr == m_chSideSlope) reaches->GetReachesSingleProperty(REACH_SIDESLP, &m_chSideSlope);
+    if (nullptr == m_Kbank) reaches->GetReachesSingleProperty(REACH_KBANK, &m_Kbank);
+    if (nullptr == m_Kchb) reaches->GetReachesSingleProperty(REACH_KBED, &m_Kchb);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }
 
 //! Get date time
@@ -484,7 +401,6 @@ void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float &dt, int &n) {
 
 //! Get coefficients
 void MUSK_CH::GetCoefficients(float reachLength, float v0, MuskWeights &weights) {
-    v0 = m_vScalingFactor * v0;
     float K = (4.64f - 3.64f * m_co1) * reachLength / (5.f * v0 / 3.f);
 
     float min = 2.f * K * m_x;
@@ -530,15 +446,15 @@ void MUSK_CH::updateWaterWidthDepth(int i) {
 void MUSK_CH::ChannelFlow(int i) {
     float st0 = m_chStorage[i];
     float qiSub = 0.f; /// interflow flow
-    if (m_qiSub != NULL && m_qiSub[i] >= 0.f) {
+    if (nullptr != m_qiSub && m_qiSub[i] >= 0.f) {
         qiSub = m_qiSub[i];
     }
     float qgSub = 0.f; /// groundwater flow
-    if (m_qgSub != NULL && m_qgSub[i] >= 0.f) {
+    if (nullptr != m_qgSub && m_qgSub[i] >= 0.f) {
         qgSub = m_qgSub[i];
     }
     float ptSub = 0.f; /// point sources flow
-    if (m_ptSub != NULL && m_ptSub[i] >= 0.f) {
+    if (nullptr != m_ptSub && m_ptSub[i] >= 0.f) {
         ptSub = m_ptSub[i];
     }
     //////////////////////////////////////////////////////////////////////////
@@ -559,7 +475,7 @@ void MUSK_CH::ChannelFlow(int i) {
     }
     qIn += (qsUp + qiUp + qgUp);
     //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
-    qIn += m_qUpReach; 
+    qIn += m_qUpReach;
     // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
     //if(i == 12)
     //	cout <<"surfaceQ: "<< m_qsSub[i] << ", subsurfaceQ: " << qiSub << ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
@@ -581,7 +497,7 @@ void MUSK_CH::ChannelFlow(int i) {
     // then subtract all the outflow water
     // 1. transmission losses to deep aquifer, which is lost from the system
     // the unit of kchb is mm/hr
-    float seepage = m_Kchb / 1000.f / 3600.f * m_chBtmWidth[i] * m_chLen[i] * m_dt;
+    float seepage = m_Kchb[i] / 1000.f / 3600.f * m_chBtmWidth[i] * m_chLen[i] * m_dt;
     //if(i == 2) cout << "seepage: " << seepage << endl;
     if (qgSub < UTIL_ZERO) {
         if (m_chStorage[i] > seepage) {
@@ -599,7 +515,7 @@ void MUSK_CH::ChannelFlow(int i) {
     //float dch = m_chStorage[i] / (m_chWTWidth[i] * m_chLen[i]);
     float dch = m_chWTdepth[i];
     float bankLen = dch * sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i]);
-    float bankInLoss = 2.f * m_Kbank / 1000.f / 3600.f * bankLen * m_chLen[i] * m_dt;   // m^3
+    float bankInLoss = 2.f * m_Kbank[i] / 1000.f / 3600.f * bankLen * m_chLen[i] * m_dt;   // m^3
     bankInLoss = 0.f; //TODO
     if (m_chStorage[i] > bankInLoss) {
         m_chStorage[i] -= bankInLoss;
@@ -612,13 +528,13 @@ void MUSK_CH::ChannelFlow(int i) {
     float bankOutGw = m_bankStorage[i] * (1.f - exp(-m_bBank));
     bankOutGw = 0.f; //TODO
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
-    if (m_gwStorage != NULL) {
+    if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
     }   // updated groundwater storage
 
     // 3. evaporation losses
     float et = 0.f;
-    if (m_petCh != NULL) {
+    if (nullptr != m_petCh) {
         et = m_Epch * m_petCh[i] / 1000.0f * m_chWTWidth[i] * m_chLen[i];    //m3
         if (m_chStorage[i] > et) {
             m_chStorage[i] -= et;

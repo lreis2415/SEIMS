@@ -240,7 +240,8 @@ class TerrainUtilClass(object):
     @staticmethod
     def std_of_flow_time_to_stream(streamlink, flow_dir_file, slope, radius, velocity, delta_s_file,
                                    flow_dir_code="TauDEM"):
-        """Generate standard deviation of t0_s (flow time to the workflow channel from each cell)."""
+        """Generate standard deviation of t0_s (flow time to the workflow channel from each cell).
+        """
         strlk_r = RasterUtilClass.read_raster(streamlink)
         strlk_data = strlk_r.data
         rad_data = RasterUtilClass.read_raster(radius).data
@@ -455,9 +456,7 @@ class TerrainUtilClass(object):
             TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
             flow_dir_file = cfg.spatials.d8flow
             t0_s_file = cfg.spatials.t0_s
-            flow_model_code = "TauDEM"
-            if not cfg.is_TauDEM:
-                flow_model_code = "ArcGIS"
+            flow_model_code = "ArcGIS"
             TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
                                                  t0_s_file, flow_model_code)
             delta_s_file = cfg.spatials.delta_s

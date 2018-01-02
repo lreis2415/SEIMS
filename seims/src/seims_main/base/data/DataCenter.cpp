@@ -13,9 +13,11 @@ const char *METEO_VARS[] = {DataType_MeanTemperature, DataType_MaximumTemperatur
 DataCenter::DataCenter(string &modelPath, string &modulePath,
                        LayeringMethod layeringMethod /* = UP_DOWN */,
                        int subBasinID /* = 0 */, int scenarioID /* = -1 */,
+                       int calibrationID /* = -1 */,
                        int numThread /* = 1 */) :
     m_modelPath(modelPath), m_modulePath(modulePath),
     m_lyrMethod(layeringMethod), m_subbasinID(subBasinID), m_scenarioID(scenarioID),
+    m_calibrationID(calibrationID),
     m_threadNum(numThread), m_useScenario(false), m_outputScene(DB_TAB_OUT_SPATIAL),
     m_outputPath(""), m_modelMode(""), m_nSubbasins(-1), m_outletID(-1),
     m_input(nullptr), m_output(nullptr), m_climStation(nullptr), m_scenario(nullptr),
@@ -31,10 +33,13 @@ DataCenter::DataCenter(string &modelPath, string &modulePath,
     /// Clean output folder
     if (m_scenarioID >= 0) { // -1 means no BMPs scenario will be simulated
         m_outputScene += ValueToString(m_scenarioID);
-        m_outputPath = m_modelPath + SEP + m_outputScene + SEP;
-        createOutputFolder();
         /// Be aware, m_useScenario will be updated in checkModelPreparedData().
     }
+    if (m_calibrationID >= 0) {  // -1 means no calibration setting will be used.
+        m_outputScene += "-" + ValueToString(m_calibrationID);
+    }
+    m_outputPath = m_modelPath + SEP + m_outputScene + SEP;
+    createOutputFolder();
 }
 
 DataCenter::~DataCenter() {
@@ -167,11 +172,12 @@ void DataCenter::setLapseData(string &remoteFilename, int &rows, int &cols, floa
 DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
                                      string &modulePath, LayeringMethod layeringMethod /* = UP_DOWN */,
                                      int subBasinID /* = 0 */, int scenarioID /* = -1 */,
+                                     int calibrationID /* = -1 */,
                                      int numThread /* = 1 */) :
     m_mongodbIP(host), m_mongodbPort(port), m_mongoClient(nullptr),
     m_mainDatabase(nullptr), m_spatialGridFS(nullptr),
     m_climDBName(""), m_scenDBName(""),
-    DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, numThread) {
+    DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, calibrationID, numThread) {
     /// Connect to MongoDB database, and make sure the required data is available.
     m_mongoClient = MongoClient::Init(m_mongodbIP, m_mongodbPort);
     m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
@@ -241,16 +247,14 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     m_climStation = new InputStation(m_mongoClient, m_input->getDtHillslope(), m_input->getDtChannel());
     readClimateSiteList();
 
-    /// 4. Read Reaches data
-    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
-    /// 5. Read Mask raster data
+    /// 4. Read Mask raster data
     ostringstream oss;
     oss << m_subbasinID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
     m_maskRaster = clsRasterData<float>::Init(m_spatialGridFS, maskFileName.c_str());
     assert(nullptr != m_maskRaster);
     m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
-    /// 6. Read Subbasin raster data
+    /// 5. Read Subbasin raster data
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
@@ -262,10 +266,13 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     // Constructor Subbasin data
     m_subbasins = clsSubbasins::Init(m_spatialGridFS, m_rsMap, m_subbasinID);
     assert(nullptr != m_subbasins);
-    /// 7. Read initial parameters
+    /// 6. Read initial parameters
     if (!readParametersInDB()) {
         return false;
     }
+    /// 7. Read Reaches data
+    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
+    m_reaches->Update(m_initParameters);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existedMainDBTabs) && m_scenarioID >= 0) {
         bson_t *query;
@@ -543,6 +550,14 @@ bool DataCenterMongoDB::readParametersInDB() {
         //if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
         //    p->Use = GetStringFromBsonIterator(&iter);
         //}
+        if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && m_calibrationID >= 0) {
+            // Overwrite p->Impact according to calibration ID
+            string cali_values_str = GetStringFromBsonIterator(&iter);
+            vector<float> cali_values = SplitStringForFloat(cali_values_str, ',');
+            if (m_calibrationID < cali_values.size()) {
+                p->Impact = cali_values[m_calibrationID];
+            }
+        }
         if (!m_initParameters.insert(make_pair(GetUpper(p->Name), p)).second) {
             cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
             return false;
