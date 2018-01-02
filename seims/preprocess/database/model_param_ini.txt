@@ -1,6 +1,6 @@
 # ALL INITIAL MODEL PARAMETERS.
 # Table title (columns are split by COMMA!)
-# Last updated: 2017-7-12
+# Last updated: 2017-12-26
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
 Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,RC,350,300
@@ -17,15 +17,12 @@ Discharge,b_bnk,bank storage loss coefficient,none,ALL,0.05,0,AC,0.2,0.02
 Discharge,Base_ex,Baseflow exponent,none,GW_RSVR,1,0,AC,4,1
 Discharge,bnk0,Initial bank storage,m3/m,ALL,0,0,AC,1,0
 Discharge,Ch_iuh,Channel flow IUH,none,ChannelRouting,-9999,0,NC,-9999,-9999
-Discharge,CH_ManningFactor,Manning scaling factor of channel routing,none,IKW_CH,1,0,AC,3,0.1
 Discharge,chs0,initial channel storage,m3/m,All,0,0,AC,100,0
 Discharge,chs0_perc,initial percentage of channel depth,none,ALL,0.05,0,AC,1,0
 Discharge,df_coef,Deep percolation coefficient,mm,GW_RSVR,0,0,AC,1,0
 Discharge,ep_ch,reach evaporation adjustment factor,m3/m,ALL,1,0,AC,1,0
 Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,50000,0
 Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,100000,0
-Discharge,k_bank,channel bank hydraulic conductivity,mm/hr,ALL,20,0,AC,150,0
-Discharge,k_chb,channel bottom hydraulic conductivity,mm/hr,ALL,0.5,0,AC,150,0
 Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001
 Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001
@@ -37,7 +34,6 @@ Discharge,Ol_iuh,Overland flow IUH,none,ALL,-9999,0,NC,-9999,-9999
 Discharge,q_iter,Thrashold of storage change rate,m3/s,ChannelRouting,0.01,0,AC,0.1,0.001
 Discharge,s_iter,Threshold of reservoir storage change rate,m3,ALL,50,0,AC,1000,10
 Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0
-Discharge,VelScaleFactor,Scale factor used to adjust V0 in CH_MUSK,none,CH_MUSK,1,0,AC,1.5,0.5
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
 Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0
 InstreamWQ,algae,Algal biomass concentration in reach on the first day,mg alg/L,ChannelRouting,0,0,AC,200,0
@@ -210,5 +206,15 @@ WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
 WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05
 WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
-WaterB,SOL_AWC,amount of water available to plants in soil layer at field capacity (fc - wp),mm H2O,ALL,-9999,1,RC,100,0.1
-WaterB,SOL_UL,amount of water held in the soil layer at saturation (sat - wp water),mm H2O,ALL,-9999,1,RC,100,0.1
+WaterBalance,SOL_AWC,amount of water available to plants in soil layer at field capacity (fc - wp),mm H2O,ALL,-9999,1,RC,100,0.1
+WaterBalance,SOL_UL,amount of water held in the soil layer at saturation (sat - wp water),mm H2O,ALL,-9999,1,RC,100,0.1
+Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0
+Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,30,0
+Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
+Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,2,1,RC,30,0.001
+Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0
+Routing,ch_v0,Initial velocity V0 in channel,m/s,ChannelRouting,-9999,1,RC,10,0
+Routing,ch_k_bank,channel bank hydraulic conductivity,mm/hr,ChannelRouting,20,1,RC,150,0
+Routing,ch_k_bed,channel bed hydraulic conductivity,mm/hr,ChannelRouting,0.5,1,RC,150,0
+Routing,ch_cover,Channel cover factor,none,ChannelRouting,0.1,1,RC,1,0.001
+Routing,ch_erod,Channel erodibility factor,none,ChannelRouting,0.1,1,RC,0.6,0.001

@@ -26,12 +26,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(Tag_HillSlopeTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
-
+    
     mdi.AddParameter(VAR_FLOWDIR, UNIT_NON_DIM, DESC_FLOWDIR, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_CHWIDTH, UNIT_LEN_M, DESC_CHWIDTH, Source_ParameterDB, DT_Raster1D);
     // reach information
-    mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
+    //mdi.AddParameter(VAR_CH_MANNING_FACTOR, UNIT_NON_DIM, DESC_CH_MANNING_FACTOR, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_FLOWOUT_INDEX_D8, UNIT_NON_DIM, DESC_FLOWOUT_INDEX_D8, Source_ParameterDB, DT_Array1D);
     mdi.AddParameter(Tag_FLOWIN_INDEX_D8, UNIT_NON_DIM, DESC_FLOWIN_INDEX_D8, Source_ParameterDB, DT_Array2D);
     mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);

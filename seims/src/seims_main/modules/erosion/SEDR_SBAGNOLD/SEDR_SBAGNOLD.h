@@ -17,7 +17,9 @@
  * \description: 1. ReCheck and Update code according to route.f and rtsed.f
  *               2. Change the module name from SEDR_VCD to SEDR_SBAGNOLD
  */
-#pragma once
+#ifndef SEIMS_MODULE_SEDR_SBAGNOLD_H
+#define SEIMS_MODULE_SEDR_SBAGNOLD_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -35,12 +37,12 @@ using namespace std;
 class SEDR_SBAGNOLD : public SimulationModule {
 public:
     //! Constructor
-    SEDR_SBAGNOLD(void);
+    SEDR_SBAGNOLD();
 
     //! Destructor
-    ~SEDR_SBAGNOLD(void);
+    ~SEDR_SBAGNOLD();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -50,8 +52,6 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
     virtual void SetReaches(clsReaches *reaches);
@@ -60,16 +60,16 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputSizeChannel(const char *key, int n);
+    bool CheckInputData();
 
-    bool CheckInputData(void);
-
-    virtual TimeStepType GetTimeStepType(void) { return TIMESTEP_CHANNEL; };
+    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 private:
     /// time step (sec)
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
+    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
+    LayeringMethod m_layeringMethod;
     /// whether change channel dimensions, 0 - do not change, 1 - compute channel degredation
     int m_VCD;
     /// the peak rate adjustment factor
@@ -80,10 +80,6 @@ private:
     float m_spexp;
     /// critical velocity for sediment deposition
     float m_vcrit;
-    ///// reach cover factor
-    //float m_coverFactor;
-    ///// channel erodibility factor (cm/hr/Pa)  TODO: this should be an input parameter from database, LJ
-    //float m_erodibilityFactor;
 
     /// sediment from subbasin (hillslope), kg
     float *m_sedtoCh;
@@ -104,16 +100,21 @@ private:
     float *m_chVel;
     float *m_chSlope;
     float *m_chManning;
+    /// reach cover factor
     float *m_chCover;
+    /// channel erodibility factor (cm/hr/Pa)
     float *m_chErod;
-
     /// downstream id (The value is 0 if there if no downstream reach)
     float *m_reachDownStream;
-    /// upstream id (The value is -1 if there if no upstream reach)
-    vector <vector<int>> m_reachUpStream;
+    /// Reach layers according to \a LayeringMethod
+    map<int, vector<int> > m_reachLayers;
 
-    // id the reaches
-    vector<int> m_reachId;
+    /*!
+     * Index of upstream Ids (The value is -1 if there if no upstream reach)
+     * m_reachUpStream.size() = N+1
+     * m_reachUpStream[1] = [2, 3] means Reach 2 and Reach 3 flow into Reach 1.
+     */
+    vector<vector<int> > m_reachUpStream;
 
     /* point source operations
      * key: unique index, BMPID * 100000 + subScenarioID
@@ -154,21 +155,14 @@ private:
     float *m_rchDeg;
     float *m_rchDep;
     float *m_flplainDep;
-    map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs(void);
+    void initialOutputs();
 
-    void PointSourceLoading(void);
+    void PointSourceLoading();
 
     void SedChannelRouting(int i);
 
     void doChannelDowncuttingAndWidening(int id);
 };
-///// inverse of flood plain side slope of channel, is a fixed number:  1/slope
-//float m_sideslopeFloodplain;
-///// inverse of side slope of main channel, is a fixed number:  1/slope
-//float m_sideslopeMain;
-/// reach storage (m3) at time t
-//float* m_chStorage;
-/// Channel sediment balance in a text format for each reach and at each time step
-//float** m_T_CHSB;
+
+#endif /* SEIMS_MODULE_SEDR_SBAGNOLD_H */

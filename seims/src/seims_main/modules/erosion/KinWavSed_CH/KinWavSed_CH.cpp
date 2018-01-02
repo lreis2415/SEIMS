@@ -3,41 +3,35 @@
 
 using namespace std;
 
-KinWavSed_CH::KinWavSed_CH(void) : m_CellWith(-1),
+KinWavSed_CH::KinWavSed_CH() : m_CellWith(-1),
                                    m_nCells(-1),
-                                   m_TimeStep(NODATA_VALUE), m_layeringMethod(0.f),
+                                   m_TimeStep(NODATA_VALUE), m_layeringMethod(UP_DOWN),
                                    m_chNumber(-1),
-                                   m_Slope(NULL),
-                                   m_chWidth(NULL),
-                                   m_ChannelWH(NULL),
-                                   m_flowInIndex(NULL),
-                                   m_flowOutIndex(NULL),
-                                   m_reachId(NULL),
-                                   m_streamOrder(NULL),
-                                   m_sourceCellIds(NULL),
-                                   m_streamLink(NULL),
-                                   m_ChQkin(NULL),
-                                   m_ChVol(NULL),
-                                   m_Qsn(NULL),
-                                   m_CHDETFlow(NULL),
-                                   m_CHSedDep(NULL),
-                                   m_CHSed_kg(NULL),
+                                   m_Slope(nullptr),
+                                   m_chWidth(nullptr),
+                                   m_ChannelWH(nullptr),
+                                   m_flowInIndex(nullptr),
+                                   m_flowOutIndex(nullptr),
+                                   m_streamOrder(nullptr),
+                                   m_sourceCellIds(nullptr),
+                                   m_streamLink(nullptr),
+                                   m_ChQkin(nullptr),
+                                   m_ChVol(nullptr),
+                                   m_Qsn(nullptr),
+                                   m_CHDETFlow(nullptr),
+                                   m_CHSedDep(nullptr),
+                                   m_CHSed_kg(nullptr),
                                    m_ChDetCo(NODATA_VALUE),
-                                   m_USLE_K(NULL),
-                                   m_SedToChannel(NULL),
-                                   m_ChV(NULL),
-                                   m_ChManningN(NULL),
+                                   m_USLE_K(nullptr),
+                                   m_SedToChannel(nullptr),
+                                   m_ChV(nullptr),
+                                   m_ChManningN(nullptr),
                                    m_ChTcCo(NODATA_VALUE),
-                                   m_CHSedConc(NULL),
-                                   m_depCh(NULL) {//m_SedSubbasin(NULL), deprecated by LJ
+                                   m_CHSedConc(nullptr),
+                                   m_depCh(nullptr) {//m_SedSubbasin(nullptr), deprecated by LJ
 }
 
-KinWavSed_CH::~KinWavSed_CH(void) {
-    Release1DArray(m_reachId);
-    Release1DArray(m_streamOrder);
-    Release1DArray(m_reachDownStream);
-    Release1DArray(m_ChManningN);
-    
+KinWavSed_CH::~KinWavSed_CH() {
     Release2DArray(m_chNumber, m_CHDETFlow);
     Release2DArray(m_chNumber, m_CHSedDep);
     Release2DArray(m_chNumber, m_CHSed_kg);
@@ -62,7 +56,7 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
     else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
-    else if (StringMatch(s, Tag_LayeringMethod)) {m_layeringMethod = data; }
+    else if (StringMatch(s, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(data); }
     else {
         throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s + " does not exist in current module.\n");
     }
@@ -146,39 +140,17 @@ void KinWavSed_CH::Set2DData(const char *key, int nrows, int ncols, float **data
 }
 
 void KinWavSed_CH::SetReaches(clsReaches *reaches) {
-    assert(NULL != reaches);
+    if (nullptr == reaches) {
+        throw ModelException(MID_KINWAVSED_CH, "SetReaches", "The reaches input can not to be NULL.");
+    }
     m_chNumber = reaches->GetReachNumber();
-    vector<int> reachIDVec = reaches->GetReachIDs();
-    Initialize1DArray(m_chNumber, m_reachId, 0.f);
-    Initialize1DArray(m_chNumber, m_streamOrder, 0.f);
-    Initialize1DArray(m_chNumber, m_reachDownStream, 0.f);
-    Initialize1DArray(m_chNumber, m_ChManningN, 0.f);
-    for (int i = 0; i < reachIDVec.size(); ++i) {
-        clsReach* tmpReach = reaches->GetReachByID(reachIDVec[i]);
-        m_reachId[i] = tmpReach->GetSubbasinID();
-        if (FloatEqual(m_layeringMethod, 0.f)) { // UP_DOWN
-            m_streamOrder[i] = tmpReach->GetUpDownOrder();
-        }
-        else{
-            m_streamOrder[i] = tmpReach->GetDownUpOrder();
-        }
-        m_reachDownStream[i] = tmpReach->GetDownStream();
-        m_ChManningN[i] = tmpReach->GetManning();
-    }
-    for (int i = 0; i < m_chNumber; i++) {
-        m_idToIndex[(int)m_reachId[i]] = i;
-    }
-    m_reachUpStream.resize(m_chNumber);
-    for (int i = 0; i < m_chNumber; i++) {
-        int downStreamId = int(m_reachDownStream[i]);
-        if (downStreamId <= 0) {
-            continue;
-        }
-        if (m_idToIndex.find(downStreamId) != m_idToIndex.end()) {
-            int downStreamIndex = m_idToIndex.at(downStreamId);
-            m_reachUpStream[downStreamIndex].push_back(i);
-        }
-    }
+
+    if (nullptr == m_reachDownStream) reaches->GetReachesSingleProperty(REACH_DOWNSTREAM, &m_reachDownStream);
+    if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
+    if (nullptr == m_ChManningN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_ChManningN);
+
+    m_reachUpStream = reaches->GetUpStreamIDs();
+    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
 }
 
 void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
@@ -195,7 +167,7 @@ void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***d
 }
 
 bool KinWavSed_CH::CheckInputData() {
-    if (m_flowInIndex == NULL) {
+    if (nullptr == m_flowInIndex) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The parameter: flow in index has not been set.");
         return false;
     }
@@ -229,40 +201,40 @@ bool KinWavSed_CH::CheckInputData() {
                              "You have not set calibration coefficient of channel flow detachment.");
         return false;
     }
-    if (m_Slope == NULL) {
+    if (nullptr == m_Slope) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The slope��%��can not be NULL.");
         return false;
     }
-    if (m_ChManningN == NULL) {
+    if (nullptr == m_ChManningN) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "Manning N can not be NULL.");
         return false;
     }
-    if (m_chWidth == NULL) {
+    if (nullptr == m_chWidth) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "Channel width can not be NULL.");
         return false;
     }
-    if (m_ChannelWH == NULL) {
+    if (nullptr == m_ChannelWH) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The channel water depth can not be NULL.");
         return false;
     }
-    if (m_ChQkin == NULL) {
+    if (nullptr == m_ChQkin) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The channel flow can not be NULL.");
         return false;
     }
-    if (m_streamLink == NULL) {
+    if (nullptr == m_streamLink) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The stream link can not be NULL.");
         return false;
     }
-    if (m_flowOutIndex == NULL) {
+    if (nullptr == m_flowOutIndex) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData", "The flow out index can not be NULL.");
         return false;
     }
-    if (m_streamOrder == NULL) {
+    if (nullptr == m_streamOrder) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
                              "The stream order of reach parameter can not be NULL.");
         return false;
     }
-    if (m_reachDownStream == NULL) {
+    if (nullptr == m_reachDownStream) {
         throw ModelException(MID_KINWAVSED_CH, "CheckInputData",
                              "The downstream of reach in reach parameter can not be NULL.");
         return false;
@@ -290,7 +262,7 @@ bool KinWavSed_CH::CheckInputSize(const char *key, int n) {
 }
 
 void KinWavSed_CH::initial() {
-    if (m_depCh == NULL) {
+    if (nullptr == m_depCh) {
         //test output
         m_depCh = new float[m_nCells];
         m_detCH = new float[m_nCells];
@@ -316,7 +288,7 @@ void KinWavSed_CH::initial() {
                                  "The channel number of the input can not be less than zero.");
         }
 
-        if (m_CHSed_kg == NULL) {
+        if (nullptr == m_CHSed_kg) {
             // find source cells the reaches
             m_sourceCellIds = new int[m_chNumber];
             for (int i = 0; i < m_chNumber; ++i) {
@@ -682,35 +654,12 @@ void KinWavSed_CH::ChannelflowSedRouting(int iReach, int iCell, int id) {
     m_CHSedConc[iReach][iCell] = concentration;
 }
 
-//void KinWavSed_CH::setNotAvailableInput()
-//{
-//	if(m_nCells <= 0)
-//	{
-//		throw ModelException(MID_KINWAVSED_CH,"CheckInputData","The cell number can not be less than zero.");
-//		//exit(-1);
-//	}
-//	if(m_COH == NULL)
-//	{
-//		m_COH = new float[m_nCells];
-//		m_D50 = new float[m_nCells];
-//
-//		for(int i=0; i<m_nCells; i++)
-//		{
-//			m_COH[i] = 0.99f;     //1 is no erosion
-//			m_D50[i] = 50;     //240;   //32-300
-//
-//		}
-//	}
-//}
-
 int KinWavSed_CH::Execute() {
     CheckInputData();
 
     initial();
     //StatusMsg("executing KinWavSed_CH");
-    map < int, vector < int > > ::iterator
-    it;
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = (int) it->second.size();

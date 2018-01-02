@@ -5,7 +5,8 @@
  * \date May 2017
  * \revised LJ - Replace Tag_ReachParameter by VAR_REACH_PARAM
  */
-#pragma once
+#ifndef SEIMS_MODULE_CH_DW_H
+#define SEIMS_MODULE_CH_DW_H
 
 #include "SimulationModule.h"
 
@@ -24,12 +25,12 @@ using namespace std;
 class DiffusiveWave : public SimulationModule {
 public:
     //! Constructor
-    DiffusiveWave(void);
+    DiffusiveWave();
 
     //! Destructor
-    ~DiffusiveWave(void);
+    ~DiffusiveWave();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetReaches(clsReaches *reaches);
 
@@ -49,19 +50,19 @@ public:
 
     bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
 private:
     void ChannelFlow(int iReach, int iCell, int id);
 
-    void initialOutputs(void);
+    void initialOutputs();
 
     ///< Valid cells number
     int m_nCells;
     ///< cell width of the grid (m)
     float m_CellWidth;
     ///< layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    float m_layeringMethod;
+    LayeringMethod m_layeringMethod;
     ///< time step (second)
     float m_dt;
     ///< slope (percent)
@@ -72,8 +73,6 @@ private:
     float *m_elevation;
     /// stream link
     float *m_streamLink;
-    /// manning scaling factor
-    float m_manningScalingFactor;
     /**
     *	@brief flow direction by the rule of TauDEM
     *   4  3  2
@@ -137,11 +136,6 @@ private:
     vector <vector<int>> m_reachUpStream;
     /// reach manning's n
     float *m_reachN;
-    /// stream order
-    float *m_streamOrder;
-
-    // id the reaches
-    float *m_reachId;
     /// map from subbasin id to index of the array
     map<int, int> m_idToIndex;
 
@@ -159,3 +153,4 @@ private:
     int *m_sourceCellIds;
 };
 
+#endif /* SEIMS_MODULE_CH_DW_H */

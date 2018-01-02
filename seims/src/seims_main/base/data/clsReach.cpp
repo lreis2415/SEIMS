@@ -2,169 +2,49 @@
 
 using namespace std;
 
+const int REACH_PARAM_NUM = 43;
+const char *REACH_PARAM_NAME[] = {REACH_SUBBASIN, REACH_NUMCELLS, REACH_GROUP,              // 0-2
+                                  REACH_GROUPDIVIDED, REACH_KMETIS, REACH_PMETIS,           // 3-5
+                                  REACH_DOWNSTREAM, REACH_UPDOWN_ORDER, REACH_DOWNUP_ORDER, // 6-8
+                                  REACH_WIDTH, REACH_SIDESLP, REACH_LENGTH, REACH_DEPTH,    // 9-12
+                                  REACH_V0, REACH_AREA, REACH_MANNING, REACH_SLOPE,         // 13-16
+                                  REACH_KBANK, REACH_KBED, REACH_COVER,
+                                  REACH_EROD,         // 17-20
+                                  REACH_BC1, REACH_BC2, REACH_BC3, REACH_BC4,               // 21-24
+                                  REACH_RS1, REACH_RS2, REACH_RS3, REACH_RS4, REACH_RS5,    // 25-29
+                                  REACH_RK1, REACH_RK2, REACH_RK3, REACH_RK4,               // 30-33
+                                  REACH_DISOX, REACH_BOD, REACH_ALGAE,                      // 34-36
+                                  REACH_ORGN, REACH_NH4, REACH_NO2, REACH_NO3,              // 37-40
+                                  REACH_ORGP, REACH_SOLP, REACH_GWNO3, REACH_GWSOLP};       // 41-44
+
 clsReach::clsReach(const bson_t *&bsonTable) {
     bson_iter_t iterator;
-    /// reset default values
-    Reset();
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_SUBBASIN)) {
-        GetNumericFromBsonIterator(&iterator, this->SubbasinID);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_DOWNSTREAM)) {
-        GetNumericFromBsonIterator(&iterator, this->DownStream);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_UPDOWN_ORDER)) {
-        GetNumericFromBsonIterator(&iterator, this->UpDownOrder);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_DOWNUP_ORDER)) {
-        GetNumericFromBsonIterator(&iterator, this->DownUpOrder);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_WIDTH)) {
-        GetNumericFromBsonIterator(&iterator, this->Width);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_SIDESLP)) {
-        GetNumericFromBsonIterator(&iterator, this->SideSlope);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_LENGTH)) {
-        GetNumericFromBsonIterator(&iterator, this->Length);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_DEPTH)) {
-        GetNumericFromBsonIterator(&iterator, this->Depth);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_V0)) {
-        GetNumericFromBsonIterator(&iterator, this->V0);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_AREA)) {
-        GetNumericFromBsonIterator(&iterator, this->Area);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_MANNING)) {
-        GetNumericFromBsonIterator(&iterator, this->Manning);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_SLOPE)) {
-        GetNumericFromBsonIterator(&iterator, this->Slope);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_GROUP)) {
-        GetNumericFromBsonIterator(&iterator, this->Group);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_GROUPDIVIDED)) {
-        GetNumericFromBsonIterator(&iterator, this->GroupDivided);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_NUMCELLS)) {
-        GetNumericFromBsonIterator(&iterator, this->NumCells);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_BC1)) {
-        GetNumericFromBsonIterator(&iterator, this->bc1);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_BC2)) {
-        GetNumericFromBsonIterator(&iterator, this->bc2);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_BC3)) {
-        GetNumericFromBsonIterator(&iterator, this->bc3);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_BC4)) {
-        GetNumericFromBsonIterator(&iterator, this->bc4);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RS1)) {
-        GetNumericFromBsonIterator(&iterator, this->rs1);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RS2)) {
-        GetNumericFromBsonIterator(&iterator, this->rs2);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RS3)) {
-        GetNumericFromBsonIterator(&iterator, this->rs3);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RS4)) {
-        GetNumericFromBsonIterator(&iterator, this->rs4);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RS5)) {
-        GetNumericFromBsonIterator(&iterator, this->rs5);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RK1)) {
-        GetNumericFromBsonIterator(&iterator, this->rk1);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RK2)) {
-        GetNumericFromBsonIterator(&iterator, this->rk2);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RK3)) {
-        GetNumericFromBsonIterator(&iterator, this->rk3);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_RK4)) {
-        GetNumericFromBsonIterator(&iterator, this->rk4);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_COVER)) {
-        GetNumericFromBsonIterator(&iterator, this->cover);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_EROD)) {
-        GetNumericFromBsonIterator(&iterator, this->erod);
-    }
-    /// nutrient related
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_DISOX)) {
-        GetNumericFromBsonIterator(&iterator, this->disox);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_BOD)) {
-        GetNumericFromBsonIterator(&iterator, this->cod);
-        if (this->cod <= 1.e-6f) this->cod = 1.e-6f;
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_ALGAE)) {
-        GetNumericFromBsonIterator(&iterator, this->algae);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_NO3)) {
-        GetNumericFromBsonIterator(&iterator, this->no3);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_NO2)) {
-        GetNumericFromBsonIterator(&iterator, this->no2);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_NH4)) {
-        GetNumericFromBsonIterator(&iterator, this->nh4);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_ORGN)) {
-        GetNumericFromBsonIterator(&iterator, this->orgn);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_ORGP)) {
-        GetNumericFromBsonIterator(&iterator, this->orgp);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_SOLP)) {
-        GetNumericFromBsonIterator(&iterator, this->solp);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_GWNO3)) {
-        GetNumericFromBsonIterator(&iterator, this->gwno3);
-    }
-    if (bson_iter_init_find(&iterator, bsonTable, REACH_GWSOLP)) {
-        GetNumericFromBsonIterator(&iterator, this->gwsolp);
+    for (int i = 0; i < REACH_PARAM_NUM; i++) {
+        float tmp_param;
+        if (bson_iter_init_find(&iterator, bsonTable, REACH_PARAM_NAME[i])) {
+            if (GetNumericFromBsonIterator(&iterator, tmp_param)) {
+                if (REACH_PARAM_NAME[i] == REACH_BOD && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
+                m_paramMap.insert(make_pair(REACH_PARAM_NAME[i], tmp_param));
+            }
+        }
     }
 }
 
-void clsReach::Reset() {
-    Area = NODATA_VALUE;
-    Depth = NODATA_VALUE;
-    DownStream = -1;
-    DownUpOrder = -1;
-    Group = -1;
-    GroupDivided = -1;
-    Length = NODATA_VALUE;
-    Manning = NODATA_VALUE;
-    NumCells = -1;
-    Slope = NODATA_VALUE;
-    SubbasinID = -1;
-    UpDownOrder = -1;
-    V0 = NODATA_VALUE;
-    Width = NODATA_VALUE;
-    SideSlope = 2.f;
-    bc1 = 0.55f;
-    bc2 = 1.1f;
-    bc3 = 0.21f;
-    bc4 = 0.35f;
-    rk1 = 1.71f;
-    rk2 = 50.f;
-    rk3 = 0.36f;
-    rk4 = 2.f;
-    rs1 = 1.f;
-    rs2 = 0.05f;
-    rs3 = 0.5f;
-    rs4 = 0.05f;
-    rs5 = 0.05f;
+float clsReach::Get(const string &key) {
+    auto it = m_paramMap.find(key);
+    if (it != m_paramMap.end()) {
+        return it->second;
+    } else { return NODATA_VALUE; }
 }
 
-clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName) {
+void clsReach::Set(const string &key, float value) {
+    auto it = m_paramMap.find(key);
+    if (it != m_paramMap.end()) {
+        m_paramMap.at(key) = value;
+    } else { m_paramMap.insert(make_pair(key, NODATA_VALUE)); }
+}
+
+clsReaches::clsReaches(MongoClient *conn, string &dbName, string collectionName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     bson_t *child2 = bson_new();
@@ -183,15 +63,23 @@ clsReaches::clsReaches(MongoClient* conn, string &dbName, string collectionName)
         throw ModelException("clsReaches", "ReadAllReachInfo",
                              "Failed to get document number of collection: " + collectionName + ".\n");
     }
-    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    this->m_reachUpStream.resize(this->m_reachNum + 1);
+
+    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
     const bson_t *bsonTable;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
         clsReach *curReach = new clsReach(bsonTable);
-        m_reachesMap[curReach->GetSubbasinID()] = curReach;
-        this->m_reachIDs.push_back(curReach->GetSubbasinID());
+        int subID = (int) curReach->Get(REACH_SUBBASIN);
+        this->m_reachesMap.insert(make_pair(subID, curReach));
     }
-    vector<int>(m_reachIDs).swap(m_reachIDs);
-    // m_reachIDs.shrink_to_fit();
+    // In SEIMS, reach ID is the same as Index of array and vector.
+    for (int i = 1; i <= m_reachNum; i++) {
+        int downStreamId = (int) (m_reachesMap.at(i)->Get(REACH_DOWNSTREAM));
+        if (downStreamId <= 0 || downStreamId > m_reachNum) continue;
+        m_reachUpStream[downStreamId].push_back(i);
+    }
+
+    m_reachLayers.clear();
 
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
@@ -201,12 +89,70 @@ clsReaches::~clsReaches() {
     StatusMessage("Release clsReach...");
     if (!m_reachesMap.empty()) {
         for (auto iter = m_reachesMap.begin(); iter != m_reachesMap.end();) {
-            if (iter->second != NULL) {
+            if (nullptr != iter->second) {
                 delete iter->second;
-                iter->second = NULL;
+                iter->second = nullptr;
             }
             m_reachesMap.erase(iter++);
         }
         m_reachesMap.clear();
+    }
+    if (!m_reachesPropMap.empty()) {
+        for (auto iter = m_reachesPropMap.begin(); iter != m_reachesPropMap.end();) {
+            if (nullptr != iter->second) {
+                Release1DArray(iter->second);
+            }
+            m_reachesPropMap.erase(iter++);
+        }
+        m_reachesPropMap.clear();
+    }
+}
+
+void clsReaches::GetReachesSingleProperty(string key, float **data) {
+    auto iter = m_reachesPropMap.find(key);
+    if (iter == m_reachesPropMap.end()) {
+        float *values = nullptr;
+        Initialize1DArray(m_reachNum + 1, values, 0.f);
+        values[0] = m_reachNum;
+        for (auto it = m_reachesMap.begin(); it != m_reachesMap.end(); it++) {
+            values[it->first] = it->second->Get(key);
+        }
+        *data = values;
+    } else {
+        *data = iter->second;
+    }
+}
+
+map<int, vector<int> > clsReaches::GetReachLayers(LayeringMethod mtd /* = UP_DOWN */) {
+    if (!m_reachLayers.empty()) { return m_reachLayers; }
+    for (int i = 1; i <= m_reachNum; i++) {
+        int order = (int) (m_reachesMap.at(i)->Get(REACH_UPDOWN_ORDER));
+        if (mtd == DOWN_UP) order = (int) (m_reachesMap.at(i)->Get(REACH_DOWNUP_ORDER));
+        if (m_reachLayers.find(order) == m_reachLayers.end()) {
+            vector<int> tmp;
+            tmp.push_back(i);
+            m_reachLayers.insert(make_pair(order, tmp));
+        } else { m_reachLayers[order].push_back(i); }
+    }
+    return m_reachLayers;
+};
+
+void clsReaches::Update(const map<string, ParamInfo *> &caliparams_map) {
+    for (int i = 0; i < REACH_PARAM_NUM; i++) {
+        auto it = caliparams_map.find(REACH_PARAM_NAME[i]);
+        if (it != caliparams_map.end()) {
+            ParamInfo *tmpParam = it->second;
+            if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && FloatEqual(tmpParam->Impact, 1.f)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && FloatEqual(tmpParam->Impact, 0.f)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && FloatEqual(tmpParam->Impact, NODATA_VALUE))) {
+                continue;
+            }
+            for (auto it2 = m_reachesMap.begin(); it2 != m_reachesMap.end(); it2++) {
+                float pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
+                if (FloatEqual(pre_value, NODATA_VALUE)) continue;
+                float new_value = it->second->GetAdjustedValue(pre_value);
+                it2->second->Set(REACH_PARAM_NAME[i], new_value);
+            }
+        }
     }
 }
