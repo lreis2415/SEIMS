@@ -201,8 +201,9 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     plt.ylabel('Total number of simulated individuals', fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
-    fpath = ws + os.sep + file_name + '_popsize.png'
-    plt.savefig(fpath, dpi=300)
+    fpath = ws + os.sep + file_name + '_popsize'
+    plt.savefig(fpath + '.png', dpi=300)
+    plt.savefig(fpath + '.eps', dpi=300)
     print ('%s saved!' % fpath)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
@@ -243,8 +244,9 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
             if len(yname) >= 4 and curylim[1] > yname[3]:
                 ax.set_ylim(top=yname[3])
         plt.tight_layout()
-        fpath = ws + os.sep + method + '-Pareto.png'
-        plt.savefig(fpath, dpi=300)
+        fpath = ws + os.sep + method + '-Pareto'
+        plt.savefig(fpath + '.png', dpi=300)
+        plt.savefig(fpath + '.eps', dpi=300)
         print ('%s saved!' % fpath)
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
@@ -295,8 +297,9 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
 
         plt.legend(fontsize=24, loc=4)  # loc 2: upper left, 4: lower right
         plt.tight_layout()
-        fpath = ws + os.sep + file_name + '-gen' + str(gen) + '.png'
-        plt.savefig(fpath, dpi=300)
+        fpath = ws + os.sep + file_name + '-gen' + str(gen)
+        plt.savefig(fpath + '.png', dpi=300)
+        plt.savefig(fpath + '.eps', dpi=300)
         print ('%s saved!' % fpath)
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
@@ -347,8 +350,9 @@ def plot_hypervolume_by_method(method_paths, ws):
     plt.ylabel('Hypervolume index', fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
-    fpath = ws + os.sep + 'hypervolume.png'
-    plt.savefig(fpath, dpi=300)
+    fpath = ws + os.sep + 'hypervolume'
+    plt.savefig(fpath + '.png', dpi=300)
+    plt.savefig(fpath + '.eps', dpi=300)
     print ('%s saved!' % fpath)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
