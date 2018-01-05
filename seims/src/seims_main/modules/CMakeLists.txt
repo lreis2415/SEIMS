@@ -1,6 +1,6 @@
 MESSAGE(STATUS "      Compiling SEIMS_subdir: modules...")
 ADD_SUBDIRECTORY(./climate)
-ADD_SUBDIRECTORY(./hydrology)
+#ADD_SUBDIRECTORY(./hydrology)
 ADD_SUBDIRECTORY(./hydrology_longterm)
 ADD_SUBDIRECTORY(./erosion)
 ADD_SUBDIRECTORY(./nutrient)
