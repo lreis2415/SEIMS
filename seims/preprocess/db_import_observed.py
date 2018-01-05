@@ -10,13 +10,15 @@
 """
 import time
 from datetime import timedelta
+
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import StringClass, FileClass
+
 from db_mongodb import MongoQuery
 from db_mongodb import MongoUtil
 from hydro_climate_utility import HydroClimateUtilClass
 from text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
 from utility import read_data_items_from_txt
-from pygeoc.raster import RasterUtilClass
-from pygeoc.utils import StringClass, FileClass
 
 
 class ImportObservedData(object):
@@ -117,7 +119,11 @@ class ImportObservedData(object):
                                                                           maindb)
                     if not matched:
                         break
-                    cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cid is not None)
+                    cur_subbsn_id_str = ''
+                    if len(cur_sids) == 1:  # if only one subbasin ID, store integer
+                        cur_subbsn_id_str = cur_sids[0]
+                    else:
+                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cur_sids is None)
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
