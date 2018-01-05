@@ -36,13 +36,24 @@ class PSAConfig(object):
         self.model_dir = ''
         self.seims_nthread = 1
         self.seims_lyrmethod = 0
-        if 'SEIMS_Model' in cf.sections():
-            self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
-            self.model_dir = cf.get('SEIMS_Model', 'model_dir')
-            self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
-            self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
-        else:
+        if 'SEIMS_Model' not in cf.sections():
             raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
+        self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
+        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+        self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
+        self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
+
+        tstart = cf.get('SEIMS_Model', 'time_start')
+        tend = cf.get('SEIMS_Model', 'time_end')
+        try:
+            # UTCTIME
+            self.time_start = StringClass.get_datetime(tstart)
+            self.time_end = StringClass.get_datetime(tend)
+        except ValueError:
+            raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
+        if self.time_start >= self.time_end:
+            raise ValueError("Wrong time setted in [OPTIONAL_PARAMETERS]!")
+
         if not (FileClass.is_dir_exists(self.model_dir)
                 and FileClass.is_dir_exists(self.seims_bin)):
             raise IOError('Please Check Directories defined in [PATH]. '

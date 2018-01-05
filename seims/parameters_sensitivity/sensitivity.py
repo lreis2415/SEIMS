@@ -7,6 +7,7 @@
 import os
 import sys
 import pickle
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -41,7 +42,6 @@ class Sensitivity(object):
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
-        self.output_nameIndex = dict()
         self.output_values = None
         self.morris_si = dict()
 
@@ -148,9 +148,6 @@ class Sensitivity(object):
     def evaluate(self):
         """Run SEIMS for objective output variables, and write out.
         """
-        # TODO, need to think about a elegant way to define and calculate ouput variables.
-        self.output_nameIndex = {'Q': [0, ' ($m^3/s$)'], 'SED': [1, ' ($10^3 ton$)']}
-
         cali_seqs = range(self.run_count)
         model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
                           'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
@@ -163,7 +160,7 @@ class Sensitivity(object):
             self.output_values = list(futures.map(evaluate_model_response, cali_models))
         except ImportError or ImportWarning:
             # serial
-            self.output_values = map(evaluate_model_response, cali_models)
+            self.output_values = list(map(evaluate_model_response, cali_models))
         # print (self.output_values)
         # Save as pickle
         pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'output_values.pickle', 'wb')
@@ -175,19 +172,27 @@ class Sensitivity(object):
            hence we should calculate each of them separately.
         """
         out_values = numpy.array(self.output_values)
-        for k, v in self.output_nameIndex.iteritems():
-            print (k)
+
+        # TODO, need to find an elegant way to define the name and unit of output variables.
+        output_name = ['meanQ', 'meanSED',
+                       'NSE-Q', 'R2-Q', 'RMSE-Q', 'PBIAS-Q', 'RSR-Q',
+                       'NSE-SED', 'R2-SED', 'RMSE-SED', 'PBIAS-SED', 'RSR-SED',
+                       'meanSOER']
+        output_unit = [' ($m^3/s$)', ' (kg)', '', '', '', '', '', '', '', '', '', '', ' (kg)']
+        for i, v in enumerate(output_name):
+            unit = output_unit[i]
+            print ()
             tmp_Si = morris_alz(self.param_defs,
                                 self.param_values,
-                                out_values[:, v[0]],
+                                out_values[:, i],
                                 conf_level=0.95, print_to_console=True,
                                 num_levels=self.cfg.num_levels,
                                 grid_jump=self.cfg.grid_jump)
-            self.morris_si[k] = tmp_Si
+            self.morris_si[v] = tmp_Si
             fig, (ax1, ax2) = plt.subplots(1, 2)
-            horizontal_bar_plot(ax1, tmp_Si, {}, sortby='mu_star', unit=v[1])
-            covariance_plot(ax2, tmp_Si, {}, unit=v[1])
-            plt.savefig('%s/mu_star_%s.png' % (self.cfg.psa_outpath, k), dpi=300)
+            horizontal_bar_plot(ax1, tmp_Si, {}, sortby='mu_star', unit=unit)
+            covariance_plot(ax2, tmp_Si, {}, unit=unit)
+            plt.savefig('%s/mu_star_%s.png' % (self.cfg.psa_outpath, v), dpi=300)
             # plt.show()
             # close current plot in case of 'figure.max_open_warning'
             plt.cla()
