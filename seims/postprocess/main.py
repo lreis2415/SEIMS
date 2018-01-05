@@ -13,7 +13,7 @@ def main():
     """Main workflow."""
     cfg = parse_ini_configuration()
 
-    TimeSeriesPlots(cfg).workflow()
+    TimeSeriesPlots(cfg).generate_plots()
 
 
 if __name__ == "__main__":
