@@ -15,13 +15,11 @@ import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
-import matplotlib.pyplot as plt
 
 import numpy
 from pygeoc.utils import get_config_parser
 from SALib.sample.morris import sample as morris_spl
 from SALib.analyze.morris import analyze as morris_alz
-from SALib.plotting.morris import horizontal_bar_plot, covariance_plot, sample_histograms
 
 from preprocess.db_mongodb import ConnectMongoDB
 from config import PSAConfig
@@ -123,16 +121,17 @@ class Sensitivity(object):
                                        local_optimization=self.cfg.local_opt)
         self.run_count = len(self.param_values)
         # Save as pickle
-        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'param_values.pickle', 'wb')
-        pickle.dump(self.param_values, pickle_param_defs)
-        # Plots a set of subplots of histograms of the input sample
-        histfig = plt.figure()
-        sample_histograms(histfig, self.param_values, self.param_defs, {'color': 'y'})
-        plt.savefig(self.cfg.psa_outpath + os.sep + 'samples_histgram.png', dpi=300)
-        # close current plot in case of 'figure.max_open_warning'
-        plt.cla()
-        plt.clf()
-        plt.close()
+        with open(self.cfg.psa_outpath + os.sep + 'param_values.pickle', 'wb') as f:
+            pickle.dump(self.param_values, f)
+        # TODO, plot in postprocess
+        # # Plots a set of subplots of histograms of the input sample
+        # histfig = plt.figure()
+        # sample_histograms(histfig, self.param_values, self.param_defs, {'color': 'y'})
+        # plt.savefig(self.cfg.psa_outpath + os.sep + 'samples_histgram.png', dpi=300)
+        # # close current plot in case of 'figure.max_open_warning'
+        # plt.cla()
+        # plt.clf()
+        # plt.close()
 
     def write_param_values_to_mongodb(self):
         # update Parameters collection in MongoDB
@@ -163,8 +162,8 @@ class Sensitivity(object):
             self.output_values = list(map(evaluate_model_response, cali_models))
         # print (self.output_values)
         # Save as pickle
-        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'output_values.pickle', 'wb')
-        pickle.dump(self.output_values, pickle_param_defs)
+        with open(self.cfg.psa_outpath + os.sep + 'output_values.pickle', 'wb') as f:
+            pickle.dump(self.output_values, f)
 
     def calc_elementary_effects(self):
         """Calculate Morris elementary effects.
@@ -189,16 +188,19 @@ class Sensitivity(object):
                                 num_levels=self.cfg.num_levels,
                                 grid_jump=self.cfg.grid_jump)
             self.morris_si[v] = tmp_Si
-            fig, (ax1, ax2) = plt.subplots(1, 2)
-            horizontal_bar_plot(ax1, tmp_Si, {}, sortby='mu_star', unit=unit)
-            covariance_plot(ax2, tmp_Si, {}, unit=unit)
-            plt.savefig('%s/mu_star_%s.png' % (self.cfg.psa_outpath, v), dpi=300)
-            # plt.show()
-            # close current plot in case of 'figure.max_open_warning'
-            plt.cla()
-            plt.clf()
-            plt.close()
+            # fig, (ax1, ax2) = plt.subplots(1, 2)
+            # horizontal_bar_plot(ax1, tmp_Si, {}, sortby='mu_star', unit=unit)
+            # covariance_plot(ax2, tmp_Si, {}, unit=unit)
+            # plt.savefig('%s/mu_star_%s.png' % (self.cfg.psa_outpath, v), dpi=300)
+            # # plt.show()
+            # # close current plot in case of 'figure.max_open_warning'
+            # plt.cla()
+            # plt.clf()
+            # plt.close()
         print (self.morris_si)
+        # Save as pickle
+        with open(self.cfg.psa_outpath + os.sep + 'morris_si.pickle', 'wb') as f:
+            pickle.dump(self.morris_si, f)
 
 
 if __name__ == '__main__':
