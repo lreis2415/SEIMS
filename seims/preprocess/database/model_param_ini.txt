@@ -6,8 +6,8 @@ Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu
 Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,RC,350,300
 Climate,Cond_max,maximum stomatal conductance,m/s,PET_PM,0.005,0,NC,0,0
 Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
-Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,RC,1,0.01
-Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
+Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
+Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,AC,0.0032,0.0019
 Climate,K_pet,Correction factor for PET,none,ALL,1,0,AC,1.3,0.7
 Climate,Weight_P,Weight Coefficient of Precipitation,none,ALL,-9999,0,NC,-9999,-9999
 Climate,Weight_PET,Weight Coefficient of Potential Evapotranspiration,none,ALL,-9999,0,NC,-9999,-9999
@@ -16,7 +16,6 @@ Discharge,a_bnk,bank flow recession constant,none,ALL,0.2,0,AC,1,0
 Discharge,b_bnk,bank storage loss coefficient,none,ALL,0.05,0,AC,0.2,0.02
 Discharge,Base_ex,Baseflow exponent,none,GW_RSVR,1,0,AC,4,1
 Discharge,bnk0,Initial bank storage,m3/m,ALL,0,0,AC,1,0
-Discharge,Ch_iuh,Channel flow IUH,none,ChannelRouting,-9999,0,NC,-9999,-9999
 Discharge,chs0,initial channel storage,m3/m,All,0,0,AC,100,0
 Discharge,chs0_perc,initial percentage of channel depth,none,ALL,0.05,0,AC,1,0
 Discharge,df_coef,Deep percolation coefficient,mm,GW_RSVR,0,0,AC,1,0
@@ -28,11 +27,6 @@ Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001
 Discharge,MSK_co1,Weighting factor of bankful flow,none,ChannelRouting,0.7,0,AC,1,0
 Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.5,0
-Discharge,n_iter,maximum number of iteration,none,ChannelRouting,10,0,AC,30,3
-Discharge,n_iter_rs,Maximum number of reservoir routing iteration,none,ALL,10,0,AC,30,3
-Discharge,Ol_iuh,Overland flow IUH,none,ALL,-9999,0,NC,-9999,-9999
-Discharge,q_iter,Thrashold of storage change rate,m3/s,ChannelRouting,0.01,0,AC,0.1,0.001
-Discharge,s_iter,Threshold of reservoir storage change rate,m3,ALL,50,0,AC,1000,10
 Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
 Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0
@@ -110,7 +104,7 @@ Nutrient,rs4,Rate coefficient for organic N settling in the reach at 20 deg C,1/
 Nutrient,rs5,Organic phosphorus settling rate in the reach at 20 deg C,1/day,NutCHRout,0.05,1,RC,0.1,0.001
 Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1,1,RC,1,0
 Nutrient,tfact,Fraction of solar radiation that is photosynthetically active,none,NutCHRout,0.3,1,RC,1,0
-PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,0,0,AC,2,0
+PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,2,0,AC,2,0
 PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,BIO_EPIC,0,1,AC,24,0
 PlantGrowth,epco,plant water uptake compensation factor,None,BIO_EPIC,1,1,RC,1,0.01
 PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,BIO_EPIC,20,1,RC,100,0
@@ -126,14 +120,13 @@ Sediment,adj_pkr,peak rate adjustment factor,none,MUSLE_I30,1,0,AC,1,0.1
 Sediment,ccoe,calibration coefficient of overland flow detachment erosion,none,KinWavSed_OL,0.05,1,RC,100,0.001
 Sediment,ChDetCo,calibration coefficient of channel flow detachment,none,KinWavSed_CH,0.001,1,RC,1,0.0001
 Sediment,ChTcCo,calibration coefficient of transport capacity calculation,none,KinWavSed_CH,0.8,1,RC,100000,0.001
-Sediment,decay,dacay constant,1/day,ChannelRouting,0.184,0,NC,1,0
 Sediment,depRatio,deposition ratio,None,MUSLE_AS,0.8,1,RC,1,0
 Sediment,downcut, whether do the channel downcutting and widening,none,ChannelRouting,1,0,NC,1,0
 Sediment,eco1,calibration coefficient-1 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
 Sediment,eco2,calibration coefficient-2 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
 Sediment,flow_acc,the number of flow accumulation cells of each cell,none,ALL,-9999,0,NC,-9999,-9999
 Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashEro_Park,0.02,1,RC,10,0.0001
-Sediment,p_rf, Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,30,1
+Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,MUSLEC_LAI,0.3,0,AC,0.5,0.1
@@ -144,7 +137,6 @@ Sediment,Spl_delratio,Splash delivery ratio,none,SplashEro_KinEen,0.1,1,RC,1,0
 Sediment,T0_s,time of concentration,hr,ALL,-9999,0,NC,-9999,-9999
 Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
-Sediment,USLE_LS_COEF,the LS coefficient,none,ALL,1,0,AC,10,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,VC,1,0
 Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
@@ -173,7 +165,7 @@ Snow,T_wind,temperature at which wind transport of snow is most favorable,deg C,
 Snow,T0,Snowmelt temperature,deg C,ALL,1,0,AC,3,-1
 Snow,U0,Wind speed over Ut at which WWi=1,m/s,SRD_MB,10,0,AC,1,0.2
 Snow,Ut0,Threshold wind speed at -27 degree,m/s,SRD_MB,6.98,0,AC,10,4
-WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1.2,0.8
+WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1.0,0
 WaterBalance,CN2,Curve number in condition II,none,ALL,-9999,1,RC,1.3,0.7
 WaterBalance,Conductivity,Soil hydraulic conductivity,mm/hr,ALL,-9999,1,RC,10,0.1
 WaterBalance,Density,Soil bulk density,mg/cm3,ALL,-9999,1,RC,1.2,0.8
@@ -189,8 +181,8 @@ WaterBalance,Rootdepth,Root depth,m,ALL,-9999,1,RC,1.5,0.2
 WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
 WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0
 WaterBalance,s_frozen,Frozen moisture relative to porosity with no infiltration,none,ALL,0.5,0,AC,1,0.1
-WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1.2,0.8
-WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,1.1,0.9
+WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1.0,0.0
+WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,1.0,0
 WaterBalance,soil_t10,soil temperature relative to short grass cover,deg C,STP_FP,-9999,1,RC,2,0
 WaterBalance,soil_ta0,Empirical coefficient for estimating soil temperature,deg C,STP_FP,4.768,0,AC,10,0
 WaterBalance,soil_ta1,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.174,0,AC,1,0
