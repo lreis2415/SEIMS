@@ -562,7 +562,6 @@
 #define VAR_SUR_COD "sur_cod"
 #define VAR_COD_N "cod_n"
 #define VAR_COD_K "cod_k"
-#define VAR_COND_MAX "Cond_max"                       /// "Maximum automata's conductance"
 #define VAR_COND_RATE "Cond_rate"                     /// Rate of decline in automata's conductance per unit increase in vapor pressure deficit
 #define VAR_CONDUCT "Conductivity"
 #define VAR_CONV_WT "conv_wt"
