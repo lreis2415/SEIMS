@@ -99,7 +99,7 @@ if __name__ == '__main__':
     modeldir = r'C:\z_data\ChangTing\seims_models_phd\youwuzhen10m_longterm_model'
     seimsobj = MainSEIMS(bindir, modeldir,
                          nthread=2, lyrmtd=1,
-                         ip='192.168.253.203', port=27018,
+                         ip='127.0.0.1', port=27017,
                          sceid=0, caliid=-1)
     s = pickle.dumps(seimsobj)
     # print (s)
