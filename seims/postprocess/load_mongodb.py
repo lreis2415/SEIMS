@@ -12,12 +12,12 @@ from collections import OrderedDict
 
 from pygeoc.utils import StringClass
 
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStatsName, \
     DataValueFields, DataType, StationFields
-
-if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 
 class ReadModelData(object):
@@ -27,8 +27,8 @@ class ReadModelData(object):
         conn = client.get_conn()
         self.maindb = conn[dbname]
         self.filein_tab = self.maindb[DBTableNames.main_filein]
-        self._climdb_name = ''
-        self.climatedb = conn[self.HydroClimateDBName]
+        self._climdb_name = self.HydroClimateDBName
+        self.climatedb = conn[self._climdb_name]
         self._mode = ''
         self._interval = -1
         # UTCTIME
@@ -38,11 +38,9 @@ class ReadModelData(object):
 
     @property
     def HydroClimateDBName(self):
-        if self._climdb_name != '':
-            return self._climdb_name
         climtbl = self.maindb[DBTableNames.main_sitelist]
         allitems = climtbl.find()
-        if allitems is None:
+        if not allitems.count():
             raise RuntimeError('%s Collection is not existed or empty!' %
                                DBTableNames.main_sitelist)
         for item in allitems:
