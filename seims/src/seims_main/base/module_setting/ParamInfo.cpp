@@ -39,6 +39,8 @@ float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
     } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
         //don't change
     }
+    if (res > Maximum) res = Maximum;
+    if (res < Minimun) res = Minimun;
     return res;
 }
 
