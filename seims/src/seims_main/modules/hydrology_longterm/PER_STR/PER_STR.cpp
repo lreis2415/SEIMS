@@ -15,7 +15,7 @@ PER_STR::~PER_STR(void) {
 
 void PER_STR::initialOutputs() {
     if (m_perc == NULL) {
-        Initialize2DArray(m_nCells, m_nSoilLayers, m_perc, NODATA_VALUE);
+        Initialize2DArray(m_nCells, m_nSoilLayers, m_perc, 0.f);
     }
 }
 
