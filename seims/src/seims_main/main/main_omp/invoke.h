@@ -7,7 +7,9 @@
 #ifndef SEIMS_INVOKE_H
 #define SEIMS_INVOKE_H
 
-#include "DataCenter.h"
+#ifdef USE_MONGODB
+#include "DataCenterMongoDB.h"
+#endif /* USE_MONGODB */
 #include "ModelMain.h"
 /// include module_setting related
 #include "tinyxml.h"
