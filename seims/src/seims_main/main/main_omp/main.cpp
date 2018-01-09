@@ -1,12 +1,13 @@
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include "seims.h"
-#include "invoke.h"
 
 #ifndef USE_MONGODB
 #define USE_MONGODB
 #endif /* USE_MONGODB */
+
+#include "seims.h"
+#include "invoke.h"
 
 int main(int argc, const char *argv[]) {
     /// Register GDAL
