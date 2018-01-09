@@ -6,7 +6,7 @@ Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu
 Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,RC,350,300
 Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
 Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
-Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,AC,0.0032,0.0019
+Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
 Climate,K_pet,Correction factor for PET,none,ALL,1,0,AC,1.3,0.7
 Climate,Weight_P,Weight Coefficient of Precipitation,none,ALL,-9999,0,NC,-9999,-9999
 Climate,Weight_PET,Weight Coefficient of Potential Evapotranspiration,none,ALL,-9999,0,NC,-9999,-9999
@@ -30,7 +30,7 @@ Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
 Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0
 InstreamWQ,algae,Algal biomass concentration in reach on the first day,mg alg/L,ChannelRouting,0,0,AC,200,0
-InstreamWQ,cbod,Carbonaceous bideg Chemical oxygen demand in reach on the first day,mg O2/L,ChannelRouting,0,1,AC,1,0
+InstreamWQ,cbod,Carbonaceous bideg Chemical oxygen demand in reach on the first day,mg O2/L,ChannelRouting,0,0,AC,1,0
 InstreamWQ,chlora,ChlorophyII-a concentration in reach on the first day,mg chla/L,ChannelRouting,0,0,AC,200,0
 InstreamWQ,diso2,Dissolved oxygen concentration in reach on the first day,mg O2/L,ChannelRouting,0,1,RC,1,0
 InstreamWQ,disp,Dissolved P concentration in reach on the first day,mg P/L,ChannelRouting,0,0,AC,25,0
@@ -104,13 +104,13 @@ Nutrient,rs5,Organic phosphorus settling rate in the reach at 20 deg C,1/day,Nut
 Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1,1,RC,1,0
 Nutrient,tfact,Fraction of solar radiation that is photosynthetically active,none,NutCHRout,0.3,1,RC,1,0
 PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,2,0,AC,2,0
-PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,BIO_EPIC,0,1,AC,24,0
+PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,BIO_EPIC,-9999,0,AC,24,0
 PlantGrowth,epco,plant water uptake compensation factor,None,BIO_EPIC,1,1,RC,1,0.01
 PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,BIO_EPIC,20,1,RC,100,0
 PlantGrowth,nfixco,Nitrogen fixation coefficient,None,BIO_EPIC,0.5,1,RC,1,0
 PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,BIO_EPIC,20,1,RC,20,1
 PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,BIO_EPIC,20,1,RC,100,0
-Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,1,AC,10,0
+Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,0,AC,10,0
 Pothole,evpot,Pothole evaporation coefficient,None,IMP_SWAT,0.5,0,AC,2,0
 Pothole,pot_no3l,Nitrate decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
 Pothole,pot_solpl,Soluble phosphorus decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
@@ -137,7 +137,7 @@ Sediment,T0_s,time of concentration,hr,ALL,-9999,0,NC,-9999,-9999
 Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
-Sediment,vcd,channel degredation code,None,SEDR,0,0,VC,1,0
+Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
 Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
 Snow,c_rain,Rainfall impact factor,mm/mm/deg C/delta_t,SNO_DD,0.04,0,AC,1,0
 Snow,c_snow,temperature impact factor,mm/deg C/delta_t,SNO_DD,3,0,AC,6,0
