@@ -19,7 +19,7 @@ SSR_DA::~SSR_DA(void) {
     if (m_qiSubbasin != NULL) Release1DArray(m_qiSubbasin);
 }
 
-void SSR_DA::FlowInSoil(int id) {
+bool SSR_DA::FlowInSoil(int id) {
     float s0 = max(m_slope[id], 0.01f);
     float flowWidth = m_CellWidth;
     // there is no land in this cell
@@ -32,7 +32,7 @@ void SSR_DA::FlowInSoil(int id) {
         m_qiVol[id][j] = 0.f;
     }
     // return with initial values if flowWidth is less than 0
-    if (flowWidth <= 0) return;
+    if (flowWidth <= 0) return true;
     // number of flow-in cells
     int nUpstream = (int) m_flowInIndex[id][0];
     m_soilStorageProfile[id] = 0.f; // update soil storage on profile
@@ -40,6 +40,7 @@ void SSR_DA::FlowInSoil(int id) {
         float smOld = m_soilStorage[id][j];
         //sum the upstream subsurface flow, m3
         float qUp = 0.f;
+        // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
         for (int upIndex = 1; upIndex <= nUpstream; ++upIndex) {
             int flowInID = (int) m_flowInIndex[id][upIndex];
             //cout << id << "\t" << flowInID << "\t" << m_nCells << endl;
@@ -53,58 +54,57 @@ void SSR_DA::FlowInSoil(int id) {
         m_soilStorage[id][j] += qUp; // mm
         //TEST
         if (m_soilStorage[id][j] != m_soilStorage[id][j] || m_soilStorage[id][j] < 0.f) {
-            ostringstream oss;
-            oss << "cell id: " << id << "\t layer: " << j << "\nmoisture is less than zero: " << m_soilStorage[id][j]
-                << "\t"
-                << smOld << "\nqUp: " << qUp << "\t depth:" << m_soilThick[id][j] << endl;
-            cout << oss.str() << endl;
-            throw ModelException(MID_SSR_DA, "Execute:FlowInSoil", oss.str());
+            cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
+                 << m_soilStorage[id][j] << ", previous: " << smOld << ", qUp: " << qUp << ", depth:"
+                 << m_soilThick[id][j] << endl;
+            return false;
         }
 
-        // if soil moisture is below the field capacity, no interflow will be generated, otherwise:
-        if (m_soilStorage[id][j] > m_fcmm[id][j]) {
-            // for the upper two layers, soil may be frozen
-            // also check if there are upstream inflow
-            if (j == 0 && m_soilT[id] <= m_frozenT && qUp <= 0.f) {
-                continue;
-            }
+        // if soil moisture is below the field capacity, no interflow will be generated
+        if (m_soilStorage[id][j] <= m_fcmm[id][j]) continue;
+        // Otherwise, calculate interflow:
+        // for the upper two layers, soil may be frozen
+        // also check if there are upstream inflow
+        if (j == 0 && m_soilT[id] <= m_frozenT && qUp <= 0.f) {
+            continue;
+        }
 
-            float k = 0.f, maxSoilWater = 0.f, soilWater = 0.f, fcSoilWater = 0.f;
-            soilWater = m_soilStorage[id][j];
-            maxSoilWater = m_satmm[id][j];
-            fcSoilWater = m_fcmm[id][j];
-            //the moisture content can exceed the porosity in the way the algorithm is implemented
-            if (m_soilStorage[id][j] > maxSoilWater) {
-                k = m_ks[id][j];
-            } else {
-                /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
-                float dcIndex = 2.f * m_poreIndex[id][j] + 3.f; // pore disconnectedness index
-                k = m_ks[id][j] * pow(m_soilStorage[id][j] / maxSoilWater, dcIndex);
-                if (k <= UTIL_ZERO) k = 0.f;
-                //cout << id << "\t" << j << "\t" << k << endl;
-            }
-            m_qi[id][j] = m_ki * s0 * k * m_dt / 3600.f * m_soilThick[id][j] / 1000.f / flowWidth; // the unit is mm
+        float k = 0.f, maxSoilWater = 0.f, soilWater = 0.f, fcSoilWater = 0.f;
+        soilWater = m_soilStorage[id][j];
+        maxSoilWater = m_satmm[id][j];
+        fcSoilWater = m_fcmm[id][j];
+        //the moisture content can exceed the porosity in the way the algorithm is implemented
+        if (m_soilStorage[id][j] > maxSoilWater) {
+            k = m_ks[id][j];
+        } else {
+            /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
+            float dcIndex = 2.f * m_poreIndex[id][j] + 3.f; // pore disconnectedness index
+            k = m_ks[id][j] * pow(m_soilStorage[id][j] / maxSoilWater, dcIndex);
+            if (k <= UTIL_ZERO) k = 0.f;
+            //cout << id << "\t" << j << "\t" << k << endl;
+        }
+        m_qi[id][j] = m_ki * s0 * k * m_dt / 3600.f * m_soilThick[id][j] / 1000.f / flowWidth; // the unit is mm
 
-            if (soilWater - m_qi[id][j] > maxSoilWater) {
-                m_qi[id][j] = soilWater - maxSoilWater;
-            } else if (soilWater - m_qi[id][j] < fcSoilWater) {
-                m_qi[id][j] = soilWater - fcSoilWater;
-            }
-            m_qi[id][j] = max(0.f, m_qi[id][j]);
+        if (soilWater - m_qi[id][j] > maxSoilWater) {
+            m_qi[id][j] = soilWater - maxSoilWater;
+        } else if (soilWater - m_qi[id][j] < fcSoilWater) {
+            m_qi[id][j] = soilWater - fcSoilWater;
+        }
+        m_qi[id][j] = max(0.f, m_qi[id][j]);
 
-            m_qiVol[id][j] = m_qi[id][j] / 1000.f * m_CellWidth * flowWidth; //m3
-            m_qiVol[id][j] = max(UTIL_ZERO, m_qiVol[id][j]);
-            //Adjust the moisture content in the current layer, and the layer immediately below it
-            m_soilStorage[id][j] -= m_qi[id][j];
-            m_soilStorageProfile[id] += m_soilStorage[id][j];
-            if (m_soilStorage[id][j] != m_soilStorage[id][j] || m_soilStorage[id][j] < 0.f) {
-                ostringstream oss;
-                oss << id << "\t" << j << "\nmoisture is less than zero: " << m_soilStorage[id][j] << "\t"
-                    << m_soilThick[id][j];
-                throw ModelException(MID_SSR_DA, "Execute", oss.str());
-            }
+        m_qiVol[id][j] = m_qi[id][j] / 1000.f * m_CellWidth * flowWidth; //m3
+        m_qiVol[id][j] = max(UTIL_ZERO, m_qiVol[id][j]);
+        //Adjust the moisture content in the current layer, and the layer immediately below it
+        m_soilStorage[id][j] -= m_qi[id][j];
+        m_soilStorageProfile[id] += m_soilStorage[id][j];
+        if (m_soilStorage[id][j] != m_soilStorage[id][j] || m_soilStorage[id][j] < 0.f) {
+            cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
+                << m_soilStorage[id][j] << ", subsurface runoff: " << m_qi[id][j] << ", depth:"
+                << m_soilThick[id][j] << endl;
+            return false;
         }
     }
+    return true;
 }
 
 //Execute module
@@ -116,11 +116,16 @@ int SSR_DA::Execute() {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nCells = (int) m_routingLayers[iLayer][0];
-
-#pragma omp parallel for
+        // DO NOT THROW EXCEPTION IN OMP FOR LOOP, i.e., FlowInSoil(id) function.
+        int errCount = 0;
+#pragma omp parallel for reduction(+: errCount)
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell];
-            FlowInSoil(id);
+            if (!FlowInSoil(id)) errCount++;
+        }
+        if (errCount > 0) {
+            throw ModelException(MID_SSR_DA, "Execute:FlowInSoil",
+                                 "Please check the error message for more information");
         }
     }
 
@@ -131,7 +136,7 @@ int SSR_DA::Execute() {
     /// using openmp for reduction an array should be pay much more attention.
     /// here is an solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
     /// #pragma omp parallel for reduction(+:myArray[:6]) is supported with OpenMP 4.5.
-    /// However, MSVS are using OpenMP 2.0.
+    /// However, MSVC are using OpenMP 2.0.
     /// Added by lj, 2017-8-23
 #pragma omp parallel
     {
@@ -158,28 +163,12 @@ int SSR_DA::Execute() {
                 m_qiSubbasin[i] += tmp_qiSubbsn[i];
             }
         }
-    }
-// Old code stye of OpenMP for reduction on an array.
-//#pragma omp parallel for
-//    for (int i = 0; i < m_nCells; i++) {
-//        float qiAllLayers = 0.f;
-//        if (m_streamLink[i] > 0) {
-//            qiAllLayers = 0.f;
-//            for (int j = 0; j < (int) m_soilLayers[i]; j++) {
-//                if (m_qiVol[i][j] > UTIL_ZERO) {
-//                    qiAllLayers += m_qiVol[i][j] / m_dt;
-//                } /// m^3/s
-//            }
-//            //cout << m_nSubbasin << "\tsubbasin:" << m_subbasin[i] << "\t" << qiAllLayers << endl;
-//            m_qiSubbasin[int(m_subbasin[i])] += qiAllLayers;
-//        }
-//    }
+        delete[] tmp_qiSubbsn;
+    } /* END of #pragma omp parallel */
 
     for (int i = 1; i <= m_nSubbasin; i++) {
-        //cout<<", "<<i<<": "<<m_qiSubbasin[i];
         m_qiSubbasin[0] += m_qiSubbasin[i];
     }
-    //cout<<endl;
     return 0;
 }
 
