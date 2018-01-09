@@ -44,10 +44,10 @@ void ReservoirMethod::initialOutputs() {
 }
 
 int ReservoirMethod::Execute() {
-    if (!CheckInputData()) return -1;
+    CheckInputData();
     initialOutputs();
     float QGConvert = 1.f * m_CellWidth * m_CellWidth / (m_TimeStep) / 1000.f; // mm ==> m3/s
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         int subID = *it;
         Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(subID);
 
@@ -59,7 +59,9 @@ int ReservoirMethod::Execute() {
         for (int i = 0; i < curCellsNum; i++) {
             int index = 0;
             index = curCells[i];
-            perco += m_perc[index][(int) m_soilLayers[index] - 1];
+            float tmp_perc = m_perc[index][(int)m_soilLayers[index] - 1];
+            if (tmp_perc > 0) perco += tmp_perc;
+            else m_perc[index][(int)m_soilLayers[index] - 1] = 0.f;
         }
         perco /= curCellsNum; // mean mm
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
@@ -68,12 +70,6 @@ int ReservoirMethod::Execute() {
         float ratio2gw = 1.f;
         perco *= ratio2gw;
         curSub->setPerco(perco);
-
-        //if (perco > 0.f)
-        //{
-        //	cout << "subID: "<<subID<<", perco mean: "<<perco << endl;
-        //}
-
         //calculate EG, i.e. Revap
         float revap = 0.f;
         float fPET = 0.f;
@@ -179,7 +175,7 @@ int ReservoirMethod::Execute() {
     }
 
     // update soil moisture
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         Subbasin *sub = m_subbasinsInfo->GetSubbasinByID(*it);
         int *cells = sub->getCells();
         int nCells = sub->getCellCount();
@@ -190,6 +186,12 @@ int ReservoirMethod::Execute() {
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }
+    // DEBUG
+    //cout << "GWA_RE, cell id 17842, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[17842]; i++)
+    //    cout << m_soilStorage[17842][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 
