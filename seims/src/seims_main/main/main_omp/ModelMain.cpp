@@ -126,7 +126,7 @@ void ModelMain::Execute() {
     int nHs = 0;
 
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        //cout << ConvertToString2(&t) << endl;
+        cout << ConvertToString2(&t) << endl;
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;

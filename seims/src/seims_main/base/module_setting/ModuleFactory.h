@@ -16,8 +16,9 @@
 #include "ParamInfo.h"
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
-#include "DataCenter.h"
-
+#ifdef USE_MONGODB
+#include "DataCenterMongoDB.h"
+#endif /* USE_MONGODB */
 #include "tinyxml.h"
 
 

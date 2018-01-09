@@ -160,5 +160,25 @@ void DataCenter::setLapseData(string &remoteFilename, int &rows, int &cols, floa
 
 void DataCenter::dumpCaliParametersInDB() {
     if (m_initParameters.empty()) return;
+    string fileName = m_outputPath + SEP + "param.cali";
+    ofstream fs;
+    fs.open(fileName.c_str(), ios::ate);
+    if (nullptr == &fs) return;
+    if (!fs.is_open()) return;
 
+    if (m_calibrationID >= 0) fs << "# Calibration ID:" << m_calibrationID << endl;
+    fs << "# All calibrated parameters" << endl;
+    for (auto it = m_initParameters.begin(); it != m_initParameters.end(); it++) {
+        if (nullptr == it->second) continue;
+        ParamInfo* tmpParam = it->second;
+        if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && FloatEqual(tmpParam->Impact, 1.f)) ||
+            (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && FloatEqual(tmpParam->Impact, 0.f)) ||
+            (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && FloatEqual(tmpParam->Impact, NODATA_VALUE)) ||
+            (StringMatch(tmpParam->Change, PARAM_CHANGE_NC))) {
+            continue;
+        }
+        fs << tmpParam->Name << "," << tmpParam->Impact << "," << tmpParam->Change << endl;
+    }
+
+    fs.close();
 }

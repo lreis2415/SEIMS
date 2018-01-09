@@ -990,15 +990,6 @@ int Biomass_EPIC::Execute() {
             CheckDormantStatus(i);                 /// dormant.f
         }
     }
-    //cout<<"BIOEPIC, after solno3: ";
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	for (int j = 0; j < (int)m_nSoilLayers[i]; j++){
-    //		if (m_soilNO3[i][j] != m_soilNO3[i][j])
-    //			cout<<"cellid: "<<i<<"lyr: "<<j<<", "<<m_soilNO3[i][j]<<endl;
-    //	}
-    //}
-    //cout<<endl;
     return 0;
 }
 

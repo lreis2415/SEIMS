@@ -110,6 +110,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     if (!readParametersInDB()) {
         return false;
     }
+    dumpCaliParametersInDB();
     /// 7. Read Reaches data
     m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
     m_reaches->Update(m_initParameters);
