@@ -898,7 +898,8 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
             ParamInfo* tmpParam = find_iter->second;
             if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && !FloatEqual(tmpParam->Impact, 1.f)) ||
                 (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && !FloatEqual(tmpParam->Impact, 0.f)) ||
-                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && !FloatEqual(tmpParam->Impact, NODATA_VALUE))) {
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && !FloatEqual(tmpParam->Impact, NODATA_VALUE)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_NC))) {
                 adjust_data = true;
             }
         }

@@ -334,7 +334,6 @@ int IMP_SWAT::Execute() {
         m_sedMinPAToCh[0] += m_sedMinPAToCh[i];
         m_sedMinPSToCh[0] += m_sedMinPSToCh[i];
     }
-    // cout<<", new: "<<m_sedOrgPToCh[12]<<endl;
     return true;
 }
 

@@ -254,7 +254,6 @@ int AET_PT_H::Execute() {
             }
         }
     }
-    //cout<<"AET_PTH, cell id 5878, sol_no3[0]: "<<m_solNo3[5878][0]<<endl;
     return true;
 }
 

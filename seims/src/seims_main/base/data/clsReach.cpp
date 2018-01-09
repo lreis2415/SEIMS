@@ -144,7 +144,8 @@ void clsReaches::Update(const map<string, ParamInfo *> &caliparams_map) {
             ParamInfo *tmpParam = it->second;
             if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && FloatEqual(tmpParam->Impact, 1.f)) ||
                 (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && FloatEqual(tmpParam->Impact, 0.f)) ||
-                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && FloatEqual(tmpParam->Impact, NODATA_VALUE))) {
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && FloatEqual(tmpParam->Impact, NODATA_VALUE)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_NC))) {
                 continue;
             }
             for (auto it2 = m_reachesMap.begin(); it2 != m_reachesMap.end(); it2++) {
