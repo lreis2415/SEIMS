@@ -8,10 +8,7 @@
  * \brief Calculate potential evapotranspiration using Penman-Monteith method
  *
  */
-//! Get instance of SimulationModule class
-extern "C" SEIMS_MODULE_API SimulationModule *
-
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETPenmanMonteith();
 }
 

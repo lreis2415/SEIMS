@@ -127,7 +127,7 @@ int SUR_MR::Execute() {
     CheckInputData();
     initialOutputs();
     m_pMax = m_pMax * m_dt / 86400.f;
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         /// Snow melt should be considered in SnowMelt module, this may be redundant. By LJ
         ////account for the effects of snow melt and soil temperature
@@ -147,6 +147,8 @@ int SUR_MR::Execute() {
         //    hWater = m_pNet[i] + snowMelt + m_sd[i];
         float hWater = 0.f;
         hWater = m_pNet[i] + m_sd[i];
+        //if (i == 17842)
+        //    cout << "pNet: " << m_pNet[i] << ", sd: " << m_sd[i] << endl;
         if (hWater > 0.f) {
             /// in the new version, sm is replaced by m_soilStorageProfile. By lj
             /// por is replaced by m_sol_sumsat which is calculated by (sat - wp)
@@ -233,6 +235,12 @@ int SUR_MR::Execute() {
         //	cout<<"netRain: "<<m_pNet[i]<<", depStrg: "<<m_sd[i]<<", infil: "<<m_infil[i]<<", surfq: "<<m_pe[i]<<endl;
         //}
     }
+    // DEBUG
+    //cout << "SUR_MR, cell id 17842, m_infil: " << m_infil[17842] << ", m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[17842]; i++)
+    //    cout << m_soilStorage[17842][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 
