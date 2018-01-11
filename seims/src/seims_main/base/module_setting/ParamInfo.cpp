@@ -2,23 +2,31 @@
 
 using namespace std;
 
-ParamInfo::ParamInfo() : Change(""),
-                         Description(""),
-                         Dimension(DT_Unknown),
-                         Impact(0.f),
-                         Maximum(0.f),
-                         Minimun(0.f),
-                         ModuleID(""),
-                         Name(""),
-                         Source(""),
-                         Units(""),
-                         Value(0.f),
-                         DependPara(nullptr),
-                         IsConstant(false),
-                         ClimateType(""),
-                         IsOutput(false),
-                         OutputToOthers(false),
+ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), Dimension(DT_Unknown),
+                         Value(0.f), Change(""), Impact(0.f), Maximum(0.f), Minimun(0.f),
+                         ModuleID(""), Source(""), DependPara(nullptr), ClimateType(""),
+                         IsConstant(false), IsOutput(false), OutputToOthers(false),
                          initialized(false) {
+}
+
+ParamInfo::ParamInfo(const ParamInfo &another) {
+    Name = another.Name;
+    Units = another.Units;
+    Description = another.Description;
+    Dimension = another.Dimension;
+    Value = another.Value;
+    Change = another.Change;
+    Impact = another.Impact;
+    Maximum = another.Maximum;
+    Minimun = another.Minimun;
+    ModuleID = another.ModuleID;
+    Source = another.Source;
+    DependPara = another.DependPara;
+    ClimateType = another.ClimateType;
+    IsConstant = another.IsConstant;
+    IsOutput = another.IsOutput;
+    OutputToOthers = another.OutputToOthers;
+    initialized = another.initialized;
 }
 
 float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
