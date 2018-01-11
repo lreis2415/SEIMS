@@ -197,8 +197,7 @@ WaterBalance,Moist_in,Initial soil moisture,m3/m3,ALL,-9999,1,RC,1,0.8
 WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05
 WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
-WaterBalance,SOL_AWC,amount of water available to plants in soil layer at field capacity (fc - wp),mm H2O,ALL,-9999,1,RC,100,0.1
-WaterBalance,SOL_UL,amount of water held in the soil layer at saturation (sat - wp water),mm H2O,ALL,-9999,1,RC,100,0.1
+WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint,none,ALL,-9999,1,RC,1000,0.01
 Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0
 Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,30,0
 Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
