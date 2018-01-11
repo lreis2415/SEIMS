@@ -127,7 +127,7 @@ int SUR_MR::Execute() {
     CheckInputData();
     initialOutputs();
     m_pMax = m_pMax * m_dt / 86400.f;
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         /// Snow melt should be considered in SnowMelt module, this may be redundant. By LJ
         ////account for the effects of snow melt and soil temperature
@@ -236,9 +236,9 @@ int SUR_MR::Execute() {
         //}
     }
     // DEBUG
-    //cout << "SUR_MR, cell id 17842, m_infil: " << m_infil[17842] << ", m_soilStorage: ";
-    //for (int i = 0; i < (int)m_soilLayers[17842]; i++)
-    //    cout << m_soilStorage[17842][i] << ", ";
+    //cout << "SUR_MR, cell id 14377, m_infil: " << m_infil[14377] << ", m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
     //cout << endl;
     // END OF DEBUG
     return 0;

@@ -254,6 +254,12 @@ int AET_PT_H::Execute() {
             }
         }
     }
+    // DEBUG
+    //cout << "AET_PTH, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_nSoilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return true;
 }
 
