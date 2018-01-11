@@ -585,7 +585,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
     string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
                              DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
                              DataType_RelativeAirMoisture};
-    for (vector<string>::iterator iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
+    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
         // is there anything in the token list?
@@ -995,7 +995,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
     string id = m_moduleIDs[iModule];
     vector <ParamInfo> &inputs = m_moduleInputs[id];
     /// if there are no inputs from other modules for current module
-    for (vector<ParamInfo>::iterator it = inputs.begin(); it != inputs.end(); it++) {
+    for (auto it = inputs.begin(); it != inputs.end(); it++) {
         ParamInfo &param = *it;
         if (StringMatch(param.Source, Source_Module) ||
             (StringMatch(param.Source, Source_Module_Optional) && param.DependPara != nullptr)) {
@@ -1089,14 +1089,12 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
         float* ludata = nullptr;
         m_rsMap[lur]->getRasterData(&nsize, &ludata);
 
-        map<int, BMPArealStruct*>::iterator iter2;
-        for (iter2 = arealbmps.begin();iter2 != arealbmps.end(); iter2++) {
+        for (auto iter2 = arealbmps.begin();iter2 != arealbmps.end(); iter2++) {
             cout << "  - SubScenario ID: "<< iter->second->GetSubScenarioId() << ", BMP name: " 
                 << iter2->second->getBMPName() << endl;
             vector<int> suitablelu = iter2->second->getSuitableLanduse();
             map<string, ParamInfo*> updateparams = iter2->second->getParameters();
-            map<string, ParamInfo*>::iterator iter3;
-            for (iter3 = updateparams.begin(); iter3 != updateparams.end(); iter3++) {
+            for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); iter3++) {
                 string paraname = iter3->second->Name;
                 cout << "   -- Parameter ID: " << paraname << endl;
                 /// Check whether the parameter is existed in m_parametersInDB.

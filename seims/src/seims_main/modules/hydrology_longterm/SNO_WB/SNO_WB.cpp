@@ -4,7 +4,6 @@
 
 SNO_WB::SNO_WB(void) {
     // set default values for member variables
-    //this->m_Date = -1;
     this->m_nCells = -1;
     this->m_t0 = NODATA_VALUE;
     this->m_tsnow = NODATA_VALUE;
@@ -16,19 +15,12 @@ SNO_WB::SNO_WB(void) {
     this->m_SR = NULL;
     this->m_SE = NULL;
     this->m_SM = NULL;
-    /*this->m_subbasinList = NULL;
-    this->m_subbasinSelectedCount = -1;
-    this->m_subbasinSelected = NULL;
-    this->m_subbasin = NULL;
-    this->m_snowWaterBalance = NULL;*/
     this->m_WindSpeed = NULL;
     this->m_P = NULL;
-    ///this->m_nCells = -1;
-    ///m_isInitial = true;
 }
 
 SNO_WB::~SNO_WB(void) {
-    Release1DArray(m_SA);
+    if (nullptr != m_SA) Release1DArray(m_SA);
 }
 
 bool SNO_WB::CheckInputData(void) {
@@ -159,36 +151,6 @@ bool SNO_WB::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-//void SNO_WB::getSubbasinList(int cellCount, float* subbasinGrid, int subbasinSelectedCount, float* subbasinSelected)
-//{
-//	if(this->m_subbasinList != NULL) return;
-//	if(subbasinSelected == NULL) return;
-//
-//	map<int,bool> selected;
-//	bool isAllNeedStatistc = false;
-//	for(int i = 0;i < subbasinSelectedCount; i++)
-//	{
-//		int subid = int(subbasinSelected[i]);
-//		selected[subid] = true;
-//		if(subid == 0) isAllNeedStatistc = true;		
-//	}
-//
-//	//map<int,subbasin*> list;	
-//	this->m_subbasinList = new map<int,subbasin*>();
-//	if(isAllNeedStatistc) (*m_subbasinList)[0] = new subbasin(0); 
-//	for(int i = 0;i < cellCount; i++)
-//	{
-//		if(isAllNeedStatistc) (*m_subbasinList)[0]->addCell(i);
-//
-//		int subid = int(subbasinGrid[i]);
-//		if(!selected[subid]) continue;		
-//
-//		map<int,subbasin*>::iterator it = (*m_subbasinList).find(subid);
-//		if(it == (*m_subbasinList).end()) (*m_subbasinList)[subid] = new subbasin(subid);
-//		(*m_subbasinList)[subid]->addCell(i);
-//	}
-//}
-
 void SNO_WB::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_K_BLOW)) { this->m_kblow = data; }
@@ -242,36 +204,13 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNAC)) {
-        /// move these code to initialOutputs(). By LJ.
-        /*if(this->m_SA == NULL)
-        {
-            if(this->m_nCells <=0) throw ModelException(MID_SNO_WB,"Get1DData","The dimension of the input data can not be less than zero.");
-            this->m_SA = new float[this->m_nCells];
-            for(int i=0;i<this->m_nCells;i++)
-            {
-                this->m_SA[i] = 0.0f;
-            }
-        }	*/
         *data = this->m_SA;
         *n = this->m_nCells;
     } else {
-        throw ModelException(MID_SNO_WB, "Get1DData",
-                             "Result " + s + " does not exist in current module. Please contact the module developer.");
+        throw ModelException(MID_SNO_WB, "Get1DData", "Result " + s + 
+                             " does not exist in current module. Please contact the module developer.");
     }
 }
-
-//void SNO_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data)
-//{
-//	string s(key);
-//	if(StringMatch(s, VAR_SNWB))
-//	{
-//		setValueToSubbasin();
-//		*nRows = this->m_subbasinSelectedCount;
-//		*nCols = 9;
-//		*data = this->m_snowWaterBalance;
-//	}
-//	else throw ModelException(MID_SNO_WB,"Get2DData","Result " + s + " does not exist in current module. Please contact the module developer.");
-//}
 
 void SNO_WB::GetValue(const char *key, float *data) {
     initialOutputs();
@@ -282,68 +221,3 @@ void SNO_WB::GetValue(const char *key, float *data) {
             " does not exist in current module. Please contact the module developer.");
     }
 }
-
-//void SNO_WB::setValueToSubbasin()
-//{
-//
-//	if(this->m_subbasinList != NULL)
-//	{
-//		if(m_snowWaterBalance == NULL)
-//		{
-//			m_snowWaterBalance = new float*[this->m_subbasinSelectedCount];
-//			for(int i=0;i<this->m_subbasinSelectedCount;i++)
-//			{
-//				m_snowWaterBalance[i] = new float[9];
-//			}
-//		}
-//
-//		float u = 0.0f;									//average wind speed
-//		for (int rw = 0; rw < this->m_nCells; rw++) u+=this->m_WindSpeed[rw];
-//		u /= this->m_nCells;
-//
-//		int index = 0;
-//		map<int,subbasin*>::iterator it;
-//		for(it=this->m_subbasinList->begin();it!=this->m_subbasinList->end();it++)
-//		{
-//			it->second->clear();
-//			vector<int>* cells = it->second->getCells();
-//			vector<int>::iterator itCells;
-//			for(itCells=cells->begin();itCells<cells->end();itCells++)
-//			{
-//				int cell = *itCells;
-//				it->second->addP(m_P[cell]);
-//				it->second->addPnet(this->m_Pnet[cell]);
-//				it->second->addPblow(this->m_kblow * this->m_Pnet[cell]);
-//				it->second->addT(m_tMean[cell]);
-//				//it->second->addWind(u);
-//				it->second->addSR(m_SR[cell]);
-//				it->second->addSE(m_SE[cell]);
-//				it->second->addSM(m_SM[cell]);
-//				it->second->addSA(m_SA[cell]);				
-//			}
-//
-//			m_snowWaterBalance[index][0] = it->second->getAverage("P");
-//			m_snowWaterBalance[index][1] = it->second->getAverage("P_net");
-//			m_snowWaterBalance[index][2] = it->second->getAverage("P_blow");
-//			m_snowWaterBalance[index][3] = it->second->getAverage("T");
-//			m_snowWaterBalance[index][4] = u;//it->second->getAverage("Wind");
-//			m_snowWaterBalance[index][5] = it->second->getAverage("SR");
-//			m_snowWaterBalance[index][6] = it->second->getAverage("SE");
-//			m_snowWaterBalance[index][7] = it->second->getAverage("SM");
-//			m_snowWaterBalance[index][8] = it->second->getAverage("SA");
-//
-//			//cout<< "subbasin:" << it->second->getId() << endl;
-//			//cout<< "P:" << m_snowWaterBalance[index][0] << endl;
-//			//cout<< "P_net:" << m_snowWaterBalance[index][1] << endl;
-//			//cout<< "P_blow:" << m_snowWaterBalance[index][2] << endl;
-//			//cout<< "T:" << m_snowWaterBalance[index][3] << endl;
-//			//cout<< "Wind:" << m_snowWaterBalance[index][4] << endl;
-//			//cout<< "SR:" << m_snowWaterBalance[index][5] << endl;
-//			//cout<< "SE:" << m_snowWaterBalance[index][6] << endl;
-//			//cout<< "SM:" << m_snowWaterBalance[index][7] << endl;
-//			//cout<< "SA:" << m_snowWaterBalance[index][8] << endl;
-//
-//			index++;
-//		}
-//	}
-//}

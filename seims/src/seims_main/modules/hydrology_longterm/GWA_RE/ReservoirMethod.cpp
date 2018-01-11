@@ -390,7 +390,7 @@ void ReservoirMethod::Get2DData(const char *key, int *nRows, int *nCols, float *
 }
 
 void ReservoirMethod::setSubbasinInfos() {
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(*it);
         if (curSub->getSlope() <= 0.f) {
             curSub->setSlope(m_Slope);
