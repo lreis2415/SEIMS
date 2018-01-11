@@ -278,25 +278,23 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
         TiXmlElement *eleParam = eleParams->FirstChildElement(TagParameter.c_str());
         while (eleParam != nullptr) {
             // clear the object
-            ParamInfo *param = new ParamInfo();
-
+            ParamInfo param;
             // set the module id
-            param->ModuleID = moduleID;
-
+            param.ModuleID = moduleID;
             // get the parameter name
             TiXmlElement *elItm = eleParam->FirstChildElement(TagParameterName.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Name = GetUpper(string(elItm->GetText()));
-                    param->BasicName = param->Name;
-                    param->ClimateType = setting->dataTypeString();
+                    param.Name = GetUpper(string(elItm->GetText()));
+                    param.BasicName = param.Name;
+                    param.ClimateType = setting->dataTypeString();
 
                     //set climate data type got from config.fig
                     //this is used for interpolation module
-                    if (StringMatch(param->Name, Tag_DataType)) param->Value = setting->dataType();
+                    if (StringMatch(param.Name, Tag_DataType)) param.Value = setting->dataType();
 
                     //special process for interpolation modules
-                    if (StringMatch(param->Name, Tag_Weight)) {
+                    if (StringMatch(param.Name, Tag_Weight)) {
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "ReadParameterSetting",
                                                  "The parameter " + string(Tag_Weight) +
@@ -308,100 +306,88 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                         {
                             //The weight coefficient file is same for TMEAN, TMIN and TMAX, 
                             //  so just need to read one file named "Weight_M"
-                            param->Name += "_M";  
+                            param.Name += "_M";  
                                 
                         } else {
                             // Combine weight and data type. e.g. Weight + PET = Weight_PET, 
                             //  this combined string must be the same with the parameter column 
                             //  in the climate table of parameter database.    
-                            param->Name += "_" + setting->dataTypeString();
+                            param.Name += "_" + setting->dataTypeString();
                         }
                     }
 
                     //special process for interpolation modules
-                    if (StringMatch(param->Name, Tag_StationElevation)) {
+                    if (StringMatch(param.Name, Tag_StationElevation)) {
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "readParameterSetting",
                                                  "The parameter " + string(Tag_StationElevation) +
                                                      " should have corresponding data type in module " + moduleID);
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_Precipitation)) {
-                            param->BasicName += "_P";
-                            param->Name += "_P";
+                            param.BasicName += "_P";
+                            param.Name += "_P";
                         } else {
-                            param->BasicName += "_M";
-                            param->Name += "_M";
+                            param.BasicName += "_M";
+                            param.Name += "_M";
                         }
                     }
 
-                    if (StringMatch(param->Name, Tag_VerticalInterpolation)) //if do the vertical interpolation
+                    if (StringMatch(param.Name, Tag_VerticalInterpolation)) //if do the vertical interpolation
                     {
-                        param->Value = (setting->needDoVerticalInterpolation() ? 1.0f : 0.0f);
+                        param.Value = (setting->needDoVerticalInterpolation() ? 1.0f : 0.0f);
                     }
                 }
             }
-
             // get the parameter description
             elItm = eleParam->FirstChildElement(TagParameterDescription.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Description = elItm->GetText();
+                    param.Description = elItm->GetText();
                 }
             }
-
             // get the parameter units
             elItm = eleParam->FirstChildElement(TagParameterUnits.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Units = elItm->GetText();
+                    param.Units = elItm->GetText();
                 }
             }
-
             // get the parameter source
             elItm = eleParam->FirstChildElement(TagParameterSource.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Source = elItm->GetText();
+                    param.Source = elItm->GetText();
                 }
             }
-
             // get the parameter dimension
             elItm = eleParam->FirstChildElement(TagParameterDimension.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Dimension = MatchType(string(elItm->GetText()));
+                    param.Dimension = MatchType(string(elItm->GetText()));
                 }
             }
-
             // cleanup
             elItm = nullptr;
 
             // parameter must have these values
-            if (param->Name.size() <= 0) {
-                delete param;
+            if (param.Name.size() <= 0) {
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "Some parameters have not name in metadata!");
             }
 
-            if (param->Source.size() <= 0) {
-                string name = param->Name;
-                delete param;
+            if (param.Source.size() <= 0) {
+                string name = param.Name;
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "parameter " + name + " does not have source!");
             }
 
-            if (param->Dimension == DT_Unknown) {
-                string name = param->Name;
-                delete param;
+            if (param.Dimension == DT_Unknown) {
+                string name = param.Name;
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "parameter " + name + " does not have dimension!");
             }
-
             // add to the list
-            //m_paramters[GetUpper(param->Name)] = param;
-            vecPara.push_back(*param);
-            delete param;
-
+            vecPara.push_back(param);
             // get the next parameter if it exists
             eleParam = eleParam->NextSiblingElement();
         } // while
@@ -734,7 +720,8 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
     }
 #ifdef _DEBUG
     float timeconsume = float(TimeCounting() - stime);
-    StatusMessage(("Set " + name + " data done, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
+    StatusMessage(("Set " + name + ": " + remoteFileName + " done, TIMESPAN " +
+        ValueToString(timeconsume) + " sec.").c_str());
 #endif
 }
 
