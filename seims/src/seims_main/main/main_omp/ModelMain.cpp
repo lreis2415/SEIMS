@@ -145,10 +145,8 @@ void ModelMain::Execute() {
 
 void ModelMain::Output(void) {
     double t1 = TimeCounting();
-    vector<PrintInfo *>::iterator it;
-    for (it = this->m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
-        vector<PrintInfoItem *>::iterator itemIt;
-        for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
+    for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
+        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
             PrintInfoItem *item = *itemIt;
             item->Flush(m_outputPath, m_maskRaster, (*it)->getOutputTimeSeriesHeader());
         }
@@ -166,8 +164,7 @@ void ModelMain::OutputExecuteTime(void) {
 
 void ModelMain::CheckAvailableOutput() {
     m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
-    vector<PrintInfo *>::iterator it;
-    for (it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
+    for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
         outputid = trim(outputid);
 
@@ -185,17 +182,14 @@ void ModelMain::CheckAvailableOutput() {
 }
 
 void ModelMain::AppendOutputData(const time_t time) {
-    vector<PrintInfo *>::iterator it;
-    for (it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
+    for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         int iModule = (*it)->m_moduleIndex;
-
         //find the corresponding output variable and module
         ParamInfo *param = (*it)->m_param;
         if (param == NULL) {
             throw ModelException("ModelMain", "Output",
                                  "Output id " + (*it)->getOutputID() + " does not have corresponding output variable.");
         }
-
         SimulationModule *module = m_simulationModules[iModule];
         if (module == NULL) {
             throw ModelException("ModelMain", "Output",
@@ -203,8 +197,7 @@ void ModelMain::AppendOutputData(const time_t time) {
         }
 
         //process every output file
-        vector<PrintInfoItem *>::iterator itemIt;
-        for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
+        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
             PrintInfoItem *item = *itemIt;
             const char *keyName = param->Name.c_str();
             //time_t t1 = item->getStartTime();
