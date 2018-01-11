@@ -97,8 +97,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             }
             // Write header
             fs << header << endl;
-            map<time_t, float>::iterator it;
-            for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                    setprecision(8) << it->second << endl;
             }
@@ -120,8 +119,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
                 fs << "Subbasin: " << SubbasinID << endl;
             }
             fs << header << endl;
-            map<time_t, float *>::iterator it;
-            for (it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++) {
+            for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++) {
                 fs << ConvertToString2(&(it->first));
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << right << fixed << setw(15) << setfill(' ') << setprecision(8) << (it->second)[i];
@@ -167,8 +165,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
         if (fs.is_open()) {
-            map<time_t, float>::iterator it;
-            for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                    setprecision(8) << it->second << endl;
             }
@@ -442,8 +439,7 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 //void PrintInfo::setSpecificCellRasterOutput(string projectPath, string databasePath,
 //clsRasterData* templateRasterData)
 //{
-//	vector<PrintInfoItem*>::iterator it;
-//	for(it= m_PrintItems.begin();it<m_PrintItems.end();it++)
+//	for(auto it= m_PrintItems.begin();it<m_PrintItems.end();it++)
 //	{
 //		(*it)->setSpecificCellRasterOutput(projectPath,databasePath,templateRasterData,m_OutputID);
 //	}
@@ -560,8 +556,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("ResSedOut");
     }
     ostringstream oss;
-    vector<string>::iterator it;
-    for (it = headers.begin(); it < headers.end(); it++) {
+    for (auto it = headers.begin(); it < headers.end(); it++) {
         if (StringMatch(*it, "Time")) {
             oss << *it;
         } else {
@@ -641,8 +636,7 @@ void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
         m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
         int index = 0;
-        vector<int>::iterator it;
-        for (it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); it++) {
+        for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); it++) {
             m_subbasinSelectedArray[index] = float(*it);
             index++;
         }

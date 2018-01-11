@@ -65,17 +65,15 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
 void KinWavSed_CH::GetValue(const char *key, float *value) {
     string sk(key);
     if (StringMatch(sk, VAR_SED_OUTLET)) {
-        map < int, vector < int > > ::iterator
-        it = m_reachLayers.end();
+        auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         int iLastCell = (int) m_reachs[reachId].size() - 1;
         *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
         //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
     } else {
-        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk
-            +
-                " does not exist in the current module. Please contact the module developer.");
+        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk + 
+                             " does not exist in the current module. Please contact the module developer.");
     }
 }
 
