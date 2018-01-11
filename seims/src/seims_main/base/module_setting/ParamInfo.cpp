@@ -6,7 +6,7 @@ ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), Dimension(DT_Unkn
                          Value(0.f), Change(""), Impact(0.f), Maximum(0.f), Minimun(0.f),
                          ModuleID(""), Source(""), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
-                         initialized(false) {
+                         BasicName(""), initialized(false) {
 }
 
 ParamInfo::ParamInfo(const ParamInfo &another) {
@@ -26,6 +26,7 @@ ParamInfo::ParamInfo(const ParamInfo &another) {
     IsConstant = another.IsConstant;
     IsOutput = another.IsOutput;
     OutputToOthers = another.OutputToOthers;
+    BasicName = another.BasicName;
     initialized = another.initialized;
 }
 

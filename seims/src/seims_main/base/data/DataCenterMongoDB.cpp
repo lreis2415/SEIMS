@@ -406,7 +406,7 @@ bool DataCenterMongoDB::readParametersInDB() {
         }
         /// Special handling code for soil water capcity parameters
         /// e.g., SOL_AWC, SOL_UL, WILTINGPOINT. By ljzhu, 2018-1-11
-        if (StringMatch(PARAM_FLD_NAME, VAR_SW_CAP)) {
+        if (StringMatch(p->Name, VAR_SW_CAP)) {
             for (int si = 0; si < SOILWATER_VARS_NUM; si++) {
                 ParamInfo *tmpp = new ParamInfo(*p);
                 tmpp->Name = SOILWATER_VARS[si];
