@@ -990,6 +990,12 @@ int Biomass_EPIC::Execute() {
             CheckDormantStatus(i);                 /// dormant.f
         }
     }
+    // DEBUG
+    //cout << "BIO_EPIC, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_nSoilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 
