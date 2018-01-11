@@ -26,7 +26,6 @@ int PER_STR::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
         // the first soil layer in other modules. By LJ
-
         float excessWater = 0.f, maxSoilWater = 0.f, fcSoilWater = 0.f;
         for (int j = 0; j < (int) m_soilLayers[i]; j++) {
             excessWater = 0.f;
@@ -44,6 +43,7 @@ int PER_STR::Execute() {
             // No movement if soil moisture is below field capacity
             if (excessWater > 1.e-5f) {
                 float maxPerc = maxSoilWater - fcSoilWater;
+                if (maxPerc < 0.f) maxPerc = 0.1f;
                 float tt = 3600.f * maxPerc / m_ks[i][j]; // secs
                 m_perc[i][j] = excessWater * (1.f - exp(-m_dt / tt)); // secs
 
@@ -97,6 +97,12 @@ int PER_STR::Execute() {
             m_soilStorageProfile[i] += m_soilStorage[i][ly];
         }
     }
+    // DEBUG
+    //cout << "PER_STR, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 
