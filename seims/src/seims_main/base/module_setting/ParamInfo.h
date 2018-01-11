@@ -29,6 +29,9 @@ public:
     //! Construct an empty instance.
     ParamInfo();
 
+    //! Copy constructor
+    ParamInfo(const ParamInfo &another);
+
     //! Destructor
     ~ParamInfo() = default;
 
@@ -82,8 +85,6 @@ public:
     float Maximum;
     //! Absolute minimum value
     float Minimun;
-    ////! Use or not, deprecated by lj, 08/16/17
-    //string Use;
     //! Dependence parameters
     ParamInfo *DependPara;
     //! Climate type

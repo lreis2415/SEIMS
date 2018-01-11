@@ -938,6 +938,7 @@
 //#define VAR_SOMO_TOT  "somo_total"          /// Total soil water content in soil profile, deprecated and replaced by VAR_SOL_SW
 #define VAR_SOL_ST "solst"                     /// amount of water stored in the soil layer on current day(mm H2O)
 #define VAR_SOL_SW  "solsw"          /// amount of water stored in soil profile on current day (mm H2O)
+#define VAR_SW_CAP "sw_cap"  /// amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint
 #define VAR_SOTE "SOTE"                             /// Soil Temperature
 #define VAR_SOWB "SOWB"
 #define VAR_SOXY "soxy"
@@ -1560,6 +1561,7 @@
 //#define DESC_SOMO_TOT "amount of water stored in the soil profile"
 #define DESC_SOL_ST "amount of water stored in the soil layer on current day(mm H2O)"
 #define DESC_SOL_SW "amount of water stored in soil profile on current day (mm H2O)"
+#define DESC_SW_CAP "amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint"
 #define DESC_SOTE "soil Temperature"
 #define DESC_SOWB "soil water balance"
 #define DESC_SOXY "saturation concentration of dissolved oxygen"
