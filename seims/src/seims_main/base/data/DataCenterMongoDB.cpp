@@ -9,6 +9,10 @@ const char *METEO_VARS[] = {DataType_MeanTemperature, DataType_MaximumTemperatur
                             DataType_MinimumTemperature, DataType_SolarRadiation,
                             DataType_WindSpeed, DataType_RelativeAirMoisture};
 
+const int SOILWATER_VARS_NUM = 5;
+const char *SOILWATER_VARS[] = {VAR_SOL_WPMM, VAR_SOL_AWC, VAR_SOL_UL,
+                                VAR_SOL_SUMAWC, VAR_SOL_SUMSAT};
+
 DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
                                      string &modulePath, LayeringMethod layeringMethod /* = UP_DOWN */,
                                      int subBasinID /* = 0 */, int scenarioID /* = -1 */,
@@ -388,9 +392,6 @@ bool DataCenterMongoDB::readParametersInDB() {
         if (bson_iter_init_find(&iter, info, PARAM_FLD_MIN)) {
             GetNumericFromBsonIterator(&iter, p->Minimun);
         }
-        //if (bson_iter_init_find(&iter, info, PARAM_FLD_USE)) {
-        //    p->Use = GetStringFromBsonIterator(&iter);
-        //}
         if (bson_iter_init_find(&iter, info, PARAM_CALI_VALUES) && m_calibrationID >= 0) {
             // Overwrite p->Impact according to calibration ID
             string cali_values_str = GetStringFromBsonIterator(&iter);
@@ -402,6 +403,15 @@ bool DataCenterMongoDB::readParametersInDB() {
         if (!m_initParameters.insert(make_pair(GetUpper(p->Name), p)).second) {
             cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
             return false;
+        }
+        /// Special handling code for soil water capcity parameters
+        /// e.g., SOL_AWC, SOL_UL, WILTINGPOINT. By ljzhu, 2018-1-11
+        if (StringMatch(PARAM_FLD_NAME, VAR_SW_CAP)) {
+            for (int si = 0; si < SOILWATER_VARS_NUM; si++) {
+                ParamInfo *tmpp = new ParamInfo(*p);
+                tmpp->Name = SOILWATER_VARS[si];
+                m_initParameters.insert(make_pair(GetUpper(tmpp->Name), tmpp));
+            }
         }
     }
     bson_destroy(filter);
