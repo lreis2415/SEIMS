@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Evaluate SEIMS model for parameters sensitivity analysis.
+"""User defined evaluate_models variables for parameters sensitivity analysis.
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
 """
@@ -13,19 +13,22 @@ from pygeoc.raster import RasterUtilClass
 
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
-from run_seims import MainSEIMS
 
 
-def build_seims_model(modelcfg_dict, cali_idx):
-    """Build SEIMS model."""
-    return MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
-                     nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
-                     ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
-                     sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
+def get_evaluate_output_name_unit():
+    """User defined names and outputs of evaluated outputs"""
+    output_name = ['meanQ', 'meanSED',
+                   'NSE-Q', 'R2-Q', 'RMSE-Q', 'PBIAS-Q', 'RSR-Q',
+                   'NSE-SED', 'R2-SED', 'RMSE-SED', 'PBIAS-SED', 'RSR-SED',
+                   'meanSOER']
+    output_unit = [' ($m^3/s$)', ' (kg)', '', '', '', '', '', '', '', '', '', '', ' (kg)']
+    return output_name, output_unit
 
 
 def evaluate_model_response(model_obj):
     """Run SEIMS model, calculate and return the desired output variables.
+    See Also:
+        get_evaluate_output_name_unit
     Args:
         model_obj: MainSEIMS object
     """
@@ -75,6 +78,8 @@ def evaluate_model_response(model_obj):
 
 def main():
     """MAIN FUNCTION."""
+    from run_seims import MainSEIMS
+
     bindir = r'D:\compile\bin\seims'
     modeldir = r'C:\z_data\ChangTing\seims_models_phd\youwuzhen10m_longterm_model'
     seimsobj = MainSEIMS(bindir, modeldir,
