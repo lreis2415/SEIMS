@@ -144,24 +144,22 @@ class Scenario(object):
         if not self.export_sce_txt:
             return
         ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
-        outfile = open(ofile, 'w')
-        outfile.write('Scenario ID: %d\n' % self.ID)
-        outfile.write('Gene number: %d\n' % self.gene_num)
-        outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
-        outfile.write('Scenario items:\n')
-        if len(self.bmp_items) > 0:
-            for obj, item in self.bmp_items.iteritems():
-                header = item.keys()
-                break
-            outfile.write('\t'.join(header))
-            outfile.write('\n')
-            for obj, item in self.bmp_items.iteritems():
-                outfile.write('\t'.join(str(v) for v in item.values()))
+        with open(ofile, 'w') as outfile:
+            outfile.write('Scenario ID: %d\n' % self.ID)
+            outfile.write('Gene number: %d\n' % self.gene_num)
+            outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+            outfile.write('Scenario items:\n')
+            if len(self.bmp_items) > 0:
+                for obj, item in self.bmp_items.iteritems():
+                    header = item.keys()
+                    break
+                outfile.write('\t'.join(header))
                 outfile.write('\n')
-
-        outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
-                                                                              self.environment))
-        outfile.close()
+                for obj, item in self.bmp_items.iteritems():
+                    outfile.write('\t'.join(str(v) for v in item.values()))
+                    outfile.write('\n')
+            outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
+                                                                                  self.environment))
 
     def export_scenario_to_gtiff(self):
         """Export the areal BMPs to gtiff for further analysis.
@@ -236,7 +234,7 @@ def initialize_scenario(cf):
 
 
 def scenario_effectiveness(cf, individual):
-    """Used for evaluate the effectiveness of given individual.
+    """Used for evaluate_models the effectiveness of given individual.
 
     Designed as static method, which should be overridden in inherited class.
     """

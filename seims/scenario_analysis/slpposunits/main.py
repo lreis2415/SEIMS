@@ -43,7 +43,7 @@ toolbox = base.Toolbox()
 toolbox.register('gene_values', initialize_scenario)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
 toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
-toolbox.register('evaluate', scenario_effectiveness)
+toolbox.register('evaluate_models', scenario_effectiveness)
 
 # rule-based mate and mutate
 toolbox.register('mate_rule', crossover_slppos)
@@ -200,9 +200,8 @@ if __name__ == "__main__":
     fpop, fstats = main(cfg)
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
-    f = open(cfg.logbookfile, 'w')
-    f.write(fstats.__str__())
-    f.close()
+    with open(cfg.logbookfile, 'w') as f:
+        f.write(fstats.__str__())
 
     endT = time.time()
     print_message('Running time: %.2fs' % (endT - startT))
