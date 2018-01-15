@@ -41,8 +41,9 @@ def plot_pareto_front(pop, ws, gen_id):
     plt.close()
 
 
-def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
-    f = open(txt_file)
+def read_pareto_points_from_txt(txt_file, sce_name, xname, yname):
+    with open(txt_file) as f:
+        lines = f.readlines()
     pareto_points = OrderedDict()
     pareto_popnum = OrderedDict()
     found = False
@@ -50,7 +51,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
     iden_idx = -1
     xidx = -1
     yidx = -1
-    for line in f:
+    for line in lines:
         str_line = line
         for LF in LFs:
             if LF in line:
@@ -90,7 +91,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
         pareto_points[cur_gen][xname[0]].append(values[xidx])
         pareto_points[cur_gen][yname[0]].append(values[yidx])
         pareto_popnum[cur_gen].append(int(values[iden_idx]))
-    f.close()
+
     all_sceids = list()
     acc_num = list()
     genids = sorted(pareto_popnum.keys())
@@ -104,12 +105,13 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname, gens):
 
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
-    f = open(txt_file)
+    with open(txt_file) as f:
+        lines = f.readlines()
     pareto_popnum = OrderedDict()
     found = False
     cur_gen = -1
     iden_idx = -1
-    for line in f:
+    for line in lines:
         str_line = line
         for LF in LFs:
             if LF in line:
@@ -138,7 +140,7 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
             continue
         # now append the real Pareto front point data
         pareto_popnum[cur_gen].append(int(values[iden_idx]))
-    f.close()
+
     all_sceids = list()
     acc_num = list()
     genids = sorted(pareto_popnum.keys())
@@ -166,8 +168,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     acc_pop_size = OrderedDict()
     for k, v in method_paths.iteritems():
         v = v + os.sep + 'runtime.log'
-        pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname,
-                                                                      yname, gens)
+        pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname, yname)
     # print (pareto_data)
     ylabel_str = yname[1]
     xlabel_str = xname[1]
@@ -314,8 +315,9 @@ def plot_hypervolume_by_method(method_paths, ws):
         v = v + os.sep + 'hypervolume.txt'
         x = list()
         y = list()
-        f = open(v)
-        for line in f:
+        with open(v, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
             values = StringClass.extract_numeric_values_from_string(line)
             if values is None:
                 continue
@@ -323,7 +325,7 @@ def plot_hypervolume_by_method(method_paths, ws):
                 continue
             x.append(int(values[0]))
             y.append(values[1])
-        f.close()
+
         if len(x) == len(y) > 0:
             hyperv[k] = [x[:], y[:]]
     plt.rcParams['xtick.direction'] = 'out'

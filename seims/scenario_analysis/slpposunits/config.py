@@ -45,10 +45,9 @@ class SASPUConfig(SAConfig):
         # 2. Slope position units information
         updownf = self.bmps_info.get('UPDOWNJSON')
         FileClass.check_file_exists(updownf)
-        updownfo = open(updownf, 'r')
-        self.units_infos = json.load(updownfo)
+        with open(updownf, 'r') as updownfo:
+            self.units_infos = json.load(updownfo)
         self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
-        updownfo.close()
         # 3. Get slope position sequence
         sptags = cf.get('BMPs', 'slppos_tag_name')
         self.slppos_tags = json.loads(sptags)
