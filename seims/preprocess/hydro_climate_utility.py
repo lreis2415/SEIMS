@@ -79,8 +79,9 @@ class HydroClimateUtilClass(object):
         """
         time_sys = 'LOCALTIME'
         time_zone = time.timezone / -3600
-        f = open(in_file)
-        for line in f:
+        with open(in_file, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
             str_line = line.strip()
             # for LF in LFs:
             #     if LF in line:
@@ -97,7 +98,6 @@ class HydroClimateUtilClass(object):
                 if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
                     time_zone = -1 * int(line_list[1])
                 break
-        f.close()
         return time_sys, time_zone
 
     @staticmethod

@@ -342,9 +342,8 @@ class SlopePositionUnits(object):
     def output(self, jfile, unitraster, unitshp):
         """output json file and slope position units raster file"""
         json_updown_data = json.dumps(self.units_updwon, indent=4)
-        f = open(jfile, 'w')
-        f.write(json_updown_data)
-        f.close()
+        with open(jfile, 'w') as f:
+            f.write(json_updown_data)
         RasterUtilClass.write_gtiff_file(unitraster, self.nrows, self.ncols,
                                          self.slppos_ids, self.geotrans, self.srs,
                                          DEFAULT_NODATA, self.datatype)

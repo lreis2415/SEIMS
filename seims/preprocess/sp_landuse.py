@@ -56,12 +56,11 @@ class LanduseUtilClass(object):
         n = len(property_map)
         UtilClass.rmmkdir(lookup_dir)
         for propertyName in property_namelist:
-            f = open("%s/%s.txt" % (lookup_dir, propertyName,), 'w')
-            f.write("%d\n" % n)
-            for prop_id in property_map:
-                s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
-                f.write(s)
-            f.close()
+            with open("%s/%s.txt" % (lookup_dir, propertyName,), 'w') as f:
+                f.write("%d\n" % n)
+                for prop_id in property_map:
+                    s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
+                    f.write(s)
 
     @staticmethod
     def reclassify_landuse_parameters(bin_dir, config_file, dst_dir, landuse_file, lookup_dir,
@@ -71,14 +70,13 @@ class LanduseUtilClass(object):
         TODO(LJ): this function should be replaced by replaceByDict() function!
         """
         # prepare reclassify configuration file
-        f_reclass_lu = open(config_file, 'w')
-        f_reclass_lu.write("%s\t%d\n" % (landuse_file, default_landuse_id))
-        f_reclass_lu.write("%s\n" % lookup_dir)
-        f_reclass_lu.write(dst_dir + "\n")
-        n = len(landuse_attr_list)
-        f_reclass_lu.write("%d\n" % n)
-        f_reclass_lu.write("\n".join(landuse_attr_list))
-        f_reclass_lu.close()
+        with open(config_file, 'w') as f_reclass_lu:
+            f_reclass_lu.write("%s\t%d\n" % (landuse_file, default_landuse_id))
+            f_reclass_lu.write("%s\n" % lookup_dir)
+            f_reclass_lu.write(dst_dir + "\n")
+            n = len(landuse_attr_list)
+            f_reclass_lu.write("%d\n" % n)
+            f_reclass_lu.write("\n".join(landuse_attr_list))
         s = '"%s/reclassify" %s' % (bin_dir, config_file)
         UtilClass.run_command(s)
 

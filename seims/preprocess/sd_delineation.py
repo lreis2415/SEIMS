@@ -73,13 +73,12 @@ class SpatialDelineation(object):
         # write mask configuration file
         n = len(originalfiles)
         # write mask config file
-        f = open(configfile, 'w')
-        f.write(maskfile + "\n")
-        f.write("%d\n" % (n,))
-        for i in range(n):
-            s = "%s\t%d\t%s\n" % (originalfiles[i], default_values[i], outputfiles[i])
-            f.write(s)
-        f.close()
+        with open(configfile, 'w') as f:
+            f.write(maskfile + "\n")
+            f.write("%d\n" % (n,))
+            for i in range(n):
+                s = "%s\t%d\t%s\n" % (originalfiles[i], default_values[i], outputfiles[i])
+                f.write(s)
         # run command
         UtilClass.run_command('"%s/mask_raster" %s' % (bin_dir, configfile))
 

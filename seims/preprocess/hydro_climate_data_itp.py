@@ -203,14 +203,12 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
             file_name += '_nonzero'
         file_name += '.txt'
         out_file = work_path + os.sep + file_name
-        f = open(out_file, 'w')
-        f.write(header_str + '\n')
-        f.write('DATETIME,' + fld + '\n')
-        for i, v in itp_data.items():
-            cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
-            f.write(cur_line)
-        f.close()
-
+        with open(out_file, 'w') as f:
+            f.write(header_str + '\n')
+            f.write('DATETIME,' + fld + '\n')
+            for i, v in itp_data.items():
+                cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
+                f.write(cur_line)
 
 def main():
     """TEST CODE"""

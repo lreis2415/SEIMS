@@ -284,23 +284,23 @@ class ImportWeightData(object):
                 # interpolate using the locations
                 # weightList = []
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                f_test = open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,
-                                                        subbsn_id, type_list[type_i]), 'w')
-                for y in range(0, ysize):
-                    for x in range(0, xsize):
-                        index = int(y * xsize + x)
-                        # print index
-                        if abs(data[index] - nodata_value) > UTIL_ZERO:
-                            x_coor = xll + x * dx
-                            y_coor = yll + (ysize - y - 1) * dx
-                            near_index = 0
-                            # print locList
-                            line, near_index = ImportWeightData.thiessen(x_coor, y_coor, loc_list)
-                            myfile.write(line)
-                            fmt = '%df' % (len(loc_list))
-                            f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
+                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,subbsn_id,
+                                                    type_list[type_i]), 'w') as f_test:
+                    for y in range(0, ysize):
+                        for x in range(0, xsize):
+                            index = int(y * xsize + x)
+                            # print index
+                            if abs(data[index] - nodata_value) > UTIL_ZERO:
+                                x_coor = xll + x * dx
+                                y_coor = yll + (ysize - y - 1) * dx
+                                near_index = 0
+                                # print locList
+                                line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
+                                                                             loc_list)
+                                myfile.write(line)
+                                fmt = '%df' % (len(loc_list))
+                                f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
                 myfile.close()
-                f_test.close()
 
     @staticmethod
     def workflow(cfg, conn):
