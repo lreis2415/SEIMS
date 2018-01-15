@@ -220,13 +220,17 @@ class Sensitivity(object):
            It is worth to be noticed that evaluate_models() allows to return
            several output variables, hence we should calculate each of them separately.
         """
-        if self.output_values is None or len(self.output_values) == 0:
-            self.evaluate_models()
         if not self.psa_si:
             if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
                 with open(self.cfg.outfiles.psa_si_json, 'r') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
+        if self.output_values is None or len(self.output_values) == 0:
+            self.evaluate_models()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
+        if not self.param_defs:
+            self.read_param_ranges()
         row, col = self.output_values.shape
         assert (row == self.run_count)
         for i in range(col):
@@ -235,8 +239,8 @@ class Sensitivity(object):
                                     self.param_values,
                                     self.output_values[:, i],
                                     conf_level=0.95, print_to_console=True,
-                                    num_levels=self.cfg.num_levels,
-                                    grid_jump=self.cfg.grid_jump)
+                                    num_levels=self.cfg.morris.num_levels,
+                                    grid_jump=self.cfg.morris.grid_jump)
             elif self.cfg.method == 'fast':
                 tmp_Si = fast_alz(self.param_defs, self.output_values[:, i],
                                   print_to_console=True)
@@ -254,7 +258,7 @@ class Sensitivity(object):
         # Plots histogram of all samples
         if not self.param_defs:
             self.read_param_ranges()
-        if not self.param_values:
+        if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
         plt.rcParams['font.family'] = ['Times New Roman']
         plt.rcParams['axes.titlesize'] = 'small'
