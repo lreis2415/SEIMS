@@ -197,24 +197,24 @@ class Sensitivity(object):
                           'hostname': self.cfg.hostname, 'port': self.cfg.port,
                           'scenario_id': 0}
 
-        def build_seims_model(modelcfg_dict, cali_idx):
-            """Build SEIMS model with specified calibration ID."""
-            tmpm = MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
-                             nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
-                             ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
-                             sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
-            evaluate_model_response(tmpm)
+        # def build_seims_model(modelcfg_dict, cali_idx):
+        #     """Build SEIMS model with specified calibration ID."""
+        #     tmpm = MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
+        #                      nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
+        #                      ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
+        #                      sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
+        #     return evaluate_model_response(tmpm)
 
         #cali_models = map(build_seims_model, [model_cfg_dict] * self.run_count, cali_seqs)
         try:
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            self.output_values = list(futures.map(build_seims_model,
+            self.output_values = list(futures.map(evaluate_model_response,
                                                   [model_cfg_dict] * self.run_count, cali_seqs))
             #self.output_values = list(futures.map(evaluate_model_response, cali_models))
         except ImportError or ImportWarning:
             # serial
-            self.output_values = list(map(build_seims_model,
+            self.output_values = list(map(evaluate_model_response,
                                           [model_cfg_dict] * self.run_count, cali_seqs))
             #self.output_values = list(map(evaluate_model_response, cali_models))
         if not isinstance(self.output_values, numpy.ndarray):

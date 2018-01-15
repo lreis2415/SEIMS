@@ -13,6 +13,7 @@ from pygeoc.raster import RasterUtilClass
 
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
+from run_seims import MainSEIMS
 
 
 def get_evaluate_output_name_unit():
@@ -25,13 +26,17 @@ def get_evaluate_output_name_unit():
     return output_name, output_unit
 
 
-def evaluate_model_response(model_obj):
+def evaluate_model_response(modelcfg_dict, cali_idx):
     """Run SEIMS model, calculate and return the desired output variables.
     See Also:
         get_evaluate_output_name_unit
     Args:
         model_obj: MainSEIMS object
     """
+    model_obj = MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
+                          nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
+                          ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
+                          sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
     run_flag = model_obj.run()
     if not run_flag:
         return None
