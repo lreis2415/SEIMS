@@ -64,7 +64,7 @@ class Sensitivity(object):
         self.generate_samples()
         self.write_param_values_to_mongodb()
         self.evaluate_models()
-        self.calc_morris_ee()
+        self.calculate_sensitivity()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -88,10 +88,11 @@ class Sensitivity(object):
                         None if not specified or all uniform
         """
         # read param_defs.json if already existed
-        if FileClass.is_file_exists(self.cfg.outfiles.param_defs_json):
-            with open(self.cfg.outfiles.param_defs_json, 'r') as f:
-                self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
-            return
+        if not self.param_defs:
+            if FileClass.is_file_exists(self.cfg.outfiles.param_defs_json):
+                with open(self.cfg.outfiles.param_defs_json, 'r') as f:
+                    self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
+                return
         # read param_range_def file and output to json file
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
@@ -145,9 +146,11 @@ class Sensitivity(object):
 
     def generate_samples(self):
         """Sampling and write to a single file and MongoDB 'PARAMETERS' collection"""
-        if FileClass.is_file_exists(self.cfg.outfiles.param_values_txt):
-            self.param_values = numpy.loadtxt(self.cfg.outfiles.param_values_txt)
-            return
+        if self.param_values is None or len(self.param_values) == 0:
+            if FileClass.is_file_exists(self.cfg.outfiles.param_values_txt):
+                self.param_values = numpy.loadtxt(self.cfg.outfiles.param_values_txt)
+                self.run_count = len(self.param_values)
+                return
         if not self.param_defs:
             self.read_param_ranges()
         if self.cfg.method == 'morris':
@@ -166,7 +169,7 @@ class Sensitivity(object):
 
     def write_param_values_to_mongodb(self):
         # update Parameters collection in MongoDB
-        if not self.param_values:
+        if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
@@ -180,10 +183,11 @@ class Sensitivity(object):
     def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.
         """
-        if not self.output_values:
+        if self.output_values is None or len(self.output_values) == 0:
             if FileClass.is_file_exists(self.cfg.outfiles.output_values_txt):
                 self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
                 return
+        assert(self.run_count > 0)
         cali_seqs = range(self.run_count)
         model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
                           'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
@@ -210,17 +214,18 @@ class Sensitivity(object):
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
                       self.output_values, delimiter=' ', fmt='%.4e')
 
-    def calc_morris_ee(self):
+    def calculate_sensitivity(self):
         """Calculate Morris elementary effects.
            It is worth to be noticed that evaluate_models() allows to return
            several output variables, hence we should calculate each of them separately.
         """
-        if not self.output_values:
+        if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
-        if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
-            with open(self.cfg.outfiles.psa_si_json, 'r') as f:
-                self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
-                return
+        if not self.psa_si:
+            if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
+                with open(self.cfg.outfiles.psa_si_json, 'r') as f:
+                    self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
+                    return
         row, col = self.output_values.shape
         assert (row == self.run_count)
         for i in range(col):
@@ -250,7 +255,7 @@ class Sensitivity(object):
             self.read_param_ranges()
         if not self.param_values:
             self.generate_samples()
-        plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['font.family'] = ['Times New Roman']
         plt.rcParams['axes.titlesize'] = 'small'
         plt.rcParams['ytick.labelsize'] = 'x-small'
         plt.rcParams['ytick.direction'] = 'out'
@@ -265,7 +270,7 @@ class Sensitivity(object):
         plt.close()
         output_name, output_unit = get_evaluate_output_name_unit()
         if not self.psa_si:
-            self.calc_morris_ee()
+            self.calculate_sensitivity()
         for i, v in enumerate(output_name):
             unit = output_unit[i]
             fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -287,4 +292,4 @@ if __name__ == '__main__':
     print (cfg.param_range_def)
 
     saobj = Sensitivity(cfg)
-    saobj.plot()
+    saobj.run()
