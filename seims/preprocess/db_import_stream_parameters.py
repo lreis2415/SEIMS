@@ -298,20 +298,19 @@ class ImportReaches2Mongo(object):
         # construct the METIS input file
         UtilClass.mkdir(cfg.dirs.metis)
         metis_input = r'%s/metis.txt' % cfg.dirs.metis
-        f = open(metis_input, 'w')
-        f.write(str(len(ns)) + '\t' + str(len(g.edges())) + '\t' + '010\t1\n')
-        for node in ns:
-            if node <= 0:
-                continue
-            f.write(str(area_dic[node]) + '\t')
-            for e in g.out_edges(node):
-                if e[1] > 0:
-                    f.write(str(e[1]) + '\t')
-            for e in g.in_edges(node):
-                if e[0] > 0:
-                    f.write(str(e[0]) + '\t')
-            f.write('\n')
-        f.close()
+        with open(metis_input, 'w') as f:
+            f.write(str(len(ns)) + '\t' + str(len(g.edges())) + '\t' + '010\t1\n')
+            for node in ns:
+                if node <= 0:
+                    continue
+                f.write(str(area_dic[node]) + '\t')
+                for e in g.out_edges(node):
+                    if e[1] > 0:
+                        f.write(str(e[1]) + '\t')
+                for e in g.in_edges(node):
+                    if e[0] > 0:
+                        f.write(str(e[0]) + '\t')
+                f.write('\n')
 
         # execute metis
         nlist = [1, ]
@@ -425,30 +424,26 @@ class ImportReaches2Mongo(object):
             # for cluster, based on kmetis
             str_command = '"%s/gpmetis" %s %d' % (cfg.seims_bin, metis_input, n)
             result = UtilClass.run_command(str_command)
-            f_metis_output = open('%s/kmetisResult%d.txt' % (cfg.dirs.metis, n), 'w')
-            for line in result:
-                f_metis_output.write(line)
-            f_metis_output.close()
+            with open('%s/kmetisResult%d.txt' % (cfg.dirs.metis, n), 'w') as f_metis_output:
+                for line in result:
+                    f_metis_output.write(line)
 
             metis_output = '%s.part.%d' % (metis_input, n)
-            f = open(metis_output)
-            lines = f.readlines()
+            with open(metis_output, 'r') as f:
+                lines = f.readlines()
             group_kmetis = [int(item) for item in lines]
-            f.close()
             adjust_group_result(g, area_dic, group_kmetis, n)
 
             # pmetis
             str_command = '"%s/gpmetis" -ptype=rb %s %d' % (cfg.seims_bin, metis_input, n)
             result = UtilClass.run_command(str_command)
-            f_metis_output = open('%s/pmetisResult%d.txt' % (cfg.dirs.metis, n), 'w')
-            for line in result:
-                f_metis_output.write(line)
-            f_metis_output.close()
+            with open('%s/pmetisResult%d.txt' % (cfg.dirs.metis, n), 'w') as f_metis_output:
+                for line in result:
+                    f_metis_output.write(line)
 
-            f = open(metis_output)
-            lines = f.readlines()
+            with open(metis_output, 'r') as f:
+                lines = f.readlines()
             group_pmetis = [int(item) for item in lines]
-            f.close()
             adjust_group_result(g, area_dic, group_pmetis, n)
 
             group_dic_k, group_dic_p = \
