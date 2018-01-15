@@ -65,6 +65,7 @@ class Sensitivity(object):
         self.write_param_values_to_mongodb()
         self.evaluate_models()
         self.calculate_sensitivity()
+        self.plot()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -292,4 +293,5 @@ if __name__ == '__main__':
     print (cfg.param_range_def)
 
     saobj = Sensitivity(cfg)
-    saobj.run()
+    saobj.calculate_sensitivity()
+    saobj.plot()
