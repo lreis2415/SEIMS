@@ -11,9 +11,17 @@ import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
-
+import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
 from pygeoc.utils import UtilClass
+
+
+plt.rcParams['font.family'] = ['Times New Roman']
+plt.rcParams['axes.titlesize'] = 'small'
+plt.rcParams['ytick.labelsize'] = 'x-small'
+plt.rcParams['ytick.direction'] = 'out'
+plt.rcParams['xtick.labelsize'] = 'x-small'
+plt.rcParams['xtick.direction'] = 'out'
 
 
 def save_png_eps(plot, wp, name):
@@ -46,27 +54,32 @@ def cal_row_col_num(tot):
     return row, col
 
 
-def sample_histograms(fig, input_sample, problem, param_dict):
-    """Plots a set of subplots of histograms of the input sample."""
-    if not problem.has_key('num_vars') and not problem.has_key('names'):
-        raise ValueError('Input illegal! Problem is a dict contains both num_vars and names fields')
+def sample_histograms(fig, input_sample, names, levels, param_dict):
+    """Plot histograms as subplot.
 
-    num_vars = problem['num_vars']
-    names = problem['names']
+    Args:
+        fig:
+        input_sample:
+        names:
+        levels:
+        param_dict:
 
+    Returns:
+        subplot list.
+    """
+    num_vars = len(names)
     row, col = cal_row_col_num(num_vars)
-    # Find number of levels
-    num_levels = len(set(input_sample[:, 1]))
     out = list()
-    for variable in range(num_vars):
-        ax = fig.add_subplot(row, col, variable + 1)
-        out.append(ax.hist(input_sample[:, variable],
-                           bins=num_levels,
+    for var_idx in range(num_vars):
+        ax = fig.add_subplot(row, col, var_idx + 1)
+        out.append(ax.hist(input_sample[:, var_idx],
+                           bins=levels,
                            normed=False,
                            label=None,
                            **param_dict))
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
-        ax.set_title('%s' % (names[variable]))
+        ax.get_xaxis().set_major_locator(LinearLocator(numticks=5))
+        ax.set_title('%s' % (names[var_idx]))
         ax.tick_params(axis='x',  # changes apply to the x-axis
                        which='both',  # both major and minor ticks are affected
                        bottom='off',  # ticks along the bottom edge are off
@@ -76,6 +89,6 @@ def sample_histograms(fig, input_sample, problem, param_dict):
                        which='major',  # both major and minor ticks are affected
                        length=3,
                        right='off')
-        if variable % col:  # labels along the left edge are off
+        if var_idx % col:  # labels along the left edge are off
             ax.tick_params(axis='y', labelleft='off')
     return out

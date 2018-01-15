@@ -65,7 +65,9 @@ class Sensitivity(object):
         self.write_param_values_to_mongodb()
         self.evaluate_models()
         self.calculate_sensitivity()
-        self.plot()
+        self.plot_samples_histogram()
+        if self.cfg.method == 'morris':
+            self.plot_morris()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -253,19 +255,16 @@ class Sensitivity(object):
         with open(self.cfg.outfiles.psa_si_json, 'w') as f:
             f.write(json_data)
 
-    def plot(self):
+    def plot_samples_histogram(self):
         """Save plot as png(300 dpi) and eps (vector)."""
         # Plots histogram of all samples
         if not self.param_defs:
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        plt.rcParams['font.family'] = ['Times New Roman']
-        plt.rcParams['axes.titlesize'] = 'small'
-        plt.rcParams['ytick.labelsize'] = 'x-small'
-        plt.rcParams['ytick.direction'] = 'out'
         histfig = plt.figure()
-        sample_histograms(histfig, self.param_values, self.param_defs,
+        sample_histograms(histfig, self.param_values, self.param_defs.get('names'),
+                          self.cfg.morris.num_levels,
                           {'color': 'black', 'histtype': 'step'})
         plt.tight_layout()
         save_png_eps(plt, self.cfg.psa_outpath, 'samples_histgram')
@@ -273,6 +272,9 @@ class Sensitivity(object):
         plt.cla()
         plt.clf()
         plt.close()
+
+    def plot_morris(self):
+        """Save plot as png(300 dpi) and eps (vector)."""
         output_name, output_unit = get_evaluate_output_name_unit()
         if not self.psa_si:
             self.calculate_sensitivity()
@@ -297,5 +299,6 @@ if __name__ == '__main__':
     print (cfg.param_range_def)
 
     saobj = Sensitivity(cfg)
-    saobj.calculate_sensitivity()
-    saobj.plot()
+    # saobj.calculate_sensitivity()
+    saobj.plot_samples_histogram()
+    # saobj.plot_morris()
