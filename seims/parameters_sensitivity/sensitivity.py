@@ -199,19 +199,24 @@ class Sensitivity(object):
 
         def build_seims_model(modelcfg_dict, cali_idx):
             """Build SEIMS model with specified calibration ID."""
-            return MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
+            tmpm = MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
                              nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
                              ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
                              sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
+            evaluate_model_response(tmpm)
 
-        cali_models = map(build_seims_model, [model_cfg_dict] * self.run_count, cali_seqs)
+        #cali_models = map(build_seims_model, [model_cfg_dict] * self.run_count, cali_seqs)
         try:
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            self.output_values = list(futures.map(evaluate_model_response, cali_models))
+            self.output_values = list(futures.map(build_seims_model,
+                                                  [model_cfg_dict] * self.run_count, cali_seqs))
+            #self.output_values = list(futures.map(evaluate_model_response, cali_models))
         except ImportError or ImportWarning:
             # serial
-            self.output_values = list(map(evaluate_model_response, cali_models))
+            self.output_values = list(map(build_seims_model,
+                                          [model_cfg_dict] * self.run_count, cali_seqs))
+            #self.output_values = list(map(evaluate_model_response, cali_models))
         if not isinstance(self.output_values, numpy.ndarray):
             self.output_values = numpy.array(self.output_values)
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
