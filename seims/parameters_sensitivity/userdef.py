@@ -38,8 +38,8 @@ def evaluate_model_response(modelcfg_dict, cali_idx):
                           ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
                           sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
     run_flag = model_obj.run()
-    if not run_flag:
-        return None
+    if not run_flag:  # return all outputs to be -9999.
+        return [-9999.] * 13
     output_variables = list()
     obs_vars = ['Q', 'SED']
     tif_name = 'SOER_SUM.tif'
