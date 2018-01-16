@@ -200,7 +200,7 @@ class Sensitivity(object):
                           'scenario_id': 0}
 
         # split tasks if needed
-        task_num = self.run_count / 100
+        task_num = self.run_count / 1000
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -232,6 +232,8 @@ class Sensitivity(object):
             tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
                                         'outputs_%d.txt' % idx)
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
+        numpy.savetxt(self.cfg.outfiles.output_values_txt,
+                      self.output_values, delimiter=' ', fmt='%.4e')
 
     def calculate_sensitivity(self):
         """Calculate Morris elementary effects.
