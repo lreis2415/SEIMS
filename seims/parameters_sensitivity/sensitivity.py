@@ -4,6 +4,7 @@
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
                 18-1-11   lj - integration of screening method and variant-based method.\n
+                18-1-16   lj - split tasks when the run_count is very very large.\n
 """
 import os
 import sys
@@ -64,6 +65,8 @@ class Sensitivity(object):
         self.write_param_values_to_mongodb()
         self.evaluate_models()
         self.calculate_sensitivity()
+
+    def plot(self):
         self.plot_samples_histogram()
         if self.cfg.method == 'morris':
             self.plot_morris()
@@ -190,25 +193,45 @@ class Sensitivity(object):
                 self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
                 return
         assert (self.run_count > 0)
-        cali_seqs = range(self.run_count)
+        # model configurations
         model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
                           'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
                           'hostname': self.cfg.hostname, 'port': self.cfg.port,
                           'scenario_id': 0}
 
-        try:
-            # parallel on multiprocesor or clusters using SCOOP
-            from scoop import futures
-            self.output_values = list(futures.map(evaluate_model_response,
-                                                  [model_cfg_dict] * self.run_count, cali_seqs))
-        except ImportError or ImportWarning:
-            # serial
-            self.output_values = list(map(evaluate_model_response,
-                                          [model_cfg_dict] * self.run_count, cali_seqs))
-        if not isinstance(self.output_values, numpy.ndarray):
-            self.output_values = numpy.array(self.output_values)
-        numpy.savetxt(self.cfg.outfiles.output_values_txt,
-                      self.output_values, delimiter=' ', fmt='%.4e')
+        # split tasks if needed
+        task_num = self.run_count / 100
+        if task_num == 0:
+            split_seqs = [range(self.run_count)]
+        else:
+            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
+            split_seqs = [a.tolist() for a in split_seqs]
+
+        for idx, cali_seqs in enumerate(split_seqs):
+            try:  # parallel on multiprocesor or clusters using SCOOP
+                from scoop import futures
+                temp_output_values = list(futures.map(evaluate_model_response,
+                                                      [model_cfg_dict] * len(cali_seqs),
+                                                      cali_seqs))
+            except ImportError or ImportWarning:  # serial
+                temp_output_values = list(map(evaluate_model_response,
+                                              [model_cfg_dict] * len(cali_seqs), cali_seqs))
+            if not isinstance(temp_output_values, numpy.ndarray):
+                temp_output_values = numpy.array(temp_output_values)
+            numpy.savetxt(self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx,
+                          temp_output_values, delimiter=' ', fmt='%.4e')
+        self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+                                           'outputs_0.txt')
+        if task_num == 0:
+            import shutil
+            shutil.move(self.cfg.outfiles.output_values_dir + os.sep + 'outputs_0.txt',
+                        self.cfg.outfiles.output_values_txt)
+            shutil.rmtree(self.cfg.outfiles.output_values_dir)
+            return
+        for idx in range(1, task_num):
+            tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+                                        'outputs_%d.txt' % idx)
+            self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
 
     def calculate_sensitivity(self):
         """Calculate Morris elementary effects.
