@@ -106,8 +106,10 @@ class PSAOutputs(object):
         """Initialization."""
         self.param_defs_json = wp + os.sep + 'param_defs.json'
         self.param_values_txt = wp + os.sep + 'param_values.txt'
+        self.output_values_dir = wp + os.sep + 'temp_output_values'
         self.output_values_txt = wp + os.sep + 'output_values.txt'
         self.psa_si_json = wp + os.sep + 'psa_si.json'
+        UtilClass.mkdir(self.output_values_dir)
 
 
 class PSAConfig(object):

@@ -25,6 +25,9 @@ def main():
     print('### END OF PARAMETERS SENSITIVITY ANALYSIS ###')
     print('Running time: %.2fs' % (time.time() - start_t))
 
+    # Plot figures
+    saobj.plot()
+
 
 if __name__ == '__main__':
     main()
