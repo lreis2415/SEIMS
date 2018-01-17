@@ -208,6 +208,9 @@ class Sensitivity(object):
             split_seqs = [a.tolist() for a in split_seqs]
 
         for idx, cali_seqs in enumerate(split_seqs):
+            cur_out_file = self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx
+            if FileClass.is_file_exists(cur_out_file):
+                continue
             try:  # parallel on multiprocesor or clusters using SCOOP
                 from scoop import futures
                 temp_output_values = list(futures.map(evaluate_model_response,
@@ -218,8 +221,8 @@ class Sensitivity(object):
                                               [model_cfg_dict] * len(cali_seqs), cali_seqs))
             if not isinstance(temp_output_values, numpy.ndarray):
                 temp_output_values = numpy.array(temp_output_values)
-            numpy.savetxt(self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx,
-                          temp_output_values, delimiter=' ', fmt='%.4e')
+            numpy.savetxt(cur_out_file, temp_output_values, delimiter=' ', fmt='%.4e')
+        # load the first part of output values
         self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
                                            'outputs_0.txt')
         if task_num == 0:
