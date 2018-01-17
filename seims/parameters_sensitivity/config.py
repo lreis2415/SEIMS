@@ -100,6 +100,7 @@ class FASTConfig(object):
         if self.N <= 4 * self.M ** 2:
             raise ValueError('Sample size N > 4M^2 is required for FAST method. M=4 by default.')
 
+
 class PSAOutputs(object):
     """Predefined output files for parameters sensitivity analysis."""
     def __init__(self, wp):
