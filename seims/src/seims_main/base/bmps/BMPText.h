@@ -338,6 +338,7 @@
 #define LANDUSE_PARAM_DSC_ST12_IDX         49
 
 #define LANDUSE_ID_WATR                    18
+#define LANDUSE_ID_PADDY                   33
 
 /// irrigation source code:
 #define IRR_SRC_RCH                    1 /// divert water from reach

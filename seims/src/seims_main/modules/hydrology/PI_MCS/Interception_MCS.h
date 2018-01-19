@@ -31,6 +31,12 @@ public:
 private:
     /* Parameters from database */
 
+    // The embankment area ratio of paddy rice HRU
+    float m_embnkfr_pr;
+    // The fraction of precipitation fall on the embankment that drain into ditches or canals directly
+    float m_pcp2canfr_pr;
+    // landuse
+    float *m_landuse;
     //! Calibration parameter, the sine-shaped curve controller exponent b, default is 1.35
     float m_Pi_b;
     //! Calibration parameter, the initial interception storage for all cells, mm
