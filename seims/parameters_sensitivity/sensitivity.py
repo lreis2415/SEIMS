@@ -10,6 +10,8 @@ import os
 import sys
 import json
 
+from preprocess.text import DBTableNames
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -60,6 +62,7 @@ class Sensitivity(object):
 
     def run(self):
         """PSA workflow."""
+        self.reset_simulation_timerange()
         self.read_param_ranges()
         self.generate_samples()
         self.write_param_values_to_mongodb()
@@ -71,6 +74,19 @@ class Sensitivity(object):
         if self.cfg.method == 'morris':
             self.plot_morris()
             self.plot_cdf()
+
+    def reset_simulation_timerange(self):
+        """Read simulation time range from MongoDB."""
+        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        conn = client.get_conn()
+        db = conn[self.cfg.spatial_db]
+        stime_str = self.cfg.time_start.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.cfg.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+                                                         {'$set': {'VALUE': stime_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+                                                         {'$set': {'VALUE': etime_str}})
+        client.close()
 
     def read_param_ranges(self):
         """Read param_rng.def file
