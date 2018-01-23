@@ -4,10 +4,10 @@
 /***************************************************************************
  pySEIMS
                              Python APIs for SEIMS
- Calibration by optimization algorithms e.g. SCE-UA, SUFI2.
+ Calibration by optimization algorithms e.g. NSGA-II, SCE-UA, and SUFI2.
                               -------------------
-        author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2017 by Lreis, IGSNRR, CAS
+        author               : Liangjun Zhu
+        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
