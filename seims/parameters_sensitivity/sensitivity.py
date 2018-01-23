@@ -32,7 +32,7 @@ from preprocess.db_mongodb import ConnectMongoDB
 from config import PSAConfig
 from preprocess.utility import read_data_items_from_txt
 from userdef import evaluate_model_response, get_evaluate_output_name_unit
-from figure import sample_histograms, save_png_eps
+from figure import sample_histograms, save_png_eps, empirical_cdf
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -70,6 +70,7 @@ class Sensitivity(object):
         self.plot_samples_histogram()
         if self.cfg.method == 'morris':
             self.plot_morris()
+            self.plot_cdf()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -283,16 +284,9 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        histfig = plt.figure()
-        sample_histograms(histfig, self.param_values, self.param_defs.get('names'),
-                          self.cfg.morris.num_levels,
+        sample_histograms(self.param_values, self.param_defs.get('names'),
+                          self.cfg.morris.num_levels, self.cfg.psa_outpath, 'samples_histgram',
                           {'color': 'black', 'histtype': 'step'})
-        plt.tight_layout()
-        save_png_eps(plt, self.cfg.psa_outpath, 'samples_histgram')
-        # close current plot in case of 'figure.max_open_warning'
-        plt.cla()
-        plt.clf()
-        plt.close()
 
     def plot_morris(self):
         """Save plot as png(300 dpi) and eps (vector)."""
@@ -309,6 +303,25 @@ class Sensitivity(object):
             plt.cla()
             plt.clf()
             plt.close()
+
+    def plot_cdf(self):
+        output_name, output_unit = get_evaluate_output_name_unit()
+        param_names = self.param_defs.get('names')
+        for i in [2, 7]:
+            q_nse_values = self.output_values[:, i]
+            empirical_cdf(q_nse_values, [0], self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
+        for i in [3, 8]:
+            q_nse_values = self.output_values[:, i]
+            empirical_cdf(q_nse_values, 2, self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
+        for i in [6, 11]:
+            q_nse_values = self.output_values[:, i]
+            empirical_cdf(q_nse_values, [1], self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
 
 
 if __name__ == '__main__':
