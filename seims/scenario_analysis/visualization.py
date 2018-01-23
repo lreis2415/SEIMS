@@ -18,15 +18,15 @@ from pygeoc.utils import StringClass
 LFs = ['\r', '\n', '\r\n']
 
 
-def plot_pareto_front(pop, ws, gen_id):
+def plot_pareto_front(pop, ws, gen_id, title, xlabel, ylabel):
     pop_size = len(pop)
     front = numpy.array([ind.fitness.values for ind in pop])
     # Plot
     plt.figure(gen_id)
-    plt.title('Pareto frontier of Scenarios Optimization\n', color='#aa0903')
+    plt.title('%s\n' % title, color='#aa0903')
     # plt.xlabel('Economic calculate_economy(Million Yuan)')
-    plt.xlabel('Economic effectiveness')
-    plt.ylabel('Environmental effectiveness')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     # front[:, 0] /= 1000000.
     # front[:, 1] /= 1000.
     plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
@@ -34,7 +34,6 @@ def plot_pareto_front(pop, ws, gen_id):
               loc='right')
     img_path = ws + os.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
     plt.savefig(img_path)
-    # plt.show()
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
