@@ -225,22 +225,6 @@ class Scenario(object):
                                ' random_based_config!')
 
 
-def initialize_scenario(cf):
-    """Used for initial individual of population.
-
-    Designed as static method, which should be overridden in inherited class.
-    """
-    pass
-
-
-def scenario_effectiveness(cf, individual):
-    """Used for evaluate_models the effectiveness of given individual.
-
-    Designed as static method, which should be overridden in inherited class.
-    """
-    pass
-
-
 if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SAConfig(cf)

@@ -6,7 +6,6 @@
                 17-08-18  lj - reorganize.\n
 """
 import array
-import operator
 import os
 import random
 import time
@@ -43,7 +42,7 @@ toolbox = base.Toolbox()
 toolbox.register('gene_values', initialize_scenario)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
 toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
-toolbox.register('evaluate_models', scenario_effectiveness)
+toolbox.register('evaluate', scenario_effectiveness)
 
 # rule-based mate and mutate
 toolbox.register('mate_rule', crossover_slppos)
@@ -56,7 +55,7 @@ toolbox.register('select', tools.selNSGA2)
 
 
 def main(cfg):
-    """Main workflow of NSAG-II based Scenario analysis."""
+    """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
     pop_size = cfg.nsga2_npop
     gen_num = cfg.nsga2_ngens
@@ -82,7 +81,7 @@ def main(cfg):
     print_message('BMPs configure method: %s' % ('rule-based' if rule_cfg else 'random-based'))
 
     # create reference point for hypervolume
-    ref_pt = numpy.array(tuple(map(operator.mul, [worst_econ, worst_env], multi_weight))) * -1
+    ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
@@ -175,7 +174,9 @@ def main(cfg):
         print_message(logbook.stream)
 
         # Create plot
-        plot_pareto_front(pop, ws, gen)
+        plot_pareto_front(pop, ws, gen, 'Pareto frontier of Scenarios Optimization',
+                          'Economic effectiveness',
+                          'Environmental effectiveness')
         # save in file
         output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
         for indi in pop:

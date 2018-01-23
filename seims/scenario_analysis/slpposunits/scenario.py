@@ -189,7 +189,7 @@ class SPScenario(Scenario):
         self.economy = capex + opex - income
 
     def calculate_environment(self):
-        if not self.modelrun:  # no evaluate_models done
+        if not self.modelrun:  # no evaluate done
             self.economy = self.worst_econ
             self.environment = self.worst_env
             return
