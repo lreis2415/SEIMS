@@ -96,18 +96,22 @@ class Calibration(object):
                                                          {'$set': {'VALUE': etime_str}})
         client.close()
 
-    def initialize(self):
+    def initialize(self, n=1):
         """Initialize parameters samples by Latin-Hypercube sampling method.
 
         Returns:
             A list contains parameter value at each gene location.
         """
         param_num = self.ParamDefs['num_vars']
-        lhs_samples = lhs(param_num, 1)[0]
-        gene_values = list()
-        for i, param_bound in enumerate(self.ParamDefs['bounds']):
-            gene_values.append(lhs_samples[i] * (param_bound[1] - param_bound[0]) + param_bound[0])
-        return gene_values
+        lhs_samples = lhs(param_num, n)
+        all = list()
+        for idx in range(n):
+            gene_values = list()
+            for i, param_bound in enumerate(self.ParamDefs['bounds']):
+                gene_values.append(lhs_samples[idx][i] * (param_bound[1] - param_bound[0]) +
+                                   param_bound[0])
+            all.append(gene_values)
+        return all
 
 
 def initialize_calibrations(cf):
