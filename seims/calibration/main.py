@@ -80,14 +80,13 @@ def main(cfg):
     # Initialize population
     # pop = toolbox.population(cfg, n=cfg.opt.npop) # Deprecated method!
     cali_obj = Calibration(cfg)
+    param_values = cali_obj.initialize(cfg.opt.npop)
     pop = list()
-    param_values = list()
     for i in range(cfg.opt.npop):
-        ind = creator.Individual(cali_obj.initialize())
+        ind = creator.Individual(param_values[i])
         ind.gen = 0
         ind.id = i
         pop.append(ind)
-        param_values.append(ind[:])
     param_values = numpy.array(param_values)
     write_param_values_to_mongodb(cfg.hostname, cfg.port, cfg.spatial_db,
                                   cali_obj.ParamDefs, param_values)
