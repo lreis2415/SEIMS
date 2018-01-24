@@ -66,7 +66,7 @@ def main(cfg):
     print_message('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
 
     # create reference point for hypervolume
-    ref_pt = numpy.array([-500., -100.]) * multi_weight * -1
+    ref_pt = numpy.array([-1., -1.]) * multi_weight * -1
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
