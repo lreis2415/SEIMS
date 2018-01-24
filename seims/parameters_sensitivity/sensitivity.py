@@ -10,8 +10,6 @@ import os
 import sys
 import json
 
-from preprocess.text import DBTableNames
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -31,6 +29,7 @@ from SALib.sample.fast_sampler import sample as fast_spl
 from SALib.analyze.fast import analyze as fast_alz
 
 from preprocess.db_mongodb import ConnectMongoDB
+from preprocess.text import DBTableNames
 from config import PSAConfig
 from preprocess.utility import read_data_items_from_txt
 from userdef import evaluate_model_response, get_evaluate_output_name_unit
@@ -322,20 +321,26 @@ class Sensitivity(object):
 
     def plot_cdf(self):
         output_name, output_unit = get_evaluate_output_name_unit()
+        if not self.param_defs:
+            self.read_param_ranges()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
+        if self.output_values is None or len(self.output_values) == 0:
+            self.evaluate_models()
         param_names = self.param_defs.get('names')
         for i in [2, 7]:
-            q_nse_values = self.output_values[:, i]
-            empirical_cdf(q_nse_values, [0], self.param_values, param_names,
+            values = self.output_values[:, i]
+            empirical_cdf(values, [0], self.param_values, param_names,
                           self.cfg.morris.num_levels,
                           self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
         for i in [3, 8]:
-            q_nse_values = self.output_values[:, i]
-            empirical_cdf(q_nse_values, 2, self.param_values, param_names,
+            values = self.output_values[:, i]
+            empirical_cdf(values, 2, self.param_values, param_names,
                           self.cfg.morris.num_levels,
                           self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
         for i in [6, 11]:
-            q_nse_values = self.output_values[:, i]
-            empirical_cdf(q_nse_values, [1], self.param_values, param_names,
+            values = self.output_values[:, i]
+            empirical_cdf(values, [1], self.param_values, param_names,
                           self.cfg.morris.num_levels,
                           self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
 
