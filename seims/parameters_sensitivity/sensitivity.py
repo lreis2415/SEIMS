@@ -189,13 +189,19 @@ class Sensitivity(object):
                       self.param_values, delimiter=' ', fmt='%.4e')
 
     def write_param_values_to_mongodb(self):
-        # update Parameters collection in MongoDB
+        """Update Parameters collection in MongoDB.
+        Notes:
+            The field value of 'CALI_VALUES' of all parameters will be deleted first.
+        """
+        if not self.param_defs:
+            self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
         db = conn[self.cfg.spatial_db]
         collection = db['PARAMETERS']
+        collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
         for idx, pname in enumerate(self.param_defs['names']):
             v2str = ','.join(str(v) for v in self.param_values[:, idx])
             collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
@@ -354,6 +360,7 @@ if __name__ == '__main__':
     print (cfg.param_range_def)
 
     saobj = Sensitivity(cfg)
+    saobj.write_param_values_to_mongodb()
     # saobj.calculate_sensitivity()
-    saobj.plot_samples_histogram()
+    # saobj.plot_samples_histogram()
     # saobj.plot_morris()
