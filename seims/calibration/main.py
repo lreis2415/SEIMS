@@ -123,8 +123,15 @@ def main(cfg):
                               ind.sim.sim_obs_data['Q']['RSR'],
                               abs(ind.sim.sim_obs_data['Q']['PBIAS'])/100.,
                               ind.sim.sim_obs_data['Q']['R-square']]
+    # NSE > 0 is the preliminary condition to be a valid solution!
+    pop = [ind for ind in pop if ind.fitness.values[0] > 0]
+    if len(pop) < int(cfg.opt.npop * cfg.opt.rsel * 0.5):  # if less than the half of the desired
+        print 'The initial population could not satisfy half of the desired valid number.' \
+              'Please check the parameters ranges or change the sampling strategy!'
+        exit(0)
 
-    pop = toolbox.select(pop, int(cfg.opt.npop * cfg.opt.rsel))
+    pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
+    pop = toolbox.select(pop, pop_select_num)
     # Output simulated data to json or pickle files for future use.
     output_population_details(pop, cfg.opt.simdata_dir, 0)
     # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
@@ -199,15 +206,15 @@ def main(cfg):
                                   ind.sim.sim_obs_data['Q']['RSR'],
                                   abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
                                   ind.sim.sim_obs_data['Q']['R-square']]
-
         # Select the next generation population
         tmp_pop = list()
         gen_idx = list()
         for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
-            if [ind.gen, ind.id] not in gen_idx:
+            # remove individuals that has a NSE < 0
+            if [ind.gen, ind.id] not in gen_idx and ind.fitness.values[0] > 0:
                 tmp_pop.append(ind)
                 gen_idx.append([ind.gen, ind.id])
-        pop = toolbox.select(tmp_pop, int(cfg.opt.npop * cfg.opt.rsel))
+        pop = toolbox.select(tmp_pop, pop_select_num)
         output_population_details(pop, cfg.opt.simdata_dir, gen)
         hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop, ref_pt))
         print_message(hyper_str)
