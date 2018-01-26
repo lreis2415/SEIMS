@@ -124,8 +124,9 @@ def calculate_95ppu(pops, outdir, gen_num):
                         color=(0.8, 0.8, 0.8), label='95PPU')
         ax.scatter(obs_dates, obs_data, marker='.', s=20,
                    color='g', label='Observed points')
-        ax.plot(sim_dates, sim_best, linestyle='-', color='red',
+        ax.plot(sim_dates, sim_best, linestyle='--', color='red',
                 label='Best simulation', linewidth=2)
+        ax.set_xlim(left=sim_dates[0])
         ax.set_ylim(bottom=0.)
         date_fmt = mdates.DateFormatter('%m-%d-%y')
         ax.xaxis.set_major_formatter(date_fmt)
