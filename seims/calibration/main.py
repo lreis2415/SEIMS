@@ -8,11 +8,11 @@ import array
 import os
 import random
 import time
+import sys
 
-import matplotlib
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
-if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
 import numpy
 from deap import base
 from deap import creator
@@ -22,23 +22,28 @@ from pygeoc.utils import UtilClass
 
 from config import CaliConfig, get_cali_config
 from calibrate import Calibration, initialize_calibrations, calibration_objectives
+from calibrate import observationData, simulationData
 from scenario_analysis.utility import print_message
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front
-from userdef import write_param_values_to_mongodb
+from userdef import write_param_values_to_mongodb, calculate_95ppu, output_population_details
+from run_seims import MainSEIMS
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
-# Multiobjects: Maximum Nash-Sutcliffe coefficients of discharge and sediment
-multi_weight = (1., 1.)
+# Multiobjects:
+# Step 1: Calibrate discharge, maximum Nash-Sutcliffe and minimum RSR
+multi_weight = (1., -1.)
+worse_objects = [-100., 10.]
+object_vars = ['Q']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to:
 # class FitnessMulti(base.Fitness):
 #     weights = (1., 1.)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
-               gen=-1, id=-1)
+               gen=-1, id=-1, obs=observationData, sim=simulationData)
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -66,26 +71,33 @@ def main(cfg):
     print_message('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
 
     # create reference point for hypervolume
-    ref_pt = numpy.array([-1., -1.]) * multi_weight * -1
+    ref_pt = numpy.array(worse_objects) * multi_weight * -1
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
     stats.register('max', numpy.max, axis=0)
     stats.register('avg', numpy.mean, axis=0)
     stats.register('std', numpy.std, axis=0)
-
     logbook = tools.Logbook()
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
-    # Initialize population
-    # pop = toolbox.population(cfg, n=cfg.opt.npop) # Deprecated method!
+    # read observation data from MongoDB
     cali_obj = Calibration(cfg)
+    model_obj = MainSEIMS(cali_obj.cfg.bin_dir, cali_obj.cfg.model_dir,
+                          nthread=cali_obj.cfg.nthread, lyrmtd=cali_obj.cfg.lyrmethod,
+                          ip=cali_obj.cfg.hostname, port=cali_obj.cfg.port,
+                          sceid=cali_obj.cfg.sceid)
+    obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
+    # Initialize population
+    # pop = toolbox.population(cfg, n=cfg.opt.npop) # Deprecated method because of redundancy!
     param_values = cali_obj.initialize(cfg.opt.npop)
     pop = list()
     for i in range(cfg.opt.npop):
         ind = creator.Individual(param_values[i])
         ind.gen = 0
         ind.id = i
+        ind.obs.vars = obs_vars[:]
+        ind.obs.data = obs_data_dict
         pop.append(ind)
     param_values = numpy.array(param_values)
     write_param_values_to_mongodb(cfg.hostname, cfg.port, cfg.spatial_db,
@@ -96,23 +108,27 @@ def main(cfg):
     up = bounds[:, 1]
     low = low.tolist()
     up = up.tolist()
-    # Evaluate the individuals with an invalid fitness
-    invalid_ind = [ind for ind in pop if not ind.fitness.valid]
 
     try:
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
-        fitnesses = futures.map(toolbox.evaluate, [cali_obj] * len(invalid_ind), invalid_ind)
+        pop = list(futures.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
         # print ('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
-        fitnesses = toolbox.map(toolbox.evaluate, [cali_obj] * len(invalid_ind), invalid_ind)
+        pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
         # print ('serial-fitnesses: ', fitnesses)
 
-    for ind, fit in zip(invalid_ind, fitnesses):
-        ind.fitness.values = [fit[0], fit[5]]
+    for ind in pop:
+        ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
+                              ind.sim.sim_obs_data['Q']['RSR']]
 
     pop = toolbox.select(pop, int(cfg.opt.npop * cfg.opt.rsel))
+    # Output simulated data to json or pickle files for future use.
+    output_population_details(pop, cfg.opt.simdata_dir, 0)
+    # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
+    calculate_95ppu(pop, cfg.opt.ppu_dir, 0)
+
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
     print_message(logbook.stream)
@@ -157,6 +173,7 @@ def main(cfg):
 
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        valid_ind = [ind for ind in offspring if ind.fitness.valid]
         invalid_ind_size = len(invalid_ind)
         # Write new calibrated parameters to MongoDB
         param_values = list()
@@ -170,16 +187,19 @@ def main(cfg):
         # print_message('Evaluate pop size: %d' % invalid_ind_size)
         try:
             from scoop import futures
-            fitnesses = futures.map(toolbox.evaluate, [cali_obj] * invalid_ind_size, invalid_ind)
+            invalid_ind = list(futures.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
+                                           invalid_ind))
         except ImportError or ImportWarning:
-            fitnesses = toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size, invalid_ind)
+            invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
+                                           invalid_ind))
 
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = [fit[0], fit[5]]
+        for ind in invalid_ind:
+            ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
+                                  ind.sim.sim_obs_data['Q']['RSR']]
 
         # Select the next generation population
-        pop = toolbox.select(pop + offspring, int(cfg.opt.npop * cfg.opt.rsel))
-
+        pop = toolbox.select(pop + valid_ind + invalid_ind, int(cfg.opt.npop * cfg.opt.rsel))
+        output_population_details(pop, cfg.opt.simdata_dir, gen)
         hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop, ref_pt))
         print_message(hyper_str)
         UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
@@ -190,14 +210,17 @@ def main(cfg):
 
         # Create plot
         plot_pareto_front(pop, cfg.opt.out_dir, gen, 'Pareto frontier of Calibration',
-                          'NSE of discharge',
-                          'NSE of sediment')
+                          'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
-        output_str += 'generation-calibrationID\tNSE-Q\tNSE-SED\tgene_values\n'
+        output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tgene_values\n'
         for indi in pop:
             output_str += '%d-%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
                                                    indi.fitness.values[1], str(indi))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
+
+        # Calculate 95PPU, P-factor, and R-factor
+        calculate_95ppu(pop, cfg.opt.ppu_dir, gen)
+        # TODO: Figure out if we should terminate the evolution
 
     return pop, logbook
 

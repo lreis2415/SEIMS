@@ -3,8 +3,14 @@
 """Base class of calibration.
     @author   : Liangjun Zhu
     @changelog: 18-01-22  lj - design and implement.\n
+                18-01-25  lj - redesign the individual class, add 95PPU, etc.\n
 """
 import shutil
+from collections import OrderedDict
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import FileClass
 
@@ -16,6 +22,27 @@ from preprocess.text import DBTableNames
 from preprocess.utility import read_data_items_from_txt
 from run_seims import MainSEIMS
 from sample_lhs import lhs
+
+
+class observationData(object):
+    def __init__(self):
+        self.vars = list()
+        self.data = OrderedDict()
+
+
+class efficiencyStats(object):
+    def __init__(self):
+        self.NSE = 0.
+        self.R2 = 0.
+        self.PBIAS = 0.
+        self.RSR = 0.
+
+
+class simulationData(object):
+    def __init__(self):
+        self.vars = list()
+        self.data = OrderedDict()
+        self.sim_obs_data = OrderedDict()
 
 
 class Calibration(object):
@@ -130,36 +157,21 @@ def calibration_objectives(cali_obj, ind):
                           ip=cali_obj.cfg.hostname, port=cali_obj.cfg.port,
                           sceid=cali_obj.cfg.sceid, caliid=ind.id)
     run_flag = model_obj.run()
-    if not run_flag:  # return all outputs to be -9999.
-        return [-9999.] * 10
-    output_variables = list()
-    obs_vars = ['Q', 'SED']
-    # 1. read observation data from MongoDB
-    obs_vars, obs_data_dict = model_obj.ReadOutletObservations(obs_vars)
-    # 2. read simulation data
-    sim_vars, sim_data_dict = read_simulation_from_txt(model_obj.output_dir,
-                                                       obs_vars, model_obj.outlet_id,
-                                                       model_obj.start_time,
-                                                       model_obj.end_time)
-    # 3. Match with observation data
-    sim_obs_dict = match_simulation_observation(sim_vars, sim_data_dict,
-                                                obs_vars, obs_data_dict)
-    # 4. Calculate NSE, R2, RMSE, PBIAS, and RSR
-    calculate_statistics(sim_obs_dict)
-    output_variables.append(sim_obs_dict['Q']['NSE'])
-    output_variables.append(sim_obs_dict['Q']['R-square'])
-    output_variables.append(sim_obs_dict['Q']['RMSE'])
-    output_variables.append(sim_obs_dict['Q']['PBIAS'])
-    output_variables.append(sim_obs_dict['Q']['RSR'])
-    output_variables.append(sim_obs_dict['SED']['NSE'])
-    output_variables.append(sim_obs_dict['SED']['R-square'])
-    output_variables.append(sim_obs_dict['SED']['RMSE'])
-    output_variables.append(sim_obs_dict['SED']['PBIAS'])
-    output_variables.append(sim_obs_dict['SED']['RSR'])
-
+    if not run_flag:
+        return ind
+    # read simulation data
+    ind.sim.vars, ind.sim.data = read_simulation_from_txt(model_obj.output_dir,
+                                                          ind.obs.vars, model_obj.outlet_id,
+                                                          model_obj.start_time,
+                                                          model_obj.end_time)
+    # Match with observation data
+    ind.sim.sim_obs_data = match_simulation_observation(ind.sim.vars, ind.sim.data,
+                                                        ind.obs.vars, ind.obs.data)
+    # Calculate NSE, R2, RMSE, PBIAS, and RSR
+    calculate_statistics(ind.sim.sim_obs_data)
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
-    return output_variables
+    return ind
 
 
 if __name__ == '__main__':

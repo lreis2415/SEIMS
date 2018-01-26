@@ -26,11 +26,9 @@ plt.rcParams['xtick.direction'] = 'out'
 
 def save_png_eps(plot, wp, name):
     """Save figures, both png and eps formats"""
-    png_dir = wp + os.sep + 'png'
     eps_dir = wp + os.sep + 'eps'
-    UtilClass.mkdir(png_dir)
     UtilClass.mkdir(eps_dir)
-    for figpath in [png_dir + os.sep + name + '.png', eps_dir + os.sep + name + '.eps']:
+    for figpath in [wp + os.sep + name + '.png', eps_dir + os.sep + name + '.eps']:
         plot.savefig(figpath, dpi=300)
 
 
