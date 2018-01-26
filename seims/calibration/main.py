@@ -34,9 +34,9 @@ from run_seims import MainSEIMS
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
 # Multiobjects:
-# Step 1: Calibrate discharge, maximum Nash-Sutcliffe and minimum RSR
-multi_weight = (1., -1.)
-worse_objects = [-100., 10.]
+# Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
+multi_weight = (1., -1., -1., 1.)
+worse_objects = [-100., 10., 10., 0.0001]
 object_vars = ['Q']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to:
@@ -119,9 +119,12 @@ def main(cfg):
         pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
         # print ('serial-fitnesses: ', fitnesses)
 
+    # Step 1 Calibrating discharge
     for ind in pop:
         ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-                              ind.sim.sim_obs_data['Q']['RSR']]
+                              ind.sim.sim_obs_data['Q']['RSR'],
+                              ind.sim.sim_obs_data['Q']['PBIAS'],
+                              ind.sim.sim_obs_data['Q']['R-square']]
 
     pop = toolbox.select(pop, int(cfg.opt.npop * cfg.opt.rsel))
     # Output simulated data to json or pickle files for future use.
@@ -192,13 +195,21 @@ def main(cfg):
         except ImportError or ImportWarning:
             invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
                                            invalid_ind))
-
+        # Step 1 Calibrating discharge
         for ind in invalid_ind:
             ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-                                  ind.sim.sim_obs_data['Q']['RSR']]
+                                  ind.sim.sim_obs_data['Q']['RSR'],
+                                  ind.sim.sim_obs_data['Q']['PBIAS'],
+                                  ind.sim.sim_obs_data['Q']['R-square']]
 
         # Select the next generation population
-        pop = toolbox.select(pop + valid_ind + invalid_ind, int(cfg.opt.npop * cfg.opt.rsel))
+        tmp_pop = list()
+        gen_idx = list()
+        for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
+            if [ind.gen, ind.id] not in gen_idx:
+                tmp_pop.append(pop)
+                gen_idx.append([ind.gen, ind.id])
+        pop = toolbox.select(tmp_pop, int(cfg.opt.npop * cfg.opt.rsel))
         output_population_details(pop, cfg.opt.simdata_dir, gen)
         hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop, ref_pt))
         print_message(hyper_str)
@@ -209,13 +220,17 @@ def main(cfg):
         print_message(logbook.stream)
 
         # Create plot
-        plot_pareto_front(pop, cfg.opt.out_dir, gen, 'Pareto frontier of Calibration',
-                          'NSE', 'RSR')  # Step 1: Calibrate discharge
+        # plot_pareto_front(pop, cfg.opt.out_dir, gen, 'Pareto frontier of Calibration',
+        #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
-        output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tgene_values\n'
+        output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
         for indi in pop:
-            output_str += '%d-%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
-                                                   indi.fitness.values[1], str(indi))
+            output_str += '%d-%d\t%.3f\t%.3f\t%.3f\t%.3f\t%s\n' % (indi.gen, indi.id,
+                                                                   indi.fitness.values[0],
+                                                                   indi.fitness.values[1],
+                                                                   indi.fitness.values[2],
+                                                                   indi.fitness.values[3],
+                                                                   str(indi))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # Calculate 95PPU, P-factor, and R-factor
