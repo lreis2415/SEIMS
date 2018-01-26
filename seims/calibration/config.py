@@ -70,6 +70,10 @@ class nsgaiiConfig(object):
         self.hypervlog = self.out_dir + os.sep + 'hypervolume.txt'
         self.logfile = self.out_dir + os.sep + 'runtime.log'
         self.logbookfile = self.out_dir + os.sep + 'logbook.txt'
+        self.simdata_dir = self.out_dir + os.sep + 'simulated_data'
+        UtilClass.rmmkdir(self.simdata_dir)
+        self.ppu_dir = self.out_dir + os.sep + '95ppu'
+        UtilClass.rmmkdir(self.ppu_dir)
 
 
 class CaliConfig(object):
