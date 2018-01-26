@@ -9,6 +9,7 @@
 import os
 import sys
 import json
+import datetime
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -36,10 +37,12 @@ from userdef import evaluate_model_response, get_evaluate_output_name_unit
 from figure import sample_histograms, save_png_eps, empirical_cdf
 
 
-class NumpyEncoder(json.JSONEncoder):
+class SpecialJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, numpy.ndarray):
             return obj.tolist()
+        elif isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
         return json.JSONEncoder.default(self, obj)
 
 
@@ -161,7 +164,7 @@ class Sensitivity(object):
                            'num_vars': num_vars, 'groups': groups, 'dists': dists}
 
         # Save as json, which can be loaded by json.load()
-        json_data = json.dumps(self.param_defs, indent=4, cls=NumpyEncoder)
+        json_data = json.dumps(self.param_defs, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.param_defs_json, 'w') as f:
             f.write(json_data)
 
@@ -294,7 +297,7 @@ class Sensitivity(object):
             self.psa_si[i] = tmp_Si
         # print (self.psa_si)
         # Save as json, which can be loaded by json.load()
-        json_data = json.dumps(self.psa_si, indent=4, cls=NumpyEncoder)
+        json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.psa_si_json, 'w') as f:
             f.write(json_data)
 
