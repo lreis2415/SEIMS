@@ -36,7 +36,7 @@ from run_seims import MainSEIMS
 # Multiobjects:
 # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
 multi_weight = (1., -1., -1., 1.)
-worse_objects = [-100., 10., 10., 0.0001]
+worse_objects = [0.0001, 1., 1., 0.0001]
 object_vars = ['Q']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to:
@@ -216,7 +216,8 @@ def main(cfg):
                 gen_idx.append([ind.gen, ind.id])
         pop = toolbox.select(tmp_pop, pop_select_num)
         output_population_details(pop, cfg.opt.simdata_dir, gen)
-        hyper_str = 'Gen: %d, hypervolume: %f\n' % (gen, hypervolume(pop, ref_pt))
+        hyper_str = 'Gen: %d, Pop number: %d, hypervolume: %f\n' % (gen, len(pop),
+                                                                    hypervolume(pop, ref_pt))
         print_message(hyper_str)
         UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
 
