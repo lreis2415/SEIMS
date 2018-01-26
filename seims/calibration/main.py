@@ -113,17 +113,15 @@ def main(cfg):
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
         pop = list(futures.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
-        # print ('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
         pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
-        # print ('serial-fitnesses: ', fitnesses)
 
     # Step 1 Calibrating discharge
     for ind in pop:
         ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
                               ind.sim.sim_obs_data['Q']['RSR'],
-                              ind.sim.sim_obs_data['Q']['PBIAS'],
+                              abs(ind.sim.sim_obs_data['Q']['PBIAS'])/100.,
                               ind.sim.sim_obs_data['Q']['R-square']]
 
     pop = toolbox.select(pop, int(cfg.opt.npop * cfg.opt.rsel))
@@ -199,7 +197,7 @@ def main(cfg):
         for ind in invalid_ind:
             ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
                                   ind.sim.sim_obs_data['Q']['RSR'],
-                                  ind.sim.sim_obs_data['Q']['PBIAS'],
+                                  abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
                                   ind.sim.sim_obs_data['Q']['R-square']]
 
         # Select the next generation population
@@ -207,7 +205,7 @@ def main(cfg):
         gen_idx = list()
         for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
             if [ind.gen, ind.id] not in gen_idx:
-                tmp_pop.append(pop)
+                tmp_pop.append(ind)
                 gen_idx.append([ind.gen, ind.id])
         pop = toolbox.select(tmp_pop, int(cfg.opt.npop * cfg.opt.rsel))
         output_population_details(pop, cfg.opt.simdata_dir, gen)
@@ -224,13 +222,13 @@ def main(cfg):
         #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
         output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
-        for indi in pop:
-            output_str += '%d-%d\t%.3f\t%.3f\t%.3f\t%.3f\t%s\n' % (indi.gen, indi.id,
-                                                                   indi.fitness.values[0],
-                                                                   indi.fitness.values[1],
-                                                                   indi.fitness.values[2],
-                                                                   indi.fitness.values[3],
-                                                                   str(indi))
+        for ind in pop:
+            output_str += '%d-%d\t%.3f\t%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
+                                                                   ind.sim.sim_obs_data['Q']['NSE'],
+                                                                   ind.sim.sim_obs_data['Q']['RSR'],
+                                                                   ind.sim.sim_obs_data['Q']['PBIAS'],
+                                                                   ind.sim.sim_obs_data['Q']['R-square'],
+                                                                   str(ind))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # Calculate 95PPU, P-factor, and R-factor
