@@ -84,13 +84,18 @@ def calculate_95ppu(pops, outdir, gen_num):
 
         sim_dates = pops[0].sim.data.keys()
         sim_data = list()
-        sim_best = None
+        sim_best_idx = -1
+        sim_best_nse = 0.
         for idx2, ind in enumerate(pops):
             tmp = numpy.array(ind.sim.data.values())
             tmp = tmp[:, idx]
-            if idx2 == 0:
-                sim_best = tmp.tolist()
+            if ind.sim.sim_obs_data[var]['NSE'] > sim_best_nse:
+                sim_best_nse = ind.sim.sim_obs_data[var]['NSE']
+                sim_best_idx = idx2
             sim_data.append(tmp.tolist())
+
+        sim_best = numpy.array(pops[sim_best_idx].sim.data.values())[:, idx]
+        sim_best = sim_best.tolist()
         sim_data = numpy.array(sim_data)
         ylows = numpy.percentile(sim_data, 2.5, 0, interpolation='nearest')
         yups = numpy.percentile(sim_data, 97.5, 0, interpolation='nearest')

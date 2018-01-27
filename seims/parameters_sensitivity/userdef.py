@@ -10,7 +10,7 @@ import datetime
 
 import numpy
 from pygeoc.raster import RasterUtilClass
-
+from pygeoc.utils import StringClass
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
 from run_seims import MainSEIMS
@@ -21,12 +21,13 @@ def get_evaluate_output_name_unit():
     output_name = ['meanQ', 'meanSED',
                    'NSE-Q', 'R2-Q', 'RMSE-Q', 'PBIAS-Q', 'RSR-Q',
                    'NSE-SED', 'R2-SED', 'RMSE-SED', 'PBIAS-SED', 'RSR-SED',
+                   'PDIFF-Q', 'PDIFF-SED',
                    'meanSOER']
-    output_unit = [' ($m^3/s$)', ' (kg)', '', '', '', '', '', '', '', '', '', '', ' (kg)']
+    output_unit = [' ($m^3/s$)', ' (kg)', '', '', '', '', '', '', '', '', '', '', '', '', ' (kg)']
     return output_name, output_unit
 
 
-def evaluate_model_response(modelcfg_dict, cali_idx):
+def evaluate_model_response(modelcfg_dict, cali_idx, period):
     """Run SEIMS model, calculate and return the desired output variables.
     See Also:
         get_evaluate_output_name_unit
@@ -46,10 +47,12 @@ def evaluate_model_response(modelcfg_dict, cali_idx):
     # 1. read observation data from MongoDB
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(obs_vars)
     # 2. read simulation data
+    dates = period.split(',')
+    stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
+    etime = StringClass.get_datetime(dates[1], '%Y-%m-%d %H:%M:%S')
     sim_vars, sim_data_dict = read_simulation_from_txt(model_obj.output_dir,
                                                        obs_vars, model_obj.outlet_id,
-                                                       model_obj.start_time,
-                                                       model_obj.end_time)
+                                                       stime, etime)
     # calculate simulated mean Q and SED
     sim_data = numpy.array(sim_data_dict.values())
     output_variables.append(numpy.average(sim_data[:, 0]))  # meanQ
@@ -69,6 +72,13 @@ def evaluate_model_response(modelcfg_dict, cali_idx):
     output_variables.append(sim_obs_dict['SED']['RMSE'])
     output_variables.append(sim_obs_dict['SED']['PBIAS'])
     output_variables.append(sim_obs_dict['SED']['RSR'])
+    # Added 2018-1-27 calculate PDIFF = (ObsPeak - SimPeak)/ObsPeak
+    obsmax = max(sim_obs_dict['Q']['Obs'])
+    simmax = max(sim_obs_dict['Q']['Sim'])
+    output_variables.append((obsmax - simmax) / obsmax)
+    obsmax = max(sim_obs_dict['SED']['Obs'])
+    simmax = max(sim_obs_dict['SED']['Sim'])
+    output_variables.append((obsmax - simmax) / obsmax)
     # 5. Calculate average soil erosion (kg/day)
     rfile = model_obj.output_dir + os.sep + tif_name
     rr = RasterUtilClass.read_raster(rfile)
