@@ -144,16 +144,20 @@ class PSAConfig(object):
         self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
         self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
 
-        tstart = cf.get('SEIMS_Model', 'time_start')
-        tend = cf.get('SEIMS_Model', 'time_end')
         try:
             # UTCTIME
+            tstart = cf.get('SEIMS_Model', 'sim_time_start')
+            tend = cf.get('SEIMS_Model', 'sim_time_end')
             self.time_start = StringClass.get_datetime(tstart)
             self.time_end = StringClass.get_datetime(tend)
+            tstart = cf.get('SEIMS_Model', 'psa_time_start')
+            tend = cf.get('SEIMS_Model', 'psa_time_end')
+            self.psa_stime = StringClass.get_datetime(tstart)
+            self.psa_etime = StringClass.get_datetime(tend)
         except ValueError:
             raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
-        if self.time_start >= self.time_end:
-            raise ValueError("Wrong time setted in [OPTIONAL_PARAMETERS]!")
+        if self.time_start >= self.time_end or self.psa_stime >= self.psa_etime:
+            raise ValueError("Wrong time settings in [SEIMS_Model]!")
 
         if not (FileClass.is_dir_exists(self.model_dir)
                 and FileClass.is_dir_exists(self.seims_bin)):

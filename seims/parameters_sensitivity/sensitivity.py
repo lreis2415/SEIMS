@@ -78,7 +78,7 @@ class Sensitivity(object):
             self.plot_cdf()
 
     def reset_simulation_timerange(self):
-        """Read simulation time range from MongoDB."""
+        """Update simulation time range in MongoDB [FILE_IN]."""
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
         db = conn[self.cfg.spatial_db]
@@ -232,6 +232,9 @@ class Sensitivity(object):
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
             split_seqs = [a.tolist() for a in split_seqs]
 
+        # PSA evaluation period
+        psa_period = '%s,%s' % (self.cfg.psa_stime.strftime('%Y-%m-%d %H:%M:%S'),
+                                self.cfg.psa_etime.strftime('%Y-%m-%d %H:%M:%S'))
         for idx, cali_seqs in enumerate(split_seqs):
             cur_out_file = self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx
             if FileClass.is_file_exists(cur_out_file):
@@ -240,10 +243,11 @@ class Sensitivity(object):
                 from scoop import futures
                 temp_output_values = list(futures.map(evaluate_model_response,
                                                       [model_cfg_dict] * len(cali_seqs),
-                                                      cali_seqs))
+                                                      cali_seqs, [psa_period] * len(cali_seqs)))
             except ImportError or ImportWarning:  # serial
                 temp_output_values = list(map(evaluate_model_response,
-                                              [model_cfg_dict] * len(cali_seqs), cali_seqs))
+                                              [model_cfg_dict] * len(cali_seqs), cali_seqs,
+                                              [psa_period] * len(cali_seqs)))
             if not isinstance(temp_output_values, numpy.ndarray):
                 temp_output_values = numpy.array(temp_output_values)
             numpy.savetxt(cur_out_file, temp_output_values, delimiter=' ', fmt='%.4e')

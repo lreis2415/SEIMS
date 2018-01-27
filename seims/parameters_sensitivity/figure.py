@@ -93,6 +93,7 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
     plt.clf()
     plt.close()
 
+
 def empirical_cdf(out_values, subsections, input_sample, names, levels,
                   outpath, outname, param_dict):
     """Visualize the empirical cumulative distribution function(CDF)
