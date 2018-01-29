@@ -5,10 +5,12 @@
     @changelog: 18-01-22  lj - design and implement.\n
                 18-01-25  lj - redesign the individual class, add 95PPU, etc.\n
 """
+import time
 import shutil
 from collections import OrderedDict
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -159,6 +161,8 @@ def calibration_objectives(cali_obj, ind, period):
     run_flag = model_obj.run()
     if not run_flag:
         return ind
+    # Sleep 0.5 second
+    time.sleep(0.5)
     # read simulation data
     dates = period.split(',')
     stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
