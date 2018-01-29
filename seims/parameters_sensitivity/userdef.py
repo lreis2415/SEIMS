@@ -7,10 +7,12 @@
 import shutil
 import os
 import datetime
+import time
 
 import numpy
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
+
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
 from run_seims import MainSEIMS
@@ -41,6 +43,7 @@ def evaluate_model_response(modelcfg_dict, cali_idx, period):
     run_flag = model_obj.run()
     if not run_flag:  # return all outputs to be -9999.
         return [-9999.] * 13
+    time.sleep(0.5)
     output_variables = list()
     obs_vars = ['Q', 'SED']
     tif_name = 'SOER_SUM.tif'
