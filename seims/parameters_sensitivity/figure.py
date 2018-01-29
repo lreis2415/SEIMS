@@ -71,15 +71,18 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):
         ax = fig.add_subplot(row, col, var_idx + 1)
+        print ('%s: %.3f - %.3f, mean: %.3f' % (names[var_idx], min(input_sample[:, var_idx]),
+                                                max(input_sample[:, var_idx]),
+                                                numpy.average(input_sample[:, var_idx])))
         ax.hist(input_sample[:, var_idx], bins=levels, normed=False, label=None, **param_dict)
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
         ax.get_xaxis().set_major_locator(LinearLocator(numticks=5))
         ax.set_title('%s' % (names[var_idx]))
         ax.tick_params(axis='x',  # changes apply to the x-axis
                        which='both',  # both major and minor ticks are affected
-                       bottom='off',  # ticks along the bottom edge are off
+                       bottom='on',  # ticks along the bottom edge are off
                        top='off',  # ticks along the top edge are off
-                       labelbottom='off')  # labels along the bottom edge are off)
+                       labelbottom='on')  # labels along the bottom edge are off)
         ax.tick_params(axis='y',  # changes apply to the y-axis
                        which='major',  # both major and minor ticks are affected
                        length=3,

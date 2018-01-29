@@ -37,7 +37,7 @@ from run_seims import MainSEIMS
 # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
 # multi_weight = (1., -1., -1., 1.)  # equal weights
 multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight
-worse_objects = [0.0001, 1., 1., 0.0001]
+worse_objects = [0.0001, 3., 3., 0.0001]
 object_vars = ['Q']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
@@ -73,6 +73,7 @@ def main(cfg):
 
     # create reference point for hypervolume
     ref_pt = numpy.array(worse_objects) * multi_weight * -1
+    filter = True
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
@@ -128,12 +129,13 @@ def main(cfg):
                               abs(ind.sim.sim_obs_data['Q']['PBIAS'])/100.,
                               ind.sim.sim_obs_data['Q']['R-square']]
     # NSE > 0 is the preliminary condition to be a valid solution!
-    pop = [ind for ind in pop if ind.fitness.values[0] > 0]
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
-    if len(pop) < int(pop_select_num * 0.5):  # if less than the half of the desired
-        print 'The initial population could not satisfy half of the desired valid number.' \
-              'Please check the parameters ranges or change the sampling strategy!'
-        exit(0)
+    if filter:
+        pop = [ind for ind in pop if ind.fitness.values[0] > 0]
+        if len(pop) < int(pop_select_num * 0.5):  # if less than the half of the desired
+            print 'The initial population could not satisfy half of the desired valid number.' \
+                  'Please check the parameters ranges or change the sampling strategy!'
+            exit(0)
 
     pop = toolbox.select(pop, pop_select_num)  # currently, len(pop) may less than pop_select_num
     # Output simulated data to json or pickle files for future use.
@@ -189,10 +191,10 @@ def main(cfg):
         try:
             from scoop import futures
             invalid_ind = list(futures.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind, [cali_period] * len(pop)))
+                                           invalid_ind, [cali_period] * len(invalid_ind)))
         except ImportError or ImportWarning:
             invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind, [cali_period] * len(pop)))
+                                           invalid_ind, [cali_period] * len(invalid_ind)))
         # Step 1 Calibrating discharge
         for ind in invalid_ind:
             ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
@@ -204,7 +206,9 @@ def main(cfg):
         gen_idx = list()
         for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
             # remove individuals that has a NSE < 0
-            if [ind.gen, ind.id] not in gen_idx and ind.fitness.values[0] > 0:
+            if [ind.gen, ind.id] not in gen_idx:
+                if filter and ind.fitness.values[0] < 0:
+                    continue
                 tmp_pop.append(ind)
                 gen_idx.append([ind.gen, ind.id])
         pop = toolbox.select(tmp_pop, pop_select_num)
