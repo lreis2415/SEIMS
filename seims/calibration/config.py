@@ -126,8 +126,8 @@ class CaliConfig(object):
             self.vali_etime = StringClass.get_datetime(tend)
         except ValueError:
             raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
-        if self.time_start >= self.time_end or self.cali_etime >= self.cali_stime \
-                or self.vali_etime >= self.vali_stime:
+        if self.time_start >= self.time_end or self.cali_stime >= self.cali_etime \
+                or self.vali_stime >= self.vali_etime:
             raise ValueError("Wrong time setted in [SEIMS_Model]!")
 
         if not (FileClass.is_dir_exists(self.model_dir)
