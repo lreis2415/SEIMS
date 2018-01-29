@@ -35,13 +35,14 @@ from run_seims import MainSEIMS
 
 # Multiobjects:
 # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
-multi_weight = (1., -1., -1., 1.)
+# multi_weight = (1., -1., -1., 1.)  # equal weights
+multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight
 worse_objects = [0.0001, 1., 1., 0.0001]
 object_vars = ['Q']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
-# The FitnessMulti class equals to:
+# The FitnessMulti class equals to (as an example):
 # class FitnessMulti(base.Fitness):
-#     weights = (1., 1.)
+#     weights = (2., -1., -1., 1.)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
                gen=-1, id=-1, obs=observationData, sim=simulationData)
 # The Individual class equals to:
@@ -108,14 +109,17 @@ def main(cfg):
     up = bounds[:, 1]
     low = low.tolist()
     up = up.tolist()
-
+    cali_period = '%s,%s' % (cali_obj.cfg.cali_stime.strftime('%Y-%m-%d %H:%M:%S'),
+                             cali_obj.cfg.cali_etime.strftime('%Y-%m-%d %H:%M:%S'))
     try:
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
-        pop = list(futures.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
+        pop = list(futures.map(toolbox.evaluate, [cali_obj] * len(pop), pop,
+                               [cali_period] * len(pop)))
     except ImportError or ImportWarning:
         # serial
-        pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop))
+        pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop,
+                               [cali_period] * len(pop)))
 
     # Step 1 Calibrating discharge
     for ind in pop:
@@ -125,13 +129,13 @@ def main(cfg):
                               ind.sim.sim_obs_data['Q']['R-square']]
     # NSE > 0 is the preliminary condition to be a valid solution!
     pop = [ind for ind in pop if ind.fitness.values[0] > 0]
-    if len(pop) < int(cfg.opt.npop * cfg.opt.rsel * 0.5):  # if less than the half of the desired
+    pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
+    if len(pop) < int(pop_select_num * 0.5):  # if less than the half of the desired
         print 'The initial population could not satisfy half of the desired valid number.' \
               'Please check the parameters ranges or change the sampling strategy!'
         exit(0)
 
-    pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
-    pop = toolbox.select(pop, pop_select_num)
+    pop = toolbox.select(pop, pop_select_num)  # currently, len(pop) may less than pop_select_num
     # Output simulated data to json or pickle files for future use.
     output_population_details(pop, cfg.opt.simdata_dir, 0)
     # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
@@ -159,18 +163,7 @@ def main(cfg):
             for i, ind1, ind2 in zip(range(len(offspring) / 2), offspring[::2], offspring[1::2]):
                 if random.random() > cfg.opt.rcross:
                     continue
-                # if ind1.fitness.crowding_dist == float('inf') and \
-                #         ind2.fitness.crowding_dist == float('inf'):
-                #     eta = 1.
-                # elif ind1.fitness.crowding_dist == float('inf') and \
-                #         ind2.fitness.crowding_dist != float('inf'):
-                #     eta = ind2.fitness.crowding_dist
-                # elif ind1.fitness.crowding_dist != float('inf') and \
-                #         ind2.fitness.crowding_dist == float('inf'):
-                #     eta = ind1.fitness.crowding_dist
-                # else:
-                #     eta = (ind1.fitness.crowding_dist + ind2.fitness.crowding_dist) / 2.
-                eta = i  # method2
+                eta = i
                 toolbox.mate(ind1, ind2, eta, low, up)
                 toolbox.mutate(ind1, eta, low, up, cfg.opt.rmut)
                 toolbox.mutate(ind2, eta, low, up, cfg.opt.rmut)
@@ -196,10 +189,10 @@ def main(cfg):
         try:
             from scoop import futures
             invalid_ind = list(futures.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind))
+                                           invalid_ind, [cali_period] * len(pop)))
         except ImportError or ImportWarning:
             invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind))
+                                           invalid_ind, [cali_period] * len(pop)))
         # Step 1 Calibrating discharge
         for ind in invalid_ind:
             ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],

@@ -12,7 +12,7 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import FileClass
+from pygeoc.utils import FileClass, StringClass
 
 from config import CaliConfig, get_cali_config
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
@@ -111,7 +111,7 @@ class Calibration(object):
         return self.param_defs
 
     def reset_simulation_timerange(self):
-        """Read simulation time range from MongoDB."""
+        """Update simulation time range in MongoDB [FILE_IN]."""
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
         db = conn[self.cfg.spatial_db]
@@ -148,7 +148,7 @@ def initialize_calibrations(cf):
     return cali.initialize()
 
 
-def calibration_objectives(cali_obj, ind):
+def calibration_objectives(cali_obj, ind, period):
     """Evaluate the objectives of given individual.
     """
     cali_obj.ID = ind.id
@@ -160,10 +160,12 @@ def calibration_objectives(cali_obj, ind):
     if not run_flag:
         return ind
     # read simulation data
+    dates = period.split(',')
+    stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
+    etime = StringClass.get_datetime(dates[1], '%Y-%m-%d %H:%M:%S')
     ind.sim.vars, ind.sim.data = read_simulation_from_txt(model_obj.output_dir,
                                                           ind.obs.vars, model_obj.outlet_id,
-                                                          model_obj.start_time,
-                                                          model_obj.end_time)
+                                                          stime, etime)
     # Match with observation data
     ind.sim.sim_obs_data = match_simulation_observation(ind.sim.vars, ind.sim.data,
                                                         ind.obs.vars, ind.obs.data)
