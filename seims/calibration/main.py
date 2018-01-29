@@ -25,7 +25,6 @@ from calibrate import Calibration, initialize_calibrations, calibration_objectiv
 from calibrate import observationData, simulationData
 from scenario_analysis.utility import print_message
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from scenario_analysis.visualization import plot_pareto_front
 from userdef import write_param_values_to_mongodb, calculate_95ppu, output_population_details
 from run_seims import MainSEIMS
 
@@ -126,7 +125,7 @@ def main(cfg):
     for ind in pop:
         ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
                               ind.sim.sim_obs_data['Q']['RSR'],
-                              abs(ind.sim.sim_obs_data['Q']['PBIAS'])/100.,
+                              abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
                               ind.sim.sim_obs_data['Q']['R-square']]
     # NSE > 0 is the preliminary condition to be a valid solution!
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
@@ -231,8 +230,10 @@ def main(cfg):
             output_str += '%d-%d\t%.3f\t%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
                                                                    ind.sim.sim_obs_data['Q']['NSE'],
                                                                    ind.sim.sim_obs_data['Q']['RSR'],
-                                                                   ind.sim.sim_obs_data['Q']['PBIAS'],
-                                                                   ind.sim.sim_obs_data['Q']['R-square'],
+                                                                   ind.sim.sim_obs_data['Q'][
+                                                                       'PBIAS'],
+                                                                   ind.sim.sim_obs_data['Q'][
+                                                                       'R-square'],
                                                                    str(ind))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
