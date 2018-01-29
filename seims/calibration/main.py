@@ -139,8 +139,6 @@ def main(cfg):
     pop = toolbox.select(pop, pop_select_num)  # currently, len(pop) may less than pop_select_num
     # Output simulated data to json or pickle files for future use.
     output_population_details(pop, cfg.opt.simdata_dir, 0)
-    # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
-    calculate_95ppu(pop, cfg.opt.ppu_dir, 0)
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
@@ -237,8 +235,6 @@ def main(cfg):
                                                                    str(ind))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
-        # Calculate 95PPU, P-factor, and R-factor
-        calculate_95ppu(pop, cfg.opt.ppu_dir, gen)
         # TODO: Figure out if we should terminate the evolution
 
     return pop, logbook

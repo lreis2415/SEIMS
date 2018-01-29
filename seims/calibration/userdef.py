@@ -41,31 +41,36 @@ def write_param_values_to_mongodb(hostname, port, spatial_db, param_defs, param_
 def output_population_details(pops, outdir, gen_num):
     """Output population details, i.e., the simulation data, etc."""
     # Save as json, which can be loaded by json.load()
+    data1 = list()
+    data2 = list()
     with open(outdir + os.sep + 'gen%d_simObsData.json' % gen_num, 'w') as f:
-        data = list()
         for ind in pops:
             ind.sim.sim_obs_data['Gen'] = ind.gen
             ind.sim.sim_obs_data['ID'] = ind.id
             ind.sim.sim_obs_data['var_name'] = ind.sim.vars
-            data.append(ind.sim.sim_obs_data)
-        json_data = json.dumps(data, indent=4, cls=SpecialJsonEncoder)
+            data1.append(ind.sim.sim_obs_data)
+        json_data = json.dumps(data1, indent=4, cls=SpecialJsonEncoder)
         f.write(json_data)
     with open(outdir + os.sep + 'gen%d_simData.pickle' % gen_num, 'w') as f:
-        data = list()
         for ind in pops:
-            data.append(ind.sim.data)
-        pickle.dump(data, f)
+            data2.append(ind.sim.data)
+        pickle.dump(data2, f)
+    try:
+        # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
+        calculate_95ppu(data1, data2, outdir, gen_num)
+    except Exception:
+        pass
 
 
-def calculate_95ppu(pops, outdir, gen_num):
+def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num):
     """Calculate 95% prediction uncertainty and plot the hydrographs."""
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
     plt.rcParams['timezone'] = 'UTC'
-    if len(pops) < 2:
+    if len(sim_data) < 2:
         return
-    var_name = pops[0].sim.vars
+    var_name = sim_obs_data[0]['var_name']
     for idx, var in enumerate(var_name):
         ylabel_str = var
         if var in ['Q', 'QI', 'QG', 'QS']:
@@ -77,28 +82,30 @@ def calculate_95ppu(pops, outdir, gen_num):
                 ylabel_str += ' (mg/L)'
         else:  # amount
             ylabel_str += ' (kg)'
-        obs_dates = pops[0].sim.sim_obs_data[var]['UTCDATETIME']
+        obs_dates = sim_obs_data[0][var]['UTCDATETIME']
         if isinstance(obs_dates[0], str) or isinstance(obs_dates[0], unicode):
             obs_dates = [StringClass.get_datetime(s) for s in obs_dates]
-        obs_data = pops[0].sim.sim_obs_data[var]['Obs']
+        obs_data = sim_obs_data[0][var]['Obs']
 
-        sim_dates = pops[0].sim.data.keys()
-        sim_data = list()
+        sim_dates = sim_data[0].keys()
+        if isinstance(sim_dates[0], str) or isinstance(sim_dates[0], unicode):
+            sim_dates = [StringClass.get_datetime(s) for s in sim_dates]
+        sim_data_list = list()
         sim_best_idx = -1
-        sim_best_nse = 0.
-        for idx2, ind in enumerate(pops):
-            tmp = numpy.array(ind.sim.data.values())
+        sim_best_nse = -9999.
+        for idx2, ind in enumerate(sim_data):
+            tmp = numpy.array(ind.values())
             tmp = tmp[:, idx]
-            if ind.sim.sim_obs_data[var]['NSE'] > sim_best_nse:
-                sim_best_nse = ind.sim.sim_obs_data[var]['NSE']
+            if sim_obs_data[idx2][var]['NSE'] > sim_best_nse:
+                sim_best_nse = sim_obs_data[idx2][var]['NSE']
                 sim_best_idx = idx2
-            sim_data.append(tmp.tolist())
+            sim_data_list.append(tmp.tolist())
 
-        sim_best = numpy.array(pops[sim_best_idx].sim.data.values())[:, idx]
+        sim_best = numpy.array(sim_data[sim_best_idx].values())[:, idx]
         sim_best = sim_best.tolist()
-        sim_data = numpy.array(sim_data)
-        ylows = numpy.percentile(sim_data, 2.5, 0, interpolation='nearest')
-        yups = numpy.percentile(sim_data, 97.5, 0, interpolation='nearest')
+        sim_data_list = numpy.array(sim_data_list)
+        ylows = numpy.percentile(sim_data_list, 2.5, 0, interpolation='nearest')
+        yups = numpy.percentile(sim_data_list, 97.5, 0, interpolation='nearest')
 
         count = 0
         ylows_obs = list()
@@ -119,10 +126,10 @@ def calculate_95ppu(pops, outdir, gen_num):
         # concatenate text
         txt = 'P-factor: %.2f, R-factor: %.2f\n' % (p_value, r_value)
         txt += 'Best simulation:\n\tNSE: %.2f, RSR: %.2f, ' \
-               'PBIAS: %.2f%%, R$^2$: %.2f' % (pops[0].sim.sim_obs_data[var]['NSE'],
-                                               pops[0].sim.sim_obs_data[var]['RSR'],
-                                               pops[0].sim.sim_obs_data[var]['PBIAS'],
-                                               pops[0].sim.sim_obs_data[var]['R-square'])
+               'PBIAS: %.2f%%, R$^2$: %.2f' % (sim_obs_data[sim_best_idx][var]['NSE'],
+                                               sim_obs_data[sim_best_idx][var]['RSR'],
+                                               sim_obs_data[sim_best_idx][var]['PBIAS'],
+                                               sim_obs_data[sim_best_idx][var]['R-square'])
         # plot
         fig, ax = plt.subplots(figsize=(12, 4))
         ax.fill_between(sim_dates, ylows.tolist(), yups.tolist(),
@@ -130,7 +137,7 @@ def calculate_95ppu(pops, outdir, gen_num):
         ax.scatter(obs_dates, obs_data, marker='.', s=20,
                    color='g', label='Observed points')
         ax.plot(sim_dates, sim_best, linestyle='--', color='red',
-                label='Best simulation', linewidth=2)
+                label='Best simulation', linewidth=1)
         ax.set_xlim(left=sim_dates[0])
         ax.set_ylim(bottom=0.)
         date_fmt = mdates.DateFormatter('%m-%d-%y')
