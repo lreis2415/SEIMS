@@ -82,7 +82,7 @@ def evaluate_model_response(modelcfg_dict, cali_idx, period):
     # 5. Calculate average soil erosion (kg/day)
     rfile = model_obj.output_dir + os.sep + tif_name
     rr = RasterUtilClass.read_raster(rfile)
-    timespan_days = (model_obj.end_time + datetime.timedelta(seconds=1) - model_obj.start_time).days
+    timespan_days = (etime + datetime.timedelta(seconds=1) - stime).days
     ave_soer = rr.get_sum() / timespan_days  # unit: day
     output_variables.append(ave_soer)
 

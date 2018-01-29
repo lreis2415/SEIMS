@@ -50,15 +50,15 @@ class nsgaiiConfig(object):
     def __init__(self, cf, wp):
         self.ngens = 1
         self.npop = 4
+        self.rsel = 0.8
         self.rcross = 0.75
         self.rmut = 0.1
-        self.rsel = 0.8
         if 'NSGAII' in cf.sections():
             self.ngens = cf.getint('NSGAII', 'generationsnum')
             self.npop = cf.getint('NSGAII', 'populationsize')
+            self.rsel = cf.getfloat('NSGAII', 'selectrate')
             self.rcross = cf.getfloat('NSGAII', 'crossoverrate')
             self.rmut = cf.getfloat('NSGAII', 'mutaterate')
-            self.rsel = cf.getfloat('NSGAII', 'selectrate')
         else:
             raise ValueError('[NSGAII] section MUST be existed in *.ini file.')
         if self.npop % 4 != 0:
@@ -111,15 +111,24 @@ class CaliConfig(object):
             self.sceid = cf.getint('SEIMS_Model', 'scenarioid')
         self.param_range_def = cf.get('SEIMS_Model', 'paramrngdef')
         self.param_range_def = self.model_dir + os.sep + self.param_range_def
-        tstart = cf.get('SEIMS_Model', 'time_start')
-        tend = cf.get('SEIMS_Model', 'time_end')
         try:  # UTCTIME
+            tstart = cf.get('SEIMS_Model', 'sim_time_start')
+            tend = cf.get('SEIMS_Model', 'sim_time_end')
             self.time_start = StringClass.get_datetime(tstart)
             self.time_end = StringClass.get_datetime(tend)
+            tstart = cf.get('SEIMS_Model', 'cali_time_start')
+            tend = cf.get('SEIMS_Model', 'cali_time_end')
+            self.cali_stime = StringClass.get_datetime(tstart)
+            self.cali_etime = StringClass.get_datetime(tend)
+            tstart = cf.get('SEIMS_Model', 'vali_time_start')
+            tend = cf.get('SEIMS_Model', 'vali_time_end')
+            self.vali_stime = StringClass.get_datetime(tstart)
+            self.vali_etime = StringClass.get_datetime(tend)
         except ValueError:
             raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
-        if self.time_start >= self.time_end:
-            raise ValueError("Wrong time setted in [OPTIONAL_PARAMETERS]!")
+        if self.time_start >= self.time_end or self.cali_etime >= self.cali_stime \
+                or self.vali_etime >= self.vali_stime:
+            raise ValueError("Wrong time setted in [SEIMS_Model]!")
 
         if not (FileClass.is_dir_exists(self.model_dir)
                 and FileClass.is_dir_exists(self.bin_dir)):
