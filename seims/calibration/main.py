@@ -131,8 +131,8 @@ def main(cfg):
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
     if filter:
         pop = [ind for ind in pop if ind.fitness.values[0] > 0]
-        if len(pop) < int(pop_select_num * 0.5):  # if less than the half of the desired
-            print 'The initial population could not satisfy half of the desired valid number.' \
+        if len(pop) < int(pop_select_num * 0.1):  # if less than 10% of the desired
+            print 'The initial population could not satisfy 10% of the desired valid number.' \
                   'Please check the parameters ranges or change the sampling strategy!'
             exit(0)
 
