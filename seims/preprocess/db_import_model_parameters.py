@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """Import model calibration parameters, model configuration information etc.
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
+    @changelog: 16-12-07  lj - rewrite for version 2.0\n
+                17-06-23  lj - reorganize as basic class\n
+                18-01-30  lj - clean up calibration settings before import a new one\n
 """
 from struct import pack
 
@@ -85,10 +86,18 @@ class ImportParam2Mongo(object):
     def calibrated_params_from_txt(cfg, maindb):
         """Read and update calibrated parameters."""
         # initialize bulk operator
-        bulk = maindb[DBTableNames.main_parameter].initialize_ordered_bulk_op()
+        coll = maindb[DBTableNames.main_parameter]
+        bulk = coll.initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
         # print (field_names)
+        # Clean up the existing calibration settings
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
+                         {'$set': {ModelParamFields.impact: -9999.}})
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_rc},
+                         {'$set': {ModelParamFields.impact: 1.}})
+        coll.update_many({ModelParamFields.change: ModelParamFields.change_ac},
+                         {'$set': {ModelParamFields.impact: 0.}})
         for i, cur_data_item in enumerate(data_items):
             data_import = dict()
             cur_filter = dict()
@@ -373,7 +382,8 @@ def main():
     conn = client.get_conn()
     main_db = conn[seims_cfg.spatial_db]
 
-    ImportParam2Mongo.workflow(seims_cfg, main_db)
+    # ImportParam2Mongo.workflow(seims_cfg, main_db)
+    ImportParam2Mongo.calibrated_params_from_txt(seims_cfg, main_db)
 
     client.close()
 
