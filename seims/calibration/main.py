@@ -25,7 +25,7 @@ from calibrate import Calibration, initialize_calibrations, calibration_objectiv
 from calibrate import observationData, simulationData
 from scenario_analysis.utility import print_message
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from userdef import write_param_values_to_mongodb, calculate_95ppu, output_population_details
+from userdef import write_param_values_to_mongodb, output_population_details
 from run_seims import MainSEIMS
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
@@ -35,9 +35,12 @@ from run_seims import MainSEIMS
 # Multiobjects:
 # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
 # multi_weight = (1., -1., -1., 1.)  # equal weights
-multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight
-worse_objects = [0.0001, 3., 3., 0.0001]
-object_vars = ['Q']
+# multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight (actually used)
+# Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. R2-SED,
+#                               max. NSE-Q
+multi_weight = (3., -1., -1., 1., 1.)  # NSE of sediment taken a bigger weight
+worse_objects = [0.0001, 3., 3., 0.0001, 0.0001]
+object_vars = ['Q', 'SED']
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
 # class FitnessMulti(base.Fitness):
@@ -122,11 +125,18 @@ def main(cfg):
                                [cali_period] * len(pop)))
 
     # Step 1 Calibrating discharge
+    # for ind in pop:
+    #     ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
+    #                           ind.sim.sim_obs_data['Q']['RSR'],
+    #                           abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
+    #                           ind.sim.sim_obs_data['Q']['R-square']]
+    # Step 2 Calibrating sediment
     for ind in pop:
-        ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-                              ind.sim.sim_obs_data['Q']['RSR'],
-                              abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
-                              ind.sim.sim_obs_data['Q']['R-square']]
+        ind.fitness.values = [ind.sim.sim_obs_data['SED']['NSE'],
+                              ind.sim.sim_obs_data['SED']['RSR'],
+                              abs(ind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
+                              ind.sim.sim_obs_data['SED']['R-square'],
+                              ind.sim.sim_obs_data['Q']['NSE']]
     # NSE > 0 is the preliminary condition to be a valid solution!
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
     if filter:
@@ -193,11 +203,18 @@ def main(cfg):
             invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
                                            invalid_ind, [cali_period] * len(invalid_ind)))
         # Step 1 Calibrating discharge
-        for ind in invalid_ind:
-            ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-                                  ind.sim.sim_obs_data['Q']['RSR'],
-                                  abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
-                                  ind.sim.sim_obs_data['Q']['R-square']]
+        # for ind in invalid_ind:
+        #     ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
+        #                           ind.sim.sim_obs_data['Q']['RSR'],
+        #                           abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
+        #                           ind.sim.sim_obs_data['Q']['R-square']]
+        # Step 2 Calibrating sediment
+        for ind in pop:
+            ind.fitness.values = [ind.sim.sim_obs_data['SED']['NSE'],
+                                  ind.sim.sim_obs_data['SED']['RSR'],
+                                  abs(ind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
+                                  ind.sim.sim_obs_data['SED']['R-square'],
+                                  ind.sim.sim_obs_data['Q']['NSE']]
         # Select the next generation population
         tmp_pop = list()
         gen_idx = list()
@@ -223,16 +240,29 @@ def main(cfg):
         # plot_pareto_front(pop, cfg.opt.out_dir, gen, 'Pareto frontier of Calibration',
         #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
-        output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
+        # Step 1 Calibrate discharge
+        # output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
+        # Step 2 Calibrate sediment
+        output_str += 'generation-calibrationID\tNSE-SED\tRSR-SED\tPBIAS-SED\tR2-SED\tNSE-Q' \
+                      '\tgene_values\n'
         for ind in pop:
-            output_str += '%d-%d\t%.3f\t%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
-                                                                   ind.sim.sim_obs_data['Q']['NSE'],
-                                                                   ind.sim.sim_obs_data['Q']['RSR'],
-                                                                   ind.sim.sim_obs_data['Q'][
-                                                                       'PBIAS'],
-                                                                   ind.sim.sim_obs_data['Q'][
-                                                                       'R-square'],
-                                                                   str(ind))
+            # Step 1 Calibrate discharge
+            # output_str += '%d-%d\t%.3f\t%.3f\t' \
+            #               '%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
+            #                                     ind.sim.sim_obs_data['Q']['NSE'],
+            #                                     ind.sim.sim_obs_data['Q']['RSR'],
+            #                                     ind.sim.sim_obs_data['Q']['PBIAS'],
+            #                                     ind.sim.sim_obs_data['Q']['R-square'],
+            #                                     str(ind))
+            # Step 2 Calibrate sediment
+            output_str += '%d-%d\t%.3f\t%.3f\t' \
+                          '%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
+                                                      ind.sim.sim_obs_data['SED']['NSE'],
+                                                      ind.sim.sim_obs_data['SED']['RSR'],
+                                                      ind.sim.sim_obs_data['SED']['PBIAS'],
+                                                      ind.sim.sim_obs_data['SED']['R-square'],
+                                                      ind.sim.sim_obs_data['Q']['NSE'],
+                                                      str(ind))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # TODO: Figure out if we should terminate the evolution
