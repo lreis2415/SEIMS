@@ -138,7 +138,7 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num):
                    color='g', label='Observed points')
         ax.plot(sim_dates, sim_best, linestyle='--', color='red',
                 label='Best simulation', linewidth=1)
-        ax.set_xlim(left=sim_dates[0])
+        ax.set_xlim(left=sim_dates[0], right=sim_dates[-1])
         ax.set_ylim(bottom=0.)
         date_fmt = mdates.DateFormatter('%m-%d-%y')
         ax.xaxis.set_major_formatter(date_fmt)
