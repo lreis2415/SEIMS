@@ -32,15 +32,22 @@ from run_seims import MainSEIMS
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
-# Multiobjects:
-# Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
-# multi_weight = (1., -1., -1., 1.)  # equal weights
-# multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight (actually used)
-# Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. R2-SED,
-#                               max. NSE-Q
-multi_weight = (3., -1., -1., 1., 1.)  # NSE of sediment taken a bigger weight
-worse_objects = [0.0001, 3., 3., 0.0001, 0.0001]
 object_vars = ['Q', 'SED']
+step = object_vars[0]
+filter_NSE = True
+# Multiobjects definition:
+if step == 'Q':
+    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
+    multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight (actually used)
+    worse_objects = [0.0001, 3., 3., 0.0001]
+elif step == 'SED':
+    # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. R2-SED,
+    #                               max. NSE-Q
+    multi_weight = (3., -2., -2., 2., 1.)  # NSE of sediment taken a bigger weight
+    worse_objects = [0.0001, 3., 3., 0.0001, 0.0001]
+else:
+    print ('The step of calibration should be one of [Q, SED]!')
+    exit(0)
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
 # class FitnessMulti(base.Fitness):
@@ -75,7 +82,6 @@ def main(cfg):
 
     # create reference point for hypervolume
     ref_pt = numpy.array(worse_objects) * multi_weight * -1
-    filter = True
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
@@ -114,38 +120,41 @@ def main(cfg):
     up = up.tolist()
     cali_period = '%s,%s' % (cali_obj.cfg.cali_stime.strftime('%Y-%m-%d %H:%M:%S'),
                              cali_obj.cfg.cali_etime.strftime('%Y-%m-%d %H:%M:%S'))
-    try:
-        # parallel on multiprocesor or clusters using SCOOP
-        from scoop import futures
-        pop = list(futures.map(toolbox.evaluate, [cali_obj] * len(pop), pop,
-                               [cali_period] * len(pop)))
-    except ImportError or ImportWarning:
-        # serial
-        pop = list(toolbox.map(toolbox.evaluate, [cali_obj] * len(pop), pop,
-                               [cali_period] * len(pop)))
-
-    # Step 1 Calibrating discharge
-    # for ind in pop:
-    #     ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-    #                           ind.sim.sim_obs_data['Q']['RSR'],
-    #                           abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
-    #                           ind.sim.sim_obs_data['Q']['R-square']]
-    # Step 2 Calibrating sediment
-    for ind in pop:
-        ind.fitness.values = [ind.sim.sim_obs_data['SED']['NSE'],
-                              ind.sim.sim_obs_data['SED']['RSR'],
-                              abs(ind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
-                              ind.sim.sim_obs_data['SED']['R-square'],
-                              ind.sim.sim_obs_data['Q']['NSE']]
-    # NSE > 0 is the preliminary condition to be a valid solution!
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
-    if filter:
-        pop = [ind for ind in pop if ind.fitness.values[0] > 0]
-        if len(pop) < int(pop_select_num * 0.1):  # if less than 10% of the desired
-            print 'The initial population could not satisfy 10% of the desired valid number.' \
-                  'Please check the parameters ranges or change the sampling strategy!'
-            exit(0)
 
+    def evaluate_parallel(invalid_pops):
+        """Evaluate model by SCOOP or map, and set fitness of individuals
+         according to calibration step."""
+        popnum = len(invalid_pops)
+        try:  # parallel on multi-procesors or clusters using SCOOP
+            from scoop import futures
+            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops,
+                                            [cali_period] * popnum))
+        except ImportError or ImportWarning:  # Python build-in map (serial)
+            invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops,
+                                            [cali_period] * popnum))
+        for tmpind in invalid_pops:
+            if step == 'Q':  # Step 1 Calibrating discharge
+                tmpind.fitness.values = [tmpind.sim.sim_obs_data['Q']['NSE'],
+                                         tmpind.sim.sim_obs_data['Q']['RSR'],
+                                         abs(tmpind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
+                                         tmpind.sim.sim_obs_data['Q']['R-square']]
+            elif step == 'SED':  # Step 2 Calibrating sediment
+                tmpind.fitness.values = [tmpind.sim.sim_obs_data['SED']['NSE'],
+                                         tmpind.sim.sim_obs_data['SED']['RSR'],
+                                         abs(tmpind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
+                                         tmpind.sim.sim_obs_data['SED']['R-square'],
+                                         tmpind.sim.sim_obs_data['Q']['NSE']]
+        # NSE > 0 is the preliminary condition to be a valid solution!
+        if filter_NSE:
+            invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
+            if len(invalid_pops) < int(pop_select_num * 0.1):  # if less than 10% of the desired
+                print 'The initial population could not satisfy 10% of the desired valid number.' \
+                      'Please check the parameters ranges or change the sampling strategy!'
+                exit(0)
+        return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
+
+    pop = evaluate_parallel(pop)
     pop = toolbox.select(pop, pop_select_num)  # currently, len(pop) may less than pop_select_num
     # Output simulated data to json or pickle files for future use.
     output_population_details(pop, cfg.opt.simdata_dir, 0)
@@ -184,7 +193,6 @@ def main(cfg):
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         valid_ind = [ind for ind in offspring if ind.fitness.valid]
-        invalid_ind_size = len(invalid_ind)
         # Write new calibrated parameters to MongoDB
         param_values = list()
         for idx, ind in enumerate(invalid_ind):
@@ -195,33 +203,14 @@ def main(cfg):
         write_param_values_to_mongodb(cfg.hostname, cfg.port, cfg.spatial_db,
                                       cali_obj.ParamDefs, param_values)
         # print_message('Evaluate pop size: %d' % invalid_ind_size)
-        try:
-            from scoop import futures
-            invalid_ind = list(futures.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind, [cali_period] * len(invalid_ind)))
-        except ImportError or ImportWarning:
-            invalid_ind = list(toolbox.map(toolbox.evaluate, [cali_obj] * invalid_ind_size,
-                                           invalid_ind, [cali_period] * len(invalid_ind)))
-        # Step 1 Calibrating discharge
-        # for ind in invalid_ind:
-        #     ind.fitness.values = [ind.sim.sim_obs_data['Q']['NSE'],
-        #                           ind.sim.sim_obs_data['Q']['RSR'],
-        #                           abs(ind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
-        #                           ind.sim.sim_obs_data['Q']['R-square']]
-        # Step 2 Calibrating sediment
-        for ind in pop:
-            ind.fitness.values = [ind.sim.sim_obs_data['SED']['NSE'],
-                                  ind.sim.sim_obs_data['SED']['RSR'],
-                                  abs(ind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
-                                  ind.sim.sim_obs_data['SED']['R-square'],
-                                  ind.sim.sim_obs_data['Q']['NSE']]
+        invalid_ind = evaluate_parallel(invalid_ind)
         # Select the next generation population
         tmp_pop = list()
         gen_idx = list()
         for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
             # remove individuals that has a NSE < 0
             if [ind.gen, ind.id] not in gen_idx:
-                if filter and ind.fitness.values[0] < 0:
+                if filter_NSE and ind.fitness.values[0] < 0:
                     continue
                 tmp_pop.append(ind)
                 gen_idx.append([ind.gen, ind.id])
@@ -236,33 +225,33 @@ def main(cfg):
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
         print_message(logbook.stream)
 
-        # Create plot
+        # Create plot (TODO)
         # plot_pareto_front(pop, cfg.opt.out_dir, gen, 'Pareto frontier of Calibration',
         #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
-        # Step 1 Calibrate discharge
-        # output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
-        # Step 2 Calibrate sediment
-        output_str += 'generation-calibrationID\tNSE-SED\tRSR-SED\tPBIAS-SED\tR2-SED\tNSE-Q' \
-                      '\tgene_values\n'
+        if step == 'Q':  # Step 1 Calibrate discharge
+            output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
+        elif step == 'SED':  # Step 2 Calibrate sediment
+            output_str += 'generation-calibrationID\tNSE-SED\tRSR-SED\tPBIAS-SED\tR2-SED\tNSE-Q' \
+                          '\tgene_values\n'
         for ind in pop:
-            # Step 1 Calibrate discharge
-            # output_str += '%d-%d\t%.3f\t%.3f\t' \
-            #               '%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
-            #                                     ind.sim.sim_obs_data['Q']['NSE'],
-            #                                     ind.sim.sim_obs_data['Q']['RSR'],
-            #                                     ind.sim.sim_obs_data['Q']['PBIAS'],
-            #                                     ind.sim.sim_obs_data['Q']['R-square'],
-            #                                     str(ind))
-            # Step 2 Calibrate sediment
-            output_str += '%d-%d\t%.3f\t%.3f\t' \
-                          '%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
-                                                      ind.sim.sim_obs_data['SED']['NSE'],
-                                                      ind.sim.sim_obs_data['SED']['RSR'],
-                                                      ind.sim.sim_obs_data['SED']['PBIAS'],
-                                                      ind.sim.sim_obs_data['SED']['R-square'],
-                                                      ind.sim.sim_obs_data['Q']['NSE'],
-                                                      str(ind))
+            if step == 'Q':  # Step 1 Calibrate discharge
+                output_str += '%d-%d\t%.3f\t%.3f\t' \
+                              '%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
+                                                    ind.sim.sim_obs_data['Q']['NSE'],
+                                                    ind.sim.sim_obs_data['Q']['RSR'],
+                                                    ind.sim.sim_obs_data['Q']['PBIAS'],
+                                                    ind.sim.sim_obs_data['Q']['R-square'],
+                                                    str(ind))
+            elif step == 'SED':  # Step 2 Calibrate sediment
+                output_str += '%d-%d\t%.3f\t%.3f\t' \
+                              '%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
+                                                          ind.sim.sim_obs_data['SED']['NSE'],
+                                                          ind.sim.sim_obs_data['SED']['RSR'],
+                                                          ind.sim.sim_obs_data['SED']['PBIAS'],
+                                                          ind.sim.sim_obs_data['SED']['R-square'],
+                                                          ind.sim.sim_obs_data['Q']['NSE'],
+                                                          str(ind))
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # TODO: Figure out if we should terminate the evolution

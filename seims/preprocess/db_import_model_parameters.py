@@ -384,6 +384,7 @@ def main():
 
     # ImportParam2Mongo.workflow(seims_cfg, main_db)
     ImportParam2Mongo.calibrated_params_from_txt(seims_cfg, main_db)
+    ImportParam2Mongo.model_io_configuration(seims_cfg, main_db)
 
     client.close()
 
