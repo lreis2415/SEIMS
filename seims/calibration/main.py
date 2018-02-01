@@ -33,8 +33,8 @@ from run_seims import MainSEIMS
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
 object_vars = ['Q', 'SED']
-step = object_vars[0]
-filter_NSE = True
+step = object_vars[1]
+filter_NSE = False
 # Multiobjects definition:
 if step == 'Q':
     # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
@@ -53,7 +53,8 @@ creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # class FitnessMulti(base.Fitness):
 #     weights = (2., -1., -1., 1.)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
-               gen=-1, id=-1, obs=observationData, sim=simulationData)
+               gen=-1, id=-1,
+               obs=observationData, cali=simulationData, vali=simulationData)
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -118,33 +119,24 @@ def main(cfg):
     up = bounds[:, 1]
     low = low.tolist()
     up = up.tolist()
-    cali_period = '%s,%s' % (cali_obj.cfg.cali_stime.strftime('%Y-%m-%d %H:%M:%S'),
-                             cali_obj.cfg.cali_etime.strftime('%Y-%m-%d %H:%M:%S'))
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
 
     def evaluate_parallel(invalid_pops):
         """Evaluate model by SCOOP or map, and set fitness of individuals
          according to calibration step."""
         popnum = len(invalid_pops)
-        try:  # parallel on multi-procesors or clusters using SCOOP
+        try:  # parallel on multi-processors or clusters using SCOOP
             from scoop import futures
-            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops,
-                                            [cali_period] * popnum))
+            invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         except ImportError or ImportWarning:  # Python build-in map (serial)
-            invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops,
-                                            [cali_period] * popnum))
+            invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
             if step == 'Q':  # Step 1 Calibrating discharge
-                tmpind.fitness.values = [tmpind.sim.sim_obs_data['Q']['NSE'],
-                                         tmpind.sim.sim_obs_data['Q']['RSR'],
-                                         abs(tmpind.sim.sim_obs_data['Q']['PBIAS']) / 100.,
-                                         tmpind.sim.sim_obs_data['Q']['R-square']]
+                tmpind.fitness.values = tmpind.cali.efficiency_values('Q')
             elif step == 'SED':  # Step 2 Calibrating sediment
-                tmpind.fitness.values = [tmpind.sim.sim_obs_data['SED']['NSE'],
-                                         tmpind.sim.sim_obs_data['SED']['RSR'],
-                                         abs(tmpind.sim.sim_obs_data['SED']['PBIAS']) / 100.,
-                                         tmpind.sim.sim_obs_data['SED']['R-square'],
-                                         tmpind.sim.sim_obs_data['Q']['NSE']]
+                tmpind.fitness.values = tmpind.cali.efficiency_values('SED') + \
+                                        [tmpind.cali.efficiency_values('Q')[0]]  # NSE-Q
+
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
@@ -230,28 +222,28 @@ def main(cfg):
         #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
         if step == 'Q':  # Step 1 Calibrate discharge
-            output_str += 'generation-calibrationID\tNSE-Q\tRSR-Q\tPBIAS-Q\tR2-Q\tgene_values\n'
+            output_str += 'generation-calibrationID\t%s' % pop[0].cali.output_header('Q')
+            if cali_obj.cfg.calc_validation:
+                output_str += pop[0].vali.output_header('Q', 'Vali')
         elif step == 'SED':  # Step 2 Calibrate sediment
-            output_str += 'generation-calibrationID\tNSE-SED\tRSR-SED\tPBIAS-SED\tR2-SED\tNSE-Q' \
-                          '\tgene_values\n'
+            output_str += 'generation-calibrationID\t%s%s' % (pop[0].cali.output_header('SED'),
+                                                              pop[0].cali.output_header('Q'))
+            if cali_obj.cfg.calc_validation:
+                output_str += '%s%s' % (pop[0].vali.output_header('SED', 'Vali'),
+                                        pop[0].vali.output_header('Q', 'Vali'))
+        output_str += 'gene_values\n'
         for ind in pop:
             if step == 'Q':  # Step 1 Calibrate discharge
-                output_str += '%d-%d\t%.3f\t%.3f\t' \
-                              '%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
-                                                    ind.sim.sim_obs_data['Q']['NSE'],
-                                                    ind.sim.sim_obs_data['Q']['RSR'],
-                                                    ind.sim.sim_obs_data['Q']['PBIAS'],
-                                                    ind.sim.sim_obs_data['Q']['R-square'],
-                                                    str(ind))
+                output_str += '%d-%d\t%s\t' % (ind.gen, ind.id, ind.cali.output_efficiency('Q'))
+                if cali_obj.cfg.calc_validation:
+                    output_str += ind.vali.output_efficiency('Q')
             elif step == 'SED':  # Step 2 Calibrate sediment
-                output_str += '%d-%d\t%.3f\t%.3f\t' \
-                              '%.3f\t%.3f\t%.3f\t%s\n' % (ind.gen, ind.id,
-                                                          ind.sim.sim_obs_data['SED']['NSE'],
-                                                          ind.sim.sim_obs_data['SED']['RSR'],
-                                                          ind.sim.sim_obs_data['SED']['PBIAS'],
-                                                          ind.sim.sim_obs_data['SED']['R-square'],
-                                                          ind.sim.sim_obs_data['Q']['NSE'],
-                                                          str(ind))
+                output_str += '%d-%d\t%s%s' % (ind.gen, ind.id, ind.cali.output_efficiency('SED'),
+                                               ind.cali.output_efficiency('Q'))
+                if cali_obj.cfg.calc_validation:
+                    output_str += '%s%s' % (ind.vali.output_efficiency('SED'),
+                                            ind.vali.output_efficiency('Q'))
+            output_str += str(ind)
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # TODO: Figure out if we should terminate the evolution
@@ -262,8 +254,7 @@ def main(cfg):
 if __name__ == "__main__":
     cf, method = get_cali_config()
     cfg = CaliConfig(cf, method=method)
-
-    print (cfg)
+    # print (cfg)
 
     print_message('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
