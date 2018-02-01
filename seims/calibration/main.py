@@ -34,7 +34,7 @@ from run_seims import MainSEIMS
 
 object_vars = ['Q', 'SED']
 step = object_vars[1]
-filter_NSE = False
+filter_NSE = True
 # Multiobjects definition:
 if step == 'Q':
     # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
