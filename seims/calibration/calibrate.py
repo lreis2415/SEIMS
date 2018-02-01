@@ -14,7 +14,7 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import FileClass, StringClass
+from pygeoc.utils import FileClass
 
 from config import CaliConfig, get_cali_config
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
@@ -32,19 +32,46 @@ class observationData(object):
         self.data = OrderedDict()
 
 
-class efficiencyStats(object):
-    def __init__(self):
-        self.NSE = 0.
-        self.R2 = 0.
-        self.PBIAS = 0.
-        self.RSR = 0.
-
-
 class simulationData(object):
     def __init__(self):
         self.vars = list()
         self.data = OrderedDict()
         self.sim_obs_data = OrderedDict()
+        self.valid = False
+
+    def efficiency_values(self, varname):
+        if varname not in self.vars:
+            return []
+        if varname not in self.sim_obs_data:
+            return []
+        try:
+            return [self.sim_obs_data[varname]['NSE'],
+                    self.sim_obs_data[varname]['RSR'],
+                    abs(self.sim_obs_data[varname]['PBIAS']) / 100.,
+                    self.sim_obs_data[varname]['R-square']]
+        except Exception:
+            return []
+
+    def output_header(self, varname, prefix=''):
+        if varname not in self.vars:
+            return ''
+        return '%sNSE-%s\t%sRSR-%s\t%sPBIAS-%s\t%sR2-%s\t' % (prefix, varname,
+                                                              prefix, varname,
+                                                              prefix, varname,
+                                                              prefix, varname,)
+
+    def output_efficiency(self, varname):
+        if varname not in self.vars:
+            return ''
+        if varname not in self.sim_obs_data:
+            return ''
+        try:
+            return '%.3f\t%.3f\t%.3f\t%.3f' % (self.sim_obs_data[varname]['NSE'],
+                                               self.sim_obs_data[varname]['RSR'],
+                                               self.sim_obs_data[varname]['PBIAS'],
+                                               self.sim_obs_data[varname]['R-square'])
+        except Exception:
+            return ''
 
 
 class Calibration(object):
@@ -150,8 +177,8 @@ def initialize_calibrations(cf):
     return cali.initialize()
 
 
-def calibration_objectives(cali_obj, ind, period):
-    """Evaluate the objectives of given individual.
+def calibration_objectives(cali_obj, ind):
+    """Evaluate the objectives of given individual. ##, cali_period, vali_period=''
     """
     cali_obj.ID = ind.id
     model_obj = MainSEIMS(cali_obj.cfg.bin_dir, cali_obj.cfg.model_dir,
@@ -164,17 +191,33 @@ def calibration_objectives(cali_obj, ind, period):
     # Sleep 0.5 second
     time.sleep(0.5)
     # read simulation data
-    dates = period.split(',')
-    stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
-    etime = StringClass.get_datetime(dates[1], '%Y-%m-%d %H:%M:%S')
-    ind.sim.vars, ind.sim.data = read_simulation_from_txt(model_obj.output_dir,
-                                                          ind.obs.vars, model_obj.outlet_id,
-                                                          stime, etime)
+    # dates = cali_period.split(',')
+    # stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
+    # etime = StringClass.get_datetime(dates[1], '%Y-%m-%d %H:%M:%S')
+    ind.cali.vars, ind.cali.data = read_simulation_from_txt(model_obj.output_dir,
+                                                            ind.obs.vars, model_obj.outlet_id,
+                                                            cali_obj.cfg.cali_stime,
+                                                            cali_obj.cfg.cali_etime)
     # Match with observation data
-    ind.sim.sim_obs_data = match_simulation_observation(ind.sim.vars, ind.sim.data,
-                                                        ind.obs.vars, ind.obs.data)
+    ind.cali.sim_obs_data = match_simulation_observation(ind.cali.vars, ind.cali.data,
+                                                         ind.obs.vars, ind.obs.data,
+                                                         cali_obj.cfg.cali_stime,
+                                                         cali_obj.cfg.cali_etime)
     # Calculate NSE, R2, RMSE, PBIAS, and RSR
-    calculate_statistics(ind.sim.sim_obs_data)
+    ind.cali.valid = calculate_statistics(ind.cali.sim_obs_data)
+    # if calculate validation period
+    if cali_obj.cfg.calc_validation:
+        ind.vali.vars, ind.vali.data = read_simulation_from_txt(model_obj.output_dir,
+                                                                ind.obs.vars, model_obj.outlet_id,
+                                                                cali_obj.cfg.vali_stime,
+                                                                cali_obj.cfg.vali_etime)
+        # Match with observation data
+        ind.vali.sim_obs_data = match_simulation_observation(ind.vali.vars, ind.vali.data,
+                                                             ind.obs.vars, ind.obs.data,
+                                                             cali_obj.cfg.vali_stime,
+                                                             cali_obj.cfg.vali_etime)
+        # Calculate NSE, R2, RMSE, PBIAS, and RSR
+        ind.vali.valid = calculate_statistics(ind.vali.sim_obs_data)
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
     return ind

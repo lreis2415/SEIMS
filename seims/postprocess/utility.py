@@ -62,7 +62,8 @@ def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
     return plot_vars_existed, sim_data_dict
 
 
-def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict):
+def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
+                                 start_time=None, end_time=None):
     """Match the simulation and observation data by UTCDATETIME for each variable.
 
     Args:
@@ -70,7 +71,8 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict):
         sim_dict: {Datetime: [value_of_var1, value_of_var2, ...], ...}
         obs_vars: Observed variable list, which may be None or [], e.g., ['Q']
         obs_dict: same format with sim_dict
-
+        start_time: Start time, by default equals to the start of simulation data
+        end_time: End time, see start_time
     Returns:
         The dict with the format:
         {VarName: {'UTCDATETIME': [t1, t2, ..., tn],
@@ -79,6 +81,10 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict):
         ...
         }
     """
+    if start_time is None:
+        start_time = sim_dict[0][0]
+    if end_time is None:
+        end_time = sim_dict[-1][0]
     sim_obs_dict = dict()
     if not obs_vars:  # obs_vars is None or []
         return None
@@ -91,7 +97,7 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict):
         sim_obs_dict[param_name] = {DataValueFields.utc: list(),
                                     'Obs': list(), 'Sim': list()}
     for sim_date, sim_values in sim_dict.iteritems():
-        if sim_date not in obs_dict:
+        if sim_date not in obs_dict or not start_time <= sim_date <= end_time:
             continue
         for sim_i, obs_i in sim_to_obs.iteritems():
             param_name = sim_vars[sim_i]
@@ -131,7 +137,7 @@ def calculate_statistics(sim_obs_dict):
         }
     """
     if not sim_obs_dict:  # if None or dict()
-        return
+        return False
     for param, values in sim_obs_dict.iteritems():
         obsl = values['Obs'][:]
         siml = values['Sim'][:]
@@ -149,3 +155,4 @@ def calculate_statistics(sim_obs_dict):
 
         print ('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f' %
                (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value))
+    return True

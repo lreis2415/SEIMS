@@ -118,14 +118,18 @@ class CaliConfig(object):
             tend = cf.get('SEIMS_Model', 'cali_time_end')
             self.cali_stime = StringClass.get_datetime(tstart)
             self.cali_etime = StringClass.get_datetime(tend)
-            tstart = cf.get('SEIMS_Model', 'vali_time_start')
-            tend = cf.get('SEIMS_Model', 'vali_time_end')
-            self.vali_stime = StringClass.get_datetime(tstart)
-            self.vali_etime = StringClass.get_datetime(tend)
+            self.calc_validation = False
+            if cf.has_option('SEIMS_Model', 'vali_time_start') and \
+                cf.has_option('SEIMS_Model', 'vali_time_end'):
+                tstart = cf.get('SEIMS_Model', 'vali_time_start')
+                tend = cf.get('SEIMS_Model', 'vali_time_end')
+                self.vali_stime = StringClass.get_datetime(tstart)
+                self.vali_etime = StringClass.get_datetime(tend)
+                self.calc_validation = True
         except ValueError:
             raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
         if self.time_start >= self.time_end or self.cali_stime >= self.cali_etime \
-                or self.vali_stime >= self.vali_etime:
+                or (self.calc_validation and self.vali_stime >= self.vali_etime):
             raise ValueError("Wrong time setted in [SEIMS_Model]!")
 
         if not (FileClass.is_dir_exists(self.model_dir)
