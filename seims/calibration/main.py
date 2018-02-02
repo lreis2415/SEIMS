@@ -140,9 +140,12 @@ def main(cfg):
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
-            if len(invalid_pops) < int(pop_select_num * 0.1):  # if less than 10% of the desired
-                print 'The initial population could not satisfy 10% of the desired valid number.' \
+            if len(invalid_pops) < 2:
+                print 'The initial population shoule be greater or equal than 2.' \
                       'Please check the parameters ranges or change the sampling strategy!'
+            # if len(invalid_pops) < int(pop_select_num * 0.1):  # if less than 10% of the desired
+            #     print 'The initial population could not satisfy 10% of the desired valid number.' \
+            #           'Please check the parameters ranges or change the sampling strategy!'
                 exit(0)
         return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
 
