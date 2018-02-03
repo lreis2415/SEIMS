@@ -32,14 +32,14 @@
 
 ### SEIMS Version.
 SET(SEIMSPRJ "seims")
-IF (PARALLEL STREQUAL MPI)
-    SET(SEIMSPRJ ${SEIMSPRJ}_mpi_omp)
-    MESSAGE(STATUS "MPI&OpenMP version...")
-ELSE ()
-    SET(SEIMSPRJ ${SEIMSPRJ}_omp)
-    MESSAGE(STATUS "OpenMP version...")
-    ADD_DEFINITIONS(-DMULTIPLY_REACHES)
-ENDIF ()
+#IF (PARALLEL STREQUAL MPI)
+SET(SEIMSPRJ ${SEIMSPRJ}_mpi_omp)
+#    MESSAGE(STATUS "MPI&OpenMP version...")
+#ELSE ()
+#    SET(SEIMSPRJ ${SEIMSPRJ}_omp)
+#    MESSAGE(STATUS "OpenMP version...")
+#    ADD_DEFINITIONS(-DMULTIPLY_REACHES)
+#ENDIF ()
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB -DMODULE_EXPORTS)
 SET(SEIMSPRJ ${SEIMSPRJ}_prj)
 PROJECT(${SEIMSPRJ})
@@ -60,11 +60,11 @@ geo_include_directories(${BASE_INC}
                         ${GDAL_INCLUDE_DIR}
                         ${BSON_INCLUDE_DIR}
                         ${MONGOC_INCLUDE_DIR})
-IF (PARALLEL STREQUAL MPI)
-    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/main/main_omp
-                            ${MPI_INCLUDE_PATH})
-    LINK_LIBRARIES(${MPI_LIBRARIES})
-ENDIF ()
+#IF (PARALLEL STREQUAL MPI)
+#    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/main/main_omp
+#                            ${MPI_INCLUDE_PATH})
+#    LINK_LIBRARIES(${MPI_LIBRARIES})
+#ENDIF ()
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${BASE_HOME})
 ADD_SUBDIRECTORY(${MODULE_HOME})
