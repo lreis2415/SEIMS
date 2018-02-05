@@ -143,9 +143,6 @@ def main(cfg):
             if len(invalid_pops) < 2:
                 print 'The initial population shoule be greater or equal than 2.' \
                       'Please check the parameters ranges or change the sampling strategy!'
-            # if len(invalid_pops) < int(pop_select_num * 0.1):  # if less than 10% of the desired
-            #     print 'The initial population could not satisfy 10% of the desired valid number.' \
-            #           'Please check the parameters ranges or change the sampling strategy!'
                 exit(0)
         return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
 
@@ -237,7 +234,7 @@ def main(cfg):
         output_str += 'gene_values\n'
         for ind in pop:
             if step == 'Q':  # Step 1 Calibrate discharge
-                output_str += '%d-%d\t%s\t' % (ind.gen, ind.id, ind.cali.output_efficiency('Q'))
+                output_str += '%d-%d\t%s' % (ind.gen, ind.id, ind.cali.output_efficiency('Q'))
                 if cali_obj.cfg.calc_validation:
                     output_str += ind.vali.output_efficiency('Q')
             elif step == 'SED':  # Step 2 Calibrate sediment
@@ -247,6 +244,7 @@ def main(cfg):
                     output_str += '%s%s' % (ind.vali.output_efficiency('SED'),
                                             ind.vali.output_efficiency('Q'))
             output_str += str(ind)
+            output_str += '\n'
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
 
         # TODO: Figure out if we should terminate the evolution

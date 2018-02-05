@@ -66,10 +66,10 @@ class simulationData(object):
         if varname not in self.sim_obs_data:
             return ''
         try:
-            return '%.3f\t%.3f\t%.3f\t%.3f' % (self.sim_obs_data[varname]['NSE'],
-                                               self.sim_obs_data[varname]['RSR'],
-                                               self.sim_obs_data[varname]['PBIAS'],
-                                               self.sim_obs_data[varname]['R-square'])
+            return '%.3f\t%.3f\t%.3f\t%.3f\t' % (self.sim_obs_data[varname]['NSE'],
+                                                 self.sim_obs_data[varname]['RSR'],
+                                                 self.sim_obs_data[varname]['PBIAS'],
+                                                 self.sim_obs_data[varname]['R-square'])
         except Exception:
             return ''
 
