@@ -11,7 +11,7 @@
 //#include "Raster.h"
 using namespace std;
 
-void CombineRasters(map < int, clsRasterData < float > * > *allRasterData, string & m_srs, string & outputRaster) {
+void CombineRasters(map<int, clsRasterData<float> *> *allRasterData, string &m_srs, string &outputRaster) {
     float xMin = FLT_MAX;
     float xMax = 0.f;
     float yMin = FLT_MAX;
@@ -101,7 +101,7 @@ void CombineRasters(map < int, clsRasterData < float > * > *allRasterData, strin
 
 void CombineRasterResults(string &folder, string &sVar, string &fileType, int nSubbasins, string &outputRaster) {
     string m_srs;
-    map < int, clsRasterData < float > * > allRasterData;
+    map<int, clsRasterData<float> *> allRasterData;
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = ValueToString(i) + "_" + sVar + fileType;
         clsRasterData<float> rs;
@@ -268,7 +268,7 @@ void CombineRasterResults(string &folder, string &sVar, string &fileType, int nS
 
 void CombineRasterResultsMongo(mongoc_gridfs_t *gfs, string &sVar, int nSubbasins, string &outputRaster) {
     string m_srs;
-    map < int, clsRasterData < float > * > allRasterData;
+    map<int, clsRasterData<float> *> allRasterData;
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = ValueToString(i) + "_" + sVar;
         clsRasterData<float> rs;
