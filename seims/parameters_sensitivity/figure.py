@@ -7,29 +7,21 @@
 import math
 import os
 
+import numpy
 import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
-from pygeoc.utils import UtilClass
+from postprocess.utility import save_png_eps
 
-import numpy
 plt.rcParams['font.family'] = ['Times New Roman']
 plt.rcParams['axes.titlesize'] = 'small'
 plt.rcParams['ytick.labelsize'] = 'x-small'
 plt.rcParams['ytick.direction'] = 'out'
 plt.rcParams['xtick.labelsize'] = 'x-small'
 plt.rcParams['xtick.direction'] = 'out'
-
-
-def save_png_eps(plot, wp, name):
-    """Save figures, both png and eps formats"""
-    eps_dir = wp + os.sep + 'eps'
-    UtilClass.mkdir(eps_dir)
-    for figpath in [wp + os.sep + name + '.png', eps_dir + os.sep + name + '.eps']:
-        plot.savefig(figpath, dpi=300)
 
 
 def cal_row_col_num(tot):
@@ -111,7 +103,7 @@ def empirical_cdf(out_values, subsections, input_sample, names, levels,
     if isinstance(subsections, int):
         if subsections <= 0:
             raise ValueError('subsections MUST be a integer greater than 0, or list.')
-        step = (out_max - out_min)/subsections
+        step = (out_max - out_min) / subsections
         subsections = numpy.arange(out_min, out_max + step, step)
     if isinstance(subsections, list) and len(subsections) == 1:  # e.g., [0]
         section_pt = subsections[0]
@@ -145,13 +137,13 @@ def empirical_cdf(out_values, subsections, input_sample, names, levels,
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):
         ax = fig.add_subplot(row, col, var_idx + 1)
-        for ii in range(len(labels)-1, -1, -1):
+        for ii in range(len(labels) - 1, -1, -1):
             ax.hist(new_input_sample[ii][:, var_idx], bins=levels, normed=True,
                     cumulative=True, label=labels[ii], **param_dict)
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
         ax.set_ylim(0, 1)
         ax.set_title('%s' % (names[var_idx]))
-        ax.get_xaxis().set_major_locator(LinearLocator(numticks=4))
+        ax.get_xaxis().set_major_locator(LinearLocator(numticks=3))
         ax.tick_params(axis='x',  # changes apply to the x-axis
                        which='both',  # both major and minor ticks are affected
                        bottom='on',  # ticks along the bottom edge are off

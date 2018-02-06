@@ -1,18 +1,18 @@
-#include "parallel.h"
-#include "mpi.h"
 #include "utilities.h"
-
-#include <sstream>
-#include <iostream>
+#include "parallel.h"
 #include "PrintInfo.h"
 #include "ModelMain.h"
-#include "invoke.h"
-#include "ModuleFactory.h"
-#include "ClimateParams.h"
-#include "clsRasterData.h"
-//#include "SimulationModule.h"
-#include "mongoc.h"
-// #include "mongo.h"
+//#include "mpi.h"
+//
+//#include <sstream>
+//#include <iostream>
+//#include "invoke.h"
+//#include "ModuleFactory.h"
+//#include "ClimateParams.h"
+//#include "clsRasterData.h"
+////#include "SimulationModule.h"
+//#include "mongoc.h"
+//// #include "mongo.h"
 
 void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                       string &projectPath, string &modulePath, const char *host, int port, const char *dbName,
@@ -117,7 +117,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     t1 = MPI_Wtime();
 
     // setup models for subbasins
-    vector < ModelMain * > modelList;
+    vector<ModelMain *> modelList;
     modelList.reserve(nSubbasins);
 
     ////////////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
     // classification according to the rank of subbasin
     vector<int> sourceBasins;
     set<int> downStreamSet,
-        downStreamIdSet; // used to find if the downstream subbasin of a finished subbsin is in the same process,
+            downStreamIdSet; // used to find if the downstream subbasin of a finished subbsin is in the same process,
     // if so, the MPI send operation is not necessary.
     // the set container is more efficient for the finding operation
     bool includeChannel = false;
