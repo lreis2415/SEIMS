@@ -1,21 +1,14 @@
+#include "utilities.h"
 #include "parallel.h"
-#include "mpi.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#ifdef WIN32
-
-#include "Windows.h"
-
-#endif
-
-#include "utilities.h"
 
 float deepGw = 0.f;
 
-int MasterProcess(map < int, SubbasinStruct * > &subbasinMap, set < int > &groupSet, string & projectPath,
-                  string & outputFile) {
+int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, string &projectPath,
+                  string &outputFile) {
     //cout << "Enter master process.\n";
     MPI_Request request;
     MPI_Status status;
@@ -184,7 +177,7 @@ int MasterProcess(map < int, SubbasinStruct * > &subbasinMap, set < int > &group
                 // for not most upstream basins
                 if (subbasinMap[id]->rank > 1) {
                     // find if their upstream basins are newly calculated
-                    vector < SubbasinStruct * > &ups = subbasinMap[id]->upStreams;
+                    vector<SubbasinStruct *> &ups = subbasinMap[id]->upStreams;
                     for (size_t j = 0; j < ups.size(); j++) {
                         if (ups[j]->calculated) {
                             transMap[ups[j]->id] = ups[j]->qOutlet;

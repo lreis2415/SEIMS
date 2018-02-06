@@ -12,7 +12,9 @@
 
 /// OpenMP support
 #ifdef SUPPORT_OMP
+
 #include <omp.h>
+
 #endif /* SUPPORT_OMP */
 /// math and STL headers
 #include <cmath>
@@ -45,6 +47,7 @@
 #include <sys/stat.h>
 
 #else
+
 #include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -55,10 +58,13 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <errno.h>
+
 #endif /* windows */
 
 #if (defined macos) || (defined macosold)
+
 #include <libproc.h>
+
 #endif /* macos */
 /// assert
 #include <cassert>
@@ -161,6 +167,20 @@ static int daysOfMonth[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 typedef const int *CINTPTR;
 typedef const float *CFLOATPTR;
 typedef const double *CDOUBLEPTR;
+
+/*!
+ * \brief Base class for classes that cannot be copied. By inheriting this
+ *        class you can disable copying of your classes.
+ *        e.g., class myClass: private NotCopyable {}
+ */
+class NotCopyable {
+private:
+    NotCopyable(const NotCopyable &) {};
+
+    NotCopyable &operator=(const NotCopyable &) { return *this; };
+public:
+    NotCopyable() {};
+};
 
 /*!
  * \class utilsTime
@@ -410,6 +430,7 @@ public:
      */
     template<typename T>
     static void Release2DArray(int row, T **&data);
+
     /*!
      * \brief Batch release of 1D array
      *        Variable arguments with the end of nullptr.
@@ -422,6 +443,7 @@ public:
      */
     template<typename T>
     static void BatchRelease1DArray(T *&data, ...);
+
     /*!
     * \brief Batch release of 2D array, \sa BatchRelease1DArray
     *        Variable arguments with the end of nullptr.
@@ -432,6 +454,7 @@ public:
     */
     template<typename T>
     static void BatchRelease2DArray(int nrows, T **&data, ...);
+
     /*!
      * \brief Write 1D array to a file
      *
@@ -608,6 +631,7 @@ public:
     static int copyfile_unix(const char *srcfile, const char *dstfile);
 
 #endif /* windows */
+
     /*!
     * \brief Check the given directory path is exists or not.
     */
@@ -624,6 +648,7 @@ public:
      *        Linux: https://www.linuxquestions.org/questions/programming-9/deleting-a-directory-using-c-in-linux-248696/
      */
     static bool DeleteDirectory(const string &dirpath, bool delSubdirs = true);
+
     /*!
      * \brief Get the root path of the current executable file
      * \return \a string root path
@@ -705,6 +730,7 @@ public:
      * \return 0 means success
      */
     static int FindFiles(const char *lpPath, const char *expression, vector<string> &vecFiles);
+
     /*!
      * \brief Load short plain text file as string vector, ignore comments begin with '#' and empty lines
      * \param[in] filepath Plain text file path
