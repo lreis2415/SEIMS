@@ -34,7 +34,8 @@ from preprocess.text import DBTableNames
 from config import PSAConfig
 from preprocess.utility import read_data_items_from_txt
 from userdef import evaluate_model_response, get_evaluate_output_name_unit
-from figure import sample_histograms, save_png_eps, empirical_cdf
+from figure import sample_histograms, empirical_cdf
+from postprocess.utility import save_png_eps
 
 
 class SpecialJsonEncoder(json.JSONEncoder):
@@ -304,6 +305,46 @@ class Sensitivity(object):
         json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.psa_si_json, 'w') as f:
             f.write(json_data)
+        self.output_psa_si()
+
+    def output_psa_si(self):
+        objnames, objunits = get_evaluate_output_name_unit()
+        psa_sort_txt = self.cfg.outfiles.psa_si_sort_txt
+        psa_sort_dict = dict()
+        param_names = self.param_defs.get('names')
+        psa_sort_dict['names'] = param_names[:]
+        for idx, si_dict in self.psa_si.iteritems():
+            if 'objnames' not in psa_sort_dict:
+                psa_sort_dict['objnames'] = list()
+            psa_sort_dict['objnames'].append(objnames[idx])
+            for param, values in si_dict.iteritems():
+                if param == 'names':
+                    continue
+                if param not in psa_sort_dict:
+                    psa_sort_dict[param] = list()
+                psa_sort_dict[param].append(values[:])
+        # print(psa_sort_dict)
+        output_str = ''
+        header = ' ,' + ','.join(psa_sort_dict['objnames']) + '\n'
+        for outvar, values in psa_sort_dict.iteritems():
+            if outvar == 'names' or outvar == 'objnames':
+                continue
+            mtx = numpy.transpose(numpy.array(values))  # col is 'objnames' and row is 'names'
+            sortidx = numpy.argsort(numpy.argsort(mtx, axis=0), axis=0)
+            # concatenate output string
+            output_str += outvar + '\n'
+            output_str += header
+            for i, v in enumerate(mtx):
+                output_str += param_names[i] + ',' + ','.join('{}'.format(i) for i in v) + '\n'
+            output_str += '\n'
+            output_str += '%s-Sorted\n' % outvar
+            output_str += header
+            for i, v in enumerate(sortidx):
+                output_str += param_names[i] + ',' + ','.join('{}'.format(i) for i in v) + '\n'
+            output_str += '\n'
+            print(output_str)
+        with open(psa_sort_txt, 'w') as f:
+            f.write(output_str)
 
     def plot_samples_histogram(self):
         """Save plot as png(300 dpi) and eps (vector)."""
@@ -341,17 +382,17 @@ class Sensitivity(object):
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
         param_names = self.param_defs.get('names')
-        for i in [2, 7]:
+        for i in [2, 7, 8, 9, 10, 15, 16, 17]:  # NSE series, i.e., NSE, lnNSE, NSE1, and NSE3
             values = self.output_values[:, i]
             empirical_cdf(values, [0], self.param_values, param_names,
                           self.cfg.morris.num_levels,
                           self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
-        for i in [3, 8]:
+        for i in [3, 11]:  # R-square, equally divided as two classes
             values = self.output_values[:, i]
             empirical_cdf(values, 2, self.param_values, param_names,
                           self.cfg.morris.num_levels,
                           self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
-        for i in [6, 11]:
+        for i in [6, 14]:  # RSR
             values = self.output_values[:, i]
             empirical_cdf(values, [1], self.param_values, param_names,
                           self.cfg.morris.num_levels,

@@ -110,6 +110,7 @@ class PSAOutputs(object):
         self.output_values_dir = wp + os.sep + 'temp_output_values'
         self.output_values_txt = wp + os.sep + 'output_values.txt'
         self.psa_si_json = wp + os.sep + 'psa_si.json'
+        self.psa_si_sort_txt = wp + os.sep + 'psa_si_sorted.csv'
         UtilClass.mkdir(self.output_values_dir)
 
 

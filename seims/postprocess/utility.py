@@ -13,8 +13,16 @@ from preprocess.text import DataValueFields
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import StringClass, FileClass, MathClass
+from pygeoc.utils import StringClass, FileClass, MathClass, UtilClass
 from preprocess.utility import read_data_items_from_txt
+
+
+def save_png_eps(plot, wp, name):
+    """Save figures, both png and eps formats"""
+    eps_dir = wp + os.sep + 'eps'
+    UtilClass.mkdir(eps_dir)
+    for figpath in [wp + os.sep + name + '.png', eps_dir + os.sep + name + '.eps']:
+        plot.savefig(figpath, dpi=300)
 
 
 def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
@@ -82,9 +90,9 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
         }
     """
     if start_time is None:
-        start_time = sim_dict[0][0]
+        start_time = list(sim_dict.keys())[0]
     if end_time is None:
-        end_time = sim_dict[-1][0]
+        end_time = list(sim_dict.keys())[-1]
     sim_obs_dict = dict()
     if not obs_vars:  # obs_vars is None or []
         return None
@@ -131,7 +139,10 @@ def calculate_statistics(sim_obs_dict):
                    'NSE': nse_value,
                    'R-square': r2_value,
                    'RMSE': rmse_value,
-                   'PBIAS': pbias_value
+                   'PBIAS': pbias_value,
+                   'lnNSE': lnnse_value,
+                   'NSE1': nse1_value,
+                   'NSE3': nse3_value
                    },
         ...
         }
@@ -147,12 +158,21 @@ def calculate_statistics(sim_obs_dict):
         rmse_value = MathClass.rmse(obsl, siml)
         pbias_value = MathClass.pbias(obsl, siml)
         rsr_value = MathClass.rsr(obsl, siml)
+        lnnse_value = MathClass.nashcoef(obsl, siml, log=True)
+        nse1_value = MathClass.nashcoef(obsl, siml, expon=1)
+        nse3_value = MathClass.nashcoef(obsl, siml, expon=3)
+
         values['NSE'] = nse_value
         values['R-square'] = r2_value
         values['RMSE'] = rmse_value
         values['PBIAS'] = pbias_value
         values['RSR'] = rsr_value
+        values['lnNSE'] = lnnse_value
+        values['NSE1'] = nse1_value
+        values['NSE3'] = nse3_value
 
-        print ('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f' %
-               (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value))
+        print ('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f,'
+               ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
+               (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
+                lnnse_value, nse1_value, nse3_value))
     return True
