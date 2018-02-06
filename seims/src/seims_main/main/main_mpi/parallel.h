@@ -1,5 +1,7 @@
-#pragma once
+#ifndef SEIMS_MPI_H
+#define SEIMS_MPI_H
 
+#include "seims.h"
 #include <map>
 #include <set>
 #include <vector>
@@ -10,20 +12,13 @@
 
 #include "mongoc.h"
 
-//#include "mongo.h"
-//#include "gridfs.h"
 
 #define WORK_TAG 0
 #define MASTER_RANK 0
 #define SLAVE0_RANK 1
 #define MAX_UPSTREAM 4
 #define MSG_LEN 5
-
-#ifdef WIN32
-#define SEP "\\"
-#else
-#define SEP "/"
-#endif
+#define MCW MPI_COMM_WORLD
 
 using namespace std;
 
@@ -44,3 +39,5 @@ void CalculateProcess(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
 void CalculateProcessMonolithic(int rank, int numprocs, int nSlaves, MPI_Comm slaveComm,
                                 string &projectPath, string &modulePath, const char *host, int port, const char *dbName,
                                 int nThreads, LayeringMethod layeringMethod);
+
+#endif /* SEIMS_MPI_H */
