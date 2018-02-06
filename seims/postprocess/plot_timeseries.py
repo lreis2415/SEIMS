@@ -11,7 +11,6 @@ import os
 import sys
 import datetime
 
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -23,17 +22,20 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 from preprocess.text import DataValueFields
-from parameters_sensitivity.figure import save_png_eps
 from load_mongodb import ReadModelData
-from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics
+from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics, \
+    save_png_eps
 
 divtdi = datetime.timedelta.__div__
+
+
 def divtd(td1, td2):
     if isinstance(td2, (int, long)):
         return divtdi(td1, td2)
     us1 = td1.microseconds + 1000000 * (td1.seconds + 86400 * td1.days)
     us2 = td2.microseconds + 1000000 * (td2.seconds + 86400 * td2.days)
     return float(us1) / float(us2)
+
 
 class TimeSeriesPlots(object):
     """Plot time series data, e.g., flow charge, sediment charge, etc.
@@ -44,7 +46,7 @@ class TimeSeriesPlots(object):
         self.ws = cfg.model_dir
         self.plot_vars = cfg.plt_vars
         self.lang_cn = cfg.lang_cn
-        # UTCTIME
+        # UTCTIME, simulation period
         self.stime = cfg.time_start
         self.etime = cfg.time_end
         self.subbsnID = cfg.plt_subbsnid
@@ -52,12 +54,13 @@ class TimeSeriesPlots(object):
         self.vali_stime = cfg.vali_stime
         self.vali_etime = cfg.vali_etime
 
-        # Read model data from MongoDB
+        # Read model data from MongoDB, the time period of simulation is read from FILE_IN.
         self.readData = ReadModelData(cfg.hostname, cfg.port, cfg.spatial_db)
         self.mode = self.readData.Mode
         self.interval = self.readData.Interval
-        # check start and end time
+        # check start and end time of calibration
         st, et = self.readData.SimulationPeriod
+        self.plot_validation = True
         if st > self.stime:
             self.stime = st
         if et < self.etime:
@@ -65,8 +68,11 @@ class TimeSeriesPlots(object):
         if st > self.etime > self.stime:
             self.stime = st
             self.etime = et
+            # in this circumstance, no validation should be calculated.
+            self.vali_stime = None
+            self.vali_etime = None
+            self.plot_validation = False
         # check validation time period
-        self.plot_validation = True
         if self.vali_stime is not None and self.vali_etime is not None:
             if self.vali_stime >= self.vali_etime or st > self.vali_etime > self.vali_stime:
                 self.vali_stime = None
@@ -197,15 +203,24 @@ class TimeSeriesPlots(object):
             # draw a dash line to separate calibration and validation period
             delta_dt = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) / 9
             delta_dt2 = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) / 35
-            sep_time = self.etime - delta_dt
+            # by default, separate time line is the end of calibration period
+            sep_time = self.etime
+            time_pos = [sep_time - delta_dt]
             ymax, ymin = ax2.get_ylim()
             yc = abs(ymax - ymin) / 4.
             if self.plot_validation:
+                sep_time = self.vali_stime  # by default, validation period after calibration
+                cali_vali_labels = ['Calibration', 'Validation']
+                if self.vali_stime < self.stime:
+                    sep_time = self.stime
+                    cali_vali_labels = ['Validation', 'Calibration']
+                    # time_pos = [sep_time + delta_dt2, sep_time - delta_dt]
+                time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
                 sep_time = self.vali_stime if self.vali_stime > self.stime else self.stime
                 ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
-                plt.text(sep_time - delta_dt, yc, 'Calibration',
+                plt.text(time_pos[0], yc, cali_vali_labels[0],
                          fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
-                plt.text(sep_time + delta_dt2, yc, 'Validation',
+                plt.text(time_pos[1], yc, cali_vali_labels[1],
                          fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
             # set legend and labels
             if obs_values is None or len(obs_values) < 2:
@@ -225,23 +240,24 @@ class TimeSeriesPlots(object):
                     pbias = self.sim_obs_dict[param]['PBIAS']
                     rsr = self.sim_obs_dict[param]['RSR']
                     cali_txt = '$\mathit{NSE}$: %.2f\n$\mathit{RSR}$: %.2f\n' \
-                               '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' %\
+                               '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' % \
                                (nse, rsr, pbias, r2)
-                    plt.text(sep_time - delta_dt, yc * 2.5, cali_txt, color='red')
+                    plt.text(time_pos[0], yc * 2.5, cali_txt, color='red')
                     if self.plot_validation and self.vali_sim_obs_dict:
                         nse = self.vali_sim_obs_dict[param]['NSE']
                         r2 = self.vali_sim_obs_dict[param]['R-square']
                         pbias = self.vali_sim_obs_dict[param]['PBIAS']
                         rsr = self.vali_sim_obs_dict[param]['RSR']
                         vali_txt = '$\mathit{NSE}$: %.2f\n$\mathit{RSR}$: %.2f\n' \
-                                   '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' %\
+                                   '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' % \
                                    (nse, rsr, pbias, r2)
-                        plt.text(sep_time + delta_dt2, yc * 2.5, vali_txt, color='red')
+                        plt.text(time_pos[1], yc * 2.5, vali_txt, color='red')
+
                 except ValueError or Exception:
                     pass
             plt.tight_layout(rect=(0, 0, 1, 0.93))
             leg.get_frame().set_alpha(0.5)
             # plt.title(param, color='#aa0903')
-            timerange = '%s-%s' % (self.stime.strftime('%Y-%m-%d'),
-                                   self.etime.strftime('%Y-%m-%d'))
+            timerange = '%s-%s' % (self.sim_data_value[0][0].strftime('%Y-%m-%d'),
+                                   self.sim_data_value[-1][0].strftime('%Y-%m-%d'))
             save_png_eps(plt, self.ws, param + '-' + timerange)

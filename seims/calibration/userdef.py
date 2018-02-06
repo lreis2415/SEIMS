@@ -20,7 +20,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from preprocess.db_mongodb import ConnectMongoDB
-from parameters_sensitivity.figure import save_png_eps
+from postprocess.utility import save_png_eps
 from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 from pygeoc.utils import StringClass
 
