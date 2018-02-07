@@ -4,7 +4,8 @@
 #include "Interception_MCS.h"
 
 clsPI_MCS::clsPI_MCS(void) : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
-                             m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL) {
+                             m_netPrecipitation(NULL), m_interceptionLoss(NULL), m_st(NULL),
+                             m_landuse(NULL), m_pcp2canfr_pr(0.5f), m_embnkfr_pr(0.15f){
 #ifndef STORM_MODE
     m_evaporationLoss = NULL;
 #else
@@ -37,7 +38,10 @@ void clsPI_MCS::Set1DData(const char *key, int nRows, float *data) {
         m_maxSt = data;
     } else if (StringMatch(s, VAR_INTERC_MIN)) {
         m_minSt = data;
-    } else {
+	}
+    else if (StringMatch(s, VAR_LANDUSE))
+        m_landuse = data;
+	else {
         throw ModelException(MID_PI_SVSC, "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
@@ -47,6 +51,8 @@ void clsPI_MCS::SetValue(const char *key, float data) {
     if (StringMatch(s, VAR_PI_B)) { this->m_Pi_b = data; }
     else if (StringMatch(s, VAR_INIT_IS)) { this->m_Init_IS = data; }
     else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
+    else if (StringMatch(s, VAR_PCP2CANFR_PR)) {this->m_pcp2canfr_pr = data; }
+    else if (StringMatch(s, VAR_EMBNKFR_PR)) {this->m_embnkfr_pr = data; }
 #ifdef STORM_MODE
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_hilldt = data; }
 #endif // STORM_MODE
@@ -120,12 +126,22 @@ int clsPI_MCS::Execute() {
 
             if (availableSpace < m_P[i]) {
                 m_interceptionLoss[i] = availableSpace;
+                //if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
+                if ((int)m_landuse[i] == LANDUSE_ID_PADDY){
+                    //water added into ditches from low embankment, should be added to somewhere else.
+                    float pcp2canal = m_P[i] * m_pcp2canfr_pr * m_embnkfr_pr;
+
+                    m_netPrecipitation[i] = m_P[i] - m_interceptionLoss[i] - pcp2canal;
+                }
+                else{
+                    //net precipitation
+                    m_netPrecipitation[i] = m_P[i] - m_interceptionLoss[i];
+                }
             } else {
                 m_interceptionLoss[i] = m_P[i];
+                m_netPrecipitation[i] = 0.f;
             }
 
-            //net precipitation
-            m_netPrecipitation[i] = m_P[i] - m_interceptionLoss[i];
             m_st[i] += m_interceptionLoss[i];
         } else {
             m_interceptionLoss[i] = 0.f;
