@@ -1,6 +1,7 @@
 project(ReClassify)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} reclassify_raster.cpp)
+file(GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+set(SOURCE_FILES ${UTILS_FILES} ${RC_SRC})
 geo_include_directories(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(reclassify ${SOURCE_FILES})
 target_link_libraries(reclassify ${GDAL_LIBRARIES})

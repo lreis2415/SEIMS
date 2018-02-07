@@ -1,6 +1,7 @@
 PROJECT(Field_Partition)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} Cell.cpp CellOrdering.cpp Field.cpp main.cpp)
+file(GLOB FP_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+set(SOURCE_FILES ${UTILS_FILES} ${FP_SRC})
 geo_include_directories(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(fieldpartition ${SOURCE_FILES})
 target_link_libraries(fieldpartition ${GDAL_LIBRARIES})
