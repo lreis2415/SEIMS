@@ -1,19 +1,24 @@
-//#include "vld.h"
 #include "seims.h"
 #include "template.h"
 
-using namespace std;
-
-ModulesTest::ModulesTest(void) : m_nCells(-1) {
+ModulesTest::ModulesTest() : m_nCells(-1) {
 }
 
-ModulesTest::~ModulesTest(void) {
+ModulesTest::~ModulesTest() {
 }
 
 void ModulesTest::Set1DData(const char *key, int n, float *data) {
 }
 
 void ModulesTest::Set2DData(const char *key, int n, int col, float **data) {
+}
+
+bool ModulesTest::CheckInputData() {
+    return true;
+}
+
+bool ModulesTest::CheckInputSize(const char *, int) {
+    return true;
 }
 
 int ModulesTest::Execute() {
