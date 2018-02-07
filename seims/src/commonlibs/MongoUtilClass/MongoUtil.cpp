@@ -139,7 +139,7 @@ void MongoDatabase::getCollectionNames(vector<string>& collNameList) {
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, "name")) {
                 string tmp = GetStringFromBsonIterator(&iter);
                 vector<string> tmpList = SplitString(tmp, '.');
-                vector<string>::iterator tmpIter = find(collNameList.begin(), collNameList.end(), tmpList[0]);
+                auto tmpIter = find(collNameList.begin(), collNameList.end(), tmpList[0]);
                 if (tmpIter == collNameList.end()) {
                     collNameList.push_back(tmpList[0]);
                 }
