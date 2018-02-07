@@ -17,9 +17,9 @@ ENDIF ()
 ##############  Set common libraries   ###############
 set(COMMONLIBS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/commonlibs)
 set(UTILS_INC ${COMMONLIBS_PATH}/UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
+file(GLOB UTILS_FILES ${UTILS_INC}/*.cpp)
 set(MONGO_INC ${COMMONLIBS_PATH}/MongoUtilClass)
-set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
+file(GLOB MONGO_FILES ${MONGO_INC}/*.cpp)
 SET(RASTER_INC ${COMMONLIBS_PATH}/RasterClass)
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)
