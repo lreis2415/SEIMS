@@ -641,10 +641,6 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
                 string module = GetUpper(settings[i][3]);
 #ifndef MSVC
                 module = Tag_So + module;
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 #ifndef NDEBUG
                 module = module + "d";
 #endif /* NDEBUG */
