@@ -102,10 +102,10 @@ INCLUDE(AddFindPaths)
 set(SOURCE_FILES clsRasterData.h)
 set(UTILS_INC ${CMAKE_CURRENT_SOURCE_DIR}/../UtilsClass)
 file(GLOB UTILS_HEADERS ${UTILS_INC}/*.h)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
+file(GLOB UTILS_FILES ${UTILS_INC}/*.cpp)
 set(MONGO_INC ${CMAKE_CURRENT_SOURCE_DIR}/../MongoUtilClass)
 file(GLOB MONGO_HEADERS MONGO_INC/*.h)
-set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
+file(GLOB MONGO_FILES ${MONGO_INC}/*.cpp)
 
 ### Find packages.
 SET(WITH_GDAL 1)
