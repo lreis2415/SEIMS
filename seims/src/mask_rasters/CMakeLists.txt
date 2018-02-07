@@ -1,6 +1,7 @@
 project(Mask_Raster_prj)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} mask_rasters.cpp)
+file(GLOB MR_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+set(SOURCE_FILES ${UTILS_FILES} ${MR_SRC})
 geo_include_directories(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
 ADD_EXECUTABLE(mask_raster ${SOURCE_FILES})
 target_link_libraries(mask_raster ${GDAL_LIBRARIES})
