@@ -153,8 +153,7 @@ void PER_STR::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_PER_STR, "SetValue",
-                             "Parameter " + s +
-                                 " does not exist in current module. Please contact the module developer.");
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
@@ -180,16 +179,16 @@ bool PER_STR::CheckInputData() {
         throw ModelException(MID_PER_STR, "CheckInputData", "The Moisture can not be NULL.");
     }
     if (m_fc == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The field capacity can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The field capacity can not be NULL.");
     }
     if (this->m_soilStorage == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil storage can not be NULL.");
     }
     if (this->m_soilStorageProfile == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage of soil profile can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil storage of soil profile can not be NULL.");
     }
     if (m_soilThick == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil depth can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil depth can not be NULL.");
     }
     if (m_soilT == NULL) {
         throw ModelException(MID_PER_STR, "CheckInputData", "The soil temperature can not be NULL.");

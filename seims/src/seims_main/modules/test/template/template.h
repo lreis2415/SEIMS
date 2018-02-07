@@ -1,10 +1,11 @@
 /*!
  * \brief Brief description of this module
- * \author 
- * \date 
- * \note Detail description about the implementation.
+ *        Detail description about the implementation.
+ * \author Liangjun Zhu
+ * \date last updated 2018-02-07
  */
-#pragma once
+#ifndef SEIMS_MODULE_TEMPLATE_H
+#define SEIMS_MODULE_TEMPLATE_H
 
 #include "SimulationModule.h"
 
@@ -16,12 +17,12 @@ private:
     int m_nCells;
 public:
     //! Constructor
-    ModulesTest(void);
+    ModulesTest();
 
     //! Destructor
-    ~ModulesTest(void);
+    virtual ~ModulesTest();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -36,7 +37,7 @@ private:
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.

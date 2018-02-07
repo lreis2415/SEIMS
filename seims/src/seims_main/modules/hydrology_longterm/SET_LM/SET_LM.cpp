@@ -3,7 +3,7 @@
 
 using namespace std;
 
-SET_LM::SET_LM(void) : m_nSoilLayers(2), m_nCells(-1), m_fc(NULL), m_wp(NULL), m_EI(NULL), m_PET(NULL), m_ED(NULL),
+SET_LM::SET_LM(void) : m_nSoilLayers(-1), m_nCells(-1), m_fc(NULL), m_wp(NULL), m_EI(NULL), m_PET(NULL), m_ED(NULL),
                        m_sm(NULL), m_soilT(NULL),
                        m_frozenT(-99.f), m_rootDepth(NULL), m_soilET(NULL), m_upSoilDepth(200.f) {
 }
@@ -35,7 +35,7 @@ int SET_LM::Execute() {
             ostringstream oss;
             oss << "The root depth at cell(" << i << ") is " << m_rootDepth[i] <<
                 ", and is less than the upper soil depth (" << m_upSoilDepth << endl;
-            throw ModelException("SET_LM", "Execute", oss.str());
+            throw ModelException(MID_SET_LM, "Execute", oss.str());
         }
 
         float etDeficiency = m_PET[i] - m_EI[i] - m_ED[i];
@@ -66,7 +66,7 @@ int SET_LM::Execute() {
             if (m_sm[i][j] < 0.f) {
                 cout << "SET_LM\t" << sm0 << "\t" << m_wp[i][j] << "\t" << m_sm[i][j] << "\t"
                      << availableWater / depth[j] << "\t" << et2d[j] / depth[j] << endl;
-                throw ModelException("SET_LM", "Execute", "moisture is less than zero.");
+                throw ModelException(MID_SET_LM, "Execute", "moisture is less than zero.");
             }
 
             etDeficiency -= et2d[j];
@@ -84,7 +84,7 @@ void SET_LM::Get1DData(const char *key, int *nRows, float **data) {
     if (StringMatch(s, VAR_SOET)) {
         *data = m_soilET;
     } else {
-        throw ModelException("SET_LM", "getResult",
+        throw ModelException(MID_SET_LM, "getResult",
                              "Result " + s + " does not exist in SET_LM method. Please contact the module developer.");
     }
 
@@ -98,7 +98,7 @@ void SET_LM::SetValue(const char *key, float data) {
     } else if (StringMatch(s, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) data);
     } else {
-        throw ModelException("SET_LM", "SetValue", "Parameter " + s +
+        throw ModelException(MID_SET_LM, "SetValue", "Parameter " + s +
             " does not exist in SET_LM method. Please contact the module developer.");
     }
 }
@@ -108,7 +108,7 @@ void SET_LM::Set1DData(const char *key, int nRows, float *data) {
 
     CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_SOILDEPTH)) {
+    if (StringMatch(s, VAR_ROOTDEPTH)) {
         m_rootDepth = data;
     } else if (StringMatch(s, VAR_INET)) {
         m_EI = data;
@@ -119,7 +119,7 @@ void SET_LM::Set1DData(const char *key, int nRows, float *data) {
     } else if (StringMatch(s, VAR_SOTE)) {
         m_soilT = data;
     } else {
-        throw ModelException("SET_LM", "SetValue", "Parameter " + s +
+        throw ModelException(MID_SET_LM, "SetValue", "Parameter " + s +
             " does not exist in SET_LM method. Please contact the module developer.");
     }
 
@@ -137,49 +137,48 @@ void SET_LM::Set2DData(const char *key, int nrows, int ncols, float **data) {
     } else if (StringMatch(sk, VAR_SOL_ST)) {
         m_sm = data;
     } else {
-        throw ModelException("PER_PI", "Set1DData",
-                             "Parameter " + sk + " does not exist. Please contact the module developer.");
+        throw ModelException(MID_SET_LM, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 bool SET_LM::CheckInputData() {
     if (m_nCells <= 0) {
-        throw ModelException("SET_LM", "CheckInputData", "The dimension of the input data can not be less than zero.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
     if (m_fc == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The Soil field capacity can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The Soil field capacity can not be NULL.");
     }
     if (m_wp == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The plant wilting point moisture can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The plant wilting point moisture can not be NULL.");
     }
     if (m_EI == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The EI can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The EI can not be NULL.");
     }
     if (m_PET == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The PET can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The PET can not be NULL.");
     }
     if (m_ED == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The ED can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The ED can not be NULL.");
     }
     if (m_sm == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The soil moisture can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The soil moisture can not be NULL.");
     }
     if (m_soilT == NULL) {
-        throw ModelException("SET_LM", "CheckInputData", "The soil temerature can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The soil temerature can not be NULL.");
     }
     if (m_frozenT < -90.0f) {
-        throw ModelException("SET_LM", "CheckInputData", "The threshold soil freezing temerature can not be NULL.");
+        throw ModelException(MID_SET_LM, "CheckInputData", "The threshold soil freezing temerature can not be NULL.");
     }
-    if (m_nSoilLayers != 2) {
-        throw ModelException("SET_LM", "CheckInputData", "Only 2 soil layers are supported now.");
-    }
+    //if (m_nSoilLayers != 2) {
+    //    throw ModelException(MID_SET_LM, "CheckInputData", "Only 2 soil layers are supported now.");
+    //}
 
     return true;
 }
 
 bool SET_LM::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
-        throw ModelException("SET_LM", "CheckInputSize",
+        throw ModelException(MID_SET_LM, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
 
@@ -187,7 +186,7 @@ bool SET_LM::CheckInputSize(const char *key, int n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
-            throw ModelException("SET_LM", "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(MID_SET_LM, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
         }
     }

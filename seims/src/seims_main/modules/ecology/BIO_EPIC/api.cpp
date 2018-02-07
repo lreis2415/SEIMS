@@ -112,6 +112,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_LAST_SOILRD, UNIT_DEPTH_MM, DESC_LAST_SOILRD, DT_Raster1D);
     mdi.AddOutput(VAR_LAIYRMAX, UNIT_AREA_RATIO, DESC_LAIYRMAX, DT_Raster1D);
     mdi.AddOutput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, DT_Raster1D);
+    mdi.AddOutput(VAR_ROOTDEPTH, UNIT_DEPTH_MM, DESC_ROOTDEPTH, DT_Raster1D);
 
     mdi.AddOutput(VAR_LAIMAXFR, UNIT_NON_DIM, DESC_LAIMAXFR, DT_Raster1D);
     mdi.AddOutput(VAR_OLAI, UNIT_AREA_RATIO, DESC_OLAI, DT_Raster1D);
