@@ -106,10 +106,8 @@ void Biomass_EPIC::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_DAYLEN_MIN)) { m_dayLenMin = data; }
     else if (StringMatch(sk, VAR_TMEAN_ANN)) { m_tMeanAnn = data; }
     else if (StringMatch(sk, VAR_DORMHR)) { m_dormHr = data; }
-    else if (StringMatch(sk, VAR_DAYLEN)) {
-        m_dayLen = data;
-        //// soil properties and water related
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
+    else if (StringMatch(sk, VAR_DAYLEN)) { m_dayLen = data; } //// soil properties and water related
+    else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
     else if (StringMatch(sk, VAR_SOL_ZMX)) { m_soilZMX = data; }
     else if (StringMatch(sk, VAR_SOL_ALB)) { m_soilALB = data; }
     else if (StringMatch(sk, VAR_SOL_SW)) { m_soilStorageProfile = data; }
@@ -1013,6 +1011,7 @@ void Biomass_EPIC::Get1DData(const char *key, int *n, float **data) {
     else if (StringMatch(sk, VAR_PLTPET_TOT)) { *data = m_pltPET; }
     else if (StringMatch(sk, VAR_PLTET_TOT)) { *data = m_pltET; }
     else if (StringMatch(sk, VAR_FR_PHU_ACC)) { *data = m_frPHUacc; }
+    else if (StringMatch(sk, VAR_ROOTDEPTH)) { *data = m_soilRD; }
     else if (StringMatch(sk, VAR_LAIDAY)) { *data = m_LAIDay; }
     else if (StringMatch(sk, VAR_LAIYRMAX)) { *data = m_LAIYrMax; }
     else if (StringMatch(sk, VAR_LAIMAXFR)) { *data = m_LAIMaxFr; }

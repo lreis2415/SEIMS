@@ -248,7 +248,7 @@ int PETPenmanMonteith::Execute() {
         //After the plant growth module is completed, the following codes should be removed.
         //float albedo = 0.8f;
         //if(m_tMean[j] > this->m_tSnow) albedo = 0.23f;
-        //// m_albedo is calculated by BIO_EPIC module. By LJ, Jun., 2016
+        //// m_albedo is calculated by BIO_EPIC module. By LJ, 2016
         //*********************************************************
         // calculate net short-wave radiation for max plant PET
         float raShortWavePlant = m_sr[j] * (1.0f - m_albedo[j]);

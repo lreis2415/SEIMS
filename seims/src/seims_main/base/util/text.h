@@ -9,7 +9,7 @@
 #define SEIMS_TEXT_H
 
 #define MODEL_NAME                             "SEIMS"
-#define MODEL_VERSION                          "2017"
+#define MODEL_VERSION                          "2018"
 #define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
 #define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
@@ -149,9 +149,7 @@
 #define Tag_FLOWOUT_PERCENTAGE_MFD_MD          "FLOWOUT_PERCENTAGE_MFD_MD"
 #define Tag_ROUTING_LAYERS_MFD_MD              "ROUTING_LAYERS_MFD_MD"
 
-//#define Tag_ReachParameter                     "ReachParameter"
-//#define Tag_RchParam                           "RchParam"
-/// Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM
+/// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 #define VAR_REACH_PARAM                        "ReachParam"
 #define DESC_REACH_PARAM                       "Reach parameters such as stream order, manning's n and downstream subbasin id"
 /// Add Subbasins as AddParameters for modules
@@ -310,6 +308,8 @@
 #define MCLSDESC_AET                           "Calculates potential plant transpiration and potential and actual soil evaporation. "
 #define MID_AET_PTH                            "AET_PTH"
 #define MDESC_AET_PTH                          "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods "
+#define MID_SET_LM                             "SET_LM"
+#define MDESC_SET_LM                           "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"
 /// Depression
 #define MCLS_DEP                               "Depression"
 #define MCLSDESC_DEP                           "Calculate depression storage."
