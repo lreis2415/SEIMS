@@ -753,6 +753,8 @@
 #define VAR_PHUPLT "PHU_PLT"
 #define VAR_PHUTOT "PHU0"
 #define VAR_PI_B "Pi_b"
+#define VAR_PCP2CANFR_PR "pcp2canfr_pr"
+#define VAR_EMBNKFR_PR "embnkfr_pr"
 #define VAR_PL_RSDCO "rsdco_pl"                     /// Plant residue decomposition coefficient
 #define VAR_PLANT_N "plant_N"
 #define VAR_PLANT_P "plant_P"

@@ -15,8 +15,8 @@ TEST(TestutilsFileIO, GetAbsolutePath) {
 #else
     // linux or unix sytle, the file or directory should be existed.
     string tpath = utilsFileIO::GetAppPath() + "txtfile.txt";
-    EXPECT_EQ(tpath, utilsFileIO::GetAbsolutePath("./test/txtfile.txt"));
-    EXPECT_EQ(tpath, utilsFileIO::GetAbsolutePath("./test/../test/txtfile.txt"));
+    EXPECT_EQ(tpath, utilsFileIO::GetAbsolutePath("./txtfile.txt"));
+    EXPECT_EQ(tpath, utilsFileIO::GetAbsolutePath("../test/txtfile.txt"));
 #endif /* windows */
 }
 
@@ -36,8 +36,8 @@ TEST(TestutilsFileIO, GetPathFromFullName) {
 #else
     // linux or unix sytle, the file or directory should be existed.
     string tpath = utilsFileIO::GetAppPath();
-    EXPECT_EQ(tpath, utilsFileIO::GetPathFromFullName("./test/txtfile.txt"));
-    EXPECT_EQ(tpath, utilsFileIO::GetPathFromFullName("./test/../test/txtfile.txt"));
+    EXPECT_EQ(tpath, utilsFileIO::GetPathFromFullName("./txtfile.txt"));
+    EXPECT_EQ(tpath, utilsFileIO::GetPathFromFullName("../test/txtfile.txt"));
 #endif /* windows */
 }
 
@@ -52,8 +52,8 @@ TEST(TestutilsFileIO, GetSuffix) {
     EXPECT_EQ("", utilsFileIO::GetSuffix("c:\\test/file"));
 #else
     // linux or unix sytle, the file or directory should be existed.
-    EXPECT_EQ("txt", utilsFileIO::GetSuffix("./test/txtfile.txt"));
-    EXPECT_EQ("txt", utilsFileIO::GetSuffix("./test/../test/txtfile.txt"));
+    EXPECT_EQ("txt", utilsFileIO::GetSuffix("./txtfile.txt"));
+    EXPECT_EQ("txt", utilsFileIO::GetSuffix("../test/txtfile.txt"));
 #endif /* windows */
     // without suffix
     EXPECT_EQ("", utilsFileIO::GetSuffix("abcdefg"));
@@ -69,8 +69,8 @@ TEST(TestutilsFileIO, GetCoreFileName) {
     EXPECT_EQ("file", utilsFileIO::GetCoreFileName("c:\\test/file.txt"));
 #else
     // linux or unix sytle, the file or directory should be existed.
-    EXPECT_EQ("txtfile", utilsFileIO::GetCoreFileName("./test/txtfile.txt"));
-    EXPECT_EQ("txtfile", utilsFileIO::GetCoreFileName("./test/../test/txtfile.txt"));
+    EXPECT_EQ("txtfile", utilsFileIO::GetCoreFileName("./txtfile.txt"));
+    EXPECT_EQ("txtfile", utilsFileIO::GetCoreFileName("../test/txtfile.txt"));
 #endif /* windows */
     // without suffix
     EXPECT_EQ("abcdefg", utilsFileIO::GetCoreFileName("abcdefg"));
