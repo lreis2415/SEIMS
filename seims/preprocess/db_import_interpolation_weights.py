@@ -303,12 +303,11 @@ class ImportWeightData(object):
                 myfile.close()
 
     @staticmethod
-    def workflow(cfg, conn):
+    def workflow(cfg, conn, n_subbasins):
         """Workflow"""
         db_model = conn[cfg.spatial_db]
-        subbasin_start_id = 0
-        n_subbasins = 0  # default is for OpenMP version
-        if cfg.cluster:
+        subbasin_start_id = 0  # default is for OpenMP version
+        if n_subbasins > 0:
             subbasin_start_id = 1
             n_subbasins = MongoQuery.get_init_parameter_value(db_model, SubbsnStatsName.subbsn_num)
 
@@ -326,7 +325,7 @@ def main():
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
 
-    ImportWeightData.workflow(seims_cfg, conn)
+    ImportWeightData.workflow(seims_cfg, conn, 0)
 
     client.close()
 

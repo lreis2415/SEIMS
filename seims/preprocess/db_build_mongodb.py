@@ -41,32 +41,28 @@ class ImportMongodbClass(object):
     @staticmethod
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
-        if not cfg.cluster:  # changed by LJ, SubbasinID is 0 means the whole basin!
-            subbasin_num = 0
+        if subbasin_num == 0:  # the whole basin!
             start_id = 0
             subbasin_file = cfg.spatials.mask
         else:
             start_id = 1
             subbasin_file = cfg.spatials.subbsn
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
-                                                               cfg.dirs.geodata2db,
-                                                               cfg.spatial_db,
-                                                               DBTableNames.gridfs_spatial,
-                                                               cfg.hostname, cfg.port)
-        if cfg.cluster:
-            UtilClass.mkdir(cfg.dirs.import2db)
-            for i in range(start_id, subbasin_num + 1):
-                subdir = cfg.dirs.import2db + os.sep + str(i)
-                UtilClass.rmmkdir(subdir)
-            str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
-        # print (str_cmd)
+                                                            cfg.dirs.geodata2db,
+                                                            cfg.spatial_db,
+                                                            DBTableNames.gridfs_spatial,
+                                                            cfg.hostname, cfg.port)
+
+        UtilClass.mkdir(cfg.dirs.import2db)
+        for i in range(start_id, subbasin_num + 1):
+            subdir = cfg.dirs.import2db + os.sep + str(i)
+            UtilClass.rmmkdir(subdir)
+        str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
     def iuh(cfg, n_subbasins):
         """Invoke IUH program"""
-        if not cfg.cluster:
-            n_subbasins = 0
         if cfg.gen_iuh:
             dt = 24
             str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
@@ -81,12 +77,9 @@ class ImportMongodbClass(object):
         """Invoke grid layering program."""
         layering_dir = cfg.dirs.layerinfo
         UtilClass.rmmkdir(layering_dir)
-        if not cfg.cluster:
-            n_subbasins = 0
         str_cmd = '"%s/grid_layering" %s %d %s %s %s %d' % (
             cfg.seims_bin, cfg.hostname, cfg.port, layering_dir,
             cfg.spatial_db, DBTableNames.gridfs_spatial, n_subbasins)
-        # print (str_cmd)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
@@ -118,14 +111,17 @@ class ImportMongodbClass(object):
 
         # import raster data to MongoDB
         status_output('Importing raster to MongoDB....', 50, f)
+        ImportMongodbClass.spatial_rasters(cfg, 0)
         ImportMongodbClass.spatial_rasters(cfg, n_subbasins)
 
         # Import IUH
         status_output('Generating and importing IUH (Instantaneous Unit Hydrograph)....', 60, f)
+        ImportMongodbClass.iuh(cfg, 0)
         ImportMongodbClass.iuh(cfg, n_subbasins)
 
         # Import grid layering data
         status_output('Generating and importing grid layering....', 70, f)
+        ImportMongodbClass.grid_layering(cfg, 0)
         ImportMongodbClass.grid_layering(cfg, n_subbasins)
 
         # Import hydro-climate data
@@ -135,7 +131,8 @@ class ImportMongodbClass(object):
         # Import weight and related data, this should after ImportMongodbClass.climate_data()
         status_output('Generating weight data for interpolation of meteorology data '
                       'and weight dependent parameters....', 85, f)
-        ImportWeightData.workflow(cfg, conn)
+        ImportWeightData.workflow(cfg, conn, 0)
+        ImportWeightData.workflow(cfg, conn, n_subbasins)
 
         # Measurement Data, such as discharge, sediment yield.
         status_output('Import observed data, such as discharge, sediment yield....', 90, f)
