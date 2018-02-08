@@ -11,25 +11,25 @@ from os import sep as SEP
 class ModelNameUtils(object):
     """Simulation Model related tags"""
     Model = 'model'
-    Cluster = 'cluster'
+    # Cluster = 'cluster'
     Mode = 'MODE'
     Storm = 'STORM'
     Daily = 'DAILY'
-    StormClimateDBSuffix = 'storm_cmorph'
+    StormClimateDBSuffix = 'storm'
 
-    @staticmethod
-    def standardize_spatial_dbname(is4cluster, is4storm, spatialdbname):
-        """standardize spatial database name"""
-        if is4cluster and ModelNameUtils.Cluster not in spatialdbname.lower():
-            spatialdbname = ModelNameUtils.Cluster + '_' + spatialdbname
-        if is4storm:
-            if not ModelNameUtils.Storm.lower() in spatialdbname.lower():
-                spatialdbname = spatialdbname + '_' + ModelNameUtils.Storm.lower()
-        if not ModelNameUtils.Model in spatialdbname.lower():
-            spatialdbname = ModelNameUtils.Model + '_' + spatialdbname
-        if is4cluster and (not ModelNameUtils.Cluster.lower() in spatialdbname.lower()):
-            spatialdbname = ModelNameUtils.Cluster.lower() + '_' + spatialdbname
-        return spatialdbname
+    # @staticmethod
+    # def standardize_spatial_dbname(is4cluster, is4storm, spatialdbname):
+    #     """standardize spatial database name"""
+    #     if is4cluster and ModelNameUtils.Cluster not in spatialdbname.lower():
+    #         spatialdbname = ModelNameUtils.Cluster + '_' + spatialdbname
+    #     if is4storm:
+    #         if not ModelNameUtils.Storm.lower() in spatialdbname.lower():
+    #             spatialdbname = spatialdbname + '_' + ModelNameUtils.Storm.lower()
+    #     if not ModelNameUtils.Model in spatialdbname.lower():
+    #         spatialdbname = ModelNameUtils.Model + '_' + spatialdbname
+    #     if is4cluster and (not ModelNameUtils.Cluster.lower() in spatialdbname.lower()):
+    #         spatialdbname = ModelNameUtils.Cluster.lower() + '_' + spatialdbname
+    #     return spatialdbname
 
     @staticmethod
     def standardize_climate_dbname(climatedbname):
