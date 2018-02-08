@@ -5,7 +5,10 @@
     @changelog: 13-01-10  jz - initial implementation
                 16-12-07  lj - rewrite for version 2.0, improve calculation efficiency by numpy
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from numpy import where, fromfunction
@@ -19,9 +22,9 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
-from sd_hillslope import DelineateHillslope
-from text import FieldNames
-from utility import DEFAULT_NODATA
+from .sd_hillslope import DelineateHillslope
+from .text import FieldNames
+from .utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -46,7 +49,7 @@ class SpatialDelineation(object):
                          "subbasin": [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
                          "basin": [cfg.vecs.bsn, cfg.vecs.json_bsn],
                          "outlet": [cfg.vecs.outlet, cfg.vecs.json_outlet]}
-        for jsonName, shp_json_list in geo_json_dict.items():
+        for jsonName, shp_json_list in list(geo_json_dict.items()):
             # delete if geojson file already existed
             if FileClass.is_file_exists(shp_json_list[1]):
                 os.remove(shp_json_list[1])
@@ -119,13 +122,13 @@ class SpatialDelineation(object):
         default_values.append(cfg.default_landuse)
 
         # Additional raster file
-        for k, v in cfg.additional_rs.iteritems():
+        for k, v in cfg.additional_rs.items():
             org_v = v
             if not FileClass.is_file_exists(org_v):
                 v = cfg.spatial_dir + os.sep + org_v
                 if not FileClass.is_file_exists(v):
-                    print ('WARNING: The additional file %s MUST be located in '
-                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
+                    print('WARNING: The additional file %s MUST be located in '
+                          'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
             original_files.append(v)
             output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
@@ -170,14 +173,13 @@ class SpatialDelineation(object):
         D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
 
         # convert raster to shapefile (for subbasin and basin)
-        print "Generating subbasin vector..."
-        VectorUtilClass.raster2shp(output_subbasin_file, subbasin_vector_file, "subbasin",
+        print('Generating subbasin vector...')
+        VectorUtilClass.raster2shp(output_subbasin_file, subbasin_vector_file, 'subbasin',
                                    FieldNames.subbasin_id)
         mask_file = cfg.spatials.mask
         basin_vector = cfg.vecs.bsn
-        print "Generating basin vector..."
-        VectorUtilClass.raster2shp(mask_file, basin_vector, "basin",
-                                   FieldNames.basin)
+        print('Generating basin vector...')
+        VectorUtilClass.raster2shp(mask_file, basin_vector, 'basin', FieldNames.basin)
         # delineate hillslope
         DelineateHillslope.downstream_method_whitebox(output_stream_link_file, flow_dir_file_tau,
                                                       output_hillslope_file)
@@ -261,7 +263,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

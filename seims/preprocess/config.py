@@ -5,8 +5,10 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
                 17-12-18  lj - add field partition parameters
-                18-02-08  lj - combine serial and cluster versions
+                18-02-08  lj - combine serial and cluster versions and compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import json
 import os
 
@@ -18,8 +20,8 @@ except ImportError:
 from pygeoc.TauDEM import TauDEMFilesUtils
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
 
-from text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
-from text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from .text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
+from .text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
 class SEIMSConfig(object):
@@ -115,11 +117,10 @@ class SEIMSConfig(object):
                 # os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.sep + 'preprocess_output'
-                print ('WARNING: Make WORKING_DIR failed: %s. Use the default: %s' % (
-                    exc.message, self.workspace))
+                print('WARNING: Make WORKING_DIR failed: %s. '
+                      'Use the default: %s' % (exc.message, self.workspace))
                 if not os.path.exists(self.workspace):
                     UtilClass.mkdir(self.workspace)
-                    # os.mkdir(self.workspace)
 
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
@@ -206,9 +207,9 @@ class SEIMSConfig(object):
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = cf.get('SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)
-                tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
-                           tmpdict.items()}
-                for k, v in tmpdict.items():
+                tmpdict = {str(k): (str(v) if isinstance(v, str) else v) for k, v in
+                           list(tmpdict.items())}
+                for k, v in list(tmpdict.items()):
                     # Existence check has been moved to mask_origin_delineated_data()
                     #  in sp_delineation.py
                     self.additional_rs[k] = v
@@ -258,4 +259,4 @@ def parse_ini_configuration():
 
 if __name__ == '__main__':
     seims_cfg = parse_ini_configuration()
-    print (seims_cfg.meteo_sites_thiessen)
+    print(seims_cfg.meteo_sites_thiessen)

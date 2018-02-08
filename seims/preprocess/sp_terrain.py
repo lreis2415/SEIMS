@@ -8,7 +8,10 @@
     @TODO: 1. for depression_capacity() function
               1.1. Add stream order modification, according to depression.ave of WetSpa.
               1.2. Add another depressional storage method according to SWAT, depstor.f
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import sys
 from math import exp, sqrt
 
@@ -20,8 +23,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
-from db_import_stream_parameters import ImportReaches2Mongo
-from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from .db_import_stream_parameters import ImportReaches2Mongo
+from .utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -63,8 +66,8 @@ class TerrainUtilClass(object):
                 return length[i][j]
 
             if length[i][j] < 0:
-                print "Error in calculating flowlen_cell function! i,j:"
-                print i, j
+                print("Error in calculating flowlen_cell function! i,j:")
+                print(i, j)
                 return -1
         return 0
 
@@ -132,7 +135,7 @@ class TerrainUtilClass(object):
             landu_id = int(landu)
             if landu_id not in dep_sd0:
                 if landu_id not in id_omited:
-                    print ('The landuse ID: %d does not exist.' % (landu_id,))
+                    print('The landuse ID: %d does not exist.' % (landu_id,))
                     id_omited.append(landu_id)
             stid = int(soil_texture) - 1
             try:
@@ -413,7 +416,7 @@ class TerrainUtilClass(object):
         while ft is not None:
             tmpid = ft.GetFieldAsInteger(i_link)
             w = 1
-            if tmpid in ch_width_dic.keys():
+            if tmpid in list(ch_width_dic.keys()):
                 w = ch_width_dic[tmpid]
             ft.SetField(ImportReaches2Mongo._WIDTH, w)
             ft.SetField(ImportReaches2Mongo._DEPTH, default_depth)
@@ -476,8 +479,8 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

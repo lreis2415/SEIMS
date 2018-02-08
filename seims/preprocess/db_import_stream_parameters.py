@@ -4,9 +4,11 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
-import sys
 from math import sqrt
 import shutil
 
@@ -19,7 +21,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, FileClass
 from pymongo import ASCENDING
 
-from utility import UTIL_ZERO, MINI_SLOPE
+from .utility import UTIL_ZERO, MINI_SLOPE
 
 
 class ImportReaches2Mongo(object):
@@ -101,7 +103,7 @@ class ImportReaches2Mongo(object):
     @staticmethod
     def construct_flow_graph(downstream_dict):
         g = nx.DiGraph()
-        for from_id, info in downstream_dict.iteritems():
+        for from_id, info in downstream_dict.items():
             if info['downstream'] > 0:
                 g.add_edge(from_id, info['downstream'])
         return g
@@ -148,7 +150,7 @@ class ImportReaches2Mongo(object):
 
         metis_input = ImportReaches2Mongo.prepare_node_with_weight_for_metis(g, weight, wp)
         # Creating group divided numbers
-        nlist = range(1, 129)
+        nlist = list(range(1, 129))
         nlist.extend([192, 256, 384, 512, 768, 1536])
         # nlist should be less than the number of subbasin, otherwise it will make nonsense.
         ns = g.nodes()
@@ -255,7 +257,7 @@ class ImportReaches2Mongo(object):
         if outlet < 0:
             raise ValueError('Cannot find outlet subbasin ID, please check the '
                              'threshold for stream extraction!')
-        print ('outlet subbasin:%d' % outlet)
+        print('outlet subbasin:%d' % outlet)
 
         # assign order from outlet to upstream subbasins from 1
         downstream_up_order_dic = dict()
@@ -271,7 +273,7 @@ class ImportReaches2Mongo(object):
             start_node = tmp[:]
         # order_num now is the maximum order number from outlet
         # reserve the order number
-        for k, v in downstream_up_order_dic.iteritems():
+        for k, v in downstream_up_order_dic.items():
             downstream_up_order_dic[k] = order_num - v + 1
         return downstream_up_order_dic
 
@@ -334,7 +336,7 @@ class ImportReaches2Mongo(object):
 
         groups = group_metis_dict[1]['group']
         for i, n in enumerate(groups):
-            for node, d in group_metis_dict.iteritems():
+            for node, d in group_metis_dict.items():
                 ftmap[node].SetField(ImportReaches2Mongo._GROUP, n)
                 ftmap[node].SetField(ImportReaches2Mongo._KMETIS, d['kmetis'][i])
                 ftmap[node].SetField(ImportReaches2Mongo._PMETIS, d['pmetis'][i])
@@ -392,7 +394,7 @@ class ImportReaches2Mongo(object):
         # remove the older reaches collection if existed
         maindb.drop_collection(ImportReaches2Mongo._TAB_REACH)
 
-        for subbsn_id, rchdata in rch.iteritems():
+        for subbsn_id, rchdata in rch.items():
             dic = dict()
             dic[ImportReaches2Mongo._SUBBASIN] = subbsn_id
             dic[ImportReaches2Mongo._DOWNSTREAM] = rchdata['downstream']
@@ -450,8 +452,8 @@ class ImportReaches2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

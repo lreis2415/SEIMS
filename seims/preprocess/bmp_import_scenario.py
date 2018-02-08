@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 """Import BMP Scenario related parameters to MongoDB
     @author   : Liangjun Zhu
-    @changelog: 16-06-16  first implementation version
-                17-06-22  improve according to pylint and google style
+    @changelog: 16-06-16  lj - first implementation version.\n
+                17-06-22  lj - improve according to pylint and google style.\n
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
-from utility import read_data_items_from_txt
-from text import DBTableNames
+from .utility import read_data_items_from_txt
+from .text import DBTableNames
 
 
 class ImportScenario2Mongo(object):
@@ -69,8 +72,8 @@ class ImportScenario2Mongo(object):
                         dic[field_name.upper()] = v
                     else:
                         dic[field_name.upper()] = str(item[i]).upper()
-                if StringClass.string_in_list(ImportScenario2Mongo._LocalX, dic.keys()) and \
-                        StringClass.string_in_list(ImportScenario2Mongo._LocalY, dic.keys()):
+                if StringClass.string_in_list(ImportScenario2Mongo._LocalX, list(dic.keys())) and \
+                        StringClass.string_in_list(ImportScenario2Mongo._LocalY, list(dic.keys())):
                     subbsn_id = subbasin_r.get_value_by_xy(
                             dic[ImportScenario2Mongo._LocalX.upper()],
                             dic[ImportScenario2Mongo._LocalY.upper()])
@@ -100,8 +103,8 @@ class ImportScenario2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

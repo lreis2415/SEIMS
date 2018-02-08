@@ -6,17 +6,20 @@
                 17-07-04  lj - reorganize according to pylint and google style
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 from datetime import timedelta
 
 from pygeoc.utils import StringClass
 from pymongo import ASCENDING
 
-from db_mongodb import MongoUtil
-from hydro_climate_utility import HydroClimateUtilClass
-from text import DBTableNames, DataValueFields, DataType
-from utility import read_data_items_from_txt
+from .db_mongodb import MongoUtil
+from .hydro_climate_utility import HydroClimateUtilClass
+from .text import DBTableNames, DataValueFields, DataType
+from .utility import read_data_items_from_txt
 
 
 class ImportPrecipitation(object):
@@ -87,8 +90,8 @@ class ImportPrecipitation(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
@@ -97,7 +100,7 @@ def main():
     st = time.time()
     ImportPrecipitation.workflow(seims_cfg, hydroclim_db)
     et = time.time()
-    print et - st
+    print(et - st)
 
     client.close()
 

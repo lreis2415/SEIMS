@@ -6,7 +6,10 @@
                 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
                 17-07-07  lj - remove SQLite database file as intermediate file
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from numpy import frompyfunc as np_frompyfunc
@@ -14,8 +17,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
 
-from text import ModelParamDataUtils
-from utility import status_output, read_data_items_from_txt, \
+from .text import ModelParamDataUtils
+from .utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
 
 
@@ -96,18 +99,18 @@ class LanduseUtilClass(object):
         for item in data_items:
             for i, v in enumerate(item):
                 if i != lu_id:
-                    if field_names[i].upper() not in replace_dicts.keys():
+                    if field_names[i].upper() not in list(replace_dicts.keys()):
                         replace_dicts[field_names[i].upper()] = {float(item[lu_id]): float(v)}
                     else:
                         replace_dicts[field_names[i].upper()][float(item[lu_id])] = float(v)
         # print replace_dicts
 
         # Generate GTIFF
-        for item, v in replace_dicts.items():
+        for item, v in list(replace_dicts.items()):
             filename = dst_dir + os.sep + item + '.tif'
             print (filename)
             RasterUtilClass.raster_reclassify(landcover_file, v, filename)
-        return replace_dicts['LANDCOVER'].values()
+        return list(replace_dicts['LANDCOVER'].values())
 
     @staticmethod
     def read_crop_lookup_table(crop_lookup_file):
@@ -147,7 +150,7 @@ class LanduseUtilClass(object):
             for code in land_cover_codes:
                 if MathClass.floatequal(code, DEFAULT_NODATA):
                     continue
-                if code not in cur_dict.keys():
+                if code not in list(cur_dict.keys()):
                     cur_dict[code] = dic.get(code)
             replace_dicts.append(cur_dict)
             dst_crop_tifs.append(dst_dir + os.sep + cur_attr + '.tif')
@@ -229,9 +232,9 @@ class LanduseUtilClass(object):
             """Calculate runoff coefficient by landuse, soil texture and slope."""
             if abs(lu_id - nodata_value1) < UTIL_ZERO or int(lu_id) < 0:
                 return nodata_value2
-            if int(lu_id) not in runoff_c0.keys():
+            if int(lu_id) not in list(runoff_c0.keys()):
                 if int(lu_id) not in id_omited:
-                    print ('The landuse ID: %d does not exist.' % int(lu_id))
+                    print('The landuse ID: %d does not exist.' % int(lu_id))
                     id_omited.append(int(lu_id))
             stid = int(soil_texture) - 1
             c0 = runoff_c0[int(lu_id)][stid]
@@ -300,8 +303,8 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

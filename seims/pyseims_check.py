@@ -61,21 +61,14 @@ except ImportError:
     print ("ERROR: matplotlib is not successfully installed, please check and retry!")
 else:
     print ("matplotlib-%s has been installed!" % matplotlib.__version__)
-# 8. pathlib2
-try:
-    import pathlib2
-except ImportError:
-    print ("ERROR: pathlib2 is not successfully installed, please check and retry!")
-else:
-    print ("pathlib2 has been installed!")
-# 9. deap
+# 8. deap
 try:
     import deap
 except ImportError:
     print ("ERROR: deap is not successfully installed, please check and retry!")
 else:
     print ("deap-%s has been installed!" % deap.__version__)
-# 10. scoop
+# 9. scoop
 try:
     import scoop
 except ImportError:
