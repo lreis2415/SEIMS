@@ -5,7 +5,10 @@
    This function can be integrated into HydroClimateUtilClass in the future.
     @author   : Liangjun Zhu
     @changelog: 17-07-25  lj - initial implementation
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import time
 from collections import OrderedDict
@@ -13,8 +16,8 @@ from datetime import timedelta
 
 from pygeoc.utils import FileClass, StringClass, MathClass
 
-from hydro_climate_utility import HydroClimateUtilClass
-from utility import read_data_items_from_txt
+from .hydro_climate_utility import HydroClimateUtilClass
+from .utility import read_data_items_from_txt
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,
@@ -95,7 +98,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         if time_sys_output == 'LOCALTIME':
             org_datetime += timedelta(hours=time_zone_output)
         # now, org_datetime is consistent with the output time system
-        ord_data[org_datetime] = []
+        ord_data[org_datetime] = list()
         for i, v in enumerate(item):
             if i == date_idx:
                 continue
@@ -119,10 +122,10 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         sdt = item_dtime  # start datetime of records
         edt = item_dtime + out_time_delta  # end datetime of records
         # get original data items
-        org_items = []
+        org_items = list()
         pre_dt = list(ord_data.keys())[0]
         pre_added = False
-        for i, v in ord_data.items():
+        for i, v in list(ord_data.items()):
             if sdt <= i < edt:
                 if not pre_added and pre_dt < sdt < i and sdt - pre_dt < out_time_delta:
                     # only add one item that less than sdt.
@@ -178,8 +181,8 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
             if 'SED' in v_name.upper():
                 if MathClass.floatequal(itp_auxiliary_value, 0.):
                     itp_value = 0.
-                    print ('WARNING: Flow is 0 for %s, please check!' %
-                           item_dtime.strftime('%Y-%m-%d %H:%M:%S'))
+                    print('WARNING: Flow is 0 for %s, please check!' %
+                          item_dtime.strftime('%Y-%m-%d %H:%M:%S'))
                 itp_value /= itp_auxiliary_value
             elif 'FLOW' in v_name.upper():
                 itp_value /= (out_time_delta.days * 86400 + out_time_delta.seconds)
@@ -206,7 +209,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         with open(out_file, 'w') as f:
             f.write(header_str + '\n')
             f.write('DATETIME,' + fld + '\n')
-            for i, v in itp_data.items():
+            for i, v in list(itp_data.items()):
                 cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
                 f.write(cur_line)
 

@@ -8,7 +8,10 @@
                              - Data validation checking is also conducted.
                 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import math
 import os
 
@@ -17,8 +20,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from utility import status_output, read_data_items_from_txt
+from .utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from .utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -800,7 +803,7 @@ class SoilUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SoilUtilClass.parameters_extraction(seims_cfg)
 

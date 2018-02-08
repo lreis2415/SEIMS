@@ -5,23 +5,26 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reformat according to pylint and google style
                 17-07-07  lj - remove sqlite3 database file as intermediate data
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from pygeoc.utils import UtilClass
 
-from bmp_import_scenario import ImportScenario2Mongo
-from db_import_interpolation_weights import ImportWeightData
-from db_import_meteorology import ImportMeteoData
-from db_import_model_parameters import ImportParam2Mongo
-from db_import_observed import ImportObservedData
-from db_import_precipitation import ImportPrecipitation
-from db_import_sites import ImportHydroClimateSites
-from db_import_stream_parameters import ImportReaches2Mongo
-from db_mongodb import ConnectMongoDB, MongoQuery
-from sp_extraction import extract_spatial_parameters
-from text import DBTableNames, SubbsnStatsName
-from utility import status_output
+from .bmp_import_scenario import ImportScenario2Mongo
+from .db_import_interpolation_weights import ImportWeightData
+from .db_import_meteorology import ImportMeteoData
+from .db_import_model_parameters import ImportParam2Mongo
+from .db_import_observed import ImportObservedData
+from .db_import_precipitation import ImportPrecipitation
+from .db_import_sites import ImportHydroClimateSites
+from .db_import_stream_parameters import ImportReaches2Mongo
+from .db_mongodb import ConnectMongoDB, MongoQuery
+from .sp_extraction import extract_spatial_parameters
+from .text import DBTableNames, SubbsnStatsName
+from .utility import status_output
 
 
 class ImportMongodbClass(object):
@@ -99,7 +102,7 @@ class ImportMongodbClass(object):
         status_output('Import model parameters', 10, f)
         ImportParam2Mongo.workflow(cfg, maindb)
         n_subbasins = MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.subbsn_num)
-        print ('Number of subbasins: %d' % n_subbasins)
+        print('Number of subbasins: %d' % n_subbasins)
 
         # Extract spatial parameters for reaches, landuse, soil, etc.
         status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
@@ -150,7 +153,7 @@ class ImportMongodbClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
     ImportMongodbClass.workflow(seims_cfg)

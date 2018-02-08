@@ -4,10 +4,13 @@
     @author   : Liangjun Zhu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
-from sp_landuse import LanduseUtilClass
-from sp_soil import SoilUtilClass
-from sp_terrain import TerrainUtilClass
+from __future__ import absolute_import
+
+from .sp_landuse import LanduseUtilClass
+from .sp_soil import SoilUtilClass
+from .sp_terrain import TerrainUtilClass
 
 
 def extract_spatial_parameters(cfg, maindb):
@@ -22,8 +25,8 @@ def extract_spatial_parameters(cfg, maindb):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

@@ -4,7 +4,10 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-06-16  first implementation version
                 17-06-22  reformat according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 

@@ -6,7 +6,10 @@
                 17-06-29  lj - reorganized according to pylint and google style
                 17-07-20  lj - bug fixed of downstream_method_whitebox() method of Whitebox GAT
                                see details at https://github.com/lreis2415/SEIMS/issues/1
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 import numpy
@@ -316,7 +319,7 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow

@@ -5,7 +5,10 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0\n
                 17-06-23  lj - reorganize as basic class\n
                 18-01-30  lj - clean up calibration settings before import a new one\n
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from struct import pack
 
 from gridfs import GridFS
@@ -15,10 +18,10 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING
 
-from db_mongodb import MongoUtil
-from text import ModelParamFields, ModelParamDataUtils, \
+from .db_mongodb import MongoUtil
+from .text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
-from utility import read_data_items_from_txt
+from .utility import read_data_items_from_txt
 
 
 class ImportParam2Mongo(object):
@@ -59,7 +62,7 @@ class ImportParam2Mongo(object):
                            ModelParamFields.max: DEFAULT_NODATA,
                            ModelParamFields.min: DEFAULT_NODATA,
                            ModelParamFields.type: ''}
-            for k, v in data_import.items():
+            for k, v in list(data_import.items()):
                 idx = field_names.index(k)
                 if cur_data_item[idx] == '':
                     if StringClass.string_match(k, ModelParamFields.change_ac):
@@ -181,7 +184,7 @@ class ImportParam2Mongo(object):
                              SubbsnStatsName.subbsn_min: min_subbasin_id,
                              SubbsnStatsName.subbsn_num: subbasin_num}
 
-        for stat, stat_v in import_stats_dict.items():
+        for stat, stat_v in list(import_stats_dict.items()):
             dic = {ModelParamFields.name: stat,
                    ModelParamFields.desc: stat,
                    ModelParamFields.unit: 'NONE',
@@ -261,7 +264,7 @@ class ImportParam2Mongo(object):
                     file_out_dict[ModelCfgFields.use] = item[i]
                 elif StringClass.string_match(ModelCfgFields.subbsn, v):
                     file_out_dict[ModelCfgFields.subbsn] = item[i]
-            if file_out_dict.keys() is []:
+            if not list(file_out_dict.keys()):
                 raise ValueError('There are not any valid output item stored in file.out!')
             bulk.insert(file_out_dict)
         MongoUtil.run_bulk(bulk, 'No operations to excute when import initial outputs settings.')
@@ -301,7 +304,7 @@ class ImportParam2Mongo(object):
             cfg: SEIMS config object
             maindb: workflow model database
         """
-        for tablename, txt_file in cfg.paramcfgs.lookup_tabs_dict.items():
+        for tablename, txt_file in list(cfg.paramcfgs.lookup_tabs_dict.items()):
             # import each lookup table as a collection and GridFS file.
             c_list = maindb.collection_names()
             if not StringClass.string_in_list(tablename.upper(), c_list):
@@ -375,8 +378,8 @@ class ImportParam2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

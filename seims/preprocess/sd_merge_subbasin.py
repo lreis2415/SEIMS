@@ -3,7 +3,9 @@
 """Merge small subbasins to its downstream subbasin.
     @author   : Liangjun Zhu
     @changelog: 17-06-30  lj - initial version modified from QSWAT 1.4
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
 
 
 class MergeSubbasins(object):
@@ -19,7 +21,7 @@ class MergeSubbasins(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     MergeSubbasins.merge_to_downstream_qswat(seims_cfg)
 
