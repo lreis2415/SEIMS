@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
             sort(array2DIter->second.begin(), array2DIter->second.end());
         }
     }
-    for (vector<string>::iterator it = delVarNames.begin(); it != delVarNames.end(); it++) {
+    for (auto it = delVarNames.begin(); it != delVarNames.end(); it++) {
         array2DFiles.erase(*it);
     }
     vector<string>(array1DFiles).swap(array1DFiles);
@@ -398,7 +398,7 @@ int main(int argc, char **argv) {
     cout << "Importing spatial data to MongoDB...\n";
     for (array2DIter = array2DFiles.begin(); array2DIter != array2DFiles.end(); array2DIter++) {
         vector<string> tmpFileNames = array2DIter->second;
-        for (vector<string>::iterator it = tmpFileNames.begin(); it != tmpFileNames.end(); it++) {
+        for (auto it = tmpFileNames.begin(); it != tmpFileNames.end(); it++) {
             cout << "\t" << *it << endl;
             if (nullptr != outTifFolder) {
                 DecompositeRaster(bboxMap, rsSubbasin, it->c_str(), outTifFolder);

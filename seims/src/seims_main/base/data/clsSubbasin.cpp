@@ -15,7 +15,7 @@ Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(nullptr), m_isRevap
 }
 
 Subbasin::~Subbasin() {
-    Release1DArray(m_cells);
+    if(m_cells != nullptr) Release1DArray(m_cells);
 }
 
 bool Subbasin::CheckInputSize(int n) {
