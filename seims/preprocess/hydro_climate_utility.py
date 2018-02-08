@@ -4,15 +4,17 @@
     @author   : Junzhi Liu, Liangjun Zhu
     @changelog: 13-01-10  jz - initial implementation
                 17-06-23  lj - reformat according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import math
 import time
 from datetime import datetime, timedelta
 
 from pygeoc.utils import StringClass, MathClass
 
-from text import DBTableNames, StationFields, DataValueFields
-# from utility import LFs
+from .text import DBTableNames, StationFields, DataValueFields
 
 
 class HydroClimateUtilClass(object):
@@ -58,7 +60,7 @@ class HydroClimateUtilClass(object):
     @staticmethod
     def query_climate_sites(clim_db, site_type):
         """Query climate sites information, return a dict with stationID as key."""
-        from db_import_sites import SiteInfo
+        from .db_import_sites import SiteInfo
         sites_loc = dict()
         sites_coll = clim_db[DBTableNames.sites]
         find_results = sites_coll.find({StationFields.type: site_type})
@@ -145,8 +147,8 @@ class HydroClimateUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

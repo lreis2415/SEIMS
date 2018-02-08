@@ -4,7 +4,10 @@
     @author   : Liangjun Zhu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class other than Global variables
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from os import sep as SEP
 
 
@@ -118,7 +121,7 @@ class ModelParamDataUtils(object):
         self.init_params_file = in_dir + SEP + ModelParamDataUtils._INIT_PARAM_NAME
         self.init_outputs_file = in_dir + SEP + ModelParamDataUtils._INIT_OUTPUTS_NAME
         self.lookup_tabs_dict = dict()
-        for k, v in ModelParamDataUtils._LOOKUP_DICT.items():
+        for k, v in list(ModelParamDataUtils._LOOKUP_DICT.items()):
             self.lookup_tabs_dict[k] = in_dir + SEP + v
 
 

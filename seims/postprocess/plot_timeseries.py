@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 from preprocess.text import DataValueFields
 from load_mongodb import ReadModelData
-from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics, \
+from .utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics, \
     save_png_eps
 
 divtdi = datetime.timedelta.__div__

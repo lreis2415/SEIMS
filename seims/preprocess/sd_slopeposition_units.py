@@ -13,7 +13,10 @@
 
     @author   : Liangjun Zhu, Huiran Gao
     @changelog: 17-08-14  lj - initial implementation.\n
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import json
 import os
 from collections import OrderedDict
@@ -23,8 +26,8 @@ from pygeoc.raster import RasterUtilClass, DEFAULT_NODATA
 from pygeoc.utils import FileClass
 from pygeoc.vector import VectorUtilClass
 
-from db_import_stream_parameters import ImportReaches2Mongo
-from sd_hillslope import DelineateHillslope
+from .db_import_stream_parameters import ImportReaches2Mongo
+from .sd_hillslope import DelineateHillslope
 
 
 class SlopePositionUnits(object):
@@ -177,14 +180,14 @@ class SlopePositionUnits(object):
         all_units_ids = list()
         for sp in self.slppos_tags:
             name = self.slppos_tags.get(sp).get('name')
-            cur_units_ids = self.units_updwon.get(name).keys()
+            cur_units_ids = list(self.units_updwon.get(name).keys())
             self.units_updwon.get('overview')[name] = len(cur_units_ids)
             all_units_ids += cur_units_ids
         self.units_updwon.get('overview')['all_units'] = len(all_units_ids)
 
         for sp in self.slppos_tags:
             name = self.slppos_tags.get(sp).get('name')
-            for unitid, unitdict in self.units_updwon.get(name).iteritems():
+            for unitid, unitdict in self.units_updwon.get(name).items():
                 if unitdict.get('upslope') > 0 and unitdict.get('upslope') not in all_units_ids:
                     self.units_updwon.get(name).get(unitid)['upslope'] = -1
                 if unitdict.get('downslope') > 0 and unitdict.get('downslope') not in all_units_ids:
@@ -210,12 +213,12 @@ class SlopePositionUnits(object):
         all_units_ids = list()
         for sp in self.slppos_tags:
             name = self.slppos_tags.get(sp).get('name')
-            all_units_ids += self.units_updwon.get(name).keys()
+            all_units_ids += list(self.units_updwon.get(name).keys())
         # loop each slope position units
         hillslp_elim = dict()
-        for sp, spdict in self.slppos_tags.iteritems():
+        for sp, spdict in self.slppos_tags.items():
             name = spdict.get('name')
-            for unitid, unitdict in self.units_updwon.get(name).iteritems():
+            for unitid, unitdict in self.units_updwon.get(name).items():
                 flag = True  # complete sequences or not
                 if spdict.get('upslope') > 0 > unitdict.get('upslope'):
                     flag = False
@@ -227,7 +230,7 @@ class SlopePositionUnits(object):
                         hillslp_elim[cur_hillslp_id] = [unitid]
                 if cur_hillslp_id in hillslp_elim and unitid not in hillslp_elim[cur_hillslp_id]:
                     hillslp_elim[cur_hillslp_id].append(unitid)
-        print ('Hillslope with incomplete slope position sequences: ' + hillslp_elim.__str__())
+        print('Hillslope with incomplete slope position sequences: ' + hillslp_elim.__str__())
         # Basic procedure:
         #   1. if header is incomplete, search left and right;
         #      if left/right is incomplete, search header and right/left;
@@ -236,7 +239,7 @@ class SlopePositionUnits(object):
         #      (or upstream for outlet subbasin). The header always with the left hillslope.
         hillslope_merge_order = {0: [1, 2], 1: [0, 2], 2: [0, 1]}
         units_pair = dict()  # unit id pairs, key is merged unit, value is destination unit.
-        for hillid, unitids in hillslp_elim.iteritems():
+        for hillid, unitids in hillslp_elim.items():
             subbsnid = DelineateHillslope.get_subbasin_from_hillslope_id(hillid, self.subbsin_num)
             hillids = DelineateHillslope.cal_hs_codes(self.subbsin_num, subbsnid)
             idx = hillids.index(hillid)
@@ -269,7 +272,7 @@ class SlopePositionUnits(object):
                 cur_units_pair = dict()
                 dst_subbsn = self.subbsin_tree.get(subbsnid)
                 if dst_subbsn < 0:  # outlet subbasin
-                    for k, v in self.subbsin_tree.iteritems():
+                    for k, v in self.subbsin_tree.items():
                         if v == subbsnid:
                             dst_subbsn = k
                             break
@@ -282,17 +285,17 @@ class SlopePositionUnits(object):
                             cur_units_pair[_id * hillid] = dst_unit
                 units_pair.update(cur_units_pair)
 
-        print ('Slope position unit merge-destination pairs: ' + units_pair.__str__())
+        print('Slope position unit merge-destination pairs: ' + units_pair.__str__())
 
         # begin to merge
-        for srcid, dstid in units_pair.iteritems():
+        for srcid, dstid in units_pair.items():
             # replace values in slope position units raster
-            for k, v in units_pair.iteritems():
+            for k, v in units_pair.items():
                 self.slppos_ids[self.slppos_ids == k] = v
 
             for sp in self.slppos_tags:
                 name = self.slppos_tags.get(sp).get('name')
-                if srcid in self.units_updwon.get(name).keys():  # dstid MUST be here too.
+                if srcid in list(self.units_updwon.get(name).keys()):  # dstid MUST be here too.
                     srcdict = self.units_updwon.get(name)[srcid]
                     self.units_updwon[name][dstid]['area'] += srcdict['area']
                     for luid in srcdict['landuse']:
@@ -313,7 +316,7 @@ class SlopePositionUnits(object):
         units_count = 0
         for sp in self.slppos_tags:
             name = self.slppos_tags.get(sp).get('name')
-            cur_units_count = len(self.units_updwon.get(name).keys())
+            cur_units_count = len(list(self.units_updwon.get(name).keys()))
             self.units_updwon.get('overview')[name] = cur_units_count
             units_count += cur_units_count
         self.units_updwon.get('overview')['all_units'] = units_count
@@ -323,9 +326,9 @@ class SlopePositionUnits(object):
            Subbasin-Hillslope-Slope position
         """
         self.hierarchy_units = dict()
-        for sp, spdict in self.slppos_tags.iteritems():
+        for sp, spdict in self.slppos_tags.items():
             name = spdict.get('name')
-            for unitid, unitdict in self.units_updwon.get(name).iteritems():
+            for unitid, unitdict in self.units_updwon.get(name).items():
                 sid = unitdict['subbasin'][0]
                 hsid = unitdict['hillslope'][0]
                 if sid not in self.hierarchy_units:
@@ -348,7 +351,7 @@ class SlopePositionUnits(object):
                                          self.slppos_ids, self.geotrans, self.srs,
                                          DEFAULT_NODATA, self.datatype)
         VectorUtilClass.raster2shp(unitraster, unitshp)
-        print ("Original unique spatial units ID raster saved as '%s'" % unitraster)
+        print("Original unique spatial units ID raster saved as '%s'" % unitraster)
 
     def run(self):
         """Workflow."""
@@ -364,7 +367,7 @@ class SlopePositionUnits(object):
 def main():
     """Delineation slope position units with the associated information."""
     # inputs from preprocess
-    from config import parse_ini_configuration
+    from .config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
     reach_shp = seims_cfg.vecs.reach

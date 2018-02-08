@@ -7,18 +7,21 @@
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
                 TODO: Check the location of observed stations and add subbasinID field.
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 from datetime import timedelta
 
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
 
-from db_mongodb import MongoQuery
-from db_mongodb import MongoUtil
-from hydro_climate_utility import HydroClimateUtilClass
-from text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from utility import read_data_items_from_txt
+from .db_mongodb import MongoQuery
+from .db_mongodb import MongoUtil
+from .hydro_climate_utility import HydroClimateUtilClass
+from .text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
+from .utility import read_data_items_from_txt
 
 
 class ImportObservedData(object):
@@ -286,8 +289,8 @@ class ImportObservedData(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
@@ -297,7 +300,7 @@ def main():
     st = time.time()
     ImportObservedData.workflow(seims_cfg, main_db, hydroclim_db)
     et = time.time()
-    print et - st
+    print(et - st)
 
     client.close()
 

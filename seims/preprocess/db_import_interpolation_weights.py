@@ -4,17 +4,20 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from math import sqrt, pow
 from struct import pack, unpack
 
 from gridfs import GridFS
 from numpy import zeros as np_zeros
 
-from db_mongodb import MongoQuery
-from text import DBTableNames, RasterMetadata, FieldNames, \
+from .db_mongodb import MongoQuery
+from .text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
-from utility import UTIL_ZERO
+from .utility import UTIL_ZERO
 
 
 class ImportWeightData(object):
@@ -96,7 +99,7 @@ class ImportWeightData(object):
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
         site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
-        site_list = site_lists.next()
+        site_list = next(site_lists)
         db_name = site_list[FieldNames.db]
         m_list = site_list.get(FieldNames.site_m)
         hydro_clim_db = conn[db_name]
@@ -184,7 +187,7 @@ class ImportWeightData(object):
             myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print ('Valid Cell Number is: %d' % vaild_count)
+        print('Valid Cell Number is: %d' % vaild_count)
         return True
 
     @staticmethod
@@ -228,7 +231,7 @@ class ImportWeightData(object):
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num}
         site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
-        site_list = site_lists.next()
+        site_list = next(site_lists)
         clim_db_name = site_list[FieldNames.db]
         p_list = site_list.get(FieldNames.site_p)
         m_list = site_list.get(FieldNames.site_m)
@@ -251,7 +254,7 @@ class ImportWeightData(object):
 
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
-            print fname
+            # print(fname)
             if spatial_gfs.exists(filename=fname):
                 x = spatial_gfs.get_version(filename=fname)
                 spatial_gfs.delete(x._id)
@@ -319,8 +322,8 @@ class ImportWeightData(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

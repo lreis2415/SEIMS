@@ -5,13 +5,16 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-07-04  lj - reorganize according to pylint and google style
                 17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
+                18-02-08  lj - remove cluster related and compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from osgeo.ogr import Open as ogr_Open
-from pygeoc.utils import StringClass
+from pygeoc.utils import StringClass, text_type
 from pymongo import ASCENDING
 
-from text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from utility import read_data_items_from_txt, DEFAULT_NODATA
+from .text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from .utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -75,7 +78,7 @@ class ImportHydroClimateSites(object):
                          StationFields.type: dic[StationFields.type]}
             hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
 
-            if dic[StationFields.id] not in sites_loc.keys():
+            if dic[StationFields.id] not in list(sites_loc.keys()):
                 sites_loc[dic[StationFields.id]] = SiteInfo(dic[StationFields.id],
                                                             dic[StationFields.name],
                                                             dic[StationFields.lat],
@@ -125,8 +128,8 @@ class ImportHydroClimateSites(object):
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
-            if isinstance(id_field, unicode):
-                id_field = id_field.encode()
+            if isinstance(id_field, text_type):
+                id_field = str(id_field)
             id_index = feat.GetFieldIndex(id_field)
             id_list.append(feat.GetField(id_index))
         return shapely_objects, id_list
@@ -208,8 +211,8 @@ class ImportHydroClimateSites(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from .config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
