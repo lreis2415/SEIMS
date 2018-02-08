@@ -122,7 +122,7 @@ class SlopePositionUnits(object):
 
     def extract_subbasin_updown(self):
         """Extract the up-down relationship of subbasins."""
-        self.subbsin_tree = ImportReaches2Mongo.down_stream(self.reach)[0]
+        self.subbsin_tree = ImportReaches2Mongo.read_reach_downstream_info(self.reach)
         self.subbsin_num = len(self.subbsin_tree)
 
     def assign_uniqueid_slppos_units(self):

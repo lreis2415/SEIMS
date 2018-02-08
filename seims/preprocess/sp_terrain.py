@@ -10,7 +10,6 @@
               1.2. Add another depressional storage method according to SWAT, depstor.f
 """
 import sys
-import os
 from math import exp, sqrt
 
 import numpy
