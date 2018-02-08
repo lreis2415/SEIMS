@@ -6,9 +6,10 @@
 #include "invoke.h"
 
 #include "parallel.h"
+#include "ReadData.h"
+
 //#include <mpi.h>
 
-//#include "ReadData.h"
 //#include <cstdio>
 //#include <cstdlib>
 //#include <iostream>
@@ -77,6 +78,7 @@ int main(int argc, const char **argv) {
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
     /// Register GDAL
     GDALAllRegister();
+    OGRRegisterAll();
     /// Initialize of MPI environment
     int numprocs, rank, nameLen;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
@@ -101,7 +103,7 @@ int main(int argc, const char **argv) {
             MPI_Abort(MCW, 1);
         }
         int nSlaves = numprocs - 1;
-        // cout << "nSlaves:" << nSlaves << endl;
+        cout << "nSlaves:" << nSlaves << ", current No.: " << rank << endl;
         try {
             if (rank == MASTER_RANK) {
                 /// connect to mongodb, abort if failed.
@@ -153,7 +155,7 @@ int main(int argc, const char **argv) {
             }
         }
         catch (ModelException &e) {
-            cout << e.toString() << endl;
+            cout << e.what() << endl;
             MPI_Abort(MCW, 3);
         }
         catch (exception &e) {

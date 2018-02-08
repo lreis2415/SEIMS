@@ -1,16 +1,15 @@
 #ifndef SEIMS_MPI_H
 #define SEIMS_MPI_H
 
+#include "mpi.h"
+
+#include "ReadData.h"
 #include "seims.h"
+#include "utilities.h"
+
 #include <map>
 #include <set>
 #include <vector>
-
-#include "ReadData.h"
-#include "mpi.h"
-#include "utilities.h"
-
-#include "mongoc.h"
 
 
 #define WORK_TAG 0

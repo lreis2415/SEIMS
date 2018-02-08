@@ -1,10 +1,13 @@
-#pragma once
+#ifndef SEIMS_MPI_READDATA_H
+#define SEIMS_MPI_READDATA_H
+
+#include "mongoc.h"
+#include "gdal.h"
+#include "ogrsf_frmts.h"
 
 #include <string>
 #include <vector>
 #include <map>
-#include "mongoc.h"
-// #include "mongo.h"
 
 using namespace std;
 
@@ -21,7 +24,8 @@ struct SubbasinStruct {
     int group;
     vector<SubbasinStruct *> upStreams;
 
-    SubbasinStruct(int id, int group) : qOutlet(0.f), calculated(false), rank(-1), downStream(NULL), disToOutlet(-1) {
+    SubbasinStruct(int id, int group) : qOutlet(0.f), calculated(false), rank(-1),
+                                        downStream(nullptr), disToOutlet(-1) {
         this->id = id;
         this->group = group;
     }
@@ -53,3 +57,5 @@ int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<
 //
 //int ReadTopologyFromMongoDB(mongo *conn, const char *dbName, map<int, Subbasin *> &subbasins, set<int> &groupSet,
 //                            int decompostionPlan, const char *groupField);
+
+#endif /* SEIMS_MPI_READDATA_H */
