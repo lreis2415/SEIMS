@@ -140,7 +140,7 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         up_sid = -1
         up_gid = -1
         up_gvalue = -1
-        for spid, spdict in unitsinfo.iteritems():
+        for spid, spdict in unitsinfo.items():
             if unitid not in spdict:
                 continue
             for t, n in tagnames:

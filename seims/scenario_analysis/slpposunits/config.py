@@ -74,7 +74,7 @@ class SASPUConfig(SAConfig):
         #     slppos unit: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         idx = 0
         spname = self.slppos_tagnames[0][1]
-        for uid, udict in self.units_infos[spname].iteritems():
+        for uid, udict in self.units_infos[spname].items():
             spidx = 0
             self.gene_to_slppos[idx] = uid
             self.slppos_to_gene[uid] = idx
@@ -144,7 +144,7 @@ class SASPUConfig(SAConfig):
 
     def get_suitable_bmps_for_slppos(self):
         """Construct the suitable BMPs for each slope position."""
-        for bid, bdict in self.bmps_params.iteritems():
+        for bid, bdict in self.bmps_params.items():
             suitsp = bdict['SLPPOS']
             for sp in suitsp:
                 if sp not in self.slppos_suit_bmps:

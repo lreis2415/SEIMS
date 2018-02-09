@@ -133,7 +133,7 @@ class Scenario(object):
         except NetworkTimeout or Exception:
             # In case of unexpected raise
             pass
-        for objid, bmp_item in self.bmp_items.iteritems():
+        for objid, bmp_item in self.bmp_items.items():
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
         client.close()
