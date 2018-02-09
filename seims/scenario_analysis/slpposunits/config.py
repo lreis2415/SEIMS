@@ -132,7 +132,7 @@ class SASPUConfig(SAConfig):
                     if isinstance(v, int):
                         v = [v]
                     elif v == 'ALL' or v == '':
-                        v = self.slppos_tags.keys()
+                        v = list(self.slppos_tags.keys())
                     else:
                         v = StringClass.extract_numeric_values_from_string(v)
                         v = [int(abs(nv)) for nv in v]

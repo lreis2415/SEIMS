@@ -96,7 +96,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname):
 
     all_sceids = list()
     acc_num = list()
-    genids = sorted(pareto_popnum.keys())
+    genids = sorted(list(pareto_popnum.keys()))
     for idx, genid in enumerate(genids):
         for _id in pareto_popnum[genid]:
             if _id not in all_sceids:
@@ -145,7 +145,7 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
 
     all_sceids = list()
     acc_num = list()
-    genids = sorted(pareto_popnum.keys())
+    genids = sorted(list(pareto_popnum.keys()))
     for idx, genid in enumerate(genids):
         for _id in pareto_popnum[genid]:
             if _id not in all_sceids:
@@ -174,7 +174,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     # print(pareto_data)
     ylabel_str = yname[1]
     xlabel_str = xname[1]
-    file_name = '-'.join(pareto_data.keys())
+    file_name = '-'.join(list(pareto_data.keys()))
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'

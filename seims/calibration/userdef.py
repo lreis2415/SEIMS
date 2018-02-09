@@ -123,11 +123,11 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         if plot_validation:
             obs_data += vali_sim_obs_data[0][var]['Obs']
 
-        sim_dates = sim_data[0].keys()
+        sim_dates = list(sim_data[0].keys())
         if isinstance(sim_dates[0], str) or isinstance(sim_dates[0], text_type):
             sim_dates = [StringClass.get_datetime(s) for s in sim_dates]
         if plot_validation:
-            vali_sim_dates = vali_sim_data[0].keys()
+            vali_sim_dates = list(vali_sim_data[0].keys())
             if isinstance(vali_sim_dates[0], str) or isinstance(vali_sim_dates[0], text_type):
                 vali_sim_dates = [StringClass.get_datetime(s) for s in vali_sim_dates]
             sim_dates += vali_sim_dates
@@ -135,20 +135,20 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         caliBestIdx = -1
         caliBestNSE = -9999.
         for idx2, ind in enumerate(sim_data):
-            tmp = numpy.array(ind.values())
+            tmp = numpy.array(list(ind.values()))
             tmp = tmp[:, idx]
             if sim_obs_data[idx2][var]['NSE'] > caliBestNSE:
                 caliBestNSE = sim_obs_data[idx2][var]['NSE']
                 caliBestIdx = idx2
             tmpsim = tmp.tolist()
             if plot_validation:
-                tmpsim += numpy.array(vali_sim_data[idx2].values())[:, idx].tolist()
+                tmpsim += numpy.array(list(vali_sim_data[idx2].values()))[:, idx].tolist()
             sim_data_list.append(tmpsim)
 
-        sim_best = numpy.array(sim_data[caliBestIdx].values())[:, idx]
+        sim_best = numpy.array(list(sim_data[caliBestIdx].values()))[:, idx]
         sim_best = sim_best.tolist()
         if plot_validation:
-            sim_best += numpy.array(vali_sim_data[caliBestIdx].values())[:, idx].tolist()
+            sim_best += numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()
         sim_data_list = numpy.array(sim_data_list)
         ylows = numpy.percentile(sim_data_list, 2.5, 0, interpolation='nearest')
         yups = numpy.percentile(sim_data_list, 97.5, 0, interpolation='nearest')
@@ -175,7 +175,7 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         # concatenate text
         p_value, r_value = calculate_95ppu_efficiency(sim_obs_data[0][var]['Obs'],
                                                       cali_obs_dates,
-                                                      sim_data[0].keys())
+                                                      list(sim_data[0].keys()))
         txt = 'P-factor: %.2f, R-factor: %.2f\n' % (p_value, r_value)
         txt += 'One of the best simulations:\n' \
                '    $\mathit{NSE}$: %.2f\n' \
@@ -190,7 +190,7 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         if plot_validation:
             p_value, r_value = calculate_95ppu_efficiency(vali_sim_obs_data[0][var]['Obs'],
                                                           vali_obs_dates,
-                                                          vali_sim_data[0].keys())
+                                                          list(vali_sim_data[0].keys()))
             vali_txt = 'P-factor: %.2f, R-factor: %.2f\n\n' % (p_value, r_value)
             vali_txt += '    $\mathit{NSE}$: %.2f\n' \
                         '    $\mathit{RSR}$: %.2f\n' \

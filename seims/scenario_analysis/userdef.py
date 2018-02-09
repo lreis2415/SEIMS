@@ -27,7 +27,7 @@ def initRepeatWithCfg(container, func, cf, n=2):
     Returns:
         An instance of the container filled with data from func.
     """
-    return container(func(cf) for _ in xrange(n))
+    return container(func(cf) for _ in range(n))
 
 
 def initIterateWithCfg(container, generator, cf=None):

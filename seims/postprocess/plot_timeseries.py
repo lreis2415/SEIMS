@@ -135,7 +135,7 @@ class TimeSeriesPlots(object):
         plt.rcParams['mathtext.fontset'] = 'custom'
         plt.rcParams['mathtext.it'] = 'STIXGeneral:italic'
         plt.rcParams['mathtext.bf'] = 'STIXGeneral:italic:bold'
-        sim_date = self.sim_data_dict.keys()
+        sim_date = list(self.sim_data_dict.keys())
         for i, param in enumerate(self.plot_vars):
             # plt.figure(i)
             fig, ax = plt.subplots(figsize=(12, 4))
