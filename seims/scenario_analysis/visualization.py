@@ -168,7 +168,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     """
     pareto_data = OrderedDict()
     acc_pop_size = OrderedDict()
-    for k, v in method_paths.iteritems():
+    for k, v in method_paths.items():
         v = v + os.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname, yname)
     # print(pareto_data)
@@ -185,7 +185,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     # plot accumulate pop size
     fig, ax = plt.subplots(figsize=(9, 8))
     mark_idx = 0
-    for method, gen_popsize in acc_pop_size.iteritems():
+    for method, gen_popsize in acc_pop_size.items():
         xdata = gen_popsize[0]
         ydata = gen_popsize[1]
         print(ydata)
@@ -215,11 +215,11 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
 
     # plot Pareto points of all generations
     mark_idx = 0
-    for method, gen_popsize in pareto_data.iteritems():
+    for method, gen_popsize in pareto_data.items():
         fig, ax = plt.subplots(figsize=(9, 8))
         xdata = list()
         ydata = list()
-        for gen, gendata in gen_popsize.iteritems():
+        for gen, gendata in gen_popsize.items():
             xdata += gen_popsize[gen][xname[0]]
             ydata += gen_popsize[gen][yname[0]]
         plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
@@ -261,7 +261,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         fig, ax = plt.subplots(figsize=(9, 8))
         mark_idx = 0
         gen_existed = True
-        for method, gen_popsize in pareto_data.iteritems():
+        for method, gen_popsize in pareto_data.items():
             if gen not in gen_popsize:
                 gen_existed = False
                 break
@@ -337,7 +337,7 @@ def plot_hypervolume_by_method(method_paths, ws):
     # plot accumulate pop size
     fig, ax = plt.subplots(figsize=(10, 8))
     mark_idx = 0
-    for method, gen_hyperv in hyperv.iteritems():
+    for method, gen_hyperv in hyperv.items():
         xdata = gen_hyperv[0]
         ydata = gen_hyperv[1]
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',

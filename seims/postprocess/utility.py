@@ -105,17 +105,17 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
         sim_to_obs[i] = oi
         sim_obs_dict[param_name] = {DataValueFields.utc: list(),
                                     'Obs': list(), 'Sim': list()}
-    for sim_date, sim_values in sim_dict.iteritems():
+    for sim_date, sim_values in sim_dict.items():
         if sim_date not in obs_dict or not start_time <= sim_date <= end_time:
             continue
-        for sim_i, obs_i in sim_to_obs.iteritems():
+        for sim_i, obs_i in sim_to_obs.items():
             param_name = sim_vars[sim_i]
             obs_values = obs_dict.get(sim_date)
             sim_obs_dict[param_name][DataValueFields.utc].append(sim_date)
             sim_obs_dict[param_name]['Obs'].append(obs_values[obs_i])
             sim_obs_dict[param_name]['Sim'].append(sim_values[sim_i])
 
-    # for param, values in self.sim_obs_dict.iteritems():
+    # for param, values in self.sim_obs_dict.items():
     #     print('Observation-Simulation of %s' % param)
     #     for d, o, s in zip(values[DataValueFields.utc], values['Obs'], values['Sim']):
     #         print(str(d), o, s)
@@ -150,7 +150,7 @@ def calculate_statistics(sim_obs_dict):
     """
     if not sim_obs_dict:  # if None or dict()
         return False
-    for param, values in sim_obs_dict.iteritems():
+    for param, values in sim_obs_dict.items():
         obsl = values['Obs'][:]
         siml = values['Sim'][:]
 
