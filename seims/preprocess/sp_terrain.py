@@ -105,10 +105,10 @@ class TerrainUtilClass(object):
             imper_perc: impervious percent in urban cell, 0.3 as default
         """
         # read landuselookup table from MongoDB
-        st_fields = ["DSC_ST%d" % (i,) for i in range(1, 13)]
+        st_fields = ['DSC_ST%d' % (i,) for i in range(1, 13)]
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
-            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+            raise RuntimeError('LanduseLoop Collection is not existed or empty!')
         dep_sd0 = dict()
         for row in query_result:
             tmpid = row.get('LANDUSE_ID')

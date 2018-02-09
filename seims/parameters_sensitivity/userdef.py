@@ -64,7 +64,7 @@ def evaluate_model_response(modelcfg_dict, cali_idx, period):
                                                        obs_vars, model_obj.outlet_id,
                                                        stime, etime)
     # calculate simulated mean Q and SED
-    sim_data = numpy.array(sim_data_dict.values())
+    sim_data = numpy.array(list(sim_data_dict.values()))
     output_variables.append(numpy.average(sim_data[:, 0]))  # meanQ
     output_variables.append(numpy.average(sim_data[:, 1]))  # meanSED
     # 3. Match with observation data

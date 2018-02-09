@@ -72,7 +72,7 @@ def main(cfg):
     worst_econ = cfg.worst_econ
     worst_env = cfg.worst_env
     # available gene value list
-    possible_gene_values = cfg.bmps_params.keys()
+    possible_gene_values = list(cfg.bmps_params.keys())
     possible_gene_values.append(0)
     units_info = cfg.units_infos
     slppos_tagnames = cfg.slppos_tagnames

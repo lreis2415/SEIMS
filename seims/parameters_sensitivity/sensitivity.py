@@ -232,7 +232,7 @@ class Sensitivity(object):
         # split tasks if needed
         task_num = self.run_count / 1000
         if task_num == 0:
-            split_seqs = [range(self.run_count)]
+            split_seqs = list(range(self.run_count))
         else:
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
             split_seqs = [a.tolist() for a in split_seqs]

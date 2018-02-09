@@ -5,7 +5,7 @@
     @changelog: 18-1-22  lj - initial implementation.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 import array
 import os
@@ -145,7 +145,7 @@ def main(cfg):
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
             if len(invalid_pops) < 2:
-                print('The initial population shoule be greater or equal than 2.' \
+                print('The initial population shoule be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
                 exit(0)
         return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
@@ -174,7 +174,7 @@ def main(cfg):
         # tools.emo.assignCrowdingDist(offspring)
         # method2: use the index of individual at the sorted offspring list as eta
         if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
-            for i, ind1, ind2 in zip(range(len(offspring) / 2), offspring[::2], offspring[1::2]):
+            for i, ind1, ind2 in zip(range(len(offspring) // 2), offspring[::2], offspring[1::2]):
                 if random.random() > cfg.opt.rcross:
                     continue
                 eta = i
