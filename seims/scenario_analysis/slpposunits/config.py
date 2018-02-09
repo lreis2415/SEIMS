@@ -55,7 +55,7 @@ class SASPUConfig(SAConfig):
         sptags = cf.get('BMPs', 'slppos_tag_name')
         self.slppos_tags = json.loads(sptags)
         self.slppos_tags = UtilClass.decode_strs_in_dict(self.slppos_tags)
-        self.slppos_tagnames = sorted(self.slppos_tags.items(), key=operator.itemgetter(0))
+        self.slppos_tagnames = sorted(list(self.slppos_tags.items()), key=operator.itemgetter(0))
         self.slppos_unit_num = self.units_infos['overview']['all_units']
         self.slppos_to_gene = OrderedDict()
         self.gene_to_slppos = dict()
