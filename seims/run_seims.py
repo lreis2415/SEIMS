@@ -86,7 +86,7 @@ class MainSEIMS(object):
             UtilClass.run_command(self.Command)
             self.run_success = True
         except CalledProcessError or Exception:
-            print ('Run SEIMS model failed!')
+            print('Run SEIMS model failed!')
             self.run_success = False
         return self.run_success
 
@@ -102,8 +102,8 @@ if __name__ == '__main__':
                          ip='127.0.0.1', port=27017,
                          sceid=0, caliid=-1)
     s = pickle.dumps(seimsobj)
-    # print (s)
+    # print(s)
     new_s = pickle.loads(s)
-    print (new_s.output_dir)
-    print (new_s.OutletID)
-    print (str(new_s.start_time), str(new_s.end_time))
+    print(new_s.output_dir)
+    print(new_s.OutletID)
+    print(str(new_s.start_time), str(new_s.end_time))

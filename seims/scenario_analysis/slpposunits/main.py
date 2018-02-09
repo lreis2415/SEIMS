@@ -4,7 +4,10 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import array
 import os
 import random
@@ -21,9 +24,9 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from pygeoc.utils import UtilClass, get_config_parser
 
-from config import SASPUConfig
-from scenario import initialize_scenario, scenario_effectiveness
-from userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
+from slpposunits.config import SASPUConfig
+from slpposunits.scenario import initialize_scenario, scenario_effectiveness
+from slpposunits.userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.utility import print_message, delete_model_outputs
 from scenario_analysis.visualization import plot_pareto_front
@@ -100,11 +103,11 @@ def main(cfg):
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
         fitnesses = futures.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
-        # print ('parallel-fitnesses: ', fitnesses)
+        # print('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
         fitnesses = toolbox.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
-        # print ('serial-fitnesses: ', fitnesses)
+        # print('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit[:2]

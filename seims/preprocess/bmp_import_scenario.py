@@ -13,8 +13,8 @@ import os
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
-from .utility import read_data_items_from_txt
-from .text import DBTableNames
+from preprocess.utility import read_data_items_from_txt
+from preprocess.text import DBTableNames
 
 
 class ImportScenario2Mongo(object):
@@ -38,10 +38,10 @@ class ImportScenario2Mongo(object):
         """
         if not cfg.use_scernario:
             return False
-        print ('Import BMP Scenario Data... ')
+        print('Import BMP Scenario Data... ')
         bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt'])
-        bmp_tabs = []
-        bmp_tabs_path = []
+        bmp_tabs = list()
+        bmp_tabs_path = list()
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
             bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
@@ -63,7 +63,7 @@ class ImportScenario2Mongo(object):
             field_array = data_array[0]
             data_array = data_array[1:]
             for item in data_array:
-                dic = {}
+                dic = dict()
                 for i, field_name in enumerate(field_array):
                     if MathClass.isnumerical(item[i]):
                         v = float(item[i])
@@ -88,7 +88,7 @@ class ImportScenario2Mongo(object):
                 else:
                     scenario_db[bmp_tab_name.upper()].find_one_and_replace(dic, dic,
                                                                            upsert=True)
-        # print 'BMP tables are imported.'
+        # print('BMP tables are imported.')
         # Write BMP database name into Model workflow database
         c_list = main_db.collection_names()
         if not StringClass.string_in_list(DBTableNames.main_scenario, c_list):
@@ -103,8 +103,8 @@ class ImportScenario2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

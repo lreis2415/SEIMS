@@ -3,7 +3,10 @@
 """Calibration by NSGA-II algorithm.
     @author   : Liangjun Zhu
     @changelog: 18-1-22  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import array
 import os
 import random
@@ -20,13 +23,14 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from pygeoc.utils import UtilClass
 
-from config import CaliConfig, get_cali_config
-from calibrate import Calibration, initialize_calibrations, calibration_objectives
-from calibrate import observationData, simulationData
 from scenario_analysis.utility import print_message
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from userdef import write_param_values_to_mongodb, output_population_details
+from calibration.config import CaliConfig, get_cali_config
 from run_seims import MainSEIMS
+
+from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
+from calibration.calibrate import observationData, simulationData
+from calibration.userdef import write_param_values_to_mongodb, output_population_details
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -46,7 +50,7 @@ elif step == 'SED':
     multi_weight = (3., -2., -2., 2., 1.)  # NSE of sediment taken a bigger weight
     worse_objects = [0.0001, 3., 3., 0.0001, 0.0001]
 else:
-    print ('The step of calibration should be one of [Q, SED]!')
+    print('The step of calibration should be one of [Q, SED]!')
     exit(0)
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
@@ -141,8 +145,8 @@ def main(cfg):
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
             if len(invalid_pops) < 2:
-                print 'The initial population shoule be greater or equal than 2.' \
-                      'Please check the parameters ranges or change the sampling strategy!'
+                print('The initial population shoule be greater or equal than 2.' \
+                      'Please check the parameters ranges or change the sampling strategy!')
                 exit(0)
         return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
 
@@ -255,7 +259,7 @@ def main(cfg):
 if __name__ == "__main__":
     cf, method = get_cali_config()
     cfg = CaliConfig(cf, method=method)
-    # print (cfg)
+    # print(cfg)
 
     print_message('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()

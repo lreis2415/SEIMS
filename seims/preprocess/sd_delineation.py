@@ -22,9 +22,9 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
-from .sd_hillslope import DelineateHillslope
-from .text import FieldNames
-from .utility import DEFAULT_NODATA
+from preprocess.sd_hillslope import DelineateHillslope
+from preprocess.text import FieldNames
+from preprocess.utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -41,14 +41,14 @@ class SpatialDelineation(object):
         src_srs = RasterUtilClass.read_raster(cfg.dem).srs
         proj_srs = src_srs.ExportToProj4()
         if not proj_srs:
-            raise ValueError("The source raster %s has not "
-                             "coordinate, which is required!" % cfg.dem)
-        # print proj_srs
-        wgs84_srs = "EPSG:4326"
-        geo_json_dict = {"reach": [cfg.vecs.reach, cfg.vecs.json_reach],
-                         "subbasin": [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
-                         "basin": [cfg.vecs.bsn, cfg.vecs.json_bsn],
-                         "outlet": [cfg.vecs.outlet, cfg.vecs.json_outlet]}
+            raise ValueError('The source raster %s has not '
+                             'coordinate, which is required!' % cfg.dem)
+        # print(proj_srs)
+        wgs84_srs = 'EPSG:4326'
+        geo_json_dict = {'reach': [cfg.vecs.reach, cfg.vecs.json_reach],
+                         'subbasin': [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
+                         'basin': [cfg.vecs.bsn, cfg.vecs.json_bsn],
+                         'outlet': [cfg.vecs.outlet, cfg.vecs.json_outlet]}
         for jsonName, shp_json_list in list(geo_json_dict.items()):
             # delete if geojson file already existed
             if FileClass.is_file_exists(shp_json_list[1]):
@@ -77,10 +77,10 @@ class SpatialDelineation(object):
         n = len(originalfiles)
         # write mask config file
         with open(configfile, 'w') as f:
-            f.write(maskfile + "\n")
-            f.write("%d\n" % (n,))
+            f.write(maskfile + '\n')
+            f.write('%d\n' % (n,))
             for i in range(n):
-                s = "%s\t%d\t%s\n" % (originalfiles[i], default_values[i], outputfiles[i])
+                s = '%s\t%d\t%s\n' % (originalfiles[i], default_values[i], outputfiles[i])
                 f.write(s)
         # run command
         UtilClass.run_command('"%s/mask_raster" %s' % (bin_dir, configfile))
@@ -136,7 +136,7 @@ class SpatialDelineation(object):
 
         config_file = cfg.logs.mask_cfg
         # run mask operation
-        print ("Mask original delineated data by Subbasin raster...")
+        print('Mask original delineated data by Subbasin raster...')
         SpatialDelineation.mask_raster_cpp(cfg.seims_bin, mask_file, original_files,
                                            output_files, default_values, config_file)
 
@@ -191,15 +191,15 @@ class SpatialDelineation(object):
         ds = RasterUtilClass.read_raster(dem_file)
         src_srs = ds.srs
         if not src_srs.ExportToProj4():
-            raise ValueError("The source raster %s has not coordinate, "
-                             "which is required!" % dem_file)
+            raise ValueError('The source raster %s has not coordinate, '
+                             'which is required!' % dem_file)
         dst_srs = osr_SpatialReference()
         dst_srs.ImportFromEPSG(4326)  # WGS84
         # dst_wkt = dst_srs.ExportToWkt()
         transform = osr_CoordinateTransformation(src_srs, dst_srs)
 
-        point_ll = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMin, ds.yMin))
-        point_ur = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMax, ds.yMax))
+        point_ll = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMin, ds.yMin))
+        point_ur = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMax, ds.yMax))
 
         point_ll.Transform(transform)
         point_ur.Transform(transform)
@@ -263,7 +263,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

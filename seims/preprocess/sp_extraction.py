@@ -8,9 +8,9 @@
 """
 from __future__ import absolute_import
 
-from .sp_landuse import LanduseUtilClass
-from .sp_soil import SoilUtilClass
-from .sp_terrain import TerrainUtilClass
+from preprocess.sp_landuse import LanduseUtilClass
+from preprocess.sp_soil import SoilUtilClass
+from preprocess.sp_terrain import TerrainUtilClass
 
 
 def extract_spatial_parameters(cfg, maindb):
@@ -25,7 +25,7 @@ def extract_spatial_parameters(cfg, maindb):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

@@ -4,7 +4,9 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-11-08  hr - initial implementation.\n
                 17-08-18  lj - move the original code to slpposunits.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
 
 
 # Initial tool functions supplemented to DEAP.tools

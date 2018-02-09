@@ -20,8 +20,8 @@
  ******************************************************************************/
 """
 
-__author__ = "Huiran Gao, Liangjun Zhu"
+__author__ = "Liangjun Zhu, Huiran Gao"
 __description__ = "Scenario Analysis by NSGA-II algorithm"
 __version__ = "1.1"
-__revision__ = "1.1.0"
+__revision__ = "1.1.1"
 __all__ = ["slpposunits"]

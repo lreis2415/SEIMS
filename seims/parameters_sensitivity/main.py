@@ -4,11 +4,14 @@
     @author   : Liangjun Zhu
     @changelog: 17-12-23  lj - initial implementation.\n
                 18-1-11   lj - code refactor to support multiple psa methods.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 
-from sensitivity import Sensitivity
-from config import get_psa_config, PSAConfig
+from parameters_sensitivity.sensitivity import Sensitivity
+from parameters_sensitivity.config import get_psa_config, PSAConfig
 
 
 def main():

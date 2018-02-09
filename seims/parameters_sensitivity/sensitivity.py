@@ -5,7 +5,10 @@
     @changelog: 17-12-22  lj - initial implementation.\n
                 18-1-11   lj - integration of screening method and variant-based method.\n
                 18-1-16   lj - split tasks when the run_count is very very large.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 import json
@@ -31,11 +34,12 @@ from SALib.analyze.fast import analyze as fast_alz
 
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
-from config import PSAConfig
 from preprocess.utility import read_data_items_from_txt
-from userdef import evaluate_model_response, get_evaluate_output_name_unit
-from figure import sample_histograms, empirical_cdf
 from postprocess.utility import save_png_eps
+
+from parameters_sensitivity.config import PSAConfig
+from parameters_sensitivity.userdef import evaluate_model_response, get_evaluate_output_name_unit
+from parameters_sensitivity.figure import sample_histograms, empirical_cdf
 
 
 class SpecialJsonEncoder(json.JSONEncoder):
@@ -136,7 +140,7 @@ class Sensitivity(object):
             # find parameter name, print warning message if not existed
             cursor = collection.find({'NAME': item[0]}, no_cursor_timeout=True)
             if not cursor.count():
-                print ('WARNING: parameter %s is not existed!' % item[0])
+                print('WARNING: parameter %s is not existed!' % item[0])
                 continue
             num_vars += 1
             names.append(item[0])
@@ -300,7 +304,7 @@ class Sensitivity(object):
             else:
                 raise ValueError('%s method is not supported now!' % self.cfg.method)
             self.psa_si[i] = tmp_Si
-        # print (self.psa_si)
+        # print(self.psa_si)
         # Save as json, which can be loaded by json.load()
         json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.psa_si_json, 'w') as f:
@@ -405,7 +409,7 @@ if __name__ == '__main__':
     cf, method = get_psa_config()
     cfg = PSAConfig(cf, method=method)
 
-    print (cfg.param_range_def)
+    print(cfg.param_range_def)
 
     saobj = Sensitivity(cfg)
     saobj.write_param_values_to_mongodb()
