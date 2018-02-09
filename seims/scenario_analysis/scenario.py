@@ -153,13 +153,13 @@ class Scenario(object):
             outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
             outfile.write('Scenario items:\n')
             if len(self.bmp_items) > 0:
-                for obj, item in self.bmp_items.iteritems():
-                    header = item.keys()
+                for obj, item in self.bmp_items.items():
+                    header = list(item.keys())
                     break
                 outfile.write('\t'.join(header))
                 outfile.write('\n')
-                for obj, item in self.bmp_items.iteritems():
-                    outfile.write('\t'.join(str(v) for v in item.values()))
+                for obj, item in self.bmp_items.items():
+                    outfile.write('\t'.join(str(v) for v in list(item.values())))
                     outfile.write('\n')
             outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
                                                                                   self.environment))

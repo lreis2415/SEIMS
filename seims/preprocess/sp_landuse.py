@@ -204,8 +204,8 @@ class LanduseUtilClass(object):
                                    runoff_coeff_file, imper_perc=0.3):
         """Generate potential runoff coefficient."""
         # read landuselookup table from MongoDB
-        prc_fields = ["PRC_ST%d" % (i,) for i in range(1, 13)]
-        sc_fields = ["SC_ST%d" % (i,) for i in range(1, 13)]
+        prc_fields = ['PRC_ST%d' % (i,) for i in range(1, 13)]
+        sc_fields = ['SC_ST%d' % (i,) for i in range(1, 13)]
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
             raise RuntimeError("LanduseLoop Collection is not existed or empty!")

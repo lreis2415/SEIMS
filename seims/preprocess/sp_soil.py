@@ -676,8 +676,8 @@ class SoilUtilClass(object):
                     soil_prop_dict[fld].append(cur_sol_dict[fld])
                 else:
                     soil_prop_dict[fld] = [cur_sol_dict[fld]]
-        # print(soilPropDict.keys())
-        # print(soilPropDict.values())
+        # print(list(soilPropDict.keys()))
+        # print(list(soilPropDict.values()))
 
         replace_dicts = list()
         dst_soil_tifs = list()
@@ -698,7 +698,7 @@ class SoilUtilClass(object):
                     dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
-                        cur_dict = {}
+                        cur_dict = dict()
                         for j, tmpseq in enumerate(seqns):
                             if i < soil_prop_dict[SoilUtilClass._NLYRS][j]:
                                 cur_dict[float(tmpseq)] = soil_prop_dict[key][j][i]
