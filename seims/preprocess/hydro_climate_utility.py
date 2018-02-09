@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 from pygeoc.utils import StringClass, MathClass
 
-from .text import DBTableNames, StationFields, DataValueFields
+from preprocess.text import DBTableNames, StationFields, DataValueFields
 
 
 class HydroClimateUtilClass(object):
@@ -40,7 +40,6 @@ class HydroClimateUtilClass(object):
         x = 1. - math.pow(math.tan(lat), 2.) * math.pow(math.tan(dec), 2.)
         if x < 0:
             x = 0.00001
-        # print x
         return 0.5 * math.pi - math.atan(-math.tan(lat) * math.tan(dec) / math.sqrt(x))
 
     @staticmethod
@@ -147,7 +146,7 @@ class HydroClimateUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

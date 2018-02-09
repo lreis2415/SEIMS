@@ -18,10 +18,10 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING
 
-from .db_mongodb import MongoUtil
-from .text import ModelParamFields, ModelParamDataUtils, \
+from preprocess.db_mongodb import MongoUtil
+from preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
-from .utility import read_data_items_from_txt
+from preprocess.utility import read_data_items_from_txt
 
 
 class ImportParam2Mongo(object):
@@ -48,11 +48,11 @@ class ImportParam2Mongo(object):
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.paramcfgs.init_params_file)
         field_names = data_items[0][0:]
-        # print (field_names)
+        # print(field_names)
         for i, cur_data_item in enumerate(data_items):
             if i == 0:
                 continue
-            # print cur_data_item
+            # print(cur_data_item)
             # initial one default blank parameter dict.
             data_import = {ModelParamFields.name: '', ModelParamFields.desc: '',
                            ModelParamFields.unit: '', ModelParamFields.module: '',
@@ -93,7 +93,7 @@ class ImportParam2Mongo(object):
         bulk = coll.initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.filecali)
-        # print (field_names)
+        # print(field_names)
         # Clean up the existing calibration settings
         coll.update_many({ModelParamFields.change: ModelParamFields.change_vc},
                          {'$set': {ModelParamFields.impact: -9999.}})
@@ -137,7 +137,7 @@ class ImportParam2Mongo(object):
         max_subbasin_id = int(streamlink_d.get_max())
         min_subbasin_id = int(streamlink_d.get_min())
         subbasin_num = len(unique(streamlink_data)) - 1
-        # print max_subbasin_id, min_subbasin_id, subbasin_num
+        # print(max_subbasin_id, min_subbasin_id, subbasin_num)
         flowdir_d = RasterUtilClass.read_raster(flowdir_r)
         flowdir_data = flowdir_d.data
         i_row = -1
@@ -147,7 +147,7 @@ class ImportParam2Mongo(object):
                 if streamlink_data[row][col] != nodata:
                     i_row = row
                     i_col = col
-                    # print row, col
+                    # print(row, col)
                     break
             else:
                 continue
@@ -170,7 +170,7 @@ class ImportParam2Mongo(object):
                         or streamlink_data[newr][newc] == nodata:
                     flag = False
                 else:
-                    # print newr, newc, streamlink_data[newr][newc]
+                    # print(newr, newc, streamlink_data[newr][newc])
                     r = newr
                     c = newc
             return r, c
@@ -196,7 +196,7 @@ class ImportParam2Mongo(object):
                    ModelParamFields.min: DEFAULT_NODATA,
                    ModelParamFields.type: 'SUBBASIN'}
             curfilter = {ModelParamFields.name: dic[ModelParamFields.name]}
-            # print (dic, curfilter)
+            # print(dic, curfilter)
             maindb[DBTableNames.main_parameter].find_one_and_replace(curfilter, dic,
                                                                      upsert=True)
         maindb[DBTableNames.main_parameter].create_index(ModelParamFields.name)
@@ -236,7 +236,7 @@ class ImportParam2Mongo(object):
         bulk = maindb[DBTableNames.main_fileout].initialize_unordered_bulk_op()
         out_field_array = file_out_items[0]
         out_data_array = file_out_items[1:]
-        # print out_data_array
+        # print(out_data_array)
         for item in out_data_array:
             file_out_dict = dict()
             for i, v in enumerate(out_field_array):
@@ -274,11 +274,11 @@ class ImportParam2Mongo(object):
         bulk = maindb[DBTableNames.main_fileout].initialize_ordered_bulk_op()
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
-        # print (field_names)
+        # print(field_names)
         for i, cur_data_item in enumerate(data_items):
             data_import = dict()
             cur_filter = dict()
-            # print (cur_data_item)
+            # print(cur_data_item)
             if len(cur_data_item) == 7:
                 data_import[ModelCfgFields.output_id] = cur_data_item[0]
                 data_import[ModelCfgFields.type] = cur_data_item[1]
@@ -341,7 +341,7 @@ class ImportParam2Mongo(object):
             MongoUtil.run_bulk(bulk, 'No operations during import %s.' % tablename)
             # begin import gridfs file
             n_row = len(item_values)
-            # print (item_values)
+            # print(item_values)
             if n_row >= 1:
                 n_col = len(item_values[0])
                 for i in range(n_row):
@@ -378,7 +378,7 @@ class ImportParam2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

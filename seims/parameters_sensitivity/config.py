@@ -4,7 +4,10 @@
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
                 18-1-11   lj - integration of screening method and variant-based method.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -188,11 +191,11 @@ if __name__ == '__main__':
     cf, method = get_psa_config()
     cfg = PSAConfig(cf, method=method)
 
-    print (cfg.param_range_def)
+    print(cfg.param_range_def)
     if cfg.method == 'morris':
-        print ('Morris sceening method:')
-        print ('  N: %d, num_levels: %d, grid_jump: %d' % (cfg.morris.N, cfg.morris.num_levels,
+        print('Morris sceening method:')
+        print('  N: %d, num_levels: %d, grid_jump: %d' % (cfg.morris.N, cfg.morris.num_levels,
                                                            cfg.morris.grid_jump))
     elif cfg.method == 'fast':
-        print ('FAST variant-based method')
-        print ('  N: %d, M: %d' % (cfg.fast.N, cfg.fast.M))
+        print('FAST variant-based method')
+        print('  N: %d, M: %d' % (cfg.fast.N, cfg.fast.M))

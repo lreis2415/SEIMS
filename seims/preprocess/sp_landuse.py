@@ -17,8 +17,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
 
-from .text import ModelParamDataUtils
-from .utility import status_output, read_data_items_from_txt, \
+from preprocess.text import ModelParamDataUtils
+from preprocess.utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
 
 
@@ -41,7 +41,7 @@ class LanduseUtilClass(object):
             raise RuntimeError("LanduseLoop Collection is not existed or empty!")
         count = 0
         for row in query_result:
-            # print row
+            # print(row)
             value_map = dict()
             for i, p_name in enumerate(property_namelist):
                 if StringClass.string_match(p_name, "USLE_P"):
@@ -87,7 +87,7 @@ class LanduseUtilClass(object):
     def initialize_landcover_parameters(landcover_file, landcover_initial_fields_file, dst_dir):
         """generate initial landcover_init_param parameters"""
         lc_data_items = read_data_items_from_txt(landcover_initial_fields_file)
-        # print lc_data_items
+        # print(lc_data_items)
         field_names = lc_data_items[0]
         lu_id = -1
         for i, v in enumerate(field_names):
@@ -103,12 +103,12 @@ class LanduseUtilClass(object):
                         replace_dicts[field_names[i].upper()] = {float(item[lu_id]): float(v)}
                     else:
                         replace_dicts[field_names[i].upper()][float(item[lu_id])] = float(v)
-        # print replace_dicts
+        # print(replace_dicts)
 
         # Generate GTIFF
         for item, v in list(replace_dicts.items()):
             filename = dst_dir + os.sep + item + '.tif'
-            print (filename)
+            print(filename)
             RasterUtilClass.raster_reclassify(landcover_file, v, filename)
         return list(replace_dicts['LANDCOVER'].values())
 
@@ -154,13 +154,13 @@ class LanduseUtilClass(object):
                     cur_dict[code] = dic.get(code)
             replace_dicts.append(cur_dict)
             dst_crop_tifs.append(dst_dir + os.sep + cur_attr + '.tif')
-        # print replace_dicts
+        # print(replace_dicts)
         # print(len(replace_dicts))
-        # print dst_crop_tifs
+        # print(dst_crop_tifs)
         # print(len(dst_crop_tifs))
         # Generate GTIFF
         for i, v in enumerate(dst_crop_tifs):
-            # print dst_crop_tifs[i]
+            # print(dst_crop_tifs[i])
             RasterUtilClass.raster_reclassify(landcover_file, replace_dicts[i], v)
 
     @staticmethod
@@ -175,7 +175,7 @@ class LanduseUtilClass(object):
             lu_id = row.get('LANDUSE_ID')
             cn2_list = [row.get('CN2A'), row.get('CN2B'), row.get('CN2C'), row.get('CN2D')]
             cn2_map[lu_id] = cn2_list
-        # print (cn2Map)
+        # print(cn2Map)
         lu_r = RasterUtilClass.read_raster(landuse_file)
         data_landuse = lu_r.data
         xsize = lu_r.nCols
@@ -303,7 +303,7 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

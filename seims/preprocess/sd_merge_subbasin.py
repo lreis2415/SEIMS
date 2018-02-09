@@ -16,12 +16,12 @@ class MergeSubbasins(object):
     @staticmethod
     def merge_to_downstream_qswat(cfg):
         """Algorithm modified from QSWAT->delineation.py"""
-        print ("TODO")
+        print("TODO")
 
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     MergeSubbasins.merge_to_downstream_qswat(seims_cfg)
 

@@ -23,8 +23,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
-from .db_import_stream_parameters import ImportReaches2Mongo
-from .utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -42,7 +42,7 @@ class TerrainUtilClass(object):
         """Calculate flow length of cell."""
         celllen = FlowModelConst.get_cell_length(flow_dir_code)
         differ = FlowModelConst.get_cell_shift(flow_dir_code)
-        # print i,j, weight[i][j]
+        # print(i,j, weight[i][j])
         if i < ysize and j < xsize:
             if length[i][j] == 0:
                 if weight[i][j] > 0:
@@ -57,7 +57,7 @@ class TerrainUtilClass(object):
                     relen = TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir, cellsize,
                                                               weight, length,
                                                               flow_dir_code)
-                    # print i,j,fdir_v
+                    # print(i, j, fdir_v)
                     length[prei][prej] = cellsize * celllen[fdir_v] * wt + relen
                     return length[prei][prej]
                 else:
@@ -204,9 +204,8 @@ class TerrainUtilClass(object):
             """Calculate velocity"""
             if abs(slp - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
-            # print rad,man,slp
+            # print(rad, man, slp)
             tmp = numpy.power(man, -1) * numpy.power(rad, 2. / 3.) * numpy.power(slp, 0.5)
-            # print tmp
             if tmp < vel_min:
                 return vel_min
             if tmp > vel_max:
@@ -479,7 +478,7 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

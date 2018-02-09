@@ -11,10 +11,10 @@ from __future__ import absolute_import
 import os
 import sys
 
-from pygeoc.utils import StringClass, UtilClass
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
+from pygeoc.utils import StringClass, UtilClass
 
 # Global variables
 UTIL_ZERO = 1.e-6
@@ -46,7 +46,7 @@ def read_data_items_from_txt(txt_file):
         2D data array
     """
     data_items = list()
-    with open(txt_file, 'r') as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         for line in f:
             str_line = line.strip()
             if str_line != '' and str_line.find('#') < 0:

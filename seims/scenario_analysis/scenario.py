@@ -4,7 +4,10 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-10-29  hr - initial implementation.\n
                 17-08-18  lj - redesign and rewrite.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import random
 from datetime import timedelta
@@ -13,10 +16,10 @@ from bson.objectid import ObjectId
 from pygeoc.utils import StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
-from config import SAConfig
+from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from run_seims import MainSEIMS
-from .utility import generate_uniqueid, print_message
+from scenario_analysis.utility import generate_uniqueid, print_message
 
 
 class Scenario(object):
@@ -234,6 +237,6 @@ if __name__ == '__main__':
     import pickle
 
     s = pickle.dumps(sceobj)
-    # print (s)
+    # print(s)
     new_cfg = pickle.loads(s)
-    print (new_cfg.bin_dir)
+    print(new_cfg.bin_dir)

@@ -3,7 +3,10 @@
 """Plot figures based on matplotlib for parameters sensitivity analysis.
     @author   : Liangjun Zhu
     @changelog: 18-1-15  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import math
 import os
 
@@ -63,9 +66,9 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):
         ax = fig.add_subplot(row, col, var_idx + 1)
-        print ('%s: %.3f - %.3f, mean: %.3f' % (names[var_idx], min(input_sample[:, var_idx]),
-                                                max(input_sample[:, var_idx]),
-                                                numpy.average(input_sample[:, var_idx])))
+        print('%s: %.3f - %.3f, mean: %.3f' % (names[var_idx], min(input_sample[:, var_idx]),
+                                               max(input_sample[:, var_idx]),
+                                               numpy.average(input_sample[:, var_idx])))
         ax.hist(input_sample[:, var_idx], bins=levels, normed=False, label=None, **param_dict)
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
         ax.get_xaxis().set_major_locator(LinearLocator(numticks=5))

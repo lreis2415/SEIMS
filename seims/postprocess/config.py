@@ -3,7 +3,10 @@
 """Configuration of Postprocess for SEIMS.
     @author   : Liangjun Zhu, Huiran Gao
     @changelog: 17-08-17  lj - reorganize as basic class
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 

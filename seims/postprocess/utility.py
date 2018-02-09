@@ -3,19 +3,20 @@
 """Utility functions and classes for postprocess.
     @author   : Liangjun Zhu
     @changelog: 18-01-04  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 from collections import OrderedDict
-
-from preprocess.text import DataValueFields
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import StringClass, FileClass, MathClass, UtilClass
 from preprocess.utility import read_data_items_from_txt
-
+from preprocess.text import DataValueFields
 
 def save_png_eps(plot, wp, name):
     """Save figures, both png and eps formats"""
@@ -38,7 +39,7 @@ def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
     for i, v in enumerate(plot_vars):
         txtfile = ws + os.sep + v + '.txt'
         if not FileClass.is_file_exists(txtfile):
-            print ('WARNING: Simulation variable file: %s is not existed!' % txtfile)
+            print('WARNING: Simulation variable file: %s is not existed!' % txtfile)
             continue
         data_items = read_data_items_from_txt(txtfile)
         found = False
@@ -65,8 +66,8 @@ def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
         if data_available:
             plot_vars_existed.append(v)
 
-    print ('Read simulation from %s to %s done.' % (stime.strftime('%c'),
-                                                    etime.strftime('%c')))
+    print('Read simulation from %s to %s done.' % (stime.strftime('%c'),
+                                                   etime.strftime('%c')))
     return plot_vars_existed, sim_data_dict
 
 
@@ -115,10 +116,10 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
             sim_obs_dict[param_name]['Sim'].append(sim_values[sim_i])
 
     # for param, values in self.sim_obs_dict.iteritems():
-    #     print ('Observation-Simulation of %s' % param)
+    #     print('Observation-Simulation of %s' % param)
     #     for d, o, s in zip(values[DataValueFields.utc], values['Obs'], values['Sim']):
-    #         print str(d), o, s
-    print ('Match observation and simulation done.')
+    #         print(str(d), o, s)
+    print('Match observation and simulation done.')
     return sim_obs_dict
 
 
@@ -171,8 +172,8 @@ def calculate_statistics(sim_obs_dict):
         values['NSE1'] = nse1_value
         values['NSE3'] = nse3_value
 
-        print ('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f,'
-               ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
-               (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
-                lnnse_value, nse1_value, nse3_value))
+        print('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f,'
+              ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
+              (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
+               lnnse_value, nse1_value, nse3_value))
     return True

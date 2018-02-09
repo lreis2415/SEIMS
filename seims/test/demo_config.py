@@ -3,6 +3,8 @@
 """
   Running SEIMS of demo watershed, currently, dianbu watershed was used.
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -43,9 +45,9 @@ class ModelPaths(object):
         self.lookup_dir = self.data_dir + os.sep + 'lookup'
         self.workspace = self.base_dir + os.sep + 'workspace'
         UtilClass.mkdir(self.workspace)
-        print ('SEIMS binary location: %s' % self.bin_dir)
-        print ('Demo data location: %s' % self.base_dir)
-        print ('Data preprocess location: %s' % self.workspace)
+        print('SEIMS binary location: %s' % self.bin_dir)
+        print('Demo data location: %s' % self.base_dir)
+        print('Data preprocess location: %s' % self.workspace)
 
 
 def write_preprocess_config_file(mpaths, org_file_name):
@@ -55,7 +57,6 @@ def write_preprocess_config_file(mpaths, org_file_name):
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():
             cfg_items.append(line.strip())
-    # print cfg_items
     cfg_items.append('[PATH]')
     cfg_items.append('PREPROC_SCRIPT_DIR = %s' % mpaths.prescript_dir)
     cfg_items.append('CPP_PROGRAM_DIR = %s' % mpaths.bin_dir)
@@ -87,7 +88,6 @@ def write_postprocess_config_file(mpaths, org_file_name, sceid=0):
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():
             cfg_items.append(line.strip())
-    # print cfg_items
     cfg_items.append('[PATH]')
     cfg_items.append('MODEL_DIR = %s' % mpaths.model_dir)
     cfg_items.append('ScenarioID = %d' % sceid)

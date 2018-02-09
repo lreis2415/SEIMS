@@ -4,7 +4,10 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-09-12  hr - initial implementation.\n
                 17-08-18  lj - reorganization.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 from collections import OrderedDict
 import matplotlib
@@ -104,7 +107,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname):
 
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
-    with open(txt_file) as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     pareto_popnum = OrderedDict()
     found = False
@@ -168,7 +171,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     for k, v in method_paths.iteritems():
         v = v + os.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname, yname)
-    # print (pareto_data)
+    # print(pareto_data)
     ylabel_str = yname[1]
     xlabel_str = xname[1]
     file_name = '-'.join(pareto_data.keys())
@@ -185,8 +188,8 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     for method, gen_popsize in acc_pop_size.iteritems():
         xdata = gen_popsize[0]
         ydata = gen_popsize[1]
-        print (ydata)
-        print ('Evaluated pop size: %s - %d' % (method, ydata[-1]))
+        print(ydata)
+        print('Evaluated pop size: %s - %d' % (method, ydata[-1]))
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
         mark_idx += 1
@@ -204,7 +207,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     fpath = ws + os.sep + file_name + '_popsize'
     plt.savefig(fpath + '.png', dpi=300)
     plt.savefig(fpath + '.eps', dpi=300)
-    print ('%s saved!' % fpath)
+    print('%s saved!' % fpath)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
@@ -247,7 +250,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         fpath = ws + os.sep + method + '-Pareto'
         plt.savefig(fpath + '.png', dpi=300)
         plt.savefig(fpath + '.eps', dpi=300)
-        print ('%s saved!' % fpath)
+        print('%s saved!' % fpath)
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
         plt.clf()
@@ -300,7 +303,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         fpath = ws + os.sep + file_name + '-gen' + str(gen)
         plt.savefig(fpath + '.png', dpi=300)
         plt.savefig(fpath + '.eps', dpi=300)
-        print ('%s saved!' % fpath)
+        print('%s saved!' % fpath)
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
         plt.clf()
@@ -310,7 +313,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
 def plot_hypervolume_by_method(method_paths, ws):
     """Plot hypervolume"""
     hyperv = OrderedDict()
-    for k, v in method_paths.iteritems():
+    for k, v in list(method_paths.items()):
         v = v + os.sep + 'hypervolume.txt'
         x = list()
         y = list()
@@ -354,7 +357,7 @@ def plot_hypervolume_by_method(method_paths, ws):
     fpath = ws + os.sep + 'hypervolume'
     plt.savefig(fpath + '.png', dpi=300)
     plt.savefig(fpath + '.eps', dpi=300)
-    print ('%s saved!' % fpath)
+    print('%s saved!' % fpath)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
