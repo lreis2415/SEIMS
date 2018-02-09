@@ -4,16 +4,19 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
+import json
+import operator
+from collections import OrderedDict
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-import json
-import operator
-from collections import OrderedDict
 
 from pygeoc.utils import FileClass, UtilClass, StringClass, get_config_parser
 
@@ -158,6 +161,6 @@ if __name__ == '__main__':
     import pickle
 
     s = pickle.dumps(cfg)
-    # print (s)
+    # print(s)
     new_cfg = pickle.loads(s)
-    print (new_cfg.bmps_params)
+    print(new_cfg.bmps_params)

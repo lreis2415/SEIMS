@@ -3,7 +3,10 @@
 """Base configuration of Parameter Calibration.
     @author   : Liangjun Zhu
     @changelog: 18-1-20  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 import argparse
@@ -120,7 +123,7 @@ class CaliConfig(object):
             self.cali_etime = StringClass.get_datetime(tend)
             self.calc_validation = False
             if cf.has_option('SEIMS_Model', 'vali_time_start') and \
-                cf.has_option('SEIMS_Model', 'vali_time_end'):
+                    cf.has_option('SEIMS_Model', 'vali_time_end'):
                 tstart = cf.get('SEIMS_Model', 'vali_time_start')
                 tend = cf.get('SEIMS_Model', 'vali_time_end')
                 self.vali_stime = StringClass.get_datetime(tstart)
@@ -147,12 +150,12 @@ if __name__ == '__main__':
     cf, method = get_cali_config()
     cfg = CaliConfig(cf, method=method)
 
-    print (cfg)
+    print(cfg)
 
     # test the picklable of SAConfig class.
     import pickle
 
     s = pickle.dumps(cfg)
-    # print (s)
+    # print(s)
     new_cfg = pickle.loads(s)
-    print (new_cfg.model_dir)
+    print(new_cfg.model_dir)

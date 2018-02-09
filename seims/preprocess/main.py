@@ -11,14 +11,15 @@ from __future__ import absolute_import
 import time
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
 # Load configuration file
-from .config import parse_ini_configuration
+from preprocess.config import parse_ini_configuration
 # MongoDB modules
-from .db_build_mongodb import ImportMongodbClass
+from preprocess.db_build_mongodb import ImportMongodbClass
 # Spatial delineation
-from .sd_delineation import SpatialDelineation
+from preprocess.sd_delineation import SpatialDelineation
 
 
 def workflow():

@@ -3,7 +3,10 @@
 """User defined evaluate_models variables for parameters sensitivity analysis.
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import shutil
 import os
 import datetime
@@ -112,7 +115,7 @@ def main():
                       'nthread': 4, 'lyrmethod': 1,
                       'hostname': '127.0.0.1', 'port': 27017,
                       'scenario_id': 0}
-    print evaluate_model_response(model_cfg_dict, 0, '2012-12-01,2013-02-11')
+    print(evaluate_model_response(model_cfg_dict, 0, '2012-12-01,2013-02-11'))
 
 
 if __name__ == '__main__':

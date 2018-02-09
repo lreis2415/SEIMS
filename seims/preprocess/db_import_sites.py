@@ -13,8 +13,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.utils import StringClass, text_type
 from pymongo import ASCENDING
 
-from .text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from .utility import read_data_items_from_txt, DEFAULT_NODATA
+from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -59,7 +59,6 @@ class ImportHydroClimateSites(object):
                 if StringClass.string_match(site_flds[j], StationFields.id):
                     dic[StationFields.id] = int(site_data_items[i][j])
                 elif StringClass.string_match(site_flds[j], StationFields.name):
-                    # unicode(site_data_items[i][j], 'gb2312')
                     dic[StationFields.name] = site_data_items[i][j]
                 elif StringClass.string_match(site_flds[j], StationFields.x):
                     dic[StationFields.x] = float(site_data_items[i][j])
@@ -114,9 +113,9 @@ class ImportHydroClimateSites(object):
         #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
         #    must be locally imported here.
         from shapely.wkt import loads as shapely_loads
-        shapely_objects = []
-        id_list = []
-        # print input_shape
+        shapely_objects = list()
+        id_list = list()
+        # print(input_shape)
         shp = ogr_Open(input_shape)
         if shp is None:
             raise RuntimeError('The input ESRI Shapefile: %s is not existed or has '
@@ -205,13 +204,13 @@ class ImportHydroClimateSites(object):
         ImportHydroClimateSites.variable_table(clim_db, cfg.hydro_climate_vars)
         site_m_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.Meteo_sites, DataType.m)
         site_p_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.prec_sites, DataType.p)
-        # print (site_m_loc, site_p_loc)
+        # print(site_m_loc, site_p_loc)
         return site_m_loc, site_p_loc
 
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

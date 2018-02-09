@@ -4,13 +4,16 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-11-08  hr - initial implementation.\n
                 17-08-18  lj - reorganization.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import random
 
 from pygeoc.utils import get_config_parser
 
-from config import SASPUConfig
-from scenario import SPScenario, initialize_scenario, get_potential_bmps
+from slpposunits.config import SASPUConfig
+from slpposunits.scenario import SPScenario, initialize_scenario, get_potential_bmps
 
 
 #                                       #
@@ -37,16 +40,16 @@ def crossover_slppos(tagnames, ind1, ind2):
         cxpoint2 = random.randint(1, size)
         if cxpoint2 < cxpoint1:  # Swap the two cx points
             cxpoint1, cxpoint2 = cxpoint2, cxpoint1
-        # print (cxpoint1, cxpoint2)
+        # print(cxpoint1, cxpoint2)
         cs1 = cxpoint1 / sp_num
         cs2 = cxpoint2 / sp_num
-        # print (cs1, cs2)
+        # print(cs1, cs2)
         cxpoint1 = cs1 * sp_num
         if cxpoint2 % sp_num != 0:
             cxpoint2 = sp_num * (cs2 + 1)
         if cxpoint1 == cxpoint2:
             cxpoint2 += sp_num
-        # print (cxpoint1, cxpoint2)
+        # print(cxpoint1, cxpoint2)
         if not (cxpoint1 == 0 and cxpoint2 == size):
             break  # avoid change the entire genes
     ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
@@ -116,7 +119,7 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         mut_num = random.randint(1, int(len(individual) * perc))
     except ValueError or Exception:
         return individual
-    # print ('Max mutate num: %d' % mut_num)
+    # print('Max mutate num: %d' % mut_num)
     muted = list()
     for m in range(mut_num):
         if random.random() > indpb:
@@ -155,15 +158,15 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         if sptag < 0:  # this circumstance may not happen, just in case.
             continue
 
-        # print ('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
-        #        (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
+        # print('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
+        #       (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
         # get the potential BMP IDs
 
         bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue, method)
         # Get new BMP ID for current unit.
         if oldgenev in bmps:
             bmps.remove(oldgenev)
-        # print ('    method: %d, potBMPs: %s' % (method, bmps.__str__()))
+        # print('    method: %d, potBMPs: %s' % (method, bmps.__str__()))
         if len(bmps) > 0:
             individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
             muted.append(mpoint)
@@ -214,8 +217,8 @@ if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    # print (cfg.gene_to_slppos)
-    # print (cfg.slppos_suit_bmps)
+    # print(cfg.gene_to_slppos)
+    # print(cfg.slppos_suit_bmps)
 
     units_info = cfg.units_infos
     slppos_tagnames = cfg.slppos_tagnames
@@ -223,7 +226,7 @@ if __name__ == '__main__':
     gene_to_unit = cfg.gene_to_slppos
     unit_to_gene = cfg.slppos_to_gene
     init_gene_values = initialize_scenario(cfg)
-    # print ('Initial genes: %s' % init_gene_values.__str__())sce = SPScenario(cfg)
+    # print('Initial genes: %s' % init_gene_values.__str__())sce = SPScenario(cfg)
     sce = SPScenario(cfg)
     curid = sce.set_unique_id()
     setattr(sce, 'gene_values', init_gene_values)
@@ -231,8 +234,8 @@ if __name__ == '__main__':
     inicost = sce.economy
     mutate_slppos(units_info, gene_to_unit, unit_to_gene, slppos_tagnames, suit_bmps,
                   init_gene_values, 0.2, 0.3, method=1)
-    # print ('Mutated genes: %s' % init_gene_values.__str__())
+    # print('Mutated genes: %s' % init_gene_values.__str__())
     setattr(sce, 'gene_values', init_gene_values)
     sce.calculate_economy()
     mutcost = sce.economy
-    print ('%.2f, %.2f' % (inicost, mutcost))
+    print('%.2f, %.2f' % (inicost, mutcost))

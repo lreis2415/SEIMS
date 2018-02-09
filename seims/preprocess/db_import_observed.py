@@ -17,11 +17,10 @@ from datetime import timedelta
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
 
-from .db_mongodb import MongoQuery
-from .db_mongodb import MongoUtil
-from .hydro_climate_utility import HydroClimateUtilClass
-from .text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from .utility import read_data_items_from_txt
+from preprocess.db_mongodb import MongoUtil, MongoQuery
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
+from preprocess.utility import read_data_items_from_txt
 
 
 class ImportObservedData(object):
@@ -130,7 +129,7 @@ class ImportObservedData(object):
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
-                    # print (curfilter)
+                    # print(curfilter)
                     hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, site_dic,
                                                                            upsert=True)
 
@@ -144,7 +143,7 @@ class ImportObservedData(object):
         bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
         count = 0
         for measDataFile in obs_txts_list:
-            # print measDataFile
+            # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
             if tsysin == 'UTCTIME':
@@ -195,7 +194,7 @@ class ImportObservedData(object):
         # loop variables list
         added_dics = []
         for curVar in variable_lists:
-            # print curVar
+            # print(curVar)
             # if the unit is mg/L, then change the Type name with the suffix 'Conc',
             # and convert the corresponding data to kg if the discharge data is
             # available.
@@ -203,7 +202,7 @@ class ImportObservedData(object):
             cur_unit = curVar[StationFields.unit]
             # Find data by Type
             for item in hydro_clim_db[DBTableNames.observes].find({StationFields.type: cur_type}):
-                # print item
+                # print(item)
                 dic = dict()
                 dic[StationFields.id] = item[StationFields.id]
                 dic[DataValueFields.value] = item[DataValueFields.value]
@@ -289,7 +288,7 @@ class ImportObservedData(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

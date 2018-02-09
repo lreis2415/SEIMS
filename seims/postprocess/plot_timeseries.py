@@ -5,7 +5,10 @@
     @changelog: 17-08-17  lj - redesign and rewrite the plotting program.\n
                 18-01-04  lj - separate load data from MongoDB operations.\n
                 18-02-01  lj - add plot of validation period.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 
 import os
 import sys
@@ -23,8 +26,8 @@ import matplotlib.pyplot as plt
 
 from preprocess.text import DataValueFields
 from load_mongodb import ReadModelData
-from .utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics, \
-    save_png_eps
+from postprocess.utility import read_simulation_from_txt, match_simulation_observation,\
+    calculate_statistics, save_png_eps
 
 divtdi = datetime.timedelta.__div__
 

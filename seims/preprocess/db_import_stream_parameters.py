@@ -21,7 +21,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, FileClass
 from pymongo import ASCENDING
 
-from .utility import UTIL_ZERO, MINI_SLOPE
+from preprocess.utility import UTIL_ZERO, MINI_SLOPE
 
 
 class ImportReaches2Mongo(object):
@@ -452,7 +452,7 @@ class ImportReaches2Mongo(object):
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)

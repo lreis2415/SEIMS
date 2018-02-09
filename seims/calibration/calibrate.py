@@ -4,7 +4,10 @@
     @author   : Liangjun Zhu
     @changelog: 18-01-22  lj - design and implement.\n
                 18-01-25  lj - redesign the individual class, add 95PPU, etc.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 import shutil
 from collections import OrderedDict
@@ -16,14 +19,14 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import FileClass
 
-from config import CaliConfig, get_cali_config
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
 from preprocess.utility import read_data_items_from_txt
 from run_seims import MainSEIMS
-from sample_lhs import lhs
+from calibration.config import CaliConfig, get_cali_config
+from calibration.sample_lhs import lhs
 
 
 class observationData(object):
@@ -131,7 +134,7 @@ class Calibration(object):
             # find parameter name, print warning message if not existed
             cursor = collection.find({'NAME': item[0]}, no_cursor_timeout=True)
             if not cursor.count():
-                print ('WARNING: parameter %s is not existed!' % item[0])
+                print('WARNING: parameter %s is not existed!' % item[0])
                 continue
             num_vars += 1
             names.append(item[0])
@@ -233,6 +236,6 @@ if __name__ == '__main__':
     import pickle
 
     s = pickle.dumps(caliobj)
-    # print (s)
+    # print(s)
     new_cali = pickle.loads(s)
-    print (new_cali.bin_dir)
+    print(new_cali.bin_dir)

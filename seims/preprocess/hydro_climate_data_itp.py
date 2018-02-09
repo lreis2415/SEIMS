@@ -16,8 +16,8 @@ from datetime import timedelta
 
 from pygeoc.utils import FileClass, StringClass, MathClass
 
-from .hydro_climate_utility import HydroClimateUtilClass
-from .utility import read_data_items_from_txt
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.utility import read_data_items_from_txt
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,
@@ -106,7 +106,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                 ord_data[org_datetime].append(float(v))
             else:
                 ord_data[org_datetime].append(v)
-    # print (ord_data)
+    # print(ord_data)
     itp_data = OrderedDict()
     out_time_delta = timedelta(minutes=time_interval)
     sdatetime = StringClass.get_datetime(start_time)
@@ -116,9 +116,9 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         item_dtime = sdatetime.replace(hour=0, minute=0, second=0) + \
                      timedelta(minutes=day_divided_hour * 60)
     while item_dtime <= edatetime:
-        # print (item_dtime)
+        # print(item_dtime)
         # if item_dtime.month == 12 and item_dtime.day == 31:
-        #     print ("debug")
+        #     print("debug")
         sdt = item_dtime  # start datetime of records
         edt = item_dtime + out_time_delta  # end datetime of records
         # get original data items
@@ -192,7 +192,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         item_dtime += out_time_delta
 
     # for i, v in itp_data.items():
-    #     print (i, v)
+    #     print(i, v)
     # output to files
     work_path = os.path.dirname(in_file)
     header_str = '#' + time_sys_output

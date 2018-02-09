@@ -20,8 +20,8 @@ except ImportError:
 from pygeoc.TauDEM import TauDEMFilesUtils
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
 
-from .text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
-from .text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
+from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
 class SEIMSConfig(object):
@@ -131,13 +131,13 @@ class SEIMSConfig(object):
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
         if not FileClass.is_dir_exists(self.clim_dir):
-            print ('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
+            print('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
                 raise IOError('Directories named "climate" MUST BE located in [base_dir]!')
 
         if not FileClass.is_dir_exists(self.spatial_dir):
-            print ('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
+            print('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.sep + 'spatial'
             raise IOError('Directories named "spatial" MUST BE located in [base_dir]!')
 

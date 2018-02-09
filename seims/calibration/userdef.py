@@ -3,7 +3,10 @@
 """User defined functions.
     @author   : Liangjun Zhu
     @changelog: 18-1-22  lj - initial implementation.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import json
 import pickle
 import os
@@ -19,10 +22,12 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     mpl.use('Agg', warn=False)
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+
+from pygeoc.utils import StringClass, text_type
+
 from preprocess.db_mongodb import ConnectMongoDB
 from postprocess.utility import save_png_eps
 from parameters_sensitivity.sensitivity import SpecialJsonEncoder
-from pygeoc.utils import StringClass
 
 
 def write_param_values_to_mongodb(hostname, port, spatial_db, param_defs, param_values):
@@ -106,12 +111,12 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         else:  # amount
             ylabel_str += ' (kg)'
         cali_obs_dates = sim_obs_data[0][var]['UTCDATETIME'][:]
-        if isinstance(cali_obs_dates[0], str) or isinstance(cali_obs_dates[0], unicode):
+        if isinstance(cali_obs_dates[0], str) or isinstance(cali_obs_dates[0], text_type):
             cali_obs_dates = [StringClass.get_datetime(s) for s in cali_obs_dates]
         obs_dates = cali_obs_dates[:]
         if plot_validation:
             vali_obs_dates = vali_sim_obs_data[0][var]['UTCDATETIME']
-            if isinstance(vali_obs_dates[0], str) or isinstance(vali_obs_dates[0], unicode):
+            if isinstance(vali_obs_dates[0], str) or isinstance(vali_obs_dates[0], text_type):
                 vali_obs_dates = [StringClass.get_datetime(s) for s in vali_obs_dates]
             obs_dates += vali_obs_dates
         obs_data = sim_obs_data[0][var]['Obs'][:]
@@ -119,11 +124,11 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
             obs_data += vali_sim_obs_data[0][var]['Obs']
 
         sim_dates = sim_data[0].keys()
-        if isinstance(sim_dates[0], str) or isinstance(sim_dates[0], unicode):
+        if isinstance(sim_dates[0], str) or isinstance(sim_dates[0], text_type):
             sim_dates = [StringClass.get_datetime(s) for s in sim_dates]
         if plot_validation:
             vali_sim_dates = vali_sim_data[0].keys()
-            if isinstance(vali_sim_dates[0], str) or isinstance(vali_sim_dates[0], unicode):
+            if isinstance(vali_sim_dates[0], str) or isinstance(vali_sim_dates[0], text_type):
                 vali_sim_dates = [StringClass.get_datetime(s) for s in vali_sim_dates]
             sim_dates += vali_sim_dates
         sim_data_list = list()
@@ -193,7 +198,8 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
                         '    $\mathit{R^2}$: %.2f' % (vali_sim_obs_data[caliBestIdx][var]['NSE'],
                                                       vali_sim_obs_data[caliBestIdx][var]['RSR'],
                                                       vali_sim_obs_data[caliBestIdx][var]['PBIAS'],
-                                                      vali_sim_obs_data[caliBestIdx][var]['R-square'])
+                                                      vali_sim_obs_data[caliBestIdx][var][
+                                                          'R-square'])
         # plot
         fig, ax = plt.subplots(figsize=(12, 4))
         ax.fill_between(sim_dates, ylows.tolist(), yups.tolist(),
@@ -265,4 +271,4 @@ if __name__ == '__main__':
             all_cali_obs_data.append(a)
             all_cali_data.append(b)
     calculate_95ppu(cali_obs_data, cali_data, simdir, 0, vali_obs_data, vali_data)
-    print ('Total simulations %d' % len(all_cali_obs_data))
+    print('Total simulations %d' % len(all_cali_obs_data))

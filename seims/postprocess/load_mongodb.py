@@ -5,12 +5,15 @@
      since MongoClient returns thread.lock objects.
     @author   : Liangjun Zhu
     @changelog: 18-01-02  lj - separated from plot_timeseries.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 from collections import OrderedDict
 
-from pygeoc.utils import StringClass
+from pygeoc.utils import StringClass, text_type
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -53,12 +56,12 @@ class ReadModelData(object):
     def Mode(self):
         """Get simulation mode."""
         if self._mode != '':
-            return self._mode
+            return self._mode.upper()
         mode_dict = self.filein_tab.find_one({ModelCfgFields.tag: FieldNames.mode})
         self._mode = mode_dict[ModelCfgFields.value]
-        if isinstance(self._mode, unicode):
-            self._mode = self._mode.encode().upper()
-        return self._mode
+        if isinstance(self._mode, text_type):
+            self._mode = str(self._mode)
+        return self._mode.upper()
 
     @property
     def Interval(self):
@@ -133,10 +136,10 @@ class ReadModelData(object):
             for t in pcp_dict:
                 pcp_dict[t] /= len(site_list)
         for t, v in pcp_dict.iteritems():
-            # print str(t), v
+            # print(str(t), v)
             pcp_date_value.append([t, v])
-        print ('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
-                                                           end_time.strftime('%c')))
+        print('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
+                                                          end_time.strftime('%c')))
         return pcp_date_value
 
     def Observation(self, subbsn_id, vars, start_time, end_time):
@@ -193,9 +196,9 @@ class ReadModelData(object):
                 data_dict[curt].append(curv)
         if not data_dict:
             return None, None
-        print ('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
-                                                                    start_time.strftime('%c'),
-                                                                    end_time.strftime('%c')))
+        print('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
+                                                                   start_time.strftime('%c'),
+                                                                   end_time.strftime('%c')))
         return vars_existed, data_dict
 
 
@@ -209,9 +212,9 @@ def main():
     stime = datetime.datetime(2013, 1, 1, 0, 0)
     etime = datetime.datetime(2013, 12, 31, 0, 0)
     rd = ReadModelData(host, port, dbname)
-    print rd.HydroClimateDBName
-    print rd.Precipitation(4, stime, etime)
-    print rd.Observation(4, ['Q'], stime, etime)
+    print(rd.HydroClimateDBName)
+    print(rd.Precipitation(4, stime, etime))
+    print(rd.Observation(4, ['Q'], stime, etime))
 
 
 if __name__ == "__main__":

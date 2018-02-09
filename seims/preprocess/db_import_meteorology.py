@@ -16,10 +16,10 @@ from datetime import timedelta
 from pygeoc.utils import DateClass, StringClass
 from pymongo import ASCENDING
 
-from .db_mongodb import MongoUtil
-from .hydro_climate_utility import HydroClimateUtilClass
-from .text import DBTableNames, DataValueFields, DataType, VariableDesc
-from .utility import read_data_items_from_txt, DEFAULT_NODATA, PI
+from preprocess.db_mongodb import MongoUtil
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 
 
 class ClimateStats(object):
@@ -222,14 +222,14 @@ class ImportMeteoData(object):
     @staticmethod
     def workflow(cfg, clim_db):
         """Workflow"""
-        print ("Import Daily Meteorological Data... ")
+        print('Import Daily Meteorological Data... ')
         site_m_loc = HydroClimateUtilClass.query_climate_sites(clim_db, 'M')
         ImportMeteoData.daily_data_from_txt(clim_db, cfg.Meteo_data, site_m_loc)
 
 
 def main():
     """TEST CODE"""
-    from .config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
