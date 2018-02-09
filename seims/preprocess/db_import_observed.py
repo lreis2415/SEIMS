@@ -228,7 +228,7 @@ class ImportObservedData(object):
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
 
                 q = -9999.
-                if q_dic is not None:  # and q_dic.has_key(DataValueFields.value):
+                if q_dic is not None:
                     q = q_dic[DataValueFields.value]
                 else:
                     continue

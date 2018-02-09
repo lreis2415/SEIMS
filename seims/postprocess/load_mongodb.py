@@ -47,7 +47,7 @@ class ReadModelData(object):
             raise RuntimeError('%s Collection is not existed or empty!' %
                                DBTableNames.main_sitelist)
         for item in allitems:
-            if item.has_key(FieldNames.db):
+            if FieldNames.db in item:
                 self._climdb_name = item.get(FieldNames.db)
                 break
         return self._climdb_name
