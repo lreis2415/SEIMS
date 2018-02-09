@@ -317,11 +317,11 @@ class Sensitivity(object):
         psa_sort_dict = dict()
         param_names = self.param_defs.get('names')
         psa_sort_dict['names'] = param_names[:]
-        for idx, si_dict in self.psa_si.iteritems():
+        for idx, si_dict in self.psa_si.items():
             if 'objnames' not in psa_sort_dict:
                 psa_sort_dict['objnames'] = list()
             psa_sort_dict['objnames'].append(objnames[idx])
-            for param, values in si_dict.iteritems():
+            for param, values in si_dict.items():
                 if param == 'names':
                     continue
                 if param not in psa_sort_dict:
@@ -330,7 +330,7 @@ class Sensitivity(object):
         # print(psa_sort_dict)
         output_str = ''
         header = ' ,' + ','.join(psa_sort_dict['objnames']) + '\n'
-        for outvar, values in psa_sort_dict.iteritems():
+        for outvar, values in psa_sort_dict.items():
             if outvar == 'names' or outvar == 'objnames':
                 continue
             mtx = numpy.transpose(numpy.array(values))  # col is 'objnames' and row is 'names'

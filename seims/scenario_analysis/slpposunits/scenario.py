@@ -90,7 +90,7 @@ class SPScenario(Scenario):
             return configed, cfg_bmp
 
         spname = self.slppos_tagnames[-1][1]  # the bottom slope position
-        for unitid, spdict in self.units_infos[spname].iteritems():
+        for unitid, spdict in self.units_infos[spname].items():
             up_spid = spdict['upslope']
             down_spid = spdict['downslope']
             spidx = len(self.slppos_tagnames) - 1
@@ -138,7 +138,7 @@ class SPScenario(Scenario):
             unit_id = self.gene_to_unit[i]
             bmp_units[gene_v].append(unit_id)
         sce_item_count = 0
-        for k, v in bmp_units.iteritems():
+        for k, v in bmp_units.items():
             # obj = bson.objectid.ObjectId()
             curd = dict()
             curd['BMPID'] = self.bmps_info['BMPID']
@@ -152,7 +152,7 @@ class SPScenario(Scenario):
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
         if len(self.bmps_retain) > 0:
-            for k, v in self.bmps_retain.iteritems():
+            for k, v in self.bmps_retain.items():
                 # obj = bson.objectid.ObjectId()
                 curd = v
                 curd['NAME'] = 'S%d' % self.ID
@@ -176,12 +176,12 @@ class SPScenario(Scenario):
                 continue
             unit_id = self.gene_to_unit[idx]
             unit_lu = dict()
-            for spname, spunits in self.units_infos.iteritems():
+            for spname, spunits in self.units_infos.items():
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
             bmpparam = self.bmp_params[gene_v]
-            for luid, luarea in unit_lu.iteritems():
+            for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * self.cfg_years
@@ -275,7 +275,7 @@ class SPScenario(Scenario):
             for idx, gene_v in enumerate(self.gene_values):
                 v_dict[self.gene_to_unit[idx]] = gene_v
 
-            for k, v in v_dict.iteritems():
+            for k, v in v_dict.items():
                 slppos_data[slppos_data == k] = v
             if outpath is None:
                 outpath = self.scenario_dir + os.sep + 'Scenario_%d.tif' % self.ID

@@ -135,7 +135,7 @@ class ReadModelData(object):
         if len(site_list) > 1:
             for t in pcp_dict:
                 pcp_dict[t] /= len(site_list)
-        for t, v in pcp_dict.iteritems():
+        for t, v in pcp_dict.items():
             # print(str(t), v)
             pcp_date_value.append([t, v])
         print('Read precipitation from %s to %s done.' % (start_time.strftime('%c'),
