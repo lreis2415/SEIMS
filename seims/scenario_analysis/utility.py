@@ -26,7 +26,7 @@ def generate_uniqueid():
     """Generate unique integer ID for Scenario using uuid.
 
     Usage:
-        uniqueid = generate_uniqueid().next()
+        uniqueid = next(generate_uniqueid())
     """
     uid = int(str(uuid.uuid4().fields[-1])[:9])
     while True:

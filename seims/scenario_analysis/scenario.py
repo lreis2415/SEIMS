@@ -73,7 +73,7 @@ class Scenario(object):
 
     def set_unique_id(self):
         """Set unique ID."""
-        self.ID = generate_uniqueid().next()
+        self.ID = next(generate_uniqueid())
         self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
         self.read_simulation_timerange()
         return self.ID
