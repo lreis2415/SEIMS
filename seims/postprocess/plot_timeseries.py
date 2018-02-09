@@ -28,12 +28,12 @@ from preprocess.text import DataValueFields
 from load_mongodb import ReadModelData
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation,\
     calculate_statistics, save_png_eps
-
+## TODO fix this, lj
 divtdi = datetime.timedelta.__div__
 
 
 def divtd(td1, td2):
-    if isinstance(td2, (int, long)):
+    if isinstance(td2, (int, )):
         return divtdi(td1, td2)
     us1 = td1.microseconds + 1000000 * (td1.seconds + 86400 * td1.days)
     us2 = td2.microseconds + 1000000 * (td2.seconds + 86400 * td2.days)
