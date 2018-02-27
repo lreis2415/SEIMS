@@ -39,8 +39,13 @@ MongoClient* MongoClient::Init(const char *host, uint16_t port) {
 MongoClient::~MongoClient() {
     StatusMessage("Releasing MongoClient ...");
     if (m_conn) {
-        StatusMessage("Close database connection ...");
-        mongoc_client_destroy(m_conn);
+        /// Check the connection to MongoDB is success or not
+        bson_t *reply = bson_new();
+        bson_error_t *err = NULL;
+        if (mongoc_client_get_server_status(m_conn, NULL, reply, err) && err != NULL) {
+            mongoc_client_destroy(m_conn);
+        }
+        bson_destroy(reply);
     }
     mongoc_cleanup();
 }
