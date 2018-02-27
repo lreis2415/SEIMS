@@ -57,7 +57,7 @@ void Subbasin::setSlope(float *slope) {
 //////////////////////////////////////////////////////////////////////////
 //////////  clsSubbasins                           ///////////////////////
 ////////////////////////////////////////////////////////////////////////// 
-clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap,
+clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, FloatRaster *> &rsMap,
                            int prefixID): m_nSubbasins(-1) {
     m_subbasinIDs.clear();
     m_subbasinsInfo.clear();
@@ -110,7 +110,7 @@ clsSubbasins::clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<f
     cellListMap.clear();
 }
 
-clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterData<float> *> &rsMap, 
+clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,FloatRaster *> &rsMap, 
                                  int prefixID) {
     ostringstream oss;
     oss << prefixID << "_" << Tag_Mask;
@@ -127,8 +127,8 @@ clsSubbasins *clsSubbasins::Init(MongoGridFS* spatialData, map<string,clsRasterD
     int nCells = -1;
     float *subbasinData = nullptr;
     if (rsMap.find(subbasinFileName) == rsMap.end()) { // if subbasin not loaded yet
-        clsRasterData<float> *subbasinRaster = nullptr;
-        subbasinRaster = clsRasterData<float>::Init(spatialData, subbasinFileName.c_str(),
+        FloatRaster *subbasinRaster = nullptr;
+        subbasinRaster = FloatRaster::Init(spatialData, subbasinFileName.c_str(),
                                                     true, rsMap[maskFileName]);
         assert(nullptr != subbasinRaster);
         if (!subbasinRaster->getRasterData(&nCells, &subbasinData)) {

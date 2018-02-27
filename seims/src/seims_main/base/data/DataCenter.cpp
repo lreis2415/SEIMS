@@ -77,7 +77,7 @@ DataCenter::~DataCenter() {
     StatusMessage("---release map of parameters in MongoDB ...");
     for (auto it = m_initParameters.begin(); it != m_initParameters.end();) {
         if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
+            //StatusMessage(("-----" + it->first + " ...").c_str());
             delete it->second;
             it->second = nullptr;
         }
