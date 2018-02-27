@@ -14,13 +14,6 @@ PrintInfoItem::PrintInfoItem() : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
     TimeSeriesData.clear();
     TimeSeriesDataForSubbasin.clear();
 }
-//Deprecated
-//void PrintInfoItem::setSpecificCellRasterOutput(string projectPath,string databasePath,
-//	clsRasterData* templateRasterData,string outputID)
-//{
-//	if(m_AggregationType == AT_SpecificCells)
-//		m_specificOutput = new clsSpecificOutput(projectPath,databasePath,templateRasterData,outputID);
-//}
 
 PrintInfoItem::~PrintInfoItem() {
     StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
@@ -58,7 +51,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRaster, string header) {
+void PrintInfoItem::Flush(string projectPath, FloatRaster *templateRaster, string header) {
     //bool outToMongoDB = false; /// added by LJ.
     //projectPath = projectPath + SEP;
     /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
@@ -139,9 +132,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         //cout << projectPath << Filename << endl;
         //if (outToMongoDB) {
         //    MongoGridFS().removeFile(Filename, gfs);
-        //    clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
+        //    FloatRaster(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
         //}
-        clsRasterData<float>(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
+        FloatRaster(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
         return;
     }
 
@@ -150,11 +143,11 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
+        FloatRaster(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
 
         //if (outToMongoDB) {
         //    MongoGridFS().removeFile(Filename, gfs);
-        //    clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
+        //    FloatRaster(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
         //}
         return;
     }
@@ -435,16 +428,6 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 //////////////////////////////////////////
 ///////////PrintInfo Class////////////////
 //////////////////////////////////////////
-
-//void PrintInfo::setSpecificCellRasterOutput(string projectPath, string databasePath,
-//clsRasterData* templateRasterData)
-//{
-//	for(auto it= m_PrintItems.begin();it<m_PrintItems.end();it++)
-//	{
-//		(*it)->setSpecificCellRasterOutput(projectPath,databasePath,templateRasterData,m_OutputID);
-//	}
-//}
-
 
 PrintInfo::PrintInfo()
     : m_Interval(0), m_IntervalUnits(""), m_OutputID(""), m_param(nullptr),

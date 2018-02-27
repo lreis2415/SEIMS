@@ -45,7 +45,7 @@ class MUSK_CH : public SimulationModule {
 public:
     MUSK_CH();
 
-    ~MUSK_CH();
+    virtual ~MUSK_CH();
 
     virtual int Execute();
 

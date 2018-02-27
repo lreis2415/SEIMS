@@ -9,6 +9,7 @@
 #ifndef SEIMS_PRINTINFO_H
 #define SEIMS_PRINTINFO_H
 
+#include "seims.h"
 #include "ParamInfo.h"
 #include "utilities.h"
 
@@ -39,24 +40,7 @@ enum AggregationType {
  *
  */
 class PrintInfoItem {
-private:
-    //! Counter of time series data, i.e., how many data has been aggregated.
-    int m_Counter;
-private:
-//	//! values of specific cells, e.g., landuse, curvature, and slope
-//	clsSpecificOutput*	m_specificOutput;
-//public:
-//	void setSpecificCellRasterOutput(string projectPath,string databasePath,
-//		clsRasterData* templateRasterData,string outputID);
-
 public:
-    ////! MongoDB client
-    //mongoc_client_t *conn;
-    ////! Database name
-    //string dbName;
-    ////! GridFS
-    //mongoc_gridfs_t *gfs;
-
     //! Constructor
     PrintInfoItem();
 
@@ -125,7 +109,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(string, clsRasterData<float> *, string);
+    void Flush(string, FloatRaster *, string);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -151,6 +135,8 @@ public:
     static AggregationType MatchAggregationType(string type);
 
 private:
+    //! Counter of time series data, i.e., how many data has been aggregated.
+    int m_Counter;
     //! Aggregation type of current print item
     AggregationType m_AggregationType;
 };
@@ -176,8 +162,6 @@ public:
     //! For one OutputID, there may be several output items, e.g., different time period, different subbasin ID. etc.
     vector<PrintInfoItem *> m_PrintItems;
 
-
-    //void setSpecificCellRasterOutput(string projectPath, string databasePath,clsRasterData* templateRasterData);
 private:
     //! Selected subbasin IDs for time series data, vector container
     vector<int> m_subbasinSeleted;
