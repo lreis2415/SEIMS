@@ -370,12 +370,12 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
             elItm = nullptr;
 
             // parameter must have these values
-            if (param.Name.size() <= 0) {
+            if (param.Name.empty()) {
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "Some parameters have not name in metadata!");
             }
 
-            if (param.Source.size() <= 0) {
+            if (param.Source.empty()) {
                 string name = param.Name;
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "parameter " + name + " does not have source!");
@@ -468,13 +468,13 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
             elItm = nullptr;
 
             // input must have these values
-            if (param->Name.size() <= 0) {
+            if (param->Name.empty()) {
                 delete param;
                 throw ModelException("SEIMSModule", "ReadInputSetting",
                                      "Some input variables have not name in metadata!");
             }
 
-            if (param->Source.size() <= 0) {
+            if (param->Source.empty()) {
                 string name = param->Name;
                 delete param;
                 throw ModelException("SEIMSModule", "ReadInputSetting",
@@ -518,7 +518,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
                 if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
-                    if (setting->dataTypeString().size() > 0) {
+                    if (!setting->dataTypeString().empty()) {
                         param->Name = param->Name + "_" + setting->dataTypeString();
                     }
                 }
@@ -556,7 +556,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
             param->IsOutput = true;
 
             // output variable must have these values
-            if (param->Name.size() <= 0) {
+            if (param->Name.empty()) {
                 delete param;
                 throw ModelException("SEIMSModule", "readOutputSetting",
                                      "Some output variables have not name in metadata!");
@@ -577,7 +577,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
     }
 }
 
-bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string>>& settings) {
+bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings) {
     vector<string> cfgStrs;
     if (!LoadPlainTextFile(filename, cfgStrs)) {
         return false;
@@ -585,46 +585,45 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
     string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
                              DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
                              DataType_RelativeAirMoisture};
-    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
+    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); iter++) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
         // is there anything in the token list?
-        if (tokens.size() > 0) {
-            for (size_t i = 0; i < tokens.size(); i++) {
-                //TrimSpaces(tokens[i]);
-                tokens[i] = trim(tokens[i]);
-            }
-            // is there anything in the first item?
-            if (tokens[0].size() > 0) {
-                // there is something to add so resize the header list to append it
-                int sz = settings.size(); // get the current number of rows
-                if (tokens[3].find(MID_ITP) != string::npos ||
-                    tokens[3].find(MID_TSD_RD) != string::npos) {
-                    settings.resize(sz + 7);
+        if (tokens.empty()) continue;
+        for (size_t i = 0; i < tokens.size(); i++) {
+            //TrimSpaces(tokens[i]);
+            tokens[i] = trim(tokens[i]);
+        }
+        if (tokens.empty()) continue;
+        // is there anything in the first item? Or, the size of tokens greater than 4?
+        if (tokens[0].empty() || tokens.size() < 4) continue;
+        // there is something to add so resize the header list to append it
+        size_t sz = settings.size(); // get the current number of rows
+        if (tokens[3].find(MID_ITP) != string::npos ||
+            tokens[3].find(MID_TSD_RD) != string::npos) {
+            settings.resize(sz + 7);
 
-                    for (size_t j = 0; j < 7; j++) {
-                        vector<string> tokensTemp(tokens);
-                        tokensTemp[1] += "_" + T_variables[j];
-                        if (tokens[3].find(MID_ITP) != string::npos) {
-                            vector<string> ITPProperty = SplitString(*iter, '_');
-                            if (ITPProperty.size() == 2) {
-                                int isVertical = atoi(ITPProperty[1].c_str());
-                                if (isVertical) {
-                                    tokensTemp[1] += "_1";
-                                }
-                                else {
-                                    tokensTemp[1] += "_0";
-                                }
-                            }
+            for (size_t j = 0; j < 7; j++) {
+                vector<string> tokensTemp(tokens);
+                tokensTemp[1] += "_" + T_variables[j];
+                if (tokens[3].find(MID_ITP) != string::npos) {
+                    vector<string> ITPProperty = SplitString(*iter, '_');
+                    if (ITPProperty.size() == 2) {
+                        int isVertical = atoi(ITPProperty[1].c_str());
+                        if (isVertical) {
+                            tokensTemp[1] += "_1";
                         }
-                        settings[sz + j] = tokensTemp;
+                        else {
+                            tokensTemp[1] += "_0";
+                        }
                     }
                 }
-                else {
-                    settings.resize(sz + 1);        // resize with one more row
-                    settings[sz] = tokens;
-                }
-            } // if there is nothing in the first item of the token list there is nothing to add to the header list
+                settings[sz + j] = tokensTemp;
+            }
+        }
+        else {
+            settings.resize(sz + 1);        // resize with one more row
+            settings[sz] = tokens;
         }
     }
     return true;
@@ -671,7 +670,7 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
     double stime = TimeCounting();
 #endif
     string name = param->BasicName;
-    if (setting->dataTypeString().size() == 0
+    if (setting->dataTypeString().empty()
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
         && !StringMatch(param->BasicName, CONS_IN_LAT)
         && !StringMatch(param->BasicName, CONS_IN_XPR)
@@ -680,8 +679,8 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         //cout << param->Name << " " << param->BasicName << endl;
     }
     ostringstream oss;
-    int tmp = name.find("LOOKUP");
-    if (tmp < 0) {
+    size_t tmp = name.find("LOOKUP");
+    if (tmp == string::npos) {
         oss << nSubbasin << "_" << name;
     } else {
         oss << name;
@@ -1051,14 +1050,13 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
 }
 
 void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInfo *&paraInfo) {
-    string compareName = outputID;
     size_t n = m_moduleIDs.size();
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
         vector <ParamInfo> &vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
-            if (StringMatch(compareName, vecPara[j].Name)) {
-                iModule = i;
+            if (StringMatch(outputID, vecPara[j].Name)) {
+                iModule = (int) i;
                 paraInfo = &vecPara[j];
                 return;
             }
@@ -1105,7 +1103,7 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
                     continue;
                 }
                 ParamInfo* tmpparam = m_parametersInDB[paraname];
-                if (iter3->second->Change == "") {
+                if (iter3->second->Change.empty()) {
                     iter3->second->Change = tmpparam->Change;
                 }
                 iter3->second->Maximum = tmpparam->Maximum;
