@@ -4,11 +4,15 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
-import os
-import sys
-from math import sqrt
+from __future__ import absolute_import
 
+import os
+from math import sqrt
+import shutil
+
+import numpy
 import networkx as nx
 from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTInteger
@@ -17,10 +21,7 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, FileClass
 from pymongo import ASCENDING
 
-from mpi_adjust_groups import adjust_group_result
-from utility import UTIL_ZERO, MINI_SLOPE
-
-sys.setrecursionlimit(10000)
+from preprocess.utility import UTIL_ZERO, MINI_SLOPE
 
 
 class ImportReaches2Mongo(object):
@@ -29,12 +30,11 @@ class ImportReaches2Mongo(object):
     _LINKNO = 'LINKNO'
     _DSLINKNO = 'DSLINKNO'
     # Fields in _TAB_REACH
+    _GROUP = 'GROUP'  # group divided, e.g., '1,2,3,4'
+    _KMETIS = 'KMETIS'  # group id corresponding to group by kmetis, e.g., '0,0,2,1'.
+    _PMETIS = 'PMETIS'  # group id corresponding to group by pmetis, e.g., '1,1,0,3'
     _SUBBASIN = 'SUBBASINID'
     _NUMCELLS = 'NUM_CELLS'
-    _GROUP = 'GROUP'
-    _GROUPDIVIDED = 'GROUP_DIVIDE'
-    _KMETIS = 'KMETIS'  # GROUP_KMETIS is too long for ArcGIS Shapefile
-    _PMETIS = 'PMETIS'  # the same reason
     _DOWNSTREAM = 'DOWNSTREAM'
     _UPDOWN_ORDER = 'UP_DOWN_ORDER'
     _DOWNUP_ORDER = 'DOWN_UP_ORDER'
@@ -79,62 +79,139 @@ class ImportReaches2Mongo(object):
     _GWSOLP = 'GWSOLP'  # 0-1000 mg/L
 
     @staticmethod
-    def get_subbasin_cell_count(subbsn_file):
+    def get_subbasin_cell_count(subbsn_file, subdict=None):
         """Get cell number of each subbasin.
         Args:
             subbsn_file: subbasin raster file.
+            subdict: default is None
 
         Returns:
             subbasin cell count dict and cell width
         """
-        num_dic = dict()
         wtsd_raster = RasterUtilClass.read_raster(subbsn_file)
-        data = wtsd_raster.data
-        xsize = wtsd_raster.nCols
-        ysize = wtsd_raster.nRows
-        dx = wtsd_raster.dx
-        nodata_value = wtsd_raster.noDataValue
-        for i in range(ysize):
-            for j in range(xsize):
-                k = int(data[i][j])
-                if abs(k - nodata_value) > UTIL_ZERO:
-                    num_dic[k] = num_dic.setdefault(k, 0) + 1
-        return num_dic, dx
+
+        values, counts = numpy.unique(wtsd_raster.data, return_counts=True)
+        if not subdict:
+            subdict = dict()
+        for v, c in zip(values, counts):
+            if abs(v - wtsd_raster.noDataValue) < UTIL_ZERO:
+                continue
+            subdict[int(v)][ImportReaches2Mongo._NUMCELLS] = int(c)
+            subdict[int(v)][ImportReaches2Mongo._AREA] = int(c) * wtsd_raster.dx ** 2
+        return subdict
 
     @staticmethod
-    def stream_orders_from_outlet_up(order_dic, g, node, order_num):
-        """assign order from outlet to upstream subbasins
+    def construct_flow_graph(downstream_dict):
+        g = nx.DiGraph()
+        for from_id, info in downstream_dict.items():
+            if info['downstream'] > 0:
+                g.add_edge(from_id, info['downstream'])
+        return g
+
+    @staticmethod
+    def prepare_node_with_weight_for_metis(graph, weight, wp):
+        # construct the METIS input file
+        UtilClass.mkdir(wp)
+        metis_input = r'%s/metis.txt' % wp
+        ns = graph.nodes()
+        with open(metis_input, 'w') as f:
+            f.write(str(len(ns)) + '\t' + str(len(graph.edges())) + '\t' + '010\t1\n')
+            for node in ns:
+                if node <= 0:
+                    continue
+                f.write(str(weight[node][ImportReaches2Mongo._NUMCELLS]) + '\t')
+                for e in graph.out_edges(node):
+                    if e[1] > 0:
+                        f.write(str(e[1]) + '\t')
+                for e in graph.in_edges(node):
+                    if e[0] > 0:
+                        f.write(str(e[0]) + '\t')
+                f.write('\n')
+        return metis_input
+
+    @staticmethod
+    def metis_partition(g, weight, wp, bin_dir):
+        """Partition subbasins into multiple groups by METIS
+
         Args:
-            order_dic: result dict
-            g: directed graphs object
-            node: graph node
-            order_num: stream order number
+            g: `NetworkX.DiGraph` object
+            weight: weight of each node, e.g., area of subbasin, {subbasinID: weight}
+            wp: output directory
+            bin_dir: directory of METIS package
+        Returns:
+            group_dict: {subbasinID: {'group': group_number_list,
+                                      'kmetis': group_ids_list_by_kmetis,
+                                      'pmetis': group_ids_list_by_pmetis}
+                        }
         """
-        order_dic[node] = order_num
-        for inNode in g.in_edges(node):
-            ImportReaches2Mongo.stream_orders_from_outlet_up(order_dic, g, inNode[0], order_num + 1)
+        group_dict = dict()
+        for subbsn_id in g.nodes():
+            group_dict[subbsn_id] = {'group': list(), 'kmetis': list(), 'pmetis': list()}
+
+        metis_input = ImportReaches2Mongo.prepare_node_with_weight_for_metis(g, weight, wp)
+        # Creating group divided numbers
+        nlist = list(range(1, 129))
+        nlist.extend([192, 256, 384, 512, 768, 1536])
+        # nlist should be less than the number of subbasin, otherwise it will make nonsense.
+        ns = g.nodes()
+        nlist = [x for x in nlist if x <= max(ns)]
+        # Make directiories for KMETIS and PMETIS
+        UtilClass.mkdir(wp + os.sep + 'kmetis')
+        UtilClass.mkdir(wp + os.sep + 'pmetis')
+        for n in nlist:
+            print('divide number: %d' % n)
+            if n <= 1:
+                for subbsn_id in g.nodes():
+                    group_dict[subbsn_id]['group'].append(1)
+                    group_dict[subbsn_id]['kmetis'].append(0)
+                    group_dict[subbsn_id]['pmetis'].append(0)
+                continue
+            # kmetis, -ptype=kway, direct k-way partitioning (default)
+            str_command = '"%s/gpmetis" %s %d' % (bin_dir, metis_input, n)
+            result = UtilClass.run_command(str_command)
+            with open('%s/kmetis/kmetisResult%d.txt' % (wp, n), 'w') as f_metis_output:
+                for line in result:
+                    f_metis_output.write(line)
+            metis_output = '%s.part.%d' % (metis_input, n)
+            with open(metis_output, 'r') as f:
+                lines = f.readlines()
+            group_kmetis = [int(item) for item in lines]
+            shutil.move(metis_output, '%s/kmetis/metis.part.%d' % (wp, n))
+
+            # pmetis, -ptype=rb, recursive bisectioning
+            str_command = '"%s/gpmetis" -ptype=rb %s %d' % (bin_dir, metis_input, n)
+            result = UtilClass.run_command(str_command)
+            with open('%s/pmetis/pmetisResult%d.txt' % (wp, n), 'w') as f_metis_output:
+                for line in result:
+                    f_metis_output.write(line)
+            with open(metis_output, 'r') as f:
+                lines = f.readlines()
+            group_pmetis = [int(item) for item in lines]
+            shutil.move(metis_output, '%s/pmetis/metis.part.%d' % (wp, n))
+
+            for i, (gk, gp) in enumerate(zip(group_kmetis, group_pmetis)):
+                group_dict[i + 1]['group'].append(n)
+                group_dict[i + 1]['kmetis'].append(gk)
+                group_dict[i + 1]['pmetis'].append(gp)
+        return group_dict
 
     @staticmethod
-    def down_stream(reach_shp, is_taudem=True):
-        """Construct stream order layers etc.
+    def read_reach_downstream_info(reach_shp, is_taudem=True):
+        """Read informations of subbasin.
         Args:
             reach_shp: reach ESRI shapefile.
             is_taudem: is TauDEM or not, true is default.
 
         Returns:
-            down_stream_dic: the key is stream id, and value is its downstream id
-            downstream_up_order_dic: from outlet up stream dict
-            upstream_down_order_dic: from source down stream dict
-            depth_dic: stream depth dict
-            slope_dic: stream slope dict
-            width_dic: stream width dict
-            len_dic: stream length dict
+            rch_dict: {stream ID: {'downstream': downstreamID,
+                                   'depth': depth value,
+                                   'slope': slope value,
+                                   'width': width value,
+                                   'length': length value}
+                                  }
         """
-        down_stream_dic = dict()
-        depth_dic = dict()
-        slope_dic = dict()
-        width_dic = dict()
-        len_dic = dict()
+        rch_dict = dict()
+
         ds_reach = ogr_Open(reach_shp)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
@@ -143,42 +220,35 @@ class ImportReaches2Mongo(object):
             ImportReaches2Mongo._DSLINKNO = 'TO_NODE'
             ImportReaches2Mongo._SLOPE = 'Slo2'  # TauDEM: Slope (tan); ArcSWAT: Slo2 (100*tan)
             ImportReaches2Mongo._LENGTH = 'Len2'  # TauDEM: Length; ArcSWAT: Len2
-        i_from = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
-        i_to = layer_def.GetFieldIndex(ImportReaches2Mongo._DSLINKNO)
-        i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
-        i_slope = layer_def.GetFieldIndex('Slope')
-        i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
-        i_len = layer_def.GetFieldIndex('Length')
+        ifrom = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
+        ito = layer_def.GetFieldIndex(ImportReaches2Mongo._DSLINKNO)
+        idph = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
+        islp = layer_def.GetFieldIndex('Slope')
+        iwth = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
+        ilen = layer_def.GetFieldIndex('Length')
 
-        g = nx.DiGraph()
         ft = layer_reach.GetNextFeature()
         while ft is not None:
-            node_from = ft.GetFieldAsInteger(i_from)
-            node_to = ft.GetFieldAsInteger(i_to)
-            if i_depth > -1:
-                depth_dic[node_from] = ft.GetFieldAsDouble(i_depth)
-            else:
-                depth_dic[node_from] = 1
+            nfrom = ft.GetFieldAsInteger(ifrom)
+            nto = ft.GetFieldAsInteger(ito)
+            rch_dict[nfrom] = {'downstream': nto,
+                               'depth': ft.GetFieldAsDouble(idph) if idph > -1 else 5,
+                               'slope': ft.GetFieldAsDouble(islp) if islp > -1 else MINI_SLOPE,
+                               'width': ft.GetFieldAsDouble(iwth) if iwth > -1 else 5,
+                               'length': ft.GetFieldAsDouble(ilen)}
 
-            if i_depth > -1:
-                slope_dic[node_from] = ft.GetFieldAsDouble(i_slope)
-                if slope_dic[node_from] < MINI_SLOPE:
-                    slope_dic[node_from] = MINI_SLOPE
-            else:
-                slope_dic[node_from] = MINI_SLOPE
-
-            if i_width > -1:
-                width_dic[node_from] = ft.GetFieldAsDouble(i_width)
-            else:
-                width_dic[node_from] = 10
-
-            len_dic[node_from] = ft.GetFieldAsDouble(i_len)
-            down_stream_dic[node_from] = node_to
-            if node_to > 0:
-                # print node_from, node_to
-                g.add_edge(node_from, node_to)
             ft = layer_reach.GetNextFeature()
 
+        return rch_dict
+
+    @staticmethod
+    def construct_downup_order(g):
+        """
+
+        Returns:
+            downstream_up_order_dic: from outlet up stream dict
+            upstream_down_order_dic: from source down stream dict
+        """
         # find outlet subbasin
         outlet = -1
         for node in g.nodes():
@@ -187,21 +257,30 @@ class ImportReaches2Mongo(object):
         if outlet < 0:
             raise ValueError('Cannot find outlet subbasin ID, please check the '
                              'threshold for stream extraction!')
-        print ('outlet subbasin:%d' % outlet)
+        print('outlet subbasin:%d' % outlet)
 
-        # assign order from outlet to upstream subbasins
+        # assign order from outlet to upstream subbasins from 1
         downstream_up_order_dic = dict()
-        ImportReaches2Mongo.stream_orders_from_outlet_up(downstream_up_order_dic, g, outlet, 1)
-        # find the maximum order number
-        max_order = 0
-        for k, v in downstream_up_order_dic.items():
-            if v > max_order:
-                max_order = v
+        start_node = [outlet]
+        order_num = 0
+        while start_node:
+            tmp = list()
+            order_num += 1
+            for snode in start_node:
+                downstream_up_order_dic[snode] = order_num
+                for in_nodes in g.in_edges(snode):
+                    tmp.append(in_nodes[0])
+            start_node = tmp[:]
+        # order_num now is the maximum order number from outlet
         # reserve the order number
         for k, v in downstream_up_order_dic.items():
-            downstream_up_order_dic[k] = max_order - v + 1
+            downstream_up_order_dic[k] = order_num - v + 1
+        return downstream_up_order_dic
 
+    @staticmethod
+    def construct_updown_order(graph):
         # assign order from the source subbasins
+        g = graph.copy()
         upstream_down_order_dic = dict()
         order_num = 1
         nodelist = g.nodes()
@@ -216,259 +295,165 @@ class ImportReaches2Mongo(object):
                 g.remove_node(item)
             order_num += 1
 
-        return (down_stream_dic, downstream_up_order_dic, upstream_down_order_dic,
-                depth_dic, slope_dic, width_dic, len_dic)
+        return upstream_down_order_dic
 
     @staticmethod
-    def add_group_field(shp_file, subbasin_field_name, n, group_kmetis, group_pmetis, ns):
+    def add_group_field(shp_file, subbasin_field_name, group_metis_dict):
         """add group information to subbasin ESRI shapefile
+
         Args:
             shp_file: Subbasin Shapefile
             subbasin_field_name: field name of subbasin
-            n: divide number
-            group_kmetis: kmetis
-            group_pmetis: pmetis
-            ns: a list of the nodes in the graph
-
-        Returns:
-            group_dic: group dict
-            group_dic_pmetis: pmetis dict
+            group_metis_dict: returned by func`metis_partition`
         """
+        if not group_metis_dict:
+            return
         ds_reach = ogr_Open(shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
-        i_code = layer_def.GetFieldIndex(subbasin_field_name)
-        i_group = layer_def.GetFieldIndex(ImportReaches2Mongo._GROUP)
-        i_group_pmetis = layer_def.GetFieldIndex(ImportReaches2Mongo._PMETIS)
-        if i_group < 0:
+        icode = layer_def.GetFieldIndex(subbasin_field_name)
+        igrp = layer_def.GetFieldIndex(ImportReaches2Mongo._GROUP)
+        ikgrp = layer_def.GetFieldIndex(ImportReaches2Mongo._KMETIS)
+        ipgrp = layer_def.GetFieldIndex(ImportReaches2Mongo._PMETIS)
+
+        if igrp < 0:
             new_field = ogr_FieldDefn(ImportReaches2Mongo._GROUP, OFTInteger)
             layer_reach.CreateField(new_field)
-        if i_group_pmetis < 0:
+        if ikgrp < 0:
+            new_field = ogr_FieldDefn(ImportReaches2Mongo._KMETIS, OFTInteger)
+            layer_reach.CreateField(new_field)
+        if ipgrp < 0:
             new_field = ogr_FieldDefn(ImportReaches2Mongo._PMETIS, OFTInteger)
             layer_reach.CreateField(new_field)
-            # grid_code:feature map
+
         ftmap = dict()
         layer_reach.ResetReading()
         ft = layer_reach.GetNextFeature()
         while ft is not None:
-            tmpid = ft.GetFieldAsInteger(i_code)
+            tmpid = ft.GetFieldAsInteger(icode)
             ftmap[tmpid] = ft
             ft = layer_reach.GetNextFeature()
 
-        group_dic = dict()
-        group_dic_pmetis = dict()
-        i = 0
-        for node in ns:
-            group_dic[node] = group_kmetis[i]
-            group_dic_pmetis[node] = group_pmetis[i]
-            ftmap[node].SetField(ImportReaches2Mongo._GROUP, group_kmetis[i])
-            ftmap[node].SetField(ImportReaches2Mongo._PMETIS, group_pmetis[i])
-            layer_reach.SetFeature(ftmap[node])
-            i += 1
+        groups = group_metis_dict[1]['group']
+        for i, n in enumerate(groups):
+            for node, d in group_metis_dict.items():
+                ftmap[node].SetField(ImportReaches2Mongo._GROUP, n)
+                ftmap[node].SetField(ImportReaches2Mongo._KMETIS, d['kmetis'][i])
+                ftmap[node].SetField(ImportReaches2Mongo._PMETIS, d['pmetis'][i])
+                layer_reach.SetFeature(ftmap[node])
+            # copy the reach file to new file
+            prefix = os.path.splitext(shp_file)[0]
+            dstfile = prefix + "_" + str(n) + ".shp"
+            FileClass.copy_files(shp_file, dstfile)
 
         layer_reach.SyncToDisk()
         ds_reach.Destroy()
         del ds_reach
 
-        # copy the reach file to new file
-        prefix = os.path.splitext(shp_file)[0]
-        dstfile = prefix + "_" + str(n) + ".shp"
-        FileClass.copy_files(shp_file, dstfile)
-        return group_dic, group_dic_pmetis
-
     @staticmethod
     def generate_reach_table(cfg, maindb):
-        """generate reaches table"""
-        # remove the older reaches collection if existed
-        maindb.drop_collection(ImportReaches2Mongo._TAB_REACH)
+        """Generate reaches table and import to MongoDB
 
-        area_dic, dx = ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn)
-        (downStreamDic, downstreamUpOrderDic, upstreamDownOrderDic, depthDic,
-         slopeDic, widthDic, lenDic) = ImportReaches2Mongo.down_stream(cfg.vecs.reach)
-        # for k in downStreamDic:
-        #     print (k, downStreamDic[k])
+        Args:
+            cfg: configuration object
+            maindb: database object of MongoDB
+        """
+        reach_dict = ImportReaches2Mongo.read_reach_downstream_info(cfg.vecs.reach)
+        ImportReaches2Mongo.get_subbasin_cell_count(cfg.spatials.subbsn, reach_dict)
 
-        g = nx.DiGraph()
-        for k in downStreamDic:
-            if downStreamDic[k] > 0:
-                g.add_edge(k, downStreamDic[k])
-
-        ns = g.nodes()
-
-        # construct the METIS input file
-        UtilClass.mkdir(cfg.dirs.metis)
-        metis_input = r'%s/metis.txt' % cfg.dirs.metis
-        f = open(metis_input, 'w')
-        f.write(str(len(ns)) + '\t' + str(len(g.edges())) + '\t' + '010\t1\n')
-        for node in ns:
-            if node <= 0:
-                continue
-            f.write(str(area_dic[node]) + '\t')
-            for e in g.out_edges(node):
-                if e[1] > 0:
-                    f.write(str(e[1]) + '\t')
-            for e in g.in_edges(node):
-                if e[0] > 0:
-                    f.write(str(e[0]) + '\t')
-            f.write('\n')
-        f.close()
-
-        # execute metis
-        nlist = [1, ]
-        if cfg.cluster:
-            a = [1, 2, 3, 6]
-            a2 = [12 * pow(2, i) for i in range(8)]
-            a.extend(a2)
-
-            b = [1, 3]
-            b2 = [i / 2 for i in a2]
-            b.extend(b2)
-
-            c = [1, 2]
-            c2 = [i / 3 for i in a2]
-            c.extend(c2)
-
-            d = [1]
-            d2 = [i / 6 for i in a2]
-            d.extend(d2)
-
-            e = [i / 12 for i in a2]
-
-            nlist = a + b + c + d + e
-            nlist.extend(range(1, 129))
-            # nlist.extend([576, 288, 512, 258, 172])
-            nlist = list(set(nlist))
-            nlist.sort()
-        # nlist should be less than the number of subbasin, otherwise it will make nonsense.
-        # by LJ
-        nlist = [x for x in nlist if x <= max(ns)]
+        g = ImportReaches2Mongo.construct_flow_graph(reach_dict)
+        downup_order = ImportReaches2Mongo.construct_downup_order(g)
+        updown_order = ImportReaches2Mongo.construct_updown_order(g)
 
         # interpolation among different stream orders
         min_manning = 0.035
         max_manning = 0.075
 
-        min_order = 1
-        max_order = 1
-        for k, up_order in upstreamDownOrderDic.items():
-            if up_order > max_order:
-                max_order = up_order
+        rch_orders = list(updown_order.values())
+        min_order = min(rch_orders)
+        max_order = max(rch_orders)
 
-        dic_manning = dict()
         a = (max_manning - min_manning) / (max_order - min_order)
-        for tmpid in downStreamDic.keys():
-            dic_manning[tmpid] = max_manning - a * (upstreamDownOrderDic[tmpid] - min_order)
+        for tmpid in list(reach_dict.keys()):
+            reach_dict[tmpid]['manning'] = max_manning - a * (updown_order[tmpid] - min_order)
 
-        def import_reach_info(n, down_stream_dic, gdic_k, gdic_p):
-            """import reach info"""
-            for tmpid2 in down_stream_dic:
-                dic = dict()
-                dic[ImportReaches2Mongo._SUBBASIN] = tmpid2
-                dic[ImportReaches2Mongo._DOWNSTREAM] = down_stream_dic[tmpid2]
-                dic[ImportReaches2Mongo._UPDOWN_ORDER] = upstreamDownOrderDic[tmpid2]
-                dic[ImportReaches2Mongo._DOWNUP_ORDER] = downstreamUpOrderDic[tmpid2]
-                dic[ImportReaches2Mongo._MANNING] = dic_manning[tmpid2]
-                dic[ImportReaches2Mongo._SLOPE] = slopeDic[tmpid2]
-                dic[ImportReaches2Mongo._V0] = sqrt(slopeDic[tmpid2]) * \
-                                               pow(depthDic[tmpid2], 2. / 3.) / \
-                                               dic[ImportReaches2Mongo._MANNING]
-                dic[ImportReaches2Mongo._NUMCELLS] = area_dic[tmpid2]
-                if n == 1:
-                    dic[ImportReaches2Mongo._GROUP] = n
-                else:
-                    dic[ImportReaches2Mongo._KMETIS] = gdic_k[tmpid2]
-                    dic[ImportReaches2Mongo._PMETIS] = gdic_p[tmpid2]
-                dic[ImportReaches2Mongo._GROUPDIVIDED] = n
-                dic[ImportReaches2Mongo._WIDTH] = widthDic[tmpid2]
-                dic[ImportReaches2Mongo._LENGTH] = lenDic[tmpid2]
-                dic[ImportReaches2Mongo._DEPTH] = depthDic[tmpid2]
-                dic[ImportReaches2Mongo._AREA] = area_dic[tmpid2] * dx * dx
-                dic[ImportReaches2Mongo._SIDESLP] = 2.
-                dic[ImportReaches2Mongo._KBANK] = 20.
-                dic[ImportReaches2Mongo._KBED] = 0.5
-                dic[ImportReaches2Mongo._BC1] = 0.55
-                dic[ImportReaches2Mongo._BC2] = 1.1
-                dic[ImportReaches2Mongo._BC3] = 0.21
-                dic[ImportReaches2Mongo._BC4] = 0.35
-                dic[ImportReaches2Mongo._RK1] = 1.71
-                dic[ImportReaches2Mongo._RK2] = 50
-                dic[ImportReaches2Mongo._RK3] = 0.36
-                dic[ImportReaches2Mongo._RK4] = 2
-                dic[ImportReaches2Mongo._RS1] = 1
-                dic[ImportReaches2Mongo._RS2] = 0.05
-                dic[ImportReaches2Mongo._RS3] = 0.5
-                dic[ImportReaches2Mongo._RS4] = 0.05
-                dic[ImportReaches2Mongo._RS5] = 0.05
-                dic[ImportReaches2Mongo._COVER] = 0.1
-                dic[ImportReaches2Mongo._EROD] = 0.1
-                dic[ImportReaches2Mongo._DISOX] = 10
-                dic[ImportReaches2Mongo._BOD] = 10
-                dic[ImportReaches2Mongo._ALGAE] = 0
-                dic[ImportReaches2Mongo._ORGN] = 0
-                dic[ImportReaches2Mongo._NH4] = 0
-                dic[ImportReaches2Mongo._NO2] = 0
-                dic[ImportReaches2Mongo._NO3] = 0
-                dic[ImportReaches2Mongo._ORGP] = 0
-                dic[ImportReaches2Mongo._SOLP] = 0
-                dic[ImportReaches2Mongo._GWNO3] = 0
-                dic[ImportReaches2Mongo._GWSOLP] = 0
+        group_metis = ImportReaches2Mongo.metis_partition(g, reach_dict,
+                                                          cfg.dirs.metis, cfg.seims_bin)
+        # add group fields to Shapefile for visualization
+        ImportReaches2Mongo.add_group_field(cfg.vecs.reach, ImportReaches2Mongo._LINKNO,
+                                            group_metis)
+        ImportReaches2Mongo.add_group_field(cfg.vecs.subbsn, ImportReaches2Mongo._SUBBASIN,
+                                            group_metis)
+        # import to MongoDB
+        ImportReaches2Mongo.import_reach_info(maindb, reach_dict, updown_order,
+                                              downup_order, group_metis)
 
-                cur_filter = {ImportReaches2Mongo._SUBBASIN: tmpid2}
-                maindb[ImportReaches2Mongo._TAB_REACH].find_one_and_replace(cur_filter, dic,
-                                                                            upsert=True)
+    @staticmethod
+    def import_reach_info(maindb, rch, updown, downup, metis):
+        """import reach info"""
+        # remove the older reaches collection if existed
+        maindb.drop_collection(ImportReaches2Mongo._TAB_REACH)
 
-        for n in nlist:
-            print ('divide number: ', n)
-            if n == 1:
-                import_reach_info(n, downStreamDic, {}, {})
-                continue
+        for subbsn_id, rchdata in rch.items():
+            dic = dict()
+            dic[ImportReaches2Mongo._SUBBASIN] = subbsn_id
+            dic[ImportReaches2Mongo._DOWNSTREAM] = rchdata['downstream']
+            dic[ImportReaches2Mongo._UPDOWN_ORDER] = updown[subbsn_id]
+            dic[ImportReaches2Mongo._DOWNUP_ORDER] = downup[subbsn_id]
+            dic[ImportReaches2Mongo._MANNING] = rchdata['manning']
+            dic[ImportReaches2Mongo._SLOPE] = rchdata['slope']
+            dic[ImportReaches2Mongo._V0] = sqrt(rchdata['slope']) * pow(rchdata['depth'], 2. / 3.) / \
+                                           rchdata['manning']
+            dic[ImportReaches2Mongo._NUMCELLS] = rchdata[ImportReaches2Mongo._NUMCELLS]
+            dic[ImportReaches2Mongo._GROUP] = ','.join(str(v) for v in metis[subbsn_id]['group'])
+            dic[ImportReaches2Mongo._KMETIS] = ','.join(str(v) for v in metis[subbsn_id]['kmetis'])
+            dic[ImportReaches2Mongo._PMETIS] = ','.join(str(v) for v in metis[subbsn_id]['pmetis'])
+            dic[ImportReaches2Mongo._WIDTH] = rchdata['width']
+            dic[ImportReaches2Mongo._LENGTH] = rchdata['length']
+            dic[ImportReaches2Mongo._DEPTH] = rchdata['depth']
+            dic[ImportReaches2Mongo._AREA] = rchdata[ImportReaches2Mongo._AREA]
+            dic[ImportReaches2Mongo._SIDESLP] = 2.
+            dic[ImportReaches2Mongo._KBANK] = 20.
+            dic[ImportReaches2Mongo._KBED] = 0.5
+            dic[ImportReaches2Mongo._BC1] = 0.55
+            dic[ImportReaches2Mongo._BC2] = 1.1
+            dic[ImportReaches2Mongo._BC3] = 0.21
+            dic[ImportReaches2Mongo._BC4] = 0.35
+            dic[ImportReaches2Mongo._RK1] = 1.71
+            dic[ImportReaches2Mongo._RK2] = 50
+            dic[ImportReaches2Mongo._RK3] = 0.36
+            dic[ImportReaches2Mongo._RK4] = 2
+            dic[ImportReaches2Mongo._RS1] = 1
+            dic[ImportReaches2Mongo._RS2] = 0.05
+            dic[ImportReaches2Mongo._RS3] = 0.5
+            dic[ImportReaches2Mongo._RS4] = 0.05
+            dic[ImportReaches2Mongo._RS5] = 0.05
+            dic[ImportReaches2Mongo._COVER] = 0.1
+            dic[ImportReaches2Mongo._EROD] = 0.1
+            dic[ImportReaches2Mongo._DISOX] = 10
+            dic[ImportReaches2Mongo._BOD] = 10
+            dic[ImportReaches2Mongo._ALGAE] = 0
+            dic[ImportReaches2Mongo._ORGN] = 0
+            dic[ImportReaches2Mongo._NH4] = 0
+            dic[ImportReaches2Mongo._NO2] = 0
+            dic[ImportReaches2Mongo._NO3] = 0
+            dic[ImportReaches2Mongo._ORGP] = 0
+            dic[ImportReaches2Mongo._SOLP] = 0
+            dic[ImportReaches2Mongo._GWNO3] = 0
+            dic[ImportReaches2Mongo._GWSOLP] = 0
 
-            # for cluster, based on kmetis
-            str_command = '"%s/gpmetis" %s %d' % (cfg.seims_bin, metis_input, n)
-            result = UtilClass.run_command(str_command)
-            f_metis_output = open('%s/kmetisResult%d.txt' % (cfg.dirs.metis, n), 'w')
-            for line in result:
-                f_metis_output.write(line)
-            f_metis_output.close()
+            cur_filter = {ImportReaches2Mongo._SUBBASIN: subbsn_id}
+            maindb[ImportReaches2Mongo._TAB_REACH].find_one_and_replace(cur_filter, dic,
+                                                                        upsert=True)
 
-            metis_output = '%s.part.%d' % (metis_input, n)
-            f = open(metis_output)
-            lines = f.readlines()
-            group_kmetis = [int(item) for item in lines]
-            f.close()
-            adjust_group_result(g, area_dic, group_kmetis, n)
-
-            # pmetis
-            str_command = '"%s/gpmetis" -ptype=rb %s %d' % (cfg.seims_bin, metis_input, n)
-            result = UtilClass.run_command(str_command)
-            f_metis_output = open('%s/pmetisResult%d.txt' % (cfg.dirs.metis, n), 'w')
-            for line in result:
-                f_metis_output.write(line)
-            f_metis_output.close()
-
-            f = open(metis_output)
-            lines = f.readlines()
-            group_pmetis = [int(item) for item in lines]
-            f.close()
-            adjust_group_result(g, area_dic, group_pmetis, n)
-
-            group_dic_k, group_dic_p = \
-                ImportReaches2Mongo.add_group_field(cfg.vecs.reach, ImportReaches2Mongo._LINKNO,
-                                                    n, group_kmetis, group_pmetis, ns)
-            group_dic_k, group_dic_p = \
-                ImportReaches2Mongo.add_group_field(cfg.vecs.subbsn, ImportReaches2Mongo._SUBBASIN,
-                                                    n, group_kmetis, group_pmetis, ns)
-
-            import_reach_info(n, downStreamDic, group_dic_k, group_dic_p)
         maindb[ImportReaches2Mongo._TAB_REACH].create_index([(ImportReaches2Mongo._SUBBASIN,
-                                                              ASCENDING),
-                                                             (ImportReaches2Mongo._GROUPDIVIDED,
                                                               ASCENDING)])
 
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

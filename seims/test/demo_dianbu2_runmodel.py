@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """
   Running SEIMS of demo watershed named dianbu2.
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -16,7 +19,7 @@ except ImportError:
 from pygeoc.utils import UtilClass
 
 from run_seims import MainSEIMS
-from demo_config import ModelPaths
+from test.demo_config import ModelPaths
 
 
 def main():

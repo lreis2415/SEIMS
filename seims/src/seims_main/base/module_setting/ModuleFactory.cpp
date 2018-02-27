@@ -77,7 +77,6 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
-
 #ifndef NDEBUG
             dllID = dllID + "d";
 #endif /* NDEBUG */
@@ -87,7 +86,6 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = MID_TSD_RD;
 #else
             dllID = Tag_So + string(MID_TSD_RD);
-
 #ifndef NDEBUG
             dllID = dllID + "d";
 #endif /* NDEBUG */
@@ -280,25 +278,23 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
         TiXmlElement *eleParam = eleParams->FirstChildElement(TagParameter.c_str());
         while (eleParam != nullptr) {
             // clear the object
-            ParamInfo *param = new ParamInfo();
-
+            ParamInfo param;
             // set the module id
-            param->ModuleID = moduleID;
-
+            param.ModuleID = moduleID;
             // get the parameter name
             TiXmlElement *elItm = eleParam->FirstChildElement(TagParameterName.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Name = GetUpper(string(elItm->GetText()));
-                    param->BasicName = param->Name;
-                    param->ClimateType = setting->dataTypeString();
+                    param.Name = GetUpper(string(elItm->GetText()));
+                    param.BasicName = param.Name;
+                    param.ClimateType = setting->dataTypeString();
 
                     //set climate data type got from config.fig
                     //this is used for interpolation module
-                    if (StringMatch(param->Name, Tag_DataType)) param->Value = setting->dataType();
+                    if (StringMatch(param.Name, Tag_DataType)) param.Value = setting->dataType();
 
                     //special process for interpolation modules
-                    if (StringMatch(param->Name, Tag_Weight)) {
+                    if (StringMatch(param.Name, Tag_Weight)) {
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "ReadParameterSetting",
                                                  "The parameter " + string(Tag_Weight) +
@@ -310,100 +306,88 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                         {
                             //The weight coefficient file is same for TMEAN, TMIN and TMAX, 
                             //  so just need to read one file named "Weight_M"
-                            param->Name += "_M";  
+                            param.Name += "_M";  
                                 
                         } else {
                             // Combine weight and data type. e.g. Weight + PET = Weight_PET, 
                             //  this combined string must be the same with the parameter column 
                             //  in the climate table of parameter database.    
-                            param->Name += "_" + setting->dataTypeString();
+                            param.Name += "_" + setting->dataTypeString();
                         }
                     }
 
                     //special process for interpolation modules
-                    if (StringMatch(param->Name, Tag_StationElevation)) {
+                    if (StringMatch(param.Name, Tag_StationElevation)) {
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "readParameterSetting",
                                                  "The parameter " + string(Tag_StationElevation) +
                                                      " should have corresponding data type in module " + moduleID);
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_Precipitation)) {
-                            param->BasicName += "_P";
-                            param->Name += "_P";
+                            param.BasicName += "_P";
+                            param.Name += "_P";
                         } else {
-                            param->BasicName += "_M";
-                            param->Name += "_M";
+                            param.BasicName += "_M";
+                            param.Name += "_M";
                         }
                     }
 
-                    if (StringMatch(param->Name, Tag_VerticalInterpolation)) //if do the vertical interpolation
+                    if (StringMatch(param.Name, Tag_VerticalInterpolation)) //if do the vertical interpolation
                     {
-                        param->Value = (setting->needDoVerticalInterpolation() ? 1.0f : 0.0f);
+                        param.Value = (setting->needDoVerticalInterpolation() ? 1.0f : 0.0f);
                     }
                 }
             }
-
             // get the parameter description
             elItm = eleParam->FirstChildElement(TagParameterDescription.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Description = elItm->GetText();
+                    param.Description = elItm->GetText();
                 }
             }
-
             // get the parameter units
             elItm = eleParam->FirstChildElement(TagParameterUnits.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Units = elItm->GetText();
+                    param.Units = elItm->GetText();
                 }
             }
-
             // get the parameter source
             elItm = eleParam->FirstChildElement(TagParameterSource.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Source = elItm->GetText();
+                    param.Source = elItm->GetText();
                 }
             }
-
             // get the parameter dimension
             elItm = eleParam->FirstChildElement(TagParameterDimension.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
-                    param->Dimension = MatchType(string(elItm->GetText()));
+                    param.Dimension = MatchType(string(elItm->GetText()));
                 }
             }
-
             // cleanup
             elItm = nullptr;
 
             // parameter must have these values
-            if (param->Name.size() <= 0) {
-                delete param;
+            if (param.Name.empty()) {
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "Some parameters have not name in metadata!");
             }
 
-            if (param->Source.size() <= 0) {
-                string name = param->Name;
-                delete param;
+            if (param.Source.empty()) {
+                string name = param.Name;
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "parameter " + name + " does not have source!");
             }
 
-            if (param->Dimension == DT_Unknown) {
-                string name = param->Name;
-                delete param;
+            if (param.Dimension == DT_Unknown) {
+                string name = param.Name;
                 throw ModelException("ModuleFactory", "ReadParameterSetting",
                                      "parameter " + name + " does not have dimension!");
             }
-
             // add to the list
-            //m_paramters[GetUpper(param->Name)] = param;
-            vecPara.push_back(*param);
-            delete param;
-
+            vecPara.push_back(param);
             // get the next parameter if it exists
             eleParam = eleParam->NextSiblingElement();
         } // while
@@ -484,13 +468,13 @@ void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMS
             elItm = nullptr;
 
             // input must have these values
-            if (param->Name.size() <= 0) {
+            if (param->Name.empty()) {
                 delete param;
                 throw ModelException("SEIMSModule", "ReadInputSetting",
                                      "Some input variables have not name in metadata!");
             }
 
-            if (param->Source.size() <= 0) {
+            if (param->Source.empty()) {
                 string name = param->Name;
                 delete param;
                 throw ModelException("SEIMSModule", "ReadInputSetting",
@@ -534,7 +518,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
                 if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
                     param->BasicName = param->Name;
-                    if (setting->dataTypeString().size() > 0) {
+                    if (!setting->dataTypeString().empty()) {
                         param->Name = param->Name + "_" + setting->dataTypeString();
                     }
                 }
@@ -572,7 +556,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
             param->IsOutput = true;
 
             // output variable must have these values
-            if (param->Name.size() <= 0) {
+            if (param->Name.empty()) {
                 delete param;
                 throw ModelException("SEIMSModule", "readOutputSetting",
                                      "Some output variables have not name in metadata!");
@@ -593,7 +577,7 @@ void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIM
     }
 }
 
-bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string>>& settings) {
+bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings) {
     vector<string> cfgStrs;
     if (!LoadPlainTextFile(filename, cfgStrs)) {
         return false;
@@ -601,46 +585,45 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
     string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
                              DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
                              DataType_RelativeAirMoisture};
-    for (vector<string>::iterator iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
+    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); iter++) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
         // is there anything in the token list?
-        if (tokens.size() > 0) {
-            for (size_t i = 0; i < tokens.size(); i++) {
-                //TrimSpaces(tokens[i]);
-                tokens[i] = trim(tokens[i]);
-            }
-            // is there anything in the first item?
-            if (tokens[0].size() > 0) {
-                // there is something to add so resize the header list to append it
-                int sz = settings.size(); // get the current number of rows
-                if (tokens[3].find(MID_ITP) != string::npos ||
-                    tokens[3].find(MID_TSD_RD) != string::npos) {
-                    settings.resize(sz + 7);
+        if (tokens.empty()) continue;
+        for (size_t i = 0; i < tokens.size(); i++) {
+            //TrimSpaces(tokens[i]);
+            tokens[i] = trim(tokens[i]);
+        }
+        if (tokens.empty()) continue;
+        // is there anything in the first item? Or, the size of tokens greater than 4?
+        if (tokens[0].empty() || tokens.size() < 4) continue;
+        // there is something to add so resize the header list to append it
+        size_t sz = settings.size(); // get the current number of rows
+        if (tokens[3].find(MID_ITP) != string::npos ||
+            tokens[3].find(MID_TSD_RD) != string::npos) {
+            settings.resize(sz + 7);
 
-                    for (size_t j = 0; j < 7; j++) {
-                        vector<string> tokensTemp(tokens);
-                        tokensTemp[1] += "_" + T_variables[j];
-                        if (tokens[3].find(MID_ITP) != string::npos) {
-                            vector<string> ITPProperty = SplitString(*iter, '_');
-                            if (ITPProperty.size() == 2) {
-                                int isVertical = atoi(ITPProperty[1].c_str());
-                                if (isVertical) {
-                                    tokensTemp[1] += "_1";
-                                }
-                                else {
-                                    tokensTemp[1] += "_0";
-                                }
-                            }
+            for (size_t j = 0; j < 7; j++) {
+                vector<string> tokensTemp(tokens);
+                tokensTemp[1] += "_" + T_variables[j];
+                if (tokens[3].find(MID_ITP) != string::npos) {
+                    vector<string> ITPProperty = SplitString(*iter, '_');
+                    if (ITPProperty.size() == 2) {
+                        int isVertical = atoi(ITPProperty[1].c_str());
+                        if (isVertical) {
+                            tokensTemp[1] += "_1";
                         }
-                        settings[sz + j] = tokensTemp;
+                        else {
+                            tokensTemp[1] += "_0";
+                        }
                     }
                 }
-                else {
-                    settings.resize(sz + 1);        // resize with one more row
-                    settings[sz] = tokens;
-                }
-            } // if there is nothing in the first item of the token list there is nothing to add to the header list
+                settings[sz + j] = tokensTemp;
+            }
+        }
+        else {
+            settings.resize(sz + 1);        // resize with one more row
+            settings[sz] = tokens;
         }
     }
     return true;
@@ -657,7 +640,6 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
                 string module = GetUpper(settings[i][3]);
 #ifndef MSVC
                 module = Tag_So + module;
-
 #ifndef NDEBUG
                 module = module + "d";
 #endif /* NDEBUG */
@@ -688,7 +670,7 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
     double stime = TimeCounting();
 #endif
     string name = param->BasicName;
-    if (setting->dataTypeString().size() == 0
+    if (setting->dataTypeString().empty()
         && !StringMatch(param->BasicName, CONS_IN_ELEV)
         && !StringMatch(param->BasicName, CONS_IN_LAT)
         && !StringMatch(param->BasicName, CONS_IN_XPR)
@@ -697,8 +679,8 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
         //cout << param->Name << " " << param->BasicName << endl;
     }
     ostringstream oss;
-    int tmp = name.find("LOOKUP");
-    if (tmp < 0) {
+    size_t tmp = name.find("LOOKUP");
+    if (tmp == string::npos) {
         oss << nSubbasin << "_" << name;
     } else {
         oss << name;
@@ -737,7 +719,8 @@ void ModuleFactory::SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *s
     }
 #ifdef _DEBUG
     float timeconsume = float(TimeCounting() - stime);
-    StatusMessage(("Set " + name + " data done, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
+    StatusMessage(("Set " + name + ": " + remoteFileName + " done, TIMESPAN " +
+        ValueToString(timeconsume) + " sec.").c_str());
 #endif
 }
 
@@ -901,7 +884,8 @@ void ModuleFactory::SetRaster(string &dbName, string &paraName, string &remoteFi
             ParamInfo* tmpParam = find_iter->second;
             if ((StringMatch(tmpParam->Change, PARAM_CHANGE_RC) && !FloatEqual(tmpParam->Impact, 1.f)) ||
                 (StringMatch(tmpParam->Change, PARAM_CHANGE_AC) && !FloatEqual(tmpParam->Impact, 0.f)) ||
-                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && !FloatEqual(tmpParam->Impact, NODATA_VALUE))) {
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_VC) && !FloatEqual(tmpParam->Impact, NODATA_VALUE)) ||
+                (StringMatch(tmpParam->Change, PARAM_CHANGE_NC))) {
                 adjust_data = true;
             }
         }
@@ -1010,7 +994,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
     string id = m_moduleIDs[iModule];
     vector <ParamInfo> &inputs = m_moduleInputs[id];
     /// if there are no inputs from other modules for current module
-    for (vector<ParamInfo>::iterator it = inputs.begin(); it != inputs.end(); it++) {
+    for (auto it = inputs.begin(); it != inputs.end(); it++) {
         ParamInfo &param = *it;
         if (StringMatch(param.Source, Source_Module) ||
             (StringMatch(param.Source, Source_Module_Optional) && param.DependPara != nullptr)) {
@@ -1066,14 +1050,13 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
 }
 
 void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInfo *&paraInfo) {
-    string compareName = outputID;
     size_t n = m_moduleIDs.size();
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
         vector <ParamInfo> &vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
-            if (StringMatch(compareName, vecPara[j].Name)) {
-                iModule = i;
+            if (StringMatch(outputID, vecPara[j].Name)) {
+                iModule = (int) i;
                 paraInfo = &vecPara[j];
                 return;
             }
@@ -1104,14 +1087,12 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
         float* ludata = nullptr;
         m_rsMap[lur]->getRasterData(&nsize, &ludata);
 
-        map<int, BMPArealStruct*>::iterator iter2;
-        for (iter2 = arealbmps.begin();iter2 != arealbmps.end(); iter2++) {
+        for (auto iter2 = arealbmps.begin();iter2 != arealbmps.end(); iter2++) {
             cout << "  - SubScenario ID: "<< iter->second->GetSubScenarioId() << ", BMP name: " 
                 << iter2->second->getBMPName() << endl;
             vector<int> suitablelu = iter2->second->getSuitableLanduse();
             map<string, ParamInfo*> updateparams = iter2->second->getParameters();
-            map<string, ParamInfo*>::iterator iter3;
-            for (iter3 = updateparams.begin(); iter3 != updateparams.end(); iter3++) {
+            for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); iter3++) {
                 string paraname = iter3->second->Name;
                 cout << "   -- Parameter ID: " << paraname << endl;
                 /// Check whether the parameter is existed in m_parametersInDB.
@@ -1122,7 +1103,7 @@ void ModuleFactory::updateParametersByScenario(int subbsnID)
                     continue;
                 }
                 ParamInfo* tmpparam = m_parametersInDB[paraname];
-                if (iter3->second->Change == "") {
+                if (iter3->second->Change.empty()) {
                     iter3->second->Change = tmpparam->Change;
                 }
                 iter3->second->Maximum = tmpparam->Maximum;

@@ -5,13 +5,16 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-07-04  lj - reorganize according to pylint and google style
                 17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
+                18-02-08  lj - remove cluster related and compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from osgeo.ogr import Open as ogr_Open
-from pygeoc.utils import StringClass
+from pygeoc.utils import StringClass, text_type
 from pymongo import ASCENDING
 
-from text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from utility import read_data_items_from_txt, DEFAULT_NODATA
+from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -56,7 +59,6 @@ class ImportHydroClimateSites(object):
                 if StringClass.string_match(site_flds[j], StationFields.id):
                     dic[StationFields.id] = int(site_data_items[i][j])
                 elif StringClass.string_match(site_flds[j], StationFields.name):
-                    # unicode(site_data_items[i][j], 'gb2312')
                     dic[StationFields.name] = site_data_items[i][j]
                 elif StringClass.string_match(site_flds[j], StationFields.x):
                     dic[StationFields.x] = float(site_data_items[i][j])
@@ -75,7 +77,7 @@ class ImportHydroClimateSites(object):
                          StationFields.type: dic[StationFields.type]}
             hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, dic, upsert=True)
 
-            if dic[StationFields.id] not in sites_loc.keys():
+            if dic[StationFields.id] not in list(sites_loc.keys()):
                 sites_loc[dic[StationFields.id]] = SiteInfo(dic[StationFields.id],
                                                             dic[StationFields.name],
                                                             dic[StationFields.lat],
@@ -111,9 +113,9 @@ class ImportHydroClimateSites(object):
         #    with GDAL executable (e.g., located in C:\GDAL_x64\bin), thus the shapely
         #    must be locally imported here.
         from shapely.wkt import loads as shapely_loads
-        shapely_objects = []
-        id_list = []
-        # print input_shape
+        shapely_objects = list()
+        id_list = list()
+        # print(input_shape)
         shp = ogr_Open(input_shape)
         if shp is None:
             raise RuntimeError('The input ESRI Shapefile: %s is not existed or has '
@@ -125,8 +127,8 @@ class ImportHydroClimateSites(object):
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
-            if isinstance(id_field, unicode):
-                id_field = id_field.encode()
+            if isinstance(id_field, text_type):
+                id_field = str(id_field)
             id_index = feat.GetFieldIndex(id_field)
             id_list.append(feat.GetField(id_index))
         return shapely_objects, id_list
@@ -134,7 +136,7 @@ class ImportHydroClimateSites(object):
     @staticmethod
     def find_sites(maindb, clim_dbname, subbsn_file, subbsn_field_id,
                    thissen_file_list, thissen_field_id, site_type_list,
-                   is_storm=False, is_cluster=False):
+                   is_storm=False):
         """Find meteorology and precipitation sites in study area"""
         mode = 'DAILY'
         if is_storm:
@@ -146,8 +148,7 @@ class ImportHydroClimateSites(object):
         # site_dic = dict()
         for i, subbasin in enumerate(subbasin_list):
             cur_id = subbasin_id_list[i]
-            # if not for cluster and basin.shp is used, force the SUBBASINID to 0. by LJ.
-            if not is_cluster and n_subbasins == 1:
+            if n_subbasins == 1:  # the entire basin
                 cur_id = 0
             dic = dict()
             dic[FieldNames.subbasin_id] = cur_id
@@ -158,7 +159,6 @@ class ImportHydroClimateSites(object):
                            FieldNames.mode: mode}
 
             for meteo_id, thiessen_file in enumerate(thissen_file_list):
-                # print thiessen_file
                 site_type = site_type_list[meteo_id]
                 thiessen_list, thiessen_id_list = ImportHydroClimateSites.ogrwkt2shapely(
                         thiessen_file, thissen_field_id)
@@ -176,7 +176,7 @@ class ImportHydroClimateSites(object):
 
         maindb[DBTableNames.main_sitelist].create_index([(FieldNames.subbasin_id, ASCENDING),
                                                          (FieldNames.mode, ASCENDING)])
-        # print 'Meteorology sites table was generated.'
+        # print('Meteorology sites table was generated.')
 
     @staticmethod
     def workflow(cfg, main_db, clim_db):
@@ -185,14 +185,15 @@ class ImportHydroClimateSites(object):
         thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]
         type_list = [DataType.m, DataType.p]
 
-        if not cfg.cluster:  # the entire basin
-            ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.bsn,
+        # if not cfg.cluster:
+        # The entire basin, used for OpenMP version
+        ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.bsn,
                                                FieldNames.basin, thiessen_file_list,
                                                cfg.thiessen_field, type_list, cfg.storm_mode)
+        # The subbasins, used for MPI&OpenMP version
         ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.subbsn,
                                            FieldNames.subbasin_id, thiessen_file_list,
-                                           cfg.thiessen_field, type_list,
-                                           cfg.storm_mode, cfg.cluster)
+                                           cfg.thiessen_field, type_list, cfg.storm_mode)
 
         # 2. Import geographic information of each sites to Hydro-Climate database
         c_list = clim_db.collection_names()
@@ -203,14 +204,14 @@ class ImportHydroClimateSites(object):
         ImportHydroClimateSites.variable_table(clim_db, cfg.hydro_climate_vars)
         site_m_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.Meteo_sites, DataType.m)
         site_p_loc = ImportHydroClimateSites.sites_table(clim_db, cfg.prec_sites, DataType.p)
-        # print (site_m_loc, site_p_loc)
+        # print(site_m_loc, site_p_loc)
         return site_m_loc, site_p_loc
 
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

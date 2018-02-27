@@ -14,13 +14,6 @@ PrintInfoItem::PrintInfoItem() : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
     TimeSeriesData.clear();
     TimeSeriesDataForSubbasin.clear();
 }
-//Deprecated
-//void PrintInfoItem::setSpecificCellRasterOutput(string projectPath,string databasePath,
-//	clsRasterData* templateRasterData,string outputID)
-//{
-//	if(m_AggregationType == AT_SpecificCells)
-//		m_specificOutput = new clsSpecificOutput(projectPath,databasePath,templateRasterData,outputID);
-//}
 
 PrintInfoItem::~PrintInfoItem() {
     StatusMessage(("Start to release PrintInfoItem for " + Filename + " ...").c_str());
@@ -58,7 +51,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRaster, string header) {
+void PrintInfoItem::Flush(string projectPath, FloatRaster *templateRaster, string header) {
     //bool outToMongoDB = false; /// added by LJ.
     //projectPath = projectPath + SEP;
     /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
@@ -97,8 +90,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
             }
             // Write header
             fs << header << endl;
-            map<time_t, float>::iterator it;
-            for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                    setprecision(8) << it->second << endl;
             }
@@ -120,8 +112,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
                 fs << "Subbasin: " << SubbasinID << endl;
             }
             fs << header << endl;
-            map<time_t, float *>::iterator it;
-            for (it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++) {
+            for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++) {
                 fs << ConvertToString2(&(it->first));
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << right << fixed << setw(15) << setfill(' ') << setprecision(8) << (it->second)[i];
@@ -141,9 +132,9 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         //cout << projectPath << Filename << endl;
         //if (outToMongoDB) {
         //    MongoGridFS().removeFile(Filename, gfs);
-        //    clsRasterData<float>(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
+        //    FloatRaster(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
         //}
-        clsRasterData<float>(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
+        FloatRaster(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
         return;
     }
 
@@ -152,11 +143,11 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
+        FloatRaster(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
 
         //if (outToMongoDB) {
         //    MongoGridFS().removeFile(Filename, gfs);
-        //    clsRasterData<float>(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
+        //    FloatRaster(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
         //}
         return;
     }
@@ -167,8 +158,7 @@ void PrintInfoItem::Flush(string projectPath, clsRasterData<float> *templateRast
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
         if (fs.is_open()) {
-            map<time_t, float>::iterator it;
-            for (it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
                    setprecision(8) << it->second << endl;
             }
@@ -439,17 +429,6 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 ///////////PrintInfo Class////////////////
 //////////////////////////////////////////
 
-//void PrintInfo::setSpecificCellRasterOutput(string projectPath, string databasePath,
-//clsRasterData* templateRasterData)
-//{
-//	vector<PrintInfoItem*>::iterator it;
-//	for(it= m_PrintItems.begin();it<m_PrintItems.end();it++)
-//	{
-//		(*it)->setSpecificCellRasterOutput(projectPath,databasePath,templateRasterData,m_OutputID);
-//	}
-//}
-
-
 PrintInfo::PrintInfo()
     : m_Interval(0), m_IntervalUnits(""), m_OutputID(""), m_param(nullptr),
       m_moduleIndex(-1), m_subbasinSelectedArray(nullptr) {
@@ -560,8 +539,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("ResSedOut");
     }
     ostringstream oss;
-    vector<string>::iterator it;
-    for (it = headers.begin(); it < headers.end(); it++) {
+    for (auto it = headers.begin(); it < headers.end(); it++) {
         if (StringMatch(*it, "Time")) {
             oss << *it;
         } else {
@@ -641,8 +619,7 @@ void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
         m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
         int index = 0;
-        vector<int>::iterator it;
-        for (it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); it++) {
+        for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); it++) {
             m_subbasinSelectedArray[index] = float(*it);
             index++;
         }

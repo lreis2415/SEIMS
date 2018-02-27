@@ -3,10 +3,17 @@
 """Base class of parameters sensitivity analysis.
     @author   : Liangjun Zhu
     @changelog: 17-12-22  lj - initial implementation.\n
+                18-1-11   lj - integration of screening method and variant-based method.\n
+                18-1-16   lj - split tasks when the run_count is very very large.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
-import pickle
+import json
+import datetime
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -15,17 +22,33 @@ import matplotlib
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 import matplotlib.pyplot as plt
-
 import numpy
-from pygeoc.utils import get_config_parser
+from pygeoc.utils import FileClass, UtilClass
+# Morris screening method
 from SALib.sample.morris import sample as morris_spl
 from SALib.analyze.morris import analyze as morris_alz
-from SALib.plotting.morris import horizontal_bar_plot, covariance_plot, sample_histograms
+from SALib.plotting.morris import horizontal_bar_plot, covariance_plot
+# FAST variant-based method
+from SALib.sample.fast_sampler import sample as fast_spl
+from SALib.analyze.fast import analyze as fast_alz
 
 from preprocess.db_mongodb import ConnectMongoDB
-from config import PSAConfig
+from preprocess.text import DBTableNames
 from preprocess.utility import read_data_items_from_txt
-from evaluate import evaluate_model_response, build_seims_model
+from postprocess.utility import save_png_eps
+
+from parameters_sensitivity.config import PSAConfig
+from parameters_sensitivity.userdef import evaluate_model_response, get_evaluate_output_name_unit
+from parameters_sensitivity.figure import sample_histograms, empirical_cdf
+
+
+class SpecialJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        return json.JSONEncoder.default(self, obj)
 
 
 class Sensitivity(object):
@@ -41,9 +64,36 @@ class Sensitivity(object):
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
-        self.output_nameIndex = dict()
         self.output_values = None
-        self.morris_si = dict()
+        self.psa_si = dict()
+
+    def run(self):
+        """PSA workflow."""
+        self.reset_simulation_timerange()
+        self.read_param_ranges()
+        self.generate_samples()
+        self.write_param_values_to_mongodb()
+        self.evaluate_models()
+        self.calculate_sensitivity()
+
+    def plot(self):
+        self.plot_samples_histogram()
+        if self.cfg.method == 'morris':
+            self.plot_morris()
+            self.plot_cdf()
+
+    def reset_simulation_timerange(self):
+        """Update simulation time range in MongoDB [FILE_IN]."""
+        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        conn = client.get_conn()
+        db = conn[self.cfg.spatial_db]
+        stime_str = self.cfg.time_start.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.cfg.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+                                                         {'$set': {'VALUE': stime_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+                                                         {'$set': {'VALUE': etime_str}})
+        client.close()
 
     def read_param_ranges(self):
         """Read param_rng.def file
@@ -66,6 +116,13 @@ class Sensitivity(object):
             - dists - a list of distributions for the problem,
                         None if not specified or all uniform
         """
+        # read param_defs.json if already existed
+        if not self.param_defs:
+            if FileClass.is_file_exists(self.cfg.outfiles.param_defs_json):
+                with open(self.cfg.outfiles.param_defs_json, 'r') as f:
+                    self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
+                return
+        # read param_range_def file and output to json file
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
         db = conn[self.cfg.spatial_db]
@@ -83,7 +140,7 @@ class Sensitivity(object):
             # find parameter name, print warning message if not existed
             cursor = collection.find({'NAME': item[0]}, no_cursor_timeout=True)
             if not cursor.count():
-                print ('WARNING: parameter %s is not existed!' % item[0])
+                print('WARNING: parameter %s is not existed!' % item[0])
                 continue
             num_vars += 1
             names.append(item[0])
@@ -101,8 +158,7 @@ class Sensitivity(object):
         if groups == names:
             groups = None
         elif len(set(groups)) == 1:
-            raise ValueError('''Only one group defined, results will not be
-                    meaningful''')
+            raise ValueError('Only one group defined, results will not bemeaningful')
 
         # setting dists to none if all are uniform
         # because non-uniform scaling is not needed
@@ -111,97 +167,252 @@ class Sensitivity(object):
 
         self.param_defs = {'names': names, 'bounds': bounds,
                            'num_vars': num_vars, 'groups': groups, 'dists': dists}
-        # Save as pickle
-        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'param_defs.pickle', 'wb')
-        pickle.dump(self.param_defs, pickle_param_defs)
+
+        # Save as json, which can be loaded by json.load()
+        json_data = json.dumps(self.param_defs, indent=4, cls=SpecialJsonEncoder)
+        with open(self.cfg.outfiles.param_defs_json, 'w') as f:
+            f.write(json_data)
 
     def generate_samples(self):
         """Sampling and write to a single file and MongoDB 'PARAMETERS' collection"""
-        self.param_values = morris_spl(self.param_defs, self.cfg.N,
-                                       self.cfg.num_levels, self.cfg.grid_jump,
-                                       optimal_trajectories=self.cfg.optimal_t,
-                                       local_optimization=self.cfg.local_opt)
+        if self.param_values is None or len(self.param_values) == 0:
+            if FileClass.is_file_exists(self.cfg.outfiles.param_values_txt):
+                self.param_values = numpy.loadtxt(self.cfg.outfiles.param_values_txt)
+                self.run_count = len(self.param_values)
+                return
+        if not self.param_defs:
+            self.read_param_ranges()
+        if self.cfg.method == 'morris':
+            self.param_values = morris_spl(self.param_defs, self.cfg.morris.N,
+                                           self.cfg.morris.num_levels, self.cfg.morris.grid_jump,
+                                           optimal_trajectories=self.cfg.morris.optimal_t,
+                                           local_optimization=self.cfg.morris.local_opt)
+        elif self.cfg.method == 'fast':
+            self.param_values = fast_spl(self.param_defs, self.cfg.fast.N, self.cfg.fast.M)
+        else:
+            raise ValueError('%s method is not supported now!' % self.cfg.method)
         self.run_count = len(self.param_values)
-        # Save as pickle
-        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'param_values.pickle', 'wb')
-        pickle.dump(self.param_values, pickle_param_defs)
-        # Plots a set of subplots of histograms of the input sample
-        histfig = plt.figure()
-        sample_histograms(histfig, self.param_values, self.param_defs, {'color': 'y'})
-        plt.savefig(self.cfg.psa_outpath + os.sep + 'samples_histgram.png', dpi=300)
-        # close current plot in case of 'figure.max_open_warning'
-        plt.cla()
-        plt.clf()
-        plt.close()
+        # Save as txt file, which can be loaded by numpy.loadtxt()
+        numpy.savetxt(self.cfg.outfiles.param_values_txt,
+                      self.param_values, delimiter=' ', fmt='%.4e')
 
     def write_param_values_to_mongodb(self):
-        # update Parameters collection in MongoDB
+        """Update Parameters collection in MongoDB.
+        Notes:
+            The field value of 'CALI_VALUES' of all parameters will be deleted first.
+        """
+        if not self.param_defs:
+            self.read_param_ranges()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
         client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
         conn = client.get_conn()
         db = conn[self.cfg.spatial_db]
         collection = db['PARAMETERS']
+        collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
         for idx, pname in enumerate(self.param_defs['names']):
             v2str = ','.join(str(v) for v in self.param_values[:, idx])
             collection.find_one_and_update({'NAME': pname}, {'$set': {'CALI_VALUES': v2str}})
         client.close()
 
-    def evaluate(self):
+    def evaluate_models(self):
         """Run SEIMS for objective output variables, and write out.
         """
-        # TODO, need to think about a elegant way to define and calculate ouput variables.
-        self.output_nameIndex = {'Q': [0, ' ($m^3/s$)'], 'SED': [1, ' ($10^3 ton$)']}
-
-        cali_seqs = range(self.run_count)
+        if self.output_values is None or len(self.output_values) == 0:
+            if FileClass.is_file_exists(self.cfg.outfiles.output_values_txt):
+                self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
+                return
+        assert (self.run_count > 0)
+        # model configurations
         model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
                           'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
                           'hostname': self.cfg.hostname, 'port': self.cfg.port,
                           'scenario_id': 0}
-        cali_models = map(build_seims_model, [model_cfg_dict] * self.run_count, cali_seqs)
-        try:
-            # parallel on multiprocesor or clusters using SCOOP
-            from scoop import futures
-            self.output_values = list(futures.map(evaluate_model_response, cali_models))
-        except ImportError or ImportWarning:
-            # serial
-            self.output_values = map(evaluate_model_response, cali_models)
-        # print (self.output_values)
-        # Save as pickle
-        pickle_param_defs = open(self.cfg.psa_outpath + os.sep + 'output_values.pickle', 'wb')
-        pickle.dump(self.output_values, pickle_param_defs)
 
-    def calc_elementary_effects(self):
+        # split tasks if needed
+        task_num = self.run_count / 1000
+        if task_num == 0:
+            split_seqs = list(range(self.run_count))
+        else:
+            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
+            split_seqs = [a.tolist() for a in split_seqs]
+
+        # PSA evaluation period
+        psa_period = '%s,%s' % (self.cfg.psa_stime.strftime('%Y-%m-%d %H:%M:%S'),
+                                self.cfg.psa_etime.strftime('%Y-%m-%d %H:%M:%S'))
+        for idx, cali_seqs in enumerate(split_seqs):
+            cur_out_file = self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx
+            if FileClass.is_file_exists(cur_out_file):
+                continue
+            try:  # parallel on multiprocesor or clusters using SCOOP
+                from scoop import futures
+                temp_output_values = list(futures.map(evaluate_model_response,
+                                                      [model_cfg_dict] * len(cali_seqs),
+                                                      cali_seqs, [psa_period] * len(cali_seqs)))
+            except ImportError or ImportWarning:  # serial
+                temp_output_values = list(map(evaluate_model_response,
+                                              [model_cfg_dict] * len(cali_seqs), cali_seqs,
+                                              [psa_period] * len(cali_seqs)))
+            if not isinstance(temp_output_values, numpy.ndarray):
+                temp_output_values = numpy.array(temp_output_values)
+            numpy.savetxt(cur_out_file, temp_output_values, delimiter=' ', fmt='%.4e')
+        # load the first part of output values
+        self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+                                           'outputs_0.txt')
+        if task_num == 0:
+            import shutil
+            shutil.move(self.cfg.outfiles.output_values_dir + os.sep + 'outputs_0.txt',
+                        self.cfg.outfiles.output_values_txt)
+            shutil.rmtree(self.cfg.outfiles.output_values_dir)
+            return
+        for idx in range(1, task_num):
+            tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+                                        'outputs_%d.txt' % idx)
+            self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
+        numpy.savetxt(self.cfg.outfiles.output_values_txt,
+                      self.output_values, delimiter=' ', fmt='%.4e')
+
+    def calculate_sensitivity(self):
         """Calculate Morris elementary effects.
-           It is worth to be noticed that evaluate() allows to return several output variables,
-           hence we should calculate each of them separately.
+           It is worth to be noticed that evaluate_models() allows to return
+           several output variables, hence we should calculate each of them separately.
         """
-        out_values = numpy.array(self.output_values)
-        for k, v in self.output_nameIndex.iteritems():
-            print (k)
-            tmp_Si = morris_alz(self.param_defs,
-                                self.param_values,
-                                out_values[:, v[0]],
-                                conf_level=0.95, print_to_console=True,
-                                num_levels=self.cfg.num_levels,
-                                grid_jump=self.cfg.grid_jump)
-            self.morris_si[k] = tmp_Si
+        if not self.psa_si:
+            if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
+                with open(self.cfg.outfiles.psa_si_json, 'r') as f:
+                    self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
+                    return
+        if self.output_values is None or len(self.output_values) == 0:
+            self.evaluate_models()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
+        if not self.param_defs:
+            self.read_param_ranges()
+        row, col = self.output_values.shape
+        assert (row == self.run_count)
+        for i in range(col):
+            if self.cfg.method == 'morris':
+                tmp_Si = morris_alz(self.param_defs,
+                                    self.param_values,
+                                    self.output_values[:, i],
+                                    conf_level=0.95, print_to_console=True,
+                                    num_levels=self.cfg.morris.num_levels,
+                                    grid_jump=self.cfg.morris.grid_jump)
+            elif self.cfg.method == 'fast':
+                tmp_Si = fast_alz(self.param_defs, self.output_values[:, i],
+                                  print_to_console=True)
+            else:
+                raise ValueError('%s method is not supported now!' % self.cfg.method)
+            self.psa_si[i] = tmp_Si
+        # print(self.psa_si)
+        # Save as json, which can be loaded by json.load()
+        json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
+        with open(self.cfg.outfiles.psa_si_json, 'w') as f:
+            f.write(json_data)
+        self.output_psa_si()
+
+    def output_psa_si(self):
+        objnames, objunits = get_evaluate_output_name_unit()
+        psa_sort_txt = self.cfg.outfiles.psa_si_sort_txt
+        psa_sort_dict = dict()
+        param_names = self.param_defs.get('names')
+        psa_sort_dict['names'] = param_names[:]
+        for idx, si_dict in self.psa_si.items():
+            if 'objnames' not in psa_sort_dict:
+                psa_sort_dict['objnames'] = list()
+            psa_sort_dict['objnames'].append(objnames[idx])
+            for param, values in si_dict.items():
+                if param == 'names':
+                    continue
+                if param not in psa_sort_dict:
+                    psa_sort_dict[param] = list()
+                psa_sort_dict[param].append(values[:])
+        # print(psa_sort_dict)
+        output_str = ''
+        header = ' ,' + ','.join(psa_sort_dict['objnames']) + '\n'
+        for outvar, values in psa_sort_dict.items():
+            if outvar == 'names' or outvar == 'objnames':
+                continue
+            mtx = numpy.transpose(numpy.array(values))  # col is 'objnames' and row is 'names'
+            sortidx = numpy.argsort(numpy.argsort(mtx, axis=0), axis=0)
+            # concatenate output string
+            output_str += outvar + '\n'
+            output_str += header
+            for i, v in enumerate(mtx):
+                output_str += param_names[i] + ',' + ','.join('{}'.format(i) for i in v) + '\n'
+            output_str += '\n'
+            output_str += '%s-Sorted\n' % outvar
+            output_str += header
+            for i, v in enumerate(sortidx):
+                output_str += param_names[i] + ',' + ','.join('{}'.format(i) for i in v) + '\n'
+            output_str += '\n'
+            print(output_str)
+        with open(psa_sort_txt, 'w') as f:
+            f.write(output_str)
+
+    def plot_samples_histogram(self):
+        """Save plot as png(300 dpi) and eps (vector)."""
+        # Plots histogram of all samples
+        if not self.param_defs:
+            self.read_param_ranges()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
+        sample_histograms(self.param_values, self.param_defs.get('names'),
+                          self.cfg.morris.num_levels, self.cfg.psa_outpath, 'samples_histgram',
+                          {'color': 'black', 'histtype': 'step'})
+
+    def plot_morris(self):
+        """Save plot as png(300 dpi) and eps (vector)."""
+        output_name, output_unit = get_evaluate_output_name_unit()
+        if not self.psa_si:
+            self.calculate_sensitivity()
+        for i, v in enumerate(output_name):
+            unit = output_unit[i]
             fig, (ax1, ax2) = plt.subplots(1, 2)
-            horizontal_bar_plot(ax1, tmp_Si, {}, sortby='mu_star', unit=v[1])
-            covariance_plot(ax2, tmp_Si, {}, unit=v[1])
-            plt.savefig('%s/mu_star_%s.png' % (self.cfg.psa_outpath, k), dpi=300)
-            # plt.show()
+            horizontal_bar_plot(ax1, self.psa_si.get(i), {}, sortby='mu_star', unit=unit)
+            covariance_plot(ax2, self.psa_si.get(i), {}, unit=unit)
+            save_png_eps(plt, self.cfg.psa_outpath, 'mu_star_%s' % v)
             # close current plot in case of 'figure.max_open_warning'
             plt.cla()
             plt.clf()
             plt.close()
-        print (self.morris_si)
+
+    def plot_cdf(self):
+        output_name, output_unit = get_evaluate_output_name_unit()
+        if not self.param_defs:
+            self.read_param_ranges()
+        if self.param_values is None or len(self.param_values) == 0:
+            self.generate_samples()
+        if self.output_values is None or len(self.output_values) == 0:
+            self.evaluate_models()
+        param_names = self.param_defs.get('names')
+        for i in [2, 7, 8, 9, 10, 15, 16, 17]:  # NSE series, i.e., NSE, lnNSE, NSE1, and NSE3
+            values = self.output_values[:, i]
+            empirical_cdf(values, [0], self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
+        for i in [3, 11]:  # R-square, equally divided as two classes
+            values = self.output_values[:, i]
+            empirical_cdf(values, 2, self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
+        for i in [6, 14]:  # RSR
+            values = self.output_values[:, i]
+            empirical_cdf(values, [1], self.param_values, param_names,
+                          self.cfg.morris.num_levels,
+                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
 
 
 if __name__ == '__main__':
-    cf = get_config_parser()
-    cfg = PSAConfig(cf)
-    saobj = Sensitivity(cfg)
-    saobj.read_param_ranges()
-    saobj.generate_samples()
+    from config import get_psa_config
 
-    print (saobj.param_defs)
-    print (len(saobj.param_values))
+    cf, method = get_psa_config()
+    cfg = PSAConfig(cf, method=method)
+
+    print(cfg.param_range_def)
+
+    saobj = Sensitivity(cfg)
+    saobj.write_param_values_to_mongodb()
+    # saobj.calculate_sensitivity()
+    # saobj.plot_samples_histogram()
+    # saobj.plot_morris()

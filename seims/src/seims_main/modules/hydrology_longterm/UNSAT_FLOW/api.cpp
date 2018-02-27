@@ -8,9 +8,7 @@
 #include "MetadataInfo.h"
 #include "MetadataInfoConst.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *
-
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new UnsaturatedFlow();
 }
 

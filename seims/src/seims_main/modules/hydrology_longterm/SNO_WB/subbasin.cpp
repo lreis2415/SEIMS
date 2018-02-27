@@ -94,31 +94,3 @@ void subbasin::addSA(float sa) {
 vector<int> *subbasin::getCells() {
     return &(this->m_cells);
 }
-
-//map<int,subbasin*>* subbasin::getSubbasinList(int cellCount, float* subbasinGrid, int subbasinSelectedCount, float* subbasinSelected)
-//{
-//	map<int,bool> selected;
-//	bool isAllNeedStatistc = false;
-//	for(int i = 0;i < subbasinSelectedCount; i++)
-//	{
-//		int subid = int(subbasinSelected[i]);
-//		selected[subid] = true;
-//		if(subid == 0) isAllNeedStatistc = true;		
-//	}
-//	
-//	map<int,subbasin*> list;	
-//	if(isAllNeedStatistc) list[0] = new subbasin(0); 
-//	for(int i = 0;i < cellCount; i++)
-//	{
-//		if(isAllNeedStatistc) list[0]->addCell(i);
-//
-//		int subid = int(subbasinGrid[i]);
-//		if(!selected[subid]) continue;		
-//
-//		map<int,subbasin*>::iterator it = list.find(subid);
-//		if(it == list.end()) list[subid] = new subbasin(subid);
-//		list[subid]->addCell(i);
-//	}
-//
-//	return &list;
-//}

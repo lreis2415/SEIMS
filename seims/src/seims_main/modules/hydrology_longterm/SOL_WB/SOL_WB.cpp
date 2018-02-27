@@ -34,8 +34,7 @@ void SOL_WB::SetValue(const char *key, float data) {
 
 void SOL_WB::setValueToSubbasins() {
     if (m_subbasinsInfo != NULL) {
-        vector<int>::iterator it;
-        for (it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+        for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
             Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(*it);
             int *cells = curSub->getCells();
             int cellsNum = curSub->getCellCount();

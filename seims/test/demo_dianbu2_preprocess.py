@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """
   Preprecessing for SEIMS. Demo watershed named dianbu2.
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -17,7 +20,7 @@ from pygeoc.utils import UtilClass
 
 from preprocess.db_build_mongodb import ImportMongodbClass
 from preprocess.sd_delineation import SpatialDelineation
-from demo_config import ModelPaths, write_preprocess_config_file
+from test.demo_config import ModelPaths, write_preprocess_config_file
 
 
 def main():

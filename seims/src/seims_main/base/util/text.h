@@ -9,7 +9,7 @@
 #define SEIMS_TEXT_H
 
 #define MODEL_NAME                             "SEIMS"
-#define MODEL_VERSION                          "2017"
+#define MODEL_VERSION                          "2018"
 #define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
 #define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
@@ -149,9 +149,7 @@
 #define Tag_FLOWOUT_PERCENTAGE_MFD_MD          "FLOWOUT_PERCENTAGE_MFD_MD"
 #define Tag_ROUTING_LAYERS_MFD_MD              "ROUTING_LAYERS_MFD_MD"
 
-//#define Tag_ReachParameter                     "ReachParameter"
-//#define Tag_RchParam                           "RchParam"
-/// Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM
+/// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 #define VAR_REACH_PARAM                        "ReachParam"
 #define DESC_REACH_PARAM                       "Reach parameters such as stream order, manning's n and downstream subbasin id"
 /// Add Subbasins as AddParameters for modules
@@ -187,7 +185,6 @@
 #define REACH_SUBBASIN                         "SUBBASINID"
 #define REACH_NUMCELLS                         "NUM_CELLS"
 #define REACH_GROUP                            "GROUP"
-#define REACH_GROUPDIVIDED                     "GROUP_DIVIDE"
 #define REACH_KMETIS                           "KMETIS"
 #define REACH_PMETIS                           "PMETIS"
 #define REACH_DOWNSTREAM                       "DOWNSTREAM"
@@ -310,6 +307,8 @@
 #define MCLSDESC_AET                           "Calculates potential plant transpiration and potential and actual soil evaporation. "
 #define MID_AET_PTH                            "AET_PTH"
 #define MDESC_AET_PTH                          "Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods "
+#define MID_SET_LM                             "SET_LM"
+#define MDESC_SET_LM                           "Evapotranspiration from soil related linearly with soil moisture (WetSpa)"
 /// Depression
 #define MCLS_DEP                               "Depression"
 #define MCLSDESC_DEP                           "Calculate depression storage."
@@ -562,7 +561,6 @@
 #define VAR_SUR_COD "sur_cod"
 #define VAR_COD_N "cod_n"
 #define VAR_COD_K "cod_k"
-#define VAR_COND_MAX "Cond_max"                       /// "Maximum automata's conductance"
 #define VAR_COND_RATE "Cond_rate"                     /// Rate of decline in automata's conductance per unit increase in vapor pressure deficit
 #define VAR_CONDUCT "Conductivity"
 #define VAR_CONV_WT "conv_wt"
@@ -941,6 +939,7 @@
 //#define VAR_SOMO_TOT  "somo_total"          /// Total soil water content in soil profile, deprecated and replaced by VAR_SOL_SW
 #define VAR_SOL_ST "solst"                     /// amount of water stored in the soil layer on current day(mm H2O)
 #define VAR_SOL_SW  "solsw"          /// amount of water stored in soil profile on current day (mm H2O)
+#define VAR_SW_CAP "sw_cap"  /// amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint
 #define VAR_SOTE "SOTE"                             /// Soil Temperature
 #define VAR_SOWB "SOWB"
 #define VAR_SOXY "soxy"
@@ -1563,6 +1562,7 @@
 //#define DESC_SOMO_TOT "amount of water stored in the soil profile"
 #define DESC_SOL_ST "amount of water stored in the soil layer on current day(mm H2O)"
 #define DESC_SOL_SW "amount of water stored in soil profile on current day (mm H2O)"
+#define DESC_SW_CAP "amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint"
 #define DESC_SOTE "soil Temperature"
 #define DESC_SOWB "soil water balance"
 #define DESC_SOXY "saturation concentration of dissolved oxygen"

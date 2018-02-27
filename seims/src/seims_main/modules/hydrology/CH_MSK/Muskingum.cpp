@@ -305,9 +305,8 @@ int Muskingum::Execute() {
     CheckInputData();
 
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");
-    map<int, vector<int> >::iterator it;
     //cout << "reach layer number: " << m_reachLayers.size() << endl;
-    for (it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = it->second.size();

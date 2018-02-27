@@ -35,9 +35,8 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName) : m_row(0), m_data(nullptr) 
         m_row = int(data.size());
         if (m_row > 0) {
             m_data = new float[m_row];
-            vector<float>::iterator it;
             int i = 0;
-            for (it = data.begin(); it < data.end(); it++) {
+            for (auto it = data.begin(); it < data.end(); it++) {
                 m_data[i] = *it;
                 i++;
             }

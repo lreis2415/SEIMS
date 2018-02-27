@@ -1,8 +1,13 @@
-#pragma once
+/*!
+ * \brief A IO test demo of developing module for SEIMS.
+ *        Refer https://github.com/lreis2415/SEIMS/wiki/Module-demo for more details.
+ * \author Liangjun Zhu
+ * \date last updated 2018-02-07
+ */
 
-#include <string>
-#include "api.h"
-#include "utilities.h"
+#ifndef SEIMS_MODULE_IO_TEST_H
+#define SEIMS_MODULE_IO_TEST_H
+
 #include "SimulationModule.h"
 #include "Scenario.h"
 #include "clsReach.h"
@@ -31,34 +36,33 @@ private:
     /// Reach information
     clsReaches *m_reaches;
 public:
-    IO_TEST(void);
+    IO_TEST();
 
-    ~IO_TEST(void);
+    virtual ~IO_TEST();
 
-    int Execute(void);
+    virtual int Execute();
 
-    void Set1DData(const char *key, int n, float *data);
+    virtual void Set1DData(const char *key, int n, float *data);
 
-    void Get1DData(const char *key, int *n, float **data);
+    virtual void Get1DData(const char *key, int *n, float **data);
 
-    void Set2DData(const char *key, int n, int col, float **data);
+    virtual void Set2DData(const char *key, int n, int col, float **data);
 
-    void Get2DData(const char *key, int *n, int *col, float ***data);
+    virtual void Get2DData(const char *key, int *n, int *col, float ***data);
 
-    void SetScenario(Scenario *sce);
+    virtual void SetScenario(Scenario *sce);
 
-    void SetReaches(clsReaches *reaches);
+    virtual void SetReaches(clsReaches *reaches);
 
 private:
     /*!
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
-     *
      *
      * \param[in] key The key of the input data
      * \param[in] n The input data dimension
@@ -66,4 +70,4 @@ private:
      */
     bool CheckInputSize(const char *, int);
 };
-
+#endif /* SEIMS_MODULE_IO_TEST_H */

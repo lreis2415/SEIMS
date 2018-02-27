@@ -81,7 +81,7 @@ void InputStation::build_query_bson(int nSites, vector<int> &siteIDList, string 
 }
 
 void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sitesList) {
-    vector <string> vecSites = SplitString(sitesList, ',');
+    vector<string> vecSites = SplitString(sitesList, ',');
     int nSites = (int) vecSites.size();
     //convert from string to int, the IDList is in order in MongoDB
     vector<int> siteIDList;
@@ -102,7 +102,6 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     float *pLat = new float[nSites];
     float ele, lat;
     bool hasData = false;
-    vector<int>::iterator siteIDIter;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &record)) {
         hasData = true;
         bson_iter_t iter;
@@ -114,7 +113,7 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
             throw ModelException("Measurement", "Measurement",
                                  "The Site ID field does not exist in Sites table, Please check and retry.");
         }
-        siteIDIter = find(siteIDList.begin(), siteIDList.end(), curSiteID);
+        auto siteIDIter = find(siteIDList.begin(), siteIDList.end(), curSiteID);
         siteIndex = distance(siteIDList.begin(), siteIDIter);
         if (bson_iter_init(&iter, record) && bson_iter_find(&iter, MONG_HYDRO_SITE_LAT)) {
             GetNumericFromBsonIterator(&iter, lat);

@@ -86,23 +86,23 @@ SettingsOutput::~SettingsOutput() {
 }
 
 void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
-    vector<PrintInfo *>::iterator it;
-    for (it = m_printInfos.begin(); it < m_printInfos.end(); it++) {
-        vector<PrintInfoItem *>::iterator itemIt;
-        for (itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
+    for (auto it = m_printInfos.begin(); it < m_printInfos.end(); it++) {
+        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
             if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
                 (*itemIt)->setStartTime(startTime);
-                cout << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                     << " is " << (*itemIt)->StartTime <<
-                     ". It's earlier than start time of time series data " << ConvertToString(&startTime)
-                     << ", and will be updated." << endl;
+                ostringstream oss;
+                oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
+                    << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data " 
+                    << ConvertToString(&startTime) << ", and will be updated." << endl;
+                StatusMessage(oss.str().c_str());
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
-                cout << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
-                     << " is " << (*itemIt)->EndTime <<
-                     ". It's later than end time of time series data " << ConvertToString(&endTime)
-                     << ", and will be updated." << endl;
+                ostringstream oss;
+                oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
+                    << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data " 
+                    << ConvertToString(&endTime) << ", and will be updated." << endl;
+                StatusMessage(oss.str().c_str());
             }
         }
     }

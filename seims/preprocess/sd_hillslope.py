@@ -6,7 +6,10 @@
                 17-06-29  lj - reorganized according to pylint and google style
                 17-07-20  lj - bug fixed of downstream_method_whitebox() method of Whitebox GAT
                                see details at https://github.com/lreis2415/SEIMS/issues/1
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 import numpy
@@ -59,7 +62,7 @@ class DelineateHillslope(object):
                 2 - Set to the value of left hillslope and head hillslope, <name>_l.tif
                 3 - Set stream cell to NoData, <name>_n.tif
         """
-        print ("Delineating hillslopes (header, left, and right hillslope)...")
+        print('Delineating hillslopes (header, left, and right hillslope)...')
         streamr = RasterUtilClass.read_raster(stream_raster)
         stream_data = streamr.data
         stream_nodata = streamr.noDataValue
@@ -146,8 +149,8 @@ class DelineateHillslope(object):
             stream_coors.append((vrow, vcol))
             in_strm_num, in_coors = inflow_stream_number(vrow, vcol, flowmodel)
             strm_id = stream_data[vrow][vcol]
-            # print ("Assign hillslope code for stream cell, r: %d, c: %d, ID: %d" % (vrow, vcol,
-            #                                                                         int(strm_id)))
+            # print('Assign hillslope code for stream cell, r: %d, c: %d, ID: %d' % (vrow, vcol,
+            #                                                                        int(strm_id)))
             # set hillslope IDs
             hillslp_ids = DelineateHillslope.cal_hs_codes(max_id, strm_id)
             cur_d8_value = flowd8_data[vrow][vcol]
@@ -316,7 +319,7 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow

@@ -352,7 +352,7 @@ int NutrientTransportSediment::Execute() {
     //cout << m_sedorgpToCh[12] << endl;
     // sum all the subbasins and put the sum value in the zero-index of the array
     //for (int i = 1; i < m_nSubbasins + 1; i++)
-    for (vector<int>::iterator it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         m_sedorgnToCh[0] += m_sedorgnToCh[*it];
         m_sedorgpToCh[0] += m_sedorgpToCh[*it];
         m_sedminpaToCh[0] += m_sedminpaToCh[*it];

@@ -4,13 +4,16 @@
     @author   : Liangjun Zhu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-27  lj - reorganize as basic class other than Global variables
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import sys
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
 
-from text import DBTableNames, ModelParamFields
+from preprocess.text import DBTableNames, ModelParamFields
 
 
 class ConnectMongoDB(object):
@@ -57,4 +60,4 @@ class MongoUtil(object):
         try:
             bulk.execute()
         except InvalidOperation:
-            print ('WARNING: %s' % errmsg)
+            print('WARNING: %s' % errmsg)

@@ -1,18 +1,8 @@
-#include <stdio.h>
-#include <string>
-#include "utilities.h"
-#include "api.h"
 #include "IO_test.h"
-#include <iostream>
-#include "SimulationModule.h"
-#include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
-#include "Scenario.h"
 
-using namespace MainBMP;
-extern "C" SEIMS_MODULE_API SimulationModule *
+#include "api.h"
 
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new IO_TEST();
 }
 
