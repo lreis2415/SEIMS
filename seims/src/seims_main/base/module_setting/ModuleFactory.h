@@ -151,9 +151,9 @@ private:
     //! Climate input stations
     InputStation*                       m_climStation;
     //! Mask data
-    clsRasterData<float>*               m_maskRaster;
+    FloatRaster*                        m_maskRaster;
     //! Raster data (include 1D and/or 2D) map
-    map<string, clsRasterData<float>*>& m_rsMap;
+    map<string, FloatRaster*>&          m_rsMap;
     //! 1D array data map, e.g. FLOWOUT_INDEX_D8
     map<string, float *>&               m_1DArrayMap;
     //! 1D array data length map

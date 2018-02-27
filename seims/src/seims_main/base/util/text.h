@@ -185,7 +185,6 @@
 #define REACH_SUBBASIN                         "SUBBASINID"
 #define REACH_NUMCELLS                         "NUM_CELLS"
 #define REACH_GROUP                            "GROUP"
-#define REACH_GROUPDIVIDED                     "GROUP_DIVIDE"
 #define REACH_KMETIS                           "KMETIS"
 #define REACH_PMETIS                           "PMETIS"
 #define REACH_DOWNSTREAM                       "DOWNSTREAM"
