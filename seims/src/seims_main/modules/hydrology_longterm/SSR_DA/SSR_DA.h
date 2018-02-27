@@ -6,7 +6,9 @@
  * \date 2016-7-24
  * \note: 1. Add support of multi soil layers of each cells.
  */
-#pragma once
+#ifndef SEIMS_MODULE_SSR_DA_H
+#define SEIMS_MODULE_SSR_DA_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -152,6 +154,7 @@ private:
 
     void initialOutputs(void);
 
-    void FlowInSoil(int id);
+    bool FlowInSoil(int id);
 };
 
+#endif /* SEIMS_MODULE_SSR_DA_H */

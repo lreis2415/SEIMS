@@ -7,6 +7,7 @@
 #ifndef SEIMS_SUBBASIN_CLS_H
 #define SEIMS_SUBBASIN_CLS_H
 
+#include "seims.h"
 #include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
@@ -244,12 +245,11 @@ public:
      * \param[in] rsMap Map of rasters that have been loaded
      * \param[in] prefixID subbasin ID as prefix in MongoDB
      */
-    clsSubbasins(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap, int prefixID);
+    clsSubbasins(MongoGridFS* spatialData, map<string, FloatRaster *> &rsMap, int prefixID);
     /*! 
      * \brief Check input parameters to ensure the successful constructor
      */
-    static clsSubbasins *Init(MongoGridFS* spatialData, map<string, clsRasterData<float> *> &rsMap,
-                              int prefixID);
+    static clsSubbasins *Init(MongoGridFS* spatialData, map<string, FloatRaster *> &rsMap, int prefixID);
     /// Destructor
     ~clsSubbasins();
 

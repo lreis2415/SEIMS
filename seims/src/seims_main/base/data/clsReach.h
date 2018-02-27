@@ -32,6 +32,9 @@ public:
     //! Get parameters by name
     float Get(const string &key);
 
+    //! Get group index
+    int GetGroupIndex(const string &method, int size);
+
     //! Set parameters by name
     void Set(const string &key, float value);
 
@@ -42,6 +45,15 @@ private:
      * value: parameter value
      */
     map<string, float> m_paramMap;
+    /*!
+     * Group numbers, e.g., [1, 2, 3, 8, 16]
+     */
+    vector<int> m_groupNumber;
+    /*!
+     * Group index if each group number and group method, e.g.,
+     * {'KMETIS': {1: 0, 2: 1, 3: 1, 8: 2, 16: 15}, 'PMETIS': {...}}
+     */
+    map<string, map<int, int> > m_groupIndex;
 };
 
 /*!
@@ -82,6 +94,9 @@ public:
     /// Get upstream IDs
     vector<vector<int> > GetUpStreamIDs() const { return m_reachUpStream; }
 
+    /// Get downstream ID
+    map<int, int> GetDownStreamID() const { return m_reachDownStream; }
+
     /// Get map of reach layers
     map<int, vector<int> > GetReachLayers(LayeringMethod mtd = UP_DOWN);
 
@@ -94,11 +109,15 @@ private:
     /// reaches number
     int m_reachNum;
     /*!
-     * Index of upstream Ids (The value is -1 if there if no upstream reach)
+     * Upstream Ids (The value is -1 if there if no upstream reach)
      * m_reachUpStream.size() = N+1
      * m_reachUpStream[1] = [2, 3] means Reach 2 and Reach 3 flow into Reach 1.
      */
     vector<vector<int> > m_reachUpStream;
+    /*!
+     * Downstream ID, -1 indicates no downstream, i.e., the outlet reach
+     */
+    map<int, int> m_reachDownStream;
     /*!
      * Reach layers according to \a LayeringMethod
      */

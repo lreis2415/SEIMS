@@ -1,55 +1,47 @@
-#pragma once
+#ifndef SEIMS_MPI_READDATA_H
+#define SEIMS_MPI_READDATA_H
+
+#include "clsReach.h"
+
+#include "mongoc.h"
+#include "gdal.h"
+#include "ogrsf_frmts.h"
 
 #include <string>
 #include <vector>
 #include <map>
-#include "mongoc.h"
-// #include "mongo.h"
 
 using namespace std;
 
-/*
- * \TODO Should this SubbasinStruct be integrated into Subbasin class defined in clsSubbasin of data module. by LJ
+/*!
+ * \brief Simple struct of subbasin information for task allocation
+ * \TODO Should this SubbasinStruct be integrated into Subbasin class defined in clsSubbasin of data module? by LJ
  */
 struct SubbasinStruct {
-    float qOutlet; // flow out the subbasin outlet
-    bool calculated; // whether this subbasin is already calculated
-    int rank;
-    SubbasinStruct *downStream;
-    int disToOutlet;
-    int id;
-    int group;
-    vector<SubbasinStruct *> upStreams;
-
-    SubbasinStruct(int id, int group) : qOutlet(0.f), calculated(false), rank(-1), downStream(NULL), disToOutlet(-1) {
-        this->id = id;
-        this->group = group;
+    SubbasinStruct(int sid, int gidx) : id(sid), group(gidx),
+                                        updown_order(-1), downup_order(-1), calculated(false),
+                                        qOutlet(0.f),
+                                        downStream(nullptr) {
+        upStreams.clear();
     }
+    int id; ///< Subbasin ID, start from 1
+    int group; ///< Group index, start from 0 to (group number - 1)
+
+    int updown_order; ///< up-down stream order
+    int downup_order; ///< down-up stream order
+    bool calculated; ///< whether this subbasin is already calculated
+
+    /****** Parameters need to transferred among subbasins *******/
+    float qOutlet; ///< flow out the subbasin outlet
+
+    SubbasinStruct *downStream; ///< down stream subbasin \sa SubbasinStruct
+    vector<SubbasinStruct *> upStreams; ///< up stream subbasins
 };
-/*
- * Currently, not used, then commented by LJ.
- */
-//int ReadInputData(int index, string &layerFilePrefix, string &dirFilePrefix,
-//                  string &slopeFilePrefix, string &streamFilePre,
-//                  float **&rtLayers, float **&flowIn, float *&flowOut, float *&dir, float *&slope, float *&stream,
-//                  int &layersCount, int &cellsCount);
 
-int ReadSubbasinOutlets(const char *outletFile, int nSubbasins, float **&outlets);
-
-int ReadRiverTopology(const char *reachFile, map<int, SubbasinStruct *> &subbasins, set<int> &groupSet);
-/*
- * \TODO, temporary, this function is not invoked, so I commented it. by LJ
+/*!
+ * \brief Read reach table from MongoDB and create reach topology for task allocation.
  */
-//int GetGroupCount(mongoc_client_t *conn, const char *dbName, int decompostionPlan);
-/*
- * read subbasin topology information from MongoDB
- * \TODO, clean up the old commented code as soon as the development completed. by LJ
- */
-int ReadReachTopologyFromMongoDB(mongoc_client_t *conn, const char *dbName, map<int, SubbasinStruct *> &subbasins,
-                                 set<int> &groupSet,
-                                 int decompostionPlan, const char *groupField);
+int CreateReachTopology(MongoClient *client, string &dbname, string &group_method, int group_size,
+                        map<int, SubbasinStruct *> &subbasins, set<int> &group_set);
 
-//int GetGroupCount(mongo *conn, const char *dbName, int decompostionPlan);
-//
-//int ReadTopologyFromMongoDB(mongo *conn, const char *dbName, map<int, Subbasin *> &subbasins, set<int> &groupSet,
-//                            int decompostionPlan, const char *groupField);
+#endif /* SEIMS_MPI_READDATA_H */

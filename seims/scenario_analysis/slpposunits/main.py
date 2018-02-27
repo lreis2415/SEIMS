@@ -4,9 +4,11 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import array
-import operator
 import os
 import random
 import time
@@ -22,9 +24,9 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from pygeoc.utils import UtilClass, get_config_parser
 
-from config import SASPUConfig
-from scenario import initialize_scenario, scenario_effectiveness
-from userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
+from slpposunits.config import SASPUConfig
+from slpposunits.scenario import initialize_scenario, scenario_effectiveness
+from slpposunits.userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.utility import print_message, delete_model_outputs
 from scenario_analysis.visualization import plot_pareto_front
@@ -56,7 +58,7 @@ toolbox.register('select', tools.selNSGA2)
 
 
 def main(cfg):
-    """Main workflow of NSAG-II based Scenario analysis."""
+    """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
     pop_size = cfg.nsga2_npop
     gen_num = cfg.nsga2_ngens
@@ -70,7 +72,7 @@ def main(cfg):
     worst_econ = cfg.worst_econ
     worst_env = cfg.worst_env
     # available gene value list
-    possible_gene_values = cfg.bmps_params.keys()
+    possible_gene_values = list(cfg.bmps_params.keys())
     possible_gene_values.append(0)
     units_info = cfg.units_infos
     slppos_tagnames = cfg.slppos_tagnames
@@ -82,7 +84,7 @@ def main(cfg):
     print_message('BMPs configure method: %s' % ('rule-based' if rule_cfg else 'random-based'))
 
     # create reference point for hypervolume
-    ref_pt = numpy.array(tuple(map(operator.mul, [worst_econ, worst_env], multi_weight))) * -1
+    ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
 
     stats = tools.Statistics(lambda sind: sind.fitness.values)
     stats.register('min', numpy.min, axis=0)
@@ -101,11 +103,11 @@ def main(cfg):
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
         fitnesses = futures.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
-        # print ('parallel-fitnesses: ', fitnesses)
+        # print('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
         fitnesses = toolbox.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
-        # print ('serial-fitnesses: ', fitnesses)
+        # print('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit[:2]
@@ -175,7 +177,9 @@ def main(cfg):
         print_message(logbook.stream)
 
         # Create plot
-        plot_pareto_front(pop, ws, gen)
+        plot_pareto_front(pop, ws, gen, 'Pareto frontier of Scenarios Optimization',
+                          'Economic effectiveness',
+                          'Environmental effectiveness')
         # save in file
         output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
         for indi in pop:
@@ -200,9 +204,8 @@ if __name__ == "__main__":
     fpop, fstats = main(cfg)
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
-    f = open(cfg.logbookfile, 'w')
-    f.write(fstats.__str__())
-    f.close()
+    with open(cfg.logbookfile, 'w') as f:
+        f.write(fstats.__str__())
 
     endT = time.time()
     print_message('Running time: %.2fs' % (endT - startT))

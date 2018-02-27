@@ -385,9 +385,9 @@ void SEDR_SBAGNOLD::SedChannelRouting(int i) {
         m_sedStorage[i] = allSediment;
         return;
     }
-    // initialize reach peak runoff rate and calculate flow velocity
-    float peakFlowRate = m_qchOut[i] * m_prf;
-    float crossarea = allWater / m_chLen[i]; // SWAT, eq. 7:1.1.7
+    // initialize reach peak runoff rate and calculate flow velocity. SWAT Theory 2009, p.448
+    float peakFlowRate = m_qchOut[i] * m_prf; // unit: m3/s
+    float crossarea = allWater / m_chLen[i];  // unit: m2, p.432, eq.7:1.2.3
     float peakVelocity = 0.f;
     if (m_preChWTDepth[i] < 0.01f) {
         peakVelocity = 0.01f;

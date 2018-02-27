@@ -4,7 +4,10 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-10-29  hr - initial implementation.\n
                 17-08-18  lj - redesign and rewrite.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import random
 import time
@@ -14,14 +17,14 @@ import numpy
 from gridfs import GridFS
 from osgeo import osr
 from pygeoc.raster import RasterUtilClass
-from pygeoc.utils import FileClass, StringClass, get_config_parser
+from pygeoc.utils import FileClass, StringClass, get_config_parser, text_type
 from pymongo.errors import NetworkTimeout
 
-from config import SASPUConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
-from preprocess.utility import sum_outlet_output
+from postprocess.utility import read_simulation_from_txt
 from scenario_analysis.scenario import Scenario
+from slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
@@ -58,12 +61,12 @@ class SPScenario(Scenario):
             Returns:
                 If configured, return (True, BMPID), otherwise return (False, 0).
             """
-            # print ('slppos: %d, unit: %d' % (slppostag, unit_id))
+            # print('slppos: %d, unit: %d' % (slppostag, unit_id))
             genidx = self.unit_to_gene[unit_id]
 
             bmps = get_potential_bmps(self.suit_bmps, slppostag, upsid, upgid,
                                       downsid, downgid, method)
-            # print ('Config for unit: %d' % unitid)
+            # print('Config for unit: %d' % unitid)
             configed = False
             cfg_bmp = 0
             if random.random() > conf_rate:
@@ -79,15 +82,15 @@ class SPScenario(Scenario):
                 self.gene_values[genidx] = cfg_bmp
                 if cfg_bmp != 0:
                     configed = True
-            # print ('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d, potBMPs: %s, '
-            #                'select: %d' % (unit_id, slppostag, upgid, downgid, bmps.__str__(), cfg_bmp))
+            # print('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d, potBMPs: %s, '
+            #       'select: %d' % (unit_id, slppostag, upgid, downgid, bmps.__str__(), cfg_bmp))
             # else:
-            #     print ('No suitable BMP for unit: %d, slppos: %d, upgv: %d, downgv: %d'
-            #            % (unit_id, slppostag, upgid, downgid))
+            #     print('No suitable BMP for unit: %d, slppos: %d, upgv: %d, downgv: %d'
+            #           % (unit_id, slppostag, upgid, downgid))
             return configed, cfg_bmp
 
         spname = self.slppos_tagnames[-1][1]  # the bottom slope position
-        for unitid, spdict in self.units_infos[spname].iteritems():
+        for unitid, spdict in self.units_infos[spname].items():
             up_spid = spdict['upslope']
             down_spid = spdict['downslope']
             spidx = len(self.slppos_tagnames) - 1
@@ -135,7 +138,7 @@ class SPScenario(Scenario):
             unit_id = self.gene_to_unit[i]
             bmp_units[gene_v].append(unit_id)
         sce_item_count = 0
-        for k, v in bmp_units.iteritems():
+        for k, v in bmp_units.items():
             # obj = bson.objectid.ObjectId()
             curd = dict()
             curd['BMPID'] = self.bmps_info['BMPID']
@@ -149,7 +152,7 @@ class SPScenario(Scenario):
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
         if len(self.bmps_retain) > 0:
-            for k, v in self.bmps_retain.iteritems():
+            for k, v in self.bmps_retain.items():
                 # obj = bson.objectid.ObjectId()
                 curd = v
                 curd['NAME'] = 'S%d' % self.ID
@@ -173,12 +176,12 @@ class SPScenario(Scenario):
                 continue
             unit_id = self.gene_to_unit[idx]
             unit_lu = dict()
-            for spname, spunits in self.units_infos.iteritems():
+            for spname, spunits in self.units_infos.items():
                 if unit_id in spunits:
                     unit_lu = spunits[unit_id]['landuse']
                     break
             bmpparam = self.bmp_params[gene_v]
-            for luid, luarea in unit_lu.iteritems():
+            for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * self.cfg_years
@@ -198,8 +201,8 @@ class SPScenario(Scenario):
         if not FileClass.is_file_exists(rfile):
             time.sleep(5)  # sleep 5 seconds wait for the ouput
         if not FileClass.is_file_exists(rfile):
-            print ('WARNING: Although SEIMS model runs successfully, the desired output: %s'
-                   ' cannot be found!' % rfile)
+            print('WARNING: Although SEIMS model runs successfully, the desired output: %s'
+                  ' cannot be found!' % rfile)
             self.economy = self.worst_econ
             self.environment = self.worst_env
             return
@@ -211,7 +214,7 @@ class SPScenario(Scenario):
             # reduction rate of soil erosion
             self.environment = (base_amount - soil_erosion_amount) / base_amount
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
-            sed_sum = sum_outlet_output(rfile)
+            sed_sum = read_simulation_from_txt(self.modelout_dir)  # TODO, fix it later, lj
             self.environment = (base_amount - sed_sum) / base_amount
         else:
             self.economy = self.worst_econ
@@ -236,7 +239,7 @@ class SPScenario(Scenario):
             spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
             # read file from mongodb
             if not spatial_gfs.exists(filename=dist_name):
-                print ('WARNING: %s is not existed, export scenario failed!' % dist_name)
+                print('WARNING: %s is not existed, export scenario failed!' % dist_name)
                 return
             try:
                 slpposf = maindb[DBTableNames.gridfs_spatial].files.find({'filename': dist_name},
@@ -253,8 +256,8 @@ class SPScenario(Scenario):
             cellsize = slpposf['metadata'][RasterMetadata.cellsize]
             nodata_value = slpposf['metadata'][RasterMetadata.nodata]
             srs = slpposf['metadata'][RasterMetadata.srs]
-            if isinstance(srs, unicode):
-                srs = srs.encode()
+            if isinstance(srs, text_type):
+                srs = str(srs)
             srs = osr.GetUserInputAsWKT(srs)
             geotransform = [0] * 6
             geotransform[0] = xll - 0.5 * cellsize
@@ -272,7 +275,7 @@ class SPScenario(Scenario):
             for idx, gene_v in enumerate(self.gene_values):
                 v_dict[self.gene_to_unit[idx]] = gene_v
 
-            for k, v in v_dict.iteritems():
+            for k, v in v_dict.items():
                 slppos_data[slppos_data == k] = v
             if outpath is None:
                 outpath = self.scenario_dir + os.sep + 'Scenario_%d.tif' % self.ID
@@ -345,27 +348,27 @@ def main():
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
 
-    # print (cfg.gene_to_slppos)
-    # print (cfg.slppos_suit_bmps)
+    # print(cfg.gene_to_slppos)
+    # print(cfg.slppos_suit_bmps)
 
     cost = list()
     for i in range(100):
         init_gene_values = initialize_scenario(cfg)
-        # print (init_gene_values.__str__())
+        # print(init_gene_values.__str__())
         sce = SPScenario(cfg)
         curid = sce.set_unique_id()
         setattr(sce, 'gene_values', init_gene_values)
         sce.calculate_economy()
         cost.append(sce.economy)
-    print (max(cost), min(cost), sum(cost) / len(cost))
+    print(max(cost), min(cost), sum(cost) / len(cost))
 
     # import numpy
     #
     # re_genes = numpy.reshape(init_gene_values, (len(init_gene_values) / 3, 3))
-    # print (re_genes)
+    # print(re_genes)
     # econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
-    # print ('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
-    # print ('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+    # print('Scenario %d: %s\n' % (sceid, ', '.join(str(v) for v in init_gene_values)))
+    # print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
 
 
 if __name__ == '__main__':

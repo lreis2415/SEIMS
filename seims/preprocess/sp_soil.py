@@ -8,7 +8,10 @@
                              - Data validation checking is also conducted.
                 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import math
 import os
 
@@ -17,8 +20,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from utility import status_output, read_data_items_from_txt
+from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from preprocess.utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -143,7 +146,6 @@ class SoilProperty(object):
         for ele in sol_dict:
             if isinstance(sol_dict[ele], list) and not sol_dict[ele]:
                 del sol_dict[ele]
-        # print sol_dict
         return sol_dict
 
     def check_data_validation(self):
@@ -674,8 +676,8 @@ class SoilUtilClass(object):
                     soil_prop_dict[fld].append(cur_sol_dict[fld])
                 else:
                     soil_prop_dict[fld] = [cur_sol_dict[fld]]
-        # print soilPropDict.keys()
-        # print soilPropDict.values()
+        # print(list(soilPropDict.keys()))
+        # print(list(soilPropDict.values()))
 
         replace_dicts = list()
         dst_soil_tifs = list()
@@ -696,7 +698,7 @@ class SoilUtilClass(object):
                     dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
-                        cur_dict = {}
+                        cur_dict = dict()
                         for j, tmpseq in enumerate(seqns):
                             if i < soil_prop_dict[SoilUtilClass._NLYRS][j]:
                                 cur_dict[float(tmpseq)] = soil_prop_dict[key][j][i]
@@ -704,14 +706,14 @@ class SoilUtilClass(object):
                                 cur_dict[float(seqns[j])] = DEFAULT_NODATA
                         replace_dicts.append(cur_dict)
                         dst_soil_tifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
-        # print replaceDicts
+        # print(replaceDicts)
         # print(len(replaceDicts))
-        # print dstSoilTifs
+        # print(dstSoilTifs)
         # print(len(dstSoilTifs))
 
         # Generate GTIFF
         for i, soil_tif in enumerate(dst_soil_tifs):
-            print (soil_tif)
+            print(soil_tif)
             RasterUtilClass.raster_reclassify(soiltype_file, replace_dicts[i], soil_tif)
 
     @staticmethod
@@ -752,7 +754,7 @@ class SoilUtilClass(object):
                     wi_max = wi_grid[i][j]
                 if DEFAULT_NODATA != wi_grid[i][j] < wi_min:
                     wi_min = wi_grid[i][j]
-        # print "TWIMax:%f, TWIMin:%f" % (wi_max, wi_min)
+        # print('TWIMax:%f, TWIMin:%f' % (wi_max, wi_min))
         soil_mois_fr_min = 0.6  # minimum relative saturation
         soil_mois_fr_max = 1.0
 
@@ -800,7 +802,7 @@ class SoilUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SoilUtilClass.parameters_extraction(seims_cfg)
 

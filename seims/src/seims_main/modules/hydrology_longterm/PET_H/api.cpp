@@ -2,10 +2,7 @@
 
 #include "api.h"
 
-//! Get instance of SimulationModule class
-extern "C" SEIMS_MODULE_API SimulationModule *
-
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETHargreaves();
 }
 /*!

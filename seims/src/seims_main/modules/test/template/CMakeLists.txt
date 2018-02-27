@@ -1,5 +1,6 @@
 MESSAGE(STATUS "        Compiling test_subdir: template...")
-SET(SRC_LIST ${MODULE_SRC} template.cpp api.cpp)
+FILE(GLOB CUR_SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+SET(SRC_LIST ${MODULE_SRC} ${CUR_SRC_LIST})
 ADD_LIBRARY(template SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(template util data bmps module_setting)

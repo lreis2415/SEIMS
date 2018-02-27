@@ -4,7 +4,8 @@
  * \date Jan. 2010
  * \revised date Apr. 2016
  */
-#pragma once
+#ifndef SEIMS_MODULE_ITP_H
+#define SEIMS_MODULE_ITP_H
 
 #include "SimulationModule.h"
 
@@ -83,3 +84,4 @@ private:
     /// interpolation result
     float *m_itpOutput;
 };
+#endif /* SEIMS_MODULE_ITP_H */

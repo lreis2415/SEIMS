@@ -2,9 +2,7 @@
 
 #include "api.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *
-
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new KinWavSed_CH();
 }
 
@@ -40,7 +38,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddParameter(Tag_FLOWOUT_INDEX_D8, UNIT_NON_DIM, DESC_FLOWOUT_INDEX_D8, Source_ParameterDB, DT_Array1D);
     mdi.AddParameter(Tag_FLOWIN_INDEX_D8, UNIT_NON_DIM, DESC_FLOWIN_INDEX_D8, Source_ParameterDB, DT_Array2D);
-    //mdi.AddParameter(Tag_ReachParameter, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Array2D);
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
 
@@ -48,8 +45,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, Source_Module, DT_Array2D);
     //mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module,DT_Array2D);
-    mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module",
-                 DT_Array2D);// from which module? By LJ
+    // from which module? By LJ
+    mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module", DT_Array2D);
     /// set the output variables
 
     mdi.AddOutput(VAR_SED_OUTLET, UNIT_KGM3, DESC_SED_OUTLET, DT_Single);

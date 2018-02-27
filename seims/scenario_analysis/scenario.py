@@ -4,7 +4,10 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-10-29  hr - initial implementation.\n
                 17-08-18  lj - redesign and rewrite.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import random
 from datetime import timedelta
@@ -13,10 +16,10 @@ from bson.objectid import ObjectId
 from pygeoc.utils import StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 
-from config import SAConfig
+from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from run_seims import MainSEIMS
-from utility import generate_uniqueid, print_message
+from scenario_analysis.utility import generate_uniqueid, print_message
 
 
 class Scenario(object):
@@ -70,7 +73,7 @@ class Scenario(object):
 
     def set_unique_id(self):
         """Set unique ID."""
-        self.ID = generate_uniqueid().next()
+        self.ID = next(generate_uniqueid())
         self.modelout_dir = '%s/OUTPUT%d' % (self.model_dir, self.ID)
         self.read_simulation_timerange()
         return self.ID
@@ -130,7 +133,7 @@ class Scenario(object):
         except NetworkTimeout or Exception:
             # In case of unexpected raise
             pass
-        for objid, bmp_item in self.bmp_items.iteritems():
+        for objid, bmp_item in self.bmp_items.items():
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
         client.close()
@@ -144,24 +147,22 @@ class Scenario(object):
         if not self.export_sce_txt:
             return
         ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
-        outfile = open(ofile, 'w')
-        outfile.write('Scenario ID: %d\n' % self.ID)
-        outfile.write('Gene number: %d\n' % self.gene_num)
-        outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
-        outfile.write('Scenario items:\n')
-        if len(self.bmp_items) > 0:
-            for obj, item in self.bmp_items.iteritems():
-                header = item.keys()
-                break
-            outfile.write('\t'.join(header))
-            outfile.write('\n')
-            for obj, item in self.bmp_items.iteritems():
-                outfile.write('\t'.join(str(v) for v in item.values()))
+        with open(ofile, 'w') as outfile:
+            outfile.write('Scenario ID: %d\n' % self.ID)
+            outfile.write('Gene number: %d\n' % self.gene_num)
+            outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+            outfile.write('Scenario items:\n')
+            if len(self.bmp_items) > 0:
+                for obj, item in self.bmp_items.items():
+                    header = list(item.keys())
+                    break
+                outfile.write('\t'.join(header))
                 outfile.write('\n')
-
-        outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
-                                                                              self.environment))
-        outfile.close()
+                for obj, item in self.bmp_items.items():
+                    outfile.write('\t'.join(str(v) for v in list(item.values())))
+                    outfile.write('\n')
+            outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
+                                                                                  self.environment))
 
     def export_scenario_to_gtiff(self):
         """Export the areal BMPs to gtiff for further analysis.
@@ -227,22 +228,6 @@ class Scenario(object):
                                ' random_based_config!')
 
 
-def initialize_scenario(cf):
-    """Used for initial individual of population.
-
-    Designed as static method, which should be overridden in inherited class.
-    """
-    pass
-
-
-def scenario_effectiveness(cf, individual):
-    """Used for evaluate the effectiveness of given individual.
-
-    Designed as static method, which should be overridden in inherited class.
-    """
-    pass
-
-
 if __name__ == '__main__':
     cf = get_config_parser()
     cfg = SAConfig(cf)
@@ -252,6 +237,6 @@ if __name__ == '__main__':
     import pickle
 
     s = pickle.dumps(sceobj)
-    # print (s)
+    # print(s)
     new_cfg = pickle.loads(s)
-    print (new_cfg.bin_dir)
+    print(new_cfg.bin_dir)

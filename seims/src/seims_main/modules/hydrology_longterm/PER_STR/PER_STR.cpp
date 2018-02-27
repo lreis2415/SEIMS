@@ -15,7 +15,7 @@ PER_STR::~PER_STR(void) {
 
 void PER_STR::initialOutputs() {
     if (m_perc == NULL) {
-        Initialize2DArray(m_nCells, m_nSoilLayers, m_perc, NODATA_VALUE);
+        Initialize2DArray(m_nCells, m_nSoilLayers, m_perc, 0.f);
     }
 }
 
@@ -26,7 +26,6 @@ int PER_STR::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
         // the first soil layer in other modules. By LJ
-
         float excessWater = 0.f, maxSoilWater = 0.f, fcSoilWater = 0.f;
         for (int j = 0; j < (int) m_soilLayers[i]; j++) {
             excessWater = 0.f;
@@ -44,6 +43,7 @@ int PER_STR::Execute() {
             // No movement if soil moisture is below field capacity
             if (excessWater > 1.e-5f) {
                 float maxPerc = maxSoilWater - fcSoilWater;
+                if (maxPerc < 0.f) maxPerc = 0.1f;
                 float tt = 3600.f * maxPerc / m_ks[i][j]; // secs
                 m_perc[i][j] = excessWater * (1.f - exp(-m_dt / tt)); // secs
 
@@ -97,6 +97,12 @@ int PER_STR::Execute() {
             m_soilStorageProfile[i] += m_soilStorage[i][ly];
         }
     }
+    // DEBUG
+    //cout << "PER_STR, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 
@@ -147,8 +153,7 @@ void PER_STR::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_PER_STR, "SetValue",
-                             "Parameter " + s +
-                                 " does not exist in current module. Please contact the module developer.");
+                             "Parameter " + s + " does not exist in current module.");
     }
 }
 
@@ -174,16 +179,16 @@ bool PER_STR::CheckInputData() {
         throw ModelException(MID_PER_STR, "CheckInputData", "The Moisture can not be NULL.");
     }
     if (m_fc == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The field capacity can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The field capacity can not be NULL.");
     }
     if (this->m_soilStorage == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil storage can not be NULL.");
     }
     if (this->m_soilStorageProfile == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage of soil profile can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil storage of soil profile can not be NULL.");
     }
     if (m_soilThick == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil depth can not be NULL.");
+        throw ModelException(MID_PER_STR, "CheckInputData", "The soil depth can not be NULL.");
     }
     if (m_soilT == NULL) {
         throw ModelException(MID_PER_STR, "CheckInputData", "The soil temperature can not be NULL.");

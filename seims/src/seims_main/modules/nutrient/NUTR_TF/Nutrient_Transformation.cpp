@@ -534,6 +534,12 @@ int Nutrient_Transformation::Execute() {
     //			cout<<"cellid: "<<i<<"lyr: "<<j<<", "<<m_sol_no3[i][j]<<endl;
     //	}
     //}
+    // DEBUG
+    //cout << "NUTR_TF, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_nSoilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 

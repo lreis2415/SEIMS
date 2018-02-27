@@ -5,7 +5,8 @@
 0 | Interpolation | Thiessen_0 | ITP
 ### Surface processes
 0 | Soil temperature | Finn Plauborg | STP_FP
-0 | PET | PriestleyTaylor | PET_PT
+#0 | PET | PriestleyTaylor | PET_PT
+0 | PET | PenmanMonteith | PET_PM
 0 | Interception | Maximum Canopy Storage | PI_MCS
 0 | Snow melt | Snowpeak Daily | SNO_SP
 0 | Infiltration | Modified rational | SUR_MR
@@ -16,7 +17,9 @@
 #0 | Percolation | Darcy and Brooks-Corey | PER_PI
 0 | Percolation | Storage routing | PER_STR
 0 | Subsurface | Darcy and Kinematic | SSR_DA
-0 | AET | Hargreaves and PriestleyTaylor | AET_PTH
+#When PET_PM are used, there is no need to use AET_PTH, SET_LM should be used!
+#0 | AET | Hargreaves and PriestleyTaylor | AET_PTH
+0 | SET | Linearly Method from WetSpa | SET_LM
 0 | PG | Simplified EPIC | BIO_EPIC
 0 | ATMDEP | Atomosphere deposition | ATMDEP
 0 | NUTR_TF | Nutrient Transformation of C, N, and P | NUTR_TF

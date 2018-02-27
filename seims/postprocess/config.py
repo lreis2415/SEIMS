@@ -3,7 +3,10 @@
 """Configuration of Postprocess for SEIMS.
     @author   : Liangjun Zhu, Huiran Gao
     @changelog: 17-08-17  lj - reorganize as basic class
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -80,6 +83,15 @@ class PostConfig(object):
             # UTCTIME
             self.time_start = StringClass.get_datetime(tstart)
             self.time_end = StringClass.get_datetime(tend)
+            if cf.has_option('OPTIONAL_PARAMETERS', 'vali_time_start') and \
+                    cf.has_option('OPTIONAL_PARAMETERS', 'vali_time_end'):
+                tstart = cf.get('OPTIONAL_PARAMETERS', 'vali_time_start')
+                tend = cf.get('OPTIONAL_PARAMETERS', 'vali_time_end')
+                self.vali_stime = StringClass.get_datetime(tstart)
+                self.vali_etime = StringClass.get_datetime(tend)
+            else:
+                self.vali_stime = None
+                self.vali_etime = None
         except ValueError:
             raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
         if self.time_start >= self.time_end:

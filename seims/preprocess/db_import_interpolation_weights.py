@@ -4,17 +4,20 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-26  lj - reorganize according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 from math import sqrt, pow
 from struct import pack, unpack
 
 from gridfs import GridFS
 from numpy import zeros as np_zeros
 
-from db_mongodb import MongoQuery
-from text import DBTableNames, RasterMetadata, FieldNames, \
+from preprocess.db_mongodb import MongoQuery
+from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
-from utility import UTIL_ZERO
+from preprocess.utility import UTIL_ZERO
 
 
 class ImportWeightData(object):
@@ -42,7 +45,6 @@ class ImportWeightData(object):
         weight_list = []
         for coef in coef_list:
             weight_list.append(coef / sum_dist)
-        # print weight_list
         fmt = '%df' % (len(weight_list))
         s = pack(fmt, *weight_list)
         return s
@@ -51,8 +53,7 @@ class ImportWeightData(object):
     def thiessen(x, y, loc_list):
         """Thiessen polygon method for weights"""
         i_min = 0
-        coef_list = []
-        # print loc_list
+        coef_list = list()
         if len(loc_list) <= 1:
             coef_list.append(1)
             fmt = '%df' % 1
@@ -65,7 +66,7 @@ class ImportWeightData(object):
         for i in range(1, len(loc_list)):
             coef_list.append(0)
             dis = ImportWeightData.cal_dis(x, y, loc_list[i][0], loc_list[i][1])
-            # print x, y, loc_list[i][0], loc_list[i][1], dis
+            # print(x, y, loc_list[i][0], loc_list[i][1], dis)
             if dis < dis_min:
                 i_min = i
                 dis_min = dis
@@ -96,7 +97,7 @@ class ImportWeightData(object):
         num_sites = int(weight_m['metadata'][RasterMetadata.site_num])
         # read meteorology sites
         site_lists = maindb[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
-        site_list = site_lists.next()
+        site_list = next(site_lists)
         db_name = site_list[FieldNames.db]
         m_list = site_list.get(FieldNames.site_m)
         hydro_clim_db = conn[db_name]
@@ -126,7 +127,7 @@ class ImportWeightData(object):
 
         weight_m_data = spatial_gfs.get(weight_m['_id'])
         total_len = num_cells * num_sites
-        # print (total_len)
+        # print(total_len)
         fmt = '%df' % (total_len,)
         weight_m_data = unpack(fmt, weight_m_data.read())
 
@@ -171,7 +172,6 @@ class ImportWeightData(object):
             cur_row2 = []
             for j in range(0, xsize):
                 index = i * xsize + j
-                # print index
                 if abs(mask_data[index] - nodata_value) > UTIL_ZERO:
                     cur_row.append(phu0_data[vaild_count])
                     cur_row2.append(tmean0_data[vaild_count])
@@ -184,7 +184,7 @@ class ImportWeightData(object):
             myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print ('Valid Cell Number is: %d' % vaild_count)
+        print('Valid Cell Number is: %d' % vaild_count)
         return True
 
     @staticmethod
@@ -216,7 +216,7 @@ class ImportWeightData(object):
         total_len = xsize * ysize
         fmt = '%df' % (total_len,)
         data = unpack(fmt, data.read())
-        # print data[0], len(data), type(data)
+        # print(data[0], len(data), type(data))
 
         # count number of valid cells
         num = 0
@@ -228,13 +228,13 @@ class ImportWeightData(object):
         metadic = {RasterMetadata.subbasin: subbsn_id,
                    RasterMetadata.cellnum: num}
         site_lists = db_model[DBTableNames.main_sitelist].find({FieldNames.subbasin_id: subbsn_id})
-        site_list = site_lists.next()
+        site_list = next(site_lists)
         clim_db_name = site_list[FieldNames.db]
         p_list = site_list.get(FieldNames.site_p)
         m_list = site_list.get(FieldNames.site_m)
         pet_list = site_list.get(FieldNames.site_pet)
-        # print p_list
-        # print m_list
+        # print(p_list)
+        # print(m_list)
         hydro_clim_db = conn[clim_db_name]
 
         type_list = [DataType.m, DataType.p, DataType.pet]
@@ -246,22 +246,22 @@ class ImportWeightData(object):
         if storm_mode:
             type_list = [DataType.p]
             site_lists = [p_list]
-            # print type_list
-        # print site_lists
+            # print(type_list)
+        # print(site_lists)
 
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
-            print fname
+            # print(fname)
             if spatial_gfs.exists(filename=fname):
                 x = spatial_gfs.get_version(filename=fname)
                 spatial_gfs.delete(x._id)
             site_list = site_lists[type_i]
             if site_list is not None:
                 site_list = site_list.split(',')
-                # print site_list
+                # print(site_list)
                 site_list = [int(item) for item in site_list]
                 metadic[RasterMetadata.site_num] = len(site_list)
-                # print site_list
+                # print(site_list)
                 q_dic = {StationFields.id: {'$in': site_list},
                          StationFields.type: type_list[type_i]}
                 cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
@@ -274,41 +274,37 @@ class ImportWeightData(object):
                         sort(StationFields.id, 1)
 
                 # get site locations
-                id_list = []
-                loc_list = []
+                id_list = list()
+                loc_list = list()
                 for site in cursor:
                     if site[StationFields.id] in site_list:
                         id_list.append(site[StationFields.id])
                         loc_list.append([site[StationFields.x], site[StationFields.y]])
-                # print 'loclist', locList
+                # print('loclist', locList)
                 # interpolate using the locations
-                # weightList = []
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                f_test = open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,
-                                                        subbsn_id, type_list[type_i]), 'w')
-                for y in range(0, ysize):
-                    for x in range(0, xsize):
-                        index = int(y * xsize + x)
-                        # print index
-                        if abs(data[index] - nodata_value) > UTIL_ZERO:
-                            x_coor = xll + x * dx
-                            y_coor = yll + (ysize - y - 1) * dx
-                            near_index = 0
-                            # print locList
-                            line, near_index = ImportWeightData.thiessen(x_coor, y_coor, loc_list)
-                            myfile.write(line)
-                            fmt = '%df' % (len(loc_list))
-                            f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
+                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,subbsn_id,
+                                                    type_list[type_i]), 'w') as f_test:
+                    for y in range(0, ysize):
+                        for x in range(0, xsize):
+                            index = int(y * xsize + x)
+                            if abs(data[index] - nodata_value) > UTIL_ZERO:
+                                x_coor = xll + x * dx
+                                y_coor = yll + (ysize - y - 1) * dx
+                                near_index = 0
+                                line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
+                                                                             loc_list)
+                                myfile.write(line)
+                                fmt = '%df' % (len(loc_list))
+                                f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
                 myfile.close()
-                f_test.close()
 
     @staticmethod
-    def workflow(cfg, conn):
+    def workflow(cfg, conn, n_subbasins):
         """Workflow"""
         db_model = conn[cfg.spatial_db]
-        subbasin_start_id = 0
-        n_subbasins = 0  # default is for OpenMP version
-        if cfg.cluster:
+        subbasin_start_id = 0  # default is for OpenMP version
+        if n_subbasins > 0:
             subbasin_start_id = 1
             n_subbasins = MongoQuery.get_init_parameter_value(db_model, SubbsnStatsName.subbsn_num)
 
@@ -320,13 +316,13 @@ class ImportWeightData(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
 
-    ImportWeightData.workflow(seims_cfg, conn)
+    ImportWeightData.workflow(seims_cfg, conn, 0)
 
     client.close()
 

@@ -2,9 +2,7 @@
 
 #include "api.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *
-
-GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SSR_DA();
 }
 
@@ -12,7 +10,7 @@ GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
-    mdi.SetAuthor("Zhiqiang Yu; Junzhi Liu");
+    mdi.SetAuthor("Zhiqiang Yu; Junzhi Liu; Liangjun Zhu");
     mdi.SetClass(MCLS_SUBSURFACE, MCLSDESC_SUBSURFACE);
     mdi.SetDescription(MDESC_SSR_DA);
     mdi.SetEmail(SEIMS_EMAIL);

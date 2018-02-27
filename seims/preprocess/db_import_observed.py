@@ -7,16 +7,20 @@
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
                 TODO: Check the location of observed stations and add subbasinID field.
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 from datetime import timedelta
-from db_mongodb import MongoQuery
-from db_mongodb import MongoUtil
-from hydro_climate_utility import HydroClimateUtilClass
-from text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from utility import read_data_items_from_txt
+
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
+
+from preprocess.db_mongodb import MongoUtil, MongoQuery
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
+from preprocess.utility import read_data_items_from_txt
 
 
 class ImportObservedData(object):
@@ -117,11 +121,15 @@ class ImportObservedData(object):
                                                                           maindb)
                     if not matched:
                         break
-                    cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cid is not None)
+                    cur_subbsn_id_str = ''
+                    if len(cur_sids) == 1:  # if only one subbasin ID, store integer
+                        cur_subbsn_id_str = cur_sids[0]
+                    else:
+                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cur_sids is None)
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
-                    # print (curfilter)
+                    # print(curfilter)
                     hydro_clim_db[DBTableNames.sites].find_one_and_replace(curfilter, site_dic,
                                                                            upsert=True)
 
@@ -135,7 +143,7 @@ class ImportObservedData(object):
         bulk = hydro_clim_db[DBTableNames.observes].initialize_ordered_bulk_op()
         count = 0
         for measDataFile in obs_txts_list:
-            # print measDataFile
+            # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
             if tsysin == 'UTCTIME':
@@ -186,7 +194,7 @@ class ImportObservedData(object):
         # loop variables list
         added_dics = []
         for curVar in variable_lists:
-            # print curVar
+            # print(curVar)
             # if the unit is mg/L, then change the Type name with the suffix 'Conc',
             # and convert the corresponding data to kg if the discharge data is
             # available.
@@ -194,7 +202,7 @@ class ImportObservedData(object):
             cur_unit = curVar[StationFields.unit]
             # Find data by Type
             for item in hydro_clim_db[DBTableNames.observes].find({StationFields.type: cur_type}):
-                # print item
+                # print(item)
                 dic = dict()
                 dic[StationFields.id] = item[StationFields.id]
                 dic[DataValueFields.value] = item[DataValueFields.value]
@@ -220,7 +228,7 @@ class ImportObservedData(object):
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
 
                 q = -9999.
-                if q_dic is not None:  # and q_dic.has_key(DataValueFields.value):
+                if q_dic is not None:
                     q = q_dic[DataValueFields.value]
                 else:
                     continue
@@ -280,8 +288,8 @@ class ImportObservedData(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
@@ -291,7 +299,7 @@ def main():
     st = time.time()
     ImportObservedData.workflow(seims_cfg, main_db, hydroclim_db)
     et = time.time()
-    print et - st
+    print(et - st)
 
     client.close()
 

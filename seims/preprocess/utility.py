@@ -4,14 +4,17 @@
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-06-16  first implementation version
                 17-06-22  reformat according to pylint and google style
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
 
-from pygeoc.utils import StringClass, UtilClass
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
+from pygeoc.utils import StringClass, UtilClass
 
 # Global variables
 UTIL_ZERO = 1.e-6
@@ -43,7 +46,7 @@ def read_data_items_from_txt(txt_file):
         2D data array
     """
     data_items = list()
-    with open(txt_file, 'r') as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         for line in f:
             str_line = line.strip()
             if str_line != '' and str_line.find('#') < 0:
@@ -52,18 +55,3 @@ def read_data_items_from_txt(txt_file):
                     line_list = StringClass.split_string(str_line, [','])
                 data_items.append(line_list)
     return data_items
-
-
-def sum_outlet_output(rfile):
-    """Sum the output variables in outlet txt file."""
-    data = read_data_items_from_txt(rfile)
-    sum_data = 0.
-    for item in data:
-        item = StringClass.split_string(item[0], ' ', True)
-        if len(item) < 3:
-            continue
-        try:
-            sum_data += float(item[2])
-        except ValueError or Exception:
-            pass
-    return sum_data

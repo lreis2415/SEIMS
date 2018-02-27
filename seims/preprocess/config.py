@@ -5,7 +5,10 @@
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
                 17-12-18  lj - add field partition parameters
+                18-02-08  lj - combine serial and cluster versions and compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import json
 import os
 
@@ -15,10 +18,10 @@ except ImportError:
     from configparser import ConfigParser  # py3
 
 from pygeoc.TauDEM import TauDEMFilesUtils
-from pygeoc.utils import FileClass, StringClass, UtilClass, MathClass, get_config_file
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
 
-from text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
-from text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
+from preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
+from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
 class SEIMSConfig(object):
@@ -48,7 +51,7 @@ class SEIMSConfig(object):
         self.bmp_scenario_db = ''
         self.spatial_db = ''
         # 3. Switch for building SEIMS
-        self.cluster = False
+        # self.cluster = False
         self.storm_mode = False
         self.gen_cn = True
         self.gen_runoff_coef = True
@@ -114,11 +117,10 @@ class SEIMSConfig(object):
                 # os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.sep + 'preprocess_output'
-                print ('WARNING: Make WORKING_DIR failed: %s. Use the default: %s' % (
-                    exc.message, self.workspace))
+                print('WARNING: Make WORKING_DIR failed: %s. '
+                      'Use the default: %s' % (exc.message, self.workspace))
                 if not os.path.exists(self.workspace):
                     UtilClass.mkdir(self.workspace)
-                    # os.mkdir(self.workspace)
 
         self.dirs = DirNameUtils(self.workspace)
         self.logs = LogNameUtils(self.dirs.log)
@@ -129,13 +131,13 @@ class SEIMSConfig(object):
         self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
 
         if not FileClass.is_dir_exists(self.clim_dir):
-            print ('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
+            print('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
             self.clim_dir = self.base_dir + os.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
                 raise IOError('Directories named "climate" MUST BE located in [base_dir]!')
 
         if not FileClass.is_dir_exists(self.spatial_dir):
-            print ('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
+            print('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
             self.spatial_dir = self.base_dir + os.sep + 'spatial'
             raise IOError('Directories named "spatial" MUST BE located in [base_dir]!')
 
@@ -162,7 +164,7 @@ class SEIMSConfig(object):
         # 3. Model related switch
         # by default, OpenMP version and daily (longterm) mode will be built
         if 'SWITCH' in cf.sections():
-            self.cluster = cf.getboolean('SWITCH', 'forcluster')
+            # self.cluster = cf.getboolean('SWITCH', 'forcluster')
             self.storm_mode = cf.getboolean('SWITCH', 'stormmode')
             self.gen_cn = cf.getboolean('SWITCH', 'gencn')
             self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
@@ -172,8 +174,8 @@ class SEIMSConfig(object):
             self.gen_iuh = False
             self.climate_db = ModelNameUtils.standardize_climate_dbname(self.climate_db)
 
-        self.spatial_db = ModelNameUtils.standardize_spatial_dbname(self.cluster, self.storm_mode,
-                                                                    self.spatial_db)
+        # self.spatial_db = ModelNameUtils.standardize_spatial_dbname(self.cluster, self.storm_mode,
+        #                                                             self.spatial_db)
 
         # 4. Climate Input
         if 'CLIMATE' in cf.sections():
@@ -205,9 +207,9 @@ class SEIMSConfig(object):
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = cf.get('SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)
-                tmpdict = {str(k): (str(v) if isinstance(v, unicode) else v) for k, v in
-                           tmpdict.items()}
-                for k, v in tmpdict.items():
+                tmpdict = {str(k): (str(v) if isinstance(v, str) else v) for k, v in
+                           list(tmpdict.items())}
+                for k, v in list(tmpdict.items()):
                     # Existence check has been moved to mask_origin_delineated_data()
                     #  in sp_delineation.py
                     self.additional_rs[k] = v
@@ -257,4 +259,4 @@ def parse_ini_configuration():
 
 if __name__ == '__main__':
     seims_cfg = parse_ini_configuration()
-    print (seims_cfg.meteo_sites_thiessen)
+    print(seims_cfg.meteo_sites_thiessen)

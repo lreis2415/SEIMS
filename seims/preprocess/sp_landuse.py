@@ -6,7 +6,10 @@
                 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
                 17-07-07  lj - remove SQLite database file as intermediate file
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from numpy import frompyfunc as np_frompyfunc
@@ -14,8 +17,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import UtilClass, MathClass, FileClass, StringClass
 
-from text import ModelParamDataUtils
-from utility import status_output, read_data_items_from_txt, \
+from preprocess.text import ModelParamDataUtils
+from preprocess.utility import status_output, read_data_items_from_txt, \
     DEFAULT_NODATA, UTIL_ZERO
 
 
@@ -38,7 +41,7 @@ class LanduseUtilClass(object):
             raise RuntimeError("LanduseLoop Collection is not existed or empty!")
         count = 0
         for row in query_result:
-            # print row
+            # print(row)
             value_map = dict()
             for i, p_name in enumerate(property_namelist):
                 if StringClass.string_match(p_name, "USLE_P"):
@@ -56,12 +59,11 @@ class LanduseUtilClass(object):
         n = len(property_map)
         UtilClass.rmmkdir(lookup_dir)
         for propertyName in property_namelist:
-            f = open("%s/%s.txt" % (lookup_dir, propertyName,), 'w')
-            f.write("%d\n" % n)
-            for prop_id in property_map:
-                s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
-                f.write(s)
-            f.close()
+            with open("%s/%s.txt" % (lookup_dir, propertyName,), 'w') as f:
+                f.write("%d\n" % n)
+                for prop_id in property_map:
+                    s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
+                    f.write(s)
 
     @staticmethod
     def reclassify_landuse_parameters(bin_dir, config_file, dst_dir, landuse_file, lookup_dir,
@@ -71,14 +73,13 @@ class LanduseUtilClass(object):
         TODO(LJ): this function should be replaced by replaceByDict() function!
         """
         # prepare reclassify configuration file
-        f_reclass_lu = open(config_file, 'w')
-        f_reclass_lu.write("%s\t%d\n" % (landuse_file, default_landuse_id))
-        f_reclass_lu.write("%s\n" % lookup_dir)
-        f_reclass_lu.write(dst_dir + "\n")
-        n = len(landuse_attr_list)
-        f_reclass_lu.write("%d\n" % n)
-        f_reclass_lu.write("\n".join(landuse_attr_list))
-        f_reclass_lu.close()
+        with open(config_file, 'w') as f_reclass_lu:
+            f_reclass_lu.write("%s\t%d\n" % (landuse_file, default_landuse_id))
+            f_reclass_lu.write("%s\n" % lookup_dir)
+            f_reclass_lu.write(dst_dir + "\n")
+            n = len(landuse_attr_list)
+            f_reclass_lu.write("%d\n" % n)
+            f_reclass_lu.write("\n".join(landuse_attr_list))
         s = '"%s/reclassify" %s' % (bin_dir, config_file)
         UtilClass.run_command(s)
 
@@ -86,7 +87,7 @@ class LanduseUtilClass(object):
     def initialize_landcover_parameters(landcover_file, landcover_initial_fields_file, dst_dir):
         """generate initial landcover_init_param parameters"""
         lc_data_items = read_data_items_from_txt(landcover_initial_fields_file)
-        # print lc_data_items
+        # print(lc_data_items)
         field_names = lc_data_items[0]
         lu_id = -1
         for i, v in enumerate(field_names):
@@ -98,18 +99,18 @@ class LanduseUtilClass(object):
         for item in data_items:
             for i, v in enumerate(item):
                 if i != lu_id:
-                    if field_names[i].upper() not in replace_dicts.keys():
+                    if field_names[i].upper() not in list(replace_dicts.keys()):
                         replace_dicts[field_names[i].upper()] = {float(item[lu_id]): float(v)}
                     else:
                         replace_dicts[field_names[i].upper()][float(item[lu_id])] = float(v)
-        # print replace_dicts
+        # print(replace_dicts)
 
         # Generate GTIFF
-        for item, v in replace_dicts.items():
+        for item, v in list(replace_dicts.items()):
             filename = dst_dir + os.sep + item + '.tif'
-            print (filename)
+            print(filename)
             RasterUtilClass.raster_reclassify(landcover_file, v, filename)
-        return replace_dicts['LANDCOVER'].values()
+        return list(replace_dicts['LANDCOVER'].values())
 
     @staticmethod
     def read_crop_lookup_table(crop_lookup_file):
@@ -149,17 +150,17 @@ class LanduseUtilClass(object):
             for code in land_cover_codes:
                 if MathClass.floatequal(code, DEFAULT_NODATA):
                     continue
-                if code not in cur_dict.keys():
+                if code not in list(cur_dict.keys()):
                     cur_dict[code] = dic.get(code)
             replace_dicts.append(cur_dict)
             dst_crop_tifs.append(dst_dir + os.sep + cur_attr + '.tif')
-        # print replace_dicts
+        # print(replace_dicts)
         # print(len(replace_dicts))
-        # print dst_crop_tifs
+        # print(dst_crop_tifs)
         # print(len(dst_crop_tifs))
         # Generate GTIFF
         for i, v in enumerate(dst_crop_tifs):
-            # print dst_crop_tifs[i]
+            # print(dst_crop_tifs[i])
             RasterUtilClass.raster_reclassify(landcover_file, replace_dicts[i], v)
 
     @staticmethod
@@ -174,7 +175,7 @@ class LanduseUtilClass(object):
             lu_id = row.get('LANDUSE_ID')
             cn2_list = [row.get('CN2A'), row.get('CN2B'), row.get('CN2C'), row.get('CN2D')]
             cn2_map[lu_id] = cn2_list
-        # print (cn2Map)
+        # print(cn2Map)
         lu_r = RasterUtilClass.read_raster(landuse_file)
         data_landuse = lu_r.data
         xsize = lu_r.nCols
@@ -203,8 +204,8 @@ class LanduseUtilClass(object):
                                    runoff_coeff_file, imper_perc=0.3):
         """Generate potential runoff coefficient."""
         # read landuselookup table from MongoDB
-        prc_fields = ["PRC_ST%d" % (i,) for i in range(1, 13)]
-        sc_fields = ["SC_ST%d" % (i,) for i in range(1, 13)]
+        prc_fields = ['PRC_ST%d' % (i,) for i in range(1, 13)]
+        sc_fields = ['SC_ST%d' % (i,) for i in range(1, 13)]
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
             raise RuntimeError("LanduseLoop Collection is not existed or empty!")
@@ -231,9 +232,9 @@ class LanduseUtilClass(object):
             """Calculate runoff coefficient by landuse, soil texture and slope."""
             if abs(lu_id - nodata_value1) < UTIL_ZERO or int(lu_id) < 0:
                 return nodata_value2
-            if int(lu_id) not in runoff_c0.keys():
+            if int(lu_id) not in list(runoff_c0.keys()):
                 if int(lu_id) not in id_omited:
-                    print ('The landuse ID: %d does not exist.' % int(lu_id))
+                    print('The landuse ID: %d does not exist.' % int(lu_id))
                     id_omited.append(int(lu_id))
             stid = int(soil_texture) - 1
             c0 = runoff_c0[int(lu_id)][stid]
@@ -302,8 +303,8 @@ class LanduseUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

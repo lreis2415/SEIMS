@@ -11,8 +11,7 @@ Scenario::Scenario(MongoClient *conn, const string& dbName, int subbsnID /* = 0 
 
 Scenario::~Scenario() {
     StatusMessage("Releasing Scenario...");
-    map<int, BMPFactory *>::iterator it;
-    for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ) {
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ) {
         if (nullptr != it->second) {
             delete (it->second);
             it->second = nullptr;
@@ -178,12 +177,10 @@ void Scenario::Dump(string& fileName) {
 
 void Scenario::Dump(ostream *fs) {
     if (fs == nullptr) return;
-
     *fs << "Scenario ID:" << this->m_sceneID << endl;
     *fs << "Name:" << this->m_name << endl;
     *fs << "*** All the BMPs ***" << endl;
-    map<int, BMPFactory *>::iterator it;
-    for (it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
         if (it->second != NULL) it->second->Dump(fs);
     }
 }
