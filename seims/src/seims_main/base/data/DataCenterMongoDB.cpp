@@ -95,14 +95,14 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     ostringstream oss;
     oss << m_subbasinID << "_" << Tag_Mask;
     string maskFileName = GetUpper(oss.str());
-    m_maskRaster = clsRasterData<float>::Init(m_spatialGridFS, maskFileName.c_str());
+    m_maskRaster = FloatRaster::Init(m_spatialGridFS, maskFileName.c_str());
     assert(nullptr != m_maskRaster);
     m_rsMap.insert(make_pair(maskFileName, m_maskRaster));
     /// 5. Read Subbasin raster data
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
-    FloatRaster *subbasinRaster = clsRasterData<float>::Init(m_spatialGridFS,
+    FloatRaster *subbasinRaster = FloatRaster::Init(m_spatialGridFS,
                                                              subbasinFileName.c_str(),
                                                              true, m_maskRaster);
     assert(nullptr != subbasinRaster);
@@ -420,7 +420,7 @@ bool DataCenterMongoDB::readParametersInDB() {
 }
 
 FloatRaster *DataCenterMongoDB::readRasterData(const string &remoteFilename) {
-    FloatRaster *rasterData = clsRasterData<float>::Init(m_spatialGridFS, remoteFilename.c_str(),
+    FloatRaster *rasterData = FloatRaster::Init(m_spatialGridFS, remoteFilename.c_str(),
                                                          true, m_maskRaster, true);
     assert(nullptr != rasterData);
     /// using insert() to make sure the successful insertion.
