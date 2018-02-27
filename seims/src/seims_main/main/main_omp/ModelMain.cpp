@@ -50,13 +50,13 @@ m_firstRunOverland(true), m_firstRunChannel(true)
 
 ModelMain::~ModelMain(void) {
     StatusMessage("Start to release ModelMain ...");
-    if (m_factory != NULL) {
+    if (m_factory != nullptr) {
         delete m_factory;
-        m_factory = NULL;
+        m_factory = nullptr;
     }
-    if (m_dataCenter != NULL) {
+    if (m_dataCenter != nullptr) {
         delete m_dataCenter;
-        m_dataCenter = NULL;
+        m_dataCenter = nullptr;
     }
 }
 
@@ -123,14 +123,13 @@ void ModelMain::Execute() {
     time_t startTime = m_input->getStartTime();
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
-    int nHs = 0;
+    int nHs = int(m_dtCh / m_dtHs);
 
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        cout << ConvertToString2(&t) << endl;
+        StatusMessage(ConvertToString2(&t).c_str());
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
-        nHs = int(m_dtCh / m_dtHs);
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
@@ -143,7 +142,7 @@ void ModelMain::Execute() {
     OutputExecuteTime();
 }
 
-void ModelMain::Output(void) {
+void ModelMain::Output() {
     double t1 = TimeCounting();
     for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
@@ -155,7 +154,7 @@ void ModelMain::Output(void) {
     cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
 }
 
-void ModelMain::OutputExecuteTime(void) {
+void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < m_simulationModules.size(); ++i) {
         cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t" << fixed << setprecision(3) <<
              m_executeTime[i] << endl;
@@ -181,7 +180,7 @@ void ModelMain::CheckAvailableOutput() {
     }
 }
 
-void ModelMain::AppendOutputData(const time_t time) {
+void ModelMain::AppendOutputData(time_t time) {
     for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
         int iModule = (*it)->m_moduleIndex;
         //find the corresponding output variable and module
