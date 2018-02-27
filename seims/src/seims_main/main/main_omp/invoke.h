@@ -36,6 +36,7 @@ public:
 
 public:
     string m_model_path; ///< file path which contains the model input files
+    string m_model_name; ///< model_name
     char m_host_ip[16];  ///< Host IP address of MongoDB database
     uint16_t m_port;  ///< port of MongoDB, 27017 is default
     int m_thread_num;  ///< thread number for OpenMP
