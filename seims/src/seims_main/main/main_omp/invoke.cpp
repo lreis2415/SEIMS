@@ -112,9 +112,12 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
 
 InputArgs::InputArgs(string modelPath, char *host, uint16_t port, int scenarioID,
                      int calibrationID, int numThread, LayeringMethod lyrMethod)
-        : m_model_path(modelPath), m_port(port), m_scenario_id(scenarioID),
+        : m_model_path(modelPath), m_model_name(""), m_port(port), m_scenario_id(scenarioID),
           m_calibration_id(calibrationID), m_thread_num(numThread), m_layer_mtd(lyrMethod) {
     stringcpy(m_host_ip, host);
+    /// Get model name
+    size_t nameIdx = m_model_path.rfind(SEP);
+    m_model_name = modelPath.substr(nameIdx + 1);
 }
 
 int MainMongoDB(InputArgs *in_args, int subbasin_id /* = 0 */) {

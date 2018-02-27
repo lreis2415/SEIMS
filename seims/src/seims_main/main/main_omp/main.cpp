@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
     GDALAllRegister();
     /// Run model.
     try {
-        MainMongoDB(input_args, 0);
+        MainMongoDB(input_args);
     }
     catch (ModelException &e) {
         cout << e.toString() << endl;
