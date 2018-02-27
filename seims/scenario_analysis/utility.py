@@ -4,26 +4,29 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-11-08  hr - initial implementation.\n
                 17-08-18  lj - reorganization.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
 
 import os
 import sys
-
-if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
 import shutil
 import uuid
 
 import scoop
-from preprocess.db_mongodb import ConnectMongoDB
 from pygeoc.utils import MathClass
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+
+from preprocess.db_mongodb import ConnectMongoDB
 
 
 def generate_uniqueid():
     """Generate unique integer ID for Scenario using uuid.
 
     Usage:
-        uniqueid = generate_uniqueid().next()
+        uniqueid = next(generate_uniqueid())
     """
     uid = int(str(uuid.uuid4().fields[-1])[:9])
     while True:
@@ -35,7 +38,7 @@ def print_message(msg):
     if os.name != 'nt':
         scoop.logger.warn(msg)
     else:
-        print (msg)
+        print(msg)
 
 
 def delete_scenarios_by_ids(hostname, port, dbname, sids):
@@ -46,14 +49,13 @@ def delete_scenarios_by_ids(hostname, port, dbname, sids):
     collection = db['BMP_SCENARIOS']
     for _id in sids:
         collection.remove({'ID': _id})
-        print ('Delete scenario: %d in MongoDB completed!' % _id)
+        print('Delete scenario: %d in MongoDB completed!' % _id)
     client.close()
 
 
 def delete_model_outputs(model_workdir, hostname, port, dbname):
     """Delete model outputs and scenario in MongoDB."""
     f_list = os.listdir(model_workdir)
-    # print f_list
     sids = list()
     for f in f_list:
         outfilename = model_workdir + os.sep + f

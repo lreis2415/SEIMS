@@ -6,17 +6,20 @@
                 17-06-26  lj - reorganize according to pylint and google style
                 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
                 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import time
 from datetime import timedelta
 
 from pygeoc.utils import DateClass, StringClass
 from pymongo import ASCENDING
 
-from db_mongodb import MongoUtil
-from hydro_climate_utility import HydroClimateUtilClass
-from text import DBTableNames, DataValueFields, DataType, VariableDesc
-from utility import read_data_items_from_txt, DEFAULT_NODATA, PI
+from preprocess.db_mongodb import MongoUtil
+from preprocess.hydro_climate_utility import HydroClimateUtilClass
+from preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
+from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 
 
 class ClimateStats(object):
@@ -33,13 +36,13 @@ class ClimateStats(object):
 
     def add_item(self, item_dict):
         """Add mean temperature of each day. Dict MUST have {YEAR: 2017, TMEAN: 10.} at least."""
-        if DataValueFields.y not in item_dict.keys():
+        if DataValueFields.y not in list(item_dict.keys()):
             raise ValueError('The hydroClimate dict must have year!')
-        if DataType.mean_tmp not in item_dict.keys():
+        if DataType.mean_tmp not in list(item_dict.keys()):
             raise ValueError('The hydroClimate dict must have mean temperature!')
         cur_y = item_dict[DataValueFields.y]
         cur_tmp = item_dict[DataType.mean_tmp]
-        if cur_y not in self.Count.keys():
+        if cur_y not in list(self.Count.keys()):
             self.Count[cur_y] = 1
             self.MeanTmp[cur_y] = cur_tmp
             if cur_tmp > ClimateStats._T_BASE:
@@ -54,13 +57,13 @@ class ClimateStats(object):
 
     def annual_stats(self):
         """Calculate annual statistics."""
-        for Y, v in self.Count.items():
+        for Y, v in list(self.Count.items()):
             self.MeanTmp[Y] = round(self.MeanTmp[Y] / v, 1)
             self.MeanTmp0 += self.MeanTmp[Y]
             self.PHUTOT[Y] = round(self.PHUTOT[Y], 1)
             self.PHU0 += self.PHUTOT[Y]
-        self.PHU0 = round(self.PHU0 / len(self.Count.keys()), 1)
-        self.MeanTmp0 = round(self.MeanTmp0 / len(self.Count.keys()), 1)
+        self.PHU0 = round(self.PHU0 / len(list(self.Count.keys())), 1)
+        self.MeanTmp0 = round(self.MeanTmp0 / len(list(self.Count.keys())), 1)
 
 
 class ImportMeteoData(object):
@@ -127,13 +130,13 @@ class ImportMeteoData(object):
             dic[DataValueFields.y] = utc_time.year
 
             # Do if some of these data are not provided
-            if DataType.mean_tmp not in dic.keys():
+            if DataType.mean_tmp not in list(dic.keys()):
                 dic[DataType.mean_tmp] = (dic[DataType.max_tmp] + dic[DataType.min_tmp]) / 2.
-            if DataType.sr not in dic.keys():
+            if DataType.sr not in list(dic.keys()):
                 if cur_ssd == DEFAULT_NODATA:
                     raise ValueError(DataType.sr + ' or ' + DataType.ssd + ' must be provided!')
                 else:
-                    if dic[DataValueFields.id] in sites_info_dict.keys():
+                    if dic[DataValueFields.id] in list(sites_info_dict.keys()):
                         cur_lon, cur_lat = sites_info_dict[dic[DataValueFields.id]].lon_lat()
                         sr = round(HydroClimateUtilClass.rs(DateClass.day_of_year(utc_time),
                                                             float(cur_ssd), cur_lat * PI / 180.), 1)
@@ -141,7 +144,7 @@ class ImportMeteoData(object):
 
             for fld in output_flds:
                 cur_dic = dict()
-                if fld in dic.keys():
+                if fld in list(dic.keys()):
                     cur_dic[DataValueFields.value] = dic[fld]
                     cur_dic[DataValueFields.id] = dic[
                         DataValueFields.id]
@@ -161,21 +164,21 @@ class ImportMeteoData(object):
                         MongoUtil.run_bulk(bulk)
                         bulk = climdb[DBTableNames.data_values].initialize_ordered_bulk_op()
 
-            if dic[DataValueFields.id] not in hydro_climate_stats.keys():
+            if dic[DataValueFields.id] not in list(hydro_climate_stats.keys()):
                 hydro_climate_stats[dic[DataValueFields.id]] = ClimateStats()
             hydro_climate_stats[dic[DataValueFields.id]].add_item(dic)
         # execute the remained records
         if count % 500 != 0:
             MongoUtil.run_bulk(bulk)
-        for item, cur_climate_stats in hydro_climate_stats.items():
+        for item, cur_climate_stats in list(hydro_climate_stats.items()):
             cur_climate_stats.annual_stats()
         # Create index
         climdb[DBTableNames.data_values].create_index([(DataValueFields.id, ASCENDING),
                                                        (DataValueFields.type, ASCENDING),
                                                        (DataValueFields.utc, ASCENDING)])
         # prepare dic for MongoDB
-        for s_id, stats_v in hydro_climate_stats.items():
-            for YYYY in stats_v.Count.keys():
+        for s_id, stats_v in list(hydro_climate_stats.items()):
+            for YYYY in list(stats_v.Count.keys()):
                 cur_dic = dict()
                 cur_dic[DataValueFields.value] = stats_v.PHUTOT[YYYY]
                 cur_dic[DataValueFields.id] = s_id
@@ -219,15 +222,15 @@ class ImportMeteoData(object):
     @staticmethod
     def workflow(cfg, clim_db):
         """Workflow"""
-        print ("Import Daily Meteorological Data... ")
+        print('Import Daily Meteorological Data... ')
         site_m_loc = HydroClimateUtilClass.query_climate_sites(clim_db, 'M')
         ImportMeteoData.daily_data_from_txt(clim_db, cfg.Meteo_data, site_m_loc)
 
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
@@ -236,7 +239,7 @@ def main():
     st = time.time()
     ImportMeteoData.workflow(seims_cfg, db)
     et = time.time()
-    print et - st
+    print(et - st)
     client.close()
 
 

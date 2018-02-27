@@ -50,28 +50,27 @@ public:
      */
     ModelMain(DataCenterMongoDB* dcenter, ModuleFactory* mfactory);
     //! Destructor
-    ~ModelMain(void);
+    ~ModelMain();
     //! Execute all the modules, aggregate output data, and write the total time-consuming, etc.
-    void Execute(void);
+    void Execute();
     //! Write output files, e.g., Q.txt
-    void Output(void);
+    void Output();
 
-private:
     /*!
     * \brief Check whether the validation of outputs
     * 1. The output id should be valid for modules in config files;
     * 2. The date range should be in the data range of file.in;
     */
-    void CheckAvailableOutput(void);
+    void CheckAvailableOutput();
     /*!
      * \brief Append output data to Output Item by the corresponding aggregation type
      * \param[in] time Current simulation time
      */
-    void AppendOutputData(const time_t time);
+    void AppendOutputData(time_t time);
     /*!
      * \brief Print execution time on the screen
      */
-    void OutputExecuteTime(void);
+    void OutputExecuteTime();
     /*!
      * \brief Execute hillslope modules in current time
      * \param[in] t Current time
@@ -91,6 +90,13 @@ private:
      * \param[in] endT End time period
      */
     void StepOverall(time_t startT, time_t endT);
+    
+    // temporary debug code
+    float GetQOutlet() { return 0.f; }
+    void SetChannelFlowIn(float value) {
+        m_simulationModules[m_channelModules[0]]->SetValue(VAR_QUPREACH, value);
+    }
+    // temporary debug code
 
 public:
     /************************************************************************/
@@ -98,15 +104,15 @@ public:
     /************************************************************************/
 
     //! Get module counts of current SEIMS
-    int GetModuleCount(void) const { return (int) m_simulationModules.size(); }
+    int GetModuleCount() const { return (int) m_simulationModules.size(); }
     //! Get module ID by index in ModuleFactory
     string GetModuleID(int i) const { return m_factory->GetModuleID(i); }
     //! Get module execute time by index in ModuleFactory
     float GetModuleExecuteTime(int i) const { return (float) m_executeTime[i]; }
     //! Get time consuming of read data
-    float GetReadDataTime(void) const { return m_readFileTime; }
+    float GetReadDataTime() const { return m_readFileTime; }
     //! Include channel processes or not?
-    bool IncludeChannelProcesses(void) { return m_channelModules.size() != 0; }
+    bool IncludeChannelProcesses() { return !m_channelModules.empty(); }
 
 private:
     /************************************************************************/
@@ -122,7 +128,7 @@ private:
 
     SettingsInput*              m_input;              ///< The basic input settings
     SettingsOutput*             m_output;             ///< The user-defined outputs, Q, SED, etc
-    clsRasterData<float>*       m_maskRaster;         ///< Mask raster data
+    FloatRaster*                m_maskRaster;         ///< Mask raster data
     string                      m_outputPath;         ///< Path of output scenario
     time_t                      m_dtDaily;            ///< Daily time interval, seconds
     time_t                      m_dtHs;               ///< Hillslope time interval, seconds

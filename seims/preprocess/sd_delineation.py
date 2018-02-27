@@ -5,7 +5,10 @@
     @changelog: 13-01-10  jz - initial implementation
                 16-12-07  lj - rewrite for version 2.0, improve calculation efficiency by numpy
                 17-06-23  lj - reorganize as basic class
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 
 from numpy import where, fromfunction
@@ -19,9 +22,9 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
-from sd_hillslope import DelineateHillslope
-from text import FieldNames
-from utility import DEFAULT_NODATA
+from preprocess.sd_hillslope import DelineateHillslope
+from preprocess.text import FieldNames
+from preprocess.utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -38,15 +41,15 @@ class SpatialDelineation(object):
         src_srs = RasterUtilClass.read_raster(cfg.dem).srs
         proj_srs = src_srs.ExportToProj4()
         if not proj_srs:
-            raise ValueError("The source raster %s has not "
-                             "coordinate, which is required!" % cfg.dem)
-        # print proj_srs
-        wgs84_srs = "EPSG:4326"
-        geo_json_dict = {"reach": [cfg.vecs.reach, cfg.vecs.json_reach],
-                         "subbasin": [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
-                         "basin": [cfg.vecs.bsn, cfg.vecs.json_bsn],
-                         "outlet": [cfg.vecs.outlet, cfg.vecs.json_outlet]}
-        for jsonName, shp_json_list in geo_json_dict.items():
+            raise ValueError('The source raster %s has not '
+                             'coordinate, which is required!' % cfg.dem)
+        # print(proj_srs)
+        wgs84_srs = 'EPSG:4326'
+        geo_json_dict = {'reach': [cfg.vecs.reach, cfg.vecs.json_reach],
+                         'subbasin': [cfg.vecs.subbsn, cfg.vecs.json_subbsn],
+                         'basin': [cfg.vecs.bsn, cfg.vecs.json_bsn],
+                         'outlet': [cfg.vecs.outlet, cfg.vecs.json_outlet]}
+        for jsonName, shp_json_list in list(geo_json_dict.items()):
             # delete if geojson file already existed
             if FileClass.is_file_exists(shp_json_list[1]):
                 os.remove(shp_json_list[1])
@@ -73,13 +76,12 @@ class SpatialDelineation(object):
         # write mask configuration file
         n = len(originalfiles)
         # write mask config file
-        f = open(configfile, 'w')
-        f.write(maskfile + "\n")
-        f.write("%d\n" % (n,))
-        for i in range(n):
-            s = "%s\t%d\t%s\n" % (originalfiles[i], default_values[i], outputfiles[i])
-            f.write(s)
-        f.close()
+        with open(configfile, 'w') as f:
+            f.write(maskfile + '\n')
+            f.write('%d\n' % (n,))
+            for i in range(n):
+                s = '%s\t%d\t%s\n' % (originalfiles[i], default_values[i], outputfiles[i])
+                f.write(s)
         # run command
         UtilClass.run_command('"%s/mask_raster" %s' % (bin_dir, configfile))
 
@@ -120,13 +122,13 @@ class SpatialDelineation(object):
         default_values.append(cfg.default_landuse)
 
         # Additional raster file
-        for k, v in cfg.additional_rs.iteritems():
+        for k, v in cfg.additional_rs.items():
             org_v = v
             if not FileClass.is_file_exists(org_v):
                 v = cfg.spatial_dir + os.sep + org_v
                 if not FileClass.is_file_exists(v):
-                    print ('WARNING: The additional file %s MUST be located in '
-                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
+                    print('WARNING: The additional file %s MUST be located in '
+                          'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
             original_files.append(v)
             output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
@@ -134,7 +136,7 @@ class SpatialDelineation(object):
 
         config_file = cfg.logs.mask_cfg
         # run mask operation
-        print ("Mask original delineated data by Subbasin raster...")
+        print('Mask original delineated data by Subbasin raster...')
         SpatialDelineation.mask_raster_cpp(cfg.seims_bin, mask_file, original_files,
                                            output_files, default_values, config_file)
 
@@ -171,14 +173,13 @@ class SpatialDelineation(object):
         D8Util.convert_code(flow_dir_file_tau, output_flow_dir_file)
 
         # convert raster to shapefile (for subbasin and basin)
-        print "Generating subbasin vector..."
-        VectorUtilClass.raster2shp(output_subbasin_file, subbasin_vector_file, "subbasin",
+        print('Generating subbasin vector...')
+        VectorUtilClass.raster2shp(output_subbasin_file, subbasin_vector_file, 'subbasin',
                                    FieldNames.subbasin_id)
         mask_file = cfg.spatials.mask
         basin_vector = cfg.vecs.bsn
-        print "Generating basin vector..."
-        VectorUtilClass.raster2shp(mask_file, basin_vector, "basin",
-                                   FieldNames.basin)
+        print('Generating basin vector...')
+        VectorUtilClass.raster2shp(mask_file, basin_vector, 'basin', FieldNames.basin)
         # delineate hillslope
         DelineateHillslope.downstream_method_whitebox(output_stream_link_file, flow_dir_file_tau,
                                                       output_hillslope_file)
@@ -190,15 +191,15 @@ class SpatialDelineation(object):
         ds = RasterUtilClass.read_raster(dem_file)
         src_srs = ds.srs
         if not src_srs.ExportToProj4():
-            raise ValueError("The source raster %s has not coordinate, "
-                             "which is required!" % dem_file)
+            raise ValueError('The source raster %s has not coordinate, '
+                             'which is required!' % dem_file)
         dst_srs = osr_SpatialReference()
         dst_srs.ImportFromEPSG(4326)  # WGS84
         # dst_wkt = dst_srs.ExportToWkt()
         transform = osr_CoordinateTransformation(src_srs, dst_srs)
 
-        point_ll = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMin, ds.yMin))
-        point_ur = ogr_CreateGeometryFromWkt("POINT (%f %f)" % (ds.xMax, ds.yMax))
+        point_ll = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMin, ds.yMin))
+        point_ur = ogr_CreateGeometryFromWkt('POINT (%f %f)' % (ds.xMax, ds.yMax))
 
         point_ll.Transform(transform)
         point_ur.Transform(transform)
@@ -262,7 +263,7 @@ class SpatialDelineation(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
+    from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
     SpatialDelineation.workflow(seims_cfg)
 

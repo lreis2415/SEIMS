@@ -36,8 +36,9 @@
 *   2. Change the unit of soil moisture from mm H2O/mm Soil to mm H2O, which is more rational.
 *   3. Change soil moisture to soil storage which is coincident with SWAT, and do not include wilting point.
 */
+#ifndef SEIMS_MODULE_SUR_MR_H
+#define SEIMS_MODULE_SUR_MR_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -156,3 +157,4 @@ private:
     /// initial output for the first run
     void initialOutputs(void);
 };
+#endif /* SEIMS_MODULE_SUR_MR_H */

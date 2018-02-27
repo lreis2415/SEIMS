@@ -334,7 +334,12 @@ int IMP_SWAT::Execute() {
         m_sedMinPAToCh[0] += m_sedMinPAToCh[i];
         m_sedMinPSToCh[0] += m_sedMinPSToCh[i];
     }
-    // cout<<", new: "<<m_sedOrgPToCh[12]<<endl;
+    // DEBUG
+    //cout << "IMP_SWAT, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return true;
 }
 

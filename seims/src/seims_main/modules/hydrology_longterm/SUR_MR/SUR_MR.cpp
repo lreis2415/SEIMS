@@ -147,6 +147,8 @@ int SUR_MR::Execute() {
         //    hWater = m_pNet[i] + snowMelt + m_sd[i];
         float hWater = 0.f;
         hWater = m_pNet[i] + m_sd[i];
+        //if (i == 17842)
+        //    cout << "pNet: " << m_pNet[i] << ", sd: " << m_sd[i] << endl;
         if (hWater > 0.f) {
             /// in the new version, sm is replaced by m_soilStorageProfile. By lj
             /// por is replaced by m_sol_sumsat which is calculated by (sat - wp)
@@ -233,6 +235,12 @@ int SUR_MR::Execute() {
         //	cout<<"netRain: "<<m_pNet[i]<<", depStrg: "<<m_sd[i]<<", infil: "<<m_infil[i]<<", surfq: "<<m_pe[i]<<endl;
         //}
     }
+    // DEBUG
+    //cout << "SUR_MR, cell id 14377, m_infil: " << m_infil[14377] << ", m_soilStorage: ";
+    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 

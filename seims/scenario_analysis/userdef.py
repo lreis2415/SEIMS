@@ -4,7 +4,9 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-11-08  hr - initial implementation.\n
                 17-08-18  lj - move the original code to slpposunits.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
 
 
 # Initial tool functions supplemented to DEAP.tools
@@ -25,7 +27,7 @@ def initRepeatWithCfg(container, func, cf, n=2):
     Returns:
         An instance of the container filled with data from func.
     """
-    return container(func(cf) for _ in xrange(n))
+    return container(func(cf) for _ in range(n))
 
 
 def initIterateWithCfg(container, generator, cf=None):
@@ -49,3 +51,4 @@ def initIterateWithCfg(container, generator, cf=None):
         return container(generator())
     else:
         return container(generator(cf))
+

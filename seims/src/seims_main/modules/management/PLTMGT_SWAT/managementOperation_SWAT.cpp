@@ -201,19 +201,16 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     }
     CheckInputSize(key, n);
     if (StringMatch(sk, VAR_SUBBSN)) { m_subBsnID = data; }
-        //else if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; } // m_mgtFields is set by Scenario data
     else if (StringMatch(sk, VAR_LANDUSE)) { m_landUse = data; }
     else if (StringMatch(sk, VAR_LANDCOVER)) { m_landCover = data; }
-    else if (StringMatch(sk, VAR_IDC)) {
-        m_landCoverCls = data;
-        /// Soil related parameters from MongoDB
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
+    else if (StringMatch(sk, VAR_IDC)) { m_landCoverCls = data; }
+    /// Soil related parameters from MongoDB
+    else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
     else if (StringMatch(sk, VAR_SOL_ZMX)) { m_soilZMX = data; }
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) { m_soilSumFC = data; }
-    else if (StringMatch(sk, VAR_T_BASE)) {
-        m_tBase = data;
-        ///  Plant operation related parameters
-    } else if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
+    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; } 
+    ///  Plant operation related parameters
+    else if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
     else if (StringMatch(sk, VAR_HVSTI)) { m_havstIdx = data; }
     else if (StringMatch(sk, VAR_WSYF)) { m_wtrStrsYF = data; }
     else if (StringMatch(sk, VAR_PHUPLT)) { m_phuPlant = data; }
@@ -233,18 +230,13 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_PLTET_TOT)) { m_pltET = data; }
     else if (StringMatch(sk, VAR_PLTPET_TOT)) { m_pltPET = data; }
     else if (StringMatch(sk, VAR_FR_ROOT)) { m_frRoot = data; }
-    else if (StringMatch(sk, VAR_BIOMASS)) {
-        m_biomass = data;
-        //// Harvest and Kill operation
-    } else if (StringMatch(sk, VAR_LAST_SOILRD)) {
-        m_lastSoilRootDepth = data;
-        /// Irrigation operation
-    } else if (StringMatch(sk, VAR_FR_STRSWTR)) {
-        m_frStrsWa = data;
-        //else if (StringMatch(sk, VAR_DEEPST)) m_deepWaterDepth = data;
-        //else if (StringMatch(sk, VAR_SHALLST)) m_shallowWaterDepth = data;
-        /// impound/release
-    } else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
+    else if (StringMatch(sk, VAR_BIOMASS)) { m_biomass = data; }
+    //// Harvest and Kill operation
+    else if (StringMatch(sk, VAR_LAST_SOILRD)) { m_lastSoilRootDepth = data; }
+    /// Irrigation operation
+    else if (StringMatch(sk, VAR_FR_STRSWTR)) { m_frStrsWa = data; }
+    /// impound/release
+    else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
     else if (StringMatch(sk, VAR_POT_SA)) { m_impoundArea = data; }
     else if (StringMatch(sk, VAR_POT_NO3)) { m_potNo3 = data; }
     else if (StringMatch(sk, VAR_POT_NH4)) { m_potNH4 = data; }
@@ -330,10 +322,9 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     else if (StringMatch(sk, VAR_CLAY)) { m_soilClay = data; }
     else if (StringMatch(sk, VAR_SILT)) { m_soilSilt = data; }
     else if (StringMatch(sk, VAR_SAND)) { m_soilSand = data; }
-    else if (StringMatch(sk, VAR_ROCK)) {
-        m_soilRock = data;
-        /// Soil related parameters --  inputs from other modules
-    } else if (StringMatch(sk, VAR_SOL_SORGN)) { m_soilStableOrgN = data; }
+    else if (StringMatch(sk, VAR_ROCK)) { m_soilRock = data; }
+    /// Soil related parameters --  inputs from other modules
+    else if (StringMatch(sk, VAR_SOL_SORGN)) { m_soilStableOrgN = data; }
     else if (StringMatch(sk, VAR_SOL_HORGP)) { m_soilOrgP = data; }
     else if (StringMatch(sk, VAR_SOL_SOLP)) { m_soilSolP = data; }
     else if (StringMatch(sk, VAR_SOL_NH4)) { m_soilNH4 = data; }
@@ -346,10 +337,9 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     else if (StringMatch(sk, VAR_SOL_RSD)) { m_soilRsd = data; }
     else if (StringMatch(sk, VAR_SOL_AWC)) { m_sol_fc = data; }
     else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_sat = data; }
-    else if (StringMatch(sk, VAR_SOL_ST)) {
-        m_soilStorage = data;
-        /// inputs for CENTURY C/N cycling model in stated and necessary
-    } else if (StringMatch(sk, VAR_SOL_HSN)) { m_sol_HSN = data; }
+    else if (StringMatch(sk, VAR_SOL_ST)) { m_soilStorage = data; }
+    /// inputs for CENTURY C/N cycling model in stated and necessary
+    else if (StringMatch(sk, VAR_SOL_HSN)) { m_sol_HSN = data; }
     else if (StringMatch(sk, VAR_SOL_LM)) { m_sol_LM = data; }
     else if (StringMatch(sk, VAR_SOL_LMC)) { m_sol_LMC = data; }
     else if (StringMatch(sk, VAR_SOL_LMN)) { m_sol_LMN = data; }
@@ -358,22 +348,19 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     else if (StringMatch(sk, VAR_SOL_LS)) { m_sol_LS = data; }
     else if (StringMatch(sk, VAR_SOL_LSL)) { m_sol_LSL = data; }
     else if (StringMatch(sk, VAR_SOL_LSLC)) { m_sol_LSLC = data; }
-    else if (StringMatch(sk, VAR_SOL_LSLNC)) {
-        m_sol_LSLNC = data;
-        //else if (StringMatch(sk, VAR_SOL_WON)) m_sol_WON = data;
-        //else if (StringMatch(sk, VAR_SOL_BM)) m_sol_BM = data;
-        //else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
-    } else if (StringMatch(sk, VAR_SOL_BMN)) {
-        m_sol_BMN = data;
-        //else if (StringMatch(sk, VAR_SOL_HP)) m_sol_HP = data;
-        //else if (StringMatch(sk, VAR_SOL_HS)) m_sol_HS = data;
-        //else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
-        //else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
-    } else if (StringMatch(sk, VAR_SOL_HPN)) {
-        m_sol_HPN = data;
-        //else if (StringMatch(sk, VAR_SOL_RNMN)) m_sol_RNMN = data;
-        //else if (StringMatch(sk, VAR_SOL_RSPC)) m_sol_RSPC = data;
-    } else {
+    else if (StringMatch(sk, VAR_SOL_LSLNC)) { m_sol_LSLNC = data; }
+    //else if (StringMatch(sk, VAR_SOL_WON)) m_sol_WON = data;
+    //else if (StringMatch(sk, VAR_SOL_BM)) m_sol_BM = data;
+    //else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
+    else if (StringMatch(sk, VAR_SOL_BMN)) { m_sol_BMN = data; }
+    //else if (StringMatch(sk, VAR_SOL_HP)) m_sol_HP = data;
+    //else if (StringMatch(sk, VAR_SOL_HS)) m_sol_HS = data;
+    //else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
+    //else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
+    else if (StringMatch(sk, VAR_SOL_HPN)) { m_sol_HPN = data; }
+    //else if (StringMatch(sk, VAR_SOL_RNMN)) m_sol_RNMN = data;
+    //else if (StringMatch(sk, VAR_SOL_RSPC)) m_sol_RSPC = data;
+    else {
         throw ModelException(MID_PLTMGT_SWAT, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
@@ -386,7 +373,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
     if (!m_mgtFactory.empty()) {
         m_mgtFactory.clear();
     }
-    for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
+    for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
         if (it->first / 100000 == BMP_TYPE_PLANT_MGT) {
             /// calculate unique index for the key of m_mgtFactory, using Landuse_ID * 100 + subScenario
@@ -407,7 +394,7 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
         m_nSub = subbasins->GetSubbasinNumber();
         if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
         vector<int> subIDs = subbasins->GetSubbasinIDs();
-        for (vector<int>::iterator it = subIDs.begin(); it != subIDs.end(); it++) {
+        for (auto it = subIDs.begin(); it != subIDs.end(); it++) {
             Subbasin *tmpSubbsn = subbasins->GetSubbasinByID(*it);
             m_nCellsSubbsn[*it] = tmpSubbsn->getCellCount();
             m_nAreaSubbsn[*it] = tmpSubbsn->getArea();
@@ -601,7 +588,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     int curMgtField = int(m_mgtFields[i]);
     factoryID = -1;
     /// 1. Is there any plant management operations are suitable to current cell.
-    for (map<int, BMPPlantMgtFactory *>::iterator it = m_mgtFactory.begin(); it != m_mgtFactory.end(); it++) {
+    for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); it++) {
         /// Key is unique plant management Index, which is calculated by Landuse_ID * 100 + subScenario;
         if (curLanduseID == (it->first) / 100) {
             /// 2. If current cell located in the locations of this BMPPlantMgtFactory
@@ -1876,7 +1863,7 @@ int MGTOpt_SWAT::Execute() {
         //	}
         //}
         if (GetOperationCode(i, curFactoryID, curOps)) {
-            for (vector<int>::iterator it = curOps.begin(); it != curOps.end(); it++) {
+            for (auto it = curOps.begin(); it != curOps.end(); it++) {
                 //cout<<curFactoryID<<","<<*it<<endl;
                 ScheduledManagement(i, curFactoryID, *it);
                 // output for debug, by LJ.
@@ -1895,6 +1882,12 @@ int MGTOpt_SWAT::Execute() {
             }
         }
     }
+    // DEBUG
+    //cout << "MGT_SWAT, cell id 14377, m_soilStorage: ";
+    //for (int i = 0; i < (int)m_nSoilLayers[14377]; i++)
+    //    cout << m_soilStorage[14377][i] << ", ";
+    //cout << endl;
+    // END OF DEBUG
     return 0;
 }
 

@@ -209,20 +209,6 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_MUSK_CH, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-#ifdef STORM_MODE
-    if(m_nreach != n-1)
-    {
-        if(m_nreach <=0)
-            m_nreach = n-1;
-        else
-        {
-            //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
-            oss << "Input data for "+string(key) << " is invalid with size: " << n << ". The origin size is " << m_nreach << ".\n";
-            throw ModelException(MID_MUSK_CH,"CheckInputSize",oss.str());
-        }
-    }
-#else
     if (m_nreach != n - 1) {
         if (m_nreach <= 0) {
             m_nreach = n - 1;
@@ -234,7 +220,6 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
             throw ModelException(MID_MUSK_CH, "CheckInputSize", oss.str());
         }
     }
-#endif /* STORM_MODE */
     return true;
 }
 

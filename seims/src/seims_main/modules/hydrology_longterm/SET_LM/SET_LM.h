@@ -3,7 +3,8 @@
  * \author
  * \date
  */
-#pragma once
+#ifndef SEIMS_MODULE_SET_LM_H
+#define SEIMS_MODULE_SET_LM_H
 
 #include "SimulationModule.h"
 
@@ -74,4 +75,4 @@ private:
     */
     bool CheckInputSize(const char *, int);
 };
-
+#endif /* SEIMS_MODULE_SET_LM_H */

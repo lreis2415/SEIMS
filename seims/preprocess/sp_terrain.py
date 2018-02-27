@@ -8,9 +8,11 @@
     @TODO: 1. for depression_capacity() function
               1.1. Add stream order modification, according to depression.ave of WetSpa.
               1.2. Add another depressional storage method according to SWAT, depstor.f
+                18-02-08  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import sys
-import os
 from math import exp, sqrt
 
 import numpy
@@ -21,8 +23,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
-from db_import_stream_parameters import ImportReaches2Mongo
-from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
+from preprocess.db_import_stream_parameters import ImportReaches2Mongo
+from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -40,7 +42,7 @@ class TerrainUtilClass(object):
         """Calculate flow length of cell."""
         celllen = FlowModelConst.get_cell_length(flow_dir_code)
         differ = FlowModelConst.get_cell_shift(flow_dir_code)
-        # print i,j, weight[i][j]
+        # print(i,j, weight[i][j])
         if i < ysize and j < xsize:
             if length[i][j] == 0:
                 if weight[i][j] > 0:
@@ -55,7 +57,7 @@ class TerrainUtilClass(object):
                     relen = TerrainUtilClass.flow_length_cell(i, j, ysize, xsize, fdir, cellsize,
                                                               weight, length,
                                                               flow_dir_code)
-                    # print i,j,fdir_v
+                    # print(i, j, fdir_v)
                     length[prei][prej] = cellsize * celllen[fdir_v] * wt + relen
                     return length[prei][prej]
                 else:
@@ -64,8 +66,8 @@ class TerrainUtilClass(object):
                 return length[i][j]
 
             if length[i][j] < 0:
-                print "Error in calculating flowlen_cell function! i,j:"
-                print i, j
+                print("Error in calculating flowlen_cell function! i,j:")
+                print(i, j)
                 return -1
         return 0
 
@@ -103,10 +105,10 @@ class TerrainUtilClass(object):
             imper_perc: impervious percent in urban cell, 0.3 as default
         """
         # read landuselookup table from MongoDB
-        st_fields = ["DSC_ST%d" % (i,) for i in range(1, 13)]
+        st_fields = ['DSC_ST%d' % (i,) for i in range(1, 13)]
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
-            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+            raise RuntimeError('LanduseLoop Collection is not existed or empty!')
         dep_sd0 = dict()
         for row in query_result:
             tmpid = row.get('LANDUSE_ID')
@@ -133,7 +135,7 @@ class TerrainUtilClass(object):
             landu_id = int(landu)
             if landu_id not in dep_sd0:
                 if landu_id not in id_omited:
-                    print ('The landuse ID: %d does not exist.' % (landu_id,))
+                    print('The landuse ID: %d does not exist.' % (landu_id,))
                     id_omited.append(landu_id)
             stid = int(soil_texture) - 1
             try:
@@ -202,9 +204,8 @@ class TerrainUtilClass(object):
             """Calculate velocity"""
             if abs(slp - nodata_value) < UTIL_ZERO:
                 return DEFAULT_NODATA
-            # print rad,man,slp
+            # print(rad, man, slp)
             tmp = numpy.power(man, -1) * numpy.power(rad, 2. / 3.) * numpy.power(slp, 0.5)
-            # print tmp
             if tmp < vel_min:
                 return vel_min
             if tmp > vel_max:
@@ -414,7 +415,7 @@ class TerrainUtilClass(object):
         while ft is not None:
             tmpid = ft.GetFieldAsInteger(i_link)
             w = 1
-            if tmpid in ch_width_dic.keys():
+            if tmpid in list(ch_width_dic.keys()):
                 w = ch_width_dic[tmpid]
             ft.SetField(ImportReaches2Mongo._WIDTH, w)
             ft.SetField(ImportReaches2Mongo._DEPTH, default_depth)
@@ -477,8 +478,8 @@ class TerrainUtilClass(object):
 
 def main():
     """TEST CODE"""
-    from config import parse_ini_configuration
-    from db_mongodb import ConnectMongoDB
+    from preprocess.config import parse_ini_configuration
+    from .db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

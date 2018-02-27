@@ -12,7 +12,7 @@ NPS_Management::NPS_Management(void) : m_nCells(-1), m_cellWidth(-1.f), m_timest
 
 NPS_Management::~NPS_Management(void) {
     if (!m_arealSrcFactory.empty()) {
-        for (map<int, BMPArealSrcFactory *>::iterator it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end();) {
+        for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end();) {
             if (it->second != NULL) {
                 delete it->second;
             }
@@ -73,7 +73,7 @@ void NPS_Management::Set2DData(const char *key, int n, int col, float **data) {
 void NPS_Management::SetScenario(Scenario *sce) {
     if (sce != NULL) {
         map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
-        for (map<int, BMPFactory *>::iterator it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
+        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_AREALSOURCE) {
                 m_arealSrcFactory[it->first] = (BMPArealSrcFactory *) it->second;
@@ -96,7 +96,7 @@ bool NPS_Management::CheckInputData() {
 int NPS_Management::Execute() {
     CheckInputData();
     if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth;
-    for (map<int, BMPArealSrcFactory *>::iterator it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end(); it++) {
+    for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end(); it++) {
         /// 1 Set valid cells index of areal source regions
         if (!it->second->GetLocationLoadStatus()) {
             it->second->SetArealSrcLocsMap(m_nCells, m_mgtFields);

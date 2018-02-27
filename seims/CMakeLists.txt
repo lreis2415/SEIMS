@@ -17,9 +17,9 @@ ENDIF ()
 ##############  Set common libraries   ###############
 set(COMMONLIBS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/commonlibs)
 set(UTILS_INC ${COMMONLIBS_PATH}/UtilsClass)
-set(UTILS_FILES ${UTILS_INC}/utils.cpp ${UTILS_INC}/ModelException.cpp)
+file(GLOB UTILS_FILES ${UTILS_INC}/*.cpp)
 set(MONGO_INC ${COMMONLIBS_PATH}/MongoUtilClass)
-set(MONGO_FILES ${MONGO_INC}/MongoUtil.cpp)
+file(GLOB MONGO_FILES ${MONGO_INC}/*.cpp)
 SET(RASTER_INC ${COMMONLIBS_PATH}/RasterClass)
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)
@@ -30,11 +30,11 @@ ADD_SUBDIRECTORY(${RECLASSIFY} bin/reclassify)
 ADD_SUBDIRECTORY(${IUH} bin/iuh)
 ADD_SUBDIRECTORY(${METIS} bin/metis)
 ADD_SUBDIRECTORY(${TAUDEM} bin/taudem)
-IF (PARALLEL STREQUAL MPI)
-  ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_mpi_project)
-ELSE()
-  ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_omp_project)
-ENDIF()
+#IF (PARALLEL STREQUAL MPI)
+ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_project)
+#ELSE()
+#ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_omp_project)
+#ENDIF()
 
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}

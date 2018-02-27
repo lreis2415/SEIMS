@@ -4,16 +4,19 @@
     @author   : Huiran Gao, Liangjun Zhu
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
+                18-02-09  lj - compatible with Python3.\n
 """
+from __future__ import absolute_import
+
 import os
 import sys
+import json
+import operator
+from collections import OrderedDict
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-import json
-import operator
-from collections import OrderedDict
 
 from pygeoc.utils import FileClass, UtilClass, StringClass, get_config_parser
 
@@ -45,15 +48,14 @@ class SASPUConfig(SAConfig):
         # 2. Slope position units information
         updownf = self.bmps_info.get('UPDOWNJSON')
         FileClass.check_file_exists(updownf)
-        updownfo = open(updownf, 'r')
-        self.units_infos = json.load(updownfo)
+        with open(updownf, 'r') as updownfo:
+            self.units_infos = json.load(updownfo)
         self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
-        updownfo.close()
         # 3. Get slope position sequence
         sptags = cf.get('BMPs', 'slppos_tag_name')
         self.slppos_tags = json.loads(sptags)
         self.slppos_tags = UtilClass.decode_strs_in_dict(self.slppos_tags)
-        self.slppos_tagnames = sorted(self.slppos_tags.items(), key=operator.itemgetter(0))
+        self.slppos_tagnames = sorted(list(self.slppos_tags.items()), key=operator.itemgetter(0))
         self.slppos_unit_num = self.units_infos['overview']['all_units']
         self.slppos_to_gene = OrderedDict()
         self.gene_to_slppos = dict()
@@ -72,7 +74,7 @@ class SASPUConfig(SAConfig):
         #     slppos unit: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         idx = 0
         spname = self.slppos_tagnames[0][1]
-        for uid, udict in self.units_infos[spname].iteritems():
+        for uid, udict in self.units_infos[spname].items():
             spidx = 0
             self.gene_to_slppos[idx] = uid
             self.slppos_to_gene[uid] = idx
@@ -130,7 +132,7 @@ class SASPUConfig(SAConfig):
                     if isinstance(v, int):
                         v = [v]
                     elif v == 'ALL' or v == '':
-                        v = self.slppos_tags.keys()
+                        v = list(self.slppos_tags.keys())
                     else:
                         v = StringClass.extract_numeric_values_from_string(v)
                         v = [int(abs(nv)) for nv in v]
@@ -142,7 +144,7 @@ class SASPUConfig(SAConfig):
 
     def get_suitable_bmps_for_slppos(self):
         """Construct the suitable BMPs for each slope position."""
-        for bid, bdict in self.bmps_params.iteritems():
+        for bid, bdict in self.bmps_params.items():
             suitsp = bdict['SLPPOS']
             for sp in suitsp:
                 if sp not in self.slppos_suit_bmps:
@@ -159,6 +161,6 @@ if __name__ == '__main__':
     import pickle
 
     s = pickle.dumps(cfg)
-    # print (s)
+    # print(s)
     new_cfg = pickle.loads(s)
-    print (new_cfg.bmps_params)
+    print(new_cfg.bmps_params)
