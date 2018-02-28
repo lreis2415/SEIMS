@@ -77,19 +77,21 @@ void ModuleFactory::Init(const string &configFileName) {
             dllID = MID_ITP;
 #else
             dllID = Tag_So + string(MID_ITP);
-#ifndef NDEBUG
-            dllID = dllID + "d";
-#endif /* NDEBUG */
 #endif /* MSVC */
+            dllID += POSTFIX;
+//#ifndef NDEBUG
+//            dllID = dllID + "d";
+//#endif /* NDEBUG */
         } else if (id.find(MID_TSD_RD) != string::npos) {
 #ifdef MSVC
             dllID = MID_TSD_RD;
 #else
             dllID = Tag_So + string(MID_TSD_RD);
-#ifndef NDEBUG
-            dllID = dllID + "d";
-#endif /* NDEBUG */
 #endif /* MSVC */
+            dllID += POSTFIX;
+//#ifndef NDEBUG
+//            dllID = dllID + "d";
+//#endif /* NDEBUG */
         }
 
         // load function pointers from DLL
@@ -639,11 +641,13 @@ void ModuleFactory::ReadConfigFile(const char *configFileName) {
                 string settingString = settings[i][1];
                 string module = GetUpper(settings[i][3]);
 #ifndef MSVC
-                module = Tag_So + module;
-#ifndef NDEBUG
-                module = module + "d";
-#endif /* NDEBUG */
+                //module = Tag_So + module;
+                module.insert(0, Tag_So);
 #endif /* MSVC */
+                module += POSTFIX;
+//#ifndef NDEBUG
+//                module = module + "d";
+//#endif /* NDEBUG */
 
                 SEIMSModuleSetting *moduleSetting = new SEIMSModuleSetting(module, settingString);
                 if (moduleSetting->dataTypeString().length() > 0) {
