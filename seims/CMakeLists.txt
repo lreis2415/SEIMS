@@ -30,11 +30,7 @@ ADD_SUBDIRECTORY(${RECLASSIFY} bin/reclassify)
 ADD_SUBDIRECTORY(${IUH} bin/iuh)
 ADD_SUBDIRECTORY(${METIS} bin/metis)
 ADD_SUBDIRECTORY(${TAUDEM} bin/taudem)
-#IF (PARALLEL STREQUAL MPI)
 ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_project)
-#ELSE()
-#ADD_SUBDIRECTORY(${SEIMS_MAIN} bin/seims_omp_project)
-#ENDIF()
 
 ### For CLion to implement the "make install" command
 add_custom_target(install_${PROJECT_NAME}
