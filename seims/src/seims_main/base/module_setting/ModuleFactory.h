@@ -21,6 +21,18 @@
 #endif /* USE_MONGODB */
 #include "tinyxml.h"
 
+#ifdef _DEBUG
+#define POSTFIX "d"
+#endif
+#ifdef RELWITHDEBINFO
+#define POSTFIX "rd"
+#endif
+#ifdef MINSIZEREL
+#define POSTFIX "s"
+#endif
+#ifndef POSTFIX
+#define POSTFIX ""
+#endif
 
 using namespace std;
 using namespace MainBMP;
