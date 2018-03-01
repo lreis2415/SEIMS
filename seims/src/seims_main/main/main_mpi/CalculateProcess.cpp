@@ -1,12 +1,11 @@
 #include "parallel.h"
-#include "utilities.h"
 
 void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveComm, InputArgs *input_args) {
     double tStart = MPI_Wtime();
     int slaveRank;
     MPI_Comm_rank(slaveComm, &slaveRank);
     StatusMessage(("Enter computing process, world_rank: " + ValueToString(world_rank) +
-                   ", slave_rank: " + ValueToString(slaveRank)).c_str());
+        ", slave_rank: " + ValueToString(slaveRank)).c_str());
 
     MPI_Request request;
     MPI_Status status;
@@ -65,10 +64,10 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
 #ifdef _DEBUG
     cout << "Subbasins of slave process " << slaveRank << ":  " << endl;
     for (int i = 0; i < maxTaskLen; i++) {
-        if(pTasks[i] < 0) continue;
+        if (pTasks[i] < 0) continue;
         cout << pTasks[i] << " " << pUpdownOrd[i] << " " << pDownStream[i] << ", ups:";
-        for(int j = 0; j < pUpNums[i]; j++) {
-            cout << pUpStream[MAX_UPSTREAM*i + j] << " ";
+        for (int j = 0; j < pUpNums[i]; j++) {
+            cout << pUpStream[MAX_UPSTREAM * i + j] << " ";
         }
         cout << endl;
     }
@@ -99,23 +98,23 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     /// Get module path
     string modulePath = GetAppPath();
     // setup model runs for subbasins
+    MongoClient *mongoClient = MongoClient::Init(input_args->m_host_ip, input_args->m_port);
+    if (nullptr == mongoClient) {
+        throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
+    }
+    /// Create module factory
+    ModuleFactory *moduleFactory = ModuleFactory::Init(modulePath, input_args);
+    if (nullptr == moduleFactory) {
+        throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
+    }
+
     vector<DataCenterMongoDB *> dataCenterList;
     vector<ModelMain *> modelList;
     dataCenterList.reserve(nSubbasins);
     modelList.reserve(nSubbasins);
     for (int i = 0; i < nSubbasins; i++) {
-        /// Create data center according to subbasin ID
-        DataCenterMongoDB *dataCenter = new DataCenterMongoDB(input_args->m_host_ip,
-                                                              input_args->m_port,
-                                                              input_args->m_model_path,
-                                                              modulePath,
-                                                              input_args->m_layer_mtd,
-                                                              pTasks[i],
-                                                              input_args->m_scenario_id,
-                                                              input_args->m_calibration_id,
-                                                              input_args->m_thread_num);
-        /// Create module factory
-        ModuleFactory *moduleFactory = new ModuleFactory(dataCenter);
+        /// Create data center according to subbasin number
+        DataCenterMongoDB *dataCenter = new DataCenterMongoDB(input_args, mongoClient, moduleFactory, pTasks[i]);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain *model = new ModelMain(dataCenter, moduleFactory);
 
@@ -163,8 +162,9 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     }
 #ifdef _DEBUG
     cout << "Slave rank: " << slaveRank << ", Source subbasins index: ";
-    for (auto it = sourceBasins.begin(); it != sourceBasins.end(); it++)
+    for (auto it = sourceBasins.begin(); it != sourceBasins.end(); it++) {
         cout << *it << ", ";
+    }
     cout << endl;
 #endif /* _DEBUG */
     double tTask1, tTask2;
@@ -226,7 +226,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
             MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
             MPI_Wait(&request, &status);
 #ifdef _DEBUG
-            cout << "Slave rank: " << slaveRank << ", subbasin ID: " << pTasks[*it] 
+            cout << "Slave rank: " << slaveRank << ", subbasin ID: " << pTasks[*it]
                  << ", hillslope process of source subbasins done" << endl;
 #endif /* _DEBUG */
         }
@@ -273,8 +273,9 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
 
 #ifdef _DEBUG
             cout << "world_rank " << world_rank << "  todo set: ";
-            for(auto it = toDoSet.begin(); it != toDoSet.end(); it++)
+            for (auto it = toDoSet.begin(); it != toDoSet.end(); it++) {
                 cout << pTasks[*it] << " ";
+            }
             cout << endl;
 #endif
             // if can not find subbasins to calculate according to local information,
@@ -415,8 +416,13 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
         it = modelList.erase(it);
     }
     for (auto it = dataCenterList.begin(); it != dataCenterList.end();) {
+        if (*it != nullptr) {
+            delete *it;
+        }
         it = dataCenterList.erase(it);
     }
+    delete moduleFactory;
+    delete mongoClient;
 
     Release1DArray(buf);
     Release1DArray(tReceive);
