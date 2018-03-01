@@ -4,13 +4,15 @@
  *        All interaction with database should be implemented here.
  * \author Liangjun Zhu
  * \date May 2017
+ * \revision  2018-03-01  lj - refactor the constructor and move SetData from \sa ModuleFactory class
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
 
 #include "seims.h"
 #include "MongoUtil.h"
-
+#include "ModuleFactory.h"
+#include "invoke.h"
 #include "InputStation.h"
 #include "SettingsInput.h"
 #include "SettingsOutput.h"
@@ -27,36 +29,22 @@ using namespace std;
  * \brief Base class of Data center for SEIMS
  * \version 1.0-beta
  */
-class DataCenter {
+class DataCenter : private NotCopyable {
 public:
     /*!
      * \brief Constructor
-     * \param modelPath Path of the project, contains config.fig, file.in and file.out
-     * \param modulePath Path of SEIMS modules
-     * \param layeringMethod Layering method, default is UP_DOWN
-     * \param subBasinID Subbasin ID, default is 0, which means the whole basin
-     * \param scenarioID Scenario ID, default is -1, which means do not use Scenario
-     * \param numThread Thread number for OpenMP, default is 1
+     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
+     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
+     * \param[in] subBasinID Subbasin ID, 0 is the default for entire watershed
      */
-    DataCenter(string &modelPath, string &modulePath,
-               LayeringMethod layeringMethod = UP_DOWN,
-               int subBasinID = 0, int scenarioID = -1, int calibrationID = -1,
-               int numThread = 1);
+    DataCenter(InputArgs *input_args, ModuleFactory *factory, int subBasinID = 0);
+
     //! Destructor
     virtual ~DataCenter();
 
 public:
     /**** virtual functions dependent on database IO *****/
 
-    /*! 
-     * \brief Check project directory for the required input files
-     *        file.in, file.out, config.fig
-     */
-    virtual bool checkConfigurationFiles();
-    /*!
-     * \brief create OUTPUT folder and clean if already existed
-     */
-    virtual bool createOutputFolder();
     /*!
      * \brief Make sure all the required data are presented
      */
@@ -130,12 +118,50 @@ public:
      * \return True if set successfully, otherwise false.
      */
     virtual bool setRasterForScenario() = 0;
+
 public:
+    /**** Load or update data ****/
+    //! Load data for each module, return time span
+    float LoadDataForModules(vector<SimulationModule *> &modules);
+
+    //! Set data for modules, include all datatype
+    void SetData(SEIMSModuleSetting *setting, ParamInfo *param, SimulationModule *pModule, bool vertitalItp);
+
+    //! Set single Value
+    void SetValue(ParamInfo *param, SimulationModule *pModule);
+
+    //! Set 1D Data
+    void Set1DData(string &paraName, string &remoteFileName, SimulationModule *pModule, bool vertitalItp);
+
+    //! Set 2D Data
+    void Set2DData(string &paraName, string &remoteFileName, SimulationModule *pModule);
+
+    //! Set raster data
+    void SetRaster(string &paraName, string &remoteFileName, SimulationModule *pModule);
+
+    //! Set BMPs Scenario data
+    void SetScenario(SimulationModule *pModule);
+
+    //! Set Reaches information
+    void SetReaches(SimulationModule *pModule);
+
+    //! Set Subbasins information
+    void SetSubbasins(SimulationModule *pModule);
+
+    //! Update inputs, such climate data.
+    void UpdateInput(vector<SimulationModule *> &modules, time_t t);
+
+    /*!
+    *\brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
+    * \sa BMPArealStructFactory, and \sa BMPArealStruct
+    */
+    void updateParametersByScenario(int subbsnID);
+
     /**** Accessors: Set and Get *****/
 
     string getModelName() const { return m_modelName; }
     const string getProjectPath() const { return m_modelPath; }
-    const string getModulePath() const { return m_modulePath; }
+    //const string getModulePath() const { return m_modulePath; }
     string getFileInFullPath() const { return m_fileInFile; }
     string getFileOutFullPath() const { return m_fileOutFile; }
     string getFileCfgFullPath() const { return m_fileCfgFile; }
@@ -179,22 +205,9 @@ public:
     */
     virtual bool getSubbasinNumberAndOutletID() = 0;
 
-private:
-    /**** Avoid usage of operator = and copy *****/
-
-    /*!
-     * \brief Operator= without implementation
-     */
-    DataCenter &operator=(const DataCenter &another);
-    /*!
-     * \brief Copy constructor without implementation
-     */
-    DataCenter(const DataCenter &another);
-
 public:
     string m_modelName;     ///< Model name, e.g., model_dianbu30m_longterm
     const string m_modelPath;     ///< Model path
-    const string m_modulePath;    ///< SEIMS module path
     string m_fileInFile;    ///< file.in full path
     string m_fileOutFile;   ///< file.out full path
     string m_fileCfgFile;   ///< config.fig full path
@@ -211,6 +224,7 @@ public:
     string m_modelMode;     ///< Storm or Longterm model
     int m_nSubbasins;    ///< Number of subbasins
     int m_outletID;      ///< Outlet subbasin ID
+    ModuleFactory *m_factory; ///< Module factory
     SettingsInput *m_input;         ///< The basic input settings
     SettingsOutput *m_output;        ///< The user-defined outputs, Q, SED, etc
     InputStation *m_climStation;   ///< data of input HydroClimate stations

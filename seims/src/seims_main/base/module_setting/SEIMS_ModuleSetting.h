@@ -17,7 +17,7 @@ using namespace std;
  * \class SEIMSModuleSetting
  * \brief 
  */
-class SEIMSModuleSetting {
+class SEIMSModuleSetting: private NotCopyable {
 public:
     SEIMSModuleSetting(string &moduleId, string &setting);
 
@@ -40,11 +40,7 @@ public:
 
     ///< get channel nutrient routing method
     string channelNutrientRoutingMethod();
-public:
-    ///< Copy constructor is unusable.
-    SEIMSModuleSetting(const SEIMSModuleSetting &) = delete;
-    ///< Copy assignment is unusable.
-    SEIMSModuleSetting &operator=(const SEIMSModuleSetting &) = delete;
+
 private:
     string m_moduleId; ///< module's ID
     string m_settingString; ///< module setting string

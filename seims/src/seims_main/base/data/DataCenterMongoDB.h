@@ -16,20 +16,18 @@ using namespace std;
  * \ingroup data
  * \class DataCenterMongoDB
  * \brief Class of Data center inherited from \sa DataCenter based on MongoDB
- * \version 1.0
+ * \version 1.1
  */
 class DataCenterMongoDB : public DataCenter {
 public:
     /*!
      * \brief Constructor based on MongoDB
-     * \param host IP address of MongoDB
-     * \param port Unsigned integer
-     * other parameters are the same as \sa DataCenter
+     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
+     * \param[in] client MongoDB connection client, \sa MongoClient
+     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
+     * \param[in] subBasinID Subbasin ID, 0 is the default for entire watershed
      */
-    DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
-                      string &modulePath, LayeringMethod layeringMethod = UP_DOWN,
-                      int subBasinID = 0, int scenarioID = -1, int calibrationID = -1,
-                      int numThread = 1);
+    DataCenterMongoDB(InputArgs *input_args, MongoClient *client, ModuleFactory *factory, int subBasinID = 0);
     //! Destructor
     virtual ~DataCenterMongoDB();
     /*!
@@ -100,6 +98,7 @@ public:
      * \return True if set successfully, otherwise false.
     */
     virtual bool setRasterForScenario();
+
 public:
     /******* MongoDB specified functions *********/
 
