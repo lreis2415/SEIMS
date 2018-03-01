@@ -1,9 +1,8 @@
 #include "ModelMain.h"
 
-ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
-m_dataCenter(dataCenter), m_factory(factory), m_readFileTime(0.f),
-m_firstRunOverland(true), m_firstRunChannel(true)
-{
+ModelMain::ModelMain(DataCenterMongoDB *dataCenter, ModuleFactory *factory) :
+    m_dataCenter(dataCenter), m_factory(factory), m_readFileTime(0.f),
+    m_firstRunOverland(true), m_firstRunChannel(true) {
     /// Get SettingInput and SettingOutput
     m_input = m_dataCenter->getSettingInput();
     m_output = m_dataCenter->getSettingOutput();
@@ -15,53 +14,42 @@ m_firstRunOverland(true), m_firstRunChannel(true)
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
 
-    /// Create module list and load data from MongoDB, including calibration of value, 1D data, and 2D data.
-    m_readFileTime = m_factory->CreateModuleList(m_simulationModules);
+    /// Create module list 
+    m_factory->CreateModuleList(m_simulationModules, m_dataCenter->getThreadNumber());
+    /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
+    m_readFileTime = m_dataCenter->LoadDataForModules(m_simulationModules);
     size_t n = m_simulationModules.size();
     m_executeTime.resize(n, 0.f);
     for (int i = 0; i < n; i++) {
         SimulationModule *pModule = m_simulationModules[i];
         switch (pModule->GetTimeStepType()) {
-        case TIMESTEP_HILLSLOPE: {
-            m_hillslopeModules.push_back(i);
-            break;
-        }
-        case TIMESTEP_CHANNEL: {
-            m_channelModules.push_back(i);
-            break;
-        }
-        case TIMESTEP_ECOLOGY: {
-            m_ecoModules.push_back(i);
-            break;
-        }
-        case TIMESTEP_SIMULATION: {
-            m_overallModules.push_back(i);
-            break;
-        }
-        default:
-            break;
+            case TIMESTEP_HILLSLOPE: {
+                m_hillslopeModules.push_back(i);
+                break;
+            }
+            case TIMESTEP_CHANNEL: {
+                m_channelModules.push_back(i);
+                break;
+            }
+            case TIMESTEP_ECOLOGY: {
+                m_ecoModules.push_back(i);
+                break;
+            }
+            case TIMESTEP_SIMULATION: {
+                m_overallModules.push_back(i);
+                break;
+            }
+            default:break;
         }
     }
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
     /// Update model data if the scenario has requested.
-    m_factory->updateParametersByScenario(m_dataCenter->getSubbasinID()); /// TODO
-}
-
-ModelMain::~ModelMain(void) {
-    StatusMessage("Start to release ModelMain ...");
-    if (m_factory != nullptr) {
-        delete m_factory;
-        m_factory = nullptr;
-    }
-    if (m_dataCenter != nullptr) {
-        delete m_dataCenter;
-        m_dataCenter = nullptr;
-    }
+    m_dataCenter->updateParametersByScenario(m_dataCenter->getSubbasinID()); /// TODO
 }
 
 void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
-    m_factory->UpdateInput(m_simulationModules, t);
+    m_dataCenter->UpdateInput(m_simulationModules, t);
     if (m_hillslopeModules.empty()) {
         return;
     }
@@ -207,7 +195,7 @@ void ModelMain::AppendOutputData(time_t time) {
                     module->GetValue(keyName, &value);
                     item->TimeSeriesData[time] = value;
                 }
-                //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
+                    //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
                 else if (param->Dimension == DT_Array1D) {
                     int index = item->SubbasinID;
                     //time series data for some time series data for subbasins
