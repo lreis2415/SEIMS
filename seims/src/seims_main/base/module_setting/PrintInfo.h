@@ -53,7 +53,7 @@ public:
     int m_nRows;
     //! For 1D raster/array data
     float *m_1DData;
-    //! number of layers of 2D raster data
+    //! number of layers of raster data, greater or equal than 1
     int m_nLayers;
     //! For 2D raster/array data
     float **m_2DData;
@@ -103,13 +103,15 @@ public:
 
     //! file suffix, e.g., txt, tif, asc, etc.
     string Suffix;
-    //! output filename without suffix
+    //! output filename without suffix, core name without subbasin ID
+    string Corename;
+    //! output filename without suffix, and contain subbasin ID as prefix for MPI version
     string Filename;
     //! Aggregation type string
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(string, FloatRaster *, string);
+    void Flush(string projectPath, MongoGridFS* gfs, FloatRaster *templateRaster, string header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -204,8 +206,8 @@ public:
     //! Add an output item with the given start time, end time and file name
     void AddPrintItem(string& start, string& end, string& file, string& sufi);
 
-    //! Add an output item with the given start time, end time and file name
-    void AddPrintItem(string& type, string& start, string& end, string& file, string& sufi);
+    //! Add an output item with the given aggregate type, start time, end time, file name and subbasin ID
+    void AddPrintItem(string& type, string& start, string& end, string& file, string& sufi, int subbasinID = 0);
 
     //! Add an output item with the given start time (string), end time (string) and file name, Overloaded method
     void AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin);
