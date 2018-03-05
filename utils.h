@@ -10,6 +10,12 @@
 #ifndef CLS_UTILS
 #define CLS_UTILS
 
+#ifndef NDEBUG
+#ifndef _DEBUG
+#define _DEBUG
+#endif /* _DEBUG */
+#endif /* NDEBUG */
+
 /// OpenMP support
 #ifdef SUPPORT_OMP
 
@@ -143,9 +149,9 @@ const float MAXIMUMFLOAT = FLT_MAX;
 #define stringscanf sscanf
 #endif /* MSVC */
 
-#if defined(__MINGW32_VERSION) || defined(_MSC_VER)
+#if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR) || defined(_MSC_VER)
 #define strcasecmp _stricmp
-#endif /* defined(__MINGW32_VERSION) || defined(_MSC_VER) */
+#endif /* MINGW or MSVC */
 
 /*
  * Avoid the compile error on MSVC like this:
