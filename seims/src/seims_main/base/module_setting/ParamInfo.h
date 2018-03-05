@@ -33,7 +33,7 @@ public:
     ParamInfo(const ParamInfo &another);
 
     //! Destructor
-    ~ParamInfo() = default;
+    ~ParamInfo();
 
     /*!
      * \brief Return the adjusted value for this parameter

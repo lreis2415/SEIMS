@@ -1,23 +1,12 @@
 /*!
- * \brief Implementation of invoking SEIMS, the main entrance.
- * \author Junzhi Liu, Liangjun Zhu
- * \date May 2010
- * \revised Feb 2017
+ * \brief Parse the input arguments as a class.
+ * \author Liangjun Zhu
+ * \date Feb 2018
  */
 #ifndef SEIMS_INVOKE_H
 #define SEIMS_INVOKE_H
 
-#ifdef USE_MONGODB
-
-#include "DataCenterMongoDB.h"
-
-#endif /* USE_MONGODB */
-
-#include "ModelMain.h"
-/// include module_setting related
-#include "tinyxml.h"
-#include "ParamInfo.h"
-#include "Settings.h"
+#include "seims.h"
 
 using namespace std;
 
@@ -44,13 +33,5 @@ public:
     int m_scenario_id;  ///< scenario ID defined in Database, -1 for no use.
     int m_calibration_id;  ///< calibration ID defined in Database (PARAMETERS), -1 for no use.
 };
-
-/*!
- * \brief SEIMS main invoke entrance using MongoDB
- *
- * \param[in] in_args \sa InputArgs
- * \param[in] subbasin_id 0 means the whole basin which is default for omp version.
- */
-int MainMongoDB(InputArgs *in_args, int subbasin_id = 0);
 
 #endif /* SEIMS_INVOKE_H */

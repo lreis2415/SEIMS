@@ -8,9 +8,6 @@
 
 #include "parallel.h"
 
-#include "invoke.h"
-#include "seims.h"
-
 using namespace std;
 
 int main(int argc, const char **argv) {
@@ -64,7 +61,7 @@ int main(int argc, const char **argv) {
                     cout << "Read and create reaches topology information failed." << endl;
                     MPI_Abort(MCW, 1);
                 }
-                if (nullptr != mclient) delete mclient;
+                delete mclient;
                 if ((size_t) nSlaves != groupSet.size()) {
                     groupSet.clear();
                     cout << "The number of slave processes (" << nSlaves << ") is not consist with the group number("
@@ -105,7 +102,7 @@ int main(int argc, const char **argv) {
         }
     }
     /// clean up
-    if (nullptr != input_args) { delete input_args; }
+    delete input_args;
     /// Finalize the MPI environment and exit with success
     MPI_Finalize();
     return 0;

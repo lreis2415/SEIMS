@@ -1,11 +1,9 @@
-#include "ReadData.h"
-
-#include "invoke.h"
+#include "parallel.h"
 
 using namespace std;
 
 int CreateReachTopology(MongoClient *client, string &dbname, string &group_method, int group_size,
-                        map<int, SubbasinStruct*> &subbasins, set<int> &group_set) {
+                        map<int, SubbasinStruct *> &subbasins, set<int> &group_set) {
     // Read reach information from MongoDB Collection "REACHES"
     clsReaches *reaches = new clsReaches(client, dbname, DB_TAB_REACH);
     // Get downstream map
@@ -34,8 +32,9 @@ int CreateReachTopology(MongoClient *client, string &dbname, string &group_metho
 #ifdef _DEBUG
     StatusMessage("---CreateReachTopology done---");
     cout << "Group set: ";
-    for (auto it = group_set.begin(); it != group_set.end(); it++)
+    for (auto it = group_set.begin(); it != group_set.end(); it++) {
         cout << *it << " ";
+    }
     cout << endl;
     cout << "Subbasin size: " << subbasins.size() << endl;
     cout << "SubbasinStruct Map: " << endl;
@@ -44,10 +43,11 @@ int CreateReachTopology(MongoClient *client, string &dbname, string &group_metho
         cout << ", Group index: " << it->second->group;
         cout << ", Updown order: " << it->second->updown_order;
         cout << ", Downup order: " << it->second->updown_order;
-        if (nullptr == it->second->downStream)
+        if (nullptr == it->second->downStream) {
             cout << ", Downstream ID: None";
-        else
+        } else {
             cout << ", Downstream ID: " << it->second->downStream->id;
+        }
         cout << endl;
     }
     cout << endl;

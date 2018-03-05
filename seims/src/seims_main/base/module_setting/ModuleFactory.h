@@ -10,17 +10,38 @@
 #define SEIMS_MODULE_FACTORY_H
 
 #include "seims.h"
+#include "invoke.h"
 #include "SEIMS_ModuleSetting.h"
 #include "MetadataInfo.h"
 #include "SimulationModule.h"
 #include "ParamInfo.h"
 #include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
-#ifdef USE_MONGODB
-#include "DataCenterMongoDB.h"
-#endif /* USE_MONGODB */
+
 #include "tinyxml.h"
 
+#ifdef _DEBUG
+#define POSTFIX "d"
+#endif
+#ifdef RELWITHDEBINFO
+#define POSTFIX "rd"
+#endif
+#ifdef MINSIZEREL
+#define POSTFIX "s"
+#endif
+#ifndef POSTFIX
+#define POSTFIX ""
+#endif
+
+#ifdef WIN32
+#define DLLINSTANCE HINSTANCE
+#else
+#define DLLINSTANCE void*
+#endif
+//! Simulation module instance
+typedef SimulationModule *(*InstanceFunction)();
+//! Simulation module metadata
+typedef const char *(*MetadataFunction)();
 
 using namespace std;
 using namespace MainBMP;
@@ -31,189 +52,143 @@ public:
      * \brief Constructor of ModuleFactory from \sa DataCenter
      * \param[in] dcenter
      */
-    explicit ModuleFactory(DataCenterMongoDB* dcenter);
+    //explicit ModuleFactory(DataCenterMongoDB* dcenter);
+    /*!
+    * \brief Constructor
+    */
+    ModuleFactory(const string &model_name,
+                  vector<string> &moduleIDs,
+                  map<string, SEIMSModuleSetting *> &moduleSettings,
+                  vector<DLLINSTANCE> &dllHandles,
+                  map<string, InstanceFunction> &instanceFuncs,
+                  map<string, MetadataFunction> &metadataFuncs,
+                  map<string, const char *> &moduleMetadata,
+                  map<string, vector<ParamInfo *> > &moduleParameters,
+                  map<string, vector<ParamInfo *> > &moduleInputs,
+                  map<string, vector<ParamInfo *> > &moduleOutputs) :
+        m_dbName(model_name),
+        m_moduleIDs(moduleIDs), m_settings(moduleSettings), m_dllHandles(dllHandles),
+        m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs),
+        m_metadata(moduleMetadata), m_moduleParameters(moduleParameters),
+        m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs) {}
+    /*!
+     * \brief Initialization for exception-safe constructor
+     */
+    static ModuleFactory *Init(const string &module_path, InputArgs *input_args);
     //! Destructor
     ~ModuleFactory();
 
     //! Create a set of objects and set up the relationship among them. Return time-consuming.
-    float CreateModuleList(vector<SimulationModule *>& modules);
-
-    //! Update inputs, such climate data.
-    void UpdateInput(vector<SimulationModule *>& modules, time_t t);
+    void CreateModuleList(vector<SimulationModule *> &modules, int nthread = 1);
 
     //! Get value from dependency modules
-    void GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules);
+    void GetValueFromDependencyModule(int iModule, vector<SimulationModule *> &modules);
 
     //! Find outputID parameter's module. Return Module index iModule and its ParamInfo
-    void FindOutputParameter(string& outputID, int& iModule, ParamInfo*& paraInfo);
+    void FindOutputParameter(string &outputID, int &iModule, ParamInfo *&paraInfo);
 
     //! Get Module ID by index
-    string GetModuleID(int i) { return m_moduleIDs[i]; }
+    string GetModuleID(int i) const { return m_moduleIDs[i]; }
 
-    /*!
-     *\brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
-     * \sa BMPArealStructFactory, and \sa BMPArealStruct
-     */
-    void updateParametersByScenario(int subbsnID);
+    //! Get unique module IDs
+    vector<string> GetModuleIDs() const { return m_moduleIDs; }
 
-private:
-    //! Initialization, read the config.fig file and initialize
-    void Init(const string &configFileName);
+    //! Get map of module settings
+    map<string, SEIMSModuleSetting *> &GetModuleSettings() { return m_settings; }
+    //! Get Metadata of modules
+    map<string, const char *> &GetModuleMetadata() { return m_metadata; }
+    //! Get Parameters of modules
+    map<string, vector<ParamInfo *> > &GetModuleParameters() { return m_moduleParameters; }
+    //! Get Input of modules, from other modules
+    map<string, vector<ParamInfo *> > &GetModuleInputs() { return m_moduleInputs; }
+    //! Get Output of modules, out from current module
+    map<string, vector<ParamInfo *> > &GetModuleOutputs() { return m_moduleOutputs; }
 
     //! Load modules setting from file
-    bool LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings);
+    static bool LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings);
 
-    //! Read configuration file
-    void ReadConfigFile(const char *configFileName);
+    /*!
+     * \brief Read configuration file
+     * \param[in] configFileName Configuration full file path
+     * \param[out] moduleIDs Unique module IDs (name)
+     * \param[out] moduleSettings Map of \sa SEIMSModuleSetting
+     * \return True if succeed.
+     */
+    static bool ReadConfigFile(const char *configFileName, vector<string> &moduleIDs,
+                               map<string, SEIMSModuleSetting *> &moduleSettings);
 
+    /*!
+     * \brief Load and parse module libraries
+     * \param module_path
+     * \param moduleIDs
+     * \param dllHandles
+     * \param instanceFuncs
+     * \param metadataFuncs
+     * \return True if succeed, else throw exception and return false.
+     */
+    static bool LoadParseLibrary(const string &module_path, vector<string> &moduleIDs,
+                                 map<string, SEIMSModuleSetting *> &moduleSettings,
+                                 vector<DLLINSTANCE> &dllHandles,
+                                 map<string, InstanceFunction> &instanceFuncs,
+                                 map<string, MetadataFunction> &metadataFuncs,
+                                 map<string, const char *> &moduleMetadata,
+                                 map<string, vector<ParamInfo *> > &moduleParameters,
+                                 map<string, vector<ParamInfo *> > &moduleInputs,
+                                 map<string, vector<ParamInfo *> > &moduleOutputs);
     //! Load function pointers from .DLL or .so
-    void ReadDLL(string &moduleID, string &dllID);
+    static void ReadDLL(const string &module_path, const string &id, const string &dllID,
+                        vector<DLLINSTANCE> &dllHandles,
+                        map<string, InstanceFunction> &instanceFuncs,
+                        map<string, MetadataFunction> &metadataFuncs);
 
     //! Get module instance by moduleID
     SimulationModule *GetInstance(string &moduleID) { return m_instanceFuncs[moduleID](); }
 
     //! Match data type, e.g., 1D array
-    dimensionTypes MatchType(string strType);
+    static dimensionTypes MatchType(string strType);
 
     //! Is constant input?
-    bool IsConstantInputFromName(string &name);
+    static bool IsConstantInputFromName(string &name);
 
     //! Read module's parameters setting from XML string
-    void ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting);
+    static void ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
+                                     map<string, vector<ParamInfo *> > &moduleParameters);
 
     //! Read module's input setting from XML string
-    void ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting);
+    static void ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
+                                 map<string, vector<ParamInfo *> > &moduleInputs);
 
     //! Read module's output setting from XML string
-    void ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting);
+    static void ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
+                                  map<string, vector<ParamInfo *> > &moduleOutputs);
 
     //! Get comparable name after underscore if necessary, e.g., T_PET => use PET
-    string GetComparableName(string &paraName);
+    static string GetComparableName(string &paraName);
 
     //! Find dependent parameters
-    ParamInfo* FindDependentParam(ParamInfo &paramInfo);
-
-    //! Set data for modules, include all datatype
-    void SetData(string &dbName, int nSubbasin, SEIMSModuleSetting *setting, ParamInfo *param,
-                 FloatRaster *templateRaster, SimulationModule *pModule, bool vertitalItp);
-
-    //! Set single Value
-    void SetValue(ParamInfo *param, FloatRaster *templateRaster, SimulationModule *pModule);
-
-    //! Set 1D Data
-    void Set1DData(string &dbName, string &paraName, string &remoteFileName, FloatRaster *templateRaster,
-                   SimulationModule *pModule, bool vertitalItp);
-
-    //! Set 2D Data
-    void Set2DData(string &dbName, string &paraName, int nSubbasin, string &remoteFileName,
-                   FloatRaster *templateRaster, SimulationModule *pModule);
-
-    //! Set raster data
-    void SetRaster(string &dbName, string &paraName, string &remoteFileName, FloatRaster *templateRaster,
-                   SimulationModule *pModule);
-
-    //! Set BMPs Scenario data
-    void SetScenario(SimulationModule *pModule);
-
-    //! Set Reaches information
-    void SetReaches(SimulationModule *pModule);
-
-    //! Set Subbasins information
-    void SetSubbasins(SimulationModule *pModule);
+    static ParamInfo *FindDependentParam(ParamInfo *paramInfo, vector<string> &moduleIDs,
+                                         map<string, vector<ParamInfo *> > &moduleOutputs);
 
 private:
-    //! input parameter, DataCenter
-    DataCenterMongoDB*                 m_dataCenter;
-private:
-    /************************************************************************/
-    /*           Derived parameters                                         */
-    /************************************************************************/
     //! Database name of the simulation model
-    string                             m_dbName;
-    //! Module configuration file
-    string                              m_moduleCfgFile;
-    //! Module path, without SEP(/ or \) at the end
-    string                              m_modulePath;
-    //! SubBasin ID
-    int                                 m_subBasinID;
-    //! Layering method, can only be UP_DOWN or DOWN_UP
-    LayeringMethod                      m_layingMethod;
-    //! Initial parameters from Database
-    map<string, ParamInfo *>&           m_parametersInDB;
-    //! Input settings, \sa SettingInput
-    SettingsInput*                      m_setingsInput;
-    //! BMPs Scenario data
-    Scenario*                           m_scenario;
-    //! Reaches information
-    clsReaches*                         m_reaches;
-    //! Subbasins information
-    clsSubbasins*                       m_subbasins;
-    //! Climate input stations
-    InputStation*                       m_climStation;
-    //! Mask data
-    FloatRaster*                        m_maskRaster;
-    //! Raster data (include 1D and/or 2D) map
-    map<string, FloatRaster*>&          m_rsMap;
-    //! 1D array data map, e.g. FLOWOUT_INDEX_D8
-    map<string, float *>&               m_1DArrayMap;
-    //! 1D array data length map
-    map<string, int>&                   m_1DLenMap;
-    //! 2D array data map, e.g. ROUTING_LAYERS
-    map<string, float **>&              m_2DArrayMap;
-    //! Row number of 2D array data map
-    map<string, int>&                   m_2DRowsLenMap;
-    //! Col number of 2D array data map, CAUTION that nCols may not same for all rows
-    map<string, int>&                   m_2DColsLenMap;
-    //! Interpolation weight data map
-    map<string, clsITPWeightData *>&    m_weightDataMap;
-private:
-    /************************************************************************/
-    /*           Parameters created during constructor                      */
-    /************************************************************************/
-    //! Simulation module instance
-    typedef SimulationModule *(*InstanceFunction)();
-    //! Simulation module metadata
-    typedef const char *(*MetadataFunction)();
+    string m_dbName;
     //! Module IDs
-    vector<string>                     m_moduleIDs;
+    vector<string> m_moduleIDs;
     //! instance map of modules
-    map<string, InstanceFunction>      m_instanceFuncs;
+    map<string, InstanceFunction> m_instanceFuncs;
     //! Metadata map of modules
-    map<string, MetadataFunction>      m_metadataFuncs;
+    map<string, MetadataFunction> m_metadataFuncs;
     //! dynamic library handles (.dll in Windows, .so in Linux, and .dylib in macOS)
-#ifdef WIN32
-    vector<HINSTANCE>                  m_dllHandles;
-#else
-    vector<void *>                     m_dllHandles;
-#endif
+    vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
-    map<string, SEIMSModuleSetting *>  m_settings;
+    map<string, SEIMSModuleSetting *> m_settings;
     //! Metadata of modules
-    map<string, const char *>          m_metadata;
+    map<string, const char *> m_metadata;
     //! Parameters of modules, from \sa m_parametersInDB
-    map<string, vector<ParamInfo> >    m_moduleParameters;
+    map<string, vector<ParamInfo *> > m_moduleParameters;
     //! Input of modules, from other modules
-    map<string, vector<ParamInfo> >    m_moduleInputs;
+    map<string, vector<ParamInfo *> > m_moduleInputs;
     //! Output of modules, out from current module
-    map<string, vector<ParamInfo> >    m_moduleOutputs;
+    map<string, vector<ParamInfo *> > m_moduleOutputs;
 };
 #endif /* SEIMS_MODULE_FACTORY_H */
-
-
-///*!
-// * \brief Constructor of ModuleFactory from config file
-// * By default, the layering method is UP_DOWN
-// * \param[in] configFileName config.fig file which contains modules list for Simulation
-// * \param[in] modelPath the path of your model
-// * \param[in] conn \a mongoc_client_t
-// * \param[in] dbName name of your model
-// * \param[in] subBasinID subBasinID
-// * \param[in] scenarioID
-// */
-//ModuleFactory(string &configFileName, string &modelPath, mongoc_client_t *conn, string &dbName,
-//    int subBasinID, LayeringMethod layingMethod, int scenarioID, SettingsInput*& input);
-
-//! Read multiply reach information from file
-//void ReadMultiReachInfo(const string &filename, LayeringMethod layeringMethod, int& nRows, int& nCols, float**& data);
-//! Read single reach information
-//void ReadSingleReachInfo(int nSubbasin, const string &filename, LayeringMethod layeringMethod, int& nAttr, int& nReaches, float**& data);

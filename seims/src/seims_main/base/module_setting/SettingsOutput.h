@@ -44,16 +44,22 @@ public:
  * \class SettingsOutput
  * \brief 
  */
-class SettingsOutput : public Settings {
+class SettingsOutput : public Settings, private NotCopyable {
 public:
-    //! Constructor
-    SettingsOutput(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
+    /*!
+     * \brief Constructor
+     * \param[in] subbasinNum Subbasin number of the entire watershed
+     * \param[in] outletID The subbasin ID of outlet
+     * \param[in] subbasinID Current subbasin ID, 0 for OMP version
+     * \param[in] outputItems Vector of original output items read from FILE_OUT file (or table)
+     */
+    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem> &outputItems);
 
     //! Destructor
     virtual ~SettingsOutput();
 
     //! Init function
-    static SettingsOutput *Init(int subbasinNum, int outletID, vector<OrgOutItem> &outputItems);
+    static SettingsOutput *Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem> &outputItems);
 
     //! Write output information to log file
     virtual void Dump(string& filename);
@@ -76,5 +82,7 @@ private:
     int m_nSubbasins;
     //! subbasin ID which outlet located
     int m_outletID;
+    //! current subbasin ID, 0 for OMP version
+    int m_subbasinID;
 };
 #endif /* SEIMS_SETTING_OUTPUT_H */
