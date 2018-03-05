@@ -56,8 +56,8 @@ public:
     ~ModelMain() {};
     //! Execute all the modules, aggregate output data, and write the total time-consuming, etc.
     void Execute();
-    //! Write output files, e.g., Q.txt
-    void Output();
+    //! Write output files, e.g., Q.txt, return time-consuming (s).
+    double Output();
 
     /*!
     * \brief Check whether the validation of outputs

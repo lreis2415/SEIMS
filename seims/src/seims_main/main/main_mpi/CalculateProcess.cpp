@@ -128,11 +128,14 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     t = t2 - t1;
     double *tReceive = new double[nSlaves];
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
-    double ioTime = 0;
+    double loadTime = 0.;
     if (slaveRank == 0) {
-        ioTime = Max(tReceive, nSlaves);
-        cout << "[DEBUG]\tTime of reading data -- Max:" << ioTime << ", Total:" << Sum(nSlaves, tReceive) << "\n";
-        cout << "[DEBUG][TIMESPAN][IO]" << ioTime << endl;
+        loadTime = Max(tReceive, nSlaves);
+#ifdef _DEBUG
+        cout << "[DEBUG]\tTime of reading data -- Max:" << loadTime << ", Total:" << Sum(nSlaves, tReceive) << "\n";
+        cout << "[DEBUG][TIMESPAN][LoadData]" << loadTime << endl;
+#endif /* _DEBUG */
+        cout << "[TIMESPAN][IO]\tINPUT\t" << fixed << setprecision(3) << loadTime << endl;
     }
     t1 = MPI_Wtime();
 
@@ -241,7 +244,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
             }
         }
         tTask2 = MPI_Wtime();
-        tSlope = tSlope + tTask2 - tTask1;
+        tSlope += tTask2 - tTask1;
 
         tTask1 = MPI_Wtime();
         cout << "world_rank: " << world_rank << "  step 2" << endl;
@@ -364,7 +367,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
             }
         }
         tTask2 = MPI_Wtime();
-        tChannel = tChannel + tTask2 - tTask1;
+        tChannel += tTask2 - tTask1;
 
         MPI_Barrier(slaveComm);
         if (slaveRank == 0) {
@@ -378,11 +381,14 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     t2 = MPI_Wtime();
     t = t2 - t1;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
+    // TODO, Gather and scatter the computing time of each modules from all slave processors
     if (slaveRank == 0) {
         double computingTime = Max(tReceive, nSlaves);
-        //cout << "[DEBUG]\tnprocs: " << numprocs - 1 << ", Max: " << computingTime
-        //     << ", Total: " << Sum(nSlaves, tReceive) << "\n";
-        cout << "[DEBUG][TIMESPAN][COMPUTING]" << computingTime << "\n";
+#ifdef _DEBUG
+        cout << "[DEBUG][TIMESPAN][COMPUTING]\tnprocs: " << numprocs - 1 << ", Max: " << computingTime
+             << ", Total: " << Sum(nSlaves, tReceive) << "\n";
+#endif
+        cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << computingTime << endl;
     }
     /***************  Outputs and combination  ***************/
     t1 = MPI_Wtime();
@@ -414,13 +420,17 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     /*** End of Combine raster outputs. ***/
 
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
+    if (slaveRank == 0) {
+        cout << "[TIMESPAN][IO]\tOUTPUT\t" << fixed << setprecision(3) << (t) << endl;
+        cout << "[TIMESPAN][IO]\tALL\t" << fixed << setprecision(3) << (t + loadTime) << endl;
+    }
 
     double tEnd = MPI_Wtime();
     t = tEnd - tStart;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
     if (slaveRank == 0) {
         double allTime = Max(tReceive, nSlaves);
-        cout << "[DEBUG][TIMESPAN][TOTAL]" << allTime << "\n";
+        cout << "[TIMESPAN][CALCULATION]\tALL\t" << allTime << "\n";
     }
     MPI_Barrier(slaveComm);
 
