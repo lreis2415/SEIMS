@@ -125,7 +125,7 @@ inline void _get_data_from_gdal(T1 *dst, T2 *src, int nr, int nc) {
     for (int i = 0; i < nr; ++i) {
         for (int j = 0; j < nc; ++j) {
             int index = i * nc + j;
-            dst[index] = (T1)src[index];
+            dst[index] = (T1) src[index];
         }
     }
 }
@@ -143,8 +143,27 @@ public:
      * \brief Constructor an empty clsRasterData instance
      * By default, 1D raster data
      * Set \a m_rasterPositionData, \a m_rasterData, \a m_mask to \a nullptr
+     * \TODO Add some Set functions to make this empty constructor usable.
      */
     clsRasterData();
+
+    /*!
+     * \brief Construtor 1D raster from necessary data
+     */
+    clsRasterData(T *data, int cols, int rows, T nodata, double dx, double xll, double yll, const string &srs = "");
+
+    /*!
+    * \brief Construtor 1D raster from necessary data
+    */
+    clsRasterData(T **data2d,
+                  int cols,
+                  int rows,
+                  int nlayers,
+                  T nodata,
+                  double dx,
+                  double xll,
+                  double yll,
+                  const string &srs = "");
 
     /*!
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported raster file
@@ -211,7 +230,7 @@ public:
     /*!
      * \brief Construct an clsRasterData instance by 2D array data and mask
      */
-    clsRasterData(clsRasterData<MaskT> *mask, const T * const *values, int lyrs);
+    clsRasterData(clsRasterData<MaskT> *mask, const T *const *values, int lyrs);
 
 #ifdef USE_MONGODB
 
@@ -898,6 +917,45 @@ clsRasterData<T, MaskT>::clsRasterData() {
 }
 
 template<typename T, typename MaskT>
+clsRasterData<T, MaskT>::clsRasterData(T *data, int cols, int rows, T nodata, double dx,
+                                       double xll, double yll, const string &srs /* = "" */) {
+    this->_initialize_raster_class();
+    m_rasterData = data;
+    m_noDataValue = nodata;
+    m_srs = srs;
+    m_nCells = cols * rows;
+    m_nLyrs = 1;
+    m_headers[HEADER_RS_NCOLS] = cols;
+    m_headers[HEADER_RS_NROWS] = rows;
+    m_headers[HEADER_RS_XLL] = xll;
+    m_headers[HEADER_RS_YLL] = yll;
+    m_headers[HEADER_RS_CELLSIZE] = dx;
+    m_headers[HEADER_RS_NODATA] = nodata;
+    m_headers[HEADER_RS_LAYERS] = 1;
+    m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+}
+
+template<typename T, typename MaskT>
+clsRasterData<T, MaskT>::clsRasterData(T **data2d, int cols, int rows, int nlayers, T nodata, double dx,
+                                       double xll, double yll, const string &srs /* = "" */) {
+    this->_initialize_raster_class();
+    m_raster2DData = data2d;
+    m_is2DRaster = true;
+    m_noDataValue = nodata;
+    m_srs = srs;
+    m_nCells = cols * rows;
+    m_nLyrs = nlayers;
+    m_headers[HEADER_RS_NCOLS] = cols;
+    m_headers[HEADER_RS_NROWS] = rows;
+    m_headers[HEADER_RS_XLL] = xll;
+    m_headers[HEADER_RS_YLL] = yll;
+    m_headers[HEADER_RS_CELLSIZE] = dx;
+    m_headers[HEADER_RS_NODATA] = nodata;
+    m_headers[HEADER_RS_LAYERS] = nlayers;
+    m_headers[HEADER_RS_CELLSNUM] = m_nCells;
+}
+
+template<typename T, typename MaskT>
 clsRasterData<T, MaskT>::clsRasterData(const string &filename, bool calcPositions /* = true */,
                                        clsRasterData<MaskT> *mask /* = nullptr */,
                                        bool useMaskExtent /* = true */,
@@ -1030,11 +1088,13 @@ clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, const T *valu
 }
 
 template<typename T, typename MaskT>
-clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, const T * const *values, int lyrs) {
+clsRasterData<T, MaskT>::clsRasterData(clsRasterData<MaskT> *mask, const T *const *values, int lyrs) {
     this->_initialize_raster_class();
     m_mask = mask;
     m_nLyrs = lyrs;
     this->copyHeader(m_mask->getRasterHeader());
+    m_headers.at(HEADER_RS_LAYERS) = m_nLyrs;
+    m_srs = m_mask->getSRSString();
     m_nCells = m_mask->getCellNumber();
     Initialize2DArray(m_nCells, m_nLyrs, m_raster2DData, values); // DO NOT ASSIGN ARRAY DIRECTLY!
     m_defaultValue = m_mask->getDefaultValue();
@@ -1936,65 +1996,58 @@ bool clsRasterData<T, MaskT>::_read_raster_file_by_gdal(string filename, map<str
     float *float_data = nullptr;
     double *double_data = nullptr;
     switch (dataType) {
-    case GDT_Byte:
-        /// For GDAL, GDT_Byte is 8-bit unsigned interger, ranges from 0 to 255.
-        /// However, ArcGIS use 8-bit signed and unsigned intergers which both will be read as GDT_Byte.
-        ///   8-bit signed integer ranges from -128 to 127.
-        /// Since both signed and unsigned integers of n bits in length can represent 2^n different values,
-        ///   there is no inherent way to distinguish signed integers from unsigned integers simply by looking
-        ///   at them; the software designer is responsible for using them correctly.
-        /// So, here I can only assume that a negative nodata indicates a 8-bit signed integer type.
-        if (m_noDataValue < 0) {  // commonly -128
-            char_data = (char *)CPLMalloc(sizeof(char) * nCols * nRows);
-            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, char_data, nCols, nRows, GDT_Byte, 0, 0);
-            _get_data_from_gdal(tmprasterdata, char_data, nRows, nCols);
-            CPLFree(char_data);
-        } else {  // commonly 255
-            uchar_data = (unsigned char *)CPLMalloc(sizeof(unsigned char) * nCols * nRows);
-            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uchar_data, nCols, nRows, GDT_Byte, 0, 0);
-            _get_data_from_gdal(tmprasterdata, uchar_data, nRows, nCols);
-            CPLFree(uchar_data);
-        }
-        break;
-    case GDT_UInt16:
-        ushort_data = (unsigned short *)CPLMalloc(sizeof(unsigned short) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, ushort_data, nCols, nRows, GDT_UInt16, 0, 0);
-        _get_data_from_gdal(tmprasterdata, ushort_data, nRows, nCols);
-        CPLFree(ushort_data);
-        break;
-    case GDT_Int16:
-        short_data = (short *)CPLMalloc(sizeof(short) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, short_data, nCols, nRows, GDT_Int16, 0, 0);
-        _get_data_from_gdal(tmprasterdata, short_data, nRows, nCols);
-        CPLFree(short_data);
-        break;
-    case GDT_UInt32:
-        uint_data = (unsigned int *)CPLMalloc(sizeof(unsigned int) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uint_data, nCols, nRows, GDT_UInt32, 0, 0);
-        _get_data_from_gdal(tmprasterdata, uint_data, nRows, nCols);
-        CPLFree(uint_data);
-        break;
-    case GDT_Int32:
-        int_data = (int *)CPLMalloc(sizeof(int) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, int_data, nCols, nRows, GDT_Int32, 0, 0);
-        _get_data_from_gdal(tmprasterdata, int_data, nRows, nCols);
-        CPLFree(int_data);
-        break;
-    case GDT_Float32:
-        float_data = (float *)CPLMalloc(sizeof(float) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, float_data, nCols, nRows, GDT_Float32, 0, 0);
-        _get_data_from_gdal(tmprasterdata, float_data, nRows, nCols);
-        CPLFree(float_data);
-        break;
-    case GDT_Float64:
-        double_data = (double *)CPLMalloc(sizeof(double) * nCols * nRows);
-        poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, double_data, nCols, nRows, GDT_Float64, 0, 0);
-        _get_data_from_gdal(tmprasterdata, double_data, nRows, nCols);
-        CPLFree(double_data);
-        break;
-    default:
-        cout << "Unexpected GDALDataType: " << GDALGetDataTypeName(dataType) << endl;
-        exit(-1);
+        case GDT_Byte:
+            /// For GDAL, GDT_Byte is 8-bit unsigned interger, ranges from 0 to 255.
+            /// However, ArcGIS use 8-bit signed and unsigned intergers which both will be read as GDT_Byte.
+            ///   8-bit signed integer ranges from -128 to 127.
+            /// Since both signed and unsigned integers of n bits in length can represent 2^n different values,
+            ///   there is no inherent way to distinguish signed integers from unsigned integers simply by looking
+            ///   at them; the software designer is responsible for using them correctly.
+            /// So, here I can only assume that a negative nodata indicates a 8-bit signed integer type.
+            if (m_noDataValue < 0) {  // commonly -128
+                char_data = (char *) CPLMalloc(sizeof(char) * nCols * nRows);
+                poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, char_data, nCols, nRows, GDT_Byte, 0, 0);
+                _get_data_from_gdal(tmprasterdata, char_data, nRows, nCols);
+                CPLFree(char_data);
+            } else {  // commonly 255
+                uchar_data = (unsigned char *) CPLMalloc(sizeof(unsigned char) * nCols * nRows);
+                poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uchar_data, nCols, nRows, GDT_Byte, 0, 0);
+                _get_data_from_gdal(tmprasterdata, uchar_data, nRows, nCols);
+                CPLFree(uchar_data);
+            }
+            break;
+        case GDT_UInt16:ushort_data = (unsigned short *) CPLMalloc(sizeof(unsigned short) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, ushort_data, nCols, nRows, GDT_UInt16, 0, 0);
+            _get_data_from_gdal(tmprasterdata, ushort_data, nRows, nCols);
+            CPLFree(ushort_data);
+            break;
+        case GDT_Int16:short_data = (short *) CPLMalloc(sizeof(short) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, short_data, nCols, nRows, GDT_Int16, 0, 0);
+            _get_data_from_gdal(tmprasterdata, short_data, nRows, nCols);
+            CPLFree(short_data);
+            break;
+        case GDT_UInt32:uint_data = (unsigned int *) CPLMalloc(sizeof(unsigned int) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, uint_data, nCols, nRows, GDT_UInt32, 0, 0);
+            _get_data_from_gdal(tmprasterdata, uint_data, nRows, nCols);
+            CPLFree(uint_data);
+            break;
+        case GDT_Int32:int_data = (int *) CPLMalloc(sizeof(int) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, int_data, nCols, nRows, GDT_Int32, 0, 0);
+            _get_data_from_gdal(tmprasterdata, int_data, nRows, nCols);
+            CPLFree(int_data);
+            break;
+        case GDT_Float32:float_data = (float *) CPLMalloc(sizeof(float) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, float_data, nCols, nRows, GDT_Float32, 0, 0);
+            _get_data_from_gdal(tmprasterdata, float_data, nRows, nCols);
+            CPLFree(float_data);
+            break;
+        case GDT_Float64:double_data = (double *) CPLMalloc(sizeof(double) * nCols * nRows);
+            poBand->RasterIO(GF_Read, 0, 0, nCols, nRows, double_data, nCols, nRows, GDT_Float64, 0, 0);
+            _get_data_from_gdal(tmprasterdata, double_data, nRows, nCols);
+            CPLFree(double_data);
+            break;
+        default:cout << "Unexpected GDALDataType: " << GDALGetDataTypeName(dataType) << endl;
+            exit(-1);
     }
     GDALClose(poDataset);
     /// returned parameters
