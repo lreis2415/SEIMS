@@ -1,4 +1,5 @@
 #include "parallel.h"
+#include "CombineRaster.h"
 
 void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveComm, InputArgs *input_args) {
     double tStart = MPI_Wtime();
@@ -383,13 +384,35 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
         //     << ", Total: " << Sum(nSlaves, tReceive) << "\n";
         cout << "[DEBUG][TIMESPAN][COMPUTING]" << computingTime << "\n";
     }
-
+    /***************  Outputs and combination  ***************/
     t1 = MPI_Wtime();
     for (int i = 0; i < nSubbasins; i++) {
-        //modelList[i]->Output();
+        modelList[i]->Output();
     }
     t2 = MPI_Wtime();
     t = t2 - t1;
+
+    /*** Combine raster outputs serially by one processor. ***/
+    /// The operation could be considered as post-process,
+    ///   therefore, the time-consuming is not included. 
+    if (slaveRank == 0) {
+        MongoGridFS* gfs = new MongoGridFS(mongoClient->getGridFS(input_args->m_model_name, DB_TAB_OUT_SPATIAL));
+        SettingsOutput* outputs = dataCenterList[0]->getSettingOutput();
+        for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); it++) {
+            for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); itemIt++) {
+                PrintInfoItem *item = *itemIt;
+                StatusMessage(("Combining raster: " + item->Corename).c_str());
+                if (item->m_nLayers >= 1) {
+                    CombineRasterResultsMongo(gfs, item->Corename, dataCenterList[0]->m_nSubbasins,
+                                              dataCenterList[0]->getOutputScenePath());
+                }
+            }
+        }
+        // clean up
+        delete gfs;
+    }
+    /*** End of Combine raster outputs. ***/
+
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
 
     double tEnd = MPI_Wtime();
