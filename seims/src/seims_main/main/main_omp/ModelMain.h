@@ -20,7 +20,10 @@
 #include "ModuleFactory.h"
 
 /// include data related
-#include "DataCenter.h"
+#ifdef USE_MONGODB
+#include "DataCenterMongoDB.h"
+
+#endif /* USE_MONGODB */
 #include "ClimateParams.h"
 
 #include "MongoUtil.h"
@@ -48,9 +51,9 @@ public:
      * \param[in] dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
      * \param[in] mfactory \sa ModuleFactory, assemble the module workspace
      */
-    ModelMain(DataCenterMongoDB* dcenter, ModuleFactory* mfactory);
+    ModelMain(DataCenterMongoDB *dcenter, ModuleFactory *mfactory);
     //! Destructor
-    ~ModelMain();
+    ~ModelMain() {};
     //! Execute all the modules, aggregate output data, and write the total time-consuming, etc.
     void Execute();
     //! Write output files, e.g., Q.txt
@@ -90,7 +93,7 @@ public:
      * \param[in] endT End time period
      */
     void StepOverall(time_t startT, time_t endT);
-    
+
     // temporary debug code
     float GetQOutlet() { return 0.f; }
     void SetChannelFlowIn(float value) {
@@ -119,34 +122,34 @@ private:
     /*             Input parameters                                         */
     /************************************************************************/
 
-    DataCenterMongoDB*          m_dataCenter;         ///< inherited DataCenter
-    ModuleFactory*              m_factory;            ///< Modules factory
+    DataCenterMongoDB *m_dataCenter;         ///< inherited DataCenter
+    ModuleFactory *m_factory;            ///< Modules factory
 private:
     /************************************************************************/
     /*   Pointer or reference of object and data derived from input params  */
     /************************************************************************/
 
-    SettingsInput*              m_input;              ///< The basic input settings
-    SettingsOutput*             m_output;             ///< The user-defined outputs, Q, SED, etc
-    FloatRaster*                m_maskRaster;         ///< Mask raster data
-    string                      m_outputPath;         ///< Path of output scenario
-    time_t                      m_dtDaily;            ///< Daily time interval, seconds
-    time_t                      m_dtHs;               ///< Hillslope time interval, seconds
-    time_t                      m_dtCh;               ///< Channel time interval, seconds
+    SettingsInput *m_input;              ///< The basic input settings
+    SettingsOutput *m_output;             ///< The user-defined outputs, Q, SED, etc
+    FloatRaster *m_maskRaster;         ///< Mask raster data
+    string m_outputPath;         ///< Path of output scenario
+    time_t m_dtDaily;            ///< Daily time interval, seconds
+    time_t m_dtHs;               ///< Hillslope time interval, seconds
+    time_t m_dtCh;               ///< Channel time interval, seconds
 private:
     /************************************************************************/
     /*   Variables newly allocated in this class                            */
     /************************************************************************/
 
-    float                       m_readFileTime;       ///< Time consuming for read data
-    vector<SimulationModule *>  m_simulationModules;  ///< Modules list in the model run
-    vector<int>                 m_hillslopeModules;   ///< Hillslope modules index list
-    vector<int>                 m_channelModules;     ///< Channel modules index list
-    vector<int>                 m_ecoModules;         ///< Ecology modules index list
-    vector<int>                 m_overallModules;     ///< Whole simulation scale modules index list
-    vector<double>              m_executeTime;        ///< Execute time list of each module
-   
-    bool                        m_firstRunOverland;   ///< Is the first run of overland
-    bool                        m_firstRunChannel;    ///< Is the first run of channel
+    float m_readFileTime;       ///< Time consuming for read data
+    vector<SimulationModule *> m_simulationModules;  ///< Modules list in the model run
+    vector<int> m_hillslopeModules;   ///< Hillslope modules index list
+    vector<int> m_channelModules;     ///< Channel modules index list
+    vector<int> m_ecoModules;         ///< Ecology modules index list
+    vector<int> m_overallModules;     ///< Whole simulation scale modules index list
+    vector<double> m_executeTime;        ///< Execute time list of each module
+
+    bool m_firstRunOverland;   ///< Is the first run of overland
+    bool m_firstRunChannel;    ///< Is the first run of channel
 };
 #endif /* SEIMS_MODEL_MAIN_H */
