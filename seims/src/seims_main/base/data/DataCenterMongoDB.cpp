@@ -13,21 +13,13 @@ const int SOILWATER_VARS_NUM = 5;
 const char *SOILWATER_VARS[] = {VAR_SOL_WPMM, VAR_SOL_AWC, VAR_SOL_UL,
                                 VAR_SOL_SUMAWC, VAR_SOL_SUMSAT};
 
-DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &modelPath,
-                                     string &modulePath, LayeringMethod layeringMethod /* = UP_DOWN */,
-                                     int subBasinID /* = 0 */, int scenarioID /* = -1 */,
-                                     int calibrationID /* = -1 */,
-                                     int numThread /* = 1 */) :
-    m_mongodbIP(host), m_mongodbPort(port), m_mongoClient(nullptr),
+DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient *client, ModuleFactory* factory,
+                                     int subBasinID /* = 0 */) :
+    m_mongodbIP(input_args->m_host_ip), m_mongodbPort(input_args->m_port), m_mongoClient(client),
     m_mainDatabase(nullptr), m_spatialGridFS(nullptr),
     m_climDBName(""), m_scenDBName(""),
-    DataCenter(modelPath, modulePath, layeringMethod, subBasinID, scenarioID, calibrationID, numThread) {
-    /// Connect to MongoDB database, and make sure the required data is available.
-    m_mongoClient = MongoClient::Init(m_mongodbIP, m_mongodbPort);
+    DataCenter(input_args, factory, subBasinID) {
     m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
-    if (nullptr == m_mongoClient) {
-        throw ModelException("DataCenterMongoDB", "Constructor", "Failed to connect to MongoDB!");
-    }
     if (getFileInStringVector()) {
         m_input = SettingsInput::Init(m_fileIn1DStrs);
         if (nullptr == m_input) {
@@ -40,7 +32,7 @@ DataCenterMongoDB::DataCenterMongoDB(const char *host, uint16_t port, string &mo
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (getFileOutVector()) {
-        m_output = SettingsOutput::Init(m_nSubbasins, m_outletID, m_OriginOutItems);
+        m_output = SettingsOutput::Init(m_nSubbasins, m_outletID, m_subbasinID, m_OriginOutItems);
         if (nullptr == m_output) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
         }
@@ -62,10 +54,6 @@ DataCenterMongoDB::~DataCenterMongoDB() {
     if (m_mainDatabase != nullptr) {
         delete m_mainDatabase;
         m_mainDatabase = nullptr;
-    }
-    if (m_mongoClient != nullptr) {
-        delete m_mongoClient;
-        m_mongoClient = nullptr;
     }
 }
 

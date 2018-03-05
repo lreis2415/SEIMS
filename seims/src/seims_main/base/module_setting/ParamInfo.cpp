@@ -30,6 +30,12 @@ ParamInfo::ParamInfo(const ParamInfo &another) {
     initialized = another.initialized;
 }
 
+ParamInfo::~ParamInfo() {
+    if (DependPara != nullptr) {
+        DependPara = nullptr;
+    }
+}
+
 float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
     if (FloatEqual(pre_value, NODATA_VALUE)) {
         pre_value = Value;

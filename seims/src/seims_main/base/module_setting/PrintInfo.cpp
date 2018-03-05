@@ -10,7 +10,7 @@ PrintInfoItem::PrintInfoItem() : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
                                      m_1DData(nullptr), m_2DData(nullptr), m_1DDataWithRowCol(nullptr),
                                      TimeSeriesDataForSubbasinCount(-1), m_AggregationType(AT_Unknown),
                                      StartTime(""), EndTime(""), m_startTime(0), m_endTime(0),
-                                     Filename(""), Suffix("") {
+                                     Corename(""), Filename(""), Suffix("") {
     TimeSeriesData.clear();
     TimeSeriesDataForSubbasin.clear();
 }
@@ -51,34 +51,31 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, FloatRaster *templateRaster, string header) {
-    //bool outToMongoDB = false; /// added by LJ.
-    //projectPath = projectPath + SEP;
-    /// Get filenames existed in GridFS, i.e., "OUTPUT.files"
-    //vector<string> outputExisted = GetGridFsFileNames(gfs);// No need to obtain the existing GridFS names.
+void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *templateRaster, string header) {
+    // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
+    // For OMP version, Output to tiff file directly.
+    bool outToMongoDB = false; /// added by LJ.
+    if (SubbasinID != 0) {
+        outToMongoDB = true;
+        // Add subbasin ID as prefix
+        Filename = ValueToString(SubbasinID) + "_" + Corename;
+    }
     /// Filename should appended by AggregateType to avoiding the same names. By LJ, 2016-7-12
     if (!StringMatch(AggType, "")) {
-        Filename = Filename + "_" + AggType;
+        Filename += "_" + AggType;
+        Corename += "_" + AggType;
     }
     StatusMessage(("Creating output file " + Filename + "...").c_str());
-    //if (!outToMongoDB) {
-    //    bson_error_t *err = NULL;
-    //    /// delete the chunks
-    //    mongoc_collection_t *chunk = mongoc_gridfs_get_chunks(gfs);
-    //    mongoc_collection_drop(chunk, err);
-    //}
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
-    if (m_AggregationType == AT_SpecificCells) {
+    if (m_AggregationType == AT_SpecificCells) { // TODO, this function has been removed in current version
         /*if(m_specificOutput != NULL)
         {
             m_specificOutput->dump(projectPath + Filename + ".txt");
             StatusMessage(("Create " + projectPath + Filename + " successfully!").c_str());
-        }
-            */
+        }*/
         return;
     }
-    if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1))    //time series data
-    {
+    if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1)) { //time series data
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app); /// append if more than one print item. By LJ
@@ -99,8 +96,7 @@ void PrintInfoItem::Flush(string projectPath, FloatRaster *templateRaster, strin
         }
         return;
     }
-    if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1)    //time series data for subbasin
-    {
+    if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) { //time series data for subbasin
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
@@ -124,36 +120,34 @@ void PrintInfoItem::Flush(string projectPath, FloatRaster *templateRaster, strin
         }
         return;
     }
-    if (nullptr != m_1DData && m_nRows > -1)    // ASC or GeoTIFF file
-    {
+    if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) { // ASC or GeoTIFF file
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
         //cout << projectPath << Filename << endl;
-        //if (outToMongoDB) {
-        //    MongoGridFS().removeFile(Filename, gfs);
-        //    FloatRaster(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
-        //}
-        FloatRaster(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
+        if (outToMongoDB) {
+            gfs->removeFile(Filename);
+            FloatRaster(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
+        } else {
+            FloatRaster(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
+        }
         return;
     }
 
-    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 0) /// Multi-Layers raster data
-    {
+    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) { /// Multi-Layers raster data
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        FloatRaster(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
-
-        //if (outToMongoDB) {
-        //    MongoGridFS().removeFile(Filename, gfs);
-        //    FloatRaster(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
-        //}
+        if (outToMongoDB) {
+            gfs->removeFile(Filename);
+            FloatRaster(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
+        } else {
+            FloatRaster(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
+        }
         return;
     }
 
-    if (!TimeSeriesData.empty())    /// time series data
-    {
+    if (!TimeSeriesData.empty()) { /// time series data
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
@@ -264,6 +258,7 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data) {
         if (m_1DData == nullptr) {
             // create the aggregate array
             m_nRows = numrows;
+            m_nLayers = 1;
             Initialize1DArray(m_nRows, m_1DData, NODATA_VALUE);
             m_Counter = 0;
         }
@@ -557,6 +552,7 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
     itm->SiteID = -1;
     itm->StartTime = start;
     itm->EndTime = end;
+    itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
@@ -566,14 +562,17 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi) {
+void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi,
+                             int subbasinID /* = 0 */) {
     // create a new object instance
     PrintInfoItem *itm = new PrintInfoItem();
 
     // set its properties
     itm->SiteID = -1;
+    itm->SubbasinID = subbasinID;
     itm->StartTime = start;
     itm->EndTime = end;
+    itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
 
@@ -587,17 +586,14 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
         throw ModelException("PrintInfo", "AddPrintItem", "The type of output " + m_OutputID +
             " can't be unknown. Please check file.out. The type should be MIN, MAX, SUM or AVERAGE (AVE or MEAN).");
     }
-
     itm->setAggregationType(enumType);
-
     // add it to the list
     m_PrintItems.emplace_back(itm);
 }
 
-void
-PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin) {
+void PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename,
+                             string& sufi, bool isSubbasin) {
     PrintInfoItem *itm = new PrintInfoItem();
-
     if (!isSubbasin) { itm->SiteID = atoi(sitename.c_str()); }
     else {
         itm->SubbasinID = atoi(sitename.c_str());
@@ -606,6 +602,7 @@ PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitenam
     }
     itm->StartTime = start;
     itm->EndTime = end;
+    itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);

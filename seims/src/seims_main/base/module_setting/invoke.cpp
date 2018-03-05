@@ -106,41 +106,16 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
     cout << endl;
     cout << "Complete and recommended Usage:\n    " << argv[0] <<
          " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
-                 " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
+             " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
     return nullptr;
 }
 
 InputArgs::InputArgs(string modelPath, char *host, uint16_t port, int scenarioID,
                      int calibrationID, int numThread, LayeringMethod lyrMethod)
-        : m_model_path(modelPath), m_model_name(""), m_port(port), m_scenario_id(scenarioID),
-          m_calibration_id(calibrationID), m_thread_num(numThread), m_layer_mtd(lyrMethod) {
+    : m_model_path(modelPath), m_model_name(""), m_port(port), m_scenario_id(scenarioID),
+      m_calibration_id(calibrationID), m_thread_num(numThread), m_layer_mtd(lyrMethod) {
     stringcpy(m_host_ip, host);
     /// Get model name
     size_t nameIdx = m_model_path.rfind(SEP);
     m_model_name = modelPath.substr(nameIdx + 1);
-}
-
-int MainMongoDB(InputArgs *in_args, int subbasin_id /* = 0 */) {
-    /// Get module path
-    string modulePath = GetAppPath();
-    /// Create data center according to subbasin number,
-    /// 0 means the whole basin which is default for omp version.
-    DataCenterMongoDB *dataCenter = new DataCenterMongoDB(in_args->m_host_ip,
-                                                          in_args->m_port,
-                                                          in_args->m_model_path,
-                                                          modulePath,
-                                                          in_args->m_layer_mtd,
-                                                          subbasin_id,
-                                                          in_args->m_scenario_id,
-                                                          in_args->m_calibration_id,
-                                                          in_args->m_thread_num);
-    /// Create module factory
-    ModuleFactory *moduleFactory = new ModuleFactory(dataCenter);
-    /// Create SEIMS model by dataCenter and moduleFactory
-    unique_ptr<ModelMain> main(new ModelMain(dataCenter, moduleFactory));
-    /// Execute model and write outputs
-    main->Execute();
-    main->Output();
-
-    return 0;
 }
