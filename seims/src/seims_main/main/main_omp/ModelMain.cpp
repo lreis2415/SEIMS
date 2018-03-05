@@ -130,7 +130,7 @@ void ModelMain::Execute() {
     OutputExecuteTime();
 }
 
-void ModelMain::Output() {
+double ModelMain::Output() {
     double t1 = TimeCounting();
     MongoGridFS* gfs = new MongoGridFS(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
                                                                                  DB_TAB_OUT_SPATIAL));
@@ -142,7 +142,10 @@ void ModelMain::Output() {
     }
     delete gfs;
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
+    if (m_dataCenter->getSubbasinID() == 0) { // Only print for OpenMP version
+        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
+    }
+    return (t2 - t1);
 }
 
 void ModelMain::OutputExecuteTime() {
@@ -163,7 +166,9 @@ void ModelMain::CheckAvailableOutput() {
 
         if ((*it)->m_moduleIndex < 0) {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
-            cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
+            if (m_dataCenter->getSubbasinID() <= 1) { // Print only once
+                cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
+            }
             it = m_output->m_printInfos.erase(it);
         } else {
             it++;
