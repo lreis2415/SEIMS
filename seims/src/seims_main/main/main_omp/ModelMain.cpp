@@ -132,12 +132,15 @@ void ModelMain::Execute() {
 
 void ModelMain::Output() {
     double t1 = TimeCounting();
-    for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); it++) {
-        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); itemIt++) {
+    MongoGridFS* gfs = new MongoGridFS(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
+                                                                                 DB_TAB_OUT_SPATIAL));
+    for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end(); it++) {
+        for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); itemIt++) {
             PrintInfoItem *item = *itemIt;
-            item->Flush(m_outputPath, m_maskRaster, (*it)->getOutputTimeSeriesHeader());
+            item->Flush(m_outputPath, gfs, m_maskRaster, (*it)->getOutputTimeSeriesHeader());
         }
     }
+    delete gfs;
     double t2 = TimeCounting();
     cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
 }
