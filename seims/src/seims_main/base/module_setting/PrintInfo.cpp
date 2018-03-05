@@ -55,7 +55,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     // For OMP version, Output to tiff file directly.
     bool outToMongoDB = false; /// added by LJ.
-    if (SubbasinID != 0) {
+    if (SubbasinID != 0 && (m_1DData != nullptr || m_2DData != nullptr)) {
         outToMongoDB = true;
         // Add subbasin ID as prefix
         Filename = ValueToString(SubbasinID) + "_" + Corename;
