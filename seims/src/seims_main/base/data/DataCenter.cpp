@@ -258,12 +258,13 @@ void DataCenter::SetValue(ParamInfo *param, SimulationModule *pModule) {
         // the data type is got from config.fig
         return;
     }
-    else if (StringMatch(param->Name, Tag_CellSize))  // valid cells number, do not be confused with Tag_CellWidth
-    {
+    else if (StringMatch(param->Name, Tag_SubbasinId)) {
+        param->Value = float(m_subbasinID);
+    }
+    else if (StringMatch(param->Name, Tag_CellSize)) { // valid cells number, do not be confused with Tag_CellWidth
         param->Value = float(m_maskRaster->getCellNumber()); // old code is ->Size();  they have the same function
     }
-    else if (StringMatch(param->Name, Tag_CellWidth))  //cell size
-    {
+    else if (StringMatch(param->Name, Tag_CellWidth)) { //cell size
         param->Value = float(m_maskRaster->getCellWidth());
     }
     else if (StringMatch(param->Name, Tag_TimeStep)) {
