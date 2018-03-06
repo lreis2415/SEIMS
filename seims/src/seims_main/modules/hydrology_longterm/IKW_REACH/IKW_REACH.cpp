@@ -297,7 +297,7 @@ void IKW_REACH::SetReaches(clsReaches *reaches) {
     if (nullptr == m_chSlope) reaches->GetReachesSingleProperty(REACH_SLOPE, &m_chSlope);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 //---------------------------------------------------------------------------
