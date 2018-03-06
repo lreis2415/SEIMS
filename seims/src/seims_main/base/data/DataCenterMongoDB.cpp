@@ -104,7 +104,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     }
     dumpCaliParametersInDB();
     /// 7. Read Reaches data
-    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH);
+    m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH, m_lyrMethod);
     m_reaches->Update(m_initParameters);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existedMainDBTabs) && m_scenarioID >= 0) {

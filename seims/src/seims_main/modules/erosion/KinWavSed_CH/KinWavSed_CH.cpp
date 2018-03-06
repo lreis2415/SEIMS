@@ -148,7 +148,7 @@ void KinWavSed_CH::SetReaches(clsReaches *reaches) {
     if (nullptr == m_ChManningN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_ChManningN);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 void KinWavSed_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {

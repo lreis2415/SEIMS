@@ -21,14 +21,13 @@ ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_a
     map<string, InstanceFunction> instanceFuncs; // map of modules instance
     map<string, MetadataFunction> metadataFuncs; // Metadata map of modules
 
-    map<string, const char *> moduleMetadata; // Metadata of modules
+    //map<string, const char *> moduleMetadata; // Metadata of modules
     map<string, vector<ParamInfo *> > moduleParameters; // Parameters of modules from MongoDB
     map<string, vector<ParamInfo *> > moduleInputs; // Inputs of modules from other modules
     map<string, vector<ParamInfo *> > moduleOutputs; // Output of current module
     try {
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
-                         metadataFuncs, moduleMetadata,
-                         moduleParameters, moduleInputs, moduleOutputs);
+                         metadataFuncs, moduleParameters, moduleInputs, moduleOutputs);
     }
     catch (ModelException &e) {
         cout << e.toString() << endl;
@@ -44,8 +43,7 @@ ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_a
     }
     return new ModuleFactory(input_args->m_model_name, moduleIDs, moduleSettings, dllHandles,
                              instanceFuncs, metadataFuncs,
-                             moduleMetadata, moduleParameters,
-                             moduleInputs, moduleOutputs);
+                             moduleParameters, moduleInputs, moduleOutputs);
 }
 
 ModuleFactory::~ModuleFactory() {
@@ -62,17 +60,6 @@ ModuleFactory::~ModuleFactory() {
         m_settings.erase(it++);
     }
     m_settings.clear();
-
-    StatusMessage("---release map of metadata of modules ...");
-    for (auto it = m_metadata.begin(); it != m_metadata.end();) {
-        if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            delete it->second;
-            it->second = nullptr;
-        }
-        m_metadata.erase(it++);
-    }
-    m_metadata.clear();
 
     StatusMessage("---release dynamic library handles ...");
     for (size_t i = 0; i < m_dllHandles.size(); i++) {
@@ -123,7 +110,6 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
                                      vector<DLLINSTANCE> &dllHandles,
                                      map<string, InstanceFunction> &instanceFuncs,
                                      map<string, MetadataFunction> &metadataFuncs,
-                                     map<string, const char *> &moduleMetadata,
                                      map<string, vector<ParamInfo *> > &moduleParameters,
                                      map<string, vector<ParamInfo *> > &moduleInputs,
                                      map<string, vector<ParamInfo *> > &moduleOutputs) {
@@ -155,10 +141,10 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
 
         // load metadata
         MetadataFunction metadataInfo = metadataFuncs[id];
-        moduleMetadata.insert(make_pair(id, metadataInfo()));
+        const char *current_metadata = metadataInfo();
         // parse the metadata
         TiXmlDocument doc;
-        doc.Parse(moduleMetadata[id]);
+        doc.Parse(current_metadata);
         ReadParameterSetting(id, doc, moduleSettings[id], moduleParameters);
         ReadInputSetting(id, doc, moduleSettings[id], moduleInputs);
         ReadOutputSetting(id, doc, moduleSettings[id], moduleOutputs);

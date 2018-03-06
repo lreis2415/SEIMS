@@ -22,7 +22,7 @@ namespace MainBMP {
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
-class ArealSourceLocations {
+class ArealSourceLocations: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, read and calculate areal BMP locations related parameters from Raster
@@ -30,7 +30,7 @@ public:
     ArealSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~ArealSourceLocations() = default;
+    //~ArealSourceLocations() = 0;
 
     /// load valid cells index
     void SetValidCells(int n, float *mgtFieldIDs);
@@ -73,7 +73,7 @@ private:
  * \brief Point source management parameters
  *
  */
-class ArealSourceMgtParams {
+class ArealSourceMgtParams: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, parse areal source management parameters from bson object
@@ -83,7 +83,7 @@ public:
     ArealSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~ArealSourceMgtParams() = default;
+    //~ArealSourceMgtParams() = default;
 
     /// Output
     void Dump(ostream *fs);

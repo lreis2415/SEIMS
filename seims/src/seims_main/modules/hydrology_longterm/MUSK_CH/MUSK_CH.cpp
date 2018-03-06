@@ -364,7 +364,7 @@ void MUSK_CH::SetReaches(clsReaches *reaches) {
     if (nullptr == m_Kchb) reaches->GetReachesSingleProperty(REACH_KBED, &m_Kchb);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 //! Get date time
