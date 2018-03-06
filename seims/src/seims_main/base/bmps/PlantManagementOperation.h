@@ -38,7 +38,11 @@ public:
                              float *parameters);
 
     //! virtual Destructor, there are no allocated memory to release!
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
+    virtual ~PlantManagementOperation() {};
+#else
     virtual ~PlantManagementOperation() = default;
+#endif /* less than VS2010 */
 
     //! Output
     virtual void dump(ostream *fs) = 0;
@@ -79,7 +83,7 @@ class PlantOperation : public PlantManagementOperation {
 public:
     PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~PlantOperation() = default;
+    //virtual ~PlantOperation() = default;
 
     int PlantID() { return m_plantID; }
 
@@ -120,7 +124,7 @@ class IrrigationOperation : public PlantManagementOperation {
 public:
     IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~IrrigationOperation() = default;
+    //virtual ~IrrigationOperation() = default;
 
     int IRRSource() { return m_irrSrc; }
 
@@ -155,7 +159,7 @@ class FertilizerOperation : public PlantManagementOperation {
 public:
     FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~FertilizerOperation() = default;
+    //virtual ~FertilizerOperation() = default;
 
     int FertilizerID() { return m_fertID; }
 
@@ -183,7 +187,7 @@ class PesticideOperation : public PlantManagementOperation {
 public:
     PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~PesticideOperation() = default;
+    //virtual ~PesticideOperation() = default;
 
     int PesticideID() { return m_pestID; }
 
@@ -210,7 +214,7 @@ public:
     HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    virtual ~HarvestKillOperation() = default;
+    //virtual ~HarvestKillOperation() = default;
 
     float CNOP() { return m_CNOP; }
 
@@ -236,7 +240,7 @@ class TillageOperation : public PlantManagementOperation {
 public:
     TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~TillageOperation() = default;
+    //virtual ~TillageOperation() = default;
 
     float CNOP() { return m_CNOP; }
 
@@ -260,7 +264,7 @@ public:
     HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                          float *parameters);
 
-    virtual ~HarvestOnlyOperation() = default;
+    //virtual ~HarvestOnlyOperation() = default;
 
     float HarvestEfficiency() { return m_harvEff; }
 
@@ -286,7 +290,7 @@ class KillOperation : public PlantManagementOperation {
 public:
     KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~KillOperation() = default;
+    //virtual ~KillOperation() = default;
 
     //! Output
     virtual void dump(ostream *fs);
@@ -301,7 +305,7 @@ class GrazingOperation : public PlantManagementOperation {
 public:
     GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~GrazingOperation() = default;
+    //virtual ~GrazingOperation() = default;
 
     int GrazingDays() { return m_grzDays; }
 
@@ -334,7 +338,7 @@ public:
     AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    virtual ~AutoIrrigationOperation() = default;
+    //virtual ~AutoIrrigationOperation() = default;
 
     int WaterStrsIdent() { return m_wstrsID; }
 
@@ -373,7 +377,7 @@ public:
     AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    virtual ~AutoFertilizerOperation() = default;
+    //virtual ~AutoFertilizerOperation() = default;
 
     int FertilizerID() { return m_afertID; }
 
@@ -412,7 +416,7 @@ public:
     ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                             float *parameters);
 
-    virtual ~ReleaseImpoundOperation() = default;
+    //virtual ~ReleaseImpoundOperation() = default;
 
     int ImpoundTriger() { return m_impTrig; }
 
@@ -442,7 +446,7 @@ public:
     ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                   float *parameters);
 
-    virtual ~ContinuousFertilizerOperation() = default;
+    //virtual ~ContinuousFertilizerOperation() = default;
 
     int FertilizerID() { return m_cfertID; }
 
@@ -472,7 +476,7 @@ public:
     ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                  float *parameters);
 
-    virtual ~ContinuousPesticideOperation() = default;
+    //virtual ~ContinuousPesticideOperation() = default;
 
     int PesticideID() { return m_ipstID; }
 
@@ -501,7 +505,7 @@ class BurningOperation : public PlantManagementOperation {
 public:
     BurningOperation(int mgtOp, bool useBaseHU, float husc, int year, int month, int day, float *parameters);
 
-    virtual ~BurningOperation() = default;
+    //virtual ~BurningOperation() = default;
 
     float FractionLeft() { return m_burnFrlb; }
 

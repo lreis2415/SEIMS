@@ -44,13 +44,13 @@ enum TimeStepType {
  * \class SimulationModule
  * \brief Base module for all simulation modules in SEIMS
  */
-class SimulationModule {
+class SimulationModule: public DefaultConstructor {
 public:
     //! Constructor
-    SimulationModule();
+    SimulationModule(): m_date(-1), m_tsCounter(1), m_inputsSetDone(false) {};
 
     //! Destructor
-    virtual ~SimulationModule() = default;
+    //virtual ~SimulationModule() = default;
 
     //! Execute the simulation
     virtual int Execute() { return -1; };
