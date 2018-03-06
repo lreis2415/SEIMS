@@ -36,7 +36,7 @@ public:
                           time_t startTime, time_t endTime);
 
     //! Destructor
-    virtual ~NotRegularMeasurement() = default;
+    //virtual ~NotRegularMeasurement() = default;
 
     //! Get site date by time \a pData
     virtual float *GetSiteDataByTime(time_t t);

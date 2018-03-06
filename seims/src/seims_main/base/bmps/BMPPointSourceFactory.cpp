@@ -5,8 +5,7 @@ using namespace MainBMP;
 BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
                                        const string& collection, const string& location) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
-{
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_pointSrcMgtTab = m_bmpCollection;
     m_pointSrcIDs = SplitStringForInt(m_location, '-');
     if (m_distribution.size() == 3 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_ARRAY)) {
