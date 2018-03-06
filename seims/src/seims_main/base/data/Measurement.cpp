@@ -9,5 +9,5 @@ Measurement::Measurement(MongoClient *conn, string& hydroDBName, string& sitesLi
 }
 
 Measurement::~Measurement() {
-    Release1DArray(pData);
+    if (pData != nullptr) Release1DArray(pData);
 }

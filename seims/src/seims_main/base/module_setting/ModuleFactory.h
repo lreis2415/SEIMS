@@ -49,11 +49,6 @@ using namespace MainBMP;
 class ModuleFactory {
 public:
     /*!
-     * \brief Constructor of ModuleFactory from \sa DataCenter
-     * \param[in] dcenter
-     */
-    //explicit ModuleFactory(DataCenterMongoDB* dcenter);
-    /*!
     * \brief Constructor
     */
     ModuleFactory(const string &model_name,
@@ -62,14 +57,13 @@ public:
                   vector<DLLINSTANCE> &dllHandles,
                   map<string, InstanceFunction> &instanceFuncs,
                   map<string, MetadataFunction> &metadataFuncs,
-                  map<string, const char *> &moduleMetadata,
                   map<string, vector<ParamInfo *> > &moduleParameters,
                   map<string, vector<ParamInfo *> > &moduleInputs,
                   map<string, vector<ParamInfo *> > &moduleOutputs) :
         m_dbName(model_name),
         m_moduleIDs(moduleIDs), m_settings(moduleSettings), m_dllHandles(dllHandles),
         m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs),
-        m_metadata(moduleMetadata), m_moduleParameters(moduleParameters),
+        m_moduleParameters(moduleParameters),
         m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs) {}
     /*!
      * \brief Initialization for exception-safe constructor
@@ -95,12 +89,13 @@ public:
 
     //! Get map of module settings
     map<string, SEIMSModuleSetting *> &GetModuleSettings() { return m_settings; }
-    //! Get Metadata of modules
-    map<string, const char *> &GetModuleMetadata() { return m_metadata; }
+
     //! Get Parameters of modules
     map<string, vector<ParamInfo *> > &GetModuleParameters() { return m_moduleParameters; }
+
     //! Get Input of modules, from other modules
     map<string, vector<ParamInfo *> > &GetModuleInputs() { return m_moduleInputs; }
+
     //! Get Output of modules, out from current module
     map<string, vector<ParamInfo *> > &GetModuleOutputs() { return m_moduleOutputs; }
 
@@ -123,7 +118,6 @@ public:
      * \param moduleIDs
      * \param dllHandles
      * \param instanceFuncs
-     * \param metadataFuncs
      * \return True if succeed, else throw exception and return false.
      */
     static bool LoadParseLibrary(const string &module_path, vector<string> &moduleIDs,
@@ -131,10 +125,10 @@ public:
                                  vector<DLLINSTANCE> &dllHandles,
                                  map<string, InstanceFunction> &instanceFuncs,
                                  map<string, MetadataFunction> &metadataFuncs,
-                                 map<string, const char *> &moduleMetadata,
                                  map<string, vector<ParamInfo *> > &moduleParameters,
                                  map<string, vector<ParamInfo *> > &moduleInputs,
                                  map<string, vector<ParamInfo *> > &moduleOutputs);
+
     //! Load function pointers from .DLL or .so
     static void ReadDLL(const string &module_path, const string &id, const string &dllID,
                         vector<DLLINSTANCE> &dllHandles,
@@ -182,8 +176,6 @@ private:
     vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
     map<string, SEIMSModuleSetting *> m_settings;
-    //! Metadata of modules
-    map<string, const char *> m_metadata;
     //! Parameters of modules, from \sa m_parametersInDB
     map<string, vector<ParamInfo *> > m_moduleParameters;
     //! Input of modules, from other modules

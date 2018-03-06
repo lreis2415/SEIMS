@@ -20,7 +20,7 @@ namespace MainBMP {
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
-class PointSourceLocations {
+class PointSourceLocations: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, parse point BMP location related parameters from bson object
@@ -30,7 +30,7 @@ public:
     PointSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~PointSourceLocations() = default;
+    //~PointSourceLocations() = default;
 
     /// Output
     void Dump(ostream *fs);
@@ -90,7 +90,7 @@ private:
  * \brief Point source management parameters
  *
  */
-class PointSourceMgtParams {
+class PointSourceMgtParams: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, parse point source management parameters from bson object
@@ -100,7 +100,7 @@ public:
     PointSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
 
     /// Destructor
-    ~PointSourceMgtParams() = default;
+    //~PointSourceMgtParams() = default;
 
     /// Output
     void Dump(ostream *fs);
