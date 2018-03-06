@@ -15,13 +15,13 @@
  * \brief A basic class for nutrient cycling modules
  *
  */
-class NutrCommon {
+class NutrCommon: public DefaultConstructor {
 public:
     /// Constructor
-    NutrCommon() = default;
+    //NutrCommon() = default;
 
     /// Destructor
-    ~NutrCommon() = default;
+    //~NutrCommon() = default;
 
 public:
     /*!
