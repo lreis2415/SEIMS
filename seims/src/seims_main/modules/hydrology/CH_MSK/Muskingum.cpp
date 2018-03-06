@@ -492,5 +492,5 @@ void Muskingum::SetReaches(clsReaches *reaches) {
     if (nullptr == m_v0) reaches->GetReachesSingleProperty(REACH_V0, &m_v0);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
