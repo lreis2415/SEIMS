@@ -73,7 +73,8 @@ void clsReach::Set(const string &key, float value) {
     } else { m_paramMap.insert(make_pair(key, NODATA_VALUE)); }
 }
 
-clsReaches::clsReaches(MongoClient *conn, string &dbName, string collectionName) {
+clsReaches::clsReaches(MongoClient *conn, string &dbName, string collectionName,
+                       LayeringMethod mtd /* = UP_DOWN */) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     bson_t *child2 = bson_new();
@@ -108,8 +109,16 @@ clsReaches::clsReaches(MongoClient *conn, string &dbName, string collectionName)
         if (downStreamId <= 0 || downStreamId > m_reachNum) continue;
         m_reachUpStream[downStreamId].push_back(i);
     }
-
+    // Build layers of reaches according to layering method
     m_reachLayers.clear();
+    for (int i = 1; i <= m_reachNum; i++) {
+        int order = (int) (m_reachesMap.at(i)->Get(REACH_UPDOWN_ORDER));
+        if (mtd == DOWN_UP) order = (int) (m_reachesMap.at(i)->Get(REACH_DOWNUP_ORDER));
+        if (m_reachLayers.find(order) == m_reachLayers.end()) {
+            m_reachLayers.insert(make_pair(order, vector<int>()));
+        }
+        m_reachLayers.at(order).push_back(i);
+    }
 
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
@@ -152,20 +161,6 @@ void clsReaches::GetReachesSingleProperty(string key, float **data) {
         *data = iter->second;
     }
 }
-
-map<int, vector<int> > clsReaches::GetReachLayers(LayeringMethod mtd /* = UP_DOWN */) {
-    if (!m_reachLayers.empty()) { return m_reachLayers; }
-    for (int i = 1; i <= m_reachNum; i++) {
-        int order = (int) (m_reachesMap.at(i)->Get(REACH_UPDOWN_ORDER));
-        if (mtd == DOWN_UP) order = (int) (m_reachesMap.at(i)->Get(REACH_DOWNUP_ORDER));
-        if (m_reachLayers.find(order) == m_reachLayers.end()) {
-            vector<int> tmp;
-            tmp.push_back(i);
-            m_reachLayers.insert(make_pair(order, tmp));
-        } else { m_reachLayers[order].push_back(i); }
-    }
-    return m_reachLayers;
-};
 
 void clsReaches::Update(const map<string, ParamInfo *> &caliparams_map) {
     for (int i = 0; i < REACH_PARAM_NUM; i++) {

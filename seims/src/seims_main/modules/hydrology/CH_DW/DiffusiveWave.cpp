@@ -398,7 +398,7 @@ void DiffusiveWave::SetReaches(clsReaches *reaches) {
     if (nullptr == m_reachN) reaches->GetReachesSingleProperty(REACH_MANNING, &m_reachN);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 //! Get 1D data
