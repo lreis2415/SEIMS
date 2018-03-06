@@ -339,7 +339,7 @@ void SEDR_SBAGNOLD::SetReaches(clsReaches *reaches) {
     if (nullptr == m_chErod) reaches->GetReachesSingleProperty(REACH_EROD, &m_chErod);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 void SEDR_SBAGNOLD::SedChannelRouting(int i) {

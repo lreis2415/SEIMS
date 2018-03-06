@@ -5,8 +5,7 @@ using namespace MainBMP;
 BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
                                        const string& collection, const string& location) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location)
-{
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     }

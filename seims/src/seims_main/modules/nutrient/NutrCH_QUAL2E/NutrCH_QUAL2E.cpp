@@ -348,7 +348,7 @@ void NutrCH_QUAL2E::SetReaches(clsReaches *reaches) {
     if (nullptr == m_chTN) Initialize1DArray(m_nReaches + 1, m_chTN, 0.f);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers(m_layeringMethod);
+    m_reachLayers = reaches->GetReachLayers();
 }
 
 void NutrCH_QUAL2E::SetScenario(Scenario *sce) {

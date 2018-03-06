@@ -19,10 +19,10 @@ using namespace std;
  * \class Settings
  * \brief Base class for input or output Settings
  */
-class Settings {
+class Settings: public DefaultConstructor {
 public:
     //! Constructor
-    Settings() = default;
+    Settings() {};
 
     //! Constructor via 2D string vector
     explicit Settings(vector<vector<string> > &str2dvec) : m_Settings(str2dvec) {};
@@ -31,7 +31,7 @@ public:
     explicit Settings(vector<string> &str1dvec);
 
     //! Destructor
-    virtual ~Settings() = default;
+    //virtual ~Settings() = default;
 
     //! Set Settings vector directly
     virtual void SetSettingTagStrings(vector<vector<string> > &string2dvector) {

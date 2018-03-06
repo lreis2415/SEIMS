@@ -188,14 +188,25 @@ public:
     NotCopyable() {};
 };
 
+class DefaultConstructor {
+public:
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
+    DefaultConstructor() {};
+    ~DefaultConstructor() {};
+#else
+    DefaultConstructor() = default;
+    ~DefaultConstructor() = default;
+#endif /* less than VS2010 */
+};
+
 /*!
  * \class utilsTime
  * \brief Time related functions
  */
-class utilsTime {
+class utilsTime: public DefaultConstructor {
 public:
-    utilsTime() = default;   //< void constructor
-    ~utilsTime() = default;  //< void destructor
+    //utilsTime() = default;   //< void constructor
+    //~utilsTime() = default;  //< void destructor
     /*
      *\brief Precisely and cross-platform time counting function.
      */
@@ -282,10 +293,10 @@ public:
  * \class utilsString
  * \brief String related functions
  */
-class utilsString {
+class utilsString: public DefaultConstructor {
 public:
-    utilsString() = default;   //< void constructor
-    ~utilsString() = default;  //< void destructor
+    //utilsString() = default;   //< void constructor
+    //~utilsString() = default;  //< void destructor
     /*!
      * \brief Get Uppercase of given string
      * \param[in] string
@@ -370,10 +381,10 @@ public:
  * \class utilsArray
  * \brief Array related functions include vector and pointer array.
  */
-class utilsArray {
+class utilsArray: public DefaultConstructor {
 public:
-    utilsArray() = default;   //< void constructor
-    ~utilsArray() = default;  //< void destructor
+    //utilsArray() = default;   //< void constructor
+    //~utilsArray() = default;  //< void destructor
     /*!
      * \brief Initialize DT_Array1D data
      *
@@ -539,10 +550,10 @@ public:
  * \class utilsMath
  * \brief Basic mathematics related functions
  */
-class utilsMath {
+class utilsMath: public DefaultConstructor {
 public:
-    utilsMath() = default;   //< void constructor
-    ~utilsMath() = default;  //< void destructor
+    //utilsMath() = default;   //< void constructor
+    //~utilsMath() = default;  //< void destructor
     /*!
      * \brief Whether v1 is equal to v2
      * \param[in]  v1, v2 numeric value
@@ -623,10 +634,10 @@ public:
  * \class utilsFileIO
  * \brief File Input and output related functions
  */
-class utilsFileIO {
+class utilsFileIO: public DefaultConstructor {
 public:
-    utilsFileIO() = default;   //< void constructor
-    ~utilsFileIO() = default;  //< void destructor
+    //utilsFileIO() = default;   //< void constructor
+    //~utilsFileIO() = default;  //< void destructor
 #ifndef windows
 
     /*!
@@ -751,10 +762,10 @@ public:
  * \brief Utility functions excluding time, string, math, and file IO.
  * For example, omp thread setting.
  */
-class utils {
+class utils:public DefaultConstructor {
 public:
-    utils() = default;   //< void constructor
-    ~utils() = default;  //< void destructor
+    //utils() = default;   //< void constructor
+    //~utils() = default;  //< void destructor
     /*!
      * \brief Check if the IP address is valid.
      */
