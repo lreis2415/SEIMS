@@ -141,12 +141,12 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
 
     // classification according to the Layering method, i.e., up-down and down-up orders.
     LayeringMethod lyrmtd = input_args->m_layer_mtd;
-    vector<int> sourceBasins;
+    vector<int> sourceBasins;  // Index of source subbasins in current processor
     // used to find if the downstream subbasin of a finished subbsin is in the same process,
     // if so, the MPI send operation is not necessary.
     // the set container is more efficient for the 'find' operation
-    set<int> downStreamSet;  ///< not source subbasins
-    set<int> downStreamIdSet;
+    set<int> downStreamSet;  // index of not source subbasins
+    set<int> downStreamIdSet; // ID of not source subbasins
     bool includeChannel = false;
     if (modelList[0]->IncludeChannelProcesses()) {
         includeChannel = true;
@@ -235,7 +235,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
 #endif /* _DEBUG */
         }
 
-        // 1.2 the slope routing of downstream subbasins
+        // 1.2 the hillslope processes of downstream subbasins
         if (!includeChannel) { continue; }
         for (auto it = downStreamSet.begin(); it != downStreamSet.end(); it++) {
             ModelMain *pSubbasin = modelList[*it];
@@ -245,6 +245,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
         }
         tTask2 = MPI_Wtime();
         tSlope += tTask2 - tTask1;
+        // TODO, tSlospe currently also contains the time of channel processes of source subbasins
 
         tTask1 = MPI_Wtime();
         cout << "world_rank: " << world_rank << "  step 2" << endl;
