@@ -80,7 +80,7 @@ private:
     int m_nreach;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
     LayeringMethod m_layeringMethod;
-    /// outlet ID
+    /// outlet ID, also can be derived by m_reachLayers.rbegin()->second[0];
     int m_outletID;
     /// The point source discharge (m3/s), m_ptSub[id], id is the reach id, load from m_Scenario
     float *m_ptSub;
