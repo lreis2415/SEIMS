@@ -40,62 +40,29 @@ MUSK_CH::~MUSK_CH() {
 
 //! Check input data
 bool MUSK_CH::CheckInputData() {
-    if (m_dt < 0) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_dt has not been set.");
-    }
-    if (m_nreach < 0) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_nreach has not been set.");
-    }
-    if (FloatEqual(m_x, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_x has not been set.");
-    }
-    if (FloatEqual(m_co1, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_co1 has not been set.");
-    }
-    if (nullptr == m_Kchb) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: K_chb has not been set.");
-    }
-    if (nullptr == m_Kbank) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: K_bank has not been set.");
-    }
-    if (FloatEqual(m_Epch, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: Ep_ch has not been set.");
-    }
-    if (FloatEqual(m_Bnk0, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: Bnk0 has not been set.");
-    }
-    if (FloatEqual(m_Chs0_perc, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: Chs0 has not been set.");
-    }
-    if (FloatEqual(m_aBank, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: A_bnk has not been set.");
-    }
-    if (FloatEqual(m_bBank, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: B_bnk has not been set.");
-    }
-    if (FloatEqual(m_Vseep0, NODATA_VALUE)) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_Vseep0 has not been set.");
-    }
-    if (nullptr == m_subbasin) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: m_subbasin has not been set.");
-    }
-    if (nullptr == m_qsSub) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: Q_SBOF has not been set.");
-    }
-    if (nullptr == m_chWidth) {
-        throw ModelException(MID_MUSK_CH, "CheckInputData", "The parameter: RchParam has not been set.");
-    }
+    CHECK_POSITIVE(MID_MUSK_CH, m_dt);
+    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
+    CHECK_POSITIVE(MID_MUSK_CH, m_outletID);
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_x, NODATA_VALUE), "The parameter: m_x has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_co1, NODATA_VALUE), "The parameter: m_co1 has not been set.");
+    CHECK_POINTER(MID_MUSK_CH, m_Kchb);
+    CHECK_POINTER(MID_MUSK_CH, m_Kbank);
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_Epch, NODATA_VALUE), "The parameter: m_Epch has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_Bnk0, NODATA_VALUE), "The parameter: m_Bnk0 has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_Chs0_perc, NODATA_VALUE), "The parameter: m_Chs0_perc has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_aBank, NODATA_VALUE), "The parameter: m_aBank has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_bBank, NODATA_VALUE), "The parameter: m_bBank has not been set.");
+    CHECK_DATA(MID_MUSK_CH, FloatEqual(m_Vseep0, NODATA_VALUE), "The parameter: m_Vseep0 has not been set.");
+    CHECK_POINTER(MID_MUSK_CH, m_subbasin);
+    CHECK_POINTER(MID_MUSK_CH, m_qsSub);
+    CHECK_POINTER(MID_MUSK_CH, m_chWidth);
     return true;
 }
 
 //! Initial outputs
 void MUSK_CH::initialOutputs() {
-    if (m_nreach <= 0) {
-        throw ModelException(MID_MUSK_CH, "initialOutputs", "The reach number can not be less than zero.");
-    }
-    if (m_outletID < 0) {
-        m_outletID = m_reachLayers.rbegin()->second[0];
-    }
+    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
+    CHECK_POSITIVE(MID_MUSK_CH, m_outletID);
     //initial channel storage
     if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
@@ -228,6 +195,7 @@ void MUSK_CH::SetValue(const char *key, float value) {
     string sk(key);
 
     if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
+    else if (StringMatch(sk, VAR_OUTLETID)) { m_outletID = (int) value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
     else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
     else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }

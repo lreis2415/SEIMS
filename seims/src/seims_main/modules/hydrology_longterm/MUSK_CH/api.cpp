@@ -11,14 +11,14 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Liu Junzhi");
+    mdi.SetAuthor("Junzhi Liu; Liangjun Zhu");
     mdi.SetClass(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
     mdi.SetDescription(MDESC_MUSK_CH);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetHelpfile("MUSK_CH.chm");
     mdi.SetID(MID_MUSK_CH);
     mdi.SetName(MID_MUSK_CH);
-    mdi.SetVersion("0.2");
+    mdi.SetVersion("0.3");
     mdi.SetWebsite(SEIMS_SITE);
 
     mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
@@ -33,6 +33,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_MSK_CO1, UNIT_NON_DIM, DESC_MSK_CO1, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_GWRQ, UNIT_FLOW_CMS, DESC_GWRQ, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_OUTLETID, UNIT_NON_DIM, DESC_OUTLETID, Source_ParameterDB, DT_Single);
     // add reach information
     mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
     // add BMPs management operations, such as point source discharge
