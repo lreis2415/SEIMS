@@ -103,7 +103,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
         return false;
     }
     dumpCaliParametersInDB();
-    /// 7. Read Reaches data
+    /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     m_reaches = new clsReaches(m_mongoClient, m_modelName, DB_TAB_REACH, m_lyrMethod);
     m_reaches->Update(m_initParameters);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
