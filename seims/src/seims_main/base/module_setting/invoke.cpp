@@ -42,7 +42,7 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
         } else if (StringMatch(argv[i], "-lyr")) {
             i++;
             if (argc > i) {
-                layeringMethod = (LayeringMethod) atoi(argv[3]);
+                layeringMethod = (LayeringMethod) atoi(argv[i]);
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-host")) {
