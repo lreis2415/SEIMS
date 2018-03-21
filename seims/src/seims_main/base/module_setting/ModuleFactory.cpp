@@ -1,5 +1,20 @@
 #include "ModuleFactory.h"
 
+ModuleFactory::ModuleFactory(const string &model_name, vector<string> &moduleIDs, map<string, SEIMSModuleSetting *> &moduleSettings,
+    vector<DLLINSTANCE> &dllHandles, map<string, InstanceFunction> &instanceFuncs, map<string, MetadataFunction> &metadataFuncs,
+    map<string, vector<ParamInfo *> > &moduleParameters,
+    map<string, vector<ParamInfo *> > &moduleInputs,
+    map<string, vector<ParamInfo *> > &moduleOutputs,
+    map<string, vector<ParamInfo *> > &moduleInOutputs,
+    vector<ParamInfo *> &tfValueInputs) : m_dbName(model_name),
+    m_moduleIDs(moduleIDs), m_settings(moduleSettings), m_dllHandles(dllHandles),
+    m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs),
+    m_moduleParameters(moduleParameters),
+    m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs), m_moduleInOutputs(moduleInOutputs),
+    m_tfValueInputs(tfValueInputs) {
+    // nothing to do
+}
+
 ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_args) {
     /// Check the existence of configuration files
     string file_in = input_args->m_model_path + SEP + File_Input;
@@ -25,9 +40,11 @@ ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_a
     map<string, vector<ParamInfo *> > moduleParameters; // Parameters of modules from MongoDB
     map<string, vector<ParamInfo *> > moduleInputs; // Inputs of modules from other modules
     map<string, vector<ParamInfo *> > moduleOutputs; // Output of current module
+    map<string, vector<ParamInfo *> > moduleInOutputs; // InOutput of current module
+    vector<ParamInfo*> tfValueInputs; // transferred single value across subbasins
     try {
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
-                         metadataFuncs, moduleParameters, moduleInputs, moduleOutputs);
+                         metadataFuncs, moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
     }
     catch (ModelException &e) {
         cout << e.toString() << endl;
@@ -43,7 +60,7 @@ ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_a
     }
     return new ModuleFactory(input_args->m_model_name, moduleIDs, moduleSettings, dllHandles,
                              instanceFuncs, metadataFuncs,
-                             moduleParameters, moduleInputs, moduleOutputs);
+                             moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
 }
 
 ModuleFactory::~ModuleFactory() {
@@ -102,6 +119,24 @@ ModuleFactory::~ModuleFactory() {
         }
         m_moduleOutputs.erase(it++);
     }
+    StatusMessage("---release module in/outputs ...");
+    for (auto it = m_moduleInOutputs.begin(); it != m_moduleInOutputs.end();) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+            if (*it2 != nullptr) {
+                delete *it2;
+                *it2 = nullptr;
+            }
+            it2 = it->second.erase(it2);
+        }
+        m_moduleInOutputs.erase(it++);
+    }
+    StatusMessage("---release module transferred value inputs ...");
+    for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end(); ) {
+        if (*it != nullptr) {
+            *it = nullptr;
+        }
+        it = m_tfValueInputs.erase(it);
+    }
     StatusMessage("End to release ModuleFactory ...");
 }
 
@@ -112,7 +147,9 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
                                      map<string, MetadataFunction> &metadataFuncs,
                                      map<string, vector<ParamInfo *> > &moduleParameters,
                                      map<string, vector<ParamInfo *> > &moduleInputs,
-                                     map<string, vector<ParamInfo *> > &moduleOutputs) {
+                                     map<string, vector<ParamInfo *> > &moduleOutputs,
+                                     map<string, vector<ParamInfo *> > &moduleInOutputs,
+                                     vector<ParamInfo*> &tfValueInputs) {
     size_t n = moduleIDs.size();
     // read all the .dll or .so and create objects
     for (size_t i = 0; i < n; i++) {
@@ -146,25 +183,30 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
         TiXmlDocument doc;
         doc.Parse(current_metadata);
         ReadParameterSetting(id, doc, moduleSettings[id], moduleParameters);
-        ReadInputSetting(id, doc, moduleSettings[id], moduleInputs);
-        ReadOutputSetting(id, doc, moduleSettings[id], moduleOutputs);
+        ReadIOSetting(id, doc, moduleSettings[id], TagInputs, TagInputVariable, moduleInputs);
+        ReadIOSetting(id, doc, moduleSettings[id], TagOutputs, TagOutputVariable, moduleOutputs);
+        ReadIOSetting(id, doc, moduleSettings[id], TagInOutputs, TagInOutputVariable, moduleInOutputs);
     }
     map<string, vector<ParamInfo *> >(moduleParameters).swap(moduleParameters);
     map<string, vector<ParamInfo *> >(moduleInputs).swap(moduleInputs);
     map<string, vector<ParamInfo *> >(moduleOutputs).swap(moduleOutputs);
+    map<string, vector<ParamInfo *> >(moduleInOutputs).swap(moduleInOutputs);
     // set the connections among objects
-    for (size_t i = 0; i < n; i++) {
-        string id = moduleIDs[i];
-        //cout << id << endl;
-        vector<ParamInfo *> &inputs = moduleInputs[id];
-        for (size_t j = 0; j < inputs.size(); j++) {
-            ParamInfo *param = inputs[j];
-            if (StringMatch(param->Source, Source_Module) ||
-                StringMatch(param->Source, Source_Module_Optional)) {
-                param->DependPara = FindDependentParam(param, moduleIDs, moduleOutputs);
-            } else {
-                continue;
+    for (auto it = moduleIDs.begin(); it != moduleIDs.end(); it++) {
+        for (auto itInput = moduleInputs[*it].begin(); itInput != moduleInputs[*it].end(); itInput++) {
+            if (StringMatch((*itInput)->Source, Source_Module) ||
+                StringMatch((*itInput)->Source, Source_Module_Optional)) {
+                (*itInput)->DependPara = FindDependentParam((*itInput), moduleIDs, moduleOutputs);
+                if ((*itInput)->Transfer == TF_SingleValue && (*itInput)->DependPara != nullptr) {
+                    tfValueInputs.push_back((*itInput));
+                }
             }
+        }
+    }
+    for (auto it = moduleInOutputs.begin(); it != moduleInOutputs.end(); it++) {
+        if (it->second.empty()) continue;
+        for (auto itParam = it->second.begin(); itParam != it->second.end(); itParam++) {
+            tfValueInputs.push_back((*itParam));
         }
     }
     return true;
@@ -196,19 +238,16 @@ ParamInfo *ModuleFactory::FindDependentParam(ParamInfo *paramInfo, vector<string
                                              map<string, vector<ParamInfo *> > &moduleOutputs) {
     string paraName = GetComparableName(paramInfo->Name);
     dimensionTypes paraType = paramInfo->Dimension;
-
-    size_t n = moduleIDs.size();
-    for (size_t i = 0; i < n; i++) // module ID
-    {
-        string id = moduleIDs[i];
-        vector<ParamInfo *> &outputs = moduleOutputs[id];
-        for (size_t j = 0; j < outputs.size(); j++) // output ID
-        {
-            ParamInfo *param = outputs[j];
-            string compareName = GetComparableName(param->Name);
-            if (StringMatch(paraName, compareName) && param->Dimension == paraType) {
-                param->OutputToOthers = true;
-                return param;
+    transferTypes tfType = paramInfo->Transfer;
+    for (auto it = moduleIDs.begin(); it != moduleIDs.end(); it++) {
+        for (auto itOut = moduleOutputs[*it].begin(); itOut != moduleOutputs[*it].end(); itOut++) {
+            string compareName = GetComparableName((*itOut)->Name);
+            // normal
+            if (StringMatch(paraName, compareName) && (*itOut)->Dimension == paraType && 
+                ((tfType != TF_Whole && tfType == (*itOut)->Transfer) || // specified handling for mpi version
+                (tfType == TF_Whole && tfType == (*itOut)->Transfer))) {
+                (*itOut)->OutputToOthers = true;
+                return (*itOut);
             }
         }
     }
@@ -279,6 +318,13 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
     return typ;
 }
 
+transferTypes ModuleFactory::MatchTransferType(string tfType) {
+    transferTypes typ = TF_Whole;
+    if (StringMatch(tfType, TFType_Whole)) typ = TF_Whole;
+    if (StringMatch(tfType, TFType_Single)) typ = TF_SingleValue;
+    if (StringMatch(tfType, TFType_Array1D)) typ = TF_OneArray1D;
+    return typ;
+}
 void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
                                          map<string, vector<ParamInfo *> > &moduleParameters) {
     moduleParameters.insert(make_pair(moduleID, vector<ParamInfo *>()));
@@ -294,7 +340,7 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
             // set the module id
             param->ModuleID = moduleID;
             // get the parameter name
-            TiXmlElement *elItm = eleParam->FirstChildElement(TagParameterName.c_str());
+            TiXmlElement *elItm = eleParam->FirstChildElement(TagVariableName.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
@@ -350,28 +396,28 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                 }
             }
             // get the parameter description
-            elItm = eleParam->FirstChildElement(TagParameterDescription.c_str());
+            elItm = eleParam->FirstChildElement(TagVariableDescription.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Description = elItm->GetText();
                 }
             }
             // get the parameter units
-            elItm = eleParam->FirstChildElement(TagParameterUnits.c_str());
+            elItm = eleParam->FirstChildElement(TagVariableUnits.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Units = elItm->GetText();
                 }
             }
             // get the parameter source
-            elItm = eleParam->FirstChildElement(TagParameterSource.c_str());
+            elItm = eleParam->FirstChildElement(TagVariableSource.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Source = elItm->GetText();
                 }
             }
             // get the parameter dimension
-            elItm = eleParam->FirstChildElement(TagParameterDimension.c_str());
+            elItm = eleParam->FirstChildElement(TagVariableDimension.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Dimension = MatchType(string(elItm->GetText()));
@@ -411,151 +457,76 @@ bool ModuleFactory::IsConstantInputFromName(string &name) {
     }
     return false;
 }
-
-void ModuleFactory::ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
-                                     map<string, vector<ParamInfo *> > &moduleInputs) {
-    moduleInputs.insert(make_pair(moduleID, vector<ParamInfo *>()));
-    vector<ParamInfo *> &vecPara = moduleInputs.at(moduleID);
+void ModuleFactory::ReadIOSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting, const string header,
+                                  const string title, map<string, vector<ParamInfo *> > &variables) {
     TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
-    TiXmlElement *eleInputs = eleMetadata->FirstChildElement(TagInputs.c_str());
-    if (eleInputs != nullptr) {
-        TiXmlElement *elInput = eleInputs->FirstChildElement(TagInputVariable.c_str());
-        while (elInput != nullptr) {
-            ParamInfo *param = new ParamInfo();
-            // set the module id
-            param->ModuleID = moduleID;
-            param->ClimateType = setting->dataTypeString();
-            // get the input variable name
-            TiXmlElement *elItm = elInput->FirstChildElement(TagInputVariableName.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Name = GetUpper(string(elItm->GetText()));
-                    param->BasicName = param->Name;
-                    param->IsConstant = IsConstantInputFromName(param->Name);
-                    if (setting->dataTypeString().length() > 0) {
-                        param->Name = param->Name + "_" + setting->dataTypeString();
-                    }
-                }
+    TiXmlElement *eleVariables = eleMetadata->FirstChildElement(header.c_str());
+    if (nullptr == eleVariables) return;
+    variables.insert(make_pair(moduleID, vector<ParamInfo *>()));
+    vector<ParamInfo *> &vecPara = variables.at(moduleID);
+    TiXmlElement *eleVar = eleVariables->FirstChildElement(title.c_str());
+    while (eleVar != nullptr) {
+        ParamInfo *param = new ParamInfo();
+        // set the module id
+        param->ModuleID = moduleID;
+        param->ClimateType = setting->dataTypeString();
+        // get the input variable name
+        TiXmlElement *elItm = eleVar->FirstChildElement(TagVariableName.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Name = GetUpper(string(elItm->GetText()));
+            param->BasicName = param->Name;
+            param->IsConstant = IsConstantInputFromName(param->Name);
+            if (setting->dataTypeString().length() > 0) {
+                param->Name = param->Name + "_" + setting->dataTypeString();
             }
-            // get the input variable units(
-            elItm = elInput->FirstChildElement(TagInputVariableUnits.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Units = elItm->GetText();
-                }
-            }
-            // get the input variable description
-            elItm = elInput->FirstChildElement(TagInputVariableDescription.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Description = elItm->GetText();
-                }
-            }
-            // get the input variable source
-            elItm = elInput->FirstChildElement(TagInputVariableSource.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Source = elItm->GetText();
-                }
-            }
-            // get the input variable dimension
-            elItm = elInput->FirstChildElement(TagInputVariableDimension.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Dimension = MatchType(string(elItm->GetText()));
-                }
-            }
-            elItm = nullptr;
-            // input must have these values
-            if (param->Name.empty()) {
-                delete param;
-                throw ModelException("SEIMSModule", "ReadInputSetting",
-                                     "Some input variables have not name in metadata!");
-            }
-            if (param->Source.empty()) {
-                string name = param->Name;
-                delete param;
-                throw ModelException("SEIMSModule", "ReadInputSetting",
-                                     "Input variable " + name + " does not have source!");
-            }
-            if (param->Dimension == DT_Unknown) {
-                string name = param->Name;
-                delete param;
-                throw ModelException("SEIMSModule", "ReadInputSetting",
-                                     "Input variable " + name + " does not have dimension!");
-            }
-            vecPara.push_back(param);
-            // get the next input if it exists
-            elInput = elInput->NextSiblingElement();
         }
-    }
-}
-
-void ModuleFactory::ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
-                                      map<string, vector<ParamInfo *> > &moduleOutputs) {
-    moduleOutputs.insert(make_pair(moduleID, vector<ParamInfo *>()));
-    vector<ParamInfo *> &vecPara = moduleOutputs.at(moduleID);
-    TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
-    TiXmlElement *eleOutputs = eleMetadata->FirstChildElement(TagOutputs.c_str());
-    if (eleOutputs != nullptr) {
-        TiXmlElement *elOutput = eleOutputs->FirstChildElement(TagOutputVariable.c_str());
-        while (elOutput != nullptr) {
-            ParamInfo *param = new ParamInfo();
-            // set the module id
-            param->ModuleID = moduleID;
-            param->ClimateType = setting->dataTypeString();
-            // get the output variable name
-            TiXmlElement *elItm = elOutput->FirstChildElement(TagOutputVariableName.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Name = GetUpper(string(elItm->GetText()));
-                    param->BasicName = param->Name;
-                    if (!setting->dataTypeString().empty()) {
-                        param->Name = param->Name + "_" + setting->dataTypeString();
-                    }
-                }
-            }
-            // get the output variable units
-            elItm = elOutput->FirstChildElement(TagOutputVariableUnits.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Units = elItm->GetText();
-                }
-            }
-            // get the output variable description
-            elItm = elOutput->FirstChildElement(TagOutputVariableDescription.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Description = elItm->GetText();
-                }
-            }
-            param->Source = "";
-            // get the output variable dimension
-            elItm = elOutput->FirstChildElement(TagOutputVariableDimension.c_str());
-            if (elItm != nullptr) {
-                if (elItm->GetText() != nullptr) {
-                    param->Dimension = MatchType(string(elItm->GetText()));
-                }
-            }
-            elItm = nullptr;
-            // add to the list
+        // get the input variable units(
+        elItm = eleVar->FirstChildElement(TagVariableUnits.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Units = elItm->GetText();
+        }
+        // get the input variable description
+        elItm = eleVar->FirstChildElement(TagVariableDescription.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Description = elItm->GetText();
+        }
+        // get the input variable source
+        elItm = eleVar->FirstChildElement(TagVariableSource.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Source = elItm->GetText();
+        }
+        // get the input variable dimension
+        elItm = eleVar->FirstChildElement(TagVariableDimension.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Dimension = MatchType(string(elItm->GetText()));
+        }
+        // get the input variable transfer type
+        elItm = eleVar->FirstChildElement(TagVariableTransfer.c_str());
+        if (elItm != nullptr && elItm->GetText() != nullptr) {
+            param->Transfer = MatchTransferType(string(elItm->GetText()));
+        }
+        elItm = nullptr;
+        if (header.find("output", 0) != string::npos) {
             param->IsOutput = true;
-            // output variable must have these values
-            if (param->Name.empty()) {
-                delete param;
-                throw ModelException("SEIMSModule", "readOutputSetting",
-                                     "Some output variables have not name in metadata!");
-            }
-            if (param->Dimension == DT_Unknown) {
-                string name = param->Name;
-                delete param;
-                throw ModelException("SEIMSModule", "readInputSetting",
-                                     "Input variable " + name + " does not have dimension!");
-            }
-            vecPara.push_back(param);
-            // get the next input if it exists
-            elOutput = elOutput->NextSiblingElement();
         }
+        // input must have these values
+        if (param->Name.empty()) {
+            delete param;
+            throw ModelException("SEIMSModule", "ReadIOSetting", "Some variables have no name in metadata!");
+        }
+        if (param->Source.empty() && !param->IsOutput) {
+            string name = param->Name;
+            delete param;
+            throw ModelException("SEIMSModule", "ReadIOSetting", "Variable " + name + " does not have source!");
+        }
+        if (param->Dimension == DT_Unknown) {
+            string name = param->Name;
+            delete param;
+            throw ModelException("SEIMSModule", "ReadIOSetting", "Variable " + name + " does not have dimension!");
+        }
+        vecPara.push_back(param);
+        // get the next input if it exists
+        eleVar = eleVar->NextSiblingElement();
     }
 }
 
