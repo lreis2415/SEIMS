@@ -6,8 +6,6 @@
  * \author Junzhi Liu, Liangjun Zhu
  * \version 1.2
  * \date May 2017
- *
- * 
  */
 #ifndef SEIIMS_METADATA_INFO_CONST_H
 #define SEIIMS_METADATA_INFO_CONST_H
@@ -38,28 +36,21 @@ const string TagInfoEmail = "email";
 const string TagInfoWebsite = "website";
 const string TagInfoHelpfile = "helpfile";
 
-const string TagInputs = "inputs";
-const string TagInputVariable = "inputvariable";
-const string TagInputVariableName = "name";
-const string TagInputVariableUnits = "units";
-const string TagInputVariableDescription = "description";
-const string TagInputVariableSource = "source";
-const string TagInputVariableDimension = "dimension";
-
-const string TagOutputs = "outputs";
-const string TagOutputVariable = "outputvariable";
-const string TagOutputVariableName = "name";
-const string TagOutputVariableUnits = "units";
-const string TagOutputVariableDescription = "description";
-const string TagOutputVariableDimension = "dimension";
-
 const string TagParameters = "parameters";
 const string TagParameter = "parameter";
-const string TagParameterName = "name";
-const string TagParameterUnits = "units";
-const string TagParameterDescription = "description";
-const string TagParameterSource = "source";
-const string TagParameterDimension = "dimension";
+const string TagInputs = "inputs";
+const string TagInputVariable = "inputvariable";
+const string TagOutputs = "outputs";
+const string TagOutputVariable = "outputvariable";
+const string TagInOutputs = "inoutputs";
+const string TagInOutputVariable = "inoutputvariable";
+
+const string TagVariableName = "name";
+const string TagVariableUnits = "units";
+const string TagVariableDescription = "description";
+const string TagVariableSource = "source";
+const string TagVariableDimension = "dimension";
+const string TagVariableTransfer = "transfer";
 
 const string TagDependencies = "dependencies";
 
@@ -80,6 +71,17 @@ enum dimensionTypes {
     DT_Scenario         = 7,  ///< Scenario used by BMPs
     DT_Reach            = 8,  ///< Reach parameters
     DT_Subbasin         = 9   ///< Subbasin instances
+};
+
+/*!
+ * \enum transferTypes
+ * \ingroup util
+ * \brief Data be transferred across subbasins for MPI version
+ */
+enum transferTypes {
+    TF_Whole            = 0,  ///< Default
+    TF_SingleValue      = 1,  ///< A single value in the data (e.g., DT_Array1D)
+    TF_OneArray1D       = 2   ///< A piece of 1D array in the data (e.g., DT_Array2D)
 };
 
 #endif /* SEIIMS_METADATA_INFO_CONST_H */
