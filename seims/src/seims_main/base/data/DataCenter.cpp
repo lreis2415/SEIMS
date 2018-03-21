@@ -19,7 +19,7 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, int subBas
         m_outputScene += "-" + ValueToString(m_calibrationID);
     }
     m_outputPath = m_modelPath + SEP + m_outputScene + SEP;
-    CleanDirectory(m_outputPath);
+    if (m_subbasinID <= 1) CleanDirectory(m_outputPath); // avoid repeat operation in mpi version
 }
 
 DataCenter::~DataCenter() {
@@ -134,6 +134,7 @@ void DataCenter::setLapseData(string &remoteFilename, int &rows, int &cols, floa
 
 void DataCenter::dumpCaliParametersInDB() {
     if (m_initParameters.empty()) return;
+    if (m_subbasinID > 1) return; // only dump at omp version(subbasin ID is 0) or subbasin 1 of mpi version
     string fileName = m_outputPath + SEP + "param.cali";
     ofstream fs;
     fs.open(fileName.c_str(), ios::ate);
