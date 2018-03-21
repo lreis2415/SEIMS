@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: SSM_PE...")
-SET(SRC_LIST ${MODULE_SRC} SSM_PE.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(SSM_PE SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(SSM_PE util data bmps module_setting)

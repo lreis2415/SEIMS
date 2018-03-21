@@ -5,7 +5,9 @@
  * \revesed LiangJun Zhu
  * \note Change the module name from GWATER_RESERVOIR to GW_RSVR
  */
-#pragma once
+#ifndef SEIMS_MODULE_GW_RSVR_H
+#define SEIMS_MODULE_GW_RSVR_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -79,6 +81,10 @@ private:
     /// cell size
     float m_CellWidth;
 
+    /// subbasin ID, 0 for entire watershed
+    int m_subbasinID;
+
+    /// subbasin grid
     float *m_subbasin;
 
     /// percolation from soil layer (mm)
@@ -107,4 +113,4 @@ private:
     int *m_nCellsSubbasin;
     float m_initStorage;
 };
-
+#endif /* SEIMS_MODULE_GW_RSVR_H */

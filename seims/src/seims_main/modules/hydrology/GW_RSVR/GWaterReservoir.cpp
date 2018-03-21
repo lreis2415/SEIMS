@@ -6,7 +6,7 @@ using namespace std;
 GWaterReservoir::GWaterReservoir(void) : m_recharge(NULL), m_storage(NULL), m_recessionCoefficient(-1.f),
                                          m_recessionExponent(1.f), m_CellWidth(-1.f),
                                          m_deepCoefficient(0.f), m_nCells(-1), m_nReaches(-1), m_qg(NULL),
-                                         m_percSubbasin(NULL), m_subbasin(NULL),
+                                         m_percSubbasin(NULL), m_subbasin(NULL), m_subbasinID(-1),
                                          m_nCellsSubbasin(NULL), m_initStorage(0.f) {
 }
 
@@ -18,6 +18,7 @@ GWaterReservoir::~GWaterReservoir(void) {
 }
 
 bool GWaterReservoir::CheckInputData() {
+    CHECK_NONNEGATIVE(MID_GW_RSVR, m_subbasinID);
     if (this->m_date < 0) {
         throw ModelException(MID_GW_RSVR, "CheckInputData", "You have not set the time.");
         return false;
@@ -76,15 +77,13 @@ void GWaterReservoir::InitOutputs(void) {
         Initialize1DArray(m_nReaches + 1, m_storage, m_initStorage);
         Initialize1DArray(m_nReaches + 1, m_storage, m_percSubbasin);
 
-#ifdef MULTIPLY_REACHES
-        for (int i = 0; i < m_nCells; i++)
-        {
-            int subbasinId = (int) m_subbasin[i];
-            m_nCellsSubbasin[subbasinId] += 1;
+        if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
+            for (int i = 0; i < m_nCells; i++) {
+                m_nCellsSubbasin[(int)m_subbasin[i]] += 1;
+            }
+        } else {
+            m_nCellsSubbasin[1] = m_nCells;
         }
-#else
-        m_nCellsSubbasin[1] = m_nCells;
-#endif /* MULTIPLY_REACHES */
     }
 }
 
@@ -98,12 +97,11 @@ int GWaterReservoir::Execute(void) {
 
     // get percolation for each subbasin
     for (int i = 0; i < m_nCells; i++) {
-#ifdef MULTIPLY_REACHES
-        int subbasinId = (int) m_subbasin[i];
-#else
-        int subbasinId = 1;
-#endif /* MULTIPLY_REACHES */
-        m_percSubbasin[subbasinId] += m_recharge[i];
+        int subbasinIdx = 1; // In MPI version, only one subbasin was calculated
+        if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
+            subbasinIdx = (int)m_subbasin[i];
+        }
+        m_percSubbasin[subbasinIdx] += m_recharge[i];
     }
 
     //float sum = 0.f;
@@ -131,6 +129,8 @@ void GWaterReservoir::SetValue(const char *key, float value) {
         m_dt = value;
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
+    } else if (StringMatch(sk, Tag_SubbasinId)) {
+        m_subbasinID = value;
     } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
         SetOpenMPThread((int) value);
     } else if (StringMatch(sk, VAR_GW_KG)) {
@@ -160,16 +160,6 @@ void GWaterReservoir::Set1DData(const char *key, int n, float *data) {
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
 }
-
-//void GWaterReservoir::Set2DData(const char *key, int nrows, int ncols, float **data) {
-//    string sk(key);
-//    if (StringMatch(sk, Tag_RchParam)) {
-//        m_nReaches = ncols - 1;
-//    } else {
-//        throw ModelException(MID_GW_RSVR, "Set2DData", "Parameter " + sk
-//            + " does not exist. Please contact the module developer.");
-//    }
-//}
 
 void GWaterReservoir::SetReaches(clsReaches *reaches) {
     assert(NULL != reaches);

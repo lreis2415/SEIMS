@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling nutrient_subdir: NUTRSED...")
-SET(SRC_LIST ${MODULE_SRC} NutrientTransportSediment.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(NUTRSED SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(NUTRSED util data bmps module_setting)

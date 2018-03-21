@@ -21,13 +21,13 @@ using namespace std;
  * \class clsReach
  * \brief Class to store reach related parameters from REACHES table
  */
-class clsReach {
+class clsReach: public DefaultConstructor {
 public:
     //! Constructor
     explicit clsReach(const bson_t *&bsonTab);
 
     //! Destructor
-    ~clsReach() = default;
+    //~clsReach() = default;
 
     //! Get parameters by name
     float Get(const string &key);
@@ -70,8 +70,9 @@ public:
      * \param[in] conn MongoClient instance
      * \param[in] dbName Database name
      * \param[in] collectionName Reach collection name
+     * \param[in] mtd layering method, the default is UP_DOWN, \sa LayeringMethod 
      */
-    clsReaches(MongoClient *conn, string &dbName, string collectionName);
+    clsReaches(MongoClient *conn, string &dbName, string collectionName, LayeringMethod mtd = UP_DOWN);
 
     /// Destructor
     ~clsReaches();
@@ -98,7 +99,7 @@ public:
     map<int, int> GetDownStreamID() const { return m_reachDownStream; }
 
     /// Get map of reach layers
-    map<int, vector<int> > GetReachLayers(LayeringMethod mtd = UP_DOWN);
+    map<int, vector<int> >& GetReachLayers() { return m_reachLayers; };
 
     /*!
      * \brief Update reach/channel parameters according to calibration settings

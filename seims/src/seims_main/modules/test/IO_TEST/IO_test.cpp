@@ -38,9 +38,7 @@ void IO_TEST::SetReaches(clsReaches *reaches) {
 }
 
 bool IO_TEST::CheckInputSize(const char *key, int n) {
-    CHECK_POSITIVE("IO_TEST", n, "CheckInputSize: "
-        "Input data for " + string(key) + " is invalid."
-        " The size could not be less than zero.");
+    CHECK_POSITIVE("IO_TEST", n);
     if (m_nCells != n) {
         if (m_nCells <= 0) { m_nCells = n; }
         else {
@@ -53,11 +51,11 @@ bool IO_TEST::CheckInputSize(const char *key, int n) {
 
 bool IO_TEST::CheckInputData() {
     /// m_date is protected variable member in base class SimulationModule.
-    CHECK_POSITIVE("IO_TEST", m_date, "You have not set the time.");
-    CHECK_POSITIVE("IO_TEST", m_nCells, "The length of the input data MUST greater than zero.");
-    CHECK_POINTER("IO_TEST", m_raster1D, "The 1D raster input data can not be nullptr.");
-    CHECK_POINTER("IO_TEST", m_raster2D, "The 2D raster input data can not be nullptr.");
-    CHECK_POINTER("IO_TEST", m_nSoilLayrs, "The soil layers of raster data can not be nullptr.");
+    CHECK_POSITIVE("IO_TEST", m_date);
+    CHECK_POSITIVE("IO_TEST", m_nCells);
+    CHECK_POINTER("IO_TEST", m_raster1D);
+    CHECK_POINTER("IO_TEST", m_raster2D);
+    CHECK_POINTER("IO_TEST", m_nSoilLayrs);
     return true;
 }
 

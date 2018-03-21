@@ -3,8 +3,7 @@
 using namespace MainBMP;
 
 BMPArealStruct::BMPArealStruct(const bson_t *&bsonTable, bson_iter_t &iter):
-m_name(""), m_desc(""), m_refer(""), m_id(-1)
-{
+    m_name(""), m_desc(""), m_refer(""), m_id(-1) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_SUB)) {
         GetNumericFromBsonIterator(&iter, m_id);
     }
@@ -58,8 +57,7 @@ BMPArealStructFactory::BMPArealStructFactory(int scenarioId, int bmpId, int subS
                                              int bmpType, int bmpPriority, vector<string> &distribution,
                                              const string& collection, const string& location):
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location), 
-    m_mgtFieldsRs(nullptr)
-{
+    m_mgtFieldsRs(nullptr) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
     }
@@ -71,8 +69,7 @@ BMPArealStructFactory::BMPArealStructFactory(int scenarioId, int bmpId, int subS
     m_unitIDs = SplitStringForInt(location, '-');
 }
 
-BMPArealStructFactory::~BMPArealStructFactory()
-{
+BMPArealStructFactory::~BMPArealStructFactory() {
 	// m_mgtFieldsRs will be released in DataCenter. No need to be released here.
     for (auto it = m_bmpStructMap.begin(); it != m_bmpStructMap.end(); ) {
         if (nullptr != it->second) {
@@ -84,8 +81,7 @@ BMPArealStructFactory::~BMPArealStructFactory()
     m_bmpStructMap.clear();
 }
 
-void BMPArealStructFactory::loadBMP(MongoClient* conn, const string &bmpDBName)
-{
+void BMPArealStructFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     bson_t *b = bson_new();
     bson_t *child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
@@ -119,8 +115,7 @@ void BMPArealStructFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap)
     }
 }
 
-void BMPArealStructFactory::Dump(ostream *fs)
-{
+void BMPArealStructFactory::Dump(ostream *fs) {
 	if (nullptr == fs) return;
 	*fs << "Areal Structural BMP Management Factory: " << endl <<
 		"    SubScenario ID: " << m_subScenarioId << endl;

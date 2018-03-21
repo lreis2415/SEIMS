@@ -1,24 +1,18 @@
 #include "parallel.h"
-#include "utilities.h"
 
-//float deepGw = 0.f;
-
-int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, InputArgs *input_args) {
+int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet) {
     StatusMessage("Enter master process...");
     MPI_Request request;
     MPI_Status status;
-    int nSlaves = groupSet.size();  /// groupSet normally equals (0, 1, 2, ... , nSlaves-1)
+    int nSlaves = (int) groupSet.size();  /// groupSet normally equals (0, 1, 2, ... , nSlaves-1)
     // get the subbasin id list of different groups
     map<int, vector<int> > groupMap;
     for (auto it = groupSet.begin(); it != groupSet.end(); it++) {
         groupMap.insert(make_pair(*it, vector<int>()));
     }
-    int idOutlet = -1;
+    // get the subbasin ID list of different groups
     for (auto it = subbasinMap.begin(); it != subbasinMap.end(); it++) {
         groupMap[it->second->group].push_back(it->second->id);
-        if (nullptr == it->second->downStream) {
-            idOutlet = it->second->id;
-        }
     }
     // get the maximum length of the task assignment message
     size_t maxTaskLen = 0;
@@ -31,8 +25,9 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
     cout << "Group set: " << endl;
     for (auto it = groupMap.begin(); it != groupMap.end(); it++) {
         cout << "  group id: " << it->first << ", subbasin IDs: ";
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
             cout << *it2 << ", ";
+        }
         cout << endl;
     }
     cout << "  max task length: " << maxTaskLen << endl;
@@ -48,7 +43,6 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
 
     int *pSendUpNums = nullptr; // number of upstream subbasins
     int *pSendUpStream = nullptr; // ids of upstream subbasins
-
 
     // initialization
     Initialize1DArray(nSlaves, pSendGroupId, -1);
@@ -106,25 +100,43 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
     StatusMessage("Tasks are dispatched.");
 
     // loop to receive information from slave process
+    // first of all, receive the count of transferred values
+    int transferCount;
+    MPI_Irecv(&transferCount, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW, &request);
+    MPI_Wait(&request, &status);
+#ifdef _DEBUG
+    cout << "Master process received transfer values count: " << transferCount << endl;
+#endif
+    // initialize the transferred values for each subbasin struct
+    for (auto it = subbasinMap.begin(); it != subbasinMap.end(); it++) {
+        it->second->transfer_count = transferCount;
+        if (it->second->transfer_values != nullptr) { continue; }
+        Initialize1DArray(transferCount, it->second->transfer_values, NODATA_VALUE);
+    }
+
     bool finished = false;
-    float buf[MSG_LEN];
+    int buflen = MSG_LEN + transferCount;
+    float *buf = nullptr;
+    Initialize1DArray(buflen, buf, NODATA_VALUE);
     map<int, int> waitingMap;  // key: GroupIndex, value: Slave Rank ID
-    //ofstream fOutput(output_q_file.c_str());
+
     while (!finished) {
-        MPI_Irecv(&buf, MSG_LEN, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MCW, &request);
+        MPI_Irecv(buf, buflen, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MCW, &request);
         MPI_Wait(&request, &status);
-        StatusMessage(("master received info: msgCode: " + ValueToString(int(buf[0])) + 
-                       ", subbasin ID: " + ValueToString(int(buf[1]))).c_str());
         // deal with different types of message
         int msgCode = int(buf[0]);
-        if (msgCode == 1) {  // outlet flowout of subbasins, no need to reply
-            int id = int(buf[1]); // subbasin id
-            //cout << "master: " << id << endl;
-            subbasinMap[id]->qOutlet = buf[2];
-            subbasinMap[id]->calculated = true;
-            time_t t = int(buf[3]);
+        if (msgCode == 1) {  // transferred values of subbasins, no need to reply
 #ifdef _DEBUG
-            cout << "subbasins >> in: " << id << "  all: ";
+            cout << "master received info: msgCode: 1, subbasin ID: " << int(buf[1]) << endl;
+#endif
+            int id = int(buf[1]); // subbasin id
+            time_t t = int(buf[2]);
+            for (int vi = 0; vi < transferCount; vi++) {
+                subbasinMap[id]->transfer_values[vi] = buf[vi + MSG_LEN];
+            }
+            subbasinMap[id]->calculated = true;
+#ifdef _DEBUG
+            cout << "received data of subbasin ID: " << id << ", all: ";
             for (auto it = subbasinMap.begin(); it != subbasinMap.end(); it++) {
                 if (it->second->calculated) cout << it->first << " ";
             }
@@ -139,23 +151,25 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
                 for (size_t i = 0; i < subs.size(); i++) {
                     if (subbasinMap[id]->downStream->id != subs[i]) continue;
                     // send message to the slave process
-                    int msgLen = 2;
+                    int msgLen = transferCount + 1;
                     MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MCW, &request);
-                    float pData[2];
-                    pData[0] = (float) id;
-                    pData[1] = subbasinMap[id]->qOutlet;
                     MPI_Wait(&request, &status);
-                    MPI_Isend(pData, msgLen, MPI_FLOAT, sRank, WORK_TAG, MCW, &request);
+                    float *pData = nullptr;
+                    Initialize1DArray(transferCount + 1, pData, NODATA_VALUE);
+                    pData[0] = (float) id;
+                    for (int vi = 0; vi < transferCount; vi++) {
+                        pData[vi + 1] = subbasinMap[id]->transfer_values[vi];
+                    }
+                    MPI_Isend(pData, transferCount + 1, MPI_FLOAT, sRank, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
 #ifdef _DEBUG
                     cout << "active >> " << pData[0] << "->" << sRank << endl;
 #endif
                     found = true;
-
                     // delete the current group from waiting group
                     waitingMap.erase(it);
                     subbasinMap[id]->calculated = false;  // for next timestep
-
+                    Release1DArray(pData);
                     break;
                 }
                 if (found) {
@@ -164,7 +178,11 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
             }
         } else if (msgCode == 2) {
             // a slave process is asking for information of the newly calculated upstream subbasins
-            map<int, float> transMap; // used to contain flowout of the newly calculated basins
+#ifdef _DEBUG
+            cout << "master received info: msgCode: 2, group: " << int(buf[1]) << ", from rank: " << int(buf[2])
+                 << endl;
+#endif
+            map<int, float *> transMap; // used to contain flowout of the newly calculated basins
             int gid = int(buf[1]);
             int sRank = int(buf[2]);
             vector<int> &subs = groupMap[gid];
@@ -177,24 +195,27 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
                     vector<SubbasinStruct *> &ups = subbasinMap[id]->upStreams;
                     for (size_t j = 0; j < ups.size(); j++) {
                         if (ups[j]->calculated) {
-                            transMap[ups[j]->id] = ups[j]->qOutlet;
-                            ups[j]->calculated = false;
+                            //transMap[ups[j]->id] = ups[j]->qOutlet;
+                            transMap[ups[j]->id] = ups[j]->transfer_values;
+                            ups[j]->calculated = false; // for next timestep
                         }
                     }
                 }
             }
-
             if (transMap.empty()) {
                 waitingMap[gid] = sRank;
             } else {
                 // tell the slave process the message length containing new information
-                int msgLen = transMap.size() * 2;
+                int msgLen = transMap.size() * (transferCount + 1);
                 MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MCW, &request);
-                float *pData = new float[msgLen];
+                float *pData = nullptr;
+                Initialize1DArray(msgLen, pData, NODATA_VALUE);
                 int counter = 0;
                 for (auto it = transMap.begin(); it != transMap.end(); it++) {
-                    pData[2 * counter] = (float) it->first;
-                    pData[2 * counter + 1] = it->second;
+                    pData[(transferCount + 1) * counter] = (float) it->first;
+                    for (int vi = 0; vi < transferCount; vi++) {
+                        pData[(transferCount + 1) * counter + vi + 1] = it->second[vi];
+                    }
                     counter++;
                 }
                 MPI_Wait(&request, &status);
@@ -203,8 +224,9 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
 
 #ifdef _DEBUG
                 cout << "positive >> ";
-                for(int i = 0; i < msgLen; i += 2)
-                    cout << pData[i] << "->" << sRank << " ";
+                for (int i = 0; i < msgLen; i += (transferCount + 1)) {
+                    cout << "subbasinID: " << pData[i] << " -> world_rand: " << sRank << " ";
+                }
                 cout << endl;
 #endif
                 delete[] pData;
@@ -212,7 +234,9 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
         } else if (msgCode == 0) {  // reset for new timestep
             for (auto it = subbasinMap.begin(); it != subbasinMap.end(); it++) {
                 it->second->calculated = false;
-                it->second->qOutlet = 0.f;
+                for (int vi = 0; vi < it->second->transfer_count; vi++) {
+                    it->second->transfer_values[vi] = NODATA_VALUE;
+                }
             }
             StatusMessage("master: running to next timestep...");
         } else if (msgCode == 9) {
@@ -220,16 +244,13 @@ int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, I
             StatusMessage("Exit from the master process.");
         }
     }
-
+    Release1DArray(buf);
     Release1DArray(pSendGroupId);
-
     Release1DArray(pSendTask);
     Release1DArray(pSendUpdownOrd);
     Release1DArray(pSendDownupOrd);
     Release1DArray(pSendDownStream);
-
     Release1DArray(pSendUpNums);
     Release1DArray(pSendUpStream);
-
     return 0;
 }
