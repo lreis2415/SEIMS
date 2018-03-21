@@ -78,6 +78,12 @@ public:
                              "Set function of parameter " + string(key) + " is not implemented.");
     };
 
+    //! Set single value to array1D by index, used in MPI version for passing values of subbasins
+    virtual void SetValueByIndex(const char *key, int index, float data) {
+        throw ModelException("SimulationModule", "SetValueByIndex",
+            "Set function of parameter " + string(key) + " is not implemented.");
+    };
+
     //! Set 1D data, by default, DT_Raster1D
     virtual void Set1DData(const char *key, int n, float *data) {
         throw ModelException("SimulationModule", "Set1DData",
@@ -179,8 +185,8 @@ protected:
  * BE REMEMBER OF SEMICOLON!
  */
 //! CHECK_DATA is used for the unforeseen situation
-#define CHECK_DATA(moduleID, expression, param, desc) if ((expression)) \
-                   throw ModelException(moduleID, "CheckInputData", string(#param) + string(" has not been set: ") + string(desc))
+#define CHECK_DATA(moduleID, expression, desc) if ((expression)) \
+                   throw ModelException(moduleID, "CheckInputData", string(desc))
 //! CHECK_POINTER is used for 1D or 2D raster and other pointer of data
 #define CHECK_POINTER(moduleID, param) if (nullptr == (param)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be NULL!"))

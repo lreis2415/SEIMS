@@ -11,8 +11,12 @@
  *               3. Add m_chBtmWidth as variable intermediate parameter
  *               4. Add m_chSideSlope (default is 2) as input parameter from MongoDB, which is the ratio of run to rise
  *               5. Add several variables to store values in previous time step, which will be use in QUAL2E etc.
+ * \revision Liangjun Zhu, 16-Mar-2018
+ * \description: 1. Use AddInOutput() to solve the passing data across subbasins for MPI version.
+ *               2. Code style review.
  */
-#pragma once
+#ifndef SEIMS_MODULE_MUSK_CH_H
+#define SEIMS_MODULE_MUSK_CH_H
 #include "SimulationModule.h"
 #include "Scenario.h"
 
@@ -51,13 +55,13 @@ public:
 
     virtual void SetValue(const char *key, float data);
 
+    virtual void SetValueByIndex(const char *key, int index, float data);
+
     virtual void GetValue(const char *key, float *value);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
-
-    //virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
@@ -66,8 +70,6 @@ public:
     virtual void SetReaches(clsReaches *reaches);
 
     bool CheckInputSize(const char *key, int n);
-
-    // bool CheckInputSizeChannel(const char *key, int n);
 
     bool CheckInputData();
 
@@ -78,6 +80,8 @@ private:
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
     LayeringMethod m_layeringMethod;
     /// outlet ID, also can be derived by m_reachLayers.rbegin()->second[0];
@@ -163,8 +167,6 @@ private:
     // for muskingum
     float m_x;
     float m_co1;
-    // IS THIS USEFUL? BY LJ
-    float m_qUpReach;
     /// scenario data
 
     /* point source operations
@@ -202,3 +204,4 @@ private:
     void updateWaterWidthDepth(int i);
 };
 
+#endif /* SEIMS_MODULE_MUSK_CH_H */

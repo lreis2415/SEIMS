@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: UNSAT_FLOW...")
-SET(SRC_LIST ${MODULE_SRC} UnsaturatedFlow.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(UNSAT_FLOW SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(UNSAT_FLOW util data bmps module_setting)
