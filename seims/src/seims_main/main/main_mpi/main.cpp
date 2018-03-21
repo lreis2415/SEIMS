@@ -16,7 +16,6 @@ int main(int argc, const char **argv) {
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
     /// Register GDAL
     GDALAllRegister();
-    OGRRegisterAll();
     /// Initialize of MPI environment
     int numprocs;
     int world_rank;
@@ -69,12 +68,10 @@ int main(int argc, const char **argv) {
                     MPI_Abort(MCW, 1);
                 }
                 // Run management process on master rank
-                MasterProcess(subbasinMap, groupSet, input_args);
+                MasterProcess(subbasinMap, groupSet);
                 // Release memory
                 for (auto it = subbasinMap.begin(); it != subbasinMap.end();) {
-                    if (it->second != nullptr) {
-                        delete it->second;
-                    }
+                    delete it->second;
                     subbasinMap.erase(it++);
                 }
             } else { // Run computing process on slave ranks
@@ -84,9 +81,9 @@ int main(int argc, const char **argv) {
             // free MPI sources
             MPI_Group_free(&MPI_GROUP_WORLD);
             MPI_Group_free(&slaveGroup);
-            //VS2013: Fatal error in MPI_Comm_free: Invalid communicator, error stack.
-            //I think the communicator should be released. by lj.
-            //MPI_Comm_free(&slaveComm);
+            // VS2013: Fatal error in MPI_Comm_free: Invalid communicator, error stack.
+            // I still think the communicator should be released. by lj.
+            // MPI_Comm_free(&slaveComm);
         }
         catch (ModelException &e) {
             cout << e.what() << endl;
