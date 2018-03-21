@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling nutrient_subdir: NUTR_TF...")
-SET(SRC_LIST ${MODULE_SRC} Nutrient_Transformation.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(NUTR_TF SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(NUTR_TF util data bmps module_setting)

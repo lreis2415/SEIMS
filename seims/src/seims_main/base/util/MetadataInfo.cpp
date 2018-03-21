@@ -91,16 +91,23 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
             break;
         case DT_Subbasin:strTmp = Type_Subbasin;
             break;
-            //case DT_SiteInformation:
-            //    strTmp = Type_SiteInformation;
-            //    break;
-            //case DT_LapseRateArray:
-            //    strTmp = Type_LapseRateArray;
-            //    break;
-            //case DT_LookupTable:
-            //    strTmp = Type_LookupTable;
-            //    break;
         default:break;
+    }
+
+    FullTag(tag, indent, strTmp, sb);
+}
+
+void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tfType, string *sb) {
+    string strTmp = "";
+
+    switch (tfType) {
+    case TF_Whole:strTmp = TFType_Whole;
+        break;
+    case TF_SingleValue:strTmp = TFType_Single;
+        break;
+    case TF_OneArray1D:strTmp = TFType_Array1D;
+        break;
+    default:break;
     }
 
     FullTag(tag, indent, strTmp, sb);
@@ -112,12 +119,12 @@ void MetadataInfo::WriteInputs(int indent, string *sb) {
         for (size_t idx = 0; idx < m_vInputs.size(); idx++) {
             OpenTag(TagInputVariable, "", indent + 1, sb);
             InputVariable it = m_vInputs[idx];
-            FullTag(TagInputVariableName, indent + 2, it.Name, sb);
-            FullTag(TagInputVariableUnits, indent + 2, it.Units, sb);
-            FullTag(TagInputVariableDescription, indent + 2, it.Description, sb);
-            FullTag(TagInputVariableSource, indent + 2, it.Source, sb);
-            DimensionTag(TagInputVariableDimension, indent + 2, it.Dimension, sb);
-
+            FullTag(TagVariableName, indent + 2, it.Name, sb);
+            FullTag(TagVariableUnits, indent + 2, it.Units, sb);
+            FullTag(TagVariableDescription, indent + 2, it.Description, sb);
+            FullTag(TagVariableSource, indent + 2, it.Source, sb);
+            DimensionTag(TagVariableDimension, indent + 2, it.Dimension, sb);
+            TransferTypeTag(TagVariableTransfer, indent + 2, it.tfType, sb);
             CloseTag(TagInputVariable, indent + 1, sb);
         }
         CloseTag(TagInputs, indent, sb);
@@ -131,13 +138,31 @@ void MetadataInfo::WriteOutputs(int indent, string *sb) {
         for (size_t idx = 0; idx < m_vOutputs.size(); idx++) {
             OpenTag(TagOutputVariable, "", indent + 1, sb);
             OutputVariable it = m_vOutputs[idx];
-            FullTag(TagOutputVariableName, indent + 2, it.Name, sb);
-            FullTag(TagOutputVariableUnits, indent + 2, it.Units, sb);
-            FullTag(TagOutputVariableDescription, indent + 2, it.Description, sb);
-            DimensionTag(TagOutputVariableDimension, indent + 2, it.Dimension, sb);
+            FullTag(TagVariableName, indent + 2, it.Name, sb);
+            FullTag(TagVariableUnits, indent + 2, it.Units, sb);
+            FullTag(TagVariableDescription, indent + 2, it.Description, sb);
+            DimensionTag(TagVariableDimension, indent + 2, it.Dimension, sb);
+            TransferTypeTag(TagVariableTransfer, indent + 2, it.tfType, sb);
             CloseTag(TagOutputVariable, indent + 1, sb);
         }
         CloseTag(TagOutputs, indent, sb);
+    }
+}
+
+void MetadataInfo::WriteInOutputs(int indent, string *sb) {
+    if (!m_vInOutputs.empty()) {
+        OpenTag(TagInOutputs, "", indent, sb);
+        for (size_t idx = 0; idx < m_vInOutputs.size(); idx++) {
+            OpenTag(TagInOutputVariable, "", indent + 1, sb);
+            InOutputVariable it = m_vInOutputs[idx];
+            FullTag(TagVariableName, indent + 2, it.Name, sb);
+            FullTag(TagVariableUnits, indent + 2, it.Units, sb);
+            FullTag(TagVariableDescription, indent + 2, it.Description, sb);
+            DimensionTag(TagVariableDimension, indent + 2, it.Dimension, sb);
+            TransferTypeTag(TagVariableTransfer, indent + 2, it.tfType, sb);
+            CloseTag(TagInOutputVariable, indent + 1, sb);
+        }
+        CloseTag(TagInOutputs, indent, sb);
     }
 }
 
@@ -148,11 +173,11 @@ void MetadataInfo::WriteParameters(int indent, string *sb) {
             OpenTag(TagParameter, "", indent + 1, sb);
 
             Parameter it = m_vParameters[idx];
-            FullTag(TagParameterName, indent + 2, it.Name, sb);
-            FullTag(TagParameterUnits, indent + 2, it.Units, sb);
-            FullTag(TagParameterDescription, indent + 2, it.Description, sb);
-            FullTag(TagParameterSource, indent + 2, it.Source, sb);
-            DimensionTag(TagParameterDimension, indent + 2, it.Dimension, sb);
+            FullTag(TagVariableName, indent + 2, it.Name, sb);
+            FullTag(TagVariableUnits, indent + 2, it.Units, sb);
+            FullTag(TagVariableDescription, indent + 2, it.Description, sb);
+            FullTag(TagVariableSource, indent + 2, it.Source, sb);
+            DimensionTag(TagVariableDimension, indent + 2, it.Dimension, sb);
 
             CloseTag(TagParameter, indent + 1, sb);
         }
@@ -181,10 +206,6 @@ void MetadataInfo::WriteXMLHeader(string *sb) {
 }
 
 // public methods
-MetadataInfo::MetadataInfo() {
-    m_strSchemaVersion = "0.4";
-}
-
 MetadataInfo::~MetadataInfo() {
     m_vInputs.clear();
     m_vOutputs.clear();
@@ -192,229 +213,53 @@ MetadataInfo::~MetadataInfo() {
     m_vDependencies.clear();
 }
 
-string MetadataInfo::SchemaVersion() {
-    return m_strSchemaVersion;
-}
-
 void MetadataInfo::SetClass(const char* name, const char* description) {
     m_oClass.Name = name;
     m_oClass.Description = description;
 }
 
-string MetadataInfo::GetClassName() {
-    return m_oClass.Name;
-}
-
-string MetadataInfo::GetClassDescription() {
-    return m_oClass.Description;
-}
-
-void MetadataInfo::SetID(const char* ID) {
-    m_Info.Id = ID;
-}
-
-string MetadataInfo::GetID() {
-    return m_Info.Id;
-}
-
-void MetadataInfo::SetName(const char* name) {
-    m_Info.Name = name;
-}
-
-string MetadataInfo::GetName() {
-    return m_Info.Name;
-}
-
-void MetadataInfo::SetDescription(const char* description) {
-    m_Info.Description = description;
-}
-
-string MetadataInfo::GetDescription() {
-    return m_Info.Description;
-}
-
-void MetadataInfo::SetVersion(const char* version) {
-    m_Info.Version = version;
-}
-
-string MetadataInfo::GetVersion() {
-    return m_Info.Version;
-}
-
-void MetadataInfo::SetAuthor(const char* author) {
-    m_Info.Author = author;
-}
-
-string MetadataInfo::GetAuthor() {
-    return m_Info.Author;
-}
-
-void MetadataInfo::SetEmail(const char* email) {
-    m_Info.EMail = email;
-}
-
-string MetadataInfo::GetEmail() {
-    return m_Info.EMail;
-}
-
-void MetadataInfo::SetWebsite(const char* site) {
-    m_Info.Website = site;
-}
-
-string MetadataInfo::GetWebsite() {
-    return m_Info.Website;
-}
-
-void MetadataInfo::SetHelpfile(const char* file) {
-    m_Info.Helpfile = file;
-}
-
-string MetadataInfo::GetHelpfile() {
-    return m_Info.Helpfile;
-}
-
-int MetadataInfo::GetInputCount() {
-    return (int) m_vInputs.size();
-}
-
-// int MetadataInfo::AddInput(string name, string units, string desc, string source, dimensionTypes dimType) {
-int MetadataInfo::AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType) {
+int MetadataInfo::AddInput(const char* name, const char* units, const char* desc, const char* source,
+                           dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
     InputVariable param;
     param.Name = name;
     param.Units = units;
     param.Description = desc;
     param.Source = source;
     param.Dimension = dimType;
+    param.tfType = tfType;
 
     m_vInputs.push_back(param);
     return (int) m_vInputs.size();
 }
 
-string MetadataInfo::GetInputName(int index) {
-    string res;
-    InputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vInputs.size()) {
-        it = m_vInputs[index];
-        res = it.Name;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetInputUnits(int index) {
-    string res;
-    InputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vInputs.size()) {
-        it = m_vInputs[index];
-        res = it.Units;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetInputDescription(int index) {
-    string res;
-    InputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vInputs.size()) {
-        it = m_vInputs[index];
-        res = it.Description;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetInputSource(int index) {
-    string res;
-    InputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vInputs.size()) {
-        it = m_vInputs[index];
-        res = it.Source;
-    }
-
-    return res;
-}
-
-InputVariable MetadataInfo::GetInput(int index) {
-    InputVariable res;
-    if (index >= 0 && index < (int) m_vInputs.size()) {
-        res = m_vInputs[index];
-    }
-    return res;
-}
-
-int MetadataInfo::GetOutputCount() {
-    return (int) m_vOutputs.size();
-}
-
-// int MetadataInfo::AddOutput(string& name, string& units, string& desc, dimensionTypes dimType) {
-int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType) {
+int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc,
+                            dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
     OutputVariable param;
     param.Name = name;
     param.Units = units;
     param.Description = desc;
     param.Dimension = dimType;
+    param.tfType = tfType;
 
     m_vOutputs.push_back(param);
     return (int) m_vOutputs.size();
 }
 
-string MetadataInfo::GetOutputName(int index) {
-    string res;
-    OutputVariable it;
+int MetadataInfo::AddInOutput(const char* name, const char* units, const char* desc,
+                              dimensionTypes dimType, transferTypes tfType /* = TF_Whole */) {
+    InOutputVariable param;
+    param.Name = name;
+    param.Units = units;
+    param.Description = desc;
+    param.Source = Source_Module;
+    param.Dimension = dimType;
+    param.tfType = tfType;
 
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vOutputs.size()) {
-        it = m_vOutputs[index];
-        res = it.Name;
-    }
+    m_vInOutputs.push_back(param);
 
-    return res;
-}
+    AddOutput(name, units, desc, dimType);
 
-string MetadataInfo::GetOutputUnits(int index) {
-    string res;
-    OutputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vOutputs.size()) {
-        it = m_vOutputs[index];
-        res = it.Units;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetOutputDescription(int index) {
-    string res;
-    OutputVariable it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vOutputs.size()) {
-        it = m_vOutputs[index];
-        res = it.Description;
-    }
-
-    return res;
-}
-
-OutputVariable MetadataInfo::GetOutput(int index) {
-    OutputVariable res;
-    if (index >= 0 && index < (int) m_vOutputs.size()) {
-        res = m_vOutputs[index];
-    }
-    return res;
-}
-
-int MetadataInfo::GetParameterCount() {
-    return (int) m_vParameters.size();
+    return m_vInOutputs.size();
 }
 
 int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType) {
@@ -429,72 +274,6 @@ int MetadataInfo::AddParameter(const char* name, const char* units, const char* 
     return (int) m_vParameters.size();
 }
 
-string MetadataInfo::GetParameterName(int index) {
-    string res;
-    Parameter it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vParameters.size()) {
-        it = m_vParameters[index];
-        res = it.Name;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetParameterUnits(int index) {
-    string res;
-    Parameter it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vParameters.size()) {
-        it = m_vParameters[index];
-        res = it.Units;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetParameterDescription(int index) {
-    string res;
-    Parameter it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vParameters.size()) {
-        it = m_vParameters[index];
-        res = it.Description;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetParameterSource(int index) {
-    string res;
-    Parameter it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vParameters.size()) {
-        it = m_vParameters[index];
-        res = it.Source;
-    }
-
-    return res;
-}
-
-Parameter MetadataInfo::GetParameter(int index) {
-    Parameter res;
-
-    if (index >= 0 && index < (int) m_vParameters.size()) {
-        res = m_vParameters[index];
-    }
-
-    return res;
-}
-
-int MetadataInfo::GetDependencyCount() {
-    return (int) m_vDependencies.size();
-}
-
 int MetadataInfo::AddDependency(const char* name, const char* description) {
     ModelClass cl;
     cl.Name = name;
@@ -504,42 +283,6 @@ int MetadataInfo::AddDependency(const char* name, const char* description) {
     return (int) m_vDependencies.size();
 }
 
-string MetadataInfo::GetDependencyName(int index) {
-    string res;
-    ModelClass it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vDependencies.size()) {
-        it = m_vDependencies[index];
-        res = it.Name;
-    }
-
-    return res;
-}
-
-string MetadataInfo::GetDependencyDescription(int index) {
-    string res;
-    ModelClass it;
-
-    res = "";        // default return value is empty string
-    if (index >= 0 && index < (int) m_vDependencies.size()) {
-        it = m_vDependencies[index];
-        res = it.Description;
-    }
-
-    return res;
-}
-
-ModelClass MetadataInfo::GetDependency(int index) {
-    ModelClass res;
-
-    if (index >= 0 && index < (int) m_vDependencies.size()) {
-        res = m_vDependencies[index];
-    }
-
-    return res;
-}
-
 string MetadataInfo::GetXMLDocument() {
     string sb;
 
@@ -547,9 +290,10 @@ string MetadataInfo::GetXMLDocument() {
     OpenTag(TagMetadata, TagMetadataAttributes, 0, &sb);
     WriteClass(1, &sb);
     WriteInformation(1, &sb);
-    WriteInputs(1, &sb);
     WriteParameters(1, &sb);
+    WriteInputs(1, &sb);
     WriteOutputs(1, &sb);
+    WriteInOutputs(1, &sb);
     WriteDependencies(1, &sb);
     CloseTag(TagMetadata, 0, &sb);
 

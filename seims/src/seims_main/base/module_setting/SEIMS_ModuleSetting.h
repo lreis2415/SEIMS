@@ -17,11 +17,11 @@ using namespace std;
  * \class SEIMSModuleSetting
  * \brief 
  */
-class SEIMSModuleSetting: private NotCopyable {
+class SEIMSModuleSetting: public DefaultConstructor, private NotCopyable {
 public:
     SEIMSModuleSetting(string &moduleId, string &setting);
 
-    ~SEIMSModuleSetting() = default;
+    //~SEIMSModuleSetting() = default;
 
     ///< data type
     float dataType();

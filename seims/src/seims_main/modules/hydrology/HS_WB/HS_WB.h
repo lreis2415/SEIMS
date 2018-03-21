@@ -3,7 +3,9 @@
  * \author Junzhi Liu
  * \date May 2011
  */
-#pragma once
+#ifndef SEIMS_MODULE_HS_WB_H
+#define SEIMS_MODULE_HS_WB_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -42,6 +44,7 @@ private:
 
     /// for water balance calculation
     /// inputs
+    int m_subbasinID;
     float *m_subbasin;
     float *m_pNet;
     float *m_rootdepth;
@@ -111,3 +114,4 @@ private:
     bool CheckInputSize(const char *, int);
 };
 
+#endif /* SEIMS_MODULE_HS_WB_H */

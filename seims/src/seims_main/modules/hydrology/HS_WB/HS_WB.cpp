@@ -2,7 +2,7 @@
 #include "HS_WB.h"
 
 HS_WB::HS_WB(void) : m_dtHs(-1.f), m_dtCh(-1.f), m_nReaches(-1), m_nCells(-1), m_qs(NULL), m_qi(NULL), m_subbasin(NULL),
-                     m_streamLink(NULL),
+                     m_streamLink(NULL), m_subbasinID(-1),
                      m_qsInput(NULL), m_qiInput(NULL), m_qiTemp(NULL), m_qsTemp(NULL) {
 }
 
@@ -36,17 +36,15 @@ int HS_WB::Execute() {
         m_qiTemp[i] = 0.f;
     }
 
-    int reachId;
+    int reachIdx = 1;
     for (int i = 0; i < m_nCells; i++) {
+        if (m_subbasinID == 0) { // deprecate the previously used macro MULTIPLY_REACHES
+            reachIdx = int(m_streamLink[i]);
+        }
         if (m_streamLink[i] > 0) {
-#ifdef MULTIPLY_REACHES
-            reachId = int(m_streamLink[i]);
-#else
-            reachId = 1;
-#endif /* MULTIPLY_REACHES */
-            m_qsTemp[reachId] += m_qs[i];
+            m_qsTemp[reachIdx] += m_qs[i];
             if (m_qi != NULL) {
-                m_qiTemp[reachId] += m_qi[i];
+                m_qiTemp[reachIdx] += m_qi[i];
             }
         }
     }
@@ -69,7 +67,9 @@ int HS_WB::Execute() {
 void HS_WB::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
+        SetOpenMPThread((int)data);
+    } else if (StringMatch(s, Tag_SubbasinId)) {
+        m_subbasinID = data;
     } else {
         throw ModelException(MID_HS_WB, "SetValue", "Parameter " + s
             + " does not exist in current module. Please contact the module developer.");
@@ -119,29 +119,17 @@ void HS_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     }
 }
 
-//void HS_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
-////    string sk(key);
-////
-////    if (StringMatch(sk, Tag_RchParam)) {
-////        m_nReaches = ncols - 1;
-////    } else {
-////        throw ModelException(MID_HS_WB, "Set2DData", "Parameter " + sk
-////            + " does not exist. Please contact the module developer.");
-////    }
-//}
-
 void HS_WB::SetReaches(clsReaches *reaches) {
     assert(NULL != reaches);
     m_nReaches = reaches->GetReachNumber();
 }
 
 bool HS_WB::CheckInputData() {
-    if (m_nCells <= 0)
-        throw ModelException(MID_HS_WB, "CheckInputData", "The dimension of the input data can not be less than zero.");
-    if (this->m_qs == NULL) throw ModelException(MID_HS_WB, "CheckInputData", "The overland flow can not be NULL.");
-    if (this->m_subbasin == NULL) throw ModelException(MID_HS_WB, "CheckInputData", "The subbasion can not be NULL.");
-    if (this->m_streamLink == NULL)
-        throw ModelException(MID_HS_WB, "CheckInputData", "The StreamLink can not be NULL.");
+    CHECK_NONNEGATIVE(MID_HS_WB, m_subbasinID);
+    CHECK_POSITIVE(MID_HS_WB, m_nCells);
+    CHECK_POINTER(MID_HS_WB, m_qs);
+    CHECK_POINTER(MID_HS_WB, m_subbasin);
+    CHECK_POINTER(MID_HS_WB, m_streamLink);
     return true;
 }
 

@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling ecology_subdir: AET_PTH...")
-SET(SRC_LIST ${MODULE_SRC} AET_PriestleyTaylorHargreaves.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(AET_PTH SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(AET_PTH module_setting data util)

@@ -72,3 +72,6 @@ data/dianbu2/workspace
 **OUTPUT
 OUTPUT/*
 OUTPUT*/
+
+# VSCode configuration folder
+.vscode

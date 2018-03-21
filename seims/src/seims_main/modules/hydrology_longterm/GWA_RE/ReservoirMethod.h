@@ -34,7 +34,9 @@
 *	Description:
 *	1.	Move subbasin class to base/data module for sharing with other modules
 */
-#pragma once
+#ifndef SEIMS_MODULE_GWA_RE_H
+#define SEIMS_MODULE_GWA_RE_H
+
 #include "SimulationModule.h"
 #include "clsSubbasin.h"
 
@@ -53,9 +55,9 @@ using namespace std;
  */
 class ReservoirMethod : public SimulationModule {
 public:
-    ReservoirMethod(void);
+    ReservoirMethod();
 
-    ~ReservoirMethod(void);
+    ~ReservoirMethod();
 
     virtual void SetValue(const char *key, float value);
 
@@ -67,14 +69,11 @@ public:
 
     virtual int Execute(void);
 
+    virtual void GetValue(const char *key, float *value);
+
     virtual void Get1DData(const char *key, int *nRows, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-    //virtual TimeStepType GetTimeStepType()
-    //{
-    //	return TIMESTEP_CHANNEL;
-    //};
 
 private:
 
@@ -83,7 +82,7 @@ private:
     *
     *	@return bool The validity of the input data.
     */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /**
     *	@brief check the input size. Make sure all the input data have same dimension.
@@ -97,7 +96,7 @@ private:
     /*
      * \brief initial outputs as default values
      */
-    void initialOutputs(void);
+    void initialOutputs();
 
 private:
     //inputs
@@ -174,6 +173,8 @@ private:
     //   float *m_subbasin;
     //! subbasin number
     int m_nSubbasins;
+    //! current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     ////! selected count of output subbasin
@@ -191,5 +192,6 @@ private:
      * \sa Subbasin
      * \sa clsSubbasins
      */
-    void setSubbasinInfos(void);
+    void setSubbasinInfos();
 };
+#endif /* SEIMS_MODULE_GWA_RE_H */

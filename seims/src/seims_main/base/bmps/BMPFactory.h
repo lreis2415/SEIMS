@@ -33,7 +33,11 @@ public:
                const string& location);
 
     /// virtual Destructor
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
+    virtual ~BMPFactory() {};
+#else
     virtual ~BMPFactory() = default;
+#endif /* less than VS2010 */
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient *conn, const string &bmpDBName) = 0;

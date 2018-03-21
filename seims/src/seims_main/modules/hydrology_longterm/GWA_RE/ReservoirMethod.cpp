@@ -1,7 +1,7 @@
 #include "seims.h"
 #include "ReservoirMethod.h"
 
-ReservoirMethod::ReservoirMethod(void) : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_nSoilLayers(-1),
+ReservoirMethod::ReservoirMethod(void) : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_subbasinID(-1), m_nSoilLayers(-1),
                                          m_soilDepth(NULL), m_soilLayers(NULL), m_soilThick(NULL), m_Slope(NULL),
                                          m_VgroundwaterFromBankStorage(NULL), m_subbasinsInfo(NULL),
                                          m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
@@ -277,23 +277,17 @@ bool ReservoirMethod::CheckInputSize(const char *key, int n) {
 // set value
 void ReservoirMethod::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) {
-        m_TimeStep = int(value);
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
-    } else if (StringMatch(sk, Tag_CellWidth)) {
-        m_CellWidth = value;
-    } else if (StringMatch(sk, VAR_KG)) {
-        m_Kg = value;
-    } else if (StringMatch(sk, VAR_Base_ex)) {
-        m_Base_ex = value;
-    } else if (StringMatch(sk, VAR_DF_COEF)) {
-        m_dp_co = value;
-    } else if (StringMatch(sk, VAR_GW0)) {
-        m_GW0 = value;
-    } else if (StringMatch(sk, VAR_GWMAX)) {
-        m_GWMAX = value;
-    } else {
+    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
+    else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
+    else if (StringMatch(sk, VAR_KG)) { m_Kg = value; }
+    else if (StringMatch(sk, VAR_Base_ex)) { m_Base_ex = value; }
+    else if (StringMatch(sk, VAR_DF_COEF)) { m_dp_co = value; }
+    else if (StringMatch(sk, VAR_GW0)) { m_GW0 = value; }
+    else if (StringMatch(sk, VAR_GWMAX)) { m_GWMAX = value; }
+    else {
         throw ModelException(MID_GWA_RE, "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
 }
@@ -304,7 +298,6 @@ void ReservoirMethod::Set1DData(const char *key, int n, float *data) {
         m_VgroundwaterFromBankStorage = data;
         return;
     }
-
     //check the input data
     if (!CheckInputSize(key, n)) return;
 
@@ -349,8 +342,20 @@ void ReservoirMethod::Set2DData(const char *key, int nrows, int ncols, float **d
 void ReservoirMethod::SetSubbasins(clsSubbasins *subbasins) {
     if (m_subbasinsInfo == NULL) {
         m_subbasinsInfo = subbasins;
-        m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();
+        // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()! lj
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
+    }
+}
+
+void ReservoirMethod::GetValue(const char *key, float *value) {
+    initialOutputs();
+    string sk(key);
+    if (StringMatch(sk, VAR_RG) && m_subbasinID > 0) { *value = m_T_RG[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_SBQG) && m_subbasinID > 0) { *value = m_T_QG[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_SBGS) && m_subbasinID > 0) { *value = m_gwStore[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_SBPET) && m_subbasinID > 0) { *value = m_petSubbasin[m_subbasinID]; }
+    else {
+        throw ModelException(MID_GWA_RE, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
