@@ -23,10 +23,10 @@ using namespace std;
  * \param[in] allRasterData Key is subbasinID (start from 1), value is clsRasterData<float>
  * \return Combined raster data
  */
-FloatRaster* CombineRasters(map<int, FloatRaster *> &allRasterData);
+FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData);
 
-void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins, int layer = 1);
+void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins);
 
-void CombineRasterResultsMongo(MongoGridFS *gfs, const string &sVar, int nSubbasins, const string &folder /* = "" */);
+void CombineRasterResultsMongo(MongoGridFS *gfs, const string &sVar, int nSubbasins, const string &folder = "");
 
 #endif /* COMBINE_RASTER_H */

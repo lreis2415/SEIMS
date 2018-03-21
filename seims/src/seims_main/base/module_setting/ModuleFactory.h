@@ -59,12 +59,9 @@ public:
                   map<string, MetadataFunction> &metadataFuncs,
                   map<string, vector<ParamInfo *> > &moduleParameters,
                   map<string, vector<ParamInfo *> > &moduleInputs,
-                  map<string, vector<ParamInfo *> > &moduleOutputs) :
-        m_dbName(model_name),
-        m_moduleIDs(moduleIDs), m_settings(moduleSettings), m_dllHandles(dllHandles),
-        m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs),
-        m_moduleParameters(moduleParameters),
-        m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs) {}
+                  map<string, vector<ParamInfo *> > &moduleOutputs,
+                  map<string, vector<ParamInfo *> > &moduleInOutputs,
+                  vector<ParamInfo *> &tfValueInputs);
     /*!
      * \brief Initialization for exception-safe constructor
      */
@@ -99,6 +96,15 @@ public:
     //! Get Output of modules, out from current module
     map<string, vector<ParamInfo *> > &GetModuleOutputs() { return m_moduleOutputs; }
 
+    //! Get InOutput of modules, in and out from current module
+    map<string, vector<ParamInfo *> > &GetModuleInOutputs() { return m_moduleInOutputs; }
+
+    //! Get transferred single value inputs across subbasins
+    vector<ParamInfo*> &GetTransferredInputs() { return m_tfValueInputs; }
+
+    //! Get the count of transferred single value inputs
+    int GetTransferredInputsCount() { return (int) m_tfValueInputs.size(); }
+
     //! Load modules setting from file
     static bool LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings);
 
@@ -127,7 +133,9 @@ public:
                                  map<string, MetadataFunction> &metadataFuncs,
                                  map<string, vector<ParamInfo *> > &moduleParameters,
                                  map<string, vector<ParamInfo *> > &moduleInputs,
-                                 map<string, vector<ParamInfo *> > &moduleOutputs);
+                                 map<string, vector<ParamInfo *> > &moduleOutputs,
+                                 map<string, vector<ParamInfo *> > &moduleInOutputs,
+                                 vector<ParamInfo*> &tfValueInputs);
 
     //! Load function pointers from .DLL or .so
     static void ReadDLL(const string &module_path, const string &id, const string &dllID,
@@ -141,6 +149,9 @@ public:
     //! Match data type, e.g., 1D array
     static dimensionTypes MatchType(string strType);
 
+    //! Match data transfer type, e.g., TF_SingleValue
+    static transferTypes MatchTransferType(string tfType);
+
     //! Is constant input?
     static bool IsConstantInputFromName(string &name);
 
@@ -148,13 +159,9 @@ public:
     static void ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
                                      map<string, vector<ParamInfo *> > &moduleParameters);
 
-    //! Read module's input setting from XML string
-    static void ReadInputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
-                                 map<string, vector<ParamInfo *> > &moduleInputs);
-
-    //! Read module's output setting from XML string
-    static void ReadOutputSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
-                                  map<string, vector<ParamInfo *> > &moduleOutputs);
+    //! Read module's input, output, and in/output setting from XML string
+    static void ReadIOSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
+                              const string header, const string title, map<string, vector<ParamInfo *> > &variables);
 
     //! Get comparable name after underscore if necessary, e.g., T_PET => use PET
     static string GetComparableName(string &paraName);
@@ -182,5 +189,9 @@ private:
     map<string, vector<ParamInfo *> > m_moduleInputs;
     //! Output of modules, out from current module
     map<string, vector<ParamInfo *> > m_moduleOutputs;
+    //! InOutput of modules, out from current module, and from current module(i.e., other instance) meanwhile
+    map<string, vector<ParamInfo *> > m_moduleInOutputs;
+    //! transferred single value across subbasins
+    vector<ParamInfo *> m_tfValueInputs;
 };
 #endif /* SEIMS_MODULE_FACTORY_H */

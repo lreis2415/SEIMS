@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: IMP_SWAT...")
-SET(SRC_LIST ${MODULE_SRC} pothole_SWAT.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(IMP_SWAT SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(IMP_SWAT util data bmps module_setting)
