@@ -61,7 +61,6 @@ SET(BASE_INC ${BASE_HOME}/util ${BASE_HOME}/data ${BASE_HOME}/module_setting ${B
 SET(MODULE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 SET(MAIN_HOME ${CMAKE_CURRENT_SOURCE_DIR}/main)
 ############  Set include directories    #############
-SET(MODULE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/base/util/SimulationModule.cpp)
 geo_include_directories(${BASE_INC}
                         ${UTILS_INC}
                         ${MONGO_INC}

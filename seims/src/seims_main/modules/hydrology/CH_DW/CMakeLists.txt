@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_subdir: DiffusiveWave...")
-SET(SRC_LIST ${MODULE_SRC} DiffusiveWave.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(CH_DW SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(CH_DW util data bmps module_setting)

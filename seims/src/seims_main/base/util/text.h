@@ -248,6 +248,10 @@
 #define Type_Array1D                           "ARRAY1D"
 #define Type_Single                            "SINGLE"
 
+#define TFType_Whole                           "TFWhole"
+#define TFType_Single                          "TFSINGLE"
+#define TFType_Array1D                         "TFARRAY1D"
+
 //////////////////////////////////////////////////////////////////////////
 /// Define models' ID and description in SEIMS  //////////////////////////
 /// By LiangJun Zhu, Apr. 26, 2016  //////////////////////////////////////

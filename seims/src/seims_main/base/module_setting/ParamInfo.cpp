@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), Dimension(DT_Unknown),
+ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), Dimension(DT_Unknown), Transfer(TF_Whole),
                          Value(0.f), Change(""), Impact(0.f), Maximum(0.f), Minimun(0.f),
                          ModuleID(""), Source(""), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
@@ -14,6 +14,7 @@ ParamInfo::ParamInfo(const ParamInfo &another) {
     Units = another.Units;
     Description = another.Description;
     Dimension = another.Dimension;
+    Transfer = another.Transfer;
     Value = another.Value;
     Change = another.Change;
     Impact = another.Impact;
@@ -53,6 +54,7 @@ float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
         res = Impact;
     } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
         //don't change
+        return res;
     }
     if (res > Maximum) res = Maximum;
     if (res < Minimun) res = Minimun;

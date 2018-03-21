@@ -1,6 +1,6 @@
 #include "CombineRaster.h"
 
-FloatRaster* CombineRasters(map<int, FloatRaster *> &allRasterData) {
+FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
     if (allRasterData.empty()) return nullptr;
     double xMin = FLT_MAX;
     double xMax = FLT_MIN;
@@ -65,31 +65,29 @@ FloatRaster* CombineRasters(map<int, FloatRaster *> &allRasterData) {
         for (int idx = 0; idx < cellNums; idx++) {
             int k = validPosition[idx][0];
             int m = validPosition[idx][1];
-            int i = int((yMax - yur + (k + 0.5) * dx) / dx); /// row in whole extent
-            int j = int((xll + (m + 0.5) * dx - xMin) / dx); /// col in whole extent
+            int wi = int((yMax - yur + (k + 0.5) * dx) / dx); /// row in whole extent
+            int wj = int((xll + (m + 0.5) * dx - xMin) / dx); /// col in whole extent
 
-            int index = i * nColsTotal + j; /// index in whole extent
+            int index = wi * nColsTotal + wj; /// index in whole extent
             if (nlayers > 1) {
-                for (int k = 1; k <= nlayers; k++)
-                    data2d[index][k - 1] = rs->getValueByIndex(idx, k);
-            }
-            else {
+                for (int li = 1; li <= nlayers; li++) {
+                    data2d[index][li - 1] = rs->getValueByIndex(idx, li);
+                }
+            } else {
                 data[index] = rs->getValueByIndex(idx);
             }
         }
     }
     if (nlayers > 1) {
-        return new FloatRaster(data2d, nColsTotal, nRowsTotal, nlayers, (double)NODATA_VALUE, dx,
+        return new FloatRaster(data2d, nColsTotal, nRowsTotal, nlayers, NODATA_VALUE, dx,
                                xMin + 0.5 * dx, yMin + 0.5 * dx, srs);
-    }
-    else {
-        return new FloatRaster(data, nColsTotal, nRowsTotal, (double)NODATA_VALUE, dx,
+    } else {
+        return new FloatRaster(data, nColsTotal, nRowsTotal, NODATA_VALUE, dx,
                                xMin + 0.5 * dx, yMin + 0.5 * dx, srs);
     }
 }
 
-void CombineRasterResults(const string &folder, const string &sVar, const string &fileType,
-                          int nSubbasins, int layer /* = 1 */) {
+void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins) {
     map<int, FloatRaster *> allRasterData;
     string filename = "";
     if (fileType.find('.') == string::npos) {
@@ -99,17 +97,17 @@ void CombineRasterResults(const string &folder, const string &sVar, const string
     }
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = folder + SEP + ValueToString(i) + "_" + filename;
-        FloatRaster* rs = FloatRaster::Init(curFileName, true);
+        FloatRaster *rs = FloatRaster::Init(curFileName, true);
         if (nullptr == rs) {
             exit(-1);
         }
         allRasterData.insert(make_pair(i, rs));
     }
-    FloatRaster* combined_rs = CombineRasters(allRasterData);
+    FloatRaster *combined_rs = CombineRasters(allRasterData);
     combined_rs->outputToFile(folder + SEP + filename);
     // clean up
     delete combined_rs;
-    for (auto it = allRasterData.begin(); it != allRasterData.end(); ) {
+    for (auto it = allRasterData.begin(); it != allRasterData.end();) {
         if (it->second != nullptr) {
             delete it->second;
             it->second = nullptr;
@@ -122,13 +120,13 @@ void CombineRasterResultsMongo(MongoGridFS *gfs, const string &sVar, int nSubbas
     map<int, FloatRaster *> allRasterData;
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = ValueToString(i) + "_" + sVar;
-        FloatRaster* rs = FloatRaster::Init(gfs, curFileName.c_str(), true);
+        FloatRaster *rs = FloatRaster::Init(gfs, curFileName.c_str(), true);
         if (nullptr == rs) {
             exit(-1);
         }
         allRasterData.insert(make_pair(i, rs));
     }
-    FloatRaster* combined_rs = CombineRasters(allRasterData);
+    FloatRaster *combined_rs = CombineRasters(allRasterData);
     gfs->removeFile(sVar);
     combined_rs->outputToMongoDB(sVar, gfs);
     if (folder != "") {

@@ -27,8 +27,13 @@
 *	Description:
 *	1.	Unify the code style.
 *	2.	Replace VAR_SUBBASIN with VAR_SUBBASIN_PARAM, which is common used by several modules.
+*   Date:     2018-3-20
+*   Description:
+*   1.  The length of subbasin related array should equal to the count of subbasins, for both mpi version and omp version.
 */
-#pragma once
+#ifndef SEIMS_MODULE_IUH_OL_H
+#define SEIMS_MODULE_IUH_OL_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -47,11 +52,11 @@ using namespace std;
  */
 class IUH_OL : public SimulationModule {
 public:
-    IUH_OL(void);
+    IUH_OL();
 
-    ~IUH_OL(void);
+    ~IUH_OL();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -59,16 +64,15 @@ public:
 
     virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
 
-    virtual void SetSubbasins(clsSubbasins *);
+    virtual void GetValue(const char *key, float *value);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
 private:
-
     /// time step (sec)
     int m_TimeStep;
     /// validate cells number
@@ -79,30 +83,17 @@ private:
     float m_cellArea;
     /// the total number of subbasins
     int m_nSubbasins;
-    //! subbasin IDs
-    vector<int> m_subbasinIDs;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// subbasin grid (subbasins ID)
     float *m_subbasin;
 
-    /// subbasins information
-    clsSubbasins *m_subbasinsInfo;
-    /// start time of IUH for each grid cell
-    ///float* m_uhminCell;
-    /// end time of IUH for each grid cell
-    ///float* m_uhmaxCell;
-
-    /// landcover code
-    //float *m_landcover;
     /// IUH of each grid cell (1/s)
     float **m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// surface runoff from depression module
     float *m_rs;
-    /*/// length of rainfall series
-    int m_nr;*/
-    /// end time of simulation
-    ///time_t m_EndDate;
 
     //temporary
 
@@ -119,6 +110,6 @@ private:
     float *m_OL_Flow;
 
     //! initial outputs
-    void initialOutputs(void);
+    void initialOutputs();
 };
-
+#endif /* SEIMS_MODULE_IUH_OL_H */
