@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_subdir: PI_MCS...")
-SET(SRC_LIST ${MODULE_SRC} Interception_MCS.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(PI_MCS SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(PI_MCS util data bmps module_setting)
