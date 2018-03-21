@@ -1,3 +1,9 @@
+/*!
+ * \brief Header of MPI version of SEIMS framework
+ * \author Junzhi Liu, Liangjun Zhu
+ * \date 2018-03-20
+ * \description  2018-03-20  lj  refactor as a more flexible framework to support various transferred variables.
+ */
 #ifndef SEIMS_MPI_H
 #define SEIMS_MPI_H
 
@@ -32,15 +38,24 @@
 using namespace std;
 /*!
  * \brief Simple struct of subbasin information for task allocation
- * \TODO Should this SubbasinStruct be integrated into Subbasin class defined in clsSubbasin of data module? by LJ
  */
 struct SubbasinStruct {
     SubbasinStruct(int sid, int gidx) : id(sid), group(gidx),
                                         updown_order(-1), downup_order(-1), calculated(false),
-                                        qOutlet(0.f),
+                                        transfer_count(-1), transfer_values(nullptr),
                                         downStream(nullptr) {
         upStreams.clear();
     }
+    ~SubbasinStruct() {
+        if (transfer_values != nullptr) { Release1DArray(transfer_values); }
+        if (!upStreams.empty()) {
+            for (auto it = upStreams.begin(); it != upStreams.end();) {
+                if (*it != nullptr) *it = nullptr;
+                it = upStreams.erase(it);
+            }
+        }
+        if (downStream != nullptr) downStream = nullptr;
+    };
     int id; ///< Subbasin ID, start from 1
     int group; ///< Group index, start from 0 to (group number - 1)
 
@@ -49,7 +64,8 @@ struct SubbasinStruct {
     bool calculated; ///< whether this subbasin is already calculated
 
     /****** Parameters need to transferred among subbasins *******/
-    float qOutlet; ///< flow out the subbasin outlet
+    int transfer_count; ///< count of transferred values
+    float *transfer_values; ///< transferred values
 
     SubbasinStruct *downStream; ///< down stream subbasin \sa SubbasinStruct
     vector<SubbasinStruct *> upStreams; ///< up stream subbasins
@@ -61,21 +77,20 @@ struct SubbasinStruct {
 int CreateReachTopology(MongoClient *client, string &dbname, string &group_method, int group_size,
                         map<int, SubbasinStruct *> &subbasins, set<int> &group_set);
 /*!
- * \brief
- * \param subbasinMap
- * \param groupSet
- * \param input_args
- * \return
+ * \brief Management process
+ * \param subbasinMap Map of all subbasins, used as transferred data repository
+ * \param groupSet Divided group ids, normally, 0 ~ N-1, the size equals to the number of slave processors
+ * \return 0 for success
  */
-int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet, InputArgs *input_args);
+int MasterProcess(map<int, SubbasinStruct *> &subbasinMap, set<int> &groupSet);
 
 /*!
- * \brief
- * \param world_rank
- * \param numprocs
- * \param nSlaves
- * \param slaveComm
- * \param input_args
+ * \brief Calculation process
+ * \param world_rank Rank number
+ * \param numprocs Number of all processors, including one management rank and N-1 slave ranks
+ * \param nSlaves Number of calculation processors (also called slave ranks)
+ * \param slaveComm MPI communicator used in slave group
+ * \param input_args Input arguments, \sa InputArgs
  */
 void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveComm, InputArgs *input_args);
 
