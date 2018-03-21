@@ -17,12 +17,13 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
             isRaster = true;
         }
         /// Check Tag_OutputSubbsn first
-        if (StringMatch((*iter).subBsn, Tag_Outlet) && (m_subbasinID == 0 || m_subbasinID == m_outletID)) {
-            /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
-            /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
-            pi->setInterval((*iter).interval);
-            pi->setIntervalUnits((*iter).intervalUnit);
-            pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix, true);
+        if (StringMatch((*iter).subBsn, Tag_Outlet)) { /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
+            if (m_subbasinID == 0 || m_subbasinID == m_outletID) {
+                /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
+                pi->setInterval((*iter).interval);
+                pi->setIntervalUnits((*iter).intervalUnit);
+                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix, true);
+            }
         }
         else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
             /// Output of all subbasins of DT_Raster1D or DT_Raster2D
