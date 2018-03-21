@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_subdir: SUR_SGA...")
-SET(SRC_LIST ${MODULE_SRC} StormGreenAmpt.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(SUR_SGA SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(SUR_SGA util data bmps module_setting)
