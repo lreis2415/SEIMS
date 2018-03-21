@@ -6,11 +6,9 @@ IF(UNIX)
       geo_list_unique(CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
     ENDIF()
 ENDIF()
-SET(SRC_LIST MetadataInfo.cpp SimulationModule.cpp
-        MetadataInfoConst.h seims.h text.h
-        ${UTILS_FILES})
+FILE(GLOB SRC_LIST *.cpp *.h)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-ADD_LIBRARY(util STATIC ${SRC_LIST})
+ADD_LIBRARY(util STATIC ${SRC_LIST} ${UTILS_FILES})
 INSTALL(TARGETS util DESTINATION ${INSTALL_DIR})
 IF (MSVC)
     SET_PROPERTY(TARGET util PROPERTY FOLDER "base")
