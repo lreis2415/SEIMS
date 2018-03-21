@@ -13,7 +13,26 @@ ModelMain::ModelMain(DataCenterMongoDB *dataCenter, ModuleFactory *factory) :
     m_dtDaily = m_input->getDtDaily();
     m_dtHs = m_input->getDtHillslope();
     m_dtCh = m_input->getDtChannel();
-
+    /// Get module IDs
+    m_moduleIDs = m_factory->GetModuleIDs();
+    /// Get transferred value inputs
+    m_tfValueInputs = m_factory->GetTransferredInputs();
+    m_nTFValues = (int) m_tfValueInputs.size();
+    for (int i = 0; i < m_nTFValues; i++) {
+        string module_id = m_tfValueInputs[i]->ModuleID;
+        vector<string>::iterator itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
+        int idIndex = distance(m_moduleIDs.begin(), itID);
+        m_tfValueToModuleIdxs.push_back(idIndex);
+        string param_name = m_tfValueInputs[i]->Name;
+        if (m_tfValueInputs[i]->DependPara != nullptr) {
+            module_id = m_tfValueInputs[i]->DependPara->ModuleID;
+            param_name = m_tfValueInputs[i]->DependPara->Name;
+        }
+        itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
+        idIndex = distance(m_moduleIDs.begin(), itID);
+        m_tfValueFromModuleIdxs.push_back(idIndex);
+        m_tfValueNames.push_back(param_name);
+    }
     /// Create module list 
     m_factory->CreateModuleList(m_simulationModules, m_dataCenter->getThreadNumber());
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
@@ -130,6 +149,25 @@ void ModelMain::Execute() {
     OutputExecuteTime();
 }
 
+void ModelMain::GetTransferredValue(float* tfvalues) {
+    for (int i = 0; i < m_nTFValues; i++) {
+        m_simulationModules[m_tfValueFromModuleIdxs[i]]->GetValue(m_tfValueNames[i].c_str(), &tfvalues[i]);
+    }
+}
+
+void ModelMain::SetTransferredValue(int index, float* tfvalues) {
+    if (m_firstRunChannel) {
+        for (auto it = m_channelModules.begin(); it != m_channelModules.end(); it++) {
+            SimulationModule *pModule = m_simulationModules[*it];
+            m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
+        }
+        m_firstRunChannel = true;
+    }
+    for (int i = 0; i < m_nTFValues; i++) {
+        m_simulationModules[m_tfValueToModuleIdxs[i]]->SetValueByIndex(m_tfValueNames[i].c_str(), index, tfvalues[i]);
+    }
+}
+
 double ModelMain::Output() {
     double t1 = TimeCounting();
     MongoGridFS* gfs = new MongoGridFS(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
@@ -203,7 +241,7 @@ void ModelMain::AppendOutputData(time_t time) {
                     module->GetValue(keyName, &value);
                     item->TimeSeriesData[time] = value;
                 }
-                    //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
+                //time series data for sites or some time series data for subbasins, such as T_SBOF,T_SBIF
                 else if (param->Dimension == DT_Array1D) {
                     int index = item->SubbasinID;
                     //time series data for some time series data for subbasins
@@ -213,8 +251,7 @@ void ModelMain::AppendOutputData(time_t time) {
                     float *data;
                     module->Get1DData(keyName, &n, &data);
                     item->TimeSeriesData[time] = data[index];
-                } else if (param->Dimension == DT_Array2D)  //time series data for subbasins
-                {
+                } else if (param->Dimension == DT_Array2D) { //time series data for subbasins
                     //some modules will calculate result for all subbasins or all reaches,
                     //regardless of whether they are output to file or not. In this case,
                     //the 2-D array will contain all the results and the subbasinid or reachid
@@ -226,8 +263,7 @@ void ModelMain::AppendOutputData(time_t time) {
                         StringMatch(param->BasicName, "CHSB") ||
                         StringMatch(param->BasicName, VAR_GWWB) ||  // groundwater water balance
                         StringMatch(param->BasicName, VAR_SOWB)  // soil water balance
-                        )// TODO: more conditions will be added in the future.
-                    {
+                        ) { // TODO: more conditions will be added in the future.
                         //for modules in which only the results of output subbasins are calculated.
                         //In this case, the 2-D array just contain the results of selected subbasins in file.out.
                         //So, the index of Subbasin in file.out will be used to locate the result.
@@ -248,15 +284,13 @@ void ModelMain::AppendOutputData(time_t time) {
                         module->Get2DData(param->BasicName.c_str(), &nRows, &nCols, &data);
                         item->AggregateData2D(time, nRows, nCols, data);
                     }
-                } else if (param->Dimension == DT_Raster1D) //spatial distribution, calculate average,sum,min or max
-                {
+                } else if (param->Dimension == DT_Raster1D) { //spatial distribution, calculate average,sum,min or max
                     int n;
                     float *data;
                     //cout << keyName << " " << n << endl;
                     module->Get1DData(keyName, &n, &data);
                     item->AggregateData(time, n, data);
-                } else if (param->Dimension == DT_Raster2D) // spatial distribution with layers
-                {
+                } else if (param->Dimension == DT_Raster2D) { // spatial distribution with layers
                     int n, lyrs;
                     float **data;
                     module->Get2DData(keyName, &n, &lyrs, &data);
