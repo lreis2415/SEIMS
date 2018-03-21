@@ -27,6 +27,8 @@ using namespace std;
  */
 class SSR_DA : public SimulationModule {
 private:
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// valid cell numbers
     int m_nCells;
     /// width of cell (m)
@@ -116,10 +118,10 @@ private:
 
 public:
     /// constructor
-    SSR_DA(void);
+    SSR_DA();
 
     /// destructor
-    ~SSR_DA(void);
+    ~SSR_DA();
 
     virtual int Execute(void);
 
@@ -129,7 +131,7 @@ public:
 
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
-    virtual void SetSubbasins(clsSubbasins *subbasins);
+    virtual void GetValue(const char *key, float *value);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 

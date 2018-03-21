@@ -56,8 +56,8 @@ public:
     ~ModelMain() {};
     //! Execute all the modules, aggregate output data, and write the total time-consuming, etc.
     void Execute();
-    //! Write output files, e.g., Q.txt
-    void Output();
+    //! Write output files, e.g., Q.txt, return time-consuming (s).
+    double Output();
 
     /*!
     * \brief Check whether the validation of outputs
@@ -94,6 +94,8 @@ public:
      */
     void StepOverall(time_t startT, time_t endT);
 
+    void GetTransferredValue(float* tfvalues);
+    void SetTransferredValue(int index, float* tfvalues);
     // temporary debug code
     float GetQOutlet() { return 0.f; }
     void SetChannelFlowIn(float value) {
@@ -136,6 +138,8 @@ private:
     time_t m_dtDaily;            ///< Daily time interval, seconds
     time_t m_dtHs;               ///< Hillslope time interval, seconds
     time_t m_dtCh;               ///< Channel time interval, seconds
+    vector<string> m_moduleIDs;  ///< Module unique IDs, the same sequences with \sa m_simulationModules
+    vector<ParamInfo *> m_tfValueInputs; ///< transferred single value across subbasins
 private:
     /************************************************************************/
     /*   Variables newly allocated in this class                            */
@@ -147,7 +151,12 @@ private:
     vector<int> m_channelModules;     ///< Channel modules index list
     vector<int> m_ecoModules;         ///< Ecology modules index list
     vector<int> m_overallModules;     ///< Whole simulation scale modules index list
-    vector<double> m_executeTime;        ///< Execute time list of each module
+    vector<double> m_executeTime;     ///< Execute time list of each module
+
+    int m_nTFValues;                       ///< transferred value inputs cout
+    vector<int> m_tfValueFromModuleIdxs;   ///< from module index corresponding to each transferred value inputs
+    vector<int> m_tfValueToModuleIdxs;     ///< to module index corresponding to each transferred value inputs
+    vector<string> m_tfValueNames;         ///< parameter name corresponding to each transferred value inputs
 
     bool m_firstRunOverland;   ///< Is the first run of overland
     bool m_firstRunChannel;    ///< Is the first run of channel

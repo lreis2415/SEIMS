@@ -108,6 +108,12 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     if (nullptr == moduleFactory) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
+    int tranferCount = moduleFactory->GetTransferredInputsCount();
+    // Send to master process
+    if (slaveRank == 0) {
+        MPI_Isend(&tranferCount, 1, MPI_INT, MASTER_RANK, WORK_TAG, MCW, &request);
+        MPI_Wait(&request, &status);
+    }
 
     vector<DataCenterMongoDB *> dataCenterList;
     vector<ModelMain *> modelList;
@@ -128,26 +134,28 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     t = t2 - t1;
     double *tReceive = new double[nSlaves];
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
-    double ioTime = 0;
+    double loadTime = 0.;
     if (slaveRank == 0) {
-        ioTime = Max(tReceive, nSlaves);
-        cout << "[DEBUG]\tTime of reading data -- Max:" << ioTime << ", Total:" << Sum(nSlaves, tReceive) << "\n";
-        cout << "[DEBUG][TIMESPAN][IO]" << ioTime << endl;
+        loadTime = Max(tReceive, nSlaves);
+#ifdef _DEBUG
+        cout << "[DEBUG]\tTime of reading data -- Max:" << loadTime << ", Total:" << Sum(nSlaves, tReceive) << "\n";
+        cout << "[DEBUG][TIMESPAN][LoadData]" << loadTime << endl;
+#endif /* _DEBUG */
+        cout << "[TIMESPAN][IO]\tINPUT\t" << fixed << setprecision(3) << loadTime << endl;
     }
     t1 = MPI_Wtime();
 
-    // classification according to the Layering method, i.e., up-down and down-up orders.
-    LayeringMethod lyrmtd = input_args->m_layer_mtd;
-    vector<int> sourceBasins;
-    // used to find if the downstream subbasin of a finished subbsin is in the same process,
-    // if so, the MPI send operation is not necessary.
-    // the set container is more efficient for the 'find' operation
-    set<int> downStreamSet;  ///< not source subbasins
-    set<int> downStreamIdSet;
+    vector<int> sourceBasins;  // Index of source subbasins in current processor
+    // Used to find if the downstream subbasin of a finished subbsin is in the same process,
+    //   if so, the MPI send operation is not necessary.
+    //   the `set` container is more efficient for the 'find' operation
+    set<int> downStreamSet;  // index of not source subbasins
+    set<int> downStreamIdSet; // ID of not source subbasins
     bool includeChannel = false;
     if (modelList[0]->IncludeChannelProcesses()) {
         includeChannel = true;
         for (int i = 0; i < nSubbasins; i++) {
+            // classification according to the Layering method, i.e., up-down and down-up orders.
             int stream_order = input_args->m_layer_mtd == UP_DOWN ? pUpdownOrd[i] : pDownupOrd[i];
             if (stream_order == 1) {
                 sourceBasins.push_back(i);
@@ -162,7 +170,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
         }
     }
 #ifdef _DEBUG
-    cout << "Slave rank: " << slaveRank << ", Source subbasins index: ";
+    cout << "Slave rank: " << slaveRank << "(world rank: " << world_rank << "), Source subbasins index: ";
     for (auto it = sourceBasins.begin(); it != sourceBasins.end(); it++) {
         cout << *it << ", ";
     }
@@ -171,29 +179,35 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     double tTask1, tTask2;
     double tSlope = 0.0;
     double tChannel = 0.0;;
-    //float buf[MSG_LEN];
+    // Create buffer for passing values across subbasins
     float *buf = nullptr;
-    Initialize1DArray(MSG_LEN, buf, NODATA_VALUE);
+    int buflen = MSG_LEN + tranferCount;
+    Initialize1DArray(buflen, buf, NODATA_VALUE);
     // time loop
     DataCenterMongoDB *dc = dataCenterList[0];
-    ModelMain *p = modelList[0];
     time_t dtHs = dc->getSettingInput()->getDtHillslope();
     time_t dtCh = dc->getSettingInput()->getDtChannel();
-
     time_t curTime = dc->getSettingInput()->getStartTime();
     int startYear = GetYear(curTime);
     int nHs = int(dtCh / dtHs);
+
+    /// initialize the transferred values, NO NEED to create and release in each timestep. lj
+    map<int, float *> transferValuesMap;  // key is subbasinID, value is transferred values
+    for (int i = 0; i < nSubbasins; i++) {
+        float *tfvalues = nullptr;
+        Initialize1DArray(tranferCount, tfvalues, NODATA_VALUE);
+        transferValuesMap.insert(make_pair(pTasks[i], tfvalues));
+    }
+
     for (; curTime <= dc->getSettingInput()->getEndTime(); curTime += dtCh) {
         if (slaveRank == 0) StatusMessage(ConvertToString2(&curTime).c_str());
         int yearIdx = GetYear(curTime) - startYear;
-
-        map<int, float> qMap; //used to contain the flowout of each subbasin
-
         tTask1 = MPI_Wtime();
+        set<int> doneIDs; // save subbasin IDs that have been executed
         // 1. do the jobs that does not depend on other subbasins
         // 1.1 the slope and channel routing of source subbasins without upstreams
-        for (auto it = sourceBasins.begin(); it != sourceBasins.end(); it++) {
-            ModelMain *pSubbasin = modelList[*it];
+        for (auto itSrc = sourceBasins.begin(); itSrc != sourceBasins.end(); itSrc++) {
+            ModelMain *pSubbasin = modelList[*itSrc];
             for (int i = 0; i < nHs; i++) {
                 pSubbasin->StepHillSlope(curTime + i * dtHs, yearIdx, i);
             }
@@ -202,80 +216,80 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
 
             if (!includeChannel) { continue; }
 
-            float qOutlet = pSubbasin->GetQOutlet();
-            int subbasinID = pTasks[*it];
-
-            //if(world_rank == R)
-            //	cout << world_rank << ":" << subbasinID << " " << qOutlet << endl;
-
-            // if the downstream subbasin is in the s process,
-            // there is no need to transfer outflow to the master process
-            if (downStreamIdSet.find(pDownStream[*it]) != downStreamIdSet.end()) {
-                qMap[subbasinID] = qOutlet;
-                //if(world_rank == R)
-                //    cout << "qMap: " << qMap[subbasinID] << endl;
+            int subbasinID = pTasks[*itSrc];
+            // if the downstream subbasin is in this process,
+            // there is no need to transfer values to the master process
+            if (downStreamIdSet.find(pDownStream[*itSrc]) != downStreamIdSet.end()) {
+                pSubbasin->GetTransferredValue(transferValuesMap[subbasinID]);
+                doneIDs.insert(subbasinID);
                 continue;
             }
-            //if(world_rank == R)
-            //    cout << world_rank << ": pass" << pTasks[sourceBasins[j]] << "\n";
-
+            pSubbasin->GetTransferredValue(&buf[MSG_LEN]);
+#ifdef _DEBUG
+            cout << "slave rank: " << slaveRank << "(world rank: " << world_rank << "), subbasinID: " << subbasinID
+                 << " tfValues: ";
+            for (int itf = MSG_LEN; itf < buflen; itf++) {
+                cout << buf[itf] << ", ";
+            }
+            cout << endl;
+#endif
             // transfer the result to the master process
             buf[0] = 1.f;  // message type
             buf[1] = subbasinID;   // subbasin id
-            buf[2] = qOutlet;// flow out of subbasin
-            buf[3] = t;
-            MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+            buf[2] = (float) t;
+            MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
             MPI_Wait(&request, &status);
 #ifdef _DEBUG
-            cout << "Slave rank: " << slaveRank << ", subbasin ID: " << pTasks[*it]
+            cout << "Slave rank: " << slaveRank << "(world rank: " << world_rank << "), subbasin ID: " << subbasinID
                  << ", hillslope process of source subbasins done" << endl;
 #endif /* _DEBUG */
         }
 
-        // 1.2 the slope routing of downstream subbasins
+        // 1.2 the hillslope processes of downstream subbasins
         if (!includeChannel) { continue; }
-        for (auto it = downStreamSet.begin(); it != downStreamSet.end(); it++) {
-            ModelMain *pSubbasin = modelList[*it];
+        set<int> toDoSet;
+        for (auto itDown = downStreamSet.begin(); itDown != downStreamSet.end(); itDown++) {
+            ModelMain *pSubbasin = modelList[*itDown];
             for (int i = 0; i < nHs; i++) {
                 pSubbasin->StepHillSlope(curTime + i * dtHs, yearIdx, i);
             }
+            toDoSet.insert(*itDown);
         }
         tTask2 = MPI_Wtime();
-        tSlope = tSlope + tTask2 - tTask1;
+        tSlope += tTask2 - tTask1;
+        // TODO, tSlospe currently also contains the time of channel processes of source subbasins
 
         tTask1 = MPI_Wtime();
-        cout << "world_rank: " << world_rank << "  step 2" << endl;
-        // 2. the channel routing of  downStream subbasins are calculated
-        // if their upstream subbasins are already calculated
-        set<int> toDoSet, canDoSet;
-        //cout << "test world_rank: " << world_rank << " >> ";
-        for (auto it = downStreamSet.begin(); it != downStreamSet.end(); it++) {
-            toDoSet.insert(*it);
-        }
+#ifdef _DEBUG
+        cout << "slave_rank: " << slaveRank << "(world rank: " << world_rank << ")  step 2" << endl;
+#endif
+        // 2. The channel routing of downStream subbasin will be calculated
+        //      if its upstream subbasins are already calculated
+        set<int> canDoSet;
         while (!toDoSet.empty()) {
             // find all subbasins that the channel routing can be done without asking the master process
-            for (auto it = toDoSet.begin(); it != toDoSet.end();) {
+            for (auto itTodo = toDoSet.begin(); itTodo != toDoSet.end();) {
                 bool upFinished = true;
-                for (int j = 0; j < pUpNums[*it]; j++) {
-                    int upId = pUpStream[(*it) * MAX_UPSTREAM + j];
+                for (int j = 0; j < pUpNums[*itTodo]; j++) {
+                    int upId = pUpStream[(*itTodo) * MAX_UPSTREAM + j];
                     // if can not find upstreams, this subbasin can not be done
-                    if (qMap.find(upId) == qMap.end()) {
+                    if (doneIDs.find(upId) == doneIDs.end()) {
                         upFinished = false;
                         break;
                     }
                 }
                 if (upFinished) {
-                    canDoSet.insert(*it);
-                    toDoSet.erase(it++);
+                    canDoSet.insert(*itTodo);
+                    toDoSet.erase(itTodo++);
                 } else {
-                    it++;
+                    itTodo++;
                 }
             }
 
 #ifdef _DEBUG
-            cout << "world_rank " << world_rank << "  todo set: ";
-            for (auto it = toDoSet.begin(); it != toDoSet.end(); it++) {
-                cout << pTasks[*it] << " ";
+            cout << "slave_rank " << slaveRank << "(world rank: " << world_rank << ") todo set (subbasinID): ";
+            for (auto itTodo = toDoSet.begin(); itTodo != toDoSet.end(); itTodo++) {
+                cout << pTasks[*itTodo] << ", ";
             }
             cout << endl;
 #endif
@@ -286,7 +300,7 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
                 buf[1] = groupId;
                 buf[2] = world_rank;
 
-                MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+                MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                 MPI_Wait(&request, &status);
 
                 int msgLen;
@@ -296,80 +310,73 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
                 float *pData = new float[msgLen];
                 MPI_Irecv(pData, msgLen, MPI_FLOAT, MASTER_RANK, MPI_ANY_TAG, MCW, &request);
                 MPI_Wait(&request, &status);
-
-
-                //cout << "recv world_rank" << world_rank << "  num:" << msgLen/2 << " data:";
-                for (int j = 0; j < msgLen; j += 2) {
-                    //cout << pData[j] << " ";
-                    qMap[(int) pData[j]] = pData[j + 1];
+#ifdef _DEBUG
+                cout << "recv count of subbasin data: " << msgLen / (tranferCount + 1) << ", subbasinIDs: ";
+                for (int ri = 0; ri < msgLen / (tranferCount + 1); ri++) {
+                    cout << int(pData[ri * (tranferCount + 1)]) << ", ";
                 }
-                //cout << endl;
-                //cout << "world_rank" << world_rank << " qMap: ";
-                //for (map<int,float>::iterator it = qMap.begin(); it != qMap.end(); it++)
-                //{
-                //	cout << it->first << " ";
-                //}
-                //cout << endl;
-
-                delete pData;
-            } else {
-                //cout << "world_rank:" << world_rank << endl;
-                // sort according to the distance to outlet descendent
+                cout << endl;
+#endif
+                for (int ri = 0; ri < msgLen / (tranferCount + 1); ri++) {
+                    int recv_subid = int(pData[ri * (tranferCount + 1)]);
+                    if (transferValuesMap.find(recv_subid) == transferValuesMap.end()) {
+                        float *tfvalues = nullptr;
+                        Initialize1DArray(tranferCount, tfvalues, NODATA_VALUE);
+                        transferValuesMap.insert(make_pair(recv_subid, tfvalues));
+                    }
+                    for (int vi = 0; vi < tranferCount; vi++) {
+                        transferValuesMap[recv_subid][vi] = pData[ri * (tranferCount + 1) + vi + 1];
+                    }
+                    doneIDs.insert(recv_subid);
+                }
+                Release1DArray(pData);
+            } else {  // canDoSet is not empty!
+                // sort according to down-up layering from outlet
                 vector<int> vec;
-                set<int>::iterator it, itMax;
+                set<int>::iterator itTmp, itMin;
                 while (!canDoSet.empty()) {
-                    itMax = canDoSet.begin();
-                    for (it = canDoSet.begin(); it != canDoSet.end(); ++it) {
-                        if (pDownupOrd[*it] > pDownupOrd[*itMax]) {
-                            itMax = it;
+                    itMin = canDoSet.begin();
+                    for (itTmp = canDoSet.begin(); itTmp != canDoSet.end(); itTmp++) {
+                        if (pDownupOrd[*itTmp] < pDownupOrd[*itMin]) {
+                            itMin = itTmp;
                         }
                     }
-                    vec.push_back(*itMax);
-                    canDoSet.erase(itMax);
+                    vec.push_back(*itMin);
+                    canDoSet.erase(itMin);
                 }
 
-                for (auto it = vec.begin(); it != vec.end(); it++) {
-                    int index = *it;
-                    ModelMain *pSubbasin = modelList[index];
-
-                    //cout << "index:" << index << endl;
+                for (auto itCando = vec.begin(); itCando != vec.end(); itCando++) {
+                    ModelMain *pSubbasin = modelList[*itCando];
                     float overFlowIn = 0.f;
-                    for (int j = 0; j < pUpNums[index]; ++j) {
-                        int upId = pUpStream[index * MAX_UPSTREAM + j];
-                        overFlowIn += qMap[upId];
+                    for (int j = 0; j < pUpNums[*itCando]; ++j) {
+                        int upId = pUpStream[(*itCando) * MAX_UPSTREAM + j];
+                        pSubbasin->SetTransferredValue(upId, transferValuesMap[upId]);
                     }
-                    pSubbasin->SetChannelFlowIn(overFlowIn);
                     pSubbasin->StepChannel(curTime, yearIdx);
                     pSubbasin->AppendOutputData(curTime);
 
-                    float qOutlet = pSubbasin->GetQOutlet();
-
-                    if (downStreamIdSet.find(pDownStream[index]) != downStreamIdSet.end()) {
-                        qMap[pTasks[index]] = qOutlet;
+                    if (downStreamIdSet.find(pDownStream[*itCando]) != downStreamIdSet.end()) {
+                        pSubbasin->GetTransferredValue(transferValuesMap[pTasks[*itCando]]);
+                        doneIDs.insert(pTasks[*itCando]);
                         continue;
                     }
                     // transfer the result to the master process
                     buf[0] = 1.f;  // message type
-                    buf[1] = pTasks[index];   // subbasin id
-                    buf[2] = qOutlet;// flow out of subbasin
-                    buf[3] = t;
-                    MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+                    buf[1] = pTasks[*itCando];   // subbasin id
+                    buf[2] = (float) t;
+                    pSubbasin->GetTransferredValue(&buf[MSG_LEN]);
+                    MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
                 }
-
-                //cout << "world_rank" << world_rank << " qMap after execute: ";
-                //for(auto it = qMap.begin(); it != qMap.end(); ++it)
-                //	cout << it->first << " ";
-                //cout << endl;
             }
         }
         tTask2 = MPI_Wtime();
-        tChannel = tChannel + tTask2 - tTask1;
+        tChannel += tTask2 - tTask1;
 
         MPI_Barrier(slaveComm);
         if (slaveRank == 0) {
             buf[0] = 0.f;
-            MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+            MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
             MPI_Wait(&request, &status);
         }
         MPI_Barrier(slaveComm);
@@ -378,11 +385,14 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     t2 = MPI_Wtime();
     t = t2 - t1;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
+    // TODO, Gather and scatter the computing time of each modules from all slave processors
     if (slaveRank == 0) {
         double computingTime = Max(tReceive, nSlaves);
-        //cout << "[DEBUG]\tnprocs: " << numprocs - 1 << ", Max: " << computingTime
-        //     << ", Total: " << Sum(nSlaves, tReceive) << "\n";
-        cout << "[DEBUG][TIMESPAN][COMPUTING]" << computingTime << "\n";
+#ifdef _DEBUG
+        cout << "[DEBUG][TIMESPAN][COMPUTING]\tnprocs: " << numprocs - 1 << ", Max: " << computingTime
+             << ", Total: " << Sum(nSlaves, tReceive) << "\n";
+#endif
+        cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << computingTime << endl;
     }
     /***************  Outputs and combination  ***************/
     t1 = MPI_Wtime();
@@ -396,8 +406,8 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     /// The operation could be considered as post-process,
     ///   therefore, the time-consuming is not included. 
     if (slaveRank == 0) {
-        MongoGridFS* gfs = new MongoGridFS(mongoClient->getGridFS(input_args->m_model_name, DB_TAB_OUT_SPATIAL));
-        SettingsOutput* outputs = dataCenterList[0]->getSettingOutput();
+        MongoGridFS *gfs = new MongoGridFS(mongoClient->getGridFS(input_args->m_model_name, DB_TAB_OUT_SPATIAL));
+        SettingsOutput *outputs = dataCenterList[0]->getSettingOutput();
         for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); it++) {
             for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); itemIt++) {
                 PrintInfoItem *item = *itemIt;
@@ -414,24 +424,35 @@ void CalculateProcess(int world_rank, int numprocs, int nSlaves, MPI_Comm slaveC
     /*** End of Combine raster outputs. ***/
 
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
+    if (slaveRank == 0) {
+        cout << "[TIMESPAN][IO]\tOUTPUT\t" << fixed << setprecision(3) << (t) << endl;
+        cout << "[TIMESPAN][IO]\tALL\t" << fixed << setprecision(3) << (t + loadTime) << endl;
+    }
 
     double tEnd = MPI_Wtime();
     t = tEnd - tStart;
     MPI_Gather(&t, 1, MPI_DOUBLE, tReceive, 1, MPI_DOUBLE, 0, slaveComm);
     if (slaveRank == 0) {
         double allTime = Max(tReceive, nSlaves);
-        cout << "[DEBUG][TIMESPAN][TOTAL]" << allTime << "\n";
+        cout << "[TIMESPAN][CALCULATION]\tALL\t" << allTime << "\n";
     }
     MPI_Barrier(slaveComm);
 
     // tell the master process to exit
     if (slaveRank == 0) {
         buf[0] = 9.f;
-        MPI_Isend(buf, MSG_LEN, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+        MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
         MPI_Wait(&request, &status);
     }
 
     // clean up
+    for (auto it = transferValuesMap.begin(); it != transferValuesMap.end();) {
+        if (it->second != nullptr) {
+            Release1DArray(it->second);
+            it->second = nullptr;
+        }
+        transferValuesMap.erase(it++);
+    }
     for (auto it = modelList.begin(); it != modelList.end();) {
         if (*it != nullptr) {
             delete *it;

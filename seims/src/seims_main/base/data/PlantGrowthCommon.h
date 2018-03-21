@@ -21,13 +21,13 @@
  * \brief A basic class for plant growth modules using a simplified version of EPIC model
  *
  */
-class PGCommon {
+class PGCommon: public DefaultConstructor {
 public:
     /// Constructor
-    PGCommon() = default;
+    //PGCommon() = default;
 
     /// Destructor
-    ~PGCommon() = default;
+    //~PGCommon() = default;
 
 public:
     //get N/P shape parameter, See readplant.f of SWAT

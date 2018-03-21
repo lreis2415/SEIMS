@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling nutrient_subdir: ATMDEP...")
-SET(SRC_LIST ${MODULE_SRC} AtmosphericDeposition.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(ATMDEP SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(ATMDEP util data bmps module_setting)

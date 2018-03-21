@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_longterm_subdir: IUH_IF...")
-SET(SRC_LIST ${MODULE_SRC} IUH_IF.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(IUH_IF SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(IUH_IF util data bmps module_setting)

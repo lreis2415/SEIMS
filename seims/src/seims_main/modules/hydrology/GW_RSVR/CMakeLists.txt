@@ -1,5 +1,5 @@
 MESSAGE(STATUS "        Compiling hydrology_subdir: GW_RSVR...")
-SET(SRC_LIST ${MODULE_SRC} GWaterReservoir.cpp api.cpp)
+FILE(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 ADD_LIBRARY(GW_RSVR SHARED ${SRC_LIST})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 TARGET_LINK_LIBRARIES(GW_RSVR util data bmps module_setting)

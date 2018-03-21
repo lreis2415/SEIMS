@@ -28,7 +28,7 @@ public:
     explicit SettingsInput(vector<string>& stringvector);
 
     //! Destructor
-    virtual ~SettingsInput() = default;
+    //virtual ~SettingsInput() = default;
 
     static SettingsInput* Init(vector<string>& stringvector);
 

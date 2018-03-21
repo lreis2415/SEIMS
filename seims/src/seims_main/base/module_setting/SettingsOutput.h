@@ -17,14 +17,14 @@
 
 /*!
  * \ingroup module_setting
- * \struct OrgOutItem
+ * \class OrgOutItem
  */
-struct OrgOutItem {
+class OrgOutItem: public DefaultConstructor {
 public:
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
                    aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
                    eTimeStr(""), interval(-1), use(-1) {};
-    ~OrgOutItem() = default;
+    //~OrgOutItem() = default;
 public:
     string modCls;
     string outputID;

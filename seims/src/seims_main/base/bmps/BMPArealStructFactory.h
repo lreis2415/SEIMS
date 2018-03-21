@@ -58,8 +58,7 @@ private:
  * \brief Initiate Areal Structural BMPs
  *
  */
-class BMPArealStructFactory: public BMPFactory
-{
+class BMPArealStructFactory: public BMPFactory {
 public:
     /// Constructor
     BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,

@@ -1,10 +1,10 @@
 /*!
  * \brief Class to store parameter item information
  *
- * \author Junzhi Liu
- * \version 1.0
+ * \author Junzhi Liu, Liangjun Zhu
+ * \version 1.1
  * \date June 2010
- *
+ * \update 18-Mar-2018
  */
 #ifndef SEIMS_PARAMETER_INFO_H
 #define SEIMS_PARAMETER_INFO_H
@@ -73,6 +73,8 @@ public:
     string ModuleID;
     //! Data dimension type
     dimensionTypes Dimension;
+    //! Data transfer type
+    transferTypes Transfer;
     //! Source, to identify which the parameters can be derived
     string Source;
     //! Value
