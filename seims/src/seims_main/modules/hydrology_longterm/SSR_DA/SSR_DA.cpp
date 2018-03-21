@@ -1,22 +1,22 @@
 #include "seims.h"
 #include "SSR_DA.h"
 
-SSR_DA::SSR_DA(void) : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_CellWidth(-1.f), m_nSubbasin(-1),
-                       m_frozenT(NODATA_VALUE), m_ki(NODATA_VALUE),
-                       m_soilLayers(NULL), m_soilThick(NULL), m_ks(NULL), m_satmm(NULL), m_poreIndex(NULL),
-                       m_fcmm(NULL), m_wpmm(NULL),
-                       m_slope(NULL), m_chWidth(NULL), m_streamLink(NULL), m_subbasin(NULL),
-                       m_flowInIndex(NULL), m_flowInPercentage(NULL), m_routingLayers(NULL), m_nRoutingLayers(-1),
+SSR_DA::SSR_DA() : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_CellWidth(-1.f), m_nSubbasin(-1), m_subbasinID(-1),
+                   m_frozenT(NODATA_VALUE), m_ki(NODATA_VALUE),
+                   m_soilLayers(nullptr), m_soilThick(nullptr), m_ks(nullptr), m_satmm(nullptr), m_poreIndex(nullptr),
+                   m_fcmm(nullptr), m_wpmm(nullptr),
+                   m_slope(nullptr), m_chWidth(nullptr), m_streamLink(NULL), m_subbasin(nullptr),
+                   m_flowInIndex(nullptr), m_flowInPercentage(nullptr), m_routingLayers(nullptr), m_nRoutingLayers(-1),
     /// input from other modules
-                       m_soilStorage(NULL), m_soilStorageProfile(NULL), m_soilT(NULL),
+                   m_soilStorage(nullptr), m_soilStorageProfile(nullptr), m_soilT(nullptr),
     /// outputs
-                       m_qi(NULL), m_qiVol(NULL), m_qiSubbasin(NULL) {
+                   m_qi(nullptr), m_qiVol(nullptr), m_qiSubbasin(nullptr) {
 }
 
-SSR_DA::~SSR_DA(void) {
-    if (m_qi != NULL) Release2DArray(m_nCells, m_qi);
-    if (m_qiVol != NULL) Release2DArray(m_nCells, m_qiVol);
-    if (m_qiSubbasin != NULL) Release1DArray(m_qiSubbasin);
+SSR_DA::~SSR_DA() {
+    if (m_qi != nullptr) Release2DArray(m_nCells, m_qi);
+    if (m_qiVol != nullptr) Release2DArray(m_nCells, m_qiVol);
+    if (m_qiSubbasin != nullptr) Release1DArray(m_qiSubbasin);
 }
 
 bool SSR_DA::FlowInSoil(int id) {
@@ -179,6 +179,10 @@ void SSR_DA::SetValue(const char *key, float data) {
         m_frozenT = data;
     } else if (StringMatch(s, VAR_KI)) {
         m_ki = data;
+    } else if (StringMatch(s, VAR_SUBBSNID_NUM)) {
+        m_nSubbasin = data;
+    } else if (StringMatch(s, Tag_SubbasinId)) {
+        m_subbasinID = data;
     } else if (StringMatch(s, Tag_CellWidth)) {
         m_CellWidth = data;
     } else if (StringMatch(s, Tag_TimeStep)) {
@@ -251,13 +255,13 @@ void SSR_DA::Set2DData(const char *key, int nrows, int ncols, float **data) {
     }
 }
 
-void SSR_DA::SetSubbasins(clsSubbasins *subbasins) {
-    if (subbasins != NULL) {
-        if (m_nSubbasin < 0) {
-            m_nSubbasin = subbasins->GetSubbasinNumber();
-        }
+void SSR_DA::GetValue(const char *key, float *value) {
+    initialOutputs();
+    string sk(key);
+    if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { /// For MPI version to transfer data across subbasins
+        *value = m_qiSubbasin[m_subbasinID];
     } else {
-        throw ModelException(MID_SSR_DA, "SetSubbasins", "Subbasins data does not exist.");
+        throw ModelException(MID_SSR_DA, "GetValue", "Result " + sk + " does not exist.");
     }
 }
 
@@ -288,86 +292,39 @@ void SSR_DA::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
 }
 
 bool SSR_DA::CheckInputData() {
-    if (m_nCells <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (m_ki <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "You have not set Ki.");
-    }
-    if (FloatEqual(m_frozenT, NODATA_VALUE)) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "You have not set frozen T.");
-    }
-    if (m_dt <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "You have not set time step.");
-    }
-    if (m_CellWidth <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "You have not set cell width.");
-    }
-    if (m_nSubbasin < 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The number of subbasins can not be less than 0.");
-    }
-    if (m_subbasin == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The parameter: subbasin can not be NULL.");
-    }
-    if (m_soilLayers == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The soil layers number can not be NULL.");
-    }
-    if (m_soilThick == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The soil thickness can not be NULL.");
-    }
-    if (m_slope == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The slope can not be NULL.");
-    }
-    if (m_ks == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The conductivity can not be NULL.");
-    }
-    if (m_satmm == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The porosity can not be NULL.");
-    }
-    if (m_poreIndex == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The pore index can not be NULL.");
-    }
-    if (m_fcmm == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The field capacity can not be NULL.");
-    }
-    if (m_wpmm == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The wilting point can not be NULL.");
-    }
-    if (m_soilStorage == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The soil storage can not be NULL.");
-    }
-    if (m_soilStorageProfile == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The soil storage on profile can not be NULL.");
-    }
-    if (m_soilT == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The soil temperature can not be NULL.");
-    }
-    if (m_chWidth == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The channel width can not be NULL.");
-    }
-    if (m_streamLink == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The stream link can not be NULL.");
-    }
-    if (m_flowInIndex == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The flow in index can not be NULL.");
-    }
-    if (m_routingLayers == NULL) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The routing layers can not be NULL.");
-    }
-    if (m_nRoutingLayers <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputData", "The number of routing layers can not be less than 0.");
-    }
+    CHECK_NONNEGATIVE(MID_SSR_DA, m_subbasinID);
+    CHECK_POSITIVE(MID_SSR_DA, m_nCells);
+    CHECK_POSITIVE(MID_SSR_DA, m_ki);
+    CHECK_DATA(MID_SSR_DA, (FloatEqual(m_frozenT, NODATA_VALUE)), "You have not set frozen T");
+    CHECK_POSITIVE(MID_SSR_DA, m_dt);
+    CHECK_POSITIVE(MID_SSR_DA, m_CellWidth);
+    CHECK_POSITIVE(MID_SSR_DA, m_nSubbasin);
+    CHECK_POSITIVE(MID_SSR_DA, m_nRoutingLayers);
+    CHECK_POINTER(MID_SSR_DA, m_subbasin);
+    CHECK_POINTER(MID_SSR_DA, m_soilLayers);
+    CHECK_POINTER(MID_SSR_DA, m_soilThick);
+    CHECK_POINTER(MID_SSR_DA, m_slope);
+    CHECK_POINTER(MID_SSR_DA, m_poreIndex);
+    CHECK_POINTER(MID_SSR_DA, m_ks);
+    CHECK_POINTER(MID_SSR_DA, m_satmm);
+    CHECK_POINTER(MID_SSR_DA, m_fcmm);
+    CHECK_POINTER(MID_SSR_DA, m_wpmm);
+    CHECK_POINTER(MID_SSR_DA, m_soilStorage);
+    CHECK_POINTER(MID_SSR_DA, m_soilStorageProfile);
+    CHECK_POINTER(MID_SSR_DA, m_soilT);
+    CHECK_POINTER(MID_SSR_DA, m_chWidth);
+    CHECK_POINTER(MID_SSR_DA, m_streamLink);
+    CHECK_POINTER(MID_SSR_DA, m_flowInIndex);
+    CHECK_POINTER(MID_SSR_DA, m_routingLayers);
 
     return true;
 }
 
 void SSR_DA::initialOutputs() {
-    if (m_qiSubbasin == NULL) Initialize1DArray(m_nSubbasin + 1, m_qiSubbasin, 0.f);
-    if (m_qi == NULL) {
-        Initialize2DArray(m_nCells, m_nSoilLayers, m_qi, 0.f);
-        Initialize2DArray(m_nCells, m_nSoilLayers, m_qiVol, 0.f);
-    }
+    CheckInputData();
+    if (nullptr == m_qiSubbasin) Initialize1DArray(m_nSubbasin + 1, m_qiSubbasin, 0.f);
+    if (nullptr == m_qi) Initialize2DArray(m_nCells, m_nSoilLayers, m_qi, 0.f);
+    if (nullptr == m_qiVol) Initialize2DArray(m_nCells, m_nSoilLayers, m_qiVol, 0.f);
 }
 
 bool SSR_DA::CheckInputSize(const char *key, int n) {
