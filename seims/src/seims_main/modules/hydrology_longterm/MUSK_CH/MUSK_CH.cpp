@@ -3,7 +3,7 @@
 
 using namespace std;
 
-MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_outletID(-1), m_Kchb(nullptr),
+MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_subbasinID(-1), m_outletID(-1), m_Kchb(nullptr),
                      m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0_perc(NODATA_VALUE),
                      m_aBank(NODATA_VALUE), m_chSideSlope(nullptr),
                      m_bBank(NODATA_VALUE), m_subbasin(nullptr), m_qsSub(nullptr),
@@ -14,8 +14,8 @@ MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_outlet
                      m_bankStorage(nullptr), m_seepage(nullptr),
                      m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
                      m_x(NODATA_VALUE), m_co1(NODATA_VALUE), m_qIn(nullptr), m_chStorage(nullptr),
-                     m_preChStorage(nullptr),
-                     m_qUpReach(0.f), m_deepGroundwater(0.f), m_chWTdepth(nullptr), m_preChWTDepth(nullptr),
+                     m_preChStorage(nullptr), m_qOut(nullptr),
+                     m_deepGroundwater(0.f), m_chWTdepth(nullptr), m_preChWTDepth(nullptr),
                      m_chWTWidth(nullptr), m_chBtmWidth(nullptr) {
 }
 
@@ -38,10 +38,10 @@ MUSK_CH::~MUSK_CH() {
     // m_ptSrcFactory will be released by DataCenter->Scenario. lj
 }
 
-//! Check input data
 bool MUSK_CH::CheckInputData() {
     CHECK_POSITIVE(MID_MUSK_CH, m_dt);
     CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
+    CHECK_NONNEGATIVE(MID_MUSK_CH, m_subbasinID);
     CHECK_POSITIVE(MID_MUSK_CH, m_outletID);
     CHECK_DATA(MID_MUSK_CH, FloatEqual(m_x, NODATA_VALUE), "The parameter: m_x has not been set.");
     CHECK_DATA(MID_MUSK_CH, FloatEqual(m_co1, NODATA_VALUE), "The parameter: m_co1 has not been set.");
@@ -59,10 +59,8 @@ bool MUSK_CH::CheckInputData() {
     return true;
 }
 
-//! Initial outputs
 void MUSK_CH::initialOutputs() {
-    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
-    CHECK_POSITIVE(MID_MUSK_CH, m_outletID);
+    CheckInputData();
     //initial channel storage
     if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
@@ -98,8 +96,6 @@ void MUSK_CH::initialOutputs() {
             m_chWTdepth[i] = m_chDepth[i] * m_Chs0_perc;
             m_chWTWidth[i] = m_chBtmWidth[i] + 2.f * m_chSideSlope[i] * m_chWTdepth[i];
             m_preChWTDepth[i] = m_chWTWidth[i];
-            // m_chWTWidth[i] = m_chWidth[i];
-            // m_chStorage[i] = m_chWTdepth[i] * m_chWTWidth[i] * m_chLen[i];
             m_chStorage[i] = m_chLen[i] * m_chWTdepth[i] * (m_chBtmWidth[i] + m_chSideSlope[i] * m_chWTdepth[i]);
             m_preChStorage[i] = m_chStorage[i];
             m_qIn[i] = 0.f;
@@ -150,9 +146,7 @@ void MUSK_CH::PointSourceLoading() {
     }
 }
 
-//! Execute function
 int MUSK_CH::Execute() {
-    CheckInputData();
     initialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
@@ -163,14 +157,17 @@ int MUSK_CH::Execute() {
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
-            int reachIndex = it->second[i]; // index in the array
-            ChannelFlow(reachIndex);
+            int reachIndex = it->second[i]; // index in the array, i.e., subbasinID
+            if (m_subbasinID == 0 || m_subbasinID == reachIndex) {
+                // for OpenMP version, all reaches will be executed,
+                // for MPI version, only the current reach will be executed.
+                ChannelFlow(reachIndex);
+            }
         }
     }
     return 0;
 }
 
-//! Check input size
 bool MUSK_CH::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
         throw ModelException(MID_MUSK_CH, "CheckInputSize",
@@ -190,12 +187,10 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-//! Set value of the module
 void MUSK_CH::SetValue(const char *key, float value) {
     string sk(key);
-
-    if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
-    else if (StringMatch(sk, VAR_OUTLETID)) { m_outletID = (int) value; }
+    if (StringMatch(sk, VAR_OUTLETID)) { m_outletID = (int) value; }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int) value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
     else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
     else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
@@ -213,7 +208,27 @@ void MUSK_CH::SetValue(const char *key, float value) {
     }
 }
 
-//! Set 1D data
+void MUSK_CH::SetValueByIndex(const char *key, int index, float value) {
+    if (m_subbasinID == 0) return; // Not for omp version
+    if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
+    if (nullptr == m_qOut) initialOutputs();
+    string sk(key);
+    /// Set single value of array1D of current subbasin
+    if (StringMatch(sk, VAR_SBOF)) { m_qsSub[index] = value;}
+    else if (StringMatch(sk, VAR_SBIF)) { m_qiSub[index] = value;}
+    else if (StringMatch(sk, VAR_SBQG)) { m_qgSub[index] = value; }
+    else if (StringMatch(sk, VAR_SBPET)) { m_petCh[index] = value; }
+    else if (StringMatch(sk, VAR_SBGS)) { m_gwStorage[index] = value; }
+    /// IN/OUTPUT variables
+    else if (StringMatch(sk, VAR_QRECH)) { m_qOut[index] = value; }
+    else if (StringMatch(sk, VAR_QS)) { m_qsCh[index] = value; }
+    else if (StringMatch(sk, VAR_QI)) { m_qiCh[index] = value; }
+    else if (StringMatch(sk, VAR_QG)) { m_qgCh[index] = value; }
+    else {
+        throw ModelException(MID_MUSK_CH, "SetValueByIndex", "Parameter " + sk + " does not exist.");
+    }
+}
+
 void MUSK_CH::Set1DData(const char *key, int n, float *value) {
     string sk(key);
     //check the input data
@@ -225,33 +240,36 @@ void MUSK_CH::Set1DData(const char *key, int n, float *value) {
         CheckInputSize(key, n);
         m_qiSub = value;
     } else if (StringMatch(sk, VAR_SBQG)) {
+        CheckInputSize(key, n);
         m_qgSub = value;
     } else if (StringMatch(sk, VAR_SBPET)) {
+        CheckInputSize(key, n);
         m_petCh = value;
     } else if (StringMatch(sk, VAR_SBGS)) {
+        CheckInputSize(key, n);
         m_gwStorage = value;
     } else {
         throw ModelException(MID_MUSK_CH, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-//! Get value
 void MUSK_CH::GetValue(const char *key, float *value) {
+    initialOutputs();
     string sk(key);
-    int iOutlet = m_reachLayers.rbegin()->second[0];
-    if (StringMatch(sk, VAR_QOUTLET)) {
-        m_qOut[0] = m_qOut[iOutlet];
-        *value = m_qOut[0];
-    } else if (StringMatch(sk, VAR_QSOUTLET)) {
-        *value = m_qsCh[iOutlet];
+    if (StringMatch(sk, VAR_QOUTLET)) { *value = m_qOut[m_outletID]; }
+    else if (StringMatch(sk, VAR_QSOUTLET)) { *value = m_qsCh[m_outletID]; }
+    /// IN/OUTPUT variables
+    else if (StringMatch(sk, VAR_QRECH) && m_subbasinID > 0) { *value = m_qOut[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_QS) && m_subbasinID > 0) { *value = m_qsCh[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_QI) && m_subbasinID > 0) { *value = m_qiCh[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_QG) && m_subbasinID > 0) { *value = m_qgCh[m_subbasinID]; }
+    else {
+        throw ModelException(MID_MUSK_CH, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-//! Get 1D data
 void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
-    if (m_reachLayers.empty()) {
-        initialOutputs();
-    }
+    initialOutputs();
     string sk(key);
     *n = m_nreach + 1;
     if (StringMatch(sk, VAR_QRECH)) {
@@ -295,7 +313,6 @@ void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-//! Get 2D data
 void MUSK_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     string sk(key);
     throw ModelException(MID_MUSK_CH, "Get2DData", "Parameter " + sk + " does not exist.");
@@ -335,7 +352,6 @@ void MUSK_CH::SetReaches(clsReaches *reaches) {
     m_reachLayers = reaches->GetReachLayers();
 }
 
-//! Get date time
 void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float &dt, int &n) {
     if (fmax >= timeStep) {
         dt = timeStep;
@@ -352,7 +368,6 @@ void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float &dt, int &n) {
     }
 }
 
-//! Get coefficients
 void MUSK_CH::GetCoefficients(float reachLength, float v0, MuskWeights &weights) {
     float K = (4.64f - 3.64f * m_co1) * reachLength / (5.f * v0 / 3.f);
 
@@ -395,7 +410,6 @@ void MUSK_CH::updateWaterWidthDepth(int i) {
     }
 }
 
-//! Channel flow
 void MUSK_CH::ChannelFlow(int i) {
     float st0 = m_chStorage[i];
     float qiSub = 0.f; /// interflow flow
@@ -426,10 +440,7 @@ void MUSK_CH::ChannelFlow(int i) {
         qiUp += m_qiCh[upReachId];
         qgUp += m_qgCh[upReachId];
     }
-    qIn += (qsUp + qiUp + qgUp);
-    //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
-    qIn += m_qUpReach;
-    // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
+    qIn += (qsUp + qiUp + qgUp); //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
     //if(i == 12)
     //	cout <<"surfaceQ: "<< m_qsSub[i] << ", subsurfaceQ: " << qiSub << ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
     //	", UPsurfaceQ: "<<qsUp<<", UPsubsurface: "<<qiUp<<", UPground: "<<qgUp<<", \n";
