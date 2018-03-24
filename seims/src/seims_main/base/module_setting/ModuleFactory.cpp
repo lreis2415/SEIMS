@@ -197,8 +197,12 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
             if (StringMatch((*itInput)->Source, Source_Module) ||
                 StringMatch((*itInput)->Source, Source_Module_Optional)) {
                 (*itInput)->DependPara = FindDependentParam((*itInput), moduleIDs, moduleOutputs);
-                if ((*itInput)->Transfer == TF_SingleValue && (*itInput)->DependPara != nullptr) {
-                    tfValueInputs.push_back((*itInput));
+                if ((*itInput)->Transfer == TF_SingleValue) { // Check and append Inputs need to be transferred
+                    if ((*itInput)->DependPara != nullptr) {
+                        tfValueInputs.push_back((*itInput));
+                    } else {
+                        throw ModelException("ModelFactory", "LoadParseLibrary", "Couldn't find dependent output for " + (*itInput)->Name);
+                    }
                 }
             }
         }
@@ -239,13 +243,13 @@ ParamInfo *ModuleFactory::FindDependentParam(ParamInfo *paramInfo, vector<string
     string paraName = GetComparableName(paramInfo->Name);
     dimensionTypes paraType = paramInfo->Dimension;
     transferTypes tfType = paramInfo->Transfer;
-    for (auto it = moduleIDs.begin(); it != moduleIDs.end(); it++) {
+    for (auto it = moduleIDs.rbegin(); it != moduleIDs.rend(); it++) { // loop from the last module
         for (auto itOut = moduleOutputs[*it].begin(); itOut != moduleOutputs[*it].end(); itOut++) {
             string compareName = GetComparableName((*itOut)->Name);
-            // normal
-            if (StringMatch(paraName, compareName) && (*itOut)->Dimension == paraType && 
-                ((tfType != TF_Whole && tfType == (*itOut)->Transfer) || // specified handling for mpi version
-                (tfType == TF_Whole && tfType == (*itOut)->Transfer))) {
+            if (!StringMatch(paraName, compareName)) continue;
+            if ((*itOut)->Dimension == paraType && // normal
+                (tfType == (*itOut)->Transfer || tfType == TF_Whole) && // specified handling for mpi version
+                !StringMatch(*it, paramInfo->ModuleID)) { // Avoid to dependent on the module itself
                 (*itOut)->OutputToOthers = true;
                 return (*itOut);
             }
