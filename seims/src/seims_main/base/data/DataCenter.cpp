@@ -160,7 +160,7 @@ void DataCenter::dumpCaliParametersInDB() {
 
 float DataCenter::LoadDataForModules(vector<SimulationModule *> &modules) {
     double t1 = TimeCounting();
-    vector<string> moduleIDs = m_factory->GetModuleIDs();
+    vector<string>& moduleIDs = m_factory->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& moduleSettings = m_factory->GetModuleSettings();
     map<string, vector<ParamInfo*> >& moduleParameters = m_factory->GetModuleParameters();
     for (size_t i = 0; i < moduleIDs.size(); i++) {
@@ -495,7 +495,7 @@ void DataCenter::SetSubbasins(SimulationModule *pModule) {
 }
 
 void DataCenter::UpdateInput(vector<SimulationModule *> &modules, time_t t) {
-    vector<string> moduleIDs = m_factory->GetModuleIDs();
+    vector<string>& moduleIDs = m_factory->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& moduleSettings = m_factory->GetModuleSettings();
     map<string, vector<ParamInfo*> >& moduleInputs = m_factory->GetModuleInputs();
     size_t n = moduleIDs.size();
