@@ -69,44 +69,41 @@ ModelMain::ModelMain(DataCenterMongoDB *dataCenter, ModuleFactory *factory) :
 
 void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
     m_dataCenter->UpdateInput(m_simulationModules, t);
-    if (m_hillslopeModules.empty()) {
-        return;
+    if (m_hillslopeModules.empty()) { return; }
+    for (auto it = m_hillslopeModules.begin(); it != m_hillslopeModules.end(); it++) {
+        m_simulationModules[*it]->SetDate(t, yearIdx);
     }
-    for (size_t i = 0; i < m_hillslopeModules.size(); i++) {
-        int index = m_hillslopeModules[i];
-        SimulationModule *pModule = m_simulationModules[index];
+    for (auto it = m_hillslopeModules.begin(); it != m_hillslopeModules.end(); it++) {
+        SimulationModule *pModule = m_simulationModules[*it];
         double sub_t1 = TimeCounting();
         if (m_firstRunOverland) {
-            m_factory->GetValueFromDependencyModule(index, m_simulationModules);
+            m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
         }
         if (subIndex == 0) {
             pModule->ResetSubTimeStep();
         }
-        pModule->SetDate(t, yearIdx);
-        //cout << "\tHillslope process:" << i << endl;
         pModule->Execute();
 
         double sub_t2 = TimeCounting();
-        m_executeTime[index] += (sub_t2 - sub_t1);
+        m_executeTime[*it] += (sub_t2 - sub_t1);
     }
     m_firstRunOverland = false;
 }
 
 void ModelMain::StepChannel(time_t t, int yearIdx) {
-    if (m_channelModules.empty()) {
-        return;
+    if (m_channelModules.empty()) { return; }
+    for (auto it = m_channelModules.begin(); it != m_channelModules.end(); it++) {
+        m_simulationModules[*it]->SetDate(t, yearIdx);
     }
-    for (size_t i = 0; i < m_channelModules.size(); i++) {
-        int index = m_channelModules[i];
-        SimulationModule *pModule = m_simulationModules[index];
+    for (auto it = m_channelModules.begin(); it != m_channelModules.end(); it++) {
+        SimulationModule *pModule = m_simulationModules[*it];
         if (m_firstRunChannel) {
-            m_factory->GetValueFromDependencyModule(index, m_simulationModules);
+            m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
         }
         double sub_t1 = TimeCounting();
-        pModule->SetDate(t, yearIdx);
         pModule->Execute();
         double sub_t2 = TimeCounting();
-        m_executeTime[index] += (sub_t2 - sub_t1);
+        m_executeTime[*it] += (sub_t2 - sub_t1);
     }
     m_firstRunChannel = false;
 }
