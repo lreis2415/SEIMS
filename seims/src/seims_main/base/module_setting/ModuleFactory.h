@@ -82,7 +82,7 @@ public:
     string GetModuleID(int i) const { return m_moduleIDs[i]; }
 
     //! Get unique module IDs
-    vector<string> GetModuleIDs() const { return m_moduleIDs; }
+    vector<string> &GetModuleIDs() { return m_moduleIDs; }
 
     //! Get map of module settings
     map<string, SEIMSModuleSetting *> &GetModuleSettings() { return m_settings; }
