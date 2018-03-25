@@ -11,13 +11,13 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Junzhi Liu");
+    mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_SOLT, MCLSDESC_SOLT);
     mdi.SetDescription(MDESC_STP_FP);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_STP_FP);
     mdi.SetName(MID_STP_FP);
-    mdi.SetVersion("0.5");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("STP_FP.html");
 
@@ -36,16 +36,13 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_LANDUSE, UNIT_NON_DIM, DESC_LANDUSE, Source_ParameterDB, DT_Raster1D);
     /// mean air temperature
     mdi.AddInput(DataType_MeanTemperature, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
-    /// mean air temperature of the day(d-1)
-    mdi.AddInput(VAR_TMEAN1, UNIT_TEMP_DEG, DESC_TMEAN1, Source_Module, DT_Raster1D);
-    /// mean air temperature of the day(d-2)
-    mdi.AddInput(VAR_TMEAN2, UNIT_TEMP_DEG, DESC_TMEAN2, Source_Module, DT_Raster1D);
+
     /// output soil temperature
     mdi.AddOutput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, DT_Raster1D);
-    mdi.AddOutput(VAR_TMEAN1, UNIT_TEMP_DEG, DESC_TMEAN1, DT_Raster1D);
-    mdi.AddOutput(VAR_TMEAN2, UNIT_TEMP_DEG, DESC_TMEAN2, DT_Raster1D);
-    string res = mdi.GetXMLDocument();
+    mdi.AddOutput(VAR_TMEAN1, UNIT_TEMP_DEG, DESC_TMEAN1, DT_Raster1D); /// mean air temperature of the day(d-1)
+    mdi.AddOutput(VAR_TMEAN2, UNIT_TEMP_DEG, DESC_TMEAN2, DT_Raster1D); /// mean air temperature of the day(d-2)
 
+    string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;

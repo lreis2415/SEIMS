@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
-    mdi.SetAuthor("Chunping Ou");
+    mdi.SetAuthor("Chunping Ou, Liangjun Zhu");
     mdi.SetClass(MCLS_WTRBALANCE, MCLSDESC_WTRBALANCE);
     mdi.SetDescription(MDESC_SOL_WB);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -20,6 +20,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("SOL_WB.chm");
 
+    mdi.AddParameter(VAR_SUBBSNID_NUM, UNIT_NON_DIM, DESC_SUBBSNID_NUM, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SOL_ZMX, UNIT_DEPTH_MM, DESC_SOL_ZMX, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster1D);

@@ -8,8 +8,9 @@
  * \date 2016-10-7
  * \description:  1. add some code of CENTURY calculation
  */
+#ifndef SEIMS_MODULE_BIO_EPIC_H
+#define SEIMS_MODULE_BIO_EPIC_H
 
-#pragma once
 #include "SimulationModule.h"
 #include "PlantGrowthCommon.h"
 #include "ClimateParams.h"
@@ -28,13 +29,11 @@ using namespace std;
  */
 class Biomass_EPIC : public SimulationModule {
 public:
-    //! Constructor
-    Biomass_EPIC(void);
+    Biomass_EPIC();
 
-    //! Destructor
-    ~Biomass_EPIC(void);
+    ~Biomass_EPIC();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -50,7 +49,57 @@ public:
 
     bool CheckInputSize2D(const char *key, int n, int col);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
+
+private:
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from swu.f of SWAT rev. 637
+    //  Distribute potential plant evaporation through
+    //	the root zone and calculates actual plant water use based on soil
+    //	water availability. Also estimates water stress factor.
+    //////////////////////////////////////////////////////////////////////////
+    void DistributePlantET(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from grow.f of SWAT rev. 637
+    //  Adjust plant biomass, leaf area index, and canopy height
+    //	taking into account the effect of water, temperature and nutrient stresses  on the plant
+    //////////////////////////////////////////////////////////////////////////
+    void AdjustPlantGrowth(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from tstr.f of SWAT rev. 637
+    //  Compute temperature stress for crop growth - strstmp
+    //////////////////////////////////////////////////////////////////////////
+    void CalTempStress(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from nup.f of SWAT rev. 637
+    //  Calculates plant nitrogen uptake
+    //////////////////////////////////////////////////////////////////////////
+    void PlantNitrogenUptake(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from nfix.f of SWAT rev. 637
+    //  Estimate nitrogen fixation by legumes
+    //  wshd_fixn is NOT INCLUDED, average annual amount of nitrogen added to plant biomass via fixation
+    //////////////////////////////////////////////////////////////////////////
+    void PlantNitrogenFixed(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from npup.f of SWAT rev. 637
+    //  Calculates plant phosphorus uptake
+    //////////////////////////////////////////////////////////////////////////
+    void PlantPhosphorusUptake(int i);
+
+    //////////////////////////////////////////////////////////////////////////
+    //  The following code is transferred from dormant.f of SWAT rev. 637
+    //  Check the dormant status of the different plant types
+    //////////////////////////////////////////////////////////////////////////
+    void CheckDormantStatus(int i);
+
+    /// initialize output variables
+    void initialOutputs();
 
 private:
     /// valid cells number
@@ -78,7 +127,7 @@ private:
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers
-    int m_soilLayers;
+    int m_nMaxSoilLayers;
     /// maximum root depth
     float *m_soilZMX;
     /// albedo when soil is moist
@@ -272,69 +321,5 @@ private:
     float *m_biomassDelta;
     /// land cover/crop biomass (dry weight), bio_ms in SWAT
     float *m_biomass;
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from swu.f of SWAT rev. 637
-    //  Distribute potential plant evaporation through
-    //	the root zone and calculates actual plant water use based on soil
-    //	water availability. Also estimates water stress factor.
-    //////////////////////////////////////////////////////////////////////////
-    void DistributePlantET(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from grow.f of SWAT rev. 637
-    //  Adjust plant biomass, leaf area index, and canopy height
-    //	taking into account the effect of water, temperature and nutrient stresses  on the plant
-    //////////////////////////////////////////////////////////////////////////
-    void AdjustPlantGrowth(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from tstr.f of SWAT rev. 637
-    //  Compute temperature stress for crop growth - strstmp
-    //////////////////////////////////////////////////////////////////////////
-    void CalTempStress(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from nup.f of SWAT rev. 637
-    //  Calculates plant nitrogen uptake
-    //////////////////////////////////////////////////////////////////////////
-    void PlantNitrogenUptake(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from nfix.f of SWAT rev. 637
-    //  Estimate nitrogen fixation by legumes
-    //  wshd_fixn is NOT INCLUDED, average annual amount of nitrogen added to plant biomass via fixation
-    //////////////////////////////////////////////////////////////////////////
-    void PlantNitrogenFixed(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from npup.f of SWAT rev. 637
-    //  Calculates plant phosphorus uptake
-    //////////////////////////////////////////////////////////////////////////
-    void PlantPhosphorusUptake(int i);
-
-    //////////////////////////////////////////////////////////////////////////
-    //  The following code is transferred from dormant.f of SWAT rev. 637
-    //  Check the dormant status of the different plant types
-    //////////////////////////////////////////////////////////////////////////
-    void CheckDormantStatus(int i);
-
-    /// initialize output variables
-    void initialOutputs(void);
 };
-
-/// the following two variables can be temporary variables to save memory.
-///// 1st shape parameter for leaf area development equation
-//float* m_LAIShpCoef1;
-///// 2nd shape parameter for leaf area development equation
-//float* m_LAIShpCoef2;
-///// 1st shape parameter for radiation use efficiency equation, wac21 in SWAT
-//float* m_RadUseEffiShpCoef1;
-///// 2nd shape parameter for radiation use efficiency equation, wac22 in SWAT
-//float* m_RadUseEffiShpCoef2;
-
-/// currently, the following two variables are assigned the default value.
-///// initial root to shoot ratio at beg of growing season, rsr1c in SWAT
-//float* m_rootShootRatio1;
-///// root to shoot ratio at end of growing season, rsr2c in SWAT
-//float* m_rootShootRatio2;
+#endif /* SEIMS_MODULE_BIO_EPIC_H */

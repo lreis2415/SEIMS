@@ -67,7 +67,7 @@ public:
 
     virtual void SetSubbasins(clsSubbasins *);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void GetValue(const char *key, float *value);
 
@@ -108,7 +108,7 @@ private:
     //! cell size of the grid (m)
     float m_CellWidth;
     //! maximum soil layers number
-    int m_nSoilLayers;
+    int m_nMaxSoilLayers;
     //! soil layers number of each cell
     float *m_soilLayers;
     //! soil thickness of each layer

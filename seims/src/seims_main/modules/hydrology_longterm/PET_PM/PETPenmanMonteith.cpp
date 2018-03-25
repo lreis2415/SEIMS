@@ -6,81 +6,41 @@
 
 using namespace std;
 
-PETPenmanMonteith::PETPenmanMonteith(void) : m_tSnow(-1), m_nCells(-1),
-                                             m_elev(NULL), m_rhd(NULL), m_sr(NULL), m_tMean(NULL), m_tMin(NULL),
-                                             m_tMax(NULL), m_ws(NULL), m_phutot(NULL),
-                                             m_growCode(NULL), m_cht(NULL), m_lai(NULL), m_petFactor(1.f),
-                                             m_cellLat(NULL), m_albedo(NULL), m_gsi(NULL), m_vpd2(NULL), m_frgmax(NULL),
-                                             m_vpdfr(NULL),
-                                             m_pet(NULL), m_vpd(NULL), m_dayLen(NULL), m_phuBase(NULL), m_ppt(NULL) {
+PETPenmanMonteith::PETPenmanMonteith() : m_tSnow(-1), m_nCells(-1),
+                                         m_elev(nullptr), m_rhd(nullptr), m_sr(nullptr), m_tMean(nullptr), m_tMin(nullptr),
+                                         m_tMax(nullptr), m_ws(nullptr), m_phutot(nullptr),
+                                         m_growCode(nullptr), m_cht(nullptr), m_lai(nullptr), m_petFactor(1.f),
+                                         m_cellLat(nullptr), m_albedo(nullptr), m_gsi(nullptr), m_vpd2(nullptr), m_frgmax(nullptr),
+                                         m_vpdfr(nullptr),
+                                         m_pet(nullptr), m_vpd(nullptr), m_dayLen(nullptr), m_phuBase(nullptr), m_ppt(nullptr) {
 }
 
-PETPenmanMonteith::~PETPenmanMonteith(void) {
-    if (this->m_dayLen != NULL) Release1DArray(this->m_dayLen);
-    if (this->m_pet != NULL) Release1DArray(this->m_pet);
-    if (this->m_vpd != NULL) Release1DArray(this->m_vpd);
-    if (this->m_phuBase != NULL) Release1DArray(this->m_phuBase);
+PETPenmanMonteith::~PETPenmanMonteith() {
+    if (m_dayLen != nullptr) Release1DArray(m_dayLen);
+    if (m_phuBase != nullptr) Release1DArray(m_phuBase);
+    if (m_pet != nullptr) Release1DArray(m_pet);
+    if (m_vpd != nullptr) Release1DArray(m_vpd);
 }
 
 bool PETPenmanMonteith::CheckInputData() {
-    if (this->m_date < 0) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "You have not set the time.");
-    }
-    if (m_nCells <= 0) {
-        throw ModelException(MID_PET_PM, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (this->m_cht == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The canopy height can not be NULL.");
-    }
-    if (this->m_elev == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The elevation can not be NULL.");
-    }
-    if (this->m_growCode == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The land cover status code can not be NULL.");
-    }
-    if (this->m_lai == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The leaf area index can not be NULL.");
-    }
-    if (this->m_albedo == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The albedo of the current day can not be NULL.");
-    }
-    if (this->m_rhd == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The relative humidity can not be NULL.");
-    }
-    if (this->m_sr == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The solar radiation can not be NULL.");
-    }
-    if (this->m_tMean == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The mean temperature can not be NULL.");
-    }
-    if (this->m_tMin == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The min temperature can not be NULL.");
-    }
-    if (this->m_tMax == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The max temperature can not be NULL.");
-    }
-    if (this->m_ws == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The wind speed can not be NULL.");
-    }
-    if (this->m_cellLat == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The latitude can not be NULL.");
-    }
-    if (this->m_phutot == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The PHU0 can not be NULL.");
-    }
-    if (this->m_gsi == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData", "The maximum stomatal conductance can not be NULL.");
-    }
-    if (this->m_vpdfr == NULL) {
-        throw ModelException(MID_PET_PM,
-                             "CheckInputData",
-                             "The vapor pressure deficit(kPa) corresponding to the second point on the stomatal conductance curve can not be NULL.");
-    }
-    if (this->m_frgmax == NULL) {
-        throw ModelException(MID_PET_PM, "CheckInputData",
-                             "The fraction of maximum stomatal conductance can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_PET_PM, m_date);
+    CHECK_POSITIVE(MID_PET_PM, m_nCells);
+    CHECK_POINTER(MID_PET_PM, m_cht);
+    CHECK_POINTER(MID_PET_PM, m_elev);
+    CHECK_POINTER(MID_PET_PM, m_growCode);
+    CHECK_POINTER(MID_PET_PM, m_lai);
+    CHECK_POINTER(MID_PET_PM, m_albedo);
+    CHECK_POINTER(MID_PET_PM, m_rhd);
+    CHECK_POINTER(MID_PET_PM, m_sr);
+    CHECK_POINTER(MID_PET_PM, m_tMax);
+    CHECK_POINTER(MID_PET_PM, m_tMean);
+    CHECK_POINTER(MID_PET_PM, m_tMin);
+    CHECK_POINTER(MID_PET_PM, m_cellLat);
+    CHECK_POINTER(MID_PET_PM, m_ws);
+    CHECK_POINTER(MID_PET_PM, m_gsi);
+    CHECK_POINTER(MID_PET_PM, m_tMin);
+    CHECK_POINTER(MID_PET_PM, m_vpdfr);
+    CHECK_POINTER(MID_PET_PM, m_frgmax);
     return true;
 }
 
@@ -89,8 +49,8 @@ bool PETPenmanMonteith::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_PET_PM, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_PET_PM, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
@@ -112,55 +72,37 @@ void PETPenmanMonteith::SetValue(const char *key, float value) {
 }
 
 void PETPenmanMonteith::Set1DData(const char *key, int n, float *value) {
-    if (!this->CheckInputSize(key, n)) return;
+    CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, DataType_MeanTemperature)) {
-        this->m_tMean = value;
-    } else if (StringMatch(sk, DataType_MaximumTemperature)) {
-        this->m_tMax = value;
-    } else if (StringMatch(sk, DataType_MinimumTemperature)) {
-        this->m_tMin = value;
-    } else if (StringMatch(sk, VAR_CELL_LAT)) {
-        this->m_cellLat = value;
-    } else if (StringMatch(sk, DataType_RelativeAirMoisture)) {
-        this->m_rhd = value;
-    } else if (StringMatch(sk, DataType_SolarRadiation)) {
-        this->m_sr = value;
-    } else if (StringMatch(sk, DataType_WindSpeed)) {
-        this->m_ws = value;
-    } else if (StringMatch(sk, VAR_DEM)) {
-        this->m_elev = value;
-        //from PG model, such as BIO_EPIC
-    } else if (StringMatch(sk, VAR_CHT)) {
-        this->m_cht = value;
-    } else if (StringMatch(sk, VAR_ALBDAY)) {
-        this->m_albedo = value;
-    } else if (StringMatch(sk, VAR_LAIDAY)) {
-        this->m_lai = value;
-        //from database
-    } else if (StringMatch(sk, VAR_PHUTOT)) {
-        this->m_phutot = value;
-    } else if (StringMatch(sk, VAR_IGRO)) {
-        this->m_growCode = value;
-    } else if (StringMatch(sk, VAR_GSI)) {
-        this->m_gsi = value;
-    } else if (StringMatch(sk, VAR_VPDFR)) {
-        this->m_vpdfr = value;
-    } else if (StringMatch(sk, VAR_FRGMAX)) {
-        this->m_frgmax = value;
-    } else {
-        throw ModelException(MID_PET_PM, "Set1DData", "Parameter " + sk +
-            " does not exist in current module. Please contact the module developer.");
+    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; } 
+    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; } 
+    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; } 
+    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; } 
+    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; } 
+    else if (StringMatch(sk, DataType_SolarRadiation)) { m_sr = value; } 
+    else if (StringMatch(sk, DataType_WindSpeed)) { m_ws = value; } 
+    else if (StringMatch(sk, VAR_DEM)) { m_elev = value; }
+    else if (StringMatch(sk, VAR_CHT)) { m_cht = value; } 
+    else if (StringMatch(sk, VAR_ALBDAY)) { m_albedo = value; } 
+    else if (StringMatch(sk, VAR_LAIDAY)) { m_lai = value; } 
+    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; } 
+    else if (StringMatch(sk, VAR_IGRO)) { m_growCode = value; } 
+    else if (StringMatch(sk, VAR_GSI)) { m_gsi = value; } 
+    else if (StringMatch(sk, VAR_VPDFR)) { m_vpdfr = value; } 
+    else if (StringMatch(sk, VAR_FRGMAX)) { m_frgmax = value; } 
+    else {
+        throw ModelException(MID_PET_PM, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void PETPenmanMonteith::initialOutputs() {
-    if (this->m_vpd == NULL) Initialize1DArray(m_nCells, m_vpd, 0.f);
-    if (this->m_dayLen == NULL) Initialize1DArray(m_nCells, m_dayLen, 0.f);
-    if (this->m_phuBase == NULL) Initialize1DArray(m_nCells, m_phuBase, 0.f);
-    if (this->m_pet == NULL) Initialize1DArray(m_nCells, m_pet, 0.f);
-    if (this->m_ppt == NULL) Initialize1DArray(m_nCells, m_ppt, 0.f);
-    if (NULL == m_vpd2) this->m_vpd2 = new float[this->m_nCells];
+    CHECK_POSITIVE(MID_PET_PM, m_nCells);
+    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
+    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
+    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.f);
+    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
+    if (nullptr == m_ppt) Initialize1DArray(m_nCells, m_ppt, 0.f);
+    if (nullptr == m_vpd2) m_vpd2 = new float[m_nCells];
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_frgmax[i] > 0.f && m_vpdfr[i] > 0.f) {
@@ -172,10 +114,9 @@ void PETPenmanMonteith::initialOutputs() {
 }
 
 int PETPenmanMonteith::Execute() {
-    //check the data
-    if (!this->CheckInputData()) return false;
+    CheckInputData();
     initialOutputs();
-    int d = JulianDay(this->m_date);
+    int d = JulianDay(m_date);
     //do the execute
 #pragma omp parallel for
     for (int j = 0; j < m_nCells; ++j) {
@@ -193,7 +134,7 @@ int PETPenmanMonteith::Execute() {
         //               compute net radiation
         //net short-wave radiation for PET (from swat)
         float raShortWave = m_sr[j] * (1.f - 0.23f);
-        if (m_tMean[j] < this->m_tSnow) {        //if the mean t < snow t, consider the snow depth is larger than 0.5mm.
+        if (m_tMean[j] < m_tSnow) {        //if the mean t < snow t, consider the snow depth is larger than 0.5mm.
             raShortWave = m_sr[j] * (1.f - 0.8f);
         }
 
@@ -247,7 +188,7 @@ int PETPenmanMonteith::Execute() {
         //The albedo would be obtained from plant growth module. But now it is assumed to be a constant.
         //After the plant growth module is completed, the following codes should be removed.
         //float albedo = 0.8f;
-        //if(m_tMean[j] > this->m_tSnow) albedo = 0.23f;
+        //if(m_tMean[j] > m_tSnow) albedo = 0.23f;
         //// m_albedo is calculated by BIO_EPIC module. By LJ, 2016
         //*********************************************************
         // calculate net short-wave radiation for max plant PET
@@ -255,8 +196,7 @@ int PETPenmanMonteith::Execute() {
         float raNetPlant = raShortWavePlant + raLongWave;
 
         float epMax = 0.f;
-        if (m_growCode[j] > 0) //land cover growing
-        {
+        if (m_growCode[j] > 0) { //land cover growing
             //determine wind speed and height of wind speed measurement
             //adjust to 100 cm (1 m) above canopy if necessary
             float zz = 0.f;  //height at which wind speed is determined(cm)
@@ -323,16 +263,12 @@ int PETPenmanMonteith::Execute() {
 }
 
 void PETPenmanMonteith::Get1DData(const char *key, int *n, float **data) {
-    // CheckInputData(); // Plz avoid putting CheckInputData() in Get1DData, this may cause Set time error! By LJ
     initialOutputs();
     string sk(key);
-    *n = this->m_nCells;
-    if (StringMatch(sk, VAR_PET)) { *data = this->m_pet; }
-    else if (StringMatch(sk, VAR_PPT)) { *data = this->m_ppt; }
-    else if (StringMatch(sk, VAR_VPD)) { *data = this->m_vpd; }
-    else if (StringMatch(sk, VAR_DAYLEN)) { *data = this->m_dayLen; }
-    else if (StringMatch(sk, VAR_PHUBASE)) *data = this->m_phuBase;
+    *n = m_nCells;
+    if (StringMatch(sk, VAR_PET)) { *data = m_pet; }
+    else if (StringMatch(sk, VAR_PPT)) { *data = m_ppt; }
+    else if (StringMatch(sk, VAR_VPD)) { *data = m_vpd; }
+    else if (StringMatch(sk, VAR_DAYLEN)) { *data = m_dayLen; }
+    else if (StringMatch(sk, VAR_PHUBASE)) *data = m_phuBase;
 }
-
-
-

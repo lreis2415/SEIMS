@@ -5,10 +5,7 @@
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETHargreaves();
 }
-/*!
- * \ingroup PET_H
- * \brief function to return the XML Metadata document string
- */
+
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
@@ -43,7 +40,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddDependency(MCLS_CLIMATE, MCLSDESC_CLIMATE);
 
     string res = mdi.GetXMLDocument();
-
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;

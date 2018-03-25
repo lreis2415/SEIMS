@@ -9,7 +9,9 @@
  * \data 2016-10-10
  * \description: 1. Update all related variables after the simulation of pothole.
  */
-#pragma once
+#ifndef SEIMS_MODULE_IMP_SWAT_H
+#define SEIMS_MODULE_IMP_SWAT_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -29,7 +31,7 @@ private:
     /// soil layers
     float *m_soilLayers;
     /// max soil layers
-    int m_nSoilLayers;
+    int m_nMaxSoilLayers;
     /// subbasin ID
     float *m_subbasin;
     /// subbasin number
@@ -197,13 +199,11 @@ private:
     float *m_sedMinPSToCh;
 
 public:
-    //! Constructor
-    IMP_SWAT(void);
+    IMP_SWAT();
 
-    //! Destructor
-    ~IMP_SWAT(void);
+    ~IMP_SWAT();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -218,7 +218,7 @@ private:
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
@@ -242,7 +242,7 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs(void);
+    void initialOutputs();
 
     /*!
      * \brief Simulates depressional areas that do not
@@ -261,3 +261,4 @@ private:
      */
     void releaseWater(int id);
 };
+#endif /* SEIMS_MODULE_IMP_SWAT_H */

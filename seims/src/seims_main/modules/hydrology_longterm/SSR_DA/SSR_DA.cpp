@@ -118,7 +118,7 @@ int SSR_DA::Execute() {
         // DO NOT THROW EXCEPTION IN OMP FOR LOOP, i.e., FlowInSoil(id) function.
         int errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
-        for (int iCell = 1; iCell <= nCells; ++iCell) {
+        for (int iCell = 1; iCell <= nCells; iCell++) {
             int id = (int) m_routingLayers[iLayer][iCell];
             if (!FlowInSoil(id)) errCount++;
         }
@@ -258,9 +258,9 @@ void SSR_DA::Set2DData(const char *key, int nrows, int ncols, float **data) {
 void SSR_DA::GetValue(const char *key, float *value) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { /// For MPI version to transfer data across subbasins
-        *value = m_qiSubbasin[m_subbasinID];
-    } else {
+    /// For MPI version to transfer data across subbasins
+    if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { *value = m_qiSubbasin[m_subbasinID]; } 
+    else {
         throw ModelException(MID_SSR_DA, "GetValue", "Result " + sk + " does not exist.");
     }
 }
@@ -268,9 +268,8 @@ void SSR_DA::GetValue(const char *key, float *value) {
 void SSR_DA::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBIF)) {
-        *data = m_qiSubbasin;
-    } else {
+    if (StringMatch(sk, VAR_SBIF)) { *data = m_qiSubbasin; } 
+    else {
         throw ModelException(MID_SSR_DA, "Get1DData", "Result " + sk + " does not exist.");
     }
     *n = m_nSubbasin + 1;
@@ -321,7 +320,8 @@ bool SSR_DA::CheckInputData() {
 }
 
 void SSR_DA::initialOutputs() {
-    CheckInputData();
+    CHECK_POSITIVE(MID_SSR_DA, m_nCells);
+    CHECK_POSITIVE(MID_SSR_DA, m_nSubbasin);
     if (nullptr == m_qiSubbasin) Initialize1DArray(m_nSubbasin + 1, m_qiSubbasin, 0.f);
     if (nullptr == m_qi) Initialize2DArray(m_nCells, m_nSoilLayers, m_qi, 0.f);
     if (nullptr == m_qiVol) Initialize2DArray(m_nCells, m_nSoilLayers, m_qiVol, 0.f);
@@ -332,8 +332,8 @@ bool SSR_DA::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_SSR_DA, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_SSR_DA, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");

@@ -60,7 +60,7 @@ bool MUSK_CH::CheckInputData() {
 }
 
 void MUSK_CH::initialOutputs() {
-    CheckInputData();
+    CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
     //initial channel storage
     if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
@@ -428,8 +428,6 @@ void MUSK_CH::ChannelFlow(int i) {
     // first add all the inflow water
     // 1. water from this subbasin
     float qIn = m_qsSub[i] + qiSub + qgSub + ptSub + m_deepGroundwater;  /// m^3/s
-    //if (i == m_outletID) /// this should be added to each channel. By lj
-    //	qIn += m_deepGroundwater;
     // 2. water from upstream reaches
     float qsUp = 0.f;
     float qiUp = 0.f;
@@ -563,6 +561,5 @@ void MUSK_CH::ChannelFlow(int i) {
 
     // set variables for next time step
     m_qIn[i] = qIn;
-    //m_chWTdepth[i] = m_chStorage[i] / (m_chWTWidth[i] * m_chLen[i]);
     updateWaterWidthDepth(i);
 }
