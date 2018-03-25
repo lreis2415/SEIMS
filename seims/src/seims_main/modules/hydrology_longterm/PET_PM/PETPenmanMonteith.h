@@ -12,8 +12,8 @@
 			  6. change m_vpd2 and m_gsi from DT_Single to DT_Raster1D, see readplant.f of SWAT
 			  7. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
-
-#pragma once
+#ifndef SEIMS_MODULE_PET_PM_H
+#define SEIMS_MODULE_PET_PM_H
 
 #include "SimulationModule.h"
 
@@ -34,17 +34,15 @@ using namespace std;
  */
 class PETPenmanMonteith : public SimulationModule {
 public:
-    //! Constructor
-    PETPenmanMonteith(void);
+    PETPenmanMonteith();
 
-    //! Destructor
-    ~PETPenmanMonteith(void);
+    ~PETPenmanMonteith();
 
     virtual void Set1DData(const char *key, int n, float *value);
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -54,7 +52,7 @@ private:
     *
     *	@return bool The validity of the input data.
     */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /**
     *	@brief check the input size. Make sure all the input data have same dimension.
@@ -63,12 +61,10 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *, int);
-    /// USELESS? By LJ.
-    ///void clearInputs(void);
+    bool CheckInputSize(const char *key, int n);
 
     /// initialize output variables
-    void initialOutputs(void);
+    void initialOutputs();
 
 private:
     /// Mean air temperature for a given day (deg C)
@@ -135,3 +131,4 @@ private:
     /// base zero total heat units (used when no land cover is growing)
     float *m_phuBase;
 };
+#endif /* SEIMS_MODULE_PET_PM_H */

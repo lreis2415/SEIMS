@@ -1,84 +1,55 @@
 #include "seims.h"
 #include "MUSLE_AS.h"
 
-MUSLE_AS::MUSLE_AS(void) : m_nCells(-1), m_cellWidth(-1.f), m_nsub(-1), m_nSoilLayers(-1),
-                           m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),
-                           m_usle_c(NULL), m_usle_p(NULL), m_usle_k(NULL), m_usle_ls(NULL),
-                           m_flowacc(NULL), m_slope(NULL), m_streamLink(NULL), m_slopeForPq(NULL),
-                           m_snowAccumulation(NULL), m_surfaceRunoff(NULL),
-                           m_sedimentYield(NULL), m_sandYield(NULL), m_siltYield(NULL), m_clayYield(NULL),
-                           m_smaggreYield(NULL), m_lgaggreYield(NULL) {
+MUSLE_AS::MUSLE_AS() : m_nCells(-1), m_cellWidth(-1.f), m_nSoilLayers(-1),
+                       m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),
+                       m_usle_c(nullptr), m_usle_p(nullptr), m_usle_k(nullptr), m_usle_ls(nullptr),
+                       m_flowacc(nullptr), m_slope(nullptr), m_streamLink(nullptr), m_slopeForPq(nullptr),
+                       m_snowAccumulation(nullptr), m_surfaceRunoff(nullptr),
+                       m_sedimentYield(nullptr), m_sandYield(nullptr), m_siltYield(nullptr), m_clayYield(nullptr),
+                       m_smaggreYield(nullptr), m_lgaggreYield(nullptr) {
 }
 
-MUSLE_AS::~MUSLE_AS(void) {
-    if (m_sedimentYield != NULL) Release1DArray(m_sedimentYield);
-    if (m_sandYield != NULL) Release1DArray(m_sandYield);
-    if (m_siltYield != NULL) Release1DArray(m_siltYield);
-    if (m_clayYield != NULL) Release1DArray(m_clayYield);
-    if (m_smaggreYield != NULL) Release1DArray(m_smaggreYield);
-    if (m_lgaggreYield != NULL) Release1DArray(m_lgaggreYield);
-    if (m_usle_ls != NULL) Release1DArray(m_usle_ls);
-    if (m_slopeForPq != NULL) Release1DArray(m_slopeForPq);
+MUSLE_AS::~MUSLE_AS() {
+    if (m_sedimentYield != nullptr) Release1DArray(m_sedimentYield);
+    if (m_sandYield != nullptr) Release1DArray(m_sandYield);
+    if (m_siltYield != nullptr) Release1DArray(m_siltYield);
+    if (m_clayYield != nullptr) Release1DArray(m_clayYield);
+    if (m_smaggreYield != nullptr) Release1DArray(m_smaggreYield);
+    if (m_lgaggreYield != nullptr) Release1DArray(m_lgaggreYield);
+    if (m_usle_ls != nullptr) Release1DArray(m_usle_ls);
+    if (m_slopeForPq != nullptr) Release1DArray(m_slopeForPq);
 }
 
-bool MUSLE_AS::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (m_cellWidth <= 0) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The cell width can not be less than zero.");
-    }
-    if (m_depRatio == NODATA_VALUE) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The deposition ratio can not be nodata.");
-    }
-    if (m_usle_c == NULL) throw ModelException(MID_MUSLE_AS, "CheckInputData", "The factor C can not be NULL.");
-    if (m_usle_k == NULL) throw ModelException(MID_MUSLE_AS, "CheckInputData", "The factor K can not be NULL.");
-    if (m_usle_p == NULL) throw ModelException(MID_MUSLE_AS, "CheckInputData", "The factor P can not be NULL.");
-    if (m_flowacc == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The flow accumulation can not be NULL.");
-    }
-    if (m_slope == NULL) throw ModelException(MID_MUSLE_AS, "CheckInputData", "The slope can not be NULL.");
-    if (m_snowAccumulation == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The snow accumulation can not be NULL.");
-    }
-    if (m_surfaceRunoff == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The surface runoff can not be NULL.");
-    }
-    if (m_streamLink == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: STREAM_LINK has not been set.");
-    }
-    if (m_detachSand == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: m_detachSand has not been set.");
-    }
-    if (m_detachSilt == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: m_detachSilt has not been set.");
-    }
-    if (m_detachClay == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: m_detachClay has not been set.");
-    }
-    if (m_detachSmAggre == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: m_detachSmAggre has not been set.");
-    }
-    if (m_detachLgAggre == NULL) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData", "The parameter: m_detachLgAggre has not been set.");
-    }
+bool MUSLE_AS::CheckInputData() {
+    CHECK_POSITIVE(MID_MUSLE_AS, m_nCells);
+    CHECK_POSITIVE(MID_MUSLE_AS, m_cellWidth);
+    CHECK_NONNEGATIVE(MID_MUSLE_AS, m_depRatio);
+    CHECK_POINTER(MID_MUSLE_AS, m_usle_c);
+    CHECK_POINTER(MID_MUSLE_AS, m_usle_k);
+    CHECK_POINTER(MID_MUSLE_AS, m_usle_p);
+    CHECK_POINTER(MID_MUSLE_AS, m_flowacc);
+    CHECK_POINTER(MID_MUSLE_AS, m_slope);
+    CHECK_POINTER(MID_MUSLE_AS, m_snowAccumulation);
+    CHECK_POINTER(MID_MUSLE_AS, m_surfaceRunoff);
+    CHECK_POINTER(MID_MUSLE_AS, m_streamLink);
+    CHECK_POINTER(MID_MUSLE_AS, m_detachSand);
+    CHECK_POINTER(MID_MUSLE_AS, m_detachSilt);
+    CHECK_POINTER(MID_MUSLE_AS, m_detachClay);
+    CHECK_POINTER(MID_MUSLE_AS, m_detachSmAggre);
+    CHECK_POINTER(MID_MUSLE_AS, m_detachLgAggre);
     return true;
 }
 
 void MUSLE_AS::initialOutputs() {
-    if (m_nCells <= 0) {
-        throw ModelException(MID_MUSLE_AS, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-
-    if (m_sedimentYield == NULL) Initialize1DArray(m_nCells, m_sedimentYield, 0.f);
-    if (m_sandYield == NULL) Initialize1DArray(m_nCells, m_sandYield, 0.f);
-    if (m_siltYield == NULL) Initialize1DArray(m_nCells, m_siltYield, 0.f);
-    if (m_clayYield == NULL) Initialize1DArray(m_nCells, m_clayYield, 0.f);
-    if (m_smaggreYield == NULL) Initialize1DArray(m_nCells, m_smaggreYield, 0.f);
-    if (m_lgaggreYield == NULL) Initialize1DArray(m_nCells, m_lgaggreYield, 0.f);
-    if (m_usle_ls == NULL) {
+    CHECK_POSITIVE(MID_MUSLE_AS, m_nCells);
+    if (nullptr == m_sedimentYield) Initialize1DArray(m_nCells, m_sedimentYield, 0.f);
+    if (nullptr == m_sandYield) Initialize1DArray(m_nCells, m_sandYield, 0.f);
+    if (nullptr == m_siltYield) Initialize1DArray(m_nCells, m_siltYield, 0.f);
+    if (nullptr == m_clayYield) Initialize1DArray(m_nCells, m_clayYield, 0.f);
+    if (nullptr == m_smaggreYield) Initialize1DArray(m_nCells, m_smaggreYield, 0.f);
+    if (nullptr == m_lgaggreYield) Initialize1DArray(m_nCells, m_lgaggreYield, 0.f);
+    if (nullptr == m_usle_ls) {
         float constant = pow(22.13f, 0.4f);
         m_usle_ls = new float[m_nCells];
         m_slopeForPq = new float[m_nCells];
@@ -109,15 +80,6 @@ void MUSLE_AS::initialOutputs() {
     }
 }
 
-//float MUSLE_AS::getPeakRunoffRate(int cell) {
-//    // peak flow
-//    if (m_surfaceRunoff[cell] < 0.01f) {
-//        return 0.f;
-//    } else {
-//        return m_cellAreaKM1 * m_slopeForPq[cell] * pow(m_surfaceRunoff[cell] / 25.4f, m_cellAreaKM2);
-//    }
-//}
-
 int MUSLE_AS::Execute() {
     CheckInputData();
     initialOutputs();
@@ -143,7 +105,6 @@ int MUSLE_AS::Execute() {
         }
         m_sedimentYield[i] = Y * 1000.f; /// kg
 
-        //if(i == 1000) cout << m_sedimentYield[i] << "," << m_surfaceRunoff[i] << endl;
         /// particle size distribution of sediment yield
         m_sandYield[i] = m_sedimentYield[i] * m_detachSand[i];
         m_siltYield[i] = m_sedimentYield[i] * m_detachSilt[i];
@@ -185,17 +146,13 @@ void MUSLE_AS::SetValue(const char *key, float data) {
 }
 
 void MUSLE_AS::Set1DData(const char *key, int n, float *data) {
-
     CheckInputSize(key, n);
     string s(key);
     if (StringMatch(s, VAR_USLE_C)) { m_usle_c = data; }
     else if (StringMatch(s, VAR_USLE_P)) { m_usle_p = data; }
     else if (StringMatch(s, VAR_ACC)) { m_flowacc = data; }
-    else if (StringMatch(s, VAR_SLOPE)) {
-        m_slope = data;
-        //else if (StringMatch(s, VAR_SUBBSN)) m_subbasin = data;
-        //else if (StringMatch(s, VAR_SURU)) m_surfaceRunoff = data;
-    } else if (StringMatch(s, VAR_OLFLOW)) { m_surfaceRunoff = data; }
+    else if (StringMatch(s, VAR_SLOPE)) { m_slope = data; }
+    else if (StringMatch(s, VAR_OLFLOW)) { m_surfaceRunoff = data; }
     else if (StringMatch(s, VAR_SNAC)) { m_snowAccumulation = data; }
     else if (StringMatch(s, VAR_STREAM_LINK)) { m_streamLink = data; }
     else if (StringMatch(s, VAR_DETACH_SAND)) { m_detachSand = data; }
@@ -209,26 +166,14 @@ void MUSLE_AS::Set1DData(const char *key, int n, float *data) {
 }
 
 void MUSLE_AS::Set2DData(const char *key, int nRows, int nCols, float **data) {
-    string s(key);
     CheckInputSize(key, nRows);
+    string s(key);
     m_nSoilLayers = nCols;
-    if (StringMatch(s, VAR_USLE_K)) {
-        this->m_usle_k = data;
-    } else {
+    if (StringMatch(s, VAR_USLE_K)) { m_usle_k = data; } 
+    else {
         throw ModelException(MID_MUSLE_AS, "Set2DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
-}
-
-void MUSLE_AS::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_nsub < 0) {
-        m_nsub = subbasins->GetSubbasinNumber();
-    }
-}
-
-void MUSLE_AS::GetValue(const char *key, float *value) {
-    string s(key);
-    throw ModelException(MID_MUSLE_AS, "GetValue", "Result " + s + " does not exist.");
 }
 
 void MUSLE_AS::Get1DData(const char *key, int *n, float **data) {
@@ -246,5 +191,3 @@ void MUSLE_AS::Get1DData(const char *key, int *n, float **data) {
     }
     *n = m_nCells;
 }
-
-

@@ -26,6 +26,45 @@ using namespace std;
  * 
  */
 class SSR_DA : public SimulationModule {
+public:
+    SSR_DA();
+
+    ~SSR_DA();
+
+    virtual int Execute();
+
+    virtual void SetValue(const char *key, float data);
+
+    virtual void Set1DData(const char *key, int nRows, float *data);
+
+    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+
+    virtual void GetValue(const char *key, float *value);
+
+    virtual void Get1DData(const char *key, int *n, float **data);
+
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+private:
+    /**
+    *	@brief check the input data. Make sure all the input data is available.
+    *
+    *	@return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /**
+    *	@brief check the input size. Make sure all the input data have same dimension.
+    *
+    *	@param key The key of the input data
+    *	@param n The input data dimension
+    *	@return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    void initialOutputs();
+
+    bool FlowInSoil(int id);
 private:
     /// current subbasin ID, 0 for the entire watershed
     int m_subbasinID;
@@ -115,48 +154,6 @@ private:
     float **m_qiVol;
     /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF
     float *m_qiSubbasin;
-
-public:
-    /// constructor
-    SSR_DA();
-
-    /// destructor
-    ~SSR_DA();
-
-    virtual int Execute(void);
-
-    virtual void SetValue(const char *key, float data);
-
-    virtual void Set1DData(const char *key, int nRows, float *data);
-
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
-    virtual void GetValue(const char *key, float *value);
-
-    virtual void Get1DData(const char *key, int *n, float **data);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData(void);
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int);
-
-    void initialOutputs(void);
-
-    bool FlowInSoil(int id);
 };
 
 #endif /* SEIMS_MODULE_SSR_DA_H */

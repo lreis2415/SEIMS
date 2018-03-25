@@ -7,7 +7,9 @@
  * \date Apr 2017
  * 
  */
-#pragma once
+#ifndef SEIMS_MODULE_PI_MCS_H
+#define SEIMS_MODULE_PI_MCS_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -23,11 +25,40 @@ using namespace std;
  */
 class clsPI_MCS : public SimulationModule {
 public:
-    //! Constructor
-    clsPI_MCS(void);
+    clsPI_MCS();
 
-    //! Destructor
-    ~clsPI_MCS(void);
+    ~clsPI_MCS();
+
+    virtual void Set1DData(const char *key, int nRows, float *data);
+
+    virtual void SetValue(const char *key, float data);
+
+    virtual void Get1DData(const char *key, int *nRows, float **data);
+
+    virtual int Execute();
+
+private:
+    /**
+    *	@brief check the input data. Make sure all the input data is available.
+    *
+    *	@return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /**
+    *	@brief check the input size. Make sure all the input data have same dimension.
+    *
+    *	@param key The key of the input data
+    *	@param n The input data dimension
+    *	@return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    /*!
+     * \brief Initialize output variables for the first run of the entire simulation
+     */
+    void initialOutputs();
+
 private:
     /* Parameters from database */
 
@@ -81,34 +112,5 @@ private:
 
     //!  number of valid cells
     int m_nCells;
-public:
-    virtual void Set1DData(const char *key, int nRows, float *data);
-
-    virtual void SetValue(const char *key, float data);
-
-    virtual void Get1DData(const char *key, int *nRows, float **data);
-
-    virtual int Execute(void);
-
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData(void);
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int);
-
-    /*!
-     * \brief Initialize output variables for the first run of the entire simulation
-     */
-    void initialOutputs(void);
 };
+#endif /* SEIMS_MODULE_PI_MCS_H */

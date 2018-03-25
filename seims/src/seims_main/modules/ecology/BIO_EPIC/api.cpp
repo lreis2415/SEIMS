@@ -105,7 +105,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     // set the output variables
     mdi.AddOutput(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, DT_Raster1D);
     mdi.AddOutput(VAR_HVSTI_ADJ, UNIT_CONT_RATIO, DESC_HVSTI_ADJ, DT_Raster1D);
-    mdi.AddOutput(VAR_CHT, UNIT_LEN_M, DESC_CHT, DT_Raster1D);
+    //mdi.AddOutput(VAR_CHT, UNIT_LEN_M, DESC_CHT, DT_Raster1D);
     mdi.AddOutput(VAR_ALBDAY, UNIT_NON_DIM, DESC_ALBDAY, DT_Raster1D);
     mdi.AddOutput(VAR_DORMI, UNIT_NON_DIM, DESC_DORMI, DT_Raster1D);
 
