@@ -25,8 +25,9 @@
 *	Date    :    2016-7-14
 *	Description:
 *---------------------------------------------------------------------*/
+#ifndef SEIMS_MODULE_DEP_LINSLEY_H
+#define SEIMS_MODULE_DEP_LINSLEY_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -44,13 +45,11 @@ using namespace std;
  */
 class DepressionFSDaily : public SimulationModule {
 public:
-    //! Constructor
-    DepressionFSDaily(void);
+    DepressionFSDaily();
 
-    //! Destructor
-    ~DepressionFSDaily(void);
+    ~DepressionFSDaily();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -60,8 +59,21 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
+private:
+    /*!
+     * \brief Initialize output variables
+     * This module will be called by infiltration module to get the
+     *		depression storage. And this module will also use the outputs
+     *		of infiltration module. The sequence of this two modules is
+     *		infiltration->depression. When infiltration first calls the
+     *		depression module, the execute function of depression module
+     *		is not executed before getting the outputs. So, the output
+     *		variables should be initial in the Get1DData function. This
+     *		initialization is realized by function initalOutputs.
+     */
+    void initialOutputs();
 private:
     /// valid cells number
     int m_nCells;
@@ -90,18 +102,5 @@ private:
     float *m_ed;
     /// surface runoff
     float *m_sr;
-
-    /*!
-     * \brief Initialize output variables
-     * This module will be called by infiltration module to get the
-     *		depression storage. And this module will also use the outputs
-     *		of infiltration module. The sequence of this two modules is
-     *		infiltration->depression. When infiltration first calls the
-     *		depression module, the execute function of depression module
-     *		is not executed before getting the outputs. So, the output
-     *		variables should be initial in the Get1DData function. This
-     *		initialization is realized by function initalOutputs.
-     */
-    void initialOutputs(void);
 };
-
+#endif /* SEIMS_MODULE_DEP_LINSLEY_H */

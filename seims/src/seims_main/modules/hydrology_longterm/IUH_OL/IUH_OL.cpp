@@ -15,7 +15,7 @@ IUH_OL::~IUH_OL() {
     Release1DArray(m_OL_Flow);
 }
 
-bool IUH_OL::CheckInputData(void) {
+bool IUH_OL::CheckInputData() {
     CHECK_POSITIVE(MID_IUH_OL, m_date);
     CHECK_POSITIVE(MID_IUH_OL, m_nSubbasins);
     CHECK_NONNEGATIVE(MID_IUH_OL, m_subbasinID);
@@ -29,6 +29,8 @@ bool IUH_OL::CheckInputData(void) {
 }
 
 void IUH_OL::initialOutputs() {
+    CHECK_POSITIVE(MID_IUH_OL, m_nSubbasins);
+
     if (m_cellArea <= 0.f) m_cellArea = m_CellWidth * m_CellWidth;
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.f);

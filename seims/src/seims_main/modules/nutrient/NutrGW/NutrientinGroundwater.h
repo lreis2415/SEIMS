@@ -2,9 +2,11 @@
  * \brief Calculates the nitrate and soluble phosphorus loading contributed by groundwater flow.
  * \author Huiran Gao
  * \date Jun 2016
+ * \revised date 2018-3-23
  */
+#ifndef SEIMS_MODULE_NUTRGW_H
+#define SEIMS_MODULE_NUTRGW_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -35,16 +37,33 @@ public:
 
     virtual void SetReaches(clsReaches *reaches);
 
-    //virtual void Set2DData(const char* key, int nRows, int nCols, float** data);
     virtual int Execute();
 
-    //virtual void GetValue(const char* key, float* value);
     virtual void Get1DData(const char *key, int *n, float **data);
-    //virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data);
 
     virtual void SetSubbasins(clsSubbasins *subbasins);
 
 private:
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    /// initial outputs
+    void initialOutputs();
+private:
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// cell width of grid map (m)
     float m_cellWidth;
     /// number of cells
@@ -99,24 +118,5 @@ private:
     float *m_subbasin;
     /// subbasins information
     clsSubbasins *m_subbasinsInfo;
-
-private:
-
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    /// initial outputs
-    void initialOutputs();
 };
+#endif /* SEIMS_MODULE_NUTRGW_H */

@@ -6,9 +6,8 @@
  *
  * \revised Liang-Jun Zhu
  * \date 2016-7-24
- * \note: 1. 
- *        2. Change m_wshd_dnit etc. variables to store the statistics values of the current day
- *        3. m_hmntl etc. variables should be DT_Raster1D rather than DT_Single since they are soil profile values in cell!
+ * \note: 1. Change m_wshd_dnit etc. variables to store the statistics values of the current day
+ *        2. m_hmntl etc. variables should be DT_Raster1D rather than DT_Single since they are soil profile values in cell!
  */
 
 /*!
@@ -19,8 +18,9 @@
  * \author Huiran Gao
  * \date April 2016
  */
+#ifndef SEIMS_MODULE_NUTR_TF_H
+#define SEIMS_MODULE_NUTR_TF_H
 
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -35,9 +35,9 @@ using namespace std;
  */
 class Nutrient_Transformation : public SimulationModule {
 public:
-    Nutrient_Transformation(void);
+    Nutrient_Transformation();
 
-    ~Nutrient_Transformation(void);
+    ~Nutrient_Transformation();
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -45,7 +45,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void GetValue(const char *key, float *value);
 
@@ -53,6 +53,63 @@ public:
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
+private:
+
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    /*!
+    * \brief estimates daily nitrogen and phosphorus mineralization and immobilization.
+    *        considering fresh organic material (plant residue) and active and stable humus material
+    *        Execute when CSWAT = 0, rewrite from nminrl.f of SWAT
+    * \return void
+    */
+    void Mineralization_StaticCarbonMethod(int i);
+
+    /*!
+    * \brief simulates organic C, N, and P cycling in soil using C-FARM one carbon model
+    *        Execute when CSWAT = 1, rewrite from carbon_new.f and ndenit.f of SWAT
+    * \TODO THIS IS ON THE TODO LIST.
+    * \return void
+    */
+    void Mineralization_CFARMOneCarbonModel(int i);
+
+    /*!
+    * \brief simulates organic C, N, and P cycling in soil using CENTURY model
+    *        Execute when CSWAT = 2, rewrite from carbon_zhang.f90 and ndenit.f of SWAT
+    * \return void
+    */
+    void Mineralization_CENTURYModel(int i);
+
+    /*!
+    * \brief estimates daily mineralization (NH3 to NO3) and volatilization of NH3.
+    *        rewrite from nitvol.f of SWAT
+    * \return void
+    */
+    void Volatilization(int i);
+
+    /*!
+    * \brief Calculate P flux between the labile, active mineral and stable mineral p pools.
+    *        rewrite from pminrl, and pminrl2 according to solP_model
+    * \TODO In current version, the solP_model is set to 0, i.e., pminrl2 is used as default
+    * \return void
+    */
+    void CalculatePflux(int i);
+
+    /// initial outputs
+    void initialOutputs();
 private:
     /// cell width of grid map (m)
     float m_cellWidth;
@@ -62,7 +119,7 @@ private:
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers
-    int m_soilLayers;
+    int m_nMaxSoilLayers;
     /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
@@ -94,8 +151,10 @@ private:
     /// denitrification threshold: fraction of field capacity
     float m_sdnco;
     ///Phosphorus availability index. The fraction of fertilizer P remaining in labile pool after initial rapid phase of P sorption
-    float m_psp;
-    float m_ssp;
+    float m_psp_bsn;
+    float *m_psp;
+    float **m_psp_store; // TODO, these variables should be figure out. lj
+    float **m_ssp_store;
     //rate coefficient for denitrification
     float m_cdn;
     ///land cover code from crop.dat
@@ -228,61 +287,5 @@ private:
 
     /// factor which converts kg/kg soil to kg/ha, could be used in other nutrient modules
     float **m_conv_wt;
-private:
-
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData(void);
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    /*!
-     * \brief estimates daily nitrogen and phosphorus mineralization and immobilization.
-     *        considering fresh organic material (plant residue) and active and stable humus material
-	 *        Execute when CSWAT = 0, rewrite from nminrl.f of SWAT 
-     * \return void
-     */
-    void Mineralization_StaticCarbonMethod(int i);
-
-    /*!
-     * \brief simulates organic C, N, and P cycling in soil using C-FARM one carbon model
-     *        Execute when CSWAT = 1, rewrite from carbon_new.f and ndenit.f of SWAT
-     * \TODO THIS IS ON THE TODO LIST.
-     * \return void
-     */
-    void Mineralization_CFARMOneCarbonModel(int i);
-
-    /*!
-     * \brief simulates organic C, N, and P cycling in soil using CENTURY model
-     *        Execute when CSWAT = 2, rewrite from carbon_zhang.f90 and ndenit.f of SWAT
-     * \return void
-     */
-    void Mineralization_CENTURYModel(int i);
-
-    /*!
-     * \brief estimates daily mineralization (NH3 to NO3) and volatilization of NH3.
-     *        rewrite from nitvol.f of SWAT
-     * \return void
-     */
-    void Volatilization(int i);
-
-    /*!
-     * \brief Calculate P flux between the labile, active mineral and stable mineral p pools.
-     *        rewrite from pminrl, and pminrl2 according to solP_model
-	 * \TODO In current version, the solP_model is set to 0, i.e., pminrl2 is used as default
-     * \return void
-     */
-    void CalculatePflux(int i);
-
-    /// initial outputs
-    void initialOutputs(void);
 };
+#endif /* SEIMS_MODULE_NUTR_TF_H */

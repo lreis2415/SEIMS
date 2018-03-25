@@ -73,6 +73,9 @@ public:
     bool CheckInputData();
 
 private:
+    void initialOutputs();
+
+private:
     /// time step (sec)
     int m_TimeStep;
     /// validate cells number
@@ -108,8 +111,5 @@ private:
     float *m_Q_SBOF;
     // overland flow in each cell (mm) //added by Gao, as intermediate variable, 29 Jul 2016
     float *m_OL_Flow;
-
-    //! initial outputs
-    void initialOutputs();
 };
 #endif /* SEIMS_MODULE_IUH_OL_H */

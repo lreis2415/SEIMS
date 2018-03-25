@@ -5,7 +5,8 @@
  *              2. Code cleanup
  *
  */
-#pragma once
+#ifndef SEIMS_MODULE_SOL_WB_H
+#define SEIMS_MODULE_SOL_WB_H
 
 #include "SimulationModule.h"
 #include "clsSubbasin.h"
@@ -27,6 +28,44 @@ using namespace std;
  */
 
 class SOL_WB : public SimulationModule {
+public:
+    SOL_WB();
+
+    ~SOL_WB();
+
+    virtual void SetValue(const char *key, float data);
+
+    virtual void Set1DData(const char *key, int nRows, float *data);
+
+    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+
+    virtual void SetSubbasins(clsSubbasins *subbasins);
+
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+    virtual int Execute();
+
+private:
+    /**
+    *	@brief check the input data. Make sure all the input data is available.
+    */
+    void CheckInputData();
+
+    /**
+    *	@brief check the input size. Make sure all the input data have same dimension.
+    *
+    *	@param key The key of the input data
+    *	@param n The input data dimension
+    *	@return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    void initialOutputs();
+
+    /*!
+     * \brief Set parameter values to subbasins
+     */
+    void setValueToSubbasins();
 private:
     //! valid cells number
     int m_nCells;
@@ -83,53 +122,8 @@ private:
     //! All subbasins information,\sa clsSubbasins, \sa Subbasin
     clsSubbasins *m_subbasinsInfo;
     /* soil water balance, time series result
-     * the row index is subbasinID
-     */
+    * the row index is subbasinID
+    */
     float **m_soilWaterBalance;
-public:
-    SOL_WB(void);
-
-    ~SOL_WB(void);
-
-    virtual void SetValue(const char *key, float data);
-
-    virtual void Set1DData(const char *key, int nRows, float *data);
-
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
-    virtual void SetSubbasins(clsSubbasins *subbasins);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-    virtual int Execute(void);
-
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    */
-    void CheckInputData(void);
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int);
-
-    //!
-    void initialOutputs(void);
-
-    /*!
-     * \brief Set parameter values to subbasins
-     */
-    void setValueToSubbasins(void);
 };
-
-
-// previously, RootDepth (of plant) is confused with the sol_zmx, now change m_RootDepth to m_soilZMX
-//float *m_RootDepth;
-//float m_upSoilDepth; /// not needed any more. By LJ.
-
-//time_t m_Date; there is no need to define date here. By LJ.
+#endif /* SEIMS_MODULE_SOL_WB_H */

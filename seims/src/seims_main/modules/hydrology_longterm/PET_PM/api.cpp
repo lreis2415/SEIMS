@@ -2,25 +2,15 @@
 
 #include "api.h"
 
-/*!
- * \defgroup PET_PM
- * \ingroup Hydrology_longterm
- * \brief Calculate potential evapotranspiration using Penman-Monteith method
- *
- */
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETPenmanMonteith();
 }
 
-/*!
- * \ingroup PET_H
- * \brief function to return the XML Metadata document string
- */
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Junzhi Liu");
+    mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_PET, MCLSDESC_PET);
     mdi.SetDescription(MDESC_PET_PM);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -54,7 +44,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(DataType_WindSpeed, UNIT_SPEED_MS, DESC_WS, Source_Module, DT_Raster1D);
 
     /// these three parameters all from plant growth module, e.g., BIO_EPIC
-    mdi.AddInput(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_Module, DT_Raster1D);
+    mdi.AddParameter(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_ParameterDB, DT_Raster1D);
+    //mdi.AddInput(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_ALBDAY, UNIT_NON_DIM, DESC_ALBDAY, Source_Module, DT_Raster1D);
 
@@ -64,8 +55,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_VPD, UNIT_PRESSURE, DESC_VPD, DT_Raster1D);
     mdi.AddOutput(VAR_PET, UNIT_WTRDLT_MMD, DESC_PET, DT_Raster1D);
     mdi.AddOutput(VAR_PPT, UNIT_WTRDLT_MMD, DESC_PPT, DT_Raster1D);
-    string res = mdi.GetXMLDocument();
 
+    string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;

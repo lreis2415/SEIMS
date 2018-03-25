@@ -1,46 +1,47 @@
 #include "seims.h"
 #include "ReservoirMethod.h"
 
-ReservoirMethod::ReservoirMethod(void) : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_subbasinID(-1), m_nSoilLayers(-1),
-                                         m_soilDepth(NULL), m_soilLayers(NULL), m_soilThick(NULL), m_Slope(NULL),
-                                         m_VgroundwaterFromBankStorage(NULL), m_subbasinsInfo(NULL),
-                                         m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
-                                         m_perc(NULL), m_D_EI(NULL), m_D_ED(NULL), m_D_ES(NULL), m_D_PET(NULL),
-                                         m_plantEP(NULL), m_soilStorage(NULL),
+ReservoirMethod::ReservoirMethod() : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_subbasinID(-1), m_nMaxSoilLayers(-1),
+                                     m_soilDepth(nullptr), m_soilLayers(nullptr), m_soilThick(nullptr), m_Slope(nullptr),
+                                     m_VgroundwaterFromBankStorage(nullptr), m_subbasinsInfo(nullptr),
+                                     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
+                                     m_perc(nullptr), m_D_EI(nullptr), m_D_ED(nullptr), m_D_ES(nullptr), m_D_PET(nullptr),
+                                     m_plantEP(nullptr), m_soilStorage(nullptr),
     /// intermediate
-                                         m_petSubbasin(NULL), m_gwStore(NULL),
+                                     m_petSubbasin(nullptr), m_gwStore(nullptr),
     /// outputs
-                                         m_T_Perco(NULL), m_T_PerDep(NULL), m_T_RG(NULL), m_T_QG(NULL), m_D_Revap(NULL),
-                                         m_T_Revap(NULL), m_firstRun(true), m_T_GWWB(NULL) {
+                                     m_T_Perco(nullptr), m_T_PerDep(nullptr), m_T_RG(nullptr), m_T_QG(nullptr), m_D_Revap(nullptr),
+                                     m_T_Revap(nullptr), m_firstRun(true), m_T_GWWB(nullptr) {
 }
 
-ReservoirMethod::~ReservoirMethod(void) {
-    if (m_T_Perco != NULL) Release1DArray(m_T_Perco);
-    if (m_T_PerDep != NULL) Release1DArray(m_T_PerDep);
-    if (m_D_Revap != NULL) Release1DArray(m_D_Revap);
-    if (m_T_Revap != NULL) Release1DArray(m_T_Revap);
-    if (m_T_RG != NULL) Release1DArray(m_T_RG);
-    if (m_T_QG != NULL) Release1DArray(m_T_QG);
-    if (m_petSubbasin != NULL) Release1DArray(m_petSubbasin);
-    if (m_gwStore != NULL) Release1DArray(m_gwStore);
-    if (m_T_GWWB != NULL) Release2DArray(m_nSubbasins + 1, m_T_GWWB);
+ReservoirMethod::~ReservoirMethod() {
+    if (m_T_Perco != nullptr) Release1DArray(m_T_Perco);
+    if (m_T_PerDep != nullptr) Release1DArray(m_T_PerDep);
+    if (m_D_Revap != nullptr) Release1DArray(m_D_Revap);
+    if (m_T_Revap != nullptr) Release1DArray(m_T_Revap);
+    if (m_T_RG != nullptr) Release1DArray(m_T_RG);
+    if (m_T_QG != nullptr) Release1DArray(m_T_QG);
+    if (m_petSubbasin != nullptr) Release1DArray(m_petSubbasin);
+    if (m_gwStore != nullptr) Release1DArray(m_gwStore);
+    if (m_T_GWWB != nullptr) Release2DArray(m_nSubbasins + 1, m_T_GWWB);
 }
 
 void ReservoirMethod::initialOutputs() {
+    CHECK_POSITIVE(MID_GWA_RE, m_nSubbasins);
     int nLen = m_nSubbasins + 1;
     if (m_firstRun) {
         setSubbasinInfos();
         m_firstRun = false;
     }
-    if (m_T_Perco == NULL) Initialize1DArray(nLen, m_T_Perco, 0.f);
-    if (m_T_Revap == NULL) Initialize1DArray(nLen, m_T_Revap, 0.f);
-    if (m_T_PerDep == NULL) Initialize1DArray(nLen, m_T_PerDep, 0.f);
-    if (m_T_RG == NULL) Initialize1DArray(nLen, m_T_RG, 0.f);
-    if (m_T_QG == NULL) Initialize1DArray(nLen, m_T_QG, 0.f);
-    if (m_petSubbasin == NULL) Initialize1DArray(nLen, m_petSubbasin, 0.f);
-    if (m_gwStore == NULL) Initialize1DArray(nLen, m_gwStore, m_GW0);
-    if (m_D_Revap == NULL) Initialize1DArray(m_nCells, m_D_Revap, 0.f);
-    if (m_T_GWWB == NULL) Initialize2DArray(nLen, 6, m_T_GWWB, 0.f);
+    if (m_T_Perco == nullptr) Initialize1DArray(nLen, m_T_Perco, 0.f);
+    if (m_T_Revap == nullptr) Initialize1DArray(nLen, m_T_Revap, 0.f);
+    if (m_T_PerDep == nullptr) Initialize1DArray(nLen, m_T_PerDep, 0.f);
+    if (m_T_RG == nullptr) Initialize1DArray(nLen, m_T_RG, 0.f);
+    if (m_T_QG == nullptr) Initialize1DArray(nLen, m_T_QG, 0.f);
+    if (m_petSubbasin == nullptr) Initialize1DArray(nLen, m_petSubbasin, 0.f);
+    if (m_gwStore == nullptr) Initialize1DArray(nLen, m_gwStore, m_GW0);
+    if (m_D_Revap == nullptr) Initialize1DArray(m_nCells, m_D_Revap, 0.f);
+    if (m_T_GWWB == nullptr) Initialize2DArray(nLen, 6, m_T_GWWB, 0.f);
 }
 
 int ReservoirMethod::Execute() {
@@ -126,8 +127,8 @@ int ReservoirMethod::Execute() {
 
         //add the ground water from bank storage, 2011-3-14
         float gwBank = 0.f;
-        // at the first time step m_VgroundwaterFromBankStorage is NULL
-        if (m_VgroundwaterFromBankStorage != NULL) {
+        // at the first time step m_VgroundwaterFromBankStorage is nullptr
+        if (m_VgroundwaterFromBankStorage != nullptr) {
             gwBank = m_VgroundwaterFromBankStorage[subID];
         }
         groundStorage += gwBank / curSub->getArea() * 1000.f;
@@ -196,65 +197,25 @@ int ReservoirMethod::Execute() {
 }
 
 bool ReservoirMethod::CheckInputData() {
-    if (m_nCells <= 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_nCells has not been set.");
-    }
-    if (m_CellWidth < 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_NumSub has not been set.");
-    }
-    if (m_TimeStep <= 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_TimeStep has not been set.");
-    }
-    if (m_nSoilLayers <= 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_nSoilLayers has not been set.");
-    }
-    if (FloatEqual(m_dp_co, NODATA_VALUE)) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: df_coef has not been set.");
-    }
-    if (FloatEqual(m_Kg, NODATA_VALUE)) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_Kg has not been set.");
-    }
-    if (FloatEqual(m_Base_ex, NODATA_VALUE)) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_Base_ex has not been set.");
-    }
-    if (m_perc == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: Percolation_2D has not been set.");
-    }
-    if (m_D_EI == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_D_EI has not been set.");
-    }
-    if (m_D_ED == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_D_ED has not been set.");
-    }
-    if (m_D_ES == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_D_ES has not been set.");
-    }
-    if (m_plantEP == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: Plant EP has not been set.");
-    }
-    if (m_D_PET == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: m_D_PET has not been set.");
-    }
-    if (m_Slope == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: Slope has not been set.");
-    }
-    if (m_soilStorage == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: soil moisture has not been set.");
-    }
-    if (m_soilLayers == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: soil layers has not been set.");
-    }
-    if (m_soilThick == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The parameter: soil thickness has not been set.");
-    }
-
-    if (m_nSubbasins <= 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The subbasins number must be greater than 0.");
-    }
-    if (m_subbasinIDs.empty()) throw ModelException(MID_GWA_RE, "CheckInputData", "The subbasin IDs can not be EMPTY.");
-    if (m_subbasinsInfo == NULL) {
-        throw ModelException(MID_GWA_RE, "CheckInputData", "The subbasins information can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_GWA_RE, m_nCells);
+    CHECK_POSITIVE(MID_GWA_RE, m_nSubbasins);
+    CHECK_POSITIVE(MID_GWA_RE, m_CellWidth);
+    CHECK_POSITIVE(MID_GWA_RE, m_TimeStep);
+    CHECK_POSITIVE(MID_GWA_RE, m_nMaxSoilLayers);
+    CHECK_NODATA(MID_GWA_RE, m_dp_co);
+    CHECK_NODATA(MID_GWA_RE, m_Kg);
+    CHECK_NODATA(MID_GWA_RE, m_Base_ex);
+    CHECK_POINTER(MID_GWA_RE, m_perc);
+    CHECK_POINTER(MID_GWA_RE, m_D_EI);
+    CHECK_POINTER(MID_GWA_RE, m_D_ED);
+    CHECK_POINTER(MID_GWA_RE, m_D_ES);
+    CHECK_POINTER(MID_GWA_RE, m_plantEP);
+    CHECK_POINTER(MID_GWA_RE, m_D_PET);
+    CHECK_POINTER(MID_GWA_RE, m_Slope);
+    CHECK_POINTER(MID_GWA_RE, m_soilStorage);
+    CHECK_POINTER(MID_GWA_RE, m_soilLayers);
+    CHECK_POINTER(MID_GWA_RE, m_soilThick);
+    CHECK_POINTER(MID_GWA_RE, m_subbasinsInfo);
     return true;
 }
 
@@ -324,7 +285,7 @@ void ReservoirMethod::Set1DData(const char *key, int n, float *data) {
 void ReservoirMethod::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
     CheckInputSize(key, nrows);
-    m_nSoilLayers = ncols;
+    m_nMaxSoilLayers = ncols;
 
     if (StringMatch(sk, VAR_PERCO)) {
         m_perc = data;
@@ -340,7 +301,7 @@ void ReservoirMethod::Set2DData(const char *key, int nrows, int ncols, float **d
 }
 
 void ReservoirMethod::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_subbasinsInfo == NULL) {
+    if (m_subbasinsInfo == nullptr) {
         m_subbasinsInfo = subbasins;
         // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()! lj
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();

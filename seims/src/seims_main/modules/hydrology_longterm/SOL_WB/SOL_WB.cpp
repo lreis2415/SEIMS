@@ -1,21 +1,22 @@
 #include "seims.h"
 #include "SOL_WB.h"
 
-SOL_WB::SOL_WB(void) : m_nCells(-1), m_nSoilLayers(-1), m_soilLayers(NULL), m_soilThick(NULL), m_soilZMX(NULL),
-                       m_pNet(NULL), m_Infil(NULL), m_ES(NULL), m_Revap(NULL),
-                       m_RI(NULL), m_Perco(NULL), m_soilStorage(NULL),
-                       m_subbasinsInfo(NULL), m_nSubbasins(-1),
-                       m_PCP(NULL), m_Interc(NULL), m_EI(NULL), m_Dep(NULL), m_ED(NULL),
-                       m_RS(NULL), m_RG(NULL), m_SE(NULL), m_tMean(NULL), m_SoilT(NULL),
-                       m_soilWaterBalance(NULL) {
+SOL_WB::SOL_WB() : m_nCells(-1), m_nSoilLayers(-1), m_soilLayers(nullptr), m_soilThick(nullptr), m_soilZMX(nullptr),
+                   m_pNet(nullptr), m_Infil(nullptr), m_ES(nullptr), m_Revap(nullptr),
+                   m_RI(nullptr), m_Perco(nullptr), m_soilStorage(nullptr),
+                   m_subbasinsInfo(nullptr), m_nSubbasins(-1),
+                   m_PCP(nullptr), m_Interc(nullptr), m_EI(nullptr), m_Dep(nullptr), m_ED(nullptr),
+                   m_RS(nullptr), m_RG(nullptr), m_SE(nullptr), m_tMean(nullptr), m_SoilT(nullptr),
+                   m_soilWaterBalance(nullptr) {
 }
 
-SOL_WB::~SOL_WB(void) {
-    if (m_soilWaterBalance != NULL) Release2DArray(m_nSubbasins + 1, m_soilWaterBalance);
+SOL_WB::~SOL_WB() {
+    if (m_soilWaterBalance != nullptr) Release2DArray(m_nSubbasins + 1, m_soilWaterBalance);
 }
 
 void SOL_WB::initialOutputs() {
-    if (m_soilWaterBalance == NULL) Initialize2DArray(m_nSubbasins + 1, 16, m_soilWaterBalance, 0.f);
+    CHECK_POSITIVE(MID_SOL_WB, m_nSubbasins);
+    if (m_soilWaterBalance == nullptr) Initialize2DArray(m_nSubbasins + 1, 16, m_soilWaterBalance, 0.f);
 }
 
 int SOL_WB::Execute() {
@@ -26,14 +27,14 @@ int SOL_WB::Execute() {
 void SOL_WB::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
+    else if (StringMatch(s, VAR_SUBBSNID_NUM)) { m_nSubbasins = (int)data; }
     else {
-        throw ModelException(MID_SOL_WB, "SetValue", "Parameter " + s
-            + " does not exist. Please contact the module developer.");
+        throw ModelException(MID_SOL_WB, "SetValue", "Parameter " + s + " does not exist.");
     }
 }
 
 void SOL_WB::setValueToSubbasins() {
-    if (m_subbasinsInfo != NULL) {
+    if (m_subbasinsInfo != nullptr) {
         for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
             Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(*it);
             int *cells = curSub->getCells();
@@ -137,8 +138,8 @@ void SOL_WB::Set1DData(const char *key, int nRows, float *data) {
 }
 
 void SOL_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
-    string s(key);
     CheckInputSize(key, nrows);
+    string s(key);
     m_nSoilLayers = ncols;
     if (StringMatch(s, VAR_PERCO)) {
         m_Perco = data;
@@ -154,9 +155,9 @@ void SOL_WB::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 void SOL_WB::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_subbasinsInfo == NULL) {
+    if (m_subbasinsInfo == nullptr) {
         m_subbasinsInfo = subbasins;
-        m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();
+        // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
     }
 }
@@ -175,50 +176,28 @@ void SOL_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
 }
 
 void SOL_WB::CheckInputData() {
-    if (m_date <= 0) throw ModelException(MID_SOL_WB, "CheckInputData", "You have not set the time.");
-    if (m_nCells <= 0) {
-        throw ModelException(MID_SOL_WB, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (m_soilLayers == NULL) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The soil layers number can not be NULL.");
-    }
-    if (m_soilZMX == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The root depth can not be NULL.");
-    if (m_soilThick == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The soil thickness can not be NULL.");
-    if (m_pNet == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The net precipitation can not be NULL.");
-    if (m_Infil == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The infiltration can not be NULL.");
-    if (m_ES == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The evaporation of soil can not be NULL.");
-    if (m_Revap == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The revaporization can not be NULL.");
-    if (m_RI == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The subsurface runoff can not be NULL.");
-    if (m_Perco == NULL) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The percolation data can not be NULL.");
-    }
-    if (m_soilStorage == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The soil moisture can not be NULL.");
-    //if (m_subbasin == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The subbasion can not be NULL.");
-    if (m_PCP == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The precipitation can not be NULL.");
-    if (m_Interc == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The interception can not be NULL.");
-    if (m_Dep == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The depression data can not be NULL.");
-    if (m_ED == NULL) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The evaporation of depression can not be NULL.");
-    }
-    if (m_EI == NULL) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The evaporation of interception can not be NULL.");
-    }
-    if (m_RG == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The runoff of groundwater can not be NULL.");
-    if (m_RS == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The runoff of surface can not be NULL.");
-    //if(m_SE == NULL) throw ModelException(MID_SOL_WB,"CheckInputData","The snow sublimation can not be NULL."); /// OPTIONAL
-    if (m_tMean == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The mean temperature can not be NULL.");
-    //if (m_tMin == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The min temperature can not be NULL.");
-    //if (m_tMax == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The max temperature can not be NULL.");
-    if (m_SoilT == NULL) throw ModelException(MID_SOL_WB, "CheckInputData", "The soil temperature can not be NULL.");
-
-    if (m_nSubbasins <= 0) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The subbasins number must be greater than 0.");
-    }
-    if (m_subbasinIDs.empty()) throw ModelException(MID_SOL_WB, "CheckInputData", "The subbasin IDs can not be EMPTY.");
-    if (m_subbasinsInfo == NULL) {
-        throw ModelException(MID_SOL_WB, "CheckInputData", "The subbasins information can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_SOL_WB, m_nCells);
+    CHECK_POSITIVE(MID_SOL_WB, m_nSubbasins);
+    CHECK_POINTER(MID_SOL_WB, m_soilLayers);
+    CHECK_POINTER(MID_SOL_WB, m_soilZMX);
+    CHECK_POINTER(MID_SOL_WB, m_soilThick);
+    CHECK_POINTER(MID_SOL_WB, m_pNet);
+    CHECK_POINTER(MID_SOL_WB, m_Infil);
+    CHECK_POINTER(MID_SOL_WB, m_ES);
+    CHECK_POINTER(MID_SOL_WB, m_Revap);
+    CHECK_POINTER(MID_SOL_WB, m_RI);
+    CHECK_POINTER(MID_SOL_WB, m_Perco);
+    CHECK_POINTER(MID_SOL_WB, m_soilStorage);
+    CHECK_POINTER(MID_SOL_WB, m_PCP);
+    CHECK_POINTER(MID_SOL_WB, m_Interc);
+    CHECK_POINTER(MID_SOL_WB, m_Dep);
+    CHECK_POINTER(MID_SOL_WB, m_ED);
+    CHECK_POINTER(MID_SOL_WB, m_EI);
+    CHECK_POINTER(MID_SOL_WB, m_RG);
+    CHECK_POINTER(MID_SOL_WB, m_RS);
+    CHECK_POINTER(MID_SOL_WB, m_tMean);
+    CHECK_POINTER(MID_SOL_WB, m_SoilT);
+    CHECK_POINTER(MID_SOL_WB, m_subbasinsInfo);
 }
 
 bool SOL_WB::CheckInputSize(const char *key, int n) {

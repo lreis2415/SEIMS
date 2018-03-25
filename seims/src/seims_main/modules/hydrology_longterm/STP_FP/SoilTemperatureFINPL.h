@@ -1,13 +1,14 @@
-/** 
-* @version	1.1
+/**
+* @brief	Finn Plauborg Method to Compute Soil Temperature
 * @author	Junzhi Liu
 * @date	5-January-2011
 * @revised LiangJun Zhu
 * @date 27-May-2016
-* @brief	Finn Plauborg Method to Compute Soil Temperature
 *
 */
-#pragma once
+#ifndef SEIMS_MODULE_STP_FP_H
+#define SEIMS_MODULE_STP_FP_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -22,15 +23,13 @@ using namespace std;
  * \class SoilTemperatureFINPL
  * \ingroup STP_FP
  * \brief Soil temperature
- * 
+ *
  */
 class SoilTemperatureFINPL : public SimulationModule {
 public:
-    //! Constructor
-    SoilTemperatureFINPL(void);
+    SoilTemperatureFINPL();
 
-    //! Destructor
-    ~SoilTemperatureFINPL(void);
+    ~SoilTemperatureFINPL();
 
     virtual void SetValue(const char *key, float value);
 
@@ -38,15 +37,31 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual int Execute(void);
-
-    //virtual void SetDate(time_t t);
+    virtual int Execute();
 
 private:
+    /**
+    *	@brief check the input data. Make sure all the input data is available.
+    *
+    *	@return bool The validity of the input data.
+    */
+    bool CheckInputData();
 
-    /// time
-    //time_t m_date;
+    /**
+    *	@brief check the input size. Make sure all the input data have same dimension.
+    *
+    *	@param key The key of the input data
+    *	@param n The input data dimension
+    *	@return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
 
+    /*!
+    * \brief Initialize output variables for the first run of the entire simulation
+    */
+    void initialOutputs();
+
+private:
     /// from parameter database
     /// coefficients in the Equation
     float m_a0, m_a1, m_a2, m_a3, m_b1, m_b2, m_d1, m_d2;
@@ -70,28 +85,8 @@ private:
     float *m_t2;
     /// temporary variable
     float w;
+
     /// output soil temperature
     float *m_soilTemp;
-
-    /*!
-     * \brief Initialize output variables for the first run of the entire simulation
-     */
-    void initialOutputs(void);
-
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData(void);
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int);
 };
+#endif /* SEIMS_MODULE_STP_FP_H */

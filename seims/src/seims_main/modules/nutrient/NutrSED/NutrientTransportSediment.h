@@ -11,8 +11,9 @@
  *               2. Add CENTURY model of calculating organic nitrogen removed in surface runoff
  * \TODO         1. Ammonian adsorbed to soil should be considered.
  */
+#ifndef SEIMS_MODULE_NUTRSED_H
+#define SEIMS_MODULE_NUTRSED_H
 
-#pragma once
 #include "SimulationModule.h"
 #include "NutrientCommon.h"
 
@@ -32,9 +33,9 @@ using namespace std;
 
 class NutrientTransportSediment : public SimulationModule {
 public:
-    NutrientTransportSediment(void);
+    NutrientTransportSediment();
 
-    ~NutrientTransportSediment(void);
+    ~NutrientTransportSediment();
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -44,13 +45,76 @@ public:
 
     virtual void SetSubbasins(clsSubbasins *);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
 private:
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
+    * \return bool The validity of the inputs data.
+    */
+    bool CheckInputData_CENTURY();
+
+    /*!
+    * \brief check the input data for running C-FARM one carbon model. Make sure all the inputs data is available.
+    * \return bool The validity of the inputs data.
+    */
+    bool CheckInputData_CFARM();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    /*!
+    * \brief calculates the amount of organic nitrogen removed in surface runoff.
+    *        orgn.f of SWAT, when CSWAT = 0
+    * \return void
+    */
+    void OrgNRemovedInRunoff_StaticMethod(int i);
+
+    /*!
+    * \brief calculates the amount of organic nitrogen removed in surface runoff.
+    *        orgnswat.f of SWAT, when CSWAT = 1
+    * \TODO THIS IS ON TODO LIST
+    * \return void
+    */
+    void OrgNRemovedInRunoff_CFARMOneCarbonModel(int i);
+
+    /*!
+    * \brief calculates the amount of organic nitrogen removed in surface runoff.
+    *        NCsed_leach.f90 of SWAT, when CSWAT = 2
+    * \return void
+    */
+    void OrgNRemovedInRunoff_CENTURY(int i);
+
+    /*!
+    * \brief Calculates the amount of organic and mineral phosphorus attached to sediment in surface runoff.
+    * psed.f of SWAT
+    * \return void
+    */
+    void OrgPAttachedtoSed(int i);
+
+    /// initial outputs
+    void initialOutputs();
+private:
+    /// subbasins number
+    int m_nSubbasins;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// cell width of grid map (m)
     float m_cellWidth;
     /// cell area of grid map (ha)
@@ -60,7 +124,7 @@ private:
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers
-    int m_soiLayers;
+    int m_nMaxSoiLayers;
     /// soil rock content, %
     float **m_sol_rock;
     /// sol_ul, soil saturated water amount, mm
@@ -86,8 +150,6 @@ private:
     float **m_soilThick;
 
     /// subbasin related
-    /// the total number of subbasins
-    int m_nSubbasins;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
@@ -154,65 +216,5 @@ private:
     float *m_laterC; /// lateral flow Carbon loss in soil profile
     float *m_percoC; /// percolation Carbon loss in soil profile
     float *m_sedCLoss; /// amount of C lost with sediment pools
-
-private:
-
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData(void);
-
-    /*!
-     * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
-     * \return bool The validity of the inputs data.
-     */
-    bool CheckInputData_CENTURY(void);
-
-    /*!
-     * \brief check the input data for running C-FARM one carbon model. Make sure all the inputs data is available.
-     * \return bool The validity of the inputs data.
-     */
-    bool CheckInputData_CFARM(void);
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    /*!
-     * \brief calculates the amount of organic nitrogen removed in surface runoff.
-     *        orgn.f of SWAT, when CSWAT = 0
-     * \return void
-     */
-    void OrgNRemovedInRunoff_StaticMethod(int i);
-
-    /*!
-     * \brief calculates the amount of organic nitrogen removed in surface runoff.
-     *        orgnswat.f of SWAT, when CSWAT = 1
-     * \TODO THIS IS ON TODO LIST
-     * \return void
-     */
-    void OrgNRemovedInRunoff_CFARMOneCarbonModel(int i);
-
-    /*!
-     * \brief calculates the amount of organic nitrogen removed in surface runoff.
-     *        NCsed_leach.f90 of SWAT, when CSWAT = 2
-     * \return void
-     */
-    void OrgNRemovedInRunoff_CENTURY(int i);
-
-    /*!
-     * \brief Calculates the amount of organic and mineral phosphorus attached to sediment in surface runoff.
-     * psed.f of SWAT
-     * \return void
-     */
-    void OrgPAttachedtoSed(int i);
-
-    /// initial outputs
-    void initialOutputs(void);
 };
+#endif /* SEIMS_MODULE_NUTRSED_H */
