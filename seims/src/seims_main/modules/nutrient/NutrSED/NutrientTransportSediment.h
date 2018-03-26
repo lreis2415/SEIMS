@@ -4,12 +4,13 @@
  *        As for phosphorus, psed.f of SWAT calculates the attached to sediment in surface runoff.
  * \author Huiran Gao
  * \date April 2016
- * 
+ *
  * \revised Liang-Jun Zhu
  * \date 2016-9-28
  * \description: 1. Code revision.
  *               2. Add CENTURY model of calculating organic nitrogen removed in surface runoff
  * \TODO         1. Ammonian adsorbed to soil should be considered.
+ *               3. 2017-8-23 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
  */
 #ifndef SEIMS_MODULE_NUTRSED_H
 #define SEIMS_MODULE_NUTRSED_H

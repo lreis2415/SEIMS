@@ -1,27 +1,27 @@
-/** 
+/**
 *	@version	1.0
 *	@author    Wu Hui
 *	@date	24-January-2011
 *
 *	@brief	IUH overland method to calculate overland flow routing
 *
-*	Revision:	Zhiqiang YU	
+*	Revision:	Zhiqiang YU
 *   Date:		2011-2-22
 *	Description:
 *	1.	Add parameter CellWidth.
 *	2.	Delete parameter uhminCell and uhmaxCell because the parameter Ol_iuh
-*		contains these information. The first and second column of Ol_iuh is 
+*		contains these information. The first and second column of Ol_iuh is
 *		min time and max time.
 *	3.	The number of subbasins (m_nsub) should get from m_subbasin rather than
 *		from main program. So does variable m_nCells.
-*	4.	Add variable m_iuhCols to store the number of columns of Ol_iuh. In the 
+*	4.	Add variable m_iuhCols to store the number of columns of Ol_iuh. In the
 *		meantime, add one parameter nCols to function SetIUHCell.
 *	5.	Add variable m_cellFlow to store the flow of each cell in each day between
 *		min time and max time. Its number of columns equals to the maximum of second
 *		column of Ol_iuh add 1.
 *	6.  Add function initial to initialize some variables.
 *	7.	Modify function Execute.
-*	
+*
 *	Revision: Liang-Jun Zhu
 *	Date:	  2016-7-29
 *	Description:
@@ -30,6 +30,7 @@
 *   Date:     2018-3-20
 *   Description:
 *   1.  The length of subbasin related array should equal to the count of subbasins, for both mpi version and omp version.
+*   2.  2017-8-23 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
 */
 #ifndef SEIMS_MODULE_IUH_OL_H
 #define SEIMS_MODULE_IUH_OL_H
@@ -48,7 +49,7 @@ using namespace std;
  * \class IUH_OL
  * \ingroup IUH_OL
  * \brief IUH overland method to calculate overland flow routing
- * 
+ *
  */
 class IUH_OL : public SimulationModule {
 public:

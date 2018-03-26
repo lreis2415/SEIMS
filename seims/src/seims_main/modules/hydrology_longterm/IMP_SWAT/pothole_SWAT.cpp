@@ -5,7 +5,7 @@ using namespace std;
 
 IMP_SWAT::IMP_SWAT() : m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                        m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_routingLayers(nullptr), m_nRoutingLayers(-1),
-                       m_subbasin(nullptr),
+                       m_subbasin(nullptr), m_nSubbasins(-1),
                        m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr), m_soilThick(nullptr),
                        m_sol_por(nullptr),
                        m_evLAI(NODATA_VALUE), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
@@ -92,9 +92,9 @@ bool IMP_SWAT::CheckInputData() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nMaxSoilLayers);
     CHECK_POSITIVE(MID_IMP_SWAT, m_nRoutingLayers);
     CHECK_POSITIVE(MID_IMP_SWAT, m_evLAI);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_potTilemm);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_potNo3Decay);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_potSolPDecay);
+    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potTilemm);
+    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potNo3Decay);
+    CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potSolPDecay);
     return true;
 }
 
@@ -122,43 +122,43 @@ void IMP_SWAT::Set1DData(const char *key, int n, float *data) {
 
     if (StringMatch(sk, VAR_SBOF)) {
         m_surfqToCh = data;
-        m_subbasinNum = n - 1; /// TODO, add a checkInputSize2 function
+        m_nSubbasins = n - 1; /// TODO, add a checkInputSize2 function
         return;
     } else if (StringMatch(sk, VAR_SED_TO_CH)) {
         m_sedToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SUR_NO3_TOCH)) {
         m_surNO3ToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SUR_NH4_TOCH)) {
         m_surNH4ToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH)) {
         m_surSolPToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SUR_COD_TOCH)) {
         m_surCodToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SEDORGN_TOCH)) {
         m_sedOrgNToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SEDORGP_TOCH)) {
         m_sedOrgPToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SEDMINPA_TOCH)) {
         m_sedMinPAToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     } else if (StringMatch(sk, VAR_SEDMINPS_TOCH)) {
         m_sedMinPSToCh = data;
-        m_subbasinNum = n - 1;
+        m_nSubbasins = n - 1;
         return;
     }
     CheckInputSize(key, n);
@@ -253,10 +253,8 @@ int IMP_SWAT::Execute() {
         }
     }
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
-    // cout<<"pre surq no3 to ch: "<<m_surNO3ToCh[12]<<endl;
-    // cout<<"pre surfq to ch: "<<m_surfqToCh[12]<<", orgp to ch: "<<m_sedOrgPToCh[12]<<endl;
 #pragma omp parallel for
-    for (int i = 0; i < m_subbasinNum + 1; i++) {
+    for (int i = 0; i < m_nSubbasins + 1; i++) {
         m_surfqToCh[i] = 0.f;
         m_sedToCh[i] = 0.f;
         m_surNO3ToCh[i] = 0.f;
@@ -268,44 +266,65 @@ int IMP_SWAT::Execute() {
         m_sedMinPAToCh[i] = 0.f;
         m_sedMinPSToCh[i] = 0.f;
     }
-    // cout<<"final orgp: "<<m_sedOrgP[46364]<<endl;
-    // cout<<"final surq no3: "<<m_surqNo3[46364]<<endl;
-    //float maxno3 = -1.f;
-    //int idx = -1;
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	if (m_surqNo3[i] > maxno3)
-    //	{
-    //		maxno3 = m_surqNo3[i];
-    //		idx = i;
-    //	}
-    //}
-    //cout<<"maximum no3 id: "<<idx<<endl;
-    float maxsedorgp = -1.f;
-    int idx = -1;
-    for (int i = 0; i < m_nCells; i++) {
-        if (m_sedOrgP[i] > maxsedorgp) {
-            maxsedorgp = m_sedOrgP[i];
-            idx = i;
+    // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+#pragma omp parallel
+    {
+        float *tmp_surfq2ch = new float[m_nSubbasins + 1];
+        float *tmp_sed2ch = new float[m_nSubbasins + 1];
+        float *tmp_sno32ch = new float[m_nSubbasins + 1];
+        float *tmp_snh42ch = new float[m_nSubbasins + 1];
+        float *tmp_solp2ch = new float[m_nSubbasins + 1];
+        float *tmp_cod2ch = new float[m_nSubbasins + 1];
+        float *tmp_orgn2ch = new float[m_nSubbasins + 1];
+        float *tmp_orgp2ch = new float[m_nSubbasins + 1];
+        float *tmp_minpa2ch = new float[m_nSubbasins + 1];
+        float *tmp_minps2ch = new float[m_nSubbasins + 1];
+        for (int i = 0; i <= m_nSubbasins; i++) {
+            tmp_surfq2ch[i] = 0.f;
+            tmp_sed2ch[i] = 0.f;
+            tmp_sno32ch[i] = 0.f;
+            tmp_snh42ch[i] = 0.f;
+            tmp_solp2ch[i] = 0.f;
+            tmp_cod2ch[i] = 0.f;
+            tmp_orgn2ch[i] = 0.f;
+            tmp_orgp2ch[i] = 0.f;
+            tmp_minpa2ch[i] = 0.f;
+            tmp_minps2ch[i] = 0.f;
         }
-    }
-    // cout<<"maximum sedorgp id: "<<idx<< ", surfq: " <<m_surfaceRunoff[idx]<<", sedorgp: "<<m_sedOrgP[idx]<<endl;
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        int subi = (int) m_subbasin[i];
-        m_surfqToCh[subi] += m_surfaceRunoff[i] * m_cellArea * 10.f / m_timestep; /// mm -> m3/s
-        m_sedToCh[subi] += m_sedYield[i];
-        m_surNO3ToCh[subi] += m_surqNo3[i] * m_cellArea;
-        m_surNH4ToCh[subi] += m_surqNH4[i] * m_cellArea;
-        m_surSolPToCh[subi] += m_surqSolP[i] * m_cellArea;
-        m_surCodToCh[subi] += m_surqCOD[i] * m_cellArea;
-        m_sedOrgNToCh[subi] += m_sedOrgN[i] * m_cellArea;
-        m_sedOrgPToCh[subi] += m_sedOrgP[i] * m_cellArea;
-        m_sedMinPAToCh[subi] += m_sedActiveMinP[i] * m_cellArea;
-        m_sedMinPSToCh[subi] += m_sedStableMinP[i] * m_cellArea;
-    }
-#pragma omp parallel for
-    for (int i = 1; i < m_subbasinNum + 1; i++) {
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            int subi = (int) m_subbasin[i];
+            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
+            tmp_sed2ch[subi] += m_sedYield[i];
+            tmp_sno32ch[subi] += m_surqNo3[i];
+            tmp_snh42ch[subi] += m_surqNH4[i];
+            tmp_solp2ch[subi] += m_surqSolP[i];
+            tmp_cod2ch[subi] += m_surqCOD[i];
+            tmp_orgn2ch[subi] += m_sedOrgN[i];
+            tmp_orgp2ch[subi] += m_sedOrgP[i];
+            tmp_minpa2ch[subi] += m_sedActiveMinP[i];
+            tmp_minps2ch[subi] += m_sedStableMinP[i];
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasins; i++) {
+                m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
+                m_sedToCh[i] += tmp_sed2ch[i];
+                m_surNO3ToCh[i] += tmp_sno32ch[i] * m_cellArea;
+                m_surNH4ToCh[i] += tmp_snh42ch[i] * m_cellArea;
+                m_surSolPToCh[i] += tmp_solp2ch[i] * m_cellArea;
+                m_surCodToCh[i] += tmp_cod2ch[i] * m_cellArea;
+                m_sedOrgNToCh[i] += tmp_orgn2ch[i] * m_cellArea;
+                m_sedOrgPToCh[i] += tmp_orgp2ch[i] * m_cellArea;
+                m_sedMinPAToCh[i] += tmp_minpa2ch[i] * m_cellArea;
+                m_sedMinPSToCh[i] += tmp_minps2ch[i] * m_cellArea;
+            }
+        }
+        delete[] tmp_surfq2ch, tmp_sed2ch, tmp_sno32ch, tmp_snh42ch, tmp_solp2ch, tmp_cod2ch;
+        delete[] tmp_orgn2ch, tmp_orgp2ch, tmp_minpa2ch, tmp_minps2ch;
+    }  /* END of #pragma omp parallel */
+
+    for (int i = 1; i < m_nSubbasins + 1; i++) {
         m_surfqToCh[0] += m_surfqToCh[i];
         m_sedToCh[0] += m_sedToCh[i];
         m_surNO3ToCh[0] += m_surNO3ToCh[i];
@@ -317,12 +336,6 @@ int IMP_SWAT::Execute() {
         m_sedMinPAToCh[0] += m_sedMinPAToCh[i];
         m_sedMinPSToCh[0] += m_sedMinPSToCh[i];
     }
-    // DEBUG
-    //cout << "IMP_SWAT, cell id 14377, m_soilStorage: ";
-    //for (int i = 0; i < (int)m_soilLayers[14377]; i++)
-    //    cout << m_soilStorage[14377][i] << ", ";
-    //cout << endl;
-    // END OF DEBUG
     return true;
 }
 
@@ -331,8 +344,7 @@ void IMP_SWAT::potholeSimulate(int id) {
     float tileo = 0.f; /// m^3, amount of water released to the main channel from the water body by drainage tiles
     //float potevmm = 0.f; /// mm, volume of water evaporated from pothole expressed as depth
     float potev = 0.f; /// m^3, evaporation from impounded water body
-    float
-        spillo = 0.f; /// m^3, amount of water released to the main channel from impounded water body due to spill-over
+    float spillo = 0.f; /// m^3, amount of water released to the main channel from impounded water body due to spill-over
 
     /// potpcpmm and potpcp should be implicitly included in (m_depStorage + m_depEvapor) if stated
     //float potpcpmm = 0.f; /// mm, precipitation falling on pothole water body expressed as depth
