@@ -3,8 +3,9 @@
  *        Water is routed cell-to-cell according to D8 flow direction
  * \author Junzhi Liu
  * \review Liang-Jun Zhu
- * \date 2016-7-24
- * \note: 1. Add support of multi soil layers of each cells.
+ * \date 2018-3-26
+ * \note: 2016-7-24 Add support of multi soil layers of each cells.
+ *        2017-8-23 Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
  */
 #ifndef SEIMS_MODULE_SSR_DA_H
 #define SEIMS_MODULE_SSR_DA_H
@@ -23,7 +24,7 @@ using namespace std;
 /*!
  * \class SSR_DA
  * \ingroup SSR_DA
- * 
+ *
  */
 class SSR_DA : public SimulationModule {
 public:

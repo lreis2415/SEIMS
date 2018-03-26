@@ -127,15 +127,13 @@ int SSR_DA::Execute() {
                                  "Please check the error message for more information");
         }
     }
-
-    //cout << "end flowinsoil" << endl;
     for (int i = 0; i <= m_nSubbasin; i++) {
         m_qiSubbasin[i] = 0.f;
     }
-    /// using openmp for reduction an array should be pay much more attention.
-    /// here is an solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
+    /// using openmp for reduction an array should be paid much more attention.
+    /// here is a solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
     /// #pragma omp parallel for reduction(+:myArray[:6]) is supported with OpenMP 4.5.
-    /// However, MSVC are using OpenMP 2.0.
+    /// However, MSVC 2010-2015 are using OpenMP 2.0.
     /// Added by lj, 2017-8-23
 #pragma omp parallel
     {
@@ -152,7 +150,6 @@ int SSR_DA::Execute() {
                         qiAllLayers += m_qiVol[i][j] / m_dt;
                     } /// m^3/s
                 }
-                //cout << m_nSubbasin << "\tsubbasin:" << tmp_qiSubbsn[i] << "\t" << qiAllLayers << endl;
                 tmp_qiSubbsn[int(m_subbasin[i])] += qiAllLayers;
             }
         }
@@ -259,7 +256,7 @@ void SSR_DA::GetValue(const char *key, float *value) {
     initialOutputs();
     string sk(key);
     /// For MPI version to transfer data across subbasins
-    if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { *value = m_qiSubbasin[m_subbasinID]; } 
+    if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { *value = m_qiSubbasin[m_subbasinID]; }
     else {
         throw ModelException(MID_SSR_DA, "GetValue", "Result " + sk + " does not exist.");
     }
@@ -268,7 +265,7 @@ void SSR_DA::GetValue(const char *key, float *value) {
 void SSR_DA::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBIF)) { *data = m_qiSubbasin; } 
+    if (StringMatch(sk, VAR_SBIF)) { *data = m_qiSubbasin; }
     else {
         throw ModelException(MID_SSR_DA, "Get1DData", "Result " + sk + " does not exist.");
     }
