@@ -169,6 +169,7 @@ void MGTOpt_SWAT::SetValue(const char *key, float data) {
     if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) data; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = data; }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSub = (int) data; }
     else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -208,7 +209,7 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
     else if (StringMatch(sk, VAR_SOL_ZMX)) { m_soilZMX = data; }
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) { m_soilSumFC = data; }
-    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; } 
+    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; }
     ///  Plant operation related parameters
     else if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
     else if (StringMatch(sk, VAR_HVSTI)) { m_havstIdx = data; }
@@ -391,7 +392,7 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
     if (nullptr == subbasins) {
         throw ModelException(MID_PLTMGT_SWAT, "SetSubbasins", "The Subbasins data can not to be nullptr.");
     } else {
-        m_nSub = subbasins->GetSubbasinNumber();
+        // m_nSub = subbasins->GetSubbasinNumber(); // Set in SetValue()
         if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
         vector<int> subIDs = subbasins->GetSubbasinIDs();
         for (auto it = subIDs.begin(); it != subIDs.end(); it++) {
@@ -903,8 +904,8 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     int fertilizerID = curOperation->FertilizerID();
     /// kg/ha         |amount of fertilizer applied to HRU
     float fertilizerKgHa = curOperation->FertilizerKg_per_ha();
-    /* fraction of fertilizer which is applied to the top 10 mm of soil 
-	 * the remaining fraction: 
+    /* fraction of fertilizer which is applied to the top 10 mm of soil
+	 * the remaining fraction:
      *  - is dissolved in the impounded water, if current landcover is paddy rice
 	 *  - is applied to first soil layer defined by user, otherwise
 	 */
@@ -1380,7 +1381,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     }
     /// calculate max mixing to preserve target surface residue
     /// Assume residue in all other layers is negligible to simplify calculation and remove depth dependency
-    /// TODO, m_minResidue is defined in OPS files in SWAT as residue management operation, 
+    /// TODO, m_minResidue is defined in OPS files in SWAT as residue management operation,
     ///       which should be implemented later as BMP operation. By LJ
     float m_minResidue = 10.f; /// currently, set m_minResidue to 10 as default.
     if (m_minResidue > 1.f && bmix < 0.001f) {
