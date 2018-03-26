@@ -74,23 +74,28 @@ int IUH_OL::Execute() {
             }
         }
     }
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        //add today's flow
-        int subi = (int) m_subbasin[i];
-        //if (m_nSubbasins == 1) { // deprecated code, left for remainder. lj
-        //    subi = 1;
-        //} else 
-        if (subi > m_nSubbasins) {
-            throw ModelException(MID_IUH_OL, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+    // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+#pragma omp parallel
+    {
+        float *tmp_qsSub = new float[m_nSubbasins + 1];
+        for (int i = 0; i <= m_nSubbasins; i++) {
+            tmp_qsSub[i] = 0.f;
         }
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            tmp_qsSub[(int) m_subbasin[i]] += m_cellFlow[i][0];    //get new value
+            m_OL_Flow[i] = m_cellFlow[i][0];
+            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / m_cellArea;     // m3/s -> mm
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasins; i++) {
+                m_Q_SBOF[i] += tmp_qsSub[i];
+            }
+        }
+        delete[] tmp_qsSub;
+    }  /* END of #pragma omp parallel */
 
-        m_Q_SBOF[subi] += m_cellFlow[i][0];    //get new value
-
-        m_OL_Flow[i] = m_cellFlow[i][0];
-        m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / m_cellArea;     // m3/s -> mm
-        //if(i == 1000) cout << m_OL_Flow[i] << endl;
-    }
     for (int n = 1; n <= m_nSubbasins; n++) {
         //get overland flow routing for entire watershed.
         m_Q_SBOF[0] += m_Q_SBOF[n];

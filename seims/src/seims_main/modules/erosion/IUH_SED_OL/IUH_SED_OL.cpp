@@ -71,19 +71,26 @@ int IUH_SED_OL::Execute() {
             }
         }
     }
-
-    for (int i = 0; i < m_nCells; i++) {
-        //add today's flow
-        int subi = (int) m_subbasin[i];
-        //if (m_nSubbasins == 1) { // deprecated code, left for remainder. lj
-        //    subi = 1;
-        //} else 
-        if (subi >= m_nSubbasins + 1) {
-            throw ModelException(MID_IUH_SED_OL, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+    // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+#pragma omp parallel
+    {
+        float *tmp_sed2ch = new float[m_nSubbasins + 1];
+        for (int i = 0; i <= m_nSubbasins; i++) {
+            tmp_sed2ch[i] = 0.f;
         }
-        m_sedtoCh[subi] += m_cellSed[i][0];
-        m_sedOL[i] = m_cellSed[i][0];
-    }
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            tmp_sed2ch[(int) m_subbasin[i]] += m_cellSed[i][0];
+            m_sedOL[i] = m_cellSed[i][0];
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasins; i++) {
+                m_sedtoCh[i] += tmp_sed2ch[i];
+            }
+        }
+        delete[] tmp_sed2ch;
+    }  /* END of #pragma omp parallel */
     for (int i = 1; i < m_nSubbasins + 1; i++) {
         m_sedtoCh[0] += m_sedtoCh[i]; //get overland flow routing for entire watershed.
     }
@@ -122,8 +129,8 @@ void IUH_SED_OL::SetValue(const char *key, float value) {
 void IUH_SED_OL::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSN)) { m_subbasin = data; } 
-    else if (StringMatch(sk, VAR_SOER)) { m_sedYield = data; } 
+    if (StringMatch(sk, VAR_SUBBSN)) { m_subbasin = data; }
+    else if (StringMatch(sk, VAR_SOER)) { m_sedYield = data; }
     else {
         throw ModelException(MID_IUH_SED_OL, "Set1DData", "Parameter " + sk + " does not exist in current method.");
     }

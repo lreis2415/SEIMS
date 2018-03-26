@@ -1,4 +1,4 @@
-/** 
+/**
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	2016-08-12
@@ -8,6 +8,7 @@
 *	Date:     2018-3-22
 *   Description:
 *   1.  The length of subbasin related array should equal to the count of subbasins, for both mpi version and omp version.
+*   2.  2018-3-26 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
 */
 #ifndef SEIMS_MODULE_IUH_SED_OL_H
 #define SEIMS_MODULE_IUH_SED_OL_H
@@ -26,7 +27,7 @@ using namespace std;
  * \class IUH_SED_OL
  * \ingroup IUH_SED_OL
  * \brief IUH overland method to calculate overland flow routing
- * 
+ *
  */
 class IUH_SED_OL : public SimulationModule {
 public:

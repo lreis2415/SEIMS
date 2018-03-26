@@ -228,7 +228,6 @@ int NutrientTransportSediment::Execute() {
     }
     initialOutputs();
     // initial nutrient to channel for each day
-#pragma omp parallel for
     for (int i = 0; i < m_nSubbasins + 1; i++) {
         m_sedorgnToCh[i] = 0.f;
         m_sedorgpToCh[i] = 0.f;
@@ -255,25 +254,50 @@ int NutrientTransportSediment::Execute() {
         OrgPAttachedtoSed(i);
     }
     // sum by subbasin
-    for (int i = 0; i < m_nCells; i++) {
-        int subi = (int) m_subbasin[i];
-        //if (m_nSubbasins == 1) {  // deprecated code, left for remaind. lj
-        //    subi = 1;
-        //} else 
-        if (subi >= m_nSubbasins + 1) {
-            throw ModelException(MID_NUTRSED, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+    // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+#pragma omp parallel
+    {
+        float *tmp_orgn2ch = new float[m_nSubbasins + 1];
+        float *tmp_orgp2ch = new float[m_nSubbasins + 1];
+        float *tmp_minpa2ch = new float[m_nSubbasins + 1];
+        float *tmp_minps2ch = new float[m_nSubbasins + 1];
+        for (int i = 0; i <= m_nSubbasins; i++) {
+            tmp_orgn2ch[i] = 0.f;
+            tmp_orgp2ch[i] = 0.f;
+            tmp_minpa2ch[i] = 0.f;
+            tmp_minps2ch[i] = 0.f;
         }
-        m_sedorgnToCh[subi] += m_sedorgn[i] * m_cellArea;
-        m_sedorgpToCh[subi] += m_sedorgp[i] * m_cellArea;
-        m_sedminpaToCh[subi] += m_sedminpa[i] * m_cellArea;
-        m_sedminpsToCh[subi] += m_sedminps[i] * m_cellArea;
-    }
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            tmp_orgn2ch[(int) m_subbasin[i]] += m_sedorgn[i];
+            tmp_orgp2ch[(int) m_subbasin[i]] += m_sedorgp[i];
+            tmp_minpa2ch[(int) m_subbasin[i]] += m_sedminpa[i];
+            tmp_minps2ch[(int) m_subbasin[i]] += m_sedminps[i];
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasins; i++) {
+                m_sedorgnToCh[i] += tmp_orgn2ch[i];
+                m_sedorgpToCh[i] += tmp_orgp2ch[i];
+                m_sedminpaToCh[i] += tmp_minpa2ch[i];
+                m_sedminpsToCh[i] += tmp_minps2ch[i];
+            }
+        }
+        delete[] tmp_orgn2ch;
+        delete[] tmp_orgp2ch;
+        delete[] tmp_minpa2ch;
+        delete[] tmp_minps2ch;
+    }  /* END of #pragma omp parallel */
     // sum all the subbasins and put the sum value in the zero-index of the array
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
-        m_sedorgnToCh[0] += m_sedorgnToCh[*it];
-        m_sedorgpToCh[0] += m_sedorgpToCh[*it];
-        m_sedminpaToCh[0] += m_sedminpaToCh[*it];
-        m_sedminpsToCh[0] += m_sedminpsToCh[*it];
+    for (int i = 1; i < m_nSubbasins + 1; i++) {
+        m_sedorgnToCh[i] *= m_cellArea;
+        m_sedorgpToCh[i] *= m_cellArea;
+        m_sedminpaToCh[i] *= m_cellArea;
+        m_sedminpsToCh[i] *= m_cellArea;
+        m_sedorgnToCh[0] += m_sedorgnToCh[i];
+        m_sedorgpToCh[0] += m_sedorgpToCh[i];
+        m_sedminpaToCh[0] += m_sedminpaToCh[i];
+        m_sedminpsToCh[0] += m_sedminpsToCh[i];
     }
     return 0;
 }
