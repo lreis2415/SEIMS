@@ -15,7 +15,7 @@ import sys
 import datetime
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import matplotlib as mpl
 
@@ -25,16 +25,12 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 from preprocess.text import DataValueFields
-from load_mongodb import ReadModelData
+from postprocess.load_mongodb import ReadModelData
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation,\
     calculate_statistics, save_png_eps
-# TODO fix this, lj
-divtdi = datetime.timedelta.__div__
 
 
 def divtd(td1, td2):
-    if isinstance(td2, (int, )):
-        return divtdi(td1, td2)
     us1 = td1.microseconds + 1000000 * (td1.seconds + 86400 * td1.days)
     us2 = td2.microseconds + 1000000 * (td2.seconds + 86400 * td2.days)
     return float(us1) / float(us2)
@@ -152,7 +148,7 @@ class TimeSeriesPlots(object):
 
             obs_dates = None
             obs_values = None
-            if param in self.sim_obs_dict:
+            if self.sim_obs_dict and param in self.sim_obs_dict:
                 obs_dates = self.sim_obs_dict[param][DataValueFields.utc]
                 obs_values = self.sim_obs_dict[param]['Obs']
             # append validation data
