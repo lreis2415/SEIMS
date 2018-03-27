@@ -15,7 +15,7 @@ import sys
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 
 class SAConfig(object):
