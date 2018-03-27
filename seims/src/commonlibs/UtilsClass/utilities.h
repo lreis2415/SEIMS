@@ -5,7 +5,7 @@
  * \author Liangjun Zhu
  * \version 1.0
  * \date Feb. 2017
- * 
+ *
  */
 #ifndef MODEL_UTILITIES_HEADER
 #define MODEL_UTILITIES_HEADER
@@ -82,6 +82,7 @@
 #define GetAvailableThreadNum      utils::GetAvailableThreadNum
 #define SetDefaultOpenMPThread     utils::SetDefaultOpenMPThread
 #define SetOpenMPThread            utils::SetOpenMPThread
+#define SleepMS                    utils::SleepMS
 #define StatusMessage              utils::StatusMessage
 #endif /* CLS_UTILS */
 

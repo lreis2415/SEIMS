@@ -801,6 +801,17 @@ public:
      * \brief Print status messages for Debug
      */
     static void StatusMessage(const char *msg);
+
+    /*!
+     * \brief Sleep milliseconds
+     */
+    inline static void SleepMS(int millisecs) {
+#ifdef windows
+        Sleep(millisecs);
+#else
+        usleep(millisecs * 1000);   // usleep takes sleep time in us (1 millionth of a second)
+#endif
+    }
 };
 
 
