@@ -27,6 +27,7 @@
 
 # Executables
 bin
+bindbg
 !/bin/*.bat
 !/bin/*.md
 build
