@@ -9,7 +9,7 @@ import os
 import sys
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 try:
     from ConfigParser import ConfigParser  # py2
@@ -103,7 +103,7 @@ def write_postprocess_config_file(mpaths, org_file_name, sceid=0):
 
 def main():
     """FUNCTION TESTS"""
-    cur_path = UtilClass.current_path()
+    cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
     model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
     prep_cfg = write_preprocess_config_file(model_paths, 'preprocess_30m_omp.ini')
