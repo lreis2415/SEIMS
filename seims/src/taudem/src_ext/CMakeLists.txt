@@ -5,10 +5,13 @@ geo_include_directories(${TAUDEM_SRC})
 
 # Added by Liangjun Zhu, 2015/5/21
 set(CURVATURE Curvature.cpp Curvaturemn.cpp ${common_srcs})
+set(LOGOP demoLogOperatormn.cpp demoLogOperator.cpp ${common_srcs})
 
 add_executable(curvature ${CURVATURE})
+add_executable(logop ${LOGOP})
 
 set(TAUDEM_EXT_APP curvature
+                   logop
         )
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})
@@ -18,5 +21,3 @@ foreach (c_target ${TAUDEM_EXT_APP})
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM_EXT")
     ENDIF ()
 endforeach (c_target ${TAUDEM_EXT_APP})
-
-
