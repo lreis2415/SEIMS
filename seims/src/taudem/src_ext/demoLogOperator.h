@@ -1,0 +1,1 @@
+int logOperator(char *dem, char *result);
