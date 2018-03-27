@@ -16,7 +16,7 @@ from collections import OrderedDict
 from pygeoc.utils import StringClass, text_type
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStatsName, \
@@ -37,7 +37,7 @@ class ReadModelData(object):
         # UTCTIME
         self._stime = None
         self._etime = None
-        self._outletid = None
+        self._outletid = -1
 
     @property
     def HydroClimateDBName(self):

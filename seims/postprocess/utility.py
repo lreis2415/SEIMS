@@ -12,7 +12,7 @@ import sys
 from collections import OrderedDict
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
-    sys.path.append(os.path.abspath(os.path.join(sys.path[0], '..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import StringClass, FileClass, MathClass, UtilClass
 from preprocess.utility import read_data_items_from_txt
