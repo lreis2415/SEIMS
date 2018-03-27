@@ -21,13 +21,13 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// set parameters from database
+    mdi.AddParameter(VAR_SUBBSNID_NUM, UNIT_NON_DIM, DESC_SUBBSNID_NUM, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);
     //mdi.AddParameter(VAR_BACT_SWF, UNIT_NON_DIM, DESC_BACT_SWF, Source_ParameterDB, DT_Single); ///TODO
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     /// basic parameters
     mdi.AddParameter(VAR_SUBBASIN_PARAM, UNIT_NON_DIM, DESC_SUBBASIN_PARAM, Source_ParameterDB, DT_Subbasin);
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
-    //mdi.AddParameter(VAR_MGT_FIELD, UNIT_NON_DIM, DESC_MGT_FIELD, Source_ParameterDB, DT_Raster1D); // remove by lj, 08/16/17
     /// soil
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_ZMX, UNIT_DEPTH_MM, DESC_SOL_ZMX, Source_ParameterDB, DT_Raster1D);
@@ -81,8 +81,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_PHUBASE, UNIT_HEAT_UNIT, DESC_PHUBASE, Source_Module, DT_Raster1D); /// PET modules
     mdi.AddInput(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, Source_Module, DT_Raster1D); /// BIO_EPIC module
     mdi.AddInput(VAR_FR_PHU_ACC, UNIT_HEAT_UNIT, DESC_FR_PHU_ACC, Source_Module, DT_Raster1D); /// BIO_EPIC module
-    mdi.AddParameter(VAR_TREEYRS, UNIT_YEAR, DESC_TREEYRS, Source_ParameterDB,
-                     DT_Raster1D); /// m_curYearMat, from ParameterDB
+    mdi.AddParameter(VAR_TREEYRS, UNIT_YEAR, DESC_TREEYRS, Source_ParameterDB, DT_Raster1D); /// m_curYearMat, from ParameterDB
     mdi.AddInput(VAR_HVSTI_ADJ, UNIT_CONT_RATIO, DESC_HVSTI_ADJ, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DORMI, UNIT_NON_DIM, DESC_DORMI, Source_Module, DT_Raster1D);

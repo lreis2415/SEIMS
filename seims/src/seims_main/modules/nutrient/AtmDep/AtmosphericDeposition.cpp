@@ -3,49 +3,27 @@
 
 using namespace std;
 
-AtmosphericDeposition::AtmosphericDeposition(void) :
+AtmosphericDeposition::AtmosphericDeposition() :
 //input
-    m_nCells(-1), m_rcn(-1.f), m_rca(-1.f), m_soiLayers(-1),
-    m_preci(NULL), m_drydep_no3(-1.f), m_drydep_nh4(-1.f),
+    m_nCells(-1), m_rcn(-1.f), m_rca(-1.f), m_nMaxSoiLayers(-1),
+    m_preci(nullptr), m_drydep_no3(-1.f), m_drydep_nh4(-1.f),
     m_addrno3(-1.f), m_addrnh4(-1.f),
     //output
-    m_sol_no3(NULL), m_sol_nh4(NULL), m_wshd_rno3(-1.f) {
+    m_sol_no3(nullptr), m_sol_nh4(nullptr), m_wshd_rno3(-1.f) {
 }
 
-AtmosphericDeposition::~AtmosphericDeposition(void) {
+AtmosphericDeposition::~AtmosphericDeposition() {
 }
 
-bool AtmosphericDeposition::CheckInputData(void) {
-    if (m_nCells <= 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData",
-                             "The cell number of the input can not be less than zero.");
-    }
-    if (this->m_soiLayers < 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The maximum soil layers number can not be less than 0.");
-    }
-    //if (this->m_cellWidth < 0)
-    //    throw ModelException(MID_ATMDEP, "CheckInputData", "The m_rca can not be less than 0.");
-    if (this->m_rcn < 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_rca can not be less than 0.");
-    }
-    if (this->m_rca < 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_rca can not be less than 0.");
-    }
-    if (this->m_preci == NULL) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The precipitation can not be NULL.");
-    }
-    if (this->m_drydep_no3 < 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_drydep_no3 can not be less than 0.");
-    }
-    if (this->m_drydep_nh4 < 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_drydep_nh4 can not be less than 0.");
-    }
-    if (this->m_sol_no3 == NULL) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_sol_no3 can not be NULL.");
-    }
-    if (this->m_sol_nh4 == NULL) {
-        throw ModelException(MID_ATMDEP, "CheckInputData", "The m_sol_nh4 can not be NULL.");
-    }
+bool AtmosphericDeposition::CheckInputData() {
+    CHECK_POSITIVE(MID_ATMDEP, m_nCells);
+    CHECK_POSITIVE(MID_ATMDEP, m_nMaxSoiLayers);
+    CHECK_POSITIVE(MID_ATMDEP, m_rcn);
+    CHECK_POSITIVE(MID_ATMDEP, m_rca);
+    CHECK_POSITIVE(MID_ATMDEP, m_drydep_no3);
+    CHECK_POSITIVE(MID_ATMDEP, m_drydep_nh4);
+    CHECK_POINTER(MID_ATMDEP, m_sol_no3);
+    CHECK_POINTER(MID_ATMDEP, m_sol_nh4);
     return true;
 }
 
@@ -68,8 +46,8 @@ bool AtmosphericDeposition::CheckInputSize(const char *key, int n) {
 }
 
 void AtmosphericDeposition::Set1DData(const char *key, int n, float *data) {
-    string sk(key);
     CheckInputSize(key, n);
+    string sk(key);
     if (StringMatch(sk, VAR_PCP)) { m_preci = data; }
     else {
         throw ModelException(MID_ATMDEP, "Set1DData", "Parameter " + sk + " does not exist.");
@@ -78,11 +56,8 @@ void AtmosphericDeposition::Set1DData(const char *key, int n, float *data) {
 
 void AtmosphericDeposition::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
-        //else if (StringMatch(sk, Tag_CellSize)) { m_nCells = value; }
-        //else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
-    } else if (StringMatch(sk, VAR_RCN)) { m_rcn = value; }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int)value); }
+    else if (StringMatch(sk, VAR_RCN)) { m_rcn = value; }
     else if (StringMatch(sk, VAR_RCA)) { m_rca = value; }
     else if (StringMatch(sk, VAR_DRYDEP_NO3)) { m_drydep_no3 = value; }
     else if (StringMatch(sk, VAR_DRYDEP_NH4)) { m_drydep_nh4 = value; }
@@ -93,21 +68,17 @@ void AtmosphericDeposition::SetValue(const char *key, float value) {
 }
 
 void AtmosphericDeposition::Set2DData(const char *key, int nRows, int nCols, float **data) {
-    if (!this->CheckInputSize(key, nRows)) return;
+    CheckInputSize(key, nRows);
     string sk(key);
-    m_soiLayers = nCols;
-    if (StringMatch(sk, VAR_SOL_NO3)) { this->m_sol_no3 = data; }
-    else if (StringMatch(sk, VAR_SOL_NH4)) { this->m_sol_nh4 = data; }
+    m_nMaxSoiLayers = nCols;
+    if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
+    else if (StringMatch(sk, VAR_SOL_NH4)) { m_sol_nh4 = data; }
     else {
         throw ModelException(MID_ATMDEP, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void AtmosphericDeposition::initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
     // allocate the output variables
     if (m_addrnh4 < 0.f) {
         m_addrnh4 = 0.f;
@@ -119,8 +90,8 @@ void AtmosphericDeposition::initialOutputs() {
 
 int AtmosphericDeposition::Execute() {
     //check the data
-    this->CheckInputData();
-    this->initialOutputs();
+    CheckInputData();
+    initialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_preci[i] > 0.f) {

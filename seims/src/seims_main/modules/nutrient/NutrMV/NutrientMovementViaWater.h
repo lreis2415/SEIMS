@@ -5,8 +5,9 @@
  * \author Huiran Gao
  * \date May 2016
  */
+#ifndef SEIMS_MODULE_NUTRMV_H
+#define SEIMS_MODULE_NUTRMV_H
 
-#pragma once
 #include "SimulationModule.h"
 #include "NutrientCommon.h"
 
@@ -26,9 +27,9 @@ using namespace std;
  */
 class NutrientMovementViaWater : public SimulationModule {
 public:
-    NutrientMovementViaWater(void);
+    NutrientMovementViaWater();
 
-    ~NutrientMovementViaWater(void);
+    ~NutrientMovementViaWater();
 
     virtual void Set1DData(const char *key, int n, float *data);
 
@@ -36,7 +37,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void GetValue(const char *key, float *value);
 
@@ -45,6 +46,48 @@ public:
     //virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
     virtual void SetSubbasins(clsSubbasins *subbasins);
 
+private:
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    /*!
+    * \brief Calculate the loss of nitrate via surface runoff, lateral flow, tile flow, and percolation out of the profile.
+    *        mainly rewrited from nlch.f of SWAT
+    * 1. nitrate loss with surface flow
+    * 2. nitrate loss with subsurface flow (routing considered)
+    * 3. nitrate loss with percolation
+    */
+    void NitrateLoss();
+
+    /*!
+    * \brief Calculates the amount of phosphorus lost from the soil
+    *        profile in runoff and the movement of soluble phosphorus from the first
+    *        to the second layer via percolation.
+    *		 rewrite from solp.f of SWAT
+    */
+    void PhosphorusLoss();
+
+    /*
+    * \brief compute loadings of chlorophyll-a, BOD, and dissolved oxygen to the main channel
+    *        rewrite from subwq.f of SWAT
+    */
+    void SubbasinWaterQuality();
+
+    void initialOutputs();
+
+    void SumBySubbasin();
 private:
     /// cell width of grid map (m)
     float m_cellWidth;
@@ -55,7 +98,7 @@ private:
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers
-    int m_soiLayers;
+    int m_nMaxSoilLayers;
     /// stream link
     float *m_streamLink;
     /* carbon modeling method
@@ -183,52 +226,5 @@ private:
     /* CENTURY C/N cycling model related */
     /// amount of C lost with sediment, kg/ha, input from NUTRSED module
     float *m_sedc_d;
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData(void);
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    /*!
-     * \brief Calculate the loss of nitrate via surface runoff, lateral flow, tile flow, and percolation out of the profile.
-     *        mainly rewrited from nlch.f of SWAT
-	 * 1. nitrate loss with surface flow
-	 * 2. nitrate loss with subsurface flow (routing considered)
-	 * 3. nitrate loss with percolation
-     */
-    void NitrateLoss(void);
-
-    /*!
-     * \brief Calculates the amount of phosphorus lost from the soil
-     *        profile in runoff and the movement of soluble phosphorus from the first
-     *        to the second layer via percolation.
-     *		 rewrite from solp.f of SWAT
-     */
-    void PhosphorusLoss(void);
-
-    /*
-     * \brief compute loadings of chlorophyll-a, BOD, and dissolved oxygen to the main channel
-     *        rewrite from subwq.f of SWAT
-     */
-    void SubbasinWaterQuality(void);
-    ///*!
-    // * \brief Calculate enrichment ratio.
-    // * enrsb.f of SWAT
-    // * \return void
-    // */
-    //float *CalculateEnrRatio();
-
-    void initialOutputs(void);
-
-    void SumBySubbasin(void);
 };
+#endif /* SEIMS_MODULE_NUTRMV_H */

@@ -36,23 +36,21 @@ using namespace std;
  */
 class SEDR_SBAGNOLD : public SimulationModule {
 public:
-    //! Constructor
     SEDR_SBAGNOLD();
 
-    //! Destructor
     ~SEDR_SBAGNOLD();
 
     virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
-    virtual void GetValue(const char *key, float *value);
+    virtual void SetValueByIndex(const char *key, int index, float data);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    virtual void GetValue(const char *key, float *value);
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual void SetReaches(clsReaches *reaches);
 
@@ -64,14 +62,24 @@ public:
 
     virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 private:
+    void initialOutputs();
+
+    void PointSourceLoading();
+
+    void SedChannelRouting(int i);
+
+    void doChannelDowncuttingAndWidening(int id);
+private:
     /// time step (sec)
     int m_dt;
     /// reach number (= subbasin number)
     int m_nreach;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
     LayeringMethod m_layeringMethod;
-    /// whether change channel dimensions, 0 - do not change, 1 - compute channel degredation
-    int m_VCD;
+    /// whether change channel dimensions, 0 - do not change (false), 1 - compute channel degredation (true)
+    bool m_VCD;
     /// the peak rate adjustment factor
     float m_prf;
     /// Coefficient in sediment transport equation
@@ -155,14 +163,5 @@ private:
     float *m_rchDeg;
     float *m_rchDep;
     float *m_flplainDep;
-
-    void initialOutputs();
-
-    void PointSourceLoading();
-
-    void SedChannelRouting(int i);
-
-    void doChannelDowncuttingAndWidening(int id);
 };
-
 #endif /* SEIMS_MODULE_SEDR_SBAGNOLD_H */

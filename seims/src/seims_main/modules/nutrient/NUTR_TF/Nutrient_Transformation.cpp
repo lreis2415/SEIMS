@@ -3,72 +3,72 @@
 
 using namespace std;
 
-Nutrient_Transformation::Nutrient_Transformation(void) :
+Nutrient_Transformation::Nutrient_Transformation() :
 //input
-    m_nCells(-1), m_cellWidth(-1.f), m_soilLayers(-1), m_cmn(-1.f), m_cdn(-1.f), m_sdnco(-1.f), m_nactfr(-1.f),
-    m_psp(-1.f), m_ssp(-1.f),
-    m_nSoilLayers(NULL), m_sol_z(NULL), m_sol_thick(NULL), m_sol_clay(NULL), m_sol_bd(NULL),
-    m_landcover(NULL), m_rsdco_pl(NULL), m_sol_cbn(NULL), m_a_days(NULL), m_b_days(NULL),
-    m_sol_wpmm(NULL), m_sol_awc(NULL), m_sol_wsatur(NULL), m_sol_por(NULL), m_sand(NULL),
-    m_sol_solp(NULL), m_sol_orgp(NULL), m_sol_actp(NULL), m_sol_stap(NULL), m_sol_fop(NULL),
-    m_sol_no3(NULL), m_sol_nh4(NULL), m_sol_orgn(NULL), m_sol_aorgn(NULL), m_sol_fon(NULL),
-    m_sol_cov(NULL), m_sol_rsd(NULL),
+    m_nCells(-1), m_cellWidth(-1.f), m_nMaxSoilLayers(-1), m_cmn(-1.f), m_cdn(-1.f), m_sdnco(-1.f), m_nactfr(-1.f),
+    m_psp_bsn(-1.f), m_psp(nullptr), m_psp_store(nullptr), m_ssp_store(nullptr),
+    m_nSoilLayers(nullptr), m_sol_z(nullptr), m_sol_thick(nullptr), m_sol_clay(nullptr), m_sol_bd(nullptr),
+    m_landcover(nullptr), m_rsdco_pl(nullptr), m_sol_cbn(nullptr), m_a_days(nullptr), m_b_days(nullptr),
+    m_sol_wpmm(nullptr), m_sol_awc(nullptr), m_sol_wsatur(nullptr), m_sol_por(nullptr), m_sand(nullptr),
+    m_sol_solp(nullptr), m_sol_orgp(nullptr), m_sol_actp(nullptr), m_sol_stap(nullptr), m_sol_fop(nullptr),
+    m_sol_no3(nullptr), m_sol_nh4(nullptr), m_sol_orgn(nullptr), m_sol_aorgn(nullptr), m_sol_fon(nullptr),
+    m_sol_cov(nullptr), m_sol_rsd(nullptr),
     /// from other modules
-    m_soilStorage(NULL), m_sote(NULL),
+    m_soilStorage(nullptr), m_sote(nullptr),
     /// cell scale output
-    m_hmntl(NULL), m_hmptl(NULL), m_rmn2tl(NULL),
-    m_rmptl(NULL), m_rwntl(NULL), m_wdntl(NULL), m_rmp1tl(NULL), m_roctl(NULL),
+    m_hmntl(nullptr), m_hmptl(nullptr), m_rmn2tl(nullptr),
+    m_rmptl(nullptr), m_rwntl(nullptr), m_wdntl(nullptr), m_rmp1tl(nullptr), m_roctl(nullptr),
     /// watershed scale statistics
     m_wshd_dnit(-1.f), m_wshd_hmn(-1.f), m_wshd_hmp(-1.f), m_wshd_rmn(-1.f), m_wshd_rmp(-1.f),
     m_wshd_rwn(-1.f), m_wshd_nitn(-1.f), m_wshd_voln(-1.f), m_wshd_pal(-1.f), m_wshd_pas(-1.f),
     m_solP_model(0), m_CbnModel(0),
     /// tillage factor on SOM decomposition, used by CENTURY model
-    m_tillage_switch(NULL), m_tillage_depth(NULL), m_tillage_days(NULL), m_tillage_factor(NULL),
+    m_tillage_switch(nullptr), m_tillage_depth(nullptr), m_tillage_days(nullptr), m_tillage_factor(nullptr),
     /// CENTURY model related variables
-    m_sol_WOC(NULL), m_sol_WON(NULL), m_sol_BM(NULL), m_sol_BMC(NULL), m_sol_BMN(NULL),
-    m_sol_HP(NULL), m_sol_HS(NULL), m_sol_HSC(NULL), m_sol_HSN(NULL), m_sol_HPC(NULL),
-    m_sol_HPN(NULL), m_sol_LM(NULL), m_sol_LMC(NULL), m_sol_LMN(NULL), m_sol_LSC(NULL),
-    m_sol_LSN(NULL), m_sol_LS(NULL), m_sol_LSL(NULL), m_sol_LSLC(NULL), m_sol_LSLNC(NULL),
-    m_sol_RNMN(NULL), m_sol_RSPC(NULL),
-    m_conv_wt(NULL) {
+    m_sol_WOC(nullptr), m_sol_WON(nullptr), m_sol_BM(nullptr), m_sol_BMC(nullptr), m_sol_BMN(nullptr),
+    m_sol_HP(nullptr), m_sol_HS(nullptr), m_sol_HSC(nullptr), m_sol_HSN(nullptr), m_sol_HPC(nullptr),
+    m_sol_HPN(nullptr), m_sol_LM(nullptr), m_sol_LMC(nullptr), m_sol_LMN(nullptr), m_sol_LSC(nullptr),
+    m_sol_LSN(nullptr), m_sol_LS(nullptr), m_sol_LSL(nullptr), m_sol_LSLC(nullptr), m_sol_LSLNC(nullptr),
+    m_sol_RNMN(nullptr), m_sol_RSPC(nullptr),
+    m_conv_wt(nullptr) {
 }
 
-Nutrient_Transformation::~Nutrient_Transformation(void) {
-    if (m_hmntl != NULL) Release1DArray(m_hmntl);
-    if (m_hmptl != NULL) Release1DArray(m_hmptl);
-    if (m_rmn2tl != NULL) Release1DArray(m_rmn2tl);
-    if (m_rmptl != NULL) Release1DArray(m_rmptl);
-    if (m_rwntl != NULL) Release1DArray(m_rwntl);
-    if (m_wdntl != NULL) Release1DArray(m_wdntl);
-    if (m_rmp1tl != NULL) Release1DArray(m_rmp1tl);
-    if (m_roctl != NULL) Release1DArray(m_roctl);
-    if (m_a_days != NULL) Release1DArray(m_a_days);
-    if (m_b_days != NULL) Release1DArray(m_b_days);
+Nutrient_Transformation::~Nutrient_Transformation() {
+    if (m_hmntl != nullptr) Release1DArray(m_hmntl);
+    if (m_hmptl != nullptr) Release1DArray(m_hmptl);
+    if (m_rmn2tl != nullptr) Release1DArray(m_rmn2tl);
+    if (m_rmptl != nullptr) Release1DArray(m_rmptl);
+    if (m_rwntl != nullptr) Release1DArray(m_rwntl);
+    if (m_wdntl != nullptr) Release1DArray(m_wdntl);
+    if (m_rmp1tl != nullptr) Release1DArray(m_rmp1tl);
+    if (m_roctl != nullptr) Release1DArray(m_roctl);
+    if (m_a_days != nullptr) Release1DArray(m_a_days);
+    if (m_b_days != nullptr) Release1DArray(m_b_days);
     /// release CENTURY related variables
-    if (m_sol_WOC != NULL) Release2DArray(m_nCells, m_sol_WOC);
-    if (m_sol_WON != NULL) Release2DArray(m_nCells, m_sol_WON);
-    if (m_sol_BM != NULL) Release2DArray(m_nCells, m_sol_BM);
-    if (m_sol_BMC != NULL) Release2DArray(m_nCells, m_sol_BMC);
-    if (m_sol_BMN != NULL) Release2DArray(m_nCells, m_sol_BMN);
-    if (m_sol_HP != NULL) Release2DArray(m_nCells, m_sol_HP);
-    if (m_sol_HS != NULL) Release2DArray(m_nCells, m_sol_HS);
-    if (m_sol_HSC != NULL) Release2DArray(m_nCells, m_sol_HSC);
-    if (m_sol_HSN != NULL) Release2DArray(m_nCells, m_sol_HSN);
-    if (m_sol_HPC != NULL) Release2DArray(m_nCells, m_sol_HPC);
-    if (m_sol_HPN != NULL) Release2DArray(m_nCells, m_sol_HPN);
-    if (m_sol_LM != NULL) Release2DArray(m_nCells, m_sol_LM);
-    if (m_sol_LMC != NULL) Release2DArray(m_nCells, m_sol_LMC);
-    if (m_sol_LMN != NULL) Release2DArray(m_nCells, m_sol_LMN);
-    if (m_sol_LSC != NULL) Release2DArray(m_nCells, m_sol_LSC);
-    if (m_sol_LSN != NULL) Release2DArray(m_nCells, m_sol_LSN);
-    if (m_sol_LS != NULL) Release2DArray(m_nCells, m_sol_LS);
-    if (m_sol_LSL != NULL) Release2DArray(m_nCells, m_sol_LSL);
-    if (m_sol_LSLC != NULL) Release2DArray(m_nCells, m_sol_LSLC);
-    if (m_sol_LSLNC != NULL) Release2DArray(m_nCells, m_sol_LSLNC);
-    if (m_sol_RNMN != NULL) Release2DArray(m_nCells, m_sol_RNMN);
-    if (m_sol_RSPC != NULL) Release2DArray(m_nCells, m_sol_RSPC);
+    if (m_sol_WOC != nullptr) Release2DArray(m_nCells, m_sol_WOC);
+    if (m_sol_WON != nullptr) Release2DArray(m_nCells, m_sol_WON);
+    if (m_sol_BM != nullptr) Release2DArray(m_nCells, m_sol_BM);
+    if (m_sol_BMC != nullptr) Release2DArray(m_nCells, m_sol_BMC);
+    if (m_sol_BMN != nullptr) Release2DArray(m_nCells, m_sol_BMN);
+    if (m_sol_HP != nullptr) Release2DArray(m_nCells, m_sol_HP);
+    if (m_sol_HS != nullptr) Release2DArray(m_nCells, m_sol_HS);
+    if (m_sol_HSC != nullptr) Release2DArray(m_nCells, m_sol_HSC);
+    if (m_sol_HSN != nullptr) Release2DArray(m_nCells, m_sol_HSN);
+    if (m_sol_HPC != nullptr) Release2DArray(m_nCells, m_sol_HPC);
+    if (m_sol_HPN != nullptr) Release2DArray(m_nCells, m_sol_HPN);
+    if (m_sol_LM != nullptr) Release2DArray(m_nCells, m_sol_LM);
+    if (m_sol_LMC != nullptr) Release2DArray(m_nCells, m_sol_LMC);
+    if (m_sol_LMN != nullptr) Release2DArray(m_nCells, m_sol_LMN);
+    if (m_sol_LSC != nullptr) Release2DArray(m_nCells, m_sol_LSC);
+    if (m_sol_LSN != nullptr) Release2DArray(m_nCells, m_sol_LSN);
+    if (m_sol_LS != nullptr) Release2DArray(m_nCells, m_sol_LS);
+    if (m_sol_LSL != nullptr) Release2DArray(m_nCells, m_sol_LSL);
+    if (m_sol_LSLC != nullptr) Release2DArray(m_nCells, m_sol_LSLC);
+    if (m_sol_LSLNC != nullptr) Release2DArray(m_nCells, m_sol_LSLNC);
+    if (m_sol_RNMN != nullptr) Release2DArray(m_nCells, m_sol_RNMN);
+    if (m_sol_RSPC != nullptr) Release2DArray(m_nCells, m_sol_RSPC);
 
-    if (m_conv_wt != NULL) Release2DArray(m_nCells, m_conv_wt);
+    if (m_conv_wt != nullptr) Release2DArray(m_nCells, m_conv_wt);
 }
 
 bool Nutrient_Transformation::CheckInputSize(const char *key, int n) {
@@ -89,131 +89,62 @@ bool Nutrient_Transformation::CheckInputSize(const char *key, int n) {
 }
 
 bool Nutrient_Transformation::CheckInputData() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The input data can not be less than zero.");
-    }
-    if (this->m_soilLayers < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The maximum soil layers number can not be NULL.");
-    }
-    if (this->m_cellWidth < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The cell width can not be less than 0.");
-    }
-    if (this->m_nSoilLayers == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The soil layers can not be NULL.");
-    }
-    if (this->m_cmn < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_cmn can not be less than 0.");
-    }
-    if (this->m_cdn < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_cdn can not be less than 0.");
-    }
-    if (this->m_landcover == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_landcover can not be NULL.");
-    }
-    if (this->m_nactfr < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_nactfr can not be less than 0.");
-    }
-    if (this->m_sdnco < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sdnco can not be less than 0.");
-    }
-    if (this->m_psp < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_psp can not be less than 0.");
-    }
-    if (this->m_ssp < 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_ssp can not be less than 0.");
-    }
-    if (this->m_sol_clay == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_clay can not be NULL.");
-    }
-    if (this->m_sol_z == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_z can not be NULL.");
-    }
-    if (this->m_sol_rsdin == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_rsdin can not be NULL.");
-    }
-    //if (m_sol_cov == NULL)
-    //	throw ModelException(MID_NUTR_TF, "CheckInputData", "The residue on soil surface can not be NULL.");
-    //if (m_sol_rsd == NULL)
-    //	throw ModelException(MID_NUTR_TF, "CheckInputData", "The organic matter in soil classified as residue can not be NULL.");
-    //if (this->m_a_days == NULL) {
-    //    throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_a_days can not be NULL.");
-    //}
-    //if (this->m_b_days == NULL) {
-    //    throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_b_days can not be NULL.");
-    //}
-    if (this->m_sol_thick == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_thick can not be NULL.");
-    }
-    if (this->m_sol_bd == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_bd can not be NULL.");
-    }
-    if (this->m_rsdco_pl == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_rsdco_pl can not be NULL.");
-    }
-    if (this->m_sol_cbn == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_cbn can not be NULL.");
-    }
-    if (this->m_sol_awc == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_awc can not be NULL.");
-    }
-    if (this->m_sol_wpmm == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_wpmm can not be NULL.");
-    }
-    if (this->m_sol_no3 == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_no3 can not be NULL.");
-    }
-    if (this->m_sol_nh4 == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_nh4 can not be NULL.");
-    }
-    if (this->m_sol_orgn == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_orgn can not be NULL.");
-    }
-    if (this->m_sol_orgp == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_orgp can not be NULL.");
-    }
-    if (this->m_sol_solp == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_solp can not be NULL.");
-    }
-    if (this->m_soilStorage == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_soilStorage can not be NULL.");
-    }
-    if (this->m_sote == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sote can not be NULL.");
-    }
-    if (this->m_sol_wsatur == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData",
-                             "The amount of water held in the soil layer at saturation data can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_NUTR_TF, m_nCells);
+    CHECK_POSITIVE(MID_NUTR_TF, m_nMaxSoilLayers);
+    CHECK_POSITIVE(MID_NUTR_TF, m_cellWidth);
+    CHECK_POINTER(MID_NUTR_TF, m_nSoilLayers);
+    CHECK_POSITIVE(MID_NUTR_TF, m_cmn);
+    CHECK_POSITIVE(MID_NUTR_TF, m_cdn);
+    CHECK_POSITIVE(MID_NUTR_TF, m_nactfr);
+    CHECK_POSITIVE(MID_NUTR_TF, m_sdnco);
+    CHECK_POSITIVE(MID_NUTR_TF, m_psp_bsn);
+    CHECK_POINTER(MID_NUTR_TF, m_landcover);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_clay);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_z);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_rsdin);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_thick);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_bd);
+    CHECK_POINTER(MID_NUTR_TF, m_rsdco_pl);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_cbn);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_awc);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_wpmm);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_no3);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_nh4);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_orgn);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_orgp);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_solp);
+    CHECK_POINTER(MID_NUTR_TF, m_soilStorage);
+    CHECK_POINTER(MID_NUTR_TF, m_sote);
+    CHECK_POINTER(MID_NUTR_TF, m_sol_wsatur);
     return true;
 }
 
 void Nutrient_Transformation::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, Tag_CellWidth)) { this->m_cellWidth = value; }
-    else if (StringMatch(sk, VAR_NACTFR)) { this->m_nactfr = value; }
-    else if (StringMatch(sk, VAR_SDNCO)) { this->m_sdnco = value; }
-    else if (StringMatch(sk, VAR_CMN)) { this->m_cmn = value; }
-    else if (StringMatch(sk, VAR_CDN)) { this->m_cdn = value; }
-    else if (StringMatch(sk, VAR_PSP)) { this->m_psp = value; }
-    else if (StringMatch(sk, VAR_SSP)) { this->m_ssp = value; }
-    else if (StringMatch(sk, VAR_CSWAT)) { this->m_CbnModel = (int) value; }
+    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
+    else if (StringMatch(sk, VAR_NACTFR)) { m_nactfr = value; }
+    else if (StringMatch(sk, VAR_SDNCO)) { m_sdnco = value; }
+    else if (StringMatch(sk, VAR_CMN)) { m_cmn = value; }
+    else if (StringMatch(sk, VAR_CDN)) { m_cdn = value; }
+    else if (StringMatch(sk, VAR_PSP)) { m_psp_bsn = value; }
+    else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
     else {
         throw ModelException(MID_NUTR_TF, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void Nutrient_Transformation::Set1DData(const char *key, int n, float *data) {
-    if (!this->CheckInputSize(key, n)) return;
+    CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_LCC)) { this->m_landcover = data; }
-    else if (StringMatch(sk, VAR_PL_RSDCO)) { this->m_rsdco_pl = data; }
-    else if (StringMatch(sk, VAR_SOL_RSDIN)) { this->m_sol_rsdin = data; }
-    else if (StringMatch(sk, VAR_SOL_COV)) { this->m_sol_cov = data; }
-    else if (StringMatch(sk, VAR_SOILLAYERS)) { this->m_nSoilLayers = data; }
-    else if (StringMatch(sk, VAR_SOTE)) { this->m_sote = data; }
-    else if (StringMatch(sk, VAR_A_DAYS)) { this->m_a_days = data; }
-    else if (StringMatch(sk, VAR_B_DAYS)) { this->m_b_days = data; }
+    if (StringMatch(sk, VAR_LCC)) { m_landcover = data; }
+    else if (StringMatch(sk, VAR_PL_RSDCO)) { m_rsdco_pl = data; }
+    else if (StringMatch(sk, VAR_SOL_RSDIN)) { m_sol_rsdin = data; }
+    else if (StringMatch(sk, VAR_SOL_COV)) { m_sol_cov = data; }
+    else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
+    else if (StringMatch(sk, VAR_SOTE)) { m_sote = data; }
+    else if (StringMatch(sk, VAR_A_DAYS)) { m_a_days = data; }
+    else if (StringMatch(sk, VAR_B_DAYS)) { m_b_days = data; }
         /// tillage related variables of CENTURY model
     else if (StringMatch(sk, VAR_TILLAGE_DAYS)) { m_tillage_days = data; }
     else if (StringMatch(sk, VAR_TILLAGE_DEPTH)) { m_tillage_depth = data; }
@@ -225,24 +156,24 @@ void Nutrient_Transformation::Set1DData(const char *key, int n, float *data) {
 }
 
 void Nutrient_Transformation::Set2DData(const char *key, int nRows, int nCols, float **data) {
-    if (!this->CheckInputSize(key, nRows)) return;
+    CheckInputSize(key, nRows);
     string sk(key);
-    m_soilLayers = nCols;
-    if (StringMatch(sk, VAR_SOL_CBN)) { this->m_sol_cbn = data; }
-    else if (StringMatch(sk, VAR_SOL_BD)) { this->m_sol_bd = data; }
-    else if (StringMatch(sk, VAR_CLAY)) { this->m_sol_clay = data; }
-    else if (StringMatch(sk, VAR_ROCK)) { this->m_sol_rock = data; }
-    else if (StringMatch(sk, VAR_SOL_ST)) { this->m_soilStorage = data; }
-    else if (StringMatch(sk, VAR_SOL_AWC)) { this->m_sol_awc = data; }
-    else if (StringMatch(sk, VAR_SOL_NO3)) { this->m_sol_no3 = data; }
-    else if (StringMatch(sk, VAR_SOL_NH4)) { this->m_sol_nh4 = data; }
-    else if (StringMatch(sk, VAR_SOL_SORGN)) { this->m_sol_orgn = data; }
-    else if (StringMatch(sk, VAR_SOL_HORGP)) { this->m_sol_orgp = data; }
-    else if (StringMatch(sk, VAR_SOL_SOLP)) { this->m_sol_solp = data; }
-    else if (StringMatch(sk, VAR_SOL_WPMM)) { this->m_sol_wpmm = data; }
-    else if (StringMatch(sk, VAR_SOILDEPTH)) { this->m_sol_z = data; }
-    else if (StringMatch(sk, VAR_SOILTHICK)) { this->m_sol_thick = data; }
-    else if (StringMatch(sk, VAR_SOL_RSD)) { this->m_sol_rsd = data; }
+    m_nMaxSoilLayers = nCols;
+    if (StringMatch(sk, VAR_SOL_CBN)) { m_sol_cbn = data; }
+    else if (StringMatch(sk, VAR_SOL_BD)) { m_sol_bd = data; }
+    else if (StringMatch(sk, VAR_CLAY)) { m_sol_clay = data; }
+    else if (StringMatch(sk, VAR_ROCK)) { m_sol_rock = data; }
+    else if (StringMatch(sk, VAR_SOL_ST)) { m_soilStorage = data; }
+    else if (StringMatch(sk, VAR_SOL_AWC)) { m_sol_awc = data; }
+    else if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
+    else if (StringMatch(sk, VAR_SOL_NH4)) { m_sol_nh4 = data; }
+    else if (StringMatch(sk, VAR_SOL_SORGN)) { m_sol_orgn = data; }
+    else if (StringMatch(sk, VAR_SOL_HORGP)) { m_sol_orgp = data; }
+    else if (StringMatch(sk, VAR_SOL_SOLP)) { m_sol_solp = data; }
+    else if (StringMatch(sk, VAR_SOL_WPMM)) { m_sol_wpmm = data; }
+    else if (StringMatch(sk, VAR_SOILDEPTH)) { m_sol_z = data; }
+    else if (StringMatch(sk, VAR_SOILTHICK)) { m_sol_thick = data; }
+    else if (StringMatch(sk, VAR_SOL_RSD)) { m_sol_rsd = data; }
     else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_wsatur = data; }
     else if (StringMatch(sk, VAR_POROST)) { m_sol_por = data; }
     else if (StringMatch(sk, VAR_SAND)) { m_sand = data; }
@@ -252,27 +183,29 @@ void Nutrient_Transformation::Set2DData(const char *key, int nRows, int nCols, f
 }
 
 void Nutrient_Transformation::initialOutputs() {
-    if (m_hmntl == NULL) Initialize1DArray(m_nCells, m_hmntl, 0.f);
-    if (m_hmptl == NULL) Initialize1DArray(m_nCells, m_hmptl, 0.f);
-    if (m_rmn2tl == NULL) Initialize1DArray(m_nCells, m_rmn2tl, 0.f);
-    if (m_rmptl == NULL) Initialize1DArray(m_nCells, m_rmptl, 0.f);
-    if (m_rwntl == NULL) Initialize1DArray(m_nCells, m_rwntl, 0.f);
-    if (m_wdntl == NULL) Initialize1DArray(m_nCells, m_wdntl, 0.f);
-    if (m_rmp1tl == NULL) Initialize1DArray(m_nCells, m_rmp1tl, 0.f);
-    if (m_roctl == NULL) Initialize1DArray(m_nCells, m_roctl, 0.f);
-    if (m_a_days == NULL) Initialize1DArray(m_nCells, m_a_days, 0.f);
-    if (m_b_days == NULL) Initialize1DArray(m_nCells, m_b_days, 0.f);
-    if (m_sol_cov == NULL || m_sol_rsd == NULL) {
+    CHECK_POSITIVE(MID_NUTR_TF, m_nCells);
+    CHECK_POSITIVE(MID_NUTR_TF, m_nMaxSoilLayers);
+    if (m_hmntl == nullptr) Initialize1DArray(m_nCells, m_hmntl, 0.f);
+    if (m_hmptl == nullptr) Initialize1DArray(m_nCells, m_hmptl, 0.f);
+    if (m_rmn2tl == nullptr) Initialize1DArray(m_nCells, m_rmn2tl, 0.f);
+    if (m_rmptl == nullptr) Initialize1DArray(m_nCells, m_rmptl, 0.f);
+    if (m_rwntl == nullptr) Initialize1DArray(m_nCells, m_rwntl, 0.f);
+    if (m_wdntl == nullptr) Initialize1DArray(m_nCells, m_wdntl, 0.f);
+    if (m_rmp1tl == nullptr) Initialize1DArray(m_nCells, m_rmp1tl, 0.f);
+    if (m_roctl == nullptr) Initialize1DArray(m_nCells, m_roctl, 0.f);
+    if (m_a_days == nullptr) Initialize1DArray(m_nCells, m_a_days, 0.f);
+    if (m_b_days == nullptr) Initialize1DArray(m_nCells, m_b_days, 0.f);
+    if (m_sol_cov == nullptr || m_sol_rsd == nullptr) {
         Initialize1DArray(m_nCells, m_sol_cov, m_sol_rsdin);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_rsd, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_rsd, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             m_sol_rsd[i][0] = m_sol_cov[i];
         }
     }
     /// initialize m_conv_wt
-    if (m_conv_wt == NULL) {
-        Initialize2DArray(m_nCells, m_soilLayers, m_conv_wt, 0.f);
+    if (m_conv_wt == nullptr) {
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_conv_wt, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
@@ -287,14 +220,21 @@ void Nutrient_Transformation::initialOutputs() {
         }
     }
     // initial input soil chemical in first run
-    if (m_sol_no3 == NULL) Initialize2DArray(m_nCells, m_soilLayers, m_sol_no3, 0.f);
-    if (m_sol_fon == NULL || m_sol_fop == NULL || m_sol_aorgn == NULL ||
-        m_sol_actp == NULL || m_sol_stap == NULL) {
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_fon, 0.f);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_fop, 0.f);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_aorgn, 0.f);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_actp, 0.f);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_stap, 0.f);
+
+    /// TODO, these variables should be reconsidered carefully according to SWAT (pminrl2.f)! lj
+    if (m_psp_bsn <= 0.f) { m_psp_bsn = 0.4f; }
+    if (nullptr == m_psp) { Initialize1DArray(m_nCells, m_psp, m_psp_bsn); }
+    if (nullptr == m_psp_store) { Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_psp_store, 0.f); }
+    if (nullptr == m_ssp_store) { Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_ssp_store, 0.f); }
+
+    if (m_sol_no3 == nullptr) Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_no3, 0.f);
+    if (m_sol_fon == nullptr || m_sol_fop == nullptr || m_sol_aorgn == nullptr ||
+        m_sol_actp == nullptr || m_sol_stap == nullptr) {
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_fon, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_fop, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_aorgn, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_actp, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_stap, 0.f);
 
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
@@ -345,29 +285,30 @@ void Nutrient_Transformation::initialOutputs() {
 
                 float solp = 0.f;
                 float actp = 0.f;
-                float psp = m_psp;
-                if (m_solP_model == 0)// Set active pool based on dynamic PSP MJW
-                {
+                if (m_solP_model == 0) { // Set active pool based on dynamic PSP MJW
                     // Allow Dynamic PSP Ratio
                     if (m_conv_wt[i][k] != 0) solp = (m_sol_solp[i][k] / m_conv_wt[i][k]) * 1000000.f;
-                } else {
-                    throw ModelException(MID_NUTR_TF, "initialOutputs",
-                                         "Please check the bulk density and soil thickness data.");
                     if (m_sol_clay[i][k] > 0.f) {
-                        psp = -0.045f * log(m_sol_clay[i][k]) + (0.001f * solp);
-                        psp = psp - (0.035f * m_sol_cbn[i][k]) + 0.43f;
-                    } else {
-                        psp = 0.4f;
-                    }
+                        m_psp[i] = -0.045f * log(m_sol_clay[i][k]) + (0.001f * solp);
+                        m_psp[i] = m_psp[i] - (0.035f * m_sol_cbn[i][k]) + 0.43f;
+                    } 
+                    //else { // although SWAT has this code, in my view, this should be commented.
+                    //    m_psp[i] = 0.4f;
+                    //}
                     // Limit PSP range
-                    if (psp < .05f) { psp = 0.05f; }
-                    else if (psp > 0.9f) psp = 0.9f;
+                    if (m_psp[i] < .1f) { m_psp[i] = 0.1f; }
+                    else if (m_psp[i] > 0.7f) m_psp[i] = 0.7f;
+                    /// Calculate smoothed PSP average
+                    if (m_psp_store[i][k] > 0.f) {
+                        m_psp[i] = (m_psp_store[i][k] * 29.f + m_psp[i] * 1.f) / 30.f;
+                    }
+                    // Store PSP for tomorrow's smoothing calculation
+                    m_psp_store[i][k] = m_psp[i];
                 }
 
-                m_sol_actp[i][k] = m_sol_solp[i][k] * (1.f - psp) / psp;
+                m_sol_actp[i][k] = m_sol_solp[i][k] * (1.f - m_psp[i]) / m_psp[i];
 
-                if (m_solP_model == 0) // Set Stable pool based on dynamic coefficient
-                {                      // From White et al 2009
+                if (m_solP_model == 0) { // Set Stable pool based on dynamic coefficient, From White et al 2009
                     // convert to concentration for ssp calculation
                     actp = m_sol_actp[i][k] / m_conv_wt[i][k] * 1000000.f;
                     solp = m_sol_solp[i][k] / m_conv_wt[i][k] * 1000000.f;
@@ -395,31 +336,31 @@ void Nutrient_Transformation::initialOutputs() {
         /// definition of temporary parameters
         float sol_mass = 0.f, FBM = 0.f, FHP = 0.f;
         float x1 = 0.f, RTO = 0.f; //, FHS = 0.f, sol_min_n = 0.f;
-        if (m_sol_WOC == NULL) {
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_WOC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_WON, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_BM, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_BMC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_BMN, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HP, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HS, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HSC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HSN, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HPC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_HPN, 0.f);
+        if (m_sol_WOC == nullptr) {
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_WOC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_WON, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_BM, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_BMC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_BMN, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HP, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HS, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HSC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HSN, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HPC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_HPN, 0.f);
 
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LM, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LMC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LMN, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LSC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LSN, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LS, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LSL, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LSLC, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_LSLNC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LM, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LMC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LMN, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LSC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LSN, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LS, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LSL, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LSLC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_LSLNC, 0.f);
 
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_RNMN, 0.f);
-            Initialize2DArray(m_nCells, m_soilLayers, m_sol_RSPC, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_RNMN, 0.f);
+            Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_RSPC, 0.f);
 
 #pragma omp parallel for
             for (int i = 0; i < m_nCells; i++) {
@@ -860,9 +801,9 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         if (psp > 0.7f) psp = 0.7f;
 
         // Calculate smoothed PSP average
-        if (m_psp > 0.f) psp = (m_psp * 29.f + psp * 1.f) / 30;
-        // Store PSP for tomarrows smoothing calculation
-        m_psp = psp;
+        if (m_psp_bsn > 0.f) psp = (m_psp_bsn * 29.f + psp * 1.f) / 30;
+        // Store PSP for tomorrow's smoothing calculation
+        m_psp_bsn = psp;
 
         //***************Dynamic Active/Soluble Transformation Coeff******************
         // Calculate P balance
@@ -870,8 +811,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         float rmn1 = 0.f;
         rmn1 = m_sol_solp[i][k] - m_sol_actp[i][k] * rto; // P imbalance
         // Move P between the soluble and active pools based on vadas et al., 2006
-        if (rmn1 >= 0.f) // Net movement from soluble to active
-        {
+        if (rmn1 >= 0.f) { // Net movement from soluble to active
             rmn1 = max(rmn1, (-1 * m_sol_solp[i][k]));
             // Calculate dynamic coefficient
             float vara = 0.918f * (exp(-4.603f * psp));
@@ -890,8 +830,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
             m_b_days[i] = 0;
         }
 
-        if (rmn1 < 0.f) // Net movement from Active to Soluble
-        {
+        if (rmn1 < 0.f) { // Net movement from Active to Soluble
             rmn1 = min(rmn1, m_sol_actp[i][k]);
             // Calculate dynamic coefficient
             float base = 0.f;
@@ -925,13 +864,13 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         if (ssp > 10.f) ssp = 10.f;
         if (ssp < 0.7f) ssp = 0.7f;
         // Smooth ssp, no rapid changes
-        if (m_ssp > 0.f) ssp = (ssp + m_ssp * 99.f) / 100.f;
+        if (m_ssp_store[i][k] > 0.f) ssp = (ssp + m_ssp_store[i][k] * 99.f) / 100.f;
         float roc = 0.f;
         roc = ssp * (m_sol_actp[i][k] + m_sol_actp[i][k] * rto);
         roc = roc - m_sol_stap[i][k];
         roc = as_p_coeff * roc;
-        // Store todays ssp for tomarrow's calculation
-        m_ssp = ssp;
+        // Store todays ssp for tomorrow's calculation
+        m_ssp_store[i][k] = ssp;
 
         // **************** Account for Soil Water content, do not allow movement in dry soil************
         float wetness = 0.f;
@@ -987,7 +926,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
 void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
     /// update tillage related variables if stated. Code from subbasin.f of SWAT, line 153-164
     /// if CENTURY model, and tillage operation has been operated
-    if (m_tillage_days != NULL && m_tillage_days[i] > 0.f) {
+    if (m_tillage_days != nullptr && m_tillage_days[i] > 0.f) {
         if (m_tillage_days[i] >= 30.f) {
             m_tillage_switch[i] = 0.f;
             m_tillage_days[i] = 0.f;
@@ -1462,16 +1401,16 @@ void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
 
 void Nutrient_Transformation::GetValue(const char *key, float *value) {
     string sk(key);
-    if (StringMatch(sk, VAR_WSHD_DNIT)) { *value = this->m_wshd_dnit; }
-    else if (StringMatch(sk, VAR_WSHD_HMN)) { *value = this->m_wshd_hmn; }
-    else if (StringMatch(sk, VAR_WSHD_HMP)) { *value = this->m_wshd_hmp; }
-    else if (StringMatch(sk, VAR_WSHD_RMN)) { *value = this->m_wshd_rmn; }
-    else if (StringMatch(sk, VAR_WSHD_RMP)) { *value = this->m_wshd_rmp; }
-    else if (StringMatch(sk, VAR_WSHD_RWN)) { *value = this->m_wshd_rwn; }
-    else if (StringMatch(sk, VAR_WSHD_NITN)) { *value = this->m_wshd_nitn; }
-    else if (StringMatch(sk, VAR_WSHD_VOLN)) { *value = this->m_wshd_voln; }
-    else if (StringMatch(sk, VAR_WSHD_PAL)) { *value = this->m_wshd_pal; }
-    else if (StringMatch(sk, VAR_WSHD_PAS)) { *value = this->m_wshd_pas; }
+    if (StringMatch(sk, VAR_WSHD_DNIT)) { *value = m_wshd_dnit; }
+    else if (StringMatch(sk, VAR_WSHD_HMN)) { *value = m_wshd_hmn; }
+    else if (StringMatch(sk, VAR_WSHD_HMP)) { *value = m_wshd_hmp; }
+    else if (StringMatch(sk, VAR_WSHD_RMN)) { *value = m_wshd_rmn; }
+    else if (StringMatch(sk, VAR_WSHD_RMP)) { *value = m_wshd_rmp; }
+    else if (StringMatch(sk, VAR_WSHD_RWN)) { *value = m_wshd_rwn; }
+    else if (StringMatch(sk, VAR_WSHD_NITN)) { *value = m_wshd_nitn; }
+    else if (StringMatch(sk, VAR_WSHD_VOLN)) { *value = m_wshd_voln; }
+    else if (StringMatch(sk, VAR_WSHD_PAL)) { *value = m_wshd_pal; }
+    else if (StringMatch(sk, VAR_WSHD_PAS)) { *value = m_wshd_pas; }
     else {
         throw ModelException(MID_NUTR_TF, "GetValue", "Parameter " + sk + " does not exist.");
     }
@@ -1480,63 +1419,63 @@ void Nutrient_Transformation::GetValue(const char *key, float *value) {
 void Nutrient_Transformation::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_HMNTL)) { *data = this->m_hmntl; }
-    else if (StringMatch(sk, VAR_HMPTL)) { *data = this->m_hmptl; }
-    else if (StringMatch(sk, VAR_RMN2TL)) { *data = this->m_rmn2tl; }
-    else if (StringMatch(sk, VAR_RMPTL)) { *data = this->m_rmptl; }
-    else if (StringMatch(sk, VAR_RWNTL)) { *data = this->m_rwntl; }
-    else if (StringMatch(sk, VAR_WDNTL)) { *data = this->m_wdntl; }
-    else if (StringMatch(sk, VAR_RMP1TL)) { *data = this->m_rmp1tl; }
-    else if (StringMatch(sk, VAR_ROCTL)) { *data = this->m_roctl; }
-    else if (StringMatch(sk, VAR_SOL_COV)) { *data = this->m_sol_cov; }
-    else if (StringMatch(sk, VAR_A_DAYS)) { *data = this->m_a_days; }
-    else if (StringMatch(sk, VAR_B_DAYS)) { *data = this->m_b_days; }
+    if (StringMatch(sk, VAR_HMNTL)) { *data = m_hmntl; }
+    else if (StringMatch(sk, VAR_HMPTL)) { *data = m_hmptl; }
+    else if (StringMatch(sk, VAR_RMN2TL)) { *data = m_rmn2tl; }
+    else if (StringMatch(sk, VAR_RMPTL)) { *data = m_rmptl; }
+    else if (StringMatch(sk, VAR_RWNTL)) { *data = m_rwntl; }
+    else if (StringMatch(sk, VAR_WDNTL)) { *data = m_wdntl; }
+    else if (StringMatch(sk, VAR_RMP1TL)) { *data = m_rmp1tl; }
+    else if (StringMatch(sk, VAR_ROCTL)) { *data = m_roctl; }
+    else if (StringMatch(sk, VAR_SOL_COV)) { *data = m_sol_cov; }
+    else if (StringMatch(sk, VAR_A_DAYS)) { *data = m_a_days; }
+    else if (StringMatch(sk, VAR_B_DAYS)) { *data = m_b_days; }
     else {
         throw ModelException(MID_NUTR_TF, "Get1DData", "Parameter " + sk + " does not exist.");
     }
-    *n = this->m_nCells;
+    *n = m_nCells;
 }
 
 void Nutrient_Transformation::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     initialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soilLayers;
-    if (StringMatch(sk, VAR_SOL_AORGN)) { *data = this->m_sol_aorgn; }
-    else if (StringMatch(sk, VAR_SOL_FORGN)) { *data = this->m_sol_fon; }
-    else if (StringMatch(sk, VAR_SOL_FORGP)) { *data = this->m_sol_fop; }
-    else if (StringMatch(sk, VAR_SOL_NO3)) { *data = this->m_sol_no3; }
-    else if (StringMatch(sk, VAR_SOL_NH4)) { *data = this->m_sol_nh4; }
-    else if (StringMatch(sk, VAR_SOL_SORGN)) { *data = this->m_sol_orgn; }
-    else if (StringMatch(sk, VAR_SOL_HORGP)) { *data = this->m_sol_orgp; }
-    else if (StringMatch(sk, VAR_SOL_SOLP)) { *data = this->m_sol_solp; }
-    else if (StringMatch(sk, VAR_SOL_ACTP)) { *data = this->m_sol_actp; }
-    else if (StringMatch(sk, VAR_SOL_STAP)) { *data = this->m_sol_stap; }
-    else if (StringMatch(sk, VAR_SOL_RSD)) { *data = this->m_sol_rsd; }
+    *nCols = m_nMaxSoilLayers;
+    if (StringMatch(sk, VAR_SOL_AORGN)) { *data = m_sol_aorgn; }
+    else if (StringMatch(sk, VAR_SOL_FORGN)) { *data = m_sol_fon; }
+    else if (StringMatch(sk, VAR_SOL_FORGP)) { *data = m_sol_fop; }
+    else if (StringMatch(sk, VAR_SOL_NO3)) { *data = m_sol_no3; }
+    else if (StringMatch(sk, VAR_SOL_NH4)) { *data = m_sol_nh4; }
+    else if (StringMatch(sk, VAR_SOL_SORGN)) { *data = m_sol_orgn; }
+    else if (StringMatch(sk, VAR_SOL_HORGP)) { *data = m_sol_orgp; }
+    else if (StringMatch(sk, VAR_SOL_SOLP)) { *data = m_sol_solp; }
+    else if (StringMatch(sk, VAR_SOL_ACTP)) { *data = m_sol_actp; }
+    else if (StringMatch(sk, VAR_SOL_STAP)) { *data = m_sol_stap; }
+    else if (StringMatch(sk, VAR_SOL_RSD)) { *data = m_sol_rsd; }
         /// 2-CENTURY C/N cycling related variables
-    else if (StringMatch(sk, VAR_SOL_WOC)) { *data = this->m_sol_WOC; }
-    else if (StringMatch(sk, VAR_SOL_WON)) { *data = this->m_sol_WON; }
-    else if (StringMatch(sk, VAR_SOL_BM)) { *data = this->m_sol_BM; }
-    else if (StringMatch(sk, VAR_SOL_BMC)) { *data = this->m_sol_BMC; }
-    else if (StringMatch(sk, VAR_SOL_BMN)) { *data = this->m_sol_BMN; }
-    else if (StringMatch(sk, VAR_SOL_HP)) { *data = this->m_sol_HP; }
-    else if (StringMatch(sk, VAR_SOL_HS)) { *data = this->m_sol_HS; }
-    else if (StringMatch(sk, VAR_SOL_HSC)) { *data = this->m_sol_HSC; }
-    else if (StringMatch(sk, VAR_SOL_HSN)) { *data = this->m_sol_HSN; }
-    else if (StringMatch(sk, VAR_SOL_HPC)) { *data = this->m_sol_HPC; }
-    else if (StringMatch(sk, VAR_SOL_HPN)) { *data = this->m_sol_HPN; }
-    else if (StringMatch(sk, VAR_SOL_LM)) { *data = this->m_sol_LM; }
-    else if (StringMatch(sk, VAR_SOL_LMC)) { *data = this->m_sol_LMC; }
-    else if (StringMatch(sk, VAR_SOL_LMN)) { *data = this->m_sol_LMN; }
-    else if (StringMatch(sk, VAR_SOL_LSC)) { *data = this->m_sol_LSC; }
-    else if (StringMatch(sk, VAR_SOL_LSN)) { *data = this->m_sol_LSN; }
-    else if (StringMatch(sk, VAR_SOL_LS)) { *data = this->m_sol_LS; }
-    else if (StringMatch(sk, VAR_SOL_LSL)) { *data = this->m_sol_LSL; }
-    else if (StringMatch(sk, VAR_SOL_LSLC)) { *data = this->m_sol_LSLC; }
-    else if (StringMatch(sk, VAR_SOL_LSLNC)) { *data = this->m_sol_LSLNC; }
-    else if (StringMatch(sk, VAR_SOL_RNMN)) { *data = this->m_sol_RNMN; }
-    else if (StringMatch(sk, VAR_SOL_RSPC)) { *data = this->m_sol_RSPC; }
-    else if (StringMatch(sk, VAR_CONV_WT)) { *data = this->m_conv_wt; }
+    else if (StringMatch(sk, VAR_SOL_WOC)) { *data = m_sol_WOC; }
+    else if (StringMatch(sk, VAR_SOL_WON)) { *data = m_sol_WON; }
+    else if (StringMatch(sk, VAR_SOL_BM)) { *data = m_sol_BM; }
+    else if (StringMatch(sk, VAR_SOL_BMC)) { *data = m_sol_BMC; }
+    else if (StringMatch(sk, VAR_SOL_BMN)) { *data = m_sol_BMN; }
+    else if (StringMatch(sk, VAR_SOL_HP)) { *data = m_sol_HP; }
+    else if (StringMatch(sk, VAR_SOL_HS)) { *data = m_sol_HS; }
+    else if (StringMatch(sk, VAR_SOL_HSC)) { *data = m_sol_HSC; }
+    else if (StringMatch(sk, VAR_SOL_HSN)) { *data = m_sol_HSN; }
+    else if (StringMatch(sk, VAR_SOL_HPC)) { *data = m_sol_HPC; }
+    else if (StringMatch(sk, VAR_SOL_HPN)) { *data = m_sol_HPN; }
+    else if (StringMatch(sk, VAR_SOL_LM)) { *data = m_sol_LM; }
+    else if (StringMatch(sk, VAR_SOL_LMC)) { *data = m_sol_LMC; }
+    else if (StringMatch(sk, VAR_SOL_LMN)) { *data = m_sol_LMN; }
+    else if (StringMatch(sk, VAR_SOL_LSC)) { *data = m_sol_LSC; }
+    else if (StringMatch(sk, VAR_SOL_LSN)) { *data = m_sol_LSN; }
+    else if (StringMatch(sk, VAR_SOL_LS)) { *data = m_sol_LS; }
+    else if (StringMatch(sk, VAR_SOL_LSL)) { *data = m_sol_LSL; }
+    else if (StringMatch(sk, VAR_SOL_LSLC)) { *data = m_sol_LSLC; }
+    else if (StringMatch(sk, VAR_SOL_LSLNC)) { *data = m_sol_LSLNC; }
+    else if (StringMatch(sk, VAR_SOL_RNMN)) { *data = m_sol_RNMN; }
+    else if (StringMatch(sk, VAR_SOL_RSPC)) { *data = m_sol_RSPC; }
+    else if (StringMatch(sk, VAR_CONV_WT)) { *data = m_conv_wt; }
     else {
         throw ModelException(MID_NUTR_TF, "Get2DData", "Parameter " + sk + " does not exist.");
     }

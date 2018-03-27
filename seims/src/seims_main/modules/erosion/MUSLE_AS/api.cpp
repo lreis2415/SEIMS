@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Zhiqiang Yu");
+    mdi.SetAuthor("Zhiqiang Yu, Liangjun Zhu");
     mdi.SetClass(MCLS_OL_EROSION, MCLSDESC_OL_EROSION);
     mdi.SetDescription(MDESC_MUSLE_AS);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -28,7 +28,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_USLE_P, UNIT_NON_DIM, DESC_USLE_P, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_ACC, UNIT_NON_DIM, DESC_ACC, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
-    mdi.AddParameter(VAR_SUBBASIN_PARAM, UNIT_NON_DIM, DESC_SUBBASIN_PARAM, Source_ParameterDB, DT_Subbasin);
     mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
 
     mdi.AddParameter(VAR_DETACH_SAND, UNIT_NON_DIM, DESC_DETACH_SAND, Source_ParameterDB, DT_Raster1D);
@@ -58,5 +57,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-//mdi.AddParameter(Tag_CellSize, UNIT_NON_DIM, DESC_CellSize, Source_ParameterDB, DT_Single);
-//mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);

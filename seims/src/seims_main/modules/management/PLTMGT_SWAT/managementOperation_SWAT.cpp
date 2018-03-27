@@ -6,76 +6,76 @@
 using namespace std;
 
 MGTOpt_SWAT::MGTOpt_SWAT() : m_nCells(-1), m_nSub(-1), m_soilLayers(-1),
-                                 m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+                             m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
     /// add parameters from MongoDB
-                                 m_subBsnID(NULL), m_landUse(NULL), m_landCover(NULL), m_mgtFields(NULL), m_tBase(NULL),
+                             m_subBsnID(nullptr), m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr), m_tBase(nullptr),
     /// Soil related parameters from MongoDB
-                                 m_nSoilLayers(NULL), m_soilDepth(NULL), m_soilThick(NULL), m_soilZMX(NULL),
-                                 m_soilBD(NULL), m_soilSumFC(NULL), m_soilN(NULL), m_soilCarbon(NULL),
-                                 m_soilRock(NULL), m_soilClay(NULL), m_soilSand(NULL), m_soilSilt(NULL),
+                             m_nSoilLayers(nullptr), m_soilDepth(nullptr), m_soilThick(nullptr), m_soilZMX(nullptr),
+                             m_soilBD(nullptr), m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCarbon(nullptr),
+                             m_soilRock(nullptr), m_soilClay(nullptr), m_soilSand(nullptr), m_soilSilt(nullptr),
     /// Soil related parameters
-                                 m_soilActiveOrgN(NULL), m_soilFreshOrgN(NULL), m_soilFreshOrgP(NULL),
-                                 m_soilNH4(NULL), m_soilNO3(NULL), m_soilStableOrgN(NULL),
-                                 m_soilOrgP(NULL), m_soilSolP(NULL),
+                             m_soilActiveOrgN(nullptr), m_soilFreshOrgN(nullptr), m_soilFreshOrgP(nullptr),
+                             m_soilNH4(nullptr), m_soilNO3(nullptr), m_soilStableOrgN(nullptr),
+                             m_soilOrgP(nullptr), m_soilSolP(nullptr),
     /// Plant operation related parameters
-                                 m_landuseLookup(NULL), m_landuseNum(-1), m_CN2(NULL), m_igro(NULL),
-                                 m_landCoverCls(NULL),
-                                 m_HarvestIdxTarg(NULL), m_BiomassTarg(NULL), m_curYearMat(NULL),
-                                 m_wtrStrsYF(NULL), m_LAIDay(NULL), m_phuBase(NULL), m_phuAcc(NULL), m_phuPlant(NULL),
-                                 m_dormFlag(NULL), m_havstIdx(NULL), m_havstIdxAdj(NULL),
-                                 m_LAIMaxFr(NULL), m_oLAI(NULL), m_frPlantN(NULL), m_plantN(NULL), m_plantP(NULL),
-                                 m_pltET(NULL), m_pltPET(NULL), m_frRoot(NULL), m_biomass(NULL),
+                             m_landuseLookup(nullptr), m_landuseNum(-1), m_CN2(nullptr), m_igro(nullptr),
+                             m_landCoverCls(nullptr),
+                             m_HarvestIdxTarg(nullptr), m_BiomassTarg(nullptr), m_curYearMat(nullptr),
+                             m_wtrStrsYF(nullptr), m_LAIDay(nullptr), m_phuBase(nullptr), m_phuAcc(nullptr), m_phuPlant(nullptr),
+                             m_dormFlag(nullptr), m_havstIdx(nullptr), m_havstIdxAdj(nullptr),
+                             m_LAIMaxFr(nullptr), m_oLAI(nullptr), m_frPlantN(nullptr), m_plantN(nullptr), m_plantP(nullptr),
+                             m_pltET(nullptr), m_pltPET(nullptr), m_frRoot(nullptr), m_biomass(nullptr),
     /// Harvest and Kill, harvest, harvgrain operation
-                                 m_soilRsd(NULL), m_frStrsWa(NULL), m_cropLookup(NULL), m_cropNum(-1),
-                                 m_lastSoilRootDepth(NULL),
-                                 m_grainc_d(NULL), m_stoverc_d(NULL), m_rsdc_d(NULL),
+                             m_soilRsd(nullptr), m_frStrsWa(nullptr), m_cropLookup(nullptr), m_cropNum(-1),
+                             m_lastSoilRootDepth(nullptr),
+                             m_grainc_d(nullptr), m_stoverc_d(nullptr), m_rsdc_d(nullptr),
     /// Fertilizer operation
-                                 m_fertilizerLookup(NULL), m_fertilizerNum(-1), m_CbnModel(0),
-                                 m_soilManureC(NULL), m_soilManureN(NULL), m_soilManureP(NULL),
+                             m_fertilizerLookup(nullptr), m_fertilizerNum(-1), m_CbnModel(0),
+                             m_soilManureC(nullptr), m_soilManureN(nullptr), m_soilManureP(nullptr),
     /// Irrigation
-                                 m_irrFlag(NULL), m_appliedWater(NULL), m_irrSurfQWater(NULL), m_deepWaterDepth(NULL),
-                                 m_shallowWaterDepth(NULL),
-                                 m_impoundArea(NULL), m_deepIrrWater(NULL), m_shallowIrrWater(NULL),
+                             m_irrFlag(nullptr), m_appliedWater(nullptr), m_irrSurfQWater(nullptr), m_deepWaterDepth(nullptr),
+                             m_shallowWaterDepth(nullptr),
+                             m_impoundArea(nullptr), m_deepIrrWater(nullptr), m_shallowIrrWater(nullptr),
     /// auto irrigation operation
-                                 m_wtrStrsID(NULL), m_autoWtrStres(NULL), m_autoIrrSource(NULL), m_autoIrrNo(NULL),
-                                 m_autoIrrEfficiency(NULL),
-                                 m_autoIrrWtrDepth(NULL), m_autoSurfRunRatio(NULL),
+                             m_wtrStrsID(nullptr), m_autoWtrStres(nullptr), m_autoIrrSource(nullptr), m_autoIrrNo(nullptr),
+                             m_autoIrrEfficiency(nullptr),
+                             m_autoIrrWtrDepth(nullptr), m_autoSurfRunRatio(nullptr),
     /// bacteria related
-    //m_bactSwf(NODATA),	m_bactLessPersistPlt(NULL), m_bactLessPersistSol(NULL), m_bactLessPersistParticle(NULL),
-    //m_bactPersistPlt(NULL), m_bactPersistSol(NULL), m_bactPersistParticle(NULL),
+    //m_bactSwf(NODATA),	m_bactLessPersistPlt(nullptr), m_bactLessPersistSol(nullptr), m_bactLessPersistParticle(nullptr),
+    //m_bactPersistPlt(nullptr), m_bactPersistSol(nullptr), m_bactPersistParticle(nullptr),
     /// Tillage operation
-                                 m_tillageLookup(NULL), m_soilActiveMinP(NULL), m_soilStableMinP(NULL),
+                             m_tillageLookup(nullptr), m_soilActiveMinP(nullptr), m_soilStableMinP(nullptr),
     /// tillage factor on SOM decomposition, used by CENTURY model
-                                 m_tillage_switch(NULL), m_tillage_depth(NULL), m_tillage_days(NULL),
-                                 m_tillage_factor(NULL),
+                             m_tillage_switch(nullptr), m_tillage_depth(nullptr), m_tillage_days(nullptr),
+                             m_tillage_factor(nullptr),
     /// auto fertilizer operation
-                                 m_fertilizerID(NULL), m_NStressCode(NULL), m_autoNStress(NULL),
-                                 m_autoMaxAppliedN(NULL), m_autoAnnMaxAppliedMinN(NULL),
-                                 m_targNYld(NULL), m_autoFertEfficiency(NULL), m_autoFertSurface(NULL),
+                             m_fertilizerID(nullptr), m_NStressCode(nullptr), m_autoNStress(nullptr),
+                             m_autoMaxAppliedN(nullptr), m_autoAnnMaxAppliedMinN(nullptr),
+                             m_targNYld(nullptr), m_autoFertEfficiency(nullptr), m_autoFertSurface(nullptr),
     /// Grazing operation
-                                 m_nGrazingDays(NULL), m_grzFlag(NULL),
+                             m_nGrazingDays(nullptr), m_grzFlag(nullptr),
     /// Release or impound operation
-                                 m_impoundTriger(NULL), m_potVol(NULL), m_potVolMax(NULL), m_potVolLow(NULL),
-                                 m_sol_fc(NULL), m_sol_sat(NULL), m_soilStorage(NULL), m_soilStorageProfile(NULL),
-                                 m_potNo3(NULL), m_potNH4(NULL), m_potSolP(NULL),
+                             m_impoundTriger(nullptr), m_potVol(nullptr), m_potVolMax(nullptr), m_potVolLow(nullptr),
+                             m_sol_fc(nullptr), m_sol_sat(nullptr), m_soilStorage(nullptr), m_soilStorageProfile(nullptr),
+                             m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
     /// CENTURY C/N cycling related variables
-                                 m_sol_HSN(NULL), m_sol_LM(NULL), m_sol_LMC(NULL), m_sol_LMN(NULL), m_sol_LSC(NULL),
-                                 m_sol_LSN(NULL), m_sol_LS(NULL), m_sol_LSL(NULL), m_sol_LSLC(NULL), m_sol_LSLNC(NULL),
-                                 m_sol_BMN(NULL), m_sol_HPN(NULL),
+                             m_sol_HSN(nullptr), m_sol_LM(nullptr), m_sol_LMC(nullptr), m_sol_LMN(nullptr), m_sol_LSC(nullptr),
+                             m_sol_LSN(nullptr), m_sol_LS(nullptr), m_sol_LSL(nullptr), m_sol_LSLC(nullptr), m_sol_LSLNC(nullptr),
+                             m_sol_BMN(nullptr), m_sol_HPN(nullptr),
     /// Temporary parameters
-                                 m_doneOpSequence(NULL), tmp_rtfr(nullptr),
+                             m_doneOpSequence(nullptr), tmp_rtfr(nullptr),
                              tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr), tmp_soilNotMixedMass(nullptr),
                              tmp_smix(nullptr),
-                                 m_initialized(false) {
+                             m_initialized(false) {
 }
 
 MGTOpt_SWAT::~MGTOpt_SWAT() {
     /// release map containers
     if (!m_mgtFactory.empty()) {
         for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
             m_mgtFactory.erase(it++);
         }
@@ -83,79 +83,79 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     }
     if (!m_landuseLookupMap.empty()) {
         for (auto it = m_landuseLookupMap.begin(); it != m_landuseLookupMap.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete[] it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
-            it->second = NULL;
+            it->second = nullptr;
             m_landuseLookupMap.erase(it++);
         }
         m_landuseLookupMap.clear();
     }
     if (!m_cropLookupMap.empty()) {
         for (auto it = m_cropLookupMap.begin(); it != m_cropLookupMap.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete[] it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
-            it->second = NULL;
+            it->second = nullptr;
             m_cropLookupMap.erase(it++);
         }
         m_cropLookupMap.clear();
     }
     if (!m_fertilizerLookupMap.empty()) {
         for (auto it = m_fertilizerLookupMap.begin(); it != m_fertilizerLookupMap.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete[] it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
-            it->second = NULL;
+            it->second = nullptr;
             m_fertilizerLookupMap.erase(it++);
         }
         m_fertilizerLookupMap.clear();
     }
     if (!m_tillageLookupMap.empty()) {
         for (auto it = m_tillageLookupMap.begin(); it != m_tillageLookupMap.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete[] it->second;
-                it->second = NULL;
+                it->second = nullptr;
             }
-            it->second = NULL;
+            it->second = nullptr;
             m_tillageLookupMap.erase(it++);
         }
         m_tillageLookupMap.clear();
     }
     /// release output parameters
     /// plant operation
-    if (m_HarvestIdxTarg != NULL) Release1DArray(m_HarvestIdxTarg);
-    if (m_BiomassTarg != NULL) Release1DArray(m_BiomassTarg);
+    if (m_HarvestIdxTarg != nullptr) Release1DArray(m_HarvestIdxTarg);
+    if (m_BiomassTarg != nullptr) Release1DArray(m_BiomassTarg);
     /// auto irrigation operation
-    if (m_irrFlag != NULL) Release1DArray(m_irrFlag);
-    if (m_appliedWater != NULL) Release1DArray(m_appliedWater);
-    if (m_irrSurfQWater != NULL) Release1DArray(m_irrSurfQWater);
-    if (m_wtrStrsID != NULL) Release1DArray(m_wtrStrsID);
-    if (m_autoWtrStres != NULL) Release1DArray(m_autoWtrStres);
-    if (m_autoIrrSource != NULL) Release1DArray(m_autoIrrSource);
-    if (m_autoIrrNo != NULL) Release1DArray(m_autoIrrNo);
-    if (m_autoIrrEfficiency != NULL) Release1DArray(m_autoIrrEfficiency);
-    if (m_autoIrrWtrDepth != NULL) Release1DArray(m_autoIrrWtrDepth);
-    if (m_autoSurfRunRatio != NULL) Release1DArray(m_autoSurfRunRatio);
+    if (m_irrFlag != nullptr) Release1DArray(m_irrFlag);
+    if (m_appliedWater != nullptr) Release1DArray(m_appliedWater);
+    if (m_irrSurfQWater != nullptr) Release1DArray(m_irrSurfQWater);
+    if (m_wtrStrsID != nullptr) Release1DArray(m_wtrStrsID);
+    if (m_autoWtrStres != nullptr) Release1DArray(m_autoWtrStres);
+    if (m_autoIrrSource != nullptr) Release1DArray(m_autoIrrSource);
+    if (m_autoIrrNo != nullptr) Release1DArray(m_autoIrrNo);
+    if (m_autoIrrEfficiency != nullptr) Release1DArray(m_autoIrrEfficiency);
+    if (m_autoIrrWtrDepth != nullptr) Release1DArray(m_autoIrrWtrDepth);
+    if (m_autoSurfRunRatio != nullptr) Release1DArray(m_autoSurfRunRatio);
     /// fertilizer / auto fertilizer operation
-    if (m_fertilizerID != NULL) Release1DArray(m_fertilizerID);
-    if (m_NStressCode != NULL) Release1DArray(m_NStressCode);
-    if (m_autoNStress != NULL) Release1DArray(m_autoNStress);
-    if (m_autoMaxAppliedN != NULL) Release1DArray(m_autoMaxAppliedN);
-    if (m_autoAnnMaxAppliedMinN != NULL) Release1DArray(m_autoAnnMaxAppliedMinN);
-    if (m_targNYld != NULL) Release1DArray(m_targNYld);
-    if (m_autoFertEfficiency != NULL) Release1DArray(m_autoFertEfficiency);
-    if (m_autoFertSurface != NULL) Release1DArray(m_autoFertSurface);
+    if (m_fertilizerID != nullptr) Release1DArray(m_fertilizerID);
+    if (m_NStressCode != nullptr) Release1DArray(m_NStressCode);
+    if (m_autoNStress != nullptr) Release1DArray(m_autoNStress);
+    if (m_autoMaxAppliedN != nullptr) Release1DArray(m_autoMaxAppliedN);
+    if (m_autoAnnMaxAppliedMinN != nullptr) Release1DArray(m_autoAnnMaxAppliedMinN);
+    if (m_targNYld != nullptr) Release1DArray(m_targNYld);
+    if (m_autoFertEfficiency != nullptr) Release1DArray(m_autoFertEfficiency);
+    if (m_autoFertSurface != nullptr) Release1DArray(m_autoFertSurface);
     /// Grazing operation
-    if (m_nGrazingDays != NULL) Release1DArray(m_nGrazingDays);
-    if (m_grzFlag != NULL) Release1DArray(m_grzFlag);
+    if (m_nGrazingDays != nullptr) Release1DArray(m_nGrazingDays);
+    if (m_grzFlag != nullptr) Release1DArray(m_grzFlag);
     /// Impound/Release operation
-    if (m_impoundTriger != NULL) Release1DArray(m_impoundTriger);
-    if (m_potVolMax != NULL) Release1DArray(m_potVolMax);
-    if (m_potVolLow != NULL) Release1DArray(m_potVolLow);
+    if (m_impoundTriger != nullptr) Release1DArray(m_impoundTriger);
+    if (m_potVolMax != nullptr) Release1DArray(m_potVolMax);
+    if (m_potVolLow != nullptr) Release1DArray(m_potVolLow);
     /// temporary variables
     if (nullptr != tmp_rtfr) Release1DArray(tmp_rtfr);
     if (nullptr != tmp_soilMass) Release1DArray(tmp_soilMass);
@@ -169,6 +169,7 @@ void MGTOpt_SWAT::SetValue(const char *key, float data) {
     if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) data; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = data; }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSub = (int) data; }
     else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -208,7 +209,7 @@ void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
     else if (StringMatch(sk, VAR_SOL_ZMX)) { m_soilZMX = data; }
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) { m_soilSumFC = data; }
-    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; } 
+    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; }
     ///  Plant operation related parameters
     else if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
     else if (StringMatch(sk, VAR_HVSTI)) { m_havstIdx = data; }
@@ -366,8 +367,8 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
 }
 
 void MGTOpt_SWAT::SetScenario(Scenario *sce) {
-    if (NULL == sce) {
-        throw ModelException(MID_PLTMGT_SWAT, "SetScenario", "The Scenario data can not to be NULL.");
+    if (nullptr == sce) {
+        throw ModelException(MID_PLTMGT_SWAT, "SetScenario", "The Scenario data can not to be nullptr.");
     }
     map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
     if (!m_mgtFactory.empty()) {
@@ -380,7 +381,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
             int uniqueIdx = ((BMPPlantMgtFactory *) it->second)->GetLUCCID() * 100 + it->second->GetSubScenarioId();
             m_mgtFactory[uniqueIdx] = (BMPPlantMgtFactory *) it->second;
             /// Set plant management spatial units
-            if (NULL == m_mgtFields) {
+            if (nullptr == m_mgtFields) {
                 m_mgtFields = ((BMPPlantMgtFactory *) it->second)->getRasterData();
             }
         }
@@ -388,10 +389,10 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
 }
 
 void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
-    if (NULL == subbasins) {
-        throw ModelException(MID_PLTMGT_SWAT, "SetSubbasins", "The Subbasins data can not to be NULL.");
+    if (nullptr == subbasins) {
+        throw ModelException(MID_PLTMGT_SWAT, "SetSubbasins", "The Subbasins data can not to be nullptr.");
     } else {
-        m_nSub = subbasins->GetSubbasinNumber();
+        // m_nSub = subbasins->GetSubbasinNumber(); // Set in SetValue()
         if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
         vector<int> subIDs = subbasins->GetSubbasinIDs();
         for (auto it = subIDs.begin(); it != subIDs.end(); it++) {
@@ -421,163 +422,163 @@ bool MGTOpt_SWAT::CheckInputData(void) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Carbon modeling method must be 0, 1, or 2");
     } else if (m_CbnModel == 2) {
         /// Check for the CENTURY required initialized variables
-        if (m_sol_HSN == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_HSN must not be NULL.");
+        if (m_sol_HSN == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_HSN must not be nullptr.");
         }
-        if (m_sol_LM == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LM must not be NULL.");
+        if (m_sol_LM == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LM must not be nullptr.");
         }
-        if (m_sol_LMC == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LMC must not be NULL.");
+        if (m_sol_LMC == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LMC must not be nullptr.");
         }
-        if (m_sol_LMN == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LMN must not be NULL.");
+        if (m_sol_LMN == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LMN must not be nullptr.");
         }
-        if (m_sol_LSC == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSC must not be NULL.");
+        if (m_sol_LSC == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSC must not be nullptr.");
         }
-        if (m_sol_LSN == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSN must not be NULL.");
+        if (m_sol_LSN == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSN must not be nullptr.");
         }
-        if (m_sol_LS == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LS must not be NULL.");
+        if (m_sol_LS == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LS must not be nullptr.");
         }
-        if (m_sol_LSL == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSL must not be NULL.");
+        if (m_sol_LSL == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSL must not be nullptr.");
         }
-        if (m_sol_LSLC == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSLC must not be NULL.");
+        if (m_sol_LSLC == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSLC must not be nullptr.");
         }
-        if (m_sol_LSLNC == NULL) {
-            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSLNC must not be NULL.");
+        if (m_sol_LSLNC == nullptr) {
+            ModelException(MID_PLTMGT_SWAT, "CheckInputData", "m_sol_LSLNC must not be nullptr.");
         }
     }
     /// DT_Raster
-    if (m_subBsnID == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "SubBasin ID must not be NULL");
-    if (m_landUse == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse must not be NULL");
-    if (m_landCover == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landcover must not be NULL");
-    if (m_mgtFields == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Management fields must not be NULL");
+    if (m_subBsnID == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "SubBasin ID must not be nullptr");
+    if (m_landUse == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse must not be nullptr");
+    if (m_landCover == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landcover must not be nullptr");
+    if (m_mgtFields == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Management fields must not be nullptr");
     }
-    if (m_tBase == NULL) {
+    if (m_tBase == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "Base or minimum temperature for plant growth must not be NULL");
+                             "Base or minimum temperature for plant growth must not be nullptr");
     }
-    if (m_nSoilLayers == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil layers number must not be NULL");
+    if (m_nSoilLayers == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil layers number must not be nullptr");
     }
-    if (m_soilZMX == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Maximum soil root depth must not be NULL");
+    if (m_soilZMX == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Maximum soil root depth must not be nullptr");
     }
-    if (m_soilSumFC == NULL) {
+    if (m_soilSumFC == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "Summary amount water in field capacity must not be NULL");
+                             "Summary amount water in field capacity must not be nullptr");
     }
-    if (m_CN2 == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "CN2 value must not be NULL");
-    if (m_igro == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Plant growth code must not be NULL");
-    if (m_landCoverCls == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The land cover/plant classification can not be NULL.");
+    if (m_CN2 == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "CN2 value must not be nullptr");
+    if (m_igro == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Plant growth code must not be nullptr");
+    if (m_landCoverCls == nullptr) {
+        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The land cover/plant classification can not be nullptr.");
     }
-    if (m_curYearMat == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Current growth year must not be NULL");
+    if (m_curYearMat == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Current growth year must not be nullptr");
     }
-    if (m_wtrStrsYF == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Value of harvest index must not be NULL");
+    if (m_wtrStrsYF == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Value of harvest index must not be nullptr");
     }
-    if (m_LAIDay == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "LAI in current day must not be NULL");
+    if (m_LAIDay == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "LAI in current day must not be nullptr");
     }
-    if (m_phuBase == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Base heat units fraction must not be NULL");
+    if (m_phuBase == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Base heat units fraction must not be nullptr");
     }
-    if (m_phuAcc == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Accumulated heat units fraction must not be NULL");
+    if (m_phuAcc == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Accumulated heat units fraction must not be nullptr");
     }
-    if (m_phuPlant == NULL) {
+    if (m_phuPlant == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "Heat units needed by plant to maturity must not be NULL");
+                             "Heat units needed by plant to maturity must not be nullptr");
     }
-    if (m_dormFlag == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Dormancy flag must not be NULL");
-    if (m_havstIdx == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Harvest index must not be NULL");
-    if (m_havstIdxAdj == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Adjusted harvest index must not be NULL");
+    if (m_dormFlag == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Dormancy flag must not be nullptr");
+    if (m_havstIdx == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Harvest index must not be nullptr");
+    if (m_havstIdxAdj == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Adjusted harvest index must not be nullptr");
     }
-    if (m_LAIMaxFr == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "LAI maximum fraction must not be NULL");
+    if (m_LAIMaxFr == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "LAI maximum fraction must not be nullptr");
     }
-    if (m_oLAI == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "oLAI must not be NULL");
-    if (m_frPlantN == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of biomass in nitrogen must not be NULL");
+    if (m_oLAI == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "oLAI must not be nullptr");
+    if (m_frPlantN == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of biomass in nitrogen must not be nullptr");
     }
-    if (m_frPlantP == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of biomass in phosphorus must not be NULL");
+    if (m_frPlantP == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of biomass in phosphorus must not be nullptr");
     }
-    if (m_pltET == NULL) {
+    if (m_pltET == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "Actual ET simulated during life of plant must not be NULL");
+                             "Actual ET simulated during life of plant must not be nullptr");
     }
-    if (m_pltPET == NULL) {
+    if (m_pltPET == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "Potential ET simulated during life of plant must not be NULL");
+                             "Potential ET simulated during life of plant must not be nullptr");
     }
-    if (m_frRoot == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of total biomass in roots must not be NULL");
+    if (m_frRoot == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fraction of total biomass in roots must not be nullptr");
     }
-    if (m_biomass == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Biomass must not be NULL");
-    if (m_lastSoilRootDepth == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Last root depth in soil must not be NULL");
+    if (m_biomass == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Biomass must not be nullptr");
+    if (m_lastSoilRootDepth == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Last root depth in soil must not be nullptr");
     }
-    if (m_deepWaterDepth == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Depth of water in deep aquifer must not be NULL");
+    if (m_deepWaterDepth == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Depth of water in deep aquifer must not be nullptr");
     }
-    if (m_shallowWaterDepth == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Depth of water in shallow aquifer must not be NULL");
+    if (m_shallowWaterDepth == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Depth of water in shallow aquifer must not be nullptr");
     }
     /// DT_Raster2D
-    if (m_soilDepth == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil depth must not be NULL");
-    if (m_soilThick == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil thickness must not be NULL");
-    if (m_soilBD == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil bulk density must not be NULL");
-    if (m_soilN == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil nitrogen must not be NULL");
-    if (m_soilCarbon == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil carbon content must not be NULL");
+    if (m_soilDepth == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil depth must not be nullptr");
+    if (m_soilThick == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil thickness must not be nullptr");
+    if (m_soilBD == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil bulk density must not be nullptr");
+    if (m_soilN == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil nitrogen must not be nullptr");
+    if (m_soilCarbon == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil carbon content must not be nullptr");
     }
-    if (m_soilRock == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil rock content must not be NULL");
+    if (m_soilRock == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil rock content must not be nullptr");
     }
-    if (m_soilClay == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil clay content must not be NULL");
+    if (m_soilClay == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil clay content must not be nullptr");
     }
-    if (m_soilSand == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil sand content must not be NULL");
+    if (m_soilSand == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil sand content must not be nullptr");
     }
-    if (m_soilSilt == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil silt content must not be NULL");
+    if (m_soilSilt == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil silt content must not be nullptr");
     }
-    if (m_soilActiveOrgN == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil active organic N must not be NULL");
+    if (m_soilActiveOrgN == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil active organic N must not be nullptr");
     }
-    if (m_soilFreshOrgN == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil fresh organic N must not be NULL");
+    if (m_soilFreshOrgN == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil fresh organic N must not be nullptr");
     }
-    if (m_soilFreshOrgP == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil fresh organic P must not be NULL");
+    if (m_soilFreshOrgP == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil fresh organic P must not be nullptr");
     }
-    if (m_soilNH4 == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil NH4 must not be NULL");
-    if (m_soilNO3 == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil NO3 must not be NULL");
-    if (m_soilStableOrgN == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil stable organic N must not be NULL");
+    if (m_soilNH4 == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil NH4 must not be nullptr");
+    if (m_soilNO3 == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil NO3 must not be nullptr");
+    if (m_soilStableOrgN == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil stable organic N must not be nullptr");
     }
-    if (m_soilOrgP == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil organic P must not be NULL");
-    if (m_soilSolP == NULL) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil soluble P must not be NULL");
-    if (m_soilActiveMinP == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil active mineral P must not be NULL");
+    if (m_soilOrgP == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil organic P must not be nullptr");
+    if (m_soilSolP == nullptr) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil soluble P must not be nullptr");
+    if (m_soilActiveMinP == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil active mineral P must not be nullptr");
     }
-    if (m_soilStableMinP == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil stable mineral P must not be NULL");
+    if (m_soilStableMinP == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Soil stable mineral P must not be nullptr");
     }
-    if (m_soilRsd == NULL) {
+    if (m_soilRsd == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData",
-                             "OM classified as residue in soil layers must not be NULL");
+                             "OM classified as residue in soil layers must not be nullptr");
     }
     return true;
 }
@@ -659,8 +660,8 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
 
 void MGTOpt_SWAT::initializeLanduseLookup() {
     /// Check input data
-    if (m_landuseLookup == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse lookup array must not be NULL");
+    if (m_landuseLookup == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse lookup array must not be nullptr");
     }
     if (m_landuseNum <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse number must be greater than 0");
@@ -676,8 +677,8 @@ void MGTOpt_SWAT::initializeLanduseLookup() {
 
 void MGTOpt_SWAT::initializeCropLookup() {
     /// Check input data
-    if (m_cropLookup == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop lookup array must not be NULL");
+    if (m_cropLookup == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop lookup array must not be nullptr");
     }
     if (m_cropNum <= 0) throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop number must be greater than 0");
 
@@ -692,8 +693,8 @@ void MGTOpt_SWAT::initializeCropLookup() {
 
 void MGTOpt_SWAT::initializeFertilizerLookup() {
     /// Check input data
-    if (m_fertilizerLookup == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer lookup array must not be NULL");
+    if (m_fertilizerLookup == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer lookup array must not be nullptr");
     }
     if (m_fertilizerNum <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer number must be greater than 0");
@@ -710,8 +711,8 @@ void MGTOpt_SWAT::initializeFertilizerLookup() {
 
 void MGTOpt_SWAT::initializeTillageLookup() {
     /// Check input data
-    if (m_tillageLookup == NULL) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage lookup array must not be NULL");
+    if (m_tillageLookup == nullptr) {
+        throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage lookup array must not be nullptr");
     }
     if (m_tillageNum <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage number must be greater than 0");
@@ -839,11 +840,11 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
             if (vmm > vmxi) vmm = vmxi;
             vol = vmm * cnv;
             float pot_fr = 0.f;
-            if (FloatEqual(m_impoundTriger[i], 0.f) && m_potVol != NULL) {
+            if (FloatEqual(m_impoundTriger[i], 0.f) && m_potVol != nullptr) {
                 /// m_impoundTriger equals to 0 means pot_fr is 1.
                 /// and m_impoundArea is set to m_cellArea.
                 pot_fr = 1.f;
-                if (m_impoundArea != NULL) {
+                if (m_impoundArea != nullptr) {
                     m_potVol[i] += vol / (10.f * m_impoundArea[i]);
                 } else {
                     m_potVol[i] += vol / (10.f * m_cellArea);
@@ -903,8 +904,8 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     int fertilizerID = curOperation->FertilizerID();
     /// kg/ha         |amount of fertilizer applied to HRU
     float fertilizerKgHa = curOperation->FertilizerKg_per_ha();
-    /* fraction of fertilizer which is applied to the top 10 mm of soil 
-	 * the remaining fraction: 
+    /* fraction of fertilizer which is applied to the top 10 mm of soil
+	 * the remaining fraction:
      *  - is dissolved in the impounded water, if current landcover is paddy rice
 	 *  - is applied to first soil layer defined by user, otherwise
 	 */
@@ -951,7 +952,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     float gc = 0.f; //, gc1 = 0.f;
     /// if current landcover is paddy rice, then apply the commercial fertilizer to the top surface and pothole.
     int lyrs = 2;
-    if (m_potVol != NULL) {
+    if (m_potVol != nullptr) {
         if (FloatEqual((int) m_landCover[i], CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f) {
             lyrs = 1;
             xx = 1.f - fertilizerSurfFrac;
@@ -1380,7 +1381,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     }
     /// calculate max mixing to preserve target surface residue
     /// Assume residue in all other layers is negligible to simplify calculation and remove depth dependency
-    /// TODO, m_minResidue is defined in OPS files in SWAT as residue management operation, 
+    /// TODO, m_minResidue is defined in OPS files in SWAT as residue management operation,
     ///       which should be implemented later as BMP operation. By LJ
     float m_minResidue = 10.f; /// currently, set m_minResidue to 10 as default.
     if (m_minResidue > 1.f && bmix < 0.001f) {
@@ -1509,9 +1510,9 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
         }
     }
     if (cnop > 1.e-4f) m_CN2[i] = cnop;
-//    if (tmp_soilMass != NULL) Release1DArray(tmp_soilMass);
-//    if (tmp_soilMixedMass != NULL) Release1DArray(tmp_soilMixedMass);
-//    if (tmp_soilNotMixedMass != NULL) Release1DArray(tmp_soilNotMixedMass);
+//    if (tmp_soilMass != nullptr) Release1DArray(tmp_soilMass);
+//    if (tmp_soilMixedMass != nullptr) Release1DArray(tmp_soilMixedMass);
+//    if (tmp_soilNotMixedMass != nullptr) Release1DArray(tmp_soilNotMixedMass);
 }
 
 void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
@@ -1838,13 +1839,13 @@ void MGTOpt_SWAT::ScheduledManagement(int cellIdx, int &factoryID, int nOp) {
 
 int MGTOpt_SWAT::Execute() {
     CheckInputData();  /// essential input data, other inputs for specific management operation will be check separately.
-    initialOutputs(); /// all possible outputs will be initialized to avoid NULL pointer problems.
+    initialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
     /// initialize arrays at the beginning of the current day, derived from sim_initday.f of SWAT
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
-        if (m_grainc_d != NULL) m_grainc_d[i] = 0.f;
-        if (m_stoverc_d != NULL) m_stoverc_d[i] = 0.f;
-        if (m_rsdc_d != NULL) m_rsdc_d[i] = 0.f;
+        if (m_grainc_d != nullptr) m_grainc_d[i] = 0.f;
+        if (m_stoverc_d != nullptr) m_stoverc_d[i] = 0.f;
+        if (m_rsdc_d != nullptr) m_rsdc_d[i] = 0.f;
     }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -1858,7 +1859,7 @@ int MGTOpt_SWAT::Execute() {
         //	fs.open(filename.c_str(), ios::out|ios::app);
         //	if (fs.is_open())
         //	{
-        //		fs << util.ConvertToString(&this->m_date) <<", IGRO: "<<m_igro[i]<<", phuBase: "<<m_phuBase[i]<<", phuAcc: "<<m_phuAcc[i]<<", phuPlt: "<<m_phuPlant[i]<< endl;
+        //		fs << util.ConvertToString(&m_date) <<", IGRO: "<<m_igro[i]<<", phuBase: "<<m_phuBase[i]<<", phuAcc: "<<m_phuAcc[i]<<", phuPlt: "<<m_phuPlant[i]<< endl;
         //		fs.close();
         //	}
         //}
@@ -1875,7 +1876,7 @@ int MGTOpt_SWAT::Execute() {
                 //	fs.open(filename.c_str(), ios::out|ios::app);
                 //	if (fs.is_open())
                 //	{
-                //		fs << util.ConvertToString(&this->m_date) <<", IGRO: "<<m_igro[i]<<", phuBase: "<<m_phuBase[i]<<", phuAcc: "<<m_phuAcc[i]<<", phuPlt: "<<m_phuPlant[i]<<", optCode: "<<*it<< endl;
+                //		fs << util.ConvertToString(&m_date) <<", IGRO: "<<m_igro[i]<<", phuBase: "<<m_phuBase[i]<<", phuAcc: "<<m_phuAcc[i]<<", phuPlt: "<<m_phuPlant[i]<<", optCode: "<<*it<< endl;
                 //		fs.close();
                 //	}
                 //}
@@ -1955,6 +1956,7 @@ void MGTOpt_SWAT::Get2DData(const char *key, int *nRows, int *nCols, float ***da
 }
 
 void MGTOpt_SWAT::initialOutputs() {
+    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
     if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth / 10000.f; // unit: ha
     /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ
     if (m_initialized) return;
@@ -1972,66 +1974,66 @@ void MGTOpt_SWAT::initialOutputs() {
     }
     /// plant operation
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Plant) != definedMgtCodes.end()) {
-        if (m_HarvestIdxTarg == NULL) Initialize1DArray(m_nCells, m_HarvestIdxTarg, 0.f);
-        if (m_BiomassTarg == NULL) Initialize1DArray(m_nCells, m_BiomassTarg, 0.f);
+        if (m_HarvestIdxTarg == nullptr) Initialize1DArray(m_nCells, m_HarvestIdxTarg, 0.f);
+        if (m_BiomassTarg == nullptr) Initialize1DArray(m_nCells, m_BiomassTarg, 0.f);
     }
     /// irrigation / auto irrigation operations
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Irrigation) != definedMgtCodes.end() ||
         find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_AutoIrrigation) != definedMgtCodes.end()) {
-        if (m_appliedWater == NULL) Initialize1DArray(m_nCells, m_appliedWater, 0.f);
-        if (m_irrSurfQWater == NULL) Initialize1DArray(m_nCells, m_irrSurfQWater, 0.f);
-        if (m_irrFlag == NULL) Initialize1DArray(m_nCells, m_irrFlag, 0.f);
-        if (m_autoIrrSource == NULL) Initialize1DArray(m_nCells, m_autoIrrSource, (float) IRR_SRC_OUTWTSD);
-        if (m_autoIrrNo == NULL) Initialize1DArray(m_nCells, m_autoIrrNo, -1.f);
-        if (m_wtrStrsID == NULL) Initialize1DArray(m_nCells, m_wtrStrsID, 1.f); /// By default, plant water demand
-        if (m_autoWtrStres == NULL) Initialize1DArray(m_nCells, m_autoWtrStres, 0.f);
-        if (m_autoIrrEfficiency == NULL) Initialize1DArray(m_nCells, m_autoIrrEfficiency, 0.f);
-        if (m_autoIrrWtrDepth == NULL) Initialize1DArray(m_nCells, m_autoIrrWtrDepth, 0.f);
-        if (m_autoSurfRunRatio == NULL) Initialize1DArray(m_nCells, m_autoSurfRunRatio, 0.f);
+        if (m_appliedWater == nullptr) Initialize1DArray(m_nCells, m_appliedWater, 0.f);
+        if (m_irrSurfQWater == nullptr) Initialize1DArray(m_nCells, m_irrSurfQWater, 0.f);
+        if (m_irrFlag == nullptr) Initialize1DArray(m_nCells, m_irrFlag, 0.f);
+        if (m_autoIrrSource == nullptr) Initialize1DArray(m_nCells, m_autoIrrSource, (float) IRR_SRC_OUTWTSD);
+        if (m_autoIrrNo == nullptr) Initialize1DArray(m_nCells, m_autoIrrNo, -1.f);
+        if (m_wtrStrsID == nullptr) Initialize1DArray(m_nCells, m_wtrStrsID, 1.f); /// By default, plant water demand
+        if (m_autoWtrStres == nullptr) Initialize1DArray(m_nCells, m_autoWtrStres, 0.f);
+        if (m_autoIrrEfficiency == nullptr) Initialize1DArray(m_nCells, m_autoIrrEfficiency, 0.f);
+        if (m_autoIrrWtrDepth == nullptr) Initialize1DArray(m_nCells, m_autoIrrWtrDepth, 0.f);
+        if (m_autoSurfRunRatio == nullptr) Initialize1DArray(m_nCells, m_autoSurfRunRatio, 0.f);
     }
     /// fertilizer / auto fertilizer operations
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Fertilizer) != definedMgtCodes.end() ||
         find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_AutoFertilizer) != definedMgtCodes.end()) {
-        if (m_fertilizerID == NULL) Initialize1DArray(m_nCells, m_fertilizerID, -1.f);
-        if (m_NStressCode == NULL) Initialize1DArray(m_nCells, m_NStressCode, 0.f);
-        if (m_autoNStress == NULL) Initialize1DArray(m_nCells, m_autoNStress, 0.f);
-        if (m_autoMaxAppliedN == NULL) Initialize1DArray(m_nCells, m_autoMaxAppliedN, 0.f);
-        if (m_targNYld == NULL) Initialize1DArray(m_nCells, m_targNYld, 0.f);
-        if (m_autoAnnMaxAppliedMinN == NULL) Initialize1DArray(m_nCells, m_autoAnnMaxAppliedMinN, 0.f);
-        if (m_autoFertEfficiency == NULL) Initialize1DArray(m_nCells, m_autoFertEfficiency, 0.f);
-        if (m_autoFertSurface == NULL) Initialize1DArray(m_nCells, m_autoFertSurface, 0.f);
+        if (m_fertilizerID == nullptr) Initialize1DArray(m_nCells, m_fertilizerID, -1.f);
+        if (m_NStressCode == nullptr) Initialize1DArray(m_nCells, m_NStressCode, 0.f);
+        if (m_autoNStress == nullptr) Initialize1DArray(m_nCells, m_autoNStress, 0.f);
+        if (m_autoMaxAppliedN == nullptr) Initialize1DArray(m_nCells, m_autoMaxAppliedN, 0.f);
+        if (m_targNYld == nullptr) Initialize1DArray(m_nCells, m_targNYld, 0.f);
+        if (m_autoAnnMaxAppliedMinN == nullptr) Initialize1DArray(m_nCells, m_autoAnnMaxAppliedMinN, 0.f);
+        if (m_autoFertEfficiency == nullptr) Initialize1DArray(m_nCells, m_autoFertEfficiency, 0.f);
+        if (m_autoFertSurface == nullptr) Initialize1DArray(m_nCells, m_autoFertSurface, 0.f);
 
         if (m_CbnModel == 1) {
-            if (m_soilManureC == NULL) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureC, 0.f);
-            if (m_soilManureN == NULL) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureN, 0.f);
-            if (m_soilManureP == NULL) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureP, 0.f);
+            if (m_soilManureC == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureC, 0.f);
+            if (m_soilManureN == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureN, 0.f);
+            if (m_soilManureP == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureP, 0.f);
         }
     }
     /// impound/release operation
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_ReleaseImpound) != definedMgtCodes.end()) {
-        if (m_impoundTriger == NULL) Initialize1DArray(m_nCells, m_impoundTriger, 1.f);
-        if (m_potVolMax == NULL) Initialize1DArray(m_nCells, m_potVolMax, 0.f);
-        if (m_potVolLow == NULL) Initialize1DArray(m_nCells, m_potVolLow, 0.f);
+        if (m_impoundTriger == nullptr) Initialize1DArray(m_nCells, m_impoundTriger, 1.f);
+        if (m_potVolMax == nullptr) Initialize1DArray(m_nCells, m_potVolMax, 0.f);
+        if (m_potVolLow == nullptr) Initialize1DArray(m_nCells, m_potVolLow, 0.f);
     }
     /// tillage
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Tillage) != definedMgtCodes.end()) {
         if (m_CbnModel == 2) {
-            if (m_tillage_days == NULL) Initialize1DArray(m_nCells, m_tillage_days, 0.f);
-            if (m_tillage_switch == NULL) Initialize1DArray(m_nCells, m_tillage_switch, 0.f);
-            if (m_tillage_depth == NULL) Initialize1DArray(m_nCells, m_tillage_depth, 0.f);
-            if (m_tillage_factor == NULL) Initialize1DArray(m_nCells, m_tillage_factor, 0.f);
+            if (m_tillage_days == nullptr) Initialize1DArray(m_nCells, m_tillage_days, 0.f);
+            if (m_tillage_switch == nullptr) Initialize1DArray(m_nCells, m_tillage_switch, 0.f);
+            if (m_tillage_depth == nullptr) Initialize1DArray(m_nCells, m_tillage_depth, 0.f);
+            if (m_tillage_factor == nullptr) Initialize1DArray(m_nCells, m_tillage_factor, 0.f);
         }
     }
     /// harvestkill
     if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_HarvestKill) != definedMgtCodes.end()) {
         if (m_CbnModel == 2) {
-            if (m_grainc_d == NULL) Initialize1DArray(m_nCells, m_grainc_d, 0.f);
-            if (m_stoverc_d == NULL) Initialize1DArray(m_nCells, m_stoverc_d, 0.f);
-            if (m_rsdc_d == NULL) Initialize1DArray(m_nCells, m_rsdc_d, 0.f);
+            if (m_grainc_d == nullptr) Initialize1DArray(m_nCells, m_grainc_d, 0.f);
+            if (m_stoverc_d == nullptr) Initialize1DArray(m_nCells, m_stoverc_d, 0.f);
+            if (m_rsdc_d == nullptr) Initialize1DArray(m_nCells, m_rsdc_d, 0.f);
         }
     }
     /// temporary variables
-    if (m_doneOpSequence == NULL) Initialize1DArray(m_nCells, m_doneOpSequence, -1);
+    if (m_doneOpSequence == nullptr) Initialize1DArray(m_nCells, m_doneOpSequence, -1);
     m_initialized = true;
 }
 

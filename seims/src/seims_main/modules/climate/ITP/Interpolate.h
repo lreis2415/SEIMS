@@ -24,16 +24,14 @@ using namespace std;
  */
 class Interpolate : public SimulationModule {
 public:
-    //! Constructor
-    Interpolate(void);
+    Interpolate();
 
-    //! Destructor
-    ~Interpolate(void);
+    ~Interpolate();
 
     //! Set data type
     void SetClimateDataType(float value);
 
-    int Execute(void);
+    int Execute();
 
     void SetDate(time_t date, int yearIdx);
 
@@ -53,7 +51,7 @@ public:
      */
     bool CheckInputSize(string &key, int n, int &m_n);
 
-    void CheckInputData(void);
+    void CheckInputData();
 
 private:
     // This is the climate data type. It is used to get the specific lapse rate from lapse_rate table.
@@ -79,7 +77,7 @@ private:
     float *m_dem;
     /// Lapse Rate, a 2D array. The first level is by month, and the second level is by data type in order of (P,T,PET).
     float **m_lapseRate;
-    /// month
+    /// months since January - [0,11]
     int m_month;
     /// interpolation result
     float *m_itpOutput;

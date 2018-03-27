@@ -17,6 +17,7 @@
  */
 #ifndef SEIMS_MODULE_MUSK_CH_H
 #define SEIMS_MODULE_MUSK_CH_H
+
 #include "SimulationModule.h"
 #include "Scenario.h"
 
@@ -75,6 +76,18 @@ public:
 
     virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
 
+private:
+    void initialOutputs();
+
+    void PointSourceLoading();
+
+    void ChannelFlow(int i);
+
+    void GetDt(float timeStep, float fmin, float fmax, float &dt, int &n);
+
+    void GetCoefficients(float reachLength, float v0, MuskWeights &weights);
+
+    void updateWaterWidthDepth(int i);
 private:
     /// time step (sec)
     int m_dt;
@@ -190,18 +203,6 @@ private:
      * value: reach ID
      */
     map<int, vector<int> > m_reachLayers;
-
-    void initialOutputs();
-
-    void PointSourceLoading();
-
-    void ChannelFlow(int i);
-
-    void GetDt(float timeStep, float fmin, float fmax, float &dt, int &n);
-
-    void GetCoefficients(float reachLength, float v0, MuskWeights &weights);
-
-    void updateWaterWidthDepth(int i);
 };
 
 #endif /* SEIMS_MODULE_MUSK_CH_H */

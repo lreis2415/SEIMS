@@ -87,7 +87,7 @@ Nutrient,nperco,Nitrogen percolation coefficient,none,NutrMV,0.5,1,RC,1,0
 Nutrient,p_n,Algal preference factor for ammonia,mg/L,NutCHRout,0.5,1,RC,1,0
 Nutrient,phoskd,Phosphorus soil partitioning coefficient,m^3/Mg,NutrMV,175,0,AC,200,100
 Nutrient,pperco,Phosphorus percolation coefficient,none,NutrMV,10,0,AC,17.5,10
-Nutrient,psp,nitrogen active pool fraction,none,NMINRL,0.02,1,RC,1,0
+Nutrient,psp,nitrogen active pool fraction,none,NMINRL,0.4,1,RC,0.7,0.01
 Nutrient,rca,Atmospheric deposition of ammonium,mg/L,ATMDEP,2,1,RC,2,0
 Nutrient,rcn,Atmospheric deposition of nitrate,mg/L,ATMDEP,1,1,RC,1,0
 Nutrient,rhoq,Algal respiration rate at 20 deg C,1/day,NutCHRout,0.3,1,RC,0.05,0.5

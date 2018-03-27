@@ -3,47 +3,47 @@
 
 using namespace std;
 
-NutrientTransportSediment::NutrientTransportSediment(void) :
+NutrientTransportSediment::NutrientTransportSediment() :
 //input
-    m_nCells(-1), m_cellWidth(-1.f), m_cellArea(-1.f), m_soiLayers(-1), m_nSoilLayers(NULL),
-    m_nSubbasins(-1), m_subbasin(NULL), m_subbasinsInfo(NULL),
-    m_sol_bd(NULL), m_soilThick(NULL), m_enratio(NULL),
-    m_sol_actp(NULL), m_sol_stap(NULL), m_sol_fop(NULL), m_sol_orgp(NULL),
-    m_sol_orgn(NULL), m_sol_aorgn(NULL), m_sol_fon(NULL),
-    m_sedEroded(NULL), m_surfaceRunoff(NULL),
+    m_nCells(-1), m_cellWidth(-1.f), m_cellArea(-1.f), m_nMaxSoiLayers(-1), m_nSoilLayers(nullptr),
+    m_nSubbasins(-1), m_subbasinID(-1), m_subbasin(nullptr), m_subbasinsInfo(nullptr),
+    m_sol_bd(nullptr), m_soilThick(nullptr), m_enratio(nullptr),
+    m_sol_actp(nullptr), m_sol_stap(nullptr), m_sol_fop(nullptr), m_sol_orgp(nullptr),
+    m_sol_orgn(nullptr), m_sol_aorgn(nullptr), m_sol_fon(nullptr),
+    m_sedEroded(nullptr), m_surfaceRunoff(nullptr),
     /// for CENTURY C/N cycling model inputs
-    m_CbnModel(0), m_sol_LSN(NULL), m_sol_LMN(NULL), m_sol_HPN(NULL), m_sol_HSN(NULL),
-    m_sol_HPC(NULL), m_sol_HSC(NULL), m_sol_LMC(NULL), m_sol_LSC(NULL), m_sol_LS(NULL),
-    m_sol_LM(NULL), m_sol_LSL(NULL), m_sol_LSLC(NULL), m_sol_LSLNC(NULL), m_sol_BMC(NULL),
-    m_sol_WOC(NULL), m_sol_perco(NULL), m_sol_laterq(NULL),
+    m_CbnModel(0), m_sol_LSN(nullptr), m_sol_LMN(nullptr), m_sol_HPN(nullptr), m_sol_HSN(nullptr),
+    m_sol_HPC(nullptr), m_sol_HSC(nullptr), m_sol_LMC(nullptr), m_sol_LSC(nullptr), m_sol_LS(nullptr),
+    m_sol_LM(nullptr), m_sol_LSL(nullptr), m_sol_LSLC(nullptr), m_sol_LSLNC(nullptr), m_sol_BMC(nullptr),
+    m_sol_WOC(nullptr), m_sol_perco(nullptr), m_sol_laterq(nullptr),
     /// for C-FARM one carbon model input
-    m_sol_mp(NULL),
+    m_sol_mp(nullptr),
     /// for CENTURY C/N cycling model outputs
-    m_sol_latC(NULL), m_sol_percoC(NULL), m_laterC(NULL), m_percoC(NULL), m_sedCLoss(NULL),
+    m_sol_latC(nullptr), m_sol_percoC(nullptr), m_laterC(nullptr), m_percoC(nullptr), m_sedCLoss(nullptr),
     //outputs
-    m_sedorgn(NULL), m_sedorgp(NULL), m_sedminpa(NULL), m_sedminps(NULL),
-    m_sedorgnToCh(NULL), m_sedorgpToCh(NULL), m_sedminpaToCh(NULL), m_sedminpsToCh(NULL) {
+    m_sedorgn(nullptr), m_sedorgp(nullptr), m_sedminpa(nullptr), m_sedminps(nullptr),
+    m_sedorgnToCh(nullptr), m_sedorgpToCh(nullptr), m_sedminpaToCh(nullptr), m_sedminpsToCh(nullptr) {
 }
 
-NutrientTransportSediment::~NutrientTransportSediment(void) {
-    if (m_enratio != NULL) Release1DArray(m_enratio);
+NutrientTransportSediment::~NutrientTransportSediment() {
+    if (m_enratio != nullptr) Release1DArray(m_enratio);
 
-    if (m_sedorgp != NULL) Release1DArray(m_sedorgp);
-    if (m_sedorgn != NULL) Release1DArray(m_sedorgn);
-    if (m_sedminpa != NULL) Release1DArray(m_sedminpa);
-    if (m_sedminps != NULL) Release1DArray(m_sedminps);
+    if (m_sedorgp != nullptr) Release1DArray(m_sedorgp);
+    if (m_sedorgn != nullptr) Release1DArray(m_sedorgn);
+    if (m_sedminpa != nullptr) Release1DArray(m_sedminpa);
+    if (m_sedminps != nullptr) Release1DArray(m_sedminps);
 
-    if (m_sedorgnToCh != NULL) Release1DArray(m_sedorgnToCh);
-    if (m_sedorgpToCh != NULL) Release1DArray(m_sedorgpToCh);
-    if (m_sedminpaToCh != NULL) Release1DArray(m_sedminpaToCh);
-    if (m_sedminpsToCh != NULL) Release1DArray(m_sedminpsToCh);
+    if (m_sedorgnToCh != nullptr) Release1DArray(m_sedorgnToCh);
+    if (m_sedorgpToCh != nullptr) Release1DArray(m_sedorgpToCh);
+    if (m_sedminpaToCh != nullptr) Release1DArray(m_sedminpaToCh);
+    if (m_sedminpsToCh != nullptr) Release1DArray(m_sedminpsToCh);
 
     /// for CENTURY C/N cycling model outputs
-    if (m_sol_latC != NULL) Release2DArray(m_nCells, m_sol_percoC);
-    if (m_sol_percoC != NULL) Release2DArray(m_nCells, m_sol_percoC);
-    if (m_laterC != NULL) Release1DArray(m_laterC);
-    if (m_percoC != NULL) Release1DArray(m_percoC);
-    if (m_sedCLoss != NULL) Release1DArray(m_sedCLoss);
+    if (m_sol_latC != nullptr) Release2DArray(m_nCells, m_sol_percoC);
+    if (m_sol_percoC != nullptr) Release2DArray(m_nCells, m_sol_percoC);
+    if (m_laterC != nullptr) Release1DArray(m_laterC);
+    if (m_percoC != nullptr) Release1DArray(m_percoC);
+    if (m_sedCLoss != nullptr) Release1DArray(m_sedCLoss);
 }
 
 bool NutrientTransportSediment::CheckInputSize(const char *key, int n) {
@@ -64,116 +64,57 @@ bool NutrientTransportSediment::CheckInputSize(const char *key, int n) {
 }
 
 bool NutrientTransportSediment::CheckInputData() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The input data can not be less than zero.");
-    }
-    if (this->m_cellWidth < 0.f) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The cell width can not be less than zero.");
-    }
-    if (this->m_soiLayers <= 0) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The layer number of the input 2D raster data can not be less than zero.");
-    }
-    if (this->m_nSoilLayers == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "Soil layers number must not be NULL.");
-    }
-    if (this->m_sedEroded == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The distribution of soil loss caused by water erosion can not be NULL.");
-    }
-    if (this->m_surfaceRunoff == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The distribution of surface runoff generated data can not be NULL.");
-    }
-    if (this->m_sol_bd == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The bulk density of the soil data can not be NULL.");
-    }
-    if (this->m_soilThick == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The thickness of soil layer can not be NULL.");
-    }
-    if (this->m_sol_actp == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of phosphorus stored in the active mineral phosphorus pool can not be NULL.");
-    }
-    if (this->m_sol_orgn == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of nitrogen stored in the stable organic N pool can not be NULL.");
-    }
-    if (this->m_sol_orgp == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of phosphorus stored in the organic P pool can not be NULL.");
-    }
-    if (this->m_sol_stap == NULL) {
-        throw ModelException(MID_NUTRSED,
-                             "CheckInputData",
-                             "The amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool can not be NULL.");
-    }
-    if (this->m_sol_aorgn == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of nitrogen stored in the active organic nitrogen pool data can not be NULL.");
-    }
-    if (this->m_sol_fon == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of nitrogen stored in the fresh organic pool can not be NULL.");
-    }
-    if (this->m_sol_fop == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The amount of phosphorus stored in the fresh organic pool can not be NULL.");
-    }
-
-    if (m_subbasin == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The parameter: m_subbasin has not been set.");
-    }
-
-    if (m_nSubbasins <= 0) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The subbasins number must be greater than 0.");
-    }
-    if (m_subbasinIDs.empty()) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The subbasin IDs can not be EMPTY.");
-    }
-    if (m_subbasinsInfo == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The parameter: m_subbasinsInfo has not been set.");
-    }
+    CHECK_POSITIVE(MID_NUTRSED, m_nCells);
+    CHECK_POSITIVE(MID_NUTRSED, m_nSubbasins);
+    CHECK_POSITIVE(MID_NUTRSED, m_cellWidth);
+    CHECK_POSITIVE(MID_NUTRSED, m_nMaxSoiLayers);
+    CHECK_POINTER(MID_NUTRSED, m_nSoilLayers);
+    CHECK_POINTER(MID_NUTRSED, m_sedEroded);
+    CHECK_POINTER(MID_NUTRSED, m_surfaceRunoff);
+    CHECK_POINTER(MID_NUTRSED, m_sol_bd);
+    CHECK_POINTER(MID_NUTRSED, m_sol_actp);
+    CHECK_POINTER(MID_NUTRSED, m_sol_orgn);
+    CHECK_POINTER(MID_NUTRSED, m_sol_orgp);
+    CHECK_POINTER(MID_NUTRSED, m_sol_stap);
+    CHECK_POINTER(MID_NUTRSED, m_sol_aorgn);
+    CHECK_POINTER(MID_NUTRSED, m_sol_fon);
+    CHECK_POINTER(MID_NUTRSED, m_sol_fop);
+    CHECK_POINTER(MID_NUTRSED, m_subbasin);
+    CHECK_POINTER(MID_NUTRSED, m_subbasinsInfo);
     return true;
 }
 
 bool NutrientTransportSediment::CheckInputData_CENTURY() {
-    if (this->m_sol_LSN == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LSN can not be NULL.");
-    if (this->m_sol_LMN == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LMN can not be NULL.");
-    if (this->m_sol_HPN == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_HPN can not be NULL.");
-    if (this->m_sol_HSN == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_HSN can not be NULL.");
-    if (this->m_sol_HPC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_HPC can not be NULL.");
-    if (this->m_sol_HSC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_HSC can not be NULL.");
-    if (this->m_sol_LMC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LMC can not be NULL.");
-    if (this->m_sol_LSC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LSC can not be NULL.");
-    if (this->m_sol_LS == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LS can not be NULL.");
-    if (this->m_sol_LM == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LM can not be NULL.");
-    if (this->m_sol_LSL == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LSL can not be NULL.");
-    if (this->m_sol_LSLC == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LSLC can not be NULL.");
-    }
-    if (this->m_sol_LSLNC == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_LSLNC can not be NULL.");
-    }
-    if (this->m_sol_BMC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_BMC can not be NULL.");
-    if (this->m_sol_WOC == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_WOC can not be NULL.");
-    if (this->m_sol_perco == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_perco can not be NULL.");
-    }
-    if (this->m_sol_laterq == NULL) {
-        throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_laterq can not be NULL.");
-    }
+    CHECK_POINTER(MID_NUTRSED, m_sol_LSN);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LMN);
+    CHECK_POINTER(MID_NUTRSED, m_sol_HPN);
+    CHECK_POINTER(MID_NUTRSED, m_sol_HSN);
+    CHECK_POINTER(MID_NUTRSED, m_sol_HPC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_HSC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LMC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LSC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LS);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LM);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LSL);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LSLC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_LSLNC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_BMC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_WOC);
+    CHECK_POINTER(MID_NUTRSED, m_sol_perco);
+    CHECK_POINTER(MID_NUTRSED, m_sol_laterq);
     return true;
 }
 
 bool NutrientTransportSediment::CheckInputData_CFARM() {
-    if (this->m_sol_mp == NULL) throw ModelException(MID_NUTRSED, "CheckInputData", "The m_sol_mp can not be NULL.");
+    CHECK_POINTER(MID_NUTRSED, m_sol_mp);
     return true;
 }
 
 void NutrientTransportSediment::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int)value); }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
     else {
@@ -182,35 +123,34 @@ void NutrientTransportSediment::SetValue(const char *key, float value) {
 }
 
 void NutrientTransportSediment::Set1DData(const char *key, int n, float *data) {
-    if (!this->CheckInputSize(key, n)) return;
-
+    CheckInputSize(key, n);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbasin = data;
     } else if (StringMatch(sk, VAR_SOILLAYERS)) {
         m_nSoilLayers = data;
     } else if (StringMatch(sk, VAR_SEDYLD)) {
-        this->m_sedEroded = data;
+        m_sedEroded = data;
     } else if (StringMatch(sk, VAR_OLFLOW)) {
-        this->m_surfaceRunoff = data;
+        m_surfaceRunoff = data;
     } else {
         throw ModelException(MID_NUTRSED, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientTransportSediment::Set2DData(const char *key, int nRows, int nCols, float **data) {
-    if (!this->CheckInputSize(key, nRows)) return;
+    CheckInputSize(key, nRows);
     string sk(key);
-    m_soiLayers = nCols;
-    if (StringMatch(sk, VAR_SOILTHICK)) { this->m_soilThick = data; }
-    else if (StringMatch(sk, VAR_SOL_BD)) { this->m_sol_bd = data; }
-    else if (StringMatch(sk, VAR_SOL_AORGN)) { this->m_sol_aorgn = data; }
-    else if (StringMatch(sk, VAR_SOL_SORGN)) { this->m_sol_orgn = data; }
-    else if (StringMatch(sk, VAR_SOL_HORGP)) { this->m_sol_orgp = data; }
-    else if (StringMatch(sk, VAR_SOL_FORGP)) { this->m_sol_fop = data; }
-    else if (StringMatch(sk, VAR_SOL_FORGN)) { this->m_sol_fon = data; }
-    else if (StringMatch(sk, VAR_SOL_ACTP)) { this->m_sol_actp = data; }
-    else if (StringMatch(sk, VAR_SOL_STAP)) { this->m_sol_stap = data; }
+    m_nMaxSoiLayers = nCols;
+    if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
+    else if (StringMatch(sk, VAR_SOL_BD)) { m_sol_bd = data; }
+    else if (StringMatch(sk, VAR_SOL_AORGN)) { m_sol_aorgn = data; }
+    else if (StringMatch(sk, VAR_SOL_SORGN)) { m_sol_orgn = data; }
+    else if (StringMatch(sk, VAR_SOL_HORGP)) { m_sol_orgp = data; }
+    else if (StringMatch(sk, VAR_SOL_FORGP)) { m_sol_fop = data; }
+    else if (StringMatch(sk, VAR_SOL_FORGN)) { m_sol_fon = data; }
+    else if (StringMatch(sk, VAR_SOL_ACTP)) { m_sol_actp = data; }
+    else if (StringMatch(sk, VAR_SOL_STAP)) { m_sol_stap = data; }
         /// for CENTURY C/Y cycling model, optional inputs
     else if (StringMatch(sk, VAR_ROCK)) { m_sol_rock = data; }
     else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_wsatur = data; }
@@ -240,19 +180,16 @@ void NutrientTransportSediment::Set2DData(const char *key, int nRows, int nCols,
 }
 
 void NutrientTransportSediment::initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_NUTRSED, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
+    CHECK_POSITIVE(MID_NUTRSED, m_nCells);
     // initial enrichment ratio
-    if (this->m_enratio == NULL) {
+    if (m_enratio == nullptr) {
         Initialize1DArray(m_nCells, m_enratio, 0.f);
     }
     if (m_cellArea < 0) {
         m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; //Unit is ha
     }
     // allocate the output variables
-    if (m_sedorgn == NULL) {
+    if (m_sedorgn == nullptr) {
         Initialize1DArray(m_nCells, m_sedorgn, 0.f);
         Initialize1DArray(m_nCells, m_sedorgp, 0.f);
         Initialize1DArray(m_nCells, m_sedminpa, 0.f);
@@ -264,9 +201,9 @@ void NutrientTransportSediment::initialOutputs() {
         Initialize1DArray(m_nSubbasins + 1, m_sedminpsToCh, 0.f);
     }
     /// for CENTURY C/N cycling model outputs
-    if (m_CbnModel == 2 && m_sol_latC == NULL) {
-        Initialize2DArray(m_nCells, m_soiLayers, m_sol_latC, 0.f);
-        Initialize2DArray(m_nCells, m_soiLayers, m_sol_percoC, 0.f);
+    if (m_CbnModel == 2 && m_sol_latC == nullptr) {
+        Initialize2DArray(m_nCells, m_nMaxSoiLayers, m_sol_latC, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoiLayers, m_sol_percoC, 0.f);
         Initialize1DArray(m_nCells, m_laterC, 0.f);
         Initialize1DArray(m_nCells, m_percoC, 0.f);
         Initialize1DArray(m_nCells, m_sedCLoss, 0.f);
@@ -274,28 +211,23 @@ void NutrientTransportSediment::initialOutputs() {
 }
 
 void NutrientTransportSediment::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_subbasinsInfo == NULL) {
+    if (m_subbasinsInfo == nullptr) {
         m_subbasinsInfo = subbasins;
-        m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();
+        // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
     }
 }
 
 int NutrientTransportSediment::Execute() {
-    if (!CheckInputData())return false;
+    CheckInputData();
     if (m_CbnModel == 1) {
-        if (!CheckInputData_CFARM()) {
-            return false;
-        }
+        if (!CheckInputData_CFARM()) { return false; }
     }
     if (m_CbnModel == 2) {
-        if (!CheckInputData_CENTURY()) {
-            return false;
-        }
+        if (!CheckInputData_CENTURY()) { return false; }
     }
-    this->initialOutputs();
+    initialOutputs();
     // initial nutrient to channel for each day
-#pragma omp parallel for
     for (int i = 0; i < m_nSubbasins + 1; i++) {
         m_sedorgnToCh[i] = 0.f;
         m_sedorgpToCh[i] = 0.f;
@@ -321,42 +253,51 @@ int NutrientTransportSediment::Execute() {
         //Calculates the amount of organic and mineral phosphorus attached to sediment in surface runoff. psed.f of SWAT
         OrgPAttachedtoSed(i);
     }
-
-    //float maxsedorgp = -1.f;
-    //int idx = -1;
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	if (m_sedorgp[i] > maxsedorgp)
-    //	{
-    //		maxsedorgp = m_sedorgp[i];
-    //		idx = i;
-    //	}
-    //}
-    //cout<<"maximum sedorgp id: "<<idx<< ", surfq: " <<m_surfaceRunoff[idx]<< ", sedYld: "<<m_sedEroded[idx]<<
-    //	", eratio: "<<m_enratio[idx]<<", sedorgp: "<<m_sedorgp[idx]<<endl;
-
     // sum by subbasin
-    for (int i = 0; i < m_nCells; i++) {
-        //add today's flow
-        int subi = (int) m_subbasin[i];
-        if (m_nSubbasins == 1) {
-            subi = 1;
-        } else if (subi >= m_nSubbasins + 1) {
-            throw ModelException(MID_NUTRSED, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+    // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+#pragma omp parallel
+    {
+        float *tmp_orgn2ch = new float[m_nSubbasins + 1];
+        float *tmp_orgp2ch = new float[m_nSubbasins + 1];
+        float *tmp_minpa2ch = new float[m_nSubbasins + 1];
+        float *tmp_minps2ch = new float[m_nSubbasins + 1];
+        for (int i = 0; i <= m_nSubbasins; i++) {
+            tmp_orgn2ch[i] = 0.f;
+            tmp_orgp2ch[i] = 0.f;
+            tmp_minpa2ch[i] = 0.f;
+            tmp_minps2ch[i] = 0.f;
         }
-        m_sedorgnToCh[subi] += m_sedorgn[i] * m_cellArea;
-        m_sedorgpToCh[subi] += m_sedorgp[i] * m_cellArea;
-        m_sedminpaToCh[subi] += m_sedminpa[i] * m_cellArea;
-        m_sedminpsToCh[subi] += m_sedminps[i] * m_cellArea;
-    }
-    //cout << m_sedorgpToCh[12] << endl;
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            tmp_orgn2ch[(int) m_subbasin[i]] += m_sedorgn[i];
+            tmp_orgp2ch[(int) m_subbasin[i]] += m_sedorgp[i];
+            tmp_minpa2ch[(int) m_subbasin[i]] += m_sedminpa[i];
+            tmp_minps2ch[(int) m_subbasin[i]] += m_sedminps[i];
+        }
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbasins; i++) {
+                m_sedorgnToCh[i] += tmp_orgn2ch[i];
+                m_sedorgpToCh[i] += tmp_orgp2ch[i];
+                m_sedminpaToCh[i] += tmp_minpa2ch[i];
+                m_sedminpsToCh[i] += tmp_minps2ch[i];
+            }
+        }
+        delete[] tmp_orgn2ch;
+        delete[] tmp_orgp2ch;
+        delete[] tmp_minpa2ch;
+        delete[] tmp_minps2ch;
+    }  /* END of #pragma omp parallel */
     // sum all the subbasins and put the sum value in the zero-index of the array
-    //for (int i = 1; i < m_nSubbasins + 1; i++)
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
-        m_sedorgnToCh[0] += m_sedorgnToCh[*it];
-        m_sedorgpToCh[0] += m_sedorgpToCh[*it];
-        m_sedminpaToCh[0] += m_sedminpaToCh[*it];
-        m_sedminpsToCh[0] += m_sedminpsToCh[*it];
+    for (int i = 1; i < m_nSubbasins + 1; i++) {
+        m_sedorgnToCh[i] *= m_cellArea;
+        m_sedorgpToCh[i] *= m_cellArea;
+        m_sedminpaToCh[i] *= m_cellArea;
+        m_sedminpsToCh[i] *= m_cellArea;
+        m_sedorgnToCh[0] += m_sedorgnToCh[i];
+        m_sedorgpToCh[0] += m_sedorgpToCh[i];
+        m_sedminpaToCh[0] += m_sedminpaToCh[i];
+        m_sedminpsToCh[0] += m_sedminpsToCh[i];
     }
     return 0;
 }
@@ -512,12 +453,12 @@ void NutrientTransportSediment::OrgPAttachedtoSed(int i) {
     float sol_attp_s = 0.f;
     //Calculate sediment
     sol_attp = m_sol_orgp[i][0] + m_sol_fop[i][0] + m_sol_actp[i][0] + m_sol_stap[i][0];
-    if (m_sol_mp != NULL) {
+    if (m_sol_mp != nullptr) {
         sol_attp += m_sol_mp[i][0];
     }
     if (sol_attp > 1.e-3f) {
         sol_attp_o = (m_sol_orgp[i][0] + m_sol_fop[i][0]) / sol_attp;
-        if (m_sol_mp != NULL) {
+        if (m_sol_mp != nullptr) {
             sol_attp_o += m_sol_mp[i][0] / sol_attp;
         }
         sol_attp_a = m_sol_actp[i][0] / sol_attp;
@@ -566,23 +507,22 @@ void NutrientTransportSediment::OrgPAttachedtoSed(int i) {
         m_sedminps[i] = m_sedminps[i] + m_sol_stap[i][0];
         m_sol_stap[i][0] = 0.f;
     }
-    // if (i == 46364) cout << "surfq: " <<m_surfaceRunoff[i]<< ", sedYld: "<<m_sedEroded[i]<<", sedorgp: "<<m_sedorgp[i]<< endl;
 }
 
 void NutrientTransportSediment::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SEDORGN)) {
-        *data = this->m_sedorgn;
+        *data = m_sedorgn;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SEDORGP)) {
-        *data = this->m_sedorgp;
+        *data = m_sedorgp;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SEDMINPA)) {
-        *data = this->m_sedminpa;
+        *data = m_sedminpa;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SEDMINPS)) {
-        *data = this->m_sedminps;
+        *data = m_sedminps;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SEDORGN_TOCH)) {
         *data = m_sedorgnToCh;
@@ -599,13 +539,13 @@ void NutrientTransportSediment::Get1DData(const char *key, int *n, float **data)
     }
         /// outputs of CENTURY C/N cycling model
     else if (StringMatch(sk, VAR_LATERAL_C)) {
-        *data = this->m_laterC;
+        *data = m_laterC;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_PERCO_C)) {
-        *data = this->m_percoC;
+        *data = m_percoC;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SEDLOSS_C)) {
-        *data = this->m_sedCLoss;
+        *data = m_sedCLoss;
         *n = m_nCells;
     } else {
         throw ModelException(MID_NUTRSED, "Get1DData", "Parameter " + sk + " does not exist");
@@ -616,17 +556,17 @@ void NutrientTransportSediment::Get2DData(const char *key, int *nRows, int *nCol
     initialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soiLayers;
-    if (StringMatch(sk, VAR_SOL_AORGN)) { *data = this->m_sol_aorgn; }
-    else if (StringMatch(sk, VAR_SOL_FORGN)) { *data = this->m_sol_fon; }
-    else if (StringMatch(sk, VAR_SOL_SORGN)) { *data = this->m_sol_orgn; }
-    else if (StringMatch(sk, VAR_SOL_HORGP)) { *data = this->m_sol_orgp; }
-    else if (StringMatch(sk, VAR_SOL_FORGP)) { *data = this->m_sol_fop; }
-    else if (StringMatch(sk, VAR_SOL_STAP)) { *data = this->m_sol_stap; }
-    else if (StringMatch(sk, VAR_SOL_ACTP)) { *data = this->m_sol_actp; }
+    *nCols = m_nMaxSoiLayers;
+    if (StringMatch(sk, VAR_SOL_AORGN)) { *data = m_sol_aorgn; }
+    else if (StringMatch(sk, VAR_SOL_FORGN)) { *data = m_sol_fon; }
+    else if (StringMatch(sk, VAR_SOL_SORGN)) { *data = m_sol_orgn; }
+    else if (StringMatch(sk, VAR_SOL_HORGP)) { *data = m_sol_orgp; }
+    else if (StringMatch(sk, VAR_SOL_FORGP)) { *data = m_sol_fop; }
+    else if (StringMatch(sk, VAR_SOL_STAP)) { *data = m_sol_stap; }
+    else if (StringMatch(sk, VAR_SOL_ACTP)) { *data = m_sol_actp; }
         /// outputs of CENTURY C/N cycling model
-    else if (StringMatch(sk, VAR_SOL_LATERAL_C)) { *data = this->m_sol_latC; }
-    else if (StringMatch(sk, VAR_SOL_PERCO_C)) { *data = this->m_sol_percoC; }
+    else if (StringMatch(sk, VAR_SOL_LATERAL_C)) { *data = m_sol_latC; }
+    else if (StringMatch(sk, VAR_SOL_PERCO_C)) { *data = m_sol_percoC; }
     else {
         throw ModelException(MID_NUTRSED, "Get2DData", "Output " + sk + " does not exist.");
     }

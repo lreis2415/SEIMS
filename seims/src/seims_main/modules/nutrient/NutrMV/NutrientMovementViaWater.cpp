@@ -3,43 +3,43 @@
 
 using namespace std;
 
-NutrientMovementViaWater::NutrientMovementViaWater(void) :
+NutrientMovementViaWater::NutrientMovementViaWater() :
 //input
-    m_nCells(-1), m_cellWidth(-1.f), m_cellArea(-1.f), m_soiLayers(-1), m_sedimentYield(NULL), m_nperco(-1.f),
+    m_nCells(-1), m_cellWidth(-1.f), m_cellArea(-1.f), m_nMaxSoilLayers(-1), m_sedimentYield(nullptr), m_nperco(-1.f),
     m_phoskd(-1.f), m_pperco(-1.f), m_cod_n(-1.f),
-    m_cod_k(-1.f), m_qtile(-1.f), m_nSoilLayers(NULL), m_anion_excl(NULL), m_isep_opt(-1), m_ldrain(NULL),
-    m_dis_stream(NULL), m_surfr(NULL), m_flat(NULL),
-    m_sol_perco(NULL), m_sol_wsatur(NULL), m_sol_crk(NULL), m_sol_bd(NULL), m_sol_z(NULL), m_sol_thick(NULL),
-    m_sol_cbn(NULL), m_sol_no3(NULL), m_sol_solp(NULL),
-    m_nSubbasins(-1), m_subbasin(NULL), m_subbasinsInfo(NULL), m_streamLink(NULL),
-    m_routingLayers(NULL), m_nRoutingLayers(-1), m_flowOutIndex(NULL),
-    m_sedc_d(NULL), m_conv_wt(NULL),
+    m_cod_k(-1.f), m_qtile(-1.f), m_nSoilLayers(nullptr), m_anion_excl(nullptr), m_isep_opt(-1), m_ldrain(nullptr),
+    m_dis_stream(nullptr), m_surfr(nullptr), m_flat(nullptr),
+    m_sol_perco(nullptr), m_sol_wsatur(nullptr), m_sol_crk(nullptr), m_sol_bd(nullptr), m_sol_z(nullptr), m_sol_thick(nullptr),
+    m_sol_cbn(nullptr), m_sol_no3(nullptr), m_sol_solp(nullptr),
+    m_nSubbasins(-1), m_subbasin(nullptr), m_subbasinsInfo(nullptr), m_streamLink(nullptr),
+    m_routingLayers(nullptr), m_nRoutingLayers(-1), m_flowOutIndex(nullptr),
+    m_sedc_d(nullptr), m_conv_wt(nullptr),
     //output
-    m_latno3(NULL), m_latno3ToCh(NULL), m_wshd_plch(-1.f),
-    m_surqno3(NULL), m_surqnh4(NULL), m_surqsolp(NULL), m_surcod(NULL), m_surchl_a(NULL),
-    m_perco_n(NULL), m_perco_p(NULL), m_perco_n_gw(NULL), m_perco_p_gw(NULL),
-    m_sur_no3ToCh(NULL), m_sur_nh4ToCh(NULL), m_sur_solpToCh(NULL), m_sur_codToCh(NULL) {
+    m_latno3(nullptr), m_latno3ToCh(nullptr), m_wshd_plch(-1.f),
+    m_surqno3(nullptr), m_surqnh4(nullptr), m_surqsolp(nullptr), m_surcod(nullptr), m_surchl_a(nullptr),
+    m_perco_n(nullptr), m_perco_p(nullptr), m_perco_n_gw(nullptr), m_perco_p_gw(nullptr),
+    m_sur_no3ToCh(nullptr), m_sur_nh4ToCh(nullptr), m_sur_solpToCh(nullptr), m_sur_codToCh(nullptr) {
 }
 
-NutrientMovementViaWater::~NutrientMovementViaWater(void) {
-    if (m_latno3 != NULL) Release1DArray(m_latno3);
-    if (m_latno3ToCh != NULL) Release1DArray(m_latno3ToCh);
+NutrientMovementViaWater::~NutrientMovementViaWater() {
+    if (m_latno3 != nullptr) Release1DArray(m_latno3);
+    if (m_latno3ToCh != nullptr) Release1DArray(m_latno3ToCh);
 
-    if (m_surqno3 != NULL) Release1DArray(m_surqno3);
-    if (m_surqnh4 != NULL) Release1DArray(m_surqnh4);
-    if (m_surqsolp != NULL) Release1DArray(m_surqsolp);
-    if (m_surcod != NULL) Release1DArray(m_surcod);
-    if (m_surchl_a != NULL) Release1DArray(m_surchl_a);
+    if (m_surqno3 != nullptr) Release1DArray(m_surqno3);
+    if (m_surqnh4 != nullptr) Release1DArray(m_surqnh4);
+    if (m_surqsolp != nullptr) Release1DArray(m_surqsolp);
+    if (m_surcod != nullptr) Release1DArray(m_surcod);
+    if (m_surchl_a != nullptr) Release1DArray(m_surchl_a);
 
-    if (m_sur_no3ToCh != NULL) Release1DArray(m_sur_no3ToCh);
-    if (m_sur_nh4ToCh != NULL) Release1DArray(m_sur_nh4ToCh);
-    if (m_sur_solpToCh != NULL) Release1DArray(m_sur_solpToCh);
-    if (m_sur_codToCh != NULL) Release1DArray(m_sur_codToCh);
+    if (m_sur_no3ToCh != nullptr) Release1DArray(m_sur_no3ToCh);
+    if (m_sur_nh4ToCh != nullptr) Release1DArray(m_sur_nh4ToCh);
+    if (m_sur_solpToCh != nullptr) Release1DArray(m_sur_solpToCh);
+    if (m_sur_codToCh != nullptr) Release1DArray(m_sur_codToCh);
 
-    if (m_perco_n != NULL) Release1DArray(m_perco_n);
-    if (m_perco_p != NULL) Release1DArray(m_perco_p);
-    if (m_perco_n_gw != NULL) Release1DArray(m_perco_n_gw);
-    if (m_perco_p_gw != NULL) Release1DArray(m_perco_p_gw);
+    if (m_perco_n != nullptr) Release1DArray(m_perco_n);
+    if (m_perco_p != nullptr) Release1DArray(m_perco_p);
+    if (m_perco_n_gw != nullptr) Release1DArray(m_perco_n_gw);
+    if (m_perco_p_gw != nullptr) Release1DArray(m_perco_p_gw);
 }
 
 void NutrientMovementViaWater::SumBySubbasin() {
@@ -113,131 +113,67 @@ bool NutrientMovementViaWater::CheckInputSize(const char *key, int n) {
 }
 
 bool NutrientMovementViaWater::CheckInputData() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The cells number can not be less than zero.");
-    }
-    if (this->m_cellWidth <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The cell width can not be less than zero.");
-    }
-    if (this->m_soiLayers <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The layer number of the input 2D raster data can not be less than zero.");
-    }
-    if (this->m_nSoilLayers == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "Soil layers number must not be NULL");
-    }
-    if (this->m_sedimentYield == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The distribution of soil loss caused by water erosion can not be NULL.");
-    }
-    if (this->m_sol_cbn == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The percent organic matter in soil layer can not be NULL.");
-    }
-    if (this->m_anion_excl == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The fraction of porosity from which anions are excluded can not be NULL.");
-    }
-    if (this->m_isep_opt < 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The septic operational condition code can not be NULL.");
-    }
-    //if (this->m_ldrain == NULL)
-    //{
-    //    throw ModelException(MID_NUTRMV, "CheckInputData", "The soil layer where drainage tile is located can not be NULL.");
-    //}
-    if (this->m_dis_stream == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The distance to the stream data can not be NULL.");
-    }
-    if (this->m_surfr == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The distribution of surface runoff generated data can not be NULL.");
-    }
-    if (this->m_nperco <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The nitrate percolation coefficient can not be less than zero.");
-    }
-    if (this->m_cod_n <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The m_cod_n can not be less than zero.");
-    }
-    if (this->m_cod_k <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The m_cod_k can not be less than zero.");
-    }
-    if (this->m_flat == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The lateral flow in soil layer data can not be NULL.");
-    }
-    if (this->m_sol_perco == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "percolation from soil layer can not be NULL.");
-    }
-    if (this->m_sol_wsatur == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The amount of water held in the soil layer at saturation data can not be NULL.");
-    }
-    if (this->m_phoskd <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "Phosphorus soil partitioning coefficient can not be less than zero.");
-    }
-    if (this->m_sol_thick == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The m_sol_thick can not be NULL.");
-    }
-    if (this->m_sol_crk == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The crack volume potential of soil data can not be NULL.");
-    }
-    if (this->m_pperco <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "Phosphorus percolation coefficient can not be less than zero.");
-    }
-    if (this->m_sol_bd == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The bulk density of the soil data can not be NULL.");
-    }
-    if (this->m_sol_z == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The depth to bottom of soil layer can not be NULL.");
-    }
-    if (m_flowOutIndex == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The parameter: flow out index has not been set.");
-    }
-    if (m_nSubbasins <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The subbasins number must be greater than 0.");
-    }
-    if (m_subbasinIDs.empty()) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The subbasin IDs can not be EMPTY.");
-    }
-    if (m_subbasinsInfo == NULL) {
-        throw ModelException(MID_NUTRMV, "CheckInputData", "The parameter: m_subbasinsInfo has not been set.");
-    }
+    CHECK_POSITIVE(MID_NUTRMV, m_nSubbasins);
+    CHECK_POSITIVE(MID_NUTRMV, m_nCells);
+    CHECK_POSITIVE(MID_NUTRMV, m_cellWidth);
+    CHECK_POSITIVE(MID_NUTRMV, m_nMaxSoilLayers);
+    CHECK_POINTER(MID_NUTRMV, m_nSoilLayers);
+    CHECK_POINTER(MID_NUTRMV, m_sedimentYield);
+    CHECK_POINTER(MID_NUTRMV, m_sol_cbn);
+    CHECK_POINTER(MID_NUTRMV, m_anion_excl);
+
+    CHECK_NONNEGATIVE(MID_NUTRMV, m_isep_opt);
+    CHECK_POINTER(MID_NUTRMV, m_dis_stream);
+    CHECK_POINTER(MID_NUTRMV, m_surfr);
+    CHECK_POSITIVE(MID_NUTRMV, m_nperco);
+    CHECK_POSITIVE(MID_NUTRMV, m_cod_n);
+    CHECK_POSITIVE(MID_NUTRMV, m_cod_k);
+    CHECK_POINTER(MID_NUTRMV, m_flat);
+    CHECK_POINTER(MID_NUTRMV, m_sol_perco);
+    CHECK_POINTER(MID_NUTRMV, m_sol_wsatur);
+    CHECK_POSITIVE(MID_NUTRMV, m_phoskd);
+    CHECK_POSITIVE(MID_NUTRMV, m_pperco);
+    CHECK_POINTER(MID_NUTRMV, m_sol_thick);
+    CHECK_POINTER(MID_NUTRMV, m_sol_crk);
+    CHECK_POINTER(MID_NUTRMV, m_sol_bd);
+    CHECK_POINTER(MID_NUTRMV, m_sol_z);
+    CHECK_POINTER(MID_NUTRMV, m_flowOutIndex);
+    CHECK_POINTER(MID_NUTRMV, m_sol_thick);
+    CHECK_POINTER(MID_NUTRMV, m_subbasinsInfo);
+    if (m_CbnModel == 2) { CHECK_POINTER(MID_NUTRMV, m_sedc_d); }
     return true;
 }
 
 void NutrientMovementViaWater::SetSubbasins(clsSubbasins *subbasins) {
-    if (m_subbasinsInfo == NULL) {
+    if (nullptr == m_subbasinsInfo) {
         m_subbasinsInfo = subbasins;
-        m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();
+        // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();  // Set in SetValue()
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
     }
 }
 
 void NutrientMovementViaWater::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
-    }
-        //else if (StringMatch(sk, Tag_CellSize)) { this->m_nCells = value; }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_CellWidth)) {
-        this->m_cellWidth = value;
-        this->m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; /// ha
-    } else if (StringMatch(sk, VAR_QTILE)) { this->m_qtile = value; }
-    else if (StringMatch(sk, VAR_NPERCO)) { this->m_nperco = value; }
-    else if (StringMatch(sk, VAR_PPERCO)) { this->m_pperco = value; }
-    else if (StringMatch(sk, VAR_PHOSKD)) { this->m_phoskd = value; }
-    else if (StringMatch(sk, VAR_ISEP_OPT)) { this->m_isep_opt = value; }
-    else if (StringMatch(sk, VAR_COD_N)) { this->m_cod_n = value; }
-    else if (StringMatch(sk, VAR_COD_K)) { this->m_cod_k = value; }
-    else if (StringMatch(sk, VAR_CSWAT)) { this->m_CbnModel = (int) value; }
+        m_cellWidth = value;
+        m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; /// ha
+    } else if (StringMatch(sk, VAR_QTILE)) { m_qtile = value; }
+    else if (StringMatch(sk, VAR_NPERCO)) { m_nperco = value; }
+    else if (StringMatch(sk, VAR_PPERCO)) { m_pperco = value; }
+    else if (StringMatch(sk, VAR_PHOSKD)) { m_phoskd = value; }
+    else if (StringMatch(sk, VAR_ISEP_OPT)) { m_isep_opt = value; }
+    else if (StringMatch(sk, VAR_COD_N)) { m_cod_n = value; }
+    else if (StringMatch(sk, VAR_COD_K)) { m_cod_k = value; }
+    else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
     else {
         throw ModelException(MID_NUTRMV, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::Set1DData(const char *key, int n, float *data) {
-    if (!this->CheckInputSize(key, n)) return;
+    if (!CheckInputSize(key, n)) return;
     string sk(key);
     if (StringMatch(sk, VAR_OLFLOW)) {
         m_surfr = data;
@@ -256,7 +192,7 @@ void NutrientMovementViaWater::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, VAR_SOILLAYERS)) {
         m_nSoilLayers = data;
     } else if (StringMatch(sk, VAR_SEDYLD)) {
-        this->m_sedimentYield = data;
+        m_sedimentYield = data;
     } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
         m_flowOutIndex = data;
     } else if (StringMatch(sk, VAR_SEDORGN)) {
@@ -277,8 +213,8 @@ void NutrientMovementViaWater::Set2DData(const char *key, int nRows, int nCols, 
         m_routingLayers = data;
         return;
     }
-    if (!this->CheckInputSize(key, nRows)) return;
-    m_soiLayers = nCols;
+    if (!CheckInputSize(key, nRows)) return;
+    m_nMaxSoilLayers = nCols;
     if (StringMatch(sk, VAR_SSRU)) { m_flat = data; }
     else if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
     else if (StringMatch(sk, VAR_SOL_BD)) { m_sol_bd = data; }
@@ -295,10 +231,9 @@ void NutrientMovementViaWater::Set2DData(const char *key, int nRows, int nCols, 
 }
 
 void NutrientMovementViaWater::initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
+    CHECK_POSITIVE(MID_NUTRMV, m_nSubbasins);
+    CHECK_POSITIVE(MID_NUTRMV, m_nCells);
+    CHECK_POSITIVE(MID_NUTRMV, m_nMaxSoilLayers);
     // allocate the output variables
     if (m_latno3 == NULL) Initialize1DArray(m_nCells, m_latno3, 0.f);
     if (m_perco_n == NULL) Initialize1DArray(m_nCells, m_perco_n, 0.f);
@@ -320,40 +255,21 @@ void NutrientMovementViaWater::initialOutputs() {
     if (m_wshd_plch < 0) m_wshd_plch = 0.f;
 
     // input variables
-    if (m_flat == NULL) Initialize2DArray(m_nCells, m_soiLayers, m_flat, 0.0001f);
-    if (m_sol_perco == NULL) Initialize2DArray(m_nCells, m_soiLayers, m_sol_perco, 0.0001f);
+    if (m_flat == NULL) Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_flat, 0.0001f);
+    if (m_sol_perco == NULL) Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_perco, 0.0001f);
     if (m_ldrain == NULL) Initialize1DArray(m_nCells, m_ldrain, -1.f);
     m_qtile = 0.0001f;
 }
 
 int NutrientMovementViaWater::Execute() {
     CheckInputData();
-    //int cellid = 18605;
-    //cout<<"NutrMV, pre solno3: ";
-    //for (int j = 0; j < (int)m_nSoilLayers[cellid]; j++)
-    //	cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
-    //cout<<endl;
-    if (m_CbnModel == 2) /// check input data
-    {
-        if (m_sedc_d == NULL) {
-            throw ModelException(MID_NUTRMV, "CheckInputData", "The amount of C lost with sediment must not be NULL.");
-        }
-    }
     initialOutputs();
-    // compute nitrate movement leaching
-    //cout<<"NUTRMV-exec, sol_no3[0]: "<<m_sol_no3[cellid][0]<<", "<<"surqno3: "<<m_surqno3[5878]<<endl;
     NitrateLoss();
-    //cout<<"NUTRMV-loss, sol_no3[0]: "<<m_sol_no3[cellid][0]<<", "<<"surqno3: "<<m_surqno3[cellid]<<endl;
-    // compute phosphorus movement
     PhosphorusLoss();
     // compute chl-a, CBOD and dissolved oxygen loadings
     SubbasinWaterQuality();
     // sum by sub-basin
     SumBySubbasin();
-    //cout<<"NutrMV, after solno3: ";
-    //for (int j = 0; j < (int)m_nSoilLayers[cellid]; j++)
-    //	cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
-    //cout<<endl;
     return 0;
 }
 
@@ -596,18 +512,17 @@ void NutrientMovementViaWater::SubbasinWaterQuality() {
 
 void NutrientMovementViaWater::GetValue(const char *key, float *value) {
     string sk(key);
-    if (StringMatch(sk, VAR_WSHD_PLCH)) {
-        *value = this->m_wshd_plch;
-    } else {
+    if (StringMatch(sk, VAR_WSHD_PLCH)) { *value = m_wshd_plch; } 
+    else {
         throw ModelException(MID_NUTRMV, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void NutrientMovementViaWater::Get1DData(const char *key, int *n, float **data) {
-    string sk(key);
     initialOutputs();
+    string sk(key);
     if (StringMatch(sk, VAR_LATNO3)) {
-        *data = this->m_latno3;
+        *data = m_latno3;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_PERCO_N_GW)) {
         *data = m_perco_n_gw;
@@ -616,19 +531,19 @@ void NutrientMovementViaWater::Get1DData(const char *key, int *n, float **data) 
         *data = m_perco_p_gw;
         *n = m_nSubbasins + 1;
     } else if (StringMatch(sk, VAR_SUR_NO3)) {
-        *data = this->m_surqno3;
+        *data = m_surqno3;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_NH4)) {
-        *data = this->m_surqnh4;
+        *data = m_surqnh4;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_SOLP)) {
-        *data = this->m_surqsolp;
+        *data = m_surqsolp;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_COD)) {
-        *data = this->m_surcod;
+        *data = m_surcod;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_CHL_A)) {
-        *data = this->m_surchl_a;
+        *data = m_surchl_a;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_LATNO3_TOCH)) {
         *data = m_latno3ToCh;
@@ -649,20 +564,3 @@ void NutrientMovementViaWater::Get1DData(const char *key, int *n, float **data) 
         throw ModelException(MID_NUTRMV, "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }
-//void NutrientMovementViaWater::Get2DData(const char *key, int *nRows, int *nCols, float ***data)
-//{
-//	initialOutputs();
-//    string sk(key);
-//    *nRows = m_nCells;
-//    *nCols = m_soiLayers;
-//    if (StringMatch(sk, VAR_SOL_NO3))
-//    {
-//        *data = this->m_sol_no3;
-//    }
-//    else if (StringMatch(sk, VAR_SOL_SOLP))
-//    {
-//        *data = this->m_sol_solp;
-//    }
-//    else
-//        throw ModelException(MID_NUTRMV, "Get2DData", "Output " + sk+" does not exist.");
-//}

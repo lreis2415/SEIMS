@@ -214,7 +214,16 @@ mongoc_gridfs_file_t *MongoGridFS::getFile(string const &gfilename, mongoc_gridf
         }
         mongoc_gridfs_file_t *gfile = NULL;
         bson_error_t err;
-        gfile = mongoc_gridfs_find_one_by_filename(gfs, gfilename.c_str(), &err);
+        // mongoc_gridfs_find_one_by_filename may failed even though the file exists
+        int count = 0;
+        while (count < 10) {
+            gfile = mongoc_gridfs_find_one_by_filename(gfs, gfilename.c_str(), &err);
+            if (gfile == NULL) {
+                SleepMS(1); // Sleep for one millisecond, in case of network blocking. By lj.
+                count++;
+            }
+            else { break; }
+        }
         if (gfile == NULL) {
             throw ModelException("MongoGridFS", "getFile",
                                  "The file " + gfilename + " does not exist.");
@@ -264,7 +273,6 @@ void MongoGridFS::getFileNames(vector<string>&filesExisted, mongoc_gridfs_t *gfs
         }
         mongoc_gridfs_file_list_destroy(glist);
         vector<string>(filesExisted).swap(filesExisted);
-        //return filesExisted;
     }
     catch (ModelException& e) {
         cout << e.toString() << endl;
@@ -280,6 +288,10 @@ bson_t *MongoGridFS::getFileMetadata(string const &gfilename, mongoc_gridfs_t *g
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
         mongoc_gridfs_file_t *gfile = this->getFile(gfilename, gfs);
+        if (gfile == NULL) {
+            throw ModelException("MongoGridFS", "getFileMetadata",
+                                 gfilename + " is not existed or get file timed out!\n");
+        }
         const bson_t *bmata = mongoc_gridfs_file_get_metadata(gfile);
         bson_t *mata = bson_copy(bmata);
         mongoc_gridfs_file_destroy(gfile);
@@ -303,6 +315,10 @@ MongoGridFS::getStreamData(string const &gfilename,
                                  "mongoc_gridfs_t must be provided for MongoGridFS!\n");
         }
         mongoc_gridfs_file_t *gfile = this->getFile(gfilename, gfs);
+        if (gfile == NULL) {
+            throw ModelException("MongoGridFS", "getStreamData",
+                                 gfilename + " is not existed or get file timed out!\n");
+        }
         datalength = (size_t)mongoc_gridfs_file_get_length(gfile);
         databuf = (char *)malloc(datalength);
         mongoc_iovec_t iov;

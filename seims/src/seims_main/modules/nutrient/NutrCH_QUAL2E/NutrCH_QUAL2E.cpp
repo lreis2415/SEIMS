@@ -101,9 +101,10 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
             continue;
         }
         int subi = (int) m_streamLink[i];
-        if (m_nReaches == 1) {
-            subi = 1;
-        } else if (subi >= m_nReaches + 1) {
+        //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
+        //    subi = 1;
+        //} else 
+        if (subi >= m_nReaches + 1) {
             throw ModelException(MID_NUTRCH_QUAL2E, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
         }
 
@@ -208,8 +209,9 @@ bool NutrCH_QUAL2E::CheckInputData() {
 void NutrCH_QUAL2E::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int) value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
-    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
+    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) (int) value; }
     else if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }
     else if (StringMatch(sk, VAR_RNUM1)) { m_rnum1 = value; }
     else if (StringMatch(sk, VAR_IGROPT)) { igropt = (int) value; }
@@ -242,30 +244,63 @@ void NutrCH_QUAL2E::SetValue(const char *key, float value) {
     }
 }
 
+void NutrCH_QUAL2E::SetValueByIndex(const char *key, int index, float data) {
+    if (m_subbasinID == 0) return; // Not for omp version
+    if (index <= 0 || index > m_nReaches) return; // index should belong 1 ~ m_nreach
+    if (nullptr == m_chOutAlgae) initialOutputs();
+    string sk(key);
+    /// IN/OUTPUT variables
+    // Concentration (mg/L) and amount (kg)
+    if (StringMatch(sk, VAR_CH_ALGAE)) { m_chOutAlgae[index] = data; }
+    else if (StringMatch(sk, VAR_CH_ALGAEConc)) { m_chOutAlgaeConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NO2)) { m_chOutNO2[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NO2Conc)) { m_chOutNO2Conc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_COD)) { m_chOutCOD[index] = data; }
+    else if (StringMatch(sk, VAR_CH_CODConc)) { m_chOutCODConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_CHLORA)) { m_chOutChlora[index] = data; }
+    else if (StringMatch(sk, VAR_CH_CHLORAConc)) { m_chOutChloraConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NO3)) { m_chOutNO3[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NO3Conc)) { m_chOutNO3Conc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_SOLP)) { m_chOutSolP[index] = data; }
+    else if (StringMatch(sk, VAR_CH_SOLPConc)) { m_chOutSolPConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_ORGN)) { m_chOutOrgN[index] = data; }
+    else if (StringMatch(sk, VAR_CH_ORGNConc)) { m_chOutOrgNConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_ORGP)) { m_chOutOrgP[index] = data; }
+    else if (StringMatch(sk, VAR_CH_ORGPConc)) { m_chOutOrgPConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NH4)) { m_chOutNH4[index] = data; }
+    else if (StringMatch(sk, VAR_CH_NH4Conc)) { m_chOutNH4Conc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_DOX)) { m_chOutDOx[index] = data; }
+    else if (StringMatch(sk, VAR_CH_DOXConc)) { m_chOutDOxConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_TN)) { m_chOutTN[index] = data; }
+    else if (StringMatch(sk, VAR_CH_TNConc)) { m_chOutTNConc[index] = data; }
+    else if (StringMatch(sk, VAR_CH_TP)) { m_chOutTP[index] = data; }
+    else if (StringMatch(sk, VAR_CH_TPConc)) { m_chOutTPConc[index] = data; }
+    // nutrient stored in reaches
+    else if (StringMatch(sk, VAR_CHSTR_NO3)) { m_chNO3[index] = data; }
+    else if (StringMatch(sk, VAR_CHSTR_NH4)) { m_chNH4[index] = data; }
+    else if (StringMatch(sk, VAR_CHSTR_TN)) { m_chTN[index] = data; }
+    else if (StringMatch(sk, VAR_CHSTR_TP)) { m_chTP[index] = data; }
+    else {
+        throw ModelException(MID_NUTRCH_QUAL2E, "SetValueByIndex", "Parameter " + sk + " does not exist.");
+    }
+}
+
 void NutrCH_QUAL2E::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     if (StringMatch(sk, VAR_DAYLEN)) {
-        if (!CheckInputCellSize(key, n)) {
-            return;
-        }
+        CheckInputCellSize(key, n);
         m_daylen = data;
         return;
     } else if (StringMatch(sk, DataType_SolarRadiation)) {
-        if (!CheckInputCellSize(key, n)) {
-            return;
-        }
+        CheckInputCellSize(key, n);
         m_sra = data;
         return;
     } else if (StringMatch(sk, VAR_STREAM_LINK)) {
-        if (!CheckInputCellSize(key, n)) {
-            return;
-        }
+        CheckInputCellSize(key, n);
         m_streamLink = data;
         return;
     } else if (StringMatch(sk, VAR_SOTE)) {
-        if (!CheckInputCellSize(key, n)) {
-            return;
-        }
+        CheckInputCellSize(key, n);
         m_soilTemp = data;
         return;
     }
@@ -366,10 +401,7 @@ void NutrCH_QUAL2E::SetScenario(Scenario *sce) {
 }
 
 void NutrCH_QUAL2E::initialOutputs() {
-    if (m_nReaches <= 0) {
-        throw ModelException(MID_NUTRCH_QUAL2E, "initialOutputs", "Reaches data should be set.");
-    }
-
+    CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_nReaches);
     if (nullptr == m_chOutAlgae) {
         m_chSatDOx = 0.f;
         Initialize1DArray(m_nReaches + 1, m_chOutChlora, 0.f);
@@ -429,9 +461,9 @@ void NutrCH_QUAL2E::PointSourceLoading() {
     for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); it++) {
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
         vector<int> m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map < int, PointSourceMgtParams * > m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        map <int, PointSourceMgtParams *> m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
         vector<int> m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map < int, PointSourceLocations * > m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        map <int, PointSourceLocations *> m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
         for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); seqIter++) {
             PointSourceMgtParams *curPtMgt = m_pointSrcMgtMap.at(*seqIter);
@@ -490,11 +522,12 @@ int NutrCH_QUAL2E::Execute() {
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
-            // index in the array
             int reachIndex = it->second[i];
-            NutrientTransform(reachIndex);
-            AddInputNutrient(reachIndex);
-            RouteOut(reachIndex);
+            if (m_subbasinID == 0 || m_subbasinID == reachIndex) {
+                NutrientTransform(reachIndex);
+                AddInputNutrient(reachIndex);
+                RouteOut(reachIndex);
+            }
         }
     }
     //cout<<"NUTR_QUAL2E, surNO3ToCh: "<<m_surNO3ToCh[12]<<", gwno3ToCh: "<<m_gwNO3ToCh[12]<<", ptNo3ToCh: "<<m_ptNO3ToCh[12]
@@ -1033,8 +1066,39 @@ float NutrCH_QUAL2E::corTempc(float r20, float thk, float tmp) {
 
 void NutrCH_QUAL2E::GetValue(const char *key, float *value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SOXY)) {
-        *value = m_chSatDOx;
+    if (StringMatch(sk, VAR_SOXY)) { *value = m_chSatDOx; }
+    /// Get value for transferring across subbasin
+    else if (StringMatch(sk, VAR_CH_ALGAE)) { *value = m_chOutAlgae[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_ALGAEConc)) { *value = m_chOutAlgaeConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NO2)) { *value = m_chOutNO2[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NO2Conc)) { *value = m_chOutNO2Conc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_COD)) { *value = m_chOutCOD[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_CODConc)) { *value = m_chOutCODConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_CHLORA)) { *value = m_chOutChlora[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_CHLORAConc)) { *value = m_chOutChloraConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NO3)) { *value = m_chOutNO3[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NO3Conc)) { *value = m_chOutNO3Conc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_SOLP)) { *value = m_chOutSolP[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_SOLPConc)) { *value = m_chOutSolPConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_ORGN)) { *value = m_chOutOrgN[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_ORGNConc)) { *value = m_chOutOrgNConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_ORGP)) { *value = m_chOutOrgP[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_ORGPConc)) { *value = m_chOutOrgPConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NH4)) { *value = m_chOutNH4[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_NH4Conc)) { *value = m_chOutNH4Conc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_DOX)) { *value = m_chOutDOx[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_DOXConc)) { *value = m_chOutDOxConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_TN)) { *value = m_chOutTN[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_TNConc)) { *value = m_chOutTNConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_TP)) { *value = m_chOutTP[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CH_TPConc)) { *value = m_chOutTPConc[m_subbasinID]; }
+    /// output nutrient storage in channel
+    else if (StringMatch(sk, VAR_CHSTR_NO3)) { *value = m_chNO3[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CHSTR_NH4)) { *value = m_chNH4[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CHSTR_TN)) { *value = m_chTN[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_CHSTR_TP)) { *value = m_chTP[m_subbasinID]; }
+    else {
+        throw ModelException(MID_NUTRCH_QUAL2E, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -1068,10 +1132,9 @@ void NutrCH_QUAL2E::Get1DData(const char *key, int *n, float **data) {
     else if (StringMatch(sk, VAR_CH_TPConc)) { *data = m_chOutTPConc; }
     else if (StringMatch(sk, VAR_PTTN2CH)) { *data = m_ptTNToCh; }
     else if (StringMatch(sk, VAR_PTTP2CH)) { *data = m_ptTPToCh; }
-    else if (StringMatch(sk, VAR_PTCOD2CH)) {
-        *data = m_ptCODToCh;
-        /// output nutrient storage in channel
-    } else if (StringMatch(sk, VAR_CHSTR_NO3)) { *data = m_chNO3; }
+    else if (StringMatch(sk, VAR_PTCOD2CH)) { *data = m_ptCODToCh; } 
+    /// output nutrient storage in channel
+    else if (StringMatch(sk, VAR_CHSTR_NO3)) { *data = m_chNO3; }
     else if (StringMatch(sk, VAR_CHSTR_NH4)) { *data = m_chNH4; }
     else if (StringMatch(sk, VAR_CHSTR_TN)) { *data = m_chTN; }
     else if (StringMatch(sk, VAR_CHSTR_TP)) { *data = m_chTP; }

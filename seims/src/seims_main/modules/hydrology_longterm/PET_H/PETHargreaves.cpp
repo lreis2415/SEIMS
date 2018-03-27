@@ -5,16 +5,16 @@
 
 using namespace std;
 
-PETHargreaves::PETHargreaves(void) : m_nCells(-1), m_petFactor(1.f), m_HCoef_pet(0.0023f),
-                                     m_tMean(NULL), m_tMin(NULL), m_tMax(NULL), m_rhd(NULL), m_phutot(NULL),
-                                     m_dayLen(NULL), m_phuBase(NULL), m_pet(NULL), m_vpd(NULL) {
+PETHargreaves::PETHargreaves() : m_nCells(-1), m_petFactor(1.f), m_HCoef_pet(0.0023f),
+                                 m_tMean(nullptr), m_tMin(nullptr), m_tMax(nullptr), m_rhd(nullptr), m_phutot(nullptr),
+                                 m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
-PETHargreaves::~PETHargreaves(void) {
-    if (this->m_dayLen != NULL) Release1DArray(this->m_dayLen);
-    if (this->m_phuBase != NULL) Release1DArray(this->m_phuBase);
-    if (this->m_pet != NULL) Release1DArray(this->m_pet);
-    if (this->m_vpd != NULL) Release1DArray(this->m_vpd);
+PETHargreaves::~PETHargreaves() {
+    if (m_dayLen != nullptr) Release1DArray(m_dayLen);
+    if (m_phuBase != nullptr) Release1DArray(m_phuBase);
+    if (m_pet != nullptr) Release1DArray(m_pet);
+    if (m_vpd != nullptr) Release1DArray(m_vpd);
 }
 
 void PETHargreaves::SetValue(const char *key, float value) {
@@ -29,37 +29,32 @@ void PETHargreaves::SetValue(const char *key, float value) {
 }
 
 void PETHargreaves::Set1DData(const char *key, int n, float *value) {
-    if (!this->CheckInputSize(key, n)) return;
+    CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, DataType_MeanTemperature)) {
-        this->m_tMean = value;
-    } else if (StringMatch(sk, DataType_MaximumTemperature)) {
-        this->m_tMax = value;
-    } else if (StringMatch(sk, DataType_MinimumTemperature)) {
-        this->m_tMin = value;
-    } else if (StringMatch(sk, DataType_RelativeAirMoisture)) {
-        this->m_rhd = value;
-    } else if (StringMatch(sk, VAR_CELL_LAT)) {
-        this->m_cellLat = value;
-    } else if (StringMatch(sk, VAR_PHUTOT)) {
-        this->m_phutot = value;
-    } else {
+    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; } 
+    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; } 
+    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; } 
+    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; } 
+    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; } 
+    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; } 
+    else {
         throw ModelException(MID_PET_H, "Set1DValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");
     }
 }
 
 void PETHargreaves::initialOutputs() {
-    if (this->m_pet == NULL) Initialize1DArray(m_nCells, m_pet, 0.f);
-    if (this->m_vpd == NULL) Initialize1DArray(m_nCells, m_vpd, 0.f);
-    if (this->m_dayLen == NULL) Initialize1DArray(m_nCells, m_dayLen, 0.f);
-    if (this->m_phuBase == NULL) Initialize1DArray(m_nCells, m_phuBase, 0.f);
+    CHECK_POSITIVE(MID_PET_H, m_nCells);
+    if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
+    if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
+    if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
+    if (nullptr == m_phuBase) Initialize1DArray(m_nCells, m_phuBase, 0.f);
 }
 
 int PETHargreaves::Execute() {
-    if (!this->CheckInputData()) return false;
+    CheckInputData();
     initialOutputs();
-    m_jday = JulianDay(this->m_date);
+    m_jday = JulianDay(m_date);
     //cout<<m_jday<<","m_tMean[0]<<","<<m_tMax[0]<<","<<m_tMin[0]<<endl;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
@@ -99,17 +94,13 @@ int PETHargreaves::Execute() {
 }
 
 void PETHargreaves::Get1DData(const char *key, int *n, float **data) {
-    //CheckInputData(); // Plz avoid putting CheckInputData() in Get1DData, this may cause Set time error! By LJ
     initialOutputs();
     string sk(key);
-    *n = this->m_nCells;
-    if (this->m_pet == NULL) {
-        throw ModelException(MID_PET_H, "Get1DData", "The result is NULL. Please first execute the module.");
-    }
-    if (StringMatch(sk, VAR_PET)) { *data = this->m_pet; }
-    else if (StringMatch(sk, VAR_VPD)) { *data = this->m_vpd; }
-    else if (StringMatch(sk, VAR_DAYLEN)) { *data = this->m_dayLen; }
-    else if (StringMatch(sk, VAR_PHUBASE)) { *data = this->m_phuBase; }
+    *n = m_nCells;
+    if (StringMatch(sk, VAR_PET)) { *data = m_pet; }
+    else if (StringMatch(sk, VAR_VPD)) { *data = m_vpd; }
+    else if (StringMatch(sk, VAR_DAYLEN)) { *data = m_dayLen; }
+    else if (StringMatch(sk, VAR_PHUBASE)) { *data = m_phuBase; }
     else {
         throw ModelException(MID_PET_H, "Get1DData", "Parameter " + sk + " does not exist.");
     }
@@ -120,8 +111,8 @@ bool PETHargreaves::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_PET_H, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_PET_H, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
@@ -131,29 +122,13 @@ bool PETHargreaves::CheckInputSize(const char *key, int n) {
 }
 
 bool PETHargreaves::CheckInputData() {
-    if (this->m_date < 0) {
-        throw ModelException(MID_PET_H, "CheckInputData", "You have not set the time.");
-    }
-    if (m_nCells <= 0) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The dimension of the input data can not be less than zero.");
-    }
-    if (this->m_tMax == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The maximum temperature can not be NULL.");
-    }
-    if (this->m_tMin == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The minimum temperature can not be NULL.");
-    }
-    if (this->m_tMean == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The mean temperature can not be NULL.");
-    }
-    if (this->m_rhd == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The relative humidity can not be NULL.");
-    }
-    if (this->m_cellLat == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The latitude can not be NULL.");
-    }
-    if (this->m_phutot == NULL) {
-        throw ModelException(MID_PET_H, "CheckInputData", "The PHU0 can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_PET_H, m_date);
+    CHECK_POSITIVE(MID_PET_H, m_nCells);
+    CHECK_POINTER(MID_PET_H, m_tMax);
+    CHECK_POINTER(MID_PET_H, m_tMean);
+    CHECK_POINTER(MID_PET_H, m_tMin);
+    CHECK_POINTER(MID_PET_H, m_rhd);
+    CHECK_POINTER(MID_PET_H, m_cellLat);
+    CHECK_POINTER(MID_PET_H, m_phutot);
     return true;
 }

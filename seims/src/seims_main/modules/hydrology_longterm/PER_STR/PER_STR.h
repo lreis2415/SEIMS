@@ -8,7 +8,9 @@
  * \date 2016-9-8
  * \description: 1. ReWrite according to percmain.f and sat_excess.f of SWAT
  */
-#pragma once
+#ifndef SEIMS_MODULE_PER_STR_H
+#define SEIMS_MODULE_PER_STR_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -25,6 +27,39 @@ using namespace std;
  * 
  */
 class PER_STR : public SimulationModule {
+public:
+    PER_STR();
+
+    ~PER_STR();
+
+    virtual int Execute();
+
+    virtual void SetValue(const char *key, float data);
+
+    virtual void Set1DData(const char *key, int nRows, float *data);
+
+    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+
+    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+private:
+    /**
+    *	@brief check the input data. Make sure all the input data is available.
+    *
+    *	@return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /**
+    *	@brief check the input size. Make sure all the input data have same dimension.
+    *
+    *	@param key The key of the input data
+    *	@param n The input data dimension
+    *	@return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *key, int n);
+
+    void initialOutputs();
 private:
     /// number of soil layers
     int m_nSoilLayers;
@@ -58,41 +93,5 @@ private:
     float *m_potVol;
     /// Output: percolation
     float **m_perc;
-
-public:
-    /// Constructor
-    PER_STR(void);
-
-    /// Destructor
-    ~PER_STR(void);
-
-    virtual int Execute(void);
-
-    virtual void SetValue(const char *key, float data);
-
-    virtual void Set1DData(const char *key, int nRows, float *data);
-
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData(void);
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *, int);
-
-    void initialOutputs(void);
 };
-
+#endif /* SEIMS_MODULE_PER_STR_H */
