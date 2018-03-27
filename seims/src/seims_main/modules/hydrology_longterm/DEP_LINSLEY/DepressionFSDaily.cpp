@@ -1,56 +1,33 @@
 #include "seims.h"
 #include "DepressionFSDaily.h"
 
-DepressionFSDaily::DepressionFSDaily(void) : m_nCells(-1), m_depCo(NODATA_VALUE),
-                                             m_depCap(NULL),
-                                             m_pet(NULL), m_ei(NULL), m_pe(NULL),
-                                             m_sd(NULL), m_ed(NULL), m_sr(NULL),
-                                             m_impoundTriger(NULL), m_potVol(NULL) {
+DepressionFSDaily::DepressionFSDaily() : m_nCells(-1), m_depCo(NODATA_VALUE),
+                                         m_depCap(nullptr),
+                                         m_pet(nullptr), m_ei(nullptr), m_pe(nullptr),
+                                         m_sd(nullptr), m_ed(nullptr), m_sr(nullptr),
+                                         m_impoundTriger(nullptr), m_potVol(nullptr) {
 }
 
-DepressionFSDaily::~DepressionFSDaily(void) {
-    if (m_sd != NULL) Release1DArray(m_sd);
-    if (m_ed != NULL) Release1DArray(m_ed);
-    if (m_sr != NULL) Release1DArray(m_sr);
+DepressionFSDaily::~DepressionFSDaily() {
+    if (m_sd != nullptr) Release1DArray(m_sd);
+    if (m_ed != nullptr) Release1DArray(m_ed);
+    if (m_sr != nullptr) Release1DArray(m_sr);
 }
 
-bool DepressionFSDaily::CheckInputData(void) {
-    if (this->m_date < 0) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData", "You have not set the time.");
-    }
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData",
-                             "The cell number of the input can not be less than zero.");
-    }
-    if (m_depCo == NODATA_VALUE) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData",
-                             "The parameter: initial depression storage coefficient has not been set.");
-    }
-    if (m_depCap == NULL) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData",
-                             "The parameter: depression storage capacity has not been set.");
-    }
-    if (m_pet == NULL) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData", "The parameter: PET has not been set.");
-    }
-    if (m_ei == NULL) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData",
-                             "The parameter: evaporation from the interception storage has not been set.");
-    }
-    if (m_pe == NULL) {
-        throw ModelException(MID_DEP_LINSLEY, "CheckInputData",
-                             "The parameter: excess precipitation has not been set.");
-    }
+bool DepressionFSDaily::CheckInputData() {
+    CHECK_POSITIVE(MID_DEP_LINSLEY, m_date);
+    CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
+    CHECK_NODATA(MID_DEP_LINSLEY, m_depCo);
+    CHECK_POINTER(MID_DEP_LINSLEY, m_depCap);
+    CHECK_POINTER(MID_DEP_LINSLEY, m_pet);
+    CHECK_POINTER(MID_DEP_LINSLEY, m_ei);
+    CHECK_POINTER(MID_DEP_LINSLEY, m_pe);
     return true;
 }
 
 void DepressionFSDaily::initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_DEP_LINSLEY, "initialOutputs",
-                             "The cell number of the input can not be less than zero.");
-    }
-
-    if (m_sd == NULL && m_depCap != NULL) {
+    CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
+    if (m_sd == nullptr && m_depCap != nullptr) {
         m_sd = new float[m_nCells];
         m_ed = new float[m_nCells];
         m_sr = new float[m_nCells];
@@ -105,8 +82,8 @@ int DepressionFSDaily::Execute() {
             m_ed[i] = 0.f;
             m_sd[i] = 0.f;
         }
-        if (m_impoundTriger != NULL && FloatEqual(m_impoundTriger[i], 0.f)) {
-            if (m_potVol != NULL) {
+        if (m_impoundTriger != nullptr && FloatEqual(m_impoundTriger[i], 0.f)) {
+            if (m_potVol != nullptr) {
                 m_potVol[i] += m_sr[i];
                 m_potVol[i] += m_sd[i];
                 m_sr[i] = 0.f;
@@ -121,8 +98,8 @@ bool DepressionFSDaily::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
         return false;
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_DEP_LINSLEY, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");

@@ -107,7 +107,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, xname, yname):
 
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
-    with open(txt_file, 'r', encoding='utf-8') as f:
+    with open(txt_file, 'r') as f:
         lines = f.readlines()
     pareto_popnum = OrderedDict()
     found = False

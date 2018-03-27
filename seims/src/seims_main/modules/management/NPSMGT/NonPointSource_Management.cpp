@@ -3,17 +3,17 @@
 
 using namespace std;
 
-NPS_Management::NPS_Management(void) : m_nCells(-1), m_cellWidth(-1.f), m_timestep(-1.f), m_cellArea(-1.f),
-                                       m_mgtFields(NULL),
-                                       m_soilStorage(NULL), m_sol_no3(NULL), m_sol_nh4(NULL), m_sol_solp(NULL),
-                                       m_sol_orgn(NULL), m_sol_orgp(NULL) {
+NPS_Management::NPS_Management() : m_nCells(-1), m_cellWidth(-1.f), m_timestep(-1.f), m_cellArea(-1.f),
+                                   m_mgtFields(nullptr),
+                                   m_soilStorage(nullptr), m_sol_no3(nullptr), m_sol_nh4(nullptr), m_sol_solp(nullptr),
+                                   m_sol_orgn(nullptr), m_sol_orgp(nullptr) {
     m_arealSrcFactory.clear();
 }
 
-NPS_Management::~NPS_Management(void) {
+NPS_Management::~NPS_Management() {
     if (!m_arealSrcFactory.empty()) {
         for (auto it = m_arealSrcFactory.begin(); it != m_arealSrcFactory.end();) {
-            if (it->second != NULL) {
+            if (it->second != nullptr) {
                 delete it->second;
             }
             m_arealSrcFactory.erase(it++);
@@ -27,8 +27,8 @@ bool NPS_Management::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_NPSMGT, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_NPSMGT, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
@@ -46,19 +46,9 @@ void NPS_Management::SetValue(const char *key, float data) {
     }
 }
 
-void NPS_Management::Set1DData(const char *key, int n, float *data) {
-    string sk(key);
-    CheckInputSize(key, n);
-    // mgt_field is set by Scenario data now. lj, 08/16/17
-    //if (StringMatch(sk, VAR_MGT_FIELD)) { m_mgtFields = data; }
-    //else {
-    //    throw ModelException(MID_NPSMGT, "Set1DData", "Parameter " + sk + " does not exist.");
-    //}
-}
-
 void NPS_Management::Set2DData(const char *key, int n, int col, float **data) {
-    string sk(key);
     CheckInputSize(key, n);
+    string sk(key);
     if (StringMatch(sk, VAR_SOL_ST)) { m_soilStorage = data; }
     else if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
     else if (StringMatch(sk, VAR_SOL_NH4)) { m_sol_nh4 = data; }
@@ -71,7 +61,7 @@ void NPS_Management::Set2DData(const char *key, int n, int col, float **data) {
 }
 
 void NPS_Management::SetScenario(Scenario *sce) {
-    if (sce != NULL) {
+    if (sce != nullptr) {
         map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
         for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
@@ -79,12 +69,12 @@ void NPS_Management::SetScenario(Scenario *sce) {
                 m_arealSrcFactory[it->first] = (BMPArealSrcFactory *) it->second;
             }
             /// Set areal source locations data
-            if (NULL == m_mgtFields) {
+            if (nullptr == m_mgtFields) {
                 m_mgtFields = ((BMPArealSrcFactory *) it->second)->getRasterData();
             }
         }
     } else {
-        throw ModelException(MID_MUSK_CH, "SetScenario", "The scenario can not to be NULL.");
+        throw ModelException(MID_MUSK_CH, "SetScenario", "The scenario can not to be nullptr.");
     }
 }
 
@@ -111,8 +101,7 @@ int NPS_Management::Execute() {
                     continue;
                 }
             }
-            for (auto fIDIter = tmpArealFieldIDs.begin(); fIDIter != tmpArealFieldIDs.end();
-                 fIDIter++) {
+            for (auto fIDIter = tmpArealFieldIDs.begin(); fIDIter != tmpArealFieldIDs.end(); fIDIter++) {
                 float deltaWtrMM = 0.f, deltaNH4 = 0.f, deltaNO3 = 0.f, deltaOrgN = 0.f;
                 float deltaMinP = 0.f, deltaOrgP = 0.f;
                 map<int, ArealSourceLocations *> tmpLocMap = it->second->GetArealSrcLocsMap();
@@ -127,8 +116,7 @@ int NPS_Management::Execute() {
                         tmpMgtParams->GetWaterVolume() * tmpSize * m_timestep / 86400.f / tmpNCells / m_cellArea *
                             1000.f;
                 }
-                float cvt =
-                    tmpSize * m_timestep / 86400.f / tmpNCells / m_cellArea * 10000.f; /// kg/'size'/day ==> kg/ha
+                float cvt = tmpSize * m_timestep / 86400.f / tmpNCells / m_cellArea * 10000.f; /// kg/'size'/day ==> kg/ha
                 if (tmpMgtParams->GetNH4() > 0.f) {
                     deltaNH4 = cvt * tmpMgtParams->GetNH4();
                 }
@@ -169,15 +157,5 @@ int NPS_Management::Execute() {
             }
         }
     }
-    //cout<<"NPSMGT, cell id 5878, sol_no3[0]: "<<m_sol_no3[5878][0]<<endl;
-    //cout<<", new: "<<m_sol_solp[46364][0]<<endl;
     return true;
 }
-
-//void NPS_Management::Get1DData(const char *key, int *n, float **data)
-//{
-//}
-//
-//void NPS_Management::Get2DData(const char *key, int *n, int *col, float ***data)
-//{
-//}

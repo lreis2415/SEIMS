@@ -3,68 +3,68 @@
 
 using namespace std;
 
-Biomass_EPIC::Biomass_EPIC(void) : m_nCells(-1), m_nClimDataYrs(-1), m_co2(NODATA_VALUE), m_tMean(NULL), m_tMin(NULL),
-                                   m_SR(NULL), m_dayLenMin(NULL), m_dormHr(NULL),
-                                   m_soilLayers(-1), m_NUpDis(NODATA_VALUE), m_PUpDis(NODATA_VALUE),
-                                   m_NFixCoef(NODATA_VALUE),
-                                   m_NFixMax(NODATA_VALUE), m_soilRD(NULL), m_tMeanAnn(NULL),
-                                   m_nSoilLayers(NULL), m_soilZMX(NULL), m_soilALB(NULL), m_soilDepth(NULL),
-                                   m_soilAWC(NULL), m_totSoilAWC(NULL), m_totSoilSat(NULL),
-                                   m_soilStorage(NULL), m_soilStorageProfile(NULL), m_sol_rsdin(NULL), m_sol_cov(NULL),
-                                   m_sol_rsd(NULL),
-                                   m_igro(NULL), m_landCoverCls(NULL), m_aLAIMin(NULL), m_BIOE(NULL), m_BIOEHI(NULL),
-                                   m_frBioLeafDrop(NULL), m_maxLAI(NULL), m_maxBiomass(NULL),
-                                   m_frPlantN1(NULL), m_frPlantN2(NULL), m_frPlantN3(NULL), m_frPlantP1(NULL),
-                                   m_frPlantP2(NULL), m_frPlantP3(NULL),
-                                   m_chtMax(NULL), m_co2Hi(NULL), m_frDLAI(NULL), m_epco(NULL), m_lightExtCoef(NULL),
-                                   m_frGrowOptLAI1(NULL), m_frGrowOptLAI2(NULL),
-                                   m_hvstIdx(NULL), m_frMaxLAI1(NULL), m_frMaxLAI2(NULL), m_matYrs(NULL), m_tBase(NULL),
-                                   m_tOpt(NULL), m_wavp(NULL),
-                                   m_cht(NULL), m_initTreeMatYr(NULL), m_initBiomass(NULL), m_initLAI(NULL),
-                                   m_PHUPlt(NULL), m_dormFlag(NULL), m_pltET(NULL), m_pltPET(NULL),
-                                   m_dayLen(NULL), m_VPD(NULL), m_PET(NULL), m_ppt(NULL), m_soilESDay(NULL),
-                                   m_soilNO3(NULL), m_soilPsol(NULL), m_snowAcc(NULL),
-                                   m_LAIDay(NULL), m_frPHUacc(NULL), m_LAIYrMax(NULL), m_hvstIdxAdj(NULL),
-                                   m_LAIMaxFr(NULL), m_oLAI(NULL), m_lastSoilRootDepth(NULL),
-                                   m_plantEPDay(NULL), m_frRoot(NULL), m_fixN(NULL),
-                                   m_plantUpTkN(NULL), m_plantN(NULL), m_frPlantN(NULL),
-                                   m_plantUpTkP(NULL), m_plantP(NULL), m_frPlantP(NULL),
-                                   m_NO3Defic(NULL), m_frStrsAe(NULL), m_frStrsN(NULL), m_frStrsP(NULL),
-                                   m_frStrsTmp(NULL), m_frStrsWa(NULL),
-                                   m_biomassDelta(NULL), m_biomass(NULL), m_albedo(NULL),
+Biomass_EPIC::Biomass_EPIC() : m_nCells(-1), m_nClimDataYrs(-1), m_co2(NODATA_VALUE), m_tMean(nullptr), m_tMin(nullptr),
+                               m_SR(nullptr), m_dayLenMin(nullptr), m_dormHr(nullptr),
+                               m_nMaxSoilLayers(-1), m_NUpDis(NODATA_VALUE), m_PUpDis(NODATA_VALUE),
+                               m_NFixCoef(NODATA_VALUE),
+                               m_NFixMax(NODATA_VALUE), m_soilRD(nullptr), m_tMeanAnn(nullptr),
+                               m_nSoilLayers(nullptr), m_soilZMX(nullptr), m_soilALB(nullptr), m_soilDepth(nullptr),
+                               m_soilAWC(nullptr), m_totSoilAWC(nullptr), m_totSoilSat(nullptr),
+                               m_soilStorage(nullptr), m_soilStorageProfile(nullptr), m_sol_rsdin(nullptr), m_sol_cov(nullptr),
+                               m_sol_rsd(nullptr),
+                               m_igro(nullptr), m_landCoverCls(nullptr), m_aLAIMin(nullptr), m_BIOE(nullptr), m_BIOEHI(nullptr),
+                               m_frBioLeafDrop(nullptr), m_maxLAI(nullptr), m_maxBiomass(nullptr),
+                               m_frPlantN1(nullptr), m_frPlantN2(nullptr), m_frPlantN3(nullptr), m_frPlantP1(nullptr),
+                               m_frPlantP2(nullptr), m_frPlantP3(nullptr),
+                               m_chtMax(nullptr), m_co2Hi(nullptr), m_frDLAI(nullptr), m_epco(nullptr), m_lightExtCoef(nullptr),
+                               m_frGrowOptLAI1(nullptr), m_frGrowOptLAI2(nullptr),
+                               m_hvstIdx(nullptr), m_frMaxLAI1(nullptr), m_frMaxLAI2(nullptr), m_matYrs(nullptr), m_tBase(nullptr),
+                               m_tOpt(nullptr), m_wavp(nullptr),
+                               m_cht(nullptr), m_initTreeMatYr(nullptr), m_initBiomass(nullptr), m_initLAI(nullptr),
+                               m_PHUPlt(nullptr), m_dormFlag(nullptr), m_pltET(nullptr), m_pltPET(nullptr),
+                               m_dayLen(nullptr), m_VPD(nullptr), m_PET(nullptr), m_ppt(nullptr), m_soilESDay(nullptr),
+                               m_soilNO3(nullptr), m_soilPsol(nullptr), m_snowAcc(nullptr),
+                               m_LAIDay(nullptr), m_frPHUacc(nullptr), m_LAIYrMax(nullptr), m_hvstIdxAdj(nullptr),
+                               m_LAIMaxFr(nullptr), m_oLAI(nullptr), m_lastSoilRootDepth(nullptr),
+                               m_plantEPDay(nullptr), m_frRoot(nullptr), m_fixN(nullptr),
+                               m_plantUpTkN(nullptr), m_plantN(nullptr), m_frPlantN(nullptr),
+                               m_plantUpTkP(nullptr), m_plantP(nullptr), m_frPlantP(nullptr),
+                               m_NO3Defic(nullptr), m_frStrsAe(nullptr), m_frStrsN(nullptr), m_frStrsP(nullptr),
+                               m_frStrsTmp(nullptr), m_frStrsWa(nullptr),
+                               m_biomassDelta(nullptr), m_biomass(nullptr), m_albedo(nullptr),
     // parameters not allowed to modify
-                                   ubw(10.f), uobw(NODATA_VALUE) {
+                               ubw(10.f), uobw(NODATA_VALUE) {
 }
 
-Biomass_EPIC::~Biomass_EPIC(void) {
-    if (m_sol_cov != NULL) Release1DArray(m_sol_cov);
-    if (m_sol_rsd != NULL) Release2DArray(m_nCells, m_sol_rsd);
-    if (m_LAIDay != NULL) Release1DArray(m_LAIDay);
-    if (m_LAIYrMax != NULL) Release1DArray(m_LAIYrMax);
-    if (m_frPHUacc != NULL) Release1DArray(m_frPHUacc);
-    if (m_pltET != NULL) Release1DArray(m_pltET);
-    if (m_pltPET != NULL) Release1DArray(m_pltPET);
-    if (m_hvstIdxAdj != NULL) Release1DArray(m_hvstIdxAdj);
-    if (m_LAIMaxFr != NULL) Release1DArray(m_LAIMaxFr);
-    if (m_oLAI != NULL) Release1DArray(m_oLAI);
-    if (m_lastSoilRootDepth != NULL) Release1DArray(m_lastSoilRootDepth);
-    if (m_plantEPDay != NULL) Release1DArray(m_plantEPDay);
-    if (m_frRoot != NULL) Release1DArray(m_frRoot);
-    if (m_fixN != NULL) Release1DArray(m_fixN);
-    if (m_plantUpTkN != NULL) Release1DArray(m_plantUpTkN);
-    if (m_plantUpTkP != NULL) Release1DArray(m_plantUpTkP);
-    if (m_plantN != NULL) Release1DArray(m_plantN);
-    if (m_plantP != NULL) Release1DArray(m_plantP);
-    if (m_frPlantN != NULL) Release1DArray(m_frPlantN);
-    if (m_frPlantP != NULL) Release1DArray(m_frPlantP);
-    if (m_NO3Defic != NULL) Release1DArray(m_NO3Defic);
-    if (m_frStrsAe != NULL) Release1DArray(m_frStrsAe);
-    if (m_frStrsN != NULL) Release1DArray(m_frStrsN);
-    if (m_frStrsP != NULL) Release1DArray(m_frStrsP);
-    if (m_frStrsTmp != NULL) Release1DArray(m_frStrsTmp);
-    if (m_frStrsWa != NULL) Release1DArray(m_frStrsWa);
-    if (m_biomassDelta != NULL) Release1DArray(m_biomassDelta);
-    if (m_biomass != NULL) Release1DArray(m_biomass);
+Biomass_EPIC::~Biomass_EPIC() {
+    if (m_sol_cov != nullptr) Release1DArray(m_sol_cov);
+    if (m_sol_rsd != nullptr) Release2DArray(m_nCells, m_sol_rsd);
+    if (m_LAIDay != nullptr) Release1DArray(m_LAIDay);
+    if (m_LAIYrMax != nullptr) Release1DArray(m_LAIYrMax);
+    if (m_frPHUacc != nullptr) Release1DArray(m_frPHUacc);
+    if (m_pltET != nullptr) Release1DArray(m_pltET);
+    if (m_pltPET != nullptr) Release1DArray(m_pltPET);
+    if (m_hvstIdxAdj != nullptr) Release1DArray(m_hvstIdxAdj);
+    if (m_LAIMaxFr != nullptr) Release1DArray(m_LAIMaxFr);
+    if (m_oLAI != nullptr) Release1DArray(m_oLAI);
+    if (m_lastSoilRootDepth != nullptr) Release1DArray(m_lastSoilRootDepth);
+    if (m_plantEPDay != nullptr) Release1DArray(m_plantEPDay);
+    if (m_frRoot != nullptr) Release1DArray(m_frRoot);
+    if (m_fixN != nullptr) Release1DArray(m_fixN);
+    if (m_plantUpTkN != nullptr) Release1DArray(m_plantUpTkN);
+    if (m_plantUpTkP != nullptr) Release1DArray(m_plantUpTkP);
+    if (m_plantN != nullptr) Release1DArray(m_plantN);
+    if (m_plantP != nullptr) Release1DArray(m_plantP);
+    if (m_frPlantN != nullptr) Release1DArray(m_frPlantN);
+    if (m_frPlantP != nullptr) Release1DArray(m_frPlantP);
+    if (m_NO3Defic != nullptr) Release1DArray(m_NO3Defic);
+    if (m_frStrsAe != nullptr) Release1DArray(m_frStrsAe);
+    if (m_frStrsN != nullptr) Release1DArray(m_frStrsN);
+    if (m_frStrsP != nullptr) Release1DArray(m_frStrsP);
+    if (m_frStrsTmp != nullptr) Release1DArray(m_frStrsTmp);
+    if (m_frStrsWa != nullptr) Release1DArray(m_frStrsWa);
+    if (m_biomassDelta != nullptr) Release1DArray(m_biomassDelta);
+    if (m_biomass != nullptr) Release1DArray(m_biomass);
 }
 
 void Biomass_EPIC::SetValue(const char *key, float value) {
@@ -118,10 +118,8 @@ void Biomass_EPIC::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_PPT)) { m_ppt = data; }
     else if (StringMatch(sk, VAR_SOET)) { m_soilESDay = data; }
     else if (StringMatch(sk, VAR_SOL_COV)) { m_sol_cov = data; }
-    else if (StringMatch(sk, VAR_SNAC)) {
-        m_snowAcc = data;
-        //// land cover
-    } else if (StringMatch(sk, VAR_SOL_RSDIN)) { m_sol_rsdin = data; }
+    else if (StringMatch(sk, VAR_SNAC)) { m_snowAcc = data; } 
+    else if (StringMatch(sk, VAR_SOL_RSDIN)) { m_sol_rsdin = data; }
     else if (StringMatch(sk, VAR_IGRO)) { m_igro = data; }
     else if (StringMatch(sk, VAR_IDC)) { m_landCoverCls = data; }
     else if (StringMatch(sk, VAR_ALAIMIN)) { m_aLAIMin = data; }
@@ -148,10 +146,8 @@ void Biomass_EPIC::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_MAT_YRS)) { m_matYrs = data; }
     else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; }
     else if (StringMatch(sk, VAR_T_OPT)) { m_tOpt = data; }
-    else if (StringMatch(sk, VAR_WAVP)) {
-        m_wavp = data;
-        //// management
-    } else if (StringMatch(sk, VAR_EPCO)) { m_epco = data; }
+    else if (StringMatch(sk, VAR_WAVP)) { m_wavp = data; } 
+    else if (StringMatch(sk, VAR_EPCO)) { m_epco = data; }
     else if (StringMatch(sk, VAR_TREEYRS)) { m_initTreeMatYr = data; }
     else if (StringMatch(sk, VAR_LAIINIT)) { m_initLAI = data; }
     else if (StringMatch(sk, VAR_BIOINIT)) { m_initBiomass = data; }
@@ -169,9 +165,9 @@ bool Biomass_EPIC::CheckInputSize2D(const char *key, int n, int col) {
         throw ModelException(MID_BIO_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
             " is invalid. The layer number could not be less than zero.");
     }
-    if (m_soilLayers != col) {
-        if (m_soilLayers <= 0) {
-            m_soilLayers = col;
+    if (m_nMaxSoilLayers != col) {
+        if (m_nMaxSoilLayers <= 0) {
+            m_nMaxSoilLayers = col;
         } else {
             throw ModelException(MID_BIO_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
                 " is invalid. All the layers of input 2D raster data should have same size.");
@@ -197,230 +193,73 @@ void Biomass_EPIC::Set2DData(const char *key, int nRows, int nCols, float **data
 
 bool Biomass_EPIC::CheckInputData(void) {
     /// DT_Single
-    if (m_date <= 0) throw ModelException(MID_BIO_EPIC, "CheckInputData", "You have not set the time.");
-    if (m_nCells <= 0) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (m_soilLayers <= 0) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The layer number of the input 2D raster data can not be less than zero.");
-    }
-    if (FloatEqual(m_co2, NODATA_VALUE)) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The ambient atmospheric CO2 concentration must be provided.");
-    }
-    if (FloatEqual(m_NUpDis, NODATA_VALUE)) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The nitrogen uptake distribution parameter must be provided.");
-    }
-    if (FloatEqual(m_PUpDis, NODATA_VALUE)) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The phosphorus uptake distribution parameter must be provided.");
-    }
-    if (FloatEqual(m_NFixCoef, NODATA_VALUE)) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The nitrogen fixation coefficient must be provided.");
-    }
-    if (FloatEqual(m_NFixMax, NODATA_VALUE)) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The maximum daily-N fixation must be provided.");
-    }
-    if (m_tMeanAnn == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The annual mean air temperature can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_BIO_EPIC, m_nCells);
+    CHECK_POSITIVE(MID_BIO_EPIC, m_nMaxSoilLayers);
+    CHECK_NODATA(MID_BIO_EPIC, m_co2);
+    CHECK_NODATA(MID_BIO_EPIC, m_NUpDis);
+    CHECK_NODATA(MID_BIO_EPIC, m_PUpDis);
+    CHECK_NODATA(MID_BIO_EPIC, m_NFixCoef);
+    CHECK_NODATA(MID_BIO_EPIC, m_NFixMax);
     /// DT_Raster1D
-    if (m_tMin == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The min temperature data can not be NULL.");
-    }
-    if (m_tMean == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The mean temperature data can not be NULL.");
-    }
-    if (m_SR == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The solar radiation data can not be NULL.");
-    if (m_dayLen == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The day length can not be NULL.");
-    if (m_dayLenMin == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The minimum day length can not be NULL.");
-    }
-    if (m_dormHr == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The dormancy threshold time can not be NULL.");
-    }
-
-    if (m_nSoilLayers == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The soil layers data can not be NULL.");
-    }
-    if (m_soilZMX == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The maximum rooting depth in soil profile can not be NULL.");
-    }
-    if (m_soilALB == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The albedo when soil is moist can not be NULL.");
-    }
-    if (m_soilStorageProfile == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The amount of water stored in the soil profile can not be NULL.");
-    }
-    if (m_totSoilAWC == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The amount of water held in soil profile at field capacity can not be NULL.");
-    }
-    if (m_totSoilSat == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The amount of water held in soil profile at saturation can not be NULL.");
-    }
-    if (m_PET == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The PET can not be NULL.");
-    if (m_VPD == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The Vapor pressure deficit can not be NULL.");
-    }
-    if (m_ppt == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The potential plant et can not be NULL.");
-    if (m_soilESDay == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The actual soil et can not be NULL.");
-    }
-    if (this->m_sol_rsdin == NULL) {
-        throw ModelException(MID_NUTR_TF, "CheckInputData", "The m_sol_rsdin can not be NULL.");
-    }
-    if (m_igro == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The land cover status code can not be NULL.");
-    }
-    if (m_landCoverCls == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The land cover/plant classification can not be NULL.");
-    }
-    if (m_aLAIMin == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The minimum LAI during winter dormant period can not be NULL.");
-    }
-    if (m_BIOE == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The RUE at ambient atmospheric CO2 concentration data can not be NULL.");
-    }
-    if (m_BIOEHI == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The  RUE at elevated atmospheric CO2 concentration data can not be NULL.");
-    }
-    if (m_frBioLeafDrop == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The fraction of biomass that drops during dormancy data can not be NULL.");
-    }
-    if (m_maxLAI == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The max LAI data can not be NULL.");
-    if (m_maxBiomass == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The maximum biomass for a forest can not be NULL.");
-    }
-    if (m_frPlantN1 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The normal fraction of nitrogen in the plant biomass at emergence data can not be NULL.");
-    }
-    if (m_frPlantN2 == NULL) {
-        throw ModelException(MID_BIO_EPIC,
-                             "CheckInputData",
-                             "The normal fraction of nitrogen in the plant biomass at 50% maturity data can not be NULL.");
-    }
-    if (m_frPlantN3 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The normal fraction of nitrogen in the plant biomass at maturity data can not be NULL.");
-    }
-    if (m_frPlantP1 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The normal fraction of phosphorus in the plant biomass at emergence data can not be NULL.");
-    }
-    if (m_frPlantP2 == NULL) {
-        throw ModelException(MID_BIO_EPIC,
-                             "CheckInputData",
-                             "The normal fraction of phosphorus in the plant biomass at 50% maturity data can not be NULL.");
-    }
-    if (m_frPlantP3 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The normal fraction of phosphorus in the plant biomass at maturity data can not be NULL.");
-    }
-    if (m_chtMax == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The maximum canopy height can not be NULL.");
-    }
-    if (m_co2Hi == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The elevated atmospheric CO2 concentration data can not be NULL.");
-    }
-    if (m_frDLAI == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The PHU fraction when senescence becomes dominant data can not be NULL.");
-    }
-    if (m_lightExtCoef == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The  light extinction coefficient data can not be NULL.");
-    }
-    if (m_frGrowOptLAI1 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The PHU fraction for the 1st point data can not be NULL.");
-    }
-    if (m_frGrowOptLAI2 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The PHU fraction for the 2nd point data can not be NULL.");
-    }
-    if (m_hvstIdx == NULL) throw ModelException(MID_BIO_EPIC, "CheckInputData", "The harvest index can not be NULL.");
-    if (m_frMaxLAI1 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The LAI fraction for the 1st point data can not be NULL.");
-    }
-    if (m_frMaxLAI2 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "TheLAI fraction for the 2nd point  data can not be NULL.");
-    }
-    if (m_matYrs == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The full development year data can not be NULL.");
-    }
-    if (m_tBase == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The base temperature data can not be NULL.");
-    }
-    if (m_tOpt == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The optimal temperature for plant growth can not be NULL.");
-    }
-    if (m_wavp == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The rate of decline in rue per unit increase in VPD data can not be NULL.");
-    }
-
-    if (m_epco == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The plant water uptake compensation factor can not be NULL.");
-    }
-    if (m_initTreeMatYr == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The initial age of tress can not be NULL.");
-    }
-    if (m_initLAI == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The initial leaf area index of transplants can not be NULL.");
-    }
-    if (m_initBiomass == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The initial dry weight biomass can not be NULL.");
-    }
-    if (m_PHUPlt == NULL) {
-        throw ModelException(MID_BIO_EPIC,
-                             "CheckInputData",
-                             "The total number of heat unites (hours) needed to bring plant to maturity can not be NULL.");
-    }
-    if (m_cht == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The canopy height for the day can not be NULL.");
-    }
-    if (m_dormFlag == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The dormancy status code can not be NULL.");
-    }
-
+    CHECK_POINTER(MID_BIO_EPIC, m_tMeanAnn);
+    CHECK_POINTER(MID_BIO_EPIC, m_tMin);
+    CHECK_POINTER(MID_BIO_EPIC, m_tMean);
+    CHECK_POINTER(MID_BIO_EPIC, m_SR);
+    CHECK_POINTER(MID_BIO_EPIC, m_dayLen);
+    CHECK_POINTER(MID_BIO_EPIC, m_dayLenMin);
+    CHECK_POINTER(MID_BIO_EPIC, m_dormHr);
+    CHECK_POINTER(MID_BIO_EPIC, m_nSoilLayers);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilZMX);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilALB);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilStorageProfile);
+    CHECK_POINTER(MID_BIO_EPIC, m_totSoilAWC);
+    CHECK_POINTER(MID_BIO_EPIC, m_totSoilSat);
+    CHECK_POINTER(MID_BIO_EPIC, m_PET);
+    CHECK_POINTER(MID_BIO_EPIC, m_VPD);
+    CHECK_POINTER(MID_BIO_EPIC, m_ppt);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilESDay);
+    CHECK_POINTER(MID_BIO_EPIC, m_sol_rsdin);
+    CHECK_POINTER(MID_BIO_EPIC, m_igro);
+    CHECK_POINTER(MID_BIO_EPIC, m_landCoverCls);
+    CHECK_POINTER(MID_BIO_EPIC, m_aLAIMin);
+    CHECK_POINTER(MID_BIO_EPIC, m_BIOE);
+    CHECK_POINTER(MID_BIO_EPIC, m_BIOEHI);
+    CHECK_POINTER(MID_BIO_EPIC, m_frBioLeafDrop);
+    CHECK_POINTER(MID_BIO_EPIC, m_maxLAI);
+    CHECK_POINTER(MID_BIO_EPIC, m_maxBiomass);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantN1);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantN2);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantN3);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantP1);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantP2);
+    CHECK_POINTER(MID_BIO_EPIC, m_frPlantP3);
+    CHECK_POINTER(MID_BIO_EPIC, m_chtMax);
+    CHECK_POINTER(MID_BIO_EPIC, m_co2Hi);
+    CHECK_POINTER(MID_BIO_EPIC, m_frDLAI);
+    CHECK_POINTER(MID_BIO_EPIC, m_lightExtCoef);
+    CHECK_POINTER(MID_BIO_EPIC, m_frGrowOptLAI1);
+    CHECK_POINTER(MID_BIO_EPIC, m_frGrowOptLAI2);
+    CHECK_POINTER(MID_BIO_EPIC, m_hvstIdx);
+    CHECK_POINTER(MID_BIO_EPIC, m_frMaxLAI1);
+    CHECK_POINTER(MID_BIO_EPIC, m_frMaxLAI2);
+    CHECK_POINTER(MID_BIO_EPIC, m_matYrs);
+    CHECK_POINTER(MID_BIO_EPIC, m_tBase);
+    CHECK_POINTER(MID_BIO_EPIC, m_tOpt);
+    CHECK_POINTER(MID_BIO_EPIC, m_wavp);
+    CHECK_POINTER(MID_BIO_EPIC, m_epco);
+    CHECK_POINTER(MID_BIO_EPIC, m_initTreeMatYr);
+    CHECK_POINTER(MID_BIO_EPIC, m_initLAI);
+    CHECK_POINTER(MID_BIO_EPIC, m_initBiomass);
+    CHECK_POINTER(MID_BIO_EPIC, m_PHUPlt);
+    CHECK_POINTER(MID_BIO_EPIC, m_cht);
+    CHECK_POINTER(MID_BIO_EPIC, m_dormFlag);
     /// DT_Raster2D
-    if (m_soilDepth == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The soil depth data can not be NULL.");
-    }
-    if (m_soilThick == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The soil thickness data can not be NULL.");
-    }
-    if (m_soilAWC == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The water available to plants in soil layer at field capacity can not be NULL.");
-    }
-    if (m_soilStorage == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The soil moisture in soil layers can not be NULL.");
-    }
-    if (m_soilNO3 == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData",
-                             "The nitrogen stored in the nitrate pool in soil layer can not be NULL.");
-    }
-    if (m_soilPsol == NULL) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputData", "The phosphorus stored in solution can not be NULL.");
-    }
+    CHECK_POINTER(MID_BIO_EPIC, m_soilDepth);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilThick);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilAWC);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilStorage);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilNO3);
+    CHECK_POINTER(MID_BIO_EPIC, m_soilPsol);
     return true;
 }
 
@@ -430,23 +269,23 @@ void Biomass_EPIC::initialOutputs() {
         uobw = 0.f;
         uobw = PGCommon::getNormalization(ubw);
     }
-    if (m_albedo == NULL) Initialize1DArray(m_nCells, m_albedo, 0.f);
-    if (m_sol_cov == NULL || m_sol_rsd == NULL) {
+    if (m_albedo == nullptr) Initialize1DArray(m_nCells, m_albedo, 0.f);
+    if (m_sol_cov == nullptr || m_sol_rsd == nullptr) {
         Initialize1DArray(m_nCells, m_sol_cov, m_sol_rsdin);
-        Initialize2DArray(m_nCells, m_soilLayers, m_sol_rsd, 0.f);
+        Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_rsd, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             m_sol_rsd[i][0] = m_sol_cov[i];
         }
     }
-    if (m_LAIDay == NULL) {
-        if (m_initLAI != NULL) {
+    if (m_LAIDay == nullptr) {
+        if (m_initLAI != nullptr) {
             Initialize1DArray(m_nCells, m_LAIDay, m_initLAI);
         } else {
             Initialize1DArray(m_nCells, m_LAIDay, 0.f);
         }
     }
-    if (m_LAIYrMax == NULL) {
+    if (m_LAIYrMax == nullptr) {
         m_LAIYrMax = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
@@ -457,83 +296,83 @@ void Biomass_EPIC::initialOutputs() {
             }
         }
     }
-    if (m_frPHUacc == NULL) {
+    if (m_frPHUacc == nullptr) {
         Initialize1DArray(m_nCells, m_frPHUacc, 0.f);
     }
-    if (m_pltET == NULL) {
+    if (m_pltET == nullptr) {
         Initialize1DArray(m_nCells, m_pltET, 0.f);
     }
-    if (m_pltPET == NULL) {
+    if (m_pltPET == nullptr) {
         Initialize1DArray(m_nCells, m_pltPET, 0.f);
     }
-    if (m_hvstIdxAdj == NULL) {
+    if (m_hvstIdxAdj == nullptr) {
         Initialize1DArray(m_nCells, m_hvstIdxAdj, 0.f);
     }
-    if (m_LAIMaxFr == NULL) {
+    if (m_LAIMaxFr == nullptr) {
         Initialize1DArray(m_nCells, m_LAIMaxFr, 0.f);
     }
-    if (m_oLAI == NULL) {
+    if (m_oLAI == nullptr) {
         Initialize1DArray(m_nCells, m_oLAI, 0.f);
     }
-    if (m_lastSoilRootDepth == NULL) {
+    if (m_lastSoilRootDepth == nullptr) {
         Initialize1DArray(m_nCells, m_lastSoilRootDepth, 10.f);
     }
-    if (m_soilRD == NULL) {
+    if (m_soilRD == nullptr) {
         Initialize1DArray(m_nCells, m_soilRD, 10.f);
     }
-    if (m_plantEPDay == NULL) {
+    if (m_plantEPDay == nullptr) {
         Initialize1DArray(m_nCells, m_plantEPDay, 0.f);
     }
-    if (m_frRoot == NULL) {
+    if (m_frRoot == nullptr) {
         Initialize1DArray(m_nCells, m_frRoot, 0.f);
     }
-    if (m_fixN == NULL) {
+    if (m_fixN == nullptr) {
         Initialize1DArray(m_nCells, m_fixN, 0.f);
     }
-    if (m_plantUpTkN == NULL) {
+    if (m_plantUpTkN == nullptr) {
         Initialize1DArray(m_nCells, m_plantUpTkN, 0.f);
     }
-    if (m_plantUpTkP == NULL) {
+    if (m_plantUpTkP == nullptr) {
         Initialize1DArray(m_nCells, m_plantUpTkP, 0.f);
     }
-    if (m_plantN == NULL) {
+    if (m_plantN == nullptr) {
         Initialize1DArray(m_nCells, m_plantN, 0.f);
     }
-    if (m_plantP == NULL) {
+    if (m_plantP == nullptr) {
         Initialize1DArray(m_nCells, m_plantP, 0.f);
     }
-    if (m_frPlantN == NULL) {
+    if (m_frPlantN == nullptr) {
         Initialize1DArray(m_nCells, m_frPlantN, 0.f);
     }
-    if (m_frPlantP == NULL) {
+    if (m_frPlantP == nullptr) {
         Initialize1DArray(m_nCells, m_frPlantP, 0.f);
     }
 
-    if (m_NO3Defic == NULL) {
+    if (m_NO3Defic == nullptr) {
         Initialize1DArray(m_nCells, m_NO3Defic, 0.f);
     }
     // initialize these stress factors according to sim_iniday.f of SWAT
-    if (m_frStrsAe == NULL) {
+    if (m_frStrsAe == nullptr) {
         Initialize1DArray(m_nCells, m_frStrsAe, 1.f);
     }
-    if (m_frStrsN == NULL) {
+    if (m_frStrsN == nullptr) {
         Initialize1DArray(m_nCells, m_frStrsN, 1.f);
     }
-    if (m_frStrsP == NULL) {
+    if (m_frStrsP == nullptr) {
         Initialize1DArray(m_nCells, m_frStrsP, 1.f);
     }
-    if (m_frStrsTmp == NULL) {
+    if (m_frStrsTmp == nullptr) {
         Initialize1DArray(m_nCells, m_frStrsTmp, 1.f);
     }
     // according to zero.f of SWAT
-    if (m_frStrsWa == NULL) {
+    if (m_frStrsWa == nullptr) {
         Initialize1DArray(m_nCells, m_frStrsWa, 1.f);
     }
-    if (m_biomassDelta == NULL) {
+    if (m_biomassDelta == nullptr) {
         Initialize1DArray(m_nCells, m_biomassDelta, 0.f);
     }
-    if (m_biomass == NULL) {
-        if (m_initBiomass != NULL) {
+    if (m_biomass == nullptr) {
+        if (m_initBiomass != nullptr) {
             Initialize1DArray(m_nCells, m_biomass, m_initBiomass);
         } else {
             Initialize1DArray(m_nCells, m_biomass, 0.f);
@@ -550,7 +389,7 @@ void Biomass_EPIC::DistributePlantET(int i) {    /// swu.f of SWAT
     /*
      * Initialize1DArray should not be used inside a OMP codeblock
      * In VS this would be fine, but in linux, may be problematic.*/
-    float *wuse(NULL);
+    float *wuse(nullptr);
     Initialize1DArray((int) m_nSoilLayers[i], wuse, 0.f);
 
     //float *wuse = new float[(int) m_nSoilLayers[i]];
@@ -1020,7 +859,7 @@ void Biomass_EPIC::Get1DData(const char *key, int *n, float **data) {
     else if (StringMatch(sk, VAR_DORMI)) { *data = m_dormFlag; }
     else if (StringMatch(sk, VAR_IGRO)) { *data = m_igro; }
     else if (StringMatch(sk, VAR_HVSTI_ADJ)) { *data = m_hvstIdxAdj; }
-    else if (StringMatch(sk, VAR_CHT)) { *data = m_cht; }
+    //else if (StringMatch(sk, VAR_CHT)) { *data = m_cht; }
     else if (StringMatch(sk, VAR_FR_ROOT)) { *data = m_frRoot; }
     else if (StringMatch(sk, VAR_FR_STRSWTR)) { *data = m_frStrsWa; }
     else if (StringMatch(sk, VAR_SOL_COV)) { *data = m_sol_cov; }
@@ -1035,7 +874,7 @@ void Biomass_EPIC::Get2DData(const char *key, int *nRows, int *nCols, float ***d
     initialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soilLayers;
+    *nCols = m_nMaxSoilLayers;
     if (StringMatch(sk, VAR_SOL_RSD)) { *data = m_sol_rsd; }
     else {
         throw ModelException(MID_BIO_EPIC, "Get2DData", "Result " + sk + " does not exist.");

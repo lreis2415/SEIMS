@@ -5,21 +5,21 @@
 
 using namespace std;
 
-SoilTemperatureFINPL::SoilTemperatureFINPL(void) : m_a0(NODATA_VALUE), m_a1(NODATA_VALUE), m_a2(NODATA_VALUE),
-                                                   m_a3(NODATA_VALUE),
-                                                   m_b1(NODATA_VALUE), m_b2(NODATA_VALUE), m_d1(NODATA_VALUE),
-                                                   m_d2(NODATA_VALUE),
-                                                   m_kSoil10(NODATA_VALUE), m_julianDay(-1), m_nCells(-1),
-                                                   m_landuse(NULL),
-                                                   m_relativeFactor(NULL), m_soilTemp(NULL), m_tMean(NULL), m_t1(NULL),
-                                                   m_t2(NULL) {
+SoilTemperatureFINPL::SoilTemperatureFINPL() : m_a0(NODATA_VALUE), m_a1(NODATA_VALUE), m_a2(NODATA_VALUE),
+                                               m_a3(NODATA_VALUE),
+                                               m_b1(NODATA_VALUE), m_b2(NODATA_VALUE), m_d1(NODATA_VALUE),
+                                               m_d2(NODATA_VALUE),
+                                               m_kSoil10(NODATA_VALUE), m_julianDay(-1), m_nCells(-1),
+                                               m_landuse(nullptr),
+                                               m_relativeFactor(nullptr), m_soilTemp(nullptr), m_tMean(nullptr), m_t1(nullptr),
+                                               m_t2(nullptr) {
     w = PI * 2.f / 365.f;
 }
 
-SoilTemperatureFINPL::~SoilTemperatureFINPL(void) {
-    if (m_soilTemp != NULL) Release1DArray(m_soilTemp);
-    if (m_t1 != NULL) Release1DArray(m_t1);
-    if (m_t2 != NULL) Release1DArray(m_t2);
+SoilTemperatureFINPL::~SoilTemperatureFINPL() {
+    if (m_soilTemp != nullptr) Release1DArray(m_soilTemp);
+    if (m_t1 != nullptr) Release1DArray(m_t1);
+    if (m_t2 != nullptr) Release1DArray(m_t2);
 }
 
 int SoilTemperatureFINPL::Execute() {
@@ -66,55 +66,20 @@ int SoilTemperatureFINPL::Execute() {
     return 0;
 }
 
-bool SoilTemperatureFINPL::CheckInputData(void) {
-    if (FloatEqual(m_a0, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTa0 has not been set.");
-    }
-    if (FloatEqual(m_a1, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTa1 has not been set.");
-    }
-    if (FloatEqual(m_a2, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTa2 has not been set.");
-    }
-    if (FloatEqual(m_a3, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTa3 has not been set.");
-    }
-    if (FloatEqual(m_b1, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTb1 has not been set.");
-    }
-    if (FloatEqual(m_b2, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTb2 has not been set.");
-    }
-    if (FloatEqual(m_d1, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTd1 has not been set.");
-    }
-    if (FloatEqual(m_d2, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: SoilTd2 has not been set.");
-    }
-    if (FloatEqual(m_kSoil10, NODATA_VALUE)) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: KSoil10 has not been set.");
-    }
-    if (m_date < 0) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The date has not been set.");
-    }
-    if (m_relativeFactor == NULL) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: LandcoverFactor has not been set.");
-    }
-    if (m_tMean == NULL) {
-        throw ModelException(MID_STP_FP, "CheckInputData", "The parameter: mean air temperature has not been set.");
-    }
-    if (m_t1 == NULL) {
-        throw ModelException(MID_STP_FP, "CheckInputData",
-                             "The parameter: mean air temperature of (d-1) day has not been set.");
-    }
-    if (m_t2 == NULL) {
-        throw ModelException(MID_STP_FP, "CheckInputData",
-                             "The parameter: mean air temperature of (d-2) day has not been set.");
-    }
-    if (m_landuse == NULL) {
-        throw ModelException(MID_STP_FP, "CheckInputData",
-                             "The parameter: landuse type has not been set.");
-    }
+bool SoilTemperatureFINPL::CheckInputData() {
+    CHECK_POSITIVE(MID_STP_FP, m_nCells);
+    CHECK_NODATA(MID_STP_FP, m_a0);
+    CHECK_NODATA(MID_STP_FP, m_a1);
+    CHECK_NODATA(MID_STP_FP, m_a2);
+    CHECK_NODATA(MID_STP_FP, m_a3);
+    CHECK_NODATA(MID_STP_FP, m_b1);
+    CHECK_NODATA(MID_STP_FP, m_b2);
+    CHECK_NODATA(MID_STP_FP, m_d1);
+    CHECK_NODATA(MID_STP_FP, m_d2);
+    CHECK_NODATA(MID_STP_FP, m_kSoil10);
+    CHECK_POINTER(MID_STP_FP, m_relativeFactor);
+    CHECK_POINTER(MID_STP_FP, m_tMean);
+    CHECK_POINTER(MID_STP_FP, m_landuse);
     return true;
 }
 
@@ -123,8 +88,8 @@ bool SoilTemperatureFINPL::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_STP_FP, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_STP_FP, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input raster data should have same size.");
@@ -148,20 +113,12 @@ void SoilTemperatureFINPL::SetValue(const char *key, float value) {
 }
 
 void SoilTemperatureFINPL::Set1DData(const char *key, int n, float *data) {
-    //check the input data
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_SOIL_T10)) {
-        this->m_relativeFactor = data;
-    } else if (StringMatch(sk, DataType_MeanTemperature)) {
-        this->m_tMean = data;
-    } else if (StringMatch(sk, VAR_TMEAN1)) {
-        this->m_t1 = data;
-    } else if (StringMatch(sk, VAR_TMEAN2)) {
-        this->m_t2 = data;
-    } else if (StringMatch(sk, VAR_LANDUSE)) {
-        this->m_landuse = data;
-    } else {
+    if (StringMatch(sk, VAR_SOIL_T10)) { m_relativeFactor = data; } 
+    else if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = data; }
+    else if (StringMatch(sk, VAR_LANDUSE)) { m_landuse = data; } 
+    else {
         throw ModelException(MID_STP_FP, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
@@ -179,17 +136,15 @@ void SoilTemperatureFINPL::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SoilTemperatureFINPL::initialOutputs() {
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_STP_FP, "initialOutputs", "The cell number of the input can not be less than zero.");
-    }
+    CHECK_POSITIVE(MID_STP_FP, m_nCells);
     // initialize m_t1 and m_t2 as m_tMean
-    if (m_t1 == NULL && m_tMean != NULL) {
+    if (nullptr == m_t1 && m_tMean != nullptr) {
         Initialize1DArray(m_nCells, m_t1, m_tMean);
     }
-    if (m_t2 == NULL && m_tMean != NULL) {
+    if (nullptr == m_t2 && m_tMean != nullptr) {
         Initialize1DArray(m_nCells, m_t2, m_tMean);
     }
-    if (this->m_soilTemp == NULL) {
+    if (nullptr == m_soilTemp) {
         Initialize1DArray(m_nCells, m_soilTemp, 0.f);
     }
 }

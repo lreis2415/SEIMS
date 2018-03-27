@@ -1,21 +1,20 @@
 #include "seims.h"
 #include "PER_PI.h"
 
-PER_PI::PER_PI(void) : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
-                       m_ks(NULL), m_sat(NULL), m_poreIndex(NULL), m_fc(NULL),
-                       m_wp(NULL), m_soilThick(NULL), m_impoundTriger(NULL),
-                       m_infil(NULL), m_soilT(NULL), m_soilStorage(NULL),
-                       m_perc(NULL) {
+PER_PI::PER_PI() : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
+                   m_ks(nullptr), m_sat(nullptr), m_poreIndex(nullptr), m_fc(nullptr),
+                   m_wp(nullptr), m_soilThick(nullptr), m_impoundTriger(nullptr),
+                   m_infil(nullptr), m_soilT(nullptr), m_soilStorage(nullptr),
+                   m_perc(nullptr) {
 }
 
-PER_PI::~PER_PI(void) {
-    if (m_perc != NULL) Release2DArray(m_nCells, m_perc);
+PER_PI::~PER_PI() {
+    if (m_perc != nullptr) Release2DArray(m_nCells, m_perc);
 }
 
 void PER_PI::initialOutputs() {
-    if (m_perc == NULL) {
-        Initialize2DArray(m_nCells, m_soilLayers, m_perc, NODATA_VALUE);
-    }
+    CHECK_POSITIVE(MID_PER_PI, m_nCells);
+    if (nullptr == m_perc) { Initialize2DArray(m_nCells, m_soilLayers, m_perc, NODATA_VALUE); }
 }
 
 int PER_PI::Execute() {
@@ -114,9 +113,8 @@ void PER_PI::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
 }
 
 void PER_PI::Set1DData(const char *key, int nRows, float *data) {
-    string sk(key);
     CheckInputSize(key, nRows);
-
+    string sk(key);
     if (StringMatch(sk, VAR_SOTE)) { m_soilT = data; }
     else if (StringMatch(sk, VAR_INFIL)) { m_infil = data; }
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
@@ -128,10 +126,9 @@ void PER_PI::Set1DData(const char *key, int nRows, float *data) {
 }
 
 void PER_PI::Set2DData(const char *key, int nrows, int ncols, float **data) {
-    string sk(key);
     CheckInputSize(key, nrows);
+    string sk(key);
     m_soilLayers = ncols;
-
     if (StringMatch(sk, VAR_CONDUCT)) { m_ks = data; }
     else if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
     else if (StringMatch(sk, VAR_SOL_AWC)) { m_fc = data; }
@@ -155,50 +152,20 @@ void PER_PI::SetValue(const char *key, float data) {
 }
 
 bool PER_PI::CheckInputData() {
-    if (m_date <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "You have not set the time.");
-    }
-    if (m_nCells <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (m_dt <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The time step can not be less than zero.");
-    }
-
-    if (m_ks == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The Conductivity can not be NULL.");
-    }
-    if (m_sat == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The Porosity can not be NULL.");
-    }
-    if (m_poreIndex == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The Pore index can not be NULL.");
-    }
-    if (m_fc == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The field capacity can not be NULL.");
-    }
-    if (m_wp == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The wilting point can not be NULL.");
-    }
-    if (m_soilThick == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil depth can not be NULL.");
-    }
-    if (m_soilT == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil temperature can not be NULL.");
-    }
-    if (m_infil == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The infiltration can not be NULL.");
-    }
-    if (FloatEqual(m_frozenT, NODATA_VALUE)) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The threshold soil freezing temperature can not be NULL.");
-    }
-    if (this->m_soilStorage == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage can not be NULL.");
-    }
-    if (this->m_soilStorageProfile == NULL) {
-        throw ModelException(MID_PER_PI, "CheckInputData", "The soil storage of soil profile can not be NULL.");
-    }
+    CHECK_POSITIVE(MID_PER_PI, m_date);
+    CHECK_POSITIVE(MID_PER_PI, m_nCells);
+    CHECK_POSITIVE(MID_PER_PI, m_dt);
+    CHECK_POINTER(MID_PER_PI, m_ks);
+    CHECK_POINTER(MID_PER_PI, m_sat);
+    CHECK_POINTER(MID_PER_PI, m_poreIndex);
+    CHECK_POINTER(MID_PER_PI, m_fc);
+    CHECK_POINTER(MID_PER_PI, m_wp);
+    CHECK_POINTER(MID_PER_PI, m_soilThick);
+    CHECK_POINTER(MID_PER_PI, m_soilT);
+    CHECK_POINTER(MID_PER_PI, m_infil);
+    CHECK_DATA(MID_PER_PI, FloatEqual(m_frozenT, NODATA_VALUE), "The threshold soil freezing temperature has not been set.");
+    CHECK_POINTER(MID_PER_PI, m_soilStorage);
+    CHECK_POINTER(MID_PER_PI, m_soilStorageProfile);
     return true;
 }
 
@@ -207,8 +174,8 @@ bool PER_PI::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_PER_PI, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");

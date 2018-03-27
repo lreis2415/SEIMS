@@ -4,8 +4,11 @@
  * \date Feb. 2012
  * \revised LiangJun Zhu
  * \revised date May. 2016
+ * \revised date Mar.22 2018  lj  Code review.
  */
-#pragma once
+#ifndef SEIMS_MODULE_MUSLE_AS_H
+#define SEIMS_MODULE_MUSLE_AS_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -23,37 +26,32 @@ using namespace std;
  */
 class MUSLE_AS : public SimulationModule {
 public:
-    //! Constructor
-    MUSLE_AS(void);
+    MUSLE_AS();
 
-    //! Destructor
-    ~MUSLE_AS(void);
+    ~MUSLE_AS();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
-
-    virtual void GetValue(const char *key, float *value);
 
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
 
-    virtual void SetSubbasins(clsSubbasins *subbasins);
-
     virtual void Get1DData(const char *key, int *n, float **data);
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
+
+private:
+    void initialOutputs();
 
 private:
     //! valid cell number
     int m_nCells;
     //! cell width (m)
     float m_cellWidth;
-    //! subbasin number
-    int m_nsub;
     //! soil layer number
     int m_nSoilLayers;
     //! deposition ratio
@@ -117,10 +115,5 @@ private:
     float *m_smaggreYield;
     //! large aggregate yield
     float *m_lgaggreYield;
-
-    //! initialize outputs
-    void initialOutputs(void);
-
-    //!
-    //float getPeakRunoffRate(int);
 };
+#endif /* SEIMS_MODULE_MUSLE_AS_H */

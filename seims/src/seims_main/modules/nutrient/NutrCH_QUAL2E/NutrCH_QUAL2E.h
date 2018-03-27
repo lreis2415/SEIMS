@@ -8,6 +8,7 @@
  * \description 1. Add point source loadings nutrients from Scenario.
  *              2. Add ammonian transported by surface runoff
  *              3. Reformat code style. Update clsReaches usage. 2017-12-26
+ *              4. Debug for mpi version. 2018-3-23
  */
 #ifndef SEIMS_MODULE_NUTRCH_QUAL2E_H
 #define SEIMS_MODULE_NUTRCH_QUAL2E_H
@@ -35,6 +36,8 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
+    virtual void SetValueByIndex(const char *key, int index, float data);
+
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void SetReaches(clsReaches *reaches);
@@ -48,7 +51,51 @@ public:
     virtual void Get1DData(const char *key, int *n, float **data);
 
     virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
+
 private:
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *, int);
+
+    bool CheckInputCellSize(const char *key, int n);
+
+    void AddInputNutrient(int);
+
+    void RouteOut(int i);
+
+    void NutrientTransform(int i);
+
+    /*!
+    * \brief Corrects rate constants for temperature.
+    *
+    *    r20         1/day         value of the reaction rate coefficient at the standard temperature (20 degrees C)
+    *    thk         none          temperature adjustment factor (empirical constant for each reaction coefficient)
+    *    tmp         deg C         temperature on current day
+    *
+    * \return float
+    */
+    float corTempc(float r20, float thk, float tmp);
+
+    /// Calculate average day length, solar radiation, and temperature for each channel
+    void ParametersSubbasinForChannel();
+
+    void initialOutputs();
+
+    void PointSourceLoading();
+private:
+    /// current subbasin ID, 0 for the entire watershed
+    int m_subbasinID;
     // cell number
     int m_nCells;
     /// time step (sec)
@@ -293,49 +340,6 @@ private:
     float *m_chSr;
     /// valid cell numbers of each channel
     int *m_chCellCount;
-
-private:
-
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData(void);
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    bool CheckInputCellSize(const char *key, int n);
-
-    void AddInputNutrient(int);
-
-    void RouteOut(int i);
-
-    void NutrientTransform(int i);
-
-    /*!
-    * \brief Corrects rate constants for temperature.
-     *
-     *    r20         1/day         value of the reaction rate coefficient at the standard temperature (20 degrees C)
-     *    thk         none          temperature adjustment factor (empirical constant for each reaction coefficient)
-     *    tmp         deg C         temperature on current day
-     *
-     * \return float
-     */
-    float corTempc(float r20, float thk, float tmp);
-
-    /// Calculate average day length, solar radiation, and temperature for each channel
-    void ParametersSubbasinForChannel(void);
-
-    void initialOutputs(void);
-
-    void PointSourceLoading(void);
 };
 
 #endif /* SEIMS_MODULE_NUTRCH_QUAL2E_H */

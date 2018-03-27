@@ -46,7 +46,7 @@ def read_data_items_from_txt(txt_file):
         2D data array
     """
     data_items = list()
-    with open(txt_file, 'r', encoding='utf-8') as f:
+    with open(txt_file, 'r') as f:
         for line in f:
             str_line = line.strip()
             if str_line != '' and str_line.find('#') < 0:

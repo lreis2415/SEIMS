@@ -9,7 +9,9 @@
 			  3. Add m_VPD, m_dayLen as outputs, which will be used in BIO_EPIC module
 			  4. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
-#pragma once
+#ifndef SEIMS_MODULE_PET_PT_H
+#define SEIMS_MODULE_PET_PT_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -28,11 +30,9 @@ using namespace std;
  */
 class PETPriestleyTaylor : public SimulationModule {
 public:
-    //! Constructor
-    PETPriestleyTaylor(void);
+    PETPriestleyTaylor();
 
-    //! Destructor
-    ~PETPriestleyTaylor(void);
+    ~PETPriestleyTaylor();
 
     virtual void SetValue(const char *key, float value);
 
@@ -40,28 +40,25 @@ public:
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
-    virtual int Execute(void);
+    virtual int Execute();
 
 private:
-
     /*!
      * \brief check the input data. Make sure all the input data is available.
      * \return bool The validity of the input data.
      */
-    bool CheckInputData(void);
+    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     *
      * \param[in] key The key of the input data
      * \param[in] n The input data dimension
      * \return bool The validity of the dimension
      */
-    bool CheckInputSize(const char *, int);
+    bool CheckInputSize(const char *key, int n);
 
     //! Initialize of output variables
-    void initialOutputs(void);
+    void initialOutputs();
 
 private:
     /// mean air temperature for a given day(degree)
@@ -103,3 +100,4 @@ private:
     /// vapor pressure deficit
     float *m_vpd;
 };
+#endif /* SEIMS_MODULE_PET_PT_H */

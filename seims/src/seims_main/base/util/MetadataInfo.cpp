@@ -257,7 +257,7 @@ int MetadataInfo::AddInOutput(const char* name, const char* units, const char* d
 
     m_vInOutputs.push_back(param);
 
-    AddOutput(name, units, desc, dimType);
+    AddOutput(name, units, desc, dimType, tfType);
 
     return m_vInOutputs.size();
 }

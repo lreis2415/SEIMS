@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 //! function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
-    mdi.SetAuthor("Huiran Gao");
+    mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
     mdi.SetClass(MCLS_NutCHRout, MCLSDESC_NutCHRout);
     mdi.SetDescription(MDESC_NUTRCH_QUAL2E);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -20,6 +20,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetHelpfile("NutrCH_QUAL2E.html");
 
     // set the parameters
+    mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
     mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(VAR_RNUM1, UNIT_NON_DIM, DESC_RNUM1, Source_ParameterDB, DT_Single);
@@ -55,6 +56,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(DataType_SolarRadiation, UNIT_SR, DESC_SR, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DAYLEN, UNIT_HOUR, DESC_DAYLEN, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, Source_Module, DT_Raster1D);
+
     mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_PRECHST, UNIT_VOL_M3, DESC_PRECHST, Source_Module, DT_Array1D);
@@ -79,40 +81,40 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_RCH_DEG, UNIT_KG, DESC_RCH_DEG, Source_Module_Optional, DT_Array1D);
     // set the output variables
     /// 1. Amount (kg) outputs
-    mdi.AddOutput(VAR_CH_ALGAE, UNIT_KG, DESC_CH_ALGAE, DT_Array1D);
-    mdi.AddOutput(VAR_CH_ORGN, UNIT_KG, DESC_CH_ORGN, DT_Array1D);
-    mdi.AddOutput(VAR_CH_ORGP, UNIT_KG, DESC_CH_ORGP, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NH4, UNIT_KG, DESC_CH_NH4, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NO2, UNIT_KG, DESC_CH_NO2, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NO3, UNIT_KG, DESC_CH_NO3, DT_Array1D);
-    mdi.AddOutput(VAR_CH_SOLP, UNIT_KG, DESC_CH_SOLP, DT_Array1D);
-    mdi.AddOutput(VAR_CH_COD, UNIT_KG, DESC_CH_COD, DT_Array1D);
-    mdi.AddOutput(VAR_CH_CHLORA, UNIT_KG, DESC_CH_CHLORA, DT_Array1D);
-    mdi.AddOutput(VAR_CH_DOX, UNIT_KG, DESC_CH_DOX, DT_Array1D);
-    mdi.AddOutput(VAR_CH_TN, UNIT_KG, DESC_CH_TN, DT_Array1D);
-    mdi.AddOutput(VAR_CH_TP, UNIT_KG, DESC_CH_TP, DT_Array1D);
+    mdi.AddInOutput(VAR_CH_ALGAE, UNIT_KG, DESC_CH_ALGAE, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_ORGN, UNIT_KG, DESC_CH_ORGN, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_ORGP, UNIT_KG, DESC_CH_ORGP, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NH4, UNIT_KG, DESC_CH_NH4, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NO2, UNIT_KG, DESC_CH_NO2, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NO3, UNIT_KG, DESC_CH_NO3, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_SOLP, UNIT_KG, DESC_CH_SOLP, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_COD, UNIT_KG, DESC_CH_COD, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_CHLORA, UNIT_KG, DESC_CH_CHLORA, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_DOX, UNIT_KG, DESC_CH_DOX, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_TN, UNIT_KG, DESC_CH_TN, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_TP, UNIT_KG, DESC_CH_TP, DT_Array1D, TF_SingleValue);
     /// 2. Concentration (mg/L) outputs
-    mdi.AddOutput(VAR_CH_ALGAEConc, UNIT_CONCENTRATION, DESC_CH_ALGAE, DT_Array1D);
-    mdi.AddOutput(VAR_CH_ORGNConc, UNIT_CONCENTRATION, DESC_CH_ORGN, DT_Array1D);
-    mdi.AddOutput(VAR_CH_ORGPConc, UNIT_CONCENTRATION, DESC_CH_ORGP, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NH4Conc, UNIT_CONCENTRATION, DESC_CH_NH4, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NO2Conc, UNIT_CONCENTRATION, DESC_CH_NO2, DT_Array1D);
-    mdi.AddOutput(VAR_CH_NO3Conc, UNIT_CONCENTRATION, DESC_CH_NO3, DT_Array1D);
-    mdi.AddOutput(VAR_CH_SOLPConc, UNIT_CONCENTRATION, DESC_CH_SOLP, DT_Array1D);
-    mdi.AddOutput(VAR_CH_CODConc, UNIT_CONCENTRATION, DESC_CH_COD, DT_Array1D);
-    mdi.AddOutput(VAR_CH_CHLORAConc, UNIT_CONCENTRATION, DESC_CH_CHLORA, DT_Array1D);
-    mdi.AddOutput(VAR_CH_DOXConc, UNIT_CONCENTRATION, DESC_CH_DOX, DT_Array1D);
-    mdi.AddOutput(VAR_CH_TNConc, UNIT_CONCENTRATION, DESC_CH_TNConc, DT_Array1D);
-    mdi.AddOutput(VAR_CH_TPConc, UNIT_CONCENTRATION, DESC_CH_TPConc, DT_Array1D);
+    mdi.AddInOutput(VAR_CH_ALGAEConc, UNIT_CONCENTRATION, DESC_CH_ALGAE, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_ORGNConc, UNIT_CONCENTRATION, DESC_CH_ORGN, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_ORGPConc, UNIT_CONCENTRATION, DESC_CH_ORGP, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NH4Conc, UNIT_CONCENTRATION, DESC_CH_NH4, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NO2Conc, UNIT_CONCENTRATION, DESC_CH_NO2, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_NO3Conc, UNIT_CONCENTRATION, DESC_CH_NO3, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_SOLPConc, UNIT_CONCENTRATION, DESC_CH_SOLP, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_CODConc, UNIT_CONCENTRATION, DESC_CH_COD, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_CHLORAConc, UNIT_CONCENTRATION, DESC_CH_CHLORA, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_DOXConc, UNIT_CONCENTRATION, DESC_CH_DOX, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_TNConc, UNIT_CONCENTRATION, DESC_CH_TNConc, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CH_TPConc, UNIT_CONCENTRATION, DESC_CH_TPConc, DT_Array1D, TF_SingleValue);
     // 3. point source loadings
     mdi.AddOutput(VAR_PTTN2CH, UNIT_KG, DESC_PTTN2CH, DT_Array1D);
     mdi.AddOutput(VAR_PTTP2CH, UNIT_KG, DESC_PTTP2CH, DT_Array1D);
     mdi.AddOutput(VAR_PTCOD2CH, UNIT_KG, DESC_PTCOD2CH, DT_Array1D);
     // 4. nutrient stored in reaches
-    mdi.AddOutput(VAR_CHSTR_NH4, UNIT_KG, DESC_CHSTR_NH4, DT_Array1D);
-    mdi.AddOutput(VAR_CHSTR_NO3, UNIT_KG, DESC_CHSTR_NO3, DT_Array1D);
-    mdi.AddOutput(VAR_CHSTR_TN, UNIT_KG, DESC_CHSTR_TN, DT_Array1D);
-    mdi.AddOutput(VAR_CHSTR_TP, UNIT_KG, DESC_CHSTR_TP, DT_Array1D);
+    mdi.AddInOutput(VAR_CHSTR_NH4, UNIT_KG, DESC_CHSTR_NH4, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CHSTR_NO3, UNIT_KG, DESC_CHSTR_NO3, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CHSTR_TN, UNIT_KG, DESC_CHSTR_TN, DT_Array1D, TF_SingleValue);
+    mdi.AddInOutput(VAR_CHSTR_TP, UNIT_KG, DESC_CHSTR_TP, DT_Array1D, TF_SingleValue);
 
     string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];
