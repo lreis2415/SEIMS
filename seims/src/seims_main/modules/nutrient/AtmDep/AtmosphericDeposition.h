@@ -9,7 +9,9 @@
  *        2. Change m_wshd_rno3 to store nitrate from rainfall of current day
  *        3. Remove output of m_sol_no3, which is redundant and unnecessary
  */
-#pragma once
+#ifndef SEIMS_MODULE_ATMDEP_H
+#define SEIMS_MODULE_ATMDEP_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -24,11 +26,11 @@ using namespace std;
  */
 class AtmosphericDeposition : public SimulationModule {
 public:
-    AtmosphericDeposition(void);
+    AtmosphericDeposition();
 
-    ~AtmosphericDeposition(void);
+    ~AtmosphericDeposition();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -38,17 +40,13 @@ public:
 
     virtual void GetValue(const char *key, float *value);
 
-    //virtual void Get1DData(const char* key, int* n, float** data);
-    //virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
-    void initialOutputs(void);
+    void initialOutputs();
 
 private:
-
     /// size of array
     int m_nCells;
     ///// cell width of grid map (m)
@@ -57,7 +55,7 @@ private:
     //float *m_nSoilLayers;
 
     /// maximum soil layers
-    int m_soiLayers;
+    int m_nMaxSoiLayers;
 
     /// parameters
 
@@ -94,3 +92,4 @@ private:
     /// amount of NO3 added to soil by rainfall in watershed on current day (kg/ha)
     float m_wshd_rno3;
 };
+#endif /* SEIMS_MODULE_ATMDEP_H */

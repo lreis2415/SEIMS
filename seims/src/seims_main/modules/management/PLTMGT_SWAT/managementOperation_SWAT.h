@@ -27,6 +27,123 @@ using namespace MainBMP;
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
  */
 class MGTOpt_SWAT : public SimulationModule {
+public:
+    MGTOpt_SWAT();
+
+    ~MGTOpt_SWAT();
+
+    int Execute();
+
+    void SetValue(const char *key, float data);
+
+    void Set1DData(const char *key, int n, float *data);
+
+    void Get1DData(const char *key, int *n, float **data);
+
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+
+    void Set2DData(const char *key, int n, int col, float **data);
+
+    void SetScenario(Scenario *sce);
+
+    void SetSubbasins(clsSubbasins *subbasins);
+
+private:
+    /*!
+    * \brief Get operation parameters according to operation sequence number
+    * \param[in] cellIdx current cell index
+    * \param[out] factoryID Index of Plant BMPs factory
+    * \param[out] nOps Operation sequence number, and there might be several operation occurred on one day
+    */
+    bool GetOperationCode(int cellIdx, int &factoryID, vector<int> &nOps);
+
+    /*!
+    * \brief Manager all operations on schedule
+    * \param[in] cellIdx Index of valid cell
+    * \param[in] factoryID Index of Plant BMPs factory
+    * \param[in] nOp Operation sequence
+    */
+    void ScheduledManagement(int cellIdx, int &factoryID, int nOp);
+
+    void ExecutePlantOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteIrrigationOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteFertilizerOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecutePesticideOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteHarvestKillOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteTillageOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteHarvestOnlyOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteKillOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteGrazingOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteAutoIrrigationOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteAutoFertilizerOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteReleaseImpoundOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteContinuousFertilizerOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteContinuousPesticideOperation(int cellIdx, int &factoryID, int nOp);
+
+    void ExecuteBurningOperation(int cellIdx, int &factoryID, int nOp);
+
+    /*!
+    * \brief check the input data. Make sure all the input data is available.
+    * \return bool The validity of the input data.
+    */
+    bool CheckInputData();
+
+    /*!
+    * \brief check the input size. Make sure all the input data have same dimension.
+    *
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The input data dimension
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize(const char *, int);
+
+    /*!
+    * \brief check the input size of 2D data. Make sure all the input data have same dimension.
+    *
+    *
+    * \param[in] key The key of the input data
+    * \param[in] n The first dimension input data
+    * \param[in] col The second dimension of input data
+    * \return bool The validity of the dimension
+    */
+    bool CheckInputSize2D(const char *key, int n, int col);
+
+    /// initialize all possible outputs
+    void initialOutputs();
+
+    /// Handle lookup tables ///
+
+    /// landuse lookup table
+    void initializeLanduseLookup();
+
+    /// crop lookup table
+    void initializeCropLookup();
+
+    /// fertilizer lookup table
+    void initializeFertilizerLookup();
+
+    /// tillage lookup table
+    void initializeTillageLookup();
+
+    /// the complementary error function
+    float Erfc(float xx);
+
+    /// distributes dead root mass through the soil profile
+    void rootFraction(int i, float *&root_fr);
 private:
     /*
     * Plant management factory derived from BMPs Scenario
@@ -388,125 +505,6 @@ private:
     float *tmp_soilMixedMass;  ///< mass of soil mixed for the layer
     float *tmp_soilNotMixedMass;  ///<
     float *tmp_smix;
-public:
-    //! Constructor
-    MGTOpt_SWAT();
-
-    //! Destructor
-    ~MGTOpt_SWAT();
-
-    int Execute();
-
-    void SetValue(const char *key, float data);
-
-    void Set1DData(const char *key, int n, float *data);
-
-    void Get1DData(const char *key, int *n, float **data);
-
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-
-    void Set2DData(const char *key, int n, int col, float **data);
-
-    void SetScenario(Scenario *sce);
-
-    void SetSubbasins(clsSubbasins *subbasins);
-
-private:
-    /*!
-     * \brief Get operation parameters according to operation sequence number
-     * \param[in] cellIdx current cell index
-     * \param[out] factoryID Index of Plant BMPs factory
-     * \param[out] nOps Operation sequence number, and there might be several operation occurred on one day
-     */
-    bool GetOperationCode(int cellIdx, int &factoryID, vector<int> &nOps);
-
-    /*!
-     * \brief Manager all operations on schedule
-     * \param[in] cellIdx Index of valid cell
-     * \param[in] factoryID Index of Plant BMPs factory
-     * \param[in] nOp Operation sequence
-     */
-    void ScheduledManagement(int cellIdx, int &factoryID, int nOp);
-
-    void ExecutePlantOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteIrrigationOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteFertilizerOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecutePesticideOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteHarvestKillOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteTillageOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteHarvestOnlyOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteKillOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteGrazingOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteAutoIrrigationOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteAutoFertilizerOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteReleaseImpoundOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteContinuousFertilizerOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteContinuousPesticideOperation(int cellIdx, int &factoryID, int nOp);
-
-    void ExecuteBurningOperation(int cellIdx, int &factoryID, int nOp);
-
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    /*!
-     * \brief check the input size of 2D data. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The first dimension input data 
-     * \param[in] col The second dimension of input data
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize2D(const char *key, int n, int col);
-
-    /// initialize all possible outputs
-    void initialOutputs();
-
-    /// Handle lookup tables ///
-
-    /// landuse lookup table
-    void initializeLanduseLookup();
-
-    /// crop lookup table
-    void initializeCropLookup();
-
-    /// fertilizer lookup table
-    void initializeFertilizerLookup();
-
-    /// tillage lookup table
-    void initializeTillageLookup();
-
-    /// the complementary error function
-    float Erfc(float xx);
-
-    /// distributes dead root mass through the soil profile
-    void rootFraction(int i, float *&root_fr);
 };
 
 #endif /* SEIMS_MODULE_PLTMGT_SWAT_H */

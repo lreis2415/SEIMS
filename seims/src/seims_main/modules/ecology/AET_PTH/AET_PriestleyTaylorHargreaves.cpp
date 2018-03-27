@@ -3,24 +3,23 @@
 
 using namespace std;
 
-AET_PT_H::AET_PT_H(void) : m_nCells(-1), m_soilLayers(-1), m_esco(NULL), m_nSoilLayers(NULL), m_soilDepth(NULL),
-                           m_soilThick(NULL), m_solFC(NULL),
+AET_PT_H::AET_PT_H() : m_nCells(-1), m_nMaxSoilLayer(-1), m_esco(nullptr), m_nSoilLayers(nullptr), m_soilDepth(nullptr),
+                       m_soilThick(nullptr), m_solFC(nullptr),
     /// input from other modules
-                           m_tMean(NULL), m_lai(NULL), m_pet(NULL), m_canEvp(NULL), m_snowAcc(NULL), m_snowSB(NULL),
-                           m_solCov(NULL), m_solNo3(NULL), m_soilStorage(NULL), m_soilStorageProfile(NULL),
+                       m_tMean(nullptr), m_lai(nullptr), m_pet(nullptr), m_canEvp(nullptr), m_snowAcc(nullptr), m_snowSB(nullptr),
+                       m_solCov(nullptr), m_solNo3(nullptr), m_soilStorage(nullptr), m_soilStorageProfile(nullptr),
     /// output
-                           m_ppt(NULL), m_soilESDay(NULL), m_no3Up(0.f) {
+                       m_ppt(nullptr), m_soilESDay(nullptr), m_no3Up(0.f) {
 }
 
-AET_PT_H::~AET_PT_H(void) {
-    /// clean up output variables
-    if (m_ppt != NULL) Release1DArray(m_ppt);
-    if (m_soilESDay != NULL) Release1DArray(m_soilESDay);
+AET_PT_H::~AET_PT_H() {
+    if (m_ppt != nullptr) Release1DArray(m_ppt);
+    if (m_soilESDay != nullptr) Release1DArray(m_soilESDay);
 }
 
 void AET_PT_H::Set1DData(const char *key, int n, float *data) {
-    string sk(key);
     CheckInputSize(key, n);
+    string sk(key);
     if (StringMatch(sk, VAR_ESCO)) { m_esco = data; }
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
     else if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = data; }
@@ -37,9 +36,9 @@ void AET_PT_H::Set1DData(const char *key, int n, float *data) {
 }
 
 void AET_PT_H::Set2DData(const char *key, int n, int col, float **data) {
-    string sk(key);
     CheckInputSize(key, n);
-    m_soilLayers = col;
+    string sk(key);
+    m_nMaxSoilLayer = col;
     if (StringMatch(sk, VAR_SOILDEPTH)) { m_soilDepth = data; }
     else if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
     else if (StringMatch(sk, VAR_SOL_AWC)) { m_solFC = data; }
@@ -55,8 +54,8 @@ bool AET_PT_H::CheckInputSize(const char *key, int n) {
         throw ModelException(MID_AET_PTH, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (this->m_nCells != n) {
-        if (this->m_nCells <= 0) { this->m_nCells = n; }
+    if (m_nCells != n) {
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_AET_PTH, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
@@ -65,64 +64,33 @@ bool AET_PT_H::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-bool AET_PT_H::CheckInputData(void) {
-    if (this->m_date <= 0) throw ModelException(MID_AET_PTH, "CheckInputData", "You have not set the time.");
-    if (this->m_nCells <= 0) {
-        throw ModelException(MID_AET_PTH, "CheckInputData",
-                             "The dimension of the input data can not be less than zero.");
-    }
-    if (this->m_esco == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData",
-                             "The soil evaporation compensation factor can not be NULL.");
-    }
-    if (this->m_nSoilLayers == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The soil layers can not be NULL.");
-    }
-    if (this->m_tMean == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The mean temperature can not be NULL.");
-    }
-    if (this->m_lai == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The leaf area index can not be NULL.");
-    }
-    if (this->m_pet == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The potential evaportranspiration can not be NULL.");
-    }
-    if (this->m_snowAcc == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The snow accumulation can not be NULL.");
-    }
+bool AET_PT_H::CheckInputData() {
+    CHECK_POSITIVE(MID_AET_PTH, m_date);
+    CHECK_POSITIVE(MID_AET_PTH, m_nCells);
+    CHECK_POSITIVE(MID_AET_PTH, m_nMaxSoilLayer);
+    CHECK_POINTER(MID_AET_PTH, m_esco);
+    CHECK_POINTER(MID_AET_PTH, m_nSoilLayers);
+    CHECK_POINTER(MID_AET_PTH, m_tMean);
+    CHECK_POINTER(MID_AET_PTH, m_lai);
+    CHECK_POINTER(MID_AET_PTH, m_pet);
+    CHECK_POINTER(MID_AET_PTH, m_snowAcc);
     /// If m_snowSB is not provided, it will be initialized in initialOutputs().
-    //if (this->m_snowSB == NULL)
-    //    throw ModelException(MID_AET_PTH, "CheckInputData", "The snow sublimation can not be NULL.");
-    if (this->m_solCov == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The residue on soil surface can not be NULL.");
-    }
-    if (this->m_soilDepth == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The soil depth can not be NULL.");
-    }
-    if (this->m_soilThick == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The soil thickness can not be NULL.");
-    }
-    if (this->m_solFC == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData",
-                             "The available water capacity at field capacity can not be NULL.");
-    }
-    if (this->m_solNo3 == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "Nitrogen stored in the nitrate pool can not be NULL.");
-    }
-    if (this->m_soilStorage == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The soil storage can not be NULL.");
-    }
-    if (this->m_soilStorageProfile == NULL) {
-        throw ModelException(MID_AET_PTH, "CheckInputData", "The soil storage of soil profile can not be NULL.");
-    }
+    // CHECK_POINTER(MID_AET_PTH, m_snowSB);
+    CHECK_POINTER(MID_AET_PTH, m_solCov);
+    CHECK_POINTER(MID_AET_PTH, m_soilDepth);
+    CHECK_POINTER(MID_AET_PTH, m_soilThick);
+    CHECK_POINTER(MID_AET_PTH, m_solFC);
+    CHECK_POINTER(MID_AET_PTH, m_solNo3);
+    CHECK_POINTER(MID_AET_PTH, m_soilStorage);
+    CHECK_POINTER(MID_AET_PTH, m_soilStorageProfile);
     return true;
 }
 
 void AET_PT_H::initialOutputs() {
-    /// initialize output variables
-    if (this->m_ppt == NULL) Initialize1DArray(m_nCells, m_ppt, 0.f);
-    if (this->m_soilESDay == NULL) Initialize1DArray(m_nCells, m_soilESDay, 0.f);
-    if (this->m_snowSB == NULL) Initialize1DArray(m_nCells, m_snowSB, 0.f);
+    CHECK_POSITIVE(MID_AET_PTH, m_nCells);
+    if (nullptr == m_ppt) Initialize1DArray(m_nCells, m_ppt, 0.f);
+    if (nullptr == m_soilESDay) Initialize1DArray(m_nCells, m_soilESDay, 0.f);
+    if (nullptr == m_snowSB) Initialize1DArray(m_nCells, m_snowSB, 0.f);
 }
 
 int AET_PT_H::Execute() {
@@ -263,11 +231,10 @@ int AET_PT_H::Execute() {
     return true;
 }
 
-//m_ppt(NULL), m_solAET(NULL), m_no3Up(NODATA), m_soilStorageProfile(NULL)
 void AET_PT_H::GetValue(const char *key, float *value) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SNO3UP)) { *value = this->m_no3Up; }
+    if (StringMatch(sk, VAR_SNO3UP)) { *value = m_no3Up; }
     else {
         throw ModelException(MID_AET_PTH, "GetValue", "Result " + sk + " does not exist.");
     }
@@ -276,12 +243,12 @@ void AET_PT_H::GetValue(const char *key, float *value) {
 void AET_PT_H::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_PPT)) { *data = this->m_ppt; }
-    else if (StringMatch(sk, VAR_SOET)) { *data = this->m_soilESDay; }
-    else if (StringMatch(sk, VAR_SNAC)) { *data = this->m_snowAcc; }
+    if (StringMatch(sk, VAR_PPT)) { *data = m_ppt; }
+    else if (StringMatch(sk, VAR_SOET)) { *data = m_soilESDay; }
+    else if (StringMatch(sk, VAR_SNAC)) { *data = m_snowAcc; }
     else if (StringMatch(sk, VAR_SNSB)) { *data = m_snowSB; }
     else {
         throw ModelException(MID_AET_PTH, "Get1DData", "Result " + sk + " does not exist.");
     }
-    *n = this->m_nCells;
+    *n = m_nCells;
 }

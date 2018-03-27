@@ -21,6 +21,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the parameters
     mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_SUBBSNID_NUM, UNIT_NON_DIM, DESC_SUBBSNID_NUM, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_QTILE, UNIT_NON_DIM, DESC_QTILE, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_PHOSKD, UNIT_NON_DIM, DESC_PHOSKD, Source_ParameterDB, DT_Single);
@@ -94,7 +95,3 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
-
-//mdi.AddParameter(VAR_LDRAIN, UNIT_NON_DIM, DESC_LDRAIN, Source_ParameterDB, DT_Raster1D);
-//mdi.AddOutput(VAR_SOL_NO3, UNIT_CONT_KGHA, DESC_SOL_NO3, DT_Raster2D);
-//mdi.AddOutput(VAR_SOL_SOLP, UNIT_CONT_KGHA, DESC_SOL_SOLP, DT_Raster2D);

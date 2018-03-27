@@ -13,29 +13,28 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // set the information properties
     mdi.SetAuthor("Chunping Ou, Liangjun Zhu");
-    mdi.SetClass("Evapotranspiration from soil", "Calculate the amount of the evapotranspiration "
-                 "from soil water reservoir within the time step.");
-    mdi.SetDescription("The method relating ET linearly with actual soil moisture used "
-                       "in the original WetSpa will be the default method to estimate "
-                       "actual ET from the soil water reservoir.");
+    mdi.SetClass(MCLS_AET, MCLSDESC_AET);
+    mdi.SetDescription(MDESC_SET_LM);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_SET_LM);
     mdi.SetName(MID_SET_LM);
-    mdi.SetVersion("0.5");
+    mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
     mdi.AddParameter(VAR_T_SOIL, UNIT_TEMP_DEG, DESC_T_SOIL, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_FIELDCAP, UNIT_VOL_FRA_M3M3, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_WILTPOINT, UNIT_VOL_FRA_M3M3, DESC_WILTPOINT, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster2D);
 
     // set the parameters (non-time series)
     mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_INET, UNIT_DEPTH_MM, DESC_INET, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DEET, UNIT_DEPTH_MM, DESC_DEET, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_PPT, UNIT_DEPTH_MM, DESC_PPT, Source_Module, DT_Raster1D);
 
-    mdi.AddInput(VAR_ROOTDEPTH, UNIT_DEPTH_MM, DESC_ROOTDEPTH, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module, DT_Raster2D);
 
     // set the output variables
@@ -43,7 +42,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // write out the XML file.
     res = mdi.GetXMLDocument();
-
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;

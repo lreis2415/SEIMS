@@ -10,7 +10,9 @@
  * \description: 1. Code reformat with common functions, such as Release1DArray.
  *               2. VAR_SNSB should be output other than input.
  */
-#pragma once
+#ifndef SEIMS_MODULE_AET_PTH_H
+#define SEIMS_MODULE_AET_PTH_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -26,7 +28,38 @@ using namespace std;
  * \brief Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods
  * Actual soil evaporation is also calculated.
  */
-class AET_PT_H : public SimulationModule {
+class AET_PT_H : public SimulationModule {public:
+    AET_PT_H();
+
+    ~AET_PT_H();
+
+    virtual int Execute();
+
+    virtual void Set1DData(const char *key, int n, float *data);
+
+    virtual void Get1DData(const char *key, int *n, float **data);
+
+    virtual void Set2DData(const char *key, int n, int col, float **data);
+
+    virtual void GetValue(const char *key, float *value);
+
+private:
+    /*!
+     * \brief check the input data. Make sure all the input data is available.
+     * \return bool The validity of the input data.
+     */
+    bool CheckInputData();
+
+    /*!
+     * \brief check the input size. Make sure all the input data have same dimension.
+     * \param[in] key The key of the input data
+     * \param[in] n The input data dimension
+     * \return bool The validity of the dimension
+     */
+    bool CheckInputSize(const char *key, int n);
+
+    //! initialize outputs
+    void initialOutputs();
 private:
     /// valid cells number
     int m_nCells;
@@ -44,7 +77,7 @@ private:
     /// soil layers
     float *m_nSoilLayers;
     /// maximum soil layers, mlyr in SWAT
-    int m_soilLayers;
+    int m_nMaxSoilLayer;
     /// soil depth
     float **m_soilDepth;
     /// soil thickness
@@ -73,41 +106,5 @@ private:
     float *m_soilESDay;
     /// amount of nitrate moving upward in the soil profile in watershed
     float m_no3Up;
-
-public:
-    //! Constructor
-    AET_PT_H(void);
-
-    //! Destructor
-    ~AET_PT_H(void);
-
-    virtual int Execute(void);
-
-    virtual void Set1DData(const char *key, int n, float *data);
-
-    virtual void Get1DData(const char *key, int *n, float **data);
-
-    virtual void Set2DData(const char *key, int n, int col, float **data);
-
-    virtual void GetValue(const char *key, float *value);
-
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData(void);
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *, int);
-
-    //! initialize outputs
-    void initialOutputs(void);
 };
+#endif /* SEIMS_MODULE_AET_PTH_H */

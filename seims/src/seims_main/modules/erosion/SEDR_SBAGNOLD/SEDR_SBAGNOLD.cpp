@@ -6,7 +6,7 @@ using namespace std;
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_sedtoCh(nullptr), m_Chs0(NODATA_VALUE),
                                  m_sedChi0(NODATA_VALUE),
                                  m_ptSub(nullptr), m_chStorage(nullptr), m_preChStorage(nullptr),
-                                 m_sedOut(nullptr), m_VCD(-1),
+                                 m_sedOut(nullptr), m_VCD(false),
                                  m_reachDownStream(nullptr), m_chOrder(nullptr), m_chWidth(nullptr),
                                  m_chLen(nullptr), m_chDepth(nullptr), m_chVel(nullptr), m_chSlope(nullptr),
                                  m_chCover(nullptr), m_chErod(nullptr),
@@ -42,75 +42,24 @@ SEDR_SBAGNOLD::~SEDR_SBAGNOLD() {
 }
 
 bool SEDR_SBAGNOLD::CheckInputData() {
-    if (m_dt < 0) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_dt has not been set.");
-    }
-
-    if (m_nreach < 0) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_nreach has not been set.");
-    }
-
-    if (FloatEqual(m_Chs0, NODATA_VALUE)) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: Chs0 has not been set.");
-    }
-
-    if (FloatEqual(m_prf, NODATA_VALUE)) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_prf has not been set.");
-    }
-
-    if (FloatEqual(m_spcon, NODATA_VALUE)) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_spcon has not been set.");
-    }
-
-    if (FloatEqual(m_spexp, NODATA_VALUE)) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_spexp has not been set.");
-    }
-
-    if (FloatEqual(m_vcrit, NODATA_VALUE)) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_vcrit has not been set.");
-    }
-
-    if (m_VCD < 0) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_VCD must be 0 or 1.");
-    }
-
-    if (nullptr == m_sedtoCh) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_sedtoCh has not been set.");
-    }
-
-    if (nullptr == m_chWidth) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: ReachParameter has not been set.");
-    }
-
-    if (nullptr == m_chStorage) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_chStorage has not been set.");
-    }
-
-    if (nullptr == m_chWTdepth) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_chWTdepth has not been set.");
-    }
-
-    if (nullptr == m_qchOut) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputData", "The parameter: m_qchOut has not been set.");
-    }
-
+    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_dt);
+    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
+    CHECK_NONNEGATIVE(MID_SEDR_SBAGNOLD, m_subbasinID);
+    CHECK_DATA(MID_SEDR_SBAGNOLD, FloatEqual(m_Chs0, NODATA_VALUE), "The parameter: Chs0 has not been set.");
+    CHECK_DATA(MID_SEDR_SBAGNOLD, FloatEqual(m_prf, NODATA_VALUE), "The parameter: prf has not been set.");
+    CHECK_DATA(MID_SEDR_SBAGNOLD, FloatEqual(m_spcon, NODATA_VALUE), "The parameter: spcon has not been set.");
+    CHECK_DATA(MID_SEDR_SBAGNOLD, FloatEqual(m_spexp, NODATA_VALUE), "The parameter: spexp has not been set.");
+    CHECK_DATA(MID_SEDR_SBAGNOLD, FloatEqual(m_vcrit, NODATA_VALUE), "The parameter: vcrit has not been set.");
+    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chStorage);
+    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWidth);
+    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_sedtoCh);
+    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_chWTdepth);
+    CHECK_POINTER(MID_SEDR_SBAGNOLD, m_qchOut);
     return true;
 }
 
 void SEDR_SBAGNOLD::initialOutputs() {
-    if (m_nreach <= 0) {
-        throw ModelException(MID_SEDR_SBAGNOLD, "initialOutputs",
-                             "The cell number of the input can not be less than zero.");
-    }
-
-    if (m_reachLayers.empty()) {
-        CheckInputData();
-        for (int i = 1; i <= m_nreach; i++) {
-            int order = (int) m_chOrder[i];
-            m_reachLayers[order].push_back(i);
-        }
-    }
-
+    CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
     //initial channel storage
     if (nullptr == m_sedOut) {
         Initialize1DArray(m_nreach + 1, m_sedOut, 0.f);
@@ -120,8 +69,7 @@ void SEDR_SBAGNOLD::initialOutputs() {
         Initialize1DArray(m_nreach + 1, m_sedDeg, 0.f);
 
         for (int i = 1; i <= m_nreach; i++) {
-            //m_sedStorage[i] = m_Chs0 * m_chLen[i]; // m_Chs0 is initial channel storage per meter, not sediment! By LJ
-            //m_sedStorage[i] = m_sedChi0 * m_Chs0 * m_chLen[i] * 1000.f;
+            // m_Chs0 is initial channel storage per meter, not sediment! By LJ
             m_sedStorage[i] = m_sedChi0 * m_chStorage[i] * 1000.f; /// ton/m3 * m3/m * m * 1000 = kg
         }
         Initialize1DArray(m_nreach + 1, m_rchSand, 0.f);
@@ -172,7 +120,6 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
 }
 
 int SEDR_SBAGNOLD::Execute() {
-    //check the data
     CheckInputData();
     initialOutputs();
     /// load point source water volume from m_ptSrcFactory
@@ -184,10 +131,14 @@ int SEDR_SBAGNOLD::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < nReaches; ++i) {
             int reachIndex = it->second[i]; // index in the array, which is equal to reach ID
-            SedChannelRouting(reachIndex);
-            // compute changes in channel dimensions caused by downcutting and widening
-            if (m_VCD) {
-                doChannelDowncuttingAndWidening(reachIndex);
+            if (m_subbasinID == 0 || m_subbasinID == reachIndex) {
+                // for OpenMP version, all reaches will be executed,
+                // for MPI version, only the current reach will be executed.
+                SedChannelRouting(reachIndex);
+                // compute changes in channel dimensions caused by downcutting and widening
+                if (m_VCD) {
+                    doChannelDowncuttingAndWidening(reachIndex);
+                }
             }
         }
     }
@@ -195,12 +146,9 @@ int SEDR_SBAGNOLD::Execute() {
 }
 
 bool SEDR_SBAGNOLD::CheckInputSize(const char *key, int n) {
-    if (n <= 0) {
-        //this->StatusMsg("Input data for "+string(key) +" is invalid. The size could not be less than zero.");
-        return false;
-    }
-    if (this->m_nreach != n) {
-        if (this->m_nreach <= 0) { this->m_nreach = n; }
+    if (n <= 0) { return false; }
+    if (m_nreach != n) {
+        if (m_nreach <= 0) { m_nreach = n; }
         else {
             //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             ostringstream oss;
@@ -213,9 +161,17 @@ bool SEDR_SBAGNOLD::CheckInputSize(const char *key, int n) {
 }
 
 void SEDR_SBAGNOLD::GetValue(const char *key, float *value) {
+    initialOutputs();
     string sk(key);
     int iOutlet = m_reachLayers.rbegin()->second[0];
     if (StringMatch(sk, VAR_SED_OUTLET)) { *value = m_sedOut[iOutlet]; }
+    // Get value for transferring across subbasins
+    else if (StringMatch(sk, VAR_SED_RECH)) { *value = m_sedOut[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_SED_RECHConc)) { *value = m_sedConc[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_RCH_BANKERO)) { *value = m_rchBankEro[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_RCH_DEG)) { *value = m_rchDeg[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_RCH_DEP)) { *value = m_rchDep[m_subbasinID]; }
+    else if (StringMatch(sk, VAR_FLPLAIN_DEP)) { *value = m_flplainDep[m_subbasinID]; }
     else {
         throw ModelException(MID_SEDR_SBAGNOLD, "GetValue", "Parameter " + sk + " does not exist.");
     }
@@ -223,59 +179,51 @@ void SEDR_SBAGNOLD::GetValue(const char *key, float *value) {
 
 void SEDR_SBAGNOLD::SetValue(const char *key, float value) {
     string sk(key);
-
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
-    }
+    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int)value); }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int)value; }
 #ifdef STORM_MODE
-        else if (StringMatch(sk, Tag_ChannelTimeStep))
-        {
-            m_dt = (int) value;
-        }
+    else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
 #else
-    else if (StringMatch(sk, Tag_TimeStep)) {
-        m_dt = (int) value;
-    }
+    else if (StringMatch(sk, Tag_TimeStep)) { m_dt = (int) value; }
 #endif /* STORM_MODE */
-    else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = (LayeringMethod) int(value);
-    } else if (StringMatch(sk, VAR_P_RF)) {
-        m_prf = value;
-    } else if (StringMatch(sk, VAR_SPCON)) {
-        m_spcon = value;
-    } else if (StringMatch(sk, VAR_SPEXP)) {
-        m_spexp = value;
-    } else if (StringMatch(sk, VAR_VCRIT)) {
-        m_vcrit = value;
-    } else if (StringMatch(sk, VAR_CHS0)) {
-        m_Chs0 = value;
-    } else if (StringMatch(sk, VAR_SED_CHI0)) { m_sedChi0 = value; }
-    else if (StringMatch(sk, VAR_VCD)) { m_VCD = (int) value; }
+    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
+    else if (StringMatch(sk, VAR_P_RF)) { m_prf = value; }
+    else if (StringMatch(sk, VAR_SPCON)) { m_spcon = value; }
+    else if (StringMatch(sk, VAR_SPEXP)) { m_spexp = value; } 
+    else if (StringMatch(sk, VAR_VCRIT)) { m_vcrit = value; }
+    else if (StringMatch(sk, VAR_CHS0)) { m_Chs0 = value; } 
+    else if (StringMatch(sk, VAR_SED_CHI0)) { m_sedChi0 = value; }
+    else if (StringMatch(sk, VAR_VCD)) { m_VCD = FloatEqual(value, 1.f)? true: false; }
     else {
         throw ModelException(MID_SEDR_SBAGNOLD, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
+void SEDR_SBAGNOLD::SetValueByIndex(const char *key, int index, float data) {
+    initialOutputs();
+    string sk(key);
+    // transferred single value in MPI version
+    if (StringMatch(sk, VAR_SED_TO_CH)) { m_sedtoCh[index] = data; }  //for longterm model
+    else if (StringMatch(sk, VAR_SUB_SEDTOCH)) { m_sedtoCh[index] = data; }  //for storm model // TODO
+    else if (StringMatch(sk, VAR_QRECH)) { m_qchOut[index] = data; }
+    //else if (StringMatch(sk, VAR_CHST)) { m_chStorage[index] = data; }
+    //else if (StringMatch(sk, VAR_PRECHST)) { m_preChStorage[index] = data; }
+    //else if (StringMatch(sk, VAR_CHWTDEPTH)) { m_chWTdepth[index] = data; }
+    //else if (StringMatch(sk, VAR_CHWTWIDTH)) { m_chWTWidth[index] = data; }
+    //else if (StringMatch(sk, VAR_PRECHWTDEPTH)) { m_preChWTDepth[index] = data; }
+}
+
 void SEDR_SBAGNOLD::Set1DData(const char *key, int n, float *data) {
     string sk(key);
-    //check the input data
-    if (StringMatch(sk, VAR_SED_TO_CH)) {
-        m_sedtoCh = data;   //for longterm model
-    } else if (StringMatch(sk, VAR_SUB_SEDTOCH)) {
-        m_sedtoCh = data;   //for storm model
-    } else if (StringMatch(sk, VAR_QRECH)) {
-        m_qchOut = data;
-    } else if (StringMatch(sk, VAR_CHST)) {
-        m_chStorage = data;
-    } else if (StringMatch(sk, VAR_PRECHST)) {
-        m_preChStorage = data;
-    } else if (StringMatch(sk, VAR_CHWTDEPTH)) {
-        m_chWTdepth = data;
-    } else if (StringMatch(sk, VAR_CHWTWIDTH)) {
-        m_chWTWidth = data;
-    } else if (StringMatch(sk, VAR_PRECHWTDEPTH)) {
-        m_preChWTDepth = data;
-    } else {
+    if (StringMatch(sk, VAR_SED_TO_CH)) { m_sedtoCh = data; }  //for longterm model
+    else if (StringMatch(sk, VAR_SUB_SEDTOCH)) { m_sedtoCh = data;  }  //for storm model // TODO
+    else if (StringMatch(sk, VAR_QRECH)) { m_qchOut = data; } 
+    else if (StringMatch(sk, VAR_CHST)) { m_chStorage = data; } 
+    else if (StringMatch(sk, VAR_PRECHST)) { m_preChStorage = data; } 
+    else if (StringMatch(sk, VAR_CHWTDEPTH)) { m_chWTdepth = data; } 
+    else if (StringMatch(sk, VAR_CHWTWIDTH)) { m_chWTWidth = data; } 
+    else if (StringMatch(sk, VAR_PRECHWTDEPTH)) { m_preChWTDepth = data; } 
+    else {
         throw ModelException(MID_SEDR_SBAGNOLD, "Set1DData", "Parameter " + sk + " does not exist");
     }
 }
@@ -284,28 +232,15 @@ void SEDR_SBAGNOLD::Get1DData(const char *key, int *n, float **data) {
     initialOutputs();
     string sk(key);
     *n = m_nreach + 1;
-    int iOutlet = m_reachLayers.rbegin()->second[0];
-    if (StringMatch(sk, VAR_SED_RECH)) {
-        m_sedOut[0] = m_sedOut[iOutlet];    // kg
-        *data = m_sedOut;
-    } else if (StringMatch(sk, VAR_SED_RECHConc)) {
-        m_sedConc[0] = m_sedConc[iOutlet];    // kg/m3, i.e., g/L
-        *data = m_sedConc;
-    } else if (StringMatch(sk, VAR_RCH_DEG)) {
-        *data = m_rchDeg;
-    } else if (StringMatch(sk, VAR_RCH_BANKERO)) {
-        *data = m_rchBankEro;
-    } else if (StringMatch(sk, VAR_RCH_DEP)) {
-        *data = m_rchDep;
-    } else if (StringMatch(sk, VAR_FLPLAIN_DEP)) {
-        *data = m_flplainDep;
-    } else {
+    if (StringMatch(sk, VAR_SED_RECH)) { *data = m_sedOut; } 
+    else if (StringMatch(sk, VAR_SED_RECHConc)) { *data = m_sedConc; } 
+    else if (StringMatch(sk, VAR_RCH_BANKERO)) { *data = m_rchBankEro; }
+    else if (StringMatch(sk, VAR_RCH_DEG)) { *data = m_rchDeg; }
+    else if (StringMatch(sk, VAR_RCH_DEP)) { *data = m_rchDep; } 
+    else if (StringMatch(sk, VAR_FLPLAIN_DEP)) { *data = m_flplainDep; } 
+    else {
         throw ModelException(MID_SEDR_SBAGNOLD, "Get1DData", "Output " + sk + " does not exist.");
     }
-}
-
-void SEDR_SBAGNOLD::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    string sk(key);
 }
 
 void SEDR_SBAGNOLD::SetScenario(Scenario *sce) {
@@ -479,8 +414,6 @@ void SEDR_SBAGNOLD::SedChannelRouting(int i) {
     m_rchDeg[i] = sedDegradation2;
     m_rchDep[i] = sedDeposition;
     m_flplainDep[i] = 0.f;
-    //if (i == 4) cout<<"\tallSediment2: "<<allSediment<<", sedDeg: "<<sedDegradation1<<", sedDeg2: "<<sedDegradation2<<
-    //", sedDeposition: "<<sedDeposition<<", sed flow out: "<<m_sedOut[i]<<endl;
 }
 
 void SEDR_SBAGNOLD::doChannelDowncuttingAndWidening(int id) {

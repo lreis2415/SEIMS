@@ -1,5 +1,4 @@
 /** 
-*	@version	1.3
 *	@author    Junzhi Liu
 *	@date	19-January-2011
 *
@@ -57,13 +56,11 @@ using namespace std;
  */
 class SUR_MR : public SimulationModule {
 public:
-    //! Constructor
-    SUR_MR(void);
+    SUR_MR();
 
-    //! Destructor
-    ~SUR_MR(void);
+    ~SUR_MR();
 
-    virtual int Execute(void);
+    virtual int Execute();
 
     virtual void SetValue(const char *key, float data);
 
@@ -77,8 +74,10 @@ public:
 
     bool CheckInputSize(const char *key, int n);
 
-    void CheckInputData(void);
+    void CheckInputData();
 
+    /// initial output for the first run
+    void initialOutputs();
 private:
     /// Hillslope time step (second)
     float m_dt;
@@ -93,17 +92,6 @@ private:
     int m_nSoilLayers;
     /// soil layers number of each cell
     float *m_soilLayers;
-    //   /// soil depth (mm)
-    //   float **m_soilDepth;
-    ///// soil thickness (mm)
-    //float **m_soilThick;
-
-    //   /// soil porosity, mm H2O/mm Soil
-    //   float **m_porosity;
-    //   /// water content of soil at field capacity, mm H2O/mm Soil
-    //float **m_fieldCap;
-    ///// water content of soil at wilting point, mm H2O/mm Soil
-    //float **m_wiltingPoint;
 
     /// mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
     float **m_sol_awc;
@@ -123,14 +111,6 @@ private:
 
     /// mean air temperature (deg C)
     float *m_tMean;
-    ///// snow fall temperature (deg C)
-    //float m_tSnow;
-    ///// snow melt threshold temperature (deg C)
-    //float m_t0;
-    ///// snow melt from the snow melt module  (mm)
-    //float *m_snowMelt;
-    ///// snow accumulation from the snow balance module (mm) at t+1 time step
-    //float *m_snowAccu;
 
     /// threshold soil freezing temperature (deg C)
     float m_tFrozen;
@@ -153,8 +133,5 @@ private:
     float **m_soilStorage;
     /// soil water storage in soil profile (mm)
     float *m_soilStorageProfile;
-
-    /// initial output for the first run
-    void initialOutputs(void);
 };
 #endif /* SEIMS_MODULE_SUR_MR_H */
