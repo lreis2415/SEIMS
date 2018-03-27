@@ -473,3 +473,32 @@ void getlayerfail(OGRDataSourceH hDS1, char *outletsds, int outletslyr) {
     }
     exit(1);
 }
+
+char* convertStringToCharPtr(string s){
+    char *data;
+    int len = s.length();
+    data = (char *)malloc((len + 1)*sizeof(char));
+    s.copy(data, len, 0);
+    data[len] = '\0';
+    return data;
+}
+
+double TimeCounting()
+{
+#ifdef windows
+    LARGE_INTEGER li;
+	if (QueryPerformanceFrequency(&li)) /// CPU supported
+	{
+		double PCFreq = 0.;
+		PCFreq = double(li.QuadPart);
+		QueryPerformanceCounter(&li);
+		return (double)li.QuadPart / PCFreq; // seconds
+	}
+	else
+		return (double)clock()/CLK_TCK;
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.;
+#endif
+}
