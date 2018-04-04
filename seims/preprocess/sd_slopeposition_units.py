@@ -116,12 +116,12 @@ class SlopePositionUnits(object):
         self.hierarchy_units = dict()
 
         # Set gene_values of outputs
-        self.outf_units_origin = self.ws + os.sep + 'slppos_units_origin_uniqueid.tif'
-        self.outshp_units_origin = self.ws + os.sep + 'origin_uniqueid.shp'
-        self.json_units_origin = self.ws + os.sep + 'original_updown.json'
-        self.outf_units_merged = self.ws + os.sep + 'slppos_units.tif'
-        self.outshp_units_merged = self.ws + os.sep + 'slppos_units_merged.shp'
-        self.json_units_merged = self.ws + os.sep + 'updown.json'
+        self.outf_units_origin = self.ws + os.path.sep + 'slppos_units_origin_uniqueid.tif'
+        self.outshp_units_origin = self.ws + os.path.sep + 'origin_uniqueid.shp'
+        self.json_units_origin = self.ws + os.path.sep + 'original_updown.json'
+        self.outf_units_merged = self.ws + os.path.sep + 'slppos_units.tif'
+        self.outshp_units_merged = self.ws + os.path.sep + 'slppos_units_merged.shp'
+        self.json_units_merged = self.ws + os.path.sep + 'updown.json'
 
     def extract_subbasin_updown(self):
         """Extract the up-down relationship of subbasins."""

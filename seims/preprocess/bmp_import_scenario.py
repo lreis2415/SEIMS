@@ -44,7 +44,7 @@ class ImportScenario2Mongo(object):
         bmp_tabs_path = list()
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
-            bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
+            bmp_tabs_path.append(cfg.scenario_dir + os.path.sep + f)
 
         # initialize if collection not existed
         c_list = scenario_db.collection_names()

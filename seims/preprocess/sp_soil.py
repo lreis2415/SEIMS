@@ -695,7 +695,7 @@ class SoilUtilClass(object):
                     for i, tmpseq in enumerate(seqns):
                         cur_dict[float(tmpseq)] = soil_prop_dict[key][i]
                     replace_dicts.append(cur_dict)
-                    dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
+                    dst_soil_tifs.append(dstdir + os.path.sep + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
                         cur_dict = dict()
@@ -705,7 +705,7 @@ class SoilUtilClass(object):
                             else:
                                 cur_dict[float(seqns[j])] = DEFAULT_NODATA
                         replace_dicts.append(cur_dict)
-                        dst_soil_tifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
+                        dst_soil_tifs.append(dstdir + os.path.sep + key + '_' + str(i + 1) + '.tif')
         # print(replaceDicts)
         # print(len(replaceDicts))
         # print(dstSoilTifs)
