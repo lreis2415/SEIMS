@@ -146,7 +146,7 @@ class Scenario(object):
         """
         if not self.export_sce_txt:
             return
-        ofile = self.scenario_dir + os.sep + 'Scenario_%d.txt' % self.ID
+        ofile = self.scenario_dir + os.path.sep + 'Scenario_%d.txt' % self.ID
         with open(ofile, 'w') as outfile:
             outfile.write('Scenario ID: %d\n' % self.ID)
             outfile.write('Gene number: %d\n' % self.gene_num)

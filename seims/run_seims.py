@@ -22,9 +22,9 @@ class MainSEIMS(object):
                  ip='127.0.0.1', port=27017, sceid=-1, caliid=-1,
                  ver='OMP'):
         if ver == 'MPI':  # TODO, MPI version is currently unusable.
-            self.seims_exec = bin_dir + os.sep + 'seims_mpi'
+            self.seims_exec = bin_dir + os.path.sep + 'seims_mpi'
         else:
-            self.seims_exec = bin_dir + os.sep + 'seims_omp'
+            self.seims_exec = bin_dir + os.path.sep + 'seims_omp'
         self.model_dir = os.path.abspath(model_dir)
         self.nthread = nthread
         self.lyrmtd = lyrmtd
@@ -37,13 +37,13 @@ class MainSEIMS(object):
         self.cmd = self.Command
         self.output_dir = self.OutputDirectory
         # read model data from MongoDB
-        self.spatialdb_name = self.model_dir.split(os.sep)[-1]
+        self.spatialdb_name = os.path.split(self.model_dir)[1]
         self.outlet_id = self.OutletID
         self.start_time, self.end_time = self.SimulatedPeriod
 
     @property
     def OutputDirectory(self):
-        self.output_dir = self.model_dir + os.sep + 'OUTPUT'
+        self.output_dir = os.path.join(self.model_dir, 'OUTPUT')
         if self.scenario_id >= 0:
             self.output_dir += str(self.scenario_id)
         if self.calibration_id >= 0:

@@ -111,14 +111,14 @@ class SAConfig(object):
         # 6. define gene_values
         fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
         fn += '_rule' if self.bmps_rule else '_random'
-        self.nsga2_dir = self.model_dir + os.sep + 'NSGAII_OUTPUT' + os.sep + fn
-        self.scenario_dir = self.nsga2_dir + os.sep + 'Scenarios'
+        self.nsga2_dir = self.model_dir + os.path.sep + 'NSGAII_OUTPUT' + os.path.sep + fn
+        self.scenario_dir = self.nsga2_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.nsga2_dir)
         UtilClass.rmmkdir(self.scenario_dir)
-        self.hypervlog = self.nsga2_dir + os.sep + 'hypervolume.txt'
-        self.scenariolog = self.nsga2_dir + os.sep + 'scenarios_info.txt'
-        self.logfile = self.nsga2_dir + os.sep + 'runtime.log'
-        self.logbookfile = self.nsga2_dir + os.sep + 'logbook.txt'
+        self.hypervlog = self.nsga2_dir + os.path.sep + 'hypervolume.txt'
+        self.scenariolog = self.nsga2_dir + os.path.sep + 'scenarios_info.txt'
+        self.logfile = self.nsga2_dir + os.path.sep + 'runtime.log'
+        self.logbookfile = self.nsga2_dir + os.path.sep + 'logbook.txt'
 
 
 if __name__ == '__main__':

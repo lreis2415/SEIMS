@@ -223,7 +223,7 @@ class DelineateHillslope(object):
                     hillslope_mtx[tmp_row][tmp_col] = DEFAULT_NODATA
             # Output to raster file
             hillslope_out_new = hillslope_out
-            dirpath = os.path.dirname(hillslope_out_new) + os.sep
+            dirpath = os.path.dirname(hillslope_out_new) + os.path.sep
             corename = FileClass.get_core_name_without_suffix(hillslope_out_new)
             if method_id == 1:
                 hillslope_out_new = dirpath + corename + '_right.tif'
@@ -261,7 +261,7 @@ class DelineateHillslope(object):
             stream_data = numpy.copy(sequenced_stream_d)
             stream_nodata = DEFAULT_NODATA
             stream_core = FileClass.get_core_name_without_suffix(stream_raster)
-            stream_seq_file = os.path.dirname(stream_raster) + os.sep + stream_core + '_seq.tif'
+            stream_seq_file = os.path.dirname(stream_raster) + os.path.sep + stream_core + '_seq.tif'
             RasterUtilClass.write_gtiff_file(stream_seq_file, nrows, ncols, sequenced_stream_d,
                                              geotrans, srs, DEFAULT_NODATA, datatype)
             max_id = current_id
