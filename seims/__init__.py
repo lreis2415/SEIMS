@@ -7,7 +7,7 @@
  Preprocess, postprocess, calibration, and scenario_analysis
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2017 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
