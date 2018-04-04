@@ -205,7 +205,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         if eliminate_zero:
             file_name += '_nonzero'
         file_name += '.txt'
-        out_file = work_path + os.sep + file_name
+        out_file = work_path + os.path.sep + file_name
         with open(out_file, 'w') as f:
             f.write(header_str + '\n')
             f.write('DATETIME,' + fld + '\n')

@@ -32,18 +32,18 @@ class ModelPaths(object):
 
     def __init__(self, bpath, data_dir_name, model_dir_name):
         self.mpi_bin = None
-        self.bin_dir = bpath + os.sep + 'bin'
-        self.prescript_dir = bpath + os.sep + 'seims' + os.sep + 'preprocess'
-        self.base_dir = bpath + os.sep + 'data' + os.sep + data_dir_name
-        self.cfg_dir = self.base_dir + os.sep + 'model_configs'
-        self.model_dir = self.base_dir + os.sep + model_dir_name
-        self.data_dir = self.base_dir + os.sep + 'data_prepare'
-        self.clim_dir = self.data_dir + os.sep + 'climate'
-        self.spatial_dir = self.data_dir + os.sep + 'spatial'
-        self.observe_dir = self.data_dir + os.sep + 'observed'
-        self.scenario_dir = self.data_dir + os.sep + 'scenario'
-        self.lookup_dir = self.data_dir + os.sep + 'lookup'
-        self.workspace = self.base_dir + os.sep + 'workspace'
+        self.bin_dir = bpath + os.path.sep + 'bin'
+        self.prescript_dir = bpath + os.path.sep + 'seims' + os.path.sep + 'preprocess'
+        self.base_dir = bpath + os.path.sep + 'data' + os.path.sep + data_dir_name
+        self.cfg_dir = self.base_dir + os.path.sep + 'model_configs'
+        self.model_dir = self.base_dir + os.path.sep + model_dir_name
+        self.data_dir = self.base_dir + os.path.sep + 'data_prepare'
+        self.clim_dir = self.data_dir + os.path.sep + 'climate'
+        self.spatial_dir = self.data_dir + os.path.sep + 'spatial'
+        self.observe_dir = self.data_dir + os.path.sep + 'observed'
+        self.scenario_dir = self.data_dir + os.path.sep + 'scenario'
+        self.lookup_dir = self.data_dir + os.path.sep + 'lookup'
+        self.workspace = self.base_dir + os.path.sep + 'workspace'
         UtilClass.mkdir(self.workspace)
         print('SEIMS binary location: %s' % self.bin_dir)
         print('Demo data location: %s' % self.base_dir)
@@ -51,8 +51,8 @@ class ModelPaths(object):
 
 
 def write_preprocess_config_file(mpaths, org_file_name):
-    org_cfg_file = mpaths.cfg_dir + os.sep + org_file_name
-    pre_cfg_file = mpaths.workspace + os.sep + org_file_name
+    org_cfg_file = mpaths.cfg_dir + os.path.sep + org_file_name
+    pre_cfg_file = mpaths.workspace + os.path.sep + org_file_name
     cfg_items = list()
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():
@@ -82,8 +82,8 @@ def write_preprocess_config_file(mpaths, org_file_name):
 
 
 def write_postprocess_config_file(mpaths, org_file_name, sceid=0):
-    org_cfg_file = mpaths.cfg_dir + os.sep + org_file_name
-    post_cfg_file = mpaths.workspace + os.sep + org_file_name
+    org_cfg_file = mpaths.cfg_dir + os.path.sep + org_file_name
+    post_cfg_file = mpaths.workspace + os.path.sep + org_file_name
     cfg_items = list()
     with open(org_cfg_file, 'r') as f:
         for line in f.readlines():

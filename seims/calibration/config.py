@@ -68,12 +68,12 @@ class nsgaiiConfig(object):
             raise ValueError('PopulationSize must be a multiple of 4.')
         self.dirname = 'Cali_NSGAII_Gen_%d_Pop_%d' % (self.ngens, self.npop)
 
-        self.out_dir = wp + os.sep + self.dirname
+        self.out_dir = wp + os.path.sep + self.dirname
         UtilClass.rmmkdir(self.out_dir)
-        self.hypervlog = self.out_dir + os.sep + 'hypervolume.txt'
-        self.logfile = self.out_dir + os.sep + 'runtime.log'
-        self.logbookfile = self.out_dir + os.sep + 'logbook.txt'
-        self.simdata_dir = self.out_dir + os.sep + 'simulated_data'
+        self.hypervlog = self.out_dir + os.path.sep + 'hypervolume.txt'
+        self.logfile = self.out_dir + os.path.sep + 'runtime.log'
+        self.logbookfile = self.out_dir + os.path.sep + 'logbook.txt'
+        self.simdata_dir = self.out_dir + os.path.sep + 'simulated_data'
         UtilClass.rmmkdir(self.simdata_dir)
 
 
@@ -111,7 +111,7 @@ class CaliConfig(object):
         if cf.has_option('SEIMS_Model', 'scenarioid'):
             self.sceid = cf.getint('SEIMS_Model', 'scenarioid')
         self.param_range_def = cf.get('SEIMS_Model', 'paramrngdef')
-        self.param_range_def = self.model_dir + os.sep + self.param_range_def
+        self.param_range_def = self.model_dir + os.path.sep + self.param_range_def
         try:  # UTCTIME
             tstart = cf.get('SEIMS_Model', 'sim_time_start')
             tend = cf.get('SEIMS_Model', 'sim_time_end')

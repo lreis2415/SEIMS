@@ -125,13 +125,13 @@ class SpatialDelineation(object):
         for k, v in cfg.additional_rs.items():
             org_v = v
             if not FileClass.is_file_exists(org_v):
-                v = cfg.spatial_dir + os.sep + org_v
+                v = cfg.spatial_dir + os.path.sep + org_v
                 if not FileClass.is_file_exists(v):
                     print('WARNING: The additional file %s MUST be located in '
                           'SPATIAL_DATA_DIR, or provided as full file path!' % k)
                     continue
             original_files.append(v)
-            output_files.append(cfg.dirs.geodata2db + os.sep + k + '.tif')
+            output_files.append(cfg.dirs.geodata2db + os.path.sep + k + '.tif')
             default_values.append(DEFAULT_NODATA)
 
         config_file = cfg.logs.mask_cfg

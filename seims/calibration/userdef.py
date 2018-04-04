@@ -48,7 +48,7 @@ def output_population_details(pops, outdir, gen_num):
     # Save as json, which can be loaded by json.load()
     cali_sim_obs_data = list()
     cali_sim_data = list()
-    with open(outdir + os.sep + 'gen%d_caliObsData.json' % gen_num, 'w') as f:
+    with open(outdir + os.path.sep + 'gen%d_caliObsData.json' % gen_num, 'w') as f:
         for ind in pops:
             ind.cali.sim_obs_data['Gen'] = ind.gen
             ind.cali.sim_obs_data['ID'] = ind.id
@@ -56,14 +56,14 @@ def output_population_details(pops, outdir, gen_num):
             cali_sim_obs_data.append(ind.cali.sim_obs_data)
         json_data = json.dumps(cali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
         f.write(json_data)
-    with open(outdir + os.sep + 'gen%d_caliSimData.pickle' % gen_num, 'w') as f:
+    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'w') as f:
         for ind in pops:
             cali_sim_data.append(ind.cali.data)
         pickle.dump(cali_sim_data, f)
     vali_sim_obs_data = list()
     vali_sim_data = list()
     if pops[0].vali.valid:
-        with open(outdir + os.sep + 'gen%d_valiObsData.json' % gen_num, 'w') as f:
+        with open(outdir + os.path.sep + 'gen%d_valiObsData.json' % gen_num, 'w') as f:
             for ind in pops:
                 ind.vali.sim_obs_data['Gen'] = ind.gen
                 ind.vali.sim_obs_data['ID'] = ind.id
@@ -71,7 +71,7 @@ def output_population_details(pops, outdir, gen_num):
                 vali_sim_obs_data.append(ind.vali.sim_obs_data)
             json_data = json.dumps(vali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
             f.write(json_data)
-        with open(outdir + os.sep + 'gen%d_valiSimData.pickle' % gen_num, 'w') as f:
+        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'w') as f:
             for ind in pops:
                 vali_sim_data.append(ind.vali.data)
             pickle.dump(vali_sim_data, f)
@@ -251,18 +251,18 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
 
 if __name__ == '__main__':
     wp = r'C:\z_data\ChangTing\seims_models_phd\youwuzhen10m_longterm_model\Cali_NSGAII_Gen_3_Pop_4'
-    simdir = wp + os.sep + 'simulated_data'
+    simdir = wp + os.path.sep + 'simulated_data'
     all_cali_obs_data = list()
     all_cali_data = list()
     gen_cali_id = list()
-    with open(simdir + os.sep + 'gen0_caliObsData.json', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_caliObsData.json', 'r') as f:
         cali_obs_data = json.load(f)
-    with open(simdir + os.sep + 'gen0_caliSimData.pickle', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_caliSimData.pickle', 'r') as f:
         cali_data = pickle.load(f)
     # validation data
-    with open(simdir + os.sep + 'gen0_valiObsData.json', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_valiObsData.json', 'r') as f:
         vali_obs_data = json.load(f)
-    with open(simdir + os.sep + 'gen0_valiSimData.pickle', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_valiSimData.pickle', 'r') as f:
         vali_data = pickle.load(f)
 
     for a, b in zip(cali_obs_data, cali_data):
