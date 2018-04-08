@@ -8,7 +8,7 @@
 """
 from __future__ import absolute_import
 
-from os import sep as SEP
+from os.path import sep as SEP
 
 
 class ModelNameUtils(object):
