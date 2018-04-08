@@ -9,12 +9,17 @@
 from __future__ import absolute_import
 
 import os
+import sys
 import random
 from datetime import timedelta
 
 from bson.objectid import ObjectId
 from pygeoc.utils import StringClass, get_config_parser
 from pymongo.errors import NetworkTimeout
+
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB

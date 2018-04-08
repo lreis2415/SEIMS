@@ -6,9 +6,13 @@
   Date: 2017-12-7
 """
 import os
+import sys
 from subprocess import CalledProcessError
 
 from pygeoc.utils import UtilClass
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from postprocess.load_mongodb import ReadModelData
 

@@ -20,11 +20,14 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, get_config_parser, text_type
 from pymongo.errors import NetworkTimeout
 
+if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
+
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
 from postprocess.utility import read_simulation_from_txt
 from scenario_analysis.scenario import Scenario
-from slpposunits.config import SASPUConfig
+from scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
