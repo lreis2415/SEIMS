@@ -18,8 +18,11 @@
 from __future__ import absolute_import
 
 import json
-import os
 from collections import OrderedDict
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
 from pygeoc.raster import RasterUtilClass, DEFAULT_NODATA

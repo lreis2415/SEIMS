@@ -11,6 +11,9 @@ from __future__ import absolute_import
 
 import json
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 try:
     from ConfigParser import ConfigParser  # py2

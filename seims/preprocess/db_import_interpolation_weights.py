@@ -8,6 +8,11 @@
 """
 from __future__ import absolute_import
 
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from math import sqrt, pow
 from struct import pack, unpack
 
@@ -35,7 +40,7 @@ class ImportWeightData(object):
         """IDW method for weight
         This function is not used currently"""
         ex = 2
-        coef_list = []
+        coef_list = list()
         sum_dist = 0
         for pt in loc_list:
             dis = ImportWeightData.cal_dis(x, y, pt[0], pt[1])
@@ -113,14 +118,14 @@ class ImportWeightData(object):
                   StationFields.type: DataType.mean_tmp0}
         cursor2 = hydro_clim_db[DBTableNames.annual_stats].find(q_dic2).sort(StationFields.id, 1)
 
-        id_list = []
-        phu_list = []
+        id_list = list()
+        phu_list = list()
         for site in cursor:
             id_list.append(site[StationFields.id])
             phu_list.append(site[DataValueFields.value])
 
-        id_list2 = []
-        tmean_list = []
+        id_list2 = list()
+        tmean_list = list()
         for site in cursor2:
             id_list2.append(site[StationFields.id])
             tmean_list.append(site[DataValueFields.value])
@@ -168,8 +173,8 @@ class ImportWeightData(object):
         myfile2 = spatial_gfs.new_file(filename=fname2, metadata=meta_dic2)
         vaild_count = 0
         for i in range(0, ysize):
-            cur_row = []
-            cur_row2 = []
+            cur_row = list()
+            cur_row2 = list()
             for j in range(0, xsize):
                 index = i * xsize + j
                 if abs(mask_data[index] - nodata_value) > UTIL_ZERO:
@@ -184,7 +189,7 @@ class ImportWeightData(object):
             myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print('Valid Cell Number is: %d' % vaild_count)
+        print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count)
         return True
 
     @staticmethod
