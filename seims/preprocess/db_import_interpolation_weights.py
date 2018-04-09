@@ -189,7 +189,7 @@ class ImportWeightData(object):
             myfile2.write(pack(fmt, *cur_row2))
         myfile.close()
         myfile2.close()
-        print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count)
+        print('Valid Cell Number of subbasin %d is: %d' % (subbsn_id, vaild_count))
         return True
 
     @staticmethod
