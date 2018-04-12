@@ -103,7 +103,7 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
         int subi = (int) m_streamLink[i];
         //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
         //    subi = 1;
-        //} else 
+        //} else
         if (subi >= m_nReaches + 1) {
             throw ModelException(MID_NUTRCH_QUAL2E, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
         }
@@ -615,10 +615,8 @@ void NutrCH_QUAL2E::RouteOut(int i) {
     m_chOutTPConc[i] = 0.f;
     //get out flow water fraction
     float wtrOut = m_qOutCh[i] * m_dt; // m**3
-    // float wtrTotal = wtrOut + m_chStorage[i];
     float wtrTotal = m_preChStorage[i];
-    if (wtrTotal <= 0.f)//wtrOut <= 0.f ||  || m_chWTdepth[i] <= 0.f)
-    {
+    if (wtrTotal <= 0.f || wtrOut <= 0.f || m_chWTdepth[i] <= 0.f) {
         // return with initialized values directly
         return;
     }
@@ -1132,7 +1130,7 @@ void NutrCH_QUAL2E::Get1DData(const char *key, int *n, float **data) {
     else if (StringMatch(sk, VAR_CH_TPConc)) { *data = m_chOutTPConc; }
     else if (StringMatch(sk, VAR_PTTN2CH)) { *data = m_ptTNToCh; }
     else if (StringMatch(sk, VAR_PTTP2CH)) { *data = m_ptTPToCh; }
-    else if (StringMatch(sk, VAR_PTCOD2CH)) { *data = m_ptCODToCh; } 
+    else if (StringMatch(sk, VAR_PTCOD2CH)) { *data = m_ptCODToCh; }
     /// output nutrient storage in channel
     else if (StringMatch(sk, VAR_CHSTR_NO3)) { *data = m_chNO3; }
     else if (StringMatch(sk, VAR_CHSTR_NH4)) { *data = m_chNH4; }
