@@ -22,42 +22,42 @@ namespace MainBMP {
  * Actually, it contains a series BMPs, such as plant, fertilize, harvest, etc.
  *
  */
-class BMPPlantMgtFactory : public BMPFactory {
+class BMPPlantMgtFactory: public BMPFactory {
 public:
     /// Constructor
     BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
-                       int bmpType, int bmpPriority, vector<string> &distribution,
-                       const string &collection, const string &location);
+                       int bmpType, int bmpPriority, vector<string>& distribution,
+                       const string& collection, const string& location);
 
     /// Destructor
     virtual ~BMPPlantMgtFactory();
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient *conn, const string &bmpDBName);
+    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
 
     /// Output
-    virtual void Dump(ostream *fs);
+    virtual void Dump(ostream* fs);
 
     /// Set management fields data
-    virtual void setRasterData(map<string, FloatRaster *> &sceneRsMap);
+    virtual void setRasterData(map<string, FloatRaster *>& sceneRsMap);
 
     /// Get management fields data
-    virtual float *getRasterData() { return m_mgtFieldsRs; };
+    virtual float* getRasterData() { return m_mgtFieldsRs; };
 
     /// Get landuse / landcover ID
     int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    const vector<int> &GetLocations() const { return m_location; }
+    const vector<int>& GetLocations() const { return m_location; }
 
     /// Get operation sequence
-    const vector<int> &GetOperationSequence() const { return m_bmpSequence; }
+    const vector<int>& GetOperationSequence() const { return m_bmpSequence; }
 
     /// Get operations
-    const map<int, PlantManagementOperation *> &GetOperations() const { return m_bmpPlantOps; }
+    const map<int, PlantManagementOperation *>& GetOperations() const { return m_bmpPlantOps; }
 
     /// Get operation by ID
-    PlantManagementOperation *GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
+    PlantManagementOperation* GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
 
 private:
     /// subSecenario name
@@ -65,11 +65,11 @@ private:
     /// management fields name, defined in 'distribution'
     string m_mgtFieldsName;
     /// management fields data (1D array raster)
-    float *m_mgtFieldsRs;
+    float* m_mgtFieldsRs;
     /// landuse / landcover
     int m_luccID;
     /// parameters
-    float *m_parameters;
+    float* m_parameters;
     /// field index for where to apply the subScenario
     vector<int> m_location;
     /*!

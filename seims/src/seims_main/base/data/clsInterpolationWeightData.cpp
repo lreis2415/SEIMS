@@ -1,24 +1,23 @@
+#include "text.h"
 #include "clsInterpolationWeightData.h"
 
 using namespace std;
 
-clsITPWeightData::clsITPWeightData(MongoGridFS *gfs, const char *remoteFilename) :
-    m_fileName(remoteFilename), m_weightData(nullptr) {
+clsITPWeightData::clsITPWeightData(MongoGridFS* gfs, const char* remoteFilename) :
+    m_fileName(remoteFilename), m_weightData(nullptr), m_nRows(-1), m_nCols(-1) {
     ReadFromMongoDB(gfs, remoteFilename);
 }
 
 clsITPWeightData::~clsITPWeightData() {
-    if (nullptr != m_weightData) {
-        Release1DArray(m_weightData);
-    }
+    if (nullptr != m_weightData) { Release1DArray(m_weightData); }
 }
 
-void clsITPWeightData::getWeightData(int *n, float **data) {
+void clsITPWeightData::getWeightData(int* n, float** data) {
     *n = m_nRows;
     *data = m_weightData;
 }
 
-void clsITPWeightData::dump(ostream *fs) {
+void clsITPWeightData::dump(ostream* fs) {
     if (fs == nullptr) return;
 
     int index = 0;
@@ -32,7 +31,7 @@ void clsITPWeightData::dump(ostream *fs) {
     }
 }
 
-void clsITPWeightData::dump(string fileName) {
+void clsITPWeightData::dump(const string& fileName) {
     ofstream fs;
     fs.open(fileName.c_str(), ios::out);
     if (fs.is_open()) {
@@ -41,7 +40,7 @@ void clsITPWeightData::dump(string fileName) {
     }
 }
 
-void clsITPWeightData::ReadFromMongoDB(MongoGridFS *gfs, const char *remoteFilename) {
+void clsITPWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char* remoteFilename) {
     string wfilename = string(remoteFilename);
     vector<string> gfilenames;
     gfs->getFileNames(gfilenames);
@@ -55,12 +54,12 @@ void clsITPWeightData::ReadFromMongoDB(MongoGridFS *gfs, const char *remoteFilen
             wfilename = filename.substr(0, index + 1) + DataType_Meteorology;
         }
     }
-    char *databuf;
+    char* databuf;
     size_t datalength;
     gfs->getStreamData(wfilename, databuf, datalength);
-    m_weightData = (float *) databuf;
+    m_weightData = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
     /// Get metadata
-    bson_t *md = gfs->getFileMetadata(wfilename);
+    bson_t* md = gfs->getFileMetadata(wfilename);
     /// Get value of given keys
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, m_nRows);
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, m_nCols);

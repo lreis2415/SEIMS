@@ -1,21 +1,30 @@
+#include "seims.h"
+#include "MetadataInfo.h"
 #include "ModuleFactory.h"
 
-ModuleFactory::ModuleFactory(const string &model_name, vector<string> &moduleIDs, map<string, SEIMSModuleSetting *> &moduleSettings,
-    vector<DLLINSTANCE> &dllHandles, map<string, InstanceFunction> &instanceFuncs, map<string, MetadataFunction> &metadataFuncs,
-    map<string, vector<ParamInfo *> > &moduleParameters,
-    map<string, vector<ParamInfo *> > &moduleInputs,
-    map<string, vector<ParamInfo *> > &moduleOutputs,
-    map<string, vector<ParamInfo *> > &moduleInOutputs,
-    vector<ParamInfo *> &tfValueInputs) : m_dbName(model_name),
-    m_moduleIDs(moduleIDs), m_settings(moduleSettings), m_dllHandles(dllHandles),
-    m_instanceFuncs(instanceFuncs), m_metadataFuncs(metadataFuncs),
-    m_moduleParameters(moduleParameters),
-    m_moduleInputs(moduleInputs), m_moduleOutputs(moduleOutputs), m_moduleInOutputs(moduleInOutputs),
-    m_tfValueInputs(tfValueInputs) {
+ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
+                             map<string, SEIMSModuleSetting *>& moduleSettings,
+                             vector<DLLINSTANCE>& dllHandles, map<string, InstanceFunction>& instanceFuncs,
+                             map<string, MetadataFunction>& metadataFuncs,
+                             map<string, vector<ParamInfo *> >& moduleParameters,
+                             map<string, vector<ParamInfo *> >& moduleInputs,
+                             map<string, vector<ParamInfo *> >& moduleOutputs,
+                             map<string, vector<ParamInfo *> >& moduleInOutputs,
+                             vector<ParamInfo *>& tfValueInputs) : m_dbName(std::move(model_name)),
+                                                                   m_moduleIDs(moduleIDs),
+                                                                   m_instanceFuncs(instanceFuncs),
+                                                                   m_metadataFuncs(metadataFuncs),
+                                                                   m_dllHandles(dllHandles),
+                                                                   m_settings(moduleSettings),
+                                                                   m_moduleParameters(moduleParameters),
+                                                                   m_moduleInputs(moduleInputs),
+                                                                   m_moduleOutputs(moduleOutputs),
+                                                                   m_moduleInOutputs(moduleInOutputs),
+                                                                   m_tfValueInputs(tfValueInputs) {
     // nothing to do
 }
 
-ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_args) {
+ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args) {
     /// Check the existence of configuration files
     string file_in = input_args->m_model_path + SEP + File_Input;
     string file_out = input_args->m_model_path + SEP + File_Output;
@@ -45,12 +54,11 @@ ModuleFactory *ModuleFactory::Init(const string &module_path, InputArgs *input_a
     try {
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
                          metadataFuncs, moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
-    }
-    catch (ModelException &e) {
+    } catch (ModelException& e) {
         cout << e.toString() << endl;
         return nullptr;
     }
-    catch (exception &e) {
+    catch (exception& e) {
         cout << e.what() << endl;
         return nullptr;
     }
@@ -131,7 +139,7 @@ ModuleFactory::~ModuleFactory() {
         m_moduleInOutputs.erase(it++);
     }
     StatusMessage("---release module transferred value inputs ...");
-    for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end(); ) {
+    for (auto it = m_tfValueInputs.begin(); it != m_tfValueInputs.end();) {
         if (*it != nullptr) {
             *it = nullptr;
         }
@@ -140,16 +148,16 @@ ModuleFactory::~ModuleFactory() {
     StatusMessage("End to release ModuleFactory ...");
 }
 
-bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &moduleIDs,
-                                     map<string, SEIMSModuleSetting *> &moduleSettings,
-                                     vector<DLLINSTANCE> &dllHandles,
-                                     map<string, InstanceFunction> &instanceFuncs,
-                                     map<string, MetadataFunction> &metadataFuncs,
-                                     map<string, vector<ParamInfo *> > &moduleParameters,
-                                     map<string, vector<ParamInfo *> > &moduleInputs,
-                                     map<string, vector<ParamInfo *> > &moduleOutputs,
-                                     map<string, vector<ParamInfo *> > &moduleInOutputs,
-                                     vector<ParamInfo*> &tfValueInputs) {
+bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& moduleIDs,
+                                     map<string, SEIMSModuleSetting *>& moduleSettings,
+                                     vector<DLLINSTANCE>& dllHandles,
+                                     map<string, InstanceFunction>& instanceFuncs,
+                                     map<string, MetadataFunction>& metadataFuncs,
+                                     map<string, vector<ParamInfo *> >& moduleParameters,
+                                     map<string, vector<ParamInfo *> >& moduleInputs,
+                                     map<string, vector<ParamInfo *> >& moduleOutputs,
+                                     map<string, vector<ParamInfo *> >& moduleInOutputs,
+                                     vector<ParamInfo*>& tfValueInputs) {
     size_t n = moduleIDs.size();
     // read all the .dll or .so and create objects
     for (size_t i = 0; i < n; i++) {
@@ -178,7 +186,7 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
 
         // load metadata
         MetadataFunction metadataInfo = metadataFuncs[id];
-        const char *current_metadata = metadataInfo();
+        const char* current_metadata = metadataInfo();
         // parse the metadata
         TiXmlDocument doc;
         doc.Parse(current_metadata);
@@ -192,31 +200,33 @@ bool ModuleFactory::LoadParseLibrary(const string &module_path, vector<string> &
     map<string, vector<ParamInfo *> >(moduleOutputs).swap(moduleOutputs);
     map<string, vector<ParamInfo *> >(moduleInOutputs).swap(moduleInOutputs);
     // set the connections among objects
-    for (auto it = moduleIDs.begin(); it != moduleIDs.end(); it++) {
-        for (auto itInput = moduleInputs[*it].begin(); itInput != moduleInputs[*it].end(); itInput++) {
+    for (auto it = moduleIDs.begin(); it != moduleIDs.end(); ++it) {
+        for (auto itInput = moduleInputs[*it].begin(); itInput != moduleInputs[*it].end(); ++itInput) {
             if (StringMatch((*itInput)->Source, Source_Module) ||
                 StringMatch((*itInput)->Source, Source_Module_Optional)) {
-                (*itInput)->DependPara = FindDependentParam((*itInput), moduleIDs, moduleOutputs);
-                if ((*itInput)->Transfer == TF_SingleValue) { // Check and append Inputs need to be transferred
+                (*itInput)->DependPara = FindDependentParam(*itInput, moduleIDs, moduleOutputs);
+                if ((*itInput)->Transfer == TF_SingleValue) {
+                    // Check and append Inputs need to be transferred
                     if ((*itInput)->DependPara != nullptr) {
                         tfValueInputs.push_back((*itInput));
                     } else {
-                        throw ModelException("ModelFactory", "LoadParseLibrary", "Couldn't find dependent output for " + (*itInput)->Name);
+                        throw ModelException("ModelFactory", "LoadParseLibrary",
+                                             "Couldn't find dependent output for " + (*itInput)->Name);
                     }
                 }
             }
         }
     }
-    for (auto it = moduleInOutputs.begin(); it != moduleInOutputs.end(); it++) {
+    for (auto it = moduleInOutputs.begin(); it != moduleInOutputs.end(); ++it) {
         if (it->second.empty()) continue;
-        for (auto itParam = it->second.begin(); itParam != it->second.end(); itParam++) {
-            tfValueInputs.push_back((*itParam));
+        for (auto itParam = it->second.begin(); itParam != it->second.end(); ++itParam) {
+            tfValueInputs.push_back(*itParam);
         }
     }
     return true;
 }
 
-string ModuleFactory::GetComparableName(string &paraName) {
+string ModuleFactory::GetComparableName(string& paraName) {
     if (paraName.length() <= 2) {
         return paraName;
     }
@@ -230,43 +240,45 @@ string ModuleFactory::GetComparableName(string &paraName) {
     return compareName;
 }
 
-void ModuleFactory::CreateModuleList(vector<SimulationModule *> &modules, int nthread /* = 1 */) {
-    for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); it++) {
-        SimulationModule *pModule = GetInstance(*it);
+void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, int nthread /* = 1 */) {
+    for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); ++it) {
+        SimulationModule* pModule = GetInstance(*it);
         pModule->SetTheadNumber(nthread);
         modules.push_back(pModule);
     }
 }
 
-ParamInfo *ModuleFactory::FindDependentParam(ParamInfo *paramInfo, vector<string> &moduleIDs,
-                                             map<string, vector<ParamInfo *> > &moduleOutputs) {
+ParamInfo* ModuleFactory::FindDependentParam(ParamInfo* paramInfo, vector<string>& moduleIDs,
+                                             map<string, vector<ParamInfo *> >& moduleOutputs) {
     string paraName = GetComparableName(paramInfo->Name);
     dimensionTypes paraType = paramInfo->Dimension;
     transferTypes tfType = paramInfo->Transfer;
-    for (auto it = moduleIDs.rbegin(); it != moduleIDs.rend(); it++) { // loop from the last module
-        for (auto itOut = moduleOutputs[*it].begin(); itOut != moduleOutputs[*it].end(); itOut++) {
+    for (auto it = moduleIDs.rbegin(); it != moduleIDs.rend(); ++it) {
+        // loop from the last module
+        for (auto itOut = moduleOutputs[*it].begin(); itOut != moduleOutputs[*it].end(); ++itOut) {
             string compareName = GetComparableName((*itOut)->Name);
             if (!StringMatch(paraName, compareName)) continue;
             if ((*itOut)->Dimension == paraType && // normal
                 (tfType == (*itOut)->Transfer || tfType == TF_Whole) && // specified handling for mpi version
-                !StringMatch(*it, paramInfo->ModuleID)) { // Avoid to dependent on the module itself
+                !StringMatch(*it, paramInfo->ModuleID)) {
+                // Avoid to dependent on the module itself
                 (*itOut)->OutputToOthers = true;
-                return (*itOut);
+                return *itOut;
             }
         }
     }
     if (!StringMatch(paramInfo->Source, Source_Module_Optional)) {
         throw ModelException("ModuleFactory", "FindDependentParam",
                              "Can not find input for " + paraName + " of " + paramInfo->ModuleID +
-                                 " from other Modules.\n");
+                             " from other Modules.\n");
     }
     return nullptr;
 }
 
-void ModuleFactory::ReadDLL(const string &module_path, const string &id, const string &dllID,
-                            vector<DLLINSTANCE> &dllHandles,
-                            map<string, InstanceFunction> &instanceFuncs,
-                            map<string, MetadataFunction> &metadataFuncs) {
+void ModuleFactory::ReadDLL(const string& module_path, const string& id, const string& dllID,
+                            vector<DLLINSTANCE>& dllHandles,
+                            map<string, InstanceFunction>& instanceFuncs,
+                            map<string, MetadataFunction>& metadataFuncs) {
     // the dll file is already read, return
     if (instanceFuncs.find(id) != instanceFuncs.end()) {
         return;
@@ -329,22 +341,23 @@ transferTypes ModuleFactory::MatchTransferType(string tfType) {
     if (StringMatch(tfType, TFType_Array1D)) typ = TF_OneArray1D;
     return typ;
 }
-void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting,
-                                         map<string, vector<ParamInfo *> > &moduleParameters) {
+
+void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, SEIMSModuleSetting* setting,
+                                         map<string, vector<ParamInfo *> >& moduleParameters) {
     moduleParameters.insert(make_pair(moduleID, vector<ParamInfo *>()));
-    vector<ParamInfo *> &vecPara = moduleParameters.at(moduleID);
-    TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
+    vector<ParamInfo *>& vecPara = moduleParameters.at(moduleID);
+    TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
     // start getting the parameters
-    TiXmlElement *eleParams = eleMetadata->FirstChildElement(TagParameters.c_str());
+    TiXmlElement* eleParams = eleMetadata->FirstChildElement(TagParameters.c_str());
     if (eleParams != nullptr) {
-        TiXmlElement *eleParam = eleParams->FirstChildElement(TagParameter.c_str());
+        TiXmlElement* eleParam = eleParams->FirstChildElement(TagParameter.c_str());
         while (eleParam != nullptr) {
             // clear the object
-            ParamInfo *param = new ParamInfo();
+            ParamInfo* param = new ParamInfo();
             // set the module id
             param->ModuleID = moduleID;
             // get the parameter name
-            TiXmlElement *elItm = eleParam->FirstChildElement(TagVariableName.c_str());
+            TiXmlElement* elItm = eleParam->FirstChildElement(TagVariableName.c_str());
             if (elItm != nullptr) {
                 if (elItm->GetText() != nullptr) {
                     param->Name = GetUpper(string(elItm->GetText()));
@@ -360,19 +373,19 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "ReadParameterSetting",
                                                  "The parameter " + string(Tag_Weight) +
-                                                     " should have corresponding data type in module " + moduleID);
+                                                 " should have corresponding data type in module " + moduleID);
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_MeanTemperature) ||
                             StringMatch(setting->dataTypeString(), DataType_MinimumTemperature) ||
                             StringMatch(setting->dataTypeString(), DataType_MaximumTemperature)) {
-                            //The weight coefficient file is same for TMEAN, TMIN and TMAX, 
+                            //The weight coefficient file is same for TMEAN, TMIN and TMAX,
                             //  so just need to read one file named "Weight_M"
                             param->Name += "_M";
 
                         } else {
-                            // Combine weight and data type. e.g. Weight + PET = Weight_PET, 
-                            //  this combined string must be the same with the parameter column 
-                            //  in the climate table of parameter database.    
+                            // Combine weight and data type. e.g. Weight + PET = Weight_PET,
+                            //  this combined string must be the same with the parameter column
+                            //  in the climate table of parameter database.
                             param->Name += "_" + setting->dataTypeString();
                         }
                     }
@@ -382,7 +395,7 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
                         if (setting->dataTypeString().length() == 0) {
                             throw ModelException("ModuleFactory", "readParameterSetting",
                                                  "The parameter " + string(Tag_StationElevation) +
-                                                     " should have corresponding data type in module " + moduleID);
+                                                 " should have corresponding data type in module " + moduleID);
                         }
                         if (StringMatch(setting->dataTypeString(), DataType_Precipitation)) {
                             param->BasicName += "_P";
@@ -452,30 +465,27 @@ void ModuleFactory::ReadParameterSetting(string &moduleID, TiXmlDocument &doc, S
     }
 }
 
-bool ModuleFactory::IsConstantInputFromName(string &name) {
-    if (StringMatch(name, CONS_IN_ELEV) ||
-        StringMatch(name, CONS_IN_LAT) ||
-        StringMatch(name, CONS_IN_XPR) ||
-        StringMatch(name, CONS_IN_YPR)) {
-        return true;
-    }
-    return false;
+bool ModuleFactory::IsConstantInputFromName(string& name) {
+    return StringMatch(name, CONS_IN_ELEV) || StringMatch(name, CONS_IN_LAT) ||
+            StringMatch(name, CONS_IN_XPR) || StringMatch(name, CONS_IN_YPR);
 }
-void ModuleFactory::ReadIOSetting(string &moduleID, TiXmlDocument &doc, SEIMSModuleSetting *setting, const string header,
-                                  const string title, map<string, vector<ParamInfo *> > &variables) {
-    TiXmlElement *eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
-    TiXmlElement *eleVariables = eleMetadata->FirstChildElement(header.c_str());
+
+void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSModuleSetting* setting,
+                                  const string& header,
+                                  const string& title, map<string, vector<ParamInfo *> >& variables) {
+    TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
+    TiXmlElement* eleVariables = eleMetadata->FirstChildElement(header.c_str());
     if (nullptr == eleVariables) return;
     variables.insert(make_pair(moduleID, vector<ParamInfo *>()));
-    vector<ParamInfo *> &vecPara = variables.at(moduleID);
-    TiXmlElement *eleVar = eleVariables->FirstChildElement(title.c_str());
+    vector<ParamInfo *>& vecPara = variables.at(moduleID);
+    TiXmlElement* eleVar = eleVariables->FirstChildElement(title.c_str());
     while (eleVar != nullptr) {
-        ParamInfo *param = new ParamInfo();
+        ParamInfo* param = new ParamInfo();
         // set the module id
         param->ModuleID = moduleID;
         param->ClimateType = setting->dataTypeString();
         // get the input variable name
-        TiXmlElement *elItm = eleVar->FirstChildElement(TagVariableName.c_str());
+        TiXmlElement* elItm = eleVar->FirstChildElement(TagVariableName.c_str());
         if (elItm != nullptr && elItm->GetText() != nullptr) {
             param->Name = GetUpper(string(elItm->GetText()));
             param->BasicName = param->Name;
@@ -534,15 +544,17 @@ void ModuleFactory::ReadIOSetting(string &moduleID, TiXmlDocument &doc, SEIMSMod
     }
 }
 
-bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<string> > &settings) {
+bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings) {
     vector<string> cfgStrs;
     if (!LoadPlainTextFile(filename, cfgStrs)) {
         return false;
     }
-    string T_variables[7] = {DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
-                             DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
-                             DataType_RelativeAirMoisture};
-    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); iter++) {
+    string T_variables[7] = {
+        DataType_Precipitation, DataType_MeanTemperature, DataType_MaximumTemperature,
+        DataType_MinimumTemperature, DataType_SolarRadiation, DataType_WindSpeed,
+        DataType_RelativeAirMoisture
+    };
+    for (auto iter = cfgStrs.begin(); iter != cfgStrs.end(); ++iter) {
         // parse the line into separate item
         vector<string> tokens = SplitString(*iter, '|');
         // is there anything in the token list?
@@ -565,7 +577,9 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<str
                 if (tokens[3].find(MID_ITP) != string::npos) {
                     vector<string> ITPProperty = SplitString(*iter, '_');
                     if (ITPProperty.size() == 2) {
-                        int isVertical = atoi(ITPProperty[1].c_str());
+                        char* strend = nullptr;
+                        errno = 0;
+                        int isVertical = strtol(ITPProperty[1].c_str(), &strend, 10);
                         if (isVertical) {
                             tokensTemp[1] += "_1";
                         } else {
@@ -576,15 +590,15 @@ bool ModuleFactory::LoadSettingsFromFile(const char *filename, vector<vector<str
                 settings[sz + j] = tokensTemp;
             }
         } else {
-            settings.resize(sz + 1);        // resize with one more row
+            settings.resize(sz + 1); // resize with one more row
             settings[sz] = tokens;
         }
     }
     return true;
 }
 
-bool ModuleFactory::ReadConfigFile(const char *configFileName, vector<string> &moduleIDs,
-                                   map<string, SEIMSModuleSetting *> &moduleSettings) {
+bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& moduleIDs,
+                                   map<string, SEIMSModuleSetting *>& moduleSettings) {
     vector<vector<string> > settings;
     if (!LoadSettingsFromFile(configFileName, settings)) return false;
     try {
@@ -597,7 +611,7 @@ bool ModuleFactory::ReadConfigFile(const char *configFileName, vector<string> &m
 #endif /* MSVC */
                 module += POSTFIX;
 
-                SEIMSModuleSetting *moduleSetting = new SEIMSModuleSetting(module, settingString);
+                SEIMSModuleSetting* moduleSetting = new SEIMSModuleSetting(module, settingString);
                 if (moduleSetting->dataTypeString().length() > 0) {
                     module += "_" + moduleSetting->dataTypeString();
                 } // make the module id unique
@@ -608,8 +622,7 @@ bool ModuleFactory::ReadConfigFile(const char *configFileName, vector<string> &m
                 moduleIDs.push_back(module);
             }
         }
-    }
-    catch (...) {
+    } catch (...) {
         cout << "ReadConfigFile failed, please contact the developers!" << endl;
         return false;
     }
@@ -619,26 +632,27 @@ bool ModuleFactory::ReadConfigFile(const char *configFileName, vector<string> &m
 /// Revised LiangJun Zhu
 /// 1. Fix code of DT_Raster2D related, 2016-5-27
 /// 2. Bugs fixed in continuous dependency, 2016-9-6
-void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationModule *> &modules) {
+void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules) {
     size_t n = m_moduleIDs.size();
     string id = m_moduleIDs[iModule];
-    vector<ParamInfo *> &inputs = m_moduleInputs[id];
+    vector<ParamInfo *>& inputs = m_moduleInputs[id];
     /// if there are no inputs from other modules for current module
-    for (auto it = inputs.begin(); it != inputs.end(); it++) {
-        ParamInfo *param = *it;
+    bool noInputsFromOthers = true;
+    for (auto it = inputs.begin(); it != inputs.end(); ++it) {
+        ParamInfo* param = *it;
         if (StringMatch(param->Source, Source_Module) ||
             (StringMatch(param->Source, Source_Module_Optional) && param->DependPara != nullptr)) {
-            break;
+            noInputsFromOthers = false;
         }
+    }
+    if (noInputsFromOthers) {
         modules[iModule]->SetInputsDone(true);
         return;
     }
 
     for (size_t j = 0; j < inputs.size(); j++) {
-        ParamInfo *dependParam = inputs[j]->DependPara;
-        if (dependParam == nullptr) {
-            continue;
-        }
+        ParamInfo* dependParam = inputs[j]->DependPara;
+        if (dependParam == nullptr) continue;
 
         size_t k = 0;
         for (k = 0; k < n; k++) {
@@ -653,14 +667,14 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
         string compareName = GetComparableName(dependParam->Name);
         int dataLen;
         if (dependParam->Dimension == DT_Array1D || dependParam->Dimension == DT_Raster1D) {
-            float *data;
+            float* data;
             modules[k]->Get1DData(compareName.c_str(), &dataLen, &data);
             modules[iModule]->Set1DData(inputs[j]->Name.c_str(), dataLen, data);
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         } else if (dependParam->Dimension == DT_Array2D || dependParam->Dimension == DT_Raster2D) {
             int nCol;
-            float **data;
+            float** data;
             modules[k]->Get2DData(compareName.c_str(), &dataLen, &nCol, &data);
             modules[iModule]->Set2DData(inputs[j]->Name.c_str(), dataLen, nCol, data);
             dependParam->initialized = true;
@@ -679,14 +693,14 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
     }
 }
 
-void ModuleFactory::FindOutputParameter(string &outputID, int &iModule, ParamInfo *&paraInfo) {
+void ModuleFactory::FindOutputParameter(string& outputID, int& iModule, ParamInfo*& paraInfo) {
     size_t n = m_moduleIDs.size();
     for (size_t i = 0; i < n; i++) {
         string id = m_moduleIDs[i];
-        vector<ParamInfo *> &vecPara = m_moduleOutputs[id];
+        vector<ParamInfo *>& vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
             if (StringMatch(outputID, vecPara[j]->Name)) {
-                iModule = (int) i;
+                iModule = int(i);
                 paraInfo = vecPara[j];
                 return;
             }

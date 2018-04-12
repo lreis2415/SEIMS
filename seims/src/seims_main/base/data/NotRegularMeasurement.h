@@ -9,8 +9,6 @@
 #define SEIMS_NOTREGULAR_MEASUREMENT_H
 
 #include "Measurement.h"
-#include "text.h"
-#include "utilities.h"
 #include "MongoUtil.h"
 
 /*!
@@ -18,7 +16,7 @@
  * \class NotRegularMeasurement
  * \brief Not Regular hydroclimate data
  */
-class NotRegularMeasurement : public Measurement {
+class NotRegularMeasurement: public Measurement {
 public:
     /*!
      * \brief Constructor
@@ -29,23 +27,23 @@ public:
      * \param[in] hydroDBName \a string, HydroClimate database name
      * \param[in] sitesList \a string, site list
      * \param[in] siteType \a string, site type
-     * \param[in] startDate \a time_t, start date time
-     * \param[in] endDate \a time_t, end date time
+     * \param[in] startTime \a time_t, start date time
+     * \param[in] endTime \a time_t, end date time
      */
-    NotRegularMeasurement(MongoClient *conn, string& hydroDBName, string& sitesList, string& siteType,
+    NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList, string& siteType,
                           time_t startTime, time_t endTime);
 
     //! Destructor
     //virtual ~NotRegularMeasurement() = default;
 
     //! Get site date by time \a pData
-    virtual float *GetSiteDataByTime(time_t t);
+    virtual float* GetSiteDataByTime(time_t t);
 
 private:
     //! time list of site data
-    vector<vector<time_t>> m_timeList;
+    vector<vector<time_t> > m_timeList;
     //! site data corresponding to m_timeList
-    vector<vector<float>> m_valueList;
+    vector<vector<float> > m_valueList;
     //! index
     vector<int> m_curIndexList;
 };

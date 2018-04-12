@@ -8,18 +8,21 @@
 
 #include "text.h"
 #include "utilities.h"
+
 /*!
  * \enum LayeringMethod
  * \brief Grid layering method for routing and parallel computing
  */
 enum LayeringMethod {
-    UP_DOWN,   ///< layering-from-source method
-    DOWN_UP    ///< layering-from-outlet method
+    UP_DOWN, ///< layering-from-source method
+    DOWN_UP ///< layering-from-outlet method
 };
+
 enum FlowDirectionMethod {
     TauDEM = 0,
     ArcGIS = 1
 };
+
 /*!
  *\brief Whether diagonal counter clockwise from east
  *       the first element is set to 0, for indexing convenient.

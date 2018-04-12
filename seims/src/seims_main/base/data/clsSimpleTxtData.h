@@ -19,25 +19,25 @@ using namespace std;
  *
  *
  */
-class clsSimpleTxtData {
+class clsSimpleTxtData: NotCopyable {
 public:
     //! Constructor, from text file read lines data
     clsSimpleTxtData(string fileName);
 
     //! Destructor
-    ~clsSimpleTxtData(void);
+    ~clsSimpleTxtData();
 
     //! Get line number and data
-    void getData(int *nRow, float **data);
+    void getData(int* nRow, float** data);
 
     //! Output lines data to \a ostream
-    void dump(ostream *fs);
+    void dump(ostream* fs);
 
 private:
     //! line number
     int m_row;
     //! lines data
-    float *m_data;
+    float* m_data;
 };
 
 #endif /* SEIMS_SIMPLE_TEXT_H */
