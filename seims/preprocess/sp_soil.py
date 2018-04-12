@@ -14,6 +14,9 @@ from __future__ import absolute_import
 
 import math
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
 from osgeo.gdal import GDT_Float32
@@ -695,7 +698,7 @@ class SoilUtilClass(object):
                     for i, tmpseq in enumerate(seqns):
                         cur_dict[float(tmpseq)] = soil_prop_dict[key][i]
                     replace_dicts.append(cur_dict)
-                    dst_soil_tifs.append(dstdir + os.sep + key + '.tif')
+                    dst_soil_tifs.append(dstdir + os.path.sep + key + '.tif')
                 else:
                     for i in range(max_lyr_num):
                         cur_dict = dict()
@@ -705,7 +708,7 @@ class SoilUtilClass(object):
                             else:
                                 cur_dict[float(seqns[j])] = DEFAULT_NODATA
                         replace_dicts.append(cur_dict)
-                        dst_soil_tifs.append(dstdir + os.sep + key + '_' + str(i + 1) + '.tif')
+                        dst_soil_tifs.append(dstdir + os.path.sep + key + '_' + str(i + 1) + '.tif')
         # print(replaceDicts)
         # print(len(replaceDicts))
         # print(dstSoilTifs)

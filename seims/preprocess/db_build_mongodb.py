@@ -10,6 +10,9 @@
 from __future__ import absolute_import
 
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import UtilClass
 
@@ -59,7 +62,7 @@ class ImportMongodbClass(object):
         # I recommend not output to directory. lj
         # UtilClass.mkdir(cfg.dirs.import2db)
         # for i in range(start_id, subbasin_num + 1):
-        #     subdir = cfg.dirs.import2db + os.sep + str(i)
+        #     subdir = cfg.dirs.import2db + os.path.sep + str(i)
         #     UtilClass.rmmkdir(subdir)
         # str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         UtilClass.run_command(str_cmd)

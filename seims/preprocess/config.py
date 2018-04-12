@@ -11,6 +11,9 @@ from __future__ import absolute_import
 
 import json
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 try:
     from ConfigParser import ConfigParser  # py2
@@ -116,7 +119,7 @@ class SEIMSConfig(object):
                 UtilClass.mkdir(self.workspace)
                 # os.mkdir(self.workspace)
             except OSError as exc:
-                self.workspace = self.model_dir + os.sep + 'preprocess_output'
+                self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
                 print('WARNING: Make WORKING_DIR failed: %s. '
                       'Use the default: %s' % (exc.message, self.workspace))
                 if not os.path.exists(self.workspace):
@@ -128,17 +131,17 @@ class SEIMSConfig(object):
         self.taudems = TauDEMFilesUtils(self.dirs.taudem)
         self.spatials = SpatialNamesUtils(self.dirs.geodata2db)
         self.modelcfgs = ModelCfgUtils(self.model_dir)
-        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.sep + 'database')
+        self.paramcfgs = ModelParamDataUtils(self.preproc_script_dir + os.path.sep + 'database')
 
         if not FileClass.is_dir_exists(self.clim_dir):
             print('The CLIMATE_DATA_DIR is not existed, try the default folder name "climate".')
-            self.clim_dir = self.base_dir + os.sep + 'climate'
+            self.clim_dir = self.base_dir + os.path.sep + 'climate'
             if not FileClass.is_dir_exists(self.clim_dir):
                 raise IOError('Directories named "climate" MUST BE located in [base_dir]!')
 
         if not FileClass.is_dir_exists(self.spatial_dir):
             print('The SPATIAL_DATA_DIR is not existed, try the default folder name "spatial".')
-            self.spatial_dir = self.base_dir + os.sep + 'spatial'
+            self.spatial_dir = self.base_dir + os.path.sep + 'spatial'
             raise IOError('Directories named "spatial" MUST BE located in [base_dir]!')
 
         if not FileClass.is_dir_exists(self.observe_dir):
@@ -179,31 +182,31 @@ class SEIMSConfig(object):
 
         # 4. Climate Input
         if 'CLIMATE' in cf.sections():
-            self.hydro_climate_vars = self.clim_dir + os.sep + cf.get('CLIMATE',
+            self.hydro_climate_vars = self.clim_dir + os.path.sep + cf.get('CLIMATE',
                                                                       'hydroclimatevarfile')
-            self.prec_sites = self.clim_dir + os.sep + cf.get('CLIMATE', 'precsitefile')
-            self.prec_data = self.clim_dir + os.sep + cf.get('CLIMATE', 'precdatafile')
-            self.Meteo_sites = self.clim_dir + os.sep + cf.get('CLIMATE', 'meteositefile')
-            self.Meteo_data = self.clim_dir + os.sep + cf.get('CLIMATE', 'meteodatafile')
+            self.prec_sites = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'precsitefile')
+            self.prec_data = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'precdatafile')
+            self.Meteo_sites = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'meteositefile')
+            self.Meteo_data = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'meteodatafile')
             self.thiessen_field = cf.get('CLIMATE', 'thiessenidfield')
         else:
             raise ValueError('Climate input file names MUST be provided in [CLIMATE]!')
 
         # 5. Spatial Input
         if 'SPATIAL' in cf.sections():
-            self.prec_sites_thiessen = self.spatial_dir + os.sep + cf.get('SPATIAL',
+            self.prec_sites_thiessen = self.spatial_dir + os.path.sep + cf.get('SPATIAL',
                                                                           'precsitesthiessen')
-            self.meteo_sites_thiessen = self.spatial_dir + os.sep + cf.get('SPATIAL',
+            self.meteo_sites_thiessen = self.spatial_dir + os.path.sep + cf.get('SPATIAL',
                                                                            'meteositesthiessen')
-            self.dem = self.spatial_dir + os.sep + cf.get('SPATIAL', 'dem')
-            self.outlet_file = self.spatial_dir + os.sep + cf.get('SPATIAL', 'outlet_file')
+            self.dem = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'dem')
+            self.outlet_file = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'outlet_file')
             if not os.path.exists(self.outlet_file):
                 self.outlet_file = None
-            self.landuse = self.spatial_dir + os.sep + cf.get('SPATIAL', 'landusefile')
-            self.landcover_init_param = self.txt_db_dir + os.sep + cf.get('SPATIAL',
+            self.landuse = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'landusefile')
+            self.landcover_init_param = self.txt_db_dir + os.path.sep + cf.get('SPATIAL',
                                                                           'landcoverinitfile')
-            self.soil = self.spatial_dir + os.sep + cf.get('SPATIAL', 'soilseqnfile')
-            self.soil_property = self.txt_db_dir + os.sep + cf.get('SPATIAL', 'soilseqntext')
+            self.soil = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'soilseqnfile')
+            self.soil_property = self.txt_db_dir + os.path.sep + cf.get('SPATIAL', 'soilseqntext')
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = cf.get('SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)

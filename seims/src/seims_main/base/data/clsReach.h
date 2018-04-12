@@ -21,22 +21,22 @@ using namespace std;
  * \class clsReach
  * \brief Class to store reach related parameters from REACHES table
  */
-class clsReach: public DefaultConstructor {
+class clsReach: NotCopyable, public DefaultConstructor {
 public:
     //! Constructor
-    explicit clsReach(const bson_t *&bsonTab);
+    explicit clsReach(const bson_t*& bsonTab);
 
     //! Destructor
     //~clsReach() = default;
 
     //! Get parameters by name
-    float Get(const string &key);
+    float Get(const string& key);
 
     //! Get group index
-    int GetGroupIndex(const string &method, int size);
+    int GetGroupIndex(const string& method, int size);
 
     //! Set parameters by name
-    void Set(const string &key, float value);
+    void Set(const string& key, float value);
 
 private:
     /*!
@@ -63,24 +63,25 @@ private:
  * \brief Read and store all reaches information as input parameters
  *
  */
-class clsReaches {
+class clsReaches: NotCopyable {
 public:
     /*!
      * \brief Constructor, query reach table from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] dbName Database name
      * \param[in] collectionName Reach collection name
-     * \param[in] mtd layering method, the default is UP_DOWN, \sa LayeringMethod 
+     * \param[in] mtd layering method, the default is UP_DOWN, \sa LayeringMethod
      */
-    clsReaches(MongoClient *conn, string &dbName, string collectionName, LayeringMethod mtd = UP_DOWN);
+    clsReaches(MongoClient* conn, string& dbName, string collectionName, LayeringMethod mtd = UP_DOWN);
 
     /// Destructor
     ~clsReaches();
 
     /// Get single reach information by subbasin ID (1 ~ N)
-    inline clsReach *GetReachByID(int id) {
-        if (m_reachesMap.find(id) != m_reachesMap.end()) { return m_reachesMap.at(id); }
-        else { return nullptr; }
+    inline clsReach* GetReachByID(int id) {
+        if (m_reachesMap.find(id) != m_reachesMap.end()) {
+            return m_reachesMap.at(id);
+        } else { return nullptr; }
     }
 
     /// Get reach number
@@ -90,7 +91,7 @@ public:
      * \brief Get 1D array of reach property
      * \param[out[ data, 1D array with length of N+1, the first element is Reach number.
      */
-    void GetReachesSingleProperty(string key, float **data);
+    void GetReachesSingleProperty(string key, float** data);
 
     /// Get upstream IDs
     vector<vector<int> > GetUpStreamIDs() const { return m_reachUpStream; }
@@ -104,7 +105,7 @@ public:
     /*!
      * \brief Update reach/channel parameters according to calibration settings
      */
-    void Update(const map<string, ParamInfo *> &caliparams_map);
+    void Update(const map<string, ParamInfo *>& caliparams_map);
 
 private:
     /// reaches number

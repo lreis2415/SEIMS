@@ -241,7 +241,7 @@ class Sensitivity(object):
         psa_period = '%s,%s' % (self.cfg.psa_stime.strftime('%Y-%m-%d %H:%M:%S'),
                                 self.cfg.psa_etime.strftime('%Y-%m-%d %H:%M:%S'))
         for idx, cali_seqs in enumerate(split_seqs):
-            cur_out_file = self.cfg.outfiles.output_values_dir + os.sep + 'outputs_%d.txt' % idx
+            cur_out_file = self.cfg.outfiles.output_values_dir + os.path.sep + 'outputs_%d.txt' % idx
             if FileClass.is_file_exists(cur_out_file):
                 continue
             try:  # parallel on multiprocesor or clusters using SCOOP
@@ -257,16 +257,16 @@ class Sensitivity(object):
                 temp_output_values = numpy.array(temp_output_values)
             numpy.savetxt(cur_out_file, temp_output_values, delimiter=' ', fmt='%.4e')
         # load the first part of output values
-        self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+        self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.path.sep +
                                            'outputs_0.txt')
         if task_num == 0:
             import shutil
-            shutil.move(self.cfg.outfiles.output_values_dir + os.sep + 'outputs_0.txt',
+            shutil.move(self.cfg.outfiles.output_values_dir + os.path.sep + 'outputs_0.txt',
                         self.cfg.outfiles.output_values_txt)
             shutil.rmtree(self.cfg.outfiles.output_values_dir)
             return
         for idx in range(1, task_num):
-            tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.sep +
+            tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.path.sep +
                                         'outputs_%d.txt' % idx)
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,

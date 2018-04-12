@@ -39,7 +39,7 @@ namespace MainBMP {
 class Scenario {
 public:
     //! Constructor according to BMP database name and scenario ID
-    Scenario(MongoClient *conn, const string &dbName, int subbsnID = 0, int scenarioID = 0);
+    Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0);
 
     //! Destructor
     ~Scenario();
@@ -54,26 +54,26 @@ public:
     string Name() { return m_name; };
 
     //! Get BMPs Factories
-    const map<int, BMPFactory *> &GetBMPFactories() const { return m_bmpFactories; }
+    const map<int, BMPFactory *>& GetBMPFactories() const { return m_bmpFactories; }
 
     //! Write all BMPs information of this scenario to a text file
-    void Dump(string &fileName);
+    void Dump(string& fileName);
 
     //! Output all BMPs information of this scenario to ostream
-    void Dump(ostream *fs);
+    void Dump(ostream* fs);
 
     //! Load time series data from database for some reach structure, \sa BMPReachFactory
     //void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
 
     //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
-    map<string, FloatRaster *> &getSceneRasterDataMap() { return m_sceneRsMap; }
+    map<string, FloatRaster *>& getSceneRasterDataMap() { return m_sceneRsMap; }
 
     //! set raster data for BMPs
     void setRasterForEachBMP();
 
 private:
     //! MongoDB client object, added by Liangjun
-    MongoClient *m_conn;
+    MongoClient* m_conn;
     //! MongoDB name of BMP
     const string m_bmpDBName;
     //! Collections in BMP database used for data checking

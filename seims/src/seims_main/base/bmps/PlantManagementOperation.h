@@ -10,6 +10,7 @@
 #include "utilities.h"
 
 using namespace std;
+
 namespace MainBMP {
 /*!
  * \ingroup MainBMP
@@ -22,30 +23,31 @@ namespace PlantManagement {
  * \ingroup PlantManagement
  * \brief Base class of plant management operation
  */
-class PlantManagementOperation {
+class PlantManagementOperation: NotCopyable {
 public:
     /*!
      * \brief Constructor
-     * \param[in] mgtCode 1 to 16
+     * \param[in] mgtOp 1 to 16
      * \param[in] usebaseHU true or false
      * \param[in] husc Fraction of heat units (base or plant)
      * \param[in] year Rotation year, e.g., 1,2,...
      * \param[in] month
      * \param[in] day
-     * \param[in] location Indexes of field to practice the operation (string)
+     * \param[in] parameters
      */
     PlantManagementOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                             float *parameters);
+                             float* parameters);
 
     //! virtual Destructor, there are no allocated memory to release!
 #if defined(_MSC_VER) && (_MSC_VER <= 1600)
-    virtual ~PlantManagementOperation() {};
+    virtual ~PlantManagementOperation() {
+    };
 #else
     virtual ~PlantManagementOperation() = default;
 #endif /* less than VS2010 */
 
     //! Output
-    virtual void dump(ostream *fs) = 0;
+    virtual void dump(ostream* fs) = 0;
 
     bool UseBaseHUSC() { return m_useBaseHUSC; }
 
@@ -71,7 +73,7 @@ protected:
     /// management operation code
     int m_mgtOp;
     /// parameters, mgt1~mgt10
-    float *m_parameters;
+    float* m_parameters;
 };
 
 /*!
@@ -79,9 +81,9 @@ protected:
  * \ingroup PlantManagement
  * \brief Plant management operation
  */
-class PlantOperation : public PlantManagementOperation {
+class PlantOperation: public PlantManagementOperation {
 public:
-    PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~PlantOperation() = default;
 
@@ -102,7 +104,7 @@ public:
     float CNOP() { return m_CNOP; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_plantID;
@@ -120,9 +122,9 @@ private:
  * \ingroup PlantManagement
  * \brief Irrigation operation
  */
-class IrrigationOperation : public PlantManagementOperation {
+class IrrigationOperation: public PlantManagementOperation {
 public:
-    IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~IrrigationOperation() = default;
 
@@ -139,7 +141,7 @@ public:
     float IRRSQfrac() { return m_irrSq; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_irrSrc;
@@ -155,9 +157,9 @@ private:
  * \ingroup PlantManagement
  * \brief Fertilizer operation
  */
-class FertilizerOperation : public PlantManagementOperation {
+class FertilizerOperation: public PlantManagementOperation {
 public:
-    FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~FertilizerOperation() = default;
 
@@ -168,7 +170,7 @@ public:
     float FertilizerSurfaceFrac() { return m_frtSurface; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_fertID;
@@ -183,9 +185,9 @@ private:
  * \ingroup PlantManagement
  * \brief Pesticide operation
  */
-class PesticideOperation : public PlantManagementOperation {
+class PesticideOperation: public PlantManagementOperation {
 public:
-    PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~PesticideOperation() = default;
 
@@ -196,7 +198,7 @@ public:
     float PesticideDepth() { return m_pstDep; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_pestID;
@@ -209,10 +211,10 @@ private:
  * \ingroup PlantManagement
  * \brief HarvestKill operation
  */
-class HarvestKillOperation : public PlantManagementOperation {
+class HarvestKillOperation: public PlantManagementOperation {
 public:
     HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                         float *parameters);
+                         float* parameters);
 
     //virtual ~HarvestKillOperation() = default;
 
@@ -223,7 +225,7 @@ public:
     float StoverFracRemoved() { return m_fracHarvk; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     float m_CNOP;
@@ -236,9 +238,9 @@ private:
  * \ingroup PlantManagement
  * \brief Tillage operation
  */
-class TillageOperation : public PlantManagementOperation {
+class TillageOperation: public PlantManagementOperation {
 public:
-    TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~TillageOperation() = default;
 
@@ -247,7 +249,7 @@ public:
     int TillageID() { return m_tillID; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_tillID;
@@ -259,10 +261,10 @@ private:
  * \ingroup PlantManagement
  * \brief HarvestOnly operation
  */
-class HarvestOnlyOperation : public PlantManagementOperation {
+class HarvestOnlyOperation: public PlantManagementOperation {
 public:
     HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                         float *parameters);
+                         float* parameters);
 
     //virtual ~HarvestOnlyOperation() = default;
 
@@ -273,7 +275,7 @@ public:
     float HarvestIndexBiomass() { return m_hiBms; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     float m_harvEff;
@@ -286,14 +288,14 @@ private:
  * \ingroup PlantManagement
  * \brief Kill operation
  */
-class KillOperation : public PlantManagementOperation {
+class KillOperation: public PlantManagementOperation {
 public:
-    KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~KillOperation() = default;
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 };
 
 /*!
@@ -301,9 +303,9 @@ public:
  * \ingroup PlantManagement
  * \brief Grazing operation
  */
-class GrazingOperation : public PlantManagementOperation {
+class GrazingOperation: public PlantManagementOperation {
 public:
-    GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float *parameters);
+    GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~GrazingOperation() = default;
 
@@ -318,7 +320,7 @@ public:
     float ManureDeposited() { return m_manureKg; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_grzDays;
@@ -333,10 +335,10 @@ private:
  * \ingroup PlantManagement
  * \brief Auto irrigation operation
  */
-class AutoIrrigationOperation : public PlantManagementOperation {
+class AutoIrrigationOperation: public PlantManagementOperation {
 public:
     AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float *parameters);
+                            float* parameters);
 
     //virtual ~AutoIrrigationOperation() = default;
 
@@ -355,7 +357,7 @@ public:
     float SurfaceRunoffRatio() { return m_irrAsq; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_wstrsID;
@@ -372,10 +374,10 @@ private:
  * \ingroup PlantManagement
  * \brief Auto Fertilizer operation
  */
-class AutoFertilizerOperation : public PlantManagementOperation {
+class AutoFertilizerOperation: public PlantManagementOperation {
 public:
     AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float *parameters);
+                            float* parameters);
 
     //virtual ~AutoFertilizerOperation() = default;
 
@@ -394,7 +396,7 @@ public:
     float SurfaceFracApplied() { return m_afrtSurface; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_afertID;
@@ -411,10 +413,10 @@ private:
  * \ingroup PlantManagement
  * \brief ReleaseImpound operation
  */
-class ReleaseImpoundOperation : public PlantManagementOperation {
+class ReleaseImpoundOperation: public PlantManagementOperation {
 public:
     ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float *parameters);
+                            float* parameters);
 
     //virtual ~ReleaseImpoundOperation() = default;
 
@@ -427,13 +429,13 @@ public:
     float MinFitDepth() { return m_minFitDepth; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_impTrig;
-    float m_maxPondDepth;  ///< Maximum ponding depth, mm
-    float m_maxFitDepth;  ///< Maximum fitting depth, mm
-    float m_minFitDepth;  ///< Minimum fitting depth, mm
+    float m_maxPondDepth; ///< Maximum ponding depth, mm
+    float m_maxFitDepth; ///< Maximum fitting depth, mm
+    float m_minFitDepth; ///< Minimum fitting depth, mm
 };
 
 /*!
@@ -441,10 +443,10 @@ private:
  * \ingroup PlantManagement
  * \brief Continuous Fertilizer operation
  */
-class ContinuousFertilizerOperation : public PlantManagementOperation {
+class ContinuousFertilizerOperation: public PlantManagementOperation {
 public:
     ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                  float *parameters);
+                                  float* parameters);
 
     //virtual ~ContinuousFertilizerOperation() = default;
 
@@ -457,7 +459,7 @@ public:
     float FertilizerKg() { return m_cfrtKg; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_cfertID;
@@ -471,10 +473,10 @@ private:
  * \ingroup PlantManagement
  * \brief Continuous Pesticide operation
  */
-class ContinuousPesticideOperation : public PlantManagementOperation {
+class ContinuousPesticideOperation: public PlantManagementOperation {
 public:
     ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                 float *parameters);
+                                 float* parameters);
 
     //virtual ~ContinuousPesticideOperation() = default;
 
@@ -487,7 +489,7 @@ public:
     int PesticideDays() { return m_pstDays; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     int m_ipstID;
@@ -501,16 +503,16 @@ private:
  * \ingroup PlantManagement
  * \brief Burning operation
  */
-class BurningOperation : public PlantManagementOperation {
+class BurningOperation: public PlantManagementOperation {
 public:
-    BurningOperation(int mgtOp, bool useBaseHU, float husc, int year, int month, int day, float *parameters);
+    BurningOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~BurningOperation() = default;
 
     float FractionLeft() { return m_burnFrlb; }
 
     //! Output
-    virtual void dump(ostream *fs);
+    virtual void dump(ostream* fs);
 
 private:
     float m_burnFrlb;

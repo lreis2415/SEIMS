@@ -113,7 +113,7 @@ void MUSK_CH::initialOutputs() {
 
 void MUSK_CH::PointSourceLoading() {
     /// load point source water discharge (m3/s) on current day from Scenario
-    for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); it++) {
+    for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); ++it) {
         /// reset point source loading water to 0.f
         for (int i = 0; i <= m_nreach; i++) {
             m_ptSub[i] = 0.f;
@@ -124,7 +124,7 @@ void MUSK_CH::PointSourceLoading() {
         vector<int> m_ptSrcIDs = it->second->GetPointSrcIDs();
         map<int, PointSourceLocations *> m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); seqIter++) {
+        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
             PointSourceMgtParams *curPtMgt = m_pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
@@ -135,7 +135,7 @@ void MUSK_CH::PointSourceLoading() {
             // 1.2 Otherwise, get the water volume
             float per_wtrVol = curPtMgt->GetWaterVolume(); /// m3/'size'/day
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); locIter++) {
+            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
                 if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
                     PointSourceLocations *curPtLoc = m_pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
@@ -150,7 +150,7 @@ int MUSK_CH::Execute() {
     initialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
-    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
+    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int reachNum = it->second.size();
@@ -177,7 +177,6 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
         if (m_nreach <= 0) {
             m_nreach = n - 1;
         } else {
-            //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
             ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nreach << ".\n";
@@ -189,11 +188,11 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
 
 void MUSK_CH::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OUTLETID)) { m_outletID = (int) value; }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int) value; }
-    else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
-    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(value); }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    if (StringMatch(sk, VAR_OUTLETID)) { m_outletID = int(value); }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = int(value); }
+    else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = int(value); }
+    else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = LayeringMethod(int(value)); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread(int(value)); }
     else if (StringMatch(sk, VAR_EP_CH)) { m_Epch = value; }
     else if (StringMatch(sk, VAR_BNK0)) { m_Bnk0 = value; }
     else if (StringMatch(sk, VAR_CHS0_PERC)) { m_Chs0_perc = value; }
@@ -313,18 +312,14 @@ void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void MUSK_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    string sk(key);
-    throw ModelException(MID_MUSK_CH, "Get2DData", "Parameter " + sk + " does not exist.");
-}
-
 void MUSK_CH::SetScenario(Scenario *sce) {
     if (nullptr != sce) {
         map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
-        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); it++) {
+        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
-                m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second;
+                // m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second; // use C++11 style
+                m_ptSrcFactory[it->first] = dynamic_cast<BMPPointSrcFactory*>(it->second);
             }
         }
     } else {
@@ -375,7 +370,7 @@ void MUSK_CH::GetCoefficients(float reachLength, float v0, MuskWeights &weights)
     float max = 2.f * K * (1.f - m_x);
     float dt;
     int n;
-    GetDt((float) m_dt, min, max, dt, n);
+    GetDt(float(m_dt), min, max, dt, n);
     weights.dt = dt;
 
     //get coefficient
@@ -478,7 +473,7 @@ void MUSK_CH::ChannelFlow(int i) {
     float dch = m_chWTdepth[i];
     float bankLen = dch * sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i]);
     float bankInLoss = 2.f * m_Kbank[i] / 1000.f / 3600.f * bankLen * m_chLen[i] * m_dt;   // m^3
-    bankInLoss = 0.f; //TODO
+    //bankInLoss = 0.f; //TODO, why not consider bankage loss?
     if (m_chStorage[i] > bankInLoss) {
         m_chStorage[i] -= bankInLoss;
     } else {
@@ -488,7 +483,7 @@ void MUSK_CH::ChannelFlow(int i) {
     // water balance of the bank storage
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
     float bankOutGw = m_bankStorage[i] * (1.f - exp(-m_bBank));
-    bankOutGw = 0.f; //TODO
+    //bankOutGw = 0.f; //TODO, why not consider?
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
@@ -519,11 +514,6 @@ void MUSK_CH::ChannelFlow(int i) {
     //////////////////////////////////////////////////////////////////////////
     // routing, there are water in the channel after inflow and transmission loss
     float totalLoss = m_seepage[i] + bankInLoss + et;
-    //if(i == 12) cout << ",  m_petCh: " << m_petCh[i] << ",  et: " << et << ",  m_chStorage: " << m_chStorage[i] << ", \n";
-    //if (m_chStorage[i] >= 0.f)
-    //{
-//         qIn -= totalLoss / m_dt;// average loss rate during m_dt
-// 		if(qIn < 0.f) qIn = 0.f;
 
     m_preChStorage[i] = m_chStorage[i];
     m_preChWTDepth[i] = m_chWTdepth[i];
@@ -547,13 +537,7 @@ void MUSK_CH::ChannelFlow(int i) {
         q += m_qOut[i];
     }
     m_qOut[i] = q / n;
-    //}
-    //else
-    //{
-    //    m_qOut[i] = 0.f;
-    //    m_chStorage[i] = 0.f;
-    //    qIn = 0.f;
-    //}
+
     float qInSum = m_qsSub[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
     m_qsCh[i] = m_qOut[i] * (m_qsSub[i] + qsUp) / qInSum;
     m_qiCh[i] = m_qOut[i] * (qiSub + qiUp) / qInSum;

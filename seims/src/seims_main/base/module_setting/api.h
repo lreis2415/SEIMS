@@ -17,7 +17,7 @@
 #include "MetadataInfo.h"
 #include "SimulationModule.h"
 
-extern "C" SEIMS_MODULE_API const char *MetadataInformation(void);
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance();
+extern "C" SEIMS_MODULE_API const char* MetadataInformation();
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance();
 
 #endif

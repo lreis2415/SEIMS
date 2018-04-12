@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 import array
 import os
+import sys
 import random
 import time
 
@@ -24,9 +25,12 @@ from deap import tools
 from deap.benchmarks.tools import hypervolume
 from pygeoc.utils import UtilClass, get_config_parser
 
-from slpposunits.config import SASPUConfig
-from slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from slpposunits.userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
+if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
+
+from scenario_analysis.slpposunits.config import SASPUConfig
+from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
+from scenario_analysis.slpposunits.userdef import crossover_slppos, crossover_rdm, mutate_rdm, mutate_slppos
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.utility import print_message, delete_model_outputs
 from scenario_analysis.visualization import plot_pareto_front

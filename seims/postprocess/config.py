@@ -33,9 +33,9 @@ class PostConfig(object):
             self.model_dir = cf.get('PATH', 'model_dir')
             self.scenario_id = cf.getint('PATH', 'scenarioid')
             if self.scenario_id < 0:
-                self.model_dir = self.model_dir + os.sep + 'OUTPUT'
+                self.model_dir = self.model_dir + os.path.sep + 'OUTPUT'
             else:
-                self.model_dir = self.model_dir + os.sep + 'OUTPUT' + str(self.scenario_id)
+                self.model_dir = self.model_dir + os.path.sep + 'OUTPUT' + str(self.scenario_id)
         else:
             raise ValueError("[PATH] section MUST be existed in *.ini file.")
         if not FileClass.is_dir_exists(self.model_dir):

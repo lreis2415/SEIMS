@@ -2,7 +2,7 @@
 #include "text.h"
 
 // private methods
-void MetadataInfo::OpenTag(string name, string attributes, int indent, string *sb) {
+void MetadataInfo::OpenTag(string name, string attributes, int indent, string* sb) {
     size_t sz = (sb->size() + (name.size() + attributes.size() + (indent * 3) + 3));
     if (sz > sb->capacity()) {
         sb->reserve(sz);
@@ -17,7 +17,7 @@ void MetadataInfo::OpenTag(string name, string attributes, int indent, string *s
     sb->append(">");
 }
 
-void MetadataInfo::CloseTag(string name, int indent, string *sb) {
+void MetadataInfo::CloseTag(string name, int indent, string* sb) {
     size_t sz = (sb->size() + (name.size() + (indent * 3) + 2));
     if (sz > sb->capacity()) {
         sb->reserve(sz);
@@ -28,7 +28,7 @@ void MetadataInfo::CloseTag(string name, int indent, string *sb) {
     sb->append(">");
 }
 
-void MetadataInfo::FullTag(const string& name, int indent, string& content, string *sb) {
+void MetadataInfo::FullTag(const string& name, int indent, string& content, string* sb) {
     size_t sz = (sb->size() + (name.size() + content.size() + (indent * 3) + 5));
     if (sz > sb->capacity()) {
         sb->reserve(sz);
@@ -43,7 +43,7 @@ void MetadataInfo::FullTag(const string& name, int indent, string& content, stri
     sb->append(">");
 }
 
-void MetadataInfo::WriteClass(int indent, string *sb) {
+void MetadataInfo::WriteClass(int indent, string* sb) {
     OpenTag(TagClass, "", indent, sb);
 
     FullTag(TagClassName, indent + 1, m_oClass.Name, sb);
@@ -52,7 +52,7 @@ void MetadataInfo::WriteClass(int indent, string *sb) {
     CloseTag(TagClass, indent, sb);
 }
 
-void MetadataInfo::WriteInformation(int indent, string *sb) {
+void MetadataInfo::WriteInformation(int indent, string* sb) {
     OpenTag(TagInformation, "", indent, sb);
 
     FullTag(TagInfoId, indent + 1, m_Info.Id, sb);
@@ -67,53 +67,53 @@ void MetadataInfo::WriteInformation(int indent, string *sb) {
     CloseTag(TagInformation, indent, sb);
 }
 
-void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, string *sb) {
+void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, string* sb) {
     string strTmp = "";
 
     switch (dimType) {
-        case DT_Array1D:strTmp = Type_Array1D;
+        case DT_Array1D: strTmp = Type_Array1D;
             break;
-        case DT_Array1DDateValue:strTmp = Type_Array1DDateValue;
+        case DT_Array1DDateValue: strTmp = Type_Array1DDateValue;
             break;
-        case DT_Array2D:strTmp = Type_Array2D;
+        case DT_Array2D: strTmp = Type_Array2D;
             break;
-        case DT_Array3D:strTmp = Type_Array3D;
+        case DT_Array3D: strTmp = Type_Array3D;
             break;
-        case DT_Raster1D:strTmp = Type_Raster1D;
+        case DT_Raster1D: strTmp = Type_Raster1D;
             break;
-        case DT_Raster2D:strTmp = Type_Raster2D;
+        case DT_Raster2D: strTmp = Type_Raster2D;
             break;
-        case DT_Single:strTmp = Type_Single;
+        case DT_Single: strTmp = Type_Single;
             break;
-        case DT_Scenario:strTmp = Type_Scenario;
+        case DT_Scenario: strTmp = Type_Scenario;
             break;
-        case DT_Reach:strTmp = Type_Reach;
+        case DT_Reach: strTmp = Type_Reach;
             break;
-        case DT_Subbasin:strTmp = Type_Subbasin;
+        case DT_Subbasin: strTmp = Type_Subbasin;
             break;
-        default:break;
+        default: break;
     }
 
     FullTag(tag, indent, strTmp, sb);
 }
 
-void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tfType, string *sb) {
+void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb) {
     string strTmp = "";
 
     switch (tfType) {
-    case TF_Whole:strTmp = TFType_Whole;
-        break;
-    case TF_SingleValue:strTmp = TFType_Single;
-        break;
-    case TF_OneArray1D:strTmp = TFType_Array1D;
-        break;
-    default:break;
+        case TF_Whole: strTmp = TFType_Whole;
+            break;
+        case TF_SingleValue: strTmp = TFType_Single;
+            break;
+        case TF_OneArray1D: strTmp = TFType_Array1D;
+            break;
+        default: break;
     }
 
     FullTag(tag, indent, strTmp, sb);
 }
 
-void MetadataInfo::WriteInputs(int indent, string *sb) {
+void MetadataInfo::WriteInputs(int indent, string* sb) {
     if (!m_vInputs.empty()) {
         OpenTag(TagInputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vInputs.size(); idx++) {
@@ -132,7 +132,7 @@ void MetadataInfo::WriteInputs(int indent, string *sb) {
 
 }
 
-void MetadataInfo::WriteOutputs(int indent, string *sb) {
+void MetadataInfo::WriteOutputs(int indent, string* sb) {
     if (!m_vOutputs.empty()) {
         OpenTag(TagOutputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vOutputs.size(); idx++) {
@@ -149,7 +149,7 @@ void MetadataInfo::WriteOutputs(int indent, string *sb) {
     }
 }
 
-void MetadataInfo::WriteInOutputs(int indent, string *sb) {
+void MetadataInfo::WriteInOutputs(int indent, string* sb) {
     if (!m_vInOutputs.empty()) {
         OpenTag(TagInOutputs, "", indent, sb);
         for (size_t idx = 0; idx < m_vInOutputs.size(); idx++) {
@@ -166,7 +166,7 @@ void MetadataInfo::WriteInOutputs(int indent, string *sb) {
     }
 }
 
-void MetadataInfo::WriteParameters(int indent, string *sb) {
+void MetadataInfo::WriteParameters(int indent, string* sb) {
     if (!m_vParameters.empty()) {
         OpenTag(TagParameters, "", indent, sb);
         for (size_t idx = 0; idx < m_vParameters.size(); idx++) {
@@ -185,7 +185,7 @@ void MetadataInfo::WriteParameters(int indent, string *sb) {
     }
 }
 
-void MetadataInfo::WriteDependencies(int indent, string *sb) {
+void MetadataInfo::WriteDependencies(int indent, string* sb) {
     if (!m_vDependencies.empty()) {
         OpenTag(TagDependencies, "", indent, sb);
         for (size_t idx = 0; idx < m_vDependencies.size(); idx++) {
@@ -200,7 +200,7 @@ void MetadataInfo::WriteDependencies(int indent, string *sb) {
     }
 }
 
-void MetadataInfo::WriteXMLHeader(string *sb) {
+void MetadataInfo::WriteXMLHeader(string* sb) {
     sb->append(XMLHeader);
     sb->append(XMLComment);
 }
@@ -229,7 +229,7 @@ int MetadataInfo::AddInput(const char* name, const char* units, const char* desc
     param.tfType = tfType;
 
     m_vInputs.push_back(param);
-    return (int) m_vInputs.size();
+    return int(m_vInputs.size());
 }
 
 int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc,
@@ -242,7 +242,7 @@ int MetadataInfo::AddOutput(const char* name, const char* units, const char* des
     param.tfType = tfType;
 
     m_vOutputs.push_back(param);
-    return (int) m_vOutputs.size();
+    return int(m_vOutputs.size());
 }
 
 int MetadataInfo::AddInOutput(const char* name, const char* units, const char* desc,
@@ -262,7 +262,8 @@ int MetadataInfo::AddInOutput(const char* name, const char* units, const char* d
     return m_vInOutputs.size();
 }
 
-int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType) {
+int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source,
+                               dimensionTypes dimType) {
     Parameter param;
     param.Name = name;
     param.Units = units;
@@ -271,7 +272,7 @@ int MetadataInfo::AddParameter(const char* name, const char* units, const char* 
     param.Dimension = dimType;
 
     m_vParameters.push_back(param);
-    return (int) m_vParameters.size();
+    return int(m_vParameters.size());
 }
 
 int MetadataInfo::AddDependency(const char* name, const char* description) {
@@ -280,7 +281,7 @@ int MetadataInfo::AddDependency(const char* name, const char* description) {
     cl.Description = description;
 
     m_vDependencies.push_back(cl);
-    return (int) m_vDependencies.size();
+    return int(m_vDependencies.size());
 }
 
 string MetadataInfo::GetXMLDocument() {
