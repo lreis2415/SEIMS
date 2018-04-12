@@ -2,13 +2,13 @@
 
 using namespace std;
 
-SettingsInput::SettingsInput(vector<string>& stringvector) : m_isStormModel(false), Settings() {
+SettingsInput::SettingsInput(vector<string>& stringvector) : m_isStormModel(false) {
     Settings::SetSettingTagStrings(stringvector);
-    if (StringMatch(Settings::GetValue(Tag_Mode), Tag_Mode_Storm)) {
+    if (StringMatch(GetValue(Tag_Mode), Tag_Mode_Storm)) {
         m_isStormModel = true;
     }
     if (!readSimulationPeriodDate()) {
-        throw ModelException("SettingInput", "Constructor", 
+        throw ModelException("SettingInput", "Constructor",
             "The start time and end time in file.in is invalid or missing.\
             The format would be YYYY/MM/DD/HH. Please check it.");
     }
@@ -39,10 +39,12 @@ bool SettingsInput::readSimulationPeriodDate() {
 
     //read interval
     vector<string> dtList = SplitString(GetValue(Tag_Interval), ',');
-    m_dtHs = atoi(dtList[0].c_str());
+    char* strend = nullptr;
+    errno = 0;
+    m_dtHs = strtol(dtList[0].c_str(), &strend, 10);
     m_dtCh = m_dtHs;
     if (dtList.size() > 1) {
-        m_dtCh = atoi(dtList[1].c_str());
+        m_dtCh = strtol(dtList[1].c_str(), &strend, 10);
     }
     // convert the time interval to seconds to conform to time_t struct
     if (StringMatch(m_mode, Tag_Mode_Daily)) {
@@ -52,7 +54,7 @@ bool SettingsInput::readSimulationPeriodDate() {
     return true;
 }
 
-void SettingsInput::Dump(string& fileName) {
+void SettingsInput::Dump(const string& fileName) {
     ofstream fs;
     fs.open(fileName.c_str(), ios::out);
     if (fs.is_open()) {

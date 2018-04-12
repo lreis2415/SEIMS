@@ -1,6 +1,6 @@
 #include "CombineRaster.h"
 
-FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
+FloatRaster* CombineRasters(map<int, FloatRaster *>& allRasterData) {
     if (allRasterData.empty()) return nullptr;
     double xMin = FLT_MAX;
     double xMax = FLT_MIN;
@@ -13,7 +13,7 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
     string srs;
     // loop to get global extent
     for (int i = 1; i <= nSubbasins; i++) {
-        FloatRaster *rs = allRasterData.at(i);
+        FloatRaster* rs = allRasterData.at(i);
         nRows = rs->getRows();
         nCols = rs->getCols();
         dx = rs->getCellWidth();
@@ -41,8 +41,8 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
     int nTotal = nRowsTotal * nColsTotal;
     // single layer or multi-layers raster data
     int nlayers = allRasterData.at(1)->getLayers();
-    float *data = nullptr;
-    float **data2d = nullptr;
+    float* data = nullptr;
+    float** data2d = nullptr;
     if (nlayers > 1) {
         Initialize2DArray(nTotal, nlayers, data2d, NODATA_VALUE);
     } else {
@@ -51,7 +51,7 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
 
     // loop to put data in the array
     for (int i = 1; i <= nSubbasins; i++) {
-        FloatRaster *rs = allRasterData.at(i);
+        FloatRaster* rs = allRasterData.at(i);
         nRows = rs->getRows();
         nCols = rs->getCols();
         dx = rs->getCellWidth();
@@ -60,7 +60,7 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
         yur = yll + nRows * dx;
 
         int cellNums = 0;
-        int **validPosition = nullptr;
+        int** validPosition = nullptr;
         rs->getRasterPositionData(&cellNums, &validPosition);
         for (int idx = 0; idx < cellNums; idx++) {
             int k = validPosition[idx][0];
@@ -87,7 +87,7 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData) {
     }
 }
 
-void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins) {
+void CombineRasterResults(const string& folder, const string& sVar, const string& fileType, int nSubbasins) {
     map<int, FloatRaster *> allRasterData;
     string filename = "";
     if (fileType.find('.') == string::npos) {
@@ -97,13 +97,13 @@ void CombineRasterResults(const string &folder, const string &sVar, const string
     }
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = folder + SEP + ValueToString(i) + "_" + filename;
-        FloatRaster *rs = FloatRaster::Init(curFileName, true);
+        FloatRaster* rs = FloatRaster::Init(curFileName, true);
         if (nullptr == rs) {
             exit(-1);
         }
         allRasterData.insert(make_pair(i, rs));
     }
-    FloatRaster *combined_rs = CombineRasters(allRasterData);
+    FloatRaster* combined_rs = CombineRasters(allRasterData);
     combined_rs->outputToFile(folder + SEP + filename);
     // clean up
     delete combined_rs;
@@ -116,17 +116,17 @@ void CombineRasterResults(const string &folder, const string &sVar, const string
     }
 }
 
-void CombineRasterResultsMongo(MongoGridFS *gfs, const string &sVar, int nSubbasins, const string &folder /* = "" */) {
+void CombineRasterResultsMongo(MongoGridFS* gfs, const string& sVar, int nSubbasins, const string& folder /* = "" */) {
     map<int, FloatRaster *> allRasterData;
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = ValueToString(i) + "_" + sVar;
-        FloatRaster *rs = FloatRaster::Init(gfs, curFileName.c_str(), true);
+        FloatRaster* rs = FloatRaster::Init(gfs, curFileName.c_str(), true);
         if (nullptr == rs) {
             exit(-1);
         }
         allRasterData.insert(make_pair(i, rs));
     }
-    FloatRaster *combined_rs = CombineRasters(allRasterData);
+    FloatRaster* combined_rs = CombineRasters(allRasterData);
     gfs->removeFile(sVar);
     combined_rs->outputToMongoDB(sVar, gfs);
     if (folder != "") {

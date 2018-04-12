@@ -5,13 +5,20 @@ using namespace MainBMP;
 BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
                                        const string &collection, const string &location) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
+    m_mgtFieldsRs(nullptr) {
     m_arealSrcMgtTab = m_bmpCollection;
     m_arealSrcIDs = SplitStringForInt(location, '-');
     if (m_distribution.size() == 4 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_arealSrcDistName = m_distribution[1];
         m_arealSrcDistTab = m_distribution[2];
-        m_arealSrc = atoi(m_distribution[3].c_str());
+        char *end = nullptr;
+        errno = 0;
+        m_arealSrc = strtol(m_distribution[3].c_str(), &end, 10); // deprecated atoi
+        if (errno != 0) {
+            throw ModelException("BMPArealSourceFactory", "Initialization",
+                                 "SrcID in the distribution field converted to integer failed!");
+        }
     } else {
         throw ModelException("BMPArealSourceFactory", "Initialization",
                              "The distribution field must follow the format: "
@@ -118,13 +125,13 @@ void BMPArealSrcFactory::Dump(ostream *fs) {
     if (fs == nullptr) return;
     *fs << "Point Source Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << endl;
-    for (auto it = m_arealSrcMgtSeqs.begin(); it != m_arealSrcMgtSeqs.end(); it++) {
+    for (auto it = m_arealSrcMgtSeqs.begin(); it != m_arealSrcMgtSeqs.end(); ++it) {
         auto findIdx = m_arealSrcMgtMap.find(*it);
         if (findIdx != m_arealSrcMgtMap.end()) {
             m_arealSrcMgtMap[*it]->Dump(fs);
         }
     }
-    for (auto it = m_arealSrcIDs.begin(); it != m_arealSrcIDs.end(); it++) {
+    for (auto it = m_arealSrcIDs.begin(); it != m_arealSrcIDs.end(); ++it) {
         auto findIdx = m_arealSrcLocsMap.find(*it);
         if (findIdx != m_arealSrcLocsMap.end()) {
             m_arealSrcLocsMap[*it]->Dump(fs);
@@ -146,9 +153,9 @@ void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *> &sceneRsMap) {
 /************************************************************************/
 
 ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t &iter)
-    : m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f), m_TNConc(0.f), m_NO3Conc(0.f),
-      m_NH4Conc(0.f), m_OrgNConc(0.f), m_TPConc(0.f), m_SolPConc(0.f), m_OrgPConc(0.f), m_COD(0.f),
-      m_name(""), m_seqence(-1) {
+    : m_name(""), m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f),
+      m_TNConc(0.f), m_NO3Conc(0.f), m_NH4Conc(0.f), m_OrgNConc(0.f), m_TPConc(0.f), m_SolPConc(0.f),
+      m_OrgPConc(0.f), m_COD(0.f) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
         m_name = GetStringFromBsonIterator(&iter);
     }
@@ -234,7 +241,7 @@ void ArealSourceMgtParams::Dump(ostream *fs) {
 /************************************************************************/
 
 ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t &iter)
-    : m_nCells(-1), m_size(0.f) {
+    : m_arealSrcID(-1), m_nCells(-1), m_size(0.f) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
         m_name = GetStringFromBsonIterator(&iter);
     }
@@ -250,13 +257,13 @@ ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t
 void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
     if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
-            if (FloatEqual(m_arealSrcID, (int) mgtFieldIDs[i])) {
+            if (FloatEqual(m_arealSrcID, int(mgtFieldIDs[i]))) {
                 m_cellsIndex.emplace_back(i);
             }
         }
         vector<int>(m_cellsIndex).swap(m_cellsIndex);
         // m_cellsIndex.shrink_to_fit();
-        m_nCells = (int) m_cellsIndex.size();
+        m_nCells = int(m_cellsIndex.size());
     } else {
         throw ModelException("ArealSourceLocations", "SetValidCells",
                              "The array size of must be greater than 0 and the array must not be NULL.");

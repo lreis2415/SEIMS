@@ -1,9 +1,9 @@
 #include "Scenario.h"
 
 namespace MainBMP {
-Scenario::Scenario(MongoClient *conn, const string& dbName, int subbsnID /* = 0 */,
+Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
                    int scenarioID /* = 0 */) :
-    m_conn(conn), m_bmpDBName(dbName), m_subbsnID(subbsnID), m_sceneID(scenarioID) {
+    m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID) {
     assert(m_sceneID >= 0);
     assert(m_subbsnID >= 0);
     loadScenario();
@@ -11,7 +11,7 @@ Scenario::Scenario(MongoClient *conn, const string& dbName, int subbsnID /* = 0 
 
 Scenario::~Scenario() {
     StatusMessage("Releasing Scenario...");
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ) {
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end();) {
         if (nullptr != it->second) {
             delete (it->second);
             it->second = nullptr;
@@ -32,16 +32,16 @@ void Scenario::loadScenarioName() {
     auto it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_SCENARIO));
     if (it == m_bmpCollections.end()) {
         throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
-            "' does not exist or there is not a table named '" +
-            TAB_BMP_SCENARIO + "' in BMP database.");
+                             "' does not exist or there is not a table named '" +
+                             TAB_BMP_SCENARIO + "' in BMP database.");
     }
-    mongoc_collection_t *sceCollection = m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO);
+    mongoc_collection_t* sceCollection = m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO);
     /// Find the unique scenario name
     bson_t *query = bson_new(), *reply = bson_new();
     query = BCON_NEW("distinct", BCON_UTF8(TAB_BMP_SCENARIO), "key", FLD_SCENARIO_NAME,
-                     "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
+        "query", "{", FLD_SCENARIO_ID, BCON_INT32(m_sceneID), "}");
     bson_iter_t iter, sub_iter;
-    bson_error_t *err = NULL;
+    bson_error_t* err = NULL;
     if (mongoc_collection_command_simple(sceCollection, query, NULL, reply, err)) {
         //cout<<bson_as_json(reply,NULL)<<endl;
         if (bson_iter_init_find(&iter, reply, "values") &&
@@ -67,22 +67,22 @@ void Scenario::loadBMPs() {
     auto it = find(m_bmpCollections.begin(), m_bmpCollections.end(), string(TAB_BMP_INDEX));
     if (it == m_bmpCollections.end()) {
         throw ModelException("BMP Scenario", "loadScenarioName", "The BMP database '" + m_bmpDBName +
-            "' does not exist or there is not a table named '" +
-            TAB_BMP_INDEX + "' in BMP database.");
+                             "' does not exist or there is not a table named '" +
+                             TAB_BMP_INDEX + "' in BMP database.");
     }
-    bson_t *query = bson_new();
+    bson_t* query = bson_new();
     BSON_APPEND_INT32(query, FLD_SCENARIO_ID, m_sceneID);
     //cout<<bson_as_json(query, NULL)<<endl;
     unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
     unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
-    
-    bson_error_t *err = NULL;
+
+    bson_error_t* err = NULL;
     if (mongoc_cursor_error(cursor, err)) {
         throw ModelException("BMP Scenario", "loadBMPs",
                              "There are no record with scenario ID: " + ValueToString(m_sceneID));
     }
-    const bson_t *info;
+    const bson_t* info;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
         //cout<<bson_as_json(info,0)<<endl;
         bson_iter_t iter;
@@ -109,7 +109,7 @@ void Scenario::loadBMPs() {
 
         int BMPType = -1;
         int BMPPriority = -1;
-        bson_t *queryBMP = bson_new();
+        bson_t* queryBMP = bson_new();
         BSON_APPEND_INT32(queryBMP, FLD_BMP_ID, BMPID);
 
         mongoc_cursor_t* cursor2 = collbmpidx->ExecuteQuery(queryBMP);
@@ -118,7 +118,7 @@ void Scenario::loadBMPs() {
             throw ModelException("BMP Scenario", "loadBMPs",
                                  "There are no record with BMP ID: " + ValueToString(BMPID));
         }
-        const bson_t *info2;
+        const bson_t* info2;
         while (mongoc_cursor_more(cursor2) && mongoc_cursor_next(cursor2, &info2)) {
             bson_iter_t sub_iter;
             if (bson_iter_init_find(&sub_iter, info2, FLD_BMP_TYPE)) {
@@ -153,7 +153,7 @@ void Scenario::loadBMPs() {
                 this->m_bmpFactories[uniqueBMPID] = new BMPArealStructFactory(m_sceneID, BMPID, subScenario, BMPType,
                                                                               BMPPriority, dist,
                                                                               collectionName, location);
-            }    
+            }
         }
     }
     bson_destroy(query);
@@ -161,7 +161,7 @@ void Scenario::loadBMPs() {
 }
 
 void Scenario::loadBMPDetail() {
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ++it) {
         it->second->loadBMP(m_conn, m_bmpDBName);
     }
 }
@@ -175,19 +175,19 @@ void Scenario::Dump(string& fileName) {
     }
 }
 
-void Scenario::Dump(ostream *fs) {
+void Scenario::Dump(ostream* fs) {
     if (fs == nullptr) return;
     *fs << "Scenario ID:" << this->m_sceneID << endl;
     *fs << "Name:" << this->m_name << endl;
     *fs << "*** All the BMPs ***" << endl;
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); it++) {
-        if (it->second != NULL) it->second->Dump(fs);
+    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ++it) {
+        if (it->second != nullptr) it->second->Dump(fs);
     }
 }
 
 void Scenario::setRasterForEachBMP() {
     if (m_sceneRsMap.empty()) return;
-    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); it++) {
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); ++it) {
         it->second->setRasterData(m_sceneRsMap);
     }
 }

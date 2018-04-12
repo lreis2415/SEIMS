@@ -1082,8 +1082,6 @@
 #define UNIT_WTRDLT_MMH "mm/h"                      /// Millimeter per hour of water changes
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 /// Define description of units common used in SEIMS            //////////
 /// By LiangJun Zhu, HuiRan Gao //////////////////////////

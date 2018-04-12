@@ -24,16 +24,16 @@ class PointSourceLocations: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, parse point BMP location related parameters from bson object
-     * \param[in] bsonTab Query result from MongoDB
+     * \param[in] bsonTable Query result from MongoDB
      * \param[in] iter Iterator of bsonTab
      */
-    PointSourceLocations(const bson_t *&bsonTab, bson_iter_t &iter);
+    PointSourceLocations(const bson_t*& bsonTable, bson_iter_t& iter);
 
     /// Destructor
     //~PointSourceLocations() = default;
 
     /// Output
-    void Dump(ostream *fs);
+    void Dump(ostream* fs);
 
     /// Get point source ID
     int GetPointSourceID() { return m_pointSrcID; }
@@ -84,7 +84,7 @@ private:
 };
 
 /*!
- * \class PointSourceParameters
+ * \class PointSourceMgtParams
  * \ingroup MainBMP
  *
  * \brief Point source management parameters
@@ -94,16 +94,16 @@ class PointSourceMgtParams: public DefaultConstructor {
 public:
     /*!
      * \brief Constructor, parse point source management parameters from bson object
-     * \param[in] bsonTab Query result from MongoDB
+     * \param[in] bsonTable Query result from MongoDB
      * \param[in] iter Iterator of bsonTab
      */
-    PointSourceMgtParams(const bson_t *&bsonTab, bson_iter_t &iter);
+    PointSourceMgtParams(const bson_t*& bsonTable, bson_iter_t& iter);
 
     /// Destructor
     //~PointSourceMgtParams() = default;
 
     /// Output
-    void Dump(ostream *fs);
+    void Dump(ostream* fs);
 
     /// Get start date of the current management operation
     time_t GetStartDate() { return m_startDate; }
@@ -186,42 +186,42 @@ private:
  * Actually, include point pollution sources, such as sewage outlet of animal farm.
  *
  */
-class BMPPointSrcFactory : public BMPFactory {
+class BMPPointSrcFactory: public BMPFactory {
 public:
     /// Constructor
     BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
-                       int bmpType, int bmpPriority, vector<string> &distribution,
-                       const string &collection, const string &location);
+                       int bmpType, int bmpPriority, vector<string>& distribution,
+                       const string& collection, const string& location);
     /// Destructor
     virtual ~BMPPointSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient *conn, const string &bmpDBName);
+    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
 
     /// Output
-    virtual void Dump(ostream *fs);
+    virtual void Dump(ostream* fs);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceManagements(MongoClient *conn, const string &bmpDBName);
+    void ReadPointSourceManagements(MongoClient* conn, const string& bmpDBName);
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB
      * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
-    void ReadPointSourceLocations(MongoClient *conn, const string &bmpDBName);
+    void ReadPointSourceLocations(MongoClient* conn, const string& bmpDBName);
 
-    const vector<int> &GetPointSrcMgtSeqs() const { return m_pointSrcMgtSeqs; }
+    const vector<int>& GetPointSrcMgtSeqs() const { return m_pointSrcMgtSeqs; }
 
-    const map<int, PointSourceMgtParams *> &GetPointSrcMgtMap() const { return m_pointSrcMgtMap; }
+    const map<int, PointSourceMgtParams *>& GetPointSrcMgtMap() const { return m_pointSrcMgtMap; }
 
-    const vector<int> &GetPointSrcIDs() const { return m_pointSrcIDs; }
+    const vector<int>& GetPointSrcIDs() const { return m_pointSrcIDs; }
 
-    const map<int, PointSourceLocations *> &GetPointSrcLocsMap() const { return m_pointSrcLocsMap; }
+    const map<int, PointSourceLocations *>& GetPointSrcLocsMap() const { return m_pointSrcLocsMap; }
 
 private:
     /// Code of point source

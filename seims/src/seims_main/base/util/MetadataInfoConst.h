@@ -60,17 +60,17 @@ const string TagDependencies = "dependencies";
  * \brief enum of dimension data types
  */
 enum dimensionTypes {
-    DT_Unknown          = -1, ///< Unknown type
-    DT_Single           = 0,  ///< Single numeric
-    DT_Array1D          = 1,  ///< 1D array, e.g., maximum temperature of sites
-    DT_Array2D          = 2,  ///< 2D array
-    DT_Array3D          = 3,  ///< 3D array, currently not used
-    DT_Array1DDateValue = 4,  ///< 1D date array
-    DT_Raster1D         = 5,  ///< Raster data, same as DT_Array1D
-    DT_Raster2D         = 6,  ///< 2D raster, e.g., multi-layers of soil properties
-    DT_Scenario         = 7,  ///< Scenario used by BMPs
-    DT_Reach            = 8,  ///< Reach parameters
-    DT_Subbasin         = 9   ///< Subbasin instances
+    DT_Unknown = -1, ///< Unknown type
+    DT_Single = 0, ///< Single numeric
+    DT_Array1D = 1, ///< 1D array, e.g., maximum temperature of sites
+    DT_Array2D = 2, ///< 2D array
+    DT_Array3D = 3, ///< 3D array, currently not used
+    DT_Array1DDateValue = 4, ///< 1D date array
+    DT_Raster1D = 5, ///< Raster data, same as DT_Array1D
+    DT_Raster2D = 6, ///< 2D raster, e.g., multi-layers of soil properties
+    DT_Scenario = 7, ///< Scenario used by BMPs
+    DT_Reach = 8, ///< Reach parameters
+    DT_Subbasin = 9 ///< Subbasin instances
 };
 
 /*!
@@ -79,9 +79,9 @@ enum dimensionTypes {
  * \brief Data be transferred across subbasins for MPI version
  */
 enum transferTypes {
-    TF_Whole            = 0,  ///< Default
-    TF_SingleValue      = 1,  ///< A single value in the data (e.g., DT_Array1D)
-    TF_OneArray1D       = 2   ///< A piece of 1D array in the data (e.g., DT_Array2D)
+    TF_Whole = 0, ///< Default
+    TF_SingleValue = 1, ///< A single value in the data (e.g., DT_Array1D)
+    TF_OneArray1D = 2 ///< A piece of 1D array in the data (e.g., DT_Array2D)
 };
 
 #endif /* SEIIMS_METADATA_INFO_CONST_H */

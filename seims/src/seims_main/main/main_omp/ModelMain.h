@@ -51,9 +51,10 @@ public:
      * \param[in] dcenter \sa DataCenter, \sa DataCenterMongoDB, or others in future
      * \param[in] mfactory \sa ModuleFactory, assemble the module workspace
      */
-    ModelMain(DataCenterMongoDB *dcenter, ModuleFactory *mfactory);
+    ModelMain(DataCenterMongoDB* dcenter, ModuleFactory* mfactory);
     //! Destructor
-    ~ModelMain() {};
+    ~ModelMain() {
+    };
     //! Execute all the modules, aggregate output data, and write the total time-consuming, etc.
     void Execute();
     //! Write output files, e.g., Q.txt, return time-consuming (s).
@@ -98,9 +99,11 @@ public:
     void SetTransferredValue(int index, float* tfvalues);
     // temporary debug code
     float GetQOutlet() { return 0.f; }
+
     void SetChannelFlowIn(float value) {
         m_simulationModules[m_channelModules[0]]->SetValue(VAR_QUPREACH, value);
     }
+
     // temporary debug code
 
 public:
@@ -109,11 +112,11 @@ public:
     /************************************************************************/
 
     //! Get module counts of current SEIMS
-    int GetModuleCount() const { return (int) m_simulationModules.size(); }
+    int GetModuleCount() const { return int(m_simulationModules.size()); }
     //! Get module ID by index in ModuleFactory
     string GetModuleID(int i) const { return m_factory->GetModuleID(i); }
     //! Get module execute time by index in ModuleFactory
-    float GetModuleExecuteTime(int i) const { return (float) m_executeTime[i]; }
+    float GetModuleExecuteTime(int i) const { return float(m_executeTime[i]); }
     //! Get time consuming of read data
     float GetReadDataTime() const { return m_readFileTime; }
     //! Include channel processes or not?
@@ -124,41 +127,41 @@ private:
     /*             Input parameters                                         */
     /************************************************************************/
 
-    DataCenterMongoDB *m_dataCenter;         ///< inherited DataCenter
-    ModuleFactory *m_factory;            ///< Modules factory
+    DataCenterMongoDB* m_dataCenter; ///< inherited DataCenter
+    ModuleFactory* m_factory; ///< Modules factory
 private:
     /************************************************************************/
     /*   Pointer or reference of object and data derived from input params  */
     /************************************************************************/
 
-    SettingsInput *m_input;              ///< The basic input settings
-    SettingsOutput *m_output;             ///< The user-defined outputs, Q, SED, etc
-    FloatRaster *m_maskRaster;         ///< Mask raster data
-    string m_outputPath;         ///< Path of output scenario
-    time_t m_dtDaily;            ///< Daily time interval, seconds
-    time_t m_dtHs;               ///< Hillslope time interval, seconds
-    time_t m_dtCh;               ///< Channel time interval, seconds
-    vector<string> m_moduleIDs;  ///< Module unique IDs, the same sequences with \sa m_simulationModules
+    SettingsInput* m_input; ///< The basic input settings
+    SettingsOutput* m_output; ///< The user-defined outputs, Q, SED, etc
+    FloatRaster* m_maskRaster; ///< Mask raster data
+    string m_outputPath; ///< Path of output scenario
+    time_t m_dtDaily; ///< Daily time interval, seconds
+    time_t m_dtHs; ///< Hillslope time interval, seconds
+    time_t m_dtCh; ///< Channel time interval, seconds
+    vector<string> m_moduleIDs; ///< Module unique IDs, the same sequences with \sa m_simulationModules
     vector<ParamInfo *> m_tfValueInputs; ///< transferred single value across subbasins
 private:
     /************************************************************************/
     /*   Variables newly allocated in this class                            */
     /************************************************************************/
 
-    float m_readFileTime;       ///< Time consuming for read data
-    vector<SimulationModule *> m_simulationModules;  ///< Modules list in the model run
-    vector<int> m_hillslopeModules;   ///< Hillslope modules index list
-    vector<int> m_channelModules;     ///< Channel modules index list
-    vector<int> m_ecoModules;         ///< Ecology modules index list
-    vector<int> m_overallModules;     ///< Whole simulation scale modules index list
-    vector<double> m_executeTime;     ///< Execute time list of each module
+    float m_readFileTime; ///< Time consuming for read data
+    vector<SimulationModule *> m_simulationModules; ///< Modules list in the model run
+    vector<int> m_hillslopeModules; ///< Hillslope modules index list
+    vector<int> m_channelModules; ///< Channel modules index list
+    vector<int> m_ecoModules; ///< Ecology modules index list
+    vector<int> m_overallModules; ///< Whole simulation scale modules index list
+    vector<double> m_executeTime; ///< Execute time list of each module
 
-    int m_nTFValues;                       ///< transferred value inputs cout
-    vector<int> m_tfValueFromModuleIdxs;   ///< from module index corresponding to each transferred value inputs
-    vector<int> m_tfValueToModuleIdxs;     ///< to module index corresponding to each transferred value inputs
-    vector<string> m_tfValueNames;         ///< parameter name corresponding to each transferred value inputs
+    int m_nTFValues; ///< transferred value inputs cout
+    vector<int> m_tfValueFromModuleIdxs; ///< from module index corresponding to each transferred value inputs
+    vector<int> m_tfValueToModuleIdxs; ///< to module index corresponding to each transferred value inputs
+    vector<string> m_tfValueNames; ///< parameter name corresponding to each transferred value inputs
 
-    bool m_firstRunOverland;   ///< Is the first run of overland
-    bool m_firstRunChannel;    ///< Is the first run of channel
+    bool m_firstRunOverland; ///< Is the first run of overland
+    bool m_firstRunChannel; ///< Is the first run of channel
 };
 #endif /* SEIMS_MODEL_MAIN_H */

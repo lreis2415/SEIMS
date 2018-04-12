@@ -21,22 +21,15 @@
  * \brief A basic class for plant growth modules using a simplified version of EPIC model
  *
  */
-class PGCommon: public DefaultConstructor {
-public:
-    /// Constructor
-    //PGCommon() = default;
-
-    /// Destructor
-    //~PGCommon() = default;
-
+class PGCommon: NotCopyable, public DefaultConstructor {
 public:
     //get N/P shape parameter, See readplant.f of SWAT
-    static void getNPShapeParameter(float fr1, float fr2, float fr3, float *shape1, float *shape2);
+    static void getNPShapeParameter(float fr1, float fr2, float fr3, float* shape1, float* shape2);
 
     //computes shape parameters shape1 and shape2 for the S curve
     //equation x = y/(y + exp(shape1 + shape2*y)) given 2 (x,y) points along the curve.
     //See ascrv.f of SWAT
-    static void getScurveShapeParameter(float xMid, float xEnd, float yMid, float yEnd, float *shape1, float *shape2);
+    static void getScurveShapeParameter(float xMid, float xEnd, float yMid, float yEnd, float* shape1, float* shape2);
 
     ///
     static float NPBiomassFraction(float x1, float x2, float x3, float frPHU);
@@ -45,14 +38,13 @@ public:
     //calculate the fraction of nitrogen/phosphorus in the plant biomass
     static float getNPFraction(float fr1, float fr3, float shape1, float shape2, float frPHU);
 
-public:
-    float doHeatUnitAccumulation(float potentialHeatUnit, float tMin, float tMax, float tBase);
+    static float doHeatUnitAccumulation(float potentialHeatUnit, float tMin, float tMax, float tBase);
 
     //the adjusted radiation-use efficiency by CO2 concentration
     // float RadiationUseEfficiencyAdjustByCO2(float co2) const;
 
     //the adjusted radiation-use efficiency by vapor pressure deficit
-    float RadiationUseEfficiencyAdjustByVPD(float vpd, float radiationUseEfficiencyDeclineRateWithVPD) const;
+    static float RadiationUseEfficiencyAdjustByVPD(float vpd, float radiationUseEfficiencyDeclineRateWithVPD);
 
     static float getNormalization(float distribution);
 
@@ -60,7 +52,7 @@ public:
 
     static bool IsAnnual(int m_classification) {
         return
-            m_classification == 1 ||
+                m_classification == 1 ||
                 m_classification == 2 ||
                 m_classification == 4 ||
                 m_classification == 5;
@@ -70,13 +62,13 @@ public:
 
     bool IsPerennial(int m_classification) const {
         return
-            m_classification == 3 ||
+                m_classification == 3 ||
                 m_classification == 6;
     }
 
     bool IsCoolSeasonAnnual(int m_classification) const {
         return
-            m_classification == 2 ||
+                m_classification == 2 ||
                 m_classification == 5;
     }
 
@@ -84,15 +76,14 @@ public:
 
     bool IsPlant(int luID) const {
         return luID <= MAX_CROP_LAND_USE_ID &&
-            luID != WATER_LAND_USE_ID;
+                luID != WATER_LAND_USE_ID;
     }
 
-public:
     /// added by Liang-Jun Zhu, 2016-6-8
 
     /// calculates the plant stress factor caused by limited supply of nitrogen or phosphorus
     /// from ntus.f of SWAT, rev 637
-    static void calPlantStressByLimitedNP(float u1, float u2, float *uu);
+    static void calPlantStressByLimitedNP(float u1, float u2, float* uu);
 };
 
 #endif /* SEIMS_PLANTGROWTH_COMMON_H */

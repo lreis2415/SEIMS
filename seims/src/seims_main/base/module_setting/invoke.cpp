@@ -1,28 +1,33 @@
 #include "invoke.h"
 
-InputArgs *InputArgs::Init(int argc, const char **argv) {
+InputArgs* InputArgs::Init(int argc, const char** argv) {
     string modelPath;
     int numThread = 1;
     LayeringMethod layeringMethod = UP_DOWN;
     char mongodbIP[16];
     stringcpy(mongodbIP, "127.0.0.1");
     int port = 27017;
-    int scenarioID = -1;  /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
+    int scenarioID = -1; /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int calibrationID = -1; /// By default, no calibration ID is needed.
     /// Parse input arguments.
     int i = 0;
     if (argc < 2) {
         cout << "Error: To run the program, use either the Simple Usage option or Usage option as below." << endl;
         goto errexit;
-    } else if (argc <= 8 && argv[1][0] != '-') {  // old style, i.e., arguments arranged in a fixed order
+    }
+    char* strend = nullptr;
+    errno = 0;
+
+    if (argc <= 8 && argv[1][0] != '-') {
+        // old style, i.e., arguments arranged in a fixed order
         modelPath = argv[1];
-        if (argc >= 3) numThread = atoi(argv[2]);
-        if (argc >= 4) layeringMethod = (LayeringMethod) atoi(argv[3]);
+        if (argc >= 3) numThread = strtol(argv[2], &strend, 10);
+        if (argc >= 4) layeringMethod = LayeringMethod(strtol(argv[3], &strend, 10));
         if (argc >= 5) stringcpy(mongodbIP, argv[4]);
-        if (argc >= 6) port = atoi(argv[5]);
-        if (argc >= 7) scenarioID = atoi(argv[6]);
-        if (argc >= 8) calibrationID = atoi(argv[7]);
-        i = 9999;  // avoid to run the while-statement
+        if (argc >= 6) port = strtol(argv[5], &strend, 10);
+        if (argc >= 7) scenarioID = strtol(argv[6], &strend, 10);
+        if (argc >= 8) calibrationID = strtol(argv[7], &strend, 10);
+        i = 9999; // avoid to run the while-statement
     } else {
         i = 1;
     }
@@ -36,13 +41,13 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
         } else if (StringMatch(argv[i], "-thread")) {
             i++;
             if (argc > i) {
-                numThread = atoi(argv[i]);
+                numThread = strtol(argv[i], &strend, 10);
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-lyr")) {
             i++;
             if (argc > i) {
-                layeringMethod = (LayeringMethod) atoi(argv[i]);
+                layeringMethod = LayeringMethod(strtol(argv[i], &strend, 10));
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-host")) {
@@ -54,19 +59,19 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
         } else if (StringMatch(argv[i], "-port")) {
             i++;
             if (argc > i) {
-                port = atoi(argv[i]);
+                port = strtol(argv[i], &strend, 10);
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-sce")) {
             i++;
             if (argc > i) {
-                scenarioID = atoi(argv[i]);
+                scenarioID = strtol(argv[i], &strend, 10);
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-cali")) {
             i++;
             if (argc > i) {
-                calibrationID = atoi(argv[i]);
+                calibrationID = strtol(argv[i], &strend, 10);
                 i++;
             } else { goto errexit; }
         }
@@ -91,9 +96,9 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
     return new InputArgs(modelPath, mongodbIP, port, scenarioID,
                          calibrationID, numThread, layeringMethod);
 
-    errexit:
+errexit:
     cout << "Simple Usage:\n    " << argv[0] <<
-         " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID> <CalibrationID>]" << endl;
+            " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID> <CalibrationID>]" << endl;
     cout << "\t<ModelPath> is the path of the configuration of the Model." << endl;
     cout << "\t<threadsNum> is thread or processor number, which must be greater or equal than 1 (default)." << endl;
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP respectively." << endl;
@@ -105,15 +110,15 @@ InputArgs *InputArgs::Init(int argc, const char **argv) {
     cout << "\t\tBy default, the Calibration ID is -1, which means not used." << endl;
     cout << endl;
     cout << "Complete and recommended Usage:\n    " << argv[0] <<
-         " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
-             " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
+            " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
+            " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
     return nullptr;
 }
 
-InputArgs::InputArgs(string modelPath, char *host, uint16_t port, int scenarioID,
+InputArgs::InputArgs(const string& modelPath, char* host, uint16_t port, int scenarioID,
                      int calibrationID, int numThread, LayeringMethod lyrMethod)
-    : m_model_path(modelPath), m_model_name(""), m_port(port), m_scenario_id(scenarioID),
-      m_calibration_id(calibrationID), m_thread_num(numThread), m_layer_mtd(lyrMethod) {
+    : m_model_path(modelPath), m_model_name(""), m_port(port), m_thread_num(numThread),
+      m_layer_mtd(lyrMethod), m_scenario_id(scenarioID), m_calibration_id(calibrationID) {
     stringcpy(m_host_ip, host);
     /// Get model name
     size_t nameIdx = m_model_path.rfind(SEP);
