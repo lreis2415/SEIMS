@@ -8,12 +8,17 @@
 """
 from __future__ import absolute_import
 
+import os
+import sys
 import random
 
 from pygeoc.utils import get_config_parser
 
-from slpposunits.config import SASPUConfig
-from slpposunits.scenario import SPScenario, initialize_scenario, get_potential_bmps
+if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
+
+from scenario_analysis.slpposunits.config import SASPUConfig
+from scenario_analysis.slpposunits.scenario import SPScenario, initialize_scenario, get_potential_bmps
 
 
 #                                       #

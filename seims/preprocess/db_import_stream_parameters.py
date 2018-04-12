@@ -8,9 +8,12 @@
 """
 from __future__ import absolute_import
 
-import os
 from math import sqrt
 import shutil
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
 import networkx as nx
@@ -155,9 +158,9 @@ class ImportReaches2Mongo(object):
         # nlist should be less than the number of subbasin, otherwise it will make nonsense.
         ns = g.nodes()
         nlist = [x for x in nlist if x <= max(ns)]
-        # Make directiories for KMETIS and PMETIS
-        UtilClass.mkdir(wp + os.sep + 'kmetis')
-        UtilClass.mkdir(wp + os.sep + 'pmetis')
+        # Make directories for KMETIS and PMETIS
+        UtilClass.mkdir(wp + os.path.sep + 'kmetis')
+        UtilClass.mkdir(wp + os.path.sep + 'pmetis')
         for n in nlist:
             print('divide number: %d' % n)
             if n <= 1:
@@ -176,6 +179,7 @@ class ImportReaches2Mongo(object):
             with open(metis_output, 'r') as f:
                 lines = f.readlines()
             group_kmetis = [int(item) for item in lines]
+            adjust_group_result(weight, group_kmetis, n)
             shutil.move(metis_output, '%s/kmetis/metis.part.%d' % (wp, n))
 
             # pmetis, -ptype=rb, recursive bisectioning
@@ -187,6 +191,7 @@ class ImportReaches2Mongo(object):
             with open(metis_output, 'r') as f:
                 lines = f.readlines()
             group_pmetis = [int(item) for item in lines]
+            adjust_group_result(weight, group_pmetis, n)
             shutil.move(metis_output, '%s/pmetis/metis.part.%d' % (wp, n))
 
             for i, (gk, gp) in enumerate(zip(group_kmetis, group_pmetis)):
@@ -402,8 +407,8 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._DOWNUP_ORDER] = downup[subbsn_id]
             dic[ImportReaches2Mongo._MANNING] = rchdata['manning']
             dic[ImportReaches2Mongo._SLOPE] = rchdata['slope']
-            dic[ImportReaches2Mongo._V0] = sqrt(rchdata['slope']) * pow(rchdata['depth'], 2. / 3.) / \
-                                           rchdata['manning']
+            dic[ImportReaches2Mongo._V0] = sqrt(rchdata['slope']) * \
+                                           pow(rchdata['depth'], 2. / 3.) / rchdata['manning']
             dic[ImportReaches2Mongo._NUMCELLS] = rchdata[ImportReaches2Mongo._NUMCELLS]
             dic[ImportReaches2Mongo._GROUP] = ','.join(str(v) for v in metis[subbsn_id]['group'])
             dic[ImportReaches2Mongo._KMETIS] = ','.join(str(v) for v in metis[subbsn_id]['kmetis'])
@@ -450,10 +455,50 @@ class ImportReaches2Mongo(object):
                                                               ASCENDING)])
 
 
+def get_max_weight(group_weight_dic, group_dic):
+    """Get max. weight"""
+    max_id = -1
+    max_weight = -1
+    for cur_id in group_weight_dic:
+        if len(group_dic[cur_id]) > 1 and max_weight < group_weight_dic[cur_id]:
+            max_weight = group_weight_dic[cur_id]
+            max_id = cur_id
+    return max_id, max_weight
+
+
+def adjust_group_result(weight_dic, group_list, n_groups):
+    """Adjust group result"""
+    group_dic = dict()  # group tmpid from 0
+    group_weight_dic = dict()  # subbasin tmpid form 1
+    n = len(weight_dic.keys())
+    for sub_id in range(1, n + 1):
+        group_id = group_list[sub_id - 1]
+        group_dic.setdefault(group_id, []).append(sub_id)
+        if group_id not in group_weight_dic:
+            group_weight_dic[group_id] = 0
+        group_weight_dic[group_id] += weight_dic[sub_id][ImportReaches2Mongo._NUMCELLS]
+    # get average weight for each group, which is the ideal aim of task scheduling
+    ave_eight = 0
+    for tmpid in group_weight_dic:
+        ave_eight += group_weight_dic[tmpid]
+    ave_eight /= n_groups
+
+    for iGroup in range(n_groups):
+        if iGroup not in group_dic:
+            max_id, max_weight = get_max_weight(group_weight_dic, group_dic)
+            if max_id < 0:
+                continue
+            sub_list = group_dic[max_id]
+            sub_id = sub_list[0]
+            group_dic[iGroup] = [sub_id, ]
+            group_list[sub_id - 1] = iGroup
+            group_dic[max_id].remove(sub_id)
+
+
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

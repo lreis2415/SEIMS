@@ -18,11 +18,12 @@ from pygeoc.utils import StringClass, FileClass, MathClass, UtilClass
 from preprocess.utility import read_data_items_from_txt
 from preprocess.text import DataValueFields
 
+
 def save_png_eps(plot, wp, name):
     """Save figures, both png and eps formats"""
-    eps_dir = wp + os.sep + 'eps'
+    eps_dir = wp + os.path.sep + 'eps'
     UtilClass.mkdir(eps_dir)
-    for figpath in [wp + os.sep + name + '.png', eps_dir + os.sep + name + '.eps']:
+    for figpath in [wp + os.path.sep + name + '.png', eps_dir + os.path.sep + name + '.eps']:
         plot.savefig(figpath, dpi=300)
 
 
@@ -37,7 +38,7 @@ def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
     plot_vars_existed = list()
     sim_data_dict = OrderedDict()
     for i, v in enumerate(plot_vars):
-        txtfile = ws + os.sep + v + '.txt'
+        txtfile = ws + os.path.sep + v + '.txt'
         if not FileClass.is_file_exists(txtfile):
             print('WARNING: Simulation variable file: %s is not existed!' % txtfile)
             continue
@@ -101,8 +102,7 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
     for i, param_name in enumerate(sim_vars):
         if param_name not in obs_vars:
             continue
-        oi = obs_vars.index(param_name)
-        sim_to_obs[i] = oi
+        sim_to_obs[i] = obs_vars.index(param_name)
         sim_obs_dict[param_name] = {DataValueFields.utc: list(),
                                     'Obs': list(), 'Sim': list()}
     for sim_date, sim_values in sim_dict.items():

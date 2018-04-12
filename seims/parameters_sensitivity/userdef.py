@@ -96,7 +96,7 @@ def evaluate_model_response(modelcfg_dict, cali_idx, period):
     simmax = max(sim_obs_dict['SED']['Sim'])
     output_variables.append((obsmax - simmax) / obsmax)
     # 5. Calculate average soil erosion (kg/day)
-    rfile = model_obj.output_dir + os.sep + tif_name
+    rfile = model_obj.output_dir + os.path.sep + tif_name
     rr = RasterUtilClass.read_raster(rfile)
     timespan_days = (etime + datetime.timedelta(seconds=1) - stime).days
     ave_soer = rr.get_sum() / timespan_days  # unit: day

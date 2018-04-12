@@ -10,23 +10,23 @@
 
 using namespace std;
 
-int main(int argc, const char **argv) {
+int main(int argc, const char** argv) {
     /// Parse input arguments
-    InputArgs *input_args = InputArgs::Init(argc, argv);
-    if (nullptr == input_args) { exit(EXIT_FAILURE); }
+    InputArgs* inputArgs = InputArgs::Init(argc, argv);
+    if (nullptr == inputArgs) { exit(EXIT_FAILURE); }
     /// Register GDAL
     GDALAllRegister();
     /// Initialize of MPI environment
     int numprocs;
-    int world_rank;
+    int worldRank;
     int nameLen;
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    char processorName[MPI_MAX_PROCESSOR_NAME];
 
     MPI_Init(NULL, NULL);
     {
         MPI_Comm_size(MCW, &numprocs);
-        MPI_Comm_rank(MCW, &world_rank);
-        MPI_Get_processor_name(processor_name, &nameLen);
+        MPI_Comm_rank(MCW, &worldRank);
+        MPI_Get_processor_name(processorName, &nameLen);
         MPI_Group MPI_GROUP_WORLD, slaveGroup;
         MPI_Comm slaveComm;
         MPI_Comm_group(MCW, &MPI_GROUP_WORLD);
@@ -43,28 +43,28 @@ int main(int argc, const char **argv) {
         }
         int nSlaves = numprocs - 1;
         try {
-            if (world_rank == MASTER_RANK) {
+            if (worldRank == MASTER_RANK) {
                 /// connect to mongodb, abort if failed.
-                MongoClient *mclient = MongoClient::Init(input_args->m_host_ip, input_args->m_port);
+                MongoClient* mclient = MongoClient::Init(inputArgs->m_host_ip, inputArgs->m_port);
                 if (nullptr == mclient) {
-                    cout << "Connect to MongoDB (" << input_args->m_host_ip
-                         << ":" << input_args->m_port << ") failed!" << endl;
+                    cout << "Connect to MongoDB (" << inputArgs->m_host_ip
+                            << ":" << inputArgs->m_port << ") failed!" << endl;
                     MPI_Abort(MCW, 2);
                 }
                 // read river topology data
                 map<int, SubbasinStruct *> subbasinMap;
                 set<int> groupSet;
-                string group_method = REACH_KMETIS; // by default
-                if (CreateReachTopology(mclient, input_args->m_model_name, group_method,
+                string groupMethod = REACH_KMETIS; // by default
+                if (CreateReachTopology(mclient, inputArgs->m_model_name, groupMethod,
                                         nSlaves, subbasinMap, groupSet) != 0) {
                     cout << "Read and create reaches topology information failed." << endl;
                     MPI_Abort(MCW, 1);
                 }
                 delete mclient;
-                if ((size_t) nSlaves != groupSet.size()) {
+                if (size_t(nSlaves) != groupSet.size()) {
                     groupSet.clear();
                     cout << "The number of slave processes (" << nSlaves << ") is not consist with the group number("
-                         << groupSet.size() << ")." << endl;
+                            << groupSet.size() << ")." << endl;
                     MPI_Abort(MCW, 1);
                 }
                 // Run management process on master rank
@@ -74,8 +74,9 @@ int main(int argc, const char **argv) {
                     delete it->second;
                     subbasinMap.erase(it++);
                 }
-            } else { // Run computing process on slave ranks
-                CalculateProcess(world_rank, numprocs, nSlaves, slaveComm, input_args);
+            } else {
+                // Run computing process on slave ranks
+                CalculateProcess(worldRank, numprocs, nSlaves, slaveComm, inputArgs);
             }
             MPI_Barrier(MCW);
             // free MPI sources
@@ -84,12 +85,11 @@ int main(int argc, const char **argv) {
             // VS2013: Fatal error in MPI_Comm_free: Invalid communicator, error stack.
             // I still think the communicator should be released. by lj.
             // MPI_Comm_free(&slaveComm);
-        }
-        catch (ModelException &e) {
+        } catch (ModelException& e) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 3);
         }
-        catch (exception &e) {
+        catch (exception& e) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 4);
         }
@@ -99,7 +99,7 @@ int main(int argc, const char **argv) {
         }
     }
     /// clean up
-    delete input_args;
+    delete inputArgs;
     /// Finalize the MPI environment and exit with success
     MPI_Finalize();
     return 0;

@@ -177,7 +177,7 @@ typedef const double *CDOUBLEPTR;
 /*!
  * \brief Base class for classes that cannot be copied. By inheriting this
  *        class you can disable copying of your classes.
- *        e.g., class myClass: private NotCopyable {}
+ *        e.g., class myClass: NotCopyable {}
  */
 class NotCopyable {
 private:

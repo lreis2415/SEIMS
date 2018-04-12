@@ -22,18 +22,15 @@ using namespace MainBMP;
  * \class SettingsInput
  * \brief Input settings for SEIMS
  */
-class SettingsInput : public Settings {
+class SettingsInput: public Settings {
 public:
     //! Constructor
     explicit SettingsInput(vector<string>& stringvector);
 
-    //! Destructor
-    //virtual ~SettingsInput() = default;
-
     static SettingsInput* Init(vector<string>& stringvector);
 
     //! Output to log file
-    virtual void Dump(string& filename);
+    virtual void Dump(const string& filename);
 
     //! Get start time of simulation
     time_t getStartTime() const { return m_startDate; }

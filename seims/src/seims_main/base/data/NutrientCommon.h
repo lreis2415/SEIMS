@@ -15,14 +15,7 @@
  * \brief A basic class for nutrient cycling modules
  *
  */
-class NutrCommon: public DefaultConstructor {
-public:
-    /// Constructor
-    //NutrCommon() = default;
-
-    /// Destructor
-    //~NutrCommon() = default;
-
+class NutrCommon: NotCopyable, public DefaultConstructor {
 public:
     /*!
      * \brief Calculate enrichment ratio for nutrient transport with runoff and sediment

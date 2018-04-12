@@ -1,6 +1,7 @@
 /*!
  * \brief Base namespace for implementation of BMP configuration
  * \author Liang-Jun Zhu
+ * \description 1. lj 2018-4-12 Code reformat
  */
 #ifndef SEIMS_BMP_FACTORY_H
 #define SEIMS_BMP_FACTORY_H
@@ -25,7 +26,7 @@ namespace MainBMP {
  * \brief Base class to initiate a BMP data
  *
  */
-class BMPFactory {
+class BMPFactory: NotCopyable {
 public:
     /// Constructor
     BMPFactory(int scenarioId, int bmpId, int subScenario, int bmpType,
@@ -34,24 +35,27 @@ public:
 
     /// virtual Destructor
 #if defined(_MSC_VER) && (_MSC_VER <= 1600)
-    virtual ~BMPFactory() {};
+    virtual ~BMPFactory() {
+    };
 #else
     virtual ~BMPFactory() = default;
 #endif /* less than VS2010 */
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient *conn, const string &bmpDBName) = 0;
+    virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
 
     /*!
      * \brief Set raster data if needed
      * This function is not required for each BMP, so DO NOT define as pure virtual function.
      */
-    virtual void setRasterData(map<string, FloatRaster *> &sceneRsMap) {};
+    virtual void setRasterData(map<string, FloatRaster *>& sceneRsMap) {
+    };
+
     /*!
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    virtual float *getRasterData() { return nullptr; }
+    virtual float* getRasterData() { return nullptr; }
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
@@ -68,20 +72,20 @@ public:
     int GetSubScenarioId() { return m_subScenarioId; }
 
     /// Output
-    virtual void Dump(ostream *fs) = 0;
+    virtual void Dump(ostream* fs) = 0;
 
 protected:
-    const int m_scenarioId;     ///< Scenario ID
-    const int m_bmpId;          ///< BMP ID
-    const int m_subScenarioId;  ///< SubScenario ID within one BMP iD
-    const int m_bmpType;        ///< BMP Type
-    const int m_bmpPriority;    ///< BMP Priority
+    const int m_scenarioId; ///< Scenario ID
+    const int m_bmpId; ///< BMP ID
+    const int m_subScenarioId; ///< SubScenario ID within one BMP iD
+    const int m_bmpType; ///< BMP Type
+    const int m_bmpPriority; ///< BMP Priority
     /*! Distribution vector of BMP
      *  Origin format is [distribution data type]|[distribution parameter name]|Collection name|...
      */
     vector<string> m_distribution;
-    const string m_bmpCollection;  ///< Collection name
-    const string m_location;       ///< Define where the BMP will be applied
+    const string m_bmpCollection; ///< Collection name
+    const string m_location; ///< Define where the BMP will be applied
 };
 }
 #endif /* SEIMS_BMP_FACTORY_H */

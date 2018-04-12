@@ -223,7 +223,7 @@ class DelineateHillslope(object):
                     hillslope_mtx[tmp_row][tmp_col] = DEFAULT_NODATA
             # Output to raster file
             hillslope_out_new = hillslope_out
-            dirpath = os.path.dirname(hillslope_out_new) + os.sep
+            dirpath = os.path.dirname(hillslope_out_new) + os.path.sep
             corename = FileClass.get_core_name_without_suffix(hillslope_out_new)
             if method_id == 1:
                 hillslope_out_new = dirpath + corename + '_right.tif'
@@ -261,7 +261,7 @@ class DelineateHillslope(object):
             stream_data = numpy.copy(sequenced_stream_d)
             stream_nodata = DEFAULT_NODATA
             stream_core = FileClass.get_core_name_without_suffix(stream_raster)
-            stream_seq_file = os.path.dirname(stream_raster) + os.sep + stream_core + '_seq.tif'
+            stream_seq_file = os.path.dirname(stream_raster) + os.path.sep + stream_core + '_seq.tif'
             RasterUtilClass.write_gtiff_file(stream_seq_file, nrows, ncols, sequenced_stream_d,
                                              geotrans, srs, DEFAULT_NODATA, datatype)
             max_id = current_id
@@ -319,7 +319,12 @@ class DelineateHillslope(object):
 
 def main():
     """TEST CODE"""
-    from preprocess.config import parse_ini_configuration
+    import os
+    import sys
+    if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+        sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+        from preprocess.config import parse_ini_configuration
+
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link
     flowdirf = seims_cfg.spatials.d8flow

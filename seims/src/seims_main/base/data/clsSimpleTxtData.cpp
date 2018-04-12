@@ -3,10 +3,8 @@
 clsSimpleTxtData::clsSimpleTxtData(string fileName) : m_row(0), m_data(nullptr) {
     if (!FileExists(fileName)) {
         throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + fileName +
-            " does not exist or has not read permission.");
+                             " does not exist or has not read permission.");
     }
-
-    //StatusMessage(("read " + fileName + "...").c_str());
 
     ifstream myfile;
     myfile.open(fileName.c_str(), ifstream::in);
@@ -25,7 +23,7 @@ clsSimpleTxtData::clsSimpleTxtData(string fileName) : m_row(0), m_data(nullptr) 
                     vector<string> tokens = SplitString(line, '|');
                     if (!tokens.empty()) {
                         TrimSpaces(tokens[0]);
-                        data.push_back(float(atof(tokens[0].c_str())));//add data
+                        data.push_back(float(atof(tokens[0].c_str()))); //add data
                     }
                 }
             }
@@ -49,7 +47,7 @@ clsSimpleTxtData::~clsSimpleTxtData() {
     Release1DArray(m_data);
 }
 
-void clsSimpleTxtData::dump(ostream *fs) {
+void clsSimpleTxtData::dump(ostream* fs) {
     if (fs == nullptr) return;
     if (m_data == nullptr) return;
     for (int i = 0; i < m_row; i++) {
@@ -57,7 +55,7 @@ void clsSimpleTxtData::dump(ostream *fs) {
     }
 }
 
-void clsSimpleTxtData::getData(int *nRow, float **data) {
+void clsSimpleTxtData::getData(int* nRow, float** data) {
     *nRow = m_row;
     *data = m_data;
 }

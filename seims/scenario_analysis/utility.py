@@ -58,7 +58,7 @@ def delete_model_outputs(model_workdir, hostname, port, dbname):
     f_list = os.listdir(model_workdir)
     sids = list()
     for f in f_list:
-        outfilename = model_workdir + os.sep + f
+        outfilename = model_workdir + os.path.sep + f
         if os.path.isdir(outfilename):
             if len(f) > 9:
                 if MathClass.isnumerical(f[-9:]):

@@ -108,12 +108,12 @@ class PSAOutputs(object):
     """Predefined output files for parameters sensitivity analysis."""
     def __init__(self, wp):
         """Initialization."""
-        self.param_defs_json = wp + os.sep + 'param_defs.json'
-        self.param_values_txt = wp + os.sep + 'param_values.txt'
-        self.output_values_dir = wp + os.sep + 'temp_output_values'
-        self.output_values_txt = wp + os.sep + 'output_values.txt'
-        self.psa_si_json = wp + os.sep + 'psa_si.json'
-        self.psa_si_sort_txt = wp + os.sep + 'psa_si_sorted.csv'
+        self.param_defs_json = wp + os.path.sep + 'param_defs.json'
+        self.param_values_txt = wp + os.path.sep + 'param_values.txt'
+        self.output_values_dir = wp + os.path.sep + 'temp_output_values'
+        self.output_values_txt = wp + os.path.sep + 'output_values.txt'
+        self.psa_si_json = wp + os.path.sep + 'psa_si.json'
+        self.psa_si_sort_txt = wp + os.path.sep + 'psa_si_sorted.csv'
         UtilClass.mkdir(self.output_values_dir)
 
 
@@ -173,11 +173,11 @@ class PSAConfig(object):
         self.fast = None
         if self.method == 'fast':
             self.fast = FASTConfig(cf)
-            self.param_range_def = self.model_dir + os.sep + self.fast.param_range_def
+            self.param_range_def = self.model_dir + os.path.sep + self.fast.param_range_def
             self.psa_outpath = '%s/PSA-FAST-N%dM%d' % (self.model_dir, self.fast.N, self.fast.M)
         elif self.method == 'morris':
             self.morris = MorrisConfig(cf)
-            self.param_range_def = self.model_dir + os.sep + self.morris.param_range_def
+            self.param_range_def = self.model_dir + os.path.sep + self.morris.param_range_def
             self.psa_outpath = '%s/PSA-Morris-N%dL%d' % (self.model_dir,
                                                          self.morris.N, self.morris.num_levels)
         if not FileClass.is_file_exists(self.param_range_def):

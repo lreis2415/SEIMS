@@ -11,6 +11,9 @@
 from __future__ import absolute_import
 
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from numpy import frompyfunc as np_frompyfunc
 from osgeo.gdal import GDT_Float32
@@ -107,7 +110,7 @@ class LanduseUtilClass(object):
 
         # Generate GTIFF
         for item, v in list(replace_dicts.items()):
-            filename = dst_dir + os.sep + item + '.tif'
+            filename = dst_dir + os.path.sep + item + '.tif'
             print(filename)
             RasterUtilClass.raster_reclassify(landcover_file, v, filename)
         return list(replace_dicts['LANDCOVER'].values())
@@ -153,7 +156,7 @@ class LanduseUtilClass(object):
                 if code not in list(cur_dict.keys()):
                     cur_dict[code] = dic.get(code)
             replace_dicts.append(cur_dict)
-            dst_crop_tifs.append(dst_dir + os.sep + cur_attr + '.tif')
+            dst_crop_tifs.append(dst_dir + os.path.sep + cur_attr + '.tif')
         # print(replace_dicts)
         # print(len(replace_dicts))
         # print(dst_crop_tifs)

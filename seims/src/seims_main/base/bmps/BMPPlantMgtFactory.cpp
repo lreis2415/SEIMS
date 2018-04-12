@@ -5,14 +5,14 @@ using namespace MainBMP;
 BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
                                        const string& collection, const string& location) :
-    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
+    BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
+    m_mgtFieldsRs(nullptr), m_luccID(-1), m_parameters(nullptr) {
     if (m_distribution.size() >= 2 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_mgtFieldsName = m_distribution[1];
-    }
-    else {
+    } else {
         throw ModelException("BMPPlantMgtFactory", "Initialization",
-            "The distribution field must follow the format: "
-            "RASTER|CoreRasterName.\n");
+                             "The distribution field must follow the format: "
+                             "RASTER|CoreRasterName.\n");
     }
     if (StringMatch(location, "ALL")) {
         m_location.clear();
@@ -167,7 +167,7 @@ void BMPPlantMgtFactory::Dump(ostream *fs) {
     if (nullptr == fs) return;
     *fs << "Plant Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << " Name = " << m_name << endl;
-    for (auto it = m_bmpSequence.begin(); it != m_bmpSequence.end(); it++) {
+    for (auto it = m_bmpSequence.begin(); it != m_bmpSequence.end(); ++it) {
         auto findIdx = m_bmpPlantOps.find(*it);
         if (findIdx != m_bmpPlantOps.end()) {
             m_bmpPlantOps[*it]->dump(fs);
