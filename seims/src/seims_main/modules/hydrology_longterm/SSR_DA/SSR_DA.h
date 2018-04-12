@@ -128,7 +128,7 @@ private:
 
     /**
     *	@brief percentage of flow out to current cell from each upstream cells, this used for MFD flow direction algorithms
-    *
+    *   @TODO Current version have not fully considered MFD algorithms.
     *	It has the same data structure as m_flowInIndex.
     */
     float **m_flowInPercentage;
