@@ -8,7 +8,6 @@
 #ifndef SEIMS_MEASUREMENT_H
 #define SEIMS_MEASUREMENT_H
 
-#include "utilities.h"
 #include "MongoUtil.h"
 
 using namespace std;
@@ -18,30 +17,29 @@ using namespace std;
  * \class Measurement
  * \brief Get HydroClimate measurement data from MongoDB
  */
-class Measurement {
+class Measurement: NotCopyable {
 public:
     /*!
-     * \brief Constructor
-     *
-     * Initialize Measurement instance from MongoDB
+     * \brief Initialize Measurement instance from MongoDB
      *
      * \param[in] conn \a MongoClient, MongoDB client
      * \param[in] hydroDBName \a string, HydroClimate database name
-     * \param[in] siteType \a string, site type
-     * \param[in] startDate \a time_t, start date time
-     * \param[in] endDate \a time_t, end date time
+     * \param[in] sitesList \a string, sites list
+     * \param[in] siteType \a string, sites type
+     * \param[in] startTime \a time_t, start date time
+     * \param[in] endTime \a time_t, end date time
      */
-    Measurement(MongoClient *conn, string& hydroDBName, string& sitesList, string& siteType,
-                time_t startDate, time_t endDate);
+    Measurement(MongoClient* conn, string& hydroDBName, string& sitesList, string& siteType,
+                time_t startTime, time_t endTime);
 
     //! Destructor
     virtual ~Measurement();
 
     //! Get site data by time
-    virtual float *GetSiteDataByTime(time_t t) = 0;
+    virtual float* GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites() const { return (int) m_siteIDList.size(); }
+    int NumberOfSites() const { return int(m_siteIDList.size()); }
 
     //! Get HydroClimate site type, "M" or "P"
     string Type() const { return m_type; }

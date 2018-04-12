@@ -1,11 +1,11 @@
 #include "Settings.h"
 
 Settings::Settings(vector<string>& str1dvec) {
-    SetSettingTagStrings(str1dvec);
+    Settings::SetSettingTagStrings(str1dvec);
 }
 
 string Settings::GetValue(const string& tag) {
-    string res = "";
+    string res;
     if (!m_Settings.empty()) {
         for (size_t idx = 0; idx < m_Settings.size(); idx++) {
             assert(m_Settings[idx].size() == 2);
@@ -34,7 +34,7 @@ void Settings::SetSettingTagStrings(vector<string>& stringvector) {
             if (!tokens[0].empty()) {
                 // there is something to add so resize the header list to append it
                 size_t sz = m_Settings.size(); // get the current number of rows
-                m_Settings.resize(sz + 1);  // resize with one more row
+                m_Settings.resize(sz + 1); // resize with one more row
                 m_Settings[sz] = tokens;
             } // if there is nothing in the first item of the token list there is nothing to add to the header list
         }

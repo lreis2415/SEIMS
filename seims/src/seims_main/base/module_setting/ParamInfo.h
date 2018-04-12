@@ -10,7 +10,6 @@
 #define SEIMS_PARAMETER_INFO_H
 
 #include "MetadataInfoConst.h"
-#include "text.h"
 #include "utilities.h"
 
 using namespace std;
@@ -20,9 +19,6 @@ using namespace std;
  * \class ParamInfo
  *
  * \brief Class to store and manage parameter information from the parameter database
- *
- *
- *
  */
 class ParamInfo {
 public:
@@ -30,7 +26,7 @@ public:
     ParamInfo();
 
     //! Copy constructor
-    ParamInfo(const ParamInfo &another);
+    ParamInfo(const ParamInfo& another);
 
     //! Destructor
     ~ParamInfo();
@@ -44,24 +40,24 @@ public:
     float GetAdjustedValue(float pre_value = NODATA_VALUE);
 
     //! Adjust 1D array
-    void Adjust1DArray(int n, float *data);
+    void Adjust1DArray(int n, float* data);
 
     //! Adjust 1D Raster, \sa Adjust1DArray()
-    void Adjust1DRaster(int n, float *data);
+    void Adjust1DRaster(int n, float* data);
 
     //! Adjust 1D Raster on selected area
-    void Adjust1DRaster(int n, float *data, const float *units, vector<int> selunits,
-                        const float *lu, vector<int> sellu);
+    void Adjust1DRaster(int n, float* data, const float* units, vector<int> selunits,
+                        const float* lu, vector<int> sellu);
 
     //! Adjust 2D array
-    void Adjust2DArray(int n, float **data);
+    void Adjust2DArray(int n, float** data);
 
     //! Adjust 2D Raster
-    void Adjust2DRaster(int n, int lyr, float **data);
+    void Adjust2DRaster(int n, int lyr, float** data);
 
     //! Adjust 1D Raster on selected area
-    void Adjust2DRaster(int n, int lyr, float **data, float *units, vector<int> selunits,
-                        float *lu, vector<int> sellu);
+    void Adjust2DRaster(int n, int lyr, float** data, float* units, vector<int> selunits,
+                        float* lu, vector<int> sellu);
 
     //! Name
     string Name;
@@ -88,7 +84,7 @@ public:
     //! Absolute minimum value
     float Minimun;
     //! Dependence parameters
-    ParamInfo *DependPara;
+    ParamInfo* DependPara;
     //! Climate type
     string ClimateType;
     //! Is constant or not

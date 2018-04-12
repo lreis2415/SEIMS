@@ -19,33 +19,30 @@ using namespace std;
  * \class Settings
  * \brief Base class for input or output Settings
  */
-class Settings: public DefaultConstructor {
+class Settings: NotCopyable, public DefaultConstructor {
 public:
     //! Constructor
     Settings() {};
 
     //! Constructor via 2D string vector
-    explicit Settings(vector<vector<string> > &str2dvec) : m_Settings(str2dvec) {};
+    explicit Settings(vector<vector<string> >& str2dvec) : m_Settings(str2dvec) {};
 
     //! Constructor via 1D string vector
-    explicit Settings(vector<string> &str1dvec);
-
-    //! Destructor
-    //virtual ~Settings() = default;
+    explicit Settings(vector<string>& str1dvec);
 
     //! Set Settings vector directly
-    virtual void SetSettingTagStrings(vector<vector<string> > &string2dvector) {
+    virtual void SetSettingTagStrings(vector<vector<string> >& string2dvector) {
         m_Settings = string2dvector;
     }
 
     //! Parse and Set Settings vector by splitting strings
-    virtual void SetSettingTagStrings(vector<string> &stringvector);
+    virtual void SetSettingTagStrings(vector<string>& stringvector);
 
     //! Return the value for the entry with the given tag, "" if not found
-    string GetValue(const string &tag);
+    string GetValue(const string& tag);
 
     //! Output information to plain text file
-    virtual void Dump(string &filename) {};
+    virtual void Dump(const string& filename) {};
 
 public:
     //! Store setting key and values
