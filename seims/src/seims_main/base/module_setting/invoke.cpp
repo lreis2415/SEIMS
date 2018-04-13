@@ -11,12 +11,12 @@ InputArgs* InputArgs::Init(int argc, const char** argv) {
     int calibrationID = -1; /// By default, no calibration ID is needed.
     /// Parse input arguments.
     int i = 0;
+    char* strend = nullptr;
+    errno = 0;
     if (argc < 2) {
         cout << "Error: To run the program, use either the Simple Usage option or Usage option as below." << endl;
         goto errexit;
     }
-    char* strend = nullptr;
-    errno = 0;
 
     if (argc <= 8 && argv[1][0] != '-') {
         // old style, i.e., arguments arranged in a fixed order
