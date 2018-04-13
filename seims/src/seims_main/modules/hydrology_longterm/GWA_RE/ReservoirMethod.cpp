@@ -1,17 +1,21 @@
 #include "seims.h"
 #include "ReservoirMethod.h"
 
-ReservoirMethod::ReservoirMethod() : m_TimeStep(-1), m_nCells(-1), m_nSubbasins(-1), m_subbasinID(-1), m_nMaxSoilLayers(-1),
-                                     m_soilDepth(nullptr), m_soilLayers(nullptr), m_soilThick(nullptr), m_Slope(nullptr),
-                                     m_VgroundwaterFromBankStorage(nullptr), m_subbasinsInfo(nullptr),
+ReservoirMethod::ReservoirMethod() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nMaxSoilLayers(-1),
+                                     m_soilLayers(nullptr), m_soilThick(nullptr),
                                      m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
-                                     m_perc(nullptr), m_D_EI(nullptr), m_D_ED(nullptr), m_D_ES(nullptr), m_D_PET(nullptr),
-                                     m_plantEP(nullptr), m_soilStorage(nullptr),
-    /// intermediate
-                                     m_petSubbasin(nullptr), m_gwStore(nullptr),
-    /// outputs
-                                     m_T_Perco(nullptr), m_T_PerDep(nullptr), m_T_RG(nullptr), m_T_QG(nullptr), m_D_Revap(nullptr),
-                                     m_T_Revap(nullptr), m_firstRun(true), m_T_GWWB(nullptr) {
+                                     m_perc(nullptr), m_D_EI(nullptr), m_D_ED(nullptr),
+                                     m_D_ES(nullptr), m_plantEP(nullptr),
+                                     m_D_PET(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
+                                     m_petSubbasin(nullptr), m_gwStore(nullptr), m_Slope(nullptr), m_soilStorage(nullptr),
+                                     m_soilDepth(nullptr),
+                                     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
+                                     /// intermediate
+                                     m_T_PerDep(nullptr), m_T_RG(nullptr),
+                                     /// outputs
+                                     m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
+                                     m_nSubbasins(-1),
+                                     m_subbasinID(-1), m_firstRun(true), m_subbasinsInfo(nullptr) {
 }
 
 ReservoirMethod::~ReservoirMethod() {
@@ -47,22 +51,22 @@ void ReservoirMethod::initialOutputs() {
 int ReservoirMethod::Execute() {
     CheckInputData();
     initialOutputs();
-    float QGConvert = 1.f * m_CellWidth * m_CellWidth / (m_TimeStep) / 1000.f; // mm ==> m3/s
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    float QGConvert = 1.f * m_CellWidth * m_CellWidth / m_TimeStep / 1000.f; // mm ==> m3/s
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int subID = *it;
-        Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(subID);
+        Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(subID);
 
         // get percolation from the bottom soil layer at the subbasin scale
         int curCellsNum = curSub->getCellCount();
-        int *curCells = curSub->getCells();
+        int* curCells = curSub->getCells();
         float perco = 0.f;
 #pragma omp parallel for reduction(+:perco)
         for (int i = 0; i < curCellsNum; i++) {
             int index = 0;
             index = curCells[i];
-            float tmp_perc = m_perc[index][(int)m_soilLayers[index] - 1];
+            float tmp_perc = m_perc[index][static_cast<int>(m_soilLayers[index]) - 1];
             if (tmp_perc > 0) perco += tmp_perc;
-            else m_perc[index][(int)m_soilLayers[index] - 1] = 0.f;
+            else m_perc[index][static_cast<int>(m_soilLayers[index]) - 1] = 0.f;
         }
         perco /= curCellsNum; // mean mm
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
@@ -92,7 +96,7 @@ int ReservoirMethod::Execute() {
         revap = (fPET - fEI - fED - fES - plantEP) * m_gwStore[subID] / m_GWMAX;
         if (revap != revap) {
             cout << "fPET: " << fPET << ", fEI: " << fEI << ", fED: " << fED << ", fES: " << fES << ", plantEP: "
-                << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
+                    << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
             throw ModelException(MID_GWA_RE, "Execute", "revap calculation wrong!");
         }
         revap = max(revap, 0.f);
@@ -145,15 +149,15 @@ int ReservoirMethod::Execute() {
         if (groundStorage != groundStorage) {
             ostringstream oss;
             oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwStore[subID]
-                << "\t" << m_Kg << "\t" <<
-                m_Base_ex << "\t" << slopeCoef << endl;
+                    << "\t" << m_Kg << "\t" <<
+                    m_Base_ex << "\t" << slopeCoef << endl;
             throw ModelException("Subbasin", "setInputs", oss.str());
         }
         m_T_Perco[subID] = curSub->getPerco();
         m_T_Revap[subID] = curSub->getEG();
         m_T_PerDep[subID] = curSub->getPerde();
-        m_T_RG[subID] = curSub->getRG();                //get rg of specific subbasin
-        m_T_QG[subID] = curSub->getQG();                //get qg of specific subbasin
+        m_T_RG[subID] = curSub->getRG(); //get rg of specific subbasin
+        m_T_QG[subID] = curSub->getQG(); //get qg of specific subbasin
         m_petSubbasin[subID] = curSub->getPET();
         m_gwStore[subID] = curSub->getGW();
     }
@@ -161,9 +165,9 @@ int ReservoirMethod::Execute() {
     m_T_Perco[0] = m_subbasinsInfo->subbasin2basin(VAR_PERCO);
     m_T_Revap[0] = m_subbasinsInfo->subbasin2basin(VAR_REVAP);
     m_T_PerDep[0] = m_subbasinsInfo->subbasin2basin(VAR_PERDE);
-    m_T_RG[0] = m_subbasinsInfo->subbasin2basin(VAR_RG);  // get rg of entire watershed
+    m_T_RG[0] = m_subbasinsInfo->subbasin2basin(VAR_RG); // get rg of entire watershed
     m_gwStore[0] = m_subbasinsInfo->subbasin2basin(VAR_GW_Q);
-    m_T_QG[0] = m_subbasinsInfo->subbasin2basin(VAR_QG);  // get qg of entire watershed
+    m_T_QG[0] = m_subbasinsInfo->subbasin2basin(VAR_QG); // get qg of entire watershed
 
     // output to GWWB
     for (int i = 0; i <= m_nSubbasins; i++) {
@@ -176,14 +180,14 @@ int ReservoirMethod::Execute() {
     }
 
     // update soil moisture
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
-        Subbasin *sub = m_subbasinsInfo->GetSubbasinByID(*it);
-        int *cells = sub->getCells();
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
+        Subbasin* sub = m_subbasinsInfo->GetSubbasinByID(*it);
+        int* cells = sub->getCells();
         int nCells = sub->getCellCount();
         int index = 0;
         for (int i = 0; i < nCells; i++) {
             index = cells[i];
-            m_soilStorage[index][(int) m_soilLayers[index] - 1] += sub->getEG();
+            m_soilStorage[index][static_cast<int>(m_soilLayers[index]) - 1] += sub->getEG();
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }
@@ -219,7 +223,7 @@ bool ReservoirMethod::CheckInputData() {
     return true;
 }
 
-bool ReservoirMethod::CheckInputSize(const char *key, int n) {
+bool ReservoirMethod::CheckInputSize(const char* key, int n) {
     if (n <= 0) {
         throw ModelException(MID_GWA_RE, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
@@ -229,17 +233,17 @@ bool ReservoirMethod::CheckInputSize(const char *key, int n) {
             m_nCells = n;
         } else {
             throw ModelException(MID_GWA_RE, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;
 }
 
 // set value
-void ReservoirMethod::SetValue(const char *key, float value) {
+void ReservoirMethod::SetValue(const char* key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
+    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = static_cast<int>(value); }
+    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread(static_cast<int>(value)); }
     else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
@@ -253,7 +257,7 @@ void ReservoirMethod::SetValue(const char *key, float value) {
     }
 }
 
-void ReservoirMethod::Set1DData(const char *key, int n, float *data) {
+void ReservoirMethod::Set1DData(const char* key, int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_GWNEW)) {
         m_VgroundwaterFromBankStorage = data;
@@ -282,7 +286,7 @@ void ReservoirMethod::Set1DData(const char *key, int n, float *data) {
     }
 }
 
-void ReservoirMethod::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void ReservoirMethod::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
     CheckInputSize(key, nrows);
     m_nMaxSoilLayers = ncols;
@@ -300,7 +304,7 @@ void ReservoirMethod::Set2DData(const char *key, int nrows, int ncols, float **d
     }
 }
 
-void ReservoirMethod::SetSubbasins(clsSubbasins *subbasins) {
+void ReservoirMethod::SetSubbasins(clsSubbasins* subbasins) {
     if (m_subbasinsInfo == nullptr) {
         m_subbasinsInfo = subbasins;
         // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()! lj
@@ -308,7 +312,7 @@ void ReservoirMethod::SetSubbasins(clsSubbasins *subbasins) {
     }
 }
 
-void ReservoirMethod::GetValue(const char *key, float *value) {
+void ReservoirMethod::GetValue(const char* key, float* value) {
     initialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_RG) && m_subbasinID > 0) { *value = m_T_RG[m_subbasinID]; }
@@ -320,7 +324,7 @@ void ReservoirMethod::GetValue(const char *key, float *value) {
     }
 }
 
-void ReservoirMethod::Get1DData(const char *key, int *nRows, float **data) {
+void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
     initialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_REVAP)) {
@@ -343,7 +347,7 @@ void ReservoirMethod::Get1DData(const char *key, int *nRows, float **data) {
     }
 }
 
-void ReservoirMethod::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     initialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_GWWB)) {
@@ -356,8 +360,8 @@ void ReservoirMethod::Get2DData(const char *key, int *nRows, int *nCols, float *
 }
 
 void ReservoirMethod::setSubbasinInfos() {
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
-        Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(*it);
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
+        Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
         if (curSub->getSlope() <= 0.f) {
             curSub->setSlope(m_Slope);
         }
