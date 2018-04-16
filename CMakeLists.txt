@@ -32,13 +32,24 @@ endif()
 if(POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
+### Set coding language
+PROJECT(SEIMS_ALL CXX C)
 ### SEIMS Version.
 SET(PRJNAME "SEIMS")
-#IF (PARALLEL STREQUAL MPI)
-SET(PRJNAME ${PRJNAME}_MPI_OMP)
-SET(WITH_MPI 1)
-SET(WITH_OMP 1)
-MESSAGE(STATUS "MPI&OpenMP version...")
+### Find MPI which is optional
+FIND_PACKAGE(MPI REQUIRED)
+IF(MPI_FOUND)
+  SET(WITH_MPI 1)
+  SET(PRJNAME ${PRJNAME}_MPI)
+  MESSAGE(STATUS "Compiling with MPI...")
+ENDIF()
+### Find OMP which is optional
+FIND_PACKAGE(OpenMP)
+IF(OPENMP_FOUND)
+  SET(WITH_OMP 1)
+  SET(PRJNAME ${PRJNAME}_OMP)
+  MESSAGE(STATUS "Compiling with OpenMP...")
+ENDIF()
 SET(PRJNAME ${PRJNAME}_ALL)
 PROJECT(${PRJNAME})
 
@@ -101,10 +112,11 @@ ENDIF(MSVC)
 ### Add standard paths or specified paths for Find libraries and headers.
 INCLUDE(AddFindPaths)
 
-### Find packages.
+### Set required packages.
 SET(WITH_GDAL 1)
 SET(WITH_MONGOC 1)
-SET(WITH_OPENMP 1)
+
+### Find required and optional packages set above.
 INCLUDE(FindPackages)
 
 ### Add subdirectories.
