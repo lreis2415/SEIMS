@@ -3,14 +3,14 @@
 
 Selected build environments：
 
-+ Windows-MSVC 2013-64bit with MSMPI-v8: [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master) 
++ Windows-MSVC 2013-64bit with MSMPI-v8: [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master)
 + Linux(Ubuntu trusty)-GCC-4.8 with MPICH2-3.0.4: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/SEIMS)
 
 ## 1.Brief introduction
 
-The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is an integrated, modular, parallellized, fully-distributed, and continuous Watershed modeling and scenario analysis system.
+The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is an integrated, modular, parallelized, fully-distributed watershed modeling and scenario analysis system.
 
-SEIMS is mainly written by **C++** with support of [GDAL](https://github.com/OSGeo/gdal), [Mongo-C-Driver](https://github.com/mongodb/mongo-c-driver), [OpenMP](https://en.wikipedia.org/wiki/OpenMP) and/or [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface), while **Python** is used for organizing the preprocessing, postprocessing, scenario analysis, etc. workflows. SEIMS is intented to be an open-source, cross-platform, and high performaced integrated watershed modeling system. Theoretically, SEIMS could be compiled by common used compiler (e.g. MSVC, GCC, and Clang) as 32-bit or 64-bit programs and run on any mainstream OS (e.g. Windows, Linux, and macOS).
+SEIMS is mainly written by **C++** with support of [GDAL](https://github.com/OSGeo/gdal), [Mongo-C-Driver](https://github.com/mongodb/mongo-c-driver), [OpenMP](https://en.wikipedia.org/wiki/OpenMP) and/or [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface), while **Python** is used for organizing the preprocessing, postprocessing, scenario analysis, etc. workflows. SEIMS is intented to be an open-source, cross-platform, and high performaced integrated watershed modeling system. Theoretically, SEIMS could be compiled by common used compiler (e.g. MSVC 2010+, GCC 4.6+, and Intel C++ 12.0+) as 32-bit or 64-bit programs and run on any mainstream OS (e.g. Windows, Linux, and macOS).
 
 SEIMS contains several module catogories, include **Hydrology, Erosion, Nutrient, Plant Growth, BMP Management**, etc. Algorithms are integrated from SWAT, LISEM, WetSpa Extension, DHSVM, CASC2D, etc.
 
