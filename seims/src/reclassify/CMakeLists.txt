@@ -10,7 +10,7 @@ install(TARGETS reclassify DESTINATION ${INSTALL_DIR})
 LIST(APPEND UTILS_APPS reclassify)
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
-IF (MSVC)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET reclassify PROPERTY FOLDER "UtilApps")
 ENDIF ()
 MESSAGE(STATUS "    Compiling ReClassify Raster done")

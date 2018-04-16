@@ -12,6 +12,6 @@ ADD_LIBRARY(module_setting STATIC ${SRC_LIST})
 TARGET_LINK_LIBRARIES(module_setting bmps data util)
 
 INSTALL(TARGETS module_setting DESTINATION ${INSTALL_DIR})
-IF (MSVC)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET module_setting PROPERTY FOLDER "base")
 ENDIF ()

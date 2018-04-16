@@ -10,7 +10,7 @@ install(TARGETS combine_raster DESTINATION ${INSTALL_DIR})
 LIST(APPEND UTILS_APPS combine_raster)
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
-IF (WIN32)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET combine_raster PROPERTY FOLDER "UtilApps")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Combine Raster done")

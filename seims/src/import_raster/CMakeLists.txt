@@ -11,7 +11,7 @@ install(TARGETS import_raster DESTINATION ${INSTALL_DIR})
 LIST(APPEND UTILS_APPS import_raster)
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
-IF (WIN32)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET import_raster PROPERTY FOLDER "UtilApps")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Import Raster done")
