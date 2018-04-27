@@ -17,6 +17,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot as plt
 import numpy
 from pygeoc.utils import StringClass
+import re
 
 LFs = ['\r', '\n', '\r\n']
 
@@ -160,7 +161,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     Args:
         method_paths(OrderedDict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
-        xname(list): the first is x field name in log file, and the second on is for plot,
+        xname(list): the first is x field name in log file, and the second is for plot,
                      the third and forth values are low and high limit (optional).
         yname(list): see xname
         gens(list): generation to be plotted
@@ -179,6 +180,12 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
+
+    # Check if xname or yname contains Chinese characters
+    zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+    if zhPattern.search(xname[1]) or zhPattern.search(yname[1]):
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+
     markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'k', 'k']
     linestyles = ['-', '--', '-.', ':']
@@ -310,7 +317,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         plt.close()
 
 
-def plot_hypervolume_by_method(method_paths, ws):
+def plot_hypervolume_by_method(method_paths, ws, cn=False):
     """Plot hypervolume"""
     hyperv = OrderedDict()
     for k, v in list(method_paths.items()):
@@ -333,6 +340,12 @@ def plot_hypervolume_by_method(method_paths, ws):
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
+    generation_str = 'Generation'
+    hyperv_str = 'Hypervolume index'
+    if cn:
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+        generation_str = u'进化代数'
+        hyperv_str = u'Hypervolume 指数'
     linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -350,8 +363,8 @@ def plot_hypervolume_by_method(method_paths, ws):
         xlebal.set_fontsize(20)
     for ylebal in yaxis.get_ticklabels():
         ylebal.set_fontsize(20)
-    plt.xlabel('Generation', fontsize=20)
-    plt.ylabel('Hypervolume index', fontsize=20)
+    plt.xlabel(generation_str, fontsize=20)
+    plt.ylabel(hyperv_str, fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
     fpath = ws + os.path.sep + 'hypervolume'
