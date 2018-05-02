@@ -169,11 +169,9 @@ private:
 
     ///daily average temperature of soil layer(deg C)
     float *m_sote;
-    ///percent organic matter in soil layer (%)
-    float **m_sol_om;
     ///bulk density of the soil (Mg/m3)
     float **m_sol_bd;
-    /// percent organic carbon in soil layer (%)
+    /// percent organic carbon in soil layer (%), replace organic matter (%)
     float **m_sol_cbn;
     ///amount of water stored in the soil layer on current day(mm H2O)
     float **m_soilStorage;

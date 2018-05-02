@@ -186,9 +186,7 @@ int SSR_DA::Execute() {
 
 void SSR_DA::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread(int(data));
-    } else if (StringMatch(s, VAR_T_SOIL)) {
+    if (StringMatch(s, VAR_T_SOIL)) {
         m_frozenT = data;
     } else if (StringMatch(s, VAR_KI)) {
         m_ki = data;

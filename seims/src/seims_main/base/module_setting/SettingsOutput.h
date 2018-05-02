@@ -46,7 +46,7 @@ public:
  * \class SettingsOutput
  * \brief
  */
-class SettingsOutput: NotCopyable, public Settings {
+class SettingsOutput: public Settings {
 public:
     /*!
      * \brief Constructor

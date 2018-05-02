@@ -137,8 +137,7 @@ bool SUR_MR::CheckInputSize(const char *key, int n) {
 
 void SUR_MR::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(key, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, Tag_HillSlopeTimeStep)) { m_dt = value; }
+    if (StringMatch(sk, Tag_HillSlopeTimeStep)) { m_dt = value; }
     else if (StringMatch(sk, VAR_T_SOIL)) { m_tFrozen = value; }
     else if (StringMatch(sk, VAR_K_RUN)) { m_kRunoff = value; }
     else if (StringMatch(sk, VAR_P_MAX)) { m_pMax = value; }
@@ -159,7 +158,7 @@ void SUR_MR::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_SOTE)) { m_soilTemp = data; }
     else if (StringMatch(sk, VAR_SOILLAYERS)) { m_soilLayers = data; }
     else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
-    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { m_impoundTrig = data; } 
+    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { m_impoundTrig = data; }
     else {
         throw ModelException(MID_SUR_MR, "Set1DData", "Parameter " + sk + " does not exist.");
     }

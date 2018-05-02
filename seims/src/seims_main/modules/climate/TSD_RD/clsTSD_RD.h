@@ -20,18 +20,19 @@ using namespace std;
  */
 class clsTSD_RD : public SimulationModule {
 public:
-    clsTSD_RD();
+    clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
+    }
 
-    ~clsTSD_RD();
+    ~clsTSD_RD() {};
 
     void Set1DData(const char *key, int n, float *data);
 
     void Get1DData(const char *key, int *n, float **data);
-    
+
 private:
-    /// data row number
-    int m_Rows;
+    /// data row number, i.e., number of stations
+    int m_nStations;
     /// time series data
-    float *m_Data;
+    float *m_stationData;
 };
 #endif /* SEIMS_MODULE_TSD_RD_H */

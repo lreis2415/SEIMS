@@ -100,27 +100,16 @@ void KinWavSed_OL::Set2DData(const char *key, int nrows, int ncols, float **data
 void KinWavSed_OL::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth)) { m_CellWidth = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = (int) data; }
-    else if (StringMatch(s, Tag_HillSlopeTimeStep)) {
-        m_TimeStep = data;//
-    } else if (StringMatch(s, VAR_OL_SED_ECO1)) {
-        m_eco1 = data;//
-    } else if (StringMatch(s, VAR_OL_SED_ECO2)) {
-        m_eco2 = data;//
-    } else if (StringMatch(s, VAR_OL_SED_CCOE)) { m_Ccoe = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
+    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
+    else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO1)) { m_eco1 = data; }
+    else if (StringMatch(s, VAR_OL_SED_ECO2)) { m_eco2 = data; }
+    else if (StringMatch(s, VAR_OL_SED_CCOE)) { m_Ccoe = data; }
     else {
         throw ModelException(MID_KINWAVSED_OL, "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
     }
 }
-
-//string KinWavSed_OL::toString(float value)
-//{
-//	ostringstream oss;
-//	oss << value;
-//	return oss.str();
-//}
 
 bool KinWavSed_OL::CheckInputData() {
     if (m_routingLayers == NULL) {
@@ -360,12 +349,12 @@ void KinWavSed_OL::GetSedimentInFlow(int id) {
 //	const float beta = 0.6f;
 //	const float _23 = 2.0f/3;
 //	float Perim,R,S,n;
-//	
+//
 //	for (int i=0; i<m_nCells; i++)
 //	{
 //		if (m_WH[i] > 0.0001f)
 //		{
-//			Perim = 2 * m_WH[i]/1000 + m_FlowWidth[i];    // mm to m -> /1000 
+//			Perim = 2 * m_WH[i]/1000 + m_FlowWidth[i];    // mm to m -> /1000
 //			if (Perim > 0)
 //				R = m_WH[i]/1000 * m_FlowWidth[i] / Perim;
 //			else
@@ -417,7 +406,7 @@ void KinWavSed_OL::WaterVolumeCalc() {
     }
 }
 
-void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the grid map  
+void KinWavSed_OL::CalcuFlowDetachment(int i)  //i is the id of the cell in the grid map
 {
     // correction for slope dx/DX, water spreads out over larger area
     float s = max(0.001f, m_Slope[i]);

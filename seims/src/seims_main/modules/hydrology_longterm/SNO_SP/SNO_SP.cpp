@@ -120,13 +120,12 @@ void SNO_SP::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_K_BLOW)) { m_kblow = data; }
     else if (StringMatch(s, VAR_T0)) { m_t0 = data; }
-    else if (StringMatch(s, VAR_T_SNOW)) { m_tsnow = data; } 
+    else if (StringMatch(s, VAR_T_SNOW)) { m_tsnow = data; }
     else if (StringMatch(s, VAR_LAG_SNOW)) { m_lagSnow = data; }
     else if (StringMatch(s, VAR_C_SNOW6)) { m_csnow6 = data; }
     else if (StringMatch(s, VAR_C_SNOW12)) { m_csnow12 = data; }
     else if (StringMatch(s, VAR_SNOCOVMX)) { m_snowCoverMax = data; }
     else if (StringMatch(s, VAR_SNO50COV)) { m_snowCover50 = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SNO_SP, "SetValue", "Parameter " + s + " does not exist.");
     }
@@ -137,7 +136,7 @@ void SNO_SP::Set1DData(const char *key, int n, float *data) {
     string s(key);
     if (StringMatch(s, VAR_TMEAN)) { m_tMean = data; }
     else if (StringMatch(s, VAR_TMAX)) { m_tMax = data; }
-    else if (StringMatch(s, VAR_NEPR)) { m_Pnet = data; } 
+    else if (StringMatch(s, VAR_NEPR)) { m_Pnet = data; }
     else {
         throw ModelException(MID_SNO_SP, "Set1DData", "Parameter " + s + " does not exist.");
     }

@@ -188,7 +188,7 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
     return Qkx;
 }
 
-// end code form LISEM 
+// end code form LISEM
 
 void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     const float beta = 0.6f;
@@ -339,8 +339,6 @@ void ImplicitKinematicWave_OL::SetValue(const char *key, float data) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_CellSize)) {
         m_nCells = int(data);
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_IKW_OL, "SetSingleData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

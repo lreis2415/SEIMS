@@ -400,8 +400,6 @@ void Muskingum::SetValue(const char *key, float data) {
         m_chS0 = data;
     } else if (StringMatch(sk, VAR_MSK_X)) {
         m_msk_x = data;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_CH_MSK, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

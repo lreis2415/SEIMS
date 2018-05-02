@@ -2,8 +2,8 @@
  * \brief Predefined string constants used in the code
  *        BE CAUTION, constant value must be aligned by SPACE, not TAB!
  * \author Junzhi Liu, LiangJun Zhu, Huiran Gao
- * \version 1.1
- * \date Jun. 2010, Apr.2016
+ * \version 1.2
+ * \date Jun.2010, Apr.2016, Apr.2018
  */
 #ifndef SEIMS_TEXT_H
 #define SEIMS_TEXT_H
@@ -29,22 +29,22 @@
 #define DataType_WindSpeed                     "WS"            //7
 #define DataType_RelativeAirMoisture           "RM"            //8
 #define DataType_Meteorology                   "M"             // Suffix of meteorology data
-#define DataType_Prefix_TS                     "T"             // Prefix of time series data
+#define DataType_Prefix_TS                     "T"             // Prefix of time series data, m_stationData
 #define DataType_Prefix_DIS                    "D"             // Prefix of distributed data
 
-/// Tags of climate related data
-#define Tag_DEM                                "DEM"
-#define Tag_Elevation_Meteorology              "StationElevation_M"
-#define Tag_Elevation_PET                      "StationElevation_PET"
-#define Tag_Elevation_Precipitation            "StationElevation_P"
-#define Tag_Elevation_Temperature              "StationElevation_T"
-#define Tag_LapseRate                          "LapseRate"
+/// Tags of climate related data.
+///     MacroName                              StringNameInDatabase      // VariableNameInModules
+#define Tag_DEM                                "DEM"                     // m_dem
+#define Tag_Elevation_Meteorology              "StationElevation_M"      // m_hStations
+#define Tag_Elevation_PET                      "StationElevation_PET"    // m_hStations
+#define Tag_Elevation_Precipitation            "StationElevation_P"      // m_hStations
+#define Tag_Elevation_Temperature              "StationElevation_T"      // m_hStations
+#define Tag_LapseRate                          "LapseRate"               // m_lapseRate
 #define Tag_Latitude_Meteorology               "Latitude_M"
-#define Tag_ProjectsPath                       "ProjectsPath"
-#define Tag_StationElevation                   "StationElevation"
-#define Tag_VerticalInterpolation              "VERTICALINTERPOLATION"
-#define Tag_Weight                             "WEIGHT"
-#define Tag_DataType                           "DATATYPE"   /// For TSD_RD module
+#define Tag_StationElevation                   "StationElevation"        // m_hStations
+#define Tag_VerticalInterpolation              "VERTICALINTERPOLATION"   // m_itpVertical
+#define Tag_Weight                             "WEIGHT"                  // m_itpWeights
+#define Tag_DataType                           "DATATYPE"                // m_dataType
 ///////  define parameter calibration related string constants  ///////
 #define PARAM_CHANGE_VC                        "VC"  // replace by a value
 #define PARAM_CHANGE_RC                        "RC"  // multiply a ratio, which is diff from SWAT: * (1+ratio)
@@ -728,7 +728,6 @@
 #define VAR_OL_SED_ECO2 "eco2"
 #define VAR_OLAI "olai"
 #define VAR_OMEGA "Omega"
-#define VAR_OMP_THREADNUM "ThreadNum"               /// Thread numbers for OMP
 #define VAR_CH_ORGN "CH_ORGN"
 #define VAR_CH_ORGNConc "CH_ORGNConc"
 #define VAR_CH_ORGP "CH_ORGP"

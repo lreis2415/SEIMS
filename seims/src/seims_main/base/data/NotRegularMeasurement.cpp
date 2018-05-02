@@ -65,7 +65,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
             }
 
             if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_UTC)) {
-                dt = GetDatetimeFromBsonIterator(&iter) / 1000.f;
+                dt = static_cast<time_t>(GetDatetimeFromBsonIterator(&iter) * 0.001f);
             } else {
                 throw ModelException("NotRegularMeasurement", "NotRegularMeasurement",
                                      "The Value field: " + string(MONG_HYDRO_DATA_UTC) +

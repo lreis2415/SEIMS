@@ -17,7 +17,7 @@ ImplicitKinematicWave_CH::ImplicitKinematicWave_CH(void) : m_nCells(-1), m_chNum
 {
 }
 
-ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {    
+ImplicitKinematicWave_CH::~ImplicitKinematicWave_CH(void) {
     Release2DArray(m_chNumber, m_hCh);
     Release2DArray(m_chNumber, m_qCh);
     Release2DArray(m_chNumber, m_flowLen);
@@ -91,7 +91,7 @@ float ImplicitKinematicWave_CH::GetNewQ(float qIn, float qLast, float surplus, f
     return Qkx;
 }
 
-// end code form LISEM 
+// end code form LISEM
 
 bool ImplicitKinematicWave_CH::CheckInputData(void) {
     if (m_date <= 0) {
@@ -393,9 +393,7 @@ void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
-        m_layeringMethod = (LayeringMethod) int(data);;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
+        m_layeringMethod = (LayeringMethod) int(data);
     } else {
         throw ModelException(MID_IKW_CH, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

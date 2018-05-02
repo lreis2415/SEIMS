@@ -13,7 +13,7 @@ using namespace std;
 /** \defgroup ITP
  * \ingroup Climate
  * \brief Interpolation Module
- *  
+ *
  */
 /*!
  * \class Interpolate
@@ -67,10 +67,10 @@ private:
     /// count of valid cells
     int m_nCells;
     /// weights of each sites of all valid cells
-    float *m_weights;
+    float *m_itpWeights;
 
     /// whether using vertical interpolation
-    bool m_vertical;
+    bool m_itpVertical;
     /// elevation of stations
     float *m_hStations;
     /// elevation of cells

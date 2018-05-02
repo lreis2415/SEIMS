@@ -192,7 +192,6 @@ void MUSK_CH::SetValue(const char *key, float value) {
     else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = int(value); }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = int(value); }
     else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = LayeringMethod(int(value)); }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread(int(value)); }
     else if (StringMatch(sk, VAR_EP_CH)) { m_Epch = value; }
     else if (StringMatch(sk, VAR_BNK0)) { m_Bnk0 = value; }
     else if (StringMatch(sk, VAR_CHS0_PERC)) { m_Chs0_perc = value; }
@@ -319,7 +318,7 @@ void MUSK_CH::SetScenario(Scenario *sce) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
                 // m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second; // use C++11 style
-                m_ptSrcFactory[it->first] = dynamic_cast<BMPPointSrcFactory*>(it->second);
+                m_ptSrcFactory[it->first] = static_cast<BMPPointSrcFactory*>(it->second);
             }
         }
     } else {

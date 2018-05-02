@@ -25,7 +25,7 @@ int SET_LM::Execute() {
         if (etDeficiency <= 0.f) continue;
         for (int j = 0; j < (int) m_soilLayers[i]; j++) {
             float et2d = 0.f;
-            if (m_sm[i][j] >= m_fc[i][j]) { et2d = etDeficiency; } 
+            if (m_sm[i][j] >= m_fc[i][j]) { et2d = etDeficiency; }
             else if (m_sm[i][j] >= m_wp[i][j]) {
                 et2d = etDeficiency * (m_sm[i][j] - m_wp[i][j]) / (m_fc[i][j] - m_wp[i][j]);
             } else { et2d = 0.0f; }
@@ -55,7 +55,7 @@ int SET_LM::Execute() {
 void SET_LM::Get1DData(const char *key, int *nRows, float **data) {
     initialOutputs();
     string s(key);
-    if (StringMatch(s, VAR_SOET)) { *data = m_soilET; } 
+    if (StringMatch(s, VAR_SOET)) { *data = m_soilET; }
     else {
         throw ModelException(MID_SET_LM, "Get1DData", "Result " + s + " does not exist.");
     }
@@ -64,8 +64,7 @@ void SET_LM::Get1DData(const char *key, int *nRows, float **data) {
 
 void SET_LM::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_T_SOIL)) { m_frozenT = data; } 
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); } 
+    if (StringMatch(s, VAR_T_SOIL)) { m_frozenT = data; }
     else {
         throw ModelException(MID_SET_LM, "SetValue", "Parameter " + s + " does not exist.");
     }
@@ -74,12 +73,12 @@ void SET_LM::SetValue(const char *key, float data) {
 void SET_LM::Set1DData(const char *key, int nRows, float *data) {
     string s(key);
     CheckInputSize(key, nRows);
-    if (StringMatch(s, VAR_SOILLAYERS)) { m_soilLayers = data; } 
-    else if (StringMatch(s, VAR_INET)) { m_EI = data; } 
-    else if (StringMatch(s, VAR_PET)) { m_PET = data; } 
+    if (StringMatch(s, VAR_SOILLAYERS)) { m_soilLayers = data; }
+    else if (StringMatch(s, VAR_INET)) { m_EI = data; }
+    else if (StringMatch(s, VAR_PET)) { m_PET = data; }
     else if (StringMatch(s, VAR_DEET)) { m_ED = data; }
     else if (StringMatch(s, VAR_PPT)) { m_plantET = data; }
-    else if (StringMatch(s, VAR_SOTE)) { m_soilT = data; } 
+    else if (StringMatch(s, VAR_SOTE)) { m_soilT = data; }
     else {
         throw ModelException(MID_SET_LM, "SetValue", "Parameter " + s + " does not exist.");
     }
@@ -88,8 +87,8 @@ void SET_LM::Set1DData(const char *key, int nRows, float *data) {
 void SET_LM::Set2DData(const char *key, int nrows, int ncols, float **data) {
     string sk(key);
     CheckInputSize(key, nrows);
-    if (StringMatch(sk, VAR_FIELDCAP)) { m_fc = data; } 
-    else if (StringMatch(sk, VAR_WILTPOINT)) { m_wp = data; } 
+    if (StringMatch(sk, VAR_FIELDCAP)) { m_fc = data; }
+    else if (StringMatch(sk, VAR_WILTPOINT)) { m_wp = data; }
     else if (StringMatch(sk, VAR_SOL_ST)) { m_sm = data; }
     else if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
     else {
@@ -117,7 +116,7 @@ bool SET_LM::CheckInputSize(const char *key, int n) {
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; } 
+        if (m_nCells <= 0) { m_nCells = n; }
         else {
             throw ModelException(MID_SET_LM, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");

@@ -127,6 +127,7 @@ int SEDR_SBAGNOLD::Execute() {
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
+        //int nReaches = static_cast<int>(it->second.size());
         int nReaches = CVT2INT(it->second.size());
 #pragma omp parallel for
         for (int i = 0; i < nReaches; ++i) {

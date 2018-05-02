@@ -5,31 +5,31 @@ using namespace std;
 
 Nutrient_Transformation::Nutrient_Transformation() :
 //input
-    m_nCells(-1), m_cellWidth(-1.f), m_nMaxSoilLayers(-1), m_cmn(-1.f), m_cdn(-1.f), m_sdnco(-1.f), m_nactfr(-1.f),
-    m_psp_bsn(-1.f), m_psp(nullptr), m_psp_store(nullptr), m_ssp_store(nullptr),
-    m_nSoilLayers(nullptr), m_sol_z(nullptr), m_sol_thick(nullptr), m_sol_clay(nullptr), m_sol_bd(nullptr),
-    m_landcover(nullptr), m_rsdco_pl(nullptr), m_sol_cbn(nullptr), m_a_days(nullptr), m_b_days(nullptr),
-    m_sol_wpmm(nullptr), m_sol_awc(nullptr), m_sol_wsatur(nullptr), m_sol_por(nullptr), m_sand(nullptr),
-    m_sol_solp(nullptr), m_sol_orgp(nullptr), m_sol_actp(nullptr), m_sol_stap(nullptr), m_sol_fop(nullptr),
-    m_sol_no3(nullptr), m_sol_nh4(nullptr), m_sol_orgn(nullptr), m_sol_aorgn(nullptr), m_sol_fon(nullptr),
-    m_sol_cov(nullptr), m_sol_rsd(nullptr),
+    m_cellWidth(-1.f), m_nCells(-1), m_nSoilLayers(nullptr), m_nMaxSoilLayers(-1), m_CbnModel(0), m_solP_model(0), m_a_days(nullptr),
+    m_b_days(nullptr), m_tillage_switch(nullptr), m_tillage_depth(nullptr), m_tillage_days(nullptr),
+    m_tillage_factor(nullptr), m_cmn(-1.f), m_nactfr(-1.f), m_sdnco(-1.f), m_psp_bsn(-1.f),
+    m_psp(nullptr), m_psp_store(nullptr), m_ssp_store(nullptr), m_cdn(-1.f), m_landcover(nullptr),
+    m_rsdco_pl(nullptr), m_sol_cov(nullptr), m_sol_rsdin(nullptr), m_sote(nullptr), m_sol_bd(nullptr),
+    m_sol_cbn(nullptr), m_soilStorage(nullptr), m_sol_awc(nullptr), m_sol_z(nullptr), m_sol_clay(nullptr), m_sol_rock(nullptr),
+    m_sol_thick(nullptr), m_sol_aorgn(nullptr), m_sol_fon(nullptr), m_sol_fop(nullptr), m_sol_actp(nullptr),
+    m_sol_stap(nullptr), m_sol_wsatur(nullptr), m_sol_por(nullptr),
     /// from other modules
-    m_soilStorage(nullptr), m_sote(nullptr),
+    m_sand(nullptr), m_sol_WOC(nullptr),
     /// cell scale output
-    m_hmntl(nullptr), m_hmptl(nullptr), m_rmn2tl(nullptr),
-    m_rmptl(nullptr), m_rwntl(nullptr), m_wdntl(nullptr), m_rmp1tl(nullptr), m_roctl(nullptr),
+    m_sol_WON(nullptr), m_sol_BM(nullptr), m_sol_BMC(nullptr),
+    m_sol_BMN(nullptr), m_sol_HP(nullptr), m_sol_HS(nullptr), m_sol_HSC(nullptr), m_sol_HSN(nullptr),
     /// watershed scale statistics
-    m_wshd_dnit(-1.f), m_wshd_hmn(-1.f), m_wshd_hmp(-1.f), m_wshd_rmn(-1.f), m_wshd_rmp(-1.f),
-    m_wshd_rwn(-1.f), m_wshd_nitn(-1.f), m_wshd_voln(-1.f), m_wshd_pal(-1.f), m_wshd_pas(-1.f),
-    m_solP_model(0), m_CbnModel(0),
+    m_sol_HPC(nullptr), m_sol_HPN(nullptr), m_sol_LM(nullptr), m_sol_LMC(nullptr), m_sol_LMN(nullptr),
+    m_sol_LSC(nullptr), m_sol_LSN(nullptr), m_sol_LS(nullptr), m_sol_LSL(nullptr), m_sol_LSLC(nullptr),
+    m_sol_LSLNC(nullptr), m_sol_RNMN(nullptr),
     /// tillage factor on SOM decomposition, used by CENTURY model
-    m_tillage_switch(nullptr), m_tillage_depth(nullptr), m_tillage_days(nullptr), m_tillage_factor(nullptr),
+    m_sol_RSPC(nullptr), m_hmntl(nullptr), m_hmptl(nullptr), m_rmn2tl(nullptr),
     /// CENTURY model related variables
-    m_sol_WOC(nullptr), m_sol_WON(nullptr), m_sol_BM(nullptr), m_sol_BMC(nullptr), m_sol_BMN(nullptr),
-    m_sol_HP(nullptr), m_sol_HS(nullptr), m_sol_HSC(nullptr), m_sol_HSN(nullptr), m_sol_HPC(nullptr),
-    m_sol_HPN(nullptr), m_sol_LM(nullptr), m_sol_LMC(nullptr), m_sol_LMN(nullptr), m_sol_LSC(nullptr),
-    m_sol_LSN(nullptr), m_sol_LS(nullptr), m_sol_LSL(nullptr), m_sol_LSLC(nullptr), m_sol_LSLNC(nullptr),
-    m_sol_RNMN(nullptr), m_sol_RSPC(nullptr),
+    m_rmptl(nullptr), m_rwntl(nullptr), m_wdntl(nullptr), m_rmp1tl(nullptr), m_roctl(nullptr),
+    m_sol_no3(nullptr), m_sol_orgn(nullptr), m_sol_orgp(nullptr), m_sol_rsd(nullptr), m_sol_solp(nullptr),
+    m_sol_nh4(nullptr), m_sol_wpmm(nullptr), m_wshd_dnit(-1.f), m_wshd_hmn(-1.f), m_wshd_hmp(-1.f),
+    m_wshd_rmn(-1.f), m_wshd_rmp(-1.f), m_wshd_rwn(-1.f), m_wshd_nitn(-1.f), m_wshd_voln(-1.f),
+    m_wshd_pal(-1.f), m_wshd_pas(-1.f),
     m_conv_wt(nullptr) {
 }
 
@@ -121,14 +121,13 @@ bool Nutrient_Transformation::CheckInputData() {
 
 void Nutrient_Transformation::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
+    if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     else if (StringMatch(sk, VAR_NACTFR)) { m_nactfr = value; }
     else if (StringMatch(sk, VAR_SDNCO)) { m_sdnco = value; }
     else if (StringMatch(sk, VAR_CMN)) { m_cmn = value; }
     else if (StringMatch(sk, VAR_CDN)) { m_cdn = value; }
     else if (StringMatch(sk, VAR_PSP)) { m_psp_bsn = value; }
-    else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
+    else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = int(value); }
     else {
         throw ModelException(MID_NUTR_TF, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -208,11 +207,11 @@ void Nutrient_Transformation::initialOutputs() {
         Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_conv_wt, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
+            for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
                 float wt1 = 0.f;
                 float conv_wt = 0.f;
                 // mg/kg => kg/ha
-                wt1 = m_sol_bd[i][k] * m_sol_thick[i][k] / 100.f;
+                wt1 = m_sol_bd[i][k] * m_sol_thick[i][k] * 0.01f;
                 // kg/kg => kg/ha
                 conv_wt = 1.e6f * wt1;
                 m_conv_wt[i][k] = conv_wt;
@@ -242,22 +241,15 @@ void Nutrient_Transformation::initialOutputs() {
             m_sol_fop[i][0] = m_sol_cov[i] * .0010f;
             m_sol_fon[i][0] = m_sol_cov[i] * .0055f;
 
-            for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
-                //float wt1 = 0.f;
-                //float conv_wt = 0.f;
-                //// mg/kg => kg/ha
-                //wt1 = m_sol_bd[i][k] * m_sol_thick[i][k] / 100.f;
-                //// kg/kg => kg/ha
-                //conv_wt = 1.e6f * wt1;
+            for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
                 float wt1 = m_conv_wt[i][k] * 1.e-6f;
                 /// if m_sol_no3 is not provided, { initialize it.
                 if (m_sol_no3[i][k] <= 0.f) {
                     m_sol_no3[i][k] = 0.f;
                     float zdst = 0.f;
-                    zdst = exp(-m_sol_z[i][k] / 1000.f);
+                    zdst = exp(-m_sol_z[i][k] * 0.001f);
                     m_sol_no3[i][k] = 10.f * zdst * 0.7f;
                     m_sol_no3[i][k] *= wt1;    // mg/kg => kg/ha
-                    //if(k == 0) outfile << m_sol_no3[i][k];
                 }
                 /// if m_sol_orgn is not provided, { initialize it.
                 if (m_sol_orgn[i][k] <= 0.f) {
@@ -291,7 +283,7 @@ void Nutrient_Transformation::initialOutputs() {
                     if (m_sol_clay[i][k] > 0.f) {
                         m_psp[i] = -0.045f * log(m_sol_clay[i][k]) + (0.001f * solp);
                         m_psp[i] = m_psp[i] - (0.035f * m_sol_cbn[i][k]) + 0.43f;
-                    } 
+                    }
                     //else { // although SWAT has this code, in my view, this should be commented.
                     //    m_psp[i] = 0.4f;
                     //}
@@ -364,12 +356,12 @@ void Nutrient_Transformation::initialOutputs() {
 
 #pragma omp parallel for
             for (int i = 0; i < m_nCells; i++) {
-                for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
+                for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
                     /// soil mass in each layer, kg/ha
-                    sol_mass = 10000.f * m_sol_thick[i][k] * m_sol_bd[i][k] * (1.f - m_sol_rock[i][k] / 100.f);
+                    sol_mass = 10000.f * m_sol_thick[i][k] * m_sol_bd[i][k] * (1.f - m_sol_rock[i][k] * 0.01f);
                     /// mineral nitrogen, kg/ha
                     //sol_min_n = m_sol_no3[i][k] + m_sol_nh4[i][k];
-                    m_sol_WOC[i][k] = sol_mass * m_sol_cbn[i][k] / 100.f;
+                    m_sol_WOC[i][k] = sol_mass * m_sol_cbn[i][k] * 0.01f;
                     m_sol_WON[i][k] = m_sol_aorgn[i][k] + m_sol_orgn[i][k];
                     /// fraction of Mirobial biomass, humus passive C pools
                     if (FBM < 1.e-10f) FBM = 0.04f;
@@ -385,7 +377,7 @@ void Nutrient_Transformation::initialOutputs() {
                     m_sol_HSN[i][k] = RTO * m_sol_HSC[i][k];
                     m_sol_HPC[i][k] = m_sol_HP[i][k]; /// same as sol_aorgn
                     m_sol_HPN[i][k] = RTO * m_sol_HPC[i][k]; // same as sol_orgn
-                    x1 = m_sol_rsd[i][k] / 1000.f;
+                    x1 = m_sol_rsd[i][k] * 0.001f;
                     m_sol_LM[i][k] = 500.f * x1;
                     m_sol_LS[i][k] = m_sol_LM[i][k];
                     m_sol_LSL[i][k] = 0.8f * m_sol_LS[i][k];
@@ -425,19 +417,6 @@ void Nutrient_Transformation::initialOutputs() {
 int Nutrient_Transformation::Execute() {
     CheckInputData();
     initialOutputs();
-    //int cellid = 3406;
-    //cout<<"NutrTF, pre solno3: ";
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	for (int j = 0; j < (int)m_nSoilLayers[i]; j++){
-    //		if (m_sol_no3[i][j] != m_sol_no3[i][j])
-    //			cout<<"cellid: "<<i<<"lyr: "<<j<<", "<<m_sol_no3[i][j]<<endl;
-    //	}
-    //}
-    //for (int j = 0; j < (int)m_nSoilLayers[cellid]; j++)
-    //	cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
-    //cout<<endl;
-    //cout<<"NUTR_TF, cell id: "<<cellid<<", sol_no3[0]: "<<m_sol_no3[cellid][0]<<endl;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // compute nitrogen and phosphorus mineralization
@@ -450,55 +429,23 @@ int Nutrient_Transformation::Execute() {
         } else { /// throw exception if Carbon method invalid
             throw ModelException(MID_NUTR_TF, "ComputeCNPCycling", "Carbon modeling method must be 0, 1, or 2.");
         }
-        //if (i == cellid){
-        //	cout<<"NutrTF, after mineralization solno3: ";
-        //	for (int j = 0; j < (int)m_nSoilLayers[cellid]; j++)
-        //		cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
-        //	cout<<endl;
-        //}
         //Calculate daily mineralization (NH3 to NO3) and volatilization of NH3
         Volatilization(i);
-        //if (i == cellid){
-        //	cout<<"NutrTF, after Volatilization solno3: ";
-        //	for (int j = 0; j < (int)m_nSoilLayers[cellid]; j++)
-        //		cout<<j<<", "<<m_sol_no3[cellid][j]<<", ";
-        //	cout<<endl;
-        //}
         //Calculate P flux between the labile, active mineral and stable mineral P pools
         CalculatePflux(i);
     }
-    //cout<<"NUTR_TF after, ";
-    //for (int i = 0; i < m_nCells; i++)
-    //{
-    //	for (int j = 0; j < (int)m_nSoilLayers[i]; j++){
-    //		if (m_sol_no3[i][j] != m_sol_no3[i][j])
-    //			cout<<"cellid: "<<i<<"lyr: "<<j<<", "<<m_sol_no3[i][j]<<endl;
-    //	}
-    //}
-    // DEBUG
-    //cout << "NUTR_TF, cell id 14377, m_soilStorage: ";
-    //for (int i = 0; i < (int)m_nSoilLayers[14377]; i++)
-    //    cout << m_soilStorage[14377][i] << ", ";
-    //cout << endl;
-    // END OF DEBUG
     return 0;
 }
 
 void Nutrient_Transformation::Mineralization_StaticCarbonMethod(int i) {
     //soil layer (k)
-    for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
+    for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
         //soil layer used to compute soil water and soil temperature factors
-        int kk = 0;
-        if (k == 0) {
-            kk = 1;
-        } else {
-            kk = k;
-        }
+        int kk = k == 0 ? 1 : k;
         float sut = 0.f;
         // mineralization can occur only if temp above 0 deg
         if (m_sote[i] > 0) {
             // compute soil water factor (sut)
-            sut = 0.f;
             if (m_soilStorage[i][kk] < 0) {
                 m_soilStorage[i][kk] = 0.0000001f;
             }
@@ -583,7 +530,7 @@ void Nutrient_Transformation::Mineralization_StaticCarbonMethod(int i) {
                     if (cnr > 500) {
                         cnr = 500.f;
                     }
-                    cnrf = exp(-0.693f * (cnr - 25.f) / 25.f);
+                    cnrf = exp(-0.693f * (cnr - 25.f) * 0.04f);
                 } else {
                     cnrf = 1.f;
                 }
@@ -593,7 +540,7 @@ void Nutrient_Transformation::Mineralization_StaticCarbonMethod(int i) {
                         cpr = 5000.f;
                     }
                     cprf = 0.f;
-                    cprf = exp(-0.693f * (cpr - 200.f) / 200.f);
+                    cprf = exp(-0.693f * (cpr - 200.f) * 0.005f);
                 } else {
                     cprf = 1.f;
                 }
@@ -677,11 +624,11 @@ void Nutrient_Transformation::Mineralization_CFARMOneCarbonModel(int i) {
 void Nutrient_Transformation::Volatilization(int i) {
     //soil layer (k)
     float kk = 0.f;
-    for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
+    for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
         //nitrification/volatilization temperature factor (nvtf)
         float nvtf = 0.f;
         //Calculate nvtf, equation 3:1.3.1 in SWAT Theory 2009, p192
-        nvtf = 0.41f * (m_sote[i] - 5.f) / 10.f;
+        nvtf = 0.41f * (m_sote[i] - 5.f) * 0.1f;
         if (m_sol_nh4[i][k] > 0.f && nvtf >= 0.001f) {
             float sw25 = 0.f;
             float swwp = 0.f;
@@ -718,7 +665,7 @@ void Nutrient_Transformation::Volatilization(int i) {
             //volatilization CEC factor (cecf)
             float cecf = 0.15f;
             //Calculate nvtf, equation 3:1.3.2 and 3:1.3.3 in SWAT Theory 2009, p192
-            dmidl = (m_sol_z[i][k] + kk) / 2.f;
+            dmidl = (m_sol_z[i][k] + kk) * 0.5f;
             dpf = 1.f - dmidl / (dmidl + exp(4.706f - 0.0305f * dmidl));
             //Calculate rnv, equation 3:1.3.6, 3:1.3.7 and 3:1.3.8 in SWAT Theory 2009, p193
             akn = nvtf * swf;
@@ -763,15 +710,7 @@ void Nutrient_Transformation::Volatilization(int i) {
 }
 
 void Nutrient_Transformation::CalculatePflux(int i) {
-    // float wt1 = 0.f;
-    // float conv_wt = 0.f;
-    for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
-        // mg/kg => kg/ha
-        // wt1 = m_conv_wt[i][k] * 1.e-6f;
-        // wt1 = m_sol_bd[i][k] * m_sol_thick[i][k] / 100.f;
-        // kg/kg => kg/ha
-        // conv_wt = 1.e6f * wt1;
-
+    for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
         // make sure that no zero or negative pool values come in
         if (m_sol_solp[i][k] <= 1.e-6) m_sol_solp[i][k] = 1.e-6f;
         if (m_sol_actp[i][k] <= 1.e-6) m_sol_actp[i][k] = 1.e-6f;
@@ -864,7 +803,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         if (ssp > 10.f) ssp = 10.f;
         if (ssp < 0.7f) ssp = 0.7f;
         // Smooth ssp, no rapid changes
-        if (m_ssp_store[i][k] > 0.f) ssp = (ssp + m_ssp_store[i][k] * 99.f) / 100.f;
+        if (m_ssp_store[i][k] > 0.f) ssp = (ssp + m_ssp_store[i][k] * 99.f) * 0.01f;
         float roc = 0.f;
         roc = ssp * (m_sol_actp[i][k] + m_sol_actp[i][k] * rto);
         roc = roc - m_sol_stap[i][k];
@@ -896,30 +835,6 @@ void Nutrient_Transformation::CalculatePflux(int i) {
             m_roctl[i] += roc;
             m_rmp1tl[i] += rmn1;
         }
-
-        //////////////////////// pminrl.f ///////////////////////////
-// 		float bk = .0006f;
-//         float rmn1 = 0.f;
-//         rmn1 = (m_sol_solp[i][k] - m_sol_actp[i][k] * rto);
-//         if (rmn1 > 0.f) rmn1 *= 0.1f;
-//         if (rmn1 < 0.f)rmn1 *= 0.6f;
-//         rmn1 = min(rmn1, m_sol_solp[i][k]);
-//         //amount of phosphorus moving from the active mineral to the stable mineral pool in the soil layer (roc)
-//         float roc = 0;
-//         //Calculate roc, equation 3:2.3.4 and 3:2.3.5 in SWAT Theory 2009, p215
-//         roc = bk * (4.f * m_sol_actp[i][k] - m_sol_stap[i][k]);
-//         if (roc < 0)roc *= 0.1f;
-//         roc = min(roc, m_sol_actp[i][k]);
-//         m_sol_stap[i][k] = m_sol_stap[i][k] + roc;
-//         if (m_sol_stap[i][k] < 0)m_sol_stap[i][k] = 0.f;
-//         m_sol_actp[i][k] = m_sol_actp[i][k] - roc + rmn1;
-//         if (m_sol_actp[i][k] < 0)m_sol_actp[i][k] = 0.f;
-//         m_sol_solp[i][k] = m_sol_solp[i][k] - rmn1;
-//         if (m_sol_solp[i][k] < 0)m_sol_solp[i][k] = 0.f;
-//         m_wshd_pas += roc * (1.f / m_nCells);
-//         m_wshd_pal += rmn1 * (1.f / m_nCells);
-//         m_roctl[i] += roc;
-//         m_rmp1tl[i] += rmn1;
     }
 }
 
@@ -978,9 +893,9 @@ void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
     // XLSLF   : control on potential transformation of structural litter by lignin fraction of structural litter [XLSLF = exp(-3* LSLF) (Parton et al., 1993, 1994)]
     float x1 = 0.f, xx = 0.f;
     float LSR = 0.f, BMR = 0.f, HSR = 0.f, HPR = 0.f, RLR = 0.f;
-    float LSCTA = 0.f, LSLCTA = 0.f, LSLNCTA = 0.f, LSNTA = 0.f, XBM = .0f;
+    float LSCTA = 0.f, LSLCTA = 0.f, LSLNCTA = 0.f, LSNTA = 0.f, XBM = 0.f;
     float LMCTA = 0.f, LMNTA = 0.f, BMCTA = 0.f, BMNTA = 0.f, HSCTA = 0.f, HSNTA = 0.f, HPCTA = 0.f, HPNTA = 0.f;
-    float LSCTP = 0.f, LSLCTP = 0.f, LSLNCTP, LSNTP = 0.f, LMR = 0.f, LMCTP = 0.f;
+    float LSCTP = 0.f, LSLCTP = 0.f, LSLNCTP = 0.f, LSNTP = 0.f, LMR = 0.f, LMCTP = 0.f;
     float LMNTP = 0.f, BMCTP = 0.f, BMNTP = 0.f, HSCTP = 0.f, HSNTP = 0.f, HPCTP = 0.f, HPNTP = 0.f;
     float NCHP = 0.f, NCBM = 0.f, NCHS = 0.f;
     float ABCO2 = 0.f, A1CO2 = 0.f, APCO2 = 0.f, ASCO2 = 0.f, ABP = 0.f, ASP = 0.f, A1 = 0.f, ASX = 0.f, APX = 0.f;
@@ -1000,7 +915,7 @@ void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
     }
 
     /// calculate C/N dynamics for each soil layer
-    for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
+    for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
         float sol_mass = 0.f;
         sol_mass = m_sol_thick[i][k] / 1000.f * 10000.f * m_sol_bd[i][k] * 1000.f * (1 - m_sol_rock[i][k] / 100.f);
         //if (k == 0)
@@ -1011,9 +926,7 @@ void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
         //	sol_mass = (m_sol_z[i][k] - m_sol_z[i][k - 1]) / 1000.f * 10000.f * m_sol_bd[i][k]* 1000.f *(1- m_sol_rock[i][k] / 100.f);
 
         //If k = 1, using temperature, soil moisture in layer 2 to calculate decomposition factor
-        int kk = 0;
-        if (k == 0) { kk = 1; }
-        else { kk = k; }
+        int kk = k ==0 ? 1 : k;
         // mineralization can occur only if temp above 0 deg
         //check sol_st soil water content in each soil ayer mm H2O
         if (m_sote[i] > 0.f && m_soilStorage[i][k] > 0.f) {
@@ -1052,18 +965,16 @@ void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
             /* cdg is calculated by function fcgd in carbon_new.f of SWAT, by Armen
              * i.e., Function fcgd(xx)
              */
-            cdg = pow((m_sote[i]) + 5.f, 8.f / 3.f) * (50.f - m_sote[i]) / (pow(40.f, 8.f / 3.f) * 15.f);
+            cdg = pow(m_sote[i] + 5.f, 8.f / 3.f) * (50.f - m_sote[i]) / (pow(40.f, 8.f / 3.f) * 15.f);
             if (cdg < 0.f) cdg = 0.f;
 
             //compute oxygen (OX)
             float ox = 0.f;
             // ox = 1 - (0.9* sol_z[i][k]/1000.) / (sol_z[i][k]/1000.+ exp(1.50-3.99*sol_z[i][k]/1000.))
             // ox = 1 - (0.8* sol_z[i][k]) / (sol_z[i][k]+ exp(1.50-3.99*sol_z[i][k]))
-            ox = 1.f -
-                0.8f * ((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f) / (((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f) +
-                    exp(18.40961f - 0.023683632f *
-                        ((m_sol_z[i][kk] +
-                            m_sol_z[i][kk - 1]) / 2.f)));
+            ox = 1.f - 0.8f * ((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f) /
+                ((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f +
+                exp(18.40961f - 0.023683632f * ((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f)));
             // compute combined factor
             float cs = 0.f;
             cs = min(10.f, sqrt(cdg * sut) * 0.9f * ox * x1);

@@ -343,8 +343,6 @@ void DiffusiveWave::SetValue(const char *key, float data) {
         m_CellWidth = data;
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
         m_layeringMethod = (LayeringMethod) int(data);
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_CH_DW, "SetValue", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

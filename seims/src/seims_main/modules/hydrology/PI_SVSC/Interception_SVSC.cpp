@@ -44,9 +44,8 @@ void clsPI_SVSC::Set1DData(const char *key, int nRows, float *data) {
 
 void clsPI_SVSC::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_PI_B)) { this->m_Pi_b = data; }
-    else if (StringMatch(s, VAR_INIT_IS)) { this->m_Init_IS = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
+    if (StringMatch(s, VAR_PI_B)) { m_Pi_b = data; }
+    else if (StringMatch(s, VAR_INIT_IS)) { m_Init_IS = data; }
 #ifdef STORM_MODE
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_hilldt = data; }
 #endif // STORM_MODE
@@ -112,7 +111,7 @@ int clsPI_SVSC::Execute() {
             float max = m_maxSt[i];
             float capacity = min + (max - min) * pow(0.5f + 0.5f * sin(degree), m_Pi_b);
 
-            //interception, currently, m_st[i] is storage of (t-1) time step 
+            //interception, currently, m_st[i] is storage of (t-1) time step
             float availableSpace = capacity - m_st[i];
             if (availableSpace < 0) {
                 availableSpace = 0.f;
@@ -139,7 +138,7 @@ int clsPI_SVSC::Execute() {
             m_evaporationLoss[i] = m_st[i];
         }
         m_st[i] -= m_evaporationLoss[i];
-#endif    
+#endif
     }
     return 0;
 }

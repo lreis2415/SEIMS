@@ -243,7 +243,6 @@ bool ReservoirMethod::CheckInputSize(const char* key, int n) {
 void ReservoirMethod::SetValue(const char* key, float value) {
     string sk(key);
     if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = static_cast<int>(value); }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread(static_cast<int>(value)); }
     else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }

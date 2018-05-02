@@ -291,8 +291,7 @@ bool SUR_CN::CheckInputSize(const char *key, int n) {
 
 void SUR_CN::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, VAR_T_SNOW)) { m_Tsnow = value; }
+    if (StringMatch(sk, VAR_T_SNOW)) { m_Tsnow = value; }
     else if (StringMatch(sk, VAR_T_SOIL)) { m_Tsoil = value; }
     else if (StringMatch(sk, VAR_T0)) { m_T0 = value; }
     else if (StringMatch(sk, VAR_S_FROZEN)) { m_Sfrozen = value; }
@@ -442,7 +441,7 @@ void SUR_CN::initalW1W2() {
     }
 }
 
-/// TODO: These code should be coupled to SUR_CN module. By LJ.  
+/// TODO: These code should be coupled to SUR_CN module. By LJ.
 /// curno.f in SWAT
 //float smxOld;
 //if(m_CN1[i] > UTIL_ZERO)

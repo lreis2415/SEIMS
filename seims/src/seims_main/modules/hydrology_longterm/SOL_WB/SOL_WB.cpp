@@ -26,8 +26,7 @@ int SOL_WB::Execute() {
 
 void SOL_WB::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
-    else if (StringMatch(s, VAR_SUBBSNID_NUM)) { m_nSubbasins = (int)data; }
+    if (StringMatch(s, VAR_SUBBSNID_NUM)) { m_nSubbasins = int(data); }
     else {
         throw ModelException(MID_SOL_WB, "SetValue", "Parameter " + s + " does not exist.");
     }

@@ -79,7 +79,7 @@ void IKW_REACH::initialOutputs() {
     if (m_nreach <= 0) {
         throw ModelException("IKW_REACH", "initialOutputs", "The cell number of the input can not be less than zero.");
     }
-    
+
     //initial channel storage
     if (nullptr == m_chStorage) {
         m_chStorage = new float[m_nreach + 1];
@@ -176,9 +176,7 @@ void IKW_REACH::SetValue(const char *key, float value) {
     } else if (StringMatch(sk, Tag_LayeringMethod)) {
         m_layeringMethod = (LayeringMethod) int(value);
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
-        m_dt = (int) value;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
+        m_dt = int(value);
     } else if (StringMatch(sk, VAR_EP_CH)) {
         m_Epch = value;
     } else if (StringMatch(sk, VAR_BNK0)) {
@@ -393,7 +391,7 @@ void IKW_REACH::ChannelFlow(int i) {
         qgUp += m_qgCh[upReachId];
     }
     qIn += qsUp + qiUp + qgUp;
-    qIn += m_qUpReach; 
+    qIn += m_qUpReach;
     // m_qUpReach is zero for not-parallel program and qsUp, qiUp and qgUp are zero for parallel computing
 
     // 3. water from bank storage

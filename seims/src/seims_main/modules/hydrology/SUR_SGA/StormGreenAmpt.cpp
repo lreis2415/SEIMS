@@ -297,8 +297,6 @@ void StormGreenAmpt::SetValue(const char *key, float value) {
     //else
     if (StringMatch(sk, Tag_HillSlopeTimeStep)) {
         m_dt = value;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
     } else {
         throw ModelException(MID_SUR_SGA, "SetValue", "Parameter " + sk + " does not exist in SetValue method.");
     }

@@ -208,8 +208,7 @@ bool NutrCH_QUAL2E::CheckInputData() {
 
 void NutrCH_QUAL2E::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int) value; }
+    if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = (int) value; }
     else if (StringMatch(sk, Tag_ChannelTimeStep)) { m_dt = (int) value; }
     else if (StringMatch(sk, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) (int) value; }
     else if (StringMatch(sk, VAR_QUPREACH)) { m_qUpReach = value; }

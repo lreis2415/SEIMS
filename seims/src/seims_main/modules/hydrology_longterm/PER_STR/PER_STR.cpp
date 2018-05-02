@@ -147,7 +147,6 @@ void PER_STR::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_TimeStep)) { m_dt = int(data); }
     else if (StringMatch(s, VAR_T_SOIL)) { m_frozenT = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_PER_STR, "SetValue",
                              "Parameter " + s + " does not exist in current module.");
