@@ -57,7 +57,7 @@ dist
 
 # Do not ignore the configuration files
 !file.in
-!file.out 
+!file.out
 # ignore doxygen files
 doc/html
 doc/img/
@@ -76,3 +76,6 @@ OUTPUT*/
 
 # VSCode configuration folder
 .vscode
+
+# git related
+.git-rewrite
