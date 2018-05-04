@@ -21,7 +21,7 @@ find_path(BSON_INCLUDE_DIR
         PATH_SUFFIXES
         include
         )
-IF(NOT ${BSON_INCLUDE_DIR} MATCHES "libbson-1.0")
+IF(NOT ${BSON_INCLUDE_DIR} MATCHES "libbson-1.0" AND NOT ${BSON_INCLUDE_DIR} MATCHES "BSON_INCLUDE_DIR-NOTFOUND")
   set(BSON_INCLUDE_DIR "${BSON_INCLUDE_DIR}/libbson-1.0")
 ENDIF()
 
@@ -38,18 +38,19 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                 bin
                 lib
                 )
-        mark_as_advanced(BSON)
-        set(BSON_LIBRARIES ${BSON} ws2_32)
-        find_file(BSON_DLL
-                NAMES
-                "libbson-1.0.dll"
-                HINTS
-                $ENV{MONGOC_ROOT_DIR}
-                $ENV{BSON_ROOT_DIR}
-                PATH_SUFFIXES
-                bin
-                )
-        # message(${BSON_DLL})
+        if (NOT ${BSON} MATCHES "BSON-NOTFOUND")
+            mark_as_advanced(BSON)
+            set(BSON_LIBRARIES ${BSON} ws2_32)
+            find_file(BSON_DLL
+                    NAMES
+                    "libbson-1.0.dll"
+                    HINTS
+                    $ENV{MONGOC_ROOT_DIR}
+                    $ENV{BSON_ROOT_DIR}
+                    PATH_SUFFIXES
+                    bin
+                    )
+        endif ()
     else ()
         # bother supporting this?
     endif ()
@@ -63,12 +64,11 @@ else ()
             PATH_SUFFIXES
             lib
             )
-
-    mark_as_advanced(BSON_LIBRARY)
-    find_package(Threads REQUIRED)
-
-    set(BSON_LIBRARIES ${BSON_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
-
+    if (NOT ${BSON_LIBRARY} MATCHES "BSON_LIBRARY-NOTFOUND")
+        mark_as_advanced(BSON_LIBRARY)
+        find_package(Threads REQUIRED)
+        set(BSON_LIBRARIES ${BSON_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+    endif ()
 endif ()
 
 if (BSON_INCLUDE_DIR)
