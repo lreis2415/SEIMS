@@ -21,7 +21,7 @@ find_path(MONGOC_INCLUDE_DIR
         PATH_SUFFIXES
         include
         )
-IF(NOT ${MONGOC_INCLUDE_DIR} MATCHES "libmongoc-1.0")
+IF(NOT ${MONGOC_INCLUDE_DIR} MATCHES "libmongoc-1.0" AND NOT ${MONGOC_INCLUDE_DIR} MATCHES "MONGOC_INCLUDE_DIR-NOTFOUND")
   set(MONGOC_INCLUDE_DIR "${MONGOC_INCLUDE_DIR}/libmongoc-1.0")
 ENDIF()
 
@@ -38,19 +38,19 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                 bin
                 lib
                 )
-
-        mark_as_advanced(MONGOC)
-        set(MONGOC_LIBRARIES ${MONGOC} ws2_32)
-        find_file(MONGOC_DLL
-                NAMES
-                "libmongoc-1.0.dll"
-                HINTS
-                $ENV{MONGOC_ROOT_DIR}
-                $ENV{BSON_ROOT_DIR}
-                PATH_SUFFIXES
-                bin
-                )
-        # message(${MONGOC_DLL})
+        if (NOT ${MONGOC} MATCHES "MONGOC-NOTFOUND")
+            mark_as_advanced(MONGOC)
+            set(MONGOC_LIBRARIES ${MONGOC} ws2_32)
+            find_file(MONGOC_DLL
+                    NAMES
+                    "libmongoc-1.0.dll"
+                    HINTS
+                    $ENV{MONGOC_ROOT_DIR}
+                    $ENV{BSON_ROOT_DIR}
+                    PATH_SUFFIXES
+                    bin
+                    )
+        endif ()
     else ()
         # bother supporting this?
     endif ()
@@ -64,9 +64,11 @@ else ()
             PATH_SUFFIXES
             lib
             )
-    mark_as_advanced(MONGOC_LIBRARY)
-    find_package(Threads REQUIRED)
-    set(MONGOC_LIBRARIES ${MONGOC_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+    if (NOT ${MONGOC_LIBRARY} MATCHES "MONGOC_LIBRARY-NOTFOUND")
+        mark_as_advanced(MONGOC_LIBRARY)
+        find_package(Threads REQUIRED)
+        set(MONGOC_LIBRARIES ${MONGOC_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+    endif ()
 endif ()
 
 if (MONGOC_INCLUDE_DIR)
