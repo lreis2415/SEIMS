@@ -154,8 +154,7 @@ void NutrientMovementViaWater::SetSubbasins(clsSubbasins *subbasins) {
 
 void NutrientMovementViaWater::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
+    if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_CellWidth)) {
         m_cellWidth = value;
         m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; /// ha
@@ -274,7 +273,7 @@ int NutrientMovementViaWater::Execute() {
 }
 
 void NutrientMovementViaWater::NitrateLoss() {
-/// debugging code to find the cell id with the maximum nutrient loss 
+/// debugging code to find the cell id with the maximum nutrient loss
 // 	float tmpPercN = NODATA_VALUE;
 // 	int tmpIdx = -1;
     for (int iLayer = 0; iLayer < m_nRoutingLayers; iLayer++) {
@@ -512,7 +511,7 @@ void NutrientMovementViaWater::SubbasinWaterQuality() {
 
 void NutrientMovementViaWater::GetValue(const char *key, float *value) {
     string sk(key);
-    if (StringMatch(sk, VAR_WSHD_PLCH)) { *value = m_wshd_plch; } 
+    if (StringMatch(sk, VAR_WSHD_PLCH)) { *value = m_wshd_plch; }
     else {
         throw ModelException(MID_NUTRMV, "GetValue", "Parameter " + sk + " does not exist.");
     }

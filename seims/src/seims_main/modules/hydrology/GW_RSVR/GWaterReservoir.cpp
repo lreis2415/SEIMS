@@ -131,8 +131,6 @@ void GWaterReservoir::SetValue(const char *key, float value) {
         m_CellWidth = value;
     } else if (StringMatch(sk, Tag_SubbasinId)) {
         m_subbasinID = value;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
     } else if (StringMatch(sk, VAR_GW_KG)) {
         m_recessionCoefficient = value;
     } else if (StringMatch(sk, VAR_Base_ex)) {

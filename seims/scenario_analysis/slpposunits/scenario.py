@@ -20,11 +20,14 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, StringClass, get_config_parser, text_type
 from pymongo.errors import NetworkTimeout
 
+if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
+
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
 from postprocess.utility import read_simulation_from_txt
 from scenario_analysis.scenario import Scenario
-from slpposunits.config import SASPUConfig
+from scenario_analysis.slpposunits.config import SASPUConfig
 
 
 class SPScenario(Scenario):
@@ -196,7 +199,7 @@ class SPScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             return
-        rfile = self.modelout_dir + os.sep + self.bmps_info['ENVEVAL']
+        rfile = self.modelout_dir + os.path.sep + self.bmps_info['ENVEVAL']
 
         if not FileClass.is_file_exists(rfile):
             time.sleep(5)  # sleep 5 seconds wait for the ouput
@@ -278,7 +281,7 @@ class SPScenario(Scenario):
             for k, v in v_dict.items():
                 slppos_data[slppos_data == k] = v
             if outpath is None:
-                outpath = self.scenario_dir + os.sep + 'Scenario_%d.tif' % self.ID
+                outpath = self.scenario_dir + os.path.sep + 'Scenario_%d.tif' % self.ID
             RasterUtilClass.write_gtiff_file(outpath, ysize, xsize, slppos_data, geotransform,
                                              srs, nodata_value)
             client.close()

@@ -27,30 +27,46 @@ bool SSR_DA::FlowInSoil(int id) {
         flowWidth -= m_chWidth[id];
     }
     // initialize for current cell of current timestep
-    for (int j = 0; j < (int) m_soilLayers[id]; j++) {
+    for (int j = 0; j < int(m_soilLayers[id]); j++) {
         m_qi[id][j] = 0.f;
         m_qiVol[id][j] = 0.f;
     }
+    /* Previous code. Update: In my view, if the flowWidth is less than 0, the subsurface flow
+     * from the upstream cells should be added to stream cell directly, which will be summarized
+     * for channel flow routing. By lj, 2018-4-12
     // return with initial values if flowWidth is less than 0
     if (flowWidth <= 0) return true;
+    */
     // number of flow-in cells
-    int nUpstream = (int) m_flowInIndex[id][0];
+    int nUpstream = int(m_flowInIndex[id][0]);
     m_soilStorageProfile[id] = 0.f; // update soil storage on profile
-    for (int j = 0; j < (int) m_soilLayers[id]; j++) {
+    for (int j = 0; j < int(m_soilLayers[id]); j++) {
         float smOld = m_soilStorage[id][j];
-        //sum the upstream subsurface flow, m3
-        float qUp = 0.f;
+        //sum the upstream subsurface flow
+        float qUp = 0.f; // mm
+        float qUpVol = 0.f; // m^3
         // If no in cells flowin (i.e., nUpstream = 0), the for-loop will be ignored.
-        for (int upIndex = 1; upIndex <= nUpstream; ++upIndex) {
-            int flowInID = (int) m_flowInIndex[id][upIndex];
-            //cout << id << "\t" << flowInID << "\t" << m_nCells << endl;
+        for (int upIndex = 1; upIndex <= nUpstream; upIndex++) {
+            int flowInID = int(m_flowInIndex[id][upIndex]);
+            // IMPORTANT!!! If the upstream cell is from another subbasin, CONTINUE to next upstream cell. By lj.
+            if (int(m_subbasin[flowInID]) != int(m_subbasin[id])) { continue; }
             if (m_qi[flowInID][j] > 0.f) {
-                qUp += m_qi[flowInID][j];
-            }// * m_flowInPercentage[id][upIndex];
-            //cout << id << "\t" << flowInID << "\t" << m_nCells << "\t" << m_qi[flowInID][j] << endl;
+                qUp += m_qi[flowInID][j]; // * m_flowInPercentage[id][upIndex]; // TODO: Consider MFD algorithms
+                qUpVol += m_qiVol[flowInID][j];
+            }
         }
         // add upstream water to the current cell
         if (qUp < 0.f) qUp = 0.f;
+        if (qUpVol < 0.f) qUpVol = 0.f;
+        // if the flowWidth is less than 0, the subsurface flow from the upstream cells
+        // should be added to stream cell directly, which will be summarized
+        // for channel flow routing. By lj, 2018-4-12
+        if (flowWidth <= 0.f) {
+            m_qi[id][j] = qUp;
+            m_qiVol[id][j] = qUpVol;
+            continue;
+        }
+
         m_soilStorage[id][j] += qUp; // mm
         //TEST
         if (m_soilStorage[id][j] != m_soilStorage[id][j] || m_soilStorage[id][j] < 0.f) {
@@ -111,15 +127,15 @@ int SSR_DA::Execute() {
     CheckInputData();
     initialOutputs();
 
-    for (int iLayer = 0; iLayer < m_nRoutingLayers; ++iLayer) {
+    for (int iLayer = 0; iLayer < m_nRoutingLayers; iLayer++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int nCells = (int) m_routingLayers[iLayer][0];
+        int nCells = int(m_routingLayers[iLayer][0]);
         // DO NOT THROW EXCEPTION IN OMP FOR LOOP, i.e., FlowInSoil(id) function.
         int errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
         for (int iCell = 1; iCell <= nCells; iCell++) {
-            int id = (int) m_routingLayers[iLayer][iCell];
+            int id = int(m_routingLayers[iLayer][iCell]);
             if (!FlowInSoil(id)) errCount++;
         }
         if (errCount > 0) {
@@ -145,7 +161,7 @@ int SSR_DA::Execute() {
         for (int i = 0; i < m_nCells; i++) {
             if (m_streamLink[i] > 0) {
                 float qiAllLayers = 0.f;
-                for (int j = 0; j < (int)m_soilLayers[i]; j++) {
+                for (int j = 0; j < int(m_soilLayers[i]); j++) {
                     if (m_qiVol[i][j] > UTIL_ZERO) {
                         qiAllLayers += m_qiVol[i][j] / m_dt;
                     } /// m^3/s
@@ -170,9 +186,7 @@ int SSR_DA::Execute() {
 
 void SSR_DA::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
-    } else if (StringMatch(s, VAR_T_SOIL)) {
+    if (StringMatch(s, VAR_T_SOIL)) {
         m_frozenT = data;
     } else if (StringMatch(s, VAR_KI)) {
         m_ki = data;

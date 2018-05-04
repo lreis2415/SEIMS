@@ -111,7 +111,6 @@ bool DepressionFSDaily::CheckInputSize(const char *key, int n) {
 void DepressionFSDaily::SetValue(const char *key, float data) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPREIN)) { m_depCo = data; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_DEP_LINSLEY, "SetValue", "Parameter " + sk + " does not exist.");
     }

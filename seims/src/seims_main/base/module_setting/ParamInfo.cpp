@@ -1,15 +1,16 @@
+#include "text.h"
 #include "ParamInfo.h"
 
 using namespace std;
 
-ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), Dimension(DT_Unknown), Transfer(TF_Whole),
-                         Value(0.f), Change(""), Impact(0.f), Maximum(0.f), Minimun(0.f),
-                         ModuleID(""), Source(""), DependPara(nullptr), ClimateType(""),
+ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dimension(DT_Unknown),
+                         Transfer(TF_Whole), Source(""), Value(0.f), Impact(0.f), Change(""),
+                         Maximum(0.f), Minimun(0.f), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
                          BasicName(""), initialized(false) {
 }
 
-ParamInfo::ParamInfo(const ParamInfo &another) {
+ParamInfo::ParamInfo(const ParamInfo& another) {
     Name = another.Name;
     Units = another.Units;
     Description = another.Description;
@@ -42,7 +43,8 @@ float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
         pre_value = Value;
     }
     float res = pre_value;
-    if (FloatEqual(res, NODATA_VALUE)) {  /// Do not change NoData value
+    if (FloatEqual(res, NODATA_VALUE)) {
+        /// Do not change NoData value
         return res;
     }
 
@@ -61,24 +63,26 @@ float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
     return res;
 }
 
-void ParamInfo::Adjust1DArray(int n, float *data) {
+void ParamInfo::Adjust1DArray(int n, float* data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        if (!FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
+        if (!FloatEqual(data[i], NODATA_VALUE)) {
+            /// Do not change NoData value
             data[i] = GetAdjustedValue(data[i]);
         }
     }
 }
 
-void ParamInfo::Adjust1DRaster(int n, float *data) {
+void ParamInfo::Adjust1DRaster(int n, float* data) {
     Adjust1DArray(n, data);
 }
 
-void ParamInfo::Adjust1DRaster(int n, float *data, const float *units, vector<int> selunits,
-                               const float *lu, vector<int> sellu) {
+void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, vector<int> selunits,
+                               const float* lu, vector<int> sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        if (FloatEqual(data[i], NODATA_VALUE)) {  /// Do not change NoData value
+        if (FloatEqual(data[i], NODATA_VALUE)) {
+            /// Do not change NoData value
             continue;
         }
         int curunit = int(units[i]);
@@ -93,23 +97,23 @@ void ParamInfo::Adjust1DRaster(int n, float *data, const float *units, vector<in
     }
 }
 
-void ParamInfo::Adjust2DArray(int n, float **data) {
+void ParamInfo::Adjust2DArray(int n, float** data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        int curCols = (int) data[i][0];
+        int curCols = int(data[i][0]);
         Adjust1DArray(curCols, data[i] + 1);
     }
 }
 
-void ParamInfo::Adjust2DRaster(int n, int lyrs, float **data) {
+void ParamInfo::Adjust2DRaster(int n, int lyrs, float** data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         Adjust1DArray(lyrs, data[i]);
     }
 }
 
-void ParamInfo::Adjust2DRaster(int n, int lyr, float **data, float *units,
-                               vector<int> selunits, float *lu, vector<int> sellu) {
+void ParamInfo::Adjust2DRaster(int n, int lyr, float** data, float* units,
+                               vector<int> selunits, float* lu, vector<int> sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         Adjust1DRaster(lyr, data[i], units, selunits, lu, sellu);

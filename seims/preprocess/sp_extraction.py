@@ -8,6 +8,11 @@
 """
 from __future__ import absolute_import
 
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from preprocess.sp_landuse import LanduseUtilClass
 from preprocess.sp_soil import SoilUtilClass
 from preprocess.sp_terrain import TerrainUtilClass

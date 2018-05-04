@@ -64,9 +64,8 @@ bool NutrientinGroundwater::CheckInputData() {
 
 void NutrientinGroundwater::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); } 
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); } 
-    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; } 
+    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); }
+    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     else if (StringMatch(sk, VAR_GW0)) { m_gw0 = value; }
     else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
@@ -80,11 +79,11 @@ void NutrientinGroundwater::Set1DData(const char *key, int n, float *data) {
     if (StringMatch(sk, VAR_SUBBSN)) {
         CheckInputSize(key, n);
         m_subbasin = data;
-    } 
-    else if (StringMatch(sk, VAR_SBQG)) { m_gw_q = data; } 
-    else if (StringMatch(sk, VAR_SBGS)) { m_gwStor = data; } 
-    else if (StringMatch(sk, VAR_PERCO_N_GW)) { m_perco_no3_gw = data; } 
-    else if (StringMatch(sk, VAR_PERCO_P_GW)) { m_perco_solp_gw = data; } 
+    }
+    else if (StringMatch(sk, VAR_SBQG)) { m_gw_q = data; }
+    else if (StringMatch(sk, VAR_SBGS)) { m_gwStor = data; }
+    else if (StringMatch(sk, VAR_PERCO_N_GW)) { m_perco_no3_gw = data; }
+    else if (StringMatch(sk, VAR_PERCO_P_GW)) { m_perco_solp_gw = data; }
     else if (StringMatch(sk, VAR_SOILLAYERS)) {
         CheckInputSize(key, n);
         m_soilLayers = data;
@@ -97,8 +96,8 @@ void NutrientinGroundwater::Set2DData(const char *key, int nRows, int nCols, flo
     CheckInputSize(key, nRows);
     string sk(key);
     m_nSoilLayers = nCols;
-    if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; } 
-    else if (StringMatch(sk, VAR_SOL_SOLP)) { m_sol_solp = data; } 
+    if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
+    else if (StringMatch(sk, VAR_SOL_SOLP)) { m_sol_solp = data; }
     else {
         throw ModelException(MID_NUTRGW, "Set2DData", "Parameter " + sk + " does not exist.");
     }

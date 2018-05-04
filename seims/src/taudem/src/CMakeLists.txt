@@ -104,7 +104,7 @@ set(TAUDEM_APP aread8
 foreach (c_target ${TAUDEM_APP})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
-    IF (MSVC)
+    IF (MSVC OR XCODE)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM")
     ENDIF ()
 endforeach (c_target ${TAUDEM_APP})

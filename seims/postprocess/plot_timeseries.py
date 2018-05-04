@@ -127,7 +127,24 @@ class TimeSeriesPlots(object):
         # set ticks direction, in or out
         plt.rcParams['xtick.direction'] = 'out'
         plt.rcParams['ytick.direction'] = 'out'
-        plt.rcParams['font.family'] = 'Times New Roman'
+        if self.lang_cn:
+            plt.rcParams['font.family'] = 'SimSun'  # 宋体
+            obs_str = u'观测值'
+            sim_str = u'模拟值'
+            cali_str = u'率定期'
+            vali_str = u'验证期'
+            pcp_str = u'降水'
+            pcpaxis_str = u'降水 (mm)'
+            xaxis_str = u'日期'
+        else:
+            plt.rcParams['font.family'] = 'Times New Roman'
+            obs_str = 'Observation'
+            sim_str = 'Simulation'
+            cali_str = 'Calibration'
+            vali_str = 'Validation'
+            pcp_str = 'Precipitation'
+            pcpaxis_str = 'Precipitation (mm)'
+            xaxis_str = 'Date'
         plt.rcParams['mathtext.fontset'] = 'custom'
         plt.rcParams['mathtext.it'] = 'STIXGeneral:italic'
         plt.rcParams['mathtext.bf'] = 'STIXGeneral:italic:bold'
@@ -157,16 +174,16 @@ class TimeSeriesPlots(object):
                 obs_values += self.vali_sim_obs_dict[param]['Obs']
             if obs_values is not None:
                 # bar graph
-                p1 = ax.bar(obs_dates, obs_values, label='Observation', color='none',
+                p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
                             edgecolor='black',
                             linewidth=0.5, align='center', hatch='//')
                 # # line graph
-                # p1, = ax.plot(obs_dates, obs_values, label='Observation', color='black', marker='+',
+                # p1, = ax.plot(obs_dates, obs_values, label=obs_str, color='black', marker='+',
                 #              markersize=2, linewidth=1)
             sim_list = [v[i + 1] for v in self.sim_data_value]
-            p2, = ax.plot(sim_date, sim_list, label='Simulation', color='red',
+            p2, = ax.plot(sim_date, sim_list, label=sim_str, color='red',
                           marker='+', markersize=2, linewidth=0.8)
-            plt.xlabel('Date')
+            plt.xlabel(xaxis_str)
             # format the ticks date axis
             date_fmt = mdates.DateFormatter('%m-%d-%y')
             # autodates = mdates.AutoDateLocator()
@@ -192,11 +209,11 @@ class TimeSeriesPlots(object):
             ax2 = ax.twinx()
             ax.tick_params(axis='x', which='both', bottom='on', top='off')
             ax2.tick_params(axis='y', length=5, width=2, which='major')
-            ax2.set_ylabel(r'Precipitation (mm)')
+            ax2.set_ylabel(pcpaxis_str)
 
             pcp_date = [v[0] for v in self.pcp_date_value]
             preci = [v[1] for v in self.pcp_date_value]
-            p3 = ax2.bar(pcp_date, preci, label='Rainfall', color='blue', linewidth=0,
+            p3 = ax2.bar(pcp_date, preci, label=pcp_str, color='blue', linewidth=0,
                          align='center')
             ax2.set_ylim(float(max(preci)) * 1.8, float(min(preci)) * 0.8)
             # draw a dash line to separate calibration and validation period
@@ -209,10 +226,10 @@ class TimeSeriesPlots(object):
             yc = abs(ymax - ymin) / 4.
             if self.plot_validation:
                 sep_time = self.vali_stime  # by default, validation period after calibration
-                cali_vali_labels = ['Calibration', 'Validation']
+                cali_vali_labels = [cali_str, vali_str]
                 if self.vali_stime < self.stime:
                     sep_time = self.stime
-                    cali_vali_labels = ['Validation', 'Calibration']
+                    cali_vali_labels = [vali_str, cali_str]
                     # time_pos = [sep_time + delta_dt2, sep_time - delta_dt]
                 time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
                 sep_time = self.vali_stime if self.vali_stime > self.stime else self.stime
@@ -223,13 +240,13 @@ class TimeSeriesPlots(object):
                          fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
             # set legend and labels
             if obs_values is None or len(obs_values) < 2:
-                leg = ax.legend([p3, p2], ['Rainfall', 'Simulation'], ncol=2,
+                leg = ax.legend([p3, p2], [pcp_str, sim_str], ncol=2,
                                 bbox_to_anchor=(0., 1.02, 1., 0.102),
                                 borderaxespad=0.2,
                                 loc='lower left', fancybox=True)
                 # plt.tight_layout(rect=(0, 0, 1, 0.93))
             else:
-                leg = ax.legend([p3, p1, p2], ['Rainfall', 'Observation', 'Simulation'],
+                leg = ax.legend([p3, p1, p2], [pcp_str, obs_str, sim_str],
                                 bbox_to_anchor=(0., 1.02, 1., 0.102),
                                 borderaxespad=0.,
                                 ncol=3, loc='lower left', fancybox=True)

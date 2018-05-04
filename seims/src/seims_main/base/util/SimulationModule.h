@@ -29,14 +29,15 @@
 
 using namespace std;
 using namespace MainBMP;
+
 /*!
  * \enum TimeStepType
  */
 enum TimeStepType {
-    TIMESTEP_HILLSLOPE,   /**< Hillslope scale */
-    TIMESTEP_CHANNEL,     /**< Channel scale */
-    TIMESTEP_ECOLOGY,     /**< Ecology scale, currently not necessary? */
-    TIMESTEP_SIMULATION   /**< Whole simulation scale */
+    TIMESTEP_HILLSLOPE, /**< Hillslope scale */
+    TIMESTEP_CHANNEL, /**< Channel scale */
+    TIMESTEP_ECOLOGY, /**< Ecology scale, currently not necessary? */
+    TIMESTEP_SIMULATION /**< Whole simulation scale */
 };
 
 /*!
@@ -44,124 +45,127 @@ enum TimeStepType {
  * \class SimulationModule
  * \brief Base module for all simulation modules in SEIMS
  */
-class SimulationModule: public DefaultConstructor {
+class SimulationModule: NotCopyable, public DefaultConstructor {
 public:
     //! Constructor
-    SimulationModule(): m_date(-1), m_tsCounter(1), m_inputsSetDone(false) {};
+    SimulationModule(): m_date(-1), m_yearIdx(-1), m_tsCounter(1), m_inputsSetDone(false) {
+    }
 
     //! Destructor
     //virtual ~SimulationModule() = default;
 
     //! Execute the simulation
-    virtual int Execute() { return -1; };
+    virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
     virtual void SetDate(time_t t, int yearIdx) {
         m_date = t;
         m_yearIdx = yearIdx;
-    };
+    }
 
     //! Set thread number for OpenMP
     virtual void SetTheadNumber(int threadNum) {
-#ifdef SUPPORT_OMP
-        omp_set_num_threads(threadNum);
-#endif
-    };
+        SetOpenMPThread(threadNum);
+    }
 
     //! Set climate data type, P, M, PET etc.
     virtual void SetClimateDataType(float value) {
-    };
+    }
 
     //! Set data, DT_Single
-    virtual void SetValue(const char *key, float data) {
+    virtual void SetValue(const char* key, float data) {
         throw ModelException("SimulationModule", "SetValue",
                              "Set function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Set single value to array1D by index, used in MPI version for passing values of subbasins
-    virtual void SetValueByIndex(const char *key, int index, float data) {
+    virtual void SetValueByIndex(const char* key, int index, float data) {
         throw ModelException("SimulationModule", "SetValueByIndex",
-            "Set function of parameter " + string(key) + " is not implemented.");
-    };
+                             "Set function of parameter " + string(key) + " is not implemented.");
+    }
 
     //! Set 1D data, by default, DT_Raster1D
-    virtual void Set1DData(const char *key, int n, float *data) {
+    virtual void Set1DData(const char* key, int n, float* data) {
         throw ModelException("SimulationModule", "Set1DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Set 2D data, by default, DT_Raster2D
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data) {
+    virtual void Set2DData(const char* key, int nRows, int nCols, float** data) {
         throw ModelException("SimulationModule", "Set2DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Set 1D array data, DT_Array1D
-    virtual void Set1DArrayData(const char *key, int n, float *data) {
+    virtual void Set1DArrayData(const char* key, int n, float* data) {
         throw ModelException("SimulationModule", "Set1DArrayData",
                              "Set function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Set 2D array data, by default, DT_Array2D
-    virtual void Set2DArrayData(const char *key, int nRows, int nCols, float **data) {
+    virtual void Set2DArrayData(const char* key, int nRows, int nCols, float** data) {
         throw ModelException("SimulationModule", "Set2DArrayData",
                              "Set function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Get value, DT_Single
-    virtual void GetValue(const char *key, float *value) {
+    virtual void GetValue(const char* key, float* value) {
         throw ModelException("SimulationModule", "GetValue",
                              "Get function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Get 1D data, by default, DT_Raster1D
-    virtual void Get1DData(const char *key, int *n, float **data) {
+    virtual void Get1DData(const char* key, int* n, float** data) {
         throw ModelException("SimulationModule", "Get1DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Get 2D data, by default, DT_Raster2D
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+    virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
         throw ModelException("SimulationModule", "Get2DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Get 1D Array data, by default, DT_Array1D
-    virtual void Get1DArrayData(const char *key, int *n, float **data) {
+    virtual void Get1DArrayData(const char* key, int* n, float** data) {
         throw ModelException("SimulationModule", "Get1DArrayData",
                              "Get function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Get 2D Array data, by default, DT_Array2D
-    virtual void Get2DArrayData(const char *key, int *nRows, int *nCols, float ***data) {
+    virtual void Get2DArrayData(const char* key, int* nRows, int* nCols, float*** data) {
         throw ModelException("SimulationModule", "Get2DArrayData",
                              "Get function of parameter " + string(key) + " is not implemented.");
-    };
+    }
 
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
-    virtual void SetScenario(Scenario *) {
+    virtual void SetScenario(Scenario*) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
     }
 
     //! Set pointer of clsReaches class which contains all reaches information. Added by LJ, 2016-7-2
-    virtual void SetReaches(clsReaches *) {
+    virtual void SetReaches(clsReaches*) {
         throw ModelException("SimulationModule", "SetReaches", "Set reaches function is not implemented.");
     }
 
     //! Set pointer of clsSubbasins class which contains all subbasins information. Added by LJ, 2016-7-28
-    virtual void SetSubbasins(clsSubbasins *) {
+    virtual void SetSubbasins(clsSubbasins*) {
         throw ModelException("SimulationModule", "SetSubbasins", "Set subbasins function is not implemented.");
     }
 
-    //! Get time step type
+    /*!
+     * \brief Get time step type, default is hillslope process.
+     *        Remember to override this function to return other time step type for
+     *        routing modules and others if necessary.
+     */
     virtual TimeStepType GetTimeStepType() {
         return TIMESTEP_HILLSLOPE;
-    };
+    }
 
     //! Reset subtime step
     virtual void ResetSubTimeStep() {
         m_tsCounter = 1;
-    };
+    }
 
     //! Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
     bool IsInputsSetDone() { return m_inputsSetDone; }

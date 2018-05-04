@@ -5,12 +5,12 @@
 ///////////PrintInfoItem Class////////////////
 //////////////////////////////////////////////
 
-PrintInfoItem::PrintInfoItem() : m_Counter(-1), m_nRows(-1), m_nLayers(-1),
-                                     SubbasinID(-1), SubbasinIndex(-1), SiteID(-1), SiteIndex(-1),
-                                     m_1DData(nullptr), m_2DData(nullptr), m_1DDataWithRowCol(nullptr),
-                                     TimeSeriesDataForSubbasinCount(-1), m_AggregationType(AT_Unknown),
-                                     StartTime(""), EndTime(""), m_startTime(0), m_endTime(0),
-                                     Corename(""), Filename(""), Suffix("") {
+PrintInfoItem::PrintInfoItem() : m_1DDataWithRowCol(nullptr), m_nRows(-1), m_1DData(nullptr),
+                                 m_nLayers(-1), m_2DData(nullptr), TimeSeriesDataForSubbasinCount(-1), SiteID(-1),
+                                 SiteIndex(-1), SubbasinID(-1), SubbasinIndex(-1),
+                                 StartTime(""), m_startTime(0),
+                                 EndTime(""), m_endTime(0), Suffix(""), Corename(""),
+                                 Filename(""), m_Counter(-1), m_AggregationType(AT_Unknown) {
     TimeSeriesData.clear();
     TimeSeriesDataForSubbasin.clear();
 }
@@ -21,11 +21,9 @@ PrintInfoItem::~PrintInfoItem() {
     Release1DArray(m_1DData);
     Release2DArray(m_nRows, m_2DData);
 
-    for (auto it = TimeSeriesDataForSubbasin.begin();
-         it != TimeSeriesDataForSubbasin.end();) {
+    for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end();) {
         if (it->second != nullptr) {
-            delete[] it->second;
-            it->second = nullptr;
+            Release1DArray(it->second);
         }
         TimeSeriesDataForSubbasin.erase(it++);
     }
@@ -42,8 +40,8 @@ bool PrintInfoItem::IsDateInRange(time_t dt) {
     return bStatus;
 }
 
-void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
-    float *temp = new float[n];
+void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
+    float* temp = new float[n];
     for (int i = 0; i < n; i++) {
         temp[i] = data[i];
     }
@@ -51,7 +49,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float *data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *templateRaster, string header) {
+void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster* templateRaster, string header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     // For OMP version, Output to tiff file directly.
     bool outToMongoDB = false; /// added by LJ.
@@ -67,7 +65,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
     }
     StatusMessage(("Creating output file " + Filename + "...").c_str());
     // Don't forget add appropriate suffix to Filename... ZhuLJ, 2015/6/16
-    if (m_AggregationType == AT_SpecificCells) { // TODO, this function has been removed in current version
+    if (m_AggregationType == AT_SpecificCells) {
+        // TODO, this function has been removed in current version
         /*if(m_specificOutput != NULL)
         {
             m_specificOutput->dump(projectPath + Filename + ".txt");
@@ -75,7 +74,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
         }*/
         return;
     }
-    if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1)) { //time series data
+    if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1)) {
+        //time series data
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app); /// append if more than one print item. By LJ
@@ -87,16 +87,17 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
             }
             // Write header
             fs << header << endl;
-            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
-                   setprecision(8) << it->second << endl;
+                        setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
         }
         return;
     }
-    if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) { //time series data for subbasin
+    if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) {
+        //time series data for subbasin
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
@@ -108,7 +109,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
                 fs << "Subbasin: " << SubbasinID << endl;
             }
             fs << header << endl;
-            for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); it++) {
+            for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
                 fs << ConvertToString2(&(it->first));
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << right << fixed << setw(15) << setfill(' ') << setprecision(8) << (it->second)[i];
@@ -120,7 +121,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
         }
         return;
     }
-    if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) { // ASC or GeoTIFF file
+    if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) {
+        // ASC or GeoTIFF file
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
@@ -134,7 +136,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
         return;
     }
 
-    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) { /// Multi-Layers raster data
+    if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) {
+        /// Multi-Layers raster data
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
@@ -147,14 +150,15 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
         return;
     }
 
-    if (!TimeSeriesData.empty()) { /// time series data
+    if (!TimeSeriesData.empty()) {
+        /// time series data
         ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
         fs.open(filename.c_str(), ios::out | ios::app);
         if (fs.is_open()) {
-            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); it++) {
+            for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
                 fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
-                   setprecision(8) << it->second << endl;
+                        setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
@@ -165,15 +169,15 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster *tem
     //throw ModelException("PrintInfoItem", "Flush", "Creating " + Filename +
     //    " is failed. There is no result data for this file. Please check output variables of modules.");
     cout << "PrintInfoItem\n Flush\n Creating " << Filename <<
-         " is failed. There is no result data for this file. Please check output variables of modules." << endl;
+            " is failed. There is no result data for this file. Please check output variables of modules." << endl;
 }
 
-void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **data) {
+void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** data) {
     if (m_AggregationType == AT_SpecificCells) {
-/*		if(m_specificOutput != NULL)
-		{
-			m_specificOutput->setData(time,data);
-		}	*/
+        /*		if(m_specificOutput != NULL)
+                {
+                    m_specificOutput->setData(time,data);
+                }	*/
     } else {
         // check to see if there is an aggregate array to add data to
         if (m_2DData == nullptr) {
@@ -241,13 +245,13 @@ void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float **d
                     }
                 }
                 break;
-            default:break;
+            default: break;
         }
         m_Counter++;
     }
 }
 
-void PrintInfoItem::AggregateData(time_t time, int numrows, float *data) {
+void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {
     if (m_AggregationType == AT_SpecificCells) {
         /*if(m_specificOutput != NULL)
         {
@@ -303,14 +307,14 @@ void PrintInfoItem::AggregateData(time_t time, int numrows, float *data) {
                         }
                     }
                     break;
-                default:break;
+                default: break;
             }
         }
         m_Counter++;
     }
 }
 
-void PrintInfoItem::AggregateData(int numrows, float **data, AggregationType type, float NoDataValue) {
+void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType type, float NoDataValue) {
     // check to see if there is an aggregate array to add data to
     if (m_1DDataWithRowCol == nullptr) {
         // create the aggregate array
@@ -337,11 +341,11 @@ void PrintInfoItem::AggregateData(int numrows, float **data, AggregationType typ
                     m_1DDataWithRowCol[rw][1] = data[rw][1]; // store the column number
                     if (m_Counter == 0) {
                         // first value so average = value
-                        m_1DDataWithRowCol[rw][2] = data[rw][2];    // store the value
+                        m_1DDataWithRowCol[rw][2] = data[rw][2]; // store the value
                     } else {
                         // calculate the incremental average
                         m_1DDataWithRowCol[rw][2] =
-                            ((m_1DDataWithRowCol[rw][2] * m_Counter) + data[rw][2]) / (m_Counter + 1);
+                                ((m_1DDataWithRowCol[rw][2] * m_Counter) + data[rw][2]) / (m_Counter + 1);
                     }
                 }
             }
@@ -392,7 +396,7 @@ void PrintInfoItem::AggregateData(int numrows, float **data, AggregationType typ
                 }
             }
             break;
-        default:break;
+        default: break;
     }
 }
 
@@ -425,14 +429,14 @@ AggregationType PrintInfoItem::MatchAggregationType(string type) {
 //////////////////////////////////////////
 
 PrintInfo::PrintInfo()
-    : m_Interval(0), m_IntervalUnits(""), m_OutputID(""), m_param(nullptr),
-      m_moduleIndex(-1), m_subbasinSelectedArray(nullptr) {
+    : m_Interval(0), m_IntervalUnits(""), m_moduleIndex(-1), m_OutputID(""),
+      m_param(nullptr), m_subbasinSelectedArray(nullptr) {
     m_PrintItems.clear();
 }
 
 PrintInfo::~PrintInfo() {
     for (auto it = m_PrintItems.begin(); it != m_PrintItems.end();) {
-        if (nullptr!=*it) {
+        if (nullptr != *it) {
             delete *it;
             *it = nullptr;
         }
@@ -440,8 +444,8 @@ PrintInfo::~PrintInfo() {
     }
     m_PrintItems.clear();
     vector<PrintInfoItem *>().swap(m_PrintItems);
-    m_param = nullptr;  /// since m_param has not been malloc by new, just set it to nullptr
-    if (nullptr!=m_subbasinSelectedArray) {
+    m_param = nullptr; /// since m_param has not been malloc by new, just set it to nullptr
+    if (nullptr != m_subbasinSelectedArray) {
         Release1DArray(m_subbasinSelectedArray);
     }
 }
@@ -534,7 +538,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("ResSedOut");
     }
     ostringstream oss;
-    for (auto it = headers.begin(); it < headers.end(); it++) {
+    for (auto it = headers.begin(); it < headers.end(); ++it) {
         if (StringMatch(*it, "Time")) {
             oss << *it;
         } else {
@@ -546,7 +550,7 @@ string PrintInfo::getOutputTimeSeriesHeader() {
 
 void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& sufi) {
     // create a new object instance
-    PrintInfoItem *itm = new PrintInfoItem();
+    PrintInfoItem* itm = new PrintInfoItem();
 
     // set its properties
     itm->SiteID = -1;
@@ -565,7 +569,7 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
 void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& file, string& sufi,
                              int subbasinID /* = 0 */) {
     // create a new object instance
-    PrintInfoItem *itm = new PrintInfoItem();
+    PrintInfoItem* itm = new PrintInfoItem();
 
     // set its properties
     itm->SiteID = -1;
@@ -573,7 +577,7 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     itm->StartTime = start;
     itm->EndTime = end;
     itm->Corename = file;
-    itm->Filename = file;
+    itm->Filename = subbasinID == 0 ? file : file + "_" + ValueToString(subbasinID);
     itm->Suffix = sufi;
 
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
@@ -584,7 +588,7 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     AggregationType enumType = PrintInfoItem::MatchAggregationType(type);
     if (enumType == AT_Unknown) {
         throw ModelException("PrintInfo", "AddPrintItem", "The type of output " + m_OutputID +
-            " can't be unknown. Please check file.out. The type should be MIN, MAX, SUM or AVERAGE (AVE or MEAN).");
+                             " can't be unknown. Please check file.out. The type should be MIN, MAX, SUM or AVERAGE (AVE or MEAN).");
     }
     itm->setAggregationType(enumType);
     // add it to the list
@@ -593,11 +597,20 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
 
 void PrintInfo::AddPrintItem(string& start, string& end, string& file, string sitename,
                              string& sufi, bool isSubbasin) {
-    PrintInfoItem *itm = new PrintInfoItem();
-    if (!isSubbasin) { itm->SiteID = atoi(sitename.c_str()); }
-    else {
-        itm->SubbasinID = atoi(sitename.c_str());
-        itm->SubbasinIndex = (int) m_subbasinSeleted.size();
+    PrintInfoItem* itm = new PrintInfoItem();
+    char* strend = nullptr;
+    errno = 0;
+    if (!isSubbasin) {
+        itm->SiteID = strtol(sitename.c_str(), &strend, 10);
+        if (errno != 0) {
+            throw ModelException("PrintInfo", "AddPrintItem", "SiteID converted to integer failed!");
+        }
+    } else {
+        itm->SubbasinID = strtol(sitename.c_str(), &strend, 10); // deprecated atoi
+        if (errno != 0) {
+            throw ModelException("PrintInfo", "AddPrintItem", "SubbasinID converted to integer failed!");
+        }
+        itm->SubbasinIndex = int(m_subbasinSeleted.size());
         m_subbasinSeleted.emplace_back(itm->SubbasinID);
     }
     itm->StartTime = start;
@@ -611,12 +624,12 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
     m_PrintItems.emplace_back(itm);
 }
 
-void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
-    *count = (int) m_subbasinSeleted.size();
+void PrintInfo::getSubbasinSelected(int* count, float** subbasins) {
+    *count = int(m_subbasinSeleted.size());
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
         m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
         int index = 0;
-        for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); it++) {
+        for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); ++it) {
             m_subbasinSelectedArray[index] = float(*it);
             index++;
         }
@@ -624,12 +637,12 @@ void PrintInfo::getSubbasinSelected(int *count, float **subbasins) {
     *subbasins = m_subbasinSelectedArray;
 }
 
-PrintInfoItem *PrintInfo::getPrintInfoItem(int index) {
+PrintInfoItem* PrintInfo::getPrintInfoItem(int index) {
     // default is nullptr
-    PrintInfoItem *res = nullptr;
+    PrintInfoItem* res = nullptr;
 
     // is the index in the valid range
-    if (index >= 0 && index < (int) m_PrintItems.size()) {
+    if (index >= 0 && index < int(m_PrintItems.size())) {
         // assign the reference to the given item
         res = m_PrintItems.at(index);
     }

@@ -97,8 +97,8 @@ int MUSLE_AS::Execute() {
         // peak flow
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfaceRunoff[i] / 25.4f, m_cellAreaKM2);
         // sediment yield
-        float Y = 11.8f * pow(m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q, 
-                              0.56f) * m_usle_k[i][0] * m_usle_ls[i] * m_usle_c[i] * m_usle_p[i];    
+        float Y = 11.8f * pow(m_surfaceRunoff[i] * m_cellAreaKM * 1000.0f * q,
+                              0.56f) * m_usle_k[i][0] * m_usle_ls[i] * m_usle_c[i] * m_usle_p[i];
         // the snow pack effect
         if (m_snowAccumulation[i] > 0.0001f) {
             Y /= exp(3.f * m_snowAccumulation[i] / 25.4f);
@@ -138,8 +138,6 @@ void MUSLE_AS::SetValue(const char *key, float data) {
         m_nCells = (int) data;
     } else if (StringMatch(sk, VAR_DEPRATIO)) {
         m_depRatio = data;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_MUSLE_AS, "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
@@ -169,7 +167,7 @@ void MUSLE_AS::Set2DData(const char *key, int nRows, int nCols, float **data) {
     CheckInputSize(key, nRows);
     string s(key);
     m_nSoilLayers = nCols;
-    if (StringMatch(s, VAR_USLE_K)) { m_usle_k = data; } 
+    if (StringMatch(s, VAR_USLE_K)) { m_usle_k = data; }
     else {
         throw ModelException(MID_MUSLE_AS, "Set2DData", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");

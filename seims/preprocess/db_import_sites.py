@@ -9,6 +9,11 @@
 """
 from __future__ import absolute_import
 
+import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
 from osgeo.ogr import Open as ogr_Open
 from pygeoc.utils import StringClass, text_type
 from pymongo import ASCENDING

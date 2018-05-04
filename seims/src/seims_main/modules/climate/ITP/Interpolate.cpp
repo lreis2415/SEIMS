@@ -3,9 +3,9 @@
 
 using namespace std;
 
-Interpolate::Interpolate() : m_nCells(-1), m_nStatioins(-1),
-                             m_month(-1), m_itpOutput(nullptr), m_stationData(nullptr), m_weights(nullptr),
-                             m_dem(nullptr), m_hStations(nullptr), m_lapseRate(nullptr), m_vertical(false), m_dataType(0) {
+Interpolate::Interpolate() : m_dataType(0), m_nStatioins(-1),
+                             m_stationData(nullptr), m_nCells(-1), m_itpWeights(nullptr), m_itpVertical(false),
+                             m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr), m_month(-1), m_itpOutput(nullptr) {
 }
 
 void Interpolate::SetClimateDataType(float value) {
@@ -20,37 +20,37 @@ void Interpolate::SetClimateDataType(float value) {
     } /// Meteorology
 }
 
-Interpolate::~Interpolate(void) {
+Interpolate::~Interpolate() {
     if (m_itpOutput != nullptr) Release1DArray(m_itpOutput);
-};
+}
 
 int Interpolate::Execute() {
     CheckInputData();
     if (nullptr == m_itpOutput) { Initialize1DArray(m_nCells, m_itpOutput, 0.f); }
     size_t errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
-    for (int i = 0; i < m_nCells; ++i) {
+    for (int i = 0; i < m_nCells; i++) {
         int index = 0;
         float value = 0.f;
-        for (int j = 0; j < m_nStatioins; ++j) {
+        for (int j = 0; j < m_nStatioins; j++) {
             index = i * m_nStatioins + j;
-            value += m_stationData[j] * m_weights[index];
+            value += m_stationData[j] * m_itpWeights[index];
             if (value != value) {
                 errCount++;
-                cout << "CELL:" << i << ", Site: " << j << ", Weight: " << m_weights[index] <<
+                cout << "CELL:" << i << ", Site: " << j << ", Weight: " << m_itpWeights[index] <<
                     ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
             }
-            if (m_vertical) {
+            if (m_itpVertical) {
                 float delta = m_dem[i] - m_hStations[j];
                 float factor = m_lapseRate[m_month][m_dataType];
-                float adjust = m_weights[index] * delta * factor / 100.f;
+                float adjust = m_itpWeights[index] * delta * factor * 0.01f;
                 value += adjust;
             }
         }
         m_itpOutput[i] = value;
     }
     if (errCount > 0) {
-        throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!\n");
+        throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!");
     }
     return true;
 }
@@ -65,26 +65,19 @@ void Interpolate::SetDate(time_t date, int yearIdx) {
 
 void Interpolate::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
-    } else if (StringMatch(sk, VAR_TSD_DT)) {
+    if (StringMatch(sk, VAR_TSD_DT)) {
         SetClimateDataType(value);
     } else if (StringMatch(sk, Tag_VerticalInterpolation)) {
-        if (value > 0) {
-            m_vertical = true;
-        } else {
-            m_vertical = false;
-        }
+        m_itpVertical = value > 0;
     } else {
         throw ModelException(MID_ITP, "SetValue", "Parameter " + sk + " does not exist.");
     }
-
 }
 
 void Interpolate::Set2DData(const char *key, int nRows, int nCols, float **data) {
     string sk(key);
     if (StringMatch(sk, Tag_LapseRate)) {
-        if (m_vertical) {
+        if (m_itpVertical) {
             int nMonth = 12;
             CheckInputSize(sk, nRows, nMonth);
             m_lapseRate = data;
@@ -97,16 +90,16 @@ void Interpolate::Set2DData(const char *key, int nRows, int nCols, float **data)
 void Interpolate::Set1DData(const char *key, int n, float *data) {
     string sk(key);
     if (StringMatch(sk, Tag_DEM)) {
-        if (m_vertical) {
+        if (m_itpVertical) {
             CheckInputSize(sk, n, m_nCells);
             m_dem = data;
         }
     } else if (StringMatch(sk, Tag_Weight)) {
         CheckInputSize(sk, n, m_nCells);
-        m_weights = data;
+        m_itpWeights = data;
     } else if (StringMatch(sk, Tag_Elevation_Precipitation) || StringMatch(sk, Tag_Elevation_Meteorology)
         || StringMatch(sk, Tag_Elevation_Temperature) || StringMatch(sk, Tag_Elevation_PET)) {
-        if (m_vertical) {
+        if (m_itpVertical) {
             CheckInputSize(sk, n, m_nStatioins);
             m_hStations = data;
         }
@@ -142,8 +135,8 @@ bool Interpolate::CheckInputSize(string &key, int n, int &m_n) {
 void Interpolate::CheckInputData() {
     CHECK_NONNEGATIVE(MID_ITP, m_dataType);
     CHECK_NONNEGATIVE(MID_ITP, m_month);
-    CHECK_POINTER(MID_ITP, m_weights);
-    if (m_vertical) {
+    CHECK_POINTER(MID_ITP, m_itpWeights);
+    if (m_itpVertical) {
         CHECK_POINTER(MID_ITP, m_lapseRate);
         CHECK_POINTER(MID_ITP, m_dem);
         CHECK_POINTER(MID_ITP, m_hStations);

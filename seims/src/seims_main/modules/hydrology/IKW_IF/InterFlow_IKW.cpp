@@ -207,8 +207,6 @@ void InterFlow_IKW::SetValue(const char *key, float data) {
         m_nCells = (int) data;
     } else if (StringMatch(sk, VAR_KI)) {
         m_landuseFactor = data;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) data);
     } else {
         throw ModelException(MID_IKW_IF, "SetSingleData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");

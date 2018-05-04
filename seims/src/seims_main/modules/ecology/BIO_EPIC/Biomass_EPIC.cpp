@@ -70,7 +70,6 @@ Biomass_EPIC::~Biomass_EPIC() {
 void Biomass_EPIC::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_CO2)) { m_co2 = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else if (StringMatch(sk, VAR_NUPDIS)) { m_NUpDis = value; }
     else if (StringMatch(sk, VAR_PUPDIS)) { m_PUpDis = value; }
     else if (StringMatch(sk, VAR_NFIXCO)) { m_NFixCoef = value; }
@@ -118,7 +117,7 @@ void Biomass_EPIC::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_PPT)) { m_ppt = data; }
     else if (StringMatch(sk, VAR_SOET)) { m_soilESDay = data; }
     else if (StringMatch(sk, VAR_SOL_COV)) { m_sol_cov = data; }
-    else if (StringMatch(sk, VAR_SNAC)) { m_snowAcc = data; } 
+    else if (StringMatch(sk, VAR_SNAC)) { m_snowAcc = data; }
     else if (StringMatch(sk, VAR_SOL_RSDIN)) { m_sol_rsdin = data; }
     else if (StringMatch(sk, VAR_IGRO)) { m_igro = data; }
     else if (StringMatch(sk, VAR_IDC)) { m_landCoverCls = data; }
@@ -146,7 +145,7 @@ void Biomass_EPIC::Set1DData(const char *key, int n, float *data) {
     else if (StringMatch(sk, VAR_MAT_YRS)) { m_matYrs = data; }
     else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; }
     else if (StringMatch(sk, VAR_T_OPT)) { m_tOpt = data; }
-    else if (StringMatch(sk, VAR_WAVP)) { m_wavp = data; } 
+    else if (StringMatch(sk, VAR_WAVP)) { m_wavp = data; }
     else if (StringMatch(sk, VAR_EPCO)) { m_epco = data; }
     else if (StringMatch(sk, VAR_TREEYRS)) { m_initTreeMatYr = data; }
     else if (StringMatch(sk, VAR_LAIINIT)) { m_initLAI = data; }
@@ -537,7 +536,7 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
             beadj = max(beadj, 0.27f * m_BIOE[i]);
         }
         m_biomassDelta[i] = max(0.f, beadj * activeRadiation);
-        /// 4. Calculate plant uptake of N and P to make sure no plant N and P uptake under temperature, water and aeration stress   
+        /// 4. Calculate plant uptake of N and P to make sure no plant N and P uptake under temperature, water and aeration stress
         /// m_frStrsWa and m_frStrsAe are derived from DistributePlantET()
         //if (i == 2000 && (m_frStrsWa[i] > 0.f || m_frStrsTmp[i] > 0.f || m_frStrsAe[i] > 0.f))
         //	cout<<"water stress frac: "<<m_frStrsWa[i]<<", tmp: "<<m_frStrsTmp[i]<<", Ae: "<<m_frStrsAe[i]<<endl;

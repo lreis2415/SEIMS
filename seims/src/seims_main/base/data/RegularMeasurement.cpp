@@ -1,16 +1,18 @@
+#include "text.h"
+#include "utilities.h"
 #include "RegularMeasurement.h"
 
 //! Constructor
 RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
-    int nSites = (int) m_siteIDList.size();
+    int nSites = int(m_siteIDList.size());
 
     /// build query statement
-    bson_t *query = bson_new();
-    bson_t *child = bson_new();
-    bson_t *child2 = bson_new();
-    bson_t *child3 = bson_new();
+    bson_t* query = bson_new();
+    bson_t* child = bson_new();
+    bson_t* child2 = bson_new();
+    bson_t* child3 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(query, "$query", child);
     BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
     BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
@@ -52,15 +54,15 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     int stationID = -1;
     int iSite = -1;
     vector<int>::size_type index = 0;
-    const bson_t *doc;
+    const bson_t* doc;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_SITEID)) {
             GetNumericFromBsonIterator(&iter, stationID);
         } else {
-            throw ModelException("RegularMeasurement", "Constructor", 
-                "The Value field: " + string(MONG_HYDRO_DATA_SITEID) + 
-                " does not exist in DataValues table.");
+            throw ModelException("RegularMeasurement", "Constructor",
+                                 "The Value field: " + string(MONG_HYDRO_DATA_SITEID) +
+                                 " does not exist in DataValues table.");
         }
         if (stationID != stationIDLast) {
             iSite++;
@@ -79,8 +81,8 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
             GetNumericFromBsonIterator(&iter, value);
         } else {
             throw ModelException("RegularMeasurement", "Constructor",
-                "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
-                " does not exist in DataValues table.");
+                                 "The Value field: " + string(MONG_HYDRO_DATA_VALUE) +
+                                 " does not exist in DataValues table.");
         }
         m_siteData[index][iSite] = value;
         index++;
@@ -88,14 +90,15 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     if (index <= 0) {
         ostringstream oss;
         oss << "There are no " << siteType << " data available for sites:[" << sitesList << "] in database:" <<
-            hydroDBName
-            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                hydroDBName
+                << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
-    } else if (iSite + 1 != nSites) {
+    }
+    if (iSite + 1 != nSites) {
         ostringstream oss;
         oss << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
-            " for sites:[" << sitesList << "] in database:" << hydroDBName
-            << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                " for sites:[" << sitesList << "] in database:" << hydroDBName
+                << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     bson_destroy(query);
@@ -113,7 +116,7 @@ RegularMeasurement::~RegularMeasurement() {
     m_siteData.clear();
 }
 
-float *RegularMeasurement::GetSiteDataByTime(time_t t) {
+float* RegularMeasurement::GetSiteDataByTime(time_t t) {
     int index = int((t - m_startTime) / m_interval);
 
     if (index < 0) {

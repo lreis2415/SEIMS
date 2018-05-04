@@ -11,7 +11,7 @@ install(TARGETS grid_layering DESTINATION ${INSTALL_DIR})
 LIST(APPEND UTILS_APPS grid_layering)
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
-IF (WIN32)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET grid_layering PROPERTY FOLDER "UtilApps")
 ENDIF ()
 MESSAGE(STATUS "    Compiling Grid Layering done")

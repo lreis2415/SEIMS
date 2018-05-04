@@ -32,7 +32,7 @@ void clsPI_MCS::Set1DData(const char *key, int nRows, float *data) {
 #ifndef STORM_MODE
         m_PET = data;
 #endif
-    } 
+    }
     else if (StringMatch(s, VAR_INTERC_MAX)) { m_maxSt = data; }
     else if (StringMatch(s, VAR_INTERC_MIN)) { m_minSt = data; }
     else if (StringMatch(s, VAR_LANDUSE)) { m_landuse = data; }
@@ -45,7 +45,6 @@ void clsPI_MCS::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, VAR_PI_B)) { m_Pi_b = data; }
     else if (StringMatch(s, VAR_INIT_IS)) { m_Init_IS = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(s, VAR_PCP2CANFR_PR)) {m_pcp2canfr_pr = data; }
     else if (StringMatch(s, VAR_EMBNKFR_PR)) {m_embnkfr_pr = data; }
 #ifdef STORM_MODE
@@ -113,7 +112,7 @@ int clsPI_MCS::Execute() {
             float max = m_maxSt[i];
             float capacity = min + (max - min) * pow(0.5f + 0.5f * sin(degree), m_Pi_b);
 
-            //interception, currently, m_st[i] is storage of (t-1) time step 
+            //interception, currently, m_st[i] is storage of (t-1) time step
             float availableSpace = capacity - m_st[i];
             if (availableSpace < 0) {
                 availableSpace = 0.f;
@@ -150,7 +149,7 @@ int clsPI_MCS::Execute() {
             m_evaporationLoss[i] = m_st[i];
         }
         m_st[i] -= m_evaporationLoss[i];
-#endif    
+#endif
     }
     return 0;
 }

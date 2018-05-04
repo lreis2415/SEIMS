@@ -1,26 +1,32 @@
 #include "DataCenterMongoDB.h"
 
 const int MAIN_DB_TABS_REQ_NUM = 6;
-const char *MAIN_DB_TABS_REQ[] = {DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
-                                  DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL};
+const char* MAIN_DB_TABS_REQ[] = {
+    DB_TAB_FILE_IN, DB_TAB_FILE_OUT, DB_TAB_SITELIST,
+    DB_TAB_PARAMETERS, DB_TAB_REACH, DB_TAB_SPATIAL
+};
 
 const int METEO_VARS_NUM = 6;
-const char *METEO_VARS[] = {DataType_MeanTemperature, DataType_MaximumTemperature,
-                            DataType_MinimumTemperature, DataType_SolarRadiation,
-                            DataType_WindSpeed, DataType_RelativeAirMoisture};
+const char* METEO_VARS[] = {
+    DataType_MeanTemperature, DataType_MaximumTemperature,
+    DataType_MinimumTemperature, DataType_SolarRadiation,
+    DataType_WindSpeed, DataType_RelativeAirMoisture
+};
 
 const int SOILWATER_VARS_NUM = 5;
-const char *SOILWATER_VARS[] = {VAR_SOL_WPMM, VAR_SOL_AWC, VAR_SOL_UL,
-                                VAR_SOL_SUMAWC, VAR_SOL_SUMSAT};
+const char* SOILWATER_VARS[] = {
+    VAR_SOL_WPMM, VAR_SOL_AWC, VAR_SOL_UL,
+    VAR_SOL_SUMAWC, VAR_SOL_SUMSAT
+};
 
-DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient *client, ModuleFactory* factory,
+DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, ModuleFactory* factory,
                                      int subBasinID /* = 0 */) :
-    m_mongodbIP(input_args->m_host_ip), m_mongodbPort(input_args->m_port), m_mongoClient(client),
-    m_mainDatabase(nullptr), m_spatialGridFS(nullptr),
+    DataCenter(input_args, factory, subBasinID), m_mongodbIP(input_args->m_host_ip), m_mongodbPort(input_args->m_port),
     m_climDBName(""), m_scenDBName(""),
-    DataCenter(input_args, factory, subBasinID) {
+    m_mongoClient(client), m_mainDatabase(nullptr),
+    m_spatialGridFS(nullptr) {
     m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
-    if (getFileInStringVector()) {
+    if (DataCenterMongoDB::getFileInStringVector()) {
         m_input = SettingsInput::Init(m_fileIn1DStrs);
         if (nullptr == m_input) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_input!");
@@ -28,10 +34,10 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient *client,
     } else {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_IN!");
     }
-    if (!getSubbasinNumberAndOutletID()) {
+    if (!DataCenterMongoDB::getSubbasinNumberAndOutletID()) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
-    if (getFileOutVector()) {
+    if (DataCenterMongoDB::getFileOutVector()) {
         m_output = SettingsOutput::Init(m_nSubbasins, m_outletID, m_subbasinID, m_OriginOutItems);
         if (nullptr == m_output) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
@@ -40,7 +46,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient *client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to query FILE_OUT!");
     }
     /// Check the existence of all required and optional data
-    if (!checkModelPreparedData()) {
+    if (!DataCenterMongoDB::checkModelPreparedData()) {
         throw ModelException("DataCenterMongoDB", "checkModelPreparedData", "Model data has not been set up!");
     }
 }
@@ -90,9 +96,9 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     oss.str("");
     oss << m_subbasinID << "_" << VAR_SUBBSN;
     string subbasinFileName = GetUpper(oss.str());
-    FloatRaster *subbasinRaster = FloatRaster::Init(m_spatialGridFS,
-                                                             subbasinFileName.c_str(),
-                                                             true, m_maskRaster);
+    FloatRaster* subbasinRaster = FloatRaster::Init(m_spatialGridFS,
+                                                    subbasinFileName.c_str(),
+                                                    true, m_maskRaster);
     assert(nullptr != subbasinRaster);
     m_rsMap.insert(make_pair(subbasinFileName, subbasinRaster));
     // Constructor Subbasin data
@@ -108,8 +114,7 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     m_reaches->Update(m_initParameters);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existedMainDBTabs) && m_scenarioID >= 0) {
-        bson_t *query;
-        query = bson_new();
+        bson_t* query = bson_new();
         m_scenDBName = QueryDatabaseName(query, DB_TAB_SCENARIO);
         if (!m_scenDBName.empty()) {
             m_useScenario = true;
@@ -122,19 +127,18 @@ bool DataCenterMongoDB::checkModelPreparedData() {
     return true;
 }
 
-string DataCenterMongoDB::QueryDatabaseName(bson_t *query, const char *tabname) {
+string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) {
     unique_ptr<MongoCollection> collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, tabname)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(query);
-    const bson_t *doc;
-    string dbname = "";
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
+    const bson_t* doc;
+    string dbname;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, "DB")) {
             dbname = GetStringFromBsonIterator(&iter);
             break;
-        } else {
-            cout << "ERROR: The DB field does not exist in " << string(tabname) << endl;
         }
+        cout << "ERROR: The DB field does not exist in " << string(tabname) << endl;
     }
     bson_destroy(query);
     mongoc_cursor_destroy(cursor);
@@ -143,17 +147,17 @@ string DataCenterMongoDB::QueryDatabaseName(bson_t *query, const char *tabname) 
 
 bool DataCenterMongoDB::getFileInStringVector() {
     if (m_fileIn1DStrs.empty()) {
-        bson_t *b = bson_new();
+        bson_t* b = bson_new();
         unique_ptr<MongoCollection>
-            collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_FILE_IN)));
-        mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
-        bson_error_t *err = nullptr;
+                collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_FILE_IN)));
+        mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+        bson_error_t* err = nullptr;
         if (mongoc_cursor_error(cursor, err)) {
             cout << "ERROR: Nothing found in the collection: " << DB_TAB_FILE_IN << "." << endl;
             return false;
         }
         bson_iter_t itertor;
-        const bson_t *bsonTable;
+        const bson_t* bsonTable;
         while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
             vector<string> tokens(2);
             if (bson_iter_init_find(&itertor, bsonTable, Tag_ConfTag)) {
@@ -166,7 +170,7 @@ bool DataCenterMongoDB::getFileInStringVector() {
                 m_modelMode = tokens[1];
             }
             size_t sz = m_fileIn1DStrs.size(); // get the current number of rows
-            m_fileIn1DStrs.resize(sz + 1);  // resize with one more row
+            m_fileIn1DStrs.resize(sz + 1); // resize with one more row
             m_fileIn1DStrs[sz] = tokens[0] + "|" + tokens[1]; // keep the interface consistent
         }
         bson_destroy(b);
@@ -179,11 +183,11 @@ bool DataCenterMongoDB::getFileOutVector() {
     if (!m_OriginOutItems.empty()) {
         return true;
     }
-    bson_t *b = bson_new();
+    bson_t* b = bson_new();
     unique_ptr<MongoCollection>
-        collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_FILE_OUT)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
-    bson_error_t *err = NULL;
+            collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_FILE_OUT)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    bson_error_t* err = NULL;
     if (mongoc_cursor_error(cursor, err)) {
         cout << "ERROR: Nothing found in the collection: " << DB_TAB_FILE_OUT << "." << endl;
         /// destroy
@@ -192,7 +196,7 @@ bool DataCenterMongoDB::getFileOutVector() {
         return false;
     }
     bson_iter_t itertor;
-    const bson_t *bsonTable;
+    const bson_t* bsonTable;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
         OrgOutItem tmpOutputItem;
         if (bson_iter_init_find(&itertor, bsonTable, Tag_OutputUSE)) {
@@ -231,9 +235,7 @@ bool DataCenterMongoDB::getFileOutVector() {
         if (bson_iter_init_find(&itertor, bsonTable, Tag_IntervalUnit)) {
             tmpOutputItem.intervalUnit = GetStringFromBsonIterator(&itertor);
         }
-        if (tmpOutputItem.use <= 0) {
-            continue;
-        } else {
+        if (tmpOutputItem.use > 0) {
             m_OriginOutItems.push_back(tmpOutputItem);
         }
     }
@@ -242,22 +244,19 @@ bool DataCenterMongoDB::getFileOutVector() {
     /// destroy
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
-    if (!m_OriginOutItems.empty()) {
-        return true;
-    }
-    return false;
+    return !m_OriginOutItems.empty();
 }
 
 bool DataCenterMongoDB::getSubbasinNumberAndOutletID() {
-    bson_t *b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID),
-                         BCON_UTF8(VAR_SUBBSNID_NUM),
-                         "]", "}", "}");
+    bson_t* b = BCON_NEW("$query", "{", PARAM_FLD_NAME, "{", "$in", "[", BCON_UTF8(VAR_OUTLETID),
+        BCON_UTF8(VAR_SUBBSNID_NUM),
+        "]", "}", "}");
     // printf("%s\n",bson_as_json(b, NULL));
 
     unique_ptr<MongoCollection>
-        collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_PARAMETERS)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
-    bson_error_t *err = NULL;
+            collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_PARAMETERS)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
+    bson_error_t* err = NULL;
     if (mongoc_cursor_error(cursor, err)) {
         cout << "ERROR: Nothing found for subbasin number and outlet ID." << endl;
         /// destroy
@@ -267,9 +266,9 @@ bool DataCenterMongoDB::getSubbasinNumberAndOutletID() {
     }
 
     bson_iter_t iter;
-    const bson_t *bsonTable;
+    const bson_t* bsonTable;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bsonTable)) {
-        string nameTmp = "";
+        string nameTmp;
         int numTmp = -1;
         if (bson_iter_init_find(&iter, bsonTable, PARAM_FLD_NAME)) {
             nameTmp = GetStringFromBsonIterator(&iter);
@@ -289,15 +288,11 @@ bool DataCenterMongoDB::getSubbasinNumberAndOutletID() {
     }
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
-    if (m_outletID >= 0 && m_nSubbasins >= 0) {
-        return true;
-    }
-    return false;
+    return m_outletID >= 0 && m_nSubbasins >= 0;
 }
 
 void DataCenterMongoDB::readClimateSiteList() {
-    bson_t *query;
-    query = bson_new();
+    bson_t* query = bson_new();
     // subbasin id
     BSON_APPEND_INT32(query, Tag_SubbasinId, m_subbasinID);
     // mode
@@ -305,10 +300,10 @@ void DataCenterMongoDB::readClimateSiteList() {
     BSON_APPEND_UTF8(query, Tag_Mode, m_input->getModelMode().c_str());
 
     unique_ptr<MongoCollection>
-        collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_SITELIST)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(query);
+            collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_SITELIST)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
-    const bson_t *doc;
+    const bson_t* doc;
     while (mongoc_cursor_next(cursor, &doc)) {
         bson_iter_t iter;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_SITELIST_DB)) {
@@ -316,7 +311,7 @@ void DataCenterMongoDB::readClimateSiteList() {
         } else {
             throw ModelException("DataCenterMongoDB", "Constructor", "The DB field does not exist in SiteList table.");
         }
-        string siteList = "";
+        string siteList;
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, SITELIST_TABLE_M)) {
             siteList = GetStringFromBsonIterator(&iter);
             for (int i = 0; i < METEO_VARS_NUM; ++i) {
@@ -342,13 +337,13 @@ void DataCenterMongoDB::readClimateSiteList() {
 }
 
 bool DataCenterMongoDB::readParametersInDB() {
-    bson_t *filter = bson_new();
+    bson_t* filter = bson_new();
     unique_ptr<MongoCollection>
-        collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_PARAMETERS)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(filter);
+            collection(new MongoCollection(m_mongoClient->getCollection(m_modelName, DB_TAB_PARAMETERS)));
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
 
-    bson_error_t *err = NULL;
-    const bson_t *info;
+    bson_error_t* err = NULL;
+    const bson_t* info;
     if (mongoc_cursor_error(cursor, err)) {
         cout << "ERROR: Nothing found in the collection: " << DB_TAB_PARAMETERS << "." << endl;
         /// destroy
@@ -357,7 +352,7 @@ bool DataCenterMongoDB::readParametersInDB() {
         return false;
     }
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &info)) {
-        ParamInfo *p = new ParamInfo();
+        ParamInfo* p = new ParamInfo();
         bson_iter_t iter;
         if (bson_iter_init_find(&iter, info, PARAM_FLD_NAME)) {
             p->Name = GetStringFromBsonIterator(&iter);
@@ -396,7 +391,7 @@ bool DataCenterMongoDB::readParametersInDB() {
         /// e.g., SOL_AWC, SOL_UL, WILTINGPOINT. By ljzhu, 2018-1-11
         if (StringMatch(p->Name, VAR_SW_CAP)) {
             for (int si = 0; si < SOILWATER_VARS_NUM; si++) {
-                ParamInfo *tmpp = new ParamInfo(*p);
+                ParamInfo* tmpp = new ParamInfo(*p);
                 tmpp->Name = SOILWATER_VARS[si];
                 m_initParameters.insert(make_pair(GetUpper(tmpp->Name), tmpp));
             }
@@ -407,9 +402,9 @@ bool DataCenterMongoDB::readParametersInDB() {
     return true;
 }
 
-FloatRaster *DataCenterMongoDB::readRasterData(const string &remoteFilename) {
-    FloatRaster *rasterData = FloatRaster::Init(m_spatialGridFS, remoteFilename.c_str(),
-                                                         true, m_maskRaster, true);
+FloatRaster* DataCenterMongoDB::readRasterData(const string& remoteFilename) {
+    FloatRaster* rasterData = FloatRaster::Init(m_spatialGridFS, remoteFilename.c_str(),
+                                                true, m_maskRaster, true);
     assert(nullptr != rasterData);
     /// using insert() to make sure the successful insertion.
     if (!m_rsMap.insert(make_pair(remoteFilename, rasterData)).second) {
@@ -419,8 +414,8 @@ FloatRaster *DataCenterMongoDB::readRasterData(const string &remoteFilename) {
     return rasterData;
 }
 
-void DataCenterMongoDB::readItpWeightData(string &remoteFilename, int &num, float *&data) {
-    clsITPWeightData *weightData = new clsITPWeightData(m_spatialGridFS, remoteFilename.c_str());
+void DataCenterMongoDB::readItpWeightData(string& remoteFilename, int& num, float*& data) {
+    clsITPWeightData* weightData = new clsITPWeightData(m_spatialGridFS, remoteFilename.c_str());
     weightData->getWeightData(&num, &data);
     if (!m_weightDataMap.insert(make_pair(remoteFilename, weightData)).second) {
         /// if insert data failed, release clsITPWeightData in case of memory leak
@@ -428,27 +423,26 @@ void DataCenterMongoDB::readItpWeightData(string &remoteFilename, int &num, floa
     }
 }
 
-void DataCenterMongoDB::read1DArrayData(string &paramName, string &remoteFilename,
-                                        int &num, float *&data) {
-    char *databuf = nullptr;
+void DataCenterMongoDB::read1DArrayData(string& paramName, string& remoteFilename,
+                                        int& num, float*& data) {
+    char* databuf = nullptr;
     size_t datalength;
     m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
-    float *floatValues = (float *) databuf;
     num = datalength / 4;
-    data = (float *) databuf;
+    data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
     if (!StringMatch(paramName, Tag_Weight)) {
         m_1DArrayMap.insert(make_pair(remoteFilename, data));
         m_1DLenMap.insert(make_pair(remoteFilename, num));
     }
 }
 
-void DataCenterMongoDB::read2DArrayData(string &remoteFilename, int &rows, int &cols, float **&data) {
-    char *databuf = nullptr;
+void DataCenterMongoDB::read2DArrayData(string& remoteFilename, int& rows, int& cols, float**& data) {
+    char* databuf = nullptr;
     size_t datalength;
     m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
-    float *floatValues = (float *) databuf;
+    float* floatValues = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    int nRows = (int) floatValues[0];
+    int nRows = int(floatValues[0]);
     int nCols = -1;
     rows = nRows;
     data = new float *[rows];
@@ -485,18 +479,18 @@ void DataCenterMongoDB::read2DArrayData(string &remoteFilename, int &rows, int &
     m_2DColsLenMap.insert(make_pair(remoteFilename, nCols));
 }
 
-void DataCenterMongoDB::readIUHData(string &remoteFilename, int &n, float **&data) {
-    char *databuf = nullptr;
+void DataCenterMongoDB::readIUHData(string& remoteFilename, int& n, float**& data) {
+    char* databuf = nullptr;
     size_t datalength;
     m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
-    float *floatValues = (float *) databuf;
+    float* floatValues = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    n = (int) floatValues[0];
+    n = int(floatValues[0]);
     data = new float *[n];
 
     int index = 1;
     for (int i = 0; i < n; i++) {
-        int nSub = (int) (floatValues[index + 1] - floatValues[index] + 3);
+        int nSub = int(floatValues[index + 1] - floatValues[index] + 3);
         data[i] = new float[nSub];
 
         data[i][0] = floatValues[index];
@@ -521,9 +515,9 @@ void DataCenterMongoDB::readIUHData(string &remoteFilename, int &n, float **&dat
 bool DataCenterMongoDB::setRasterForScenario() {
     if (!m_useScenario) return false;
     if (nullptr == m_scenario) return false;
-    map<string, FloatRaster *> &sceneRsMap = m_scenario->getSceneRasterDataMap();
+    map<string, FloatRaster *>& sceneRsMap = m_scenario->getSceneRasterDataMap();
     if (sceneRsMap.empty()) return false;
-    for (auto it = sceneRsMap.begin(); it != sceneRsMap.end(); it++) {
+    for (auto it = sceneRsMap.begin(); it != sceneRsMap.end(); ++it) {
         if (m_rsMap.find(it->first) == m_rsMap.end()) {
             it->second = readRasterData(it->first);
         } else {

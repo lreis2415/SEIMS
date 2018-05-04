@@ -13,32 +13,35 @@
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Oct. 17, 2017
+#  Latest updated: Mar. 2, 2017
 #
-#  Contributors: Junzhi Liu, Hui Wu, Liangjun Zhu, Huiran Gao, etc.
-#  Copyright (C) 2013-2017 Lreis, IGSNRR, CAS
+#  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
-### Disable in-source builds to prevent source tree corruption.
-#IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
-#    MESSAGE(FATAL_ERROR "
-#FATAL: In-source builds are not allowed.
-#       You should create a separate directory for build files.")
-#ENDIF()
-#CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
-#IF (COMMAND CMAKE_POLICY)
-#    CMAKE_POLICY(SET CMP0015 NEW)
-#    SET(CMAKE_MACOSX_RPATH 1)
-#ENDIF (COMMAND CMAKE_POLICY)
-
+### Set coding language
+PROJECT(seims_prj CXX C)
 ### SEIMS Version.
 SET(SEIMSPRJ "seims")
-SET(SEIMSPRJ ${SEIMSPRJ}_mpi_omp)
-ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB -DMODULE_EXPORTS)
+### Check MPI which is optional
+IF(MPI_FOUND)
+  SET(WITH_MPI 1)
+  SET(SEIMSPRJ ${SEIMSPRJ}_mpi)
+  MESSAGE(STATUS "Compiling with MPI...")
+ENDIF()
+### Check OMP which is optional
+IF(OPENMP_FOUND)
+  SET(WITH_OMP 1)
+  ADD_DEFINITIONS(-DSUPPORT_OMP)
+  SET(SEIMSPRJ ${SEIMSPRJ}_omp)
+  MESSAGE(STATUS "Compiling with OpenMP...")
+ENDIF()
 SET(SEIMSPRJ ${SEIMSPRJ}_prj)
 PROJECT(${SEIMSPRJ})
+
+### Compile with Visual leak detector for MSVC
 IF (VLD EQUAL 1)
   ADD_DEFINITIONS(-DVLD)
 ENDIF ()
+
 ### Build Postfix
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
@@ -55,6 +58,13 @@ ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 ELSE()
   SET(CMAKE_BUILD_POSTFIX "")
 ENDIF()
+
+ADD_DEFINITIONS(-DMODULE_EXPORTS)
+### Use MongoDB as database
+IF (BSON_FOUND AND MONGOC_FOUND)
+  ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
+ENDIF ()
+
 ########  Stand-alone libraries/programs   ###########
 SET(BASE_HOME ${CMAKE_CURRENT_SOURCE_DIR}/base)
 SET(BASE_INC ${BASE_HOME}/util ${BASE_HOME}/data ${BASE_HOME}/module_setting ${BASE_HOME}/bmps)

@@ -9,14 +9,13 @@
 #     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
 #     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
-#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5
+#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5 (Without UnitTest)
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Oct. 17, 2017
+#  Latest updated: Mar. 4, 2018
 #
-#  Contributors: Junzhi Liu, Hui Wu, Liangjun Zhu, Huiran Gao, etc.
-#  Copyright (C) 2013-2017 Lreis, IGSNRR, CAS
+#  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -32,13 +31,27 @@ endif()
 if(POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
+### Set coding language
+PROJECT(SEIMS_ALL CXX C)
 ### SEIMS Version.
 SET(PRJNAME "SEIMS")
-#IF (PARALLEL STREQUAL MPI)
-SET(PRJNAME ${PRJNAME}_MPI_OMP)
-SET(WITH_MPI 1)
-SET(WITH_OMP 1)
-MESSAGE(STATUS "MPI&OpenMP version...")
+### Find MPI which is required
+FIND_PACKAGE(MPI REQUIRED)
+IF(MPI_FOUND)
+  SET(WITH_MPI 1)
+  SET(PRJNAME ${PRJNAME}_MPI)
+  MESSAGE(STATUS "Compiling with MPI...")
+ELSE()
+  MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
+ENDIF()
+### Find OMP which is optional
+FIND_PACKAGE(OpenMP)
+IF(OPENMP_FOUND)
+  SET(WITH_OPENMP 1)
+  ADD_DEFINITIONS(-DSUPPORT_OMP)
+  SET(PRJNAME ${PRJNAME}_OMP)
+  MESSAGE(STATUS "Compiling with OpenMP...")
+ENDIF()
 SET(PRJNAME ${PRJNAME}_ALL)
 PROJECT(${PRJNAME})
 
@@ -62,7 +75,7 @@ IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL 
 ENDIF()
 
 ### Allow project folders in MSVC.
-IF(MSVC)
+IF(MSVC OR XCODE)
     SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
@@ -93,6 +106,7 @@ option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 INCLUDE(Utils)
 SET(ENABLE_CXX11 1)
 INCLUDE(DetectCXXCompiler)
+
 ### Use statically or dynamically linked CRT? Default: dynamic
 IF(MSVC)
     INCLUDE(CRTLinkage)
@@ -101,11 +115,23 @@ ENDIF(MSVC)
 ### Add standard paths or specified paths for Find libraries and headers.
 INCLUDE(AddFindPaths)
 
-### Find packages.
-SET(WITH_GDAL 1)
-SET(WITH_MONGOC 1)
-SET(WITH_OPENMP 1)
-INCLUDE(FindPackages)
+### Find GDAL which is required.
+FIND_PACKAGE(GDAL REQUIRED)
+IF (GDAL_FOUND)
+  SET(WITH_GDAL 1)
+ELSE ()
+  MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
+ENDIF ()
+
+
+### Set specific packages.
+INCLUDE(SetFlagMPI)
+INCLUDE(SetFlagOpenMP)
+INCLUDE(SetFlagGDAL)
+
+### Bson and MongoC.
+INCLUDE(FindBson)
+INCLUDE(FindMongoC)
 
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
@@ -117,16 +143,16 @@ STATUS("  Platform:")
 IF(NOT CMAKE_VERSION VERSION_LESS 2.8.11 AND NOT BUILD_INFO_SKIP_TIMESTAMP)
     STRING(TIMESTAMP TIMESTAMP "" UTC)
     IF(TIMESTAMP)
-        STATUS("    Timestamp:"    ${TIMESTAMP})
+        STATUS("    Timestamp:"  ${TIMESTAMP})
     ENDIF()
 ENDIF()
-STATUS("    Host:"             ${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_VERSION} ${CMAKE_HOST_SYSTEM_PROCESSOR})
+STATUS("    Host:"               ${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_VERSION} ${CMAKE_HOST_SYSTEM_PROCESSOR})
 IF(CMAKE_CROSSCOMPILING)
     STATUS("    Target:"         ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION} ${CMAKE_SYSTEM_PROCESSOR})
 ENDIF()
-STATUS("    CMake:"            ${CMAKE_VERSION})
-STATUS("    CMake generator:"  ${CMAKE_GENERATOR})
-STATUS("    CMake build tool:" ${CMAKE_BUILD_TOOL})
+STATUS("    CMake:"              ${CMAKE_VERSION})
+STATUS("    CMake generator:"    ${CMAKE_GENERATOR})
+STATUS("    CMake build tool:"   ${CMAKE_BUILD_TOOL})
 IF(MSVC)
     STATUS("    MSVC:"           ${MSVC_VERSION})
 ENDIF()
@@ -165,14 +191,14 @@ ELSE()
 ENDIF()
 
 ### Dependencies.
-IF(WITH_MPI)
-    STATUS("    MPI: ${MPI_LIBRARIES} ${MPI_INCLUDE_PATH}")
-ENDIF()
-STATUS("    GDAL: ${GDAL_LIBRARIES} ${GDAL_INCLUDE_DIR}")
-STATUS("    BSON: ${BSON_LIBRARIES} ${BSON_INCLUDE_DIR}")
-STATUS("    MongoC: ${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR}")
+STATUS("")
+STATUS("    Use MPI:"     MPI_FOUND      THEN "YES (LIB: ${MPI_LIBRARIES}, INC: ${MPI_INCLUDE_PATH})" ELSE "NO")
+STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
+STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
+STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
+STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
 
 ### Auxiliary.
 STATUS("")
-STATUS("  Install path:" ${CMAKE_INSTALL_PREFIX})
+STATUS("  Install path:" ${INSTALL_DIR})
 STATUS("")

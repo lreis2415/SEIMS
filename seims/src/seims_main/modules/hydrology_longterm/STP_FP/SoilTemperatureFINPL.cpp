@@ -50,7 +50,7 @@ int SoilTemperatureFINPL::Execute() {
                 if (m_soilTemp[i] > 60.f || m_soilTemp[i] < -90.f) {
                     cout << "The calculated soil temperature at cell (" << i
                         << ") is out of reasonable range: " << m_soilTemp[i]
-                        << ". JulianDay: " << m_julianDay << ",t: "<< t << ", t1: " 
+                        << ". JulianDay: " << m_julianDay << ",t: "<< t << ", t1: "
                         << t1 << ", t2: " << t2 << ", relativeFactor: " << m_relativeFactor[i] << endl;
                     errCount++;
                 }
@@ -100,8 +100,7 @@ bool SoilTemperatureFINPL::CheckInputSize(const char *key, int n) {
 
 void SoilTemperatureFINPL::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
-    else if (StringMatch(sk, VAR_SOL_TA0)) { m_a0 = value; }
+    if (StringMatch(sk, VAR_SOL_TA0)) { m_a0 = value; }
     else if (StringMatch(sk, VAR_SOL_TA1)) { m_a1 = value; }
     else if (StringMatch(sk, VAR_SOL_TA2)) { m_a2 = value; }
     else if (StringMatch(sk, VAR_SOL_TA3)) { m_a3 = value; }
@@ -115,9 +114,9 @@ void SoilTemperatureFINPL::SetValue(const char *key, float value) {
 void SoilTemperatureFINPL::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_SOIL_T10)) { m_relativeFactor = data; } 
+    if (StringMatch(sk, VAR_SOIL_T10)) { m_relativeFactor = data; }
     else if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = data; }
-    else if (StringMatch(sk, VAR_LANDUSE)) { m_landuse = data; } 
+    else if (StringMatch(sk, VAR_LANDUSE)) { m_landuse = data; }
     else {
         throw ModelException(MID_STP_FP, "Set1DData", "Parameter " + sk + " does not exist.");
     }

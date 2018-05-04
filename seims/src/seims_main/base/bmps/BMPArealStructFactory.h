@@ -5,6 +5,7 @@
  * \revised lj 2017-7-13  partially rewrite this class, Scenario data only read from MongoDB
  *                                   DataCenter will perform the data updating.
  *          lj 2017-11-29 code style review
+ *          lj 2018-4-12 Code reformat
  */
 #ifndef SEIMS_BMP_AREALSTRUCT_H
 #define SEIMS_BMP_AREALSTRUCT_H
@@ -19,38 +20,37 @@
 
 using namespace MainBMP;
 
-namespace MainBMP
-{
+namespace MainBMP {
 /*!
  * \class BMPArealStruct, inherited from \sa ParamInfo
  * \ingroup MainBMP
- * \brief Manage areal Structural BMP data 
+ * \brief Manage areal Structural BMP data
  */
-class BMPArealStruct
-{
+class BMPArealStruct: NotCopyable {
 public:
     //! Constructor
-    BMPArealStruct(const bson_t *&bsonTab, bson_iter_t &iter);
+    BMPArealStruct(const bson_t*& bsonTab, bson_iter_t& iter);
     //! Destructor
     ~BMPArealStruct();
     //! Get name
-    string getBMPName(){ return m_name; }
+    string getBMPName() { return m_name; }
     //! Get suitable landuse
     const vector<int>& getSuitableLanduse() const { return m_landuse; }
     //! Get parameters
     const map<string, ParamInfo*>& getParameters() const { return m_parameters; }
 private:
-    int             m_id;          ///< unique BMP ID
-    string          m_name;        ///< name
-    string          m_desc;        ///< description
-    string          m_refer;       ///< references
-    vector<int>     m_landuse;     ///< suitable placement landuse
+    int m_id; ///< unique BMP ID
+    string m_name; ///< name
+    string m_desc; ///< description
+    string m_refer; ///< references
+    vector<int> m_landuse; ///< suitable placement landuse
     /*!
      * \key the parameter name, remember to add subbasin number as prefix when use GridFS file in MongoDB
      * \value the \sa ParamInfo class
      */
     map<string, ParamInfo*> m_parameters;
 };
+
 /*!
  * \class BMPArealStructFactory
  * \ingroup MainBMP
@@ -62,17 +62,17 @@ class BMPArealStructFactory: public BMPFactory {
 public:
     /// Constructor
     BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
-                          int bmpType, int bmpPriority, vector<string> &distribution,
+                          int bmpType, int bmpPriority, vector<string>& distribution,
                           const string& collection, const string& location);
-    
+
     /// Destructor
     virtual ~BMPArealStructFactory();
 
-	//! Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, const string &bmpDBName);
+    //! Load BMP parameters from MongoDB
+    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
 
     //! Set raster data if needed
-    virtual void setRasterData(map<string, FloatRaster*> &sceneRsMap);
+    virtual void setRasterData(map<string, FloatRaster*>& sceneRsMap);
 
     //! Get management fields data
     virtual float* getRasterData() { return m_mgtFieldsRs; };
@@ -83,8 +83,8 @@ public:
     //! Get areal BMP parameters
     const map<int, BMPArealStruct*>& getBMPsSettings() const { return m_bmpStructMap; }
 
-	//! Output
-    virtual void Dump(ostream *fs);
+    //! Output
+    virtual void Dump(ostream* fs);
 
 private:
     //! management units file name

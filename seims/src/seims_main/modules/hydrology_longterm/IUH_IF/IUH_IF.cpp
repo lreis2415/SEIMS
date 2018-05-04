@@ -176,27 +176,20 @@ bool IUH_IF::CheckInputSize(const char *key, int n) {
 
 void IUH_IF::SetValue(const char *key, float value) {
     string sk(key);
-
     if (StringMatch(sk, Tag_TimeStep)) {
         m_TimeStep = (int) value;
     } else if (StringMatch(sk, Tag_CellWidth)) {
         m_CellWidth = value;
     } else if (StringMatch(sk, Tag_CellSize)) {
-        m_nCells = (int) value;
-    } else if (StringMatch(sk, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int) value);
+        m_nCells = int(value);
     } else {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk
-            +
-                " does not exist in IUH_IF method. Please contact the module developer.");
+            + " does not exist in IUH_IF method. Please contact the module developer.");
     }
-
 }
 
 void IUH_IF::Set1DData(const char *key, int n, float *data) {
-
-    this->CheckInputSize(key, n);
-
+    CheckInputSize(key, n);
     //set the value
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) {
@@ -207,15 +200,12 @@ void IUH_IF::Set1DData(const char *key, int n, float *data) {
         throw ModelException("IUH_IF", "SetValue", "Parameter " + sk +
             " does not exist in IUH_IF method. Please contact the module developer.");
     }
-
 }
 
 void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
-
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH)) {
-        this->CheckInputSize(VAR_OL_IUH, nRows);
-
+        CheckInputSize(VAR_OL_IUH, nRows);
         m_iuhCell = data;
         m_iuhCols = nCols;
     } else {
@@ -227,13 +217,10 @@ void IUH_IF::Set2DData(const char *key, int nRows, int nCols, float **data) {
 void IUH_IF::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBIF)) {
-        *data = this->m_Q_SBIF;
+        *data = m_Q_SBIF;
     } else {
         throw ModelException("IUH_IF", "getResult", "Result " + sk +
             " does not exist in IUH_IF method. Please contact the module developer.");
     }
-
     *n = this->m_nsub + 1;
 }
-
-

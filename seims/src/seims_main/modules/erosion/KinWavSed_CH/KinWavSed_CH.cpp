@@ -51,11 +51,10 @@ KinWavSed_CH::~KinWavSed_CH() {
 void KinWavSed_CH::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth)) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = (int) data; }
+    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(value); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(s, Tag_LayeringMethod)) { m_layeringMethod = (LayeringMethod) int(data); }
     else {
         throw ModelException(MID_KINWAVSED_CH, "SetValue", "Parameter " + s + " does not exist in current module.\n");
@@ -72,7 +71,7 @@ void KinWavSed_CH::GetValue(const char *key, float *value) {
         *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
         //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
     } else {
-        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk + 
+        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk +
                              " does not exist in the current module. Please contact the module developer.");
     }
 }
@@ -373,18 +372,18 @@ void KinWavSed_CH::initial() {
 //{
 //	const float beta = 0.6f;
 //	const float _23 = 2.0f/3;
-//	float wh = m_ChannelWH[i]/1000;    // mm to m -> /1000 
-//	float FW = m_FlowWidth[i];     
+//	float wh = m_ChannelWH[i]/1000;    // mm to m -> /1000
+//	float FW = m_FlowWidth[i];
 //	float S = sin(atan(m_Slope[i]));   //sine of the slope
 //	float grad = sqrt(S);
 //	float Perim = 2 * wh + FW;
 //	float area = FW * wh;
-//	float R = 0.0f; 
+//	float R = 0.0f;
 //	if(Perim > 0)
 //		R = area / Perim;
 //	else
 //		R = 0.0f;
-//	
+//
 //	float V = 0.0f;
 //	V = pow(R, _23) * grad / m_ChManningN[i];
 //	return V;
@@ -451,7 +450,7 @@ void KinWavSed_CH::WaterVolumeCalc(int iReach, int iCell, int id) {
     m_chanVol[id] = m_ChVol[iReach][iCell];
 }
 
-void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is the id of the cell in the grid map  
+void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is the id of the cell in the grid map
 {
     //using simplified Srinivasan and Galvao (1995) equation to calculate channel flow detachment
     // the critical shear stress for sediment was neglected.
@@ -485,14 +484,14 @@ void KinWavSed_CH::CalcuChFlowDetachment(int iReach, int iCell, int id)  //i is 
 //	float s = max(0.01f, m_Slope[id]);
 //	S0 = sin(atan(s));
 //	K = m_USLE_K[id];
-//	
+//
 //	TranCap = m_ChTcCo * K * S0 * pow(q, 2.0f) * (m_TimeStep/60);   // convert to kg
 //
 //	/*if (q > 1)
 //	{
 //		int i = 0;
 //	}*/
-//	
+//
 //	return TranCap;
 //}
 

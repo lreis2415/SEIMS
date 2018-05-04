@@ -9,6 +9,9 @@
 from __future__ import absolute_import
 
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
@@ -44,7 +47,7 @@ class ImportScenario2Mongo(object):
         bmp_tabs_path = list()
         for f in bmp_files:
             bmp_tabs.append(f.split('.')[0])
-            bmp_tabs_path.append(cfg.scenario_dir + os.sep + f)
+            bmp_tabs_path.append(cfg.scenario_dir + os.path.sep + f)
 
         # initialize if collection not existed
         c_list = scenario_db.collection_names()

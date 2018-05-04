@@ -23,6 +23,7 @@
 #include "SimulationModule.h"
 
 using namespace std;
+
 /** \defgroup SEDR_SBAGNOLD
  * \ingroup Erosion
  * \brief Sediment routing using Simplified version of Bagnold(1997) stream power equation

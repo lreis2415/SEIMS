@@ -157,7 +157,6 @@ void SNO_WB::SetValue(const char *key, float data) {
     else if (StringMatch(s, VAR_T0)) { this->m_t0 = data; }
     else if (StringMatch(s, VAR_T_SNOW)) { this->m_tsnow = data; }
     else if (StringMatch(s, VAR_SWE0)) { this->m_swe0 = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else if (StringMatch(s, Tag_CellSize)) { this->m_nCells = (int) data; }
     else {
         throw ModelException(MID_SNO_WB, "SetValue", "Parameter " + s
@@ -207,7 +206,7 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
         *data = this->m_SA;
         *n = this->m_nCells;
     } else {
-        throw ModelException(MID_SNO_WB, "Get1DData", "Result " + s + 
+        throw ModelException(MID_SNO_WB, "Get1DData", "Result " + s +
                              " does not exist in current module. Please contact the module developer.");
     }
 }

@@ -56,8 +56,7 @@ void AtmosphericDeposition::Set1DData(const char *key, int n, float *data) {
 
 void AtmosphericDeposition::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int)value); }
-    else if (StringMatch(sk, VAR_RCN)) { m_rcn = value; }
+    if (StringMatch(sk, VAR_RCN)) { m_rcn = value; }
     else if (StringMatch(sk, VAR_RCA)) { m_rca = value; }
     else if (StringMatch(sk, VAR_DRYDEP_NO3)) { m_drydep_no3 = value; }
     else if (StringMatch(sk, VAR_DRYDEP_NH4)) { m_drydep_nh4 = value; }

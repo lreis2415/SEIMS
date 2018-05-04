@@ -21,7 +21,6 @@ void PETHargreaves::SetValue(const char *key, float value) {
     string sk(key);
     if (StringMatch(sk, VAR_K_PET)) { m_petFactor = value; }
     else if (StringMatch(sk, VAR_PET_HCOEF)) { m_HCoef_pet = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else {
         throw ModelException(MID_PET_H, "SetValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");
@@ -31,12 +30,12 @@ void PETHargreaves::SetValue(const char *key, float value) {
 void PETHargreaves::Set1DData(const char *key, int n, float *value) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; } 
-    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; } 
-    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; } 
-    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; } 
-    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; } 
-    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; } 
+    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; }
+    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; }
+    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; }
+    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; }
+    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; }
+    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; }
     else {
         throw ModelException(MID_PET_H, "Set1DValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");

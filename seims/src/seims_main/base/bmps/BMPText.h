@@ -6,9 +6,6 @@
 #ifndef SEIMS_BMP_TEXT_H
 #define SEIMS_BMP_TEXT_H
 
-//database name
-//#define BMP_DATABASE_NAME        "BMP.db3"
-
 //base scenario id
 #define BASE_SCENARIO_ID           0
 //Table names in BMP database

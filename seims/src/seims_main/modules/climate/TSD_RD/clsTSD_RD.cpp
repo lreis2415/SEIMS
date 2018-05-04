@@ -3,22 +3,15 @@
 
 using namespace std;
 
-clsTSD_RD::clsTSD_RD() : m_Rows(-1), m_Data(nullptr) {
-}
-
-clsTSD_RD::~clsTSD_RD() {
-}
-
 void clsTSD_RD::Set1DData(const char *key, int n, float *data) {
-    m_Rows = n;
-    m_Data = data;
+    m_nStations = n;
+    m_stationData = data;
 }
 
 void clsTSD_RD::Get1DData(const char *key, int *n, float **data) {
-    string sk(key);
-    if (m_Rows < 0 || nullptr == m_Data) {
+    if (m_nStations < 0 || nullptr == m_stationData) {
         throw ModelException(MID_TSD_RD, "Get1DData", "The data " + string(key) + " is NULL.");
     }
-    *data = m_Data;
-    *n = m_Rows;
+    *data = m_stationData;
+    *n = m_nStations;
 }

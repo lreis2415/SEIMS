@@ -112,8 +112,7 @@ bool NutrientTransportSediment::CheckInputData_CFARM() {
 
 void NutrientTransportSediment::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int)value); }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
+    if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
     else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
     else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
     else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }

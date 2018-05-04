@@ -10,7 +10,7 @@ install(TARGETS fieldpartition DESTINATION ${INSTALL_DIR})
 LIST(APPEND UTILS_APPS fieldpartition)
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
-IF (MSVC)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET fieldpartition PROPERTY FOLDER "UtilApps")
 ENDIF ()
 MESSAGE(STATUS "    Compiling FieldPartition done")

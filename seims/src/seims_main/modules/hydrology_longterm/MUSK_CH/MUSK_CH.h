@@ -3,7 +3,7 @@
  * \author Junzhi Liu
  * \version 1.0
  * \date 26-Jul-2012
- * 
+ *
  * \revision Liangjun Zhu
  * \date 18-Sep-2016
  * \description: 1. Add point source loadings from Scenario.
@@ -28,7 +28,7 @@ using namespace MainBMP;
  * \brief channel flow routing using Muskingum method
  */
 
-/* 
+/*
  * \struct MuskWeights coefficients
  */
 struct MuskWeights {
@@ -63,8 +63,6 @@ public:
     virtual void Set1DData(const char *key, int n, float *data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
-
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
 
     virtual void SetScenario(Scenario *sce);
 

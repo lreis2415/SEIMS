@@ -1,13 +1,12 @@
 /*!
  * \brief User-defined module information in config.fig
  * \author Junzhi Liu, Liang-Jun Zhu
- * \version 
+ * \version
  * \date June 2015
  */
 #ifndef SEIMS_MODULE_SETTING_H
 #define SEIMS_MODULE_SETTING_H
 
-#include "text.h"
 #include "utilities.h"
 
 using namespace std;
@@ -15,9 +14,9 @@ using namespace std;
 /*!
  * \ingroup module_setting
  * \class SEIMSModuleSetting
- * \brief 
+ * \brief
  */
-class SEIMSModuleSetting: public DefaultConstructor, private NotCopyable {
+class SEIMSModuleSetting: NotCopyable, public DefaultConstructor {
 public:
     SEIMSModuleSetting(string &moduleId, string &setting);
 

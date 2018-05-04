@@ -17,6 +17,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot as plt
 import numpy
 from pygeoc.utils import StringClass
+import re
 
 LFs = ['\r', '\n', '\r\n']
 
@@ -35,7 +36,7 @@ def plot_pareto_front(pop, ws, gen_id, title, xlabel, ylabel):
     plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
     plt.title('\nGeneration: %d, Population: %d' % (gen_id, pop_size), color='green', fontsize=9,
               loc='right')
-    img_path = ws + os.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
+    img_path = ws + os.path.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
     plt.savefig(img_path)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
@@ -160,7 +161,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     Args:
         method_paths(OrderedDict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
-        xname(list): the first is x field name in log file, and the second on is for plot,
+        xname(list): the first is x field name in log file, and the second is for plot,
                      the third and forth values are low and high limit (optional).
         yname(list): see xname
         gens(list): generation to be plotted
@@ -169,7 +170,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     pareto_data = OrderedDict()
     acc_pop_size = OrderedDict()
     for k, v in method_paths.items():
-        v = v + os.sep + 'runtime.log'
+        v = v + os.path.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname, yname)
     # print(pareto_data)
     ylabel_str = yname[1]
@@ -179,6 +180,12 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
+
+    # Check if xname or yname contains Chinese characters
+    zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+    if zhPattern.search(xname[1]) or zhPattern.search(yname[1]):
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+
     markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'k', 'k']
     linestyles = ['-', '--', '-.', ':']
@@ -204,7 +211,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
     plt.ylabel('Total number of simulated individuals', fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
-    fpath = ws + os.sep + file_name + '_popsize'
+    fpath = ws + os.path.sep + file_name + '_popsize'
     plt.savefig(fpath + '.png', dpi=300)
     plt.savefig(fpath + '.eps', dpi=300)
     print('%s saved!' % fpath)
@@ -247,7 +254,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
             if len(yname) >= 4 and curylim[1] > yname[3]:
                 ax.set_ylim(top=yname[3])
         plt.tight_layout()
-        fpath = ws + os.sep + method + '-Pareto'
+        fpath = ws + os.path.sep + method + '-Pareto'
         plt.savefig(fpath + '.png', dpi=300)
         plt.savefig(fpath + '.eps', dpi=300)
         print('%s saved!' % fpath)
@@ -300,7 +307,7 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
 
         plt.legend(fontsize=24, loc=4)  # loc 2: upper left, 4: lower right
         plt.tight_layout()
-        fpath = ws + os.sep + file_name + '-gen' + str(gen)
+        fpath = ws + os.path.sep + file_name + '-gen' + str(gen)
         plt.savefig(fpath + '.png', dpi=300)
         plt.savefig(fpath + '.eps', dpi=300)
         print('%s saved!' % fpath)
@@ -310,11 +317,11 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         plt.close()
 
 
-def plot_hypervolume_by_method(method_paths, ws):
+def plot_hypervolume_by_method(method_paths, ws, cn=False):
     """Plot hypervolume"""
     hyperv = OrderedDict()
     for k, v in list(method_paths.items()):
-        v = v + os.sep + 'hypervolume.txt'
+        v = v + os.path.sep + 'hypervolume.txt'
         x = list()
         y = list()
         with open(v, 'r') as f:
@@ -333,6 +340,12 @@ def plot_hypervolume_by_method(method_paths, ws):
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
     plt.rcParams['font.family'] = 'Times New Roman'
+    generation_str = 'Generation'
+    hyperv_str = 'Hypervolume index'
+    if cn:
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+        generation_str = u'进化代数'
+        hyperv_str = u'Hypervolume 指数'
     linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -350,11 +363,11 @@ def plot_hypervolume_by_method(method_paths, ws):
         xlebal.set_fontsize(20)
     for ylebal in yaxis.get_ticklabels():
         ylebal.set_fontsize(20)
-    plt.xlabel('Generation', fontsize=20)
-    plt.ylabel('Hypervolume index', fontsize=20)
+    plt.xlabel(generation_str, fontsize=20)
+    plt.ylabel(hyperv_str, fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
-    fpath = ws + os.sep + 'hypervolume'
+    fpath = ws + os.path.sep + 'hypervolume'
     plt.savefig(fpath + '.png', dpi=300)
     plt.savefig(fpath + '.eps', dpi=300)
     print('%s saved!' % fpath)

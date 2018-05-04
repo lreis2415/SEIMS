@@ -66,9 +66,7 @@ int HS_WB::Execute() {
 
 void HS_WB::SetValue(const char *key, float data) {
     string s(key);
-    if (StringMatch(s, VAR_OMP_THREADNUM)) {
-        SetOpenMPThread((int)data);
-    } else if (StringMatch(s, Tag_SubbasinId)) {
+    if (StringMatch(s, Tag_SubbasinId)) {
         m_subbasinID = data;
     } else {
         throw ModelException(MID_HS_WB, "SetValue", "Parameter " + s
@@ -85,7 +83,7 @@ void HS_WB::Set1DData(const char *key, int nRows, float *data) {
     else if (StringMatch(s, VAR_QSOIL)) { this->m_qi = data; }
     else if (StringMatch(s, VAR_SUBBSN)) { this->m_subbasin = data; }
     else if (StringMatch(s, VAR_STREAM_LINK)) { this->m_streamLink = data;}
-    else if (StringMatch(s, VAR_SOILDEPTH)) { this->m_rootdepth = data;} 
+    else if (StringMatch(s, VAR_SOILDEPTH)) { this->m_rootdepth = data;}
     else if (StringMatch(s, VAR_POROST)) { this->m_porosity = data; }
     else if (StringMatch(s, VAR_FIELDCAP)) { this->m_fieldCapacity = data; }
     else if (StringMatch(s, VAR_NEPR)) { m_pNet = data; }

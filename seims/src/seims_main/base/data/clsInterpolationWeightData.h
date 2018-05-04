@@ -7,7 +7,6 @@
 #ifndef SEIMS_ITP_WEIGHTDATA_H
 #define SEIMS_ITP_WEIGHTDATA_H
 
-#include "text.h"
 #include "utilities.h"
 #include "MongoUtil.h"
 
@@ -17,23 +16,20 @@ using namespace std;
  * \ingroup data
  * \class clsITPWeightData
  *
- * \brief 
+ * \brief
  */
-class clsITPWeightData {
+class clsITPWeightData: NotCopyable {
 public:
-    //! Constructor
-    //clsITPWeightData(string weightFileName);
-
     /*!
      * \brief Overload constructor
      *
      * \param[in] gfs MongoGridFS
      * \param[in] remoteFilename
      */
-    clsITPWeightData(MongoGridFS* gfs, const char *remoteFilename);
+    clsITPWeightData(MongoGridFS* gfs, const char* remoteFilename);
 
     //! Destructor
-    ~clsITPWeightData(void);
+    ~clsITPWeightData();
 
     /*!
      * \brief Get the weight data read from mongoDB
@@ -41,39 +37,39 @@ public:
      * \param[out] n Rows
      * \param[out] data
      */
-    void getWeightData(int* Rows, float** data);
+    void getWeightData(int* n, float** data);
 
     /*!
      * \brief Output the weight data to \a ostream
      *
      * \param[out] fs
      */
-    void dump(ostream *fs);
+    void dump(ostream* fs);
 
     /*!
      * \brief Output the weight data to file
      * \param[in] fileName
      * \sa dump(ostream *fs)
      */
-    void dump(string fineName);
-
-private:
-    //! file name
-    string m_fileName;
-    //! weight data array
-    float *m_weightData;
-    //! row of weight data
-    int m_nRows;
-    //! column of weight data
-    int m_nCols;
+    void dump(const string& fileName);
 
 private:
     /*!
      * \brief Read GridFS from MongoDB
      *
      * \param[in] gfs MongoGridFS
-     * \param[in] filename
+     * \param[in] remoteFilename
      */
-    void ReadFromMongoDB(MongoGridFS* gfs, const char *filename);
+    void ReadFromMongoDB(MongoGridFS* gfs, const char* remoteFilename);
+
+private:
+    //! file name
+    string m_fileName;
+    //! weight data array
+    float* m_weightData;
+    //! row of weight data
+    int m_nRows;
+    //! column of weight data
+    int m_nCols;
 };
 #endif /* SEIMS_ITP_WEIGHTDATA_H */

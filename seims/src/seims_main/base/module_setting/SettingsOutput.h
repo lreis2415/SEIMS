@@ -23,7 +23,8 @@ class OrgOutItem: public DefaultConstructor {
 public:
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
                    aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
-                   eTimeStr(""), interval(-1), use(-1) {};
+                   eTimeStr(""), interval(-1), use(-1) {
+    };
     //~OrgOutItem() = default;
 public:
     string modCls;
@@ -39,12 +40,13 @@ public:
     int interval;
     int use;
 };
+
 /*!
  * \ingroup module_setting
  * \class SettingsOutput
- * \brief 
+ * \brief
  */
-class SettingsOutput : public Settings, private NotCopyable {
+class SettingsOutput: public Settings {
 public:
     /*!
      * \brief Constructor
@@ -53,16 +55,16 @@ public:
      * \param[in] subbasinID Current subbasin ID, 0 for OMP version
      * \param[in] outputItems Vector of original output items read from FILE_OUT file (or table)
      */
-    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem> &outputItems);
+    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
 
     //! Destructor
     virtual ~SettingsOutput();
 
     //! Init function
-    static SettingsOutput *Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem> &outputItems);
+    static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
 
     //! Write output information to log file
-    virtual void Dump(string& filename);
+    virtual void Dump(const string& filename);
 
     //! Check date of output settings
     void checkDate(time_t, time_t);

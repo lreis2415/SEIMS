@@ -64,7 +64,6 @@ void PETPenmanMonteith::SetValue(const char *key, float value) {
     if (StringMatch(sk, VAR_CO2)) { m_co2 = value; }
     else if (StringMatch(sk, VAR_T_SNOW)) { m_tSnow = value; }
     else if (StringMatch(sk, VAR_K_PET)) { m_petFactor = value; }
-    else if (StringMatch(sk, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) value); }
     else {
         throw ModelException(MID_PET_PM, "SetValue", "Parameter " + sk +
             " does not exist in current module. Please contact the module developer.");
@@ -74,22 +73,22 @@ void PETPenmanMonteith::SetValue(const char *key, float value) {
 void PETPenmanMonteith::Set1DData(const char *key, int n, float *value) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; } 
-    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; } 
-    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; } 
-    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; } 
-    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; } 
-    else if (StringMatch(sk, DataType_SolarRadiation)) { m_sr = value; } 
-    else if (StringMatch(sk, DataType_WindSpeed)) { m_ws = value; } 
+    if (StringMatch(sk, DataType_MeanTemperature)) { m_tMean = value; }
+    else if (StringMatch(sk, DataType_MaximumTemperature)) { m_tMax = value; }
+    else if (StringMatch(sk, DataType_MinimumTemperature)) { m_tMin = value; }
+    else if (StringMatch(sk, VAR_CELL_LAT)) { m_cellLat = value; }
+    else if (StringMatch(sk, DataType_RelativeAirMoisture)) { m_rhd = value; }
+    else if (StringMatch(sk, DataType_SolarRadiation)) { m_sr = value; }
+    else if (StringMatch(sk, DataType_WindSpeed)) { m_ws = value; }
     else if (StringMatch(sk, VAR_DEM)) { m_elev = value; }
-    else if (StringMatch(sk, VAR_CHT)) { m_cht = value; } 
-    else if (StringMatch(sk, VAR_ALBDAY)) { m_albedo = value; } 
-    else if (StringMatch(sk, VAR_LAIDAY)) { m_lai = value; } 
-    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; } 
-    else if (StringMatch(sk, VAR_IGRO)) { m_growCode = value; } 
-    else if (StringMatch(sk, VAR_GSI)) { m_gsi = value; } 
-    else if (StringMatch(sk, VAR_VPDFR)) { m_vpdfr = value; } 
-    else if (StringMatch(sk, VAR_FRGMAX)) { m_frgmax = value; } 
+    else if (StringMatch(sk, VAR_CHT)) { m_cht = value; }
+    else if (StringMatch(sk, VAR_ALBDAY)) { m_albedo = value; }
+    else if (StringMatch(sk, VAR_LAIDAY)) { m_lai = value; }
+    else if (StringMatch(sk, VAR_PHUTOT)) { m_phutot = value; }
+    else if (StringMatch(sk, VAR_IGRO)) { m_growCode = value; }
+    else if (StringMatch(sk, VAR_GSI)) { m_gsi = value; }
+    else if (StringMatch(sk, VAR_VPDFR)) { m_vpdfr = value; }
+    else if (StringMatch(sk, VAR_FRGMAX)) { m_frgmax = value; }
     else {
         throw ModelException(MID_PET_PM, "Set1DData", "Parameter " + sk + " does not exist.");
     }

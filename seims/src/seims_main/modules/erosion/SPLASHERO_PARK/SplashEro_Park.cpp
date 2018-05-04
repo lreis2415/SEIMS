@@ -57,10 +57,9 @@ void SplashEro_Park::Set1DData(const char *key, int nRows, float *data) {
 void SplashEro_Park::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth)) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = (int) data; }
+    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_OMEGA)) { m_Omega = data; }
-    else if (StringMatch(s, VAR_OMP_THREADNUM)) { SetOpenMPThread((int) data); }
     else {
         throw ModelException(MID_SplashEro_Park, "SetValue", "Parameter " + s +
             " does not exist in current module. Please contact the module developer.");
