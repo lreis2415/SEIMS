@@ -1,0 +1,43 @@
+# This is the config file for building CCGL with Travis-ci.org
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      language: cpp
+      sudo: required
+      cache:
+        apt: true
+        directories:
+          - $HOME/.ccache
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - lcov
+      services:
+        - mongodb
+      env:
+        - BUILD_NAME=linux_gcc48
+        - DETAILS=""
+        - ENABLE_CXX11=1
+        - RUN_TESTS=true
+        - COVERAGE=false
+before_install:
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+install:
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
+  - ./doc/ci/travis/${BUILD_NAME}/install.sh
+script:
+  - chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
+  - ./doc/ci/travis/${BUILD_NAME}/script.sh
+
+notifications:
+  email:false
