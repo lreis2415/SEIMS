@@ -20,10 +20,9 @@ using namespace std;
  */
 class clsTSD_RD : public SimulationModule {
 public:
-    clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
-    }
+    clsTSD_RD();
 
-    ~clsTSD_RD() {};
+    ~clsTSD_RD();
 
     void Set1DData(const char *key, int n, float *data);
 

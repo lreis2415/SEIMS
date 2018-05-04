@@ -951,7 +951,7 @@ void MGTOpt_SWAT::ExecutePesticideOperation(int i, int &factoryID, int nOp) {
 void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     //// TODO: Yield is not set as outputs yet. by LJ
     /// harvkillop.f
-    HarvestKillOperation *curOperation = dynamic_cast<HarvestKillOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    HarvestKillOperation *curOperation = static_cast<HarvestKillOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     float cnop = curOperation->CNOP();
     float wur = 0.f, hiad1 = 0.f;
@@ -1171,8 +1171,10 @@ void MGTOpt_SWAT::rootFraction(int i, float *&root_fr) {
     }
     /// Normalized Root Density = 1.15*exp[-11.7*NRD] + 0.022, where NRD = normalized rooting depth
     /// Parameters of Normalized Root Density Function from Dwyer et al 19xx
-    float a = 1.15f, b = 11.7f, c = 0.022f,
-        d = 0.12029f; /// Integral of Normalized Root Distribution Function  from 0 to 1 (normalized depth) = 0.12029
+    float a = 1.15f;
+    float b = 11.7f;
+    float c = 0.022f,
+    float d = 0.12029f; /// Integral of Normalized Root Distribution Function  from 0 to 1 (normalized depth) = 0.12029
     int k = 0; /// used as layer identifier
     for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
         cum_d += m_soilThick[i][l];
@@ -1208,7 +1210,7 @@ void MGTOpt_SWAT::rootFraction(int i, float *&root_fr) {
 void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     /// newtillmix.f
     /// Mix residue and nutrients during tillage and biological mixing
-    TillageOperation *curOperation = dynamic_cast<TillageOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    TillageOperation *curOperation = static_cast<TillageOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     int tillID = curOperation->TillageID();
     float cnop = curOperation->CNOP();
@@ -1580,7 +1582,7 @@ void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int &factoryID, int nOp) {
 
 void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp) {
     AutoIrrigationOperation
-        *curOperation = dynamic_cast<AutoIrrigationOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+        *curOperation = static_cast<AutoIrrigationOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_autoIrrSource[i] = curOperation->AutoIrrSrcCode();
     m_autoIrrNo[i] = curOperation->AutoIrrSrcLocs() <= 0 ? int(m_subBsnID[i]) : curOperation->AutoIrrSrcLocs();
     m_wtrStrsID[i] = curOperation->WaterStrsIdent();
@@ -1595,7 +1597,7 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp)
 
 void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp) {
     AutoFertilizerOperation
-        *curOperation = dynamic_cast<AutoFertilizerOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+        *curOperation = static_cast<AutoFertilizerOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_fertilizerID[i] = curOperation->FertilizerID();
     m_NStressCode[i] = curOperation->NitrogenMethod();
     m_autoNStress[i] = curOperation->NitrogenStrsFactor();
@@ -1619,7 +1621,7 @@ void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp)
 void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp) {
     /// No more executable code here.
     ReleaseImpoundOperation
-        *curOperation = dynamic_cast<ReleaseImpoundOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+        *curOperation = static_cast<ReleaseImpoundOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_impoundTriger[i] = curOperation->ImpoundTriger();
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ

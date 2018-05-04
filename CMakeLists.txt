@@ -106,7 +106,6 @@ option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 INCLUDE(Utils)
 SET(ENABLE_CXX11 1)
 INCLUDE(DetectCXXCompiler)
-
 ### Use statically or dynamically linked CRT? Default: dynamic
 IF(MSVC)
     INCLUDE(CRTLinkage)

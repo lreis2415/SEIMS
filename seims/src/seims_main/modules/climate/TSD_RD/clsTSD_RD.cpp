@@ -3,6 +3,12 @@
 
 using namespace std;
 
+clsTSD_RD::clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
+}
+
+clsTSD_RD::~clsTSD_RD() {
+}
+
 void clsTSD_RD::Set1DData(const char *key, int n, float *data) {
     m_nStations = n;
     m_stationData = data;

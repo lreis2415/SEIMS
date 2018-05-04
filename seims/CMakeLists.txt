@@ -23,13 +23,7 @@ IF (UNITTEST STREQUAL 1)
     INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
     ADD_SUBDIRECTORY(${SEIMS_TEST} bin/test)
 ENDIF ()
-##############  Set common libraries   ###############
-set(COMMONLIBS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/commonlibs)
-set(UTILS_INC ${COMMONLIBS_PATH}/UtilsClass)
-file(GLOB UTILS_FILES ${UTILS_INC}/*.cpp)
-set(MONGO_INC ${COMMONLIBS_PATH}/MongoUtilClass)
-file(GLOB MONGO_FILES ${MONGO_INC}/*.cpp)
-SET(RASTER_INC ${COMMONLIBS_PATH}/RasterClass)
+
 ############  step into subdirectories   #############
 ADD_SUBDIRECTORY(${CCGL_LIB} bin/ccgl)
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)

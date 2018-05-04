@@ -4,7 +4,7 @@
 Selected build environments：
 
 + Windows-MSVC 2013-64bit with MSMPI-v8: [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master)
-+ Linux(Ubuntu trusty)-GCC-4.8 with MPICH2-3.0.4: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc48&label=linux_gcc48)](https://travis-ci.org/lreis2415/SEIMS)
++ Linux(Ubuntu trusty)-GCC-4.8 with MPICH2-3.0.4: [![Build Status](https://travis-ci.org/lreis2415/SEIMS.svg?branch=master)](https://travis-ci.org/lreis2415/SEIMS)
 
 ## 1.Brief introduction
 
