@@ -31,7 +31,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GridLayering(int id, MongoGridFS *gfs, const char *out_dir);
+    GridLayering(int id, MongoGridFs *gfs, const char *out_dir);
     ///< Destructor
     virtual ~GridLayering();
     /*!
@@ -110,7 +110,7 @@ protected:
     bool _output_grid_layering(string &name, int layer_num, int datalength,
                                const int *layer_grid, const float *layer_cells);
 protected:
-    MongoGridFS *m_gfs;  ///< MongoDB-GridFS instance
+    MongoGridFs *m_gfs;  ///< MongoDB-GridFS instance
     const char *m_outputDir;  ///< Output directory
     int m_subbasinID;  ///< Subbasin ID, 0 for entire basin
     int m_nRows;  ///< Rows

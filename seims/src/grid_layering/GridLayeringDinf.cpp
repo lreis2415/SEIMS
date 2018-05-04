@@ -1,6 +1,6 @@
 #include "GridLayeringDinf.h"
 
-GridLayeringDinf::GridLayeringDinf(int id, MongoGridFS *gfs, const char *out_dir) :
+GridLayeringDinf::GridLayeringDinf(int id, MongoGridFs *gfs, const char *out_dir) :
     GridLayering(id, gfs, out_dir),
     m_flowangle(nullptr),
     m_angle(nullptr), m_flowInAngle(nullptr),

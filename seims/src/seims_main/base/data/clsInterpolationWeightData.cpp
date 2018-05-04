@@ -1,50 +1,53 @@
-#include "text.h"
 #include "clsInterpolationWeightData.h"
 
-using namespace std;
+#include <fstream>
 
-clsITPWeightData::clsITPWeightData(MongoGridFS* gfs, const char* remoteFilename) :
-    m_fileName(remoteFilename), m_weightData(nullptr), m_nRows(-1), m_nCols(-1) {
-    ReadFromMongoDB(gfs, remoteFilename);
+#include "utils_array.h"
+#include "utils_string.h"
+#include "text.h"
+
+using namespace utils_array;
+using namespace utils_string;
+
+clsITPWeightData::clsITPWeightData(MongoGridFs* gfs, const string& filename) :
+    filename_(filename), itp_weight_data_(nullptr), n_rows_(-1), n_cols_(-1) {
+    ReadFromMongoDB(gfs, filename_);
 }
 
 clsITPWeightData::~clsITPWeightData() {
-    if (nullptr != m_weightData) { Release1DArray(m_weightData); }
+    if (nullptr != itp_weight_data_) { Release1DArray(itp_weight_data_); }
 }
 
-void clsITPWeightData::getWeightData(int* n, float** data) {
-    *n = m_nRows;
-    *data = m_weightData;
+void clsITPWeightData::GetWeightData(int* n, float** data) {
+    *n = n_rows_;
+    *data = itp_weight_data_;
 }
 
-void clsITPWeightData::dump(ostream* fs) {
+void clsITPWeightData::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
-
     int index = 0;
-    for (int i = 0; i < m_nRows; ++i) {
-        //rasterFile >> tmp >> tmp;
-        for (int j = 0; j < m_nCols; ++j) {
-            index = i * m_nCols + j;
-            *fs << m_weightData[index] << "\t";
+    for (int i = 0; i < n_rows_; i++) {
+        for (int j = 0; j < n_cols_; j++) {
+            index = i * n_cols_ + j;
+            *fs << itp_weight_data_[index] << "\t";
         }
         *fs << endl;
     }
 }
 
-void clsITPWeightData::dump(const string& fileName) {
-    ofstream fs;
-    fs.open(fileName.c_str(), ios::out);
+void clsITPWeightData::Dump(const string& filename) {
+    std::ofstream fs;
+    fs.open(filename.c_str(), std::ios::out);
     if (fs.is_open()) {
-        dump(&fs);
+        Dump(&fs);
         fs.close();
     }
 }
 
-void clsITPWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char* remoteFilename) {
-    string wfilename = string(remoteFilename);
+void clsITPWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
+    string wfilename = filename;
     vector<string> gfilenames;
-    gfs->getFileNames(gfilenames);
-    string filename = string(remoteFilename);
+    gfs->GetFileNames(gfilenames);
     if (!ValueInVector(filename, gfilenames)) {
         size_t index = filename.find_last_of('_');
         string type = filename.substr(index + 1);
@@ -56,11 +59,11 @@ void clsITPWeightData::ReadFromMongoDB(MongoGridFS* gfs, const char* remoteFilen
     }
     char* databuf;
     size_t datalength;
-    gfs->getStreamData(wfilename, databuf, datalength);
-    m_weightData = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
+    gfs->GetStreamData(wfilename, databuf, datalength);
+    itp_weight_data_ = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
     /// Get metadata
-    bson_t* md = gfs->getFileMetadata(wfilename);
+    bson_t* md = gfs->GetFileMetadata(wfilename);
     /// Get value of given keys
-    GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, m_nRows);
-    GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, m_nCols);
+    GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, n_rows_);
+    GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, n_cols_);
 }

@@ -116,7 +116,7 @@ void CombineRasterResults(const string& folder, const string& sVar, const string
     }
 }
 
-void CombineRasterResultsMongo(MongoGridFS* gfs, const string& sVar, int nSubbasins, const string& folder /* = "" */) {
+void CombineRasterResultsMongo(MongoGridFs* gfs, const string& sVar, int nSubbasins, const string& folder /* = "" */) {
     map<int, FloatRaster *> allRasterData;
     for (int i = 1; i <= nSubbasins; i++) {
         string curFileName = ValueToString(i) + "_" + sVar;

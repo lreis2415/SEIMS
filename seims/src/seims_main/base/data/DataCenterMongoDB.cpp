@@ -25,7 +25,7 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
     m_climDBName(""), m_scenDBName(""),
     m_mongoClient(client), m_mainDatabase(nullptr),
     m_spatialGridFS(nullptr) {
-    m_spatialGridFS = new MongoGridFS(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
+    m_spatialGridFS = new MongoGridFs(m_mongoClient->getGridFS(m_modelName, DB_TAB_SPATIAL));
     if (DataCenterMongoDB::getFileInStringVector()) {
         m_input = SettingsInput::Init(m_fileIn1DStrs);
         if (nullptr == m_input) {
@@ -416,7 +416,7 @@ FloatRaster* DataCenterMongoDB::readRasterData(const string& remoteFilename) {
 
 void DataCenterMongoDB::readItpWeightData(string& remoteFilename, int& num, float*& data) {
     clsITPWeightData* weightData = new clsITPWeightData(m_spatialGridFS, remoteFilename.c_str());
-    weightData->getWeightData(&num, &data);
+    weightData->GetWeightData(&num, &data);
     if (!m_weightDataMap.insert(make_pair(remoteFilename, weightData)).second) {
         /// if insert data failed, release clsITPWeightData in case of memory leak
         delete weightData;
@@ -427,7 +427,7 @@ void DataCenterMongoDB::read1DArrayData(string& paramName, string& remoteFilenam
                                         int& num, float*& data) {
     char* databuf = nullptr;
     size_t datalength;
-    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    m_spatialGridFS->GetStreamData(remoteFilename, databuf, datalength);
     num = datalength / 4;
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
     if (!StringMatch(paramName, Tag_Weight)) {
@@ -439,7 +439,7 @@ void DataCenterMongoDB::read1DArrayData(string& paramName, string& remoteFilenam
 void DataCenterMongoDB::read2DArrayData(string& remoteFilename, int& rows, int& cols, float**& data) {
     char* databuf = nullptr;
     size_t datalength;
-    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    m_spatialGridFS->GetStreamData(remoteFilename, databuf, datalength);
     float* floatValues = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     int nRows = int(floatValues[0]);
@@ -482,7 +482,7 @@ void DataCenterMongoDB::read2DArrayData(string& remoteFilename, int& rows, int& 
 void DataCenterMongoDB::readIUHData(string& remoteFilename, int& n, float**& data) {
     char* databuf = nullptr;
     size_t datalength;
-    m_spatialGridFS->getStreamData(remoteFilename, databuf, datalength);
+    m_spatialGridFS->GetStreamData(remoteFilename, databuf, datalength);
     float* floatValues = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     n = int(floatValues[0]);

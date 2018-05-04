@@ -49,7 +49,7 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
     TimeSeriesDataForSubbasinCount = n;
 }
 
-void PrintInfoItem::Flush(string projectPath, MongoGridFS* gfs, FloatRaster* templateRaster, string header) {
+void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     // For OMP version, Output to tiff file directly.
     bool outToMongoDB = false; /// added by LJ.

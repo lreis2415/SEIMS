@@ -27,6 +27,6 @@ FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData);
 
 void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins);
 
-void CombineRasterResultsMongo(MongoGridFS *gfs, const string &sVar, int nSubbasins, const string &folder = "");
+void CombineRasterResultsMongo(MongoGridFs *gfs, const string &sVar, int nSubbasins, const string &folder = "");
 
 #endif /* COMBINE_RASTER_H */

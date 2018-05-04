@@ -11,7 +11,7 @@
 
 class GridLayeringD8 : public GridLayering {
 public:
-    GridLayeringD8(int id, MongoGridFS *gfs, const char *out_dir);
+    GridLayeringD8(int id, MongoGridFs *gfs, const char *out_dir);
     virtual ~GridLayeringD8() {};
     virtual bool LoadData();
     virtual bool OutputFlowOut();

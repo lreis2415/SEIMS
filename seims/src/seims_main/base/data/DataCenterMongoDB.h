@@ -113,7 +113,7 @@ public:
     string getScenarioDBName() const { return m_scenDBName; }
     MongoClient* getMongoClient() const { return m_mongoClient; }
     MongoDatabase* getMainDatabase() const { return m_mainDatabase; }
-    MongoGridFS* getMongoGridFS() const { return m_spatialGridFS; }
+    MongoGridFs* getMongoGridFS() const { return m_spatialGridFS; }
 private:
     const char* m_mongodbIP; ///< Host IP address of MongoDB
     const uint16_t m_mongodbPort; ///< Port
@@ -121,6 +121,6 @@ private:
     string m_scenDBName; ///< Scenario database name
     MongoClient* m_mongoClient; ///< MongoDB Client
     MongoDatabase* m_mainDatabase; ///< Main model database
-    MongoGridFS* m_spatialGridFS; ///< Spatial data handler
+    MongoGridFs* m_spatialGridFS; ///< Spatial data handler
 };
 #endif /* SEIMS_DATA_CENTER_MONGODB_H */

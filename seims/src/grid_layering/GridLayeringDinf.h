@@ -12,7 +12,7 @@
 
 class GridLayeringDinf : public GridLayering {
 public:
-    GridLayeringDinf(int id, MongoGridFS *gfs, const char *out_dir);
+    GridLayeringDinf(int id, MongoGridFs *gfs, const char *out_dir);
     virtual ~GridLayeringDinf();
     virtual bool LoadData();
     virtual bool OutputFlowIn();

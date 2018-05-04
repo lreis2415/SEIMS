@@ -168,7 +168,7 @@ void ModelMain::SetTransferredValue(int index, float* tfvalues) {
 
 double ModelMain::Output() {
     double t1 = TimeCounting();
-    MongoGridFS* gfs = new MongoGridFS(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
+    MongoGridFs* gfs = new MongoGridFs(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
                                                                                  DB_TAB_OUT_SPATIAL));
     for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end(); ++it) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); ++itemIt) {

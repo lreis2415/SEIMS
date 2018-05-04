@@ -13,7 +13,7 @@ int main() {
     //CombineRasterResults(folder, sVar, "tif", nSubbasins);
     // test mongo
     MongoClient *client = MongoClient::Init("127.0.0.1", 27017);
-    MongoGridFS *gfs = new MongoGridFS(client->getGridFS("model_dianbu2_30m_demo", "OUTPUT"));
+    MongoGridFs *gfs = new MongoGridFs(client->getGridFS("model_dianbu2_30m_demo", "OUTPUT"));
     CombineRasterResultsMongo(gfs, sVar, nSubbasins, folder);
     // clean up
     delete gfs;

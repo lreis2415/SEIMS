@@ -453,7 +453,7 @@ void CalculateProcess(int worldRank, int numprocs, int nSlaves, MPI_Comm slaveCo
     /// The operation could be considered as post-process,
     ///   therefore, the time-consuming is not included.
     if (slaveRank == 0) {
-        MongoGridFS* gfs = new MongoGridFS(mongoClient->getGridFS(inputArgs->m_model_name, DB_TAB_OUT_SPATIAL));
+        MongoGridFs* gfs = new MongoGridFs(mongoClient->getGridFS(inputArgs->m_model_name, DB_TAB_OUT_SPATIAL));
         SettingsOutput* outputs = dataCenterList[0]->getSettingOutput();
         for (auto it = outputs->m_printInfos.begin(); it != outputs->m_printInfos.end(); ++it) {
             for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); ++itemIt) {

@@ -11,7 +11,7 @@ void MainMongoDB(const char *modelStr, const char *gridFSName, int nSubbasins, c
     if (nullptr == client) {
         throw ModelException("DataCenterMongoDB", "Constructor", "Failed to connect to MongoDB!");
     }
-    MongoGridFS* gfs = new MongoGridFS(client->getGridFS(string(modelStr), string(gridFSName)));
+    MongoGridFs* gfs = new MongoGridFs(client->getGridFS(string(modelStr), string(gridFSName)));
     int subbasinStartID = 1;
     if (nSubbasins == 0) subbasinStartID = 0;
     for (int i = subbasinStartID; i <= nSubbasins; i++) {

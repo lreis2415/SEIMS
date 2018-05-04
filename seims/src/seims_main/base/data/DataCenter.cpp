@@ -286,7 +286,7 @@ void DataCenter::Set1DData(string& paraName, string& remoteFileName, SimulationM
     }
     if (m_weightDataMap.find(remoteFileName) != m_weightDataMap.end()) {
         clsITPWeightData* weightData = m_weightDataMap.at(remoteFileName);
-        weightData->getWeightData(&n, &data);
+        weightData->GetWeightData(&n, &data);
         pModule->Set1DData(paraName.c_str(), n, data);
         return;
     }

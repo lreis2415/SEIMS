@@ -1,6 +1,6 @@
 #include "GridLayering.h"
 
-GridLayering::GridLayering(int id, MongoGridFS *gfs, const char *out_dir) :
+GridLayering::GridLayering(int id, MongoGridFs *gfs, const char *out_dir) :
     m_subbasinID(id), m_gfs(gfs), m_outputDir(out_dir),
     m_flowdir(nullptr),  // clsRasterData<int>
     m_nRows(-1), m_nCols(-1), m_dirNoData(-9999), m_outNoData(-9999), m_nValidCells(-1),

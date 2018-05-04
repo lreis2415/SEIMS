@@ -10,7 +10,7 @@ using namespace std;
 
 SubbasinIUHCalculator::SubbasinIUHCalculator(int t, clsRasterData<int> &rsMask, clsRasterData<float> &rsLanduse,
                                              clsRasterData<float> &rsTime, clsRasterData<float> &rsDelta,
-                                             MongoGridFS* grdfs)
+                                             MongoGridFs* grdfs)
     : dt(t), gfs(grdfs), mt(30) {
     nRows = rsMask.getRows();
     nCols = rsMask.getCols();

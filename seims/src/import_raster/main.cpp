@@ -99,7 +99,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> 
         ostringstream remoteFilename;
         remoteFilename << id << "_" << GetUpper(coreName);
         float cellSize = rs->getCellWidth();
-        MongoGridFS().removeFile(remoteFilename.str(), gfs);
+        MongoGridFs().removeFile(remoteFilename.str(), gfs);
 
         bson_t p = BSON_INITIALIZER;
         BSON_APPEND_INT32(&p, "SUBBASIN", id);
@@ -118,8 +118,8 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int> 
 
         char *databuf = (char *) subData;
         size_t datalength = sizeof(float) * subXSize * subYSize;
-        MongoGridFS().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
-        if (NULL == MongoGridFS().getFile(remoteFilename.str(), gfs)) {
+        MongoGridFs().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
+        if (NULL == MongoGridFs().getFile(remoteFilename.str(), gfs)) {
             // import failed! Terminate the subbasins loop and return false.
             flag = false;
             break;
@@ -184,7 +184,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
         ostringstream remoteFilename;
         remoteFilename << id << "_" << GetUpper(coreName);
         float cellSize = rss->getCellWidth();
-        MongoGridFS().removeFile(remoteFilename.str(), gfs);
+        MongoGridFs().removeFile(remoteFilename.str(), gfs);
 
         bson_t p = BSON_INITIALIZER;
         BSON_APPEND_INT32(&p, "SUBBASIN", id);
@@ -203,8 +203,8 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin> &bboxMap, clsRasterData<int
 
         char *databuf = (char *) sub2DData;
         size_t datalength = sizeof(float) * subCellNum * colNum;
-        MongoGridFS().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
-        if (NULL == MongoGridFS().getFile(remoteFilename.str(), gfs)) {
+        MongoGridFs().writeStreamData(remoteFilename.str(), databuf, datalength, &p, gfs);
+        if (NULL == MongoGridFs().getFile(remoteFilename.str(), gfs)) {
             // import failed! Terminate the subbasins loop and return false.
             flag = false;
             break;

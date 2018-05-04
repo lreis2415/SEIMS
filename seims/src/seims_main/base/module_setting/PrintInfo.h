@@ -111,7 +111,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(string projectPath, MongoGridFS* gfs, FloatRaster *templateRaster, string header);
+    void Flush(string projectPath, MongoGridFs* gfs, FloatRaster *templateRaster, string header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);

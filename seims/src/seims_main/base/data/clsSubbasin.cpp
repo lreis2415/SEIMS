@@ -106,7 +106,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rsMap, int prefixID): m_n
     cellListMap.clear();
 }
 
-clsSubbasins* clsSubbasins::Init(MongoGridFS* spatialData, map<string,FloatRaster *>& rsMap,
+clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaster *>& rsMap,
                                  int prefixID) {
     ostringstream oss;
     oss << prefixID << "_" << Tag_Mask;

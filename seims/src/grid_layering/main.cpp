@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     /// connect to MongoDB
     MongoClient *client = MongoClient::Init(hostName, port);
     if (nullptr == client) exit(-1);
-    MongoGridFS *gfs = client->GridFS(modelName, gridFSName);
+    MongoGridFs *gfs = client->GridFS(modelName, gridFSName);
 
     double t1 = TimeCounting();
     int subbasinStartID = 1;

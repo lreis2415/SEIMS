@@ -1,6 +1,6 @@
 #include "GridLayeringD8.h"
 
-GridLayeringD8::GridLayeringD8(int id, MongoGridFS *gfs, const char *out_dir) :
+GridLayeringD8::GridLayeringD8(int id, MongoGridFs *gfs, const char *out_dir) :
     GridLayering(id, gfs, out_dir) {
     string prefix = ValueToString(m_subbasinID);
     m_flowdir_name = prefix + "_FLOW_DIR";
