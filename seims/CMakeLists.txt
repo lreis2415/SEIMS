@@ -1,7 +1,7 @@
 ##############  Set CCGL               ###############
 SET(CCGL_LIB ${CMAKE_CURRENT_SOURCE_DIR}/src/ccgl)
 SET(CCGL_INC ${CCGL_LIB}/src)
-FILE(CLOB CCGL_SRC ${CCGL_INC}/*.h
+FILE(GLOB CCGL_SRC ${CCGL_INC}/*.h
                    ${CCGL_INC}/*.cpp
                    ${CCGL_INC}/*.c
                    ${CCGL_INC}/*.cc
