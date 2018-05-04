@@ -216,13 +216,13 @@ public:
     /*!
      * \brief Get stream data of a given GridFS file name
      */
-    void GetStreamData(string const& gfilename, char*& databuf, int& datalength,
+    void GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
                        mongoc_gridfs_t* gfs = NULL);
 
     /*!
      * \brief Write stream data to a GridFS file
      */
-    void WriteStreamData(const string& gfilename, char*& buf, int length,
+    void WriteStreamData(const string& gfilename, char*& buf, size_t length,
                          const bson_t* p, mongoc_gridfs_t* gfs = NULL);
 
 private:
