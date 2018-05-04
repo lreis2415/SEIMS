@@ -9,11 +9,11 @@
 #     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
 #     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
-#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5
+#     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5 (Without UnitTest)
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 2, 2018
+#  Latest updated: Mar. 4, 2018
 #
 #  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
@@ -192,13 +192,13 @@ ENDIF()
 
 ### Dependencies.
 STATUS("")
-STATUS("    Use MPI:"     MPI_FOUND      THEN "YES (${MPI_LIBRARIES} ${MPI_INCLUDE_PATH})" ELSE "NO")
+STATUS("    Use MPI:"     MPI_FOUND      THEN "YES (LIB: ${MPI_LIBRARIES}, INC: ${MPI_INCLUDE_PATH})" ELSE "NO")
 STATUS("    Use OpenMP:"  OPENMP_FOUND   THEN "YES" ELSE "NO")
-STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (${GDAL_LIBRARIES} ${GDAL_INCLUDE_DIR})" ELSE "NO")
-STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (${BSON_LIBRARIES} ${BSON_INCLUDE_DIR})" ELSE "NO")
-STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (${MONGOC_LIBRARIES} ${MONGOC_INCLUDE_DIR})" ELSE "NO")
+STATUS("    Use GDAL:"    GDAL_FOUND     THEN "YES (LIB: ${GDAL_LIBRARIES}, INC: ${GDAL_INCLUDE_DIR})" ELSE "NO")
+STATUS("    Use BSON:"    BSON_FOUND     THEN "YES (LIB: ${BSON_LIBRARIES}, INC: ${BSON_INCLUDE_DIR})" ELSE "NO")
+STATUS("    Use MongoC:"  MONGOC_FOUND   THEN "YES (LIB: ${MONGOC_LIBRARIES}, INC: ${MONGOC_INCLUDE_DIR})" ELSE "NO")
 
 ### Auxiliary.
 STATUS("")
-STATUS("  Install path:" ${CMAKE_INSTALL_PREFIX})
+STATUS("  Install path:" ${INSTALL_DIR})
 STATUS("")
