@@ -1,0 +1,59 @@
+version: 2018.{build}
+pull_requests:
+  do_not_increment_build_number: true
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+image: Visual Studio 2013
+configuration: Debug
+platform: x64
+services: mongodb
+build:
+  parallel: true
+  verbosity: minimal
+environment:
+  global:
+    GDAL_HOME: "C:\\gdal"
+install:
+  # download compiled gdal, unzip to folder and set environment paths.
+  - ps: mkdir C:\gdal | out-null
+  - appveyor DownloadFile http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-1-11-4-mapserver-6-4-3.zip -FileName gdalbin.zip
+  - 7z x gdalbin.zip -oC:\gdal
+  - appveyor DownloadFile http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-1-11-4-mapserver-6-4-3-libs.zip -FileName gdallibs.zip
+  - 7z x gdallibs.zip -oC:\gdal
+  - "SET PATH=C:\\gdal;C:\\gdal\\bin;C:\\gdal\\data;C:\\gdal\\bin\\gdal\\apps;%PATH%"
+  - "SET PATH=C:\\GDAL\\bin\\ms\\apps;C:\\GDAL\\bin\\curl;C:\\GDAL\\bin\\proj\\apps;%PATH%"
+  - "SET GDAL_DATA=C:\\gdal\\bin\\gdal-data"
+  - "SET GDAL_DIR=C:\\gdal"
+  - ECHO "Filesystem C:/GDAL:"
+  - ps: "ls \"C:/GDAL\""
+  # compile and install mongo-c-driver
+  - appveyor DownloadFile https://github.com/mongodb/mongo-c-driver/releases/download/1.5.5/mongo-c-driver-1.5.5.tar.gz -FileName mongo-c-driver-1.5.5.tar.gz
+  - 7z x mongo-c-driver-1.5.5.tar.gz
+  - 7z x mongo-c-driver-1.5.5.tar -oC:\
+  - cd C:\mongo-c-driver-1.5.5
+  - ps: "ls"
+  - cd src\libbson
+  - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+  - cd ..\..
+  - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+  - "SET MONGOC_ROOT_DIR=C:\\mongo-c-driver"
+  - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
+  - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
+build_script:
+  - cd C:\projects\ccgl
+  - ps: "ls"
+  - mkdir build
+  - cd build
+  - cmake -G "Visual Studio 12 2013 Win64" .. -DCMAKE_BUILD_TYPE=Debug -DUNITTEST=1
+  - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
+  - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
+test_script:
+  # run demo test
+  - cd C:\projects\ccgl\bin
+  - UnitTests_CCGL.exe
