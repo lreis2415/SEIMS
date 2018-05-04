@@ -31,5 +31,5 @@ foreach(CompilerFlag ${CompilerFlags})
   string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
 endforeach()
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-include_directories("${gtest_SOURCE_DIR}/include" "${gmock_SOURCE_DIR}/include")
-
+geo_include_directories(${gtest_SOURCE_DIR}/include)
+geo_include_directories(${gmock_SOURCE_DIR}/include)

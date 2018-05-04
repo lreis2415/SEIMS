@@ -7,7 +7,7 @@ geo_include_directories(${COMBINE_DIR} ${OMP_DIR} ${MPI_INCLUDE_PATH})
 FILE(GLOB SRC_LIST *.cpp *.h ${OMP_DIR}/ModelMain.cpp ${COMBINE_DIR}/CombineRaster.cpp)
 ADD_EXECUTABLE(seims_mpi ${SRC_LIST})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-TARGET_LINK_LIBRARIES(seims_mpi util data bmps module_setting ${GDAL_LIBRARIES} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES} ${MPI_LIBRARIES} ${CMAKE_DL_LIBS})
+TARGET_LINK_LIBRARIES(seims_mpi ${CCGLNAME} data bmps module_setting ${GDAL_LIBRARIES} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES} ${MPI_LIBRARIES} ${CMAKE_DL_LIBS})
 INSTALL(TARGETS seims_mpi DESTINATION ${INSTALL_DIR})
 # VS2010 has MPI debug tool and seims_mpi should not included in folder
 IF(XCODE OR (MSVC AND NOT MSVC10))

@@ -1,8 +1,10 @@
 project(ReClassify)
 ################ Add executables #################
 file(GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-set(SOURCE_FILES ${UTILS_FILES} ${RC_SRC})
-geo_include_directories(${GDAL_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC})
+set(SOURCE_FILES ${CCGL_SRC} ${RC_SRC})
+geo_include_directories(${GDAL_INCLUDE_DIR} ${CCGL_INC})
+# Not need MongoDB support
+REMOVE_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
 ADD_EXECUTABLE(reclassify ${SOURCE_FILES})
 target_link_libraries(reclassify ${GDAL_LIBRARIES})
 install(TARGETS reclassify DESTINATION ${INSTALL_DIR})

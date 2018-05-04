@@ -1,8 +1,8 @@
 PROJECT(IUH)
 ################ Add executables #################
-set(SOURCE_FILES ${UTILS_FILES} ${MONGO_FILES} SubbasinIUHCalculator.cpp main.cpp)
+set(SOURCE_FILES ${CCGL_SRC} SubbasinIUHCalculator.cpp main.cpp)
 ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
-geo_include_directories(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${UTILS_INC} ${RASTER_INC} ${MONGO_INC})
+geo_include_directories(${GDAL_INCLUDE_DIR} ${BSON_INCLUDE_DIR} ${MONGOC_INCLUDE_DIR} ${CCGL_INC})
 ADD_EXECUTABLE(iuh ${SOURCE_FILES})
 target_link_libraries(iuh ${GDAL_LIBRARIES} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES})
 install(TARGETS iuh DESTINATION ${INSTALL_DIR})

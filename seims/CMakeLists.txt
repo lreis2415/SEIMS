@@ -1,3 +1,11 @@
+##############  Set CCGL               ###############
+SET(CCGL_LIB ${CMAKE_CURRENT_SOURCE_DIR}/src/ccgl)
+SET(CCGL_INC ${CCGL_LIB}/src)
+FILE(CLOB CCGL_SRC ${CCGL_INC}/*.h
+                   ${CCGL_INC}/*.cpp
+                   ${CCGL_INC}/*.c
+                   ${CCGL_INC}/*.cc
+                   ${CCGL_INC}/*.hpp)
 ##############  Stand-alone programs   ###############
 SET(FIELD_PARTITION ${CMAKE_CURRENT_SOURCE_DIR}/src/field_partition)
 SET(GRID_LAYERING ${CMAKE_CURRENT_SOURCE_DIR}/src/grid_layering)
@@ -23,6 +31,7 @@ set(MONGO_INC ${COMMONLIBS_PATH}/MongoUtilClass)
 file(GLOB MONGO_FILES ${MONGO_INC}/*.cpp)
 SET(RASTER_INC ${COMMONLIBS_PATH}/RasterClass)
 ############  step into subdirectories   #############
+ADD_SUBDIRECTORY(${CCGL_LIB} bin/ccgl)
 ADD_SUBDIRECTORY(${FIELD_PARTITION} bin/field_partition)
 ADD_SUBDIRECTORY(${GRID_LAYERING} bin/grid_layering)
 ADD_SUBDIRECTORY(${IMPORT_RASTER} bin/import_raster)
