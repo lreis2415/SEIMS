@@ -4,17 +4,18 @@
  * \author Liangjun Zhu
  * \date 12-28-2017
  */
-
 #ifndef GRID_LAYERING_D8_H
 #define GRID_LAYERING_D8_H
 #include "GridLayering.h"
 
-class GridLayeringD8 : public GridLayering {
+class GridLayeringD8: public GridLayering {
 public:
-    GridLayeringD8(int id, MongoGridFs *gfs, const char *out_dir);
-    virtual ~GridLayeringD8() {};
-    virtual bool LoadData();
-    virtual bool OutputFlowOut();
+    GridLayeringD8(int id, MongoGridFs* gfs, const char* out_dir);
+
+    virtual ~GridLayeringD8() {
+    };
+    bool LoadData() override;
+    bool OutputFlowOut() override;
 };
 
 #endif /* GRID_LAYERING_D8_H */

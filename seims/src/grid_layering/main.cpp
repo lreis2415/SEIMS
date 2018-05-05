@@ -8,19 +8,21 @@
 *   Date:       21-July-2016
 *               9-February-2017
 *               4-July-2017  Check if success after import layering to MongoDB
-*               29-Dec-2018  Refactor to make code more clearly
+*               29-Dec-2017  Refactor to make code more clearly
+*                5-Mar-2018  Use CCGL, and reformat code style.\n
 *---------------------------------------------------------------------*/
 
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
 
+#include "utils_time.h"
 #include "GridLayeringD8.h"
 #include "GridLayeringDinf.h"
 
-using namespace std;
+using namespace utils_time;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     if (argc < 6) {
         cout << "usage: grid_layering <hostIP> <port> <output_dir> <modelName> <gridFSName> <nsubbasin>\n";
         exit(-1);
@@ -29,33 +31,34 @@ int main(int argc, char **argv) {
     SetDefaultOpenMPThread();
     /// Register GDAL drivers, REQUIRED!
     GDALAllRegister();
-
-    const char *hostName = argv[1];
-    int port = atoi(argv[2]);
-    const char *outputDir = argv[3];
-    const char *modelName = argv[4];
-    const char *gridFSName = argv[5];
-    int nSubbasins = atoi(argv[6]);
+    char* end = nullptr;
+    errno = 0;
+    const char* host_name = argv[1];
+    int port = strtol(argv[2], &end, 10);
+    const char* output_dir = argv[3];
+    const char* model_name = argv[4];
+    const char* gridfs_name = argv[5];
+    int n_subbasins = strtol(argv[6], &end, 10);
 
     /// connect to MongoDB
-    MongoClient *client = MongoClient::Init(hostName, port);
+    MongoClient* client = MongoClient::Init(host_name, port);
     if (nullptr == client) exit(-1);
-    MongoGridFs *gfs = client->GridFS(modelName, gridFSName);
+    MongoGridFs* gfs = client->GridFs(model_name, gridfs_name);
 
     double t1 = TimeCounting();
-    int subbasinStartID = 1;
-    if (nSubbasins == 0) { subbasinStartID = 0; }
+    int subbasin_start_id = 1;
+    if (n_subbasins == 0) { subbasin_start_id = 0; }
 
-    for (int i = subbasinStartID; i <= nSubbasins; i++) {
+    for (int i = subbasin_start_id; i <= n_subbasins; i++) {
         /// D8 flow model
-        GridLayeringD8 *gridLyrD8 = new GridLayeringD8(i, gfs, outputDir);
-        gridLyrD8->Execute();
-        delete gridLyrD8;
+        GridLayeringD8* grid_lyr_d8 = new GridLayeringD8(i, gfs, output_dir);
+        grid_lyr_d8->Execute();
+        delete grid_lyr_d8;
 
         /// Dinf flow model
-        GridLayeringDinf *gridLyrDinf = new GridLayeringDinf(i, gfs, outputDir);
-        gridLyrDinf->Execute();
-        delete gridLyrDinf;
+        GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(i, gfs, output_dir);
+        grid_lyr_dinf->Execute();
+        delete grid_lyr_dinf;
     }
 
     delete gfs;

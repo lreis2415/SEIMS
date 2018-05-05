@@ -10,35 +10,35 @@
 
 #include "GridLayering.h"
 
-class GridLayeringDinf : public GridLayering {
+class GridLayeringDinf: public GridLayering {
 public:
-    GridLayeringDinf(int id, MongoGridFs *gfs, const char *out_dir);
+    GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir);
     virtual ~GridLayeringDinf();
-    virtual bool LoadData();
-    virtual bool OutputFlowIn();
-    virtual bool OutputFlowOut();
+    bool LoadData() override;
+    bool OutputFlowIn() override;
+    bool OutputFlowOut() override;
     /** Dinf specific functions **/
 
     /*!
      * \brief Get flow partition of Dinf model in delta row (i) and delta col (j)
      */
-    float GetPercentage(float angle, int di, int dj);
+    static float GetPercentage(float angle, int di, int dj);
 protected:
     /*!
      * \brief
-     * \param compressedDir
-     * \param connectCount
-     * \param pOutput
+     * \param compressed_dir
+     * \param connect_count
+     * \param p_output
      */
-    void _build_multi_flow_out_angle_array(const int *compressedDir,
-                                           const int *connectCount, float *&pOutput);
+    void BuildMultiFlowOutAngleArray(int*& compressed_dir,
+                                     int*& connect_count, float*& p_output);
 private:
-    clsRasterData<float> *m_flowangle;  ///< Flow direction in radiation
-    float *m_angle;  ///< Flow angle array
-    float *m_flowInAngle;  ///< Flow in partition, \sa m_flowInCells
+    FloatRaster* flow_angle_; ///< Flow direction in radiation
+    float* angle_;            ///< Flow angle array
+    float* flow_in_angle_;    ///< Flow in partition, \sa m_flowInCells
 
-    string m_flowangle_name;  ///< Dinf flow direction name
-    string m_flowin_angle_name;  ///< Output of flow in partition
+    string flow_angle_name_;   ///< Dinf flow direction name
+    string flowin_angle_name_; ///< Output of flow in partition
 };
 
 #endif /* GRID_LAYERING_DINF_H */
