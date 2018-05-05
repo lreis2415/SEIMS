@@ -1,15 +1,22 @@
+/*!
+ * \brief Combine raster data of each subbasins.
+ *        Support ASC, TIFF, and MongoDB GridFs formats.
+ * \author Liangjun Zhu, Junzhi Liu
+ * \changelog 2018-05-05 - lj - Refactor as stand-alone program.\n
+ */
 #ifndef COMBINE_RASTER_H
 #define COMBINE_RASTER_H
-#ifndef USE_MONGODB
-#define USE_MONGODB
-#endif
 
-#include "utilities.h"
-#include "clsRasterData.h"
+#ifdef USE_MONGODB
+#include "db_mongoc.h"
+#endif /* USE_MONGODB */
+#include "data_raster.h"
 
-#include <sstream>
-
-using namespace std;
+using namespace ccgl;
+#ifdef USE_MONGODB
+using namespace db_mongoc;
+#endif /* USE_MONGODB */
+using namespace data_raster;
 
 #ifndef FloatRaster
 #define FloatRaster     clsRasterData<float>
@@ -20,13 +27,32 @@ using namespace std;
 
 /*!
  * \brief Combine rasters as one, for both 1D and 2D raster data, \sa clsRasterData
- * \param[in] allRasterData Key is subbasinID (start from 1), value is clsRasterData<float>
+ * \param[in] all_raster_data Key is subbasinID (start from 1), value is clsRasterData<float>
  * \return Combined raster data
  */
-FloatRaster *CombineRasters(map<int, FloatRaster *> &allRasterData);
+FloatRaster* CombineRasters(map<int, FloatRaster *>& all_raster_data);
 
-void CombineRasterResults(const string &folder, const string &sVar, const string &fileType, int nSubbasins);
+/*!
+ * \brief Combined rasters of each subbasin and output as file
+ * \param[in] folder Directory that contains the raster files
+ * \param[in] s_var Core file name, e.g., lai
+ * \param[in] file_type File type of existed raster files, e.g., asc, tif (need GDAL support)
+ * \param[in] n_subbasins Subbasin count, e.g., 5 means 1_lai.tif, ..., 5_lai.tif will be combined as lai.tif
+ */
+void CombineRasterResults(const string& folder, const string& s_var,
+                          const string& file_type, int n_subbasins);
 
-void CombineRasterResultsMongo(MongoGridFs *gfs, const string &sVar, int nSubbasins, const string &folder = "");
+#ifdef USE_MONGODB
+/*!
+ * \brief Combine rasters of each subbasin store as GridFs in MongoDB and output to MongoDB as GridFs
+ *        And, if output as file if `folder` is specified.
+ * \param[in] gfs \sa MongoGridFs
+ * \param[in] s_var Core file name, e.g., lai
+ * \param[in] n_subbasins Subbasin count, e.g., 5 means 1_lai, ..., 5_lai will be combined as lai
+ * \param[in] folder Optional. If specified, the combined raster will be outputed as file simultaneously.
+ */
+void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
+                               int n_subbasins, const string& folder = "");
+#endif /* USE_MONGODB */
 
 #endif /* COMBINE_RASTER_H */
