@@ -1,6 +1,6 @@
 /***************************************************************************
 *
-* Purpose: ReClassify raster data. 
+* Purpose: ReClassify raster data.
 *
 *
 * Author:  Liang-Jun Zhu, Junzhi Liu
@@ -12,39 +12,31 @@
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <time.h>
-#include <sstream>
-#include <vector>
-#include <map>
-
 #ifdef SUPPORT_OMP
 #include <omp.h>
 #endif /* SUPPORT_OMP */
 
-#include "clsRasterData.h"
+#include "data_raster.h"
 
-using namespace std;
+using namespace ccgl;
+using namespace data_raster;
 
-bool ReadReclassMap(const char *filename, map<int, float> &_reclassMap) {
-    ifstream ofs(filename);
+bool ReadReclassMap(const char* filename, map<int, float>& reclass_map) {
+    std::ifstream ofs(filename);
     int n;
     ofs >> n;
     int k;
     float value;
     for (int i = 0; i < n; i++) {
         ofs >> k >> value;
-        _reclassMap[k] = value;
+        reclass_map[k] = value;
     }
     return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     SetDefaultOpenMPThread();
     GDALAllRegister();
-    char *configFile;
 
     if (argc < 2) {
         cout << "Usage of reclassify:\n\treclassify configFile\n";
@@ -59,47 +51,45 @@ int main(int argc, char *argv[]) {
         cout << "NOTE: No space is allowed in the filename currently.\n";
 
         exit(-1);
-    } else {
-        configFile = argv[1];
     }
+    char* config_file = argv[1];
+
     // read input information
-    string typeFile, lookupFolder, outputFolder, tmp;
+    string type_file, lookup_folder, output_folder, tmp;
     int n = 0;
-    int defaultType = -1;
-    vector <string> attrNames;
+    int default_type = -1;
+    vector<string> attr_names;
     // read attribute list
-    ifstream ifs(configFile);
-    ifs >> typeFile >> defaultType >> lookupFolder >> outputFolder >> n;
+    std::ifstream ifs(config_file);
+    ifs >> type_file >> default_type >> lookup_folder >> output_folder >> n;
     for (int i = 0; i < n; ++i) {
         ifs >> tmp;
-        attrNames.push_back(tmp);
+        attr_names.push_back(tmp);
     }
     ifs.close();
 
-    int nLen = lookupFolder.length();
-    if (lookupFolder.substr(nLen - 1, 1) != SEP) {
-        lookupFolder += SEP;
+    int n_len = CVT_INT(lookup_folder.length());
+    if (lookup_folder.substr(n_len - 1, 1) != SEP) {
+        lookup_folder += SEP;
     }
-    nLen = outputFolder.length();
-    if (outputFolder.substr(nLen - 1, 1) != SEP) {
-        outputFolder += SEP;
+    n_len = CVT_INT(output_folder.length());
+    if (output_folder.substr(n_len - 1, 1) != SEP) {
+        output_folder += SEP;
     }
 
-    clsRasterData<float>* typeRaster = clsRasterData<float>::Init(typeFile);
+    clsRasterData<float>* type_raster = clsRasterData<float>::Init(type_file);
 
-    // loop to reclassify each attribute
-    string lookupFile, outputFile;
     for (int i = 0; i < n; ++i) {
-        lookupFile = lookupFolder + attrNames[i] + ".txt";
-        outputFile = outputFolder + attrNames[i] + ".tif";
-        clsRasterData<float>* outputLayer = new clsRasterData<float>(typeRaster);
-        map<int, float> reclassMap;
-        ReadReclassMap(lookupFile.c_str(), reclassMap);
-        outputLayer->reclassify(reclassMap);
-        outputLayer->outputToFile(outputFile);
-        delete outputLayer;
+        string lookup_file = lookup_folder + attr_names[i] + ".txt";
+        string output_file = output_folder + attr_names[i] + ".tif";
+        clsRasterData<float>* output_layer = new clsRasterData<float>(type_raster);
+        map<int, float> reclass_map;
+        ReadReclassMap(lookup_file.c_str(), reclass_map);
+        output_layer->Reclassify(reclass_map);
+        output_layer->OutputToFile(output_file);
+        delete output_layer;
     }
     // release memory
-    delete typeRaster;
+    delete type_raster;
     return 0;
 }

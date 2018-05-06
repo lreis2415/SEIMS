@@ -5,28 +5,23 @@
  * \date Feb. 2017
  * E-mail:  zlj@lreis.ac.cn
  * Copyright (c) 2017. Liang-Jun Zhu
- * 
+ *
  */
 
 #if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
 #include "vld.h"
 #endif /* Run Visual Leak Detector during Debug */
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <time.h>
-#include <sstream>
-#include <vector>
 
 #ifdef SUPPORT_OMP
 #include <omp.h>
 #endif /* SUPPORT_OMP */
 
-#include "clsRasterData.h"
+#include "data_raster.h"
 
-using namespace std;
+using namespace ccgl;
+using namespace data_raster;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     SetDefaultOpenMPThread();
     GDALAllRegister();
 
@@ -42,40 +37,40 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    const char *configFile = argv[1];
-    string maskFile;
+    const char* config_file = argv[1];
+    string mask_file;
     int n = 0;
-    vector <string> inputFiles;
-    vector <string> outputFiles;
-    vector<float> defaultValues;
+    vector<string> input_files;
+    vector<string> output_files;
+    vector<float> default_values;
 
     // read input information
     string tmp1, tmp2;
-    float tmpVal;
-    ifstream ifs(configFile);
-    ifs >> maskFile;
+    float tmp_val;
+    std::ifstream ifs(config_file);
+    ifs >> mask_file;
     ifs >> n;
     for (int i = 0; i < n; i++) {
-        ifs >> tmp1 >> tmpVal >> tmp2;
-        inputFiles.push_back(tmp1);
-        defaultValues.push_back(tmpVal);
-        outputFiles.push_back(tmp2);
+        ifs >> tmp1 >> tmp_val >> tmp2;
+        input_files.push_back(tmp1);
+        default_values.push_back(tmp_val);
+        output_files.push_back(tmp2);
     }
     ifs.close();
 
     // read mask information
-    clsRasterData<int> *maskLayer = clsRasterData<int>::Init(maskFile);
-    if (nullptr == maskLayer) exit(-1);
+    clsRasterData<int>* mask_layer = clsRasterData<int>::Init(mask_file);
+    if (nullptr == mask_layer) exit(-1);
 
     // loop to mask each raster
     for (int i = 0; i < n; ++i) {
-        cout << inputFiles[i] << endl;
-        clsRasterData<float, int> *inputLayer = clsRasterData<float, int>::Init(inputFiles[i], true,
-                                                                                maskLayer, true,
-                                                                                defaultValues[i]);
-        inputLayer->outputToFile(outputFiles[i]);
-        delete inputLayer;
+        cout << input_files[i] << endl;
+        clsRasterData<float, int>* input_layer = clsRasterData<float, int>::Init(input_files[i], true,
+                                                                                 mask_layer, true,
+                                                                                 default_values[i]);
+        input_layer->OutputToFile(output_files[i]);
+        delete input_layer;
     }
-    delete maskLayer;
+    delete mask_layer;
     return 0;
 }
