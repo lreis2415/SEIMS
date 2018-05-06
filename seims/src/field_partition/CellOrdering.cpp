@@ -1,13 +1,16 @@
 #include "CellOrdering.h"
-#include "utilities.h"
 
 #include <iostream>
 #include <set>
 #include <fstream>
 #include <algorithm>
-#include <sstream>
 
-using namespace std;
+#include "basic.h"
+
+using namespace ccgl;
+using std::cerr;
+using std::endl;
+using std::set;
 
 const int CellOrdering::m_d1[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 const int CellOrdering::m_d2[8] = {1, 1, 0, -1, -1, -1, 0, 1};
@@ -20,17 +23,17 @@ CellOrdering::CellOrdering(IntRaster *rsDir, IntRaster *rsLandu, IntRaster *rsMa
                            FlowDirectionMethod flowDirMtd, int threshold)
     : m_dir(rsDir), m_mask(rsMask), m_landu(rsLandu), m_threshold(threshold), m_flowDirMtd(flowDirMtd),
       m_FieldNum(0), m_maxDegree(0) {
-    m_nRows = m_dir->getRows();
-    m_nCols = m_dir->getCols();
+    m_nRows = m_dir->GetRows();
+    m_nCols = m_dir->GetCols();
     m_size = m_nRows * m_nCols;
     m_cells.resize(m_size, nullptr);
-    m_cellwidth = m_dir->getCellWidth();
+    m_cellwidth = m_dir->GetCellWidth();
     //m_layers.resize(10);
 
     m_validCellsCount = 0;
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (!m_mask->isNoData(i, j)) {
+            if (!m_mask->IsNoData(i, j)) {
                 int id = i * m_nCols + j;
                 m_cells[id] = new Cell();
                 m_validCellsCount += 1;
@@ -140,13 +143,13 @@ bool CellOrdering::ExcuteFieldsDis(int iOutlet, int jOutlet) {
     return true;
 }
 
-void CellOrdering::BuildTree(void)   // tree of the land use 
+void CellOrdering::BuildTree(void)   // tree of the land use
 {
-    int *dir = m_dir->getRasterDataPointer();
-    int *LanduCode = m_landu->getRasterDataPointer();
+    int *dir = m_dir->GetRasterDataPointer();
+    int *LanduCode = m_landu->GetRasterDataPointer();
     for (int i = 0; i < m_nRows; ++i) {
         for (int j = 0; j < m_nCols; ++j) {
-            if (m_mask->isNoData(i, j)) {
+            if (m_mask->IsNoData(i, j)) {
                 continue;
             }
             int id = i * m_nCols + j;
@@ -405,7 +408,7 @@ void CellOrdering::MergeSameLanduseChildFields(Field *pfield) {
             }
             if (f1->IsFieldsNeighbor(f2, m_nCols)) {
                 //once merged, it may change the infieldIds vector, will bring some problems.
-                mergefieldsofsamefather(f1, f2);    
+                mergefieldsofsamefather(f1, f2);
                 // to solve the problems
                 infdSize--;
                 i--;
@@ -674,7 +677,7 @@ void CellOrdering::sortReclassedfieldid() {
 void CellOrdering::OutputFieldMap(const char *filename) {
     IntRaster output;
     output.Copy(m_mask);
-    output.replaceNoData(output.getNoDataValue());
+    output.ReplaceNoData(output.GetNoDataValue());
     Field *rootfd = m_mapfields[1];
     int degreeRoot = 1;
     reclassfieldid(rootfd, degreeRoot);
@@ -692,10 +695,10 @@ void CellOrdering::OutputFieldMap(const char *filename) {
             int ID = cells[j]->GetID();
             int ik = ID / m_nCols;
             int jk = ID % m_nCols;
-            output.setValue(ik, jk, ReFID);
+            output.SetValue(ik, jk, ReFID);
         }
     }
-    output.outputToFile(string(filename));
+    output.OutputToFile(string(filename));
     //if(StringMatch(GetSuffix(string(filename)), "ASC"))
     //	output.OutputArcAscii(filename);
     //else
@@ -703,7 +706,7 @@ void CellOrdering::OutputFieldMap(const char *filename) {
 }
 
 void CellOrdering::OutputFieldRelationship(const char *filename) {
-    ofstream rasterFile(filename);
+    std::ofstream rasterFile(filename);
     size_t m_FieldNum = m_mapfields.size();
     //write header
     rasterFile << " Relationship of the fields ---- field number:\n " << m_FieldNum << "\n";
@@ -744,7 +747,7 @@ void CellOrdering::BuildRoutingLayer(int idOutlet, int layerNum) {
     for (unsigned int i = 0; i < inCells.size(); ++i) {
         int row = inCells[i] / m_nCols;
         int col = inCells[i] % m_nCols;
-        if (!m_mask->isNoData(row, col)) {
+        if (!m_mask->IsNoData(row, col)) {
             BuildRoutingLayer(inCells[i], layerNum);
         }
     }

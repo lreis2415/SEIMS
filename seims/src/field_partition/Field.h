@@ -2,17 +2,17 @@
 #define FIELD_PARTITION_FIELD_H
 // Build by Wu Hui, 2012.4.28
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
-//  into their downstream fields. This is controlled by the threshold given by user. 
+//  into their downstream fields. This is controlled by the threshold given by user.
 //
-#include "Cell.h"
-#include <algorithm>
 #include <iterator>
 #include <vector>
-#include <map>
 
-using namespace std;
+#include "basic.h"
+#include "Cell.h"
 
-class Field {
+using namespace ccgl;
+
+class Field: Interface {
 public:
     Field();
 

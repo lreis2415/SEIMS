@@ -1,21 +1,25 @@
 #ifndef FIELD_PARTITION_CELL_ORDERING
 #define FIELD_PARTITION_CELL_ORDERING
 
-#include "Cell.h"
-#include "Field.h"
-#include "FieldPartition.h"
-#include "clsRasterData.h"
-
 #include <map>
 #include <vector>
 
+#include "basic.h"
+#include "data_raster.h"
+#include "Cell.h"
+#include "Field.h"
+#include "FieldPartition.h"
+
+using namespace ccgl;
+using namespace data_raster;
+
 // Build by Wu Hui, 2012.4.28
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
-//  into their downstream fields. This is controlled by the threshold given by user. 
+//  into their downstream fields. This is controlled by the threshold given by user.
 //
-using namespace std;
+//using namespace std;
 
-class CellOrdering {
+class CellOrdering: Interface {
 public:
     CellOrdering(IntRaster *rsDir, IntRaster *rsLandU, IntRaster *rsMask,
                  FlowDirectionMethod flowDirMtd, int threshold);

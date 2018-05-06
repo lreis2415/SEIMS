@@ -3,10 +3,9 @@
 
 #include <vector>
 #include <map>
-#include <stdlib.h>
-#include <iostream>
 
-using namespace std;
+using std::map;
+using std::vector;
 
 class Cell {
 public:

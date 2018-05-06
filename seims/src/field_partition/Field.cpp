@@ -1,6 +1,6 @@
 #include "Field.h"
 
-using namespace std;
+#include <algorithm>
 
 Field::Field() : m_xmin(-99), m_xmax(-99), m_ymin(-99), m_ymax(-99),
                  m_id(-1), m_outFieldID(-1), m_degree(-1), m_landCode(-1),

@@ -9,15 +9,21 @@
 #ifndef FIELD_PARTITION_HEADER
 #define FIELD_PARTITION_HEADER
 
-#include "clsRasterData.h"
+#include "data_raster.h"
+
+using namespace ccgl::data_raster;
 
 enum FlowDirectionMethod {
     TauDEM = 0,
     ArcGIS = 1
 };
 
+#ifndef IntRaster
 #define IntRaster   clsRasterData<int>
+#endif
+#ifndef FloatRaster
 #define FloatRaster clsRasterData<float>
+#endif
 
 /// Find outlet location according to flow direction, stream link, and DEM. Updated by LJ.
 void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
@@ -28,5 +34,5 @@ void DoFieldsPartition(const char *dirName, const char *LanduName, const char *m
                        const char *demName, const char *streamLinkName,
                        FlowDirectionMethod flowDirMtd, int threshod);
 
-void printUsage();
+void PrintUsage();
 #endif

@@ -5,20 +5,22 @@
 #include "FieldPartition.h"
 #include "CellOrdering.h"
 
-using namespace std;
+#include "utils_time.h"
 
-int main(int argc, char **argv) {
+using namespace utils_time;
+
+int main(int argc, char** argv) {
     GDALAllRegister();
     /// Header print information
     cout << "                    Field Partition Program 1.3                        " << endl;
     cout << "                    Author: Hui Wu, Liang-Jun Zhu                      " << endl;
 
     int Threshod = 50;
-    FlowDirectionMethod flowDirMtd = (FlowDirectionMethod) 0;
+    FlowDirectionMethod flowDirMtd = (FlowDirectionMethod)0;
     double start = TimeCounting();
     if (argc < 11) {
         cout << "Error: To run this field partition program, please follow the COMMAND." << endl;
-        printUsage();
+        PrintUsage();
     }
     int i = 1;
     char demfile[PATH_MAX], lufile[PATH_MAX], mfile[PATH_MAX], dirfile[PATH_MAX], strmfile[PATH_MAX];
@@ -26,48 +28,48 @@ int main(int argc, char **argv) {
         if (strcmp(argv[i], "-dem") == 0) {
             i++;
             if (argc > i) {
-                strcpy(demfile, argv[i]);
-                if (!FileExists(demfile)) printUsage();
+                stringcpy(demfile, argv[i]);
+                if (!FileExists(demfile)) PrintUsage();
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-lu") == 0) {
             i++;
             if (argc > i) {
-                strcpy(lufile, argv[i]);
-                if (!FileExists(lufile)) printUsage();
+                stringcpy(lufile, argv[i]);
+                if (!FileExists(lufile)) PrintUsage();
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-mask") == 0) {
             i++;
             if (argc > i) {
-                strcpy(mfile, argv[i]);
-                if (!FileExists(mfile)) printUsage();
+                stringcpy(mfile, argv[i]);
+                if (!FileExists(mfile)) PrintUsage();
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-flow") == 0) {
             i++;
             if (argc > i) {
-                strcpy(dirfile, argv[i]);
-                if (!FileExists(dirfile)) printUsage();
+                stringcpy(dirfile, argv[i]);
+                if (!FileExists(dirfile)) PrintUsage();
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-stream") == 0) {
             i++;
             if (argc > i) {
-                strcpy(strmfile, argv[i]);
-                if (!FileExists(strmfile)) printUsage();
+                stringcpy(strmfile, argv[i]);
+                if (!FileExists(strmfile)) PrintUsage();
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-t") == 0) {
             i++;
             if (argc > i) {
                 Threshod = atoi(argv[i]);
                 i++;
-            } else { printUsage(); }
+            } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-arcgis") == 0) {
             i++;
-            flowDirMtd = (FlowDirectionMethod) 1;
-        } else { printUsage(); }
+            flowDirMtd = (FlowDirectionMethod)1;
+        } else { PrintUsage(); }
     }
 
     DoFieldsPartition(dirfile, lufile, mfile, demfile, strmfile, flowDirMtd, Threshod);
@@ -77,18 +79,18 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void printUsage() {
+void PrintUsage() {
     cout << " Command: fieldpartition -dem <dem> -lu <landuse> -mask <mask> "
-        " -stream <stream> [-t <threshold>] [-arcgis]" << endl;
+            " -stream <stream> [-t <threshold>] [-arcgis]" << endl;
     cout << "\t1. Input raster paths include dem, mask, landuse, flow_dir, "
-        "stream_link, the format can be ASC or GTIFF; " << endl;
+            "stream_link, the format can be ASC or GTIFF; " << endl;
     cout << "\t2. Threshold MUST be greater than 0, the default is 50;" << endl;
     cout << "\t3. -arcgis indicate ArcGIS Flow direction coding method, the default is TauDEM." << endl;
     exit(0);
 }
 
-void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
-                FlowDirectionMethod flowDirMtd, int &rowIndex, int &colIndex) {
+void findOutlet(FloatRaster* rsDEM, IntRaster* rsStreamLink, IntRaster* rsDir,
+                FlowDirectionMethod flowDirMtd, int& rowIndex, int& colIndex) {
     map<int, int> dirToIndexMap;
     if (flowDirMtd) {
         /// flow direction in ArcGIS
@@ -111,15 +113,15 @@ void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
         dirToIndexMap[3] = 6;
         dirToIndexMap[2] = 7;
     }
-    if (rsDEM->getRows() <= 0 || rsDEM->getCols() <= 0) {
+    if (rsDEM->GetRows() <= 0 || rsDEM->GetCols() <= 0) {
         cout << "Error: the input of DEM was invalid!\n";
         exit(-1);
     }
     /// updated by Liangjun Zhu, Apr. 1, 2016
     bool flag = false;
-    for (int i = 0; i < rsStreamLink->getRows(); i++) {
-        for (int j = 0; j < rsStreamLink->getCols(); j++) {
-            if (!rsStreamLink->isNoData(i, j) && rsStreamLink->getValue(i, j) > 0) {
+    for (int i = 0; i < rsStreamLink->GetRows(); i++) {
+        for (int j = 0; j < rsStreamLink->GetCols(); j++) {
+            if (!rsStreamLink->IsNoData(i, j) && rsStreamLink->GetValue(i, j) > 0) {
                 colIndex = j;
                 rowIndex = i;
                 flag = true;
@@ -134,11 +136,11 @@ void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
     /// cout<<rowIndex<<","<<colIndex<<endl;
     flag = true;
     while (flag) {
-        int index = dirToIndexMap[rsDir->getValue(rowIndex, colIndex)];
+        int index = dirToIndexMap[rsDir->GetValue(rowIndex, colIndex)];
         int ii = rowIndex + CellOrdering::m_d1[index];
         int jj = colIndex + CellOrdering::m_d2[index];
-        if (ii < rsDEM->getRows() - 1 && jj < rsDEM->getCols() - 1) {
-            if (rsStreamLink->isNoData(ii, jj) || rsStreamLink->getValue(ii, jj) <= 0) {
+        if (ii < rsDEM->GetRows() - 1 && jj < rsDEM->GetCols() - 1) {
+            if (rsStreamLink->IsNoData(ii, jj) || rsStreamLink->GetValue(ii, jj) <= 0) {
                 flag = false;
             } else {
                 rowIndex = ii;
@@ -151,12 +153,12 @@ void findOutlet(FloatRaster *rsDEM, IntRaster *rsStreamLink, IntRaster *rsDir,
     cout << "\t\tOutlet location: row is " << rowIndex << ", col is " << colIndex << endl;
 }
 
-void DoFieldsPartition(const char *dirName, const char *LanduName, const char *maskName,
-                       const char *demName, const char *streamLinkName,
+void DoFieldsPartition(const char* dirName, const char* LanduName, const char* maskName,
+                       const char* demName, const char* streamLinkName,
                        FlowDirectionMethod flowDirMtd, int threshod) {
     //output to tiff
     string dir = GetPathFromFullName(demName);
-    ostringstream oss;
+    std::ostringstream oss;
     oss.str("");
     //oss << dir << "field_"<<threshod<<"."<<GetLower(GetSuffix(dirName));
     oss << dir << "fields_" << threshod << ".tif";
@@ -180,12 +182,12 @@ void DoFieldsPartition(const char *dirName, const char *LanduName, const char *m
     cout << "Executing ..." << endl;
     cout << "\tRead input raster files..." << endl;
 
-    IntRaster *rsMask = IntRaster::Init(maskName, false);
+    IntRaster* rsMask = IntRaster::Init(maskName, false);
     //cout<<"xll: "<<rsMask->getXllCenter()<<", yll: "<<rsMask->getYllCenter()<<endl;
-    IntRaster *rsDir = IntRaster::Init(dirName, false);
-    IntRaster *rsLandu = IntRaster::Init(LanduName, false);
-    IntRaster *rsStrLink = IntRaster::Init(streamLinkName, false);
-    FloatRaster *rsDEM = FloatRaster::Init(demName, false);
+    IntRaster* rsDir = IntRaster::Init(dirName, false);
+    IntRaster* rsLandu = IntRaster::Init(LanduName, false);
+    IntRaster* rsStrLink = IntRaster::Init(streamLinkName, false);
+    FloatRaster* rsDEM = FloatRaster::Init(demName, false);
 
     if (nullptr == rsMask || nullptr == rsDir || nullptr == rsLandu ||
         nullptr == rsStrLink || nullptr == rsDEM) {
