@@ -36,19 +36,19 @@ public:
 
     ~NutrientTransportSediment();
 
-    void Set1DData(const char *key, int n, float *data) override;
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
+    void Set2DData(const char *key, int nRows, int nCols, float **data) OVERRIDE;
 
-    void SetValue(const char *key, float value) override;
+    void SetValue(const char *key, float value) OVERRIDE;
 
-    void SetSubbasins(clsSubbasins *) override;
+    void SetSubbasins(clsSubbasins *) OVERRIDE;
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) override;
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
 
 private:
     /*!

@@ -1,7 +1,9 @@
 #include "AET_PriestleyTaylorHargreaves.h"
 
-#include <text.h>
+#include "utils_math.h"
+#include "text.h"
 
+using namespace ccgl::utils_math;
 
 AET_PT_H::AET_PT_H() : m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr), m_depSt(nullptr),
                        m_esco(nullptr), m_nSoilLayers(nullptr),
@@ -149,8 +151,8 @@ int AET_PT_H::Execute() {
             es_max = pet * eaj;
             eos1 = pet / (es_max + m_ppt[i] + 1.e-10f);
             eos1 = es_max * eos1;
-            es_max = min(es_max, eos1);
-            es_max = max(es_max, 0.f);
+            es_max = Min(es_max, eos1);
+            es_max = Max(es_max, 0.f);
             /// make sure maximum plant and soil ET doesn't exceed potential ET
             if (pet < es_max + m_ppt[i] && !FloatEqual(es_max + m_ppt[i], 0.f)) {
                 es_max = pet * es_max / (es_max + m_ppt[i]);
@@ -200,13 +202,13 @@ int AET_PT_H::Execute() {
                         xx = 2.5f * (m_soilStorage[i][ly] - m_solFC[i][ly]) / m_solFC[i][ly]; /// non dimension
                         sev *= Expo(xx);
                     }
-                    sev = min(sev, m_soilStorage[i][ly] * etco);
+                    sev = Min(sev, m_soilStorage[i][ly] * etco);
                     if (sev < 0.f || sev != sev) sev = 0.f;
                     if (sev > esleft) sev = esleft;
                     /// adjust soil storage, potential evap
                     if (m_soilStorage[i][ly] > sev) {
                         esleft -= sev;
-                        m_soilStorage[i][ly] = max(UTIL_ZERO, m_soilStorage[i][ly] - sev);
+                        m_soilStorage[i][ly] = Max(UTIL_ZERO, m_soilStorage[i][ly] - sev);
                     } else {
                         esleft -= m_soilStorage[i][ly];
                         m_soilStorage[i][ly] = 0.f;
@@ -217,7 +219,7 @@ int AET_PT_H::Execute() {
                     /// index of layer 2 is 1 (soil surface, 10mm)
                     no3up = 0.f;
                     no3up = effnup * sev * m_solNo3[i][ly] / (m_soilStorage[i][ly] + UTIL_ZERO);
-                    no3up = min(no3up, m_solNo3[i][ly]);
+                    no3up = Min(no3up, m_solNo3[i][ly]);
                     m_no3Up += no3up / m_nCells;
                     m_solNo3[i][ly] -= no3up;
                     m_solNo3[i][ly - 1] += no3up;

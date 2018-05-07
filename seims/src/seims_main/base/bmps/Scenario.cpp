@@ -73,8 +73,8 @@ void Scenario::loadBMPs() {
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, FLD_SCENARIO_ID, m_sceneID);
     //cout<<bson_as_json(query, NULL)<<endl;
-    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
-    unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
+    std::unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     bson_error_t* err = NULL;
@@ -167,8 +167,8 @@ void Scenario::loadBMPDetail() {
 }
 
 void Scenario::Dump(string& fileName) {
-    ofstream fs;
-    fs.open(fileName.c_str(), ios::ate);
+    std::ofstream fs;
+    fs.open(fileName.c_str(), std::ios::ate);
     if (fs.is_open()) {
         Dump(&fs);
         fs.close();

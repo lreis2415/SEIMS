@@ -14,8 +14,8 @@ public:
 
     virtual ~GridLayeringD8() {
     };
-    bool LoadData() override;
-    bool OutputFlowOut() override;
+    bool LoadData() OVERRIDE;
+    bool OutputFlowOut() OVERRIDE;
 };
 
 #endif /* GRID_LAYERING_D8_H */

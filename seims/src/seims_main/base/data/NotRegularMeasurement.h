@@ -37,7 +37,7 @@ public:
     //virtual ~NotRegularMeasurement() = default;
 
     //! Get site date by time \a pData
-    float* GetSiteDataByTime(time_t t) override;
+    float* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
     //! time list of site data

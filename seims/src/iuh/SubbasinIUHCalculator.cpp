@@ -3,11 +3,11 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-#include <algorithm>
 #include <sstream>
 
-using std::max;
-using std::min;
+#include "utils_math.h"
+
+using namespace utils_math;
 
 #ifndef IUHZERO
 #define IUHZERO 0.000000001
@@ -75,14 +75,14 @@ int SubbasinIUHCalculator::calCell(int id) {
     for (int i = 0; i < nCells; i++) {
         //this part is the same as the corresponding part in the RiverIUHCalculator
         //start
-        int mint = int(max(0.0f, t0[i] - 3.f * delta[i]) + 0.5f); //start time of IUH
-        int maxt = min(int(t0[i] + 5.f * delta[i] + 0.5f), mt);   //end time
-        maxt = max(maxt, 1);
+        int mint = int(Max(0.0f, t0[i] - 3.f * delta[i]) + 0.5f); //start time of IUH
+        int maxt = Min(int(t0[i] + 5.f * delta[i] + 0.5f), mt);   //end time
+        maxt = Max(maxt, 1);
         double sumUh = 0.0;
         for (int m = mint; m <= maxt; ++m) {
-            double delta0 = max(0.01f, delta[i]);
-            double t00 = max(0.01f, t0[i]);
-            double ti = max(0.01f, float(m));
+            double delta0 = Max(0.01f, delta[i]);
+            double t00 = Max(0.01f, t0[i]);
+            double ti = Max(0.01f, float(m));
             uhCell[i][m] = IUHti(delta0, t00, ti);
             //double test = uhCell[nc][m];
             //cout<<"uhCell:"<<nc<<" = " <<test<<"\n";   // test
@@ -90,7 +90,7 @@ int SubbasinIUHCalculator::calCell(int id) {
             //cout<<m<<endl;
         }
 
-        if (abs(sumUh) < IUHZERO) {
+        if (Abs(sumUh) < IUHZERO) {
             uhCell[i][0] = 1.0;
             mint = 0;
             maxt = 1;
@@ -119,10 +119,10 @@ int SubbasinIUHCalculator::calCell(int id) {
                 break;
             }
         }
-        maxt = max(mint, maxt0); //!actual end time
+        maxt = Max(mint, maxt0); //!actual end time
         //end
 
-        maxtSub = max(maxtSub, maxt);
+        maxtSub = Max(maxtSub, maxt);
         //cell IUH integration
         if (dt >= 1) {
             double uhSum = 0.0;
@@ -198,15 +198,15 @@ int SubbasinIUHCalculator::calCell(int id) {
     //                continue;
     //            //this part is the same as the corresponding part in the RiverIUHCalculator
     //            //start
-    //            int mint = int(max(0.0f, t0[i][j] - 3.f * delta[i][j]) + 0.5f);    //start time of IUH
-    //            int maxt = min(int(t0[i][j] + 5.f * delta[i][j] + 0.5f), mt);       //end time
-    //            maxt = max(maxt, 1);
+    //            int mint = int(Max(0.0f, t0[i][j] - 3.f * delta[i][j]) + 0.5f);    //start time of IUH
+    //            int maxt = Min(int(t0[i][j] + 5.f * delta[i][j] + 0.5f), mt`);       //end time
+    //            maxt = Max(maxt, 1);
     //            double sumUh = 0.0;
     //            for (int m = mint; m <= maxt; ++m)
     //            {
     //                double delta0 = max(0.01f, delta[i][j]);
-    //                double t00 = max(0.01f, t0[i][j]);
-    //                double ti = max(0.01f, float(m));
+    //                double t00 = Max(0.01f, t0[i][j]);
+    //                double ti = Max(0.01f, float(m));
     //                uhCell[nc][m] = IUHti(delta0, t00, ti);
     //                //double test = uhCell[nc][m];
     //                //cout<<"uhCell:"<<nc<<" = " <<test<<"\n";   // test
@@ -214,7 +214,7 @@ int SubbasinIUHCalculator::calCell(int id) {
     //                //cout<<m<<endl;
     //            }
     //
-    //            if (abs(sumUh) < IUHZERO)
+    //            if (Abs(sumUh) < IUHZERO)
     //            {
     //                uhCell[nc][0] = 1.0;
     //                mint = 0;

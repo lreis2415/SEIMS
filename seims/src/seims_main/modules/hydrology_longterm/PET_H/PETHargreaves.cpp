@@ -4,9 +4,6 @@
 #include "ClimateParams.h"
 #include "text.h"
 
-
-using namespace std;
-
 PETHargreaves::PETHargreaves() : m_nCells(-1), m_petFactor(1.f), m_HCoef_pet(0.0023f),
                                  m_tMean(nullptr), m_tMin(nullptr), m_tMax(nullptr), m_rhd(nullptr), m_phutot(nullptr),
                                  m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
@@ -78,9 +75,9 @@ int PETHargreaves::Execute() {
         float h0 = m_srMax * 37.59f / 30.0f;
         /// calculate potential evapotranspiration, equation 2:2.2.24 in SWAT Theory 2009, p133
         /// Hargreaves et al., 1985. In SWAT Code, 0.0023 is replaced by harg_petco, which range from 0.0019 to 0.0032. by LJ
-        float petValue = m_HCoef_pet * h0 * pow(abs(m_tMax[i] - m_tMin[i]), 0.5f)
+        float petValue = m_HCoef_pet * h0 * pow(Abs(m_tMax[i] - m_tMin[i]), 0.5f)
             * (m_tMean[i] + 17.8f) / latentHeat;
-        m_pet[i] = m_petFactor * max(0.0f, petValue);
+        m_pet[i] = m_petFactor * Max(0.0f, petValue);
         /// calculate m_vpd
         float satVaporPressure = SaturationVaporPressure(m_tMean[i]);
         float actualVaporPressure = 0.f;

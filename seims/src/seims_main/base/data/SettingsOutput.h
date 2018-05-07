@@ -58,7 +58,7 @@ public:
     static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
 
     //! Write output information to log file
-    void Dump(const string& filename) override;
+    void Dump(const string& filename) OVERRIDE;
 
     //! Check date of output settings
     void checkDate(time_t, time_t);

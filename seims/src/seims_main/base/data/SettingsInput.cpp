@@ -1,7 +1,7 @@
 #include "SettingsInput.h"
 
 #include "utils_time.h"
-#include <text.h>
+#include "text.h"
 
 using namespace utils_time;
 
@@ -58,8 +58,8 @@ bool SettingsInput::readSimulationPeriodDate() {
 }
 
 void SettingsInput::Dump(const string& fileName) {
-    ofstream fs;
-    fs.open(fileName.c_str(), ios::out);
+    std::ofstream fs;
+    fs.open(fileName.c_str(), std::ios::out);
     if (fs.is_open()) {
         fs << "Start Date :" << ConvertToString2(&m_startDate) << endl;
         fs << "End Date :" << ConvertToString2(&m_endDate) << endl;

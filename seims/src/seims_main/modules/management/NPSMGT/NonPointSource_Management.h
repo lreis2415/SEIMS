@@ -23,13 +23,13 @@ public:
 
     ~NPS_Management();
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) override;
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    void Set2DData(const char *key, int n, int col, float **data) override;
+    void Set2DData(const char *key, int n, int col, float **data) OVERRIDE;
 
-    void SetScenario(Scenario *sce) override;
+    void SetScenario(Scenario *sce) OVERRIDE;
 
 private:
     /*!

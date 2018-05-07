@@ -26,7 +26,8 @@
 #define MSG_LEN 5
 #define MCW MPI_COMM_WORLD
 
-using namespace std;
+using std::map;
+using std::set;
 
 /*!
  * \brief Simple struct of subbasin information for task allocation

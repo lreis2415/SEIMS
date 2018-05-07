@@ -2,7 +2,7 @@
 
 #include "basic.h"
 #include "MetadataInfo.h"
-#include <text.h>
+#include "text.h"
 
 ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, SEIMSModuleSetting *>& moduleSettings,
@@ -60,7 +60,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         cout << e.ToString() << endl;
         return nullptr;
     }
-    catch (exception& e) {
+    catch (std::exception& e) {
         cout << e.what() << endl;
         return nullptr;
     }
@@ -171,14 +171,14 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
 #ifdef MSVC
             dllID = MID_ITP;
 #else
-            dllID = Tag_So + string(MID_ITP);
+            dllID = LIBPREFIX + string(MID_ITP);
 #endif /* MSVC */
             dllID += POSTFIX;
         } else if (id.find(MID_TSD_RD) != string::npos) {
 #ifdef MSVC
             dllID = MID_TSD_RD;
 #else
-            dllID = Tag_So + string(MID_TSD_RD);
+            dllID = LIBPREFIX + string(MID_TSD_RD);
 #endif /* MSVC */
             dllID += POSTFIX;
         }
@@ -286,7 +286,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         return;
     }
     // check if the dll file exists
-    string moduleFileName = module_path + SEP + string(dllID) + string(LIBSUFFIX);
+    string moduleFileName = module_path + SEP + dllID + LIBSUFFIX;
     if (!FileExists(moduleFileName)) {
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
     }
@@ -609,7 +609,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                 string settingString = settings[i][1];
                 string module = GetUpper(settings[i][3]);
 #ifndef MSVC
-                module.insert(0, Tag_So);
+                module.insert(0, LIBPREFIX);
 #endif /* MSVC */
                 module += POSTFIX;
 
@@ -688,7 +688,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
             dependParam->initialized = true;
             modules[iModule]->SetInputsDone(true);
         } else {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Dimension type: " << dependParam->Dimension << " is currently not supported.";
             throw ModelException("ModuleFactory", "GetValueFromDependencyModule", oss.str());
         }

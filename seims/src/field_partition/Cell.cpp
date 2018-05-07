@@ -1,5 +1,9 @@
 #include "Cell.h"
 
+#include "utils_math.h"
+
+using namespace ccgl::utils_math;
+
 Cell::Cell() : m_id(-1), m_FieldID(-1), m_outCellID(-1), m_LanduseCode(-1),
                m_degree(-1), m_IsNeighbCellmap(), m_inCellIDs() {
 }
@@ -30,15 +34,15 @@ bool Cell::IsMyNeighbor(Cell *iCell, int nCols) {
         j2 = m_id % nCols;
         int i1i2 = i1 - i2;
         int j1j2 = j1 - j2;
-        if (i1 == i2 && (abs(j1j2) == 1)) {
+        if (i1 == i2 && Abs(j1j2) == 1) {
             setNeighborCellId(id, true);
             iCell->setNeighborCellId(m_id, true);
             return true;
-        } else if (j1 == j2 && (abs(i1i2) == 1)) {
+        } else if (j1 == j2 && Abs(i1i2) == 1) {
             setNeighborCellId(id, true);
             iCell->setNeighborCellId(m_id, true);
             return true;
-        } else if ((abs(i1i2) == 1) && (abs(j1j2) == 1)) {
+        } else if (Abs(i1i2) == 1 && Abs(j1j2) == 1) {
             setNeighborCellId(id, true);
             iCell->setNeighborCellId(m_id, true);
             return true;

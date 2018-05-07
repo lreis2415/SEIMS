@@ -36,7 +36,7 @@ public:
     virtual ~RegularMeasurement();
 
     //! Get site date by time \a pData
-    float* GetSiteDataByTime(time_t t) override;
+    float* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
     //! site data : the first dimension is time, and the second dimension is data by sites

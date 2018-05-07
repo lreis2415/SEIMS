@@ -33,23 +33,23 @@ public:
 
     ~NutrCH_QUAL2E();
 
-    void SetValue(const char *key, float value) override;
+    void SetValue(const char *key, float value) OVERRIDE;
 
-    void SetValueByIndex(const char *key, int index, float data) override;
+    void SetValueByIndex(const char *key, int index, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) override;
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void SetReaches(clsReaches *reaches) override;
+    void SetReaches(clsReaches *reaches) OVERRIDE;
 
-    void SetScenario(Scenario *sce) override;
+    void SetScenario(Scenario *sce) OVERRIDE;
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void GetValue(const char *key, float *value) override;
+    void GetValue(const char *key, float *value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) override;
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    TimeStepType GetTimeStepType() override { return TIMESTEP_CHANNEL; };
+    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; };
 
 private:
     /*!

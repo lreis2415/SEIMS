@@ -100,8 +100,8 @@ int ReservoirMethod::Execute() {
                     << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
             throw ModelException(MID_GWA_RE, "Execute", "revap calculation wrong!");
         }
-        revap = max(revap, 0.f);
-        revap = min(revap, perco);
+        revap = Max(revap, 0.f);
+        revap = Min(revap, perco);
         //}
         //float prevRevap = curSub->getEG();
         //if (prevRevap != revap)
@@ -138,7 +138,7 @@ int ReservoirMethod::Execute() {
         }
         groundStorage += gwBank / curSub->GetArea() * 1000.f;
 
-        groundStorage = max(groundStorage, 0.f);
+        groundStorage = Max(groundStorage, 0.f);
         if (groundStorage > m_GWMAX) {
             groundRunoff += (groundStorage - m_GWMAX);
             groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
@@ -148,7 +148,7 @@ int ReservoirMethod::Execute() {
         curSub->SetGw(groundStorage);
         curSub->SetQg(groundQ);
         if (groundStorage != groundStorage) {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwStore[subID]
                     << "\t" << m_Kg << "\t" <<
                     m_Base_ex << "\t" << slopeCoef << endl;

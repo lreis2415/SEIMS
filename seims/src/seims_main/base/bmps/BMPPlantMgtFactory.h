@@ -32,16 +32,16 @@ public:
     virtual ~BMPPlantMgtFactory();
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
+    void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;
 
     /// Output
-    void Dump(ostream* fs) override;
+    void Dump(ostream* fs) OVERRIDE;
 
     /// Set management fields data
-    void setRasterData(map<string, FloatRaster *>& sceneRsMap) override;
+    void setRasterData(map<string, FloatRaster *>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    float* GetRasterData() override { return m_mgtFieldsRs; };
+    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; };
 
     /// Get landuse / landcover ID
     int GetLUCCID() { return m_luccID; }

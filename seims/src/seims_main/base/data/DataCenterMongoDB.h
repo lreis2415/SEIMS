@@ -10,8 +10,6 @@
 
 #include "DataCenter.h"
 
-//using namespace std;
-
 /*!
  * \ingroup data
  * \class DataCenterMongoDB
@@ -34,40 +32,40 @@ public:
     /*!
      * \brief Make sure all the required data are presented
      */
-    bool CheckModelPreparedData() override;
+    bool CheckModelPreparedData() OVERRIDE;
     /*!
      * \brief Get file.in configuration from FILE_IN collection
      */
-    bool GetFileInStringVector() override;
+    bool GetFileInStringVector() OVERRIDE;
     /*!
      * \brief Get file.out configuration
      */
-    bool GetFileOutVector() override;
+    bool GetFileOutVector() OVERRIDE;
     /*!
      * \brief Get subbasin number and outlet ID
      */
-    bool GetSubbasinNumberAndOutletID() override;
+    bool GetSubbasinNumberAndOutletID() OVERRIDE;
     /*!
      * \brief Read climate site data from HydroClimate database
      */
-    void ReadClimateSiteList() override;
+    void ReadClimateSiteList() OVERRIDE;
     /*!
      * \brief Read initial and calibrated parameters
      * \version 2017.12.23  lj - read parameters (Impact value) according to calibration ID
      */
-    bool ReadParametersInDB() override;
+    bool ReadParametersInDB() OVERRIDE;
     /*!
      * \brief Read raster data, both 1D and 2D, and insert to m_rsMap
      * \param[in] remote_filename Raster file name.
      */
-    FloatRaster* ReadRasterData(const string& remote_filename) override;
+    FloatRaster* ReadRasterData(const string& remote_filename) OVERRIDE;
     /*!
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
      * \param[in] remote_filename \string data file name
      * \param[out] num \int&, data length
      * \param[out] data \float*&, returned data
      */
-    void ReadItpWeightData(const string& remote_filename, int& num, float*& data) override;
+    void ReadItpWeightData(const string& remote_filename, int& num, float*& data) OVERRIDE;
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
@@ -77,7 +75,7 @@ public:
      * \param[out] data \float*&, returned data
      */
     void Read1DArrayData(const string& param_name, const string& remote_filename,
-                         int& num, float*& data) override;
+                         int& num, float*& data) OVERRIDE;
     /*!
      * \brief Read 2D array data from MongoDB database
      * \param[in] remote_filename \string data file name
@@ -85,19 +83,19 @@ public:
      * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
      * \param[out] data \float**&, returned data
      */
-    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, float**& data) override;
+    void Read2DArrayData(const string& remote_filename, int& rows, int& cols, float**& data) OVERRIDE;
     /*!
      * \brief Read IUH data from MongoDB and insert to m_2DArrayMap
      * \param[in] remote_filename \string data file name
      * \param[out] n \int&, valid cell number
      * \param[out] data \float*&, returned data
      */
-    void ReadIuhData(const string& remote_filename, int& n, float**& data) override;
+    void ReadIuhData(const string& remote_filename, int& n, float**& data) OVERRIDE;
     /*!
      * \brief Set Raster data for Scenario data
      * \return True if set successfully, otherwise false.
     */
-    bool SetRasterForScenario() override;
+    bool SetRasterForScenario() OVERRIDE;
 
     /******* MongoDB specified functions *********/
 

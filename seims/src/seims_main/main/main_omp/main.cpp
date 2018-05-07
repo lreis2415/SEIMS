@@ -47,7 +47,7 @@ int main(int argc, const char** argv) {
         cout << e.ToString() << endl;
         exit(EXIT_FAILURE);
     }
-    catch (exception& e) {
+    catch (std::exception& e) {
         cout << e.what() << endl;
         exit(EXIT_FAILURE);
     }

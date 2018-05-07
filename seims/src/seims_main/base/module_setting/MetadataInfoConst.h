@@ -12,7 +12,7 @@
 
 #include <string>
 
-using namespace std;
+using std::string;
 
 //! XML Info file header
 const string XMLHeader = "<?xml version='1.0' encoding='utf-8'?>\n<?xml-schema href='InfoXMLSchema.xsd'?>";

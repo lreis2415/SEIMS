@@ -179,7 +179,7 @@ int PETPenmanMonteith::Execute() {
         float rc = 49.f / (1.4f - 0.4f * m_co2 / 330.f);  //P128 2:2.2.22
         float petValue = (dlt * raNet + gma * rho * m_vpd[j] / rv) /
             (latentHeat * (dlt + gma * (1.f + rc / rv)));  //P122 2:2.2.2
-        petValue = m_petFactor * max(0.f, petValue);
+        petValue = m_petFactor * Max(0.f, petValue);
         m_pet[j] = petValue;
         //*********************************************************
         //The albedo would be obtained from plant growth module. But now it is assumed to be a constant.
@@ -238,7 +238,7 @@ int PETPenmanMonteith::Execute() {
             //amount of vapor pressure deficit over threshold value
             float fvpd = 1.f;
             if (xx > 0.f) {
-                fvpd = max(0.1f, 1.f - m_vpd2[j] * xx);
+                fvpd = Max(0.1f, 1.f - m_vpd2[j] * xx);
             }
             float gsi_adj = m_gsi[j] * fvpd;
 
@@ -248,8 +248,8 @@ int PETPenmanMonteith::Execute() {
                 rc = rc / (0.5f * (m_lai[j] + 0.01f) * (1.4f - 0.4f * m_co2 / 330.f));
                 //calculate maximum plant ET
                 epMax = (dlt * raNetPlant + gma * rho * m_vpd[j] / rv) / (latentHeat * (dlt + gma * (1.f + rc / rv)));
-                epMax = max(0.f, epMax);
-                epMax = min(epMax, petValue);
+                epMax = Max(0.f, epMax);
+                epMax = Min(epMax, petValue);
             } else {
                 epMax = 0.f;
             }

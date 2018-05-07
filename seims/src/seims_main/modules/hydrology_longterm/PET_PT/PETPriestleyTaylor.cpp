@@ -136,7 +136,7 @@ int PETPriestleyTaylor::Execute() {
         float pet_alpha = 1.28f;
 
         float petValue = pet_alpha * (dlt / (dlt + gma)) * raNet / latentHeat;
-        m_pet[i] = m_petFactor * max(0.f, petValue);
+        m_pet[i] = m_petFactor * Max(0.f, petValue);
         if (m_pet[i] != m_pet[i]) {
             cout << "cell id: " << i << ", pet: " << m_pet[i] << ", meanT: " << m_tMean[i] <<
                 ", rhd: " << m_rhd[i] << ", rbo: " << rbo << ", sr: "<< m_sr[i] << ", m_srMax: "

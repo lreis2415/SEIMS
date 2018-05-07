@@ -22,8 +22,6 @@
 #include "Scenario.h"
 #include "clsInterpolationWeightData.h"
 
-//using namespace std;
-
 /*!
  * \ingroup data
  * \class DataCenter

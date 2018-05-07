@@ -655,7 +655,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int &factoryID, int nOp) {
                                  " does not existed in Landuse lookup table, please check and retry!");
     }
     float pltRootDepth = m_landuseLookupMap[int(m_landCover[i])][LANDUSE_PARAM_ROOT_DEPTH_IDX];
-    m_soilZMX[i] = min(m_soilZMX[i], pltRootDepth);
+    m_soilZMX[i] = Min(m_soilZMX[i], pltRootDepth);
     /// reset curve number if necessary
     if (curOperation->CNOP() > 0.f) {  /// curno.f
         float cnn = curOperation->CNOP();
@@ -703,12 +703,12 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
                 vmma += m_shallowWaterDepth[tmpSubbsnID] * cnv * m_irrEfficiency;
                 vmms = vmma;
                 vmma /= m_nCellsSubbsn[m_irrNo];
-                vmm = min(m_soilSumFC[i], vmma);
+                vmm = Min(m_soilSumFC[i], vmma);
                 break;
             case IRR_SRC_DEEP:vmma += m_deepWaterDepth[tmpSubbsnID] * cnv * m_irrEfficiency;
                 vmmd = vmma;
                 vmma /= m_nCellsSubbsn[m_irrNo];
-                vmm = min(m_soilSumFC[i], vmma);
+                vmm = Min(m_soilSumFC[i], vmma);
                 break;
             case IRR_SRC_OUTWTSD: /// unlimited source
                 vmm = m_soilSumFC[i];
@@ -1027,8 +1027,8 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     float yieldn = 0.f, yieldp = 0.f;
     yieldn = yield * cnyld;
     yieldp = yield * cpyld;
-    yieldn = min(yieldn, 0.80f * m_plantN[i]);
-    yieldp = min(yieldp, 0.80f * m_plantP[i]);
+    yieldn = Min(yieldn, 0.80f * m_plantN[i]);
+    yieldp = Min(yieldp, 0.80f * m_plantP[i]);
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
@@ -1042,9 +1042,9 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     m_soilRsd[i][0] += resnew;
     m_soilFreshOrgN[i][0] += ff1 * (m_plantN[i] - yieldn);
     m_soilFreshOrgP[i][0] += ff1 * (m_plantP[i] - yieldp);
-    m_soilRsd[i][0] = max(m_soilRsd[i][0], 0.f);
-    m_soilFreshOrgN[i][0] = max(m_soilFreshOrgN[i][0], 0.f);
-    m_soilFreshOrgP[i][0] = max(m_soilFreshOrgP[i][0], 0.f);
+    m_soilRsd[i][0] = Max(m_soilRsd[i][0], 0.f);
+    m_soilFreshOrgN[i][0] = Max(m_soilFreshOrgN[i][0], 0.f);
+    m_soilFreshOrgP[i][0] = Max(m_soilFreshOrgP[i][0], 0.f);
 
     /// define variables of CENTURY model
     float BLG1 = 0.f, BLG2 = 0.f, BLG3 = 0.f, CLG = 0.f;
@@ -1067,7 +1067,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
         resnew_ne = resnew_n + sf * sol_min_n;
 
         RLN = resnew * CLG / (resnew_n + 1.e-5f);
-        RLR = min(0.8f, resnew * CLG / (resnew + 1.e-5f));
+        RLR = Min(0.8f, resnew * CLG / (resnew + 1.e-5f));
         LMF = 0.85f - 0.018f * RLN;
         if (LMF < 0.01f) { LMF = 0.01f; }
         else if (LMF > 0.7f) LMF = 0.7f;
@@ -1112,7 +1112,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
             resnew_ne = resnew_n + sf * sol_min_n;
 
             RLN = resnew * CLG / (resnew_n + 1.e-5f);
-            RLR = min(0.8f, resnew * CLG / 1000.f / (resnew / 1000.f + 1.e-5f));
+            RLR = Min(0.8f, resnew * CLG / 1000.f / (resnew / 1000.f + 1.e-5f));
             LMF = 0.85f - 0.018f * RLN;
             if (LMF < 0.01f) { LMF = 0.01f; }
             else if (LMF > 0.7f) LMF = 0.7f;
@@ -1228,7 +1228,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     if (bmix > UTIL_ZERO) {
         /// biological mixing, TODO, in SWAT, this occurs at the end of year process.
         emix = bmix;
-        dtil = min(m_soilDepth[i][int(m_nSoilLayers[i] - 1)], 50.f);
+        dtil = Min(m_soilDepth[i][int(m_nSoilLayers[i] - 1)], 50.f);
     } else {
         /// tillage operation
         emix = effmix;
@@ -1436,11 +1436,11 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      clipTbr = m_biomass[i] * (1.f - 1.f / (1.f + hiad1)) * (1.f - harveff);
     //      m_biomass[i] -= (yieldTbr + clipTbr);
     //      /// calculate nutrients removed with yield
-    //      yieldNtbr = min(yieldTbr * cnyld, 0.80f * m_plantN[i]);
-    //      yieldPtbr = min(yieldTbr * cpyld, 0.80f * m_plantP[i]);
+    //      yieldNtbr = Min(yieldTbr * cnyld, 0.80f * m_plantN[i]);
+    //      yieldPtbr = Min(yieldTbr * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNtbr = min(clipTbr * m_frPlantN[i], m_plantN[i] - yieldNtbr);
-    //      clipPtbr = min(clipTbr * m_frPlantP[i], m_plantP[i] - yieldPtbr);
+    //      clipNtbr = Min(clipTbr * m_frPlantN[i], m_plantN[i] - yieldNtbr);
+    //      clipPtbr = Min(clipTbr * m_frPlantP[i], m_plantP[i] - yieldPtbr);
     //      m_plantN[i] -= (yieldNtbr + clipNtbr);
     //      m_plantP[i] -= (yieldPtbr + clipPtbr);
     //  }
@@ -1456,11 +1456,11 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      clipBms = hi_bms * (1.f - m_frRoot[i]) * m_biomass[i] * (1.f - harveff);
     //      m_biomass[i] -= (yieldBms + clipBms);
     //      /// compute nutrients removed with yield
-    //      yieldNbms = min(yieldBms * cnyld, 0.80f * m_plantN[i]);
-    //      yieldPbms = min(yieldBms * cpyld, 0.80f * m_plantP[i]);
+    //      yieldNbms = Min(yieldBms * cnyld, 0.80f * m_plantN[i]);
+    //      yieldPbms = Min(yieldBms * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNbms = min(clipBms * m_frPlantN[i], m_plantN[i] - yieldNbms);
-    //      clipPbms = min(clipBms * m_frPlantP[i], m_plantP[i] - yieldPbms);
+    //      clipNbms = Min(clipBms * m_frPlantN[i], m_plantN[i] - yieldNbms);
+    //      clipPbms = Min(clipBms * m_frPlantP[i], m_plantP[i] - yieldPbms);
     //      m_plantN[i] -= (yieldNbms + clipNbms);
     //      m_plantP[i] -= (yieldPbms + clipPbms);
     //  } else
@@ -1471,11 +1471,11 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      clipGrn = (1.f - m_frRoot[i]) * m_biomass[i] * hiad1 * (1.f - harveff);
     //      m_biomass[i] -= (yieldGrn + clipGrn);
     //      /// calculate nutrients removed with yield
-    //      yieldNgrn = min(yieldGrn * cnyld, 0.80f * m_plantN[i]);
-    //      yieldPgrn = min(yieldGrn * cpyld, 0.80f * m_plantP[i]);
+    //      yieldNgrn = Min(yieldGrn * cnyld, 0.80f * m_plantN[i]);
+    //      yieldPgrn = Min(yieldGrn * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNgrn = min(clipGrn * m_frPlantN[i], m_plantN[i] - yieldNgrn);
-    //      clipPgrn = min(clipGrn * m_frPlantP[i], m_plantP[i] - yieldPgrn);
+    //      clipNgrn = Min(clipGrn * m_frPlantN[i], m_plantN[i] - yieldNgrn);
+    //      clipPgrn = Min(clipGrn * m_frPlantP[i], m_plantP[i] - yieldPgrn);
     //      m_plantN[i] -= (yieldNgrn + clipNgrn);
     //      m_plantP[i] -= (yieldPgrn + clipPgrn);
     //  }
@@ -1544,9 +1544,9 @@ void MGTOpt_SWAT::ExecuteKillOperation(int i, int &factoryID, int nOp) {
     m_soilRsd[i][0] += resnew;
     m_soilFreshOrgN[i][0] += m_plantN[i] * (1.f - m_frRoot[i]);
     m_soilFreshOrgP[i][0] += m_plantP[i] * (1.f - m_frRoot[i]);
-    m_soilRsd[i][0] = max(m_soilRsd[i][0], 0.f);
-    m_soilFreshOrgN[i][0] = max(m_soilFreshOrgN[i][0], 0.f);
-    m_soilFreshOrgP[i][0] = max(m_soilFreshOrgP[i][0], 0.f);
+    m_soilRsd[i][0] = Max(m_soilRsd[i][0], 0.f);
+    m_soilFreshOrgN[i][0] = Max(m_soilFreshOrgN[i][0], 0.f);
+    m_soilFreshOrgP[i][0] = Max(m_soilFreshOrgP[i][0], 0.f);
 
     /// allocate dead roots, N and P to soil layers
     for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
@@ -1640,7 +1640,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
             float dep2cap = m_sol_fc[i][ly] - m_soilStorage[i][ly];
             if (dep2cap > 0.f) {
-                dep2cap = min(dep2cap, m_potVol[i]);
+                dep2cap = Min(dep2cap, m_potVol[i]);
                 m_soilStorage[i][ly] += dep2cap;
                 m_potVol[i] -= dep2cap;
             }
@@ -1884,7 +1884,7 @@ float MGTOpt_SWAT::Erfc(float xx) {
     float c1 = .19684f, c2 = .115194f;
     float c3 = .00034f, c4 = .019527f;
     float x = 0.f, erf = 0.f, erfc = 0.f;
-    x = abs(sqrt(2.f) * xx);
+    x = Abs(sqrt(2.f) * xx);
     erf = 1.f - pow(float(1.f + c1 * x + c2 * x * x + c3 * pow(x, 3.f) + c4 * pow(x, 4.f)), -4.f);
     if (xx < 0.f) erf = -erf;
     erfc = 1.f - erf;

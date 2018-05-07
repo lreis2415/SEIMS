@@ -81,7 +81,7 @@ int SUR_MR::Execute() {
             for (int ly = 0; ly < (int) m_soilLayers[i]; ly++) {
                 m_soilStorageProfile[i] += m_soilStorage[i][ly];
             }
-            float smFraction = min(m_soilStorageProfile[i] / m_sol_sumsat[i], 1.f);
+            float smFraction = Min(m_soilStorageProfile[i] / m_sol_sumsat[i], 1.f);
             // for frozen soil, no infiltration will occur
             if (m_soilTemp[i] <= m_tFrozen && smFraction >= m_sFrozen) {
                 m_pe[i] = m_pNet[i];

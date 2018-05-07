@@ -34,7 +34,7 @@ void IUH_OL:: InitialOutputs() {
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbasins + 1, m_Q_SBOF, 0.f);
         for (int i = 0; i < m_nCells; i++) {
-            m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
         //get m_cellFlowCols, i.e. the maximum of second column of OL_IUH plus 1.
         Initialize2DArray(m_nCells, m_cellFlowCols, m_cellFlow, 0.f);

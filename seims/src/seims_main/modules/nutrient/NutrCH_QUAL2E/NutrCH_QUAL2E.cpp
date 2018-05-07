@@ -746,7 +746,7 @@ void NutrCH_QUAL2E::NutrientTransform(int i) {
     float o2con = cvt_amout2conc * m_chDOx[i];
 
     // temperature of water in reach (wtmp deg C)
-    float wtmp = max(m_chTemp[i], 0.1f);
+    float wtmp = Max(m_chTemp[i], 0.1f);
     // calculate effective concentration of available nitrogen (cinn), QUAL2E equation III-15
     float cinn = nh4con + no3con;
 
@@ -841,7 +841,7 @@ void NutrCH_QUAL2E::NutrientTransform(int i) {
             gra = m_mumax * fll * fnn * fpp;
         case 2:
             // limiting nutrient
-            gra = m_mumax * fll * min(fnn, fpp);
+            gra = m_mumax * fll * Min(fnn, fpp);
         case 3:
             // harmonic mean
             if (fnn > 1.e-6f && fpp > 1.e-6f) {
@@ -854,7 +854,7 @@ void NutrCH_QUAL2E::NutrientTransform(int i) {
 
     // calculate algal biomass concentration at end of day (phytoplanktonic algae), QUAL2E equation III-2
     float dalgae = 0.f;
-    float setl = min(1.f, corTempc(m_rs1[i], thrs1, wtmp) / tmpChWtDepth);
+    float setl = Min(1.f, corTempc(m_rs1[i], thrs1, wtmp) / tmpChWtDepth);
     dalgae = algcon +
         (corTempc(gra, thgra, wtmp) * algcon - corTempc(m_rhoq, thrho, wtmp) * algcon - setl * algcon) * tday;
     if (dalgae < 1.e-6f) {

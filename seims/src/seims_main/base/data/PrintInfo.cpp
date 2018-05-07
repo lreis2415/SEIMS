@@ -1,6 +1,6 @@
 #include "PrintInfo.h"
 #include "utils_time.h"
-#include <text.h>
+#include "text.h"
 
 using namespace utils_time;
 
@@ -79,9 +79,9 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
     }
     if (!TimeSeriesData.empty() && (SiteID != -1 || SubbasinID != -1)) {
         //time series data
-        ofstream fs;
+        std::ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
-        fs.open(filename.c_str(), ios::out | ios::app); /// append if more than one print item. By LJ
+        fs.open(filename.c_str(), std::ios::out | std::ios::app); /// append if more than one print item. By LJ
         if (fs.is_open()) {
             if (SubbasinID == 0) {
                 fs << "Watershed: " << endl;
@@ -91,8 +91,8 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             // Write header
             fs << header << endl;
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
-                        setprecision(8) << it->second << endl;
+                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                   << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
@@ -101,9 +101,9 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
     }
     if (!TimeSeriesDataForSubbasin.empty() && SubbasinID != -1) {
         //time series data for subbasin
-        ofstream fs;
+        std::ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
-        fs.open(filename.c_str(), ios::out | ios::app);
+        fs.open(filename.c_str(), std::ios::out | std::ios::app);
         if (fs.is_open()) {
             fs << endl;
             if (SubbasinID == 0) {
@@ -113,9 +113,10 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             }
             fs << header << endl;
             for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
-                fs << ConvertToString2(&(it->first));
+                fs << ConvertToString2(&it->first);
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
-                    fs << " " << right << fixed << setw(15) << setfill(' ') << setprecision(8) << (it->second)[i];
+                    fs << " " << std::right << std::fixed << std::setw(15) << std::setfill(' ')
+                       << setprecision(8) << it->second[i];
                 }
                 fs << endl;
             }
@@ -155,13 +156,13 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
 
     if (!TimeSeriesData.empty()) {
         /// time series data
-        ofstream fs;
+        std::ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
-        fs.open(filename.c_str(), ios::out | ios::app);
+        fs.open(filename.c_str(), std::ios::out | std::ios::app);
         if (fs.is_open()) {
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&(it->first)) << " " << right << fixed << setw(15) << setfill(' ') <<
-                        setprecision(8) << it->second << endl;
+                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                    << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
@@ -348,7 +349,7 @@ void PrintInfoItem::AggregateData(int numrows, float** data, AggregationType typ
                     } else {
                         // calculate the incremental average
                         m_1DDataWithRowCol[rw][2] =
-                                ((m_1DDataWithRowCol[rw][2] * m_Counter) + data[rw][2]) / (m_Counter + 1);
+                                (m_1DDataWithRowCol[rw][2] * m_Counter + data[rw][2]) / (m_Counter + 1);
                     }
                 }
             }
@@ -540,12 +541,12 @@ string PrintInfo::getOutputTimeSeriesHeader() {
         headers.emplace_back("ResSedStorage");
         headers.emplace_back("ResSedOut");
     }
-    ostringstream oss;
+    std::ostringstream oss;
     for (auto it = headers.begin(); it < headers.end(); ++it) {
         if (StringMatch(*it, "Time")) {
             oss << *it;
         } else {
-            oss << " " << setw(15) << right << setfill(' ') << *it;
+            oss << " " << std::setw(15) << std::right << std::setfill(' ') << *it;
         }
     }
     return oss.str();

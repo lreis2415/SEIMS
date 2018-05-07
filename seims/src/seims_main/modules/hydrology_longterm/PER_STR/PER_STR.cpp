@@ -53,7 +53,7 @@ int PER_STR::Execute() {
                 //Adjust the moisture content in the current layer, and the layer immediately below it
                 m_soilStorage[i][j] -= m_perc[i][j];
                 excessWater -= m_perc[i][j];
-                m_soilStorage[i][j] = max(UTIL_ZERO, m_soilStorage[i][j]);
+                m_soilStorage[i][j] = Max(UTIL_ZERO, m_soilStorage[i][j]);
                 // redistribute soil water if above field capacity (high water table), rewrite from sat_excess.f of SWAT
                 //float qlyr = m_soilStorage[i][j];
                 if (j < (int) m_soilLayers[i] - 1) {

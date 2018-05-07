@@ -28,15 +28,15 @@ public:
 
     ~PER_PI();
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) override;
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int nRows, float *data) override;
+    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
+    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
 
 private:
     /**

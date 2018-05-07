@@ -150,7 +150,7 @@ bool SEDR_SBAGNOLD::CheckInputSize(const char *key, int n) {
         if (m_nreach <= 0) { m_nreach = n; }
         else {
             //this->StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nreach << ".\n";
             throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputSize", oss.str());
@@ -427,7 +427,7 @@ void SEDR_SBAGNOLD::DoChannelDowncuttingAndWidening(int id) {
             m_chWTWidth[id] = m_chWTdepth[id] * (m_chWidth[id] / m_chDepth[id]);
 
             m_chSlope[id] -= cutDepth / m_chLen[id];
-            m_chSlope[id] = max(0.0001f, m_chSlope[id]);
+            m_chSlope[id] = Max(0.0001f, m_chSlope[id]);
         }
     }
     // call ttcoef(jrch) // TODO

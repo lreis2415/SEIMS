@@ -20,19 +20,19 @@ public:
 
     virtual ~IO_TEST();
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) override;
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) override;
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    void Set2DData(const char *key, int n, int col, float **data) override;
+    void Set2DData(const char *key, int n, int col, float **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *n, int *col, float ***data) override;
+    void Get2DData(const char *key, int *n, int *col, float ***data) OVERRIDE;
 
-    void SetScenario(Scenario *sce) override;
+    void SetScenario(Scenario *sce) OVERRIDE;
 
-    void SetReaches(clsReaches *reaches) override;
+    void SetReaches(clsReaches *reaches) OVERRIDE;
 
 private:
     /*!

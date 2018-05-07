@@ -36,13 +36,13 @@ public:
     //! Destructor
     ~SNO_SP();
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) override;
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) override;
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) override;
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
     bool CheckInputSize(const char *key, int n);
 

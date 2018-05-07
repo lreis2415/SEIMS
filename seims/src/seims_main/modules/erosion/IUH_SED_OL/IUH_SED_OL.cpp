@@ -35,7 +35,7 @@ void IUH_SED_OL::InitialOutputs() {
         Initialize1DArray(m_nCells, m_sedOL, 0.f);
         //get m_cellFlowCols, i.e. the maximum of second column of OL_IUH plus 1.
         for (int i = 0; i < m_nCells; i++) {
-            m_cellFlowCols = max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
         }
         Initialize2DArray(m_nCells, m_cellFlowCols, m_cellSed, 0.f);
     }

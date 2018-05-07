@@ -97,7 +97,7 @@ public:
     float CNOP() { return m_CNOP; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_plantID;
@@ -134,7 +134,7 @@ public:
     float IRRSQfrac() { return m_irrSq; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_irrSrc;
@@ -163,7 +163,7 @@ public:
     float FertilizerSurfaceFrac() { return m_frtSurface; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_fertID;
@@ -191,7 +191,7 @@ public:
     float PesticideDepth() { return m_pstDep; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_pestID;
@@ -218,7 +218,7 @@ public:
     float StoverFracRemoved() { return m_fracHarvk; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     float m_CNOP;
@@ -242,7 +242,7 @@ public:
     int TillageID() { return m_tillID; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_tillID;
@@ -268,7 +268,7 @@ public:
     float HarvestIndexBiomass() { return m_hiBms; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     float m_harvEff;
@@ -288,7 +288,7 @@ public:
     //virtual ~KillOperation() = default;
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 };
 
 /*!
@@ -313,7 +313,7 @@ public:
     float ManureDeposited() { return m_manureKg; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_grzDays;
@@ -350,7 +350,7 @@ public:
     float SurfaceRunoffRatio() { return m_irrAsq; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_wstrsID;
@@ -389,7 +389,7 @@ public:
     float SurfaceFracApplied() { return m_afrtSurface; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_afertID;
@@ -422,7 +422,7 @@ public:
     float MinFitDepth() { return m_minFitDepth; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_impTrig;
@@ -452,7 +452,7 @@ public:
     float FertilizerKg() { return m_cfrtKg; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_cfertID;
@@ -482,7 +482,7 @@ public:
     int PesticideDays() { return m_pstDays; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     int m_ipstID;
@@ -505,7 +505,7 @@ public:
     float FractionLeft() { return m_burnFrlb; }
 
     //! Output
-    void dump(std::ostream* fs) override;
+    void dump(std::ostream* fs) OVERRIDE;
 
 private:
     float m_burnFrlb;

@@ -1,7 +1,7 @@
 #include "SettingsOutput.h"
 
 #include "utils_time.h"
-#include <text.h>
+#include "text.h"
 
 using namespace utils_time;
 
@@ -98,7 +98,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt < (*it)->m_PrintItems.end(); ++itemIt) {
             if ((*itemIt)->getStartTime() < startTime || (*itemIt)->getStartTime() >= endTime) {
                 (*itemIt)->setStartTime(startTime);
-                ostringstream oss;
+                std::ostringstream oss;
                 oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
                         << ConvertToString(&startTime) << ", and will be updated." << endl;
@@ -106,7 +106,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
                 (*itemIt)->setEndTime(endTime);
-                ostringstream oss;
+                std::ostringstream oss;
                 oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
                         << ConvertToString(&endTime) << ", and will be updated." << endl;
@@ -117,8 +117,8 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
 }
 
 void SettingsOutput::Dump(const string& fileName) {
-    ofstream fs;
-    fs.open(fileName.c_str(), ios::out);
+    std::ofstream fs;
+    fs.open(fileName.c_str(), std::ios::out);
     if (fs.is_open()) {
         for (size_t idx = 0; idx < m_printInfos.size(); idx++) {
             PrintInfo* info = m_printInfos.at(idx);

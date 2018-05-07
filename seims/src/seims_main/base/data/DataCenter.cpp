@@ -141,8 +141,8 @@ void DataCenter::DumpCaliParametersInDB() {
     if (init_params_.empty()) return;
     if (subbasin_id_ > 1) return; // only dump at omp version(subbasin ID is 0) or subbasin 1 of mpi version
     string file_name = output_path_ + SEP + "param.cali";
-    ofstream fs;
-    fs.open(file_name.c_str(), ios::ate);
+    std::ofstream fs;
+    fs.open(file_name.c_str(), std::ios::ate);
     if (!fs.is_open()) return;
 
     if (calibration_id_ >= 0) fs << "# Calibration ID:" << calibration_id_ << endl;
@@ -205,7 +205,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         && !StringMatch(param->BasicName, CONS_IN_YPR)) {
         name = param->Name;
     }
-    ostringstream oss;
+    std::ostringstream oss;
     size_t tmp = name.find("LOOKUP");
     if (tmp == string::npos) {
         oss << subbasin_id_ << "_" << name;

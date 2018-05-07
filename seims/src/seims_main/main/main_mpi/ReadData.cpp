@@ -1,6 +1,6 @@
 #include "parallel.h"
 
-#include <text.h>
+#include "text.h"
 
 int CreateReachTopology(MongoClient* client, const string& dbname,
                         const string& group_method, const int group_size,

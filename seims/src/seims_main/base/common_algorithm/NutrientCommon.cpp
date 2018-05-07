@@ -1,4 +1,7 @@
 #include "NutrientCommon.h"
+
+#include <cmath>
+
 #include "basic.h"
 
 float CalEnrichmentRatio(const float sedyld, const float surfq, const float area) {

@@ -1,7 +1,7 @@
 #include "parallel.h"
 #include "CombineRaster.h"
 #include "utils_time.h"
-#include <text.h>
+#include "text.h"
 
 using namespace ccgl::utils_time;
 
@@ -147,12 +147,12 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
     double load_time = 0.;
     if (slave_rank == 0) {
-        load_time = Max(t_receive, nslaves);
+        load_time = MaxInArray(t_receive, nslaves);
 #ifdef _DEBUG
         cout << "[DEBUG]\tTime of reading data -- Max:" << load_time << ", Total:" << Sum(nslaves, t_receive) << "\n";
         cout << "[DEBUG][TIMESPAN][LoadData]" << load_time << endl;
 #endif /* _DEBUG */
-        cout << "[TIMESPAN][IO]\tINPUT\t" << fixed << setprecision(3) << load_time << endl;
+        cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << load_time << endl;
     }
     t1 = MPI_Wtime();
 
@@ -320,7 +320,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                 for (auto it_todo = todo_set.begin(); it_todo != todo_set.end();) {
                     bool up_finished = true;
                     for (int j = 0; j < p_up_nums[*it_todo]; j++) {
-                        int up_id = p_up_stream[(*it_todo) * MAX_UPSTREAM + j];
+                        int up_id = p_up_stream[*it_todo * MAX_UPSTREAM + j];
                         // if can not find upstreams, this subbasin can not be done
                         if (done_i_ds.find(up_id) == done_i_ds.end()) {
                             up_finished = false;
@@ -393,7 +393,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
 #endif
                         ModelMain* psubbasin = model_list[*it_cando];
                         for (int j = 0; j < p_up_nums[*it_cando]; j++) {
-                            int up_id = p_up_stream[(*it_cando) * MAX_UPSTREAM + j];
+                            int up_id = p_up_stream[*it_cando * MAX_UPSTREAM + j];
                             psubbasin->SetTransferredValue(up_id, transfer_values_map[up_id]);
                         }
                         psubbasin->StepChannel(cur_time, year_idx);
@@ -442,12 +442,12 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
     // TODO, Gather and scatter the computing time of each modules from all slave processors
     if (slave_rank == 0) {
-        double computing_time = Max(t_receive, nslaves);
+        double computing_time = MaxInArray(t_receive, nslaves);
 #ifdef _DEBUG
         cout << "[DEBUG][TIMESPAN][COMPUTING]\tnprocs: " << numprocs - 1 << ", Max: " << computing_time
                 << ", Total: " << Sum(nslaves, t_receive) << "\n";
 #endif
-        cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << computing_time << endl;
+        cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << computing_time << endl;
     }
     /***************  Outputs and combination  ***************/
     t1 = MPI_Wtime();
@@ -481,15 +481,15 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
 
     MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
     if (slave_rank == 0) {
-        cout << "[TIMESPAN][IO]\tOUTPUT\t" << fixed << setprecision(3) << (t) << endl;
-        cout << "[TIMESPAN][IO]\tALL\t" << fixed << setprecision(3) << (t + load_time) << endl;
+        cout << "[TIMESPAN][IO]\tOUTPUT\t" << std::fixed << setprecision(3) << t << endl;
+        cout << "[TIMESPAN][IO]\tALL\t" << std::fixed << setprecision(3) << t + load_time << endl;
     }
 
     double t_end = MPI_Wtime();
     t = t_end - tstart;
     MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
     if (slave_rank == 0) {
-        double all_time = Max(t_receive, nslaves);
+        double all_time = MaxInArray(t_receive, nslaves);
         cout << "[TIMESPAN][CALCULATION]\tALL\t" << all_time << "\n";
     }
     MPI_Barrier(slave_comm);

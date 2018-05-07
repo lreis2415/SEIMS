@@ -28,15 +28,15 @@ public:
 
     ~AtmosphericDeposition();
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) override;
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) override;
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
+    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
-    void GetValue(const char *key, float *value) override;
+    void GetValue(const char *key, float *value) OVERRIDE;
 
     bool CheckInputSize(const char *key, int n);
 

@@ -197,10 +197,10 @@ public:
     virtual ~BMPPointSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
+    void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;
 
     /// Output
-    void Dump(std::ostream* fs) override;
+    void Dump(std::ostream* fs) OVERRIDE;
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB

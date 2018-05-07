@@ -97,13 +97,12 @@ bool NutrientMovementViaWater::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
         throw ModelException(MID_NUTRMV, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_NUTRMV, "CheckInputSize", oss.str());
@@ -320,7 +319,7 @@ void NutrientMovementViaWater::NitrateLoss() {
                 ww = -mw / satportion;
                 vno3 = m_sol_no3[i][k] * (1.f - exp(ww)); // kg/ha
                 if (mw > 1.e-10f) {
-                    con = max(vno3 / mw, 0.f);
+                    con = Max(vno3 / mw, 0.f);
                 } // kg/ha/mm = 100 mg/L
                 //if (con > 0.1) con = 0.1;
                 //if (con != con)
@@ -340,7 +339,7 @@ void NutrientMovementViaWater::NitrateLoss() {
                     cosurf = m_nperco * con;
                 if (k == 0) {
                     m_surqno3[i] = m_surfr[i] * cosurf; // kg/ha
-                    m_surqno3[i] = min(m_surqno3[i], m_sol_no3[i][k]);
+                    m_surqno3[i] = Min(m_surqno3[i], m_sol_no3[i][k]);
                     m_sol_no3[i][k] -= m_surqno3[i];
                 }
                 // calculate nitrate in tile flow, TODO
@@ -354,7 +353,7 @@ void NutrientMovementViaWater::NitrateLoss() {
                     ssfnlyr = cosurf * m_flat[i][k];
                 else
                     ssfnlyr = con * m_flat[i][k]; // 100 mg/L * mm = kg/ha
-                ssfnlyr = min(ssfnlyr, m_sol_no3[i][k]);
+                ssfnlyr = Min(ssfnlyr, m_sol_no3[i][k]);
                 m_latno3[i] += ssfnlyr;
                 // move the lateral no3 flow to the downslope cell (routing considered)
                 m_sol_no3[i][k] -= ssfnlyr;
@@ -368,7 +367,7 @@ void NutrientMovementViaWater::NitrateLoss() {
                 //if(i == 5570)
                 //	cout<<"layer: "<<k<<", con: "<<con<<", sol_perco: "<<m_sol_perco[i][k]<<", solno3: "<<m_sol_no3[i][k]<<endl;
 
-                percnlyr = min(percnlyr, m_sol_no3[i][k]);
+                percnlyr = Min(percnlyr, m_sol_no3[i][k]);
                 m_sol_no3[i][k] -= percnlyr;
                 //if(i == 0 && k == 0) cout << percnlyr << ", \n";
             }
@@ -392,7 +391,7 @@ void NutrientMovementViaWater::NitrateLoss() {
             // have been added to it's downslope cell. by LJ
             //float nloss = 0.f;
             //nloss = (2.18f * m_dis_stream[i] - 8.63f) / 100.f;
-            //nloss = min(1.f, max(0.f, nloss));
+            //nloss = Min(1.f, Max(0.f, nloss));
             //m_latno3[i] = (1.f - nloss) * m_latno3[i];
         }
     }
@@ -417,18 +416,18 @@ void NutrientMovementViaWater::PhosphorusLoss() {
         xx = m_sol_bd[i][0] * m_sol_z[i][0] * m_phoskd;
         // units ==> surqsolp = [kg/ha * mm] / [t/m^3 * mm * m^3/t] = kg/ha
         m_surqsolp[i] = m_sol_solp[i][0] * m_surfr[i] / xx;
-        m_surqsolp[i] = min(m_surqsolp[i], m_sol_solp[i][0]);
-        m_surqsolp[i] = max(m_surqsolp[i], 0.f);
+        m_surqsolp[i] = Min(m_surqsolp[i], m_sol_solp[i][0]);
+        m_surqsolp[i] = Max(m_surqsolp[i], 0.f);
         m_sol_solp[i][0] = m_sol_solp[i][0] - m_surqsolp[i];
 
         // compute soluble P leaching
         vap = m_sol_solp[i][0] * m_sol_perco[i][0] / ((m_conv_wt[i][0] / 1000.f) * m_pperco);
-        vap = min(vap, 0.5f * m_sol_solp[i][0]);
+        vap = Min(vap, 0.5f * m_sol_solp[i][0]);
         m_sol_solp[i][0] = m_sol_solp[i][0] - vap;
 
         // estimate soluble p in tiles due to crack flow
         if (m_ldrain[i] > 0) {
-            xx = min(1.f, m_sol_crk[i] / 3.f);
+            xx = Min(1.f, m_sol_crk[i] / 3.f);
             vap_tile = xx * vap;
             vap = vap - vap_tile;
         }
@@ -440,7 +439,7 @@ void NutrientMovementViaWater::PhosphorusLoss() {
             //if (k != m_i_sep[i]) {  // soil layer where biozone exists (m_i_sep)
             vap = m_sol_solp[i][k] * m_sol_perco[i][k] / ((m_conv_wt[i][k] / 1000.f) * m_pperco);
 
-            vap = min(vap, 0.2f * m_sol_solp[i][k]);
+            vap = Min(vap, 0.2f * m_sol_solp[i][k]);
             m_sol_solp[i][k] = m_sol_solp[i][k] - vap;
 
             if (k < m_nSoilLayers[i] - 1) {

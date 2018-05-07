@@ -176,7 +176,7 @@ bool MUSK_CH::CheckInputSize(const char *key, int n) {
         if (m_nreach <= 0) {
             m_nreach = n - 1;
         } else {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nreach << ".\n";
             throw ModelException(MID_MUSK_CH, "CheckInputSize", oss.str());

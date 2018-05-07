@@ -87,7 +87,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     ReadClimateSiteList();
 
     /// 4. Read Mask raster data
-    ostringstream oss;
+    std::ostringstream oss;
     oss << subbasin_id_ << "_" << Tag_Mask;
     string mask_filename = GetUpper(oss.str());
     mask_raster_ = FloatRaster::Init(spatial_gridfs_, mask_filename.c_str());
@@ -129,7 +129,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 }
 
 string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) {
-    unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
     const bson_t* doc;
     string dbname;
@@ -149,7 +149,7 @@ string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) 
 bool DataCenterMongoDB::GetFileInStringVector() {
     if (file_in_strs_.empty()) {
         bson_t* b = bson_new();
-        unique_ptr<MongoCollection>
+        std::unique_ptr<MongoCollection>
                 collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_IN)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
         bson_error_t* err = nullptr;
@@ -185,7 +185,7 @@ bool DataCenterMongoDB::GetFileOutVector() {
         return true;
     }
     bson_t* b = bson_new();
-    unique_ptr<MongoCollection>
+    std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_FILE_OUT)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
     bson_error_t* err = NULL;
@@ -254,7 +254,7 @@ bool DataCenterMongoDB::GetSubbasinNumberAndOutletID() {
         "]", "}", "}");
     // printf("%s\n",bson_as_json(b, NULL));
 
-    unique_ptr<MongoCollection>
+    std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
     bson_error_t* err = NULL;
@@ -300,7 +300,7 @@ void DataCenterMongoDB::ReadClimateSiteList() {
     //string modelMode = m_input->getModelMode();
     BSON_APPEND_UTF8(query, Tag_Mode, input_->getModelMode().c_str());
 
-    unique_ptr<MongoCollection>
+    std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_SITELIST)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
@@ -339,7 +339,7 @@ void DataCenterMongoDB::ReadClimateSiteList() {
 
 bool DataCenterMongoDB::ReadParametersInDB() {
     bson_t* filter = bson_new();
-    unique_ptr<MongoCollection>
+    std::unique_ptr<MongoCollection>
             collection(new MongoCollection(mongo_client_->GetCollection(model_name_, DB_TAB_PARAMETERS)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(filter);
 

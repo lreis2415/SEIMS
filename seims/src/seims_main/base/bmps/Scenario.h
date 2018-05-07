@@ -60,7 +60,7 @@ public:
     void Dump(string& fileName);
 
     //! Output all BMPs information of this scenario to ostream
-    void Dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
     //! Load time series data from database for some reach structure, \sa BMPReachFactory
     //void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);

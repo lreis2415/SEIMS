@@ -12,8 +12,6 @@
 #include "seims.h"
 #include "ParamInfo.h"
 
-//using namespace std;
-
 /*!
  * \enum AggregationType
  * \ingroup module_setting

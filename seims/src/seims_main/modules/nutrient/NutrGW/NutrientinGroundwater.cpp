@@ -38,7 +38,7 @@ bool NutrientinGroundwater::CheckInputSize(const char *key, int n) {
             m_nCells = n;
         } else {
             //StatusMsg("Input data for "+string(key) +" is invalid. All the input data should have same size.");
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
                 m_nCells << ".\n";
             throw ModelException(MID_NUTRGW, "CheckInputSize", oss.str());

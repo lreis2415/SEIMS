@@ -449,7 +449,7 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
                 m_soilStorage[i][kk] = 0.0000001f;
             }
             sut = 0.1f + 0.9f * sqrt(m_soilStorage[i][kk] / m_sol_awc[i][kk]);
-            sut = max(0.05f, sut);
+            sut = Max(0.05f, sut);
 
             //compute soil temperature factor
             //variable to hold intermediate calculation result (xx)
@@ -458,7 +458,7 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
             float cdg = 0.f;
             xx = m_sote[i];
             cdg = 0.9f * xx / (xx + exp(9.93f - 0.312f * xx)) + 0.1f;
-            cdg = max(0.1f, cdg);
+            cdg = Max(0.1f, cdg);
 
             // compute combined factor
             xx = 0.f;
@@ -478,18 +478,18 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
             float rwn = 0.f;
             rwn = 0.1e-4f * (m_sol_aorgn[i][k] * (1.f / m_nactfr - 1.f) - m_sol_orgn[i][k]);
             if (rwn > 0.f) {
-                rwn = min(rwn, m_sol_aorgn[i][k]);
+                rwn = Min(rwn, m_sol_aorgn[i][k]);
             } else {
-                rwn = -(min(abs(rwn), m_sol_orgn[i][k]));
+                rwn = -(Min(Abs(rwn), m_sol_orgn[i][k]));
             }
-            m_sol_orgn[i][k] = max(1.e-6f, m_sol_orgn[i][k] + rwn);
-            m_sol_aorgn[i][k] = max(1.e-6f, m_sol_aorgn[i][k] - rwn);
+            m_sol_orgn[i][k] = Max(1.e-6f, m_sol_orgn[i][k] + rwn);
+            m_sol_aorgn[i][k] = Max(1.e-6f, m_sol_aorgn[i][k] - rwn);
 
             // compute humus mineralization on active organic n
             //amount of nitrogen moving from active organic nitrogen pool to nitrate pool in layer (hmn)
             float hmn = 0.f;
             hmn = m_cmn * csf * m_sol_aorgn[i][k];
-            hmn = min(hmn, m_sol_aorgn[i][k]);
+            hmn = Min(hmn, m_sol_aorgn[i][k]);
             // compute humus mineralization on active organic p
             xx = 0.f;
             //amount of phosphorus moving from the organic pool to the labile pool in layer (hmp)
@@ -500,10 +500,10 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
             } else {
                 hmp = 0.f;
             }
-            hmp = min(hmp, m_sol_orgp[i][k]);
+            hmp = Min(hmp, m_sol_orgp[i][k]);
 
             // move mineralized nutrients between pools;
-            m_sol_aorgn[i][k] = max(1.e-6f, m_sol_aorgn[i][k] - hmn);
+            m_sol_aorgn[i][k] = Max(1.e-6f, m_sol_aorgn[i][k] - hmn);
             m_sol_no3[i][k] = m_sol_no3[i][k] + hmn;
             m_sol_orgp[i][k] = m_sol_orgp[i][k] - hmp;
             m_sol_solp[i][k] = m_sol_solp[i][k] + hmp;
@@ -548,7 +548,7 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
 
                 float rdc = 0.f;
                 //Calculate ca, equation 3:1.2.8 in SWAT Theory 2009, p190
-                ca = min(min(cnrf, cprf), 1.f);
+                ca = Min(Min(cnrf, cprf), 1.f);
                 //if (m_landcover[i] > 0)
                 //{
                 //    decr = m_rsdco_pl[(int) m_landcover[i]] * ca * csf;
@@ -561,17 +561,17 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
                 } else {
                     decr = m_rsdco_pl[i] * ca * csf;
                 }
-                decr = min(decr, 1.f);
-                m_sol_rsd[i][k] = max(1.e-6f, m_sol_rsd[i][k]);
+                decr = Min(decr, 1.f);
+                m_sol_rsd[i][k] = Max(1.e-6f, m_sol_rsd[i][k]);
                 rdc = decr * m_sol_rsd[i][k];
                 m_sol_rsd[i][k] = m_sol_rsd[i][k] - rdc;
                 if (m_sol_rsd[i][k] < 0)m_sol_rsd[i][k] = 0.f;
                 rmn1 = decr * m_sol_fon[i][k];
-                m_sol_fop[i][k] = max(1.e-6f, m_sol_fop[i][k]);
+                m_sol_fop[i][k] = Max(1.e-6f, m_sol_fop[i][k]);
                 rmp = decr * m_sol_fop[i][k];
 
                 m_sol_fop[i][k] = m_sol_fop[i][k] - rmp;
-                m_sol_fon[i][k] = max(1.e-6f, m_sol_fon[i][k]) - rmn1;;
+                m_sol_fon[i][k] = Max(1.e-6f, m_sol_fon[i][k]) - rmn1;;
                 //debug
                 //if (rmn1 != rmn1)
                 //	cout<<"cellid: "<<i<<", lyr: "<<k<<", m_rsdco_pl: "<<
@@ -684,7 +684,7 @@ void Nutrient_Transformation::Volatilization(int i) {
                 //equation 3:1.3.12 in SWAT Theory 2009, p194
                 rnit = rnv - rvol;
                 if (rnit < 0)rnit = 0.f;
-                m_sol_nh4[i][k] = max(1e-6f, m_sol_nh4[i][k] - rnit);
+                m_sol_nh4[i][k] = Max(1e-6f, m_sol_nh4[i][k] - rnit);
             }
             if (m_sol_nh4[i][k] < 0.f) {
                 rnit = rnit + m_sol_nh4[i][k];
@@ -696,7 +696,7 @@ void Nutrient_Transformation::Volatilization(int i) {
             //	nvtf<<", swf: "<<swf<<", dpf: "<<dpf<<", cecf: "<<cecf<<endl;
             m_sol_no3[i][k] = m_sol_no3[i][k] + rnit;
             //calculate ammonia volatilization
-            m_sol_nh4[i][k] = max(1e-6f, m_sol_nh4[i][k] - rvol);
+            m_sol_nh4[i][k] = Max(1e-6f, m_sol_nh4[i][k] - rvol);
             if (m_sol_nh4[i][k] < 0.f) {
                 rvol = rvol + m_sol_nh4[i][k];
                 m_sol_nh4[i][k] = 0.f;
@@ -750,7 +750,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         rmn1 = m_sol_solp[i][k] - m_sol_actp[i][k] * rto; // P imbalance
         // Move P between the soluble and active pools based on vadas et al., 2006
         if (rmn1 >= 0.f) { // Net movement from soluble to active
-            rmn1 = max(rmn1, (-1 * m_sol_solp[i][k]));
+            rmn1 = Max(rmn1, (-1 * m_sol_solp[i][k]));
             // Calculate dynamic coefficient
             float vara = 0.918f * (exp(-4.603f * psp));
             float varb = (-0.238f * log(vara)) - 1.126f;
@@ -769,7 +769,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
         }
 
         if (rmn1 < 0.f) { // Net movement from Active to Soluble
-            rmn1 = min(rmn1, m_sol_actp[i][k]);
+            rmn1 = Min(rmn1, m_sol_actp[i][k]);
             // Calculate dynamic coefficient
             float base = 0.f;
             float varc = 0.f;
@@ -940,8 +940,8 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             x1 = wc - m_sol_wpmm[i][k];
             if (x1 < 0.f) { sut = .1f * pow(m_soilStorage[i][kk] / m_sol_wpmm[i][k], 2.f); }
             else { sut = .1f + .9f * sqrt(m_soilStorage[i][kk] / m_sol_awc[i][k]); }
-            sut = min(1.f, sut);
-            sut = max(.05f, sut);
+            sut = Min(1.f, sut);
+            sut = Max(.05f, sut);
 
             //compute tillage factor (x1)
             x1 = 1.f;
@@ -976,7 +976,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
                 exp(18.40961f - 0.023683632f * ((m_sol_z[i][kk] + m_sol_z[i][kk - 1]) / 2.f)));
             // compute combined factor
             float cs = 0.f;
-            cs = min(10.f, sqrt(cdg * sut) * 0.9f * ox * x1);
+            cs = Min(10.f, sqrt(cdg * sut) * 0.9f * ox * x1);
             // call denitrification (to use void fraction and cdg factor)
             // repetitive computation, commented by LJ
             //cdg = pow((m_sote[i]) + 5.f, 8.f / 3.f) * (50.f - m_sote[i]) / (pow(40.f, 8.f / 3.f) * 15.f);
@@ -993,7 +993,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             float sol_min_n = m_sol_no3[i][k] + m_sol_nh4[i][k];
             //if(i == 100 && k == 0) cout << m_sol_LSL[i][k] << m_sol_LS[i][k] << endl;
             // lignin content in structural litter (fraction)
-            RLR = min(0.8f, m_sol_LSL[i][k] / (m_sol_LS[i][k] + 1.e-5f));
+            RLR = Min(0.8f, m_sol_LSL[i][k] / (m_sol_LS[i][k] + 1.e-5f));
             // HSR=PRMT(47) !CENTURY SLOW HUMUS TRANSFORMATION RATE D^-1(0.00041_0.00068) ORIGINAL VALUE = 0.000548,
             HSR = 5.4799998e-4f;
             // HPR=PRMT(48) !CENTURY PASSIVE HUMUS TRANSFORMATION RATE D^-1(0.0000082_0.000015) ORIGINAL VALUE = 0.000012
@@ -1048,7 +1048,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
 
             PRMT_45 = 0.f;  // COEF IN CENTURY EQ ALLOCATING SLOW TO PASSIVE HUMUS(0.001_0.05) ORIGINAL VALUE = 0.003,
             PRMT_45 = 5.0000001e-2f;
-            ASP = max(.001f, PRMT_45 - .00009f * m_sol_clay[i][k]);
+            ASP = Max(.001f, PRMT_45 - .00009f * m_sol_clay[i][k]);
             // POTENTIAL TRANSFORMATIONS STRUCTURAL LITTER
             x1 = LSR * cs * exp(-3.f * RLR);
             LSCTP = x1 * m_sol_LSC[i][k];
@@ -1103,7 +1103,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             else { SUM = SUM + HPNTP - PN9; }
 
             // total available N
-            float Wmin = max(1.e-5f, m_sol_no3[i][k] + m_sol_nh4[i][k] + SUM);
+            float Wmin = Max(1.e-5f, m_sol_no3[i][k] + m_sol_nh4[i][k] + SUM);
             // total demand for potential tranformaiton of SOM;
             float DMDN = CPN1 + CPN2 + CPN3 + CPN4 + CPN5;
             float x3 = 1.f;
@@ -1183,7 +1183,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             if (HPNTA < PN9) { CPN5 = PN9 - HPNTA; }
             else { SUM = SUM + HPNTA - PN9; }
             // total available N
-            Wmin = max(1.e-5f, m_sol_no3[i][k] + m_sol_nh4[i][k] + SUM);
+            Wmin = Max(1.e-5f, m_sol_no3[i][k] + m_sol_nh4[i][k] + SUM);
             // total demand for potential transformation of SOM
             DMDN = CPN1 + CPN2 + CPN3 + CPN4 + CPN5;
 
@@ -1214,7 +1214,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             hmp_rate = 1.4f * (HSNTA + HPNTA) / (m_sol_HSN[i][k] + m_sol_HPN[i][k] + 1.e-6f);
             // hmp_rate = 1.4f * (HSNTA ) / (m_sol_HSN[i][k] + m_sol_HPN[i][k] + 1.e-6f);
             hmp = hmp_rate * m_sol_orgp[i][k];
-            hmp = min(hmp, m_sol_orgp[i][k]);
+            hmp = Min(hmp, m_sol_orgp[i][k]);
             m_sol_orgp[i][k] = m_sol_orgp[i][k] - hmp;
             m_sol_solp[i][k] = m_sol_solp[i][k] + hmp;
 
@@ -1223,7 +1223,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             float rmp = 0.f;
             float decr = 0.f;
             decr = (LSCTA + LMCTA) / (m_sol_LSC[i][k] + m_sol_LMC[i][k] + 1.e-6f);
-            decr = min(1.f, decr);
+            decr = Min(1.f, decr);
             rmp = decr * m_sol_fop[i][k];
 
             m_sol_fop[i][k] = m_sol_fop[i][k] - rmp;
@@ -1231,19 +1231,19 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             m_sol_orgp[i][k] = m_sol_orgp[i][k] + .2f * rmp;
             // end of calculate P flows
 
-            LSCTA = min(m_sol_LSC[i][k], LSCTA);
-            m_sol_LSC[i][k] = max(1.e-10f, m_sol_LSC[i][k] - LSCTA);
-            LSLCTA = min(m_sol_LSLC[i][k], LSLCTA);
-            m_sol_LSLC[i][k] = max(1.e-10f, m_sol_LSLC[i][k] - LSLCTA);
-            m_sol_LSLNC[i][k] = max(1.e-10f, m_sol_LSLNC[i][k] - LSLNCTA);
-            LMCTA = min(m_sol_LMC[i][k], LMCTA);
+            LSCTA = Min(m_sol_LSC[i][k], LSCTA);
+            m_sol_LSC[i][k] = Max(1.e-10f, m_sol_LSC[i][k] - LSCTA);
+            LSLCTA = Min(m_sol_LSLC[i][k], LSLCTA);
+            m_sol_LSLC[i][k] = Max(1.e-10f, m_sol_LSLC[i][k] - LSLCTA);
+            m_sol_LSLNC[i][k] = Max(1.e-10f, m_sol_LSLNC[i][k] - LSLNCTA);
+            LMCTA = Min(m_sol_LMC[i][k], LMCTA);
             if (m_sol_LM[i][k] > 0.f) {
-                RTO = max(0.42f, m_sol_LMC[i][k] / m_sol_LM[i][k]);
+                RTO = Max(0.42f, m_sol_LMC[i][k] / m_sol_LM[i][k]);
                 m_sol_LM[i][k] = m_sol_LM[i][k] - LMCTA / RTO;
                 m_sol_LMC[i][k] = m_sol_LMC[i][k] - LMCTA;
             }
-            m_sol_LSL[i][k] = max(1.e-10f, m_sol_LSL[i][k] - LSLCTA / .42f);
-            m_sol_LS[i][k] = max(1.e-10f, m_sol_LS[i][k] - LSCTA / .42f);
+            m_sol_LSL[i][k] = Max(1.e-10f, m_sol_LSL[i][k] - LSLCTA / .42f);
+            m_sol_LS[i][k] = Max(1.e-10f, m_sol_LS[i][k] - LSCTA / .42f);
 
             x3 = APX * HPCTA + ASX * HSCTA + A1 * (LMCTA + LSLNCTA);
             m_sol_BMC[i][k] = m_sol_BMC[i][k] - BMCTA + x3;
@@ -1262,15 +1262,15 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
             // DF6 Supply of mineral N - available mineral N = N demanded from mineral pool
 
             ADD = DF1 + DF2 + DF3 + DF4 + DF5 + DF6;
-            ADF1 = abs(DF1);
-            ADF2 = abs(DF2);
-            ADF3 = abs(DF3);
-            ADF4 = abs(DF4);
-            ADF5 = abs(DF5);
+            ADF1 = Abs(DF1);
+            ADF2 = Abs(DF2);
+            ADF3 = Abs(DF3);
+            ADF4 = Abs(DF4);
+            ADF5 = Abs(DF5);
             TOT = ADF1 + ADF2 + ADF3 + ADF4 + ADF5;
             xx = ADD / (TOT + 1.e-10f);
-            m_sol_LSN[i][k] = max(.001f, m_sol_LSN[i][k] - DF1 + xx * ADF1);
-            m_sol_LMN[i][k] = max(.001f, m_sol_LMN[i][k] - DF2 + xx * ADF2);
+            m_sol_LSN[i][k] = Max(.001f, m_sol_LSN[i][k] - DF1 + xx * ADF1);
+            m_sol_LMN[i][k] = Max(.001f, m_sol_LMN[i][k] - DF2 + xx * ADF2);
             m_sol_BMN[i][k] = m_sol_BMN[i][k] - DF3 + xx * ADF3;
             m_sol_HSN[i][k] = m_sol_HSN[i][k] - DF4 + xx * ADF4;
             m_sol_HPN[i][k] = m_sol_HPN[i][k] - DF5 + xx * ADF5;

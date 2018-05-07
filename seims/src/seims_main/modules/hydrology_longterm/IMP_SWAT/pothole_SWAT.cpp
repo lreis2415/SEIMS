@@ -560,11 +560,11 @@ void IMP_SWAT::PotholeSimulate(int id) {
         m_potNH4[id] -= (nh3V + no3N);
         m_potNo3[id] += no3N;
 
-        m_potNH4[id] = max(m_potNH4[id], UTIL_ZERO);
-        m_potNo3[id] = max(m_potNo3[id], UTIL_ZERO);
+        m_potNH4[id] = Max(m_potNH4[id], UTIL_ZERO);
+        m_potNo3[id] = Max(m_potNo3[id], UTIL_ZERO);
 
         /// compute flow from surface inlet tile
-        tileo = min(m_potTilemm, m_potVol[id]);
+        tileo = Min(m_potTilemm, m_potVol[id]);
         float potvol_tile = m_potVol[id];
         m_potVol[id] -= tileo;
         qdayTmp += tileo;
@@ -581,7 +581,7 @@ void IMP_SWAT::PotholeSimulate(int id) {
         }
         /// calculate seepage into soil
         potsep = yy * m_potSurfaceArea[id] * 240.f / m_cnv; /// mm/hr*ha/240=m3/cnv=mm
-        potsep = min(potsep, m_potVol[id]);
+        potsep = Min(potsep, m_potVol[id]);
         float potvol_sep = m_potVol[id];
         m_potVol[id] -= potsep;
         m_potSeep[id] += potsep;
@@ -593,7 +593,7 @@ void IMP_SWAT::PotholeSimulate(int id) {
         //	float dep2cap = m_sol_sat[id][ly] - m_soilStorage[id][ly];
         //	if (dep2cap > 0.f)
         //	{
-        //		dep2cap = min(dep2cap, m_potVol[id]);
+        //		dep2cap = Min(dep2cap, m_potVol[id]);
         //		m_soilStorage[id][ly] += dep2cap;
         //		m_potVol[id] -= dep2cap;
         //	}
@@ -609,49 +609,49 @@ void IMP_SWAT::PotholeSimulate(int id) {
         if (m_LAIDay[id] < m_evLAI) {
             potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
             // if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
-            potev = min(potev, m_potVol[id]);
+            potev = Min(potev, m_potVol[id]);
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;
         }
         if (potvol_tile > UTIL_ZERO) {
             sedloss = m_potSed[id] * tileo / potvol_tile;
-            sedloss = min(sedloss, m_potSed[id]);
+            sedloss = Min(sedloss, m_potSed[id]);
             m_potSed[id] -= sedloss;
             potsedo += sedloss;
             m_sedYield[id] += sedloss;
 
             no3loss = m_potNo3[id] * tileo / potvol_tile;
-            no3loss = min(no3loss, m_potNo3[id]);
+            no3loss = Min(no3loss, m_potNo3[id]);
             m_potNo3[id] -= no3loss;
             m_surqNo3[id] += no3loss / m_cellArea;
             // if (id == 46364) cout<<", += tile loss: "<<m_surqNo3[id];
             nh4loss = m_potNH4[id] * tileo / potvol_tile;
-            nh4loss = min(nh4loss, m_potNH4[id]);
+            nh4loss = Min(nh4loss, m_potNH4[id]);
             m_potNH4[id] -= nh4loss;
             m_surqNH4[id] += nh4loss / m_cellArea;
 
             solploss = m_potSolP[id] * tileo / potvol_tile;
-            solploss = min(solploss, m_potSolP[id]);
+            solploss = Min(solploss, m_potSolP[id]);
             m_potSolP[id] -= solploss;
             m_surqSolP[id] += solploss / m_cellArea;
 
             orgnloss = m_potOrgN[id] * tileo / potvol_tile;
-            orgnloss = min(orgnloss, m_potOrgN[id]);
+            orgnloss = Min(orgnloss, m_potOrgN[id]);
             m_potOrgN[id] -= orgnloss;
             m_sedOrgN[id] += orgnloss / m_cellArea;
 
             orgploss = m_potOrgP[id] * tileo / potvol_tile;
-            orgploss = min(orgploss, m_potOrgP[id]);
+            orgploss = Min(orgploss, m_potOrgP[id]);
             m_potOrgP[id] -= orgploss;
             m_sedOrgP[id] += orgploss / m_cellArea;
 
             minpsloss = m_potStaMinP[id] * tileo / potvol_tile;
-            minpsloss = min(minpsloss, m_potStaMinP[id]);
+            minpsloss = Min(minpsloss, m_potStaMinP[id]);
             m_potStaMinP[id] -= minpsloss;
             m_sedStableMinP[id] += minpsloss / m_cellArea;
 
             minpaloss = m_potActMinP[id] * tileo / potvol_tile;
-            minpaloss = min(minpaloss, m_potActMinP[id]);
+            minpaloss = Min(minpaloss, m_potActMinP[id]);
             m_potActMinP[id] -= minpaloss;
             m_sedActiveMinP[id] += minpaloss / m_cellArea;
 
@@ -683,35 +683,35 @@ void IMP_SWAT::PotholeSimulate(int id) {
         if (potvol_sep > UTIL_ZERO) {
             float lossRatio = potsep / potvol_sep;
             sedloss = m_potSed[id] * lossRatio;
-            sedloss = min(sedloss, m_potSed[id]);
+            sedloss = Min(sedloss, m_potSed[id]);
             m_potSed[id] -= sedloss;
 
             no3loss = m_potNo3[id] * lossRatio;
-            no3loss = min(no3loss, m_potNo3[id]);
+            no3loss = Min(no3loss, m_potNo3[id]);
             m_potNo3[id] -= no3loss;
             // if (id == 46364) cout<<", loss ratio: "<<lossRatio<<", no3 loss from seepage: "<<no3loss<<endl;
             nh4loss = m_potNH4[id] * lossRatio;
-            nh4loss = min(nh4loss, m_potNH4[id]);
+            nh4loss = Min(nh4loss, m_potNH4[id]);
             m_potNH4[id] -= nh4loss;
 
             solploss = m_potSolP[id] * lossRatio;
-            solploss = min(solploss, m_potSolP[id]);
+            solploss = Min(solploss, m_potSolP[id]);
             m_potSolP[id] -= solploss;
 
             orgnloss = m_potOrgN[id] * lossRatio;
-            orgnloss = min(orgnloss, m_potOrgN[id]);
+            orgnloss = Min(orgnloss, m_potOrgN[id]);
             m_potOrgN[id] -= orgnloss;
 
             orgploss = m_potOrgP[id] * lossRatio;
-            orgploss = min(orgploss, m_potOrgP[id]);
+            orgploss = Min(orgploss, m_potOrgP[id]);
             m_potOrgP[id] -= orgploss;
 
             minpsloss = m_potStaMinP[id] * lossRatio;
-            minpsloss = min(minpsloss, m_potStaMinP[id]);
+            minpsloss = Min(minpsloss, m_potStaMinP[id]);
             m_potStaMinP[id] -= minpsloss;
 
             minpaloss = m_potActMinP[id] * lossRatio;
-            minpaloss = min(minpaloss, m_potActMinP[id]);
+            minpaloss = Min(minpaloss, m_potActMinP[id]);
             m_potActMinP[id] -= minpaloss;
 
             sanloss = m_potSand[id] * lossRatio;

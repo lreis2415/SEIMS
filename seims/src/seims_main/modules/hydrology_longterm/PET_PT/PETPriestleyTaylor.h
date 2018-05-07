@@ -33,13 +33,13 @@ public:
 
     ~PETPriestleyTaylor();
 
-    void SetValue(const char *key, float value) override;
+    void SetValue(const char *key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *value) override;
+    void Set1DData(const char *key, int n, float *value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) override;
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
 private:
     /*!

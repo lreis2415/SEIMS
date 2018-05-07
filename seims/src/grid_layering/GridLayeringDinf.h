@@ -14,9 +14,9 @@ class GridLayeringDinf: public GridLayering {
 public:
     GridLayeringDinf(int id, MongoGridFs* gfs, const char* out_dir);
     virtual ~GridLayeringDinf();
-    bool LoadData() override;
-    bool OutputFlowIn() override;
-    bool OutputFlowOut() override;
+    bool LoadData() OVERRIDE;
+    bool OutputFlowIn() OVERRIDE;
+    bool OutputFlowOut() OVERRIDE;
     /** Dinf specific functions **/
 
     /*!

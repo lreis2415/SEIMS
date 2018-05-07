@@ -21,7 +21,7 @@ SSR_DA::~SSR_DA() {
 }
 
 bool SSR_DA::FlowInSoil(int id) {
-    float s0 = max(m_slope[id], 0.01f);
+    float s0 = Max(m_slope[id], 0.01f);
     float flowWidth = m_CellWidth;
     // there is no land in this cell
     if (m_streamLink[id] > 0) {
@@ -107,10 +107,10 @@ bool SSR_DA::FlowInSoil(int id) {
         } else if (soilWater - m_qi[id][j] < fcSoilWater) {
             m_qi[id][j] = soilWater - fcSoilWater;
         }
-        m_qi[id][j] = max(0.f, m_qi[id][j]);
+        m_qi[id][j] = Max(0.f, m_qi[id][j]);
 
         m_qiVol[id][j] = m_qi[id][j] / 1000.f * m_CellWidth * flowWidth; //m3
-        m_qiVol[id][j] = max(UTIL_ZERO, m_qiVol[id][j]);
+        m_qiVol[id][j] = Max(UTIL_ZERO, m_qiVol[id][j]);
         //Adjust the moisture content in the current layer, and the layer immediately below it
         m_soilStorage[id][j] -= m_qi[id][j];
         m_soilStorageProfile[id] += m_soilStorage[id][j];

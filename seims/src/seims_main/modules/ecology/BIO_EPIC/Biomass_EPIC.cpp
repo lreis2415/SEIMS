@@ -1,7 +1,9 @@
 #include "Biomass_EPIC.h"
 
+#include <cmath>
+
 #include "PlantGrowthCommon.h"
-#include <text.h>
+#include "text.h"
 
 
 Biomass_EPIC::Biomass_EPIC() : m_nCells(-1), m_nClimDataYrs(-1), m_co2(NODATA_VALUE), m_tMean(nullptr), m_tMin(nullptr),
@@ -461,7 +463,7 @@ void Biomass_EPIC::DistributePlantET(int i) {    /// swu.f of SWAT
             if (m_soilStorage[i][j] < wuse[j]) {
                 wuse[j] = m_soilStorage[i][j];
             }
-            m_soilStorage[i][j] = max(UTIL_ZERO, m_soilStorage[i][j] - wuse[j]);
+            m_soilStorage[i][j] = Max(UTIL_ZERO, m_soilStorage[i][j] - wuse[j]);
             xx += wuse[j];
         }
         /// update total soil water in profile
@@ -534,14 +536,14 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
         if (m_VPD[i] > 1.0) {
             ruedecl = m_VPD[i] - 1.f;
             beadj -= m_wavp[i] * ruedecl;
-            beadj = max(beadj, 0.27f * m_BIOE[i]);
+            beadj = Max(beadj, 0.27f * m_BIOE[i]);
         }
-        m_biomassDelta[i] = max(0.f, beadj * activeRadiation);
+        m_biomassDelta[i] = Max(0.f, beadj * activeRadiation);
         /// 4. Calculate plant uptake of N and P to make sure no plant N and P uptake under temperature, water and aeration stress
         /// m_frStrsWa and m_frStrsAe are derived from DistributePlantET()
         //if (i == 2000 && (m_frStrsWa[i] > 0.f || m_frStrsTmp[i] > 0.f || m_frStrsAe[i] > 0.f))
         //	cout<<"water stress frac: "<<m_frStrsWa[i]<<", tmp: "<<m_frStrsTmp[i]<<", Ae: "<<m_frStrsAe[i]<<endl;
-        float reg = min(min(m_frStrsWa[i], m_frStrsTmp[i]), m_frStrsAe[i]);
+        float reg = Min(Min(m_frStrsWa[i], m_frStrsTmp[i]), m_frStrsAe[i]);
         if (reg < 0.f) reg = 0.f;
         if (reg > 0.) {
             //cout<<"Begin Uptake N and P"<<endl;
@@ -559,7 +561,7 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
         /// call anfert
         ///////// TODO: Finish auto fertilization-nitrogen later. by LJ
         /// 6. reduce predicted biomass due to stress on plant
-        reg = min(m_frStrsWa[i], min(m_frStrsTmp[i], min(m_frStrsN[i], m_frStrsP[i])));
+        reg = Min(m_frStrsWa[i], Min(m_frStrsTmp[i], Min(m_frStrsN[i], m_frStrsP[i])));
         if (reg < 0.f) reg = 0.f;
         if (reg > 1.f) reg = 1.f;
         //// TODO bio_targ in SWAT is not incorporated in SEIMS.
@@ -569,12 +571,12 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
             if (m_matYrs[i] > 0.) {
                 float curYrMat = m_initTreeMatYr[i] + m_yearIdx;
                 rto = curYrMat / m_matYrs[i];
-                m_biomass[i] = min(m_biomass[i], rto * m_maxBiomass[i] * 1000.f);  /// convert tons/ha -> kg/ha
+                m_biomass[i] = Min(m_biomass[i], rto * m_maxBiomass[i] * 1000.f);  /// convert tons/ha -> kg/ha
             } else {
                 rto = 1.f;
             }
         }
-        m_biomass[i] = max(m_biomass[i], 0.f);
+        m_biomass[i] = Max(m_biomass[i], 0.f);
         //if(i == 5) cout << m_biomass[i] << ", \n";
         /// 7. calculate fraction of total biomass that is in the roots
         float m_rootShootRatio1 = 0.4f;
@@ -649,7 +651,7 @@ void Biomass_EPIC::PlantNitrogenUptake(int i) {
     un2 = m_frPlantN[i] * m_biomass[i];
     if (un2 < m_plantN[i]) un2 = m_plantN[i];
     m_NO3Defic[i] = un2 - m_plantN[i];
-    m_NO3Defic[i] = min(4.f * m_frPlantN3[i] * m_biomassDelta[i], m_NO3Defic[i]);
+    m_NO3Defic[i] = Min(4.f * m_frPlantN3[i] * m_biomassDelta[i], m_NO3Defic[i]);
     m_frStrsN[i] = 1.f;
     int ir = 0;
     if (m_NO3Defic[i] < UTIL_ZERO) {
@@ -669,7 +671,7 @@ void Biomass_EPIC::PlantNitrogenUptake(int i) {
         float unmx = 0.f;
         float uno3l = 0.f; /// plant nitrogen demand (kg/ha)
         unmx = m_NO3Defic[i] * (1.f - exp(-m_NUpDis * gx / m_soilRD[i])) / uobn;
-        uno3l = min(unmx - m_plantUpTkN[i], m_soilNO3[i][l]);
+        uno3l = Min(unmx - m_plantUpTkN[i], m_soilNO3[i][l]);
         //if (uno3l != uno3l)
         //	cout<<"cellid: "<<i<<", lyr: "<<l<<",m_NO3Defic: "<<m_NO3Defic[i]<<
         //	", UpDis: "<<m_NUpDis<<", gx: "<<gx<<", msoilrd:"<<m_soilRD[i]<<
@@ -701,8 +703,8 @@ void Biomass_EPIC::PlantNitrogenUptake(int i) {
         } else {
             xx = 1.f;
         }
-        m_frStrsN[i] = max(m_frStrsN[i], xx);
-        m_frStrsN[i] = min(m_frStrsN[i], 1.f);
+        m_frStrsN[i] = Max(m_frStrsN[i], xx);
+        m_frStrsN[i] = Min(m_frStrsN[i], 1.f);
     }
 }
 
@@ -740,14 +742,14 @@ void Biomass_EPIC::PlantNitrogenFixed(int i) {
     if (m_frPHUacc[i] > 0.55f && m_frPHUacc[i] <= 0.75f) {
         fxg = 3.75f - 5.f * m_frPHUacc[i];
     }
-    float fxr = min(1.f, min(fxw, fxn)) * fxg;
-    fxr = max(0.f, fxr);
+    float fxr = Min(1.f, Min(fxw, fxn)) * fxg;
+    fxr = Max(0.f, fxr);
     if (m_NFixCoef <= 0.f) m_NFixCoef = 0.5f;
     if (m_NFixMax <= 0.f) m_NFixMax = 20.f;
-    m_fixN[i] = min(6.f, fxr * m_NO3Defic[i]);
+    m_fixN[i] = Min(6.f, fxr * m_NO3Defic[i]);
     m_fixN[i] = m_NFixCoef * m_fixN[i] + (1.f - m_NFixCoef) * uno3l;
-    m_fixN[i] = min(m_fixN[i], uno3l);
-    m_fixN[i] = min(m_NFixMax, m_fixN[i]);
+    m_fixN[i] = Min(m_fixN[i], uno3l);
+    m_fixN[i] = Min(m_NFixMax, m_fixN[i]);
 }
 
 void Biomass_EPIC::PlantPhosphorusUptake(int i) {
@@ -775,7 +777,7 @@ void Biomass_EPIC::PlantPhosphorusUptake(int i) {
             gx = m_soilDepth[i][l];
         }
         upmx = uapd * (1.f - exp(-m_PUpDis * gx / m_soilRD[i])) / uobp;
-        uapl = min(upmx - m_plantUpTkP[i], m_soilPsol[i][l]);
+        uapl = Min(upmx - m_plantUpTkP[i], m_soilPsol[i][l]);
         m_plantUpTkP[i] += uapl;
         m_soilPsol[i][l] -= uapl;
     }
@@ -817,7 +819,7 @@ int Biomass_EPIC::Execute() {
         }
         /// reWrite from plantmod.f of SWAT
         /// calculate residue on soil surface for current day
-        m_sol_cov[i] = max(0.8f * m_biomass[i] + m_sol_rsd[i][0], 0.f);
+        m_sol_cov[i] = Max(0.8f * m_biomass[i] + m_sol_rsd[i][0], 0.f);
         if (FloatEqual(m_igro[i], 1.f))            /// land cover growing
         {
             DistributePlantET(i);                  /// swu.f

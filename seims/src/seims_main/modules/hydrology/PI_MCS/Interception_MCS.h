@@ -28,13 +28,13 @@ public:
 
     ~clsPI_MCS();
 
-    void Set1DData(const char *key, int nRows, float *data) override;
+    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
 
-    void SetValue(const char *key, float data) override;
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    void Get1DData(const char *key, int *nRows, float **data) override;
+    void Get1DData(const char *key, int *nRows, float **data) OVERRIDE;
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
 private:
     /**

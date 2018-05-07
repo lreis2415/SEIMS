@@ -93,7 +93,7 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string& bmpDBName) 
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_bmpCollection)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_bmpCollection)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -118,7 +118,7 @@ void BMPArealStructFactory::setRasterData(map<string, FloatRaster*>& sceneRsMap)
     }
 }
 
-void BMPArealStructFactory::Dump(ostream* fs) {
+void BMPArealStructFactory::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "Areal Structural BMP Management Factory: " << endl <<
             "    SubScenario ID: " << m_subScenarioId << endl;

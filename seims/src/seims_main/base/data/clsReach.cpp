@@ -104,7 +104,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     bson_destroy(child1);
     bson_destroy(child2);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(db_name, collection_name)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(db_name, collection_name)));
     reach_num_ = collection->QueryRecordsCount();
     if (reach_num_ < 0) {
         bson_destroy(b);

@@ -376,7 +376,7 @@ void NutrientTransportSediment::OrgNRemovedInRunoff_CENTURY(int i) {
     /// total organic carbon in layer 1
     TOT = m_sol_HPC[i][0] + m_sol_HSC[i][0] + m_sol_LMC[i][0] + m_sol_LSC[i][0];
     /// fraction of soil erosion of total soil mass
-    YEW = min((m_sedEroded[i] / m_cellArea + YW / m_cellArea) / sol_mass, 0.9f);
+    YEW = Min((m_sedEroded[i] / m_cellArea + YW / m_cellArea) / sol_mass, 0.9f);
 
     X1 = 1.f - YEW;
     YOC = YEW * TOT;

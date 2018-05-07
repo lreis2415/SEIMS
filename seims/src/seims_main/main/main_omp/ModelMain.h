@@ -6,7 +6,6 @@
  * \revised LJ - Refactoring, May 2017
  *               The ModelMain class mainly focuses on the entire workflow.
  */
-
 #ifndef SEIMS_MODEL_MAIN_H
 #define SEIMS_MODEL_MAIN_H
 
@@ -30,9 +29,6 @@
 #include "SettingsOutput.h"
 /// include module_setting related
 #include "ModuleFactory.h"
-
-
-//using namespace std;
 
 /*!
  * \class ModelMain

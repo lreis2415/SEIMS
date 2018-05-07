@@ -17,19 +17,6 @@
 
 #include "tinyxml.h"
 
-#ifdef _DEBUG
-#define POSTFIX "d"
-#endif
-#ifdef RELWITHDEBINFO
-#define POSTFIX "rd"
-#endif
-#ifdef MINSIZEREL
-#define POSTFIX "s"
-#endif
-#ifndef POSTFIX
-#define POSTFIX ""
-#endif
-
 #ifdef WIN32
 #define DLLINSTANCE HINSTANCE
 #else
@@ -40,7 +27,6 @@ typedef SimulationModule*(*InstanceFunction)();
 //! Simulation module metadata
 typedef const char*(*MetadataFunction)();
 
-using namespace std;
 using namespace bmps;
 
 class ModuleFactory: NotCopyable {

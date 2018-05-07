@@ -23,9 +23,9 @@ public:
 
     ~clsTSD_RD();
 
-    void Set1DData(const char* key, int n, float* data) override;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) override;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
     /// data row number, i.e., number of stations

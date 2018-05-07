@@ -17,7 +17,7 @@ FloatRaster* CombineRasters(map<int, FloatRaster *>& all_raster_data) {
 
     double xll = 0.f, yll = 0.f, dx = 0.f, xur = 0.f, yur = 0.f;
     int n_rows = 0, n_cols = 0;
-    int n_subbasins = all_raster_data.size();
+    int n_subbasins = CVT_INT(all_raster_data.size());
     string srs;
     // loop to get global extent
     for (int i = 1; i <= n_subbasins; i++) {

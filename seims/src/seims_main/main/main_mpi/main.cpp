@@ -7,9 +7,7 @@
 #endif /* USE_MONGODB */
 
 #include "parallel.h"
-#include <text.h>
-
-using namespace std;
+#include "text.h"
 
 int main(int argc, const char** argv) {
     /// Parse input arguments
@@ -90,7 +88,7 @@ int main(int argc, const char** argv) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 3);
         }
-        catch (exception& e) {
+        catch (std::exception& e) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 4);
         }

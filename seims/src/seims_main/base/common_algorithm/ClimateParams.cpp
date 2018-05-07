@@ -1,8 +1,12 @@
 #include "ClimateParams.h"
 
+#include <cmath>
+
 #include "utils_time.h"
+#include "utils_math.h"
 
 using namespace ccgl::utils_time;
+using namespace ccgl::utils_math;
 
 float MeanBarometricPressure(const float elev) {
     return 101.3f - elev * (0.01152f - 0.544e-6f * elev);
@@ -56,7 +60,7 @@ float PsychrometricConst(const float tmean, const float elev) {
 float SaturationVaporPressure(const float mean_tmp) {
     /// Calculate saturation vapor pressure, equation 1:2.3.2 in SWAT Theory 2009, p54
     /// Tetens (1930) and Murray (1967), ee.f in SWAT src.
-    if (abs(mean_tmp + 237.3f) > UTIL_ZERO) {
+    if (Abs(mean_tmp + 237.3f) > UTIL_ZERO) {
         float ea = (16.78f * mean_tmp - 116.9f) / (mean_tmp + 237.3f);
         return exp(ea);
     }

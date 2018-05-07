@@ -25,19 +25,19 @@ public:
 
     ~Interpolate();
 
-    void SetClimateDataType(float value) override;
+    void SetClimateDataType(float value) OVERRIDE;
 
-    int Execute() override;
+    int Execute() OVERRIDE;
 
-    void SetDate(time_t date, int year_idx) override;
+    void SetDate(time_t date, int year_idx) OVERRIDE;
 
-    void SetValue(const char* key, float value) override;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char* key, int n, float* data) override;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int n_rows, int n_cols, float** data) override;
+    void Set2DData(const char* key, int n_rows, int n_cols, float** data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) override;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     /*!
      * \brief Check length of the input variable

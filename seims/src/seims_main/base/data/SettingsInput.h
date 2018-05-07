@@ -26,7 +26,7 @@ public:
     static SettingsInput* Init(vector<string>& stringvector);
 
     //! Output to log file
-    void Dump(const string& filename) override;
+    void Dump(const string& filename) OVERRIDE;
 
     //! Get start time of simulation
     time_t getStartTime() const { return m_startDate; }

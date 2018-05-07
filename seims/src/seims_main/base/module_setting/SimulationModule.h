@@ -147,7 +147,7 @@ public:
 
     /*!
      * \brief Get time step type, default is hillslope process.
-     *        Remember to override this function to return other time step type for
+     *        Remember to OVERRIDE this function to return other time step type for
      *        routing modules and others if necessary.
      */
     virtual TimeStepType GetTimeStepType() {

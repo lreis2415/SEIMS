@@ -17,7 +17,6 @@ using namespace data_raster;
 // objective: to build the relationships of the each field, and to aggregate very small upstream fields
 //  into their downstream fields. This is controlled by the threshold given by user.
 //
-//using namespace std;
 
 class CellOrdering: Interface {
 public:

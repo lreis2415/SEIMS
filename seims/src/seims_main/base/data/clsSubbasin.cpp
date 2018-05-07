@@ -2,8 +2,6 @@
 
 #include "text.h"
 
-//using namespace std;
-
 Subbasin::Subbasin(const int id) : subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
                                    area_(-1.f), pet_(-1.f),
                                    perco_(-1.f), pcp_(-1.f),
