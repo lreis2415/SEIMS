@@ -47,13 +47,13 @@ public:
 
     virtual ~clsRasterDataTestIncstMaskPos() { delete maskrs_; }
 
-    void SetUp() override {
+    void SetUp() OVERRIDE {
         maskrs_ = clsRasterData<int>::Init(GetParam()); // recommended way
         //maskrs = new clsRasterData<float>(GetParam());  // unsafe way
         ASSERT_NE(nullptr, maskrs_);
     }
 
-    void TearDown() override {
+    void TearDown() OVERRIDE {
         delete maskrs_;
         maskrs_ = nullptr;
     }

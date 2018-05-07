@@ -20,13 +20,29 @@ namespace ccgl {
  * \brief Basic mathematics related functions
  */
 namespace utils_math {
+/*
+ * Useful commands
+ */
+#ifndef Max
+#define Max(a, b) ((a) >= (b) ? (a) : (b))
+#endif
+#ifndef Min
+#define Min(a, b) ((a) >= (b) ? (b) : (a))
+#endif
+#ifndef Abs
+#define Abs(x) ((x) >= 0 ? (x) : -(x))
+#endif
+
 /*!
  * \brief Whether v1 is equal to v2
- * \param[in]  v1, v2 numeric value
+ * \param[in]  v1 Numeric value of data type 1
+ * \param[in]  v2 Numeric value of data type 2
  * \return true or false
  */
-template <typename T>
-bool FloatEqual(T v1, T v2);
+template <typename T1, typename T2>
+bool FloatEqual(T1 v1, T2 v2) {
+    return Abs(CVT_DBL(v1) - CVT_DBL(v2)) < 1.e-32;
+}
 
 /*!
  * \brief Check the argument against upper and lower boundary values prior to doing Exponential function
@@ -39,13 +55,20 @@ float Expo(float xx, float upper = 20.f, float lower = -20.f);
 float Power(float a, float n);
 
 /*!
- * \brief Max value of a numeric array
- * Get maximum value in a numeric array with size n.
+ * \brief Get maximum value in a numeric array with size n.
  * \param[in] a, n
  * \return max value
  */
 template <typename T>
-T Max(const T* a, int n);
+T MaxInArray(const T* a, int n);
+
+/*!
+* \brief Get minimum value in a numeric array with size n.
+* \param[in] a, n
+* \return min value
+*/
+template <typename T>
+T MinInArray(const T* a, int n);
 
 /*!
  * \brief Sum of a numeric array
@@ -93,15 +116,21 @@ void BasicStatistics(const T*const * values, int num, int lyrs,
 
 /************ Implementation of template functions ******************/
 template <typename T>
-bool FloatEqual(const T v1, const T v2) {
-    return abs(v1 - v2) < UTIL_ZERO;
-}
-
-template <typename T>
-T Max(const T* a, const int n) {
+T MaxInArray(const T* a, const int n) {
     T m = a[0];
     for (int i = 1; i < n; i++) {
         if (a[i] > m) {
+            m = a[i];
+        }
+    }
+    return m;
+}
+
+template <typename T>
+T MinInArray(const T* a, const int n) {
+    T m = a[0];
+    for (int i = 1; i < n; i++) {
+        if (a[i] < m) {
             m = a[i];
         }
     }

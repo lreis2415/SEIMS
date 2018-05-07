@@ -62,7 +62,7 @@ public:
 
     virtual ~clsRasterDataTestNoPosIncstMaskPosExt() { delete rs_; }
 
-    void SetUp() override {
+    void SetUp() OVERRIDE {
         // Read mask data with default parameters, i.e., calculate valid positions.
         maskrs_ = clsRasterData<int>::Init(GetParam()->mask_name);
         ASSERT_NE(nullptr, maskrs_);
@@ -71,7 +71,7 @@ public:
         ASSERT_NE(nullptr, rs_);
     }
 
-    void TearDown() override {
+    void TearDown() OVERRIDE {
         delete rs_;
         delete maskrs_;
         rs_ = nullptr;
