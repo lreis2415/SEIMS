@@ -1,11 +1,12 @@
+### Use MongoDB as database if available
+IF (BSON_FOUND AND MONGOC_FOUND)
+  ADD_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
+ENDIF ()
+
 ##############  Set CCGL               ###############
 SET(CCGL_LIB ${CMAKE_CURRENT_SOURCE_DIR}/src/ccgl)
 SET(CCGL_INC ${CCGL_LIB}/src)
-FILE(GLOB CCGL_SRC ${CCGL_INC}/*.h
-                   ${CCGL_INC}/*.cpp
-                   ${CCGL_INC}/*.c
-                   ${CCGL_INC}/*.cc
-                   ${CCGL_INC}/*.hpp)
+FILE(GLOB CCGL_SRC ${CCGL_INC} *.h *.cpp)
 ##############  Stand-alone programs   ###############
 SET(FIELD_PARTITION ${CMAKE_CURRENT_SOURCE_DIR}/src/field_partition)
 SET(GRID_LAYERING ${CMAKE_CURRENT_SOURCE_DIR}/src/grid_layering)

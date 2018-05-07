@@ -5,7 +5,7 @@
 #       $ cmake <path/to/TauDEM_ext>
 #
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2013, MSMPI-v8, GDAL-1.11.4
+#     1. Windows 10 with Visual Studio 2010/2013, MSMPI-v8, GDAL-1.11.4
 #     2. Windows 10 with mingw64 (GCC-4.9.3), MSMPI-v8, GDAL-1.11.5
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, MPICH-3.1.4, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, Intel MPI 4.0, GDAL-1.11.5
@@ -17,7 +17,7 @@
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
   MESSAGE(FATAL_ERROR "
-FATAL: In-source builds are not allowed. 
+FATAL: In-source builds are not allowed.
        You should create a separate directory for build files."
 )
 ENDIF()
