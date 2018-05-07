@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <cfloat>
 #include <string>
+#include <cstring> // strcasecmp in GCC
 /// platform
 #ifdef windows
 // #define _WINSOCKAPI_    // In order to stop windows.h including winsock.h
