@@ -6,8 +6,7 @@
 #ifndef SEIMS_HEADER
 #define SEIMS_HEADER
 
-#include "text.h"
-#include "utilities.h"
+#include "data_raster.h"
 
 /*!
  * \enum LayeringMethod
@@ -45,6 +44,7 @@ const float SQ2 = 1.4142135623730951f;
 #define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method
 #define MIN_SLOPE       1e-6f  /// \def minimum slope (tan value)
 
-#define IntRaster       clsRasterData<int>
-#define FloatRaster     clsRasterData<float>
+#define IntRaster       ccgl::data_raster::clsRasterData<int>
+#define FloatRaster     ccgl::data_raster::clsRasterData<float>
+
 #endif /* SEIMS_HEADER */
