@@ -33,7 +33,7 @@ namespace utils_array {
  * \param[in] init_value
  * \return True if succeed, else false and the error message will print as well.
  */
-template <typename T, typename INI_T = T>
+template <typename T, typename INI_T>
 bool Initialize1DArray(int row, T*& data, INI_T init_value);
 
 /*!
@@ -43,7 +43,7 @@ bool Initialize1DArray(int row, T*& data, INI_T init_value);
  * \param[in] init_data
  * \return True if succeed, else false and the error message will print as well.
  */
-template <typename T, typename INI_T = T>
+template <typename T, typename INI_T>
 bool Initialize1DArray(int row, T*& data, INI_T* init_data);
 
 /*!
@@ -54,7 +54,7 @@ bool Initialize1DArray(int row, T*& data, INI_T* init_data);
  * \param[in] init_value
  * \return True if succeed, else false and the error message will print as well.
  */
-template <typename T, typename INI_T = T>
+template <typename T, typename INI_T>
 bool Initialize2DArray(int row, int col, T**& data, INI_T init_value);
 
 /*!
@@ -66,7 +66,7 @@ bool Initialize2DArray(int row, int col, T**& data, INI_T init_value);
  * \param[in] init_data dimension MUST BE (row, col)
  * \return True if succeed, else false and the error message will print as well.
  */
-template <typename T, typename INI_T = T>
+template <typename T, typename INI_T>
 bool Initialize2DArray(int row, int col, T**& data, INI_T** init_data);
 
 /*!
@@ -176,7 +176,7 @@ void RemoveValueInVector(T val, vector<T>& vec);
 
 
 /************ Implementation of template functions ******************/
-template <typename T, typename INI_T /* = T */>
+template <typename T, typename INI_T>
 bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
     if (nullptr != data) {
         cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
@@ -196,7 +196,7 @@ bool Initialize1DArray(const int row, T*& data, const INI_T init_value) {
     return true;
 }
 
-template <typename T, typename INI_T /* = T */>
+template <typename T, typename INI_T>
 bool Initialize1DArray(const int row, T*& data, INI_T* const init_data) {
     if (nullptr != data) {
         cout << "The input 1D array pointer is not nullptr, without initialized!" << endl;
@@ -219,8 +219,9 @@ bool Initialize1DArray(const int row, T*& data, INI_T* const init_data) {
     return true;
 }
 
-template <typename T, typename INI_T /* = T */>
-bool Initialize2DArray(const int row, const int col, T**& data, const INI_T init_value) {
+template <typename T, typename INI_T>
+bool Initialize2DArray(const int row, const int col, T**& data,
+                       const INI_T init_value) {
     if (nullptr != data) {
         cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
         return false;
@@ -252,8 +253,9 @@ bool Initialize2DArray(const int row, const int col, T**& data, const INI_T init
     return true;
 }
 
-template <typename T, typename INI_T /* = T */>
-bool Initialize2DArray(const int row, const int col, T**& data, INI_T** const init_data) {
+template <typename T, typename INI_T>
+bool Initialize2DArray(const int row, const int col, T**& data,
+                       INI_T** const init_data) {
     if (nullptr != data) {
         cout << "The input 2D array pointer is not nullptr, without initialized!" << endl;
         return false;
@@ -365,6 +367,7 @@ void RemoveValueInVector(const T val, vector<T>& vec) {
         }
     }
 }
+
 } /* utils_array */
 } /* namespace: ccgl */
 

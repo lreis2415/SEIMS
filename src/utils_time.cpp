@@ -191,5 +191,31 @@ void LocalTime(time_t date, struct tm* t) {
     localtime_r(&date, t);
 #endif /* windows */
 }
+
+
+int GetYear(const time_t date) {
+    struct tm date_info;
+    LocalTime(date, &date_info);
+    return date_info.tm_year;
+}
+
+int GetMonth(const time_t date) {
+    struct tm date_info;
+    LocalTime(date, &date_info);
+    return date_info.tm_mon;
+}
+
+int GetDay(const time_t date) {
+    struct tm date_info;
+    LocalTime(date, &date_info);
+    return date_info.tm_mday;
+}
+
+int JulianDay(const time_t date) {
+    struct tm date_info;
+    LocalTime(date, &date_info);
+    return date_info.tm_yday + 1;
+}
+
 } /* namespace: utils_time */
 } /* namespace: ccgl */

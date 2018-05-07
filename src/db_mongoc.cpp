@@ -276,7 +276,7 @@ bson_t* MongoGridFs::GetFileMetadata(string const& gfilename, mongoc_gridfs_t* g
 }
 
 void MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
-                                int& datalength, mongoc_gridfs_t* gfs /* = NULL */) {
+                                size_t& datalength, mongoc_gridfs_t* gfs /* = NULL */) {
     if (gfs_ != NULL) gfs = gfs_;
     if (gfs == NULL) {
         cout << "mongoc_gridfs_t must be provided for MongoGridFs!" << endl;
@@ -287,7 +287,7 @@ void MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
         cout << gfilename << " is not existed or get file timed out!" << endl;
         return;
     }
-    datalength = CVT_INT(mongoc_gridfs_file_get_length(gfile));
+    datalength = mongoc_gridfs_file_get_length(gfile);
     databuf = static_cast<char *>(malloc(datalength));
     mongoc_iovec_t iov;
     iov.iov_base = databuf;
@@ -297,7 +297,7 @@ void MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
     mongoc_gridfs_file_destroy(gfile);
 }
 
-void MongoGridFs::WriteStreamData(const string& gfilename, char*& buf, const int length, const bson_t* p,
+void MongoGridFs::WriteStreamData(const string& gfilename, char*& buf, const size_t length, const bson_t* p,
                                   mongoc_gridfs_t* gfs /* = NULL */) {
     if (gfs_ != NULL) gfs = gfs_;
     if (gfs == NULL) {

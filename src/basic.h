@@ -18,7 +18,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cfloat>
-#include <cstring>
+#include <string>
 /// platform
 #ifdef windows
 // #define _WINSOCKAPI_    // In order to stop windows.h including winsock.h
@@ -126,21 +126,21 @@ namespace ccgl {
 /// x86 and x64 Compatibility
 #if defined CPP_MSVC
 /// 1-byte (8-bit) signed integer
-typedef signed   __int8            vint8_t;
+typedef signed __int8 vint8_t;
 /// 1-byte (8-bit) unsigned integer
-typedef unsigned __int8            vuint8_t;
+typedef unsigned __int8 vuint8_t;
 /// 2-byte (16-bit) signed integer
-typedef signed   __int16           vint16_t;
+typedef signed __int16 vint16_t;
 /// 2-byte (16-bit) unsigned integer
-typedef unsigned __int16           vuint16_t;
+typedef unsigned __int16 vuint16_t;
 /// 4-byte (32-bit) signed integer
-typedef signed   __int32           vint32_t;
+typedef signed __int32 vint32_t;
 /// 4-byte (32-bit) unsigned integer
-typedef unsigned __int32           vuint32_t;
+typedef unsigned __int32 vuint32_t;
 /// 8-byte (64-bit) signed integer
-typedef signed   __int64           vint64_t;
+typedef signed __int64 vint64_t;
 /// 8-byte (64-bit) unsigned integer
-typedef unsigned __int64           vuint64_t;
+typedef unsigned __int64 vuint64_t;
 
 #elif defined CPP_GCC
 typedef          int8_t            vint8_t;
@@ -158,12 +158,12 @@ typedef          vint64_t          vint;
 typedef          vint64_t          vsint;
 typedef          vuint64_t         vuint;
 #else
-typedef          vint32_t          vint;
-typedef          vint32_t          vsint;
-typedef          vuint32_t         vuint;
+typedef vint32_t vint;
+typedef vint32_t vsint;
+typedef vuint32_t vuint;
 #endif
 /// Signed integer representing position.
-typedef          vint64_t          pos_t;
+typedef vint64_t pos_t;
 
 /*!
  * Global utility definitions
@@ -235,9 +235,9 @@ typedef          vint64_t          pos_t;
  */
 class NotCopyable {
 private:
-    NotCopyable(const NotCopyable &);
+    NotCopyable(const NotCopyable&);
 
-    NotCopyable &operator=(const NotCopyable &);
+    NotCopyable& operator=(const NotCopyable&);
 public:
     NotCopyable();
 };
@@ -255,7 +255,7 @@ public:
  * \class Interface
  * \brief Base type of all interfaces. All interface types are encouraged to be virtual inherited.
  */
-class Interface : private NotCopyable {
+class Interface: NotCopyable {
 public:
     virtual ~Interface();
 };
@@ -264,27 +264,27 @@ public:
 * \class ModelException
 * \brief Print the exception message
 */
-class ModelException : public std::exception {
+class ModelException: public std::exception {
 public:
     /*!
     * \brief Constructor
-    * \param[in] class_name, function_name, msg
+    * \param[in] class_name
+    * \param[in] function_name
+    * \param[in] msg
     */
-    ModelException(string class_name, string function_name, string msg) :
-        runtime_error_("Class:" + class_name + "\n" + "Function:" +
-        function_name + "\n" + "Message:" + msg) {};
+    ModelException(const string& class_name, const string& function_name, const string& msg);
 
     /*!
     * \brief Construct error information (string version)
     * \return error information
     */
-    string ToString() { return runtime_error_.what(); };
+    string ToString();
 
     /*!
     * \brief Overload function to construct error information
     * \return \a char* error information
     */
-    const char *what() NOEXCEPT{ return runtime_error_.what(); };
+    const char* what() const NOEXCEPT override;
 
 private:
     std::runtime_error runtime_error_;
@@ -293,14 +293,14 @@ private:
 /*!
  * \brief Check if the IP address is valid.
  */
-bool IsIpAddress(const char *ip);
+bool IsIpAddress(const char* ip);
 
 /*!
  * \brief Writes an entry to the log file. Normally only used for debug
  * \param[in] msg \a string log message
  * \param[in] logpath \a string Optional
  */
-void Log(const string &msg, string logpath = "debugInfo.log");
+void Log(const string& msg, string logpath = "debugInfo.log");
 
 /*!
  * \brief Detect the available threads number
@@ -323,7 +323,7 @@ void SetOpenMPThread(int n);
 /*!
  * \brief Print status messages for Debug
  */
-void StatusMessage(const char *msg);
+void StatusMessage(const char* msg);
 
 /*!
  * \brief Sleep milliseconds

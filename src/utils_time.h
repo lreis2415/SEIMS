@@ -85,6 +85,30 @@ int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day);
  */
 void LocalTime(time_t date, struct tm* t);
 
+/*!
+* \brief Get the year
+* \return int year
+*/
+int GetYear(time_t date);
+
+/*!
+* \brief Get the month
+* \return int month
+*/
+int GetMonth(time_t date);
+
+/*!
+* \brief Get the day
+* \return int day
+*/
+int GetDay(time_t date);
+
+/*!
+* \brief Get the Julian day of one day
+* \return int Julian day
+*/
+int JulianDay(time_t date);
+
 } /* namespace: utils_time */
 } /* namespace: ccgl */
 

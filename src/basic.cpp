@@ -30,6 +30,19 @@ Object::~Object() {
 Interface::~Interface() {
 }
 
+ModelException::ModelException(const string& class_name, const string& function_name, const string& msg):
+    runtime_error_("Class:" + class_name + "\n" + "Function:" +
+                   function_name + "\n" + "Message:" + msg) {
+}
+
+string ModelException::ToString() {
+    return runtime_error_.what();
+}
+
+const char* ModelException::what() const NOEXCEPT {
+    return runtime_error_.what();
+}
+
 bool IsIpAddress(const char* ip) {
     bool rv = true;
     int tmp1, tmp2, tmp3, tmp4;

@@ -1738,11 +1738,11 @@ bool clsRasterData<T, MASK_T>::OutputFileByGdal(const string& filename) {
                 for (int j = 0; j < n_cols; j++) {
                     int index = i * n_cols + j;
                     if (outputdirectly) {
-                        data_1d[index] = raster_2d_[index][lyr];
+                        data_1d[index] = CVT_FLT(raster_2d_[index][lyr]);
                         continue;
                     }
                     if (validnum < n_cells_ && (pos[validnum][0] == i && pos[validnum][1] == j)) {
-                        data_1d[index] = raster_2d_[validnum][lyr];
+                        data_1d[index] = CVT_FLT(raster_2d_[validnum][lyr]);
                         validnum++;
                     }
                 }
@@ -1757,17 +1757,13 @@ bool clsRasterData<T, MASK_T>::OutputFileByGdal(const string& filename) {
         bool newbuilddata = true;
         if (outputdirectly) {
             if (typeid(T) != typeid(float)) {
-                /// copyArray() should be an common used function
-                data_1d = new float[n_cells_];
-                for (int i = 0; i < n_cells_; i++) {
-                    data_1d[i] = CVT_FLT(raster_[i]);
-                }
+                Initialize1DArray(n_cells_, data_1d, raster_);
             } else {
-                data_1d = reinterpret_cast<float *>(raster_);
+                data_1d = reinterpret_cast<float *>(raster_); // DO NOT USE `data_1d = raster_;`
                 newbuilddata = false;
             }
         } else {
-            Initialize1DArray(n_rows * n_cols, data_1d, CVT_FLT(no_data_value_));
+            Initialize1DArray(n_rows * n_cols, data_1d, no_data_value_);
         }
         int validnum = 0;
         if (!outputdirectly) {
@@ -1775,7 +1771,7 @@ bool clsRasterData<T, MASK_T>::OutputFileByGdal(const string& filename) {
                 for (int j = 0; j < n_cols; ++j) {
                     int index = i * n_cols + j;
                     if (validnum < n_cells_ && (pos[validnum][0] == i && pos[validnum][1] == j)) {
-                        data_1d[index] = raster_[validnum];
+                        data_1d[index] = CVT_FLT(raster_[validnum]);
                         validnum++;
                     }
                 }
@@ -1903,7 +1899,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     InitializeReadFunction(filename, calc_pos, mask, use_mask_ext, default_value);
     /// 1. Get stream data and metadata by file name
     char* buf;
-    int length;
+    size_t length;
     gfs->GetStreamData(filename, buf, length);
     bson_t* bmeta = gfs->GetFileMetadata(filename);
     /// 2. Retrieve raster header values
