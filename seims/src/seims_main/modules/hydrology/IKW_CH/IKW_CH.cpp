@@ -131,7 +131,7 @@ bool ImplicitKinematicWave_CH::CheckInputData(void) {
     return true;
 }
 
-void ImplicitKinematicWave_CH::initialOutputs() {
+void ImplicitKinematicWave_CH:: InitialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(MID_IKW_CH, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -298,7 +298,7 @@ int ImplicitKinematicWave_CH::Execute() {
     //check the data
     CheckInputData();
 
-    initialOutputs();
+     InitialOutputs();
     initialOutputs2();
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
@@ -455,7 +455,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
 
 void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     if (m_hCh == NULL || m_qCh == NULL) {
-        initialOutputs();
+         InitialOutputs();
     }
     string sk(key);
     *nRows = m_chNumber;

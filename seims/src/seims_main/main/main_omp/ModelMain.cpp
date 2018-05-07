@@ -1,14 +1,19 @@
 #include "ModelMain.h"
 
-ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
-    m_dataCenter(dataCenter), m_factory(factory), m_readFileTime(0.f),
+#include "utils_time.h"
+#include "text.h"
+
+using namespace ccgl::utils_time;
+
+ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
+    m_dataCenter(data_center), m_factory(factory), m_readFileTime(0.f),
     m_firstRunOverland(true), m_firstRunChannel(true) {
     /// Get SettingInput and SettingOutput
-    m_input = m_dataCenter->getSettingInput();
-    m_output = m_dataCenter->getSettingOutput();
+    m_input = m_dataCenter->GetSettingInput();
+    m_output = m_dataCenter->GetSettingOutput();
     /// Get mask raster data, Output folder name, etc
-    m_maskRaster = m_dataCenter->getMaskData();
-    m_outputPath = m_dataCenter->getOutputScenePath();
+    m_maskRaster = m_dataCenter->GetMaskData();
+    m_outputPath = m_dataCenter->GetOutputScenePath();
     /// Get time-step of daily, hillslope, and channel scales
     m_dtDaily = m_input->getDtDaily();
     m_dtHs = m_input->getDtHillslope();
@@ -20,8 +25,8 @@ ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
     m_nTFValues = int(m_tfValueInputs.size());
     for (int i = 0; i < m_nTFValues; i++) {
         string module_id = m_tfValueInputs[i]->ModuleID;
-        vector<string>::iterator itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
-        int idIndex = distance(m_moduleIDs.begin(), itID);
+        auto itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
+        int idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
         m_tfValueToModuleIdxs.push_back(idIndex);
         string param_name = m_tfValueInputs[i]->Name;
         if (m_tfValueInputs[i]->DependPara != nullptr) {
@@ -29,19 +34,19 @@ ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
             param_name = m_tfValueInputs[i]->DependPara->Name;
         }
         itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
-        idIndex = distance(m_moduleIDs.begin(), itID);
+        idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
         m_tfValueFromModuleIdxs.push_back(idIndex);
         m_tfValueNames.push_back(param_name);
     }
     /// Create module list
-    m_factory->CreateModuleList(m_simulationModules, m_dataCenter->getThreadNumber());
+    m_factory->CreateModuleList(m_simulationModules, m_dataCenter->GetThreadNumber());
     /// Load data from MongoDB, including calibration of value, 1D data, and 2D data.
     m_readFileTime = m_dataCenter->LoadDataForModules(m_simulationModules);
-    size_t n = m_simulationModules.size();
+    int n = CVT_INT(m_simulationModules.size());
     m_executeTime.resize(n, 0.f);
     for (int i = 0; i < n; i++) {
-        SimulationModule* pModule = m_simulationModules[i];
-        switch (pModule->GetTimeStepType()) {
+        SimulationModule* p_module = m_simulationModules[i];
+        switch (p_module->GetTimeStepType()) {
             case TIMESTEP_HILLSLOPE: {
                 m_hillslopeModules.push_back(i);
                 break;
@@ -64,63 +69,63 @@ ModelMain::ModelMain(DataCenterMongoDB* dataCenter, ModuleFactory* factory) :
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
     /// Update model data if the scenario has requested.
-    m_dataCenter->updateParametersByScenario(m_dataCenter->getSubbasinID()); /// TODO
+    m_dataCenter->UpdateParametersByScenario(m_dataCenter->GetSubbasinID()); /// TODO
 }
 
-void ModelMain::StepHillSlope(time_t t, int yearIdx, int subIndex) {
+void ModelMain::StepHillSlope(const time_t t, const int year_idx, const int sub_index) {
     m_dataCenter->UpdateInput(m_simulationModules, t);
     if (m_hillslopeModules.empty()) { return; }
     for (auto it = m_hillslopeModules.begin(); it != m_hillslopeModules.end(); ++it) {
-        m_simulationModules[*it]->SetDate(t, yearIdx);
+        m_simulationModules[*it]->SetDate(t, year_idx);
     }
     for (auto it = m_hillslopeModules.begin(); it != m_hillslopeModules.end(); ++it) {
-        SimulationModule* pModule = m_simulationModules[*it];
+        SimulationModule* p_module = m_simulationModules[*it];
         // cout << "Executing " << m_moduleIDs[*it] << endl; // for debug
         double sub_t1 = TimeCounting();
         if (m_firstRunOverland) {
             m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
         }
-        if (subIndex == 0) {
-            pModule->ResetSubTimeStep();
+        if (sub_index == 0) {
+            p_module->ResetSubTimeStep();
         }
-        pModule->Execute();
+        p_module->Execute();
 
         double sub_t2 = TimeCounting();
-        m_executeTime[*it] += (sub_t2 - sub_t1);
+        m_executeTime[*it] += sub_t2 - sub_t1;
     }
     m_firstRunOverland = false;
 }
 
-void ModelMain::StepChannel(time_t t, int yearIdx) {
+void ModelMain::StepChannel(const time_t t, const int year_idx) {
     if (m_channelModules.empty()) { return; }
     for (auto it = m_channelModules.begin(); it != m_channelModules.end(); ++it) {
-        m_simulationModules[*it]->SetDate(t, yearIdx);
+        m_simulationModules[*it]->SetDate(t, year_idx);
     }
     for (auto it = m_channelModules.begin(); it != m_channelModules.end(); ++it) {
-        SimulationModule* pModule = m_simulationModules[*it];
+        SimulationModule* p_module = m_simulationModules[*it];
         // cout << "Executing " << m_moduleIDs[*it] << endl; // for debug
         if (m_firstRunChannel) {
             m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
         }
         double sub_t1 = TimeCounting();
-        pModule->Execute();
+        p_module->Execute();
         double sub_t2 = TimeCounting();
-        m_executeTime[*it] += (sub_t2 - sub_t1);
+        m_executeTime[*it] += sub_t2 - sub_t1;
     }
     m_firstRunChannel = false;
 }
 
-void ModelMain::StepOverall(time_t startT, time_t endT) {
+void ModelMain::StepOverall(time_t start_t, time_t end_t) {
     if (m_overallModules.empty()) {
         return;
     }
     for (size_t i = 0; i < m_overallModules.size(); i++) {
         int index = m_overallModules[i];
-        SimulationModule* pModule = m_simulationModules[index];
+        SimulationModule* p_module = m_simulationModules[index];
         double sub_t1 = TimeCounting();
-        pModule->Execute();
+        p_module->Execute();
         double sub_t2 = TimeCounting();
-        m_executeTime[index] += (sub_t2 - sub_t1);
+        m_executeTime[index] += sub_t2 - sub_t1;
     }
 }
 
@@ -144,7 +149,7 @@ void ModelMain::Execute() {
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
+    cout << "[TIMESPAN][COMPUTING]\tALL\t" << fixed << setprecision(3) << t2 - t1 << endl;
     OutputExecuteTime();
 }
 
@@ -168,7 +173,7 @@ void ModelMain::SetTransferredValue(int index, float* tfvalues) {
 
 double ModelMain::Output() {
     double t1 = TimeCounting();
-    MongoGridFs* gfs = new MongoGridFs(m_dataCenter->getMongoClient()->getGridFS(m_dataCenter->getModelName(),
+    MongoGridFs* gfs = new MongoGridFs(m_dataCenter->GetMongoClient()->GetGridFs(m_dataCenter->GetModelName(),
                                                                                  DB_TAB_OUT_SPATIAL));
     for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end(); ++it) {
         for (auto itemIt = (*it)->m_PrintItems.begin(); itemIt != (*it)->m_PrintItems.end(); ++itemIt) {
@@ -178,15 +183,15 @@ double ModelMain::Output() {
     }
     delete gfs;
     double t2 = TimeCounting();
-    if (m_dataCenter->getSubbasinID() == 0) {
+    if (m_dataCenter->GetSubbasinID() == 0) {
         // Only print for OpenMP version
-        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << (t2 - t1) << endl;
+        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << fixed << setprecision(3) << t2 - t1 << endl;
     }
-    return (t2 - t1);
+    return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
-    for (int i = 0; i < m_simulationModules.size(); ++i) {
+    for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
         cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t" << fixed << setprecision(3) <<
                 m_executeTime[i] << endl;
     }
@@ -196,14 +201,14 @@ void ModelMain::CheckAvailableOutput() {
     m_output->checkDate(m_input->getStartTime(), m_input->getEndTime());
     for (auto it = m_output->m_printInfos.begin(); it != m_output->m_printInfos.end();) {
         string outputid = (*it)->getOutputID();
-        outputid = trim(outputid);
+        outputid = Trim(outputid);
 
         //try to find module output which match the outputid
         m_factory->FindOutputParameter(outputid, (*it)->m_moduleIndex, (*it)->m_param);
 
         if ((*it)->m_moduleIndex < 0) {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
-            if (m_dataCenter->getSubbasinID() <= 1) {
+            if (m_dataCenter->GetSubbasinID() <= 1) {
                 // Print only once
                 cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
             }
@@ -214,7 +219,7 @@ void ModelMain::CheckAvailableOutput() {
     }
 }
 
-void ModelMain::AppendOutputData(time_t time) {
+void ModelMain::AppendOutputData(const time_t time) {
     for (auto it = m_output->m_printInfos.begin(); it < m_output->m_printInfos.end(); ++it) {
         int iModule = (*it)->m_moduleIndex;
         //find the corresponding output variable and module
@@ -263,7 +268,7 @@ void ModelMain::AppendOutputData(time_t time) {
                         StringMatch(param->BasicName, "RESB") || //reservoir sediment balance
                         StringMatch(param->BasicName, "CHSB") ||
                         StringMatch(param->BasicName, VAR_GWWB) || // groundwater water balance
-                        StringMatch(param->BasicName, VAR_SOWB) // soil water balance
+                        StringMatch(param->BasicName, VAR_SOWB)    // soil water balance
                     ) {
                         // TODO: more conditions will be added in the future.
                         //for modules in which only the results of output subbasins are calculated.

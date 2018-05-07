@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "ReservoirMethod.h"
+
+#include "text.h"
 
 ReservoirMethod::ReservoirMethod() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nMaxSoilLayers(-1),
                                      m_soilLayers(nullptr), m_soilThick(nullptr),
@@ -30,7 +31,7 @@ ReservoirMethod::~ReservoirMethod() {
     if (m_T_GWWB != nullptr) Release2DArray(m_nSubbasins + 1, m_T_GWWB);
 }
 
-void ReservoirMethod::initialOutputs() {
+void ReservoirMethod:: InitialOutputs() {
     CHECK_POSITIVE(MID_GWA_RE, m_nSubbasins);
     int nLen = m_nSubbasins + 1;
     if (m_firstRun) {
@@ -50,15 +51,15 @@ void ReservoirMethod::initialOutputs() {
 
 int ReservoirMethod::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     float QGConvert = 1.f * m_CellWidth * m_CellWidth / m_TimeStep / 1000.f; // mm ==> m3/s
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int subID = *it;
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(subID);
 
         // get percolation from the bottom soil layer at the subbasin scale
-        int curCellsNum = curSub->getCellCount();
-        int* curCells = curSub->getCells();
+        int curCellsNum = curSub->GetCellCount();
+        int* curCells = curSub->GetCells();
         float perco = 0.f;
 #pragma omp parallel for reduction(+:perco)
         for (int i = 0; i < curCellsNum; i++) {
@@ -74,7 +75,7 @@ int ReservoirMethod::Execute() {
         /// will enter groundwater. By LJ. 2016-9-2
         float ratio2gw = 1.f;
         perco *= ratio2gw;
-        curSub->setPerco(perco);
+        curSub->SetPerco(perco);
         //calculate EG, i.e. Revap
         float revap = 0.f;
         float fPET = 0.f;
@@ -88,7 +89,7 @@ int ReservoirMethod::Execute() {
         fES = Sum(curCellsNum, curCells, m_D_ES) / curCellsNum;
         plantEP = Sum(curCellsNum, curCells, m_plantEP) / curCellsNum;
 
-        curSub->setPET(fPET);
+        curSub->SetPet(fPET);
 
         //if percolation < 0.01, EG will be 0. if percolation >= 0.01, EG will be calculated by equation (why? this is not used currently. Junzhi Liu 2016-08-14).
         //if (perco >= 0.01f)
@@ -110,14 +111,14 @@ int ReservoirMethod::Execute() {
         //}
         //else
         //	curSub->setIsRevapChanged(false);
-        curSub->setEG(revap);
+        curSub->SetEg(revap);
 
         //deep percolation
         float percoDeep = perco * m_dp_co;
-        curSub->setPerde(percoDeep);
+        curSub->SetPerde(percoDeep);
 
         // groundwater runoff (mm)
-        float slopeCoef = curSub->getSlopeCoef();
+        float slopeCoef = curSub->GetSlopeCoef();
         float kg = m_Kg * slopeCoef;
         float groundRunoff = kg * pow(m_gwStore[subID], m_Base_ex); //mm
         if (groundRunoff != groundRunoff) {
@@ -135,7 +136,7 @@ int ReservoirMethod::Execute() {
         if (m_VgroundwaterFromBankStorage != nullptr) {
             gwBank = m_VgroundwaterFromBankStorage[subID];
         }
-        groundStorage += gwBank / curSub->getArea() * 1000.f;
+        groundStorage += gwBank / curSub->GetArea() * 1000.f;
 
         groundStorage = max(groundStorage, 0.f);
         if (groundStorage > m_GWMAX) {
@@ -143,9 +144,9 @@ int ReservoirMethod::Execute() {
             groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
             groundStorage = m_GWMAX;
         }
-        curSub->setRG(groundRunoff);
-        curSub->setGW(groundStorage);
-        curSub->setQG(groundQ);
+        curSub->SetRg(groundRunoff);
+        curSub->SetGw(groundStorage);
+        curSub->SetQg(groundQ);
         if (groundStorage != groundStorage) {
             ostringstream oss;
             oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwStore[subID]
@@ -153,21 +154,21 @@ int ReservoirMethod::Execute() {
                     m_Base_ex << "\t" << slopeCoef << endl;
             throw ModelException("Subbasin", "setInputs", oss.str());
         }
-        m_T_Perco[subID] = curSub->getPerco();
-        m_T_Revap[subID] = curSub->getEG();
-        m_T_PerDep[subID] = curSub->getPerde();
-        m_T_RG[subID] = curSub->getRG(); //get rg of specific subbasin
-        m_T_QG[subID] = curSub->getQG(); //get qg of specific subbasin
-        m_petSubbasin[subID] = curSub->getPET();
-        m_gwStore[subID] = curSub->getGW();
+        m_T_Perco[subID] = curSub->GetPerco();
+        m_T_Revap[subID] = curSub->GetEg();
+        m_T_PerDep[subID] = curSub->GetPerde();
+        m_T_RG[subID] = curSub->GetRg(); //get rg of specific subbasin
+        m_T_QG[subID] = curSub->GetQg(); //get qg of specific subbasin
+        m_petSubbasin[subID] = curSub->GetPet();
+        m_gwStore[subID] = curSub->GetGw();
     }
 
-    m_T_Perco[0] = m_subbasinsInfo->subbasin2basin(VAR_PERCO);
-    m_T_Revap[0] = m_subbasinsInfo->subbasin2basin(VAR_REVAP);
-    m_T_PerDep[0] = m_subbasinsInfo->subbasin2basin(VAR_PERDE);
-    m_T_RG[0] = m_subbasinsInfo->subbasin2basin(VAR_RG); // get rg of entire watershed
-    m_gwStore[0] = m_subbasinsInfo->subbasin2basin(VAR_GW_Q);
-    m_T_QG[0] = m_subbasinsInfo->subbasin2basin(VAR_QG); // get qg of entire watershed
+    m_T_Perco[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERCO);
+    m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP);
+    m_T_PerDep[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERDE);
+    m_T_RG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_RG); // get rg of entire watershed
+    m_gwStore[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
+    m_T_QG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_QG); // get qg of entire watershed
 
     // output to GWWB
     for (int i = 0; i <= m_nSubbasins; i++) {
@@ -182,12 +183,12 @@ int ReservoirMethod::Execute() {
     // update soil moisture
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         Subbasin* sub = m_subbasinsInfo->GetSubbasinByID(*it);
-        int* cells = sub->getCells();
-        int nCells = sub->getCellCount();
+        int* cells = sub->GetCells();
+        int nCells = sub->GetCellCount();
         int index = 0;
         for (int i = 0; i < nCells; i++) {
             index = cells[i];
-            m_soilStorage[index][static_cast<int>(m_soilLayers[index]) - 1] += sub->getEG();
+            m_soilStorage[index][static_cast<int>(m_soilLayers[index]) - 1] += sub->GetEg();
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }
@@ -242,9 +243,9 @@ bool ReservoirMethod::CheckInputSize(const char* key, int n) {
 // set value
 void ReservoirMethod::SetValue(const char* key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = static_cast<int>(value); }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
+    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = CVT_INT(value); }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = CVT_INT(value); }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = CVT_INT(value); }
     else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
     else if (StringMatch(sk, VAR_KG)) { m_Kg = value; }
     else if (StringMatch(sk, VAR_Base_ex)) { m_Base_ex = value; }
@@ -312,7 +313,7 @@ void ReservoirMethod::SetSubbasins(clsSubbasins* subbasins) {
 }
 
 void ReservoirMethod::GetValue(const char* key, float* value) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_RG) && m_subbasinID > 0) { *value = m_T_RG[m_subbasinID]; }
     else if (StringMatch(sk, VAR_SBQG) && m_subbasinID > 0) { *value = m_T_QG[m_subbasinID]; }
@@ -324,7 +325,7 @@ void ReservoirMethod::GetValue(const char* key, float* value) {
 }
 
 void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_REVAP)) {
         *data = m_D_Revap;
@@ -347,7 +348,7 @@ void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
 }
 
 void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_GWWB)) {
         *data = m_T_GWWB;
@@ -361,8 +362,8 @@ void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float**
 void ReservoirMethod::setSubbasinInfos() {
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
-        if (curSub->getSlope() <= 0.f) {
-            curSub->setSlope(m_Slope);
+        if (curSub->GetSlope() <= 0.f) {
+            curSub->SetSlope(m_Slope);
         }
     }
     m_subbasinsInfo->SetSlopeCoefficient();

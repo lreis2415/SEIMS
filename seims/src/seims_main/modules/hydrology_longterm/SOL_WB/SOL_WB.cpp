@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "SOL_WB.h"
+
+#include "text.h"
 
 SOL_WB::SOL_WB() : m_nCells(-1), m_nSoilLayers(-1), m_soilLayers(nullptr), m_soilThick(nullptr), m_soilZMX(nullptr),
                    m_pNet(nullptr), m_Infil(nullptr), m_ES(nullptr), m_Revap(nullptr),
@@ -14,7 +15,7 @@ SOL_WB::~SOL_WB() {
     if (m_soilWaterBalance != nullptr) Release2DArray(m_nSubbasins + 1, m_soilWaterBalance);
 }
 
-void SOL_WB::initialOutputs() {
+void SOL_WB:: InitialOutputs() {
     CHECK_POSITIVE(MID_SOL_WB, m_nSubbasins);
     if (m_soilWaterBalance == nullptr) Initialize2DArray(m_nSubbasins + 1, 16, m_soilWaterBalance, 0.f);
 }
@@ -32,12 +33,12 @@ void SOL_WB::SetValue(const char *key, float data) {
     }
 }
 
-void SOL_WB::setValueToSubbasins() {
+void SOL_WB::SetValueToSubbasins() {
     if (m_subbasinsInfo != nullptr) {
         for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
             Subbasin *curSub = m_subbasinsInfo->GetSubbasinByID(*it);
-            int *cells = curSub->getCells();
-            int cellsNum = curSub->getCellCount();
+            int *cells = curSub->GetCells();
+            int cellsNum = curSub->GetCellCount();
             float ri = 0.f; // total subsurface runoff of soil profile (mm)
             float sm = 0.f; // total soil moisture of soil profile (mm)
             float pcp = 0.f, netPcp = 0.f, depET = 0.f, infil = 0.f;
@@ -162,10 +163,10 @@ void SOL_WB::SetSubbasins(clsSubbasins *subbasins) {
 }
 
 void SOL_WB::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SOWB)) {
-        setValueToSubbasins();
+        SetValueToSubbasins();
         *nRows = m_nSubbasins + 1;
         *nCols = 16;
         *data = m_soilWaterBalance;

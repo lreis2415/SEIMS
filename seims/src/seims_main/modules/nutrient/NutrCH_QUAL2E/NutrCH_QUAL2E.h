@@ -15,7 +15,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup NutrCH_QUAL2E
  * \ingroup Nutrient
  * \brief Calculates in-stream nutrient transformations with QUAL2E method.
@@ -34,23 +33,23 @@ public:
 
     ~NutrCH_QUAL2E();
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual void SetValueByIndex(const char *key, int index, float data);
+    void SetValueByIndex(const char *key, int index, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void SetReaches(clsReaches *reaches);
+    void SetReaches(clsReaches *reaches) override;
 
-    virtual void SetScenario(Scenario *sce);
+    void SetScenario(Scenario *sce) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
+    TimeStepType GetTimeStepType() override { return TIMESTEP_CHANNEL; };
 
 private:
     /*!
@@ -66,7 +65,7 @@ private:
     * \param[in] n The input data dimension
     * \return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *, int);
+    bool CheckInputSize(const char *key, int n);
 
     bool CheckInputCellSize(const char *key, int n);
 
@@ -90,7 +89,7 @@ private:
     /// Calculate average day length, solar radiation, and temperature for each channel
     void ParametersSubbasinForChannel();
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     void PointSourceLoading();
 private:

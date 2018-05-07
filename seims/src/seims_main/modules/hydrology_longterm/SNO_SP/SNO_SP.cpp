@@ -1,8 +1,9 @@
-#include "seims.h"
-#include "ClimateParams.h"
-#include "PlantGrowthCommon.h"
-
 #include "SNO_SP.h"
+
+#include "text.h"
+#include "PlantGrowthCommon.h"
+#include "utils_time.h"
+
 
 SNO_SP::SNO_SP() : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE), m_tsnow(NODATA_VALUE),
                    m_lagSnow(NODATA_VALUE), m_csnow6(NODATA_VALUE), m_csnow12(NODATA_VALUE),
@@ -12,7 +13,7 @@ SNO_SP::SNO_SP() : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE), m_ts
                    m_SE(nullptr), m_SR(nullptr), m_SM(nullptr), m_SA(nullptr), m_packT(nullptr) {
 }
 
-SNO_SP::~SNO_SP(void) {
+SNO_SP::~SNO_SP() {
     if (m_SM != nullptr) Release1DArray(m_SM);
     if (m_SA != nullptr) Release1DArray(m_SA);
     if (m_packT != nullptr) Release1DArray(m_packT);
@@ -34,7 +35,7 @@ bool SNO_SP::CheckInputData() {
     return true;
 }
 
-void SNO_SP::initialOutputs() {
+void SNO_SP::InitialOutputs() {
     CHECK_POSITIVE(MID_SNO_SP, m_nCells);
     if (nullptr == m_SM) Initialize1DArray(m_nCells, m_SM, 0.f);
     if (nullptr == m_SA) Initialize1DArray(m_nCells, m_SA, 0.f);
@@ -49,15 +50,15 @@ void SNO_SP::initialOutputs() {
 
 int SNO_SP::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     /// determine the shape parameters for the equation which describes area of
     /// snow cover as a function of amount of snow
     if (m_snowCoverCoef1 == NODATA_VALUE || m_snowCoverCoef2 == NODATA_VALUE) {
-        PGCommon::getScurveShapeParameter(0.5f, 0.95f, m_snowCover50, 0.95f, &m_snowCoverCoef1, &m_snowCoverCoef2);
+        GetScurveShapeParameter(0.5f, 0.95f, m_snowCover50, 0.95f, &m_snowCoverCoef1, &m_snowCoverCoef2);
     }
     /// adjust melt factor for time of year, i.e., smfac in snom.f
     // which only need to computed once.
-    int d = JulianDay(m_date);
+    int d = utils_time::JulianDay(m_date);
     float sinv = float(sin(2.f * PI / 365.f * (d - 81.f)));
     float cmelt = (m_csnow6 + m_csnow12) / 2.f + (m_csnow6 - m_csnow12) / 2.f * sinv;
 #pragma omp parallel for
@@ -143,7 +144,7 @@ void SNO_SP::Set1DData(const char *key, int n, float *data) {
 }
 
 void SNO_SP::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNME)) { *data = m_SM; }
     else if (StringMatch(s, VAR_SNAC)) { *data = m_SR; }

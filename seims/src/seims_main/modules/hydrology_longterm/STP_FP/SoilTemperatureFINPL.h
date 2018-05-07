@@ -11,7 +11,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /*!
  * \defgroup STP_FP
  * \ingroup Hydrology_longterm
@@ -31,13 +30,13 @@ public:
 
     ~SoilTemperatureFINPL();
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual int Execute();
+    int Execute() override;
 
 private:
     /**
@@ -59,7 +58,7 @@ private:
     /*!
     * \brief Initialize output variables for the first run of the entire simulation
     */
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     /// from parameter database

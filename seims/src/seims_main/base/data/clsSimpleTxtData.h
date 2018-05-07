@@ -1,43 +1,40 @@
 /*!
  * \brief A simple text read class
- * \author Junzhi Liu
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 1.0
  * \date June 2010
  */
 #ifndef SEIMS_SIMPLE_TEXT_H
 #define SEIMS_SIMPLE_TEXT_H
-#include "utilities.h"
+#include "basic.h"
 
-using namespace std;
+using namespace ccgl;
 
 /*!
  * \ingroup data
  * \class clsSimpleTxtData
- *
  * \brief read string line from text file
  *
- *
- *
  */
-class clsSimpleTxtData: NotCopyable {
+class clsSimpleTxtData: Interface {
 public:
     //! Constructor, from text file read lines data
-    clsSimpleTxtData(string fileName);
+    explicit clsSimpleTxtData(const string& filename);
 
     //! Destructor
     ~clsSimpleTxtData();
 
     //! Get line number and data
-    void getData(int* nRow, float** data);
+    void GetData(int* n_row, float** data);
 
     //! Output lines data to \a ostream
-    void dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
 private:
     //! line number
-    int m_row;
+    int row_;
     //! lines data
-    float* m_data;
+    float* data_;
 };
 
 #endif /* SEIMS_SIMPLE_TEXT_H */

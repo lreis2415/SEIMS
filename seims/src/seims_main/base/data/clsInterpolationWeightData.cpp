@@ -9,21 +9,21 @@
 using namespace utils_array;
 using namespace utils_string;
 
-clsITPWeightData::clsITPWeightData(MongoGridFs* gfs, const string& filename) :
+ItpWeightData::ItpWeightData(MongoGridFs* gfs, const string& filename) :
     filename_(filename), itp_weight_data_(nullptr), n_rows_(-1), n_cols_(-1) {
     ReadFromMongoDB(gfs, filename_);
 }
 
-clsITPWeightData::~clsITPWeightData() {
+ItpWeightData::~ItpWeightData() {
     if (nullptr != itp_weight_data_) { Release1DArray(itp_weight_data_); }
 }
 
-void clsITPWeightData::GetWeightData(int* n, float** data) {
+void ItpWeightData::GetWeightData(int* n, float** data) {
     *n = n_rows_;
     *data = itp_weight_data_;
 }
 
-void clsITPWeightData::Dump(std::ostream* fs) {
+void ItpWeightData::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
     int index = 0;
     for (int i = 0; i < n_rows_; i++) {
@@ -35,7 +35,7 @@ void clsITPWeightData::Dump(std::ostream* fs) {
     }
 }
 
-void clsITPWeightData::Dump(const string& filename) {
+void ItpWeightData::Dump(const string& filename) {
     std::ofstream fs;
     fs.open(filename.c_str(), std::ios::out);
     if (fs.is_open()) {
@@ -44,7 +44,7 @@ void clsITPWeightData::Dump(const string& filename) {
     }
 }
 
-void clsITPWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
+void ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
     string wfilename = filename;
     vector<string> gfilenames;
     gfs->GetFileNames(gfilenames);

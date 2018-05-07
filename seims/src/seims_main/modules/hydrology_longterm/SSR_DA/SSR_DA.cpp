@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "SSR_DA.h"
+
+#include "text.h"
 
 SSR_DA::SSR_DA() : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_CellWidth(-1.f), m_nSubbasin(-1), m_subbasinID(-1),
                    m_frozenT(NODATA_VALUE), m_ki(NODATA_VALUE),
@@ -125,7 +126,7 @@ bool SSR_DA::FlowInSoil(int id) {
 
 int SSR_DA::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nRoutingLayers; iLayer++) {
         // There are not any flow relationship within each routing layer.
@@ -267,7 +268,7 @@ void SSR_DA::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 void SSR_DA::GetValue(const char *key, float *value) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     /// For MPI version to transfer data across subbasins
     if (StringMatch(sk, VAR_SBIF) && m_subbasinID > 0) { *value = m_qiSubbasin[m_subbasinID]; }
@@ -277,7 +278,7 @@ void SSR_DA::GetValue(const char *key, float *value) {
 }
 
 void SSR_DA::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBIF)) { *data = m_qiSubbasin; }
     else {
@@ -287,7 +288,7 @@ void SSR_DA::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SSR_DA::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;
@@ -330,7 +331,7 @@ bool SSR_DA::CheckInputData() {
     return true;
 }
 
-void SSR_DA::initialOutputs() {
+void SSR_DA:: InitialOutputs() {
     CHECK_POSITIVE(MID_SSR_DA, m_nCells);
     CHECK_POSITIVE(MID_SSR_DA, m_nSubbasin);
     if (nullptr == m_qiSubbasin) Initialize1DArray(m_nSubbasin + 1, m_qiSubbasin, 0.f);

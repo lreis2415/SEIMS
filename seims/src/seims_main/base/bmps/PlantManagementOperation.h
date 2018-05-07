@@ -6,12 +6,13 @@
 #ifndef SEIMS_PLANT_MANAGEMENT_OPERATION_H
 #define SEIMS_PLANT_MANAGEMENT_OPERATION_H
 
+#include "basic.h"
 #include "BMPText.h"
-#include "utilities.h"
 
-using namespace std;
+using namespace ccgl;
+using std::ostream;
 
-namespace MainBMP {
+namespace bmps {
 /*!
  * \ingroup MainBMP
  * \brief Base namespace for Plant management related operations
@@ -23,7 +24,7 @@ namespace PlantManagement {
  * \ingroup PlantManagement
  * \brief Base class of plant management operation
  */
-class PlantManagementOperation: NotCopyable {
+class PlantManagementOperation: Interface {
 public:
     /*!
      * \brief Constructor
@@ -38,16 +39,8 @@ public:
     PlantManagementOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                              float* parameters);
 
-    //! virtual Destructor, there are no allocated memory to release!
-#if defined(_MSC_VER) && (_MSC_VER <= 1600)
-    virtual ~PlantManagementOperation() {
-    };
-#else
-    virtual ~PlantManagementOperation() = default;
-#endif /* less than VS2010 */
-
     //! Output
-    virtual void dump(ostream* fs) = 0;
+    virtual void dump(std::ostream* fs) = 0;
 
     bool UseBaseHUSC() { return m_useBaseHUSC; }
 
@@ -104,7 +97,7 @@ public:
     float CNOP() { return m_CNOP; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_plantID;
@@ -141,7 +134,7 @@ public:
     float IRRSQfrac() { return m_irrSq; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_irrSrc;
@@ -170,7 +163,7 @@ public:
     float FertilizerSurfaceFrac() { return m_frtSurface; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_fertID;
@@ -198,7 +191,7 @@ public:
     float PesticideDepth() { return m_pstDep; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_pestID;
@@ -225,7 +218,7 @@ public:
     float StoverFracRemoved() { return m_fracHarvk; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     float m_CNOP;
@@ -249,7 +242,7 @@ public:
     int TillageID() { return m_tillID; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_tillID;
@@ -275,7 +268,7 @@ public:
     float HarvestIndexBiomass() { return m_hiBms; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     float m_harvEff;
@@ -295,7 +288,7 @@ public:
     //virtual ~KillOperation() = default;
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 };
 
 /*!
@@ -320,7 +313,7 @@ public:
     float ManureDeposited() { return m_manureKg; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_grzDays;
@@ -357,7 +350,7 @@ public:
     float SurfaceRunoffRatio() { return m_irrAsq; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_wstrsID;
@@ -396,7 +389,7 @@ public:
     float SurfaceFracApplied() { return m_afrtSurface; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_afertID;
@@ -429,7 +422,7 @@ public:
     float MinFitDepth() { return m_minFitDepth; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_impTrig;
@@ -459,7 +452,7 @@ public:
     float FertilizerKg() { return m_cfrtKg; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_cfertID;
@@ -489,7 +482,7 @@ public:
     int PesticideDays() { return m_pstDays; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     int m_ipstID;
@@ -512,7 +505,7 @@ public:
     float FractionLeft() { return m_burnFrlb; }
 
     //! Output
-    virtual void dump(ostream* fs);
+    void dump(std::ostream* fs) override;
 
 private:
     float m_burnFrlb;

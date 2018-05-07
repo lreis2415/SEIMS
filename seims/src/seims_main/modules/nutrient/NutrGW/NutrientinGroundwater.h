@@ -9,7 +9,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup NutrGW
  * \ingroup Nutrient
  * \brief Calculates the nitrate and soluble phosphorus loading contributed by groundwater flow.
@@ -29,19 +28,19 @@ public:
 
     ~NutrientinGroundwater();
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
 
-    virtual void SetReaches(clsReaches *reaches);
+    void SetReaches(clsReaches *reaches) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void SetSubbasins(clsSubbasins *subbasins);
+    void SetSubbasins(clsSubbasins *subbasins) override;
 
 private:
     /*!
@@ -60,7 +59,7 @@ private:
     bool CheckInputSize(const char *key, int n);
 
     /// initial outputs
-    void initialOutputs();
+    void  InitialOutputs();
 private:
     /// current subbasin ID, 0 for the entire watershed
     int m_subbasinID;

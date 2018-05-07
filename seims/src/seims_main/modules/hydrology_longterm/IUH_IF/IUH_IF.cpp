@@ -59,7 +59,7 @@ bool IUH_IF::CheckInputData(void) {
     return true;
 }
 
-void IUH_IF::initialOutputs() {
+void IUH_IF:: InitialOutputs() {
     if (this->m_nCells <= 0 || this->m_subbasin == NULL) {
         throw ModelException("IUH_IF", "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
@@ -98,7 +98,7 @@ void IUH_IF::initialOutputs() {
 int IUH_IF::Execute() {
     this->CheckInputData();
 
-    this->initialOutputs();
+    this-> InitialOutputs();
 
 #pragma omp parallel for
     for (int n = 0; n < m_nsub + 1; n++) {

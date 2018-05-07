@@ -5,14 +5,13 @@
  *        This module is STORM_MODE and LONGTERM_MODE compatibility.
  * \author Liangjun Zhu
  * \date Apr 2017
- * 
+ *
  */
 #ifndef SEIMS_MODULE_PI_MCS_H
 #define SEIMS_MODULE_PI_MCS_H
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup PI_MCS
  * \ingroup Hydrology
  * \brief Module for Precipitation Interception module based on Maximum Canopy Storage.
@@ -29,13 +28,13 @@ public:
 
     ~clsPI_MCS();
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    void Set1DData(const char *key, int nRows, float *data) override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Get1DData(const char *key, int *nRows, float **data);
+    void Get1DData(const char *key, int *nRows, float **data) override;
 
-    virtual int Execute();
+    int Execute() override;
 
 private:
     /**
@@ -57,7 +56,7 @@ private:
     /*!
      * \brief Initialize output variables for the first run of the entire simulation
      */
-    void initialOutputs();
+    void InitialOutputs();
 
 private:
     /* Parameters from database */

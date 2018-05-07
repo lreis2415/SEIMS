@@ -1,6 +1,8 @@
-#include "Nutrient_Transformation.h"
-
 #include "api.h"
+
+#include "Nutrient_Transformation.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new Nutrient_Transformation();

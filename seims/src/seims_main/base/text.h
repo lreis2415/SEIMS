@@ -21,9 +21,9 @@
 
 //! Climate data type
 #define DataType_Precipitation                 "P"             //1, Suffix of precipitation data
-#define DataType_MeanTemperature               "TMEAN"         //2
-#define DataType_MinimumTemperature            "TMIN"          //3
-#define DataType_MaximumTemperature            "TMAX"          //4
+#define DataType_MeanTemperature               "TMEAN"         //2       /// m_tMean
+#define DataType_MinimumTemperature            "TMIN"          //3       /// m_tMin
+#define DataType_MaximumTemperature            "TMAX"          //4       /// m_tMax
 #define DataType_PotentialEvapotranspiration   "PET"           //5
 #define DataType_SolarRadiation                "SR"            //6
 #define DataType_WindSpeed                     "WS"            //7
@@ -600,8 +600,8 @@
 #define VAR_DRYDEP_NH4 "drydep_nh4"                 /// atmospheric dry deposition of ammonia (kg/ha)
 #define VAR_DRYDEP_NO3 "drydep_no3"                 /// atmospheric dry deposition of nitrates (kg/ha)
 #define VAR_EP_CH "Ep_ch"                           /// reach evaporation adjustment factor
-#define VAR_EPCO "epco"                              /// plant water uptake compensation factor
-#define VAR_ESCO "esco"
+#define VAR_EPCO "epco" /// m_epco                  /// plant water uptake compensation factor
+#define VAR_ESCO "esco" /// m_esco
 #define VAR_EVLAI "evlai"
 #define VAR_POT_TILEMM "pot_tilemm"
 #define VAR_POT_NO3DECAY "pot_no3l"
@@ -650,7 +650,7 @@
 #define VAR_IMPOUND_TRIG "impound_trig"
 #define VAR_POT_VOLMAXMM "pot_volmaxmm"
 #define VAR_POT_VOLLOWMM "pot_vollowmm"
-#define VAR_INET "INET"                             /// evaporation from the interception storage
+#define VAR_INET "INET" /// m_IntcpET                            /// evaporation from the interception storage
 #define VAR_INFIL "INFIL"                           /// Infiltration
 #define VAR_INFILCAPSURPLUS "INFILCAPSURPLUS"
 #define VAR_INIT_IS "Init_IS"
@@ -676,7 +676,7 @@
 #define VAR_KG "Kg"                                 /// Baseflow recession coefficient
 #define VAR_KI "Ki"
 #define VAR_LAG_SNOW "lag_snow"
-#define VAR_LAIDAY "LAIDAY"
+#define VAR_LAIDAY "LAIDAY" /// m_lai
 #define VAR_LAIINIT "LAI_INIT" /// initial LAI at the beginning of the simulation
 #define VAR_LAIMAXFR "laimaxfr"
 #define VAR_LAIMX1 "LAIMX1"
@@ -748,7 +748,7 @@
 #define VAR_PERCO_P_GW "perco_p_gw"
 #define VAR_PERCO "Perco"                     /// the amount of water percolated from the soil water reservoir
 #define VAR_PERDE "perde"
-#define VAR_PET "PET"                           /// Potential Evapotranspiration of day
+#define VAR_PET "PET" /// m_pet                          /// Potential Evapotranspiration of day
 #define VAR_PET_HCOEF "HCoef_pet"                   /// Coefficient related to radiation used in Hargreaves method
 #define VAR_PHOSKD "phoskd"
 #define VAR_PHUBASE "PHUBASE"
@@ -854,7 +854,7 @@
 #define VAR_SHALLST "shallst"
 #define VAR_SILT "silt"
 #define VAR_SLOPE "slope"
-#define VAR_SNAC "SNAC"
+#define VAR_SNAC "SNAC" /// m_snowAccum
 #define VAR_SNME "SNME"
 #define VAR_SNO3UP "sno3up"
 #define VAR_SNOCOVMX "SNOCOVMX"
@@ -866,7 +866,7 @@
 #define VAR_SOET "SOET"                             /// evaporation from the soil water storage, es_day in SWAT
 #define VAR_SOIL_T10 "soil_t10"
 #define VAR_SOILDEPTH "soilDepth"                       /// depth to bottom of soil layer
-#define VAR_SOILLAYERS "soillayers"
+#define VAR_SOILLAYERS "soillayers" /// m_nSoilLayers
 #define VAR_SOILTHICK "soilthick"
 #define VAR_SOL_ACTP "sol_actp"                     /// amount of phosphorus stored in the active mineral phosphorus pool(kg P/ha)
 #define VAR_SOL_ALB "sol_alb"               /// albedo when soil is moist

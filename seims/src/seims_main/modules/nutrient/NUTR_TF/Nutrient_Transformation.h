@@ -23,8 +23,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /*!
  * \class Nutrient_Transformation
  * \ingroup NUTR_TF
@@ -39,19 +37,19 @@ public:
 
     ~Nutrient_Transformation();
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
 private:
 
@@ -76,7 +74,7 @@ private:
     *        Execute when CSWAT = 0, rewrite from nminrl.f of SWAT
     * \return void
     */
-    void Mineralization_StaticCarbonMethod(int i);
+    void MineralizationStaticCarbonMethod(int i);
 
     /*!
     * \brief simulates organic C, N, and P cycling in soil using C-FARM one carbon model
@@ -84,14 +82,14 @@ private:
     * \TODO THIS IS ON THE TODO LIST.
     * \return void
     */
-    void Mineralization_CFARMOneCarbonModel(int i);
+    void MineralizationCfarmOneCarbonModel(int i);
 
     /*!
     * \brief simulates organic C, N, and P cycling in soil using CENTURY model
     *        Execute when CSWAT = 2, rewrite from carbon_zhang.f90 and ndenit.f of SWAT
     * \return void
     */
-    void Mineralization_CENTURYModel(int i);
+    void MineralizationCenturyModel(int i);
 
     /*!
     * \brief estimates daily mineralization (NH3 to NO3) and volatilization of NH3.
@@ -109,7 +107,7 @@ private:
     void CalculatePflux(int i);
 
     /// initial outputs
-    void initialOutputs();
+    void  InitialOutputs();
 private:
     /// cell width of grid map (m)
     float m_cellWidth;

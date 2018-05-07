@@ -1,6 +1,8 @@
-#include "ReservoirMethod.h"
-
 #include "api.h"
+
+#include "ReservoirMethod.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new ReservoirMethod();

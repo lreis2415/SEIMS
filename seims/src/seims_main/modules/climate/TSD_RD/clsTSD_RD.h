@@ -8,7 +8,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup TSD_RD
  * \ingroup Climate
  * \brief Read Time Series Data
@@ -18,20 +17,20 @@ using namespace std;
  * \ingroup TSD_RD
  * \brief Read Time Series Data, e.g., Maximum temperature.
  */
-class clsTSD_RD : public SimulationModule {
+class clsTSD_RD: public SimulationModule {
 public:
     clsTSD_RD();
 
     ~clsTSD_RD();
 
-    void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char* key, int n, float* data) override;
 
-    void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char* key, int* n, float** data) override;
 
 private:
     /// data row number, i.e., number of stations
     int m_nStations;
     /// time series data
-    float *m_stationData;
+    float* m_stationData;
 };
 #endif /* SEIMS_MODULE_TSD_RD_H */

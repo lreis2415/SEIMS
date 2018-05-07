@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "NutrCH_QUAL2E.h"
 
-using namespace std;
+#include "text.h"
 
 NutrCH_QUAL2E::NutrCH_QUAL2E() :
 //input
@@ -246,7 +245,7 @@ void NutrCH_QUAL2E::SetValue(const char *key, float value) {
 void NutrCH_QUAL2E::SetValueByIndex(const char *key, int index, float data) {
     if (m_subbasinID == 0) return; // Not for omp version
     if (index <= 0 || index > m_nReaches) return; // index should belong 1 ~ m_nreach
-    if (nullptr == m_chOutAlgae) initialOutputs();
+    if (nullptr == m_chOutAlgae)  InitialOutputs();
     string sk(key);
     /// IN/OUTPUT variables
     // Concentration (mg/L) and amount (kg)
@@ -399,7 +398,7 @@ void NutrCH_QUAL2E::SetScenario(Scenario *sce) {
     }
 }
 
-void NutrCH_QUAL2E::initialOutputs() {
+void NutrCH_QUAL2E:: InitialOutputs() {
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_nReaches);
     if (nullptr == m_chOutAlgae) {
         m_chSatDOx = 0.f;
@@ -508,7 +507,7 @@ void NutrCH_QUAL2E::PointSourceLoading() {
 
 int NutrCH_QUAL2E::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     // load point source loadings from Scenarios
     PointSourceLoading();
     // Calculate average day length, solar radiation, and temperature for each channel
@@ -1100,7 +1099,7 @@ void NutrCH_QUAL2E::GetValue(const char *key, float *value) {
 }
 
 void NutrCH_QUAL2E::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nReaches + 1;
     if (StringMatch(sk, VAR_CH_ALGAE)) { *data = m_chOutAlgae; }

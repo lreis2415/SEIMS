@@ -1,61 +1,73 @@
 #include "clsSimpleTxtData.h"
 
-clsSimpleTxtData::clsSimpleTxtData(string fileName) : m_row(0), m_data(nullptr) {
-    if (!FileExists(fileName)) {
-        throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + fileName +
+#include <fstream>
+
+#include "basic.h"
+#include "utils_array.h"
+#include "utils_string.h"
+#include "utils_filesystem.h"
+
+using namespace ccgl;
+using namespace utils_array;
+using namespace utils_string;
+using namespace utils_filesystem;
+
+clsSimpleTxtData::clsSimpleTxtData(const string& filename) : row_(0), data_(nullptr) {
+    if (!FileExists(filename)) {
+        throw ModelException("clsSimpleTxtData", "ReadFile", "The file " + filename +
                              " does not exist or has not read permission.");
     }
-
-    ifstream myfile;
-    myfile.open(fileName.c_str(), ifstream::in);
+    std::ifstream myfile;
+    myfile.open(filename.c_str(), std::ifstream::in);
     string line;
-
+    char* end = nullptr;
     //get number of lines
     if (myfile.is_open()) {
         vector<float> data;
-
         while (!myfile.eof()) {
             if (myfile.good()) {
                 getline(myfile, line);
                 TrimSpaces(line);
-                if ((!line.empty()) && (line[0] != '#')) // ignore comments and empty lines
-                {
+                if (!line.empty() && line[0] != '#') {
+                    // ignore comments and empty lines
                     vector<string> tokens = SplitString(line, '|');
                     if (!tokens.empty()) {
                         TrimSpaces(tokens[0]);
-                        data.push_back(float(atof(tokens[0].c_str()))); //add data
+                        if (tokens[0].find_first_of("0123456789") == string::npos) {
+                            continue;
+                        }
+                        data.emplace_back(CVT_FLT(strtod(tokens[0].c_str(), &end))); // add data
                     }
                 }
             }
         }
         myfile.close();
 
-        m_row = int(data.size());
-        if (m_row > 0) {
-            m_data = new float[m_row];
+        row_ = CVT_INT(data.size());
+        if (row_ > 0) {
+            data_ = new float[row_];
             int i = 0;
-            for (auto it = data.begin(); it < data.end(); it++) {
-                m_data[i] = *it;
+            for (auto it = data.begin(); it < data.end(); ++it) {
+                data_[i] = *it;
                 i++;
             }
         }
-
     }
 }
 
 clsSimpleTxtData::~clsSimpleTxtData() {
-    Release1DArray(m_data);
+    if (data_ != nullptr) Release1DArray(data_);
 }
 
-void clsSimpleTxtData::dump(ostream* fs) {
-    if (fs == nullptr) return;
-    if (m_data == nullptr) return;
-    for (int i = 0; i < m_row; i++) {
-        *fs << m_data[i] << endl;
+void clsSimpleTxtData::Dump(std::ostream* fs) {
+    if (nullptr == fs) return;
+    if (nullptr == data_) return;
+    for (int i = 0; i < row_; i++) {
+        *fs << data_[i] << endl;
     }
 }
 
-void clsSimpleTxtData::getData(int* nRow, float** data) {
-    *nRow = m_row;
-    *data = m_data;
+void clsSimpleTxtData::GetData(int* n_row, float** data) {
+    *n_row = row_;
+    *data = data_;
 }

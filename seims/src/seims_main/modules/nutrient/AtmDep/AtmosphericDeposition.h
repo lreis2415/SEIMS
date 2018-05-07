@@ -14,8 +14,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /** \defgroup ATMDEP
  * \ingroup Nutrient
  * \brief Calculate the atmospheric deposition of nitrogen, include nitrate and ammonia.
@@ -30,21 +28,21 @@ public:
 
     ~AtmosphericDeposition();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputData();
 
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     /// size of array

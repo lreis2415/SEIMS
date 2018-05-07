@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "NutrientinGroundwater.h"
 
-using namespace std;
+#include "text.h"
 
 NutrientinGroundwater::NutrientinGroundwater() :
 //input
@@ -113,7 +112,7 @@ void NutrientinGroundwater::SetReaches(clsReaches *reaches) {
     }
 }
 
-void NutrientinGroundwater::initialOutputs() {
+void NutrientinGroundwater:: InitialOutputs() {
     CHECK_POSITIVE(MID_NUTRGW, m_nCells);
     // allocate the output variables
     if (nullptr == m_no3GwToCh) {
@@ -125,7 +124,7 @@ void NutrientinGroundwater::initialOutputs() {
         m_gwSolP = new float[m_nSubbasins + 1];
         for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
             Subbasin *subbasin = m_subbasinsInfo->GetSubbasinByID(*it);
-            float subArea = subbasin->getCellCount() * m_cellWidth * m_cellWidth;    //m2
+            float subArea = subbasin->GetCellCount() * m_cellWidth * m_cellWidth;    //m2
             m_gwNO3[*it] = m_gw0 * m_gwno3Con[*it] * subArea / 1000000.f; /// mm * mg/L * m2 = 10^-6 kg
             m_gwSolP[*it] = m_gw0 * m_gwSolPCon[*it] * subArea / 1000000.f;
         }
@@ -134,13 +133,13 @@ void NutrientinGroundwater::initialOutputs() {
 
 int NutrientinGroundwater::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
         int id = *it;
         Subbasin *subbasin = m_subbasinsInfo->GetSubbasinByID(id);
-        int nCells = subbasin->getCellCount();
+        int nCells = subbasin->GetCellCount();
         float subArea = nCells * m_cellWidth * m_cellWidth;    // m^2
-        float revap = subbasin->getEG();
+        float revap = subbasin->GetEg();
         /// 1. firstly, restore the groundwater storage during current day
         ///    since the m_gwStor has involved percolation water, just need add revap and runoff water
         float gwqVol = m_gw_q[id] * m_TimeStep;    // m^3, water volume flow out
@@ -161,7 +160,7 @@ int NutrientinGroundwater::Execute() {
         float solpToSoil = revap / 1000.f * m_gwSolPCon[id] * 10.f;
         float no3ToSoil_kg = no3ToSoil * subArea / 10000.f; /// kg/ha * m^2 / 10000.f = kg
         float solpToSoil_kg = solpToSoil * subArea / 10000.f;
-        int *cells = subbasin->getCells();
+        int *cells = subbasin->GetCells();
         int index = 0;
         for (int i = 0; i < nCells; i++) {
             index = cells[i];
@@ -176,7 +175,7 @@ int NutrientinGroundwater::Execute() {
 }
 
 void NutrientinGroundwater::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nSubbasins + 1;
     if (StringMatch(sk, VAR_NO3GW_TOCH)) {

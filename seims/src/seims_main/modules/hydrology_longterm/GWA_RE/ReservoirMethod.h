@@ -1,4 +1,4 @@
-/** 
+/**
 *	@version	1.0
 *	@author    Wu Hui
 *	@date	24-January-2011
@@ -11,10 +11,10 @@
 *	Revision: Zhiqiang Yu
 *	Date:	  2011-2-18
 *	Description:
-*	1.  Add judgment to calculation of EG (Revap). The average percolation of 
+*	1.  Add judgment to calculation of EG (Revap). The average percolation of
 *		one subbasin is first calculated. If the percolation is less than 0.01,
 *		EG is set to 0 directly. (in function setInputs of class subbasin)
-*	2.	Add member variable m_isRevapChanged to class subbasin. This variable 
+*	2.	Add member variable m_isRevapChanged to class subbasin. This variable
 *		is the flag whether the Revap is changed by current time step. This flag
 *		can avoid repeating setting values when converting subbasin average Revap
 *		to cell Revap.(in function Execute of class ReservoirMethod)
@@ -22,13 +22,13 @@
 *	Revision:	Zhiqiang Yu
 *	Date:		2011-3-14
 *	Description:
-*	1.	Add codes to process the groundwater which comes from bank storage in 
+*	1.	Add codes to process the groundwater which comes from bank storage in
 *		channel routing module. The water volume of this part of groundwater is
 *		added to the groundwater storage. The input variable "T_GWNEW" is used
-*		for this purpose. One additional parameter is added to function setInputs 
+*		for this purpose. One additional parameter is added to function setInputs
 *		of class subbasin. See equation 8 in memo "Channel water balance" for detailed
 *		reference.
-*	
+*
 *	Revision:	Liang-Jun Zhu
 *	Date:		2016-7-27
 *	Description:
@@ -40,7 +40,6 @@
 #include "SimulationModule.h"
 #include "clsSubbasin.h"
 
-using namespace std;
 /** \defgroup GWA_RE
  * \ingroup Hydrology_longterm
  * \brief Reservoir Method to calculate groundwater balance and baseflow of longterm model
@@ -51,7 +50,7 @@ using namespace std;
  * \class ReservoirMethod
  * \ingroup GWA_RE
  * \brief Reservoir Method to calculate groundwater balance and baseflow of longterm model
- * 
+ *
  */
 class ReservoirMethod : public SimulationModule {
 public:
@@ -59,21 +58,21 @@ public:
 
     ~ReservoirMethod();
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void SetSubbasins(clsSubbasins *);
+    void SetSubbasins(clsSubbasins *) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *nRows, float **data);
+    void Get1DData(const char *key, int *nRows, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
 private:
 
@@ -91,12 +90,12 @@ private:
     *	@param n: The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *, int n);
+    bool CheckInputSize(const char* key, int n);
 
     /*
      * \brief initial outputs as default values
      */
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     //inputs

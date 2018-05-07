@@ -14,7 +14,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /*!
  * \defgroup PET_PT
  * \ingroup Hydrology_longterm
@@ -34,13 +33,13 @@ public:
 
     ~PETPriestleyTaylor();
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual void Set1DData(const char *key, int n, float *value);
+    void Set1DData(const char *key, int n, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual int Execute();
+    int Execute() override;
 
 private:
     /*!
@@ -58,7 +57,7 @@ private:
     bool CheckInputSize(const char *key, int n);
 
     //! Initialize of output variables
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     /// mean air temperature for a given day(degree)

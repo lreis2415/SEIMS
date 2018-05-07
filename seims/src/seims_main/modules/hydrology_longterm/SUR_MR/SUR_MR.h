@@ -1,4 +1,4 @@
-/** 
+/**
 *	@author    Junzhi Liu
 *	@date	19-January-2011
 *
@@ -27,7 +27,7 @@
 *   Revision: LiangJun Zhu
 *   Date:        2016-5-27
 *   1. Update the support for multi-layers soil parameters
-*   
+*
 *   Revision: LiangJun Zhu
 *   Date:       2016-7-14
 *   1. Remove snowmelt as AddInput, because snowmelt is considered into net precipitation in SnowMelt moudule,
@@ -40,8 +40,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /** \defgroup SUR_MR
  * \ingroup Hydrology_longterm
  * \brief Modified Rational Method to calculate infiltration and excess precipitation
@@ -52,7 +50,7 @@ using namespace std;
  * \class SUR_MR
  * \ingroup SUR_MR
  * \brief Modified Rational Method to calculate infiltration and excess precipitation
- * 
+ *
  */
 class SUR_MR : public SimulationModule {
 public:
@@ -60,24 +58,24 @@ public:
 
     ~SUR_MR();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
     bool CheckInputSize(const char *key, int n);
 
     void CheckInputData();
 
     /// initial output for the first run
-    void initialOutputs();
+    void  InitialOutputs();
 private:
     /// Hillslope time step (second)
     float m_dt;
@@ -114,7 +112,7 @@ private:
 
     /// threshold soil freezing temperature (deg C)
     float m_tFrozen;
-    /// frozen soil moisture relative to saturation above which no infiltration occur 
+    /// frozen soil moisture relative to saturation above which no infiltration occur
     /// (m3/m3 or mm H2O/ mm Soil)
     float m_sFrozen;
     /// soil temperature obtained from the soil temperature module (deg C)

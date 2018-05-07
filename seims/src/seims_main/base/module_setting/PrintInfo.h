@@ -11,12 +11,8 @@
 
 #include "seims.h"
 #include "ParamInfo.h"
-#include "utilities.h"
 
-#include "MongoUtil.h"
-#include "clsRasterData.h"
-
-using namespace std;
+//using namespace std;
 
 /*!
  * \enum AggregationType
@@ -24,19 +20,19 @@ using namespace std;
  * \brief Aggregation type for OUTPUT
  */
 enum AggregationType {
-    AT_Unknown       = 0, ///< unknown
-    AT_Sum           = 1, ///< sum
-    AT_Average       = 2, ///< average
-    AT_Minimum       = 3, ///< minimum
-    AT_Maximum       = 4, ///< maximum
-    AT_SpecificCells = 5  ///< specific cells
+    AT_Unknown = 0,      ///< unknown
+    AT_Sum = 1,          ///< sum
+    AT_Average = 2,      ///< average
+    AT_Minimum = 3,      ///< minimum
+    AT_Maximum = 4,      ///< maximum
+    AT_SpecificCells = 5 ///< specific cells
 };
 
 /*!
  * \ingroup module_setting
  * \class PrintInfoItem
  *
- * \brief Class stores a single output item of an OuputID 
+ * \brief Class stores a single output item of an OuputID
  *
  */
 class PrintInfoItem {
@@ -48,15 +44,15 @@ public:
     ~PrintInfoItem();
 
     //! Aggregated data, the second dimension contains: row, col, value
-    float **m_1DDataWithRowCol;
+    float** m_1DDataWithRowCol;
     //! rows number, i.e., number of valid cells
     int m_nRows;
     //! For 1D raster/array data
-    float *m_1DData;
+    float* m_1DData;
     //! number of layers of raster data, greater or equal than 1
     int m_nLayers;
     //! For 2D raster/array data
-    float **m_2DData;
+    float** m_2DData;
 
     //! For time series data of a single subbasin, DT_Single
     map<time_t, float> TimeSeriesData;
@@ -66,7 +62,7 @@ public:
     int TimeSeriesDataForSubbasinCount;
 
     //! Add 1D time series data result to \sa TimeSeriesDataForSubbasin
-    void add1DTimeSeriesResult(time_t, int n, const float *data);
+    void add1DTimeSeriesResult(time_t, int n, const float* data);
 
     //! used only by PET_TS???
     ///< The site id
@@ -88,7 +84,7 @@ public:
     time_t getStartTime() { return m_startTime; };
 
     //! set start time \a time_t
-    void setStartTime(time_t &st) { m_startTime = st; }
+    void setStartTime(time_t& st) { m_startTime = st; }
 
     //! End time string
     string EndTime;
@@ -99,7 +95,7 @@ public:
     time_t getEndTime() { return m_endTime; };
 
     //! set end time \a time_t
-    void setEndTime(time_t &st) { m_endTime = st; }
+    void setEndTime(time_t& st) { m_endTime = st; }
 
     //! file suffix, e.g., txt, tif, asc, etc.
     string Suffix;
@@ -111,7 +107,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(string projectPath, MongoGridFs* gfs, FloatRaster *templateRaster, string header);
+    void Flush(string projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -119,13 +115,13 @@ public:
     //! Aggregate the 2D data from the given data parameter using the given method type.
     //! However this **data restrict to 3 layers, i.e., Row, Col, Value
     //! NO NEED TO USE?
-    void AggregateData(int numrows, float **data, AggregationType type, float NoDataValue);
+    void AggregateData(int numrows, float** data, AggregationType type, float NoDataValue);
 
     //! Aggregate the 1D data from the given data parameter using the given method type
-    void AggregateData(time_t time, int numrows, float *data);
+    void AggregateData(time_t time, int numrows, float* data);
 
     //! Aggregate the 2D raster data from the given data parameter using the given method type
-    void AggregateData2D(time_t time, int nRows, int nCols, float **data);
+    void AggregateData2D(time_t time, int nRows, int nCols, float** data);
 
     //! Set the Aggregation type
     void setAggregationType(AggregationType type) { m_AggregationType = type; };
@@ -146,7 +142,7 @@ private:
 /*!
  * \ingroup module_setting
  * \class PrintInfo
- * \brief 
+ * \brief
  */
 class PrintInfo {
 public:
@@ -160,7 +156,7 @@ public:
     //! Unique Output ID, which should be one of "VAR_" defined in text.h and Output of any modules.
     string m_OutputID;
     //! The calibration parameters corresponding to the output id, if stated.
-    ParamInfo *m_param;
+    ParamInfo* m_param;
     //! For one OutputID, there may be several output items, e.g., different time period, different subbasin ID. etc.
     vector<PrintInfoItem *> m_PrintItems;
 
@@ -168,7 +164,7 @@ private:
     //! Selected subbasin IDs for time series data, vector container
     vector<int> m_subbasinSeleted;
     //! Selected subbasin IDs for time series data, float array
-    float *m_subbasinSelectedArray;
+    float* m_subbasinSelectedArray;
 public:
     //! Constructor, initialize an empty instance
     PrintInfo();
@@ -177,10 +173,10 @@ public:
     ~PrintInfo();
 
     //! Get the number of output items
-    int ItemCount() const { return (int) m_PrintItems.size(); };
+    int ItemCount() const { return (int)m_PrintItems.size(); };
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
-    void getSubbasinSelected(int *count, float **subbasins);
+    void getSubbasinSelected(int* count, float** subbasins);
 
     //! Set the OutputID for this object
     void setOutputID(string id) { m_OutputID = id; };
@@ -213,6 +209,6 @@ public:
     void AddPrintItem(string& start, string& end, string& file, string sitename, string& sufi, bool isSubbasin);
 
     //! Get a reference to the output item located at the given index position
-    PrintInfoItem *getPrintInfoItem(int index);
+    PrintInfoItem* getPrintInfoItem(int index);
 };
 #endif /* SEIMS_PRINTINFO_H */

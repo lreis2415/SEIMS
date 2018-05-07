@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "SUR_MR.h"
+
+#include "text.h"
 
 SUR_MR::SUR_MR() : m_nCells(-1), m_dt(-1), m_nSoilLayers(-1), m_tFrozen(NODATA_VALUE),
                    m_kRunoff(NODATA_VALUE), m_pMax(NODATA_VALUE),
@@ -33,7 +34,7 @@ void SUR_MR::CheckInputData() {
     CHECK_POINTER(MID_SUR_MR, m_sd);
 }
 
-void SUR_MR::initialOutputs() {
+void SUR_MR:: InitialOutputs() {
     CHECK_POSITIVE(MID_SUR_MR, m_nCells);
     // allocate the output variables
     if (nullptr == m_pe) {
@@ -68,7 +69,7 @@ void SUR_MR::initialOutputs() {
 
 int SUR_MR::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     m_pMax = m_pMax * m_dt / 86400.f;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -176,7 +177,7 @@ void SUR_MR::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 void SUR_MR::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_INFIL)) {
         *data = m_infil;     //infiltration
@@ -190,7 +191,7 @@ void SUR_MR::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SUR_MR::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;

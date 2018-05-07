@@ -1,5 +1,5 @@
 /*!
- * \brief Simulates the loss of nitrate and phosphorus via surface runoff, 
+ * \brief Simulates the loss of nitrate and phosphorus via surface runoff,
  *        lateral flow, tile flow, and percolation out of the profile.
  *        Method of SWAT
  * \author Huiran Gao
@@ -9,9 +9,6 @@
 #define SEIMS_MODULE_NUTRMV_H
 
 #include "SimulationModule.h"
-#include "NutrientCommon.h"
-
-using namespace std;
 
 /** \defgroup NutrMV
  * \ingroup Nutrient
@@ -31,20 +28,20 @@ public:
 
     ~NutrientMovementViaWater();
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
     //virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-    virtual void SetSubbasins(clsSubbasins *subbasins);
+    void SetSubbasins(clsSubbasins *subbasins) override;
 
 private:
     /*!
@@ -85,7 +82,7 @@ private:
     */
     void SubbasinWaterQuality();
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     void SumBySubbasin();
 private:

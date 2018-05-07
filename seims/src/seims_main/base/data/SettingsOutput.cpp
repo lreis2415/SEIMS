@@ -1,5 +1,10 @@
 #include "SettingsOutput.h"
 
+#include "utils_time.h"
+#include <text.h>
+
+using namespace utils_time;
+
 SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems) :
     m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID) {
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {

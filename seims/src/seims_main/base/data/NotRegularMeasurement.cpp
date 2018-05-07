@@ -1,5 +1,11 @@
-#include "text.h"
 #include "NotRegularMeasurement.h"
+
+#include <sstream>
+
+#include "utils_time.h"
+#include "text.h"
+
+using namespace utils_time;
 
 NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList,
                                              string& siteType, time_t startTime, time_t endTime)
@@ -17,7 +23,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
         BSON_APPEND_DOCUMENT_BEGIN(query, "$query", child);
         BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
         BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
-        ostringstream ossIndex;
+        std::ostringstream ossIndex;
         ossIndex.str("");
         ossIndex << iSite;
         BSON_APPEND_INT32(child3, ossIndex.str().c_str(), m_siteIDList[iSite]);
@@ -45,8 +51,8 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
         //printf("%s\n", bson_as_json(query,NULL));
 
         // perform query and read measurement data
-        unique_ptr<MongoCollection>
-                collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_DATAVALUES)));
+        std::unique_ptr<MongoCollection>
+                collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
         mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
         float value;
@@ -79,7 +85,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
         mongoc_cursor_destroy(cursor);
 
         if (!hasData) {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "There are no " << siteType << " data available for sites:[" << m_siteIDList[iSite] <<
                     "] in database:" << hydroDBName
                     << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);

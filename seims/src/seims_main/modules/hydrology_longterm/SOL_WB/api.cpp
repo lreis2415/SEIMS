@@ -1,6 +1,8 @@
-#include "SOL_WB.h"
-
 #include "api.h"
+
+#include "SOL_WB.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SOL_WB();

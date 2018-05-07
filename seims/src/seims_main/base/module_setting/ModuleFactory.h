@@ -13,7 +13,6 @@
 #include "SEIMS_ModuleSetting.h"
 #include "SimulationModule.h"
 #include "ParamInfo.h"
-#include "clsInterpolationWeightData.h"
 #include "SettingsInput.h"
 
 #include "tinyxml.h"
@@ -42,7 +41,7 @@ typedef SimulationModule*(*InstanceFunction)();
 typedef const char*(*MetadataFunction)();
 
 using namespace std;
-using namespace MainBMP;
+using namespace bmps;
 
 class ModuleFactory: NotCopyable {
 public:

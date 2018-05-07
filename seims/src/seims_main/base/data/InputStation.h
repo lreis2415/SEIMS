@@ -7,18 +7,23 @@
 #ifndef SEIMS_CLIMATE_STATION_H
 #define SEIMS_CLIMATE_STATION_H
 
-#include "utilities.h"
-#include "MongoUtil.h"
+#include <map>
+
+#include "basic.h"
+#include "db_mongoc.h"
+
 #include "Measurement.h"
 
-using namespace std;
+using namespace ccgl;
+using namespace db_mongoc;
+using std::map;
 
 /*!
  * \ingroup data
  * \class InputStation
  * \brief HydroClimate sites information
  */
-class InputStation: NotCopyable {
+class InputStation: Interface {
 public:
     //! Constructor
     InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel);

@@ -7,12 +7,13 @@
 #ifndef SEIMS_BMP_POINTSOURCE_H
 #define SEIMS_BMP_POINTSOURCE_H
 
+#include "basic.h"
 #include "BMPFactory.h"
-#include "utilities.h"
 
-using namespace MainBMP;
+using namespace ccgl;
+using namespace bmps;
 
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class PointSourceLocations
  * \ingroup MainBMP
@@ -20,7 +21,7 @@ namespace MainBMP {
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
-class PointSourceLocations: public DefaultConstructor {
+class PointSourceLocations: Interface {
 public:
     /*!
      * \brief Constructor, parse point BMP location related parameters from bson object
@@ -33,7 +34,7 @@ public:
     //~PointSourceLocations() = default;
 
     /// Output
-    void Dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
     /// Get point source ID
     int GetPointSourceID() { return m_pointSrcID; }
@@ -90,7 +91,7 @@ private:
  * \brief Point source management parameters
  *
  */
-class PointSourceMgtParams: public DefaultConstructor {
+class PointSourceMgtParams: Interface {
 public:
     /*!
      * \brief Constructor, parse point source management parameters from bson object
@@ -103,7 +104,7 @@ public:
     //~PointSourceMgtParams() = default;
 
     /// Output
-    void Dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
     /// Get start date of the current management operation
     time_t GetStartDate() { return m_startDate; }
@@ -196,10 +197,10 @@ public:
     virtual ~BMPPointSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
+    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
 
     /// Output
-    virtual void Dump(ostream* fs);
+    void Dump(std::ostream* fs) override;
 
     /*!
      * \brief Load point BMP location related parameters from MongoDB

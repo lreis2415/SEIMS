@@ -1,7 +1,9 @@
-#include "seims.h"
-#include "ClimateParams.h"
-
 #include "PETHargreaves.h"
+
+#include "utils_time.h"
+#include "ClimateParams.h"
+#include "text.h"
+
 
 using namespace std;
 
@@ -42,7 +44,7 @@ void PETHargreaves::Set1DData(const char *key, int n, float *value) {
     }
 }
 
-void PETHargreaves::initialOutputs() {
+void PETHargreaves:: InitialOutputs() {
     CHECK_POSITIVE(MID_PET_H, m_nCells);
     if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
@@ -52,8 +54,8 @@ void PETHargreaves::initialOutputs() {
 
 int PETHargreaves::Execute() {
     CheckInputData();
-    initialOutputs();
-    m_jday = JulianDay(m_date);
+     InitialOutputs();
+    m_jday = utils_time::JulianDay(m_date);
     //cout<<m_jday<<","m_tMean[0]<<","<<m_tMax[0]<<","<<m_tMin[0]<<endl;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
@@ -93,7 +95,7 @@ int PETHargreaves::Execute() {
 }
 
 void PETHargreaves::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_PET)) { *data = m_pet; }

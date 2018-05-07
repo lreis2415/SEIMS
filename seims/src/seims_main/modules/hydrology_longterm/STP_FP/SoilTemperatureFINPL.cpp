@@ -1,9 +1,7 @@
-#include "seims.h"
-#include "ClimateParams.h"
-
 #include "SoilTemperatureFINPL.h"
 
-using namespace std;
+#include "text.h"
+#include "utils_time.h"
 
 SoilTemperatureFINPL::SoilTemperatureFINPL() : m_a0(NODATA_VALUE), m_a1(NODATA_VALUE), m_a2(NODATA_VALUE),
                                                m_a3(NODATA_VALUE),
@@ -26,8 +24,8 @@ int SoilTemperatureFINPL::Execute() {
     /// check the data
     CheckInputData();
     /// initial output of m_t1 and m_t2 for the first run
-    initialOutputs();
-    m_julianDay = JulianDay(m_date);
+     InitialOutputs();
+    m_julianDay = utils_time::JulianDay(m_date);
     size_t errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; ++i) {
@@ -123,7 +121,7 @@ void SoilTemperatureFINPL::Set1DData(const char *key, int n, float *data) {
 }
 
 void SoilTemperatureFINPL::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_SOTE)) { *data = m_soilTemp; }
@@ -134,7 +132,7 @@ void SoilTemperatureFINPL::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void SoilTemperatureFINPL::initialOutputs() {
+void SoilTemperatureFINPL:: InitialOutputs() {
     CHECK_POSITIVE(MID_STP_FP, m_nCells);
     // initialize m_t1 and m_t2 as m_tMean
     if (nullptr == m_t1 && m_tMean != nullptr) {

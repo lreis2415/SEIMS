@@ -1,6 +1,8 @@
-#include "managementOperation_SWAT.h"
-
 #include "api.h"
+
+#include "managementOperation_SWAT.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new MGTOpt_SWAT();

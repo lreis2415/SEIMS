@@ -1,6 +1,8 @@
-#include "SEDR_SBAGNOLD.h"
-
 #include "api.h"
+
+#include "SEDR_SBAGNOLD.h"
+#include "MetadataInfo.h"
+#include <text.h>
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SEDR_SBAGNOLD();

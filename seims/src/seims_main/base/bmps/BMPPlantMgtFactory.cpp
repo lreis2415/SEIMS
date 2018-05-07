@@ -1,6 +1,11 @@
 #include "BMPPlantMgtFactory.h"
 
-using namespace MainBMP;
+#include <memory> // unique_ptr
+
+#include "utils_string.h"
+
+using namespace utils_string;
+using namespace bmps;
 
 BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
@@ -17,7 +22,7 @@ BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenari
     if (StringMatch(location, "ALL")) {
         m_location.clear();
     } else {
-        m_location = SplitStringForInt(location, '-');
+        SplitStringForValues(location, '-', m_location);
     }
 }
 
@@ -45,7 +50,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     bson_destroy(child1);
     bson_destroy(child2);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_bmpCollection)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_bmpCollection)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     const bson_t *bsonTable;
@@ -86,7 +91,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
             GetNumericFromBsonIterator(&itertor, husc);
         }
         for (int i = 0; i < paramNum; i++) {
-            ostringstream oss;
+            std::ostringstream oss;
             oss << BMP_PLTOP_FLD_MGT_PRE << (i + 1);
             if (bson_iter_init_find(&itertor, bsonTable, oss.str().c_str())) {
                 GetNumericFromBsonIterator(&itertor, m_parameters[i]);
@@ -163,7 +168,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPPlantMgtFactory::Dump(ostream *fs) {
+void BMPPlantMgtFactory::Dump(std::ostream *fs) {
     if (nullptr == fs) return;
     *fs << "Plant Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << " Name = " << m_name << endl;
@@ -178,7 +183,7 @@ void BMPPlantMgtFactory::Dump(ostream *fs) {
 void BMPPlantMgtFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
         int n;
-        sceneRsMap.at(m_mgtFieldsName)->getRasterData(&n, &m_mgtFieldsRs);
+        sceneRsMap.at(m_mgtFieldsName)->GetRasterData(&n, &m_mgtFieldsRs);
     }
     else{
         // raise Exception?

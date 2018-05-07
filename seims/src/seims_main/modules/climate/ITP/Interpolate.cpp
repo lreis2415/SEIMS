@@ -1,14 +1,15 @@
-#include "seims.h"
 #include "Interpolate.h"
 
-using namespace std;
+#include "utils_time.h"
+#include "text.h"
 
 Interpolate::Interpolate() : m_dataType(0), m_nStatioins(-1),
                              m_stationData(nullptr), m_nCells(-1), m_itpWeights(nullptr), m_itpVertical(false),
-                             m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr), m_month(-1), m_itpOutput(nullptr) {
+                             m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr), m_month(-1),
+                             m_itpOutput(nullptr) {
 }
 
-void Interpolate::SetClimateDataType(float value) {
+void Interpolate::SetClimateDataType(const float value) {
     if (FloatEqual(value, 1.0f)) {
         m_dataType = 0; /// Precipitation
     } else if (FloatEqual(value, 2.0f) || FloatEqual(value, 3.0f) || FloatEqual(value, 4.0f)) {
@@ -16,8 +17,8 @@ void Interpolate::SetClimateDataType(float value) {
     } else if (FloatEqual(value, 5.0f)) {
         m_dataType = 2; /// PET
     } else if (FloatEqual(value, 6.0f) || FloatEqual(value, 7.0f) || FloatEqual(value, 8.0f)) {
-        m_dataType = 3;
-    } /// Meteorology
+        m_dataType = 3; /// Meteorology
+    }
 }
 
 Interpolate::~Interpolate() {
@@ -27,8 +28,8 @@ Interpolate::~Interpolate() {
 int Interpolate::Execute() {
     CheckInputData();
     if (nullptr == m_itpOutput) { Initialize1DArray(m_nCells, m_itpOutput, 0.f); }
-    size_t errCount = 0;
-#pragma omp parallel for reduction(+: errCount)
+    size_t err_count = 0;
+#pragma omp parallel for reduction(+: err_count)
     for (int i = 0; i < m_nCells; i++) {
         int index = 0;
         float value = 0.f;
@@ -36,9 +37,9 @@ int Interpolate::Execute() {
             index = i * m_nStatioins + j;
             value += m_stationData[j] * m_itpWeights[index];
             if (value != value) {
-                errCount++;
+                err_count++;
                 cout << "CELL:" << i << ", Site: " << j << ", Weight: " << m_itpWeights[index] <<
-                    ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
+                        ", siteData: " << m_stationData[j] << ", Value:" << value << ";" << endl;
             }
             if (m_itpVertical) {
                 float delta = m_dem[i] - m_hStations[j];
@@ -49,21 +50,21 @@ int Interpolate::Execute() {
         }
         m_itpOutput[i] = value;
     }
-    if (errCount > 0) {
+    if (err_count > 0) {
         throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!");
     }
     return true;
 }
 
-void Interpolate::SetDate(time_t date, int yearIdx) {
+void Interpolate::SetDate(const time_t date, const int year_idx) {
     m_date = date;
-    m_yearIdx = yearIdx;
+    m_yearIdx = year_idx;
     struct tm t;
-    LocalTime(date, &t);
+    utils_time::LocalTime(date, &t);
     m_month = t.tm_mon;
 }
 
-void Interpolate::SetValue(const char *key, float value) {
+void Interpolate::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_TSD_DT)) {
         SetClimateDataType(value);
@@ -74,12 +75,12 @@ void Interpolate::SetValue(const char *key, float value) {
     }
 }
 
-void Interpolate::Set2DData(const char *key, int nRows, int nCols, float **data) {
+void Interpolate::Set2DData(const char* key, const int n_rows, const int n_cols, float** data) {
     string sk(key);
     if (StringMatch(sk, Tag_LapseRate)) {
         if (m_itpVertical) {
-            int nMonth = 12;
-            CheckInputSize(sk, nRows, nMonth);
+            int n_month = 12;
+            CheckInputSize(sk, n_rows, n_month);
             m_lapseRate = data;
         }
     } else {
@@ -87,7 +88,7 @@ void Interpolate::Set2DData(const char *key, int nRows, int nCols, float **data)
     }
 }
 
-void Interpolate::Set1DData(const char *key, int n, float *data) {
+void Interpolate::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, Tag_DEM)) {
         if (m_itpVertical) {
@@ -114,10 +115,10 @@ void Interpolate::Set1DData(const char *key, int n, float *data) {
     }
 }
 
-bool Interpolate::CheckInputSize(string &key, int n, int &m_n) {
+bool Interpolate::CheckInputSize(string& key, int n, int& m_n) {
     if (n <= 0) {
         throw ModelException(MID_ITP, "CheckInputSize", "Input data for " + key
-            + " is invalid. The size could not be less than zero.");
+                             + " is invalid. The size could not be less than zero.");
     }
     if (n != m_n) {
         if (m_n <= 0) {
@@ -125,8 +126,8 @@ bool Interpolate::CheckInputSize(string &key, int n, int &m_n) {
         } else {
             throw ModelException(MID_ITP, "CheckInputSize",
                                  "Input data for " + key + " is invalid." + " The size of input data is " +
-                                     ValueToString(n) +
-                                     ". The number of columns in weight file and the number of stations should be same.");
+                                 ValueToString(n) +
+                                 ". The number of columns in weight file and the number of stations should be same.");
         }
     }
     return true;
@@ -144,7 +145,7 @@ void Interpolate::CheckInputData() {
     CHECK_POINTER(MID_ITP, m_stationData);
 }
 
-void Interpolate::Get1DData(const char *key, int *n, float **data) {
+void Interpolate::Get1DData(const char* key, int* n, float** data) {
     string sk(key);
     if (StringMatch(sk, Tag_DEM)) {
         *n = m_nCells;

@@ -1,7 +1,14 @@
 #include "PlantManagementOperation.h"
 
-using namespace MainBMP;
+#include <ostream>
+#include <iostream>
+
+#include "utils_math.h"
+
+using namespace bmps;
 using namespace PlantManagement;
+using std::cout;
+using std::endl;
 
 /// Base class
 PlantManagementOperation::PlantManagementOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
@@ -196,7 +203,7 @@ AutoIrrigationOperation::AutoIrrigationOperation(int mgtOp, bool usebaseHU, floa
     m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
     if (m_wstrsID <= 0) m_wstrsID = 1;
     if (m_irrEff > 1.f) m_irrEff = 0.f;
-    if (FloatEqual(m_irrEff, 0.f)) m_irrEff = 1.f;
+    if (utils_math::FloatEqual(m_irrEff, 0.f)) m_irrEff = 1.f;
     if (m_irrMx < UTIL_ZERO) m_irrMx = 25.4f;
 }
 

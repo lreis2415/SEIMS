@@ -1,4 +1,10 @@
 #include "Settings.h"
+#include <cassert>
+#include <iostream>
+
+#include "utils_string.h"
+
+using namespace utils_string;
 
 Settings::Settings(vector<string>& str1dvec) {
     Settings::SetSettingTagStrings(str1dvec);
@@ -15,7 +21,7 @@ string Settings::GetValue(const string& tag) {
             }
         }
     } else {
-        cout << "m_Settings is empty, please check and confirm!" << endl;
+        std::cout << "m_Settings is empty, please check and confirm!" << std::endl;
     }
     return res;
 }
@@ -28,7 +34,7 @@ void Settings::SetSettingTagStrings(vector<string>& stringvector) {
         // is there anything in the token list?
         if (!tokens.empty()) {
             for (size_t i = 0; i < tokens.size(); i++) {
-                tokens[i] = trim(tokens[i]);
+                tokens[i] = Trim(tokens[i]);
             }
             // is there anything in the first item?
             if (!tokens[0].empty()) {

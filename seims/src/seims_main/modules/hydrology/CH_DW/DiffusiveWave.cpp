@@ -73,7 +73,7 @@ bool DiffusiveWave::CheckInputData(void) {
 }
 
 //! Initial outputs
-void DiffusiveWave::initialOutputs() {
+void DiffusiveWave:: InitialOutputs() {
     if (this->m_nCells <= 0) {
         throw ModelException(MID_CH_DW, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -259,7 +259,7 @@ int DiffusiveWave::Execute() {
     //check the data
     CheckInputData();
 
-    initialOutputs();
+     InitialOutputs();
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.

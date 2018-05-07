@@ -1,6 +1,8 @@
-#include "DepressionFSDaily.h"
-
 #include "api.h"
+
+#include "DepressionFSDaily.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 //! Get instance of SimulationModule class
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {

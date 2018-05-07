@@ -1,7 +1,7 @@
-#include "seims.h"
 #include "NutrientMovementViaWater.h"
 
-using namespace std;
+#include "text.h"
+#include "NutrientCommon.h"
 
 NutrientMovementViaWater::NutrientMovementViaWater() :
 //input
@@ -229,7 +229,7 @@ void NutrientMovementViaWater::Set2DData(const char *key, int nRows, int nCols, 
     }
 }
 
-void NutrientMovementViaWater::initialOutputs() {
+void NutrientMovementViaWater:: InitialOutputs() {
     CHECK_POSITIVE(MID_NUTRMV, m_nSubbasins);
     CHECK_POSITIVE(MID_NUTRMV, m_nCells);
     CHECK_POSITIVE(MID_NUTRMV, m_nMaxSoilLayers);
@@ -262,7 +262,7 @@ void NutrientMovementViaWater::initialOutputs() {
 
 int NutrientMovementViaWater::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     NitrateLoss();
     PhosphorusLoss();
     // compute chl-a, CBOD and dissolved oxygen loadings
@@ -486,7 +486,7 @@ void NutrientMovementViaWater::SubbasinWaterQuality() {
 
             // calculate enrichment ratio
             if (m_sedimentYield[i] < 1e-4)m_sedimentYield[i] = 0.f;
-            float enratio = NutrCommon::CalEnrichmentRatio(m_sedimentYield[i], m_surfr[i], m_cellArea);
+            float enratio = CalEnrichmentRatio(m_sedimentYield[i], m_surfr[i], m_cellArea);
 
             // calculate organic carbon loading to main channel
             float org_c = 0.f;  /// kg
@@ -518,7 +518,7 @@ void NutrientMovementViaWater::GetValue(const char *key, float *value) {
 }
 
 void NutrientMovementViaWater::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_LATNO3)) {
         *data = m_latno3;

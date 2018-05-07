@@ -8,12 +8,12 @@
  *  2. Add m_snowCoverMax and m_snowCover50 to adjust for areal extent of snow cover.
  *  3. ReWrite the execute code according to snom.f of SWAT.
  *  4. In this version, snow melt is added to net precipitation.
- * 
+ *
  */
-#pragma once
-#include "SimulationModule.h"
+#ifndef SEIMS_MODULE_SNO_SP_H
+#define SEIMS_MODULE_SNO_SP_H
 
-using namespace std;
+#include "SimulationModule.h"
 
 /*!
  * \defgroup SNO_SP
@@ -26,29 +26,29 @@ using namespace std;
  * \class SNO_SP
  * \ingroup SNO_SP
  * \brief Calculate snow melt by snowpack daily method from SWAT
- * 
+ *
  */
 class SNO_SP : public SimulationModule {
 public:
     //! Constructor
-    SNO_SP(void);
+    SNO_SP();
 
     //! Destructor
-    ~SNO_SP(void);
+    ~SNO_SP();
 
-    virtual int Execute(void);
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
     bool CheckInputSize(const char *key, int n);
 
-    bool CheckInputData(void);
+    bool CheckInputData();
 
-    void initialOutputs(void);
+    void InitialOutputs();
 
 private:
     //! Valid cells number
@@ -109,4 +109,4 @@ private:
     //! snow accumulation, sno_hru in SWAT
     float *m_SA;
 };
-
+#endif /* SEIMS_MODULE_SNO_SP_H */

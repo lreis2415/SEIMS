@@ -1,6 +1,8 @@
-#include "PETPriestleyTaylor.h"
-
 #include "api.h"
+
+#include "PETPriestleyTaylor.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETPriestleyTaylor();

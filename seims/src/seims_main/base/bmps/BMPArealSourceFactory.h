@@ -7,14 +7,15 @@
 #ifndef SEIMS_BMP_AREALSOURCE_H
 #define SEIMS_BMP_AREALSOURCE_H
 
+#include "basic.h"
+#include "data_raster.h"
 #include "BMPFactory.h"
 
-#include "utilities.h"
-#include "clsRasterData.h"
+using namespace ccgl;
+using namespace data_raster;
+using namespace bmps;
 
-using namespace MainBMP;
-
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class ArealSourceLocations
  * \ingroup MainBMP
@@ -22,21 +23,18 @@ namespace MainBMP {
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
-class ArealSourceLocations: NotCopyable, public DefaultConstructor {
+class ArealSourceLocations: Interface {
 public:
     /*!
      * \brief Constructor, read and calculate areal BMP locations related parameters from Raster
      */
     ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t& iter);
 
-    /// Destructor
-    //~ArealSourceLocations() = 0;
-
     /// load valid cells index
     void SetValidCells(int n, float* mgtFieldIDs);
 
     /// Output
-    void Dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
     /// Get point source ID
     int GetArealSourceID() { return m_arealSrcID; }
@@ -73,7 +71,7 @@ private:
  * \brief Point source management parameters
  *
  */
-class ArealSourceMgtParams: NotCopyable, public DefaultConstructor {
+class ArealSourceMgtParams: Interface {
 public:
     /*!
      * \brief Constructor, parse areal source management parameters from bson object
@@ -86,7 +84,7 @@ public:
     //~ArealSourceMgtParams() = default;
 
     /// Output
-    void Dump(ostream* fs);
+    void Dump(std::ostream* fs);
 
     /// Get start date of the current management operation
     time_t GetStartDate() { return m_startDate; }
@@ -180,10 +178,10 @@ public:
     virtual ~BMPArealSrcFactory();
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
+    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
 
     /// Output
-    virtual void Dump(ostream* fs);
+    void Dump(std::ostream* fs) override;
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
@@ -200,10 +198,10 @@ public:
     void ReadArealSourceLocations(MongoClient* conn, const string& bmpDBName);
 
     /// Set raster data if needed
-    virtual void setRasterData(map<string, FloatRaster*>& sceneRsMap);
+    void setRasterData(map<string, FloatRaster*>& sceneRsMap) override;
 
     /// Get management fields data
-    virtual float* getRasterData() { return m_mgtFieldsRs; };
+    float* GetRasterData() override { return m_mgtFieldsRs; };
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 

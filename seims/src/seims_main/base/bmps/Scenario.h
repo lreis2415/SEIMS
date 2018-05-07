@@ -7,18 +7,18 @@
 #ifndef SEIMS_SCENARIO_H
 #define SEIMS_SCENARIO_H
 
-#include "MongoUtil.h"
+#include "basic.h"
+#include "db_mongoc.h"
 #include "BMPText.h"
 #include "BMPFactory.h"
 #include "BMPPlantMgtFactory.h"
 #include "BMPPointSourceFactory.h"
 #include "BMPArealSourceFactory.h"
 #include "BMPArealStructFactory.h"
-#include "utilities.h"
 
-using namespace std;
+using namespace ccgl;
 
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class Scenario
  * \ingroup bmps
@@ -36,7 +36,7 @@ namespace MainBMP {
  *              (1) Replaced SQLite by MongoDB, 2016-6-16
  *              (2) Add setRasterForEachBMP() function, 2017-7-12
  */
-class Scenario {
+class Scenario: Interface {
 public:
     //! Constructor according to BMP database name and scenario ID
     Scenario(MongoClient* conn, const string& dbName, int subbsnID = 0, int scenarioID = 0);
@@ -71,19 +71,6 @@ public:
     //! set raster data for BMPs
     void setRasterForEachBMP();
 
-private:
-    //! MongoDB client object, added by Liangjun
-    MongoClient* m_conn;
-    //! MongoDB name of BMP
-    const string m_bmpDBName;
-    //! Collections in BMP database used for data checking
-    vector<string> m_bmpCollections;
-    //! Scenario ID, e.g., 0
-    const int m_sceneID;
-    //! Scenario Name, e.g., base scenario
-    string m_name;
-    //! Subbasin ID, 0 for the entire basin
-    const int m_subbsnID;
 
 private:
     /*!
@@ -107,6 +94,20 @@ private:
 
     /// Load a single BMP information via \sa BMPFactory
     void loadBMPDetail();
+
+private:
+    //! MongoDB client object, added by Liangjun
+    MongoClient* m_conn;
+    //! MongoDB name of BMP
+    string m_bmpDBName;
+    //! Collections in BMP database used for data checking
+    vector<string> m_bmpCollections;
+    //! Scenario ID, e.g., 0
+    int m_sceneID;
+    //! Scenario Name, e.g., base scenario
+    string m_name;
+    //! Subbasin ID, 0 for the entire basin
+    int m_subbsnID;
 };
 
 } /* MainBMP */

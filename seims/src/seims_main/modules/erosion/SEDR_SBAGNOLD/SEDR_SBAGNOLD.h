@@ -22,8 +22,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /** \defgroup SEDR_SBAGNOLD
  * \ingroup Erosion
  * \brief Sediment routing using Simplified version of Bagnold(1997) stream power equation
@@ -41,35 +39,35 @@ public:
 
     ~SEDR_SBAGNOLD();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void SetValueByIndex(const char *key, int index, float data);
+    void SetValueByIndex(const char *key, int index, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void SetReaches(clsReaches *reaches);
+    void SetReaches(clsReaches *reaches) override;
 
-    virtual void SetScenario(Scenario *sce);
+    void SetScenario(Scenario *sce) override;
 
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputData();
 
-    virtual TimeStepType GetTimeStepType() { return TIMESTEP_CHANNEL; };
+    TimeStepType GetTimeStepType() override { return TIMESTEP_CHANNEL; };
 private:
-    void initialOutputs();
+    void InitialOutputs();
 
     void PointSourceLoading();
 
     void SedChannelRouting(int i);
 
-    void doChannelDowncuttingAndWidening(int id);
+    void DoChannelDowncuttingAndWidening(int id);
 private:
     /// time step (sec)
     int m_dt;

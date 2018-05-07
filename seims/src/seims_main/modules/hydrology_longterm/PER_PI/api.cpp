@@ -1,6 +1,8 @@
-#include "PER_PI.h"
-
 #include "api.h"
+
+#include "PER_PI.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PER_PI();

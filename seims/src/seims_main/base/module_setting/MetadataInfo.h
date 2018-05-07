@@ -8,10 +8,13 @@
 #ifndef SEIMS_METADATA_INFO_H
 #define SEIMS_METADATA_INFO_H
 
-#include "utilities.h"
+#include <vector>
+
+#include "basic.h"
 #include "MetadataInfoConst.h"
 
-using namespace std;
+using namespace ccgl;
+using std::vector;
 
 /*!
  * \ingroup util
@@ -37,14 +40,14 @@ struct Information {
                     EMail(""), Website(""), Helpfile("") {
     }
 
-    string Id; ///< Module ID
-    string Name; ///< Module Name
+    string Id;          ///< Module ID
+    string Name;        ///< Module Name
     string Description; ///< Module Description
-    string Version; ///< Module Version
-    string Author; ///< Author
-    string EMail; ///< Email
-    string Website; ///< Website
-    string Helpfile; ///< Helpfile
+    string Version;     ///< Module Version
+    string Author;      ///< Author
+    string EMail;       ///< Email
+    string Website;     ///< Website
+    string Helpfile;    ///< Helpfile
 };
 
 /*!
@@ -56,9 +59,10 @@ struct Information {
 struct baseParameter {
     baseParameter() : Name(""), Units(""), Description(""), Dimension(DT_Unknown) {
     }
-    string Name; ///< Name
-    string Units; ///< Units
-    string Description; ///< Description
+
+    string Name;              ///< Name
+    string Units;             ///< Units
+    string Description;       ///< Description
     dimensionTypes Dimension; ///< Data dimension type
 };
 
@@ -71,6 +75,7 @@ struct baseParameter {
 struct Parameter: baseParameter {
     Parameter() : Source("") {
     }
+
     string Source; ///< Source type
 };
 
@@ -83,6 +88,7 @@ struct Parameter: baseParameter {
 struct InputVariable: Parameter {
     InputVariable() : tfType(TF_Whole) {
     }
+
     transferTypes tfType;
 };
 
@@ -94,6 +100,7 @@ struct InputVariable: Parameter {
 struct OutputVariable: baseParameter {
     OutputVariable() : tfType(TF_Whole) {
     }
+
     transferTypes tfType;
 };
 
@@ -112,7 +119,7 @@ struct InOutputVariable: InputVariable {
  * \class MetadataInfo
  * \brief Metadata information of module
  */
-class MetadataInfo: NotCopyable {
+class MetadataInfo: Interface {
 public:
     MetadataInfo() { m_strSchemaVersion = "0.4"; }
 
@@ -326,14 +333,14 @@ public:
     void TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb);
 
 private:
-    string m_strSchemaVersion; ///< latest XML schema version supported by this class
-    ModelClass m_oClass; ///< class name for the module
-    Information m_Info; ///< the general information for the module
-    vector<Parameter> m_vParameters; ///< list of parameters for the module
-    vector<InputVariable> m_vInputs; ///< list of input parameters for the module
-    vector<OutputVariable> m_vOutputs; ///< list of output parameters for the module
+    string m_strSchemaVersion;             ///< latest XML schema version supported by this class
+    ModelClass m_oClass;                   ///< class name for the module
+    Information m_Info;                    ///< the general information for the module
+    vector<Parameter> m_vParameters;       ///< list of parameters for the module
+    vector<InputVariable> m_vInputs;       ///< list of input parameters for the module
+    vector<OutputVariable> m_vOutputs;     ///< list of output parameters for the module
     vector<InOutputVariable> m_vInOutputs; ///< list of In/Output parameters for the module for MPI version
-    vector<ModelClass> m_vDependencies; ///< list of dependency classes for the module
+    vector<ModelClass> m_vDependencies;    ///< list of dependency classes for the module
 };
 
 #endif /* SEIMS_METADATA_INFO_H */

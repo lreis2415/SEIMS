@@ -1,6 +1,8 @@
-#include "PETPenmanMonteith.h"
-
 #include "api.h"
+
+#include "PETPenmanMonteith.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new PETPenmanMonteith();

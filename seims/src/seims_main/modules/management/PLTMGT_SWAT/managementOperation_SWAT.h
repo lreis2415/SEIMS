@@ -13,10 +13,8 @@
 
 #include "SimulationModule.h"
 #include "Scenario.h"
-#include "ClimateParams.h"
 
-using namespace std;
-using namespace MainBMP;
+using namespace bmps;
 /** \defgroup PLTMGT_SWAT
  * \ingroup Management
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
@@ -32,21 +30,21 @@ public:
 
     ~MGTOpt_SWAT();
 
-    int Execute();
+    int Execute() override;
 
-    void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
-    void Set2DData(const char *key, int n, int col, float **data);
+    void Set2DData(const char *key, int n, int col, float **data) override;
 
-    void SetScenario(Scenario *sce);
+    void SetScenario(Scenario *sce) override;
 
-    void SetSubbasins(clsSubbasins *subbasins);
+    void SetSubbasins(clsSubbasins *subbasins) override;
 
 private:
     /*!
@@ -123,27 +121,27 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs();
+    void  InitialOutputs();
 
     /// Handle lookup tables ///
 
     /// landuse lookup table
-    void initializeLanduseLookup();
+    void InitializeLanduseLookup();
 
     /// crop lookup table
-    void initializeCropLookup();
+    void InitializeCropLookup();
 
     /// fertilizer lookup table
-    void initializeFertilizerLookup();
+    void InitializeFertilizerLookup();
 
     /// tillage lookup table
-    void initializeTillageLookup();
+    void InitializeTillageLookup();
 
     /// the complementary error function
     float Erfc(float xx);
 
     /// distributes dead root mass through the soil profile
-    void rootFraction(int i, float *&root_fr);
+    void RootFraction(int i, float *&root_fr);
 private:
     /*
     * Plant management factory derived from BMPs Scenario

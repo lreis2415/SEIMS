@@ -1,9 +1,8 @@
-#include "seims.h"
-#include "PlantGrowthCommon.h"
-
 #include "managementOperation_SWAT.h"
 
-using namespace std;
+#include "text.h"
+#include "PlantGrowthCommon.h"
+#include "utils_time.h"
 
 MGTOpt_SWAT::MGTOpt_SWAT() : m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                              m_nSub(-1), m_subBsnID(nullptr),
@@ -270,7 +269,7 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     if (StringMatch(sk, VAR_LANDUSE_LOOKUP)) {
         m_landuseLookup = data;
         m_landuseNum = n;
-        initializeLanduseLookup();
+        InitializeLanduseLookup();
         if (col != int(LANDUSE_PARAM_COUNT)) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadLanduseLookup", "The field number " + ValueToString(col) +
                 "is not coincident with LANDUSE_PARAM_COUNT: " +
@@ -281,7 +280,7 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     if (StringMatch(sk, VAR_CROP_LOOKUP)) {
         m_cropLookup = data;
         m_cropNum = n;
-        initializeCropLookup();
+        InitializeCropLookup();
         if (col != int(CROP_PARAM_COUNT)) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadCropLookup", "The field number " + ValueToString(col) +
                 "is not coincident with CROP_PARAM_COUNT: " +
@@ -292,7 +291,7 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     if (StringMatch(sk, VAR_FERTILIZER_LOOKUP)) {
         m_fertilizerLookup = data;
         m_fertilizerNum = n;
-        initializeFertilizerLookup();
+        InitializeFertilizerLookup();
         if (col != int(FERTILIZER_PARAM_COUNT)) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadFertilizerLookup", "The field number " + ValueToString(col) +
                 "is not coincident with FERTILIZER_PARAM_COUNT: " +
@@ -303,7 +302,7 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     if (StringMatch(sk, VAR_TILLAGE_LOOKUP)) {
         m_tillageLookup = data;
         m_tillageNum = n;
-        initializeTillageLookup();
+        InitializeTillageLookup();
         if (col != int(TILLAGE_PARAM_COUNT)) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadTillageLookup", "The field number " + ValueToString(col) +
                 "is not coincident with TILLAGE_PARAM_COUNT: " +
@@ -382,7 +381,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
             m_mgtFactory[uniqueIdx] = tmpPltFactory;
             /// Set plant management spatial units
             if (nullptr == m_mgtFields) {
-                m_mgtFields = tmpPltFactory->getRasterData();
+                m_mgtFields = tmpPltFactory->GetRasterData();
             }
         }
     }
@@ -397,8 +396,8 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
     vector<int> subIDs = subbasins->GetSubbasinIDs();
     for (auto it = subIDs.begin(); it != subIDs.end(); ++it) {
         Subbasin *tmpSubbsn = subbasins->GetSubbasinByID(*it);
-        m_nCellsSubbsn[*it] = tmpSubbsn->getCellCount();
-        m_nAreaSubbsn[*it] = tmpSubbsn->getArea();
+        m_nCellsSubbsn[*it] = tmpSubbsn->GetCellCount();
+        m_nAreaSubbsn[*it] = tmpSubbsn->GetArea();
     }
 }
 
@@ -514,7 +513,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
         /// If operation applied date (month and day) are defined
         if (tmpOperation->GetMonth() != 0 && tmpOperation->GetDay() != 0) {
             struct tm dateInfo;
-            LocalTime(m_date, &dateInfo);
+            utils_time::LocalTime(m_date, &dateInfo);
             if (dateInfo.tm_mon == tmpOperation->GetMonth() &&
                 dateInfo.tm_mday == tmpOperation->GetDay()) {
                 dateDepent = true;
@@ -550,7 +549,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     return !nOps.empty();
 }
 
-void MGTOpt_SWAT::initializeLanduseLookup() {
+void MGTOpt_SWAT::InitializeLanduseLookup() {
     /// Check input data
     if (m_landuseLookup == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Landuse lookup array must not be nullptr");
@@ -566,7 +565,7 @@ void MGTOpt_SWAT::initializeLanduseLookup() {
     }
 }
 
-void MGTOpt_SWAT::initializeCropLookup() {
+void MGTOpt_SWAT::InitializeCropLookup() {
     /// Check input data
     if (m_cropLookup == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Crop lookup array must not be nullptr");
@@ -581,7 +580,7 @@ void MGTOpt_SWAT::initializeCropLookup() {
     }
 }
 
-void MGTOpt_SWAT::initializeFertilizerLookup() {
+void MGTOpt_SWAT::InitializeFertilizerLookup() {
     /// Check input data
     if (m_fertilizerLookup == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer lookup array must not be nullptr");
@@ -597,7 +596,7 @@ void MGTOpt_SWAT::initializeFertilizerLookup() {
     }
 }
 
-void MGTOpt_SWAT::initializeTillageLookup() {
+void MGTOpt_SWAT::InitializeTillageLookup() {
     /// Check input data
     if (m_tillageLookup == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Tillage lookup array must not be nullptr");
@@ -1034,7 +1033,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
     if (nullptr == tmp_rtfr) Initialize1DArray(int(m_soilLayers), tmp_rtfr, 0.f);
-    rootFraction(i, tmp_rtfr);
+    RootFraction(i, tmp_rtfr);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
     float ff1 = (1.f - hiad1) / (1.f - hiad1 + m_frRoot[i]);
@@ -1163,7 +1162,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     m_phuPlant[i] = 0.f;
 }
 
-void MGTOpt_SWAT::rootFraction(int i, float *&root_fr) {
+void MGTOpt_SWAT::RootFraction(int i, float *&root_fr) {
     float cum_rd = 0.f, cum_d = 0.f, cum_rf = 0.f, x1 = 0.f, x2 = 0.f;
     if (m_lastSoilRootDepth[i] < UTIL_ZERO) {
         root_fr[0] = 1.f;
@@ -1173,7 +1172,7 @@ void MGTOpt_SWAT::rootFraction(int i, float *&root_fr) {
     /// Parameters of Normalized Root Density Function from Dwyer et al 19xx
     float a = 1.15f;
     float b = 11.7f;
-    float c = 0.022f,
+    float c = 0.022f;
     float d = 0.12029f; /// Integral of Normalized Root Distribution Function  from 0 to 1 (normalized depth) = 0.12029
     int k = 0; /// used as layer identifier
     for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
@@ -1540,7 +1539,7 @@ void MGTOpt_SWAT::ExecuteKillOperation(int i, int &factoryID, int nOp) {
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
     float *rtfr = new float[int(m_nSoilLayers[i])];
-    rootFraction(i, rtfr);
+    RootFraction(i, rtfr);
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
     m_soilFreshOrgN[i][0] += m_plantN[i] * (1.f - m_frRoot[i]);
@@ -1715,7 +1714,7 @@ void MGTOpt_SWAT::ScheduledManagement(int cellIdx, int &factoryID, int nOp) {
 
 int MGTOpt_SWAT::Execute() {
     CheckInputData();  /// essential input data, other inputs for specific management operation will be check separately.
-    initialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
+     InitialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
     /// initialize arrays at the beginning of the current day, derived from sim_initday.f of SWAT
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -1737,7 +1736,7 @@ int MGTOpt_SWAT::Execute() {
 }
 
 void MGTOpt_SWAT::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     /// plant operation
@@ -1786,7 +1785,7 @@ void MGTOpt_SWAT::Get1DData(const char *key, int *n, float **data) {
 }
 
 void MGTOpt_SWAT::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_soilLayers;
@@ -1799,7 +1798,7 @@ void MGTOpt_SWAT::Get2DData(const char *key, int *nRows, int *nCols, float ***da
     }
 }
 
-void MGTOpt_SWAT::initialOutputs() {
+void MGTOpt_SWAT:: InitialOutputs() {
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
     if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth / 10000.f; // unit: ha
     /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ

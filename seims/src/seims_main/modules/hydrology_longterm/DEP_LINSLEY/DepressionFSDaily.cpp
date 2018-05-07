@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "DepressionFSDaily.h"
+
+#include "text.h"
 
 DepressionFSDaily::DepressionFSDaily() : m_nCells(-1), m_depCo(NODATA_VALUE),
                                          m_depCap(nullptr),
@@ -25,7 +26,7 @@ bool DepressionFSDaily::CheckInputData() {
     return true;
 }
 
-void DepressionFSDaily::initialOutputs() {
+void DepressionFSDaily:: InitialOutputs() {
     CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
     if (m_sd == nullptr && m_depCap != nullptr) {
         m_sd = new float[m_nCells];
@@ -43,7 +44,7 @@ void DepressionFSDaily::initialOutputs() {
 int DepressionFSDaily::Execute() {
     //check the data
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
@@ -136,7 +137,7 @@ void DepressionFSDaily::Set1DData(const char *key, int n, float *data) {
 }
 
 void DepressionFSDaily::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_DPST)) {

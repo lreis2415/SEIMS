@@ -75,7 +75,7 @@ bool ImplicitKinematicWave_OL::CheckInputData(void) {
     return true;
 }
 
-void ImplicitKinematicWave_OL::initialOutputs() {
+void ImplicitKinematicWave_OL:: InitialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(MID_IKW_OL, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -295,7 +295,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 }
 
 int ImplicitKinematicWave_OL::Execute() {
-    initialOutputs();
+     InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -395,7 +395,7 @@ void ImplicitKinematicWave_OL::GetValue(const char *key, float *data) {
 }
 
 void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
 
     string sk(key);
     *n = m_nCells;

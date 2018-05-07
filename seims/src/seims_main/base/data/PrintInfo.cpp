@@ -1,5 +1,8 @@
 #include "PrintInfo.h"
+#include "utils_time.h"
+#include <text.h>
 
+using namespace utils_time;
 
 //////////////////////////////////////////////
 ///////////PrintInfoItem Class////////////////
@@ -128,10 +131,10 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         }
         //cout << projectPath << Filename << endl;
         if (outToMongoDB) {
-            gfs->removeFile(Filename);
-            FloatRaster(templateRaster, m_1DData).outputToMongoDB(Filename, gfs);
+            gfs->RemoveFile(Filename);
+            FloatRaster(templateRaster, m_1DData).OutputToMongoDB(Filename, gfs);
         } else {
-            FloatRaster(templateRaster, m_1DData).outputToFile(projectPath + Filename + "." + Suffix);
+            FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
         }
         return;
     }
@@ -142,10 +145,10 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
         if (outToMongoDB) {
-            gfs->removeFile(Filename);
-            FloatRaster(templateRaster, m_2DData, m_nLayers).outputToMongoDB(Filename, gfs);
+            gfs->RemoveFile(Filename);
+            FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(Filename, gfs);
         } else {
-            FloatRaster(templateRaster, m_2DData, m_nLayers).outputToFile(projectPath + Filename + "." + Suffix);
+            FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
         }
         return;
     }
@@ -583,7 +586,7 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
     itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
 
-    type = trim(type);
+    type = Trim(type);
     itm->AggType = type;
     AggregationType enumType = PrintInfoItem::MatchAggregationType(type);
     if (enumType == AT_Unknown) {

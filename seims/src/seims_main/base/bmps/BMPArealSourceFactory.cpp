@@ -1,6 +1,15 @@
 #include "BMPArealSourceFactory.h"
 
-using namespace MainBMP;
+#include <memory> // unique_ptr
+
+#include "utils_string.h"
+#include "utils_time.h"
+
+#include "BMPText.h"
+
+using namespace utils_string;
+using namespace utils_time;
+using namespace bmps;
 
 BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string> &distribution,
@@ -8,7 +17,7 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
     m_mgtFieldsRs(nullptr) {
     m_arealSrcMgtTab = m_bmpCollection;
-    m_arealSrcIDs = SplitStringForInt(location, '-');
+    SplitStringForValues(location, '-', m_arealSrcIDs);
     if (m_distribution.size() == 4 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_arealSrcDistName = m_distribution[1];
         m_arealSrcDistTab = m_distribution[2];
@@ -67,7 +76,7 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const str
     bson_destroy(child1);
     bson_destroy(child2);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcMgtTab)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_arealSrcMgtTab)));
     mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -92,7 +101,7 @@ void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient *conn, const strin
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_arealSrcDistTab)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_arealSrcDistTab)));
     mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -121,7 +130,7 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float *mgtField) {
     m_loadedMgtFieldIDs = true;
 }
 
-void BMPArealSrcFactory::Dump(ostream *fs) {
+void BMPArealSrcFactory::Dump(std::ostream *fs) {
     if (fs == nullptr) return;
     *fs << "Point Source Management Factory: " << endl <<
         "    SubScenario ID: " << m_subScenarioId << endl;
@@ -142,7 +151,7 @@ void BMPArealSrcFactory::Dump(ostream *fs) {
 void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *> &sceneRsMap) {
     if (sceneRsMap.find(m_arealSrcDistName) != sceneRsMap.end()) {
         int n;
-        sceneRsMap.at(m_arealSrcDistName)->getRasterData(&n, &m_mgtFieldsRs);
+        sceneRsMap.at(m_arealSrcDistName)->GetRasterData(&n, &m_mgtFieldsRs);
     } else {
         // raise Exception?
     }
@@ -219,7 +228,7 @@ ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-void ArealSourceMgtParams::Dump(ostream *fs) {
+void ArealSourceMgtParams::Dump(std::ostream *fs) {
     if (fs == nullptr) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
@@ -269,7 +278,7 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
                              "The array size of must be greater than 0 and the array must not be NULL.");
     }
 }
-void ArealSourceLocations::Dump(ostream *fs) {
+void ArealSourceLocations::Dump(std::ostream *fs) {
     if (fs == nullptr) return;
     *fs << "      Point Source Location: " << endl <<
         "        ARSRCID: " << m_arealSrcID << ", Valid Cells Number: " << m_nCells <<

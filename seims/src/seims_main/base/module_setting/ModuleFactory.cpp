@@ -1,6 +1,8 @@
-#include "seims.h"
-#include "MetadataInfo.h"
 #include "ModuleFactory.h"
+
+#include "basic.h"
+#include "MetadataInfo.h"
+#include <text.h>
 
 ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
                              map<string, SEIMSModuleSetting *>& moduleSettings,
@@ -26,9 +28,9 @@ ModuleFactory::ModuleFactory(string model_name, vector<string>& moduleIDs,
 
 ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_args) {
     /// Check the existence of configuration files
-    string file_in = input_args->m_model_path + SEP + File_Input;
-    string file_out = input_args->m_model_path + SEP + File_Output;
-    string file_cfg = input_args->m_model_path + SEP + File_Config;
+    string file_in = input_args->model_path + SEP + File_Input;
+    string file_out = input_args->model_path + SEP + File_Output;
+    string file_cfg = input_args->model_path + SEP + File_Config;
     string cfgNames[] = {file_in, file_out, file_cfg};
     for (int i = 0; i < 3; ++i) {
         if (!FileExists(cfgNames[i])) {
@@ -55,7 +57,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         LoadParseLibrary(module_path, moduleIDs, moduleSettings, dllHandles, instanceFuncs,
                          metadataFuncs, moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
     } catch (ModelException& e) {
-        cout << e.toString() << endl;
+        cout << e.ToString() << endl;
         return nullptr;
     }
     catch (exception& e) {
@@ -66,7 +68,7 @@ ModuleFactory* ModuleFactory::Init(const string& module_path, InputArgs* input_a
         cout << "Unknown exception occurred when loading module library!" << endl;
         return nullptr;
     }
-    return new ModuleFactory(input_args->m_model_name, moduleIDs, moduleSettings, dllHandles,
+    return new ModuleFactory(input_args->model_name, moduleIDs, moduleSettings, dllHandles,
                              instanceFuncs, metadataFuncs,
                              moduleParameters, moduleInputs, moduleOutputs, moduleInOutputs, tfValueInputs);
 }
@@ -284,7 +286,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         return;
     }
     // check if the dll file exists
-    string moduleFileName = module_path + SEP + string(dllID) + string(Tag_DyLib);
+    string moduleFileName = module_path + SEP + string(dllID) + string(LIBSUFFIX);
     if (!FileExists(moduleFileName)) {
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
     }
@@ -561,7 +563,7 @@ bool ModuleFactory::LoadSettingsFromFile(const char* filename, vector<vector<str
         if (tokens.empty()) continue;
         for (size_t i = 0; i < tokens.size(); i++) {
             //TrimSpaces(tokens[i]);
-            tokens[i] = trim(tokens[i]);
+            tokens[i] = Trim(tokens[i]);
         }
         if (tokens.empty()) continue;
         // is there anything in the first item? Or, the size of tokens greater than 4?
@@ -633,7 +635,7 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
 /// 1. Fix code of DT_Raster2D related, 2016-5-27
 /// 2. Bugs fixed in continuous dependency, 2016-9-6
 void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationModule *>& modules) {
-    size_t n = m_moduleIDs.size();
+    int n = CVT_INT(m_moduleIDs.size());
     string id = m_moduleIDs[iModule];
     vector<ParamInfo *>& inputs = m_moduleInputs[id];
     /// if there are no inputs from other modules for current module
@@ -654,7 +656,7 @@ void ModuleFactory::GetValueFromDependencyModule(int iModule, vector<SimulationM
         ParamInfo* dependParam = inputs[j]->DependPara;
         if (dependParam == nullptr) continue;
 
-        size_t k = 0;
+        int k = 0;
         for (k = 0; k < n; k++) {
             if (m_moduleIDs[k] == dependParam->ModuleID) {
                 break;

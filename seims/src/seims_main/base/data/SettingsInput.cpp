@@ -1,6 +1,9 @@
 #include "SettingsInput.h"
 
-using namespace std;
+#include "utils_time.h"
+#include <text.h>
+
+using namespace utils_time;
 
 SettingsInput::SettingsInput(vector<string>& stringvector) : m_isStormModel(false) {
     Settings::SetSettingTagStrings(stringvector);

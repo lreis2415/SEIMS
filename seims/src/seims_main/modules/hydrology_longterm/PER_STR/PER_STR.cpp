@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "PER_STR.h"
+
+#include "text.h"
 
 PER_STR::PER_STR() : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
                      m_ks(nullptr), m_sat(nullptr), m_fc(nullptr),
@@ -13,14 +14,14 @@ PER_STR::~PER_STR() {
     if (m_perc != nullptr) Release2DArray(m_nCells, m_perc);
 }
 
-void PER_STR::initialOutputs() {
+void PER_STR:: InitialOutputs() {
     CHECK_POSITIVE(MID_PER_STR, m_nCells);
     if (nullptr == m_perc) { Initialize2DArray(m_nCells, m_nSoilLayers, m_perc, 0.f); }
 }
 
 int PER_STR::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
@@ -105,7 +106,7 @@ int PER_STR::Execute() {
 }
 
 void PER_STR::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;

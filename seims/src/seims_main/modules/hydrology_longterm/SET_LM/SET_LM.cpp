@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "SET_LM.h"
 
-using namespace std;
+#include "text.h"
 
 SET_LM::SET_LM() : m_nCells(-1), m_frozenT(NODATA_VALUE),
                    m_fc(nullptr), m_wp(nullptr), m_EI(nullptr), m_PET(nullptr), m_ED(nullptr), m_plantET(nullptr),
@@ -15,7 +14,7 @@ SET_LM::~SET_LM() {
 
 int SET_LM::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         m_soilET[i] = 0.0f;
@@ -53,7 +52,7 @@ int SET_LM::Execute() {
 }
 
 void SET_LM::Get1DData(const char *key, int *nRows, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SOET)) { *data = m_soilET; }
     else {
@@ -125,7 +124,7 @@ bool SET_LM::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void SET_LM::initialOutputs() {
+void SET_LM:: InitialOutputs() {
     CHECK_POSITIVE(MID_SET_LM, m_nCells);
     if (nullptr == m_soilET) { Initialize1DArray(m_nCells, m_soilET, 0.f); }
 }

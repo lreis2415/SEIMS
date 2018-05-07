@@ -153,7 +153,7 @@ private:
 
     map<int, vector<int> > m_reachLayers;
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     void ChannelFlow(int i);
 

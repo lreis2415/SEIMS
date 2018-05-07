@@ -1,6 +1,6 @@
 #include "Scenario.h"
 
-namespace MainBMP {
+namespace bmps {
 Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 */,
                    int scenarioID /* = 0 */) :
     m_conn(conn), m_bmpDBName(dbName), m_sceneID(scenarioID), m_subbsnID(subbsnID) {
@@ -13,7 +13,7 @@ Scenario::~Scenario() {
     StatusMessage("Releasing Scenario...");
     for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end();) {
         if (nullptr != it->second) {
-            delete (it->second);
+            delete it->second;
             it->second = nullptr;
         }
         m_bmpFactories.erase(it++);
@@ -22,7 +22,7 @@ Scenario::~Scenario() {
 }
 
 void Scenario::loadScenario() {
-    m_conn->getCollectionNames(m_bmpDBName, m_bmpCollections);
+    m_conn->GetCollectionNames(m_bmpDBName, m_bmpCollections);
     loadScenarioName();
     loadBMPs();
     loadBMPDetail();
@@ -35,7 +35,7 @@ void Scenario::loadScenarioName() {
                              "' does not exist or there is not a table named '" +
                              TAB_BMP_SCENARIO + "' in BMP database.");
     }
-    mongoc_collection_t* sceCollection = m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO);
+    mongoc_collection_t* sceCollection = m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO);
     /// Find the unique scenario name
     bson_t *query = bson_new(), *reply = bson_new();
     query = BCON_NEW("distinct", BCON_UTF8(TAB_BMP_SCENARIO), "key", FLD_SCENARIO_NAME,
@@ -73,8 +73,8 @@ void Scenario::loadBMPs() {
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, FLD_SCENARIO_ID, m_sceneID);
     //cout<<bson_as_json(query, NULL)<<endl;
-    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
-    unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->getCollection(m_bmpDBName, TAB_BMP_INDEX)));
+    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
+    unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     bson_error_t* err = NULL;

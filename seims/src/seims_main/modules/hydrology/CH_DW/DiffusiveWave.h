@@ -55,7 +55,7 @@ public:
 private:
     void ChannelFlow(int iReach, int iCell, int id);
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     ///< Valid cells number
     int m_nCells;

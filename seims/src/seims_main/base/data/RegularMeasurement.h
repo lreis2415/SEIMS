@@ -8,7 +8,7 @@
 #ifndef SEIMS_REGULAR_MEASUREMENT_H
 #define SEIMS_REGULAR_MEASUREMENT_H
 
-#include "MongoUtil.h"
+#include "db_mongoc.h"
 #include "Measurement.h"
 
 /*!
@@ -36,7 +36,7 @@ public:
     virtual ~RegularMeasurement();
 
     //! Get site date by time \a pData
-    virtual float* GetSiteDataByTime(time_t t);
+    float* GetSiteDataByTime(time_t t) override;
 
 private:
     //! site data : the first dimension is time, and the second dimension is data by sites

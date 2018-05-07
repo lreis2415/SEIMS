@@ -1,6 +1,8 @@
-#include "SSR_DA.h"
-
 #include "api.h"
+
+#include "SSR_DA.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SSR_DA();

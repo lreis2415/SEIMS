@@ -1,32 +1,33 @@
 #include "parallel.h"
 
-using namespace std;
+#include <text.h>
 
-int CreateReachTopology(MongoClient* client, string& dbname, string& group_method, int group_size,
+int CreateReachTopology(MongoClient* client, const string& dbname,
+                        const string& group_method, const int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set) {
     // Read reach information from MongoDB Collection "REACHES"
     clsReaches* reaches = new clsReaches(client, dbname, DB_TAB_REACH);
     // Get downstream map
-    map<int, int> downStreamMap = reaches->GetDownStreamID();
+    map<int, int> down_stream_map = reaches->GetDownStreamID();
     // Create SubbasinStruct's map and group_set
-    for (auto it = downStreamMap.begin(); it != downStreamMap.end(); ++it) {
+    for (auto it = down_stream_map.begin(); it != down_stream_map.end(); ++it) {
         int id = it->first;
-        clsReach* tmpReach = reaches->GetReachByID(id);
-        int group = tmpReach->GetGroupIndex(group_method, group_size);
+        clsReach* tmp_reach = reaches->GetReachByID(id);
+        int group = tmp_reach->GetGroupIndex(group_method, group_size);
         subbasins[id] = new SubbasinStruct(id, group);
         // set layering order
-        subbasins[id]->updownOrder = int(tmpReach->Get(REACH_UPDOWN_ORDER));
-        subbasins[id]->downupOrder = int(tmpReach->Get(REACH_DOWNUP_ORDER));
+        subbasins[id]->updown_order = int(tmp_reach->Get(REACH_UPDOWN_ORDER));
+        subbasins[id]->downup_order = int(tmp_reach->Get(REACH_DOWNUP_ORDER));
 
         group_set.insert(group);
     }
     // fill topology information
-    for (auto it = downStreamMap.begin(); it != downStreamMap.end(); ++it) {
+    for (auto it = down_stream_map.begin(); it != down_stream_map.end(); ++it) {
         int id = it->first;
         int to = it->second;
         if (to > 0) {
-            subbasins[id]->downStream = subbasins[to];
-            subbasins[to]->upStreams.push_back(subbasins[id]);
+            subbasins[id]->down_stream = subbasins[to];
+            subbasins[to]->up_streams.push_back(subbasins[id]);
         }
     }
 #ifdef _DEBUG
@@ -41,12 +42,12 @@ int CreateReachTopology(MongoClient* client, string& dbname, string& group_metho
     for (auto it = subbasins.begin(); it != subbasins.end(); ++it) {
         cout << "  Subbasin ID: " << it->first;
         cout << ", Group index: " << it->second->group;
-        cout << ", Updown order: " << it->second->updownOrder;
-        cout << ", Downup order: " << it->second->updownOrder;
-        if (nullptr == it->second->downStream) {
+        cout << ", Updown order: " << it->second->updown_order;
+        cout << ", Downup order: " << it->second->updown_order;
+        if (nullptr == it->second->down_stream) {
             cout << ", Downstream ID: None";
         } else {
-            cout << ", Downstream ID: " << it->second->downStream->id;
+            cout << ", Downstream ID: " << it->second->down_stream->id;
         }
         cout << endl;
     }

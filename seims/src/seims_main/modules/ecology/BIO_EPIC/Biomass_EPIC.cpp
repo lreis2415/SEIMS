@@ -1,7 +1,8 @@
-#include "seims.h"
 #include "Biomass_EPIC.h"
 
-using namespace std;
+#include "PlantGrowthCommon.h"
+#include <text.h>
+
 
 Biomass_EPIC::Biomass_EPIC() : m_nCells(-1), m_nClimDataYrs(-1), m_co2(NODATA_VALUE), m_tMean(nullptr), m_tMin(nullptr),
                                m_SR(nullptr), m_dayLenMin(nullptr), m_dormHr(nullptr),
@@ -262,11 +263,11 @@ bool Biomass_EPIC::CheckInputData(void) {
     return true;
 }
 
-void Biomass_EPIC::initialOutputs() {
+void Biomass_EPIC::InitialOutputs() {
     if (FloatEqual(uobw, NODATA_VALUE)) {
         ubw = 10.f; /// the uptake distribution for water is hardwired, users are not allowed to modify
         uobw = 0.f;
-        uobw = PGCommon::getNormalization(ubw);
+        uobw = GetNormalization(ubw);
     }
     if (m_albedo == nullptr) Initialize1DArray(m_nCells, m_albedo, 0.f);
     if (m_sol_cov == nullptr || m_sol_rsd == nullptr) {
@@ -288,7 +289,7 @@ void Biomass_EPIC::initialOutputs() {
         m_LAIYrMax = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
-            if (PGCommon::IsTree((int) (m_landCoverCls[i]))) {
+            if (IsTree(CVT_INT(m_landCoverCls[i]))) {
                 m_LAIYrMax[i] *= m_initTreeMatYr[i] / m_matYrs[i];
             } else {
                 m_LAIYrMax[i] = m_LAIDay[i];
@@ -416,7 +417,7 @@ void Biomass_EPIC::DistributePlantET(int i) {    /// swu.f of SWAT
         xx = 0.f;
         // update soil storage profile just in case
         m_soilStorageProfile[i] = 0.f;
-        for (int ly = 0; ly < (int) m_nSoilLayers[i]; ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
             m_soilStorageProfile[i] += m_soilStorage[i][ly];
         }
         /// compute aeration stress
@@ -518,7 +519,7 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
         if (FloatEqual(m_co2Hi[i], 330.0f)) m_co2Hi[i] = 660.f;
         float m_RadUseEffiShpCoef1 = 0.f;
         float m_RadUseEffiShpCoef2 = 0.f;
-        PGCommon::getScurveShapeParameter(m_BIOE[i] * 0.01f, m_BIOEHI[i] * 0.01f, m_co2, m_co2Hi[i],
+        GetScurveShapeParameter(m_BIOE[i] * 0.01f, m_BIOEHI[i] * 0.01f, m_co2, m_co2Hi[i],
                                           &m_RadUseEffiShpCoef1, &m_RadUseEffiShpCoef2);
 
         float beadj = 0.f;
@@ -580,7 +581,7 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
         float m_rootShootRatio2 = 0.2f;
         m_frRoot[i] = m_rootShootRatio1 * (m_rootShootRatio1 - m_rootShootRatio2) * m_frPHUacc[i];
         float LAIShpCoef1 = 0.f, LAIShpCoef2 = 0.f;
-        PGCommon::getScurveShapeParameter(m_frMaxLAI1[i], m_frMaxLAI2[i], m_frGrowOptLAI1[i], m_frGrowOptLAI2[i],
+        GetScurveShapeParameter(m_frMaxLAI1[i], m_frMaxLAI2[i], m_frGrowOptLAI1[i], m_frGrowOptLAI2[i],
                                           &LAIShpCoef1, &LAIShpCoef2);
         float f = m_frPHUacc[i] / (m_frPHUacc[i] + exp(LAIShpCoef1 - LAIShpCoef2 * m_frPHUacc[i]));
         float ff = f - m_LAIMaxFr[i];
@@ -632,7 +633,7 @@ void Biomass_EPIC::AdjustPlantGrowth(int i) {
 }
 
 void Biomass_EPIC::PlantNitrogenUptake(int i) {
-    float uobn = PGCommon::getNormalization(m_NUpDis);
+    float uobn = GetNormalization(m_NUpDis);
     float n_reduc = 300.f; /// nitrogen uptake reduction factor (not currently used; defaulted 300.)
     float tno3 = 0.f;
     for (int l = 0; l < (int) m_nSoilLayers[i]; l++) {
@@ -643,7 +644,7 @@ void Biomass_EPIC::PlantNitrogenUptake(int i) {
     /// icrop is land cover code in SWAT.
     /// in SEIMS, it is no need to use it.
     //// determine shape parameters for plant nitrogen uptake equation, from readplant.f
-    m_frPlantN[i] = PGCommon::NPBiomassFraction(m_frPlantN1[i], m_frPlantN2[i], m_frPlantN3[i], m_frPHUacc[i]);
+    m_frPlantN[i] = NPBiomassFraction(m_frPlantN1[i], m_frPlantN2[i], m_frPlantN3[i], m_frPHUacc[i]);
     float un2 = 0.f; /// ideal (or optimal) plant nitrogen content (kg/ha)
     un2 = m_frPlantN[i] * m_biomass[i];
     if (un2 < m_plantN[i]) un2 = m_plantN[i];
@@ -693,7 +694,7 @@ void Biomass_EPIC::PlantNitrogenUptake(int i) {
         FloatEqual(m_landCoverCls[i], 3.f)) {
             m_frStrsN[i] = 1.f;
     } else {
-        PGCommon::calPlantStressByLimitedNP(m_plantN[i], un2, &m_frStrsN[i]);
+        CalPlantStressByLimitedNP(m_plantN[i], un2, &m_frStrsN[i]);
         float xx = 0.f;
         if (m_NO3Defic[i] > 1.e-5f) {
             xx = m_plantUpTkN[i] / m_NO3Defic[i];
@@ -750,9 +751,9 @@ void Biomass_EPIC::PlantNitrogenFixed(int i) {
 }
 
 void Biomass_EPIC::PlantPhosphorusUptake(int i) {
-    float uobp = PGCommon::getNormalization(m_PUpDis);
+    float uobp = GetNormalization(m_PUpDis);
     //// determine shape parameters for plant phosphorus uptake equation, from readplant.f
-    m_frPlantP[i] = PGCommon::NPBiomassFraction(m_frPlantP1[i], m_frPlantP2[i], m_frPlantP3[i], m_frPHUacc[i]);
+    m_frPlantP[i] = NPBiomassFraction(m_frPlantP1[i], m_frPlantP2[i], m_frPlantP3[i], m_frPHUacc[i]);
     float up2 = 0.f; /// optimal plant phosphorus content
     float uapd = 0.f; /// plant demand of phosphorus
     float upmx = 0.f; /// maximum amount of phosphorus that can be removed from the soil layer
@@ -781,7 +782,7 @@ void Biomass_EPIC::PlantPhosphorusUptake(int i) {
     if (m_plantUpTkP[i] < 0.f) m_plantUpTkP[i] = 0.f;
     m_plantP[i] += m_plantUpTkP[i];
     /// compute phosphorus stress
-    PGCommon::calPlantStressByLimitedNP(m_plantP[i], up2, &m_frStrsP[i]);
+    CalPlantStressByLimitedNP(m_plantP[i], up2, &m_frStrsP[i]);
 }
 
 void Biomass_EPIC::CheckDormantStatus(int i) {
@@ -791,7 +792,7 @@ void Biomass_EPIC::CheckDormantStatus(int i) {
 
 int Biomass_EPIC::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
     //cout<<"BIOEPIC, pre solno3: ";
     //for (int i = 0; i < m_nCells; i++)
     //{
@@ -836,7 +837,7 @@ int Biomass_EPIC::Execute() {
 }
 
 void Biomass_EPIC::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_BIOMASS)) { *data = m_biomass; }
@@ -870,7 +871,7 @@ void Biomass_EPIC::Get1DData(const char *key, int *n, float **data) {
 }
 
 void Biomass_EPIC::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nMaxSoilLayers;

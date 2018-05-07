@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "MUSLE_AS.h"
+
+#include "text.h"
 
 MUSLE_AS::MUSLE_AS() : m_nCells(-1), m_cellWidth(-1.f), m_nSoilLayers(-1),
                        m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),
@@ -41,7 +42,7 @@ bool MUSLE_AS::CheckInputData() {
     return true;
 }
 
-void MUSLE_AS::initialOutputs() {
+void MUSLE_AS::InitialOutputs() {
     CHECK_POSITIVE(MID_MUSLE_AS, m_nCells);
     if (nullptr == m_sedimentYield) Initialize1DArray(m_nCells, m_sedimentYield, 0.f);
     if (nullptr == m_sandYield) Initialize1DArray(m_nCells, m_sandYield, 0.f);
@@ -82,7 +83,7 @@ void MUSLE_AS::initialOutputs() {
 
 int MUSLE_AS::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_surfaceRunoff[i] < 0.0001f || m_streamLink[i] > 0) {
@@ -175,7 +176,7 @@ void MUSLE_AS::Set2DData(const char *key, int nRows, int nCols, float **data) {
 }
 
 void MUSLE_AS::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SOER)) { *data = m_sedimentYield; }
     else if (StringMatch(sk, VAR_USLE_LS)) { *data = m_usle_ls; }

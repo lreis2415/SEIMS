@@ -125,7 +125,7 @@ bool Muskingum::CheckInputData() {
     return true;
 }
 
-void Muskingum::initialOutputs() {
+void Muskingum:: InitialOutputs() {
     if (this->m_nCells <= 0) {
         throw ModelException(MID_CH_MSK, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -301,7 +301,7 @@ bool Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
 
 int Muskingum::Execute() {
     //check the data
-    initialOutputs();
+     InitialOutputs();
     CheckInputData();
 
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");

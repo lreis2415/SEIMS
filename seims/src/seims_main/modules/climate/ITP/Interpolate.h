@@ -2,46 +2,42 @@
  * \brief Interpolate function for site based data, e.g. precipitation
  * \author Junzhi Liu, LiangJun Zhu
  * \date Jan. 2010
- * \revised date Apr. 2016
+ * \revised 2018-05-07 - lj - Reformat.\n
+ *
  */
 #ifndef SEIMS_MODULE_ITP_H
 #define SEIMS_MODULE_ITP_H
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup ITP
  * \ingroup Climate
  * \brief Interpolation Module
- *
  */
 /*!
  * \class Interpolate
  * \ingroup ITP
- *
  * \brief Interpolation
- *
  */
-class Interpolate : public SimulationModule {
+class Interpolate: public SimulationModule {
 public:
     Interpolate();
 
     ~Interpolate();
 
-    //! Set data type
-    void SetClimateDataType(float value);
+    void SetClimateDataType(float value) override;
 
-    int Execute();
+    int Execute() override;
 
-    void SetDate(time_t date, int yearIdx);
+    void SetDate(time_t date, int year_idx) override;
 
-    void SetValue(const char *key, float value);
+    void SetValue(const char* key, float value) override;
 
-    void Set1DData(const char *key, int n, float *value);
+    void Set1DData(const char* key, int n, float* data) override;
 
-    void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char* key, int n_rows, int n_cols, float** data) override;
 
-    void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char* key, int* n, float** data) override;
 
     /*!
      * \brief Check length of the input variable
@@ -49,7 +45,7 @@ public:
      * \param[in] n size of the input 1D data
      * \param[out] m_n the corresponding member variable of length
      */
-    bool CheckInputSize(string &key, int n, int &m_n);
+    static bool CheckInputSize(string& key, int n, int& m_n);
 
     void CheckInputData();
 
@@ -63,23 +59,23 @@ private:
     /// count of stations
     int m_nStatioins;
     /// data of stations
-    float *m_stationData;
+    float* m_stationData;
     /// count of valid cells
     int m_nCells;
     /// weights of each sites of all valid cells
-    float *m_itpWeights;
+    float* m_itpWeights;
 
     /// whether using vertical interpolation
     bool m_itpVertical;
     /// elevation of stations
-    float *m_hStations;
+    float* m_hStations;
     /// elevation of cells
-    float *m_dem;
+    float* m_dem;
     /// Lapse Rate, a 2D array. The first level is by month, and the second level is by data type in order of (P,T,PET).
-    float **m_lapseRate;
+    float** m_lapseRate;
     /// months since January - [0,11]
     int m_month;
     /// interpolation result
-    float *m_itpOutput;
+    float* m_itpOutput;
 };
 #endif /* SEIMS_MODULE_ITP_H */

@@ -1,7 +1,13 @@
-#include "text.h"
 #include "ParamInfo.h"
 
-using namespace std;
+#include <algorithm>
+
+#include "utils_math.h"
+#include "utils_string.h"
+#include "text.h"
+
+using namespace utils_math;
+using namespace utils_string;
 
 ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dimension(DT_Unknown),
                          Transfer(TF_Whole), Source(""), Value(0.f), Impact(0.f), Change(""),

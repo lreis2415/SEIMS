@@ -1,248 +1,248 @@
 #include "parallel.h"
 
-int MasterProcess(map<int, SubbasinStruct *>& subbasinMap, set<int>& groupSet) {
+int MasterProcess(map<int, SubbasinStruct *>& subbasin_map, set<int>& group_set) {
     StatusMessage("Enter master process...");
     MPI_Request request;
     MPI_Status status;
-    int nSlaves = int(groupSet.size()); /// groupSet normally equals (0, 1, 2, ... , nSlaves-1)
+    int nslaves = CVT_INT(group_set.size()); /// groupSet normally equals (0, 1, 2, ... , nSlaves-1)
     // get the subbasin id list of different groups
-    map<int, vector<int> > groupMap;
-    for (auto it = groupSet.begin(); it != groupSet.end(); ++it) {
-        groupMap.insert(make_pair(*it, vector<int>()));
+    map<int, vector<int> > group_map;
+    for (auto it = group_set.begin(); it != group_set.end(); ++it) {
+        group_map.insert(make_pair(*it, vector<int>()));
     }
     // get the subbasin ID list of different groups
-    for (auto it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
-        groupMap[it->second->group].push_back(it->second->id);
+    for (auto it = subbasin_map.begin(); it != subbasin_map.end(); ++it) {
+        group_map[it->second->group].push_back(it->second->id);
     }
     // get the maximum length of the task assignment message
-    size_t maxTaskLen = 0;
-    for (auto it = groupSet.begin(); it != groupSet.end(); ++it) {
-        if (groupMap[*it].size() > maxTaskLen) {
-            maxTaskLen = groupMap[*it].size();
+    int max_task_len = 0;
+    for (auto it = group_set.begin(); it != group_set.end(); ++it) {
+        if (group_map[*it].size() > max_task_len) {
+            max_task_len = CVT_INT(group_map[*it].size());
         }
     }
 #ifdef _DEBUG
     cout << "Group set: " << endl;
-    for (auto it = groupMap.begin(); it != groupMap.end(); ++it) {
+    for (auto it = group_map.begin(); it != group_map.end(); ++it) {
         cout << "  group id: " << it->first << ", subbasin IDs: ";
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
             cout << *it2 << ", ";
         }
         cout << endl;
     }
-    cout << "  max task length: " << maxTaskLen << endl;
+    cout << "  max task length: " << max_task_len << endl;
 #endif /* _DEBUG */
 
-    int nTaskAll = maxTaskLen * nSlaves;
-    int* pSendGroupId = nullptr; // id of the group
+    int n_task_all = max_task_len * nslaves;
+    int* p_send_group_id = nullptr; // id of the group
 
-    int* pSendTask = nullptr; // id of subbasins
-    int* pSendUpdownOrd = nullptr; // layering method of up-down stream
-    int* pSendDownupOrd = nullptr; // layering method of down-up stream from outlet subbasin
-    int* pSendDownStream = nullptr; // id of downstream subbasins
+    int* p_send_task = nullptr;        // id of subbasins
+    int* p_send_updown_ord = nullptr;  // layering method of up-down stream
+    int* p_send_downup_ord = nullptr;  // layering method of down-up stream from outlet subbasin
+    int* p_send_down_stream = nullptr; // id of downstream subbasins
 
-    int* pSendUpNums = nullptr; // number of upstream subbasins
-    int* pSendUpStream = nullptr; // ids of upstream subbasins
+    int* p_send_up_nums = nullptr;   // number of upstream subbasins
+    int* p_send_up_stream = nullptr; // ids of upstream subbasins
 
     // initialization
-    Initialize1DArray(nSlaves, pSendGroupId, -1);
+    Initialize1DArray(nslaves, p_send_group_id, -1);
 
-    Initialize1DArray(nTaskAll, pSendTask, -1);
-    Initialize1DArray(nTaskAll, pSendUpdownOrd, -1);
-    Initialize1DArray(nTaskAll, pSendDownupOrd, -1);
-    Initialize1DArray(nTaskAll, pSendDownStream, -1);
+    Initialize1DArray(n_task_all, p_send_task, -1);
+    Initialize1DArray(n_task_all, p_send_updown_ord, -1);
+    Initialize1DArray(n_task_all, p_send_downup_ord, -1);
+    Initialize1DArray(n_task_all, p_send_down_stream, -1);
 
-    Initialize1DArray(nTaskAll, pSendUpNums, 0);
-    Initialize1DArray(nTaskAll * MAX_UPSTREAM, pSendUpStream, -1);
+    Initialize1DArray(n_task_all, p_send_up_nums, 0);
+    Initialize1DArray(n_task_all * MAX_UPSTREAM, p_send_up_stream, -1);
 
-    int iGroup = 0;
-    for (auto it = groupSet.begin(); it != groupSet.end(); ++it) {
-        pSendGroupId[iGroup] = *it;
-        int groupIndex = iGroup * maxTaskLen;
-        for (size_t i = 0; i < groupMap[*it].size(); i++) {
-            int id = groupMap[*it][i];
-            pSendTask[groupIndex + i] = id;
-            pSendUpdownOrd[groupIndex + i] = subbasinMap[id]->updownOrder;
-            pSendDownupOrd[groupIndex + i] = subbasinMap[id]->downupOrder;
-            if (subbasinMap[id]->downStream != nullptr) {
-                pSendDownStream[groupIndex + i] = subbasinMap[id]->downStream->id;
+    int igroup = 0;
+    for (auto it = group_set.begin(); it != group_set.end(); ++it) {
+        p_send_group_id[igroup] = *it;
+        int group_index = igroup * max_task_len;
+        for (size_t i = 0; i < group_map[*it].size(); i++) {
+            int id = group_map[*it][i];
+            p_send_task[group_index + i] = id;
+            p_send_updown_ord[group_index + i] = subbasin_map[id]->updown_order;
+            p_send_downup_ord[group_index + i] = subbasin_map[id]->downup_order;
+            if (subbasin_map[id]->down_stream != nullptr) {
+                p_send_down_stream[group_index + i] = subbasin_map[id]->down_stream->id;
             }
-            int nUps = subbasinMap[id]->upStreams.size();
-            pSendUpNums[groupIndex + i] = nUps;
-            if (nUps > MAX_UPSTREAM) {
+            int n_ups = CVT_INT(subbasin_map[id]->up_streams.size());
+            p_send_up_nums[group_index + i] = n_ups;
+            if (n_ups > MAX_UPSTREAM) {
                 cout << "The number of upstreams exceeds MAX_UPSTREAM(4)." << endl;
                 MPI_Abort(MCW, 1);
             }
-            for (int j = 0; j < nUps; j++) {
-                pSendUpStream[MAX_UPSTREAM * (groupIndex + i) + j] = subbasinMap[id]->upStreams[j]->id;
+            for (int j = 0; j < n_ups; j++) {
+                p_send_up_stream[MAX_UPSTREAM * (group_index + i) + j] = subbasin_map[id]->up_streams[j]->id;
             }
         }
-        iGroup++;
+        igroup++;
     }
 
     // send the information to slave0
     StatusMessage("Sending tasks to the first slave process...");
 #ifdef _DEBUG
     cout << "  pSendTask, pSendUpdownOrd, pSendDownupOrd, pSendDownStream, pSendUpNums" << endl;
-    for (int i = 0; i < nTaskAll; i++) {
-        cout << "  " << pSendTask[i] << ", " << pSendUpdownOrd[i] << ", " << pSendDownupOrd[i] << ", "
-                << pSendDownStream[i] << ", " << pSendUpNums[i] << ", " << endl;
+    for (int i = 0; i < n_task_all; i++) {
+        cout << "  " << p_send_task[i] << ", " << p_send_updown_ord[i] << ", " << p_send_downup_ord[i]
+                << ", " << p_send_down_stream[i] << ", " << p_send_up_nums[i] << ", " << endl;
     }
 #endif /* _DEBUG */
-    MPI_Send(&nTaskAll, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendGroupId, nSlaves, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendTask, nTaskAll, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendUpdownOrd, nTaskAll, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendDownupOrd, nTaskAll, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendDownStream, nTaskAll, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendUpNums, nTaskAll, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(pSendUpStream, nTaskAll * MAX_UPSTREAM, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(&n_task_all, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_group_id, nslaves, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_task, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_updown_ord, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_downup_ord, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_down_stream, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_up_nums, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
+    MPI_Send(p_send_up_stream, n_task_all * MAX_UPSTREAM, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
     StatusMessage("Tasks are dispatched.");
 
     // loop to receive information from slave process
     // first of all, receive the count of transferred values
-    int transferCount;
-    MPI_Irecv(&transferCount, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW, &request);
+    int transfer_count;
+    MPI_Irecv(&transfer_count, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW, &request);
     MPI_Wait(&request, &status);
 #ifdef _DEBUG
-    cout << "Master process received transfer values count: " << transferCount << endl;
+    cout << "Master process received transfer values count: " << transfer_count << endl;
 #endif
     // initialize the transferred values for each subbasin struct
-    for (auto it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
-        it->second->transferCount = transferCount;
-        if (it->second->transferValues != nullptr) { continue; }
-        Initialize1DArray(transferCount, it->second->transferValues, NODATA_VALUE);
+    for (auto it = subbasin_map.begin(); it != subbasin_map.end(); ++it) {
+        it->second->transfer_count = transfer_count;
+        if (it->second->transfer_values != nullptr) { continue; }
+        Initialize1DArray(transfer_count, it->second->transfer_values, NODATA_VALUE);
     }
 
     bool finished = false;
-    int buflen = MSG_LEN + transferCount;
+    int buflen = MSG_LEN + transfer_count;
     float* buf = nullptr;
     Initialize1DArray(buflen, buf, NODATA_VALUE);
-    map<int, int> waitingMap; // key: GroupIndex, value: Slave Rank ID
+    map<int, int> waiting_map; // key: GroupIndex, value: Slave Rank ID
 
     while (!finished) {
         MPI_Irecv(buf, buflen, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MCW, &request);
         MPI_Wait(&request, &status);
         // deal with different types of message
-        int msgCode = int(buf[0]);
-        if (msgCode == 1) {
+        int msg_code = int(buf[0]);
+        if (msg_code == 1) {
             // receive transferred values of subbasin, no need to reply
 #ifdef _DEBUG
             cout << "master received info: msgCode: 1, subbasin ID: " << int(buf[1]) << endl;
 #endif
             int id = int(buf[1]); // subbasin id
             time_t t = int(buf[2]);
-            for (int vi = 0; vi < transferCount; vi++) {
-                subbasinMap[id]->transferValues[vi] = buf[vi + MSG_LEN];
+            for (int vi = 0; vi < transfer_count; vi++) {
+                subbasin_map[id]->transfer_values[vi] = buf[vi + MSG_LEN];
             }
-            subbasinMap[id]->calculated = true;
+            subbasin_map[id]->calculated = true;
 #ifdef _DEBUG
             cout << "received data of subbasin ID: " << id << ", all: ";
-            for (auto it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
+            for (auto it = subbasin_map.begin(); it != subbasin_map.end(); ++it) {
                 if (it->second->calculated) cout << it->first << " ";
             }
             cout << endl;
 #endif
             // check waiting list
             int found = false;
-            for (auto it = waitingMap.begin(); it != waitingMap.end(); ++it) {
+            for (auto it = waiting_map.begin(); it != waiting_map.end(); ++it) {
                 int gid = it->first;
-                int sRank = it->second;
-                for (auto iSub = groupMap[gid].begin(); iSub != groupMap[gid].end(); ++iSub) {
-                    if (subbasinMap[id]->downStream->id != *iSub) continue;
+                int srank = it->second;
+                for (auto isub = group_map[gid].begin(); isub != group_map[gid].end(); ++isub) {
+                    if (subbasin_map[id]->down_stream->id != *isub) continue;
                     // send message to the slave process
-                    int msgLen = transferCount + 1;
-                    MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MCW, &request);
+                    int msg_len = transfer_count + 1;
+                    MPI_Isend(&msg_len, 1, MPI_INT, srank, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
-                    float* pData = nullptr;
-                    Initialize1DArray(transferCount + 1, pData, NODATA_VALUE);
-                    pData[0] = float(id);
-                    for (int vi = 0; vi < transferCount; vi++) {
-                        pData[vi + 1] = subbasinMap[id]->transferValues[vi];
+                    float* pdata = nullptr;
+                    Initialize1DArray(transfer_count + 1, pdata, NODATA_VALUE);
+                    pdata[0] = float(id);
+                    for (int vi = 0; vi < transfer_count; vi++) {
+                        pdata[vi + 1] = subbasin_map[id]->transfer_values[vi];
                     }
-                    MPI_Isend(pData, transferCount + 1, MPI_FLOAT, sRank, WORK_TAG, MCW, &request);
+                    MPI_Isend(pdata, transfer_count + 1, MPI_FLOAT, srank, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
 #ifdef _DEBUG
-                    cout << "Send data of subbasin >> " << pData[0] << " -> world_rank: " << sRank << endl;
+                    cout << "Send data of subbasin >> " << pdata[0] << " -> world_rank: " << srank << endl;
 #endif
                     found = true;
                     // delete the current group from waiting group
-                    waitingMap.erase(it);
-                    subbasinMap[id]->calculated = false; // for next timestep
-                    Release1DArray(pData);
+                    waiting_map.erase(it);
+                    subbasin_map[id]->calculated = false; // for next timestep
+                    Release1DArray(pdata);
                     break;
                 }
                 if (found) { break; }
             }
-        } else if (msgCode == 2) {
+        } else if (msg_code == 2) {
             // a slave process is asking for information of the newly calculated upstream subbasins
 #ifdef _DEBUG
             cout << "master received info: msgCode: 2, group: " << int(buf[1]) <<
                     ", from world_rank: " << int(buf[2]) << endl;
 #endif
-            map<int, float *> transMap; // used to contain flowout of the newly calculated basins
+            map<int, float *> trans_map; // used to contain flowout of the newly calculated basins
             int gid = int(buf[1]);
-            int sRank = int(buf[2]);
+            int srank = int(buf[2]);
             // loop subbasins in the group
-            for (auto iSub = groupMap[gid].begin(); iSub != groupMap[gid].end(); ++iSub) {
-                vector<SubbasinStruct *>& ups = subbasinMap[*iSub]->upStreams;
-                for (auto iUp = ups.begin(); iUp != ups.end(); ++iUp) {
-                    if ((*iUp)->calculated) {
-                        transMap[(*iUp)->id] = (*iUp)->transferValues;
-                        (*iUp)->calculated = false; // for next timestep
+            for (auto isub = group_map[gid].begin(); isub != group_map[gid].end(); ++isub) {
+                vector<SubbasinStruct *>& ups = subbasin_map[*isub]->up_streams;
+                for (auto iup = ups.begin(); iup != ups.end(); ++iup) {
+                    if ((*iup)->calculated) {
+                        trans_map[(*iup)->id] = (*iup)->transfer_values;
+                        (*iup)->calculated = false; // for next timestep
                     }
                 }
             }
-            if (transMap.empty()) {
-                waitingMap[gid] = sRank;
+            if (trans_map.empty()) {
+                waiting_map[gid] = srank;
             } else {
                 // tell the slave process the message length containing new information
-                int msgLen = transMap.size() * (transferCount + 1);
-                MPI_Isend(&msgLen, 1, MPI_INT, sRank, WORK_TAG, MCW, &request);
-                float* pData = nullptr;
-                Initialize1DArray(msgLen, pData, NODATA_VALUE);
+                int msg_len = CVT_INT(trans_map.size()) * (transfer_count + 1);
+                MPI_Isend(&msg_len, 1, MPI_INT, srank, WORK_TAG, MCW, &request);
+                float* pdata = nullptr;
+                Initialize1DArray(msg_len, pdata, NODATA_VALUE);
                 int counter = 0;
-                for (auto it = transMap.begin(); it != transMap.end(); ++it) {
-                    pData[(transferCount + 1) * counter] = float(it->first);
-                    for (int vi = 0; vi < transferCount; vi++) {
-                        pData[(transferCount + 1) * counter + vi + 1] = it->second[vi];
+                for (auto it = trans_map.begin(); it != trans_map.end(); ++it) {
+                    pdata[(transfer_count + 1) * counter] = float(it->first);
+                    for (int vi = 0; vi < transfer_count; vi++) {
+                        pdata[(transfer_count + 1) * counter + vi + 1] = it->second[vi];
                     }
                     counter++;
                 }
                 MPI_Wait(&request, &status);
-                MPI_Isend(pData, msgLen, MPI_FLOAT, sRank, WORK_TAG, MCW, &request);
+                MPI_Isend(pdata, msg_len, MPI_FLOAT, srank, WORK_TAG, MCW, &request);
                 MPI_Wait(&request, &status);
 
 #ifdef _DEBUG
                 cout << "Send data of subbasin >> ";
-                for (int i = 0; i < msgLen; i += (transferCount + 1)) {
-                    cout << "    subbasinID: " << pData[i] << " -> world_rand: " << sRank << " ";
+                for (int i = 0; i < msg_len; i += (transfer_count + 1)) {
+                    cout << "    subbasinID: " << pdata[i] << " -> world_rand: " << srank << " ";
                 }
                 cout << endl;
 #endif
-                Release1DArray(pData);
+                Release1DArray(pdata);
             }
-        } else if (msgCode == 0) {
+        } else if (msg_code == 0) {
             // reset for new timestep
-            for (auto it = subbasinMap.begin(); it != subbasinMap.end(); ++it) {
+            for (auto it = subbasin_map.begin(); it != subbasin_map.end(); ++it) {
                 it->second->calculated = false;
-                for (int vi = 0; vi < it->second->transferCount; vi++) {
-                    it->second->transferValues[vi] = NODATA_VALUE;
+                for (int vi = 0; vi < it->second->transfer_count; vi++) {
+                    it->second->transfer_values[vi] = NODATA_VALUE;
                 }
             }
             StatusMessage("master: running to next timestep...");
-        } else if (msgCode == 9) {
+        } else if (msg_code == 9) {
             finished = true;
             StatusMessage("Exit from the master process.");
         }
     }
     Release1DArray(buf);
-    Release1DArray(pSendGroupId);
-    Release1DArray(pSendTask);
-    Release1DArray(pSendUpdownOrd);
-    Release1DArray(pSendDownupOrd);
-    Release1DArray(pSendDownStream);
-    Release1DArray(pSendUpNums);
-    Release1DArray(pSendUpStream);
+    Release1DArray(p_send_group_id);
+    Release1DArray(p_send_task);
+    Release1DArray(p_send_updown_ord);
+    Release1DArray(p_send_downup_ord);
+    Release1DArray(p_send_down_stream);
+    Release1DArray(p_send_up_nums);
+    Release1DArray(p_send_up_stream);
     return 0;
 }

@@ -1,9 +1,8 @@
-#include "seims.h"
-#include "ClimateParams.h"
-
 #include "PETPriestleyTaylor.h"
 
-using namespace std;
+#include "text.h"
+#include "ClimateParams.h"
+#include "utils_time.h"
 
 PETPriestleyTaylor::PETPriestleyTaylor() : m_petFactor(1.f), m_nCells(-1), m_tMin(nullptr), m_tMax(nullptr),
                                            m_sr(nullptr), m_rhd(nullptr), m_elev(nullptr), m_phutot(nullptr),
@@ -18,7 +17,7 @@ PETPriestleyTaylor::~PETPriestleyTaylor() {
 }
 
 void PETPriestleyTaylor::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_DAYLEN)) { *data = m_dayLen; }
@@ -60,7 +59,7 @@ bool PETPriestleyTaylor::CheckInputData() {
     return true;
 }
 
-void PETPriestleyTaylor::initialOutputs() {
+void PETPriestleyTaylor:: InitialOutputs() {
     CHECK_POSITIVE(MID_PET_H, m_nCells);
     if (nullptr == m_pet) Initialize1DArray(m_nCells, m_pet, 0.f);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
@@ -70,8 +69,8 @@ void PETPriestleyTaylor::initialOutputs() {
 
 int PETPriestleyTaylor::Execute() {
     CheckInputData();
-    initialOutputs();
-    m_jday = JulianDay(m_date);
+     InitialOutputs();
+    m_jday = utils_time::JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; ++i) {
         /// update phubase of the simulation year.

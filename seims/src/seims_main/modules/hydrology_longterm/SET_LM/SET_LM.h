@@ -10,8 +10,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /*!
  * \defgroup SET_LM
  * \ingroup Hydrology_longterm
@@ -29,15 +27,15 @@ public:
 
     ~SET_LM();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    void Set1DData(const char *key, int nRows, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void Get1DData(const char *key, int *nRows, float **data);
+    void Get1DData(const char *key, int *nRows, float **data) override;
 
 private:
     /**
@@ -56,7 +54,7 @@ private:
     */
     bool CheckInputSize(const char *key, int n);
 
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     int m_nCells;

@@ -13,7 +13,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /*!
  * \defgroup PER_STR
  * \ingroup Hydrology_longterm
@@ -24,7 +23,7 @@ using namespace std;
  * \class PER_STR
  * \ingroup PER_STR
  * \brief Percolation calculated by storage routing method.
- * 
+ *
  */
 class PER_STR : public SimulationModule {
 public:
@@ -32,15 +31,15 @@ public:
 
     ~PER_STR();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    void Set1DData(const char *key, int nRows, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
 private:
     /**
@@ -59,7 +58,7 @@ private:
     */
     bool CheckInputSize(const char *key, int n);
 
-    void initialOutputs();
+    void  InitialOutputs();
 private:
     /// number of soil layers
     int m_nSoilLayers;

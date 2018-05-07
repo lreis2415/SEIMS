@@ -1,6 +1,8 @@
-#include "Interpolate.h"
-
 #include "api.h"
+
+#include "Interpolate.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new Interpolate();
@@ -16,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_ITP);
     mdi.SetName(MID_ITP);
-    mdi.SetVersion("0.5");
+    mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 

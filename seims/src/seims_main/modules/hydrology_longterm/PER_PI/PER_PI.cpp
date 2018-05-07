@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "PER_PI.h"
+
+#include "text.h"
 
 PER_PI::PER_PI() : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
                    m_ks(nullptr), m_sat(nullptr), m_poreIndex(nullptr), m_fc(nullptr),
@@ -12,14 +13,14 @@ PER_PI::~PER_PI() {
     if (m_perc != nullptr) Release2DArray(m_nCells, m_perc);
 }
 
-void PER_PI::initialOutputs() {
+void PER_PI:: InitialOutputs() {
     CHECK_POSITIVE(MID_PER_PI, m_nCells);
     if (nullptr == m_perc) { Initialize2DArray(m_nCells, m_soilLayers, m_perc, NODATA_VALUE); }
 }
 
 int PER_PI::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -102,7 +103,7 @@ int PER_PI::Execute() {
 }
 
 void PER_PI::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_soilLayers;

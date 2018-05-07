@@ -1,7 +1,7 @@
-#include "seims.h"
-#include "ClimateParams.h"
-
 #include "Interception_MCS.h"
+
+#include "text.h"
+#include "utils_time.h"
 
 clsPI_MCS::clsPI_MCS() : m_nCells(-1), m_Pi_b(-1.f), m_Init_IS(0.f),
                          m_netPrecipitation(nullptr), m_interceptionLoss(nullptr), m_st(nullptr),
@@ -56,7 +56,7 @@ void clsPI_MCS::SetValue(const char *key, float data) {
 }
 
 void clsPI_MCS::Get1DData(const char *key, int *nRows, float **data) {
-    initialOutputs();
+    InitialOutputs();
     string s = key;
     if (StringMatch(s, VAR_INLO)) {
         *data = m_interceptionLoss;
@@ -74,7 +74,7 @@ void clsPI_MCS::Get1DData(const char *key, int *nRows, float **data) {
     *nRows = m_nCells;
 }
 
-void clsPI_MCS::initialOutputs() {
+void clsPI_MCS::InitialOutputs() {
     if (m_st == nullptr) {
         Initialize1DArray(m_nCells, m_st, m_Init_IS);
     }
@@ -95,9 +95,9 @@ int clsPI_MCS::Execute() {
     //check input data
     CheckInputData();
     /// initialize outputs
-    initialOutputs();
+    InitialOutputs();
 
-    int julian = JulianDay(m_date);
+    int julian = utils_time::JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_P[i] > 0.f) {

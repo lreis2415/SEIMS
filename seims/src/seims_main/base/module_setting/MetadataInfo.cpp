@@ -97,20 +97,20 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
     FullTag(tag, indent, strTmp, sb);
 }
 
-void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tfType, string* sb) {
-    string strTmp = "";
+void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tf_type, string* sb) {
+    string str_tmp;
 
-    switch (tfType) {
-        case TF_Whole: strTmp = TFType_Whole;
+    switch (tf_type) {
+        case TF_Whole: str_tmp = TFType_Whole;
             break;
-        case TF_SingleValue: strTmp = TFType_Single;
+        case TF_SingleValue: str_tmp = TFType_Single;
             break;
-        case TF_OneArray1D: strTmp = TFType_Array1D;
+        case TF_OneArray1D: str_tmp = TFType_Array1D;
             break;
         default: break;
     }
 
-    FullTag(tag, indent, strTmp, sb);
+    FullTag(tag, indent, str_tmp, sb);
 }
 
 void MetadataInfo::WriteInputs(int indent, string* sb) {
@@ -259,7 +259,7 @@ int MetadataInfo::AddInOutput(const char* name, const char* units, const char* d
 
     AddOutput(name, units, desc, dimType, tfType);
 
-    return m_vInOutputs.size();
+    return CVT_INT(m_vInOutputs.size());
 }
 
 int MetadataInfo::AddParameter(const char* name, const char* units, const char* desc, const char* source,

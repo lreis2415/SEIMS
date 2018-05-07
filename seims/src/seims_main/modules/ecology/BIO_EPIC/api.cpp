@@ -1,6 +1,8 @@
-#include "Biomass_EPIC.h"
-
 #include "api.h"
+
+#include "Biomass_EPIC.h"
+#include "MetadataInfo.h"
+#include <text.h>
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new Biomass_EPIC();

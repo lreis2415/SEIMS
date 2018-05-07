@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "pothole_SWAT.h"
 
-using namespace std;
+#include "text.h"
 
 IMP_SWAT::IMP_SWAT() : m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                        m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_routingLayers(nullptr), m_nRoutingLayers(-1),
@@ -212,7 +211,7 @@ void IMP_SWAT::Set2DData(const char *key, int n, int col, float **data) {
     }
 }
 
-void IMP_SWAT::initialOutputs() {
+void IMP_SWAT:: InitialOutputs() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
     if (m_potSurfaceArea == nullptr) Initialize1DArray(m_nCells, m_potSurfaceArea, 0.f);
     if (m_potVol == nullptr) Initialize1DArray(m_nCells, m_potVol, 0.f);
@@ -236,7 +235,7 @@ void IMP_SWAT::initialOutputs() {
 
 int IMP_SWAT::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nRoutingLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -246,9 +245,9 @@ int IMP_SWAT::Execute() {
         for (int iCell = 1; iCell <= nCells; ++iCell) {
             int id = (int) m_routingLayers[iLayer][iCell]; // cell index
             if (FloatEqual(m_impoundTrig[id], 0.f)) { /// if impounding trigger on
-                potholeSimulate(id);
+                PotholeSimulate(id);
             } else {
-                releaseWater(id);
+                ReleaseWater(id);
             }
         }
     }
@@ -339,7 +338,7 @@ int IMP_SWAT::Execute() {
     return true;
 }
 
-void IMP_SWAT::potholeSimulate(int id) {
+void IMP_SWAT::PotholeSimulate(int id) {
 /// initialize temporary variables
     float tileo = 0.f; /// m^3, amount of water released to the main channel from the water body by drainage tiles
     //float potevmm = 0.f; /// mm, volume of water evaporated from pothole expressed as depth
@@ -742,7 +741,7 @@ void IMP_SWAT::potholeSimulate(int id) {
     //	", potNh4: "<<m_potNH4[id]<<", surqNh4: "<<m_surqNH4[id]<<endl;
 }
 
-void IMP_SWAT::potholeSurfaceArea(int id) {
+void IMP_SWAT::PotholeSurfaceArea(int id) {
     /// compute surface area assuming a cone shape, ha
     float potVol_m3 = m_potVol[id] * m_cnv;
     m_potSurfaceArea[id] = PI * pow((3.f * potVol_m3 / (PI * m_slope[id])), 0.6666f);
@@ -755,7 +754,7 @@ void IMP_SWAT::potholeSurfaceArea(int id) {
     }
 }
 
-void IMP_SWAT::releaseWater(int id) {
+void IMP_SWAT::ReleaseWater(int id) {
     float proption = 1.f;
     float xx = proption * m_cellArea;
     if (m_potVol[id] < UTIL_ZERO) {
@@ -832,7 +831,7 @@ void IMP_SWAT::releaseWater(int id) {
 }
 
 void IMP_SWAT::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_POT_VOL)) { *data = m_potVol; }
     else if (StringMatch(sk, VAR_POT_SA)) { *data = m_potSurfaceArea; }

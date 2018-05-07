@@ -9,10 +9,13 @@
 #ifndef SEIMS_PARAMETER_INFO_H
 #define SEIMS_PARAMETER_INFO_H
 
-#include "MetadataInfoConst.h"
-#include "utilities.h"
+#include <vector>
 
-using namespace std;
+#include "MetadataInfoConst.h"
+#include "basic.h"
+
+using namespace ccgl;
+using std::vector;
 
 /*!
 * \ingroup module_setting

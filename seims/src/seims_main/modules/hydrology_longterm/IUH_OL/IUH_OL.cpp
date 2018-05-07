@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "IUH_OL.h"
 
-using namespace std;
+#include "text.h"
 
 IUH_OL::IUH_OL() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                    m_nSubbasins(-1), m_subbasinID(-1), m_subbasin(nullptr),
@@ -28,7 +27,7 @@ bool IUH_OL::CheckInputData() {
     return true;
 }
 
-void IUH_OL::initialOutputs() {
+void IUH_OL:: InitialOutputs() {
     CHECK_POSITIVE(MID_IUH_OL, m_nSubbasins);
 
     if (m_cellArea <= 0.f) m_cellArea = m_CellWidth * m_CellWidth;
@@ -47,7 +46,7 @@ void IUH_OL::initialOutputs() {
 
 int IUH_OL::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
     // delete value of last time step
     for (int n = 0; n <= m_nSubbasins; n++) {
         m_Q_SBOF[n] = 0.f;
@@ -152,7 +151,7 @@ void IUH_OL::Set2DData(const char *key, int nRows, int nCols, float **data) {
 }
 
 void IUH_OL::GetValue(const char *key, float *value) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBOF) && m_subbasinID > 0) { /// For MPI version to transfer data across subbasins
         *value = m_Q_SBOF[m_subbasinID];
@@ -162,7 +161,7 @@ void IUH_OL::GetValue(const char *key, float *value) {
 }
 
 void IUH_OL::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBOF)) {
         *data = m_Q_SBOF;

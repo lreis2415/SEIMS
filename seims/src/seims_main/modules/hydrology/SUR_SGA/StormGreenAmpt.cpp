@@ -21,7 +21,7 @@ StormGreenAmpt::~StormGreenAmpt(void) {
     if (m_soilMoisture != NULL) Release1DArray(m_soilMoisture);
 }
 
-void StormGreenAmpt::initialOutputs() {
+void StormGreenAmpt:: InitialOutputs() {
     // allocate the output variable
     if (m_infil == NULL) {
         CheckInputData();
@@ -38,7 +38,7 @@ void StormGreenAmpt::initialOutputs() {
 }
 
 void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
 
     *n = m_nCells;
     string sk(key);
@@ -160,7 +160,7 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
 }
 
 int StormGreenAmpt::Execute(void) {
-    initialOutputs();
+     InitialOutputs();
 
 
     // allocate intermediate variables

@@ -1,6 +1,8 @@
-#include "NutrientinGroundwater.h"
-
 #include "api.h"
+
+#include "NutrientinGroundwater.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new NutrientinGroundwater();

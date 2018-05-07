@@ -37,8 +37,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /** \defgroup IUH_OL
  * \ingroup Hydrology_longterm
  * \brief IUH overland method to calculate overland flow routing
@@ -57,24 +55,24 @@ public:
 
     ~IUH_OL();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputData();
 
 private:
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     /// time step (sec)

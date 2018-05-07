@@ -1,9 +1,14 @@
-#include "text.h"
 #include "InputStation.h"
+
+#include <sstream>
+#include <memory>
+
+#include "utils_string.h"
 #include "RegularMeasurement.h"
 #include "NotRegularMeasurement.h"
+#include "text.h"
 
-using namespace std;
+using namespace utils_string;
 
 InputStation::InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel) :
     m_conn(conn), m_dtCh(dtChannel), m_dtHs(dtHillslope) {
@@ -47,7 +52,7 @@ void InputStation::build_query_bson(int nSites, vector<int>& siteIDList, string&
     BSON_APPEND_DOCUMENT_BEGIN(query, "$query", child);
     BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
     BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
-    ostringstream ossIndex;
+    std::ostringstream ossIndex;
     for (int iSite = 0; iSite < nSites; iSite++) {
         ossIndex.str("");
         ossIndex << iSite;
@@ -99,7 +104,7 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     build_query_bson(nSites, siteIDList, siteType, query);
     //printf("%s\n",bson_as_json(query,NULL));
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_SITES)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_SITES)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     const bson_t* record = NULL;

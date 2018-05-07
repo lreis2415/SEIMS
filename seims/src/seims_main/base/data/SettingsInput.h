@@ -9,13 +9,9 @@
 #define SEIMS_SETTING_INPUT_H
 
 #include "Settings.h"
-#include "utilities.h"
-
-#include "InputStation.h"
 #include "Scenario.h"
-#include "MongoUtil.h"
 
-using namespace MainBMP;
+using namespace bmps;
 
 /*!
  * \ingroup module_setting
@@ -30,7 +26,7 @@ public:
     static SettingsInput* Init(vector<string>& stringvector);
 
     //! Output to log file
-    virtual void Dump(const string& filename);
+    void Dump(const string& filename) override;
 
     //! Get start time of simulation
     time_t getStartTime() const { return m_startDate; }

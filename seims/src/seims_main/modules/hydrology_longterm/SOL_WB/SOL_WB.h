@@ -11,8 +11,6 @@
 #include "SimulationModule.h"
 #include "clsSubbasin.h"
 
-using namespace std;
-
 /*!
  * \defgroup SOL_WB
  * \ingroup Hydrology_longterm
@@ -24,7 +22,7 @@ using namespace std;
  * \class SOL_WB
  * \ingroup SOL_WB
  * \brief Soil water balance calculation
- * 
+ *
  */
 
 class SOL_WB : public SimulationModule {
@@ -33,17 +31,17 @@ public:
 
     ~SOL_WB();
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    void Set1DData(const char *key, int nRows, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void SetSubbasins(clsSubbasins *subbasins);
+    void SetSubbasins(clsSubbasins *subbasins) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
-    virtual int Execute();
+    int Execute() override;
 
 private:
     /**
@@ -60,12 +58,12 @@ private:
     */
     bool CheckInputSize(const char *key, int n);
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     /*!
      * \brief Set parameter values to subbasins
      */
-    void setValueToSubbasins();
+    void SetValueToSubbasins();
 private:
     //! valid cells number
     int m_nCells;

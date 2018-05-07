@@ -14,30 +14,6 @@
 using std::time_t;
 
 /*!
- * \brief Get the year
- * \return int year
- */
-int GetYear(time_t date);
-
-/*!
- * \brief Get the month
- * \return int month
- */
-int GetMonth(time_t date);
-
-/*!
- * \brief Get the day
- * \return int day
- */
-int GetDay(time_t date);
-
-/*!
- * \brief Get the Julian day of one day
- * \return int Julian day
- */
-int JulianDay(time_t date);
-
-/*!
  * \brief Calculate latent heat of vaporization(MJ/kg)
  * \param[in] tmean Mean temperature
  * \return Latent heat of vaporization

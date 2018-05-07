@@ -1,7 +1,7 @@
-#include "seims.h"
 #include "NutrientTransportSediment.h"
 
-using namespace std;
+#include "text.h"
+#include "NutrientCommon.h"
 
 NutrientTransportSediment::NutrientTransportSediment() :
 //input
@@ -178,7 +178,7 @@ void NutrientTransportSediment::Set2DData(const char *key, int nRows, int nCols,
     }
 }
 
-void NutrientTransportSediment::initialOutputs() {
+void NutrientTransportSediment:: InitialOutputs() {
     CHECK_POSITIVE(MID_NUTRSED, m_nCells);
     // initial enrichment ratio
     if (m_enratio == nullptr) {
@@ -225,7 +225,7 @@ int NutrientTransportSediment::Execute() {
     if (m_CbnModel == 2) {
         if (!CheckInputData_CENTURY()) { return false; }
     }
-    initialOutputs();
+     InitialOutputs();
     // initial nutrient to channel for each day
     for (int i = 0; i < m_nSubbasins + 1; i++) {
         m_sedorgnToCh[i] = 0.f;
@@ -238,7 +238,7 @@ int NutrientTransportSediment::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         if (m_sedEroded[i] < 1.e-4f) m_sedEroded[i] = 0.f;
         // CREAMS method for calculating enrichment ratio
-        m_enratio[i] = NutrCommon::CalEnrichmentRatio(m_sedEroded[i], m_surfaceRunoff[i], m_cellArea);
+        m_enratio[i] = CalEnrichmentRatio(m_sedEroded[i], m_surfaceRunoff[i], m_cellArea);
         //if(i == 1000) cout << ""<< m_sedEroded[i]<<","<< m_surfaceRunoff[i] << "," << m_enratio[i]<<endl;
 
         //Calculates the amount of organic nitrogen removed in surface runoff
@@ -509,7 +509,7 @@ void NutrientTransportSediment::OrgPAttachedtoSed(int i) {
 }
 
 void NutrientTransportSediment::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SEDORGN)) {
         *data = m_sedorgn;
@@ -552,7 +552,7 @@ void NutrientTransportSediment::Get1DData(const char *key, int *n, float **data)
 }
 
 void NutrientTransportSediment::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nMaxSoiLayers;

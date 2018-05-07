@@ -8,16 +8,17 @@
 #ifndef SEIMS_MEASUREMENT_H
 #define SEIMS_MEASUREMENT_H
 
-#include "MongoUtil.h"
+#include "db_mongoc.h"
 
-using namespace std;
+using namespace ccgl;
+using namespace db_mongoc;
 
 /*!
  * \ingroup data
  * \class Measurement
  * \brief Get HydroClimate measurement data from MongoDB
  */
-class Measurement: NotCopyable {
+class Measurement: Interface {
 public:
     /*!
      * \brief Initialize Measurement instance from MongoDB

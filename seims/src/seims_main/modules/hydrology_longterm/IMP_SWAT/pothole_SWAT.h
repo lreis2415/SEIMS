@@ -15,23 +15,21 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 class IMP_SWAT : public SimulationModule {
 public:
     IMP_SWAT();
 
     ~IMP_SWAT();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void Set2DData(const char *key, int n, int col, float **data);
+    void Set2DData(const char *key, int n, int col, float **data) override;
 
 private:
     /*!
@@ -48,7 +46,7 @@ private:
      * \param[in] n The input data dimension
      * \return bool The validity of the dimension
      */
-    bool CheckInputSize(const char *, int);
+    bool CheckInputSize(const char *key, int n);
 
     /*!
      * \brief check the input size of 2D data. Make sure all the input data have same dimension.
@@ -62,24 +60,24 @@ private:
     bool CheckInputSize2D(const char *key, int n, int col);
 
     /// initialize all possible outputs
-    void initialOutputs();
+    void  InitialOutputs();
 
     /*!
      * \brief Simulates depressional areas that do not
      * drain to the stream network (pothole) and impounded areas such as rice paddies
      * reWrite from pothole.f of SWAT
      */
-    void potholeSimulate(int id);
+    void PotholeSimulate(int id);
 
     /*!
      * compute surface area assuming a cone shape, ha
      */
-    void potholeSurfaceArea(int id);
+    void PotholeSurfaceArea(int id);
 
     /*!
      * release water stored in pothole
      */
-    void releaseWater(int id);
+    void ReleaseWater(int id);
 
 private:
     /// conversion factor (mm/ha => m^3)

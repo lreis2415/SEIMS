@@ -12,8 +12,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
-
 /*!
  * \defgroup SSR_DA
  * \ingroup Hydrology_longterm
@@ -32,19 +30,19 @@ public:
 
     ~SSR_DA();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int nRows, float *data);
+    void Set1DData(const char *key, int nRows, float *data) override;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) override;
 
-    virtual void GetValue(const char *key, float *value);
+    void GetValue(const char *key, float *value) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
 private:
     /**
@@ -63,7 +61,7 @@ private:
     */
     bool CheckInputSize(const char *key, int n);
 
-    void initialOutputs();
+    void  InitialOutputs();
 
     bool FlowInSoil(int id);
 private:

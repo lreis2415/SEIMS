@@ -13,7 +13,7 @@ HS_WB::~HS_WB(void) {
     if (m_qiTemp != NULL) Release1DArray(m_qiTemp);
 }
 
-void HS_WB::initialOutputs() {
+void HS_WB:: InitialOutputs() {
     if (m_qsInput == NULL) {
         CheckInputData();
         //cout << "Number of reaches: " << m_nReaches << endl;
@@ -27,7 +27,7 @@ void HS_WB::initialOutputs() {
 //Execute module
 int HS_WB::Execute() {
 
-    initialOutputs();
+     InitialOutputs();
 
     /// get the input of each subbasin in current step
 #pragma omp parallel for

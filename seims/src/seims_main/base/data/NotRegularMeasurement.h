@@ -8,8 +8,8 @@
 #ifndef SEIMS_NOTREGULAR_MEASUREMENT_H
 #define SEIMS_NOTREGULAR_MEASUREMENT_H
 
+#include "db_mongoc.h"
 #include "Measurement.h"
-#include "MongoUtil.h"
 
 /*!
  * \ingroup data
@@ -37,7 +37,7 @@ public:
     //virtual ~NotRegularMeasurement() = default;
 
     //! Get site date by time \a pData
-    virtual float* GetSiteDataByTime(time_t t);
+    float* GetSiteDataByTime(time_t t) override;
 
 private:
     //! time list of site data

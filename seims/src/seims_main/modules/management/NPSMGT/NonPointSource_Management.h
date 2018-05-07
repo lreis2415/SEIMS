@@ -8,7 +8,6 @@
 
 #include "SimulationModule.h"
 
-using namespace std;
 /** \defgroup NPSMGT
  * \ingroup Management
  * \brief Non point source management
@@ -24,13 +23,13 @@ public:
 
     ~NPS_Management();
 
-    virtual int Execute(void);
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set2DData(const char *key, int n, int col, float **data);
+    void Set2DData(const char *key, int n, int col, float **data) override;
 
-    virtual void SetScenario(Scenario *sce);
+    void SetScenario(Scenario *sce) override;
 
 private:
     /*!

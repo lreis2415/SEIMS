@@ -12,10 +12,7 @@
 #define SEIMS_MODULE_BIO_EPIC_H
 
 #include "SimulationModule.h"
-#include "PlantGrowthCommon.h"
-#include "ClimateParams.h"
 
-using namespace std;
 /** \defgroup BIO_EPIC
  * \ingroup Ecology
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
@@ -33,17 +30,17 @@ public:
 
     ~Biomass_EPIC();
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) override;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) override;
 
-    virtual void Set2DData(const char *key, int nRows, int nCols, float **data);
+    void Set2DData(const char *key, int nRows, int nCols, float **data) override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) override;
 
     bool CheckInputSize(const char *key, int n);
 
@@ -99,7 +96,7 @@ private:
     void CheckDormantStatus(int i);
 
     /// initialize output variables
-    void initialOutputs();
+    void InitialOutputs();
 
 private:
     /// valid cells number

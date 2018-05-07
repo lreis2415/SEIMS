@@ -1,7 +1,7 @@
 #include "NutrientCommon.h"
+#include "basic.h"
 
-
-float NutrCommon::CalEnrichmentRatio(float sedyld, float surfq, float area) {
+float CalEnrichmentRatio(const float sedyld, const float surfq, const float area) {
     /// if no surface runoff, or very little sediment,
     /// then no nutrient will be attached to sediment, and loss with surface runoff
     if (surfq < UTIL_ZERO || sedyld < 0.1f) {

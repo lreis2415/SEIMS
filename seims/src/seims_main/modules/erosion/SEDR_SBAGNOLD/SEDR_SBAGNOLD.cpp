@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "SEDR_SBAGNOLD.h"
 
-using namespace std;
+#include "text.h"
 
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_sedtoCh(nullptr), m_Chs0(NODATA_VALUE),
                                  m_sedChi0(NODATA_VALUE),
@@ -58,7 +57,7 @@ bool SEDR_SBAGNOLD::CheckInputData() {
     return true;
 }
 
-void SEDR_SBAGNOLD::initialOutputs() {
+void SEDR_SBAGNOLD::InitialOutputs() {
     CHECK_POSITIVE(MID_SEDR_SBAGNOLD, m_nreach);
     //initial channel storage
     if (nullptr == m_sedOut) {
@@ -107,7 +106,7 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
             // 1.2 Otherwise, get the water volume
             float per_sed = curPtMgt->GetSedment(); /// g/cm3, or Mg/m3
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); locIter++) {
+            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
                 if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
                     PointSourceLocations *curPtLoc = m_pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
@@ -121,15 +120,15 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
 
 int SEDR_SBAGNOLD::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int nReaches = CVT2INT(it->second.size());
+        int nReaches = CVT_INT(it->second.size());
 #pragma omp parallel for
-        for (int i = 0; i < nReaches; ++i) {
+        for (int i = 0; i < nReaches; i++) {
             int reachIndex = it->second[i]; // index in the array, which is equal to reach ID
             if (m_subbasinID == 0 || m_subbasinID == reachIndex) {
                 // for OpenMP version, all reaches will be executed,
@@ -137,7 +136,7 @@ int SEDR_SBAGNOLD::Execute() {
                 SedChannelRouting(reachIndex);
                 // compute changes in channel dimensions caused by downcutting and widening
                 if (m_VCD) {
-                    doChannelDowncuttingAndWidening(reachIndex);
+                    DoChannelDowncuttingAndWidening(reachIndex);
                 }
             }
         }
@@ -161,7 +160,7 @@ bool SEDR_SBAGNOLD::CheckInputSize(const char *key, int n) {
 }
 
 void SEDR_SBAGNOLD::GetValue(const char *key, float *value) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     int iOutlet = m_reachLayers.rbegin()->second[0];
     if (StringMatch(sk, VAR_SED_OUTLET)) { *value = m_sedOut[iOutlet]; }
@@ -199,7 +198,7 @@ void SEDR_SBAGNOLD::SetValue(const char *key, float value) {
 }
 
 void SEDR_SBAGNOLD::SetValueByIndex(const char *key, int index, float data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     // transferred single value in MPI version
     if (StringMatch(sk, VAR_SED_TO_CH)) { m_sedtoCh[index] = data; }  //for longterm model
@@ -228,7 +227,7 @@ void SEDR_SBAGNOLD::Set1DData(const char *key, int n, float *data) {
 }
 
 void SEDR_SBAGNOLD::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
     if (StringMatch(sk, VAR_SED_RECH)) { *data = m_sedOut; }
@@ -415,7 +414,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(int i) {
     m_flplainDep[i] = 0.f;
 }
 
-void SEDR_SBAGNOLD::doChannelDowncuttingAndWidening(int id) {
+void SEDR_SBAGNOLD::DoChannelDowncuttingAndWidening(int id) {
     /// TODO, lj
     float depdeg = m_preChWTDepth[id] - m_chWTdepth[id]; // depth of degradation/deposition from original
     if (depdeg < m_chSlope[id] * m_chLen[id]) {

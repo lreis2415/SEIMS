@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "MUSK_CH.h"
 
-using namespace std;
+#include "text.h"
 
 MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_layeringMethod(UP_DOWN), m_subbasinID(-1), m_outletID(-1), m_Kchb(nullptr),
                      m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE), m_Chs0_perc(NODATA_VALUE),
@@ -59,7 +58,7 @@ bool MUSK_CH::CheckInputData() {
     return true;
 }
 
-void MUSK_CH::initialOutputs() {
+void MUSK_CH:: InitialOutputs() {
     CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
     //initial channel storage
     if (nullptr == m_chStorage) {
@@ -147,7 +146,7 @@ void MUSK_CH::PointSourceLoading() {
 }
 
 int MUSK_CH::Execute() {
-    initialOutputs();
+     InitialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
@@ -209,7 +208,7 @@ void MUSK_CH::SetValue(const char *key, float value) {
 void MUSK_CH::SetValueByIndex(const char *key, int index, float value) {
     if (m_subbasinID == 0) return; // Not for omp version
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
-    if (nullptr == m_qOut) initialOutputs();
+    if (nullptr == m_qOut)  InitialOutputs();
     string sk(key);
     /// Set single value of array1D of current subbasin
     if (StringMatch(sk, VAR_SBOF)) { m_qsSub[index] = value;}
@@ -252,7 +251,7 @@ void MUSK_CH::Set1DData(const char *key, int n, float *value) {
 }
 
 void MUSK_CH::GetValue(const char *key, float *value) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_QOUTLET)) { *value = m_qOut[m_outletID]; }
     else if (StringMatch(sk, VAR_QSOUTLET)) { *value = m_qsCh[m_outletID]; }
@@ -267,7 +266,7 @@ void MUSK_CH::GetValue(const char *key, float *value) {
 }
 
 void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
     if (StringMatch(sk, VAR_QRECH)) {

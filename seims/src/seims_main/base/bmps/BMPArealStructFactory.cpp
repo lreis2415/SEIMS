@@ -1,6 +1,11 @@
 #include "BMPArealStructFactory.h"
 
-using namespace MainBMP;
+#include "utils_string.h"
+
+#include "BMPText.h"
+
+using namespace utils_string;
+using namespace bmps;
 
 BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
     m_id(-1), m_name(""), m_desc(""), m_refer("") {
@@ -18,7 +23,7 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
     }
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_LANDUSE)) {
         string landuse_str = GetStringFromBsonIterator(&iter);
-        m_landuse = SplitStringForInt(landuse_str, '-');
+        SplitStringForValues(landuse_str, '-', m_landuse);
     }
     if (bson_iter_init_find(&iter, bsonTable, BMP_ARSTRUCT_FLD_PARAMS)) {
         string params_str = GetStringFromBsonIterator(&iter);
@@ -65,7 +70,7 @@ BMPArealStructFactory::BMPArealStructFactory(int scenarioId, int bmpId, int subS
                              "The distribution field must follow the format: "
                              "RASTER|CoreRasterName.\n");
     }
-    m_unitIDs = SplitStringForInt(location, '-');
+    SplitStringForValues(location, '-', m_unitIDs);
 }
 
 BMPArealStructFactory::~BMPArealStructFactory() {
@@ -88,7 +93,7 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string& bmpDBName) 
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_bmpCollection)));
+    unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_bmpCollection)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -107,7 +112,7 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string& bmpDBName) 
 void BMPArealStructFactory::setRasterData(map<string, FloatRaster*>& sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
         int n;
-        sceneRsMap.at(m_mgtFieldsName)->getRasterData(&n, &m_mgtFieldsRs);
+        sceneRsMap.at(m_mgtFieldsName)->GetRasterData(&n, &m_mgtFieldsRs);
     } else {
         // raise Exception?
     }

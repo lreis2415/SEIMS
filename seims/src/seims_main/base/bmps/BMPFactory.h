@@ -6,19 +6,21 @@
 #ifndef SEIMS_BMP_FACTORY_H
 #define SEIMS_BMP_FACTORY_H
 
-#include "seims.h"
-#include "utilities.h"
-#include "BMPText.h"
+#include "db_mongoc.h"
+#include "data_raster.h"
 
-#include "MongoUtil.h"
-#include "clsRasterData.h"
+#include "seims.h"
+
+using namespace ccgl;
+using namespace db_mongoc;
+using namespace data_raster;
 
 /*!
  * \brief Base class of all kind of BMPs Factory.
  *        Read from BMP_SCENARIOS collection of MongoDB
  * \ingroup bmps
  */
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class BMPFactory
  * \ingroup MainBMP
@@ -26,20 +28,12 @@ namespace MainBMP {
  * \brief Base class to initiate a BMP data
  *
  */
-class BMPFactory: NotCopyable {
+class BMPFactory: Interface {
 public:
     /// Constructor
-    BMPFactory(int scenarioId, int bmpId, int subScenario, int bmpType,
-               int bmpPriority, vector<string>& distribution, const string& collection,
+    BMPFactory(int scenario_id, int bmp_id, int sub_scenario, int bmp_type,
+               int bmp_priority, vector<string>& distribution, const string& collection,
                const string& location);
-
-    /// virtual Destructor
-#if defined(_MSC_VER) && (_MSC_VER <= 1600)
-    virtual ~BMPFactory() {
-    };
-#else
-    virtual ~BMPFactory() = default;
-#endif /* less than VS2010 */
 
     /// Load BMP parameters from MongoDB
     virtual void loadBMP(MongoClient* conn, const string& bmpDBName) = 0;
@@ -55,7 +49,7 @@ public:
     * \brief Get raster data if needed
     * This function is not required for each BMP, so DO NOT define as pure virtual function.
     */
-    virtual float* getRasterData() { return nullptr; }
+    virtual float* GetRasterData() { return nullptr; }
 
     /*!  Get BMP type
        1 - reach BMPs which are attached to specific reaches and will change the character of the reach.
@@ -72,7 +66,7 @@ public:
     int GetSubScenarioId() { return m_subScenarioId; }
 
     /// Output
-    virtual void Dump(ostream* fs) = 0;
+    virtual void Dump(std::ostream* fs) = 0;
 
 protected:
     const int m_scenarioId; ///< Scenario ID

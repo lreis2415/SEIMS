@@ -1,6 +1,8 @@
-#include "AtmosphericDeposition.h"
-
 #include "api.h"
+
+#include "AtmosphericDeposition.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new AtmosphericDeposition();

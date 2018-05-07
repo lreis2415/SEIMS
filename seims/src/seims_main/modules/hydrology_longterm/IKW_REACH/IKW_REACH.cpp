@@ -75,7 +75,7 @@ bool IKW_REACH::CheckInputData() {
     return true;
 }
 
-void IKW_REACH::initialOutputs() {
+void IKW_REACH:: InitialOutputs() {
     if (m_nreach <= 0) {
         throw ModelException("IKW_REACH", "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -117,7 +117,7 @@ void IKW_REACH::initialOutputs() {
 }
 
 int IKW_REACH::Execute() {
-    initialOutputs();
+     InitialOutputs();
 
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.

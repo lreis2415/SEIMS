@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "clsTSD_RD.h"
 
-using namespace std;
+#include "text.h"
 
 clsTSD_RD::clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
 }
@@ -9,7 +8,7 @@ clsTSD_RD::clsTSD_RD() : m_nStations(-1), m_stationData(nullptr) {
 clsTSD_RD::~clsTSD_RD() {
 }
 
-void clsTSD_RD::Set1DData(const char *key, int n, float *data) {
+void clsTSD_RD::Set1DData(const char *key, const int n, float *data) {
     m_nStations = n;
     m_stationData = data;
 }

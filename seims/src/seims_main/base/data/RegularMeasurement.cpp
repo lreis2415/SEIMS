@@ -1,8 +1,13 @@
-#include "text.h"
-#include "utilities.h"
 #include "RegularMeasurement.h"
 
-//! Constructor
+#include <sstream>
+#include <memory>
+
+#include "text.h"
+#include "utils_time.h"
+
+using namespace utils_time;
+
 RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
@@ -16,7 +21,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     BSON_APPEND_DOCUMENT_BEGIN(query, "$query", child);
     BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
     BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
-    ostringstream ossIndex;
+    std::ostringstream ossIndex;
     for (int iSite = 0; iSite < nSites; iSite++) {
         ossIndex.str("");
         ossIndex << iSite;
@@ -46,7 +51,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     //printf("%s\n", bson_as_json(query,NULL));
 
     // perform query and read measurement data
-    unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->getCollection(hydroDBName, DB_TAB_DATAVALUES)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     float value;
@@ -88,14 +93,14 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
         index++;
     }
     if (index <= 0) {
-        ostringstream oss;
+        std::ostringstream oss;
         oss << "There are no " << siteType << " data available for sites:[" << sitesList << "] in database:" <<
                 hydroDBName
                 << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     if (iSite + 1 != nSites) {
-        ostringstream oss;
+        std::ostringstream oss;
         oss << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
                 " for sites:[" << sitesList << "] in database:" << hydroDBName
                 << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);

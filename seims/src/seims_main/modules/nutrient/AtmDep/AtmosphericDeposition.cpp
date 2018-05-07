@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "AtmosphericDeposition.h"
 
-using namespace std;
+#include "text.h"
 
 AtmosphericDeposition::AtmosphericDeposition() :
 //input
@@ -77,7 +76,7 @@ void AtmosphericDeposition::Set2DData(const char *key, int nRows, int nCols, flo
     }
 }
 
-void AtmosphericDeposition::initialOutputs() {
+void AtmosphericDeposition:: InitialOutputs() {
     // allocate the output variables
     if (m_addrnh4 < 0.f) {
         m_addrnh4 = 0.f;
@@ -90,7 +89,7 @@ void AtmosphericDeposition::initialOutputs() {
 int AtmosphericDeposition::Execute() {
     //check the data
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_preci[i] > 0.f) {

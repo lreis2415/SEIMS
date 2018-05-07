@@ -10,16 +10,19 @@
 #ifndef SEIMS_SETTING_H
 #define SEIMS_SETTING_H
 
-#include "utilities.h"
+#include <vector>
 
-using namespace std;
+#include "basic.h"
+
+using namespace ccgl;
+using std::vector;
 
 /*!
  * \ingroup module_setting
  * \class Settings
  * \brief Base class for input or output Settings
  */
-class Settings: NotCopyable, public DefaultConstructor {
+class Settings: Interface {
 public:
     //! Constructor
     Settings() {};

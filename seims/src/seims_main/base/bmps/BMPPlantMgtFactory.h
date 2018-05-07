@@ -8,12 +8,11 @@
 
 #include "BMPFactory.h"
 #include "PlantManagementOperation.h"
-#include "utilities.h"
 
-using namespace MainBMP;
+using namespace bmps;
 using namespace PlantManagement;
 
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class BMPPlantMgtFactory
  * \ingroup MainBMP
@@ -33,16 +32,16 @@ public:
     virtual ~BMPPlantMgtFactory();
 
     /// Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
+    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
 
     /// Output
-    virtual void Dump(ostream* fs);
+    void Dump(ostream* fs) override;
 
     /// Set management fields data
-    virtual void setRasterData(map<string, FloatRaster *>& sceneRsMap);
+    void setRasterData(map<string, FloatRaster *>& sceneRsMap) override;
 
     /// Get management fields data
-    virtual float* getRasterData() { return m_mgtFieldsRs; };
+    float* GetRasterData() override { return m_mgtFieldsRs; };
 
     /// Get landuse / landcover ID
     int GetLUCCID() { return m_luccID; }

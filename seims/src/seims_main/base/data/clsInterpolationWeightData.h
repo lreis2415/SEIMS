@@ -15,11 +15,11 @@ using namespace db_mongoc;
 
 /*!
  * \ingroup data
- * \class clsITPWeightData
+ * \class ItpWeightData
  *
  * \brief Read weight data of each observe stations from database
  */
-class clsITPWeightData: Interface {
+class ItpWeightData: Interface {
 public:
     /*!
      * \brief Overload constructor
@@ -27,10 +27,10 @@ public:
      * \param[in] gfs MongoGridFs
      * \param[in] filename
      */
-    clsITPWeightData(MongoGridFs* gfs, const string& filename);
+    ItpWeightData(MongoGridFs* gfs, const string& filename);
 
     //! Destructor
-    ~clsITPWeightData();
+    ~ItpWeightData();
 
     /*!
      * \brief Get the weight data read from mongoDB

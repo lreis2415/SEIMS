@@ -1,10 +1,8 @@
-#include "seims.h"
-#include "ClimateParams.h"
-
 #include "PETPenmanMonteith.h"
 
-
-using namespace std;
+#include "utils_time.h"
+#include "text.h"
+#include "ClimateParams.h"
 
 PETPenmanMonteith::PETPenmanMonteith() : m_tSnow(-1), m_nCells(-1),
                                          m_elev(nullptr), m_rhd(nullptr), m_sr(nullptr), m_tMean(nullptr), m_tMin(nullptr),
@@ -94,7 +92,7 @@ void PETPenmanMonteith::Set1DData(const char *key, int n, float *value) {
     }
 }
 
-void PETPenmanMonteith::initialOutputs() {
+void PETPenmanMonteith:: InitialOutputs() {
     CHECK_POSITIVE(MID_PET_PM, m_nCells);
     if (nullptr == m_vpd) Initialize1DArray(m_nCells, m_vpd, 0.f);
     if (nullptr == m_dayLen) Initialize1DArray(m_nCells, m_dayLen, 0.f);
@@ -114,8 +112,8 @@ void PETPenmanMonteith::initialOutputs() {
 
 int PETPenmanMonteith::Execute() {
     CheckInputData();
-    initialOutputs();
-    int d = JulianDay(m_date);
+     InitialOutputs();
+    int d = utils_time::JulianDay(m_date);
     //do the execute
 #pragma omp parallel for
     for (int j = 0; j < m_nCells; ++j) {
@@ -262,7 +260,7 @@ int PETPenmanMonteith::Execute() {
 }
 
 void PETPenmanMonteith::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_PET)) { *data = m_pet; }

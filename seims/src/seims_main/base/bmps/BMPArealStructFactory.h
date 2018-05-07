@@ -10,23 +10,23 @@
 #ifndef SEIMS_BMP_AREALSTRUCT_H
 #define SEIMS_BMP_AREALSTRUCT_H
 
+#include "tinyxml.h"
+#include "basic.h"
+#include "data_raster.h"
+
 #include "BMPFactory.h"
-#include "text.h"
-#include "utilities.h"
 #include "ParamInfo.h"
 
-#include "tinyxml.h"
-#include "clsRasterData.h"
+using namespace ccgl;
+using namespace bmps;
 
-using namespace MainBMP;
-
-namespace MainBMP {
+namespace bmps {
 /*!
  * \class BMPArealStruct, inherited from \sa ParamInfo
  * \ingroup MainBMP
  * \brief Manage areal Structural BMP data
  */
-class BMPArealStruct: NotCopyable {
+class BMPArealStruct: Interface {
 public:
     //! Constructor
     BMPArealStruct(const bson_t*& bsonTab, bson_iter_t& iter);
@@ -69,13 +69,13 @@ public:
     virtual ~BMPArealStructFactory();
 
     //! Load BMP parameters from MongoDB
-    virtual void loadBMP(MongoClient* conn, const string& bmpDBName);
+    void loadBMP(MongoClient* conn, const string& bmpDBName) override;
 
     //! Set raster data if needed
-    virtual void setRasterData(map<string, FloatRaster*>& sceneRsMap);
+    void setRasterData(map<string, FloatRaster*>& sceneRsMap) override;
 
     //! Get management fields data
-    virtual float* getRasterData() { return m_mgtFieldsRs; };
+    float* GetRasterData() override { return m_mgtFieldsRs; };
 
     //! Get effect unit IDs
     const vector<int>& getUnitIDs() const { return m_unitIDs; }
@@ -84,7 +84,7 @@ public:
     const map<int, BMPArealStruct*>& getBMPsSettings() const { return m_bmpStructMap; }
 
     //! Output
-    virtual void Dump(ostream* fs);
+    void Dump(ostream* fs) override;
 
 private:
     //! management units file name

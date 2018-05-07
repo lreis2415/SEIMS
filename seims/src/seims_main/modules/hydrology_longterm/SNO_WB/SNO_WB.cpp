@@ -68,7 +68,7 @@ bool SNO_WB::CheckInputData(void) {
     return true;
 }
 
-void SNO_WB::initialOutputs() {
+void SNO_WB:: InitialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(MID_SNO_WB, "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
@@ -91,7 +91,7 @@ void SNO_WB::initialOutputs() {
 int SNO_WB::Execute() {
     this->CheckInputData();
 
-    this->initialOutputs();
+    this-> InitialOutputs();
 
     /*if(m_subbasinList == NULL && this->m_subbasinSelected != NULL && this->m_subbasinSelectedCount > 0)
     {
@@ -106,7 +106,7 @@ int SNO_WB::Execute() {
         }
     }
 
-    ///this->m_SWE = 0.0f;/// move to initialOutputs()
+    ///this->m_SWE = 0.0f;/// move to  InitialOutputs()
     for (int rw = 0; rw < this->m_nCells; rw++) {
         float dT = this->m_tMean[rw];
         float dPnet = this->m_Pnet[rw];
@@ -200,7 +200,7 @@ void SNO_WB::Set1DData(const char *key, int n, float *data) {
 }
 
 void SNO_WB::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNAC)) {
         *data = this->m_SA;
@@ -212,7 +212,7 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SNO_WB::GetValue(const char *key, float *data) {
-    initialOutputs();
+     InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SWE)) { *data = this->m_SWE; }
     else {

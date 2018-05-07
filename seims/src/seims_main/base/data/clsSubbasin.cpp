@@ -1,32 +1,36 @@
 #include "clsSubbasin.h"
 
-using namespace std;
+#include "text.h"
 
-Subbasin::Subbasin(int id) : m_id(id), m_nCells(-1), m_cells(nullptr), m_cellArea(-1.f),
-                             m_Area(-1.f), m_PET(-1.f),
-                             m_PERCO(-1.f), m_Pcp(-1.f),
-                             m_Interception(-1.f), m_interceptionET(-1.f), m_DepressionET(-1.f), m_Infiltration(-1.f), m_soilET(-1.f),
-                             m_TotalET(-1.f), m_NetPercolation(-1.f), m_RS(-1.f), m_RI(-1.f),
-                             m_R(-1.f), m_S_MOI(-1.f), m_pNet(-1.f),
-                             m_TMean(-1.f), m_SoilT(-1.f), m_GWMAX(-1.f), m_kg(-1.f),
-                             m_dp_co(-1.f), m_base_ex(-1.f), m_QGConvert(-1.f), m_slopeCoefficient(1.f), m_slope(-1.f), m_Revap(-1.f),
-                             m_GW(-1.f),
-                             m_PERDE(-1.f), m_QG(-1.f), m_RG(-1.f), m_isOutput(false), m_isRevapChanged(true) {
+//using namespace std;
+
+Subbasin::Subbasin(const int id) : subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
+                                   area_(-1.f), pet_(-1.f),
+                                   perco_(-1.f), pcp_(-1.f),
+                                   intercep_(-1.f), intercep_et_(-1.f), depression_et_(-1.f), infil_(-1.f),
+                                   soil_et_(-1.f),
+                                   total_et_(-1.f), net_perco_(-1.f), runoff_(-1.f), interflow_(-1.f),
+                                   soil_wtr_(-1.f), net_pcp_(-1.f),
+                                   mean_tmp_(-1.f), soil_tmp_(-1.f), gwmax_(-1.f), kg_(-1.f),
+                                   revap_coef_(-1.f), base_ex_(-1.f), qg_cvt_(-1.f), slope_coef_(1.f), slope_(-1.f),
+                                   revap_(-1.f),
+                                   gw_(-1.f),
+                                   deep_perco_(-1.f), qg_(-1.f), rg_(-1.f), output_(false), revap_changed_(true) {
 }
 
 Subbasin::~Subbasin() {
-    if (m_cells != nullptr) Release1DArray(m_cells);
+    if (cells_ != nullptr) Release1DArray(cells_);
 }
 
-bool Subbasin::CheckInputSize(int n) {
+bool Subbasin::CheckInputSize(const int n) {
     if (n <= 0) {
         throw ModelException("Subbasin Class", "CheckInputSize",
                              "Input data for Subbasin is invalid. The size could not be less than zero.");
     }
 
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
+    if (n_cells_ != n) {
+        if (n_cells_ <= 0) {
+            n_cells_ = n;
         } else {
             throw ModelException("Subbasin Class", "CheckInputSize", "All input data should have same size.");
         }
@@ -34,108 +38,108 @@ bool Subbasin::CheckInputSize(int n) {
     return true;
 }
 
-void Subbasin::setCellList(int nCells, int* cells) {
-    CheckInputSize(nCells);
-    m_cells = cells;
+void Subbasin::SetCellList(const int n_cells, int* cells) {
+    CheckInputSize(n_cells);
+    cells_ = cells;
 }
 
 // Note: Since slope is calculated by drop divided by distance in TauDEM,
 //		 the average should be calculated after doing atan().
 //		 By LJ, 2016-7-27
-void Subbasin::setSlope(float* slope) {
-    m_slope = 0.f;
+void Subbasin::SetSlope(float* slope) {
+    slope_ = 0.f;
     int index = 0;
-    for (int i = 0; i < m_nCells; i++) {
-        index = m_cells[i];
+    for (int i = 0; i < n_cells_; i++) {
+        index = cells_[i];
         //m_slope += slope[index];  // percent
-        m_slope += atan(slope[index]); // radian
+        slope_ += atan(slope[index]); // radian
     }
-    m_slope /= m_nCells;
-    m_slope = tan(m_slope); // to keep consistent with the slope unit in the whole model
+    slope_ /= n_cells_;
+    slope_ = tan(slope_); // to keep consistent with the slope unit in the whole model
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////  clsSubbasins                           ///////////////////////
 //////////////////////////////////////////////////////////////////////////
-clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rsMap, int prefixID): m_nSubbasins(-1) {
-    m_subbasinIDs.clear();
-    m_subbasinsInfo.clear();
+clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_id): n_subbasins_(-1) {
+    subbasin_ids_.clear();
+    subbasin_objs_.clear();
 
     // read subbasin data
-    int nCells = -1;
-    float* subbasinData = nullptr;
-    float cellWidth = NODATA_VALUE;
-    ostringstream oss;
-    oss << prefixID << "_" << VAR_SUBBSN;
-    string subbasinFileName = GetUpper(oss.str());
+    int n_cells = -1;
+    float* subbasin_data = nullptr;
+    float cell_width = NODATA_VALUE;
+    std::ostringstream oss;
+    oss << prefix_id << "_" << VAR_SUBBSN;
+    string subbasin_file_name = GetUpper(oss.str());
     oss.str("");
 
-    rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData);
+    rs_map[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data);
 
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
-    map<int, vector<int> *> cellListMap;
-    for (int i = 0; i < nCells; i++) {
-        int subID = int(subbasinData[i]);
-        if (cellListMap.find(subID) == cellListMap.end())
-            cellListMap[subID] = new vector<int>;
-        cellListMap[subID]->push_back(i);
+    map<int, vector<int> *> cell_list_map;
+    for (int i = 0; i < n_cells; i++) {
+        int sub_id = int(subbasin_data[i]);
+        if (cell_list_map.find(sub_id) == cell_list_map.end())
+            cell_list_map[sub_id] = new vector<int>;
+        cell_list_map[sub_id]->push_back(i);
     }
-    m_nSubbasins = int(cellListMap.size());
-    for (auto it = cellListMap.begin(); it != cellListMap.end(); ++it) {
+    n_subbasins_ = int(cell_list_map.size());
+    for (auto it = cell_list_map.begin(); it != cell_list_map.end(); ++it) {
         // swap for saving memory, using shrink_to_fit() instead.
         vector<int>(*it->second).swap(*it->second);
         // (*it->second).shrink_to_fit();
-        int subID = it->first;
-        m_subbasinIDs.push_back(subID);
-        Subbasin* newSub = new Subbasin(subID);
-        int nCellsTmp = int(it->second->size());
-        int* tmp = new int[nCellsTmp];
-        for (int j = 0; j < nCellsTmp; j++)
+        int sub_id = it->first;
+        subbasin_ids_.push_back(sub_id);
+        Subbasin* new_sub = new Subbasin(sub_id);
+        int n_cells_tmp = int(it->second->size());
+        int* tmp = new int[n_cells_tmp];
+        for (int j = 0; j < n_cells_tmp; j++)
             tmp[j] = it->second->at(j);
-        newSub->setCellList(nCellsTmp, tmp);
-        newSub->setArea(cellWidth * cellWidth * nCellsTmp);
-        m_subbasinsInfo[subID] = newSub;
+        new_sub->SetCellList(n_cells_tmp, tmp);
+        new_sub->SetArea(cell_width * cell_width * n_cells_tmp);
+        subbasin_objs_[sub_id] = new_sub;
     }
-    vector<int>(m_subbasinIDs).swap(m_subbasinIDs);
+    vector<int>(subbasin_ids_).swap(subbasin_ids_);
     // m_subbasinIDs.shrink_to_fit();
     // release cellListMap to save memory
-    for (auto it = cellListMap.begin(); it != cellListMap.end();) {
+    for (auto it = cell_list_map.begin(); it != cell_list_map.end();) {
         delete it->second;
-        cellListMap.erase(it++);
+        cell_list_map.erase(it++);
     }
-    cellListMap.clear();
+    cell_list_map.clear();
 }
 
 clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaster *>& rsMap,
                                  int prefixID) {
-    ostringstream oss;
+    std::ostringstream oss;
     oss << prefixID << "_" << Tag_Mask;
-    string maskFileName = GetUpper(oss.str());
+    string mask_file_name = GetUpper(oss.str());
     oss.str("");
     oss << prefixID << "_" << VAR_SUBBSN;
-    string subbasinFileName = GetUpper(oss.str());
+    string subbasin_file_name = GetUpper(oss.str());
     oss.str("");
 
-    if (rsMap.find(maskFileName) == rsMap.end()) {
+    if (rsMap.find(mask_file_name) == rsMap.end()) {
         // if mask not loaded yet
         cout << "MASK data has not been loaded yet!" << endl;
         return nullptr;
     }
-    int nCells = -1;
-    float* subbasinData = nullptr;
-    if (rsMap.find(subbasinFileName) == rsMap.end()) {
+    int n_cells = -1;
+    float* subbasin_data = nullptr;
+    if (rsMap.find(subbasin_file_name) == rsMap.end()) {
         // if subbasin not loaded yet
         FloatRaster* subbasinRaster = nullptr;
-        subbasinRaster = FloatRaster::Init(spatialData, subbasinFileName.c_str(),
-                                           true, rsMap[maskFileName]);
+        subbasinRaster = FloatRaster::Init(spatialData, subbasin_file_name.c_str(),
+                                           true, rsMap[mask_file_name]);
         assert(nullptr != subbasinRaster);
-        if (!subbasinRaster->getRasterData(&nCells, &subbasinData)) {
+        if (!subbasinRaster->GetRasterData(&n_cells, &subbasin_data)) {
             cout << "Subbasin data loaded failed!" << endl;
             return nullptr;
         }
-        rsMap[subbasinFileName] = subbasinRaster;
+        rsMap[subbasin_file_name] = subbasinRaster;
     } else {
-        if (!rsMap[subbasinFileName]->getRasterData(&nCells, &subbasinData)) {
+        if (!rsMap[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data)) {
             cout << "Subbasin data preloaded is unable to access!" << endl;
             return nullptr;
         }
@@ -146,62 +150,62 @@ clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaste
 
 clsSubbasins::~clsSubbasins() {
     StatusMessage("Release subbasin class ...");
-    if (!m_subbasinsInfo.empty()) {
-        for (auto iter = m_subbasinsInfo.begin(); iter != m_subbasinsInfo.end();) {
+    if (!subbasin_objs_.empty()) {
+        for (auto iter = subbasin_objs_.begin(); iter != subbasin_objs_.end();) {
             if (iter->second != nullptr) {
                 delete iter->second;
                 iter->second = nullptr;
             }
-            m_subbasinsInfo.erase(iter++);
+            subbasin_objs_.erase(iter++);
         }
-        m_subbasinsInfo.clear();
+        subbasin_objs_.clear();
     }
 }
 
-float clsSubbasins::subbasin2basin(string key) {
+float clsSubbasins::Subbasin2Basin(const string& key) {
     float temp = 0.f;
-    int totalCount = 0;
+    int total_count = 0;
     Subbasin* sub = nullptr;
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
-        sub = m_subbasinsInfo[*it];
-        int nCount = sub->getCellCount();
+    for (auto it = subbasin_ids_.begin(); it != subbasin_ids_.end(); ++it) {
+        sub = subbasin_objs_[*it];
+        int n_count = sub->GetCellCount();
         if (StringMatch(key, VAR_SLOPE)) {
-            temp += atan(sub->getSlope()) * nCount;
+            temp += atan(sub->GetSlope()) * n_count;
         } else if (StringMatch(key, VAR_PET)) {
-            temp += sub->getPET() * nCount;
+            temp += sub->GetPet() * n_count;
         } else if (StringMatch(key, VAR_PERCO)) {
-            temp += sub->getPerco() * nCount;
+            temp += sub->GetPerco() * n_count;
         } else if (StringMatch(key, VAR_REVAP)) {
-            temp += sub->getEG() * nCount;
+            temp += sub->GetEg() * n_count;
         } else if (StringMatch(key, VAR_PERDE)) {
-            temp += sub->getPerde() * nCount;
+            temp += sub->GetPerde() * n_count;
         } else if (StringMatch(key, VAR_RG)) {
-            temp += sub->getRG() * nCount;
+            temp += sub->GetRg() * n_count;
         } else if (StringMatch(key, VAR_QG)) {
-            temp += sub->getQG();
+            temp += sub->GetQg();
         } else if (StringMatch(key, VAR_GW_Q)) {
-            temp += sub->getGW() * nCount;
+            temp += sub->GetGw() * n_count;
         }
 
-        totalCount += nCount;
+        total_count += n_count;
     }
     if (StringMatch(key, VAR_QG)) {
         return temp;
     } // basin sum
     if (StringMatch(key, VAR_SLOPE))
-        return tan(temp / totalCount);
-    return temp / totalCount; // basin average
+        return tan(temp / total_count);
+    return temp / total_count; // basin average
 }
 
 void clsSubbasins::SetSlopeCoefficient() {
-    float basinSlope = subbasin2basin(VAR_SLOPE);
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
-        Subbasin* curSub = m_subbasinsInfo[*it];
-        if (basinSlope <= 0.f) {
-            curSub->setSlopeCoefofBasin(1.f);
+    float basin_slope = Subbasin2Basin(VAR_SLOPE);
+    for (auto it = subbasin_ids_.begin(); it != subbasin_ids_.end(); ++it) {
+        Subbasin* cur_sub = subbasin_objs_[*it];
+        if (basin_slope <= 0.f) {
+            cur_sub->SetSlopeCoefofBasin(1.f);
         } else {
-            float slpCoef = curSub->getSlope() / basinSlope;
-            curSub->setSlopeCoefofBasin(slpCoef);
+            float slp_coef = cur_sub->GetSlope() / basin_slope;
+            cur_sub->SetSlopeCoefofBasin(slp_coef);
         }
     }
 }

@@ -21,9 +21,8 @@
  * \defgroup PET_PM
  * \ingroup Hydrology_longterm
  * \brief Penman Monteith Method to Compute PET
- *  
+ *
  */
-using namespace std;
 
 /*!
  * \class PETPenmanMonteith
@@ -38,13 +37,13 @@ public:
 
     ~PETPenmanMonteith();
 
-    virtual void Set1DData(const char *key, int n, float *value);
+    void Set1DData(const char *key, int n, float *value) override;
 
-    virtual void SetValue(const char *key, float value);
+    void SetValue(const char *key, float value) override;
 
-    virtual int Execute();
+    int Execute() override;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) override;
 
 private:
     /**
@@ -64,7 +63,7 @@ private:
     bool CheckInputSize(const char *key, int n);
 
     /// initialize output variables
-    void initialOutputs();
+    void  InitialOutputs();
 
 private:
     /// Mean air temperature for a given day (deg C)

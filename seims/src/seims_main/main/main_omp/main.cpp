@@ -19,32 +19,32 @@ int main(int argc, const char** argv) {
     /// Run model.
     try {
         /// Get module path
-        string modulePath = GetAppPath();
+        string module_path = GetAppPath();
         /// Initialize the MongoDB connection client
-        MongoClient* mongoClient = MongoClient::Init(input_args->m_host_ip, input_args->m_port);
-        if (nullptr == mongoClient) {
+        MongoClient* mongo_client = MongoClient::Init(input_args->host_ip, input_args->port);
+        if (nullptr == mongo_client) {
             throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
         }
         /// Create module factory
-        ModuleFactory* moduleFactory = ModuleFactory::Init(modulePath, input_args);
-        if (nullptr == moduleFactory) {
+        ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
+        if (nullptr == module_factory) {
             throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
         }
         /// Create data center according to subbasin number, 0 means the whole basin which is default for omp version.
-        DataCenterMongoDB* dataCenter = new DataCenterMongoDB(input_args, mongoClient, moduleFactory);
+        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, module_factory);
         /// Create SEIMS model by dataCenter and moduleFactory
-        ModelMain* modelMain = new ModelMain(dataCenter, moduleFactory);
+        ModelMain* model_main = new ModelMain(data_center, module_factory);
         /// Execute model and write outputs
-        modelMain->Execute();
-        modelMain->Output();
+        model_main->Execute();
+        model_main->Output();
         /// Clean up
-        delete modelMain;
-        delete dataCenter;
-        delete moduleFactory;
-        delete mongoClient;
+        delete model_main;
+        delete data_center;
+        delete module_factory;
+        delete mongo_client;
         delete input_args;
     } catch (ModelException& e) {
-        cout << e.toString() << endl;
+        cout << e.ToString() << endl;
         exit(EXIT_FAILURE);
     }
     catch (exception& e) {

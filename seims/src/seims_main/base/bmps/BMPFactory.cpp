@@ -1,12 +1,12 @@
 #include "BMPFactory.h"
 
-using namespace MainBMP;
+using namespace bmps;
 
-BMPFactory::BMPFactory(int scenarioId, int bmpId, int subScenario, int bmpType,
-                       int bmpPriority, vector<string>& distribution, const string& collection,
-                       const string& location) :
-    m_scenarioId(scenarioId), m_bmpId(bmpId), m_subScenarioId(subScenario), m_bmpType(bmpType),
-    m_bmpPriority(bmpPriority),
+BMPFactory::BMPFactory(const int scenario_id, const int bmp_id, const int sub_scenario,
+                       const int bmp_type, const int bmp_priority, vector<string>& distribution,
+                       const string& collection, const string& location) :
+    m_scenarioId(scenario_id), m_bmpId(bmp_id), m_subScenarioId(sub_scenario), m_bmpType(bmp_type),
+    m_bmpPriority(bmp_priority),
     m_distribution(distribution), m_bmpCollection(collection), m_location(location) {
     /// Do nothing.
 }

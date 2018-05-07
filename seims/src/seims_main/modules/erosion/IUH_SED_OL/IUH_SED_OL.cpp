@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "IUH_SED_OL.h"
 
-using namespace std;
+#include "text.h"
 
 IUH_SED_OL::IUH_SED_OL() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                            m_nSubbasins(-1), m_subbasinID(-1), m_subbasin(nullptr),
@@ -26,7 +25,7 @@ bool IUH_SED_OL::CheckInputData() {
     return true;
 }
 
-void IUH_SED_OL::initialOutputs() {
+void IUH_SED_OL::InitialOutputs() {
     CHECK_POSITIVE(MID_IUH_SED_OL, m_nSubbasins);
     CHECK_POSITIVE(MID_IUH_SED_OL, m_nCells);
     CHECK_POINTER(MID_IUH_SED_OL, m_iuhCell);
@@ -44,7 +43,7 @@ void IUH_SED_OL::initialOutputs() {
 
 int IUH_SED_OL::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
     // delete value of last time step
     for (int i = 0; i < m_nSubbasins + 1; i++) {
         m_sedtoCh[i] = 0.f;
@@ -115,11 +114,11 @@ bool IUH_SED_OL::CheckInputSize(const char *key, int n) {
 void IUH_SED_OL::SetValue(const char *key, float value) {
     string sk(key);
 
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); }
-    else if (StringMatch(sk, Tag_CellSize)) { m_nCells = int(value); }
+    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = CVT_INT(value); }
+    else if (StringMatch(sk, Tag_CellSize)) { m_nCells = CVT_INT(value); }
     else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = CVT_INT(value); }
+    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = CVT_INT(value); }
     else {
         throw ModelException(MID_IUH_SED_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
     }
@@ -147,7 +146,7 @@ void IUH_SED_OL::Set2DData(const char *key, int nRows, int nCols, float **data) 
 }
 
 void IUH_SED_OL::GetValue(const char *key, float *value) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SED_TO_CH) && m_subbasinID > 0) { /// For MPI version to transfer data across subbasins
         *value = m_sedtoCh[m_subbasinID];
@@ -158,7 +157,7 @@ void IUH_SED_OL::GetValue(const char *key, float *value) {
 }
 
 void IUH_SED_OL::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SED_TO_CH)) {
         *data = m_sedtoCh;   // from each subbasin to channel

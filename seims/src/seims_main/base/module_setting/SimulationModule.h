@@ -10,34 +10,26 @@
 #ifndef SIMULATION_MOUDULE_BASE
 #define SIMULATION_MOUDULE_BASE
 
-#include "ModelException.h"
+#include "basic.h"
 #include "Scenario.h"  /// added by LJ. 2016-6-14
 #include "clsReach.h"
 #include "clsSubbasin.h"
 
 #include <string>
-#include <fstream>
 #include <ostream>
 #include <ctime>
-#include <cmath>
-#include <map>
-#include <vector>
-#include <iomanip>
-#ifdef SUPPORT_OMP
-#include <omp.h>
-#endif
 
-using namespace std;
-using namespace MainBMP;
+using namespace ccgl;
+using namespace bmps;
 
 /*!
  * \enum TimeStepType
  */
 enum TimeStepType {
-    TIMESTEP_HILLSLOPE, /**< Hillslope scale */
-    TIMESTEP_CHANNEL, /**< Channel scale */
-    TIMESTEP_ECOLOGY, /**< Ecology scale, currently not necessary? */
-    TIMESTEP_SIMULATION /**< Whole simulation scale */
+    TIMESTEP_HILLSLOPE, ///< Hillslope scale
+    TIMESTEP_CHANNEL,   ///< Channel scale
+    TIMESTEP_ECOLOGY,   ///< Ecology scale, currently not necessary?
+    TIMESTEP_SIMULATION ///< Whole simulation scale
 };
 
 /*!
@@ -45,7 +37,7 @@ enum TimeStepType {
  * \class SimulationModule
  * \brief Base module for all simulation modules in SEIMS
  */
-class SimulationModule: NotCopyable, public DefaultConstructor {
+class SimulationModule: Interface {
 public:
     //! Constructor
     SimulationModule(): m_date(-1), m_yearIdx(-1), m_tsCounter(1), m_inputsSetDone(false) {

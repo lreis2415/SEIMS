@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "NonPointSource_Management.h"
 
-using namespace std;
+#include "text.h"
 
 NPS_Management::NPS_Management() : m_nCells(-1), m_cellWidth(-1.f), m_timestep(-1.f), m_cellArea(-1.f),
                                    m_mgtFields(nullptr),
@@ -70,7 +69,7 @@ void NPS_Management::SetScenario(Scenario *sce) {
             }
             /// Set areal source locations data
             if (nullptr == m_mgtFields) {
-                m_mgtFields = ((BMPArealSrcFactory *) it->second)->getRasterData();
+                m_mgtFields = ((BMPArealSrcFactory *) it->second)->GetRasterData();
             }
         }
     } else {

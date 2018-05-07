@@ -7,20 +7,21 @@
 #ifndef SEIMS_MODULE_SETTING_H
 #define SEIMS_MODULE_SETTING_H
 
-#include "utilities.h"
+#include <vector>
 
-using namespace std;
+#include "basic.h"
+
+using namespace ccgl;
+using std::vector;
 
 /*!
  * \ingroup module_setting
  * \class SEIMSModuleSetting
  * \brief
  */
-class SEIMSModuleSetting: NotCopyable, public DefaultConstructor {
+class SEIMSModuleSetting: Interface {
 public:
-    SEIMSModuleSetting(string &moduleId, string &setting);
-
-    //~SEIMSModuleSetting() = default;
+    SEIMSModuleSetting(string& moduleId, string& setting);
 
     ///< data type
     float dataType();
@@ -41,15 +42,15 @@ public:
     string channelNutrientRoutingMethod();
 
 private:
-    string m_moduleId; ///< module's ID
-    string m_settingString; ///< module setting string
+    string m_moduleId;         ///< module's ID
+    string m_settingString;    ///< module setting string
     vector<string> m_settings; ///< module settings
 
     string channelRoutingMethod(int);
 
-    static float dataTypeString2Float(string);
+    static float dataTypeString2Float(const string& data_type);
 
-    static string dataType2String(float);
+    static string dataType2String(float data_type);
 };
 
 #endif /* SEIMS_MODULE_SETTING_H */

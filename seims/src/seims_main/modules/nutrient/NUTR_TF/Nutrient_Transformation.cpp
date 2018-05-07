@@ -1,7 +1,6 @@
-#include "seims.h"
 #include "Nutrient_Transformation.h"
 
-using namespace std;
+#include "text.h"
 
 Nutrient_Transformation::Nutrient_Transformation() :
 //input
@@ -181,7 +180,7 @@ void Nutrient_Transformation::Set2DData(const char *key, int nRows, int nCols, f
     }
 }
 
-void Nutrient_Transformation::initialOutputs() {
+void Nutrient_Transformation:: InitialOutputs() {
     CHECK_POSITIVE(MID_NUTR_TF, m_nCells);
     CHECK_POSITIVE(MID_NUTR_TF, m_nMaxSoilLayers);
     if (m_hmntl == nullptr) Initialize1DArray(m_nCells, m_hmntl, 0.f);
@@ -416,16 +415,16 @@ void Nutrient_Transformation::initialOutputs() {
 
 int Nutrient_Transformation::Execute() {
     CheckInputData();
-    initialOutputs();
+     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         // compute nitrogen and phosphorus mineralization
         if (m_CbnModel == 0) {
-            Mineralization_StaticCarbonMethod(i);
+            MineralizationStaticCarbonMethod(i);
         } else if (m_CbnModel == 1) {
-            Mineralization_CFARMOneCarbonModel(i);
+            MineralizationCfarmOneCarbonModel(i);
         } else if (m_CbnModel == 2) {
-            Mineralization_CENTURYModel(i);
+            MineralizationCenturyModel(i);
         } else { /// throw exception if Carbon method invalid
             throw ModelException(MID_NUTR_TF, "ComputeCNPCycling", "Carbon modeling method must be 0, 1, or 2.");
         }
@@ -437,7 +436,7 @@ int Nutrient_Transformation::Execute() {
     return 0;
 }
 
-void Nutrient_Transformation::Mineralization_StaticCarbonMethod(int i) {
+void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
     //soil layer (k)
     for (int k = 0; k < int(m_nSoilLayers[i]); k++) {
         //soil layer used to compute soil water and soil temperature factors
@@ -617,7 +616,7 @@ void Nutrient_Transformation::Mineralization_StaticCarbonMethod(int i) {
     }
 }
 
-void Nutrient_Transformation::Mineralization_CFARMOneCarbonModel(int i) {
+void Nutrient_Transformation::MineralizationCfarmOneCarbonModel(int i) {
     /// TODO
 }
 
@@ -838,7 +837,7 @@ void Nutrient_Transformation::CalculatePflux(int i) {
     }
 }
 
-void Nutrient_Transformation::Mineralization_CENTURYModel(int i) {
+void Nutrient_Transformation::MineralizationCenturyModel(int i) {
     /// update tillage related variables if stated. Code from subbasin.f of SWAT, line 153-164
     /// if CENTURY model, and tillage operation has been operated
     if (m_tillage_days != nullptr && m_tillage_days[i] > 0.f) {
@@ -1328,7 +1327,7 @@ void Nutrient_Transformation::GetValue(const char *key, float *value) {
 }
 
 void Nutrient_Transformation::Get1DData(const char *key, int *n, float **data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_HMNTL)) { *data = m_hmntl; }
     else if (StringMatch(sk, VAR_HMPTL)) { *data = m_hmptl; }
@@ -1348,7 +1347,7 @@ void Nutrient_Transformation::Get1DData(const char *key, int *n, float **data) {
 }
 
 void Nutrient_Transformation::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    initialOutputs();
+     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nMaxSoilLayers;

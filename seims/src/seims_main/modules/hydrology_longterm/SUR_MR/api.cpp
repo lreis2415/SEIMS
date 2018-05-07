@@ -1,6 +1,8 @@
-#include "SUR_MR.h"
-
 #include "api.h"
+
+#include "SUR_MR.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SUR_MR();

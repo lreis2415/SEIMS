@@ -8,25 +8,19 @@
 #ifndef SEIMS_SETTING_OUTPUT_H
 #define SEIMS_SETTING_OUTPUT_H
 
-#include "utilities.h"
 #include "Settings.h"
 #include "PrintInfo.h"
 
-#include "MongoUtil.h"
-#include "clsRasterData.h"
-
 /*!
  * \ingroup module_setting
- * \class OrgOutItem
+ * \struct OrgOutItem
  */
-class OrgOutItem: public DefaultConstructor {
-public:
+struct OrgOutItem {
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
                    aggType(""), unit(""), subBsn(""), intervalUnit(""), sTimeStr(""),
                    eTimeStr(""), interval(-1), use(-1) {
-    };
-    //~OrgOutItem() = default;
-public:
+    }
+
     string modCls;
     string outputID;
     string descprition;
@@ -64,7 +58,7 @@ public:
     static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
 
     //! Write output information to log file
-    virtual void Dump(const string& filename);
+    void Dump(const string& filename) override;
 
     //! Check date of output settings
     void checkDate(time_t, time_t);

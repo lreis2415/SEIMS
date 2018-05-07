@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "IO_test.h"
+
+#include "text.h"
 
 IO_TEST::IO_TEST() : m_nCells(-1), m_soilLayers(-1), m_nSoilLayrs(nullptr),
                      m_raster1D(nullptr), m_raster2D(nullptr),
@@ -29,7 +30,7 @@ void IO_TEST::Set2DData(const char *key, int n, int col, float **data) {
     }
 }
 
-void IO_TEST::SetScenario(MainBMP::Scenario *sce) {
+void IO_TEST::SetScenario(bmps::Scenario *sce) {
     if (nullptr != sce) { m_scenario = sce; }
 }
 

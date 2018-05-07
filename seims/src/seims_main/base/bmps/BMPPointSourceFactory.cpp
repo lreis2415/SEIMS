@@ -1,13 +1,21 @@
 #include "BMPPointSourceFactory.h"
 
-using namespace MainBMP;
+#include <memory> // unique_ptr
+
+#include "utils_string.h"
+#include "utils_time.h"
+#include "BMPText.h"
+
+using namespace utils_string;
+using namespace utils_time;
+using namespace bmps;
 
 BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
                                        int bmpType, int bmpPriority, vector<string>& distribution,
                                        const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_pointSrcMgtTab = m_bmpCollection;
-    m_pointSrcIDs = SplitStringForInt(m_location, '-');
+    SplitStringForValues(m_location, '-', m_pointSrcIDs);
     if (m_distribution.size() == 3 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_ARRAY)) {
         m_pointSrcDistTab = m_distribution[1];
         char* end = nullptr;
@@ -66,7 +74,7 @@ void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, const str
     bson_destroy(child1);
     bson_destroy(child2);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_pointSrcMgtTab)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_pointSrcMgtTab)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -91,7 +99,7 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const strin
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
-    unique_ptr<MongoCollection> collection(new MongoCollection(conn->getCollection(bmpDBName, m_pointSrcDistTab)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_pointSrcDistTab)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
@@ -111,7 +119,7 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const strin
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPPointSrcFactory::Dump(ostream* fs) {
+void BMPPointSrcFactory::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "Point Source Management Factory: " << endl <<
             "    SubScenario ID: " << m_subScenarioId << " PTSRC: " << m_pointSrc << endl;
@@ -201,7 +209,7 @@ PointSourceMgtParams::PointSourceMgtParams(const bson_t*& bsonTable, bson_iter_t
     }
 }
 
-void PointSourceMgtParams::Dump(ostream* fs) {
+void PointSourceMgtParams::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
@@ -253,7 +261,7 @@ PointSourceLocations::PointSourceLocations(const bson_t*& bsonTable, bson_iter_t
     }
 }
 
-void PointSourceLocations::Dump(ostream* fs) {
+void PointSourceLocations::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "      Point Source Location: " << endl <<
             "        PTSRCID: " << m_pointSrcID << ", SubBasinID: " << m_subbasinID <<

@@ -12,30 +12,6 @@ float LatentHeatVapor(const float tmean) {
     return 2.501f - 0.002361f * tmean;
 }
 
-int GetYear(const time_t date) {
-    struct tm date_info;
-    LocalTime(date, &date_info);
-    return date_info.tm_year;
-}
-
-int GetMonth(const time_t date) {
-    struct tm date_info;
-    LocalTime(date, &date_info);
-    return date_info.tm_mon;
-}
-
-int GetDay(const time_t date) {
-    struct tm date_info;
-    LocalTime(date, &date_info);
-    return date_info.tm_mday;
-}
-
-int JulianDay(const time_t date) {
-    struct tm date_info;
-    LocalTime(date, &date_info);
-    return date_info.tm_yday + 1;
-}
-
 void MaxSolarRadiation(const int day, const float lat, float& day_l, float& max_sr) {
     float lat_rad = lat * PI / 180.f;
     //Calculate Daylength
