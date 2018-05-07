@@ -45,13 +45,13 @@ public:
 
     virtual ~clsRasterDataTestNoPosNoMask() { delete rs_; }
 
-    void SetUp() override {
+    void SetUp() OVERRIDE {
         rs_ = clsRasterData<float>::Init(GetParam(), false); // recommended way
         //rs = new clsRasterData<float>(GetParam(), false);  // unsafe way
         ASSERT_NE(nullptr, rs_);
     }
 
-    void TearDown() override {
+    void TearDown() OVERRIDE {
         delete rs_;
         rs_ = nullptr;
     }

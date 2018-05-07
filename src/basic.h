@@ -77,35 +77,57 @@ using std::string;
 
 #if defined(__clang__) && defined(__apple_build_version__)
 // Apple Clang
-#if ((__clang_major__ * 100) + __clang_minor__) >= 400 && __has_feature(cxx_noexcept)
+#if ((__clang_major__ * 100) + __clang_minor__) >= 400
+#if __has_feature(cxx_noexcept)
 #define HAS_NOEXCEPT
+#endif /* NOEXCEPT */
+#if __has_feature(cxx_override_control)
+#define HAS_OVERRIDE
+#endif /* OVERRIDE */
 #endif /* Apple Clang */
 #elif defined(__clang__)
 // Clang
-#if ((__clang_major__ * 100) + __clang_minor__) >= 304 && __has_feature(cxx_noexcept)
+#if ((__clang_major__ * 100) + __clang_minor__) >= 304
+#if __has_feature(cxx_noexcept)
 #define HAS_NOEXCEPT
+#endif /* NOEXCEPT */
+#if __has_feature(cxx_override_control)
+#define HAS_OVERRIDE
+#endif /* OVERRIDE */
 #endif /* Clang */
 #elif defined(__INTEL_COMPILER) || defined(__ICC)
 // Intel C++
 #if (__INTEL_COMPILER >= 1400) && (__INTEL_COMPILER != 9999)
 #define HAS_NOEXCEPT
+#define HAS_OVERRIDE
 #endif /* Intel C++ */
 #elif defined(__GNUC__)
 // GNU GCC
 #if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
 #define HAS_NOEXCEPT
+#define HAS_OVERRIDE
 #endif /* GCC */
 #elif defined(_MSC_VER)
 // MS Visual C++
 #if _MSC_VER >= 1900
 #define HAS_NOEXCEPT
-#endif /* Visual C++ */
-#endif /* Figure out HAS_NOEXCEPT or not */
+#endif /* Visual Studio 2015 or later */
+#if _MSC_VER>= 1600
+#define HAS_OVERRIDE
+#endif /* Visual Studio 2010 or later */
+#endif /* Figure out HAS_NOEXCEPT and HAS_OVERRIDE or not */
+
 #ifdef HAS_NOEXCEPT
 #define NOEXCEPT noexcept
 #else
 #define NOEXCEPT throw()
 #endif /* HAS_NOEXCEPT */
+
+#ifdef HAS_OVERRIDE
+#define OVERRIDE override
+#else
+#define OVERRIDE
+#endif /* HAS_OVERRIDE */
 
 /*
 * Avoid the compile error on MSVC like this:
@@ -213,6 +235,19 @@ typedef vint64_t pos_t;
 #define LIBSUFFIX       ".dylib"
 #endif /* linux and macOS */
 
+#ifdef _DEBUG
+#define POSTFIX         "d"
+#endif
+#ifdef RELWITHDEBINFO
+#define POSTFIX         "rd"
+#endif
+#ifdef MINSIZEREL
+#define POSTFIX         "s"
+#endif
+#ifndef POSTFIX
+#define POSTFIX         ""
+#endif
+
 /*!
 * Use static_cast<T>(a) instead (T)a or T(a) to convert datetypes
 */
@@ -285,7 +320,7 @@ public:
     * \brief Overload function to construct error information
     * \return \a char* error information
     */
-    const char* what() const NOEXCEPT override;
+    const char* what() const NOEXCEPT OVERRIDE;
 
 private:
     std::runtime_error runtime_error_;

@@ -246,7 +246,7 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
         numericvalue = static_cast<T>(vv->value.v_double);
     } else if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp = vv->value.v_utf8.str;
-        if (tmp.find_first_not_of("0123456789") == string::npos) {
+        if (tmp.find_first_of("0123456789") == string::npos) {
             cout << "bson iterator isn't or not contains a numeric value." << endl;
             return false;
         }
