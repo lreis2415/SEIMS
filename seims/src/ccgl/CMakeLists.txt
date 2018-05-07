@@ -14,7 +14,7 @@
 #       -DRUNCOV=1    means run code coverage based gcov and lcov
 #
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2013, mongo-c-driver-1.5.5, GDAL-1.11.4
+#     1. Windows 10 with Visual Studio 2010/2013, mongo-c-driver-1.5.5, GDAL-1.11.4
 #     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.5.5, GDAL-1.11.5 (Without UnitTest)
@@ -107,13 +107,20 @@ INCLUDE(AddFindPaths)
 
 
 ### CCGL library
-FILE(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
-                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
-                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc
-                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
-
+FILE(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+                       ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
+IF(UNIX)
+    IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_ICC)
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+        geo_list_unique(CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
+    ENDIF()
+ENDIF()
 ADD_LIBRARY(${CCGLNAME} ${SOURCE_FILES})
+GET_DIRECTORY_PROPERTY(hasParent PARENT_DIRECTORY)
+IF (hasParent)
+    SET(CCGLNAME "${CCGLNAME}" PARENT_SCOPE)
+ENDIF ()
 
 ### Find OMP which is optional
 FIND_PACKAGE(OpenMP)
@@ -132,6 +139,7 @@ IF (GDAL_FOUND)
   INCLUDE(SetFlagGDAL)
   geo_include_directories(${GDAL_INCLUDE_DIR})
   TARGET_LINK_LIBRARIES(${CCGLNAME} ${GDAL_LIBRARIES})
+  SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINKER_LANGUAGE CXX)
   MESSAGE(STATUS "Compiling with GDAL...")
 ENDIF ()
 
