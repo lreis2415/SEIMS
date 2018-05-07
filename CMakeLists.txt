@@ -156,6 +156,7 @@ ENDIF ()
 
 ### Set code coverage linkage.
 IF (RUNCOV STREQUAL 1)
+    SET(UNITTEST 1) # Code coverage needs the UnitTest
     SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES COMPILE_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
     SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINK_FLAGS "-coverage -lgcov")
 ENDIF ()
@@ -175,17 +176,17 @@ IF (UNITTEST STREQUAL 1)
     geo_include_directories(${gtest_SOURCE_DIR}/include)
     geo_include_directories(${gmock_SOURCE_DIR}/include)
     ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test)
-ENDIF ()
 
-### Copy test data to build directory.
-MAKE_DIRECTORY(${INSTALL_DIR})
-FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${INSTALL_DIR})
-# For the convenient of debugging in MSVC and CLion
-IF (MSVC)
-  FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Debug)
-  FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Release)
-ELSE ()
-  FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test)
+    ### Copy test data to build directory for UnitTest Only!
+    MAKE_DIRECTORY(${INSTALL_DIR})
+    FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${INSTALL_DIR})
+    # For the convenient of debugging in MSVC and CLion
+    IF (MSVC)
+        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Debug)
+        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test/Release)
+    ELSE ()
+        FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/test)
+    ENDIF ()
 ENDIF ()
 
 INSTALL(TARGETS ${CCGLNAME} DESTINATION ${INSTALL_DIR})
