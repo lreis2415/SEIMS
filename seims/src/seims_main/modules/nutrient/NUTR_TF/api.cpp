@@ -29,7 +29,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_PSP, UNIT_NON_DIM, DESC_PSP, Source_ParameterDB, DT_Single);
 
     /// idplt in SWAT is a lookup array. in SEIMS, use landcover
-    mdi.AddParameter(VAR_LCC, UNIT_NON_DIM, DESC_LCC, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_LANDCOVER, UNIT_NON_DIM, DESC_LANDCOVER, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PL_RSDCO, UNIT_NON_DIM, DESC_PL_RSDCO, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
     //mdi.AddParameter(VAR_A_DAYS, UNIT_NON_DIM, DESC_A_DAYS, Source_ParameterDB, DT_Raster1D);

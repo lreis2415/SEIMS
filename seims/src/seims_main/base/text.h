@@ -121,7 +121,7 @@
 #define Tag_TimeStep                           "TIMESTEP"
 #define Tag_HillSlopeTimeStep                  "DT_HS"
 #define Tag_ChannelTimeStep                    "DT_CH"
-#define Tag_CellWidth                          "CELLWIDTH" // this is the size of a single CELL
+#define Tag_CellWidth                          "CELLWIDTH" // m_cellWidth, the size of a single CELL
 #define Tag_LayeringMethod                     "LayeringMethod"
 
 // D8 Flow model
@@ -514,7 +514,7 @@
 #define VAR_BIOEHI "BIOEHI"
 #define VAR_BIOINIT "BIO_INIT"
 #define VAR_BIOLEAF "BIO_LEAF"
-#define VAR_BIOMASS "BIOMASS"
+#define VAR_BIOMASS "BIOMASS" /// m_biomass, land cover/crop biomass (dry weight), bio_ms in SWAT
 #define VAR_BIOTARG "biotarg"
 #define VAR_BKST "BKST"                             /// bank storage
 #define VAR_BLAI "BLAI"
@@ -557,9 +557,9 @@
 #define VAR_CHWIDTH "CHWIDTH"
 #define VAR_CHWTDEPTH "CHWTDEPTH"                     /// channel water depth
 #define VAR_PRECHWTDEPTH "prechwtdepth"
-#define VAR_CLAY "CLAY"
+#define VAR_CLAY "CLAY" /// m_soilClay, Percent of clay content
 #define VAR_CMN "cmn"                                 /// Rate coefficient for mineralization of the humus active organic nutrients
-#define VAR_CN2 "CN2"
+#define VAR_CN2 "CN2" /// m_CN2, Curve Number value under moisture condition II
 #define VAR_CO2 "Co2"                                 /// CO2 Concentration
 #define VAR_CO2HI "CO2HI"
 #define VAR_SUR_COD "sur_cod"
@@ -568,8 +568,8 @@
 #define VAR_COND_RATE "Cond_rate"                     /// Rate of decline in automata's conductance per unit increase in vapor pressure deficit
 #define VAR_CONDUCT "Conductivity"
 #define VAR_CONV_WT "conv_wt"
-#define VAR_CROP_LOOKUP "CropLookup"
-#define VAR_CSWAT "cswat"
+#define VAR_CROP_LOOKUP "CropLookup" /// m_cropLookup, Crop lookup table
+#define VAR_CSWAT "cswat" /// m_cbnModel, carbon modeling method
 #define VAR_PCP "D_P" /// Distribution of precipitation
 #define VAR_DAYLEN "daylength"
 #define VAR_DAYLEN_MIN "daylenmin"  /// minimum day length
@@ -595,7 +595,7 @@
 #define VAR_CH_SOLPConc "CH_SOLPConc"
 #define VAR_DLAI "DLAI"
 #define VAR_DORMHR "dormhr"
-#define VAR_DORMI "dormi"
+#define VAR_DORMI "dormi" /// m_dormFlag, dormancy status code, 0 for land cover growing and 1 for dormant
 #define VAR_DPST "DPST"                               /// depression storage
 #define VAR_DRYDEP_NH4 "drydep_nh4"                 /// atmospheric dry deposition of ammonia (kg/ha)
 #define VAR_DRYDEP_NO3 "drydep_no3"                 /// atmospheric dry deposition of nitrates (kg/ha)
@@ -608,16 +608,16 @@
 #define VAR_POT_SOLPDECAY "pot_solpl"
 #define VAR_EXCP "EXCP"                             /// excess precipitation
 #define VAR_EXT_COEF "EXT_COEF"
-#define VAR_FERTILIZER_LOOKUP "FertilizerLookup"
+#define VAR_FERTILIZER_LOOKUP "FertilizerLookup" /// m_fertLookup, Fertilizer lookup table
 #define VAR_FIELDCAP "FieldCap"                     /// Soil field capacity"
 #define VAR_FLAT "flat"
 #define VAR_FLOWDIR "FLOW_DIR"
 #define VAR_FLOWWIDTH "FlowWidth"
-#define VAR_FR_PHU_ACC "frPHUacc"
-#define VAR_FR_PLANT_N "frPlantN"
-#define VAR_FR_PLANT_P "frPlantP"
-#define VAR_FR_ROOT "frRoot"
-#define VAR_FR_STRSWTR "frStrsWtr"
+#define VAR_FR_PHU_ACC "frPHUacc" /// m_phuAccum, fraction of plant heat units (PHU) accumulated
+#define VAR_FR_PLANT_N "frPlantN" /// m_frPltN, fraction of plant biomass that is nitrogen, pltfr_n in SWAT
+#define VAR_FR_PLANT_P "frPlantP" /// m_frPltP, fraction of plant biomass that is phosphorous, pltfr_p in SWAT
+#define VAR_FR_ROOT "frRoot" /// m_frRoot, fraction of total plant biomass that is in roots, rwt in SWAT
+#define VAR_FR_STRSWTR "frStrsWtr" /// m_frStrsWtr, fraction of potential plant growth achieved where the reduction is caused by water stress, strsw in SWAT
 #define VAR_FRGMAX "frgmax"
 #define VAR_FRGRW1 "FRGRW1"
 #define VAR_FRGRW2 "FRGRW2"
@@ -640,14 +640,14 @@
 #define VAR_HITARG "hi_targ"
 #define VAR_HMNTL "hmntl"                           /// amount of nitrogen moving from active organic to nitrate pool in soil profile on current day in cell(kg N/ha)
 #define VAR_HMPTL "hmptl"                           /// amount of phosphorus moving from the organic to labile pool in soil profile on current day in cell(kg P/ha)
-#define VAR_HVSTI "hvsti"   /// harvest index
-#define VAR_HVSTI_ADJ "hvsti_adj"
+#define VAR_HVSTI "hvsti" /// m_hvstIdx, harvest index: crop yield/aboveground biomass, (kg/ha)/(kg/ha)
+#define VAR_HVSTI_ADJ "hvsti_adj" /// m_hvstIdxAdj, optimal harvest index for current time during growing season
 #define VAR_HVSTI_TARG "hi_targ"
 #define VAR_ID_OUTLET "ID_OUTLET"
-#define VAR_IDC "IDC"             /// crop/landcover category, 1 to 7
-#define VAR_IGRO "IGRO"
+#define VAR_IDC "IDC" /// m_landCoverCls, Crop/landcover category, 1 to 7, defined in "BMPText.h"
+#define VAR_IGRO "IGRO" /// m_igro, plant growth code, 0 or 1
 #define VAR_IGROPT "igropt"
-#define VAR_IMPOUND_TRIG "impound_trig"
+#define VAR_IMPOUND_TRIG "impound_trig" /// m_impndTrig
 #define VAR_POT_VOLMAXMM "pot_volmaxmm"
 #define VAR_POT_VOLLOWMM "pot_vollowmm"
 #define VAR_INET "INET" /// m_IntcpET                            /// evaporation from the interception storage
@@ -678,7 +678,7 @@
 #define VAR_LAG_SNOW "lag_snow"
 #define VAR_LAIDAY "LAIDAY" /// m_lai
 #define VAR_LAIINIT "LAI_INIT" /// initial LAI at the beginning of the simulation
-#define VAR_LAIMAXFR "laimaxfr"
+#define VAR_LAIMAXFR "laimaxfr" /// m_laiMaxFr, TODO, what's meaning
 #define VAR_LAIMX1 "LAIMX1"
 #define VAR_LAIMX2 "LAIMX2"
 #define VAR_LAIPRE "LAIPRE"
@@ -686,21 +686,18 @@
 #define VAR_LAMBDA0 "lambda0"
 #define VAR_LAMBDA1 "lambda1"
 #define VAR_LAMBDA2 "lambda2"
-#define VAR_LANDCOVER "landcover"
-#define VAR_LANDUSE "landuse"
-#define VAR_LANDUSE_LOOKUP "LanduseLookup"
-#define VAR_LAP_RATE "LapseRate"                    /// Lapse rate
-#define VAR_LAST_SOILRD "lastSoilRD"
+#define VAR_LANDCOVER "landcover" /// m_landCover, raster data of land cover code, idplt in SWAT
+#define VAR_LANDUSE "landuse" /// m_landUse, raster data of landuse
+#define VAR_LANDUSE_LOOKUP "LanduseLookup" /// m_landuseLookup, lookup table of landuse
+#define VAR_LAST_SOILRD "lastSoilRD" /// m_stoSoilRootD, storing last soil root depth for use in harvestkillop/killop
 #define VAR_LATNO3 "latno3"
 #define VAR_LATNO3_TOCH "latno3ToCh"
-#define VAR_LCC "landcover"                             /// land cover code, idplt in SWAT
 #define VAR_LDRAIN "ldrain"
 #define VAR_KV_PADDY "kv_paddy"
 #define VAR_KN_PADDY "kn_paddy"
 #define VAR_POT_K "pot_k"
 #define VAR_MANNING "Manning"
 #define VAR_MAT_YRS "MAT_YRS"
-//#define VAR_MGT_FIELD "mgt_fields" // remove by lj, 08/16/17
 #define VAR_MINPGW_TOCH "minpgwToCh"
 #define VAR_MOIST_IN "Moist_in"
 #define VAR_MSF "ManningScaleFactor"                /// flow velocity scaling factor for calibration
@@ -726,7 +723,7 @@
 #define VAR_OL_SED_CCOE "ccoe"
 #define VAR_OL_SED_ECO1 "eco1"
 #define VAR_OL_SED_ECO2 "eco2"
-#define VAR_OLAI "olai"
+#define VAR_OLAI "olai" /// m_oLai, TODO, what's meaning
 #define VAR_OMEGA "Omega"
 #define VAR_CH_ORGN "CH_ORGN"
 #define VAR_CH_ORGNConc "CH_ORGNConc"
@@ -748,32 +745,32 @@
 #define VAR_PERCO_P_GW "perco_p_gw"
 #define VAR_PERCO "Perco"                     /// the amount of water percolated from the soil water reservoir
 #define VAR_PERDE "perde"
-#define VAR_PET "PET" /// m_pet                          /// Potential Evapotranspiration of day
+#define VAR_PET "PET" /// m_pet, Potential Evapotranspiration of day
 #define VAR_PET_HCOEF "HCoef_pet"                   /// Coefficient related to radiation used in Hargreaves method
 #define VAR_PHOSKD "phoskd"
-#define VAR_PHUBASE "PHUBASE"
-#define VAR_PHUPLT "PHU_PLT"
+#define VAR_PHUBASE "PHUBASE" /// m_phuBase, base zero total heat units (used when no land cover is growing)
+#define VAR_PHUPLT "PHU_PLT" /// m_phuPlt, total number of heat units to bring plant to maturity
 #define VAR_PHUTOT "PHU0"
 #define VAR_PI_B "Pi_b"
 #define VAR_PCP2CANFR_PR "pcp2canfr_pr"
 #define VAR_EMBNKFR_PR "embnkfr_pr"
 #define VAR_PL_RSDCO "rsdco_pl"                     /// Plant residue decomposition coefficient
-#define VAR_PLANT_N "plant_N"
-#define VAR_PLANT_P "plant_P"
-#define VAR_PLTET_TOT "plt_et_tot"
-#define VAR_PLTPET_TOT "plt_pet_tot"
+#define VAR_PLANT_N "plant_N" /// m_pltN, amount of nitrogen in plant biomass (kg/ha), plantn in SWAT
+#define VAR_PLANT_P "plant_P" /// m_pltP, amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
+#define VAR_PLTET_TOT "plt_et_tot" /// m_pltET, actual ET simulated during life of plant, plt_et in SWAT
+#define VAR_PLTPET_TOT "plt_pet_tot" /// m_pltPET, potential ET simulated during life of plant, plt_pet in SWAT
 #define VAR_POREIDX "Poreindex"                      /// pore size distribution index
 #define VAR_POROST "Porosity"                       /// soil porosity
-#define VAR_POT_NO3 "pot_no3"
+#define VAR_POT_NO3 "pot_no3" /// m_potNo3, amount of nitrate in pothole water body
 #define VAR_POT_NH4 "pot_nh4"
 #define VAR_POT_ORGN "pot_orgn"
-#define VAR_POT_SOLP "pot_solp"
+#define VAR_POT_SOLP "pot_solp" /// m_potSolP, soluble P amount in pothole water body
 #define VAR_POT_ORGP "pot_orgp"
 #define VAR_POT_AMINP "pot_aminp"
 #define VAR_POT_SMINP "pot_sminp"
 #define VAR_POT_SED "pot_sed"
-#define VAR_POT_VOL "pot_vol"
-#define VAR_POT_SA "pot_sa"
+#define VAR_POT_VOL "pot_vol" /// m_potVol, volume of water stored in the depression/impounded area, mm
+#define VAR_POT_SA "pot_sa" /// m_potArea, surface area of impounded water body
 #define VAR_POT_FLOWIN "pot_flowin"
 #define VAR_POT_FLOWOUT "pot_flowout"
 #define VAR_POT_SEDIN "pot_sedin"
@@ -819,13 +816,13 @@
 #define VAR_RMP1TL "rmp1tl"                         /// amount of phosphorus moving from the labile mineral pool to the active mineral pool in the soil profile on the current day in cell
 #define VAR_RMPTL "rmptl"                           /// amount of phosphorus moving from the fresh organic (residue) to the labile(80%) and organic(20%) pools in soil profile on current day in cell(kg P/ha)
 #define VAR_RNUM1 "rnum1"
-#define VAR_ROCK "rock"
+#define VAR_ROCK "rock" /// m_soilRock, Percent of rock content
 #define VAR_ROCTL "roctl"                           /// amount of phosphorus moving from the active mineral pool to the stable mineral pool in the soil profile on the current day in cell
 #define VAR_ROOTDEPTH "rootdepth"      /// Maximum root depth of plant/land cover (mm)
 #define VAR_RUNOFF_CO "Runoff_co"
 #define VAR_RWNTL "rwntl"                           /// amount of nitrogen moving from active organic to stable organic pool in soil profile on current day in cell(kg N/ha)
 #define VAR_S_FROZEN "s_frozen"
-#define VAR_SAND "sand"
+#define VAR_SAND "sand" /// m_soilSand, Percent of sand content
 #define VAR_SBGS "SBGS"                             /// Groundwater storage of the subbasin
 #define VAR_SBIF "SBIF"                             /// interflow to streams from each subbasin
 #define VAR_SBOF "SBOF"                             /// overland flow to streams from each subbasin
@@ -852,7 +849,7 @@
 #define VAR_SEDORGP_TOCH "sedorgpToCh"
 #define VAR_SEEPAGE "SEEPAGE"                               /// seepage
 #define VAR_SHALLST "shallst"
-#define VAR_SILT "silt"
+#define VAR_SILT "silt" /// m_soilSilt, Percent of silt content
 #define VAR_SLOPE "slope"
 #define VAR_SNAC "SNAC" /// m_snowAccum
 #define VAR_SNME "SNME"
@@ -865,23 +862,23 @@
 #define VAR_SOER "SOER"                             /// soil loss caused by water erosion
 #define VAR_SOET "SOET"                             /// evaporation from the soil water storage, es_day in SWAT
 #define VAR_SOIL_T10 "soil_t10"
-#define VAR_SOILDEPTH "soilDepth"                       /// depth to bottom of soil layer
-#define VAR_SOILLAYERS "soillayers" /// m_nSoilLayers
-#define VAR_SOILTHICK "soilthick"
-#define VAR_SOL_ACTP "sol_actp"                     /// amount of phosphorus stored in the active mineral phosphorus pool(kg P/ha)
+#define VAR_SOILDEPTH "soilDepth" /// m_soilDepth, depth to bottom of each soil layer
+#define VAR_SOILLAYERS "soillayers" /// m_nSoilLayers, soil layer numbers
+#define VAR_SOILTHICK "soilthick" /// m_soilThick, soil thickness of each soil layer
+#define VAR_SOL_ACTP "sol_actp" /// m_soilActvMinP, amount of phosphorus stored in the active mineral phosphorus pool(kg P/ha)
 #define VAR_SOL_ALB "sol_alb"               /// albedo when soil is moist
-#define VAR_SOL_AORGN "sol_aorgn"                   /// amount of nitrogen stored in the active organic (humic) nitrogen pool(kg N/ha)
-#define VAR_SOL_AWC "sol_awc"            /// amount of water available to plants in soil layer at field capacity (FC-WP)
-#define VAR_SOL_BD "density"                         /// bulk density of the soil (mg/m3)
-#define VAR_SOL_CBN "sol_cbn"
+#define VAR_SOL_AORGN "sol_aorgn" /// m_soilActvOrgN, amount of nitrogen stored in the active organic (humic) nitrogen pool(kg N/ha)
+#define VAR_SOL_AWC "sol_awc" /// m_soilFC, amount of water available to plants in soil layer at field capacity (FC-WP)
+#define VAR_SOL_BD "density" /// m_soilBD, bulk density of the soil (mg/m3)
+#define VAR_SOL_CBN "sol_cbn" /// m_soilCbn, soil carbon content
 #define VAR_SOL_COV "sol_cov"                    /// amount of residue on soil surface (kg/ha)
 #define VAR_SOL_CRK "sol_crk"                    /// crack volume potential of soil
-#define VAR_SOL_FORGN "sol_fon"                       /// amount of nitrogen stored in the fresh organic (residue) pool(kg N/ha)
+#define VAR_SOL_FORGN "sol_fon" /// m_soilFrshOrgN, amount of nitrogen stored in the fresh organic (residue) pool(kg N/ha)
 #define VAR_SOL_FORGP "sol_fop"                       /// amount of phosphorus stored in the fresh organic (residue) pool(kg P/ha)
 #define VAR_SOL_MC "sol_mc"
 #define VAR_SOL_MN "sol_mn"
 #define VAR_SOL_MP "sol_mp"
-#define VAR_SOL_N "sol_N"
+#define VAR_SOL_N "sol_N" /// m_soilN, soil organic nitrogen, include nitrogen in manure
 
 /// CENTURY model for C/N cycling
 #define    VAR_SOL_BMC    "sol_BMC"
@@ -913,17 +910,17 @@
 #define VAR_PERCO_C "percoc"
 #define VAR_SEDLOSS_C "sedc"
 
-#define VAR_SOL_NH4 "sol_nh4"                       /// amount of nitrogen stored in the ammonium pool in soil layer
-#define VAR_SOL_NO3 "sol_no3"                       /// amount of nitrogen stored in the nitrate pool in soil layer(kg N/ha)
+#define VAR_SOL_NH4 "sol_nh4" /// m_soilNH4, amount of nitrogen stored in the ammonium pool in soil layer (kg N/ha)
+#define VAR_SOL_NO3 "sol_no3" /// m_soilNO3, amount of nitrogen stored in the nitrate pool in soil layer (kg N/ha)
 #define VAR_SOL_OM "om"
-#define VAR_SOL_SORGN "sol_orgn"                     /// amount of nitrogen stored in the stable organic N pool(kg N/ha)
-#define VAR_SOL_HORGP "sol_orgp"                     /// amount of phosphorus stored in the humic organic P pool in soil layer(kg P/ha)
+#define VAR_SOL_SORGN "sol_orgn" /// m_soilStabOrgN, amount of nitrogen stored in the stable organic N pool(kg N/ha)
+#define VAR_SOL_HORGP "sol_orgp" /// m_soilHumOrgP, amount of phosphorus stored in the humic organic P pool in soil layer(kg P/ha)
 #define VAR_SOL_PERCO "sol_perco"
-#define VAR_SOL_RSD "sol_rsd"                       /// amount of organic matter in the soil classified as residue(kg/ha)
+#define VAR_SOL_RSD "sol_rsd" /// m_soilRsd, amount of organic matter in the soil classified as residue(kg/ha)
 #define VAR_SOL_RSDIN "rsdin"                       /// amount of organic matter in the soil classified as residue(kg/ha)
-#define VAR_SOL_SOLP "sol_solp"                     /// amount of phosphorus stored in solution(kg P/ha)
-#define VAR_SOL_STAP "sol_stap"                     /// amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool(kg P/ha)
-#define VAR_SOL_SUMAWC "sol_sumAWC"  /// mm H2O sol_sumfc in SWAT
+#define VAR_SOL_SOLP "sol_solp" /// m_soilSolP, amount of phosphorus stored in solution(kg P/ha)
+#define VAR_SOL_STAP "sol_stap" /// m_soilStabMinP, amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool(kg P/ha)
+#define VAR_SOL_SUMAWC "sol_sumAWC"  /// m_soilSumFC, amount of water held in the soil profile at field capacity (FC-WP) (sol_sumfc in SWAT, mm H2O)
 #define VAR_SOL_SUMSAT "sol_sumul"  /// mm H2O  sol_sumul in SWAT
 #define VAR_SOL_TA0 "soil_ta0"
 #define VAR_SOL_TA1 "soil_ta1"
@@ -934,13 +931,11 @@
 #define VAR_SOL_TD1 "soil_td1"
 #define VAR_SOL_TD2 "soil_td2"
 #define VAR_SOL_TMP "sol_tmp"                       /// daily average temperature of soil layer(deg C)
-#define VAR_SOL_UL "sol_ul"                       /// mm H2O
+#define VAR_SOL_UL "sol_ul" /// m_soilSat, amount of water held in the soil layer at saturation (sat - wp water), mm H2O
 #define VAR_SOL_WPMM "sol_wpmm"                     /// water content of soil at -1.5 MPa (wilting point)
-#define VAR_SOL_ZMX "SOL_ZMX"          /// Maximum rooting depth of soil profile (mm)
-//#define VAR_SOMO "SOMO"                     /// soil moisture, deprecated and replaced by VAR_SOL_ST
-//#define VAR_SOMO_TOT  "somo_total"          /// Total soil water content in soil profile, deprecated and replaced by VAR_SOL_SW
-#define VAR_SOL_ST "solst"                     /// amount of water stored in the soil layer on current day(mm H2O)
-#define VAR_SOL_SW  "solsw"          /// amount of water stored in soil profile on current day (mm H2O)
+#define VAR_SOL_ZMX "SOL_ZMX" /// m_soilMaxRootD, Maximum rooting depth of soil profile (mm)
+#define VAR_SOL_ST "solst" /// m_soilWtrSto, amount of water stored in the soil layer on current day(mm H2O)
+#define VAR_SOL_SW  "solsw" /// m_soilWtrStoPrfl, amount of water stored in soil profile on current day (mm H2O)
 #define VAR_SW_CAP "sw_cap"  /// amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint
 #define VAR_SOTE "SOTE"                             /// Soil Temperature
 #define VAR_SOWB "SOWB"
@@ -955,8 +950,8 @@
 #define VAR_STCAPSURPLUS "STCAPSURPLUS"
 #define VAR_STREAM_LINK "STREAM_LINK"
 #define VAR_SUB_SEDTOCH ""
-#define VAR_SUBBSN "subbasin"                       /// The subbasin grid
-#define VAR_SUBBSNID_NUM "SUBBASINID_NUM"                /// number of subbasins
+#define VAR_SUBBSN "subbasin" /// m_subbsnID, raster data of subbasin ID
+#define VAR_SUBBSNID_NUM "SUBBASINID_NUM" /// m_nSubbsns, number of subbasins
 #define VAR_SUR_NO3 "sur_no3"
 #define VAR_SUR_NO3_TOCH "sur_no3_ToCh"
 #define VAR_SUR_NH4 "sur_nh4"
@@ -967,14 +962,14 @@
 #define VAR_SURU "SURU"                             /// surface runoff
 #define VAR_SWE "SWE"
 #define VAR_SWE0 "swe0"
-#define VAR_T_BASE "T_BASE"
+#define VAR_T_BASE "T_BASE" /// m_pgTmpBase, minimum temperature for plant growth (degree C)
 #define VAR_T_OPT "T_OPT"
 #define VAR_T_RG "T_RG"   /// groundwater runoff
 #define VAR_T_SNOW "T_snow"                /// Snowfall temperature
 #define VAR_T_SOIL "t_soil"                         /// threshold soil freezing temperature
 #define VAR_T0 "T0"
 #define VAR_TFACT "tfact"
-#define VAR_TILLAGE_LOOKUP "TillageLookup"
+#define VAR_TILLAGE_LOOKUP "TillageLookup" /// m_tillageLookup, Tillage lookup table
 #define VAR_TILLAGE_DAYS "tillage_days"
 #define VAR_TILLAGE_DEPTH "tillage_depth"
 #define VAR_TILLAGE_FACTOR "tillage_factor"
@@ -985,7 +980,7 @@
 #define VAR_TMEAN1 "TMEAN1"
 #define VAR_TMEAN2 "TMEAN2"
 #define VAR_TMIN "TMIN"
-#define VAR_TREEYRS "CURYR_INIT"
+#define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
 #define VAR_USLE_C "USLE_C"
 #define VAR_USLE_K "USLE_K"
@@ -1016,7 +1011,7 @@
 #define VAR_WSHD_RNO3 "wshd_rno3"                   ///  NO3 added to soil by rainfall in watershed (kg/ha)
 #define VAR_WSHD_RWN "wshd_rwn"                     /// nitrogen moving from active organic to stable organic pool in watershed(kg N/ha)
 #define VAR_WSHD_VOLN "wshd_voln"                   /// nitrogen lost by ammonia volatilization in watershed
-#define VAR_WSYF "wsyf"
+#define VAR_WSYF "wsyf" /// m_wtrStrsHvst, Value of harvest index between 0 and HVSTI, represents the lowest value expected due to water stress
 #define VAR_AL_OUTLET "algae_outlet"
 #define VAR_ON_OUTLET "organicn_outlet"
 #define VAR_AN_OUTLET "ammonian_outlet"
@@ -1184,7 +1179,7 @@
 #define DESC_PRECHWTDEPTH "channel water depth of previous timestep"
 #define DESC_CLAY "Percent of clay content"
 #define DESC_CMN "Rate coefficient for mineralization of the humus active organic nutrients"
-#define DESC_CN2 "CN under moisture condition II"
+#define DESC_CN2 "Curve Number value under moisture condition II"
 #define DESC_CO2 "CO2 Concentration"
 #define DESC_CO2HI "elevated CO2 atmospheric concentration corresponding the 2nd point on the radiation use efficiency curve"
 #define DESC_SUR_COD "carbonaceous oxygen demand of surface runoff"
@@ -1194,7 +1189,7 @@
 #define DESC_CONDRATE "Rate of decline in stomatal conductance per unit increase in vapor pressure deficit"
 #define DESC_CONDUCT "saturation hydraulic conductivity"
 #define DESC_CONV_WT "factor which converts kg/kg soil to kg/ha"
-#define DESC_CROP_LOOKUP "Crop database"
+#define DESC_CROP_LOOKUP "Crop lookup table"
 #define DESC_CSWAT "carbon modeling method"
 #define DESC_PCP "Precipitation of each time step on current cell"
 #define DESC_DAYLEN "day length"
@@ -1237,7 +1232,7 @@
 #define DESC_POT_VOLMAXMM "maximum volume of water stored in the depression/impounded area"
 #define DESC_POT_VOLLOWMM "lowest volume of water stored in the depression/impounded area"
 #define DESC_EXT_COEF "light extinction coefficient"
-#define DESC_FERTILIZER_LOOKUP "Fertilizer database"
+#define DESC_FERTILIZER_LOOKUP "Fertilizer lookup table"
 #define DESC_FIELDCAP "Soil field capacity"
 #define DESC_FLAT "lateral flow in soil layer"
 #define DESC_FLOWDIR "Flow direction by the rule of TauDEM"
@@ -1273,7 +1268,7 @@
 #define DESC_HMNTL "amount of nitrogen moving from active organic to nitrate pool in soil profile on current day in cell"
 #define DESC_HMPTL "amount of phosphorus moving from the organic to labile pool in soil profile on current day in cell"
 #define DESC_HVSTI "harvest index: crop yield/aboveground biomass"
-#define DESC_HVSTI_ADJ "harvest index adjusted for water stress"
+#define DESC_HVSTI_ADJ "optimal harvest index for current time during growing season"
 #define DESC_HVSTI_TARG "harvest index target"
 #define DESC_ID_OUTLET  "index of outlet in the compressed array"
 #define DESC_IDC "crop/landcover category"
@@ -1318,11 +1313,9 @@
 #define DESC_LANDCOVER "landcover code"
 #define DESC_LANDUSE "landuse code"
 #define DESC_LANDUSE_LOOKUP "lookup table of landuse"
-#define DESC_LAP_RATE "Lapse Rate"
 #define DESC_LAST_SOILRD "storing last soil root depth for use in harvestkillop/killop"
 #define DESC_LATNO3 "amount of nitrate transported with lateral flow"
 #define DESC_LATNO3_CH "amount of nitrate transported with lateral flow to channel"
-#define DESC_LCC "land cover code"
 #define DESC_LDRAIN "soil layer where drainage tile is located"
 #define DESC_KV_PADDY "volatilization rate constant in impounded water body"
 #define DESC_POT_K "hydraulic conductivity of soil surface of pothole"
@@ -1334,7 +1327,6 @@
 #define DESC_MAXTEMP "Maximum Celsius degree of air temperature"
 #define DESC_MEANTEMP "Mean Celsius degree of air temperature"
 #define DESC_METEOLAT "Latitude of MeteoClimate station"
-//#define DESC_MGT_FIELD "Management fields" // remove by lj, 08/16/17
 #define DESC_MINPGW_CH "soluble P in groundwater to channel"
 #define DESC_MINTEMP "Minimum Celsius degree of air temperature"
 #define DESC_MOIST_IN "Initial soil moisture"
@@ -1486,9 +1478,9 @@
 #define DESC_SOER "soil loss caused by water erosion"
 #define DESC_SOET "evaporation from the soil water storage"
 #define DESC_SOIL_T10 "Factor of soil temperature relative to short grass (degree)"
-#define DESC_SOILDEPTH "depth to bottom of soil layer"
+#define DESC_SOILDEPTH "depth to bottom of each soil layer"
 #define DESC_SOILLAYERS "Soil layers number"
-#define DESC_SOILTHICK "soil thick of each layer"
+#define DESC_SOILTHICK "soil thickness of each soil layer"
 #define DESC_SOL_ACTP "amount of phosphorus stored in the active mineral phosphorus pool"
 #define DESC_SOL_ALB "albedo when soil is moist"
 #define DESC_SOL_AORGN "amount of nitrogen stored in the active organic (humic) nitrogen pool"
@@ -1557,8 +1549,6 @@
 #define DESC_SOL_WFC "Water content of soil profile at field capacity"
 #define DESC_SOL_WPMM "water content of soil at -1.5 MPa (wilting point)"
 #define DESC_SOL_ZMX "Maximum rooting depth of soil profile (mm)"
-//#define DESC_SOMO "soil moisture in soil layers"
-//#define DESC_SOMO_TOT "amount of water stored in the soil profile"
 #define DESC_SOL_ST "amount of water stored in the soil layer on current day(mm H2O)"
 #define DESC_SOL_SW "amount of water stored in soil profile on current day (mm H2O)"
 #define DESC_SW_CAP "amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint"
@@ -1596,7 +1586,7 @@
 #define DESC_T0 "the snowmelt threshold temperature"
 #define DESC_Tag_FLOWIN_PERCENTAGE_DINF "Percentage of flow in"
 #define DESC_TFACT "fraction of solar radiation computed in the temperature heat balance that is photo synthetically active"
-#define DESC_TILLAGE_LOOKUP "Tillage database"
+#define DESC_TILLAGE_LOOKUP "Tillage lookup table"
 #define DESC_TILLAGE_DAYS "days from tillage"
 #define DESC_TILLAGE_DEPTH "tillage depth"
 #define DESC_TILLAGE_SWITCH "switch of whether to tillage"

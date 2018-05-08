@@ -9,6 +9,7 @@
 #define SEIMS_PLANTGROWTH_COMMON_H
 
 #include "basic.h"
+#include "BMPText.h"
 
 using namespace ccgl;
 
@@ -23,48 +24,55 @@ void GetNPShapeParameter(float fr1, float fr2, float fr3, float* shape1, float* 
 //computes shape parameters shape1 and shape2 for the S curve
 //equation x = y/(y + exp(shape1 + shape2*y)) given 2 (x,y) points along the curve.
 //See ascrv.f of SWAT
-void GetScurveShapeParameter(float xMid, float xEnd, float yMid, float yEnd, float* shape1, float* shape2);
+void GetScurveShapeParameter(float x_mid, float x_end, float y_mid, float y_end,
+                             float* shape1, float* shape2);
 
 ///
-float NPBiomassFraction(float x1, float x2, float x3, float frPHU);
+float NPBiomassFraction(float x1, float x2, float x3, float fr_phu);
 
 //plant nitrogen/phosphorus equation, p300 5:2.3.1/p305 5:2.3.19
 //calculate the fraction of nitrogen/phosphorus in the plant biomass
-float GetNPFraction(float fr1, float fr3, float shape1, float shape2, float frPHU);
+float GetNPFraction(float fr1, float fr3, float shape1, float shape2, float fr_phu);
 
-float DoHeatUnitAccumulation(float potentialHeatUnit, float tMin, float tMax, float tBase);
+float DoHeatUnitAccumulation(float potential_heat_unit, float t_min, float t_max, float t_base);
 
 //the adjusted radiation-use efficiency by CO2 concentration
 // float RadiationUseEfficiencyAdjustByCO2(float co2) const;
 
 //the adjusted radiation-use efficiency by vapor pressure deficit
-float RadiationUseEfficiencyAdjustByVPD(float vpd, float radiationUseEfficiencyDeclineRateWithVPD);
+float RadiationUseEfficiencyAdjustByVPD(float vpd, float rad_use_eff_dec_rate_with_vpd);
 
 float GetNormalization(float distribution);
 
-inline bool IsTree(int m_classification) { return m_classification == 7; }
+inline bool IsTree(const int classification) { return classification == 7; }
 
-inline bool IsAnnual(int m_classification) {
-    return m_classification == 1 ||
-            m_classification == 2 ||
-            m_classification == 4 ||
-            m_classification == 5;
+inline bool IsAnnual(const int classification) {
+    return classification == CROP_IDC_WARM_SEASON_ANNUAL_LEGUME ||
+            classification == CROP_IDC_CODE_SEASON_ANNUAL_LEGUME ||
+            classification == CROP_IDC_WARM_SEASON_ANNUAL ||
+            classification == CROP_IDC_COLD_SEASON_ANNUAL;
 }
 
-inline bool IsLegume(int m_classification) { return m_classification <= 3; }
-
-inline bool IsPerennial(int m_classification) {
-    return m_classification == 3 || m_classification == 6;
+inline bool IsLegume(const int classification) {
+    return classification <= CROP_IDC_PERENNIAL_LEGUME;
 }
 
-inline bool IsCoolSeasonAnnual(int m_classification) {
-    return m_classification == 2 || m_classification == 5;
+inline bool IsPerennial(const int classification) {
+    return classification == CROP_IDC_PERENNIAL_LEGUME ||
+            classification == CROP_IDC_PERENNIAL;
 }
 
-inline bool IsGrain(int m_classification) { return m_classification == 4; }
+inline bool IsCoolSeasonAnnual(const int classification) {
+    return classification == CROP_IDC_CODE_SEASON_ANNUAL_LEGUME ||
+            classification == CROP_IDC_COLD_SEASON_ANNUAL;
+}
 
-inline bool IsPlant(int luID) {
-    return luID <= MAX_CROP_LAND_USE_ID && luID != WATER_LAND_USE_ID;
+inline bool IsGrain(const int classification) {
+    return classification == CROP_IDC_WARM_SEASON_ANNUAL;
+}
+
+inline bool IsPlant(const int lu_id) {
+    return lu_id <= MAX_CROP_LAND_USE_ID && lu_id != WATER_LAND_USE_ID;
 }
 
 /// added by Liang-Jun Zhu, 2016-6-8

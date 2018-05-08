@@ -135,7 +135,7 @@ void Nutrient_Transformation::SetValue(const char *key, float value) {
 void Nutrient_Transformation::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_LCC)) { m_landcover = data; }
+    if (StringMatch(sk, VAR_LANDCOVER)) { m_landcover = data; }
     else if (StringMatch(sk, VAR_PL_RSDCO)) { m_rsdco_pl = data; }
     else if (StringMatch(sk, VAR_SOL_RSDIN)) { m_sol_rsdin = data; }
     else if (StringMatch(sk, VAR_SOL_COV)) { m_sol_cov = data; }

@@ -1,4 +1,4 @@
-#include "PlantManagementOperation.h"
+#include "PltMgtOp.h"
 
 #include <ostream>
 #include <iostream>
@@ -6,20 +6,20 @@
 #include "utils_math.h"
 
 using namespace bmps;
-using namespace PlantManagement;
-using std::cout;
+using namespace plant_management;
+
 using std::endl;
 
 /// Base class
-PlantManagementOperation::PlantManagementOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+PltMgtOp::PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                                    float* parameters)
     : m_useBaseHUSC(usebaseHU), m_frHU(husc), m_year(year), m_month(month), m_day(day), m_mgtOp(mgtOp),
       m_parameters(parameters) {
 }
 
 /// Plant
-PlantOperation::PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+PltOp::PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters) :
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_plantID = int(parameters[0]);
     m_curYrMat = parameters[2];
     m_heatUnits = (parameters[3] < 700.f) ? 1700.f : parameters[3];
@@ -30,7 +30,7 @@ PlantOperation::PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, 
     m_CNOP = parameters[8];
 }
 
-void PlantOperation::dump(ostream* fs) {
+void PltOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Plant Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -42,9 +42,9 @@ void PlantOperation::dump(ostream* fs) {
 }
 
 /// Irrigation
-IrrigationOperation::IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+IrrOp::IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                          float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_irrSrc = int(parameters[1]);
     m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
     m_irrAmt = parameters[3];
@@ -54,7 +54,7 @@ IrrigationOperation::IrrigationOperation(int mgtOp, bool usebaseHU, float husc, 
     m_irrNo = int(parameters[7]);
 }
 
-void IrrigationOperation::dump(ostream* fs) {
+void IrrOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Irrigation Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -65,15 +65,15 @@ void IrrigationOperation::dump(ostream* fs) {
 }
 
 /// Fertilizer
-FertilizerOperation::FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+FertOp::FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                          float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_fertID = int(parameters[0]);
     m_frtKgHa = parameters[3];
     m_frtSurface = (parameters[4] < UTIL_ZERO) ? 0.2f : parameters[4];
 }
 
-void FertilizerOperation::dump(ostream* fs) {
+void FertOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Fertilizer Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -83,15 +83,15 @@ void FertilizerOperation::dump(ostream* fs) {
 }
 
 /// Pesticide
-PesticideOperation::PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+PestOp::PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                        float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_pestID = int(parameters[0]);
     m_pstKg = parameters[3];
     m_pstDep = parameters[4];
 }
 
-void PesticideOperation::dump(ostream* fs) {
+void PestOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Pesticide Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -101,15 +101,15 @@ void PesticideOperation::dump(ostream* fs) {
 }
 
 /// HarvestKill
-HarvestKillOperation::HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+HvstKillOp::HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                            float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_CNOP = parameters[3];
     m_hiOvr = parameters[4];
     m_fracHarvk = parameters[5];
 }
 
-void HarvestKillOperation::dump(ostream* fs) {
+void HvstKillOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    HarvestKill Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -119,14 +119,14 @@ void HarvestKillOperation::dump(ostream* fs) {
 }
 
 /// Tillage
-TillageOperation::TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+TillOp::TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                    float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_tillID = int(parameters[0]);
     m_CNOP = parameters[3];
 }
 
-void TillageOperation::dump(ostream* fs) {
+void TillOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Tillage Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -135,15 +135,15 @@ void TillageOperation::dump(ostream* fs) {
 }
 
 /// HarvestOnly
-HarvestOnlyOperation::HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+HvstOnlyOp::HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                            float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_harvEff = (parameters[3] <= 0.) ? 1.0f : parameters[3];
     m_hiBms = parameters[4];
     m_hiRsd = parameters[5];
 }
 
-void HarvestOnlyOperation::dump(ostream* fs) {
+void HvstOnlyOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    HarvestOnly Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -153,11 +153,11 @@ void HarvestOnlyOperation::dump(ostream* fs) {
 }
 
 /// Kill
-KillOperation::KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+KillOp::KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters) :
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
 }
 
-void KillOperation::dump(ostream* fs) {
+void KillOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Kill Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -165,9 +165,9 @@ void KillOperation::dump(ostream* fs) {
 }
 
 /// Grazing
-GrazingOperation::GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+GrazOp::GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                    float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_grzDays = int(parameters[0]);
     m_manureID = int(parameters[1]);
     m_bioEat = parameters[3];
@@ -178,7 +178,7 @@ GrazingOperation::GrazingOperation(int mgtOp, bool usebaseHU, float husc, int ye
     }
 }
 
-void GrazingOperation::dump(ostream* fs) {
+void GrazOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Grazing Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -189,10 +189,10 @@ void GrazingOperation::dump(ostream* fs) {
 }
 
 /// AutoIrrigation
-AutoIrrigationOperation::AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+AutoIrrOp::AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                                  float* parameters)
     :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_wstrsID = int(parameters[0]);
     m_irrSrc = int(parameters[1]);
     m_autoWstrs = parameters[3];
@@ -207,7 +207,7 @@ AutoIrrigationOperation::AutoIrrigationOperation(int mgtOp, bool usebaseHU, floa
     if (m_irrMx < UTIL_ZERO) m_irrMx = 25.4f;
 }
 
-void AutoIrrigationOperation::dump(ostream* fs) {
+void AutoIrrOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    AutoIrrigation Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -219,9 +219,9 @@ void AutoIrrigationOperation::dump(ostream* fs) {
 }
 
 /// AutoFertilizer
-AutoFertilizerOperation::AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+AutoFertOp::AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                                  float* parameters)
-    : PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    : PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_afertID = int(parameters[0]);
     m_NStress = int(parameters[1]);
     m_autoNStrs = parameters[3];
@@ -234,7 +234,7 @@ AutoFertilizerOperation::AutoFertilizerOperation(int mgtOp, bool usebaseHU, floa
     if (m_afrtSurface <= UTIL_ZERO) m_afrtSurface = 0.8f;
 }
 
-void AutoFertilizerOperation::dump(ostream* fs) {
+void AutoFertOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    AutoFertilizer Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -246,17 +246,17 @@ void AutoFertilizerOperation::dump(ostream* fs) {
 }
 
 /// ReleaseImpound
-ReleaseImpoundOperation::ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+RelImpndOp::RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                                  float* parameters)
     :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_impTrig = int(parameters[0]);
     m_maxPondDepth = parameters[1];
     m_minFitDepth = parameters[2];
     m_maxFitDepth = parameters[3];
 }
 
-void ReleaseImpoundOperation::dump(ostream* fs) {
+void RelImpndOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Release/Impound Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -265,17 +265,17 @@ void ReleaseImpoundOperation::dump(ostream* fs) {
 }
 
 /// ContinuousFertilizer
-ContinuousFertilizerOperation::ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month,
+ContFertOp::ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
                                                              int day,
                                                              float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_cfertID = int(parameters[1]);
     m_fertDays = int(parameters[0]);
     m_ifrtFreq = int(parameters[2]);
     m_cfrtKg = parameters[3];
 }
 
-void ContinuousFertilizerOperation::dump(ostream* fs) {
+void ContFertOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Continuous Fertilizer Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -285,17 +285,17 @@ void ContinuousFertilizerOperation::dump(ostream* fs) {
 }
 
 /// Continuous Pesticide
-ContinuousPesticideOperation::ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month,
+ContPestOp::ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
                                                            int day,
                                                            float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_ipstID = int(parameters[0]);
     m_pstDays = int(parameters[1]);
     m_pstFreq = int(parameters[2]);
     m_cpstKg = parameters[3];
 }
 
-void ContinuousPesticideOperation::dump(ostream* fs) {
+void ContPestOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Continuous Pesticide Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<
@@ -305,13 +305,13 @@ void ContinuousPesticideOperation::dump(ostream* fs) {
 }
 
 /// Burning
-BurningOperation::BurningOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+BurnOp::BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                                    float* parameters) :
-    PlantManagementOperation(mgtOp, usebaseHU, husc, year, month, day, parameters) {
+    PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_burnFrlb = parameters[3];
 }
 
-void BurningOperation::dump(ostream* fs) {
+void BurnOp::dump(ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Burning Operation: " << endl <<
             "      HUSC: " << m_frHU << " rotationYear: " << m_year <<

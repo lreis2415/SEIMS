@@ -8,7 +8,7 @@ using namespace utils_string;
 using namespace bmps;
 
 BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
-                                       int bmpType, int bmpPriority, vector<string> &distribution,
+                                       int bmpType, int bmpPriority, vector<string>& distribution,
                                        const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
     m_mgtFieldsRs(nullptr), m_luccID(-1), m_parameters(nullptr) {
@@ -38,8 +38,8 @@ BMPPlantMgtFactory::~BMPPlantMgtFactory() {
     m_bmpPlantOps.clear();
 }
 
-void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
-    bson_t *b = bson_new();
+void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string& bmpDBName) {
+    bson_t* b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
     BSON_APPEND_INT32(child1, FLD_SCENARIO_SUB, m_subScenarioId);
@@ -53,7 +53,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_bmpCollection)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
-    const bson_t *bsonTable;
+    const bson_t* bsonTable;
     bson_iter_t itertor;
     int paramNum = 10;
     m_parameters = new float[paramNum];
@@ -101,66 +101,66 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
         m_bmpSequence.push_back(uniqueMgtCode);
         switch (mgtCode) {
             case BMP_PLTOP_Plant:
-                m_bmpPlantOps[uniqueMgtCode] = new PlantOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                  m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new PltOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                         m_parameters);
                 break;
             case BMP_PLTOP_Irrigation:
-                m_bmpPlantOps[uniqueMgtCode] = new IrrigationOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                       m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new IrrOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                         m_parameters);
                 break;
             case BMP_PLTOP_Fertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new FertilizerOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                       m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new FertOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
             case BMP_PLTOP_Pesticide:
-                m_bmpPlantOps[uniqueMgtCode] = new PesticideOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                      m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new PestOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
             case BMP_PLTOP_HarvestKill:
-                m_bmpPlantOps[uniqueMgtCode] = new HarvestKillOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                        m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new HvstKillOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                              m_parameters);
                 break;
             case BMP_PLTOP_Tillage:
-                m_bmpPlantOps[uniqueMgtCode] = new TillageOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                    m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new TillOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
             case BMP_PLTOP_Harvest:
-                m_bmpPlantOps[uniqueMgtCode] = new HarvestOnlyOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                        m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new HvstOnlyOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                              m_parameters);
                 break;
             case BMP_PLTOP_Kill:
-                m_bmpPlantOps[uniqueMgtCode] = new KillOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                 m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new KillOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
             case BMP_PLTOP_Grazing:
-                m_bmpPlantOps[uniqueMgtCode] = new GrazingOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                    m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new GrazOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
             case BMP_PLTOP_AutoIrrigation:
-                m_bmpPlantOps[uniqueMgtCode] = new AutoIrrigationOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                           m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new AutoIrrOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                             m_parameters);
                 break;
             case BMP_PLTOP_AutoFertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new AutoFertilizerOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                           m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new AutoFertOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                              m_parameters);
                 break;
             case BMP_PLTOP_ReleaseImpound:
-                m_bmpPlantOps[uniqueMgtCode] = new ReleaseImpoundOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                           m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new RelImpndOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                              m_parameters);
                 break;
             case BMP_PLTOP_ContinuousFertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new ContinuousFertilizerOperation(mgtCode, usebaseHU, husc, year, month,
-                                                                                 day, m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new ContFertOp(mgtCode, usebaseHU, husc, year, month,
+                                                              day, m_parameters);
                 break;
             case BMP_PLTOP_ContinuousPesticide:
-                m_bmpPlantOps[uniqueMgtCode] = new ContinuousPesticideOperation(mgtCode, usebaseHU, husc, year, month,
-                                                                                day, m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new ContPestOp(mgtCode, usebaseHU, husc, year, month,
+                                                              day, m_parameters);
                 break;
             case BMP_PLTOP_Burning:
-                m_bmpPlantOps[uniqueMgtCode] = new BurningOperation(mgtCode, usebaseHU, husc, year, month, day,
-                                                                    m_parameters);
+                m_bmpPlantOps[uniqueMgtCode] = new BurnOp(mgtCode, usebaseHU, husc, year, month, day,
+                                                          m_parameters);
                 break;
-            default:break;
+            default: break;
         }
         count++;
     }
@@ -168,10 +168,10 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string &bmpDBName) {
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPPlantMgtFactory::Dump(std::ostream *fs) {
+void BMPPlantMgtFactory::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "Plant Management Factory: " << endl <<
-        "    SubScenario ID: " << m_subScenarioId << " Name = " << m_name << endl;
+            "    SubScenario ID: " << m_subScenarioId << " Name = " << m_name << endl;
     for (auto it = m_bmpSequence.begin(); it != m_bmpSequence.end(); ++it) {
         auto findIdx = m_bmpPlantOps.find(*it);
         if (findIdx != m_bmpPlantOps.end()) {
@@ -180,12 +180,11 @@ void BMPPlantMgtFactory::Dump(std::ostream *fs) {
     }
 }
 
-void BMPPlantMgtFactory::setRasterData(map<string, FloatRaster*> &sceneRsMap) {
+void BMPPlantMgtFactory::setRasterData(map<string, FloatRaster*>& sceneRsMap) {
     if (sceneRsMap.find(m_mgtFieldsName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_mgtFieldsName)->GetRasterData(&n, &m_mgtFieldsRs);
-    }
-    else{
+    } else {
         // raise Exception?
     }
 }

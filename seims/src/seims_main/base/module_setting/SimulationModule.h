@@ -43,21 +43,18 @@ public:
     SimulationModule(): m_date(-1), m_yearIdx(-1), m_tsCounter(1), m_inputsSetDone(false) {
     }
 
-    //! Destructor
-    //virtual ~SimulationModule() = default;
-
     //! Execute the simulation
     virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
-    virtual void SetDate(time_t t, int yearIdx) {
+    virtual void SetDate(const time_t t, const int year_idx) {
         m_date = t;
-        m_yearIdx = yearIdx;
+        m_yearIdx = year_idx;
     }
 
     //! Set thread number for OpenMP
-    virtual void SetTheadNumber(int threadNum) {
-        SetOpenMPThread(threadNum);
+    virtual void SetTheadNumber(int thread_num) {
+        SetOpenMPThread(thread_num);
     }
 
     //! Set climate data type, P, M, PET etc.
@@ -163,7 +160,7 @@ public:
     bool IsInputsSetDone() { return m_inputsSetDone; }
 
     //! Change the status of setting inputs parameters
-    void SetInputsDone(bool setDone) { m_inputsSetDone = setDone; }
+    void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
 protected:
     /// date time

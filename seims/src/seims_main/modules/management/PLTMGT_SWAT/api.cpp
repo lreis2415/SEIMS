@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetDescription(MDESC_PLTMGT_SWAT);
     mdi.SetID(MID_PLTMGT_SWAT);
     mdi.SetName(MID_PLTMGT_SWAT);
-    mdi.SetVersion("0.1");
+    mdi.SetVersion("1.3");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");

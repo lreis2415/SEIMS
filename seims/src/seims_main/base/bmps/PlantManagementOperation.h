@@ -18,13 +18,13 @@ namespace bmps {
  * \brief Base namespace for Plant management related operations
  * \author Liang-Jun Zhu
  */
-namespace PlantManagement {
+namespace plant_management {
 /*!
- * \class PlantManagementOperation
+ * \class PltMgtOp
  * \ingroup PlantManagement
  * \brief Base class of plant management operation
  */
-class PlantManagementOperation: Interface {
+class PltMgtOp: Interface {
 public:
     /*!
      * \brief Constructor
@@ -36,8 +36,8 @@ public:
      * \param[in] day
      * \param[in] parameters
      */
-    PlantManagementOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                             float* parameters);
+    PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+             float* parameters);
 
     //! Output
     virtual void dump(std::ostream* fs) = 0;
@@ -70,13 +70,13 @@ protected:
 };
 
 /*!
- * \class PlantOperation
+ * \class PltOp
  * \ingroup PlantManagement
  * \brief Plant management operation
  */
-class PlantOperation: public PlantManagementOperation {
+class PltOp: public PltMgtOp {
 public:
-    PlantOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~PlantOperation() = default;
 
@@ -111,13 +111,13 @@ private:
 };
 
 /*!
- * \class IrrigationOperation
+ * \class IrrOp
  * \ingroup PlantManagement
  * \brief Irrigation operation
  */
-class IrrigationOperation: public PlantManagementOperation {
+class IrrOp: public PltMgtOp {
 public:
-    IrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~IrrigationOperation() = default;
 
@@ -146,13 +146,13 @@ private:
 };
 
 /*!
- * \class FertilizerOperation
+ * \class FertOp
  * \ingroup PlantManagement
  * \brief Fertilizer operation
  */
-class FertilizerOperation: public PlantManagementOperation {
+class FertOp: public PltMgtOp {
 public:
-    FertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~FertilizerOperation() = default;
 
@@ -174,13 +174,13 @@ private:
 };
 
 /*!
- * \class PesticideOperation
+ * \class PestOp
  * \ingroup PlantManagement
  * \brief Pesticide operation
  */
-class PesticideOperation: public PlantManagementOperation {
+class PestOp: public PltMgtOp {
 public:
-    PesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~PesticideOperation() = default;
 
@@ -200,14 +200,14 @@ private:
 };
 
 /*!
- * \class HarvestKillOperation
+ * \class HvstKillOp
  * \ingroup PlantManagement
  * \brief HarvestKill operation
  */
-class HarvestKillOperation: public PlantManagementOperation {
+class HvstKillOp: public PltMgtOp {
 public:
-    HarvestKillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                         float* parameters);
+    HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~HarvestKillOperation() = default;
 
@@ -227,13 +227,13 @@ private:
 };
 
 /*!
- * \class TillageOperation
+ * \class TillOp
  * \ingroup PlantManagement
  * \brief Tillage operation
  */
-class TillageOperation: public PlantManagementOperation {
+class TillOp: public PltMgtOp {
 public:
-    TillageOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~TillageOperation() = default;
 
@@ -250,14 +250,14 @@ private:
 };
 
 /*!
- * \class HarvestOnlyOperation
+ * \class HvstOnlyOp
  * \ingroup PlantManagement
  * \brief HarvestOnly operation
  */
-class HarvestOnlyOperation: public PlantManagementOperation {
+class HvstOnlyOp: public PltMgtOp {
 public:
-    HarvestOnlyOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                         float* parameters);
+    HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~HarvestOnlyOperation() = default;
 
@@ -277,13 +277,13 @@ private:
 };
 
 /*!
- * \class KillOperation
+ * \class KillOp
  * \ingroup PlantManagement
  * \brief Kill operation
  */
-class KillOperation: public PlantManagementOperation {
+class KillOp: public PltMgtOp {
 public:
-    KillOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~KillOperation() = default;
 
@@ -292,13 +292,13 @@ public:
 };
 
 /*!
- * \class GrazingOperation
+ * \class GrazOp
  * \ingroup PlantManagement
  * \brief Grazing operation
  */
-class GrazingOperation: public PlantManagementOperation {
+class GrazOp: public PltMgtOp {
 public:
-    GrazingOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~GrazingOperation() = default;
 
@@ -324,14 +324,14 @@ private:
 };
 
 /*!
- * \class AutoIrrigationOperation
+ * \class AutoIrrOp
  * \ingroup PlantManagement
  * \brief Auto irrigation operation
  */
-class AutoIrrigationOperation: public PlantManagementOperation {
+class AutoIrrOp: public PltMgtOp {
 public:
-    AutoIrrigationOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float* parameters);
+    AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+              float* parameters);
 
     //virtual ~AutoIrrigationOperation() = default;
 
@@ -363,14 +363,14 @@ private:
 };
 
 /*!
- * \class AutoFertilizerOperation
+ * \class AutoFertOp
  * \ingroup PlantManagement
  * \brief Auto Fertilizer operation
  */
-class AutoFertilizerOperation: public PlantManagementOperation {
+class AutoFertOp: public PltMgtOp {
 public:
-    AutoFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float* parameters);
+    AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~AutoFertilizerOperation() = default;
 
@@ -402,14 +402,14 @@ private:
 };
 
 /*!
- * \class ReleaseImpoundOperation
+ * \class RelImpndOp
  * \ingroup PlantManagement
  * \brief ReleaseImpound operation
  */
-class ReleaseImpoundOperation: public PlantManagementOperation {
+class RelImpndOp: public PltMgtOp {
 public:
-    ReleaseImpoundOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                            float* parameters);
+    RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~ReleaseImpoundOperation() = default;
 
@@ -427,19 +427,19 @@ public:
 private:
     int m_impTrig;
     float m_maxPondDepth; ///< Maximum ponding depth, mm
-    float m_maxFitDepth; ///< Maximum fitting depth, mm
-    float m_minFitDepth; ///< Minimum fitting depth, mm
+    float m_maxFitDepth;  ///< Maximum fitting depth, mm
+    float m_minFitDepth;  ///< Minimum fitting depth, mm
 };
 
 /*!
- * \class ContinuousFertilizerOperation
+ * \class ContFertOp
  * \ingroup PlantManagement
  * \brief Continuous Fertilizer operation
  */
-class ContinuousFertilizerOperation: public PlantManagementOperation {
+class ContFertOp: public PltMgtOp {
 public:
-    ContinuousFertilizerOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                  float* parameters);
+    ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~ContinuousFertilizerOperation() = default;
 
@@ -462,14 +462,14 @@ private:
 };
 
 /*!
- * \class ContinuousPesticideOperation
+ * \class ContPestOp
  * \ingroup PlantManagement
  * \brief Continuous Pesticide operation
  */
-class ContinuousPesticideOperation: public PlantManagementOperation {
+class ContPestOp: public PltMgtOp {
 public:
-    ContinuousPesticideOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                 float* parameters);
+    ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+               float* parameters);
 
     //virtual ~ContinuousPesticideOperation() = default;
 
@@ -492,13 +492,13 @@ private:
 };
 
 /*!
- * \class BurningOperation
+ * \class BurnOp
  * \ingroup PlantManagement
  * \brief Burning operation
  */
-class BurningOperation: public PlantManagementOperation {
+class BurnOp: public PltMgtOp {
 public:
-    BurningOperation(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
 
     //virtual ~BurningOperation() = default;
 

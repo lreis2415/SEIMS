@@ -5,64 +5,72 @@
 #include "utils_time.h"
 
 MGTOpt_SWAT::MGTOpt_SWAT() : m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-                             m_nSub(-1), m_subBsnID(nullptr),
-    /// add parameters from MongoDB
-                             m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr), m_nSoilLayers(nullptr), m_soilLayers(-1),
-    /// Soil related parameters from MongoDB
-                             m_soilDepth(nullptr), m_soilThick(nullptr), m_soilZMX(nullptr), m_soilBD(nullptr),
-                             m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCarbon(nullptr), m_soilRock(nullptr),
-                             m_soilClay(nullptr), m_soilSand(nullptr), m_soilSilt(nullptr), m_soilActiveOrgN(nullptr),
-    /// Soil related parameters
-                             m_soilFreshOrgN(nullptr), m_soilFreshOrgP(nullptr), m_soilNH4(nullptr),
-                             m_soilNO3(nullptr), m_soilStableOrgN(nullptr), m_soilOrgP(nullptr),
-                             m_soilSolP(nullptr), m_tBase(nullptr),
-    /// Plant operation related parameters
+                             m_nSubbsns(-1), m_subbsnID(nullptr),
+                             /// add parameters from MongoDB
+                             m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr),
+                             m_nSoilLayers(nullptr), m_soilLayers(-1),
+                             /// Soil related parameters from MongoDB
+                             m_soilDepth(nullptr), m_soilThick(nullptr), m_soilMaxRootD(nullptr), m_soilBD(nullptr),
+                             m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCbn(nullptr), m_soilRock(nullptr),
+                             m_soilClay(nullptr), m_soilSand(nullptr), m_soilSilt(nullptr), m_soilActvOrgN(nullptr),
+                             /// Soil related parameters
+                             m_soilFrshOrgN(nullptr), m_soilFrshOrgP(nullptr), m_soilNH4(nullptr),
+                             m_soilNO3(nullptr), m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr),
+                             m_soilSolP(nullptr), m_pgTmpBase(nullptr),
+                             /// Plant operation related parameters
                              m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_CN2(nullptr),
                              m_igro(nullptr),
                              m_landCoverCls(nullptr), m_HarvestIdxTarg(nullptr), m_BiomassTarg(nullptr),
-                             m_curYearMat(nullptr), m_wtrStrsYF(nullptr), m_LAIDay(nullptr), m_phuBase(nullptr), m_phuAcc(nullptr),
-                             m_phuPlant(nullptr), m_dormFlag(nullptr), m_havstIdx(nullptr),
-                             m_havstIdxAdj(nullptr), m_LAIMaxFr(nullptr), m_oLAI(nullptr), m_frPlantN(nullptr), m_plantN(nullptr),
-                             m_plantP(nullptr), m_pltET(nullptr), m_pltPET(nullptr), m_frRoot(nullptr),
-    /// Harvest and Kill, harvest, harvgrain operation
-                             m_biomass(nullptr), m_soilRsd(nullptr), m_frStrsWa(nullptr), m_cropLookup(nullptr),
+                             m_curYrMat(nullptr), m_wtrStrsHvst(nullptr), m_lai(nullptr), m_phuBase(nullptr),
+                             m_phuAccum(nullptr),
+                             m_phuPlt(nullptr), m_dormFlag(nullptr), m_hvstIdx(nullptr),
+                             m_hvstIdxAdj(nullptr), m_laiMaxFr(nullptr), m_oLai(nullptr),
+                             m_frPltN(nullptr), m_frPltP(nullptr), m_pltN(nullptr), m_pltP(nullptr),
+                             m_pltET(nullptr), m_pltPET(nullptr), m_frRoot(nullptr),
+                             /// Harvest and Kill, harvest, harvgrain operation
+                             m_biomass(nullptr), m_soilRsd(nullptr), m_frStrsWtr(nullptr), m_cropLookup(nullptr),
                              m_cropNum(-1),
-                             m_fertilizerLookup(nullptr), m_fertilizerNum(-1), m_CbnModel(0),
-    /// Fertilizer operation
+                             m_fertLookup(nullptr), m_fertNum(-1), m_cbnModel(0),
+                             /// Fertilizer operation
                              m_soilManureC(nullptr), m_soilManureN(nullptr), m_soilManureP(nullptr),
-                             m_sol_HSN(nullptr), m_sol_LM(nullptr), m_sol_LMC(nullptr),
-    /// Irrigation
-                             m_sol_LMN(nullptr), m_sol_LSC(nullptr), m_sol_LSN(nullptr), m_sol_LS(nullptr),
-                             m_sol_LSL(nullptr),
-                             m_sol_LSLC(nullptr), m_sol_LSLNC(nullptr), m_tillage_switch(nullptr),
-    /// auto irrigation operation
-                             m_tillage_depth(nullptr), m_tillage_days(nullptr), m_tillage_factor(nullptr), m_sol_BMN(nullptr),
-                             m_sol_HPN(nullptr),
+                             m_soilHSN(nullptr), m_soilLM(nullptr), m_soilLMC(nullptr),
+                             /// Irrigation
+                             m_soilLMN(nullptr), m_soilLSC(nullptr), m_soilLSN(nullptr), m_soilLS(nullptr),
+                             m_soilLSL(nullptr),
+                             m_soilLSLC(nullptr), m_soilLSLNC(nullptr), m_tillage_switch(nullptr),
+                             /// auto irrigation operation
+                             m_tillage_depth(nullptr), m_tillage_days(nullptr), m_tillage_factor(nullptr),
+                             m_soilBMN(nullptr),
+                             m_soilHPN(nullptr),
                              m_irrFlag(nullptr), m_appliedWater(nullptr),
-    /// bacteria related
-    //m_bactSwf(NODATA),	m_bactLessPersistPlt(nullptr), m_bactLessPersistSol(nullptr), m_bactLessPersistParticle(nullptr),
-    //m_bactPersistPlt(nullptr), m_bactPersistSol(nullptr), m_bactPersistParticle(nullptr),
-    /// Tillage operation
+                             /// bacteria related
+                             //m_bactSwf(NODATA),	m_bactLessPersistPlt(nullptr), m_bactLessPersistSol(nullptr), m_bactLessPersistParticle(nullptr),
+                             //m_bactPersistPlt(nullptr), m_bactPersistSol(nullptr), m_bactPersistParticle(nullptr),
+                             /// Tillage operation
                              m_irrSurfQWater(nullptr), m_deepWaterDepth(nullptr), m_shallowWaterDepth(nullptr),
-    /// tillage factor on SOM decomposition, used by CENTURY model
-                             m_impoundArea(nullptr), m_deepIrrWater(nullptr), m_shallowIrrWater(nullptr),
+                             /// tillage factor on SOM decomposition, used by CENTURY model
+                             m_potArea(nullptr), m_deepIrrWater(nullptr), m_shallowIrrWater(nullptr),
                              m_wtrStrsID(nullptr),
-    /// auto fertilizer operation
+                             /// auto fertilizer operation
                              m_autoWtrStres(nullptr), m_autoIrrSource(nullptr), m_autoIrrNo(nullptr),
                              m_autoIrrEfficiency(nullptr), m_autoIrrWtrDepth(nullptr),
-                             m_autoSurfRunRatio(nullptr), m_lastSoilRootDepth(nullptr), m_grainc_d(nullptr),
-    /// Grazing operation
+                             m_autoSurfRunRatio(nullptr), m_stoSoilRootD(nullptr), m_grainc_d(nullptr),
+                             /// Grazing operation
                              m_rsdc_d(nullptr), m_stoverc_d(nullptr),
-    /// Release or impound operation
-                             m_tillageLookup(nullptr), m_soilActiveMinP(nullptr), m_soilStableMinP(nullptr), m_fertilizerID(nullptr),
-                             m_NStressCode(nullptr), m_autoNStress(nullptr), m_autoMaxAppliedN(nullptr), m_autoAnnMaxAppliedMinN(nullptr),
+                             /// Release or impound operation
+                             m_tillageLookup(nullptr), m_tillageNum(-1), m_soilActvMinP(nullptr),
+                             m_soilStabMinP(nullptr), m_fertilizerID(nullptr),
+                             m_NStressCode(nullptr), m_autoNStress(nullptr), m_autoMaxAppliedN(nullptr),
+                             m_autoAnnMaxAppliedMinN(nullptr),
                              m_targNYld(nullptr), m_autoFertEfficiency(nullptr), m_autoFertSurface(nullptr),
-    /// CENTURY C/N cycling related variables
-                             m_nGrazingDays(nullptr), m_grzFlag(nullptr), m_impoundTriger(nullptr), m_potVol(nullptr), m_potVolMax(nullptr),
-                             m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr), m_sol_fc(nullptr),
-                             m_sol_sat(nullptr), m_soilStorage(nullptr),
-    /// Temporary parameters
-                             m_soilStorageProfile(nullptr), m_initialized(false),
+                             /// CENTURY C/N cycling related variables
+                             m_nGrazingDays(nullptr), m_grzFlag(nullptr), m_impndTrig(nullptr), m_potVol(nullptr),
+                             m_potVolMax(nullptr),
+                             m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
+                             m_soilFC(nullptr),
+                             m_soilSat(nullptr), m_soilWtrSto(nullptr),
+                             /// Temporary parameters
+                             m_soilWtrStoPrfl(nullptr), m_initialized(false),
                              tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
                              tmp_soilNotMixedMass(nullptr),
                              tmp_smix(nullptr) {
@@ -152,7 +160,7 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (m_nGrazingDays != nullptr) Release1DArray(m_nGrazingDays);
     if (m_grzFlag != nullptr) Release1DArray(m_grzFlag);
     /// Impound/Release operation
-    if (m_impoundTriger != nullptr) Release1DArray(m_impoundTriger);
+    if (m_impndTrig != nullptr) Release1DArray(m_impndTrig);
     if (m_potVolMax != nullptr) Release1DArray(m_potVolMax);
     if (m_potVolLow != nullptr) Release1DArray(m_potVolLow);
     /// temporary variables
@@ -163,117 +171,163 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (nullptr != tmp_smix) Release1DArray(tmp_smix);
 }
 
-void MGTOpt_SWAT::SetValue(const char *key, float data) {
+void MGTOpt_SWAT::SetValue(const char* key, float data) {
     string sk(key);
-    if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = int(data); }
-    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = data; }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSub = int(data); }
-    else {
+    if (StringMatch(sk, VAR_CSWAT)) {
+        m_cbnModel = CVT_INT(data);
+    } else if (StringMatch(sk, Tag_CellWidth)) {
+        m_cellWidth = data;
+    } else if (StringMatch(sk, VAR_SUBBSNID_NUM)) {
+        m_nSubbsns = CVT_INT(data);
+    } else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize(const char *key, int n) {
+bool MGTOpt_SWAT::CheckInputSize(const char* key, int n) {
     if (n <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-            " is invalid. The size could not be less than zero.");
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
             throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input raster data should have same size.");
+                                 " is invalid. All the input raster data should have same size.");
         }
     }
     return true;
 }
 
-void MGTOpt_SWAT::Set1DData(const char *key, int n, float *data) {
+void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
     string sk(key);
-    if (StringMatch(sk, VAR_SBGS)) {// TODO
+    if (StringMatch(sk, VAR_SBGS)) {
+        // TODO, current version, the shalow and deep water depths are regarded the same.
         m_deepWaterDepth = data;
         m_shallowWaterDepth = data;
         return;
     }
     CheckInputSize(key, n);
-    if (StringMatch(sk, VAR_SUBBSN)) { m_subBsnID = data; }
-    else if (StringMatch(sk, VAR_LANDUSE)) { m_landUse = data; }
-    else if (StringMatch(sk, VAR_LANDCOVER)) { m_landCover = data; }
-    else if (StringMatch(sk, VAR_IDC)) { m_landCoverCls = data; }
-    /// Soil related parameters from MongoDB
-    else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
-    else if (StringMatch(sk, VAR_SOL_ZMX)) { m_soilZMX = data; }
-    else if (StringMatch(sk, VAR_SOL_SUMAWC)) { m_soilSumFC = data; }
-    else if (StringMatch(sk, VAR_T_BASE)) { m_tBase = data; }
-    ///  Plant operation related parameters
-    else if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
-    else if (StringMatch(sk, VAR_HVSTI)) { m_havstIdx = data; }
-    else if (StringMatch(sk, VAR_WSYF)) { m_wtrStrsYF = data; }
-    else if (StringMatch(sk, VAR_PHUPLT)) { m_phuPlant = data; }
-    else if (StringMatch(sk, VAR_PHUBASE)) { m_phuBase = data; }
-    else if (StringMatch(sk, VAR_IGRO)) { m_igro = data; }
-    else if (StringMatch(sk, VAR_FR_PHU_ACC)) { m_phuAcc = data; }
-    else if (StringMatch(sk, VAR_TREEYRS)) { m_curYearMat = data; }
-    else if (StringMatch(sk, VAR_HVSTI_ADJ)) { m_havstIdxAdj = data; }
-    else if (StringMatch(sk, VAR_LAIDAY)) { m_LAIDay = data; }
-    else if (StringMatch(sk, VAR_DORMI)) { m_dormFlag = data; }
-    else if (StringMatch(sk, VAR_LAIMAXFR)) { m_LAIMaxFr = data; }
-    else if (StringMatch(sk, VAR_OLAI)) { m_oLAI = data; }
-    else if (StringMatch(sk, VAR_PLANT_N)) { m_plantN = data; }
-    else if (StringMatch(sk, VAR_PLANT_P)) { m_plantP = data; }
-    else if (StringMatch(sk, VAR_FR_PLANT_N)) { m_frPlantN = data; }
-    else if (StringMatch(sk, VAR_FR_PLANT_P)) { m_frPlantP = data; }
-    else if (StringMatch(sk, VAR_PLTET_TOT)) { m_pltET = data; }
-    else if (StringMatch(sk, VAR_PLTPET_TOT)) { m_pltPET = data; }
-    else if (StringMatch(sk, VAR_FR_ROOT)) { m_frRoot = data; }
-    else if (StringMatch(sk, VAR_BIOMASS)) { m_biomass = data; }
-    //// Harvest and Kill operation
-    else if (StringMatch(sk, VAR_LAST_SOILRD)) { m_lastSoilRootDepth = data; }
-    /// Irrigation operation
-    else if (StringMatch(sk, VAR_FR_STRSWTR)) { m_frStrsWa = data; }
-    /// impound/release
-    else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
-    else if (StringMatch(sk, VAR_POT_SA)) { m_impoundArea = data; }
-    else if (StringMatch(sk, VAR_POT_NO3)) { m_potNo3 = data; }
-    else if (StringMatch(sk, VAR_POT_NH4)) { m_potNH4 = data; }
-    else if (StringMatch(sk, VAR_POT_SOLP)) { m_potSolP = data; }
-    else if (StringMatch(sk, VAR_SOL_SW)) { m_soilStorageProfile = data; }
-    else {
+    if (StringMatch(sk, VAR_SUBBSN)) {
+        m_subbsnID = data;
+    } else if (StringMatch(sk, VAR_LANDUSE)) {
+        m_landUse = data;
+    } else if (StringMatch(sk, VAR_LANDCOVER)) {
+        m_landCover = data;
+    } else if (StringMatch(sk, VAR_IDC)) {
+        m_landCoverCls = data;
+    }
+        /// Soil related parameters from MongoDB
+    else if (StringMatch(sk, VAR_SOILLAYERS)) {
+        m_nSoilLayers = data;
+    } else if (StringMatch(sk, VAR_SOL_ZMX)) {
+        m_soilMaxRootD = data;
+    } else if (StringMatch(sk, VAR_SOL_SUMAWC)) {
+        m_soilSumFC = data;
+    } else if (StringMatch(sk, VAR_T_BASE)) {
+        m_pgTmpBase = data;
+    }
+        ///  Plant operation related parameters
+    else if (StringMatch(sk, VAR_CN2)) {
+        m_CN2 = data;
+    } else if (StringMatch(sk, VAR_HVSTI)) {
+        m_hvstIdx = data;
+    } else if (StringMatch(sk, VAR_WSYF)) {
+        m_wtrStrsHvst = data;
+    } else if (StringMatch(sk, VAR_PHUPLT)) {
+        m_phuPlt = data;
+    } else if (StringMatch(sk, VAR_PHUBASE)) {
+        m_phuBase = data;
+    } else if (StringMatch(sk, VAR_IGRO)) {
+        m_igro = data;
+    } else if (StringMatch(sk, VAR_FR_PHU_ACC)) {
+        m_phuAccum = data;
+    } else if (StringMatch(sk, VAR_TREEYRS)) {
+        m_curYrMat = data;
+    } else if (StringMatch(sk, VAR_HVSTI_ADJ)) {
+        m_hvstIdxAdj = data;
+    } else if (StringMatch(sk, VAR_LAIDAY)) {
+        m_lai = data;
+    } else if (StringMatch(sk, VAR_DORMI)) {
+        m_dormFlag = data;
+    } else if (StringMatch(sk, VAR_LAIMAXFR)) {
+        m_laiMaxFr = data;
+    } else if (StringMatch(sk, VAR_OLAI)) {
+        m_oLai = data;
+    } else if (StringMatch(sk, VAR_PLANT_N)) {
+        m_pltN = data;
+    } else if (StringMatch(sk, VAR_PLANT_P)) {
+        m_pltP = data;
+    } else if (StringMatch(sk, VAR_FR_PLANT_N)) {
+        m_frPltN = data;
+    } else if (StringMatch(sk, VAR_FR_PLANT_P)) {
+        m_frPltP = data;
+    } else if (StringMatch(sk, VAR_PLTET_TOT)) {
+        m_pltET = data;
+    } else if (StringMatch(sk, VAR_PLTPET_TOT)) {
+        m_pltPET = data;
+    } else if (StringMatch(sk, VAR_FR_ROOT)) {
+        m_frRoot = data;
+    } else if (StringMatch(sk, VAR_BIOMASS)) {
+        m_biomass = data;
+    }
+        //// Harvest and Kill operation
+    else if (StringMatch(sk, VAR_LAST_SOILRD)) {
+        m_stoSoilRootD = data;
+    }
+        /// Irrigation operation
+    else if (StringMatch(sk, VAR_FR_STRSWTR)) {
+        m_frStrsWtr = data;
+    }
+        /// impound/release
+    else if (StringMatch(sk, VAR_POT_VOL)) {
+        m_potVol = data;
+    } else if (StringMatch(sk, VAR_POT_SA)) {
+        m_potArea = data;
+    } else if (StringMatch(sk, VAR_POT_NO3)) {
+        m_potNo3 = data;
+    } else if (StringMatch(sk, VAR_POT_NH4)) {
+        m_potNH4 = data;
+    } else if (StringMatch(sk, VAR_POT_SOLP)) {
+        m_potSolP = data;
+    } else if (StringMatch(sk, VAR_SOL_SW)) {
+        m_soilWtrStoPrfl = data;
+    } else {
         throw ModelException(MID_PLTMGT_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize2D(const char *key, int n, int col) {
+bool MGTOpt_SWAT::CheckInputSize2D(const char* key, int n, int col) {
     CheckInputSize(key, n);
     if (col <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-            " is invalid. The layer number could not be less than zero.");
+                             " is invalid. The layer number could not be less than zero.");
     }
     if (m_soilLayers != col) {
         if (m_soilLayers <= 0) {
             m_soilLayers = col;
         } else {
             throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                " is invalid. All the layers of input 2D raster data should have same size of " +
-                ValueToString(m_soilLayers) + " instead of " +
-                ValueToString(col) + ".");
+                                 " is invalid. All the layers of input 2D raster data should have same size of " +
+                                 ValueToString(m_soilLayers) + " instead of " +
+                                 ValueToString(col) + ".");
         }
     }
     return true;
 }
 
-void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
+void MGTOpt_SWAT::Set2DData(const char* key, int n, int col, float** data) {
     string sk(key);
     /// lookup tables
     if (StringMatch(sk, VAR_LANDUSE_LOOKUP)) {
         m_landuseLookup = data;
         m_landuseNum = n;
         InitializeLanduseLookup();
-        if (col != int(LANDUSE_PARAM_COUNT)) {
+        if (col != LANDUSE_PARAM_COUNT) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadLanduseLookup", "The field number " + ValueToString(col) +
-                "is not coincident with LANDUSE_PARAM_COUNT: " +
-                ValueToString(int(LANDUSE_PARAM_COUNT)));
+                                 "is not coincident with LANDUSE_PARAM_COUNT: " +
+                                 ValueToString(LANDUSE_PARAM_COUNT));
         }
         return;
     }
@@ -281,21 +335,21 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
         m_cropLookup = data;
         m_cropNum = n;
         InitializeCropLookup();
-        if (col != int(CROP_PARAM_COUNT)) {
+        if (col != CROP_PARAM_COUNT) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadCropLookup", "The field number " + ValueToString(col) +
-                "is not coincident with CROP_PARAM_COUNT: " +
-                ValueToString(int(CROP_PARAM_COUNT)));
+                                 "is not coincident with CROP_PARAM_COUNT: " +
+                                 ValueToString(CROP_PARAM_COUNT));
         }
         return;
     }
     if (StringMatch(sk, VAR_FERTILIZER_LOOKUP)) {
-        m_fertilizerLookup = data;
-        m_fertilizerNum = n;
+        m_fertLookup = data;
+        m_fertNum = n;
         InitializeFertilizerLookup();
-        if (col != int(FERTILIZER_PARAM_COUNT)) {
+        if (col != FERTILIZER_PARAM_COUNT) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadFertilizerLookup", "The field number " + ValueToString(col) +
-                "is not coincident with FERTILIZER_PARAM_COUNT: " +
-                ValueToString(int(FERTILIZER_PARAM_COUNT)));
+                                 "is not coincident with FERTILIZER_PARAM_COUNT: " +
+                                 ValueToString(FERTILIZER_PARAM_COUNT));
         }
         return;
     }
@@ -303,68 +357,108 @@ void MGTOpt_SWAT::Set2DData(const char *key, int n, int col, float **data) {
         m_tillageLookup = data;
         m_tillageNum = n;
         InitializeTillageLookup();
-        if (col != int(TILLAGE_PARAM_COUNT)) {
+        if (col != TILLAGE_PARAM_COUNT) {
             throw ModelException(MID_PLTMGT_SWAT, "ReadTillageLookup", "The field number " + ValueToString(col) +
-                "is not coincident with TILLAGE_PARAM_COUNT: " +
-                ValueToString(int(TILLAGE_PARAM_COUNT)));
+                                 "is not coincident with TILLAGE_PARAM_COUNT: " +
+                                 ValueToString(TILLAGE_PARAM_COUNT));
         }
         return;
     }
     /// 2D raster data
     CheckInputSize2D(key, n, col);
     /// Soil related parameters from MongoDB
-    if (StringMatch(sk, VAR_SOILDEPTH)) { m_soilDepth = data; }
-    else if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
-    else if (StringMatch(sk, VAR_SOL_BD)) { m_soilBD = data; }
-    else if (StringMatch(sk, VAR_SOL_CBN)) { m_soilCarbon = data; }
-    else if (StringMatch(sk, VAR_SOL_N)) { m_soilN = data; }
-    else if (StringMatch(sk, VAR_CLAY)) { m_soilClay = data; }
-    else if (StringMatch(sk, VAR_SILT)) { m_soilSilt = data; }
-    else if (StringMatch(sk, VAR_SAND)) { m_soilSand = data; }
-    else if (StringMatch(sk, VAR_ROCK)) { m_soilRock = data; }
-    /// Soil related parameters --  inputs from other modules
-    else if (StringMatch(sk, VAR_SOL_SORGN)) { m_soilStableOrgN = data; }
-    else if (StringMatch(sk, VAR_SOL_HORGP)) { m_soilOrgP = data; }
-    else if (StringMatch(sk, VAR_SOL_SOLP)) { m_soilSolP = data; }
-    else if (StringMatch(sk, VAR_SOL_NH4)) { m_soilNH4 = data; }
-    else if (StringMatch(sk, VAR_SOL_NO3)) { m_soilNO3 = data; }
-    else if (StringMatch(sk, VAR_SOL_AORGN)) { m_soilActiveOrgN = data; }
-    else if (StringMatch(sk, VAR_SOL_FORGN)) { m_soilFreshOrgN = data; }
-    else if (StringMatch(sk, VAR_SOL_FORGP)) { m_soilFreshOrgP = data; }
-    else if (StringMatch(sk, VAR_SOL_ACTP)) { m_soilActiveMinP = data; }
-    else if (StringMatch(sk, VAR_SOL_STAP)) { m_soilStableMinP = data; }
-    else if (StringMatch(sk, VAR_SOL_RSD)) { m_soilRsd = data; }
-    else if (StringMatch(sk, VAR_SOL_AWC)) { m_sol_fc = data; }
-    else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_sat = data; }
-    else if (StringMatch(sk, VAR_SOL_ST)) { m_soilStorage = data; }
-    /// inputs for CENTURY C/N cycling model in stated and necessary
-    else if (StringMatch(sk, VAR_SOL_HSN)) { m_sol_HSN = data; }
-    else if (StringMatch(sk, VAR_SOL_LM)) { m_sol_LM = data; }
-    else if (StringMatch(sk, VAR_SOL_LMC)) { m_sol_LMC = data; }
-    else if (StringMatch(sk, VAR_SOL_LMN)) { m_sol_LMN = data; }
-    else if (StringMatch(sk, VAR_SOL_LSC)) { m_sol_LSC = data; }
-    else if (StringMatch(sk, VAR_SOL_LSN)) { m_sol_LSN = data; }
-    else if (StringMatch(sk, VAR_SOL_LS)) { m_sol_LS = data; }
-    else if (StringMatch(sk, VAR_SOL_LSL)) { m_sol_LSL = data; }
-    else if (StringMatch(sk, VAR_SOL_LSLC)) { m_sol_LSLC = data; }
-    else if (StringMatch(sk, VAR_SOL_LSLNC)) { m_sol_LSLNC = data; }
-    //else if (StringMatch(sk, VAR_SOL_WON)) m_sol_WON = data;
-    //else if (StringMatch(sk, VAR_SOL_BM)) m_sol_BM = data;
-    //else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
-    else if (StringMatch(sk, VAR_SOL_BMN)) { m_sol_BMN = data; }
-    //else if (StringMatch(sk, VAR_SOL_HP)) m_sol_HP = data;
-    //else if (StringMatch(sk, VAR_SOL_HS)) m_sol_HS = data;
-    //else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
-    //else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
-    else if (StringMatch(sk, VAR_SOL_HPN)) { m_sol_HPN = data; }
-    //else if (StringMatch(sk, VAR_SOL_RNMN)) m_sol_RNMN = data;
-    //else if (StringMatch(sk, VAR_SOL_RSPC)) m_sol_RSPC = data;
+    if (StringMatch(sk, VAR_SOILDEPTH)) {
+        m_soilDepth = data;
+    } else if (StringMatch(sk, VAR_SOILTHICK)) {
+        m_soilThick = data;
+    } else if (StringMatch(sk, VAR_SOL_BD)) {
+        m_soilBD = data;
+    } else if (StringMatch(sk, VAR_SOL_CBN)) {
+        m_soilCbn = data;
+    } else if (StringMatch(sk, VAR_SOL_N)) {
+        m_soilN = data;
+    } else if (StringMatch(sk, VAR_CLAY)) {
+        m_soilClay = data;
+    } else if (StringMatch(sk, VAR_SILT)) {
+        m_soilSilt = data;
+    } else if (StringMatch(sk, VAR_SAND)) {
+        m_soilSand = data;
+    } else if (StringMatch(sk, VAR_ROCK)) {
+        m_soilRock = data;
+    }
+        /// Soil related parameters --  inputs from other modules
+    else if (StringMatch(sk, VAR_SOL_SORGN)) {
+        m_soilStabOrgN = data;
+    } else if (StringMatch(sk, VAR_SOL_HORGP)) {
+        m_soilHumOrgP = data;
+    } else if (StringMatch(sk, VAR_SOL_SOLP)) {
+        m_soilSolP = data;
+    } else if (StringMatch(sk, VAR_SOL_NH4)) {
+        m_soilNH4 = data;
+    } else if (StringMatch(sk, VAR_SOL_NO3)) {
+        m_soilNO3 = data;
+    } else if (StringMatch(sk, VAR_SOL_AORGN)) {
+        m_soilActvOrgN = data;
+    } else if (StringMatch(sk, VAR_SOL_FORGN)) {
+        m_soilFrshOrgN = data;
+    } else if (StringMatch(sk, VAR_SOL_FORGP)) {
+        m_soilFrshOrgP = data;
+    } else if (StringMatch(sk, VAR_SOL_ACTP)) {
+        m_soilActvMinP = data;
+    } else if (StringMatch(sk, VAR_SOL_STAP)) {
+        m_soilStabMinP = data;
+    } else if (StringMatch(sk, VAR_SOL_RSD)) {
+        m_soilRsd = data;
+    } else if (StringMatch(sk, VAR_SOL_AWC)) {
+        m_soilFC = data;
+    } else if (StringMatch(sk, VAR_SOL_UL)) {
+        m_soilSat = data;
+    } else if (StringMatch(sk, VAR_SOL_ST)) {
+        m_soilWtrSto = data;
+    }
+        /// inputs for CENTURY C/N cycling model in stated and necessary
+    else if (StringMatch(sk, VAR_SOL_HSN)) {
+        m_soilHSN = data;
+    } else if (StringMatch(sk, VAR_SOL_LM)) {
+        m_soilLM = data;
+    } else if (StringMatch(sk, VAR_SOL_LMC)) {
+        m_soilLMC = data;
+    } else if (StringMatch(sk, VAR_SOL_LMN)) {
+        m_soilLMN = data;
+    } else if (StringMatch(sk, VAR_SOL_LSC)) {
+        m_soilLSC = data;
+    } else if (StringMatch(sk, VAR_SOL_LSN)) {
+        m_soilLSN = data;
+    } else if (StringMatch(sk, VAR_SOL_LS)) {
+        m_soilLS = data;
+    } else if (StringMatch(sk, VAR_SOL_LSL)) {
+        m_soilLSL = data;
+    } else if (StringMatch(sk, VAR_SOL_LSLC)) {
+        m_soilLSLC = data;
+    } else if (StringMatch(sk, VAR_SOL_LSLNC)) {
+        m_soilLSLNC = data;
+    }
+        //else if (StringMatch(sk, VAR_SOL_WON)) m_sol_WON = data;
+        //else if (StringMatch(sk, VAR_SOL_BM)) m_sol_BM = data;
+        //else if (StringMatch(sk, VAR_SOL_BMC)) m_sol_BMC = data;
+    else if (StringMatch(sk, VAR_SOL_BMN)) {
+        m_soilBMN = data;
+    }
+        //else if (StringMatch(sk, VAR_SOL_HP)) m_sol_HP = data;
+        //else if (StringMatch(sk, VAR_SOL_HS)) m_sol_HS = data;
+        //else if (StringMatch(sk, VAR_SOL_HSC)) m_sol_HSC = data;
+        //else if (StringMatch(sk, VAR_SOL_HPC)) m_sol_HPC = data;
+    else if (StringMatch(sk, VAR_SOL_HPN)) {
+        m_soilHPN = data;
+    }
+        //else if (StringMatch(sk, VAR_SOL_RNMN)) m_sol_RNMN = data;
+        //else if (StringMatch(sk, VAR_SOL_RSPC)) m_sol_RSPC = data;
     else {
         throw ModelException(MID_PLTMGT_SWAT, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void MGTOpt_SWAT::SetScenario(Scenario *sce) {
+void MGTOpt_SWAT::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
         throw ModelException(MID_PLTMGT_SWAT, "SetScenario", "The Scenario data can not to be nullptr.");
     }
@@ -376,7 +470,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
         /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
         if (it->first / 100000 == BMP_TYPE_PLANT_MGT) {
             /// calculate unique index for the key of m_mgtFactory, using Landuse_ID * 100 + subScenario
-            BMPPlantMgtFactory* tmpPltFactory = dynamic_cast<BMPPlantMgtFactory *>(it->second);
+            BMPPlantMgtFactory* tmpPltFactory = static_cast<BMPPlantMgtFactory *>(it->second);
             int uniqueIdx = tmpPltFactory->GetLUCCID() * 100 + it->second->GetSubScenarioId();
             m_mgtFactory[uniqueIdx] = tmpPltFactory;
             /// Set plant management spatial units
@@ -387,7 +481,7 @@ void MGTOpt_SWAT::SetScenario(Scenario *sce) {
     }
 }
 
-void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
+void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
     if (nullptr == subbasins) {
         throw ModelException(MID_PLTMGT_SWAT, "SetSubbasins", "The Subbasins data can not to be nullptr.");
     }
@@ -395,7 +489,7 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins *subbasins) {
     if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
     vector<int> subIDs = subbasins->GetSubbasinIDs();
     for (auto it = subIDs.begin(); it != subIDs.end(); ++it) {
-        Subbasin *tmpSubbsn = subbasins->GetSubbasinByID(*it);
+        Subbasin* tmpSubbsn = subbasins->GetSubbasinByID(*it);
         m_nCellsSubbsn[*it] = tmpSubbsn->GetCellCount();
         m_nAreaSubbsn[*it] = tmpSubbsn->GetArea();
     }
@@ -406,50 +500,50 @@ bool MGTOpt_SWAT::CheckInputData() {
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_cellWidth);
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_soilLayers);
-    CHECK_NONNEGATIVE(MID_PLTMGT_SWAT, m_CbnModel);
-    if (m_CbnModel == 2) {
+    CHECK_NONNEGATIVE(MID_PLTMGT_SWAT, m_cbnModel);
+    if (m_cbnModel == 2) {
         /// Check for the CENTURY required initialized variables
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_HSN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LM);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LMC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LMN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LSC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LSN);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LS);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LSL);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LSLC);
-        CHECK_POINTER(MID_PLTMGT_SWAT, m_sol_LSLNC);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilHSN);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLM);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLMC);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLMN);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSC);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSN);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLS);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSL);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSLC);
+        CHECK_POINTER(MID_PLTMGT_SWAT, m_soilLSLNC);
     }
     /// DT_Raster
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_subBsnID);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_subbsnID);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landUse);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landCover);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_mgtFields);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_tBase);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_pgTmpBase);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_nSoilLayers);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilZMX);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilMaxRootD);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSumFC);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_CN2);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_igro);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landCoverCls);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_curYearMat);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_wtrStrsYF);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_LAIDay);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_curYrMat);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_wtrStrsHvst);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_lai);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_phuBase);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuAcc);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuPlant);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuAccum);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_phuPlt);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_dormFlag);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_havstIdx);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_havstIdxAdj);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_LAIMaxFr);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_oLAI);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPlantN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPlantP);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_hvstIdx);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_hvstIdxAdj);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_laiMaxFr);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_oLai);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltN);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltP);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_pltET);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_pltPET);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_frRoot);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_biomass);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_lastSoilRootDepth);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_stoSoilRootD);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_deepWaterDepth);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_shallowWaterDepth);
     /// DT_Raster2D
@@ -457,28 +551,28 @@ bool MGTOpt_SWAT::CheckInputData() {
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilThick);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilBD);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilCarbon);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilCbn);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilClay);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSand);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSilt);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilRock);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActiveOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFreshOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFreshOrgP);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActvOrgN);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFrshOrgN);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilFrshOrgP);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilNO3);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStableOrgN);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilOrgP);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStabOrgN);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilHumOrgP);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSolP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActiveMinP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStableMinP);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilActvMinP);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_soilStabMinP);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilRsd);
     return true;
 }
 
-bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
+bool MGTOpt_SWAT::GetOperationCode(int i, int& factoryID, vector<int>& nOps) {
     if (m_mgtFactory.empty()) return false;
-    int curLanduseID = int(m_landUse[i]);
-    int curMgtField = int(m_mgtFields[i]);
+    int curLanduseID = CVT_INT(m_landUse[i]);
+    int curMgtField = CVT_INT(m_mgtFields[i]);
     factoryID = -1;
     /// 1. Is there any plant management operations are suitable to current cell.
     for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); ++it) {
@@ -495,7 +589,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     if (factoryID < 0) return false;
     /// 3. Figure out if any management operation should be applied, i.e., find sequence IDs (nOps)
     vector<int> tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
-    map<int, PlantManagementOperation *> tmpOperations = m_mgtFactory[factoryID]->GetOperations();
+    map<int, PltMgtOp *> tmpOperations = m_mgtFactory[factoryID]->GetOperations();
     // get the next should be done sequence number
     int curSeq = m_doneOpSequence[i];
     int nextSeq = -1;
@@ -507,7 +601,7 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
     int opCode = tmpOpSeqences[nextSeq];
     // figure out the nextSeq is satisfied or not.
     if (tmpOperations.find(opCode) != tmpOperations.end()) {
-        PlantManagementOperation *tmpOperation = tmpOperations.at(opCode);
+        PltMgtOp* tmpOperation = tmpOperations.at(opCode);
         /// *seqIter is calculated by: seqNo. * 1000 + operationCode
         bool dateDepent = false, huscDepent = false;
         /// If operation applied date (month and day) are defined
@@ -531,8 +625,9 @@ bool MGTOpt_SWAT::GetOperationCode(int i, int &factoryID, vector<int> &nOps) {
                     if (aphu >= tmpOperation->GetHUFraction()) {
                         huscDepent = true;
                     }
-                } else { // use accumulated plant hu
-                    aphu = m_phuAcc[i];
+                } else {
+                    // use accumulated plant hu
+                    aphu = m_phuAccum[i];
                     if (aphu >= tmpOperation->GetHUFraction()) {
                         huscDepent = true;
                     }
@@ -561,7 +656,7 @@ void MGTOpt_SWAT::InitializeLanduseLookup() {
         return;
     }
     for (int i = 0; i < m_landuseNum; i++) {
-        m_landuseLookupMap[int(m_landuseLookup[i][1])] = m_landuseLookup[i];
+        m_landuseLookupMap[CVT_INT(m_landuseLookup[i][1])] = m_landuseLookup[i];
     }
 }
 
@@ -576,23 +671,23 @@ void MGTOpt_SWAT::InitializeCropLookup() {
         return;
     }
     for (int i = 0; i < m_cropNum; i++) {
-        m_cropLookupMap[int(m_cropLookup[i][1])] = m_cropLookup[i];
+        m_cropLookupMap[CVT_INT(m_cropLookup[i][1])] = m_cropLookup[i];
     }
 }
 
 void MGTOpt_SWAT::InitializeFertilizerLookup() {
     /// Check input data
-    if (m_fertilizerLookup == nullptr) {
+    if (m_fertLookup == nullptr) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer lookup array must not be nullptr");
     }
-    if (m_fertilizerNum <= 0) {
+    if (m_fertNum <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputData", "Fertilizer number must be greater than 0");
     }
     if (!m_fertilizerLookupMap.empty()) {
         return;
     }
-    for (int i = 0; i < m_fertilizerNum; i++) {
-        m_fertilizerLookupMap[int(m_fertilizerLookup[i][1])] = m_fertilizerLookup[i];
+    for (int i = 0; i < m_fertNum; i++) {
+        m_fertilizerLookupMap[CVT_INT(m_fertLookup[i][1])] = m_fertLookup[i];
     }
 }
 
@@ -608,68 +703,69 @@ void MGTOpt_SWAT::InitializeTillageLookup() {
         return;
     }
     for (int i = 0; i < m_tillageNum; i++) {
-        m_tillageLookupMap[int(m_tillageLookup[i][1])] = m_tillageLookup[i];
+        m_tillageLookupMap[CVT_INT(m_tillageLookup[i][1])] = m_tillageLookup[i];
     }
 }
 
-void MGTOpt_SWAT::ExecutePlantOperation(int i, int &factoryID, int nOp) {
-    PlantOperation *curOperation = dynamic_cast<PlantOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
+    PltOp* curOperation = static_cast<PltOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     m_igro[i] = 1.f;
     m_HarvestIdxTarg[i] = curOperation->HITarg();
     m_BiomassTarg[i] = curOperation->BIOTarg(); /// kg/ha
-    m_curYearMat[i] = curOperation->CurYearMaturity();
+    m_curYrMat[i] = curOperation->CurYearMaturity();
     int newPlantID = curOperation->PlantID();
-    m_landCover[i] = newPlantID;
-    m_phuPlant[i] = curOperation->HeatUnits();
+    m_landCover[i] = CVT_FLT(newPlantID);
+    m_phuPlt[i] = curOperation->HeatUnits();
     m_dormFlag[i] = 0.f;
-    m_phuAcc[i] = 0.f;
-    m_plantN[i] = 0.f;
-    m_plantP[i] = 0.f;
+    m_phuAccum[i] = 0.f;
+    m_pltN[i] = 0.f;
+    m_pltP[i] = 0.f;
     m_pltET[i] = 0.f;
     m_pltPET[i] = 0.f;
-    m_LAIMaxFr[i] = 0.f;
-    m_havstIdxAdj[i] = 0.f;
-    m_oLAI[i] = 0.f;
+    m_laiMaxFr[i] = 0.f;
+    m_hvstIdxAdj[i] = 0.f;
+    m_oLai[i] = 0.f;
     m_frRoot[i] = 0.f;
     /// update crop-related parameters in order to calculate phuAcc. by LJ
     if (m_cropLookupMap.find(newPlantID) == m_cropLookupMap.end()) {
         throw ModelException(MID_PLTMGT_SWAT, "ExecutePlantOperation",
                              "The new plant ID: " + ValueToString(newPlantID) +
-                                 " is not prepared in cropLookup table!");
+                             " is not prepared in cropLookup table!");
     }
     // update IDC
     m_landCoverCls[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_IDC];
-    m_tBase[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_T_BASE];
+    m_pgTmpBase[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_T_BASE];
     /// initialize transplant variables
     if (curOperation->LAIInit() > 0.f) {
-        m_LAIDay[i] = curOperation->LAIInit();
+        m_lai[i] = curOperation->LAIInit();
         m_biomass[i] = curOperation->BIOInit();
     }
     /// compare maximum rooting depth in soil to maximum rooting depth of plant
-    m_soilZMX[i] = m_soilDepth[i][int(m_nSoilLayers[i] - 1)];
+    m_soilMaxRootD[i] = m_soilDepth[i][CVT_INT(m_nSoilLayers[i] - 1)];
     /// if the land cover does existed, throw an exception.
-    if (m_landuseLookupMap.find(int(m_landCover[i])) == m_landuseLookupMap.end()) {
+    if (m_landuseLookupMap.find(CVT_INT(m_landCover[i])) == m_landuseLookupMap.end()) {
         throw ModelException(MID_PLTMGT_SWAT, "ExecutePlantOperation",
-                             "Land use ID: " + ValueToString(int(m_landCover[i])) +
-                                 " does not existed in Landuse lookup table, please check and retry!");
+                             "Land use ID: " + ValueToString(CVT_INT(m_landCover[i])) +
+                             " does not existed in Landuse lookup table, please check and retry!");
     }
-    float pltRootDepth = m_landuseLookupMap[int(m_landCover[i])][LANDUSE_PARAM_ROOT_DEPTH_IDX];
-    m_soilZMX[i] = Min(m_soilZMX[i], pltRootDepth);
+    float pltRootDepth = m_landuseLookupMap[CVT_INT(m_landCover[i])][LANDUSE_PARAM_ROOT_DEPTH_IDX];
+    m_soilMaxRootD[i] = Min(m_soilMaxRootD[i], pltRootDepth);
     /// reset curve number if necessary
-    if (curOperation->CNOP() > 0.f) {  /// curno.f
+    if (curOperation->CNOP() > 0.f) {
+        /// curno.f
         float cnn = curOperation->CNOP();
         m_CN2[i] = cnn;
     }
 }
 
-void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
-    IrrigationOperation *curOperation = dynamic_cast<IrrigationOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int& factoryID, int nOp) {
+    IrrOp* curOperation = static_cast<IrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     /// irrigation source
     int m_irrSource = curOperation->IRRSource();
     /// irrigation source location code
-    int m_irrNo = curOperation->IRRNo() <= 0 ? int(m_subBsnID[i]) : curOperation->IRRNo();
+    int m_irrNo = curOperation->IRRNo() <= 0 ? CVT_INT(m_subbsnID[i]) : curOperation->IRRNo();
     /// irrigation apply depth (mm)
     float m_irrApplyDepth = curOperation->IRRApplyDepth();
     /// float* m_irrSalt; /// currently not used
@@ -677,25 +773,26 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
     float m_irrEfficiency = curOperation->IRREfficiency();
 
     m_irrFlag[i] = 1;
-    int tmpSubbsnID = int(m_subBsnID[i]);
-    if (m_irrSource > IRR_SRC_RES) { /// irrigation from reach and reservoir are irr_rch.f and irr_res.f, respectively
-        /// call irrsub.f
-        /// Performs the irrigation operation when the source is the shallow or deep aquifer or a source outside the watershed
+    int tmpSubbsnID = CVT_INT(m_subbsnID[i]);
+    if (m_irrSource > IRR_SRC_RES) {
+        /// irrigation from reach and reservoir are irr_rch.f and irr_res.f, respectively
+               /// call irrsub.f
+               /// Performs the irrigation operation when the source is the shallow or deep aquifer or a source outside the watershed
         float vmma = 0.f; /// amount of water in source, mm
         float vmm = 0.f;  ///maximum amount of water to be applied, mm
-        float cnv = 0.f;    /// conversion factor (mm/ha => m^3)
-        float vmxi = 0.f;   /// amount of water specified in irrigation operation, mm
-        float vol = 0.f;      /// volume of water to be applied in irrigation, m^3
+        float cnv = 0.f;  /// conversion factor (mm/ha => m^3)
+        float vmxi = 0.f; /// amount of water specified in irrigation operation, mm
+        float vol = 0.f;  /// volume of water to be applied in irrigation, m^3
         float vmms = 0.f; /// amount of water in shallow aquifer, m^3
         float vmmd = 0.f; /// amount of water in deep aquifer, m^3
         /// Whether m_irrNo is valid
         if (m_nCellsSubbsn.find(m_irrNo) == m_nCellsSubbsn.end()) {
-            m_irrNo = int(m_subBsnID[i]);
+            m_irrNo = CVT_INT(m_subbsnID[i]);
         }
 
         cnv = m_nAreaSubbsn[m_irrNo] * 10.f; /// area of current subbasin
         switch (m_irrSource) {
-            /// in SEIMS, we hypothesis that shallow aquifer and deep aquifer is consistent within subbasin.
+                /// in SEIMS, we hypothesis that shallow aquifer and deep aquifer is consistent within subbasin.
             case IRR_SRC_SHALLOW:
                 if (m_shallowWaterDepth[tmpSubbsnID] < UTIL_ZERO) {
                     m_shallowWaterDepth[tmpSubbsnID] = 0.f;
@@ -705,7 +802,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
                 vmma /= m_nCellsSubbsn[m_irrNo];
                 vmm = Min(m_soilSumFC[i], vmma);
                 break;
-            case IRR_SRC_DEEP:vmma += m_deepWaterDepth[tmpSubbsnID] * cnv * m_irrEfficiency;
+            case IRR_SRC_DEEP: vmma += m_deepWaterDepth[tmpSubbsnID] * cnv * m_irrEfficiency;
                 vmmd = vmma;
                 vmma /= m_nCellsSubbsn[m_irrNo];
                 vmm = Min(m_soilSumFC[i], vmma);
@@ -713,7 +810,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
             case IRR_SRC_OUTWTSD: /// unlimited source
                 vmm = m_soilSumFC[i];
                 break;
-            default:break;
+            default: break;
         }
         /// if water available from source, proceed with irrigation
         if (vmm > 0.f) {
@@ -722,16 +819,16 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
             if (vmm > vmxi) vmm = vmxi;
             vol = vmm * cnv;
             float pot_fr = 0.f;
-            if (FloatEqual(m_impoundTriger[i], 0.f) && m_potVol != nullptr) {
-                /// m_impoundTriger equals to 0 means pot_fr is 1.
+            if (FloatEqual(m_impndTrig[i], 0.f) && m_potVol != nullptr) {
+                /// m_impoundTrig equals to 0 means pot_fr is 1.
                 /// and m_impoundArea is set to m_cellArea.
                 pot_fr = 1.f;
-                if (m_impoundArea != nullptr) {
-                    m_potVol[i] += vol / (10.f * m_impoundArea[i]);
+                if (m_potArea != nullptr) {
+                    m_potVol[i] += vol / (10.f * m_potArea[i]);
                 } else {
                     m_potVol[i] += vol / (10.f * m_cellArea);
                 }
-                m_appliedWater[i] = vmm;  ///added rice irrigation 11/10/11
+                m_appliedWater[i] = vmm; ///added rice irrigation 11/10/11
             } else {
                 pot_fr = 0.f;
                 /// Call irrigate(i, vmm) /// irrigate.f
@@ -743,7 +840,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
                 vol = m_appliedWater[i] * cnv * m_irrEfficiency;
             }
             switch (m_irrSource) {
-                case IRR_SRC_SHALLOW:cnv = m_nAreaSubbsn[m_irrNo] * 10.f;
+                case IRR_SRC_SHALLOW: cnv = m_nAreaSubbsn[m_irrNo] * 10.f;
                     vmma = 0.f;
                     if (vmms > -0.01f) {
                         vmma = vol * m_shallowWaterDepth[tmpSubbsnID] * cnv / vmms;
@@ -756,7 +853,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
                     }
                     m_shallowIrrWater[i] += vmma;
                     break;
-                case IRR_SRC_DEEP:cnv = m_nAreaSubbsn[m_irrNo] * 10.f;
+                case IRR_SRC_DEEP: cnv = m_nAreaSubbsn[m_irrNo] * 10.f;
                     vmma = 0.f;
                     if (vmmd > 0.01f) {
                         vmma = vol * (m_deepWaterDepth[tmpSubbsnID] * cnv / vmmd);
@@ -769,20 +866,20 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int &factoryID, int nOp) {
                     }
                     m_deepIrrWater[i] += vmma;
                     break;
-                default:break;
+                default: break;
             }
         }
     }
 }
 
-void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int& factoryID, int nOp) {
     /* Briefly change log
 	 * 1. Translate from fert.f, remains CSWAT = 1 and 2 to be done!!! by LJ
 	 * 2. CSWAT = 1 and 2, were implemented on 2016-9-29, by LJ.
 	 * 3. Consider paddy rice field according to Chowdary et al., 2004, 2016-10-9, by LJ.
 	 */
     //initializeFertilizerLookup();
-    FertilizerOperation *curOperation = dynamic_cast<FertilizerOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    FertOp* curOperation = static_cast<FertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// fertilizer type, ifrt
     int fertilizerID = curOperation->FertilizerID();
     /// kg/ha         |amount of fertilizer applied to HRU
@@ -796,8 +893,8 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     /// if the fertilizerID is not existed in lookup table, then throw an exception
     if (m_fertilizerLookupMap.find(fertilizerID) == m_fertilizerLookupMap.end()) {
         throw ModelException(MID_PLTMGT_SWAT, "ExecuteFertilizerOperation", "Fertilizer ID " +
-            ValueToString(fertilizerID) +
-            " is not existed in Fertilizer Database!");
+                             ValueToString(fertilizerID) +
+                             " is not existed in Fertilizer Database!");
     }
     /**fertilizer paramters derived from lookup table**/
     //!!    fminn(:)      |kg minN/kg frt|fraction of fertilizer that is mineral N (NO3 + NH4)
@@ -817,7 +914,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     //!!    bactkddb(:)   |none          |fraction of bacteria in solution (the remaining fraction is sorbed to soil particles)
     //float bactKDDB = m_fertilizerLookupMap[fertilizerID][FERTILIZER_PARAM_BACKTKDDB_IDX];
     // commercial fertilizer (0) or manure (1)
-    int fertype = int(m_fertilizerLookupMap[fertilizerID][FERTILIZER_PARAM_MANURE_IDX]);
+    int fertype = CVT_INT(m_fertilizerLookupMap[fertilizerID][FERTILIZER_PARAM_MANURE_IDX]);
     /**summary output**/
     //!!    fertn         |kg N/ha       |total amount of nitrogen applied to soil in cell on day
     //float fertN = 0.f;
@@ -836,7 +933,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     /// if current landcover is paddy rice, then apply the commercial fertilizer to the top surface and pothole.
     int lyrs = 2;
     if (m_potVol != nullptr) {
-        if (FloatEqual(int(m_landCover[i]), CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f) {
+        if (FloatEqual(CVT_INT(m_landCover[i]), CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f) {
             lyrs = 1;
             xx = 1.f - fertilizerSurfFrac;
             m_potNo3[i] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN * m_cellArea; /// kg/ha * ha ==> kg
@@ -844,29 +941,33 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
             m_potSolP[i] += xx * fertilizerKgHa * fertMinP * m_cellArea;
         }
     }
-    for (int l = 0; l < lyrs; l++) { /// top surface and first layer
+    for (int l = 0; l < lyrs; l++) {
+        /// top surface and first layer
         if (l == 0) xx = fertilizerSurfFrac;
         if (l == 1) xx = 1.f - fertilizerSurfFrac;
         m_soilNO3[i][l] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN;
-        if (m_CbnModel == 0) { /// Static model
-            m_soilFreshOrgN[i][l] += rtof * xx * fertilizerKgHa * fertOrgN;
-            m_soilActiveOrgN[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgN;
-            m_soilFreshOrgP[i][l] += rtof * xx * fertilizerKgHa * fertOrgP;
-            m_soilOrgP[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgP;
-        } else if (m_CbnModel == 1) { /// C-FARM one carbon pool model
+        if (m_cbnModel == 0) {
+            /// Static model
+            m_soilFrshOrgN[i][l] += rtof * xx * fertilizerKgHa * fertOrgN;
+            m_soilActvOrgN[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgN;
+            m_soilFrshOrgP[i][l] += rtof * xx * fertilizerKgHa * fertOrgP;
+            m_soilHumOrgP[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgP;
+        } else if (m_cbnModel == 1) {
+            /// C-FARM one carbon pool model
             m_soilManureC[i][l] += xx * fertilizerKgHa * fertOrgN * 10.f; /// assume C:N = 10:1
             m_soilManureN[i][l] += xx * fertilizerKgHa * fertOrgN;
             m_soilManureP[i][l] += xx * fertilizerKgHa * fertOrgP;
-        } else if (m_CbnModel == 2) { /// CENTURY model for C/N cycling
+        } else if (m_cbnModel == 2) {
+            /// CENTURY model for C/N cycling
             float X1 = 0.f, X8 = 0.f, X10 = 0.f, XXX = 0.f, YY = 0.f;
             float ZZ = 0.f, XZ = 0.f, YZ = 0.f, RLN = 0.f;
             /// the fraction of organic carbon in fertilizer, for most fertilizers orgc_f is set to 0.
             float orgc_f = 0.f;
-            m_soilFreshOrgP[i][l] += rtof * xx * fertilizerKgHa * fertOrgP;
-            m_soilOrgP[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgP;
+            m_soilFrshOrgP[i][l] += rtof * xx * fertilizerKgHa * fertOrgP;
+            m_soilHumOrgP[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgP;
             /// allocate organic fertilizer to slow (SWAT active) N pool, i.e., m_soilActiveOrgN
-            m_sol_HSN[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgN;
-            m_soilActiveOrgN[i][l] = m_sol_HSN[i][l];
+            m_soilHSN[i][l] += (1.f - rtof) * xx * fertilizerKgHa * fertOrgN;
+            m_soilActvOrgN[i][l] = m_soilHSN[i][l];
             /// X1 is fertilizer applied to layer (kg/ha)
             X1 = xx * fertilizerKgHa;
             // X8 is organic carbon applied (kg C/ha)
@@ -875,45 +976,44 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
             RLN = 0.175f * (orgc_f) / (fertMinN + fertOrgN + 1.e-5f);
             /// X10 is the fraction of carbon in fertilizer that is allocated to metabolic litter C pool
             X10 = 0.85f - 0.018f * RLN;
-            if (X10 < 0.01f) { X10 = 0.01f; }
-            else if (X10 > 0.7f) X10 = 0.7f;
+            if (X10 < 0.01f) { X10 = 0.01f; } else if (X10 > 0.7f) X10 = 0.7f;
 
             /// XXX is the amount of organic carbon allocated to metabolic litter C pool
             XXX = X8 * X10;
-            m_sol_LMC[i][l] += XXX;
+            m_soilLMC[i][l] += XXX;
             /// YY is the amount of fertilizer (including C and N) allocated into metabolic litter SOM pool
             YY = X1 * X10;
-            m_sol_LM[i][l] += YY;
+            m_soilLM[i][l] += YY;
             /// ZZ is amount of organic N allocated to metabolic litter N pool
             ZZ = X1 * rtof * fertOrgN * X10;
-            m_sol_LMN[i][l] += ZZ;
+            m_soilLMN[i][l] += ZZ;
 
             /// remaining organic N is allocated to structural litter N pool
-            m_sol_LSN[i][l] += X1 * fertOrgN - ZZ;
+            m_soilLSN[i][l] += X1 * fertOrgN - ZZ;
             /// XZ is the amount of organic carbon allocated to structural litter C pool
             XZ = X1 * orgc_f - XXX;
-            m_sol_LSC[i][l] += XZ;
+            m_soilLSC[i][l] += XZ;
             /// assuming lignin C fraction of organic carbon to be 0.175;
             float lignin_C_frac = 0.175f;
             /// updating lignin amount in structural litter pool
-            m_sol_LSLC[i][l] += XZ * lignin_C_frac;
+            m_soilLSLC[i][l] += XZ * lignin_C_frac;
             /// non-lignin part of the structural litter C is also updated;
-            m_sol_LSLNC[i][l] += XZ * (1.f - lignin_C_frac);
+            m_soilLSLNC[i][l] += XZ * (1.f - lignin_C_frac);
             /// YZ is the amount of fertilizer (including C and N) allocated into structural litter SOM pool
             YZ = X1 - YY;
-            m_sol_LS[i][l] += YZ;
+            m_soilLS[i][l] += YZ;
             /// assuming lignin fraction of the organic fertilizer allocated into structure litter SOM pool to be 0.175
             float lingnin_SOM_frac = 0.175f;
             /// update lignin weight in structural litter.
-            m_sol_LSL[i][l] += YZ * lingnin_SOM_frac;
-            m_soilFreshOrgN[i][l] = m_sol_LMN[i][l] + m_sol_LSN[i][l];
+            m_soilLSL[i][l] += YZ * lingnin_SOM_frac;
+            m_soilFrshOrgN[i][l] = m_soilLMN[i][l] + m_soilLSN[i][l];
         }
         m_soilNH4[i][l] += xx * fertilizerKgHa * fertNH4N * fertMinN;
         m_soilSolP[i][l] += xx * fertilizerKgHa * fertMinP;
     }
     /// add bacteria - #cfu/g * t(manure)/ha * 1.e6g/t * ha/10,000m^2 = 100.
     /// calculate ground cover
-    gc = (1.99532f - Erfc(1.333f * m_LAIDay[i] - 2.f)) / 2.1f;
+    gc = (1.99532f - Erfc(1.333f * m_lai[i] - 2.f)) / 2.1f;
     if (gc < 0.f) gc = 0.f;
     //gc1 = 1.f - gc;
     /// bact_swf    |none          |fraction of manure containing active colony forming units (cfu)
@@ -943,29 +1043,30 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int &factoryID, int nOp) {
     //fertP += (fertilizerKgHa + cFertP) * (fertMinP + fertOrgP);
 }
 
-void MGTOpt_SWAT::ExecutePesticideOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecutePesticideOperation(int i, int& factoryID, int nOp) {
     /// TODO
+    PestOp* curOperation = static_cast<PestOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
     //// TODO: Yield is not set as outputs yet. by LJ
     /// harvkillop.f
-    HarvestKillOperation *curOperation = static_cast<HarvestKillOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    HvstKillOp* curOperation = static_cast<HvstKillOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     float cnop = curOperation->CNOP();
     float wur = 0.f, hiad1 = 0.f;
-    if (m_cropLookupMap.find(int(m_landCover[i])) == m_cropLookupMap.end()) {
+    if (m_cropLookupMap.find(CVT_INT(m_landCover[i])) == m_cropLookupMap.end()) {
         throw ModelException(MID_PLTMGT_SWAT, "ExecuteHarvestKillOperation",
-                             "The landcover ID " + ValueToString(int(m_landCover[i]))
-                                 + " is not existed in crop lookup table!");
+                             "The landcover ID " + ValueToString(m_landCover[i])
+                             + " is not existed in crop lookup table!");
     }
     /// Get some parameters of current crop / landcover
-    float hvsti = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_HVSTI];
-    float wsyf = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_WSYF];
-    int idc = int(m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_IDC]);
-    float bio_leaf = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_BIO_LEAF];
-    float cnyld = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_CNYLD];
-    float cpyld = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_CPYLD];
+    float hvsti = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_HVSTI];
+    float wsyf = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_WSYF];
+    int idc = CVT_INT(m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_IDC]);
+    float bio_leaf = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_BIO_LEAF];
+    float cnyld = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_CNYLD];
+    float cpyld = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_CPYLD];
 
     /// calculate modifier for autofertilization target nitrogen content
     // TODO
@@ -980,7 +1081,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
         } else {
             wur = 100.f * m_pltET[i] / m_pltPET[i];
         }
-        hiad1 = (m_havstIdxAdj[i] - wsyf) * (wur / (wur + exp(6.13f - 0.0883f * wur))) + wsyf;
+        hiad1 = (m_hvstIdxAdj[i] - wsyf) * (wur / (wur + exp(6.13f - 0.0883f * wur))) + wsyf;
         if (hiad1 > hvsti) hiad1 = hvsti;
     }
     /// check if yield is from above or below ground
@@ -1017,7 +1118,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     if (resnew < 0.f) resnew = 0.f;
     if (rtresnew < 0.f) rtresnew = 0.f;
 
-    if (m_CbnModel == 2) {
+    if (m_cbnModel == 2) {
         m_grainc_d[i] += yield * 0.42f;
         m_stoverc_d[i] += (m_biomass[i] - yield - rtresnew) * 0.42f * xx;
         m_rsdc_d[i] += resnew * 0.42f;
@@ -1027,12 +1128,12 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     float yieldn = 0.f, yieldp = 0.f;
     yieldn = yield * cnyld;
     yieldp = yield * cpyld;
-    yieldn = Min(yieldn, 0.80f * m_plantN[i]);
-    yieldp = Min(yieldp, 0.80f * m_plantP[i]);
+    yieldn = Min(yieldn, 0.80f * m_pltN[i]);
+    yieldp = Min(yieldp, 0.80f * m_pltP[i]);
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    if (nullptr == tmp_rtfr) Initialize1DArray(int(m_soilLayers), tmp_rtfr, 0.f);
+    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_soilLayers), tmp_rtfr, 0.f);
     RootFraction(i, tmp_rtfr);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
@@ -1040,11 +1141,11 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     float ff2 = 1.f - ff1;
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
-    m_soilFreshOrgN[i][0] += ff1 * (m_plantN[i] - yieldn);
-    m_soilFreshOrgP[i][0] += ff1 * (m_plantP[i] - yieldp);
+    m_soilFrshOrgN[i][0] += ff1 * (m_pltN[i] - yieldn);
+    m_soilFrshOrgP[i][0] += ff1 * (m_pltP[i] - yieldp);
     m_soilRsd[i][0] = Max(m_soilRsd[i][0], 0.f);
-    m_soilFreshOrgN[i][0] = Max(m_soilFreshOrgN[i][0], 0.f);
-    m_soilFreshOrgP[i][0] = Max(m_soilFreshOrgP[i][0], 0.f);
+    m_soilFrshOrgN[i][0] = Max(m_soilFrshOrgN[i][0], 0.f);
+    m_soilFrshOrgP[i][0] = Max(m_soilFrshOrgP[i][0], 0.f);
 
     /// define variables of CENTURY model
     float BLG1 = 0.f, BLG2 = 0.f, BLG3 = 0.f, CLG = 0.f;
@@ -1052,43 +1153,42 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     float LMF = 0.f, LSF = 0.f;
     float RLN = 0.f, RLR = 0.f;
     /// insert new biomass of CENTURY model
-    if (m_CbnModel == 2) {
+    if (m_cbnModel == 2) {
         BLG1 = 0.01f / 0.10f;
         BLG2 = 0.99f;
         BLG3 = 0.10f;
         float XX = log(0.5f / BLG1 - 0.5f);
         BLG2 = (XX - log(1.f / BLG2 - 1.f)) / (1.f - 0.5f);
         BLG1 = XX + 0.5f * BLG2;
-        CLG = BLG3 * m_phuAcc[i] / (m_phuAcc[i] + exp(BLG1 - BLG2 * m_phuAcc[i]));
+        CLG = BLG3 * m_phuAccum[i] / (m_phuAccum[i] + exp(BLG1 - BLG2 * m_phuAccum[i]));
         sf = 0.05f;
         sol_min_n = m_soilNO3[i][0] + m_soilNH4[i][0];
         // resnew = resnew; // why do this?
-        resnew_n = ff1 * (m_plantN[i] - yieldn);
+        resnew_n = ff1 * (m_pltN[i] - yieldn);
         resnew_ne = resnew_n + sf * sol_min_n;
 
         RLN = resnew * CLG / (resnew_n + 1.e-5f);
         RLR = Min(0.8f, resnew * CLG / (resnew + 1.e-5f));
         LMF = 0.85f - 0.018f * RLN;
-        if (LMF < 0.01f) { LMF = 0.01f; }
-        else if (LMF > 0.7f) LMF = 0.7f;
+        if (LMF < 0.01f) { LMF = 0.01f; } else if (LMF > 0.7f) LMF = 0.7f;
         LSF = 1.f - LMF;
-        m_sol_LM[i][0] += LMF * resnew;
-        m_sol_LS[i][0] += LSF * resnew;
+        m_soilLM[i][0] += LMF * resnew;
+        m_soilLS[i][0] += LSF * resnew;
 
-        m_sol_LSL[i][0] += RLR * resnew;
-        m_sol_LSC[i][0] += 0.42f * LSF * resnew;
+        m_soilLSL[i][0] += RLR * resnew;
+        m_soilLSC[i][0] += 0.42f * LSF * resnew;
 
-        m_sol_LSLC[i][0] += RLR * 0.42f * resnew;
-        m_sol_LSLNC[i][0] = m_sol_LSC[i][0] - m_sol_LSLC[i][0];
+        m_soilLSLC[i][0] += RLR * 0.42f * resnew;
+        m_soilLSLNC[i][0] = m_soilLSC[i][0] - m_soilLSLC[i][0];
 
         if (resnew_n > 0.42f * LSF * resnew / 150.f) {
-            m_sol_LSN[i][0] += 0.42f * LSF * resnew / 150.f;
-            m_sol_LMN[i][0] += resnew_n - 0.42f * LSF * resnew / 150.f + 1.e-25f;
+            m_soilLSN[i][0] += 0.42f * LSF * resnew / 150.f;
+            m_soilLMN[i][0] += resnew_n - 0.42f * LSF * resnew / 150.f + 1.e-25f;
         } else {
-            m_sol_LSN[i][0] += resnew_n;
-            m_sol_LMN[i][0] += 1.e-25f;
+            m_soilLSN[i][0] += resnew_n;
+            m_soilLMN[i][0] += 1.e-25f;
         }
-        m_sol_LMC[i][0] += 0.42f * LMF * resnew;
+        m_soilLMC[i][0] += 0.42f * LMF * resnew;
         /// update no3 and nh4 in soil
         m_soilNO3[i][0] *= 1.f - sf;
         m_soilNH4[i][0] *= 1.f - sf;
@@ -1098,47 +1198,45 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     /// allocate dead roots, N, P to soil layers
     for (int l = 0; l < m_nSoilLayers[i]; l++) {
         m_soilRsd[i][l] += tmp_rtfr[l] * rtresnew;
-        m_soilFreshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_plantN[i] - yieldn);
-        m_soilFreshOrgP[i][l] += tmp_rtfr[l] * ff2 * (m_plantP[i] - yieldp);
+        m_soilFrshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_pltN[i] - yieldn);
+        m_soilFrshOrgP[i][l] += tmp_rtfr[l] * ff2 * (m_pltP[i] - yieldp);
 
         /// insert new biomass of CENTURY model
-        if (m_CbnModel == 2) {
-            if (l == 1) { sf = 0.05f; }
-            else { sf = 0.1f; }
+        if (m_cbnModel == 2) {
+            if (l == 1) { sf = 0.05f; } else { sf = 0.1f; }
 
             sol_min_n = m_soilNO3[i][l] + m_soilNH4[i][l]; // kg/ha
             resnew = tmp_rtfr[l] * rtresnew;
-            resnew_n = tmp_rtfr[l] * ff2 * (m_plantN[i] - yieldn);
+            resnew_n = tmp_rtfr[l] * ff2 * (m_pltN[i] - yieldn);
             resnew_ne = resnew_n + sf * sol_min_n;
 
             RLN = resnew * CLG / (resnew_n + 1.e-5f);
             RLR = Min(0.8f, resnew * CLG / 1000.f / (resnew / 1000.f + 1.e-5f));
             LMF = 0.85f - 0.018f * RLN;
-            if (LMF < 0.01f) { LMF = 0.01f; }
-            else if (LMF > 0.7f) LMF = 0.7f;
+            if (LMF < 0.01f) { LMF = 0.01f; } else if (LMF > 0.7f) LMF = 0.7f;
 
             LSF = 1.f - LMF;
-            m_sol_LM[i][l] += LMF * resnew;
-            m_sol_LS[i][l] += LSF * resnew;
+            m_soilLM[i][l] += LMF * resnew;
+            m_soilLS[i][l] += LSF * resnew;
 
             /// here a simplified assumption of 0.5 LSL
             //LSLF = 0.f;
             //LSLF = CLG;
 
-            m_sol_LSL[i][l] += RLR * LSF * resnew;
-            m_sol_LSC[i][l] += 0.42f * LSF * resnew;
+            m_soilLSL[i][l] += RLR * LSF * resnew;
+            m_soilLSC[i][l] += 0.42f * LSF * resnew;
 
-            m_sol_LSLC[i][l] += RLR * 0.42f * LSF * resnew;
-            m_sol_LSLNC[i][l] = m_sol_LSC[i][l] - m_sol_LSLC[i][l];
+            m_soilLSLC[i][l] += RLR * 0.42f * LSF * resnew;
+            m_soilLSLNC[i][l] = m_soilLSC[i][l] - m_soilLSLC[i][l];
 
             if (resnew_ne > 0.42f * LSF * resnew / 150.f) {
-                m_sol_LSN[i][l] += 0.42f * LSF * resnew / 150.f;
-                m_sol_LMN[i][l] += resnew_ne - 0.42f * LSF * resnew / 150.f + 1.e-25f;
+                m_soilLSN[i][l] += 0.42f * LSF * resnew / 150.f;
+                m_soilLMN[i][l] += resnew_ne - 0.42f * LSF * resnew / 150.f + 1.e-25f;
             } else {
-                m_sol_LSN[i][l] += resnew_ne;
-                m_sol_LMN[i][l] += 1.e-25f;
+                m_soilLSN[i][l] += resnew_ne;
+                m_soilLMN[i][l] += 1.e-25f;
             }
-            m_sol_LMC[i][l] += 0.42f * LMF * resnew;
+            m_soilLMC[i][l] += 0.42f * LMF * resnew;
             /// update no3 and nh4 in soil
             m_soilNO3[i][l] *= 1.f - sf;
             m_soilNH4[i][l] *= 1.f - sf;
@@ -1153,18 +1251,18 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int &factoryID, int nOp) {
     m_dormFlag[i] = 0.f;
     m_biomass[i] = 0.f;
     m_frRoot[i] = 0.f;
-    m_plantN[i] = 0.f;
-    m_plantP[i] = 0.f;
-    m_frStrsWa[i] = 1.f;
-    m_LAIDay[i] = 0.f;
-    m_havstIdxAdj[i] = 0.f;
-    m_phuAcc[i] = 0.f;
-    m_phuPlant[i] = 0.f;
+    m_pltN[i] = 0.f;
+    m_pltP[i] = 0.f;
+    m_frStrsWtr[i] = 1.f;
+    m_lai[i] = 0.f;
+    m_hvstIdxAdj[i] = 0.f;
+    m_phuAccum[i] = 0.f;
+    m_phuPlt[i] = 0.f;
 }
 
-void MGTOpt_SWAT::RootFraction(int i, float *&root_fr) {
+void MGTOpt_SWAT::RootFraction(int i, float*& root_fr) {
     float cum_rd = 0.f, cum_d = 0.f, cum_rf = 0.f, x1 = 0.f, x2 = 0.f;
-    if (m_lastSoilRootDepth[i] < UTIL_ZERO) {
+    if (m_stoSoilRootD[i] < UTIL_ZERO) {
         root_fr[0] = 1.f;
         return;
     }
@@ -1174,13 +1272,13 @@ void MGTOpt_SWAT::RootFraction(int i, float *&root_fr) {
     float b = 11.7f;
     float c = 0.022f;
     float d = 0.12029f; /// Integral of Normalized Root Distribution Function  from 0 to 1 (normalized depth) = 0.12029
-    int k = 0; /// used as layer identifier
-    for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+    int k = 0;          /// used as layer identifier
+    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
         cum_d += m_soilThick[i][l];
-        if (cum_d >= m_lastSoilRootDepth[i]) cum_rd = m_lastSoilRootDepth[i];
-        if (cum_d < m_lastSoilRootDepth[i]) cum_rd = cum_d;
-        x1 = (cum_rd - m_soilThick[i][l]) / m_lastSoilRootDepth[i];
-        x2 = cum_rd / m_lastSoilRootDepth[i];
+        if (cum_d >= m_stoSoilRootD[i]) cum_rd = m_stoSoilRootD[i];
+        if (cum_d < m_stoSoilRootD[i]) cum_rd = cum_d;
+        x1 = (cum_rd - m_soilThick[i][l]) / m_stoSoilRootD[i];
+        x2 = cum_rd / m_stoSoilRootD[i];
         float xx1 = -b * x1;
         if (xx1 > 20.f) xx1 = 20.f;
         float xx2 = -b * x2;
@@ -1193,23 +1291,24 @@ void MGTOpt_SWAT::RootFraction(int i, float *&root_fr) {
             cum_rf = 1.f;
         }
         k = l;
-        if (cum_rd >= m_lastSoilRootDepth[i]) {
+        if (cum_rd >= m_stoSoilRootD[i]) {
             break;
         }
     }
     /// ensures that cumulative fractional root distribution = 1
-    for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
         root_fr[l] /= cum_rf;
-        if (l == k) { /// exits loop on the same layer as the previous loop
+        if (l == k) {
+            /// exits loop on the same layer as the previous loop
             break;
         }
     }
 }
 
-void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
     /// newtillmix.f
     /// Mix residue and nutrients during tillage and biological mixing
-    TillageOperation *curOperation = static_cast<TillageOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    TillOp* curOperation = static_cast<TillOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     int tillID = curOperation->TillageID();
     float cnop = curOperation->CNOP();
@@ -1222,13 +1321,13 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     float bmix = 0.f;
     float emix = 0.f, dtil = 0.f, XX = 0.f, WW1 = 0.f, WW2 = 0.f;
     float WW3 = 0.f, WW4 = 0.f, maxmix = 0.f;
-    if (nullptr == tmp_soilMass) Initialize1DArray(int(m_soilLayers), tmp_soilMass, 0.f);
-    if (nullptr == tmp_soilMixedMass) Initialize1DArray(int(m_soilLayers), tmp_soilMixedMass, 0.f);
-    if (nullptr == tmp_soilNotMixedMass) Initialize1DArray(int(m_soilLayers), tmp_soilNotMixedMass, 0.f);
+    if (nullptr == tmp_soilMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilMass, 0.f);
+    if (nullptr == tmp_soilMixedMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilMixedMass, 0.f);
+    if (nullptr == tmp_soilNotMixedMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilNotMixedMass, 0.f);
     if (bmix > UTIL_ZERO) {
         /// biological mixing, TODO, in SWAT, this occurs at the end of year process.
         emix = bmix;
-        dtil = Min(m_soilDepth[i][int(m_nSoilLayers[i] - 1)], 50.f);
+        dtil = Min(m_soilDepth[i][CVT_INT(m_nSoilLayers[i] - 1)], 50.f);
     } else {
         /// tillage operation
         emix = effmix;
@@ -1243,7 +1342,8 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
         //cumrai(jj)  = 0.
         //ranrns_hru(jj) = ranrns(idtill)
     }
-    if (m_CbnModel == 2) { /// DSSAT tillage
+    if (m_cbnModel == 2) {
+        /// DSSAT tillage
         m_tillage_days[i] = 0;
         m_tillage_depth[i] = dtil;
         m_tillage_switch[i] = 1;
@@ -1268,14 +1368,14 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
         if (maxmix < 0.05f) maxmix = 0.05f;
         if (emix > maxmix) emix = maxmix;
     }
-    for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
         tmp_soilMass[l] = 10000.f * m_soilThick[i][l] * m_soilBD[i][l] * (1 - m_soilRock[i][l] / 100.f);
         tmp_soilMixedMass[l] = 0.f;
         tmp_soilNotMixedMass[l] = 0.f;
     }
     if (dtil > 0.f) {
         if (dtil < 10.f) dtil = 11.;
-        for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+        for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
             if (m_soilDepth[i][l] <= dtil) {
                 tmp_soilMixedMass[l] = emix * tmp_soilMass[l];
                 tmp_soilNotMixedMass[l] = tmp_soilMass[l] - tmp_soilMixedMass[l];
@@ -1290,17 +1390,18 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
             /// 1. mass based mixing
             WW1 = tmp_soilMixedMass[l] / (tmp_soilMixedMass[l] + tmp_soilNotMixedMass[l]);
             tmp_smix[0] += m_soilNO3[i][l] * WW1;
-            tmp_smix[1] += m_soilStableOrgN[i][l] * WW1;
+            tmp_smix[1] += m_soilStabOrgN[i][l] * WW1;
             tmp_smix[2] += m_soilNH4[i][l] * WW1;
             tmp_smix[3] += m_soilSolP[i][l] * WW1;
-            tmp_smix[4] += m_soilOrgP[i][l] * WW1;
-            tmp_smix[5] += m_soilActiveOrgN[i][l] * WW1;
-            tmp_smix[6] += m_soilActiveMinP[i][l] * WW1;
-            tmp_smix[7] += m_soilFreshOrgN[i][l] * WW1;
-            tmp_smix[8] += m_soilFreshOrgP[i][l] * WW1;
-            tmp_smix[9] += m_soilStableMinP[i][l] * WW1;
+            tmp_smix[4] += m_soilHumOrgP[i][l] * WW1;
+            tmp_smix[5] += m_soilActvOrgN[i][l] * WW1;
+            tmp_smix[6] += m_soilActvMinP[i][l] * WW1;
+            tmp_smix[7] += m_soilFrshOrgN[i][l] * WW1;
+            tmp_smix[8] += m_soilFrshOrgP[i][l] * WW1;
+            tmp_smix[9] += m_soilStabMinP[i][l] * WW1;
             tmp_smix[10] += m_soilRsd[i][l] * WW1;
-            if (m_CbnModel == 1) { /// C-FARM one carbon pool model
+            if (m_cbnModel == 1) {
+                /// C-FARM one carbon pool model
                 tmp_smix[11] += m_soilManureC[i][l] * WW1;
                 tmp_smix[12] += m_soilManureN[i][l] * WW1;
                 tmp_smix[13] += m_soilManureP[i][l] * WW1;
@@ -1308,7 +1409,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
 
             /// 2. concentration based mixing
             WW2 = XX + tmp_soilMixedMass[l];
-            tmp_smix[14] = (XX * tmp_smix[14] + m_soilCarbon[i][l] * tmp_soilMixedMass[l]) / WW2;
+            tmp_smix[14] = (XX * tmp_smix[14] + m_soilCbn[i][l] * tmp_soilMixedMass[l]) / WW2;
             tmp_smix[15] = (XX * tmp_smix[15] + m_soilN[i][l] * tmp_soilMixedMass[l]) / WW2;
             tmp_smix[16] = (XX * tmp_smix[16] + m_soilClay[i][l] * tmp_soilMixedMass[l]) / WW2;
             tmp_smix[17] = (XX * tmp_smix[17] + m_soilSilt[i][l] * tmp_soilMixedMass[l]) / WW2;
@@ -1319,69 +1420,74 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
                 /// smix[19+k] += sol_pst(k,jj,l) * WW1
             }
             /// 4. For CENTURY model
-            if (m_CbnModel == 2) {
-                tmp_smix[19 + npmx + 1] += m_sol_LSC[i][l] * WW1;
-                tmp_smix[19 + npmx + 2] += m_sol_LSLC[i][l] * WW1;
-                tmp_smix[19 + npmx + 3] += m_sol_LSLNC[i][l] * WW1;
-                tmp_smix[19 + npmx + 4] += m_sol_LMC[i][l] * WW1;
-                tmp_smix[19 + npmx + 5] += m_sol_LM[i][l] * WW1;
-                tmp_smix[19 + npmx + 6] += m_sol_LSL[i][l] * WW1;
-                tmp_smix[19 + npmx + 7] += m_sol_LS[i][l] * WW1;
+            if (m_cbnModel == 2) {
+                tmp_smix[19 + npmx + 1] += m_soilLSC[i][l] * WW1;
+                tmp_smix[19 + npmx + 2] += m_soilLSLC[i][l] * WW1;
+                tmp_smix[19 + npmx + 3] += m_soilLSLNC[i][l] * WW1;
+                tmp_smix[19 + npmx + 4] += m_soilLMC[i][l] * WW1;
+                tmp_smix[19 + npmx + 5] += m_soilLM[i][l] * WW1;
+                tmp_smix[19 + npmx + 6] += m_soilLSL[i][l] * WW1;
+                tmp_smix[19 + npmx + 7] += m_soilLS[i][l] * WW1;
 
-                tmp_smix[19 + npmx + 8] += m_sol_LSN[i][l] * WW1;
-                tmp_smix[19 + npmx + 9] += m_sol_LMN[i][l] * WW1;
-                tmp_smix[19 + npmx + 10] += m_sol_BMN[i][l] * WW1;
-                tmp_smix[19 + npmx + 11] += m_sol_HSN[i][l] * WW1;
-                tmp_smix[19 + npmx + 12] += m_sol_HPN[i][l] * WW1;
+                tmp_smix[19 + npmx + 8] += m_soilLSN[i][l] * WW1;
+                tmp_smix[19 + npmx + 9] += m_soilLMN[i][l] * WW1;
+                tmp_smix[19 + npmx + 10] += m_soilBMN[i][l] * WW1;
+                tmp_smix[19 + npmx + 11] += m_soilHSN[i][l] * WW1;
+                tmp_smix[19 + npmx + 12] += m_soilHPN[i][l] * WW1;
             }
             XX += tmp_soilMixedMass[l];
         }
-        for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+        for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
             /// reconstitute each soil layer
             WW3 = tmp_soilNotMixedMass[l] / tmp_soilMass[l];
             WW4 = tmp_soilMixedMass[l] / XX;
             m_soilNO3[i][l] = m_soilNO3[i][l] * WW3 + tmp_smix[0] * WW4;
-            m_soilStableOrgN[i][l] = m_soilStableOrgN[i][l] * WW3 + tmp_smix[1] * WW4;
+            m_soilStabOrgN[i][l] = m_soilStabOrgN[i][l] * WW3 + tmp_smix[1] * WW4;
             m_soilNH4[i][l] = m_soilNH4[i][l] * WW3 + tmp_smix[2] * WW4;
             m_soilSolP[i][l] = m_soilSolP[i][l] * WW3 + tmp_smix[3] * WW4;
-            m_soilOrgP[i][l] = m_soilOrgP[i][l] * WW3 + tmp_smix[4] * WW4;
-            m_soilActiveOrgN[i][l] = m_soilActiveOrgN[i][l] * WW3 + tmp_smix[5] * WW4;
-            m_soilActiveMinP[i][l] = m_soilActiveMinP[i][l] * WW3 + tmp_smix[6] * WW4;
-            m_soilFreshOrgN[i][l] = m_soilFreshOrgN[i][l] * WW3 + tmp_smix[7] * WW4;
-            m_soilFreshOrgP[i][l] = m_soilFreshOrgP[i][l] * WW3 + tmp_smix[8] * WW4;
-            m_soilStableMinP[i][l] = m_soilStableMinP[i][l] * WW3 + tmp_smix[9] * WW4;
+            m_soilHumOrgP[i][l] = m_soilHumOrgP[i][l] * WW3 + tmp_smix[4] * WW4;
+            m_soilActvOrgN[i][l] = m_soilActvOrgN[i][l] * WW3 + tmp_smix[5] * WW4;
+            m_soilActvMinP[i][l] = m_soilActvMinP[i][l] * WW3 + tmp_smix[6] * WW4;
+            m_soilFrshOrgN[i][l] = m_soilFrshOrgN[i][l] * WW3 + tmp_smix[7] * WW4;
+            m_soilFrshOrgP[i][l] = m_soilFrshOrgP[i][l] * WW3 + tmp_smix[8] * WW4;
+            m_soilStabMinP[i][l] = m_soilStabMinP[i][l] * WW3 + tmp_smix[9] * WW4;
             m_soilRsd[i][l] = m_soilRsd[i][l] * WW3 + tmp_smix[10] * WW4;
             if (m_soilRsd[i][l] < 1.e-10f) m_soilRsd[i][l] = 1.e-10f;
-            if (m_CbnModel == 1) {
+            if (m_cbnModel == 1) {
                 m_soilManureC[i][l] = m_soilManureC[i][l] * WW3 + tmp_smix[11] * WW4;
                 m_soilManureN[i][l] = m_soilManureN[i][l] * WW3 + tmp_smix[12] * WW4;
                 m_soilManureP[i][l] = m_soilManureP[i][l] * WW3 + tmp_smix[13] * WW4;
             }
-            m_soilCarbon[i][l] = (m_soilCarbon[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[14] * tmp_soilMixedMass[l]) / tmp_soilMass[l];
-            m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[15] * tmp_soilMixedMass[l]) / tmp_soilMass[l];
-            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[16] * tmp_soilMixedMass[l]) / tmp_soilMass[l];
-            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[17] * tmp_soilMixedMass[l]) / tmp_soilMass[l];
-            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[18] * tmp_soilMixedMass[l]) / tmp_soilMass[l];
+            m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[14] * tmp_soilMixedMass[l]) /
+                    tmp_soilMass[l];
+            m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[15] * tmp_soilMixedMass[l]) /
+                    tmp_soilMass[l];
+            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[16] * tmp_soilMixedMass[l]) /
+                    tmp_soilMass[l];
+            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[17] * tmp_soilMixedMass[l]) /
+                    tmp_soilMass[l];
+            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[18] * tmp_soilMixedMass[l]) /
+                    tmp_soilMass[l];
 
             for (int k = 0; k < npmx; k++) {
                 /// TODO
                 /// sol_pst(k,jj,l) = sol_pst(k,jj,l) * WW3 + smix(20+k) * WW4
             }
-            if (m_CbnModel == 2) {
-                m_sol_LSC[i][l] = m_sol_LSC[i][l] * WW3 + tmp_smix[19 + npmx + 1] * WW4;
-                m_sol_LSLC[i][l] = m_sol_LSLC[i][l] * WW3 + tmp_smix[19 + npmx + 2] * WW4;
-                m_sol_LSLNC[i][l] = m_sol_LSLNC[i][l] * WW3 + tmp_smix[19 + npmx + 3] * WW4;
-                m_sol_LMC[i][l] = m_sol_LMC[i][l] * WW3 + tmp_smix[19 + npmx + 4] * WW4;
-                m_sol_LM[i][l] = m_sol_LM[i][l] * WW3 + tmp_smix[19 + npmx + 5] * WW4;
-                m_sol_LSL[i][l] = m_sol_LSL[i][l] * WW3 + tmp_smix[19 + npmx + 6] * WW4;
-                m_sol_LS[i][l] = m_sol_LS[i][l] * WW3 + tmp_smix[19 + npmx + 7] * WW4;
-                m_sol_LSN[i][l] = m_sol_LSN[i][l] * WW3 + tmp_smix[19 + npmx + 8] * WW4;
-                m_sol_LMN[i][l] = m_sol_LMN[i][l] * WW3 + tmp_smix[19 + npmx + 9] * WW4;
-                m_sol_BMN[i][l] = m_sol_BMN[i][l] * WW3 + tmp_smix[19 + npmx + 10] * WW4;
-                m_sol_HSN[i][l] = m_sol_HSN[i][l] * WW3 + tmp_smix[19 + npmx + 11] * WW4;
-                m_sol_HPN[i][l] = m_sol_HPN[i][l] * WW3 + tmp_smix[19 + npmx + 12] * WW4;
+            if (m_cbnModel == 2) {
+                m_soilLSC[i][l] = m_soilLSC[i][l] * WW3 + tmp_smix[19 + npmx + 1] * WW4;
+                m_soilLSLC[i][l] = m_soilLSLC[i][l] * WW3 + tmp_smix[19 + npmx + 2] * WW4;
+                m_soilLSLNC[i][l] = m_soilLSLNC[i][l] * WW3 + tmp_smix[19 + npmx + 3] * WW4;
+                m_soilLMC[i][l] = m_soilLMC[i][l] * WW3 + tmp_smix[19 + npmx + 4] * WW4;
+                m_soilLM[i][l] = m_soilLM[i][l] * WW3 + tmp_smix[19 + npmx + 5] * WW4;
+                m_soilLSL[i][l] = m_soilLSL[i][l] * WW3 + tmp_smix[19 + npmx + 6] * WW4;
+                m_soilLS[i][l] = m_soilLS[i][l] * WW3 + tmp_smix[19 + npmx + 7] * WW4;
+                m_soilLSN[i][l] = m_soilLSN[i][l] * WW3 + tmp_smix[19 + npmx + 8] * WW4;
+                m_soilLMN[i][l] = m_soilLMN[i][l] * WW3 + tmp_smix[19 + npmx + 9] * WW4;
+                m_soilBMN[i][l] = m_soilBMN[i][l] * WW3 + tmp_smix[19 + npmx + 10] * WW4;
+                m_soilHSN[i][l] = m_soilHSN[i][l] * WW3 + tmp_smix[19 + npmx + 11] * WW4;
+                m_soilHPN[i][l] = m_soilHPN[i][l] * WW3 + tmp_smix[19 + npmx + 12] * WW4;
             }
-            if (m_CbnModel == 1) {
+            if (m_cbnModel == 1) {
                 /// TODO
                 /// call tillfactor(jj,bmix,emix,dtil,sol_thick)
             }
@@ -1390,15 +1496,15 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int &factoryID, int nOp) {
     if (cnop > 1.e-4f) m_CN2[i] = cnop;
 }
 
-void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int& factoryID, int nOp) {
     /// TODO to be implemented!
     /// harvestop.f
-    //  HarvestOnlyOperation *curOperation = (HarvestOnlyOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    HvstOnlyOp* curOperation = static_cast<HvstOnlyOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     //  /// initialize parameters
     //  float hi_bms = curOperation->HarvestIndexBiomass();
     //  float hi_rsd = curOperation->HarvestIndexResidue();
     //  float harveff = curOperation->HarvestEfficiency();
-    //  if (m_cropLookupMap.find(int(m_landCover[i])) == m_cropLookupMap.end())
+    //  if (m_cropLookupMap.find(CVT_INT(m_landCover[i])) == m_cropLookupMap.end())
     //throw ModelException(MID_PLTMGT_SWAT, "ExecuteHarvestOnlyOperation", "The landcover ID " + ValueToString(m_landCover[i])
     //+ " is not existed in crop lookup table!");
     //  /// Get some parameters of current crop / landcover
@@ -1418,7 +1524,7 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //  float ssn = m_plantN[i];
     //  float ssp = m_plantP[i];
     //  /// calculate modifier for auto fertilization target nitrogen content
-    //  m_targNYld[i] = (1.f - m_frRoot[i] * m_biomass[i] * m_frPlantN[i] * m_autoFertEfficiency[i]);
+    //  m_targNYld[i] = (1.f - m_frRoot[i] * m_biomass[i] * m_frPltN[i] * m_autoFertEfficiency[i]);
     //  /// compute grain yield
     //  float hiad1 = 0.f; /// hiad1       |none           |actual harvest index (adj for water/growth)
     //  float wur = 0.f; /// wur         |none           |water deficiency factor
@@ -1439,8 +1545,8 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      yieldNtbr = Min(yieldTbr * cnyld, 0.80f * m_plantN[i]);
     //      yieldPtbr = Min(yieldTbr * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNtbr = Min(clipTbr * m_frPlantN[i], m_plantN[i] - yieldNtbr);
-    //      clipPtbr = Min(clipTbr * m_frPlantP[i], m_plantP[i] - yieldPtbr);
+    //      clipNtbr = Min(clipTbr * m_frPltN[i], m_plantN[i] - yieldNtbr);
+    //      clipPtbr = Min(clipTbr * m_frPltP[i], m_plantP[i] - yieldPtbr);
     //      m_plantN[i] -= (yieldNtbr + clipNtbr);
     //      m_plantP[i] -= (yieldPtbr + clipPtbr);
     //  }
@@ -1459,8 +1565,8 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      yieldNbms = Min(yieldBms * cnyld, 0.80f * m_plantN[i]);
     //      yieldPbms = Min(yieldBms * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNbms = Min(clipBms * m_frPlantN[i], m_plantN[i] - yieldNbms);
-    //      clipPbms = Min(clipBms * m_frPlantP[i], m_plantP[i] - yieldPbms);
+    //      clipNbms = Min(clipBms * m_frPltN[i], m_plantN[i] - yieldNbms);
+    //      clipPbms = Min(clipBms * m_frPltP[i], m_plantP[i] - yieldPbms);
     //      m_plantN[i] -= (yieldNbms + clipNbms);
     //      m_plantP[i] -= (yieldPbms + clipPbms);
     //  } else
@@ -1474,25 +1580,25 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //      yieldNgrn = Min(yieldGrn * cnyld, 0.80f * m_plantN[i]);
     //      yieldPgrn = Min(yieldGrn * cpyld, 0.80f * m_plantP[i]);
     //      /// calculate nutrients removed with clippings
-    //      clipNgrn = Min(clipGrn * m_frPlantN[i], m_plantN[i] - yieldNgrn);
-    //      clipPgrn = Min(clipGrn * m_frPlantP[i], m_plantP[i] - yieldPgrn);
+    //      clipNgrn = Min(clipGrn * m_frPltN[i], m_plantN[i] - yieldNgrn);
+    //      clipPgrn = Min(clipGrn * m_frPltP[i], m_plantP[i] - yieldPgrn);
     //      m_plantN[i] -= (yieldNgrn + clipNgrn);
     //      m_plantP[i] -= (yieldPgrn + clipPgrn);
     //  }
     //  /// add clippings to residue and organic N and P
     //  m_soilRsd[i][0] += (clipGrn + clipBms + clipTbr);
-    //  m_soilFreshOrgN[i][0] += (clipNgrn + clipNbms + clipNtbr);
-    //  m_soilFreshOrgP[i][0] += (clipPgrn + clipPbms + clipPtbr);
+    //  m_soilFrshOrgN[i][0] += (clipNgrn + clipNbms + clipNtbr);
+    //  m_soilFrshOrgP[i][0] += (clipPgrn + clipPbms + clipPtbr);
     //  /// compute residue yield
     //  float yieldRsd = 0.f, yieldNrsd = 0.f, yieldPrsd = 0.f;
     //  if (hi_rsd > 0.)
     //  {
     //      yieldRsd = hi_rsd * m_soilRsd[i][0];
-    //      yieldNrsd = hi_rsd * m_soilFreshOrgN[i][0];
-    //      yieldPrsd = hi_rsd * m_soilFreshOrgP[i][0];
+    //      yieldNrsd = hi_rsd * m_soilFrshOrgN[i][0];
+    //      yieldPrsd = hi_rsd * m_soilFrshOrgP[i][0];
     //      m_soilRsd[i][0] -= yieldRsd;
-    //      m_soilFreshOrgN[i][0] -= yieldNrsd;
-    //      m_soilFreshOrgP[i][0] -= yieldPrsd;
+    //      m_soilFrshOrgN[i][0] -= yieldNrsd;
+    //      m_soilFrshOrgP[i][0] -= yieldPrsd;
     //  }
     //  float yield = 0.f, yieldN = 0.f, yieldP = 0.f;
     //  yield = yieldGrn + yieldBms + yieldTbr + yieldRsd;
@@ -1531,47 +1637,46 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int &factoryID, int nOp) {
     //  }
 }
 
-void MGTOpt_SWAT::ExecuteKillOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteKillOperation(int i, int& factoryID, int nOp) {
     /// killop.f
     float resnew = 0.f, rtresnew = 0.f;
     resnew = m_biomass[i] * (1.f - m_frRoot[i]);
     rtresnew = m_biomass[i] * m_frRoot[i];
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    float *rtfr = new float[int(m_nSoilLayers[i])];
+    float* rtfr = new float[CVT_INT(m_nSoilLayers[i])];
     RootFraction(i, rtfr);
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
-    m_soilFreshOrgN[i][0] += m_plantN[i] * (1.f - m_frRoot[i]);
-    m_soilFreshOrgP[i][0] += m_plantP[i] * (1.f - m_frRoot[i]);
+    m_soilFrshOrgN[i][0] += m_pltN[i] * (1.f - m_frRoot[i]);
+    m_soilFrshOrgP[i][0] += m_pltP[i] * (1.f - m_frRoot[i]);
     m_soilRsd[i][0] = Max(m_soilRsd[i][0], 0.f);
-    m_soilFreshOrgN[i][0] = Max(m_soilFreshOrgN[i][0], 0.f);
-    m_soilFreshOrgP[i][0] = Max(m_soilFreshOrgP[i][0], 0.f);
+    m_soilFrshOrgN[i][0] = Max(m_soilFrshOrgN[i][0], 0.f);
+    m_soilFrshOrgP[i][0] = Max(m_soilFrshOrgP[i][0], 0.f);
 
     /// allocate dead roots, N and P to soil layers
-    for (int l = 0; l < int(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
         m_soilRsd[i][l] += rtfr[l] * rtresnew;
-        m_soilFreshOrgN[i][l] += rtfr[l] * m_plantN[i] * m_frRoot[i];
-        m_soilFreshOrgP[i][l] += rtfr[l] * m_plantP[i] * m_frRoot[i];
+        m_soilFrshOrgN[i][l] += rtfr[l] * m_pltN[i] * m_frRoot[i];
+        m_soilFrshOrgP[i][l] += rtfr[l] * m_pltP[i] * m_frRoot[i];
     }
     /// reset variables
     m_igro[i] = 0.f;
     m_dormFlag[i] = 0.f;
     m_biomass[i] = 0.f;
     m_frRoot[i] = 0.f;
-    m_plantN[i] = 0.f;
-    m_plantP[i] = 0.f;
-    m_frStrsWa[i] = 1.f;
-    m_LAIDay[i] = 0.f;
-    m_havstIdxAdj[i] = 0.f;
+    m_pltN[i] = 0.f;
+    m_pltP[i] = 0.f;
+    m_frStrsWtr[i] = 1.f;
+    m_lai[i] = 0.f;
+    m_hvstIdxAdj[i] = 0.f;
     Release1DArray(rtfr);
-    m_phuAcc[i] = 0.f;
+    m_phuAccum[i] = 0.f;
 }
 
-void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int &factoryID, int nOp) {
-    /// TODO
-    /// graze.f, simulate biomass lost to grazing
-    //GrazingOperation *curOperation = (GrazingOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int& factoryID, int nOp) {
+    /// TODO, graze.f, simulate biomass lost to grazing
+    GrazOp* curOperation = static_cast<GrazOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     //int manureID = curOperation->ManureID();
     //int grzDays = curOperation->GrazingDays();
     //float bioEat = curOperation->BiomassConsumed();
@@ -1579,12 +1684,11 @@ void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int &factoryID, int nOp) {
     //float manueKg = curOperation->ManureDeposited();
 }
 
-void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp) {
-    AutoIrrigationOperation
-        *curOperation = static_cast<AutoIrrigationOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
-    m_autoIrrSource[i] = curOperation->AutoIrrSrcCode();
-    m_autoIrrNo[i] = curOperation->AutoIrrSrcLocs() <= 0 ? int(m_subBsnID[i]) : curOperation->AutoIrrSrcLocs();
-    m_wtrStrsID[i] = curOperation->WaterStrsIdent();
+void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int& factoryID, int nOp) {
+    AutoIrrOp* curOperation = static_cast<AutoIrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    m_autoIrrSource[i] = CVT_FLT(curOperation->AutoIrrSrcCode());
+    m_autoIrrNo[i] = curOperation->AutoIrrSrcLocs() <= 0 ? CVT_FLT(m_subbsnID[i]) : CVT_FLT(curOperation->AutoIrrSrcLocs());
+    m_wtrStrsID[i] = CVT_FLT(curOperation->WaterStrsIdent());
     m_autoWtrStres[i] = curOperation->AutoWtrStrsThrsd();
     m_autoIrrEfficiency[i] = curOperation->IrrigationEfficiency();
     m_autoIrrWtrDepth[i] = curOperation->IrrigationWaterApplied();
@@ -1594,21 +1698,20 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int &factoryID, int nOp)
     /// TODO, this will be implemented as an isolated module in the near future.
 }
 
-void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp) {
-    AutoFertilizerOperation
-        *curOperation = static_cast<AutoFertilizerOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
-    m_fertilizerID[i] = curOperation->FertilizerID();
-    m_NStressCode[i] = curOperation->NitrogenMethod();
+void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int& factoryID, int nOp) {
+    AutoFertOp* curOperation = static_cast<AutoFertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    m_fertilizerID[i] = CVT_FLT(curOperation->FertilizerID());
+    m_NStressCode[i] = CVT_FLT(curOperation->NitrogenMethod());
     m_autoNStress[i] = curOperation->NitrogenStrsFactor();
     m_autoMaxAppliedN[i] = curOperation->MaxMineralN();
     m_autoAnnMaxAppliedMinN[i] = curOperation->MaxMineralNYearly();
     m_autoFertEfficiency[i] = curOperation->FertEfficiency();
     m_autoFertSurface[i] = curOperation->SurfaceFracApplied();
-    if (m_cropLookupMap.find(int(m_landCover[i])) == m_cropLookupMap.end()) {
+    if (m_cropLookupMap.find(CVT_INT(m_landCover[i])) == m_cropLookupMap.end()) {
         return;
     }
-    float cnyld = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_CNYLD];
-    float bio_e = m_cropLookupMap[int(m_landCover[i])][CROP_PARAM_IDX_BIO_E];
+    float cnyld = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_CNYLD];
+    float bio_e = m_cropLookupMap[CVT_INT(m_landCover[i])][CROP_PARAM_IDX_BIO_E];
     /// calculate modifier for auto fertilization target nitrogen content'
     if (m_targNYld[i] < UTIL_ZERO) {
         m_targNYld[i] = 150.f * cnyld * bio_e;
@@ -1617,11 +1720,10 @@ void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int &factoryID, int nOp)
     /// TODO, this will be implemented as an isolated module in the near future.
 }
 
-void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int& factoryID, int nOp) {
     /// No more executable code here.
-    ReleaseImpoundOperation
-        *curOperation = static_cast<ReleaseImpoundOperation *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
-    m_impoundTriger[i] = curOperation->ImpoundTriger();
+    RelImpndOp* curOperation = static_cast<RelImpndOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
+    m_impndTrig[i] = CVT_FLT(curOperation->ImpoundTriger());
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ
     if (m_potVol == nullptr) {
@@ -1631,17 +1733,17 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
     /// paddy rice module should be added!
     m_potVolMax[i] = curOperation->MaxPondDepth();
     m_potVolLow[i] = curOperation->MinFitDepth();
-    if (FloatEqual(m_impoundTriger[i], 0.f)) {
+    if (FloatEqual(m_impndTrig[i], 0.f)) {
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
         m_potVol[i] = curOperation->MaxPondDepth();
         /// force the soil water storage to field capacity
-        for (int ly = 0; ly < int(m_nSoilLayers[i]); ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
-            float dep2cap = m_sol_fc[i][ly] - m_soilStorage[i][ly];
+            float dep2cap = m_soilFC[i][ly] - m_soilWtrSto[i][ly];
             if (dep2cap > 0.f) {
                 dep2cap = Min(dep2cap, m_potVol[i]);
-                m_soilStorage[i][ly] += dep2cap;
+                m_soilWtrSto[i][ly] += dep2cap;
                 m_potVol[i] -= dep2cap;
             }
         }
@@ -1649,9 +1751,9 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
             m_potVol[i] = curOperation->MaxFitDepth();
         } /// force to reach the up depth.
         /// recompute total soil water storage
-        m_soilStorageProfile[i] = 0.f;
-        for (int ly = 0; ly < int(m_nSoilLayers[i]); ly++) {
-            m_soilStorageProfile[i] += m_soilStorage[i][ly];
+        m_soilWtrStoPrfl[i] = 0.f;
+        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
+            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
         }
     } else {
         m_potVolMax[i] = 0.f;
@@ -1659,62 +1761,62 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int &factoryID, int nOp)
     }
 }
 
-void MGTOpt_SWAT::ExecuteContinuousFertilizerOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteContinuousFertilizerOperation(int i, int& factoryID, int nOp) {
     // TODO
-    // ContinuousFertilizerOperation *curOperation = (ContinuousFertilizerOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    ContFertOp* curOperation = static_cast<ContFertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteContinuousPesticideOperation(int i, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteContinuousPesticideOperation(int i, int& factoryID, int nOp) {
     /// TODO
-    // ContinuousPesticideOperation *curOperation = (ContinuousPesticideOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+    ContPestOp* curOperation = static_cast<ContPestOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteBurningOperation(int i, int &factoryID, int nOp) {
-    // BurningOperation *curOperation = (BurningOperation *) m_mgtFactory[factoryID]->GetOperations()[nOp];
+void MGTOpt_SWAT::ExecuteBurningOperation(int i, int& factoryID, int nOp) {
+    BurnOp* curOperation = static_cast<BurnOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// TODO
 }
 
-void MGTOpt_SWAT::ScheduledManagement(int cellIdx, int &factoryID, int nOp) {
+void MGTOpt_SWAT::ScheduledManagement(int cellIdx, int& factoryID, int nOp) {
     /// nOp is seqNo. * 1000 + operationCode
     int mgtCode = nOp % 1000;
     switch (mgtCode) {
-        case BMP_PLTOP_Plant:ExecutePlantOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Plant: ExecutePlantOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Irrigation:ExecuteIrrigationOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Irrigation: ExecuteIrrigationOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Fertilizer:ExecuteFertilizerOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Fertilizer: ExecuteFertilizerOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Pesticide:ExecutePesticideOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Pesticide: ExecutePesticideOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_HarvestKill:ExecuteHarvestKillOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_HarvestKill: ExecuteHarvestKillOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Tillage:ExecuteTillageOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Tillage: ExecuteTillageOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Harvest:ExecuteHarvestOnlyOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Harvest: ExecuteHarvestOnlyOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Kill:ExecuteKillOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Kill: ExecuteKillOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Grazing:ExecuteGrazingOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Grazing: ExecuteGrazingOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_AutoIrrigation:ExecuteAutoIrrigationOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_AutoIrrigation: ExecuteAutoIrrigationOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_AutoFertilizer:ExecuteAutoFertilizerOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_AutoFertilizer: ExecuteAutoFertilizerOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_ReleaseImpound:ExecuteReleaseImpoundOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_ReleaseImpound: ExecuteReleaseImpoundOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_ContinuousFertilizer:ExecuteContinuousFertilizerOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_ContinuousFertilizer: ExecuteContinuousFertilizerOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_ContinuousPesticide:ExecuteContinuousPesticideOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_ContinuousPesticide: ExecuteContinuousPesticideOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_Burning:ExecuteBurningOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Burning: ExecuteBurningOperation(cellIdx, factoryID, nOp);
             break;
-        default:break;
+        default: break;
     }
 }
 
 int MGTOpt_SWAT::Execute() {
-    CheckInputData();  /// essential input data, other inputs for specific management operation will be check separately.
-     InitialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
+    CheckInputData(); /// essential input data, other inputs for specific management operation will be check separately.
+    InitialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
     /// initialize arrays at the beginning of the current day, derived from sim_initday.f of SWAT
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -1735,98 +1837,88 @@ int MGTOpt_SWAT::Execute() {
     return 0;
 }
 
-void MGTOpt_SWAT::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+void MGTOpt_SWAT::Get1DData(const char* key, int* n, float** data) {
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     /// plant operation
-    if (StringMatch(sk, VAR_HITARG)) { *data = m_HarvestIdxTarg; }
-    else if (StringMatch(sk, VAR_BIOTARG)) {
+    if (StringMatch(sk, VAR_HITARG)) { *data = m_HarvestIdxTarg; } else if (StringMatch(sk, VAR_BIOTARG)) {
         *data = m_BiomassTarg;
         /// auto irrigation operation
-    } else if (StringMatch(sk, VAR_IRR_FLAG)) { *data = m_irrFlag; }
-    else if (StringMatch(sk, VAR_IRR_WTR)) { *data = m_appliedWater; }
-    else if (StringMatch(sk, VAR_IRR_SURFQ)) { *data = m_irrSurfQWater; }
-    else if (StringMatch(sk, VAR_AWTR_STRS_ID)) { *data = m_wtrStrsID; }
-    else if (StringMatch(sk, VAR_AWTR_STRS_TRIG)) { *data = m_autoWtrStres; }
-    else if (StringMatch(sk, VAR_AIRR_SOURCE)) { *data = m_autoIrrSource; }
-    else if (StringMatch(sk, VAR_AIRR_LOCATION)) { *data = m_autoIrrNo; }
-    else if (StringMatch(sk, VAR_AIRR_EFF)) { *data = m_autoIrrEfficiency; }
-    else if (StringMatch(sk, VAR_AIRRWTR_DEPTH)) { *data = m_autoIrrWtrDepth; }
-    else if (StringMatch(sk, VAR_AIRRSURF_RATIO)) {
+    } else if (StringMatch(sk, VAR_IRR_FLAG)) { *data = m_irrFlag; } else if (StringMatch(sk, VAR_IRR_WTR)
+    ) { *data = m_appliedWater; } else if (StringMatch(sk, VAR_IRR_SURFQ)) { *data = m_irrSurfQWater; } else if (
+        StringMatch(sk, VAR_AWTR_STRS_ID)) { *data = m_wtrStrsID; } else if (StringMatch(sk, VAR_AWTR_STRS_TRIG)
+    ) { *data = m_autoWtrStres; } else if (StringMatch(sk, VAR_AIRR_SOURCE)) { *data = m_autoIrrSource; } else if (
+        StringMatch(sk, VAR_AIRR_LOCATION)) { *data = m_autoIrrNo; } else if (StringMatch(sk, VAR_AIRR_EFF)
+    ) { *data = m_autoIrrEfficiency; } else if (StringMatch(sk, VAR_AIRRWTR_DEPTH)
+    ) { *data = m_autoIrrWtrDepth; } else if (StringMatch(sk, VAR_AIRRSURF_RATIO)) {
         *data = m_autoSurfRunRatio;
         /// fertilizer / auto fertilizer operation
-    } else if (StringMatch(sk, VAR_AFERT_ID)) { *data = m_fertilizerID; }
-    else if (StringMatch(sk, VAR_AFERT_NSTRSID)) { *data = m_NStressCode; }
-    else if (StringMatch(sk, VAR_AFERT_NSTRS)) { *data = m_autoNStress; }
-    else if (StringMatch(sk, VAR_AFERT_MAXN)) { *data = m_autoMaxAppliedN; }
-    else if (StringMatch(sk, VAR_AFERT_AMAXN)) { *data = m_autoAnnMaxAppliedMinN; }
-    else if (StringMatch(sk, VAR_AFERT_NYLDT)) { *data = m_targNYld; }
-    else if (StringMatch(sk, VAR_AFERT_FRTEFF)) { *data = m_autoFertEfficiency; }
-    else if (StringMatch(sk, VAR_AFERT_FRTSURF)) {
+    } else if (StringMatch(sk, VAR_AFERT_ID)) { *data = m_fertilizerID; } else if (StringMatch(sk, VAR_AFERT_NSTRSID)
+    ) { *data = m_NStressCode; } else if (StringMatch(sk, VAR_AFERT_NSTRS)) { *data = m_autoNStress; } else if (
+        StringMatch(sk, VAR_AFERT_MAXN)) { *data = m_autoMaxAppliedN; } else if (StringMatch(sk, VAR_AFERT_AMAXN)
+    ) { *data = m_autoAnnMaxAppliedMinN; } else if (StringMatch(sk, VAR_AFERT_NYLDT)) { *data = m_targNYld; } else if (
+        StringMatch(sk, VAR_AFERT_FRTEFF)) { *data = m_autoFertEfficiency; } else if (StringMatch(sk, VAR_AFERT_FRTSURF)
+    ) {
         *data = m_autoFertSurface;
         /// Grazing operation
-    } else if (StringMatch(sk, VAR_GRZ_DAYS)) { *data = m_nGrazingDays; }
-    else if (StringMatch(sk, VAR_GRZ_FLAG)) {
+    } else if (StringMatch(sk, VAR_GRZ_DAYS)) { *data = m_nGrazingDays; } else if (StringMatch(sk, VAR_GRZ_FLAG)) {
         *data = m_grzFlag;
         /// Impound/Release operation
-    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { *data = m_impoundTriger; }
-    else if (StringMatch(sk, VAR_POT_VOLMAXMM)) { *data = m_potVolMax; }
-    else if (StringMatch(sk, VAR_POT_VOLLOWMM)) {
+    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { *data = m_impndTrig; } else if (
+        StringMatch(sk, VAR_POT_VOLMAXMM)) { *data = m_potVolMax; } else if (StringMatch(sk, VAR_POT_VOLLOWMM)) {
         *data = m_potVolLow;
         /// tillage operation of CENTURY model
-    } else if (StringMatch(sk, VAR_TILLAGE_DAYS)) { *data = m_tillage_days; }
-    else if (StringMatch(sk, VAR_TILLAGE_DEPTH)) { *data = m_tillage_depth; }
-    else if (StringMatch(sk, VAR_TILLAGE_FACTOR)) { *data = m_tillage_factor; }
-    else if (StringMatch(sk, VAR_TILLAGE_SWITCH)) { *data = m_tillage_switch; }
-    else {
+    } else if (StringMatch(sk, VAR_TILLAGE_DAYS)) { *data = m_tillage_days; } else if (
+        StringMatch(sk, VAR_TILLAGE_DEPTH)) { *data = m_tillage_depth; } else if (StringMatch(sk, VAR_TILLAGE_FACTOR)) {
+        *data = m_tillage_factor;
+    } else if (StringMatch(sk, VAR_TILLAGE_SWITCH)) { *data = m_tillage_switch; } else {
         throw ModelException(MID_PLTMGT_SWAT, "Get1DData", "Parameter " + sk + " is not existed!");
     }
 }
 
-void MGTOpt_SWAT::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-     InitialOutputs();
+void MGTOpt_SWAT::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+    InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_soilLayers;
     /// fertilizer operation
-    if (StringMatch(sk, VAR_SOL_MC)) { *data = m_soilManureC; }
-    else if (StringMatch(sk, VAR_SOL_MN)) { *data = m_soilManureN; }
-    else if (StringMatch(sk, VAR_SOL_MP)) { *data = m_soilManureP; }
-    else {
+    if (StringMatch(sk, VAR_SOL_MC)) { *data = m_soilManureC; } else if (StringMatch(sk, VAR_SOL_MN)) {
+        *data = m_soilManureN;
+    } else if (StringMatch(sk, VAR_SOL_MP)) { *data = m_soilManureP; } else {
         throw ModelException(MID_PLTMGT_SWAT, "Get1DData", "Parameter " + sk + " is not existed!");
     }
 }
 
-void MGTOpt_SWAT:: InitialOutputs() {
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
-    if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth / 10000.f; // unit: ha
-    /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ
+void MGTOpt_SWAT::InitialOutputs() {
     if (m_initialized) return;
-    vector<int> definedMgtCodes;
+    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
+    if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth / 0.0001f; // unit: ha
+    /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ
+    vector<int> defined_mgt_codes;
     for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); ++it) {
-        int factoryID = it->first;
-        vector<int> tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
-        for (auto seqIter = tmpOpSeqences.begin(); seqIter != tmpOpSeqences.end(); ++seqIter) {
-            /// *seqIter is calculated by: seqNo. * 1000 + operationCode
-            int curMgtCode = *seqIter % 1000;
-            if (find(definedMgtCodes.begin(), definedMgtCodes.end(), curMgtCode) == definedMgtCodes.end()) {
-                definedMgtCodes.push_back(curMgtCode);
+        int factory_id = it->first;
+        vector<int> tmp_op_seqences = m_mgtFactory[factory_id]->GetOperationSequence();
+        for (auto seq_iter = tmp_op_seqences.begin(); seq_iter != tmp_op_seqences.end(); ++seq_iter) {
+            /// *seq_iter is calculated by: seqNo. * 1000 + operationCode
+            int cur_mgt_code = *seq_iter % 1000;
+            if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), cur_mgt_code) == defined_mgt_codes.end()) {
+                defined_mgt_codes.push_back(cur_mgt_code);
             }
         }
     }
     /// plant operation
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Plant) != definedMgtCodes.end()) {
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Plant) != defined_mgt_codes.end()) {
         if (m_HarvestIdxTarg == nullptr) Initialize1DArray(m_nCells, m_HarvestIdxTarg, 0.f);
         if (m_BiomassTarg == nullptr) Initialize1DArray(m_nCells, m_BiomassTarg, 0.f);
     }
     /// irrigation / auto irrigation operations
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Irrigation) != definedMgtCodes.end() ||
-        find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_AutoIrrigation) != definedMgtCodes.end()) {
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Irrigation) != defined_mgt_codes.end() ||
+        find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_AutoIrrigation) != defined_mgt_codes.end()) {
         if (m_appliedWater == nullptr) Initialize1DArray(m_nCells, m_appliedWater, 0.f);
         if (m_irrSurfQWater == nullptr) Initialize1DArray(m_nCells, m_irrSurfQWater, 0.f);
         if (m_irrFlag == nullptr) Initialize1DArray(m_nCells, m_irrFlag, 0.f);
-        if (m_autoIrrSource == nullptr) Initialize1DArray(m_nCells, m_autoIrrSource, float(IRR_SRC_OUTWTSD));
+        if (m_autoIrrSource == nullptr) Initialize1DArray(m_nCells, m_autoIrrSource, IRR_SRC_OUTWTSD);
         if (m_autoIrrNo == nullptr) Initialize1DArray(m_nCells, m_autoIrrNo, -1.f);
         if (m_wtrStrsID == nullptr) Initialize1DArray(m_nCells, m_wtrStrsID, 1.f); /// By default, plant water demand
         if (m_autoWtrStres == nullptr) Initialize1DArray(m_nCells, m_autoWtrStres, 0.f);
@@ -1835,8 +1927,8 @@ void MGTOpt_SWAT:: InitialOutputs() {
         if (m_autoSurfRunRatio == nullptr) Initialize1DArray(m_nCells, m_autoSurfRunRatio, 0.f);
     }
     /// fertilizer / auto fertilizer operations
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Fertilizer) != definedMgtCodes.end() ||
-        find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_AutoFertilizer) != definedMgtCodes.end()) {
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Fertilizer) != defined_mgt_codes.end() ||
+        find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_AutoFertilizer) != defined_mgt_codes.end()) {
         if (m_fertilizerID == nullptr) Initialize1DArray(m_nCells, m_fertilizerID, -1.f);
         if (m_NStressCode == nullptr) Initialize1DArray(m_nCells, m_NStressCode, 0.f);
         if (m_autoNStress == nullptr) Initialize1DArray(m_nCells, m_autoNStress, 0.f);
@@ -1846,21 +1938,21 @@ void MGTOpt_SWAT:: InitialOutputs() {
         if (m_autoFertEfficiency == nullptr) Initialize1DArray(m_nCells, m_autoFertEfficiency, 0.f);
         if (m_autoFertSurface == nullptr) Initialize1DArray(m_nCells, m_autoFertSurface, 0.f);
 
-        if (m_CbnModel == 1) {
+        if (m_cbnModel == 1) {
             if (m_soilManureC == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureC, 0.f);
             if (m_soilManureN == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureN, 0.f);
             if (m_soilManureP == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManureP, 0.f);
         }
     }
     /// impound/release operation
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_ReleaseImpound) != definedMgtCodes.end()) {
-        if (m_impoundTriger == nullptr) Initialize1DArray(m_nCells, m_impoundTriger, 1.f);
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_ReleaseImpound) != defined_mgt_codes.end()) {
+        if (m_impndTrig == nullptr) Initialize1DArray(m_nCells, m_impndTrig, 1.f);
         if (m_potVolMax == nullptr) Initialize1DArray(m_nCells, m_potVolMax, 0.f);
         if (m_potVolLow == nullptr) Initialize1DArray(m_nCells, m_potVolLow, 0.f);
     }
     /// tillage
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_Tillage) != definedMgtCodes.end()) {
-        if (m_CbnModel == 2) {
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Tillage) != defined_mgt_codes.end()) {
+        if (m_cbnModel == 2) {
             if (m_tillage_days == nullptr) Initialize1DArray(m_nCells, m_tillage_days, 0.f);
             if (m_tillage_switch == nullptr) Initialize1DArray(m_nCells, m_tillage_switch, 0.f);
             if (m_tillage_depth == nullptr) Initialize1DArray(m_nCells, m_tillage_depth, 0.f);
@@ -1868,8 +1960,8 @@ void MGTOpt_SWAT:: InitialOutputs() {
         }
     }
     /// harvestkill
-    if (find(definedMgtCodes.begin(), definedMgtCodes.end(), BMP_PLTOP_HarvestKill) != definedMgtCodes.end()) {
-        if (m_CbnModel == 2) {
+    if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_HarvestKill) != defined_mgt_codes.end()) {
+        if (m_cbnModel == 2) {
             if (m_grainc_d == nullptr) Initialize1DArray(m_nCells, m_grainc_d, 0.f);
             if (m_stoverc_d == nullptr) Initialize1DArray(m_nCells, m_stoverc_d, 0.f);
             if (m_rsdc_d == nullptr) Initialize1DArray(m_nCells, m_rsdc_d, 0.f);
@@ -1880,12 +1972,12 @@ void MGTOpt_SWAT:: InitialOutputs() {
     m_initialized = true;
 }
 
-float MGTOpt_SWAT::Erfc(float xx) {
+float MGTOpt_SWAT::Erfc(const float xx) {
     float c1 = .19684f, c2 = .115194f;
     float c3 = .00034f, c4 = .019527f;
     float x = 0.f, erf = 0.f, erfc = 0.f;
     x = Abs(sqrt(2.f) * xx);
-    erf = 1.f - pow(float(1.f + c1 * x + c2 * x * x + c3 * pow(x, 3.f) + c4 * pow(x, 4.f)), -4.f);
+    erf = 1.f - pow(CVT_FLT(1.f + c1 * x + c2 * x * x + c3 * pow(x, 3.f) + c4 * pow(x, 4.f)), -4.f);
     if (xx < 0.f) erf = -erf;
     erfc = 1.f - erf;
     return erfc;
