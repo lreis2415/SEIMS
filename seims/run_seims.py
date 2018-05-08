@@ -9,7 +9,7 @@ import os
 import sys
 from subprocess import CalledProcessError
 
-from pygeoc.utils import UtilClass
+from pygeoc.utils import UtilClass, FileClass
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -29,6 +29,8 @@ class MainSEIMS(object):
             self.seims_exec = bin_dir + os.path.sep + 'seims_mpi'
         else:
             self.seims_exec = bin_dir + os.path.sep + 'seims_omp'
+            if not FileClass.is_file_exists(self.seims_exec):
+                self.seims_exec = bin_dir + os.path.sep + 'seims'  # For compiler not support OpenMP
         self.model_dir = os.path.abspath(model_dir)
         self.nthread = nthread
         self.lyrmtd = lyrmtd
