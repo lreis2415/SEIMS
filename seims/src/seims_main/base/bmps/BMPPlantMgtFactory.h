@@ -7,7 +7,7 @@
 #define SEIMS_BMP_PLANTMGT_H
 
 #include "BMPFactory.h"
-#include "PltMgtOp.h"
+#include "PlantManagementOperation.h"
 
 using namespace bmps;
 using namespace plant_management;
