@@ -47,13 +47,13 @@ public:
     int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    const vector<int>& GetLocations() const { return m_location; }
+    vector<int>& GetLocations() { return m_location; }
 
     /// Get operation sequence
-    const vector<int>& GetOperationSequence() const { return m_bmpSequence; }
+    vector<int>& GetOperationSequence() { return m_bmpSequence; }
 
     /// Get operations
-    const map<int, PltMgtOp *>& GetOperations() const { return m_bmpPlantOps; }
+    map<int, PltMgtOp *>& GetOperations() { return m_bmpPlantOps; }
 
     /// Get operation by ID
     PltMgtOp* GetOperation(int ID) { return m_bmpPlantOps.at(ID); }

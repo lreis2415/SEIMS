@@ -53,11 +53,11 @@ public:
 private:
     /*!
     * \brief Get operation parameters according to operation sequence number
-    * \param[in] cellIdx current cell index
+    * \param[in] i current cell index
     * \param[out] factoryID Index of Plant BMPs factory
     * \param[out] nOps Operation sequence number, and there might be several operation occurred on one day
     */
-    bool GetOperationCode(int cellIdx, int &factoryID, vector<int> &nOps);
+    bool GetOperationCode(int i, int factoryID, vector<int> &nOps);
 
     /*!
     * \brief Manager all operations on schedule
@@ -145,12 +145,16 @@ private:
     /// distributes dead root mass through the soil profile
     void RootFraction(int i, float *&root_fr);
 private:
+    /// SubScenario ID
+    int m_subSceneID;
     /*
     * Plant management factory derived from BMPs Scenario
     * Key is  uniqueBMPID, which is calculated by Landuse_ID * 100 + subScenario;
     * Value is a series of plant management operations
     */
     map<int, BMPPlantMgtFactory *> m_mgtFactory;
+    /// Landuse configured plant management operations
+    vector<int> m_landuseMgtOp;
     /// valid cells number
     int m_nCells;
     /// cell width (m)
@@ -242,9 +246,9 @@ private:
     /// land cover/crop  classification:1-7, i.e., IDC
     float *m_landCoverCls;
     /// Harvest index target, defined in plant operation and used in harvest/kill operation
-    float *m_HarvestIdxTarg;
+    float *m_HvstIdxTrgt;
     /// Biomass target
-    float *m_BiomassTarg;
+    float *m_BiomTrgt;
     /// current year in rotation to maturity
     float *m_curYrMat;
     /// wsyf(:)     |(kg/ha)/(kg/ha)|Value of harvest index between 0 and HVSTI
@@ -325,11 +329,11 @@ private:
     int m_cbnModel;
     /**** 1 - C-FARM model ****/
     /// manure organic carbon in soil, kg/ha
-    float **m_soilManureC;
+    float **m_soilManC;
     /// manure organic nitrogen in soil, kg/ha
-    float **m_soilManureN;
+    float **m_soilManN;
     /// manure organic phosphorus in soil, kg/ha
-    float **m_soilManureP;
+    float **m_soilManP;
     /**** 2 - CENTURY model ****/
     float **m_soilHSN; /// slow Nitrogen pool in soil, equals to soil active organic n pool in SWAT
     float **m_soilLM; /// metabolic litter SOM pool
@@ -343,10 +347,11 @@ private:
     float **m_soilLSLNC; /// non-lignin part of the structural litter C
 
     /// tillage factor on SOM decomposition, used by CENTURY model
-    float *m_tillage_switch;
-    float *m_tillage_depth;
-    float *m_tillage_days;
-    float *m_tillage_factor;
+
+    float *m_tillSwitch; /// switch of whether to tillage
+    float *m_tillDepth; /// days from tillage
+    float *m_tillDays; /// tillage depth
+    float *m_tillFactor; /// influence factor of tillage operation
     float **m_soilBMN; ///
     float **m_soilHPN; ///
 
@@ -355,9 +360,9 @@ private:
     /// irrigation flag
     float *m_irrFlag;
     /// aird(:)        |mm H2O        |amount of water applied to cell on current day
-    float *m_appliedWater;
+    float *m_irrWtrAmt;
     /// qird(:)        |mm H2O        |amount of water from irrigation to become surface runoff
-    float *m_irrSurfQWater;
+    float *m_irrWtr2SurfqAmt;
     /// Currently, deep and shallow aquifer are not distinguished in SEIMS.
     /// So, m_deepWaterDepth and m_shallowWaterDepth are all set to m_SBGS
     ///  deepst(:)      |mm H2O        |depth of water in deep aquifer
@@ -375,17 +380,17 @@ private:
     /// Water stress identifier, 1 plant water demand, 2 soil water content
     float *m_wtrStrsID;
     /// Water stress threshold that triggers irrigation, if m_wtrStresID is 1, the value usually 0.90 ~ 0.95
-    float *m_autoWtrStres;
+    float *m_autoWtrStrsTrig;
     /// irrigation source
-    float *m_autoIrrSource;
+    float *m_autoIrrSrc;
     /// irrigation source location code
-    float *m_autoIrrNo;
+    float *m_autoIrrLocNo;
     /// auto irrigation efficiency, 0 ~ 100, IRR_EFF
-    float *m_autoIrrEfficiency;
+    float *m_autoIrrEff;
     /// amount of irrigation water applied each time auto irrigation is triggered (mm), 0 ~ 100, IRR_MX
-    float *m_autoIrrWtrDepth;
+    float *m_autoIrrWtrD;
     /// surface runoff ratio (0-1) (0.1 is 10% surface runoff), IRR_ASQ
-    float *m_autoSurfRunRatio;
+    float *m_autoIrrWtr2SurfqR;
     ///**Bacteria related**/
     //////// TODO, bacteria modeling will be implemented in the future. (bacteria.f)
     ///// fraction of manure containing active colony forming units (cfu)
@@ -445,31 +450,31 @@ private:
     /**auto fertilizer operation**/
 
     /// fertilizer ID from fertilizer database
-    float *m_fertilizerID;
+    float *m_fertID;
     /* Code for approach used to determine amount of nitrogen to Cell
             0 Nitrogen target approach
             1 annual max approach */
-    float *m_NStressCode;
+    float *m_NStrsMeth;
     /// Nitrogen stress factor of cover/plant that triggers fertilization, usually set 0.90 to 0.95
-    float *m_autoNStress;
+    float *m_autoNStrsTrig;
     /// Maximum amount of mineral N allowed in any one application (kg N/ha), auto_napp
-    float *m_autoMaxAppliedN;
+    float *m_autoFertMaxApldN;
     /// Maximum amount of mineral N allowed to be applied in any one year (kg N/ha), auto_nyr
-    float *m_autoAnnMaxAppliedMinN;
+    float *m_autoFertMaxAnnApldMinN;
     /// modifier for auto fertilization target nitrogen content, tnylda
-    float *m_targNYld;
+    float *m_autoFertNtrgtMod;
     /// auto_eff(:) |none           |fertilizer application efficiency calculated as the amount of N applied divided by the amount of N removed at harvest
-    float *m_autoFertEfficiency;
+    float *m_autoFertEff;
     /// Fraction of fertilizer applied to top 10mm of soil, the default is 0.2
-    float *m_autoFertSurface;
+    float *m_autoFertSurfFr;
     /** Grazing operation **/
 
     /// ndeat(:)    |days          |number of days cell has been grazed
-    float *m_nGrazingDays;
+    float *m_nGrazDays;
     /*  igrz(:)     |none          |grazing flag for cell:
                                                 |0 cell currently not grazed
                                                 |1 cell currently grazed */
-    float *m_grzFlag;
+    float *m_grazFlag;
     /** Release or Impound Operation **/
 
     /* |release/impound action code:
