@@ -11,6 +11,7 @@
 #define SIMULATION_MOUDULE_BASE
 
 #include "basic.h"
+#include "utils_time.h"
 #include "Scenario.h"  /// added by LJ. 2016-6-14
 #include "clsReach.h"
 #include "clsSubbasin.h"
@@ -20,6 +21,7 @@
 #include <ctime>
 
 using namespace ccgl;
+using namespace utils_time;
 using namespace bmps;
 
 /*!
@@ -40,7 +42,8 @@ enum TimeStepType {
 class SimulationModule: Interface {
 public:
     //! Constructor
-    SimulationModule(): m_date(-1), m_yearIdx(-1), m_tsCounter(1), m_inputsSetDone(false) {
+    SimulationModule(): m_date(-1), m_yearIdx(-1), m_year(1900), m_month(-1), m_day(-1),
+                        m_tsCounter(1), m_inputsSetDone(false) {
     }
 
     //! Execute the simulation
@@ -50,6 +53,11 @@ public:
     virtual void SetDate(const time_t t, const int year_idx) {
         m_date = t;
         m_yearIdx = year_idx;
+        struct tm date_info;
+        LocalTime(m_date, &date_info);
+        m_year = date_info.tm_year + 1900;
+        m_month = date_info.tm_mon + 1;
+        m_day = date_info.tm_mday;
     }
 
     //! Set thread number for OpenMP
@@ -167,6 +175,12 @@ protected:
     time_t m_date;
     /// index of current year of simulation, e.g., the simulation period from 2010 to 2015,  m_yearIdx is 2 when simulate 2012.
     int m_yearIdx;
+    /// year
+    int m_year;
+    /// months since January - [1,12]
+    int m_month;
+    /// day of the month - [1,31]
+    int m_day;
     /// sub-timestep counter
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.
