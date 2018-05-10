@@ -37,7 +37,8 @@ const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
 /*!
  * \brief Common used const.
  */
-const float _23 = 0.6666666666666666f;
+const float _2div3 = 0.6666666666666666f; /// 2. / 3.
+const float _8div3 = 2.6666666666666665f; /// 8. / 3.
 const float SQ2 = 1.4142135623730951f;
 
 #define MIN_FLUX        1e-12f /// \def minimum flux (m3/s) in kinematic wave
