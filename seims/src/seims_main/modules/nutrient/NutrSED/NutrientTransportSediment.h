@@ -2,15 +2,15 @@
  * \brief Nutrient removed and lost in surface runoff.
  *        Support three carbon model, static method (orgn.f), C-FARM one carbon model (orgncswat.f), and CENTURY C/N cycling model (NCsed_leach.f90) from SWAT
  *        As for phosphorus, psed.f of SWAT calculates the attached to sediment in surface runoff.
- * \author Huiran Gao
+ * \author Huiran Gao, Liangjun Zhu
  * \date April 2016
- *
- * \revised Liang-Jun Zhu
- * \date 2016-9-28
- * \description: 1. Code revision.
- *               2. Add CENTURY model of calculating organic nitrogen removed in surface runoff
- * \TODO         1. Ammonian adsorbed to soil should be considered.
- *               3. 2017-8-23 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
+ * \changelog: 2016-04-30 - hr - Initial implementation.\n
+ *             2016-09-28 - lj - 1. Code revision.\n
+ *                               2. Add CENTURY model of calculating organic nitrogen removed in surface runoff.\n
+ *             2017-08-23 - lj -  Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
+ *             2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
+ *                               2. Code optimization, e.g., use multiply instead of divide.\n
+ * \TODO       1. Ammonian adsorbed to soil should be considered.
  */
 #ifndef SEIMS_MODULE_NUTRSED_H
 #define SEIMS_MODULE_NUTRSED_H
@@ -30,25 +30,25 @@
  *
  */
 
-class NutrientTransportSediment : public SimulationModule {
+class NutrientTransportSediment: public SimulationModule {
 public:
     NutrientTransportSediment();
 
     ~NutrientTransportSediment();
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nRows, int nCols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void SetSubbasins(clsSubbasins *) OVERRIDE;
+    void SetSubbasins(clsSubbasins*) OVERRIDE;
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
     /*!
@@ -61,13 +61,13 @@ private:
     * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
     * \return bool The validity of the inputs data.
     */
-    bool CheckInputData_CENTURY();
+    bool CheckInputDataCenturyModel();
 
     /*!
     * \brief check the input data for running C-FARM one carbon model. Make sure all the inputs data is available.
     * \return bool The validity of the inputs data.
     */
-    bool CheckInputData_CFARM();
+    bool CheckInputDataCFarmModel();
 
     /*!
     * \brief check the input size. Make sure all the input data have same dimension.
@@ -76,14 +76,14 @@ private:
     * \param[in] n The input data dimension
     * \return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     /*!
     * \brief calculates the amount of organic nitrogen removed in surface runoff.
     *        orgn.f of SWAT, when CSWAT = 0
     * \return void
     */
-    void OrgNRemovedInRunoff_StaticMethod(int i);
+    void OrgNRemovedInRunoffStaticMethod(int i);
 
     /*!
     * \brief calculates the amount of organic nitrogen removed in surface runoff.
@@ -91,14 +91,14 @@ private:
     * \TODO THIS IS ON TODO LIST
     * \return void
     */
-    void OrgNRemovedInRunoff_CFARMOneCarbonModel(int i);
+    void OrgNRemovedInRunoffCFarmOneCarbonModel(int i);
 
     /*!
     * \brief calculates the amount of organic nitrogen removed in surface runoff.
     *        NCsed_leach.f90 of SWAT, when CSWAT = 2
     * \return void
     */
-    void OrgNRemovedInRunoff_CENTURY(int i);
+    void OrgNRemovedInRunoffCenturyModel(int i);
 
     /*!
     * \brief Calculates the amount of organic and mineral phosphorus attached to sediment in surface runoff.
@@ -108,7 +108,7 @@ private:
     void OrgPAttachedtoSed(int i);
 
     /// initial outputs
-    void  InitialOutputs();
+    void InitialOutputs();
 private:
     /// subbasins number
     int m_nSubbasins;
@@ -121,99 +121,101 @@ private:
     /// number of cells
     int m_nCells;
     /// soil layers
-    float *m_nSoilLayers;
+    float* m_nSoilLyrs;
     /// maximum soil layers
-    int m_nMaxSoiLayers;
+    int m_maxSoilLyrs;
     /// soil rock content, %
-    float **m_sol_rock;
+    float** m_soilRock;
     /// sol_ul, soil saturated water amount, mm
-    float **m_sol_wsatur;
+    float** m_soilSat;
     /* carbon modeling method
      *   = 0 Static soil carbon (old mineralization routines)
      *   = 1 C-FARM one carbon pool model
      *   = 2 Century model
      */
-    int m_CbnModel;
+    int m_cbnModel;
     /// enrichment ratio
-    float *m_enratio;
+    float* m_enratio;
 
     ///inputs
 
     // soil loss caused by water erosion
-    float *m_sedEroded;
+    float* m_sedEroded;
     // surface runoff generated
-    float *m_surfaceRunoff;
+    float* m_surfRf;
     //bulk density of the soil
-    float **m_sol_bd;
+    float** m_soilBD;
     // thickness of soil layer
-    float **m_soilThick;
+    float** m_soilThk;
+    /// Soil mass (kg/ha)
+    float** m_soilMass;
 
     /// subbasin related
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
-    float *m_subbasin;
+    float* m_subbasin;
     /// subbasins information
-    clsSubbasins *m_subbasinsInfo;
+    clsSubbasins* m_subbasinsInfo;
 
     ///output data
     //amount of organic nitrogen in surface runoff
-    float *m_sedorgn;
+    float* m_sedorgn;
     //amount of organic phosphorus in surface runoff
-    float *m_sedorgp;
+    float* m_sedorgp;
     //amount of active mineral phosphorus sorbed to sediment in surface runoff
-    float *m_sedminpa;
+    float* m_sedminpa;
     //amount of stable mineral phosphorus sorbed to sediment in surface runoff
-    float *m_sedminps;
+    float* m_sedminps;
 
     /// output to channel
 
-    float *m_sedorgnToCh;  // amount of organic N in surface runoff to channel, kg
-    float *m_sedorgpToCh;  // amount of organic P in surface runoff to channel, kg
-    float *m_sedminpaToCh; // amount of active mineral P in surface runoff to channel, kg
-    float *m_sedminpsToCh; // amount of stable mineral P in surface runoff to channel, kg
+    float* m_sedorgnToCh;  // amount of organic N in surface runoff to channel, kg
+    float* m_sedorgpToCh;  // amount of organic P in surface runoff to channel, kg
+    float* m_sedminpaToCh; // amount of active mineral P in surface runoff to channel, kg
+    float* m_sedminpsToCh; // amount of stable mineral P in surface runoff to channel, kg
 
     ///input & output
     //amount of nitrogen stored in the active organic (humic) nitrogen pool, kg N/ha
-    float **m_sol_aorgn;
+    float** m_soilActvOrgN;
     //amount of nitrogen stored in the fresh organic (residue) pool, kg N/ha
-    float **m_sol_fon;
+    float** m_soilFrshOrgN;
     //amount of nitrogen stored in the stable organic N pool, kg N/ha
-    float **m_sol_orgn;
+    float** m_soilStabOrgN;
     //amount of phosphorus stored in the organic P pool, kg P/ha
-    float **m_sol_orgp;
+    float** m_soilHumOrgP;
     //amount of phosphorus stored in the fresh organic (residue) pool, kg P/ha
-    float **m_sol_fop;
+    float** m_soilFrshOrgP;
     //amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool, kg P/ha
-    float **m_sol_stap;
+    float** m_soilStabMinP;
     //amount of phosphorus stored in the active mineral phosphorus pool, kg P/ha
-    float **m_sol_actp;
+    float** m_soilActvMinP;
     /// for C-FARM one carbon model
-    float **m_sol_mp;
+    float** m_soilManP;
     /// for CENTURY C/Y cycling model
     /// inputs from other modules
-    float **m_sol_LSN;
-    float **m_sol_LMN;
-    float **m_sol_HPN;
-    float **m_sol_HSN;
-    float **m_sol_HPC;
-    float **m_sol_HSC;
-    float **m_sol_LMC;
-    float **m_sol_LSC;
-    float **m_sol_LS;
-    float **m_sol_LM;
-    float **m_sol_LSL;
-    float **m_sol_LSLC;
-    float **m_sol_LSLNC;
-    float **m_sol_BMC;
-    float **m_sol_WOC;
-    float **m_sol_perco;
-    float **m_sol_laterq;
+    float** m_sol_LSN;
+    float** m_sol_LMN;
+    float** m_sol_HPN;
+    float** m_sol_HSN;
+    float** m_sol_HPC;
+    float** m_sol_HSC;
+    float** m_sol_LMC;
+    float** m_sol_LSC;
+    float** m_sol_LS;
+    float** m_sol_LM;
+    float** m_sol_LSL;
+    float** m_sol_LSLC;
+    float** m_sol_LSLNC;
+    float** m_sol_BMC;
+    float** m_sol_WOC;
+    float** m_soilPerco;
+    float** m_subSurfRf;
     /// outputs
-    float **m_sol_latC; /// lateral flow Carbon loss in each soil layer
-    float **m_sol_percoC; /// percolation Carbon loss in each soil layer
-    float *m_laterC; /// lateral flow Carbon loss in soil profile
-    float *m_percoC; /// percolation Carbon loss in soil profile
-    float *m_sedCLoss; /// amount of C lost with sediment pools
+    float** m_sol_latC;   /// lateral flow Carbon loss in each soil layer
+    float** m_sol_percoC; /// percolation Carbon loss in each soil layer
+    float* m_laterC;      /// lateral flow Carbon loss in soil profile
+    float* m_percoC;      /// percolation Carbon loss in soil profile
+    float* m_sedCLoss;    /// amount of C lost with sediment pools
 };
 #endif /* SEIMS_MODULE_NUTRSED_H */

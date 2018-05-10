@@ -192,7 +192,6 @@ float ImplicitKinematicWave_OL::GetNewQ(float qIn, float qLast, float surplus, f
 
 void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     const float beta = 0.6f;
-    const float _23 = 2.0f / 3.0f;
     float beta1 = 1 / beta;
 
     float h = m_sr[id] / 1000.f;
@@ -204,7 +203,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
     }
 
     float sSin = sqrt(sin(m_sRadian[id]));
-    m_alpha[id] = pow(m_n[id] / sSin * pow(Perim, _23), beta);
+    m_alpha[id] = pow(m_n[id] / sSin * pow(Perim, _2div3), beta);
 
     if (m_alpha[id] > 0) {
         m_q[id] = pow((m_flowWidth[id] * h) / m_alpha[id], beta1);
@@ -212,7 +211,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
         m_q[id] = 0;
     }
 
-    m_vel[id] = pow(r, _23) * sSin / m_n[id];
+    m_vel[id] = pow(r, _2div3) * sSin / m_n[id];
 
     float flowWidth = m_flowWidth[id]; //(little question: why not use m_flowWidth[[id]? by Gao)
     float flowLen = m_flowLen[id];

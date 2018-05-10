@@ -11,13 +11,13 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 //! function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     MetadataInfo mdi;
-    mdi.SetAuthor("Huiran Gao, LiangJun Zhu");
+    mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
     mdi.SetClass(MCLS_NUTRCYC, MCLSDESC_NUTRCYC);
     mdi.SetDescription(MDESC_NUTR_TF);
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MDESC_NUTR_TF);
     mdi.SetName(MDESC_NUTR_TF);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("NUTR_TF.html");
 
@@ -32,8 +32,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_LANDCOVER, UNIT_NON_DIM, DESC_LANDCOVER, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_PL_RSDCO, UNIT_NON_DIM, DESC_PL_RSDCO, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
-    //mdi.AddParameter(VAR_A_DAYS, UNIT_NON_DIM, DESC_A_DAYS, Source_ParameterDB, DT_Raster1D);
-    //mdi.AddParameter(VAR_B_DAYS, UNIT_NON_DIM, DESC_B_DAYS, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILDEPTH, UNIT_DEPTH_MM, DESC_SOILDEPTH, Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster2D);
     mdi.AddParameter(VAR_SOL_RSDIN, UNIT_CONT_KGHA, DESC_SOL_RSDIN, Source_ParameterDB, DT_Raster1D);
@@ -129,6 +127,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_SOL_RSPC, UNIT_CONT_KGHA, DESC_SOL_RSPC, DT_Raster2D);
 
     mdi.AddOutput(VAR_CONV_WT, UNIT_NON_DIM, DESC_CONV_WT, DT_Raster2D);
+
     string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

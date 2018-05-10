@@ -259,7 +259,6 @@ void KinWavSed_OL::initial() {
 
 void KinWavSed_OL::CalcuVelocityOverlandFlow() {
     const float beta = 0.6f;
-    const float _23 = 2.0f / 3;
     float Perim, R, S, n;
 
     for (int i = 0; i < m_nCells; i++) {
@@ -279,7 +278,7 @@ void KinWavSed_OL::CalcuVelocityOverlandFlow() {
             //else
             //	m_OverlandQ[i] = 0;
 
-            m_V[i] = pow(R, _23) * sqrt(S) / n;
+            m_V[i] = pow(R, _2div3) * sqrt(S) / n;
         } else {
             m_V[i] = 0;
         }

@@ -4,11 +4,11 @@
 #include "PlantGrowthCommon.h"
 #include "utils_time.h"
 
-MGTOpt_SWAT::MGTOpt_SWAT() : m_subSceneID(-1), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+MGTOpt_SWAT::MGTOpt_SWAT() : m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
                              m_nSubbsns(-1), m_subbsnID(nullptr),
                              /// add parameters from MongoDB
                              m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr),
-                             m_nSoilLayers(nullptr), m_soilLayers(-1),
+                             m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
                              /// Soil related parameters from MongoDB
                              m_soilDepth(nullptr), m_soilThick(nullptr), m_soilMaxRootD(nullptr), m_soilBD(nullptr),
                              m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCbn(nullptr), m_soilRock(nullptr),
@@ -176,7 +176,7 @@ void MGTOpt_SWAT::SetValue(const char* key, float data) {
     if (StringMatch(sk, VAR_CSWAT)) {
         m_cbnModel = CVT_INT(data);
     } else if (StringMatch(sk, Tag_CellWidth)) {
-        m_cellWidth = data;
+        m_cellWth = data;
     } else if (StringMatch(sk, VAR_SUBBSNID_NUM)) {
         m_nSubbsns = CVT_INT(data);
     } else {
@@ -220,7 +220,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
     }
         /// Soil related parameters from MongoDB
     else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        m_nSoilLayers = data;
+        m_nSoilLyrs = data;
     } else if (StringMatch(sk, VAR_SOL_ZMX)) {
         m_soilMaxRootD = data;
     } else if (StringMatch(sk, VAR_SOL_SUMAWC)) {
@@ -304,13 +304,13 @@ bool MGTOpt_SWAT::CheckInputSize2D(const char* key, int n, int col) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
                              " is invalid. The layer number could not be less than zero.");
     }
-    if (m_soilLayers != col) {
-        if (m_soilLayers <= 0) {
-            m_soilLayers = col;
+    if (m_maxSoilLyrs != col) {
+        if (m_maxSoilLyrs <= 0) {
+            m_maxSoilLyrs = col;
         } else {
             throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
                                  " is invalid. All the layers of input 2D raster data should have same size of " +
-                                 ValueToString(m_soilLayers) + " instead of " +
+                                 ValueToString(m_maxSoilLyrs) + " instead of " +
                                  ValueToString(col) + ".");
         }
     }
@@ -503,8 +503,8 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
 bool MGTOpt_SWAT::CheckInputData() {
     // DT_Single
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_cellWidth);
-    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_soilLayers);
+    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_cellWth);
+    CHECK_POSITIVE(MID_PLTMGT_SWAT, m_maxSoilLyrs);
     CHECK_NONNEGATIVE(MID_PLTMGT_SWAT, m_cbnModel);
     if (m_cbnModel == 2) {
         /// Check for the CENTURY required initialized variables
@@ -525,7 +525,7 @@ bool MGTOpt_SWAT::CheckInputData() {
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landCover);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_mgtFields);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_pgTmpBase);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_nSoilLayers);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_nSoilLyrs);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilMaxRootD);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSumFC);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_CN2);
@@ -723,7 +723,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
         m_biomass[i] = curOperation->BIOInit();
     }
     /// compare maximum rooting depth in soil to maximum rooting depth of plant
-    m_soilMaxRootD[i] = m_soilDepth[i][CVT_INT(m_nSoilLayers[i] - 1)];
+    m_soilMaxRootD[i] = m_soilDepth[i][CVT_INT(m_nSoilLyrs[i] - 1)];
     /// if the land cover does existed, throw an exception.
     if (m_landuseLookupMap.find(CVT_INT(m_landCover[i])) == m_landuseLookupMap.end()) {
         throw ModelException(MID_PLTMGT_SWAT, "ExecutePlantOperation",
@@ -1114,7 +1114,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_soilLayers), tmp_rtfr, 0.f);
+    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_rtfr, 0.f);
     RootFraction(i, tmp_rtfr);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
@@ -1177,7 +1177,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
     /// end insert new biomass of CENTURY model
 
     /// allocate dead roots, N, P to soil layers
-    for (int l = 0; l < m_nSoilLayers[i]; l++) {
+    for (int l = 0; l < m_nSoilLyrs[i]; l++) {
         m_soilRsd[i][l] += tmp_rtfr[l] * rtresnew;
         m_soilFrshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_pltN[i] - yieldn);
         m_soilFrshOrgP[i][l] += tmp_rtfr[l] * ff2 * (m_pltP[i] - yieldp);
@@ -1254,7 +1254,7 @@ void MGTOpt_SWAT::RootFraction(int i, float*& root_fr) {
     float c = 0.022f;
     float d = 0.12029f; /// Integral of Normalized Root Distribution Function  from 0 to 1 (normalized depth) = 0.12029
     int k = 0;          /// used as layer identifier
-    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         cum_d += m_soilThick[i][l];
         if (cum_d >= m_stoSoilRootD[i]) cum_rd = m_stoSoilRootD[i];
         if (cum_d < m_stoSoilRootD[i]) cum_rd = cum_d;
@@ -1277,7 +1277,7 @@ void MGTOpt_SWAT::RootFraction(int i, float*& root_fr) {
         }
     }
     /// ensures that cumulative fractional root distribution = 1
-    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         root_fr[l] /= cum_rf;
         if (l == k) {
             /// exits loop on the same layer as the previous loop
@@ -1302,13 +1302,13 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
     float bmix = 0.f;
     float emix = 0.f, dtil = 0.f, XX = 0.f, WW1 = 0.f, WW2 = 0.f;
     float WW3 = 0.f, WW4 = 0.f, maxmix = 0.f;
-    if (nullptr == tmp_soilMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilMass, 0.f);
-    if (nullptr == tmp_soilMixedMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilMixedMass, 0.f);
-    if (nullptr == tmp_soilNotMixedMass) Initialize1DArray(CVT_INT(m_soilLayers), tmp_soilNotMixedMass, 0.f);
+    if (nullptr == tmp_soilMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilMass, 0.f);
+    if (nullptr == tmp_soilMixedMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilMixedMass, 0.f);
+    if (nullptr == tmp_soilNotMixedMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilNotMixedMass, 0.f);
     if (bmix > UTIL_ZERO) {
         /// biological mixing, TODO, in SWAT, this occurs at the end of year process.
         emix = bmix;
-        dtil = Min(m_soilDepth[i][CVT_INT(m_nSoilLayers[i] - 1)], 50.f);
+        dtil = Min(m_soilDepth[i][CVT_INT(m_nSoilLyrs[i] - 1)], 50.f);
     } else {
         /// tillage operation
         emix = effmix;
@@ -1349,14 +1349,14 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
         if (maxmix < 0.05f) maxmix = 0.05f;
         if (emix > maxmix) emix = maxmix;
     }
-    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         tmp_soilMass[l] = 10000.f * m_soilThick[i][l] * m_soilBD[i][l] * (1 - m_soilRock[i][l] / 100.f);
         tmp_soilMixedMass[l] = 0.f;
         tmp_soilNotMixedMass[l] = 0.f;
     }
     if (dtil > 0.f) {
         if (dtil < 10.f) dtil = 11.;
-        for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+        for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
             if (m_soilDepth[i][l] <= dtil) {
                 tmp_soilMixedMass[l] = emix * tmp_soilMass[l];
                 tmp_soilNotMixedMass[l] = tmp_soilMass[l] - tmp_soilMixedMass[l];
@@ -1418,7 +1418,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
             }
             XX += tmp_soilMixedMass[l];
         }
-        for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+        for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
             /// reconstitute each soil layer
             WW3 = tmp_soilNotMixedMass[l] / tmp_soilMass[l];
             WW4 = tmp_soilMixedMass[l] / XX;
@@ -1625,7 +1625,7 @@ void MGTOpt_SWAT::ExecuteKillOperation(int i, int& factoryID, int nOp) {
     rtresnew = m_biomass[i] * m_frRoot[i];
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    float* rtfr = new float[CVT_INT(m_nSoilLayers[i])];
+    float* rtfr = new float[CVT_INT(m_nSoilLyrs[i])];
     RootFraction(i, rtfr);
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
@@ -1636,7 +1636,7 @@ void MGTOpt_SWAT::ExecuteKillOperation(int i, int& factoryID, int nOp) {
     m_soilFrshOrgP[i][0] = Max(m_soilFrshOrgP[i][0], 0.f);
 
     /// allocate dead roots, N and P to soil layers
-    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         m_soilRsd[i][l] += rtfr[l] * rtresnew;
         m_soilFrshOrgN[i][l] += rtfr[l] * m_pltN[i] * m_frRoot[i];
         m_soilFrshOrgP[i][l] += rtfr[l] * m_pltP[i] * m_frRoot[i];
@@ -1721,7 +1721,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int& factoryID, int nOp)
         /// TODO, autoirrigation operations should be triggered. BY lj
         m_potVol[i] = curOperation->MaxPondDepth();
         /// force the soil water storage to field capacity
-        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
             float dep2cap = m_soilFC[i][ly] - m_soilWtrSto[i][ly];
             if (dep2cap > 0.f) {
@@ -1735,7 +1735,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int& factoryID, int nOp)
         } /// force to reach the up depth.
         /// recompute total soil water storage
         m_soilWtrStoPrfl[i] = 0.f;
-        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
         }
     } else {
@@ -1912,7 +1912,7 @@ void MGTOpt_SWAT::Get2DData(const char* key, int* nRows, int* nCols, float*** da
     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soilLayers;
+    *nCols = m_maxSoilLyrs;
     /// fertilizer operation
     if (StringMatch(sk, VAR_SOL_MC)) {
         *data = m_soilManC;
@@ -1928,7 +1928,7 @@ void MGTOpt_SWAT::Get2DData(const char* key, int* nRows, int* nCols, float*** da
 void MGTOpt_SWAT::InitialOutputs() {
     if (m_initialized) return;
     CHECK_POSITIVE(MID_PLTMGT_SWAT, m_nCells);
-    if (m_cellArea < 0.f) m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; // unit: ha
+    if (m_cellArea < 0.f) m_cellArea = m_cellWth * m_cellWth * 0.0001f; // unit: ha
     /// figure out all the management codes, and initialize the corresponding variables, aimed to save memory. By LJ
     vector<int> defined_mgt_codes;
     for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); ++it) {
@@ -1974,9 +1974,9 @@ void MGTOpt_SWAT::InitialOutputs() {
         if (m_autoFertSurfFr == nullptr) Initialize1DArray(m_nCells, m_autoFertSurfFr, 0.f);
 
         if (m_cbnModel == 1) {
-            if (m_soilManC == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManC, 0.f);
-            if (m_soilManN == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManN, 0.f);
-            if (m_soilManP == nullptr) Initialize2DArray(m_nCells, m_soilLayers, m_soilManP, 0.f);
+            if (m_soilManC == nullptr) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilManC, 0.f);
+            if (m_soilManN == nullptr) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilManN, 0.f);
+            if (m_soilManP == nullptr) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilManP, 0.f);
         }
     }
     /// impound/release operation

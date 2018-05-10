@@ -11,6 +11,7 @@
  *                              2. Update fertilizer operation for paddy rice,
  *                                 i.e., ExecuteFertilizerOperation().\n
  *            2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
+ *                              2. Fixed bugs of the time-consuming function GetOperationCode().\n
  */
 #ifndef SEIMS_MODULE_PLTMGT_SWAT_H
 #define SEIMS_MODULE_PLTMGT_SWAT_H
@@ -158,7 +159,7 @@ private:
     /// valid cells number
     int m_nCells;
     /// cell width (m)
-    float m_cellWidth;
+    float m_cellWth;
     /// cell area (ha)
     float m_cellArea;
     /// the total number of subbasins
@@ -180,9 +181,9 @@ private:
     float *m_mgtFields;
 
     /// soil layers
-    float *m_nSoilLayers;
+    float *m_nSoilLyrs;
     /// maximum soil layers
-    int m_soilLayers;
+    int m_maxSoilLyrs;
     /// depth to bottom of soil layer, sol_z, mm
     float **m_soilDepth;
     /// soil thick

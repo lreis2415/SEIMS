@@ -480,7 +480,7 @@ void IKW_REACH::ChannelFlow(int i) {
         float h = m_chStorage[i] / m_chWidth[i] / m_chLen[i];
         float Perim = 2.f * h + m_chWidth[i];
         float sSin = sqrt(sin(m_chSlope[i]));
-        float alpha = pow(m_chManning[i] / sSin * pow(Perim, _23), 0.6f);
+        float alpha = pow(m_chManning[i] / sSin * pow(Perim, _2div3), 0.6f);
 
         float lossRate = -totalLoss / m_dt / m_chWidth[i];
         //lossRate = 0.f;

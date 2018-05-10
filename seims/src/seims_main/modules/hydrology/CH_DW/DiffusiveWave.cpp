@@ -217,7 +217,7 @@ void DiffusiveWave::ChannelFlow(int iReach, int iCell, int id) {
     if (sf < MINI_SLOPE) {
         sf = MINI_SLOPE;
     }
-    float c = 1.f / 3600.f * m_reachN[iReach] * pow(perim, _23) / sqrt(sf);
+    float c = 1.f / 3600.f * m_reachN[iReach] * pow(perim, _2div3) / sqrt(sf);
     c = pow(c, 0.6f);
 
     float d = 1.f;

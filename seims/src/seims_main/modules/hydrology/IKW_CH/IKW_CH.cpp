@@ -283,7 +283,7 @@ void ImplicitKinematicWave_CH::ChannelFlow(int iReach, int iCell, int id, float 
     float Perim = 2.f * m_hCh[iReach][iCell] + m_chWidth[id];
 
     float sSin = sqrt(sin(m_sRadian[id]));
-    float alpha = pow(m_reachN[iReach] / sSin * pow(Perim, _23), 0.6f);
+    float alpha = pow(m_reachN[iReach] / sSin * pow(Perim, _2div3), 0.6f);
 
     float qIn = m_qCh[iReach][iCell];
 

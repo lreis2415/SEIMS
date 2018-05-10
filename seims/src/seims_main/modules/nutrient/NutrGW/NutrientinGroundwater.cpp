@@ -31,7 +31,6 @@ bool NutrientinGroundwater::CheckInputSize(const char *key, int n) {
     if (n <= 0) {
         throw ModelException(MID_NUTRGW, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-        return false;
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
@@ -133,8 +132,8 @@ void NutrientinGroundwater:: InitialOutputs() {
 
 int NutrientinGroundwater::Execute() {
     CheckInputData();
-     InitialOutputs();
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); it++) {
+    InitialOutputs();
+    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int id = *it;
         Subbasin *subbasin = m_subbasinsInfo->GetSubbasinByID(id);
         int nCells = subbasin->GetCellCount();
@@ -168,8 +167,8 @@ int NutrientinGroundwater::Execute() {
             m_sol_solp[index][(int) m_soilLayers[index] - 1] += solpToSoil;
         }
         /// finally, update nutrient amount
-        m_gwNO3[id] -= (m_no3GwToCh[id] + no3ToSoil_kg);
-        m_gwSolP[id] -= (m_solpGwToCh[id] + solpToSoil_kg);
+        m_gwNO3[id] -= m_no3GwToCh[id] + no3ToSoil_kg;
+        m_gwSolP[id] -= m_solpGwToCh[id] + solpToSoil_kg;
     }
     return 0;
 }

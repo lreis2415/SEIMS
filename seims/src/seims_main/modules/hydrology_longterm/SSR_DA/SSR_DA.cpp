@@ -6,7 +6,7 @@ SSR_DA::SSR_DA() : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_CellWidth(-1.f),
                    m_frozenT(NODATA_VALUE), m_ki(NODATA_VALUE),
                    m_soilLayers(nullptr), m_soilThick(nullptr), m_ks(nullptr), m_satmm(nullptr), m_poreIndex(nullptr),
                    m_fcmm(nullptr), m_wpmm(nullptr),
-                   m_slope(nullptr), m_chWidth(nullptr), m_streamLink(NULL), m_subbasin(nullptr),
+                   m_slope(nullptr), m_chWidth(nullptr), m_streamLink(nullptr), m_subbasin(nullptr),
                    m_flowInIndex(nullptr), m_flowInPercentage(nullptr), m_routingLayers(nullptr), m_nRoutingLayers(-1),
     /// input from other modules
                    m_soilStorage(nullptr), m_soilStorageProfile(nullptr), m_soilT(nullptr),
@@ -126,7 +126,7 @@ bool SSR_DA::FlowInSoil(int id) {
 
 int SSR_DA::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nRoutingLayers; iLayer++) {
         // There are not any flow relationship within each routing layer.

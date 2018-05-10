@@ -391,7 +391,6 @@ void KinWavSed_CH::initial() {
 void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id is the cell id in the 1D array
 {
     const float beta = 0.6f;
-    const float _23 = 2.0f / 3;
     float wh = m_ChannelWH[iReach][iCell] / 1000;    // mm to m -> /1000
     float FW = m_chWidth[id];
     float S = sin(atan(m_Slope[id]));   //sine of the slope
@@ -406,7 +405,7 @@ void KinWavSed_CH::CalcuVelocityChannelFlow(int iReach, int iCell, int id)  //id
     }
 
     //float V = 0.0f;
-    m_ChV[iReach][iCell] = pow(R, _23) * grad / m_ChManningN[iReach];
+    m_ChV[iReach][iCell] = pow(R, _2div3) * grad / m_ChManningN[iReach];
 
     //test
     m_chanV[id] = wh; //m_ChV[iReach][iCell];
