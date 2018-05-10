@@ -70,15 +70,6 @@ using namespace db_mongoc;
  * \brief Raster class to handle various raster data
  */
 namespace data_raster {
-#ifdef USE_GDAL
-/* Ignore warning on Windows MSVC compiler caused by GDAL.
- * refers to http://blog.csdn.net/liminlu0314/article/details/8227518
- */
-#if defined(_MSC_VER) && (_MSC_VER >= 1400)
-#pragma warning(disable: 4100 4190 4251 4275 4305 4309 4819 4996)
-#endif /* Ignore warnings of GDAL */
-#endif /* USE_GDAL */
-
 /*!
  * Define Raster related constant strings used for raster headers
  */
@@ -2525,8 +2516,8 @@ void clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
     if ((use_mask_ext_ || same_extent_with_mask) && calc_pos_) {
         mask_->GetRasterPositionData(&n_cells_, &raster_pos_data_);
         store_pos_ = false;
-    } else if ((!use_mask_ext_ && !same_extent_with_mask && !calc_pos_) ||
-        ((use_mask_ext_ || same_extent_with_mask) && !calc_pos_)) {
+    } else if (!use_mask_ext_ && !same_extent_with_mask && !calc_pos_ ||
+        (use_mask_ext_ || same_extent_with_mask) && !calc_pos_) {
         // reStore raster values as fullsize array
         n_cells_ = GetCols() * GetRows();
         store_fullsize_array = true;
