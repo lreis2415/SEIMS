@@ -5,7 +5,7 @@
 
 Interpolate::Interpolate() : m_dataType(0), m_nStatioins(-1),
                              m_stationData(nullptr), m_nCells(-1), m_itpWeights(nullptr), m_itpVertical(false),
-                             m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr), m_month(-1),
+                             m_hStations(nullptr), m_dem(nullptr), m_lapseRate(nullptr),
                              m_itpOutput(nullptr) {
 }
 
@@ -43,7 +43,7 @@ int Interpolate::Execute() {
             }
             if (m_itpVertical) {
                 float delta = m_dem[i] - m_hStations[j];
-                float factor = m_lapseRate[m_month][m_dataType];
+                float factor = m_lapseRate[m_month - 1][m_dataType];
                 float adjust = m_itpWeights[index] * delta * factor * 0.01f;
                 value += adjust;
             }
@@ -54,14 +54,6 @@ int Interpolate::Execute() {
         throw ModelException(MID_ITP, "Execute", "Error occurred in weight data!");
     }
     return true;
-}
-
-void Interpolate::SetDate(const time_t date, const int year_idx) {
-    m_date = date;
-    m_yearIdx = year_idx;
-    struct tm t;
-    utils_time::LocalTime(date, &t);
-    m_month = t.tm_mon;
 }
 
 void Interpolate::SetValue(const char* key, const float value) {
