@@ -141,6 +141,15 @@ using std::string;
     template class STL_API std::vector<STL_TYPE, std::allocator< STL_TYPE > >;
 #endif /* MSVC */
 
+#ifdef USE_GDAL
+/* Ignore warning on Windows MSVC compiler caused by GDAL.
+* refers to http://blog.csdn.net/liminlu0314/article/details/8227518
+*/
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning(disable: 4100 4190 4251 4275 4305 4309 4819 4996)
+#endif /* Ignore warnings of GDAL */
+#endif /* USE_GDAL */
+
 /*!
  * \namespace ccgl
  * \brief Common Cross-platform Geographic Library

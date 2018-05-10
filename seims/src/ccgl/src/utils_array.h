@@ -9,11 +9,12 @@
 #ifndef CCGL_UTILS_ARRAY_H
 #define CCGL_UTILS_ARRAY_H
 
-#include "basic.h"
 #include <new> // std::nothrow
 #include <cstdarg> // variable arguments
 #include <iostream>
 #include <vector>
+
+#include "basic.h"
 
 using std::vector;
 using std::cout;
