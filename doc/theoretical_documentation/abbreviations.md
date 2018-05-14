@@ -4,6 +4,8 @@
  + Accumulation: accum
  + Active: actv
  + Adjust: adj
+ + Aggregate: agg
+ + Albedo: alb
  + Amount: amt
  + Annual: ann
  + Applied: apld
@@ -11,6 +13,7 @@
  + Average: avg
 
 ### B
+ + Balance: bal
  + Basin: bsn
  + Biomass: biom
  + Bulk density: bd
@@ -21,10 +24,13 @@
  + Carbon: cbn
  + Category: cat
  + Channel: ch
- + Coefficient: coeff
+ + Coefficient: coef
+ + Concentration: conc
  + Continous: cont
- + Convert: cvt
+ + Cover: cov
+ + Convert: cvit
  + Crack: crk
+ + Critical: crt
  + Current: cur
 ### D
  + Decomposition: dec
@@ -32,17 +38,23 @@
  + Denitrification: denit
  + Depth: d
  + Depression: depr
- + Distance: dist
+ + Detachment: det
+ + Distance: dst
+ + Distribution: dist
  + Dormancy: dorm
  + Drain: drn
 
 ### E
  + Efficiency: eff
  + Elevation: elev
+ + Energy: enrg
  + Erosion: ero
+ + Exponent: exp
 
 ### F
  + Fertilizer: fert
+ + Fixation: fix
+ + Flood: fld
  + Fresh: frsh
 
 ### G
@@ -51,7 +63,9 @@
 
 ### H
  + Harvest: hvst
- + hectare: ha
+ + Hectare: ha
+ + Hight : hgt
+ + Hour: hr
  + Humic: hum
 
 ### I
@@ -81,6 +95,7 @@
  + Mineralization: minrl
 
 ### N
++
 
 ### O
  + Operation: op
@@ -128,8 +143,11 @@
  + Trigger: trig
 
 ### U
+ + Uptake: uptk
 
 ### V
+ + Velocity: vel
+ + Vertical: vrt
 
 ### W
  + Water: wtr
