@@ -418,7 +418,7 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._DEPTH] = rchdata['depth']
             dic[ImportReaches2Mongo._AREA] = rchdata[ImportReaches2Mongo._AREA]
             dic[ImportReaches2Mongo._SIDESLP] = 2.
-            dic[ImportReaches2Mongo._KBANK] = 20.
+            dic[ImportReaches2Mongo._KBANK] = 1. # hydraulic conductivity of the channel bank (mm/h)
             dic[ImportReaches2Mongo._KBED] = 0.5
             dic[ImportReaches2Mongo._BC1] = 0.55
             dic[ImportReaches2Mongo._BC2] = 1.1
