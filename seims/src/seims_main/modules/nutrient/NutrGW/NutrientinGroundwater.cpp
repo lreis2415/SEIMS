@@ -62,11 +62,11 @@ bool NutrientinGroundwater::CheckInputData() {
 
 void NutrientinGroundwater::SetValue(const char *key, float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = int(value); }
-    else if (StringMatch(sk, Tag_CellWidth)) { m_cellWidth = value; }
-    else if (StringMatch(sk, VAR_GW0)) { m_gw0 = value; }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = value; }
+    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth)) m_cellWidth = value;
+    else if (StringMatch(sk, VAR_GW0)) m_gw0 = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbasins = CVT_INT(value);
+    else if (StringMatch(sk, Tag_SubbasinId)) m_subbasinID = CVT_INT(value);
     else {
         throw ModelException(MID_NUTRGW, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -174,7 +174,7 @@ int NutrientinGroundwater::Execute() {
 }
 
 void NutrientinGroundwater::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nSubbasins + 1;
     if (StringMatch(sk, VAR_NO3GW_TOCH)) {

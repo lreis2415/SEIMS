@@ -24,7 +24,7 @@ int SoilTemperatureFINPL::Execute() {
     /// check the data
     CheckInputData();
     /// initial output of m_t1 and m_t2 for the first run
-     InitialOutputs();
+    InitialOutputs();
     m_julianDay = utils_time::JulianDay(m_date);
     size_t errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
@@ -121,7 +121,7 @@ void SoilTemperatureFINPL::Set1DData(const char *key, int n, float *data) {
 }
 
 void SoilTemperatureFINPL::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_SOTE)) { *data = m_soilTemp; }

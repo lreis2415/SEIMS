@@ -97,6 +97,13 @@ private:
      */
     void  InitialOutputs();
 
+    /*
+     * \brief Set groundwater related subbasin parameters
+     * \sa Subbasin
+     * \sa clsSubbasins
+     */
+    void SetSubbasinInfos();
+
 private:
     //inputs
 
@@ -186,11 +193,5 @@ private:
     ////! vector of all Subbasin instances
     // vector<Subbasin *> m_subbasinList;
 
-    /*
-     * \brief Set groundwater related subbasin parameters
-     * \sa Subbasin
-     * \sa clsSubbasins
-     */
-    void setSubbasinInfos();
 };
 #endif /* SEIMS_MODULE_GWA_RE_H */

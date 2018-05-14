@@ -58,19 +58,19 @@ private:
 
 private:
     int m_nCells;
-    float *m_soilLayers; ///< Soil layers number
-    float **m_soilThick; ///< Soil thickness of each layer, mm
+    float *m_nSoilLyrs; ///< Soil layers number
+    float **m_soilThk; ///< Soil thickness of each layer, mm
 
-    float **m_sm; ///< soil moisture
-    float **m_fc; ///< field capacity
-    float **m_wp; ///< wilting point
-    float *m_PET; ///< Potential evapotranspiration
-    float *m_EI;  ///< Evaporation from interception
-    float *m_ED;  ///< Evaporation from depression storage
-    float *m_plantET;  ///< Evaporation from plant
+    float **m_soilWtrSto; ///< soil moisture
+    float **m_soilFC; ///< field capacity
+    float **m_soilWP; ///< wilting point
+    float *m_pet; ///< Potential evapotranspiration
+    float *m_IntcpET;  ///< Evaporation from interception
+    float *m_deprStoET;  ///< Evaporation from depression storage
+    float *m_maxPltET;  ///< Evaporation from plant
 
-    float *m_soilT;  ///< Soil temperature
-    float m_frozenT; ///< Freezing temperature
+    float *m_soilTemp;  ///< Soil temperature
+    float m_soilFrozenTemp; ///< Freezing temperature
 
     float *m_soilET; ///< Output, actual soil evaporation
 };

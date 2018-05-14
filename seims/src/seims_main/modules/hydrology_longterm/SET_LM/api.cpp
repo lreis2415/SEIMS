@@ -20,13 +20,15 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_SET_LM);
     mdi.SetName(MID_SET_LM);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
     mdi.AddParameter(VAR_T_SOIL, UNIT_TEMP_DEG, DESC_T_SOIL, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_FIELDCAP, UNIT_VOL_FRA_M3M3, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_WILTPOINT, UNIT_VOL_FRA_M3M3, DESC_WILTPOINT, Source_ParameterDB, DT_Raster2D);
+    //mdi.AddParameter(VAR_FIELDCAP, UNIT_VOL_FRA_M3M3, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D);
+    //mdi.AddParameter(VAR_WILTPOINT, UNIT_VOL_FRA_M3M3, DESC_WILTPOINT, Source_ParameterDB, DT_Raster2D);
+    mdi.AddParameter(VAR_SOL_AWC, UNIT_DEPTH_MM, DESC_SOL_AWC, Source_ParameterDB, DT_Raster2D); // m_fc
+    mdi.AddParameter(VAR_SOL_WPMM, UNIT_DEPTH_MM, DESC_SOL_WPMM, Source_ParameterDB, DT_Raster2D); // m_wp
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOILTHICK, UNIT_DEPTH_MM, DESC_SOILTHICK, Source_ParameterDB, DT_Raster2D);
 

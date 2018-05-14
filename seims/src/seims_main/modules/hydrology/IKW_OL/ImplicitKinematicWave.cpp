@@ -294,7 +294,7 @@ void ImplicitKinematicWave_OL::OverlandFlow(int id) {
 }
 
 int ImplicitKinematicWave_OL::Execute() {
-     InitialOutputs();
+    InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -394,7 +394,7 @@ void ImplicitKinematicWave_OL::GetValue(const char *key, float *data) {
 }
 
 void ImplicitKinematicWave_OL::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
 
     string sk(key);
     *n = m_nCells;

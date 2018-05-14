@@ -507,7 +507,7 @@ void NutrCH_QUAL2E::PointSourceLoading() {
 
 int NutrCH_QUAL2E::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
     // load point source loadings from Scenarios
     PointSourceLoading();
     // Calculate average day length, solar radiation, and temperature for each channel
@@ -516,7 +516,7 @@ int NutrCH_QUAL2E::Execute() {
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int reachNum = it->second.size();
+        int reachNum = CVT_INT(it->second.size());
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
@@ -1099,7 +1099,7 @@ void NutrCH_QUAL2E::GetValue(const char *key, float *value) {
 }
 
 void NutrCH_QUAL2E::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nReaches + 1;
     if (StringMatch(sk, VAR_CH_ALGAE)) { *data = m_chOutAlgae; }

@@ -61,17 +61,17 @@ private:
 
 private:
     /// mean air temperature for a given day(degree)
-    float *m_tMean;
+    float *m_meanTemp;
     /// maximum air temperature for a given day(degree)
-    float *m_tMax;
+    float *m_maxTemp;
     /// minimum air temperature for a given day(degree)
-    float *m_tMin;
+    float *m_minTemp;
     /// solar radiation(MJ/m2/d)
     float *m_sr;
     /// relative humidity(%)
     float *m_rhd;
     /// elevation(m)
-    float *m_elev;
+    float *m_dem;
     /// valid cells number
     int m_nCells;
     /// Correction Factor for PET
@@ -79,9 +79,9 @@ private:
     ///latitude of the stations
     float *m_cellLat;
     /// annual PHU
-    float *m_phutot;
+    float *m_phuAnn;
     ///The temperature of snow melt
-    float m_tSnow;
+    float m_snowTemp;
 
     /// maximum solar radiation of current day
     float m_srMax;

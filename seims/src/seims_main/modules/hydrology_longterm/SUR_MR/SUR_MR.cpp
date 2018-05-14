@@ -69,7 +69,7 @@ void SUR_MR:: InitialOutputs() {
 
 int SUR_MR::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
     m_pMax = m_pMax * m_dt / 86400.f;
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -177,7 +177,7 @@ void SUR_MR::Set2DData(const char *key, int nrows, int ncols, float **data) {
 }
 
 void SUR_MR::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_INFIL)) {
         *data = m_infil;     //infiltration
@@ -191,7 +191,7 @@ void SUR_MR::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SUR_MR::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_nSoilLayers;

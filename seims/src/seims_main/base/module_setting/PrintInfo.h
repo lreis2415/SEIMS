@@ -9,8 +9,12 @@
 #ifndef SEIMS_PRINTINFO_H
 #define SEIMS_PRINTINFO_H
 
+#include "basic.h"
+
 #include "seims.h"
 #include "ParamInfo.h"
+
+using namespace ccgl;
 
 /*!
  * \enum AggregationType
@@ -171,7 +175,7 @@ public:
     ~PrintInfo();
 
     //! Get the number of output items
-    int ItemCount() const { return (int)m_PrintItems.size(); };
+    int ItemCount() const { return CVT_INT(m_PrintItems.size()); };
 
     //! Get all the subbasin IDs (in float array) selected for this outputID
     void getSubbasinSelected(int* count, float** subbasins);

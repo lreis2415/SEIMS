@@ -55,7 +55,7 @@ void clsPI_SVSC::SetValue(const char *key, float data) {
 }
 
 void clsPI_SVSC::Get1DData(const char *key, int *nRows, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string s = key;
     if (StringMatch(s, VAR_INLO)) {
         *data = m_interceptionLoss;
@@ -94,7 +94,7 @@ int clsPI_SVSC::Execute() {
     //check input data
     CheckInputData();
     /// initialize outputs
-     InitialOutputs();
+    InitialOutputs();
 
     int julian = JulianDay(m_date);
 #pragma omp parallel for

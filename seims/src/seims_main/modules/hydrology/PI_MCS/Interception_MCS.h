@@ -22,36 +22,33 @@
  * \ingroup PI_MCS
  * \brief Class for Precipitation Interception module based on Maximum Canopy Storage.
  */
-class clsPI_MCS : public SimulationModule {
+class clsPI_MCS: public SimulationModule {
 public:
     clsPI_MCS();
 
     ~clsPI_MCS();
 
-    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
+    void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Get1DData(const char *key, int *nRows, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
 
     int Execute() OVERRIDE;
 
 private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
+    /*!
+     * \brief check the input data. Make sure all the input data is available.
+     */
     bool CheckInputData();
 
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *key, int n);
+    /*!
+     * \brief check the input size. Make sure all the input data have same dimension.
+     * \param key The key of the input data
+     * \param n The input data dimension
+     * \return bool The validity of the dimension
+     */
+    bool CheckInputSize(const char* key, int n);
 
     /*!
      * \brief Initialize output variables for the first run of the entire simulation
@@ -61,20 +58,20 @@ private:
 private:
     /* Parameters from database */
 
-    // The embankment area ratio of paddy rice HRU
-    float m_embnkfr_pr;
+    // The embankment area ratio of paddy rice cells
+    float m_embnkFr;
     // The fraction of precipitation fall on the embankment that drain into ditches or canals directly
-    float m_pcp2canfr_pr;
+    float m_pcp2CanalFr;
     // landuse
-    float *m_landuse;
-    //! Calibration parameter, the sine-shaped curve controller exponent b, default is 1.35
-    float m_Pi_b;
+    float* m_landUse;
+    //! Calibration parameter of interception storage, the sine-shaped curve controller exponent b, default is 1.35
+    float m_intcpStoCapExp;
     //! Calibration parameter, the initial interception storage for all cells, mm
-    float m_Init_IS;
+    float m_initIntcpSto;
     //! Maximum storage capacity, mm
-    float *m_maxSt;
+    float* m_maxIntcpStoCap;
     //! Minimum storage capacity, mm
-    float *m_minSt;
+    float* m_minIntcpStoCap;
 #ifdef STORM_MODE
     //! hillslope time step, seconds
     float m_hilldt;
@@ -88,24 +85,24 @@ private:
      * For STROM_MODE model, the unit is rainfall intensity mm/h
      * For LONGTERM_MODE model, the unit is mm
      */
-    float *m_P;
+    float* m_pcp;
 #ifndef STORM_MODE
     //! PET, mm
-    float *m_PET;
+    float* m_pet;
 #endif
 
     /* Results */
 
     //! current interception storage, the initial value equal to 0, mm
-    float *m_st;
+    float* m_canSto;
     //! Interception loss, mm
-    float *m_interceptionLoss;
+    float* m_intcpLoss;
 #ifndef STORM_MODE
     //! Evaporation loss from intercepted rainfall, mm
-    float *m_evaporationLoss;
+    float* m_IntcpET;
 #endif
     //! Net precipitation (after slope correction, of course), mm
-    float *m_netPrecipitation;
+    float* m_netPcp;
 
     /* Others */
 

@@ -7,9 +7,9 @@ Nutrient_Transformation::Nutrient_Transformation() :
     m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1), m_cbnModel(0), m_solP_model(0),
     m_phpApldDays(nullptr), m_phpDefDays(nullptr),
     m_tillSwitch(nullptr), m_tillDepth(nullptr), m_tillDays(nullptr), m_tillFactor(nullptr),
-    m_minrlCoeff(-1.f), m_orgNFrActN(-1.f), m_denitThres(-1.f), m_phpSorpIdxBsn(-1.f),
-    m_phpSorpIdx(nullptr), m_psp_store(nullptr), m_ssp_store(nullptr), m_denitCoeff(-1.f), m_landCover(nullptr),
-    m_pltRsdDecCoeff(nullptr), m_rsdCovSoil(nullptr), m_rsdInitSoil(nullptr), m_soilTemp(nullptr),
+    m_minrlCoef(-1.f), m_orgNFrActN(-1.f), m_denitThres(-1.f), m_phpSorpIdxBsn(-1.f),
+    m_phpSorpIdx(nullptr), m_psp_store(nullptr), m_ssp_store(nullptr), m_denitCoef(-1.f), m_landCover(nullptr),
+    m_pltRsdDecCoef(nullptr), m_rsdCovSoil(nullptr), m_rsdInitSoil(nullptr), m_soilTemp(nullptr),
     m_soilBD(nullptr), m_soilMass(nullptr), m_soilCbn(nullptr),
     m_soilWtrSto(nullptr), m_soilFC(nullptr), m_soilDepth(nullptr),
     m_soilClay(nullptr), m_soilRock(nullptr), m_soilThk(nullptr),
@@ -98,8 +98,8 @@ bool Nutrient_Transformation::CheckInputData() {
     CHECK_POSITIVE(MID_NUTR_TF, m_maxSoilLyrs);
     CHECK_POSITIVE(MID_NUTR_TF, m_cellWth);
     CHECK_POINTER(MID_NUTR_TF, m_nSoilLyrs);
-    CHECK_POSITIVE(MID_NUTR_TF, m_minrlCoeff);
-    CHECK_POSITIVE(MID_NUTR_TF, m_denitCoeff);
+    CHECK_POSITIVE(MID_NUTR_TF, m_minrlCoef);
+    CHECK_POSITIVE(MID_NUTR_TF, m_denitCoef);
     CHECK_POSITIVE(MID_NUTR_TF, m_orgNFrActN);
     CHECK_POSITIVE(MID_NUTR_TF, m_denitThres);
     CHECK_POSITIVE(MID_NUTR_TF, m_phpSorpIdxBsn);
@@ -109,7 +109,7 @@ bool Nutrient_Transformation::CheckInputData() {
     CHECK_POINTER(MID_NUTR_TF, m_rsdInitSoil);
     CHECK_POINTER(MID_NUTR_TF, m_soilThk);
     CHECK_POINTER(MID_NUTR_TF, m_soilBD);
-    CHECK_POINTER(MID_NUTR_TF, m_pltRsdDecCoeff);
+    CHECK_POINTER(MID_NUTR_TF, m_pltRsdDecCoef);
     CHECK_POINTER(MID_NUTR_TF, m_soilCbn);
     CHECK_POINTER(MID_NUTR_TF, m_soilFC);
     CHECK_POINTER(MID_NUTR_TF, m_soilWP);
@@ -137,9 +137,9 @@ void Nutrient_Transformation::SetValue(const char* key, float value) {
     } else if (StringMatch(sk, VAR_SDNCO)) {
         m_denitThres = value;
     } else if (StringMatch(sk, VAR_CMN)) {
-        m_minrlCoeff = value;
+        m_minrlCoef = value;
     } else if (StringMatch(sk, VAR_CDN)) {
-        m_denitCoeff = value;
+        m_denitCoef = value;
     } else if (StringMatch(sk, VAR_PSP)) {
         m_phpSorpIdxBsn = value;
     } else if (StringMatch(sk, VAR_CSWAT)) {
@@ -155,7 +155,7 @@ void Nutrient_Transformation::Set1DData(const char* key, int n, float* data) {
     if (StringMatch(sk, VAR_LANDCOVER)) {
         m_landCover = data;
     } else if (StringMatch(sk, VAR_PL_RSDCO)) {
-        m_pltRsdDecCoeff = data;
+        m_pltRsdDecCoef = data;
     } else if (StringMatch(sk, VAR_SOL_RSDIN)) {
         m_rsdInitSoil = data;
     } else if (StringMatch(sk, VAR_SOL_COV)) {
@@ -546,7 +546,7 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
             // compute humus mineralization on active organic n
             //amount of nitrogen moving from active organic nitrogen pool to nitrate pool in layer (hmn)
             float hmn = 0.f;
-            hmn = m_minrlCoeff * csf * m_sol_aorgn[i][k];
+            hmn = m_minrlCoef * csf * m_sol_aorgn[i][k];
             hmn = Min(hmn, m_sol_aorgn[i][k]);
             // compute humus mineralization on active organic p
             xx = 0.f;
@@ -614,10 +614,10 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
                 //{
                 //    decr = 0.05f;
                 //}
-                if (m_pltRsdDecCoeff[i] < 0.f) {
+                if (m_pltRsdDecCoef[i] < 0.f) {
                     decr = 0.05f;
                 } else {
-                    decr = m_pltRsdDecCoeff[i] * ca * csf;
+                    decr = m_pltRsdDecCoef[i] * ca * csf;
                 }
                 decr = Min(decr, 1.f);
                 m_soilRsd[i][k] = Max(1.e-6f, m_soilRsd[i][k]);
@@ -642,7 +642,7 @@ void Nutrient_Transformation::MineralizationStaticCarbonMethod(int i) {
             float wdn = 0.f;
             //Calculate wdn, equation 3:1.4.1 and 3:1.4.2 in SWAT Theory 2009, p194
             if (sut >= m_denitThres) {
-                wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoeff * cdg * m_soilCbn[i][k]));
+                wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoef * cdg * m_soilCbn[i][k]));
             } else {
                 wdn = 0.f;
             }
@@ -1026,7 +1026,7 @@ void Nutrient_Transformation::MineralizationCenturyModel(int i) {
                 // call ndenit(k,j,cdg,wdn,void);
                 // rewrite from ndenit.f of SWAT
                 float vof = 1.f / (1.f + pow(voidfr * 25.f, 5.f));
-                wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoeff * cdg * vof * m_soilCbn[i][k]));
+                wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoef * cdg * vof * m_soilCbn[i][k]));
                 m_soilNO3[i][k] -= wdn;
             }
             m_wshd_dnit += wdn * m_cellAreaFr;

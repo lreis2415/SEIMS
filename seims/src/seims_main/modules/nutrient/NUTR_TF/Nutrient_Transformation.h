@@ -143,7 +143,7 @@ private:
     ///input data
 
     /// Rate coefficient for mineralization of the humus active organic nutrients, cmn in SWAT
-    float m_minrlCoeff;
+    float m_minrlCoef;
     ///nitrogen active pool fraction. The fraction of organic nitrogen in the active pool.
     float m_orgNFrActN;
     /// denitrification threshold: fraction of field capacity, sdnco
@@ -156,13 +156,13 @@ private:
     float** m_psp_store; // TODO, these variables should be figure out. lj
     float** m_ssp_store;
     //rate coefficient for denitrification, cdn in SWAT
-    float m_denitCoeff;
+    float m_denitCoef;
     ///land cover code from crop.dat
     float* m_landCover;
     ///plant residue decomposition coefficient.
     ///  The fraction of residue which will decompose in a day assuming optimal moisture,
     ///  temperature, C:N ratio, and C:P ratio
-    float* m_pltRsdDecCoeff;
+    float* m_pltRsdDecCoef;
     ///amount of residue on soil surface (kg/ha)
     float* m_rsdCovSoil;
     /// initial amount of organic matter in the soil classified as residue(kg/ha)

@@ -37,6 +37,7 @@ const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
 /*!
  * \brief Common used const.
  */
+const float _1div3 = 0.3333333333333333f; /// 1. / 3.
 const float _2div3 = 0.6666666666666666f; /// 2. / 3.
 const float _8div3 = 2.6666666666666665f; /// 8. / 3.
 const float SQ2 = 1.4142135623730951f;

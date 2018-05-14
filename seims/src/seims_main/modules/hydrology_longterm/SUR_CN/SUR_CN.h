@@ -89,7 +89,7 @@ private:
     /// root depth of plants (mm)
     float *m_rootDepth;
     /// CN under moisture condition II
-    float *m_CN2;
+    float *m_cn2;
     /// Net precipitation calculated in the interception module (mm)
     float *m_P_NET;
     /// Initial soil moisture

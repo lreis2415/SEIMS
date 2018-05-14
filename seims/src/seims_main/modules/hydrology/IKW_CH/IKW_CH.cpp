@@ -298,7 +298,7 @@ int ImplicitKinematicWave_CH::Execute() {
     //check the data
     CheckInputData();
 
-     InitialOutputs();
+    InitialOutputs();
     initialOutputs2();
     //Output1DArray(m_size, m_prec, "f:\\p2.txt");
     //cout << m_reachLayers.size() << "\t" << m_chNumber << endl;
@@ -455,7 +455,7 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
 
 void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
     if (m_hCh == NULL || m_qCh == NULL) {
-         InitialOutputs();
+        InitialOutputs();
     }
     string sk(key);
     *nRows = m_chNumber;

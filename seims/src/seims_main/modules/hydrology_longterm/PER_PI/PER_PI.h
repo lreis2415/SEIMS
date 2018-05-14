@@ -61,11 +61,11 @@ private:
     /// maximum number of soil layers
     int m_soilLayers;
     /// soil layers
-    float *m_nSoilLayers;
+    float *m_nSoilLyrs;
     ///// soil depth
     //float **m_soilDepth;
     /// soil thickness
-    float **m_soilThick;
+    float **m_soilThk;
     ///// depth of the up soil layer
     //float *m_upSoilDepth;
 
@@ -74,33 +74,33 @@ private:
     /// valid cells number
     int m_nCells;
     /// threshold soil freezing temperature
-    float m_frozenT;
+    float m_soilFrozenTemp;
     /// saturated conductivity, mm/h
     float **m_ks;
     ///// soil porosity
     //float **m_porosity;
 
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_sat;
+    float **m_soilSat;
     /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-    float **m_fc;
+    float **m_soilFC;
     /// water content of soil at -1.5 MPa (wilting point) mm H2O
-    float **m_wp;
+    float **m_soilWP;
     /// pore size distribution index
-    float **m_poreIndex;
+    float **m_poreIdx;
     /// amount of water stored in soil layers on current day, sol_st in SWAT
-    float **m_soilStorage;
+    float **m_soilWtrSto;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
-    float *m_soilStorageProfile;
+    float *m_soilWtrStoPrfl;
     /// soil temperature
-    float *m_soilT;
+    float *m_soilTemp;
     /// infiltration (mm)
     float *m_infil;
     /// impound/release
-    float *m_impoundTriger;
+    float *m_impndTrig;
     /// Output
 
     ///percolation (mm)
-    float **m_perc;
+    float **m_soilPerco;
 };
 #endif /* SEIMS_MODULE_PER_PI_H */

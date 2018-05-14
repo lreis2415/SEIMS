@@ -200,7 +200,7 @@ void SNO_WB::Set1DData(const char *key, int n, float *data) {
 }
 
 void SNO_WB::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNAC)) {
         *data = this->m_SA;
@@ -212,7 +212,7 @@ void SNO_WB::Get1DData(const char *key, int *n, float **data) {
 }
 
 void SNO_WB::GetValue(const char *key, float *data) {
-     InitialOutputs();
+    InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SWE)) { *data = this->m_SWE; }
     else {

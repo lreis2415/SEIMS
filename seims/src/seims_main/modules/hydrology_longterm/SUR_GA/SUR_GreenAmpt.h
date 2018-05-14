@@ -91,7 +91,7 @@ private:
     /// root depth of plants (m)
     float *m_rootDepth;
     /// CN under moisture condition II
-    float *m_CN2;
+    float *m_cn2;
     /// Net precipitation calculated in the interception module (mm)
     float *m_P_NET;
     /// water content of soil at field capacity

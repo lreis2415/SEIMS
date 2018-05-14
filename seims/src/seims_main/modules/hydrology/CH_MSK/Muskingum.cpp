@@ -301,7 +301,7 @@ bool Muskingum::ChannelFlow(int iReach, int iCell, int id, float qgEachCell) {
 
 int Muskingum::Execute() {
     //check the data
-     InitialOutputs();
+    InitialOutputs();
     CheckInputData();
 
     //Output1DArray(m_nCells, m_prec, "f:\\p2.txt");

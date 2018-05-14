@@ -137,7 +137,7 @@ private:
     /// impounding trigger
     float *m_impoundTrig;
     /// surface area of impounded area, ha
-    float *m_potSurfaceArea;
+    float *m_potArea;
     /// net precipitation
     //float *m_netPrec;
     /// lai in the current day

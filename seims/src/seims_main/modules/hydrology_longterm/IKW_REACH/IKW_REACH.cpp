@@ -117,7 +117,7 @@ void IKW_REACH:: InitialOutputs() {
 }
 
 int IKW_REACH::Execute() {
-     InitialOutputs();
+    InitialOutputs();
 
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); it++) {
         // There are not any flow relationship within each routing layer.

@@ -58,7 +58,7 @@ private:
     //! fraction coefficient of precipitation as snow
     float m_kblow;
     //! Snowfall temperature, i.e., precipitation as snow
-    float m_tsnow;
+    float m_snowTemp;
     //! Initial snow water equivalent
     //float m_swe0;
 
@@ -88,14 +88,14 @@ private:
     //float m_lastSWE;
 
     //! Mean temperature
-    float *m_tMean;
+    float *m_meanTemp;
     //! Max temperature
-    float *m_tMax;
+    float *m_maxTemp;
     //! Net precipitation
-    float *m_Pnet;
+    float *m_netPcp;
 
     //! snow redistribution
-    float *m_SR;
+    float *m_snowAccum;
     //! snow sublimation, snoev in SWAT in etact.f
     float *m_SE;
 
@@ -105,7 +105,7 @@ private:
     /// outputs
 
     //! amount of water in snow melt, snomlt in SWAT
-    float *m_SM;
+    float *m_snowMelt;
     //! snow accumulation, sno_hru in SWAT
     float *m_SA;
 };

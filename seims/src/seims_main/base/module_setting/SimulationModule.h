@@ -70,13 +70,13 @@ public:
     }
 
     //! Set data, DT_Single
-    virtual void SetValue(const char* key, float data) {
+    virtual void SetValue(const char* key, float value) {
         throw ModelException("SimulationModule", "SetValue",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set single value to array1D by index, used in MPI version for passing values of subbasins
-    virtual void SetValueByIndex(const char* key, int index, float data) {
+    virtual void SetValueByIndex(const char* key, int index, float value) {
         throw ModelException("SimulationModule", "SetValueByIndex",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
@@ -136,17 +136,17 @@ public:
     }
 
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
-    virtual void SetScenario(Scenario*) {
+    virtual void SetScenario(Scenario* sce) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
     }
 
     //! Set pointer of clsReaches class which contains all reaches information. Added by LJ, 2016-7-2
-    virtual void SetReaches(clsReaches*) {
+    virtual void SetReaches(clsReaches* rches) {
         throw ModelException("SimulationModule", "SetReaches", "Set reaches function is not implemented.");
     }
 
     //! Set pointer of clsSubbasins class which contains all subbasins information. Added by LJ, 2016-7-28
-    virtual void SetSubbasins(clsSubbasins*) {
+    virtual void SetSubbasins(clsSubbasins* subbsns) {
         throw ModelException("SimulationModule", "SetSubbasins", "Set subbasins function is not implemented.");
     }
 

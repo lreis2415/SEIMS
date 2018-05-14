@@ -38,7 +38,7 @@ void StormGreenAmpt:: InitialOutputs() {
 }
 
 void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
 
     *n = m_nCells;
     string sk(key);
@@ -160,7 +160,7 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
 }
 
 int StormGreenAmpt::Execute(void) {
-     InitialOutputs();
+    InitialOutputs();
 
 
     // allocate intermediate variables

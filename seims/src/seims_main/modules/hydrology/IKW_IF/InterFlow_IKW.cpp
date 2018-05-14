@@ -162,7 +162,7 @@ void InterFlow_IKW::FlowInSoil(int id) {
 
 int InterFlow_IKW::Execute() {
 
-     InitialOutputs();
+    InitialOutputs();
 
     for (int iLayer = 0; iLayer < m_nLayers; ++iLayer) {
         // There are not any flow relationship within each routing layer.
@@ -248,7 +248,7 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
 }
 
 void InterFlow_IKW::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
 
     string sk(key);
     *n = m_nCells;

@@ -89,7 +89,7 @@ void AtmosphericDeposition:: InitialOutputs() {
 int AtmosphericDeposition::Execute() {
     //check the data
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_preci[i] > 0.f) {

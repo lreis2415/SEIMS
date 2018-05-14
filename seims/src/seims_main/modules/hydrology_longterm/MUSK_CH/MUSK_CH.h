@@ -81,7 +81,7 @@ private:
 
     void ChannelFlow(int i);
 
-    void GetDt(float timeStep, float fmin, float fmax, float &dt, int &n);
+    static void GetDt(float timeStep, float fmin, float fmax, float &dt, int &n);
 
     void GetCoefficients(float reachLength, float v0, MuskWeights &weights);
 
@@ -92,9 +92,7 @@ private:
     /// reach number (= subbasin number)
     int m_nreach;
     /// current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
-    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
+    int m_inputSubbsnID;
     /// outlet ID, also can be derived by m_reachLayers.rbegin()->second[0];
     int m_outletID;
     /// The point source discharge (m3/s), m_ptSub[id], id is the reach id, load from m_Scenario
@@ -122,7 +120,7 @@ private:
     /// bank storage loss coefficient
     float m_bBank;
     ///subbasin grid
-    float *m_subbasin;
+    float *m_subbsnID;
     /// the subbasin area (m2)  //add to the reach parameters file
     float *m_area;
 
@@ -192,7 +190,7 @@ private:
     /// reach storage (m^3) at previous time step, t-1
     float *m_preChStorage;
     /// reach outflow (m3/s) at time, t
-    float *m_qOut;
+    float *m_qRchOut;
     /// flowin discharge at the last time step
     float *m_qIn;
     /*!

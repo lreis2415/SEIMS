@@ -1,15 +1,13 @@
-/**
-*	@version	1.0
-*	@author    Junzhi Liu
-*	@date	2016-08-12
-*
-*	@brief	IUH overland method to calculate overland sediment routing
-*	Revision: Liang-Jun Zhu
-*	Date:     2018-3-22
-*   Description:
-*   1.  The length of subbasin related array should equal to the count of subbasins, for both mpi version and omp version.
-*   2.  2018-3-26 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
-*/
+/*!
+ * \brief IUH overland method to calculate overland sediment routing
+ * \author Junzhi Liu, Liangjun Zhu
+ * \changelog 2016-08-12 - jz - Initial implementation.\n
+ *            2018-03-22 - lj - The length of subbasin related array should equal to the count of
+ *                                subbasins, for both mpi version and omp version.\n
+ *            2018-03-26 - lj - Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
+ *            2018-05-14 - lj - Code review and reformat.\n
+ *
+ */
 #ifndef SEIMS_MODULE_IUH_SED_OL_H
 #define SEIMS_MODULE_IUH_SED_OL_H
 
@@ -27,7 +25,7 @@
  * \brief IUH overland method to calculate overland flow routing
  *
  */
-class IUH_SED_OL : public SimulationModule {
+class IUH_SED_OL: public SimulationModule {
 public:
     IUH_SED_OL();
 
@@ -35,17 +33,17 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nRows, int nCols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void GetValue(const char *key, float *value) OVERRIDE;
+    void GetValue(const char* key, float* value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     bool CheckInputData();
 
@@ -62,31 +60,31 @@ private:
     /// cell area
     float m_cellArea;
     /// the total number of subbasins
-    int m_nSubbasins;
+    int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
+    int m_inputSubbsnID;
     /// subbasin grid (subbasins ID)
-    float *m_subbasin;
+    float* m_subbsnID;
 
     /// IUH of each grid cell (1/s)
-    float **m_iuhCell;
+    float** m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// sediment yield in each cell
-    float *m_sedYield;
+    float* m_sedYield;
 
     //temporary
 
     /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
     /// store the sediment of each cell in each day between min time and max time
-    float **m_cellSed;
+    float** m_cellSed;
 
     //////////////////////////////////////////////////////////////////////
     //output
     /// sediment to streams
-    float *m_sedtoCh;
+    float* m_sedtoCh;
     /// sediment to channel at each cell at current time step
-    float *m_sedOL;
+    float* m_olWtrEroSed;
 };
 #endif /* SEIMS_MODULE_IUH_SED_OL_H */

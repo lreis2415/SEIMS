@@ -2,11 +2,11 @@
 
 #include "text.h"
 
-DepressionFSDaily::DepressionFSDaily() : m_nCells(-1), m_depCo(NODATA_VALUE),
-                                         m_depCap(nullptr),
-                                         m_pet(nullptr), m_ei(nullptr), m_pe(nullptr),
-                                         m_sd(nullptr), m_ed(nullptr), m_sr(nullptr),
-                                         m_impoundTriger(nullptr), m_potVol(nullptr) {
+DepressionFSDaily::DepressionFSDaily() : m_nCells(-1), m_impoundTriger(nullptr),
+                                         m_potVol(nullptr),
+                                         m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr),
+                                         m_ei(nullptr), m_pe(nullptr), m_sd(nullptr),
+                                         m_ed(nullptr), m_sr(nullptr) {
 }
 
 DepressionFSDaily::~DepressionFSDaily() {
@@ -29,9 +29,9 @@ bool DepressionFSDaily::CheckInputData() {
 void DepressionFSDaily:: InitialOutputs() {
     CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
     if (m_sd == nullptr && m_depCap != nullptr) {
-        m_sd = new float[m_nCells];
-        m_ed = new float[m_nCells];
-        m_sr = new float[m_nCells];
+        m_sd = new(nothrow) float[m_nCells];
+        m_ed = new(nothrow) float[m_nCells];
+        m_sr = new(nothrow) float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_sd[i] = m_depCo * m_depCap[i];
@@ -42,12 +42,10 @@ void DepressionFSDaily:: InitialOutputs() {
 }
 
 int DepressionFSDaily::Execute() {
-    //check the data
     CheckInputData();
-     InitialOutputs();
-
+    InitialOutputs();
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; ++i) {
+    for (int i = 0; i < m_nCells; i++) {
         //////////////////////////////////////////////////////////////////////////
         // runoff
         if (m_depCap[i] < 0.001f) {
@@ -100,7 +98,9 @@ bool DepressionFSDaily::CheckInputSize(const char *key, int n) {
         return false;
     }
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
+        if (m_nCells <= 0) {
+            m_nCells = n;
+        }
         else {
             throw ModelException(MID_DEP_LINSLEY, "CheckInputSize", "Input data for " + string(key) +
                 " is invalid. All the input data should have same size.");
@@ -109,15 +109,15 @@ bool DepressionFSDaily::CheckInputSize(const char *key, int n) {
     return true;
 }
 
-void DepressionFSDaily::SetValue(const char *key, float data) {
+void DepressionFSDaily::SetValue(const char *key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_DEPREIN)) { m_depCo = data; }
+    if (StringMatch(sk, VAR_DEPREIN)) { m_depCo = value; }
     else {
         throw ModelException(MID_DEP_LINSLEY, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-void DepressionFSDaily::Set1DData(const char *key, int n, float *data) {
+void DepressionFSDaily::Set1DData(const char *key, const int n, float *data) {
     //check the input data
     CheckInputSize(key, n);
     string sk(key);
@@ -129,15 +129,19 @@ void DepressionFSDaily::Set1DData(const char *key, int n, float *data) {
         m_pet = data;
     } else if (StringMatch(sk, VAR_EXCP)) {
         m_pe = data;
-    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { m_impoundTriger = data; }
-    else if (StringMatch(sk, VAR_POT_VOL)) { m_potVol = data; }
+    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) {
+        m_impoundTriger = data;
+    }
+    else if (StringMatch(sk, VAR_POT_VOL)) {
+        m_potVol = data;
+    }
     else {
         throw ModelException(MID_DEP_LINSLEY, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 void DepressionFSDaily::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_DPST)) {

@@ -226,7 +226,7 @@ private:
     float **m_soilSolP;
 
     /// minimum temperature for plant growth
-    float *m_pgTmpBase;
+    float *m_pgTempBase;
     /** Temporary parameters**/
 
     /// Sequence number of management operations done in the previous time step run
@@ -241,7 +241,7 @@ private:
     /// map from m_landuseLookup
     map<int, float *> m_landuseLookupMap;
     /// CN2 values
-    float *m_CN2;
+    float *m_cn2;
     /// plant growth code, 0 or 1
     float *m_igro;
     /// land cover/crop  classification:1-7, i.e., IDC
@@ -282,9 +282,9 @@ private:
     /// amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
     float *m_pltP;
     /// actual ET simulated during life of plant, plt_et in SWAT
-    float *m_pltET;
+    float *m_totActPltET;
     /// potential ET simulated during life of plant, plt_pet in SWAT
-    float *m_pltPET;
+    float *m_totPltPET;
     /// fraction of total plant biomass that is in roots, rwt in SWAT
     float *m_frRoot;
     /// land cover/crop biomass (dry weight), bio_ms in SWAT

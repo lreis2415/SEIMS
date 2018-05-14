@@ -4,12 +4,12 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new SEDR_SBAGNOLD();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
 
@@ -21,7 +21,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(MID_SEDR_SBAGNOLD);
     mdi.SetName(MID_SEDR_SBAGNOLD);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
 
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
@@ -30,7 +30,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 #else
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single); // daily model
 #endif /* STORM_MODE */
-    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(VAR_VCD, UNIT_NON_DIM, DESC_VCD, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_P_RF, UNIT_NON_DIM, DESC_P_RF, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SPCON, UNIT_NON_DIM, DESC_SPCON, Source_ParameterDB, DT_Single);
@@ -52,7 +51,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_PRECHWTDEPTH, UNIT_LEN_M, DESC_PRECHWTDEPTH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHWTWIDTH, UNIT_LEN_M, DESC_CHWTWIDTH, Source_Module, DT_Array1D);
 
-    mdi.AddOutput(VAR_SED_OUTLET, UNIT_KG, DESC_SED_OUTLET, DT_Single);
+    /// mdi.AddOutput(VAR_SED_OUTLET, UNIT_KG, DESC_SED_OUTLET, DT_Single); // Deprecated
 
     mdi.AddInOutput(VAR_SED_RECH, UNIT_KG, DESC_SED_RECH, DT_Array1D, TF_SingleValue);
     mdi.AddInOutput(VAR_SED_RECHConc, UNIT_SEDCONC, DESC_SED_RECH, DT_Array1D, TF_SingleValue);
@@ -66,7 +65,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddDependency(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
 
     res = mdi.GetXMLDocument();
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

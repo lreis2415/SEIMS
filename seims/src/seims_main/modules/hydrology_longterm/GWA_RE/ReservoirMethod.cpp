@@ -32,12 +32,12 @@ ReservoirMethod::~ReservoirMethod() {
 }
 
 void ReservoirMethod:: InitialOutputs() {
-    CHECK_POSITIVE(MID_GWA_RE, m_nSubbasins);
-    int nLen = m_nSubbasins + 1;
     if (m_firstRun) {
-        setSubbasinInfos();
+        SetSubbasinInfos();
         m_firstRun = false;
     }
+    CHECK_POSITIVE(MID_GWA_RE, m_nSubbasins);
+    int nLen = m_nSubbasins + 1;
     if (m_T_Perco == nullptr) Initialize1DArray(nLen, m_T_Perco, 0.f);
     if (m_T_Revap == nullptr) Initialize1DArray(nLen, m_T_Revap, 0.f);
     if (m_T_PerDep == nullptr) Initialize1DArray(nLen, m_T_PerDep, 0.f);
@@ -51,8 +51,8 @@ void ReservoirMethod:: InitialOutputs() {
 
 int ReservoirMethod::Execute() {
     CheckInputData();
-     InitialOutputs();
-    float QGConvert = 1.f * m_CellWidth * m_CellWidth / m_TimeStep / 1000.f; // mm ==> m3/s
+    InitialOutputs();
+    float QGConvert = 1.f * m_CellWidth * m_CellWidth / m_TimeStep * 0.001f; // mm ==> m3/s
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int subID = *it;
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(subID);
@@ -65,9 +65,9 @@ int ReservoirMethod::Execute() {
         for (int i = 0; i < curCellsNum; i++) {
             int index = 0;
             index = curCells[i];
-            float tmp_perc = m_perc[index][static_cast<int>(m_soilLayers[index]) - 1];
+            float tmp_perc = m_perc[index][CVT_INT(m_soilLayers[index]) - 1];
             if (tmp_perc > 0) perco += tmp_perc;
-            else m_perc[index][static_cast<int>(m_soilLayers[index]) - 1] = 0.f;
+            else m_perc[index][CVT_INT(m_soilLayers[index]) - 1] = 0.f;
         }
         perco /= curCellsNum; // mean mm
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
@@ -224,7 +224,7 @@ bool ReservoirMethod::CheckInputData() {
     return true;
 }
 
-bool ReservoirMethod::CheckInputSize(const char* key, int n) {
+bool ReservoirMethod::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
         throw ModelException(MID_GWA_RE, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
@@ -241,23 +241,23 @@ bool ReservoirMethod::CheckInputSize(const char* key, int n) {
 }
 
 // set value
-void ReservoirMethod::SetValue(const char* key, float value) {
+void ReservoirMethod::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, Tag_TimeStep)) { m_TimeStep = CVT_INT(value); }
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = CVT_INT(value); }
-    else if (StringMatch(sk, Tag_SubbasinId)) { m_subbasinID = CVT_INT(value); }
-    else if (StringMatch(sk, Tag_CellWidth)) { m_CellWidth = value; }
-    else if (StringMatch(sk, VAR_KG)) { m_Kg = value; }
-    else if (StringMatch(sk, VAR_Base_ex)) { m_Base_ex = value; }
-    else if (StringMatch(sk, VAR_DF_COEF)) { m_dp_co = value; }
-    else if (StringMatch(sk, VAR_GW0)) { m_GW0 = value; }
-    else if (StringMatch(sk, VAR_GWMAX)) { m_GWMAX = value; }
+    if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbasins = CVT_INT(value);
+    else if (StringMatch(sk, Tag_SubbasinId)) m_subbasinID = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth)) m_CellWidth = value;
+    else if (StringMatch(sk, VAR_KG)) m_Kg = value;
+    else if (StringMatch(sk, VAR_Base_ex)) m_Base_ex = value;
+    else if (StringMatch(sk, VAR_DF_COEF)) m_dp_co = value;
+    else if (StringMatch(sk, VAR_GW0)) m_GW0 = value;
+    else if (StringMatch(sk, VAR_GWMAX)) m_GWMAX = value;
     else {
         throw ModelException(MID_GWA_RE, "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
 }
 
-void ReservoirMethod::Set1DData(const char* key, int n, float* data) {
+void ReservoirMethod::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_GWNEW)) {
         m_VgroundwaterFromBankStorage = data;
@@ -286,7 +286,7 @@ void ReservoirMethod::Set1DData(const char* key, int n, float* data) {
     }
 }
 
-void ReservoirMethod::Set2DData(const char* key, int nrows, int ncols, float** data) {
+void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
     CheckInputSize(key, nrows);
     m_nMaxSoilLayers = ncols;
@@ -313,19 +313,19 @@ void ReservoirMethod::SetSubbasins(clsSubbasins* subbasins) {
 }
 
 void ReservoirMethod::GetValue(const char* key, float* value) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_RG) && m_subbasinID > 0) { *value = m_T_RG[m_subbasinID]; }
-    else if (StringMatch(sk, VAR_SBQG) && m_subbasinID > 0) { *value = m_T_QG[m_subbasinID]; }
-    else if (StringMatch(sk, VAR_SBGS) && m_subbasinID > 0) { *value = m_gwStore[m_subbasinID]; }
-    else if (StringMatch(sk, VAR_SBPET) && m_subbasinID > 0) { *value = m_petSubbasin[m_subbasinID]; }
+    if (StringMatch(sk, VAR_RG) && m_subbasinID > 0) *value = m_T_RG[m_subbasinID];
+    else if (StringMatch(sk, VAR_SBQG) && m_subbasinID > 0) *value = m_T_QG[m_subbasinID];
+    else if (StringMatch(sk, VAR_SBGS) && m_subbasinID > 0) *value = m_gwStore[m_subbasinID];
+    else if (StringMatch(sk, VAR_SBPET) && m_subbasinID > 0) *value = m_petSubbasin[m_subbasinID];
     else {
         throw ModelException(MID_GWA_RE, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_REVAP)) {
         *data = m_D_Revap;
@@ -348,7 +348,7 @@ void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
 }
 
 void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_GWWB)) {
         *data = m_T_GWWB;
@@ -359,7 +359,7 @@ void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float**
     }
 }
 
-void ReservoirMethod::setSubbasinInfos() {
+void ReservoirMethod::SetSubbasinInfos() {
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
         if (curSub->GetSlope() <= 0.f) {

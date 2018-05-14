@@ -16,9 +16,9 @@ MGTOpt_SWAT::MGTOpt_SWAT() : m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VA
                              /// Soil related parameters
                              m_soilFrshOrgN(nullptr), m_soilFrshOrgP(nullptr), m_soilNH4(nullptr),
                              m_soilNO3(nullptr), m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr),
-                             m_soilSolP(nullptr), m_pgTmpBase(nullptr),
+                             m_soilSolP(nullptr), m_pgTempBase(nullptr),
                              /// Plant operation related parameters
-                             m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_CN2(nullptr),
+                             m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_cn2(nullptr),
                              m_igro(nullptr),
                              m_landCoverCls(nullptr), m_HvstIdxTrgt(nullptr), m_BiomTrgt(nullptr),
                              m_curYrMat(nullptr), m_wtrStrsHvst(nullptr), m_lai(nullptr), m_phuBase(nullptr),
@@ -26,7 +26,7 @@ MGTOpt_SWAT::MGTOpt_SWAT() : m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VA
                              m_phuPlt(nullptr), m_dormFlag(nullptr), m_hvstIdx(nullptr),
                              m_hvstIdxAdj(nullptr), m_laiMaxFr(nullptr), m_oLai(nullptr),
                              m_frPltN(nullptr), m_frPltP(nullptr), m_pltN(nullptr), m_pltP(nullptr),
-                             m_pltET(nullptr), m_pltPET(nullptr), m_frRoot(nullptr),
+                             m_totActPltET(nullptr), m_totPltPET(nullptr), m_frRoot(nullptr),
                              /// Harvest and Kill, harvest, harvgrain operation
                              m_biomass(nullptr), m_soilRsd(nullptr), m_frStrsWtr(nullptr), m_cropLookup(nullptr),
                              m_cropNum(-1),
@@ -226,11 +226,11 @@ void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
     } else if (StringMatch(sk, VAR_SOL_SUMAWC)) {
         m_soilSumFC = data;
     } else if (StringMatch(sk, VAR_T_BASE)) {
-        m_pgTmpBase = data;
+        m_pgTempBase = data;
     }
         ///  Plant operation related parameters
     else if (StringMatch(sk, VAR_CN2)) {
-        m_CN2 = data;
+        m_cn2 = data;
     } else if (StringMatch(sk, VAR_HVSTI)) {
         m_hvstIdx = data;
     } else if (StringMatch(sk, VAR_WSYF)) {
@@ -264,9 +264,9 @@ void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
     } else if (StringMatch(sk, VAR_FR_PLANT_P)) {
         m_frPltP = data;
     } else if (StringMatch(sk, VAR_PLTET_TOT)) {
-        m_pltET = data;
+        m_totActPltET = data;
     } else if (StringMatch(sk, VAR_PLTPET_TOT)) {
-        m_pltPET = data;
+        m_totPltPET = data;
     } else if (StringMatch(sk, VAR_FR_ROOT)) {
         m_frRoot = data;
     } else if (StringMatch(sk, VAR_BIOMASS)) {
@@ -524,11 +524,11 @@ bool MGTOpt_SWAT::CheckInputData() {
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landUse);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landCover);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_mgtFields);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_pgTmpBase);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_pgTempBase);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_nSoilLyrs);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilMaxRootD);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_soilSumFC);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_CN2);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_cn2);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_igro);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_landCoverCls);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_curYrMat);
@@ -544,8 +544,8 @@ bool MGTOpt_SWAT::CheckInputData() {
     CHECK_POINTER(MID_PLTMGT_SWAT, m_oLai);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltN);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_frPltP);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_pltET);
-    CHECK_POINTER(MID_PLTMGT_SWAT, m_pltPET);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_totActPltET);
+    CHECK_POINTER(MID_PLTMGT_SWAT, m_totPltPET);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_frRoot);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_biomass);
     CHECK_POINTER(MID_PLTMGT_SWAT, m_stoSoilRootD);
@@ -702,8 +702,8 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
     m_phuAccum[i] = 0.f;
     m_pltN[i] = 0.f;
     m_pltP[i] = 0.f;
-    m_pltET[i] = 0.f;
-    m_pltPET[i] = 0.f;
+    m_totActPltET[i] = 0.f;
+    m_totPltPET[i] = 0.f;
     m_laiMaxFr[i] = 0.f;
     m_hvstIdxAdj[i] = 0.f;
     m_oLai[i] = 0.f;
@@ -716,7 +716,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
     }
     // update IDC
     m_landCoverCls[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_IDC];
-    m_pgTmpBase[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_T_BASE];
+    m_pgTempBase[i] = m_cropLookupMap.at(newPlantID)[CROP_PARAM_IDX_T_BASE];
     /// initialize transplant variables
     if (curOperation->LAIInit() > 0.f) {
         m_lai[i] = curOperation->LAIInit();
@@ -736,7 +736,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
     if (curOperation->CNOP() > 0.f) {
         /// curno.f
         float cnn = curOperation->CNOP();
-        m_CN2[i] = cnn;
+        m_cn2[i] = cnn;
     }
 }
 
@@ -1057,10 +1057,10 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
     if (m_HvstIdxTrgt[i] > 0.f) {
         hiad1 = m_HvstIdxTrgt[i];
     } else {
-        if (m_pltPET[i] < 10.f) {
+        if (m_totPltPET[i] < 10.f) {
             wur = 100.f;
         } else {
-            wur = 100.f * m_pltET[i] / m_pltPET[i];
+            wur = 100.f * m_totActPltET[i] / m_totPltPET[i];
         }
         hiad1 = (m_hvstIdxAdj[i] - wsyf) * (wur / (wur + exp(6.13f - 0.0883f * wur))) + wsyf;
         if (hiad1 > hvsti) hiad1 = hvsti;
@@ -1225,7 +1225,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
         /// end insert new biomass of CENTURY model
     }
     if (cnop > 0.f) {
-        m_CN2[i] = cnop;
+        m_cn2[i] = cnop;
     } /// TODO: Is necessary to isolate the curno.f function for SUR_CN?
     /// reset variables
     m_igro[i] = 0.f;
@@ -1474,7 +1474,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
             }
         }
     }
-    if (cnop > 1.e-4f) m_CN2[i] = cnop;
+    if (cnop > 1.e-4f) m_cn2[i] = cnop;
 }
 
 void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int& factoryID, int nOp) {
@@ -1509,10 +1509,10 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int& factoryID, int nOp) {
     //  /// compute grain yield
     //  float hiad1 = 0.f; /// hiad1       |none           |actual harvest index (adj for water/growth)
     //  float wur = 0.f; /// wur         |none           |water deficiency factor
-    //  if (m_pltPET[i] < 10.f)
+    //  if (m_totPltPET[i] < 10.f)
     //      wur = 100.f;
     //  else
-    //      wur = 100.f * m_pltET[i] / m_pltPET[i];
+    //      wur = 100.f * m_totActPltET[i] / m_totPltPET[i];
     //  hiad1 = (m_havstIdxAdj[i] - wsyf) * (wur / (wur + exp(6.13f - 0.0883f * wur))) + wsyf;
     //  if (hiad1 > hvsti) hiad1 = hvsti;
     //  /// check if yield is from above or below ground

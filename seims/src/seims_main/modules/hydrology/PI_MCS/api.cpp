@@ -4,12 +4,12 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new clsPI_MCS();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -19,7 +19,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_PI_MSC);
     mdi.SetName(MID_PI_MSC);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
 
@@ -52,7 +52,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     string res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

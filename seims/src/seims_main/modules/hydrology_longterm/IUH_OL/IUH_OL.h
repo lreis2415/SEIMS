@@ -80,22 +80,22 @@ private:
     /// validate cells number
     int m_nCells;
     /// cell width of the grid (m)
-    float m_CellWidth;
+    float m_CellWth;
     /// cell area, BE CAUTION, the unit is m^2, NOT ha!!!
     float m_cellArea;
     /// the total number of subbasins
-    int m_nSubbasins;
+    int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
+    int m_inputSubbsnID;
     /// subbasin grid (subbasins ID)
-    float *m_subbasin;
+    float *m_subbsnID;
 
     /// IUH of each grid cell (1/s)
     float **m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// surface runoff from depression module
-    float *m_rs;
+    float *m_surfRf;
 
     //temporary
 

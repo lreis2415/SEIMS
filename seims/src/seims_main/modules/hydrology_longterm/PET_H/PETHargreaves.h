@@ -59,17 +59,17 @@ private:
 private:
     /// Parameters from Database
     /// mean air temperature for a given day(degree)
-    float *m_tMean;
+    float *m_meanTemp;
     /// maximum air temperature for a given day(degree)
-    float *m_tMax;
+    float *m_maxTemp;
     /// minimum air temperature for a given day(degree)
-    float *m_tMin;
+    float *m_minTemp;
     /// relative humidity(%)
     float *m_rhd;
     /// latitude of each valid cells
     float *m_cellLat;
     /// annual PHU
-    float *m_phutot;
+    float *m_phuAnn;
     /// valid cell number
     int m_nCells;
     /// coefficient related to radiation used in Hargreaves method

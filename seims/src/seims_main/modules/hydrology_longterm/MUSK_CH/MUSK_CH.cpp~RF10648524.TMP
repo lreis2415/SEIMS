@@ -15,7 +15,7 @@ MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1), m_outletID(-1)
                      m_chVel(nullptr), m_bankStorage(nullptr), m_deepGroundwater(0.f), m_seepage(nullptr),
                      m_reachDownStream(nullptr), m_x(NODATA_VALUE),
                      m_co1(NODATA_VALUE), m_chStorage(nullptr), m_preChStorage(nullptr),
-                     m_qRchOut(nullptr), m_qIn(nullptr) {
+                     m_qOut(nullptr), m_qIn(nullptr) {
 }
 
 MUSK_CH::~MUSK_CH() {
@@ -23,7 +23,7 @@ MUSK_CH::~MUSK_CH() {
 
     if (nullptr != m_chStorage) Release1DArray(m_chStorage);
     if (nullptr != m_preChStorage) Release1DArray(m_preChStorage);
-    if (nullptr != m_qRchOut) Release1DArray(m_qRchOut);
+    if (nullptr != m_qOut) Release1DArray(m_qOut);
     if (nullptr != m_bankStorage) Release1DArray(m_bankStorage);
     if (nullptr != m_seepage) Release1DArray(m_seepage);
     if (nullptr != m_qsCh) Release1DArray(m_qsCh);
@@ -65,7 +65,7 @@ void MUSK_CH:: InitialOutputs() {
         m_chStorage = new float[m_nreach + 1];
         m_preChStorage = new float[m_nreach + 1];
         m_qIn = new float[m_nreach + 1];
-        m_qRchOut = new float[m_nreach + 1];
+        m_qOut = new float[m_nreach + 1];
         m_bankStorage = new float[m_nreach + 1];
         m_seepage = new float[m_nreach + 1];
         m_qsCh = new float[m_nreach + 1];
@@ -98,7 +98,7 @@ void MUSK_CH:: InitialOutputs() {
             m_chStorage[i] = m_chLen[i] * m_chWTdepth[i] * (m_chBtmWidth[i] + m_chSideSlope[i] * m_chWTdepth[i]);
             m_preChStorage[i] = m_chStorage[i];
             m_qIn[i] = 0.f;
-            m_qRchOut[i] = m_qsSub[i] + qiSub + qgSub;
+            m_qOut[i] = m_qsSub[i] + qiSub + qgSub;
             m_qsCh[i] = m_qsSub[i];
             m_qiCh[i] = qiSub;
             m_qgCh[i] = qgSub;
@@ -152,7 +152,7 @@ int MUSK_CH::Execute() {
     for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int reachNum = CVT_INT(it->second.size());
+        int reachNum = it->second.size();
         // the size of m_reachLayers (map) is equal to the maximum stream order
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
@@ -207,7 +207,7 @@ void MUSK_CH::SetValue(const char *key, const float value) {
 void MUSK_CH::SetValueByIndex(const char *key, const int index, const float value) {
     if (m_inputSubbsnID == 0) return; // Not for omp version
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
-    if (nullptr == m_qRchOut)  InitialOutputs();
+    if (nullptr == m_qOut)  InitialOutputs();
     string sk(key);
     /// Set single value of array1D of current subbasin
     if (StringMatch(sk, VAR_SBOF)) m_qsSub[index] = value;
@@ -216,7 +216,7 @@ void MUSK_CH::SetValueByIndex(const char *key, const int index, const float valu
     else if (StringMatch(sk, VAR_SBPET)) m_petCh[index] = value;
     else if (StringMatch(sk, VAR_SBGS)) m_gwStorage[index] = value;
     /// IN/OUTPUT variables
-    else if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
+    else if (StringMatch(sk, VAR_QRECH)) m_qOut[index] = value;
     else if (StringMatch(sk, VAR_QS)) m_qsCh[index] = value;
     else if (StringMatch(sk, VAR_QI)) m_qiCh[index] = value;
     else if (StringMatch(sk, VAR_QG)) m_qgCh[index] = value;
@@ -254,10 +254,10 @@ void MUSK_CH::Set1DData(const char *key, const int n, float *value) {
 void MUSK_CH::GetValue(const char *key, float *value) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_QOUTLET)) *value = m_qRchOut[m_outletID];
+    if (StringMatch(sk, VAR_QOUTLET)) *value = m_qOut[m_outletID];
     else if (StringMatch(sk, VAR_QSOUTLET)) *value = m_qsCh[m_outletID];
     /// IN/OUTPUT variables
-    else if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qOut[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QS) && m_inputSubbsnID > 0) *value = m_qsCh[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QI) && m_inputSubbsnID > 0) *value = m_qiCh[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QG) && m_inputSubbsnID > 0) *value = m_qgCh[m_inputSubbsnID];
@@ -271,8 +271,8 @@ void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     *n = m_nreach + 1;
     if (StringMatch(sk, VAR_QRECH)) {
-        m_qRchOut[0] = m_qRchOut[m_outletID];
-        *data = m_qRchOut;
+        m_qOut[0] = m_qOut[m_outletID];
+        *data = m_qOut;
     } else if (StringMatch(sk, VAR_QS)) {
         m_qsCh[0] = m_qsCh[m_outletID];
         *data = m_qsCh;
@@ -453,7 +453,7 @@ void MUSK_CH::ChannelFlow(const int i) {
     // then subtract all the outflow water
     // 1. transmission losses to deep aquifer, which is lost from the system
     // the unit of kchb is mm/hr, 1. / 1000. / 3600. = 2.7777777777777776e-07
-    float seepage = m_Kchb[i] * 2.7777777777777776e-07f * m_chBtmWidth[i] * m_chLen[i] * m_dt;
+    float seepage = m_Kchb[i] * 2.7777777777777776e-07 * m_chBtmWidth[i] * m_chLen[i] * m_dt;
     //if(i == 2) cout << "seepage: " << seepage << endl;
     if (qgSub < UTIL_ZERO) {
         if (m_chStorage[i] > seepage) {
@@ -471,7 +471,7 @@ void MUSK_CH::ChannelFlow(const int i) {
     //float dch = m_chStorage[i] / (m_chWTWidth[i] * m_chLen[i]);
     float dch = m_chWTdepth[i];
     float bankLen = dch * sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i]);
-    float bankInLoss = 2.f * m_Kbank[i] * 2.7777777777777776e-07f * bankLen * m_chLen[i] * m_dt; // m^3
+    float bankInLoss = 2.f * m_Kbank[i] * 2.7777777777777776e-07 * bankLen * m_chLen[i] * m_dt; // m^3
     //bankInLoss = 0.f; //TODO, why not consider bankage loss?
     if (m_chStorage[i] > bankInLoss) {
         m_chStorage[i] -= bankInLoss;
@@ -500,7 +500,7 @@ void MUSK_CH::ChannelFlow(const int i) {
         }
     }
     if (FloatEqual(m_chStorage[i], 0.f)) {
-        m_qRchOut[i] = 0.f;
+        m_qOut[i] = 0.f;
         m_qsCh[i] = 0.f;
         m_qiCh[i] = 0.f;
         m_qgCh[i] = 0.f;
@@ -524,23 +524,23 @@ void MUSK_CH::ChannelFlow(const int i) {
     int n = wt.n;
     float q = 0.f;
     for (int j = 0; j < n; j++) {
-        m_qRchOut[i] = wt.c1 * qIn + wt.c2 * m_qIn[i] + wt.c3 * m_qRchOut[i];
+        m_qOut[i] = wt.c1 * qIn + wt.c2 * m_qIn[i] + wt.c3 * m_qOut[i];
         m_qIn[i] = qIn;
-        float tmp = m_chStorage[i] + (qIn - totalLoss / m_dt - m_qRchOut[i]) * wt.dt;
+        float tmp = m_chStorage[i] + (qIn - totalLoss / m_dt - m_qOut[i]) * wt.dt;
         if (tmp < 0.f) {
-            m_qRchOut[i] = m_chStorage[i] / wt.dt + qIn;
+            m_qOut[i] = m_chStorage[i] / wt.dt + qIn;
             m_chStorage[i] = 0.f;
         } else {
             m_chStorage[i] = tmp;
         }
-        q += m_qRchOut[i];
+        q += m_qOut[i];
     }
-    m_qRchOut[i] = q / n;
+    m_qOut[i] = q / n;
 
     float qInSum = m_qsSub[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
-    m_qsCh[i] = m_qRchOut[i] * (m_qsSub[i] + qsUp) / qInSum;
-    m_qiCh[i] = m_qRchOut[i] * (qiSub + qiUp) / qInSum;
-    m_qgCh[i] = m_qRchOut[i] * (qgSub + qgUp) / qInSum;
+    m_qsCh[i] = m_qOut[i] * (m_qsSub[i] + qsUp) / qInSum;
+    m_qiCh[i] = m_qOut[i] * (qiSub + qiUp) / qInSum;
+    m_qgCh[i] = m_qOut[i] * (qgSub + qgUp) / qInSum;
 
     // set variables for next time step
     m_qIn[i] = qIn;

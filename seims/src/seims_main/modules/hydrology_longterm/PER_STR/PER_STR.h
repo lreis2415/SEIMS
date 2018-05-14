@@ -63,34 +63,34 @@ private:
     /// number of soil layers
     int m_nSoilLayers;
     /// soil layers
-    float *m_soilLayers;
+    float *m_soilLyrs;
     /// soil thickness
-    float **m_soilThick;
+    float **m_soilThk;
     /// time step
     int m_dt;
     /// valid cells number
     int m_nCells;
     /// threshold soil freezing temperature
-    float m_frozenT;
+    float m_soilFrozenTemp;
     /// saturated conductivity
     float **m_ks;
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_sat;
+    float **m_soilSat;
     /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-    float **m_fc;
+    float **m_soilFC;
     /// soil moisture, mm H2O
-    float **m_soilStorage;
+    float **m_soilWtrSto;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
-    float *m_soilStorageProfile;
+    float *m_soilWtrStoPrfl;
     /// soil temperature
-    float *m_soilT;
+    float *m_soilTemp;
     /// infiltration, mm
     float *m_infil;
     /// surface runoff, mm
-    float *m_surfQmm;
+    float *m_surfRf;
     /// pothole volume, mm
     float *m_potVol;
     /// Output: percolation
-    float **m_perc;
+    float **m_soilPerco;
 };
 #endif /* SEIMS_MODULE_PER_STR_H */
