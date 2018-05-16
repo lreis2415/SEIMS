@@ -10,7 +10,7 @@
 #include "PlantManagementOperation.h"
 
 using namespace bmps;
-using namespace PlantManagement;
+using namespace plant_management;
 
 namespace bmps {
 /*!
@@ -47,16 +47,16 @@ public:
     int GetLUCCID() { return m_luccID; }
 
     /// Get locations
-    const vector<int>& GetLocations() const { return m_location; }
+    vector<int>& GetLocations() { return m_location; }
 
     /// Get operation sequence
-    const vector<int>& GetOperationSequence() const { return m_bmpSequence; }
+    vector<int>& GetOperationSequence() { return m_bmpSequence; }
 
     /// Get operations
-    const map<int, PlantManagementOperation *>& GetOperations() const { return m_bmpPlantOps; }
+    map<int, PltMgtOp *>& GetOperations() { return m_bmpPlantOps; }
 
     /// Get operation by ID
-    PlantManagementOperation* GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
+    PltMgtOp* GetOperation(int ID) { return m_bmpPlantOps.at(ID); }
 
 private:
     /// subSecenario name
@@ -81,7 +81,7 @@ private:
      * Key is the unique management code in m_bmpSequence, e.g., 1002
      * Value is the corresponding PlantMangementOperation instance
      */
-    map<int, PlantManagementOperation *> m_bmpPlantOps;
+    map<int, PltMgtOp *> m_bmpPlantOps;
 };
 }
 #endif /* SEIMS_BMP_PLANTMGT_H */

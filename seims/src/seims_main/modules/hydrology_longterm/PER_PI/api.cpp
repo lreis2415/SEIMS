@@ -4,12 +4,12 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new PER_PI();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -34,8 +34,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     //mdi.AddParameter(VAR_POROST, UNIT_NON_DIM, DESC_POROST, Source_ParameterDB, DT_Raster2D); => VAR_SOL_UL
     //mdi.AddParameter(VAR_FIELDCAP, UNIT_WAT_RATIO, DESC_FIELDCAP, Source_ParameterDB, DT_Raster2D); => VAR_SOL_AWC
     //mdi.AddParameter(VAR_WILTPOINT,UNIT_WAT_RATIO, DESC_WILTPOINT, Source_ParameterDB, DT_Raster2D); => VAR_SOL_WPMM
-    mdi.AddParameter(VAR_SOL_UL, UNIT_DEPTH_MM, DESC_SOL_UL, Source_ParameterDB, DT_Raster2D); // m_sat
-    mdi.AddParameter(VAR_SOL_AWC, UNIT_DEPTH_MM, DESC_SOL_AWC, Source_ParameterDB, DT_Raster2D); // m_fc
+    mdi.AddParameter(VAR_SOL_UL, UNIT_DEPTH_MM, DESC_SOL_UL, Source_ParameterDB, DT_Raster2D);     // m_sat
+    mdi.AddParameter(VAR_SOL_AWC, UNIT_DEPTH_MM, DESC_SOL_AWC, Source_ParameterDB, DT_Raster2D);   // m_fc
     mdi.AddParameter(VAR_SOL_WPMM, UNIT_DEPTH_MM, DESC_SOL_WPMM, Source_ParameterDB, DT_Raster2D); // m_wp
     mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module_Optional, DT_Raster1D);
     mdi.AddInput(VAR_SOTE, UNIT_TEMP_DEG, DESC_SOTE, Source_Module, DT_Raster1D);
@@ -47,7 +47,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     string res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

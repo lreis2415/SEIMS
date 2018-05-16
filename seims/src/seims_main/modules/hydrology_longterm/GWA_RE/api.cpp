@@ -4,12 +4,12 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new ReservoirMethod();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
 
@@ -54,15 +54,15 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module, DT_Raster2D);
 
     mdi.AddOutput(VAR_GWWB, UNIT_NON_DIM, DESC_NONE, DT_Array2D);
-    mdi.AddOutput(VAR_REVAP, UNIT_DEPTH_MM, DESC_REVAP, DT_Raster1D); //used by soil water balance module
-    mdi.AddOutput(VAR_RG, UNIT_DEPTH_MM, DESC_RG, DT_Array1D, TF_SingleValue); //used by soil water balance module
+    mdi.AddOutput(VAR_REVAP, UNIT_DEPTH_MM, DESC_REVAP, DT_Raster1D);              //used by soil water balance module
+    mdi.AddOutput(VAR_RG, UNIT_DEPTH_MM, DESC_RG, DT_Array1D, TF_SingleValue);     //used by soil water balance module
     mdi.AddOutput(VAR_SBQG, UNIT_FLOW_CMS, DESC_SBQG, DT_Array1D, TF_SingleValue); //used by channel flow routing module
     mdi.AddOutput(VAR_SBPET, UNIT_DEPTH_MM, DESC_SBPET, DT_Array1D, TF_SingleValue);
     mdi.AddOutput(VAR_SBGS, UNIT_DEPTH_MM, DESC_SBGS, DT_Array1D, TF_SingleValue);
 
     res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

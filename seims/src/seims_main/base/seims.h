@@ -37,8 +37,12 @@ const int DiagonalCCW[9] = {0, 0, 1, 0, 1, 0, 1, 0, 1};
 /*!
  * \brief Common used const.
  */
-const float _23 = 0.6666666666666666f;
+const float _1div3 = 0.3333333333333333f; /// 1. / 3.
+const float _2div3 = 0.6666666666666666f; /// 2. / 3.
+const float _8div3 = 2.6666666666666665f; /// 8. / 3.
 const float SQ2 = 1.4142135623730951f;
+const float deg2rad = 0.017453292519943295f; /// PI / 180.
+const float rad2deg = 57.29577951308232f; /// 180. / PI
 
 #define MIN_FLUX        1e-12f /// \def minimum flux (m3/s) in kinematic wave
 #define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method

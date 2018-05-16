@@ -27,17 +27,17 @@
  * \brief Priestley Taylor Method to Compute PET
  *
  */
-class PETPriestleyTaylor : public SimulationModule {
+class PETPriestleyTaylor: public SimulationModule {
 public:
     PETPriestleyTaylor();
 
     ~PETPriestleyTaylor();
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *value) OVERRIDE;
+    void Set1DData(const char* key, int n, float* value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -54,34 +54,34 @@ private:
      * \param[in] n The input data dimension
      * \return bool The validity of the dimension
      */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     //! Initialize of output variables
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// mean air temperature for a given day(degree)
-    float *m_tMean;
+    float* m_meanTemp;
     /// maximum air temperature for a given day(degree)
-    float *m_tMax;
+    float* m_maxTemp;
     /// minimum air temperature for a given day(degree)
-    float *m_tMin;
+    float* m_minTemp;
     /// solar radiation(MJ/m2/d)
-    float *m_sr;
+    float* m_sr;
     /// relative humidity(%)
-    float *m_rhd;
+    float* m_rhd;
     /// elevation(m)
-    float *m_elev;
+    float* m_dem;
     /// valid cells number
     int m_nCells;
     /// Correction Factor for PET
     float m_petFactor;
     ///latitude of the stations
-    float *m_cellLat;
+    float* m_cellLat;
     /// annual PHU
-    float *m_phutot;
+    float* m_phuAnn;
     ///The temperature of snow melt
-    float m_tSnow;
+    float m_snowTemp;
 
     /// maximum solar radiation of current day
     float m_srMax;
@@ -91,12 +91,12 @@ private:
     /// output
 
     /// day length (hr)
-    float *m_dayLen;
+    float* m_dayLen;
     /// base zero total heat units (used when no land cover is growing)
-    float *m_phuBase;
+    float* m_phuBase;
     /// pet
-    float *m_pet;
+    float* m_pet;
     /// vapor pressure deficit
-    float *m_vpd;
+    float* m_vpd;
 };
 #endif /* SEIMS_MODULE_PET_PT_H */

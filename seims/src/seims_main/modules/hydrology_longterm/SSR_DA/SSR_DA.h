@@ -66,17 +66,17 @@ private:
     bool FlowInSoil(int id);
 private:
     /// current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
+    int m_inputSubbsnID;
     /// valid cell numbers
     int m_nCells;
     /// width of cell (m)
-    float m_CellWidth;
+    float m_CellWth;
     /// max number of soil layers
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
     /// number of soil layers of each cell
-    float *m_soilLayers;
+    float *m_nSoilLyrs;
     /// soil thickness
-    float **m_soilThick;
+    float **m_soilThk;
 
     ///// depth of the up soil layer
     //float m_upSoilDepth;
@@ -88,7 +88,7 @@ private:
     /// Interflow scale factor
     float m_ki;
     /// soil freezing temperature threshold, deg C
-    float m_frozenT;
+    float m_soilFrozenTemp;
     /// slope (tan)
     float *m_slope;
     /// conductivity
@@ -97,32 +97,32 @@ private:
     //float **m_porosity;
 
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_satmm;
+    float **m_soilSat;
     /// pore size distribution index
-    float **m_poreIndex;
+    float **m_poreIdx;
 
     /// amount of water available to plants in soil layer at field capacity (AWC=FC-WP), mm
-    float **m_fcmm;
+    float **m_soilFC;
     /// water content of soil at -1.5 MPa (wilting point) mm H2O
-    float **m_wpmm;
+    float **m_soilWP;
     /// soil water storage (mm)
-    float **m_soilStorage;
+    float **m_soilWtrSto;
     /// soil water storage in soil profile (mm)
-    float *m_soilStorageProfile;
+    float *m_soilWtrStoPrfl;
     /// soil temperature, deg C
-    float *m_soilT;
+    float *m_soilTemp;
 
     /// channel width, m
     float *m_chWidth;
     /// stream link
-    float *m_streamLink;
+    float *m_rchID;
 
     /**
     *	@brief 2d array of flow in cells
     *
     *	The first element in each sub-array is the number of flow in cells in this sub-array
     */
-    float **m_flowInIndex;
+    float **m_flowInIdxD8;
 
     /**
     *	@brief percentage of flow out to current cell from each upstream cells, this used for MFD flow direction algorithms
@@ -137,22 +137,22 @@ private:
     *	There are not flow relationships within each layer.
     *	The first element in each layer is the number of cells in the layer
     */
-    float **m_routingLayers;
+    float **m_rteLyrs;
     /// number of routing layers
-    int m_nRoutingLayers;
+    int m_nRteLyrs;
     /// number of subbasin
-    int m_nSubbasin;
+    int m_nSubbsns;
     /// subbasin grid (ID of subbasin)
-    float *m_subbasin;
+    float *m_subbsnID;
 
     // outputs
 
     /// subsurface runoff (mm), VAR_SSRU
-    float **m_qi;
+    float **m_subSurfRf;
     /// subsurface runoff volume (m3), VAR_SSRUVOL
-    float **m_qiVol;
+    float **m_subSurfRfVol;
     /// subsurface to streams from each subbasin, the first element is the whole watershed, m3/s, VAR_SBIF
-    float *m_qiSubbasin;
+    float *m_ifluQ2Rch;
 };
 
 #endif /* SEIMS_MODULE_SSR_DA_H */

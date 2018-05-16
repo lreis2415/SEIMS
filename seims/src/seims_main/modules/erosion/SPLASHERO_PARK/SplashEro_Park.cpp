@@ -166,7 +166,7 @@ void SplashEro_Park:: InitialOutputs() {
 
 int SplashEro_Park::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
     //StatusMsg("executing SplashEro_Park");
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {

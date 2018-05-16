@@ -4,7 +4,7 @@
 
 SUR_CN::SUR_CN(void) : m_nCells(-1), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE), m_T0(NODATA_VALUE),
                        m_Sfrozen(NODATA_VALUE),
-                       m_CN2(NULL), m_initSoilMoisture(NULL), m_rootDepth(NULL),
+                       m_cn2(NULL), m_initSoilMoisture(NULL), m_rootDepth(NULL),
                        m_soilDepth(NULL), m_porosity(NULL), m_fieldCap(NULL), m_wiltingPoint(NULL),
                        m_P_NET(NULL), m_SD(NULL), m_tMean(NULL), m_TS(NULL), m_SM(NULL), m_SA(NULL),
                        m_PE(NULL), m_INFIL(NULL), m_soilMoisture(NULL),
@@ -54,7 +54,7 @@ bool SUR_CN::CheckInputData(void) {
                              "The snowmelt threshold temperature of the input data can not be NULL.");
         return false;
     }
-    if (m_CN2 == NULL) {
+    if (m_cn2 == NULL) {
         throw ModelException(MID_SUR_CN, "CheckInputData",
                              "The CN under moisture condition II of the input data can not be NULL.");
         return false;
@@ -141,7 +141,7 @@ void SUR_CN:: InitialOutputs() {
 
 int SUR_CN::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
 
     float cnday;
     float pNet, surfq, infil;
@@ -306,7 +306,7 @@ void SUR_CN::Set1DData(const char *key, int n, float *data) {
     CheckInputSize(key, n);
     string sk(key);
 
-    if (StringMatch(sk, VAR_CN2)) { m_CN2 = data; }
+    if (StringMatch(sk, VAR_CN2)) { m_cn2 = data; }
     else if (StringMatch(sk, VAR_MOIST_IN)) { m_initSoilMoisture = data; }
     else if (StringMatch(sk, VAR_ROOTDEPTH)) { m_rootDepth = data; }
     else if (StringMatch(sk, VAR_NEPR)) { m_P_NET = data; }
@@ -412,7 +412,7 @@ void SUR_CN::initalW1W2() {
         /* fieldcap += m_fieldCap[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);
          wsat += m_porosity[i][m_nSoilLayers - 1] * (m_rootDepth[i] - aboveDepth);*/
 
-        float cnn = m_CN2[i];
+        float cnn = m_cn2[i];
         //float fieldcap = m_fieldCap[i] * m_rootDepth[i];
         //float wsat = m_porosity[i] * m_rootDepth[i];
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;

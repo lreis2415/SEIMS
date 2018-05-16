@@ -11,6 +11,7 @@
 #define SIMULATION_MOUDULE_BASE
 
 #include "basic.h"
+#include "utils_time.h"
 #include "Scenario.h"  /// added by LJ. 2016-6-14
 #include "clsReach.h"
 #include "clsSubbasin.h"
@@ -20,6 +21,7 @@
 #include <ctime>
 
 using namespace ccgl;
+using namespace utils_time;
 using namespace bmps;
 
 /*!
@@ -40,24 +42,27 @@ enum TimeStepType {
 class SimulationModule: Interface {
 public:
     //! Constructor
-    SimulationModule(): m_date(-1), m_yearIdx(-1), m_tsCounter(1), m_inputsSetDone(false) {
+    SimulationModule(): m_date(-1), m_yearIdx(-1), m_year(1900), m_month(-1), m_day(-1),
+                        m_tsCounter(1), m_inputsSetDone(false) {
     }
-
-    //! Destructor
-    //virtual ~SimulationModule() = default;
 
     //! Execute the simulation
     virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
-    virtual void SetDate(time_t t, int yearIdx) {
+    virtual void SetDate(const time_t t, const int year_idx) {
         m_date = t;
-        m_yearIdx = yearIdx;
+        m_yearIdx = year_idx;
+        struct tm date_info;
+        LocalTime(m_date, &date_info);
+        m_year = date_info.tm_year + 1900;
+        m_month = date_info.tm_mon + 1;
+        m_day = date_info.tm_mday;
     }
 
     //! Set thread number for OpenMP
-    virtual void SetTheadNumber(int threadNum) {
-        SetOpenMPThread(threadNum);
+    virtual void SetTheadNumber(int thread_num) {
+        SetOpenMPThread(thread_num);
     }
 
     //! Set climate data type, P, M, PET etc.
@@ -65,13 +70,13 @@ public:
     }
 
     //! Set data, DT_Single
-    virtual void SetValue(const char* key, float data) {
+    virtual void SetValue(const char* key, float value) {
         throw ModelException("SimulationModule", "SetValue",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
     //! Set single value to array1D by index, used in MPI version for passing values of subbasins
-    virtual void SetValueByIndex(const char* key, int index, float data) {
+    virtual void SetValueByIndex(const char* key, int index, float value) {
         throw ModelException("SimulationModule", "SetValueByIndex",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
@@ -131,17 +136,17 @@ public:
     }
 
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
-    virtual void SetScenario(Scenario*) {
+    virtual void SetScenario(Scenario* sce) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
     }
 
     //! Set pointer of clsReaches class which contains all reaches information. Added by LJ, 2016-7-2
-    virtual void SetReaches(clsReaches*) {
+    virtual void SetReaches(clsReaches* rches) {
         throw ModelException("SimulationModule", "SetReaches", "Set reaches function is not implemented.");
     }
 
     //! Set pointer of clsSubbasins class which contains all subbasins information. Added by LJ, 2016-7-28
-    virtual void SetSubbasins(clsSubbasins*) {
+    virtual void SetSubbasins(clsSubbasins* subbsns) {
         throw ModelException("SimulationModule", "SetSubbasins", "Set subbasins function is not implemented.");
     }
 
@@ -163,13 +168,19 @@ public:
     bool IsInputsSetDone() { return m_inputsSetDone; }
 
     //! Change the status of setting inputs parameters
-    void SetInputsDone(bool setDone) { m_inputsSetDone = setDone; }
+    void SetInputsDone(const bool set_done) { m_inputsSetDone = set_done; }
 
 protected:
     /// date time
     time_t m_date;
     /// index of current year of simulation, e.g., the simulation period from 2010 to 2015,  m_yearIdx is 2 when simulate 2012.
     int m_yearIdx;
+    /// year
+    int m_year;
+    /// months since January - [1,12]
+    int m_month;
+    /// day of the month - [1,31]
+    int m_day;
     /// sub-timestep counter
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.

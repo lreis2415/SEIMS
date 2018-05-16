@@ -31,19 +31,19 @@
  * \brief Penman Monteith Method to Compute PET
  *
  */
-class PETPenmanMonteith : public SimulationModule {
+class PETPenmanMonteith: public SimulationModule {
 public:
     PETPenmanMonteith();
 
     ~PETPenmanMonteith();
 
-    void Set1DData(const char *key, int n, float *value) OVERRIDE;
+    void Set1DData(const char* key, int n, float* value) OVERRIDE;
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
     /**
@@ -60,28 +60,28 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     /// initialize output variables
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// Mean air temperature for a given day (deg C)
-    float *m_tMean;
+    float* m_meanTemp;
     /// Minimum air temperature for a given day (deg C)
-    float *m_tMin;
+    float* m_minTemp;
     /// Maximum air temperature for a given day (deg C)
-    float *m_tMax;
+    float* m_maxTemp;
     /// solar radiation(MJ/m2/d)
-    float *m_sr;
+    float* m_sr;
     /// relative humidity(%)
-    float *m_rhd;
+    float* m_rhd;
     /// wind speed
-    float *m_ws;
+    float* m_ws;
     /// elevation(m)
-    float *m_elev;
+    float* m_dem;
     /// annual PHU
-    float *m_phutot;
+    float* m_phuAnn;
     /// temporary variables
     /// maximum solar radiation(MJ/m2/d), calculated from Julian day and latitude.
     float m_srMax;
@@ -93,41 +93,41 @@ private:
     * 0 no land cover currently growing
     * 1 land cover growing
     */
-    float *m_growCode;
+    float* m_igro;
     /// canopy height for the day(m)
-    float *m_cht;
+    float* m_canHgt;
     /// leaf area index(m2/m2)
-    float *m_lai;
+    float* m_lai;
     /// albedo in the day
-    float *m_albedo;
+    float* m_alb;
     /// valid cells number
     int m_nCells;
     ///latitude of each valid cells
-    float *m_cellLat;
+    float* m_cellLat;
 
     /// CO2 concentration(ppmv)
-    float m_co2;
+    float m_co2Conc;
     /// rate of decline in stomatal conductance per unit increase in vapor pressure deficit(m/s/kPa)
-    float *m_vpd2;
+    float* m_vpd2;
     /// maximum stomatal conductance(m/s) at high solar radiation and low vpd
-    float *m_gsi;
+    float* m_gsi;
     /// vapor pressure deficit(kPa) corresponding to the second point on the stomatal conductance curve
-    float *m_vpdfr;
+    float* m_vpdfr;
     /// fraction of maximum stomatal conductance corresponding to the second point on the stomatal conductance curve
-    float *m_frgmax;
+    float* m_frgmax;
     ///The temperature of snow melt
-    float m_tSnow;
+    float m_snowTemp;
     /// Correction Factor for PET
     float m_petFactor;
     /// output pet array
-    float *m_pet;
+    float* m_pet;
     /// maximum amount of transpiration (plant et)  that can occur on current day in HRU
-    float *m_ppt;
+    float* m_maxPltET;
     /// vapor pressure deficit
-    float *m_vpd;
+    float* m_vpd;
     /// day length
-    float *m_dayLen;
+    float* m_dayLen;
     /// base zero total heat units (used when no land cover is growing)
-    float *m_phuBase;
+    float* m_phuBase;
 };
 #endif /* SEIMS_MODULE_PET_PM_H */

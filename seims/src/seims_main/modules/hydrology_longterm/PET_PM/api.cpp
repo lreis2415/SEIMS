@@ -4,11 +4,11 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new PETPenmanMonteith();
 }
 
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -38,9 +38,9 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, Source_ParameterDB, DT_Raster1D);
 
     // set the input from other modules
-    mdi.AddInput(DataType_MeanTemperature, UNIT_TEMP_DEG, DESC_MAXTEMP, Source_Module, DT_Raster1D);
-    mdi.AddInput(DataType_MinimumTemperature, UNIT_TEMP_DEG, DESC_MINTEMP, Source_Module, DT_Raster1D);
-    mdi.AddInput(DataType_MaximumTemperature, UNIT_TEMP_DEG, DESC_MAXTEMP, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMAX, UNIT_TEMP_DEG, DESC_TMAX, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMIN, UNIT_TEMP_DEG, DESC_TMIN, Source_Module, DT_Raster1D);
     mdi.AddInput(DataType_RelativeAirMoisture, UNIT_PERCENT, DESC_RM, Source_Module, DT_Raster1D);
     mdi.AddInput(DataType_SolarRadiation, UNIT_SR, DESC_SR, Source_Module, DT_Raster1D);
     mdi.AddInput(DataType_WindSpeed, UNIT_SPEED_MS, DESC_WS, Source_Module, DT_Raster1D);
@@ -59,7 +59,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_PPT, UNIT_WTRDLT_MMD, DESC_PPT, DT_Raster1D);
 
     string res = mdi.GetXMLDocument();
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

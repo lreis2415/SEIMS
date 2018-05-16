@@ -4,12 +4,12 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new NutrientTransportSediment();
 }
 
 //! function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao, Liang-Jun Zhu");
     mdi.SetClass(MCLS_NUTRSED, MCLSDESC_NUTRSED);
@@ -66,8 +66,8 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SOL_BMC, UNIT_CONT_KGHA, DESC_SOL_BMC, Source_Module_Optional, DT_Raster2D);
     mdi.AddInput(VAR_SOL_WOC, UNIT_CONT_KGHA, DESC_SOL_WOC, Source_Module_Optional, DT_Raster2D);
 
-    mdi.AddInput(VAR_SSRU, UNIT_DEPTH_MM, DESC_SSRU, Source_Module_Optional, DT_Raster2D);//m_sol_laterq
-    mdi.AddInput(VAR_PERCO, UNIT_DEPTH_MM, DESC_PERCO, Source_Module_Optional, DT_Raster2D);//m_sol_perco
+    mdi.AddInput(VAR_SSRU, UNIT_DEPTH_MM, DESC_SSRU, Source_Module_Optional, DT_Raster2D);   //m_sol_laterq
+    mdi.AddInput(VAR_PERCO, UNIT_DEPTH_MM, DESC_PERCO, Source_Module_Optional, DT_Raster2D); //m_sol_perco
     /// end CENTURY variables
 
     // set the output variables
@@ -91,7 +91,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_SEDLOSS_C, UNIT_CONT_KGHA, DESC_SEDLOSS_C, DT_Raster1D);
 
     string res = mdi.GetXMLDocument();
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

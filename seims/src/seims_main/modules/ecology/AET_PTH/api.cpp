@@ -45,8 +45,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_SOET, UNIT_DEPTH_MM, DESC_SOET, DT_Raster1D);
     mdi.AddOutput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, DT_Raster1D);
     mdi.AddOutput(VAR_SNO3UP, UNIT_CONT_KGHA, DESC_SNO3UP, DT_Single);
-    //mdi.AddOutput(VAR_SOL_SW, UNIT_DEPTH_MM, DESC_SOL_SW, DT_Raster1D); /// mm, different from VAR_SOMO
-    //mdi.AddOutput(VAR_SOMO, UNIT_DEPTH_MM, DESC_SOL_ST, DT_Raster2D);
+    //mdi.AddOutput(VAR_SOL_SW, UNIT_DEPTH_MM, DESC_SOL_SW, DT_Raster1D);
+
     /// write out the XML file.
     res = mdi.GetXMLDocument();
 

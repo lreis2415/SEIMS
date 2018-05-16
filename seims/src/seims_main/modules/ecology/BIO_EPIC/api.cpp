@@ -4,12 +4,12 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new Biomass_EPIC();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -19,7 +19,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_BIO_EPIC);
     mdi.SetName(MID_BIO_EPIC);
-    mdi.SetVersion("1.1");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
     /// climate parameters
@@ -85,17 +85,17 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(VAR_SOL_SOLP, UNIT_CONT_KGHA, DESC_SOL_SOLP, Source_ParameterDB, DT_Raster2D);
 
     /// climate parameters INPUT
-    mdi.AddInput(DataType_MeanTemperature, UNIT_TEMP_DEG, DESC_MEANTEMP, Source_Module, DT_Raster1D);
-    mdi.AddInput(DataType_MinimumTemperature, UNIT_TEMP_DEG, DESC_MINTEMP, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMEAN, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TMIN, UNIT_TEMP_DEG, DESC_TMIN, Source_Module, DT_Raster1D);
     mdi.AddInput(DataType_SolarRadiation, UNIT_SR, DESC_SR, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_DAYLEN, UNIT_HOUR, DESC_DAYLEN, Source_Module, DT_Raster1D);  /// from PET modules
+    mdi.AddInput(VAR_DAYLEN, UNIT_HOUR, DESC_DAYLEN, Source_Module, DT_Raster1D); /// from PET modules
     /// water related INPUT
     mdi.AddInput(VAR_SOL_ST, UNIT_DEPTH_MM, DESC_SOL_ST, Source_Module, DT_Raster2D);
     mdi.AddInput(VAR_SOL_SW, UNIT_DEPTH_MM, DESC_SOL_SW, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_VPD, UNIT_PRESSURE, DESC_VPD, Source_Module, DT_Raster1D);
-    mdi.AddInput(VAR_PPT, UNIT_DEPTH_MM, DESC_PPT, Source_Module, DT_Raster1D);/// maximum plant et
-    mdi.AddInput(VAR_SOET, UNIT_DEPTH_MM, DESC_SOET, Source_Module, DT_Raster1D);/// actual soil evaporation
+    mdi.AddInput(VAR_PPT, UNIT_DEPTH_MM, DESC_PPT, Source_Module, DT_Raster1D);   /// maximum plant et
+    mdi.AddInput(VAR_SOET, UNIT_DEPTH_MM, DESC_SOET, Source_Module, DT_Raster1D); /// actual soil evaporation
     mdi.AddInput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, Source_Module, DT_Raster1D);
 
     mdi.AddInput(VAR_SOL_COV, UNIT_CONT_KGHA, DESC_SOL_COV, Source_Module_Optional, DT_Raster1D);
@@ -132,7 +132,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // write out the XML file.
     string res = mdi.GetXMLDocument();
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

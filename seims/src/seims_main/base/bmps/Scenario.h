@@ -54,7 +54,7 @@ public:
     string Name() { return m_name; };
 
     //! Get BMPs Factories
-    const map<int, BMPFactory *>& GetBMPFactories() const { return m_bmpFactories; }
+    map<int, BMPFactory *>& GetBMPFactories() { return m_bmpFactories; }
 
     //! Write all BMPs information of this scenario to a text file
     void Dump(string& fileName);

@@ -27,7 +27,7 @@ void HS_WB:: InitialOutputs() {
 //Execute module
 int HS_WB::Execute() {
 
-     InitialOutputs();
+    InitialOutputs();
 
     /// get the input of each subbasin in current step
 #pragma omp parallel for

@@ -67,23 +67,23 @@ private:
     float* m_pet;
     /// Evaporation loss from canopy storage
     float* m_IntcpET;
-    /// depression storage capacity
-    float* m_depSt;
+    /// depression storage capacity, not used!
+    ///float* m_depSt;
     /// soil evaporation compensation factor, if not set or existed, it will be assigned 0.95 as default.
     /// esco should be vary from 0.01 to 1.0
     float* m_esco;
     /// soil layers
-    float* m_nSoilLayers;
+    float* m_nSoilLyrs;
     /// maximum soil layers, mlyr in SWAT
-    int m_nMaxSoilLayer;
+    int m_maxSoilLyrs;
     /// soil depth
     float** m_soilDepth;
     /// soil thickness
-    float** m_soilThick;
+    float** m_soilThk;
     /// amount of water available to plants in soil layer at field capacity (FC-WP)
     float** m_solFC;
     /// amount of residue on soil surface (kg/ha)
-    float* m_solCov;
+    float* m_rsdCovSoil;
     /// amount of nitrogen stored in the nitrate pool
     float** m_solNo3;
     /// mean air temperature (deg C)
@@ -91,17 +91,17 @@ private:
     /// amount of water in snow on current day
     float* m_snowAccum;
     /// snow sublimation on current day
-    float* m_snowSB;
+    float* m_snowSublim;
     /// soil storage of each soil layer, mm H2O
-    float** m_soilStorage;
+    float** m_soilWtrSto;
     /// soil water storage in soil profile (mm)
-    float* m_soilStorageProfile;
+    float* m_soilWtrStoPrfl;
     /// add output variables
 
-    /// maximum amount of transpiration (plant et)  that can occur on current day in HRU, ep_max in SWAT
-    float* m_ppt;
+    /// maximum amount of transpiration (plant et) that can occur on current day, ep_max in SWAT
+    float* m_maxPltET;
     /// actual amount of evaporation (soil et) that occurs on day, es_day in SWAT
-    float* m_soilESDay;
+    float* m_soilET;
     /// amount of nitrate moving upward in the soil profile in watershed
     float m_no3Up;
 };

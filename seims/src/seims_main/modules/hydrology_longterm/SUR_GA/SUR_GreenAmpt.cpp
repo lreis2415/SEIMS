@@ -3,7 +3,7 @@
 
 SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
-                       m_CN2(NULL), m_P_NET(NULL), m_cellSize(-1), m_fieldCap(NULL), m_wiltingPoint(NULL),
+                       m_cn2(NULL), m_P_NET(NULL), m_cellSize(-1), m_fieldCap(NULL), m_wiltingPoint(NULL),
                        m_soilMoisture(NULL), m_INFRate(NULL),
                        m_SD(NULL), m_tMin(NULL), m_tMax(NULL), m_Tsnow(NODATA_VALUE), m_Tsoil(NODATA_VALUE),
                        m_Sfrozen(NODATA_VALUE),
@@ -62,7 +62,7 @@ bool SUR_GreenAmpt::CheckInputData(void) {
         return false;
     }
 
-    if (this->m_CN2 == NULL) {
+    if (this->m_cn2 == NULL) {
         throw ModelException("SUR_GreenAmpt", "CheckInputData",
                              "The CN under moisture condition II of the input data can not be NULL.");
         return false;
@@ -390,7 +390,7 @@ void SUR_GreenAmpt::Set1DData(const char *key, int n, float *data) {
     } else if (StringMatch(sk, "rootDepth")) {
         m_rootDepth = data;
     } else if (StringMatch(sk, "cn2")) {
-        m_CN2 = data;
+        m_cn2 = data;
     } else if (StringMatch(sk, "D_NEPR")) {
         m_P_NET = data;
     } else if (StringMatch(sk, "fieldCap")) {
@@ -472,7 +472,7 @@ void SUR_GreenAmpt::initalW1W2() {
     this->m_sMax = new float[this->m_cellSize];
 
     for (int i = 0; i < this->m_cellSize; i++) {
-        float cnn = this->m_CN2[i];
+        float cnn = this->m_cn2[i];
         float fieldcap = this->m_fieldCap[i] * this->m_rootDepth[i];
         float wsat = this->m_porosity[i] * this->m_rootDepth[i];
         float c1, c3, c2, smx, s3, rto3, rtos, xx, wrt1, wrt2;

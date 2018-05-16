@@ -56,7 +56,7 @@ void DepressionFS:: InitialOutputs() {
 }
 
 int DepressionFS::Execute() {
-     InitialOutputs();
+    InitialOutputs();
     if (m_checkInput) {
         CheckInputData();
         m_checkInput = false;
@@ -121,7 +121,7 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
 }
 
 void DepressionFS::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_DPST)) {

@@ -29,8 +29,6 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetDate(time_t date, int year_idx) OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
@@ -73,8 +71,6 @@ private:
     float* m_dem;
     /// Lapse Rate, a 2D array. The first level is by month, and the second level is by data type in order of (P,T,PET).
     float** m_lapseRate;
-    /// months since January - [0,11]
-    int m_month;
     /// interpolation result
     float* m_itpOutput;
 };

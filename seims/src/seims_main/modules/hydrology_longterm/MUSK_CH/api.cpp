@@ -25,7 +25,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_ChannelTimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Input, DT_Single);
-    mdi.AddParameter(Tag_LayeringMethod, UNIT_NON_DIM, DESC_LayeringMethod, File_Input, DT_Single);
     mdi.AddParameter(VAR_EP_CH, UNIT_WTRDLT_MMH, DESC_EP_CH, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_BNK0, UNIT_STRG_M3M, DESC_BNK0, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CHS0_PERC, UNIT_NON_DIM, DESC_CHS0_PERC, Source_ParameterDB, DT_Single);

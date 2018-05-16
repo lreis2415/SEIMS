@@ -33,7 +33,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddParameter(Tag_StationElevation, UNIT_LEN_M, Tag_StationElevation, Source_HydroClimateDB, DT_Array1D);
     // Lapse_rate is the combined lapse rate table name in HydroClimate database.
     // TODO, currently, LapseRate is defined in ModuleFactory.cpp and not imported into MongoDB. By LJ
-    mdi.AddParameter(VAR_LAP_RATE, UNIT_LAP_RATE, DESC_LAP_RATE, Source_HydroClimateDB, DT_Array2D);
+    //mdi.AddParameter(Tag_LapseRate, UNIT_LAP_RATE, Tag_LapseRate, Source_HydroClimateDB, DT_Array2D);
 
     // This is the climate data of all sites.
     // T means time series and it is same with first part of output id, e.g T_P. It may be P,PET,TMean, TMin or TMax data.

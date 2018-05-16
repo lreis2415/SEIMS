@@ -4,107 +4,147 @@
 #include "NutrientCommon.h"
 
 NutrientMovementViaWater::NutrientMovementViaWater() :
-//input
-    m_nCells(-1), m_cellWidth(-1.f), m_cellArea(-1.f), m_nMaxSoilLayers(-1), m_sedimentYield(nullptr), m_nperco(-1.f),
-    m_phoskd(-1.f), m_pperco(-1.f), m_cod_n(-1.f),
-    m_cod_k(-1.f), m_qtile(-1.f), m_nSoilLayers(nullptr), m_anion_excl(nullptr), m_isep_opt(-1), m_ldrain(nullptr),
-    m_dis_stream(nullptr), m_surfr(nullptr), m_flat(nullptr),
-    m_sol_perco(nullptr), m_sol_wsatur(nullptr), m_sol_crk(nullptr), m_sol_bd(nullptr), m_sol_z(nullptr), m_sol_thick(nullptr),
-    m_sol_cbn(nullptr), m_sol_no3(nullptr), m_sol_solp(nullptr),
-    m_nSubbasins(-1), m_subbasin(nullptr), m_subbasinsInfo(nullptr), m_streamLink(nullptr),
-    m_routingLayers(nullptr), m_nRoutingLayers(-1), m_flowOutIndex(nullptr),
-    m_sedc_d(nullptr), m_conv_wt(nullptr),
+    m_cellWth(-1.f), m_cellArea(-1.f), m_nCells(-1), m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
+    m_rchID(nullptr), m_cbnModel(-1),
+    m_cvtWt(nullptr), m_qtile(-1.f), m_phoskd(-1.f),
+    m_pperco(-1.f), m_nperco(-1.f), m_cod_n(-1.f), m_cod_k(-1.f),
+    m_olWtrEroSed(nullptr), m_anionExclFr(nullptr),
+    m_surfRf(nullptr), m_isep_opt(-1), m_drainLyr(nullptr),
+    m_soilCrk(nullptr), m_distToRch(nullptr), m_soilSat(nullptr), m_subSurfRf(nullptr),
+    m_soilPerco(nullptr), m_soilBD(nullptr),
+    m_soilDepth(nullptr), m_flowOutIdxD8(nullptr),
+    m_rteLyrs(nullptr), m_nRteLyrs(-1),
+    m_sedorgn(nullptr), m_meanTemp(nullptr), m_soilCbn(nullptr), m_soilThk(nullptr), m_latNO3(nullptr),
+    m_percoN(nullptr), m_percoP(nullptr), m_surfRfNO3(nullptr),
+    m_surfRfNH4(nullptr), m_surfRfSolP(nullptr),
     //output
-    m_latno3(nullptr), m_latno3ToCh(nullptr), m_wshd_plch(-1.f),
-    m_surqno3(nullptr), m_surqnh4(nullptr), m_surqsolp(nullptr), m_surcod(nullptr), m_surchl_a(nullptr),
-    m_perco_n(nullptr), m_perco_p(nullptr), m_perco_n_gw(nullptr), m_perco_p_gw(nullptr),
-    m_sur_no3ToCh(nullptr), m_sur_nh4ToCh(nullptr), m_sur_solpToCh(nullptr), m_sur_codToCh(nullptr) {
+    m_surfRfCod(nullptr), m_surfRfChlA(nullptr), m_latNO3ToCh(nullptr),
+    m_surfRfNO3ToCh(nullptr), m_surfRfNH4ToCh(nullptr), m_surfRfSolPToCh(nullptr),
+    m_percoNGw(nullptr), m_percoPGw(nullptr),
+    m_surfRfCodToCh(nullptr), m_nSubbsns(-1), m_subbsnID(nullptr), m_subbasinsInfo(nullptr),
+    m_wshdLchP(-1.f), m_soilNO3(nullptr), m_soilSolP(nullptr), m_sedLossCbn(nullptr) {
 }
 
 NutrientMovementViaWater::~NutrientMovementViaWater() {
-    if (m_latno3 != nullptr) Release1DArray(m_latno3);
-    if (m_latno3ToCh != nullptr) Release1DArray(m_latno3ToCh);
+    if (m_latNO3 != nullptr) Release1DArray(m_latNO3);
+    if (m_latNO3ToCh != nullptr) Release1DArray(m_latNO3ToCh);
 
-    if (m_surqno3 != nullptr) Release1DArray(m_surqno3);
-    if (m_surqnh4 != nullptr) Release1DArray(m_surqnh4);
-    if (m_surqsolp != nullptr) Release1DArray(m_surqsolp);
-    if (m_surcod != nullptr) Release1DArray(m_surcod);
-    if (m_surchl_a != nullptr) Release1DArray(m_surchl_a);
+    if (m_surfRfNO3 != nullptr) Release1DArray(m_surfRfNO3);
+    if (m_surfRfNH4 != nullptr) Release1DArray(m_surfRfNH4);
+    if (m_surfRfSolP != nullptr) Release1DArray(m_surfRfSolP);
+    if (m_surfRfCod != nullptr) Release1DArray(m_surfRfCod);
+    if (m_surfRfChlA != nullptr) Release1DArray(m_surfRfChlA);
 
-    if (m_sur_no3ToCh != nullptr) Release1DArray(m_sur_no3ToCh);
-    if (m_sur_nh4ToCh != nullptr) Release1DArray(m_sur_nh4ToCh);
-    if (m_sur_solpToCh != nullptr) Release1DArray(m_sur_solpToCh);
-    if (m_sur_codToCh != nullptr) Release1DArray(m_sur_codToCh);
+    if (m_surfRfNO3ToCh != nullptr) Release1DArray(m_surfRfNO3ToCh);
+    if (m_surfRfNH4ToCh != nullptr) Release1DArray(m_surfRfNH4ToCh);
+    if (m_surfRfSolPToCh != nullptr) Release1DArray(m_surfRfSolPToCh);
+    if (m_surfRfCodToCh != nullptr) Release1DArray(m_surfRfCodToCh);
 
-    if (m_perco_n != nullptr) Release1DArray(m_perco_n);
-    if (m_perco_p != nullptr) Release1DArray(m_perco_p);
-    if (m_perco_n_gw != nullptr) Release1DArray(m_perco_n_gw);
-    if (m_perco_p_gw != nullptr) Release1DArray(m_perco_p_gw);
+    if (m_percoN != nullptr) Release1DArray(m_percoN);
+    if (m_percoP != nullptr) Release1DArray(m_percoP);
+    if (m_percoNGw != nullptr) Release1DArray(m_percoNGw);
+    if (m_percoPGw != nullptr) Release1DArray(m_percoPGw);
 }
 
 void NutrientMovementViaWater::SumBySubbasin() {
     // reset to zero
-    for (int subi = 0; subi <= m_nSubbasins; subi++) {
-        m_latno3ToCh[subi] = 0.f;
-        m_sur_no3ToCh[subi] = 0.f;
-        m_sur_nh4ToCh[subi] = 0.f;
-        m_sur_solpToCh[subi] = 0.f;
-        m_sur_codToCh[subi] = 0.f;
-        m_perco_n_gw[subi] = 0.f;
-        m_perco_p_gw[subi] = 0.f;
+    for (int i = 0; i <= m_nSubbsns; i++) {
+        m_latNO3ToCh[i] = 0.f;
+        m_surfRfNO3ToCh[i] = 0.f;
+        m_surfRfNH4ToCh[i] = 0.f;
+        m_surfRfSolPToCh[i] = 0.f;
+        m_surfRfCodToCh[i] = 0.f;
+        m_percoNGw[i] = 0.f;
+        m_percoPGw[i] = 0.f;
     }
 
-    // sum by subbasin
-    for (int i = 0; i < m_nCells; i++) {
-        //add today's flow
-        int subi = (int) m_subbasin[i];
-        if (m_nSubbasins == 1) {
-            subi = 1;
-        } else if (subi >= m_nSubbasins + 1) {
-            throw ModelException(MID_NUTRMV, "Execute", "The subbasin ID " + ValueToString(subi) + " is invalid.");
+    /// using openmp for reduction an array should be paid much more attention.
+    /// here is a solution. https://stackoverflow.com/questions/20413995/reducing-on-array-in-openmp
+    /// #pragma omp parallel for reduction(+:myArray[:6]) is supported with OpenMP 4.5.
+    /// However, MSVC 2010-2015 are using OpenMP 2.0.
+#pragma omp parallel
+    {
+        float* tmp_latNO3ToCh = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_surfRfNO3ToCh = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_surfRfNH4ToCh = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_surfRfSolPToCh = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_surfRfCodToCh = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_percoNGw = new(nothrow) float[m_nSubbsns + 1];
+        float* tmp_percoPGw = new(nothrow) float[m_nSubbsns + 1];
+        for (int i = 0; i <= m_nSubbsns; i++) {
+            tmp_latNO3ToCh[i] = 0.f;
+            tmp_surfRfNO3ToCh[i] = 0.f;
+            tmp_surfRfNH4ToCh[i] = 0.f;
+            tmp_surfRfSolPToCh[i] = 0.f;
+            tmp_surfRfCodToCh[i] = 0.f;
+            tmp_percoNGw[i] = 0.f;
+            tmp_percoPGw[i] = 0.f;
         }
+#pragma omp for
+        for (int i = 0; i < m_nCells; i++) {
+            int subid = CVT_INT(m_subbsnID[i]);
+            if (m_rchID[i] > 0) tmp_latNO3ToCh[subid] += m_latNO3[i];
+            tmp_surfRfNO3ToCh[subid] += m_surfRfNO3[i] * m_cellArea; // kg/ha * ha = kg
+            tmp_surfRfNH4ToCh[subid] += m_surfRfNH4[i] * m_cellArea;
+            tmp_surfRfSolPToCh[subid] += m_surfRfSolP[i] * m_cellArea;
+            tmp_surfRfCodToCh[subid] += m_surfRfCod[i] * m_cellArea;
+            float ratio2_gw = 1.f;
+            tmp_percoNGw[subid] += m_percoN[i] * m_cellArea * ratio2_gw;
+            tmp_percoPGw[subid] += m_percoP[i] * m_cellArea * ratio2_gw;
 
-        m_sur_no3ToCh[subi] += m_surqno3[i] * m_cellArea; // kg/ha * ha = kg
-        m_sur_nh4ToCh[subi] += m_surqnh4[i] * m_cellArea;
-        m_sur_solpToCh[subi] += m_surqsolp[i] * m_cellArea;
-        m_sur_codToCh[subi] += m_surcod[i] * m_cellArea;
-        //if(i == 1762)
-        //	cout<<"sum by subbasin: perocN: "<<m_perco_n[i]<<endl;
-        float ratio2gw = 1.f;
-        m_perco_n_gw[subi] += m_perco_n[i] * m_cellArea * ratio2gw;
-        m_perco_p_gw[subi] += m_perco_p[i] * m_cellArea * ratio2gw;
-        if (m_streamLink[i] > 0) {
-            m_latno3ToCh[subi] += m_latno3[i];
         }
-    }
-    //cout<<"m_sur_codToCh: "<<m_sur_codToCh[2]<<endl;
+#pragma omp critical
+        {
+            for (int i = 1; i <= m_nSubbsns; i++) {
+                m_latNO3ToCh[i] += tmp_latNO3ToCh[i];
+                m_surfRfNO3ToCh[i] += tmp_surfRfNO3ToCh[i];
+                m_surfRfNH4ToCh[i] += tmp_surfRfNH4ToCh[i];
+                m_surfRfSolPToCh[i] += tmp_surfRfSolPToCh[i];
+                m_surfRfCodToCh[i] += tmp_surfRfCodToCh[i];
+                m_percoNGw[i] += tmp_percoNGw[i];
+                m_percoPGw[i] += tmp_percoPGw[i];
+            }
+        }
+        delete[] tmp_latNO3ToCh;
+        delete[] tmp_surfRfNO3ToCh;
+        delete[] tmp_surfRfNH4ToCh;
+        delete[] tmp_surfRfSolPToCh;
+        delete[] tmp_surfRfCodToCh;
+        delete[] tmp_percoNGw;
+        delete[] tmp_percoPGw;
+        tmp_latNO3ToCh = nullptr;
+        tmp_surfRfNO3ToCh = nullptr;
+        tmp_surfRfNH4ToCh = nullptr;
+        tmp_surfRfSolPToCh = nullptr;
+        tmp_surfRfCodToCh = nullptr;
+        tmp_percoNGw = nullptr;
+        tmp_percoPGw = nullptr;
+    } /* END of #pragma omp parallel */
 
-    // sum all the subbasins and put the sum value in the zero-index of the array
-    for (int i = 1; i < m_nSubbasins + 1; i++) {
-        m_sur_no3ToCh[0] += m_sur_no3ToCh[i];
-        //cout<<"subID: "<<i<<", surNo3ToCh: "<<m_sur_no3ToCh[i]<<endl;
-        m_sur_nh4ToCh[0] += m_sur_nh4ToCh[i];
-        m_sur_solpToCh[0] += m_sur_solpToCh[i];
-        m_sur_codToCh[0] += m_sur_codToCh[i];
-        m_latno3ToCh[0] += m_latno3ToCh[i];
-        m_perco_n_gw[0] += m_perco_n_gw[i];
-        //cout<<"subID: "<<i<<", m_perco_n_gw: "<<m_perco_n_gw[i]<<endl;
-        m_perco_p_gw[0] += m_perco_p_gw[i];
+    // sum all the subbasins and put the sum value in the first element of the array
+    for (int i = 1; i < m_nSubbsns + 1; i++) {
+        m_surfRfNO3ToCh[0] += m_surfRfNO3ToCh[i];
+        m_surfRfNH4ToCh[0] += m_surfRfNH4ToCh[i];
+        m_surfRfSolPToCh[0] += m_surfRfSolPToCh[i];
+        m_surfRfCodToCh[0] += m_surfRfCodToCh[i];
+        m_latNO3ToCh[0] += m_latNO3ToCh[i];
+        m_percoNGw[0] += m_percoNGw[i];
+        m_percoPGw[0] += m_percoPGw[i];
     }
 }
 
-bool NutrientMovementViaWater::CheckInputSize(const char *key, int n) {
+bool NutrientMovementViaWater::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
+        throw ModelException(MID_NUTRMV, "CheckInputSize", "Input data for " + string(key) +
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
             std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nCells << ".\n";
+            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
+                    ". The origin size is " << m_nCells << ".\n";
             throw ModelException(MID_NUTRMV, "CheckInputSize", oss.str());
         }
     }
@@ -112,38 +152,39 @@ bool NutrientMovementViaWater::CheckInputSize(const char *key, int n) {
 }
 
 bool NutrientMovementViaWater::CheckInputData() {
-    CHECK_POSITIVE(MID_NUTRMV, m_nSubbasins);
+    CHECK_POSITIVE(MID_NUTRMV, m_nSubbsns);
     CHECK_POSITIVE(MID_NUTRMV, m_nCells);
-    CHECK_POSITIVE(MID_NUTRMV, m_cellWidth);
-    CHECK_POSITIVE(MID_NUTRMV, m_nMaxSoilLayers);
-    CHECK_POINTER(MID_NUTRMV, m_nSoilLayers);
-    CHECK_POINTER(MID_NUTRMV, m_sedimentYield);
-    CHECK_POINTER(MID_NUTRMV, m_sol_cbn);
-    CHECK_POINTER(MID_NUTRMV, m_anion_excl);
+    CHECK_POSITIVE(MID_NUTRMV, m_cellWth);
+    CHECK_POSITIVE(MID_NUTRMV, m_maxSoilLyrs);
+    CHECK_POINTER(MID_NUTRMV, m_nSoilLyrs);
+    CHECK_POINTER(MID_NUTRMV, m_olWtrEroSed);
+    CHECK_POINTER(MID_NUTRMV, m_soilCbn);
+    CHECK_POINTER(MID_NUTRMV, m_anionExclFr);
 
     CHECK_NONNEGATIVE(MID_NUTRMV, m_isep_opt);
-    CHECK_POINTER(MID_NUTRMV, m_dis_stream);
-    CHECK_POINTER(MID_NUTRMV, m_surfr);
+    CHECK_POINTER(MID_NUTRMV, m_distToRch);
+    CHECK_POINTER(MID_NUTRMV, m_surfRf);
     CHECK_POSITIVE(MID_NUTRMV, m_nperco);
     CHECK_POSITIVE(MID_NUTRMV, m_cod_n);
     CHECK_POSITIVE(MID_NUTRMV, m_cod_k);
-    CHECK_POINTER(MID_NUTRMV, m_flat);
-    CHECK_POINTER(MID_NUTRMV, m_sol_perco);
-    CHECK_POINTER(MID_NUTRMV, m_sol_wsatur);
+    CHECK_POINTER(MID_NUTRMV, m_subSurfRf);
+    CHECK_POINTER(MID_NUTRMV, m_soilPerco);
+    CHECK_POINTER(MID_NUTRMV, m_soilSat);
     CHECK_POSITIVE(MID_NUTRMV, m_phoskd);
     CHECK_POSITIVE(MID_NUTRMV, m_pperco);
-    CHECK_POINTER(MID_NUTRMV, m_sol_thick);
-    CHECK_POINTER(MID_NUTRMV, m_sol_crk);
-    CHECK_POINTER(MID_NUTRMV, m_sol_bd);
-    CHECK_POINTER(MID_NUTRMV, m_sol_z);
-    CHECK_POINTER(MID_NUTRMV, m_flowOutIndex);
-    CHECK_POINTER(MID_NUTRMV, m_sol_thick);
+    CHECK_POINTER(MID_NUTRMV, m_soilThk);
+    CHECK_POINTER(MID_NUTRMV, m_soilCrk);
+    CHECK_POINTER(MID_NUTRMV, m_soilBD);
+    CHECK_POINTER(MID_NUTRMV, m_soilDepth);
+    CHECK_POINTER(MID_NUTRMV, m_flowOutIdxD8);
+    CHECK_POINTER(MID_NUTRMV, m_soilThk);
     CHECK_POINTER(MID_NUTRMV, m_subbasinsInfo);
-    if (m_CbnModel == 2) { CHECK_POINTER(MID_NUTRMV, m_sedc_d); }
+    if (m_cbnModel == 2)
+        CHECK_POINTER(MID_NUTRMV, m_sedLossCbn);
     return true;
 }
 
-void NutrientMovementViaWater::SetSubbasins(clsSubbasins *subbasins) {
+void NutrientMovementViaWater::SetSubbasins(clsSubbasins* subbasins) {
     if (nullptr == m_subbasinsInfo) {
         m_subbasinsInfo = subbasins;
         // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber();  // Set in SetValue()
@@ -151,413 +192,333 @@ void NutrientMovementViaWater::SetSubbasins(clsSubbasins *subbasins) {
     }
 }
 
-void NutrientMovementViaWater::SetValue(const char *key, float value) {
+void NutrientMovementViaWater::SetValue(const char* key, const float value) {
     string sk(key);
-    if (StringMatch(sk, VAR_SUBBSNID_NUM)) { m_nSubbasins = value; }
-    else if (StringMatch(sk, Tag_CellWidth)) {
-        m_cellWidth = value;
-        m_cellArea = m_cellWidth * m_cellWidth * 0.0001f; /// ha
-    } else if (StringMatch(sk, VAR_QTILE)) { m_qtile = value; }
-    else if (StringMatch(sk, VAR_NPERCO)) { m_nperco = value; }
-    else if (StringMatch(sk, VAR_PPERCO)) { m_pperco = value; }
-    else if (StringMatch(sk, VAR_PHOSKD)) { m_phoskd = value; }
-    else if (StringMatch(sk, VAR_ISEP_OPT)) { m_isep_opt = value; }
-    else if (StringMatch(sk, VAR_COD_N)) { m_cod_n = value; }
-    else if (StringMatch(sk, VAR_COD_K)) { m_cod_k = value; }
-    else if (StringMatch(sk, VAR_CSWAT)) { m_CbnModel = (int) value; }
+    if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
+    else if (StringMatch(sk, VAR_QTILE)) m_qtile = value;
+    else if (StringMatch(sk, VAR_NPERCO)) m_nperco = value;
+    else if (StringMatch(sk, VAR_PPERCO)) m_pperco = value;
+    else if (StringMatch(sk, VAR_PHOSKD)) m_phoskd = value;
+    else if (StringMatch(sk, VAR_ISEP_OPT)) m_isep_opt = value;
+    else if (StringMatch(sk, VAR_COD_N)) m_cod_n = value;
+    else if (StringMatch(sk, VAR_COD_K)) m_cod_k = value;
+    else if (StringMatch(sk, VAR_CSWAT)) m_cbnModel = CVT_INT(value);
     else {
         throw ModelException(MID_NUTRMV, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientMovementViaWater::Set1DData(const char *key, int n, float *data) {
+void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* data) {
     if (!CheckInputSize(key, n)) return;
     string sk(key);
     if (StringMatch(sk, VAR_OLFLOW)) {
-        m_surfr = data;
+        m_surfRf = data;
     } else if (StringMatch(sk, VAR_SUBBSN)) {
-        m_subbasin = data;
+        m_subbsnID = data;
     } else if (StringMatch(sk, VAR_STREAM_LINK)) {
-        m_streamLink = data;
+        m_rchID = data;
     } else if (StringMatch(sk, VAR_ANION_EXCL)) {
-        m_anion_excl = data;
+        m_anionExclFr = data;
     } else if (StringMatch(sk, VAR_LDRAIN)) {
-        m_ldrain = data;
+        m_drainLyr = data;
     } else if (StringMatch(sk, VAR_DISTSTREAM)) {
-        m_dis_stream = data;
+        m_distToRch = data;
     } else if (StringMatch(sk, VAR_SOL_CRK)) {
-        m_sol_crk = data;
+        m_soilCrk = data;
     } else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        m_nSoilLayers = data;
+        m_nSoilLyrs = data;
     } else if (StringMatch(sk, VAR_SEDYLD)) {
-        m_sedimentYield = data;
+        m_olWtrEroSed = data;
     } else if (StringMatch(sk, Tag_FLOWOUT_INDEX_D8)) {
-        m_flowOutIndex = data;
+        m_flowOutIdxD8 = data;
     } else if (StringMatch(sk, VAR_SEDORGN)) {
         m_sedorgn = data;
     } else if (StringMatch(sk, VAR_TMEAN)) {
-        m_tmean = data;
+        m_meanTemp = data;
     } else if (StringMatch(sk, VAR_SEDLOSS_C)) {
-        m_sedc_d = data;
+        m_sedLossCbn = data;
     } else {
         throw ModelException(MID_NUTRMV, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientMovementViaWater::Set2DData(const char *key, int nRows, int nCols, float **data) {
+void NutrientMovementViaWater::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
     string sk(key);
     if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
-        m_nRoutingLayers = nRows;
-        m_routingLayers = data;
+        m_nRteLyrs = nRows;
+        m_rteLyrs = data;
         return;
     }
     if (!CheckInputSize(key, nRows)) return;
-    m_nMaxSoilLayers = nCols;
-    if (StringMatch(sk, VAR_SSRU)) { m_flat = data; }
-    else if (StringMatch(sk, VAR_SOL_NO3)) { m_sol_no3 = data; }
-    else if (StringMatch(sk, VAR_SOL_BD)) { m_sol_bd = data; }
-    else if (StringMatch(sk, VAR_SOL_SOLP)) { m_sol_solp = data; }
-    else if (StringMatch(sk, VAR_SOILDEPTH)) { m_sol_z = data; }
-    else if (StringMatch(sk, VAR_PERCO)) { m_sol_perco = data; }
-    else if (StringMatch(sk, VAR_SOL_CBN)) { m_sol_cbn = data; }
-    else if (StringMatch(sk, VAR_SOILTHICK)) { m_sol_thick = data; }
-    else if (StringMatch(sk, VAR_SOL_UL)) { m_sol_wsatur = data; }
-    else if (StringMatch(sk, VAR_CONV_WT)) { m_conv_wt = data; }
+    m_maxSoilLyrs = nCols;
+    if (StringMatch(sk, VAR_SSRU)) m_subSurfRf = data;
+    else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
+    else if (StringMatch(sk, VAR_SOL_BD)) m_soilBD = data;
+    else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
+    else if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
+    else if (StringMatch(sk, VAR_PERCO)) m_soilPerco = data;
+    else if (StringMatch(sk, VAR_SOL_CBN)) m_soilCbn = data;
+    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
+    else if (StringMatch(sk, VAR_CONV_WT)) m_cvtWt = data;
     else {
         throw ModelException(MID_NUTRMV, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientMovementViaWater:: InitialOutputs() {
-    CHECK_POSITIVE(MID_NUTRMV, m_nSubbasins);
+void NutrientMovementViaWater::InitialOutputs() {
+    CHECK_POSITIVE(MID_NUTRMV, m_nSubbsns);
     CHECK_POSITIVE(MID_NUTRMV, m_nCells);
-    CHECK_POSITIVE(MID_NUTRMV, m_nMaxSoilLayers);
+    CHECK_POSITIVE(MID_NUTRMV, m_maxSoilLyrs);
+    if (m_cellArea < 0.f) m_cellArea = m_cellWth * m_cellWth * 0.0001f; /// unit: ha
     // allocate the output variables
-    if (m_latno3 == NULL) Initialize1DArray(m_nCells, m_latno3, 0.f);
-    if (m_perco_n == NULL) Initialize1DArray(m_nCells, m_perco_n, 0.f);
-    if (m_perco_p == NULL) Initialize1DArray(m_nCells, m_perco_p, 0.f);
-    if (m_surqno3 == NULL) Initialize1DArray(m_nCells, m_surqno3, 0.f);
-    if (m_surqnh4 == NULL) Initialize1DArray(m_nCells, m_surqnh4, 0.f);
-    if (m_surqsolp == NULL) Initialize1DArray(m_nCells, m_surqsolp, 0.f);
+    if (nullptr == m_latNO3) Initialize1DArray(m_nCells, m_latNO3, 0.f);
+    if (nullptr == m_percoN) Initialize1DArray(m_nCells, m_percoN, 0.f);
+    if (nullptr == m_percoP) Initialize1DArray(m_nCells, m_percoP, 0.f);
+    if (nullptr == m_surfRfNO3) Initialize1DArray(m_nCells, m_surfRfNO3, 0.f);
+    if (nullptr == m_surfRfNH4) Initialize1DArray(m_nCells, m_surfRfNH4, 0.f);
+    if (nullptr == m_surfRfSolP) Initialize1DArray(m_nCells, m_surfRfSolP, 0.f);
 
-    if (m_latno3ToCh == NULL) Initialize1DArray(m_nSubbasins + 1, m_latno3ToCh, 0.f);
-    if (m_sur_no3ToCh == NULL) Initialize1DArray(m_nSubbasins + 1, m_sur_no3ToCh, 0.f);
-    if (m_sur_nh4ToCh == NULL) Initialize1DArray(m_nSubbasins + 1, m_sur_nh4ToCh, 0.f);
-    if (m_sur_solpToCh == NULL) Initialize1DArray(m_nSubbasins + 1, m_sur_solpToCh, 0.f);
-    if (m_sur_codToCh == NULL) Initialize1DArray(m_nSubbasins + 1, m_sur_codToCh, 0.f);
-    if (m_perco_n_gw == NULL) Initialize1DArray(m_nSubbasins + 1, m_perco_n_gw, 0.f);
-    if (m_perco_p_gw == NULL) Initialize1DArray(m_nSubbasins + 1, m_perco_p_gw, 0.f);
+    if (nullptr == m_latNO3ToCh) Initialize1DArray(m_nSubbsns + 1, m_latNO3ToCh, 0.f);
+    if (nullptr == m_surfRfNO3ToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfNO3ToCh, 0.f);
+    if (nullptr == m_surfRfNH4ToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfNH4ToCh, 0.f);
+    if (nullptr == m_surfRfSolPToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfSolPToCh, 0.f);
+    if (nullptr == m_surfRfCodToCh) Initialize1DArray(m_nSubbsns + 1, m_surfRfCodToCh, 0.f);
+    if (nullptr == m_percoNGw) Initialize1DArray(m_nSubbsns + 1, m_percoNGw, 0.f);
+    if (nullptr == m_percoPGw) Initialize1DArray(m_nSubbsns + 1, m_percoPGw, 0.f);
 
-    if (m_surcod == NULL) Initialize1DArray(m_nCells, m_surcod, 0.f);
-    if (m_surchl_a == NULL) Initialize1DArray(m_nCells, m_surchl_a, 0.f);
-    if (m_wshd_plch < 0) m_wshd_plch = 0.f;
+    if (nullptr == m_surfRfCod) Initialize1DArray(m_nCells, m_surfRfCod, 0.f);
+    if (nullptr == m_surfRfChlA) Initialize1DArray(m_nCells, m_surfRfChlA, 0.f);
+    if (m_wshdLchP < 0.f) m_wshdLchP = 0.f;
 
     // input variables
-    if (m_flat == NULL) Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_flat, 0.0001f);
-    if (m_sol_perco == NULL) Initialize2DArray(m_nCells, m_nMaxSoilLayers, m_sol_perco, 0.0001f);
-    if (m_ldrain == NULL) Initialize1DArray(m_nCells, m_ldrain, -1.f);
-    m_qtile = 0.0001f;
+    if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.0001f);
+    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.0001f);
+    if (nullptr == m_drainLyr) Initialize1DArray(m_nCells, m_drainLyr, -1.f);
+    if (m_qtile < 0.f) m_qtile = 0.0001f;
 }
 
 int NutrientMovementViaWater::Execute() {
     CheckInputData();
-     InitialOutputs();
-    NitrateLoss();
-    PhosphorusLoss();
-    // compute chl-a, CBOD and dissolved oxygen loadings
-    SubbasinWaterQuality();
-    // sum by sub-basin
+    InitialOutputs();
+    // reset variables for the new timestep
+#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) {
+        m_latNO3[i] = 0.f;
+    }
+
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
+        // There are not any flow relationship within each routing layer.
+        // So parallelization can be done here.
+        int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
+#pragma omp parallel for
+        for (int icell = 1; icell <= ncells; icell++) {
+            int i = CVT_INT(m_rteLyrs[ilyr][icell]); // cell ID
+            if (m_rchID[i] > 0) continue;            // Skip the reach (stream) cells
+            NitrateLoss(i);
+            PhosphorusLoss(i);
+            SubbasinWaterQuality(i); // compute chl-a, CBOD and dissolved oxygen loadings
+        }
+    }
     SumBySubbasin();
     return 0;
 }
 
-void NutrientMovementViaWater::NitrateLoss() {
-/// debugging code to find the cell id with the maximum nutrient loss
-// 	float tmpPercN = NODATA_VALUE;
-// 	int tmpIdx = -1;
-    for (int iLayer = 0; iLayer < m_nRoutingLayers; iLayer++) {
-        // There are not any flow relationship within each routing layer.
-        // So parallelization can be done here.
-        int nCells = (int) m_routingLayers[iLayer][0];
-#pragma omp parallel for
-        for (int iCell = 1; iCell <= nCells; iCell++) {
-            int i = (int) m_routingLayers[iLayer][iCell]; // cell ID
-            float percnlyr = 0.f;
-            m_latno3[i] = 0.f;
-            for (int k = 0; k < (int) m_nSoilLayers[i]; k++) {
-                // add nitrate leached from layer above (kg/ha)
-                //float tmpSolNo3 = m_sol_no3[i][k];
-                m_sol_no3[i][k] = m_sol_no3[i][k] + percnlyr;
-                //percnlyr = 0.f;
-                if (m_sol_no3[i][k] < 1.e-6f) {
-                    m_sol_no3[i][k] = 0.f;
-                }
-                // determine concentration of nitrate in mobile water
-                float sro = 0.f;// surface runoff generated (sro)
-                float mw = 0.f;// amount of mobile water in the layer (mw)
-                float vno3 = 0.f; // kg/ha
-                float con = 0.f;  // 100 mg/L
-                float ww = 0.f;
-
-                if (k == 0) {
-                    sro = m_surfr[i];
-                } else {
-                    sro = 0.f;
-                }
-                if (m_ldrain[i] == k) {
-                    mw += m_qtile;
-                }
-
-                // Calculate the concentration of nitrate in the mobile water (con),
-                // equation 4:2.1.2, 4:2.1.3 and 4:2.1.4 in SWAT Theory 2009, p269
-                mw = m_sol_perco[i][k] + sro + m_flat[i][k] + 1.e-10f;
-                //if (i == 918)
-                //	cout<<"sol_perco, k: "<<k<<", "<<m_sol_perco[i][k]<<", flat: "
-                //	<<m_flat[i][k]<<endl;
-                float satportion = ((1.f - m_anion_excl[i]) * m_sol_wsatur[i][k]);
-                //if (mw > satportion) mw = satportion;
-                ww = -mw / satportion;
-                vno3 = m_sol_no3[i][k] * (1.f - exp(ww)); // kg/ha
-                if (mw > 1.e-10f) {
-                    con = Max(vno3 / mw, 0.f);
-                } // kg/ha/mm = 100 mg/L
-                //if (con > 0.1) con = 0.1;
-                //if (con != con)
-                //{
-                //	cout<<"cellid: "<<i<<", layer: "<<k<<", perco water: "<<m_sol_perco[i][k]<<", satportion: "<<satportion<<
-                //		", mv: "<<mw<<", ww: "<<ww<<", vno3: "<<vno3<<", con(100 mg/L): "<<con
-                //		<<", pre sol no3: "<<tmpSolNo3<<", sol no3: "<<m_sol_no3[i][k]<<endl;
-                //	//throw ModelException(MID_NUTRMV, "NitrateLoss", "NAN occurs of Soil NO3, please check!");
-                //}
-
-                // calculate nitrate in surface runoff
-                // concentration of nitrate in surface runoff (cosurf)
-                float cosurf = 0.f;
-                if (m_isep_opt == 2)
-                    cosurf = 1.f * con; // N percolation does not apply to failing septic place;
-                else
-                    cosurf = m_nperco * con;
-                if (k == 0) {
-                    m_surqno3[i] = m_surfr[i] * cosurf; // kg/ha
-                    m_surqno3[i] = Min(m_surqno3[i], m_sol_no3[i][k]);
-                    m_sol_no3[i][k] -= m_surqno3[i];
-                }
-                // calculate nitrate in tile flow, TODO
-                if (m_ldrain[i] == k) {
-                }
-                // nitrate moved with subsuface flow (kg/ha)
-                float ssfnlyr = 0.f;
-                // calculate nitrate in lateral flow
-                // nitrate transported in lateral flow from layer (ssfnlyr)
-                if (k == 0)
-                    ssfnlyr = cosurf * m_flat[i][k];
-                else
-                    ssfnlyr = con * m_flat[i][k]; // 100 mg/L * mm = kg/ha
-                ssfnlyr = Min(ssfnlyr, m_sol_no3[i][k]);
-                m_latno3[i] += ssfnlyr;
-                // move the lateral no3 flow to the downslope cell (routing considered)
-                m_sol_no3[i][k] -= ssfnlyr;
-                int idDownSlope = (int) m_flowOutIndex[i];
-                if (idDownSlope >= 0)
-                    m_sol_no3[idDownSlope][k] += m_latno3[i];
-                /// old code: m_sol_no3[idDownSlope][k] += ssfnlyr; /// changed by LJ, 16-10-13
-
-                // calculate nitrate in percolate
-                percnlyr = con * m_sol_perco[i][k];
-                //if(i == 5570)
-                //	cout<<"layer: "<<k<<", con: "<<con<<", sol_perco: "<<m_sol_perco[i][k]<<", solno3: "<<m_sol_no3[i][k]<<endl;
-
-                percnlyr = Min(percnlyr, m_sol_no3[i][k]);
-                m_sol_no3[i][k] -= percnlyr;
-                //if(i == 0 && k == 0) cout << percnlyr << ", \n";
-            }
-            // calculate nitrate leaching from soil profile
-            m_perco_n[i] = 0.f;
-            m_perco_n[i] = percnlyr; // percolation of the last soil layer, kg/ha
-            /// debugging code
-            //if (i == 46364){
-            //	float percomm = m_sol_perco[i][(int)m_nSoilLayers[i]-1];
-            //	float perco_n_conc = 0.f;
-            //	if (percomm > 0.f){
-            //		perco_n_conc = 100.f * m_perco_n[i] / percomm; /// mg/L
-            //		cout<<"perco_n: "<<m_perco_n[i]<<", percomm: "<<percomm<<", perco_n_conc: "<<perco_n_conc<<endl;
-            //	}
-            //}
-// 			if (tmpPercN < percnlyr){
-// 				tmpIdx = i;
-// 				tmpPercN = percnlyr;
-// 			}
-            // I think these should be removed, because the lost nitrate
-            // have been added to it's downslope cell. by LJ
-            //float nloss = 0.f;
-            //nloss = (2.18f * m_dis_stream[i] - 8.63f) / 100.f;
-            //nloss = Min(1.f, Max(0.f, nloss));
-            //m_latno3[i] = (1.f - nloss) * m_latno3[i];
+void NutrientMovementViaWater::NitrateLoss(const int i) {
+    float percnlyr = 0.f;
+    for (int k = 0; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+        // add nitrate leached from layer above (kg/ha)
+        m_soilNO3[i][k] += percnlyr;
+        if (m_soilNO3[i][k] < 1.e-6f) {
+            m_soilNO3[i][k] = 0.f;
         }
+        // determine concentration of nitrate in mobile water
+        float sro = k == 0 ? m_surfRf[i] : 0.f; // surface runoff generated
+        float mw = 0.f;                         // amount of mobile water in the layer (vv in swat nlch.f)
+        float vno3 = 0.f;                       // kg/ha
+        float con = 0.f;                        // 100 mg/L
+        float ww = 0.f;
+        // Calculate the concentration of nitrate in the mobile water (con),
+        // equation 4:2.1.2, 4:2.1.3 and 4:2.1.4 in SWAT Theory 2009, p269
+        mw = m_soilPerco[i][k] + sro + m_subSurfRf[i][k] + 1.e-10f;
+        if (m_drainLyr[i] == k) mw += m_qtile;
+        float satportion = (1.f - m_anionExclFr[i]) * m_soilSat[i][k];
+        ww = -mw / satportion;
+        vno3 = m_soilNO3[i][k] * (1.f - exp(ww)); // kg/ha
+        if (mw > 1.e-10f) con = Max(vno3 / mw, 0.f);
+
+        // calculate nitrate in surface runoff
+        // concentration of nitrate in surface runoff (cosurf)
+        float cosurf = 0.f;
+        if (m_isep_opt == 2)
+            cosurf = 1.f * con; // N percolation does not apply to failing septic place;
+        else
+            cosurf = m_nperco * con;
+        if (k == 0) {
+            m_surfRfNO3[i] = m_surfRf[i] * cosurf; // kg/ha
+            m_surfRfNO3[i] = Min(m_surfRfNO3[i], m_soilNO3[i][k]);
+            m_soilNO3[i][k] -= m_surfRfNO3[i];
+        }
+        // TODO: calculate nitrate in tile flow
+        if (m_drainLyr[i] == k) {
+        }
+        // nitrate moved with subsuface flow (kg/ha)
+        float ssfnlyr = k == 0 ? cosurf * m_subSurfRf[i][k] : con * m_subSurfRf[i][k]; // kg/ha
+        // calculate nitrate in lateral flow
+        // nitrate transported in lateral flow from layer (ssfnlyr)
+        ssfnlyr = Min(ssfnlyr, m_soilNO3[i][k]);
+        m_latNO3[i] += ssfnlyr;
+        // move the lateral no3 flow to the downslope cell (routing considered)
+        m_soilNO3[i][k] -= ssfnlyr;
+        int id_downstream = CVT_INT(m_flowOutIdxD8[i]);
+        if (id_downstream >= 0) m_soilNO3[id_downstream][k] += m_latNO3[i];
+        /// old code: m_soilNO3[idDownSlope][k] += ssfnlyr; /// changed by LJ, 16-10-13
+
+        // calculate nitrate in percolate
+        percnlyr = con * m_soilPerco[i][k];
+        percnlyr = Min(percnlyr, m_soilNO3[i][k]);
+        m_soilNO3[i][k] -= percnlyr;
     }
-    //tmpIdx = 5570;
-    //cout<<"NUTRMV, cell index: "<<tmpIdx<<", percoN "<<m_perco_n[tmpIdx]<<endl;
-    //for(int i = 0; i < m_nSoilLayers[tmpIdx];i++)
-    //	cout<<"layer: "<<i<<": "<<m_sol_no3[tmpIdx][i]<<", ";
-    //cout<<endl;
+    // calculate nitrate leaching from soil profile
+    m_percoN[i] = percnlyr; // percolation of the last soil layer, kg/ha
+
+    // I think these should be removed, because the lost nitrate
+    //   have been added to it's downslope cell. by LJ
+    // float nloss = (2.18f * m_distToRch[i] - 8.63f) / 100.f;
+    // nloss = Min(1.f, Max(0.f, nloss));
+    // m_latNO3[i] = (1.f - nloss) * m_latno3[i];
 }
 
-void NutrientMovementViaWater::PhosphorusLoss() {
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        //float wt1 = m_sol_bd[i][0] * m_sol_thick[i][0] / 100.f; // mg/kg => kg/ha
-        //float conv_wt = 1.e6f * wt1; // kg/kg => kg/ha
+void NutrientMovementViaWater::PhosphorusLoss(const int i) {
+    // amount of P leached from soil layer, kg/ha (vap)
+    float vap = 0.f;
+    float vap_tile = 0.f;
+    // compute soluble P lost in surface runoff
+    // variable to hold intermediate calculation result
+    float xx = m_soilBD[i][0] * m_soilDepth[i][0] * m_phoskd;
+    // units ==> surqsolp = [kg/ha * mm] / [t/m^3 * mm * m^3/t] = kg/ha
+    m_surfRfSolP[i] = m_soilSolP[i][0] * m_surfRf[i] / xx;
+    m_surfRfSolP[i] = Min(m_surfRfSolP[i], m_soilSolP[i][0]);
+    m_surfRfSolP[i] = Max(m_surfRfSolP[i], 0.f);
+    m_soilSolP[i][0] = m_soilSolP[i][0] - m_surfRfSolP[i];
 
-        // amount of P leached from soil layer (vap)
-        float vap = 0.f;
-        float vap_tile = 0.f;
-        // compute soluble P lost in surface runoff
-        float xx = 0.f;  // variable to hold intermediate calculation result
-        xx = m_sol_bd[i][0] * m_sol_z[i][0] * m_phoskd;
-        // units ==> surqsolp = [kg/ha * mm] / [t/m^3 * mm * m^3/t] = kg/ha
-        m_surqsolp[i] = m_sol_solp[i][0] * m_surfr[i] / xx;
-        m_surqsolp[i] = Min(m_surqsolp[i], m_sol_solp[i][0]);
-        m_surqsolp[i] = Max(m_surqsolp[i], 0.f);
-        m_sol_solp[i][0] = m_sol_solp[i][0] - m_surqsolp[i];
+    // compute soluble P leaching
+    vap = m_soilSolP[i][0] * m_soilPerco[i][0] / (m_cvtWt[i][0] / 1000.f * m_pperco);
+    vap = Min(vap, 0.5f * m_soilSolP[i][0]);
+    m_soilSolP[i][0] -= vap;
 
-        // compute soluble P leaching
-        vap = m_sol_solp[i][0] * m_sol_perco[i][0] / ((m_conv_wt[i][0] / 1000.f) * m_pperco);
-        vap = Min(vap, 0.5f * m_sol_solp[i][0]);
-        m_sol_solp[i][0] = m_sol_solp[i][0] - vap;
-
-        // estimate soluble p in tiles due to crack flow
-        if (m_ldrain[i] > 0) {
-            xx = Min(1.f, m_sol_crk[i] / 3.f);
-            vap_tile = xx * vap;
-            vap = vap - vap_tile;
-        }
-        if (m_nSoilLayers[i] >= 2) {
-            m_sol_solp[i][1] = m_sol_solp[i][1] + vap;
-        }
-        for (int k = 1; k < m_nSoilLayers[i]; k++) {
-            vap = 0.f;
-            //if (k != m_i_sep[i]) {  // soil layer where biozone exists (m_i_sep)
-            vap = m_sol_solp[i][k] * m_sol_perco[i][k] / ((m_conv_wt[i][k] / 1000.f) * m_pperco);
-
-            vap = Min(vap, 0.2f * m_sol_solp[i][k]);
-            m_sol_solp[i][k] = m_sol_solp[i][k] - vap;
-
-            if (k < m_nSoilLayers[i] - 1) {
-                m_sol_solp[i][k + 1] += vap;//leach to next layer
-            } else {
-                m_perco_p[i] = vap;
-            }//leach to groundwater
-            //}
-        }
-        //if(i == 100 ) cout << "m_sol_solp: " << m_sol_solp[i][0] << endl;
-        /// debugging code
-        //if (i == 46364){
-        //	float percomm = m_sol_perco[i][(int)m_nSoilLayers[i]-1];
-        //	float perco_p_conc = 0.f;
-        //	if (percomm > 0.f){
-        //		perco_p_conc = 100.f * m_perco_p[i] / percomm; /// mg/L
-        //		cout<<"perco_p: "<<m_perco_p[i]<<", percomm: "<<percomm<<", perco_p_conc: "<<perco_p_conc<<endl;
-        //	}
-        //}
-        // summary calculation
-        m_wshd_plch = m_wshd_plch + vap * (1.f / m_nCells);
+    // estimate soluble p in tiles due to crack flow
+    if (m_drainLyr[i] > 0) {
+        xx = Min(1.f, m_soilCrk[i] / 3.f);
+        vap_tile = xx * vap;
+        vap = vap - vap_tile;
     }
-}
-
-void NutrientMovementViaWater::SubbasinWaterQuality() {
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        /// Note, doxq (i.e., dissolved oxygen concentration in the surface runoff on current day)
-        ///       is not included here, just because doxq will not be used anywhere.
-        ///       Also, the algorithm will be executed in Qual2E model in channel process.   By LJ
-
-        // total amount of water entering main channel on current day, mm
-        float qdr = 0.f;
-        qdr = m_surfr[i] + m_flat[i][0] + m_qtile;
-        if (qdr > 1.e-4f) {
-            // kilo moles of phosphorus in nutrient loading to main channel (tp)
-            float tp = 0.f;
-            tp = 100.f * (m_sedorgn[i] + m_surqno3[i]) / qdr;   //100*kg/ha/mm = ppm
-            // regional adjustment on sub chla_a loading, the default value is 40
-            float chla_subco = 40.f;
-            m_surchl_a[i] = chla_subco * tp;
-            m_surchl_a[i] = m_surchl_a[i] / 1000.f;  // um/L to mg/L
-
-            // calculate enrichment ratio
-            if (m_sedimentYield[i] < 1e-4)m_sedimentYield[i] = 0.f;
-            float enratio = CalEnrichmentRatio(m_sedimentYield[i], m_surfr[i], m_cellArea);
-
-            // calculate organic carbon loading to main channel
-            float org_c = 0.f;  /// kg
-            if (m_CbnModel == 2) {
-                org_c = m_sedc_d[i] * m_cellArea;
-            } else {
-                org_c = (m_sol_cbn[i][0] / 100.f) * enratio * (m_sedimentYield[i] / 1000.f) * 1000.f;
-            }
-            // calculate carbonaceous biological oxygen demand (CBOD) and COD(transform from CBOD)
-            float cbodu = 2.7f * org_c / (qdr * m_cellWidth * m_cellWidth * 1.e-6f); //  mg/L
-            // convert cbod to cod
-            // The translation relationship is combined Wang Cai-Qin et al. (2014) with
-            // Guo and Long (1994); Xie et al. (2000); Jin et al. (2005).
-            float cod = m_cod_n * (cbodu * (1.f - exp(-5.f * m_cod_k)));
-            m_surcod[i] = m_surfr[i] / 1000.f * cod * 10.f;    // mg/L converted to kg/ha
+    if (m_nSoilLyrs[i] >= 2) {
+        m_soilSolP[i][1] += vap;
+    }
+    for (int k = 1; k < CVT_INT(m_nSoilLyrs[i]); k++) {
+        vap = m_soilSolP[i][k] * m_soilPerco[i][k] / (m_cvtWt[i][k] * 0.001f * m_pperco);
+        vap = Min(vap, 0.2f * m_soilSolP[i][k]);
+        m_soilSolP[i][k] -= vap;
+        if (k < m_nSoilLyrs[i] - 1) {
+            // this is slightly different with swat code in solp.f
+            m_soilSolP[i][k + 1] += vap; //leach to next layer
         } else {
-            m_surchl_a[i] = 0.f;
-            m_surcod[i] = 0.f;
-        }
+            m_percoP[i] = vap;
+        } //leach to groundwater
     }
 }
 
-void NutrientMovementViaWater::GetValue(const char *key, float *value) {
+void NutrientMovementViaWater::SubbasinWaterQuality(const int i) {
+    /// Note, doxq (i.e., dissolved oxygen concentration in the surface runoff on current day)
+    ///       is not included here, just because doxq will not be used anywhere.
+    ///       Also, the algorithm will be executed in Qual2E model in channel process.   By LJ
+
+    // total amount of water entering main channel on current day, mm
+    float qdr = m_surfRf[i] + m_subSurfRf[i][0] + m_qtile;
+    if (qdr > 1.e-4f) {
+        // kilo moles of phosphorus in nutrient loading to main channel (tp)
+        float tp = 100.f * (m_sedorgn[i] + m_surfRfNO3[i]) / qdr; //100*kg/ha/mm = ppm
+        // regional adjustment on sub chla_a loading, the default value is 40
+        float chla_subco = 40.f;
+        m_surfRfChlA[i] = chla_subco * tp;
+        m_surfRfChlA[i] *= 0.001f; // um/L to mg/L
+
+        // calculate enrichment ratio
+        if (m_olWtrEroSed[i] < 1e-4) m_olWtrEroSed[i] = 0.f;
+        float enratio = CalEnrichmentRatio(m_olWtrEroSed[i], m_surfRf[i], m_cellArea);
+
+        // calculate organic carbon loading to main channel
+        float org_c = 0.f; /// kg
+        if (m_cbnModel == 2) {
+            org_c = m_sedLossCbn[i] * m_cellArea;
+        } else {
+            org_c = m_soilCbn[i][0] * 0.01f * enratio * (m_olWtrEroSed[i] * 0.001f) * 1000.f;
+        }
+        // calculate carbonaceous biological oxygen demand (CBOD) and COD(transform from CBOD)
+        float cbodu = 2.7f * org_c / (qdr * m_cellWth * m_cellWth * 1.e-6f); //  mg/L
+        // convert cbod to cod
+        // The translation relationship is combined Wang Cai-Qin et al. (2014) with
+        // Guo and Long (1994); Xie et al. (2000); Jin et al. (2005).
+        float cod = m_cod_n * (cbodu * (1.f - exp(-5.f * m_cod_k)));
+        m_surfRfCod[i] = m_surfRf[i] * 0.001f * cod * 10.f; // mg/L converted to kg/ha
+    } else {
+        m_surfRfChlA[i] = 0.f;
+        m_surfRfCod[i] = 0.f;
+    }
+}
+
+void NutrientMovementViaWater::GetValue(const char* key, float* value) {
     string sk(key);
-    if (StringMatch(sk, VAR_WSHD_PLCH)) { *value = m_wshd_plch; }
+    if (StringMatch(sk, VAR_WSHD_PLCH)) *value = m_wshdLchP;
     else {
         throw ModelException(MID_NUTRMV, "GetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientMovementViaWater::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+void NutrientMovementViaWater::Get1DData(const char* key, int* n, float** data) {
+    InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_LATNO3)) {
-        *data = m_latno3;
+        *data = m_latNO3;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_PERCO_N_GW)) {
-        *data = m_perco_n_gw;
-        *n = m_nSubbasins + 1;
+        *data = m_percoNGw;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_PERCO_P_GW)) {
-        *data = m_perco_p_gw;
-        *n = m_nSubbasins + 1;
+        *data = m_percoPGw;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SUR_NO3)) {
-        *data = m_surqno3;
+        *data = m_surfRfNO3;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_NH4)) {
-        *data = m_surqnh4;
+        *data = m_surfRfNH4;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_SOLP)) {
-        *data = m_surqsolp;
+        *data = m_surfRfSolP;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_SUR_COD)) {
-        *data = m_surcod;
+        *data = m_surfRfCod;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_CHL_A)) {
-        *data = m_surchl_a;
+        *data = m_surfRfChlA;
         *n = m_nCells;
     } else if (StringMatch(sk, VAR_LATNO3_TOCH)) {
-        *data = m_latno3ToCh;
-        *n = m_nSubbasins + 1;
+        *data = m_latNO3ToCh;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SUR_NO3_TOCH)) {
-        *data = m_sur_no3ToCh;
-        *n = m_nSubbasins + 1;
+        *data = m_surfRfNO3ToCh;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SUR_NH4_TOCH)) {
-        *data = m_sur_nh4ToCh;
-        *n = m_nSubbasins + 1;
+        *data = m_surfRfNH4ToCh;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SUR_SOLP_TOCH)) {
-        *data = m_sur_solpToCh;
-        *n = m_nSubbasins + 1;
+        *data = m_surfRfSolPToCh;
+        *n = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SUR_COD_TOCH)) {
-        *data = m_sur_codToCh;
-        *n = m_nSubbasins + 1;
+        *data = m_surfRfCodToCh;
+        *n = m_nSubbsns + 1;
     } else {
         throw ModelException(MID_NUTRMV, "Get1DData", "Parameter " + sk + " does not exist.");
     }

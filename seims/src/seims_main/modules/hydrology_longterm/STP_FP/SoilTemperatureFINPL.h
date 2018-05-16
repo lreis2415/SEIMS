@@ -18,23 +18,25 @@
  *
  */
 
+const float radWt = 0.01721420632103996f; /// PI * 2.f / 365.f;
+
 /*!
  * \class SoilTemperatureFINPL
  * \ingroup STP_FP
  * \brief Soil temperature
  *
  */
-class SoilTemperatureFINPL : public SimulationModule {
+class SoilTemperatureFINPL: public SimulationModule {
 public:
     SoilTemperatureFINPL();
 
     ~SoilTemperatureFINPL();
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -53,12 +55,12 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     /*!
     * \brief Initialize output variables for the first run of the entire simulation
     */
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// from parameter database
@@ -72,20 +74,18 @@ private:
     /// count of cells
     int m_nCells;
     /// factor of soil temperature relative to short grass (degree)
-    float *m_relativeFactor;
+    float* m_soilTempRelFactor10;
     /// landuse type, for distinguish calculation, such as water body.
-    float *m_landuse;
+    float* m_landUse;
     /// from interpolation module
     /// mean air temperature of the current day
-    float *m_tMean;
+    float* m_meanTemp;
     ///// mean air temperature of the day(d-1)
-    float *m_t1;
+    float* m_meanTempPre1;
     ///// mean air temperature of the day(d-2)
-    float *m_t2;
-    /// temporary variable
-    float w;
+    float* m_meanTempPre2;
 
     /// output soil temperature
-    float *m_soilTemp;
+    float* m_soilTemp;
 };
 #endif /* SEIMS_MODULE_STP_FP_H */

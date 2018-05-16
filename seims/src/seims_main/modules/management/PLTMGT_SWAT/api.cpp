@@ -4,12 +4,12 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new MGTOpt_SWAT();
 }
 
 /// function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     string res;
 
@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetDescription(MDESC_PLTMGT_SWAT);
     mdi.SetID(MID_PLTMGT_SWAT);
     mdi.SetName(MID_PLTMGT_SWAT);
-    mdi.SetVersion("0.1");
+    mdi.SetVersion("1.3");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");
@@ -80,10 +80,11 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput(VAR_SOL_RSD, UNIT_CONT_KGHA, DESC_SOL_RSD, Source_Module, DT_Raster2D);
 
     /// landuse/landcover
-    mdi.AddInput(VAR_PHUBASE, UNIT_HEAT_UNIT, DESC_PHUBASE, Source_Module, DT_Raster1D); /// PET modules
-    mdi.AddInput(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, Source_Module, DT_Raster1D); /// BIO_EPIC module
+    mdi.AddInput(VAR_PHUBASE, UNIT_HEAT_UNIT, DESC_PHUBASE, Source_Module, DT_Raster1D);       /// PET modules
+    mdi.AddInput(VAR_IGRO, UNIT_NON_DIM, DESC_IGRO, Source_Module, DT_Raster1D);               /// BIO_EPIC module
     mdi.AddInput(VAR_FR_PHU_ACC, UNIT_HEAT_UNIT, DESC_FR_PHU_ACC, Source_Module, DT_Raster1D); /// BIO_EPIC module
-    mdi.AddParameter(VAR_TREEYRS, UNIT_YEAR, DESC_TREEYRS, Source_ParameterDB, DT_Raster1D); /// m_curYearMat, from ParameterDB
+    mdi.AddParameter(VAR_TREEYRS, UNIT_YEAR, DESC_TREEYRS, Source_ParameterDB, DT_Raster1D);
+    /// m_curYearMat, from ParameterDB
     mdi.AddInput(VAR_HVSTI_ADJ, UNIT_CONT_RATIO, DESC_HVSTI_ADJ, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DORMI, UNIT_NON_DIM, DESC_DORMI, Source_Module, DT_Raster1D);
@@ -185,7 +186,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     /// write out the XML file.
     res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

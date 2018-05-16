@@ -180,7 +180,7 @@ void SSM_PE::Set1DData(const char *key, int n, float *data) {
 }
 
 void SSM_PE::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNSB)) {
         *data = this->m_SE;

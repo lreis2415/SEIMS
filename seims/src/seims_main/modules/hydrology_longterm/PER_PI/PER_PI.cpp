@@ -2,25 +2,27 @@
 
 #include "text.h"
 
-PER_PI::PER_PI() : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_frozenT(NODATA_VALUE),
-                   m_ks(nullptr), m_sat(nullptr), m_poreIndex(nullptr), m_fc(nullptr),
-                   m_wp(nullptr), m_soilThick(nullptr), m_impoundTriger(nullptr),
-                   m_infil(nullptr), m_soilT(nullptr), m_soilStorage(nullptr),
-                   m_perc(nullptr) {
+PER_PI::PER_PI() :
+    m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr),
+    m_dt(-1), m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE),
+    m_ks(nullptr), m_soilSat(nullptr), m_soilFC(nullptr), m_soilWP(nullptr),
+    m_poreIdx(nullptr), m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
+    m_soilTemp(nullptr), m_infil(nullptr), m_impndTrig(nullptr),
+    m_soilPerco(nullptr) {
 }
 
 PER_PI::~PER_PI() {
-    if (m_perc != nullptr) Release2DArray(m_nCells, m_perc);
+    if (m_soilPerco != nullptr) Release2DArray(m_nCells, m_soilPerco);
 }
 
-void PER_PI:: InitialOutputs() {
+void PER_PI::InitialOutputs() {
     CHECK_POSITIVE(MID_PER_PI, m_nCells);
-    if (nullptr == m_perc) { Initialize2DArray(m_nCells, m_soilLayers, m_perc, NODATA_VALUE); }
+    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, NODATA_VALUE);
 }
 
 int PER_PI::Execute() {
     CheckInputData();
-     InitialOutputs();
+    InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -28,16 +30,16 @@ int PER_PI::Execute() {
         // this step is removed to surface runoff and infiltration module. by LJ, 2016-9-2
         //m_soilStorage[i][0] += m_infil[i];
         /// secondly, model water percolation across layers
-        for (int j = 0; j < (int) m_nSoilLayers[i]; j++) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             float k = 0.f, swater = 0.f, maxSoilWater = 0.f, fcSoilWater = 0.f;
             // for the upper two layers, soil may be frozen
             // No movement if soil moisture is below field capacity
-            if (j == 0 && m_soilT[i] <= m_frozenT) {
+            if (j == 0 && m_soilTemp[i] <= m_soilFrozenTemp) {
                 continue;
             }
-            swater = m_soilStorage[i][j];
-            maxSoilWater = m_sat[i][j];
-            fcSoilWater = m_fc[i][j];
+            swater = m_soilWtrSto[i][j];
+            maxSoilWater = m_soilSat[i][j];
+            fcSoilWater = m_soilFC[i][j];
 
             //bool percAllowed = true;
             //if (j < (int)m_nSoilLayers[i] -1 ){
@@ -56,25 +58,25 @@ int PER_PI::Execute() {
                     k = m_ks[i][j];
                 } else {
                     /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
-                    float dcIndex = 2.f * m_poreIndex[i][j] + 3.f; // pore disconnectedness index
+                    float dcIndex = 2.f * m_poreIdx[i][j] + 3.f;          // pore disconnectedness index
                     k = m_ks[i][j] * pow(swater / maxSoilWater, dcIndex); // mm/h
                 }
 
-                m_perc[i][j] = k * m_dt / 3600.f;  // mm
+                m_soilPerco[i][j] = k * m_dt / 3600.f; // mm
 
-                if (swater - m_perc[i][j] > maxSoilWater) {
-                    m_perc[i][j] = swater - maxSoilWater;
-                } else if (swater - m_perc[i][j] < fcSoilWater) {
-                    m_perc[i][j] = swater - fcSoilWater;
+                if (swater - m_soilPerco[i][j] > maxSoilWater) {
+                    m_soilPerco[i][j] = swater - maxSoilWater;
+                } else if (swater - m_soilPerco[i][j] < fcSoilWater) {
+                    m_soilPerco[i][j] = swater - fcSoilWater;
                 }
 
-                if (m_perc[i][j] < 0.f) {
-                    m_perc[i][j] = 0.f;
+                if (m_soilPerco[i][j] < 0.f) {
+                    m_soilPerco[i][j] = 0.f;
                 }
                 //Adjust the moisture content in the current layer, and the layer immediately below it
-                m_soilStorage[i][j] -= m_perc[i][j];
-                if (j < m_nSoilLayers[i] - 1) {
-                    m_soilStorage[i][j + 1] += m_perc[i][j];
+                m_soilWtrSto[i][j] -= m_soilPerco[i][j];
+                if (j < m_nSoilLyrs[i] - 1) {
+                    m_soilWtrSto[i][j + 1] += m_soilPerco[i][j];
                 }
 
                 //if (m_soilStorage[i][j] != m_soilStorage[i][j] || m_soilStorage[i][j] < 0.f)
@@ -85,7 +87,7 @@ int PER_PI::Execute() {
                 //    throw ModelException(MID_PER_PI, "Execute", "moisture is less than zero.");
                 //}
             } else {
-                m_perc[i][j] = 0.f;
+                m_soilPerco[i][j] = 0.f;
             }
         }
         //if (i == 1762)
@@ -94,58 +96,58 @@ int PER_PI::Execute() {
         //		cout<<"after, infil: "<<m_infil[i]<<", perco: "<<m_perc[i][j]<<", soilStorage: "<<m_soilStorage[i][j]<<endl;
         //}
         /// update total soil water content
-        m_soilStorageProfile[i] = 0.f;
-        for (int ly = 0; ly < (int) m_nSoilLayers[i]; ly++) {
-            m_soilStorageProfile[i] += m_soilStorage[i][ly];
+        m_soilWtrStoPrfl[i] = 0.f;
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
         }
     }
     return 0;
 }
 
-void PER_PI::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-     InitialOutputs();
+void PER_PI::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+    InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soilLayers;
-    if (StringMatch(sk, VAR_PERCO)) { *data = m_perc; }
+    *nCols = m_maxSoilLyrs;
+    if (StringMatch(sk, VAR_PERCO)) *data = m_soilPerco;
     else {
         throw ModelException(MID_PER_PI, "Get2DData", "Output " + sk + " does not exist.");
     }
 }
 
-void PER_PI::Set1DData(const char *key, int nRows, float *data) {
+void PER_PI::Set1DData(const char* key, const int nRows, float* data) {
     CheckInputSize(key, nRows);
     string sk(key);
-    if (StringMatch(sk, VAR_SOTE)) { m_soilT = data; }
-    else if (StringMatch(sk, VAR_INFIL)) { m_infil = data; }
-    else if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayers = data; }
-    else if (StringMatch(sk, VAR_SOL_SW)) { m_soilStorageProfile = data; }
-    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { m_impoundTriger = data; }
+    if (StringMatch(sk, VAR_SOTE)) m_soilTemp = data;
+    else if (StringMatch(sk, VAR_INFIL)) m_infil = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
+    else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
+    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impndTrig = data;
     else {
         throw ModelException(MID_PER_PI, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void PER_PI::Set2DData(const char *key, int nrows, int ncols, float **data) {
+void PER_PI::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     CheckInputSize(key, nrows);
     string sk(key);
-    m_soilLayers = ncols;
-    if (StringMatch(sk, VAR_CONDUCT)) { m_ks = data; }
-    else if (StringMatch(sk, VAR_SOILTHICK)) { m_soilThick = data; }
-    else if (StringMatch(sk, VAR_SOL_AWC)) { m_fc = data; }
-    else if (StringMatch(sk, VAR_SOL_WPMM)) { m_wp = data; }
-    else if (StringMatch(sk, VAR_POREIDX)) { m_poreIndex = data; }
-    else if (StringMatch(sk, VAR_SOL_UL)) { m_sat = data; }
-    else if (StringMatch(sk, VAR_SOL_ST)) { m_soilStorage = data; }
+    m_maxSoilLyrs = ncols;
+    if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
+    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_AWC)) m_soilFC = data;
+    else if (StringMatch(sk, VAR_SOL_WPMM)) m_soilWP = data;
+    else if (StringMatch(sk, VAR_POREIDX)) m_poreIdx = data;
+    else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
+    else if (StringMatch(sk, VAR_SOL_ST)) m_soilWtrSto = data;
     else {
         throw ModelException(MID_PER_PI, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void PER_PI::SetValue(const char *key, float data) {
+void PER_PI::SetValue(const char* key, const float value) {
     string s(key);
-    if (StringMatch(s, Tag_TimeStep)) { m_dt = int(data); }
-    else if (StringMatch(s, VAR_T_SOIL)) { m_frozenT = data; }
+    if (StringMatch(s, Tag_TimeStep)) m_dt = CVT_INT(value);
+    else if (StringMatch(s, VAR_T_SOIL)) m_soilFrozenTemp = value;
     else {
         throw ModelException(MID_PER_PI, "SetValue", "Parameter " + s + " does not exist.");
     }
@@ -156,29 +158,30 @@ bool PER_PI::CheckInputData() {
     CHECK_POSITIVE(MID_PER_PI, m_nCells);
     CHECK_POSITIVE(MID_PER_PI, m_dt);
     CHECK_POINTER(MID_PER_PI, m_ks);
-    CHECK_POINTER(MID_PER_PI, m_sat);
-    CHECK_POINTER(MID_PER_PI, m_poreIndex);
-    CHECK_POINTER(MID_PER_PI, m_fc);
-    CHECK_POINTER(MID_PER_PI, m_wp);
-    CHECK_POINTER(MID_PER_PI, m_soilThick);
-    CHECK_POINTER(MID_PER_PI, m_soilT);
+    CHECK_POINTER(MID_PER_PI, m_soilSat);
+    CHECK_POINTER(MID_PER_PI, m_poreIdx);
+    CHECK_POINTER(MID_PER_PI, m_soilFC);
+    CHECK_POINTER(MID_PER_PI, m_soilWP);
+    CHECK_POINTER(MID_PER_PI, m_soilThk);
+    CHECK_POINTER(MID_PER_PI, m_soilTemp);
     CHECK_POINTER(MID_PER_PI, m_infil);
-    CHECK_DATA(MID_PER_PI, FloatEqual(m_frozenT, NODATA_VALUE), "The threshold soil freezing temperature has not been set.");
-    CHECK_POINTER(MID_PER_PI, m_soilStorage);
-    CHECK_POINTER(MID_PER_PI, m_soilStorageProfile);
+    CHECK_NODATA(MID_PER_PI, m_soilFrozenTemp);
+    CHECK_POINTER(MID_PER_PI, m_soilWtrSto);
+    CHECK_POINTER(MID_PER_PI, m_soilWtrStoPrfl);
     return true;
 }
 
-bool PER_PI::CheckInputSize(const char *key, int n) {
+bool PER_PI::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
+        throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
+        if (m_nCells <= 0) {
+            m_nCells = n;
+        } else {
             throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;

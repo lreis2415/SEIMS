@@ -4,12 +4,12 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new MUSLE_AS();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
@@ -19,7 +19,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetID(MID_MUSLE_AS);
     mdi.SetName(MID_MUSLE_AS);
-    mdi.SetVersion("0.5");
+    mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("MUSLE_AS.chm");
 
@@ -55,7 +55,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     // write out the XML file
     string res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

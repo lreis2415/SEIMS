@@ -22,7 +22,7 @@
  * \brief Calculate water percolated from the soil water reservoir
  *
  */
-class PER_PI : public SimulationModule {
+class PER_PI: public SimulationModule {
 public:
     PER_PI();
 
@@ -30,13 +30,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
+    void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
     /**
@@ -53,19 +53,19 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// maximum number of soil layers
-    int m_soilLayers;
+    int m_maxSoilLyrs;
     /// soil layers
-    float *m_nSoilLayers;
+    float* m_nSoilLyrs;
     ///// soil depth
     //float **m_soilDepth;
     /// soil thickness
-    float **m_soilThick;
+    float** m_soilThk;
     ///// depth of the up soil layer
     //float *m_upSoilDepth;
 
@@ -74,33 +74,33 @@ private:
     /// valid cells number
     int m_nCells;
     /// threshold soil freezing temperature
-    float m_frozenT;
+    float m_soilFrozenTemp;
     /// saturated conductivity, mm/h
-    float **m_ks;
+    float** m_ks;
     ///// soil porosity
     //float **m_porosity;
 
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_sat;
+    float** m_soilSat;
     /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-    float **m_fc;
+    float** m_soilFC;
     /// water content of soil at -1.5 MPa (wilting point) mm H2O
-    float **m_wp;
+    float** m_soilWP;
     /// pore size distribution index
-    float **m_poreIndex;
+    float** m_poreIdx;
     /// amount of water stored in soil layers on current day, sol_st in SWAT
-    float **m_soilStorage;
+    float** m_soilWtrSto;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
-    float *m_soilStorageProfile;
+    float* m_soilWtrStoPrfl;
     /// soil temperature
-    float *m_soilT;
+    float* m_soilTemp;
     /// infiltration (mm)
-    float *m_infil;
+    float* m_infil;
     /// impound/release
-    float *m_impoundTriger;
+    float* m_impndTrig;
     /// Output
 
     ///percolation (mm)
-    float **m_perc;
+    float** m_soilPerco;
 };
 #endif /* SEIMS_MODULE_PER_PI_H */

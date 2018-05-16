@@ -159,7 +159,7 @@ void SNO_DD::Set1DData(const char *key, int n, float *data) {
 }
 
 void SNO_DD::Get1DData(const char *key, int *n, float **data) {
-     InitialOutputs();
+    InitialOutputs();
     string s(key);
     if (StringMatch(s, VAR_SNME)) { *data = this->m_SM; }
     else if (StringMatch(s, VAR_SNAC)) { *data = this->m_SA; }

@@ -28,7 +28,7 @@
  * \brief Calculate snow melt by snowpack daily method from SWAT
  *
  */
-class SNO_SP : public SimulationModule {
+class SNO_SP: public SimulationModule {
 public:
     //! Constructor
     SNO_SP();
@@ -38,13 +38,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     bool CheckInputData();
 
@@ -58,7 +58,7 @@ private:
     //! fraction coefficient of precipitation as snow
     float m_kblow;
     //! Snowfall temperature, i.e., precipitation as snow
-    float m_tsnow;
+    float m_snowTemp;
     //! Initial snow water equivalent
     //float m_swe0;
 
@@ -88,25 +88,25 @@ private:
     //float m_lastSWE;
 
     //! Mean temperature
-    float *m_tMean;
+    float* m_meanTemp;
     //! Max temperature
-    float *m_tMax;
+    float* m_maxTemp;
     //! Net precipitation
-    float *m_Pnet;
+    float* m_netPcp;
 
     //! snow redistribution
-    float *m_SR;
+    float* m_snowAccum;
     //! snow sublimation, snoev in SWAT in etact.f
-    float *m_SE;
+    float* m_SE;
 
     //! temperature of snow pack, snotmp in SWAT
-    float *m_packT;
+    float* m_packT;
 
     /// outputs
 
     //! amount of water in snow melt, snomlt in SWAT
-    float *m_SM;
+    float* m_snowMelt;
     //! snow accumulation, sno_hru in SWAT
-    float *m_SA;
+    float* m_SA;
 };
 #endif /* SEIMS_MODULE_SNO_SP_H */
