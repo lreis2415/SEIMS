@@ -1,6 +1,7 @@
 ## Abbreviations used in coding
 
 ### A
+ + Absorbed: abs
  + Accumulation: accum
  + Active: actv
  + Adjust: adj
@@ -49,6 +50,7 @@
  + Elevation: elev
  + Energy: enrg
  + Erosion: ero
+ + Excess: exs
  + Exponent: exp
 
 ### F
@@ -116,6 +118,7 @@
 ### R
  + Ratio: r
  + Reach: rch
+ + Relative: rel
  + Release: rel
  + Residue: rsd
  + Route/Routing: rte
