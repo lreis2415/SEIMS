@@ -4,12 +4,12 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new NPS_Management();
 }
 
 /// function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     string res;
 
@@ -18,10 +18,10 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.SetDescription(MDESC_NPSMGT);
     mdi.SetID(MID_NPSMGT);
     mdi.SetName(MID_NPSMGT);
-    mdi.SetVersion("0.1");
+    mdi.SetVersion("1.0");
     mdi.SetEmail(SEIMS_EMAIL);
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("NPSMGT.html");
+    mdi.SetHelpfile("");
     /// set parameters from database
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
@@ -36,7 +36,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     /// write out the XML file.
     res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

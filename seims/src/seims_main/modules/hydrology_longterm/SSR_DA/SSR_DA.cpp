@@ -2,17 +2,18 @@
 
 #include "text.h"
 
-SSR_DA::SSR_DA() : m_inputSubbsnID(-1), m_nCells(-1), m_CellWth(-1.f), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
-                   m_soilThk(nullptr),
-                   m_dt(-1), m_ki(NODATA_VALUE),
-                   m_soilFrozenTemp(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_soilSat(nullptr),
-                   m_poreIdx(nullptr),
-                   m_soilFC(nullptr), m_soilWP(nullptr),
-                   m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_chWidth(nullptr),
-                   m_rchID(nullptr), m_flowInIdxD8(nullptr), m_flowInPercentage(nullptr), m_rteLyrs(nullptr),
-                   m_nRoutingLayers(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
-                   /// outputs
-                   m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {
+SSR_DA::SSR_DA() :
+    m_inputSubbsnID(-1), m_nCells(-1), m_CellWth(-1.f), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
+    m_soilThk(nullptr),
+    m_dt(-1), m_ki(NODATA_VALUE),
+    m_soilFrozenTemp(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_soilSat(nullptr),
+    m_poreIdx(nullptr),
+    m_soilFC(nullptr), m_soilWP(nullptr),
+    m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_chWidth(nullptr),
+    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_flowInPercentage(nullptr), m_rteLyrs(nullptr),
+    m_nRteLyrs(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
+    /// outputs
+    m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {
 }
 
 SSR_DA::~SSR_DA() {
@@ -131,7 +132,7 @@ int SSR_DA::Execute() {
     CheckInputData();
     InitialOutputs();
 
-    for (int ilyr = 0; ilyr < m_nRoutingLayers; ilyr++) {
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
@@ -261,7 +262,7 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, float*
         m_maxSoilLyrs = ncols;
         m_soilWtrSto = data;
     } else if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
-        m_nRoutingLayers = nrows;
+        m_nRteLyrs = nrows;
         m_rteLyrs = data;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
         CheckInputSize(key, nrows);
@@ -314,7 +315,7 @@ bool SSR_DA::CheckInputData() {
     CHECK_POSITIVE(MID_SSR_DA, m_dt);
     CHECK_POSITIVE(MID_SSR_DA, m_CellWth);
     CHECK_POSITIVE(MID_SSR_DA, m_nSubbsns);
-    CHECK_POSITIVE(MID_SSR_DA, m_nRoutingLayers);
+    CHECK_POSITIVE(MID_SSR_DA, m_nRteLyrs);
     CHECK_POINTER(MID_SSR_DA, m_subbsnID);
     CHECK_POINTER(MID_SSR_DA, m_nSoilLyrs);
     CHECK_POINTER(MID_SSR_DA, m_soilThk);

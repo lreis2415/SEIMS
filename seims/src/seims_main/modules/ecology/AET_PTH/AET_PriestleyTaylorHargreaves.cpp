@@ -3,17 +3,18 @@
 #include "utils_math.h"
 #include "text.h"
 
-using namespace ccgl::utils_math;
+using namespace utils_math;
 
-AET_PT_H::AET_PT_H() : m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
-                       m_esco(nullptr), m_nSoilLyrs(nullptr),
-                       /// input from other modules
-                       m_maxSoilLyrs(-1), m_soilDepth(nullptr), m_soilThk(nullptr), m_solFC(nullptr),
-                       m_rsdCovSoil(nullptr), m_solNo3(nullptr), m_tMean(nullptr),
-                       m_snowAccum(nullptr), m_snowSublim(nullptr),
-                       m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
-                       /// output
-                       m_maxPltET(nullptr), m_soilET(nullptr), m_no3Up(0.f) {
+AET_PT_H::AET_PT_H() :
+    m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
+    m_esco(nullptr), m_nSoilLyrs(nullptr),
+    /// input from other modules
+    m_maxSoilLyrs(-1), m_soilDepth(nullptr), m_soilThk(nullptr), m_solFC(nullptr),
+    m_rsdCovSoil(nullptr), m_solNo3(nullptr), m_tMean(nullptr),
+    m_snowAccum(nullptr), m_snowSublim(nullptr),
+    m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
+    /// output
+    m_maxPltET(nullptr), m_soilET(nullptr), m_no3Up(0.f) {
 }
 
 AET_PT_H::~AET_PT_H() {
@@ -21,7 +22,7 @@ AET_PT_H::~AET_PT_H() {
     if (m_soilET != nullptr) Release1DArray(m_soilET);
 }
 
-void AET_PT_H::Set1DData(const char* key, const  int n, float* data) {
+void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
     CheckInputSize(key, n);
     string sk(key);
     if (StringMatch(sk, VAR_ESCO)) {

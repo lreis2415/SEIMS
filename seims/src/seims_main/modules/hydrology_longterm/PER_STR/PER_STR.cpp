@@ -2,19 +2,20 @@
 
 #include "text.h"
 
-PER_STR::PER_STR() : m_nSoilLayers(-1), m_dt(-1), m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE),
-                     m_ks(nullptr), m_soilSat(nullptr), m_soilFC(nullptr),
-                     m_soilThk(nullptr), m_soilLyrs(nullptr),
-                     m_infil(nullptr), m_soilTemp(nullptr), m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
-                     m_potVol(nullptr), m_surfRf(nullptr),
-                     m_soilPerco(nullptr) {
+PER_STR::PER_STR() :
+    m_nSoilLayers(-1), m_soilLyrs(nullptr), m_soilThk(nullptr), m_dt(-1),
+    m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE), m_ks(nullptr),
+    m_soilSat(nullptr), m_soilFC(nullptr),
+    m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
+    m_surfRf(nullptr), m_potVol(nullptr),
+    m_soilPerco(nullptr) {
 }
 
 PER_STR::~PER_STR() {
     if (m_soilPerco != nullptr) Release2DArray(m_nCells, m_soilPerco);
 }
 
-void PER_STR:: InitialOutputs() {
+void PER_STR::InitialOutputs() {
     CHECK_POSITIVE(MID_PER_STR, m_nCells);
     if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_nSoilLayers, m_soilPerco, 0.f);
 }
@@ -44,7 +45,7 @@ int PER_STR::Execute() {
             if (excessWater > 1.e-5f) {
                 float maxPerc = maxSoilWater - fcSoilWater;
                 if (maxPerc < 0.f) maxPerc = 0.1f;
-                float tt = 3600.f * maxPerc / m_ks[i][j]; // secs
+                float tt = 3600.f * maxPerc / m_ks[i][j];                  // secs
                 m_soilPerco[i][j] = excessWater * (1.f - exp(-m_dt / tt)); // secs
 
                 if (m_soilPerco[i][j] > maxPerc) {
@@ -62,7 +63,8 @@ int PER_STR::Execute() {
                         m_soilWtrSto[i][j + 1] += m_soilWtrSto[i][j] - m_soilSat[i][j];
                         m_soilWtrSto[i][j] = m_soilSat[i][j];
                     }
-                } else { /// for the last soil layer
+                } else {
+                    /// for the last soil layer
                     if (m_soilWtrSto[i][j] - m_soilSat[i][j] > 1.e-4f) {
                         float ul_excess = m_soilWtrSto[i][j] - m_soilSat[i][j];
                         m_soilWtrSto[i][j] = m_soilSat[i][j];
@@ -105,7 +107,7 @@ int PER_STR::Execute() {
     return 0;
 }
 
-void PER_STR::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+void PER_STR::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
@@ -116,7 +118,7 @@ void PER_STR::Get2DData(const char *key, int *nRows, int *nCols, float ***data) 
     }
 }
 
-void PER_STR::Set1DData(const char *key, const int nRows, float *data) {
+void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
     CheckInputSize(key, nRows);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE)) m_soilTemp = data;
@@ -130,7 +132,7 @@ void PER_STR::Set1DData(const char *key, const int nRows, float *data) {
     }
 }
 
-void PER_STR::Set2DData(const char *key, const int nrows, const int ncols, float **data) {
+void PER_STR::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     CheckInputSize(key, nrows);
     string sk(key);
     m_nSoilLayers = ncols;
@@ -144,7 +146,7 @@ void PER_STR::Set2DData(const char *key, const int nrows, const int ncols, float
     }
 }
 
-void PER_STR::SetValue(const char *key, const float value) {
+void PER_STR::SetValue(const char* key, const float value) {
     string s(key);
     if (StringMatch(s, Tag_TimeStep)) m_dt = CVT_INT(value);
     else if (StringMatch(s, VAR_T_SOIL)) m_soilFrozenTemp = value;
@@ -170,7 +172,7 @@ bool PER_STR::CheckInputData() {
     return true;
 }
 
-bool PER_STR::CheckInputSize(const char *key, const int n) {
+bool PER_STR::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
         throw ModelException(MID_PER_STR, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
@@ -178,10 +180,9 @@ bool PER_STR::CheckInputSize(const char *key, const int n) {
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
-        }
-        else {
+        } else {
             throw ModelException(MID_PER_STR, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;

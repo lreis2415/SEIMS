@@ -2,31 +2,32 @@
 
 #include "text.h"
 
-IMP_SWAT::IMP_SWAT() : m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-                       m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_routingLayers(nullptr), m_nRoutingLayers(-1),
-                       m_subbasin(nullptr), m_nSubbasins(-1),
-                       m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr), m_soilThick(nullptr),
-                       m_sol_por(nullptr),
-                       m_evLAI(NODATA_VALUE), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
-                       m_potSolPDecay(NODATA_VALUE),
-                       m_impoundTrig(nullptr),
-                       m_sedYield(nullptr), m_sandYield(nullptr), m_siltYield(nullptr), m_clayYield(nullptr),
-                       m_smaggreYield(nullptr), m_lgaggreYield(nullptr),
-                       m_depEvapor(nullptr), m_depStorage(nullptr), m_LAIDay(nullptr), m_pet(nullptr), m_soilStorage(nullptr),
-                       m_soilStorageProfile(nullptr),
-                       m_surfaceRunoff(nullptr), m_surqNo3(nullptr), m_surqNH4(nullptr), m_surqSolP(nullptr), m_surqCOD(nullptr),
-                       m_sedOrgN(nullptr), m_sedOrgP(nullptr), m_sedActiveMinP(nullptr), m_sedStableMinP(nullptr),
-                       m_potNo3(nullptr), m_potNH4(nullptr), m_potOrgN(nullptr), m_potSolP(nullptr), m_potOrgP(nullptr),
-                       m_potActMinP(nullptr),
-                       m_potStaMinP(nullptr), m_potSed(nullptr), m_potSand(nullptr), m_potSilt(nullptr), m_potClay(nullptr),
-                       m_potSag(nullptr), m_potLag(nullptr),
-                       m_potVol(nullptr), m_potVolMax(nullptr), m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
-                       m_potArea(nullptr),
-                       m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE),
+IMP_SWAT::IMP_SWAT() :
+    m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_rteLyrs(nullptr), m_nRteLyrs(-1),
+    m_subbasin(nullptr), m_nSubbasins(-1),
+    m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr), m_soilThick(nullptr),
+    m_sol_por(nullptr),
+    m_evLAI(NODATA_VALUE), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
+    m_potSolPDecay(NODATA_VALUE),
+    m_impoundTrig(nullptr),
+    m_sedYield(nullptr), m_sandYield(nullptr), m_siltYield(nullptr), m_clayYield(nullptr),
+    m_smaggreYield(nullptr), m_lgaggreYield(nullptr),
+    m_depEvapor(nullptr), m_depStorage(nullptr), m_LAIDay(nullptr), m_pet(nullptr), m_soilStorage(nullptr),
+    m_soilStorageProfile(nullptr),
+    m_surfaceRunoff(nullptr), m_surqNo3(nullptr), m_surqNH4(nullptr), m_surqSolP(nullptr), m_surqCOD(nullptr),
+    m_sedOrgN(nullptr), m_sedOrgP(nullptr), m_sedActiveMinP(nullptr), m_sedStableMinP(nullptr),
+    m_potNo3(nullptr), m_potNH4(nullptr), m_potOrgN(nullptr), m_potSolP(nullptr), m_potOrgP(nullptr),
+    m_potActMinP(nullptr),
+    m_potStaMinP(nullptr), m_potSed(nullptr), m_potSand(nullptr), m_potSilt(nullptr), m_potClay(nullptr),
+    m_potSag(nullptr), m_potLag(nullptr),
+    m_potVol(nullptr), m_potVolMax(nullptr), m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
+    m_potArea(nullptr),
+    m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE),
     /// overland to channel
-                       m_surfqToCh(nullptr), m_sedToCh(nullptr), m_surNO3ToCh(nullptr), m_surNH4ToCh(nullptr),
-                       m_surSolPToCh(nullptr), m_surCodToCh(nullptr),
-                       m_sedOrgNToCh(nullptr), m_sedOrgPToCh(nullptr), m_sedMinPAToCh(nullptr), m_sedMinPSToCh(nullptr) {
+    m_surfqToCh(nullptr), m_sedToCh(nullptr), m_surNO3ToCh(nullptr), m_surNH4ToCh(nullptr),
+    m_surSolPToCh(nullptr), m_surCodToCh(nullptr),
+    m_sedOrgNToCh(nullptr), m_sedOrgPToCh(nullptr), m_sedMinPAToCh(nullptr), m_sedMinPSToCh(nullptr) {
     //m_potSedIn(nullptr), m_potSandIn(nullptr), m_potSiltIn(nullptr), m_potClayIn(nullptr), m_potSagIn(nullptr), m_potLagIn(nullptr),
 }
 
@@ -50,7 +51,7 @@ IMP_SWAT::~IMP_SWAT() {
     if (m_potEvap != nullptr) Release1DArray(m_potEvap);
 }
 
-bool IMP_SWAT::CheckInputSize(const char *key, const int n) {
+bool IMP_SWAT::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
         throw ModelException(MID_IMP_SWAT, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
@@ -58,29 +59,28 @@ bool IMP_SWAT::CheckInputSize(const char *key, const int n) {
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
-        }
-        else {
+        } else {
             throw ModelException(MID_IMP_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;
 }
 
-bool IMP_SWAT::CheckInputSize2D(const char *key, const int n, const int col) {
+bool IMP_SWAT::CheckInputSize2D(const char* key, const int n, const int col) {
     CheckInputSize(key, n);
     if (col <= 0) {
         throw ModelException(MID_IMP_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-            " is invalid. The layer number could not be less than zero.");
+                             " is invalid. The layer number could not be less than zero.");
     }
     if (m_nMaxSoilLayers != col) {
         if (m_nMaxSoilLayers <= 0) {
             m_nMaxSoilLayers = col;
         } else {
             throw ModelException(MID_IMP_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                " is invalid. All the layers of input 2D raster data should have same size of " +
-                ValueToString(m_nMaxSoilLayers) + " instead of " +
-                ValueToString(col) + ".");
+                                 " is invalid. All the layers of input 2D raster data should have same size of " +
+                                 ValueToString(m_nMaxSoilLayers) + " instead of " +
+                                 ValueToString(col) + ".");
         }
     }
     return true;
@@ -90,7 +90,7 @@ bool IMP_SWAT::CheckInputData() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
     CHECK_POSITIVE(MID_IMP_SWAT, m_cellWidth);
     CHECK_POSITIVE(MID_IMP_SWAT, m_nMaxSoilLayers);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nRoutingLayers);
+    CHECK_POSITIVE(MID_IMP_SWAT, m_nRteLyrs);
     CHECK_POSITIVE(MID_IMP_SWAT, m_evLAI);
     CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potTilemm);
     CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potNo3Decay);
@@ -98,12 +98,12 @@ bool IMP_SWAT::CheckInputData() {
     return true;
 }
 
-void IMP_SWAT::SetValue(const char *key, const float value) {
+void IMP_SWAT::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth)) {
         m_cellWidth = value;
         m_cellArea = m_cellWidth * m_cellWidth * 1.e-4f; // m2 ==> ha
-        m_cnv = 10.f * m_cellArea; // mm/ha => m^3
+        m_cnv = 10.f * m_cellArea;                       // mm/ha => m^3
     } else if (StringMatch(sk, Tag_TimeStep)) m_timestep = value;
     else if (StringMatch(sk, VAR_EVLAI)) m_evLAI = value;
     else if (StringMatch(sk, VAR_POT_TILEMM)) m_potTilemm = value;
@@ -117,7 +117,7 @@ void IMP_SWAT::SetValue(const char *key, const float value) {
     }
 }
 
-void IMP_SWAT::Set1DData(const char *key, const int n, float *data) {
+void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
 
     if (StringMatch(sk, VAR_SBOF)) {
@@ -194,11 +194,11 @@ void IMP_SWAT::Set1DData(const char *key, const int n, float *data) {
     }
 }
 
-void IMP_SWAT::Set2DData(const char *key, const int n, const int col, float **data) {
+void IMP_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
-        m_nRoutingLayers = n;
-        m_routingLayers = data;
+        m_nRteLyrs = n;
+        m_rteLyrs = data;
         return;
     }
     CheckInputSize2D(key, n, col);
@@ -212,7 +212,7 @@ void IMP_SWAT::Set2DData(const char *key, const int n, const int col, float **da
     }
 }
 
-void IMP_SWAT:: InitialOutputs() {
+void IMP_SWAT::InitialOutputs() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
     if (m_potArea == nullptr) Initialize1DArray(m_nCells, m_potArea, 0.f);
     if (m_potVol == nullptr) Initialize1DArray(m_nCells, m_potVol, 0.f);
@@ -238,14 +238,15 @@ int IMP_SWAT::Execute() {
     CheckInputData();
     InitialOutputs();
 
-    for (int ilyr = 0; ilyr < m_nRoutingLayers; ++ilyr) {
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ++ilyr) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
-        int ncells = CVT_INT(m_routingLayers[ilyr][0]);
+        int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
 #pragma omp parallel for
         for (int icell = 1; icell <= ncells; icell++) {
-            int id = CVT_INT(m_routingLayers[ilyr][icell]); // cell index
-            if (FloatEqual(m_impoundTrig[id], 0.f)) { /// if impounding trigger on
+            int id = CVT_INT(m_rteLyrs[ilyr][icell]); // cell index
+            if (FloatEqual(m_impoundTrig[id], 0.f)) {
+                /// if impounding trigger on
                 PotholeSimulate(id);
             } else {
                 ReleaseWater(id);
@@ -269,16 +270,16 @@ int IMP_SWAT::Execute() {
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
 #pragma omp parallel
     {
-        float *tmp_surfq2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_sed2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_sno32ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_snh42ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_solp2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_cod2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_orgn2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_orgp2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_minpa2ch = new(nothrow) float[m_nSubbasins + 1];
-        float *tmp_minps2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_surfq2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_sed2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_sno32ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_snh42ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_solp2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_cod2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_orgn2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_orgp2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_minpa2ch = new(nothrow) float[m_nSubbasins + 1];
+        float* tmp_minps2ch = new(nothrow) float[m_nSubbasins + 1];
         for (int i = 0; i <= m_nSubbasins; i++) {
             tmp_surfq2ch[i] = 0.f;
             tmp_sed2ch[i] = 0.f;
@@ -330,7 +331,7 @@ int IMP_SWAT::Execute() {
         delete[] tmp_orgp2ch;
         delete[] tmp_minpa2ch;
         delete[] tmp_minps2ch;
-    }  /* END of #pragma omp parallel */
+    } /* END of #pragma omp parallel */
 
     for (int i = 1; i < m_nSubbasins + 1; i++) {
         m_surfqToCh[0] += m_surfqToCh[i];
@@ -348,11 +349,12 @@ int IMP_SWAT::Execute() {
 }
 
 void IMP_SWAT::PotholeSimulate(const int id) {
-/// initialize temporary variables
+    /// initialize temporary variables
     float tileo = 0.f; /// m^3, amount of water released to the main channel from the water body by drainage tiles
     //float potevmm = 0.f; /// mm, volume of water evaporated from pothole expressed as depth
     float potev = 0.f; /// m^3, evaporation from impounded water body
-    float spillo = 0.f; /// m^3, amount of water released to the main channel from impounded water body due to spill-over
+    float spillo = 0.f;
+    /// m^3, amount of water released to the main channel from impounded water body due to spill-over
 
     /// potpcpmm and potpcp should be implicitly included in (m_depStorage + m_depEvapor) if stated
     //float potpcpmm = 0.f; /// mm, precipitation falling on pothole water body expressed as depth
@@ -362,19 +364,19 @@ void IMP_SWAT::PotholeSimulate(const int id) {
     float potsep = 0.f; /// m^3, seepage from impounded water body
     //float sumo = 0.f; /// m^3, sum of all releases from water body on current day
     //float potflwo = 0.f; /// mm, discharge from pothole expressed as depth
-    float potsedo = 0.f; /// kg, sediment leaving pothole on day
-    float potsano = 0.f; /// kg, sand content in sediment leaving pothole on day
-    float potsilo = 0.f; /// kg, silt content
-    float potclao = 0.f; /// kg, clay content
-    float potsago = 0.f; /// kg, small aggregate
-    float potlago = 0.f; /// kg, large aggregate
-    float potno3o = 0.f; /// kg, no3 amount out of pothole
-    float potnh4o = 0.f; /// kg, nh4 amount out of pothole
+    float potsedo = 0.f;  /// kg, sediment leaving pothole on day
+    float potsano = 0.f;  /// kg, sand content in sediment leaving pothole on day
+    float potsilo = 0.f;  /// kg, silt content
+    float potclao = 0.f;  /// kg, clay content
+    float potsago = 0.f;  /// kg, small aggregate
+    float potlago = 0.f;  /// kg, large aggregate
+    float potno3o = 0.f;  /// kg, no3 amount out of pothole
+    float potnh4o = 0.f;  /// kg, nh4 amount out of pothole
     float potsolpo = 0.f; /// kg, soluble phosphorus out of pothole
-    float potorgno = 0.f;/// kg, orgN out
+    float potorgno = 0.f; /// kg, orgN out
     float potorgpo = 0.f; /// kg, orgP out
-    float potmpso = 0.f; /// kg, stable mineral phosphorus out
-    float potmpao = 0.f; /// kg, active mineral phosphorus out
+    float potmpso = 0.f;  /// kg, stable mineral phosphorus out
+    float potmpao = 0.f;  /// kg, active mineral phosphorus out
     //float potvol_ini = 0.f; /// m^3, pothole volume at the begin of the day
     //float potsa_ini = 0.f; /// ha, surface area of impounded water body at the begin of the day
     float sedloss = 0.f; /// kg, amount of sediment settling out of water during day
@@ -383,11 +385,11 @@ void IMP_SWAT::PotholeSimulate(const int id) {
     float claloss = 0.f;
     float sagloss = 0.f;
     float lagloss = 0.f;
-    float no3loss = 0.f; /// kg, amount of nitrate lost from water body
-    float nh4loss = 0.f; /// kg, amount of ammonian lost
-    float solploss = 0.f; /// kg, amount of solP lost
-    float orgnloss = 0.f; /// kg, amount of orgN lost
-    float orgploss = 0.f; /// kg, amount of orgP lost
+    float no3loss = 0.f;   /// kg, amount of nitrate lost from water body
+    float nh4loss = 0.f;   /// kg, amount of ammonian lost
+    float solploss = 0.f;  /// kg, amount of solP lost
+    float orgnloss = 0.f;  /// kg, amount of orgN lost
+    float orgploss = 0.f;  /// kg, amount of orgP lost
     float minpsloss = 0.f; /// kg, amount of stable minP lost
     float minpaloss = 0.f; /// kg, amount of active minP lost
     /* pot_fr is the fraction of the cell draining into the pothole
@@ -395,7 +397,8 @@ void IMP_SWAT::PotholeSimulate(const int id) {
      * currently, we assumed that the entire cell is pothole/impounded area
      */
     float pot_fr = 1.f;
-    float qIn = m_surfaceRunoff[id] * pot_fr; /// inflow = surface flow, not include lateral flow, groundwater, etc.
+    float qIn = m_surfaceRunoff[id] * pot_fr;
+    /// inflow = surface flow, not include lateral flow, groundwater, etc.
     float qdayTmp = m_surfaceRunoff[id] * (1 - pot_fr); /// qdayTmp is the actual surface runoff generated
     if (m_depStorage != nullptr && m_depStorage[id] > 0.f) {
         qIn += m_depStorage[id]; /// depression storage should be added
@@ -466,7 +469,8 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         qdayTmp += m_potVol[id] - m_potVolMax[id];
         spillo = m_potVol[id] - m_potVolMax[id];
         m_potVol[id] = m_potVolMax[id];
-        if (spillo + m_potVolMax[id] < UTIL_ZERO) { // this should not happen
+        if (spillo + m_potVolMax[id] < UTIL_ZERO) {
+            // this should not happen
             xx = 0.f;
         } else {
             xx = spillo / (spillo + m_potVolMax[id]);
@@ -522,14 +526,16 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         /// compute settling  -clay and silt based on fall velocity (v = 411*d2) d=mm, v=m/hr
         float pot_depth = m_potVol[id];
         float drcla = 0.f, drsil = 0.f, drtot = 0.f;
-        if (pot_depth > 10.f) { /// assume clay v(fall) = 10 mm/d
+        if (pot_depth > 10.f) {
+            /// assume clay v(fall) = 10 mm/d
             drcla = 1.f - 0.5f * 10.f / pot_depth;
         } else {
             drcla = 0.5f * pot_depth / 10.f;
         }
         m_potClay[id] *= drcla;
 
-        if (pot_depth > 1000.f) { /// assume silt v(fall) = 1000 mm/d
+        if (pot_depth > 1000.f) {
+            /// assume silt v(fall) = 1000 mm/d
             drsil = 1.f - 0.5f * 1000.f / pot_depth;
         } else {
             drsil = 0.5f * pot_depth * 0.001f;
@@ -840,7 +846,7 @@ void IMP_SWAT::ReleaseWater(const int id) {
     // if (id == 46364) cout<<"releaseWater, "<<m_surfaceRunoff[id]<<", "<<m_potVol[id]<<", surqNh4: "<<m_surqNH4[id]<<endl;
 }
 
-void IMP_SWAT::Get1DData(const char *key, int *n, float **data) {
+void IMP_SWAT::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_POT_VOL)) *data = m_potVol;

@@ -5,12 +5,13 @@
 #include "utils_time.h"
 
 
-SNO_SP::SNO_SP() : m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE), m_snowTemp(NODATA_VALUE),
-                   m_lagSnow(NODATA_VALUE), m_csnow6(NODATA_VALUE), m_csnow12(NODATA_VALUE),
-                   m_snowCoverMax(NODATA_VALUE), m_snowCover50(NODATA_VALUE),
-                   m_snowCoverCoef1(NODATA_VALUE), m_snowCoverCoef2(NODATA_VALUE),
-                   m_meanTemp(nullptr), m_maxTemp(nullptr), m_netPcp(nullptr),
-                   m_snowAccum(nullptr), m_SE(nullptr), m_packT(nullptr), m_snowMelt(nullptr), m_SA(nullptr) {
+SNO_SP::SNO_SP() :
+    m_nCells(-1), m_t0(NODATA_VALUE), m_kblow(NODATA_VALUE), m_snowTemp(NODATA_VALUE),
+    m_lagSnow(NODATA_VALUE), m_csnow6(NODATA_VALUE), m_csnow12(NODATA_VALUE),
+    m_snowCoverMax(NODATA_VALUE), m_snowCover50(NODATA_VALUE),
+    m_snowCoverCoef1(NODATA_VALUE), m_snowCoverCoef2(NODATA_VALUE),
+    m_meanTemp(nullptr), m_maxTemp(nullptr), m_netPcp(nullptr),
+    m_snowAccum(nullptr), m_SE(nullptr), m_packT(nullptr), m_snowMelt(nullptr), m_SA(nullptr) {
 }
 
 SNO_SP::~SNO_SP() {

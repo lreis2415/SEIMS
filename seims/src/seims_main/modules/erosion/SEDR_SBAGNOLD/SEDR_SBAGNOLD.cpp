@@ -2,22 +2,23 @@
 
 #include "text.h"
 
-SEDR_SBAGNOLD::SEDR_SBAGNOLD() : m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1),
-                                 m_vcd(false), m_peakRateAdj(NODATA_VALUE), m_sedTransEqCoef(NODATA_VALUE),
-                                 m_sedTransEqExp(NODATA_VALUE),
-                                 m_critVelSedDep(NODATA_VALUE), m_sedtoCh(nullptr),
-                                 m_initChStorage(NODATA_VALUE), m_initChSedConc(NODATA_VALUE), m_qRchOut(nullptr),
-                                 m_chOrder(nullptr), m_chWidth(nullptr),
-                                 m_chDepth(nullptr), m_chLen(nullptr), m_chVel(nullptr),
-                                 m_chSlope(nullptr), m_chCover(nullptr), m_chErod(nullptr), m_reachDownStream(nullptr),
-                                 m_ptSub(nullptr), m_chStorage(nullptr),
-                                 m_preChStorage(nullptr),
-                                 m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr), m_chWtrWth(nullptr),
-                                 m_sedRchOut(nullptr),
-                                 m_sedStorage(nullptr), m_sedDep(nullptr), m_sedDeg(nullptr), m_sedConcRchOut(nullptr),
-                                 m_rchSand(nullptr), m_rchSilt(nullptr), m_rchClay(nullptr),
-                                 m_rchSag(nullptr), m_rchLag(nullptr), m_rchGra(nullptr),
-                                 m_rchBankEro(nullptr), m_rchDeg(nullptr), m_rchDep(nullptr), m_fldPlainDep(nullptr) {
+SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
+    m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1),
+    m_vcd(false), m_peakRateAdj(NODATA_VALUE), m_sedTransEqCoef(NODATA_VALUE),
+    m_sedTransEqExp(NODATA_VALUE),
+    m_critVelSedDep(NODATA_VALUE), m_sedtoCh(nullptr),
+    m_initChStorage(NODATA_VALUE), m_initChSedConc(NODATA_VALUE), m_qRchOut(nullptr),
+    m_chOrder(nullptr), m_chWidth(nullptr),
+    m_chDepth(nullptr), m_chLen(nullptr), m_chVel(nullptr),
+    m_chSlope(nullptr), m_chCover(nullptr), m_chErod(nullptr), m_reachDownStream(nullptr),
+    m_ptSub(nullptr), m_chStorage(nullptr),
+    m_preChStorage(nullptr),
+    m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr), m_chWtrWth(nullptr),
+    m_sedRchOut(nullptr),
+    m_sedStorage(nullptr), m_sedDep(nullptr), m_sedDeg(nullptr), m_sedConcRchOut(nullptr),
+    m_rchSand(nullptr), m_rchSilt(nullptr), m_rchClay(nullptr),
+    m_rchSag(nullptr), m_rchLag(nullptr), m_rchGra(nullptr),
+    m_rchBankEro(nullptr), m_rchDeg(nullptr), m_rchDep(nullptr), m_fldPlainDep(nullptr) {
 }
 
 SEDR_SBAGNOLD::~SEDR_SBAGNOLD() {

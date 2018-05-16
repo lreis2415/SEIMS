@@ -2,21 +2,22 @@
 
 #include "text.h"
 
-ReservoirMethod::ReservoirMethod() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nMaxSoilLayers(-1),
-                                     m_soilLayers(nullptr), m_soilThick(nullptr),
-                                     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
-                                     m_perc(nullptr), m_D_EI(nullptr), m_D_ED(nullptr),
-                                     m_D_ES(nullptr), m_plantEP(nullptr),
-                                     m_D_PET(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
-                                     m_petSubbasin(nullptr), m_gwStore(nullptr), m_Slope(nullptr), m_soilStorage(nullptr),
-                                     m_soilDepth(nullptr),
-                                     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
-                                     /// intermediate
-                                     m_T_PerDep(nullptr), m_T_RG(nullptr),
-                                     /// outputs
-                                     m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
-                                     m_nSubbasins(-1),
-                                     m_subbasinID(-1), m_firstRun(true), m_subbasinsInfo(nullptr) {
+ReservoirMethod::ReservoirMethod() :
+    m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_nMaxSoilLayers(-1),
+    m_soilLayers(nullptr), m_soilThick(nullptr),
+    m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
+    m_perc(nullptr), m_D_EI(nullptr), m_D_ED(nullptr),
+    m_D_ES(nullptr), m_plantEP(nullptr),
+    m_D_PET(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
+    m_petSubbasin(nullptr), m_gwStore(nullptr), m_Slope(nullptr), m_soilStorage(nullptr),
+    m_soilDepth(nullptr),
+    m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
+    /// intermediate
+    m_T_PerDep(nullptr), m_T_RG(nullptr),
+    /// outputs
+    m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
+    m_nSubbasins(-1),
+    m_subbasinID(-1), m_firstRun(true), m_subbasinsInfo(nullptr) {
 }
 
 ReservoirMethod::~ReservoirMethod() {
@@ -31,7 +32,7 @@ ReservoirMethod::~ReservoirMethod() {
     if (m_T_GWWB != nullptr) Release2DArray(m_nSubbasins + 1, m_T_GWWB);
 }
 
-void ReservoirMethod:: InitialOutputs() {
+void ReservoirMethod::InitialOutputs() {
     if (m_firstRun) {
         SetSubbasinInfos();
         m_firstRun = false;

@@ -4,11 +4,12 @@
 #include "ClimateParams.h"
 #include "text.h"
 
-PETHargreaves::PETHargreaves() : m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
-                                 m_rhd(nullptr), m_cellLat(nullptr), m_phuAnn(nullptr),
-                                 m_nCells(-1), m_HCoef_pet(0.0023f), m_petFactor(1.f), m_srMax(NODATA_VALUE),
-                                 m_jday(-1),
-                                 m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
+PETHargreaves::PETHargreaves() :
+    m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
+    m_rhd(nullptr), m_cellLat(nullptr), m_phuAnn(nullptr),
+    m_nCells(-1), m_HCoef_pet(0.0023f), m_petFactor(1.f), m_srMax(NODATA_VALUE),
+    m_jday(-1),
+    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
 PETHargreaves::~PETHargreaves() {

@@ -52,27 +52,27 @@
  * \brief Reservoir Method to calculate groundwater balance and baseflow of longterm model
  *
  */
-class ReservoirMethod : public SimulationModule {
+class ReservoirMethod: public SimulationModule {
 public:
     ReservoirMethod();
 
     ~ReservoirMethod();
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void SetSubbasins(clsSubbasins *) OVERRIDE;
+    void SetSubbasins(clsSubbasins*) OVERRIDE;
 
     int Execute() OVERRIDE;
 
-    void GetValue(const char *key, float *value) OVERRIDE;
+    void GetValue(const char* key, float* value) OVERRIDE;
 
-    void Get1DData(const char *key, int *nRows, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
 
@@ -95,7 +95,7 @@ private:
     /*
      * \brief initial outputs as default values
      */
-    void  InitialOutputs();
+    void InitialOutputs();
 
     /*
      * \brief Set groundwater related subbasin parameters
@@ -116,9 +116,9 @@ private:
     //! maximum soil layers number
     int m_nMaxSoilLayers;
     //! soil layers number of each cell
-    float *m_soilLayers;
+    float* m_soilLayers;
     //! soil thickness of each layer
-    float **m_soilThick;
+    float** m_soilThick;
 
     //float m_upSoilDepth;
 
@@ -129,51 +129,51 @@ private:
     //! baseflow recession exponent
     float m_Base_ex;
     //! the amount of water percolated from the soil water reservoir and input to the groundwater reservoir from the percolation module(mm)
-    float **m_perc;
+    float** m_perc;
     //! evaporation from interception storage (mm) from the interception module
-    float *m_D_EI;
+    float* m_D_EI;
     //! evaporation from the depression storage (mm) from the depression module
-    float *m_D_ED;
+    float* m_D_ED;
     //! evaporation from the soil water storage (mm) from the soil ET module
-    float *m_D_ES;
+    float* m_D_ES;
     //! actual amount of transpiration (mm H2O)
-    float *m_plantEP;
+    float* m_plantEP;
     //! PET(mm) from the PET modules
-    float *m_D_PET;
+    float* m_D_PET;
     //! initial ground water storage (or at time t-1)
     float m_GW0;
     //! maximum ground water storage
     float m_GWMAX;
     //!
-    float *m_petSubbasin;
+    float* m_petSubbasin;
     //!
-    float *m_gwStore;
+    float* m_gwStore;
 
     /// slope (percent, or drop/distance, or tan) of each cell
-    float *m_Slope;
+    float* m_Slope;
 
     //! soil storage
-    float **m_soilStorage;
+    float** m_soilStorage;
     //! soil depth of each layer, the maximum soil depth is used here, i.e., m_soilDepth[i][(int)m_soilLayers[i]]
-    float **m_soilDepth;
+    float** m_soilDepth;
     //! ground water from bank storage, passed from channel routing module
-    float *m_VgroundwaterFromBankStorage;
+    float* m_VgroundwaterFromBankStorage;
 
     //output
     //!
-    float *m_T_Perco;
+    float* m_T_Perco;
     //!
-    float *m_T_PerDep;
+    float* m_T_PerDep;
     //!
-    float *m_T_RG;
+    float* m_T_RG;
     //!
-    float *m_T_QG;
+    float* m_T_QG;
     //!
-    float *m_D_Revap;
+    float* m_D_Revap;
     //!
-    float *m_T_Revap;
+    float* m_T_Revap;
     //! groundwater water balance statistics
-    float **m_T_GWWB;
+    float** m_T_GWWB;
 
     ////! subbasin grid
     //   float *m_subbasin;
@@ -189,7 +189,7 @@ private:
     //   float *m_subbasinSelected;
     bool m_firstRun;
     //! All subbasins information,\sa clsSubbasins, \sa Subbasin
-    clsSubbasins *m_subbasinsInfo;
+    clsSubbasins* m_subbasinsInfo;
     ////! vector of all Subbasin instances
     // vector<Subbasin *> m_subbasinList;
 

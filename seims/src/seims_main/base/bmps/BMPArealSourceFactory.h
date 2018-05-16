@@ -205,17 +205,17 @@ public:
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 
-    const vector<int>& GetArealSrcMgtSeqs() const { return m_arealSrcMgtSeqs; }
+    vector<int>& GetArealSrcMgtSeqs() { return m_arealSrcMgtSeqs; }
 
-    const map<int, ArealSourceMgtParams*>& GetArealSrcMgtMap() const { return m_arealSrcMgtMap; }
+    map<int, ArealSourceMgtParams*>& GetArealSrcMgtMap() { return m_arealSrcMgtMap; }
 
-    const vector<int>& GetArealSrcIDs() const { return m_arealSrcIDs; }
+    vector<int>& GetArealSrcIDs() { return m_arealSrcIDs; }
 
     bool GetLocationLoadStatus() { return m_loadedMgtFieldIDs; }
 
     void SetArealSrcLocsMap(int n, float* mgtField);
 
-    const map<int, ArealSourceLocations*>& GetArealSrcLocsMap() const { return m_arealSrcLocsMap; }
+    map<int, ArealSourceLocations*>& GetArealSrcLocsMap() { return m_arealSrcLocsMap; }
 
 private:
     /// areal source code

@@ -2,16 +2,17 @@
 
 #include "text.h"
 
-MUSLE_AS::MUSLE_AS() : m_nCells(-1), m_cellWth(-1.f), m_nSoilLayers(-1),
-                       m_depRatio(NODATA_VALUE), m_detSand(nullptr), m_detSilt(nullptr),
-                       m_detClay(nullptr), m_detSmAgg(nullptr), m_detLgAgg(nullptr), m_usleP(nullptr),
-                       m_usleK(nullptr), m_usleC(nullptr),
-                       m_slope(nullptr), m_flowAccm(nullptr), m_rchID(nullptr), m_usleLS(nullptr),
-                       m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),
-                       m_slopeForPq(nullptr),
-                       m_snowAccum(nullptr), m_surfRf(nullptr),
-                       m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
-                       m_eroSmAgg(nullptr), m_eroLgAgg(nullptr) {
+MUSLE_AS::MUSLE_AS() :
+    m_nCells(-1), m_cellWth(-1.f), m_nSoilLayers(-1),
+    m_depRatio(NODATA_VALUE), m_detSand(nullptr), m_detSilt(nullptr),
+    m_detClay(nullptr), m_detSmAgg(nullptr), m_detLgAgg(nullptr), m_usleP(nullptr),
+    m_usleK(nullptr), m_usleC(nullptr),
+    m_slope(nullptr), m_flowAccm(nullptr), m_rchID(nullptr), m_usleLS(nullptr),
+    m_cellAreaKM(NODATA_VALUE), m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE),
+    m_slopeForPq(nullptr),
+    m_snowAccum(nullptr), m_surfRf(nullptr),
+    m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
+    m_eroSmAgg(nullptr), m_eroLgAgg(nullptr) {
 }
 
 MUSLE_AS::~MUSLE_AS() {

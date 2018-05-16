@@ -25,7 +25,7 @@
  * \brief Percolation calculated by storage routing method.
  *
  */
-class PER_STR : public SimulationModule {
+class PER_STR: public SimulationModule {
 public:
     PER_STR();
 
@@ -33,13 +33,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
+    void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
     /**
@@ -56,16 +56,16 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
-    void  InitialOutputs();
+    void InitialOutputs();
 private:
     /// number of soil layers
     int m_nSoilLayers;
     /// soil layers
-    float *m_soilLyrs;
+    float* m_soilLyrs;
     /// soil thickness
-    float **m_soilThk;
+    float** m_soilThk;
     /// time step
     int m_dt;
     /// valid cells number
@@ -73,24 +73,24 @@ private:
     /// threshold soil freezing temperature
     float m_soilFrozenTemp;
     /// saturated conductivity
-    float **m_ks;
+    float** m_ks;
     /// amount of water held in the soil layer at saturation (sat - wp water), mm
-    float **m_soilSat;
+    float** m_soilSat;
     /// amount of water held in the soil layer at field capacity (fc - wp water) mm H2O
-    float **m_soilFC;
+    float** m_soilFC;
     /// soil moisture, mm H2O
-    float **m_soilWtrSto;
+    float** m_soilWtrSto;
     /// amount of water stored in soil profile on current day, sol_sw in SWAT
-    float *m_soilWtrStoPrfl;
+    float* m_soilWtrStoPrfl;
     /// soil temperature
-    float *m_soilTemp;
+    float* m_soilTemp;
     /// infiltration, mm
-    float *m_infil;
+    float* m_infil;
     /// surface runoff, mm
-    float *m_surfRf;
+    float* m_surfRf;
     /// pothole volume, mm
-    float *m_potVol;
+    float* m_potVol;
     /// Output: percolation
-    float **m_soilPerco;
+    float** m_soilPerco;
 };
 #endif /* SEIMS_MODULE_PER_STR_H */

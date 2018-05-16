@@ -4,17 +4,18 @@
 #include "text.h"
 #include "ClimateParams.h"
 
-PETPenmanMonteith::PETPenmanMonteith() : m_meanTemp(nullptr), m_minTemp(nullptr),
-                                         m_maxTemp(nullptr), m_sr(nullptr), m_rhd(nullptr),
-                                         m_ws(nullptr), m_dem(nullptr), m_phuAnn(nullptr), m_srMax(NODATA_VALUE),
-                                         m_jday(-1),
-                                         m_igro(nullptr), m_canHgt(nullptr), m_lai(nullptr),
-                                         m_alb(nullptr), m_nCells(-1), m_cellLat(nullptr), m_co2Conc(NODATA_VALUE),
-                                         m_vpd2(nullptr), m_gsi(nullptr), m_vpdfr(nullptr), m_frgmax(nullptr),
-                                         m_snowTemp(-1),
-                                         m_petFactor(1.f),
-                                         m_pet(nullptr), m_maxPltET(nullptr), m_vpd(nullptr), m_dayLen(nullptr),
-                                         m_phuBase(nullptr) {
+PETPenmanMonteith::PETPenmanMonteith() :
+    m_meanTemp(nullptr), m_minTemp(nullptr),
+    m_maxTemp(nullptr), m_sr(nullptr), m_rhd(nullptr),
+    m_ws(nullptr), m_dem(nullptr), m_phuAnn(nullptr), m_srMax(NODATA_VALUE),
+    m_jday(-1),
+    m_igro(nullptr), m_canHgt(nullptr), m_lai(nullptr),
+    m_alb(nullptr), m_nCells(-1), m_cellLat(nullptr), m_co2Conc(NODATA_VALUE),
+    m_vpd2(nullptr), m_gsi(nullptr), m_vpdfr(nullptr), m_frgmax(nullptr),
+    m_snowTemp(-1),
+    m_petFactor(1.f),
+    m_pet(nullptr), m_maxPltET(nullptr), m_vpd(nullptr), m_dayLen(nullptr),
+    m_phuBase(nullptr) {
 }
 
 PETPenmanMonteith::~PETPenmanMonteith() {

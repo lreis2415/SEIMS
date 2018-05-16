@@ -111,11 +111,11 @@ private:
     void InitialOutputs();
 private:
     /// subbasins number
-    int m_nSubbasins;
+    int m_nSubbsns;
     /// current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
+    int m_inputSubbsnID;
     /// cell width of grid map (m)
-    float m_cellWidth;
+    float m_cellWth;
     /// cell area of grid map (ha)
     float m_cellArea;
     /// number of cells
@@ -140,7 +140,7 @@ private:
     ///inputs
 
     // soil loss caused by water erosion
-    float* m_sedEroded;
+    float* m_olWtrEroSed;
     // surface runoff generated
     float* m_surfRf;
     //bulk density of the soil
@@ -154,26 +154,26 @@ private:
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)
-    float* m_subbasin;
+    float* m_subbsnID;
     /// subbasins information
     clsSubbasins* m_subbasinsInfo;
 
     ///output data
     //amount of organic nitrogen in surface runoff
-    float* m_sedorgn;
+    float* m_surfRfSedOrgN;
     //amount of organic phosphorus in surface runoff
-    float* m_sedorgp;
+    float* m_surfRfSedOrgP;
     //amount of active mineral phosphorus sorbed to sediment in surface runoff
-    float* m_sedminpa;
+    float* m_surfRfSedAbsorbMinP;
     //amount of stable mineral phosphorus sorbed to sediment in surface runoff
-    float* m_sedminps;
+    float* m_surfRfSedSorbMinP;
 
     /// output to channel
 
-    float* m_sedorgnToCh;  // amount of organic N in surface runoff to channel, kg
-    float* m_sedorgpToCh;  // amount of organic P in surface runoff to channel, kg
-    float* m_sedminpaToCh; // amount of active mineral P in surface runoff to channel, kg
-    float* m_sedminpsToCh; // amount of stable mineral P in surface runoff to channel, kg
+    float* m_surfRfSedOrgNToCh;       // amount of organic N in surface runoff to channel, kg
+    float* m_surfRfSedOrgPToCh;       // amount of organic P in surface runoff to channel, kg
+    float* m_surfRfSedAbsorbMinPToCh; // amount of active mineral P in surface runoff to channel, kg
+    float* m_surfRfSedSorbMinPToCh;   // amount of stable mineral P in surface runoff to channel, kg
 
     ///input & output
     //amount of nitrogen stored in the active organic (humic) nitrogen pool, kg N/ha
@@ -212,10 +212,10 @@ private:
     float** m_soilPerco;
     float** m_subSurfRf;
     /// outputs
-    float** m_sol_latC;   /// lateral flow Carbon loss in each soil layer
-    float** m_sol_percoC; /// percolation Carbon loss in each soil layer
-    float* m_laterC;      /// lateral flow Carbon loss in soil profile
-    float* m_percoC;      /// percolation Carbon loss in soil profile
-    float* m_sedCLoss;    /// amount of C lost with sediment pools
+    float** m_soilIfluCbn;     /// lateral flow Carbon loss in each soil layer
+    float** m_soilPercoCbn;    /// percolation Carbon loss in each soil layer
+    float* m_soilIfluCbnPrfl;  /// lateral flow Carbon loss in soil profile
+    float* m_soilPercoCbnPrfl; /// percolation Carbon loss in soil profile
+    float* m_sedLossCbn;       /// amount of C lost with sediment pools
 };
 #endif /* SEIMS_MODULE_NUTRSED_H */

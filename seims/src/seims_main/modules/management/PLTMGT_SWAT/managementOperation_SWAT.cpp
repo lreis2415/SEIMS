@@ -2,78 +2,78 @@
 
 #include "text.h"
 #include "PlantGrowthCommon.h"
-#include "utils_time.h"
 
-MGTOpt_SWAT::MGTOpt_SWAT() : m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-                             m_nSubbsns(-1), m_subbsnID(nullptr),
-                             /// add parameters from MongoDB
-                             m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr),
-                             m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
-                             /// Soil related parameters from MongoDB
-                             m_soilDepth(nullptr), m_soilThick(nullptr), m_soilMaxRootD(nullptr), m_soilBD(nullptr),
-                             m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCbn(nullptr), m_soilRock(nullptr),
-                             m_soilClay(nullptr), m_soilSand(nullptr), m_soilSilt(nullptr), m_soilActvOrgN(nullptr),
-                             /// Soil related parameters
-                             m_soilFrshOrgN(nullptr), m_soilFrshOrgP(nullptr), m_soilNH4(nullptr),
-                             m_soilNO3(nullptr), m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr),
-                             m_soilSolP(nullptr), m_pgTempBase(nullptr),
-                             /// Plant operation related parameters
-                             m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_cn2(nullptr),
-                             m_igro(nullptr),
-                             m_landCoverCls(nullptr), m_HvstIdxTrgt(nullptr), m_BiomTrgt(nullptr),
-                             m_curYrMat(nullptr), m_wtrStrsHvst(nullptr), m_lai(nullptr), m_phuBase(nullptr),
-                             m_phuAccum(nullptr),
-                             m_phuPlt(nullptr), m_dormFlag(nullptr), m_hvstIdx(nullptr),
-                             m_hvstIdxAdj(nullptr), m_laiMaxFr(nullptr), m_oLai(nullptr),
-                             m_frPltN(nullptr), m_frPltP(nullptr), m_pltN(nullptr), m_pltP(nullptr),
-                             m_totActPltET(nullptr), m_totPltPET(nullptr), m_frRoot(nullptr),
-                             /// Harvest and Kill, harvest, harvgrain operation
-                             m_biomass(nullptr), m_soilRsd(nullptr), m_frStrsWtr(nullptr), m_cropLookup(nullptr),
-                             m_cropNum(-1),
-                             m_fertLookup(nullptr), m_fertNum(-1), m_cbnModel(0),
-                             /// Fertilizer operation
-                             m_soilManC(nullptr), m_soilManN(nullptr), m_soilManP(nullptr),
-                             m_soilHSN(nullptr), m_soilLM(nullptr), m_soilLMC(nullptr),
-                             /// Irrigation
-                             m_soilLMN(nullptr), m_soilLSC(nullptr), m_soilLSN(nullptr), m_soilLS(nullptr),
-                             m_soilLSL(nullptr),
-                             m_soilLSLC(nullptr), m_soilLSLNC(nullptr), m_tillSwitch(nullptr),
-                             /// auto irrigation operation
-                             m_tillDepth(nullptr), m_tillDays(nullptr), m_tillFactor(nullptr),
-                             m_soilBMN(nullptr),
-                             m_soilHPN(nullptr),
-                             m_irrFlag(nullptr), m_irrWtrAmt(nullptr),
-                             /// bacteria related
-                             //m_bactSwf(NODATA),	m_bactLessPersistPlt(nullptr), m_bactLessPersistSol(nullptr), m_bactLessPersistParticle(nullptr),
-                             //m_bactPersistPlt(nullptr), m_bactPersistSol(nullptr), m_bactPersistParticle(nullptr),
-                             /// Tillage operation
-                             m_irrWtr2SurfqAmt(nullptr), m_deepWaterDepth(nullptr), m_shallowWaterDepth(nullptr),
-                             /// tillage factor on SOM decomposition, used by CENTURY model
-                             m_potArea(nullptr), m_deepIrrWater(nullptr), m_shallowIrrWater(nullptr),
-                             m_wtrStrsID(nullptr),
-                             /// auto fertilizer operation
-                             m_autoWtrStrsTrig(nullptr), m_autoIrrSrc(nullptr), m_autoIrrLocNo(nullptr),
-                             m_autoIrrEff(nullptr), m_autoIrrWtrD(nullptr),
-                             m_autoIrrWtr2SurfqR(nullptr), m_stoSoilRootD(nullptr), m_grainc_d(nullptr),
-                             /// Grazing operation
-                             m_rsdc_d(nullptr), m_stoverc_d(nullptr),
-                             /// Release or impound operation
-                             m_tillageLookup(nullptr), m_tillageNum(-1), m_soilActvMinP(nullptr),
-                             m_soilStabMinP(nullptr), m_fertID(nullptr),
-                             m_NStrsMeth(nullptr), m_autoNStrsTrig(nullptr), m_autoFertMaxApldN(nullptr),
-                             m_autoFertMaxAnnApldMinN(nullptr),
-                             m_autoFertNtrgtMod(nullptr), m_autoFertEff(nullptr), m_autoFertSurfFr(nullptr),
-                             /// CENTURY C/N cycling related variables
-                             m_nGrazDays(nullptr), m_grazFlag(nullptr), m_impndTrig(nullptr), m_potVol(nullptr),
-                             m_potVolMax(nullptr),
-                             m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
-                             m_soilFC(nullptr),
-                             m_soilSat(nullptr), m_soilWtrSto(nullptr),
-                             /// Temporary parameters
-                             m_soilWtrStoPrfl(nullptr), m_initialized(false),
-                             tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
-                             tmp_soilNotMixedMass(nullptr),
-                             tmp_smix(nullptr) {
+MGTOpt_SWAT::MGTOpt_SWAT() :
+    m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_nSubbsns(-1), m_subbsnID(nullptr),
+    /// add parameters from MongoDB
+    m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr),
+    m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
+    /// Soil related parameters from MongoDB
+    m_soilDepth(nullptr), m_soilThick(nullptr), m_soilMaxRootD(nullptr), m_soilBD(nullptr),
+    m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCbn(nullptr), m_soilRock(nullptr),
+    m_soilClay(nullptr), m_soilSand(nullptr), m_soilSilt(nullptr), m_soilActvOrgN(nullptr),
+    /// Soil related parameters
+    m_soilFrshOrgN(nullptr), m_soilFrshOrgP(nullptr), m_soilNH4(nullptr),
+    m_soilNO3(nullptr), m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr),
+    m_soilSolP(nullptr), m_pgTempBase(nullptr),
+    /// Plant operation related parameters
+    m_doneOpSequence(nullptr), m_landuseLookup(nullptr), m_landuseNum(-1), m_cn2(nullptr),
+    m_igro(nullptr),
+    m_landCoverCls(nullptr), m_HvstIdxTrgt(nullptr), m_BiomTrgt(nullptr),
+    m_curYrMat(nullptr), m_wtrStrsHvst(nullptr), m_lai(nullptr), m_phuBase(nullptr),
+    m_phuAccum(nullptr),
+    m_phuPlt(nullptr), m_dormFlag(nullptr), m_hvstIdx(nullptr),
+    m_hvstIdxAdj(nullptr), m_laiMaxFr(nullptr), m_oLai(nullptr),
+    m_frPltN(nullptr), m_frPltP(nullptr), m_pltN(nullptr), m_pltP(nullptr),
+    m_totActPltET(nullptr), m_totPltPET(nullptr), m_frRoot(nullptr),
+    /// Harvest and Kill, harvest, harvgrain operation
+    m_biomass(nullptr), m_soilRsd(nullptr), m_frStrsWtr(nullptr), m_cropLookup(nullptr),
+    m_cropNum(-1),
+    m_fertLookup(nullptr), m_fertNum(-1), m_cbnModel(0),
+    /// Fertilizer operation
+    m_soilManC(nullptr), m_soilManN(nullptr), m_soilManP(nullptr),
+    m_soilHSN(nullptr), m_soilLM(nullptr), m_soilLMC(nullptr),
+    /// Irrigation
+    m_soilLMN(nullptr), m_soilLSC(nullptr), m_soilLSN(nullptr), m_soilLS(nullptr),
+    m_soilLSL(nullptr),
+    m_soilLSLC(nullptr), m_soilLSLNC(nullptr), m_tillSwitch(nullptr),
+    /// auto irrigation operation
+    m_tillDepth(nullptr), m_tillDays(nullptr), m_tillFactor(nullptr),
+    m_soilBMN(nullptr),
+    m_soilHPN(nullptr),
+    m_irrFlag(nullptr), m_irrWtrAmt(nullptr),
+    /// bacteria related
+    //m_bactSwf(NODATA),	m_bactLessPersistPlt(nullptr), m_bactLessPersistSol(nullptr), m_bactLessPersistParticle(nullptr),
+    //m_bactPersistPlt(nullptr), m_bactPersistSol(nullptr), m_bactPersistParticle(nullptr),
+    /// Tillage operation
+    m_irrWtr2SurfqAmt(nullptr), m_deepWaterDepth(nullptr), m_shallowWaterDepth(nullptr),
+    /// tillage factor on SOM decomposition, used by CENTURY model
+    m_potArea(nullptr), m_deepIrrWater(nullptr), m_shallowIrrWater(nullptr),
+    m_wtrStrsID(nullptr),
+    /// auto fertilizer operation
+    m_autoWtrStrsTrig(nullptr), m_autoIrrSrc(nullptr), m_autoIrrLocNo(nullptr),
+    m_autoIrrEff(nullptr), m_autoIrrWtrD(nullptr),
+    m_autoIrrWtr2SurfqR(nullptr), m_stoSoilRootD(nullptr), m_grainc_d(nullptr),
+    /// Grazing operation
+    m_rsdc_d(nullptr), m_stoverc_d(nullptr),
+    /// Release or impound operation
+    m_tillageLookup(nullptr), m_tillageNum(-1), m_soilActvMinP(nullptr),
+    m_soilStabMinP(nullptr), m_fertID(nullptr),
+    m_NStrsMeth(nullptr), m_autoNStrsTrig(nullptr), m_autoFertMaxApldN(nullptr),
+    m_autoFertMaxAnnApldMinN(nullptr),
+    m_autoFertNtrgtMod(nullptr), m_autoFertEff(nullptr), m_autoFertSurfFr(nullptr),
+    /// CENTURY C/N cycling related variables
+    m_nGrazDays(nullptr), m_grazFlag(nullptr), m_impndTrig(nullptr), m_potVol(nullptr),
+    m_potVolMax(nullptr),
+    m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
+    m_soilFC(nullptr),
+    m_soilSat(nullptr), m_soilWtrSto(nullptr),
+    /// Temporary parameters
+    m_soilWtrStoPrfl(nullptr), m_initialized(false),
+    tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
+    tmp_soilNotMixedMass(nullptr),
+    tmp_smix(nullptr) {
 }
 
 MGTOpt_SWAT::~MGTOpt_SWAT() {
@@ -171,20 +171,20 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (nullptr != tmp_smix) Release1DArray(tmp_smix);
 }
 
-void MGTOpt_SWAT::SetValue(const char* key, float data) {
+void MGTOpt_SWAT::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_CSWAT)) {
-        m_cbnModel = CVT_INT(data);
+        m_cbnModel = CVT_INT(value);
     } else if (StringMatch(sk, Tag_CellWidth)) {
-        m_cellWth = data;
+        m_cellWth = value;
     } else if (StringMatch(sk, VAR_SUBBSNID_NUM)) {
-        m_nSubbsns = CVT_INT(data);
+        m_nSubbsns = CVT_INT(value);
     } else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize(const char* key, int n) {
+bool MGTOpt_SWAT::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
                              " is invalid. The size could not be less than zero.");
@@ -200,7 +200,7 @@ bool MGTOpt_SWAT::CheckInputSize(const char* key, int n) {
     return true;
 }
 
-void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
+void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBGS)) {
         // TODO, current version, the shalow and deep water depths are regarded the same.
@@ -298,7 +298,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, int n, float* data) {
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize2D(const char* key, int n, int col) {
+bool MGTOpt_SWAT::CheckInputSize2D(const char* key, const int n, const int col) {
     CheckInputSize(key, n);
     if (col <= 0) {
         throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
@@ -317,7 +317,7 @@ bool MGTOpt_SWAT::CheckInputSize2D(const char* key, int n, int col) {
     return true;
 }
 
-void MGTOpt_SWAT::Set2DData(const char* key, int n, int col, float** data) {
+void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     /// lookup tables
     if (StringMatch(sk, VAR_LANDUSE_LOOKUP)) {
@@ -462,7 +462,7 @@ void MGTOpt_SWAT::SetScenario(Scenario* sce) {
     if (nullptr == sce) {
         throw ModelException(MID_PLTMGT_SWAT, "SetScenario", "The Scenario data can not to be nullptr.");
     }
-    map<int, BMPFactory *> tmpBMPFactories = sce->GetBMPFactories();
+    map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
     if (!m_mgtFactory.empty()) {
         m_mgtFactory.clear();
     }
@@ -492,7 +492,7 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
     }
     // m_nSub = subbasins->GetSubbasinNumber(); // Set in SetValue()
     if (!m_nCellsSubbsn.empty() || !m_nAreaSubbsn.empty()) return;
-    vector<int> subIDs = subbasins->GetSubbasinIDs();
+    vector<int>& subIDs = subbasins->GetSubbasinIDs();
     for (auto it = subIDs.begin(); it != subIDs.end(); ++it) {
         Subbasin* tmpSubbsn = subbasins->GetSubbasinByID(*it);
         m_nCellsSubbsn[*it] = tmpSubbsn->GetCellCount();
@@ -688,7 +688,7 @@ void MGTOpt_SWAT::InitializeTillageLookup() {
     }
 }
 
-void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const int nOp) {
     PltOp* curOperation = static_cast<PltOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     m_igro[i] = 1.f;
@@ -740,7 +740,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(int i, int& factoryID, int nOp) {
     }
 }
 
-void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, const int nOp) {
     IrrOp* curOperation = static_cast<IrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     /// irrigation source
@@ -853,7 +853,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(int i, int& factoryID, int nOp) {
     }
 }
 
-void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, const int nOp) {
     /* Briefly change log
 	 * 1. Translate from fert.f, remains CSWAT = 1 and 2 to be done!!! by LJ
 	 * 2. CSWAT = 1 and 2, were implemented on 2016-9-29, by LJ.
@@ -954,7 +954,7 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int& factoryID, int nOp) {
             // X8 is organic carbon applied (kg C/ha)
             X8 = X1 * orgc_f;
             /// RLN is calculated as a function of C:N ration in fertilizer
-            RLN = 0.175f * (orgc_f) / (fertMinN + fertOrgN + 1.e-5f);
+            RLN = 0.175f * orgc_f / (fertMinN + fertOrgN + 1.e-5f);
             /// X10 is the fraction of carbon in fertilizer that is allocated to metabolic litter C pool
             X10 = 0.85f - 0.018f * RLN;
             if (X10 < 0.01f) { X10 = 0.01f; } else if (X10 > 0.7f) X10 = 0.7f;
@@ -1024,12 +1024,12 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(int i, int& factoryID, int nOp) {
     //fertP += (fertilizerKgHa + cFertP) * (fertMinP + fertOrgP);
 }
 
-void MGTOpt_SWAT::ExecutePesticideOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecutePesticideOperation(const int i, const int factoryID, const int nOp) {
     /// TODO
     PestOp* curOperation = static_cast<PestOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, const int nOp) {
     //// TODO: Yield is not set as outputs yet. by LJ
     /// harvkillop.f
     HvstKillOp* curOperation = static_cast<HvstKillOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
@@ -1085,12 +1085,12 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
             if (hvsti > 1.001f) {
                 yield = m_biomass[i] * (1.f - 1.f / (1.f + hiad1));
                 resnew = m_biomass[i] / (1.f + hiad1);
-                resnew *= (1.f - xx);
+                resnew *= 1.f - xx;
             } else {
                 yield = (1.f - m_frRoot[i]) * m_biomass[i] * hiad1;
                 resnew = (1.f - m_frRoot[i]) * (1.f - hiad1) * m_biomass[i];
                 /// remove stover during harvestKill operation
-                resnew *= (1.f - xx);
+                resnew *= 1.f - xx;
                 rtresnew = m_frRoot[i] * m_biomass[i];
             }
         }
@@ -1241,7 +1241,7 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(int i, int& factoryID, int nOp) {
     m_phuPlt[i] = 0.f;
 }
 
-void MGTOpt_SWAT::RootFraction(int i, float*& root_fr) {
+void MGTOpt_SWAT::RootFraction(const int i, float*& root_fr) {
     float cum_rd = 0.f, cum_d = 0.f, cum_rf = 0.f, x1 = 0.f, x2 = 0.f;
     if (m_stoSoilRootD[i] < UTIL_ZERO) {
         root_fr[0] = 1.f;
@@ -1286,7 +1286,7 @@ void MGTOpt_SWAT::RootFraction(int i, float*& root_fr) {
     }
 }
 
-void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, const int nOp) {
     /// newtillmix.f
     /// Mix residue and nutrients during tillage and biological mixing
     TillOp* curOperation = static_cast<TillOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
@@ -1477,7 +1477,7 @@ void MGTOpt_SWAT::ExecuteTillageOperation(int i, int& factoryID, int nOp) {
     if (cnop > 1.e-4f) m_cn2[i] = cnop;
 }
 
-void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(const int i, const int factoryID, const int nOp) {
     /// TODO to be implemented!
     /// harvestop.f
     HvstOnlyOp* curOperation = static_cast<HvstOnlyOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
@@ -1618,7 +1618,7 @@ void MGTOpt_SWAT::ExecuteHarvestOnlyOperation(int i, int& factoryID, int nOp) {
     //  }
 }
 
-void MGTOpt_SWAT::ExecuteKillOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const int nOp) {
     /// killop.f
     float resnew = 0.f, rtresnew = 0.f;
     resnew = m_biomass[i] * (1.f - m_frRoot[i]);
@@ -1655,7 +1655,7 @@ void MGTOpt_SWAT::ExecuteKillOperation(int i, int& factoryID, int nOp) {
     m_phuAccum[i] = 0.f;
 }
 
-void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteGrazingOperation(const int i, const int factoryID, const int nOp) {
     /// TODO, graze.f, simulate biomass lost to grazing
     GrazOp* curOperation = static_cast<GrazOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     //int manureID = curOperation->ManureID();
@@ -1665,7 +1665,7 @@ void MGTOpt_SWAT::ExecuteGrazingOperation(int i, int& factoryID, int nOp) {
     //float manueKg = curOperation->ManureDeposited();
 }
 
-void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(const int i, const int factoryID, const int nOp) {
     AutoIrrOp* curOperation = static_cast<AutoIrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_autoIrrSrc[i] = CVT_FLT(curOperation->AutoIrrSrcCode());
     m_autoIrrLocNo[i] = curOperation->AutoIrrSrcLocs() <= 0
@@ -1681,7 +1681,7 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(int i, int& factoryID, int nOp)
     /// TODO, this will be implemented as an isolated module in the near future.
 }
 
-void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(const int i, const int factoryID, const int nOp) {
     AutoFertOp* curOperation = static_cast<AutoFertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_fertID[i] = CVT_FLT(curOperation->FertilizerID());
     m_NStrsMeth[i] = CVT_FLT(curOperation->NitrogenMethod());
@@ -1703,7 +1703,7 @@ void MGTOpt_SWAT::ExecuteAutoFertilizerOperation(int i, int& factoryID, int nOp)
     /// TODO, this will be implemented as an isolated module in the near future.
 }
 
-void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryID, const int nOp) {
     /// No more executable code here.
     RelImpndOp* curOperation = static_cast<RelImpndOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_impndTrig[i] = CVT_FLT(curOperation->ImpoundTriger());
@@ -1744,22 +1744,22 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(int i, int& factoryID, int nOp)
     }
 }
 
-void MGTOpt_SWAT::ExecuteContinuousFertilizerOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteContinuousFertilizerOperation(const int i, const int factoryID, const int nOp) {
     // TODO
     ContFertOp* curOperation = static_cast<ContFertOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteContinuousPesticideOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteContinuousPesticideOperation(const int i, const int factoryID, const int nOp) {
     /// TODO
     ContPestOp* curOperation = static_cast<ContPestOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
 }
 
-void MGTOpt_SWAT::ExecuteBurningOperation(int i, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ExecuteBurningOperation(const int i, const int factoryID, const int nOp) {
     BurnOp* curOperation = static_cast<BurnOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// TODO
 }
 
-void MGTOpt_SWAT::ScheduledManagement(int cellIdx, int& factoryID, int nOp) {
+void MGTOpt_SWAT::ScheduledManagement(const int cellIdx, const int factoryID, const int nOp) {
     /// nOp is seqNo. * 1000 + operationCode
     int mgtCode = nOp % 1000;
     switch (mgtCode) {
@@ -1933,7 +1933,7 @@ void MGTOpt_SWAT::InitialOutputs() {
     vector<int> defined_mgt_codes;
     for (auto it = m_mgtFactory.begin(); it != m_mgtFactory.end(); ++it) {
         int factory_id = it->first;
-        vector<int> tmp_op_seqences = m_mgtFactory[factory_id]->GetOperationSequence();
+        vector<int>& tmp_op_seqences = m_mgtFactory[factory_id]->GetOperationSequence();
         for (auto seq_iter = tmp_op_seqences.begin(); seq_iter != tmp_op_seqences.end(); ++seq_iter) {
             /// *seq_iter is calculated by: seqNo. * 1000 + operationCode
             int cur_mgt_code = *seq_iter % 1000;

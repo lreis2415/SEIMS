@@ -25,17 +25,17 @@
  * \brief Hargreaves method to Compute PET
  *
  */
-class PETHargreaves : public SimulationModule {
+class PETHargreaves: public SimulationModule {
 public:
     PETHargreaves();
 
     ~PETHargreaves();
 
-    void SetValue(const char *key, float value) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *value) OVERRIDE;
+    void Set1DData(const char* key, int n, float* value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -52,24 +52,24 @@ private:
     * \param[in] n The input data dimension
     * \return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     //! Initialize of output variables
-    void  InitialOutputs();
+    void InitialOutputs();
 private:
     /// Parameters from Database
     /// mean air temperature for a given day(degree)
-    float *m_meanTemp;
+    float* m_meanTemp;
     /// maximum air temperature for a given day(degree)
-    float *m_maxTemp;
+    float* m_maxTemp;
     /// minimum air temperature for a given day(degree)
-    float *m_minTemp;
+    float* m_minTemp;
     /// relative humidity(%)
-    float *m_rhd;
+    float* m_rhd;
     /// latitude of each valid cells
-    float *m_cellLat;
+    float* m_cellLat;
     /// annual PHU
-    float *m_phuAnn;
+    float* m_phuAnn;
     /// valid cell number
     int m_nCells;
     /// coefficient related to radiation used in Hargreaves method
@@ -86,12 +86,12 @@ private:
     /// output
 
     /// day length (hr)
-    float *m_dayLen;
+    float* m_dayLen;
     /// base zero total heat units (used when no land cover is growing)
-    float *m_phuBase;
+    float* m_phuBase;
     /// pet
-    float *m_pet;
+    float* m_pet;
     /// vapor pressure deficit
-    float *m_vpd;
+    float* m_vpd;
 };
 #endif /* SEIMS_MODULE_PET_H_H */

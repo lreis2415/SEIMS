@@ -203,7 +203,7 @@ private:
 
     /// subbasin related
     /// the total number of subbasins
-    int m_nSubbasins;
+    int m_nSubbsns;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     /// subbasin grid (subbasins ID)

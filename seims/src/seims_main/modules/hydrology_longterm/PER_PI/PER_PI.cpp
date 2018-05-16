@@ -2,20 +2,22 @@
 
 #include "text.h"
 
-PER_PI::PER_PI() : m_soilLayers(-1), m_dt(-1), m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE),
-                   m_ks(nullptr), m_soilSat(nullptr), m_poreIdx(nullptr), m_soilFC(nullptr),
-                   m_soilWP(nullptr), m_soilThk(nullptr), m_impndTrig(nullptr),
-                   m_infil(nullptr), m_soilTemp(nullptr), m_soilWtrSto(nullptr),
-                   m_soilPerco(nullptr) {
+PER_PI::PER_PI() :
+    m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr),
+    m_dt(-1), m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE),
+    m_ks(nullptr), m_soilSat(nullptr), m_soilFC(nullptr), m_soilWP(nullptr),
+    m_poreIdx(nullptr), m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
+    m_soilTemp(nullptr), m_infil(nullptr), m_impndTrig(nullptr),
+    m_soilPerco(nullptr) {
 }
 
 PER_PI::~PER_PI() {
     if (m_soilPerco != nullptr) Release2DArray(m_nCells, m_soilPerco);
 }
 
-void PER_PI:: InitialOutputs() {
+void PER_PI::InitialOutputs() {
     CHECK_POSITIVE(MID_PER_PI, m_nCells);
-    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_soilLayers, m_soilPerco, NODATA_VALUE);
+    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, NODATA_VALUE);
 }
 
 int PER_PI::Execute() {
@@ -56,11 +58,11 @@ int PER_PI::Execute() {
                     k = m_ks[i][j];
                 } else {
                     /// Using Clapp and Hornberger (1978) equation to calculate unsaturated hydraulic conductivity.
-                    float dcIndex = 2.f * m_poreIdx[i][j] + 3.f; // pore disconnectedness index
+                    float dcIndex = 2.f * m_poreIdx[i][j] + 3.f;          // pore disconnectedness index
                     k = m_ks[i][j] * pow(swater / maxSoilWater, dcIndex); // mm/h
                 }
 
-                m_soilPerco[i][j] = k * m_dt / 3600.f;  // mm
+                m_soilPerco[i][j] = k * m_dt / 3600.f; // mm
 
                 if (swater - m_soilPerco[i][j] > maxSoilWater) {
                     m_soilPerco[i][j] = swater - maxSoilWater;
@@ -102,18 +104,18 @@ int PER_PI::Execute() {
     return 0;
 }
 
-void PER_PI::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
+void PER_PI::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     InitialOutputs();
     string sk(key);
     *nRows = m_nCells;
-    *nCols = m_soilLayers;
+    *nCols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_PERCO)) *data = m_soilPerco;
     else {
         throw ModelException(MID_PER_PI, "Get2DData", "Output " + sk + " does not exist.");
     }
 }
 
-void PER_PI::Set1DData(const char *key, const int nRows, float *data) {
+void PER_PI::Set1DData(const char* key, const int nRows, float* data) {
     CheckInputSize(key, nRows);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE)) m_soilTemp = data;
@@ -126,10 +128,10 @@ void PER_PI::Set1DData(const char *key, const int nRows, float *data) {
     }
 }
 
-void PER_PI::Set2DData(const char *key, const int nrows, const int ncols, float **data) {
+void PER_PI::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     CheckInputSize(key, nrows);
     string sk(key);
-    m_soilLayers = ncols;
+    m_maxSoilLyrs = ncols;
     if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_AWC)) m_soilFC = data;
@@ -142,7 +144,7 @@ void PER_PI::Set2DData(const char *key, const int nrows, const int ncols, float 
     }
 }
 
-void PER_PI::SetValue(const char *key, const float value) {
+void PER_PI::SetValue(const char* key, const float value) {
     string s(key);
     if (StringMatch(s, Tag_TimeStep)) m_dt = CVT_INT(value);
     else if (StringMatch(s, VAR_T_SOIL)) m_soilFrozenTemp = value;
@@ -169,18 +171,17 @@ bool PER_PI::CheckInputData() {
     return true;
 }
 
-bool PER_PI::CheckInputSize(const char *key, const int n) {
+bool PER_PI::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
+        throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
-        }
-        else {
+        } else {
             throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;

@@ -21,7 +21,7 @@
  * \ingroup SET_LM
  * \brief Calculate soil Temperature according to the linearly relationship with actual soil moisture
  */
-class SET_LM : public SimulationModule {
+class SET_LM: public SimulationModule {
 public:
     SET_LM();
 
@@ -29,13 +29,13 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
+    void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void Get1DData(const char *key, int *nRows, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
 
 private:
     /**
@@ -52,26 +52,26 @@ private:
     *	@param n The input data dimension
     *	@return bool The validity of the dimension
     */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     int m_nCells;
-    float *m_nSoilLyrs; ///< Soil layers number
-    float **m_soilThk; ///< Soil thickness of each layer, mm
+    float* m_nSoilLyrs; ///< Soil layers number
+    float** m_soilThk;  ///< Soil thickness of each layer, mm
 
-    float **m_soilWtrSto; ///< soil moisture
-    float **m_soilFC; ///< field capacity
-    float **m_soilWP; ///< wilting point
-    float *m_pet; ///< Potential evapotranspiration
-    float *m_IntcpET;  ///< Evaporation from interception
-    float *m_deprStoET;  ///< Evaporation from depression storage
-    float *m_maxPltET;  ///< Evaporation from plant
+    float** m_soilWtrSto; ///< soil moisture
+    float** m_soilFC;     ///< field capacity
+    float** m_soilWP;     ///< wilting point
+    float* m_pet;         ///< Potential evapotranspiration
+    float* m_IntcpET;     ///< Evaporation from interception
+    float* m_deprStoET;   ///< Evaporation from depression storage
+    float* m_maxPltET;    ///< Evaporation from plant
 
-    float *m_soilTemp;  ///< Soil temperature
+    float* m_soilTemp;      ///< Soil temperature
     float m_soilFrozenTemp; ///< Freezing temperature
 
-    float *m_soilET; ///< Output, actual soil evaporation
+    float* m_soilET; ///< Output, actual soil evaporation
 };
 #endif /* SEIMS_MODULE_SET_LM_H */

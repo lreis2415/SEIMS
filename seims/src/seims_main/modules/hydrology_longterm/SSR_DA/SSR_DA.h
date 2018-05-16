@@ -139,7 +139,7 @@ private:
     */
     float **m_rteLyrs;
     /// number of routing layers
-    int m_nRoutingLayers;
+    int m_nRteLyrs;
     /// number of subbasin
     int m_nSubbsns;
     /// subbasin grid (ID of subbasin)

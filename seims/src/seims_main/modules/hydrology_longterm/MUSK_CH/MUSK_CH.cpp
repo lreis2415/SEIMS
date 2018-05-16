@@ -2,20 +2,21 @@
 
 #include "text.h"
 
-MUSK_CH::MUSK_CH() : m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1), m_outletID(-1), m_ptSub(nullptr),
-                     m_Kchb(nullptr), m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE),
-                     m_chSideSlope(nullptr), m_Chs0_perc(NODATA_VALUE),
-                     m_Vseep0(0.f), m_aBank(NODATA_VALUE), m_bBank(NODATA_VALUE),
-                     m_subbsnID(nullptr), m_area(nullptr),
-                     m_petCh(nullptr), m_qsSub(nullptr), m_qiSub(nullptr), m_qgSub(nullptr),
-                     m_gwStorage(nullptr), m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
-                     m_chWidth(nullptr), m_chWTWidth(nullptr),
-                     m_chBtmWidth(nullptr), m_chDepth(nullptr),
-                     m_chWTdepth(nullptr), m_preChWTDepth(nullptr), m_chLen(nullptr),
-                     m_chVel(nullptr), m_bankStorage(nullptr), m_deepGroundwater(0.f), m_seepage(nullptr),
-                     m_reachDownStream(nullptr), m_x(NODATA_VALUE),
-                     m_co1(NODATA_VALUE), m_chStorage(nullptr), m_preChStorage(nullptr),
-                     m_qRchOut(nullptr), m_qIn(nullptr) {
+MUSK_CH::MUSK_CH() :
+    m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1), m_outletID(-1), m_ptSub(nullptr),
+    m_Kchb(nullptr), m_Kbank(nullptr), m_Epch(NODATA_VALUE), m_Bnk0(NODATA_VALUE),
+    m_chSideSlope(nullptr), m_Chs0_perc(NODATA_VALUE),
+    m_Vseep0(0.f), m_aBank(NODATA_VALUE), m_bBank(NODATA_VALUE),
+    m_subbsnID(nullptr), m_area(nullptr),
+    m_petCh(nullptr), m_qsSub(nullptr), m_qiSub(nullptr), m_qgSub(nullptr),
+    m_gwStorage(nullptr), m_qsCh(nullptr), m_qiCh(nullptr), m_qgCh(nullptr),
+    m_chWidth(nullptr), m_chWTWidth(nullptr),
+    m_chBtmWidth(nullptr), m_chDepth(nullptr),
+    m_chWTdepth(nullptr), m_preChWTDepth(nullptr), m_chLen(nullptr),
+    m_chVel(nullptr), m_bankStorage(nullptr), m_deepGroundwater(0.f), m_seepage(nullptr),
+    m_reachDownStream(nullptr), m_x(NODATA_VALUE),
+    m_co1(NODATA_VALUE), m_chStorage(nullptr), m_preChStorage(nullptr),
+    m_qRchOut(nullptr), m_qIn(nullptr) {
 }
 
 MUSK_CH::~MUSK_CH() {
@@ -58,7 +59,7 @@ bool MUSK_CH::CheckInputData() {
     return true;
 }
 
-void MUSK_CH:: InitialOutputs() {
+void MUSK_CH::InitialOutputs() {
     CHECK_POSITIVE(MID_MUSK_CH, m_nreach);
     //initial channel storage
     if (nullptr == m_chStorage) {
@@ -79,10 +80,12 @@ void MUSK_CH:: InitialOutputs() {
         for (int i = 1; i <= m_nreach; i++) {
             float qiSub = 0.f;
             float qgSub = 0.f;
-            if (nullptr != m_qiSub) { // interflow (subsurface flow)
+            if (nullptr != m_qiSub) {
+                // interflow (subsurface flow)
                 qiSub = m_qiSub[i];
             }
-            if (nullptr != m_qgSub) { // groundwater
+            if (nullptr != m_qgSub) {
+                // groundwater
                 qgSub = m_qgSub[i];
             }
             m_seepage[i] = 0.f;
@@ -124,7 +127,7 @@ void MUSK_CH::PointSourceLoading() {
         map<int, PointSourceLocations *>& m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
         for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
-            PointSourceMgtParams *curPtMgt = m_pointSrcMgtMap.at(*seqIter);
+            PointSourceMgtParams* curPtMgt = m_pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
                 if (m_date < curPtMgt->GetStartDate() || m_date > curPtMgt->GetEndDate()) {
@@ -136,7 +139,7 @@ void MUSK_CH::PointSourceLoading() {
             // 1.3 Sum up all point sources
             for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
                 if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
-                    PointSourceLocations *curPtLoc = m_pointSrcLocsMap.at(*locIter);
+                    PointSourceLocations* curPtLoc = m_pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     m_ptSub[curSubID] += per_wtrVol * curPtLoc->GetSize() / 86400.f; /// m3/'size'/day ==> m3/s
                 }
@@ -149,7 +152,7 @@ int MUSK_CH::Execute() {
     InitialOutputs();
     /// load point source water volume from m_ptSrcFactory
     PointSourceLoading();
-    for (auto it = m_reachLayers.begin(); it != m_reachLayers.end(); ++it) {
+    for (auto it = m_rteLyrs.begin(); it != m_rteLyrs.end(); ++it) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
@@ -167,10 +170,10 @@ int MUSK_CH::Execute() {
     return 0;
 }
 
-bool MUSK_CH::CheckInputSize(const char *key, const int n) {
+bool MUSK_CH::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_MUSK_CH, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
+        throw ModelException(MID_MUSK_CH, "CheckInputSize", "Input data for " + string(key) +
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nreach != n - 1) {
         if (m_nreach <= 0) {
@@ -178,14 +181,14 @@ bool MUSK_CH::CheckInputSize(const char *key, const int n) {
         } else {
             std::ostringstream oss;
             oss << "Input data for " + string(key) << " is invalid with size: " << n << ". The origin size is " <<
-                m_nreach << ".\n";
+                    m_nreach << ".\n";
             throw ModelException(MID_MUSK_CH, "CheckInputSize", oss.str());
         }
     }
     return true;
 }
 
-void MUSK_CH::SetValue(const char *key, const float value) {
+void MUSK_CH::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_OUTLETID)) m_outletID = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
@@ -204,10 +207,10 @@ void MUSK_CH::SetValue(const char *key, const float value) {
     }
 }
 
-void MUSK_CH::SetValueByIndex(const char *key, const int index, const float value) {
-    if (m_inputSubbsnID == 0) return; // Not for omp version
+void MUSK_CH::SetValueByIndex(const char* key, const int index, const float value) {
+    if (m_inputSubbsnID == 0) return;           // Not for omp version
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
-    if (nullptr == m_qRchOut)  InitialOutputs();
+    if (nullptr == m_qRchOut) InitialOutputs();
     string sk(key);
     /// Set single value of array1D of current subbasin
     if (StringMatch(sk, VAR_SBOF)) m_qsSub[index] = value;
@@ -215,7 +218,7 @@ void MUSK_CH::SetValueByIndex(const char *key, const int index, const float valu
     else if (StringMatch(sk, VAR_SBQG)) m_qgSub[index] = value;
     else if (StringMatch(sk, VAR_SBPET)) m_petCh[index] = value;
     else if (StringMatch(sk, VAR_SBGS)) m_gwStorage[index] = value;
-    /// IN/OUTPUT variables
+        /// IN/OUTPUT variables
     else if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
     else if (StringMatch(sk, VAR_QS)) m_qsCh[index] = value;
     else if (StringMatch(sk, VAR_QI)) m_qiCh[index] = value;
@@ -225,13 +228,12 @@ void MUSK_CH::SetValueByIndex(const char *key, const int index, const float valu
     }
 }
 
-void MUSK_CH::Set1DData(const char *key, const int n, float *value) {
+void MUSK_CH::Set1DData(const char* key, const int n, float* value) {
     string sk(key);
     //check the input data
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = value;
-    }
-    else if (StringMatch(sk, VAR_SBOF)) {
+    } else if (StringMatch(sk, VAR_SBOF)) {
         CheckInputSize(key, n);
         m_qsSub = value;
     } else if (StringMatch(sk, VAR_SBIF)) {
@@ -251,12 +253,12 @@ void MUSK_CH::Set1DData(const char *key, const int n, float *value) {
     }
 }
 
-void MUSK_CH::GetValue(const char *key, float *value) {
+void MUSK_CH::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_QOUTLET)) *value = m_qRchOut[m_outletID];
     else if (StringMatch(sk, VAR_QSOUTLET)) *value = m_qsCh[m_outletID];
-    /// IN/OUTPUT variables
+        /// IN/OUTPUT variables
     else if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QS) && m_inputSubbsnID > 0) *value = m_qsCh[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QI) && m_inputSubbsnID > 0) *value = m_qiCh[m_inputSubbsnID];
@@ -266,7 +268,7 @@ void MUSK_CH::GetValue(const char *key, float *value) {
     }
 }
 
-void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
+void MUSK_CH::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     *n = m_nreach + 1;
@@ -311,7 +313,7 @@ void MUSK_CH::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void MUSK_CH::SetScenario(Scenario *sce) {
+void MUSK_CH::SetScenario(Scenario* sce) {
     if (nullptr != sce) {
         map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
         for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
@@ -326,7 +328,7 @@ void MUSK_CH::SetScenario(Scenario *sce) {
     }
 }
 
-void MUSK_CH::SetReaches(clsReaches *reaches) {
+void MUSK_CH::SetReaches(clsReaches* reaches) {
     if (nullptr == reaches) {
         throw ModelException(MID_MUSK_CH, "SetReaches", "The reaches input can not to be NULL.");
     }
@@ -343,10 +345,10 @@ void MUSK_CH::SetReaches(clsReaches *reaches) {
     if (nullptr == m_Kchb) reaches->GetReachesSingleProperty(REACH_KBED, &m_Kchb);
 
     m_reachUpStream = reaches->GetUpStreamIDs();
-    m_reachLayers = reaches->GetReachLayers();
+    m_rteLyrs = reaches->GetReachLayers();
 }
 
-void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float &dt, int &n) {
+void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float& dt, int& n) {
     if (fmax >= timeStep) {
         dt = timeStep;
         n = 1;
@@ -362,7 +364,7 @@ void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float &dt, int &n) {
     }
 }
 
-void MUSK_CH::GetCoefficients(const float reachLength, const float v0, MuskWeights &weights) {
+void MUSK_CH::GetCoefficients(const float reachLength, const float v0, MuskWeights& weights) {
     float K = (4.64f - 3.64f * m_co1) * reachLength / (5.f * v0 / 3.f);
 
     float min = 2.f * K * m_x;
@@ -395,7 +397,7 @@ void MUSK_CH::updateWaterWidthDepth(const int i) {
     /// update channel water depth and width according to channel water storage
     float crossArea = m_chStorage[i] / m_chLen[i];
     m_chWTdepth[i] =
-        (sqrt(m_chBtmWidth[i] * m_chBtmWidth[i] + 4.f * m_chSideSlope[i] * crossArea) - m_chBtmWidth[i]) / 2.f /
+            (sqrt(m_chBtmWidth[i] * m_chBtmWidth[i] + 4.f * m_chSideSlope[i] * crossArea) - m_chBtmWidth[i]) / 2.f /
             m_chSideSlope[i];
     if (m_chWTdepth[i] < UTIL_ZERO) {
         m_chWTWidth[i] = m_chBtmWidth[i];
@@ -421,7 +423,7 @@ void MUSK_CH::ChannelFlow(const int i) {
     //////////////////////////////////////////////////////////////////////////
     // first add all the inflow water
     // 1. water from this subbasin
-    float qIn = m_qsSub[i] + qiSub + qgSub + ptSub + m_deepGroundwater;  /// m^3/s
+    float qIn = m_qsSub[i] + qiSub + qgSub + ptSub + m_deepGroundwater; /// m^3/s
     // 2. water from upstream reaches
     float qsUp = 0.f;
     float qiUp = 0.f;
@@ -486,12 +488,12 @@ void MUSK_CH::ChannelFlow(const int i) {
     m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
-    }   // updated groundwater storage
+    } // updated groundwater storage
 
     // 3. evaporation losses
     float et = 0.f;
     if (nullptr != m_petCh) {
-        et = m_Epch * m_petCh[i] * 0.001f * m_chWTWidth[i] * m_chLen[i];    //m3
+        et = m_Epch * m_petCh[i] * 0.001f * m_chWTWidth[i] * m_chLen[i]; //m3
         if (m_chStorage[i] > et) {
             m_chStorage[i] -= et;
         } else {

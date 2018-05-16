@@ -2,13 +2,14 @@
 
 #include "text.h"
 
-SOL_WB::SOL_WB() : m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr), m_soilMaxRootD(nullptr),
-                   m_netPcp(nullptr), m_infil(nullptr), m_soilET(nullptr), m_Revap(nullptr),
-                   m_subSurfRf(nullptr), m_soilPerco(nullptr), m_soilWtrSto(nullptr),
-                   m_PCP(nullptr), m_intcpLoss(nullptr),
-                   m_IntcpET(nullptr), m_deprSto(nullptr), m_deprStoET(nullptr), m_surfRf(nullptr), m_RG(nullptr),
-                   m_snowSublim(nullptr), m_meanTemp(nullptr), m_soilTemp(nullptr), m_nSubbsns(-1), m_subbasinsInfo(nullptr),
-                   m_soilWtrBal(nullptr) {
+SOL_WB::SOL_WB() :
+    m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr), m_soilMaxRootD(nullptr),
+    m_netPcp(nullptr), m_infil(nullptr), m_soilET(nullptr), m_Revap(nullptr),
+    m_subSurfRf(nullptr), m_soilPerco(nullptr), m_soilWtrSto(nullptr),
+    m_PCP(nullptr), m_intcpLoss(nullptr),
+    m_IntcpET(nullptr), m_deprSto(nullptr), m_deprStoET(nullptr), m_surfRf(nullptr), m_RG(nullptr),
+    m_snowSublim(nullptr), m_meanTemp(nullptr), m_soilTemp(nullptr), m_nSubbsns(-1), m_subbasinsInfo(nullptr),
+    m_soilWtrBal(nullptr) {
 }
 
 SOL_WB::~SOL_WB() {

@@ -49,7 +49,7 @@
  * \brief IUH overland method to calculate overland flow routing
  *
  */
-class IUH_OL : public SimulationModule {
+class IUH_OL: public SimulationModule {
 public:
     IUH_OL();
 
@@ -57,22 +57,22 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float data) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nRows, int nCols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void GetValue(const char *key, float *value) OVERRIDE;
+    void GetValue(const char* key, float* value) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     bool CheckInputData();
 
 private:
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// time step (sec)
@@ -88,27 +88,27 @@ private:
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// subbasin grid (subbasins ID)
-    float *m_subbsnID;
+    float* m_subbsnID;
 
     /// IUH of each grid cell (1/s)
-    float **m_iuhCell;
+    float** m_iuhCell;
     /// the number of columns of Ol_iuh
     int m_iuhCols;
     /// surface runoff from depression module
-    float *m_surfRf;
+    float* m_surfRf;
 
     //temporary
 
     /// store the flow of each cell in each day between min time and max time
-    float **m_cellFlow;
+    float** m_cellFlow;
     /// the maximum of second column of OL_IUH plus 1.
     int m_cellFlowCols;
 
     //output
 
     /// overland flow to streams for each subbasin (m3/s)
-    float *m_Q_SBOF;
+    float* m_Q_SBOF;
     // overland flow in each cell (mm) //added by Gao, as intermediate variable, 29 Jul 2016
-    float *m_OL_Flow;
+    float* m_OL_Flow;
 };
 #endif /* SEIMS_MODULE_IUH_OL_H */

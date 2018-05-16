@@ -2,12 +2,13 @@
 
 #include "text.h"
 
-SET_LM::SET_LM() : m_nCells(-1), m_nSoilLyrs(nullptr),
-                   m_soilThk(nullptr), m_soilWtrSto(nullptr), m_soilFC(nullptr), m_soilWP(nullptr),
-                   m_pet(nullptr), m_IntcpET(nullptr),
-                   m_deprStoET(nullptr), m_maxPltET(nullptr), m_soilTemp(nullptr),
-                   m_soilFrozenTemp(NODATA_VALUE),
-                   m_soilET(nullptr) {
+SET_LM::SET_LM() :
+    m_nCells(-1), m_nSoilLyrs(nullptr),
+    m_soilThk(nullptr), m_soilWtrSto(nullptr), m_soilFC(nullptr), m_soilWP(nullptr),
+    m_pet(nullptr), m_IntcpET(nullptr),
+    m_deprStoET(nullptr), m_maxPltET(nullptr), m_soilTemp(nullptr),
+    m_soilFrozenTemp(NODATA_VALUE),
+    m_soilET(nullptr) {
 }
 
 SET_LM::~SET_LM() {

@@ -52,7 +52,7 @@
  * \brief Modified Rational Method to calculate infiltration and excess precipitation
  *
  */
-class SUR_MR : public SimulationModule {
+class SUR_MR: public SimulationModule {
 public:
     SUR_MR();
 
@@ -60,76 +60,76 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     void CheckInputData();
 
     /// initial output for the first run
-    void  InitialOutputs();
+    void InitialOutputs();
 private:
     /// Hillslope time step (second)
     float m_dt;
     /// count of valid cells
     int m_nCells;
     /// net precipitation of each cell (mm)
-    float *m_pNet;
+    float* m_netPcp;
     /// potential runoff coefficient
-    float *m_runoffCo;
+    float* m_potRfCoef;
 
     /// number of soil layers, i.e., the maximum soil layers of all soil types
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
     /// soil layers number of each cell
-    float *m_soilLayers;
+    float* m_nSoilLyrs;
 
     /// mm H2O: (sol_fc) amount of water available to plants in soil layer at field capacity (fc - wp)
-    float **m_sol_awc;
+    float** m_soilFC;
     /// mm H2O: (sol_ul) amount of water held in the soil layer at saturation (sat - wp water)
-    float **m_sol_ul;
+    float** m_soilSat;
     /// amount of water held in the soil layer at saturation (sat - wp water), mm H2O, sol_sumul of SWAT
-    float *m_sol_sumsat;
+    float* m_soilSumSat;
     /// initial soil water storage fraction related to field capacity (FC-WP)
-    float *m_initSoilStorage;
+    float* m_initSoilWtrStoRatio;
 
     /// runoff exponent
-    float m_kRunoff;
+    float m_rfExp;
     /// maximum precipitation corresponding to runoffCo
-    float m_pMax;
+    float m_maxPcpRf;
     /// depression storage (mm)
-    float *m_sd;    // SD(t-1) from the depression storage module
+    float* m_deprSto; // SD(t-1) from the depression storage module
 
     /// mean air temperature (deg C)
-    float *m_tMean;
+    float* m_meanTemp;
 
     /// threshold soil freezing temperature (deg C)
-    float m_tFrozen;
+    float m_soilFrozenTemp;
     /// frozen soil moisture relative to saturation above which no infiltration occur
     /// (m3/m3 or mm H2O/ mm Soil)
-    float m_sFrozen;
+    float m_soilFrozenWtrRatio;
     /// soil temperature obtained from the soil temperature module (deg C)
-    float *m_soilTemp;
+    float* m_soilTemp;
 
     /// pothole volume, mm
-    float *m_potVol;
+    float* m_potVol;
     /// impound trigger
-    float *m_impoundTrig;
+    float* m_impndTrig;
     // output
     /// the excess precipitation (mm) of the total nCells, which could be depressed or generated surface runoff
-    float *m_pe;
+    float* m_exsPcp;
     /// infiltration map of watershed (mm) of the total nCells
-    float *m_infil;
+    float* m_infil;
     /// soil water storage (mm)
-    float **m_soilStorage;
+    float** m_soilWtrSto;
     /// soil water storage in soil profile (mm)
-    float *m_soilStorageProfile;
+    float* m_soilWtrStoPrfl;
 };
 #endif /* SEIMS_MODULE_SUR_MR_H */

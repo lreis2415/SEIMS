@@ -4,12 +4,13 @@
 #include "ClimateParams.h"
 #include "utils_time.h"
 
-PETPriestleyTaylor::PETPriestleyTaylor() : m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
-                                           m_sr(nullptr), m_rhd(nullptr), m_dem(nullptr),
-                                           m_nCells(-1), m_petFactor(1.f), m_cellLat(nullptr),
-                                           m_phuAnn(nullptr), m_snowTemp(NODATA_VALUE),
-                                           m_srMax(NODATA_VALUE), m_jday(-1),
-                                           m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
+PETPriestleyTaylor::PETPriestleyTaylor() :
+    m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
+    m_sr(nullptr), m_rhd(nullptr), m_dem(nullptr),
+    m_nCells(-1), m_petFactor(1.f), m_cellLat(nullptr),
+    m_phuAnn(nullptr), m_snowTemp(NODATA_VALUE),
+    m_srMax(NODATA_VALUE), m_jday(-1),
+    m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
 PETPriestleyTaylor::~PETPriestleyTaylor() {

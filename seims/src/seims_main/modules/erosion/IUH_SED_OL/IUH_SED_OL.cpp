@@ -2,10 +2,11 @@
 
 #include "text.h"
 
-IUH_SED_OL::IUH_SED_OL() : m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-                           m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
-                           m_iuhCell(nullptr), m_iuhCols(-1), m_sedYield(nullptr),
-                           m_cellFlowCols(-1), m_cellSed(nullptr), m_sedtoCh(nullptr), m_olWtrEroSed(nullptr) {
+IUH_SED_OL::IUH_SED_OL() :
+    m_TimeStep(-1), m_nCells(-1), m_CellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
+    m_iuhCell(nullptr), m_iuhCols(-1), m_sedYield(nullptr),
+    m_cellFlowCols(-1), m_cellSed(nullptr), m_sedtoCh(nullptr), m_olWtrEroSed(nullptr) {
 }
 
 IUH_SED_OL::~IUH_SED_OL() {

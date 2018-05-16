@@ -3,11 +3,12 @@
 #include "text.h"
 #include "utils_time.h"
 
-clsPI_MCS::clsPI_MCS() : m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
-                         m_intcpStoCapExp(-1.f), m_initIntcpSto(0.f), m_maxIntcpStoCap(nullptr),
-                         m_minIntcpStoCap(nullptr),
-                         m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
-                         m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
+clsPI_MCS::clsPI_MCS() :
+    m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
+    m_intcpStoCapExp(-1.f), m_initIntcpSto(0.f), m_maxIntcpStoCap(nullptr),
+    m_minIntcpStoCap(nullptr),
+    m_pcp(nullptr), m_pet(nullptr), m_canSto(nullptr),
+    m_intcpLoss(nullptr), m_netPcp(nullptr), m_nCells(-1) {
 #ifndef STORM_MODE
     m_IntcpET = nullptr;
 #else

@@ -189,15 +189,15 @@ private:
     /// thick of each soil layer
     float** m_soilThk;
     ///amount of nitrogen stored in the active organic (humic) nitrogen pool(kg N/ha)
-    float** m_sol_aorgn;
+    float** m_soilActvOrgN;
     ///amount of nitrogen stored in the fresh organic (residue) pool(kg N/ha)
-    float** m_sol_fon;
+    float** m_soilFrshOrgN;
     ///amount of phosphorus stored in the fresh organic (residue) pool(kg P/ha)
-    float** m_sol_fop;
+    float** m_soilFrshOrgP;
     ///amount of phosphorus stored in the active mineral phosphorus pool
-    float** m_sol_actp;
+    float** m_soilActvMinP;
     ///amount of phosphorus in the soil layer stored in the stable mineral phosphorus pool
-    float** m_sol_stap;
+    float** m_soilStabMinP;
     /// amount of water held in the soil layer at saturation
     float** m_soilSat;
     /// porosity mm/mm

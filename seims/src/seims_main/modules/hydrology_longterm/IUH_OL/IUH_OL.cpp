@@ -2,10 +2,11 @@
 
 #include "text.h"
 
-IUH_OL::IUH_OL() : m_TimeStep(-1), m_nCells(-1), m_CellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-                   m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
-                   m_iuhCell(nullptr), m_iuhCols(-1), m_surfRf(nullptr),
-                   m_cellFlowCols(-1), m_cellFlow(nullptr), m_OL_Flow(nullptr), m_Q_SBOF(nullptr) {
+IUH_OL::IUH_OL() :
+    m_TimeStep(-1), m_nCells(-1), m_CellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
+    m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
+    m_iuhCell(nullptr), m_iuhCols(-1), m_surfRf(nullptr),
+    m_cellFlow(nullptr), m_cellFlowCols(-1), m_Q_SBOF(nullptr), m_OL_Flow(nullptr) {
 }
 
 IUH_OL::~IUH_OL() {
@@ -27,7 +28,7 @@ bool IUH_OL::CheckInputData() {
     return true;
 }
 
-void IUH_OL:: InitialOutputs() {
+void IUH_OL::InitialOutputs() {
     CHECK_POSITIVE(MID_IUH_OL, m_nSubbsns);
 
     if (m_cellArea <= 0.f) m_cellArea = m_CellWth * m_CellWth;
@@ -76,15 +77,15 @@ int IUH_OL::Execute() {
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
 #pragma omp parallel
     {
-        float *tmp_qsSub = new float[m_nSubbsns + 1];
+        float* tmp_qsSub = new float[m_nSubbsns + 1];
         for (int i = 0; i <= m_nSubbsns; i++) {
             tmp_qsSub[i] = 0.f;
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0];    //get new value
+            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
             m_OL_Flow[i] = m_cellFlow[i][0];
-            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / m_cellArea;     // m3/s -> mm
+            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / m_cellArea; // m3/s -> mm
         }
 #pragma omp critical
         {
@@ -94,7 +95,7 @@ int IUH_OL::Execute() {
         }
         delete[] tmp_qsSub;
         tmp_qsSub = nullptr;
-    }  /* END of #pragma omp parallel */
+    } /* END of #pragma omp parallel */
 
     for (int n = 1; n <= m_nSubbsns; n++) {
         //get overland flow routing for entire watershed.
@@ -103,36 +104,35 @@ int IUH_OL::Execute() {
     return 0;
 }
 
-bool IUH_OL::CheckInputSize(const char *key, const int n) {
+bool IUH_OL::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_IUH_OL, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
+        throw ModelException(MID_IUH_OL, "CheckInputSize", "Input data for " + string(key) +
+                             " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
-        }
-        else {
+        } else {
             throw ModelException(MID_IUH_OL, "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;
 }
 
-void IUH_OL::SetValue(const char *key, const float value) {
+void IUH_OL::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_TimeStep)) m_TimeStep = CVT_INT(value);
     else if (StringMatch(sk, Tag_CellSize)) m_nCells = CVT_INT(value);
     else if (StringMatch(sk, Tag_CellWidth)) m_CellWth = value;
-    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = value;
-    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
+    else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else {
         throw ModelException(MID_IUH_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
     }
 }
 
-void IUH_OL::Set1DData(const char *key, const int n, float *data) {
+void IUH_OL::Set1DData(const char* key, const int n, float* data) {
     CheckInputSize(key, n);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
@@ -142,7 +142,7 @@ void IUH_OL::Set1DData(const char *key, const int n, float *data) {
     }
 }
 
-void IUH_OL::Set2DData(const char *key, const int nRows, const int nCols, float **data) {
+void IUH_OL::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
     string sk(key);
     if (StringMatch(sk, VAR_OL_IUH)) {
         CheckInputSize(VAR_OL_IUH, nRows);
@@ -153,17 +153,18 @@ void IUH_OL::Set2DData(const char *key, const int nRows, const int nCols, float 
     }
 }
 
-void IUH_OL::GetValue(const char *key, float *value) {
+void IUH_OL::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_SBOF) && m_inputSubbsnID > 0) { /// For MPI version to transfer data across subbasins
+    if (StringMatch(sk, VAR_SBOF) && m_inputSubbsnID > 0) {
+        /// For MPI version to transfer data across subbasins
         *value = m_Q_SBOF[m_inputSubbsnID];
     } else {
         throw ModelException(MID_IUH_OL, "GetValue", "Result " + sk + " does not exist.");
     }
 }
 
-void IUH_OL::Get1DData(const char *key, int *n, float **data) {
+void IUH_OL::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_SBOF)) {

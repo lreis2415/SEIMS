@@ -1,13 +1,12 @@
 /*!
  * \brief Add nitrate from rainfall to the soil profile as in SWAT rev. 637, nrain.f
- * \author Huiran Gao
- * \date May 2016
+ * \author Huiran Gao, Liangjun Zhu
+ * \changelog 2016-05-30 - hr - Initial implementation.\n
+ *            2016-07-24 - lj - 1. Delete m_cellWidth, m_nSoilLayers, m_sol_z, which are useless.\n
+ *                              2. Change m_wshd_rno3 to store nitrate from rainfall of current day.\n
+ *                              3. Remove output of m_sol_no3, which is redundant and unnecessary.\n
+ *            2018-05-15 - lj - Code review and reformat.\n
  *
- * \revised Liang-Jun Zhu
- * \date 2016-7-24
- * \note: 1. Delete m_cellWidth, m_nSoilLayers, m_sol_z, which are useless
- *        2. Change m_wshd_rno3 to store nitrate from rainfall of current day
- *        3. Remove output of m_sol_no3, which is redundant and unnecessary
  */
 #ifndef SEIMS_MODULE_ATMDEP_H
 #define SEIMS_MODULE_ATMDEP_H
@@ -22,7 +21,7 @@
  * \class AtmosphericDeposition
  * \ingroup ATMDEP
  */
-class AtmosphericDeposition : public SimulationModule {
+class AtmosphericDeposition: public SimulationModule {
 public:
     AtmosphericDeposition();
 
@@ -30,53 +29,48 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
+    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void GetValue(const char *key, float *value) OVERRIDE;
+    void GetValue(const char* key, float* value) OVERRIDE;
 
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
     bool CheckInputData();
 
-    void  InitialOutputs();
+    void InitialOutputs();
 
 private:
     /// size of array
     int m_nCells;
-    ///// cell width of grid map (m)
-    //float m_cellWidth;
-    ///// soil layers
-    //float *m_nSoilLayers;
-
     /// maximum soil layers
-    int m_nMaxSoiLayers;
+    int m_maxSoilLyrs;
 
     /// parameters
 
     /// concentration of nitrate in the rain (mg N/L)
-    float m_rcn;
+    float m_rainNO3Conc;
     /// concentration of ammonia in the rain (mg N/L)
-    float m_rca;
+    float m_rainNH4Conc;
     ///atmospheric dry deposition of nitrates (kg/ha)
-    float m_drydep_no3;
+    float m_dryDepNO3;
     ///atmospheric dry deposition of ammonia (kg/ha)
-    float m_drydep_nh4;
+    float m_dryDepNH4;
 
     /// inputs
 
     /// precipitation (mm H2O)
-    float *m_preci;
+    float* m_pcp;
     ///// root depth from the soil surface
     //float **m_sol_z;
 
     ///amount of ammonium in layer (kg/ha)
-    float **m_sol_nh4;
+    float** m_soilNH4;
     /// amount of nitrate in layer (kg/ha)
-    float **m_sol_no3;
+    float** m_soilNO3;
 
     /// temporaries
 

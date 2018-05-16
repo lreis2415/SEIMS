@@ -17,7 +17,7 @@
  * \ingroup NPSMGT
  * \brief All management operation in SWAT, e.g., plantop, killop, harvestop, etc.
  */
-class NPS_Management : public SimulationModule {
+class NPS_Management: public SimulationModule {
 public:
     NPS_Management();
 
@@ -25,11 +25,11 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void Set2DData(const char *key, int n, int col, float **data) OVERRIDE;
+    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
-    void SetScenario(Scenario *sce) OVERRIDE;
+    void SetScenario(Scenario* sce) OVERRIDE;
 
 private:
     /*!
@@ -44,19 +44,19 @@ private:
      * \param[in] n The input data dimension
      * \return bool The validity of the dimension
      */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
 private:
     /// valid cells number
     int m_nCells;
     /// cell width (m)
-    float m_cellWidth;
+    float m_cellWth;
     /// area of cell (m^2)
     float m_cellArea;
     /// time step (second)
     float m_timestep;
     /// management fields raster
-    float *m_mgtFields;
+    float* m_mgtFields;
     /*!
      * areal source operations
      * key: unique index, BMPID * 100000 + subScenarioID
@@ -67,14 +67,14 @@ private:
     /// variables to be updated (optionals)
 
     /// water storage of soil layers
-    float **m_soilStorage;
+    float** m_soilWtrSto;
     /// nitrate kg/ha
-    float **m_sol_no3;
+    float** m_soilNO3;
     /// ammonium kg/ha
-    float **m_sol_nh4;
+    float** m_soilNH4;
     /// soluble phosphorus kg/ha
-    float **m_sol_solp;
-    float **m_sol_orgn;
-    float **m_sol_orgp;
+    float** m_soilSolP;
+    float** m_soilStabOrgN;
+    float** m_soilHumOrgP;
 };
 #endif /* SEIMS_MODULE_NPSMGT_H */
