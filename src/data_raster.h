@@ -2517,7 +2517,7 @@ void clsRasterData<T, MASK_T>::MaskAndCalculateValidPosition() {
         mask_->GetRasterPositionData(&n_cells_, &raster_pos_data_);
         store_pos_ = false;
     } else if ((!use_mask_ext_ && !same_extent_with_mask && !calc_pos_) ||
-        (use_mask_ext_ || same_extent_with_mask) && !calc_pos_) {
+        (((use_mask_ext_ || same_extent_with_mask) && (!calc_pos_)))) {
         // reStore raster values as fullsize array
         n_cells_ = GetCols() * GetRows();
         store_fullsize_array = true;
