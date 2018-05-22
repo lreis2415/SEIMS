@@ -16,6 +16,7 @@
 #include <omp.h>
 #endif /* SUPPORT_OMP */
 
+#include "basic.h"
 #include "data_raster.h"
 
 using namespace ccgl;

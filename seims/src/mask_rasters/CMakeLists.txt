@@ -1,18 +1,18 @@
-project(Mask_Raster_prj)
+SET(EXECNAME mask_raster)
+PROJECT(UTILAPPS_${EXECNAME})
 ################ Add executables #################
-file(GLOB MR_SRC ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.h)
-set(SOURCE_FILES ${MR_SRC})
+file(GLOB SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.h)
 geo_include_directories(${GDAL_INCLUDE_DIR} ${CCGL_INC})
 # Not need MongoDB support
 REMOVE_DEFINITIONS(-DMONGO_HAVE_STDINT -DUSE_MONGODB)
-ADD_EXECUTABLE(mask_raster ${SOURCE_FILES})
-target_link_libraries(mask_raster ${CCGLNAME} ${GDAL_LIBRARIES})
-install(TARGETS mask_raster DESTINATION ${INSTALL_DIR})
+ADD_EXECUTABLE(${EXECNAME} ${SRC_LIST})
+target_link_libraries(${EXECNAME} ${CCGLNAME} ${GDAL_LIBRARIES})
+install(TARGETS ${EXECNAME} DESTINATION ${INSTALL_DIR})
 
-LIST(APPEND UTILS_APPS mask_raster)
+LIST(APPEND UTILS_APPS ${EXECNAME})
 SET(UTILS_APPS "${UTILS_APPS}" PARENT_SCOPE)
 
 IF (MSVC OR XCODE)
-    SET_PROPERTY(TARGET mask_raster PROPERTY FOLDER "UtilApps")
+    SET_PROPERTY(TARGET ${EXECNAME} PROPERTY FOLDER "UtilApps")
 ENDIF ()
-MESSAGE(STATUS "    Compiling Mask Raster done")
+MESSAGE(STATUS "    Compiling ${EXECNAME} done")

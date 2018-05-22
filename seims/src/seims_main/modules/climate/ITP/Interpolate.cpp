@@ -107,7 +107,7 @@ void Interpolate::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool Interpolate::CheckInputSize(string& key, const  int n, int& m_n) {
+bool Interpolate::CheckInputSize(string& key, const int n, int& m_n) {
     if (n <= 0) {
         throw ModelException(MID_ITP, "CheckInputSize", "Input data for " + key
                              + " is invalid. The size could not be less than zero.");

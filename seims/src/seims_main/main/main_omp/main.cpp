@@ -6,6 +6,8 @@
 #define USE_MONGODB
 #endif /* USE_MONGODB */
 
+#include "basic.h"
+
 #include "seims.h"
 #include "invoke.h"
 #include "ModelMain.h"
