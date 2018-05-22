@@ -4,12 +4,12 @@
 #include "MetadataInfo.h"
 #include "text.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new Interpolate();
 }
 
 // function to return the XML Metadata document string
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
@@ -44,7 +44,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     string res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }
