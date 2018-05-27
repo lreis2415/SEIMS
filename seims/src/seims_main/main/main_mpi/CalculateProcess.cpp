@@ -75,9 +75,8 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     cout << "    SubbasinID, UpDownOrder, DownUpOrder, DownStream, UpStreams" << endl;
     for (int i = 0; i < max_task_len; i++) {
         if (p_tasks[i] < 0) continue;
-        cout << "    " << p_tasks[i] << ", " << p_updown_ord[i] << ", " << p_downup_ord[i] << ", " << p_down_stream[i]
-                <<
-                ", ups:";
+        cout << "    " << p_tasks[i] << ", " << p_updown_ord[i] << ", " <<
+            p_downup_ord[i] << ", " << p_down_stream[i] <<", ups:";
         for (int j = 0; j < p_up_nums[i]; j++) {
             cout << p_up_stream[MAX_UPSTREAM * i + j] << " ";
         }
@@ -225,7 +224,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     time_t dt_ch = dc->GetSettingInput()->getDtChannel();
     time_t cur_time = dc->GetSettingInput()->getStartTime();
     int start_year = GetYear(cur_time);
-    int n_hs = int(dt_ch / dt_hs);
+    int n_hs = CVT_INT(dt_ch / dt_hs);
 
     // initialize the transferred values, NO NEED to create and release in each timestep.
     map<int, float *> transfer_values_map; // key is subbasinID, value is transferred values
@@ -280,13 +279,13 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                     }
                     cout << endl;
 #endif
-                    buf[0] = 1.f;         // message type: Send subbasin data to master rank
+                    buf[0] = 1.f;                  // message type: Send subbasin data to master rank
                     buf[1] = CVT_FLT(subbasin_id); // subbasin ID
                     buf[2] = CVT_FLT(t);
                     MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
-                } /* srcSubbsnLayers[iLyr] loop */
-            }     /* If srcSubbsnLayers has iLyr */
+                } /* src_subbsn_layers[iLyr] loop */
+            }     /* If src_subbsn_layers has iLyr */
 
             // 2. Execute subbasins that depend on others
             if (non_src_subbsn_layers.find(ilyr) == non_src_subbsn_layers.end()) { continue; }
@@ -295,8 +294,8 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
 
             // 2.1 Execute hillslope processes
             set<int> todo_set; // To be executed subbasin indexes of current layer
-            for (auto it_down = non_src_subbsn_layers[ilyr].begin(); it_down != non_src_subbsn_layers[ilyr].end(); ++
-                 it_down) {
+            for (auto it_down = non_src_subbsn_layers[ilyr].begin();
+                 it_down != non_src_subbsn_layers[ilyr].end(); ++it_down) {
 #ifdef _DEBUG
                 cout << "    layer: " << ilyr << ", non-source subbasin(hillslope): " << p_tasks[*it_down] << endl;
 #endif
@@ -366,12 +365,12 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
 #ifdef _DEBUG
                     cout << "recv count of subbasin data: " << msg_len / (tranfer_count + 1) << ", subbasinIDs: ";
                     for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
-                        cout << int(pdata[ri * (tranfer_count + 1)]) << ", ";
+                        cout << CVT_INT(pdata[ri * (tranfer_count + 1)]) << ", ";
                     }
                     cout << endl;
 #endif
                     for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
-                        int recv_subid = int(pdata[ri * (tranfer_count + 1)]);
+                        int recv_subid = CVT_INT(pdata[ri * (tranfer_count + 1)]);
                         if (transfer_values_map.find(recv_subid) == transfer_values_map.end()) {
                             float* tfvalues = nullptr;
                             Initialize1DArray(tranfer_count, tfvalues, NODATA_VALUE);
@@ -385,11 +384,11 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                     Release1DArray(pdata);
                 } else {
                     // 2.2.3 The required subbasin data has been satisfied,
-                    //       execute subbasin in canDoSet, and send data to master rank if necessary
+                    //       execute subbasin in cando_set, and send data to master rank if necessary
                     for (auto it_cando = cando_set.begin(); it_cando != cando_set.end();) {
 #ifdef _DEBUG
-                        cout << "    layer: " << ilyr << ", non-source subbasin(channel): " << p_tasks[*it_cando] <<
-                                endl;
+                        cout << "    layer: " << ilyr << ", non-source subbasin(channel): " <<
+                            p_tasks[*it_cando] << endl;
 #endif
                         ModelMain* psubbasin = model_list[*it_cando];
                         for (int j = 0; j < p_up_nums[*it_cando]; j++) {
@@ -402,11 +401,11 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                         if (down_stream_id_set.find(p_down_stream[*it_cando]) != down_stream_id_set.end()) {
                             psubbasin->GetTransferredValue(transfer_values_map[p_tasks[*it_cando]]);
                             done_i_ds.insert(p_tasks[*it_cando]);
-                            cando_set.erase(it_cando++); // remove current subbasin from canDoSet
+                            cando_set.erase(it_cando++); // remove current subbasin from cando_set
                             continue;
                         }
                         // transfer the result to the master process
-                        buf[0] = 1.f;                // message type: Send subbasin data to master rank
+                        buf[0] = 1.f;                         // message type: Send subbasin data to master rank
                         buf[1] = CVT_FLT(p_tasks[*it_cando]); // subbasin ID
                         buf[2] = CVT_FLT(t);
                         psubbasin->GetTransferredValue(&buf[MSG_LEN]);
@@ -421,9 +420,9 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                         MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                         MPI_Wait(&request, &status);
                         cando_set.erase(it_cando++);
-                    } /* canDoSet loop of current layer */
-                }     /* canDoSet is not empty */
-            }         /* while toDoSet is not empty */
+                    } /* cando_set loop of current layer */
+                }     /* cando_set is not empty */
+            }         /* while todo_set is not empty */
 
             t_task2 = MPI_Wtime();
             t_channel += t_task2 - t_task1;

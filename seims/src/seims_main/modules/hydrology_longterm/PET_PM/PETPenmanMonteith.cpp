@@ -119,7 +119,6 @@ void PETPenmanMonteith::InitialOutputs() {
 int PETPenmanMonteith::Execute() {
     CheckInputData();
     InitialOutputs();
-    int j_day = JulianDay(m_date);
     //do the execute
 #pragma omp parallel for
     for (int j = 0; j < m_nCells; j++) {
@@ -144,7 +143,7 @@ int PETPenmanMonteith::Execute() {
 
         //calculate the max solar radiation
         float srMax = 0.f;
-        MaxSolarRadiation(j_day, m_cellLat[j], m_dayLen[j], srMax);
+        MaxSolarRadiation(m_dayOfYear, m_cellLat[j], m_dayLen[j], srMax);
         //calculate net long-wave radiation
         //net emissivity  equation 2.2.20 in SWAT manual
         float satVaporPressure = SaturationVaporPressure(m_meanTemp[j]); //kPa

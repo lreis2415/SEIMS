@@ -1,5 +1,9 @@
 #include "ModuleFactory.h"
 
+#ifndef windows
+#include <dlfcn.h> // dlopen()
+#endif
+
 #include "basic.h"
 #include "MetadataInfo.h"
 #include "text.h"
@@ -291,7 +295,8 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
         throw ModelException("ModuleFactory", "ReadDLL", moduleFileName + " does not exist or has no read permission!");
     }
     //load library
-#ifdef WIN32
+#ifdef windows
+    // MSVC or MinGW64 in Windows
     HINSTANCE handle = LoadLibrary(TEXT(moduleFileName.c_str()));
     if (handle == nullptr) throw ModelException("ModuleFactory", "ReadDLL", "Could not load " + moduleFileName);
     instanceFuncs[id] = InstanceFunction(GetProcAddress(HMODULE(handle), "GetInstance"));
@@ -304,7 +309,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     }
     instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
-#endif /* WIN32 */
+#endif /* windows */
     dllHandles.push_back(handle);
     if (instanceFuncs[id] == nullptr) {
         throw ModelException("ModuleFactory", "ReadDLL",

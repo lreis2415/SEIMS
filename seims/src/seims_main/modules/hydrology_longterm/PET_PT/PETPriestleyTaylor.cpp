@@ -9,7 +9,7 @@ PETPriestleyTaylor::PETPriestleyTaylor() :
     m_sr(nullptr), m_rhd(nullptr), m_dem(nullptr),
     m_nCells(-1), m_petFactor(1.f), m_cellLat(nullptr),
     m_phuAnn(nullptr), m_snowTemp(NODATA_VALUE),
-    m_srMax(NODATA_VALUE), m_jday(-1),
+    m_srMax(NODATA_VALUE),
     m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
@@ -75,7 +75,6 @@ void PETPriestleyTaylor::InitialOutputs() {
 int PETPriestleyTaylor::Execute() {
     CheckInputData();
     InitialOutputs();
-    m_jday = JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         /// update phubase of the simulation year.
@@ -83,7 +82,7 @@ int PETPriestleyTaylor::Execute() {
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
             phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if*/
-        if (m_jday == 1) m_phuBase[i] = 0.f;
+        if (m_dayOfYear == 1) m_phuBase[i] = 0.f;
         if (m_meanTemp[i] > 0.f && m_phuAnn[i] > 0.01f) {
             m_phuBase[i] += m_meanTemp[i] / m_phuAnn[i];
         }
@@ -96,7 +95,7 @@ int PETPriestleyTaylor::Execute() {
         }
 
         /// calculate the max solar radiation
-        MaxSolarRadiation(m_jday, m_cellLat[i], m_dayLen[i], m_srMax);
+        MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], m_srMax);
 
         /// calculate net long-wave radiation
         /// net emissivity  equation 2.2.20 in SWAT manual

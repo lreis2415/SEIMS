@@ -1,23 +1,22 @@
 /*!
  * \brief Parent class for all modules in SEIMS
  *
- * \author Junzhi Liu
- * \version 1.1
- * \date Jul. 2010
- * \revised Liang-Jun Zhu
- * \data Jun. 2016
+ * \author Junzhi Liu, Liangjun Zhu
+ * \changelog 2010-07-31 - jz - Initial implementation.\n
+ *            2016-06-14 - lj - Add SetScenario etc. functions.\n
+ *            2018-03-03 - lj - Add CHECK_XXX series macros for data checking.\n
+ *
  */
 #ifndef SIMULATION_MOUDULE_BASE
 #define SIMULATION_MOUDULE_BASE
 
 #include "basic.h"
 #include "utils_time.h"
-#include "Scenario.h"  /// added by LJ. 2016-6-14
+#include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
 
 #include <string>
-#include <ostream>
 #include <ctime>
 
 using namespace ccgl;
@@ -53,15 +52,16 @@ public:
     virtual void SetDate(const time_t t, const int year_idx) {
         m_date = t;
         m_yearIdx = year_idx;
-        struct tm date_info;
-        LocalTime(m_date, &date_info);
-        m_year = date_info.tm_year + 1900;
-        m_month = date_info.tm_mon + 1;
-        m_day = date_info.tm_mday;
+        tm* date_info = nullptr;
+        LocalTime(m_date, date_info);
+        m_year = date_info->tm_year + 1900;
+        m_month = date_info->tm_mon + 1;
+        m_day = date_info->tm_mday;
+        m_dayOfYear = date_info->tm_yday + 1;
     }
 
     //! Set thread number for OpenMP
-    virtual void SetTheadNumber(int thread_num) {
+    virtual void SetTheadNumber(const int thread_num) {
         SetOpenMPThread(thread_num);
     }
 
@@ -88,11 +88,11 @@ public:
     }
 
     //! Set 2D data, by default, DT_Raster2D
-    virtual void Set2DData(const char* key, int nRows, int nCols, float** data) {
+    virtual void Set2DData(const char* key, int nrows, int ncols, float** data) {
         throw ModelException("SimulationModule", "Set2DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
-
+    /* Seems to be useless, should be removed in the near future. By lj.
     //! Set 1D array data, DT_Array1D
     virtual void Set1DArrayData(const char* key, int n, float* data) {
         throw ModelException("SimulationModule", "Set1DArrayData",
@@ -100,11 +100,11 @@ public:
     }
 
     //! Set 2D array data, by default, DT_Array2D
-    virtual void Set2DArrayData(const char* key, int nRows, int nCols, float** data) {
+    virtual void Set2DArrayData(const char* key, int nrows, int ncols, float** data) {
         throw ModelException("SimulationModule", "Set2DArrayData",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
-
+    */
     //! Get value, DT_Single
     virtual void GetValue(const char* key, float* value) {
         throw ModelException("SimulationModule", "GetValue",
@@ -118,11 +118,11 @@ public:
     }
 
     //! Get 2D data, by default, DT_Raster2D
-    virtual void Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+    virtual void Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
         throw ModelException("SimulationModule", "Get2DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
-
+    /* Seems to be useless, should be removed in the near future. By lj.
     //! Get 1D Array data, by default, DT_Array1D
     virtual void Get1DArrayData(const char* key, int* n, float** data) {
         throw ModelException("SimulationModule", "Get1DArrayData",
@@ -134,7 +134,7 @@ public:
         throw ModelException("SimulationModule", "Get2DArrayData",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
-
+    */
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
     virtual void SetScenario(Scenario* sce) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
@@ -177,10 +177,12 @@ protected:
     int m_yearIdx;
     /// year
     int m_year;
-    /// months since January - [1,12]
+    /// month since January - [1,12]
     int m_month;
     /// day of the month - [1,31]
     int m_day;
+    /// day of year - [1, 366]
+    int m_dayOfYear;
     /// sub-timestep counter
     int m_tsCounter;
     /// Whether the inputs parameters (i.e., parameters derived from other modules) have been set.

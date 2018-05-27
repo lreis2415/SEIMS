@@ -99,7 +99,6 @@ int clsPI_MCS::Execute() {
     /// initialize outputs
     InitialOutputs();
 
-    int julian = JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_pcp[i] > 0.f) {
@@ -109,7 +108,7 @@ int clsPI_MCS::Execute() {
             m_P[i] = m_P[i] * m_hilldt * 0.0002777777777777778f * cos(atan(m_slope[i]));
 #endif // STORM_MODE
             //interception storage capacity, 1. / 365. = 0.0027397260273972603
-            float degree = 2.f * PI * (julian - 87.f) * 0.0027397260273972603f;
+            float degree = 2.f * PI * (m_dayOfYear - 87.f) * 0.0027397260273972603f;
             /// For water, min and max are both 0, then no need for specific handling.
             float min = m_minIntcpStoCap[i];
             float max = m_maxIntcpStoCap[i];

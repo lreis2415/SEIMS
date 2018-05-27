@@ -8,7 +8,7 @@ SoilTemperatureFINPL::SoilTemperatureFINPL() :
     m_a3(NODATA_VALUE),
     m_b1(NODATA_VALUE), m_b2(NODATA_VALUE), m_d1(NODATA_VALUE),
     m_d2(NODATA_VALUE),
-    m_kSoil10(NODATA_VALUE), m_julianDay(-1), m_nCells(-1),
+    m_kSoil10(NODATA_VALUE), m_nCells(-1),
     m_soilTempRelFactor10(nullptr),
     m_landUse(nullptr), m_meanTemp(nullptr), m_meanTempPre1(nullptr),
     m_meanTempPre2(nullptr),
@@ -24,7 +24,6 @@ SoilTemperatureFINPL::~SoilTemperatureFINPL() {
 int SoilTemperatureFINPL::Execute() {
     CheckInputData();
     InitialOutputs();
-    m_julianDay = JulianDay(m_date);
     size_t errCount = 0;
 #pragma omp parallel for reduction(+: errCount)
     for (int i = 0; i < m_nCells; i++) {
@@ -40,13 +39,13 @@ int SoilTemperatureFINPL::Execute() {
                 m_soilTemp[i] = t;
             } else {
                 float t10 = m_a0 + m_a1 * t2 + m_a2 * t1 + m_a3 * t
-                        + m_b1 * sin(radWt * m_julianDay) + m_d1 * cos(radWt * m_julianDay)
-                        + m_b2 * sin(2.f * radWt * m_julianDay) + m_d2 * cos(2.f * radWt * m_julianDay);
+                        + m_b1 * sin(radWt * m_dayOfYear) + m_d1 * cos(radWt * m_dayOfYear)
+                        + m_b2 * sin(2.f * radWt * m_dayOfYear) + m_d2 * cos(2.f * radWt * m_dayOfYear);
                 m_soilTemp[i] = t10 * m_kSoil10 + m_soilTempRelFactor10[i];
                 if (m_soilTemp[i] > 60.f || m_soilTemp[i] < -90.f) {
                     cout << "The calculated soil temperature at cell (" << i
                             << ") is out of reasonable range: " << m_soilTemp[i]
-                            << ". JulianDay: " << m_julianDay << ",t: " << t << ", t1: "
+                            << ". JulianDay: " << m_dayOfYear << ",t: " << t << ", t1: "
                             << t1 << ", t2: " << t2 << ", relativeFactor: " << m_soilTempRelFactor10[i] << endl;
                     errCount++;
                 }

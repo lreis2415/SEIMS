@@ -8,7 +8,6 @@ PETHargreaves::PETHargreaves() :
     m_meanTemp(nullptr), m_maxTemp(nullptr), m_minTemp(nullptr),
     m_rhd(nullptr), m_cellLat(nullptr), m_phuAnn(nullptr),
     m_nCells(-1), m_HCoef_pet(0.0023f), m_petFactor(1.f), m_srMax(NODATA_VALUE),
-    m_jday(-1),
     m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
@@ -55,7 +54,6 @@ void PETHargreaves::InitialOutputs() {
 int PETHargreaves::Execute() {
     CheckInputData();
     InitialOutputs();
-    m_jday = JulianDay(m_date);
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         /// update phubase of the simulation year.
@@ -63,13 +61,13 @@ int PETHargreaves::Execute() {
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
             phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if*/
-        if (m_jday == 1) {
+        if (m_dayOfYear == 1) {
             m_phuBase[i] = 0.f;
         }
         if (m_meanTemp[i] > 0.f && m_phuAnn[i] > 0.01f) {
             m_phuBase[i] += m_meanTemp[i] / m_phuAnn[i];
         }
-        MaxSolarRadiation(m_jday, m_cellLat[i], m_dayLen[i], m_srMax);
+        MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], m_srMax);
         ///calculate latent heat of vaporization(from swat)
         float latentHeat = 2.501f - 0.002361f * m_meanTemp[i];
         /// extraterrestrial radiation
