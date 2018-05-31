@@ -235,7 +235,9 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     }
 
     // Simulation loop
+    int sim_loop_num = 0; /// Simulation loop number according to channel routing time-step
     for (; cur_time <= dc->GetSettingInput()->getEndTime(); cur_time += dt_ch) {
+        sim_loop_num += 1;
         if (slave_rank == 0) StatusMessage(ConvertToString2(&cur_time).c_str());
         int year_idx = GetYear(cur_time) - start_year;
         double t_task1 = MPI_Wtime();
@@ -281,7 +283,8 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
 #endif
                     buf[0] = 1.f;                  // message type: Send subbasin data to master rank
                     buf[1] = CVT_FLT(subbasin_id); // subbasin ID
-                    buf[2] = CVT_FLT(t);
+                    buf[2] = CVT_FLT(t);           // time
+                    buf[3] = CVT_FLT(sim_loop_num);// simulation loop number
                     MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
                 } /* src_subbsn_layers[iLyr] loop */
@@ -351,6 +354,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                     buf[0] = 2.f; // Ask for the already calculated subbasins from other slave ranks
                     buf[1] = CVT_FLT(group_id);
                     buf[2] = CVT_FLT(world_rank);
+                    buf[3] = CVT_FLT(sim_loop_num); // simulation loop number
 
                     MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
@@ -408,6 +412,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
                         buf[0] = 1.f;                         // message type: Send subbasin data to master rank
                         buf[1] = CVT_FLT(p_tasks[*it_cando]); // subbasin ID
                         buf[2] = CVT_FLT(t);
+                        buf[3] = CVT_FLT(sim_loop_num);       // simulation loop number
                         psubbasin->GetTransferredValue(&buf[MSG_LEN]);
 #ifdef _DEBUG
                         cout << "slave rank: " << slave_rank << "(world rank: " << world_rank << "), send subbasinID: "
