@@ -229,7 +229,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         case DT_Array2D: Set2DData(name, remote_filename, p_module);
             break;
-        case DT_Array3D: break;
+        // case DT_Array3D: break;
         case DT_Array1DDateValue: break;
         case DT_Raster1D: SetRaster(name, remote_filename, p_module);
             break;

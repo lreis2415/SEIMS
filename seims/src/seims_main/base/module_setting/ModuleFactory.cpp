@@ -328,7 +328,7 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
     if (StringMatch(strType, Type_Single)) typ = DT_Single;
     if (StringMatch(strType, Type_Array1D)) typ = DT_Array1D;
     if (StringMatch(strType, Type_Array2D)) typ = DT_Array2D;
-    if (StringMatch(strType, Type_Array3D)) typ = DT_Array3D;
+    // if (StringMatch(strType, Type_Array3D)) typ = DT_Array3D;
     if (StringMatch(strType, Type_Array1DDateValue)) typ = DT_Array1DDateValue;
     if (StringMatch(strType, Type_Raster1D)) typ = DT_Raster1D;
     if (StringMatch(strType, Type_Raster2D)) typ = DT_Raster2D;
