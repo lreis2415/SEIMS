@@ -3,6 +3,26 @@
 
 #include "text.h"
 
+SubbasinStruct::SubbasinStruct(const int sid, const int gidx) :
+    id(sid), group(gidx),
+    updown_order(-1), downup_order(-1), calculated(false),
+    transfer_count(-1), transfer_values(nullptr),
+    down_stream(nullptr) {
+    up_streams.clear();
+}
+
+SubbasinStruct::~SubbasinStruct() {
+    if (transfer_values != nullptr) { Release1DArray(transfer_values); }
+    if (!up_streams.empty()) {
+        for (auto it = up_streams.begin(); it != up_streams.end();) {
+            if (*it != nullptr) *it = nullptr;
+            it = up_streams.erase(it);
+        }
+    }
+    if (down_stream != nullptr) down_stream = nullptr;
+}
+
+
 int CreateReachTopology(MongoClient* client, const string& dbname,
                         const string& group_method, const int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set) {

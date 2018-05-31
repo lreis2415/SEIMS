@@ -13,31 +13,22 @@
 #include <string>
 
 #include "basic.h"
+#include "utils_array.h"
+#include "db_mongoc.h"
 
+using namespace ccgl;
+using namespace utils_array;
+using namespace db_mongoc;
 using std::map;
 using std::set;
+
 /*!
  * \brief Simple struct of subbasin information for task allocation
  */
 class SubbasinStruct: NotCopyable {
 public:
-    SubbasinStruct(const int sid, const int gidx) : id(sid), group(gidx),
-                                                    updown_order(-1), downup_order(-1), calculated(false),
-                                                    transfer_count(-1), transfer_values(nullptr),
-                                                    down_stream(nullptr) {
-        up_streams.clear();
-    }
-
-    ~SubbasinStruct() {
-        if (transfer_values != nullptr) { Release1DArray(transfer_values); }
-        if (!up_streams.empty()) {
-            for (auto it = up_streams.begin(); it != up_streams.end();) {
-                if (*it != nullptr) *it = nullptr;
-                it = up_streams.erase(it);
-            }
-        }
-        if (down_stream != nullptr) down_stream = nullptr;
-    };
+    SubbasinStruct(int sid, int gidx);
+    ~SubbasinStruct();
 public:
     int id;           ///< Subbasin ID, start from 1
     int group;        ///< Group index, start from 0 to (group number - 1)

@@ -1,18 +1,24 @@
 #include "CalculateProcess.h"
 
-#include "parallel.h"
-#include "CombineRaster.h"
+#include <map>
+#include <set>
+#include <vector>
+
 #include "utils_time.h"
+#include "DataCenterMongoDB.h"
+#include "invoke.h"
+#include "ModelMain.h"
+#include "CombineRaster.h"
 #include "text.h"
 
-using namespace ccgl::utils_time;
+using namespace utils_time;
+using std::map;
+using std::set;
+using std::vector;
 
 void CalculateProcess(int world_rank, int numprocs, InputArgs* input_args) {
     double tstart = MPI_Wtime();
-    int slave_rank;
-    MPI_Comm_rank(slave_comm, &slave_rank);
-    StatusMessage(("Enter computing process, worldRank: " + ValueToString(world_rank) +
-                      ", slave_rank: " + ValueToString(slave_rank)).c_str());
+    StatusMessage(("Enter computing process, Rank: " + ValueToString(world_rank)).c_str());
 
     MPI_Request request;
     MPI_Status status;
@@ -119,11 +125,12 @@ void CalculateProcess(int world_rank, int numprocs, InputArgs* input_args) {
         throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
     }
     int tranfer_count = module_factory->GetTransferredInputsCount();
-    // Send to master process
-    if (slave_rank == 0) {
-        MPI_Isend(&tranfer_count, 1, MPI_INT, MASTER_RANK, WORK_TAG, MCW, &request);
-        MPI_Wait(&request, &status);
-    }
+
+    //// Send to master process
+    //if (slave_rank == 0) {
+    //    MPI_Isend(&tranfer_count, 1, MPI_INT, MASTER_RANK, WORK_TAG, MCW, &request);
+    //    MPI_Wait(&request, &status);
+    //}
 
     vector<DataCenterMongoDB *> data_center_list;
     vector<ModelMain *> model_list;

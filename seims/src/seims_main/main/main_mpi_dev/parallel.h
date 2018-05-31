@@ -6,21 +6,11 @@
 #ifndef SEIMS_MPI_PARALLEL_BASIC_H
 #define SEIMS_MPI_PARALLEL_BASIC_H
 
-#include <map>
-#include <set>
-#include <vector>
-#include <string>
-
 #ifdef MSVC
 // Ignore warning on Windows MSVC compiler caused by MPI.
 #pragma warning(disable: 4819)
 #endif /* MSVC */
 #include "mpi.h"
-
-#include "basic.h"
-
-#include "invoke.h"
-#include "ModelMain.h"
 
 #define WORK_TAG 0
 #define MASTER_RANK 0
