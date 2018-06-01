@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="Infiltration">
+	<hydro:means>infiltration/surface runoff(地表下渗，地表产流)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Depression">
+	<hydro:means>depression(填洼)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Soil Evaporation">
+	<hydro:means>soil evaporation(土壤蒸发)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="PET">
+	<hydro:means>potential evapotranspiration(潜在蒸发)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Overland Flow">
+	<hydro:means>overland flow routing(坡面汇流)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Channel Flow">
+	<hydro:means>channel flow routing(河道汇流)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Water Balance">
+	<hydro:means>water balance(水量平衡)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Ground Water">
+	<hydro:means>ground water routing(地下水汇流)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Snow Melt">
+	<hydro:means>snow melt(融雪)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Interception">
+	<hydro:means>interception(植被截留)</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="Subsurface Runoff">
+	<hydro:means>subsurface runoff,inter flow routing(壤中流模块，包括产流和汇流)</hydro:means>
+  </rdf:Description> 
+</rdf:RDF>
