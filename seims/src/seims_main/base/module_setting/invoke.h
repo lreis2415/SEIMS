@@ -1,10 +1,11 @@
 /*!
- * \brief Parse the input arguments as a class.
+ * \brief Parse the input arguments as a class which can be easily extended.
  * \author Liangjun Zhu
- * \date Feb 2018
+ * \changelog 2018-02-01 - lj - Initial implementation.\n
+ *            2018-06-06 - lj - Add parameters related to MPI version, e.g., group method.\n
  */
-#ifndef SEIMS_INVOKE_H
-#define SEIMS_INVOKE_H
+#ifndef SEIMS_INPUT_ARGUMENTS_H
+#define SEIMS_INPUT_ARGUMENTS_H
 
 #include "basic.h"
 
@@ -19,19 +20,22 @@ class InputArgs: Interface {
 public:
     InputArgs(const string& model_path, char* host, uint16_t port,
               int scenario_id, int calibration_id,
-              int thread_num, LayeringMethod lyr_mtd);
+              int thread_num, LayeringMethod lyr_mtd,
+              GroupMethod grp_mtd, ScheduleMethod skd_mtd);
 
     static InputArgs* Init(int argc, const char** argv);
 
 public:
     string model_path;      ///< file path which contains the model input files
     string model_name;      ///< model_name
-    char host_ip[16];       ///< Host IP address of MongoDB database
+    string host_ip;         ///< Host IP address of MongoDB database
     uint16_t port;          ///< port of MongoDB, 27017 is default
     int thread_num;         ///< thread number for OpenMP
-    LayeringMethod lyr_mtd; ///< Layering method for sequencing computing
+    LayeringMethod lyr_mtd; ///< Layering method for sequencing computing, default is 0
+    GroupMethod grp_mtd;    ///< Group method for parallel task scheduling, default is 0
+    ScheduleMethod skd_mtd; ///< Parallel task scheduling strategy at subbasin level by MPI
     int scenario_id;        ///< scenario ID defined in Database, -1 for no use.
     int calibration_id;     ///< calibration ID defined in Database (PARAMETERS), -1 for no use.
 };
 
-#endif /* SEIMS_INVOKE_H */
+#endif /* SEIMS_INPUT_ARGUMENTS_H */

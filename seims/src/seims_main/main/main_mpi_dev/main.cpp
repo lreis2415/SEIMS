@@ -17,21 +17,18 @@ int main(int argc, const char** argv) {
     /// Register GDAL
     GDALAllRegister();
     /// Initialize of MPI environment
-    int numprocs;
-    int world_rank;
-
+    int size;
+    int rank;
     MPI_Init(NULL, NULL);
     {
-        MPI_Comm_size(MCW, &numprocs);
-        MPI_Comm_rank(MCW, &world_rank);
+        MPI_Comm_size(MCW, &size);
+        MPI_Comm_rank(MCW, &rank);
 
         try {
-            if (world_rank == MASTER_RANK) {
-                /// Run management process on rank 0
+            if (rank == MASTER_RANK) {
                 ManagementProcess(input_args);
             }
-            // Run computing process on slave ranks
-            CalculateProcess(world_rank, numprocs, input_args);
+            CalculateProcess(rank, size, input_args);
         } catch (ModelException& e) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 3);

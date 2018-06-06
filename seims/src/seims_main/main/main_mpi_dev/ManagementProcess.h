@@ -3,7 +3,8 @@
 #include "invoke.h"
 
 /*!
- * \brief Management process
+ * \brief Management process.
+ *        Read reach topology data and scatter to each ranks
  * \param input_args Input arguments, \sa InputArgs
  * \return 0 for success
  */

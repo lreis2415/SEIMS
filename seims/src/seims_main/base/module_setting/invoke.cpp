@@ -1,11 +1,32 @@
 #include "invoke.h"
 
+void Usge(const string& appname, const string& error_msg = "") {
+    cout << "Simple Usage:\n    " << appname <<
+            " <ModelPath> [<threadsNum> <layeringMethod> <IP> <port> <ScenarioID> <CalibrationID>]" << endl;
+    cout << "\t<ModelPath> is the path of the configuration of the Model." << endl;
+    cout << "\t<threadsNum> is thread or processor number, which must be greater or equal than 1 (default)." << endl;
+    cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP respectively." << endl;
+    cout << "\t<IP> is the address of MongoDB database, and <port> is its port number." << endl;
+    cout << "\t\tBy default, MongoDB IP is 127.0.0.1 (i.e., localhost), and the port is 27017." << endl;
+    cout << "\t<ScenarioID> is the ID of BMPs Scenario which has been defined in BMPs database." << endl;
+    cout << "\t\tBy default, the Scenario ID is -1, which means not used." << endl << endl;
+    cout << "\t<CalibrationID> is the ID of Calibration which has been defined in PARAMETERS table." << endl;
+    cout << "\t\tBy default, the Calibration ID is -1, which means not used." << endl;
+    cout << endl;
+    cout << "Complete and recommended Usage:\n    " << appname <<
+            " -wp <ModelPath> [-thread <threadsNum> -lyr <layeringMethod>"
+            " -host <IP> -port <port> -sce <ScenarioID> -cali <CalibrationID>]" << endl;
+    if (!error_msg.empty()) {
+        cout << "FAILURE: " << error_msg << endl;
+        }
+        exit(1);
+}
+
 InputArgs* InputArgs::Init(const int argc, const char** argv) {
     string model_path;
     int num_thread = 1;
     LayeringMethod layering_method = UP_DOWN;
-    char mongodb_ip[16];
-    stringcpy(mongodb_ip, "127.0.0.1");
+    string mongodb_ip = "127.0.0.1";
     int port = 27017;
     int scenario_id = -1;    /// By default, no BMPs Scenario is used, in case of lack of BMPs database.
     int calibration_id = -1; /// By default, no calibration ID is needed.
@@ -23,7 +44,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         model_path = argv[1];
         if (argc >= 3) num_thread = strtol(argv[2], &strend, 10);
         if (argc >= 4) layering_method = LayeringMethod(strtol(argv[3], &strend, 10));
-        if (argc >= 5) stringcpy(mongodb_ip, argv[4]);
+        if (argc >= 5) mongodb_ip = argv[4];
         if (argc >= 6) port = strtol(argv[5], &strend, 10);
         if (argc >= 7) scenario_id = strtol(argv[6], &strend, 10);
         if (argc >= 8) calibration_id = strtol(argv[7], &strend, 10);
@@ -53,7 +74,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         } else if (StringMatch(argv[i], "-host")) {
             i++;
             if (argc > i) {
-                stringcpy(mongodb_ip, argv[i]);
+                mongodb_ip = argv[i];
                 i++;
             } else { goto errexit; }
         } else if (StringMatch(argv[i], "-port")) {
@@ -85,7 +106,7 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
         cout << "Thread number must greater or equal than 1." << endl;
         goto errexit;
     }
-    if (!IsIpAddress(mongodb_ip)) {
+    if (!IsIpAddress(mongodb_ip.c_str())) {
         cout << "MongoDB Hostname " << mongodb_ip << " is not a valid IP address!" << endl;
         goto errexit;
     }
@@ -116,10 +137,11 @@ errexit:
 }
 
 InputArgs::InputArgs(const string& model_path, char* host, const uint16_t port, const int scenario_id,
-                     const int calibration_id, const int thread_num, const LayeringMethod lyr_mtd)
-    : model_path(model_path), model_name(""), port(port), thread_num(thread_num),
-      lyr_mtd(lyr_mtd), scenario_id(scenario_id), calibration_id(calibration_id) {
-    stringcpy(host_ip, host);
+                     const int calibration_id, const int thread_num, const LayeringMethod lyr_mtd,
+                     const GroupMethod grp_mtd, const ScheduleMethod skd_mtd)
+    : model_path(model_path), model_name(""), host_ip(host), port(port), thread_num(thread_num),
+      lyr_mtd(lyr_mtd), grp_mtd(grp_mtd), skd_mtd(skd_mtd),
+      scenario_id(scenario_id), calibration_id(calibration_id) {
     /// Get model name
     size_t name_idx = model_path.rfind(SEP);
     model_name = model_path.substr(name_idx + 1);
