@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--这个算法的输入有问题 -->
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
   <rdf:Description about="DEP_FS">
     <hydro:hasInputs>

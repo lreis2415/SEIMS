@@ -1,1 +1,210 @@
-<?xml version="1.0"?><RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">	<Assert mapClosure="universal">		<Implies node = "Rule1">			<if>				<Or>				   <Atom>					  <op>						 <Rel>is humid</Rel>					  </op>					  <Var>climate</Var>				   </Atom>				   <Atom>					  <op>						 <Rel>is semi-humid</Rel>					  </op>					  <Var>climate</Var>				   </Atom>				 </Or>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule2">			<if>				<Atom>					<op>						<Rel>is rural</Rel>					</op>					<Var>underlying surface type</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule3">			<if>				<Atom>					<op>						<Rel>contain_output</Rel>					</op>					<Ind>runoff</Ind>					<Var>model outputs</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule4">			<if>				<And>					<Atom>						<op>							<Rel>is continous</Rel>						</op>						<Var>time scale</Var>					</Atom>					<Atom>						<op>							<Rel>is month</Rel>						</op>						<Var>time step</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule5">			<if>				<And>					<Atom>						<op>							<Rel>is medium</Rel>						</op>						<Var>spatial scale</Var>					</Atom>					<Atom>						<op>							<Rel>is lumped</Rel>						</op>						<Var>spatial discretization</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM,XAJMODEL,SMAR</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule6">			<if>				<Atom>					<op>						<Rel>contain_input</Rel>					</op>					<Var>model inputs</Var>					<Ind>runoff,mean rain,mean pet,watershed area</Ind>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule7">			<if>				<And>					<Atom>						<op>							<Rel>is continous</Rel>						</op>						<Var>time scale</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>XAJMODEL,SMAR,TOPMODEL</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Rule8">			<if>				<Atom>					<op>						<Rel>contain_output</Rel>					</op>					<Var>model outputs</Var>					<Ind>runoff,ground water level</Ind>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>TOPMODEL</Ind>				</Atom>			</then>		</Implies>	    <Implies node = "Rule9">			<if>				<And>					<Atom>						<op>							<Rel>is medium</Rel>						</op>						<Var>spatial scale</Var>					</Atom>					<Atom>						<op>							<Rel>is semi-distributed</Rel>						</op>						<Var>spatial discretization</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>TOPMODEL</Ind>				</Atom>			</then>		</Implies>	</Assert></RuleML>
+<?xml version="1.0"?>
+<RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">
+	<Assert mapClosure="universal">
+		<Implies node = "Rule1">
+			<if>
+				<Or>
+				   <Atom>
+					  <op>
+						 <Rel>is humid</Rel>
+					  </op>
+					  <Var>climate</Var>
+				   </Atom>
+				   <Atom>
+					  <op>
+						 <Rel>is semi-humid</Rel>
+					  </op>
+					  <Var>climate</Var>
+				   </Atom>
+				 </Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule2">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is rural</Rel>
+					</op>
+					<Var>underlying surface type</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule3">
+			<if>
+				<Atom>
+					<op>
+						<Rel>contain_output</Rel>
+					</op>
+					<Ind>runoff</Ind>
+					<Var>model outputs</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule4">
+			<if>
+				<And>
+					<Atom>
+						<op>
+							<Rel>is continous</Rel>
+						</op>
+						<Var>time scale</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is month</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</And>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule5">
+			<if>
+				<And>
+					<Atom>
+						<op>
+							<Rel>is medium</Rel>
+						</op>
+						<Var>spatial scale</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is lumped</Rel>
+						</op>
+						<Var>spatial discretization</Var>
+					</Atom>
+				</And>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM,XAJMODEL,SMAR</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule6">
+			<if>
+				<Atom>
+					<op>
+						<Rel>contain_input</Rel>
+					</op>
+					<Var>model inputs</Var>
+					<Ind>runoff,mean rain,mean pet,watershed area</Ind>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>MWBM,XAJMODEL,SMAR,TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule7">
+			<if>
+				<And>
+					<Atom>
+						<op>
+							<Rel>is continous</Rel>
+						</op>
+						<Var>time scale</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is day</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</And>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>XAJMODEL,SMAR,TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Rule8">
+			<if>
+				<Atom>
+					<op>
+						<Rel>contain_output</Rel>
+					</op>
+					<Var>model outputs</Var>
+					<Ind>runoff,ground water level</Ind>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+	    <Implies node = "Rule9">
+			<if>
+				<And>
+					<Atom>
+						<op>
+							<Rel>is medium</Rel>
+						</op>
+						<Var>spatial scale</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is semi-distributed</Rel>
+						</op>
+						<Var>spatial discretization</Var>
+					</Atom>
+				</And>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>TOPMODEL</Ind>
+				</Atom>
+			</then>
+		</Implies>
+	</Assert>
+</RuleML>

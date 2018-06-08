@@ -1,1 +1,103 @@
-<?xml version="1.0"?><RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">	<Assert mapClosure="universal">		<Implies node = "Process rule1">			<if>				<And>					<Atom>						<op>							<Rel>is total runoff simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule2">			<if>				<Atom>					<op>						<Rel>is medium-sized</Rel>					</op>					<Var>spatial scale</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Percolation,Ground Water</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule3">			<if>				<Atom>					<op>						<Rel>is snow</Rel>					</op>					<Var>particular process</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>is selected</Rel>					</op>					<Ind>Snow Melt</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule4">			<if>				<Atom>					<op>						<Rel>is rural</Rel>					</op>					<Var>underlying surface type</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>is selected</Rel>					</op>					<Ind>Interception</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule5">			<if>				<Atom>					<op>						<Rel>is humid</Rel>					</op>					<Var>climate type</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Subsurface Runoff</Ind>				</Atom>			</then>		</Implies>	</Assert></RuleML>
+<?xml version="1.0"?>
+<RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">
+	<Assert mapClosure="universal">
+		<Implies node = "Process rule1">
+			<if>
+				<And>
+					<Atom>
+						<op>
+							<Rel>is total runoff simulation</Rel>
+						</op>
+						<Var>application purpose</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is day</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</And>	
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Process rule2">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is medium-sized</Rel>
+					</op>
+					<Var>spatial scale</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>Percolation,Ground Water</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Process rule3">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is snow</Rel>
+					</op>
+					<Var>particular process</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Snow Melt</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Process rule4">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is rural</Rel>
+					</op>
+					<Var>underlying surface type</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Interception</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Process rule5">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is humid</Rel>
+					</op>
+					<Var>climate type</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>are selected</Rel>
+					</op>
+					<Ind>Subsurface Runoff</Ind>
+				</Atom>
+			</then>
+		</Implies>
+	</Assert>
+</RuleML>
