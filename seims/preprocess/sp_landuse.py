@@ -37,7 +37,7 @@ class LanduseUtilClass(object):
         """export landuse lookup tables to txt file from MongoDB."""
         lookup_dir = cfg.dirs.lookup
         property_namelist = ModelParamDataUtils.landuse_fields
-        property_map = {}
+        property_map = dict()
         property_namelist.append('USLE_P')
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
@@ -144,8 +144,8 @@ class LanduseUtilClass(object):
                 landuse_file, landcover_initial_fields_file, dst_dir)
         attr_map = LanduseUtilClass.read_crop_lookup_table(landcover_lookup_file)
         n = len(attr_names)
-        replace_dicts = []
-        dst_crop_tifs = []
+        replace_dicts = list()
+        dst_crop_tifs = list()
         for i in range(n):
             cur_attr = attr_names[i]
             cur_dict = dict()
@@ -195,6 +195,9 @@ class LanduseUtilClass(object):
                 return DEFAULT_NODATA
             else:
                 hg = int(hg) - 1
+                if lucc_id not in cn2_map:
+                    print("lucc %d not existed in cn2 lookup table!" % lucc_id)
+                    return DEFAULT_NODATA
                 return cn2_map[lucc_id][hg]
 
         cal_cn2_numpy = np_frompyfunc(cal_cn2, 2, 1)
@@ -229,7 +232,7 @@ class LanduseUtilClass(object):
 
         slo_data = RasterUtilClass.read_raster(slope_file).data
         soil_texture_array = RasterUtilClass.read_raster(soil_texture_file).data
-        id_omited = []
+        id_omited = list()
 
         def coef_cal(lu_id, soil_texture, slope):
             """Calculate runoff coefficient by landuse, soil texture and slope."""
@@ -307,7 +310,7 @@ class LanduseUtilClass(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()

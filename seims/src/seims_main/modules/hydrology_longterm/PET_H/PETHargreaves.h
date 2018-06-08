@@ -81,8 +81,7 @@ private:
 
     /// maximum solar radiation of current day
     float m_srMax;
-    /// Julian day
-    int m_jday;
+
     /// output
 
     /// day length (hr)

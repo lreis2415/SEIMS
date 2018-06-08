@@ -23,7 +23,7 @@ int main(int argc, const char** argv) {
         /// Get module path
         string module_path = GetAppPath();
         /// Initialize the MongoDB connection client
-        MongoClient* mongo_client = MongoClient::Init(input_args->host_ip, input_args->port);
+        MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
         if (nullptr == mongo_client) {
             throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
         }

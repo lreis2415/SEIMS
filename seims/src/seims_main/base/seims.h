@@ -10,17 +10,33 @@
 
 /*!
  * \enum LayeringMethod
- * \brief Grid layering method for routing and parallel computing
+ * \brief Grid layering method for routing and parallel computing.
+ *        Reference: Liu et al., 2014, EM&S, 51, 221¨C227. https://doi.org/10.1016/j.envsoft.2013.10.005
  */
 enum LayeringMethod {
-    UP_DOWN, ///< layering-from-source method
-    DOWN_UP ///< layering-from-outlet method
+    UP_DOWN, ///< layering-from-source method, default
+    DOWN_UP  ///< layering-from-outlet method
 };
 
-enum FlowDirectionMethod {
-    TauDEM = 0,
-    ArcGIS = 1
+/*!
+ * \enum GroupMethod
+ * \brief Group method for parallel task scheduling.
+ */
+enum GroupMethod {
+    KMETIS = 0, ///< KMETIS, default
+    PMETIS = 1  ///< PMETIS
 };
+const char* const GroupMethodString[] = {"KMETIS", "PMETIS"};
+
+/*!
+ * \enum ScheduleMethod
+ * \brief Parallel task scheduling strategy at subbasin level by MPI.
+ */
+enum ScheduleMethod {
+    SPATIAL = 0,          ///< Sceduled by spatial, default, refers to Liu et al., 2016, EM&S
+    TEMPOROSPATIAL = 1    ///< Sceduled by temporal-spatial discretization method, refers to Wang et al., 2013, C&G
+};
+const char* const ScheduleMethodString[] = {"SPATIAL", "TEMPOROSPATIAL"};
 
 /*!
  *\brief Whether diagonal counter clockwise from east

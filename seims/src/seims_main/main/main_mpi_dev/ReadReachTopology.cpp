@@ -1,9 +1,31 @@
+#include "ReadReachTopology.h"
 #include "parallel.h"
 
 #include "text.h"
+#include "clsReach.h"
+
+SubbasinStruct::SubbasinStruct(const int sid, const int gidx) :
+    id(sid), group(gidx),
+    updown_order(-1), downup_order(-1), calculated(false),
+    transfer_count(-1), transfer_values(nullptr),
+    down_stream(nullptr) {
+    up_streams.clear();
+}
+
+SubbasinStruct::~SubbasinStruct() {
+    if (transfer_values != nullptr) { Release1DArray(transfer_values); }
+    if (!up_streams.empty()) {
+        for (auto it = up_streams.begin(); it != up_streams.end();) {
+            if (*it != nullptr) *it = nullptr;
+            it = up_streams.erase(it);
+        }
+    }
+    if (down_stream != nullptr) down_stream = nullptr;
+}
+
 
 int CreateReachTopology(MongoClient* client, const string& dbname,
-                        const string& group_method, const int group_size,
+                        GroupMethod group_method, const int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set) {
     // Read reach information from MongoDB Collection "REACHES"
     clsReaches* reaches = new clsReaches(client, dbname, DB_TAB_REACH);
@@ -13,7 +35,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
     for (auto it = down_stream_map.begin(); it != down_stream_map.end(); ++it) {
         int id = it->first;
         clsReach* tmp_reach = reaches->GetReachByID(id);
-        int group = tmp_reach->GetGroupIndex(group_method, group_size);
+        int group = tmp_reach->GetGroupIndex(GroupMethodString[CVT_INT(group_method)], group_size);
         subbasins[id] = new SubbasinStruct(id, group);
         // set layering order
         subbasins[id]->updown_order = int(tmp_reach->Get(REACH_UPDOWN_ORDER));

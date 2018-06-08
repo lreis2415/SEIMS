@@ -384,15 +384,13 @@ class ImportParam2Mongo(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
     main_db = conn[seims_cfg.spatial_db]
 
-    # ImportParam2Mongo.workflow(seims_cfg, main_db)
-    ImportParam2Mongo.calibrated_params_from_txt(seims_cfg, main_db)
-    ImportParam2Mongo.model_io_configuration(seims_cfg, main_db)
+    ImportParam2Mongo.workflow(seims_cfg, main_db)
 
     client.close()
 

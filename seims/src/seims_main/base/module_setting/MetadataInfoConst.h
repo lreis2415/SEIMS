@@ -64,7 +64,7 @@ enum dimensionTypes {
     DT_Single = 0,           ///< Single numeric
     DT_Array1D = 1,          ///< 1D array, e.g., maximum temperature of sites
     DT_Array2D = 2,          ///< 2D array
-    DT_Array3D = 3,          ///< 3D array, currently not used
+    // DT_Array3D = 3,          ///< 3D array, currently not used
     DT_Array1DDateValue = 4, ///< 1D date array
     DT_Raster1D = 5,         ///< Raster data, same as DT_Array1D
     DT_Raster2D = 6,         ///< 2D raster, e.g., multi-layers of soil properties

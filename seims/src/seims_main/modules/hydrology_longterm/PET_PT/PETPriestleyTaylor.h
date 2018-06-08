@@ -82,11 +82,8 @@ private:
     float* m_phuAnn;
     ///The temperature of snow melt
     float m_snowTemp;
-
     /// maximum solar radiation of current day
     float m_srMax;
-    /// Julian day
-    int m_jday;
 
     /// output
 

@@ -69,8 +69,6 @@ private:
     /// ratio between soil temperature at 10 cm and the mean
     float m_kSoil10;
 
-    /// Julian day
-    int m_julianDay;
     /// count of cells
     int m_nCells;
     /// factor of soil temperature relative to short grass (degree)

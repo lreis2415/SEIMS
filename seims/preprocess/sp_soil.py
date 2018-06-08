@@ -160,6 +160,7 @@ class SoilProperty(object):
         dep_new = 10.
         if self.SOILDEPTH[0] - dep_new >= 10.:
             self.SOILLAYERS += 1
+            # Required attributes
             self.SOILDEPTH.insert(0, dep_new)
             if self.OM:
                 self.OM.insert(0, self.OM[0])
@@ -181,14 +182,11 @@ class SoilProperty(object):
                 self.ROCK.insert(0, self.ROCK[0])
             else:
                 raise ValueError("Rock content must be provided!")
+            # Optional attributes
             if self.FIELDCAP:
                 self.FIELDCAP.insert(0, self.FIELDCAP[0])
-            else:
-                raise ValueError("Available water capacity must be provided!")
             if self.DENSITY:
                 self.DENSITY.insert(0, self.DENSITY[0])
-            else:
-                raise ValueError("Bulk density must be provided!")
             if self.CONDUCTIVITY:
                 self.CONDUCTIVITY.insert(0, self.CONDUCTIVITY[0])
             if self.WILTINGPOINT:
@@ -231,11 +229,11 @@ class SoilProperty(object):
             raise IndexError("Soil depth must have a size equal to NLAYERS and "
                              "should not include NODATA (-9999)!")
         # Calculate soil thickness of each layer
-        for l in range(self.SOILLAYERS):
-            if l == 0:
-                self.SOILTHICK.append(self.SOILDEPTH[l])
+        for lyr in range(self.SOILLAYERS):
+            if lyr == 0:
+                self.SOILTHICK.append(self.SOILDEPTH[lyr])
             else:
-                self.SOILTHICK.append(self.SOILDEPTH[l] - self.SOILDEPTH[l - 1])
+                self.SOILTHICK.append(self.SOILDEPTH[lyr] - self.SOILDEPTH[lyr - 1])
         if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]:
             self.SOL_ZMX = self.SOILDEPTH[-1]
         if self.ANION_EXCL == DEFAULT_NODATA:
@@ -671,7 +669,7 @@ class SoilUtilClass(object):
                     cur_soil_ins.SOL_ORGP = cur_flds
             cur_soil_ins.check_data_validation()
             soil_instances.append(cur_soil_ins)
-        soil_prop_dict = {}
+        soil_prop_dict = dict()
         for sol in soil_instances:
             cur_sol_dict = sol.soil_dict()
             for fld in cur_sol_dict:

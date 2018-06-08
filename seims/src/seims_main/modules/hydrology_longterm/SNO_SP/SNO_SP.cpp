@@ -61,8 +61,7 @@ int SNO_SP::Execute() {
     }
     /// adjust melt factor for time of year, i.e., smfac in snom.f
     // which only need to computed once.
-    int d = utils_time::JulianDay(m_date);
-    float sinv = float(sin(2.f * PI / 365.f * (d - 81.f)));
+    float sinv = float(sin(2.f * PI / 365.f * (m_dayOfYear - 81.f)));
     float cmelt = (m_csnow6 + m_csnow12) * 0.5f + (m_csnow6 - m_csnow12) * 0.5f * sinv;
 #pragma omp parallel for
     for (int rw = 0; rw < m_nCells; rw++) {
