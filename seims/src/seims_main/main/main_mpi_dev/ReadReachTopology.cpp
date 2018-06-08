@@ -2,6 +2,7 @@
 #include "parallel.h"
 
 #include "text.h"
+#include "clsReach.h"
 
 SubbasinStruct::SubbasinStruct(const int sid, const int gidx) :
     id(sid), group(gidx),
@@ -24,17 +25,17 @@ SubbasinStruct::~SubbasinStruct() {
 
 
 int CreateReachTopology(MongoClient* client, const string& dbname,
-                        const string& group_method, const int group_size,
+                        GroupMethod group_method, const int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set) {
     // Read reach information from MongoDB Collection "REACHES"
     clsReaches* reaches = new clsReaches(client, dbname, DB_TAB_REACH);
     // Get downstream map
-    map<int, int> down_stream_map = reaches->GetDownStreamID();
+    map<int, int>& down_stream_map = reaches->GetDownStreamID();
     // Create SubbasinStruct's map and group_set
     for (auto it = down_stream_map.begin(); it != down_stream_map.end(); ++it) {
         int id = it->first;
         clsReach* tmp_reach = reaches->GetReachByID(id);
-        int group = tmp_reach->GetGroupIndex(group_method, group_size);
+        int group = tmp_reach->GetGroupIndex(GroupMethodString[CVT_INT(group_method)], group_size);
         subbasins[id] = new SubbasinStruct(id, group);
         // set layering order
         subbasins[id]->updown_order = int(tmp_reach->Get(REACH_UPDOWN_ORDER));

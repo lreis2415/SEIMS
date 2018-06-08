@@ -3,37 +3,38 @@
 #include "ReadReachTopology.h"
 #include "parallel.h"
 
-int ManagementProcess(InputArgs* input_args) {
+int ManagementProcess(InputArgs* input_args, const int size, int& max_task_len, int*& group_ids,
+                      int*& subbasin_ids, int*& lyr_ids, int*& downstream_ids,
+                      int*& upstream_count, int*& upstream_ids) {
     StatusMessage("Enter master process...");
-    /// connect to mongodb, abort if failed.
-    MongoClient* mclient = MongoClient::Init(input_args->host_ip, input_args->port);
+    /// 1. Connect to mongodb, abort(1) if failed.
+    MongoClient* mclient = MongoClient::Init(input_args->host.c_str(), input_args->port);
     if (nullptr == mclient) {
-        cout << "Connect to MongoDB (" << input_args->host_ip
-                << ":" << input_args->port << ") failed!" << endl;
-        MPI_Abort(MCW, 2);
+        cout << "Connect to MongoDB (" << input_args->host << ":" <<
+                input_args->port << ") failed!" << endl;
+        MPI_Abort(MCW, 1);
     }
-    // read river topology data
+    /// 2. Read river topology data, abort(1) if failed.
     map<int, SubbasinStruct *> subbasin_map;
     set<int> group_set;
-    string group_method = REACH_KMETIS; // by default
-    if (CreateReachTopology(mclient, input_args->model_name, group_method,
-                            nslaves, subbasin_map, group_set) != 0) {
+    if (CreateReachTopology(mclient, input_args->model_name, input_args->grp_mtd,
+                            size, subbasin_map, group_set) != 0) {
         cout << "Read and create reaches topology information failed." << endl;
         MPI_Abort(MCW, 1);
     }
     delete mclient;
-    if (size_t(nslaves) != group_set.size()) {
+    if (size_t(size) != group_set.size()) {
         group_set.clear();
-        cout << "The number of slave processes (" << nslaves << ") is not consist with the group number("
+        cout << "The number of slave processes (" << size << ") is not consist with the group number("
                 << group_set.size() << ")." << endl;
         MPI_Abort(MCW, 1);
     }
+    /// 3. Scatter the group set (i.e., parallel tasks) to all processes
 
-
-    MPI_Request request;
-    MPI_Status status;
-    int nslaves = CVT_INT(group_set.size()); /// groupSet normally equals (0, 1, 2, ... , nSlaves-1)
-    // get the subbasin id list of different groups
+    /// 3.1 Get the subbasin id list of different groups
+    /* key: Group ID
+     * value: Subbasin IDs
+     */
     map<int, vector<int> > group_map;
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
         group_map.insert(make_pair(*it, vector<int>()));
@@ -43,9 +44,9 @@ int ManagementProcess(InputArgs* input_args) {
         group_map[it->second->group].push_back(it->second->id);
     }
     // get the maximum length of the task assignment message
-    int max_task_len = 0;
+    max_task_len = 0;
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
-        if (group_map[*it].size() > max_task_len) {
+        if (CVT_INT(group_map[*it].size()) > max_task_len) {
             max_task_len = CVT_INT(group_map[*it].size());
         }
     }
@@ -61,72 +62,53 @@ int ManagementProcess(InputArgs* input_args) {
     cout << "  max task length: " << max_task_len << endl;
 #endif /* _DEBUG */
 
-    int n_task_all = max_task_len * nslaves;
-    int* p_send_group_id = nullptr; // id of the group
-
-    int* p_send_task = nullptr;        // id of subbasins
-    int* p_send_updown_ord = nullptr;  // layering method of up-down stream
-    int* p_send_downup_ord = nullptr;  // layering method of down-up stream from outlet subbasin
-    int* p_send_down_stream = nullptr; // id of downstream subbasins
-
-    int* p_send_up_nums = nullptr;   // number of upstream subbasins
-    int* p_send_up_stream = nullptr; // ids of upstream subbasins
-
+    int n_task_all = max_task_len * size;
     // initialization
-    Initialize1DArray(nslaves, p_send_group_id, -1);
-
-    Initialize1DArray(n_task_all, p_send_task, -1);
-    Initialize1DArray(n_task_all, p_send_updown_ord, -1);
-    Initialize1DArray(n_task_all, p_send_downup_ord, -1);
-    Initialize1DArray(n_task_all, p_send_down_stream, -1);
-
-    Initialize1DArray(n_task_all, p_send_up_nums, 0);
-    Initialize1DArray(n_task_all * MAX_UPSTREAM, p_send_up_stream, -1);
+    Initialize1DArray(size, group_ids, -1);
+    Initialize1DArray(n_task_all, subbasin_ids, -1);
+    Initialize1DArray(n_task_all, lyr_ids, -1);
+    Initialize1DArray(n_task_all, downstream_ids, -1);
+    Initialize1DArray(n_task_all, upstream_count, 0);
+    Initialize1DArray(n_task_all * MAX_UPSTREAM, upstream_ids, -1);
 
     int igroup = 0;
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
-        p_send_group_id[igroup] = *it;
+        group_ids[igroup] = *it;
         int group_index = igroup * max_task_len;
         for (size_t i = 0; i < group_map[*it].size(); i++) {
             int id = group_map[*it][i];
-            p_send_task[group_index + i] = id;
-            p_send_updown_ord[group_index + i] = subbasin_map[id]->updown_order;
-            p_send_downup_ord[group_index + i] = subbasin_map[id]->downup_order;
+            subbasin_ids[group_index + i] = id;
+            lyr_ids[group_index + i] = input_args->lyr_mtd == UP_DOWN
+                                            ? subbasin_map[id]->updown_order
+                                            : subbasin_map[id]->downup_order;
             if (subbasin_map[id]->down_stream != nullptr) {
-                p_send_down_stream[group_index + i] = subbasin_map[id]->down_stream->id;
+                downstream_ids[group_index + i] = subbasin_map[id]->down_stream->id;
             }
             int n_ups = CVT_INT(subbasin_map[id]->up_streams.size());
-            p_send_up_nums[group_index + i] = n_ups;
+            upstream_count[group_index + i] = n_ups;
             if (n_ups > MAX_UPSTREAM) {
                 cout << "The number of upstreams exceeds MAX_UPSTREAM(4)." << endl;
                 MPI_Abort(MCW, 1);
             }
             for (int j = 0; j < n_ups; j++) {
-                p_send_up_stream[MAX_UPSTREAM * (group_index + i) + j] = subbasin_map[id]->up_streams[j]->id;
+                upstream_ids[MAX_UPSTREAM * (group_index + i) + j] = subbasin_map[id]->up_streams[j]->id;
             }
         }
         igroup++;
     }
 
-    // send the information to slave0
-    StatusMessage("Sending tasks to the first slave process...");
+    // send the information to all processes
+    StatusMessage("Sending tasks to the all processes...");
 #ifdef _DEBUG
-    cout << "  pSendTask, pSendUpdownOrd, pSendDownupOrd, pSendDownStream, pSendUpNums" << endl;
+    cout << "  pTaskSubbasinID, pLayerNumber,pDownStream, pUpNums" << endl;
     for (int i = 0; i < n_task_all; i++) {
-        cout << "  " << p_send_task[i] << ", " << p_send_updown_ord[i] << ", " << p_send_downup_ord[i]
-                << ", " << p_send_down_stream[i] << ", " << p_send_up_nums[i] << ", " << endl;
+        if (subbasin_ids[i] < 0) continue;
+        cout << "  " << subbasin_ids[i] << ", " << lyr_ids[i] << ", "
+                << downstream_ids[i] << ", " << upstream_count[i] << ", " << endl;
     }
 #endif /* _DEBUG */
-    MPI_Send(&n_task_all, 1, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_group_id, nslaves, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_task, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_updown_ord, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_downup_ord, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_down_stream, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_up_nums, n_task_all, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    MPI_Send(p_send_up_stream, n_task_all * MAX_UPSTREAM, MPI_INT, SLAVE0_RANK, WORK_TAG, MCW);
-    StatusMessage("Tasks are dispatched.");
 
+    /*
     // loop to receive information from slave process
     // first of all, receive the count of transferred values
     int transfer_count;
@@ -272,5 +254,6 @@ int ManagementProcess(InputArgs* input_args) {
     Release1DArray(p_send_down_stream);
     Release1DArray(p_send_up_nums);
     Release1DArray(p_send_up_stream);
+    */
     return 0;
 }

@@ -6,9 +6,8 @@
 #define USE_MONGODB
 #endif /* USE_MONGODB */
 
-#include "ManagementProcess.h"
-#include "CalculateProcess.h"
 #include "parallel.h"
+#include "CalculateProcess.h"
 
 int main(int argc, const char** argv) {
     /// Parse input arguments
@@ -23,12 +22,8 @@ int main(int argc, const char** argv) {
     {
         MPI_Comm_size(MCW, &size);
         MPI_Comm_rank(MCW, &rank);
-
         try {
-            if (rank == MASTER_RANK) {
-                ManagementProcess(input_args);
-            }
-            CalculateProcess(rank, size, input_args);
+            CalculateProcess(input_args, rank, size);
         } catch (ModelException& e) {
             cout << e.what() << endl;
             MPI_Abort(MCW, 3);

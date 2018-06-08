@@ -15,6 +15,7 @@
 #include "basic.h"
 #include "utils_array.h"
 #include "db_mongoc.h"
+#include "seims.h"
 
 using namespace ccgl;
 using namespace utils_array;
@@ -46,9 +47,15 @@ public:
 
 /*!
  * \brief Read reach table from MongoDB and create reach topology for task allocation.
+ * \param[in] client \sa MongoClient
+ * \param[in] dbname database name which stored the reach collection
+ * \param[in] group_method \sa GroupMethod
+ * \param[in] group_size \sa number of parallel tasks, i.e., number of processes
+ * \param[out] subbasins Map of subbasin data struct, \sa SubbasinStruct
+ * \param[out] group_set Group ID set, e.g., 1, 2, 3, 4
  */
 int CreateReachTopology(MongoClient* client, const string& dbname,
-                        const string& group_method, int group_size,
+                        GroupMethod group_method, int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set);
 
 #endif /* SEIMS_READ_REACH_TOPOLOGY_H */
