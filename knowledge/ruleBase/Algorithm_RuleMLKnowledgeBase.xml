@@ -1,0 +1,477 @@
+<?xml version="1.0"?>
+<RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">
+	<Assert mapClosure="universal">
+		<Implies node = "Interception-day Maximum storage method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Interception-day Maximum storage method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Interception-hour Maximum storage method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Interception-hour Maximum storage method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "PET-Hargreaves">
+			<if>
+				<Atom>
+					<op>
+						<Rel>are TMAX,TMIN</Rel>
+					</op>
+					<Var>climate input</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>PET-Hargreaves</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "PET-Penman-Monteith">
+			<if>
+				<Atom>
+					<op>
+						<Rel>are TMAX,TMIN,RH,SR,WS</Rel>
+					</op>
+					<Var>climate input</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>PET-Penman-Monteith</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "PET-Priestley-Taylor">
+			<if>
+				<Atom>
+					<op>
+						<Rel>are SR,TMAX,TMIN</Rel>
+					</op>
+					<Var>climate input</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>PET-Priestley-Taylor</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Infiltration-SCS-CN">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Infiltration-SCS-CN</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Infiltration-Green-Ampt">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Infiltration-Green-Ampt</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Infiltration-Horton">
+			<if>
+				<Or>
+					<Atom>
+						<op>
+							<Rel>is arid</Rel>
+						</op>
+						<Var>climate</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is semi-arid</Rel>
+						</op>
+						<Var>climate</Var>
+					</Atom>
+				</Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Infiltration-Horton</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Overland Flow-One-dimension kinetic wave formula">
+			<if>
+				<Or>
+					<Atom>
+						<op>
+							<Rel>is minute</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is hour</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Overland Flow-One-dimension kinetic wave formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Overland Flow-nash unit hydrograph formula">
+			<if>
+				<Or>
+					<Atom>
+						<op>
+							<Rel>is hour</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is day</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Overland Flow-nash unit hydrograph formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Ground Water-hour linear reservoir method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Ground Water-hour linear reservoir method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Ground Water-day linear reservoir method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Ground Water-day linear reservoir method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Channel Flow-one-dimension kinetic wave formula">
+			<if>
+				<Or>
+					<Atom>
+						<op>
+							<Rel>is hour</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is minute</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Channel Flow-one-dimension kinetic wave formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Channel Flow-Muskingum">
+			<if>
+				<Or>
+					<Atom>
+						<op>
+							<Rel>is hour</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+					<Atom>
+						<op>
+							<Rel>is day</Rel>
+						</op>
+						<Var>time step</Var>
+					</Atom>
+				</Or>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Channel Flow-Muskingum</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Snow Melt-Degree-Day">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Snow Melt-Degree-Day</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Soil Temperature-Finn Plauborg Method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Soil Temperature-Finn Plauborg Method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Water Balance-Soil water balance method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Water Balance-Soil water balance method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Water Balance-Hillsloope water balance method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Water Balance-Hillsloope water balance method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Depression-Fill and Spill method">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Depression-Fill and Spill method</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Depression-LINSLEY">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Depression-LINSLEY</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Percolation-Brooks Corey formula">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Percolation-Brooks Corey formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Percolation-DARCY">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is hour</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Percolation-DARCY</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Soil Evaporation-Thornthwaite Mather formula">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Soil Evaporation-Thornthwaite Mather formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+		<Implies node = "Subsurface Runoff-Darcy formula">
+			<if>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
+			</if>
+			<then>
+				<Atom>
+					<op>
+						<Rel>is selected</Rel>
+					</op>
+					<Ind>Subsurface Runoff-Darcy formula</Ind>
+				</Atom>
+			</then>
+		</Implies>
+	</Assert>
+</RuleML>

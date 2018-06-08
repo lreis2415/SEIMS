@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="TMAX">
+    <hydro:means>maximum air temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TMIN">
+    <hydro:means>minimum air temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="P">
+    <hydro:means>precipitation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="TMEAN">
+    <hydro:means>mean air temperature</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="RH">
+    <hydro:means>relative humidity</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SR">
+    <hydro:means>solar radiation</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="WS">
+    <hydro:means>wind speed</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="SD">
+    <hydro:means>sunshine duration</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="BOD">
+    <hydro:means>biochemical oxygen demand</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DO">
+    <hydro:means>dissolved oxygen</hydro:means>
+  </rdf:Description>
+  <rdf:Description about="DEM">
+    <hydro:means>digital elevation model</hydro:means>
+  </rdf:Description>  
+  <rdf:Description about="application purpose">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>total runoff simulation</rdf:li>
+		<rdf:li>surface runoff simulation</rdf:li>
+        <rdf:li>subsurface runoff simulation</rdf:li>
+        <rdf:li>groundwater runoff simulation</rdf:li>
+        <rdf:li>groundwater level simulation</rdf:li>
+		<rdf:li>evapotranspiration simulation</rdf:li>
+		<rdf:li>BOD simulation</rdf:li>
+		<rdf:li>DO simulation</rdf:li>
+		<rdf:li>nitrogen simulation</rdf:li>
+		<rdf:li>phosphorus simulation</rdf:li>
+		<rdf:li>pesticide simulation</rdf:li>
+		<rdf:li>soil erosion simulation</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="climate input">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>P</rdf:li>
+		<rdf:li>PET</rdf:li>
+        <rdf:li>TMAX</rdf:li>
+        <rdf:li>TMIN</rdf:li>
+        <rdf:li>TMEAN</rdf:li>
+		<rdf:li>RH</rdf:li>
+		<rdf:li>SR</rdf:li>
+		<rdf:li>WS</rdf:li>
+		<rdf:li>SD</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="hydrology input">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>river discharge</rdf:li>
+		<rdf:li>river waterlevel</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="underlying surface input">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>DEM</rdf:li>
+		<rdf:li>water boundary</rdf:li>
+		<rdf:li>land use</rdf:li>
+		<rdf:li>soil type</rdf:li>
+		<rdf:li>road</rdf:li>
+		<rdf:li>lake/wetland</rdf:li>
+		<rdf:li>river geometric</rdf:li>
+        <rdf:li>reservoir/dam</rdf:li>		
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>    
+  <rdf:Description about="time step">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>year</rdf:li>
+		<rdf:li>month</rdf:li>
+        <rdf:li>day</rdf:li>
+        <rdf:li>hour</rdf:li>
+        <rdf:li>minute</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+   </rdf:Description>
+   <rdf:Description about="climate type">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>arid</rdf:li>
+		<rdf:li>semi-arid</rdf:li>
+        <rdf:li>humid</rdf:li>
+        <rdf:li>semi-humid</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="time scale">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>continous</rdf:li>
+		<rdf:li>event</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="spatial scale">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>large-sized</rdf:li>
+		<rdf:li>medium-sized</rdf:li>
+		<rdf:li>small-sized</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="spatial discretization">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>lumped</rdf:li>
+		<rdf:li>semi-distributed</rdf:li>
+		<rdf:li>distributed</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="hydrologic regimes">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>rain regimes</rdf:li>
+		<rdf:li>mixed regimes</rdf:li>
+		<rdf:li>snow regimes</rdf:li>
+		<rdf:li>glacier regimes</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="underlying surface type">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>rural</rdf:li>
+		<rdf:li>urban</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>
+  <rdf:Description about="particular process">
+    <hydro:hasValues>
+      <rdf:Alt>
+	    <rdf:li>road</rdf:li>
+		<rdf:li>snow</rdf:li>
+		<rdf:li>frozen soil</rdf:li>
+		<rdf:li>reservoir/dam</rdf:li>
+		<rdf:li>lake/wetland</rdf:li>
+      </rdf:Alt>
+    </hydro:hasValues>
+  </rdf:Description>    
+</rdf:RDF>

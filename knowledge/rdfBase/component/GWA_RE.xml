@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="GWA_RE">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <rdf:li>GRRE</rdf:li>
+        <rdf:li>INET</rdf:li>
+        <rdf:li>DEET</rdf:li>
+        <rdf:li>SOMO</rdf:li>
+		<rdf:li>PET</rdf:li>
+		<rdf:li>SOET</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>GWWB</rdf:li>
+        <rdf:li>REVAP</rdf:li>
+        <rdf:li>RG</rdf:li>
+        <rdf:li>SBQG</rdf:li>
+        <rdf:li>SBPET</rdf:li>
+        <rdf:li>SBGS</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+	<hydro:algorithm>Ground Water-day linear reservoir method</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>

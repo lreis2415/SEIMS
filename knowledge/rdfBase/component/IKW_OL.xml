@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="IKW_OL">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <rdf:li>SURU</rdf:li>
+        <rdf:li>INFILCAPSURPLUS</rdf:li>
+        <rdf:li>INFIL</rdf:li>
+        <rdf:li>ACCUMUINFIL</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>QOVERLAND</rdf:li>
+        <rdf:li>REINFILTRATION</rdf:li>
+        <rdf:li>FLOWWIDTH</rdf:li>
+        <rdf:li>CHWIDTH</rdf:li>
+        <rdf:li>RADIANSLOPE</rdf:li>
+        <rdf:li>IOUTLET</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+	<hydro:algorithm>Overland flow-One-dimension kinetic wave formula</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>
