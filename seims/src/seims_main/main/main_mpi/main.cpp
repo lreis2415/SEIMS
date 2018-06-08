@@ -44,9 +44,9 @@ int main(int argc, const char** argv) {
         try {
             if (world_rank == MASTER_RANK) {
                 /// connect to mongodb, abort if failed.
-                MongoClient* mclient = MongoClient::Init(input_args->host_ip, input_args->port);
+                MongoClient* mclient = MongoClient::Init(input_args->host.c_str(), input_args->port);
                 if (nullptr == mclient) {
-                    cout << "Connect to MongoDB (" << input_args->host_ip
+                    cout << "Connect to MongoDB (" << input_args->host
                             << ":" << input_args->port << ") failed!" << endl;
                     MPI_Abort(MCW, 2);
                 }

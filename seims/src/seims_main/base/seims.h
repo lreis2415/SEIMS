@@ -26,6 +26,7 @@ enum GroupMethod {
     KMETIS = 0, ///< KMETIS, default
     PMETIS = 1  ///< PMETIS
 };
+const char* const GroupMethodString[] = {"KMETIS", "PMETIS"};
 
 /*!
  * \enum ScheduleMethod
@@ -35,6 +36,7 @@ enum ScheduleMethod {
     SPATIAL = 0,          ///< Sceduled by spatial, default, refers to Liu et al., 2016, EM&S
     TEMPOROSPATIAL = 1    ///< Sceduled by temporal-spatial discretization method, refers to Wang et al., 2013, C&G
 };
+const char* const ScheduleMethodString[] = {"SPATIAL", "TEMPOROSPATIAL"};
 
 /*!
  *\brief Whether diagonal counter clockwise from east

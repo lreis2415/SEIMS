@@ -18,7 +18,7 @@ using namespace ccgl;
  */
 class InputArgs: Interface {
 public:
-    InputArgs(const string& model_path, char* host, uint16_t port,
+    InputArgs(const string& model_path, const string& host, uint16_t port,
               int scenario_id, int calibration_id,
               int thread_num, LayeringMethod lyr_mtd,
               GroupMethod grp_mtd, ScheduleMethod skd_mtd);
@@ -28,7 +28,7 @@ public:
 public:
     string model_path;      ///< file path which contains the model input files
     string model_name;      ///< model_name
-    string host_ip;         ///< Host IP address of MongoDB database
+    string host;            ///< Host IP address of MongoDB database
     uint16_t port;          ///< port of MongoDB, 27017 is default
     int thread_num;         ///< thread number for OpenMP
     LayeringMethod lyr_mtd; ///< Layering method for sequencing computing, default is 0
