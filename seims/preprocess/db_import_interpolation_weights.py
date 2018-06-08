@@ -15,6 +15,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from math import sqrt, pow
 from struct import pack, unpack
+import copy
 
 from gridfs import GridFS
 from numpy import zeros as np_zeros
@@ -159,12 +160,12 @@ class ImportWeightData(object):
         if spatial_gfs.exists(filename=fname2):
             x = spatial_gfs.get_version(filename=fname2)
             spatial_gfs.delete(x._id)
-        meta_dic = mask['metadata']
+        meta_dic = copy.deepcopy(mask['metadata'])
         meta_dic['TYPE'] = DataType.phu0
         meta_dic['ID'] = fname
         meta_dic['DESCRIPTION'] = DataType.phu0
 
-        meta_dic2 = mask['metadata']
+        meta_dic2 = copy.deepcopy(mask['metadata'])
         meta_dic2['TYPE'] = DataType.mean_tmp0
         meta_dic2['ID'] = fname2
         meta_dic2['DESCRIPTION'] = DataType.mean_tmp0
@@ -275,8 +276,7 @@ class ImportWeightData(object):
                 if cursor.count() == 0 and type_list[type_i] == DataType.p:
                     q_dic = {StationFields.id.upper(): {'$in': site_list},
                              StationFields.type.upper(): DataType.m}
-                    cursor = hydro_clim_db[DBTableNames.sites].find(q_dic). \
-                        sort(StationFields.id, 1)
+                    cursor = hydro_clim_db[DBTableNames.sites].find(q_dic).sort(StationFields.id, 1)
 
                 # get site locations
                 id_list = list()
@@ -288,7 +288,7 @@ class ImportWeightData(object):
                 # print('loclist', locList)
                 # interpolate using the locations
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir,subbsn_id,
+                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id,
                                                     type_list[type_i]), 'w') as f_test:
                     for y in range(0, ysize):
                         for x in range(0, xsize):
@@ -322,7 +322,7 @@ class ImportWeightData(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
