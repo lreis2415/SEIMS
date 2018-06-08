@@ -108,7 +108,7 @@ void CalculateProcess(const int world_rank, const int numprocs, const int nslave
     /// Get module path
     string module_path = GetAppPath();
     // setup model runs for subbasins
-    MongoClient* mongo_client = MongoClient::Init(input_args->host_ip, input_args->port);
+    MongoClient* mongo_client = MongoClient::Init(input_args->host.c_str(), input_args->port);
     if (nullptr == mongo_client) {
         throw ModelException("MongoDBClient", "Constructor", "Failed to connect to MongoDB!");
     }

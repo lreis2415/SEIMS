@@ -99,10 +99,10 @@ public:
     void GetReachesSingleProperty(const string& key, float** data);
 
     /// Get upstream IDs
-    vector<vector<int> > GetUpStreamIDs() const { return reach_up_streams_; }
+    vector<vector<int> >& GetUpStreamIDs() { return reach_up_streams_; }
 
     /// Get downstream ID
-    map<int, int> GetDownStreamID() const { return reach_down_stream_; }
+    map<int, int>& GetDownStreamID() { return reach_down_stream_; }
 
     /// Get map of reach layers
     map<int, vector<int> >& GetReachLayers() { return reach_layers_; };

@@ -8,7 +8,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
     // Read reach information from MongoDB Collection "REACHES"
     clsReaches* reaches = new clsReaches(client, dbname, DB_TAB_REACH);
     // Get downstream map
-    map<int, int> down_stream_map = reaches->GetDownStreamID();
+    map<int, int>& down_stream_map = reaches->GetDownStreamID();
     // Create SubbasinStruct's map and group_set
     for (auto it = down_stream_map.begin(); it != down_stream_map.end(); ++it) {
         int id = it->first;
