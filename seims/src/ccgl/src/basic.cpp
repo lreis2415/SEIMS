@@ -71,17 +71,17 @@ bool IsIpAddress(const char* ip) {
     return rv;
 }
 
-void Log(const string& msg, string logpath /* = "debugInfo.log" */) {
-    struct tm timeptr;
+void Log(const string& msg, const string& logpath /* = "debugInfo.log" */) {
+    tm* timeptr = nullptr;
     time_t now;
     char buffer[32];
     time(&now);
 #ifdef windows
-    localtime_s(&timeptr, &now);
-    asctime_s(buffer, 32, &timeptr);
+    localtime_s(timeptr, &now);
+    asctime_s(buffer, 32, timeptr);
 #else
-    localtime_r(&now, &timeptr);
-    asctime_r(&timeptr, buffer);
+    localtime_r(&now, timeptr);
+    asctime_r(timeptr, buffer);
 #endif /* windows */
     string timestamp = buffer;
     timestamp = timestamp.substr(0, timestamp.length() - 1);
@@ -120,7 +120,7 @@ void SetDefaultOpenMPThread() {
     /// do nothing if OMP is not supported
 }
 
-void SetOpenMPThread(int n) {
+void SetOpenMPThread(const int n) {
 #ifdef SUPPORT_OMP
     omp_set_num_threads(n);
 #endif /* SUPPORT_OMP */

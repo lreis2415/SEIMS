@@ -15,33 +15,6 @@
 #endif /* _DEBUG */
 #endif /* NDEBUG */
 
-#include <memory>
-#include <stdexcept>
-#include <cfloat>
-#include <string>
-#include <cstring> // strcasecmp in GCC
-/// platform
-#ifdef windows
-// #define _WINSOCKAPI_    // In order to stop windows.h including winsock.h
-// _WINSOCKAPI_ is defined by <winsock2.h>
-#include <winsock2.h>
-#include <windows.h>
-#else
-#include <dirent.h>
-#include <unistd.h>
-#include <dlfcn.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include <errno.h>
-#endif /* windows */
-#ifdef macos
-#include <libproc.h>
-#endif /* macos */
-
-using std::string;
-
 /// Architecture
 #if defined _WIN64 || __x86_64 || __LP64__
 #define CPP_64
@@ -55,6 +28,31 @@ using std::string;
 #define CPP_APPLE
 #endif
 #endif
+
+#include <memory>
+#include <stdexcept>
+#include <cfloat>
+#include <string>
+#include <cstring> // strcasecmp in GCC
+/// platform
+#if defined windows
+// For MSVC and MINGW64 in Windows OS
+// #define _WINSOCKAPI_    // In order to stop windows.h including winsock.h
+// _WINSOCKAPI_ is defined by <winsock2.h>
+#include <winsock2.h>
+#include <windows.h>
+#endif /* windows */
+#if defined CPP_GCC
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <errno.h>
+#endif /* CPP_GCC */
+
+using std::string;
 
 // define some macro for string related built-in functions
 #ifdef MSVC
@@ -271,6 +269,7 @@ typedef vint64_t pos_t;
 #define CVT_VINT(param)  static_cast<vint>((param))
 #define CVT_VSINT(param) static_cast<vsint>((param))
 #define CVT_VUINT(param) static_cast<vuint>((param))
+#define CVT_VUINT64(param) static_cast<vuint64_t>((param))
 
 /*!
  * \class NotCopyable
@@ -345,7 +344,7 @@ bool IsIpAddress(const char* ip);
  * \param[in] msg \a string log message
  * \param[in] logpath \a string Optional
  */
-void Log(const string& msg, string logpath = "debugInfo.log");
+void Log(const string& msg, const string& logpath = "debugInfo.log");
 
 /*!
  * \brief Detect the available threads number
