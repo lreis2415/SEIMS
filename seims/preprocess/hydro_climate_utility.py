@@ -151,7 +151,7 @@ class HydroClimateUtilClass(object):
 def main():
     """TEST CODE"""
     from preprocess.config import parse_ini_configuration
-    from .db_mongodb import ConnectMongoDB
+    from preprocess.db_mongodb import ConnectMongoDB
     seims_cfg = parse_ini_configuration()
     client = ConnectMongoDB(seims_cfg.hostname, seims_cfg.port)
     conn = client.get_conn()
