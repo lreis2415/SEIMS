@@ -77,6 +77,7 @@ geo_include_directories(${CCGL_INC}
                         ${BSON_INCLUDE_DIR}
                         ${MONGOC_INCLUDE_DIR})
 ############  step into subdirectories   #############
+SET(SEIMS_BINARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 ADD_SUBDIRECTORY(${BASE_HOME})
 ADD_SUBDIRECTORY(${MODULE_HOME})
 ADD_SUBDIRECTORY(${MAIN_HOME})
