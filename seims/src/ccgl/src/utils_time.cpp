@@ -28,7 +28,7 @@ double TimeCounting() {
 }
 
 string ConvertToString(const time_t* date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
 #ifdef windows
     localtime_s(date_info, date);
 #else
@@ -39,6 +39,7 @@ string ConvertToString(const time_t* date) {
     }
     char date_string[11];
     strftime(date_string, 11, "%Y-%m-%d", date_info);
+    delete date_info;
     return string(date_string);
 }
 
@@ -46,7 +47,7 @@ string ConvertToString2(const time_t* date) {
     // Days number of each month
     static int month_days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
 #ifdef windows
     localtime_s(date_info, date);
 #else
@@ -81,7 +82,7 @@ string ConvertToString2(const time_t* date) {
     return s;
 }
 
-time_t ConvertToTime(const string& str_date, string const& format, bool include_hour) {
+time_t ConvertToTime(const string& str_date, string const& format, const bool include_hour) {
     time_t t(0);
     if (utils_string::StringMatch(str_date, "")) {
         return t;
@@ -90,62 +91,28 @@ time_t ConvertToTime(const string& str_date, string const& format, bool include_
     int mn;
     int dy;
     int hr = 0;
+    int min = 0;
+    int sec = 0;
 
     try {
         if (include_hour) {
-            stringscanf(str_date.c_str(), format.c_str(), &yr, &mn, &dy, &hr);
+            stringscanf(str_date.c_str(), format.c_str(), &yr, &mn, &dy, &hr, &min, &sec);
         } else {
             stringscanf(str_date.c_str(), format.c_str(), &yr, &mn, &dy);
         }
-        struct tm* time_info = new struct tm;
+        struct tm* time_info = new tm();
         time_info->tm_year = yr - 1900;
         time_info->tm_mon = mn - 1;
         time_info->tm_mday = dy;
         time_info->tm_hour = hr;
-        time_info->tm_min = 0;
-        time_info->tm_sec = 0;
+        time_info->tm_min = min;
+        time_info->tm_sec = sec;
         time_info->tm_isdst = false;
         t = mktime(time_info);
+        delete time_info;
     } catch (...) {
-        //throw;
-        // do not throw any exceptions in library.
         cout << "Error occurred when convert " + str_date + " to time_t!" << endl;
         t = 0; // reset to 0 for convenient comparison
-    }
-    return t;
-}
-
-time_t ConvertToTime2(string const& str_date, const char* format, const bool include_hour) {
-    time_t t(0);
-    if (utils_string::StringMatch(str_date, "")) {
-        return t;
-    }
-    int yr;
-    int mn;
-    int dy;
-    int hr = 0;
-    int m = 0;
-    int s = 0;
-
-    try {
-        if (include_hour) {
-            stringscanf(str_date.c_str(), format, &yr, &mn, &dy, &hr, &m, &s);
-        } else {
-            stringscanf(str_date.c_str(), format, &yr, &mn, &dy);
-        }
-
-        struct tm* time_info = new struct tm;
-        time_info->tm_year = yr - 1900;
-        time_info->tm_mon = mn - 1;
-        time_info->tm_mday = dy;
-        time_info->tm_hour = hr;
-        time_info->tm_min = m;
-        time_info->tm_sec = s;
-        time_info->tm_isdst = false;
-        t = mktime(time_info);
-    } catch (...) {
-        cout << "Error in ConvertToTime2!" << endl;
-        t = 0;
     }
     return t;
 }
@@ -153,12 +120,13 @@ time_t ConvertToTime2(string const& str_date, const char* format, const bool inc
 time_t ConvertYMDToTime(int& year, int& month, int& day) {
     time_t t(0);
     try {
-        struct tm* time_info = new struct tm;
+        struct tm* time_info = new tm();
         time_info->tm_year = year - 1900;
         time_info->tm_mon = month - 1;
         time_info->tm_mday = day;
         time_info->tm_isdst = false;
         t = mktime(time_info);
+        delete time_info;
     } catch (...) {
         cout << "Error in ConvertYMDToTime!" << endl;
         t = 0;
@@ -167,7 +135,7 @@ time_t ConvertYMDToTime(int& year, int& month, int& day) {
 }
 
 int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
 #ifdef windows
     localtime_s(date_info, t);
 #else
@@ -181,6 +149,7 @@ int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day) {
     strftime(date_string, 30, "%Y-%m-%d %X", date_info);
     int hour, min, sec;
     stringscanf(date_string, "%4d-%2d-%2d %2d:%2d:%2d", year, month, day, &hour, &min, &sec);
+    delete date_info;
     return 0;
 }
 
@@ -194,25 +163,25 @@ void LocalTime(time_t date, struct tm* t) {
 
 
 int GetYear(const time_t date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_year;
+    return date_info->tm_year + 1900;
 }
 
 int GetMonth(const time_t date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_mon;
+    return date_info->tm_mon + 1;
 }
 
 int GetDay(const time_t date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
     LocalTime(date, date_info);
     return date_info->tm_mday;
 }
 
 int DayOfYear(const time_t date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
     LocalTime(date, date_info);
     return date_info->tm_yday + 1;
 }
@@ -222,7 +191,7 @@ int DayOfYear(const int year, const int month, const int day) {
 }
 
 int JulianDay(const time_t date) {
-    tm* date_info = nullptr;
+    struct tm* date_info = new tm();
     LocalTime(date, date_info);
     return JulianDay(date_info->tm_year, date_info->tm_mon, date_info->tm_mday);
 }
@@ -309,7 +278,7 @@ DateTime DateTime::LocalTime() {
     return SystemTimeToDateTime(sys_time);
 #elif defined CPP_GCC
     time_t timer = time(nullptr);
-    tm* time_info = nullptr;
+    struct tm* time_info = new tm();
     localtime_r(&timer, time_info);
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
@@ -322,7 +291,7 @@ DateTime DateTime::UTCTime() {
     return SystemTimeToDateTime(utc_time);
 #elif defined CPP_GCC
     time_t timer = time(nullptr);
-    tm* time_info = nullptr;
+    struct tm* time_info = new tm();
     gmtime_r(&timer, time_info);
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
@@ -373,7 +342,7 @@ DateTime DateTime::FromFileTime(const vuint64_t ifiletime) {
     return SystemTimeToDateTime(sys_time);
 #elif defined CPP_GCC
     time_t timer = static_cast<time_t>(ifiletime / 1000);
-    tm* time_info = nullptr;
+    struct tm* time_info = new tm();
     localtime_r(&timer, time_info);
     return ConvertTMToDateTime(time_info, ifiletime % 1000);
 #endif
@@ -396,7 +365,7 @@ DateTime DateTime::ToLocalTime() {
     time_t local_timer = time(nullptr);
     time_t utc_timer = mktime(gmtime(&local_timer));
     time_t timer = static_cast<time_t>(filetime / 1000) + local_timer - utc_timer;
-    tm* time_info = nullptr;
+    struct tm* time_info = new tm();
     localtime_r(&timer, time_info);
 
     return ConvertTMToDateTime(time_info, milliseconds);
@@ -411,7 +380,7 @@ DateTime DateTime::ToUTCTime() {
     return SystemTimeToDateTime(utc_time);
 #elif defined CPP_GCC
     time_t timer = static_cast<time_t>(filetime / 1000);
-    tm* time_info = nullptr;
+    struct tm* time_info = new tm();
     gmtime_r(&timer, time_info);
 
     return ConvertTMToDateTime(time_info, milliseconds);

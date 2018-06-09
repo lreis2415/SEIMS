@@ -389,9 +389,9 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t* iter) {
     if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp_time_str = vv->value.v_utf8.str;
         if (tmp_time_str.size() > 12) {
-            return utils_time::ConvertToTime2(tmp_time_str, "%4d-%2d-%2d %2d:%2d:%2d", true);
+            return utils_time::ConvertToTime(tmp_time_str, "%4d-%2d-%2d %2d:%2d:%2d", true);
         }
-        return utils_time::ConvertToTime2(tmp_time_str, "%4d-%2d-%2d", false);
+        return utils_time::ConvertToTime(tmp_time_str, "%4d-%2d-%2d", false);
     }
     cout << "Failed in get Date Time value." << endl;
     return -1;
