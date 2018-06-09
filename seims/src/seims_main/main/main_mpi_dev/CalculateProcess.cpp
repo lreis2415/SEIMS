@@ -20,6 +20,80 @@ using std::map;
 using std::set;
 using std::vector;
 
+void BuildSubbasinLayers(const int rank, int size, const int max_task_len,
+                         const int n_subbasins, const bool include_channel,
+                         int*& p_group_id,
+                         int& max_lyr_id, int*& p_lyr_id_all,
+                         int*& p_subbasin_ids_all, int*& p_upstream_nums_all,
+                         map<int, int>& subbasin_rank,
+                         map<int, vector<int> >& src_subbsn_layers,
+                         map<int, vector<int> >& non_src_subbsn_layers,
+                         set<int>& down_stream_set,
+                         set<int>& down_stream_id_set) {
+
+    for (int i = 0; i < size * max_task_len; i++) {
+        if (p_subbasin_ids_all[i] < 0) continue;
+        subbasin_rank[p_subbasin_ids_all[i]] = p_group_id[i] / max_task_len;
+    }
+#ifdef _DEBUG
+    cout << "Subbasin ID -> Rank ID" << endl;
+    for (auto it = subbasin_rank.begin(); it != subbasin_rank.end(); ++it) {
+        cout << it->first << " -> " << it->second << endl;
+    }
+#endif
+    if (include_channel) {
+        for (int i = 0; i < n_subbasins; i++) {
+            int subbsn_idx = rank * max_task_len + i;
+            // classification according to the Layering method, i.e., up-down and down-up orders.
+            int stream_order = p_lyr_id_all[subbsn_idx];
+            if (stream_order > max_lyr_id) { max_lyr_id = stream_order; }
+            if (stream_order > 1) {
+                // all possible downstream subbasins (i.e., layer >= 2)
+                down_stream_set.insert(i);                        // index of the array of current rank
+                down_stream_id_set.insert(p_subbasin_ids_all[i]); // Subbasin ID
+            }
+            if (p_upstream_nums_all[subbsn_idx] == 0) {
+                // source subbasins of each layer
+                if (src_subbsn_layers.find(stream_order) == src_subbsn_layers.end()) {
+                    src_subbsn_layers.insert(make_pair(stream_order, vector<int>()));
+                }
+                src_subbsn_layers[stream_order].push_back(i);
+            } else {
+                if (non_src_subbsn_layers.find(stream_order) == non_src_subbsn_layers.end()) {
+                    non_src_subbsn_layers.insert(make_pair(stream_order, vector<int>()));
+                }
+                non_src_subbsn_layers[stream_order].push_back(i);
+            }
+        }
+    } else {
+        // No channel processes are simulated, all subbasins will be regarded as source subbasins
+        src_subbsn_layers.insert(make_pair(1, vector<int>()));
+        for (int i = 0; i < n_subbasins; i++) {
+            src_subbsn_layers[1].push_back(i);
+        }
+    }
+#ifdef _DEBUG
+    cout << "Rank: " << rank << ", Source subbasins: ";
+    for (auto it = src_subbsn_layers.begin(); it != src_subbsn_layers.end(); ++it) {
+        cout << "Layer ID: " << it->first;
+        for (auto idx_it = it->second.begin(); idx_it != it->second.end(); ++idx_it) {
+            cout << p_subbasin_ids_all[rank * max_task_len + *idx_it] << ", ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    cout << "Rank: " << rank << ", Non-Source subbasins: ";
+    for (auto it = non_src_subbsn_layers.begin(); it != non_src_subbsn_layers.end(); ++it) {
+        cout << "Layer ID: " << it->first;
+        for (auto idx_it = it->second.begin(); idx_it != it->second.end(); ++idx_it) {
+            cout << p_subbasin_ids_all[rank * max_task_len + *idx_it] << ", ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+#endif /* _DEBUG */
+}
+
 void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     StatusMessage(("Enter computing process, Rank: " + ValueToString(rank)).c_str());
     /******************* Load parallel task scheduing information *******************/
@@ -61,8 +135,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     MPI_Bcast(p_downstream_all, n_task_all, MPI_INT, MASTER_RANK, MCW);
     MPI_Bcast(p_upstream_nums_all, n_task_all, MPI_INT, MASTER_RANK, MCW);
     MPI_Bcast(p_upstream_ids_all, n_task_all * MAX_UPSTREAM, MPI_INT, MASTER_RANK, MCW);
-
-    StatusMessage("Tasks are dispatched.");
+    if (rank == MASTER_RANK) {
+        StatusMessage("Tasks are dispatched.");
+    }
 #ifdef _DEBUG
     for (int i = 0; i < size; i++) {
         cout << "group id, subbasin ids, layer numbers, downstream ids, upstream numbers, upstream ids" << endl;
@@ -98,8 +173,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "]" << endl;
     }
 #endif /* _DEBUG */
-    double load_task_t = MPI_Wtime() - tstart; /// Time of load parallel task sceduling information.
-    MPI_Reduce(&load_task_t, &load_task_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
+    double load_task_tmp = MPI_Wtime() - tstart; /// Time of load parallel task sceduling information.
+    double load_task_t;
+    MPI_Reduce(&load_task_tmp, &load_task_t, 1, MPI_DOUBLE, MPI_MAX, MASTER_RANK, MCW);
 
     /******************* Actual calculation *******************/
     int n_subbasins = 0; // subbasin number of current rank
@@ -111,7 +187,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         MPI_Abort(MCW, 1);
     }
 
-    tstart = MPI_Wtime();
+    tstart = MPI_Wtime(); /// Start to construct objects of subbasin models
     /// Get module path, i.e., the path of executable and dynamic libraries
     string module_path = GetAppPath();
     /// Connect to MongoDB
@@ -144,22 +220,29 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     }
     StatusMessage(("Rank " + ValueToString(rank) + " construct models done!").c_str());
     /// Reduce for model constructing time, which also input time
-    double model_construc_t = MPI_Wtime() - tstart;
-    MPI_Reduce(&model_construc_t, &model_construc_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
+    double model_construct_tmp = MPI_Wtime() - tstart;
+    double model_construct_t;
+    MPI_Reduce(&model_construct_tmp, &model_construct_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
+    double input_t = load_task_t + model_construct_t;
     if (rank == MASTER_RANK) {
-        cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << model_construc_t << endl;
+        cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << input_t << endl;
     }
 
-    tstart = MPI_Wtime();
-    int max_lyr_id = 1;
+    tstart = MPI_Wtime(); /// Start simulation
+    /*! Subbasin object -> rank ID (i.e., group ID)
+     * Key: Subbasin ID
+     * Value: rank ID
+     */
+    map<int, int> subbasin_rank;
+    int max_lyr_id = 1; /// Maximum layering ID
     /*! Source subbasins in each layer in current slave rank
-     * Key: Layering number
-     * Value: Source subbasin indexes
+     * Key: Layering ID
+     * Value: Source subbasin indexes in current rank
      */
     map<int, vector<int> > src_subbsn_layers;
     /*! Non source subbasins in each layer in current slave rank
-     * Key: Layering number
-     * Value: Non source subbasin indexes
+     * Key: Layering ID
+     * Value: Non source subbasin indexes in current rank
      */
     map<int, vector<int> > non_src_subbsn_layers;
     // Used to find if the downstream subbasin of a finished subbsin is in the same process,
@@ -167,49 +250,16 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     //   the `set` container is more efficient for the 'find' operation
     set<int> down_stream_set;    // Indexes of not-first layer subbasins
     set<int> down_stream_id_set; // Subbasin IDs of not-first layer subbasins
-    bool include_channel = false;
-    if (model_list[0]->IncludeChannelProcesses()) {
-        include_channel = true;
-        for (int i = 0; i < n_subbasins; i++) {
-            int subbsn_idx = rank * max_task_len + i;
-            // classification according to the Layering method, i.e., up-down and down-up orders.
-            int stream_order = p_lyr_id_all[subbsn_idx];
-            if (stream_order > max_lyr_id) { max_lyr_id = stream_order; }
-            if (stream_order > 1) {
-                // all possible downstream subbasins (i.e., layer >= 2)
-                down_stream_set.insert(i);                        // index of the array
-                down_stream_id_set.insert(p_subbasin_ids_all[i]); // Subbasin ID
-            }
-            if (p_upstream_nums_all[subbsn_idx] == 0) {
-                // source subbasins of each layer
-                if (src_subbsn_layers.find(stream_order) == src_subbsn_layers.end()) {
-                    src_subbsn_layers.insert(make_pair(stream_order, vector<int>()));
-                }
-                src_subbsn_layers[stream_order].push_back(i);
-            } else {
-                if (non_src_subbsn_layers.find(stream_order) == non_src_subbsn_layers.end()) {
-                    non_src_subbsn_layers.insert(make_pair(stream_order, vector<int>()));
-                }
-                non_src_subbsn_layers[stream_order].push_back(i);
-            }
-        }
-    } else {
-        // No channel processes are simulated, all subbasins will be regarded as source subbasins
-        src_subbsn_layers.insert(make_pair(1, vector<int>()));
-        for (int i = 0; i < n_subbasins; i++) {
-            src_subbsn_layers[1].push_back(i);
-        }
-    }
-#ifdef _DEBUG
-    cout << "Rank: " << rank << ", Source subbasins of layer 1: ";
-    for (auto it = src_subbsn_layers[1].begin(); it != src_subbsn_layers[1].end(); ++it) {
-        cout << p_subbasin_ids_all[rank * max_task_len + *it] << ", ";
-    }
-    cout << endl;
-#endif /* _DEBUG */
+    bool include_channel = model_list[0]->IncludeChannelProcesses();
+    BuildSubbasinLayers(rank, size, max_task_len, n_subbasins, include_channel,
+                        p_group_id, max_lyr_id, p_lyr_id_all,
+                        p_subbasin_ids_all, p_upstream_nums_all,
+                        subbasin_rank,
+                        src_subbsn_layers, non_src_subbsn_layers,
+                        down_stream_set, down_stream_id_set);
 
-    double t_slope = 0.0;   /// Time of hillslope processes
-    double t_channel = 0.0; /// Time of channel routing processes
+    //double t_slope = 0.0;   /// Time of hillslope processes
+    //double t_channel = 0.0; /// Time of channel routing processes
     /// Create buffer for passing values across subbasins
     float* buf = nullptr;
     int buflen = MSG_LEN + tranfer_count;
@@ -222,6 +272,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         Initialize1DArray(tranfer_count, tfvalues, NODATA_VALUE);
         transfer_values_map.insert(make_pair(p_subbasin_ids_all[rank * max_task_len + i], tfvalues));
     }
+
     /// Get timesteps
     DataCenterMongoDB* dc = data_center_list[0];
     time_t dt_hs = dc->GetSettingInput()->getDtHillslope();
@@ -230,24 +281,27 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     int start_year = GetYear(cur_time);
     int n_hs = CVT_INT(dt_ch / dt_hs);
 
+    MPI_Request request;
+    MPI_Status status;
+
     // Simulation loop
     int sim_loop_num = 0; /// Simulation loop number according to channel routing time-step
     for (; cur_time <= dc->GetSettingInput()->getEndTime(); cur_time += dt_ch) {
         sim_loop_num += 1;
         if (rank == MASTER_RANK) StatusMessage(ConvertToString2(&cur_time).c_str());
         int year_idx = GetYear(cur_time) - start_year;
-        double t_task1 = MPI_Wtime();
-        set<int> done_i_ds; // save subbasin IDs that have been executed
+        //set<int> done_i_ds; // save subbasin IDs that have been executed
         // Execute by layering orders
         for (int ilyr = 1; ilyr <= max_lyr_id; ilyr++) {
 #ifdef _DEBUG
-            cout << "rank: " << rank << "(world rank: " << rank << "), Layer " << ilyr << endl;
+            cout << "rank: " << rank << ", Layer " << ilyr << endl;
 #endif
             // 1. Execute subbasins that does not depend on others
             if (src_subbsn_layers.find(ilyr) != src_subbsn_layers.end()) {
                 for (auto it_src = src_subbsn_layers[ilyr].begin(); it_src != src_subbsn_layers[ilyr].end(); ++it_src) {
+                    int subbasin_id = p_subbasin_ids_all[rank * max_task_len + *it_src];
 #ifdef _DEBUG
-                    cout << "    layer: " << ilyr << ", source subbasin: " << p_tasks[*it_src] << endl;
+                    cout << "    source subbasin: " << subbasin_id << endl;
 #endif
                     // 1.1 Execute hillslope and channel processes, just like the serial version
                     ModelMain* psubbasin = model_list[*it_src];
@@ -258,33 +312,30 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     psubbasin->AppendOutputData(cur_time);
 
                     if (!include_channel) { continue; }
-
                     // 1.2 If the downstream subbasin is in this process,
                     //     there is no need to transfer values to the master process
-                    int subbasin_id = p_tasks[*it_src];
-                    if (down_stream_id_set.find(p_down_stream[*it_src]) != down_stream_id_set.end()) {
+                    if (subbasin_rank[subbasin_id] == rank) {
                         psubbasin->GetTransferredValue(transfer_values_map[subbasin_id]);
-                        done_i_ds.insert(subbasin_id);
+                        //done_i_ds.insert(subbasin_id);
                         continue;
                     }
-                    // 1.3 Otherwise, the transferred values of current subbasin should be sent to master rank
+                    // 1.3 Otherwise, the transferred values of current subbasin should be sent to another rank
                     psubbasin->GetTransferredValue(&buf[MSG_LEN]);
 #ifdef _DEBUG
-                    cout << "slave rank: " << rank << "(world rank: " << rank << "), send subbasinID: " <<
-                            subbasin_id << " tfValues: ";
+                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " tfValues: ";
                     for (int itf = MSG_LEN; itf < buflen; itf++) {
                         cout << buf[itf] << ", ";
                     }
                     cout << endl;
 #endif
-                    buf[0] = 1.f;                   // message type: Send subbasin data to master rank
+                    int dest_rank = subbasin_rank[p_downstream_all[rank * max_task_len + *it_src]];
+                    buf[0] = 1.f;                   // message type: Send subbasin data to another rank
                     buf[1] = CVT_FLT(subbasin_id);  // subbasin ID
-                    buf[2] = CVT_FLT(t);            // time
-                    buf[3] = CVT_FLT(sim_loop_num); // simulation loop number
-                    MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+                    buf[2] = CVT_FLT(sim_loop_num); // simulation loop number
+                    MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, WORK_TAG, MCW, &request);
                     MPI_Wait(&request, &status);
-                } /* src_subbsn_layers[iLyr] loop */
-            }     /* If src_subbsn_layers has iLyr */
+                } /* src_subbsn_layers[ilyr] loop */
+            }     /* If src_subbsn_layers has ilyr */
 
             // 2. Execute subbasins that depend on others
             if (non_src_subbsn_layers.find(ilyr) == non_src_subbsn_layers.end()) { continue; }
@@ -295,8 +346,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
             set<int> todo_set; // To be executed subbasin indexes of current layer
             for (auto it_down = non_src_subbsn_layers[ilyr].begin();
                  it_down != non_src_subbsn_layers[ilyr].end(); ++it_down) {
+                int subbasin_id = p_subbasin_ids_all[rank * max_task_len + *it_down];
 #ifdef _DEBUG
-                cout << "    layer: " << ilyr << ", non-source subbasin(hillslope): " << p_tasks[*it_down] << endl;
+                cout << "    non-source subbasin(hillslope): " << subbasin_id << endl;
 #endif
                 ModelMain* psubbasin = model_list[*it_down];
                 for (int i = 0; i < n_hs; i++) {
@@ -304,10 +356,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                 }
                 todo_set.insert(*it_down);
             }
-            t_task2 = MPI_Wtime();
-            t_slope += t_task2 - t_task1;
-            // TODO, tSlospe currently also contains the time of channel processes of source subbasins
-            t_task1 = MPI_Wtime();
 
             // 2.2 The channel routing of downStream subbasin will be calculated
             //     if its upstream subbasins are already calculated
@@ -317,13 +365,18 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                 //       without asking the master process for data
                 for (auto it_todo = todo_set.begin(); it_todo != todo_set.end();) {
                     bool up_finished = true;
-                    for (int j = 0; j < p_up_nums[*it_todo]; j++) {
-                        int up_id = p_up_stream[*it_todo * MAX_UPSTREAM + j];
-                        // if can not find upstreams, this subbasin can not be done
-                        if (done_i_ds.find(up_id) == done_i_ds.end()) {
-                            up_finished = false;
-                            break;
-                        }
+                    int cur_subbsn_idx = rank * max_task_len + *it_todo;
+                    for (int j = 0; j < p_upstream_nums_all[cur_subbsn_idx]; j++) {
+                        int up_idx = rank * max_task_len * MAX_UPSTREAM + *it_todo * MAX_UPSTREAM + j;
+                        int up_id = p_upstream_ids_all[up_idx]; /// subbasin ID
+                        int up_rank = subbasin_rank[up_id];     /// the corresponding rank ID
+                        MPI_Irecv(transfer_values_map[up_id], buflen, MPI_FLOAT, up_rank, WORK_TAG, MCW, &request);
+                        MPI_Wait(&request, &status);
+                        //// if can not find upstreams, this subbasin can not be done
+                        //if (done_i_ds.find(up_id) == done_i_ds.end()) {
+                        //    up_finished = false;
+                        //    break;
+                        //}
                     }
                     if (up_finished) {
                         cando_set.insert(*it_todo);
@@ -332,130 +385,116 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                         ++it_todo;
                     }
                 }
-
 #ifdef _DEBUG
-                cout << "rank " << rank << "(world rank: " << rank << ") todo set (subbasinID): ";
+                cout << "rank " << rank << ", todo set (subbasinID): ";
                 for (auto it_todo = todo_set.begin(); it_todo != todo_set.end(); ++it_todo) {
-                    cout << p_tasks[*it_todo] << ", ";
+                    cout << p_subbasin_ids_all[rank * max_task_len + *it_todo] << ", ";
                 }
                 cout << ", cando set (subbasinID): ";
                 for (auto it_cando = cando_set.begin(); it_cando != cando_set.end(); ++it_cando) {
-                    cout << p_tasks[*it_cando] << ", ";
+                    cout << p_subbasin_ids_all[rank * max_task_len + *it_cando] << ", ";
                 }
                 cout << endl;
 #endif
                 // 2.2.2 If can not find subbasins to calculate according to local information,
                 //       ask the master process if there are new upstream subbasins calculated
-                if (cando_set.empty()) {
-                    buf[0] = 2.f; // Ask for the already calculated subbasins from other slave ranks
-                    buf[1] = CVT_FLT(group_id);
-                    buf[2] = CVT_FLT(rank);
-                    buf[3] = CVT_FLT(sim_loop_num); // simulation loop number
-
-                    MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
-                    MPI_Wait(&request, &status);
-                    // Wait and receive data from master rank
-                    int msg_len;
-                    MPI_Irecv(&msg_len, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MCW, &request);
-                    MPI_Wait(&request, &status);
-
-                    float* pdata = new float[msg_len];
-                    MPI_Irecv(pdata, msg_len, MPI_FLOAT, MASTER_RANK, MPI_ANY_TAG, MCW, &request);
-                    MPI_Wait(&request, &status);
-#ifdef _DEBUG
-                    cout << "recv count of subbasin data: " << msg_len / (tranfer_count + 1) << ", subbasinIDs: ";
-                    for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
-                        cout << CVT_INT(pdata[ri * (tranfer_count + 1)]) << ", ";
-                    }
-                    cout << endl;
-#endif
-                    for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
-                        int recv_subid = CVT_INT(pdata[ri * (tranfer_count + 1)]);
-                        if (transfer_values_map.find(recv_subid) == transfer_values_map.end()) {
-                            float* tfvalues = nullptr;
-                            Initialize1DArray(tranfer_count, tfvalues, NODATA_VALUE);
-                            transfer_values_map.insert(make_pair(recv_subid, tfvalues));
-                        }
-                        for (int vi = 0; vi < tranfer_count; vi++) {
-                            transfer_values_map[recv_subid][vi] = pdata[ri * (tranfer_count + 1) + vi + 1];
-                        }
-                        done_i_ds.insert(recv_subid);
-                    }
-                    Release1DArray(pdata);
-                } else {
+                if (!cando_set.empty()) {
+                    //                    buf[0] = 2.f; // Ask for the already calculated subbasins from other slave ranks
+                    //                    buf[1] = CVT_FLT(group_id);
+                    //                    buf[2] = CVT_FLT(rank);
+                    //                    buf[3] = CVT_FLT(sim_loop_num); // simulation loop number
+                    //
+                    //                    MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+                    //                    MPI_Wait(&request, &status);
+                    //                    // Wait and receive data from master rank
+                    //                    int msg_len;
+                    //                    MPI_Irecv(&msg_len, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MCW, &request);
+                    //                    MPI_Wait(&request, &status);
+                    //
+                    //                    float* pdata = new float[msg_len];
+                    //                    MPI_Irecv(pdata, msg_len, MPI_FLOAT, MASTER_RANK, MPI_ANY_TAG, MCW, &request);
+                    //                    MPI_Wait(&request, &status);
+                    //#ifdef _DEBUG
+                    //                    cout << "recv count of subbasin data: " << msg_len / (tranfer_count + 1) << ", subbasinIDs: ";
+                    //                    for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
+                    //                        cout << CVT_INT(pdata[ri * (tranfer_count + 1)]) << ", ";
+                    //                    }
+                    //                    cout << endl;
+                    //#endif
+                    //                    for (int ri = 0; ri < msg_len / (tranfer_count + 1); ri++) {
+                    //                        int recv_subid = CVT_INT(pdata[ri * (tranfer_count + 1)]);
+                    //                        if (transfer_values_map.find(recv_subid) == transfer_values_map.end()) {
+                    //                            float* tfvalues = nullptr;
+                    //                            Initialize1DArray(tranfer_count, tfvalues, NODATA_VALUE);
+                    //                            transfer_values_map.insert(make_pair(recv_subid, tfvalues));
+                    //                        }
+                    //                        for (int vi = 0; vi < tranfer_count; vi++) {
+                    //                            transfer_values_map[recv_subid][vi] = pdata[ri * (tranfer_count + 1) + vi + 1];
+                    //                        }
+                    //                        done_i_ds.insert(recv_subid);
+                    //                    }
+                    //                    Release1DArray(pdata);
+                    //                } else {
                     // 2.2.3 The required subbasin data has been satisfied,
                     //       execute subbasin in cando_set, and send data to master rank if necessary
                     for (auto it_cando = cando_set.begin(); it_cando != cando_set.end();) {
+                        int cur_subbsn_idx = rank * max_task_len + *it_cando;
+                        int cur_subbsin_id = p_subbasin_ids_all[cur_subbsn_idx];
 #ifdef _DEBUG
-                        cout << "    layer: " << ilyr << ", non-source subbasin(channel): " <<
-                                p_tasks[*it_cando] << endl;
+                        cout << "    non-source subbasin(channel): " << p_subbasin_ids_all[cur_subbsn_idx] << endl;
 #endif
                         ModelMain* psubbasin = model_list[*it_cando];
-                        for (int j = 0; j < p_up_nums[*it_cando]; j++) {
-                            int up_id = p_up_stream[*it_cando * MAX_UPSTREAM + j];
-                            psubbasin->SetTransferredValue(up_id, transfer_values_map[up_id]);
+                        for (int j = 0; j < p_upstream_nums_all[cur_subbsn_idx]; j++) {
+                            int subbsn_idx = rank * max_task_len * MAX_UPSTREAM + *it_cando * MAX_UPSTREAM + j;
+                            int subbsn_id = p_upstream_ids_all[subbsn_idx]; /// subbasin ID
+                            psubbasin->SetTransferredValue(subbsn_id, transfer_values_map[subbsn_id]);
                         }
                         psubbasin->StepChannel(cur_time, year_idx);
                         psubbasin->AppendOutputData(cur_time);
 
-                        if (down_stream_id_set.find(p_down_stream[*it_cando]) != down_stream_id_set.end()) {
-                            psubbasin->GetTransferredValue(transfer_values_map[p_tasks[*it_cando]]);
-                            done_i_ds.insert(p_tasks[*it_cando]);
+                        if (subbasin_rank[p_downstream_all[cur_subbsn_idx]] == rank) {
+                            psubbasin->GetTransferredValue(transfer_values_map[cur_subbsin_id]);
+                            //done_i_ds.insert(cur_subbsin_id);
                             cando_set.erase(it_cando++); // remove current subbasin from cando_set
                             continue;
                         }
-                        // transfer the result to the master process
+                        // Else, transfer the result to another rank
                         buf[0] = 1.f;                         // message type: Send subbasin data to master rank
-                        buf[1] = CVT_FLT(p_tasks[*it_cando]); // subbasin ID
-                        buf[2] = CVT_FLT(t);
-                        buf[3] = CVT_FLT(sim_loop_num); // simulation loop number
+                        buf[1] = CVT_FLT(cur_subbsin_id); // subbasin ID
+                        buf[2] = CVT_FLT(sim_loop_num); // simulation loop number
                         psubbasin->GetTransferredValue(&buf[MSG_LEN]);
 #ifdef _DEBUG
-                        cout << "slave rank: " << rank << "(world rank: " << rank << "), send subbasinID: "
-                                << p_tasks[*it_cando] << ", tfValues: ";
+                        cout << "rank: " << rank << ", send subbasinID: " << cur_subbsin_id << ", tfValues: ";
                         for (int itf = MSG_LEN; itf < buflen; itf++) {
                             cout << buf[itf] << ", ";
                         }
                         cout << endl;
 #endif
-                        MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
+                        int dest_rank = subbasin_rank[cur_subbsin_id];
+                        MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, WORK_TAG, MCW, &request);
                         MPI_Wait(&request, &status);
                         cando_set.erase(it_cando++);
                     } /* cando_set loop of current layer */
                 }     /* cando_set is not empty */
             }         /* while todo_set is not empty */
-
-            t_task2 = MPI_Wtime();
-            t_channel += t_task2 - t_task1;
         } /* subbasin layers loop */
-
-        MPI_Barrier(slave_comm);
-        if (rank == MASTER_RANK) {
-            buf[0] = 0.f; // signal for new timestep
-            MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
-            MPI_Wait(&request, &status);
-        }
+        MPI_Barrier(MCW);
     } /* timestep loop */
 
-    t2 = MPI_Wtime();
-    t = t2 - t1;
-    MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
-    // TODO, Gather and scatter the computing time of each modules from all slave processors
+    double comp_tmp = MPI_Wtime() - tstart;
+    double comp_t;
+    MPI_Reduce(&comp_tmp, &comp_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
     if (rank == MASTER_RANK) {
-        double computing_time = MaxInArray(t_receive, size);
-#ifdef _DEBUG
-        cout << "[DEBUG][TIMESPAN][COMPUTING]\tnprocs: " << size - 1 << ", Max: " << computing_time
-                << ", Total: " << Sum(size, t_receive) << "\n";
-#endif
-        cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << computing_time << endl;
+        cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << comp_t << endl;
     }
     /***************  Outputs and combination  ***************/
-    t1 = MPI_Wtime();
+    tstart = MPI_Wtime();
     for (int i = 0; i < n_subbasins; i++) {
         model_list[i]->Output();
     }
-    t2 = MPI_Wtime();
-    t = t2 - t1;
+    double output_tmp = MPI_Wtime() - tstart;
+    double output_t;
+    MPI_Reduce(&output_tmp, &output_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
 
     /*** Combine raster outputs serially by one processor. ***/
     /// The operation could be considered as post-process,
@@ -478,28 +517,14 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         delete gfs;
     }
     /*** End of Combine raster outputs. ***/
-
-    MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
     if (rank == MASTER_RANK) {
-        cout << "[TIMESPAN][IO]\tOUTPUT\t" << std::fixed << setprecision(3) << t << endl;
-        cout << "[TIMESPAN][IO]\tALL\t" << std::fixed << setprecision(3) << t + model_construc_t << endl;
+        cout << "[TIMESPAN][IO]\tOUTPUT\t" << std::fixed << setprecision(3) << output_t << endl;
+        double io_t = load_task_t + input_t + output_t;
+        cout << "[TIMESPAN][IO]\tALL\t" << std::fixed << setprecision(3) << io_t << endl;
+        double all_t = io_t + comp_t;
+        cout << "[TIMESPAN][CALCULATION]\tALL\t" << std::fixed << setprecision(3) << all_t << endl;
     }
-
-    double t_end = MPI_Wtime();
-    t = t_end - tstart;
-    MPI_Gather(&t, 1, MPI_DOUBLE, t_receive, 1, MPI_DOUBLE, 0, slave_comm);
-    if (rank == MASTER_RANK) {
-        double all_time = MaxInArray(t_receive, size);
-        cout << "[TIMESPAN][CALCULATION]\tALL\t" << all_time << "\n";
-    }
-    MPI_Barrier(slave_comm);
-
-    // tell the master process to exit
-    if (rank == MASTER_RANK) {
-        buf[0] = 9.f;
-        MPI_Isend(buf, buflen, MPI_FLOAT, MASTER_RANK, WORK_TAG, MCW, &request);
-        MPI_Wait(&request, &status);
-    }
+    MPI_Barrier(MCW);
 
     // clean up
     for (auto it = transfer_values_map.begin(); it != transfer_values_map.end();) {
@@ -525,14 +550,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     delete mongo_client;
 
     Release1DArray(buf);
-    Release1DArray(t_receive);
-
-    Release1DArray(p_tasks);
-    Release1DArray(p_updown_ord);
-    Release1DArray(p_downup_ord);
-    Release1DArray(p_down_stream);
-    Release1DArray(p_up_nums);
-    Release1DArray(p_up_stream);
-
-
+    Release1DArray(p_subbasin_ids_all);
+    Release1DArray(p_lyr_id_all);
+    Release1DArray(p_downstream_all);
+    Release1DArray(p_upstream_nums_all);
+    Release1DArray(p_upstream_ids_all);
 }
