@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include "NutrCH_QUAL2E.h"
 
 #include "text.h"
@@ -83,6 +86,11 @@ NutrCH_QUAL2E::~NutrCH_QUAL2E() {
     if (nullptr != m_chOutCODConc) Release1DArray(m_chOutCODConc);
     if (nullptr != m_chOutTNConc) Release1DArray(m_chOutTNConc);
     if (nullptr != m_chOutTPConc) Release1DArray(m_chOutTPConc);
+    // Parameters used in ParametersSubbasinForChannel()
+    if (nullptr != m_chCellCount) Release1DArray(m_chCellCount);
+    if (nullptr != m_chDaylen) Release1DArray(m_chDaylen);
+    if (nullptr != m_chSr) Release1DArray(m_chSr);
+    if (nullptr != m_chTemp) Release1DArray(m_chTemp);
 }
 
 void NutrCH_QUAL2E::ParametersSubbasinForChannel() {

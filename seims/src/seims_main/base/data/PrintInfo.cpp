@@ -565,8 +565,8 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
     // add it to the list
     m_PrintItems.emplace_back(itm);
 }
@@ -585,8 +585,8 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     itm->Filename = subbasinID == 0 ? file : file + "_" + ValueToString(subbasinID);
     itm->Suffix = sufi;
 
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
 
     type = Trim(type);
     itm->AggType = type;
@@ -623,8 +623,8 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
 
     m_PrintItems.emplace_back(itm);
 }

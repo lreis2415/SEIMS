@@ -52,12 +52,13 @@ public:
     virtual void SetDate(const time_t t, const int year_idx) {
         m_date = t;
         m_yearIdx = year_idx;
-        tm* date_info = nullptr;
+        struct tm* date_info = new tm();
         LocalTime(m_date, date_info);
         m_year = date_info->tm_year + 1900;
         m_month = date_info->tm_mon + 1;
         m_day = date_info->tm_mday;
         m_dayOfYear = date_info->tm_yday + 1;
+        delete date_info;
     }
 
     //! Set thread number for OpenMP
