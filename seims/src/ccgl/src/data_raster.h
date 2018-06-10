@@ -1920,7 +1920,7 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
     /// 3. Store data.
     /// check the valid values count and determine whether can read directly.
     bool re_build_data = true;
-    if (validcount != n_cells_ && calc_pos_ && use_mask_ext_ &&
+    if (validcount <= n_cells_ && calc_pos_ && use_mask_ext_ &&
         nullptr != mask_ && validcount == mask_->GetCellNumber()) {
         re_build_data = false;
         store_pos_ = false;
