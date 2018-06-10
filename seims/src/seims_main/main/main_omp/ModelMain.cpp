@@ -208,7 +208,7 @@ void ModelMain::CheckAvailableOutput() {
 
         if ((*it)->m_moduleIndex < 0) {
             // Don't throw the exception, just print the WARNING message, and delete the printInfos. By LJ
-            if (m_dataCenter->GetSubbasinID() <= 1) {
+            if (m_dataCenter->GetSubbasinID() <= 1 || m_dataCenter->GetSubbasinID() == 9999) {
                 // Print only once
                 cout << "WARNING: Can't find output variable for output id : " << outputid << "." << endl;
             }

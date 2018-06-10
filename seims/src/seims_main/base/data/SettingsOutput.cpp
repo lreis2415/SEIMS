@@ -19,7 +19,12 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
 
         bool isRaster = false;
         if (StringMatch(suffix, string(GTiffExtension))) {
-            isRaster = true;
+            if (m_subbasinID == 9999) { /// For field-version model, all spatial outputs should be text!
+                (*iter).outFileName = coreFileName + "." + TextExtension;
+                suffix = TextExtension;
+            } else {
+                isRaster = true;
+            }
         }
         /// Check Tag_OutputSubbsn first
         if (StringMatch((*iter).subBsn, Tag_Outlet)) {
@@ -31,9 +36,9 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
                 pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix,
                                  true);
             }
-        } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && isRaster) {
-            /// Output of all subbasins of DT_Raster1D or DT_Raster2D
+        } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && (isRaster || m_subbasinID == 9999)) {
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
+            /// Output of all subbasins of DT_Raster1D and DT_Raster2D or DT_Array1D and DT_Array2D (field-version)
             for (auto it = aggTypes.begin(); it != aggTypes.end(); ++it) {
                 pi->AddPrintItem(*it, (*iter).sTimeStr, (*iter).eTimeStr, coreFileName, suffix, m_subbasinID);
             }
@@ -53,7 +58,9 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
             }
             for (auto it = subBsns.begin(); it != subBsns.end(); ++it) {
                 string newCoreFileName = coreFileName;
-                if (m_subbasinID > 0) { newCoreFileName += "_" + ValueToString(m_subbasinID); }
+                if (m_subbasinID > 0 && m_subbasinID != 9999) {
+                    newCoreFileName += "_" + ValueToString(m_subbasinID);
+                }
                 if (m_subbasinID == 0 || StringMatch(*it, ValueToString(m_subbasinID))) {
                     pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, newCoreFileName, *it, suffix, true);
                 }
