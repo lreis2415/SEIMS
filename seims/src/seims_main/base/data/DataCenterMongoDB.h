@@ -26,7 +26,7 @@ public:
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
-        ModuleFactory* factory, int subbasin_id = 0);
+                      ModuleFactory* factory, int subbasin_id = 0);
     //! Destructor
     virtual ~DataCenterMongoDB();
     /*!
