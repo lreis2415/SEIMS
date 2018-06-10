@@ -42,17 +42,18 @@ def combine_multi_layers_array(data_dict):
         if len(key_split) <= 1:
             comb_data_dict[key] = [value]
             continue
-        # len(key_split) >=2:
-        if StringClass.extract_numeric_values_from_string(key_split[-1]) is None:
+        # len(key_split) >= 2:
+        try:
+            pot_lyr_idx = int(key_split[-1]) - 1
+            corename = key[0:key.rfind('_')]
+            if pot_lyr_idx < 0:
+                pot_lyr_idx = 0
+            if corename not in comb_data_dict:
+                comb_data_dict[corename] = list()
+            comb_data_dict[corename].insert(pot_lyr_idx, value)
+        except ValueError:
             comb_data_dict[key] = [value]
             continue
-        corename = key[0:key.rfind('_')]
-        idx = int(StringClass.extract_numeric_values_from_string(key_split[-1])[0]) - 1
-        if idx < 0:
-            idx = 0
-        if corename not in comb_data_dict:
-            comb_data_dict[corename] = list()
-        comb_data_dict[corename].insert(idx, value)
     return comb_data_dict
 
 
@@ -85,6 +86,7 @@ def import_array_to_mongodb(gfs, array, fname):
         array: format [[1,2,3], [2,2,2], [3,3,3], means an array with three layers
         fname: file name
     """
+    fname = fname.upper()
     if gfs.exists(filename=fname):
         x = gfs.get_version(filename=fname)
         gfs.delete(x._id)
@@ -94,19 +96,24 @@ def import_array_to_mongodb(gfs, array, fname):
 
     # Currently, metadata is fixed.
     meta_dict = dict()
-    meta_dict['TYPE'] = fname
-    meta_dict['ID'] = fname
-    meta_dict['DESCRIPTION'] = fname
-    meta_dict['SUBBASIN'] = 9999
-    meta_dict['CELLSIZE'] = -9999
-    meta_dict['NODATA_VALUE'] = -9999
-    meta_dict['NCOLS'] = cols
-    meta_dict['NROWS'] = 1
-    meta_dict['XLLCENTER'] = -9999
-    meta_dict['YLLCENTER'] = -9999
-    meta_dict['LAYERS'] = rows
-    meta_dict['CELLSNUM'] = cols
-    meta_dict['SRS'] = ''
+    if 'WEIGHT' in fname:
+        meta_dict['NUM_SITES'] = rows
+        meta_dict['NUM_CELLS'] = cols
+        meta_dict['SUBBASIN'] = 9999  # Field-version
+    else:
+        meta_dict['TYPE'] = fname
+        meta_dict['ID'] = fname
+        meta_dict['DESCRIPTION'] = fname
+        meta_dict['SUBBASIN'] = 9999
+        meta_dict['CELLSIZE'] = 1
+        meta_dict['NODATA_VALUE'] = -9999
+        meta_dict['NCOLS'] = cols
+        meta_dict['NROWS'] = 1
+        meta_dict['XLLCENTER'] = 0
+        meta_dict['YLLCENTER'] = 0
+        meta_dict['LAYERS'] = rows
+        meta_dict['CELLSNUM'] = cols
+        meta_dict['SRS'] = ''
 
     myfile = gfs.new_file(filename=fname, metadata=meta_dict)
     for j in range(0, cols):
@@ -140,6 +147,7 @@ def main():
 
     # Create spatial parameters
     for csv_file in csv_files:
+        print('Import %s...' % csv_file)
         param_arrays = read_field_arrays_from_csv(csv_file)
         for key, value in list(param_arrays.items()):
             import_array_to_mongodb(spatial_gfs, value, '%d_%s' % (prefix, key))
