@@ -401,9 +401,9 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
         bool adjust_data = false;
         if (find_iter != init_params_.end()) {
             ParamInfo* tmp_param = find_iter->second;
-            if (StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE) ||
+            if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
                 StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
                 adjust_data = true;
             }
