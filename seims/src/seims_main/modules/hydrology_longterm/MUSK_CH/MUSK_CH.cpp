@@ -1,6 +1,9 @@
 #include "MUSK_CH.h"
 
+#include "utils_math.h"
 #include "text.h"
+
+using namespace utils_math;
 
 MUSK_CH::MUSK_CH() :
     m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1), m_outletID(-1), m_ptSub(nullptr),
@@ -434,7 +437,7 @@ void MUSK_CH::ChannelFlow(const int i) {
         qiUp += m_qiCh[upReachId];
         qgUp += m_qgCh[upReachId];
     }
-    qIn += (qsUp + qiUp + qgUp); //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
+    qIn += qsUp + qiUp + qgUp; //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
     //if(i == 12)
     //	cout <<"surfaceQ: "<< m_qsSub[i] << ", subsurfaceQ: " << qiSub << ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
     //	", UPsurfaceQ: "<<qsUp<<", UPsubsurface: "<<qiUp<<", UPground: "<<qgUp<<", \n";
@@ -485,7 +488,7 @@ void MUSK_CH::ChannelFlow(const int i) {
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
     float bankOutGw = m_bankStorage[i] * (1.f - exp(-m_bBank));
     //bankOutGw = 0.f; //TODO, why not consider?
-    m_bankStorage[i] = m_bankStorage[i] + bankInLoss - bankOutGw;
+    m_bankStorage[i] += bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
     } // updated groundwater storage
@@ -522,6 +525,7 @@ void MUSK_CH::ChannelFlow(const int i) {
 
     // calculate coefficients
     MuskWeights wt;
+    if (FloatEqual(m_chVel[i], 0.f)) m_chVel[i] = MIN_SLOPE;
     GetCoefficients(m_chLen[i], m_chVel[i], wt);
     int n = wt.n;
     float q = 0.f;
@@ -540,9 +544,16 @@ void MUSK_CH::ChannelFlow(const int i) {
     m_qRchOut[i] = q / n;
 
     float qInSum = m_qsSub[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
-    m_qsCh[i] = m_qRchOut[i] * (m_qsSub[i] + qsUp) / qInSum;
-    m_qiCh[i] = m_qRchOut[i] * (qiSub + qiUp) / qInSum;
-    m_qgCh[i] = m_qRchOut[i] * (qgSub + qgUp) / qInSum;
+    if (qInSum < UTIL_ZERO) { // In case of divided by zero.
+        m_qsCh[i] = 0.f;
+        m_qiCh[i] = 0.f;
+        m_qgCh[i] = 0.f;
+        m_qRchOut[i] = 0.f;
+    } else {
+        m_qsCh[i] = m_qRchOut[i] * (m_qsSub[i] + qsUp) / qInSum;
+        m_qiCh[i] = m_qRchOut[i] * (qiSub + qiUp) / qInSum;
+        m_qgCh[i] = m_qRchOut[i] * (qgSub + qgUp) / qInSum;
+    }
 
     // set variables for next time step
     m_qIn[i] = qIn;
