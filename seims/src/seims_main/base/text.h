@@ -400,8 +400,8 @@
 /// Ecology
 #define MCLS_PG                                "Plant growth"
 #define MCLSDESC_PG                            "Calculate the amount of plant growth."
-#define MID_BIO_EPIC                           "BIO_EPIC"
-#define MDESC_BIO_EPIC                         "Calculate plant growth using a simplified version of the EPIC plant growth model as in SWAT"
+#define MID_PG_EPIC                           "PG_EPIC"
+#define MDESC_PG_EPIC                         "Calculate plant growth using a simplified version of the EPIC plant growth model as in SWAT"
 /// Overland routing related modules
 #define MCLS_OL_ROUTING                        "Overland routing"
 #define MCLSDESC_OL_ROUTING                    "Overland routing module"

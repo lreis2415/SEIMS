@@ -1,5 +1,5 @@
-MESSAGE(STATUS "        Compiling ecology_subdir: BIO_EPIC...")
-SET(MODNAME BIO_EPIC)
+MESSAGE(STATUS "        Compiling ecology_subdir: PG_EPIC...")
+SET(MODNAME PG_EPIC)
 PROJECT(SEIMS_MODULE_${MODNAME})
 FILE(GLOB SRC_LIST *.cpp *.h)
 ADD_LIBRARY(${MODNAME} SHARED ${SRC_LIST})
