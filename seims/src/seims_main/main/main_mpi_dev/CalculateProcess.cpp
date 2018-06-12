@@ -187,6 +187,28 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         MPI_Abort(MCW, 1);
     }
 
+    /*! Subbasin object -> rank ID (i.e., group ID)
+     * Key: Subbasin ID
+     * Value: rank ID
+     */
+    map<int, int> subbasin_rank;
+    int max_lyr_id = 1; /// Maximum layering ID
+    /*! Source subbasins in each layer in current slave rank
+     * Key: Layering ID
+     * Value: Source subbasin indexes in current rank
+     */
+    map<int, vector<int> > src_subbsn_layers;
+    /*! Non source subbasins in each layer in current slave rank
+     * Key: Layering ID
+     * Value: Non source subbasin indexes in current rank
+     */
+    map<int, vector<int> > non_src_subbsn_layers;
+    // Used to find if the downstream subbasin of a finished subbsin is in the same process,
+    //   if so, the MPI send operation is not necessary.
+    //   the `set` container is more efficient for the 'find' operation
+    set<int> down_stream_set;    // Indexes of not-first layer subbasins
+    set<int> down_stream_id_set; // Subbasin IDs of not-first layer subbasins
+
     tstart = MPI_Wtime(); /// Start to construct objects of subbasin models
     /// Get module path, i.e., the path of executable and dynamic libraries
     string module_path = GetAppPath();
@@ -228,28 +250,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << input_t << endl;
     }
 
-    tstart = MPI_Wtime(); /// Start simulation
-    /*! Subbasin object -> rank ID (i.e., group ID)
-     * Key: Subbasin ID
-     * Value: rank ID
-     */
-    map<int, int> subbasin_rank;
-    int max_lyr_id = 1; /// Maximum layering ID
-    /*! Source subbasins in each layer in current slave rank
-     * Key: Layering ID
-     * Value: Source subbasin indexes in current rank
-     */
-    map<int, vector<int> > src_subbsn_layers;
-    /*! Non source subbasins in each layer in current slave rank
-     * Key: Layering ID
-     * Value: Non source subbasin indexes in current rank
-     */
-    map<int, vector<int> > non_src_subbsn_layers;
-    // Used to find if the downstream subbasin of a finished subbsin is in the same process,
-    //   if so, the MPI send operation is not necessary.
-    //   the `set` container is more efficient for the 'find' operation
-    set<int> down_stream_set;    // Indexes of not-first layer subbasins
-    set<int> down_stream_id_set; // Subbasin IDs of not-first layer subbasins
     bool include_channel = model_list[0]->IncludeChannelProcesses();
     BuildSubbasinLayers(rank, size, max_task_len, n_subbasins, include_channel,
                         p_group_id, max_lyr_id, p_lyr_id_all,
@@ -257,6 +257,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                         subbasin_rank,
                         src_subbsn_layers, non_src_subbsn_layers,
                         down_stream_set, down_stream_id_set);
+
+    tstart = MPI_Wtime(); /// Start simulation
 
     //double t_slope = 0.0;   /// Time of hillslope processes
     //double t_channel = 0.0; /// Time of channel routing processes
@@ -459,9 +461,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             continue;
                         }
                         // Else, transfer the result to another rank
-                        buf[0] = 1.f;                         // message type: Send subbasin data to master rank
+                        buf[0] = 1.f;                     // message type: Send subbasin data to master rank
                         buf[1] = CVT_FLT(cur_subbsin_id); // subbasin ID
-                        buf[2] = CVT_FLT(sim_loop_num); // simulation loop number
+                        buf[2] = CVT_FLT(sim_loop_num);   // simulation loop number
                         psubbasin->GetTransferredValue(&buf[MSG_LEN]);
 #ifdef _DEBUG
                         cout << "rank: " << rank << ", send subbasinID: " << cur_subbsin_id << ", tfValues: ";
@@ -477,7 +479,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     } /* cando_set loop of current layer */
                 }     /* cando_set is not empty */
             }         /* while todo_set is not empty */
-        } /* subbasin layers loop */
+        }             /* subbasin layers loop */
         MPI_Barrier(MCW);
     } /* timestep loop */
 
