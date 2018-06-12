@@ -8,7 +8,7 @@
 """
 from __future__ import absolute_import
 
-from os.path import sep as SEP
+from os import sep as SEP
 
 
 class ModelNameUtils(object):
@@ -102,7 +102,7 @@ class ModelParamDataUtils(object):
                    'USLE_C', 'GSI', 'VPDFR', 'FRGMAX', 'WAVP', 'CO2HI', 'BIOEHI',
                    'RSDCO_PL', 'OV_N', 'CN2A', 'CN2B', 'CN2C', 'CN2D', 'FERTFIELD',
                    'ALAI_MIN', 'BIO_LEAF', 'MAT_YRS', 'BMX_TREES', 'EXT_COEF', 'BM_DIEOFF']
-    landuse_fields = ['CN2A', 'CN2B', 'CN2C', 'CN2D', 'ROOTDEPTH', 'MANNING',
+    landuse_fields = ['LANDUSE_ID', 'CN2A', 'CN2B', 'CN2C', 'CN2D', 'ROOTDEPTH', 'MANNING',
                       'INTERC_MAX', 'INTERC_MIN', 'SHC', 'SOIL_T10',
                       'PET_FR', 'PRC_ST1', 'PRC_ST2', 'PRC_ST3', 'PRC_ST4',
                       'PRC_ST5', 'PRC_ST6', 'PRC_ST7', 'PRC_ST8', 'PRC_ST9',
