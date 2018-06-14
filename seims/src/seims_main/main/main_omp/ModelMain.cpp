@@ -193,7 +193,7 @@ double ModelMain::Output() {
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
         cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t"
-            << std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+                << std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
     }
 }
 

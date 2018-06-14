@@ -4,8 +4,8 @@
  * \changelog  2018-03-20  - lj -  Refactor as a more flexible framework to
  *                                 support various transferred variables.
  */
-#ifndef SEIMS_READ_REACH_TOPOLOGY_H
-#define SEIMS_READ_REACH_TOPOLOGY_H
+#ifndef SEIMS_MPI_READ_REACH_TOPOLOGY_H
+#define SEIMS_MPI_READ_REACH_TOPOLOGY_H
 
 #include <map>
 #include <set>
@@ -58,4 +58,4 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
                         GroupMethod group_method, int group_size,
                         map<int, SubbasinStruct *>& subbasins, set<int>& group_set);
 
-#endif /* SEIMS_READ_REACH_TOPOLOGY_H */
+#endif /* SEIMS_MPI_READ_REACH_TOPOLOGY_H */

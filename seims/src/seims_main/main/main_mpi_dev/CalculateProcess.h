@@ -1,3 +1,8 @@
+/*!
+ * \brief Perform calculation on each rank.
+ * \author Liangjun Zhu
+ * \changelog  2018-06-12  - lj -  Initial implementation.\n
+ */
 #ifndef SEIMS_MPI_CALCULATE_PROCESS_H
 #define SEIMS_MPI_CALCULATE_PROCESS_H
 
