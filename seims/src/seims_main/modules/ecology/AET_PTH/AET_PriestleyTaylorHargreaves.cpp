@@ -8,6 +8,8 @@ using namespace utils_math;
 AET_PT_H::AET_PT_H() :
     m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
     m_esco(nullptr), m_nSoilLyrs(nullptr),
+    m_landuse(nullptr), m_cropsta(nullptr),
+    m_impoundTrig(nullptr), m_potVol(nullptr),
     /// input from other modules
     m_maxSoilLyrs(-1), m_soilDepth(nullptr), m_soilThk(nullptr), m_solFC(nullptr),
     m_rsdCovSoil(nullptr), m_solNo3(nullptr), m_tMean(nullptr),
@@ -45,6 +47,14 @@ void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
         m_rsdCovSoil = data;
     } else if (StringMatch(sk, VAR_SOL_SW)) {
         m_soilWtrStoPrfl = data;
+    } else if (StringMatch(sk, VAR_LANDUSE)){
+        m_landuse = data;
+    } else if (StringMatch(sk, VAR_CROPSTA)) { 
+        m_cropsta = data; 
+    } else if (StringMatch(sk, VAR_IMPOUND_TRIG)) { 
+        m_impoundTrig = data; 
+    } else if (StringMatch(sk, VAR_POT_VOL)) { 
+        m_potVol = data; 
     } else {
         throw ModelException(MID_AET_PTH, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -114,6 +124,55 @@ void AET_PT_H::InitialOutputs() {
     if (nullptr == m_snowSublim) Initialize1DArray(m_nCells, m_snowSublim, 0.f);
 }
 
+float AET_PT_H::SWAT_maxPET(float pet, int i){
+    /// compute potential plant evapotranspiration (PPT) other than Penman-Monteith method
+    if (m_lai[i] <= 3.f) {
+        m_maxPltET[i] = m_lai[i] * pet * _1div3;
+    }
+    else {
+        m_maxPltET[i] = pet;
+    }
+    if (m_maxPltET[i] < 0.f) m_maxPltET[i] = 0.f;
+    /// compute potential soil evaporation
+    float cej = -5.e-5f;
+    float eaj = 0.f;
+    float es_max = 0.f;  ///maximum amount of evaporation (soil et)
+    float eos1 = 0.f;
+    if (m_snowAccum[i] >= 0.5f) {
+        eaj = 0.5f;
+    }
+    else {
+        eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+    }
+    es_max = pet * eaj;
+    eos1 = pet / (es_max + m_maxPltET[i] + 1.e-10f);
+    eos1 = es_max * eos1;
+    es_max = min(es_max, eos1);
+    es_max = max(es_max, 0.f);
+    /// make sure maximum plant and soil ET doesn't exceed potential ET
+    if (pet < es_max + m_maxPltET[i] && !FloatEqual(es_max + m_maxPltET[i], 0.f)) {
+        es_max = pet * es_max / (es_max + m_maxPltET[i]);
+        m_maxPltET[i] = pet * m_maxPltET[i] / (es_max + m_maxPltET[i]);
+    }
+    if (pet < es_max + m_maxPltET[i]) {
+        es_max = pet - m_maxPltET[i] - UTIL_ZERO;
+    }
+    return es_max;
+}
+
+float AET_PT_H::ORYZA_maxPET(float pet, int i){
+    // split the total pet to the radiation-driven part and drying power part
+    float etrd = 0.f, etae = 0.f;
+    etrd = 0.75f * pet;
+    etae = pet - etrd;
+
+    float es_max = 0.f;
+    es_max = exp(-0.5f * m_lai[i]) * pet;
+
+    m_maxPltET[i] = etrd * (1.f - exp(-0.5f * m_lai[i])) + etae * min(2.f, m_lai[i]);
+    return es_max;
+}
+
 int AET_PT_H::Execute() {
     CheckInputData();
     InitialOutputs();
@@ -134,37 +193,15 @@ int AET_PT_H::Execute() {
             m_maxPltET[i] = 0.f; // i.e., ep_max
             es_max = 0.f;
         } else {
-            /// compute potential plant evapotranspiration (PPT) other than Penman-Monteith method
-            if (m_lai[i] <= 3.f) {
-                m_maxPltET[i] = m_lai[i] * pet * _1div3;
-            } else {
-                m_maxPltET[i] = pet;
+            if ((CVT_INT(m_landuse[i]) == LANDUSE_ID_PADDY) && (m_cropsta != nullptr) && (m_cropsta[i] == 4.f)){
+                // if the cell is paddy and rice in main field
+                // add oryza method to compute soil evaporation and crop transpiration, by sf 2017.11.29
+                es_max = ORYZA_maxPET(pet, i);
             }
-            if (m_maxPltET[i] < 0.f) m_maxPltET[i] = 0.f;
-            /// compute potential soil evaporation
-            cej = -5.e-5f;
-            eaj = 0.f;
-            es_max = 0.f; ///maximum amount of evaporation (soil et)
-            eos1 = 0.f;
-            if (m_snowAccum[i] >= 0.5f) {
-                eaj = 0.5f;
-            } else {
-                eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+            else{
+                es_max = SWAT_maxPET(pet, i);
             }
-            es_max = pet * eaj;
-            eos1 = pet / (es_max + m_maxPltET[i] + 1.e-10f);
-            eos1 = es_max * eos1;
-            es_max = Min(es_max, eos1);
-            es_max = Max(es_max, 0.f);
-            /// make sure maximum plant and soil ET doesn't exceed potential ET
-            if (pet < es_max + m_maxPltET[i] && !FloatEqual(es_max + m_maxPltET[i], 0.f)) {
-                es_max = pet * es_max / (es_max + m_maxPltET[i]);
-                m_maxPltET[i] = pet * m_maxPltET[i] / (es_max + m_maxPltET[i]);
-            }
-            if (pet < es_max + m_maxPltET[i]) {
-                es_max = pet - m_maxPltET[i] - UTIL_ZERO;
-            }
-
+            
             /// initialize soil evaporation variables
             esleft = es_max;
             /// compute sublimation, using the input m_snowSB from snow sublimation module, if not provided, initialized as 0
@@ -181,6 +218,21 @@ int AET_PT_H::Execute() {
                     m_snowAccum[i] = 0.f;
                 }
             }
+
+            //if (FloatEqual(m_impoundTrig[i], 0.f)){
+            //	// for impound paddy rice, source of water for evaporation can from pot and soil, by sf 2017.11.29
+            //	if (m_potVol[i] >= esleft){
+            //		/// take all soil evap from pot
+            //		m_potVol[i] -= esleft;
+            //		esleft = 0.f;
+            //	}
+            //	else{
+            //		/// first taking from pot then start taking from soil
+            //		esleft -= m_potVol[i];
+            //		m_potVol[i] = 0.f;			
+            //	}
+            //}
+
             // take soil evap from each soil layer
             evzp = 0.f;
             eosl = esleft;

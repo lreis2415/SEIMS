@@ -415,7 +415,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
     /* compute surface area of pothole
      * SWAT assuming a cone shape, ha
      * i.e., potholeSurfaceArea(id);
-     * However, currently, we assume it is cell area
+     * However, currently, we assume it is cell area, and all the grid-cell is covered by paddy rice
      */
     m_potArea[id] = m_cellArea;
     //potvol_ini = m_potVol[id];
