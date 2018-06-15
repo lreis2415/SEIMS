@@ -122,7 +122,9 @@ int PETPriestleyTaylor::Execute() {
             rto = 0.9f * (m_sr[i] / m_srMax) + 0.1f;
         }
         //net long-wave radiation
-        //it may be negative because the sky temperature is colder than the grass temperature
+		//it may be negative because the sky temperature is colder than the grass temperature
+        //http://hyperphysics.phy-astr.gsu.edu/hbase/thermo/stefan.html
+        //http://www.indiana.edu/~geog109/topics/04_radiation/stefan_bol.htm
         float tk = m_meanTemp[i] + 273.15f;
         float raLongWave = rbo * rto * 4.9e-9f * pow(tk, 4.f);
 
