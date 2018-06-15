@@ -185,8 +185,8 @@ InputArgs::InputArgs(const string& model_path, const string& host, const uint16_
                      const int calibration_id, const int thread_num, const LayeringMethod lyr_mtd,
                      const GroupMethod grp_mtd, const ScheduleMethod skd_mtd)
     : model_path(model_path), model_name(""), host(host), port(port), subbasin_id(subbasin_id),
-      scenario_id(scenario_id), calibration_id(calibration_id), thread_num(thread_num),
-      lyr_mtd(lyr_mtd), grp_mtd(grp_mtd), skd_mtd(skd_mtd) {
+      thread_num(thread_num), lyr_mtd(lyr_mtd), grp_mtd(grp_mtd), skd_mtd(skd_mtd),
+      scenario_id(scenario_id), calibration_id(calibration_id) {
     /// Get model name
     size_t name_idx = model_path.rfind(SEP);
     model_name = model_path.substr(name_idx + 1);

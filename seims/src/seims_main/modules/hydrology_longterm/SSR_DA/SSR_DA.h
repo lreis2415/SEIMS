@@ -129,7 +129,7 @@ private:
     *   @TODO Current version have not fully considered MFD algorithms.
     *	It has the same data structure as m_flowInIndex.
     */
-    float **m_flowInPercentage;
+    // float **m_flowInPercentage;
 
     /**
     *	@brief Routing layers according to the flow direction

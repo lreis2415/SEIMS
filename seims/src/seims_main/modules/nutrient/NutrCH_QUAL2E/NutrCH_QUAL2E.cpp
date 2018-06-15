@@ -12,7 +12,7 @@ NutrCH_QUAL2E::NutrCH_QUAL2E() :
     m_lambda1(-1.f), m_lambda2(-1.f), m_k_l(-1.f), m_k_n(-1.f), m_k_p(-1.f), m_p_n(-1.f),
     tfact(-1.f), m_rnum1(0.f), igropt(-1), m_mumax(-1.f), m_rhoq(-1.f), m_cod_n(-1), m_cod_k(-1),
     m_rchID(nullptr), m_soilTemp(nullptr), m_dayLen(nullptr), m_sr(nullptr),
-    m_bankStorage(nullptr), m_chOrder(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
+    m_bankStorage(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
     m_preChStorage(nullptr), m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr),
     m_chTemp(nullptr), m_bc1(nullptr), m_bc2(nullptr), m_bc3(nullptr),
     m_bc4(nullptr), m_rs1(nullptr), m_rs2(nullptr), m_rs3(nullptr), m_rs4(nullptr),
