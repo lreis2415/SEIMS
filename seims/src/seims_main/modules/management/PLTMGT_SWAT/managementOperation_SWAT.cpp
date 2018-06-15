@@ -634,7 +634,6 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
         }
     }
     /// if dvs is defined
-    /// use it
     /*if (tmpOperation->GetDVS() > 0.f){
         if (m_dvs[i] >= tmpOperation->GetDVS()){
             dvsDepent = true;

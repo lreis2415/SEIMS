@@ -7,6 +7,7 @@
 
 
 Biomass_EPIC::Biomass_EPIC() :
+    m_cropsta(nullptr),
     m_nCells(-1), m_co2Conc(NODATA_VALUE), m_meanTemp(nullptr), m_minTemp(nullptr),
     m_SR(nullptr), m_annMeanTemp(nullptr), m_dayLenMin(nullptr),
     m_dormHr(nullptr), m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
@@ -164,6 +165,7 @@ void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_PHUPLT)) m_phuPlt = data;
     else if (StringMatch(sk, VAR_CHT)) m_canHgt = data;
     else if (StringMatch(sk, VAR_DORMI)) m_dormFlag = data;
+    else if (StringMatch(sk, VAR_CROPSTA)) m_cropsta = data; 
     else {
         throw ModelException(MID_PG_EPIC, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -822,7 +824,8 @@ int Biomass_EPIC::Execute() {
         /// reWrite from plantmod.f of SWAT
         /// calculate residue on soil surface for current day
         m_rsdCovSoil[i] = Max(0.8f * m_biomass[i] + m_soilRsd[i][0], 0.f);
-        if (FloatEqual(m_igro[i], 1.f)) {
+        /// land cover growing, while rice is out
+        if (FloatEqual(m_igro[i], 1.f) && FloatEqual(m_cropsta[i], 0.f)) {      
             /// land cover growing
             DistributePlantET(i); /// swu.f
             if (FloatEqual(m_dormFlag[i], 0.f)) {
