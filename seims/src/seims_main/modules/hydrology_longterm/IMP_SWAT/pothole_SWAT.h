@@ -215,6 +215,8 @@ private:
     float* m_potVolMax;
     /// lowest volume mm
     float* m_potVolMin;
+    /// max fit volume mm
+    float* m_potVolUp;
     /// seepage water of pothole, mm
     float* m_potSeep;
     /// evaporation, mm

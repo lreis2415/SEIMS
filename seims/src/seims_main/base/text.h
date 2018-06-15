@@ -651,6 +651,7 @@
 #define VAR_IGROPT "igropt"
 #define VAR_IMPOUND_TRIG "impound_trig" /// m_impndTrig, release/impound action code, 0 for impound, 1 for release
 #define VAR_POT_VOLMAXMM "pot_volmaxmm" /// m_potVolMax, maximum volume of water stored in the depression/impounded area, mm
+#define VAR_POT_VOLUPMM "pot_volupmm"
 #define VAR_POT_VOLLOWMM "pot_vollowmm" /// m_potVolLow, low depth ...., mm
 #define VAR_INET "INET" /// m_IntcpET, evaporation from the interception storage
 #define VAR_INFIL "INFIL" /// m_infil, Infiltration

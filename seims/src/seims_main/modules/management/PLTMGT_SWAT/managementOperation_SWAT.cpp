@@ -65,7 +65,7 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
     m_autoFertNtrgtMod(nullptr), m_autoFertEff(nullptr), m_autoFertSurfFr(nullptr),
     /// CENTURY C/N cycling related variables
     m_nGrazDays(nullptr), m_grazFlag(nullptr), m_impndTrig(nullptr), m_potVol(nullptr),
-    m_potVolMax(nullptr),
+    m_potVolMax(nullptr), m_potVolUp(nullptr),
     m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
     m_soilFC(nullptr),
     m_soilSat(nullptr), m_soilWtrSto(nullptr),
@@ -167,6 +167,7 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (m_impndTrig != nullptr) Release1DArray(m_impndTrig);
     if (m_potVolMax != nullptr) Release1DArray(m_potVolMax);
     if (m_potVolLow != nullptr) Release1DArray(m_potVolLow);
+    if (m_potVolUp != nullptr) Release1DArray(m_potVolUp);
     /// temporary variables
     if (nullptr != tmp_rtfr) Release1DArray(tmp_rtfr);
     if (nullptr != tmp_soilMass) Release1DArray(tmp_soilMass);
@@ -634,11 +635,11 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
         }
     }
     /// if dvs is defined
-    /*if (tmpOperation->GetDVS() > 0.f){
+    if (tmpOperation->GetDVS() > 0.f){
         if (m_dvs[i] >= tmpOperation->GetDVS()){
             dvsDepent = true;
         }
-    }*/
+    }
     /// The operation will be applied either date or HUSC are satisfied,
     /// and also in case of repeated run
     if (dvsDepent || dateDepent || huscDepent) {
@@ -1739,6 +1740,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
     /// paddy rice module should be added!
     m_potVolMax[i] = curOperation->MaxPondDepth();
     m_potVolLow[i] = curOperation->MinFitDepth();
+    m_potVolUp[i] = curOperation->MaxFitDepth();
     if (FloatEqual(m_impndTrig[i], 0.f)) {
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
@@ -1764,6 +1766,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
     } else {
         m_potVolMax[i] = 0.f;
         m_potVolLow[i] = 0.f;
+        m_potVolUp[i] = 0.f;
     }
 }
 
@@ -1983,8 +1986,11 @@ void MGTOpt_SWAT::Get1DData(const char* key, int* n, float** data) {
         *data = m_potVolMax;
     } else if (StringMatch(sk, VAR_POT_VOLLOWMM)) {
         *data = m_potVolLow;
+    } else if (StringMatch(sk, VAR_POT_VOLUPMM)) { 
+        *data = m_potVolUp; 
+    }
         /// tillage operation of CENTURY model
-    } else if (StringMatch(sk, VAR_TILLAGE_DAYS)) {
+    else if (StringMatch(sk, VAR_TILLAGE_DAYS)) {
         *data = m_tillDays;
     } else if (StringMatch(sk, VAR_TILLAGE_DEPTH)) {
         *data = m_tillDepth;
@@ -2073,6 +2079,7 @@ void MGTOpt_SWAT::InitialOutputs() {
         if (m_impndTrig == nullptr) Initialize1DArray(m_nCells, m_impndTrig, 1.f);
         if (m_potVolMax == nullptr) Initialize1DArray(m_nCells, m_potVolMax, 0.f);
         if (m_potVolLow == nullptr) Initialize1DArray(m_nCells, m_potVolLow, 0.f);
+        if (m_potVolUp == nullptr) Initialize1DArray(m_nCells, m_potVolUp, 0.f);
     }
     /// tillage
     if (find(defined_mgt_codes.begin(), defined_mgt_codes.end(), BMP_PLTOP_Tillage) != defined_mgt_codes.end()) {

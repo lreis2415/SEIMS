@@ -22,7 +22,7 @@ IMP_SWAT::IMP_SWAT() :
     m_potStaMinP(nullptr), m_potSed(nullptr), m_potSand(nullptr), m_potSilt(nullptr), m_potClay(nullptr),
     m_potSag(nullptr), m_potLag(nullptr),
     m_potVol(nullptr), m_potVolMax(nullptr), m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
-    m_potArea(nullptr),
+    m_potArea(nullptr), m_potVolUp(nullptr),
     m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE),
     /// overland to channel
     m_surfqToCh(nullptr), m_sedToCh(nullptr), m_surNO3ToCh(nullptr), m_surNH4ToCh(nullptr),
@@ -168,6 +168,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) m_sol_sumfc = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
     else if (StringMatch(sk, VAR_POT_VOLMAXMM)) m_potVolMax = data;
+    else if (StringMatch(sk, VAR_POT_VOLUPMM)) { m_potVolUp = data; }
     else if (StringMatch(sk, VAR_POT_VOLLOWMM)) m_potVolMin = data;
     else if (StringMatch(sk, VAR_SEDYLD)) m_sedYield = data;
     else if (StringMatch(sk, VAR_SANDYLD)) m_sandYield = data;
@@ -746,10 +747,15 @@ void IMP_SWAT::PotholeSimulate(const int id) {
             m_potLag[id] -= lagloss;
         }
     }
-    // force to auto-irrigation at the end of the day, added by LJ.
-    if (m_potVol[id] < UTIL_ZERO) {
-        m_potVol[id] = m_potVolMin[id];
+    // force to auto-irrigation at the end of the day
+    // if the pot volumn < min fit depth, then irrigate to max fit depth
+    if (m_potVol[id] <  m_potVolMin[id]) {
+        m_potVol[id] = m_potVolUp[id];
     }
+    //// force to auto-irrigation at the end of the day, added by LJ.
+    //if (m_potVol[id] < UTIL_ZERO) {
+    //    m_potVol[id] = m_potVolMin[id];
+    //}
     //potholeSurfaceArea(id);
     m_surfaceRunoff[id] = qdayTmp;
     //if (id == 46364)  /// dianbu 46364, dianbu2 1085

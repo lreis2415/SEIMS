@@ -36,7 +36,7 @@ public:
      * \param[in] day
      * \param[in] parameters
      */
-    PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
              float* parameters);
 
     //! Output
@@ -50,9 +50,13 @@ public:
 
     int GetDay() { return m_day; }
 
+    float GetDVS(void) { return m_DVS; }
+
     int GetOperationCode() { return m_mgtOp; }
 
 protected:
+    /// development stage of rice
+    float m_DVS;
     /// use base hu or plant accumulated hu
     bool m_useBaseHUSC;
     /// husc
@@ -76,7 +80,7 @@ protected:
  */
 class PltOp: public PltMgtOp {
 public:
-    PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~PlantOperation() = default;
 
@@ -117,7 +121,7 @@ private:
  */
 class IrrOp: public PltMgtOp {
 public:
-    IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~IrrigationOperation() = default;
 
@@ -152,7 +156,7 @@ private:
  */
 class FertOp: public PltMgtOp {
 public:
-    FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~FertilizerOperation() = default;
 
@@ -180,7 +184,7 @@ private:
  */
 class PestOp: public PltMgtOp {
 public:
-    PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~PesticideOperation() = default;
 
@@ -206,7 +210,7 @@ private:
  */
 class HvstKillOp: public PltMgtOp {
 public:
-    HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~HarvestKillOperation() = default;
@@ -233,7 +237,7 @@ private:
  */
 class TillOp: public PltMgtOp {
 public:
-    TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~TillageOperation() = default;
 
@@ -256,7 +260,7 @@ private:
  */
 class HvstOnlyOp: public PltMgtOp {
 public:
-    HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~HarvestOnlyOperation() = default;
@@ -283,7 +287,7 @@ private:
  */
 class KillOp: public PltMgtOp {
 public:
-    KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~KillOperation() = default;
 
@@ -298,7 +302,7 @@ public:
  */
 class GrazOp: public PltMgtOp {
 public:
-    GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~GrazingOperation() = default;
 
@@ -330,7 +334,7 @@ private:
  */
 class AutoIrrOp: public PltMgtOp {
 public:
-    AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
               float* parameters);
 
     //virtual ~AutoIrrigationOperation() = default;
@@ -369,7 +373,7 @@ private:
  */
 class AutoFertOp: public PltMgtOp {
 public:
-    AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~AutoFertilizerOperation() = default;
@@ -408,7 +412,7 @@ private:
  */
 class RelImpndOp: public PltMgtOp {
 public:
-    RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~ReleaseImpoundOperation() = default;
@@ -429,6 +433,7 @@ private:
     float m_maxPondDepth; ///< Maximum ponding depth, mm
     float m_maxFitDepth;  ///< Maximum fitting depth, mm
     float m_minFitDepth;  ///< Minimum fitting depth, mm
+
 };
 
 /*!
@@ -438,7 +443,7 @@ private:
  */
 class ContFertOp: public PltMgtOp {
 public:
-    ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~ContinuousFertilizerOperation() = default;
@@ -468,7 +473,7 @@ private:
  */
 class ContPestOp: public PltMgtOp {
 public:
-    ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
+    ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
     //virtual ~ContinuousPesticideOperation() = default;
@@ -498,7 +503,7 @@ private:
  */
 class BurnOp: public PltMgtOp {
 public:
-    BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters);
+    BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
     //virtual ~BurningOperation() = default;
 
