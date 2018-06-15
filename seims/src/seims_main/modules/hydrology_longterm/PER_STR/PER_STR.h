@@ -61,9 +61,9 @@ private:
     void InitialOutputs();
 private:
     /// landuse
-    float *m_landuse;
+    float* m_landuse;
     /// excess precipitation calculated in the infiltration module
-    float *m_exsPcp;
+    float* m_exsPcp;
     /// number of soil layers
     int m_nSoilLayers;
     /// soil layers

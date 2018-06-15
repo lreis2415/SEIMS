@@ -67,13 +67,13 @@ private:
     void InitialOutputs();
 private:
     /// landuse
-    float *m_landuse;
+    float* m_landuse;
     /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
-    float *m_cropsta;
+    float* m_cropsta;
     /// impounding trigger
-    float *m_impoundTrig;
+    float* m_impoundTrig;
     /// pothole volume, mm
-    float *m_potVol;
+    float* m_potVol;
     /// valid cells number
     int m_nCells;
     /// leaf area index(m^2/m^2)

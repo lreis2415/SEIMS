@@ -616,7 +616,7 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
         dateDepent = true;
     }
     /// If husc is defined
-    if (tmpOperation->GetHUFraction() >= 0.f) {
+    if (tmpOperation->GetHUFraction() > 0.f) {
         float aphu = NODATA_VALUE; /// fraction of total heat units accumulated
         if (!FloatEqual(m_dormFlag[i], 1.f)) {
             if (tmpOperation->UseBaseHUSC() && FloatEqual(m_igro[i], 0.f)) {

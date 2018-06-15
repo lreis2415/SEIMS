@@ -1347,6 +1347,7 @@
 #define DESC_POT_SOLPDECAY "Soluble phosphorus decay rate in impounded water body"
 #define DESC_POT_VOLMAXMM "maximum volume of water stored in the depression/impounded area"
 #define DESC_POT_VOLLOWMM "lowest volume of water stored in the depression/impounded area"
+#define DESC_POT_VOLUPMM "max fit depth of paddy"
 #define DESC_EXT_COEF "light extinction coefficient"
 #define DESC_FERTILIZER_LOOKUP "Fertilizer lookup table"
 #define DESC_FIELDCAP "Soil field capacity"

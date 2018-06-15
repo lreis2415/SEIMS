@@ -47,6 +47,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_POT_VOLMAXMM, UNIT_DEPTH_MM, DESC_POT_VOLMAXMM, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_POT_VOLLOWMM, UNIT_DEPTH_MM, DESC_POT_VOLLOWMM, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_POT_VOLUPMM, UNIT_DEPTH_MM, DESC_POT_VOLUPMM, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_DVS, UNIT_NON_DIM, DESC_DVS, Source_Module, DT_Raster1D);
     //mdi.AddInput(VAR_NEPR, UNIT_DEPTH_MM, DESC_NEPR, Source_Module, DT_Raster1D);// m_pNet
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_PET, UNIT_DEPTH_MM, DESC_PET, Source_Module, DT_Raster1D); ///PET

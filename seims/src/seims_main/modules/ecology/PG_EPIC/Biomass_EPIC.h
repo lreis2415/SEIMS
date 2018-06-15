@@ -103,7 +103,7 @@ private:
 
     /// rice grow flag
     /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
-    float *m_cropsta;
+    float* m_cropsta;
     /// years of climate data, not used!
     /// int m_nClimDataYrs;
     /**  climate inputs  **/

@@ -718,7 +718,9 @@ void ORYZA::CalPlantETAndWStress(int i) {
         // compute the potential transpiration rate per unit of root length
         float trrm = m_ppt[i] / (m_zrt[i] + 1.0e-10f);
         float trw = 0.f, lrav = 0.f, zll = 0.f, leav = 0.f, ldav = 0.f;
-        float *fact(nullptr), *musc(nullptr), *mskpa(nullptr);
+        float* fact(nullptr); 
+        float* musc(nullptr); 
+        float* mskpa(nullptr);
         Initialize1DArray((int)m_nSoilLayers[i], fact, 0.f);
         Initialize1DArray((int)m_nSoilLayers[i], musc, 0.f);
         Initialize1DArray((int)m_nSoilLayers[i], mskpa, 0.f);
@@ -727,7 +729,6 @@ void ORYZA::CalPlantETAndWStress(int i) {
         for (int j = 0; j < CVT_INT(m_nSoilLayers[i]); j++) {
             // Root length in each soil layer, the unit should be m
             float zrtl = Min(m_soilThick[i][j] / 1000.f, Max(m_zrt[i] - zll, 0.f));
-
 
             /// update total soil water in profile
             m_soilWtrStoPrfl[i] = 0.f;

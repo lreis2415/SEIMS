@@ -10,7 +10,7 @@ IMP_SWAT::IMP_SWAT() :
     m_sol_por(nullptr),
     m_evLAI(NODATA_VALUE), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
     m_potSolPDecay(NODATA_VALUE),
-    m_impoundTrig(nullptr),
+    m_impoundTrig(nullptr), m_dvs(nullptr),
     m_sedYield(nullptr), m_sandYield(nullptr), m_siltYield(nullptr), m_clayYield(nullptr),
     m_smaggreYield(nullptr), m_lgaggreYield(nullptr),
     m_depEvapor(nullptr), m_depStorage(nullptr), m_LAIDay(nullptr), m_pet(nullptr), m_soilStorage(nullptr),
@@ -190,6 +190,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_SEDORGP)) m_sedOrgP = data;
     else if (StringMatch(sk, VAR_SEDMINPA)) m_sedActiveMinP = data;
     else if (StringMatch(sk, VAR_SEDMINPS)) m_sedStableMinP = data;
+    else if (StringMatch(sk, VAR_DVS)) { m_dvs = data; }
     else {
         throw ModelException(MID_IMP_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
     }

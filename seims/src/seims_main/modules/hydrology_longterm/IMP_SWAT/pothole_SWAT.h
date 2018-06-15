@@ -80,6 +80,8 @@ private:
     void ReleaseWater(int id);
 
 private:
+    /// Development stage of the crop
+    float* m_dvs;
     /// conversion factor (mm/ha => m^3)
     float m_cnv;
     /// valid cells number

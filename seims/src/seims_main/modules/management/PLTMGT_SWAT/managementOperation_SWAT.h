@@ -189,25 +189,25 @@ private:
 
     /** Rice **/
     /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
-    float *m_cropsta;
+    float* m_cropsta;
     /// sow factors
     float m_nplsb;
     /// Initial leaf area per plant
     float m_lape;
     /// Dry weight of rough rice (final yield)  
-    float *m_wrr;
+    float* m_wrr;
     /// Development stage of the crop
-    float *m_dvs;
+    float* m_dvs;
     /// the leaf area indices for day i
-    float *m_LAIDay;
+    float* m_LAIDay;
     /// phu accumulated
-    float *m_phuAcc;
+    float* m_phuAcc;
     /// amount of nitrogen in plant biomass (kg/ha), plantn in SWAT
-    float *m_plantN;
+    float* m_plantN;
     /// amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
-    float *m_plantP;
+    float* m_plantP;
     /// fraction of potential plant growth achieved where the reduction is caused by water stress, strsw in SWAT
-    float *m_frStrsWa;
+    float* m_frStrsWa;
 
     /// soil layers
     float* m_nSoilLyrs;
@@ -517,7 +517,7 @@ private:
     /// maximum volume of water stored in the depression/impounded area, mm
     float* m_potVolMax;
     /// max fit volume mm
-    float *m_potVolUp;
+    float* m_potVolUp;
     /// low depth ...., mm
     float* m_potVolLow;
     /// no3 amount kg

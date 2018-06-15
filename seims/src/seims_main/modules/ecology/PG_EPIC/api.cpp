@@ -44,6 +44,9 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SOL_SUMAWC, UNIT_DEPTH_MM, DESC_SOL_SUMAWC, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SOL_SUMSAT, UNIT_DEPTH_MM, DESC_SOL_SUMSAT, Source_ParameterDB, DT_Raster1D);
 
+    /// for paddy
+    mdi.AddParameter(VAR_CROPSTA, UNIT_NON_DIM, DESC_CROPSTA, Source_ParameterDB, DT_Raster1D);
+
     /// Crop or land cover related parameters
     mdi.AddParameter(VAR_IDC, UNIT_NON_DIM, DESC_IDC, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_ALAIMIN, UNIT_AREA_RATIO, DESC_ALAIMIN, Source_ParameterDB, DT_Raster1D);
