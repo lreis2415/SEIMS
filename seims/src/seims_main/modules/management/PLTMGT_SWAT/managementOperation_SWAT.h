@@ -99,6 +99,12 @@ private:
 
     void ExecuteBurningOperation(int i, int factoryID, int nOp);
 
+    // rice plant
+    void ExecuteRicePlantOperation(int cellIdx, int factoryID, int nOp);
+
+    // rice harvest
+    void ExecuteRiceHarvestOperation(int cellIdx, int factoryID, int nOp);
+
     /*!
     * \brief check the input data. Make sure all the input data is available.
     * \return bool The validity of the input data.
@@ -180,6 +186,28 @@ private:
     float* m_landCover;
     /// management unit, e.g., fields
     float* m_mgtFields;
+
+    /** Rice **/
+    /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
+    float *m_cropsta;
+    /// sow factors
+    float m_nplsb;
+    /// Initial leaf area per plant
+    float m_lape;
+    /// Dry weight of rough rice (final yield)  
+    float *m_wrr;
+    /// Development stage of the crop
+    float *m_dvs;
+    /// the leaf area indices for day i
+    float *m_LAIDay;
+    /// phu accumulated
+    float *m_phuAcc;
+    /// amount of nitrogen in plant biomass (kg/ha), plantn in SWAT
+    float *m_plantN;
+    /// amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
+    float *m_plantP;
+    /// fraction of potential plant growth achieved where the reduction is caused by water stress, strsw in SWAT
+    float *m_frStrsWa;
 
     /// soil layers
     float* m_nSoilLyrs;

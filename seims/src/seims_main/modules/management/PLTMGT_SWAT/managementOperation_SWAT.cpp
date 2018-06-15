@@ -69,6 +69,10 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
     m_potVolLow(nullptr), m_potNo3(nullptr), m_potNH4(nullptr), m_potSolP(nullptr),
     m_soilFC(nullptr),
     m_soilSat(nullptr), m_soilWtrSto(nullptr),
+    /// rice related variables
+    m_cropsta(nullptr), m_nplsb(NODATA_VALUE), m_lape(NODATA_VALUE), m_wrr(nullptr),
+    m_dvs(nullptr), m_LAIDay(nullptr), m_phuAcc(nullptr), m_plantN(nullptr), 
+    m_plantP(nullptr), m_frStrsWa(nullptr),
     /// Temporary parameters
     m_soilWtrStoPrfl(nullptr), m_initialized(false),
     tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
@@ -179,6 +183,10 @@ void MGTOpt_SWAT::SetValue(const char* key, const float value) {
         m_cellWth = value;
     } else if (StringMatch(sk, VAR_SUBBSNID_NUM)) {
         m_nSubbsns = CVT_INT(value);
+    } else if (StringMatch(sk, VAR_NPLSB)) { 
+        m_nplsb = value; 
+    } else if (StringMatch(sk, VAR_LAPE)) { 
+        m_lape = value; 
     } else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -293,6 +301,14 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
         m_potSolP = data;
     } else if (StringMatch(sk, VAR_SOL_SW)) {
         m_soilWtrStoPrfl = data;
+    } 
+        /// rice
+    else if (StringMatch(sk, VAR_CROPSTA)) { 
+        m_cropsta = data; 
+    } else if (StringMatch(sk, VAR_WRR)) { 
+        m_wrr = data; 
+    } else if (StringMatch(sk, VAR_DVS)) { 
+        m_dvs = data; 
     } else {
         throw ModelException(MID_PLTMGT_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -593,6 +609,7 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     PltMgtOp* tmpOperation = tmpOperations.at(opCode);
     bool dateDepent = false;
     bool huscDepent = false;
+    bool dvsDepent = false;
     /// If operation applied date (month and day) are defined
     if (m_month == tmpOperation->GetMonth() && m_day == tmpOperation->GetDay()) {
         dateDepent = true;
@@ -616,9 +633,15 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
             }
         }
     }
+    /// if dvs is defined
+    /*if (tmpOperation->GetDVS() > 0.f){
+        if (m_dvs[i] >= tmpOperation->GetDVS()){
+            dvsDepent = true;
+        }
+    }*/
     /// The operation will be applied either date or HUSC are satisfied,
     /// and also in case of repeated run
-    if (dateDepent || huscDepent) {
+    if (dvsDepent || dateDepent || huscDepent) {
         nOps.emplace_back(opCode);
         m_doneOpSequence[i] = nextSeq; /// update value
     }
@@ -1759,11 +1782,75 @@ void MGTOpt_SWAT::ExecuteBurningOperation(const int i, const int factoryID, cons
     /// TODO
 }
 
+void MGTOpt_SWAT::ExecuteRicePlantOperation(int i, int factoryID, int nOp)
+{
+    m_cropsta[i] = 1.f;
+    m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
+    m_phuAcc[i] = 0.f;
+    m_plantN[i] = 0.f;
+}
+
+void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
+{
+    /// rice yield is above, the check can be pass ,check if yield is from above or below ground
+    float yield = 0.f, resnew = 0.f, rtresnew = 0.f;
+    yield = m_wrr[i];
+    resnew = m_biomass[i] - yield;
+    rtresnew = m_frRoot[i] * m_biomass[i];
+
+    if (yield < 0.f) yield = 0.f;
+    if (resnew < 0.f) resnew = 0.f;
+    if (rtresnew < 0.f) rtresnew = 0.f;
+
+    /// calculate nutrient removed with yield
+    float yieldn = 0.f, yieldp = 0.f;
+    yieldn = 0.80f * m_plantN[i];
+    // yieldp = min(yieldp, 0.80f * m_plantP[i]);
+
+    /// call rootfr.f to distributes dead root mass through the soil profile
+    /// i.e., derive fraction of roots in each layer
+    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_rtfr, 0.f);
+    RootFraction(i, tmp_rtfr);
+
+    /// fraction of N, P in residue (ff1) or roots (ff2)
+    float hi = yield / m_biomass[i];
+    float ff1 = (1.f - hi) / (1.f - hi + m_frRoot[i]);
+    float ff2 = 1.f - ff1;
+    /// update residue, N, P on soil surface
+    m_soilRsd[i][0] += resnew;
+    m_soilFrshOrgN[i][0] += ff1 * (m_plantN[i] - yieldn);
+    // m_soilFrshOrgP[i][0] += ff1 * (m_plantP[i] - yieldp);
+    m_soilRsd[i][0] = max(m_soilRsd[i][0], 0.f);
+    m_soilFrshOrgN[i][0] = max(m_soilFrshOrgN[i][0], 0.f);
+    // m_soilFrshOrgP[i][0] = max(m_soilFrshOrgP[i][0], 0.f);
+
+    /// allocate dead roots, N, P to soil layers
+    for (int l = 0; l < m_nSoilLyrs[i]; l++)
+    {
+        m_soilRsd[i][l] += tmp_rtfr[l] * rtresnew;
+        m_soilFrshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_plantN[i] - yieldn);
+        // m_soilFrshOrgP[i][l] += rtfr[l] * ff2 * (m_plantP[i] - yieldp);
+    }
+
+    m_cropsta[i] = 0.f;
+    m_biomass[i] = 0.f;
+    m_frRoot[i] = 0.f;
+    m_plantN[i] = 0.f;
+    m_plantP[i] = 0.f;
+    m_frStrsWa[i] = 1.f;
+    m_LAIDay[i] = 0.f;
+    m_dvs[i] = 0.f;
+}
+
+
 void MGTOpt_SWAT::ScheduledManagement(const int cellIdx, const int factoryID, const int nOp) {
     /// nOp is seqNo. * 1000 + operationCode
     int mgtCode = nOp % 1000;
+    int landuse_id = CVT_INT(m_landUse[cellIdx]);
     switch (mgtCode) {
-        case BMP_PLTOP_Plant: ExecutePlantOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_Plant: 
+            if (landuse_id == 33) ExecuteRicePlantOperation(cellIdx, factoryID, nOp);
+            else ExecutePlantOperation(cellIdx, factoryID, nOp);
             break;
         case BMP_PLTOP_Irrigation: ExecuteIrrigationOperation(cellIdx, factoryID, nOp);
             break;
@@ -1771,7 +1858,9 @@ void MGTOpt_SWAT::ScheduledManagement(const int cellIdx, const int factoryID, co
             break;
         case BMP_PLTOP_Pesticide: ExecutePesticideOperation(cellIdx, factoryID, nOp);
             break;
-        case BMP_PLTOP_HarvestKill: ExecuteHarvestKillOperation(cellIdx, factoryID, nOp);
+        case BMP_PLTOP_HarvestKill: 
+            if (landuse_id == 33) ExecuteRiceHarvestOperation(cellIdx, factoryID, nOp);
+            else ExecuteHarvestKillOperation(cellIdx, factoryID, nOp);
             break;
         case BMP_PLTOP_Tillage: ExecuteTillageOperation(cellIdx, factoryID, nOp);
             break;

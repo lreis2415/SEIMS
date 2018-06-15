@@ -83,17 +83,17 @@ private:
     float m_depCo;
     /// depression storage capacity (mm)
     float* m_depCap;
-	// The embankment area ratio of paddy rice cells
-	float m_embnkFr;
-	// The fraction of precipitation fall on the embankment that drain into ditches or canals directly
-	float m_pcp2CanalFr;
-	// landuse
-	float* m_landUse;
-	/*! Precipitation
-	* For STROM_MODE model, the unit is rainfall intensity mm/h
-	* For LONGTERM_MODE model, the unit is mm
-	*/
-	float* m_pcp;
+    // The embankment area ratio of paddy rice cells
+    float m_embnkFr;
+    // The fraction of precipitation fall on the embankment that drain into ditches or canals directly
+    float m_pcp2CanalFr;
+    // landuse
+    float* m_landUse;
+    /*! Precipitation
+    * For STROM_MODE model, the unit is rainfall intensity mm/h
+    * For LONGTERM_MODE model, the unit is mm
+    */
+    float* m_pcp;
 
     /// pet
     float* m_pet;
