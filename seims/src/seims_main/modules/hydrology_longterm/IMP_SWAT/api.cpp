@@ -85,6 +85,13 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_SEDMINPA_TOCH, UNIT_KG, DESC_SEDMINPA_CH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_SEDMINPS_TOCH, UNIT_KG, DESC_SEDMINPS_CH, Source_Module, DT_Array1D);
 
+    // add reach information
+    mdi.AddParameter(VAR_REACH_PARAM, UNIT_NON_DIM, DESC_REACH_PARAM, Source_ParameterDB, DT_Reach);
+    mdi.AddParameter(VAR_POND_PARAM, UNIT_NON_DIM, DESC_POND_PARAM, Source_ParameterDB, DT_Pond);
+    mdi.AddParameter(VAR_POND, UNIT_NON_DIM, DESC_POND, Source_ParameterDB, DT_Raster1D);
+    mdi.AddInput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_POND_VOL, UNIT_DEPTH_MM, DESC_POND_VOL, Source_Module, DT_Raster1D);
+
     /// set the output variables
     mdi.AddOutput(VAR_POT_NO3, UNIT_KG, DESC_POT_NO3, DT_Raster1D);
     mdi.AddOutput(VAR_POT_NH4, UNIT_KG, DESC_POT_NH4, DT_Raster1D);

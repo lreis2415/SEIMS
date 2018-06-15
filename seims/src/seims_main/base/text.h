@@ -152,6 +152,9 @@
 /// Reach parameters (Replaced Tag_ReachParameter and Tag_RchParam by VAR_REACH_PARAM)
 #define VAR_REACH_PARAM                        "ReachParam"
 #define DESC_REACH_PARAM                       "Reach parameters such as stream order, manning's n and downstream subbasin id"
+/// Pond parameters
+#define VAR_POND_PARAM                         "PondParam" 
+#define DESC_POND_PARAM                        "Pond parameters such as paddy id, pond id which used for irrgation"
 /// Add Subbasins as AddParameters for modules
 #define VAR_SUBBASIN_PARAM                     "SubbasinParam"
 #define DESC_SUBBASIN_PARAM                    "Statistics of subbasin related parameters"
@@ -181,6 +184,12 @@
 #define DB_TAB_OUT_SPATIAL                     "OUTPUT"
 #define DB_TAB_FILE_IN                         "FILE_IN"
 #define DB_TAB_FILE_OUT                        "FILE_OUT"
+/// Fields in DB_TAB_POND ///
+#define POND_PONDID1                           "PONDID1"
+#define POND_PADDYID                           "PADDY_CELLID"
+#define POND_REACHID                           "REACHID"
+#define POND_PONDID2                           "PONDID2"
+#define POND_PONDID3                           "PONDID3"
 /// Fields in DB_TAB_REACH ///
 #define REACH_SUBBASIN                         "SUBBASINID"
 #define REACH_NUMCELLS                         "NUM_CELLS"
@@ -404,6 +413,9 @@
 #define MDESC_PG_EPIC                          "Calculate plant growth using a simplified version of the EPIC plant growth model as in SWAT"
 #define MID_PG_ORYZA                           "PG_ORYZA"
 #define MDESC_PG_ORYZA                         "Rice crop growth module of ORYZA2000 model"
+/// Pond
+#define MID_POND                               "POND" 
+#define MDESC_POND                             "SWAT method, simulates the pond areas"
 /// Overland routing related modules
 #define MCLS_OL_ROUTING                        "Overland routing"
 #define MCLSDESC_OL_ROUTING                    "Overland routing module"
@@ -1176,7 +1188,7 @@
 #define UNIT_WAT_RATIO "mm/mm"         /// mm H2O/mm Soil
 #define UNIT_WTRDLT_MMD "mm/d"                      /// Millimeter per day of water changes
 #define UNIT_WTRDLT_MMH "mm/h"                      /// Millimeter per hour of water changes
-
+#define UNIT_DEPTH_M2 "m2"
 /// Units used in rice growth module (PG_ORYZA), by Fang Shen
 #define UNIT_DVR "deg C/d"
 #define UNIT_PER_HOUR "1/h"

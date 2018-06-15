@@ -70,7 +70,8 @@ enum dimensionTypes {
     DT_Raster2D = 6,         ///< 2D raster, e.g., multi-layers of soil properties
     DT_Scenario = 7,         ///< Scenario used by BMPs
     DT_Reach = 8,            ///< Reach parameters
-    DT_Subbasin = 9          ///< Subbasin instances
+    DT_Subbasin = 9,         ///< Subbasin instances
+    DT_Pond = 10             ///< Pond parameters 
 };
 
 /*!

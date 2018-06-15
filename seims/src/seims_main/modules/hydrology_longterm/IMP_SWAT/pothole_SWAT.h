@@ -31,6 +31,10 @@ public:
 
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
+    void SetPonds(clsPonds *ponds);
+
+    void SetReaches(clsReaches *reaches);
+
 private:
     /*!
      * \brief check the input data. Make sure all the input data is available.
@@ -77,11 +81,53 @@ private:
     /*!
      * release water stored in pothole
      */
-    void ReleaseWater(int id);
+    void ReleaseWater(int id);   
+
+    void irrigateFromPond(int id);
+
+    float pondSurfaceArea(int id);
 
 private:
+    /*   for paddy   */
+    /// paddy number
+    int m_paddyNum;
+    /// paddy IDs
+    vector<int> m_paddyIDs;
+    /// pond id, which used to irrigate the paddy related first
+    float *m_pondID1;
+    /// pond id, which used to irrigate the paddy related second
+    float *m_pondID2;
+    /// pond id, which used to irrigate the paddy related third
+    float *m_pondID3;
+    /// reach id, which used to irrigate the paddy if the three pond are not enough
+    float *m_reachID;
+    /// pond volumn
+    float *m_pondVol;
+    /// reach storage (m^3) at time, t
+    float *m_chStorage;
+    /// pond surface
+    float *m_pondSurfaceArea;
+    /// reaches number
+    int m_nReaches;
+    /// all pond id
+    vector<int> m_pondIds;
+    /*
+    * pond id cell
+    * key: pond id
+    * value: pond cell id
+    */
+    map<int, vector<int> > m_pondIdInfo;
+    /// pond number
+    int m_npond;
+    /// pond id
+    float *m_pond;
+    /// irrigate depth
+    float *m_irrDepth;
     /// Development stage of the crop
     float* m_dvs;
+    // The embankment area ratio of paddy rice HRU
+    float m_embnkfr_pr;
+
     /// conversion factor (mm/ha => m^3)
     float m_cnv;
     /// valid cells number

@@ -15,6 +15,7 @@
 #include "Scenario.h"
 #include "clsReach.h"
 #include "clsSubbasin.h"
+#include "clsPond.h"
 
 #include <string>
 #include <ctime>
@@ -144,6 +145,12 @@ public:
     //! Set pointer of clsReaches class which contains all reaches information. Added by LJ, 2016-7-2
     virtual void SetReaches(clsReaches* rches) {
         throw ModelException("SimulationModule", "SetReaches", "Set reaches function is not implemented.");
+    }
+
+    //! Set pointer of clsPonds class which contains all ponds information. 
+    virtual void SetPonds(clsPonds* )
+    {
+        throw ModelException("SimulationModule", "SetPonds", "Set ponds function is not implemented.");
     }
 
     //! Set pointer of clsSubbasins class which contains all subbasins information. Added by LJ, 2016-7-28
