@@ -8,6 +8,7 @@ PER_STR::PER_STR() :
     m_soilSat(nullptr), m_soilFC(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
     m_surfRf(nullptr), m_potVol(nullptr),
+    m_landuse(nullptr), m_exsPcp(nullptr),
     m_soilPerco(nullptr) {
 }
 
@@ -45,6 +46,12 @@ int PER_STR::Execute() {
             if (excessWater > 1.e-5f) {
                 float maxPerc = maxSoilWater - fcSoilWater;
                 if (maxPerc < 0.f) maxPerc = 0.1f;
+
+                if (CVT_INT(m_landuse[i]) == LANDUSE_ID_PADDY && j == CVT_INT(m_soilLyrs[i]) - 1){
+                    // assume the max perc of paddy is 2 mm because of plow pan
+                    maxPerc = 2.f;
+                }
+
                 float tt = 3600.f * maxPerc / m_ks[i][j];                  // secs
                 m_soilPerco[i][j] = excessWater * (1.f - exp(-m_dt / tt)); // secs
 
@@ -79,11 +86,15 @@ int PER_STR::Execute() {
                             }
                             if (ly == 0 && ul_excess > 0.f) {
                                 // add ul_excess to depressional storage and then to surfq
-                                if (m_potVol != nullptr) {
+                                /*if (m_potVol != nullptr) {
                                     m_potVol[i] += ul_excess;
                                 } else {
                                     m_surfRf[i] += ul_excess;
-                                }
+                                }*/
+                                // add ul_excess to pe, which will be used to compute sd and sr in DEP_LINSLEY
+                                // update infiltration by removing ul_excess
+                                m_infil[i] -= ul_excess;
+                                m_exsPcp[i] += ul_excess;
                             }
                         }
                     }
@@ -127,6 +138,8 @@ void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
     else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
     else if (StringMatch(sk, VAR_POT_VOL)) m_potVol = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
+    else if (StringMatch(sk, VAR_LANDUSE)) m_landuse = data; 
+    else if (StringMatch(sk, VAR_EXCP)) m_exsPcp = data;
     else {
         throw ModelException(MID_PER_STR, "Set1DData", "Parameter " + sk + " does not exist.");
     }

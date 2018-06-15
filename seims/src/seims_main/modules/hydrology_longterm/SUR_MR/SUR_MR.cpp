@@ -78,6 +78,8 @@ int SUR_MR::Execute() {
     for (int i = 0; i < m_nCells; i++) {
         float hWater = 0.f;
         hWater = m_netPcp[i] + m_deprSto[i];
+        if (m_potVol != nullptr)
+            hWater += m_potVol[i];
         if (hWater > 0.f) {
             /// update total soil water content
             m_soilWtrStoPrfl[i] = 0.f;
