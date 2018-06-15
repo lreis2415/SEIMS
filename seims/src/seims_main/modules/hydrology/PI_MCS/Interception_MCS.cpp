@@ -124,7 +124,7 @@ int clsPI_MCS::Execute() {
                 m_intcpLoss[i] = availableSpace;
                 //if the cell is paddy, by default 15% part of pcp will be allocated to embankment area
                 if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY) {
-                    //water added into ditches from low embankment, should be added to somewhere else.
+                    //water added into ditches from low embankment, should be added in module dep_linsley 
                     float pcp2canal = m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
                     m_netPcp[i] = m_pcp[i] - m_intcpLoss[i] - pcp2canal;
                 } else {

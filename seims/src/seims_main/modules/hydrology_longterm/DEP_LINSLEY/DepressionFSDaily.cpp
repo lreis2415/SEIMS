@@ -3,6 +3,8 @@
 #include "text.h"
 
 DepressionFSDaily::DepressionFSDaily() :
+    m_embnkFr(0.15f), m_pcp2CanalFr(0.5f), m_landUse(nullptr),
+	m_pcp(nullptr),
     m_nCells(-1), m_impoundTriger(nullptr),
     m_potVol(nullptr),
     m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr),
@@ -65,6 +67,11 @@ int DepressionFSDaily::Execute() {
             m_sr[i] = 0.f;
         }
 
+		// the part of runoff comes from the paddy embankment area,which is direct to flow to the reach
+		if (CVT_INT(m_landUse[i]) == LANDUSE_ID_PADDY){
+			m_sr[i] += m_pcp[i] * m_pcp2CanalFr * m_embnkFr;
+		}
+
         //////////////////////////////////////////////////////////////////////////
         // evaporation
         if (m_sd[i] > 0) {
@@ -112,6 +119,8 @@ bool DepressionFSDaily::CheckInputSize(const char* key, int n) {
 void DepressionFSDaily::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPREIN)) m_depCo = value;
+	else if (StringMatch(sk, VAR_PCP2CANFR_PR)) m_pcp2CanalFr = value;
+	else if (StringMatch(sk, VAR_EMBNKFR_PR)) m_embnkFr = value;
     else {
         throw ModelException(MID_DEP_LINSLEY, "SetValue", "Parameter " + sk + " does not exist.");
     }
@@ -133,7 +142,12 @@ void DepressionFSDaily::Set1DData(const char* key, const int n, float* data) {
         m_impoundTriger = data;
     } else if (StringMatch(sk, VAR_POT_VOL)) {
         m_potVol = data;
-    } else {
+	} else if (StringMatch(sk, VAR_PCP)) {
+		m_pcp = data;
+	} else if (StringMatch(sk, VAR_LANDUSE)) {
+		m_landUse = data;
+	}
+	else {
         throw ModelException(MID_DEP_LINSLEY, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
