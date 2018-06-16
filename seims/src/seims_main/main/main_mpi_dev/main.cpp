@@ -1,7 +1,3 @@
-#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
-#include "vld.h"
-#endif /* Run Visual Leak Detector during Debug */
-
 #ifndef USE_MONGODB
 #define USE_MONGODB
 #endif /* USE_MONGODB */

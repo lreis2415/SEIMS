@@ -3,12 +3,13 @@
 #include "parallel.h"
 
 using namespace ccgl::utils_array;
+using std::make_pair;
 
 TaskInfo::TaskInfo(const int size, const int rank):
     max_len(-1), subbsn_count(-1), subbsn_id(nullptr),
     lyr_id(nullptr), down_id(nullptr), up_count(nullptr),
     up_ids(nullptr), size_(size),
-    rank_(rank), subbsn_count_rank_(nullptr), max_lyr_(-1) {
+    rank_(rank), subbsn_count_rank_(nullptr), max_lyr_(-1), max_lyr_all_(-1) {
 
 }
 
@@ -19,6 +20,26 @@ TaskInfo::~TaskInfo() {
     if (up_count != nullptr) Release1DArray(up_count);
     if (up_ids != nullptr) Release1DArray(up_ids);
     if (subbsn_count_rank_ != nullptr) Release1DArray(subbsn_count_rank_);
+    for (auto it = subbsn_tfvalues_.begin(); it != subbsn_tfvalues_.end();) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+            if (it2->second != nullptr) {
+                Release1DArray(it2->second);
+                it2->second = nullptr;
+            }
+            it->second.erase(it2++);
+        }
+        subbsn_tfvalues_.erase(it++);
+    }
+    for (auto it = recv_subbsn_tfvalues_.begin(); it != recv_subbsn_tfvalues_.end();) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+            if (it2->second != nullptr) {
+                Release1DArray(it2->second);
+                it2->second = nullptr;
+            }
+            it->second.erase(it2++);
+        }
+        recv_subbsn_tfvalues_.erase(it++);
+    }
 }
 
 bool TaskInfo::CheckInputData() {
@@ -30,11 +51,11 @@ bool TaskInfo::Build() {
     if (!CheckInputData()) return false;
     /// If Build() has already been invoked.
     if (nullptr != subbsn_count_rank_ && !rank_subbsn_id_.empty() &&
-        !subbsn_rank_.empty() && !downstream_.empty() &&
+        !subbsn_rank_.empty() && !subbsn_layer_.empty() && !downstream_.empty() &&
         !upstreams_.empty() && !upstreams_inrank_.empty() && !lyr_subbsns_.empty() &&
         !srclyr_subbsns_.empty() && !nonsrclyr_subbsns_.empty())
         return true;
-    /// rank_subbsn_id_, subbsn_count_rank_ and subbsn_rank_
+    /// rank_subbsn_id_, subbsn_count_rank_, subbsn_rank_, and downstream_
     Initialize1DArray(size_, subbsn_count_rank_, 0);
     for (int irank = 0; irank < size_; irank++) {
         for (int i = 0; i < max_len; i++) {
@@ -44,8 +65,9 @@ bool TaskInfo::Build() {
         }
     }
     for (int i = rank_ * max_len; i < (rank_ + 1) * max_len; i++) {
-        if (subbsn_id[i] > 0) rank_subbsn_id_.push_back(subbsn_id[i]);
-        if (down_id[i] > 0) downstream_[subbsn_id[i]] = down_id[i];
+        if (subbsn_id[i] < 0) continue;
+        rank_subbsn_id_.push_back(subbsn_id[i]);
+        downstream_[subbsn_id[i]] = down_id[i] > 0 ? down_id[i] : -1;
     }
 #ifdef _DEBUG
     cout << "Subbasin ID -> Rank ID" << endl;
@@ -53,7 +75,13 @@ bool TaskInfo::Build() {
         cout << it->first << " -> " << it->second << endl;
     }
 #endif
-    /// lyr_subbsns_, srclyr_subbsns_ and nonsrclyr_subbsns_
+    /// subbsn_layer_, lyr_subbsns_, srclyr_subbsns_ and nonsrclyr_subbsns_
+    max_lyr_all_ = 0;
+    for (int i = 0; i < size_ * max_len; i++) {
+        if (subbsn_id[i] < 0) continue;
+        if (lyr_id[i] > max_lyr_all_) max_lyr_all_ = lyr_id[i];
+        subbsn_layer_[subbsn_id[i]] = lyr_id[i];
+    }
     max_lyr_ = 0;
     for (int i = 0; i < subbsn_count_rank_[rank_]; i++) {
         int sub_idx = rank_ * max_len + i;
@@ -132,6 +160,38 @@ bool TaskInfo::Build() {
     }
 #endif /* _DEBUG */
     return true;
+}
+
+void TaskInfo::MallocTransferredValues(const int transfer_count) {
+    for (int i = 1; i <= max_lyr_all_; i++) {
+        // i is simulation sequence
+        for (int j = 1; j <= max_lyr_all_; j++) {
+            if (lyr_subbsns_.find(j) == lyr_subbsns_.end()) continue;
+            for (auto it = lyr_subbsns_[j].begin(); it != lyr_subbsns_[j].end(); ++it) {
+                if (subbsn_tfvalues_.find(i) == subbsn_tfvalues_.end()) {
+                    subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+                }
+                float* tfvalues = nullptr;
+                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+                subbsn_tfvalues_[i].insert(make_pair(*it, tfvalues));
+            }
+        }
+    }
+
+    for (auto it_id = upstreams_.begin(); it_id != upstreams_.end(); ++it_id) {
+        if (subbsn_rank_[it_id->first] != rank_) continue;
+        for (auto it_up = it_id->second.begin(); it_up != it_id->second.end(); ++it_up) {
+            if (subbsn_rank_[*it_up] == rank_) continue;
+            for (int i = 1; i <= max_lyr_all_; i++) {
+                if (recv_subbsn_tfvalues_.find(i) == recv_subbsn_tfvalues_.end()) {
+                    recv_subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+                }
+                float* tfvalues = nullptr;
+                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+                recv_subbsn_tfvalues_[i].insert(make_pair(*it_up, tfvalues));
+            }
+        }
+    }
 }
 
 int TaskInfo::GetSubbasinNumber() {
