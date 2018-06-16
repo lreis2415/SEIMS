@@ -1,6 +1,6 @@
-MESSAGE(STATUS "        Compiling main_subdir: seims_mpi_dev...")
-PROJECT(SEIMS_MAIN_MPI_DEV_VERSION)
-SET(EXECNAME seims_mpi_dev)
+MESSAGE(STATUS "        Compiling main_subdir: seims_mpi...")
+PROJECT(SEIMS_MAIN_MPI_VERSION)
+SET(EXECNAME seims_mpi_old)
 # Add ModelMain class
 SET(OMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../main_omp)
 # Add combine raster function
