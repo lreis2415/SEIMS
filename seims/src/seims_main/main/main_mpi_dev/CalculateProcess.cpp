@@ -50,8 +50,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "No task for rank " << rank << endl;
         MPI_Abort(MCW, 1);
     }
-    int max_lyr_id = task_info->GetMaxLayerID();           /// Maximum layering ID
     int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
+
     /// Create module factory
     ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
     if (nullptr == module_factory) {
@@ -73,8 +73,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         data_center_map.insert(make_pair(*it_id, data_center));
         model_map.insert(make_pair(*it_id, model));
     }
+
+    /// Get some variables
     bool include_channel = model_map.begin()->second->IncludeChannelProcesses();
-    /// Get timesteps
     time_t dt_hs = data_center_map.begin()->second->GetSettingInput()->getDtHillslope();
     time_t dt_ch = data_center_map.begin()->second->GetSettingInput()->getDtChannel();
     time_t start_time = data_center_map.begin()->second->GetSettingInput()->getStartTime();
@@ -104,56 +105,15 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     int buflen = MSG_LEN + transfer_count;
     Initialize1DArray(buflen, buf, NODATA_VALUE);
 
-    /// Initialize the transferred values of subbasins in current process,
+    /// Initialize the transferred values of subbasins in current process and received from other processes
     ///   NO NEED to create and release in each timestep.
-    /*! Transferred values of subbasins in current rank with timestep stamp
-     * Key: Timestep sequence, which is equal to layer ID in numerical.
-     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
-     */
-    map<int, map<int, float *> > ts_subbsn_tf_values;
+    task_info->MallocTransferredValues(transfer_count);
+    /// Transferred values of subbasins in current rank with timestep stamp
+    map<int, map<int, float *> >& ts_subbsn_tf_values = task_info->GetSubbasinTransferredValues();
     /// Flag to indicate the subbasin was executed or not
     map<int, map<int, bool> > ts_subbsn_flag;
-    for (int i = 1; i <= max_lyr_id_all; i++) {
-        // i is simulation sequence
-        for (int j = 1; j <= max_lyr_id_all; j++) {
-            if (subbsn_layers.find(j) == subbsn_layers.end()) continue;
-            for (auto it = subbsn_layers[j].begin(); it != subbsn_layers[j].end(); ++it) {
-                if (ts_subbsn_tf_values.find(i) == ts_subbsn_tf_values.end()) {
-                    ts_subbsn_tf_values.insert(make_pair(i, map<int, float *>()));
-                }
-                float* tfvalues = nullptr;
-                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
-                ts_subbsn_tf_values[i].insert(make_pair(*it, tfvalues));
-
-                if (ts_subbsn_flag.find(i) == ts_subbsn_flag.end()) {
-                    ts_subbsn_flag.insert(make_pair(i, map<int, bool>()));
-                }
-                ts_subbsn_flag[i].insert(make_pair(*it, false));
-            }
-        }
-    }
-
-    /// Initialize the transferred values of subbasins from other processes,
-    ///   NO NEED to create and release in each timestep.
-    /*! Received transferred values of subbasins in current rank with timestep stamp
-     * Key: Timestep sequence, which is equal to layer ID in numerical.
-     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
-     */
-    map<int, map<int, float *> > recv_ts_subbsn_tf_values;
-    for (auto it_id = upstreams.begin(); it_id != upstreams.end(); ++it_id) {
-        if (subbasin_rank[it_id->first] != rank) continue;
-        for (auto it_up = it_id->second.begin(); it_up != it_id->second.end(); ++it_up) {
-            if (subbasin_rank[*it_up] == rank) continue;
-            for (int i = 1; i <= max_lyr_id_all; i++) {
-                if (recv_ts_subbsn_tf_values.find(i) == recv_ts_subbsn_tf_values.end()) {
-                    recv_ts_subbsn_tf_values.insert(make_pair(i, map<int, float *>()));
-                }
-                float* tfvalues = nullptr;
-                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
-                recv_ts_subbsn_tf_values[i].insert(make_pair(*it_up, tfvalues));
-            }
-        }
-    }
+    /// Received transferred values of subbasins in current rank with timestep stamp
+    map<int, map<int, float *> >& recv_ts_subbsn_tf_values = task_info->GetReceivedSubbasinTransferredValues();
 
     MPI_Request request;
     MPI_Status status;
@@ -168,7 +128,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
         if (rank == MASTER_RANK) {
-            cout << ConvertToString2(&ts) << endl;
+            // cout << ConvertToString2(&ts) << endl;
         }
 #ifdef _DEBUG
         cout << ConvertToString2(&ts) << ", sim_loop_num: " << sim_loop_num << endl;
@@ -352,26 +312,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     MPI_Barrier(MCW);
 
     // clean up
-    for (auto it = ts_subbsn_tf_values.begin(); it != ts_subbsn_tf_values.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
-            if (it2->second != nullptr) {
-                Release1DArray(it2->second);
-                it2->second = nullptr;
-            }
-            it->second.erase(it2++);
-        }
-        ts_subbsn_tf_values.erase(it++);
-    }
-    for (auto it = recv_ts_subbsn_tf_values.begin(); it != recv_ts_subbsn_tf_values.end();) {
-        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
-            if (it2->second != nullptr) {
-                Release1DArray(it2->second);
-                it2->second = nullptr;
-            }
-            it->second.erase(it2++);
-        }
-        recv_ts_subbsn_tf_values.erase(it++);
-    }
     for (auto it = model_map.begin(); it != model_map.end();) {
         delete it->second;
         it->second = nullptr;

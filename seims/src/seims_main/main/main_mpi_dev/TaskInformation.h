@@ -27,6 +27,8 @@ public:
     bool CheckInputData();
     /// Build various data structures to assist calculation
     bool Build();
+    /// Malloc space for transferred values
+    void MallocTransferredValues(int transfer_count);
     /// Get the number of subbasins in current rank
     int GetSubbasinNumber();
     /// Get the maximum layering ID in current rank
@@ -41,7 +43,8 @@ public:
     map<int, vector<int> >& GetLayerSubbasinIDs() { return lyr_subbsns_; }
     map<int, vector<int> >& GetSourceLayerSubbasinIDs() { return srclyr_subbsns_; }
     map<int, vector<int> >& GetNonSourceLayerSubbasinIDs() { return nonsrclyr_subbsns_; }
-
+    map<int, map<int, float *> >& GetSubbasinTransferredValues() { return subbsn_tfvalues_; }
+    map<int, map<int, float *> >& GetReceivedSubbasinTransferredValues() { return recv_subbsn_tfvalues_; }
 public:
     int max_len;      ///< Max. subbasins number of all tasks
     int subbsn_count; ///< All subbasins number
@@ -98,5 +101,15 @@ private:
      * Value: Non source subbasin IDs in current rank
      */
     map<int, vector<int> > nonsrclyr_subbsns_;
+    /*! Transferred values of subbasins in current rank with timestep stamp
+     * Key: Timestep sequence, which is equal to layer ID in numerical.
+     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
+     */
+    map<int, map<int, float *> > subbsn_tfvalues_;
+    /*! Received transferred values of subbasins in current rank with timestep stamp
+     * Key: Timestep sequence, which is equal to layer ID in numerical.
+     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
+     */
+    map<int, map<int, float *> > recv_subbsn_tfvalues_;
 };
 #endif /* SEIMS_MPI_TASK_INFO_H */
