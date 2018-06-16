@@ -10,7 +10,7 @@ SSR_DA::SSR_DA() :
     m_poreIdx(nullptr),
     m_soilFC(nullptr), m_soilWP(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_chWidth(nullptr),
-    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_flowInPercentage(nullptr), m_rteLyrs(nullptr),
+    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_rteLyrs(nullptr),
     m_nRteLyrs(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
     /// outputs
     m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {

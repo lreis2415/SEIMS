@@ -186,9 +186,9 @@ void clsReaches::Update(const map<string, ParamInfo *>& caliparams_map) {
         auto it = caliparams_map.find(REACH_PARAM_NAME[i]);
         if (it != caliparams_map.end()) {
             ParamInfo* tmp_param = it->second;
-            if (StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE) ||
+            if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
                 StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
                 continue;
             }

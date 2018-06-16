@@ -7,8 +7,7 @@
 PETPenmanMonteith::PETPenmanMonteith() :
     m_meanTemp(nullptr), m_minTemp(nullptr),
     m_maxTemp(nullptr), m_sr(nullptr), m_rhd(nullptr),
-    m_ws(nullptr), m_dem(nullptr), m_phuAnn(nullptr), m_srMax(NODATA_VALUE),
-    m_jday(-1),
+    m_ws(nullptr), m_dem(nullptr), m_phuAnn(nullptr),
     m_igro(nullptr), m_canHgt(nullptr), m_lai(nullptr),
     m_alb(nullptr), m_nCells(-1), m_cellLat(nullptr), m_co2Conc(NODATA_VALUE),
     m_vpd2(nullptr), m_gsi(nullptr), m_vpdfr(nullptr), m_frgmax(nullptr),
@@ -127,7 +126,7 @@ int PETPenmanMonteith::Execute() {
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
             phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if*/
-        if (m_jday == 1) m_phuBase[j] = 0.f;
+        if (m_dayOfYear == 1) m_phuBase[j] = 0.f;
         if (m_meanTemp[j] > 0.f && m_phuAnn[j] > 0.01f) {
             m_phuBase[j] += m_meanTemp[j] / m_phuAnn[j];
         }

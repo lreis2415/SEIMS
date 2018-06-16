@@ -289,7 +289,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     // initialize water in reach during time step
     qOutV = m_qRchOut[i] * m_dt; // m^3
     allWater = m_preChStorage[i];
-    if (m_qRchOut[i] < UTIL_ZERO && m_chWtrDepth[i] < UTIL_ZERO || allWater < 0.01f) {
+    if (((m_qRchOut[i] < UTIL_ZERO) && (m_chWtrDepth[i] < UTIL_ZERO)) || (allWater < 0.01f)) {
         /// do not perform sediment routing when:
         /// 1. whether is no water flow out of channel and water depth is nearly zero
         /// 2. if no water in reach

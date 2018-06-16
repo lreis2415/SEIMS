@@ -9,6 +9,9 @@
 #ifdef windows
 #include <io.h>
 #endif
+#ifdef macos
+#include <libproc.h>
+#endif
 
 #include "utils_string.h"
 
