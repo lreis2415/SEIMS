@@ -8,7 +8,7 @@ TaskInfo::TaskInfo(const int size, const int rank):
     max_len(-1), subbsn_count(-1), subbsn_id(nullptr),
     lyr_id(nullptr), down_id(nullptr), up_count(nullptr),
     up_ids(nullptr), size_(size),
-    rank_(rank), subbsn_count_rank_(nullptr), max_lyr_(-1) {
+    rank_(rank), subbsn_count_rank_(nullptr), max_lyr_(-1), max_lyr_all_(-1) {
 
 }
 
@@ -30,7 +30,7 @@ bool TaskInfo::Build() {
     if (!CheckInputData()) return false;
     /// If Build() has already been invoked.
     if (nullptr != subbsn_count_rank_ && !rank_subbsn_id_.empty() &&
-        !subbsn_rank_.empty() && !downstream_.empty() &&
+        !subbsn_rank_.empty() && !subbsn_layer_.empty() && !downstream_.empty() &&
         !upstreams_.empty() && !upstreams_inrank_.empty() && !lyr_subbsns_.empty() &&
         !srclyr_subbsns_.empty() && !nonsrclyr_subbsns_.empty())
         return true;
@@ -45,7 +45,7 @@ bool TaskInfo::Build() {
     }
     for (int i = rank_ * max_len; i < (rank_ + 1) * max_len; i++) {
         if (subbsn_id[i] > 0) rank_subbsn_id_.push_back(subbsn_id[i]);
-        if (down_id[i] > 0) downstream_[subbsn_id[i]] = down_id[i];
+        downstream_[subbsn_id[i]] = down_id[i] > 0 ? down_id[i] : -1;
     }
 #ifdef _DEBUG
     cout << "Subbasin ID -> Rank ID" << endl;
@@ -53,7 +53,13 @@ bool TaskInfo::Build() {
         cout << it->first << " -> " << it->second << endl;
     }
 #endif
-    /// lyr_subbsns_, srclyr_subbsns_ and nonsrclyr_subbsns_
+    /// subbsn_layer_, lyr_subbsns_, srclyr_subbsns_ and nonsrclyr_subbsns_
+    max_lyr_all_ = 0;
+    for (int i = 0; i < size_ * max_len; i++) {
+        if (subbsn_id[i] < 0) continue;
+        if (lyr_id[i] > max_lyr_all_) max_lyr_all_ = lyr_id[i];
+        subbsn_layer_[subbsn_id[i]] = lyr_id[i];
+    }
     max_lyr_ = 0;
     for (int i = 0; i < subbsn_count_rank_[rank_]; i++) {
         int sub_idx = rank_ * max_len + i;

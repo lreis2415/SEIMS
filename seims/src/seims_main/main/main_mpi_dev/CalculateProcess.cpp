@@ -50,7 +50,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "No task for rank " << rank << endl;
         MPI_Abort(MCW, 1);
     }
-    int max_lyr_id = task_info->GetMaxLayerID(); /// Maximum layering ID
+    int max_lyr_id = task_info->GetMaxLayerID();           /// Maximum layering ID
+    int max_lyr_id_all = task_info->GetGlobalMaxLayerID(); /// Global maximum layering ID
     /// Create module factory
     ModuleFactory* module_factory = ModuleFactory::Init(module_path, input_args);
     if (nullptr == module_factory) {
@@ -92,7 +93,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     }
 
     tstart = MPI_Wtime(); /// Start simulation
-
     // Get task related variables
     map<int, int>& subbasin_rank = task_info->GetSubbasinRank();
     map<int, int>& downstream = task_info->GetDownstreamID();
@@ -106,21 +106,52 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
     /// Initialize the transferred values of subbasins in current process,
     ///   NO NEED to create and release in each timestep.
-    map<int, float *> transfer_values_map; // key is subbasinID, value is transferred values
-    for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
-        float* tfvalues = nullptr;
-        Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
-        transfer_values_map.insert(make_pair(*it_id, tfvalues));
+    /*! Transferred values of subbasins in current rank with timestep stamp
+     * Key: Timestep sequence, which is equal to layer ID in numerical.
+     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
+     */
+    map<int, map<int, float *> > ts_subbsn_tf_values;
+    /// Flag to indicate the subbasin was executed or not
+    map<int, map<int, bool> > ts_subbsn_flag;
+    for (int i = 1; i <= max_lyr_id_all; i++) {
+        // i is simulation sequence
+        for (int j = 1; j <= max_lyr_id_all; j++) {
+            if (subbsn_layers.find(j) == subbsn_layers.end()) continue;
+            for (auto it = subbsn_layers[j].begin(); it != subbsn_layers[j].end(); ++it) {
+                if (ts_subbsn_tf_values.find(i) == ts_subbsn_tf_values.end()) {
+                    ts_subbsn_tf_values.insert(make_pair(i, map<int, float *>()));
+                }
+                float* tfvalues = nullptr;
+                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+                ts_subbsn_tf_values[i].insert(make_pair(*it, tfvalues));
+
+                if (ts_subbsn_flag.find(i) == ts_subbsn_flag.end()) {
+                    ts_subbsn_flag.insert(make_pair(i, map<int, bool>()));
+                }
+                ts_subbsn_flag[i].insert(make_pair(*it, false));
+            }
+        }
     }
+
     /// Initialize the transferred values of subbasins from other processes,
     ///   NO NEED to create and release in each timestep.
-    map<int, float *> recv_transfer_values_map; // key is subbasinID, value is transferred values
+    /*! Received transferred values of subbasins in current rank with timestep stamp
+     * Key: Timestep sequence, which is equal to layer ID in numerical.
+     * Value: Transferred values of subbasins, in which key is subbasinID and value is transferred values
+     */
+    map<int, map<int, float *> > recv_ts_subbsn_tf_values;
     for (auto it_id = upstreams.begin(); it_id != upstreams.end(); ++it_id) {
+        if (subbasin_rank[it_id->first] != rank) continue;
         for (auto it_up = it_id->second.begin(); it_up != it_id->second.end(); ++it_up) {
             if (subbasin_rank[*it_up] == rank) continue;
-            float* tfvalues = nullptr;
-            Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
-            recv_transfer_values_map.insert(make_pair(*it_up, tfvalues));
+            for (int i = 1; i <= max_lyr_id_all; i++) {
+                if (recv_ts_subbsn_tf_values.find(i) == recv_ts_subbsn_tf_values.end()) {
+                    recv_ts_subbsn_tf_values.insert(make_pair(i, map<int, float *>()));
+                }
+                float* tfvalues = nullptr;
+                Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+                recv_ts_subbsn_tf_values[i].insert(make_pair(*it_up, tfvalues));
+            }
         }
     }
 
@@ -128,101 +159,143 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     MPI_Status status;
 
     // Simulation loop
-    int sim_loop_num = 0;  /// Simulation loop number according to channel routing time-step
     double t_slope = 0.;   /// Time of hillslope processes
     double t_channel = 0.; /// Time of channel routing processes
     double t_slope_start;
     double t_channel_start;
-    for (time_t cur_time = start_time; cur_time <= end_time; cur_time += dt_ch) {
+    int sim_loop_num = 0; /// Simulation loop number, which will be ciculated at 1 ~ max_lyr_id_all
+    int exec_lyr_num = 1; // For SPATIAL scheduling method
+    for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
-        if (rank == MASTER_RANK){
-            cout << ConvertToString2(&cur_time) << endl;
+        if (rank == MASTER_RANK) {
+            cout << ConvertToString2(&ts) << endl;
         }
-        int year_idx = GetYear(cur_time) - start_year;
+#ifdef _DEBUG
+        cout << ConvertToString2(&ts) << ", sim_loop_num: " << sim_loop_num << endl;
+#endif
+        int year_idx = GetYear(ts) - start_year;
         // Execute by layering orders
-        for (int ilyr = 1; ilyr <= max_lyr_id; ilyr++) {
-            if (subbsn_layers.find(ilyr) == subbsn_layers.end()) continue;
+        for (int ilyr = 1; ilyr <= max_lyr_id_all; ilyr++) {
+            // if (subbsn_layers.find(ilyr) == subbsn_layers.end()) continue; // DO NOT UNCOMMENT THIS!
 #ifdef _DEBUG
-            cout << ConvertToString2(&cur_time) << ", Rank: " << rank << ", Layer " << ilyr << endl;
+            cout << "Rank: " << rank << ", Layer " << ilyr << endl;
 #endif
-            // 1. Execute hillslope processes
-            t_slope_start = TimeCounting();
-            for (auto it = subbsn_layers[ilyr].begin(); it != subbsn_layers[ilyr].end(); ++it) {
-                int subbasin_id = *it;
-#ifdef _DEBUG
-                cout << "    Hillslope process, subbasin: " << subbasin_id << endl;
-#endif
-                ModelMain* psubbasin = model_map[*it];
-                for (int i = 0; i < n_hs; i++) {
-                    psubbasin->StepHillSlope(cur_time + i * dt_hs, year_idx, i);
-                }
-            } /* subbsn_layers[ilyr] loop for executing hillslope processes */
-            t_slope += TimeCounting() - t_slope_start;
-            if (!include_channel) { continue; }
+            if (input_args->skd_mtd == TEMPOROSPATIAL) exec_lyr_num = ilyr;
 
-            // 2. Execute channel processes
-            t_channel_start = TimeCounting();
-            for (auto it = subbsn_layers[ilyr].begin(); it != subbsn_layers[ilyr].end(); ++it) {
-                int subbasin_id = *it;
+            for (int lyr_dlt = 0; lyr_dlt < exec_lyr_num; lyr_dlt++) {
+                if (ts + dt_ch * lyr_dlt > end_time) break;
+                int cur_ilyr = ilyr - lyr_dlt;
+                int cur_sim_loop_num = sim_loop_num + lyr_dlt;
+                // When cur_sim_loop_num exceeds max_lyr_id_all, recount it!
+                if (cur_sim_loop_num > max_lyr_id_all) cur_sim_loop_num %= max_lyr_id_all;
+                for (auto it = subbsn_layers[cur_ilyr].begin(); it != subbsn_layers[cur_ilyr].end(); ++it) {
+                    int subbasin_id = *it;
+                    time_t cur_time = ts + lyr_dlt * dt_ch;
 #ifdef _DEBUG
-                cout << "    Channel process, subbasin: " << subbasin_id << endl;
+                    cout << "  Read for " << ConvertToString2(&cur_time) << "  subbasin: " <<
+                            subbasin_id << ", flag: " << ts_subbsn_flag[cur_sim_loop_num][subbasin_id] <<
+                            "downstream flag: " << ts_subbsn_flag[cur_sim_loop_num][downstream[subbasin_id]] << endl;
 #endif
-                ModelMain* psubbasin = model_map[*it];
-
-                // 2.1 Set transferred data from upstreams
-                for (auto it_upid = upstreams[subbasin_id].begin();
-                     it_upid != upstreams[subbasin_id].end(); ++it_upid) {
-                    if (subbasin_rank[*it_upid] == rank) {
-                        psubbasin->SetTransferredValue(*it_upid, transfer_values_map[*it_upid]);
-                    } else {
-                        // receive data from the specific rank according to work_tag
-                        int work_tag = *it_upid * 10000 + sim_loop_num;;
-                        MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
-                        MPI_Wait(&request, &status);
-#ifdef _DEBUG
-                        cout << "Receive data of subbasi: " << *it_upid << " from rank: " <<
-                                subbasin_rank[*it_upid] << ", tfValues: ";
-                        for (int itf = MSG_LEN; itf < buflen; itf++) {
-                            cout << buf[itf] << ", ";
-                        }
-                        cout << endl;
-#endif
-                        for (int vi = 0; vi < transfer_count; vi++) {
-                            recv_transfer_values_map[*it_upid][vi] = buf[MSG_LEN + vi];
-                        }
-                        psubbasin->SetTransferredValue(*it_upid, recv_transfer_values_map[*it_upid]);
+                    // If subbasin_id already executed or the downstream subbasin has been executed, continue.
+                    if (ts_subbsn_flag[cur_sim_loop_num][subbasin_id] ||
+                        ts_subbsn_flag[cur_sim_loop_num][downstream[subbasin_id]]) {
+                        continue;
                     }
-                }
-                psubbasin->StepChannel(cur_time, year_idx);
-                psubbasin->AppendOutputData(cur_time);
-
-                // 2.2 If the downstream subbasin is in this process,
-                //     there is no need to transfer values to the master process
-                int downstream_id = downstream[subbasin_id];
-                if (subbasin_rank[downstream_id] == rank) {
-                    psubbasin->GetTransferredValue(transfer_values_map[subbasin_id]);
-                    continue;
-                }
-                // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
-                psubbasin->GetTransferredValue(&buf[MSG_LEN]);
+                    // 1. Execute hillslope processes
+                    t_slope_start = TimeCounting();
 #ifdef _DEBUG
-                cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id <<
-                        " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
-                for (int itf = MSG_LEN; itf < buflen; itf++) {
-                    cout << buf[itf] << ", ";
-                }
-                cout << endl;
+                    cout << "  " << ConvertToString2(&cur_time) <<
+                            "  Hillslope process, subbasin: " << subbasin_id << endl;
 #endif
-                int dest_rank = subbasin_rank[downstream[subbasin_id]];
-                buf[0] = CVT_FLT(subbasin_id);  // subbasin ID
-                buf[1] = CVT_FLT(sim_loop_num); // simulation loop number
-                int work_tag = subbasin_id * 10000 + sim_loop_num;
-                MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, work_tag, MCW, &request);
-                MPI_Wait(&request, &status);
-            } /* subbsn_layers[ilyr] loop for executing channel processes */
-            t_channel += TimeCounting() - t_channel_start;
-        } /* If subbsn_layers has ilyr */
-        MPI_Barrier(MCW);
+                    ModelMain* psubbasin = model_map[*it];
+                    for (int i = 0; i < n_hs; i++) {
+                        psubbasin->StepHillSlope(cur_time + i * dt_hs, year_idx, i);
+                    }
+                    t_slope += TimeCounting() - t_slope_start;
+                    if (!include_channel) continue;
+
+                    // 2. Execute channel processes
+                    t_channel_start = TimeCounting();
+#ifdef _DEBUG
+                    cout << "  " << ConvertToString2(&cur_time) <<
+                            "  Channel process, subbasin: " << subbasin_id << endl;
+#endif
+
+                    // 2.1 Set transferred data from upstreams
+                    for (auto it_upid = upstreams[subbasin_id].begin();
+                         it_upid != upstreams[subbasin_id].end(); ++it_upid) {
+                        if (subbasin_rank[*it_upid] == rank) {
+                            if (!ts_subbsn_flag[cur_sim_loop_num][*it_upid]) {
+                                cout << "  " << ConvertToString2(&cur_time) <<
+                                        ", failed when get data of subbasin " << *it_upid <<
+                                        " of simulation loop: " << cur_sim_loop_num << endl;
+                                MPI_Abort(MCW, 3);
+                            }
+                            psubbasin->SetTransferredValue(*it_upid, ts_subbsn_tf_values[cur_sim_loop_num][*it_upid]);
+                            ts_subbsn_flag[cur_sim_loop_num][*it_upid] = false;
+                        } else {
+                            // receive data from the specific rank according to work_tag
+                            int work_tag = *it_upid * 10000 + cur_sim_loop_num;;
+                            MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
+                            MPI_Wait(&request, &status);
+#ifdef _DEBUG
+                            cout << "Receive data of subbasin: " << *it_upid << " from rank: " <<
+                                    subbasin_rank[*it_upid] << ", tfValues: ";
+                            for (int itf = MSG_LEN; itf < buflen; itf++) {
+                                cout << buf[itf] << ", ";
+                            }
+                            cout << endl;
+#endif
+                            for (int vi = 0; vi < transfer_count; vi++) {
+                                recv_ts_subbsn_tf_values[cur_sim_loop_num][*it_upid][vi] = buf[MSG_LEN + vi];
+                            }
+                            psubbasin->SetTransferredValue(*it_upid,
+                                                           recv_ts_subbsn_tf_values[cur_sim_loop_num][*it_upid]);
+                        }
+                    }
+                    psubbasin->StepChannel(cur_time, year_idx);
+                    psubbasin->AppendOutputData(cur_time);
+
+                    // 2.2 If the downstream subbasin is in this process,
+                    //     there is no need to transfer values to the master process
+                    int downstream_id = downstream[subbasin_id];
+                    if (downstream_id > 0 && subbasin_rank[downstream_id] == rank) {
+                        psubbasin->GetTransferredValue(ts_subbsn_tf_values[cur_sim_loop_num][subbasin_id]);
+                        ts_subbsn_flag[cur_sim_loop_num][subbasin_id] = true;
+                        t_channel += TimeCounting() - t_channel_start;
+                        continue;
+                    }
+                    if (downstream_id < 0) {
+                        // There is no need to get transferred values
+                        t_channel += TimeCounting() - t_channel_start;
+                        continue;
+                    }
+                    // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
+                    psubbasin->GetTransferredValue(&buf[MSG_LEN]);
+#ifdef _DEBUG
+                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id <<
+                            " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
+                    for (int itf = MSG_LEN; itf < buflen; itf++) {
+                        cout << buf[itf] << ", ";
+                    }
+                    cout << endl;
+#endif
+                    int dest_rank = subbasin_rank[downstream[subbasin_id]];
+                    buf[0] = CVT_FLT(subbasin_id);  // subbasin ID
+                    buf[1] = CVT_FLT(sim_loop_num); // simulation loop number
+                    int work_tag = subbasin_id * 10000 + sim_loop_num;
+                    MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, work_tag, MCW, &request);
+                    MPI_Wait(&request, &status);
+
+                    ts_subbsn_flag[cur_sim_loop_num][subbasin_id] = false;
+                    t_channel += TimeCounting() - t_channel_start;
+                } /* subbsn_layers[cur_ilyr] loop */
+            }     /* loop of lyr_dlt = 0 to exec_lyr_num */
+        }         /* If subbsn_layers has ilyr */
+        if (sim_loop_num % max_lyr_id_all == 0) {
+            sim_loop_num = 0;
+            MPI_Barrier(MCW);
+        }
     } /* timestep loop */
 
     double slope_t;
@@ -279,19 +352,25 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     MPI_Barrier(MCW);
 
     // clean up
-    for (auto it = transfer_values_map.begin(); it != transfer_values_map.end();) {
-        if (it->second != nullptr) {
-            Release1DArray(it->second);
-            it->second = nullptr;
+    for (auto it = ts_subbsn_tf_values.begin(); it != ts_subbsn_tf_values.end();) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+            if (it2->second != nullptr) {
+                Release1DArray(it2->second);
+                it2->second = nullptr;
+            }
+            it->second.erase(it2++);
         }
-        transfer_values_map.erase(it++);
+        ts_subbsn_tf_values.erase(it++);
     }
-    for (auto it = recv_transfer_values_map.begin(); it != recv_transfer_values_map.end();) {
-        if (it->second != nullptr) {
-            Release1DArray(it->second);
-            it->second = nullptr;
+    for (auto it = recv_ts_subbsn_tf_values.begin(); it != recv_ts_subbsn_tf_values.end();) {
+        for (auto it2 = it->second.begin(); it2 != it->second.end();) {
+            if (it2->second != nullptr) {
+                Release1DArray(it2->second);
+                it2->second = nullptr;
+            }
+            it->second.erase(it2++);
         }
-        recv_transfer_values_map.erase(it++);
+        recv_ts_subbsn_tf_values.erase(it++);
     }
     for (auto it = model_map.begin(); it != model_map.end();) {
         delete it->second;

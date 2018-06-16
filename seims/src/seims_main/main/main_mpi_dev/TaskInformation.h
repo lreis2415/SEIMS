@@ -31,8 +31,10 @@ public:
     int GetSubbasinNumber();
     /// Get the maximum layering ID in current rank
     int GetMaxLayerID() { return max_lyr_; }
+    int GetGlobalMaxLayerID() { return max_lyr_all_; }
     vector<int>& GetRankSubbasinIDs() { return rank_subbsn_id_; }
     map<int, int>& GetSubbasinRank() { return subbsn_rank_; }
+    map<int, int>& GetSubbasinLayer() { return subbsn_layer_; }
     map<int, int>& GetDownstreamID() { return downstream_; }
     map<int, vector<int> >& GetUpstreamIDs() { return upstreams_; }
     map<int, bool>& GetUpstreamsInRank() { return upstreams_inrank_; }
@@ -54,12 +56,18 @@ private:
     int rank_;                   ///< Rank ID
     int* subbsn_count_rank_;     ///< Subbasin number in each rank
     int max_lyr_;                ///< Max. layering number of current rank
+    int max_lyr_all_;            ///< Global max. layering number
     vector<int> rank_subbsn_id_; ///< Subbasin IDs in current rank
     /*! Subbasin object -> rank ID (i.e., group ID)
      * Key: Subbasin ID of the whole basin
      * Value: rank ID
      */
     map<int, int> subbsn_rank_;
+    /*! Subbasin object -> layering ID
+     * Key: Subbasin ID of the whole basin
+     * Value: layering ID
+     */
+    map<int, int> subbsn_layer_;
     /*! Downstream subbasin ID
      * Key: Subbasin ID of the whole basin
      * Value: Downstream subbasin ID
