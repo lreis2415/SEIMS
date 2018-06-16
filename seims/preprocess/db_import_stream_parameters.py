@@ -12,6 +12,7 @@ from math import sqrt
 import shutil
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -237,9 +238,11 @@ class ImportReaches2Mongo(object):
             nfrom = ft.GetFieldAsInteger(ifrom)
             nto = ft.GetFieldAsInteger(ito)
             rch_dict[nfrom] = {'downstream': nto,
-                               'depth': ft.GetFieldAsDouble(idph) if idph > -1 else 5,
-                               'slope': ft.GetFieldAsDouble(islp) if islp > -1 else MINI_SLOPE,
-                               'width': ft.GetFieldAsDouble(iwth) if iwth > -1 else 5,
+                               'depth': ft.GetFieldAsDouble(idph) if idph > -1 else 5.,
+                               'slope': ft.GetFieldAsDouble(islp)
+                               if islp > -1 and ft.GetFieldAsDouble(islp) > MINI_SLOPE
+                               else MINI_SLOPE,
+                               'width': ft.GetFieldAsDouble(iwth) if iwth > -1 else 5.,
                                'length': ft.GetFieldAsDouble(ilen)}
 
             ft = layer_reach.GetNextFeature()
@@ -418,7 +421,8 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._DEPTH] = rchdata['depth']
             dic[ImportReaches2Mongo._AREA] = rchdata[ImportReaches2Mongo._AREA]
             dic[ImportReaches2Mongo._SIDESLP] = 2.
-            dic[ImportReaches2Mongo._KBANK] = 1. # hydraulic conductivity of the channel bank (mm/h)
+            dic[
+                ImportReaches2Mongo._KBANK] = 1.  # hydraulic conductivity of the channel bank (mm/h)
             dic[ImportReaches2Mongo._KBED] = 0.5
             dic[ImportReaches2Mongo._BC1] = 0.55
             dic[ImportReaches2Mongo._BC2] = 1.1

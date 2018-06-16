@@ -45,7 +45,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(DataType_SolarRadiation, UNIT_SR, DESC_SR, Source_Module, DT_Raster1D);
     mdi.AddInput(DataType_WindSpeed, UNIT_SPEED_MS, DESC_WS, Source_Module, DT_Raster1D);
 
-    /// these three parameters all from plant growth module, e.g., BIO_EPIC
+    /// these three parameters all from plant growth module, e.g., PG_EPIC
     mdi.AddParameter(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_ParameterDB, DT_Raster1D);
     //mdi.AddInput(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);

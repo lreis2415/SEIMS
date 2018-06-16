@@ -15,10 +15,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     // set the information properties
     mdi.SetAuthor("Liang-Jun Zhu");
     mdi.SetClass(MCLS_PG, MCLSDESC_PG);
-    mdi.SetDescription(MCLSDESC_PG);
+    mdi.SetDescription(MDESC_PG_EPIC);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_BIO_EPIC);
-    mdi.SetName(MID_BIO_EPIC);
+    mdi.SetID(MID_PG_EPIC);
+    mdi.SetName(MID_PG_EPIC);
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
     mdi.SetHelpfile("");

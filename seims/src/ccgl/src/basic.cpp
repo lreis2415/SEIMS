@@ -72,7 +72,7 @@ bool IsIpAddress(const char* ip) {
 }
 
 void Log(const string& msg, const string& logpath /* = "debugInfo.log" */) {
-    tm* timeptr = nullptr;
+    struct tm* timeptr = new tm();
     time_t now;
     char buffer[32];
     time(&now);
@@ -93,6 +93,7 @@ void Log(const string& msg, const string& logpath /* = "debugInfo.log" */) {
         fs << std::endl;
         fs.close();
     }
+    delete timeptr;
 }
 
 int GetAvailableThreadNum() {

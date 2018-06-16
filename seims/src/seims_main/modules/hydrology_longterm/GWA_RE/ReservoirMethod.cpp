@@ -187,6 +187,7 @@ int ReservoirMethod::Execute() {
         int* cells = sub->GetCells();
         int nCells = sub->GetCellCount();
         int index = 0;
+#pragma omp parallel for
         for (int i = 0; i < nCells; i++) {
             index = cells[i];
             m_soilStorage[index][static_cast<int>(m_soilLayers[index]) - 1] += sub->GetEg();

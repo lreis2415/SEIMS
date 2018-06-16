@@ -62,7 +62,7 @@ const float rad2deg = 57.29577951308232f; /// 180. / PI
 
 #define MIN_FLUX        1e-12f /// \def minimum flux (m3/s) in kinematic wave
 #define MAX_ITERS_KW    10     /// \def maximum iterate number in kinematic wave method
-#define MIN_SLOPE       1e-6f  /// \def minimum slope (tan value)
+#define MIN_SLOPE       1e-4f  /// \def minimum slope (tan value)
 
 #define IntRaster       ccgl::data_raster::clsRasterData<int>
 #define FloatRaster     ccgl::data_raster::clsRasterData<float>

@@ -46,22 +46,13 @@ string ConvertToString2(const time_t* date);
  * \brief Convert string to date time, string format could be %4d%2d%2d or %d-%d-%d
  *        e.g., str_date => 20000323, format=> %4d%2d%2d
  *              str_date => 2000-03-23, format => %d-%d-%d
+ *              str_date => 2000-03-23 18:01:30, => %d-%d-%d %d:%d:%d or %4d-%2d-%2d %2d:%2d:%2d
  * \param[in] str_date \a string date
  * \param[in] format \a string format
  * \param[in] include_hour \a bool Include Hour?
  * \return Date time \a time_t
  */
 time_t ConvertToTime(const string& str_date, string const& format, bool include_hour);
-
-/*!
- * \brief Convert string to date time, string format could be "%4d-%2d-%2d %2d:%2d:%2d"
- *        e.g., str_date => 2000-03-23 10:30:00, format=> %4d-%2d-%2d %2d:%2d:%2d
- * \param[in] str_date \a string date
- * \param[in] format \a string format
- * \param[in] include_hour \a bool Include Hour?
- * \return Date time \a time_t
- */
-time_t ConvertToTime2(string const& str_date, const char* format, bool include_hour);
 
 /*!
  * \brief Convert integer year, month, and day to date time

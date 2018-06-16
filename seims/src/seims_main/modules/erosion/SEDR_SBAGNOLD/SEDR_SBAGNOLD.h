@@ -72,8 +72,6 @@ private:
     int m_nreach;
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
-    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
     /// whether change channel dimensions, 0 - do not change (false), 1 - compute channel degredation (true)
     bool m_vcd;
     /// the peak rate adjustment factor

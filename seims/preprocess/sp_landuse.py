@@ -41,7 +41,7 @@ class LanduseUtilClass(object):
         property_namelist.append('USLE_P')
         query_result = maindb['LANDUSELOOKUP'].find()
         if query_result is None:
-            raise RuntimeError("LanduseLoop Collection is not existed or empty!")
+            raise RuntimeError('LanduseLoop Collection is not existed or empty!')
         count = 0
         for row in query_result:
             # print(row)
@@ -55,7 +55,10 @@ class LanduseUtilClass(object):
                     # if StringClass.string_match(p_name, "Manning"):
                     #     value_map[p_name] = row.get(p_name) * 10
                     # else:
-                    value_map[p_name] = row.get(p_name)
+                    v = row.get(p_name)
+                    if isinstance(v, unicode) or isinstance(v, str):
+                        v = StringClass.extract_numeric_values_from_string(v)[0]
+                    value_map[p_name] = v
             count += 1
             property_map[count] = value_map
 
@@ -65,7 +68,8 @@ class LanduseUtilClass(object):
             with open("%s/%s.txt" % (lookup_dir, propertyName,), 'w') as f:
                 f.write("%d\n" % n)
                 for prop_id in property_map:
-                    s = "%d %f\n" % (prop_id, property_map[prop_id][propertyName])
+                    s = "%d %f\n" % (int(property_map[prop_id]['LANDUSE_ID']),
+                                     property_map[prop_id][propertyName])
                     f.write(s)
 
     @staticmethod

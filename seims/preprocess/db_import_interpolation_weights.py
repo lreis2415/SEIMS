@@ -91,12 +91,12 @@ class ImportWeightData(object):
         """
         spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
         # read mask file from mongodb
-        mask_name = str(subbsn_id) + '_MASK'
+        mask_name = '%d_MASK' % subbsn_id
         # is MASK existed in Database?
         if not spatial_gfs.exists(filename=mask_name):
             raise RuntimeError('%s is not existed in MongoDB!' % mask_name)
         # read WEIGHT_M file from mongodb
-        weight_m_name = str(subbsn_id) + '_WEIGHT_M'
+        weight_m_name = '%d_WEIGHT_M' % subbsn_id
         mask = maindb[DBTableNames.gridfs_spatial].files.find({'filename': mask_name})[0]
         weight_m = maindb[DBTableNames.gridfs_spatial].files.find({'filename': weight_m_name})[0]
         num_cells = int(weight_m['metadata'][RasterMetadata.cellnum])
@@ -152,8 +152,8 @@ class ImportWeightData(object):
         total_len = xsize * ysize
         fmt = '%df' % (total_len,)
         mask_data = unpack(fmt, mask_data.read())
-        fname = '%s_%s' % (str(subbsn_id), DataType.phu0)
-        fname2 = '%s_%s' % (str(subbsn_id), DataType.mean_tmp0)
+        fname = '%d_%s' % (subbsn_id, DataType.phu0)
+        fname2 = '%d_%s' % (subbsn_id, DataType.mean_tmp0)
         if spatial_gfs.exists(filename=fname):
             x = spatial_gfs.get_version(filename=fname)
             spatial_gfs.delete(x._id)

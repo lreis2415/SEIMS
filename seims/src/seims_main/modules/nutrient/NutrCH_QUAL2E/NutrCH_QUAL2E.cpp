@@ -1,3 +1,6 @@
+#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
+#include "vld.h"
+#endif /* Run Visual Leak Detector during Debug */
 #include "NutrCH_QUAL2E.h"
 
 #include "text.h"
@@ -9,7 +12,7 @@ NutrCH_QUAL2E::NutrCH_QUAL2E() :
     m_lambda1(-1.f), m_lambda2(-1.f), m_k_l(-1.f), m_k_n(-1.f), m_k_p(-1.f), m_p_n(-1.f),
     tfact(-1.f), m_rnum1(0.f), igropt(-1), m_mumax(-1.f), m_rhoq(-1.f), m_cod_n(-1), m_cod_k(-1),
     m_rchID(nullptr), m_soilTemp(nullptr), m_dayLen(nullptr), m_sr(nullptr),
-    m_bankStorage(nullptr), m_chOrder(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
+    m_bankStorage(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
     m_preChStorage(nullptr), m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr),
     m_chTemp(nullptr), m_bc1(nullptr), m_bc2(nullptr), m_bc3(nullptr),
     m_bc4(nullptr), m_rs1(nullptr), m_rs2(nullptr), m_rs3(nullptr), m_rs4(nullptr),
@@ -83,6 +86,11 @@ NutrCH_QUAL2E::~NutrCH_QUAL2E() {
     if (nullptr != m_chOutCODConc) Release1DArray(m_chOutCODConc);
     if (nullptr != m_chOutTNConc) Release1DArray(m_chOutTNConc);
     if (nullptr != m_chOutTPConc) Release1DArray(m_chOutTPConc);
+    // Parameters used in ParametersSubbasinForChannel()
+    if (nullptr != m_chCellCount) Release1DArray(m_chCellCount);
+    if (nullptr != m_chDaylen) Release1DArray(m_chDaylen);
+    if (nullptr != m_chSr) Release1DArray(m_chSr);
+    if (nullptr != m_chTemp) Release1DArray(m_chTemp);
 }
 
 void NutrCH_QUAL2E::ParametersSubbasinForChannel() {

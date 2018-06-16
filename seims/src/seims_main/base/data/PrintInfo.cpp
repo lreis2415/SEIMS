@@ -56,8 +56,10 @@ void PrintInfoItem::add1DTimeSeriesResult(time_t t, int n, const float* data) {
 void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header) {
     // For MPI version, 1) Output to MongoDB, then 2) combined to tiff
     // For OMP version, Output to tiff file directly.
-    bool outToMongoDB = false; /// added by LJ.
-    if (SubbasinID != 0 && (m_1DData != nullptr || m_2DData != nullptr)) {
+    bool outToMongoDB = false;                   /// added by LJ.
+    if (SubbasinID != 0 && SubbasinID != 9999 && // Not the while basin, Not the field-version
+        (m_1DData != nullptr || m_2DData != nullptr)) {
+        // Spatial outputs
         outToMongoDB = true;
         // Add subbasin ID as prefix
         Filename = ValueToString(SubbasinID) + "_" + Corename;
@@ -93,7 +95,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             fs << header << endl;
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
                 fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
-                   << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
+                        << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
@@ -107,7 +109,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         fs.open(filename.c_str(), std::ios::out | std::ios::app);
         if (fs.is_open()) {
             fs << endl;
-            if (SubbasinID == 0) {
+            if (SubbasinID == 0 || SubbasinID == 9999) {
                 fs << "Watershed: " << endl;
             } else {
                 fs << "Subbasin: " << SubbasinID << endl;
@@ -117,7 +119,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
                 fs << ConvertToString2(&it->first);
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << std::right << std::fixed << std::setw(15) << std::setfill(' ')
-                       << setprecision(8) << it->second[i];
+                            << setprecision(8) << it->second[i];
                 }
                 fs << endl;
             }
@@ -127,30 +129,65 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         return;
     }
     if (nullptr != m_1DData && m_nRows > -1 && m_nLayers == 1) {
-        // ASC or GeoTIFF file
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        //cout << projectPath << Filename << endl;
-        if (outToMongoDB) {
-            gfs->RemoveFile(Filename);
-            FloatRaster(templateRaster, m_1DData).OutputToMongoDB(Filename, gfs);
-        } else {
-            FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
+        if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
+            if (outToMongoDB) {
+                gfs->RemoveFile(Filename);
+                FloatRaster(templateRaster, m_1DData).OutputToMongoDB(Filename, gfs);
+            } else {
+                FloatRaster(templateRaster, m_1DData).OutputToFile(projectPath + Filename + "." + Suffix);
+            }
+        } else if (Suffix == TextExtension) {
+            /// For field-version models, the Suffix is TextExtension
+            std::ofstream fs;
+            string filename = projectPath + Filename + "." + TextExtension;
+            DeleteExistedFile(filename);
+            fs.open(filename.c_str(), std::ios::out);
+            if (fs.is_open()) {
+                int valid_num = templateRaster->GetValidNumber();
+                for (int idx = 0; idx < valid_num; idx++) {
+                    fs << idx << ", " << setprecision(8) << m_1DData[idx] << endl;
+                }
+                fs.close();
+                StatusMessage(("Create " + filename + " successfully!").c_str());
+            }
         }
         return;
     }
 
     if (nullptr != m_2DData && m_nRows > -1 && m_nLayers > 1) {
-        /// Multi-Layers raster data
         if (templateRaster == nullptr) {
             throw ModelException("PrintInfoItem", "Flush", "The templateRaster is NULL.");
         }
-        if (outToMongoDB) {
-            gfs->RemoveFile(Filename);
-            FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(Filename, gfs);
-        } else {
-            FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
+        if (Suffix == GTiffExtension || Suffix == ASCIIExtension) {
+            /// Multi-Layers raster data
+            if (outToMongoDB) {
+                gfs->RemoveFile(Filename);
+                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToMongoDB(Filename, gfs);
+            } else {
+                FloatRaster(templateRaster, m_2DData, m_nLayers).OutputToFile(projectPath + Filename + "." + Suffix);
+            }
+        } else if (Suffix == TextExtension) {
+            /// For field-version models, the Suffix is TextExtension
+            std::ofstream fs;
+            string filename = projectPath + Filename + "." + TextExtension;
+            DeleteExistedFile(filename);
+            fs.open(filename.c_str(), std::ios::out);
+            if (fs.is_open()) {
+                int valid_num = templateRaster->GetValidNumber();
+                int nlyrs = templateRaster->GetLayers();
+                for (int idx = 0; idx < valid_num; idx++) {
+                    fs << idx;
+                    for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
+                        fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
+                    }
+                    fs << endl;
+                }
+                fs.close();
+                StatusMessage(("Create " + filename + " successfully!").c_str());
+            }
         }
         return;
     }
@@ -159,11 +196,12 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         /// time series data
         std::ofstream fs;
         string filename = projectPath + Filename + "." + TextExtension;
-        fs.open(filename.c_str(), std::ios::out | std::ios::app);
+        DeleteExistedFile(filename);
+        fs.open(filename.c_str(), std::ios::out);
         if (fs.is_open()) {
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
                 fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
-                    << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
+                        << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
             StatusMessage(("Create " + filename + " successfully!").c_str());
@@ -565,8 +603,8 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string& s
     itm->Filename = file;
     itm->Suffix = sufi;
     /// Be default, date time format has hour info.
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
     // add it to the list
     m_PrintItems.emplace_back(itm);
 }
@@ -582,11 +620,11 @@ void PrintInfo::AddPrintItem(string& type, string& start, string& end, string& f
     itm->StartTime = start;
     itm->EndTime = end;
     itm->Corename = file;
-    itm->Filename = subbasinID == 0 ? file : file + "_" + ValueToString(subbasinID);
+    itm->Filename = subbasinID == 0 || subbasinID == 9999 ? file : file + "_" + ValueToString(subbasinID);
     itm->Suffix = sufi;
 
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
 
     type = Trim(type);
     itm->AggType = type;
@@ -623,8 +661,8 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
     itm->Corename = file;
     itm->Filename = file;
     itm->Suffix = sufi;
-    itm->m_startTime = ConvertToTime2(start, "%d-%d-%d %d:%d:%d", true);
-    itm->m_endTime = ConvertToTime2(end, "%d-%d-%d %d:%d:%d", true);
+    itm->m_startTime = ConvertToTime(start, "%d-%d-%d %d:%d:%d", true);
+    itm->m_endTime = ConvertToTime(end, "%d-%d-%d %d:%d:%d", true);
 
     m_PrintItems.emplace_back(itm);
 }

@@ -104,12 +104,12 @@ Nutrient,rs5,Organic phosphorus settling rate in the reach at 20 deg C,1/day,Nut
 Nutrient,sdnco,denitrification threshold: fraction of field capacity,none,NMINRL,1,1,RC,1,0
 Nutrient,tfact,Fraction of solar radiation that is photosynthetically active,none,NutCHRout,0.3,1,RC,1,0
 PlantGrowth,cswat,carbon modeling method,None,MGT_SWAT,2,0,AC,2,0
-PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,BIO_EPIC,-9999,0,AC,24,0
-PlantGrowth,epco,plant water uptake compensation factor,None,BIO_EPIC,1,1,RC,1,0.01
-PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,BIO_EPIC,20,1,RC,100,0
-PlantGrowth,nfixco,Nitrogen fixation coefficient,None,BIO_EPIC,0.5,1,RC,1,0
-PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,BIO_EPIC,20,1,RC,20,1
-PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,BIO_EPIC,20,1,RC,100,0
+PlantGrowth,dormhr,time threshold used to define dormant period for plant,hr,PG_EPIC,-9999,0,AC,24,0
+PlantGrowth,epco,plant water uptake compensation factor,None,PG_EPIC,1,1,RC,1,0.01
+PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
+PlantGrowth,nfixco,Nitrogen fixation coefficient,None,PG_EPIC,0.5,1,RC,1,0
+PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,PG_EPIC,20,1,RC,20,1
+PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
 Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,0,AC,10,0
 Pothole,evpot,Pothole evaporation coefficient,None,IMP_SWAT,0.5,0,AC,2,0
 Pothole,pot_no3l,Nitrate decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0

@@ -168,8 +168,6 @@ private:
     float* m_sr;
     float* m_bankStorage;
 
-    float* m_chOrder;
-
     /// channel outflow
     float* m_qRchOut;
     /// reach storage (m3) at time t
