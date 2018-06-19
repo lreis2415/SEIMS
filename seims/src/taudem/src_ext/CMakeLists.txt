@@ -15,6 +15,7 @@ set(TAUDEM_EXT_APP curvature
         )
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})
+    SET_TARGET_PROPERTIES(${c_target} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
     IF (MSVC OR XCODE)
