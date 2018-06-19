@@ -96,7 +96,15 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
     /// Initialize the transferred values of subbasins in current process and received from other processes
     ///   NO NEED to create and release in each timestep.
-    task_info->MallocTransferredValues(transfer_count);
+    /// Determining the maximum time slices
+    int max_time_slices = CVT_INT(ceil(CVT_FLT(end_time - start_time) / CVT_FLT(dt_ch) / CVT_FLT(max_lyr_id_all)));
+    int time_slice = input_args->time_slices; // input from arguments
+    if (time_slice < 0 || time_slice > max_time_slices) time_slice = max_time_slices;
+    if (time_slice < 2) time_slice = 2;
+    int multiplier = CVT_INT(ceil(CVT_FLT(max_time_slices) / CVT_FLT(time_slice)));
+    if (input_args->skd_mtd == SPATIAL) multiplier = 1;
+
+    task_info->MallocTransferredValues(transfer_count, multiplier);
     /// Transferred values of subbasins in current rank with timestep stamp
     map<int, map<int, float *> >& ts_subbsn_tf_values = task_info->GetSubbasinTransferredValues();
     /// Flag to indicate the subbasin was executed or not
@@ -124,7 +132,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     double t_channel_start;
     int sim_loop_num = 0; /// Simulation loop number, which will be ciculated at 1 ~ max_lyr_id_all
     int exec_lyr_num = 1; // For SPATIAL scheduling method
-
+    int max_loop_num = max_lyr_id_all * multiplier;
     tstart = MPI_Wtime(); /// Start simulation
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
@@ -148,15 +156,10 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                 int cur_ilyr = ilyr - lyr_dlt;
                 int cur_sim_loop_num = sim_loop_num + lyr_dlt;
                 // When cur_sim_loop_num exceeds max_lyr_id_all, recount it!
-                if (cur_sim_loop_num > max_lyr_id_all) cur_sim_loop_num %= max_lyr_id_all;
+                if (cur_sim_loop_num > max_loop_num) cur_sim_loop_num %= max_loop_num;
                 for (auto it = subbsn_layers[cur_ilyr].begin(); it != subbsn_layers[cur_ilyr].end(); ++it) {
                     int subbasin_id = *it;
                     time_t cur_time = ts + lyr_dlt * dt_ch;
-#ifdef _DEBUG
-                    cout << "  Read for " << ConvertToString2(&cur_time) << "  subbasin: " <<
-                            subbasin_id << ", flag: " << ts_subbsn_flag[cur_sim_loop_num][subbasin_id] <<
-                            "downstream flag: " << ts_subbsn_flag[cur_sim_loop_num][downstream[subbasin_id]] << endl;
-#endif
                     // If subbasin_id already executed or the downstream subbasin has been executed, continue.
                     if (ts_subbsn_flag[cur_sim_loop_num][subbasin_id] ||
                         ts_subbsn_flag[cur_sim_loop_num][downstream[subbasin_id]]) {
@@ -200,8 +203,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
 #ifdef _DEBUG
-                            cout << "Receive data of subbasin: " << *it_upid << " from rank: " <<
-                                    subbasin_rank[*it_upid] << ", tfValues: ";
+                            cout << "Receive data of subbasin: " << *it_upid << " of sim_loop: " <<
+                                    cur_sim_loop_num << " from rank: " << subbasin_rank[*it_upid] << ", tfValues: ";
                             for (int itf = MSG_LEN; itf < buflen; itf++) {
                                 cout << buf[itf] << ", ";
                             }
@@ -217,12 +220,12 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     psubbasin->StepChannel(cur_time, year_idx);
                     psubbasin->AppendOutputData(cur_time);
 
+                    ts_subbsn_flag[cur_sim_loop_num][subbasin_id] = true;
                     // 2.2 If the downstream subbasin is in this process,
                     //     there is no need to transfer values to the master process
                     int downstream_id = downstream[subbasin_id];
                     if (downstream_id > 0 && subbasin_rank[downstream_id] == rank) {
                         psubbasin->GetTransferredValue(ts_subbsn_tf_values[cur_sim_loop_num][subbasin_id]);
-                        ts_subbsn_flag[cur_sim_loop_num][subbasin_id] = true;
                         t_channel += TimeCounting() - t_channel_start;
                         continue;
                     }
@@ -234,30 +237,43 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
                     psubbasin->GetTransferredValue(&buf[MSG_LEN]);
 #ifdef _DEBUG
-                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id <<
-                            " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
+                    cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " of sim_loop: " <<
+                            cur_sim_loop_num << " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
                     for (int itf = MSG_LEN; itf < buflen; itf++) {
                         cout << buf[itf] << ", ";
                     }
                     cout << endl;
 #endif
                     int dest_rank = subbasin_rank[downstream[subbasin_id]];
-                    buf[0] = CVT_FLT(subbasin_id);  // subbasin ID
-                    buf[1] = CVT_FLT(sim_loop_num); // simulation loop number
-                    int work_tag = subbasin_id * 10000 + sim_loop_num;
+                    buf[0] = CVT_FLT(subbasin_id);      // subbasin ID
+                    buf[1] = CVT_FLT(cur_sim_loop_num); // simulation loop number
+                    int work_tag = subbasin_id * 10000 + cur_sim_loop_num;
                     MPI_Isend(buf, buflen, MPI_FLOAT, dest_rank, work_tag, MCW, &request);
                     MPI_Wait(&request, &status);
 
-                    ts_subbsn_flag[cur_sim_loop_num][subbasin_id] = false;
                     t_channel += TimeCounting() - t_channel_start;
                 } /* subbsn_layers[cur_ilyr] loop */
             }     /* loop of lyr_dlt = 0 to exec_lyr_num */
         }         /* If subbsn_layers has ilyr */
-        if (sim_loop_num % max_lyr_id_all == 0) {
+
+        // Reset flags of former one loop
+        if (sim_loop_num > 1) {
+            for (auto it_flag = ts_subbsn_flag[sim_loop_num - 1].begin();
+                 it_flag != ts_subbsn_flag[sim_loop_num - 1].end(); ++it_flag) {
+                it_flag->second = false;
+            }
+        }
+        if (sim_loop_num % max_loop_num == 0) {
+            // Reset flags of current loop
+            for (auto it_flag = ts_subbsn_flag[sim_loop_num].begin();
+                 it_flag != ts_subbsn_flag[sim_loop_num].end(); ++it_flag) {
+                it_flag->second = false;
+            }
             sim_loop_num = 0;
             MPI_Barrier(MCW);
         }
     } /* timestep loop */
+
 
     double slope_t;
     double channel_t;

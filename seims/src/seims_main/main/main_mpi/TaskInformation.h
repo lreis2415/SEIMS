@@ -28,7 +28,7 @@ public:
     /// Build various data structures to assist calculation
     bool Build();
     /// Malloc space for transferred values
-    void MallocTransferredValues(int transfer_count);
+    void MallocTransferredValues(int transfer_count, int multiplier);
     /// Get the number of subbasins in current rank
     int GetSubbasinNumber();
     /// Get the maximum layering ID in current rank

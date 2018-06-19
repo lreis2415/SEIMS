@@ -162,12 +162,13 @@ bool TaskInfo::Build() {
     return true;
 }
 
-void TaskInfo::MallocTransferredValues(const int transfer_count) {
-    for (int i = 1; i <= max_lyr_all_; i++) {
+void TaskInfo::MallocTransferredValues(const int transfer_count, const int multiplier) {
+    for (int i = 1; i <= max_lyr_all_ * multiplier; i++) {
         // i is simulation sequence
         for (int j = 1; j <= max_lyr_all_; j++) {
             if (lyr_subbsns_.find(j) == lyr_subbsns_.end()) continue;
             for (auto it = lyr_subbsns_[j].begin(); it != lyr_subbsns_[j].end(); ++it) {
+                if (downstream_[*it] < 0) continue; // No need to malloc space for outlet subbasin
                 if (subbsn_tfvalues_.find(i) == subbsn_tfvalues_.end()) {
                     subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
                 }
@@ -182,7 +183,7 @@ void TaskInfo::MallocTransferredValues(const int transfer_count) {
         if (subbsn_rank_[it_id->first] != rank_) continue;
         for (auto it_up = it_id->second.begin(); it_up != it_id->second.end(); ++it_up) {
             if (subbsn_rank_[*it_up] == rank_) continue;
-            for (int i = 1; i <= max_lyr_all_; i++) {
+            for (int i = 1; i <= max_lyr_all_ * multiplier; i++) {
                 if (recv_subbsn_tfvalues_.find(i) == recv_subbsn_tfvalues_.end()) {
                     recv_subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
                 }
