@@ -83,17 +83,6 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     int start_year = GetYear(start_time);
     int n_hs = CVT_INT(dt_ch / dt_hs);
 
-    StatusMessage(("Rank " + ValueToString(rank) + " construct models done!").c_str());
-    /// Reduce for model constructing time, which also input time
-    double model_construct_tmp = MPI_Wtime() - tstart;
-    double model_construct_t;
-    MPI_Reduce(&model_construct_tmp, &model_construct_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
-    double input_t = load_task_t + model_construct_t;
-    if (rank == MASTER_RANK) {
-        cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << input_t << endl;
-    }
-
-    tstart = MPI_Wtime(); /// Start simulation
     // Get task related variables
     map<int, int>& subbasin_rank = task_info->GetSubbasinRank();
     map<int, int>& downstream = task_info->GetDownstreamID();
@@ -115,6 +104,16 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     /// Received transferred values of subbasins in current rank with timestep stamp
     map<int, map<int, float *> >& recv_ts_subbsn_tf_values = task_info->GetReceivedSubbasinTransferredValues();
 
+    StatusMessage(("Rank " + ValueToString(rank) + " construct models done!").c_str());
+    /// Reduce for model constructing time, which also input time
+    double model_construct_tmp = MPI_Wtime() - tstart;
+    double model_construct_t;
+    MPI_Reduce(&model_construct_tmp, &model_construct_t, 1, MPI_DOUBLE, MPI_MAX, 0, MCW);
+    double input_t = load_task_t + model_construct_t;
+    if (rank == MASTER_RANK) {
+        cout << "[TIMESPAN][IO]\tINPUT\t" << std::fixed << setprecision(3) << input_t << endl;
+    }
+
     MPI_Request request;
     MPI_Status status;
 
@@ -125,6 +124,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     double t_channel_start;
     int sim_loop_num = 0; /// Simulation loop number, which will be ciculated at 1 ~ max_lyr_id_all
     int exec_lyr_num = 1; // For SPATIAL scheduling method
+
+    tstart = MPI_Wtime(); /// Start simulation
     for (time_t ts = start_time; ts <= end_time; ts += dt_ch) {
         sim_loop_num += 1;
         if (rank == MASTER_RANK) {
@@ -271,6 +272,13 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "[TIMESPAN][COMPUTING]\tHillslope\t" << std::fixed << setprecision(3) << slope_t << endl;
         cout << "[TIMESPAN][COMPUTING]\tChannel\t" << std::fixed << setprecision(3) << channel_t << endl;
     }
+#ifdef _DEBUG
+    cout << "Rank: " << rank << endl;
+    cout << "    [COMPUTING]\tALL\t" << std::fixed << setprecision(3) << comp_tmp << endl;
+    cout << "    [COMPUTING]\tHillslope\t" << std::fixed << setprecision(3) << t_slope << endl;
+    cout << "    [COMPUTING]\tChannel\t" << std::fixed << setprecision(3) << t_channel << endl;
+    cout << "    [COMPUTING]\tBarrier\t" << std::fixed << setprecision(3) << comp_tmp - t_slope - t_channel << endl;
+#endif
     /***************  Outputs and combination  ***************/
     tstart = MPI_Wtime();
     for (auto it_id = rank_subbsn_ids.begin(); it_id != rank_subbsn_ids.end(); ++it_id) {
