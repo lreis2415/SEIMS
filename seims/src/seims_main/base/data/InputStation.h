@@ -29,7 +29,7 @@ public:
     InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel);
 
     //! Destructor
-    ~InputStation() OVERRIDE;
+    ~InputStation();
 
     //! Get site number of given site type
     int NumberOfSites(const char* site_type) const { return m_numSites.at(site_type); }

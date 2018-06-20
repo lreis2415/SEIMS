@@ -123,7 +123,7 @@ class MetadataInfo: Interface {
 public:
     MetadataInfo() { m_strSchemaVersion = "0.4"; }
 
-    ~MetadataInfo() OVERRIDE;
+    ~MetadataInfo();
 
     string SchemaVersion() { return m_strSchemaVersion; }
 

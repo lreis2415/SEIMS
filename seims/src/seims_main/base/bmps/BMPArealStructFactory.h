@@ -66,7 +66,7 @@ public:
                           const string& collection, const string& location);
 
     /// Destructor
-    ~BMPArealStructFactory() OVERRIDE;
+    ~BMPArealStructFactory();
 
     //! Load BMP parameters from MongoDB
     void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;

@@ -194,7 +194,7 @@ public:
                        int bmpType, int bmpPriority, vector<string>& distribution,
                        const string& collection, const string& location);
     /// Destructor
-    ~BMPPointSrcFactory() OVERRIDE;
+    ~BMPPointSrcFactory();
 
     /// Load BMP parameters from MongoDB
     void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;

@@ -34,7 +34,7 @@ public:
                 time_t startTime, time_t endTime);
 
     //! Destructor
-    ~Measurement() OVERRIDE;
+    ~Measurement();
 
     //! Get site data by time
     virtual float* GetSiteDataByTime(time_t t) = 0;
