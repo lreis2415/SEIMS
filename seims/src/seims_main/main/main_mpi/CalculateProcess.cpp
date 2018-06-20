@@ -69,9 +69,13 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                                                                module_factory, *it_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model = new ModelMain(data_center, module_factory);
-
+#ifdef HAS_VARIADIC_TEMPLATES
+        data_center_map.emplace(*it_id, data_center);
+        model_map.emplace(*it_id, model);
+#else
         data_center_map.insert(make_pair(*it_id, data_center));
         model_map.insert(make_pair(*it_id, model));
+#endif
     }
 
     /// Get some variables

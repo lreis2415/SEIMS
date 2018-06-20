@@ -27,7 +27,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         string module_id = m_tfValueInputs[i]->ModuleID;
         auto itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
         int idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
-        m_tfValueToModuleIdxs.push_back(idIndex);
+        m_tfValueToModuleIdxs.emplace_back(idIndex);
         string param_name = m_tfValueInputs[i]->Name;
         if (m_tfValueInputs[i]->DependPara != nullptr) {
             module_id = m_tfValueInputs[i]->DependPara->ModuleID;
@@ -35,8 +35,8 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         }
         itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
         idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
-        m_tfValueFromModuleIdxs.push_back(idIndex);
-        m_tfValueNames.push_back(param_name);
+        m_tfValueFromModuleIdxs.emplace_back(idIndex);
+        m_tfValueNames.emplace_back(param_name);
     }
     /// Create module list
     m_factory->CreateModuleList(m_simulationModules, m_dataCenter->GetThreadNumber());
@@ -48,19 +48,19 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         SimulationModule* p_module = m_simulationModules[i];
         switch (p_module->GetTimeStepType()) {
             case TIMESTEP_HILLSLOPE: {
-                m_hillslopeModules.push_back(i);
+                m_hillslopeModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_CHANNEL: {
-                m_channelModules.push_back(i);
+                m_channelModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_ECOLOGY: {
-                m_ecoModules.push_back(i);
+                m_ecoModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_SIMULATION: {
-                m_overallModules.push_back(i);
+                m_overallModules.emplace_back(i);
                 break;
             }
             default: break;

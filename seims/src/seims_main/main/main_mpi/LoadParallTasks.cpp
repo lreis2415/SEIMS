@@ -26,11 +26,15 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
      */
     map<int, vector<int> > group_map;
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        group_map.emplace(*it, vector<int>());
+#else
         group_map.insert(make_pair(*it, vector<int>()));
+#endif
     }
     // get the subbasin ID list of different groups
     for (auto it = subbasin_map.begin(); it != subbasin_map.end(); ++it) {
-        group_map[it->second->group].push_back(it->second->id);
+        group_map[it->second->group].emplace_back(it->second->id);
     }
     // get the maximum length of the task assignment message
     task->max_len = 0;

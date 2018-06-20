@@ -36,7 +36,11 @@ clsReach::clsReach(const bson_t*& bson_table) {
         if (bson_iter_init_find(&iterator, bson_table, REACH_PARAM_NAME[i])) {
             if (GetNumericFromBsonIterator(&iterator, tmp_param)) {
                 if (REACH_PARAM_NAME[i] == REACH_BOD && tmp_param < 1.e-6f) tmp_param = 1.e-6f;
+#ifdef HAS_VARIADIC_TEMPLATES
+                param_map_.emplace(REACH_PARAM_NAME[i], tmp_param);
+#else
                 param_map_.insert(make_pair(REACH_PARAM_NAME[i], tmp_param));
+#endif
             }
         }
     }
@@ -62,10 +66,18 @@ clsReach::clsReach(const bson_t*& bson_table) {
         }
         map<int, int> group_index;
         for (int j = 0; j < group_number_.size(); j++) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            group_index.emplace(group_number_[j], g_idx[j]);
+#else
             group_index.insert(make_pair(group_number_[j], g_idx[j]));
+#endif
         }
         if (group_index.empty()) continue;
+#ifdef HAS_VARIADIC_TEMPLATES
+        group_index_.emplace(REACH_GROUP_NAME[i], group_index);
+#else
         group_index_.insert(make_pair(REACH_GROUP_NAME[i], group_index));
+#endif
     }
 }
 
@@ -89,7 +101,13 @@ void clsReach::Set(const string& key, const float value) {
     auto it = param_map_.find(key);
     if (it != param_map_.end()) {
         param_map_.at(key) = value;
-    } else { param_map_.insert(make_pair(key, NODATA_VALUE)); }
+    } else {
+#ifdef HAS_VARIADIC_TEMPLATES
+        param_map_.emplace(key, NODATA_VALUE);
+#else
+        param_map_.insert(make_pair(key, NODATA_VALUE));
+#endif
+    }
 }
 
 clsReaches::clsReaches(MongoClient* conn, const string& db_name,
@@ -120,14 +138,22 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
         clsReach* cur_reach = new clsReach(bson_table);
         int sub_id = int(cur_reach->Get(REACH_SUBBASIN));
+#ifdef HAS_VARIADIC_TEMPLATES
+        reaches_obj_.emplace(sub_id, cur_reach);
+#else
         reaches_obj_.insert(make_pair(sub_id, cur_reach));
+#endif
     }
     // In SEIMS, reach ID is the same as Index of array and vector.
     for (int i = 1; i <= reach_num_; i++) {
         int down_stream_id = int(reaches_obj_.at(i)->Get(REACH_DOWNSTREAM));
+#ifdef HAS_VARIADIC_TEMPLATES
+        reach_down_stream_.emplace(i, down_stream_id);
+#else
         reach_down_stream_.insert(make_pair(i, down_stream_id));
+#endif
         if (down_stream_id <= 0 || down_stream_id > reach_num_) continue;
-        reach_up_streams_[down_stream_id].push_back(i);
+        reach_up_streams_[down_stream_id].emplace_back(i);
     }
     // Build layers of reaches according to layering method
     reach_layers_.clear();
@@ -137,7 +163,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
         if (reach_layers_.find(order) == reach_layers_.end()) {
             reach_layers_.insert(make_pair(order, vector<int>()));
         }
-        reach_layers_.at(order).push_back(i);
+        reach_layers_.at(order).emplace_back(i);
     }
 
     bson_destroy(b);

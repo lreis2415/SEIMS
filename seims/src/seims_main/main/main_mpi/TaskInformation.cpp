@@ -66,7 +66,7 @@ bool TaskInfo::Build() {
     }
     for (int i = rank_ * max_len; i < (rank_ + 1) * max_len; i++) {
         if (subbsn_id[i] < 0) continue;
-        rank_subbsn_id_.push_back(subbsn_id[i]);
+        rank_subbsn_id_.emplace_back(subbsn_id[i]);
         downstream_[subbsn_id[i]] = down_id[i] > 0 ? down_id[i] : -1;
     }
 #ifdef _DEBUG
@@ -90,20 +90,34 @@ bool TaskInfo::Build() {
         int stream_order = lyr_id[sub_idx];
         if (stream_order > max_lyr_) { max_lyr_ = stream_order; }
         if (lyr_subbsns_.find(stream_order) == lyr_subbsns_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            lyr_subbsns_.emplace(stream_order, vector<int>());
+#else
             lyr_subbsns_.insert(make_pair(stream_order, vector<int>()));
+#endif
         }
-        lyr_subbsns_[stream_order].push_back(sub_id);
+        lyr_subbsns_[stream_order].emplace_back(sub_id);
         if (up_count[sub_idx] == 0) {
             // source subbasins of each layer
             if (srclyr_subbsns_.find(stream_order) == srclyr_subbsns_.end()) {
-                srclyr_subbsns_.insert(make_pair(stream_order, vector<int>()));
+#ifdef HAS_VARIADIC_TEMPLATES
+                srclyr_subbsns_.emplace(stream_order, vector<int>(sub_id));
+#else
+                srclyr_subbsns_.insert(make_pair(stream_order, vector<int>(sub_id)));
+#endif
+            } else {
+                srclyr_subbsns_[stream_order].emplace_back(sub_id);
             }
-            srclyr_subbsns_[stream_order].push_back(sub_id);
         } else {
             if (nonsrclyr_subbsns_.find(stream_order) == nonsrclyr_subbsns_.end()) {
-                nonsrclyr_subbsns_.insert(make_pair(stream_order, vector<int>()));
+#ifdef HAS_VARIADIC_TEMPLATES
+                nonsrclyr_subbsns_.emplace(stream_order, vector<int>(sub_id));
+#else
+                nonsrclyr_subbsns_.insert(make_pair(stream_order, vector<int>(sub_id)));
+#endif
+            } else {
+                nonsrclyr_subbsns_[stream_order].emplace_back(sub_id);
             }
-            nonsrclyr_subbsns_[stream_order].push_back(sub_id);
         }
     }
 #ifdef _DEBUG
@@ -134,11 +148,15 @@ bool TaskInfo::Build() {
             if (subid < 0) continue;
             upstreams_inrank_[subid] = true; // No matter a subbasin has upstreams or not.
             if (upstreams_.find(subid) == upstreams_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+                upstreams_.emplace(subid, vector<int>());
+#else
                 upstreams_.insert(make_pair(subid, vector<int>()));
+#endif
             }
             for (int j = 0; j < up_count[irank * max_len + i]; j++) {
                 int up_id = up_ids[irank * max_len * MAX_UPSTREAM + i * MAX_UPSTREAM + j];
-                upstreams_[subid].push_back(up_id);
+                upstreams_[subid].emplace_back(up_id);
                 if (subbsn_rank_[up_id] != irank) {
                     upstreams_inrank_[subid] = false;
                 }
@@ -170,11 +188,19 @@ void TaskInfo::MallocTransferredValues(const int transfer_count, const int multi
             for (auto it = lyr_subbsns_[j].begin(); it != lyr_subbsns_[j].end(); ++it) {
                 if (downstream_[*it] < 0) continue; // No need to malloc space for outlet subbasin
                 if (subbsn_tfvalues_.find(i) == subbsn_tfvalues_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+                    subbsn_tfvalues_.emplace(i, map<int, float *>());
+#else
                     subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+#endif
                 }
                 float* tfvalues = nullptr;
                 Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+#ifdef HAS_VARIADIC_TEMPLATES
+                subbsn_tfvalues_[i].emplace(*it, tfvalues);
+#else
                 subbsn_tfvalues_[i].insert(make_pair(*it, tfvalues));
+#endif
             }
         }
     }
@@ -185,11 +211,19 @@ void TaskInfo::MallocTransferredValues(const int transfer_count, const int multi
             if (subbsn_rank_[*it_up] == rank_) continue;
             for (int i = 1; i <= max_lyr_all_ * multiplier; i++) {
                 if (recv_subbsn_tfvalues_.find(i) == recv_subbsn_tfvalues_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+                    recv_subbsn_tfvalues_.emplace(i, map<int, float *>());
+#else
                     recv_subbsn_tfvalues_.insert(make_pair(i, map<int, float *>()));
+#endif
                 }
                 float* tfvalues = nullptr;
                 Initialize1DArray(transfer_count, tfvalues, NODATA_VALUE);
+#ifdef HAS_VARIADIC_TEMPLATES
+                recv_subbsn_tfvalues_[i].emplace(*it_up, tfvalues);
+#else
                 recv_subbsn_tfvalues_[i].insert(make_pair(*it_up, tfvalues));
+#endif
             }
         }
     }

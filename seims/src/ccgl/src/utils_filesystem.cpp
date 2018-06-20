@@ -360,7 +360,7 @@ bool LoadPlainTextFile(const string& filepath, vector<string>& content_strs) {
                     line = utils_string::Trim(line);
                     if (!line.empty() && line[0] != '#') {
                         // ignore comments and empty lines
-                        content_strs.push_back(line);
+                        content_strs.emplace_back(line);
                         b_status = true; // consider this a success
                     }
                 }

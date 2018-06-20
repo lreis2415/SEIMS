@@ -49,7 +49,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
             vector<string> subBsns;
             if (StringMatch((*iter).subBsn, Tag_AllSubbsn)) {
                 for (int i = 0; i <= m_nSubbasins; i++) {
-                    subBsns.push_back(ValueToString(i));
+                    subBsns.emplace_back(ValueToString(i));
                 }
                 vector<string>(subBsns).swap(subBsns); // deprecated
                 // subBsns.shrink_to_fit();
@@ -68,7 +68,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
         }
     }
     for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ++it) {
-        m_printInfos.push_back(it->second);
+        m_printInfos.emplace_back(it->second);
     }
     vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
     // m_printInfos.shrink_to_fit();

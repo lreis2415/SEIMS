@@ -85,7 +85,7 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const str
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     int count = 1;
     while (mongoc_cursor_next(cursor, &bsonTable)) {
-        m_arealSrcMgtSeqs.push_back(count);
+        m_arealSrcMgtSeqs.emplace_back(count);
         m_arealSrcMgtMap[count] = new ArealSourceMgtParams(bsonTable, iter);
         count++;
     }

@@ -36,8 +36,11 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
             p->Impact = float(atof(tmp_param_items[3].c_str()));
-
+#ifdef HAS_VARIADIC_TEMPLATES
+            if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
+#else
             if (!m_parameters.insert(make_pair(GetUpper(p->Name), p)).second) {
+#endif
                 cout << "WARNING: Load parameter during constructing BMPArealStructFactory, BMPID: "
                         << m_id << ", param_name: " << tmp_param_items[0] << endl;
             }
@@ -101,7 +104,11 @@ void BMPArealStructFactory::loadBMP(MongoClient* conn, const string& bmpDBName) 
 
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     while (mongoc_cursor_next(cursor, &bsonTable)) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        if (!m_bmpStructMap.emplace(m_subScenarioId, new BMPArealStruct(bsonTable, iter)).second) {
+#else
         if (!m_bmpStructMap.insert(make_pair(m_subScenarioId, new BMPArealStruct(bsonTable, iter))).second) {
+#endif
             cout << "WARNING: Read Areal Structural BMP failed: subScenarioID: " << m_subScenarioId << endl;
         }
     }

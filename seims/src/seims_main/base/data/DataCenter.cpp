@@ -132,9 +132,15 @@ void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& col
         data[i][4] = 0.f;    // other Meteorology variables
     }
     /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+    array2d_map_.emplace(remote_filename, data);
+    array2d_rows_map_.emplace(remote_filename, n_rows);
+    array2d_cols_map_.emplace(remote_filename, n_cols);
+#else
     array2d_map_.insert(make_pair(remote_filename, data));
     array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
     array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
+#endif
 }
 
 void DataCenter::DumpCaliParametersInDB() {

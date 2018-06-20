@@ -18,6 +18,7 @@
  *          Nov. 2017 lj Code review based on C++11 and use a single header file.
  *          Dec. 2017 lj Add Unittest based on Google Test.
  *          Mar. 2018 lj Make part of CCGL, and make GDAL optional. Follows Google C++ Code Style.
+ *          Jun. 2018 lj Use emplace and emplace_back rather than insert and push_back whenever possible.
  */
 #ifndef CCGL_DATA_RASTER_H
 #define CCGL_DATA_RASTER_H
@@ -53,7 +54,9 @@
 #endif /* USE_MONGODB */
 
 using std::map;
+#ifndef HAS_VARIADIC_TEMPLATES // Not support emplace(), e.g., MSVC2010
 using std::make_pair;
+#endif
 using std::setprecision;
 
 namespace ccgl {
@@ -104,7 +107,7 @@ typedef std::pair<double, double> XY_COOR;
 
 /** Common functions independent to clsRasterData **/
 /// Print status while not running UnitTest
-inline void StatusNoUnitTest(string status_str) {
+inline void StatusNoUnitTest(const string& status_str) {
 #ifndef UNITTEST
     cout << status_str << endl;
 #endif
@@ -909,17 +912,31 @@ void clsRasterData<T, MASK_T>::InitializeRasterClass() {
         HEADER_RS_NODATA, HEADER_RS_LAYERS, HEADER_RS_CELLSNUM
     };
     for (int i = 0; i < 6; i++) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        headers_.emplace(raster_headers[i], NODATA_VALUE);
+#else
         headers_.insert(make_pair(raster_headers[i], NODATA_VALUE));
+#endif
     }
+#ifdef HAS_VARIADIC_TEMPLATES
+    headers_.emplace(HEADER_RS_LAYERS, -1.);
+    headers_.emplace(HEADER_RS_CELLSNUM, -1.);
+#else
     headers_.insert(make_pair(HEADER_RS_LAYERS, -1.));
     headers_.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
+#endif
     string statsnames[6] = {
         STATS_RS_VALIDNUM, STATS_RS_MIN, STATS_RS_MAX, STATS_RS_MEAN,
         STATS_RS_STD, STATS_RS_RANGE
     };
     for (int i = 0; i < 6; i++) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        stats_.emplace(statsnames[i], NODATA_VALUE);
+        stats_2d_.emplace(statsnames[i], nullptr);
+#else
         stats_.insert(make_pair(statsnames[i], NODATA_VALUE));
         stats_2d_.insert(map<string, double *>::value_type(statsnames[i], nullptr));
+#endif
     }
     initialized_ = true;
 }
@@ -1223,12 +1240,21 @@ void clsRasterData<T, MASK_T>::CalculateStatistics() {
         double** derivedvs;
         BasicStatistics(raster_2d_, n_cells_, n_lyrs_, &derivedvs, no_data_value_);
         if (stats_2d_.empty()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            stats_2d_.emplace(STATS_RS_VALIDNUM, derivedvs[0]);
+            stats_2d_.emplace(STATS_RS_MEAN, derivedvs[1]);
+            stats_2d_.emplace(STATS_RS_MAX, derivedvs[2]);
+            stats_2d_.emplace(STATS_RS_MIN, derivedvs[3]);
+            stats_2d_.emplace(STATS_RS_STD, derivedvs[4]);
+            stats_2d_.emplace(STATS_RS_RANGE, derivedvs[5]);
+#else
             stats_2d_.insert(make_pair(STATS_RS_VALIDNUM, derivedvs[0]));
             stats_2d_.insert(make_pair(STATS_RS_MEAN, derivedvs[1]));
             stats_2d_.insert(make_pair(STATS_RS_MAX, derivedvs[2]));
             stats_2d_.insert(make_pair(STATS_RS_MIN, derivedvs[3]));
             stats_2d_.insert(make_pair(STATS_RS_STD, derivedvs[4]));
             stats_2d_.insert(make_pair(STATS_RS_RANGE, derivedvs[5]));
+#endif
         } else {
             stats_2d_.at(STATS_RS_VALIDNUM) = derivedvs[0];
             stats_2d_.at(STATS_RS_MEAN) = derivedvs[1];
@@ -1974,6 +2000,20 @@ bool clsRasterData<T, MASK_T>::ReadAscFile(const string& asc_filename, map<strin
     int rows, cols;
     map<string, double> tmpheader;
     /// read header
+#ifdef HAS_VARIADIC_TEMPLATES
+    raster_file >> tmp >> cols;
+    tmpheader.emplace(HEADER_RS_NCOLS, CVT_DBL(cols));
+    raster_file >> tmp >> rows;
+    tmpheader.emplace(HEADER_RS_NROWS, CVT_DBL(rows));
+    raster_file >> xlls >> tmp_value;
+    tmpheader.emplace(HEADER_RS_XLL, tmp_value);
+    raster_file >> ylls >> tmp_value;
+    tmpheader.emplace(HEADER_RS_YLL, tmp_value);
+    raster_file >> tmp >> tmp_value;
+    tmpheader.emplace(HEADER_RS_CELLSIZE, tmp_value);
+    raster_file >> tmp >> no_data;
+    tmpheader.emplace(HEADER_RS_NODATA, no_data);
+#else
     raster_file >> tmp >> cols;
     tmpheader.insert(make_pair(HEADER_RS_NCOLS, CVT_DBL(cols)));
     raster_file >> tmp >> rows;
@@ -1986,13 +2026,18 @@ bool clsRasterData<T, MASK_T>::ReadAscFile(const string& asc_filename, map<strin
     tmpheader.insert(make_pair(HEADER_RS_CELLSIZE, tmp_value));
     raster_file >> tmp >> no_data;
     tmpheader.insert(make_pair(HEADER_RS_NODATA, no_data));
+#endif
     no_data_value_ = no_data;
     /// default is center, if corner, then:
     if (StringMatch(xlls, "XLLCORNER")) tmpheader.at(HEADER_RS_XLL) += 0.5 * tmpheader.at(HEADER_RS_CELLSIZE);
     if (StringMatch(ylls, "YLLCORNER")) tmpheader.at(HEADER_RS_YLL) += 0.5 * tmpheader.at(HEADER_RS_CELLSIZE);
-
+#ifdef HAS_VARIADIC_TEMPLATES
+    tmpheader.emplace(HEADER_RS_LAYERS, 1.);
+    tmpheader.emplace(HEADER_RS_CELLSNUM, -1.);
+#else
     tmpheader.insert(make_pair(HEADER_RS_LAYERS, 1.));
     tmpheader.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
+#endif
     /// get all raster values (i.e., include NODATA_VALUE, m_excludeNODATA = False)
     T* tmprasterdata = new T[rows * cols];
     for (int i = 0; i < rows; i++) {
@@ -2022,18 +2067,33 @@ bool clsRasterData<T, MASK_T>::ReadRasterFileByGdal(const string& filename, map<
     map<string, double> tmpheader;
     int n_rows = po_band->GetYSize();
     int n_cols = po_band->GetXSize();
+#ifdef HAS_VARIADIC_TEMPLATES
+    tmpheader.emplace(HEADER_RS_NCOLS, CVT_DBL(n_cols));
+    tmpheader.emplace(HEADER_RS_NROWS, CVT_DBL(n_rows));
+    tmpheader.emplace(HEADER_RS_NODATA, po_band->GetNoDataValue());
+#else
     tmpheader.insert(make_pair(HEADER_RS_NCOLS, CVT_DBL(n_cols)));
     tmpheader.insert(make_pair(HEADER_RS_NROWS, CVT_DBL(n_rows)));
     tmpheader.insert(make_pair(HEADER_RS_NODATA, po_band->GetNoDataValue()));
+#endif
     no_data_value_ = static_cast<T>(po_band->GetNoDataValue());
     double geo_trans[6];
     po_dataset->GetGeoTransform(geo_trans);
+#ifdef HAS_VARIADIC_TEMPLATES
+    tmpheader.emplace(HEADER_RS_CELLSIZE, geo_trans[1]);
+    tmpheader.emplace(HEADER_RS_XLL, geo_trans[0] + 0.5 * tmpheader.at(HEADER_RS_CELLSIZE));
+    tmpheader.emplace(HEADER_RS_YLL,
+                      geo_trans[3] + (tmpheader.at(HEADER_RS_NROWS) - 0.5) * geo_trans[5]);
+    tmpheader.emplace(HEADER_RS_LAYERS, 1.);
+    tmpheader.emplace(HEADER_RS_CELLSNUM, -1.);
+#else
     tmpheader.insert(make_pair(HEADER_RS_CELLSIZE, geo_trans[1]));
     tmpheader.insert(make_pair(HEADER_RS_XLL, geo_trans[0] + 0.5 * tmpheader.at(HEADER_RS_CELLSIZE)));
     tmpheader.insert(make_pair(HEADER_RS_YLL,
                                geo_trans[3] + (tmpheader.at(HEADER_RS_NROWS) - 0.5) * geo_trans[5]));
     tmpheader.insert(make_pair(HEADER_RS_LAYERS, 1.));
     tmpheader.insert(make_pair(HEADER_RS_CELLSNUM, -1.));
+#endif
     string tmpsrs = string(po_dataset->GetProjectionRef());
     /// get all raster values (i.e., include NODATA_VALUE)
     int fullsize_n = n_rows * n_cols;
@@ -2181,7 +2241,11 @@ void clsRasterData<T, MASK_T>::Copy(const clsRasterData<T, MASK_T>* orgraster) {
             for (auto iter = stats2D.begin(); iter != stats2D.end(); ++iter) {
                 double* tmpstatvalues = nullptr;
                 Initialize1DArray(n_lyrs_, tmpstatvalues, iter->second);
+#ifdef HAS_VARIADIC_TEMPLATES
+                stats_2d_.emplace(iter->first, tmpstatvalues);
+#else
                 stats_2d_.insert(make_pair(iter->first, tmpstatvalues));
+#endif
             }
         } else {
             map<string, double> stats = orgraster->GetStatistics();
