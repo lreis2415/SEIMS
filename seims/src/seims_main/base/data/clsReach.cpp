@@ -161,7 +161,11 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
         int order = int(reaches_obj_.at(i)->Get(REACH_UPDOWN_ORDER));
         if (mtd == DOWN_UP) { order = int(reaches_obj_.at(i)->Get(REACH_DOWNUP_ORDER)); }
         if (reach_layers_.find(order) == reach_layers_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            reach_layers_.emplace(order, vector<int>());
+#else
             reach_layers_.insert(make_pair(order, vector<int>()));
+#endif
         }
         reach_layers_.at(order).emplace_back(i);
     }
