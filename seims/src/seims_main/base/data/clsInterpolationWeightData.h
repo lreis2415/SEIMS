@@ -30,7 +30,7 @@ public:
     ItpWeightData(MongoGridFs* gfs, const string& filename);
 
     //! Destructor
-    ~ItpWeightData();
+    ~ItpWeightData() OVERRIDE;
 
     /*!
      * \brief Get the weight data read from mongoDB

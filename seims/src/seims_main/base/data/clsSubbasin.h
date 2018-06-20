@@ -32,7 +32,7 @@ public:
     explicit Subbasin(int id);
 
     //! Destructor
-    ~Subbasin();
+    ~Subbasin() OVERRIDE;
 
     //! Check input size
     bool CheckInputSize(int n);
@@ -228,7 +228,7 @@ public:
     static clsSubbasins* Init(MongoGridFs* spatial_data, map<string,
                                                              FloatRaster *>& rs_map, int prefix_id);
     /// Destructor
-    ~clsSubbasins();
+    ~clsSubbasins() OVERRIDE;
 
     /// Get single reach information by subbasin ID
     Subbasin* GetSubbasinByID(const int id) { return subbasin_objs_.at(id); }

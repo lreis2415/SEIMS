@@ -5,6 +5,7 @@
 #include "utils_math.h"
 
 #include "text.h"
+#include "ParamInfo.h"
 
 using namespace utils_array;
 using namespace utils_string;
@@ -181,7 +182,7 @@ void clsReaches::GetReachesSingleProperty(const string& key, float** data) {
     }
 }
 
-void clsReaches::Update(const map<string, ParamInfo *>& caliparams_map) {
+void clsReaches::Update(map<string, ParamInfo *>& caliparams_map) {
     for (int i = 0; i < REACH_PARAM_NUM; i++) {
         auto it = caliparams_map.find(REACH_PARAM_NAME[i]);
         if (it != caliparams_map.end()) {
@@ -195,8 +196,7 @@ void clsReaches::Update(const map<string, ParamInfo *>& caliparams_map) {
             for (auto it2 = reaches_obj_.begin(); it2 != reaches_obj_.end(); ++it2) {
                 float pre_value = it2->second->Get(REACH_PARAM_NAME[i]);
                 if (FloatEqual(pre_value, NODATA_VALUE)) continue;
-                float new_value = it->second->GetAdjustedValue(pre_value);
-                it2->second->Set(REACH_PARAM_NAME[i], new_value);
+                it2->second->Set(REACH_PARAM_NAME[i], it->second->GetAdjustedValue(pre_value));
             }
         }
     }

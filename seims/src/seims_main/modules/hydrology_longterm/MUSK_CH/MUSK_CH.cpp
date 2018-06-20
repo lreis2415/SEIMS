@@ -544,7 +544,8 @@ void MUSK_CH::ChannelFlow(const int i) {
     m_qRchOut[i] = q / n;
 
     float qInSum = m_qsSub[i] + qiSub + qgSub + qsUp + qiUp + qgUp;
-    if (qInSum < UTIL_ZERO) { // In case of divided by zero.
+    if (qInSum < UTIL_ZERO) {
+        // In case of divided by zero.
         m_qsCh[i] = 0.f;
         m_qiCh[i] = 0.f;
         m_qgCh[i] = 0.f;

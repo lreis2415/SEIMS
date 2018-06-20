@@ -28,7 +28,7 @@ public:
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
                       ModuleFactory* factory, int subbasin_id = 0);
     //! Destructor
-    virtual ~DataCenterMongoDB();
+    ~DataCenterMongoDB() OVERRIDE;
     /*!
      * \brief Make sure all the required data are presented
      */

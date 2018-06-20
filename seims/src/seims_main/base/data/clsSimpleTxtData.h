@@ -22,7 +22,7 @@ public:
     explicit clsSimpleTxtData(const string& filename);
 
     //! Destructor
-    ~clsSimpleTxtData();
+    ~clsSimpleTxtData() OVERRIDE;
 
     //! Get line number and data
     void GetData(int* n_row, float** data);

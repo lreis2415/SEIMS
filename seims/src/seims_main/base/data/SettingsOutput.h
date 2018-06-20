@@ -52,7 +52,7 @@ public:
     SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
 
     //! Destructor
-    virtual ~SettingsOutput();
+    ~SettingsOutput() OVERRIDE;
 
     //! Init function
     static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);

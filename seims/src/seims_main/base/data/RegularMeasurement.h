@@ -33,7 +33,7 @@ public:
                        time_t endTime, time_t interval);
 
     //! Destructor
-    virtual ~RegularMeasurement();
+    ~RegularMeasurement() OVERRIDE;
 
     //! Get site date by time \a pData
     float* GetSiteDataByTime(time_t t) OVERRIDE;

@@ -29,7 +29,7 @@ public:
                        const string& collection, const string& location);
 
     /// Destructor
-    virtual ~BMPPlantMgtFactory();
+    ~BMPPlantMgtFactory() OVERRIDE;
 
     /// Load BMP parameters from MongoDB
     void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;

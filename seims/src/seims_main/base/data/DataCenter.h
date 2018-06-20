@@ -39,7 +39,7 @@ public:
     DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbsn_id = 0);
 
     //! Destructor
-    virtual ~DataCenter();
+    ~DataCenter() OVERRIDE;
 
     /**** virtual functions dependent on database IO *****/
 

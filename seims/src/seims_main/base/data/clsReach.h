@@ -78,7 +78,7 @@ public:
     clsReaches(MongoClient* conn, const string& db_name, const string& collection_name, LayeringMethod mtd = UP_DOWN);
 
     /// Destructor
-    ~clsReaches();
+    ~clsReaches() OVERRIDE;
 
     /// Get single reach information by subbasin ID (1 ~ N)
     clsReach* GetReachByID(const int id) {
@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Update reach/channel parameters according to calibration settings
      */
-    void Update(const map<string, ParamInfo *>& caliparams_map);
+    void Update(map<string, ParamInfo *>& caliparams_map);
 
 private:
     /// reaches number
