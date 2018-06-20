@@ -44,20 +44,20 @@ ParamInfo::~ParamInfo() {
     }
 }
 
-float ParamInfo::GetAdjustedValue(float pre_value /* = NODATA_VALUE */) {
-    if (FloatEqual(pre_value, NODATA_VALUE)) {
-        pre_value = Value;
-    }
+float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
     float res = pre_value;
+    if (FloatEqual(pre_value, NODATA_VALUE)) {
+        res = Value;
+    }
     if (FloatEqual(res, NODATA_VALUE)) {
         /// Do not change NoData value
         return res;
     }
 
     if (StringMatch(Change, PARAM_CHANGE_RC) && !FloatEqual(Impact, 1.f)) {
-        res = pre_value * Impact;
+        res *= Impact;
     } else if (StringMatch(Change, PARAM_CHANGE_AC) && !FloatEqual(Impact, 0.f)) {
-        res = pre_value + Impact;
+        res += Impact;
     } else if (StringMatch(Change, PARAM_CHANGE_VC) && !FloatEqual(Impact, NODATA_VALUE)) {
         res = Impact;
     } else if (StringMatch(Change, PARAM_CHANGE_NC)) {
