@@ -16,18 +16,21 @@
 #endif /* NDEBUG */
 
 /// Architecture
-#if defined _WIN64 || __x86_64 || __LP64__
+#if defined(_WIN64) || defined(__x86_64) || defined(__LP64__)
 #define CPP_64
 #endif
 
 #if defined _MSC_VER
 #define CPP_MSVC
-#else
+#endif /* _MSC_VER */
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
+#define CPP_ICC
+#elif defined(__GNUC__)
 #define CPP_GCC
 #if defined(__APPLE__)
 #define CPP_APPLE
-#endif
-#endif
+#endif /* __APPLE__ */
+#endif /* __INTEL_COMPILER */
 
 #include <memory>
 #include <stdexcept>
@@ -96,9 +99,9 @@ using std::string;
 #define HAS_VARIADIC_TEMPLATES
 #endif /* VARIADIC_TEMPLATES */
 #endif /* Clang */
-#elif defined(__INTEL_COMPILER) || defined(__ICC)
+#elif defined(CPP_ICC)
 // Intel C++
-#if (__INTEL_COMPILER >= 1400) && (__INTEL_COMPILER != 9999)
+#if ((__INTEL_COMPILER >= 1400) && (__INTEL_COMPILER != 9999)) || (__ICL >= 1400)
 #define HAS_NOEXCEPT
 #define HAS_OVERRIDE
 #define HAS_VARIADIC_TEMPLATES
