@@ -69,7 +69,7 @@ bool TaskInfo::Build() {
         rank_subbsn_id_.emplace_back(subbsn_id[i]);
         downstream_[subbsn_id[i]] = down_id[i] > 0 ? down_id[i] : -1;
     }
-#ifdef _DEBUG
+#ifdef DEBUG_PRINT
     cout << "Subbasin ID -> Rank ID" << endl;
     for (auto it = subbsn_rank_.begin(); it != subbsn_rank_.end(); ++it) {
         cout << it->first << " -> " << it->second << endl;
@@ -120,7 +120,7 @@ bool TaskInfo::Build() {
             }
         }
     }
-#ifdef _DEBUG
+#ifdef DEBUG_PRINT
     cout << "Rank: " << rank_ << ", Source subbasins: " << endl;
     for (auto it = srclyr_subbsns_.begin(); it != srclyr_subbsns_.end(); ++it) {
         cout << "    Layer ID: " << it->first << ": ";
@@ -139,7 +139,7 @@ bool TaskInfo::Build() {
         cout << endl;
     }
     cout << endl;
-#endif /* _DEBUG */
+#endif /* DEBUG_PRINT */
 
     /// upstreams_ and upstreams_inrank_
     for (int irank = 0; irank < size_; irank++) {
@@ -163,7 +163,7 @@ bool TaskInfo::Build() {
             }
         }
     }
-#ifdef _DEBUG
+#ifdef DEBUG_PRINT
     cout << "Subbasin ID -> Upstreams" << endl;
     for (auto it = upstreams_.begin(); it != upstreams_.end(); ++it) {
         cout << it->first << " -> ";
@@ -176,7 +176,7 @@ bool TaskInfo::Build() {
     for (auto it = upstreams_inrank_.begin(); it != upstreams_inrank_.end(); ++it) {
         cout << it->first << " -> " << it->second << endl;
     }
-#endif /* _DEBUG */
+#endif /* DEBUG_PRINT */
     return true;
 }
 
