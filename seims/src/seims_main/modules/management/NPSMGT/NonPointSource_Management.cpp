@@ -59,20 +59,24 @@ void NPS_Management::Set2DData(const char* key, const int n, const int col, floa
 }
 
 void NPS_Management::SetScenario(Scenario* sce) {
-    if (sce != nullptr) {
-        map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
-        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
-            /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
-            if (it->first / 100000 == BMP_TYPE_AREALSOURCE) {
-                m_arealSrcFactory[it->first] = static_cast<BMPArealSrcFactory *>(it->second);
-            }
-            /// Set areal source locations data
-            if (nullptr == m_mgtFields) {
-                m_mgtFields = static_cast<BMPArealSrcFactory *>(it->second)->GetRasterData();
-            }
-        }
-    } else {
+    if (nullptr == sce) {
         throw ModelException(MID_MUSK_CH, "SetScenario", "The scenario can not to be nullptr.");
+    }
+    map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
+    for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
+        /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
+        if (it->first / 100000 == BMP_TYPE_AREALSOURCE) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            m_arealSrcFactory.emplace(it->first, static_cast<BMPArealSrcFactory *>(it->second));
+#else
+            m_arealSrcFactory.insert(make_pair(it->first,
+                                               static_cast<BMPArealSrcFactory *>(it->second)));
+#endif
+        }
+        /// Set areal source locations data
+        if (nullptr == m_mgtFields) {
+            m_mgtFields = static_cast<BMPArealSrcFactory *>(it->second)->GetRasterData();
+        }
     }
 }
 

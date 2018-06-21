@@ -201,7 +201,7 @@ public:
     void setRasterData(map<string, FloatRaster*>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; };
+    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 

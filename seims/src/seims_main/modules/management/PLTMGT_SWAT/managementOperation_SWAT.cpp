@@ -495,8 +495,13 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
     vector<int>& subIDs = subbasins->GetSubbasinIDs();
     for (auto it = subIDs.begin(); it != subIDs.end(); ++it) {
         Subbasin* tmpSubbsn = subbasins->GetSubbasinByID(*it);
-        m_nCellsSubbsn[*it] = tmpSubbsn->GetCellCount();
-        m_nAreaSubbsn[*it] = tmpSubbsn->GetArea();
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_nCellsSubbsn.emplace(*it, tmpSubbsn->GetCellCount());
+        m_nAreaSubbsn.emplace(*it, tmpSubbsn->GetArea());
+#else
+        m_nCellsSubbsn.insert(make_pair(*it, tmpSubbsn->GetCellCount()));
+        m_nAreaSubbsn.insert(make_pair(*it, tmpSubbsn->GetArea()));
+#endif
     }
 }
 
@@ -637,7 +642,11 @@ void MGTOpt_SWAT::InitializeLanduseLookup() {
         return;
     }
     for (int i = 0; i < m_landuseNum; i++) {
-        m_landuseLookupMap[CVT_INT(m_landuseLookup[i][1])] = m_landuseLookup[i];
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_landuseLookupMap.emplace(CVT_INT(m_landuseLookup[i][1]), m_landuseLookup[i]);
+#else
+        m_landuseLookupMap.insert(make_pair(CVT_INT(m_landuseLookup[i][1]),  m_landuseLookup[i]));
+#endif
     }
 }
 
@@ -652,7 +661,11 @@ void MGTOpt_SWAT::InitializeCropLookup() {
         return;
     }
     for (int i = 0; i < m_cropNum; i++) {
-        m_cropLookupMap[CVT_INT(m_cropLookup[i][1])] = m_cropLookup[i];
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_cropLookupMap.emplace(CVT_INT(m_cropLookup[i][1]), m_cropLookup[i]);
+#else
+        m_cropLookupMap.insert(make_pair(CVT_INT(m_cropLookup[i][1]), m_cropLookup[i]));
+#endif
     }
 }
 
@@ -668,7 +681,11 @@ void MGTOpt_SWAT::InitializeFertilizerLookup() {
         return;
     }
     for (int i = 0; i < m_fertNum; i++) {
-        m_fertilizerLookupMap[CVT_INT(m_fertLookup[i][1])] = m_fertLookup[i];
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_fertilizerLookupMap.emplace(CVT_INT(m_fertLookup[i][1]), m_fertLookup[i]);
+#else
+        m_fertilizerLookupMap.insert(make_pair(CVT_INT(m_fertLookup[i][1]), m_fertLookup[i]));
+#endif
     }
 }
 
@@ -684,7 +701,11 @@ void MGTOpt_SWAT::InitializeTillageLookup() {
         return;
     }
     for (int i = 0; i < m_tillageNum; i++) {
-        m_tillageLookupMap[CVT_INT(m_tillageLookup[i][1])] = m_tillageLookup[i];
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_tillageLookupMap.emplace(CVT_INT(m_tillageLookup[i][1]), m_tillageLookup[i]);
+#else
+        m_tillageLookupMap.insert(make_pair(CVT_INT(m_tillageLookup[i][1]), m_tillageLookup[i]));
+#endif
     }
 }
 
