@@ -3,8 +3,9 @@
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
  * \author Liangjun Zhu (crazyzlj)
- * \version 1.0
+ * \version 1.1
  * \changelog  2018-05-02 - lj - Initially implementation.\n
+ *             2018-06-21 - lj - Test on Intel C++ compiler.\n
  */
 #ifndef CCGL_BASIC_H
 #define CCGL_BASIC_H
@@ -25,12 +26,13 @@
 #endif /* _MSC_VER */
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
 #define CPP_ICC
-#elif defined(__GNUC__)
+#endif /* __INTEL_COMPILER */
+#if defined(__GNUC__)
 #define CPP_GCC
 #if defined(__APPLE__)
 #define CPP_APPLE
 #endif /* __APPLE__ */
-#endif /* __INTEL_COMPILER */
+#endif /* __GNUC__ */
 
 #include <memory>
 #include <stdexcept>
@@ -52,7 +54,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <cerrno>
 #endif /* CPP_GCC */
 
 using std::string;
@@ -183,7 +185,7 @@ typedef signed __int64 vint64_t;
 /// 8-byte (64-bit) unsigned integer
 typedef unsigned __int64 vuint64_t;
 
-#elif defined CPP_GCC
+#else
 typedef          int8_t            vint8_t;
 typedef          uint8_t           vuint8_t;
 typedef          int16_t           vint16_t;

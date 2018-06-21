@@ -27,13 +27,9 @@ double TimeCounting() {
 #endif /* windows */
 }
 
-string ConvertToString(const time_t* date) {
+string ConvertToString(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-#ifdef windows
-    localtime_s(date_info, date);
-#else
-    localtime_r(date, date_info);
-#endif /* windows */
+    GetDateTime(date, date_info, utc_time);
     if (date_info->tm_isdst > 0) {
         date_info->tm_hour -= 1;
     }
@@ -43,16 +39,10 @@ string ConvertToString(const time_t* date) {
     return string(date_string);
 }
 
-string ConvertToString2(const time_t* date) {
-    // Days number of each month
+string ConvertToString2(const time_t date, const bool utc_time /* = true */) {
     static int month_days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
     struct tm* date_info = new tm();
-#ifdef windows
-    localtime_s(date_info, date);
-#else
-    localtime_r(date, date_info);
-#endif /* windows */
+    GetDateTime(date, date_info, utc_time);
     if (date_info->tm_isdst > 0) {
         if (date_info->tm_hour != 0) {
             date_info->tm_hour -= 1;
@@ -83,7 +73,8 @@ string ConvertToString2(const time_t* date) {
     return s;
 }
 
-time_t ConvertToTime(const string& str_date, string const& format, const bool include_hour) {
+time_t ConvertToTime(const string& str_date, string const& format, const bool include_hour,
+                     const bool utc_time /* = true */) {
     time_t t(0);
     if (utils_string::StringMatch(str_date, "")) {
         return t;
@@ -109,7 +100,15 @@ time_t ConvertToTime(const string& str_date, string const& format, const bool in
         time_info->tm_min = min;
         time_info->tm_sec = sec;
         time_info->tm_isdst = false;
-        t = mktime(time_info);
+        if (utc_time) {
+#ifdef windows
+            t = _mkgmtime(time_info);
+#else
+            t = timegm(time_info);
+#endif
+        } else {
+            t = mktime(time_info);
+        }
         delete time_info;
     } catch (...) {
         cout << "Error occurred when convert " + str_date + " to time_t!" << endl;
@@ -118,7 +117,7 @@ time_t ConvertToTime(const string& str_date, string const& format, const bool in
     return t;
 }
 
-time_t ConvertYMDToTime(int& year, int& month, int& day) {
+time_t ConvertYMDToTime(int& year, int& month, int& day, const bool utc_time /* = true */) {
     time_t t(0);
     try {
         struct tm* time_info = new tm();
@@ -126,7 +125,15 @@ time_t ConvertYMDToTime(int& year, int& month, int& day) {
         time_info->tm_mon = month - 1;
         time_info->tm_mday = day;
         time_info->tm_isdst = false;
-        t = mktime(time_info);
+        if (utc_time) {
+#ifdef windows
+            t = _mkgmtime(time_info);
+#else
+            t = timegm(time_info);
+#endif
+        } else {
+            t = mktime(time_info);
+        }
         delete time_info;
     } catch (...) {
         cout << "Error in ConvertYMDToTime!" << endl;
@@ -135,13 +142,9 @@ time_t ConvertYMDToTime(int& year, int& month, int& day) {
     return t;
 }
 
-int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day) {
+int GetDateInfoFromTimet(const time_t t, int* year, int* month, int* day, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-#ifdef windows
-    localtime_s(date_info, t);
-#else
-    localtime_r(t, date_info);
-#endif /* windows */
+    GetDateTime(t, date_info, utc_time);
     if (date_info->tm_isdst > 0) {
         date_info->tm_hour -= 1;
     }
@@ -162,34 +165,49 @@ void LocalTime(time_t date, struct tm* t) {
 #endif /* windows */
 }
 
+void UTCTime(const time_t date, struct tm* t) {
+#ifdef windows
+    gmtime_s(t, &date);
+#else
+    gmtime_r(&date, t);
+#endif /* windows */
+}
 
-int GetYear(const time_t date) {
+void GetDateTime(const time_t date, struct tm* t, const bool utc_time /* = true */) {
+    if (utc_time) {
+        UTCTime(date, t);
+    } else {
+        LocalTime(date, t);
+    }
+}
+
+int GetYear(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-    LocalTime(date, date_info);
+    GetDateTime(date, date_info, utc_time);
     int yr = date_info->tm_year + 1900;
     delete date_info;
     return yr;
 }
 
-int GetMonth(const time_t date) {
+int GetMonth(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-    LocalTime(date, date_info);
+    GetDateTime(date, date_info, utc_time);
     int mon = date_info->tm_mon + 1;
     delete date_info;
     return mon;
 }
 
-int GetDay(const time_t date) {
+int GetDay(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-    LocalTime(date, date_info);
+    GetDateTime(date, date_info, utc_time);
     int day = date_info->tm_mday;
     delete date_info;
     return day;
 }
 
-int DayOfYear(const time_t date) {
+int DayOfYear(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-    LocalTime(date, date_info);
+    GetDateTime(date, date_info, utc_time);
     int doy = date_info->tm_yday + 1;
     delete date_info;
     return doy;
@@ -199,10 +217,10 @@ int DayOfYear(const int year, const int month, const int day) {
     return JulianDay(year, month, day) - JulianDay(year, 1, 1) + 1;
 }
 
-int JulianDay(const time_t date) {
+int JulianDay(const time_t date, const bool utc_time /* = true */) {
     struct tm* date_info = new tm();
-    LocalTime(date, date_info);
-    int jday = JulianDay(date_info->tm_year, date_info->tm_mon, date_info->tm_mday);
+    GetDateTime(date, date_info, utc_time);
+    int jday = JulianDay(date_info->tm_year + 1900, date_info->tm_mon + 1, date_info->tm_mday);
     delete date_info;
     return jday;
 }

@@ -20,45 +20,7 @@ using std::endl;
 
 namespace ccgl {
 namespace utils_filesystem {
-#ifndef windows
-
-int copyfile_unix(const char *srcfile, const char *dstfile) {
-    struct stat file;
-    if (stat(srcfile, &file) == -1) {
-        printf("Can not get info of file %s in function: copyfile_linux.", srcfile);
-        return -1;
-    }
-    int f1 = open(srcfile, O_RDONLY);
-    if (f1 == -1) {
-        printf("Can not read file %s in function: copyfile_linux.", srcfile);
-        return -1;
-    }
-    int f2 = creat(dstfile, file.st_mode);
-    if (f2 == -1) {
-        printf("Can not create file %s in function: copyfile_linux.", srcfile);
-        close(f1);
-        return -1;
-    }
-    char buf[200] = "";
-    int size = 0;
-    while ((size = read(f1, buf, 200)) != 0) {
-        if (write(f2, buf, size) != size) {
-            printf("Write error to file: %s function: copyfile_linux.", dstfile);
-            close(f1);
-            close(f2);
-            return -1;
-        }
-    }
-    close(f1);
-    close(f2);
-
-    return 0;
-}
-
-#endif /* windows */
-
 bool FileExists(string const& filename) {
-
 #ifdef windows
     struct _finddata_t fdt;
     intptr_t ptr = _findfirst(filename.c_str(), &fdt);

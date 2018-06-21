@@ -28,9 +28,9 @@ TEST(clsRasterDataTestMultiNoPosNoMask, RasterIO) {
     /// 0. Read multiple raster data.
     string apppath = GetAppPath();
     vector<string> filenames;
-    filenames.push_back(apppath + "./data/raster/dem_1.asc");
-    filenames.push_back(apppath + "./data/raster/dem_2.asc");
-    filenames.push_back(apppath + "./data/raster/dem_3.asc");
+    filenames.emplace_back(apppath + "./data/raster/dem_1.asc");
+    filenames.emplace_back(apppath + "./data/raster/dem_2.asc");
+    filenames.emplace_back(apppath + "./data/raster/dem_3.asc");
     clsRasterData<float>* rs = clsRasterData<float>::Init(filenames, false); // recommended way
     //clsRasterData<float> *rs = new clsRasterData<float>(filenames, false);  // unsafe way
 
