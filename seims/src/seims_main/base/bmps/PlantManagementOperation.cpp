@@ -11,8 +11,8 @@ using namespace plant_management;
 using std::endl;
 
 /// Base class
-PltMgtOp::PltMgtOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                                   float* parameters)
+PltMgtOp::PltMgtOp(int mgtOp, bool usebaseHU, float husc,
+                   int year, int month, int day, float* parameters)
     : m_useBaseHUSC(usebaseHU), m_frHU(husc), m_year(year), m_month(month), m_day(day), m_mgtOp(mgtOp),
       m_parameters(parameters) {
 }
@@ -43,7 +43,7 @@ void PltOp::dump(ostream* fs) {
 
 /// Irrigation
 IrrOp::IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                         float* parameters) :
+             float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_irrSrc = int(parameters[1]);
     m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
@@ -66,7 +66,7 @@ void IrrOp::dump(ostream* fs) {
 
 /// Fertilizer
 FertOp::FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                         float* parameters) :
+               float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_fertID = int(parameters[0]);
     m_frtKgHa = parameters[3];
@@ -84,7 +84,7 @@ void FertOp::dump(ostream* fs) {
 
 /// Pesticide
 PestOp::PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                       float* parameters) :
+               float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_pestID = int(parameters[0]);
     m_pstKg = parameters[3];
@@ -102,7 +102,7 @@ void PestOp::dump(ostream* fs) {
 
 /// HarvestKill
 HvstKillOp::HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                           float* parameters) :
+                       float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_CNOP = parameters[3];
     m_hiOvr = parameters[4];
@@ -120,7 +120,7 @@ void HvstKillOp::dump(ostream* fs) {
 
 /// Tillage
 TillOp::TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                   float* parameters) :
+               float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_tillID = int(parameters[0]);
     m_CNOP = parameters[3];
@@ -136,7 +136,7 @@ void TillOp::dump(ostream* fs) {
 
 /// HarvestOnly
 HvstOnlyOp::HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                           float* parameters) :
+                       float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_harvEff = (parameters[3] <= 0.) ? 1.0f : parameters[3];
     m_hiBms = parameters[4];
@@ -166,7 +166,7 @@ void KillOp::dump(ostream* fs) {
 
 /// Grazing
 GrazOp::GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                   float* parameters) :
+               float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_grzDays = int(parameters[0]);
     m_manureID = int(parameters[1]);
@@ -190,7 +190,7 @@ void GrazOp::dump(ostream* fs) {
 
 /// AutoIrrigation
 AutoIrrOp::AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                                 float* parameters)
+                     float* parameters)
     :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_wstrsID = int(parameters[0]);
@@ -220,7 +220,7 @@ void AutoIrrOp::dump(ostream* fs) {
 
 /// AutoFertilizer
 AutoFertOp::AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                                 float* parameters)
+                       float* parameters)
     : PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_afertID = int(parameters[0]);
     m_NStress = int(parameters[1]);
@@ -247,7 +247,7 @@ void AutoFertOp::dump(ostream* fs) {
 
 /// ReleaseImpound
 RelImpndOp::RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                                 float* parameters)
+                       float* parameters)
     :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_impTrig = int(parameters[0]);
@@ -266,8 +266,8 @@ void RelImpndOp::dump(ostream* fs) {
 
 /// ContinuousFertilizer
 ContFertOp::ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
-                                                             int day,
-                                                             float* parameters) :
+                       int day,
+                       float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_cfertID = int(parameters[1]);
     m_fertDays = int(parameters[0]);
@@ -286,8 +286,8 @@ void ContFertOp::dump(ostream* fs) {
 
 /// Continuous Pesticide
 ContPestOp::ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
-                                                           int day,
-                                                           float* parameters) :
+                       int day,
+                       float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_ipstID = int(parameters[0]);
     m_pstDays = int(parameters[1]);
@@ -306,7 +306,7 @@ void ContPestOp::dump(ostream* fs) {
 
 /// Burning
 BurnOp::BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
-                                   float* parameters) :
+               float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_burnFrlb = parameters[3];
 }

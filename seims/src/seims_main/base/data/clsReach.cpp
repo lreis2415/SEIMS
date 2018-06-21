@@ -169,7 +169,6 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
         }
         reach_layers_.at(order).emplace_back(i);
     }
-
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }

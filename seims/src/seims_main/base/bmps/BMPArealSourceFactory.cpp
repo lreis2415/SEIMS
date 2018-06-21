@@ -12,8 +12,8 @@ using namespace utils_time;
 using namespace bmps;
 
 BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenario,
-                                       int bmpType, int bmpPriority, vector<string> &distribution,
-                                       const string &collection, const string &location) :
+                                       int bmpType, int bmpPriority, vector<string>& distribution,
+                                       const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
     m_mgtFieldsRs(nullptr) {
     m_arealSrcMgtTab = m_bmpCollection;
@@ -21,7 +21,7 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
     if (m_distribution.size() == 4 && StringMatch(m_distribution[0], FLD_SCENARIO_DIST_RASTER)) {
         m_arealSrcDistName = m_distribution[1];
         m_arealSrcDistTab = m_distribution[2];
-        char *end = nullptr;
+        char* end = nullptr;
         errno = 0;
         m_arealSrc = strtol(m_distribution[3].c_str(), &end, 10); // deprecated atoi
         if (errno != 0) {
@@ -31,7 +31,7 @@ BMPArealSrcFactory::BMPArealSrcFactory(int scenarioId, int bmpId, int subScenari
     } else {
         throw ModelException("BMPArealSourceFactory", "Initialization",
                              "The distribution field must follow the format: "
-                                 "RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
+                             "RASTER|CoreRasterName|DistrubutionTable|SrcIDs.\n");
     }
     m_loadedMgtFieldIDs = false;
 }
@@ -59,13 +59,13 @@ BMPArealSrcFactory::~BMPArealSrcFactory() {
     }
 }
 
-void BMPArealSrcFactory::loadBMP(MongoClient *conn, const string &bmpDBName) {
+void BMPArealSrcFactory::loadBMP(MongoClient* conn, const string& bmpDBName) {
     ReadArealSourceManagements(conn, bmpDBName);
     ReadArealSourceLocations(conn, bmpDBName);
 }
 
-void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const string &bmpDBName) {
-    bson_t *b = bson_new();
+void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient* conn, const string& bmpDBName) {
+    bson_t* b = bson_new();
     bson_t *child1 = bson_new(), *child2 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
     BSON_APPEND_INT32(child1, BMP_FLD_SUB, m_subScenarioId);
@@ -77,10 +77,10 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const str
     bson_destroy(child2);
 
     std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_arealSrcMgtTab)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
-    const bson_t *bsonTable;
+    const bson_t* bsonTable;
 
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     int count = 1;
@@ -93,36 +93,41 @@ void BMPArealSrcFactory::ReadArealSourceManagements(MongoClient *conn, const str
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient *conn, const string &bmpDBName) {
-    bson_t *b = bson_new();
-    bson_t *child1 = bson_new();
+void BMPArealSrcFactory::ReadArealSourceLocations(MongoClient* conn, const string& bmpDBName) {
+    bson_t* b = bson_new();
+    bson_t* child1 = bson_new();
     BSON_APPEND_DOCUMENT_BEGIN(b, "$query", child1);
     BSON_APPEND_INT32(child1, BMP_ARSRC_FLD_CODE, m_arealSrc);
     bson_append_document_end(b, child1);
     bson_destroy(child1);
 
     std::unique_ptr<MongoCollection> collection(new MongoCollection(conn->GetCollection(bmpDBName, m_arealSrcDistTab)));
-    mongoc_cursor_t *cursor = collection->ExecuteQuery(b);
+    mongoc_cursor_t* cursor = collection->ExecuteQuery(b);
 
     bson_iter_t iter;
-    const bson_t *bsonTable;
+    const bson_t* bsonTable;
 
     while (mongoc_cursor_next(cursor, &bsonTable)) {
-        ArealSourceLocations *curArSrcLoc = new ArealSourceLocations(bsonTable, iter);
+        ArealSourceLocations* curArSrcLoc = new ArealSourceLocations(bsonTable, iter);
         int curArSrcID = curArSrcLoc->GetArealSourceID();
         if (ValueInVector(curArSrcID, m_arealSrcIDs)) {
-            m_arealSrcLocsMap[curArSrcID] = curArSrcLoc;
+#ifdef HAS_VARIADIC_TEMPLATES
+            m_arealSrcLocsMap.emplace(curArSrcID, curArSrcLoc);
+#else
+            m_arealSrcLocsMap.insert(make_pair(curArSrcID, curArSrcLoc));
+#endif
         } else {
             RemoveValueInVector(curArSrcID, m_arealSrcIDs);
+            delete curArSrcLoc;
         }
     }
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }
 
-void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float *mgtField) {
+void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float* mgtField) {
     for (auto it = m_arealSrcLocsMap.begin(); it != m_arealSrcLocsMap.end(); ++it) {
-        ArealSourceLocations *tmpArealLoc = it->second;
+        ArealSourceLocations* tmpArealLoc = it->second;
         if (tmpArealLoc->GetValidCells() < 0 && tmpArealLoc->GetCellsIndex().empty()) {
             tmpArealLoc->SetValidCells(n, mgtField);
         }
@@ -130,10 +135,10 @@ void BMPArealSrcFactory::SetArealSrcLocsMap(int n, float *mgtField) {
     m_loadedMgtFieldIDs = true;
 }
 
-void BMPArealSrcFactory::Dump(std::ostream *fs) {
+void BMPArealSrcFactory::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
     *fs << "Point Source Management Factory: " << endl <<
-        "    SubScenario ID: " << m_subScenarioId << endl;
+            "    SubScenario ID: " << m_subScenarioId << endl;
     for (auto it = m_arealSrcMgtSeqs.begin(); it != m_arealSrcMgtSeqs.end(); ++it) {
         auto findIdx = m_arealSrcMgtMap.find(*it);
         if (findIdx != m_arealSrcMgtMap.end()) {
@@ -148,7 +153,7 @@ void BMPArealSrcFactory::Dump(std::ostream *fs) {
     }
 }
 
-void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *> &sceneRsMap) {
+void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *>& sceneRsMap) {
     if (sceneRsMap.find(m_arealSrcDistName) != sceneRsMap.end()) {
         int n;
         sceneRsMap.at(m_arealSrcDistName)->GetRasterData(&n, &m_mgtFieldsRs);
@@ -161,7 +166,7 @@ void BMPArealSrcFactory::setRasterData(map<string, FloatRaster *> &sceneRsMap) {
 /*                  ArealSourceMgtParams                                */
 /************************************************************************/
 
-ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t &iter)
+ArealSourceMgtParams::ArealSourceMgtParams(const bson_t*& bsonTable, bson_iter_t& iter)
     : m_name(""), m_seqence(-1), m_startDate(0), m_endDate(0), m_waterVolume(0.f), m_sedimentConc(0.f),
       m_TNConc(0.f), m_NO3Conc(0.f), m_NH4Conc(0.f), m_OrgNConc(0.f), m_TPConc(0.f), m_SolPConc(0.f),
       m_OrgPConc(0.f), m_COD(0.f) {
@@ -228,7 +233,7 @@ ArealSourceMgtParams::ArealSourceMgtParams(const bson_t *&bsonTable, bson_iter_t
     }
 }
 
-void ArealSourceMgtParams::Dump(std::ostream *fs) {
+void ArealSourceMgtParams::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
@@ -238,10 +243,10 @@ void ArealSourceMgtParams::Dump(std::ostream *fs) {
         *fs << "      End Date: " << ConvertToString(m_endDate) << endl;
     }
     *fs << "      WaterVolume: " << m_waterVolume << ", Sediment: " << m_sedimentConc <<
-        ", TN: " << m_TNConc << ", NO3: " << m_NO3Conc <<
-        ", NH4: " << m_NH4Conc << ", OrgN: " << m_OrgNConc <<
-        ", TP: " << m_TPConc << ", MinP: " << m_SolPConc <<
-        ", OrgP: " << m_OrgPConc << endl;
+            ", TN: " << m_TNConc << ", NO3: " << m_NO3Conc <<
+            ", NH4: " << m_NH4Conc << ", OrgN: " << m_OrgNConc <<
+            ", TP: " << m_TPConc << ", MinP: " << m_SolPConc <<
+            ", OrgP: " << m_OrgPConc << endl;
 }
 
 
@@ -249,7 +254,7 @@ void ArealSourceMgtParams::Dump(std::ostream *fs) {
 /*                      ArealSourceLocations                            */
 /************************************************************************/
 
-ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t &iter)
+ArealSourceLocations::ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t& iter)
     : m_arealSrcID(-1), m_nCells(-1), m_size(0.f) {
     if (bson_iter_init_find(&iter, bsonTable, BMP_FLD_NAME)) {
         m_name = GetStringFromBsonIterator(&iter);
@@ -263,7 +268,7 @@ ArealSourceLocations::ArealSourceLocations(const bson_t *&bsonTable, bson_iter_t
 }
 
 
-void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
+void ArealSourceLocations::SetValidCells(int n, float* mgtFieldIDs) {
     if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
             if (FloatEqual(m_arealSrcID, int(mgtFieldIDs[i]))) {
@@ -278,9 +283,10 @@ void ArealSourceLocations::SetValidCells(int n, float *mgtFieldIDs) {
                              "The array size of must be greater than 0 and the array must not be NULL.");
     }
 }
-void ArealSourceLocations::Dump(std::ostream *fs) {
+
+void ArealSourceLocations::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
     *fs << "      Point Source Location: " << endl <<
-        "        ARSRCID: " << m_arealSrcID << ", Valid Cells Number: " << m_nCells <<
-        ", Size: " << m_size << endl;
+            "        ARSRCID: " << m_arealSrcID << ", Valid Cells Number: " << m_nCells <<
+            ", Size: " << m_size << endl;
 }
