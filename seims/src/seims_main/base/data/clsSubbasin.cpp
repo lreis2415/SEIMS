@@ -75,25 +75,30 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     rs_map[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data);
 
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
-    map<int, vector<int> *> cell_list_map;
+    map<int, vector<int> > cell_list_map;
     for (int i = 0; i < n_cells; i++) {
         int sub_id = int(subbasin_data[i]);
-        if (cell_list_map.find(sub_id) == cell_list_map.end())
-            cell_list_map[sub_id] = new vector<int>;
-        cell_list_map[sub_id]->emplace_back(i);
+        if (cell_list_map.find(sub_id) == cell_list_map.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+            cell_list_map.emplace(sub_id, vector<int>());
+#else
+            cell_list_map.insert(make_pair(sub_id, vector<int>()));
+#endif
+        }
+        cell_list_map[sub_id].emplace_back(i);
     }
-    n_subbasins_ = int(cell_list_map.size());
+    n_subbasins_ = CVT_INT(cell_list_map.size());
     for (auto it = cell_list_map.begin(); it != cell_list_map.end(); ++it) {
         // swap for saving memory, using shrink_to_fit() instead.
-        vector<int>(*it->second).swap(*it->second);
+        vector<int>(it->second).swap(it->second);
         // (*it->second).shrink_to_fit();
         int sub_id = it->first;
         subbasin_ids_.emplace_back(sub_id);
         Subbasin* new_sub = new Subbasin(sub_id);
-        int n_cells_tmp = int(it->second->size());
+        int n_cells_tmp = int(it->second.size());
         int* tmp = new int[n_cells_tmp];
         for (int j = 0; j < n_cells_tmp; j++)
-            tmp[j] = it->second->at(j);
+            tmp[j] = it->second.at(j);
         new_sub->SetCellList(n_cells_tmp, tmp);
         new_sub->SetArea(cell_width * cell_width * n_cells_tmp);
         subbasin_objs_[sub_id] = new_sub;
@@ -101,11 +106,11 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     vector<int>(subbasin_ids_).swap(subbasin_ids_);
     // m_subbasinIDs.shrink_to_fit();
     // release cellListMap to save memory
-    for (auto it = cell_list_map.begin(); it != cell_list_map.end();) {
-        delete it->second;
-        cell_list_map.erase(it++);
-    }
-    cell_list_map.clear();
+    //for (auto it = cell_list_map.begin(); it != cell_list_map.end();) {
+    //    delete it->second;
+    //    cell_list_map.erase(it++);
+    //}
+    //cell_list_map.clear();
 }
 
 clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaster *>& rsMap,
