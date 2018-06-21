@@ -137,7 +137,7 @@ void ModelMain::Execute() {
     int nHs = int(m_dtCh / m_dtHs);
 
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        StatusMessage(ConvertToString2(&t).c_str());
+        StatusMessage(ConvertToString2(t).c_str());
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;

@@ -88,7 +88,7 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
             std::ostringstream oss;
             oss << "There are no " << siteType << " data available for sites:[" << m_siteIDList[iSite] <<
                     "] in database:" << hydroDBName
-                    << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                    << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
             throw ModelException("NotRegularMeasurement", "Constructor", oss.str());
         }
     }

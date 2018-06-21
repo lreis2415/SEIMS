@@ -232,10 +232,10 @@ void ArealSourceMgtParams::Dump(std::ostream *fs) {
     if (fs == nullptr) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
-        *fs << "      Start Date: " << ConvertToString(&m_startDate) << endl;
+        *fs << "      Start Date: " << ConvertToString(m_startDate) << endl;
     }
     if (m_endDate != 0) {
-        *fs << "      End Date: " << ConvertToString(&m_endDate) << endl;
+        *fs << "      End Date: " << ConvertToString(m_endDate) << endl;
     }
     *fs << "      WaterVolume: " << m_waterVolume << ", Sediment: " << m_sedimentConc <<
         ", TN: " << m_TNConc << ", NO3: " << m_NO3Conc <<
