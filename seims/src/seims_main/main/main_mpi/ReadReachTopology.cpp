@@ -52,7 +52,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
             subbasins[to]->up_streams.emplace_back(subbasins[id]);
         }
     }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     StatusMessage("---CreateReachTopology done---");
     cout << "Group set: ";
     for (auto it = group_set.begin(); it != group_set.end(); ++it) {
@@ -74,7 +74,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
         cout << endl;
     }
     cout << endl;
-#endif /* DEBUG_PRINT */
+#endif /* _DEBUG */
     delete reaches;
     return 0;
 }

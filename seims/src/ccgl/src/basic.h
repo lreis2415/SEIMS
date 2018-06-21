@@ -16,10 +16,6 @@
 #endif /* _DEBUG */
 #endif /* NDEBUG */
 
-#ifndef DEBUG_PRINT
-#define DEBUG_PRINT
-#endif
-
 /// Architecture
 #if defined(_WIN64) || defined(__x86_64) || defined(__LP64__)
 #define CPP_64

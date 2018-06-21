@@ -43,7 +43,7 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
             task->max_len = CVT_INT(group_map[*it].size());
         }
     }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     cout << "Group set: " << endl;
     for (auto it = group_map.begin(); it != group_map.end(); ++it) {
         cout << "  group id: " << it->first << ", subbasin IDs: ";
@@ -53,7 +53,7 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
         cout << endl;
     }
     cout << "  max task length: " << task->max_len << endl;
-#endif /* DEBUG_PRINT */
+#endif /* _DEBUG */
 
     int n_task_all = task->max_len * size;
     // initialization
@@ -89,14 +89,14 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, const int siz
     }
     // send the information to all processes
     StatusMessage("Sending tasks to the all processes...");
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     cout << "  pTaskSubbasinID, pGroupID, pLayerNumber, pDownStream, pUpNums" << endl;
     for (int i = 0; i < n_task_all; i++) {
         if (task->subbsn_id[i] < 0) continue;
         cout << "  " << task->subbsn_id[i] << ", " << i / task->max_len << ", " << task->lyr_id[i] << ", "
                 << task->down_id[i] << ", " << task->up_count[i] << ", " << endl;
     }
-#endif /* DEBUG_PRINT */
+#endif /* _DEBUG */
     return 0;
 }
 
@@ -108,9 +108,9 @@ int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const 
     MPI_Barrier(MCW); /// Wait for master rank
     MPI_Bcast(&task->max_len, 1, MPI_INT, MASTER_RANK, MCW);
     int n_task_all = task->max_len * size;
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     cout << "Max. task length: " << task->max_len << endl;
-#endif /* DEBUG_PRINT */
+#endif /* _DEBUG */
     /// Initialize arrays for other ranks
     if (rank != MASTER_RANK) {
         Initialize1DArray(n_task_all, task->subbsn_id, -1);
@@ -129,7 +129,7 @@ int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const 
     if (rank == MASTER_RANK) {
         StatusMessage("Tasks are dispatched.");
     }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     for (int i = 0; i < size; i++) {
         cout << "group id, subbasin ids, layer numbers, downstream ids, upstream numbers, upstream ids" << endl;
         cout << i << ", [";
@@ -163,6 +163,6 @@ int LoadTasks(MongoClient* client, InputArgs* input_args, const int size, const 
         }
         cout << "]" << endl;
     }
-#endif /* DEBUG_PRINT */
+#endif /* _DEBUG */
     return 0;
 }

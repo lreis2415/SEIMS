@@ -143,14 +143,14 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         if (rank == MASTER_RANK) {
             // cout << ConvertToString2(&ts) << endl;
         }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
         cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
 #endif
         int year_idx = GetYear(ts) - start_year;
         // Execute by layering orders
         for (int ilyr = 1; ilyr <= max_lyr_id_all; ilyr++) {
             // if (subbsn_layers.find(ilyr) == subbsn_layers.end()) continue; // DO NOT UNCOMMENT THIS!
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
             cout << "Rank: " << rank << ", Layer " << ilyr << endl;
 #endif
             if (input_args->skd_mtd == TEMPOROSPATIAL) exec_lyr_num = ilyr;
@@ -171,7 +171,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 1. Execute hillslope processes
                     t_slope_start = TimeCounting();
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
                     cout << "  " << ConvertToString2(cur_time) <<
                             "  Hillslope process, subbasin: " << subbasin_id << endl;
 #endif
@@ -184,7 +184,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
 
                     // 2. Execute channel processes
                     t_channel_start = TimeCounting();
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
                     cout << "  " << ConvertToString2(cur_time) <<
                             "  Channel process, subbasin: " << subbasin_id << endl;
 #endif
@@ -206,7 +206,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             int work_tag = *it_upid * 10000 + cur_sim_loop_num;;
                             MPI_Irecv(buf, buflen, MPI_FLOAT, subbasin_rank[*it_upid], work_tag, MCW, &request);
                             MPI_Wait(&request, &status);
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
                             cout << "Receive data of subbasin: " << *it_upid << " of sim_loop: " <<
                                     cur_sim_loop_num << " from rank: " << subbasin_rank[*it_upid] << ", tfValues: ";
                             for (int itf = MSG_LEN; itf < buflen; itf++) {
@@ -240,7 +240,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     }
                     // 2.3 Otherwise, the transferred values of current subbasin should be sent to another rank
                     psubbasin->GetTransferredValue(&buf[MSG_LEN]);
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
                     cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " of sim_loop: " <<
                             cur_sim_loop_num << " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
                     for (int itf = MSG_LEN; itf < buflen; itf++) {
@@ -292,7 +292,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         cout << "[TIMESPAN][COMPUTING]\tHillslope\t" << std::fixed << setprecision(3) << slope_t << endl;
         cout << "[TIMESPAN][COMPUTING]\tChannel\t" << std::fixed << setprecision(3) << channel_t << endl;
     }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     cout << "Rank: " << rank << endl;
     cout << "    [COMPUTING]\tALL\t" << std::fixed << setprecision(3) << comp_tmp << endl;
     cout << "    [COMPUTING]\tHillslope\t" << std::fixed << setprecision(3) << t_slope << endl;

@@ -200,7 +200,7 @@ float DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
                          SimulationModule* p_module, const bool vertital_itp) {
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     double stime = TimeCounting();
 #endif
     string name = param->BasicName;
@@ -249,7 +249,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
             break;
         default: break;
     }
-#ifdef DEBUG_PRINT
+#ifdef _DEBUG
     float timeconsume = float(TimeCounting() - stime);
     StatusMessage(("Set " + name + ": " + remote_filename + " done, TIMESPAN " +
                       ValueToString(timeconsume) + " sec.").c_str());
