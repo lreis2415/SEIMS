@@ -228,23 +228,24 @@ TEST_P(clsRasterDataTestPosNoMask, RasterIO) {
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
     MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
-    ASSERT_NE(nullptr, conn);
-    string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
-    MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
-    gfs->RemoveFile(gfsfilename);
-    rs_->OutputToMongoDB(gfsfilename, gfs);
-    clsRasterData<float>* mongors = clsRasterData<float>::Init(gfs, gfsfilename.c_str());
-    // test mongors data
-    EXPECT_EQ(541, mongors->GetCellNumber()); // m_nCells
-    EXPECT_EQ(1, mongors->GetLayers());
-    EXPECT_EQ(541, mongors->GetValidNumber());
-    EXPECT_FLOAT_EQ(0.806f, rs_->GetMinimum());
-    EXPECT_FLOAT_EQ(9.19171165f, rs_->GetAverage());
-    EXPECT_FLOAT_EQ(5.62426552f, rs_->GetStd());
-    EXPECT_FLOAT_EQ(97.684f, rs_->GetRange());
-    // output to asc/tif file for comparison
-    EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
-    EXPECT_TRUE(FileExists(newfullname4mongo));
+    if (nullptr != conn) {
+        string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
+        MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
+        gfs->RemoveFile(gfsfilename);
+        rs_->OutputToMongoDB(gfsfilename, gfs);
+        clsRasterData<float>* mongors = clsRasterData<float>::Init(gfs, gfsfilename.c_str());
+        // test mongors data
+        EXPECT_EQ(541, mongors->GetCellNumber()); // m_nCells
+        EXPECT_EQ(1, mongors->GetLayers());
+        EXPECT_EQ(541, mongors->GetValidNumber());
+        EXPECT_FLOAT_EQ(0.806f, rs_->GetMinimum());
+        EXPECT_FLOAT_EQ(9.19171165f, rs_->GetAverage());
+        EXPECT_FLOAT_EQ(5.62426552f, rs_->GetStd());
+        EXPECT_FLOAT_EQ(97.684f, rs_->GetRange());
+        // output to asc/tif file for comparison
+        EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+        EXPECT_TRUE(FileExists(newfullname4mongo));
+    }
 #endif
 }
 #ifdef USE_GDAL

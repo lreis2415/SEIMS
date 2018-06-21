@@ -255,22 +255,24 @@ TEST_P(clsRasterDataTestPosIncstMaskPosExt, RasterIO) {
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
     MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
-    ASSERT_NE(nullptr, conn);
-    string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
-    MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
-    gfs->RemoveFile(gfsfilename);
-    copyrs->OutputToMongoDB(gfsfilename, gfs);
-    double stime = TimeCounting();
-    clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs_, true);
-    cout << "Reading parameter finished, TIMESPAN " << ValueToString(TimeCounting() - stime) << " sec." << endl;
-    // test mongors data
-    EXPECT_EQ(73, mongors->GetCellNumber()); // m_nCells
-    EXPECT_EQ(1, mongors->GetLayers());
-    EXPECT_EQ(60, mongors->GetValidNumber());
-    EXPECT_FLOAT_EQ(10.10611667f, mongors->GetAverage());
-    // output to asc/tif file for comparison
-    EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
-    EXPECT_TRUE(FileExists(newfullname4mongo));
+    if (nullptr != conn) {
+        string gfsfilename = newcorename + "_" + GetSuffix(oldfullname);
+        MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
+        gfs->RemoveFile(gfsfilename);
+        copyrs->OutputToMongoDB(gfsfilename, gfs);
+        double stime = TimeCounting();
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::Init(gfs, gfsfilename.c_str(), true, maskrs_,
+                                                                             true);
+        cout << "Reading parameter finished, TIMESPAN " << ValueToString(TimeCounting() - stime) << " sec." << endl;
+        // test mongors data
+        EXPECT_EQ(73, mongors->GetCellNumber()); // m_nCells
+        EXPECT_EQ(1, mongors->GetLayers());
+        EXPECT_EQ(60, mongors->GetValidNumber());
+        EXPECT_FLOAT_EQ(10.10611667f, mongors->GetAverage());
+        // output to asc/tif file for comparison
+        EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
+        EXPECT_TRUE(FileExists(newfullname4mongo));
+    }
 #endif
     delete copyrs;
 }
