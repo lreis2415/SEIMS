@@ -80,7 +80,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
             for (int i = 0; i < nSites; i++) {
                 pData[i] = 0.f;
             }
-            m_siteData.push_back(pData);
+            m_siteData.emplace_back(pData);
         }
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
             GetNumericFromBsonIterator(&iter, value);

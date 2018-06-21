@@ -78,8 +78,8 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
                                      " does not exist in DataValues table.");
             }
 
-            m_timeList[iSite].push_back(dt);
-            m_valueList[iSite].push_back(value);
+            m_timeList[iSite].emplace_back(dt);
+            m_valueList[iSite].emplace_back(value);
         }
         bson_destroy(query);
         mongoc_cursor_destroy(cursor);

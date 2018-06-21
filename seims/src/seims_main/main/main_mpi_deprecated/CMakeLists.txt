@@ -1,6 +1,6 @@
-MESSAGE(STATUS "        Compiling main_subdir: seims_mpi_dev...")
-PROJECT(SEIMS_MAIN_MPI_DEV_VERSION)
-SET(EXECNAME seims_mpi_dev)
+MESSAGE(STATUS "        Compiling main_subdir: seims_mpi...")
+PROJECT(SEIMS_MAIN_MPI_VERSION)
+SET(EXECNAME seims_mpi_old)
 # Add ModelMain class
 SET(OMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../main_omp)
 # Add combine raster function
@@ -8,7 +8,8 @@ SET(COMBINE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../combine_raster)
 geo_include_directories(${COMBINE_DIR} ${OMP_DIR} ${MPI_INCLUDE_PATH})
 FILE(GLOB SRC_LIST *.cpp *.h ${OMP_DIR}/ModelMain.cpp ${COMBINE_DIR}/CombineRaster.cpp)
 ADD_EXECUTABLE(${EXECNAME} ${SRC_LIST})
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+SET_TARGET_PROPERTIES(${EXECNAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+SET(EXECUTABLE_OUTPUT_PATH ${SEIMS_BINARY_OUTPUT_PATH})
 TARGET_LINK_LIBRARIES(${EXECNAME} ${CCGLNAME} data bmps module_setting ${GDAL_LIBRARIES} ${BSON_LIBRARIES} ${MONGOC_LIBRARIES} ${MPI_LIBRARIES} ${CMAKE_DL_LIBS})
 INSTALL(TARGETS ${EXECNAME} DESTINATION ${INSTALL_DIR})
 # VS2010 has MPI debug tool and seims_mpi should not included in folder

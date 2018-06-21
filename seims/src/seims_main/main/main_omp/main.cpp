@@ -33,7 +33,8 @@ int main(int argc, const char** argv) {
             throw ModelException("ModuleFactory", "Constructor", "Failed in constructing ModuleFactory!");
         }
         /// Create data center according to subbasin number, 0 means the whole basin which is default for omp version.
-        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client, module_factory);
+        DataCenterMongoDB* data_center = new DataCenterMongoDB(input_args, mongo_client,
+                                                               module_factory, input_args->subbasin_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model_main = new ModelMain(data_center, module_factory);
         /// Execute model and write outputs

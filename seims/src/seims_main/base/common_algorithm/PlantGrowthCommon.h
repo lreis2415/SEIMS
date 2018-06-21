@@ -1,5 +1,5 @@
 /*!
- * \brief Define some common used function in Plant growth module, e.g., BIO_EPIC
+ * \brief Define some common used function in Plant growth module, e.g., PG_EPIC
  * \author Zhiqiang Yu
  * \date 2011-8-10
  * \revised Liang-Jun Zhu

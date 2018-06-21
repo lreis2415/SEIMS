@@ -98,7 +98,7 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string& bmpDBName) {
             }
         }
         int uniqueMgtCode = count * 1000 + mgtCode;
-        m_bmpSequence.push_back(uniqueMgtCode);
+        m_bmpSequence.emplace_back(uniqueMgtCode);
         switch (mgtCode) {
             case BMP_PLTOP_Plant:
                 m_bmpPlantOps[uniqueMgtCode] = new PltOp(mgtCode, usebaseHU, husc, year, month, day,

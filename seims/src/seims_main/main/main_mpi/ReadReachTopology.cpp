@@ -49,7 +49,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
         int to = it->second;
         if (to > 0) {
             subbasins[id]->down_stream = subbasins[to];
-            subbasins[to]->up_streams.push_back(subbasins[id]);
+            subbasins[to]->up_streams.emplace_back(subbasins[id]);
         }
     }
 #ifdef _DEBUG

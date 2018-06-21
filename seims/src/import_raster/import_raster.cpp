@@ -379,7 +379,11 @@ int main(int argc, char** argv) {
                 } else {
                     vector<string> tmp_file_name;
                     tmp_file_name.push_back(*it);
+#ifdef HAS_VARIADIC_TEMPLATES
+                    array2d_files.emplace(core_var_name, tmp_file_name);
+#else
                     array2d_files.insert(make_pair(core_var_name, tmp_file_name));
+#endif
                 }
             } else {
                 array1d_files.push_back(*it);

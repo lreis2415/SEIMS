@@ -85,20 +85,20 @@ void Biomass_EPIC::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_NFIXCO)) m_NFixCoef = value;
     else if (StringMatch(sk, VAR_NFIXMX)) m_NFixMax = value;
     else {
-        throw ModelException(MID_BIO_EPIC, "SetValue", "Parameter " + sk + " does not exist.");
+        throw ModelException(MID_PG_EPIC, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
 bool Biomass_EPIC::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputSize", "Input data for " + string(key) +
+        throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
                              " is invalid. The size could not be less than zero.");
     }
     if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
-            throw ModelException(MID_BIO_EPIC, "CheckInputSize", "Input data for " + string(key) +
+            throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
                                  " is invalid. All the input raster data should have same size.");
         }
     }
@@ -165,21 +165,21 @@ void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_CHT)) m_canHgt = data;
     else if (StringMatch(sk, VAR_DORMI)) m_dormFlag = data;
     else {
-        throw ModelException(MID_BIO_EPIC, "Set1DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(MID_PG_EPIC, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 bool Biomass_EPIC::CheckInputSize2D(const char* key, const int n, const int col) {
     CheckInputSize(key, n);
     if (col <= 0) {
-        throw ModelException(MID_BIO_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
+        throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
                              " is invalid. The layer number could not be less than zero.");
     }
     if (m_maxSoilLyrs != col) {
         if (m_maxSoilLyrs <= 0) {
             m_maxSoilLyrs = col;
         } else {
-            throw ModelException(MID_BIO_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
+            throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
                                  " is invalid. All the layers of input 2D raster data should have same size.");
         }
     }
@@ -197,79 +197,79 @@ void Biomass_EPIC::Set2DData(const char* key, const int nRows, const int nCols, 
     else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
     else {
-        throw ModelException(MID_BIO_EPIC, "Set2DData", "Parameter " + sk + " does not exist.");
+        throw ModelException(MID_PG_EPIC, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
 
 bool Biomass_EPIC::CheckInputData(void) {
     /// DT_Single
-    CHECK_POSITIVE(MID_BIO_EPIC, m_nCells);
-    CHECK_POSITIVE(MID_BIO_EPIC, m_maxSoilLyrs);
-    CHECK_NODATA(MID_BIO_EPIC, m_co2Conc);
-    CHECK_NODATA(MID_BIO_EPIC, m_upTkDistN);
-    CHECK_NODATA(MID_BIO_EPIC, m_upTkDistP);
-    CHECK_NODATA(MID_BIO_EPIC, m_NFixCoef);
-    CHECK_NODATA(MID_BIO_EPIC, m_NFixMax);
+    CHECK_POSITIVE(MID_PG_EPIC, m_nCells);
+    CHECK_POSITIVE(MID_PG_EPIC, m_maxSoilLyrs);
+    CHECK_NODATA(MID_PG_EPIC, m_co2Conc);
+    CHECK_NODATA(MID_PG_EPIC, m_upTkDistN);
+    CHECK_NODATA(MID_PG_EPIC, m_upTkDistP);
+    CHECK_NODATA(MID_PG_EPIC, m_NFixCoef);
+    CHECK_NODATA(MID_PG_EPIC, m_NFixMax);
     /// DT_Raster1D
-    CHECK_POINTER(MID_BIO_EPIC, m_annMeanTemp);
-    CHECK_POINTER(MID_BIO_EPIC, m_minTemp);
-    CHECK_POINTER(MID_BIO_EPIC, m_meanTemp);
-    CHECK_POINTER(MID_BIO_EPIC, m_SR);
-    CHECK_POINTER(MID_BIO_EPIC, m_dayLen);
-    CHECK_POINTER(MID_BIO_EPIC, m_dayLenMin);
-    CHECK_POINTER(MID_BIO_EPIC, m_dormHr);
-    CHECK_POINTER(MID_BIO_EPIC, m_nSoilLyrs);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilMaxRootD);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilAlb);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilWtrStoPrfl);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilSumFC);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilSumSat);
-    CHECK_POINTER(MID_BIO_EPIC, m_pet);
-    CHECK_POINTER(MID_BIO_EPIC, m_vpd);
-    CHECK_POINTER(MID_BIO_EPIC, m_maxPltET);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilET);
-    CHECK_POINTER(MID_BIO_EPIC, m_rsdInitSoil);
-    CHECK_POINTER(MID_BIO_EPIC, m_igro);
-    CHECK_POINTER(MID_BIO_EPIC, m_landCoverCls);
-    CHECK_POINTER(MID_BIO_EPIC, m_minLaiDorm);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomEnrgRatio);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomEnrgRatio2ndPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomDropFr);
-    CHECK_POINTER(MID_BIO_EPIC, m_maxLai);
-    CHECK_POINTER(MID_BIO_EPIC, m_maxBiomTree);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomNFr1);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomNFr2);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomNFr3);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomPFr1);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomPFr2);
-    CHECK_POINTER(MID_BIO_EPIC, m_biomPFr3);
-    CHECK_POINTER(MID_BIO_EPIC, m_maxCanHgt);
-    CHECK_POINTER(MID_BIO_EPIC, m_co2Conc2ndPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_dormPHUFr);
-    CHECK_POINTER(MID_BIO_EPIC, m_lightExtCoef);
-    CHECK_POINTER(MID_BIO_EPIC, m_frGrow1stPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_frGrow2ndPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_hvstIdx);
-    CHECK_POINTER(MID_BIO_EPIC, m_frMaxLai1stPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_frMaxLai2ndPt);
-    CHECK_POINTER(MID_BIO_EPIC, m_matYrs);
-    CHECK_POINTER(MID_BIO_EPIC, m_pgTempBase);
-    CHECK_POINTER(MID_BIO_EPIC, m_pgOptTemp);
-    CHECK_POINTER(MID_BIO_EPIC, m_wavp);
-    CHECK_POINTER(MID_BIO_EPIC, m_epco);
-    CHECK_POINTER(MID_BIO_EPIC, m_curYrMat);
-    CHECK_POINTER(MID_BIO_EPIC, m_initLai);
-    CHECK_POINTER(MID_BIO_EPIC, m_initBiom);
-    CHECK_POINTER(MID_BIO_EPIC, m_phuPlt);
-    CHECK_POINTER(MID_BIO_EPIC, m_canHgt);
-    CHECK_POINTER(MID_BIO_EPIC, m_dormFlag);
+    CHECK_POINTER(MID_PG_EPIC, m_annMeanTemp);
+    CHECK_POINTER(MID_PG_EPIC, m_minTemp);
+    CHECK_POINTER(MID_PG_EPIC, m_meanTemp);
+    CHECK_POINTER(MID_PG_EPIC, m_SR);
+    CHECK_POINTER(MID_PG_EPIC, m_dayLen);
+    CHECK_POINTER(MID_PG_EPIC, m_dayLenMin);
+    CHECK_POINTER(MID_PG_EPIC, m_dormHr);
+    CHECK_POINTER(MID_PG_EPIC, m_nSoilLyrs);
+    CHECK_POINTER(MID_PG_EPIC, m_soilMaxRootD);
+    CHECK_POINTER(MID_PG_EPIC, m_soilAlb);
+    CHECK_POINTER(MID_PG_EPIC, m_soilWtrStoPrfl);
+    CHECK_POINTER(MID_PG_EPIC, m_soilSumFC);
+    CHECK_POINTER(MID_PG_EPIC, m_soilSumSat);
+    CHECK_POINTER(MID_PG_EPIC, m_pet);
+    CHECK_POINTER(MID_PG_EPIC, m_vpd);
+    CHECK_POINTER(MID_PG_EPIC, m_maxPltET);
+    CHECK_POINTER(MID_PG_EPIC, m_soilET);
+    CHECK_POINTER(MID_PG_EPIC, m_rsdInitSoil);
+    CHECK_POINTER(MID_PG_EPIC, m_igro);
+    CHECK_POINTER(MID_PG_EPIC, m_landCoverCls);
+    CHECK_POINTER(MID_PG_EPIC, m_minLaiDorm);
+    CHECK_POINTER(MID_PG_EPIC, m_biomEnrgRatio);
+    CHECK_POINTER(MID_PG_EPIC, m_biomEnrgRatio2ndPt);
+    CHECK_POINTER(MID_PG_EPIC, m_biomDropFr);
+    CHECK_POINTER(MID_PG_EPIC, m_maxLai);
+    CHECK_POINTER(MID_PG_EPIC, m_maxBiomTree);
+    CHECK_POINTER(MID_PG_EPIC, m_biomNFr1);
+    CHECK_POINTER(MID_PG_EPIC, m_biomNFr2);
+    CHECK_POINTER(MID_PG_EPIC, m_biomNFr3);
+    CHECK_POINTER(MID_PG_EPIC, m_biomPFr1);
+    CHECK_POINTER(MID_PG_EPIC, m_biomPFr2);
+    CHECK_POINTER(MID_PG_EPIC, m_biomPFr3);
+    CHECK_POINTER(MID_PG_EPIC, m_maxCanHgt);
+    CHECK_POINTER(MID_PG_EPIC, m_co2Conc2ndPt);
+    CHECK_POINTER(MID_PG_EPIC, m_dormPHUFr);
+    CHECK_POINTER(MID_PG_EPIC, m_lightExtCoef);
+    CHECK_POINTER(MID_PG_EPIC, m_frGrow1stPt);
+    CHECK_POINTER(MID_PG_EPIC, m_frGrow2ndPt);
+    CHECK_POINTER(MID_PG_EPIC, m_hvstIdx);
+    CHECK_POINTER(MID_PG_EPIC, m_frMaxLai1stPt);
+    CHECK_POINTER(MID_PG_EPIC, m_frMaxLai2ndPt);
+    CHECK_POINTER(MID_PG_EPIC, m_matYrs);
+    CHECK_POINTER(MID_PG_EPIC, m_pgTempBase);
+    CHECK_POINTER(MID_PG_EPIC, m_pgOptTemp);
+    CHECK_POINTER(MID_PG_EPIC, m_wavp);
+    CHECK_POINTER(MID_PG_EPIC, m_epco);
+    CHECK_POINTER(MID_PG_EPIC, m_curYrMat);
+    CHECK_POINTER(MID_PG_EPIC, m_initLai);
+    CHECK_POINTER(MID_PG_EPIC, m_initBiom);
+    CHECK_POINTER(MID_PG_EPIC, m_phuPlt);
+    CHECK_POINTER(MID_PG_EPIC, m_canHgt);
+    CHECK_POINTER(MID_PG_EPIC, m_dormFlag);
     /// DT_Raster2D
-    CHECK_POINTER(MID_BIO_EPIC, m_soilDepth);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilThk);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilFC);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilWtrSto);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilNO3);
-    CHECK_POINTER(MID_BIO_EPIC, m_soilSolP);
+    CHECK_POINTER(MID_PG_EPIC, m_soilDepth);
+    CHECK_POINTER(MID_PG_EPIC, m_soilThk);
+    CHECK_POINTER(MID_PG_EPIC, m_soilFC);
+    CHECK_POINTER(MID_PG_EPIC, m_soilWtrSto);
+    CHECK_POINTER(MID_PG_EPIC, m_soilNO3);
+    CHECK_POINTER(MID_PG_EPIC, m_soilSolP);
     return true;
 }
 
@@ -863,7 +863,7 @@ void Biomass_EPIC::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_SOL_COV)) *data = m_rsdCovSoil;
     else if (StringMatch(sk, VAR_SOL_SW)) *data = m_soilWtrStoPrfl;
     else {
-        throw ModelException(MID_BIO_EPIC, "Get1DData", "Result " + sk +
+        throw ModelException(MID_PG_EPIC, "Get1DData", "Result " + sk +
                              " does not exist in current module. Please contact the module developer.");
     }
 }
@@ -874,6 +874,6 @@ void Biomass_EPIC::Get2DData(const char* key, int* nRows, int* nCols, float*** d
     *nRows = m_nCells;
     *nCols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_RSD)) { *data = m_soilRsd; } else {
-        throw ModelException(MID_BIO_EPIC, "Get2DData", "Result " + sk + " does not exist.");
+        throw ModelException(MID_PG_EPIC, "Get2DData", "Result " + sk + " does not exist.");
     }
 }

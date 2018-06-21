@@ -228,7 +228,7 @@ int MetadataInfo::AddInput(const char* name, const char* units, const char* desc
     param.Dimension = dimType;
     param.tfType = tfType;
 
-    m_vInputs.push_back(param);
+    m_vInputs.emplace_back(param);
     return int(m_vInputs.size());
 }
 
@@ -241,7 +241,7 @@ int MetadataInfo::AddOutput(const char* name, const char* units, const char* des
     param.Dimension = dimType;
     param.tfType = tfType;
 
-    m_vOutputs.push_back(param);
+    m_vOutputs.emplace_back(param);
     return int(m_vOutputs.size());
 }
 
@@ -255,7 +255,7 @@ int MetadataInfo::AddInOutput(const char* name, const char* units, const char* d
     param.Dimension = dimType;
     param.tfType = tfType;
 
-    m_vInOutputs.push_back(param);
+    m_vInOutputs.emplace_back(param);
 
     AddOutput(name, units, desc, dimType, tfType);
 
@@ -271,7 +271,7 @@ int MetadataInfo::AddParameter(const char* name, const char* units, const char* 
     param.Source = source;
     param.Dimension = dimType;
 
-    m_vParameters.push_back(param);
+    m_vParameters.emplace_back(param);
     return int(m_vParameters.size());
 }
 
@@ -280,7 +280,7 @@ int MetadataInfo::AddDependency(const char* name, const char* description) {
     cl.Name = name;
     cl.Description = description;
 
-    m_vDependencies.push_back(cl);
+    m_vDependencies.emplace_back(cl);
     return int(m_vDependencies.size());
 }
 

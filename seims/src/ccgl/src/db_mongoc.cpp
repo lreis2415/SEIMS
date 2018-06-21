@@ -147,7 +147,7 @@ void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
             vector<string> tmp_list = utils_string::SplitString(tmp, '.');
             auto tmp_iter = find(collnames.begin(), collnames.end(), tmp_list[0]);
             if (tmp_iter == collnames.end()) {
-                collnames.push_back(tmp_list[0]);
+                collnames.emplace_back(tmp_list[0]);
             }
         }
     }

@@ -33,9 +33,6 @@ public:
     NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList, string& siteType,
                           time_t startTime, time_t endTime);
 
-    //! Destructor
-    //virtual ~NotRegularMeasurement() = default;
-
     //! Get site date by time \a pData
     float* GetSiteDataByTime(time_t t) OVERRIDE;
 

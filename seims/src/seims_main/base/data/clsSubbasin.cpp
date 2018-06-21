@@ -80,7 +80,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
         int sub_id = int(subbasin_data[i]);
         if (cell_list_map.find(sub_id) == cell_list_map.end())
             cell_list_map[sub_id] = new vector<int>;
-        cell_list_map[sub_id]->push_back(i);
+        cell_list_map[sub_id]->emplace_back(i);
     }
     n_subbasins_ = int(cell_list_map.size());
     for (auto it = cell_list_map.begin(); it != cell_list_map.end(); ++it) {
@@ -88,7 +88,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
         vector<int>(*it->second).swap(*it->second);
         // (*it->second).shrink_to_fit();
         int sub_id = it->first;
-        subbasin_ids_.push_back(sub_id);
+        subbasin_ids_.emplace_back(sub_id);
         Subbasin* new_sub = new Subbasin(sub_id);
         int n_cells_tmp = int(it->second->size());
         int* tmp = new int[n_cells_tmp];

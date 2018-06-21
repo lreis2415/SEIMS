@@ -16,18 +16,21 @@
 #endif /* NDEBUG */
 
 /// Architecture
-#if defined _WIN64 || __x86_64 || __LP64__
+#if defined(_WIN64) || defined(__x86_64) || defined(__LP64__)
 #define CPP_64
 #endif
 
 #if defined _MSC_VER
 #define CPP_MSVC
-#else
+#endif /* _MSC_VER */
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
+#define CPP_ICC
+#elif defined(__GNUC__)
 #define CPP_GCC
 #if defined(__APPLE__)
 #define CPP_APPLE
-#endif
-#endif
+#endif /* __APPLE__ */
+#endif /* __INTEL_COMPILER */
 
 #include <memory>
 #include <stdexcept>
@@ -92,28 +95,36 @@ using std::string;
 #if __has_feature(cxx_override_control)
 #define HAS_OVERRIDE
 #endif /* OVERRIDE */
+#if __has_feature(cxx_variadic_templates)
+#define HAS_VARIADIC_TEMPLATES
+#endif /* VARIADIC_TEMPLATES */
 #endif /* Clang */
-#elif defined(__INTEL_COMPILER) || defined(__ICC)
+#elif defined(CPP_ICC)
 // Intel C++
-#if (__INTEL_COMPILER >= 1400) && (__INTEL_COMPILER != 9999)
+#if ((__INTEL_COMPILER >= 1400) && (__INTEL_COMPILER != 9999)) || (__ICL >= 1400)
 #define HAS_NOEXCEPT
 #define HAS_OVERRIDE
+#define HAS_VARIADIC_TEMPLATES
 #endif /* Intel C++ */
 #elif defined(__GNUC__)
 // GNU GCC
 #if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
 #define HAS_NOEXCEPT
 #define HAS_OVERRIDE
+#define HAS_VARIADIC_TEMPLATES
 #endif /* GCC */
 #elif defined(_MSC_VER)
 // MS Visual C++
 #if _MSC_VER >= 1900
 #define HAS_NOEXCEPT
 #endif /* Visual Studio 2015 or later */
+#if _MSC_VER >= 1800
+#define HAS_VARIADIC_TEMPLATES
+#endif /* Visual Studio 2013 or later */
 #if _MSC_VER>= 1600
 #define HAS_OVERRIDE
 #endif /* Visual Studio 2010 or later */
-#endif /* Figure out HAS_NOEXCEPT and HAS_OVERRIDE or not */
+#endif /* Figure out HAS_NOEXCEPT, HAS_VARIADIC_TEMPLATES, and HAS_OVERRIDE or not */
 
 #ifdef HAS_NOEXCEPT
 #define NOEXCEPT noexcept

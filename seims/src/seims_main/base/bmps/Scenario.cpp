@@ -102,7 +102,11 @@ void Scenario::loadBMPs() {
         if (dist.size() >= 2 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER)) {
             string gridfs_name = ValueToString(m_subbsnID) + "_" + GetUpper(dist[1]);
             if (m_sceneRsMap.find(gridfs_name) == m_sceneRsMap.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_sceneRsMap.emplace(gridfs_name, nullptr);
+#else
                 m_sceneRsMap.insert(make_pair(gridfs_name, nullptr));
+#endif
             }
             dist[1] = gridfs_name;
         }

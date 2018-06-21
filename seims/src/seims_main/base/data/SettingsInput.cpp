@@ -26,8 +26,8 @@ SettingsInput* SettingsInput::Init(vector<string>& stringvector) {
 
 bool SettingsInput::readSimulationPeriodDate() {
     //read start and end time
-    m_startDate = ConvertToTime2(GetValue(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
-    m_endDate = ConvertToTime2(GetValue(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
+    m_startDate = ConvertToTime(GetValue(Tag_StartTime), "%d-%d-%d %d:%d:%d", true);
+    m_endDate = ConvertToTime(GetValue(Tag_EndTime), "%d-%d-%d %d:%d:%d", true);
 
     if (m_startDate <= 0 || m_endDate <= 0) return false;
 

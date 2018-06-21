@@ -132,9 +132,15 @@ void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& col
         data[i][4] = 0.f;    // other Meteorology variables
     }
     /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+    array2d_map_.emplace(remote_filename, data);
+    array2d_rows_map_.emplace(remote_filename, n_rows);
+    array2d_cols_map_.emplace(remote_filename, n_cols);
+#else
     array2d_map_.insert(make_pair(remote_filename, data));
     array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
     array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
+#endif
 }
 
 void DataCenter::DumpCaliParametersInDB() {
@@ -150,9 +156,9 @@ void DataCenter::DumpCaliParametersInDB() {
     for (auto it = init_params_.begin(); it != init_params_.end(); ++it) {
         if (nullptr == it->second) continue;
         ParamInfo* tmp_param = it->second;
-        if (StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f) ||
-            StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f) ||
-            StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE) ||
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && FloatEqual(tmp_param->Impact, 1.f)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && FloatEqual(tmp_param->Impact, 0.f)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
             StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
             continue;
         }
@@ -401,9 +407,9 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
         bool adjust_data = false;
         if (find_iter != init_params_.end()) {
             ParamInfo* tmp_param = find_iter->second;
-            if (StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE) ||
+            if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f)) ||
+                (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
                 StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
                 adjust_data = true;
             }

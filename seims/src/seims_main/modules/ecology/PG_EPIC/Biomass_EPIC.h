@@ -7,19 +7,19 @@
  *             2018-05-14 - lj - Code review and reformat code style.\n
  *
  */
-#ifndef SEIMS_MODULE_BIO_EPIC_H
-#define SEIMS_MODULE_BIO_EPIC_H
+#ifndef SEIMS_MODULE_PG_EPIC_H
+#define SEIMS_MODULE_PG_EPIC_H
 
 #include "SimulationModule.h"
 
-/** \defgroup BIO_EPIC
+/** \defgroup PG_EPIC
  * \ingroup Ecology
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
  * incorporated a simplified version of the EPIC plant growth model as in SWAT rev. 637
  */
 /*!
  * \class Biomass_EPIC
- * \ingroup BIO_EPIC
+ * \ingroup PG_EPIC
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
  * incorporated a simplified version of the EPIC plant growth model as in SWAT rev. 637
  */
@@ -318,4 +318,4 @@ private:
     /// land cover/crop biomass (dry weight), bio_ms in SWAT
     float* m_biomass;
 };
-#endif /* SEIMS_MODULE_BIO_EPIC_H */
+#endif /* SEIMS_MODULE_PG_EPIC_H */

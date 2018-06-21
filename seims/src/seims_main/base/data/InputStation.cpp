@@ -96,7 +96,7 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     char* end = nullptr;
     errno = 0;
     for (int iSite = 0; iSite < nSites; iSite++) {
-        siteIDList.push_back(strtol(vecSites[iSite].c_str(), &end, 10)); // deprecated atoi);
+        siteIDList.emplace_back(strtol(vecSites[iSite].c_str(), &end, 10)); // deprecated atoi);
     }
     //sort(siteIDList.begin(), siteIDList.end());
 

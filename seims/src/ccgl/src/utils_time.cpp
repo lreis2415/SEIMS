@@ -79,6 +79,7 @@ string ConvertToString2(const time_t* date) {
     char date_string[30];
     strftime(date_string, 30, "%Y-%m-%d %X", date_info);
     string s(date_string);
+    delete date_info;
     return s;
 }
 
@@ -165,25 +166,33 @@ void LocalTime(time_t date, struct tm* t) {
 int GetYear(const time_t date) {
     struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_year + 1900;
+    int yr = date_info->tm_year + 1900;
+    delete date_info;
+    return yr;
 }
 
 int GetMonth(const time_t date) {
     struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_mon + 1;
+    int mon = date_info->tm_mon + 1;
+    delete date_info;
+    return mon;
 }
 
 int GetDay(const time_t date) {
     struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_mday;
+    int day = date_info->tm_mday;
+    delete date_info;
+    return day;
 }
 
 int DayOfYear(const time_t date) {
     struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return date_info->tm_yday + 1;
+    int doy = date_info->tm_yday + 1;
+    delete date_info;
+    return doy;
 }
 
 int DayOfYear(const int year, const int month, const int day) {
@@ -193,7 +202,9 @@ int DayOfYear(const int year, const int month, const int day) {
 int JulianDay(const time_t date) {
     struct tm* date_info = new tm();
     LocalTime(date, date_info);
-    return JulianDay(date_info->tm_year, date_info->tm_mon, date_info->tm_mday);
+    int jday = JulianDay(date_info->tm_year, date_info->tm_mon, date_info->tm_mday);
+    delete date_info;
+    return jday;
 }
 
 int JulianDay(const int year, const int month, const int day) {

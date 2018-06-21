@@ -327,12 +327,12 @@ class ImportParam2Mongo(object):
             # read data items
             data_items = read_data_items_from_txt(txt_file)
             field_names = data_items[0][0:]
-            item_values = []  # import as gridfs file
+            item_values = list()  # import as gridfs file
             for i, cur_data_item in enumerate(data_items):
                 if i == 0:
                     continue
                 data_import = dict()  # import as Collection
-                item_value = []  # import as gridfs file
+                item_value = list()  # import as gridfs file
                 for idx, fld in enumerate(field_names):
                     if MathClass.isnumerical(cur_data_item[idx]):
                         tmp_value = float(cur_data_item[idx])

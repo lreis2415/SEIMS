@@ -83,7 +83,7 @@ void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, const str
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     int count = 1;
     while (mongoc_cursor_next(cursor, &bsonTable)) {
-        m_pointSrcMgtSeqs.push_back(count);
+        m_pointSrcMgtSeqs.emplace_back(count);
         m_pointSrcMgtMap[count] = new PointSourceMgtParams(bsonTable, iter);
         count++;
     }

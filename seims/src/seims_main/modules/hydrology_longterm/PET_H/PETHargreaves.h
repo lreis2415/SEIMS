@@ -6,7 +6,7 @@
  * \date May. 2016
  * \note: 1. Add m_tMean from database, which may be measurement value or the mean of tMax and tMin;
 			  2. The PET calculate is changed from site-based to cell-based, because PET is not only dependent on Climate site data;
-			  3. Add m_VPD, m_dayLen as outputs, which will be used in BIO_EPIC module
+			  3. Add m_VPD, m_dayLen as outputs, which will be used in PG_EPIC module
 			  4. Add m_phuBase as outputs, which will be used in MGT_SWAT module
  */
 #ifndef SEIMS_MODULE_PET_H_H
