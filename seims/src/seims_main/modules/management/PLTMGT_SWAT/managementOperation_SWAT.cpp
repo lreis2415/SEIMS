@@ -495,8 +495,13 @@ void MGTOpt_SWAT::SetSubbasins(clsSubbasins* subbasins) {
     vector<int>& subIDs = subbasins->GetSubbasinIDs();
     for (auto it = subIDs.begin(); it != subIDs.end(); ++it) {
         Subbasin* tmpSubbsn = subbasins->GetSubbasinByID(*it);
-        m_nCellsSubbsn[*it] = tmpSubbsn->GetCellCount();
-        m_nAreaSubbsn[*it] = tmpSubbsn->GetArea();
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_nCellsSubbsn.emplace(*it, tmpSubbsn->GetCellCount());
+        m_nAreaSubbsn.emplace(*it, tmpSubbsn->GetArea());
+#else
+        m_nCellsSubbsn.insert(make_pair(*it, tmpSubbsn->GetCellCount()));
+        m_nAreaSubbsn.insert(make_pair(*it, tmpSubbsn->GetArea()));
+#endif
     }
 }
 

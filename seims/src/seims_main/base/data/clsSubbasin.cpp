@@ -2,18 +2,19 @@
 
 #include "text.h"
 
-Subbasin::Subbasin(const int id) : subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
-                                   area_(-1.f), pet_(-1.f),
-                                   perco_(-1.f), pcp_(-1.f),
-                                   intercep_(-1.f), intercep_et_(-1.f), depression_et_(-1.f), infil_(-1.f),
-                                   soil_et_(-1.f),
-                                   total_et_(-1.f), net_perco_(-1.f), runoff_(-1.f), interflow_(-1.f),
-                                   soil_wtr_(-1.f), net_pcp_(-1.f),
-                                   mean_tmp_(-1.f), soil_tmp_(-1.f), gwmax_(-1.f), kg_(-1.f),
-                                   revap_coef_(-1.f), base_ex_(-1.f), qg_cvt_(-1.f), slope_coef_(1.f), slope_(-1.f),
-                                   revap_(-1.f),
-                                   gw_(-1.f),
-                                   deep_perco_(-1.f), qg_(-1.f), rg_(-1.f), output_(false), revap_changed_(true) {
+Subbasin::Subbasin(const int id) :
+    subbsn_id_(id), n_cells_(-1), cells_(nullptr), cell_area_(-1.f),
+    area_(-1.f), pet_(-1.f),
+    perco_(-1.f), pcp_(-1.f),
+    intercep_(-1.f), intercep_et_(-1.f), depression_et_(-1.f), infil_(-1.f),
+    soil_et_(-1.f),
+    total_et_(-1.f), net_perco_(-1.f), runoff_(-1.f), interflow_(-1.f),
+    soil_wtr_(-1.f), net_pcp_(-1.f),
+    mean_tmp_(-1.f), soil_tmp_(-1.f), gwmax_(-1.f), kg_(-1.f),
+    revap_coef_(-1.f), base_ex_(-1.f), qg_cvt_(-1.f), slope_coef_(1.f), slope_(-1.f),
+    revap_(-1.f),
+    gw_(-1.f),
+    deep_perco_(-1.f), qg_(-1.f), rg_(-1.f), output_(false), revap_changed_(true) {
 }
 
 Subbasin::~Subbasin() {
@@ -77,7 +78,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
     map<int, vector<int> > cell_list_map;
     for (int i = 0; i < n_cells; i++) {
-        int sub_id = int(subbasin_data[i]);
+        int sub_id = CVT_INT(subbasin_data[i]);
         if (cell_list_map.find(sub_id) == cell_list_map.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
             cell_list_map.emplace(sub_id, vector<int>());
@@ -95,7 +96,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
         int sub_id = it->first;
         subbasin_ids_.emplace_back(sub_id);
         Subbasin* new_sub = new Subbasin(sub_id);
-        int n_cells_tmp = int(it->second.size());
+        int n_cells_tmp = CVT_INT(it->second.size());
         int* tmp = new int[n_cells_tmp];
         for (int j = 0; j < n_cells_tmp; j++)
             tmp[j] = it->second.at(j);
@@ -105,12 +106,6 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     }
     vector<int>(subbasin_ids_).swap(subbasin_ids_);
     // m_subbasinIDs.shrink_to_fit();
-    // release cellListMap to save memory
-    //for (auto it = cell_list_map.begin(); it != cell_list_map.end();) {
-    //    delete it->second;
-    //    cell_list_map.erase(it++);
-    //}
-    //cell_list_map.clear();
 }
 
 clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaster *>& rsMap,
@@ -140,7 +135,11 @@ clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaste
             cout << "Subbasin data loaded failed!" << endl;
             return nullptr;
         }
-        rsMap[subbasin_file_name] = subbasinRaster;
+#ifdef HAS_VARIADIC_TEMPLATES
+        rsMap.emplace(subbasin_file_name, subbasinRaster);
+#else
+        rsMap.insert(make_pair(subbasin_file_name, subbasinRaster));
+#endif
     } else {
         if (!rsMap[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data)) {
             cout << "Subbasin data preloaded is unable to access!" << endl;
