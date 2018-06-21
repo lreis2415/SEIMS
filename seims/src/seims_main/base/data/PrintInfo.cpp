@@ -94,7 +94,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             // Write header
             fs << header << endl;
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                fs << ConvertToString2(it->first) << " " << std::right << std::fixed
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
@@ -116,7 +116,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             }
             fs << header << endl;
             for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
-                fs << ConvertToString2(&it->first);
+                fs << ConvertToString2(it->first);
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << std::right << std::fixed << std::setw(15) << std::setfill(' ')
                             << setprecision(8) << it->second[i];
@@ -200,7 +200,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         fs.open(filename.c_str(), std::ios::out);
         if (fs.is_open()) {
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                fs << ConvertToString2(it->first) << " " << std::right << std::fixed
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();

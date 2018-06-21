@@ -96,14 +96,14 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
         std::ostringstream oss;
         oss << "There are no " << siteType << " data available for sites:[" << sitesList << "] in database:" <<
                 hydroDBName
-                << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     if (iSite + 1 != nSites) {
         std::ostringstream oss;
         oss << "The number of sites should be " << nSites << " while the query result is " << iSite + 1 <<
                 " for sites:[" << sitesList << "] in database:" << hydroDBName
-                << " during " << ConvertToString2(&m_startTime) << " to " << ConvertToString2(&m_endTime);
+                << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     bson_destroy(query);

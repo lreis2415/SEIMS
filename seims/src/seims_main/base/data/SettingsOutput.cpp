@@ -108,7 +108,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                 std::ostringstream oss;
                 oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
-                        << ConvertToString(&startTime) << ", and will be updated." << endl;
+                        << ConvertToString(startTime) << ", and will be updated." << endl;
                 StatusMessage(oss.str().c_str());
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
@@ -116,7 +116,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                 std::ostringstream oss;
                 oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
-                        << ConvertToString(&endTime) << ", and will be updated." << endl;
+                        << ConvertToString(endTime) << ", and will be updated." << endl;
                 StatusMessage(oss.str().c_str());
             }
         }

@@ -389,16 +389,18 @@ void NutrCH_QUAL2E::SetReaches(clsReaches* reaches) {
 }
 
 void NutrCH_QUAL2E::SetScenario(Scenario* sce) {
-    if (nullptr != sce) {
-        map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
-        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
-            /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
-            if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
-                m_ptSrcFactory[it->first] = static_cast<BMPPointSrcFactory *>(it->second);
-            }
-        }
-    } else {
+    if (nullptr == sce) {
         throw ModelException(MID_NUTRCH_QUAL2E, "SetScenario", "The scenario can not to be NULL.");
+    }
+    map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
+    for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
+        /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
+        if (it->first / 100000 != BMP_TYPE_POINTSOURCE) continue;
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_ptSrcFactory.emplace(it->first, static_cast<BMPPointSrcFactory *>(it->second));
+#else
+        m_ptSrcFactory.insert(make_pair(it->first, static_cast<BMPPointSrcFactory *>(it->second)));
+#endif
     }
 }
 

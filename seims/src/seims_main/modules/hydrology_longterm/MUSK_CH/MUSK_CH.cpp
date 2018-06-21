@@ -322,8 +322,11 @@ void MUSK_CH::SetScenario(Scenario* sce) {
         for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
             /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
             if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
-                // m_ptSrcFactory[it->first] = (BMPPointSrcFactory *) it->second; // use C++11 style
-                m_ptSrcFactory[it->first] = static_cast<BMPPointSrcFactory*>(it->second);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_ptSrcFactory.emplace(it->first, static_cast<BMPPointSrcFactory*>(it->second));
+#else
+                m_ptSrcFactory.insert(make_pair(it->first, static_cast<BMPPointSrcFactory*>(it->second)));
+#endif
             }
         }
     } else {

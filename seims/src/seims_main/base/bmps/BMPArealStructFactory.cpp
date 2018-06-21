@@ -35,7 +35,8 @@ BMPArealStruct::BMPArealStruct(const bson_t*& bsonTable, bson_iter_t& iter):
             p->Name = tmp_param_items[0];
             p->Description = tmp_param_items[1];
             p->Change = tmp_param_items[2]; /// can be "RC", "AC", "NC", "VC", and "".
-            p->Impact = float(atof(tmp_param_items[3].c_str()));
+            char* end = nullptr;
+            p->Impact = CVT_FLT(strtod(tmp_param_items[3].c_str(), &end));
 #ifdef HAS_VARIADIC_TEMPLATES
             if (!m_parameters.emplace(GetUpper(p->Name), p).second) {
 #else

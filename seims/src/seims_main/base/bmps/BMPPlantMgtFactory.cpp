@@ -101,64 +101,154 @@ void BMPPlantMgtFactory::loadBMP(MongoClient* conn, const string& bmpDBName) {
         m_bmpSequence.emplace_back(uniqueMgtCode);
         switch (mgtCode) {
             case BMP_PLTOP_Plant:
-                m_bmpPlantOps[uniqueMgtCode] = new PltOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                         m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new PltOp(mgtCode, usebaseHU, husc,
+                                                               year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new PltOp(mgtCode, usebaseHU, husc,
+                                                         year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Irrigation:
-                m_bmpPlantOps[uniqueMgtCode] = new IrrOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                         m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new IrrOp(mgtCode, usebaseHU, husc,
+                                                               year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new IrrOp(mgtCode, usebaseHU, husc,
+                                                         year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Fertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new FertOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new FertOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new FertOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Pesticide:
-                m_bmpPlantOps[uniqueMgtCode] = new PestOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new PestOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new PestOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_HarvestKill:
-                m_bmpPlantOps[uniqueMgtCode] = new HvstKillOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                              m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new HvstKillOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new HvstKillOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Tillage:
-                m_bmpPlantOps[uniqueMgtCode] = new TillOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new TillOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new TillOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Harvest:
-                m_bmpPlantOps[uniqueMgtCode] = new HvstOnlyOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                              m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new HvstOnlyOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new HvstOnlyOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Kill:
-                m_bmpPlantOps[uniqueMgtCode] = new KillOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new KillOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new KillOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Grazing:
-                m_bmpPlantOps[uniqueMgtCode] = new GrazOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new GrazOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new GrazOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_AutoIrrigation:
-                m_bmpPlantOps[uniqueMgtCode] = new AutoIrrOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                             m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new AutoIrrOp(mgtCode, usebaseHU, husc,
+                                                                   year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new AutoIrrOp(mgtCode, usebaseHU, husc,
+                                                             year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_AutoFertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new AutoFertOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                              m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new AutoFertOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new AutoFertOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_ReleaseImpound:
-                m_bmpPlantOps[uniqueMgtCode] = new RelImpndOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                              m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new RelImpndOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new RelImpndOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_ContinuousFertilizer:
-                m_bmpPlantOps[uniqueMgtCode] = new ContFertOp(mgtCode, usebaseHU, husc, year, month,
-                                                              day, m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new ContFertOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new ContFertOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_ContinuousPesticide:
-                m_bmpPlantOps[uniqueMgtCode] = new ContPestOp(mgtCode, usebaseHU, husc, year, month,
-                                                              day, m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new ContPestOp(mgtCode, usebaseHU, husc,
+                                                                    year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new ContPestOp(mgtCode, usebaseHU, husc,
+                                                              year, month, day, m_parameters)));
+#endif
                 break;
             case BMP_PLTOP_Burning:
-                m_bmpPlantOps[uniqueMgtCode] = new BurnOp(mgtCode, usebaseHU, husc, year, month, day,
-                                                          m_parameters);
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_bmpPlantOps.emplace(uniqueMgtCode, new BurnOp(mgtCode, usebaseHU, husc,
+                                                                year, month, day, m_parameters));
+#else
+                m_bmpPlantOps.insert(make_pair(uniqueMgtCode,
+                                               new BurnOp(mgtCode, usebaseHU, husc,
+                                                          year, month, day, m_parameters)));
+#endif
                 break;
             default: break;
         }

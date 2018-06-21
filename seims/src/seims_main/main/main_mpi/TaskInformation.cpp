@@ -101,23 +101,21 @@ bool TaskInfo::Build() {
             // source subbasins of each layer
             if (srclyr_subbsns_.find(stream_order) == srclyr_subbsns_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
-                srclyr_subbsns_.emplace(stream_order, vector<int>(sub_id));
+                srclyr_subbsns_.emplace(stream_order, vector<int>());
 #else
-                srclyr_subbsns_.insert(make_pair(stream_order, vector<int>(sub_id)));
+                srclyr_subbsns_.insert(make_pair(stream_order, vector<int>()));
 #endif
-            } else {
-                srclyr_subbsns_[stream_order].emplace_back(sub_id);
             }
+            srclyr_subbsns_[stream_order].emplace_back(sub_id);
         } else {
             if (nonsrclyr_subbsns_.find(stream_order) == nonsrclyr_subbsns_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
-                nonsrclyr_subbsns_.emplace(stream_order, vector<int>(sub_id));
+                nonsrclyr_subbsns_.emplace(stream_order, vector<int>());
 #else
-                nonsrclyr_subbsns_.insert(make_pair(stream_order, vector<int>(sub_id)));
+                nonsrclyr_subbsns_.insert(make_pair(stream_order, vector<int>()));
 #endif
-            } else {
-                nonsrclyr_subbsns_[stream_order].emplace_back(sub_id);
             }
+            nonsrclyr_subbsns_[stream_order].emplace_back(sub_id);
         }
     }
 #ifdef _DEBUG

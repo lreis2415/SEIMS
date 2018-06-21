@@ -146,7 +146,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     }
     // In SEIMS, reach ID is the same as Index of array and vector.
     for (int i = 1; i <= reach_num_; i++) {
-        int down_stream_id = int(reaches_obj_.at(i)->Get(REACH_DOWNSTREAM));
+        int down_stream_id = CVT_INT(reaches_obj_.at(i)->Get(REACH_DOWNSTREAM));
 #ifdef HAS_VARIADIC_TEMPLATES
         reach_down_stream_.emplace(i, down_stream_id);
 #else
@@ -169,7 +169,6 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
         }
         reach_layers_.at(order).emplace_back(i);
     }
-
     bson_destroy(b);
     mongoc_cursor_destroy(cursor);
 }

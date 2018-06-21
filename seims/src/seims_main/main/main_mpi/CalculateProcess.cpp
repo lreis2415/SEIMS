@@ -144,7 +144,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
             // cout << ConvertToString2(&ts) << endl;
         }
 #ifdef _DEBUG
-        cout << ConvertToString2(&ts) << ", sim_loop_num: " << sim_loop_num << endl;
+        cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
 #endif
         int year_idx = GetYear(ts) - start_year;
         // Execute by layering orders
@@ -172,7 +172,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     // 1. Execute hillslope processes
                     t_slope_start = TimeCounting();
 #ifdef _DEBUG
-                    cout << "  " << ConvertToString2(&cur_time) <<
+                    cout << "  " << ConvertToString2(cur_time) <<
                             "  Hillslope process, subbasin: " << subbasin_id << endl;
 #endif
                     ModelMain* psubbasin = model_map[*it];
@@ -185,7 +185,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     // 2. Execute channel processes
                     t_channel_start = TimeCounting();
 #ifdef _DEBUG
-                    cout << "  " << ConvertToString2(&cur_time) <<
+                    cout << "  " << ConvertToString2(cur_time) <<
                             "  Channel process, subbasin: " << subbasin_id << endl;
 #endif
 
@@ -194,7 +194,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                          it_upid != upstreams[subbasin_id].end(); ++it_upid) {
                         if (subbasin_rank[*it_upid] == rank) {
                             if (!ts_subbsn_flag[cur_sim_loop_num][*it_upid]) {
-                                cout << "  " << ConvertToString2(&cur_time) <<
+                                cout << "  " << ConvertToString2(cur_time) <<
                                         ", failed when get data of subbasin " << *it_upid <<
                                         " of simulation loop: " << cur_sim_loop_num << endl;
                                 MPI_Abort(MCW, 3);
