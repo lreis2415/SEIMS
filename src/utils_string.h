@@ -103,7 +103,7 @@ bool SplitStringForValues(const string& items, const char delimiter, vector<T>& 
         if ((*it).find_first_of("0123456789") == string::npos) {
             continue;
         }
-        values.push_back(static_cast<T>(strtod((*it).c_str(), &end)));
+        values.emplace_back(static_cast<T>(strtod((*it).c_str(), &end)));
     }
     vector<T>(values).swap(values);
     return true;

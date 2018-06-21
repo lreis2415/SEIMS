@@ -31,16 +31,18 @@ inline bool IsLeapYear(const int yr) { return !(yr % 4) && (yr % 100 || !(yr % 4
 /*!
  * \brief Convert date time to string as the format of "YYYY-MM-DD"
  * \param[in] date \a time_t data type
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  * \return Date time \a string
  */
-string ConvertToString(const time_t* date);
+string ConvertToString(const time_t date, bool utc_time = true);
 
 /*!
  * \brief  Convert date time to string as the format of "YYYY-MM-DD HH"
  * \param[in] date \a time_t data type
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  * \return Date time \a string
  */
-string ConvertToString2(const time_t* date);
+string ConvertToString2(const time_t date, bool utc_time = true);
 
 /*!
  * \brief Convert string to date time, string format could be %4d%2d%2d or %d-%d-%d
@@ -50,25 +52,28 @@ string ConvertToString2(const time_t* date);
  * \param[in] str_date \a string date
  * \param[in] format \a string format
  * \param[in] include_hour \a bool Include Hour?
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  * \return Date time \a time_t
  */
-time_t ConvertToTime(const string& str_date, string const& format, bool include_hour);
+time_t ConvertToTime(const string& str_date, string const& format, bool include_hour, bool utc_time = true);
 
 /*!
  * \brief Convert integer year, month, and day to date time
  * \param[in] year year number from 1970
  * \param[in] month month range from 1 to 12
  * \param[in] day day range from 1 to 31
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  * \return Date time \a time_t
  */
-time_t ConvertYMDToTime(int& year, int& month, int& day);
+time_t ConvertYMDToTime(int& year, int& month, int& day, bool utc_time = true);
 
 /*!
  * \brief Get date information from \a time_t variable
  * \param[in] t \a time_t date
  * \param[out] year, month, day \a int value
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  */
-int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day);
+int GetDateInfoFromTimet(time_t t, int* year, int* month, int* day, bool utc_time = true);
 
 /*!
  * \brief Get local time
@@ -78,37 +83,52 @@ int GetDateInfoFromTimet(time_t* t, int* year, int* month, int* day);
 void LocalTime(time_t date, struct tm* t);
 
 /*!
- * \brief Get the year
- * \return int year
+ * \brief Get UTC:+00:00 time
+ * \param[in] date \a time_t date
+ * \param[out] t \a tm struct date
  */
-int GetYear(time_t date);
+void UTCTime(time_t date, struct tm* t);
+
+/*!
+ * \brief Get UTC:+00:00 time
+ * \param[in] date \a time_t date
+ * \param[out] t \a tm struct date
+ * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
+ */
+void GetDateTime(time_t date, struct tm* t, bool utc_time = true);
+
+/*!
+ * \brief Get the year
+ * \return int year from 1970
+ */
+int GetYear(time_t date, bool utc_time = true);
 
 /*!
  * \brief Get the month
- * \return int month
+ * \return int month, [1, 12]
  */
-int GetMonth(time_t date);
+int GetMonth(time_t date, bool utc_time = true);
 
 /*!
  * \brief Get the day
- * \return int day
+ * \return int day, [1, 31]
  */
-int GetDay(time_t date);
+int GetDay(time_t date, bool utc_time = true);
 
 /*!
- * \brief Get the day of one day, [1, 366]
+ * \brief Get the day of one year, [1, 366]
  */
-int DayOfYear(time_t date);
+int DayOfYear(time_t date, bool utc_time = true);
 
 /*!
-* \brief Get the day of one day, [1, 366]
+* \brief Get the day of one year, [1, 366]
 */
 int DayOfYear(int year, int month, int day);
 
 /*!
 * \brief Get the Julian day from time_t date
 */
-int JulianDay(time_t date);
+int JulianDay(time_t date, bool utc_time = true);
 
 /*!
  * \brief Get the Julian day of one day from year, month, and day.
