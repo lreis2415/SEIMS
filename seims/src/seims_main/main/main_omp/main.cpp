@@ -20,6 +20,7 @@ int main(int argc, const char** argv) {
     GDALAllRegister();
     /// Run model.
     try {
+        double input_t = TimeCounting();
         /// Get module path
         string module_path = GetAppPath();
         /// Initialize the MongoDB connection client
@@ -37,6 +38,7 @@ int main(int argc, const char** argv) {
                                                                module_factory, input_args->subbasin_id);
         /// Create SEIMS model by dataCenter and moduleFactory
         ModelMain* model_main = new ModelMain(data_center, module_factory);
+        cout << "[TIMESPAN][IO  ][Input] " << std::fixed << setprecision(3) << TimeCounting() - input_t << endl;
         /// Execute model and write outputs
         model_main->Execute();
         model_main->Output();

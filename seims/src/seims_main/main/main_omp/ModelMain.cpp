@@ -149,7 +149,7 @@ void ModelMain::Execute() {
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+    cout << "[TIMESPAN][COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     OutputExecuteTime();
 }
 
@@ -185,15 +185,15 @@ double ModelMain::Output() {
     double t2 = TimeCounting();
     if (m_dataCenter->GetSubbasinID() == 0) {
         // Only print for OpenMP version
-        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+        cout << "[TIMESPAN][IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     }
     return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
-        cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t"
-                << std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+        cout << "[TIMESPAN][COMP][" << m_factory->GetModuleID(i) << "] " <<
+                std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
     }
 }
 
