@@ -135,17 +135,21 @@ void ModelMain::Execute() {
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
     int nHs = int(m_dtCh / m_dtHs);
-
+    int preYearIdx = -1;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        StatusMessage(ConvertToString2(t).c_str());
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
+        if (preYearIdx != yearIdx) {
+            cout << "Simulation year: " << startYear + yearIdx << endl;
+        }
+        StatusMessage(ConvertToString2(t).c_str());
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
         StepChannel(t, yearIdx);
         AppendOutputData(t);
+        preYearIdx = yearIdx;
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
