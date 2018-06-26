@@ -102,32 +102,65 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
         Initialize1DArray(m_nReaches + 1, m_chSr, 0.f);
         Initialize1DArray(m_nReaches + 1, m_chTemp, 0.f);
     } else {
-        return;
+        return; /// These parameters only need to be initialized once.
     }
+#pragma omp parallel
+    {
+        float* tmp_chDaylen = new(nothrow) float[m_nReaches + 1];
+        float* tmp_chSr = new(nothrow) float[m_nReaches + 1];
+        float* tmp_chTemp = new(nothrow) float[m_nReaches + 1];
+        int* tmp_chCellCount = new(nothrow) int[m_nReaches + 1];
+        for (int irch = 0; irch < m_nReaches; irch++) {
+            tmp_chDaylen[irch] = 0.f;
+            tmp_chSr[irch] = 0.f;
+            tmp_chTemp[irch] = 0.f;
+            tmp_chCellCount[irch] = 0;
+        }
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        if (m_rchID[i] <= 0.f) {
-            continue;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_rchID[i] <= 0.f) {
+                continue;
+            }
+            int irch = CVT_INT(m_rchID[i]);
+            //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
+            //    subi = 1;
+            //} else
+            if (irch >= m_nReaches + 1) {
+                throw ModelException(MID_NUTRCH_QUAL2E, "Execute",
+                                     "The subbasin " + ValueToString(irch) + " is invalid.");
+            }
+            tmp_chDaylen[irch] += m_dayLen[i];
+            tmp_chSr[irch] += m_sr[i];
+            tmp_chTemp[irch] += m_soilTemp[i];
+            tmp_chCellCount[irch] += 1;
         }
-        int subi = CVT_INT(m_rchID[i]);
-        //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
-        //    subi = 1;
-        //} else
-        if (subi >= m_nReaches + 1) {
-            throw ModelException(MID_NUTRCH_QUAL2E, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+#pragma omp critical
+        {
+            for (int irch = 0; irch < m_nReaches; irch++) {
+                m_chDaylen[irch] += tmp_chDaylen[irch];
+                m_chSr[irch] += tmp_chSr[irch];
+                m_chTemp[irch] += tmp_chTemp[irch];
+                m_chCellCount[irch] += tmp_chCellCount[irch];
+            }
         }
-
-        m_chDaylen[subi] += m_dayLen[i];
-        m_chSr[subi] += m_sr[i];
-        m_chTemp[subi] += m_soilTemp[i];
-        m_chCellCount[subi] += 1;
+        delete[] tmp_chDaylen;
+        delete[] tmp_chSr;
+        delete[] tmp_chTemp;
+        delete[] tmp_chCellCount;
     }
 
-    for (int i = 1; i <= m_nReaches; i++) {
-        m_chDaylen[i] /= m_chCellCount[i];
-        m_chSr[i] /= m_chCellCount[i];
-        m_chTemp[i] /= m_chCellCount[i];
+    for (int irch = 1; irch <= m_nReaches; irch++) {
+        m_chDaylen[irch] /= m_chCellCount[irch];
+        m_chSr[irch] /= m_chCellCount[irch];
+        m_chTemp[irch] /= m_chCellCount[irch];
+
+        m_chDaylen[0] += m_chDaylen[irch];
+        m_chSr[0] += m_chSr[irch];
+        m_chTemp[0] += m_chTemp[irch];
     }
+    m_chDaylen[0] /= m_nReaches;
+    m_chSr[0] /= m_nReaches;
+    m_chTemp[0] /= m_nReaches;
 }
 
 bool NutrCH_QUAL2E::CheckInputCellSize(const char* key, const int n) {
