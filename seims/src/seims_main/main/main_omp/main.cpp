@@ -42,6 +42,7 @@ int main(int argc, const char** argv) {
         /// Execute model and write outputs
         model_main->Execute();
         model_main->Output();
+        cout << "[TIMESPAN][SIMU][ALL] " << std::fixed << setprecision(3) << TimeCounting() - input_t << endl;
         /// Clean up
         delete model_main;
         delete data_center;
