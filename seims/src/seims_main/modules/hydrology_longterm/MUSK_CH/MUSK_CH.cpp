@@ -402,9 +402,8 @@ void MUSK_CH::GetCoefficients(const float reachLength, const float v0, MuskWeigh
 void MUSK_CH::updateWaterWidthDepth(const int i) {
     /// update channel water depth and width according to channel water storage
     float crossArea = m_chStorage[i] / m_chLen[i];
-    m_chWTdepth[i] =
-            (sqrt(m_chBtmWidth[i] * m_chBtmWidth[i] + 4.f * m_chSideSlope[i] * crossArea) - m_chBtmWidth[i]) / 2.f /
-            m_chSideSlope[i];
+    m_chWTdepth[i] = (sqrt(m_chBtmWidth[i] * m_chBtmWidth[i] + 4.f * m_chSideSlope[i] * crossArea) -
+        m_chBtmWidth[i]) / 2.f / m_chSideSlope[i];
     if (m_chWTdepth[i] < UTIL_ZERO) {
         m_chWTWidth[i] = m_chBtmWidth[i];
     } else {
@@ -434,7 +433,7 @@ void MUSK_CH::ChannelFlow(const int i) {
     float qsUp = 0.f;
     float qiUp = 0.f;
     float qgUp = 0.f;
-    for (size_t j = 0; j < m_reachUpStream[i].size(); ++j) {
+    for (size_t j = 0; j < m_reachUpStream[i].size(); j++) {
         int upReachId = m_reachUpStream[i][j];
         qsUp += m_qsCh[upReachId];
         qiUp += m_qiCh[upReachId];

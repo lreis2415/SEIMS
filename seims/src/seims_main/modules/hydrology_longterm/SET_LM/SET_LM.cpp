@@ -27,10 +27,13 @@ int SET_LM::Execute() {
         if (etDeficiency <= 0.f) continue;
         for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             float et2d = 0.f;
-            if (m_soilWtrSto[i][j] >= m_soilFC[i][j]) { et2d = etDeficiency; } else if (m_soilWtrSto[i][j] >= m_soilWP[i
-            ][j]) {
+            if (m_soilWtrSto[i][j] >= m_soilFC[i][j]) {
+                et2d = etDeficiency;
+            } else if (m_soilWtrSto[i][j] >= m_soilWP[i][j]) {
                 et2d = etDeficiency * (m_soilWtrSto[i][j] - m_soilWP[i][j]) / (m_soilFC[i][j] - m_soilWP[i][j]);
-            } else { et2d = 0.0f; }
+            } else {
+                et2d = 0.0f;
+            }
 
             float sm0 = m_soilWtrSto[i][j];
             float availableWater = (m_soilWtrSto[i][j] - m_soilWP[i][j]) * m_soilThk[i][j];

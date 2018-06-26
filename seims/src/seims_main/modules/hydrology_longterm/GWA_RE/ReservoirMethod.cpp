@@ -64,8 +64,7 @@ int ReservoirMethod::Execute() {
         float perco = 0.f;
 #pragma omp parallel for reduction(+:perco)
         for (int i = 0; i < curCellsNum; i++) {
-            int index = 0;
-            index = curCells[i];
+            int index = curCells[i];
             float tmp_perc = m_perc[index][CVT_INT(m_soilLayers[index]) - 1];
             if (tmp_perc > 0) perco += tmp_perc;
             else m_perc[index][CVT_INT(m_soilLayers[index]) - 1] = 0.f;
@@ -141,7 +140,7 @@ int ReservoirMethod::Execute() {
 
         groundStorage = Max(groundStorage, 0.f);
         if (groundStorage > m_GWMAX) {
-            groundRunoff += (groundStorage - m_GWMAX);
+            groundRunoff += groundStorage - m_GWMAX;
             groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
             groundStorage = m_GWMAX;
         }
@@ -186,11 +185,9 @@ int ReservoirMethod::Execute() {
         Subbasin* sub = m_subbasinsInfo->GetSubbasinByID(*it);
         int* cells = sub->GetCells();
         int nCells = sub->GetCellCount();
-        int index = 0;
 #pragma omp parallel for
         for (int i = 0; i < nCells; i++) {
-            index = cells[i];
-            m_soilStorage[index][static_cast<int>(m_soilLayers[index]) - 1] += sub->GetEg();
+            m_soilStorage[cells[i]][CVT_INT(m_soilLayers[cells[i]]) - 1] += sub->GetEg();
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }

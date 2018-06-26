@@ -296,7 +296,7 @@ void Biomass_EPIC::InitialOutputs() {
         }
     }
     if (m_maxLaiYr == nullptr) {
-        m_maxLaiYr = new float[m_nCells];
+        m_maxLaiYr = new(nothrow) float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             if (IsTree(CVT_INT(m_landCoverCls[i]))) {
@@ -863,8 +863,7 @@ void Biomass_EPIC::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_SOL_COV)) *data = m_rsdCovSoil;
     else if (StringMatch(sk, VAR_SOL_SW)) *data = m_soilWtrStoPrfl;
     else {
-        throw ModelException(MID_PG_EPIC, "Get1DData", "Result " + sk +
-                             " does not exist in current module. Please contact the module developer.");
+        throw ModelException(MID_PG_EPIC, "Get1DData", "Result " + sk + " does not exist.");
     }
 }
 
@@ -873,7 +872,8 @@ void Biomass_EPIC::Get2DData(const char* key, int* nRows, int* nCols, float*** d
     string sk(key);
     *nRows = m_nCells;
     *nCols = m_maxSoilLyrs;
-    if (StringMatch(sk, VAR_SOL_RSD)) { *data = m_soilRsd; } else {
+    if (StringMatch(sk, VAR_SOL_RSD)) *data = m_soilRsd;
+    else {
         throw ModelException(MID_PG_EPIC, "Get2DData", "Result " + sk + " does not exist.");
     }
 }
