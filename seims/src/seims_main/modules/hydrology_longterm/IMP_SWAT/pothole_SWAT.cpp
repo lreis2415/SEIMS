@@ -255,7 +255,7 @@ int IMP_SWAT::Execute() {
     }
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
 #pragma omp parallel for
-    for (int i = 0; i < m_nSubbasins + 1; i++) {
+    for (int i = 0; i <= m_nSubbasins; i++) {
         m_surfqToCh[i] = 0.f;
         m_sedToCh[i] = 0.f;
         m_surNO3ToCh[i] = 0.f;
@@ -333,7 +333,7 @@ int IMP_SWAT::Execute() {
         delete[] tmp_minps2ch;
     } /* END of #pragma omp parallel */
 
-    for (int i = 1; i < m_nSubbasins + 1; i++) {
+    for (int i = 1; i <= m_nSubbasins; i++) {
         m_surfqToCh[0] += m_surfqToCh[i];
         m_sedToCh[0] += m_sedToCh[i];
         m_surNO3ToCh[0] += m_surNO3ToCh[i];

@@ -90,7 +90,7 @@ void InputStation::build_query_bson(int nSites, vector<int>& siteIDList, string&
 
 void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sitesList) {
     vector<string> vecSites = SplitString(sitesList, ',');
-    int nSites = int(vecSites.size());
+    int nSites = CVT_INT(vecSites.size());
     //convert from string to int, the IDList is in order in MongoDB
     vector<int> siteIDList;
     char* end = nullptr;

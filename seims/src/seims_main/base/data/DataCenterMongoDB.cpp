@@ -474,14 +474,14 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    int n_rows = int(float_values[0]);
+    int n_rows = CVT_INT(float_values[0]);
     int n_cols = -1;
     rows = n_rows;
     data = new float *[rows];
     //cout<<n<<endl;
     int index = 1;
     for (int i = 0; i < rows; i++) {
-        int col = int(float_values[index]); // real column
+        int col = CVT_INT(float_values[index]); // real column
         if (n_cols < 0) {
             n_cols = col;
         } else if (n_cols != col) {
@@ -523,12 +523,12 @@ void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    n = int(float_values[0]);
+    n = CVT_INT(float_values[0]);
     data = new float *[n];
 
     int index = 1;
     for (int i = 0; i < n; i++) {
-        int n_sub = int(float_values[index + 1] - float_values[index] + 3);
+        int n_sub = CVT_INT(float_values[index + 1] - float_values[index] + 3);
         data[i] = new float[n_sub];
 
         data[i][0] = float_values[index];

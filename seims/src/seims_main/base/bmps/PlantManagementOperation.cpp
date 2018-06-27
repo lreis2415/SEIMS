@@ -20,7 +20,7 @@ PltMgtOp::PltMgtOp(int mgtOp, bool usebaseHU, float husc,
 /// Plant
 PltOp::PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_plantID = int(parameters[0]);
+    m_plantID = CVT_INT(parameters[0]);
     m_curYrMat = parameters[2];
     m_heatUnits = (parameters[3] < 700.f) ? 1700.f : parameters[3];
     m_laiInit = parameters[4];
@@ -45,13 +45,13 @@ void PltOp::dump(ostream* fs) {
 IrrOp::IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
              float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_irrSrc = int(parameters[1]);
+    m_irrSrc = CVT_INT(parameters[1]);
     m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
     m_irrAmt = parameters[3];
     m_irrSalt = parameters[4];
     m_irrEfm = (parameters[5] < UTIL_ZERO) ? 1.0f : parameters[5];
     m_irrSq = parameters[6];
-    m_irrNo = int(parameters[7]);
+    m_irrNo = CVT_INT(parameters[7]);
 }
 
 void IrrOp::dump(ostream* fs) {
@@ -68,7 +68,7 @@ void IrrOp::dump(ostream* fs) {
 FertOp::FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_fertID = int(parameters[0]);
+    m_fertID = CVT_INT(parameters[0]);
     m_frtKgHa = parameters[3];
     m_frtSurface = (parameters[4] < UTIL_ZERO) ? 0.2f : parameters[4];
 }
@@ -86,7 +86,7 @@ void FertOp::dump(ostream* fs) {
 PestOp::PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_pestID = int(parameters[0]);
+    m_pestID = CVT_INT(parameters[0]);
     m_pstKg = parameters[3];
     m_pstDep = parameters[4];
 }
@@ -122,7 +122,7 @@ void HvstKillOp::dump(ostream* fs) {
 TillOp::TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_tillID = int(parameters[0]);
+    m_tillID = CVT_INT(parameters[0]);
     m_CNOP = parameters[3];
 }
 
@@ -168,8 +168,8 @@ void KillOp::dump(ostream* fs) {
 GrazOp::GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_grzDays = int(parameters[0]);
-    m_manureID = int(parameters[1]);
+    m_grzDays = CVT_INT(parameters[0]);
+    m_manureID = CVT_INT(parameters[1]);
     m_bioEat = parameters[3];
     m_bioTrmp = parameters[4];
     m_manureKg = parameters[5];
@@ -193,13 +193,13 @@ AutoIrrOp::AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
                      float* parameters)
     :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_wstrsID = int(parameters[0]);
-    m_irrSrc = int(parameters[1]);
+    m_wstrsID = CVT_INT(parameters[0]);
+    m_irrSrc = CVT_INT(parameters[1]);
     m_autoWstrs = parameters[3];
     m_irrEff = parameters[4];
     m_irrMx = parameters[5];
     m_irrAsq = parameters[6];
-    m_irrNoa = int(parameters[9]);
+    m_irrNoa = CVT_INT(parameters[9]);
     m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
     if (m_wstrsID <= 0) m_wstrsID = 1;
     if (m_irrEff > 1.f) m_irrEff = 0.f;
@@ -222,8 +222,8 @@ void AutoIrrOp::dump(ostream* fs) {
 AutoFertOp::AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                        float* parameters)
     : PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_afertID = int(parameters[0]);
-    m_NStress = int(parameters[1]);
+    m_afertID = CVT_INT(parameters[0]);
+    m_NStress = CVT_INT(parameters[1]);
     m_autoNStrs = parameters[3];
     m_autoNAPP = parameters[4];
     m_autoNYR = parameters[5];
@@ -250,7 +250,7 @@ RelImpndOp::RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int mont
                        float* parameters)
     :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_impTrig = int(parameters[0]);
+    m_impTrig = CVT_INT(parameters[0]);
     m_maxPondDepth = parameters[1];
     m_minFitDepth = parameters[2];
     m_maxFitDepth = parameters[3];
@@ -269,9 +269,9 @@ ContFertOp::ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int mont
                        int day,
                        float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_cfertID = int(parameters[1]);
-    m_fertDays = int(parameters[0]);
-    m_ifrtFreq = int(parameters[2]);
+    m_cfertID = CVT_INT(parameters[1]);
+    m_fertDays = CVT_INT(parameters[0]);
+    m_ifrtFreq = CVT_INT(parameters[2]);
     m_cfrtKg = parameters[3];
 }
 
@@ -289,9 +289,9 @@ ContPestOp::ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int mont
                        int day,
                        float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_ipstID = int(parameters[0]);
-    m_pstDays = int(parameters[1]);
-    m_pstFreq = int(parameters[2]);
+    m_ipstID = CVT_INT(parameters[0]);
+    m_pstDays = CVT_INT(parameters[1]);
+    m_pstFreq = CVT_INT(parameters[2]);
     m_cpstKg = parameters[3];
 }
 

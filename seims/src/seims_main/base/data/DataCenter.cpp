@@ -168,7 +168,7 @@ void DataCenter::DumpCaliParametersInDB() {
     fs.close();
 }
 
-float DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
+double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
@@ -193,7 +193,7 @@ float DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
             SetData(module_settings[id], param, modules[i], vertical_interpolation);
         }
     }
-    float timeconsume = float(TimeCounting() - t1);
+    double timeconsume = TimeCounting() - t1;
     StatusMessage(("Loading data for modules, TIMESPAN " + ValueToString(timeconsume) + " sec.").c_str());
     return timeconsume;
 }
@@ -250,7 +250,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         default: break;
     }
 #ifdef _DEBUG
-    float timeconsume = float(TimeCounting() - stime);
+    double timeconsume = TimeCounting() - stime;
     StatusMessage(("Set " + name + ": " + remote_filename + " done, TIMESPAN " +
                       ValueToString(timeconsume) + " sec.").c_str());
 #endif
@@ -262,21 +262,21 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
         return;
     }
     if (StringMatch(param->Name, Tag_SubbasinId)) {
-        param->Value = float(subbasin_id_);
+        param->Value = CVT_FLT(subbasin_id_);
     } else if (StringMatch(param->Name, Tag_CellSize)) {
         // valid cells number, do not be confused with Tag_CellWidth
-        param->Value = float(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
+        param->Value = CVT_FLT(mask_raster_->GetCellNumber()); // old code is ->Size();  they have the same function
     } else if (StringMatch(param->Name, Tag_CellWidth)) {
         //cell size
-        param->Value = float(mask_raster_->GetCellWidth());
+        param->Value = CVT_FLT(mask_raster_->GetCellWidth());
     } else if (StringMatch(param->Name, Tag_TimeStep)) {
-        param->Value = float(input_->getDtDaily()); // return 86400 secs
+        param->Value = CVT_FLT(input_->getDtDaily()); // return 86400 secs
     } else if (StringMatch(param->Name, Tag_HillSlopeTimeStep)) {
-        param->Value = float(input_->getDtHillslope());
+        param->Value = CVT_FLT(input_->getDtHillslope());
     } else if (StringMatch(param->Name, Tag_ChannelTimeStep)) {
-        param->Value = float(input_->getDtChannel());
+        param->Value = CVT_FLT(input_->getDtChannel());
     } else if (StringMatch(param->Name, Tag_LayeringMethod)) {
-        param->Value = float(lyr_method_);
+        param->Value = CVT_FLT(lyr_method_);
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();

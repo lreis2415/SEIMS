@@ -11,7 +11,7 @@ using namespace utils_time;
 RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType,
                                        time_t startTime, time_t endTime, time_t interval)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
-    int nSites = int(m_siteIDList.size());
+    int nSites = CVT_INT(m_siteIDList.size());
 
     /// build query statement
     bson_t* query = bson_new();
@@ -122,7 +122,7 @@ RegularMeasurement::~RegularMeasurement() {
 }
 
 float* RegularMeasurement::GetSiteDataByTime(time_t t) {
-    int index = int((t - m_startTime) / m_interval);
+    int index = CVT_INT((t - m_startTime) / m_interval);
 
     if (index < 0) {
         index = 0;

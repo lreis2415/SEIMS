@@ -719,7 +719,7 @@ void ModuleFactory::FindOutputParameter(string& outputID, int& iModule, ParamInf
         vector<ParamInfo *>& vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
             if (StringMatch(outputID, vecPara[j]->Name)) {
-                iModule = int(i);
+                iModule = CVT_INT(i);
                 paraInfo = vecPara[j];
                 return;
             }

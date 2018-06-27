@@ -231,26 +231,26 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     }
 }
 
-void MUSK_CH::Set1DData(const char* key, const int n, float* value) {
+void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     //check the input data
     if (StringMatch(sk, VAR_SUBBSN)) {
-        m_subbsnID = value;
+        m_subbsnID = data;
     } else if (StringMatch(sk, VAR_SBOF)) {
         CheckInputSize(key, n);
-        m_qsSub = value;
+        m_qsSub = data;
     } else if (StringMatch(sk, VAR_SBIF)) {
         CheckInputSize(key, n);
-        m_qiSub = value;
+        m_qiSub = data;
     } else if (StringMatch(sk, VAR_SBQG)) {
         CheckInputSize(key, n);
-        m_qgSub = value;
+        m_qgSub = data;
     } else if (StringMatch(sk, VAR_SBPET)) {
         CheckInputSize(key, n);
-        m_petCh = value;
+        m_petCh = data;
     } else if (StringMatch(sk, VAR_SBGS)) {
         CheckInputSize(key, n);
-        m_gwStorage = value;
+        m_gwStorage = data;
     } else {
         throw ModelException(MID_MUSK_CH, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -361,7 +361,7 @@ void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float& dt, int& n) {
         return;
     }
 
-    n = int(timeStep / fmax);
+    n = CVT_INT(timeStep / fmax);
     dt = timeStep / n;
 
     if (dt > fmax) {
@@ -377,7 +377,7 @@ void MUSK_CH::GetCoefficients(const float reachLength, const float v0, MuskWeigh
     float max = 2.f * K * (1.f - m_x);
     float dt;
     int n;
-    GetDt(float(m_dt), min, max, dt, n);
+    GetDt(CVT_FLT(m_dt), min, max, dt, n);
     weights.dt = dt;
 
     //get coefficient

@@ -6,7 +6,7 @@
 using namespace ccgl::utils_time;
 
 ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
-    m_dataCenter(data_center), m_factory(factory), m_readFileTime(0.f),
+    m_dataCenter(data_center), m_factory(factory), m_readFileTime(0.),
     m_firstRunOverland(true), m_firstRunChannel(true) {
     /// Get SettingInput and SettingOutput
     m_input = m_dataCenter->GetSettingInput();
@@ -22,7 +22,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     m_moduleIDs = m_factory->GetModuleIDs();
     /// Get transferred value inputs
     m_tfValueInputs = m_factory->GetTransferredInputs();
-    m_nTFValues = int(m_tfValueInputs.size());
+    m_nTFValues = CVT_INT(m_tfValueInputs.size());
     for (int i = 0; i < m_nTFValues; i++) {
         string module_id = m_tfValueInputs[i]->ModuleID;
         auto itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
@@ -134,7 +134,7 @@ void ModelMain::Execute() {
     time_t startTime = m_input->getStartTime();
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
-    int nHs = int(m_dtCh / m_dtHs);
+    int nHs = CVT_INT(m_dtCh / m_dtHs);
     int preYearIdx = -1;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
         /// Calculate index of current year of the entire simulation
@@ -144,6 +144,11 @@ void ModelMain::Execute() {
             cout << "Simulation year: " << startYear + yearIdx << endl;
         }
         StatusMessage(ConvertToString2(t).c_str());
+#ifdef _DEBUG
+        if (StringMatch(ConvertToString(t), "2013-07-20")) {
+            cout << "Debugging..." << endl;
+        }
+#endif
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }

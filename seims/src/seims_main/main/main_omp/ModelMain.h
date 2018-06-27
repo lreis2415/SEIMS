@@ -68,22 +68,22 @@ public:
     /*!
      * \brief Execute hillslope modules in current time
      * \param[in] t Current time
-     * \param[in] yearIdx Year index of the entire simulation period
-     * \param[in] subIndex Time step index of the entire simulation period
+     * \param[in] year_idx Year index of the entire simulation period
+     * \param[in] sub_index Time step index of the entire simulation period
      */
-    void StepHillSlope(time_t t, int yearIdx, int subIndex);
+    void StepHillSlope(time_t t, int year_idx, int sub_index);
     /*!
      * \brief Execute channel modules in current time
      * \param[in] t Current time
-     * \param[in] yearIdx Year index of the entire simulation period
+     * \param[in] year_idx Year index of the entire simulation period
      */
-    void StepChannel(time_t t, int yearIdx);
+    void StepChannel(time_t t, int year_idx);
     /*!
      * \brief Execute overall modules in the entire simulation period, e.g., COST module.
-     * \param[in] startT Start time period
-     * \param[in] endT End time period
+     * \param[in] start_t Start time period
+     * \param[in] end_t End time period
      */
-    void StepOverall(time_t startT, time_t endT);
+    void StepOverall(time_t start_t, time_t end_t);
 
     void GetTransferredValue(float* tfvalues);
 
@@ -95,13 +95,13 @@ public:
     /************************************************************************/
 
     //! Get module counts of current SEIMS
-    int GetModuleCount() const { return int(m_simulationModules.size()); }
+    int GetModuleCount() const { return CVT_INT(m_simulationModules.size()); }
     //! Get module ID by index in ModuleFactory
-    string GetModuleID(int i) const { return m_factory->GetModuleID(i); }
+    string GetModuleID(const int i) const { return m_factory->GetModuleID(i); }
     //! Get module execute time by index in ModuleFactory
-    float GetModuleExecuteTime(int i) const { return float(m_executeTime[i]); }
+    double GetModuleExecuteTime(const int i) const { return m_executeTime[i]; }
     //! Get time consuming of read data
-    float GetReadDataTime() const { return m_readFileTime; }
+    double GetReadDataTime() const { return m_readFileTime; }
     //! Include channel processes or not?
     bool IncludeChannelProcesses() { return !m_channelModules.empty(); }
 
@@ -131,7 +131,7 @@ private:
     /*   Variables newly allocated in this class                            */
     /************************************************************************/
 
-    float m_readFileTime;                           ///< Time consuming for read data
+    double m_readFileTime;                          ///< Time consuming for read data
     vector<SimulationModule *> m_simulationModules; ///< Modules list in the model run
     vector<int> m_hillslopeModules;                 ///< Hillslope modules index list
     vector<int> m_channelModules;                   ///< Channel modules index list

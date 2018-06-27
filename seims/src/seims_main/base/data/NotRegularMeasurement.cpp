@@ -115,7 +115,7 @@ float* NotRegularMeasurement::GetSiteDataByTime(time_t t) {
         //else
         //{
         pData[iSite] = vlist[curIndex];
-        m_curIndexList[iSite] = int(curIndex);
+        m_curIndexList[iSite] = CVT_INT(curIndex);
         //}
     }
     return pData;

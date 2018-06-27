@@ -581,7 +581,7 @@ void Biomass_EPIC::AdjustPlantGrowth(const int i) {
             m_frStrsP[i] = 1.f;
         }
         /// 5. auto fertilization-nitrogen demand (non-legumes only)
-        int idc = int(m_landCoverCls[i]);
+        int idc = CVT_INT(m_landCoverCls[i]);
         //if((idc == 4 || idc == 5 || idc == 6 || idc == 7) && auto_nstrs[i] > 0.)
         /// call anfert
         ///////// TODO: Finish auto fertilization-nitrogen later. by LJ

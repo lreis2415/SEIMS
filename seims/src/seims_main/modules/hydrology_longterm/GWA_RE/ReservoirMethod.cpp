@@ -198,12 +198,6 @@ int ReservoirMethod::Execute() {
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }
-    // DEBUG
-    //cout << "GWA_RE, cell id 17842, m_soilStorage: ";
-    //for (int i = 0; i < (int)m_soilLayers[17842]; i++)
-    //    cout << m_soilStorage[17842][i] << ", ";
-    //cout << endl;
-    // END OF DEBUG
     return 0;
 }
 

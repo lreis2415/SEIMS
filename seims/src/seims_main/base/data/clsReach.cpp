@@ -137,7 +137,7 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     const bson_t* bson_table;
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
         clsReach* cur_reach = new clsReach(bson_table);
-        int sub_id = int(cur_reach->Get(REACH_SUBBASIN));
+        int sub_id = CVT_INT(cur_reach->Get(REACH_SUBBASIN));
 #ifdef HAS_VARIADIC_TEMPLATES
         reaches_obj_.emplace(sub_id, cur_reach);
 #else
@@ -158,8 +158,9 @@ clsReaches::clsReaches(MongoClient* conn, const string& db_name,
     // Build layers of reaches according to layering method
     reach_layers_.clear();
     for (int i = 1; i <= reach_num_; i++) {
-        int order = int(reaches_obj_.at(i)->Get(REACH_UPDOWN_ORDER));
-        if (mtd == DOWN_UP) { order = int(reaches_obj_.at(i)->Get(REACH_DOWNUP_ORDER)); }
+        int order = mtd == UP_DOWN
+                        ? CVT_INT(reaches_obj_.at(i)->Get(REACH_UPDOWN_ORDER))
+                        : CVT_INT(reaches_obj_.at(i)->Get(REACH_DOWNUP_ORDER));
         if (reach_layers_.find(order) == reach_layers_.end()) {
 #ifdef HAS_VARIADIC_TEMPLATES
             reach_layers_.emplace(order, vector<int>());

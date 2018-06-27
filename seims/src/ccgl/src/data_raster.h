@@ -1594,8 +1594,8 @@ bool clsRasterData<T, MASK_T>::WriteAscHeaders(const string& filename, map<strin
         return false;
     }
     //write file
-    int rows = int(header.at(HEADER_RS_NROWS));
-    int cols = int(header.at(HEADER_RS_NCOLS));
+    int rows = CVT_INT(header.at(HEADER_RS_NROWS));
+    int cols = CVT_INT(header.at(HEADER_RS_NCOLS));
     /// write header
     raster_file << HEADER_RS_NCOLS << " " << cols << endl;
     raster_file << HEADER_RS_NROWS << " " << rows << endl;

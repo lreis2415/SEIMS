@@ -122,7 +122,7 @@ void NutrientMovementViaWater::SumBySubbasin() {
     } /* END of #pragma omp parallel */
 
     // sum all the subbasins and put the sum value in the first element of the array
-    for (int i = 1; i < m_nSubbsns + 1; i++) {
+    for (int i = 1; i <= m_nSubbsns; i++) {
         m_surfRfNO3ToCh[0] += m_surfRfNO3ToCh[i];
         m_surfRfNH4ToCh[0] += m_surfRfNH4ToCh[i];
         m_surfRfSolPToCh[0] += m_surfRfSolPToCh[i];
