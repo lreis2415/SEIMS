@@ -397,15 +397,21 @@ void Biomass_EPIC::DistributePlantET(const int i) {
     /// where the reduction is caused by low water content
     float reduc = 0.f;
     /// water uptake by plants in each soil layer
-    /*
-     * Initialize1DArray should not be used inside a OMP codeblock
-     * In VS this would be fine, but in linux, may be problematic.*/
-    float* wuse = nullptr;
-    Initialize1DArray(CVT_INT(m_nSoilLyrs[i]), wuse, 0.f);
 
-    //float *wuse = new float[(int) m_nSoilLayers[i]];
-    //for (int j = 0; j < (int) m_nSoilLayers[i]; j++)
-    //	wuse[j] = 0.f;
+    /*
+     * Initialize1DArray should not be used inside a OMP codeblock, which is nested omp for loops.
+     * Although in most case, this would be compiled and run successfully,
+     *   the nested omp for loops still be problematic potentially.
+     * See https://github.com/lreis2415/SEIMS/issues/36 for more information.
+     * By lj, 06/27/18.
+     */
+    // 1. Nested omp for loops
+    //float* wuse = nullptr;
+    //Initialize1DArray(CVT_INT(m_nSoilLyrs[i]), wuse, 0.f);
+    // 2. No nested omp for loops
+    float *wuse = new(nothrow) float[CVT_INT(m_nSoilLyrs[i])];
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) wuse[j] = 0.f;
+
     /// water uptake by plants from all layers
     float xx = 0.f;
     int ir = -1;
@@ -630,7 +636,7 @@ void Biomass_EPIC::AdjustPlantGrowth(const int i) {
         }
         /// 10. calculate plant ET values
         if (m_phuAccum[i] > 0.5f && m_phuAccum[i] < m_dormPHUFr[i]) {
-            m_totActPltET[i] += (m_actPltET[i] + m_soilET[i]);
+            m_totActPltET[i] += m_actPltET[i] + m_soilET[i];
             m_totPltPET[i] += m_pet[i];
         }
         m_hvstIdxAdj[i] = m_hvstIdx[i] * 100.f * m_phuAccum[i] / (100.f * m_phuAccum[i] +
