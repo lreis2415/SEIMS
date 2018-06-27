@@ -59,8 +59,10 @@ bool SSR_DA::FlowInSoil(const int id) {
             }
         }
         // add upstream water to the current cell
-        if (qUp < 0.f) qUp = 0.f;
-        if (qUpVol < 0.f) qUpVol = 0.f;
+        if (qUp <= 0.f || qUpVol <= 0.f) {
+            qUp = 0.f;
+            qUpVol = 0.f;
+        }
         // if the flowWidth is less than 0, the subsurface flow from the upstream cells
         // should be added to stream cell directly, which will be summarized
         // for channel flow routing. By lj, 2018-4-12
@@ -69,15 +71,13 @@ bool SSR_DA::FlowInSoil(const int id) {
             m_subSurfRfVol[id][j] = qUpVol;
             continue;
         }
-
-        m_soilWtrSto[id][j] += qUp; // mm
-        //TEST
         if (m_soilWtrSto[id][j] != m_soilWtrSto[id][j] || m_soilWtrSto[id][j] < 0.f) {
             cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
                     << m_soilWtrSto[id][j] << ", previous: " << smOld << ", qUp: " << qUp << ", depth:"
                     << m_soilThk[id][j] << endl;
             return false;
         }
+        m_soilWtrSto[id][j] += qUp; // mm
 
         // if soil moisture is below the field capacity, no interflow will be generated
         if (m_soilWtrSto[id][j] <= m_soilFC[id][j]) continue;

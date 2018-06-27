@@ -108,17 +108,17 @@ private:
     //inputs
 
     //! time step, second
-    int m_TimeStep;
+    int m_dt;
     //! Valid cells number
     int m_nCells;
     //! cell size of the grid (m)
-    float m_CellWidth;
+    float m_cellWth;
     //! maximum soil layers number
     int m_nMaxSoilLayers;
     //! soil layers number of each cell
-    float* m_soilLayers;
+    float* m_nSoilLyrs;
     //! soil thickness of each layer
-    float** m_soilThick;
+    float** m_soilThk;
 
     //float m_upSoilDepth;
 
@@ -129,17 +129,17 @@ private:
     //! baseflow recession exponent
     float m_Base_ex;
     //! the amount of water percolated from the soil water reservoir and input to the groundwater reservoir from the percolation module(mm)
-    float** m_perc;
+    float** m_soilPerco;
     //! evaporation from interception storage (mm) from the interception module
-    float* m_D_EI;
+    float* m_IntcpET;
     //! evaporation from the depression storage (mm) from the depression module
-    float* m_D_ED;
+    float* m_deprStoET;
     //! evaporation from the soil water storage (mm) from the soil ET module
-    float* m_D_ES;
+    float* m_soilET;
     //! actual amount of transpiration (mm H2O)
-    float* m_plantEP;
+    float* m_actPltET;
     //! PET(mm) from the PET modules
-    float* m_D_PET;
+    float* m_pet;
     //! initial ground water storage (or at time t-1)
     float m_GW0;
     //! maximum ground water storage
@@ -150,10 +150,10 @@ private:
     float* m_gwStore;
 
     /// slope (percent, or drop/distance, or tan) of each cell
-    float* m_Slope;
+    float* m_slope;
 
     //! soil storage
-    float** m_soilStorage;
+    float** m_soilWtrSto;
     //! soil depth of each layer, the maximum soil depth is used here, i.e., m_soilDepth[i][(int)m_soilLayers[i]]
     float** m_soilDepth;
     //! ground water from bank storage, passed from channel routing module
@@ -178,9 +178,9 @@ private:
     ////! subbasin grid
     //   float *m_subbasin;
     //! subbasin number
-    int m_nSubbasins;
+    int m_nSubbsns;
     //! current subbasin ID, 0 for the entire watershed
-    int m_subbasinID;
+    int m_inputSubbsnID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
     ////! selected count of output subbasin

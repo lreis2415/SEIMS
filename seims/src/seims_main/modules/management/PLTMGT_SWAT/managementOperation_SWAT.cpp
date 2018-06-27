@@ -72,8 +72,7 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
     /// Temporary parameters
     m_soilWtrStoPrfl(nullptr), m_initialized(false),
     tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
-    tmp_soilNotMixedMass(nullptr),
-    tmp_smix(nullptr) {
+    tmp_soilNotMixedMass(nullptr), tmp_smix(nullptr) {
 }
 
 MGTOpt_SWAT::~MGTOpt_SWAT() {
@@ -164,11 +163,11 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (m_potVolMax != nullptr) Release1DArray(m_potVolMax);
     if (m_potVolLow != nullptr) Release1DArray(m_potVolLow);
     /// temporary variables
-    if (nullptr != tmp_rtfr) Release1DArray(tmp_rtfr);
-    if (nullptr != tmp_soilMass) Release1DArray(tmp_soilMass);
-    if (nullptr != tmp_soilMixedMass) Release1DArray(tmp_soilMixedMass);
-    if (nullptr != tmp_soilNotMixedMass) Release1DArray(tmp_soilNotMixedMass);
-    if (nullptr != tmp_smix) Release1DArray(tmp_smix);
+    if (nullptr != tmp_rtfr) Release2DArray(m_nCells, tmp_rtfr);
+    if (nullptr != tmp_soilMass) Release2DArray(m_nCells, tmp_soilMass);
+    if (nullptr != tmp_soilMixedMass) Release2DArray(m_nCells, tmp_soilMixedMass);
+    if (nullptr != tmp_soilNotMixedMass) Release2DArray(m_nCells, tmp_soilNotMixedMass);
+    if (nullptr != tmp_smix) Release2DArray(m_nCells, tmp_smix);
 }
 
 void MGTOpt_SWAT::SetValue(const char* key, const float value) {
@@ -1135,8 +1134,8 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, 
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_rtfr, 0.f);
-    RootFraction(i, tmp_rtfr);
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) tmp_rtfr[i][j] = 0.f;
+    RootFraction(i, tmp_rtfr[i]);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
     float ff1 = (1.f - hiad1) / (1.f - hiad1 + m_frRoot[i]);
@@ -1198,18 +1197,18 @@ void MGTOpt_SWAT::ExecuteHarvestKillOperation(const int i, const int factoryID, 
     /// end insert new biomass of CENTURY model
 
     /// allocate dead roots, N, P to soil layers
-    for (int l = 0; l < m_nSoilLyrs[i]; l++) {
-        m_soilRsd[i][l] += tmp_rtfr[l] * rtresnew;
-        m_soilFrshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_pltN[i] - yieldn);
-        m_soilFrshOrgP[i][l] += tmp_rtfr[l] * ff2 * (m_pltP[i] - yieldp);
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
+        m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+        m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * ff2 * (m_pltN[i] - yieldn);
+        m_soilFrshOrgP[i][l] += tmp_rtfr[i][l] * ff2 * (m_pltP[i] - yieldp);
 
         /// insert new biomass of CENTURY model
         if (m_cbnModel == 2) {
             if (l == 1) { sf = 0.05f; } else { sf = 0.1f; }
 
             sol_min_n = m_soilNO3[i][l] + m_soilNH4[i][l]; // kg/ha
-            resnew = tmp_rtfr[l] * rtresnew;
-            resnew_n = tmp_rtfr[l] * ff2 * (m_pltN[i] - yieldn);
+            resnew = tmp_rtfr[i][l] * rtresnew;
+            resnew_n = tmp_rtfr[i][l] * ff2 * (m_pltN[i] - yieldn);
             resnew_ne = resnew_n + sf * sol_min_n;
 
             RLN = resnew * CLG / (resnew_n + 1.e-5f);
@@ -1323,13 +1322,17 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
     float bmix = 0.f;
     float emix = 0.f, dtil = 0.f, XX = 0.f, WW1 = 0.f, WW2 = 0.f;
     float WW3 = 0.f, WW4 = 0.f, maxmix = 0.f;
-    if (nullptr == tmp_soilMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilMass, 0.f);
-    if (nullptr == tmp_soilMixedMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilMixedMass, 0.f);
-    if (nullptr == tmp_soilNotMixedMass) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_soilNotMixedMass, 0.f);
+
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
+        tmp_soilMass[i][l] = 0.f;
+        tmp_soilMixedMass[i][l] = 0.f;
+        tmp_soilNotMixedMass[i][l] = 0.f;
+    }
+
     if (bmix > UTIL_ZERO) {
         /// biological mixing, TODO, in SWAT, this occurs at the end of year process.
         emix = bmix;
-        dtil = Min(m_soilDepth[i][CVT_INT(m_nSoilLyrs[i] - 1)], 50.f);
+        dtil = Min(m_soilDepth[i][CVT_INT(m_nSoilLyrs[i]) - 1], 50.f);
     } else {
         /// tillage operation
         emix = effmix;
@@ -1352,7 +1355,8 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
     }
     ///  smix(:)     |varies        |amount of substance in soil profile that is being redistributed between mixed layers
     int npmx = 0; /// number of different pesticides, TODO in next version
-    if (nullptr == tmp_smix) Initialize1DArray(22 + npmx + 12, tmp_smix, 0.f);
+    for (int ii = 0; ii < 22 + npmx + 12; ii++) tmp_smix[i][ii] = 0.f;
+
     /// incorporate bacteria, no mixing, and lost from transport
     if (dtil > 10.f) {
         //m_bactPersistSol[i] *= (1. - emix);
@@ -1371,51 +1375,52 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
         if (emix > maxmix) emix = maxmix;
     }
     for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
-        tmp_soilMass[l] = 10000.f * m_soilThick[i][l] * m_soilBD[i][l] * (1 - m_soilRock[i][l] / 100.f);
-        tmp_soilMixedMass[l] = 0.f;
-        tmp_soilNotMixedMass[l] = 0.f;
+        tmp_soilMass[i][l] = 10000.f * m_soilThick[i][l] * m_soilBD[i][l] * (1 - m_soilRock[i][l] / 100.f);
+        tmp_soilMixedMass[i][l] = 0.f;
+        tmp_soilNotMixedMass[i][l] = 0.f;
     }
     if (dtil > 0.f) {
         if (dtil < 10.f) dtil = 11.;
         for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
             if (m_soilDepth[i][l] <= dtil) {
-                tmp_soilMixedMass[l] = emix * tmp_soilMass[l];
-                tmp_soilNotMixedMass[l] = tmp_soilMass[l] - tmp_soilMixedMass[l];
+                tmp_soilMixedMass[i][l] = emix * tmp_soilMass[i][l];
+                tmp_soilNotMixedMass[i][l] = tmp_soilMass[i][l] - tmp_soilMixedMass[i][l];
             } else if (m_soilDepth[i][l] > dtil && m_soilDepth[i][l - 1] < dtil) {
-                tmp_soilMixedMass[l] = emix * tmp_soilMass[l] * (dtil - m_soilDepth[i][l - 1]) / m_soilThick[i][l];
-                tmp_soilNotMixedMass[l] = tmp_soilMass[l] - tmp_soilMixedMass[l];
+                tmp_soilMixedMass[i][l] = emix * tmp_soilMass[i][l] *
+                        (dtil - m_soilDepth[i][l - 1]) / m_soilThick[i][l];
+                tmp_soilNotMixedMass[i][l] = tmp_soilMass[i][l] - tmp_soilMixedMass[i][l];
             } else {
-                tmp_soilMixedMass[l] = 0.f;
-                tmp_soilNotMixedMass[l] = tmp_soilMass[l];
+                tmp_soilMixedMass[i][l] = 0.f;
+                tmp_soilNotMixedMass[i][l] = tmp_soilMass[i][l];
             }
             /// calculate the mass or concentration of each mixed element
             /// 1. mass based mixing
-            WW1 = tmp_soilMixedMass[l] / (tmp_soilMixedMass[l] + tmp_soilNotMixedMass[l]);
-            tmp_smix[0] += m_soilNO3[i][l] * WW1;
-            tmp_smix[1] += m_soilStabOrgN[i][l] * WW1;
-            tmp_smix[2] += m_soilNH4[i][l] * WW1;
-            tmp_smix[3] += m_soilSolP[i][l] * WW1;
-            tmp_smix[4] += m_soilHumOrgP[i][l] * WW1;
-            tmp_smix[5] += m_soilActvOrgN[i][l] * WW1;
-            tmp_smix[6] += m_soilActvMinP[i][l] * WW1;
-            tmp_smix[7] += m_soilFrshOrgN[i][l] * WW1;
-            tmp_smix[8] += m_soilFrshOrgP[i][l] * WW1;
-            tmp_smix[9] += m_soilStabMinP[i][l] * WW1;
-            tmp_smix[10] += m_soilRsd[i][l] * WW1;
+            WW1 = tmp_soilMixedMass[i][l] / (tmp_soilMixedMass[i][l] + tmp_soilNotMixedMass[i][l]);
+            tmp_smix[i][0] += m_soilNO3[i][l] * WW1;
+            tmp_smix[i][1] += m_soilStabOrgN[i][l] * WW1;
+            tmp_smix[i][2] += m_soilNH4[i][l] * WW1;
+            tmp_smix[i][3] += m_soilSolP[i][l] * WW1;
+            tmp_smix[i][4] += m_soilHumOrgP[i][l] * WW1;
+            tmp_smix[i][5] += m_soilActvOrgN[i][l] * WW1;
+            tmp_smix[i][6] += m_soilActvMinP[i][l] * WW1;
+            tmp_smix[i][7] += m_soilFrshOrgN[i][l] * WW1;
+            tmp_smix[i][8] += m_soilFrshOrgP[i][l] * WW1;
+            tmp_smix[i][9] += m_soilStabMinP[i][l] * WW1;
+            tmp_smix[i][10] += m_soilRsd[i][l] * WW1;
             if (m_cbnModel == 1) {
                 /// C-FARM one carbon pool model
-                tmp_smix[11] += m_soilManC[i][l] * WW1;
-                tmp_smix[12] += m_soilManN[i][l] * WW1;
-                tmp_smix[13] += m_soilManP[i][l] * WW1;
+                tmp_smix[i][11] += m_soilManC[i][l] * WW1;
+                tmp_smix[i][12] += m_soilManN[i][l] * WW1;
+                tmp_smix[i][13] += m_soilManP[i][l] * WW1;
             }
 
             /// 2. concentration based mixing
-            WW2 = XX + tmp_soilMixedMass[l];
-            tmp_smix[14] = (XX * tmp_smix[14] + m_soilCbn[i][l] * tmp_soilMixedMass[l]) / WW2;
-            tmp_smix[15] = (XX * tmp_smix[15] + m_soilN[i][l] * tmp_soilMixedMass[l]) / WW2;
-            tmp_smix[16] = (XX * tmp_smix[16] + m_soilClay[i][l] * tmp_soilMixedMass[l]) / WW2;
-            tmp_smix[17] = (XX * tmp_smix[17] + m_soilSilt[i][l] * tmp_soilMixedMass[l]) / WW2;
-            tmp_smix[18] = (XX * tmp_smix[18] + m_soilSand[i][l] * tmp_soilMixedMass[l]) / WW2;
+            WW2 = XX + tmp_soilMixedMass[i][l];
+            tmp_smix[i][14] = (XX * tmp_smix[i][14] + m_soilCbn[i][l] * tmp_soilMixedMass[i][l]) / WW2;
+            tmp_smix[i][15] = (XX * tmp_smix[i][15] + m_soilN[i][l] * tmp_soilMixedMass[i][l]) / WW2;
+            tmp_smix[i][16] = (XX * tmp_smix[i][16] + m_soilClay[i][l] * tmp_soilMixedMass[i][l]) / WW2;
+            tmp_smix[i][17] = (XX * tmp_smix[i][17] + m_soilSilt[i][l] * tmp_soilMixedMass[i][l]) / WW2;
+            tmp_smix[i][18] = (XX * tmp_smix[i][18] + m_soilSand[i][l] * tmp_soilMixedMass[i][l]) / WW2;
             /// 3. mass based distribution
             for (int k = 0; k < npmx; k++) {
                 /// TODO
@@ -1423,71 +1428,75 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
             }
             /// 4. For CENTURY model
             if (m_cbnModel == 2) {
-                tmp_smix[19 + npmx + 1] += m_soilLSC[i][l] * WW1;
-                tmp_smix[19 + npmx + 2] += m_soilLSLC[i][l] * WW1;
-                tmp_smix[19 + npmx + 3] += m_soilLSLNC[i][l] * WW1;
-                tmp_smix[19 + npmx + 4] += m_soilLMC[i][l] * WW1;
-                tmp_smix[19 + npmx + 5] += m_soilLM[i][l] * WW1;
-                tmp_smix[19 + npmx + 6] += m_soilLSL[i][l] * WW1;
-                tmp_smix[19 + npmx + 7] += m_soilLS[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 1] += m_soilLSC[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 2] += m_soilLSLC[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 3] += m_soilLSLNC[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 4] += m_soilLMC[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 5] += m_soilLM[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 6] += m_soilLSL[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 7] += m_soilLS[i][l] * WW1;
 
-                tmp_smix[19 + npmx + 8] += m_soilLSN[i][l] * WW1;
-                tmp_smix[19 + npmx + 9] += m_soilLMN[i][l] * WW1;
-                tmp_smix[19 + npmx + 10] += m_soilBMN[i][l] * WW1;
-                tmp_smix[19 + npmx + 11] += m_soilHSN[i][l] * WW1;
-                tmp_smix[19 + npmx + 12] += m_soilHPN[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 8] += m_soilLSN[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 9] += m_soilLMN[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 10] += m_soilBMN[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 11] += m_soilHSN[i][l] * WW1;
+                tmp_smix[i][19 + npmx + 12] += m_soilHPN[i][l] * WW1;
             }
-            XX += tmp_soilMixedMass[l];
+            XX += tmp_soilMixedMass[i][l];
         }
         for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
             /// reconstitute each soil layer
-            WW3 = tmp_soilNotMixedMass[l] / tmp_soilMass[l];
-            WW4 = tmp_soilMixedMass[l] / XX;
-            m_soilNO3[i][l] = m_soilNO3[i][l] * WW3 + tmp_smix[0] * WW4;
-            m_soilStabOrgN[i][l] = m_soilStabOrgN[i][l] * WW3 + tmp_smix[1] * WW4;
-            m_soilNH4[i][l] = m_soilNH4[i][l] * WW3 + tmp_smix[2] * WW4;
-            m_soilSolP[i][l] = m_soilSolP[i][l] * WW3 + tmp_smix[3] * WW4;
-            m_soilHumOrgP[i][l] = m_soilHumOrgP[i][l] * WW3 + tmp_smix[4] * WW4;
-            m_soilActvOrgN[i][l] = m_soilActvOrgN[i][l] * WW3 + tmp_smix[5] * WW4;
-            m_soilActvMinP[i][l] = m_soilActvMinP[i][l] * WW3 + tmp_smix[6] * WW4;
-            m_soilFrshOrgN[i][l] = m_soilFrshOrgN[i][l] * WW3 + tmp_smix[7] * WW4;
-            m_soilFrshOrgP[i][l] = m_soilFrshOrgP[i][l] * WW3 + tmp_smix[8] * WW4;
-            m_soilStabMinP[i][l] = m_soilStabMinP[i][l] * WW3 + tmp_smix[9] * WW4;
-            m_soilRsd[i][l] = m_soilRsd[i][l] * WW3 + tmp_smix[10] * WW4;
+            WW3 = tmp_soilNotMixedMass[i][l] / tmp_soilMass[i][l];
+            WW4 = tmp_soilMixedMass[i][l] / XX;
+            m_soilNO3[i][l] = m_soilNO3[i][l] * WW3 + tmp_smix[i][0] * WW4;
+            m_soilStabOrgN[i][l] = m_soilStabOrgN[i][l] * WW3 + tmp_smix[i][1] * WW4;
+            m_soilNH4[i][l] = m_soilNH4[i][l] * WW3 + tmp_smix[i][2] * WW4;
+            m_soilSolP[i][l] = m_soilSolP[i][l] * WW3 + tmp_smix[i][3] * WW4;
+            m_soilHumOrgP[i][l] = m_soilHumOrgP[i][l] * WW3 + tmp_smix[i][4] * WW4;
+            m_soilActvOrgN[i][l] = m_soilActvOrgN[i][l] * WW3 + tmp_smix[i][5] * WW4;
+            m_soilActvMinP[i][l] = m_soilActvMinP[i][l] * WW3 + tmp_smix[i][6] * WW4;
+            m_soilFrshOrgN[i][l] = m_soilFrshOrgN[i][l] * WW3 + tmp_smix[i][7] * WW4;
+            m_soilFrshOrgP[i][l] = m_soilFrshOrgP[i][l] * WW3 + tmp_smix[i][8] * WW4;
+            m_soilStabMinP[i][l] = m_soilStabMinP[i][l] * WW3 + tmp_smix[i][9] * WW4;
+            m_soilRsd[i][l] = m_soilRsd[i][l] * WW3 + tmp_smix[i][10] * WW4;
             if (m_soilRsd[i][l] < 1.e-10f) m_soilRsd[i][l] = 1.e-10f;
             if (m_cbnModel == 1) {
-                m_soilManC[i][l] = m_soilManC[i][l] * WW3 + tmp_smix[11] * WW4;
-                m_soilManN[i][l] = m_soilManN[i][l] * WW3 + tmp_smix[12] * WW4;
-                m_soilManP[i][l] = m_soilManP[i][l] * WW3 + tmp_smix[13] * WW4;
+                m_soilManC[i][l] = m_soilManC[i][l] * WW3 + tmp_smix[i][11] * WW4;
+                m_soilManN[i][l] = m_soilManN[i][l] * WW3 + tmp_smix[i][12] * WW4;
+                m_soilManP[i][l] = m_soilManP[i][l] * WW3 + tmp_smix[i][13] * WW4;
             }
-            m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[14] * tmp_soilMixedMass[l]) /
-                    tmp_soilMass[l];
-            m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[15] * tmp_soilMixedMass[l]) /
-                    tmp_soilMass[l];
-            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[16] * tmp_soilMixedMass[l]) /
-                    tmp_soilMass[l];
-            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[17] * tmp_soilMixedMass[l]) /
-                    tmp_soilMass[l];
-            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[l] + tmp_smix[18] * tmp_soilMixedMass[l]) /
-                    tmp_soilMass[l];
+            m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][14] * tmp_soilMixedMass[i][l])
+                    /
+                    tmp_soilMass[i][l];
+            m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][15] * tmp_soilMixedMass[i][l]) /
+                    tmp_soilMass[i][l];
+            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][16] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
+            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][17] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
+            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][18] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
 
             for (int k = 0; k < npmx; k++) {
                 /// TODO
                 /// sol_pst(k,jj,l) = sol_pst(k,jj,l) * WW3 + smix(20+k) * WW4
             }
             if (m_cbnModel == 2) {
-                m_soilLSC[i][l] = m_soilLSC[i][l] * WW3 + tmp_smix[19 + npmx + 1] * WW4;
-                m_soilLSLC[i][l] = m_soilLSLC[i][l] * WW3 + tmp_smix[19 + npmx + 2] * WW4;
-                m_soilLSLNC[i][l] = m_soilLSLNC[i][l] * WW3 + tmp_smix[19 + npmx + 3] * WW4;
-                m_soilLMC[i][l] = m_soilLMC[i][l] * WW3 + tmp_smix[19 + npmx + 4] * WW4;
-                m_soilLM[i][l] = m_soilLM[i][l] * WW3 + tmp_smix[19 + npmx + 5] * WW4;
-                m_soilLSL[i][l] = m_soilLSL[i][l] * WW3 + tmp_smix[19 + npmx + 6] * WW4;
-                m_soilLS[i][l] = m_soilLS[i][l] * WW3 + tmp_smix[19 + npmx + 7] * WW4;
-                m_soilLSN[i][l] = m_soilLSN[i][l] * WW3 + tmp_smix[19 + npmx + 8] * WW4;
-                m_soilLMN[i][l] = m_soilLMN[i][l] * WW3 + tmp_smix[19 + npmx + 9] * WW4;
-                m_soilBMN[i][l] = m_soilBMN[i][l] * WW3 + tmp_smix[19 + npmx + 10] * WW4;
-                m_soilHSN[i][l] = m_soilHSN[i][l] * WW3 + tmp_smix[19 + npmx + 11] * WW4;
-                m_soilHPN[i][l] = m_soilHPN[i][l] * WW3 + tmp_smix[19 + npmx + 12] * WW4;
+                m_soilLSC[i][l] = m_soilLSC[i][l] * WW3 + tmp_smix[i][19 + npmx + 1] * WW4;
+                m_soilLSLC[i][l] = m_soilLSLC[i][l] * WW3 + tmp_smix[i][19 + npmx + 2] * WW4;
+                m_soilLSLNC[i][l] = m_soilLSLNC[i][l] * WW3 + tmp_smix[i][19 + npmx + 3] * WW4;
+                m_soilLMC[i][l] = m_soilLMC[i][l] * WW3 + tmp_smix[i][19 + npmx + 4] * WW4;
+                m_soilLM[i][l] = m_soilLM[i][l] * WW3 + tmp_smix[i][19 + npmx + 5] * WW4;
+                m_soilLSL[i][l] = m_soilLSL[i][l] * WW3 + tmp_smix[i][19 + npmx + 6] * WW4;
+                m_soilLS[i][l] = m_soilLS[i][l] * WW3 + tmp_smix[i][19 + npmx + 7] * WW4;
+                m_soilLSN[i][l] = m_soilLSN[i][l] * WW3 + tmp_smix[i][19 + npmx + 8] * WW4;
+                m_soilLMN[i][l] = m_soilLMN[i][l] * WW3 + tmp_smix[i][19 + npmx + 9] * WW4;
+                m_soilBMN[i][l] = m_soilBMN[i][l] * WW3 + tmp_smix[i][19 + npmx + 10] * WW4;
+                m_soilHSN[i][l] = m_soilHSN[i][l] * WW3 + tmp_smix[i][19 + npmx + 11] * WW4;
+                m_soilHPN[i][l] = m_soilHPN[i][l] * WW3 + tmp_smix[i][19 + npmx + 12] * WW4;
             }
             if (m_cbnModel == 1) {
                 /// TODO
@@ -1646,8 +1655,8 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
     rtresnew = m_biomass[i] * m_frRoot[i];
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    float* rtfr = new float[CVT_INT(m_nSoilLyrs[i])];
-    RootFraction(i, rtfr);
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) tmp_rtfr[i][j] = 0.f;
+    RootFraction(i, tmp_rtfr[i]);
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
     m_soilFrshOrgN[i][0] += m_pltN[i] * (1.f - m_frRoot[i]);
@@ -1658,9 +1667,9 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
 
     /// allocate dead roots, N and P to soil layers
     for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
-        m_soilRsd[i][l] += rtfr[l] * rtresnew;
-        m_soilFrshOrgN[i][l] += rtfr[l] * m_pltN[i] * m_frRoot[i];
-        m_soilFrshOrgP[i][l] += rtfr[l] * m_pltP[i] * m_frRoot[i];
+        m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+        m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * m_pltN[i] * m_frRoot[i];
+        m_soilFrshOrgP[i][l] += tmp_rtfr[i][l] * m_pltP[i] * m_frRoot[i];
     }
     /// reset variables
     m_igro[i] = 0.f;
@@ -1672,7 +1681,6 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
     m_frStrsWtr[i] = 1.f;
     m_lai[i] = 0.f;
     m_hvstIdxAdj[i] = 0.f;
-    Release1DArray(rtfr);
     m_phuAccum[i] = 0.f;
 }
 
@@ -2025,6 +2033,11 @@ void MGTOpt_SWAT::InitialOutputs() {
     }
     /// temporary variables
     if (m_doneOpSequence == nullptr) Initialize1DArray(m_nCells, m_doneOpSequence, -1);
+    if (nullptr == tmp_rtfr) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_rtfr, 0.f);
+    if (nullptr == tmp_soilMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMass, 0.f);
+    if (nullptr == tmp_soilMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMixedMass, 0.f);
+    if (nullptr == tmp_soilNotMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilNotMixedMass, 0.f);
+    if (nullptr == tmp_smix) Initialize2DArray(m_nCells, 22 + 12, tmp_smix, 0.f);
     m_initialized = true;
 }
 

@@ -7,6 +7,7 @@
  * \changelog: 2016-07-15 - lj - 1. Code reformat with common functions, such as Release1DArray.\n
  *                               2. VAR_SNSB should be output other than input.\n
  *             2018-05-07 - lj - Reformat code style.\n
+ *             2018-06-26 - lj - Bug fixed when pet less than intercept ET.\n
  */
 #ifndef SEIMS_MODULE_AET_PTH_H
 #define SEIMS_MODULE_AET_PTH_H
@@ -38,8 +39,6 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
-
-    void GetValue(const char* key, float* value) OVERRIDE;
 
 private:
     /*!
@@ -102,7 +101,5 @@ private:
     float* m_maxPltET;
     /// actual amount of evaporation (soil et) that occurs on day, es_day in SWAT
     float* m_soilET;
-    /// amount of nitrate moving upward in the soil profile in watershed
-    float m_no3Up;
 };
 #endif /* SEIMS_MODULE_AET_PTH_H */

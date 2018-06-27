@@ -135,21 +135,25 @@ void ModelMain::Execute() {
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
     int nHs = int(m_dtCh / m_dtHs);
-
+    int preYearIdx = -1;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        StatusMessage(ConvertToString2(t).c_str());
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
+        if (preYearIdx != yearIdx) {
+            cout << "Simulation year: " << startYear + yearIdx << endl;
+        }
+        StatusMessage(ConvertToString2(t).c_str());
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
         StepChannel(t, yearIdx);
         AppendOutputData(t);
+        preYearIdx = yearIdx;
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+    cout << "[TIMESPAN][COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     OutputExecuteTime();
 }
 
@@ -185,15 +189,15 @@ double ModelMain::Output() {
     double t2 = TimeCounting();
     if (m_dataCenter->GetSubbasinID() == 0) {
         // Only print for OpenMP version
-        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+        cout << "[TIMESPAN][IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     }
     return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
-        cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t"
-                << std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+        cout << "[TIMESPAN][COMP][" << m_factory->GetModuleID(i) << "] " <<
+                std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
     }
 }
 

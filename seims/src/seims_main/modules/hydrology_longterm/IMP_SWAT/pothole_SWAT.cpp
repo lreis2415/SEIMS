@@ -238,7 +238,7 @@ int IMP_SWAT::Execute() {
     CheckInputData();
     InitialOutputs();
 
-    for (int ilyr = 0; ilyr < m_nRteLyrs; ++ilyr) {
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int ncells = CVT_INT(m_rteLyrs[ilyr][0]);

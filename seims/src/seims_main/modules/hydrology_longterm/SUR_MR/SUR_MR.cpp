@@ -47,7 +47,6 @@ void SUR_MR::InitialOutputs() {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                /// mm
                 if (m_initSoilWtrStoRatio[i] >= 0.f && m_initSoilWtrStoRatio[i] <= 1.f && m_soilFC[i][j] >= 0.f) {
                     m_soilWtrSto[i][j] = m_initSoilWtrStoRatio[i] * m_soilFC[i][j];
                 } else {
