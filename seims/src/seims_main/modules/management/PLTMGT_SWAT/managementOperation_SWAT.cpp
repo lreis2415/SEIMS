@@ -1386,7 +1386,8 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
                 tmp_soilMixedMass[i][l] = emix * tmp_soilMass[i][l];
                 tmp_soilNotMixedMass[i][l] = tmp_soilMass[i][l] - tmp_soilMixedMass[i][l];
             } else if (m_soilDepth[i][l] > dtil && m_soilDepth[i][l - 1] < dtil) {
-                tmp_soilMixedMass[i][l] = emix * tmp_soilMass[i][l] * (dtil - m_soilDepth[i][l - 1]) / m_soilThick[i][l];
+                tmp_soilMixedMass[i][l] = emix * tmp_soilMass[i][l] *
+                        (dtil - m_soilDepth[i][l - 1]) / m_soilThick[i][l];
                 tmp_soilNotMixedMass[i][l] = tmp_soilMass[i][l] - tmp_soilMixedMass[i][l];
             } else {
                 tmp_soilMixedMass[i][l] = 0.f;
@@ -1464,16 +1465,20 @@ void MGTOpt_SWAT::ExecuteTillageOperation(const int i, const int factoryID, cons
                 m_soilManN[i][l] = m_soilManN[i][l] * WW3 + tmp_smix[i][12] * WW4;
                 m_soilManP[i][l] = m_soilManP[i][l] * WW3 + tmp_smix[i][13] * WW4;
             }
-            m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][14] * tmp_soilMixedMass[i][l]) /
-                tmp_soilMass[i][l];
+            m_soilCbn[i][l] = (m_soilCbn[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][14] * tmp_soilMixedMass[i][l])
+                    /
+                    tmp_soilMass[i][l];
             m_soilN[i][l] = (m_soilN[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][15] * tmp_soilMixedMass[i][l]) /
-                tmp_soilMass[i][l];
-            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][16] * tmp_soilMixedMass[i][l]) /
-                tmp_soilMass[i][l];
-            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][17] * tmp_soilMixedMass[i][l]) /
-                tmp_soilMass[i][l];
-            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][18] * tmp_soilMixedMass[i][l]) /
-                tmp_soilMass[i][l];
+                    tmp_soilMass[i][l];
+            m_soilClay[i][l] = (m_soilClay[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][16] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
+            m_soilSilt[i][l] = (m_soilSilt[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][17] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
+            m_soilSand[i][l] = (m_soilSand[i][l] * tmp_soilNotMixedMass[i][l] + tmp_smix[i][18] * tmp_soilMixedMass[i][l
+                    ]) /
+                    tmp_soilMass[i][l];
 
             for (int k = 0; k < npmx; k++) {
                 /// TODO
@@ -1650,8 +1655,8 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
     rtresnew = m_biomass[i] * m_frRoot[i];
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    float* rtfr = new float[CVT_INT(m_nSoilLyrs[i])];
-    RootFraction(i, rtfr);
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) tmp_rtfr[i][j] = 0.f;
+    RootFraction(i, tmp_rtfr[i]);
     /// update residue, N, P on soil surface
     m_soilRsd[i][0] += resnew;
     m_soilFrshOrgN[i][0] += m_pltN[i] * (1.f - m_frRoot[i]);
@@ -1662,9 +1667,9 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
 
     /// allocate dead roots, N and P to soil layers
     for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
-        m_soilRsd[i][l] += rtfr[l] * rtresnew;
-        m_soilFrshOrgN[i][l] += rtfr[l] * m_pltN[i] * m_frRoot[i];
-        m_soilFrshOrgP[i][l] += rtfr[l] * m_pltP[i] * m_frRoot[i];
+        m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+        m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * m_pltN[i] * m_frRoot[i];
+        m_soilFrshOrgP[i][l] += tmp_rtfr[i][l] * m_pltP[i] * m_frRoot[i];
     }
     /// reset variables
     m_igro[i] = 0.f;
@@ -1676,7 +1681,6 @@ void MGTOpt_SWAT::ExecuteKillOperation(const int i, const int factoryID, const i
     m_frStrsWtr[i] = 1.f;
     m_lai[i] = 0.f;
     m_hvstIdxAdj[i] = 0.f;
-    Release1DArray(rtfr);
     m_phuAccum[i] = 0.f;
 }
 
@@ -2033,7 +2037,7 @@ void MGTOpt_SWAT::InitialOutputs() {
     if (nullptr == tmp_soilMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMass, 0.f);
     if (nullptr == tmp_soilMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMixedMass, 0.f);
     if (nullptr == tmp_soilNotMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilNotMixedMass, 0.f);
-    if (nullptr == tmp_smix) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_smix, 0.f);
+    if (nullptr == tmp_smix) Initialize2DArray(m_nCells, 22 + 12, tmp_smix, 0.f);
     m_initialized = true;
 }
 
