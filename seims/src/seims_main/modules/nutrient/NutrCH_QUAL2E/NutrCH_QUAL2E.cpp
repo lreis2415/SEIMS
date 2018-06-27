@@ -110,7 +110,7 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
         float* tmp_chSr = new(nothrow) float[m_nReaches + 1];
         float* tmp_chTemp = new(nothrow) float[m_nReaches + 1];
         int* tmp_chCellCount = new(nothrow) int[m_nReaches + 1];
-        for (int irch = 0; irch < m_nReaches; irch++) {
+        for (int irch = 0; irch <= m_nReaches; irch++) {
             tmp_chDaylen[irch] = 0.f;
             tmp_chSr[irch] = 0.f;
             tmp_chTemp[irch] = 0.f;
@@ -136,7 +136,7 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
         }
 #pragma omp critical
         {
-            for (int irch = 0; irch < m_nReaches; irch++) {
+            for (int irch = 0; irch <= m_nReaches; irch++) {
                 m_chDaylen[irch] += tmp_chDaylen[irch];
                 m_chSr[irch] += tmp_chSr[irch];
                 m_chTemp[irch] += tmp_chTemp[irch];
@@ -261,9 +261,8 @@ void NutrCH_QUAL2E::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_LAMBDA1)) m_lambda1 = value;
     else if (StringMatch(sk, VAR_LAMBDA2)) m_lambda2 = value;
     else if (StringMatch(sk, VAR_K_L)) {
-        m_k_l = value;
+        m_k_l = value * 1.e-3f * 60.f;
         //convert units on k_l:read in as kJ/(m2*min), use as MJ/(m2*hr)
-        m_k_l = m_k_l * 1.e-3f * 60.f;
     } else if (StringMatch(sk, VAR_K_N)) m_k_n = value;
     else if (StringMatch(sk, VAR_K_P)) m_k_p = value;
     else if (StringMatch(sk, VAR_P_N)) m_p_n = value;
@@ -558,7 +557,7 @@ int NutrCH_QUAL2E::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_reachLayers (map) is equal to the maximum stream order
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i];
             if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {

@@ -70,7 +70,7 @@ private:
 
     bool CheckInputCellSize(const char* key, int n);
 
-    void AddInputNutrient(int);
+    void AddInputNutrient(int i);
 
     void RouteOut(int i);
 
