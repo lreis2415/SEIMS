@@ -135,7 +135,7 @@ int ReservoirMethod::Execute() {
         float groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
 
         float groundStorage = m_gwStore[subID];
-        groundStorage += (perco - revap - percoDeep - groundRunoff);
+        groundStorage += perco - revap - percoDeep - groundRunoff;
 
         //add the ground water from bank storage, 2011-3-14
         float gwBank = 0.f;
