@@ -12,6 +12,8 @@
  *                                 i.e., ExecuteFertilizerOperation().\n
  *            2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
  *                              2. Fixed bugs of the time-consuming function GetOperationCode().\n
+ *            2018-06-27 - lj - Change the temporary variables (e.g., tmp_rtfr) to 2d array to
+ *                                 avoid nested omp for loop issue.\n
  */
 #ifndef SEIMS_MODULE_PLTMGT_SWAT_H
 #define SEIMS_MODULE_PLTMGT_SWAT_H
@@ -38,7 +40,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
@@ -508,11 +510,11 @@ private:
     bool m_initialized;
 
     /** Temporary variables **/
-    float* tmp_rtfr;             ///< fraction of roots in each soil layer
-    float* tmp_soilMass;         ///<
-    float* tmp_soilMixedMass;    ///< mass of soil mixed for the layer
-    float* tmp_soilNotMixedMass; ///<
-    float* tmp_smix;
+    float** tmp_rtfr;             ///< fraction of roots in each soil layer
+    float** tmp_soilMass;         ///<
+    float** tmp_soilMixedMass;    ///< mass of soil mixed for the layer
+    float** tmp_soilNotMixedMass; ///<
+    float** tmp_smix;
 };
 
 #endif /* SEIMS_MODULE_PLTMGT_SWAT_H */
