@@ -35,7 +35,8 @@ Biomass_EPIC::Biomass_EPIC() :
     m_dayLen(nullptr), m_vpd(nullptr), m_pet(nullptr), m_maxPltET(nullptr),
     m_soilET(nullptr),
     m_soilNO3(nullptr), m_soilSolP(nullptr), m_snowAccum(nullptr),
-    ubw(10.f), uobw(NODATA_VALUE), m_pltRootD(nullptr), m_lai(nullptr),
+    ubw(10.f), uobw(NODATA_VALUE), m_pltRootD(nullptr), m_wuse(nullptr),
+    m_lai(nullptr),
     m_phuAccum(nullptr), m_maxLaiYr(nullptr), m_hvstIdxAdj(nullptr),
     m_LaiMaxFr(nullptr), m_oLai(nullptr), m_stoSoilRootD(nullptr),
     m_actPltET(nullptr), m_frRoot(nullptr), m_fixN(nullptr),
@@ -75,6 +76,8 @@ Biomass_EPIC::~Biomass_EPIC() {
     if (m_frStrsWtr != nullptr) Release1DArray(m_frStrsWtr);
     if (m_biomassDelta != nullptr) Release1DArray(m_biomassDelta);
     if (m_biomass != nullptr) Release1DArray(m_biomass);
+
+    if (m_wuse != nullptr) Release2DArray(m_nCells, m_wuse);
 }
 
 void Biomass_EPIC::SetValue(const char* key, const float value) {
@@ -201,7 +204,7 @@ void Biomass_EPIC::Set2DData(const char* key, const int nRows, const int nCols, 
     }
 }
 
-bool Biomass_EPIC::CheckInputData(void) {
+bool Biomass_EPIC::CheckInputData() {
     /// DT_Single
     CHECK_POSITIVE(MID_PG_EPIC, m_nCells);
     CHECK_POSITIVE(MID_PG_EPIC, m_maxSoilLyrs);
@@ -330,6 +333,9 @@ void Biomass_EPIC::InitialOutputs() {
     if (m_pltRootD == nullptr) {
         Initialize1DArray(m_nCells, m_pltRootD, 10.f);
     }
+    if (nullptr == m_wuse) {
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_wuse, 0.f);
+    }
     if (m_actPltET == nullptr) {
         Initialize1DArray(m_nCells, m_actPltET, 0.f);
     }
@@ -397,15 +403,24 @@ void Biomass_EPIC::DistributePlantET(const int i) {
     /// where the reduction is caused by low water content
     float reduc = 0.f;
     /// water uptake by plants in each soil layer
-    /*
-     * Initialize1DArray should not be used inside a OMP codeblock
-     * In VS this would be fine, but in linux, may be problematic.*/
-    float* wuse = nullptr;
-    Initialize1DArray(CVT_INT(m_nSoilLyrs[i]), wuse, 0.f);
 
-    //float *wuse = new float[(int) m_nSoilLayers[i]];
-    //for (int j = 0; j < (int) m_nSoilLayers[i]; j++)
-    //	wuse[j] = 0.f;
+    /*
+     * Initialize1DArray should not be used inside a OMP codeblock, which is nested omp for loops.
+     * Although in most case, this would be compiled and run successfully,
+     *   the nested omp for loops still be problematic potentially.
+     * See https://github.com/lreis2415/SEIMS/issues/36 for more information.
+     * By lj, 06/27/18.
+     */
+    // 1. Nested omp for loops
+    //float* wuse = nullptr;
+    //Initialize1DArray(CVT_INT(m_nSoilLyrs[i]), wuse, 0.f);
+    // 2. No nested omp for loops
+    //float *wuse = new(nothrow) float[CVT_INT(m_nSoilLyrs[i])];
+    //for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) wuse[j] = 0.f;
+    // 3. Create *wuse for each unit in each simulation loop may cause necessary costs,
+    //    so, use a temporary 2D array instead.
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) m_wuse[i][j] = 0.f;
+
     /// water uptake by plants from all layers
     float xx = 0.f;
     int ir = -1;
@@ -457,8 +472,8 @@ void Biomass_EPIC::DistributePlantET(const int i) {
             } else {
                 sum = m_maxPltET[i] * (1.f - exp(-ubw * gx / m_pltRootD[i])) / uobw;
             }
-            wuse[j] = sum - sump + 1.f * m_epco[i];
-            wuse[j] = sum - sump + (sump - xx) * m_epco[i];
+            m_wuse[i][j] = sum - sump + 1.f * m_epco[i];
+            m_wuse[i][j] = sum - sump + (sump - xx) * m_epco[i];
             sump = sum;
             /// adjust uptake if sw is less than 25% of plant available water
             reduc = 0.f;
@@ -468,12 +483,12 @@ void Biomass_EPIC::DistributePlantET(const int i) {
                 reduc = 1.f;
             }
             // reduc = 1.f;  /// TODO, Is SWAT wrong here? by LJ
-            wuse[j] *= reduc;
-            if (m_soilWtrSto[i][j] < wuse[j]) {
-                wuse[j] = m_soilWtrSto[i][j];
+            m_wuse[i][j] *= reduc;
+            if (m_soilWtrSto[i][j] < m_wuse[i][j]) {
+                m_wuse[i][j] = m_soilWtrSto[i][j];
             }
-            m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j] - wuse[j]);
-            xx += wuse[j];
+            m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j] - m_wuse[i][j]);
+            xx += m_wuse[i][j];
         }
         /// update total soil water in profile
         m_soilWtrStoPrfl[i] = 0.f;
@@ -483,7 +498,7 @@ void Biomass_EPIC::DistributePlantET(const int i) {
         m_frStrsWtr[i] = xx / m_maxPltET[i];
         m_actPltET[i] = xx;
     }
-    Release1DArray(wuse);
+    //Release1DArray(wuse);
 }
 
 void Biomass_EPIC::CalTempStress(const int i) {
@@ -630,7 +645,7 @@ void Biomass_EPIC::AdjustPlantGrowth(const int i) {
         }
         /// 10. calculate plant ET values
         if (m_phuAccum[i] > 0.5f && m_phuAccum[i] < m_dormPHUFr[i]) {
-            m_totActPltET[i] += (m_actPltET[i] + m_soilET[i]);
+            m_totActPltET[i] += m_actPltET[i] + m_soilET[i];
             m_totPltPET[i] += m_pet[i];
         }
         m_hvstIdxAdj[i] = m_hvstIdx[i] * 100.f * m_phuAccum[i] / (100.f * m_phuAccum[i] +
