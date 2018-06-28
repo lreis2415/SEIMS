@@ -74,6 +74,31 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         model_map.insert(make_pair(*it_id, model));
 #endif
     }
+    /// Specific handling code, which maybe improved in the future version.
+    ///   S1: SetSlopeCoefofBasin(), the algorithm is coincident with `clsSubbasins::Subbasin2Basin()`.
+    int unit_count = 0;
+    float slope_sum = 0.f;
+    for (auto it_data = data_center_map.begin(); it_data != data_center_map.end(); ++it_data) {
+        map<int, Subbasin *>& subbsn_objs = it_data->second->GetSubbasinData()->GetSubbasinObjects();
+        for (auto it_subbsn = subbsn_objs.begin(); it_subbsn != subbsn_objs.end(); ++it_subbsn) {
+            int tmp_count = it_subbsn->second->GetCellCount();
+            slope_sum += tmp_count * atan(it_subbsn->second->GetSlope());
+            unit_count += tmp_count;
+        }
+    }
+    int unit_count_all = 0;
+    float slope_sum_all = 0.f;
+    MPI_Allreduce(&unit_count, &unit_count_all, 1, MPI_INT, MPI_SUM, MCW);
+    MPI_Allreduce(&slope_sum, &slope_sum_all, 1, MPI_FLOAT, MPI_SUM, MCW);
+    float slope_basin = tan(slope_sum_all / unit_count_all);
+
+    for (auto it_data = data_center_map.begin(); it_data != data_center_map.end(); ++it_data) {
+        map<int, Subbasin *>& subbsn_objs = it_data->second->GetSubbasinData()->GetSubbasinObjects();
+        for (auto it_subbsn = subbsn_objs.begin(); it_subbsn != subbsn_objs.end(); ++it_subbsn) {
+            Subbasin* tmp_subbsn = it_subbsn->second;
+            tmp_subbsn->SetSlopeCoefofBasin(tmp_subbsn->GetSlope() / slope_basin);
+        }
+    }
 
     /// Get some variables
     bool include_channel = model_map.begin()->second->IncludeChannelProcesses();
@@ -202,7 +227,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                             cout << "Receive data of subbasin: " << *it_upid << " of sim_loop: " <<
                                     cur_sim_loop_num << " from rank: " << subbasin_rank[*it_upid] << ", tfValues: ";
                             for (int itf = MSG_LEN; itf < buflen; itf++) {
-                                cout << buf[itf] << ", ";
+                                cout << std::fixed << setprecision(6) << buf[itf] << ", ";
                             }
                             cout << endl;
 #endif
@@ -236,7 +261,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     cout << "Rank: " << rank << ", send subbasinID: " << subbasin_id << " of sim_loop: " <<
                             cur_sim_loop_num << " -> Rank: " << subbasin_rank[downstream_id] << ", tfValues: ";
                     for (int itf = MSG_LEN; itf < buflen; itf++) {
-                        cout << buf[itf] << ", ";
+                        cout << std::fixed << setprecision(6) << buf[itf] << ", ";
                     }
                     cout << endl;
 #endif

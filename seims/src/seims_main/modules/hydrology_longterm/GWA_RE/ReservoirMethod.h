@@ -29,10 +29,8 @@
 *		of class subbasin. See equation 8 in memo "Channel water balance" for detailed
 *		reference.
 *
-*	Revision:	Liang-Jun Zhu
-*	Date:		2016-7-27
-*	Description:
-*	1.	Move subbasin class to base/data module for sharing with other modules
+*	\changelog 2016-07-27 - lj - Move subbasin class to base/data module for sharing with other modules.\n
+*	           2018-06-28 - lj - Move SetSubbasinInfos() to dataCenter class.\n
 */
 #ifndef SEIMS_MODULE_GWA_RE_H
 #define SEIMS_MODULE_GWA_RE_H
@@ -96,13 +94,6 @@ private:
      * \brief initial outputs as default values
      */
     void InitialOutputs();
-
-    /*
-     * \brief Set groundwater related subbasin parameters
-     * \sa Subbasin
-     * \sa clsSubbasins
-     */
-    void SetSubbasinInfos();
 
 private:
     //inputs
@@ -175,23 +166,14 @@ private:
     //! groundwater water balance statistics
     float** m_T_GWWB;
 
-    ////! subbasin grid
-    //   float *m_subbasin;
     //! subbasin number
     int m_nSubbsns;
     //! current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    ////! selected count of output subbasin
-    //   int m_subbasinSelectedCount;
-    ////! subbasin selected to output
-    //   float *m_subbasinSelected;
-    bool m_firstRun;
     //! All subbasins information,\sa clsSubbasins, \sa Subbasin
     clsSubbasins* m_subbasinsInfo;
-    ////! vector of all Subbasin instances
-    // vector<Subbasin *> m_subbasinList;
 
 };
 #endif /* SEIMS_MODULE_GWA_RE_H */

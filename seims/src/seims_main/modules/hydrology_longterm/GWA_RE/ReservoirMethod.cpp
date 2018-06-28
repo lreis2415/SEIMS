@@ -16,8 +16,7 @@ ReservoirMethod::ReservoirMethod() :
     m_T_PerDep(nullptr), m_T_RG(nullptr),
     /// outputs
     m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
-    m_nSubbsns(-1),
-    m_inputSubbsnID(-1), m_firstRun(true), m_subbasinsInfo(nullptr) {
+    m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbasinsInfo(nullptr) {
 }
 
 ReservoirMethod::~ReservoirMethod() {
@@ -33,10 +32,6 @@ ReservoirMethod::~ReservoirMethod() {
 }
 
 void ReservoirMethod::InitialOutputs() {
-    if (m_firstRun) {
-        SetSubbasinInfos();
-        m_firstRun = false;
-    }
     CHECK_POSITIVE(MID_GWA_RE, m_nSubbsns);
     int nLen = m_nSubbsns + 1;
     if (m_T_Perco == nullptr) Initialize1DArray(nLen, m_T_Perco, 0.f);
@@ -61,12 +56,24 @@ int ReservoirMethod::Execute() {
         int curCellsNum = curSub->GetCellCount();
         int* curCells = curSub->GetCells();
         float perco = 0.f;
-#pragma omp parallel for reduction(+:perco)
+        float revap = 0.f; // calculate EG, i.e. Revap
+        float fPET = 0.f;
+        float fEI = 0.f;
+        float fED = 0.f;
+        float fES = 0.f;
+        float plantEP = 0.f;
+#pragma omp parallel for reduction(+:perco, fPET, fEI, fED, fES, plantEP)
         for (int i = 0; i < curCellsNum; i++) {
             int index = curCells[i];
             float tmp_perc = m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1];
             if (tmp_perc > 0) perco += tmp_perc;
             else m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
+
+            if (m_pet[index] > 0.f) fPET += m_pet[index];
+            if (m_IntcpET[index] > 0.f) fEI += m_IntcpET[index];
+            if (m_deprStoET[index] > 0.f) fED += m_deprStoET[index];
+            if (m_soilET[index] > 0.f) fES += m_soilET[index];
+            if (m_actPltET[index] > 0.f) plantEP += m_actPltET[index];
         }
         perco /= curCellsNum; // mean mm
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
@@ -74,33 +81,15 @@ int ReservoirMethod::Execute() {
         /// will enter groundwater. By LJ. 2016-9-2
         float ratio2gw = 1.f;
         perco *= ratio2gw;
-        curSub->SetPerco(perco);
-        //calculate EG, i.e. Revap
-        float revap = 0.f;
-        float fPET = 0.f;
-        float fEI = 0.f;
-        float fED = 0.f;
-        float fES = 0.f;
-        float plantEP = 0.f;
-#pragma omp parallel for reduction(+:fPET, fEI, fED, fES, plantEP)
-        for (int i = 0; i < curCellsNum; i++) {
-            if (m_pet[curCells[i]] > 0.f) fPET += m_pet[curCells[i]];
-            if (m_IntcpET[curCells[i]] > 0.f) fEI += m_IntcpET[curCells[i]];
-            if (m_deprStoET[curCells[i]] > 0.f) fED += m_deprStoET[curCells[i]];
-            if (m_soilET[curCells[i]] > 0.f) fES += m_soilET[curCells[i]];
-            if (m_actPltET[curCells[i]] > 0.f) plantEP += m_actPltET[curCells[i]];
-        }
+        //deep percolation
+        float percoDeep = perco * m_dp_co;
+
         fPET /= curCellsNum;
         fEI /= curCellsNum;
         fED /= curCellsNum;
         fES /= curCellsNum;
         plantEP /= curCellsNum;
 
-        curSub->SetPet(fPET);
-
-        //if percolation < 0.01, EG will be 0. if percolation >= 0.01, EG will be calculated by equation (why? this is not used currently. Junzhi Liu 2016-08-14).
-        //if (perco >= 0.01f)
-        //{
         revap = (fPET - fEI - fED - fES - plantEP) * m_gwStore[subID] / m_GWMAX;
         if (revap != revap) {
             cout << "fPET: " << fPET << ", fEI: " << fEI << ", fED: " << fED << ", fES: " << fES << ", plantEP: "
@@ -109,31 +98,12 @@ int ReservoirMethod::Execute() {
         }
         revap = Max(revap, 0.f);
         revap = Min(revap, perco);
-        //}
-        //float prevRevap = curSub->getEG();
-        //if (prevRevap != revap)
-        //{
-        //	curSub->setEG(revap);
-        //	curSub->setIsRevapChanged(true);
-        //}
-        //else
-        //	curSub->setIsRevapChanged(false);
-        curSub->SetEg(revap);
-
-        //deep percolation
-        float percoDeep = perco * m_dp_co;
-        curSub->SetPerde(percoDeep);
 
         // groundwater runoff (mm)
         float slopeCoef = curSub->GetSlopeCoef();
         float kg = m_Kg * slopeCoef;
-        float groundRunoff = kg * pow(m_gwStore[subID], m_Base_ex); //mm
-        if (groundRunoff != groundRunoff) {
-            cout << groundRunoff;
-        }
-
-        float groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
-
+        float groundRunoff = kg * pow(m_gwStore[subID], m_Base_ex); // mm
+        float groundQ = groundRunoff * curCellsNum * QGConvert;     // groundwater discharge (m3/s)
         float groundStorage = m_gwStore[subID];
         groundStorage += perco - revap - percoDeep - groundRunoff;
 
@@ -151,33 +121,49 @@ int ReservoirMethod::Execute() {
             groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
             groundStorage = m_GWMAX;
         }
+
+        /**** Set values for current subbasin ****/
+        curSub->SetPet(fPET);
+        curSub->SetPerco(perco);
+        curSub->SetPerde(percoDeep);
+        curSub->SetEg(revap);
         curSub->SetRg(groundRunoff);
-        curSub->SetGw(groundStorage);
         curSub->SetQg(groundQ);
+        curSub->SetGw(groundStorage);
+
         if (groundStorage != groundStorage) {
             std::ostringstream oss;
             oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwStore[subID]
-                    << "\t" << m_Kg << "\t" <<
-                    m_Base_ex << "\t" << slopeCoef << endl;
+                    << "\t" << m_Kg << "\t" << m_Base_ex << "\t" << slopeCoef << endl;
             throw ModelException("Subbasin", "setInputs", oss.str());
         }
+#ifdef PRINT_DEBUG
+        cout << "ID: " << subID <<
+                ", pet: " << std::fixed << setprecision(6) << fPET <<
+                ", perco: " << std::fixed << setprecision(6) << perco <<
+                ", percoDeep: " << std::fixed << setprecision(6) << percoDeep <<
+                ", revap: " << std::fixed << setprecision(6) << revap <<
+                ", groundRunoff: " << std::fixed << setprecision(6) << groundRunoff <<
+                ", groundQ: " << std::fixed << setprecision(6) << groundQ <<
+                ", gwStore: " << std::fixed << setprecision(6) << groundStorage << endl;
+#endif
+        m_petSubbasin[subID] = curSub->GetPet();
         m_T_Perco[subID] = curSub->GetPerco();
-        m_T_Revap[subID] = curSub->GetEg();
         m_T_PerDep[subID] = curSub->GetPerde();
+        m_T_Revap[subID] = curSub->GetEg();
         m_T_RG[subID] = curSub->GetRg(); //get rg of specific subbasin
         m_T_QG[subID] = curSub->GetQg(); //get qg of specific subbasin
-        m_petSubbasin[subID] = curSub->GetPet();
         m_gwStore[subID] = curSub->GetGw();
     }
 
     m_T_Perco[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERCO);
-    m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP);
     m_T_PerDep[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERDE);
+    m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP);
     m_T_RG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_RG); // get rg of entire watershed
-    m_gwStore[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
     m_T_QG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_QG); // get qg of entire watershed
+    m_gwStore[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
 
-    // output to GWWB
+    // output to GWWB, the sequence is coincident with the header information defined in PrintInfo.cpp, line 528.
     for (int i = 0; i <= m_nSubbsns; i++) {
         m_T_GWWB[i][0] = m_T_Perco[i];
         m_T_GWWB[i][1] = m_T_Revap[i];
@@ -357,14 +343,4 @@ void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float**
     } else {
         throw ModelException(MID_GWA_RE, "Get2DData", "Parameter " + sk + " does not exist in current module.");
     }
-}
-
-void ReservoirMethod::SetSubbasinInfos() {
-    for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
-        Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(*it);
-        if (curSub->GetSlope() <= 0.f) {
-            curSub->SetSlope(m_slope);
-        }
-    }
-    m_subbasinsInfo->SetSlopeCoefficient();
 }

@@ -22,7 +22,8 @@ const char* SOILWATER_VARS[] = {
 
 DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, ModuleFactory* factory,
                                      const int subbasin_id /* = 0 */) :
-    DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()), mongodb_port_(input_args->port),
+    DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
+    mongodb_port_(input_args->port),
     clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
     spatial_gridfs_(nullptr) {
@@ -97,20 +98,7 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 #else
     rs_map_.insert(make_pair(mask_filename, mask_raster_));
 #endif
-    /// 5. Read Subbasin raster data
-    oss.str("");
-    oss << subbasin_id_ << "_" << VAR_SUBBSN;
-    string subbasin_filename = GetUpper(oss.str());
-    FloatRaster* subbasinRaster = FloatRaster::Init(spatial_gridfs_,
-                                                    subbasin_filename.c_str(),
-                                                    true, mask_raster_);
-    assert(nullptr != subbasinRaster);
-#ifdef HAS_VARIADIC_TEMPLATES
-    rs_map_.emplace(subbasin_filename, subbasinRaster);
-#else
-    rs_map_.insert(make_pair(subbasin_filename, subbasinRaster));
-#endif
-    // Constructor Subbasin data
+    /// 5. Constructor Subbasin data
     subbasins_ = clsSubbasins::Init(spatial_gridfs_, rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
     /// 6. Read initial parameters
@@ -137,7 +125,8 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 }
 
 string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) {
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
+    std::unique_ptr<MongoCollection>
+            collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
     const bson_t* doc;
     string dbname;
