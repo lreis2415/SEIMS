@@ -66,14 +66,8 @@ void SEDR_SBAGNOLD::InitialOutputs() {
     if (nullptr == m_sedRchOut) {
         Initialize1DArray(m_nreach + 1, m_sedRchOut, 0.f);
         Initialize1DArray(m_nreach + 1, m_sedConcRchOut, 0.f);
-        Initialize1DArray(m_nreach + 1, m_sedStorage, 0.f);
         Initialize1DArray(m_nreach + 1, m_sedDep, 0.f);
         Initialize1DArray(m_nreach + 1, m_sedDeg, 0.f);
-
-        for (int i = 1; i <= m_nreach; i++) {
-            // m_Chs0 is initial channel storage per meter, not sediment! By LJ
-            m_sedStorage[i] = m_initChSedConc * m_chStorage[i] * 1000.f; /// ton/m3 * m3/m * m * 1000 = kg
-        }
         Initialize1DArray(m_nreach + 1, m_rchSand, 0.f);
         Initialize1DArray(m_nreach + 1, m_rchSilt, 0.f);
         Initialize1DArray(m_nreach + 1, m_rchClay, 0.f);
@@ -198,12 +192,20 @@ void SEDR_SBAGNOLD::SetValue(const char* key, const float value) {
 }
 
 void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const float value) {
-    InitialOutputs();
+    if (m_inputSubbsnID == 0) return;           // Not for omp version
+    if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
+    if (nullptr == m_sedRchOut) InitialOutputs();
     string sk(key);
-    // transferred single value in MPI version
-    if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh[index] = value;        // for longterm model
-    else if (StringMatch(sk, VAR_SUB_SEDTOCH)) m_sedtoCh[index] = value; // for storm model // TODO
-    else if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
+    // transferred single value in MPI version£¬ IN/OUTPUT variables
+    if (StringMatch(sk, VAR_SED_RECH)) m_sedRchOut[index] = value;
+    else if (StringMatch(sk, VAR_SED_RECHConc)) m_sedConcRchOut[index] = value;
+    else if (StringMatch(sk, VAR_RCH_BANKERO)) m_rchBankEro[index] = value;
+    else if (StringMatch(sk, VAR_RCH_DEG)) m_rchDeg[index] = value;
+    else if (StringMatch(sk, VAR_RCH_DEP)) m_rchDep[index] = value;
+    else if (StringMatch(sk, VAR_FLPLAIN_DEP)) m_fldPlainDep[index] = value;
+    else {
+        throw ModelException(MID_SEDR_SBAGNOLD, "SetValueByIndex", "Parameter " + sk + " does not exist");
+    }
 }
 
 void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
@@ -211,7 +213,15 @@ void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
     if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh = data;        //for longterm model
     else if (StringMatch(sk, VAR_SUB_SEDTOCH)) m_sedtoCh = data; //for storm model // TODO
     else if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
-    else if (StringMatch(sk, VAR_CHST)) m_chStorage = data;
+    else if (StringMatch(sk, VAR_CHST)) {
+        m_chStorage = data;
+        if (m_nreach + 1 != n) m_nreach = n - 1;
+        if (nullptr == m_sedStorage) Initialize1DArray(m_nreach + 1, m_sedStorage, 0.f);
+        for (int i = 1; i <= m_nreach; i++) {
+            // m_Chs0 is initial channel storage per meter, not sediment! By LJ
+            m_sedStorage[i] = m_initChSedConc * m_chStorage[i] * 1000.f; /// ton/m3 * m3/m * m * 1000 = kg
+        }
+    }
     else if (StringMatch(sk, VAR_PRECHST)) m_preChStorage = data;
     else if (StringMatch(sk, VAR_CHWTDEPTH)) m_chWtrDepth = data;
     else if (StringMatch(sk, VAR_CHWTWIDTH)) m_chWtrWth = data;
@@ -274,7 +284,7 @@ void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
 
 void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     float qOutV = 0.f;    // water volume (m^3) of flow out
-    float allWater = 0.f; // // water in reach during time step, qdin in SWAT
+    float allWater = 0.f; // water in reach during time step, qdin in SWAT
     // initialize sediment in reach during time step
     /// sediment from upstream reaches
     float allSediment = 0.f; // all sediment in reach, kg
@@ -322,16 +332,19 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
         peakVelocity = peakFlowRate / crossarea;
     }
     if (peakVelocity > 5.f) {
-        // cout << "subbasin id: " << i <<", peakVelocity: " << peakVelocity << endl;
         peakVelocity = 5.f;
-    } /// calculate tbase  |none  |flow duration (fraction of 24 hr)
+    }
+    /// calculate tbase  |none  |flow duration (fraction of 24 hr)
     float tbase = m_chLen[i] / (m_dt * peakVelocity);
     if (tbase > 1.f) tbase = 1.f;
-
-    //if (i == 4) cout << "qchOut: " << m_qchOut[i] << ", allwater: " << allWater <<
-    //    ", chLen: " << m_chLen[i] << ", peakVelocity: " << peakVelocity <<
-    //    ", m_preChWTDepth: " << m_preChWTDepth[i] << ", tbase: "<< tbase << endl;
-
+#ifdef PRINT_DEBUG
+    cout << "ID: " << i << ", qchOut: " << m_qRchOut[i] << ", allwater: " << allWater <<
+            ", chStorage: " << m_chStorage[i] <<
+            ", sedUp: " << sedUp << ", sedtoCh: " << m_sedtoCh[i] <<
+            ", sedStorage: " << m_sedStorage[i] << ", allSediment: " << allSediment <<
+            ", chLen: " << m_chLen[i] << ", peakVelocity: " << peakVelocity <<
+            ", m_preChWTDepth: " << m_preChWtrDepth[i] << ", tbase: " << tbase;
+#endif
     /// New improved method for sediment transport
     float initCon = 0.f;         // cyin
     float maxCon = 0.f;          // cych
@@ -344,7 +357,9 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     initCon = allSediment / allWater; // kg/m^3
     //max concentration
     maxCon = m_sedTransEqCoef * pow(peakVelocity, m_sedTransEqExp) * 1000.f; // kg/m^3
-    //if (i == 4) cout<<"iniCon: "<<initCon<<", maxCon: "<<maxCon<<endl;
+#ifdef PRINT_DEBUG
+    cout << ", iniCon: " << initCon << ", maxCon: " << maxCon << endl;
+#endif
     //initial concentration,mix sufficiently
     sedDeposition = allWater * (initCon - maxCon); // kg
     if (peakVelocity < m_critVelSedDep) {
@@ -353,7 +368,6 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
 
     if (sedDeposition < 0.f) {
         //degradation
-        //cout << "initCon < maxCon, subbasin id: " << i << endl;
         sedDegradation = -sedDeposition * tbase;
         // first the deposited material will be degraded before channel bed
         if (sedDegradation >= m_sedDep[i]) {
@@ -406,6 +420,9 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     m_rchDeg[i] = sedDegradation2;
     m_rchDep[i] = sedDeposition;
     m_fldPlainDep[i] = 0.f;
+#ifdef PRINT_DEBUG
+    cout << ", sedRchOut: " << m_sedRchOut[i] << endl;
+#endif
 }
 
 void SEDR_SBAGNOLD::DoChannelDowncuttingAndWidening(const int id) {
