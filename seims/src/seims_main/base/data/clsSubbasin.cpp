@@ -46,15 +46,13 @@ void Subbasin::SetCellList(const int n_cells, int* cells) {
 //		 the average should be calculated after doing atan().
 //		 By LJ, 2016-7-27
 void Subbasin::SetSlope(float* slope) {
-    slope_ = 0.f;
-    int index = 0;
+    float slope_sum = 0.f;
+#pragma omp parallel for reduction(+: slope_sum)
     for (int i = 0; i < n_cells_; i++) {
-        index = cells_[i];
-        //m_slope += slope[index];  // percent
-        slope_ += atan(slope[index]); // radian
+        slope_sum += atan(slope[cells_[i]]); // radian
     }
-    slope_ /= n_cells_;
-    slope_ = tan(slope_); // to keep consistent with the slope unit in the whole model
+    slope_sum /= n_cells_;
+    slope_ = tan(slope_sum); // to keep consistent with the slope unit in the whole model
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,12 +66,10 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     int n_cells = -1;
     float* subbasin_data = nullptr;
     float cell_width = NODATA_VALUE;
+
     std::ostringstream oss;
     oss << prefix_id << "_" << VAR_SUBBSN;
-    string subbasin_file_name = GetUpper(oss.str());
-    oss.str("");
-
-    rs_map[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data);
+    rs_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &subbasin_data);
 
     // valid cell indexes of each subbasin, key is subbasin ID, value is vector of cell's index
     map<int, vector<int> > cell_list_map;
@@ -106,48 +102,52 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     }
     vector<int>(subbasin_ids_).swap(subbasin_ids_);
     // m_subbasinIDs.shrink_to_fit();
+
+    /// Set required parameters, e.g., slope
+    float* slope_data = nullptr;
+    oss.str("");
+    oss << prefix_id << "_" << VAR_SLOPE;
+    rs_map[GetUpper(oss.str())]->GetRasterData(&n_cells, &slope_data);
+    SetSlopeCoefficient(slope_data);
 }
 
-clsSubbasins* clsSubbasins::Init(MongoGridFs* spatialData, map<string,FloatRaster *>& rsMap,
-                                 int prefixID) {
+clsSubbasins* clsSubbasins::Init(MongoGridFs* spatial_data, map<string,FloatRaster *>& rs_map,
+                                 const int prefix_id) {
+    /// Mask raster data is prerequisite.
+    vector<string> rs_names;
     std::ostringstream oss;
-    oss << prefixID << "_" << Tag_Mask;
+    oss << prefix_id << "_" << Tag_Mask;
     string mask_file_name = GetUpper(oss.str());
-    oss.str("");
-    oss << prefixID << "_" << VAR_SUBBSN;
-    string subbasin_file_name = GetUpper(oss.str());
-    oss.str("");
-
-    if (rsMap.find(mask_file_name) == rsMap.end()) {
-        // if mask not loaded yet
+    if (rs_map.find(mask_file_name) == rs_map.end()) {
         cout << "MASK data has not been loaded yet!" << endl;
         return nullptr;
     }
-    int n_cells = -1;
-    float* subbasin_data = nullptr;
-    if (rsMap.find(subbasin_file_name) == rsMap.end()) {
-        // if subbasin not loaded yet
-        FloatRaster* subbasinRaster = nullptr;
-        subbasinRaster = FloatRaster::Init(spatialData, subbasin_file_name.c_str(),
-                                           true, rsMap[mask_file_name]);
-        assert(nullptr != subbasinRaster);
-        if (!subbasinRaster->GetRasterData(&n_cells, &subbasin_data)) {
+    /// Required rasters to initialize clsSubbasins.
+    oss.str("");
+    oss << prefix_id << "_" << VAR_SUBBSN;
+    rs_names.emplace_back(GetUpper(oss.str()));
+    oss.str("");
+    oss << prefix_id << "_" << VAR_SLOPE;
+    rs_names.emplace_back(GetUpper(oss.str()));
+
+    for (auto it = rs_names.begin(); it != rs_names.end(); ++it) {
+        if (rs_map.find(*it) != rs_map.end()) continue;
+        FloatRaster* tmp_raster = nullptr;
+        tmp_raster = FloatRaster::Init(spatial_data, (*it).c_str(), true, rs_map[mask_file_name]);
+        assert(nullptr != tmp_raster);
+        int n_cells = -1;
+        float* rs_values = nullptr;
+        if (!tmp_raster->GetRasterData(&n_cells, &rs_values)) {
             cout << "Subbasin data loaded failed!" << endl;
             return nullptr;
         }
 #ifdef HAS_VARIADIC_TEMPLATES
-        rsMap.emplace(subbasin_file_name, subbasinRaster);
+        rs_map.emplace(*it, tmp_raster);
 #else
-        rsMap.insert(make_pair(subbasin_file_name, subbasinRaster));
+        rs_map.insert(make_pair(*it, tmp_raster));
 #endif
-    } else {
-        if (!rsMap[subbasin_file_name]->GetRasterData(&n_cells, &subbasin_data)) {
-            cout << "Subbasin data preloaded is unable to access!" << endl;
-            return nullptr;
-        }
     }
-
-    return new clsSubbasins(rsMap, prefixID);
+    return new clsSubbasins(rs_map, prefix_id);
 }
 
 clsSubbasins::~clsSubbasins() {
@@ -199,15 +199,21 @@ float clsSubbasins::Subbasin2Basin(const string& key) {
     return temp / total_count; // basin average
 }
 
-void clsSubbasins::SetSlopeCoefficient() {
+void clsSubbasins::SetSlopeCoefficient(float* rs_slope) {
+    for (auto it = subbasin_objs_.begin(); it != subbasin_objs_.end(); ++it) {
+        if (it->second->GetSlope() <= 0.f) {
+            it->second->SetSlope(rs_slope);
+        }
+    }
     float basin_slope = Subbasin2Basin(VAR_SLOPE);
-    for (auto it = subbasin_ids_.begin(); it != subbasin_ids_.end(); ++it) {
-        Subbasin* cur_sub = subbasin_objs_[*it];
+    for (auto it = subbasin_objs_.begin(); it != subbasin_objs_.end(); ++it) {
         if (basin_slope <= 0.f) {
-            cur_sub->SetSlopeCoefofBasin(1.f);
+            cout << "WARNING: Mean slope of the whole basin is absent, the Groundwater modules"
+                    " may be problematic, please contact the developers!" << endl;
+            it->second->SetSlopeCoefofBasin(1.f);
         } else {
-            float slp_coef = cur_sub->GetSlope() / basin_slope;
-            cur_sub->SetSlopeCoefofBasin(slp_coef);
+            float slp_coef = it->second->GetSlope() / basin_slope;
+            it->second->SetSlopeCoefofBasin(slp_coef);
         }
     }
 }

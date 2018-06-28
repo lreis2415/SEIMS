@@ -221,7 +221,7 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     else if (StringMatch(sk, VAR_SBQG)) m_qgSub[index] = value;
     else if (StringMatch(sk, VAR_SBPET)) m_petCh[index] = value;
     else if (StringMatch(sk, VAR_SBGS)) m_gwStorage[index] = value;
-        /// IN/OUTPUT variables
+    /// IN/OUTPUT variables
     else if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
     else if (StringMatch(sk, VAR_QS)) m_qsCh[index] = value;
     else if (StringMatch(sk, VAR_QI)) m_qiCh[index] = value;
@@ -231,26 +231,26 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     }
 }
 
-void MUSK_CH::Set1DData(const char* key, const int n, float* value) {
+void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     //check the input data
     if (StringMatch(sk, VAR_SUBBSN)) {
-        m_subbsnID = value;
+        m_subbsnID = data;
     } else if (StringMatch(sk, VAR_SBOF)) {
         CheckInputSize(key, n);
-        m_qsSub = value;
+        m_qsSub = data;
     } else if (StringMatch(sk, VAR_SBIF)) {
         CheckInputSize(key, n);
-        m_qiSub = value;
+        m_qiSub = data;
     } else if (StringMatch(sk, VAR_SBQG)) {
         CheckInputSize(key, n);
-        m_qgSub = value;
+        m_qgSub = data;
     } else if (StringMatch(sk, VAR_SBPET)) {
         CheckInputSize(key, n);
-        m_petCh = value;
+        m_petCh = data;
     } else if (StringMatch(sk, VAR_SBGS)) {
         CheckInputSize(key, n);
-        m_gwStorage = value;
+        m_gwStorage = data;
     } else {
         throw ModelException(MID_MUSK_CH, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -361,7 +361,7 @@ void MUSK_CH::GetDt(float timeStep, float fmin, float fmax, float& dt, int& n) {
         return;
     }
 
-    n = int(timeStep / fmax);
+    n = CVT_INT(timeStep / fmax);
     dt = timeStep / n;
 
     if (dt > fmax) {
@@ -377,7 +377,7 @@ void MUSK_CH::GetCoefficients(const float reachLength, const float v0, MuskWeigh
     float max = 2.f * K * (1.f - m_x);
     float dt;
     int n;
-    GetDt(float(m_dt), min, max, dt, n);
+    GetDt(CVT_FLT(m_dt), min, max, dt, n);
     weights.dt = dt;
 
     //get coefficient
@@ -403,7 +403,7 @@ void MUSK_CH::updateWaterWidthDepth(const int i) {
     /// update channel water depth and width according to channel water storage
     float crossArea = m_chStorage[i] / m_chLen[i];
     m_chWTdepth[i] = (sqrt(m_chBtmWidth[i] * m_chBtmWidth[i] + 4.f * m_chSideSlope[i] * crossArea) -
-        m_chBtmWidth[i]) / 2.f / m_chSideSlope[i];
+        m_chBtmWidth[i]) * 0.5f / m_chSideSlope[i];
     if (m_chWTdepth[i] < UTIL_ZERO) {
         m_chWTWidth[i] = m_chBtmWidth[i];
     } else {
@@ -440,9 +440,11 @@ void MUSK_CH::ChannelFlow(const int i) {
         qgUp += m_qgCh[upReachId];
     }
     qIn += qsUp + qiUp + qgUp; //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
-    //if(i == 12)
-    //	cout <<"surfaceQ: "<< m_qsSub[i] << ", subsurfaceQ: " << qiSub << ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
-    //	", UPsurfaceQ: "<<qsUp<<", UPsubsurface: "<<qiUp<<", UPground: "<<qgUp<<", \n";
+#ifdef PRINT_DEBUG
+    cout << "ID: " << i << ", surfaceQ: " << m_qsSub[i] << ", subsurfaceQ: " << qiSub <<
+            ", groundQ: " << qgSub << ", pointQ: " << ptSub <<
+            ", UPsurfaceQ: " << qsUp << ", UPsubsurface: " << qiUp << ", UPground: " << qgUp << endl;
+#endif
     // 3. water from bank storage
     float bankOut = m_bankStorage[i] * (1.f - exp(-m_aBank));
 
@@ -450,18 +452,14 @@ void MUSK_CH::ChannelFlow(const int i) {
     qIn += bankOut / m_dt;
 
     // add inflow water to storage
-    //if (i==12) cout<<"initial chStorage: "<<m_chStorage[i]<<", ";
     m_chStorage[i] += qIn * m_dt;
     /// update channel water depth and width according to channel water storage
     updateWaterWidthDepth(i);
-    //if (i==12) cout<<"added chStorage: "<<m_chStorage[i]<<endl;
-    //if(i == 2) cout <<"qIn:"<< qIn<<", chStorage: "<<m_chStorage[i]<<endl;
     //////////////////////////////////////////////////////////////////////////
     // then subtract all the outflow water
     // 1. transmission losses to deep aquifer, which is lost from the system
     // the unit of kchb is mm/hr, 1. / 1000. / 3600. = 2.7777777777777776e-07
     float seepage = m_Kchb[i] * 2.7777777777777776e-07f * m_chBtmWidth[i] * m_chLen[i] * m_dt;
-    //if(i == 2) cout << "seepage: " << seepage << endl;
     if (qgSub < UTIL_ZERO) {
         if (m_chStorage[i] > seepage) {
             m_seepage[i] = seepage;
@@ -475,11 +473,9 @@ void MUSK_CH::ChannelFlow(const int i) {
     }
 
     // 2. calculate transmission losses to bank storage
-    //float dch = m_chStorage[i] / (m_chWTWidth[i] * m_chLen[i]);
     float dch = m_chWTdepth[i];
     float bankLen = dch * sqrt(1.f + m_chSideSlope[i] * m_chSideSlope[i]);
     float bankInLoss = 2.f * m_Kbank[i] * 2.7777777777777776e-07f * bankLen * m_chLen[i] * m_dt; // m^3
-    //bankInLoss = 0.f; //TODO, why not consider bankage loss?
     if (m_chStorage[i] > bankInLoss) {
         m_chStorage[i] -= bankInLoss;
     } else {
@@ -489,7 +485,6 @@ void MUSK_CH::ChannelFlow(const int i) {
     // water balance of the bank storage
     // loss the water from bank storage to the adjacent unsaturated zone and groundwater storage
     float bankOutGw = m_bankStorage[i] * (1.f - exp(-m_bBank));
-    //bankOutGw = 0.f; //TODO, why not consider?
     m_bankStorage[i] += bankInLoss - bankOutGw;
     if (nullptr != m_gwStorage) {
         m_gwStorage[i] += bankOutGw / m_area[i] * 1000.f;
@@ -515,8 +510,9 @@ void MUSK_CH::ChannelFlow(const int i) {
         m_chWTWidth[i] = 0.f;
         return;
     }
-
-    //if(i == 2) cout << "chStorage before routing " << m_chStorage[i] << endl;
+#ifdef PRINT_DEBUG
+    cout << " chStorage before routing " << m_chStorage[i] << endl;
+#endif
     //////////////////////////////////////////////////////////////////////////
     // routing, there are water in the channel after inflow and transmission loss
     float totalLoss = m_seepage[i] + bankInLoss + et;
@@ -561,4 +557,8 @@ void MUSK_CH::ChannelFlow(const int i) {
     // set variables for next time step
     m_qIn[i] = qIn;
     updateWaterWidthDepth(i);
+#ifdef PRINT_DEBUG
+    cout << " chStorage after routing " << m_chStorage[i] << endl;
+    cout << " surfq: " << m_qsCh[i] << ", ifluq: " << m_qiCh[i] << ", groudq: " << m_qgCh[i] << endl;
+#endif
 }

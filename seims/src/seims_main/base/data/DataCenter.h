@@ -121,7 +121,7 @@ public:
 public:
     /**** Load or update data ****/
     //! Load data for each module, return time span
-    float LoadDataForModules(vector<SimulationModule *>& modules);
+    double LoadDataForModules(vector<SimulationModule *>& modules);
 
     //! Set data for modules, include all datatype
     void SetData(SEIMSModuleSetting* setting, ParamInfo* param,

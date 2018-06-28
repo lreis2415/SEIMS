@@ -229,7 +229,7 @@ int MetadataInfo::AddInput(const char* name, const char* units, const char* desc
     param.tfType = tfType;
 
     m_vInputs.emplace_back(param);
-    return int(m_vInputs.size());
+    return CVT_INT(m_vInputs.size());
 }
 
 int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc,
@@ -242,7 +242,7 @@ int MetadataInfo::AddOutput(const char* name, const char* units, const char* des
     param.tfType = tfType;
 
     m_vOutputs.emplace_back(param);
-    return int(m_vOutputs.size());
+    return CVT_INT(m_vOutputs.size());
 }
 
 int MetadataInfo::AddInOutput(const char* name, const char* units, const char* desc,
@@ -272,7 +272,7 @@ int MetadataInfo::AddParameter(const char* name, const char* units, const char* 
     param.Dimension = dimType;
 
     m_vParameters.emplace_back(param);
-    return int(m_vParameters.size());
+    return CVT_INT(m_vParameters.size());
 }
 
 int MetadataInfo::AddDependency(const char* name, const char* description) {
@@ -281,7 +281,7 @@ int MetadataInfo::AddDependency(const char* name, const char* description) {
     cl.Description = description;
 
     m_vDependencies.emplace_back(cl);
-    return int(m_vDependencies.size());
+    return CVT_INT(m_vDependencies.size());
 }
 
 string MetadataInfo::GetXMLDocument() {

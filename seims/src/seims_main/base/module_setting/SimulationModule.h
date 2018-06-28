@@ -210,9 +210,9 @@ protected:
 #define CHECK_NEGATIVE(moduleID, param) if ((param) >= 0) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST be negative!"))
 //! CHECK_ZERO is used for single value that must not be ZERO
-#define CHECK_ZERO(moduleID, param) if ((param) == 0 || FloatEqual(float(param), 0.f)) \
+#define CHECK_ZERO(moduleID, param) if ((param) == 0 || FloatEqual(CVT_FLT(param), 0.f)) \
                    throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be zero!"))
 //! CHECK_NODATA is used for single value that must not be NODATA_VALUE
-#define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(float(param), NODATA_VALUE)) \
+#define CHECK_NODATA(moduleID, param) if ((param) == NODATA_VALUE || FloatEqual(CVT_FLT(param), NODATA_VALUE)) \
                      throw ModelException(moduleID, "CheckInputData", string(#param) + string(" MUST NOT be NODATA_VALUE!"))
 #endif /* SIMULATION_MOUDULE_BASE */

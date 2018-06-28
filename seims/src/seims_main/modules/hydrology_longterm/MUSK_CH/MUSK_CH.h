@@ -54,9 +54,9 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
-    void SetValueByIndex(const char* key, int index, float data) OVERRIDE;
+    void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
 
     void GetValue(const char* key, float* value) OVERRIDE;
 

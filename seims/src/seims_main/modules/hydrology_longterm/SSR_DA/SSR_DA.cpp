@@ -30,7 +30,7 @@ bool SSR_DA::FlowInSoil(const int id) {
         flowWidth -= m_chWidth[id];
     }
     // initialize for current cell of current timestep
-    for (int j = 0; j < int(m_nSoilLyrs[id]); j++) {
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
         m_subSurfRf[id][j] = 0.f;
         m_subSurfRfVol[id][j] = 0.f;
     }
@@ -164,15 +164,14 @@ int SSR_DA::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            if (m_rchID[i] > 0) {
-                float qiAllLayers = 0.f;
-                for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                    if (m_subSurfRfVol[i][j] > UTIL_ZERO) {
-                        qiAllLayers += m_subSurfRfVol[i][j] / m_dt;
-                    } /// m^3/s
+            if (m_rchID[i] <= 0.f) continue;
+            float qiAllLayers = 0.f;
+            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+                if (m_subSurfRfVol[i][j] > UTIL_ZERO) {
+                    qiAllLayers += m_subSurfRfVol[i][j] / m_dt; /// m^3/s
                 }
-                tmp_qiSubbsn[int(m_subbsnID[i])] += qiAllLayers;
             }
+            tmp_qiSubbsn[CVT_INT(m_rchID[i])] += qiAllLayers;
         }
 #pragma omp critical
         {

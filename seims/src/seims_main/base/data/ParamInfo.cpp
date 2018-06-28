@@ -91,8 +91,8 @@ void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, vector<in
             /// Do not change NoData value
             continue;
         }
-        int curunit = int(units[i]);
-        int curlu = int(lu[i]);
+        int curunit = CVT_INT(units[i]);
+        int curlu = CVT_INT(lu[i]);
         if (find(selunits.begin(), selunits.end(), curunit) == selunits.end()) {
             continue;
         }
@@ -106,7 +106,7 @@ void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, vector<in
 void ParamInfo::Adjust2DArray(int n, float** data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        int curCols = int(data[i][0]);
+        int curCols = CVT_INT(data[i][0]);
         Adjust1DArray(curCols, data[i] + 1);
     }
 }
