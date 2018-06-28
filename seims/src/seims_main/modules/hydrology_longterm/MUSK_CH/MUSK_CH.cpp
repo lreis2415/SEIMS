@@ -221,7 +221,7 @@ void MUSK_CH::SetValueByIndex(const char* key, const int index, const float valu
     else if (StringMatch(sk, VAR_SBQG)) m_qgSub[index] = value;
     else if (StringMatch(sk, VAR_SBPET)) m_petCh[index] = value;
     else if (StringMatch(sk, VAR_SBGS)) m_gwStorage[index] = value;
-        /// IN/OUTPUT variables
+    /// IN/OUTPUT variables
     else if (StringMatch(sk, VAR_QRECH)) m_qRchOut[index] = value;
     else if (StringMatch(sk, VAR_QS)) m_qsCh[index] = value;
     else if (StringMatch(sk, VAR_QI)) m_qiCh[index] = value;
