@@ -87,13 +87,13 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
     /// load point source water discharge (m3/s) on current day from Scenario
     for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); ++it) {
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
-        vector<int>& m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map<int, PointSourceMgtParams *>& m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
-        vector<int>& m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map<int, PointSourceLocations *>& m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        vector<int>& ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
+        map<int, PointSourceMgtParams *>& pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        vector<int>& ptSrcIDs = it->second->GetPointSrcIDs();
+        map<int, PointSourceLocations *>& pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
-            PointSourceMgtParams* curPtMgt = m_pointSrcMgtMap.at(*seqIter);
+        for (auto seqIter = ptSrcMgtSeqs.begin(); seqIter != ptSrcMgtSeqs.end(); ++seqIter) {
+            PointSourceMgtParams* curPtMgt = pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
                 if (m_date < curPtMgt->GetStartDate() || m_date > curPtMgt->GetEndDate()) {
@@ -103,9 +103,9 @@ void SEDR_SBAGNOLD::PointSourceLoading() {
             // 1.2 Otherwise, get the water volume
             float per_sed = curPtMgt->GetSedment(); /// g/cm3, or Mg/m3
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
-                if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
-                    PointSourceLocations* curPtLoc = m_pointSrcLocsMap.at(*locIter);
+            for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
+                if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
+                    PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     /// Mg/m3 ==> kg / timestep, 1. / 86400. = 1.1574074074074073e-05
                     m_ptSub[curSubID] += per_sed * curPtLoc->GetSize() * 1000.f * m_dt * 1.1574074074074073e-05f;
@@ -289,9 +289,8 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     /// sediment from upstream reaches
     float allSediment = 0.f; // all sediment in reach, kg
     float sedUp = 0.f;       // sediment from upstream channels, kg
-    for (size_t j = 0; j < m_reachUpStream[i].size(); j++) {
-        int upReachId = m_reachUpStream[i][j];
-        sedUp += m_sedRchOut[upReachId];
+    for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
+        sedUp += m_sedRchOut[*upRchID];
     }
     allSediment = sedUp + m_sedtoCh[i] + m_sedStorage[i];
     /// add point source loadings

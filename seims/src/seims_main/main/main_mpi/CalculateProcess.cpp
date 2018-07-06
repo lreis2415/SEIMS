@@ -164,6 +164,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         act_loop_num += 1;
 #ifdef _DEBUG
         cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
+        if (StringMatch(ConvertToString(ts), "2014-03-30")) {
+            cout << "Debugging..." << endl;
+        }
 #endif
         int year_idx = GetYear(ts) - start_year;
         if (rank == MASTER_RANK) {

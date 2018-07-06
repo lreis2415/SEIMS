@@ -7,8 +7,9 @@
 using namespace utils_string;
 using namespace bmps;
 
-BMPPlantMgtFactory::BMPPlantMgtFactory(int scenarioId, int bmpId, int subScenario,
-                                       int bmpType, int bmpPriority, vector<string>& distribution,
+BMPPlantMgtFactory::BMPPlantMgtFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority,
+                                       vector<string>& distribution,
                                        const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
     m_mgtFieldsRs(nullptr), m_luccID(-1), m_parameters(nullptr) {

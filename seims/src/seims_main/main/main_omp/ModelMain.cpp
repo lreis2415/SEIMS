@@ -145,7 +145,7 @@ void ModelMain::Execute() {
         }
         StatusMessage(ConvertToString2(t).c_str());
 #ifdef _DEBUG
-        if (StringMatch(ConvertToString(t), "2013-07-20")) {
+        if (StringMatch(ConvertToString(t), "2014-03-30")) {
             cout << "Debugging..." << endl;
         }
 #endif
@@ -168,7 +168,7 @@ void ModelMain::GetTransferredValue(float* tfvalues) {
     }
 }
 
-void ModelMain::SetTransferredValue(int index, float* tfvalues) {
+void ModelMain::SetTransferredValue(const int index, float* tfvalues) {
     if (m_firstRunChannel) {
         for (auto it = m_channelModules.begin(); it != m_channelModules.end(); ++it) {
             m_factory->GetValueFromDependencyModule(*it, m_simulationModules);

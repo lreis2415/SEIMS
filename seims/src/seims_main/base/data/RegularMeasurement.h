@@ -29,8 +29,9 @@ public:
      * \param[in] endTime \a time_t, end date time
      * \param[in] interval \a time_t, time interval
      */
-    RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType, time_t startTime,
-                       time_t endTime, time_t interval);
+    RegularMeasurement(MongoClient* conn,
+                       const string& hydroDBName, const string& sitesList, const string& siteType,
+                       time_t startTime, time_t endTime, time_t interval);
 
     //! Destructor
     ~RegularMeasurement();

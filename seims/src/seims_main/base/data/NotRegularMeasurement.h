@@ -30,7 +30,8 @@ public:
      * \param[in] startTime \a time_t, start date time
      * \param[in] endTime \a time_t, end date time
      */
-    NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList, string& siteType,
+    NotRegularMeasurement(MongoClient* conn, const string& hydroDBName,
+                          const string& sitesList, const string& siteType,
                           time_t startTime, time_t endTime);
 
     //! Get site date by time \a pData

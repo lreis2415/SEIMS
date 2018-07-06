@@ -7,12 +7,13 @@
 
 using namespace utils_time;
 
-NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBName, string& sitesList,
-                                             string& siteType, time_t startTime, time_t endTime)
+NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, const string& hydroDBName,
+                                             const string& sitesList, const string& siteType,
+                                             const time_t startTime, const time_t endTime)
     : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime) {
     size_t nSites = m_siteIDList.size();
-    m_valueList.resize(nSites);
-    m_timeList.resize(nSites);
+    m_valueList.reserve(nSites);
+    m_timeList.reserve(nSites);
     m_curIndexList.resize(nSites, 0);
     for (size_t iSite = 0; iSite < nSites; iSite++) {
         /// build query statement
@@ -94,29 +95,19 @@ NotRegularMeasurement::NotRegularMeasurement(MongoClient* conn, string& hydroDBN
     }
 }
 
-float* NotRegularMeasurement::GetSiteDataByTime(time_t t) {
-    for (vector<int>::size_type iSite = 0; iSite < m_siteIDList.size(); ++iSite) {
+float* NotRegularMeasurement::GetSiteDataByTime(const time_t t) {
+    for (int iSite = 0; iSite < CVT_INT(m_siteIDList.size()); iSite++) {
         vector<time_t>& tlist = m_timeList[iSite];
         vector<float>& vlist = m_valueList[iSite];
         size_t curIndex = size_t(m_curIndexList[iSite]);
-
         // find the index for current time
         // the nearest record before t
         while (curIndex < tlist.size() && tlist[curIndex] <= t) {
             curIndex++;
         }
         curIndex--;
-
-        //if (curIndex < 0)
-        //{
-        //    pData[iSite] = 0.f;
-        //    m_curIndexList[iSite] = 0;
-        //}
-        //else
-        //{
         pData[iSite] = vlist[curIndex];
         m_curIndexList[iSite] = CVT_INT(curIndex);
-        //}
     }
     return pData;
 }
