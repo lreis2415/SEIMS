@@ -4,8 +4,8 @@
    Note that, the ReadModelData class is not picklable,
      since MongoClient returns thread.lock objects.
     @author   : Liangjun Zhu
-    @changelog: 18-01-02  lj - separated from plot_timeseries.\n
-                18-02-09  lj - compatible with Python3.\n
+    @changelog: 18-01-02  - lj - separated from plot_timeseries.\n
+                18-02-09  - lj - compatible with Python3.\n
 """
 from __future__ import absolute_import
 
