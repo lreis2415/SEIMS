@@ -139,6 +139,11 @@ class PSAConfig(object):
         # 2. SEIMS_Model
         self.seims_bin = ''
         self.model_dir = ''
+        self.seims_version = 'OMP'
+        self.mpi_bin = None
+        self.hosts_opt = None
+        self.hostfile = None
+        self.seims_nprocess = 1
         self.seims_nthread = 1
         self.seims_lyrmethod = 0
         if 'SEIMS_Model' not in cf.sections():
@@ -147,7 +152,16 @@ class PSAConfig(object):
         self.model_dir = cf.get('SEIMS_Model', 'model_dir')
         self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
         self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
-
+        if cf.has_option('SEIMS_Model', 'version'):
+            self.seims_version = cf.get('SEIMS_Model', 'version')
+        if cf.has_option('SEIMS_Model', 'mpi_bin'):
+            self.mpi_bin = cf.get('SEIMS_Model', 'mpi_bin')
+        if cf.has_option('SEIMS_Model', 'hostopt'):
+            self.hosts_opt = cf.get('SEIMS_Model', 'hostopt')
+        if cf.has_option('SEIMS_Model', 'hostfile'):
+            self.hostfile = cf.get('SEIMS_Model', 'hostfile')
+        if cf.has_option('SEIMS_Model', 'processnum'):
+            self.seims_nprocess = cf.getint('SEIMS_Model', 'processnum')
         try:
             # UTCTIME
             tstart = cf.get('SEIMS_Model', 'sim_time_start')

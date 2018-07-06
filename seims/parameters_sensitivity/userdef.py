@@ -46,7 +46,10 @@ def evaluate_model_response(modelcfg_dict, cali_idx, period):
     model_obj = MainSEIMS(modelcfg_dict['bin_dir'], modelcfg_dict['model_dir'],
                           nthread=modelcfg_dict['nthread'], lyrmtd=modelcfg_dict['lyrmethod'],
                           ip=modelcfg_dict['hostname'], port=modelcfg_dict['port'],
-                          sceid=modelcfg_dict['scenario_id'], caliid=cali_idx)
+                          sceid=modelcfg_dict['scenario_id'], caliid=cali_idx,
+                          ver=modelcfg_dict['version'], nprocess=modelcfg_dict['nprocess'],
+                          mpi_bin=modelcfg_dict['mpi_bin'], hosts_opt=modelcfg_dict['hosts_opt'],
+                          hostfile=modelcfg_dict['hostfile'])
     run_flag = model_obj.run()
     if not run_flag:  # return all outputs to be -9999.
         return [-9999.] * 21

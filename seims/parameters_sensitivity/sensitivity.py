@@ -6,11 +6,13 @@
                 18-1-11   lj - integration of screening method and variant-based method.\n
                 18-1-16   lj - split tasks when the run_count is very very large.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-07-04  lj - support MPI version of SEIMS, and bugs fixed.\n
 """
 from __future__ import absolute_import
 
 import os
 import sys
+import math
 import json
 import datetime
 
@@ -227,14 +229,17 @@ class Sensitivity(object):
         model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
                           'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
                           'hostname': self.cfg.hostname, 'port': self.cfg.port,
-                          'scenario_id': 0}
+                          'scenario_id': 0,
+                          'version': self.cfg.seims_version, 'nprocess': self.cfg.seims_nprocess,
+                          'mpi_bin': self.cfg.mpi_bin, 'hosts_opt': self.cfg.hosts_opt,
+                          'hostfile': self.cfg.hostfile}
 
         # split tasks if needed
-        task_num = self.run_count / 1000
+        task_num = math.floor(self.run_count / 1000)
         if task_num == 0:
-            split_seqs = list(range(self.run_count))
+            split_seqs = [range(self.run_count)]
         else:
-            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
+            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
             split_seqs = [a.tolist() for a in split_seqs]
 
         # PSA evaluation period
