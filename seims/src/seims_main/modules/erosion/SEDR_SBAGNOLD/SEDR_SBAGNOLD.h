@@ -78,9 +78,9 @@ private:
     bool m_vcd;
     /// the peak rate adjustment factor
     float m_peakRateAdj;
-    /// Coefficient in sediment transport equation
+    /// Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqCoef;
-    /// Exponent in sediment transport equation
+    /// Exponent in sediment transport equation, spexp in SWAT
     float m_sedTransEqExp;
     /// critical velocity for sediment deposition
     float m_critVelSedDep;
