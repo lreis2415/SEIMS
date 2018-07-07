@@ -149,7 +149,7 @@ def calculate_statistics(sim_obs_dict):
         }
     """
     if not sim_obs_dict:  # if None or dict()
-        return False
+        return None
     for param, values in sim_obs_dict.items():
         obsl = values['Obs'][:]
         siml = values['Sim'][:]
@@ -176,4 +176,4 @@ def calculate_statistics(sim_obs_dict):
               ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
               (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
                lnnse_value, nse1_value, nse3_value))
-    return True
+    return ['NSE', 'R-square', 'RMSE', 'PBIAS', 'RSR', 'lnNSE', 'NSE1', 'NSE3']

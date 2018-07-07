@@ -56,7 +56,7 @@ def output_population_details(pops, outdir, gen_num):
             cali_sim_obs_data.append(ind.cali.sim_obs_data)
         json_data = json.dumps(cali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
         f.write(json_data)
-    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'w') as f:
+    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'wb') as f:
         for ind in pops:
             cali_sim_data.append(ind.cali.data)
         pickle.dump(cali_sim_data, f)
@@ -71,7 +71,7 @@ def output_population_details(pops, outdir, gen_num):
                 vali_sim_obs_data.append(ind.vali.sim_obs_data)
             json_data = json.dumps(vali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
             f.write(json_data)
-        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'w') as f:
+        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'wb') as f:
             for ind in pops:
                 vali_sim_data.append(ind.vali.data)
             pickle.dump(vali_sim_data, f)

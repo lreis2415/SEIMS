@@ -182,6 +182,12 @@ class PSAConfig(object):
             raise IOError('Please Check Directories defined in [PATH]. '
                           'BIN_DIR and MODEL_DIR are required!')
 
+        self.evaluate_params = list()
+        if cf.has_option('SEIMS_Model', 'evaluate_param'):
+            eva_str = cf.get('SEIMS_Model', 'evaluate_param')
+            self.evaluate_params = StringClass.split_string(eva_str, ',')
+        else:
+            self.evaluate_params = ['Q']  # Default
         # 3. Parameters settings for sensitivity analysis methods
         self.morris = None
         self.fast = None
