@@ -165,6 +165,7 @@
 #define File_Output                            "file.out"
 #define Source_HydroClimateDB                  "HydroClimateDB"
 #define Source_ParameterDB                     "ParameterDB"
+#define Source_ParameterDB_Optional            "ParameterDB_Optional"
 #define Source_Module                          "Module"
 #define Source_Module_Optional                 "Module_Optional"
 
@@ -383,8 +384,8 @@
 #define MID_KINWAVSED_CH                       "KinWavSed_CH"
 #define MDESC_KINWAVSED_OL                     "Use energy function(Govers) method to calculate sediment yield routing of each hillslope cell"
 #define MDESC_KINWAVSED_CH                     "Srinivasan & Galvao function to calculate sediment yield routing of each channel cell"
-#define MID_MUSLE_AS                           "MUSLE_AS"
-#define MDESC_MUSLE_AS                         "use MUSLE method to calculate sediment yield of each cell"
+#define MID_SERO_MUSLE                         "SERO_MUSLE"
+#define MDESC_SERO_MUSLE                       "use MUSLE method to calculate sediment yield of each cell"
 #define MID_IUH_SED_OL                         "IUH_SED_OL"
 #define MDESC_IUH_SED_OL                       "Overland routing of sediment using IUH"
 
@@ -849,6 +850,7 @@
 #define VAR_SHALLST "shallst"
 #define VAR_SILT "silt" /// m_soilSilt, Percent of silt content
 #define VAR_SLOPE "slope" /// m_slope, Slope gradient (drop/distance, i.e., tan, or percent)
+#define VAR_SLPLEN "slope_length" // m_slpLen, Slope length (unit: m)
 #define VAR_SNAC "SNAC" /// m_snowAccum
 #define VAR_SNME "SNME" /// m_snowMelt, snow melt amount
 #define VAR_SNO3UP "sno3up"
@@ -1017,6 +1019,7 @@
 #define VAR_SOL_SORGN "sol_orgn" /// m_soilStabOrgN, amount of nitrogen stored in the stable organic N pool(kg N/ha)
 #define VAR_SOL_HORGP "sol_orgp" /// m_soilHumOrgP, amount of phosphorus stored in the humic organic P pool in soil layer(kg P/ha)
 #define VAR_SOL_PERCO "sol_perco"
+#define VAR_RSDCOV_COEF "rsd_covco" // m_rsdCovCoef, residue cover factor for computing fraction of cover
 #define VAR_SOL_RSD "sol_rsd" /// m_soilRsd, amount of organic matter in the soil classified as residue(kg/ha)
 #define VAR_SOL_RSDIN "rsdin" /// m_rsdInitSoil, initial amount of organic matter in the soil classified as residue(kg/ha)
 #define VAR_SOL_SOLP "sol_solp" /// m_soilSolP, amount of phosphorus stored in solution(kg P/ha)
@@ -1084,6 +1087,7 @@
 #define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
 #define VAR_USLE_C "USLE_C" /// m_usleC, USLE C factor (land cover)
+#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
 #define VAR_USLE_K "USLE_K" /// m_usleK
 #define VAR_USLE_LS "USLE_LS" /// m_usleLS
 #define VAR_USLE_P "USLE_P" /// m_usleP
@@ -1575,6 +1579,7 @@
 #define DESC_SHALLST "depth of water in shallow aquifer"
 #define DESC_SILT "Percent of silt content"
 #define DESC_SLOPE "Slope gradient (drop/distance, i.e., tan, or percent)"
+#define DESC_SLPLEN "Slope length"
 #define DESC_SNAC "snow accumulation"
 #define DESC_SNME "snow melt"
 #define DESC_SNO3UP "amount of nitrate moving upward in the soil profile in watershed"
@@ -1733,6 +1738,7 @@
 #define DESC_SOL_SORGN "amount of nitrogen stored in the stable organic N pool"
 #define DESC_SOL_HORGP "amount of phosphorus stored in the humic organic P pool in soil layer"
 #define DESC_SOL_PERCO "percolation from soil layer"
+#define DESC_RSDCOV_COEF "residue cover factor for computing fraction of cover"
 #define DESC_SOL_RSD "amount of organic matter in the soil classified as residue"
 #define DESC_SOL_RSDIN "amount of organic matter in the soil classified as residue"
 #define DESC_SOL_SOLP "amount of phosphorus stored in solution"
@@ -1805,7 +1811,8 @@
 #define DESC_TSD_CLIMATE "Climate data of all the stations"
 #define DESC_TSD_DT "Time series data type, e.g., climate data"
 #define DESC_UPSOLDEP "depth of the upper soil layer"
-#define DESC_USLE_C "the cover management factor"
+#define DESC_USLE_C "the average annual cover management factor for the land cover"
+#define DESC_ICFAC "C-factor calculation using Cmin (0 as default) or new method from RUSLE (1)"
 #define DESC_USLE_K "The soil erodibility factor used in USLE"
 #define DESC_USLE_LS "USLE LS factor"
 #define DESC_USLE_P "the erosion control practice factor"
