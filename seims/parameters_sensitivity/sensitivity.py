@@ -251,6 +251,7 @@ class Sensitivity(object):
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
             split_seqs = [a.tolist() for a in split_seqs]
         # Loop partitioned tasks
+        run_model_stime = time.time()
         all_models = list()
         for idx, cali_seqs in enumerate(split_seqs):
             cur_out_file = '%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir, idx)
@@ -289,6 +290,7 @@ class Sensitivity(object):
                 eva_values = numpy.array(eva_values)
             numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4e')
             all_models += output_models
+        print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
         # Save as pickle data for further usage
         with open('%s/all_models.pickle' % self.cfg.psa_outpath, 'wb') as f:
             pickle.dump(all_models, f)
