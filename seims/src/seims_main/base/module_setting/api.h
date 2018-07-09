@@ -18,7 +18,10 @@
 
 #include "SimulationModule.h"
 
+//! Get the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation();
+
+//! Get the instance of SimulationModule class
 extern "C" SEIMS_MODULE_API SimulationModule* GetInstance();
 
 #endif
