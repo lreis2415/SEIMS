@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MDESC_NUTRSED);
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("NutrSED.html");
+    mdi.SetHelpfile("");
 
     // set the parameters
     mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);

@@ -47,7 +47,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     /// these three parameters all from plant growth module, e.g., PG_EPIC
     mdi.AddParameter(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_ParameterDB, DT_Raster1D);
-    //mdi.AddInput(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_ALBDAY, UNIT_NON_DIM, DESC_ALBDAY, Source_Module, DT_Raster1D);
 

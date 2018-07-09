@@ -280,6 +280,9 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
+        } else {
+            // cout << "WARNING: Parameter " << param->Name << " is not existed in DB!" << endl;
+            // param->Value = NODATA_VALUE; // NOT existed parameters will be intialized in modules.
         }
     }
 
