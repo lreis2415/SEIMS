@@ -294,6 +294,10 @@ class Sensitivity(object):
         # Save as pickle data for further usage
         with open('%s/all_models.pickle' % self.cfg.psa_outpath, 'wb') as f:
             pickle.dump(all_models, f)
+        # Save objective names as pickle data for further usgae
+        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
+            pickle.dump(self.objnames, f)
+
         # load the first part of output values
         self.output_values = numpy.loadtxt('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir)
         if task_num == 0:
@@ -302,7 +306,7 @@ class Sensitivity(object):
                         self.cfg.outfiles.output_values_txt)
             shutil.rmtree(self.cfg.outfiles.output_values_dir)
             return
-        for idx in range(1, task_num):
+        for idx in range(1, task_num + 1):
             tmp_outputs = numpy.loadtxt('%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir,
                                                                idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
@@ -319,6 +323,10 @@ class Sensitivity(object):
                 with open(self.cfg.outfiles.psa_si_json, 'r') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
+        if not self.objnames:
+            if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
+                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'r') as f:
+                    self.objnames = pickle.load(f)
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
         if self.param_values is None or len(self.param_values) == 0:
@@ -328,8 +336,7 @@ class Sensitivity(object):
         row, col = self.output_values.shape
         assert (row == self.run_count)
         for i in range(col):
-            if self.objnames:
-                print(self.objnames[i])
+            print(self.objnames[i])
             if self.cfg.method == 'morris':
                 tmp_Si = morris_alz(self.param_defs,
                                     self.param_values,
