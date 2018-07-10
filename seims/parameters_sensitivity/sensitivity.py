@@ -67,6 +67,7 @@ class Sensitivity(object):
             psa_cfg: PSAConfig object.
         """
         self.cfg = psa_cfg
+        self.model = psa_cfg.model
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
@@ -94,11 +95,11 @@ class Sensitivity(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
-        stime_str = self.cfg.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.cfg.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        db = conn[self.model.db_name]
+        stime_str = self.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
@@ -133,9 +134,9 @@ class Sensitivity(object):
                     self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
                 return
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
+        db = conn[self.model.db_name]
         collection = db['PARAMETERS']
 
         names = list()
@@ -215,9 +216,9 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
+        db = conn[self.model.db_name]
         collection = db['PARAMETERS']
         collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
         for idx, pname in enumerate(self.param_defs['names']):
@@ -233,16 +234,13 @@ class Sensitivity(object):
                 self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
                 return
         assert (self.run_count > 0)
+
         # model configurations
-        model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
-                          'nthread': self.cfg.seims_nthread, 'lyrmtd': self.cfg.seims_lyrmethod,
-                          'ip': self.cfg.hostname, 'port': self.cfg.port,
-                          'sceid': 0,
-                          'version': self.cfg.seims_version, 'nprocess': self.cfg.seims_nprocess,
-                          'mpi_bin': self.cfg.mpi_bin, 'hosts_opt': self.cfg.hosts_opt,
-                          'hostfile': self.cfg.hostfile}
+        model_cfg_dict = self.model.ConfigDict
+
         # Parameters to be evaluated
         input_eva_vars = self.cfg.evaluate_params
+
         # split tasks if needed
         task_num = int(math.floor(self.run_count / 1000))
         if task_num == 0:
@@ -250,9 +248,9 @@ class Sensitivity(object):
         else:
             split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
             split_seqs = [a.tolist() for a in split_seqs]
+
         # Loop partitioned tasks
         run_model_stime = time.time()
-        all_models = list()
         for idx, cali_seqs in enumerate(split_seqs):
             cur_out_file = '%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir, idx)
             if FileClass.is_file_exists(cur_out_file):
@@ -260,7 +258,7 @@ class Sensitivity(object):
             model_cfg_dict_list = list()
             for i, caliid in enumerate(cali_seqs):
                 tmpcfg = deepcopy(model_cfg_dict)
-                tmpcfg['caliid'] = caliid
+                tmpcfg['calibration_id'] = caliid
                 model_cfg_dict_list.append(tmpcfg)
             try:  # parallel on multiprocesor or clusters using SCOOP
                 from scoop import futures
@@ -289,11 +287,11 @@ class Sensitivity(object):
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
             numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4e')
-            all_models += output_models
+            # Save as pickle data for further usage. DO not save all models which maybe very large!
+            cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
+            with open(cur_model_out_file, 'wb') as f:
+                pickle.dump(output_models, f)
         print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
-        # Save as pickle data for further usage
-        with open('%s/all_models.pickle' % self.cfg.psa_outpath, 'wb') as f:
-            pickle.dump(all_models, f)
         # Save objective names as pickle data for further usgae
         with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
             pickle.dump(self.objnames, f)
