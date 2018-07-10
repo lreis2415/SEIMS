@@ -5,6 +5,7 @@
     @changelog: 2017-12-07 - lj - Initial implementation.
                 2018-07-04 - lj - Support MPI version.
                 2018-07-07 - lj - Add the outputs of single model run.
+                2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
 """
 import os
 import sys
@@ -21,18 +22,104 @@ from postprocess.utility import read_simulation_from_txt, match_simulation_obser
     calculate_statistics
 
 
+class ParseSEIMSConfig(object):
+    """Parse SEIMS model related configurations from `ConfigParser` object."""
+
+    def __init__(self, cf):
+        # Default arguments
+        self.host = '127.0.0.1'  # localhost by default
+        self.port = 27017
+        self.bin_dir = ''
+        self.model_dir = ''
+        self.db_name = ''
+        self.version = 'OMP'
+        self.mpi_bin = None
+        self.hosts_opt = None
+        self.hostfile = None
+        self.nprocess = 1
+        self.nthread = 1
+        self.lyrmtd = 1
+        self.scenario_id = 0
+        self.calibration_id = -1
+        self.config_dict = dict()
+
+        if 'SEIMS_Model' not in cf.sections():
+            raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
+
+        self.host = cf.get('SEIMS_Model', 'hostname')
+        self.port = cf.getint('SEIMS_Model', 'port')
+        if not StringClass.is_valid_ip_addr(self.host):
+            raise ValueError('HOSTNAME defined in [SEIMS_Model] is illegal!')
+
+        self.bin_dir = cf.get('SEIMS_Model', 'bin_dir')
+        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+        if not (FileClass.is_dir_exists(self.model_dir)
+                and FileClass.is_dir_exists(self.bin_dir)):
+            raise IOError('Please Check Directories defined in [SEIMS_Model]. '
+                          'BIN_DIR and MODEL_DIR are required!')
+        self.db_name = os.path.split(self.model_dir)[1]
+
+        if cf.has_option('SEIMS_Model', 'version'):
+            self.version = cf.get('SEIMS_Model', 'version')
+        if cf.has_option('SEIMS_Model', 'mpi_bin'):  # full path of the executable MPI program
+            self.mpi_bin = cf.get('SEIMS_Model', 'mpi_bin')
+        if cf.has_option('SEIMS_Model', 'hostopt'):
+            self.hosts_opt = cf.get('SEIMS_Model', 'hostopt')
+        if cf.has_option('SEIMS_Model', 'hostfile'):
+            self.hostfile = cf.get('SEIMS_Model', 'hostfile')
+        if cf.has_option('SEIMS_Model', 'processnum'):
+            self.nprocess = cf.getint('SEIMS_Model', 'processnum')
+        if cf.has_option('SEIMS_Model', 'threadsnum'):
+            self.nthread = cf.getint('SEIMS_Model', 'threadsnum')
+        if cf.has_option('SEIMS_Model', 'layeringmethod'):
+            self.lyrmtd = cf.getint('SEIMS_Model', 'layeringmethod')
+        if cf.has_option('SEIMS_Model', 'scenarioid'):
+            self.scenario_id = cf.getint('SEIMS_Model', 'scenarioid')
+        if cf.has_option('SEIMS_Model', 'calibrationid'):
+            self.calibration_id = cf.getint('SEIMS_Model', 'calibrationid')
+
+        if not (cf.has_option('SEIMS_Model', 'sim_time_start') and
+                cf.has_option('SEIMS_Model', 'sim_time_end')):
+            raise ValueError("Start and end time MUST be specified in [SEIMS_Model].")
+
+        try:
+            # UTCTIME
+            tstart = cf.get('SEIMS_Model', 'sim_time_start')
+            tend = cf.get('SEIMS_Model', 'sim_time_end')
+            self.time_start = StringClass.get_datetime(tstart)
+            self.time_end = StringClass.get_datetime(tend)
+        except ValueError:
+            raise ValueError('The time format MUST be "YYYY-MM-DD HH:MM:SS".')
+        if self.time_start >= self.time_end:
+            raise ValueError("Wrong time settings in [SEIMS_Model]!")
+
+    @property
+    def ConfigDict(self):
+        if self.config_dict:
+            return self.config_dict
+        model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
+                          'nthread': self.nthread, 'lyrmtd': self.lyrmtd,
+                          'host': self.host, 'port': self.port,
+                          'time_start': self.time_start, 'time_end': self.time_end,
+                          'scenario_id': self.scenario_id, 'calibration_id': self.calibration_id,
+                          'version': self.version,
+                          'mpi_bin': self.mpi_bin, 'nprocess': self.nprocess,
+                          'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile}
+        return model_cfg_dict
+
+
 class MainSEIMS(object):
     """Main entrance to SEIMS model.
     Args:
         bin_dir: The directory of SEIMS binary.
         model_dir: The directory of SEIMS model, the directory name MUST existed as one database name.
         nthread: Thread number for OpenMP.
-        lyrmth: Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP).
-        ip: MongoDB host address, default is `localhost`
+        lyrmtd: Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP).
+        host: MongoDB host address, default is `localhost`
         port: MongoDB port, default is 27017
-        sceid: Scenario ID, which corresponding items in `<model>_Scenario` database
-        caliid: Calibration ID used for model auto-calibration
-        ver: SEIMS version, can be `MPI` or `OMP` (default)
+        scenario_id: Scenario ID, which corresponding items in `<model>_Scenario` database
+        calibration_id: Calibration ID used for model auto-calibration
+        version: SEIMS version, can be `MPI` or `OMP` (default)
         nprocess: Process number for MPI
         mpi_bin: Full path of MPI executable file, e.g., `./mpiexec` or `./mpirun`
         hosts_opt: Option for assigning hosts, e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
@@ -40,7 +127,7 @@ class MainSEIMS(object):
     """
 
     def __init__(self, bin_dir='', model_dir='', nthread=4, lyrmtd=0,
-                 ip='127.0.0.1', port=27017, sceid=-1, caliid=-1,
+                 host='127.0.0.1', port=27017, scenario_id=-1, calibration_id=-1,
                  version='OMP', nprocess=1, mpi_bin='', hosts_opt='-f', hostfile='',
                  **kwargs):  # Allow any other keyword arguments
         #  Derived from input arguments
@@ -62,10 +149,10 @@ class MainSEIMS(object):
 
         self.nthread = args_dict['nthread'] if 'nthread' in args_dict else nthread
         self.lyrmtd = args_dict['lyrmtd'] if 'lyrmtd' in args_dict else lyrmtd
-        self.host = args_dict['ip'] if 'ip' in args_dict else ip
+        self.host = args_dict['host'] if 'host' in args_dict else host
         self.port = args_dict['port'] if 'port' in args_dict else port
-        self.scenario_id = args_dict['sceid'] if 'sceid' in args_dict else sceid
-        self.calibration_id = args_dict['caliid'] if 'caliid' in args_dict else caliid
+        self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
+        self.calibration_id = args_dict['calibration_id'] if 'calibration_id' in args_dict else calibration_id
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
         self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
@@ -166,7 +253,6 @@ class MainSEIMS(object):
                 obj_values.append(self.sim_obs_dict[var][objn])
         return comb_vars, obj_values
 
-
     def ParseTimespan(self, items):
         for item in items:
             if 'TIMESPAN' not in item:
@@ -207,7 +293,7 @@ class MainSEIMS(object):
         return self.run_success
 
 
-def create_run_model(modelcfg_dict, sce_id=0, cali_idx=-1):
+def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
     """Create, Run, and return SEIMS model object.
     See Also:
         get_evaluate_output_name_unit
@@ -216,10 +302,10 @@ def create_run_model(modelcfg_dict, sce_id=0, cali_idx=-1):
     Returns:
         The instance of SEIMS model.
     """
-    if 'sceid' not in modelcfg_dict:
-        modelcfg_dict['sceid'] = sce_id
-    if 'caliid' not in modelcfg_dict:
-        modelcfg_dict['caliid'] = cali_idx
+    if 'scenario_id' not in modelcfg_dict:
+        modelcfg_dict['scenario_id'] = sce_id
+    if 'calibration_id' not in modelcfg_dict:
+        modelcfg_dict['calibration_id'] = cali_idx
     model_obj = MainSEIMS(args_dict=modelcfg_dict)
     model_obj.run()
     return model_obj
@@ -231,14 +317,14 @@ if __name__ == '__main__':
     # Method 1
     # seimsobj = MainSEIMS(bindir, modeldir,
     #                      nthread=2, lyrmtd=1,
-    #                      ip='127.0.0.1', port=27017,
-    #                      sceid=0, caliid=-1,
+    #                      host='127.0.0.1', port=27017,
+    #                      scenario_id=0, calibration_id=-1,
     #                      version='MPI', mpi_bin='mpiexec', nprocess=2)
     # Method 2
     args = {'bin_dir': bindir, 'model_dir': modeldir,
             'nthread': 2, 'lyrmtd': 1,
-            'ip': '127.0.0.1', 'port': 27017,
-            'sceid': 0, 'caliid': -1,
+            'host': '127.0.0.1', 'port': 27017,
+            'scenario_id': 0, 'calibration_id': -1,
             'version': 'MPI', 'mpi_bin': 'mpiexec', 'nprocess': 2}
     seimsobj = MainSEIMS(args_dict=args)
     seimsobj.run()
