@@ -83,11 +83,11 @@ void SERO_MUSLE::InitialOutputs() {
             //    else: return 30
             //
             // Currently, I decided to take slope length as input parameter.
-            float sin_slp = sin(atan(m_slope[i]));
             // The calculation of LS factor follows the equation of McCool et al.(1989) used in RUSLE.
             // Also refers to Zhang et al.(2013), C&G, 52, 177-188.
             //                Liu et al.(2015), C&G, 78, 110-122.
-            float beta = sin_slp / (3.f * pow(sin_slp, 0.8f) + 0.56f);
+            float sin_slp = sin(atan(m_slope[i]));
+            float beta = sin(atan(m_slope[i]) / 0.0896f) / (3.f * pow(sin_slp, 0.8f) + 0.56f);
             float m = beta / (1.f + beta);
             float S = 0.f;
             if (m_slope[i] < 0.05f) S = 10.8f * sin_slp + 0.03f;
