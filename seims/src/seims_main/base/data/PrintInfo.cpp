@@ -486,7 +486,7 @@ PrintInfo::~PrintInfo() {
         it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
-    vector<PrintInfoItem *>().swap(m_PrintItems);
+
     m_param = nullptr; /// since m_param has not been malloc by new, just set it to nullptr
     if (nullptr != m_subbasinSelectedArray) {
         Release1DArray(m_subbasinSelectedArray);
@@ -680,7 +680,7 @@ void PrintInfo::getSubbasinSelected(int* count, float** subbasins) {
     *subbasins = m_subbasinSelectedArray;
 }
 
-PrintInfoItem* PrintInfo::getPrintInfoItem(int index) {
+PrintInfoItem* PrintInfo::getPrintInfoItem(const int index) {
     // default is nullptr
     PrintInfoItem* res = nullptr;
 

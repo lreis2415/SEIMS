@@ -1,32 +1,32 @@
 #include "api.h"
 
-#include "MUSLE_AS.h"
+#include "SoilErosion_MUSLE.h"
 #include "MetadataInfo.h"
 #include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
-    return new MUSLE_AS();
+    return new SERO_MUSLE();
 }
 
-// function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Zhiqiang Yu, Liangjun Zhu");
+    mdi.SetAuthor("Liangjun Zhu, Zhiqiang Yu");
     mdi.SetClass(MCLS_OL_EROSION, MCLSDESC_OL_EROSION);
-    mdi.SetDescription(MDESC_MUSLE_AS);
+    mdi.SetDescription(MDESC_SERO_MUSLE);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetID(MID_MUSLE_AS);
-    mdi.SetName(MID_MUSLE_AS);
-    mdi.SetVersion("1.2");
+    mdi.SetID(MID_SERO_MUSLE);
+    mdi.SetName(MID_SERO_MUSLE);
+    mdi.SetVersion("1.3");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("MUSLE_AS.chm");
+    mdi.SetHelpfile("");
 
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_DEPRATIO, UNIT_NON_DIM, DESC_DEPRATIO, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_ROCK, UNIT_PERCENT, DESC_ROCK, Source_ParameterDB, DT_Raster2D);
+    // mdi.AddParameter(VAR_SLPLEN, UNIT_LEN_M, DESC_SLPLEN, Source_ParameterDB, DT_Raster2D); // TODO
     mdi.AddParameter(VAR_USLE_K, UNIT_NON_DIM, DESC_USLE_K, Source_ParameterDB, DT_Raster2D);
-    mdi.AddParameter(VAR_USLE_C, UNIT_NON_DIM, DESC_USLE_C, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_USLE_P, UNIT_NON_DIM, DESC_USLE_P, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_ACC, UNIT_NON_DIM, DESC_ACC, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
@@ -38,14 +38,23 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_DETACH_SAG, UNIT_NON_DIM, DESC_DETACH_SAG, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DETACH_LAG, UNIT_NON_DIM, DESC_DETACH_LAG, Source_ParameterDB, DT_Raster1D);
 
+    // C-Factor relaeted
+    mdi.AddParameter(VAR_USLE_C, UNIT_NON_DIM, DESC_USLE_C, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_ICFAC, UNIT_NON_DIM, DESC_ICFAC, Source_ParameterDB, DT_Single);
+    // Update USLE_C factor by average minimum C factor for the land cover (icfac = 0)
+    mdi.AddParameter(VAR_LANDCOVER, UNIT_NON_DIM, DESC_LANDCOVER, Source_ParameterDB, DT_Raster1D);
+    mdi.AddInput(VAR_SOL_COV, UNIT_CONT_KGHA, DESC_SOL_COV, Source_Module_Optional, DT_Raster1D);
+    // Update USLE_C factor by the new calculation method from RUSLE without the ave. min. C (icfac = 1)
+    mdi.AddParameter(VAR_RSDCOV_COEF, UNIT_NON_DIM, DESC_RSDCOV_COEF, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_CHT, UNIT_LEN_M, DESC_CHT, Source_ParameterDB, DT_Raster1D);
+    mdi.AddInput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, Source_Module_Optional, DT_Raster1D);
+
     //input from other module
-    // mdi.AddInput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, Source_Module, DT_Raster1D); // use SURU or OLFLOW???
-    mdi.AddInput(VAR_OLFLOW, UNIT_DEPTH_MM, DESC_OLFLOW, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_SURU, UNIT_DEPTH_MM, DESC_SURU, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_SNAC, UNIT_DEPTH_MM, DESC_SNAC, Source_Module, DT_Raster1D);
 
     // set the output variables
     mdi.AddOutput(VAR_SOER, UNIT_KG, DESC_SOER, DT_Raster1D);
-    mdi.AddOutput(VAR_USLE_LS, UNIT_NON_DIM, DESC_USLE_LS, DT_Raster1D);
     mdi.AddOutput(VAR_SANDYLD, UNIT_KG, DESC_SANDYLD, DT_Raster1D);
     mdi.AddOutput(VAR_SILTYLD, UNIT_KG, DESC_SILTYLD, DT_Raster1D);
     mdi.AddOutput(VAR_CLAYYLD, UNIT_KG, DESC_CLAYYLD, DT_Raster1D);

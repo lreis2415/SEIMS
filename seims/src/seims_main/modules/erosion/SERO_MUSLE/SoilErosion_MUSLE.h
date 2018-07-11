@@ -1,0 +1,141 @@
+/*!
+ * \brief MUSLE (Modified Universal Soil Loss Equation, Williams, 1995) method to
+ *          calculate sediment yield of each cell.
+ *          Refers to the source code part of SWAT
+ *             - soil_phys.f Initialization of usle_mult (i.e., K*P*LS*11.8*exp(ROCK))
+ *             - cfactor.f   Calculate daily USLE_C factor.
+ *             - ysed.f      Actually calculation of daily soil loss caused by water erosion.
+ * \author Liangjun Zhu, Zhiqiang Yu
+ * \changelog 2012-02-01 - zq - Initial implementation.\
+ *            2016-05-30 - lj - Code reformat.\n
+ *            2018-05-14 - lj - Code review and reformat.\n
+ *            2018-07-09 - lj - 1. Change module ID from MUSLE_AS to SERO_MUSLE.\n
+ *                              2. Updates USLE_C factor during the growth cycle of the plant.\n
+ *                              3. Change the calculation of LS factor.\n
+ *
+ */
+#ifndef SEIMS_MODULE_SERO_MUSLE_H
+#define SEIMS_MODULE_SERO_MUSLE_H
+
+#include "SimulationModule.h"
+
+/** \defgroup SERO_MUSLE
+ * \ingroup Erosion
+ * \brief use MUSLE method to calculate sediment yield of each cell
+ */
+/*!
+ * \class SERO_MUSLE
+ * \ingroup SERO_MUSLE
+ *
+ * \brief use MUSLE method to calculate sediment yield of each cell
+ *
+ */
+class SERO_MUSLE: public SimulationModule {
+public:
+    SERO_MUSLE();
+
+    ~SERO_MUSLE();
+
+    int Execute() OVERRIDE;
+
+    void SetValue(const char* key, float value) OVERRIDE;
+
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
+
+    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    bool CheckInputSize(const char* key, int n);
+
+    bool CheckInputData();
+
+private:
+    void InitialOutputs();
+
+private:
+    //! valid cell number
+    int m_nCells;
+    //! cell width (m)
+    float m_cellWth;
+    //! soil layer number
+    int m_nSoilLayers;
+    //! percent of rock content
+    float** m_soilRock;
+    //! deposition ratio
+    float m_depRatio;
+    //grid from parameter
+    //! sand fraction
+    float* m_detSand;
+    //! silt fraction
+    float* m_detSilt;
+    //! clay fraction
+    float* m_detClay;
+    //! small aggregate fraction
+    float* m_detSmAgg;
+    //! large aggregate fraction
+    float* m_detLgAgg;
+
+    //! landcover, which can be used as same as `idplt` in SWAT
+    float* m_landCover;
+    //! USLE P factor (Practice)
+    float* m_usleP;
+    //! USLE K factor (erodibility), multi-layer paramters.
+    float** m_usleK;
+    //! Daily updated USLE C factor
+    float* m_usleC;
+    //! C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
+    int m_iCfac;
+    //! Average annual USLE C factor for the land cover, or log(aveAnnUsleC) when m_soilRsd is available.
+    float* m_aveAnnUsleC;
+    //! Amount of organic matter in the soil classified as residue(kg/ha)
+    float* m_rsdCovSoil;
+    //! Residue cover factor for computing fraction of cover
+    float m_rsdCovCoef;
+    //! Canopy height, m
+    float* m_canHgt;
+    //! LAI of current day
+    float* m_lai;
+    //! Slope gradient (drop/distance)
+    float* m_slope;
+    //! Slope length
+    float* m_slpLen;
+    //! flow accumulation (number of accumulated cells)
+    float* m_flowAccm;
+    //! stream link
+    float* m_rchID;
+
+    //! product of USLE K,P,LS,exp(rock)
+    float* m_usleMult;
+    //! cell area (A, km^2)
+    float m_cellAreaKM;
+    //! cell area factor (3.79 * A^0.7)
+    float m_cellAreaKM1;
+    //! cell area factor (0.903 * A^0.017)
+    float m_cellAreaKM2;
+    //! Slope^0.16
+    float* m_slopeForPq;
+
+    //grid from other modules
+
+    //! snow accumulation
+    float* m_snowAccum;
+    //! surface runoff (mm)
+    float* m_surfRf;
+
+    // Outputs
+
+    //! sediment yield on each cell
+    float* m_eroSed;
+    //! sand yield
+    float* m_eroSand;
+    //! silt yield
+    float* m_eroSilt;
+    //! clay yield
+    float* m_eroClay;
+    //! small aggregate yield
+    float* m_eroSmAgg;
+    //! large aggregate yield
+    float* m_eroLgAgg;
+};
+#endif /* SEIMS_MODULE_SERO_MUSLE_H */

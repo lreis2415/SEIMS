@@ -8,7 +8,7 @@ IMP_SWAT::IMP_SWAT() :
     m_rteLyrs(nullptr), m_nRteLyrs(-1),
     m_evLAI(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr),
     m_soilThick(nullptr),
-    m_sol_por(nullptr), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
+    m_sol_por(nullptr), m_potTilemm(0.f), m_potNo3Decay(NODATA_VALUE),
     m_potSolPDecay(NODATA_VALUE),
     m_kVolat(NODATA_VALUE),
     m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE), m_impoundTrig(nullptr), m_potArea(nullptr),

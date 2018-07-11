@@ -1,6 +1,6 @@
 MESSAGE(STATUS "      Compiling SEIMS_subdir: erosion...")
 # longterm model modules
-ADD_SUBDIRECTORY(./MUSLE_AS)
+ADD_SUBDIRECTORY(./SERO_MUSLE)
 ADD_SUBDIRECTORY(./IUH_SED_OL)
 ADD_SUBDIRECTORY(./SEDR_SBAGNOLD)
 # storm model modules

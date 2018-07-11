@@ -5,14 +5,17 @@
 
 #include "text.h"
 #include "utils_time.h"
+#include "utils_array.h"
 
 using namespace utils_time;
 
-RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, string sitesList, string siteType,
-                                       time_t startTime, time_t endTime, time_t interval)
-    : Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
+RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBName,
+                                       const string& sitesList, const string& siteType,
+                                       const time_t startTime, const time_t endTime, const time_t interval):
+    Measurement(conn, hydroDBName, sitesList, siteType, startTime, endTime), m_interval(interval) {
     int nSites = CVT_INT(m_siteIDList.size());
-
+    int nRecords = CVT_INT((m_endTime - m_startTime) / m_interval + 1);
+    m_siteData.reserve(nRecords);
     /// build query statement
     bson_t* query = bson_new();
     bson_t* child = bson_new();
@@ -22,10 +25,10 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_DATA_SITEID, child2);
     BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
     std::ostringstream ossIndex;
-    for (int iSite = 0; iSite < nSites; iSite++) {
+    for (int i = 0; i < nSites; i++) {
         ossIndex.str("");
-        ossIndex << iSite;
-        BSON_APPEND_INT32(child3, ossIndex.str().c_str(), m_siteIDList[iSite]);
+        ossIndex << i;
+        BSON_APPEND_INT32(child3, ossIndex.str().c_str(), m_siteIDList[i]);
     }
     bson_append_array_end(child2, child3);
     bson_append_document_end(child, child2);
@@ -51,7 +54,8 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
     //printf("%s\n", bson_as_json(query,NULL));
 
     // perform query and read measurement data
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName, DB_TAB_DATAVALUES)));
+    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(hydroDBName,
+                                                                                          DB_TAB_DATAVALUES)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
     float value;
@@ -75,12 +79,10 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
             stationIDLast = stationID;
         }
 
-        if (m_siteData.size() < (index + 1)) {
-            float* pData = new float[nSites];
-            for (int i = 0; i < nSites; i++) {
-                pData[i] = 0.f;
-            }
-            m_siteData.emplace_back(pData);
+        if (m_siteData.size() < index + 1) {
+            float* tmpData = nullptr;
+            utils_array::Initialize1DArray(nSites, tmpData, 0.f);
+            m_siteData.emplace_back(tmpData);
         }
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, MONG_HYDRO_DATA_VALUE)) {
             GetNumericFromBsonIterator(&iter, value);
@@ -92,11 +94,11 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
         m_siteData[index][iSite] = value;
         index++;
     }
-    if (index <= 0) {
+    if (CVT_INT(index) < nRecords) {
         std::ostringstream oss;
-        oss << "There are no " << siteType << " data available for sites:[" << sitesList << "] in database:" <<
-                hydroDBName
-                << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime);
+        oss << "There are no adequate data of " << siteType << " for sites:[" << sitesList << "] in database:" <<
+                hydroDBName << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime) <<
+                "You may want to check the database or the input simulation period!";
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     if (iSite + 1 != nSites) {
@@ -113,21 +115,18 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, string hydroDBName, st
 RegularMeasurement::~RegularMeasurement() {
     for (auto it = m_siteData.begin(); it != m_siteData.end();) {
         if (*it != nullptr) {
-            delete[] *it;
-            *it = nullptr;
+            utils_array::Release1DArray(*it);
         }
         it = m_siteData.erase(it);
     }
     m_siteData.clear();
 }
 
-float* RegularMeasurement::GetSiteDataByTime(time_t t) {
+float* RegularMeasurement::GetSiteDataByTime(const time_t t) {
     int index = CVT_INT((t - m_startTime) / m_interval);
-
     if (index < 0) {
         index = 0;
     }
-
     size_t nSites = m_siteIDList.size();
     for (size_t i = 0; i < nSites; i++) {
         pData[i] = m_siteData[index][i];

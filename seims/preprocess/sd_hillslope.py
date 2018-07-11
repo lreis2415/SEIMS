@@ -26,7 +26,7 @@ class DelineateHillslope(object):
     def get_subbasin_from_hillslope_id(hillslp_id, subbsin_num):
         """Get subbasin ID from the hillslope ID and the subbasin number."""
         remainder = (hillslp_id - subbsin_num) % 3
-        divid = (hillslp_id - subbsin_num) / 3
+        divid = (hillslp_id - subbsin_num) // 3
         if remainder == 0:
             return divid
         else:

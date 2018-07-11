@@ -124,13 +124,13 @@ void MUSK_CH::PointSourceLoading() {
             m_ptSub[i] = 0.f;
         }
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
-        vector<int>& m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map<int, PointSourceMgtParams *>& m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
-        vector<int>& m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map<int, PointSourceLocations *>& m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        vector<int>& ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
+        map<int, PointSourceMgtParams *>& pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        vector<int>& ptSrcIDs = it->second->GetPointSrcIDs();
+        map<int, PointSourceLocations *>& pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
-            PointSourceMgtParams* curPtMgt = m_pointSrcMgtMap.at(*seqIter);
+        for (auto seqIter = ptSrcMgtSeqs.begin(); seqIter != ptSrcMgtSeqs.end(); ++seqIter) {
+            PointSourceMgtParams* curPtMgt = pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
                 if (m_date < curPtMgt->GetStartDate() || m_date > curPtMgt->GetEndDate()) {
@@ -140,9 +140,9 @@ void MUSK_CH::PointSourceLoading() {
             // 1.2 Otherwise, get the water volume
             float per_wtrVol = curPtMgt->GetWaterVolume(); /// m3/'size'/day
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
-                if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
-                    PointSourceLocations* curPtLoc = m_pointSrcLocsMap.at(*locIter);
+            for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
+                if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
+                    PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     m_ptSub[curSubID] += per_wtrVol * curPtLoc->GetSize() / 86400.f; /// m3/'size'/day ==> m3/s
                 }
@@ -433,11 +433,10 @@ void MUSK_CH::ChannelFlow(const int i) {
     float qsUp = 0.f;
     float qiUp = 0.f;
     float qgUp = 0.f;
-    for (size_t j = 0; j < m_reachUpStream[i].size(); j++) {
-        int upReachId = m_reachUpStream[i][j];
-        qsUp += m_qsCh[upReachId];
-        qiUp += m_qiCh[upReachId];
-        qgUp += m_qgCh[upReachId];
+    for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
+        qsUp += m_qsCh[*upRchID];
+        qiUp += m_qiCh[*upRchID];
+        qgUp += m_qgCh[*upRchID];
     }
     qIn += qsUp + qiUp + qgUp; //qIn is equivalent to the wtrin variable in rtmusk.f of SWAT
 #ifdef PRINT_DEBUG

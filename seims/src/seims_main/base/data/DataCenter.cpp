@@ -280,6 +280,9 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
     } else {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
+        } else {
+            // cout << "WARNING: Parameter " << param->Name << " is not existed in DB!" << endl;
+            // param->Value = NODATA_VALUE; // NOT existed parameters will be intialized in modules.
         }
     }
 
@@ -471,7 +474,7 @@ void DataCenter::SetSubbasins(SimulationModule* p_module) {
     p_module->SetSubbasins(subbasins_);
 }
 
-void DataCenter::UpdateInput(vector<SimulationModule *>& modules, time_t t) {
+void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t) {
     vector<string>& module_ids = factory_->GetModuleIDs();
     map<string, SEIMSModuleSetting *>& module_settings = factory_->GetModuleSettings();
     map<string, vector<ParamInfo*> >& module_inputs = factory_->GetModuleInputs();
@@ -532,8 +535,8 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
         for (auto iter2 = arealbmps.begin(); iter2 != arealbmps.end(); ++iter2) {
             cout << "  - SubScenario ID: " << iter->second->GetSubScenarioId() << ", BMP name: "
                     << iter2->second->getBMPName() << endl;
-            vector<int> suitablelu = iter2->second->getSuitableLanduse();
-            map<string, ParamInfo *> updateparams = iter2->second->getParameters();
+            vector<int>& suitablelu = iter2->second->getSuitableLanduse();
+            map<string, ParamInfo *>& updateparams = iter2->second->getParameters();
             for (auto iter3 = updateparams.begin(); iter3 != updateparams.end(); ++iter3) {
                 string paraname = iter3->second->Name;
                 cout << "   -- Parameter ID: " << paraname << endl;

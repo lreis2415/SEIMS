@@ -268,7 +268,7 @@ ArealSourceLocations::ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t
 }
 
 
-void ArealSourceLocations::SetValidCells(int n, float* mgtFieldIDs) {
+void ArealSourceLocations::SetValidCells(const int n, float* mgtFieldIDs) {
     if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
             if (FloatEqual(m_arealSrcID, CVT_INT(mgtFieldIDs[i]))) {

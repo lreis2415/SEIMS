@@ -135,7 +135,7 @@ int NPS_Management::Execute() {
                 if (tmpMgtParams->GetOrgP() > 0.f) {
                     deltaOrgP = cvt * tmpMgtParams->GetOrgP();
                 }
-                vector<int> tmpCellIdx = tmpLoc->GetCellsIndex();
+                vector<int>& tmpCellIdx = tmpLoc->GetCellsIndex();
                 for (auto idxIter = tmpCellIdx.begin(); idxIter != tmpCellIdx.end(); ++idxIter) {
                     /// add to the top first soil layer
                     if (deltaWtrMM > 0.f && nullptr != m_soilWtrSto) {

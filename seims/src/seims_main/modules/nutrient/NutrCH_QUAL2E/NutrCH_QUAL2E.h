@@ -104,8 +104,6 @@ private:
     float* m_reachDownStream;
     /// Index of upstream Ids (The value is -1 if there if no upstream reach)
     vector<vector<int> > m_reachUpStream;
-    /// id the reaches
-    vector<int> m_reachId;
     /// reaches number
     int m_nReaches;
     /* reach up-down layering

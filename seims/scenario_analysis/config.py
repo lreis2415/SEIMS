@@ -30,15 +30,15 @@ class SAConfig(object):
         self.nsga2_pmut = 0.05
         self.nsga2_rmut = 0.1
         self.nsga2_rsel = 0.8
-        if 'NSGAII' in cf.sections():
-            self.nsga2_ngens = cf.getint('NSGAII', 'generationsnum')
-            self.nsga2_npop = cf.getint('NSGAII', 'populationsize')
-            self.nsga2_rcross = cf.getfloat('NSGAII', 'crossoverrate')
-            self.nsga2_pmut = cf.getfloat('NSGAII', 'maxmutateperc')
-            self.nsga2_rmut = cf.getfloat('NSGAII', 'mutaterate')
-            self.nsga2_rsel = cf.getfloat('NSGAII', 'selectrate')
+        if 'NSGA2' in cf.sections():
+            self.nsga2_ngens = cf.getint('NSGA2', 'generationsnum')
+            self.nsga2_npop = cf.getint('NSGA2', 'populationsize')
+            self.nsga2_rcross = cf.getfloat('NSGA2', 'crossoverrate')
+            self.nsga2_pmut = cf.getfloat('NSGA2', 'maxmutateperc')
+            self.nsga2_rmut = cf.getfloat('NSGA2', 'mutaterate')
+            self.nsga2_rsel = cf.getfloat('NSGA2', 'selectrate')
         else:
-            raise ValueError('[NSGAII] section MUST be existed in *.ini file.')
+            raise ValueError('[NSGA2] section MUST be existed in *.ini file.')
         if self.nsga2_npop % 4 != 0:
             raise ValueError('PopulationSize must be a multiple of 4.')
         # 2. MongoDB
@@ -111,7 +111,7 @@ class SAConfig(object):
         # 6. define gene_values
         fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
         fn += '_rule' if self.bmps_rule else '_random'
-        self.nsga2_dir = self.model_dir + os.path.sep + 'NSGAII_OUTPUT' + os.path.sep + fn
+        self.nsga2_dir = self.model_dir + os.path.sep + 'NSGA2_OUTPUT' + os.path.sep + fn
         self.scenario_dir = self.nsga2_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.nsga2_dir)
         UtilClass.rmmkdir(self.scenario_dir)

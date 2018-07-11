@@ -126,7 +126,7 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
     int max_time_slices = CVT_INT(ceil(CVT_FLT(end_time - start_time) / CVT_FLT(dt_ch) / CVT_FLT(max_lyr_id_all)));
     int time_slice = input_args->time_slices; // input from arguments
     if (time_slice < 0 || time_slice > max_time_slices) time_slice = max_time_slices;
-    if (time_slice < 2) time_slice = 2;
+    if (time_slice < 1) time_slice = 1;
     int multiplier = CVT_INT(ceil(CVT_FLT(max_time_slices) / CVT_FLT(time_slice)));
     if (input_args->skd_mtd == SPATIAL) multiplier = 1;
 
@@ -164,6 +164,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         act_loop_num += 1;
 #ifdef _DEBUG
         cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
+        if (StringMatch(ConvertToString(ts), "2014-03-30")) {
+            cout << "Debugging..." << endl;
+        }
 #endif
         int year_idx = GetYear(ts) - start_year;
         if (rank == MASTER_RANK) {

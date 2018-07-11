@@ -496,13 +496,13 @@ void NutrCH_QUAL2E::PointSourceLoading() {
     /// load point source nutrient (kg) on current day from Scenario
     for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); ++it) {
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
-        vector<int>& m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map<int, PointSourceMgtParams *>& m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
-        vector<int>& m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map<int, PointSourceLocations *>& m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        vector<int>& ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
+        map<int, PointSourceMgtParams *>& pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        vector<int>& ptSrcIDs = it->second->GetPointSrcIDs();
+        map<int, PointSourceLocations *>& pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
-            PointSourceMgtParams* curPtMgt = m_pointSrcMgtMap.at(*seqIter);
+        for (auto seqIter = ptSrcMgtSeqs.begin(); seqIter != ptSrcMgtSeqs.end(); ++seqIter) {
+            PointSourceMgtParams* curPtMgt = pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
                 if (m_date < curPtMgt->GetStartDate() || m_date > curPtMgt->GetEndDate()) {
@@ -515,23 +515,23 @@ void NutrCH_QUAL2E::PointSourceLoading() {
             float per_nh4 = curPtMgt->GetNH4();
             float per_orgn = curPtMgt->GetOrgN();
             float per_solp = curPtMgt->GetSolP();
-            float per_orgP = curPtMgt->GetOrgP();
+            float per_orgp = curPtMgt->GetOrgP();
             float per_cod = curPtMgt->GetCOD();
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
-                if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
-                    PointSourceLocations* curPtLoc = m_pointSrcLocsMap.at(*locIter);
+            for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
+                if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
+                    PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     float cvt = per_wtr * curPtLoc->GetSize() * 0.001f * m_dt * 1.1574074074074073e-05f;
                     /// mg/L ==> kg / timestep
                     m_ptNO3ToCh[curSubID] += per_no3 * cvt;
                     m_ptNH4ToCh[curSubID] += per_nh4 * cvt;
                     m_ptOrgNToCh[curSubID] += per_orgn * cvt;
-                    m_ptOrgPToCh[curSubID] += per_orgP * cvt;
+                    m_ptOrgPToCh[curSubID] += per_orgp * cvt;
                     m_ptSolPToCh[curSubID] += per_solp * cvt;
                     m_ptCODToCh[curSubID] += per_cod * cvt;
                     m_ptTNToCh[curSubID] += (per_no3 + per_nh4 + per_orgn) * cvt;
-                    m_ptTPToCh[curSubID] += (per_solp + per_orgP) * cvt;
+                    m_ptTPToCh[curSubID] += (per_solp + per_orgp) * cvt;
                 }
             }
         }
@@ -557,7 +557,7 @@ int NutrCH_QUAL2E::Execute() {
         // So parallelization can be done here.
         int reachNum = CVT_INT(it->second.size());
         // the size of m_reachLayers (map) is equal to the maximum stream order
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i];
             if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
@@ -572,8 +572,8 @@ int NutrCH_QUAL2E::Execute() {
 
 void NutrCH_QUAL2E::AddInputNutrient(const int i) {
     /// nutrient amount from upstream routing will be accumulated to current storage
-    for (size_t j = 0; j < m_reachUpStream[i].size(); j++) {
-        int upReachId = m_reachUpStream[i][j];
+    for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
+        int upReachId = *upRchID;
         m_chOrgN[i] += m_chOutOrgN[upReachId];
         m_chNO3[i] += m_chOutNO3[upReachId];
         m_chNO2[i] += m_chOutNO2[upReachId];

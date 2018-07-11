@@ -45,7 +45,7 @@ clsSimpleTxtData::clsSimpleTxtData(const string& filename) : row_(0), data_(null
 
         row_ = CVT_INT(data.size());
         if (row_ > 0) {
-            data_ = new float[row_];
+            data_ = new(nothrow) float[row_];
             int i = 0;
             for (auto it = data.begin(); it < data.end(); ++it) {
                 data_[i] = *it;

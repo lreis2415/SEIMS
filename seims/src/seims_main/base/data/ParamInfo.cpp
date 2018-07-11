@@ -69,7 +69,7 @@ float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
     return res;
 }
 
-void ParamInfo::Adjust1DArray(int n, float* data) {
+void ParamInfo::Adjust1DArray(const int n, float* data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         if (!FloatEqual(data[i], NODATA_VALUE)) {
@@ -79,12 +79,12 @@ void ParamInfo::Adjust1DArray(int n, float* data) {
     }
 }
 
-void ParamInfo::Adjust1DRaster(int n, float* data) {
+void ParamInfo::Adjust1DRaster(const int n, float* data) {
     Adjust1DArray(n, data);
 }
 
-void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, vector<int> selunits,
-                               const float* lu, vector<int> sellu) {
+void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, const vector<int>& selunits,
+                               const float* lu, const vector<int>& sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         if (FloatEqual(data[i], NODATA_VALUE)) {
@@ -103,25 +103,25 @@ void ParamInfo::Adjust1DRaster(int n, float* data, const float* units, vector<in
     }
 }
 
-void ParamInfo::Adjust2DArray(int n, float** data) {
+void ParamInfo::Adjust2DArray(const int n, float** data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        int curCols = CVT_INT(data[i][0]);
-        Adjust1DArray(curCols, data[i] + 1);
+        int cur_cols = CVT_INT(data[i][0]);
+        Adjust1DArray(cur_cols, data[i] + 1);
     }
 }
 
-void ParamInfo::Adjust2DRaster(int n, int lyrs, float** data) {
+void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         Adjust1DArray(lyrs, data[i]);
     }
 }
 
-void ParamInfo::Adjust2DRaster(int n, int lyr, float** data, float* units,
-                               vector<int> selunits, float* lu, vector<int> sellu) {
+void ParamInfo::Adjust2DRaster(const int n, const int lyrs, float** data, float* units,
+                               const vector<int>& selunits, float* lu, const vector<int>& sellu) {
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        Adjust1DRaster(lyr, data[i], units, selunits, lu, sellu);
+        Adjust1DRaster(lyrs, data[i], units, selunits, lu, sellu);
     }
 }

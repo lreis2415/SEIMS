@@ -62,8 +62,9 @@ BMPArealStruct::~BMPArealStruct() {
     m_parameters.clear();
 }
 
-BMPArealStructFactory::BMPArealStructFactory(int scenarioId, int bmpId, int subScenario,
-                                             int bmpType, int bmpPriority, vector<string>& distribution,
+BMPArealStructFactory::BMPArealStructFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                             const int bmpType, const int bmpPriority,
+                                             vector<string>& distribution,
                                              const string& collection, const string& location):
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location),
     m_mgtFieldsRs(nullptr) {

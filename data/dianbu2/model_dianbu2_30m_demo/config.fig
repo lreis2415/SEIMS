@@ -11,7 +11,7 @@
 0 | Snow melt | Snowpeak Daily | SNO_SP
 0 | Infiltration | Modified rational | SUR_MR
 0 | Depression and Surface Runoff | Linsley | DEP_LINSLEY
-0 | Hillslope erosion | MUSLE | MUSLE_AS
+0 | Hillslope erosion | MUSLE | SERO_MUSLE
 0 | Plant Management Operation | SWAT | PLTMGT_SWAT
 0 | Non-point source Management | | NPSMGT
 #0 | Percolation | Darcy and Brooks-Corey | PER_PI

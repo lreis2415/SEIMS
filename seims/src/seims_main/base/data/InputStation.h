@@ -48,7 +48,7 @@ public:
      * \param[out] nRow data item number
      * \param[out] data time series data
      */
-    void GetTimeSeriesData(time_t time, string type, int* nRow, float** data);
+    void GetTimeSeriesData(time_t time, const string& type, int* nRow, float** data);
 
     /*!
      * \brief Read data of each site type
@@ -60,8 +60,8 @@ public:
      * \param[in] endDate end date
      * \param[in] stormMode \a bool, false by default
      */
-    void ReadSitesData(string hydroDBName, string sitesList, string siteType, time_t startDate, time_t endDate,
-                       bool stormMode = false);
+    void ReadSitesData(const string& hydroDBName, const string& sitesList, const string& siteType,
+                       time_t startDate, time_t endDate, bool stormMode = false);
 
 private:
     /*!
@@ -72,7 +72,7 @@ private:
      * \param[in] siteType site type, "P" or "M"
      * \param[in] query \a bson_t
      */
-    void build_query_bson(int nSites, vector<int>& siteIDList, string& siteType, bson_t* query);
+    void build_query_bson(int nSites, vector<int>& siteIDList, const string& siteType, bson_t* query);
 
     /*!
      * \brief Read HydroClimate sites information from HydroClimateDB (MongoDB)
@@ -81,7 +81,7 @@ private:
      * \param[in] hydroDBName HydroClimate database which contains "Sites" collection
      * \param[in] sitesList \a string, site ID string derived from model database (e.g., model_dianbu30m_longterm)
      */
-    void ReadSitesInfo(string siteType, string hydroDBName, string sitesList);
+    void ReadSitesInfo(const string& siteType, const string& hydroDBName, const string& sitesList);
 
 private:
     //! MongoDB client object
