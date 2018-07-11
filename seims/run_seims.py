@@ -7,10 +7,12 @@
                 2018-07-07 - lj - Add the outputs of single model run.
                 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
 """
+import bisect
 import os
 import sys
 from subprocess import CalledProcessError
 from copy import deepcopy
+from collections import OrderedDict
 
 from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
 
@@ -152,7 +154,8 @@ class MainSEIMS(object):
         self.host = args_dict['host'] if 'host' in args_dict else host
         self.port = args_dict['port'] if 'port' in args_dict else port
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
-        self.calibration_id = args_dict['calibration_id'] if 'calibration_id' in args_dict else calibration_id
+        self.calibration_id = args_dict[
+            'calibration_id'] if 'calibration_id' in args_dict else calibration_id
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
         self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
@@ -163,7 +166,7 @@ class MainSEIMS(object):
         self.run_success = False
         self.output_dir = self.OutputDirectory
         # Read model data from MongoDB
-        self.spatialdb_name = os.path.split(self.model_dir)[1]
+        self.db_name = os.path.split(self.model_dir)[1]
         self.outlet_id = self.OutletID
         self.start_time, self.end_time = self.SimulatedPeriod
         # Data maybe used after model run
@@ -209,16 +212,16 @@ class MainSEIMS(object):
 
     @property
     def OutletID(self):
-        read_model = ReadModelData(self.host, self.port, self.spatialdb_name)
+        read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.OutletID
 
     @property
     def SimulatedPeriod(self):
-        read_model = ReadModelData(self.host, self.port, self.spatialdb_name)
+        read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.SimulationPeriod
 
     def ReadOutletObservations(self, vars_list):
-        read_model = ReadModelData(self.host, self.port, self.spatialdb_name)
+        read_model = ReadModelData(self.host, self.port, self.db_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
                                                                self.start_time, self.end_time)
         return self.obs_vars, self.obs_value
@@ -228,29 +231,60 @@ class MainSEIMS(object):
         self.obs_vars = vars_list[:]
         self.obs_value = deepcopy(vars_value)
 
-    def ReadTimeseriesSimulations(self, stime, etime):
+    def ReadTimeseriesSimulations(self, stime=None, etime=None):
         if not self.obs_vars:
             return False
+        if stime is None:
+            stime = self.start_time
+        if etime is None:
+            etime = self.end_time
         self.sim_vars, self.sim_value = read_simulation_from_txt(self.output_dir,
                                                                  self.obs_vars,
                                                                  self.outlet_id,
                                                                  stime, etime)
         if len(self.sim_vars) < 1:  # No match simulation results
             return False
-        return True
-
-    def CalcTimeseriesStatistics(self):
         self.sim_obs_dict = match_simulation_observation(self.sim_vars, self.sim_value,
                                                          self.obs_vars, self.obs_value)
-        objnames = calculate_statistics(self.sim_obs_dict)
+        return True
+
+    def ExtractSimData(self, stime=None, etime=None):
+        if stime is None and etime is None:
+            return self.sim_vars, self.sim_value
+
+        sidx = bisect.bisect_left(list(self.sim_value.keys()), stime)
+        eidx = bisect.bisect_right(list(self.sim_value.keys()), etime)
+
+        def slice_odict(odict, start=None, end=None):
+            return OrderedDict([(k, v) for (k, v) in odict.items()
+                                if k in list(odict.keys())[start:end]])
+
+        return self.sim_vars, slice_odict(self.sim_value, sidx, eidx)
+
+    def ExtractSimObsData(self, stime=None, etime=None):
+        if stime is None and etime is None:
+            return deepcopy(self.sim_obs_dict)
+        ext_dict = dict()
+        for param, values in self.sim_obs_dict.items():
+            ext_dict[param] = dict()
+            sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
+            eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
+            ext_dict[param]['UTCDATETIME'] = values['UTCDATETIME'][sidx:eidx]
+            ext_dict[param]['Obs'] = values['Obs'][sidx:eidx]
+            ext_dict[param]['Sim'] = values['Sim'][sidx:eidx]
+        return ext_dict
+
+    @staticmethod
+    def CalcTimeseriesStatistics(sim_obs_dict, stime=None, etime=None):
+        objnames = calculate_statistics(sim_obs_dict, stime, etime)
         if objnames is None:
             return None, None
         comb_vars = list()
         obj_values = list()
-        for var in self.sim_vars:
+        for var in sim_obs_dict.keys():
             for objn in objnames:
                 comb_vars.append('%s-%s' % (var, objn))
-                obj_values.append(self.sim_obs_dict[var][objn])
+                obj_values.append(sim_obs_dict[var][objn])
         return comb_vars, obj_values
 
     def ParseTimespan(self, items):
@@ -303,9 +337,9 @@ def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
         The instance of SEIMS model.
     """
     if 'scenario_id' not in modelcfg_dict:
-        modelcfg_dict['scenario_id'] = sce_id
+        modelcfg_dict['scenario_id'] = scenario_id
     if 'calibration_id' not in modelcfg_dict:
-        modelcfg_dict['calibration_id'] = cali_idx
+        modelcfg_dict['calibration_id'] = calibration_id
     model_obj = MainSEIMS(args_dict=modelcfg_dict)
     model_obj.run()
     return model_obj
