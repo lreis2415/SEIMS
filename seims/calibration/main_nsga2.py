@@ -41,16 +41,16 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 object_vars = ['Q', 'SED']
 object_names = ['NSE', 'RSR', 'PBIAS']
 step = object_vars[0]
-filter_NSE = False  # Filter scenarios which NSE less than 0 for the next generation
+filter_NSE = True  # Filter scenarios which NSE less than 0 for the next generation
 # Multiobjects definition:
 if step == 'Q':
-    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS|
+    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
     multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
-    worse_objects = [0.0001, 3., 3.]
+    worse_objects = [-100., 100., 100.]
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
     multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
-    worse_objects = [0.0001, 3., 3., 0.0001]
+    worse_objects = [-100., 100., 100., -100.]
 else:
     print('The step of calibration should be one of [Q, SED]!')
     exit(0)
