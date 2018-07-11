@@ -131,9 +131,10 @@ def main(cfg):
     up = up.tolist()
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
 
-    def evaluate_parallel(invalid_pops):
+    def evaluate_parallel(invalid_pops, gen=0):
         """Evaluate model by SCOOP or map, and set fitness of individuals
          according to calibration step."""
+        eva_stime = time.time()
         popnum = len(invalid_pops)
         try:  # parallel on multi-processors or clusters using SCOOP
             from scoop import futures
@@ -146,7 +147,8 @@ def main(cfg):
             elif step == 'SED':  # Step 2 Calibrating sediment
                 tmpind.fitness.values = tmpind.cali.efficiency_values('SED', object_names) + \
                                         [tmpind.cali.efficiency_values('Q', object_names)[0]]
-
+        print_message('Timespan of evaluating models: '
+                      'Generation %d, %.3f' % (gen, time.time() - eva_stime))
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
@@ -205,7 +207,7 @@ def main(cfg):
         write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
                                       cali_obj.ParamDefs, param_values)
         # print_message('Evaluate pop size: %d' % invalid_ind_size)
-        invalid_ind = evaluate_parallel(invalid_ind)
+        invalid_ind = evaluate_parallel(invalid_ind, gen=gen)
         # Select the next generation population
         tmp_pop = list()
         gen_idx = list()
@@ -270,15 +272,16 @@ def main(cfg):
 if __name__ == "__main__":
     cf, method = get_cali_config()
     cfg = CaliConfig(cf, method=method)
-    # print(cfg)
 
     print_message('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
+
     fpop, fstats = main(cfg)
+
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
     with open(cfg.opt.logbookfile, 'w') as f:
         f.write(fstats.__str__())
-
     endT = time.time()
+    print_message('### END OF CALIBRATION OPTIMIZING ###')
     print_message('Running time: %.2fs' % (endT - startT))
