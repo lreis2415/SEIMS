@@ -64,23 +64,23 @@ class MorrisConfig(object):
         self.optimal_t = None
         self.local_opt = True
         section_name = 'Morris_Method'
-        if section_name in cf.sections():
-            if cf.has_option(section_name, 'n'):
-                self.N = cf.getint(section_name, 'n')
-            if cf.has_option(section_name, 'num_levels'):
-                self.num_levels = cf.getint(section_name, 'num_levels')
-            if cf.has_option(section_name, 'grid_jump'):
-                self.grid_jump = cf.getint(section_name, 'grid_jump')
-            if cf.has_option(section_name, 'optimal_trajectories'):
-                tmp_opt_t = cf.get(section_name, 'optimal_trajectories')
-                if not StringClass.string_match(tmp_opt_t, 'none'):
-                    self.optimal_t = cf.getint(section_name, 'optimal_trajectories')
-                    if self.optimal_t > self.N or self.optimal_t < 2:
-                        self.optimal_t = None
-            if cf.has_option(section_name, 'local_optimization'):
-                self.local_opt = cf.getboolean(section_name, 'local_optimization')
-        else:
+        if section_name not in cf.sections():
             raise ValueError('[%s] section MUST be existed in *.ini file.' % section_name)
+
+        if cf.has_option(section_name, 'n'):
+            self.N = cf.getint(section_name, 'n')
+        if cf.has_option(section_name, 'num_levels'):
+            self.num_levels = cf.getint(section_name, 'num_levels')
+        if cf.has_option(section_name, 'grid_jump'):
+            self.grid_jump = cf.getint(section_name, 'grid_jump')
+        if cf.has_option(section_name, 'optimal_trajectories'):
+            tmp_opt_t = cf.get(section_name, 'optimal_trajectories')
+            if not StringClass.string_match(tmp_opt_t, 'none'):
+                self.optimal_t = cf.getint(section_name, 'optimal_trajectories')
+                if self.optimal_t > self.N or self.optimal_t < 2:
+                    self.optimal_t = None
+        if cf.has_option(section_name, 'local_optimization'):
+            self.local_opt = cf.getboolean(section_name, 'local_optimization')
 
 
 class FASTConfig(object):
@@ -92,14 +92,15 @@ class FASTConfig(object):
         self.N = 64
         self.M = 4
         section_name = 'FAST_Method'
-        if section_name in cf.sections():
-            self.param_range_def = cf.get(section_name, 'paramrngdef')
-            if cf.has_option(section_name, 'n'):
-                self.N = cf.getint(section_name, 'n')
-            if cf.has_option(section_name, 'm'):
-                self.M = cf.getint(section_name, 'm')
-        else:
+        if section_name not in cf.sections():
             raise ValueError('[%s] section MUST be existed in *.ini file.' % section_name)
+
+        self.param_range_def = cf.get(section_name, 'paramrngdef')
+        if cf.has_option(section_name, 'n'):
+            self.N = cf.getint(section_name, 'n')
+        if cf.has_option(section_name, 'm'):
+            self.M = cf.getint(section_name, 'm')
+
         if self.N <= 4 * self.M ** 2:
             raise ValueError('Sample size N > 4M^2 is required for FAST method. M=4 by default.')
 
@@ -126,46 +127,10 @@ class PSAConfig(object):
         self.method = method
         # 1. SEIMS model related
         self.model = ParseSEIMSConfig(cf)
-        # # 1. MongoDB
-        # self.hostname = '127.0.0.1'  # localhost by default
-        # self.port = 27017
-        # self.spatial_db = ''
-        # if 'MONGODB' in cf.sections():
-        #     self.hostname = cf.get('MONGODB', 'hostname')
-        #     self.port = cf.getint('MONGODB', 'port')
-        #     self.spatial_db = cf.get('MONGODB', 'spatialdbname')
-        # else:
-        #     raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
-        # if not StringClass.is_valid_ip_addr(self.hostname):
-        #     raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
-        #
-        # # 2. SEIMS_Model
-        # self.seims_bin = ''
-        # self.model_dir = ''
-        # self.seims_version = 'OMP'
-        # self.mpi_bin = None
-        # self.hosts_opt = None
-        # self.hostfile = None
-        # self.seims_nprocess = 1
-        # self.seims_nthread = 1
-        # self.seims_lyrmethod = 0
-        # if 'SEIMS_Model' not in cf.sections():
-        #     raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
-        # self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
-        # self.model_dir = cf.get('SEIMS_Model', 'model_dir')
-        # self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
-        # self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
-        # if cf.has_option('SEIMS_Model', 'version'):
-        #     self.seims_version = cf.get('SEIMS_Model', 'version')
-        # if cf.has_option('SEIMS_Model', 'mpi_bin'):
-        #     self.mpi_bin = cf.get('SEIMS_Model', 'mpi_bin')
-        # if cf.has_option('SEIMS_Model', 'hostopt'):
-        #     self.hosts_opt = cf.get('SEIMS_Model', 'hostopt')
-        # if cf.has_option('SEIMS_Model', 'hostfile'):
-        #     self.hostfile = cf.get('SEIMS_Model', 'hostfile')
-        # if cf.has_option('SEIMS_Model', 'processnum'):
-        #     self.seims_nprocess = cf.getint('SEIMS_Model', 'processnum')
         # 2. Common settings of parameters sensitivity analysis
+        if 'PSA_Settings' not in cf.sections():
+            raise ValueError("[PSA_Settings] section MUST be existed in *.ini file.")
+
         self.evaluate_params = list()
         if cf.has_option('PSA_Settings', 'evaluate_param'):
             eva_str = cf.get('PSA_Settings', 'evaluate_param')
@@ -178,10 +143,8 @@ class PSAConfig(object):
             self.param_range_def = cf.get('PSA_Settings', 'paramrngdef')
         self.param_range_def = self.model.model_dir + os.path.sep + self.param_range_def
         if not FileClass.is_file_exists(self.param_range_def):
-            raise IOError('Parameters range definition MUST be provided!')
+            raise IOError('Ranges of parameters MUST be provided!')
 
-        if 'PSA_Settings' not in cf.sections():
-            raise ValueError("[PSA_Settings] section MUST be existed in *.ini file.")
         if not (cf.has_option('PSA_Settings', 'psa_time_start') and
                 cf.has_option('PSA_Settings', 'psa_time_end')):
             raise ValueError("Start and end time of PSA MUST be specified in [PSA_Settings].")
