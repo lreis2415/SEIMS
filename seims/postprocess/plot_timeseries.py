@@ -217,8 +217,8 @@ class TimeSeriesPlots(object):
                          align='center')
             ax2.set_ylim(float(max(preci)) * 1.8, float(min(preci)) * 0.8)
             # draw a dash line to separate calibration and validation period
-            delta_dt = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) / 9
-            delta_dt2 = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) / 35
+            delta_dt = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) // 9
+            delta_dt2 = (self.sim_data_value[-1][0] - self.sim_data_value[0][0]) // 35
             # by default, separate time line is the end of calibration period
             sep_time = self.etime
             time_pos = [sep_time - delta_dt]

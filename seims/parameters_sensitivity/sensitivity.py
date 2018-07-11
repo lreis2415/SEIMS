@@ -242,7 +242,7 @@ class Sensitivity(object):
         input_eva_vars = self.cfg.evaluate_params
 
         # split tasks if needed
-        task_num = int(math.floor(self.run_count / 1000))
+        task_num = self.run_count // 1000
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -280,7 +280,7 @@ class Sensitivity(object):
                 # Read simulation
                 mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
                 # Calculate NSE, R2, RMSE, PBIAS, RSR, ln(NSE), NSE1, and NSE3
-                self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics()
+                self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics(mod_obj.sim_obs_dict)
                 eva_values.append(obj_values)
                 # delete model output directory for saving storage
                 rmtree(mod_obj.output_dir)
