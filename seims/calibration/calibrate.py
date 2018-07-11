@@ -196,9 +196,10 @@ def calibration_objectives(cali_obj, ind):
     model_obj.obs_value = deepcopy(ind.obs.data)
 
     run_flag = model_obj.run()
-    if not run_flag:
-        return ind
+    # if not run_flag:  # DO NOT return according to the run_flag.
+    #     return ind
     time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+
     # read simulation data of the entire simulation period (include calibration and validation)
     if model_obj.ReadTimeseriesSimulations():
         ind.sim.vars = model_obj.sim_vars[:]
