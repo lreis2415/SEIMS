@@ -132,8 +132,8 @@ class PSAConfig(object):
             raise ValueError("[PSA_Settings] section MUST be existed in *.ini file.")
 
         self.evaluate_params = list()
-        if cf.has_option('PSA_Settings', 'evaluate_param'):
-            eva_str = cf.get('PSA_Settings', 'evaluate_param')
+        if cf.has_option('PSA_Settings', 'evaluateparam'):
+            eva_str = cf.get('PSA_Settings', 'evaluateparam')
             self.evaluate_params = StringClass.split_string(eva_str, ',')
         else:
             self.evaluate_params = ['Q']  # Default
