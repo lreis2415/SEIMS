@@ -30,17 +30,17 @@ public:
      * \param[in] startTime \a time_t, start date time
      * \param[in] endTime \a time_t, end date time
      */
-    Measurement(MongoClient* conn, string& hydroDBName, string& sitesList, string& siteType,
+    Measurement(MongoClient* conn, const string& hydroDBName, const string& sitesList, const string& siteType,
                 time_t startTime, time_t endTime);
 
     //! Destructor
-    virtual ~Measurement();
+    ~Measurement();
 
     //! Get site data by time
     virtual float* GetSiteDataByTime(time_t t) = 0;
 
     //! Get Number of site
-    int NumberOfSites() const { return int(m_siteIDList.size()); }
+    int NumberOfSites() const { return CVT_INT(m_siteIDList.size()); }
 
     //! Get HydroClimate site type, "M" or "P"
     string Type() const { return m_type; }

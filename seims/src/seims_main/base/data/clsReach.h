@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Update reach/channel parameters according to calibration settings
      */
-    void Update(const map<string, ParamInfo *>& caliparams_map);
+    void Update(map<string, ParamInfo *>& caliparams_map);
 
 private:
     /// reaches number

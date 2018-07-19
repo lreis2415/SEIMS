@@ -3,13 +3,14 @@
 #include "text.h"
 
 IMP_SWAT::IMP_SWAT() :
-    m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-    m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_rteLyrs(nullptr), m_nRteLyrs(-1),
-    m_subbasin(nullptr), m_nSubbasins(-1),
-    m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr), m_soilThick(nullptr),
-    m_sol_por(nullptr),
-    m_evLAI(NODATA_VALUE), m_potTilemm(NODATA_VALUE), m_potNo3Decay(NODATA_VALUE),
+    m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE), m_timestep(-1),
+    m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_subbasin(nullptr), m_nSubbasins(-1),
+    m_rteLyrs(nullptr), m_nRteLyrs(-1),
+    m_evLAI(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr),
+    m_soilThick(nullptr),
+    m_sol_por(nullptr), m_potTilemm(0.f), m_potNo3Decay(NODATA_VALUE),
     m_potSolPDecay(NODATA_VALUE),
+<<<<<<< HEAD
     m_impoundTrig(nullptr), m_dvs(nullptr),
     m_sedYield(nullptr), m_sandYield(nullptr), m_siltYield(nullptr), m_clayYield(nullptr),
     m_smaggreYield(nullptr), m_lgaggreYield(nullptr),
@@ -27,6 +28,23 @@ IMP_SWAT::IMP_SWAT() :
     /// irr
     m_irrDepth(nullptr), m_pond(nullptr), m_chStorage(nullptr), m_pondID1(nullptr), m_pondID2(nullptr),
     m_pondID3(nullptr), m_reachID(nullptr), m_paddyNum(-1), m_pondVol(nullptr), m_embnkfr_pr(0.15f),
+=======
+    m_kVolat(NODATA_VALUE),
+    m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE), m_impoundTrig(nullptr), m_potArea(nullptr),
+    m_LAIDay(nullptr), m_pet(nullptr),
+    m_depEvapor(nullptr), m_depStorage(nullptr), m_surfaceRunoff(nullptr), m_sedYield(nullptr), m_sandYield(nullptr),
+    m_siltYield(nullptr),
+    m_clayYield(nullptr), m_smaggreYield(nullptr), m_lgaggreYield(nullptr), m_soilStorage(nullptr),
+    m_soilStorageProfile(nullptr),
+    m_surqNo3(nullptr), m_surqNH4(nullptr), m_surqSolP(nullptr), m_surqCOD(nullptr),
+    m_sedOrgN(nullptr), m_sedOrgP(nullptr), m_sedActiveMinP(nullptr), m_sedStableMinP(nullptr), m_potNo3(nullptr),
+    m_potNH4(nullptr),
+    m_potOrgN(nullptr), m_potSolP(nullptr), m_potOrgP(nullptr), m_potActMinP(nullptr), m_potStaMinP(nullptr),
+    m_potSed(nullptr), m_potSand(nullptr),
+    m_potSilt(nullptr), m_potClay(nullptr), m_potSag(nullptr), m_potLag(nullptr), m_potVol(nullptr),
+    m_potVolMax(nullptr),
+    m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
+>>>>>>> dev
     /// overland to channel
     m_surfqToCh(nullptr), m_sedToCh(nullptr), m_surNO3ToCh(nullptr), m_surNH4ToCh(nullptr),
     m_surSolPToCh(nullptr), m_surCodToCh(nullptr),
@@ -335,7 +353,7 @@ int IMP_SWAT::Execute() {
     CheckInputData();
     InitialOutputs();
 
-    for (int ilyr = 0; ilyr < m_nRteLyrs; ++ilyr) {
+    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
@@ -360,7 +378,7 @@ int IMP_SWAT::Execute() {
     }
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
 #pragma omp parallel for
-    for (int i = 0; i < m_nSubbasins + 1; i++) {
+    for (int i = 0; i <= m_nSubbasins; i++) {
         m_surfqToCh[i] = 0.f;
         m_sedToCh[i] = 0.f;
         m_surNO3ToCh[i] = 0.f;
@@ -438,7 +456,7 @@ int IMP_SWAT::Execute() {
         delete[] tmp_minps2ch;
     } /* END of #pragma omp parallel */
 
-    for (int i = 1; i < m_nSubbasins + 1; i++) {
+    for (int i = 1; i <= m_nSubbasins; i++) {
         m_surfqToCh[0] += m_surfqToCh[i];
         m_sedToCh[0] += m_sedToCh[i];
         m_surNO3ToCh[0] += m_surNO3ToCh[i];

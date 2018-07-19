@@ -167,7 +167,7 @@ public:
 
     /************ INPUT PARAMETERS FROM OTHER MODULES ************/
 
-    int GetInputCount() { return int(m_vInputs.size()); }
+    int GetInputCount() { return CVT_INT(m_vInputs.size()); }
 
     int AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType,
                  transferTypes tfType = TF_Whole);
@@ -198,7 +198,7 @@ public:
 
     /************ OUTPUT PARAMETERS ************/
 
-    int GetOutputCount() { return int(m_vOutputs.size()); }
+    int GetOutputCount() { return CVT_INT(m_vOutputs.size()); }
 
     int AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
                   transferTypes tfType = TF_Whole);
@@ -227,7 +227,7 @@ public:
 
     /************ IN/OUTPUT PARAMETERS ************/
 
-    int GetInOutputCount() { return int(m_vInOutputs.size()); }
+    int GetInOutputCount() { return CVT_INT(m_vInOutputs.size()); }
 
     int AddInOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
                     transferTypes tfType = TF_Whole);
@@ -258,7 +258,7 @@ public:
 
     /************ PARAMETERS FROM DATABASE ************/
 
-    int GetParameterCount() { return int(m_vParameters.size()); }
+    int GetParameterCount() { return CVT_INT(m_vParameters.size()); }
 
     int AddParameter(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType);
 
@@ -288,7 +288,7 @@ public:
 
     /************ DEPENDENT MODULES ************/
 
-    int GetDependencyCount() { return int(m_vDependencies.size()); }
+    int GetDependencyCount() { return CVT_INT(m_vDependencies.size()); }
 
     int AddDependency(const char* name, const char* description);
 

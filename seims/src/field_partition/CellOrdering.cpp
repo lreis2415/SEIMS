@@ -236,7 +236,11 @@ void CellOrdering::BuildField(int id, Field *pfield) {
             pfield->AddInFieldID(FID);                  // set relationship of the fields
             qfield->AddCellintoField(m_cells[child]);
             qfield->SetLanduseCode(LC);
+#ifdef HAS_VARIADIC_TEMPLATES
+            m_mapfields.emplace(FID, qfield);
+#else
             m_mapfields.insert(make_pair(FID, qfield));
+#endif
             BuildField(child, qfield);
         }
     }
@@ -526,7 +530,11 @@ void CellOrdering::BuildFieldsTree(int iOutlet, int jOutlet) {
     pfield->SetOutFieldID(0);        /// outfieldID of outlet field is 0
     pfield->AddCellintoField(m_cells[id]);
     pfield->SetLanduseCode(m_cells[id]->GetLanduseCode());
+#ifdef HAS_VARIADIC_TEMPLATES
+    if (!m_mapfields.emplace(1, pfield).second) exit(-1);
+#else
     if (!m_mapfields.insert(make_pair(1, pfield)).second) exit(-1);
+#endif
     cout << "\t\tFrom the children of the outlet to recursively trace upstream to build fields tree" << endl;
     BuildField(id, pfield);  // rootcellid, rootfield
     cout << "\t\t\tTotally " << m_mapfields.size() << " fields has been generated" << endl;

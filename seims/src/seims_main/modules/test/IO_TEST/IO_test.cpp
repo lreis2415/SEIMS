@@ -2,10 +2,11 @@
 
 #include "text.h"
 
-IO_TEST::IO_TEST() : m_nCells(-1), m_soilLayers(-1), m_nSoilLayrs(nullptr),
-                     m_raster1D(nullptr), m_raster2D(nullptr),
-                     m_scenario(nullptr), m_reaches(nullptr),
-                     m_output1Draster(nullptr), m_output2Draster(nullptr) {
+IO_TEST::IO_TEST() :
+    m_nCells(-1), m_raster1D(nullptr), m_soilLayers(-1),
+    m_nSoilLayrs(nullptr), m_raster2D(nullptr),
+    m_output1Draster(nullptr), m_output2Draster(nullptr),
+    m_scenario(nullptr), m_reaches(nullptr) {
 }
 
 IO_TEST::~IO_TEST() {
@@ -14,14 +15,14 @@ IO_TEST::~IO_TEST() {
     // NOTE: m_scenario and m_reaches will be released in DataCenter!
 }
 
-void IO_TEST::Set1DData(const char *key, int n, float *data) {
+void IO_TEST::Set1DData(const char* key, int n, float* data) {
     if (!CheckInputSize(key, n)) return;
     string sk(key);
     if (StringMatch(sk, VAR_CN2)) { m_raster1D = data; }
     if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayrs = data; }
 }
 
-void IO_TEST::Set2DData(const char *key, int n, int col, float **data) {
+void IO_TEST::Set2DData(const char* key, int n, int col, float** data) {
     string sk(key);
     if (!CheckInputSize(key, n)) return;
     if (StringMatch(sk, VAR_CONDUCT)) {
@@ -30,21 +31,20 @@ void IO_TEST::Set2DData(const char *key, int n, int col, float **data) {
     }
 }
 
-void IO_TEST::SetScenario(bmps::Scenario *sce) {
+void IO_TEST::SetScenario(bmps::Scenario* sce) {
     if (nullptr != sce) { m_scenario = sce; }
 }
 
-void IO_TEST::SetReaches(clsReaches *reaches) {
+void IO_TEST::SetReaches(clsReaches* reaches) {
     if (nullptr != reaches) { m_reaches = reaches; }
 }
 
-bool IO_TEST::CheckInputSize(const char *key, int n) {
+bool IO_TEST::CheckInputSize(const char* key, int n) {
     CHECK_POSITIVE("IO_TEST", n);
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; }
-        else {
+        if (m_nCells <= 0) { m_nCells = n; } else {
             throw ModelException("IO_TEST", "CheckInputSize", "Input data for " + string(key) +
-                " is invalid. All the input data should have same size.");
+                                 " is invalid. All the input data should have same size.");
         }
     }
     return true;
@@ -80,7 +80,7 @@ int IO_TEST::Execute() {
     return 0;
 }
 
-void IO_TEST::Get1DData(const char *key, int *n, float **data) {
+void IO_TEST::Get1DData(const char* key, int* n, float** data) {
     string sk(key);
     if (StringMatch(sk, "CN2_M")) {
         *data = this->m_output1Draster;
@@ -88,7 +88,7 @@ void IO_TEST::Get1DData(const char *key, int *n, float **data) {
     }
 }
 
-void IO_TEST::Get2DData(const char *key, int *n, int *col, float ***data) {
+void IO_TEST::Get2DData(const char* key, int* n, int* col, float*** data) {
     string sk(key);
     if (StringMatch(sk, "K_M")) {
         *data = this->m_output2Draster;

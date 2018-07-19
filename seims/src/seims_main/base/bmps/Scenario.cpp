@@ -11,7 +11,7 @@ Scenario::Scenario(MongoClient* conn, const string& dbName, int subbsnID /* = 0 
 
 Scenario::~Scenario() {
     StatusMessage("Releasing Scenario...");
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end();) {
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end();) {
         if (nullptr != it->second) {
             delete it->second;
             it->second = nullptr;
@@ -73,7 +73,8 @@ void Scenario::loadBMPs() {
     bson_t* query = bson_new();
     BSON_APPEND_INT32(query, FLD_SCENARIO_ID, m_sceneID);
     //cout<<bson_as_json(query, NULL)<<endl;
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
+    std::unique_ptr<MongoCollection>
+            collection(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_SCENARIO)));
     std::unique_ptr<MongoCollection> collbmpidx(new MongoCollection(m_conn->GetCollection(m_bmpDBName, TAB_BMP_INDEX)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
 
@@ -102,7 +103,11 @@ void Scenario::loadBMPs() {
         if (dist.size() >= 2 && StringMatch(dist[0], FLD_SCENARIO_DIST_RASTER)) {
             string gridfs_name = ValueToString(m_subbsnID) + "_" + GetUpper(dist[1]);
             if (m_sceneRsMap.find(gridfs_name) == m_sceneRsMap.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+                m_sceneRsMap.emplace(gridfs_name, nullptr);
+#else
                 m_sceneRsMap.insert(make_pair(gridfs_name, nullptr));
+#endif
             }
             dist[1] = gridfs_name;
         }
@@ -133,27 +138,58 @@ void Scenario::loadBMPs() {
         mongoc_cursor_destroy(cursor2);
         /// Combine BMPID, and SubScenario for a unique ID to identify "different" BMP
         int uniqueBMPID = BMPID * 100000 + subScenario;
-        if (this->m_bmpFactories.find(uniqueBMPID) == this->m_bmpFactories.end()) {
+        if (m_bmpFactories.find(uniqueBMPID) == m_bmpFactories.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
             if (BMPID == BMP_TYPE_POINTSOURCE) {
-                this->m_bmpFactories[uniqueBMPID] = new BMPPointSrcFactory(m_sceneID, BMPID, subScenario, BMPType,
-                                                                           BMPPriority, dist,
-                                                                           collectionName, location);
+                m_bmpFactories.emplace(uniqueBMPID,
+                                       new BMPPointSrcFactory(m_sceneID, BMPID, subScenario,
+                                                              BMPType, BMPPriority, dist,
+                                                              collectionName, location));
             }
             if (BMPID == BMP_TYPE_PLANT_MGT) {
-                this->m_bmpFactories[uniqueBMPID] = new BMPPlantMgtFactory(m_sceneID, BMPID, subScenario, BMPType,
-                                                                           BMPPriority, dist,
-                                                                           collectionName, location);
+                m_bmpFactories.emplace(uniqueBMPID,
+                                       new BMPPlantMgtFactory(m_sceneID, BMPID, subScenario,
+                                                              BMPType, BMPPriority, dist,
+                                                              collectionName, location));
             }
             if (BMPID == BMP_TYPE_AREALSOURCE) {
-                this->m_bmpFactories[uniqueBMPID] = new BMPArealSrcFactory(m_sceneID, BMPID, subScenario, BMPType,
-                                                                           BMPPriority, dist,
-                                                                           collectionName, location);
+                m_bmpFactories.emplace(uniqueBMPID,
+                                       new BMPArealSrcFactory(m_sceneID, BMPID, subScenario,
+                                                              BMPType, BMPPriority, dist,
+                                                              collectionName, location));
             }
             if (BMPID == BMP_TYPE_AREALSTRUCT) {
-                this->m_bmpFactories[uniqueBMPID] = new BMPArealStructFactory(m_sceneID, BMPID, subScenario, BMPType,
-                                                                              BMPPriority, dist,
-                                                                              collectionName, location);
+                m_bmpFactories.emplace(uniqueBMPID,
+                                       new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
+                                                                 BMPType, BMPPriority, dist,
+                                                                 collectionName, location));
             }
+#else
+            if (BMPID == BMP_TYPE_POINTSOURCE) {
+                m_bmpFactories.insert(make_pair(uniqueBMPID,
+                                                new BMPPointSrcFactory(m_sceneID, BMPID, subScenario,
+                                                                       BMPType, BMPPriority, dist,
+                                                                       collectionName, location)));
+            }
+            if (BMPID == BMP_TYPE_PLANT_MGT) {
+                m_bmpFactories.insert(make_pair(uniqueBMPID,
+                                                new BMPPlantMgtFactory(m_sceneID, BMPID, subScenario,
+                                                                       BMPType, BMPPriority, dist,
+                                                                       collectionName, location)));
+            }
+            if (BMPID == BMP_TYPE_AREALSOURCE) {
+                m_bmpFactories.insert(make_pair(uniqueBMPID,
+                                                new BMPArealSrcFactory(m_sceneID, BMPID, subScenario,
+                                                                       BMPType, BMPPriority, dist,
+                                                                       collectionName, location)));
+            }
+            if (BMPID == BMP_TYPE_AREALSTRUCT) {
+                m_bmpFactories.insert(make_pair(uniqueBMPID,
+                                                new BMPArealStructFactory(m_sceneID, BMPID, subScenario,
+                                                                          BMPType, BMPPriority, dist,
+                                                                          collectionName, location)));
+            }
+#endif
         }
     }
     bson_destroy(query);
@@ -161,7 +197,7 @@ void Scenario::loadBMPs() {
 }
 
 void Scenario::loadBMPDetail() {
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ++it) {
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); ++it) {
         it->second->loadBMP(m_conn, m_bmpDBName);
     }
 }
@@ -177,10 +213,10 @@ void Scenario::Dump(string& fileName) {
 
 void Scenario::Dump(ostream* fs) {
     if (fs == nullptr) return;
-    *fs << "Scenario ID:" << this->m_sceneID << endl;
-    *fs << "Name:" << this->m_name << endl;
+    *fs << "Scenario ID:" << m_sceneID << endl;
+    *fs << "Name:" << m_name << endl;
     *fs << "*** All the BMPs ***" << endl;
-    for (auto it = this->m_bmpFactories.begin(); it != this->m_bmpFactories.end(); ++it) {
+    for (auto it = m_bmpFactories.begin(); it != m_bmpFactories.end(); ++it) {
         if (it->second != nullptr) it->second->Dump(fs);
     }
 }
@@ -191,5 +227,4 @@ void Scenario::setRasterForEachBMP() {
         it->second->setRasterData(m_sceneRsMap);
     }
 }
-
 } /* MainBMP */

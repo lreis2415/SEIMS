@@ -16,7 +16,7 @@ AET_PT_H::AET_PT_H() :
     m_snowAccum(nullptr), m_snowSublim(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
     /// output
-    m_maxPltET(nullptr), m_soilET(nullptr), m_no3Up(0.f) {
+    m_maxPltET(nullptr), m_soilET(nullptr) {
 }
 
 AET_PT_H::~AET_PT_H() {
@@ -183,129 +183,124 @@ int AET_PT_H::Execute() {
         float no3up = 0.f, es_max = 0.f, eos1 = 0.f, xx = 0.f;
         float cej = 0.f, eaj = 0.f, pet = 0.f, esleft = 0.f;
         float evzp = 0.f, eosl = 0.f, dep = 0.f, evz = 0.f, sev = 0.f;
-        pet = m_pet[i] - m_IntcpET[i];
+        pet = m_pet[i] - m_IntcpET[i]; /// Actually, m_IntcpET has been compared with m_pet in other module.
         esd = 500.f;
         etco = 0.8f;
         effnup = 0.1f;
 
         if (pet < UTIL_ZERO) {
-            pet = 0.f;
-            m_maxPltET[i] = 0.f; // i.e., ep_max
-            es_max = 0.f;
+            m_maxPltET[i] = 0.f; // i.e., ep_max in SWAT
+            m_soilET[i] = 0.f;   // i.e., es_max in SWAT
+            continue;
+        }
+        /// compute potential plant evapotranspiration (PPT) other than Penman-Monteith method
+        if (m_lai[i] <= 3.f) {
+            m_maxPltET[i] = m_lai[i] * pet * _1div3;
         } else {
-            if ((CVT_INT(m_landuse[i]) == LANDUSE_ID_PADDY) && (m_cropsta != nullptr) && (m_cropsta[i] == 4.f)){
-                // if the cell is paddy and rice in main field
-                // add oryza method to compute soil evaporation and crop transpiration, by sf 2017.11.29
-                es_max = ORYZA_maxPET(pet, i);
-            }
-            else{
-                es_max = SWAT_maxPET(pet, i);
-            }
-            
-            /// initialize soil evaporation variables
-            esleft = es_max;
-            /// compute sublimation, using the input m_snowSB from snow sublimation module, if not provided, initialized as 0
-            if (m_tMean[i] > 0.f) {
-                if (m_snowAccum[i] >= esleft) {
-                    /// take all soil evap from snow cover
-                    m_snowAccum[i] -= esleft;
-                    m_snowSublim[i] += esleft;
-                    esleft = 0.f;
-                } else {
-                    /// take all soil evap from snow cover then start taking from soil
-                    esleft -= m_snowAccum[i];
-                    m_snowSublim[i] += m_snowAccum[i];
-                    m_snowAccum[i] = 0.f;
-                }
-            }
+            m_maxPltET[i] = pet;
+        }
+        if (m_maxPltET[i] < 0.f) m_maxPltET[i] = 0.f;
+        /// compute potential soil evaporation
+        cej = -5.e-5f;
+        eaj = 0.f;
+        es_max = 0.f; ///maximum amount of evaporation (soil et)
+        eos1 = 0.f;
+        if (m_snowAccum[i] >= 0.5f) {
+            eaj = 0.5f;
+        } else {
+            eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
+        }
+        es_max = pet * eaj;
+        eos1 = pet / (es_max + m_maxPltET[i] + 1.e-10f);
+        eos1 = es_max * eos1;
+        es_max = Min(es_max, eos1);
+        es_max = Max(es_max, 0.f);
+        /// make sure maximum plant and soil ET doesn't exceed potential ET
+        if (pet < es_max + m_maxPltET[i] && !FloatEqual(es_max + m_maxPltET[i], 0.f)) {
+            es_max = pet * es_max / (es_max + m_maxPltET[i]);
+            m_maxPltET[i] = pet * m_maxPltET[i] / (es_max + m_maxPltET[i]);
+        }
+        if (pet < es_max + m_maxPltET[i]) {
+            es_max = pet - m_maxPltET[i] - UTIL_ZERO;
+        }
 
-            //if (FloatEqual(m_impoundTrig[i], 0.f)){
-            //	// for impound paddy rice, source of water for evaporation can from pot and soil, by sf 2017.11.29
-            //	if (m_potVol[i] >= esleft){
-            //		/// take all soil evap from pot
-            //		m_potVol[i] -= esleft;
-            //		esleft = 0.f;
-            //	}
-            //	else{
-            //		/// first taking from pot then start taking from soil
-            //		esleft -= m_potVol[i];
-            //		m_potVol[i] = 0.f;			
-            //	}
-            //}
-
-            // take soil evap from each soil layer
-            evzp = 0.f;
-            eosl = esleft;
-            for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
-                dep = 0.f;
-                /// depth exceeds max depth for soil evap (esd, by default 500 mm)
-                if (ly == 0) {
-                    dep = m_soilDepth[i][ly];
-                } else {
-                    dep = m_soilDepth[i][ly - 1];
-                }
-                if (dep < esd) {
-                    /// calculate evaporation from soil layer
-                    evz = 0.f;
-                    sev = 0.f;
-                    xx = 0.f;
-                    evz = eosl * m_soilDepth[i][ly] /
-                            (m_soilDepth[i][ly] + exp(2.374f - 0.00713f * m_soilDepth[i][ly]));
-                    sev = evz - evzp * m_esco[i];
-                    evzp = evz;
-                    if (m_soilWtrSto[i][ly] < m_solFC[i][ly]) {
-                        xx = 2.5f * (m_soilWtrSto[i][ly] - m_solFC[i][ly]) / m_solFC[i][ly]; /// non dimension
-                        sev *= Expo(xx);
-                    }
-                    sev = Min(sev, m_soilWtrSto[i][ly] * etco);
-                    if (sev < 0.f || sev != sev) sev = 0.f;
-                    if (sev > esleft) sev = esleft;
-                    /// adjust soil storage, potential evap
-                    if (m_soilWtrSto[i][ly] > sev) {
-                        esleft -= sev;
-                        m_soilWtrSto[i][ly] = Max(UTIL_ZERO, m_soilWtrSto[i][ly] - sev);
-                    } else {
-                        esleft -= m_soilWtrSto[i][ly];
-                        m_soilWtrSto[i][ly] = 0.f;
-                    }
-                }
-                /// compute no3 flux from layer 2 to 1 by soil evaporation
-                if (ly == 1) {
-                    /// index of layer 2 is 1 (soil surface, 10mm)
-                    no3up = 0.f;
-                    no3up = effnup * sev * m_solNo3[i][ly] / (m_soilWtrSto[i][ly] + UTIL_ZERO);
-                    no3up = Min(no3up, m_solNo3[i][ly]);
-                    m_no3Up += no3up / m_nCells;
-                    m_solNo3[i][ly] -= no3up;
-                    m_solNo3[i][ly - 1] += no3up;
-                }
-            }
-            /// update total soil water content
-            m_soilWtrStoPrfl[i] = 0.f;
-            for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
-                m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
-            }
-            /// calculate actual amount of evaporation from soil
-            //if (esleft != esleft || es_max != es_max)
-            //	cout<<"esleft: "<<esleft<<", es_max: "<<es_max<<endl;
-            if (es_max > esleft) {
-                m_soilET[i] = es_max - esleft;
+        /// initialize soil evaporation variables
+        esleft = es_max;
+        /// compute sublimation, using the input m_snowSB from snow sublimation module, if not provided, initialized as 0
+        if (m_tMean[i] > 0.f) {
+            if (m_snowAccum[i] >= esleft) {
+                /// take all soil evap from snow cover
+                m_snowAccum[i] -= esleft;
+                m_snowSublim[i] += esleft;
+                esleft = 0.f;
             } else {
-                m_soilET[i] = 0.f;
+                /// take all soil evap from snow cover then start taking from soil
+                esleft -= m_snowAccum[i];
+                m_snowSublim[i] += m_snowAccum[i];
+                m_snowAccum[i] = 0.f;
             }
         }
+        // take soil evap from each soil layer
+        evzp = 0.f;
+        eosl = esleft;
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+            dep = 0.f;
+            /// depth exceeds max depth for soil evap (esd, by default 500 mm)
+            if (ly == 0) {
+                dep = m_soilDepth[i][ly];
+            } else {
+                dep = m_soilDepth[i][ly - 1];
+            }
+            if (dep < esd) {
+                /// calculate evaporation from soil layer
+                evz = 0.f;
+                sev = 0.f;
+                xx = 0.f;
+                evz = eosl * m_soilDepth[i][ly] /
+                        (m_soilDepth[i][ly] + exp(2.374f - 0.00713f * m_soilDepth[i][ly]));
+                sev = evz - evzp * m_esco[i];
+                evzp = evz;
+                if (m_soilWtrSto[i][ly] < m_solFC[i][ly]) {
+                    xx = 2.5f * (m_soilWtrSto[i][ly] - m_solFC[i][ly]) / m_solFC[i][ly]; /// non dimension
+                    sev *= Expo(xx);
+                }
+                sev = Min(sev, m_soilWtrSto[i][ly] * etco);
+                if (sev < 0.f || sev != sev) sev = 0.f;
+                if (sev > esleft) sev = esleft;
+                /// adjust soil storage, potential evap
+                if (m_soilWtrSto[i][ly] > sev) {
+                    esleft -= sev;
+                    m_soilWtrSto[i][ly] = Max(UTIL_ZERO, m_soilWtrSto[i][ly] - sev);
+                } else {
+                    esleft -= m_soilWtrSto[i][ly];
+                    m_soilWtrSto[i][ly] = 0.f;
+                }
+            }
+            /// compute no3 flux from layer 2 to 1 by soil evaporation
+            if (ly == 1) {
+                /// index of layer 2 is 1 (soil surface, 10mm)
+                no3up = 0.f;
+                no3up = effnup * sev * m_solNo3[i][ly] / (m_soilWtrSto[i][ly] + UTIL_ZERO);
+                no3up = Min(no3up, m_solNo3[i][ly]);
+                m_solNo3[i][ly] -= no3up;
+                m_solNo3[i][ly - 1] += no3up;
+            }
+        }
+        /// update total soil water content
+        m_soilWtrStoPrfl[i] = 0.f;
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
+        }
+        /// calculate actual amount of evaporation from soil
+        //if (esleft != esleft || es_max != es_max)
+        //	cout<<"esleft: "<<esleft<<", es_max: "<<es_max<<endl;
+        if (es_max > esleft) {
+            m_soilET[i] = es_max - esleft;
+        } else {
+            m_soilET[i] = 0.f;
+        }
     }
-    return true;
-}
-
-void AET_PT_H::GetValue(const char* key, float* value) {
-    InitialOutputs();
-    string sk(key);
-    if (StringMatch(sk, VAR_SNO3UP)) {
-        *value = m_no3Up;
-    } else {
-        throw ModelException(MID_AET_PTH, "GetValue", "Result " + sk + " does not exist.");
-    }
+    return 0;
 }
 
 void AET_PT_H::Get1DData(const char* key, int* n, float** data) {
@@ -315,10 +310,6 @@ void AET_PT_H::Get1DData(const char* key, int* n, float** data) {
         *data = m_maxPltET;
     } else if (StringMatch(sk, VAR_SOET)) {
         *data = m_soilET;
-    } else if (StringMatch(sk, VAR_SNAC)) {
-        *data = m_snowAccum;
-    } else if (StringMatch(sk, VAR_SNSB)) {
-        *data = m_snowSublim;
     } else {
         throw ModelException(MID_AET_PTH, "Get1DData", "Result " + sk + " does not exist.");
     }

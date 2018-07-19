@@ -22,7 +22,8 @@ const char* SOILWATER_VARS[] = {
 
 DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client, ModuleFactory* factory,
                                      const int subbasin_id /* = 0 */) :
-    DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()), mongodb_port_(input_args->port),
+    DataCenter(input_args, factory, subbasin_id), mongodb_ip_(input_args->host.c_str()),
+    mongodb_port_(input_args->port),
     clim_dbname_(""), scenario_dbname_(""),
     mongo_client_(client), main_database_(nullptr),
     spatial_gridfs_(nullptr) {
@@ -92,17 +93,12 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     string mask_filename = GetUpper(oss.str());
     mask_raster_ = FloatRaster::Init(spatial_gridfs_, mask_filename.c_str());
     assert(nullptr != mask_raster_);
+#ifdef HAS_VARIADIC_TEMPLATES
+    rs_map_.emplace(mask_filename, mask_raster_);
+#else
     rs_map_.insert(make_pair(mask_filename, mask_raster_));
-    /// 5. Read Subbasin raster data
-    oss.str("");
-    oss << subbasin_id_ << "_" << VAR_SUBBSN;
-    string subbasin_filename = GetUpper(oss.str());
-    FloatRaster* subbasinRaster = FloatRaster::Init(spatial_gridfs_,
-                                                    subbasin_filename.c_str(),
-                                                    true, mask_raster_);
-    assert(nullptr != subbasinRaster);
-    rs_map_.insert(make_pair(subbasin_filename, subbasinRaster));
-    // Constructor Subbasin data
+#endif
+    /// 5. Constructor Subbasin data
     subbasins_ = clsSubbasins::Init(spatial_gridfs_, rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
     /// 6. Read initial parameters
@@ -129,7 +125,8 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 }
 
 string DataCenterMongoDB::QueryDatabaseName(bson_t* query, const char* tabname) {
-    std::unique_ptr<MongoCollection> collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
+    std::unique_ptr<MongoCollection>
+            collection(new MongoCollection(mongo_client_->GetCollection(model_name_, tabname)));
     mongoc_cursor_t* cursor = collection->ExecuteQuery(query);
     const bson_t* doc;
     string dbname;
@@ -237,7 +234,7 @@ bool DataCenterMongoDB::GetFileOutVector() {
             tmp_output_item.intervalUnit = GetStringFromBsonIterator(&itertor);
         }
         if (tmp_output_item.use > 0) {
-            origin_out_items_.push_back(tmp_output_item);
+            origin_out_items_.emplace_back(tmp_output_item);
         }
     }
     vector<OrgOutItem>(origin_out_items_).swap(origin_out_items_);
@@ -385,7 +382,11 @@ bool DataCenterMongoDB::ReadParametersInDB() {
                 p->Impact = cali_values[calibration_id_];
             }
         }
+#ifdef HAS_VARIADIC_TEMPLATES
+        if (!init_params_.emplace(GetUpper(p->Name), p).second) {
+#else
         if (!init_params_.insert(make_pair(GetUpper(p->Name), p)).second) {
+#endif
             cout << "ERROR: Load parameter: " << GetUpper(p->Name) << " failed!" << endl;
             return false;
         }
@@ -395,7 +396,11 @@ bool DataCenterMongoDB::ReadParametersInDB() {
             for (int si = 0; si < SOILWATER_VARS_NUM; si++) {
                 ParamInfo* tmpp = new ParamInfo(*p);
                 tmpp->Name = SOILWATER_VARS[si];
+#ifdef HAS_VARIADIC_TEMPLATES
+                init_params_.emplace(GetUpper(tmpp->Name), tmpp);
+#else
                 init_params_.insert(make_pair(GetUpper(tmpp->Name), tmpp));
+#endif
             }
         }
     }
@@ -408,8 +413,12 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     FloatRaster* raster_data = FloatRaster::Init(spatial_gridfs_, remote_filename.c_str(),
                                                  true, mask_raster_, true);
     assert(nullptr != raster_data);
-    /// using insert() to make sure the successful insertion.
+    /// using emplace() if possible or insert() to make sure the successful insertion.
+#ifdef HAS_VARIADIC_TEMPLATES
+    if (!rs_map_.emplace(remote_filename, raster_data).second) {
+#else
     if (!rs_map_.insert(make_pair(remote_filename, raster_data)).second) {
+#endif
         delete raster_data;
         return nullptr;
     }
@@ -419,7 +428,11 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
 void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, float*& data) {
     ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
     weight_data->GetWeightData(&num, &data);
+#ifdef HAS_VARIADIC_TEMPLATES
+    if (!weight_data_map_.emplace(remote_filename, weight_data).second) {
+#else
     if (!weight_data_map_.insert(make_pair(remote_filename, weight_data)).second) {
+#endif
         /// if insert data failed, release clsITPWeightData in case of memory leak
         delete weight_data;
     }
@@ -433,8 +446,13 @@ void DataCenterMongoDB::Read1DArrayData(const string& param_name, const string& 
     num = CVT_INT(datalength / 4);
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
     if (!StringMatch(param_name, Tag_Weight)) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        array1d_map_.emplace(remote_filename, data);
+        array1d_len_map_.emplace(remote_filename, num);
+#else
         array1d_map_.insert(make_pair(remote_filename, data));
         array1d_len_map_.insert(make_pair(remote_filename, num));
+#endif
     }
 }
 
@@ -445,14 +463,14 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    int n_rows = int(float_values[0]);
+    int n_rows = CVT_INT(float_values[0]);
     int n_cols = -1;
     rows = n_rows;
     data = new float *[rows];
     //cout<<n<<endl;
     int index = 1;
     for (int i = 0; i < rows; i++) {
-        int col = int(float_values[index]); // real column
+        int col = CVT_INT(float_values[index]); // real column
         if (n_cols < 0) {
             n_cols = col;
         } else if (n_cols != col) {
@@ -477,9 +495,15 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
         databuf = nullptr;
     }
     /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+    array2d_map_.emplace(remote_filename, data);
+    array2d_rows_map_.emplace(remote_filename, n_rows);
+    array2d_cols_map_.emplace(remote_filename, n_cols);
+#else
     array2d_map_.insert(make_pair(remote_filename, data));
     array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
     array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
+#endif
 }
 
 void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float**& data) {
@@ -488,12 +512,12 @@ void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
-    n = int(float_values[0]);
+    n = CVT_INT(float_values[0]);
     data = new float *[n];
 
     int index = 1;
     for (int i = 0; i < n; i++) {
-        int n_sub = int(float_values[index + 1] - float_values[index] + 3);
+        int n_sub = CVT_INT(float_values[index + 1] - float_values[index] + 3);
         data[i] = new float[n_sub];
 
         data[i][0] = float_values[index];
@@ -510,9 +534,15 @@ void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float
         databuf = nullptr;
     }
     /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+    array2d_map_.emplace(remote_filename, data);
+    array2d_rows_map_.emplace(remote_filename, n);
+    array2d_cols_map_.emplace(remote_filename, 1);
+#else
     array2d_map_.insert(make_pair(remote_filename, data));
     array2d_rows_map_.insert(make_pair(remote_filename, n));
     array2d_cols_map_.insert(make_pair(remote_filename, 1));
+#endif
 }
 
 bool DataCenterMongoDB::SetRasterForScenario() {

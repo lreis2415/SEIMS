@@ -82,11 +82,6 @@ private:
     float* m_dem;
     /// annual PHU
     float* m_phuAnn;
-    /// temporary variables
-    /// maximum solar radiation(MJ/m2/d), calculated from Julian day and latitude.
-    float m_srMax;
-    /// Julian day
-    int m_jday;
     /**
     * @brief land cover status code
     *

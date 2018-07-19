@@ -43,7 +43,7 @@ public:
     string GetArealSourceName() { return m_name; }
 
     /// index of valid cells
-    const vector<int>& GetCellsIndex() const { return m_cellsIndex; }
+    vector<int>& GetCellsIndex() { return m_cellsIndex; }
 
     /// Located subbasin ID
     int GetValidCells() { return m_nCells; }
@@ -201,7 +201,7 @@ public:
     void setRasterData(map<string, FloatRaster*>& sceneRsMap) OVERRIDE;
 
     /// Get management fields data
-    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; };
+    float* GetRasterData() OVERRIDE { return m_mgtFieldsRs; }
 
     string GetArealSrcDistName() { return m_arealSrcDistName; }
 

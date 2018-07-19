@@ -214,7 +214,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
                 if ((*itInput)->Transfer == TF_SingleValue) {
                     // Check and append Inputs need to be transferred
                     if ((*itInput)->DependPara != nullptr) {
-                        tfValueInputs.push_back((*itInput));
+                        tfValueInputs.emplace_back((*itInput));
                     } else {
                         throw ModelException("ModelFactory", "LoadParseLibrary",
                                              "Couldn't find dependent output for " + (*itInput)->Name);
@@ -226,7 +226,7 @@ bool ModuleFactory::LoadParseLibrary(const string& module_path, vector<string>& 
     for (auto it = moduleInOutputs.begin(); it != moduleInOutputs.end(); ++it) {
         if (it->second.empty()) continue;
         for (auto itParam = it->second.begin(); itParam != it->second.end(); ++itParam) {
-            tfValueInputs.push_back(*itParam);
+            tfValueInputs.emplace_back(*itParam);
         }
     }
     return true;
@@ -250,7 +250,7 @@ void ModuleFactory::CreateModuleList(vector<SimulationModule *>& modules, int nt
     for (auto it = m_moduleIDs.begin(); it != m_moduleIDs.end(); ++it) {
         SimulationModule* pModule = GetInstance(*it);
         pModule->SetTheadNumber(nthread);
-        modules.push_back(pModule);
+        modules.emplace_back(pModule);
     }
 }
 
@@ -310,7 +310,7 @@ void ModuleFactory::ReadDLL(const string& module_path, const string& id, const s
     instanceFuncs[id] = InstanceFunction(dlsym(handle, "GetInstance"));
     metadataFuncs[id] = MetadataFunction(dlsym(handle, "MetadataInformation"));
 #endif /* windows */
-    dllHandles.push_back(handle);
+    dllHandles.emplace_back(handle);
     if (instanceFuncs[id] == nullptr) {
         throw ModelException("ModuleFactory", "ReadDLL",
                              moduleFileName + " does not implement API function: GetInstance");
@@ -351,7 +351,11 @@ transferTypes ModuleFactory::MatchTransferType(string tfType) {
 
 void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, SEIMSModuleSetting* setting,
                                          map<string, vector<ParamInfo *> >& moduleParameters) {
+#ifdef HAS_VARIADIC_TEMPLATES
+    moduleParameters.emplace(moduleID, vector<ParamInfo *>());
+#else
     moduleParameters.insert(make_pair(moduleID, vector<ParamInfo *>()));
+#endif
     vector<ParamInfo *>& vecPara = moduleParameters.at(moduleID);
     TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
     // start getting the parameters
@@ -465,7 +469,7 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, S
                                      "parameter " + name + " does not have dimension!");
             }
             // add to the list
-            vecPara.push_back(param);
+            vecPara.emplace_back(param);
             // get the next parameter if it exists
             eleParam = eleParam->NextSiblingElement();
         } // while
@@ -483,7 +487,11 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
     TiXmlElement* eleMetadata = doc.FirstChildElement(TagMetadata.c_str());
     TiXmlElement* eleVariables = eleMetadata->FirstChildElement(header.c_str());
     if (nullptr == eleVariables) return;
+#ifdef HAS_VARIADIC_TEMPLATES
+    variables.emplace(moduleID, vector<ParamInfo *>());
+#else
     variables.insert(make_pair(moduleID, vector<ParamInfo *>()));
+#endif
     vector<ParamInfo *>& vecPara = variables.at(moduleID);
     TiXmlElement* eleVar = eleVariables->FirstChildElement(title.c_str());
     while (eleVar != nullptr) {
@@ -545,7 +553,7 @@ void ModuleFactory::ReadIOSetting(string& moduleID, TiXmlDocument& doc, SEIMSMod
             delete param;
             throw ModelException("SEIMSModule", "ReadIOSetting", "Variable " + name + " does not have dimension!");
         }
-        vecPara.push_back(param);
+        vecPara.emplace_back(param);
         // get the next input if it exists
         eleVar = eleVar->NextSiblingElement();
     }
@@ -622,11 +630,15 @@ bool ModuleFactory::ReadConfigFile(const char* configFileName, vector<string>& m
                 if (moduleSetting->dataTypeString().length() > 0) {
                     module += "_" + moduleSetting->dataTypeString();
                 } // make the module id unique
+#ifdef HAS_VARIADIC_TEMPLATES
+                if (!moduleSettings.emplace(module, moduleSetting).second) {
+#else
                 if (!moduleSettings.insert(make_pair(module, moduleSetting)).second) {
+#endif
                     delete moduleSetting;
                     continue;
                 }
-                moduleIDs.push_back(module);
+                moduleIDs.emplace_back(module);
             }
         }
     } catch (...) {
@@ -707,7 +719,7 @@ void ModuleFactory::FindOutputParameter(string& outputID, int& iModule, ParamInf
         vector<ParamInfo *>& vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
             if (StringMatch(outputID, vecPara[j]->Name)) {
-                iModule = int(i);
+                iModule = CVT_INT(i);
                 paraInfo = vecPara[j];
                 return;
             }

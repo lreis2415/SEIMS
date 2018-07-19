@@ -31,15 +31,13 @@ bool DepressionFSDaily::CheckInputData() {
 
 void DepressionFSDaily::InitialOutputs() {
     CHECK_POSITIVE(MID_DEP_LINSLEY, m_nCells);
-    if (m_sd == nullptr && m_depCap != nullptr) {
-        m_sd = new(nothrow) float[m_nCells];
-        m_ed = new(nothrow) float[m_nCells];
-        m_sr = new(nothrow) float[m_nCells];
+    if (nullptr == m_sd) {
+        Initialize1DArray(m_nCells, m_sd, 0.f);
+        Initialize1DArray(m_nCells, m_ed, 0.f);
+        Initialize1DArray(m_nCells, m_sr, 0.f);
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; ++i) {
+        for (int i = 0; i < m_nCells; i++) {
             m_sd[i] = m_depCo * m_depCap[i];
-            m_ed[i] = 0.f;
-            m_sr[i] = 0.f;
         }
     }
 }
@@ -101,7 +99,7 @@ int DepressionFSDaily::Execute() {
     return true;
 }
 
-bool DepressionFSDaily::CheckInputSize(const char* key, int n) {
+bool DepressionFSDaily::CheckInputSize(const char* key, const int n) {
     if (n <= 0) {
         return false;
     }
@@ -127,7 +125,6 @@ void DepressionFSDaily::SetValue(const char* key, const float value) {
 }
 
 void DepressionFSDaily::Set1DData(const char* key, const int n, float* data) {
-    //check the input data
     CheckInputSize(key, n);
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION)) {

@@ -234,22 +234,23 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
 #ifdef USE_MONGODB
     /** MongoDB I/O test **/
     MongoClient* conn = MongoClient::Init("127.0.0.1", 27017);
-    ASSERT_NE(nullptr, conn);
-    string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
-    MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
-    gfs->RemoveFile(gfsfilename);
-    rs_->OutputToMongoDB(gfsfilename, gfs);
-    clsRasterData<float, int>* mongors = clsRasterData<float, int>::
-            Init(gfs, gfsfilename.c_str(), false, maskrs_, true);
-    // test mongors data
-    EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
-    EXPECT_EQ(1, mongors->GetLayers());
-    EXPECT_EQ(61, mongors->GetValidNumber());
-    EXPECT_EQ(22, rs_->GetPosition(22.05f, 37.95f)); // row 2, col 2
-    EXPECT_FLOAT_EQ(9.95683607f, rs_->GetAverage());
-    // output to asc/tif file for comparison
-    EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
-    EXPECT_TRUE(FileExists(newfullname4mongo));
+    if (nullptr != conn) {
+        string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
+        MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
+        gfs->RemoveFile(gfsfilename);
+        rs_->OutputToMongoDB(gfsfilename, gfs);
+        clsRasterData<float, int>* mongors = clsRasterData<float, int>::
+                Init(gfs, gfsfilename.c_str(), false, maskrs_, true);
+        // test mongors data
+        EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
+        EXPECT_EQ(1, mongors->GetLayers());
+        EXPECT_EQ(61, mongors->GetValidNumber());
+        EXPECT_EQ(22, rs_->GetPosition(22.05f, 37.95f)); // row 2, col 2
+        EXPECT_FLOAT_EQ(9.95683607f, rs_->GetAverage());
+        // output to asc/tif file for comparison
+        EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
+        EXPECT_TRUE(FileExists(newfullname4mongo));
+    }
 #endif
 
     /* Get position data, which will be calculated if not existed,

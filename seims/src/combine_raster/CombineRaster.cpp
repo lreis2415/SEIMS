@@ -108,7 +108,11 @@ void CombineRasterResults(const string& folder, const string& s_var,
         if (nullptr == rs) {
             exit(-1);
         }
+#ifdef HAS_VARIADIC_TEMPLATES
+        all_raster_data.emplace(i, rs);
+#else
         all_raster_data.insert(make_pair(i, rs));
+#endif
     }
     FloatRaster* combined_rs = CombineRasters(all_raster_data);
     combined_rs->OutputToFile(folder + SEP + filename);
@@ -133,7 +137,11 @@ void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
         if (nullptr == rs) {
             exit(-1);
         }
+#ifdef HAS_VARIADIC_TEMPLATES
+        all_raster_data.emplace(i, rs);
+#else
         all_raster_data.insert(make_pair(i, rs));
+#endif
     }
     FloatRaster* combined_rs = CombineRasters(all_raster_data);
     gfs->RemoveFile(s_var);

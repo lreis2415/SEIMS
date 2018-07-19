@@ -1,0 +1,27 @@
+####### Discharge #######
+### Evapotranspiration
+K_pet,-0.3,0.3
+### Actual ET, AET_PTH
+esco,-0.9,0.05
+### Interception
+Interc_max,0.5,2.0
+Pi_b,-0.35,0.15
+### Surface runoff
+K_run,-2.0,2.0
+P_max,-20,20
+Runoff_co,0.8,1.5
+### Subsurface
+Ki,-2.0,5.0
+### Groundwater
+Base_ex,0,1.5
+df_coef,0,0.5
+gwmax,-100,1000
+Kg,-0.004,0.005
+### WaterBalance
+Conductivity,0.8,1.5
+sw_cap,0.8,1.5
+### Channel parameters
+ch_width,0.8,1.5
+ch_depth,0.8,1.5
+MSK_co1,-0.3,0.3
+MSK_X,-0.1,0.3

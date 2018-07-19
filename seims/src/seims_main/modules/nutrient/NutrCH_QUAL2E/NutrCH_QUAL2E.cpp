@@ -12,7 +12,7 @@ NutrCH_QUAL2E::NutrCH_QUAL2E() :
     m_lambda1(-1.f), m_lambda2(-1.f), m_k_l(-1.f), m_k_n(-1.f), m_k_p(-1.f), m_p_n(-1.f),
     tfact(-1.f), m_rnum1(0.f), igropt(-1), m_mumax(-1.f), m_rhoq(-1.f), m_cod_n(-1), m_cod_k(-1),
     m_rchID(nullptr), m_soilTemp(nullptr), m_dayLen(nullptr), m_sr(nullptr),
-    m_bankStorage(nullptr), m_chOrder(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
+    m_bankStorage(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
     m_preChStorage(nullptr), m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr),
     m_chTemp(nullptr), m_bc1(nullptr), m_bc2(nullptr), m_bc3(nullptr),
     m_bc4(nullptr), m_rs1(nullptr), m_rs2(nullptr), m_rs3(nullptr), m_rs4(nullptr),
@@ -102,32 +102,65 @@ void NutrCH_QUAL2E::ParametersSubbasinForChannel() {
         Initialize1DArray(m_nReaches + 1, m_chSr, 0.f);
         Initialize1DArray(m_nReaches + 1, m_chTemp, 0.f);
     } else {
-        return;
+        return; /// These parameters only need to be initialized once.
     }
+#pragma omp parallel
+    {
+        float* tmp_chDaylen = new(nothrow) float[m_nReaches + 1];
+        float* tmp_chSr = new(nothrow) float[m_nReaches + 1];
+        float* tmp_chTemp = new(nothrow) float[m_nReaches + 1];
+        int* tmp_chCellCount = new(nothrow) int[m_nReaches + 1];
+        for (int irch = 0; irch <= m_nReaches; irch++) {
+            tmp_chDaylen[irch] = 0.f;
+            tmp_chSr[irch] = 0.f;
+            tmp_chTemp[irch] = 0.f;
+            tmp_chCellCount[irch] = 0;
+        }
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        if (m_rchID[i] <= 0.f) {
-            continue;
+        for (int i = 0; i < m_nCells; i++) {
+            if (m_rchID[i] <= 0.f) {
+                continue;
+            }
+            int irch = CVT_INT(m_rchID[i]);
+            //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
+            //    subi = 1;
+            //} else
+            if (irch >= m_nReaches + 1) {
+                throw ModelException(MID_NUTRCH_QUAL2E, "Execute",
+                                     "The subbasin " + ValueToString(irch) + " is invalid.");
+            }
+            tmp_chDaylen[irch] += m_dayLen[i];
+            tmp_chSr[irch] += m_sr[i];
+            tmp_chTemp[irch] += m_soilTemp[i];
+            tmp_chCellCount[irch] += 1;
         }
-        int subi = CVT_INT(m_rchID[i]);
-        //if (m_nReaches == 1) {  // deprecated code, left for remaind. lj
-        //    subi = 1;
-        //} else
-        if (subi >= m_nReaches + 1) {
-            throw ModelException(MID_NUTRCH_QUAL2E, "Execute", "The subbasin " + ValueToString(subi) + " is invalid.");
+#pragma omp critical
+        {
+            for (int irch = 0; irch <= m_nReaches; irch++) {
+                m_chDaylen[irch] += tmp_chDaylen[irch];
+                m_chSr[irch] += tmp_chSr[irch];
+                m_chTemp[irch] += tmp_chTemp[irch];
+                m_chCellCount[irch] += tmp_chCellCount[irch];
+            }
         }
-
-        m_chDaylen[subi] += m_dayLen[i];
-        m_chSr[subi] += m_sr[i];
-        m_chTemp[subi] += m_soilTemp[i];
-        m_chCellCount[subi] += 1;
+        delete[] tmp_chDaylen;
+        delete[] tmp_chSr;
+        delete[] tmp_chTemp;
+        delete[] tmp_chCellCount;
     }
 
-    for (int i = 1; i <= m_nReaches; i++) {
-        m_chDaylen[i] /= m_chCellCount[i];
-        m_chSr[i] /= m_chCellCount[i];
-        m_chTemp[i] /= m_chCellCount[i];
+    for (int irch = 1; irch <= m_nReaches; irch++) {
+        m_chDaylen[irch] /= m_chCellCount[irch];
+        m_chSr[irch] /= m_chCellCount[irch];
+        m_chTemp[irch] /= m_chCellCount[irch];
+
+        m_chDaylen[0] += m_chDaylen[irch];
+        m_chSr[0] += m_chSr[irch];
+        m_chTemp[0] += m_chTemp[irch];
     }
+    m_chDaylen[0] /= m_nReaches;
+    m_chSr[0] /= m_nReaches;
+    m_chTemp[0] /= m_nReaches;
 }
 
 bool NutrCH_QUAL2E::CheckInputCellSize(const char* key, const int n) {
@@ -228,9 +261,8 @@ void NutrCH_QUAL2E::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_LAMBDA1)) m_lambda1 = value;
     else if (StringMatch(sk, VAR_LAMBDA2)) m_lambda2 = value;
     else if (StringMatch(sk, VAR_K_L)) {
-        m_k_l = value;
+        m_k_l = value * 1.e-3f * 60.f;
         //convert units on k_l:read in as kJ/(m2*min), use as MJ/(m2*hr)
-        m_k_l = m_k_l * 1.e-3f * 60.f;
     } else if (StringMatch(sk, VAR_K_N)) m_k_n = value;
     else if (StringMatch(sk, VAR_K_P)) m_k_p = value;
     else if (StringMatch(sk, VAR_P_N)) m_p_n = value;
@@ -389,16 +421,18 @@ void NutrCH_QUAL2E::SetReaches(clsReaches* reaches) {
 }
 
 void NutrCH_QUAL2E::SetScenario(Scenario* sce) {
-    if (nullptr != sce) {
-        map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
-        for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
-            /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
-            if (it->first / 100000 == BMP_TYPE_POINTSOURCE) {
-                m_ptSrcFactory[it->first] = static_cast<BMPPointSrcFactory *>(it->second);
-            }
-        }
-    } else {
+    if (nullptr == sce) {
         throw ModelException(MID_NUTRCH_QUAL2E, "SetScenario", "The scenario can not to be NULL.");
+    }
+    map<int, BMPFactory *>& tmpBMPFactories = sce->GetBMPFactories();
+    for (auto it = tmpBMPFactories.begin(); it != tmpBMPFactories.end(); ++it) {
+        /// Key is uniqueBMPID, which is calculated by BMP_ID * 100000 + subScenario;
+        if (it->first / 100000 != BMP_TYPE_POINTSOURCE) continue;
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_ptSrcFactory.emplace(it->first, static_cast<BMPPointSrcFactory *>(it->second));
+#else
+        m_ptSrcFactory.insert(make_pair(it->first, static_cast<BMPPointSrcFactory *>(it->second)));
+#endif
     }
 }
 
@@ -462,13 +496,13 @@ void NutrCH_QUAL2E::PointSourceLoading() {
     /// load point source nutrient (kg) on current day from Scenario
     for (auto it = m_ptSrcFactory.begin(); it != m_ptSrcFactory.end(); ++it) {
         //cout<<"unique Point Source Factory ID: "<<it->first<<endl;
-        vector<int>& m_ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
-        map<int, PointSourceMgtParams *>& m_pointSrcMgtMap = it->second->GetPointSrcMgtMap();
-        vector<int>& m_ptSrcIDs = it->second->GetPointSrcIDs();
-        map<int, PointSourceLocations *>& m_pointSrcLocsMap = it->second->GetPointSrcLocsMap();
+        vector<int>& ptSrcMgtSeqs = it->second->GetPointSrcMgtSeqs();
+        map<int, PointSourceMgtParams *>& pointSrcMgtMap = it->second->GetPointSrcMgtMap();
+        vector<int>& ptSrcIDs = it->second->GetPointSrcIDs();
+        map<int, PointSourceLocations *>& pointSrcLocsMap = it->second->GetPointSrcLocsMap();
         // 1. looking for management operations from m_pointSrcMgtMap
-        for (auto seqIter = m_ptSrcMgtSeqs.begin(); seqIter != m_ptSrcMgtSeqs.end(); ++seqIter) {
-            PointSourceMgtParams* curPtMgt = m_pointSrcMgtMap.at(*seqIter);
+        for (auto seqIter = ptSrcMgtSeqs.begin(); seqIter != ptSrcMgtSeqs.end(); ++seqIter) {
+            PointSourceMgtParams* curPtMgt = pointSrcMgtMap.at(*seqIter);
             // 1.1 If current day is beyond the date range, then continue to next management
             if (curPtMgt->GetStartDate() != 0 && curPtMgt->GetEndDate() != 0) {
                 if (m_date < curPtMgt->GetStartDate() || m_date > curPtMgt->GetEndDate()) {
@@ -481,23 +515,23 @@ void NutrCH_QUAL2E::PointSourceLoading() {
             float per_nh4 = curPtMgt->GetNH4();
             float per_orgn = curPtMgt->GetOrgN();
             float per_solp = curPtMgt->GetSolP();
-            float per_orgP = curPtMgt->GetOrgP();
+            float per_orgp = curPtMgt->GetOrgP();
             float per_cod = curPtMgt->GetCOD();
             // 1.3 Sum up all point sources
-            for (auto locIter = m_ptSrcIDs.begin(); locIter != m_ptSrcIDs.end(); ++locIter) {
-                if (m_pointSrcLocsMap.find(*locIter) != m_pointSrcLocsMap.end()) {
-                    PointSourceLocations* curPtLoc = m_pointSrcLocsMap.at(*locIter);
+            for (auto locIter = ptSrcIDs.begin(); locIter != ptSrcIDs.end(); ++locIter) {
+                if (pointSrcLocsMap.find(*locIter) != pointSrcLocsMap.end()) {
+                    PointSourceLocations* curPtLoc = pointSrcLocsMap.at(*locIter);
                     int curSubID = curPtLoc->GetSubbasinID();
                     float cvt = per_wtr * curPtLoc->GetSize() * 0.001f * m_dt * 1.1574074074074073e-05f;
                     /// mg/L ==> kg / timestep
                     m_ptNO3ToCh[curSubID] += per_no3 * cvt;
                     m_ptNH4ToCh[curSubID] += per_nh4 * cvt;
                     m_ptOrgNToCh[curSubID] += per_orgn * cvt;
-                    m_ptOrgPToCh[curSubID] += per_orgP * cvt;
+                    m_ptOrgPToCh[curSubID] += per_orgp * cvt;
                     m_ptSolPToCh[curSubID] += per_solp * cvt;
                     m_ptCODToCh[curSubID] += per_cod * cvt;
                     m_ptTNToCh[curSubID] += (per_no3 + per_nh4 + per_orgn) * cvt;
-                    m_ptTPToCh[curSubID] += (per_solp + per_orgP) * cvt;
+                    m_ptTPToCh[curSubID] += (per_solp + per_orgp) * cvt;
                 }
             }
         }
@@ -538,8 +572,8 @@ int NutrCH_QUAL2E::Execute() {
 
 void NutrCH_QUAL2E::AddInputNutrient(const int i) {
     /// nutrient amount from upstream routing will be accumulated to current storage
-    for (size_t j = 0; j < m_reachUpStream[i].size(); j++) {
-        int upReachId = m_reachUpStream[i][j];
+    for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
+        int upReachId = *upRchID;
         m_chOrgN[i] += m_chOutOrgN[upReachId];
         m_chNO3[i] += m_chOutNO3[upReachId];
         m_chNO2[i] += m_chOutNO2[upReachId];

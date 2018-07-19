@@ -38,8 +38,8 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
         int group = tmp_reach->GetGroupIndex(GroupMethodString[CVT_INT(group_method)], group_size);
         subbasins[id] = new SubbasinStruct(id, group);
         // set layering order
-        subbasins[id]->updown_order = int(tmp_reach->Get(REACH_UPDOWN_ORDER));
-        subbasins[id]->downup_order = int(tmp_reach->Get(REACH_DOWNUP_ORDER));
+        subbasins[id]->updown_order = CVT_INT(tmp_reach->Get(REACH_UPDOWN_ORDER));
+        subbasins[id]->downup_order = CVT_INT(tmp_reach->Get(REACH_DOWNUP_ORDER));
 
         group_set.insert(group);
     }
@@ -49,7 +49,7 @@ int CreateReachTopology(MongoClient* client, const string& dbname,
         int to = it->second;
         if (to > 0) {
             subbasins[id]->down_stream = subbasins[to];
-            subbasins[to]->up_streams.push_back(subbasins[id]);
+            subbasins[to]->up_streams.emplace_back(subbasins[id]);
         }
     }
 #ifdef _DEBUG

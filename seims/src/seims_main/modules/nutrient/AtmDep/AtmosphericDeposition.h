@@ -35,13 +35,9 @@ public:
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
     bool CheckInputSize(const char* key, int n);
 
     bool CheckInputData();
-
-    void InitialOutputs();
 
 private:
     /// size of array
@@ -71,17 +67,5 @@ private:
     float** m_soilNH4;
     /// amount of nitrate in layer (kg/ha)
     float** m_soilNO3;
-
-    /// temporaries
-
-    /// nitrate added by rainfall (kg/ha)
-    float m_addrnh4;
-    /// ammonium added by rainfall (kg/ha)
-    float m_addrno3;
-
-    /// outputs
-
-    /// amount of NO3 added to soil by rainfall in watershed on current day (kg/ha)
-    float m_wshd_rno3;
 };
 #endif /* SEIMS_MODULE_ATMDEP_H */

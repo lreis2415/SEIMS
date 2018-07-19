@@ -5,7 +5,8 @@
 
 using namespace utils_time;
 
-SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems) :
+SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
+                               vector<OrgOutItem>& outputItems) :
     m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID) {
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
@@ -19,7 +20,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
 
         bool isRaster = false;
         if (StringMatch(suffix, string(GTiffExtension))) {
-            if (m_subbasinID == 9999) { /// For field-version model, all spatial outputs should be text!
+            if (m_subbasinID == 9999) {
+                /// For field-version model, all spatial outputs should be text!
                 (*iter).outFileName = coreFileName + "." + TextExtension;
                 suffix = TextExtension;
             } else {
@@ -33,8 +35,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
                 /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
                 pi->setInterval((*iter).interval);
                 pi->setIntervalUnits((*iter).intervalUnit);
-                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix,
-                                 true);
+                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName,
+                                 ValueToString(m_outletID), suffix, true);
             }
         } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && (isRaster || m_subbasinID == 9999)) {
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
@@ -49,7 +51,7 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
             vector<string> subBsns;
             if (StringMatch((*iter).subBsn, Tag_AllSubbsn)) {
                 for (int i = 0; i <= m_nSubbasins; i++) {
-                    subBsns.push_back(ValueToString(i));
+                    subBsns.emplace_back(ValueToString(i));
                 }
                 vector<string>(subBsns).swap(subBsns); // deprecated
                 // subBsns.shrink_to_fit();
@@ -68,13 +70,14 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
         }
     }
     for (auto it = m_printInfosMap.begin(); it != m_printInfosMap.end(); ++it) {
-        m_printInfos.push_back(it->second);
+        m_printInfos.emplace_back(it->second);
     }
     vector<PrintInfo *>(m_printInfos).swap(m_printInfos);
     // m_printInfos.shrink_to_fit();
 }
 
-SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems) {
+SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, const int subbasinID,
+                                     vector<OrgOutItem>& outputItems) {
     if (outputItems.empty()) {
         return nullptr;
     }
@@ -108,7 +111,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                 std::ostringstream oss;
                 oss << "WARNING: The start time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->StartTime << ". It's earlier than start time of time series data "
-                        << ConvertToString(&startTime) << ", and will be updated." << endl;
+                        << ConvertToString(startTime) << ", and will be updated." << endl;
                 StatusMessage(oss.str().c_str());
             }
             if ((*itemIt)->getEndTime() > endTime || (*itemIt)->getEndTime() <= startTime) {
@@ -116,7 +119,7 @@ void SettingsOutput::checkDate(time_t startTime, time_t endTime) {
                 std::ostringstream oss;
                 oss << "WARNING: The end time of output " << (*it)->getOutputID() << " to " << (*itemIt)->Filename
                         << " is " << (*itemIt)->EndTime << ". It's later than end time of time series data "
-                        << ConvertToString(&endTime) << ", and will be updated." << endl;
+                        << ConvertToString(endTime) << ", and will be updated." << endl;
                 StatusMessage(oss.str().c_str());
             }
         }

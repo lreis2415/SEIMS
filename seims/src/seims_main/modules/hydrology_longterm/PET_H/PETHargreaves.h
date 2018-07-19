@@ -77,11 +77,6 @@ private:
     /// Correction Factor for PET
     float m_petFactor;
 
-    /// temporary variables and output
-
-    /// maximum solar radiation of current day
-    float m_srMax;
-
     /// output
 
     /// day length (hr)

@@ -35,7 +35,7 @@ void IUH_OL::InitialOutputs() {
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbsns + 1, m_Q_SBOF, 0.f);
         for (int i = 0; i < m_nCells; i++) {
-            m_cellFlowCols = Max(int(m_iuhCell[i][1] + 1), m_cellFlowCols);
+            m_cellFlowCols = Max(CVT_INT(m_iuhCell[i][1]) + 1, m_cellFlowCols);
         }
         //get m_cellFlowCols, i.e. the maximum of second column of OL_IUH plus 1.
         Initialize2DArray(m_nCells, m_cellFlowCols, m_cellFlow, 0.f);
@@ -55,23 +55,19 @@ int IUH_OL::Execute() {
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         //forward one time step
-        for (int j = 0; j < m_cellFlowCols; j++) {
-            if (j != m_cellFlowCols - 1) {
-                m_cellFlow[i][j] = m_cellFlow[i][j + 1];
-            } else {
-                m_cellFlow[i][j] = 0.f;
-            }
+        for (int j = 0; j < m_cellFlowCols - 1; j++) {
+            m_cellFlow[i][j] = m_cellFlow[i][j + 1];
         }
+        m_cellFlow[i][m_cellFlowCols - 1] = 0.f;
 
-        float v_rs = m_surfRf[i];
-        if (v_rs > 0.f) {
-            int min = int(m_iuhCell[i][0]);
-            int max = int(m_iuhCell[i][1]);
-            int col = 2;
-            for (int k = min; k <= max; k++) {
-                m_cellFlow[i][k] += v_rs * 0.001f * m_iuhCell[i][col] * m_cellArea / m_TimeStep;
-                col++;
-            }
+        if (m_surfRf[i] <= 0.f) continue;
+
+        int min = CVT_INT(m_iuhCell[i][0]);
+        int max = CVT_INT(m_iuhCell[i][1]);
+        int col = 2;
+        for (int k = min; k <= max; k++) {
+            m_cellFlow[i][k] += m_surfRf[i] * 0.001f * m_iuhCell[i][col] * m_cellArea / m_TimeStep;
+            col++;
         }
     }
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj

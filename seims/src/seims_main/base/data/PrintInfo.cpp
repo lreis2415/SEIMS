@@ -94,7 +94,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             // Write header
             fs << header << endl;
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                fs << ConvertToString2(it->first) << " " << std::right << std::fixed
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
@@ -116,7 +116,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
             }
             fs << header << endl;
             for (auto it = TimeSeriesDataForSubbasin.begin(); it != TimeSeriesDataForSubbasin.end(); ++it) {
-                fs << ConvertToString2(&it->first);
+                fs << ConvertToString2(it->first);
                 for (int i = 0; i < TimeSeriesDataForSubbasinCount; i++) {
                     fs << " " << std::right << std::fixed << std::setw(15) << std::setfill(' ')
                             << setprecision(8) << it->second[i];
@@ -200,7 +200,7 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
         fs.open(filename.c_str(), std::ios::out);
         if (fs.is_open()) {
             for (auto it = TimeSeriesData.begin(); it != TimeSeriesData.end(); ++it) {
-                fs << ConvertToString2(&it->first) << " " << std::right << std::fixed
+                fs << ConvertToString2(it->first) << " " << std::right << std::fixed
                         << std::setw(15) << std::setfill(' ') << setprecision(8) << it->second << endl;
             }
             fs.close();
@@ -486,7 +486,7 @@ PrintInfo::~PrintInfo() {
         it = m_PrintItems.erase(it);
     }
     m_PrintItems.clear();
-    vector<PrintInfoItem *>().swap(m_PrintItems);
+
     m_param = nullptr; /// since m_param has not been malloc by new, just set it to nullptr
     if (nullptr != m_subbasinSelectedArray) {
         Release1DArray(m_subbasinSelectedArray);
@@ -653,7 +653,7 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
         if (errno != 0) {
             throw ModelException("PrintInfo", "AddPrintItem", "SubbasinID converted to integer failed!");
         }
-        itm->SubbasinIndex = int(m_subbasinSeleted.size());
+        itm->SubbasinIndex = CVT_INT(m_subbasinSeleted.size());
         m_subbasinSeleted.emplace_back(itm->SubbasinID);
     }
     itm->StartTime = start;
@@ -668,24 +668,24 @@ void PrintInfo::AddPrintItem(string& start, string& end, string& file, string si
 }
 
 void PrintInfo::getSubbasinSelected(int* count, float** subbasins) {
-    *count = int(m_subbasinSeleted.size());
+    *count = CVT_INT(m_subbasinSeleted.size());
     if (m_subbasinSelectedArray == nullptr && !m_subbasinSeleted.empty()) {
         m_subbasinSelectedArray = new float[m_subbasinSeleted.size()];
         int index = 0;
         for (auto it = m_subbasinSeleted.begin(); it < m_subbasinSeleted.end(); ++it) {
-            m_subbasinSelectedArray[index] = float(*it);
+            m_subbasinSelectedArray[index] = CVT_FLT(*it);
             index++;
         }
     }
     *subbasins = m_subbasinSelectedArray;
 }
 
-PrintInfoItem* PrintInfo::getPrintInfoItem(int index) {
+PrintInfoItem* PrintInfo::getPrintInfoItem(const int index) {
     // default is nullptr
     PrintInfoItem* res = nullptr;
 
     // is the index in the valid range
-    if (index >= 0 && index < int(m_PrintItems.size())) {
+    if (index >= 0 && index < CVT_INT(m_PrintItems.size())) {
         // assign the reference to the given item
         res = m_PrintItems.at(index);
     }

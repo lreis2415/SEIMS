@@ -12,6 +12,8 @@
  *            2016-09-30 - lj - 1. ReCheck and Update code according to route.f and rtsed.f\n
  *                              2. Change the module name from SEDR_VCD to SEDR_SBAGNOLD.\n
  *            2018-05-14 - lj - Code review and reformat.\n
+ *            2018-06-28 - lj - 1. The initialization of m_sedStorage should be done in Set1DData after m_chStorage.\n
+ *                              2. Bug fixed about code related to the IN/OUTPUT variables.\n
  *
  */
 #ifndef SEIMS_MODULE_SEDR_SBAGNOLD_H
@@ -72,15 +74,13 @@ private:
     int m_nreach;
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
-    /// layering method, 0 means UP_DOWN, 1 means DOWN_UP
-    LayeringMethod m_layeringMethod;
     /// whether change channel dimensions, 0 - do not change (false), 1 - compute channel degredation (true)
     bool m_vcd;
     /// the peak rate adjustment factor
     float m_peakRateAdj;
-    /// Coefficient in sediment transport equation
+    /// Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqCoef;
-    /// Exponent in sediment transport equation
+    /// Exponent in sediment transport equation, spexp in SWAT
     float m_sedTransEqExp;
     /// critical velocity for sediment deposition
     float m_critVelSedDep;

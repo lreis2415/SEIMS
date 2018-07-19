@@ -5,22 +5,22 @@
     @changelog: 18-01-22  lj - design and implement.\n
                 18-01-25  lj - redesign the individual class, add 95PPU, etc.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-07-10  lj - Update accordingly.\n
 """
 from __future__ import absolute_import
 
 import time
-import shutil
 from collections import OrderedDict
 import os
 import sys
+import shutil
+from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import FileClass
 
-from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
-    calculate_statistics
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
 from preprocess.utility import read_data_items_from_txt
@@ -29,52 +29,54 @@ from calibration.config import CaliConfig, get_cali_config
 from calibration.sample_lhs import lhs
 
 
-class observationData(object):
+class TimeseriesData(object):
+    """Time series data, for observation and simulation data."""
+
     def __init__(self):
         self.vars = list()
         self.data = OrderedDict()
 
 
-class simulationData(object):
+class ObsSimData(object):
+    """Paired time series data of observation and simulation, associated with statistics."""
+
     def __init__(self):
         self.vars = list()
         self.data = OrderedDict()
         self.sim_obs_data = OrderedDict()
+        self.objnames = list()
+        self.objvalues = list()
         self.valid = False
 
-    def efficiency_values(self, varname):
-        if varname not in self.vars:
-            return []
-        if varname not in self.sim_obs_data:
-            return []
-        try:
-            return [self.sim_obs_data[varname]['NSE'],
-                    self.sim_obs_data[varname]['RSR'],
-                    abs(self.sim_obs_data[varname]['PBIAS']) / 100.,
-                    self.sim_obs_data[varname]['R-square']]
-        except Exception:
-            return []
+    def efficiency_values(self, varname, effnames):
+        values = list()
+        for name in effnames:
+            tmpvar = '%s-%s' % (varname, name)
+            if tmpvar not in self.objnames:
+                values.append(-9999.)
+            else:
+                values.append(self.objvalues[self.objnames.index(tmpvar)])
+        return values
 
-    def output_header(self, varname, prefix=''):
-        if varname not in self.vars:
-            return ''
-        return '%sNSE-%s\t%sRSR-%s\t%sPBIAS-%s\t%sR2-%s\t' % (prefix, varname,
-                                                              prefix, varname,
-                                                              prefix, varname,
-                                                              prefix, varname,)
+    def output_header(self, varname, effnames, prefix=''):
+        concate = ''
+        for name in effnames:
+            tmpvar = '%s-%s' % (varname, name)
+            if tmpvar not in self.objnames:
+                concate += '\t'
+            else:
+                concate += '%s-%s\t' % (prefix, tmpvar)
+        return concate
 
-    def output_efficiency(self, varname):
-        if varname not in self.vars:
-            return ''
-        if varname not in self.sim_obs_data:
-            return ''
-        try:
-            return '%.3f\t%.3f\t%.3f\t%.3f\t' % (self.sim_obs_data[varname]['NSE'],
-                                                 self.sim_obs_data[varname]['RSR'],
-                                                 self.sim_obs_data[varname]['PBIAS'],
-                                                 self.sim_obs_data[varname]['R-square'])
-        except Exception:
-            return ''
+    def output_efficiency(self, varname, effnames):
+        concate = ''
+        for name in effnames:
+            tmpvar = '%s-%s' % (varname, name)
+            if tmpvar not in self.objnames:
+                concate += '\t'
+            else:
+                concate += '%.3f\t' % self.objvalues[self.objnames.index(tmpvar)]
+        return concate
 
 
 class Calibration(object):
@@ -88,6 +90,7 @@ class Calibration(object):
     def __init__(self, cali_cfg, id=-1):
         """Initialize."""
         self.cfg = cali_cfg
+        self.model = cali_cfg.model
         self.ID = id
         self.param_defs = dict()
         # run seims related
@@ -116,9 +119,9 @@ class Calibration(object):
         if self.param_defs:
             return self.param_defs
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
+        db = conn[self.cfg.model.db_name]
         collection = db['PARAMETERS']
 
         names = list()
@@ -144,11 +147,11 @@ class Calibration(object):
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
-        stime_str = self.cfg.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.cfg.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        db = conn[self.cfg.model.db_name]
+        stime_str = self.cfg.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.cfg.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
@@ -181,46 +184,54 @@ def initialize_calibrations(cf):
 
 
 def calibration_objectives(cali_obj, ind):
-    """Evaluate the objectives of given individual. ##, cali_period, vali_period=''
+    """Evaluate the objectives of given individual.
     """
     cali_obj.ID = ind.id
-    model_obj = MainSEIMS(cali_obj.cfg.bin_dir, cali_obj.cfg.model_dir,
-                          nthread=cali_obj.cfg.nthread, lyrmtd=cali_obj.cfg.lyrmethod,
-                          ip=cali_obj.cfg.hostname, port=cali_obj.cfg.port,
-                          sceid=cali_obj.cfg.sceid, caliid=ind.id)
+    model_args = cali_obj.model.ConfigDict
+    model_args['calibration_id'] = ind.id
+    model_obj = MainSEIMS(args_dict=model_args)
+
+    # Copy observation data, no need to query database
+    model_obj.obs_vars = ind.obs.vars[:]
+    model_obj.obs_value = deepcopy(ind.obs.data)
+
     run_flag = model_obj.run()
-    if not run_flag:
+    # if not run_flag:  # DO NOT return according to the run_flag.
+    #     return ind
+    time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+
+    # read simulation data of the entire simulation period (include calibration and validation)
+    if model_obj.ReadTimeseriesSimulations():
+        ind.sim.vars = model_obj.sim_vars[:]
+        ind.sim.data = deepcopy(model_obj.sim_value)
+    else:
         return ind
-    # Sleep 0.5 second
-    time.sleep(0.5)
-    # read simulation data
-    # dates = cali_period.split(',')
-    # stime = StringClass.get_datetime(dates[0], '%Y-%m-%d %H:%M:%S')
-    # etime = StringClass.get_datetime(dates[1], '%Y-%m-%d %H:%M:%S')
-    ind.cali.vars, ind.cali.data = read_simulation_from_txt(model_obj.output_dir,
-                                                            ind.obs.vars, model_obj.outlet_id,
+    # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of calibration period
+    ind.cali.vars, ind.cali.data = model_obj.ExtractSimData(cali_obj.cfg.cali_stime,
+                                                            cali_obj.cfg.cali_etime)
+    ind.cali.sim_obs_data = model_obj.ExtractSimObsData(cali_obj.cfg.cali_stime,
+                                                        cali_obj.cfg.cali_etime)
+
+    ind.cali.objnames, \
+    ind.cali.objvalues = model_obj.CalcTimeseriesStatistics(ind.cali.sim_obs_data,
                                                             cali_obj.cfg.cali_stime,
                                                             cali_obj.cfg.cali_etime)
-    # Match with observation data
-    ind.cali.sim_obs_data = match_simulation_observation(ind.cali.vars, ind.cali.data,
-                                                         ind.obs.vars, ind.obs.data,
-                                                         cali_obj.cfg.cali_stime,
-                                                         cali_obj.cfg.cali_etime)
-    # Calculate NSE, R2, RMSE, PBIAS, and RSR
-    ind.cali.valid = calculate_statistics(ind.cali.sim_obs_data)
-    # if calculate validation period
+    if ind.cali.objnames and ind.cali.objvalues:
+        ind.cali.valid = True
+
+    # Calculate NSE, R2, RMSE, PBIAS, and RSR, etc. of validation period
     if cali_obj.cfg.calc_validation:
-        ind.vali.vars, ind.vali.data = read_simulation_from_txt(model_obj.output_dir,
-                                                                ind.obs.vars, model_obj.outlet_id,
+        ind.vali.vars, ind.vali.data = model_obj.ExtractSimData(cali_obj.cfg.vali_stime,
+                                                                cali_obj.cfg.vali_etime)
+        ind.vali.sim_obs_data = model_obj.ExtractSimObsData(cali_obj.cfg.vali_stime,
+                                                            cali_obj.cfg.vali_etime)
+
+        ind.vali.objnames, \
+        ind.vali.objvalues = model_obj.CalcTimeseriesStatistics(ind.vali.sim_obs_data,
                                                                 cali_obj.cfg.vali_stime,
                                                                 cali_obj.cfg.vali_etime)
-        # Match with observation data
-        ind.vali.sim_obs_data = match_simulation_observation(ind.vali.vars, ind.vali.data,
-                                                             ind.obs.vars, ind.obs.data,
-                                                             cali_obj.cfg.vali_stime,
-                                                             cali_obj.cfg.vali_etime)
-        # Calculate NSE, R2, RMSE, PBIAS, and RSR
-        ind.vali.valid = calculate_statistics(ind.vali.sim_obs_data)
+        if ind.vali.objnames and ind.vali.objvalues:
+            ind.vali.valid = True
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
     return ind

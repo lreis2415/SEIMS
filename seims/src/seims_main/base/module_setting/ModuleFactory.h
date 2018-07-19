@@ -86,7 +86,7 @@ public:
     vector<ParamInfo*>& GetTransferredInputs() { return m_tfValueInputs; }
 
     //! Get the count of transferred single value inputs
-    int GetTransferredInputsCount() { return int(m_tfValueInputs.size()); }
+    int GetTransferredInputsCount() { return CVT_INT(m_tfValueInputs.size()); }
 
     //! Load modules setting from file
     static bool LoadSettingsFromFile(const char* filename, vector<vector<string> >& settings);

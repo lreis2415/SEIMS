@@ -61,8 +61,8 @@ void SettingsInput::Dump(const string& fileName) {
     std::ofstream fs;
     fs.open(fileName.c_str(), std::ios::out);
     if (fs.is_open()) {
-        fs << "Start Date :" << ConvertToString2(&m_startDate) << endl;
-        fs << "End Date :" << ConvertToString2(&m_endDate) << endl;
+        fs << "Start Date :" << ConvertToString2(m_startDate) << endl;
+        fs << "End Date :" << ConvertToString2(m_endDate) << endl;
         fs << "Interval :" << m_dtHs << "\t" << m_dtCh << endl;
         fs.close();
     }

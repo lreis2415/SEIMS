@@ -22,17 +22,6 @@ namespace ccgl {
  * \brief File Input and output related functions
  */
 namespace utils_filesystem {
-#ifndef windows
-/*!
- * \brief Copy file in unix-based platform
- * \param[in] srcfile \a char source file path
- * \param[in] dstfile \a char destination file path
- * \TODO Add this functionality on Windows
- */
-int copyfile_unix(const char *srcfile, const char *dstfile);
-
-#endif /* windows */
-
 /*!
  * \brief Check the given directory path is exists or not.
  */

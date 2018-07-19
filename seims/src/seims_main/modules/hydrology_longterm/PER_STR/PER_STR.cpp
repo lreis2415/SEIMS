@@ -7,8 +7,12 @@ PER_STR::PER_STR() :
     m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE), m_ks(nullptr),
     m_soilSat(nullptr), m_soilFC(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
+<<<<<<< HEAD
     m_surfRf(nullptr), m_potVol(nullptr),
     m_landuse(nullptr), m_exsPcp(nullptr),
+=======
+    m_surfRf(nullptr), m_potVol(nullptr), m_impoundTrig(nullptr),
+>>>>>>> dev
     m_soilPerco(nullptr) {
 }
 
@@ -86,6 +90,7 @@ int PER_STR::Execute() {
                             }
                             if (ly == 0 && ul_excess > 0.f) {
                                 // add ul_excess to depressional storage and then to surfq
+<<<<<<< HEAD
                                 /*if (m_potVol != nullptr) {
                                     m_potVol[i] += ul_excess;
                                 } else {
@@ -95,6 +100,14 @@ int PER_STR::Execute() {
                                 // update infiltration by removing ul_excess
                                 m_infil[i] -= ul_excess;
                                 m_exsPcp[i] += ul_excess;
+=======
+                                if (m_potVol != nullptr && FloatEqual(m_impoundTrig[i], 0.f)) {
+                                    m_potVol[i] += ul_excess;
+                                } else {
+                                    m_surfRf[i] += ul_excess;
+                                }
+                                m_infil[i] -= ul_excess;
+>>>>>>> dev
                             }
                         }
                     }
@@ -138,8 +151,12 @@ void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
     else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
     else if (StringMatch(sk, VAR_POT_VOL)) m_potVol = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
+<<<<<<< HEAD
     else if (StringMatch(sk, VAR_LANDUSE)) m_landuse = data; 
     else if (StringMatch(sk, VAR_EXCP)) m_exsPcp = data;
+=======
+    else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
+>>>>>>> dev
     else {
         throw ModelException(MID_PER_STR, "Set1DData", "Parameter " + sk + " does not exist.");
     }

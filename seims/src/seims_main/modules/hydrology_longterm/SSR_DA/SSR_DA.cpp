@@ -10,7 +10,7 @@ SSR_DA::SSR_DA() :
     m_poreIdx(nullptr),
     m_soilFC(nullptr), m_soilWP(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_chWidth(nullptr),
-    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_flowInPercentage(nullptr), m_rteLyrs(nullptr),
+    m_rchID(nullptr), m_flowInIdxD8(nullptr), m_rteLyrs(nullptr),
     m_nRteLyrs(-1), m_nSubbsns(-1), m_subbsnID(nullptr),
     /// outputs
     m_subSurfRf(nullptr), m_subSurfRfVol(nullptr), m_ifluQ2Rch(nullptr) {
@@ -30,7 +30,7 @@ bool SSR_DA::FlowInSoil(const int id) {
         flowWidth -= m_chWidth[id];
     }
     // initialize for current cell of current timestep
-    for (int j = 0; j < int(m_nSoilLyrs[id]); j++) {
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[id]); j++) {
         m_subSurfRf[id][j] = 0.f;
         m_subSurfRfVol[id][j] = 0.f;
     }
@@ -59,8 +59,10 @@ bool SSR_DA::FlowInSoil(const int id) {
             }
         }
         // add upstream water to the current cell
-        if (qUp < 0.f) qUp = 0.f;
-        if (qUpVol < 0.f) qUpVol = 0.f;
+        if (qUp <= 0.f || qUpVol <= 0.f) {
+            qUp = 0.f;
+            qUpVol = 0.f;
+        }
         // if the flowWidth is less than 0, the subsurface flow from the upstream cells
         // should be added to stream cell directly, which will be summarized
         // for channel flow routing. By lj, 2018-4-12
@@ -69,15 +71,13 @@ bool SSR_DA::FlowInSoil(const int id) {
             m_subSurfRfVol[id][j] = qUpVol;
             continue;
         }
-
-        m_soilWtrSto[id][j] += qUp; // mm
-        //TEST
         if (m_soilWtrSto[id][j] != m_soilWtrSto[id][j] || m_soilWtrSto[id][j] < 0.f) {
             cout << "cell id: " << id << ", layer: " << j << ", moisture is less than zero: "
                     << m_soilWtrSto[id][j] << ", previous: " << smOld << ", qUp: " << qUp << ", depth:"
                     << m_soilThk[id][j] << endl;
             return false;
         }
+        m_soilWtrSto[id][j] += qUp; // mm
 
         // if soil moisture is below the field capacity, no interflow will be generated
         if (m_soilWtrSto[id][j] <= m_soilFC[id][j]) continue;
@@ -164,15 +164,14 @@ int SSR_DA::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            if (m_rchID[i] > 0) {
-                float qiAllLayers = 0.f;
-                for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-                    if (m_subSurfRfVol[i][j] > UTIL_ZERO) {
-                        qiAllLayers += m_subSurfRfVol[i][j] / m_dt;
-                    } /// m^3/s
+            if (m_rchID[i] <= 0.f) continue;
+            float qiAllLayers = 0.f;
+            for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+                if (m_subSurfRfVol[i][j] > UTIL_ZERO) {
+                    qiAllLayers += m_subSurfRfVol[i][j] / m_dt; /// m^3/s
                 }
-                tmp_qiSubbsn[int(m_subbsnID[i])] += qiAllLayers;
             }
+            tmp_qiSubbsn[CVT_INT(m_rchID[i])] += qiAllLayers;
         }
 #pragma omp critical
         {

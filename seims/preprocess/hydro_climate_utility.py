@@ -83,7 +83,7 @@ class HydroClimateUtilClass(object):
            #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
         """
         time_sys = 'LOCALTIME'
-        time_zone = time.timezone / -3600
+        time_zone = time.timezone // -3600
         with open(in_file, 'r') as f:
             lines = f.readlines()
         for line in lines:
@@ -143,7 +143,7 @@ class HydroClimateUtilClass(object):
                 dt = datetime(cur_y, cur_m, cur_d, cur_hh, cur_mm, cur_ss)
         if not StringClass.string_match(tsys, 'UTCTIME'):
             if tzone is None:
-                tzone = time.timezone / -3600  # positive value for EAST
+                tzone = time.timezone // -3600  # positive value for EAST
             dt -= timedelta(minutes=tzone * 60)
         return dt
 

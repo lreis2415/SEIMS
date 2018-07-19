@@ -6,13 +6,19 @@
                 18-1-11   lj - integration of screening method and variant-based method.\n
                 18-1-16   lj - split tasks when the run_count is very very large.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-07-04  lj - support MPI version of SEIMS, and bugs fixed.\n
 """
 from __future__ import absolute_import
 
 import os
 import sys
+import math
 import json
 import datetime
+import time
+import pickle
+from shutil import rmtree
+from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -38,8 +44,8 @@ from preprocess.utility import read_data_items_from_txt
 from postprocess.utility import save_png_eps
 
 from parameters_sensitivity.config import PSAConfig
-from parameters_sensitivity.userdef import evaluate_model_response, get_evaluate_output_name_unit
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
+from run_seims import create_run_model
 
 
 class SpecialJsonEncoder(json.JSONEncoder):
@@ -61,10 +67,12 @@ class Sensitivity(object):
             psa_cfg: PSAConfig object.
         """
         self.cfg = psa_cfg
+        self.model = psa_cfg.model
         self.param_defs = dict()
         self.param_values = None
         self.run_count = 0
         self.output_values = None
+        self.objnames = list()  # Objective names, e.g., NSE-Q, RMSE-Q, PBIAS-SED
         self.psa_si = dict()
 
     def run(self):
@@ -77,18 +85,21 @@ class Sensitivity(object):
         self.calculate_sensitivity()
 
     def plot(self):
-        self.plot_samples_histogram()
-        if self.cfg.method == 'morris':
-            self.plot_morris()
-            self.plot_cdf()
+        try:
+            self.plot_samples_histogram()
+            if self.cfg.method == 'morris':
+                self.plot_morris()
+                self.plot_cdf()
+        except Exception:
+            print('Plot failed, please run this function independently.')
 
     def reset_simulation_timerange(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
-        stime_str = self.cfg.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.cfg.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        db = conn[self.model.db_name]
+        stime_str = self.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
@@ -123,9 +134,9 @@ class Sensitivity(object):
                     self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
                 return
         # read param_range_def file and output to json file
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
+        db = conn[self.model.db_name]
         collection = db['PARAMETERS']
 
         names = list()
@@ -205,9 +216,9 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
             self.generate_samples()
-        client = ConnectMongoDB(self.cfg.hostname, self.cfg.port)
+        client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
-        db = conn[self.cfg.spatial_db]
+        db = conn[self.model.db_name]
         collection = db['PARAMETERS']
         collection.update_many({}, {'$unset': {'CALI_VALUES': ''}})
         for idx, pname in enumerate(self.param_defs['names']):
@@ -223,51 +234,79 @@ class Sensitivity(object):
                 self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_txt)
                 return
         assert (self.run_count > 0)
+
         # model configurations
-        model_cfg_dict = {'bin_dir': self.cfg.seims_bin, 'model_dir': self.cfg.model_dir,
-                          'nthread': self.cfg.seims_nthread, 'lyrmethod': self.cfg.seims_lyrmethod,
-                          'hostname': self.cfg.hostname, 'port': self.cfg.port,
-                          'scenario_id': 0}
+        model_cfg_dict = self.model.ConfigDict
+
+        # Parameters to be evaluated
+        input_eva_vars = self.cfg.evaluate_params
 
         # split tasks if needed
-        task_num = self.run_count / 1000
+        task_num = self.run_count // 1000
         if task_num == 0:
-            split_seqs = list(range(self.run_count))
+            split_seqs = [range(self.run_count)]
         else:
-            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num)
+            split_seqs = numpy.array_split(numpy.arange(self.run_count), task_num + 1)
             split_seqs = [a.tolist() for a in split_seqs]
 
-        # PSA evaluation period
-        psa_period = '%s,%s' % (self.cfg.psa_stime.strftime('%Y-%m-%d %H:%M:%S'),
-                                self.cfg.psa_etime.strftime('%Y-%m-%d %H:%M:%S'))
+        # Loop partitioned tasks
+        run_model_stime = time.time()
         for idx, cali_seqs in enumerate(split_seqs):
-            cur_out_file = self.cfg.outfiles.output_values_dir + os.path.sep + 'outputs_%d.txt' % idx
+            cur_out_file = '%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir, idx)
             if FileClass.is_file_exists(cur_out_file):
                 continue
+            model_cfg_dict_list = list()
+            for i, caliid in enumerate(cali_seqs):
+                tmpcfg = deepcopy(model_cfg_dict)
+                tmpcfg['calibration_id'] = caliid
+                model_cfg_dict_list.append(tmpcfg)
             try:  # parallel on multiprocesor or clusters using SCOOP
                 from scoop import futures
-                temp_output_values = list(futures.map(evaluate_model_response,
-                                                      [model_cfg_dict] * len(cali_seqs),
-                                                      cali_seqs, [psa_period] * len(cali_seqs)))
+                output_models = list(futures.map(create_run_model, model_cfg_dict_list))
             except ImportError or ImportWarning:  # serial
-                temp_output_values = list(map(evaluate_model_response,
-                                              [model_cfg_dict] * len(cali_seqs), cali_seqs,
-                                              [psa_period] * len(cali_seqs)))
-            if not isinstance(temp_output_values, numpy.ndarray):
-                temp_output_values = numpy.array(temp_output_values)
-            numpy.savetxt(cur_out_file, temp_output_values, delimiter=' ', fmt='%.4e')
+                output_models = list(map(create_run_model, model_cfg_dict_list))
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+            # Read observation data from MongoDB only once
+            if len(output_models) < 1:  # Although this is not gonna happen, just for insurance.
+                continue
+            obs_vars, obs_data_dict = output_models[0].ReadOutletObservations(input_eva_vars)
+            if (len(obs_vars)) < 1:  # Make sure the observation data exists.
+                continue
+            # Loop the executed models
+            eva_values = list()
+            for imod, mod_obj in enumerate(output_models):
+                if imod != 0:  # Set observation data since there is no need to read from MongoDB.
+                    mod_obj.SetOutletObservations(obs_vars, obs_data_dict)
+                # Read simulation
+                mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
+                # Calculate NSE, R2, RMSE, PBIAS, RSR, ln(NSE), NSE1, and NSE3
+                self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics(mod_obj.sim_obs_dict)
+                eva_values.append(obj_values)
+                # delete model output directory for saving storage
+                rmtree(mod_obj.output_dir)
+            if not isinstance(eva_values, numpy.ndarray):
+                eva_values = numpy.array(eva_values)
+            numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4e')
+            # Save as pickle data for further usage. DO not save all models which maybe very large!
+            cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
+            with open(cur_model_out_file, 'wb') as f:
+                pickle.dump(output_models, f)
+        print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
+        # Save objective names as pickle data for further usgae
+        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
+            pickle.dump(self.objnames, f)
+
         # load the first part of output values
-        self.output_values = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.path.sep +
-                                           'outputs_0.txt')
+        self.output_values = numpy.loadtxt('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir)
         if task_num == 0:
             import shutil
-            shutil.move(self.cfg.outfiles.output_values_dir + os.path.sep + 'outputs_0.txt',
+            shutil.move('%s/outputs_0.txt' % self.cfg.outfiles.output_values_dir,
                         self.cfg.outfiles.output_values_txt)
             shutil.rmtree(self.cfg.outfiles.output_values_dir)
             return
-        for idx in range(1, task_num):
-            tmp_outputs = numpy.loadtxt(self.cfg.outfiles.output_values_dir + os.path.sep +
-                                        'outputs_%d.txt' % idx)
+        for idx in range(1, task_num + 1):
+            tmp_outputs = numpy.loadtxt('%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir,
+                                                               idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
                       self.output_values, delimiter=' ', fmt='%.4e')
@@ -282,6 +321,10 @@ class Sensitivity(object):
                 with open(self.cfg.outfiles.psa_si_json, 'r') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
+        if not self.objnames:
+            if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
+                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'r') as f:
+                    self.objnames = pickle.load(f)
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
         if self.param_values is None or len(self.param_values) == 0:
@@ -291,6 +334,7 @@ class Sensitivity(object):
         row, col = self.output_values.shape
         assert (row == self.run_count)
         for i in range(col):
+            print(self.objnames[i])
             if self.cfg.method == 'morris':
                 tmp_Si = morris_alz(self.param_defs,
                                     self.param_values,
@@ -312,7 +356,6 @@ class Sensitivity(object):
         self.output_psa_si()
 
     def output_psa_si(self):
-        objnames, objunits = get_evaluate_output_name_unit()
         psa_sort_txt = self.cfg.outfiles.psa_si_sort_txt
         psa_sort_dict = dict()
         param_names = self.param_defs.get('names')
@@ -320,7 +363,7 @@ class Sensitivity(object):
         for idx, si_dict in self.psa_si.items():
             if 'objnames' not in psa_sort_dict:
                 psa_sort_dict['objnames'] = list()
-            psa_sort_dict['objnames'].append(objnames[idx])
+            psa_sort_dict['objnames'].append(self.objnames[idx])
             for param, values in si_dict.items():
                 if param == 'names':
                     continue
@@ -363,14 +406,12 @@ class Sensitivity(object):
 
     def plot_morris(self):
         """Save plot as png(300 dpi) and eps (vector)."""
-        output_name, output_unit = get_evaluate_output_name_unit()
         if not self.psa_si:
             self.calculate_sensitivity()
-        for i, v in enumerate(output_name):
-            unit = output_unit[i]
+        for i, v in enumerate(self.objnames):
             fig, (ax1, ax2) = plt.subplots(1, 2)
-            horizontal_bar_plot(ax1, self.psa_si.get(i), {}, sortby='mu_star', unit=unit)
-            covariance_plot(ax2, self.psa_si.get(i), {}, unit=unit)
+            horizontal_bar_plot(ax1, self.psa_si.get(i), {}, sortby='mu_star')
+            covariance_plot(ax2, self.psa_si.get(i), {})
             save_png_eps(plt, self.cfg.psa_outpath, 'mu_star_%s' % v)
             # close current plot in case of 'figure.max_open_warning'
             plt.cla()
@@ -378,7 +419,6 @@ class Sensitivity(object):
             plt.close()
 
     def plot_cdf(self):
-        output_name, output_unit = get_evaluate_output_name_unit()
         if not self.param_defs:
             self.read_param_ranges()
         if self.param_values is None or len(self.param_values) == 0:
@@ -386,21 +426,23 @@ class Sensitivity(object):
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
         param_names = self.param_defs.get('names')
-        for i in [2, 7, 8, 9, 10, 15, 16, 17]:  # NSE series, i.e., NSE, lnNSE, NSE1, and NSE3
+        for i, objn in enumerate(self.objnames):
             values = self.output_values[:, i]
-            empirical_cdf(values, [0], self.param_values, param_names,
-                          self.cfg.morris.num_levels,
-                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
-        for i in [3, 11]:  # R-square, equally divided as two classes
-            values = self.output_values[:, i]
-            empirical_cdf(values, 2, self.param_values, param_names,
-                          self.cfg.morris.num_levels,
-                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
-        for i in [6, 14]:  # RSR
-            values = self.output_values[:, i]
-            empirical_cdf(values, [1], self.param_values, param_names,
-                          self.cfg.morris.num_levels,
-                          self.cfg.psa_outpath, 'cdf_%s' % output_name[i], {'histtype': 'step'})
+            if 'NSE' in objn:  # NSE series, i.e., NSE, lnNSE, NSE1, and NSE3
+                empirical_cdf(values, [0], self.param_values, param_names,
+                              self.cfg.morris.num_levels,
+                              self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
+                              {'histtype': 'step'})
+            elif 'R-square' in objn:  # R-square, equally divided as two classes
+                empirical_cdf(values, 2, self.param_values, param_names,
+                              self.cfg.morris.num_levels,
+                              self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
+                              {'histtype': 'step'})
+            elif 'RSR' in objn:  # RSR
+                empirical_cdf(values, [1], self.param_values, param_names,
+                              self.cfg.morris.num_levels,
+                              self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
+                              {'histtype': 'step'})
 
 
 if __name__ == '__main__':

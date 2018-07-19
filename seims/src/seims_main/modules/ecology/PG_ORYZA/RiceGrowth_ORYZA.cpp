@@ -239,7 +239,7 @@ float ORYZA::CalHeatUnitDaily(int i) {
     float tt = 0.f;
     float hu = 0.f;
     for (int k = 1; k <= 24; k++) {
-        float td = m_meanTemp[i] + 0.5f * abs(m_tMax[i] - m_tMin[i]) * cos(0.2618f * (k - 14.f));
+        float td = m_meanTemp[i] + 0.5f * std::abs(m_tMax[i] - m_tMin[i]) * cos(0.2618f * (k - 14.f));
         if (td > m_tbd && td < m_tmd) {
             if (td > m_tod) {
                 td = m_tod - (td - m_tod) * (m_tod - m_tbd) / (m_tmd - m_tod);
@@ -508,7 +508,7 @@ void ORYZA::LAI(int i) {
             wlvgExs = m_wlvg[i];
             laiExs = m_lai[i];
         } else {
-            float test = abs(m_lai[i] / m_wlvg[i] - m_sla[i]) / m_sla[i];
+            float test = std::abs(m_lai[i] / m_wlvg[i] - m_sla[i]) / m_sla[i];
             if (test < testSet) flag = true;
             if (flag) {
                 m_gLai = (m_wlvg[i] + m_rwlvg[i]) * m_sla[i] - m_lai[i];
@@ -533,7 +533,7 @@ void ORYZA::LAI(int i) {
                 wlvgExs = m_wlvg[i];
                 laiExs = m_lai[i];
             } else {
-                float test = abs(m_lai[i] / m_wlvg[i] - m_sla[i]) / m_sla[i];
+                float test = std::abs(m_lai[i] / m_wlvg[i] - m_sla[i]) / m_sla[i];
                 if (test < testSet) flag = true;
                 if (flag) m_gLai = (m_wlvg[i] + m_rwlvg[i]) * m_sla[i] - m_lai[i];
                 else {
@@ -1002,7 +1002,7 @@ void ORYZA::initialOutputs() {
         Initialize1DArray(m_nCells, m_wlvg, 0.01f);
     if (m_wlvd == nullptr)
         Initialize1DArray(m_nCells, m_wlvd, 0.f);
-    if (m_wsts = nullptr)
+    if (m_wsts == nullptr)
         Initialize1DArray(m_nCells, m_wsts, 0.f);
     if (m_wstr == nullptr)
         Initialize1DArray(m_nCells, m_wstr, 0.f);

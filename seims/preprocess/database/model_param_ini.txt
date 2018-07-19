@@ -1,9 +1,9 @@
 # ALL INITIAL MODEL PARAMETERS.
 # Table title (columns are split by COMMA!)
-# Last updated: 2017-12-26
+# Last updated: 2018-7-9
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
-Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,RC,350,300
+Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,AC,350,300
 Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
 Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
 Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
@@ -119,7 +119,7 @@ Sediment,adj_pkr,peak rate adjustment factor,none,MUSLE_I30,1,0,AC,1,0.1
 Sediment,ccoe,calibration coefficient of overland flow detachment erosion,none,KinWavSed_OL,0.05,1,RC,100,0.001
 Sediment,ChDetCo,calibration coefficient of channel flow detachment,none,KinWavSed_CH,0.001,1,RC,1,0.0001
 Sediment,ChTcCo,calibration coefficient of transport capacity calculation,none,KinWavSed_CH,0.8,1,RC,100000,0.001
-Sediment,depRatio,deposition ratio,None,MUSLE_AS,0.8,1,RC,1,0
+Sediment,depRatio,deposition ratio,None,SERO_MUSLE,0.8,1,RC,1,0
 Sediment,downcut, whether do the channel downcutting and widening,none,ChannelRouting,1,0,NC,1,0
 Sediment,eco1,calibration coefficient-1 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
 Sediment,eco2,calibration coefficient-2 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
@@ -128,7 +128,8 @@ Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashE
 Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
-Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,MUSLEC_LAI,0.3,0,AC,0.5,0.1
+Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
+Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
 Sediment,sed_chi,Initial channel sediment concentration,ton/m^3,ChannelRouting,0.03,0,AC,0.848,0
 Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
 Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1
@@ -138,7 +139,10 @@ Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
-Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,1,0
+Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,10,0
+Crop,gsi,Max stomatal conductance (in drough condition),m/s,PET,-9999,1,RC,5,0
+Crop,vpdfr,Vapor pressure deficit corresponding to the fraction maximum stomatal conductance defined by FRGMAX,kPa,PET,-9999,1,RC,6,1.5
+Crop,frgmax,Fraction of maximum stomatla conductance that is achievable at a high vapor pressure deficit,none,PET,-9999,1,RC,1,0
 Snow,c_rain,Rainfall impact factor,mm/mm/deg C/delta_t,SNO_DD,0.04,0,AC,1,0
 Snow,c_snow,temperature impact factor,mm/deg C/delta_t,SNO_DD,3,0,AC,6,0
 Snow,c_snow12,Melt factor on December 21,mm/deg C/day,SNO_SP,6.5,0,AC,9,6

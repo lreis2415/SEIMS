@@ -514,7 +514,11 @@ class SoilProperty(object):
     @staticmethod
     def usle_k_epic(sand, silt, clay, om):
         """Calculate USLE_K factor according to EPIC (Erosion Productivity Impact Calculator).
-        (Williams et al., 1983)
+
+        References:
+            1. Williams, J.R. 1995. The EPIC model. In "Computer models of watershed hydrology".
+                 V.P. Singh, 909-1000. Highlands Ranch, CO, USA: Water Resources Publications.
+            2. Equation. 4:1.1.5 - 4:1.1.9 in SWAT Theory 2009.
         """
         cbn = om * 0.58
         sn = 1. - sand * 0.01

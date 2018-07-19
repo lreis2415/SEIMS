@@ -10,8 +10,9 @@ using namespace utils_string;
 using namespace utils_time;
 using namespace bmps;
 
-BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
-                                       int bmpType, int bmpPriority, vector<string>& distribution,
+BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority,
+                                       vector<string>& distribution,
                                        const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_pointSrcMgtTab = m_bmpCollection;
@@ -45,8 +46,7 @@ BMPPointSrcFactory::~BMPPointSrcFactory() {
         m_pointSrcLocsMap.clear();
     }
     if (!m_pointSrcMgtMap.empty()) {
-        for (auto it = m_pointSrcMgtMap.begin();
-             it != m_pointSrcMgtMap.end();) {
+        for (auto it = m_pointSrcMgtMap.begin(); it != m_pointSrcMgtMap.end();) {
             if (nullptr != it->second) {
                 delete it->second;
                 it->second = nullptr;
@@ -83,8 +83,12 @@ void BMPPointSrcFactory::ReadPointSourceManagements(MongoClient* conn, const str
     /// Use count to counting sequence number, in case of discontinuous or repeat of SEQUENCE in database.
     int count = 1;
     while (mongoc_cursor_next(cursor, &bsonTable)) {
-        m_pointSrcMgtSeqs.push_back(count);
-        m_pointSrcMgtMap[count] = new PointSourceMgtParams(bsonTable, iter);
+        m_pointSrcMgtSeqs.emplace_back(count);
+#ifdef HAS_VARIADIC_TEMPLATES
+        m_pointSrcMgtMap.emplace(count, new PointSourceMgtParams(bsonTable, iter));
+#else
+        m_pointSrcMgtMap.insert(make_pair(count, new PointSourceMgtParams(bsonTable, iter)));
+#endif
         count++;
     }
     bson_destroy(b);
@@ -109,7 +113,11 @@ void BMPPointSrcFactory::ReadPointSourceLocations(MongoClient* conn, const strin
         PointSourceLocations* curPtSrcLoc = new PointSourceLocations(bsonTable, iter);
         int curPtSrcID = curPtSrcLoc->GetPointSourceID();
         if (ValueInVector(curPtSrcID, m_pointSrcIDs)) {
-            m_pointSrcLocsMap[curPtSrcID] = curPtSrcLoc;
+#ifdef HAS_VARIADIC_TEMPLATES
+            m_pointSrcLocsMap.emplace(curPtSrcID, curPtSrcLoc);
+#else
+            m_pointSrcLocsMap.insert(make_pair(curPtSrcID, curPtSrcLoc));
+#endif
         } else {
             RemoveValueInVector(curPtSrcID, m_pointSrcIDs);
             delete curPtSrcLoc;
@@ -213,10 +221,10 @@ void PointSourceMgtParams::Dump(std::ostream* fs) {
     if (nullptr == fs) return;
     *fs << "    Point Source Managements: " << endl;
     if (m_startDate != 0) {
-        *fs << "      Start Date: " << ConvertToString(&m_startDate) << endl;
+        *fs << "      Start Date: " << ConvertToString(m_startDate) << endl;
     }
     if (m_endDate != 0) {
-        *fs << "      End Date: " << ConvertToString(&m_endDate) << endl;
+        *fs << "      End Date: " << ConvertToString(m_endDate) << endl;
     }
     *fs << "      WaterVolume: " << m_waterVolume << ", Sediment: " << m_sedimentConc <<
             ", TN: " << m_TNConc << ", NO3: " << m_NO3Conc <<

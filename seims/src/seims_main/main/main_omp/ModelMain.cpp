@@ -6,7 +6,7 @@
 using namespace ccgl::utils_time;
 
 ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
-    m_dataCenter(data_center), m_factory(factory), m_readFileTime(0.f),
+    m_dataCenter(data_center), m_factory(factory), m_readFileTime(0.),
     m_firstRunOverland(true), m_firstRunChannel(true) {
     /// Get SettingInput and SettingOutput
     m_input = m_dataCenter->GetSettingInput();
@@ -22,12 +22,12 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     m_moduleIDs = m_factory->GetModuleIDs();
     /// Get transferred value inputs
     m_tfValueInputs = m_factory->GetTransferredInputs();
-    m_nTFValues = int(m_tfValueInputs.size());
+    m_nTFValues = CVT_INT(m_tfValueInputs.size());
     for (int i = 0; i < m_nTFValues; i++) {
         string module_id = m_tfValueInputs[i]->ModuleID;
         auto itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
         int idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
-        m_tfValueToModuleIdxs.push_back(idIndex);
+        m_tfValueToModuleIdxs.emplace_back(idIndex);
         string param_name = m_tfValueInputs[i]->Name;
         if (m_tfValueInputs[i]->DependPara != nullptr) {
             module_id = m_tfValueInputs[i]->DependPara->ModuleID;
@@ -35,8 +35,8 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         }
         itID = find(m_moduleIDs.begin(), m_moduleIDs.end(), module_id);
         idIndex = CVT_INT(distance(m_moduleIDs.begin(), itID));
-        m_tfValueFromModuleIdxs.push_back(idIndex);
-        m_tfValueNames.push_back(param_name);
+        m_tfValueFromModuleIdxs.emplace_back(idIndex);
+        m_tfValueNames.emplace_back(param_name);
     }
     /// Create module list
     m_factory->CreateModuleList(m_simulationModules, m_dataCenter->GetThreadNumber());
@@ -48,19 +48,19 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
         SimulationModule* p_module = m_simulationModules[i];
         switch (p_module->GetTimeStepType()) {
             case TIMESTEP_HILLSLOPE: {
-                m_hillslopeModules.push_back(i);
+                m_hillslopeModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_CHANNEL: {
-                m_channelModules.push_back(i);
+                m_channelModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_ECOLOGY: {
-                m_ecoModules.push_back(i);
+                m_ecoModules.emplace_back(i);
                 break;
             }
             case TIMESTEP_SIMULATION: {
-                m_overallModules.push_back(i);
+                m_overallModules.emplace_back(i);
                 break;
             }
             default: break;
@@ -134,22 +134,31 @@ void ModelMain::Execute() {
     time_t startTime = m_input->getStartTime();
     time_t endTime = m_input->getEndTime();
     int startYear = GetYear(startTime);
-    int nHs = int(m_dtCh / m_dtHs);
-
+    int nHs = CVT_INT(m_dtCh / m_dtHs);
+    int preYearIdx = -1;
     for (time_t t = startTime; t < endTime; t += m_dtCh) {
-        StatusMessage(ConvertToString2(&t).c_str());
         /// Calculate index of current year of the entire simulation
         int curYear = GetYear(t);
         int yearIdx = curYear - startYear;
+        if (preYearIdx != yearIdx) {
+            cout << "Simulation year: " << startYear + yearIdx << endl;
+        }
+        StatusMessage(ConvertToString2(t).c_str());
+#ifdef _DEBUG
+        if (StringMatch(ConvertToString(t), "2014-03-30")) {
+            cout << "Debugging..." << endl;
+        }
+#endif
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }
         StepChannel(t, yearIdx);
         AppendOutputData(t);
+        preYearIdx = yearIdx;
     }
     StepOverall(startTime, endTime);
     double t2 = TimeCounting();
-    cout << "[TIMESPAN][COMPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+    cout << "[TIMESPAN][COMP][ALL] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     OutputExecuteTime();
 }
 
@@ -159,7 +168,7 @@ void ModelMain::GetTransferredValue(float* tfvalues) {
     }
 }
 
-void ModelMain::SetTransferredValue(int index, float* tfvalues) {
+void ModelMain::SetTransferredValue(const int index, float* tfvalues) {
     if (m_firstRunChannel) {
         for (auto it = m_channelModules.begin(); it != m_channelModules.end(); ++it) {
             m_factory->GetValueFromDependencyModule(*it, m_simulationModules);
@@ -185,15 +194,15 @@ double ModelMain::Output() {
     double t2 = TimeCounting();
     if (m_dataCenter->GetSubbasinID() == 0) {
         // Only print for OpenMP version
-        cout << "[TIMESPAN][OUTPUTING]\tALL\t" << std::fixed << setprecision(3) << t2 - t1 << endl;
+        cout << "[TIMESPAN][IO  ][Output] " << std::fixed << setprecision(3) << t2 - t1 << endl;
     }
     return t2 - t1;
 }
 
 void ModelMain::OutputExecuteTime() {
     for (int i = 0; i < CVT_INT(m_simulationModules.size()); i++) {
-        cout << "[TIMESPAN][COMPUTING]\t" << m_factory->GetModuleID(i) << "\t"
-                << std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
+        cout << "[TIMESPAN][COMP][" << m_factory->GetModuleID(i) << "] " <<
+                std::fixed << std::setprecision(3) << m_executeTime[i] << endl;
     }
 }
 

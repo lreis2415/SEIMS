@@ -35,9 +35,9 @@ public:
     //! Get name
     string getBMPName() { return m_name; }
     //! Get suitable landuse
-    const vector<int>& getSuitableLanduse() const { return m_landuse; }
+    vector<int>& getSuitableLanduse() { return m_landuse; }
     //! Get parameters
-    const map<string, ParamInfo*>& getParameters() const { return m_parameters; }
+    map<string, ParamInfo*>& getParameters() { return m_parameters; }
 private:
     int m_id; ///< unique BMP ID
     string m_name; ///< name
@@ -66,7 +66,7 @@ public:
                           const string& collection, const string& location);
 
     /// Destructor
-    virtual ~BMPArealStructFactory();
+    ~BMPArealStructFactory();
 
     //! Load BMP parameters from MongoDB
     void loadBMP(MongoClient* conn, const string& bmpDBName) OVERRIDE;

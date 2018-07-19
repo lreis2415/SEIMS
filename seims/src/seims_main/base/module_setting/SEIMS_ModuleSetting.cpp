@@ -48,7 +48,7 @@ bool SEIMSModuleSetting::needDoVerticalInterpolation() {
 
 string SEIMSModuleSetting::channelRoutingMethod(int methodIndex) {
     if (!StringMatch(m_moduleId, "ChannelRouting")) { return ""; }
-    if (int(m_settings.size()) < methodIndex + 1) {
+    if (CVT_INT(m_settings.size()) < methodIndex + 1) {
         throw ModelException("SEIMSModuleSetting", "needDoVerticalInterpolation", "Module " + m_moduleId +
                              " does not appoint vertical interpolation in the third column.");
     }
@@ -80,7 +80,7 @@ float SEIMSModuleSetting::dataTypeString2Float(const string& data_type) {
 }
 
 string SEIMSModuleSetting::dataType2String(const float data_type) {
-    switch (int(data_type)) {
+    switch (CVT_INT(data_type)) {
         case 1: return DataType_Precipitation;
         case 2: return DataType_MeanTemperature;
         case 3: return DataType_MinimumTemperature;

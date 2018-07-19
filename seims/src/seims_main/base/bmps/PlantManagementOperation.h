@@ -82,8 +82,6 @@ class PltOp: public PltMgtOp {
 public:
     PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~PlantOperation() = default;
-
     int PlantID() { return m_plantID; }
 
     float CurYearMaturity() { return m_curYrMat; }
@@ -123,8 +121,6 @@ class IrrOp: public PltMgtOp {
 public:
     IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~IrrigationOperation() = default;
-
     int IRRSource() { return m_irrSrc; }
 
     int IRRNo() { return m_irrNo; }
@@ -158,8 +154,6 @@ class FertOp: public PltMgtOp {
 public:
     FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~FertilizerOperation() = default;
-
     int FertilizerID() { return m_fertID; }
 
     float FertilizerKg_per_ha() { return m_frtKgHa; }
@@ -186,8 +180,6 @@ class PestOp: public PltMgtOp {
 public:
     PestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~PesticideOperation() = default;
-
     int PesticideID() { return m_pestID; }
 
     float PesticideKg() { return m_pstKg; }
@@ -213,8 +205,6 @@ public:
     HvstKillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
-    //virtual ~HarvestKillOperation() = default;
-
     float CNOP() { return m_CNOP; }
 
     float HarvestIndexOverride() { return m_hiOvr; }
@@ -239,8 +229,6 @@ class TillOp: public PltMgtOp {
 public:
     TillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~TillageOperation() = default;
-
     float CNOP() { return m_CNOP; }
 
     int TillageID() { return m_tillID; }
@@ -262,8 +250,6 @@ class HvstOnlyOp: public PltMgtOp {
 public:
     HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
-
-    //virtual ~HarvestOnlyOperation() = default;
 
     float HarvestEfficiency() { return m_harvEff; }
 
@@ -289,8 +275,6 @@ class KillOp: public PltMgtOp {
 public:
     KillOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
 
-    //virtual ~KillOperation() = default;
-
     //! Output
     void dump(std::ostream* fs) OVERRIDE;
 };
@@ -303,8 +287,6 @@ public:
 class GrazOp: public PltMgtOp {
 public:
     GrazOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
-
-    //virtual ~GrazingOperation() = default;
 
     int GrazingDays() { return m_grzDays; }
 
@@ -336,8 +318,6 @@ class AutoIrrOp: public PltMgtOp {
 public:
     AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
               float* parameters);
-
-    //virtual ~AutoIrrigationOperation() = default;
 
     int WaterStrsIdent() { return m_wstrsID; }
 
@@ -376,8 +356,6 @@ public:
     AutoFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
-    //virtual ~AutoFertilizerOperation() = default;
-
     int FertilizerID() { return m_afertID; }
 
     int NitrogenMethod() { return m_NStress; }
@@ -415,8 +393,6 @@ public:
     RelImpndOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
-    //virtual ~ReleaseImpoundOperation() = default;
-
     int ImpoundTriger() { return m_impTrig; }
 
     float MaxPondDepth() { return m_maxPondDepth; }
@@ -446,8 +422,6 @@ public:
     ContFertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
-    //virtual ~ContinuousFertilizerOperation() = default;
-
     int FertilizerID() { return m_cfertID; }
 
     int ApplyFrequency() { return m_ifrtFreq; }
@@ -476,8 +450,6 @@ public:
     ContPestOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs,
                float* parameters);
 
-    //virtual ~ContinuousPesticideOperation() = default;
-
     int PesticideID() { return m_ipstID; }
 
     int PesticideFrequency() { return m_pstFreq; }
@@ -504,8 +476,6 @@ private:
 class BurnOp: public PltMgtOp {
 public:
     BurnOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day, float dvs, float* parameters);
-
-    //virtual ~BurningOperation() = default;
 
     float FractionLeft() { return m_burnFrlb; }
 
