@@ -131,6 +131,8 @@ private:
     float* m_actPltET;
     //! PET(mm) from the PET modules
     float* m_pet;
+    //! revap needed of cell
+    float* m_revap;
     //! initial ground water storage (or at time t-1)
     float m_GW0;
     //! maximum ground water storage
