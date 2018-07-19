@@ -194,10 +194,10 @@ int AET_PT_H::Execute() {
             continue;
         }
         
-		if ((int)m_landuse[i] == LANDUSE_ID_PADDY && m_cropsta[i] == 4.f){
-				// if the cell is paddy and rice in main field
-				// add oryza method to compute soil evaporation and crop transpiration, by sf 2017.11.29
-				es_max = ORYZA_maxPET(pet, i);
+        if (CVT_INT(m_landuse[i]) == LANDUSE_ID_PADDY && m_cropsta[i] == 4.f){
+			// if the cell is paddy and rice in main field
+			// add oryza method to compute soil evaporation and crop transpiration, by sf 2017.11.29
+			es_max = ORYZA_maxPET(pet, i);
 		}
 		else{
 			es_max = SWAT_maxPET(pet, i);
