@@ -787,12 +787,10 @@
 #define VAR_OLFLOW "OL_Flow" /// m_surfRf, overland flow in each cell calculated during overland routing
 #define VAR_QG "QG"                                 /// Groundwater discharge at each reach outlet and at each time step
 #define VAR_QI "QI"                                 /// Interflow at each reach outlet and at each time step
-#define VAR_QOUTLET "QOUTLET"                       /// discharge at the watershed outlet
 #define VAR_QOVERLAND "QOverland"
 #define VAR_QRECH "QRECH" /// m_qRchOut, Discharge at reach outlet of each time step
 #define VAR_QS "QS"                                 /// Overland discharge at each reach outlet and at each time step
 #define VAR_QSOIL "QSoil"
-#define VAR_QSOUTLET "QSOUTLET"                     /// discharge at the watershed outlet
 #define VAR_QSUBBASIN "QSUBBASIN"
 #define VAR_QTILE "qtile"
 #define VAR_QTOTAL "QTotal"
@@ -1517,12 +1515,10 @@
 #define DESC_OLFLOW "overland flow in each cell calculated during overland routing"
 #define DESC_QG "Groundwater discharge at each reach outlet"
 #define DESC_QI "Interflow at each reach outlet"
-#define DESC_QOUTLET "discharge at the watershed outlet"
 #define DESC_QOVERLAND "Water discharge in the downslope boundary of cells"
 #define DESC_QRECH "Discharge at each reach outlet of each time step"
 #define DESC_QS "Overland discharge at each reach outlet"
 #define DESC_QSOIL "discharge added to channel flow from interflow"
-#define DESC_QSOUTLET "surface runoff at the watershed outlet"
 #define DESC_QSUBBASIN "discharge at each subbasin outlet"
 #define DESC_QTILE "drainage tile flow in soil profile"
 #define DESC_QTOTAL "discharge at the watershed outlet"
