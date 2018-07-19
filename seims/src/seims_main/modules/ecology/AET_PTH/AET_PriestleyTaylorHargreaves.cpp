@@ -193,36 +193,15 @@ int AET_PT_H::Execute() {
             m_soilET[i] = 0.f;   // i.e., es_max in SWAT
             continue;
         }
-        /// compute potential plant evapotranspiration (PPT) other than Penman-Monteith method
-        if (m_lai[i] <= 3.f) {
-            m_maxPltET[i] = m_lai[i] * pet * _1div3;
-        } else {
-            m_maxPltET[i] = pet;
-        }
-        if (m_maxPltET[i] < 0.f) m_maxPltET[i] = 0.f;
-        /// compute potential soil evaporation
-        cej = -5.e-5f;
-        eaj = 0.f;
-        es_max = 0.f; ///maximum amount of evaporation (soil et)
-        eos1 = 0.f;
-        if (m_snowAccum[i] >= 0.5f) {
-            eaj = 0.5f;
-        } else {
-            eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
-        }
-        es_max = pet * eaj;
-        eos1 = pet / (es_max + m_maxPltET[i] + 1.e-10f);
-        eos1 = es_max * eos1;
-        es_max = Min(es_max, eos1);
-        es_max = Max(es_max, 0.f);
-        /// make sure maximum plant and soil ET doesn't exceed potential ET
-        if (pet < es_max + m_maxPltET[i] && !FloatEqual(es_max + m_maxPltET[i], 0.f)) {
-            es_max = pet * es_max / (es_max + m_maxPltET[i]);
-            m_maxPltET[i] = pet * m_maxPltET[i] / (es_max + m_maxPltET[i]);
-        }
-        if (pet < es_max + m_maxPltET[i]) {
-            es_max = pet - m_maxPltET[i] - UTIL_ZERO;
-        }
+        
+		if ((int)m_landuse[i] == LANDUSE_ID_PADDY && m_cropsta[i] == 4.f){
+				// if the cell is paddy and rice in main field
+				// add oryza method to compute soil evaporation and crop transpiration, by sf 2017.11.29
+				es_max = ORYZA_maxPET(pet, i);
+		}
+		else{
+			es_max = SWAT_maxPET(pet, i);
+		}        
 
         /// initialize soil evaporation variables
         esleft = es_max;
