@@ -202,6 +202,8 @@ typedef vint64_t pos_t;
 #define NODATA_VALUE    (-9999.0f)
 #endif /* NODATA_VALUE */
 
+#define NODATA_POND  255.f 
+
 #ifndef MISSINGFLOAT
 #define MISSINGFLOAT    (-1 * FLT_MAX)
 #endif /* MISSINGFLOAT */
