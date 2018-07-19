@@ -259,10 +259,8 @@ void MUSK_CH::Set1DData(const char* key, const int n, float* data) {
 void MUSK_CH::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_QOUTLET)) *value = m_qRchOut[m_outletID];
-    else if (StringMatch(sk, VAR_QSOUTLET)) *value = m_qsCh[m_outletID];
-        /// IN/OUTPUT variables
-    else if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
+    /// IN/OUTPUT variables
+    if (StringMatch(sk, VAR_QRECH) && m_inputSubbsnID > 0) *value = m_qRchOut[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QS) && m_inputSubbsnID > 0) *value = m_qsCh[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QI) && m_inputSubbsnID > 0) *value = m_qiCh[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_QG) && m_inputSubbsnID > 0) *value = m_qgCh[m_inputSubbsnID];

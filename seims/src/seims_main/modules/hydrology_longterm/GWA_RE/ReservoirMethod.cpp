@@ -7,8 +7,8 @@ ReservoirMethod::ReservoirMethod() :
     m_nSoilLyrs(nullptr), m_soilThk(nullptr),
     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
     m_soilPerco(nullptr), m_IntcpET(nullptr), m_deprStoET(nullptr),
-    m_soilET(nullptr), m_actPltET(nullptr),
-    m_pet(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
+    m_soilET(nullptr), m_actPltET(nullptr), m_pet(nullptr),
+    m_revap(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
     m_petSubbasin(nullptr), m_gwStore(nullptr), m_slope(nullptr), m_soilWtrSto(nullptr),
     m_soilDepth(nullptr),
     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
@@ -56,48 +56,43 @@ int ReservoirMethod::Execute() {
         int curCellsNum = curSub->GetCellCount();
         int* curCells = curSub->GetCells();
         float perco = 0.f;
-        float revap = 0.f; // calculate EG, i.e. Revap
         float fPET = 0.f;
-        float fEI = 0.f;
-        float fED = 0.f;
-        float fES = 0.f;
-        float plantEP = 0.f;
-#pragma omp parallel for reduction(+:perco, fPET, fEI, fED, fES, plantEP)
+        float revap = 0.f;
+#pragma omp parallel for reduction(+:perco, fPET, revap)
         for (int i = 0; i < curCellsNum; i++) {
             int index = curCells[i];
             float tmp_perc = m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1];
-            if (tmp_perc > 0) perco += tmp_perc;
-            else m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
-
-            if (m_pet[index] > 0.f) fPET += m_pet[index];
-            if (m_IntcpET[index] > 0.f) fEI += m_IntcpET[index];
-            if (m_deprStoET[index] > 0.f) fED += m_deprStoET[index];
-            if (m_soilET[index] > 0.f) fES += m_soilET[index];
-            if (m_actPltET[index] > 0.f) plantEP += m_actPltET[index];
+            if (tmp_perc > 0) {
+                perco += tmp_perc;
+            } else {
+                m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
+            }
+            if (m_pet[index] > 0.f) {
+                fPET += m_pet[index];
+            }
+            m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
+            m_revap[index] = max(m_revap[index], 0.f);
+            m_revap[index] = m_revap[index] * m_gwStore[subID] / m_GWMAX;
+            revap += m_revap[index];
         }
         perco /= curCellsNum; // mean mm
+        fPET /= curCellsNum;
+        revap /= curCellsNum;
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
         /// currently, for convenience, we assume a small portion of the percolated water
         /// will enter groundwater. By LJ. 2016-9-2
         float ratio2gw = 1.f;
         perco *= ratio2gw;
-        //deep percolation
-        float percoDeep = perco * m_dp_co;
+        float percoDeep = perco * m_dp_co; ///< deep percolation
 
-        fPET /= curCellsNum;
-        fEI /= curCellsNum;
-        fED /= curCellsNum;
-        fES /= curCellsNum;
-        plantEP /= curCellsNum;
-
-        revap = (fPET - fEI - fED - fES - plantEP) * m_gwStore[subID] / m_GWMAX;
-        if (revap != revap) {
-            cout << "fPET: " << fPET << ", fEI: " << fEI << ", fED: " << fED << ", fES: " << fES << ", plantEP: "
-                    << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
-            throw ModelException(MID_GWA_RE, "Execute", "revap calculation wrong!");
+        if (revap > m_gwStore[subID]) {
+            for (int i = 0; i < curCellsNum; i++) {
+                int index = 0;
+                index = curCells[i];
+                m_revap[index] *= m_gwStore[subID] / revap;
+            }
+            revap = m_gwStore[subID];
         }
-        revap = Max(revap, 0.f);
-        revap = Min(revap, perco);
 
         // groundwater runoff (mm)
         float slopeCoef = curSub->GetSlopeCoef();
@@ -178,9 +173,11 @@ int ReservoirMethod::Execute() {
         Subbasin* sub = m_subbasinsInfo->GetSubbasinByID(*it);
         int* cells = sub->GetCells();
         int nCells = sub->GetCellCount();
+        int index = 0;
 #pragma omp parallel for
         for (int i = 0; i < nCells; i++) {
-            m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] += sub->GetEg();
+            index = cells[i];
+            m_soilWtrSto[cells[i]][CVT_INT(m_nSoilLyrs[cells[i]]) - 1] += m_revap[index];
             // TODO: Is it need to allocate revap to each soil layers??? By LJ
         }
     }
@@ -314,7 +311,7 @@ void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_REVAP)) {
-        *data = m_D_Revap;
+        *data = m_revap;
         *nRows = m_nCells;
     } else if (StringMatch(sk, VAR_RG)) {
         *data = m_T_RG;

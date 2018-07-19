@@ -435,70 +435,70 @@ void Biomass_EPIC::DistributePlantET(const int i) {
     m_stoSoilRootD[i] = m_pltRootD[i];
     if (m_maxPltET[i] <= 0.01f) {
         m_frStrsWtr[i] = 1.f;
-    } else {
-        /// initialize variables
-        gx = 0.f;
-        ir = 0;
-        sump = 0.f;
-        xx = 0.f;
-        // update soil storage profile just in case
-        m_soilWtrStoPrfl[i] = 0.f;
-        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
-            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
-        }
-        /// compute aeration stress
-        if (m_soilWtrStoPrfl[i] >= m_soilSumFC[i]) // mm
-        {
-            float satco = (m_soilWtrStoPrfl[i] - m_soilSumFC[i]) / (m_soilSumSat[i] - m_soilSumFC[i]);
-            float pl_aerfac = 0.85f;
-            float scparm = 100.f * (satco - pl_aerfac) / (1.0001f - pl_aerfac);
-            if (scparm > 0.f) {
-                m_frStrsAe[i] = 1.f - (scparm / (scparm + exp(2.9014f - 0.03867f * scparm)));
-            } else {
-                m_frStrsAe[i] = 1.f;
-            }
-        }
-        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
-            if (ir > 0) break;
-            if (m_pltRootD[i] <= m_soilDepth[i][j]) {
-                gx = m_pltRootD[i];
-                ir = j;
-            } else {
-                gx = m_soilDepth[i][j];
-            }
-            sum = 0.f;
-            if (m_pltRootD[i] <= 0.01f) {
-                sum = m_maxPltET[i] / uobw;
-            } else {
-                sum = m_maxPltET[i] * (1.f - exp(-ubw * gx / m_pltRootD[i])) / uobw;
-            }
-            m_wuse[i][j] = sum - sump + 1.f * m_epco[i];
-            m_wuse[i][j] = sum - sump + (sump - xx) * m_epco[i];
-            sump = sum;
-            /// adjust uptake if sw is less than 25% of plant available water
-            reduc = 0.f;
-            if (m_soilWtrSto[i][j] < m_soilFC[i][j] * 0.25f) {
-                reduc = exp(5.f * (4.f * m_soilWtrSto[i][j] / m_soilFC[i][j] - 1.f));
-            } else {
-                reduc = 1.f;
-            }
-            // reduc = 1.f;  /// TODO, Is SWAT wrong here? by LJ
-            m_wuse[i][j] *= reduc;
-            if (m_soilWtrSto[i][j] < m_wuse[i][j]) {
-                m_wuse[i][j] = m_soilWtrSto[i][j];
-            }
-            m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j] - m_wuse[i][j]);
-            xx += m_wuse[i][j];
-        }
-        /// update total soil water in profile
-        m_soilWtrStoPrfl[i] = 0.f;
-        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
-            m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
-        }
-        m_frStrsWtr[i] = xx / m_maxPltET[i];
-        m_actPltET[i] = xx;
+        m_actPltET[i] = 0.f;
+        return;
     }
-    //Release1DArray(wuse);
+    /// initialize variables
+    gx = 0.f;
+    ir = 0;
+    sump = 0.f;
+    xx = 0.f;
+    // update soil storage profile just in case
+    m_soilWtrStoPrfl[i] = 0.f;
+    for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+        m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
+    }
+    /// compute aeration stress
+    if (m_soilWtrStoPrfl[i] >= m_soilSumFC[i]) // mm
+    {
+        float satco = (m_soilWtrStoPrfl[i] - m_soilSumFC[i]) / (m_soilSumSat[i] - m_soilSumFC[i]);
+        float pl_aerfac = 0.85f;
+        float scparm = 100.f * (satco - pl_aerfac) / (1.0001f - pl_aerfac);
+        if (scparm > 0.f) {
+            m_frStrsAe[i] = 1.f - (scparm / (scparm + exp(2.9014f - 0.03867f * scparm)));
+        } else {
+            m_frStrsAe[i] = 1.f;
+        }
+    }
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
+        if (ir > 0) break;
+        if (m_pltRootD[i] <= m_soilDepth[i][j]) {
+            gx = m_pltRootD[i];
+            ir = j;
+        } else {
+            gx = m_soilDepth[i][j];
+        }
+        sum = 0.f;
+        if (m_pltRootD[i] <= 0.01f) {
+            sum = m_maxPltET[i] / uobw;
+        } else {
+            sum = m_maxPltET[i] * (1.f - exp(-ubw * gx / m_pltRootD[i])) / uobw;
+        }
+        m_wuse[i][j] = sum - sump + 1.f * m_epco[i];
+        m_wuse[i][j] = sum - sump + (sump - xx) * m_epco[i];
+        sump = sum;
+        /// adjust uptake if sw is less than 25% of plant available water
+        reduc = 0.f;
+        if (m_soilWtrSto[i][j] < m_soilFC[i][j] * 0.25f) {
+            reduc = exp(5.f * (4.f * m_soilWtrSto[i][j] / m_soilFC[i][j] - 1.f));
+        } else {
+            reduc = 1.f;
+        }
+        // reduc = 1.f;  /// TODO, Is SWAT wrong here? by LJ
+        m_wuse[i][j] *= reduc;
+        if (m_soilWtrSto[i][j] < m_wuse[i][j]) {
+            m_wuse[i][j] = m_soilWtrSto[i][j];
+        }
+        m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j] - m_wuse[i][j]);
+        xx += m_wuse[i][j];
+    }
+    /// update total soil water in profile
+    m_soilWtrStoPrfl[i] = 0.f;
+    for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
+        m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
+    }
+    m_frStrsWtr[i] = xx / m_maxPltET[i];
+    m_actPltET[i] = xx;
 }
 
 void Biomass_EPIC::CalTempStress(const int i) {

@@ -9,7 +9,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 }
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
-    string res = "";
+    string res;
     MetadataInfo mdi;
 
     // set the information properties
@@ -47,9 +47,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInput(VAR_SBQG, UNIT_FLOW_CMS, DESC_SBQG, Source_Module, DT_Array1D, TF_SingleValue);
     mdi.AddInput(VAR_SBPET, UNIT_DEPTH_MM, DESC_SBPET, Source_Module, DT_Array1D, TF_SingleValue);
     mdi.AddInput(VAR_SBGS, UNIT_DEPTH_MM, DESC_SBGS, Source_Module, DT_Array1D, TF_SingleValue);
-
-    mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single);
-    mdi.AddOutput(VAR_QSOUTLET, UNIT_FLOW_CMS, DESC_QSOUTLET, DT_Single);
 
     mdi.AddInOutput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, DT_Array1D, TF_SingleValue);
     mdi.AddInOutput(VAR_QS, UNIT_NON_DIM, DESC_QS, DT_Array1D, TF_SingleValue);
