@@ -7,12 +7,9 @@ PER_STR::PER_STR() :
     m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE), m_ks(nullptr),
     m_soilSat(nullptr), m_soilFC(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
-<<<<<<< HEAD
     m_surfRf(nullptr), m_potVol(nullptr),
     m_landuse(nullptr), m_exsPcp(nullptr),
-=======
     m_surfRf(nullptr), m_potVol(nullptr), m_impoundTrig(nullptr),
->>>>>>> dev
     m_soilPerco(nullptr) {
 }
 
@@ -90,24 +87,12 @@ int PER_STR::Execute() {
                             }
                             if (ly == 0 && ul_excess > 0.f) {
                                 // add ul_excess to depressional storage and then to surfq
-<<<<<<< HEAD
-                                /*if (m_potVol != nullptr) {
-                                    m_potVol[i] += ul_excess;
-                                } else {
-                                    m_surfRf[i] += ul_excess;
-                                }*/
-                                // add ul_excess to pe, which will be used to compute sd and sr in DEP_LINSLEY
-                                // update infiltration by removing ul_excess
-                                m_infil[i] -= ul_excess;
-                                m_exsPcp[i] += ul_excess;
-=======
                                 if (m_potVol != nullptr && FloatEqual(m_impoundTrig[i], 0.f)) {
                                     m_potVol[i] += ul_excess;
                                 } else {
                                     m_surfRf[i] += ul_excess;
                                 }
                                 m_infil[i] -= ul_excess;
->>>>>>> dev
                             }
                         }
                     }
