@@ -90,6 +90,8 @@ private:
     float* m_surfRf;
     /// pothole volume, mm
     float* m_potVol;
+    /// impounding trigger
+    float* m_impoundTrig;
     /// Output: percolation
     float** m_soilPerco;
 };

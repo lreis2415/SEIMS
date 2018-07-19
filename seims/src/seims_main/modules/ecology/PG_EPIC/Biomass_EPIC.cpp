@@ -435,6 +435,7 @@ void Biomass_EPIC::DistributePlantET(const int i) {
     m_stoSoilRootD[i] = m_pltRootD[i];
     if (m_maxPltET[i] <= 0.01f) {
         m_frStrsWtr[i] = 1.f;
+        m_actPltET[i] = 0.f;
     } else {
         /// initialize variables
         gx = 0.f;
