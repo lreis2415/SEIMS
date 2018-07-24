@@ -15,14 +15,14 @@ ReservoirMethod::ReservoirMethod() :
     /// intermediate
     m_T_PerDep(nullptr), m_T_RG(nullptr),
     /// outputs
-    m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
+    m_T_QG(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbasinsInfo(nullptr) {
 }
 
 ReservoirMethod::~ReservoirMethod() {
     if (m_T_Perco != nullptr) Release1DArray(m_T_Perco);
     if (m_T_PerDep != nullptr) Release1DArray(m_T_PerDep);
-    if (m_D_Revap != nullptr) Release1DArray(m_D_Revap);
+    if (m_revap != nullptr) Release1DArray(m_revap);
     if (m_T_Revap != nullptr) Release1DArray(m_T_Revap);
     if (m_T_RG != nullptr) Release1DArray(m_T_RG);
     if (m_T_QG != nullptr) Release1DArray(m_T_QG);
@@ -41,7 +41,7 @@ void ReservoirMethod::InitialOutputs() {
     if (m_T_QG == nullptr) Initialize1DArray(nLen, m_T_QG, 0.f);
     if (m_petSubbasin == nullptr) Initialize1DArray(nLen, m_petSubbasin, 0.f);
     if (m_gwStore == nullptr) Initialize1DArray(nLen, m_gwStore, m_GW0);
-    if (m_D_Revap == nullptr) Initialize1DArray(m_nCells, m_D_Revap, 0.f);
+    if (m_revap == nullptr) Initialize1DArray(m_nCells, m_revap, 0.f);
     if (m_T_GWWB == nullptr) Initialize2DArray(nLen, 6, m_T_GWWB, 0.f);
 }
 
@@ -71,7 +71,7 @@ int ReservoirMethod::Execute() {
                 fPET += m_pet[index];
             }
             m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
-            m_revap[index] = max(m_revap[index], 0.f);
+            m_revap[index] = Max(m_revap[index], 0.f);
             m_revap[index] = m_revap[index] * m_gwStore[subID] / m_GWMAX;
             revap += m_revap[index];
         }
