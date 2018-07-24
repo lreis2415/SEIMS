@@ -24,8 +24,9 @@ Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,50000,1
 Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001
 Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001
-Discharge,MSK_co1,Weighting factor of bankful flow,none,ChannelRouting,0.7,0,AC,1,0
-Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.5,0
+Discharge,MSK_co1,Calibration coefficient used to control impact of the storage time constant for normal flow,none,ChannelRouting,0.75,0,AC,1,0
+Discharge,MSK_co2,Calibration coefficient used to control impact of the storage time constant fro low flow,none,ChannelRouting,0.25,0,AC,1,0
+Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.3,0
 Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
 Groundwater,gwrq,groundwater recharge to channel or perennial base flow,m3/s,MUSK_CH,0,0,AC,100,0

@@ -161,8 +161,6 @@ private:
     //!
     float* m_T_QG;
     //!
-    float* m_D_Revap;
-    //!
     float* m_T_Revap;
     //! groundwater water balance statistics
     float** m_T_GWWB;

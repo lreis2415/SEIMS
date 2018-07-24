@@ -1,19 +1,18 @@
 /*!
  * \brief channel flow routing using Muskingum method
+ *        Refers to rtmusk.f of SWAT source.
  * \author Junzhi Liu
- * \version 1.0
- * \date 26-Jul-2012
- *
- * \revision Liangjun Zhu
- * \date 18-Sep-2016
- * \description: 1. Add point source loadings from Scenario.
- *               2. Assume the channels have a trapezoidal shape
- *               3. Add m_chBtmWidth as variable intermediate parameter
- *               4. Add m_chSideSlope (default is 2) as input parameter from MongoDB, which is the ratio of run to rise
- *               5. Add several variables to store values in previous time step, which will be use in QUAL2E etc.
- * \revision Liangjun Zhu, 16-Mar-2018
- * \description: 1. Use AddInOutput() to solve the passing data across subbasins for MPI version.
- *               2. Code style review.
+ * \changelog  2012-06-26 - jz - Initial implementation.\n
+ *             2016-09-18 - lj - 1. Add point source loadings from Scenario.\n
+ *                               2. Assume the channels have a trapezoidal shape.\n
+ *                               3. Add m_chBtmWidth as variable intermediate parameter.\n
+ *                               4. Add m_chSideSlope (default is 2) as input parameter from MongoDB,
+ *                                  which is the ratio of run to rise.\n
+ *                               5. Add several variables to store values in previous time step,
+ *                                  which will be use in QUAL2E etc.\n
+ *             2018-03-16 - lj - 1. Use AddInOutput() to solve the passing data across subbasins for MPI version.\n
+ *                               2. Code style review.\n
+ *             2018-07-19 - lj - Updates the calculation of Muskingum weights according to SWAT.\n
  */
 #ifndef SEIMS_MODULE_MUSK_CH_H
 #define SEIMS_MODULE_MUSK_CH_H
@@ -28,17 +27,17 @@ using namespace bmps;
  * \brief channel flow routing using Muskingum method
  */
 
-/*
- * \struct MuskWeights coefficients
- */
-struct MuskWeights {
-    float c1;
-    float c2;
-    float c3;
-    float c4;
-    float dt;
-    int n; ///< number of division of the origin time step
-};
+///*
+// * \struct MuskWeights coefficients
+// */
+//struct MuskWeights {
+//    float c1;
+//    float c2;
+//    float c3;
+//    float c4;
+//    float dt;
+//    int n; ///< number of division of the origin time step
+//};
 
 /*!
  * \class MUSK_CH
@@ -72,20 +71,34 @@ public:
 
     bool CheckInputData();
 
-    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; };
+    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
 
 private:
     void InitialOutputs();
 
     void PointSourceLoading();
 
-    void ChannelFlow(int i);
+    bool ChannelFlow(int i);
 
-    static void GetDt(float timeStep, float fmin, float fmax, float& dt, int& n);
+    /*!
+     * \brief Calculates flow rate or flow velocity using Manning's
+     *        equation. If x1 is set to 1, the velocity is calculated. If x1 is set to
+     *        cross-sectional area of flow, the flow rate is calculated.
+     * \param[in] x1 cross-sectional flow area or 1, m^2 or none.
+     * \param[in] x2 hydraulic radius, m.
+     * \param[in] x3 Manning's "n" value for channel.
+     * \param[in] x4 average slope of channel, m/m.
+     * \return flow rate or flow velocity, m^3/s or m/s.
+     */
+    float manningQ(float x1, float x2, float x3, float x4);
 
-    void GetCoefficients(float reachLength, float v0, MuskWeights& weights);
+    //static void GetDt(float timeStep, float fmin, float fmax, float& dt, int& n);
+
+    //void GetCoefficients(float reachLength, float v0, MuskWeights& weights);
 
     void updateWaterWidthDepth(int i);
+
+    void updateChannleBottomWidth(int i);
 private:
     /// time step (sec)
     int m_dt;
@@ -98,6 +111,10 @@ private:
     /// The point source discharge (m3/s), m_ptSub[id], id is the reach id, load from m_Scenario
     float* m_ptSub;
 
+    /// Manning's "n" value for the main channel
+    float* m_chMan;
+    /// average slope of main channel
+    float* m_chSlope;
     /// hydraulic conductivity of the channel bed (mm/h)
     float* m_Kchb;
     /// hydraulic conductivity of the channel bank (mm/h)
@@ -109,7 +126,7 @@ private:
     /// initial channel storage per meter of reach length (m3/m)
     //float m_Chs0;
 
-    /// inverse of the channel side slope, by default is 2.
+    /// inverse of the channel side slope, by default is 2. chside in SWAT.
     float* m_chSideSlope;
     /// initial percentage of channel volume
     float m_Chs0_perc;
@@ -136,10 +153,10 @@ private:
     ///  Groundwater storage (mm) of the subbasin
     float* m_gwStorage;
 
-    /// channel outflow
-    float* m_qsCh;
-    float* m_qiCh;
-    float* m_qgCh;
+    // channel outflow
+    float* m_qsCh; ///< surface part of channel outflow
+    float* m_qiCh; ///< subsurface part of channel outflow
+    float* m_qgCh; ///< groundwater part of channel outflow
     /// channel width (m)
     float* m_chWidth;
     /// channel water width (m)
@@ -173,9 +190,13 @@ private:
      */
     vector<vector<int> > m_reachUpStream;
 
-    // for muskingum
-    float m_x;
-    float m_co1;
+    // Muskingum input parameters
+    // Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment
+    float m_mskX;
+    // Calibration coefficient used to control impact of the storage time constant for normal flow
+    float m_mskCoef1;
+    // Calibration coefficient used to control impact of the storage time constant fro low flow
+    float m_mskCoef2;
     /// scenario data
 
     /* point source operations

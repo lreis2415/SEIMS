@@ -17,10 +17,10 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetClass(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
     mdi.SetDescription(MDESC_MUSK_CH);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("MUSK_CH.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_MUSK_CH);
     mdi.SetName(MID_MUSK_CH);
-    mdi.SetVersion("0.3");
+    mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
 
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
@@ -33,6 +33,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_B_BNK, UNIT_NON_DIM, DESC_B_BNK, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_MSK_X, UNIT_NON_DIM, DESC_MSK_X, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_MSK_CO1, UNIT_NON_DIM, DESC_MSK_CO1, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_MSK_CO2, UNIT_NON_DIM, DESC_MSK_CO2, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_GWRQ, UNIT_FLOW_CMS, DESC_GWRQ, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_OUTLETID, UNIT_NON_DIM, DESC_OUTLETID, Source_ParameterDB, DT_Single);

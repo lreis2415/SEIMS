@@ -127,7 +127,7 @@ int SEDR_SBAGNOLD::Execute() {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
         int nReaches = CVT_INT(it->second.size());
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < nReaches; i++) {
             int reachIndex = it->second[i]; // index in the array, which is equal to reach ID
             if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
@@ -301,8 +301,8 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
         allSediment += m_ptSub[i];
     }
     // initialize water in reach during time step
-    qOutV = m_qRchOut[i] * m_dt; // m^3
-    // allWater = m_preChStorage[i];
+    // qOutV = m_qRchOut[i] * m_dt; // m^3
+    allWater = m_preChStorage[i];
     allWater = m_chStorage[i] + qOutV;
     if (((m_qRchOut[i] < UTIL_ZERO) && (m_chWtrDepth[i] < UTIL_ZERO)) || (allWater < 0.01f)) {
         /// do not perform sediment routing when:
