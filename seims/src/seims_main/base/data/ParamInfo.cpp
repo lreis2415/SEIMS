@@ -10,7 +10,7 @@ using namespace utils_math;
 using namespace utils_string;
 
 ParamInfo::ParamInfo() : Name(""), Units(""), Description(""), ModuleID(""), Dimension(DT_Unknown),
-                         Transfer(TF_Whole), Source(""), Value(0.f), Impact(0.f), Change(""),
+                         Transfer(TF_None), Source(""), Value(0.f), Impact(0.f), Change(""),
                          Maximum(0.f), Minimun(0.f), DependPara(nullptr), ClimateType(""),
                          IsConstant(false), IsOutput(false), OutputToOthers(false),
                          BasicName(""), initialized(false) {

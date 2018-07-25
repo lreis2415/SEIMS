@@ -244,7 +244,6 @@
 #define Type_Raster1D                          "RASTER1D"
 #define Type_Raster2D                          "RASTER2D"
 #define Type_Array1DDateValue                  "ARRAY1DDATEVALUE"
-#define Type_Array3D                           "ARRAY3D"
 #define Type_Array2D                           "ARRAY2D"
 #define Type_Array1D                           "ARRAY1D"
 #define Type_Single                            "SINGLE"

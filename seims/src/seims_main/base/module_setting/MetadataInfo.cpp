@@ -77,8 +77,6 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
             break;
         case DT_Array2D: strTmp = Type_Array2D;
             break;
-        // case DT_Array3D: strTmp = Type_Array3D;
-        //     break;
         case DT_Raster1D: strTmp = Type_Raster1D;
             break;
         case DT_Raster2D: strTmp = Type_Raster2D;
@@ -101,7 +99,7 @@ void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tf_type
     string str_tmp;
 
     switch (tf_type) {
-        case TF_Whole: str_tmp = TFType_Whole;
+        case TF_None: str_tmp = TFType_Whole;
             break;
         case TF_SingleValue: str_tmp = TFType_Single;
             break;
