@@ -9,7 +9,7 @@ PER_STR::PER_STR() :
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
     m_surfRf(nullptr), m_potVol(nullptr),
     m_landuse(nullptr), m_exsPcp(nullptr),
-    m_surfRf(nullptr), m_potVol(nullptr), m_impoundTrig(nullptr),
+    m_impoundTrig(nullptr),
     m_soilPerco(nullptr) {
 }
 
@@ -136,12 +136,9 @@ void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
     else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
     else if (StringMatch(sk, VAR_POT_VOL)) m_potVol = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
-<<<<<<< HEAD
     else if (StringMatch(sk, VAR_LANDUSE)) m_landuse = data; 
     else if (StringMatch(sk, VAR_EXCP)) m_exsPcp = data;
-=======
     else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
->>>>>>> dev
     else {
         throw ModelException(MID_PER_STR, "Set1DData", "Parameter " + sk + " does not exist.");
     }
