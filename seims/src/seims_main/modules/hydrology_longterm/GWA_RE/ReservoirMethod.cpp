@@ -7,22 +7,22 @@ ReservoirMethod::ReservoirMethod() :
     m_nSoilLyrs(nullptr), m_soilThk(nullptr),
     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
     m_soilPerco(nullptr), m_IntcpET(nullptr), m_deprStoET(nullptr),
-    m_soilET(nullptr), m_actPltET(nullptr), m_revap(nullptr),
-    m_pet(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
+    m_soilET(nullptr), m_actPltET(nullptr), m_pet(nullptr),
+    m_revap(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
     m_petSubbasin(nullptr), m_gwStore(nullptr), m_slope(nullptr), m_soilWtrSto(nullptr),
     m_soilDepth(nullptr),
     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
     /// intermediate
     m_T_PerDep(nullptr), m_T_RG(nullptr),
     /// outputs
-    m_T_QG(nullptr), m_D_Revap(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
+    m_T_QG(nullptr), m_T_Revap(nullptr), m_T_GWWB(nullptr),
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbasinsInfo(nullptr) {
 }
 
 ReservoirMethod::~ReservoirMethod() {
     if (m_T_Perco != nullptr) Release1DArray(m_T_Perco);
     if (m_T_PerDep != nullptr) Release1DArray(m_T_PerDep);
-    if (m_D_Revap != nullptr) Release1DArray(m_D_Revap);
+    if (m_revap != nullptr) Release1DArray(m_revap);
     if (m_T_Revap != nullptr) Release1DArray(m_T_Revap);
     if (m_T_RG != nullptr) Release1DArray(m_T_RG);
     if (m_T_QG != nullptr) Release1DArray(m_T_QG);
@@ -41,7 +41,7 @@ void ReservoirMethod::InitialOutputs() {
     if (m_T_QG == nullptr) Initialize1DArray(nLen, m_T_QG, 0.f);
     if (m_petSubbasin == nullptr) Initialize1DArray(nLen, m_petSubbasin, 0.f);
     if (m_gwStore == nullptr) Initialize1DArray(nLen, m_gwStore, m_GW0);
-    if (m_D_Revap == nullptr) Initialize1DArray(m_nCells, m_D_Revap, 0.f);
+    if (m_revap == nullptr) Initialize1DArray(m_nCells, m_revap, 0.f);
     if (m_T_GWWB == nullptr) Initialize2DArray(nLen, 6, m_T_GWWB, 0.f);
 }
 
@@ -56,68 +56,43 @@ int ReservoirMethod::Execute() {
         int curCellsNum = curSub->GetCellCount();
         int* curCells = curSub->GetCells();
         float perco = 0.f;
-        //float revap = 0.f; // calculate EG, i.e. Revap
         float fPET = 0.f;
-        /*float fEI = 0.f;
-        float fED = 0.f;
-        float fES = 0.f;
-        float plantEP = 0.f;*/
-#pragma omp parallel for reduction(+:perco, fPET)
-//#pragma omp parallel for reduction(+:perco, fPET, fEI, fED, fES, plantEP)
+        float revap = 0.f;
+#pragma omp parallel for reduction(+:perco, fPET, revap)
         for (int i = 0; i < curCellsNum; i++) {
             int index = curCells[i];
             float tmp_perc = m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1];
-            if (tmp_perc > 0) perco += tmp_perc;
-            else m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
-
-            if (m_pet[index] > 0.f) fPET += m_pet[index];
-            /*if (m_IntcpET[index] > 0.f) fEI += m_IntcpET[index];
-            if (m_deprStoET[index] > 0.f) fED += m_deprStoET[index];
-            if (m_soilET[index] > 0.f) fES += m_soilET[index];
-            if (m_actPltET[index] > 0.f) plantEP += m_actPltET[index];*/
+            if (tmp_perc > 0) {
+                perco += tmp_perc;
+            } else {
+                m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
+            }
+            if (m_pet[index] > 0.f) {
+                fPET += m_pet[index];
+            }
+            m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
+            m_revap[index] = Max(m_revap[index], 0.f);
+            m_revap[index] = m_revap[index] * m_gwStore[subID] / m_GWMAX;
+            revap += m_revap[index];
         }
         perco /= curCellsNum; // mean mm
+        fPET /= curCellsNum;
+        revap /= curCellsNum;
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
         /// currently, for convenience, we assume a small portion of the percolated water
         /// will enter groundwater. By LJ. 2016-9-2
         float ratio2gw = 1.f;
         perco *= ratio2gw;
-        //deep percolation
-        float percoDeep = perco * m_dp_co;
+        float percoDeep = perco * m_dp_co; ///< deep percolation
 
-        float revap = 0.f;
-        for (int i = 0; i < curCellsNum; i++) {
-            int index = 0;
-            index = curCells[i];
-            m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
-            m_revap[index] = max(m_revap[index], 0.f);
-            m_revap[index] = m_revap[index] * m_gwStore[subID] / m_GWMAX;
-            revap += m_revap[index];
-        }
-        revap /= curCellsNum;
-        if (revap > m_gwStore[subID]){
+        if (revap > m_gwStore[subID]) {
             for (int i = 0; i < curCellsNum; i++) {
                 int index = 0;
                 index = curCells[i];
-                m_revap[index] *= (m_gwStore[subID] / revap);
+                m_revap[index] *= m_gwStore[subID] / revap;
             }
             revap = m_gwStore[subID];
         }
-
-        fPET /= curCellsNum;
-        /*fEI /= curCellsNum;
-        fED /= curCellsNum;
-        fES /= curCellsNum;
-        plantEP /= curCellsNum;*/
-
-        //revap = (fPET - fEI - fED - fES - plantEP) * m_gwStore[subID] / m_GWMAX;
-        /*if (revap != revap) {
-            cout << "fPET: " << fPET << ", fEI: " << fEI << ", fED: " << fED << ", fES: " << fES << ", plantEP: "
-                    << plantEP << ", " << " subbasin ID: " << subID << ", gwStore: " << m_gwStore[subID] << endl;
-            throw ModelException(MID_GWA_RE, "Execute", "revap calculation wrong!");
-        }
-        revap = Max(revap, 0.f);
-        revap = Min(revap, perco);*/
 
         // groundwater runoff (mm)
         float slopeCoef = curSub->GetSlopeCoef();

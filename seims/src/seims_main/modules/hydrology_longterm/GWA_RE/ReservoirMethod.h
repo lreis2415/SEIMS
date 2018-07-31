@@ -31,6 +31,7 @@
 *
 *	\changelog 2016-07-27 - lj - Move subbasin class to base/data module for sharing with other modules.\n
 *	           2018-06-28 - lj - Move SetSubbasinInfos() to dataCenter class.\n
+*	           2018-07-18 - sf - revap should be calculated by cell first.\n
 */
 #ifndef SEIMS_MODULE_GWA_RE_H
 #define SEIMS_MODULE_GWA_RE_H
@@ -111,8 +112,6 @@ private:
     //! soil thickness of each layer
     float** m_soilThk;
 
-    //float m_upSoilDepth;
-
     //! groundwater Revap coefficient
     float m_dp_co;
     //! baseflow recession coefficient
@@ -161,8 +160,6 @@ private:
     float* m_T_RG;
     //!
     float* m_T_QG;
-    //!
-    float* m_D_Revap;
     //!
     float* m_T_Revap;
     //! groundwater water balance statistics

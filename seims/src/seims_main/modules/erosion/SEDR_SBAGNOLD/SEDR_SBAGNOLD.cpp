@@ -1,6 +1,9 @@
 #include "SEDR_SBAGNOLD.h"
 
 #include "text.h"
+//#ifndef PRINT_DEBUG
+//#define PRINT_DEBUG
+//#endif
 
 SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_dt(-1), m_nreach(-1), m_inputSubbsnID(-1),
@@ -196,7 +199,7 @@ void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const floa
     if (index <= 0 || index > m_nreach) return; // index should belong 1 ~ m_nreach
     if (nullptr == m_sedRchOut) InitialOutputs();
     string sk(key);
-    // transferred single value in MPI version£¬ IN/OUTPUT variables
+    // transferred single value in MPI versionï¿½ï¿½ IN/OUTPUT variables
     if (StringMatch(sk, VAR_SED_RECH)) m_sedRchOut[index] = value;
     else if (StringMatch(sk, VAR_SED_RECHConc)) m_sedConcRchOut[index] = value;
     else if (StringMatch(sk, VAR_RCH_BANKERO)) m_rchBankEro[index] = value;
@@ -283,12 +286,12 @@ void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
 }
 
 void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
-    float qOutV = 0.f;    // water volume (m^3) of flow out
-    float allWater = 0.f; // water in reach during time step, qdin in SWAT
+    float qOutV = 0.f;    ///< water volume (m^3) of flow out
+    float allWater = 0.f; ///< water in reach during time step, qdin in SWAT
     // initialize sediment in reach during time step
     /// sediment from upstream reaches
-    float allSediment = 0.f; // all sediment in reach, kg
-    float sedUp = 0.f;       // sediment from upstream channels, kg
+    float allSediment = 0.f; ///< all sediment in reach, kg, sedin
+    float sedUp = 0.f;       ///< sediment from upstream channels, kg
     for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
         sedUp += m_sedRchOut[*upRchID];
     }
@@ -298,8 +301,9 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
         allSediment += m_ptSub[i];
     }
     // initialize water in reach during time step
-    qOutV = m_qRchOut[i] * m_dt; // m^3
+    // qOutV = m_qRchOut[i] * m_dt; // m^3
     allWater = m_preChStorage[i];
+    allWater = m_chStorage[i] + qOutV;
     if (((m_qRchOut[i] < UTIL_ZERO) && (m_chWtrDepth[i] < UTIL_ZERO)) || (allWater < 0.01f)) {
         /// do not perform sediment routing when:
         /// 1. whether is no water flow out of channel and water depth is nearly zero
@@ -342,32 +346,37 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
             ", sedUp: " << sedUp << ", sedtoCh: " << m_sedtoCh[i] <<
             ", sedStorage: " << m_sedStorage[i] << ", allSediment: " << allSediment <<
             ", chLen: " << m_chLen[i] << ", peakVelocity: " << peakVelocity <<
-            ", m_preChWTDepth: " << m_preChWtrDepth[i] << ", tbase: " << tbase;
+            ", m_preChWtrDepth: " << m_preChWtrDepth[i] << ", tbase: " << tbase;
 #endif
-    /// New improved method for sediment transport
-    float initCon = 0.f;         // cyin
-    float maxCon = 0.f;          // cych
-    float sedDeposition = 0.f;   // depnet, and dep
-    float sedDegradation = 0.f;  // deg
-    float sedDegradation1 = 0.f; // deg1
-    float sedDegradation2 = 0.f; // deg2
+    // New improved method for sediment transport
+    float initCon = 0.f;         ///< cyin
+    float maxCon = 0.f;          ///< cych
+    float sedDeposition = 0.f;   ///< depnet, and dep
+    float sedDegradation = 0.f;  ///< deg
+    float sedDegradation1 = 0.f; ///< deg1
+    float sedDegradation2 = 0.f; ///< deg2
 
     //deposition and degradation
+
+    // Incoming sediment concentration
     initCon = allSediment / allWater; // kg/m^3
-    //max concentration
+    // Streampower for sediment calculated based on Bagnold (1977) concept
     maxCon = m_sedTransEqCoef * pow(peakVelocity, m_sedTransEqExp) * 1000.f; // kg/m^3
 #ifdef PRINT_DEBUG
-    cout << ", iniCon: " << initCon << ", maxCon: " << maxCon << endl;
+    cout << ", initCon: " << initCon << ", maxCon: " << maxCon << endl;
 #endif
-    //initial concentration,mix sufficiently
-    sedDeposition = allWater * (initCon - maxCon); // kg
-    if (peakVelocity < m_critVelSedDep) {
+    // Potential sediment Transport capacity, kg
+    sedDeposition = allWater * (maxCon - initCon);
+    if (Abs(sedDeposition) < UTIL_ZERO) {
         sedDeposition = 0.f;
     }
+    //if (peakVelocity < m_critVelSedDep) { // Commented in SWAT rev610
+    //    sedDeposition = 0.f;
+    //}
 
-    if (sedDeposition < 0.f) {
+    if (sedDeposition > UTIL_ZERO) {
         //degradation
-        sedDegradation = -sedDeposition * tbase;
+        sedDegradation = sedDeposition;
         // first the deposited material will be degraded before channel bed
         if (sedDegradation >= m_sedDep[i]) {
             sedDegradation1 = m_sedDep[i];
@@ -378,6 +387,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
         }
         sedDeposition = 0.f;
     } else {
+        sedDeposition *= -1.f;
         sedDegradation = 0.f;
         sedDegradation1 = 0.f;
         sedDegradation2 = 0.f;

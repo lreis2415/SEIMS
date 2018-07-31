@@ -86,7 +86,7 @@ struct Parameter: baseParameter {
  * \brief Input variable information class
  */
 struct InputVariable: Parameter {
-    InputVariable() : tfType(TF_Whole) {
+    InputVariable() : tfType(TF_None) {
     }
 
     transferTypes tfType;
@@ -98,7 +98,7 @@ struct InputVariable: Parameter {
  * \brief Output variable information class
  */
 struct OutputVariable: baseParameter {
-    OutputVariable() : tfType(TF_Whole) {
+    OutputVariable() : tfType(TF_None) {
     }
 
     transferTypes tfType;
@@ -170,7 +170,7 @@ public:
     int GetInputCount() { return CVT_INT(m_vInputs.size()); }
 
     int AddInput(const char* name, const char* units, const char* desc, const char* source, dimensionTypes dimType,
-                 transferTypes tfType = TF_Whole);
+                 transferTypes tfType = TF_None);
 
     string GetInputName(int index) { return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].Name : ""; }
 
@@ -189,7 +189,7 @@ public:
     }
 
     transferTypes GetInputTfType(int index) {
-        return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].tfType : TF_Whole;
+        return index >= 0 && index < m_vInputs.size() ? m_vInputs[index].tfType : TF_None;
     }
 
     InputVariable GetInput(int index) {
@@ -201,7 +201,7 @@ public:
     int GetOutputCount() { return CVT_INT(m_vOutputs.size()); }
 
     int AddOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
-                  transferTypes tfType = TF_Whole);
+                  transferTypes tfType = TF_None);
 
     string GetOutputName(int index) { return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].Name : ""; }
 
@@ -218,7 +218,7 @@ public:
     }
 
     transferTypes GetOutputTfType(int index) {
-        return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].tfType : TF_Whole;
+        return index >= 0 && index < m_vOutputs.size() ? m_vOutputs[index].tfType : TF_None;
     }
 
     OutputVariable GetOutput(int index) {
@@ -230,7 +230,7 @@ public:
     int GetInOutputCount() { return CVT_INT(m_vInOutputs.size()); }
 
     int AddInOutput(const char* name, const char* units, const char* desc, dimensionTypes dimType,
-                    transferTypes tfType = TF_Whole);
+                    transferTypes tfType = TF_None);
 
     string GetInOutputName(int index) {
         return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].Name : "";
@@ -249,7 +249,7 @@ public:
     }
 
     transferTypes GetInOutputTfType(int index) {
-        return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].tfType : TF_Whole;
+        return index >= 0 && index < m_vInOutputs.size() ? m_vInOutputs[index].tfType : TF_None;
     }
 
     InOutputVariable GetInOutput(int index) {

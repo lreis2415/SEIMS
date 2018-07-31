@@ -253,7 +253,6 @@
 #define Type_Raster1D                          "RASTER1D"
 #define Type_Raster2D                          "RASTER2D"
 #define Type_Array1DDateValue                  "ARRAY1DDATEVALUE"
-#define Type_Array3D                           "ARRAY3D"
 #define Type_Array2D                           "ARRAY2D"
 #define Type_Array1D                           "ARRAY1D"
 #define Type_Single                            "SINGLE"
@@ -715,8 +714,9 @@
 #define VAR_MINPGW_TOCH "minpgwToCh" /// m_gwSolPToCh
 #define VAR_MOIST_IN "Moist_in" /// m_initSoilWtrStoRatio, initial soil water storage fraction related to field capacity (FC-WP)
 #define VAR_MSF "ManningScaleFactor"                /// flow velocity scaling factor for calibration
-#define VAR_MSK_CO1 "MSK_co1"                       /// Weighting factor of bankful flow
-#define VAR_MSK_X "MSK_X"                           /// muskingum weighing factor
+#define VAR_MSK_CO1 "MSK_co1" /// m_mskCoef1, Calibration coefficient used to control impact of the storage time constant for normal flow
+#define VAR_MSK_CO2 "MSK_co2" /// m_mskCoef2, Calibration coefficient used to control impact of the storage time constant fro low flow
+#define VAR_MSK_X "MSK_X" /// m_mskX, Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment
 #define VAR_MUMAX "mumax"
 #define VAR_NACTFR "nactfr" /// m_orgNFrActN, The fraction of organic nitrogen in the nitrogen active pool
 #define VAR_NEPR "NEPR" /// m_netPcp, Net precipitation (after slope correction, of course), mm
@@ -800,12 +800,10 @@
 #define VAR_OLFLOW "OL_Flow" /// m_surfRf, overland flow in each cell calculated during overland routing
 #define VAR_QG "QG"                                 /// Groundwater discharge at each reach outlet and at each time step
 #define VAR_QI "QI"                                 /// Interflow at each reach outlet and at each time step
-#define VAR_QOUTLET "QOUTLET"                       /// discharge at the watershed outlet
 #define VAR_QOVERLAND "QOverland"
 #define VAR_QRECH "QRECH" /// m_qRchOut, Discharge at reach outlet of each time step
 #define VAR_QS "QS"                                 /// Overland discharge at each reach outlet and at each time step
 #define VAR_QSOIL "QSoil"
-#define VAR_QSOUTLET "QSOUTLET"                     /// discharge at the watershed outlet
 #define VAR_QSUBBASIN "QSUBBASIN"
 #define VAR_QTILE "qtile"
 #define VAR_QTOTAL "QTotal"
@@ -1459,8 +1457,9 @@
 #define DESC_MINPGW_CH "soluble P in groundwater to channel"
 #define DESC_MOIST_IN "Initial soil moisture"
 #define DESC_MSF "flow velocity scaling factor for calibration"
-#define DESC_MSK_CO1 "Weighting factor of bankful flow"
-#define DESC_MSK_X "muskingum weighing factor"
+#define DESC_MSK_CO1 "Calibration coefficient used to control impact of the storage time constant for normal flow"
+#define DESC_MSK_CO2 "Calibration coefficient used to control impact of the storage time constant fro low flow"
+#define DESC_MSK_X "Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment"
 #define DESC_MUMAX "maximum specific algal growth rate at 20 deg C"
 #define DESC_NACTFR "The fraction of organic nitrogen in the nitrogen active pool."
 #define DESC_NEPR "Net Precipitation"
@@ -1531,12 +1530,10 @@
 #define DESC_OLFLOW "overland flow in each cell calculated during overland routing"
 #define DESC_QG "Groundwater discharge at each reach outlet"
 #define DESC_QI "Interflow at each reach outlet"
-#define DESC_QOUTLET "discharge at the watershed outlet"
 #define DESC_QOVERLAND "Water discharge in the downslope boundary of cells"
 #define DESC_QRECH "Discharge at each reach outlet of each time step"
 #define DESC_QS "Overland discharge at each reach outlet"
 #define DESC_QSOIL "discharge added to channel flow from interflow"
-#define DESC_QSOUTLET "surface runoff at the watershed outlet"
 #define DESC_QSUBBASIN "discharge at each subbasin outlet"
 #define DESC_QTILE "drainage tile flow in soil profile"
 #define DESC_QTOTAL "discharge at the watershed outlet"
