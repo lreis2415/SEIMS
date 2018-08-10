@@ -59,8 +59,8 @@ dist
 !file.in
 !file.out
 # ignore doxygen files
+/doc/doxygen_*.db
 doc/html
-doc/img/
 #nfs files on linux
 .nfs*
 
@@ -79,3 +79,7 @@ OUTPUT*/
 
 # git related
 .git-rewrite
+
+# gitbook related
+_book
+node_modules

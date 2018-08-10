@@ -22,9 +22,9 @@ using namespace bmps;
 
 namespace bmps {
 /*!
- * \class BMPArealStruct, inherited from \sa ParamInfo
+ * \class BMPArealStruct
  * \ingroup MainBMP
- * \brief Manage areal Structural BMP data
+ * \brief Manage areal Structural BMP data, inherited from \sa ParamInfo
  */
 class BMPArealStruct: Interface {
 public:

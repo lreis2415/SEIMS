@@ -13,7 +13,7 @@
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 4, 2018
+#  Latest updated: Aug. 10, 2018
 #
 #  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
@@ -84,6 +84,7 @@ ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc" CACHE PATH "Path to the documentation")
 
 ### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -117,6 +118,8 @@ ENDIF()
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+# Build documatation by doxygen
+option(SEIMS_BUILD_DOC "Build SEIMS documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -152,6 +155,12 @@ INCLUDE(FindMongoC)
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
+IF(SEIMS_BUILD_DOC)
+  ADD_SUBDIRECTORY(./doc)
+  ADD_CUSTOM_TARGET(travis_doc)
+  ADD_CUSTOM_COMMAND(TARGET travis_doc
+                     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
+ENDIF()
 
 ### Build platform.
 STATUS("")
