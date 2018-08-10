@@ -14,8 +14,8 @@
 ## 流域最佳管理措施（BMPs）情景分析 {#BMPsScenarioAnalysis}
 
 + Qin, C.-Z., Gao, H.-R., Zhu, L.-J., Zhu, A.-X., Liu, J.-Z., Wu, H., 2018. Spatial optimization of watershed best management practices based on slope position units. Journal of Soil and Water Conservation (in press).
-+ 高会然, 秦承志*, 朱良君, 朱阿兴, 刘军志, 吴辉, 2018. [以坡位为空间配置单元的流域管理措施情景优化方法](http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=DQXX201806010&v=MDk2MjV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZllPZG1GeXpoVUx2TUlUelRkckc0SDluTXFZOUVaSVI4ZVgxTHU=). 地球信息科学学报 20(6), 781–790.
-+ Wu, H., Zhu, A.-X., Liu, J.-Z., Liu, Y.-B., Jiang, J.-C., 2018. [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8). Water Resource Management 32, 155–177. 
++ 高会然, 秦承志, 朱良君, 朱阿兴, 刘军志, 吴辉, 2018. [以坡位为空间配置单元的流域管理措施情景优化方法](http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=DQXX201806010&v=MDk2MjV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZllPZG1GeXpoVUx2TUlUelRkckc0SDluTXFZOUVaSVI4ZVgxTHU=). 地球信息科学学报 20(6), 781–790.
++ Wu, H., Zhu, A.-X., Liu, J.-Z., Liu, Y.-B., Jiang, J.-C., 2018. [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8). Water Resource Management 32, 155–177.
 + 吴辉, 刘永波, 秦承志, 刘军志, 江净超, 朱阿兴, 2016. [流域最佳管理措施情景优化算法的并行化](https://doi.org/10.13203/j.whugis20140048.html). 武汉大学学报(信息科学版). 41(2): 202–207.
 + Wu, H., Liu, Y.-B., Liu, J.-Z., Zhu, A.-X., 2014. [Representation of Agricultural Best Management Practices in a Fully Distributed Hydrologic Model: A Case Study in the Luoyugou Watershed](https://doi.org/10.5814/j.issn.1674-764X.2014.02.011). Journal of Resources and Ecology 5(2), 179–184.
 + 朱阿兴, 陈腊娇, 秦承志, 王平, 刘军志, 李润奎, 蔡强国, 2012. [水土流失治理新范式: 基于流域过程模拟和情景分析的方法](https://doi.org/10.13287/j.1001-9332.2012.0217). 应用生态学报 23(7), 1883–1890.

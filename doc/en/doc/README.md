@@ -1,12 +1,16 @@
-# A lightweighted, modular, and parallelized watershed modeling framework
+# A lightweight, modular, and parallelized watershed modeling framework
 
 
 Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
-* SEIMS Documentations
-  * [English](https://lreis2415.github.io/SEIMS/)
-  * [简体中文](https://lreis2415.github.io/SEIMS/zh-cn)
+* SEIMS Documentations (**Not finished yet!**)
+  * Online versions
+    * [English (powered by Doxygen)](https://lreis2415.github.io/SEIMS/), [English without API references (powered by Gitbook)](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/en/)
+    * [简体中文（由Doxygen驱动）](https://lreis2415.github.io/SEIMS/zh-cn), [简体中文，不含 API 参考手册（由Gitbook驱动）](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/zh-cn/)
+  * Download PDF versions without API references (powered by [Gitbook](https://www.gitbook.com/))
+    * [English](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=en)
+    * [简体中文](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=zh-cn)
 
 # Brief introduction {#BriefIntroduction}
 

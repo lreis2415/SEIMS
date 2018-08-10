@@ -3,9 +3,13 @@
 Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
-* SEIMS Documentations
-  * [English](https://lreis2415.github.io/SEIMS/)
-  * [简体中文](https://lreis2415.github.io/SEIMS/zh-cn)
+* SEIMS Documentations (**Not finished yet!**)
+  * Online versions
+    * [English (powered by Doxygen)](https://lreis2415.github.io/SEIMS/), [English without API references (powered by Gitbook)](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/en/)
+    * [简体中文（由Doxygen驱动）](https://lreis2415.github.io/SEIMS/zh-cn), [简体中文，不含 API 参考手册（由Gitbook驱动）](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/zh-cn/)
+  * Download PDF versions without API references (powered by [Gitbook](https://www.gitbook.com/))
+    * [English](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=en)
+    * [简体中文](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=zh-cn)
 
 ## Build Status
 
@@ -14,7 +18,7 @@ Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsn
 
 ## Brief Introduction
 
-The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is an lightweighted, modular, and parallelized watershed modeling framework for watershed modeling and scenario analysis.
+The **Spatially Explicit Integrated Modeling System** (**SEIMS**), is a lightweight, modular, and parallelized watershed modeling framework for watershed modeling and scenario analysis.
 
 SEIMS is mainly written by C++ with support of [GDAL](https://github.com/OSGeo/gdal), [Mongo-C-Driver](https://github.com/mongodb/mongo-c-driver), [OpenMP](https://en.wikipedia.org/wiki/OpenMP) and [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface), while Python is used for organizing the preprocessing, postprocessing, scenario analysis, etc. workflows. Theoretically, SEIMS could be compiled by common used compiler (e.g. MSVC 2010+, GCC 4.6+, and Intel C++ 12.0+) as 32-bit or 64-bit programs and run on any mainstream OS (e.g. Windows, Linux, and macOS).
 

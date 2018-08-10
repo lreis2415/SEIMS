@@ -117,7 +117,11 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 
 INPUT                  = doc/zh-cn/doc/README.md \
-                         doc/zh-cn/doc/intro/publications.zh-cn.md
+                         doc/zh-cn/doc/intro/download.zh-cn.md \
+                         doc/zh-cn/doc/intro/prerequisites.zh-cn.md \
+                         doc/zh-cn/doc/intro/install.zh-cn.md \
+                         doc/zh-cn/doc/intro/quickstart.zh-cn.md \
+                         doc/zh-cn/doc/intro/publications.zh-cn.md \
                          seims/src/ccgl/src \
                          seims/src/seims_main/base \
                          seims/src/seims_main/main/main_omp \
@@ -226,7 +230,7 @@ FORMULA_FONTSIZE       = 10
 FORMULA_TRANSPARENT    = YES
 USE_MATHJAX            = YES
 MATHJAX_FORMAT         = HTML-CSS
-MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
+MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/
 MATHJAX_EXTENSIONS     =
 MATHJAX_CODEFILE       =
 SEARCHENGINE           = YES
