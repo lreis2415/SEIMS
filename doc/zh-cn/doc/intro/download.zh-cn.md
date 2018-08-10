@@ -80,7 +80,7 @@ git remote add upstream git@github.com:seims/SEIMS.git
 
 ```sh
 git add README.md
-git commit –m "modification test”
+git commit –m "modification test"
 git push –u origin master
 ```
 
