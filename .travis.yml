@@ -1,7 +1,6 @@
 branches:
   only:
   - master
-  - test_build
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 env:
   global:
@@ -43,7 +42,7 @@ matrix:
     - ENABLE_CXX11=1
 before_install:
 - chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
-#- ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+- ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 install:
 - chmod +x ./doc/travis-doxygen.sh
 - chmod +x ./doc/update_relative_paths_for_doxygen.py

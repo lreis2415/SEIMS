@@ -52,16 +52,16 @@ ELSE()
   SET(CMAKE_BUILD_POSTFIX "")
 ENDIF()
 ### Find MPI which is required
-#FIND_PACKAGE(MPI REQUIRED)
+FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
   SET(WITH_MPI 1)
   SET(PRJNAME ${PRJNAME}_MPI)
   MESSAGE(STATUS "Compiling with MPI...")
 ELSE()
-  #MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
+  MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
 ENDIF()
 ### Find OMP which is optional
-#FIND_PACKAGE(OpenMP)
+FIND_PACKAGE(OpenMP)
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
@@ -134,26 +134,26 @@ ENDIF(MSVC)
 INCLUDE(AddFindPaths)
 
 ### Find GDAL which is required.
-#FIND_PACKAGE(GDAL REQUIRED)
-# IF (GDAL_FOUND)
-#   SET(WITH_GDAL 1)
-#   ADD_DEFINITIONS(-DUSE_GDAL)
-# ELSE ()
-#   MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
-# ENDIF ()
+FIND_PACKAGE(GDAL REQUIRED)
+IF (GDAL_FOUND)
+  SET(WITH_GDAL 1)
+  ADD_DEFINITIONS(-DUSE_GDAL)
+ELSE ()
+  MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
+ENDIF ()
 
 
 ### Set specific packages.
-#INCLUDE(SetFlagMPI)
-#INCLUDE(SetFlagOpenMP)
-#INCLUDE(SetFlagGDAL)
+INCLUDE(SetFlagMPI)
+INCLUDE(SetFlagOpenMP)
+INCLUDE(SetFlagGDAL)
 
 ### Bson and MongoC.
-#INCLUDE(FindBson)
-#INCLUDE(FindMongoC)
+INCLUDE(FindBson)
+INCLUDE(FindMongoC)
 
 ### Add subdirectories.
-#ADD_SUBDIRECTORY(./seims)
+ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
 IF(SEIMS_BUILD_DOC)
   ADD_SUBDIRECTORY(./doc)
