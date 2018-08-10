@@ -3,6 +3,7 @@
 """Replace the relative links by global paths for Doxygen.
     @author   : Liang-Jun Zhu
     @changelog: 2018-08-08 - lj - Initial implementation.
+                2018-08-10 - lj - Add identification of images with png or jpg formats.
 """
 import os
 import re
@@ -22,13 +23,14 @@ def current_path(local_function):
 
 
 def regrex_find_md_link(test_str, prefix):
-    regex = r"(?:(\[.+?\]\(.+?\.md\)))"
+    # regex = r"(?:(\[.+?\]\(.+?\.md\)))" # previous version
+    regex = r"(?:(!?\[.+?\]\(.+?(.md|.png|.jpg|.tiff|.pdf)\)))"
     matches = re.finditer(regex, test_str, re.IGNORECASE)
     replaced_str = test_str[:]
     flag = False
     for matchNum, match in enumerate(matches):
         matchNum = matchNum + 1
-        print("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum=matchNum,
+        print('Match {matchNum} was found at {start}-{end}: {match}'.format(matchNum=matchNum,
                                                                             start=match.start(),
                                                                             end=match.end(),
                                                                             match=match.group()))
