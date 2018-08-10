@@ -134,7 +134,7 @@ ENDIF(MSVC)
 INCLUDE(AddFindPaths)
 
 ### Find GDAL which is required.
-FIND_PACKAGE(GDAL REQUIRED)
+#FIND_PACKAGE(GDAL REQUIRED)
 IF (GDAL_FOUND)
   SET(WITH_GDAL 1)
   ADD_DEFINITIONS(-DUSE_GDAL)
@@ -144,13 +144,13 @@ ENDIF ()
 
 
 ### Set specific packages.
-INCLUDE(SetFlagMPI)
-INCLUDE(SetFlagOpenMP)
-INCLUDE(SetFlagGDAL)
+#INCLUDE(SetFlagMPI)
+#INCLUDE(SetFlagOpenMP)
+#INCLUDE(SetFlagGDAL)
 
 ### Bson and MongoC.
-INCLUDE(FindBson)
-INCLUDE(FindMongoC)
+#INCLUDE(FindBson)
+#INCLUDE(FindMongoC)
 
 ### Add subdirectories.
 #ADD_SUBDIRECTORY(./seims)

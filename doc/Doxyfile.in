@@ -117,7 +117,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 
 INPUT                  = doc/en/doc/README.md \
-                         doc/en/doc/guide/publications.md \
+                         doc/en/doc/SUMMARY.md \
                          seims/src/ccgl/src \
                          seims/src/seims_main/base \
                          seims/src/seims_main/main/main_omp \

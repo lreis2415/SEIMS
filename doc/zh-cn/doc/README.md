@@ -14,7 +14,6 @@ Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://www.igsnrr.c
 
 ## 1 简介
 
-+ [特点](features.zh-cn.md)
 
 ## 联系我们
 + 朱良君 (zlj@lreis.ac.cn)
