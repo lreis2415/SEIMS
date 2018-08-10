@@ -130,7 +130,7 @@ INPUT                  = doc/en/doc/README.md \
                          doc/en/doc/technical/modular.md \
                          doc/en/doc/technical/parallelcomputing.md \
                          doc/en/doc/technical/database.md \
-                         doc/en/doc/theory/watershedprocesses.zh-cn.md \
+                         doc/en/doc/theory/watershedprocesses.md \
                          seims/src/ccgl/src \
                          seims/src/seims_main/base \
                          seims/src/seims_main/main/main_omp \
