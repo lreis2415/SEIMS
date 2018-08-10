@@ -90,7 +90,7 @@ private:
      * \param[in] x4 average slope of channel, m/m.
      * \return flow rate or flow velocity, m^3/s or m/s.
      */
-    float manningQ(float x1, float x2, float x3, float x4);
+    //float manningQ(float x1, float x2, float x3, float x4);
 
     //static void GetDt(float timeStep, float fmin, float fmax, float& dt, int& n);
 
@@ -119,7 +119,9 @@ private:
     float* m_Kchb;
     /// hydraulic conductivity of the channel bank (mm/h)
     float* m_Kbank;
-    /// reach evaporation adjustment factor;
+    /// reach evaporation adjustment factor, evrch in SWAT.
+    /// Evaporation from the reach is multiplied by evrch.
+    /// This variable was created to limit the evaporation predicted in arid regions.
     float m_Epch;
     /// initial bank storage per meter of reach length (m3/m)
     float m_Bnk0;
@@ -141,7 +143,7 @@ private:
     /// the subbasin area (m2)  //add to the reach parameters file
     float* m_area;
 
-    /// Average PET for each subbasin
+    /// Average PET for each subbasin, mm
     float* m_petCh;
 
     /// overland flow to streams from each subbasin (m3/s)
@@ -151,33 +153,28 @@ private:
     /// groundwater flow out of the subbasin (m3/s)
     float* m_qgSub;
     ///  Groundwater storage (mm) of the subbasin
-    float* m_gwStorage;
+    float* m_gwSto;
 
     // channel outflow
     float* m_qsCh; ///< surface part of channel outflow
     float* m_qiCh; ///< subsurface part of channel outflow
     float* m_qgCh; ///< groundwater part of channel outflow
     /// channel width (m)
-    float* m_chWidth;
-    /// channel water width (m)
-    float* m_chWTWidth;
+    float* m_chWth;
+    /// channel water width (m), topw in SWAT
+    float* m_chWtrWth;
     /// bottom width of channel (m)
-    float* m_chBtmWidth;
+    float* m_chBtmWth;
     /// channel depth (m)
     float* m_chDepth;
-    /// channel water depth (m)
-    float* m_chWTdepth;
+    /// channel water depth (m), rchdep in SWAT
+    float* m_chWtrDepth;
     /// channel water depth of previous timestep (m)
-    float* m_preChWTDepth;
+    float* m_preChWtrDepth;
     /// channel length (m)
     float* m_chLen;
-    /// channel flow velocity (m/s)
-    float* m_chVel;
     /// bank storage (m^3)
-    float* m_bankStorage;
-    /// groundwater recharge to channel or perennial base flow, m^3/s
-    float m_deepGroundwater;
-
+    float* m_bankSto;
     /// seepage to deep aquifer
     float* m_seepage;
 
@@ -206,14 +203,18 @@ private:
     map<int, BMPPointSrcFactory *> m_ptSrcFactory;
     //temporary at routing time
 
+    /// flowin discharge at the last time step
+    //float* m_qIn;
+    /// flow into reach on current day, m^3
+    float* m_flowIn;
+    /// flow out of reach on current day, m^3
+    float* m_flowOut;
     /// reach storage (m^3) at time, t
-    float* m_chStorage;
+    float* m_chSto;
     /// reach storage (m^3) at previous time step, t-1
-    float* m_preChStorage;
+    float* m_preChSto;
     /// reach outflow (m3/s) at time, t
     float* m_qRchOut;
-    /// flowin discharge at the last time step
-    float* m_qIn;
     /*!
      * reach layers
      * key: computing order, \sa LayeringMethod

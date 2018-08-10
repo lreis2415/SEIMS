@@ -101,7 +101,6 @@ private:
     float* m_chDepth;
     //length of reach (m)
     float* m_chLen;
-    float* m_chVel;
     float* m_chSlope;
     /// float *m_chManning; not used!
     /// reach cover factor

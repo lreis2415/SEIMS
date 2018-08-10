@@ -12,7 +12,7 @@ SEDR_SBAGNOLD::SEDR_SBAGNOLD() :
     m_critVelSedDep(NODATA_VALUE), m_sedtoCh(nullptr),
     m_initChStorage(NODATA_VALUE), m_initChSedConc(NODATA_VALUE), m_qRchOut(nullptr),
     m_chOrder(nullptr), m_chWidth(nullptr),
-    m_chDepth(nullptr), m_chLen(nullptr), m_chVel(nullptr),
+    m_chDepth(nullptr), m_chLen(nullptr),
     m_chSlope(nullptr), m_chCover(nullptr), m_chErod(nullptr), m_reachDownStream(nullptr),
     m_ptSub(nullptr), m_chStorage(nullptr),
     m_preChStorage(nullptr),
@@ -276,7 +276,6 @@ void SEDR_SBAGNOLD::SetReaches(clsReaches* reaches) {
     if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
     if (nullptr == m_chLen) reaches->GetReachesSingleProperty(REACH_LENGTH, &m_chLen);
     if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
-    if (nullptr == m_chVel) reaches->GetReachesSingleProperty(REACH_V0, &m_chVel);
     if (nullptr == m_chSlope) reaches->GetReachesSingleProperty(REACH_SLOPE, &m_chSlope);
     if (nullptr == m_chCover) reaches->GetReachesSingleProperty(REACH_COVER, &m_chCover);
     if (nullptr == m_chErod) reaches->GetReachesSingleProperty(REACH_EROD, &m_chErod);

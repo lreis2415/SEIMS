@@ -702,7 +702,7 @@
 #define VAR_MOIST_IN "Moist_in" /// m_initSoilWtrStoRatio, initial soil water storage fraction related to field capacity (FC-WP)
 #define VAR_MSF "ManningScaleFactor"                /// flow velocity scaling factor for calibration
 #define VAR_MSK_CO1 "MSK_co1" /// m_mskCoef1, Calibration coefficient used to control impact of the storage time constant for normal flow
-#define VAR_MSK_CO2 "MSK_co2" /// m_mskCoef2, Calibration coefficient used to control impact of the storage time constant fro low flow
+//#define VAR_MSK_CO2 "MSK_co2" /// m_mskCoef2, Calibration coefficient used to control impact of the storage time constant fro low flow
 #define VAR_MSK_X "MSK_X" /// m_mskX, Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment
 #define VAR_MUMAX "mumax"
 #define VAR_NACTFR "nactfr" /// m_orgNFrActN, The fraction of organic nitrogen in the nitrogen active pool
@@ -1444,7 +1444,7 @@
 #define DESC_MOIST_IN "Initial soil moisture"
 #define DESC_MSF "flow velocity scaling factor for calibration"
 #define DESC_MSK_CO1 "Calibration coefficient used to control impact of the storage time constant for normal flow"
-#define DESC_MSK_CO2 "Calibration coefficient used to control impact of the storage time constant fro low flow"
+//#define DESC_MSK_CO2 "Calibration coefficient used to control impact of the storage time constant fro low flow"
 #define DESC_MSK_X "Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment"
 #define DESC_MUMAX "maximum specific algal growth rate at 20 deg C"
 #define DESC_NACTFR "The fraction of organic nitrogen in the nitrogen active pool."
