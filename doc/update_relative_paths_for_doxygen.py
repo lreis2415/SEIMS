@@ -70,8 +70,7 @@ def main(fpath, relative_path):
     for entry in entries:
         tmppath = fpath + os.sep + entry
         if os.path.isdir(tmppath):
-            relative_path += '%s/' % entry
-            main(tmppath, relative_path)
+            main(tmppath, '%s%s/' % (relative_path, entry))
         else:
             name, ext = os.path.splitext(entry)
             if not ext.upper() == '.MD':
