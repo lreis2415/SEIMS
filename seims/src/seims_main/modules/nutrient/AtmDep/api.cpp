@@ -8,7 +8,6 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new AtmosphericDeposition();
 }
 
-// function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
@@ -34,9 +33,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     // set input from other modules
     mdi.AddInput(VAR_PCP, UNIT_DEPTH_MM, DESC_PCP, Source_Module, DT_Raster1D);
-
-    // set output
-    mdi.AddOutput(VAR_WSHD_RNO3, UNIT_CONT_KGHA, DESC_WSHD_RNO3, DT_Single);
 
     res = mdi.GetXMLDocument();
 

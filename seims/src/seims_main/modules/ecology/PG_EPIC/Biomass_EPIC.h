@@ -266,6 +266,8 @@ private:
     float uobw;
     /// current rooting depth
     float* m_pltRootD;
+    /// wuse in DistributePlantET().
+    float** m_wuse;
 
     /**  set output variables  **/
 

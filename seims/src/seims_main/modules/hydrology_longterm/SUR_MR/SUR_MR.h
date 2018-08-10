@@ -100,9 +100,9 @@ private:
     /// initial soil water storage fraction related to field capacity (FC-WP)
     float* m_initSoilWtrStoRatio;
 
-    /// runoff exponent
+    /// Runoff exponent for a near zero rainfall intensity
     float m_rfExp;
-    /// maximum precipitation corresponding to runoffCo
+    /// Rainfall intensity corresponding to a surface runoff exponent (m_rfExp) of 1
     float m_maxPcpRf;
     /// depression storage (mm)
     float* m_deprSto; // SD(t-1) from the depression storage module

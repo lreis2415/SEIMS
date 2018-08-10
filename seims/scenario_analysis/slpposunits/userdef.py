@@ -46,8 +46,8 @@ def crossover_slppos(tagnames, ind1, ind2):
         if cxpoint2 < cxpoint1:  # Swap the two cx points
             cxpoint1, cxpoint2 = cxpoint2, cxpoint1
         # print(cxpoint1, cxpoint2)
-        cs1 = cxpoint1 / sp_num
-        cs2 = cxpoint2 / sp_num
+        cs1 = cxpoint1 // sp_num
+        cs2 = cxpoint2 // sp_num
         # print(cs1, cs2)
         cxpoint1 = cs1 * sp_num
         if cxpoint2 % sp_num != 0:

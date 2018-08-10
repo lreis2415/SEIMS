@@ -9,7 +9,6 @@ PETPriestleyTaylor::PETPriestleyTaylor() :
     m_sr(nullptr), m_rhd(nullptr), m_dem(nullptr),
     m_nCells(-1), m_petFactor(1.f), m_cellLat(nullptr),
     m_phuAnn(nullptr), m_snowTemp(NODATA_VALUE),
-    m_srMax(NODATA_VALUE),
     m_dayLen(nullptr), m_phuBase(nullptr), m_pet(nullptr), m_vpd(nullptr) {
 }
 
@@ -95,7 +94,8 @@ int PETPriestleyTaylor::Execute() {
         }
 
         /// calculate the max solar radiation
-        MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], m_srMax);
+        float srMax; /// maximum solar radiation of current day
+        MaxSolarRadiation(m_dayOfYear, m_cellLat[i], m_dayLen[i], srMax);
 
         /// calculate net long-wave radiation
         /// net emissivity  equation 2.2.20 in SWAT manual
@@ -118,8 +118,8 @@ int PETPriestleyTaylor::Execute() {
         float rbo = -(0.34f - 0.139f * sqrt(actualVaporPressure));
         //cloud cover factor
         float rto = 0.0f;
-        if (m_srMax >= 1.0e-4f) {
-            rto = 0.9f * (m_sr[i] / m_srMax) + 0.1f;
+        if (srMax >= 1.0e-4f) {
+            rto = 0.9f * (m_sr[i] / srMax) + 0.1f;
         }
         //net long-wave radiation
 		//it may be negative because the sky temperature is colder than the grass temperature
@@ -148,7 +148,7 @@ int PETPriestleyTaylor::Execute() {
         if (m_pet[i] != m_pet[i]) {
             cout << "cell id: " << i << ", pet: " << m_pet[i] << ", meanT: " << m_meanTemp[i] <<
                     ", rhd: " << m_rhd[i] << ", rbo: " << rbo << ", sr: " << m_sr[i] << ", m_srMax: "
-                    << m_srMax << ", rto: " << rto << ", satVaporPressure: " << satVaporPressure << endl;
+                    << srMax << ", rto: " << rto << ", satVaporPressure: " << satVaporPressure << endl;
             throw ModelException(MID_PET_PT, "Execute", "Calculation error occurred!\n");
         }
     }

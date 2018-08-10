@@ -8,7 +8,6 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new NutrCH_QUAL2E();
 }
 
-//! function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     mdi.SetAuthor("Huiran Gao, Liangjun Zhu");

@@ -10,7 +10,7 @@
 
 using namespace utils_string;
 
-InputStation::InputStation(MongoClient* conn, time_t dtHillslope, time_t dtChannel) :
+InputStation::InputStation(MongoClient* conn, const time_t dtHillslope, const time_t dtChannel) :
     m_conn(conn), m_dtCh(dtChannel), m_dtHs(dtHillslope) {
 }
 
@@ -43,7 +43,8 @@ InputStation::~InputStation() {
     m_elevation.clear();
 }
 
-void InputStation::build_query_bson(int nSites, vector<int>& siteIDList, string& siteType, bson_t* query) {
+void InputStation::build_query_bson(const int nSites, vector<int>& siteIDList,
+                                    const string& siteType, bson_t* query) {
     /// build query statement
     //query = bson_new();  query has been initalized before
     bson_t* child = bson_new();
@@ -70,7 +71,7 @@ void InputStation::build_query_bson(int nSites, vector<int>& siteIDList, string&
         BSON_APPEND_DOCUMENT_BEGIN(child, MONG_HYDRO_SITE_TYPE, child2); //"Type"
         BSON_APPEND_ARRAY_BEGIN(child2, "$in", child3);
         BSON_APPEND_UTF8(child3, "0", DataType_Precipitation); //"P"
-        BSON_APPEND_UTF8(child3, "1", DataType_Meteorology); //"M"
+        BSON_APPEND_UTF8(child3, "1", DataType_Meteorology);   //"M"
         bson_append_array_end(child2, child3);
         bson_append_document_end(child, child2);
         bson_destroy(child2);
@@ -88,13 +89,14 @@ void InputStation::build_query_bson(int nSites, vector<int>& siteIDList, string&
     bson_destroy(child2);
 }
 
-void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sitesList) {
+void InputStation::ReadSitesInfo(const string& siteType, const string& hydroDBName, const string& sitesList) {
     vector<string> vecSites = SplitString(sitesList, ',');
-    int nSites = int(vecSites.size());
+    int nSites = CVT_INT(vecSites.size());
     //convert from string to int, the IDList is in order in MongoDB
     vector<int> siteIDList;
     char* end = nullptr;
     errno = 0;
+    siteIDList.reserve(nSites);
     for (int iSite = 0; iSite < nSites; iSite++) {
         siteIDList.emplace_back(strtol(vecSites[iSite].c_str(), &end, 10)); // deprecated atoi);
     }
@@ -150,34 +152,24 @@ void InputStation::ReadSitesInfo(string siteType, string hydroDBName, string sit
     m_numSites[siteType] = nSites;
 }
 
-void InputStation::ReadSitesData(string hydroDBName, string sitesList, string siteType, time_t startDate,
-                                 time_t endDate, bool stormMode /* = false */) {
-    siteType = GetUpper(siteType);
-
-    //clock_t start = clock();
+void InputStation::ReadSitesData(const string& hydroDBName, const string& sitesList, const string& siteType,
+                                 const time_t startDate, const time_t endDate, const bool stormMode /* = false */) {
+    string siteTypeU = GetUpper(siteType);
     if (stormMode) {
-        m_measurement[siteType] = new NotRegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate,
-                                                            endDate);
+        m_measurement[siteType] = new NotRegularMeasurement(m_conn, hydroDBName, sitesList, siteTypeU,
+                                                            startDate, endDate);
     } else {
-        m_measurement[siteType] = new RegularMeasurement(m_conn, hydroDBName, sitesList, siteType, startDate, endDate,
-                                                         m_dtHs);
+        m_measurement[siteType] = new RegularMeasurement(m_conn, hydroDBName, sitesList, siteTypeU,
+                                                         startDate, endDate, m_dtHs);
     }
-    //clock_t end = clock();
-    //cout << "Read measurement " << siteType << " " << end - start << endl;
-
-    //start = clock();
-    if (StringMatch(siteType, DataType_Precipitation)) // "P"
-    {
+    if (StringMatch(siteType, DataType_Precipitation)) {
         ReadSitesInfo(DataType_Precipitation, hydroDBName, sitesList);
-    } else if (m_elevation.find(DataType_Meteorology) == m_elevation.end()) // "M"
-    {
+    } else if (m_elevation.find(DataType_Meteorology) == m_elevation.end()) {
         ReadSitesInfo(DataType_Meteorology, hydroDBName, sitesList);
     }
-    //end = clock();
-    //cout << "ReadSitesInfo " << siteType << " " << end - start << endl;
 }
 
-void InputStation::GetTimeSeriesData(time_t time, string type, int* nRow, float** data) {
+void InputStation::GetTimeSeriesData(const time_t time, const string& type, int* nRow, float** data) {
     Measurement* m = m_measurement[type];
     *nRow = m->NumberOfSites();
     //cout << type << "\t" << *nRow << endl;

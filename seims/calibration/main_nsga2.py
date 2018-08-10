@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """Calibration by NSGA-II algorithm.
     @author   : Liangjun Zhu
-    @changelog: 18-1-22  lj - initial implementation.\n
+    @changelog: 18-01-22  lj - initial implementation.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-07-10  lj - Support MPI version of SEIMS.\n
 """
 from __future__ import absolute_import, division
 
@@ -21,6 +22,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
+from copy import deepcopy
 from pygeoc.utils import UtilClass
 
 from scenario_analysis.utility import print_message
@@ -29,7 +31,7 @@ from calibration.config import CaliConfig, get_cali_config
 from run_seims import MainSEIMS
 
 from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
-from calibration.calibrate import observationData, simulationData
+from calibration.calibrate import TimeseriesData, ObsSimData
 from calibration.userdef import write_param_values_to_mongodb, output_population_details
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
@@ -37,28 +39,29 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
 object_vars = ['Q', 'SED']
-step = object_vars[1]
-filter_NSE = True
+object_names = ['NSE', 'RSR', 'PBIAS']
+step = object_vars[0]
+filter_NSE = True  # Filter scenarios which NSE less than 0 for the next generation
 # Multiobjects definition:
 if step == 'Q':
-    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, min. |PBIAS|, and max. R2
-    multi_weight = (2., -1., -1., 1.)  # NSE taken bigger weight (actually used)
-    worse_objects = [0.0001, 3., 3., 0.0001]
+    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
+    multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
+    worse_objects = [-100., 100., 100.]
 elif step == 'SED':
-    # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. R2-SED,
-    #                               max. NSE-Q
-    multi_weight = (3., -2., -2., 2., 1.)  # NSE of sediment taken a bigger weight
-    worse_objects = [0.0001, 3., 3., 0.0001, 0.0001]
+    # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
+    multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
+    worse_objects = [-100., 100., 100., -100.]
 else:
     print('The step of calibration should be one of [Q, SED]!')
     exit(0)
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
 # class FitnessMulti(base.Fitness):
-#     weights = (2., -1., -1., 1.)
+#     weights = (2., -1., -1.)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
                gen=-1, id=-1,
-               obs=observationData, cali=simulationData, vali=simulationData)
+               obs=TimeseriesData, sim=TimeseriesData,
+               cali=ObsSimData, vali=ObsSimData)
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -98,13 +101,13 @@ def main(cfg):
 
     # read observation data from MongoDB
     cali_obj = Calibration(cfg)
-    model_obj = MainSEIMS(cali_obj.cfg.bin_dir, cali_obj.cfg.model_dir,
-                          nthread=cali_obj.cfg.nthread, lyrmtd=cali_obj.cfg.lyrmethod,
-                          ip=cali_obj.cfg.hostname, port=cali_obj.cfg.port,
-                          sceid=cali_obj.cfg.sceid)
+
+    # Read observation data just once
+    model_cfg_dict = cali_obj.model.ConfigDict
+    model_obj = MainSEIMS(args_dict=model_cfg_dict)
     obs_vars, obs_data_dict = model_obj.ReadOutletObservations(object_vars)
+
     # Initialize population
-    # pop = toolbox.population(cfg, n=cfg.opt.npop) # Deprecated method because of redundancy!
     param_values = cali_obj.initialize(cfg.opt.npop)
     pop = list()
     for i in range(cfg.opt.npop):
@@ -112,10 +115,13 @@ def main(cfg):
         ind.gen = 0
         ind.id = i
         ind.obs.vars = obs_vars[:]
-        ind.obs.data = obs_data_dict
+        ind.obs.data = deepcopy(obs_data_dict)
         pop.append(ind)
     param_values = numpy.array(param_values)
-    write_param_values_to_mongodb(cfg.hostname, cfg.port, cfg.spatial_db,
+
+    # Write calibrated values to MongoDB
+    # TODO, extract this function, which is same with `Sensitivity::write_param_values_to_mongodb`.
+    write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
                                   cali_obj.ParamDefs, param_values)
     # get the low and up bound of calibrated parameters
     bounds = numpy.array(cali_obj.ParamDefs['bounds'])
@@ -125,9 +131,10 @@ def main(cfg):
     up = up.tolist()
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
 
-    def evaluate_parallel(invalid_pops):
+    def evaluate_parallel(invalid_pops, gen=0):
         """Evaluate model by SCOOP or map, and set fitness of individuals
          according to calibration step."""
+        eva_stime = time.time()
         popnum = len(invalid_pops)
         try:  # parallel on multi-processors or clusters using SCOOP
             from scoop import futures
@@ -136,16 +143,18 @@ def main(cfg):
             invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
             if step == 'Q':  # Step 1 Calibrating discharge
-                tmpind.fitness.values = tmpind.cali.efficiency_values('Q')
+                tmpind.fitness.values = tmpind.cali.efficiency_values('Q', object_names)
             elif step == 'SED':  # Step 2 Calibrating sediment
-                tmpind.fitness.values = tmpind.cali.efficiency_values('SED') + \
-                                        [tmpind.cali.efficiency_values('Q')[0]]  # NSE-Q
-
+                tmpind.fitness.values = tmpind.cali.efficiency_values('SED', object_names) + \
+                                        [tmpind.cali.efficiency_values('Q', object_names)[0]]
+        print_message('Timespan of evaluating models: '
+                      'Generation: %d, evaluated models: %d,'
+                      'Timespan: %.3f' % (gen, popnum, time.time() - eva_stime))
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
             if len(invalid_pops) < 2:
-                print('The initial population shoule be greater or equal than 2. '
+                print('The initial population should be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
                 exit(0)
         return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
@@ -196,10 +205,10 @@ def main(cfg):
             ind.id = idx
             param_values.append(ind[:])
         param_values = numpy.array(param_values)
-        write_param_values_to_mongodb(cfg.hostname, cfg.port, cfg.spatial_db,
+        write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
                                       cali_obj.ParamDefs, param_values)
         # print_message('Evaluate pop size: %d' % invalid_ind_size)
-        invalid_ind = evaluate_parallel(invalid_ind)
+        invalid_ind = evaluate_parallel(invalid_ind, gen=gen)
         # Select the next generation population
         tmp_pop = list()
         gen_idx = list()
@@ -226,27 +235,32 @@ def main(cfg):
         #                   'NSE', 'RSR')  # Step 1: Calibrate discharge
         # save in file
         if step == 'Q':  # Step 1 Calibrate discharge
-            output_str += 'generation-calibrationID\t%s' % pop[0].cali.output_header('Q')
+            output_str += 'generation-calibrationID\t%s' % pop[0].cali.output_header('Q',
+                                                                                     object_names,
+                                                                                     'Cali')
             if cali_obj.cfg.calc_validation:
-                output_str += pop[0].vali.output_header('Q', 'Vali')
+                output_str += pop[0].vali.output_header('Q', object_names, 'Vali')
         elif step == 'SED':  # Step 2 Calibrate sediment
-            output_str += 'generation-calibrationID\t%s%s' % (pop[0].cali.output_header('SED'),
-                                                              pop[0].cali.output_header('Q'))
+            output_str += 'generation-calibrationID\t%s%s' % \
+                          (pop[0].cali.output_header('SED', object_names, 'Cali'),
+                           pop[0].cali.output_header('Q', object_names, 'Cali'))
             if cali_obj.cfg.calc_validation:
-                output_str += '%s%s' % (pop[0].vali.output_header('SED', 'Vali'),
-                                        pop[0].vali.output_header('Q', 'Vali'))
+                output_str += '%s%s' % (pop[0].vali.output_header('SED', object_names, 'Vali'),
+                                        pop[0].vali.output_header('Q', object_names, 'Vali'))
         output_str += 'gene_values\n'
         for ind in pop:
             if step == 'Q':  # Step 1 Calibrate discharge
-                output_str += '%d-%d\t%s' % (ind.gen, ind.id, ind.cali.output_efficiency('Q'))
+                output_str += '%d-%d\t%s' % (ind.gen, ind.id,
+                                             ind.cali.output_efficiency('Q', object_names))
                 if cali_obj.cfg.calc_validation:
-                    output_str += ind.vali.output_efficiency('Q')
+                    output_str += ind.vali.output_efficiency('Q', object_names)
             elif step == 'SED':  # Step 2 Calibrate sediment
-                output_str += '%d-%d\t%s%s' % (ind.gen, ind.id, ind.cali.output_efficiency('SED'),
-                                               ind.cali.output_efficiency('Q'))
+                output_str += '%d-%d\t%s%s' % (ind.gen, ind.id,
+                                               ind.cali.output_efficiency('SED', object_names),
+                                               ind.cali.output_efficiency('Q', object_names))
                 if cali_obj.cfg.calc_validation:
-                    output_str += '%s%s' % (ind.vali.output_efficiency('SED'),
-                                            ind.vali.output_efficiency('Q'))
+                    output_str += '%s%s' % (ind.vali.output_efficiency('SED', object_names),
+                                            ind.vali.output_efficiency('Q', object_names))
             output_str += str(ind)
             output_str += '\n'
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
@@ -259,15 +273,16 @@ def main(cfg):
 if __name__ == "__main__":
     cf, method = get_cali_config()
     cfg = CaliConfig(cf, method=method)
-    # print(cfg)
 
     print_message('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
+
     fpop, fstats = main(cfg)
+
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
     with open(cfg.opt.logbookfile, 'w') as f:
         f.write(fstats.__str__())
-
     endT = time.time()
+    print_message('### END OF CALIBRATION OPTIMIZING ###')
     print_message('Running time: %.2fs' % (endT - startT))

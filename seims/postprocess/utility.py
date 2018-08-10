@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import bisect
 from collections import OrderedDict
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -123,7 +124,7 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
     return sim_obs_dict
 
 
-def calculate_statistics(sim_obs_dict):
+def calculate_statistics(sim_obs_dict, stime=None, etime=None):
     """Calculate NSE, R-square, RMSE, PBIAS, and RSR.
     Args:
         sim_obs_dict: {VarName: {'UTCDATETIME': [t1, t2, ..., tn],
@@ -132,6 +133,8 @@ def calculate_statistics(sim_obs_dict):
                                  },
                        ...
                        }
+        stime: Start time for statistics calculation.
+        etime: End time for statistics calculation.
     Returns:
         The dict with the format:
         {VarName: {'UTCDATETIME': [t1, t2, ..., tn],
@@ -149,10 +152,16 @@ def calculate_statistics(sim_obs_dict):
         }
     """
     if not sim_obs_dict:  # if None or dict()
-        return False
+        return None, None
     for param, values in sim_obs_dict.items():
-        obsl = values['Obs'][:]
-        siml = values['Sim'][:]
+        if stime is None and etime is None:
+            sidx = 0
+            eidx = len(values['UTCDATETIME'])
+        else:
+            sidx = bisect.bisect_left(values['UTCDATETIME'], stime)
+            eidx = bisect.bisect_right(values['UTCDATETIME'], etime)
+        obsl = values['Obs'][sidx:eidx]
+        siml = values['Sim'][sidx:eidx]
 
         nse_value = MathClass.nashcoef(obsl, siml)
         r2_value = MathClass.rsquare(obsl, siml)
@@ -172,8 +181,8 @@ def calculate_statistics(sim_obs_dict):
         values['NSE1'] = nse1_value
         values['NSE3'] = nse3_value
 
-        print('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f,'
-              ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
-              (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
-               lnnse_value, nse1_value, nse3_value))
-    return True
+        # print('Statistics for %s, NSE: %.3f, R2: %.3f, RMSE: %.3f, PBIAS: %.3f, RSR: %.3f,'
+        #       ' lnNSE: %.3f, NSE1: %.3f, NSE3: %.3f' %
+        #       (param, nse_value, r2_value, rmse_value, pbias_value, rsr_value,
+        #        lnnse_value, nse1_value, nse3_value))
+    return ['NSE', 'R-square', 'RMSE', 'PBIAS', 'RSR', 'lnNSE', 'NSE1', 'NSE3']

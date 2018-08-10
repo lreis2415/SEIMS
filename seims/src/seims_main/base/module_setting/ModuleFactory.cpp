@@ -265,7 +265,7 @@ ParamInfo* ModuleFactory::FindDependentParam(ParamInfo* paramInfo, vector<string
             string compareName = GetComparableName((*itOut)->Name);
             if (!StringMatch(paraName, compareName)) continue;
             if ((*itOut)->Dimension == paraType && // normal
-                (tfType == (*itOut)->Transfer || tfType == TF_Whole) && // specified handling for mpi version
+                (tfType == (*itOut)->Transfer || tfType == TF_None) && // specified handling for mpi version
                 !StringMatch(*it, paramInfo->ModuleID)) {
                 // Avoid to dependent on the module itself
                 (*itOut)->OutputToOthers = true;
@@ -328,7 +328,6 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
     if (StringMatch(strType, Type_Single)) typ = DT_Single;
     if (StringMatch(strType, Type_Array1D)) typ = DT_Array1D;
     if (StringMatch(strType, Type_Array2D)) typ = DT_Array2D;
-    // if (StringMatch(strType, Type_Array3D)) typ = DT_Array3D;
     if (StringMatch(strType, Type_Array1DDateValue)) typ = DT_Array1DDateValue;
     if (StringMatch(strType, Type_Raster1D)) typ = DT_Raster1D;
     if (StringMatch(strType, Type_Raster2D)) typ = DT_Raster2D;
@@ -342,8 +341,8 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
 }
 
 transferTypes ModuleFactory::MatchTransferType(string tfType) {
-    transferTypes typ = TF_Whole;
-    if (StringMatch(tfType, TFType_Whole)) typ = TF_Whole;
+    transferTypes typ = TF_None;
+    if (StringMatch(tfType, TFType_Whole)) typ = TF_None;
     if (StringMatch(tfType, TFType_Single)) typ = TF_SingleValue;
     if (StringMatch(tfType, TFType_Array1D)) typ = TF_OneArray1D;
     return typ;
@@ -719,7 +718,7 @@ void ModuleFactory::FindOutputParameter(string& outputID, int& iModule, ParamInf
         vector<ParamInfo *>& vecPara = m_moduleOutputs[id];
         for (size_t j = 0; j < vecPara.size(); j++) {
             if (StringMatch(outputID, vecPara[j]->Name)) {
-                iModule = int(i);
+                iModule = CVT_INT(i);
                 paraInfo = vecPara[j];
                 return;
             }

@@ -8,7 +8,6 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new SEDR_SBAGNOLD();
 }
 
-// function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     string res = "";
     MetadataInfo mdi;
@@ -42,16 +41,14 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     /// load point source loading sediment from Scenario
     mdi.AddParameter(VAR_SCENARIO, UNIT_NON_DIM, DESC_SCENARIO, Source_ParameterDB, DT_Scenario);
 
-    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Array1D, TF_SingleValue);
-    mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module, DT_Array1D, TF_SingleValue);
+    mdi.AddInput(VAR_SED_TO_CH, UNIT_KG, DESC_SED_TO_CH, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module, DT_Array1D);
 
     mdi.AddInput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_PRECHST, UNIT_VOL_M3, DESC_PRECHST, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHWTDEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_PRECHWTDEPTH, UNIT_LEN_M, DESC_PRECHWTDEPTH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHWTWIDTH, UNIT_LEN_M, DESC_CHWTWIDTH, Source_Module, DT_Array1D);
-
-    /// mdi.AddOutput(VAR_SED_OUTLET, UNIT_KG, DESC_SED_OUTLET, DT_Single); // Deprecated
 
     mdi.AddInOutput(VAR_SED_RECH, UNIT_KG, DESC_SED_RECH, DT_Array1D, TF_SingleValue);
     mdi.AddInOutput(VAR_SED_RECHConc, UNIT_SEDCONC, DESC_SED_RECH, DT_Array1D, TF_SingleValue);

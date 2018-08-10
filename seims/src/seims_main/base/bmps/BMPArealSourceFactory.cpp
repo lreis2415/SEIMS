@@ -268,16 +268,16 @@ ArealSourceLocations::ArealSourceLocations(const bson_t*& bsonTable, bson_iter_t
 }
 
 
-void ArealSourceLocations::SetValidCells(int n, float* mgtFieldIDs) {
+void ArealSourceLocations::SetValidCells(const int n, float* mgtFieldIDs) {
     if (n > 0 && nullptr != mgtFieldIDs) {
         for (int i = 0; i < n; i++) {
-            if (FloatEqual(m_arealSrcID, int(mgtFieldIDs[i]))) {
+            if (FloatEqual(m_arealSrcID, CVT_INT(mgtFieldIDs[i]))) {
                 m_cellsIndex.emplace_back(i);
             }
         }
         vector<int>(m_cellsIndex).swap(m_cellsIndex);
         // m_cellsIndex.shrink_to_fit();
-        m_nCells = int(m_cellsIndex.size());
+        m_nCells = CVT_INT(m_cellsIndex.size());
     } else {
         throw ModelException("ArealSourceLocations", "SetValidCells",
                              "The array size of must be greater than 0 and the array must not be NULL.");

@@ -5,7 +5,8 @@
 
 using namespace utils_time;
 
-SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems) :
+SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
+                               vector<OrgOutItem>& outputItems) :
     m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID) {
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
@@ -19,7 +20,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
 
         bool isRaster = false;
         if (StringMatch(suffix, string(GTiffExtension))) {
-            if (m_subbasinID == 9999) { /// For field-version model, all spatial outputs should be text!
+            if (m_subbasinID == 9999) {
+                /// For field-version model, all spatial outputs should be text!
                 (*iter).outFileName = coreFileName + "." + TextExtension;
                 suffix = TextExtension;
             } else {
@@ -33,8 +35,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
                 /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
                 pi->setInterval((*iter).interval);
                 pi->setIntervalUnits((*iter).intervalUnit);
-                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName, ValueToString(m_outletID), suffix,
-                                 true);
+                pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, coreFileName,
+                                 ValueToString(m_outletID), suffix, true);
             }
         } else if (StringMatch((*iter).subBsn, Tag_AllSubbsn) && (isRaster || m_subbasinID == 9999)) {
             vector<string> aggTypes = SplitString((*iter).aggType, '-');
@@ -74,7 +76,8 @@ SettingsOutput::SettingsOutput(int subbasinNum, int outletID, int subbasinID, ve
     // m_printInfos.shrink_to_fit();
 }
 
-SettingsOutput* SettingsOutput::Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems) {
+SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, const int subbasinID,
+                                     vector<OrgOutItem>& outputItems) {
     if (outputItems.empty()) {
         return nullptr;
     }

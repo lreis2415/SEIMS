@@ -77,8 +77,6 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
             break;
         case DT_Array2D: strTmp = Type_Array2D;
             break;
-        // case DT_Array3D: strTmp = Type_Array3D;
-        //     break;
         case DT_Raster1D: strTmp = Type_Raster1D;
             break;
         case DT_Raster2D: strTmp = Type_Raster2D;
@@ -101,7 +99,7 @@ void MetadataInfo::TransferTypeTag(string tag, int indent, transferTypes tf_type
     string str_tmp;
 
     switch (tf_type) {
-        case TF_Whole: str_tmp = TFType_Whole;
+        case TF_None: str_tmp = TFType_Whole;
             break;
         case TF_SingleValue: str_tmp = TFType_Single;
             break;
@@ -229,7 +227,7 @@ int MetadataInfo::AddInput(const char* name, const char* units, const char* desc
     param.tfType = tfType;
 
     m_vInputs.emplace_back(param);
-    return int(m_vInputs.size());
+    return CVT_INT(m_vInputs.size());
 }
 
 int MetadataInfo::AddOutput(const char* name, const char* units, const char* desc,
@@ -242,7 +240,7 @@ int MetadataInfo::AddOutput(const char* name, const char* units, const char* des
     param.tfType = tfType;
 
     m_vOutputs.emplace_back(param);
-    return int(m_vOutputs.size());
+    return CVT_INT(m_vOutputs.size());
 }
 
 int MetadataInfo::AddInOutput(const char* name, const char* units, const char* desc,
@@ -272,7 +270,7 @@ int MetadataInfo::AddParameter(const char* name, const char* units, const char* 
     param.Dimension = dimType;
 
     m_vParameters.emplace_back(param);
-    return int(m_vParameters.size());
+    return CVT_INT(m_vParameters.size());
 }
 
 int MetadataInfo::AddDependency(const char* name, const char* description) {
@@ -281,7 +279,7 @@ int MetadataInfo::AddDependency(const char* name, const char* description) {
     cl.Description = description;
 
     m_vDependencies.emplace_back(cl);
-    return int(m_vDependencies.size());
+    return CVT_INT(m_vDependencies.size());
 }
 
 string MetadataInfo::GetXMLDocument() {

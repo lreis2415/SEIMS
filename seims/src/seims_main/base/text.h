@@ -165,6 +165,7 @@
 #define File_Output                            "file.out"
 #define Source_HydroClimateDB                  "HydroClimateDB"
 #define Source_ParameterDB                     "ParameterDB"
+#define Source_ParameterDB_Optional            "ParameterDB_Optional"
 #define Source_Module                          "Module"
 #define Source_Module_Optional                 "Module_Optional"
 
@@ -243,7 +244,6 @@
 #define Type_Raster1D                          "RASTER1D"
 #define Type_Raster2D                          "RASTER2D"
 #define Type_Array1DDateValue                  "ARRAY1DDATEVALUE"
-#define Type_Array3D                           "ARRAY3D"
 #define Type_Array2D                           "ARRAY2D"
 #define Type_Array1D                           "ARRAY1D"
 #define Type_Single                            "SINGLE"
@@ -383,8 +383,8 @@
 #define MID_KINWAVSED_CH                       "KinWavSed_CH"
 #define MDESC_KINWAVSED_OL                     "Use energy function(Govers) method to calculate sediment yield routing of each hillslope cell"
 #define MDESC_KINWAVSED_CH                     "Srinivasan & Galvao function to calculate sediment yield routing of each channel cell"
-#define MID_MUSLE_AS                           "MUSLE_AS"
-#define MDESC_MUSLE_AS                         "use MUSLE method to calculate sediment yield of each cell"
+#define MID_SERO_MUSLE                         "SERO_MUSLE"
+#define MDESC_SERO_MUSLE                       "use MUSLE method to calculate sediment yield of each cell"
 #define MID_IUH_SED_OL                         "IUH_SED_OL"
 #define MDESC_IUH_SED_OL                       "Overland routing of sediment using IUH"
 
@@ -701,8 +701,9 @@
 #define VAR_MINPGW_TOCH "minpgwToCh" /// m_gwSolPToCh
 #define VAR_MOIST_IN "Moist_in" /// m_initSoilWtrStoRatio, initial soil water storage fraction related to field capacity (FC-WP)
 #define VAR_MSF "ManningScaleFactor"                /// flow velocity scaling factor for calibration
-#define VAR_MSK_CO1 "MSK_co1"                       /// Weighting factor of bankful flow
-#define VAR_MSK_X "MSK_X"                           /// muskingum weighing factor
+#define VAR_MSK_CO1 "MSK_co1" /// m_mskCoef1, Calibration coefficient used to control impact of the storage time constant for normal flow
+//#define VAR_MSK_CO2 "MSK_co2" /// m_mskCoef2, Calibration coefficient used to control impact of the storage time constant fro low flow
+#define VAR_MSK_X "MSK_X" /// m_mskX, Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment
 #define VAR_MUMAX "mumax"
 #define VAR_NACTFR "nactfr" /// m_orgNFrActN, The fraction of organic nitrogen in the nitrogen active pool
 #define VAR_NEPR "NEPR" /// m_netPcp, Net precipitation (after slope correction, of course), mm
@@ -786,12 +787,10 @@
 #define VAR_OLFLOW "OL_Flow" /// m_surfRf, overland flow in each cell calculated during overland routing
 #define VAR_QG "QG"                                 /// Groundwater discharge at each reach outlet and at each time step
 #define VAR_QI "QI"                                 /// Interflow at each reach outlet and at each time step
-#define VAR_QOUTLET "QOUTLET"                       /// discharge at the watershed outlet
 #define VAR_QOVERLAND "QOverland"
 #define VAR_QRECH "QRECH" /// m_qRchOut, Discharge at reach outlet of each time step
 #define VAR_QS "QS"                                 /// Overland discharge at each reach outlet and at each time step
 #define VAR_QSOIL "QSoil"
-#define VAR_QSOUTLET "QSOUTLET"                     /// discharge at the watershed outlet
 #define VAR_QSUBBASIN "QSUBBASIN"
 #define VAR_QTILE "qtile"
 #define VAR_QTOTAL "QTotal"
@@ -849,6 +848,7 @@
 #define VAR_SHALLST "shallst"
 #define VAR_SILT "silt" /// m_soilSilt, Percent of silt content
 #define VAR_SLOPE "slope" /// m_slope, Slope gradient (drop/distance, i.e., tan, or percent)
+#define VAR_SLPLEN "slope_length" // m_slpLen, Slope length (unit: m)
 #define VAR_SNAC "SNAC" /// m_snowAccum
 #define VAR_SNME "SNME" /// m_snowMelt, snow melt amount
 #define VAR_SNO3UP "sno3up"
@@ -1017,6 +1017,7 @@
 #define VAR_SOL_SORGN "sol_orgn" /// m_soilStabOrgN, amount of nitrogen stored in the stable organic N pool(kg N/ha)
 #define VAR_SOL_HORGP "sol_orgp" /// m_soilHumOrgP, amount of phosphorus stored in the humic organic P pool in soil layer(kg P/ha)
 #define VAR_SOL_PERCO "sol_perco"
+#define VAR_RSDCOV_COEF "rsd_covco" // m_rsdCovCoef, residue cover factor for computing fraction of cover
 #define VAR_SOL_RSD "sol_rsd" /// m_soilRsd, amount of organic matter in the soil classified as residue(kg/ha)
 #define VAR_SOL_RSDIN "rsdin" /// m_rsdInitSoil, initial amount of organic matter in the soil classified as residue(kg/ha)
 #define VAR_SOL_SOLP "sol_solp" /// m_soilSolP, amount of phosphorus stored in solution(kg P/ha)
@@ -1084,6 +1085,7 @@
 #define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
 #define VAR_USLE_C "USLE_C" /// m_usleC, USLE C factor (land cover)
+#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
 #define VAR_USLE_K "USLE_K" /// m_usleK
 #define VAR_USLE_LS "USLE_LS" /// m_usleLS
 #define VAR_USLE_P "USLE_P" /// m_usleP
@@ -1441,8 +1443,9 @@
 #define DESC_MINPGW_CH "soluble P in groundwater to channel"
 #define DESC_MOIST_IN "Initial soil moisture"
 #define DESC_MSF "flow velocity scaling factor for calibration"
-#define DESC_MSK_CO1 "Weighting factor of bankful flow"
-#define DESC_MSK_X "muskingum weighing factor"
+#define DESC_MSK_CO1 "Calibration coefficient used to control impact of the storage time constant for normal flow"
+//#define DESC_MSK_CO2 "Calibration coefficient used to control impact of the storage time constant fro low flow"
+#define DESC_MSK_X "Weighting factor controlling relative importance of inflow rate and outflow rate in determining water storage in reach segment"
 #define DESC_MUMAX "maximum specific algal growth rate at 20 deg C"
 #define DESC_NACTFR "The fraction of organic nitrogen in the nitrogen active pool."
 #define DESC_NEPR "Net Precipitation"
@@ -1513,12 +1516,10 @@
 #define DESC_OLFLOW "overland flow in each cell calculated during overland routing"
 #define DESC_QG "Groundwater discharge at each reach outlet"
 #define DESC_QI "Interflow at each reach outlet"
-#define DESC_QOUTLET "discharge at the watershed outlet"
 #define DESC_QOVERLAND "Water discharge in the downslope boundary of cells"
 #define DESC_QRECH "Discharge at each reach outlet of each time step"
 #define DESC_QS "Overland discharge at each reach outlet"
 #define DESC_QSOIL "discharge added to channel flow from interflow"
-#define DESC_QSOUTLET "surface runoff at the watershed outlet"
 #define DESC_QSUBBASIN "discharge at each subbasin outlet"
 #define DESC_QTILE "drainage tile flow in soil profile"
 #define DESC_QTOTAL "discharge at the watershed outlet"
@@ -1575,6 +1576,7 @@
 #define DESC_SHALLST "depth of water in shallow aquifer"
 #define DESC_SILT "Percent of silt content"
 #define DESC_SLOPE "Slope gradient (drop/distance, i.e., tan, or percent)"
+#define DESC_SLPLEN "Slope length"
 #define DESC_SNAC "snow accumulation"
 #define DESC_SNME "snow melt"
 #define DESC_SNO3UP "amount of nitrate moving upward in the soil profile in watershed"
@@ -1733,6 +1735,7 @@
 #define DESC_SOL_SORGN "amount of nitrogen stored in the stable organic N pool"
 #define DESC_SOL_HORGP "amount of phosphorus stored in the humic organic P pool in soil layer"
 #define DESC_SOL_PERCO "percolation from soil layer"
+#define DESC_RSDCOV_COEF "residue cover factor for computing fraction of cover"
 #define DESC_SOL_RSD "amount of organic matter in the soil classified as residue"
 #define DESC_SOL_RSDIN "amount of organic matter in the soil classified as residue"
 #define DESC_SOL_SOLP "amount of phosphorus stored in solution"
@@ -1805,7 +1808,8 @@
 #define DESC_TSD_CLIMATE "Climate data of all the stations"
 #define DESC_TSD_DT "Time series data type, e.g., climate data"
 #define DESC_UPSOLDEP "depth of the upper soil layer"
-#define DESC_USLE_C "the cover management factor"
+#define DESC_USLE_C "the average annual cover management factor for the land cover"
+#define DESC_ICFAC "C-factor calculation using Cmin (0 as default) or new method from RUSLE (1)"
 #define DESC_USLE_K "The soil erodibility factor used in USLE"
 #define DESC_USLE_LS "USLE LS factor"
 #define DESC_USLE_P "the erosion control practice factor"

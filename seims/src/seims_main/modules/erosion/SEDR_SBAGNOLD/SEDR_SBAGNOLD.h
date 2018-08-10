@@ -12,6 +12,8 @@
  *            2016-09-30 - lj - 1. ReCheck and Update code according to route.f and rtsed.f\n
  *                              2. Change the module name from SEDR_VCD to SEDR_SBAGNOLD.\n
  *            2018-05-14 - lj - Code review and reformat.\n
+ *            2018-06-28 - lj - 1. The initialization of m_sedStorage should be done in Set1DData after m_chStorage.\n
+ *                              2. Bug fixed about code related to the IN/OUTPUT variables.\n
  *
  */
 #ifndef SEIMS_MODULE_SEDR_SBAGNOLD_H
@@ -76,9 +78,9 @@ private:
     bool m_vcd;
     /// the peak rate adjustment factor
     float m_peakRateAdj;
-    /// Coefficient in sediment transport equation
+    /// Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqCoef;
-    /// Exponent in sediment transport equation
+    /// Exponent in sediment transport equation, spexp in SWAT
     float m_sedTransEqExp;
     /// critical velocity for sediment deposition
     float m_critVelSedDep;
@@ -99,7 +101,6 @@ private:
     float* m_chDepth;
     //length of reach (m)
     float* m_chLen;
-    float* m_chVel;
     float* m_chSlope;
     /// float *m_chManning; not used!
     /// reach cover factor

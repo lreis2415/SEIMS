@@ -10,8 +10,9 @@ using namespace utils_string;
 using namespace utils_time;
 using namespace bmps;
 
-BMPPointSrcFactory::BMPPointSrcFactory(int scenarioId, int bmpId, int subScenario,
-                                       int bmpType, int bmpPriority, vector<string>& distribution,
+BMPPointSrcFactory::BMPPointSrcFactory(const int scenarioId, const int bmpId, const int subScenario,
+                                       const int bmpType, const int bmpPriority,
+                                       vector<string>& distribution,
                                        const string& collection, const string& location) :
     BMPFactory(scenarioId, bmpId, subScenario, bmpType, bmpPriority, distribution, collection, location) {
     m_pointSrcMgtTab = m_bmpCollection;

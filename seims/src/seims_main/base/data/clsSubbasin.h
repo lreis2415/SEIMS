@@ -225,8 +225,8 @@ public:
     /*!
      * \brief Check input parameters to ensure the successful constructor
      */
-    static clsSubbasins* Init(MongoGridFs* spatial_data, map<string,
-                                                             FloatRaster *>& rs_map, int prefix_id);
+    static clsSubbasins* Init(MongoGridFs* spatial_data,
+                              map<string, FloatRaster *>& rs_map, int prefix_id);
     /// Destructor
     ~clsSubbasins();
 
@@ -234,13 +234,21 @@ public:
     Subbasin* GetSubbasinByID(const int id) { return subbasin_objs_.at(id); }
 
     /// Get subbasin number
-    int GetSubbasinNumber() { return this->n_subbasins_; }
+    int GetSubbasinNumber() { return n_subbasins_; }
 
     /// Get subbasin IDs
-    vector<int>& GetSubbasinIDs() { return this->subbasin_ids_; }
+    vector<int>& GetSubbasinIDs() { return subbasin_ids_; }
 
-    /// Set slope coefficient of each subbasin
-    void SetSlopeCoefficient();
+    /// Get map of subbasin objects
+    map<int, Subbasin *>& GetSubbasinObjects() { return subbasin_objs_; }
+
+    /*!
+     * \brief Set slope coefficient for each subbasin according to the basin slope
+     * \TODO This function will set slope_coef_ to 1.f in MPI version.
+     *       Currently, the real slope_coef_ is calculated in `seims_mpi/CalculateProcess.cpp/line 77~`.
+     *       In the future, we should think of an elegant way to deal with this issue. By lj. 06/28/18
+     */
+    void SetSlopeCoefficient(float* rs_slope);
 
     /*!
      * \brief Get basin (watershed) scale variable (key) value

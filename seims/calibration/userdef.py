@@ -46,6 +46,15 @@ def write_param_values_to_mongodb(hostname, port, spatial_db, param_defs, param_
 def output_population_details(pops, outdir, gen_num):
     """Output population details, i.e., the simulation data, etc."""
     # Save as json, which can be loaded by json.load()
+    # 1. Save the timeseries simulation data of the entire simulation period
+    all_sim_data = list()
+    with open(outdir + os.path.sep + 'gen%d_allSimData.pickle' % gen_num, 'wb') as f:
+        for ind in pops:
+            all_sim_data.append(ind.sim.data)
+        pickle.dump(all_sim_data, f)
+
+    # 2. Save the matched observation-simulation data of validation period,
+    #      and the simulation data separately.
     cali_sim_obs_data = list()
     cali_sim_data = list()
     with open(outdir + os.path.sep + 'gen%d_caliObsData.json' % gen_num, 'w') as f:
@@ -56,10 +65,12 @@ def output_population_details(pops, outdir, gen_num):
             cali_sim_obs_data.append(ind.cali.sim_obs_data)
         json_data = json.dumps(cali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
         f.write(json_data)
-    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'w') as f:
+    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'wb') as f:
         for ind in pops:
             cali_sim_data.append(ind.cali.data)
         pickle.dump(cali_sim_data, f)
+    # 3. Save the matched observation-simulation data of calibration period,
+    #      and the simulation data separately.
     vali_sim_obs_data = list()
     vali_sim_data = list()
     if pops[0].vali.valid:
@@ -71,10 +82,11 @@ def output_population_details(pops, outdir, gen_num):
                 vali_sim_obs_data.append(ind.vali.sim_obs_data)
             json_data = json.dumps(vali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
             f.write(json_data)
-        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'w') as f:
+        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'wb') as f:
             for ind in pops:
                 vali_sim_data.append(ind.vali.data)
             pickle.dump(vali_sim_data, f)
+    # 4. Try to plot.
     try:
         # Calculate 95PPU for current generation, and plot the desired variables, e.g., Q and SED
         calculate_95ppu(cali_sim_obs_data, cali_sim_data, outdir, gen_num,
