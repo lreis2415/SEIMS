@@ -122,6 +122,15 @@ INPUT                  = doc/zh-cn/doc/README.md \
                          doc/zh-cn/doc/intro/install.zh-cn.md \
                          doc/zh-cn/doc/intro/quickstart.zh-cn.md \
                          doc/zh-cn/doc/intro/publications.zh-cn.md \
+                         doc/zh-cn/doc/guide/organization.zh-cn.md \
+                         doc/zh-cn/doc/guide/datapreparation.zh-cn.md \
+                         doc/zh-cn/doc/technical/codeprotocol.zh-cn.md \
+                         doc/zh-cn/doc/technical/codestructure.zh-cn.md \
+                         doc/zh-cn/doc/technical/simulationworkflow.zh-cn.md \
+                         doc/zh-cn/doc/technical/modular.zh-cn.md \
+                         doc/zh-cn/doc/technical/parallelcomputing.zh-cn.md \
+                         doc/zh-cn/doc/technical/database.zh-cn.md \
+                         doc/zh-cn/doc/theory/watershedprocesses.zh-cn.md \
                          seims/src/ccgl/src \
                          seims/src/seims_main/base \
                          seims/src/seims_main/main/main_omp \

@@ -25,9 +25,18 @@
     * [Dissertations](intro/publications.md#Dissertations)
 
 ## PART 1 USER GUIDE
-
+* [SEIMS organization](guide/organization.md)
+* [Data preparation](guide/datapreparation.md)
 ## PART 2 TECHNICAL MANNUAL
-
+* [IDE and coding protocol](technical/codeprotocol.md)
+* [SEIMS code structure](technical/codestructure.md)
+* [Workflow of main simulation](technical/simulationworkflow.md)
+    * [OpenMP version](technical/simulationworkflow.md#OpenMPVersion)
+    * [MPI&OpenMP version](technical/simulationworkflow.md#MPIOpenMPVersion)
+* [Modular structure](technical/modular.md)
+* [Parallel computing middleware](technical/parallelcomputing.md)
+* [Database design](technical/database.md)
 ## PART 3 THEORETICAL DOCUMENTATION
+* [Main watershed processes](theory/watershedprocesses.md)
 
 
