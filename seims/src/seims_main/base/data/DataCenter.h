@@ -4,7 +4,7 @@
  *        All interaction with database should be implemented here.
  * \author Liangjun Zhu
  * \date May 2017
- * \revision  2018-03-01  lj - refactor the constructor and move SetData from \sa ModuleFactory class
+ * \changelog 2018-03-01  lj - refactor the constructor and move SetData from \sa ModuleFactory class
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
@@ -66,22 +66,23 @@ public:
     virtual FloatRaster* ReadRasterData(const string& remote_filename) = 0;
     /*!
      * \brief Read interpolated weight data and insert to m_weightDataMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename Data file name
+     * \param[out] num Data length
+     * \param[out] data returned data
      */
     virtual void ReadItpWeightData(const string& remote_filename, int& num, float*& data) = 0;
     /*!
      * \brief Read 1D array data
-     * \param[in] param_name \string parameter name
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] param_name Parameter name
+     * \param[in] remote_filename Data file name
+     * \param[out] num Data length
+     * \param[out] data returned data
      */
     virtual void Read1DArrayData(const string& param_name, const string& remote_filename,
                                  int& num, float*& data) = 0;
     /*!
      * \brief Read 2D array data and insert to m_2DArrayMap
+     *
      * The matrix format is as follows:\n
      *                           5  (Row number)        \n
      *               RowIdx      0  1  2  3  4 (ColIdx) \n
@@ -90,26 +91,28 @@ public:
      *                  2        2  5. 2.               \n
      *                  3        1  2.                  \n
      *                  4        4  2. 5. 1. 8.         \n
+     *
      * i.e., the first element in each row is the valid number of the current row.
-     * \param[in] remote_filename \string data file name
-     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
-     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
-     * \param[out] data \float**&, returned data
+     *
+     * \param[in] remote_filename data file name
+     * \param[out] rows first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
+     * \param[out] data returned data
      */
     virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, float**& data) = 0;
     /*!
      * \brief Read IUH data and insert to m_2DArrayMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] n \int&, valid cell number
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename data file name
+     * \param[out] n valid cell number
+     * \param[out] data returned data
      */
     virtual void ReadIuhData(const string& remote_filename, int& n, float**& data) = 0;
     /*!
      * \brief Make lapse 2D array data and insert to m_2DArrayMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
-     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols
-     * \param[out] data \float**&, returned data
+     * \param[in] remote_filename data file name
+     * \param[out] rows first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols second dimension of the 2D Array, i.e., Cols
+     * \param[out] data returned data
      */
     virtual void SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data);
     /*!
@@ -153,8 +156,13 @@ public:
     void UpdateInput(vector<SimulationModule *>& modules, time_t t);
 
     /*!
-    *\brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
-    * \sa BMPArealStructFactory, and \sa BMPArealStruct
+    * \brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
+    *
+    *        Added by Huiran GAO, Feb. 2017
+    *        Redesigned by Liangjun Zhu, 08/16/17
+    *
+    * \sa BMPArealStructFactory
+    * \sa BMPArealStruct
     */
     void UpdateParametersByScenario(int subbsn_id);
 

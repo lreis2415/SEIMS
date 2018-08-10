@@ -508,8 +508,6 @@ void DataCenter::UpdateInput(vector<SimulationModule *>& modules, const time_t t
     }
 }
 
-/// added by Huiran GAO, Feb. 2017
-/// redesigned by Liangjun Zhu, 08/16/17
 void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
     if (nullptr == scenario_) {
         return;

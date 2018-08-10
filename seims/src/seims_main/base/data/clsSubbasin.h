@@ -244,7 +244,7 @@ public:
 
     /*!
      * \brief Set slope coefficient for each subbasin according to the basin slope
-     * \TODO This function will set slope_coef_ to 1.f in MPI version.
+     * \todo This function will set slope_coef_ to 1.f in MPI version.
      *       Currently, the real slope_coef_ is calculated in `seims_mpi/CalculateProcess.cpp/line 77~`.
      *       In the future, we should think of an elegant way to deal with this issue. By lj. 06/28/18
      */
