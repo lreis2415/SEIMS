@@ -13,14 +13,14 @@ Coming soon...
 Windows下推荐使用[msysgit](http://msysgit.github.io/)的Git工具，直接下载安装即可，安装完成后，`开始 -> Git -> Git Bash`，打开一个类似命令行的窗口，说明Git安装成功了。
 安装完成后，在git bash 命令行里输入：
 
-~~~
+```sh
 $ git config --global user.name "Your Name"
 $ git config --global user.email "email@example.com"
 
 e.g.,
 $ git config --global user.name "crazyzlj"
 $ git config --global user.email "crazyzlj@gmail.com"
-~~~
+```
 
 这两行表示，这台机器上的所有Git仓库都使用这个配置(用户名和邮件地址)。
 
@@ -32,7 +32,7 @@ P.S. 如何在push的时候免输密码，可以参考这个[博客](http://www.
 
 因此，我们一般约定代码采用Linux编码，即 `LF \n`。打开Git shell进行如下设置：
 
-```
+```sh
 # AutoCRLF, 提交（commit）时转换为LF，检出（checkout）时不转换
 git config --global core.autocrlf input
 # SafeCRLF, 设置拒绝提交包含混合换行符的文件，并且在提交混合换行符的文件时给出警告，从而手动转换为LF换行符后提交
@@ -43,18 +43,19 @@ git config --global core.safecrlf warn
 ## Clone SEIMS from Github {#CloneRepo}
 配置好本地的Git环境之后，我们需要将代码库从Github上克隆到本地计算机。
 + 首先在Github.com上注册一个账号。注册好之后，需要设置SSH key，在`git bash`中输入：
-~~~
+
+```sh
 ssh-keygen -t rsa -C youremail@example.com
 
 e.g.,
 ssh-keygen -t rsa -C crazyzlj@gmail.com
-~~~
+```
 
 一路回车，如果顺利的话，在用户目录（如`C:\Users\ZhuLJ`）里能找到`.ssh`目录，里面有`id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的密钥对，前者是私钥，后者是公钥。
 + 然后，登录Github，打开 Account Settings，SSH key页面，点Add SSH Key，Title任意填，在Key文本框里填上`id_rsa.pub`的内容，点击Add key就好啦。
 + 打开[SEIMS模型的首页](https://github.com/lreis2415/SEIMS)， 点击`Fork`，来创建自己账户下的SEIMS克隆，克隆结束之后，复制克隆库的**SSH**地址。下一步，我们将克隆一份代码库到本地计算机。
 
-~~~
+```sh
 cd <destination folder>
 git clone git@github.com:<yourname>/SEIMS.git
 #推荐只克隆dev分支，用法（需要有git-1.7.10以上版本）：
@@ -64,23 +65,25 @@ cd e:/code/hydro
 git clone git@github.com:crazyzlj/SEIMS.git
 #只克隆dev分支示例：
 git clone git@github.com:crazyzlj/SEIMS.git --branch dev --single-branch
-~~~
+```
 
 + 随后，`cd`到克隆库目录，添加上游远程仓库，这一步**很重要**，关系到之后的代码同步和更新：
-~~~
+
+```sh
 cd SEIMS
 git remote add upstream git@github.com:seims/SEIMS.git
-~~~
+```
 
 + 这样，我们就将SEIMS代码克隆到了本地计算机一份。接下来，我们尝试对本地SEIMS文件做一下修改，然后提交到远程库（你自己的，如`crazyzlj/SEIMS`，而不是`seims/SEIMS`），最后通过提交`pull request` 提交给SEIMS代码拥有者（即seims）。
 
 为了说明问题，我简单修改了一下`README`文件，然后 `git status`  查看本地和远程的差别
 随后
-~~~
-Git add README.md
-Git commit –m "modification test”
-Git push –u origin master
-~~~
+
+```sh
+git add README.md
+git commit –m "modification test”
+git push –u origin master
+```
 
 这样就把本地的本次修改提交到了**你自己的远程库**中。
 
@@ -93,26 +96,29 @@ Git push –u origin master
 
 比如其他人在`seims/SEIMS`下修改了README.md文件，现在同步到本地。
 + 查看远程主机地址
-~~~
+
+```sh
 git remote -v
-~~~
+```
+
 经过以上的设置，正常情况应该看到类似结果,如果没有upstream则需添加上游远程库
 
-![](http://zhulj-blog.oss-cn-beijing.aliyuncs.com/seims-img%2Fgitremotev.png)
+![check-git-remote-v](../../../img/intro/gitremotev.png)
 
 + 将源代码库更新的内容同步到本地，检查差异，然后再和本机分支合并，注意，下列代码同步的是`upstream`库的`master`分支，如果想同步其他分支，只需将第一行的`master`替换为相应分支名即可。
-~~~
+
+```sh
 git fetch upstream master
 git checkout master
 git merge upstream/master
-~~~
+```
 
 > fetch远程库的时候注意，如果仅用git fetch upstream命令，会把所有远程库分支下载，速度慢，因此推荐使用
 > git fetch upstream master
 
 + 多数情况下，Git可以自动合并，如果出现冲突，则需手动处理后，再`commit`提交，冲突结果类似：
 
-![](http://zhulj-blog.oss-cn-beijing.aliyuncs.com/seims-img%2Fconflictwhenmerge.png)
+![conflict-when-merge](../../../img/intro/conflictwhenmerge.png)
 
 + 处理步骤为：
 	+ 打开出现合并冲突的文件
@@ -142,9 +148,9 @@ git subtree是一条git子命令，本质上subtree是一种合并策略，从gi
 
 **示例**:
 
-```
-$git remote add -f wiki https://github.com/lreis2415/SEIMS2017.wiki.git
-$git subtree add --prefix=doc/wiki wiki master --squash
+```sh
+git remote add -f wiki https://github.com/lreis2415/SEIMS2017.wiki.git
+git subtree add --prefix=doc/wiki wiki master --squash
 ```
 
 ## Fetch upstream for updates {#FetchUpstream}
@@ -157,9 +163,9 @@ $git subtree add --prefix=doc/wiki wiki master --squash
 
 **示例**:
 
-```
-$git fetch wiki master
-$git subtree pull --prefix=doc/wiki wiki master --squash
+```sh
+git fetch wiki master
+git subtree pull --prefix=doc/wiki wiki master --squash
 ```
 
 ## Push modification to upstream {#PushOrigin}
@@ -170,6 +176,6 @@ $git subtree pull --prefix=doc/wiki wiki master --squash
 
 **示例**:
 
-```
-$git subtree push --prefix=doc/wiki wiki master
+```sh
+git subtree push --prefix=doc/wiki wiki master
 ```

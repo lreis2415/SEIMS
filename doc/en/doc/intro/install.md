@@ -1,16 +1,16 @@
-安装
+# Installation
 
 [TOC]
 
-# Windows和Visual Studio {#WindowsVisualStudio}
+# Windows with Visual Studio {#WindowsVisualStudio}
 
 Coming soon...
 
-# Linux和GCC {#LinuxGCC}
+# Linux with GCC {#LinuxGCC}
 
 Coming soon...
 
-# macOS和Clang {#macOSClang}
+# macOS with Clang {#macOSClang}
 
 Coming soon...
 

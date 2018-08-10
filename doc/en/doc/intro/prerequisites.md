@@ -1,4 +1,4 @@
-依赖环境
+# Prerequisites
 
 [TOC]
 
@@ -6,23 +6,23 @@
 
 Coming soon...
 
-# C++编译环境 {#CppCompiler}
+# C++ compiler {#CppCompiler}
 
 Coming soon...
 
-# MPI库 {#MPI}
+# MPI library {#MPI}
 
 Coming soon...
 
-# GDAL库 {#GDAL}
+# GDAL library {#GDAL}
 
 Coming soon...
 
-# MongoDB数据库及mongo-c-driver库 {#MongoDB}
+# MongoDB database and mongo-c-driver library {#MongoDB}
 
 Coming soon...
 
-# Python及第三方包 {#PythonPackages}
+# Python and 3rd-party packages {#PythonPackages}
 
 Coming soon...
 

@@ -1,4 +1,4 @@
-## SEIMS：轻量化、模块化、并行化的流域建模框架
+## SEIMS：轻量级、模块化、并行化的流域建模框架
 
 Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://www.igsnrr.cas.cn), [CAS](http://www.cas.cn). All rights reserved.
 
