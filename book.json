@@ -11,7 +11,7 @@
                 "copy-code-button"],
 	"pluginsConfig": {
         "versions": {
-            "gitbookConfigURL": "https://github.com/crazyzlj/SEIMS_doc/blob/master/book.json",
+            "gitbookConfigURL": "https://github.com/crazyzlj/SEIMS/blob/master/book.json",
             "options": [
                 {
                     "value": "../en",
