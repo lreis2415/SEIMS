@@ -148,7 +148,8 @@ def main(cfg):
                 tmpind.fitness.values = tmpind.cali.efficiency_values('SED', object_names) + \
                                         [tmpind.cali.efficiency_values('Q', object_names)[0]]
         print_message('Timespan of evaluating models: '
-                      'Generation %d, %.3f' % (gen, time.time() - eva_stime))
+                      'Generation: %d, evaluated models: %d,'
+                      'Timespan: %.3f' % (gen, popnum, time.time() - eva_stime))
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]

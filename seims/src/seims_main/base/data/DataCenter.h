@@ -82,14 +82,14 @@ public:
                                  int& num, float*& data) = 0;
     /*!
      * \brief Read 2D array data and insert to m_2DArrayMap
-     * The matrix format is as follows:
-     *                           5  (Row number)
-     *          RowIdx\ColIdx    0  1  2  3  4
-     *                  0        1  9.
-     *                  1        2  8. 1.
-     *                  2        2  5. 2.
-     *                  3        1  2.
-     *                  4        4  2. 5. 1. 8.
+     * The matrix format is as follows:\n
+     *                           5  (Row number)        \n
+     *               RowIdx      0  1  2  3  4 (ColIdx) \n
+     *                  0        1  9.                  \n
+     *                  1        2  8. 1.               \n
+     *                  2        2  5. 2.               \n
+     *                  3        1  2.                  \n
+     *                  4        4  2. 5. 1. 8.         \n
      * i.e., the first element in each row is the valid number of the current row.
      * \param[in] remote_filename \string data file name
      * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows

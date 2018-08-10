@@ -1,6 +1,6 @@
 # ALL INITIAL MODEL PARAMETERS.
 # Table title (columns are split by COMMA!)
-# Last updated: 2018-7-9
+# Last updated: 2018-7-28
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
 Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,AC,350,300
@@ -18,14 +18,13 @@ Discharge,bnk0,Initial bank storage,m3/m,ALL,0,0,AC,1,0
 Discharge,chs0,initial channel storage,m3/m,All,0,0,AC,100,0
 Discharge,chs0_perc,initial percentage of channel depth,none,ALL,0.05,0,AC,1,0
 Discharge,df_coef,Deep percolation coefficient,mm,GW_RSVR,0,0,AC,1,0
-Discharge,ep_ch,reach evaporation adjustment factor,m3/m,ALL,1,0,AC,1,0
+Discharge,ep_ch,reach evaporation adjustment factor,none,ALL,1,0,AC,1,0
 Discharge,gw0,Initial groundwater storage,mm,GW_RSVR,100,0,AC,50000,1
 Discharge,gwmax,Maximum groundwater storage,mm,GW_RSVR,300,0,AC,50000,1
 Discharge,Kg,Baseflow recession coefficient,none,GW_RSVR,0.005,0,AC,0.1,0.001
 Discharge,Ki,Interflow scaling factor,none,SSR_DA,3,0,AC,10,0
 Discharge,MANNING,Manning's n,none,ALL,-9999,0,AC,10,0.001
 Discharge,MSK_co1,Calibration coefficient used to control impact of the storage time constant for normal flow,none,ChannelRouting,0.75,0,AC,1,0
-Discharge,MSK_co2,Calibration coefficient used to control impact of the storage time constant fro low flow,none,ChannelRouting,0.25,0,AC,1,0
 Discharge,MSK_X,Muskingum weighting factor,none,ChannelRouting,0.2,0,AC,0.3,0
 Discharge,THETA,Parameter theta for the implicit finite deffirent equation,none,ALL,0.75,0,AC,1,0
 Groundwater,GW_recharge,Groundwater recharge,m3/s,MUSK_CH,0,0,AC,100,0
@@ -171,13 +170,13 @@ Snow,U0,Wind speed over Ut at which WWi=1,m/s,SRD_MB,10,0,AC,1,0.2
 Snow,Ut0,Threshold wind speed at -27 degree,m/s,SRD_MB,6.98,0,AC,10,4
 WaterBalance,Clay,Clay proportion,%,ALL,-9999,1,RC,1.0,0
 WaterBalance,CN2,Curve number in condition II,none,ALL,-9999,1,RC,1.3,0.7
-WaterBalance,Conductivity,Soil hydraulic conductivity,mm/hr,ALL,-9999,1,RC,10,0.1
+WaterBalance,Conductivity,Saturated hydraulic conductivity,mm/hr,ALL,-9999,1,RC,2000,0
 WaterBalance,Density,Soil bulk density,mg/cm3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Depre_in,Initial depression storage coefficient,none,ALL,0.2,0,AC,1,0
 WaterBalance,Depression,Depression storage capacity,mm,ALL,-9999,1,RC,5,0.5
-WaterBalance,K_run,Runoff exponent when net rainfall approaches to zero,none,SUR_MR,2.5,0,AC,5,0
+WaterBalance,K_run,Runoff exponent for a near zero rainfall intensity,none,SUR_MR,2.5,0,AC,5,0
 WaterBalance,k_soil10,ratio between soil temperature at 10 cm and the mean,none,STP_FP,1,0,AC,3,0
-WaterBalance,P_max,Maximum rainfall intensity when k_run = 1.0,mm,SUR_MR,30,0,AC,1000,10
+WaterBalance,P_max,Rainfall intensity corresponding to a surface runoff exponent of 1,mm,SUR_MR,30,0,AC,1000,10
 WaterBalance,Poreindex,Pore size distribution index,none,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Porosity,Soil porosity,m3/m3,ALL,-9999,1,RC,0.8,0.2
 WaterBalance,pot_k,hydraulic conductivity of soil surface of pothole,mm/hr,IMP_SWAT,0.1,0,AC,100,0.01
@@ -204,11 +203,10 @@ WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,
 WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
 WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint,none,ALL,-9999,1,RC,1000,0.01
 Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0
-Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,30,0
+Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,100,0
 Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
 Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,2,1,RC,30,0.001
 Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0
-Routing,ch_v0,Initial velocity V0 in channel,m/s,ChannelRouting,-9999,1,RC,10,0
 Routing,ch_k_bank,channel bank hydraulic conductivity,mm/hr,ChannelRouting,20,1,RC,150,0
 Routing,ch_k_bed,channel bed hydraulic conductivity,mm/hr,ChannelRouting,0.5,1,RC,150,0
 Routing,ch_cover,Channel cover factor,none,ChannelRouting,0.1,1,RC,1,0.001
