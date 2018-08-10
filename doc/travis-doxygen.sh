@@ -37,8 +37,8 @@ abort() {
 	skip "Not running Doxygen for pull-requests."
 
 # check for branch name
-[ "${TRAVIS_BRANCH}" = "master" ] || ["${TRAVIS_BRANCH}" = "test_build"] || \
-	skip "Running Doxygen only for updates on 'master' or 'test_build' branch (current: ${TRAVIS_BRANCH})."
+#[ "${TRAVIS_BRANCH}" = "master" ] || \
+#	skip "Running Doxygen only for updates on 'master' branch (current: ${TRAVIS_BRANCH})."
 
 # check for job number
 # [ "${TRAVIS_JOB_NUMBER}" = "${TRAVIS_BUILD_NUMBER}.1" ] || \
