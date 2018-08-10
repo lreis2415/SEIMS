@@ -1,7 +1,12 @@
 branches:
   only:
   - master
+  - test_build
   - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+env:
+  global:
+    - GITHUB_REPO='lreis2415/SEIMS'
+    - secure: "K0C9zyvgZ02k6/CYkKGyRBeOOywgLrBjNG0Rbv3/s8BmL2ktGUYxmUvmHRnBOjO3BuEDRriblyCRHvVAhzrJILsH1FUf8Bhgizu70id1O7jaj5R26jbtGvnUa6zTu2qCa4u5eBZyhaYPww5XSSxha0qpmTmXs9pdvY0TjgmOgGPXHQXOdIppAiEr6rQEKX3p0kTfUAWZkefppXai0+MCQcIpI43iz/Jnhq65ZS3yqnq7scBkmcSUSHEqV6ym64iiASqbWv9X/L+E2v1n5OCvGO2eWz3iv+63tFBEmDJlZ+G2ZADfxg9LZDsh6owI3y+vfPQ0zRyemmIyjXgrD/W8ksVtUr+DWTPNhot6jCiwPcN1oHCyw/K41zev0LelqU7FTa6/d2SCzBYMQsiIcCVHkOi7o9ZG7mwNLmGSDFUFulIxbftWKMLZJmthwyryjmtqpsvdZxQMp81IJYjBK1qyswxieBQraSTEPHVt2Gm7LysJ7tHWJhSFdnkAtyuwJukDZlFapRMPJbeoPE33WZwotrArt8h7wJybtkgbC3mxuk4kvOaoitSqT5A/5iswRi200th4Z6XrrSAYrfoILncTVnt1TicqcVac5TfgeubE2j4wouwAyYwrdx6PbN0OAkF6hr9KhIlTeyRHovrVTR1/XKPG1YEN5vgstYGWNLQOh8A="
 matrix:
   fast_finish: true
   include:
@@ -28,28 +33,25 @@ matrix:
       - $HOME/.ccache
     services:
     - mongodb
+    addons:
+        apt:
+          packages:
+            - doxygen
     env:
     - BUILD_NAME=linux_gcc48
     - DETAILS=""
     - ENABLE_CXX11=1
 before_install:
 - chmod +x ./doc/ci/travis/${BUILD_NAME}/before_install.sh
-- ./doc/ci/travis/${BUILD_NAME}/before_install.sh
+#- ./doc/ci/travis/${BUILD_NAME}/before_install.sh
 install:
+- chmod +x ./doc/travis-doxygen.sh
+- chmod +x ./doc/update_relative_paths_for_doxygen.py
 - chmod +x ./doc/ci/travis/${BUILD_NAME}/install.sh
 - ./doc/ci/travis/${BUILD_NAME}/install.sh
 script:
 - chmod +x ./doc/ci/travis/${BUILD_NAME}/script.sh
 - ./doc/ci/travis/${BUILD_NAME}/script.sh
-- 'if [ $BUILD_NAME == "linux_gcc48" ]; then
-      openssl aes-256-cbc -K $encrypted_9c89c5b645f3_key -iv $encrypted_9c89c5b645f3_iv
-        -in doc/doxygen/travisci_rsa.enc -out doc/doxygen/travisci_rsa -d;
-      sudo apt-get install doxygen graphviz;
-      chmod 0600 doc/doxygen/travisci_rsa;
-      cp doc/doxygen/travisci_rsa ~/.ssh/id_rsa;
-      chmod 700 doc/doxygen/publish-doxygen;
-      "./doc/doxygen/publish-doxygen";
-    fi'
 notifications: email:false
 deploy:
   provider: releases

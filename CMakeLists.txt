@@ -13,7 +13,7 @@
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 4, 2018
+#  Latest updated: Aug. 10, 2018
 #
 #  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
@@ -52,16 +52,16 @@ ELSE()
   SET(CMAKE_BUILD_POSTFIX "")
 ENDIF()
 ### Find MPI which is required
-FIND_PACKAGE(MPI REQUIRED)
+#FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
   SET(WITH_MPI 1)
   SET(PRJNAME ${PRJNAME}_MPI)
   MESSAGE(STATUS "Compiling with MPI...")
 ELSE()
-  MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
+  #MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
 ENDIF()
 ### Find OMP which is optional
-FIND_PACKAGE(OpenMP)
+#FIND_PACKAGE(OpenMP)
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
@@ -84,6 +84,7 @@ ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc" CACHE PATH "Path to the documentation")
 
 ### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -117,6 +118,8 @@ ENDIF()
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+# Build documatation by doxygen
+option(SEIMS_BUILD_DOC "Build SEIMS documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -131,27 +134,33 @@ ENDIF(MSVC)
 INCLUDE(AddFindPaths)
 
 ### Find GDAL which is required.
-FIND_PACKAGE(GDAL REQUIRED)
-IF (GDAL_FOUND)
-  SET(WITH_GDAL 1)
-  ADD_DEFINITIONS(-DUSE_GDAL)
-ELSE ()
-  MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
-ENDIF ()
+#FIND_PACKAGE(GDAL REQUIRED)
+# IF (GDAL_FOUND)
+#   SET(WITH_GDAL 1)
+#   ADD_DEFINITIONS(-DUSE_GDAL)
+# ELSE ()
+#   MESSAGE(FATAL_ERROR "FATAL: Could not find GDAL!")
+# ENDIF ()
 
 
 ### Set specific packages.
-INCLUDE(SetFlagMPI)
-INCLUDE(SetFlagOpenMP)
-INCLUDE(SetFlagGDAL)
+#INCLUDE(SetFlagMPI)
+#INCLUDE(SetFlagOpenMP)
+#INCLUDE(SetFlagGDAL)
 
 ### Bson and MongoC.
-INCLUDE(FindBson)
-INCLUDE(FindMongoC)
+#INCLUDE(FindBson)
+#INCLUDE(FindMongoC)
 
 ### Add subdirectories.
-ADD_SUBDIRECTORY(./seims)
+#ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
+IF(SEIMS_BUILD_DOC)
+  ADD_SUBDIRECTORY(./doc)
+  ADD_CUSTOM_TARGET(travis_doc)
+  ADD_CUSTOM_COMMAND(TARGET travis_doc
+                     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
+ENDIF()
 
 ### Build platform.
 STATUS("")
