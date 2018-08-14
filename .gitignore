@@ -52,6 +52,9 @@ build*/
 *.tfw
 *.tif.ovr
 
+# Temporary source code file caused by VSCode
+*.cpp~*.TMP
+
 # pygeoc compiled whl
 dist
 
