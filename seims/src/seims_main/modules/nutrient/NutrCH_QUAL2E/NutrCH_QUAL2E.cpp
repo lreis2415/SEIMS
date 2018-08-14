@@ -359,7 +359,7 @@ void NutrCH_QUAL2E::Set1DData(const char* key, const int n, float* data) {
             m_chDOx[i] *= cvt_conc2amount;
             m_chCOD[i] *= cvt_conc2amount;
         }
-    } else if (StringMatch(sk, VAR_CHWTDEPTH)) m_chWtrDepth = data;
+    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) m_chWtrDepth = data;
     else if (StringMatch(sk, VAR_PRECHWTDEPTH)) m_preChWtrDepth = data;
     else if (StringMatch(sk, VAR_WATTEMP)) m_chTemp = data;
 

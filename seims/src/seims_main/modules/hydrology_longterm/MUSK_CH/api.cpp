@@ -20,7 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
     mdi.SetID(MID_MUSK_CH);
     mdi.SetName(MID_MUSK_CH);
-    mdi.SetVersion("1.0");
+    mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
 
     mdi.AddParameter(Tag_SubbasinId, UNIT_NON_DIM, Tag_SubbasinId, Source_ParameterDB, DT_Single);
@@ -28,7 +28,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_EP_CH, UNIT_WTRDLT_MMH, DESC_EP_CH, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_BNK0, UNIT_STRG_M3M, DESC_BNK0, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CHS0_PERC, UNIT_NON_DIM, DESC_CHS0_PERC, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_VSEEP0, UNIT_FLOW_CMS, DESC_VSEEP0, Source_ParameterDB, DT_Single);
+    // mdi.AddParameter(VAR_VSEEP0, UNIT_FLOW_CMS, DESC_VSEEP0, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_A_BNK, UNIT_NON_DIM, DESC_A_BNK, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_B_BNK, UNIT_NON_DIM, DESC_B_BNK, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_MSK_X, UNIT_NON_DIM, DESC_MSK_X, Source_ParameterDB, DT_Single);
@@ -53,12 +53,15 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddInOutput(VAR_QG, UNIT_NON_DIM, DESC_QG, DT_Array1D, TF_SingleValue);
 
     mdi.AddOutput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, DT_Array1D);
-    mdi.AddOutput(VAR_PRECHST, UNIT_VOL_M3, DESC_PRECHST, DT_Array1D);
     mdi.AddOutput(VAR_BKST, UNIT_VOL_M3, DESC_BKST, DT_Array1D);
     mdi.AddOutput(VAR_SEEPAGE, UNIT_VOL_M3, DESC_SEEPAGE, DT_Array1D);
-    mdi.AddOutput(VAR_CHWTDEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, DT_Array1D);
-    mdi.AddOutput(VAR_CHWTWIDTH, UNIT_LEN_M, DESC_CHWTWIDTH, DT_Array1D);
+    mdi.AddOutput(VAR_CHWTRDEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, DT_Array1D);
+    mdi.AddOutput(VAR_CHWTRWIDTH, UNIT_LEN_M, DESC_CHWTWIDTH, DT_Array1D);
     mdi.AddOutput(VAR_CHBTMWIDTH, UNIT_LEN_M, DESC_CHBTMWIDTH, DT_Array1D);
+    mdi.AddOutput(VAR_CHCROSSAREA, UNIT_AREA_M2, DESC_CHCROSSAREA, DT_Array1D);
+    mdi.AddOutput(VAR_RTWTR, UNIT_VOL_M3, DESC_RTWTR, DT_Array1D);
+    // These two variables may be removed later.
+    mdi.AddOutput(VAR_PRECHST, UNIT_VOL_M3, DESC_PRECHST, DT_Array1D);
     mdi.AddOutput(VAR_PRECHWTDEPTH, UNIT_LEN_M, DESC_PRECHWTDEPTH, DT_Array1D);
 
     res = mdi.GetXMLDocument();

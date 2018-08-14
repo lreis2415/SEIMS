@@ -205,7 +205,7 @@ WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_
 Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0
 Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,100,0
 Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
-Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,2,1,RC,30,0.001
+Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,2,1,RC,5,0.001
 Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0
 Routing,ch_k_bank,channel bank hydraulic conductivity,mm/hr,ChannelRouting,20,1,RC,150,0
 Routing,ch_k_bed,channel bed hydraulic conductivity,mm/hr,ChannelRouting,0.5,1,RC,150,0

@@ -262,7 +262,7 @@ void IKW_REACH::Get1DData(const char *key, int *n, float **data) {
     } else if (StringMatch(sk, VAR_SEEPAGE)) {
         m_seepage[0] = m_seepage[iOutlet];
         *data = m_seepage;
-    } else if (StringMatch(sk, VAR_CHWTDEPTH)) {
+    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) {
         m_chWTdepth[0] = m_chWTdepth[iOutlet];
         *data = m_chWTdepth;
     } else {
@@ -289,7 +289,7 @@ void IKW_REACH::SetReaches(clsReaches *reaches) {
     if (nullptr == m_chWidth) reaches->GetReachesSingleProperty(REACH_WIDTH, &m_chWidth);
     if (nullptr == m_chLen) reaches->GetReachesSingleProperty(REACH_LENGTH, &m_chLen);
     if (nullptr == m_chDepth) reaches->GetReachesSingleProperty(REACH_DEPTH, &m_chDepth);
-    if (nullptr == m_chVel) reaches->GetReachesSingleProperty(REACH_V0, &m_chVel);
+    // if (nullptr == m_chVel) reaches->GetReachesSingleProperty(REACH_V0, &m_chVel); // todo fix this
     if (nullptr == m_area) reaches->GetReachesSingleProperty(REACH_AREA, &m_area);
     if (nullptr == m_chManning) reaches->GetReachesSingleProperty(REACH_MANNING, &m_chManning);
     if (nullptr == m_chSlope) reaches->GetReachesSingleProperty(REACH_SLOPE, &m_chSlope);

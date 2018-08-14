@@ -41,6 +41,11 @@ public:
     //! Set parameters by name
     void Set(const string& key, float value);
 
+    /*!
+    * \brief Calculate derived parameters after updating the input parameters.
+    */
+    void DerivedParameters();
+
 private:
     /*!
      * Map container to store parameters

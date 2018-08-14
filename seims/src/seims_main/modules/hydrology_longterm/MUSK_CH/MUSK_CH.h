@@ -12,7 +12,7 @@
  *                                  which will be use in QUAL2E etc.\n
  *             2018-03-16 - lj - 1. Use AddInOutput() to solve the passing data across subbasins for MPI version.\n
  *                               2. Code style review.\n
- *             2018-07-19 - lj - Updates the calculation of Muskingum weights according to SWAT.\n
+ *             2018-08-11 - lj - Updates the calculation of Muskingum weights according to SWAT.\n
  */
 #ifndef SEIMS_MODULE_MUSK_CH_H
 #define SEIMS_MODULE_MUSK_CH_H
@@ -96,9 +96,9 @@ private:
 
     //void GetCoefficients(float reachLength, float v0, MuskWeights& weights);
 
-    void updateWaterWidthDepth(int i);
+    //void updateWaterWidthDepth(int i);
 
-    void updateChannleBottomWidth(int i);
+    // void updateChannleBottomWidth(int i);
 private:
     /// time step (sec)
     int m_dt;
@@ -133,7 +133,7 @@ private:
     /// initial percentage of channel volume
     float m_Chs0_perc;
     /// the initial volume of transmission loss to the deep aquifer over the time interval (m3/s)
-    float m_Vseep0;
+    //float m_Vseep0; // useless?
     /// bank flow recession constant
     float m_aBank;
     /// bank storage loss coefficient
@@ -165,6 +165,8 @@ private:
     float* m_chWtrWth;
     /// bottom width of channel (m)
     float* m_chBtmWth;
+    /// cross-sectional area (m^2)
+    float* m_chCrossArea;
     /// channel depth (m)
     float* m_chDepth;
     /// channel water depth (m), rchdep in SWAT
@@ -205,10 +207,12 @@ private:
 
     /// flowin discharge at the last time step
     //float* m_qIn;
-    /// flow into reach on current day, m^3
+    /// flow into reach for routing iteration, m^3
     float* m_flowIn;
-    /// flow out of reach on current day, m^3
+    /// flow out of reach for routing iteration, m^3
     float* m_flowOut;
+    /// Water leaving reach on day after channel routing, m^3, rtwtr in SWAT
+    float* m_rteWtrOut;
     /// reach storage (m^3) at time, t
     float* m_chSto;
     /// reach storage (m^3) at previous time step, t-1
