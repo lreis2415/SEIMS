@@ -26,7 +26,7 @@ using namespace data_raster;
 #endif
 
 /*!
- * \brief Combine rasters as one, for both 1D and 2D raster data, \sa clsRasterData
+ * \brief Combine rasters as one, for both 1D and 2D raster data, \ref clsRasterData
  * \param[in] all_raster_data Key is subbasinID (start from 1), value is clsRasterData<float>
  * \return Combined raster data
  */
@@ -46,7 +46,7 @@ void CombineRasterResults(const string& folder, const string& s_var,
 /*!
  * \brief Combine rasters of each subbasin store as GridFs in MongoDB and output to MongoDB as GridFs
  *        And, if output as file if `folder` is specified.
- * \param[in] gfs \sa MongoGridFs
+ * \param[in] gfs \ref MongoGridFs
  * \param[in] s_var Core file name, e.g., lai
  * \param[in] n_subbasins Subbasin count, e.g., 5 means 1_lai, ..., 5_lai will be combined as lai
  * \param[in] folder Optional. If specified, the combined raster will be outputed as file simultaneously.

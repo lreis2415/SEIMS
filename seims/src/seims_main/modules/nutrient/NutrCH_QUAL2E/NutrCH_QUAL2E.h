@@ -1,7 +1,7 @@
 /*!
  * \brief Calculates in-stream nutrient transformations with QUAL2E method.
  *        watqual2.f of SWAT
- * \author Huiran Gao, Junzhi Liu
+ * \author Huiran Gao, Junzhi Liu, Liangjun Zhu
  * \changelog 2016-06-30 - hr - Initial implementation.\n
  *            2017-12-26 - lj - 1. Add point source loadings nutrients from Scenario.\n
  *                              2. Add ammonian transported by surface runoff.\n
@@ -132,16 +132,14 @@ private:
     float m_lambda0; /// non-algal portion of the light extinction coefficient
     float m_lambda1; /// linear algal self-shading coefficient
     float m_lambda2; /// nonlinear algal self-shading coefficient
-    /// half saturation coefficient for light (MJ/(m2*hr))
-    float m_k_l;
+
+    float m_k_l; /// half saturation coefficient for light (MJ/(m2*hr))
     float m_k_n; /// half-saturation constant for nitrogen (mg N/L)
     float m_k_p; /// half saturation constant for phosphorus (mg P/L)
-    /// algal preference factor for ammonia
-    float m_p_n;
+    float m_p_n; /// algal preference factor for ammonia
     /// fraction of solar radiation computed in the temperature heat balance that is photo synthetically active
     float tfact;
-    /// fraction of overland flow
-    float m_rnum1;
+    float m_rnum1; /// fraction of overland flow
     /// option for calculating the local specific growth rate of algae
     //     1: multiplicative:     u = mumax * fll * fnn * fpp
     //     2: limiting nutrient: u = mumax * fll * Min(fnn, fpp)
@@ -164,20 +162,14 @@ private:
     float* m_dayLen;
     /// solar radiation for the day (MJ/m2)
     float* m_sr;
-    float* m_bankStorage;
 
-    /// channel outflow
-    float* m_qRchOut;
-    /// reach storage (m3) at time t
-    float* m_chStorage;
-    /// reach storage of previous timestep
-    float* m_preChStorage;
-    /// channel water depth m
-    float* m_chWtrDepth;
-    /// channel water depth of previous timestep, m
-    float* m_preChWtrDepth;
-    /// temperature of water in reach (deg C)
-    float* m_chTemp;
+
+    float* m_qRchOut;    ///< channel outflow
+    float* m_chStorage;  ///< reach storage (m^3) at time
+    float* m_rteWtrIn;   ///< Water flowing in reach on day before channel routing, m^3
+    float* m_rteWtrOut;  ///< Water leaving reach on day after channel routing, m^3, rtwtr in SWAT
+    float* m_chWtrDepth; ///< channel water depth m
+    float* m_chTemp;     ///< temperature of water in reach (deg C)
 
     float* m_bc1; /// rate constant for biological oxidation of NH3 to NO2 in reach at 20 deg C
     float* m_bc2; /// rate constant for biological oxidation of NO2 to NO3 in reach at 20 deg C

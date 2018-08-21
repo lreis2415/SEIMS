@@ -117,7 +117,7 @@ private:
     int m_nSubbsns;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    //! All subbasins information,\sa clsSubbasins, \sa Subbasin
+    //! All subbasins information,\ref clsSubbasins, \ref Subbasin
     clsSubbasins* m_subbasinsInfo;
     /* soil water balance, time series result
     * the row index is subbasinID

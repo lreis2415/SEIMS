@@ -1,10 +1,14 @@
 /*!
+ * \file DataCenter.h
  * \brief Data center for running SEIMS
  *        including configuration, input data, output data, etc.
  *        All interaction with database should be implemented here.
+ *
+ * Changelog:
+ *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from \ref ModuleFactory class.
+ *
  * \author Liangjun Zhu
  * \date May 2017
- * \changelog 2018-03-01  lj - refactor the constructor and move SetData from \sa ModuleFactory class
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
@@ -32,8 +36,8 @@ class DataCenter: Interface {
 public:
     /*!
      * \brief Constructor
-     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
-     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
+     * \param[in] input_args Input arguments of SEIMS, \ref InputArgs
+     * \param[in] factory SEIMS modules factory, \ref ModuleFactory
      * \param[in] subbsn_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbsn_id = 0);
@@ -158,8 +162,9 @@ public:
     /*!
     * \brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
     *
-    *        Added by Huiran GAO, Feb. 2017
-    *        Redesigned by Liangjun Zhu, 08/16/17
+    * changelog:
+    *   - 1. Added by Huiran GAO, Feb. 2017
+    *   - 2. Redesigned by Liangjun Zhu, 08/16/17
     *
     * \sa BMPArealStructFactory
     * \sa BMPArealStruct

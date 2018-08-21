@@ -1,4 +1,5 @@
 /*!
+ * \file PrintInfo.h
  * \brief Class to store and manage the PRINT information
  * From the file.out file or FILE_OUT collection in MongoDB
  *
@@ -60,10 +61,10 @@ public:
     map<time_t, float> TimeSeriesData;
     //! For time series data of a single subbasin, DT_Raster1D or DT_Array1D
     map<time_t, float *> TimeSeriesDataForSubbasin;
-    //! Count of \sa TimeSeriesDataForSubbasin
+    //! Count of \ref TimeSeriesDataForSubbasin
     int TimeSeriesDataForSubbasinCount;
 
-    //! Add 1D time series data result to \sa TimeSeriesDataForSubbasin
+    //! Add 1D time series data result to \ref TimeSeriesDataForSubbasin
     void add1DTimeSeriesResult(time_t, int n, const float* data);
 
     //! used only by PET_TS???

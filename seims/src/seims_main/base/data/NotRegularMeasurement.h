@@ -1,9 +1,12 @@
 /*!
+ * \file NotRegularMeasurement.h
  * \brief Not Regular hydroclimate data, i.e., for storm model
- * \author Junzhi Liu, LiangJun Zhu
+ *
+ * Changelog:
+ *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
- * \date May 2016
- * \revised LJ - Replace mongoc_client_t by MongoClient interface
  */
 #ifndef SEIMS_NOTREGULAR_MEASUREMENT_H
 #define SEIMS_NOTREGULAR_MEASUREMENT_H
@@ -38,11 +41,8 @@ public:
     float* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
-    //! time list of site data
-    vector<vector<time_t> > m_timeList;
-    //! site data corresponding to m_timeList
-    vector<vector<float> > m_valueList;
-    //! index
-    vector<int> m_curIndexList;
+    vector<vector<time_t> > m_timeList; ///< time list of site data
+    vector<vector<float> > m_valueList; ///< site data corresponding to m_timeList
+    vector<int> m_curIndexList;         ///< index
 };
 #endif /* SEIMS_NOTREGULAR_MEASUREMENT_H */

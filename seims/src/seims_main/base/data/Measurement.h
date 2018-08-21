@@ -1,9 +1,12 @@
 /*!
+ * \file Measurement.h
  * \brief Measurement class to store HydroClimate site data
+ *
+ * Changelog:
+ *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
- * \date May 2016
- * \revised LJ - Replace mongoc_client_t by MongoClient interface
  */
 #ifndef SEIMS_MEASUREMENT_H
 #define SEIMS_MEASUREMENT_H

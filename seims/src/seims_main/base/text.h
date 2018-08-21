@@ -192,17 +192,26 @@
 #define REACH_UPDOWN_ORDER                     "UP_DOWN_ORDER"
 #define REACH_DOWNUP_ORDER                     "DOWN_UP_ORDER"
 #define REACH_WIDTH                            "CH_WIDTH"
-#define REACH_SIDESLP                          "CH_SSLP"
 #define REACH_LENGTH                           "CH_LEN"
 #define REACH_DEPTH                            "CH_DEPTH"
-#define REACH_V0                               "CH_V0"
+#define REACH_WDRATIO                          "CH_WDRATIO"
 #define REACH_AREA                             "CH_AREA"
-#define REACH_MANNING                          "CH_N"
+#define REACH_SIDESLP                          "CH_SSLP"
 #define REACH_SLOPE                            "CH_SLP"
-#define REACH_KBANK                            "CH_K_BANK" /// hydraulic conductivity of the channel bank
-#define REACH_KBED                             "CH_K_BED" /// hydraulic conductivity of the channel bed
-#define REACH_COVER                            "CH_COVER"
-#define REACH_EROD                             "CH_EROD"
+// Hydrological related parameters
+#define REACH_MANNING                          "CH_N" // Manning's "n" value
+#define REACH_BEDK                             "CH_BED_K" /// hydraulic conductivity of the channel bed
+#define REACH_BNKK                             "CH_BNK_K" /// hydraulic conductivity of the channel bank
+// Erosion related parameters
+#define REACH_BEDBD                            "CH_BED_BD" // Bulk density of channel bed sediment
+#define REACH_BNKBD                            "CH_BNK_BD" // Bulk density of channel bed sediment
+#define REACH_BEDCOV                           "CH_BED_COV" // Channel bed cover factor, ch_cov2 in SWAT
+#define REACH_BNKCOV                           "CH_BNK_COV" // Channel bank cover factor, ch_cov1 in SWAT
+#define REACH_BEDEROD                          "CH_BED_EROD" // Erodibility of channel bed sediment, ch_bed_kd in SWAT
+#define REACH_BNKEROD                          "CH_BNK_EROD" // Erodibility of channel bank sediment, ch_bnk_kd in SWAT
+#define REACH_BEDD50                           "CH_BED_D50" // D50(median) particle size diameter of channel bed sediment
+#define REACH_BNKD50                           "CH_BNK_D50" // D50(median) particle size diameter of channel band sediment
+// Nutrient cycling related parameters
 #define REACH_BC1                              "BC1"
 #define REACH_BC2                              "BC2"
 #define REACH_BC3                              "BC3"
@@ -219,14 +228,27 @@
 #define REACH_DISOX                            "DISOX"
 #define REACH_BOD                              "BOD"
 #define REACH_ALGAE                            "ALGAE"
-#define REACH_ORGN                             "ORGN"
+#define REACH_ORGN                             "ORGN" // ch_onco in SWAT
 #define REACH_NH4                              "NH4"
 #define REACH_NO2                              "NO2"
 #define REACH_NO3                              "NO3"
-#define REACH_ORGP                             "ORGP"
+#define REACH_ORGP                             "ORGP" // ch_opco in SWAT
 #define REACH_SOLP                             "SOLP"
+// Groundwater nutrient related parameters
 #define REACH_GWNO3                            "GWNO3"
 #define REACH_GWSOLP                           "GWSOLP"
+/// Derived parameters according to the input parameters of Reach, which may also be provided in database.
+#define REACH_BEDTC                            "CH_BED_TC" // Critical shear stress of channel bed
+#define REACH_BNKTC                            "CH_BNK_TC" // Critical shear stress of channel bank
+#define REACH_BNKSAND                          "CH_BNK_SAND" // Fraction of sand in channel bank sediment
+#define REACH_BNKSILT                          "CH_BNK_SILT" // Fraction of silt in channel bank sediment
+#define REACH_BNKCLAY                          "CH_BNK_CLAY" // Fraction of clay in channel bank sediment
+#define REACH_BNKGRAVEL                        "CH_BNK_GRAVEL" // Fraction of gravel in channel bank sediment
+#define REACH_BEDSAND                          "CH_BED_SAND" // Fraction of sand in channel bed sediment
+#define REACH_BEDSILT                          "CH_BED_SILT" // Fraction of silt in channel bed sediment
+#define REACH_BEDCLAY                          "CH_BED_CLAY" // Fraction of clay in channel bed sediment
+#define REACH_BEDGRAVEL                        "CH_BED_GRAVEL" // Fraction of gravel in channel bed sediment
+
 /// these four are defined in DB_TAB_SITELIST in Source_ParameterDB
 #define SITELIST_TABLE_M                       "SITELISTM"
 #define SITELIST_TABLE_P                       "SITELISTP"
@@ -551,14 +573,13 @@
 #define VAR_CHS0_PERC "chs0_perc" /// ,
 #define VAR_CHSB "CHSB"
 #define VAR_CHST "CHST" /// m_chStorage, channel storage
-#define VAR_PRECHST "preCHST" /// m_preChStorage, channel storage at previous timestep
 #define VAR_CHT "CHT" /// m_canHgt, canopy height for the day(m)
 #define VAR_CHTMX "CHTMX" /// m_maxCanHgt, maximum canopy height (m)
-#define VAR_CHWTWIDTH "chwtwidth" /// m_chWtrWth, channel water width
-#define VAR_CHBTMWIDTH "chbtmwidth"
-#define VAR_CHWIDTH "CHWIDTH"
-#define VAR_CHWTDEPTH "CHWTDEPTH" /// m_chWtrDepth, channel water depth
-#define VAR_PRECHWTDEPTH "prechwtdepth" /// m_preChWtrDepth, previous channel water depth
+#define VAR_CHWTRWIDTH "chwtwidth" /// m_chWtrWth, channel water width
+#define VAR_CHBTMWIDTH "chbtmwidth" // m_chBtmWth, channel bottom width, m
+#define VAR_CHCROSSAREA "chCrossArea" // m_chCrossArea, channel cross-sectional area, m^2
+#define VAR_CHWIDTH "CHWIDTH" // m_chWth, channel width at bankfull
+#define VAR_CHWTRDEPTH "CHWTDEPTH" /// m_chWtrDepth, channel water depth
 #define VAR_CLAY "CLAY" /// m_soilClay, Percent of clay content
 #define VAR_CMN "cmn" /// m_minrlCoef, Rate coefficient for mineralization of the humus active organic nutrients
 #define VAR_CN2 "CN2" /// m_cn2, Curve Number value under moisture condition II
@@ -785,11 +806,11 @@
 #define VAR_PUPDIS "p_updis" /// m_upTkDistP, Phosphorus uptake distribution parameter
 #define VAR_QCH "QCH"
 #define VAR_OLFLOW "OL_Flow" /// m_surfRf, overland flow in each cell calculated during overland routing
-#define VAR_QG "QG"                                 /// Groundwater discharge at each reach outlet and at each time step
-#define VAR_QI "QI"                                 /// Interflow at each reach outlet and at each time step
+#define VAR_QG "QG" /// m_qgRchOut, Groundwater discharge at each reach outlet and at each time step
+#define VAR_QI "QI" /// m_qiRchOut, Interflow at each reach outlet and at each time step
 #define VAR_QOVERLAND "QOverland"
 #define VAR_QRECH "QRECH" /// m_qRchOut, Discharge at reach outlet of each time step
-#define VAR_QS "QS"                                 /// Overland discharge at each reach outlet and at each time step
+#define VAR_QS "QS" /// m_qsRchOut, Overland discharge at each reach outlet and at each time step
 #define VAR_QSOIL "QSoil"
 #define VAR_QSUBBASIN "QSUBBASIN"
 #define VAR_QTILE "qtile"
@@ -803,7 +824,17 @@
 #define VAR_RCH_BANKERO "rch_bank_ero" /// m_rchBankEro, reach bank erosion
 #define VAR_RCH_DEG "rch_deg" /// m_rchDeg, reach bed degradation
 #define VAR_RCH_DEP "rch_dep" /// m_rchDep, reach deposition
-#define VAR_FLPLAIN_DEP "flplain_dep" /// m_fldPlainDep, flood plain deposition
+#define VAR_RCH_DEPNEW "rch_depnew" /// m_dltRchDep, Channel new deposition
+#define VAR_RCH_DEPSAND "rch_depsand" /// m_rchDepSand, Sand deposition in channel
+#define VAR_RCH_DEPSILT "rch_depsilt" /// m_rchDepSilt, Silt deposition in channel
+#define VAR_RCH_DEPCLAY "rch_depclay" /// m_rchDepClay, Clay deposition in channel
+#define VAR_RCH_DEPSAG "rch_depsag" /// m_rchDepSag, Small aggregate deposition in channel
+#define VAR_RCH_DEPLAG "rch_deplag" /// m_rchDepLag, Large aggregate deposition in channel
+#define VAR_RCH_DEPGRAVEL "rch_depgravel" /// m_rchDepGravel, Gravel deposition in channel
+#define VAR_FLDPLN_DEP "floodplain_dep" /// m_fldplnDep, flood plain deposition
+#define VAR_FLDPLN_DEPNEW "floodplain_depnew" /// m_dltFldplnDep, New deposits on floodplain
+#define VAR_FLDPLN_DEPSILT "floodplain_depsilt" /// m_fldplnDepSilt, Deposition silt on floodplain
+#define VAR_FLDPLN_DEPCLAY "floodplain_depclay" /// m_fldplnDepClay, Deposition clay on floodplain
 #define VAR_RCN "rcn" /// m_rainNO3Conc, concentration of nitrate in the rain (mg N/m3)  L -> 0.001 * m3
 #define VAR_Reinfiltration "Reinfiltration"
 #define VAR_RETURNFLOW "ReturnFlow"
@@ -817,15 +848,17 @@
 #define VAR_ROCK "rock" /// m_soilRock, Percent of rock content
 #define VAR_ROCTL "roctl"                           /// amount of phosphorus moving from the active mineral pool to the stable mineral pool in the soil profile on the current day in cell
 #define VAR_ROOTDEPTH "rootdepth" /// m_pltRootD, root depth of plants (mm)
+#define VAR_RTE_WTRIN "rtwtr_in" /// m_rteWtrIn, water flow in reach on day before channel routing, m^3
+#define VAR_RTE_WTROUT "rtwtr" /// m_rteWtrOut, water leaving reach on day after channel routing, m^3
 #define VAR_RUNOFF_CO "Runoff_co" /// m_potRfCoef, potential runoff coefficient
 #define VAR_RWNTL "rwntl"                           /// amount of nitrogen moving from active organic to stable organic pool in soil profile on current day in cell(kg N/ha)
 #define VAR_S_FROZEN "s_frozen" /// m_soilFrozenWtrRatio, frozen soil moisture relative to saturation above which no infiltration occur
 #define VAR_SAND "sand" /// m_soilSand, Percent of sand content
-#define VAR_SBGS "SBGS"                             /// Groundwater storage of the subbasin
+#define VAR_SBGS "SBGS" /// m_gwSto, Groundwater storage of the subbasin
 #define VAR_SBIF "SBIF" /// m_ifluQ2Rch, interflow to streams from each subbasin
 #define VAR_SBOF "SBOF" /// m_olQ2Rch, overland flow to streams from each subbasin
-#define VAR_SBPET "SBPET"                           /// the potential evapotranspiration rate of the subbasin
-#define VAR_SBQG "SBQG"                             /// groundwater flow out of the subbasin
+#define VAR_SBPET "SBPET" /// m_petSubbsn, Average potential evapotranspiration rate of the subbasin
+#define VAR_SBQG "SBQG" /// m_gndQ2Rch, groundwater flow out of the subbasin
 #define VAR_SCENARIO "SCENARIO"
 #define VAR_SDNCO "sdnco" /// , denitrification threshold: fraction of field capacity
 #define VAR_SED_DEP "SEDDEP"
@@ -833,9 +866,27 @@
 #define VAR_SED_FLUX "sed_flux"
 #define VAR_SED_RECH "SEDRECH" /// m_sedRchOut, Sediment output at reach outlet
 #define VAR_SED_RECHConc "SEDRECHConc" /// m_sedConcRchOut, Sediment at each reach outlet at each time step
-#define VAR_SED_TO_CH "SEDTOCH" /// m_sedtoCh, sediment flowing to channel
+#define VAR_SAND_RECH "SandRchOut" /// m_sandRchOut, Sand output at reach outlet
+#define VAR_SILT_RECH "SiltRchOut" /// m_siltRchOut, Silt output at reach outlet
+#define VAR_CLAY_RECH "ClayRchOut" /// m_clayRchOut, Clay output at reach outlet
+#define VAR_SAG_RECH "SagRchOut" /// m_sagRchOut, Small aggregate output at reach outlet
+#define VAR_LAG_RECH "LagRchOut" /// m_lagRchOut, Large aggregate output at reach outlet
+#define VAR_GRAVEL_RECH "GravelRchOut" /// m_gravelRchOut, Gravel output at reach outlet
+#define VAR_SED_TO_CH "SEDTOCH" /// m_sedtoCh, Sediment flowing to channel by hillslope routing
+#define VAR_SAND_TO_CH "SandToCh" /// m_sandtoCh, Sand flowing to channel by hillslope routing
+#define VAR_SILT_TO_CH "SiltToCh" /// m_silttoCh, Silt flowing to channel by hillslope routing
+#define VAR_CLAY_TO_CH "ClayToCh" /// m_claytoCh, Clay flowing to channel by hillslope routing
+#define VAR_SAG_TO_CH "SagToCh" /// m_sagtoCh, Small aggregate flowing to channel by hillslope routing
+#define VAR_LAG_TO_CH "LagToCh" /// m_lagtoCh, Large aggregate flowing to channel by hillslope routing
+#define VAR_GRAVEL_TO_CH "GravelToCh" /// m_graveltoCh, Gravel flowing to channel by hillslope routing
+#define VAR_SEDSTO_CH "SedStorageCH" /// m_sedSto, Channel sediment storage (kg)
+#define VAR_SANDSTO_CH "SandStorageCH" /// m_sandSto, Channel sand storage (kg)
+#define VAR_SILTSTO_CH "SiltStorageCH" /// m_siltSto, Channel silt storage (kg)
+#define VAR_CLAYSTO_CH "ClayStorageCH" /// m_claySto, Channel clay storage (kg)
+#define VAR_SAGSTO_CH "SagStorageCH" /// m_sagSto, Channel small aggregate storage (kg)
+#define VAR_LAGSTO_CH "LagStorageCH" /// m_lagSto, Channel large aggregate storage (kg)
+#define VAR_GRAVELSTO_CH "GravelStorageCH" /// m_gravelSto, Channel gravel storage (kg)
 #define VAR_SEDYLD "SED_OL" /// m_olWtrEroSed, distribution of soil loss caused by water erosion
-#define VAR_SED_CHI0 "sed_chi" /// m_initChSedConc, Initial channel sediment concentration, ton/m^3, i.e., kg/L
 #define VAR_SEDMINPA "sedminpa" /// m_surfRfSedAbsorbMinP, amount of active mineral phosphorus adsorbed to sediment in surface runoff
 #define VAR_SEDMINPA_TOCH "sedminpaToCh" /// m_surfRfSedAbsorbMinPToCh
 #define VAR_SEDMINPS "sedminps" /// m_surfRfSedSorbMinP, amount of stable mineral phosphorus adsorbed to sediment in surface runoff
@@ -1174,6 +1225,7 @@
 #define UNIT_SECOND "sec"                      /// Time step (sec)
 #define UNIT_VOL_FRA_M3M3 "m3/m3"
 #define UNIT_VOL_M3 "m3"                           /// volume
+#define UNIT_AREA_M2 "m2"               /// Area
 #define UNIT_WAT_RATIO "mm/mm"         /// mm H2O/mm Soil
 #define UNIT_WTRDLT_MMD "mm/d"                      /// Millimeter per day of water changes
 #define UNIT_WTRDLT_MMH "mm/h"                      /// Millimeter per hour of water changes
@@ -1292,6 +1344,7 @@
 #define DESC_CHWIDTH "Channel width"
 #define DESC_CHWTWIDTH "Channel water width"
 #define DESC_CHBTMWIDTH "the bottom width of channel"
+#define DESC_CHCROSSAREA "channel cross-sectional area"
 #define DESC_CHWTDEPTH "channel water depth"
 #define DESC_PRECHWTDEPTH "channel water depth of previous timestep"
 #define DESC_CLAY "Percent of clay content"
@@ -1530,7 +1583,17 @@
 #define DESC_RCH_BANKERO "reach bank erosion"
 #define DESC_RCH_DEG "reach degradation"
 #define DESC_RCH_DEP "reach deposition"
-#define DESC_FLPLAIN_DEP "Floodplain Deposition"
+#define DESC_RCH_DEPNEW "Channel new deposition"
+#define DESC_RCH_DEPSAND "Sand deposition in channel"
+#define DESC_RCH_DEPSILT "Silt deposition in channel"
+#define DESC_RCH_DEPCLAY "Clay deposition in channel"
+#define DESC_RCH_DEPSAG "Small aggregate deposition in channel"
+#define DESC_RCH_DEPLAG "Large aggregate deposition in channel"
+#define DESC_RCH_DEPGRAVEL "Gravel deposition in channel"
+#define DESC_FLDPLN_DEP "Floodplain Deposition"
+#define DESC_FLDPLN_DEPNEW "New deposits on floodplain"
+#define DESC_FLDPLN_DEPSILT "Deposition silt on floodplain"
+#define DESC_FLDPLN_DEPCLAY "Deposition clay on floodplain"
 #define DESC_RCN "concentration of nitrate in the rain"
 #define DESC_Reinfiltration "TODO: meaning?"
 #define DESC_RETURNFLOW "water depth of return flow"
@@ -1546,6 +1609,8 @@
 #define DESC_ROCTL "amount of phosphorus moving from the active mineral pool to the stable mineral pool in the soil profile on the current day in cell"
 #define DESC_ROOTDEPTH "root depth of plants (mm)"
 #define DESC_ROUTING_LAYERS "Routing layers according to the flow direction, there are no flow relationships within each layer, and the first element in each layer is the number of cells in the layer"
+#define DESC_RTE_WTRIN "water flow in reach on day before channel routing"
+#define DESC_RTE_WTROUT "water leaving reach on day after channel routing"
 #define DESC_RUNOFF_CO "Potential runoff coefficient"
 #define DESC_RWNTL "amount of nitrogen moving from active organic to stable organic pool in soil profile on current day in cell"
 #define DESC_S_FROZEN "Frozen moisture relative to porosity with no infiltration"
@@ -1561,7 +1626,26 @@
 #define DESC_SED_FLOW "sediment in flow"
 #define DESC_SED_FLUX "outgoing sediment flux"
 #define DESC_SED_RECH "Sediment output at reach outlet"
-#define DESC_SED_TO_CH "sediment flowing to channel"
+#define DESC_SED_TO_CH "Sediment flowing to channel by hillslope routing"
+#define DESC_SAND_RECH "Sand output at reach outlet"
+#define DESC_SILT_RECH "Silt output at reach outlet"
+#define DESC_CLAY_RECH "Clay output at reach outlet"
+#define DESC_SAG_RECH "Small aggregate output at reach outlet"
+#define DESC_LAG_RECH "Large aggregate output at reach outlet"
+#define DESC_GRAVEL_RECH "Gravel output at reach outlet"
+#define DESC_SAND_TO_CH "Sand flowing to channel by hillslope routing"
+#define DESC_SILT_TO_CH "Silt flowing to channel by hillslope routing"
+#define DESC_CLAY_TO_CH "Clay flowing to channel by hillslope routing"
+#define DESC_SAG_TO_CH "Small aggregate flowing to channel by hillslope routing"
+#define DESC_LAG_TO_CH "Large aggregate flowing to channel by hillslope routing"
+#define DESC_GRAVEL_TO_CH "Gravel flowing to channel by hillslope routing"
+#define DESC_SEDSTO_CH "Channel sediment storage (kg)"
+#define DESC_SANDSTO_CH "Channel sand storage (kg)"
+#define DESC_SILTSTO_CH "Channel silt storage (kg)"
+#define DESC_CLAYSTO_CH "Channel clay storage (kg)"
+#define DESC_SAGSTO_CH "Channel small aggregate storage (kg)"
+#define DESC_LAGSTO_CH "Channel large aggregate storage (kg)"
+#define DESC_GRAVELSTO_CH "Channel gravel storage (kg)"
 #define DESC_SEDYLD "sediment yield that transported to channel at each cell"
 #define DESC_SEDMINPA " amount of active mineral phosphorus absorbed to sediment in surface runoff"
 #define DESC_SEDMINPA_CH "amount of active mineral phosphorus absorbed to sediment in surface runoff moved to channel"
@@ -1571,7 +1655,6 @@
 #define DESC_SEDORGN_CH "amount of organic nitrogen in surface runoff moved to channel"
 #define DESC_SEDORGP "amount of organic phosphorus in surface runoff"
 #define DESC_SEDORGP_CH "amount of organic phosphorus in surface runoff moved to channel"
-#define DESC_SED_CHI0 "Initial channel sediment concentration"
 #define DESC_SEEPAGE "seepage"
 #define DESC_SHALLST "depth of water in shallow aquifer"
 #define DESC_SILT "Percent of silt content"

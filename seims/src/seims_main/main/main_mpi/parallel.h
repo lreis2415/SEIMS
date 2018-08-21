@@ -1,7 +1,11 @@
 /*!
+ * \file parallel.h
  * \brief Header of MPI version of SEIMS framework
+ *
+ * Changelog:
+ *   - 1. 2018-05-31 - lj - Separate the original header to headers by functionality.
+ *
  * \author Junzhi Liu, Liangjun Zhu
- * \changelog 2018-05-31 - lj - Separate the original header to headers by functionality.\n
  */
 #ifndef SEIMS_MPI_PARALLEL_BASIC_H
 #define SEIMS_MPI_PARALLEL_BASIC_H

@@ -1,14 +1,19 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Generate parameters of reaches
+"""Generate parameters of reaches.
+
+    This script should be updated with the following files/code simultaneously.\n
+      1. seims/preprocess/database/model_param_ini.txt: Emend initial parameters;\n
+      2. seims/src/seims_main/base/data/clsReach.h(.cpp): Update the reading and checking of data.
+
     @author   : Liangjun Zhu, Junzhi Liu
     @changelog: 16-12-07  lj - rewrite for version 2.0
                 17-06-23  lj - reorganize as basic class
                 18-02-08  lj - compatible with Python3.\n
+                18-08-13  lj - add erosion related parameters according to readrte.f of SWAT.\n
 """
 from __future__ import absolute_import
 
-from math import sqrt
 import shutil
 import os
 import sys
@@ -30,28 +35,39 @@ from preprocess.utility import UTIL_ZERO, MINI_SLOPE
 
 class ImportReaches2Mongo(object):
     """Import reaches related parameters to MongoDB."""
+    # Spatial parameters
     _TAB_REACH = 'REACHES'
     _LINKNO = 'LINKNO'
-    _DSLINKNO = 'DSLINKNO'
-    # Fields in _TAB_REACH
+    _DSLINKNO = 'DSLINKNO'  # Fields in _TAB_REACH
+    _SUBBASIN = 'SUBBASINID'
+    _NUMCELLS = 'NUM_CELLS'
     _GROUP = 'GROUP'  # group divided, e.g., '1,2,3,4'
     _KMETIS = 'KMETIS'  # group id corresponding to group by kmetis, e.g., '0,0,2,1'.
     _PMETIS = 'PMETIS'  # group id corresponding to group by pmetis, e.g., '1,1,0,3'
-    _SUBBASIN = 'SUBBASINID'
-    _NUMCELLS = 'NUM_CELLS'
     _DOWNSTREAM = 'DOWNSTREAM'
     _UPDOWN_ORDER = 'UP_DOWN_ORDER'
     _DOWNUP_ORDER = 'DOWN_UP_ORDER'
     _WIDTH = 'CH_WIDTH'
     _LENGTH = 'CH_LEN'
     _DEPTH = 'CH_DEPTH'
-    _V0 = 'CH_V0'
+    _WDRATIO = 'CH_WDRATIO'
     _AREA = 'CH_AREA'
-    _SIDESLP = 'CH_SSLP'
-    _MANNING = 'CH_N'
+    _SIDESLP = 'CH_SSLP'  # H/V. 0: vertical band, 5: bank with gentle side slope. chside in SWAT
     _SLOPE = 'CH_SLP'
-    _KBANK = 'CH_K_BANK'
-    _KBED = 'CH_K_BED'
+    # Hydrological related parameters
+    _MANNING = 'CH_N'  # Manning's "n" value
+    _BEDK = 'CH_BED_K'  # effective hydraulic conductivity, mm/hr. In SWAT, only ch_k are provided.
+    _BNKK = 'CH_BNK_K'
+    # Erosion related parameters
+    _BEDBD = 'CH_BED_BD'  # bulk density of channel bed sediment (1.1-1.9), g/cm^3
+    _BNKBD = 'CH_BNK_BD'  # bulk density of channel bank sediment (1.1-1.9), g/cm^3
+    _BEDCOV = 'CH_BED_COV'  # Channel bed cover factor (0-1), ch_cov2 in SWAT.
+    _BNKCOV = 'CH_BNK_COV'  # Channel bank cover factor, ch_cov1 in SWAT.
+    _BEDEROD = 'CH_BED_EROD'  # Erodibility of channel bed sediment, ch_bed_kd in SWAT(0.001 - 3.75)
+    _BNKEROD = 'CH_BNK_EROD'  # Erodibility of channel bank sediment, ch_bnk_kd in SWAT (cm3/N-s)
+    _BEDD50 = 'CH_BED_D50'  # D50(median) particle size diameter of channel bed sediment, micrometer
+    _BNKD50 = 'CH_BNK_D50'  # D50(median) particle size diameter of channel bank sediment, 0.001-20
+    # Nutrient routing related parameters
     _BC1 = 'BC1'
     _BC2 = 'BC2'
     _BC3 = 'BC3'
@@ -65,20 +81,16 @@ class ImportReaches2Mongo(object):
     _RS3 = 'RS3'
     _RS4 = 'RS4'
     _RS5 = 'RS5'
-    # reach erosion related parameters, 2016-8-16, LJ
-    _COVER = 'CH_COVER'  # -0.05 - 0.6
-    _EROD = 'CH_EROD'  # -0.001 - 1
-    # nutrient routing related parameters
     _DISOX = 'DISOX'  # 0-50 mg/L
     _BOD = 'BOD'  # 0-1000 mg/L
     _ALGAE = 'ALGAE'  # 0-200 mg/L
-    _ORGN = 'ORGN'  # 0-100 mg/L
+    _ORGN = 'ORGN'  # 0-100 mg/L, ch_onco in SWAT
     _NH4 = 'NH4'  # 0-50 mg/L
     _NO2 = 'NO2'  # 0-100 mg/L
     _NO3 = 'NO3'  # 0-50 mg/L
-    _ORGP = 'ORGP'  # 0-25 mg/L
+    _ORGP = 'ORGP'  # 0-25 mg/L, ch_opco in SWAT
     _SOLP = 'SOLP'  # 0-25 mg/L
-    # groundwater related parameters
+    # Groundwater nutrient related parameters
     _GWNO3 = 'GWNO3'  # 0-1000 mg/L
     _GWSOLP = 'GWSOLP'  # 0-1000 mg/L
 
@@ -203,7 +215,7 @@ class ImportReaches2Mongo(object):
 
     @staticmethod
     def read_reach_downstream_info(reach_shp, is_taudem=True):
-        """Read informations of subbasin.
+        """Read information of subbasin.
         Args:
             reach_shp: reach ESRI shapefile.
             is_taudem: is TauDEM or not, true is default.
@@ -238,11 +250,11 @@ class ImportReaches2Mongo(object):
             nfrom = ft.GetFieldAsInteger(ifrom)
             nto = ft.GetFieldAsInteger(ito)
             rch_dict[nfrom] = {'downstream': nto,
-                               'depth': ft.GetFieldAsDouble(idph) if idph > -1 else 5.,
+                               'depth': ft.GetFieldAsDouble(idph) if idph > 0. else 1.5,
                                'slope': ft.GetFieldAsDouble(islp)
                                if islp > -1 and ft.GetFieldAsDouble(islp) > MINI_SLOPE
                                else MINI_SLOPE,
-                               'width': ft.GetFieldAsDouble(iwth) if iwth > -1 else 5.,
+                               'width': ft.GetFieldAsDouble(iwth) if iwth > 0. else 5.,
                                'length': ft.GetFieldAsDouble(ilen)}
 
             ft = layer_reach.GetNextFeature()
@@ -405,26 +417,34 @@ class ImportReaches2Mongo(object):
         for subbsn_id, rchdata in rch.items():
             dic = dict()
             dic[ImportReaches2Mongo._SUBBASIN] = subbsn_id
-            dic[ImportReaches2Mongo._DOWNSTREAM] = rchdata['downstream']
-            dic[ImportReaches2Mongo._UPDOWN_ORDER] = updown[subbsn_id]
-            dic[ImportReaches2Mongo._DOWNUP_ORDER] = downup[subbsn_id]
-            dic[ImportReaches2Mongo._MANNING] = rchdata['manning']
-            dic[ImportReaches2Mongo._SLOPE] = rchdata['slope']
-            dic[ImportReaches2Mongo._V0] = sqrt(rchdata['slope']) * \
-                                           pow(rchdata['depth'], 2. / 3.) / rchdata['manning']
             dic[ImportReaches2Mongo._NUMCELLS] = rchdata[ImportReaches2Mongo._NUMCELLS]
             dic[ImportReaches2Mongo._GROUP] = ','.join(str(v) for v in metis[subbsn_id]['group'])
             dic[ImportReaches2Mongo._KMETIS] = ','.join(str(v) for v in metis[subbsn_id]['kmetis'])
             dic[ImportReaches2Mongo._PMETIS] = ','.join(str(v) for v in metis[subbsn_id]['pmetis'])
+            dic[ImportReaches2Mongo._DOWNSTREAM] = rchdata['downstream']
+            dic[ImportReaches2Mongo._UPDOWN_ORDER] = updown[subbsn_id]
+            dic[ImportReaches2Mongo._DOWNUP_ORDER] = downup[subbsn_id]
             dic[ImportReaches2Mongo._WIDTH] = rchdata['width']
             dic[ImportReaches2Mongo._LENGTH] = rchdata['length']
             dic[ImportReaches2Mongo._DEPTH] = rchdata['depth']
+            dic[ImportReaches2Mongo._WDRATIO] = 3.5
             dic[ImportReaches2Mongo._AREA] = rchdata[ImportReaches2Mongo._AREA]
             dic[ImportReaches2Mongo._SIDESLP] = 2.
-            # hydraulic conductivity of the channel bank (mm/h)
-            dic[ImportReaches2Mongo._KBANK] = 0.
-            # hydraulic conductivity of the channel bed (mm/h)
-            dic[ImportReaches2Mongo._KBED] = 0.
+            dic[ImportReaches2Mongo._SLOPE] = rchdata['slope']
+            # Hydrological related
+            dic[ImportReaches2Mongo._MANNING] = rchdata['manning']
+            dic[ImportReaches2Mongo._BEDK] = 0.
+            dic[ImportReaches2Mongo._BNKK] = 0.
+            # Erosion related
+            dic[ImportReaches2Mongo._BEDBD] = 1.5  # sandy loam bed
+            dic[ImportReaches2Mongo._BNKBD] = 1.4  # silty loam bank
+            dic[ImportReaches2Mongo._BEDCOV] = 0.
+            dic[ImportReaches2Mongo._BNKCOV] = 0.
+            dic[ImportReaches2Mongo._BEDEROD] = 0.
+            dic[ImportReaches2Mongo._BNKEROD] = 0.
+            dic[ImportReaches2Mongo._BEDD50] = 500.  # micrometer, sand type particle
+            dic[ImportReaches2Mongo._BNKD50] = 50.  # micrometer, silt type particle
+            # Nutrient related
             dic[ImportReaches2Mongo._BC1] = 0.55
             dic[ImportReaches2Mongo._BC2] = 1.1
             dic[ImportReaches2Mongo._BC3] = 0.21
@@ -438,8 +458,6 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._RS3] = 0.5
             dic[ImportReaches2Mongo._RS4] = 0.05
             dic[ImportReaches2Mongo._RS5] = 0.05
-            dic[ImportReaches2Mongo._COVER] = 0.1
-            dic[ImportReaches2Mongo._EROD] = 0.1
             dic[ImportReaches2Mongo._DISOX] = 10
             dic[ImportReaches2Mongo._BOD] = 10
             dic[ImportReaches2Mongo._ALGAE] = 0
@@ -449,6 +467,7 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._NO3] = 0
             dic[ImportReaches2Mongo._ORGP] = 0
             dic[ImportReaches2Mongo._SOLP] = 0
+            # Groundwater nutrient related
             dic[ImportReaches2Mongo._GWNO3] = 0
             dic[ImportReaches2Mongo._GWSOLP] = 0
 

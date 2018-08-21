@@ -1,7 +1,11 @@
 /*!
+ * \file BMPFactory.h
  * \brief Base namespace for implementation of BMP configuration
- * \author Liang-Jun Zhu
- * \description 1. lj 2018-4-12 Code reformat
+ *
+ * Changelog:
+ *   - 1. 2018-04-12 - lj - Code reformat.
+ *
+ * \author Liangjun Zhu
  */
 #ifndef SEIMS_BMP_FACTORY_H
 #define SEIMS_BMP_FACTORY_H
@@ -16,17 +20,15 @@ using namespace db_mongoc;
 using namespace data_raster;
 
 /*!
- * \brief Base class of all kind of BMPs Factory.
- *        Read from BMP_SCENARIOS collection of MongoDB
- * \ingroup bmps
+ * \namespace bmps
+ * \brief All BMPs scenario related data, classes, and functions.
+ * \ingroup scenarios
  */
 namespace bmps {
 /*!
- * \class BMPFactory
- * \ingroup MainBMP
- *
- * \brief Base class to initiate a BMP data
- *
+ * \class bmps::BMPFactory
+ * \brief Base class of all kind of BMPs Factory.
+ *        Read from BMP_SCENARIOS collection of MongoDB
  */
 class BMPFactory: Interface {
 public:

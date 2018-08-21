@@ -69,7 +69,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
     /// Update model data if the scenario has requested.
-    m_dataCenter->UpdateParametersByScenario(m_dataCenter->GetSubbasinID()); /// TODO
+    m_dataCenter->UpdateParametersByScenario(m_dataCenter->GetSubbasinID());
 }
 
 void ModelMain::StepHillSlope(const time_t t, const int year_idx, const int sub_index) {

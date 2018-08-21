@@ -26,8 +26,8 @@ from test.demo_config import ModelPaths, write_preprocess_config_file
 def main():
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
-    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
-    seims_cfg = write_preprocess_config_file(model_paths, 'preprocess_30m_omp.ini')
+    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'demo_dianbu2_model')
+    seims_cfg = write_preprocess_config_file(model_paths, 'preprocess.ini')
 
     SpatialDelineation.workflow(seims_cfg)  # Spatial delineation by TauDEM
     ImportMongodbClass.workflow(seims_cfg)  # Import to MongoDB database
