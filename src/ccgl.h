@@ -1,10 +1,14 @@
 /*!
+ * \file ccgl.h
  * \brief All namespaces in CCGL.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
+ * Changelog:
+ *   - 1. 2018-05-02 - lj - Initially implementation.
+ *   - 2. 2018-08-21 - lj - Doxygen comment style check.
+ *
  * \author Liangjun Zhu (crazyzlj)
- * \version 1.0
- * \changelog  2018-05-02 - lj - Initially implementation.\n
+ * \version 1.1
  */
 #ifndef CCGL_H
 #define CCGL_H

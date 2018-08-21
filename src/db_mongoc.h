@@ -1,13 +1,16 @@
 /*!
+ * \file db_mongoc.h
  * \brief Utility functions of MongoDB
  *        Currently, mongo-c-driver 1.3.5 or later is supported.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
+ * Changelog:
+ *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
+ *   - 2. 2018-05-02 - lj - Make part of CCGL.
+ *
  * \note No exceptions will be thrown.
  * \author Liangjun Zhu (crazyzlj)
  * \version 1.0
- * \changelog 2017-12-02 - lj - Add unittest based on gtest/gmock.\n
- *            2018-05-02 - lj - Make part of CCGL.\n
  */
 #ifndef CCGL_DB_MONGOC_H
 #define CCGL_DB_MONGOC_H
@@ -27,7 +30,7 @@ using std::endl;
 
 namespace ccgl {
 /*!
- * \namespace db_mongoc
+ * \namespace ccgl::db_mongoc
  * \brief Utility functions of MongoDB
  */
 namespace db_mongoc {
