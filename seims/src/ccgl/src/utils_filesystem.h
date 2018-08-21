@@ -1,11 +1,14 @@
 /*!
-* \brief File system related functions.
-*        Part of the Common Cross-platform Geographic Library (CCGL)
-*
-* \author Liangjun Zhu (crazyzlj)
-* \version 1.0
-* \changelog  2018-05-02 - lj - Make part of CCGL.\n
-*/
+ * \file utils_filesystem.h
+ * \brief File system related functions.
+ *        Part of the Common Cross-platform Geographic Library (CCGL)
+ *
+ * Changelog:
+ *   - 1. 2018-05-02 - lj - Make part of CCGL.
+ *
+ * \author Liangjun Zhu (crazyzlj)
+ * \version 1.0
+ */
 #ifndef CCGL_UTILS_FILESYSTEM_H
 #define CCGL_UTILS_FILESYSTEM_H
 
@@ -18,7 +21,7 @@ using std::vector;
 
 namespace ccgl {
 /*!
- * \namespace utils_filesystem
+ * \namespace ccgl::utils_filesystem
  * \brief File Input and output related functions
  */
 namespace utils_filesystem {
@@ -34,8 +37,10 @@ bool CleanDirectory(const string& dirpath);
 
 /*!
  * \brief Delete a directory if exists.
- * \refer Windows: https://stackoverflow.com/questions/734717/how-to-delete-a-folder-in-c
- *        Linux: https://www.linuxquestions.org/questions/programming-9/deleting-a-directory-using-c-in-linux-248696/
+ *
+ * Reference:
+ *   - 1. Windows: https://stackoverflow.com/questions/734717/how-to-delete-a-folder-in-c
+ *   - 2. Linux: https://www.linuxquestions.org/questions/programming-9/deleting-a-directory-using-c-in-linux-248696/
  */
 bool DeleteDirectory(const string& dirpath, bool del_subdirs = true);
 
@@ -101,7 +106,7 @@ bool PathExists(string const& path);
 
 /*!
  * \brief Delete the given file if existed.
- * \param[in] filepath \string
+ * \param[in] filepath \a string File path, full path or relative path
  * \return 0 if deleted successful, else return nonzero value, e.g. -1.
  */
 int DeleteExistedFile(const string& filepath);

@@ -1,34 +1,45 @@
 /*!
+ * \file basic.h
  * \brief Basic definitions.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
+ * Changelog:
+ *   - 1. 2018-05-02 - lj - Initially implementation.
+ *   - 2. 2018-06-21 - lj - Test on Intel C++ compiler.
+ *   - 3. 2018-08-21 - lj - Doxygen comment style check.
+ *
  * \author Liangjun Zhu (crazyzlj)
  * \version 1.1
- * \changelog  2018-05-02 - lj - Initially implementation.\n
- *             2018-06-21 - lj - Test on Intel C++ compiler.\n
  */
 #ifndef CCGL_BASIC_H
 #define CCGL_BASIC_H
 
+/*! `NDEBUG` or `_DEBUG` mean not build on `DEBUG` mode. */
 #ifndef NDEBUG
 #ifndef _DEBUG
 #define _DEBUG
 #endif /* _DEBUG */
 #endif /* NDEBUG */
 
-/// Architecture
+/*! A reference to x64 architecture */
 #if defined(_WIN64) || defined(__x86_64) || defined(__LP64__)
 #define CPP_64
 #endif
 
+/*! A reference to MSVC environment */
 #if defined _MSC_VER
 #define CPP_MSVC
 #endif /* _MSC_VER */
+
+/*! A reference to Intel C++ compiler */
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC)
 #define CPP_ICC
 #endif /* __INTEL_COMPILER */
+
+/*! A reference to GCC compiler */
 #if defined(__GNUC__)
 #define CPP_GCC
+/*! A reference to GCC compiler on macOS */
 #if defined(__APPLE__)
 #define CPP_APPLE
 #endif /* __APPLE__ */
@@ -128,12 +139,14 @@ using std::string;
 #endif /* Visual Studio 2010 or later */
 #endif /* Figure out HAS_NOEXCEPT, HAS_VARIADIC_TEMPLATES, and HAS_OVERRIDE or not */
 
+/*! A compatible reference to `noexcept` or `throw()` if not supported by the compiler. */
 #ifdef HAS_NOEXCEPT
 #define NOEXCEPT noexcept
 #else
 #define NOEXCEPT throw()
 #endif /* HAS_NOEXCEPT */
 
+/*! A compatible reference to `override` or blank if not supported by the compiler. */
 #ifdef HAS_OVERRIDE
 #define OVERRIDE override
 #else
@@ -163,11 +176,11 @@ using std::string;
 
 /*!
  * \namespace ccgl
- * \brief Common Cross-platform Geographic Library
+ * \brief Common Cross-platform Geographic Library (CCGL)
  */
 namespace ccgl {
-/// x86 and x64 Compatibility
 #if defined CPP_MSVC
+/// x86 and x64 Compatibility
 /// 1-byte (8-bit) signed integer
 typedef signed __int8 vint8_t;
 /// 1-byte (8-bit) unsigned integer
@@ -197,9 +210,9 @@ typedef          uint64_t          vuint64_t;
 #endif
 
 #ifdef CPP_64
-typedef          vint64_t          vint;
-typedef          vint64_t          vsint;
-typedef          vuint64_t         vuint;
+typedef vint64_t vint;
+typedef vint64_t vsint;
+typedef vuint64_t vuint;
 #else
 typedef vint32_t vint;
 typedef vint32_t vsint;
@@ -208,33 +221,41 @@ typedef vuint32_t vuint;
 /// Signed integer representing position.
 typedef vint64_t pos_t;
 
-/*!
- * Global utility definitions
- */
+///
+/// Global utility definitions
+///
+
+/*! Default NoData value for raster data etc. */
 #ifndef NODATA_VALUE
 #define NODATA_VALUE    (-9999.0f)
 #endif /* NODATA_VALUE */
 
+/*! Missing float value */
 #ifndef MISSINGFLOAT
 #define MISSINGFLOAT    (-1 * FLT_MAX)
 #endif /* MISSINGFLOAT */
 
+/*! Maximum float value */
 #ifndef MAXIMUMFLOAT
 #define MAXIMUMFLOAT    FLT_MAX
 #endif /* MAXIMUMFLOAT */
 
+/*! Maximum length of full file path */
 #ifndef PATH_MAX
 #define PATH_MAX        1024
 #endif /* PATH_MAX */
 
+/*! A approximation of Zero */
 #ifndef UTIL_ZERO
 #define UTIL_ZERO       1.0e-6f
 #endif /* UTIL_ZERO */
 
+/*! A approximation of PI */
 #ifndef PI
 #define PI              3.14159265358979323846f
 #endif /* PI */
 
+/*! Minimum slope(radian) value */
 #ifndef MINI_SLOPE
 #define MINI_SLOPE      0.0001f
 #endif /* MINI_SLOPE */
@@ -255,40 +276,61 @@ typedef vint64_t pos_t;
 #define LIBSUFFIX       ".dylib"
 #endif /* linux and macOS */
 
+/*! A reference to the postfix of executable file for DEBUG mode */
 #ifdef _DEBUG
 #define POSTFIX         "d"
 #endif
+/*! A reference to the postfix of executable file for RELWITHDEBINFO mode */
 #ifdef RELWITHDEBINFO
 #define POSTFIX         "rd"
 #endif
+/*! A reference to the postfix of executable file for MINSIZEREL mode */
 #ifdef MINSIZEREL
 #define POSTFIX         "s"
 #endif
+/*! A reference to the postfix of executable file for RELEASE mode */
 #ifndef POSTFIX
 #define POSTFIX         ""
 #endif
 
-/*!
-* Use static_cast<T>(a) instead (T)a or T(a) to convert datetypes
-*/
+///
+/// Use static_cast<T>(a) instead (T)a or T(a) to convert datetypes
+///
+
+/*! Convert to integer `int` */
 #define CVT_INT(param)   static_cast<int>((param))
+/*! Convert to size_t `size_t` */
 #define CVT_SIZET(param) static_cast<size_t>((param))
+/*! Convert to float `float` */
 #define CVT_FLT(param)   static_cast<float>((param))
+/*! Convert to double `double` */
 #define CVT_DBL(param)   static_cast<double>((param))
+/*! Convert to time_t `time_t` */
 #define CVT_TIMET(param) static_cast<time_t>((param))
+/*! Convert to char `char` */
 #define CVT_CHAR(param)  static_cast<char>((param))
+/*! Convert to string `string` */
 #define CVT_STR(param)   static_cast<string>((param))
 
+/*! Convert to 8-byte (64-bit) signed integer `vint` */
 #define CVT_VINT(param)  static_cast<vint>((param))
+/*! Convert to 8-byte (64-bit) signed integer `vsint` */
 #define CVT_VSINT(param) static_cast<vsint>((param))
+/*! Convert to 8-byte (64-bit) unsigned integer `vuint` */
 #define CVT_VUINT(param) static_cast<vuint>((param))
+/*! Convert to 8-byte (64-bit) unsigned integer `vuint64_t` */
 #define CVT_VUINT64(param) static_cast<vuint64_t>((param))
 
 /*!
  * \class NotCopyable
  * \brief Base class for classes that cannot be copied. By inheriting this
  *        class you can disable copying of your classes.
- *        e.g., class myClass: private NotCopyable {}
+ *
+ * \code
+ *   class myClass: private NotCopyable {}
+ *   // or
+ *   class myClass: NotCopyable {}
+ * \endcode
  */
 class NotCopyable {
 private:
@@ -318,29 +360,29 @@ public:
 };
 
 /*!
-* \class ModelException
-* \brief Print the exception message
-*/
+ * \class ModelException
+ * \brief Print the exception message
+ */
 class ModelException: public std::exception {
 public:
     /*!
-    * \brief Constructor
-    * \param[in] class_name
-    * \param[in] function_name
-    * \param[in] msg
-    */
+     * \brief Constructor
+     * \param[in] class_name
+     * \param[in] function_name
+     * \param[in] msg
+     */
     ModelException(const string& class_name, const string& function_name, const string& msg);
 
     /*!
-    * \brief Construct error information (string version)
-    * \return error information
-    */
+     * \brief Construct error information (string version)
+     * \return error information
+     */
     string ToString();
 
     /*!
-    * \brief Overload function to construct error information
-    * \return \a char* error information
-    */
+     * \brief Overload function to construct error information
+     * \return \a char* error information
+     */
     const char* what() const NOEXCEPT OVERRIDE;
 
 private:
@@ -349,6 +391,7 @@ private:
 
 /*!
  * \brief Check if the IP address is valid.
+ * \param[in] ip \a char* IP address.
  */
 bool IsIpAddress(const char* ip);
 
@@ -361,9 +404,10 @@ void Log(const string& msg, const string& logpath = "debugInfo.log");
 
 /*!
  * \brief Detect the available threads number
- * reference:
- *    1. http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
- *    2. https://cmake.org/pipermail/cmake/2007-October/017286.html
+ *
+ * Reference:
+ *   - 1. http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+ *   - 2. https://cmake.org/pipermail/cmake/2007-October/017286.html
  */
 int GetAvailableThreadNum();
 
@@ -374,16 +418,19 @@ void SetDefaultOpenMPThread();
 
 /*!
  * \brief Set the omp thread number by given thread number
+ * \param[in] n Thread number greater than 1.
  */
 void SetOpenMPThread(int n);
 
 /*!
  * \brief Print status messages for Debug
+ * \param[in] msg \a char* Message
  */
 void StatusMessage(const char* msg);
 
 /*!
  * \brief Sleep milliseconds
+ * \param[in] millisecs Sleep timespan.
  */
 inline void SleepMs(const int millisecs) {
 #ifdef windows
