@@ -1615,7 +1615,7 @@ bool clsRasterData<T, MASK_T>::WriteAscHeaders(const string& filename, map<strin
         StatusNoUnitTest("Error opening file: " + abs_filename);
         return false;
     }
-    //write file
+    // write file
     int rows = CVT_INT(header.at(HEADER_RS_NROWS));
     int cols = CVT_INT(header.at(HEADER_RS_NCOLS));
     // write header

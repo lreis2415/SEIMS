@@ -56,12 +56,15 @@ public:
      * \brief Validation check before the constructor of MongoClient.
      *        1. Check IP address
      *        2. Check database status
-     * \usage
+     *
+     * Examples:
+     * \code
      *       MongoClient *client = MongoClient::Init(host, port)
      *       if (nullptr == client) {
      *           throw exception("MongoClient initialization failed!");
      *           // or other error handling code.
      *       }
+     * \endcode
      */
     static MongoClient* Init(const char* host, vuint16_t port);
     /*!
@@ -105,15 +108,15 @@ public:
 
     /*!
      * \brief Get collection names in MongoDB database
-     * \param[in] dbname \string database name
+     * \param[in] dbname \a string database name
      * \param[out] collnames Collection names in the database
      */
     void GetCollectionNames(string const& dbname, vector<string>& collnames);
 
     /*!
      * \brief Get GridFs file names in MongoDB database
-     * \param[in] dbname \string database name
-     * \param[in] gfsname \string GridFS name
+     * \param[in] dbname \a string database name
+     * \param[in] gfsname \a string GridFS name
      * \param[out] gfs_exists Existed GridFS file names
      */
     void GetGridFsFileNames(string const& dbname, string const& gfsname, vector<string>& gfs_exists);
@@ -235,7 +238,7 @@ private:
 /*!
  * \brief Get numeric value from \a bson_iter_t according to a given key
  * \param[in] iter \a bson_iter_t
- * \param[out] numericvalue \int, \float, or \double
+ * \param[out] numericvalue \a int, \a float, or \a double
  * \return True if succeed, otherwise false.
  */
 template <typename T>
@@ -266,7 +269,7 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
  * \brief Get numeric value from \a bson_t according to a given key
  * \param[in] bmeta \a bson_t
  * \param[in] key
- * \param[out] numericvalue \int, \float, or \double
+ * \param[out] numericvalue \a int, \a float, or \a double
  * \return True if succeed, otherwise false.
  */
 template <typename T>
