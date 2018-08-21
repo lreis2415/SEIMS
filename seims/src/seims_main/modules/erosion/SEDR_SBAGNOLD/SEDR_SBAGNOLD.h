@@ -2,9 +2,9 @@
  * \brief Sediment routing using simplified version of Bagnold(1997) stream power equation,
  *        which is based on fall velocity and degradation on stream.
  *
- *        reWrite from route.f and rtsed.f (now replaced by rtsed_bagnold.f) of SWAT
- * \author Hui Wu, Liangjun Zhu, Junzhi Liu
- * \changelog 2012-07-31 - wh - Initial implementation.\n
+ *        reWrite from route.f and rtsed_bagnold.f of SWAT
+ * \author Liangjun Zhu, Hui Wu, Junzhi Liu
+ * \changelog 2012-07-31 - wh - Initial implementation based on rtsed.f of SWAT.\n
  *            2016-05-30 - lj - 1. move m_erodibilityFactor, m_coverFactor, to reach collection of MongoDB as inputs, and is DT_Array1D.\n
  *                              2. add point source loadings from Scenario database.\n
  *                              3. add SEDRECHConc output with the unit g/cm3 (i.e., Mg/m3).\n
@@ -14,7 +14,7 @@
  *            2018-05-14 - lj - Code review and reformat.\n
  *            2018-06-28 - lj - 1. The initialization of m_sedStorage should be done in Set1DData after m_chStorage.\n
  *                              2. Bug fixed about code related to the IN/OUTPUT variables.\n
- *            2018-08-14 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
+ *            2018-08-15 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
  *
  */
 #ifndef SEIMS_MODULE_SEDR_SBAGNOLD_H
@@ -80,37 +80,33 @@ private:
     float m_sedTransEqCoef; ///< Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqExp;  ///< Exponent in sediment transport equation, spexp in SWAT
     float m_critVelSedDep;  ///< critical velocity for sediment deposition
-    float m_initChStorage;  ///< initial channel storage per meter of reach length (m^3/m)
-    float m_initChSedConc;  ///< Initial channel sediment concentration, ton/m^3, i.e., kg/L
-    float* m_chOrder;       ///< Channel order ID
-    float* m_chWth;         ///< Channel width at bankfull, m
-    float* m_chBtmWth;      ///< Channel bottom width, m
-    float* m_chDepth;       ///< Channel depth at bankfull, m
-    float* m_initChDepth;   ///< Initial channel depth at bankfull, m
-    float* m_chWthDepthRt;  ///< Channel width to depth ratio
-    float* m_chLen;         ///< Channel length, m
-    float* m_initChLen;     ///< Initial channel length, m
-    float* m_chSlope;       ///< Channel slope
-    float* m_initChSlope;   ///< Initial channel slope
-    float* m_chSideSlope;   ///< inverse of the channel side slope, by default is 2. chside in SWAT.
-    float* m_chBnkBD;       ///< Bulk density of channel bank
-    float* m_chBedBD;       ///< Bulk density of channel bed
-    float* m_chBnkCov;      /// Channel bank cover factor, ch_cov1 in SWAT
-    float* m_chBedCov;      /// Channel bed cover factor, ch_cov2 in SWAT
-    float* m_chBnkErod;     ///< channel bank erodibility factor, cm^3/N/s
-    float* m_chBedErod;     ///< channel bed erodibility factor, cm^3/N/s
-    float* m_chBnkTc;       ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBedTc;       ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBnkSand;     ///< Fraction of sand in channel bank sediment
-    float* m_chBnkSilt;     ///< Fraction of silt in channel bank sediment
-    float* m_chBnkClay;     ///< Fraction of clay in channel bank sediment
-    float* m_chBnkGravel;   ///< Fraction of gravel in channel bank sediment
-    float* m_chBedSand;     ///< Fraction of sand in channel bed sediment
-    float* m_chBedSilt;     ///< Fraction of silt in channel bed sediment
-    float* m_chBedClay;     ///< Fraction of clay in channel bed sediment
-    float* m_chBedGravel;   ///< Fraction of gravel in channel bed sediment
+    float m_initChSto;      ///< initial channel storage per meter of reach length (m^3/m)
 
-    float* m_reachDownStream;             ///< downstream id (The value is 0 if there if no downstream reach)
+    float* m_reachDownStream; ///< downstream id (The value is 0 if there if no downstream reach)
+    float* m_chOrder;         ///< Channel order ID
+    float* m_chWth;           ///< Channel width at bankfull, m
+    float* m_chDepth;         ///< Channel depth at bankfull, m
+    float* m_chWthDepthRt;    ///< Channel width to depth ratio, ch_wdr in SWAT
+    float* m_chLen;           ///< Channel length, m
+    float* m_chSlope;         ///< Channel slope
+    float* m_chSideSlope;     ///< inverse of the channel side slope, by default is 2. chside in SWAT.
+    float* m_chBnkBD;         ///< Bulk density of channel bank
+    float* m_chBedBD;         ///< Bulk density of channel bed
+    float* m_chBnkCov;        /// Channel bank cover factor, ch_cov1 in SWAT
+    // float* m_chBedCov;     /// Channel bed cover factor, ch_cov2 in SWAT, currently not used
+    float* m_chBnkErod;       ///< channel bank erodibility factor, cm^3/N/s
+    float* m_chBedErod;       ///< channel bed erodibility factor, cm^3/N/s
+    float* m_chBnkTc;         ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBedTc;         ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBnkSand;       ///< Fraction of sand in channel bank sediment
+    float* m_chBnkSilt;       ///< Fraction of silt in channel bank sediment
+    float* m_chBnkClay;       ///< Fraction of clay in channel bank sediment
+    float* m_chBnkGravel;     ///< Fraction of gravel in channel bank sediment
+    float* m_chBedSand;       ///< Fraction of sand in channel bed sediment
+    float* m_chBedSilt;       ///< Fraction of silt in channel bed sediment
+    float* m_chBedClay;       ///< Fraction of clay in channel bed sediment
+    float* m_chBedGravel;     ///< Fraction of gravel in channel bed sediment
+
     map<int, vector<int> > m_reachLayers; ///< Reach layers according to \a LayeringMethod
     /*!
      * Index of upstream Ids (The value is -1 if there if no upstream reach)
@@ -127,6 +123,14 @@ private:
     /// The point source loading (kg), m_ptSub[id], id is the reach id, load from m_Scenario
     float* m_ptSub;
 
+    /// Temporary variables
+
+    float* m_initChDepth;  ///< Initial channel depth at bankfull, m
+    float* m_initChLen;    ///< Initial channel length, m
+    float* m_initChSlope;  ///< Initial channel slope
+    float* m_preRchDep;    ///< Deposition sediment in previous timestep, depprch in SWAT
+    float* m_preFldplnDep; ///< Deposition sediment on floodplain in previous timestep, depprfp in SWAT
+
     /// INPUT from other modules
 
     float* m_sedtoCh;    ///< sediment from hillslope erosion module (e.g., IUH_SED_OL), kg
@@ -136,37 +140,13 @@ private:
     float* m_sagtoCh;    ///< sand from hillslope erosion, kg
     float* m_lagtoCh;    ///< sand from hillslope erosion, kg
     float* m_graveltoCh; ///< sand from hillslope erosion, kg
+
     float* m_qRchOut;    ///< channel outflow, m^3/s
     float* m_chSto;      ///< channel storage (m^3) after channel routing, rchstor in SWAT
     float* m_rteWtrOut;  ///< Water leaving reach on day after channel routing, m^3, rtwtr in SWAT
+    float* m_chBtmWth;   ///< Channel bottom width, m
     float* m_chWtrDepth; ///< channel water depth, m, rchdep in SWAT
     float* m_chWtrWth;   ///< channel top water width, m, topw in SWAT
-
-    // Temporary variables, which can also be outputs when necessary.
-
-    float* m_sedDep;    ///< sediment of deposition
-    float* m_sedDeg;    ///< sediment of degradation
-    float* m_sedSto;    ///< channel sediment storage (kg), sedst * 1000 in SWAT
-    float* m_sandSto;   ///< Sand storage in reach (kg), sanst * 1000 in SWAT
-    float* m_siltSto;   ///< Silt storage in reach (kg), silst * 1000 in SWAT
-    float* m_claySto;   ///< Clay storage in reach (kg), clast * 1000 in SWAT
-    float* m_sagSto;    ///< Small aggregate storage in reach (kg), sagst * 1000 in SWAT
-    float* m_lagSto;    ///< Large aggregate storage in reach (kg), lagst * 1000 in SWAT
-    float* m_gravelSto; ///< Gravel storage in reach (kg), sanst * 1000 in SWAT
-
-    float* m_rchDep;       ///< depch in SWAT
-    float* m_preRchDep;    ///< Deposition sediment in previous timestep, depprch in SWAT
-    float* m_rchDepSand;   ///< depsanch in SWAT
-    float* m_rchDepSilt;   ///< depsilch in SWAT
-    float* m_rchDepClay;   ///< depclach in SWAT
-    float* m_rchDepSag;    ///< depsagch in SWAT
-    float* m_rchDepLag;    ///< deplagch in SWAT
-    float* m_rchDepGravel; ///< depgrach in SWAT
-
-    float* m_fldplnDep;     ///< Deposition sediment on floodplain, depfp in SWAT
-    float* m_preFldplnDep;  ///< Deposition sediment on floodplain in previous timestep, depprfp in SWAT
-    float* m_fldplnDepSilt; ///< Deposition silt on floodplain, depsilfp in SWAT
-    float* m_fldplnDepClay; ///< Deposition clay on floodplain, depclafp in SWAT
 
     // OUTPUT
 
@@ -179,7 +159,29 @@ private:
     float* m_lagRchOut;     ///< large aggregate out (kg), rch_lag * 1000 in SWAT
     float* m_gravelRchOut;  ///< gravel out (kg), rch_gra * 1000 in SWAT
 
-    float* m_rchBnkEro; ///< Bank erosion sediment, bnkrte in SWAT
-    float* m_rchDeg;    ///< Channel degradation sediment, degrte in SWAT
+    float* m_rchBnkEro; ///< Bank erosion sediment, bnkrte * 1000 in SWAT
+    float* m_rchDeg;    ///< Channel degradation sediment, degrte * 1000 in SWAT
+
+    float* m_rchDep;       ///< Deposition sediment, depch in SWAT
+    float* m_dltRchDep;    ///< Channel new deposition during the current time step, rchdy(57,jrch) in SWAT
+    float* m_rchDepSand;   ///< depsanch in SWAT
+    float* m_rchDepSilt;   ///< depsilch in SWAT
+    float* m_rchDepClay;   ///< depclach in SWAT
+    float* m_rchDepSag;    ///< depsagch in SWAT
+    float* m_rchDepLag;    ///< deplagch in SWAT
+    float* m_rchDepGravel; ///< depgrach in SWAT
+
+    float* m_fldplnDep;     ///< Deposition sediment on floodplain, depfp in SWAT
+    float* m_dltFldplnDep;  ///< Floodplain new deposits during the current timestep, rchdy(58,jrch) in SWAT
+    float* m_fldplnDepSilt; ///< Deposition silt on floodplain, depsilfp in SWAT
+    float* m_fldplnDepClay; ///< Deposition clay on floodplain, depclafp in SWAT
+
+    float* m_sedSto;    ///< channel sediment storage (kg), sedst * 1000 in SWAT
+    float* m_sandSto;   ///< Sand storage in reach (kg), sanst * 1000 in SWAT
+    float* m_siltSto;   ///< Silt storage in reach (kg), silst * 1000 in SWAT
+    float* m_claySto;   ///< Clay storage in reach (kg), clast * 1000 in SWAT
+    float* m_sagSto;    ///< Small aggregate storage in reach (kg), sagst * 1000 in SWAT
+    float* m_lagSto;    ///< Large aggregate storage in reach (kg), lagst * 1000 in SWAT
+    float* m_gravelSto; ///< Gravel storage in reach (kg), sanst * 1000 in SWAT
 };
 #endif /* SEIMS_MODULE_SEDR_SBAGNOLD_H */
