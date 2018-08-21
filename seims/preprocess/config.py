@@ -110,7 +110,7 @@ class SEIMSConfig(object):
                 and FileClass.is_dir_exists(self.preproc_script_dir)
                 and FileClass.is_dir_exists(self.seims_bin)):
             raise IOError('Please Check Directories defined in [PATH]. '
-                          'BASE_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, '
+                          'BASE_DATA_DIR, MODEL_DIR, TXT_DB_DIR, PREPROC_SCRIPT_DIR, '
                           'and CPP_PROGRAM_DIR are required!')
         if not FileClass.is_dir_exists(self.mpi_bin):
             self.mpi_bin = None
@@ -247,7 +247,7 @@ class SEIMSConfig(object):
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',
                                                    'imperviouspercinurbancell')
-            self.default_reach_depth = cf.getfloat('OPTIONAL_PARAMETERS', 'default_reach_depth')
+            self.add_channel_width_to_shp = cf.getfloat('OPTIONAL_PARAMETERS', 'default_reach_depth')
             self.default_landuse = cf.getint('OPTIONAL_PARAMETERS', 'defaultlanduse')
             self.default_soil = cf.getint('OPTIONAL_PARAMETERS', 'defaultsoil')
 

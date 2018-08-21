@@ -25,7 +25,7 @@ from test.demo_config import ModelPaths
 def main():
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
-    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
+    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'demo_dianbu2_model')
 
     scenario_id = 0
     seims_obj = MainSEIMS(model_paths.bin_dir, model_paths.model_dir, sceid=scenario_id)

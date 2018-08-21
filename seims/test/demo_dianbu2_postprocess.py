@@ -25,11 +25,11 @@ from test.demo_config import ModelPaths, write_postprocess_config_file
 def main():
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
-    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
+    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'demo_dianbu2_model')
 
     # hydrograph, e.g. discharge
     scenario_id = 0
-    post_cfg = write_postprocess_config_file(model_paths, 'postprocess_30m_omp.ini', scenario_id)
+    post_cfg = write_postprocess_config_file(model_paths, 'postprocess.ini', scenario_id)
     TimeSeriesPlots(post_cfg).generate_plots()
 
 

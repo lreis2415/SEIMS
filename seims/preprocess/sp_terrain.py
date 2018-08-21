@@ -376,7 +376,7 @@ class TerrainUtilClass(object):
         return width
 
     @staticmethod
-    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data, default_depth=5.):
+    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data, default_depth=1.5):
         """Add channel/reach width and default depth to ESRI shapefile"""
         stream_link = RasterUtilClass.read_raster(stream_link_file)
         n_rows = stream_link.nRows
