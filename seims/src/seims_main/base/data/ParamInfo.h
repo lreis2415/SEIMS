@@ -1,10 +1,12 @@
 /*!
+ * \file ParamInfo.h
  * \brief Class to store parameter item information
+ *
+ * Changelog:
+ *   - 1. 2018-05-18 - lj - Code review and reformat.
  *
  * \author Junzhi Liu, Liangjun Zhu
  * \version 1.1
- * \date June 2010
- * \update 18-Mar-2018
  */
 #ifndef SEIMS_PARAMETER_INFO_H
 #define SEIMS_PARAMETER_INFO_H
@@ -18,7 +20,7 @@ using namespace ccgl;
 using std::vector;
 
 /*!
-* \ingroup module_setting
+* \ingroup data
  * \class ParamInfo
  *
  * \brief Class to store and manage parameter information from the parameter database
@@ -45,7 +47,7 @@ public:
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
 
-    //! Adjust 1D Raster, \sa Adjust1DArray()
+    //! Adjust 1D Raster, \ref Adjust1DArray()
     void Adjust1DRaster(int n, float* data);
 
     //! Adjust 1D Raster on selected area

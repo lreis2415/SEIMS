@@ -1,9 +1,12 @@
 /*!
+ * \file SettingsInput.h
  * \brief Setting Inputs for SEIMS
+ *
+ * Changelog:
+ *   - 1. 2017-05-30 - lj - Decoupling with Database IO.
+ *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
- * \date May 2017
- * \revised LJ - Decoupling with Database IO
  */
 #ifndef SEIMS_SETTING_INPUT_H
 #define SEIMS_SETTING_INPUT_H
@@ -14,7 +17,7 @@
 using namespace bmps;
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \class SettingsInput
  * \brief Input settings for SEIMS
  */

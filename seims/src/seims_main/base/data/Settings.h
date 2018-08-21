@@ -1,11 +1,14 @@
 /*!
- * \ingroup module_setting
+ * \file Settings.h
  * \brief Settings class to store the settings information
+ *
+ * Changelog:
+ *   - 1. 2010-06-30 - lj - Change LoadSettingsFromFile to SetSettingTagStrings, Value to GetValue.
+ *                          Decoupling with the file IO handling
+ *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
  * \date June 2010
- * \revised LJ - 1. Change LoadSettingsFromFile to SetSettingTagStrings, Value to GetValue
- *               2. Decoupling with the file IO handling
  */
 #ifndef SEIMS_SETTING_H
 #define SEIMS_SETTING_H
@@ -18,7 +21,7 @@ using namespace ccgl;
 using std::vector;
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \class Settings
  * \brief Base class for input or output Settings
  */

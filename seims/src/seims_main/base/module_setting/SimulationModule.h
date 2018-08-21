@@ -1,11 +1,13 @@
 /*!
+ * \file SimulationModule.h
  * \brief Parent class for all modules in SEIMS
  *
- * \author Junzhi Liu, Liangjun Zhu
- * \changelog 2010-07-31 - jz - Initial implementation.\n
- *            2016-06-14 - lj - Add SetScenario etc. functions.\n
- *            2018-03-03 - lj - Add CHECK_XXX series macros for data checking.\n
+ * Changelog:
+ *   - 1. 2010-07-31 - jz - Initial implementation.
+ *   - 2. 2016-06-14 - lj - Add SetScenario etc. functions.
+ *   - 3. 2018-03-03 - lj - Add CHECK_XXX series macros for data checking.
  *
+ * \author Junzhi Liu, Liangjun Zhu
  */
 #ifndef SIMULATION_MOUDULE_BASE
 #define SIMULATION_MOUDULE_BASE
@@ -25,6 +27,8 @@ using namespace bmps;
 
 /*!
  * \enum TimeStepType
+ * \ingroup module_setting
+ * \brief Time step types.
  */
 enum TimeStepType {
     TIMESTEP_HILLSLOPE, ///< Hillslope scale
@@ -34,7 +38,7 @@ enum TimeStepType {
 };
 
 /*!
- * \ingroup Util
+ * \ingroup module_setting
  * \class SimulationModule
  * \brief Base module for all simulation modules in SEIMS
  */
@@ -93,6 +97,7 @@ public:
         throw ModelException("SimulationModule", "Set2DData",
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
+
     /* Seems to be useless, should be removed in the near future. By lj.
     //! Set 1D array data, DT_Array1D
     virtual void Set1DArrayData(const char* key, int n, float* data) {
@@ -123,6 +128,7 @@ public:
         throw ModelException("SimulationModule", "Get2DData",
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
+
     /* Seems to be useless, should be removed in the near future. By lj.
     //! Get 1D Array data, by default, DT_Array1D
     virtual void Get1DArrayData(const char* key, int* n, float** data) {
@@ -153,6 +159,7 @@ public:
 
     /*!
      * \brief Get time step type, default is hillslope process.
+     *
      *        Remember to OVERRIDE this function to return other time step type for
      *        routing modules and others if necessary.
      */

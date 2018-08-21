@@ -1,10 +1,12 @@
 /*!
+ * \file ModelMain.h
  * \brief Control the simulation of SEIMS
+ *
+ * Changelog:
+ *   - 1. 2017-05-20 - lj - Refactoring. The ModelMain class mainly focuses on the entire workflow.
+ *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
- * \date May 2017
- * \revised LJ - Refactoring, May 2017
- *               The ModelMain class mainly focuses on the entire workflow.
  */
 #ifndef SEIMS_MODEL_MAIN_H
 #define SEIMS_MODEL_MAIN_H
@@ -38,9 +40,9 @@
 class ModelMain: Interface {
 public:
     /*!
-     * \brief Constructor independent to any database IO, instead of the \sa DataCenter object
-     * \param[in] data_center \sa DataCenter, \sa DataCenterMongoDB, or others in future
-     * \param[in] factory \sa ModuleFactory, assemble the module workspace
+     * \brief Constructor independent to any database IO, instead of the \ref DataCenter object
+     * \param[in] data_center \ref DataCenter, \ref DataCenterMongoDB, or others in future
+     * \param[in] factory \ref ModuleFactory, assemble the module workspace
      */
     ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory);
 
@@ -124,7 +126,7 @@ private:
     time_t m_dtDaily;                    ///< Daily time interval, seconds
     time_t m_dtHs;                       ///< Hillslope time interval, seconds
     time_t m_dtCh;                       ///< Channel time interval, seconds
-    vector<string> m_moduleIDs;          ///< Module unique IDs, the same sequences with \sa m_simulationModules
+    vector<string> m_moduleIDs;          ///< Module unique IDs, the same sequences with \ref m_simulationModules
     vector<ParamInfo *> m_tfValueInputs; ///< transferred single value across subbasins
 private:
     /************************************************************************/

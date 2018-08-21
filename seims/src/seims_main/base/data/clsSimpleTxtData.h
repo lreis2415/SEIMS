@@ -1,4 +1,5 @@
 /*!
+ * \file clsSimpleTxtData.h
  * \brief A simple text read class
  * \author Junzhi Liu, Liangjun Zhu
  * \version 1.0

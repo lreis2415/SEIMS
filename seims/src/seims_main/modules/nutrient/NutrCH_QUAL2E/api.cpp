@@ -59,9 +59,9 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     mdi.AddInput(VAR_QRECH, UNIT_FLOW_CMS, DESC_QRECH, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHST, UNIT_VOL_M3, DESC_CHST, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_PRECHST, UNIT_VOL_M3, DESC_PRECHST, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_RTE_WTRIN, UNIT_VOL_M3, DESC_RTE_WTRIN, Source_Module, DT_Array1D);
+    mdi.AddInput(VAR_RTE_WTROUT, UNIT_VOL_M3, DESC_RTE_WTROUT, Source_Module, DT_Array1D);
     mdi.AddInput(VAR_CHWTRDEPTH, UNIT_LEN_M, DESC_CHWTDEPTH, Source_Module, DT_Array1D);
-    mdi.AddInput(VAR_PRECHWTDEPTH, UNIT_LEN_M, DESC_PRECHWTDEPTH, Source_Module, DT_Array1D);
     /// input from hillslope
     //nutrient from surface water
     mdi.AddInput(VAR_SUR_NO3_TOCH, UNIT_KG, DESC_SUR_NO3_ToCH, Source_Module, DT_Array1D);

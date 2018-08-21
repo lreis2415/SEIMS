@@ -13,7 +13,7 @@
 
 #include "parallel.h"
 #include "TaskInformation.h"
-#include "LoadParallTasks.h"
+#include "LoadParallelTasks.h"
 
 using namespace utils_time;
 using namespace utils_array;

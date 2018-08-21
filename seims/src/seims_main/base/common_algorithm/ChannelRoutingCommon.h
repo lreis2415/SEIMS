@@ -1,4 +1,5 @@
 /*!
+ * \file ChannelRoutingCommon.h
  * \brief Define some common used function in channel routing related modules, e.g., MUSK_CH.
  * \author Liang-Jun Zhu
  * \date 2018-8-11
@@ -7,6 +8,13 @@
 #define SEIMS_CHANNEL_ROUTING_COMMON_H
 
 /*!
+ * \defgroup ChannelRouting
+ * \ingroup common_algorithm
+ * \brief Some common used function in channel routing related modules, e.g., MUSK_CH.
+ */
+
+/*!
+ * \ingroup ChannelRouting
  * \brief Calculates flow rate or flow velocity using Manning's
  *        equation. If x1 is set to 1, the velocity is calculated. If x1 is set to
  *        cross-sectional area of flow, the flow rate is calculated.
@@ -20,16 +28,18 @@
 float manningQ(float x1, float x2, float x3, float x4);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Calculate channel bottom width by channel width, side slope, and depth.
  *        Refers code ttcoef.f in SWAT.
  * \param[in] ch_wth Channel upper width
- * \param[inout] ch_sideslp The inverse of channel side slope (default is 2, slope = 0.5), which maybe updated when bottom width < 0
- * \param[inout] ch_depth Channel depth, which maybe updated when bottom width < 0
+ * \param[in,out] ch_sideslp The inverse of channel side slope (default is 2, slope = 0.5), which maybe updated when bottom width < 0
+ * \param[in,out] ch_depth Channel depth, which maybe updated when bottom width < 0
  * \return Channel bottom width
  */
 float ChannleBottomWidth(float ch_wth, float& ch_sideslp, float& ch_depth);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Channel wetting perimeter for both floodplain and not full channel
  * \param[in] ch_btmwth Channel bottom width
  * \param[in] ch_depth Channel depth
@@ -43,6 +53,7 @@ float ChannelWettingPerimeter(float ch_btmwth, float ch_depth, float wtr_depth,
                               float ch_sideslp, float ch_wth, float fps = 4.f);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Channel wetting perimeter for not full channel
  * \param[in] ch_btmwth Channel bottom width
  * \param[in] wtr_depth Channel water depth
@@ -52,6 +63,7 @@ float ChannelWettingPerimeter(float ch_btmwth, float ch_depth, float wtr_depth,
 float ChannelWettingPerimeter(float ch_btmwth, float wtr_depth, float ch_sideslp);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Cross-sectional area of channel for both floodplain and not full channel
  * \param[in] ch_btmwth Channel bottom width
  * \param[in] ch_depth Channel depth
@@ -65,6 +77,7 @@ float ChannelCrossSectionalArea(float ch_btmwth, float ch_depth, float wtr_depth
                                 float ch_sideslp, float ch_wth, float fps = 4.f);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Cross-sectional area of channel for not full channel
  * \param[in] ch_btmwth Channel bottom width
  * \param[in] wtr_depth Channel water depth
@@ -74,6 +87,7 @@ float ChannelCrossSectionalArea(float ch_btmwth, float ch_depth, float wtr_depth
 float ChannelCrossSectionalArea(float ch_btmwth, float wtr_depth, float ch_sideslp);
 
 /*!
+ * \ingroup ChannelRouting
  * \brief Compute storage time constant for channel (ratio of storage to discharge)
  * \param[in] ch_manning Manning's n value of channel
  * \param[in] ch_slope Channel slope

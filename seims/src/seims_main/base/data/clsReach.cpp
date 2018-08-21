@@ -126,7 +126,8 @@ void clsReach::DerivedParameters() {
     float fr_clay = 0.f;
     float fr_gravel = 0.f;
     float tc = 0.f; // An estimate of Critical shear stress if it is not given (N/m^2), Julian and Torres(2005)
-    float kd = 0.f; // An estimate of channel bank erodibility coefficient if it is not available, Hanson and Simon(2001)
+    float kd = 0.f;
+    // An estimate of channel bank erodibility coefficient if it is not available, Hanson and Simon(2001)
 
     ////////// Bank related //////////
     if (param_map_.find(REACH_BNKD50) == param_map_.end()) {
@@ -205,8 +206,7 @@ void clsReach::DerivedParameters() {
         }
         if (param_map_.find(REACH_BNKEROD) != param_map_.end()) {
             param_map_.at(REACH_BNKEROD) = kd;
-        }
-        else {
+        } else {
 #ifdef HAS_VARIADIC_TEMPLATES
             param_map_.emplace(REACH_BNKEROD, kd);
 #else
@@ -272,8 +272,7 @@ void clsReach::DerivedParameters() {
         tc = (0.1f + 0.1779f * sc + 0.0028f * sc * sc - 2.34e-05f * sc * sc * sc) * param_map_.at(REACH_BEDCOV);
         if (param_map_.find(REACH_BEDTC) != param_map_.end()) {
             param_map_.at(REACH_BEDTC) = tc;
-        }
-        else {
+        } else {
 #ifdef HAS_VARIADIC_TEMPLATES
             param_map_.emplace(REACH_BEDTC, tc);
 #else
@@ -288,14 +287,12 @@ void clsReach::DerivedParameters() {
     if (kd <= UTIL_ZERO) {
         if (tc <= UTIL_ZERO) {
             kd = 0.2;
-        }
-        else {
+        } else {
             kd = 0.2f / sqrt(tc);
         }
         if (param_map_.find(REACH_BEDEROD) != param_map_.end()) {
             param_map_.at(REACH_BEDEROD) = kd;
-        }
-        else {
+        } else {
 #ifdef HAS_VARIADIC_TEMPLATES
             param_map_.emplace(REACH_BEDEROD, kd);
 #else
@@ -427,8 +424,18 @@ void clsReaches::Update(map<string, ParamInfo *>& caliparams_map) {
             }
         }
     }
-    // Calculate derived parameters
+    // Calculate derived parameters, and some specifications
     for (auto itrch = reaches_obj_.begin(); itrch != reaches_obj_.end(); ++itrch) {
         itrch->second->DerivedParameters();
+        // Update width-depth-ratio according to reach width and reach depth.
+        if (itrch->second->Get(REACH_DEPTH) <= UTIL_ZERO) {
+            cout << "WARNING: Reach ID " << itrch->first << " has a negative depth, set to default 1.5!" << endl;
+            itrch->second->Set(REACH_DEPTH, 1.5f);
+        }
+        if (itrch->second->Get(REACH_WIDTH) <= UTIL_ZERO) {
+            cout << "WARNING: Reach ID " << itrch->first << " has a negative width, set to default 5!" << endl;
+            itrch->second->Set(REACH_WIDTH, 5.f);
+        }
+        itrch->second->Set(REACH_WDRATIO, itrch->second->Get(REACH_WIDTH) / itrch->second->Get(REACH_DEPTH));
     }
 }

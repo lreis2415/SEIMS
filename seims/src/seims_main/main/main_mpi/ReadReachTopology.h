@@ -1,8 +1,11 @@
 /*!
+ * \file ReadReachTopology.h
  * \brief Read and create reach (i.e., subbasin) topology data.
+ *
+ * Changelog:
+ *   - 1. 2018-03-20  - lj -  Refactor as a more flexible framework to support various transferred variables.
+ *
  * \author Junzhi Liu, Liangjun Zhu
- * \changelog  2018-03-20  - lj -  Refactor as a more flexible framework to
- *                                 support various transferred variables.
  */
 #ifndef SEIMS_MPI_READ_REACH_TOPOLOGY_H
 #define SEIMS_MPI_READ_REACH_TOPOLOGY_H
@@ -24,7 +27,9 @@ using std::map;
 using std::set;
 
 /*!
+ * \class SubbasinStruct
  * \brief Simple struct of subbasin information for task allocation
+ * \ingroup seims_mpi
  */
 class SubbasinStruct: NotCopyable {
 public:
@@ -47,6 +52,7 @@ public:
 
 /*!
  * \brief Read reach table from MongoDB and create reach topology for task allocation.
+ * \ingroup seims_mpi
  * \param[in] client \sa MongoClient
  * \param[in] dbname database name which stored the reach collection
  * \param[in] group_method \sa GroupMethod

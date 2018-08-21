@@ -1,6 +1,7 @@
 /*!
+ * \file BMPText.h
  * \brief BMP related const strings
- * \revised Liang-Jun Zhu
+ * \author Liang-Jun Zhu
  * \date 2016-6-16
  */
 #ifndef SEIMS_BMP_TEXT_H

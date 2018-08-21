@@ -136,10 +136,9 @@ private:
     float m_GW0;
     //! maximum ground water storage
     float m_GWMAX;
-    //!
-    float* m_petSubbasin;
-    //!
-    float* m_gwStore;
+
+    float* m_petSubbsn; ///< Average PET of each subbasin, mm
+    float* m_gwSto;     ///<  Groundwater storage (mm) of the subbasin
 
     /// slope (percent, or drop/distance, or tan) of each cell
     float* m_slope;
@@ -171,7 +170,7 @@ private:
     int m_inputSubbsnID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    //! All subbasins information,\sa clsSubbasins, \sa Subbasin
+    //! All subbasins information,\ref clsSubbasins, \ref Subbasin
     clsSubbasins* m_subbasinsInfo;
 
 };

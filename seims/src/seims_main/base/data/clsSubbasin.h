@@ -1,8 +1,8 @@
 /*!
+ * \file clsSubbasin.h
  * \brief Class for managing subbasin data
  * \author Junzhi Liu, Liang-Jun Zhu
  * \date May 2017
- * \revised
  */
 #ifndef SEIMS_SUBBASIN_CLS_H
 #define SEIMS_SUBBASIN_CLS_H
@@ -17,11 +17,12 @@ using namespace ccgl;
 
 /*!
  * \class Subbasin
- * \ingroup base
+ * \ingroup data
  * \brief Subbasin related parameters and methods.
  *
- * \Revision:   1. Remove isOutput, since the output is handled in printInfo class
- *              2. Add soil water balance related. 2016-7-28
+ * Changelog:
+ *   - 1. Remove isOutput, since the output is handled in printInfo class
+ *   - 2. Add soil water balance related. 2016-7-28
  */
 class Subbasin: Interface {
 public:
@@ -131,8 +132,8 @@ private:
     int n_cells_;
     //! index of valid cells
     int* cells_;
-    //! area of one cell, TODO, cell_areas_ should be float* when irregular polygon is supported. lj.
-    float cell_area_;
+    float cell_area_; ///< area of the cell(s)
+                      ///< todo This should be float* when irregular polygon is supported. By lj.
     //! area of current Subbasin
     float area_;
 
@@ -207,8 +208,8 @@ private:
 };
 
 /*!
- *\class clsSubbasins
- * \ingroup base
+ * \class clsSubbasins
+ * \ingroup data
  * \brief Manager all Subbasin related parameters and methods.
  */
 class clsSubbasins: Interface {

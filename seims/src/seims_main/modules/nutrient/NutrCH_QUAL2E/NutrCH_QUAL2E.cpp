@@ -1,6 +1,3 @@
-#if (defined _DEBUG) && (defined _MSC_VER) && (defined VLD)
-#include "vld.h"
-#endif /* Run Visual Leak Detector during Debug */
 #include "NutrCH_QUAL2E.h"
 
 #include "text.h"
@@ -12,8 +9,7 @@ NutrCH_QUAL2E::NutrCH_QUAL2E() :
     m_lambda1(-1.f), m_lambda2(-1.f), m_k_l(-1.f), m_k_n(-1.f), m_k_p(-1.f), m_p_n(-1.f),
     tfact(-1.f), m_rnum1(0.f), igropt(-1), m_mumax(-1.f), m_rhoq(-1.f), m_cod_n(-1), m_cod_k(-1),
     m_rchID(nullptr), m_soilTemp(nullptr), m_dayLen(nullptr), m_sr(nullptr),
-    m_bankStorage(nullptr), m_qRchOut(nullptr), m_chStorage(nullptr),
-    m_preChStorage(nullptr), m_chWtrDepth(nullptr), m_preChWtrDepth(nullptr),
+    m_qRchOut(nullptr), m_chStorage(nullptr), m_rteWtrIn(nullptr), m_rteWtrOut(nullptr), m_chWtrDepth(nullptr),
     m_chTemp(nullptr), m_bc1(nullptr), m_bc2(nullptr), m_bc3(nullptr),
     m_bc4(nullptr), m_rs1(nullptr), m_rs2(nullptr), m_rs3(nullptr), m_rs4(nullptr),
     m_rs5(nullptr), m_rk1(nullptr), m_rk2(nullptr), m_rk3(nullptr),
@@ -225,7 +221,8 @@ bool NutrCH_QUAL2E::CheckInputData() {
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_sr);
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_qRchOut);
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_chStorage);
-    CHECK_POINTER(MID_NUTRCH_QUAL2E, m_preChStorage);
+    CHECK_POINTER(MID_NUTRCH_QUAL2E, m_rteWtrIn);
+    CHECK_POINTER(MID_NUTRCH_QUAL2E, m_rteWtrOut);
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_chWtrDepth);
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_latNO3ToCh);
     CHECK_POINTER(MID_NUTRCH_QUAL2E, m_surfRfNO3ToCh);
@@ -341,14 +338,12 @@ void NutrCH_QUAL2E::Set1DData(const char* key, const int n, float* data) {
     }
 
     CheckInputSize(key, n);
-    if (StringMatch(sk, VAR_BKST)) m_bankStorage = data;
-    else if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
-    else if (StringMatch(sk, VAR_CHST)) m_chStorage = data;
-    else if (StringMatch(sk, VAR_PRECHST)) {
-        m_preChStorage = data;
+    if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
+    else if (StringMatch(sk, VAR_CHST)) {
+        m_chStorage = data;
         for (int i = 0; i <= m_nReaches; i++) {
             // input from SetReaches(), unit is mg/L, need to be converted to kg
-            float cvt_conc2amount = m_preChStorage[i] * 0.001f;
+            float cvt_conc2amount = m_chStorage[i] * 0.001f;
             m_chAlgae[i] *= cvt_conc2amount;
             m_chOrgN[i] *= cvt_conc2amount;
             m_chOrgP[i] *= cvt_conc2amount;
@@ -359,8 +354,9 @@ void NutrCH_QUAL2E::Set1DData(const char* key, const int n, float* data) {
             m_chDOx[i] *= cvt_conc2amount;
             m_chCOD[i] *= cvt_conc2amount;
         }
-    } else if (StringMatch(sk, VAR_CHWTRDEPTH)) m_chWtrDepth = data;
-    else if (StringMatch(sk, VAR_PRECHWTDEPTH)) m_preChWtrDepth = data;
+    } else if (StringMatch(sk, VAR_RTE_WTRIN)) m_rteWtrIn = data;
+    else if (StringMatch(sk, VAR_RTE_WTROUT)) m_rteWtrOut = data;
+    else if (StringMatch(sk, VAR_CHWTRDEPTH)) m_chWtrDepth = data;
     else if (StringMatch(sk, VAR_WATTEMP)) m_chTemp = data;
 
     else if (StringMatch(sk, VAR_LATNO3_TOCH)) m_latNO3ToCh = data;
@@ -638,13 +634,12 @@ void NutrCH_QUAL2E::RouteOut(const int i) {
     m_chOutTP[i] = 0.f;
     m_chOutTPConc[i] = 0.f;
     //get out flow water fraction
-    float wtrOut = m_qRchOut[i] * m_dt; // m**3
-    float wtrTotal = m_preChStorage[i];
-    if (wtrTotal <= 0.f || wtrOut <= 0.f || m_chWtrDepth[i] <= 0.f) {
+    float wtrTotal = m_chStorage[i] + m_rteWtrOut[i]; // m^3
+    if (wtrTotal <= UTIL_ZERO || m_rteWtrOut[i] <= UTIL_ZERO || m_chWtrDepth[i] <= UTIL_ZERO) {
         // return with initialized values directly
         return;
     }
-    float outFraction = wtrOut / wtrTotal;
+    float outFraction = m_rteWtrOut[i] / wtrTotal;
     //if(i == 12) cout << "wtrOut: " << wtrOut << ", m_chStorage: " << m_chStorage[i] << ", outFrac: "<<outFraction<<endl;
     if (outFraction >= 1.f) outFraction = 1.f;
     if (outFraction <= UTIL_ZERO) outFraction = UTIL_ZERO;
@@ -662,7 +657,7 @@ void NutrCH_QUAL2E::RouteOut(const int i) {
     m_chOutTP[i] = m_chOutOrgP[i] + m_chOutSolP[i];
     //if(i == 12) cout << "m_chOutOrgP: " << m_chOutOrgP[i] << ", m_chOrgP: " << m_chOrgP[i] << ", outFrac: "<<outFraction<<endl;
     // kg ==> mg/L
-    float cvt = 1000.f / wtrOut;
+    float cvt = 1000.f / m_rteWtrOut[i];
     m_chOutOrgNConc[i] = m_chOutOrgN[i] * cvt;
     m_chOutNO3Conc[i] = m_chOutNO3[i] * cvt;
     m_chOutNO2Conc[i] = m_chOutNO2[i] * cvt;
@@ -727,12 +722,10 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     // assume the water volume used to contain nutrients at current time step equals to :
     //     flowout plus the storage at the end of day (did not consider the nutrients
     //     from stream to groundwater through seepage and bank storage)
-    // float wtrOut = m_qOutCh[i] * m_dt;
-    // float wtrTotal = wtrOut + m_chStorage[i]; /// m3
-    float wtrTotal = m_preChStorage[i];      // by LJ
-    float tmpChWtDepth = m_preChWtrDepth[i]; /// m
-    if (tmpChWtDepth <= 0.01f) {
-        tmpChWtDepth = 0.01f;
+
+    float wtrTotal = m_rteWtrOut[i] + m_chStorage[i]; /// m3
+    if (m_chWtrDepth[i] <= 0.01f) {
+        m_chWtrDepth[i] = 0.01f;
     }
     if (wtrTotal <= 0.f) {
         /// which means no flow out of current channel    || wtrOut <= 0.f
@@ -845,7 +838,7 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     // calculate growth attenuation factor for light, based on daylight average light intensity
     float fl_1 = 0.f;
     float fll = 0.f;
-    fl_1 = 1.f / (lambda * tmpChWtDepth) * log((m_k_l + algi) / (m_k_l + algi * exp(-lambda * tmpChWtDepth)));
+    fl_1 = 1.f / (lambda * m_chWtrDepth[i]) * log((m_k_l + algi) / (m_k_l + algi * exp(-lambda * m_chWtrDepth[i])));
 
     fll = 0.92f * (m_chDaylen[i] / 24.f) * fl_1;
 
@@ -879,7 +872,7 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
 
     // calculate algal biomass concentration at end of day (phytoplanktonic algae), QUAL2E equation III-2
     float dalgae = 0.f;
-    float setl = Min(1.f, corTempc(m_rs1[i], thrs1, wtmp) / tmpChWtDepth);
+    float setl = Min(1.f, corTempc(m_rs1[i], thrs1, wtmp) / m_chWtrDepth[i]);
     dalgae = algcon + (corTempc(gra, thgra, wtmp) * algcon -
         corTempc(m_rhoq, thrho, wtmp) * algcon - setl * algcon) * tday;
     if (dalgae < 1.e-6f) {
@@ -943,8 +936,8 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     }
 
     ww = corTempc(m_rk1[i], thm_rk1, wtmp) * cbodcon;
-    if (tmpChWtDepth > 0.001f) {
-        xx = corTempc(m_rk4[i], thm_rk4, wtmp) / (tmpChWtDepth * 1000.f);
+    if (m_chWtrDepth[i] > 0.001f) {
+        xx = corTempc(m_rk4[i], thm_rk4, wtmp) / (m_chWtrDepth[i] * 1000.f);
     }
     if (nh4con > 0.001f) {
         yy = m_ai5 * corTempc(bc1mod, thbc1, wtmp) * nh4con;
@@ -1007,7 +1000,7 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     zz = 0.f;
     ww = corTempc(m_bc3[i], thbc3, wtmp) * orgncon;
     xx = corTempc(bc1mod, thbc1, wtmp) * nh4con;
-    yy = corTempc(m_rs3[i], thrs3, wtmp) / (tmpChWtDepth * 1000.f);
+    yy = corTempc(m_rs3[i], thrs3, wtmp) / (m_chWtrDepth[i] * 1000.f);
     zz = f1 * m_ai1 * algcon * corTempc(gra, thgra, wtmp);
     dnh4 = 0.f;
     dnh4 = nh4con + (ww - xx + yy - zz) * tday;
@@ -1056,7 +1049,7 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     yy = 0.f;
     zz = 0.f;
     xx = corTempc(m_bc4[i], thbc4, wtmp) * orgpcon;
-    yy = corTempc(m_rs2[i], thrs2, wtmp) / (tmpChWtDepth * 1000.f);
+    yy = corTempc(m_rs2[i], thrs2, wtmp) / (m_chWtrDepth[i] * 1000.f);
     zz = m_ai2 * corTempc(gra, thgra, wtmp) * algcon;
     dsolp = 0.f;
     dsolp = solpcon + (xx + yy - zz) * tday;

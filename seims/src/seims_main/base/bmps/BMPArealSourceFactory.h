@@ -1,8 +1,12 @@
 /*!
+ * \file BMPArealSourceFactory.h
  * \brief Areal source pollution and BMP factory
+ *
+ * Changelog:
+ *   - 1. 2016-04-12 - lj - Code reformat.
+ *
  * \author Liang-Jun Zhu
  * \date Aug 2016
- * \description 1. lj 2018-4-12 Code reformat
  */
 #ifndef SEIMS_BMP_AREALSOURCE_H
 #define SEIMS_BMP_AREALSOURCE_H
@@ -17,9 +21,7 @@ using namespace bmps;
 
 namespace bmps {
 /*!
- * \class ArealSourceLocations
- * \ingroup MainBMP
- *
+ * \class bmps::ArealSourceLocations
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
@@ -65,9 +67,7 @@ private:
 };
 
 /*!
- * \class ArealSourceMgtParams
- * \ingroup MainBMP
- *
+ * \class bmps::ArealSourceMgtParams
  * \brief Point source management parameters
  *
  */
@@ -160,9 +160,7 @@ private:
 };
 
 /*!
- * \class BMPArealSrcFactory
- * \ingroup MainBMP
- *
+ * \class bmps::BMPArealSrcFactory
  * \brief Base class of areal source BMPs.
  * Such as chicken farm
  *
@@ -185,14 +183,14 @@ public:
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn \sa MongoClient instance
+     * \param[in] conn \ref MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
     void ReadArealSourceManagements(MongoClient* conn, const string& bmpDBName);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn \sa MongoClient instance
+     * \param[in] conn \ref MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
     void ReadArealSourceLocations(MongoClient* conn, const string& bmpDBName);
