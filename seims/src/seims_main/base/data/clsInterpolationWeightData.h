@@ -1,4 +1,5 @@
 /*!
+ * \file clsInterpolationWeightData.h
  * \brief Methods for clsITPWeightData class
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0

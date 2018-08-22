@@ -1,7 +1,7 @@
 /*!
+ * \file SEIMS_ModuleSetting.h
  * \brief User-defined module information in config.fig
  * \author Junzhi Liu, Liang-Jun Zhu
- * \version
  * \date June 2015
  */
 #ifndef SEIMS_MODULE_SETTING_H

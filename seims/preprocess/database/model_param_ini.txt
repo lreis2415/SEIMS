@@ -1,6 +1,6 @@
 # ALL INITIAL MODEL PARAMETERS.
-# Table title (columns are split by COMMA!)
-# Last updated: 2018-7-28
+# Table title (columns are split by COMMA and each element should not contain COMMA!)
+# Last updated: 2018-8-21
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
 Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,AC,350,300
@@ -130,7 +130,6 @@ Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,no
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
 Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
-Sediment,sed_chi,Initial channel sediment concentration,ton/m^3,ChannelRouting,0.03,0,AC,0.848,0
 Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
 Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1
 Sediment,Spl_delratio,Splash delivery ratio,none,SplashEro_KinEen,0.1,1,RC,1,0
@@ -202,12 +201,18 @@ WaterBalance,Residual,soil residual moisture,m3/m3,ALL,-9999,1,RC,1.2,0.8
 WaterBalance,Wiltingpoint,Plant wilting point moisture,m3/m3,ALL,-9999,1,RC,0.5,0.05
 WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
 WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint,none,ALL,-9999,1,RC,1000,0.01
-Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0
-Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,100,0
+Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0.5
+Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,50,0.15
 Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
-Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,2,1,RC,5,0.001
-Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0
-Routing,ch_k_bank,channel bank hydraulic conductivity,mm/hr,ChannelRouting,20,1,RC,150,0
-Routing,ch_k_bed,channel bed hydraulic conductivity,mm/hr,ChannelRouting,0.5,1,RC,150,0
-Routing,ch_cover,Channel cover factor,none,ChannelRouting,0.1,1,RC,1,0.001
-Routing,ch_erod,Channel erodibility factor,none,ChannelRouting,0.1,1,RC,0.6,0.001
+Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,-9999,1,RC,5,0.001
+Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0.0001
+Routing,ch_bnk_k,channel bank hydraulic conductivity,mm/hr,ChannelRouting,-9999,1,RC,150,0
+Routing,ch_bed_k,channel bed hydraulic conductivity,mm/hr,ChannelRouting,-9999,1,RC,150,0
+Routing,ch_bnk_bd,channel bank bulk density,g/cm3,ChannelRouting,-9999,1,RC,1.9,1.1
+Routing,ch_bed_bd,channel bed bulk density,g/cm3,ChannelRouting,-9999,1,RC,1.9,1.1
+Routing,ch_bnk_cov,Channel bank cover factor,none,ChannelRouting,-9999,1,RC,1,0.001
+Routing,ch_bed_cov,Channel bed cover factor,none,ChannelRouting,-9999,1,RC,1,0.001
+Routing,ch_bnk_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001
+Routing,ch_bed_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001
+Routing,ch_bnk_d50,D50(median) particle size diameter of channel bank sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001
+Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001

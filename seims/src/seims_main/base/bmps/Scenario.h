@@ -1,8 +1,11 @@
 /*!
+ * \file Scenario.h
  * \brief Scenario class in BMP database
+ *
+ * Changelog:
+ *   - 1. 2016-06-16 - lj - Replaced SQLite by MongoDB to manager BMP scenario data.
+ *
  * \author Liang-Jun Zhu
- * \date 2016-6-16
- *            1. Replaced SQLite by MongoDB to manager BMP scenario data.
  */
 #ifndef SEIMS_SCENARIO_H
 #define SEIMS_SCENARIO_H
@@ -21,20 +24,22 @@ using namespace ccgl;
 namespace bmps {
 /*!
  * \class Scenario
- * \ingroup bmps
+ * \ingroup scenarios
  *
  * \brief Main class of scenario in BMP database
  *
  * Scenario contains a collection of BMPFactory.
- * Each \sa BMPFactory is corresponding to one type of BMP.
+ * Each \ref BMPFactory is corresponding to one type of BMP.
  *
- * Usage:       (1) instantiate the class
- *              (2) invoke setRasterForScenario() in DataCenter
- *              (3) invoke setRasterForEachBMP()
- *              (4) set as an input parameter for module use
+ * Usage:
+ *   - 1. Instantiate the class.
+ *   - 2. Invoke \ref DataCenter::SetRasterForScenario() function to set raster data if needed.
+ *   - 3. Invoke \ref setRasterForEachBMP().
+ *   - 4. Set as an input parameter for module use.
+ *
  * Revised:
- *              (1) Replaced SQLite by MongoDB, 2016-6-16
- *              (2) Add setRasterForEachBMP() function, 2017-7-12
+ *   - 1. Replaced SQLite by MongoDB, 2016-6-16.
+ *   - 2. Add \ref setRasterForEachBMP() function, 2017-7-12.
  */
 class Scenario: Interface {
 public:
@@ -62,7 +67,7 @@ public:
     //! Output all BMPs information of this scenario to ostream
     void Dump(std::ostream* fs);
 
-    //! Load time series data from database for some reach structure, \sa BMPReachFactory
+    //! Load time series data from database for some reach structure, \ref BMPReachFactory
     //void loadTimeSeriesData(string databasePath, time_t startTime, time_t endTime, int interval);
 
     //! get scenario required raster map. DO NOT DEFINE AS CONST FUNCTION, SINCE m_sceneRsMap WILL BE CHANGED ELSEWHERE!
@@ -75,7 +80,7 @@ public:
 private:
     /*!
      * \brief Map of BMPs Factory
-     *        the Key is unique BMP ID, and the value is \sa BMPFactory
+     *        the Key is unique BMP ID, and the value is \ref BMPFactory
      */
     map<int, BMPFactory *> m_bmpFactories;
     /*!
@@ -92,7 +97,7 @@ private:
     /// Load each BMP in current scenario
     void loadBMPs();
 
-    /// Load a single BMP information via \sa BMPFactory
+    /// Load a single BMP information via \ref BMPFactory
     void loadBMPDetail();
 
 private:

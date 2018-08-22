@@ -50,6 +50,7 @@ class ImportReaches2Mongo(object):
     _WIDTH = 'CH_WIDTH'
     _LENGTH = 'CH_LEN'
     _DEPTH = 'CH_DEPTH'
+    _WDRATIO = 'CH_WDRATIO'
     _AREA = 'CH_AREA'
     _SIDESLP = 'CH_SSLP'  # H/V. 0: vertical band, 5: bank with gentle side slope. chside in SWAT
     _SLOPE = 'CH_SLP'
@@ -214,7 +215,7 @@ class ImportReaches2Mongo(object):
 
     @staticmethod
     def read_reach_downstream_info(reach_shp, is_taudem=True):
-        """Read informations of subbasin.
+        """Read information of subbasin.
         Args:
             reach_shp: reach ESRI shapefile.
             is_taudem: is TauDEM or not, true is default.
@@ -249,11 +250,11 @@ class ImportReaches2Mongo(object):
             nfrom = ft.GetFieldAsInteger(ifrom)
             nto = ft.GetFieldAsInteger(ito)
             rch_dict[nfrom] = {'downstream': nto,
-                               'depth': ft.GetFieldAsDouble(idph) if idph > -1 else 5.,
+                               'depth': ft.GetFieldAsDouble(idph) if idph > 0. else 1.5,
                                'slope': ft.GetFieldAsDouble(islp)
                                if islp > -1 and ft.GetFieldAsDouble(islp) > MINI_SLOPE
                                else MINI_SLOPE,
-                               'width': ft.GetFieldAsDouble(iwth) if iwth > -1 else 5.,
+                               'width': ft.GetFieldAsDouble(iwth) if iwth > 0. else 5.,
                                'length': ft.GetFieldAsDouble(ilen)}
 
             ft = layer_reach.GetNextFeature()
@@ -426,6 +427,7 @@ class ImportReaches2Mongo(object):
             dic[ImportReaches2Mongo._WIDTH] = rchdata['width']
             dic[ImportReaches2Mongo._LENGTH] = rchdata['length']
             dic[ImportReaches2Mongo._DEPTH] = rchdata['depth']
+            dic[ImportReaches2Mongo._WDRATIO] = 3.5
             dic[ImportReaches2Mongo._AREA] = rchdata[ImportReaches2Mongo._AREA]
             dic[ImportReaches2Mongo._SIDESLP] = 2.
             dic[ImportReaches2Mongo._SLOPE] = rchdata['slope']

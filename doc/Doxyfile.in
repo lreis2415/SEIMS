@@ -31,7 +31,7 @@ FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        =
 STRIP_FROM_INC_PATH    =
 SHORT_NAMES            = NO
-JAVADOC_AUTOBRIEF      = NO
+JAVADOC_AUTOBRIEF      = YES
 QT_AUTOBRIEF           = NO
 MULTILINE_CPP_IS_BRIEF = NO
 INHERIT_DOCS           = YES
@@ -132,19 +132,12 @@ INPUT                  = doc/en/doc/README.md \
                          doc/en/doc/technical/database.md \
                          doc/en/doc/theory/watershedprocesses.md \
                          seims/src/ccgl/src \
+                         seims/src/seims_main/doxygen_def_modules.h \
                          seims/src/seims_main/base \
                          seims/src/seims_main/main/main_omp \
                          seims/src/seims_main/main/main_mpi
 INPUT_ENCODING         = UTF-8
-FILE_PATTERNS          = *.c \
-                         *.cc \
-                         *.cxx \
-                         *.cpp \
-                         *.h \
-                         *.hh \
-                         *.hxx \
-                         *.hpp \
-                         *.inc \
+FILE_PATTERNS          = *.h \
                          *.md
 RECURSIVE              = YES
 EXCLUDE                = ./seims/src/seims_main/base/module_setting/tinystr.cpp \
@@ -232,7 +225,7 @@ GENERATE_ECLIPSEHELP   = NO
 ECLIPSE_DOC_ID         = cn.ac.lreis.SEIMS
 DISABLE_INDEX          = YES
 GENERATE_TREEVIEW      = YES
-ENUM_VALUES_PER_LINE   = 4
+ENUM_VALUES_PER_LINE   = 1
 TREEVIEW_WIDTH         = 250
 EXT_LINKS_IN_WINDOW    = NO
 FORMULA_FONTSIZE       = 10
@@ -334,7 +327,8 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
-PREDEFINED             =
+PREDEFINED             = USE_MONGODB \
+                         USE_GDAL
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 

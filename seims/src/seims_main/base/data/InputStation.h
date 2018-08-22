@@ -1,4 +1,5 @@
 /*!
+ * \file InputStation.h
  * \brief HydroClimate site information
  * \author Junzhi Liu, LiangJun Zhu
  * \version 1.1
@@ -90,7 +91,7 @@ private:
     time_t m_dtCh;
     //! Hillslope scale time interval
     time_t m_dtHs;
-    //! Measurement object of each data type \sa Measurement
+    //! Measurement object of each data type \ref Measurement
     map<string, Measurement *> m_measurement;
     //! Site ID: elevation
     map<string, float *> m_elevation;

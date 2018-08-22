@@ -1,9 +1,12 @@
 /*!
+ * \file SettingsOutput.h
  * \brief Setting Outputs for SEIMS
- * \author Junzhi Liu, LiangJun Zhu
+ *
+ * Changelog:
+ *   - 1. 2017-05-20 - lj - Refactor, decoupling with database IO.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
- * \date May 2017
- * \revised LJ - Refactor, decoupling with database IO
  */
 #ifndef SEIMS_SETTING_OUTPUT_H
 #define SEIMS_SETTING_OUTPUT_H
@@ -12,8 +15,9 @@
 #include "PrintInfo.h"
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \struct OrgOutItem
+ * \brief Original output item
  */
 struct OrgOutItem {
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
@@ -36,9 +40,9 @@ struct OrgOutItem {
 };
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \class SettingsOutput
- * \brief
+ * \brief Setting outputs, \ref Settings
  */
 class SettingsOutput: public Settings {
 public:
@@ -69,7 +73,7 @@ public:
     /*!
      * \brief All the output settings
      * key: OutputID
-     * value: \sa PrintInfo instance
+     * value: \ref PrintInfo instance
      */
     map<string, PrintInfo *> m_printInfosMap;
 

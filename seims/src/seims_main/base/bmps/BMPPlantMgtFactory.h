@@ -1,4 +1,5 @@
 /*!
+ * \file BMPPlantMgtFactory.h
  * \brief Plant management operations factory
  * \author Liang-Jun Zhu
  * \date June 2016
@@ -14,9 +15,7 @@ using namespace plant_management;
 
 namespace bmps {
 /*!
- * \class BMPPlantMgtFactory
- * \ingroup MainBMP
- *
+ * \class bmps::BMPPlantMgtFactory
  * \brief Initiate a plant management BMP
  * Actually, it contains a series BMPs, such as plant, fertilize, harvest, etc.
  *

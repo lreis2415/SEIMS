@@ -12,10 +12,10 @@
 """
 from __future__ import absolute_import
 
-import sys
 from math import exp, sqrt
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -378,7 +378,8 @@ class TerrainUtilClass(object):
         return width
 
     @staticmethod
-    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data, default_depth=5.):
+    def add_channel_width_to_shp(reach_shp_file, stream_link_file,
+                                 width_data, default_depth=1.5):
         """Add channel/reach width and default depth to ESRI shapefile"""
         stream_link = RasterUtilClass.read_raster(stream_link_file)
         n_rows = stream_link.nRows
@@ -453,7 +454,8 @@ class TerrainUtilClass(object):
         landuse_file = cfg.spatials.landuse
         depression_file = cfg.spatials.depression
         TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
-                                             slope_file, depression_file, landuse_shp, cfg.imper_perc_in_urban)
+                                             slope_file, depression_file, landuse_shp,
+                                             cfg.imper_perc_in_urban)
         # 2. Calculate inputs for IUH
         if cfg.gen_iuh:
             status_output("Prepare parameters for IUH...", 30, f)
@@ -498,6 +500,7 @@ def main():
 
 if __name__ == '__main__':
     import time
+
     start_time = time.time()
     main()
     end_time = time.time()

@@ -105,9 +105,9 @@ def main():
     """FUNCTION TESTS"""
     cur_path = UtilClass.current_path(lambda: 0)
     SEIMS_path = os.path.abspath(cur_path + '../../..')
-    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'model_dianbu2_30m_demo')
-    prep_cfg = write_preprocess_config_file(model_paths, 'preprocess_30m_omp.ini')
-    postp_cfg = write_postprocess_config_file(model_paths, 'postprocess_30m_omp.ini')
+    model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'demo_dianbu2_model')
+    prep_cfg = write_preprocess_config_file(model_paths, 'preprocess.ini')
+    postp_cfg = write_postprocess_config_file(model_paths, 'postprocess.ini')
 
 
 if __name__ == "__main__":

@@ -1,11 +1,14 @@
 /*!
+ * \file clsReach.h
  * \brief Class to store reach related parameters from REACHES table
+ *
+ * Changelog:
+ *   - 1. 2017-05-30 - lj - Update MongoDB functions.
+ *                          Get 1D arrays of reach properties to keep synchronization among modules.
+ *   - 2. 2017-12-26 - lj - Code refactor.
+ *
  * \author LiangJun Zhu
  * \version 1.1
- * \date May. 2017
- * \revised LJ - Update MongoDB functions
- *             - Get 1D arrays of reach properties to keep synchronization among modules
- *             - Code refactor. 2017-12-26
  */
 #ifndef SEIMS_REACH_CLS_H
 #define SEIMS_REACH_CLS_H
@@ -78,7 +81,7 @@ public:
      * \param[in] conn MongoClient instance
      * \param[in] db_name Database name
      * \param[in] collection_name Reach collection name
-     * \param[in] mtd layering method, the default is UP_DOWN, \sa LayeringMethod
+     * \param[in] mtd layering method, the default is UP_DOWN, \ref LayeringMethod
      */
     clsReaches(MongoClient* conn, const string& db_name, const string& collection_name, LayeringMethod mtd = UP_DOWN);
 

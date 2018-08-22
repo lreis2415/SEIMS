@@ -1,4 +1,5 @@
 /*!
+ * \file api.h
  * \brief API definition of SEIMS modules
  * \author Junzhi Liu
  * \date 2011

@@ -1,7 +1,11 @@
 /*!
+ * \file TaskInformation.h
  * \brief Class of parallel task information.
+ *
+ * Changelog:
+ *   - 1. 2018-06-12 - lj - Initial implementation.
+ *
  * \author Liangjun Zhu
- * \changelog  2018-06-12  - lj -  Initial implementation.\n
  */
 #ifndef SEIMS_MPI_TASK_INFO_H
 #define SEIMS_MPI_TASK_INFO_H
@@ -15,13 +19,20 @@ using namespace ccgl;
 using std::map;
 using std::vector;
 
+/*!
+ * \class TaskInfo
+ * \brief Load and preprocess task scheduling information.
+ * \ingroup seims_mpi
+ */
 class TaskInfo: Interface {
 public:
-    /*! Constructor
+    /*!
+     * \brief Constructor
      * \param[in] size Number of process
      * \param[in] rank Rank ID
      */
     explicit TaskInfo(int size, int rank);
+    /// Destructor
     ~TaskInfo();
     /// Check global variables
     bool CheckInputData();
