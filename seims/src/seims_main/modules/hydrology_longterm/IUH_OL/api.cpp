@@ -16,7 +16,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetClass(MCLS_OL_ROUTING, MCLSDESC_OL_ROUTING);
     mdi.SetDescription(MDESC_IUH_OL);
     mdi.SetEmail(SEIMS_EMAIL);
-    mdi.SetHelpfile("IUH_OL.chm");
+    mdi.SetHelpfile("");
     mdi.SetID(MID_IUH_OL);
     mdi.SetName(MID_IUH_OL);
     mdi.SetVersion("1.2");

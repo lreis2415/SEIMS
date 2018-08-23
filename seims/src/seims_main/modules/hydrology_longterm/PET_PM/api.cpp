@@ -20,7 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MID_PET_PM);
     mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("PET_PM.html");
+    mdi.SetHelpfile("");
 
     // set the parameters
     mdi.AddParameter(VAR_CO2, UNIT_GAS_PPMV, DESC_CO2, Source_ParameterDB, DT_Single);

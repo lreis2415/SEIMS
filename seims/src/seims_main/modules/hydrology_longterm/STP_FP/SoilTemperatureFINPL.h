@@ -1,11 +1,13 @@
-/**
-* @brief	Finn Plauborg Method to Compute Soil Temperature
-* @author	Junzhi Liu
-* @date	5-January-2011
-* @revised LiangJun Zhu
-* @date 27-May-2016
-*
-*/
+/*!
+ * \file SoilTemperatureFINPL.h
+ * \brief Finn Plauborg Method to Compute Soil Temperature
+ *
+ * Changelog:
+ *   - 1. 2011-01-05 - jz - Initial implementation.
+ *   - 2. 2016-05-27 - lj - Code review and reformat.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
+ */
 #ifndef SEIMS_MODULE_STP_FP_H
 #define SEIMS_MODULE_STP_FP_H
 

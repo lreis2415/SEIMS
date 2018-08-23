@@ -1,38 +1,29 @@
-/**
-*	@version	1.0
-*	@author    Wu Hui
-*	@date	24-January-2011
-*
-*	@brief	Reservoir Method to calculate groundwater balance and baseflow
-*
-*	Revision: Zhiqiang Yu
-*   Date:	  2011-2-11
-*
-*	Revision: Zhiqiang Yu
-*	Date:	  2011-2-18
-*	Description:
-*	1.  Add judgment to calculation of EG (Revap). The average percolation of
-*		one subbasin is first calculated. If the percolation is less than 0.01,
-*		EG is set to 0 directly. (in function setInputs of class subbasin)
-*	2.	Add member variable m_isRevapChanged to class subbasin. This variable
-*		is the flag whether the Revap is changed by current time step. This flag
-*		can avoid repeating setting values when converting subbasin average Revap
-*		to cell Revap.(in function Execute of class ReservoirMethod)
-*
-*	Revision:	Zhiqiang Yu
-*	Date:		2011-3-14
-*	Description:
-*	1.	Add codes to process the groundwater which comes from bank storage in
-*		channel routing module. The water volume of this part of groundwater is
-*		added to the groundwater storage. The input variable "T_GWNEW" is used
-*		for this purpose. One additional parameter is added to function setInputs
-*		of class subbasin. See equation 8 in memo "Channel water balance" for detailed
-*		reference.
-*
-*	\changelog 2016-07-27 - lj - Move subbasin class to base/data module for sharing with other modules.\n
-*	           2018-06-28 - lj - Move SetSubbasinInfos() to dataCenter class.\n
-*	           2018-07-18 - sf - revap should be calculated by cell first.\n
-*/
+/*!
+ * \file ReservoirMethod.h
+ * \brief Reservoir Method to calculate groundwater balance and baseflow.
+ *
+ * Changelog:
+ *   - 1. 2011-01-24 - wh - Initial implementation.
+ *   - 2. 2011-02-18 - zq -
+ *        -# Add judgment to calculation of EG (Revap). The average percolation of
+ *		       one subbasin is first calculated. If the percolation is less than 0.01,
+ *		       EG is set to 0 directly. (in function setInputs of class subbasin)
+ *	      -# Add member variable m_isRevapChanged to class subbasin. This variable
+ *		       is the flag whether the Revap is changed by current time step. This flag
+ *		       can avoid repeating setting values when converting subbasin average Revap
+ *		       to cell Revap.(in function Execute of class ReservoirMethod)
+ *   - 3. 2011-03-14 - zq - Add codes to process the groundwater which comes from bank storage in
+ *		                      channel routing module. The water volume of this part of groundwater is
+ *		                      added to the groundwater storage. The input variable "T_GWNEW" is used
+ *		                      for this purpose. One additional parameter is added to function setInputs
+ *		                      of class subbasin.
+ *		                      See equation 8 in memo "Channel water balance" for detailed reference.
+ *   - 4. 2016-07-27 - lj - Move subbasin class to base/data module for sharing with other modules.
+ *	 - 5. 2018-06-28 - lj - Move SetSubbasinInfos() to dataCenter class.
+ *	 - 6. 2018-07-18 - sf - revap should be calculated by cell first.
+ *
+ * \author Hui Wu, Zhiqiang Yu, Liangjun Zhu, Fang Shen
+ */
 #ifndef SEIMS_MODULE_GWA_RE_H
 #define SEIMS_MODULE_GWA_RE_H
 

@@ -1,12 +1,14 @@
 /*!
+ * \file RiceGrowth_ORYZA.h
  * \brief Rice crop growth module of ORYZA2000 model.
  *        Rewrite from APSIM-ORYZA(2), version august, 503, November 2002.
  *        The model is adapted from ORYZA1 (1995), and ORYZA_w(1996) models.
  *
- * \author Fang Shen
- * \changelog: 2018-03-26 - sf - Initial implementation.\n
- *             2018-06-12 - lj - Code review and reformat code style.\n
+ * Changelog:
+ *   - 1. 2018-03-26 - sf - Initial implementation.
+ *   - 2. 2018-06-12 - lj - Code review and reformat code style.
  *
+ * \author Fang Shen
  */
 #ifndef SEIMS_MODULE_PG_ORYZA_H
 #define SEIMS_MODULE_PG_ORYZA_H

@@ -20,7 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MID_STP_FP);
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("STP_FP.html");
+    mdi.SetHelpfile("");
 
     /// from parameter database
     mdi.AddParameter(VAR_SOL_TA0, UNIT_NON_DIM, DESC_SOL_TA0, Source_ParameterDB, DT_Single);

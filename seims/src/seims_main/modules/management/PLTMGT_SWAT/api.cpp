@@ -12,7 +12,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     string res;
 
-    mdi.SetAuthor("Liang-Jun Zhu");
+    mdi.SetAuthor("Liangjun Zhu");
     mdi.SetClass(MCLS_MGT, MCLSDESC_MGT);
     mdi.SetDescription(MDESC_PLTMGT_SWAT);
     mdi.SetID(MID_PLTMGT_SWAT);

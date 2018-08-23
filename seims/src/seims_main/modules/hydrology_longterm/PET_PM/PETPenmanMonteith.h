@@ -1,16 +1,19 @@
 /*!
- * \brief Potential evapotranspiration using Penman Monteith Method
- * \author Junzhi Liu
- * \date Nov. 2010
- * \revised LiangJun Zhu
- * \date May. 2016
- * \note: 1. Add m_tMean from database, which may be measurement value or the mean of tMax and tMin;
-              2. The PET calculate is changed from site-based to cell-based, because PET is not only dependent on Climate site data;
-			  3. Add ecology related parameters (initialized value).
-			  4. Add potential plant transpiration as output.
-			  5. Add m_VPD, m_dayLen as outputs, which will be used in PG_EPIC module
-			  6. change m_vpd2 and m_gsi from DT_Single to DT_Raster1D, see readplant.f of SWAT
-			  7. Add m_phuBase as outputs, which will be used in MGT_SWAT module
+ * \file PETPenmanMonteith.h
+ * \brief Potential evapotranspiration using Penman Monteith Method.
+ *
+ * Changelog:
+ *   - 1. 2010-11-30 - jz - Initial implementation.
+ *   - 2. 2016-05-30 - lj -
+ *        -# Add m_tMean from database, which may be measurement value or the mean of tMax and tMin
+ *        -# The PET calculate is changed from site-based to cell-based, because PET is not only dependent on Climate site data
+ *        -# Add ecology related parameters (initialized value)
+ *        -# Add potential plant transpiration as output
+ *        -# Add m_VPD, m_dayLen as outputs, which will be used in PG_EPIC module
+ *        -# change m_vpd2 and m_gsi from DT_Single to DT_Raster1D, see readplant.f of SWAT
+ *        -# Add m_phuBase as outputs, which will be used in MGT_SWAT module
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_PET_PM_H
 #define SEIMS_MODULE_PET_PM_H

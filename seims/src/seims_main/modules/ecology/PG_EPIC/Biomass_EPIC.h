@@ -1,11 +1,14 @@
 /*!
+ * \file Biomass_EPIC.h
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
  * incorporated a simplified version of the EPIC plant growth model as in SWAT rev. 637, plantmod.f
- * \author LiangJun Zhu
- * \changelog: 2016-06-15 - lj - Initial implementation.\n
- *             2016-10-07 - lj - Add some code of CENTURY model calculation.\n
- *             2018-05-14 - lj - Code review and reformat code style.\n
  *
+ * Changelog:
+ *   - 1. 2016-06-15 - lj - Initial implementation.
+ *   - 2. 2016-10-07 - lj - Add some code of CENTURY model calculation.
+ *   - 3. 2018-05-14 - lj - Code review and reformat code style.
+ *
+ * \author Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_PG_EPIC_H
 #define SEIMS_MODULE_PG_EPIC_H

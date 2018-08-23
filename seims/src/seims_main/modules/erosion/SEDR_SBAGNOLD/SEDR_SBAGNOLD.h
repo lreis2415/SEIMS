@@ -1,21 +1,27 @@
 /*!
+ * \file SEDR_SBAGNOLD.h
  * \brief Sediment routing using simplified version of Bagnold(1997) stream power equation,
  *        which is based on fall velocity and degradation on stream.
  *
  *        reWrite from route.f and rtsed_bagnold.f of SWAT
- * \author Liangjun Zhu, Hui Wu, Junzhi Liu
- * \changelog 2012-07-31 - wh - Initial implementation based on rtsed.f of SWAT.\n
- *            2016-05-30 - lj - 1. move m_erodibilityFactor, m_coverFactor, to reach collection of MongoDB as inputs, and is DT_Array1D.\n
- *                              2. add point source loadings from Scenario database.\n
- *                              3. add SEDRECHConc output with the unit g/cm3 (i.e., Mg/m3).\n
- *            2016-08-31 - jz - Code review.\n
- *            2016-09-30 - lj - 1. ReCheck and Update code according to route.f and rtsed.f\n
- *                              2. Change the module name from SEDR_VCD to SEDR_SBAGNOLD.\n
- *            2018-05-14 - lj - Code review and reformat.\n
- *            2018-06-28 - lj - 1. The initialization of m_sedStorage should be done in Set1DData after m_chStorage.\n
- *                              2. Bug fixed about code related to the IN/OUTPUT variables.\n
- *            2018-08-15 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
  *
+ * Changelog:
+ *   - 1. 2012-07-31 - wh - Initial implementation based on rtsed.f of SWAT.
+ *   - 2. 2016-05-30 - lj -
+ *        -# Move m_erodibilityFactor, m_coverFactor, to reach collection of MongoDB as DT_Array1D inputs.
+ *        -# Add point source loadings from Scenario database.
+ *        -# Add SEDRECHConc output with the unit g/cm^3 (i.e., Mg/m^3).
+ *   - 3. 2016-08-31 - jz - Code review.
+ *   - 4. 2016-09-30 - lj -
+ *        -# ReCheck and Update code according to route.f and rtsed.f
+ *        -# Change the module name from SEDR_VCD to SEDR_SBAGNOLD.
+ *   - 5. 2018-05-14 - lj - Code review and reformat.
+ *   - 6. 2018-06-28 - lj -
+ *        -# The initialization of m_sedSto should be done in Set1DData after m_chSto.
+ *        -# Bug fixed about code related to the IN/OUTPUT variables.
+ *   - 7. 2018-08-15 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
+ *
+ * \author Liangjun Zhu, Hui Wu, Junzhi Liu
  */
 #ifndef SEIMS_MODULE_SEDR_SBAGNOLD_H
 #define SEIMS_MODULE_SEDR_SBAGNOLD_H
@@ -94,18 +100,18 @@ private:
     float* m_chBedBD;         ///< Bulk density of channel bed
     float* m_chBnkCov;        /// Channel bank cover factor, ch_cov1 in SWAT
     // float* m_chBedCov;     /// Channel bed cover factor, ch_cov2 in SWAT, currently not used
-    float* m_chBnkErod;       ///< channel bank erodibility factor, cm^3/N/s
-    float* m_chBedErod;       ///< channel bed erodibility factor, cm^3/N/s
-    float* m_chBnkTc;         ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBedTc;         ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBnkSand;       ///< Fraction of sand in channel bank sediment
-    float* m_chBnkSilt;       ///< Fraction of silt in channel bank sediment
-    float* m_chBnkClay;       ///< Fraction of clay in channel bank sediment
-    float* m_chBnkGravel;     ///< Fraction of gravel in channel bank sediment
-    float* m_chBedSand;       ///< Fraction of sand in channel bed sediment
-    float* m_chBedSilt;       ///< Fraction of silt in channel bed sediment
-    float* m_chBedClay;       ///< Fraction of clay in channel bed sediment
-    float* m_chBedGravel;     ///< Fraction of gravel in channel bed sediment
+    float* m_chBnkErod;   ///< channel bank erodibility factor, cm^3/N/s
+    float* m_chBedErod;   ///< channel bed erodibility factor, cm^3/N/s
+    float* m_chBnkTc;     ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBedTc;     ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBnkSand;   ///< Fraction of sand in channel bank sediment
+    float* m_chBnkSilt;   ///< Fraction of silt in channel bank sediment
+    float* m_chBnkClay;   ///< Fraction of clay in channel bank sediment
+    float* m_chBnkGravel; ///< Fraction of gravel in channel bank sediment
+    float* m_chBedSand;   ///< Fraction of sand in channel bed sediment
+    float* m_chBedSilt;   ///< Fraction of silt in channel bed sediment
+    float* m_chBedClay;   ///< Fraction of clay in channel bed sediment
+    float* m_chBedGravel; ///< Fraction of gravel in channel bed sediment
 
     map<int, vector<int> > m_reachLayers; ///< Reach layers according to \a LayeringMethod
     /*!

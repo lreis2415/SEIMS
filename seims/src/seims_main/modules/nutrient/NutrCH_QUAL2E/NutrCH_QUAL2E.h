@@ -1,15 +1,20 @@
 /*!
+ * \file NutrCH_QUAL2E.h
  * \brief Calculates in-stream nutrient transformations with QUAL2E method.
  *        watqual2.f of SWAT
- * \author Huiran Gao, Junzhi Liu, Liangjun Zhu
- * \changelog 2016-06-30 - hr - Initial implementation.\n
- *            2017-12-26 - lj - 1. Add point source loadings nutrients from Scenario.\n
- *                              2. Add ammonian transported by surface runoff.\n
- *                              3. Reformat code style. Update clsReaches usage.\n
- *            2018-03-23 - lj - Debug for mpi version.\n
- *            2018-05-15 - lj - 1. Remove LayeringMethod variable and m_qUpReach, which are useless.\n
- *                              2. Code review and reformat.\n
  *
+ * Changelog:
+ *   - 1. 2016-06-30 - hr - Initial implementation.
+ *   - 2. 2017-12-26 - lj -
+ *        -# Add point source loadings nutrients from Scenario.
+ *        -# Add ammonian transported by surface runoff.
+ *        -# Reformat code style. Update clsReaches usage.
+ *   - 3. 2018-03-23 - lj - Debug for mpi version.
+ *   - 4. 2018-05-15 - lj -
+ *        -# Remove LayeringMethod variable and m_qUpReach, which are useless.
+ *        -# Code review and reformat.
+ *
+ * \author Huiran Gao, Junzhi Liu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_NUTRCH_QUAL2E_H
 #define SEIMS_MODULE_NUTRCH_QUAL2E_H
@@ -50,7 +55,7 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; };
+    TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
 
 private:
     /*!
@@ -121,25 +126,25 @@ private:
 
     /// input data
 
-    float m_ai0; /// ratio of chlorophyll-a to algal biomass (ug chla/mg alg)
-    float m_ai1; /// fraction of algal biomass that is nitrogen (mg N/mg alg)
-    float m_ai2; /// fraction of algal biomass that is phosphorus (mg P/mg alg)
-    float m_ai3; /// the rate of oxygen production per unit of algal photosynthesis (mg O2/mg alg)
-    float m_ai4; /// the rate of oxygen uptake per unit of algae respiration (mg O2/mg alg)
-    float m_ai5; /// the rate of oxygen uptake per unit of NH3 nitrogen oxidation (mg O2/mg N)
-    float m_ai6; /// the rate of oxygen uptake per unit of NO2 nitrogen oxidation (mg O2/mg N)
+    float m_ai0; ///< ratio of chlorophyll-a to algal biomass (ug chla/mg alg)
+    float m_ai1; ///< fraction of algal biomass that is nitrogen (mg N/mg alg)
+    float m_ai2; ///< fraction of algal biomass that is phosphorus (mg P/mg alg)
+    float m_ai3; ///< the rate of oxygen production per unit of algal photosynthesis (mg O2/mg alg)
+    float m_ai4; ///< the rate of oxygen uptake per unit of algae respiration (mg O2/mg alg)
+    float m_ai5; ///< the rate of oxygen uptake per unit of NH3 nitrogen oxidation (mg O2/mg N)
+    float m_ai6; ///< the rate of oxygen uptake per unit of NO2 nitrogen oxidation (mg O2/mg N)
 
-    float m_lambda0; /// non-algal portion of the light extinction coefficient
-    float m_lambda1; /// linear algal self-shading coefficient
-    float m_lambda2; /// nonlinear algal self-shading coefficient
+    float m_lambda0; ///< non-algal portion of the light extinction coefficient
+    float m_lambda1; ///< linear algal self-shading coefficient
+    float m_lambda2; ///< nonlinear algal self-shading coefficient
 
-    float m_k_l; /// half saturation coefficient for light (MJ/(m2*hr))
-    float m_k_n; /// half-saturation constant for nitrogen (mg N/L)
-    float m_k_p; /// half saturation constant for phosphorus (mg P/L)
-    float m_p_n; /// algal preference factor for ammonia
-    /// fraction of solar radiation computed in the temperature heat balance that is photo synthetically active
-    float tfact;
-    float m_rnum1; /// fraction of overland flow
+    float m_k_l;   ///< half saturation coefficient for light (MJ/(m2*hr))
+    float m_k_n;   ///< half-saturation constant for nitrogen (mg N/L)
+    float m_k_p;   ///< half saturation constant for phosphorus (mg P/L)
+    float m_p_n;   ///< algal preference factor for ammonia
+    float tfact;   ///< fraction of solar radiation computed in the temperature heat balance
+                   ///< that is photo synthetically active
+    float m_rnum1; ///< fraction of overland flow
     /// option for calculating the local specific growth rate of algae
     //     1: multiplicative:     u = mumax * fll * fnn * fpp
     //     2: limiting nutrient: u = mumax * fll * Min(fnn, fpp)
@@ -171,21 +176,21 @@ private:
     float* m_chWtrDepth; ///< channel water depth m
     float* m_chTemp;     ///< temperature of water in reach (deg C)
 
-    float* m_bc1; /// rate constant for biological oxidation of NH3 to NO2 in reach at 20 deg C
-    float* m_bc2; /// rate constant for biological oxidation of NO2 to NO3 in reach at 20 deg C
-    float* m_bc3; /// rate constant for biological oxidation of organic N to ammonia in reach at 20 deg C
-    float* m_bc4; /// rate constant for biological oxidation of organic P to dissolved P in reach at 20 deg C
+    float* m_bc1; ///< rate constant for biological oxidation of NH3 to NO2 in reach at 20 deg C
+    float* m_bc2; ///< rate constant for biological oxidation of NO2 to NO3 in reach at 20 deg C
+    float* m_bc3; ///< rate constant for biological oxidation of organic N to ammonia in reach at 20 deg C
+    float* m_bc4; ///< rate constant for biological oxidation of organic P to dissolved P in reach at 20 deg C
 
-    float* m_rs1; /// local algal settling rate in reach at 20 deg C (m/day)
-    float* m_rs2; /// benthos source rate for dissolved phosphorus in reach at 20 deg C (mg disP-P)/((m**2)*day)
-    float* m_rs3; /// benthos source rate for ammonia nitrogen in reach at 20 deg C (mg NH4-N)/((m**2)*day)
-    float* m_rs4; /// rate coefficient for organic nitrogen settling in reach at 20 deg C (1/day)
-    float* m_rs5; /// organic phosphorus settling rate in reach at 20 deg C (1/day)
+    float* m_rs1; ///< local algal settling rate in reach at 20 deg C (m/day)
+    float* m_rs2; ///< benthos source rate for dissolved phosphorus in reach at 20 deg C (mg disP-P)/((m**2)*day)
+    float* m_rs3; ///< benthos source rate for ammonia nitrogen in reach at 20 deg C (mg NH4-N)/((m**2)*day)
+    float* m_rs4; ///< rate coefficient for organic nitrogen settling in reach at 20 deg C (1/day)
+    float* m_rs5; ///< organic phosphorus settling rate in reach at 20 deg C (1/day)
 
-    float* m_rk1; /// CBOD deoxygenation rate coefficient in reach at 20 deg C (1/day)
-    float* m_rk2; /// reaeration rate in accordance with Fickian diffusion in reach at 20 deg C (1/day)
-    float* m_rk3; /// rate of loss of CBOD due to settling in reach at 20 deg C (1/day)
-    float* m_rk4; /// sediment oxygen demand rate in reach at 20 deg C (mg O2/ ((m**2)*day))
+    float* m_rk1; ///< CBOD deoxygenation rate coefficient in reach at 20 deg C (1/day)
+    float* m_rk2; ///< reaeration rate in accordance with Fickian diffusion in reach at 20 deg C (1/day)
+    float* m_rk3; ///< rate of loss of CBOD due to settling in reach at 20 deg C (1/day)
+    float* m_rk4; ///< sediment oxygen demand rate in reach at 20 deg C (mg O2/ ((m**2)*day))
 
     /// Channel organic nitrogen concentration in basin, ppm
     float m_chOrgNCo;

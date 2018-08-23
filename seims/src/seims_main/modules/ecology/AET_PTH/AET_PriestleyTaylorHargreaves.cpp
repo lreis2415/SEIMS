@@ -6,11 +6,11 @@
 using namespace utils_math;
 
 AET_PT_H::AET_PT_H() :
-    m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
-    m_esco(nullptr), m_nSoilLyrs(nullptr),
+    m_nCells(-1), m_maxSoilLyrs(-1),
+    m_esco(nullptr), m_nSoilLyrs(nullptr), m_soilDepth(nullptr), m_soilThk(nullptr),
     /// input from other modules
-    m_maxSoilLyrs(-1), m_soilDepth(nullptr), m_soilThk(nullptr), m_solFC(nullptr),
-    m_rsdCovSoil(nullptr), m_solNo3(nullptr), m_tMean(nullptr),
+    m_solFC(nullptr), m_rsdCovSoil(nullptr), m_solNo3(nullptr), m_tMean(nullptr),
+    m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
     m_snowAccum(nullptr), m_snowSublim(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr),
     /// output
@@ -25,27 +25,17 @@ AET_PT_H::~AET_PT_H() {
 void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
     CheckInputSize(key, n);
     string sk(key);
-    if (StringMatch(sk, VAR_ESCO)) {
-        m_esco = data;
-    } else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        m_nSoilLyrs = data;
-    } else if (StringMatch(sk, DataType_MeanTemperature)) {
-        m_tMean = data;
-    } else if (StringMatch(sk, VAR_LAIDAY)) {
-        m_lai = data;
-    } else if (StringMatch(sk, VAR_PET)) {
-        m_pet = data;
-    } else if (StringMatch(sk, VAR_INET)) {
-        m_IntcpET = data;
-    } else if (StringMatch(sk, VAR_SNAC)) {
-        m_snowAccum = data;
-    } else if (StringMatch(sk, VAR_SNSB)) {
-        m_snowSublim = data;
-    } else if (StringMatch(sk, VAR_SOL_COV)) {
-        m_rsdCovSoil = data;
-    } else if (StringMatch(sk, VAR_SOL_SW)) {
-        m_soilWtrStoPrfl = data;
-    } else {
+    if (StringMatch(sk, VAR_ESCO)) m_esco = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
+    else if (StringMatch(sk, DataType_MeanTemperature)) m_tMean = data;
+    else if (StringMatch(sk, VAR_LAIDAY)) m_lai = data;
+    else if (StringMatch(sk, VAR_PET)) m_pet = data;
+    else if (StringMatch(sk, VAR_INET)) m_IntcpET = data;
+    else if (StringMatch(sk, VAR_SNAC)) m_snowAccum = data;
+    else if (StringMatch(sk, VAR_SNSB)) m_snowSublim = data;
+    else if (StringMatch(sk, VAR_SOL_COV))m_rsdCovSoil = data;
+    else if (StringMatch(sk, VAR_SOL_SW))m_soilWtrStoPrfl = data;
+    else {
         throw ModelException(MID_AET_PTH, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
@@ -54,17 +44,12 @@ void AET_PT_H::Set2DData(const char* key, const int n, const int col, float** da
     CheckInputSize(key, n);
     string sk(key);
     m_maxSoilLyrs = col;
-    if (StringMatch(sk, VAR_SOILDEPTH)) {
-        m_soilDepth = data;
-    } else if (StringMatch(sk, VAR_SOILTHICK)) {
-        m_soilThk = data;
-    } else if (StringMatch(sk, VAR_SOL_AWC)) {
-        m_solFC = data;
-    } else if (StringMatch(sk, VAR_SOL_NO3)) {
-        m_solNo3 = data;
-    } else if (StringMatch(sk, VAR_SOL_ST)) {
-        m_soilWtrSto = data;
-    } else {
+    if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
+    else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
+    else if (StringMatch(sk, VAR_SOL_AWC)) m_solFC = data;
+    else if (StringMatch(sk, VAR_SOL_NO3)) m_solNo3 = data;
+    else if (StringMatch(sk, VAR_SOL_ST)) m_soilWtrSto = data;
+    else {
         throw ModelException(MID_AET_PTH, "Set2DData", "Parameter " + sk + " does not exist.");
     }
 }
@@ -86,7 +71,6 @@ bool AET_PT_H::CheckInputSize(const char* key, const int n) {
 }
 
 bool AET_PT_H::CheckInputData() {
-    CHECK_POSITIVE(MID_AET_PTH, m_date);
     CHECK_POSITIVE(MID_AET_PTH, m_nCells);
     CHECK_POSITIVE(MID_AET_PTH, m_maxSoilLyrs);
     CHECK_POINTER(MID_AET_PTH, m_esco);
@@ -143,7 +127,6 @@ int AET_PT_H::Execute() {
         if (m_maxPltET[i] < 0.f) m_maxPltET[i] = 0.f;
         /// compute potential soil evaporation
         cej = -5.e-5f;
-        eaj = 0.f;
         es_max = 0.f; ///maximum amount of evaporation (soil et)
         eos1 = 0.f;
         if (m_snowAccum[i] >= 0.5f) {
@@ -185,7 +168,6 @@ int AET_PT_H::Execute() {
         evzp = 0.f;
         eosl = esleft;
         for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
-            dep = 0.f;
             /// depth exceeds max depth for soil evap (esd, by default 500 mm)
             if (ly == 0) {
                 dep = m_soilDepth[i][ly];
@@ -194,9 +176,6 @@ int AET_PT_H::Execute() {
             }
             if (dep < esd) {
                 /// calculate evaporation from soil layer
-                evz = 0.f;
-                sev = 0.f;
-                xx = 0.f;
                 evz = eosl * m_soilDepth[i][ly] /
                         (m_soilDepth[i][ly] + exp(2.374f - 0.00713f * m_soilDepth[i][ly]));
                 sev = evz - evzp * m_esco[i];
@@ -247,11 +226,9 @@ int AET_PT_H::Execute() {
 void AET_PT_H::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
-    if (StringMatch(sk, VAR_PPT)) {
-        *data = m_maxPltET;
-    } else if (StringMatch(sk, VAR_SOET)) {
-        *data = m_soilET;
-    } else {
+    if (StringMatch(sk, VAR_PPT)) *data = m_maxPltET;
+    else if (StringMatch(sk, VAR_SOET)) *data = m_soilET;
+    else {
         throw ModelException(MID_AET_PTH, "Get1DData", "Result " + sk + " does not exist.");
     }
     *n = m_nCells;

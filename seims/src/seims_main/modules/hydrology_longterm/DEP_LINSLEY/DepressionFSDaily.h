@@ -1,30 +1,26 @@
-/*----------------------------------------------------------------------
-*	Purpose: 	A simple fill and spill method method to calculate depression storage
-*
-*	Created:	Junzhi Liu
-*	Date:		14-Febrary-2011
-*
-*	Revision:	Zhiqiang Yu
-*   Date:		2011-2-15
-*	Description:
-*	1.	Modify the name of some parameters, input and output variables.
-*		Please see the metadata rules for the names.
-*	2.	Depre_in would be DT_Single. Add function SetSingleData() to
-*		set its value.
-*	3.	This module will be called by infiltration module to get the
-*		depression storage. And this module will also use the outputs
-*		of infiltration module. The sequence of this two modules is
-*		infiltration->depression. When infiltration first calls the
-*		depression module, the execute function of depression module
-*		is not executed before getting the outputs. So, the output
-*		variables should be initial in the Get1DData function. This
-*		initialization is realized by function initalOutputs.
-*	4.	Delete input D_INFIL and add input D_EXCP.
-*
-*	Revision:    LiangJunZhu
-*	Date    :    2016-7-14
-*	Description:
-*---------------------------------------------------------------------*/
+/*!
+ * \file DepressionFSDaily.h
+ * \brief A simple fill and spill method method to calculate depression storage.
+ *
+ * Changelog:
+ *   - 1. 2011-02-14 - jz - Initial implementation.
+ *   - 2. 2011-02-15 - zq -
+ *        -# Modify the name of some parameters, input and output variables.
+ *		       Please see the metadata rules for the names.
+ *        -# Depre_in would be DT_Single. Add function SetSingleData() to set its value.
+ *        -# This module will be called by infiltration module to get the
+ *		       depression storage. And this module will also use the outputs
+ *		       of infiltration module. The sequence of this two modules is
+ *		       infiltration->depression. When infiltration first calls the
+ *		       depression module, the execute function of depression module
+ *		       is not executed before getting the outputs. So, the output
+ *		       variables should be initial in the Get1DData function. This
+ *		       initialization is realized by function initalOutputs.
+ *        -# Delete input D_INFIL and add input D_EXCP.
+ *   - 3. 2016-07-14 - lj - Code review and reformat.
+ *
+ * \author Junzhi Liu, Zhiqiang Yu, Liangjun Zhu
+ */
 #ifndef SEIMS_MODULE_DEP_LINSLEY_H
 #define SEIMS_MODULE_DEP_LINSLEY_H
 
@@ -49,7 +45,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 

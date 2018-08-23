@@ -52,7 +52,9 @@ public:
     void ReadClimateSiteList() OVERRIDE;
     /*!
      * \brief Read initial and calibrated parameters
-     * \version 2017.12.23  lj - read parameters (Impact value) according to calibration ID
+     *
+     * Changlog:
+     *   - 1. 2017-12-23 - lj - Read parameters (Impact value) according to calibration ID.
      */
     bool ReadParametersInDB() OVERRIDE;
     /*!

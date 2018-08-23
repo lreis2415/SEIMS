@@ -164,7 +164,6 @@ void IUH_SED_OL::Get1DData(const char* key, int* n, float** data) {
     if (StringMatch(sk, VAR_SED_TO_CH)) {
         *data = m_sedtoCh; // from each subbasin to channel
         *n = m_nSubbsns + 1;
-        return;
     } else if (StringMatch(sk, VAR_SEDYLD)) {
         *data = m_olWtrEroSed;
         *n = m_nCells;

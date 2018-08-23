@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
-    mdi.SetAuthor("Huiran Gao; Liang-Jun Zhu");
+    mdi.SetAuthor("Huiran Gao; Liangjun Zhu");
     mdi.SetClass(MCLS_NUTRGW, MCLSDESC_NUTRGW);
     mdi.SetDescription(MDESC_NUTRGW);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MDESC_NUTRGW);
     mdi.SetVersion("1.1");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("NutGW.html");
+    mdi.SetHelpfile("");
 
     // set the parameters
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, DESC_TIMESTEP, File_Config, DT_Single);
