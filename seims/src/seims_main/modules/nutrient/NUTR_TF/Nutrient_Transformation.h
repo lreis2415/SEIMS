@@ -1,12 +1,17 @@
 /*!
+ * \file Nutrient_Transformation.h
  * \brief Daily nitrogen and phosphorus mineralization and immobilization.
  *        From nminrl.f, nitvol.f, pminrl.f, and pminrl2.f of SWAT
+ *
+ * Changelog:
+ *   - 1. 2016-04-30 - hr - Initial implementation.
+ *   - 2. 2016-07-24 - lj -
+ *        -# Change m_wshd_dnit etc. variables to store the statistics values of the current day.
+ *        -# m_hmntl etc. variables should be DT_Raster1D rather than DT_Single since they are soil profile values in cell!
+ *   - 3. 2018-05-08 - lj - Reformat, especially naming style (sync update in "text.h").
+ *                          Code optimization, e.g., use multiply instead of divide.
+ *
  * \author Huiran Gao, Liangjun Zhu
- * \changelog: 2016-04-30 - hr - Initial implementation.\n
- *             2016-07-24 - lj - 1. Change m_wshd_dnit etc. variables to store the statistics values of the current day.\n
- *                               2. m_hmntl etc. variables should be DT_Raster1D rather than DT_Single since they are soil profile values in cell!\n
- *             2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
- *                               2. Code optimization, e.g., use multiply instead of divide.\n
  */
 
 /*!
@@ -36,11 +41,11 @@ public:
 
     ~Nutrient_Transformation();
 
+    void SetValue(const char* key, float value) OVERRIDE;
+
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
-
-    void SetValue(const char* key, float value) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -210,28 +215,28 @@ private:
     /************************************************************************/
     /*    CENTURY model related parameters (initialized and output)  20     */
     /************************************************************************/
-    float** m_sol_WOC;   ///
-    float** m_sol_WON;   ///
-    float** m_sol_BM;    ///
-    float** m_sol_BMC;   ///
-    float** m_sol_BMN;   ///
-    float** m_sol_HP;    /// mass of OM in passive humus
-    float** m_sol_HS;    /// mass of OM in slow humus
-    float** m_sol_HSC;   /// mass of C present in slow humus
-    float** m_sol_HSN;   /// mass of N present in slow humus
-    float** m_sol_HPC;   /// mass of C present in passive humus
-    float** m_sol_HPN;   /// mass of N present in passive humus
-    float** m_sol_LM;    /// metabolic litter SOM pool
-    float** m_sol_LMC;   /// metabolic litter C pool
-    float** m_sol_LMN;   /// metabolic litter N pool
-    float** m_sol_LSC;   /// structural litter C pool
-    float** m_sol_LSN;   /// structural litter N pool
-    float** m_sol_LS;    /// structural litter SOM pool
-    float** m_sol_LSL;   /// lignin weight in structural litter
-    float** m_sol_LSLC;  /// lignin amount in structural litter pool
-    float** m_sol_LSLNC; /// non-lignin part of the structural litter C
-    float** m_sol_RNMN;  /// non
-    float** m_sol_RSPC;  /// non
+    float** m_sol_WOC;   ///<
+    float** m_sol_WON;   ///<
+    float** m_sol_BM;    ///<
+    float** m_sol_BMC;   ///<
+    float** m_sol_BMN;   ///<
+    float** m_sol_HP;    ///< mass of OM in passive humus
+    float** m_sol_HS;    ///< mass of OM in slow humus
+    float** m_sol_HSC;   ///< mass of C present in slow humus
+    float** m_sol_HSN;   ///< mass of N present in slow humus
+    float** m_sol_HPC;   ///< mass of C present in passive humus
+    float** m_sol_HPN;   ///< mass of N present in passive humus
+    float** m_sol_LM;    ///< metabolic litter SOM pool
+    float** m_sol_LMC;   ///< metabolic litter C pool
+    float** m_sol_LMN;   ///< metabolic litter N pool
+    float** m_sol_LSC;   ///< structural litter C pool
+    float** m_sol_LSN;   ///< structural litter N pool
+    float** m_sol_LS;    ///< structural litter SOM pool
+    float** m_sol_LSL;   ///< lignin weight in structural litter
+    float** m_sol_LSLC;  ///< lignin amount in structural litter pool
+    float** m_sol_LSLNC; ///< non-lignin part of the structural litter C
+    float** m_sol_RNMN;  ///< non
+    float** m_sol_RSPC;  ///< non
     /************************************************************************/
     ///amount of nitrogen moving from active organic to nitrate pool in soil profile on current day in cell(kg N/ha)
     float* m_hmntl;

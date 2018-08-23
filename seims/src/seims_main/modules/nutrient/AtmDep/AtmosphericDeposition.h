@@ -1,12 +1,16 @@
 /*!
+ * \file AtmosphericDeposition.h
  * \brief Add nitrate from rainfall to the soil profile as in SWAT rev. 637, nrain.f
- * \author Huiran Gao, Liangjun Zhu
- * \changelog 2016-05-30 - hr - Initial implementation.\n
- *            2016-07-24 - lj - 1. Delete m_cellWidth, m_nSoilLayers, m_sol_z, which are useless.\n
- *                              2. Change m_wshd_rno3 to store nitrate from rainfall of current day.\n
- *                              3. Remove output of m_sol_no3, which is redundant and unnecessary.\n
- *            2018-05-15 - lj - Code review and reformat.\n
  *
+ * Changelog:
+ *   - 1. 2016-05-30 - hr - Initial implementation.
+ *   - 2. 2016-07-24 - lj -
+ *        -# Delete m_cellWidth, m_nSoilLayers, m_sol_z, which are useless.
+ *        -# Change m_wshd_rno3 to store nitrate from rainfall of current day.
+ *        -# Remove output of m_sol_no3, which is redundant and unnecessary.
+ *   - 3. 2018-05-15 - lj - Code review and reformat.
+ *
+ * \author Huiran Gao, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_ATMDEP_H
 #define SEIMS_MODULE_ATMDEP_H

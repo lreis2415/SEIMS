@@ -1,10 +1,13 @@
 /*!
+ * \file NutrientinGroundwater.h
  * \brief Calculates the nitrate and soluble phosphorus loading contributed by groundwater flow.
- * \author Huiran Gao, Liangjun Zhu
- * \changelog 2016-06-30 - hr - Initial implementation.\n
- *            2018-03-23 - lj - Debug for mpi version.\n
- *            2018-05-15 - lj - 1. Code review and reformat.\n
  *
+ * Changelog:
+ *   - 1. 2016-06-30 - hr - Initial implementation.
+ *   - 2. 2018-03-23 - lj - Debug for mpi version.
+ *   - 3. 2018-05-15 - lj - Code review and reformat.
+ *
+ * \author Huiran Gao, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_NUTRGW_H
 #define SEIMS_MODULE_NUTRGW_H

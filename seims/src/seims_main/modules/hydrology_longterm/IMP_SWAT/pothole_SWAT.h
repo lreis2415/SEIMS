@@ -1,14 +1,18 @@
 /*!
- * \brief Simulates depressional areas that do not drain to the stream network (pothole) and impounded areas such as rice paddies
+ * \file pothole_SWAT.h
+ * \brief Simulates depressional areas that do not drain to the stream network (pothole)
+ *          and impounded areas such as rice paddies
+ *
+ * Changlog:
+ *   - 1. 2016-09-27 - lj -
+ *        -# Source code of SWAT include: pothole.f
+ *        -# Add the simulation of Ammonia n transported with surface runoff
+ *        -# Add m_depEvapor and m_depStorage from DEP_LENSLEY module
+ *        -# Using a simple model (first-order kinetics equation) to simulate N transformation in impounded area.
+ *   - 2. 2016-10-10 - lj - Update all related variables after the simulation of pothole.
+ *   - 3. 2017-08-23 - lj - Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
+ *
  * \author Liang-Jun Zhu
- * \date Sep 2016
- *           1. Source code of SWAT include: pothole.f
- *           2. Add the simulation of Ammonia n transported with surface runoff, 2016-9-27
- *           3. Add m_depEvapor and m_depStorage from DEP_LENSLEY module
- *           4. Using a simple model (first-order kinetics equation) to simulate N transformation in impounded area.
- * \data 2016-10-10
- * \description: 1. Update all related variables after the simulation of pothole.
- *               2. 2017-8-23 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
  */
 #ifndef SEIMS_MODULE_IMP_SWAT_H
 #define SEIMS_MODULE_IMP_SWAT_H
@@ -23,7 +27,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 

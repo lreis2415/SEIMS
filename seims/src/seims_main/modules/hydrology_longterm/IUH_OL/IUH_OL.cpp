@@ -124,7 +124,7 @@ void IUH_OL::SetValue(const char* key, const float value) {
     else if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else {
-        throw ModelException(MID_IUH_OL, "SetValue", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(MID_IUH_OL, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
 
@@ -134,7 +134,7 @@ void IUH_OL::Set1DData(const char* key, const int n, float* data) {
     if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
     else {
-        throw ModelException(MID_IUH_OL, "Set1DData", "Parameter " + sk + " does not exist in current method.");
+        throw ModelException(MID_IUH_OL, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 

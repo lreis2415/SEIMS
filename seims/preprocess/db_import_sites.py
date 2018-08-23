@@ -140,12 +140,11 @@ class ImportHydroClimateSites(object):
 
     @staticmethod
     def find_sites(maindb, clim_dbname, subbsn_file, subbsn_field_id,
-                   thissen_file_list, thissen_field_id, site_type_list,
-                   is_storm=False):
+                   thissen_file_list, thissen_field_id, site_type_list):
         """Find meteorology and precipitation sites in study area"""
         mode = 'DAILY'
-        if is_storm:
-            mode = 'STORM'
+        # if is_storm:  # todo: Do some compatible work to support DAILY and STORM simultaneously.
+        #     mode = 'STORM'
         subbasin_list, subbasin_id_list = ImportHydroClimateSites.ogrwkt2shapely(subbsn_file,
                                                                                  subbsn_field_id)
         n_subbasins = len(subbasin_list)
@@ -167,7 +166,7 @@ class ImportHydroClimateSites(object):
                 site_type = site_type_list[meteo_id]
                 thiessen_list, thiessen_id_list = ImportHydroClimateSites.ogrwkt2shapely(
                         thiessen_file, thissen_field_id)
-                site_list = []
+                site_list = list()
                 for poly_id, thiessen in enumerate(thiessen_list):
                     if subbasin.intersects(thiessen):
                         site_list.append(thiessen_id_list[poly_id])
@@ -190,15 +189,14 @@ class ImportHydroClimateSites(object):
         thiessen_file_list = [cfg.meteo_sites_thiessen, cfg.prec_sites_thiessen]
         type_list = [DataType.m, DataType.p]
 
-        # if not cfg.cluster:
         # The entire basin, used for OpenMP version
         ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.bsn,
                                                FieldNames.basin, thiessen_file_list,
-                                               cfg.thiessen_field, type_list, cfg.storm_mode)
+                                               cfg.thiessen_field, type_list)
         # The subbasins, used for MPI&OpenMP version
         ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.subbsn,
                                            FieldNames.subbasin_id, thiessen_file_list,
-                                           cfg.thiessen_field, type_list, cfg.storm_mode)
+                                           cfg.thiessen_field, type_list)
 
         # 2. Import geographic information of each sites to Hydro-Climate database
         c_list = clim_db.collection_names()

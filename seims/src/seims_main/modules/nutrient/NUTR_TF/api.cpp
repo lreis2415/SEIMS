@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MDESC_NUTR_TF);
     mdi.SetVersion("1.2");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("NUTR_TF.html");
+    mdi.SetHelpfile("");
 
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_CMN, UNIT_NON_DIM, DESC_CMN, Source_ParameterDB, DT_Single);

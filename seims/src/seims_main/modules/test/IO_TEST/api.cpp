@@ -4,15 +4,15 @@
 #include "text.h"
 #include "MetadataInfo.h"
 
-extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
+extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
     return new IO_TEST();
 }
 
-extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
+extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     string res;
 
-    mdi.SetAuthor("LiangJun Zhu");
+    mdi.SetAuthor("Liangjun Zhu");
     mdi.SetClass("TEST", "Base functionality test!");
     mdi.SetDescription("Module test.");
     mdi.SetID("IO_TEST");
@@ -35,7 +35,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     /// write out the XML file.
     res = mdi.GetXMLDocument();
 
-    char *tmp = new char[res.size() + 1];
+    char* tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
 }

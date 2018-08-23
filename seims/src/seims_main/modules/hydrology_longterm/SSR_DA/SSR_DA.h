@@ -1,11 +1,14 @@
 /*!
+ * \file SSR_DA.h
  * \brief Subsurface runoff using Darcy's law and the kinematic approximation
  *        Water is routed cell-to-cell according to D8 flow direction
- * \author Junzhi Liu
- * \review Liang-Jun Zhu
- * \date 2018-3-26
- * \note: 2016-7-24 Add support of multi soil layers of each cells.
- *        2017-8-23 Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
+ *
+ * Changelog:
+ *   - 1. 2016-7-24 - lj - Add support of multi soil layers of each cells.
+ *   - 2. 2017-8-23 - lj - Solve inconsistent results when using openmp to reducing
+ *                           raster data according to subbasin ID.
+ *
+ * \author Zhiqiang Yu, Junzhi Liu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_SSR_DA_H
 #define SEIMS_MODULE_SSR_DA_H
@@ -32,7 +35,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char *key, float data) OVERRIDE;
+    void SetValue(const char *key, float value) OVERRIDE;
 
     void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
 

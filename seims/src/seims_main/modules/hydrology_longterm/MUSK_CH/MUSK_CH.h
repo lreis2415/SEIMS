@@ -1,18 +1,23 @@
 /*!
+ * \file MUSK_CH.h
  * \brief channel flow routing using Muskingum method
  *        Refers to rtmusk.f of SWAT source.
+ *
+ * Changelog:
+ *   - 1. 2012-06-26 - jz - Initial implementation.
+ *   - 2. 2016-09-18 - lj -
+ *        -# Add point source loadings from Scenario.
+ *        -# Assume the channels have a trapezoidal shape.
+ *        -# Add m_chBtmWidth as variable intermediate parameter.
+ *        -# Add m_chSideSlope (default is 2) as input parameter from MongoDB,
+ *             which is the ratio of run to rise.
+ *        -# Add several variables to store values in previous time step,
+ *             which will be use in QUAL2E etc.
+ *   - 3. 2018-03-16 - lj - Use AddInOutput() to solve the passing data across
+ *                            subbasins for MPI version. And code style review.
+ *   - 4. 2018-08-14 - lj - Updates according to SWAT.
+ *
  * \author Liangjun Zhu, Junzhi Liu
- * \changelog  2012-06-26 - jz - Initial implementation.\n
- *             2016-09-18 - lj - 1. Add point source loadings from Scenario.\n
- *                               2. Assume the channels have a trapezoidal shape.\n
- *                               3. Add m_chBtmWidth as variable intermediate parameter.\n
- *                               4. Add m_chSideSlope (default is 2) as input parameter from MongoDB,
- *                                  which is the ratio of run to rise.\n
- *                               5. Add several variables to store values in previous time step,
- *                                  which will be use in QUAL2E etc.\n
- *             2018-03-16 - lj - 1. Use AddInOutput() to solve the passing data across subbasins for MPI version.\n
- *                               2. Code style review.\n
- *             2018-08-14 - lj - Updates according to SWAT.\n
  */
 #ifndef SEIMS_MODULE_MUSK_CH_H
 #define SEIMS_MODULE_MUSK_CH_H

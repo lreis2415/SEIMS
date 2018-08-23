@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import json
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -23,7 +24,7 @@ except ImportError:
 from pygeoc.TauDEM import TauDEMFilesUtils
 from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
 
-from preprocess.text import ModelNameUtils, ModelCfgUtils, DirNameUtils, LogNameUtils
+from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
 from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
@@ -53,13 +54,11 @@ class SEIMSConfig(object):
         self.climate_db = ''
         self.bmp_scenario_db = ''
         self.spatial_db = ''
-        # 3. Switch for building SEIMS
-        # self.cluster = False
-        self.storm_mode = False
-        self.gen_cn = True
-        self.gen_runoff_coef = True
-        self.gen_crop = True
-        self.gen_iuh = True
+        # 3. Switch for building SEIMS. These switches should be removed! By lj.
+        # self.gen_cn = True
+        # self.gen_runoff_coef = True
+        # self.gen_crop = True
+        # self.gen_iuh = True
         # 4. Climate inputs
         self.hydro_climate_vars = None
         self.prec_sites = None
@@ -85,8 +84,7 @@ class SEIMSConfig(object):
         self.d8down_method = 's'
         self.dorm_hr = -1.
         self.temp_base = 0.
-        self.imper_perc_in_urban = 0.3
-        self.default_reach_depth = 5.
+        self.imper_perc_in_urban = 0.
         self.default_landuse = -1
         self.default_soil = -1
         # 1. Directories
@@ -164,26 +162,21 @@ class SEIMSConfig(object):
         if not StringClass.is_valid_ip_addr(self.hostname):
             raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
 
-        # 3. Model related switch
+        # 3. Model related switch. The SWITCH section should be removed! By lj.
         # by default, OpenMP version and daily (longterm) mode will be built
-        if 'SWITCH' in cf.sections():
-            # self.cluster = cf.getboolean('SWITCH', 'forcluster')
-            self.storm_mode = cf.getboolean('SWITCH', 'stormmode')
-            self.gen_cn = cf.getboolean('SWITCH', 'gencn')
-            self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
-            self.gen_crop = cf.getboolean('SWITCH', 'gencrop')
-
-        if self.storm_mode:
-            self.gen_iuh = False
-            self.climate_db = ModelNameUtils.standardize_climate_dbname(self.climate_db)
-
-        # self.spatial_db = ModelNameUtils.standardize_spatial_dbname(self.cluster, self.storm_mode,
-        #                                                             self.spatial_db)
+        # if 'SWITCH' in cf.sections():
+        #     self.gen_cn = cf.getboolean('SWITCH', 'gencn')
+        #     self.gen_runoff_coef = cf.getboolean('SWITCH', 'genrunoffcoef')
+        #     self.gen_crop = cf.getboolean('SWITCH', 'gencrop')
+        #
+        # if self.storm_mode:
+        #     self.gen_iuh = False
+        #     self.climate_db = ModelNameUtils.standardize_climate_dbname(self.climate_db)
 
         # 4. Climate Input
         if 'CLIMATE' in cf.sections():
             self.hydro_climate_vars = self.clim_dir + os.path.sep + cf.get('CLIMATE',
-                                                                      'hydroclimatevarfile')
+                                                                           'hydroclimatevarfile')
             self.prec_sites = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'precsitefile')
             self.prec_data = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'precdatafile')
             self.Meteo_sites = self.clim_dir + os.path.sep + cf.get('CLIMATE', 'meteositefile')
@@ -195,16 +188,16 @@ class SEIMSConfig(object):
         # 5. Spatial Input
         if 'SPATIAL' in cf.sections():
             self.prec_sites_thiessen = self.spatial_dir + os.path.sep + cf.get('SPATIAL',
-                                                                          'precsitesthiessen')
+                                                                               'precsitesthiessen')
             self.meteo_sites_thiessen = self.spatial_dir + os.path.sep + cf.get('SPATIAL',
-                                                                           'meteositesthiessen')
+                                                                                'meteositesthiessen')
             self.dem = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'dem')
             self.outlet_file = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'outlet_file')
             if not os.path.exists(self.outlet_file):
                 self.outlet_file = None
             self.landuse = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'landusefile')
             self.landcover_init_param = self.txt_db_dir + os.path.sep + cf.get('SPATIAL',
-                                                                          'landcoverinitfile')
+                                                                               'landcoverinitfile')
             self.soil = self.spatial_dir + os.path.sep + cf.get('SPATIAL', 'soilseqnfile')
             self.soil_property = self.txt_db_dir + os.path.sep + cf.get('SPATIAL', 'soilseqntext')
             if cf.has_option('SPATIAL', 'additionalfile'):
@@ -247,7 +240,6 @@ class SEIMSConfig(object):
             self.temp_base = cf.getfloat('OPTIONAL_PARAMETERS', 't_base')
             self.imper_perc_in_urban = cf.getfloat('OPTIONAL_PARAMETERS',
                                                    'imperviouspercinurbancell')
-            self.add_channel_width_to_shp = cf.getfloat('OPTIONAL_PARAMETERS', 'default_reach_depth')
             self.default_landuse = cf.getint('OPTIONAL_PARAMETERS', 'defaultlanduse')
             self.default_soil = cf.getint('OPTIONAL_PARAMETERS', 'defaultsoil')
 

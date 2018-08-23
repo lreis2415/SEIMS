@@ -251,7 +251,7 @@ protected:
     map<string, float **> array2d_map_;    ///< 2D array data map, e.g. ROUTING_LAYERS
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map
     map<string, int> array2d_cols_map_;    ///< Col number of 2D array data map
-                                                   ///<   CAUTION that nCols may not same for all rows
+                                           ///<   CAUTION that nCols may not same for all rows
 
     map<string, ItpWeightData *> weight_data_map_; ///< Interpolation weight data map
 };

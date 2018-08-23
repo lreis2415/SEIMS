@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
-    mdi.SetAuthor("Huiran Gao");
+    mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
     mdi.SetClass(MCLS_NutRemv, MCLSDESC_NutRemv);
     mdi.SetDescription(MDESC_NUTRMV);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -18,7 +18,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MDESC_NUTRMV);
     mdi.SetVersion("1.0");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("NutRemv.html");
+    mdi.SetHelpfile("");
 
     // set the parameters
     mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);
