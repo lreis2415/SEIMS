@@ -12,10 +12,10 @@
 """
 from __future__ import absolute_import
 
-import sys
 from math import exp, sqrt
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -42,7 +42,7 @@ class TerrainUtilClass(object):
 
     @staticmethod
     def flow_length_cell(i, j, ysize, xsize, fdir, cellsize, weight, length,
-                         flow_dir_code="TauDEM"):
+                         flow_dir_code='TauDEM'):
         """Calculate flow length of cell."""
         celllen = FlowModelConst.get_cell_length(flow_dir_code)
         differ = FlowModelConst.get_cell_shift(flow_dir_code)
@@ -70,13 +70,12 @@ class TerrainUtilClass(object):
                 return length[i][j]
 
             if length[i][j] < 0:
-                print("Error in calculating flowlen_cell function! i,j:")
-                print(i, j)
+                print('Error in calculating flowlen_cell function! (%d, %d)' % (i, j))
                 return -1
         return 0
 
     @staticmethod
-    def calculate_flow_length(flow_dir_file, weight, flow_dir_code="TauDEM"):
+    def calculate_flow_length(flow_dir_file, weight, flow_dir_code='TauDEM'):
         """Generate flow length with weight."""
         flow_dir_raster = RasterUtilClass.read_raster(flow_dir_file)
         fdir_data = flow_dir_raster.data
@@ -162,7 +161,7 @@ class TerrainUtilClass(object):
                                          geotrans, srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def hydrological_radius(acc_file, radius_file, storm_probability="T2"):
+    def hydrological_radius(acc_file, radius_file, storm_probability='T2'):
         """Calculate hydrological radius."""
         acc_r = RasterUtilClass.read_raster(acc_file)
         xsize = acc_r.nCols
@@ -223,7 +222,7 @@ class TerrainUtilClass(object):
 
     @staticmethod
     def flow_time_to_stream(streamlink, velocity, flow_dir_file, t0_s_file,
-                            flow_dir_code="TauDEM"):
+                            flow_dir_code='TauDEM'):
         """Calculate flow time to the workflow channel from each grid cell."""
         strlk_data = RasterUtilClass.read_raster(streamlink).data
 
@@ -244,7 +243,7 @@ class TerrainUtilClass(object):
 
     @staticmethod
     def std_of_flow_time_to_stream(streamlink, flow_dir_file, slope, radius, velocity, delta_s_file,
-                                   flow_dir_code="TauDEM"):
+                                   flow_dir_code='TauDEM'):
         """Generate standard deviation of t0_s (flow time to the workflow channel from each cell).
         """
         strlk_r = RasterUtilClass.read_raster(streamlink)
@@ -350,56 +349,84 @@ class TerrainUtilClass(object):
                                          cell_lat_r.noDataValue, GDT_Float32)
 
     @staticmethod
-    def calculate_channel_width(acc_file, chwidth_file):
-        """Calculate channel width."""
+    def calculate_channel_width_depth(acc_file, chwidth_file, chdepth_file):
+        """Calculate channel width and depth according to drainage area (km^2).
+
+        The equations used in the BASINS software to estimate channel width and depth are adopted.
+
+        W = 1.29 * A ^ 0.6
+        D = 0.13 * A ^ 0.4
+
+        where W is bankfull channel width (m), D is bankfull channel depth (m), and A is drainage
+          area (km^2)
+
+        References:
+            Ames, D.P., Rafn, E.B., Kirk, R.V., Crosby, B., 2009.
+              Estimation of stream channel geometry in Idaho using GIS-derived watershed
+              characteristics. Environ. Model. Softw. 24, 444–448.
+              https://doi.org/10.1016/j.envsoft.2008.08.008
+
+        """
         acc_r = RasterUtilClass.read_raster(acc_file)
         xsize = acc_r.nCols
         ysize = acc_r.nRows
         dx = acc_r.dx
-        cell_area = dx * dx
-
-        # storm frequency   a      b
-        # 2                 1      0.56
-        # 10                1.2    0.56
-        # 100               1.4    0.56
-        a = 1.2
-        b = 0.56
-        # TODO: Figure out what's means, and move it to text.py or config.py. LJ
+        cell_area = dx * dx * 0.000001  # m^2 ==> km^2
 
         tmp_ones = numpy.ones((ysize, xsize))
         width = tmp_ones * DEFAULT_NODATA
+        depth = tmp_ones * DEFAULT_NODATA
         valid_values = numpy.where(acc_r.validZone, acc_r.data, tmp_ones)
-        width = numpy.where(acc_r.validZone, numpy.power((a * (valid_values + 1)
-                                                          * cell_area / 1000000.), b), width)
+        width = numpy.where(acc_r.validZone,
+                            numpy.power((1.29 * (valid_values + 1) * cell_area), 0.6),
+                            width)
+        depth = numpy.where(acc_r.validZone,
+                            numpy.power((0.13 * (valid_values + 1) * cell_area), 0.4),
+                            depth)
+
         RasterUtilClass.write_gtiff_file(chwidth_file, ysize, xsize, width, acc_r.geotrans,
                                          acc_r.srs, DEFAULT_NODATA, GDT_Float32)
-        return width
+        RasterUtilClass.write_gtiff_file(chdepth_file, ysize, xsize, depth, acc_r.geotrans,
+                                         acc_r.srs, DEFAULT_NODATA, GDT_Float32)
 
     @staticmethod
-    def add_channel_width_to_shp(reach_shp_file, stream_link_file, width_data, default_depth=1.5):
-        """Add channel/reach width and default depth to ESRI shapefile"""
+    def add_channel_width_depth_to_shp(reach_shp_file, stream_link_file, width_file, depth_file):
+        """Calculate average channel width and depth, and add or modify the attribute table
+           of reach.shp
+        """
         stream_link = RasterUtilClass.read_raster(stream_link_file)
         n_rows = stream_link.nRows
         n_cols = stream_link.nCols
         nodata_value = stream_link.noDataValue
         data_stream = stream_link.data
 
+        width = RasterUtilClass.read_raster(width_file)
+        width_data = width.data
+        depth = RasterUtilClass.read_raster(depth_file)
+        depth_data = depth.data
+
         ch_width_dic = dict()
+        ch_depth_dic = dict()
         ch_num_dic = dict()
 
         for i in range(n_rows):
             for j in range(n_cols):
-                if abs(data_stream[i][j] - nodata_value) > UTIL_ZERO:
-                    tmpid = int(data_stream[i][j])
-                    ch_num_dic.setdefault(tmpid, 0)
-                    ch_width_dic.setdefault(tmpid, 0)
-                    ch_num_dic[tmpid] += 1
-                    ch_width_dic[tmpid] += width_data[i][j]
+                if abs(data_stream[i][j] - nodata_value) <= UTIL_ZERO:
+                    continue
+                tmpid = int(data_stream[i][j])
+                ch_num_dic.setdefault(tmpid, 0)
+                ch_width_dic.setdefault(tmpid, 0)
+                ch_depth_dic.setdefault(tmpid, 0)
+
+                ch_num_dic[tmpid] += 1
+                ch_width_dic[tmpid] += width_data[i][j]
+                ch_depth_dic[tmpid] += depth_data[i][j]
 
         for k in ch_num_dic:
             ch_width_dic[k] /= ch_num_dic[k]
+            ch_depth_dic[k] /= ch_num_dic[k]
 
-        # add channel width_data field to reach shp file
+        # add channel width and depth fields to reach shp file or update values if the fields exist
         ds_reach = ogr_Open(reach_shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
@@ -412,17 +439,19 @@ class TerrainUtilClass(object):
         if i_depth < 0:
             new_field = ogr_FieldDefn(ImportReaches2Mongo._DEPTH, OFTReal)
             layer_reach.CreateField(new_field)
-            # grid_code:feature map
-        # ftmap = {}
+
         layer_reach.ResetReading()
         ft = layer_reach.GetNextFeature()
         while ft is not None:
             tmpid = ft.GetFieldAsInteger(i_link)
-            w = 1
-            if tmpid in list(ch_width_dic.keys()):
+            w = 5.
+            d = 1.5
+            if tmpid in ch_width_dic:
                 w = ch_width_dic[tmpid]
+            if tmpid in ch_depth_dic:
+                d = ch_depth_dic[tmpid]
             ft.SetField(ImportReaches2Mongo._WIDTH, w)
-            ft.SetField(ImportReaches2Mongo._DEPTH, default_depth)
+            ft.SetField(ImportReaches2Mongo._DEPTH, d)
             layer_reach.SetFeature(ft)
             ft = layer_reach.GetNextFeature()
 
@@ -431,20 +460,24 @@ class TerrainUtilClass(object):
         del ds_reach
 
     @staticmethod
-    def parameters_extration(cfg, maindb):
+    def parameters_extraction(cfg, maindb):
         """Main entrance for terrain related spatial parameters extraction."""
         f = cfg.logs.extract_terrain
         # 1. Calculate initial channel width by accumulated area and add width to reach.shp.
-        status_output("Calculate initial channel width and added to reach.shp...", 10, f)
+        status_output('Calculate initial channel width and added to reach.shp...', 10, f)
         acc_file = cfg.spatials.d8acc
         channel_width_file = cfg.spatials.chwidth
+        channel_depth_file = cfg.spatials.chdepth
         channel_shp_file = cfg.vecs.reach
         streamlink_file = cfg.spatials.stream_link
-        chwidth_data = TerrainUtilClass.calculate_channel_width(acc_file, channel_width_file)
-        TerrainUtilClass.add_channel_width_to_shp(channel_shp_file, streamlink_file, chwidth_data,
-                                                  cfg.default_reach_depth)
+        TerrainUtilClass.calculate_channel_width_depth(acc_file,
+                                                       channel_width_file,
+                                                       channel_depth_file)
+        TerrainUtilClass.add_channel_width_depth_to_shp(channel_shp_file, streamlink_file,
+                                                        channel_width_file,
+                                                        channel_depth_file)
         # 2. Initialize depression storage capacity
-        status_output("Generating depression storage capacity...", 20, f)
+        status_output('Generating depression storage capacity...', 20, f)
         slope_file = cfg.spatials.slope
         soil_texture_file = cfg.spatials.soil_texture
         landuse_file = cfg.spatials.landuse
@@ -453,15 +486,15 @@ class TerrainUtilClass(object):
                                              slope_file, depression_file, cfg.imper_perc_in_urban)
         # 2. Calculate inputs for IUH
         if cfg.gen_iuh:
-            status_output("Prepare parameters for IUH...", 30, f)
+            status_output('Prepare parameters for IUH...', 30, f)
             radius_file = cfg.spatials.radius
-            TerrainUtilClass.hydrological_radius(acc_file, radius_file, "T2")
+            TerrainUtilClass.hydrological_radius(acc_file, radius_file, 'T2')
             manning_file = cfg.spatials.manning
             velocity_file = cfg.spatials.velocity
             TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
             flow_dir_file = cfg.spatials.d8flow
             t0_s_file = cfg.spatials.t0_s
-            flow_model_code = "ArcGIS"
+            flow_model_code = 'ArcGIS'
             TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
                                                  t0_s_file, flow_model_code)
             delta_s_file = cfg.spatials.delta_s
@@ -470,14 +503,14 @@ class TerrainUtilClass(object):
                                                         flow_model_code)
             # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
         # 3. Calculate position (i.e. latitude) related parameters
-        status_output("Calculate latitude dependent parameters...", 40, f)
+        status_output('Calculate latitude dependent parameters...', 40, f)
         lat_file = cfg.spatials.cell_lat
         min_dayl_file = cfg.spatials.dayl_min
         dormhr_file = cfg.spatials.dorm_hr
         TerrainUtilClass.calculate_latitude_dependent_parameters(lat_file, min_dayl_file,
                                                                  dormhr_file, cfg.dorm_hr)
 
-        status_output("Terrain related spatial parameters extracted done!", 100, f)
+        status_output('Terrain related spatial parameters extracted done!', 100, f)
 
 
 def main():
@@ -489,7 +522,7 @@ def main():
     conn = client.get_conn()
     main_db = conn[seims_cfg.spatial_db]
 
-    TerrainUtilClass.parameters_extration(seims_cfg, main_db)
+    TerrainUtilClass.parameters_extraction(seims_cfg, main_db)
 
 
 if __name__ == '__main__':

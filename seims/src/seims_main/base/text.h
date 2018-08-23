@@ -575,11 +575,11 @@
 #define VAR_CHST "CHST" /// m_chStorage, channel storage
 #define VAR_CHT "CHT" /// m_canHgt, canopy height for the day(m)
 #define VAR_CHTMX "CHTMX" /// m_maxCanHgt, maximum canopy height (m)
-#define VAR_CHWTRWIDTH "chwtwidth" /// m_chWtrWth, channel water width
+#define VAR_CHWTRWIDTH "chwtrwidth" /// m_chWtrWth, channel water width
 #define VAR_CHBTMWIDTH "chbtmwidth" // m_chBtmWth, channel bottom width, m
 #define VAR_CHCROSSAREA "chCrossArea" // m_chCrossArea, channel cross-sectional area, m^2
-#define VAR_CHWIDTH "CHWIDTH" // m_chWth, channel width at bankfull
-#define VAR_CHWTRDEPTH "CHWTDEPTH" /// m_chWtrDepth, channel water depth
+#define VAR_CHWIDTH "CH_WIDTH" // m_chWth, channel width at bankfull
+#define VAR_CHWTRDEPTH "CHWTRDEPTH" /// m_chWtrDepth, channel water depth
 #define VAR_CLAY "CLAY" /// m_soilClay, Percent of clay content
 #define VAR_CMN "cmn" /// m_minrlCoef, Rate coefficient for mineralization of the humus active organic nutrients
 #define VAR_CN2 "CN2" /// m_cn2, Curve Number value under moisture condition II
