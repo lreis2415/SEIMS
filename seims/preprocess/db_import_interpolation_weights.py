@@ -194,14 +194,13 @@ class ImportWeightData(object):
         return True
 
     @staticmethod
-    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, storm_mode, geodata2dbdir):
+    def climate_itp_weight_thiessen(conn, db_model, subbsn_id, geodata2dbdir):
         """Generate and import weight information using Thiessen polygon method.
 
         Args:
             conn:
             db_model: workflow database object
             subbsn_id: subbasin id
-            storm_mode: is storm mode or not
             geodata2dbdir: directory to store weight data as txt file
         """
         spatial_gfs = GridFS(db_model, DBTableNames.gridfs_spatial)
@@ -249,11 +248,9 @@ class ImportWeightData(object):
             del type_list[2]
             del site_lists[2]
 
-        if storm_mode:
-            type_list = [DataType.p]
-            site_lists = [p_list]
-            # print(type_list)
-        # print(site_lists)
+        # if storm_mode:  # todo: Do some compatible work for storm and longterm models.
+        #     type_list = [DataType.p]
+        #     site_lists = [p_list]
 
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
@@ -315,7 +312,7 @@ class ImportWeightData(object):
 
         for subbsn_id in range(subbasin_start_id, n_subbasins + 1):
             ImportWeightData.climate_itp_weight_thiessen(conn, db_model, subbsn_id,
-                                                         cfg.storm_mode, cfg.dirs.geodata2db)
+                                                         cfg.dirs.geodata2db)
             ImportWeightData.generate_weight_dependent_parameters(conn, db_model, subbsn_id)
 
 

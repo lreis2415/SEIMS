@@ -485,23 +485,22 @@ class TerrainUtilClass(object):
         TerrainUtilClass.depression_capacity(maindb, landuse_file, soil_texture_file,
                                              slope_file, depression_file, cfg.imper_perc_in_urban)
         # 2. Calculate inputs for IUH
-        if cfg.gen_iuh:
-            status_output('Prepare parameters for IUH...', 30, f)
-            radius_file = cfg.spatials.radius
-            TerrainUtilClass.hydrological_radius(acc_file, radius_file, 'T2')
-            manning_file = cfg.spatials.manning
-            velocity_file = cfg.spatials.velocity
-            TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
-            flow_dir_file = cfg.spatials.d8flow
-            t0_s_file = cfg.spatials.t0_s
-            flow_model_code = 'ArcGIS'
-            TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
-                                                 t0_s_file, flow_model_code)
-            delta_s_file = cfg.spatials.delta_s
-            TerrainUtilClass.std_of_flow_time_to_stream(streamlink_file, flow_dir_file, slope_file,
-                                                        radius_file, velocity_file, delta_s_file,
-                                                        flow_model_code)
-            # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
+        status_output('Prepare parameters for IUH...', 30, f)
+        radius_file = cfg.spatials.radius
+        TerrainUtilClass.hydrological_radius(acc_file, radius_file, 'T2')
+        manning_file = cfg.spatials.manning
+        velocity_file = cfg.spatials.velocity
+        TerrainUtilClass.flow_velocity(slope_file, radius_file, manning_file, velocity_file)
+        flow_dir_file = cfg.spatials.d8flow
+        t0_s_file = cfg.spatials.t0_s
+        flow_model_code = 'ArcGIS'
+        TerrainUtilClass.flow_time_to_stream(streamlink_file, velocity_file, flow_dir_file,
+                                             t0_s_file, flow_model_code)
+        delta_s_file = cfg.spatials.delta_s
+        TerrainUtilClass.std_of_flow_time_to_stream(streamlink_file, flow_dir_file, slope_file,
+                                                    radius_file, velocity_file, delta_s_file,
+                                                    flow_model_code)
+        # IUH calculation and import to MongoDB are implemented in db_build_mongodb.py
         # 3. Calculate position (i.e. latitude) related parameters
         status_output('Calculate latitude dependent parameters...', 40, f)
         lat_file = cfg.spatials.cell_lat

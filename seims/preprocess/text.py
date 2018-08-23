@@ -11,35 +11,23 @@ from __future__ import absolute_import
 from os import sep as SEP
 
 
-class ModelNameUtils(object):
-    """Simulation Model related tags"""
-    Model = 'model'
-    # Cluster = 'cluster'
-    Mode = 'MODE'
-    Storm = 'STORM'
-    Daily = 'DAILY'
-    StormClimateDBSuffix = 'storm'
-
-    # @staticmethod
-    # def standardize_spatial_dbname(is4cluster, is4storm, spatialdbname):
-    #     """standardize spatial database name"""
-    #     if is4cluster and ModelNameUtils.Cluster not in spatialdbname.lower():
-    #         spatialdbname = ModelNameUtils.Cluster + '_' + spatialdbname
-    #     if is4storm:
-    #         if not ModelNameUtils.Storm.lower() in spatialdbname.lower():
-    #             spatialdbname = spatialdbname + '_' + ModelNameUtils.Storm.lower()
-    #     if not ModelNameUtils.Model in spatialdbname.lower():
-    #         spatialdbname = ModelNameUtils.Model + '_' + spatialdbname
-    #     if is4cluster and (not ModelNameUtils.Cluster.lower() in spatialdbname.lower()):
-    #         spatialdbname = ModelNameUtils.Cluster.lower() + '_' + spatialdbname
-    #     return spatialdbname
-
-    @staticmethod
-    def standardize_climate_dbname(climatedbname):
-        """standardize climate database name"""
-        if climatedbname is not None:
-            climatedbname = climatedbname + '_' + ModelNameUtils.StormClimateDBSuffix
-        return climatedbname
+# This is intended to be deprecated, since one database is desirable
+#   for both storm and daily models. By lj. 2018-8-23
+# class ModelNameUtils(object):
+#     """Simulation Model related tags"""
+#     Model = 'model'
+#     # Cluster = 'cluster'
+#     Mode = 'MODE'
+#     Storm = 'STORM'
+#     Daily = 'DAILY'
+#     StormClimateDBSuffix = 'storm'
+#
+#     @staticmethod
+#     def standardize_climate_dbname(climatedbname):
+#         """standardize climate database name"""
+#         if climatedbname is not None:
+#             climatedbname = climatedbname + '_' + ModelNameUtils.StormClimateDBSuffix
+#         return climatedbname
 
 
 class ModelCfgUtils(object):
@@ -270,7 +258,8 @@ class SpatialNamesUtils(object):
     _DAYLMIN = 'dayLenMin.tif'
     _DORMHR = 'dormhr.tif'
     _DIST2STREAMD8M = 'dist2Stream.tif'
-    _CHWIDTH = 'chwidth.tif'
+    _CHWIDTH = 'ch_width.tif'
+    _CHDEPTH = 'ch_depth.tif'
     _LANDUSEMFILE = 'landuse.tif'
     _CROPMFILE = 'LANDCOVER.tif'  # added by LJ.
     _SOILTYPEMFILE = 'soiltype.tif'
@@ -311,6 +300,7 @@ class SpatialNamesUtils(object):
         self.dorm_hr = spa_dir + SEP + self._DORMHR
         self.dist2stream_d8 = spa_dir + SEP + self._DIST2STREAMD8M
         self.chwidth = spa_dir + SEP + self._CHWIDTH
+        self.chdepth = spa_dir + SEP + self._CHDEPTH
         self.landuse = spa_dir + SEP + self._LANDUSEMFILE
         self.crop = spa_dir + SEP + self._CROPMFILE
         self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE

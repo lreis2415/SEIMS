@@ -129,7 +129,8 @@ ChannelRouting,QI,Interflow at each reach outlet,m3/s,NONE,1970-01-01 00:00:00,1
 ChannelRouting,QG,Groundwater discharge at each reach outlet,m3/s,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,QG.txt,0
 ChannelRouting,CHST,channel storage,m3,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CHST.txt,0
 ChannelRouting,SEEPAGE,seepage,m3,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,SEEPAGE.txt,0
-ChannelRouting,CHWTDEPTH,channel water depth,m,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CHWTDEPTH.txt,0
+ChannelRouting,CHWTRDEPTH,channel water depth,m,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CHWTRDEPTH.txt,0
+ChannelRouting,CHWTRWIDTH,channel water width,m,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CHWTRWIDTH.txt,0
 NutrientTransport,CH_CHLORAConc,chlorophyll-a concentration in reach,mg/L,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CH_CHLORAConc.txt,0
 NutrientTransport,CH_CODConc,carbonaceous oxygen demand in reach,mg/L,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CH_CODConc.txt,0
 NutrientTransport,CH_SOLPConc,dissolved phosphorus concentration in reach,mg/L,NONE,1970-01-01 00:00:00,1970-01-01 00:00:00,-9999,-9999,OUTLET,CH_SOLPConc.txt,0

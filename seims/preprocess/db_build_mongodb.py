@@ -70,14 +70,13 @@ class ImportMongodbClass(object):
     @staticmethod
     def iuh(cfg, n_subbasins):
         """Invoke IUH program"""
-        if cfg.gen_iuh:
-            dt = 24
-            str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
-                                                      cfg.spatial_db,
-                                                      DBTableNames.gridfs_spatial,
-                                                      dt, n_subbasins)
-            # print(str_cmd)
-            UtilClass.run_command(str_cmd)
+        dt = 24
+        str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
+                                                  cfg.spatial_db,
+                                                  DBTableNames.gridfs_spatial,
+                                                  dt, n_subbasins)
+        # print(str_cmd)
+        UtilClass.run_command(str_cmd)
 
     @staticmethod
     def grid_layering(cfg, n_subbasins):
