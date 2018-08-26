@@ -287,7 +287,60 @@ class MainSEIMS(object):
                 obj_values.append(sim_obs_dict[var][objn])
         return comb_vars, obj_values
 
+    def GetTimespan(self):
+        """Get summarized timespan, format is [IO, COMP, SIMU]."""
+        time_list = [0., 0., 0.]
+        if not self.run_success:
+            return time_list
+        if not self.timespan:
+            return time_list
+        tmp_timespan = self.timespan
+        if 'MAX' in self.timespan:
+            tmp_timespan = self.timespan['MAX']
+        if 'IO' in tmp_timespan:
+            if 'ALL' in tmp_timespan['IO']:
+                time_list[0] = tmp_timespan['IO']['ALL']
+            else:
+                for k, v in tmp_timespan['IO'].items():
+                    time_list[0] += v
+        if 'COMP' in tmp_timespan:
+            if 'ALL' in tmp_timespan['COMP']:
+                time_list[1] = tmp_timespan['COMP']['ALL']
+            else:
+                for k, v in tmp_timespan['COMP'].items():
+                    time_list[1] += v
+        if 'SIMU' in tmp_timespan:
+            if 'ALL' in tmp_timespan['SIMU']:
+                time_list[2] = tmp_timespan['SIMU']['ALL']
+        return time_list
+
     def ParseTimespan(self, items):
+        """The format of self.timespan is different for OpenMP version and MPI&OpenMP version.
+        For OpenMP version:
+           {'IO': {'Input': 0.2,
+                   'Output': 0.04
+                  }
+            'COMP': {'TSD_RD_P': 0.0001,  # All modules
+                     'ALL': 12.3
+                    }
+            'SIMU': {'ALL': 14.1}
+           }
+        For MPI&OpenMP version:
+           {'MAX': {'IO': {'Input': 0.1,
+                           'Output': 0.02,
+                           'ALL': 0.12
+                          }
+                    'COMP': {'Slope': 5,
+                             'Channel': 0.5,
+                             'Barrier': 0.1,
+                             'ALL': 5.6
+                            }
+                    'SIMU': {'ALL': 10.1}
+                   }
+            'MIN': {...}
+            'AVG': {...}
+           }
+        """
         for item in items:
             if 'TIMESPAN' not in item:
                 continue
@@ -296,22 +349,16 @@ class MainSEIMS(object):
             if values is None or len(values) != 1:
                 continue
             time = values[0]
-            titles = item.replace('[', '').split(']')[:-1]
-            if len(titles) < 3:
+            titles = item.replace('[', '').split(']')[:-1]  # e.g., 'TIMESPAN', 'COMP', 'ALL'
+            if len(titles) < 3:  # e.g., 'TIMESPAN', 'MAX', 'COMP', 'ALL'
                 continue
             titles = [title.strip() for title in titles]
-            if titles[1] not in self.timespan:
-                self.timespan[titles[1]] = dict()
+            self.timespan.setdefault(titles[1], dict())
             if len(titles) > 3:
-                if titles[2] not in self.timespan[titles[1]]:
-                    self.timespan[titles[1]][titles[2]] = dict()
-                if titles[3] not in self.timespan[titles[1]][titles[2]]:
-                    self.timespan[titles[1]][titles[2]][titles[3]] = list()
-                self.timespan[titles[1]][titles[2]][titles[3]].append(time)
+                self.timespan[titles[1]].setdefault(titles[2], dict())
+                self.timespan[titles[1]][titles[2]].setdefault(titles[3], time)
             else:
-                if titles[2] not in self.timespan[titles[1]]:
-                    self.timespan[titles[1]][titles[2]] = list()
-                self.timespan[titles[1]][titles[2]].append(time)
+                self.timespan[titles[1]].setdefault(titles[2], time)
 
     def run(self):
         """Run SEIMS model"""
@@ -329,10 +376,11 @@ class MainSEIMS(object):
 
 def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
     """Create, Run, and return SEIMS model object.
-    See Also:
-        get_evaluate_output_name_unit
+
     Args:
         modelcfg_dict: Dict of arguments for SEIMS model
+        scenario_id: Scenario ID which can override the scenario_id in modelcfg_dict
+        calibration_id: Calibration ID which can override the calibration_id in modelcfg_dict
     Returns:
         The instance of SEIMS model.
     """
@@ -347,7 +395,7 @@ def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
 
 if __name__ == '__main__':
     bindir = r'D:\compile\bin\seims_mpi_omp'
-    modeldir = r'D:\test\model_dianbu2_30m_demo'
+    modeldir = r'D:\test\demo_dianbu2_model'
     # Method 1
     # seimsobj = MainSEIMS(bindir, modeldir,
     #                      nthread=2, lyrmtd=1,
@@ -359,10 +407,10 @@ if __name__ == '__main__':
             'nthread': 2, 'lyrmtd': 1,
             'host': '127.0.0.1', 'port': 27017,
             'scenario_id': 0, 'calibration_id': -1,
-            'version': 'MPI', 'mpi_bin': 'mpiexec', 'nprocess': 2}
+            'version': 'OMP', 'mpi_bin': 'mpiexec', 'nprocess': 2}
     seimsobj = MainSEIMS(args_dict=args)
     seimsobj.run()
-
+    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimeSpan()))
     # test the picklable of MainSEIMS class.
     import pickle
 

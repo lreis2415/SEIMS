@@ -5,43 +5,151 @@
     @changelog: 16-09-12  hr - initial implementation.\n
                 17-08-18  lj - reorganization.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-08-24  lj - ReDesign pareto graph and hypervolume graph.\n
 """
 from __future__ import absolute_import
 
-import os
+import sys
 from collections import OrderedDict
+
+import os
+
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
 import matplotlib
+from mpl_toolkits.mplot3d import Axes3D  # Do not delete this import
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
+import itertools
 from pygeoc.utils import StringClass
 import re
+
+from postprocess.utility import save_png_eps
 
 LFs = ['\r', '\n', '\r\n']
 
 
-def plot_pareto_front(pop, ws, gen_id, title, xlabel, ylabel):
-    pop_size = len(pop)
-    front = numpy.array([ind.fitness.values for ind in pop])
-    # Plot
-    plt.figure(gen_id)
-    plt.title('%s\n' % title, color='#aa0903')
-    # plt.xlabel('Economic calculate_economy(Million Yuan)')
+def plot_2d_scatter(xlist, ylist, title, xlabel, ylabel, ws, filename, subtitle='', cn=False):
+    """
+    Todo: The size of the point may be vary with the number of points.
+
+    Args:
+        xlist: X coordinate list
+        ylist: Y coordinate list
+        title: Main title of the figure
+        xlabel: X-axis label
+        ylabel: Y-axis label
+        ws: Full path of the destination directory
+        filename: File name without suffix (e.g., jpg, eps)
+        subtitle: (Optional) Subtitle
+        cn: (Optional) Use Chinese
+    """
+    if cn:
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    plt.figure()
+    plt.title('%s\n' % title, color='red')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    # front[:, 0] /= 1000000.
-    # front[:, 1] /= 1000.
-    plt.scatter(front[:, 0], front[:, 1], c='r', alpha=0.8, s=12)
-    plt.title('\nGeneration: %d, Population: %d' % (gen_id, pop_size), color='green', fontsize=9,
-              loc='right')
-    img_path = ws + os.path.sep + 'Pareto_Gen_%d_Pop_%d.png' % (gen_id, pop_size)
-    plt.savefig(img_path)
+    plt.scatter(xlist, ylist, c='r', alpha=0.8, s=12)
+    if subtitle != '':
+        plt.title(subtitle, color='green', fontsize=9, loc='right')
+    plt.tight_layout()
+    save_png_eps(plt, ws, filename)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
     plt.close()
+
+
+def plot_3d_scatter(xlist, ylist, zlist, title, xlabel, ylabel, zlabel,
+                    ws, filename, subtitle='', cn=False):
+    """
+
+    Args:
+        xlist: X coordinate list
+        ylist: Y coordinate list
+        zlist: Z coordinate list
+        title: Main title of the figure
+        xlabel: X-axis label
+        ylabel: Y-axis label
+        zlabel: Z-axis label
+        ws: Full path of the destination directory
+        filename: File name without suffix (e.g., jpg, eps)
+        subtitle: (Optional) Subtitle
+        cn: (Optional) Use Chinese
+    """
+    if cn:
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    plt.suptitle('%s\n' % title, color='red')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+    ax.scatter(xlist, ylist, zlist, c='r', s=12)
+    if subtitle != '':
+        plt.title(subtitle, color='green', fontsize=9, loc='right')
+    plt.tight_layout()
+    save_png_eps(plt, ws, filename)
+    # close current plot in case of 'figure.max_open_warning'
+    plt.cla()
+    plt.clf()
+    plt.close()
+
+
+def plot_pareto_front(data, labels, ws, gen_id, title, cn=False):
+    """
+    Plot 2D or 3D pareto front graphs.
+    Args:
+        data: 2-dimension array, nrows * ncols
+        labels: Labels (axis names) list, the length should be equal to ncols
+        ws: Workspace path
+        gen_id: Generation ID
+        title: Title
+        cn: (Optional) Use Chinese
+    """
+    if not isinstance(data, numpy.ndarray):
+        data = numpy.array(data)
+    pop_size, axis_size = data.shape
+    if axis_size <= 1:
+        print('Warning: The size of fitness values MUST >= 2 to plot 2D graphs!')
+        return
+    if axis_size != len(labels):
+        print('Warning: The size of fitness values and labels are not consistent!')
+        return
+    subtitle = '\nGeneration: %d, Population: %d' % (gen_id, pop_size)
+    if cn:
+        subtitle = u'\n代数: %d, 个体数: %d' % (gen_id, pop_size)
+    # 2D plot
+    comb_2d = list(itertools.combinations(range(axis_size), 2))
+    for comb in comb_2d:
+        x_idx = comb[0]
+        y_idx = comb[1]
+        maintitle = '%s of (%s, %s)' % (title, labels[x_idx], labels[y_idx])
+        filename = 'Pareto_Gen_%d_Pop_%d_%s-%s' % (gen_id, pop_size, labels[x_idx], labels[y_idx])
+        if cn:
+            filename += '_cn'
+        plot_2d_scatter(data[:, x_idx], data[:, y_idx], maintitle,
+                        labels[x_idx], labels[y_idx], ws, filename, subtitle, cn)
+    if axis_size >= 3:
+        # 3D plot
+        comb_3d = list(itertools.combinations(range(axis_size), 3))
+        for comb in comb_3d:
+            x_idx = comb[0]
+            y_idx = comb[1]
+            z_idx = comb[2]
+            maintitle = '%s of (%s, %s, %s)' % (title, labels[x_idx], labels[y_idx], labels[z_idx])
+            filename = 'Pareto_Gen_%d_Pop_%d_%s-%s-%s' % (gen_id, pop_size, labels[x_idx],
+                                                          labels[y_idx], labels[z_idx])
+            if cn:
+                filename += '_cn'
+            plot_3d_scatter(data[:, x_idx], data[:, y_idx], data[:, z_idx], maintitle,
+                            labels[x_idx], labels[y_idx], labels[z_idx],
+                            ws, filename, subtitle, cn)
 
 
 def read_pareto_points_from_txt(txt_file, sce_name, xname, yname):
@@ -155,7 +263,7 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
     return genids, acc_num
 
 
-def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws):
+def plot_pareto_fronts_fromfile(method_paths, sce_name, xname, yname, gens, ws):
     """
     Plot Pareto fronts of different method at a same generation for comparision.
     Args:
@@ -317,8 +425,84 @@ def plot_pareto_fronts_by_method(method_paths, sce_name, xname, yname, gens, ws)
         plt.close()
 
 
-def plot_hypervolume_by_method(method_paths, ws, cn=False):
-    """Plot hypervolume"""
+def plot_hypervolume_single(hypervlog, ws=None, cn=False):
+    """Plot hypervolume and the newly executed models of each generation.
+
+    Args:
+        hypervlog: Full path of the hypervolume log.
+        ws: (Optional) Full path of the destination directory
+        cn: (Optional) Use Chinese
+    """
+    if not ws:
+        ws = os.path.dirname(hypervlog)
+    x = list()
+    nmodel = list()
+    hyperv = list()
+    with open(hypervlog, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        values = StringClass.extract_numeric_values_from_string(line)
+        if values is None:
+            continue
+        if len(values) < 2:
+            continue
+        x.append(int(values[0]))
+        hyperv.append(values[-1])
+        if len(values) >= 3:
+            nmodel.append(int(values[1]))
+
+    plt.rcParams['xtick.direction'] = 'out'
+    plt.rcParams['ytick.direction'] = 'out'
+    plt.rcParams['font.family'] = 'Times New Roman'
+    generation_str = 'Generation'
+    hyperv_str = 'Hypervolume index'
+    nmodel_str = 'New model evaluations'
+    if cn:
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+        generation_str = u'进化代数'
+        hyperv_str = u'Hypervolume 指数'
+        nmodel_str = u'新运行模型次数'
+    linestyles = ['-', '--', '-.', ':']
+    markers = ['o', 's', 'v', '*']
+    fig, ax = plt.subplots(figsize=(10, 6))
+    mark_idx = 0
+    p1 = ax.plot(x, hyperv, linestyle=linestyles[0], marker=markers[mark_idx],
+                 color='black', label=hyperv_str, linewidth=2, markersize=4)
+    mark_idx += 1
+    plt.xlabel(generation_str)
+    plt.ylabel(hyperv_str)
+    ax.set_xlim(left=0, right=ax.get_xlim()[1])
+    legends = p1
+
+    if nmodel:
+        # Add right Y-axis
+        ax2 = ax.twinx()
+        ax.tick_params(axis='x', which='both', bottom='on', top='off')
+        ax2.tick_params(axis='y', length=5, width=2, which='major')
+        ax2.set_ylabel(nmodel_str)
+        p2 = ax2.plot(x, nmodel, linestyle=linestyles[0], marker=markers[mark_idx],
+                      color='black', label=nmodel_str, linewidth=2, markersize=4)
+        legends +=p2
+
+    legends_label = [l.get_label() for l in legends]
+    ax.legend(legends, legends_label, loc='center right')
+
+    plt.tight_layout()
+    save_png_eps(plt, ws, 'hypervolume_modelruns')
+    # close current plot in case of 'figure.max_open_warning'
+    plt.cla()
+    plt.clf()
+    plt.close()
+
+
+def plot_hypervolume(method_paths, ws, cn=False):
+    """Plot hypervolume of multiple optimization methods
+
+    Args:
+        method_paths: Dict, key is method name and value is full path of the directory
+        ws: Full path of the destination directory
+        cn: (Optional) Use Chinese
+    """
     hyperv = OrderedDict()
     for k, v in list(method_paths.items()):
         v = v + os.path.sep + 'hypervolume.txt'
@@ -330,10 +514,10 @@ def plot_hypervolume_by_method(method_paths, ws, cn=False):
             values = StringClass.extract_numeric_values_from_string(line)
             if values is None:
                 continue
-            if len(values) != 2:
+            if len(values) < 2:
                 continue
             x.append(int(values[0]))
-            y.append(values[1])
+            y.append(values[-1])
 
         if len(x) == len(y) > 0:
             hyperv[k] = [x[:], y[:]]
@@ -367,10 +551,7 @@ def plot_hypervolume_by_method(method_paths, ws, cn=False):
     plt.ylabel(hyperv_str, fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     plt.tight_layout()
-    fpath = ws + os.path.sep + 'hypervolume'
-    plt.savefig(fpath + '.png', dpi=300)
-    plt.savefig(fpath + '.eps', dpi=300)
-    print('%s saved!' % fpath)
+    save_png_eps(plt, ws, 'hypervolume')
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()

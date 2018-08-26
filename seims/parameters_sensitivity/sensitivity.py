@@ -7,12 +7,12 @@
                 18-1-16   lj - split tasks when the run_count is very very large.\n
                 18-02-09  lj - compatible with Python3.\n
                 18-07-04  lj - support MPI version of SEIMS, and bugs fixed.\n
+                18-08-24  lj - Gather the execute time of all model runs.\n
 """
 from __future__ import absolute_import
 
 import os
 import sys
-import math
 import json
 import datetime
 import time
@@ -205,7 +205,7 @@ class Sensitivity(object):
         self.run_count = len(self.param_values)
         # Save as txt file, which can be loaded by numpy.loadtxt()
         numpy.savetxt(self.cfg.outfiles.param_values_txt,
-                      self.param_values, delimiter=' ', fmt='%.4e')
+                      self.param_values, delimiter=' ', fmt='%.4f')
 
     def write_param_values_to_mongodb(self):
         """Update Parameters collection in MongoDB.
@@ -242,7 +242,7 @@ class Sensitivity(object):
         input_eva_vars = self.cfg.evaluate_params
 
         # split tasks if needed
-        task_num = self.run_count // 1000
+        task_num = self.run_count // 600
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -251,6 +251,7 @@ class Sensitivity(object):
 
         # Loop partitioned tasks
         run_model_stime = time.time()
+        exec_times = list()  # execute time of all model runs
         for idx, cali_seqs in enumerate(split_seqs):
             cur_out_file = '%s/outputs_%d.txt' % (self.cfg.outfiles.output_values_dir, idx)
             if FileClass.is_file_exists(cur_out_file):
@@ -260,7 +261,7 @@ class Sensitivity(object):
                 tmpcfg = deepcopy(model_cfg_dict)
                 tmpcfg['calibration_id'] = caliid
                 model_cfg_dict_list.append(tmpcfg)
-            try:  # parallel on multiprocesor or clusters using SCOOP
+            try:  # parallel on multiprocessor or clusters using SCOOP
                 from scoop import futures
                 output_models = list(futures.map(create_run_model, model_cfg_dict_list))
             except ImportError or ImportWarning:  # serial
@@ -275,7 +276,10 @@ class Sensitivity(object):
             # Loop the executed models
             eva_values = list()
             for imod, mod_obj in enumerate(output_models):
-                if imod != 0:  # Set observation data since there is no need to read from MongoDB.
+                # Read executable timespan of each model run
+                exec_times.append(mod_obj.GetTimespan())
+                # Set observation data since there is no need to read from MongoDB.
+                if imod != 0:
                     mod_obj.SetOutletObservations(obs_vars, obs_data_dict)
                 # Read simulation
                 mod_obj.ReadTimeseriesSimulations(self.cfg.psa_stime, self.cfg.psa_etime)
@@ -286,11 +290,23 @@ class Sensitivity(object):
                 rmtree(mod_obj.output_dir)
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
-            numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4e')
+            numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4f')
             # Save as pickle data for further usage. DO not save all models which maybe very large!
             cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
             with open(cur_model_out_file, 'wb') as f:
                 pickle.dump(output_models, f)
+        exec_times = numpy.array(exec_times)
+        numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
+                      exec_times, delimiter=' ', fmt='%.4f')
+        print('Running time of all SEIMS models:\n'
+              '\tIO\tCOMP\tSIMU\n'
+              'MAX\t%s\n'
+              'MIN\t%s\n'
+              'AVG\t%s\n'
+              'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in exec_times.max(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.min(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.mean(0)),
+                             '\t'.join('%.3f' % v for v in exec_times.sum(0))))
         print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
         # Save objective names as pickle data for further usgae
         with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
@@ -309,7 +325,7 @@ class Sensitivity(object):
                                                                idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
-                      self.output_values, delimiter=' ', fmt='%.4e')
+                      self.output_values, delimiter=' ', fmt='%.4f')
 
     def calculate_sensitivity(self):
         """Calculate Morris elementary effects.
