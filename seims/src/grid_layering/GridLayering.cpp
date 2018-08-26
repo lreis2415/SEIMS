@@ -41,9 +41,8 @@ void GridLayering::CalPositionIndex() {
     Initialize1DArray(n_rows_ * n_cols_, pos_index_, -1);
     n_valid_cells_ = 0;
     for (int i = 0; i < n_rows_ * n_cols_; i++) {
-        if (flowdir_matrix_[i] != dir_nodata_) {
-            pos_index_[i] = n_valid_cells_++;
-        }
+        if (FloatEqual(flowdir_matrix_[i], dir_nodata_)) continue;
+        pos_index_[i] = n_valid_cells_++;
     }
 }
 
