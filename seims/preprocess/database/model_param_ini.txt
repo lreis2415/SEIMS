@@ -119,11 +119,10 @@ Sediment,adj_pkr,peak rate adjustment factor,none,MUSLE_I30,1,0,AC,1,0.1
 Sediment,ccoe,calibration coefficient of overland flow detachment erosion,none,KinWavSed_OL,0.05,1,RC,100,0.001
 Sediment,ChDetCo,calibration coefficient of channel flow detachment,none,KinWavSed_CH,0.001,1,RC,1,0.0001
 Sediment,ChTcCo,calibration coefficient of transport capacity calculation,none,KinWavSed_CH,0.8,1,RC,100000,0.001
-Sediment,depRatio,deposition ratio,None,SERO_MUSLE,0.8,1,RC,1,0
-Sediment,downcut, whether do the channel downcutting and widening,none,ChannelRouting,1,0,NC,1,0
+Sediment,downcut, whether do the channel downcutting and widening,none,ChannelRouting,1,0,AC,1,0
 Sediment,eco1,calibration coefficient-1 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
 Sediment,eco2,calibration coefficient-2 of transport capacity calculation,none,KinWavSed_OL,146,1,RC,1000,0.001
-Sediment,flow_acc,the number of flow accumulation cells of each cell,none,ALL,-9999,0,NC,-9999,-9999
+Sediment,acc,the number of flow accumulation cells of each cell,none,ALL,-9999,0,RC,-9999,-9999
 Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashEro_Park,0.02,1,RC,10,0.0001
 Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
