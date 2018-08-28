@@ -65,7 +65,7 @@ creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessM
                gen=-1, id=-1,
                obs=TimeseriesData, sim=TimeseriesData,
                cali=ObsSimData, vali=ObsSimData,
-               io_time=0., comp_time=0., simu_time=0.)
+               io_time=0., comp_time=0., simu_time=0., runtime=0.)
 # The Individual class equals to:
 # class Individual(array.array):
 #     gen = -1  # Generation No.
@@ -174,7 +174,7 @@ def main(cfg):
     pop = evaluate_parallel(pop)
     modelruns_time[0] = time.time() - stime
     for ind in pop:
-        allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time])
+        allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
 
     # currently, len(pop) may less than pop_select_num
     pop = toolbox.select(pop, pop_select_num)
@@ -236,7 +236,7 @@ def main(cfg):
         curtimespan = time.time() - stime
         modelruns_time.setdefault(gen, curtimespan)
         for ind in invalid_ind:
-            allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time])
+            allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
 
         # Select the next generation population
         tmp_pop = list()
@@ -312,7 +312,7 @@ def main(cfg):
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=' ', fmt='%.4f')
     print_message('Running time of all SEIMS models:\n'
-                  '\tIO\tCOMP\tSIMU\n'
+                  '\tIO\tCOMP\tSIMU\tRUNTIME\n'
                   'MAX\t%s\n'
                   'MIN\t%s\n'
                   'AVG\t%s\n'
@@ -322,10 +322,10 @@ def main(cfg):
                                  '\t'.join('%.3f' % v for v in allmodels_exect.sum(0))))
 
     exec_time = 0.
-    for genid, tmptime in modelruns_time.items():
+    for genid, tmptime in list(modelruns_time.items()):
         exec_time += tmptime
     allcount = 0
-    for genid, tmpcount in modelruns_count.items():
+    for genid, tmpcount in list(modelruns_count.items()):
         allcount += tmpcount
 
     print_message('Initialization timespan: %.3f\n'

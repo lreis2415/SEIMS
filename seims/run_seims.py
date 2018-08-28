@@ -6,10 +6,12 @@
                 2018-07-04 - lj - Support MPI version.
                 2018-07-07 - lj - Add the outputs of single model run.
                 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
+                2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
 """
 import bisect
 import os
 import sys
+import time
 from subprocess import CalledProcessError
 from copy import deepcopy
 from collections import OrderedDict
@@ -94,6 +96,8 @@ class ParseSEIMSConfig(object):
             raise ValueError('The time format MUST be "YYYY-MM-DD HH:MM:SS".')
         if self.time_start >= self.time_end:
             raise ValueError("Wrong time settings in [SEIMS_Model]!")
+        # Running time counted by time.time() of Python, in case of failed of GetTimespan()
+        self.runtime = 0.
 
     @property
     def ConfigDict(self):
@@ -288,11 +292,13 @@ class MainSEIMS(object):
         return comb_vars, obj_values
 
     def GetTimespan(self):
-        """Get summarized timespan, format is [IO, COMP, SIMU]."""
-        time_list = [0., 0., 0.]
+        """Get summarized timespan, format is [IO, COMP, SIMU, RUNTIME]."""
+        time_list = [0., 0., 0., self.runtime]
         if not self.run_success:
+            time_list[2] = self.runtime
             return time_list
         if not self.timespan:
+            time_list[2] = self.runtime
             return time_list
         tmp_timespan = self.timespan
         if 'MAX' in self.timespan:
@@ -312,6 +318,8 @@ class MainSEIMS(object):
         if 'SIMU' in tmp_timespan:
             if 'ALL' in tmp_timespan['SIMU']:
                 time_list[2] = tmp_timespan['SIMU']['ALL']
+        if time_list[2] == 0.:
+            time_list[2] = self.runtime
         return time_list
 
     def ParseTimespan(self, items):
@@ -362,6 +370,7 @@ class MainSEIMS(object):
 
     def run(self):
         """Run SEIMS model"""
+        stime = time.time()
         if not os.path.isdir(self.OutputDirectory) or not os.path.exists(self.OutputDirectory):
             os.makedirs(self.OutputDirectory)
         try:
@@ -371,6 +380,7 @@ class MainSEIMS(object):
         except CalledProcessError or Exception:
             print('Run SEIMS model failed!')
             self.run_success = False
+        self.runtime = time.time() - stime
         return self.run_success
 
 
