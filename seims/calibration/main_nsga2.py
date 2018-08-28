@@ -49,6 +49,7 @@ if step == 'Q':
     # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
     multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
     worse_objects = [-100., 100., 100.]
+    object_vars = ['Q']
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
     multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
