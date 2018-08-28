@@ -127,7 +127,7 @@ Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashE
 Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
-Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
+Sediment,icfac,C-factor calculation using Cmin (0) or new method from RUSLE (1 as default),none,SERO_MUSLE,1,0,AC,1,0
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
 Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
 Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1
