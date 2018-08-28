@@ -234,7 +234,8 @@ class SoilProperty(object):
                 self.SOILTHICK.append(self.SOILDEPTH[lyr])
             else:
                 self.SOILTHICK.append(self.SOILDEPTH[lyr] - self.SOILDEPTH[lyr - 1])
-        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]:
+        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]\
+            or self.SOL_ZMX < self.SOILDEPTH[-1]:
             self.SOL_ZMX = self.SOILDEPTH[-1]
         if self.ANION_EXCL == DEFAULT_NODATA:
             self.ANION_EXCL = 0.5
@@ -336,8 +337,8 @@ class SoilProperty(object):
             elif not self.FIELDCAP:
                 self.FIELDCAP = tmp_fc_bdeffect[:]
         if self.AWC and len(self.AWC) != self.SOILLAYERS:
-            raise IndexError(
-                    "Available water capacity must have the size equal to soil layers number!")
+            raise IndexError("Available water capacity must have the size equal to"
+                             " soil layers number!")
         elif not self.AWC:
             for i in range(self.SOILLAYERS):
                 self.AWC.append(self.FIELDCAP[i] - self.WILTINGPOINT[i])

@@ -599,7 +599,6 @@
 #define VAR_DEEPST "deepst"
 #define VAR_DEET "DEET" /// m_deprStoET, evaporation from the depression storage
 #define VAR_DEM "DEM" /// m_dem, Digital Elevation Model
-#define VAR_DEPRATIO "depRatio" /// m_depRatio, deposition ratio
 #define VAR_DEPREIN "Depre_in"                        /// initial depression storage coefficient
 #define VAR_DEPRESSION "Depression"                   /// Depression storage capacity
 #define VAR_DETSPLASH "DETSplash"
@@ -1367,7 +1366,6 @@
 #define DESC_DEEPST "depth of water in deep aquifer"
 #define DESC_DEET "evaporation from depression storage"
 #define DESC_DEM "Digital Elevation Model"
-#define DESC_DEPRATIO "Deposition ratio of sediment"
 #define DESC_DEPREIN "initial depression storage coefficient"
 #define DESC_DEPRESSION "Depression storage capacity"
 #define DESC_DETSPLASH "distribution of splash detachment"

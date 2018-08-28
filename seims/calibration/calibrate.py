@@ -188,16 +188,15 @@ def calibration_objectives(cali_obj, ind):
     """
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
+    model_args.setdefault('calibration_id', -1)
     model_args['calibration_id'] = ind.id
     model_obj = MainSEIMS(args_dict=model_args)
 
-    # Copy observation data, no need to query database
-    model_obj.obs_vars = ind.obs.vars[:]
-    model_obj.obs_value = deepcopy(ind.obs.data)
+    # Set observation data to model_obj, no need to query database
+    model_obj.SetOutletObservations(ind.obs.vars, ind.obs.data)
 
-    run_flag = model_obj.run()
-    # if not run_flag:  # DO NOT return according to the run_flag.
-    #     return ind
+    # Execute model
+    model_obj.run()
     time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
 
     # read simulation data of the entire simulation period (include calibration and validation)
@@ -232,6 +231,10 @@ def calibration_objectives(cali_obj, ind):
                                                                 cali_obj.cfg.vali_etime)
         if ind.vali.objnames and ind.vali.objvalues:
             ind.vali.valid = True
+
+    # Get timespan
+    ind.io_time, ind.comp_time, ind.simu_time = model_obj.GetTimespan()
+
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
     return ind

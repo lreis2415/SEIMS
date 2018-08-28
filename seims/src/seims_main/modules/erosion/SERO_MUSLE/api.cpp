@@ -23,7 +23,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetHelpfile("");
 
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_DEPRATIO, UNIT_NON_DIM, DESC_DEPRATIO, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_ROCK, UNIT_PERCENT, DESC_ROCK, Source_ParameterDB, DT_Raster2D);
     // mdi.AddParameter(VAR_SLPLEN, UNIT_LEN_M, DESC_SLPLEN, Source_ParameterDB, DT_Raster2D); // TODO
     mdi.AddParameter(VAR_USLE_K, UNIT_NON_DIM, DESC_USLE_K, Source_ParameterDB, DT_Raster2D);

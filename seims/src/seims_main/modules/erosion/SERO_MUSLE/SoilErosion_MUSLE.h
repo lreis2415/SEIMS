@@ -65,8 +65,6 @@ private:
     int m_nSoilLayers;
     //! percent of rock content
     float** m_soilRock;
-    //! deposition ratio
-    float m_depRatio;
     //grid from parameter
     //! sand fraction
     float* m_detSand;

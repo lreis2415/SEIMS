@@ -4,7 +4,7 @@
 
 SERO_MUSLE::SERO_MUSLE() :
     m_nCells(-1), m_cellWth(-1.f), m_nSoilLayers(-1), m_soilRock(nullptr),
-    m_depRatio(NODATA_VALUE), m_detSand(nullptr), m_detSilt(nullptr),
+    m_detSand(nullptr), m_detSilt(nullptr),
     m_detClay(nullptr), m_detSmAgg(nullptr), m_detLgAgg(nullptr),
     m_landCover(nullptr), m_usleP(nullptr), m_usleK(nullptr), m_usleC(nullptr),
     m_iCfac(0), m_aveAnnUsleC(nullptr), m_rsdCovSoil(nullptr),
@@ -32,7 +32,6 @@ bool SERO_MUSLE::CheckInputData() {
     CHECK_POSITIVE(MID_SERO_MUSLE, m_nCells);
     CHECK_POSITIVE(MID_SERO_MUSLE, m_cellWth);
     CHECK_POINTER(MID_SERO_MUSLE, m_soilRock);
-    CHECK_NONNEGATIVE(MID_SERO_MUSLE, m_depRatio);
     CHECK_POINTER(MID_SERO_MUSLE, m_landCover);
     CHECK_POINTER(MID_SERO_MUSLE, m_usleC);
     CHECK_NONNEGATIVE(MID_SERO_MUSLE, m_iCfac);
@@ -221,8 +220,6 @@ void SERO_MUSLE::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth)) {
         m_cellWth = value;
-    } else if (StringMatch(sk, VAR_DEPRATIO)) {
-        m_depRatio = value;
     } else if (StringMatch(sk, VAR_RSDCOV_COEF)) {
         m_rsdCovCoef = value;
     } else if (StringMatch(sk, VAR_ICFAC)) {

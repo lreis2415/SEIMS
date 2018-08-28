@@ -56,9 +56,12 @@ int main(int argc, char** argv) {
         delete grid_lyr_d8;
 
         /// Dinf flow model
-        GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(i, gfs, output_dir);
-        grid_lyr_dinf->Execute();
-        delete grid_lyr_dinf;
+        /// todo: I found the code may cause heap corruption because of writing out of the
+        ///       allocated memory! This is caused by the very tiny flow direction partition!
+        ///       In the future, this code should be carefully reviewed. By lj. 2018-8-26
+        //GridLayeringDinf* grid_lyr_dinf = new GridLayeringDinf(i, gfs, output_dir);
+        //grid_lyr_dinf->Execute();
+        //delete grid_lyr_dinf;
     }
 
     delete gfs;
