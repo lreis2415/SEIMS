@@ -60,8 +60,8 @@ elif step == 'SED':
 elif step == 'NUTRIENT':
     # Step 3: Calibration NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
     object_vars = ['Q', 'SED', 'CH_TN', 'CH_TP']
-    multi_weight = (2., -1., -1., 2., -1., -1., 1, 1)
-    worse_objects = [-100., 100., 100., -100., 100., 100., -100, -100]
+    multi_weight = (2., -1., -1., 2., -1., -1., 1., 1.)
+    worse_objects = [-100., 100., 100., -100., 100., 100., -100., -100.]
 else:
     print('The step of calibration should be one of [Q, SED, NUTRIENT]!')
     exit(0)
@@ -154,6 +154,7 @@ def main(cfg):
         """Evaluate model by SCOOP or map, and set fitness of individuals
          according to calibration step."""
         popnum = len(invalid_pops)
+        labels = list()
         try:  # parallel on multi-processors or clusters using SCOOP
             from scoop import futures
             invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
@@ -161,15 +162,25 @@ def main(cfg):
             invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
             if step == 'Q':  # Step 1 Calibrating discharge
-                tmpind.fitness.values = tmpind.cali.efficiency_values('Q', object_names)
+                tmpind.fitness.values, labels = tmpind.cali.efficiency_values('Q', object_names)
             elif step == 'SED':  # Step 2 Calibrating sediment
-                tmpind.fitness.values = tmpind.cali.efficiency_values('SED', object_names) + \
-                                        [tmpind.cali.efficiency_values('Q', object_names)[0]]
+                sedobjvs, labels = tmpind.cali.efficiency_values('SED', object_names)
+                qobjvs, qobjlabels = ind.cali.efficiency_values('Q', object_names)
+                labels += [qobjlabels[0]]
+                sedobjvs += [qobjvs[0]]
+                tmpind.fitness.values = sedobjvs[:]
             elif step == 'NUTRIENT':  # Step 3 Calibrating NUTRIENT,TN,TP
-                tmpind.fitness.values = tmpind.cali.efficiency_values('CH_TN', object_names) + \
-                                        tmpind.cali.efficiency_values('CH_TP', object_names) + \
-                                        [tmpind.cali.efficiency_values('Q', object_names)[0]] + \
-                                        [tmpind.cali.efficiency_values('SED', object_names)[0]]
+                objvs, labels = tmpind.cali.efficiency_values('CH_TN', object_names)
+                tpobjvs, tpobjlabels = tmpind.cali.efficiency_values('CH_TP', object_names)
+                qobjvs, qobjlabels = ind.cali.efficiency_values('Q', object_names)
+                sedobjvs, sedobjlabels = tmpind.cali.efficiency_values('SED', object_names)
+                objvs += tpobjvs
+                labels += tpobjlabels
+                objvs += [qobjvs[0]]
+                labels += [qobjlabels[0]]
+                objvs += [sedobjvs[0]]
+                labels += [sedobjlabels[0]]
+                tmpind.fitness.values = objvs[:]
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
             invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
@@ -177,7 +188,7 @@ def main(cfg):
                 print('The initial population should be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
                 exit(0)
-        return invalid_pops  # Currently, `invalid_pops` contains evaluated individuals
+        return invalid_pops, labels  # Currently, `invalid_pops` contains evaluated individuals
 
     # Record the count and execute timespan of model runs during the optimization
     modelruns_count = {0: len(pop)}
@@ -185,7 +196,7 @@ def main(cfg):
 
     # Generation 0 before optimization
     stime = time.time()
-    pop = evaluate_parallel(pop)
+    pop, plotlables = evaluate_parallel(pop)
     modelruns_time[0] = time.time() - stime
     for ind in pop:
         allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
@@ -246,7 +257,7 @@ def main(cfg):
         invalid_ind_size = len(invalid_ind)
         modelruns_count.setdefault(gen, invalid_ind_size)
         stime = time.time()
-        invalid_ind = evaluate_parallel(invalid_ind)
+        invalid_ind, plotlables = evaluate_parallel(invalid_ind)
         curtimespan = time.time() - stime
         modelruns_time.setdefault(gen, curtimespan)
         for ind in invalid_ind:
@@ -280,7 +291,7 @@ def main(cfg):
         # And 3D near optimal pareto front graphs, i.e., (NSE, RSR, PBIAS)
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
-        plot_pareto_front(front, object_names, cfg.opt.out_dir,
+        plot_pareto_front(front, plotlables, cfg.opt.out_dir,
                           gen, 'Near Pareto optimal solutions')
         plot_time += time.time() - stime
 

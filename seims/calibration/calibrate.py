@@ -50,13 +50,15 @@ class ObsSimData(object):
 
     def efficiency_values(self, varname, effnames):
         values = list()
+        tmpvars = list()
         for name in effnames:
             tmpvar = '%s-%s' % (varname, name)
             if tmpvar not in self.objnames:
                 values.append(-9999.)
             else:
+                tmpvars.append(tmpvar)
                 values.append(self.objvalues[self.objnames.index(tmpvar)])
-        return values
+        return values, tmpvars
 
     def output_header(self, varname, effnames, prefix=''):
         concate = ''
