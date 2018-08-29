@@ -233,7 +233,7 @@ def calibration_objectives(cali_obj, ind):
             ind.vali.valid = True
 
     # Get timespan
-    ind.io_time, ind.comp_time, ind.simu_time = model_obj.GetTimespan()
+    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
 
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)

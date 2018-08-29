@@ -242,7 +242,7 @@ class Sensitivity(object):
         input_eva_vars = self.cfg.evaluate_params
 
         # split tasks if needed
-        task_num = self.run_count // 600
+        task_num = self.run_count // 480  # In our cluster, the largest workers number is 96.
         if task_num == 0:
             split_seqs = [range(self.run_count)]
         else:
@@ -299,7 +299,7 @@ class Sensitivity(object):
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
                       exec_times, delimiter=' ', fmt='%.4f')
         print('Running time of all SEIMS models:\n'
-              '\tIO\tCOMP\tSIMU\n'
+              '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
               'MIN\t%s\n'
               'AVG\t%s\n'
