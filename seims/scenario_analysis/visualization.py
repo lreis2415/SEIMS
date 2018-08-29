@@ -433,6 +433,8 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
         ws: (Optional) Full path of the destination directory
         cn: (Optional) Use Chinese
     """
+    if not os.path.exists(hypervlog):
+        return
     if not ws:
         ws = os.path.dirname(hypervlog)
     x = list()
