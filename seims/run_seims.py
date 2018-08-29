@@ -299,9 +299,10 @@ class MainSEIMS(object):
     def GetTimespan(self):
         """Get summarized timespan, format is [IO, COMP, SIMU, RUNTIME]."""
         time_list = [0., 0., 0., self.runtime]
-        if not self.run_success:
-            time_list[2] = self.runtime
-            return time_list
+        # Do not use self.run_success to check if the timespan data is available or not! By lj.
+        # if not self.run_success:
+        #     time_list[2] = self.runtime
+        #     return time_list
         if not self.timespan:
             time_list[2] = self.runtime
             return time_list
