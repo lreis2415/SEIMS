@@ -8,6 +8,8 @@
                 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
                 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
 """
+import math
+
 import bisect
 import os
 import sys
@@ -288,7 +290,10 @@ class MainSEIMS(object):
         for var in sim_obs_dict.keys():
             for objn in objnames:
                 comb_vars.append('%s-%s' % (var, objn))
-                obj_values.append(sim_obs_dict[var][objn])
+                objv = sim_obs_dict[var][objn]
+                if objn.upper() == 'PBIAS':
+                    objv = math.fabs(objv)
+                obj_values.append(objv)
         return comb_vars, obj_values
 
     def GetTimespan(self):
