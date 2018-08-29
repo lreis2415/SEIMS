@@ -54,14 +54,15 @@ if step == 'Q':
     worse_objects = [-100., 100., 100.]
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
-    object_vars = ['Q', 'SED']
+    object_vars = ['SED', 'Q']
     multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
     worse_objects = [-100., 100., 100., -100.]
 elif step == 'NUTRIENT':
-    # Step 3: Calibration NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
-    object_vars = ['Q', 'SED', 'CH_TN', 'CH_TP']
-    multi_weight = (2., -1., -1., 2., -1., -1., 1., 1.)
-    worse_objects = [-100., 100., 100., -100., 100., 100., -100., -100.]
+    # Step 3: Calibration NSE-TN, NSE-TP, NSE-Q, NSE-SED
+    # Or, NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
+    object_vars = ['CH_TN', 'CH_TP', 'Q', 'SED']
+    multi_weight = (1., 1., 1., 1.)
+    worse_objects = [-100., -100., -100., -100.]
 else:
     print('The step of calibration should be one of [Q, SED, NUTRIENT]!')
     exit(0)
@@ -170,16 +171,12 @@ def main(cfg):
                 sedobjvs += [qobjvs[0]]
                 tmpind.fitness.values = sedobjvs[:]
             elif step == 'NUTRIENT':  # Step 3 Calibrating NUTRIENT,TN,TP
-                objvs, labels = tmpind.cali.efficiency_values('CH_TN', object_names)
+                tnobjvs, tnobjlabels = tmpind.cali.efficiency_values('CH_TN', object_names)
                 tpobjvs, tpobjlabels = tmpind.cali.efficiency_values('CH_TP', object_names)
                 qobjvs, qobjlabels = ind.cali.efficiency_values('Q', object_names)
                 sedobjvs, sedobjlabels = tmpind.cali.efficiency_values('SED', object_names)
-                objvs += tpobjvs
-                labels += tpobjlabels
-                objvs += [qobjvs[0]]
-                labels += [qobjlabels[0]]
-                objvs += [sedobjvs[0]]
-                labels += [sedobjlabels[0]]
+                objvs = [tnobjvs[0], tpobjvs[0], qobjvs[0], sedobjvs[0]]
+                labels = [tnobjlabels[0], tpobjlabels[0], qobjlabels[0], sedobjlabels[0]]
                 tmpind.fitness.values = objvs[:]
         # NSE > 0 is the preliminary condition to be a valid solution!
         if filter_NSE:
