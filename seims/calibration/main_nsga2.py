@@ -6,6 +6,7 @@
                 18-02-09  lj - compatible with Python3.\n
                 18-07-10  lj - Support MPI version of SEIMS.\n
                 18-08-26  lj - Gather the execute time of all model runs. Plot pareto graphs.\n
+                18-08-29  jz,lj,sf - Add Nutrient calibration step.
 """
 from __future__ import absolute_import, division
 
@@ -40,28 +41,29 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
-object_vars = ['Q', 'SED',]
+object_vars = list()
 object_names = ['NSE', 'RSR', 'PBIAS']
-step = object_vars[0]
+# step can be one of 'Q', 'SED', 'NUTRIENT'.
 step = 'NUTRIENT'
 filter_NSE = False  # Filter scenarios which NSE less than 0 for the next generation
 # Multiobjects definition:
 if step == 'Q':
     # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
+    object_vars = ['Q']
     multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
     worse_objects = [-100., 100., 100.]
-    object_vars = ['Q']
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
+    object_vars = ['Q', 'SED']
     multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
     worse_objects = [-100., 100., 100., -100.]
 elif step == 'NUTRIENT':
+    # Step 3: Calibration NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
     object_vars = ['Q', 'SED', 'CH_TN', 'CH_TP']
-    # Step 2: Calibration NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
-    multi_weight = (2., -1., -1., 2., -1., -1., 1, 1) 
+    multi_weight = (2., -1., -1., 2., -1., -1., 1, 1)
     worse_objects = [-100., 100., 100., -100., 100., 100., -100, -100]
 else:
-    print('The step of calibration should be one of [Q, SED]!')
+    print('The step of calibration should be one of [Q, SED, NUTRIENT]!')
     exit(0)
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
@@ -297,16 +299,17 @@ def main(cfg):
                 output_str += '%s%s' % (pop[0].vali.output_header('SED', object_names, 'Vali'),
                                         pop[0].vali.output_header('Q', object_names, 'Vali'))
         elif step == 'NUTRIENT':  # Step 3 Calibrate NUTRIENT,TN,TP
-            output_str += 'generation-calibrationID\t%s%s' % \
+            output_str += 'generation-calibrationID\t%s%s%s%s' % \
                           (pop[0].cali.output_header('CH_TN', object_names, 'Cali'),
-                           pop[0].cali.output_header('CH_TP', object_names, 'Cali')
+                           pop[0].cali.output_header('CH_TP', object_names, 'Cali'),
                            pop[0].cali.output_header('Q', object_names, 'Cali'),
                            pop[0].cali.output_header('SED', object_names, 'Cali'))
             if cali_obj.cfg.calc_validation:
-                output_str += '%s%s' % (pop[0].vali.output_header('CH_TN', object_names, 'Vali'),
-                                        pop[0].vali.output_header('CH_TP', object_names, 'Vali'),
-                                        pop[0].vali.output_header('Q', object_names, 'Vali'),
-                                        pop[0].vali.output_header('SED', object_names, 'Vali'))
+                output_str += '%s%s%s%s' % (
+                    pop[0].vali.output_header('CH_TN', object_names, 'Vali'),
+                    pop[0].vali.output_header('CH_TP', object_names, 'Vali'),
+                    pop[0].vali.output_header('Q', object_names, 'Vali'),
+                    pop[0].vali.output_header('SED', object_names, 'Vali'))
         output_str += 'gene_values\n'
         for ind in pop:
             if step == 'Q':  # Step 1 Calibrate discharge
@@ -321,17 +324,19 @@ def main(cfg):
                 if cali_obj.cfg.calc_validation:
                     output_str += '%s%s' % (ind.vali.output_efficiency('SED', object_names),
                                             ind.vali.output_efficiency('Q', object_names))
-            elif step == 'NUTRIENT':  # Step 3 Calibrate NUTRIENT,TN,TP
-                output_str += '%d-%d\t%s%s' % (ind.gen, ind.id,
-                                               ind.cali.output_efficiency('CH_TN', object_names),
-                                               ind.cali.output_efficiency('CH_TP', object_names),
-                                               ind.cali.output_efficiency('Q', object_names),
-                                               ind.cali.output_efficiency('SED', object_names))
+            elif step == 'NUTRIENT':  # Step 3 Calibrate NUTRIENT, i.e., TN and TP
+                output_str += '%d-%d\t%s%s%s%s' % (ind.gen, ind.id,
+                                                   ind.cali.output_efficiency('CH_TN',
+                                                                              object_names),
+                                                   ind.cali.output_efficiency('CH_TP',
+                                                                              object_names),
+                                                   ind.cali.output_efficiency('Q', object_names),
+                                                   ind.cali.output_efficiency('SED', object_names))
                 if cali_obj.cfg.calc_validation:
-                    output_str += '%s%s' % (ind.vali.output_efficiency('CH_TN', object_names),
-                                            ind.vali.output_efficiency('CH_TP', object_names),
-                                            ind.vali.output_efficiency('Q', object_names),
-                                            ind.vali.output_efficiency('SED', object_names))
+                    output_str += '%s%s%s%s' % (ind.vali.output_efficiency('CH_TN', object_names),
+                                                ind.vali.output_efficiency('CH_TP', object_names),
+                                                ind.vali.output_efficiency('Q', object_names),
+                                                ind.vali.output_efficiency('SED', object_names))
             output_str += str(ind)
             output_str += '\n'
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')
