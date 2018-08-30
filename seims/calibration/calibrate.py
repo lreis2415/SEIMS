@@ -56,7 +56,10 @@ class ObsSimData(object):
             if tmpvar not in self.objnames:
                 values.append(-9999.)
             else:
-                tmpvars.append(tmpvar)
+                if name.upper() == 'PBIAS':
+                    tmpvars.append('%s-abs(PBIAS)' % varname)
+                else:
+                    tmpvars.append(tmpvar)
                 values.append(self.objvalues[self.objnames.index(tmpvar)])
         return values, tmpvars
 
@@ -67,7 +70,10 @@ class ObsSimData(object):
             if tmpvar not in self.objnames:
                 concate += '\t'
             else:
-                concate += '%s-%s\t' % (prefix, tmpvar)
+                if name.upper() == 'PBIAS':
+                    concate += '%s-abs(PBIAS)\t' % prefix
+                else:
+                    concate += '%s-%s\t' % (prefix, tmpvar)
         return concate
 
     def output_efficiency(self, varname, effnames):
