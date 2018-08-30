@@ -44,14 +44,14 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 object_vars = list()
 object_names = ['NSE', 'RSR', 'PBIAS']
 # step can be one of 'Q', 'SED', 'NUTRIENT'.
-step = 'NUTRIENT'
+step = 'Q'
 filter_NSE = False  # Filter scenarios which NSE less than 0 for the next generation
 # Multiobjects definition:
 if step == 'Q':
     # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
     object_vars = ['Q']
     multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
-    worse_objects = [-100., 100., 100.]
+    worse_objects = [-1., 100., 10.]
 elif step == 'SED':
     # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
     object_vars = ['SED', 'Q']
@@ -189,7 +189,8 @@ def main(cfg):
 
     # Record the count and execute timespan of model runs during the optimization
     modelruns_count = {0: len(pop)}
-    modelruns_time = {0: 0.}
+    modelruns_time = {0: 0.}  # Total time counted according to evaluate_parallel()
+    modelruns_time_sum = {0: 0.}  # Summarize time of every model runs according to pop
 
     # Generation 0 before optimization
     stime = time.time()
@@ -197,6 +198,7 @@ def main(cfg):
     modelruns_time[0] = time.time() - stime
     for ind in pop:
         allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
+        modelruns_time_sum[0] += ind.runtime
 
     # currently, len(pop) may less than pop_select_num
     pop = toolbox.select(pop, pop_select_num)
@@ -257,8 +259,10 @@ def main(cfg):
         invalid_ind, plotlables = evaluate_parallel(invalid_ind)
         curtimespan = time.time() - stime
         modelruns_time.setdefault(gen, curtimespan)
+        modelruns_time_sum.setdefault(gen, 0.)
         for ind in invalid_ind:
             allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
+            modelruns_time_sum[gen] += ind.runtime
 
         # Select the next generation population
         tmp_pop = list()
@@ -273,9 +277,10 @@ def main(cfg):
         pop = toolbox.select(tmp_pop, pop_select_num)
         output_population_details(pop, cfg.opt.simdata_dir, gen)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
-                    'Execute timespan: %.4f, Hypervolume: %.4f\n' % (gen, invalid_ind_size,
-                                                                     curtimespan,
-                                                                     hypervolume(pop, ref_pt))
+                    'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
+                    'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
+                                             curtimespan, modelruns_time_sum[gen],
+                                             hypervolume(pop, ref_pt))
         print_message(hyper_str)
         UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
 
@@ -371,13 +376,18 @@ def main(cfg):
     exec_time = 0.
     for genid, tmptime in list(modelruns_time.items()):
         exec_time += tmptime
+    exec_time_sum = 0.
+    for genid, tmptime in list(modelruns_time_sum.items()):
+        exec_time_sum += tmptime
     allcount = 0
     for genid, tmpcount in list(modelruns_count.items()):
         allcount += tmpcount
 
-    print_message('Initialization timespan: %.3f\n'
-                  'Model execution timespan: %.3f\n'
-                  'Plot Pareto graphs timespan: %.3f' % (init_time, exec_time, plot_time))
+    print_message('Initialization timespan: %.4f\n'
+                  'Model execution timespan: %.4f\n'
+                  'Sum of model runs timespan: %.4f\n'
+                  'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
+                                                         exec_time_sum, plot_time))
 
     return pop, logbook
 
