@@ -127,7 +127,7 @@ def plot_3d_scatter(xlist, ylist, zlist, title, xlabel, ylabel, zlabel,
         ax.set_zlim3d(top=zmax)
     if zmin is not None:
         ax.set_zlim3d(bottom=zmin)
-    if xstep is not None:
+    if zstep is not None:
         zmin, zmax = ax.get_zlim()
         ax.set_zticks(numpy.arange(zmin, zmax + zstep * 0.99, step=zstep))
 
@@ -546,18 +546,9 @@ def plot_pareto_fronts_fromfile(method_paths, sce_name, xname, yname, gens, ws):
         plt.close()
 
 
-def plot_hypervolume_single(hypervlog, ws=None, cn=False):
-    """Plot hypervolume and the newly executed models of each generation.
-
-    Args:
-        hypervlog: Full path of the hypervolume log.
-        ws: (Optional) Full path of the destination directory
-        cn: (Optional) Use Chinese
-    """
+def read_hypervolume(hypervlog):
     if not os.path.exists(hypervlog):
-        return
-    if not ws:
-        ws = os.path.dirname(hypervlog)
+        return None, None, None
     x = list()
     nmodel = list()
     hyperv = list()
@@ -573,6 +564,18 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
         hyperv.append(values[-1])
         if len(values) >= 3:
             nmodel.append(int(values[1]))
+    return x, hyperv, nmodel
+
+
+def plot_hypervolume_single(hypervlog, ws=None, cn=False):
+    """Plot hypervolume and the newly executed models of each generation.
+
+    Args:
+        hypervlog: Full path of the hypervolume log.
+        ws: (Optional) Full path of the destination directory
+        cn: (Optional) Use Chinese
+    """
+    x, hyperv, nmodel = read_hypervolume(hypervlog)
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
@@ -596,6 +599,9 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     plt.ylabel(hyperv_str)
     ax.set_xlim(left=0, right=ax.get_xlim()[1])
     legends = p1
+
+    plt.tight_layout()
+    save_png_eps(plt, ws, 'hypervolume')
 
     if nmodel:
         # Add right Y-axis
