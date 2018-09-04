@@ -28,7 +28,7 @@ def main():
     model_paths = ModelPaths(SEIMS_path, 'dianbu2', 'demo_dianbu2_model')
 
     scenario_id = 0
-    seims_obj = MainSEIMS(model_paths.bin_dir, model_paths.model_dir, sceid=scenario_id)
+    seims_obj = MainSEIMS(model_paths.bin_dir, model_paths.model_dir, scenario_id=scenario_id)
     seims_obj.run()
 
 
