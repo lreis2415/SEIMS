@@ -257,7 +257,9 @@ class SpatialDelineation(object):
         # 3. Post processing, such as serialize stream ID, mask dataset etc.
         SpatialDelineation.post_process_of_delineated_data(cfg)
         # 4. Convert current coordinate to WGS84 and convert shapefile to GeoJson.
-        SpatialDelineation.output_wgs84_geojson(cfg)
+        # todo: convert to geojson may failed in Windows for some reason caused by compiled GDAL.
+        #       since the geojson is not used for further purpose, comment it!
+        # SpatialDelineation.output_wgs84_geojson(cfg)
         # 5. Convert to WGS84 coordinate and output latitude raster.
         SpatialDelineation.generate_lat_raster(cfg)
         # 6. Field partition based on spatial topology
