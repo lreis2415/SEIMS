@@ -492,7 +492,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
     float tbase = m_chLen[i] / (m_dt * peakVel); ///< flow duration (fraction of 24 hr)
     if (tbase > 1.f) tbase = 1.f;
 #ifdef PRINT_DEBUG
-    cout << "ID: " << i << ", qchOut: " << m_qRchOut[i] << ", allwater: " << allWater <<
+    cout << "ID: " << i << ", qchOut: " << m_qRchOut[i] << ", qdin: " << qdin <<
             ", chStorage: " << m_chSto[i] <<
             ", sedtoCh: " << m_sedtoCh[i] <<
             ", sedStorage: " << m_sedSto[i] << ", allSediment: " << sedin <<

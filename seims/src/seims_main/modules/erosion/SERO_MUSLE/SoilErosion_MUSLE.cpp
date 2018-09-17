@@ -112,6 +112,8 @@ void SERO_MUSLE::InitialOutputs() {
             m_usleMult[i] = 11.8f * exp(-0.053f * m_soilRock[i][0]) * m_usleK[i][0] * m_usleP[i] * L * S;
 
             m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
+            //cout << "id: " << i << ", acc:" << m_flowAccm[i] <<
+            //    ", L: " << L << ", S: " << S << endl;
         }
     }
     if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {

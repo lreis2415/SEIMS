@@ -37,7 +37,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_DETACH_SAG, UNIT_NON_DIM, DESC_DETACH_SAG, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DETACH_LAG, UNIT_NON_DIM, DESC_DETACH_LAG, Source_ParameterDB, DT_Raster1D);
 
-    // C-Factor relaeted
+    // C-Factor related
     mdi.AddParameter(VAR_USLE_C, UNIT_NON_DIM, DESC_USLE_C, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_ICFAC, UNIT_NON_DIM, DESC_ICFAC, Source_ParameterDB, DT_Single);
     // Update USLE_C factor by average minimum C factor for the land cover (icfac = 0)

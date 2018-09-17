@@ -1135,7 +1135,7 @@
 #define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
 #define VAR_USLE_C "USLE_C" /// m_usleC, USLE C factor (land cover)
-#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
+#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0) or new method from RUSLE (1, default)
 #define VAR_USLE_K "USLE_K" /// m_usleK
 #define VAR_USLE_LS "USLE_LS" /// m_usleLS
 #define VAR_USLE_P "USLE_P" /// m_usleP
@@ -1890,7 +1890,7 @@
 #define DESC_TSD_DT "Time series data type, e.g., climate data"
 #define DESC_UPSOLDEP "depth of the upper soil layer"
 #define DESC_USLE_C "the average annual cover management factor for the land cover"
-#define DESC_ICFAC "C-factor calculation using Cmin (0 as default) or new method from RUSLE (1)"
+#define DESC_ICFAC "C-factor calculation using Cmin (0) or new method from RUSLE (1, default)"
 #define DESC_USLE_K "The soil erodibility factor used in USLE"
 #define DESC_USLE_LS "USLE LS factor"
 #define DESC_USLE_P "the erosion control practice factor"
