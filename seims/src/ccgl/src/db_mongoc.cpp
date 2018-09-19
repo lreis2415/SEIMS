@@ -284,6 +284,7 @@ void MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
     }
     mongoc_gridfs_file_t* gfile = this->GetFile(gfilename, gfs);
     if (gfile == NULL) {
+        databuf = NULL;
         cout << gfilename << " is not existed or get file timed out!" << endl;
         return;
     }

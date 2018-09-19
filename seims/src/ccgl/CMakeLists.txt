@@ -15,14 +15,14 @@
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2010/2013, mongo-c-driver-1.5.5, GDAL-1.11.4
-#     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
+#     2. Windows 10 with msys2/mingw64 (GCC-8.2.0), mongo-c-driver-1.12.0, GDAL-2.3.1
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.6.1, GDAL-1.11.5 (Without UnitTest)
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #     6. Windows 10 with Visual Studio 2013+Intel C++ Compiler 17.0, mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Jun. 21, 2018
+#  Latest updated: Sep. 13, 2018
 #  Copyright (C) 2017-2018 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
@@ -38,6 +38,9 @@ if(POLICY CMP0015)
 endif()
 if(POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
+endif()
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
 endif()
 
 ### Set coding language
@@ -147,8 +150,18 @@ IF (GDAL_FOUND)
 ENDIF ()
 
 ### Find mongo-c-driver which is optional
-INCLUDE(FindBson)
+IF(BSON_ROOT)
+  SET(ENV{BSON_ROOT} BSON_ROOT)
+  SET(ENV{BSON_DIR} BSON_ROOT)
+  SET(ENV{BSON_ROOT_DIR} BSON_ROOT)
+ENDIF()
+IF(MONGOC_ROOT)
+  SET(ENV{MONGOC_ROOT} MONGOC_ROOT)
+  SET(ENV{MONGOC_DIR} MONGOC_ROOT)
+  SET(ENV{MONGOC_ROOT_DIR} MONGOC_ROOT)
+ENDIF()
 INCLUDE(FindMongoC)
+INCLUDE(FindBson)
 IF (BSON_FOUND AND MONGOC_FOUND)
   SET(WITH_MONGOC 1)
   ADD_DEFINITIONS(-DUSE_MONGODB)
