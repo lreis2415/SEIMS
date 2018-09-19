@@ -181,9 +181,9 @@ def main(cfg):
         print_message(logbook.stream)
 
         # Create plot
-        plot_pareto_front(pop, ws, gen, 'Pareto frontier of Scenarios Optimization',
-                          'Economic effectiveness',
-                          'Environmental effectiveness')
+        front = numpy.array([ind.fitness.values for ind in pop])
+        plot_pareto_front(front, ['Economic effectiveness', 'Environmental effectiveness'],
+                          ws, gen, 'Pareto frontier of Scenarios Optimization')
         # save in file
         output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
         for indi in pop:

@@ -32,25 +32,14 @@ public:
     ///< vertical interpolation information for ITP
     bool needDoVerticalInterpolation();
 
-    ///< get channel flow routing method
-    string channelFlowRoutingMethod();
+    static float dataTypeString2Float(const string& data_type);
 
-    ///< get channel sediment routing method
-    string channelSedimentRoutingMethod();
-
-    ///< get channel nutrient routing method
-    string channelNutrientRoutingMethod();
+    static string dataType2String(float data_type);
 
 private:
     string m_moduleId;         ///< module's ID
     string m_settingString;    ///< module setting string
     vector<string> m_settings; ///< module settings
-
-    string channelRoutingMethod(int);
-
-    static float dataTypeString2Float(const string& data_type);
-
-    static string dataType2String(float data_type);
 };
 
 #endif /* SEIMS_MODULE_SETTING_H */

@@ -1,12 +1,15 @@
 /*!
+ * \file IUH_SED_OL.h
  * \brief IUH overland method to calculate overland sediment routing
- * \author Junzhi Liu, Liangjun Zhu
- * \changelog 2016-08-12 - jz - Initial implementation.\n
- *            2018-03-22 - lj - The length of subbasin related array should equal to the count of
- *                                subbasins, for both mpi version and omp version.\n
- *            2018-03-26 - lj - Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
- *            2018-05-14 - lj - Code review and reformat.\n
  *
+ * Changelog:
+ *   - 1. 2016-08-12 - jz - Initial implementation.
+ *   - 2. 2018-03-22 - lj - The length of subbasin related array should equal to the count of
+ *                          subbasins, for both mpi version and omp version.
+ *   - 3. 2018-03-26 - lj - Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
+ *   - 4. 2018-05-14 - lj - Code review and reformat.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_IUH_SED_OL_H
 #define SEIMS_MODULE_IUH_SED_OL_H

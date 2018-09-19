@@ -412,6 +412,11 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     FloatRaster* raster_data = FloatRaster::Init(spatial_gridfs_, remote_filename.c_str(),
                                                  true, mask_raster_, true);
+    // When load from MongoDB failed (i.e., file not existed), the Initialized() will return false!
+    if (!raster_data->Initialized()) {
+        delete raster_data;
+        return nullptr;
+    }
     assert(nullptr != raster_data);
     /// using emplace() if possible or insert() to make sure the successful insertion.
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -427,6 +432,11 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
 
 void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, float*& data) {
     ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
+    if (!weight_data->Initialized()) {
+        delete weight_data;
+        data = nullptr;
+        return;
+    }
     weight_data->GetWeightData(&num, &data);
 #ifdef HAS_VARIADIC_TEMPLATES
     if (!weight_data_map_.emplace(remote_filename, weight_data).second) {
@@ -443,6 +453,8 @@ void DataCenterMongoDB::Read1DArrayData(const string& param_name, const string& 
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) return;
+
     num = CVT_INT(datalength / 4);
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
     if (!StringMatch(param_name, Tag_Weight)) {
@@ -461,6 +473,11 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) {
+        data = nullptr;
+        return;
+    }
+
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     int n_rows = CVT_INT(float_values[0]);
@@ -510,6 +527,11 @@ void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) {
+        data = nullptr;
+        return;
+    }
+
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     n = CVT_INT(float_values[0]);

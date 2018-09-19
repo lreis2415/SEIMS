@@ -20,7 +20,7 @@
 #When PET_PM are used, there is no need to use AET_PTH, SET_LM should be used!
 #0 | AET | Hargreaves and PriestleyTaylor | AET_PTH
 0 | SET | Linearly Method from WetSpa | SET_LM
-0 | PG | Simplified EPIC | BIO_EPIC
+0 | PG | Simplified EPIC | PG_EPIC
 0 | ATMDEP | Atomosphere deposition | ATMDEP
 0 | NUTR_TF | Nutrient Transformation of C, N, and P | NUTR_TF
 0 | Groundwater | Linear reservoir | GWA_RE

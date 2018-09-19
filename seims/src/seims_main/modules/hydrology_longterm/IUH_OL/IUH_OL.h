@@ -1,37 +1,30 @@
-/**
-*	@version	1.0
-*	@author    Wu Hui
-*	@date	24-January-2011
-*
-*	@brief	IUH overland method to calculate overland flow routing
-*
-*	Revision:	Zhiqiang YU
-*   Date:		2011-2-22
-*	Description:
-*	1.	Add parameter CellWidth.
-*	2.	Delete parameter uhminCell and uhmaxCell because the parameter Ol_iuh
-*		contains these information. The first and second column of Ol_iuh is
-*		min time and max time.
-*	3.	The number of subbasins (m_nsub) should get from m_subbasin rather than
-*		from main program. So does variable m_nCells.
-*	4.	Add variable m_iuhCols to store the number of columns of Ol_iuh. In the
-*		meantime, add one parameter nCols to function SetIUHCell.
-*	5.	Add variable m_cellFlow to store the flow of each cell in each day between
-*		min time and max time. Its number of columns equals to the maximum of second
-*		column of Ol_iuh add 1.
-*	6.  Add function initial to initialize some variables.
-*	7.	Modify function Execute.
-*
-*	Revision: Liang-Jun Zhu
-*	Date:	  2016-7-29
-*	Description:
-*	1.	Unify the code style.
-*	2.	Replace VAR_SUBBASIN with VAR_SUBBASIN_PARAM, which is common used by several modules.
-*   Date:     2018-3-20
-*   Description:
-*   1.  The length of subbasin related array should equal to the count of subbasins, for both mpi version and omp version.
-*   2.  2017-8-23 lj Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
-*/
+/*!
+ * \file IUH_OL.h
+ * \brief IUH overland method to calculate overland flow routing
+ *
+ * Changelog:
+ *   - 1. 2011-01-24 - wh - Initial implementation.
+ *   - 2. 2011-02-22 - zq -
+ *        -# Add parameter CellWidth.
+ *        -# Delete parameter uhminCell and uhmaxCell because the parameter Ol_iuh
+ *               contains these information. The first and second column of Ol_iuh is
+ *               min time and max time.
+ *          -# The number of subbasins (m_nsub) should get from m_subbasin rather than
+ *               from main program. So does variable m_nCells.
+ *          -# Add variable m_iuhCols to store the number of columns of Ol_iuh. In the
+ *               meantime, add one parameter nCols to function SetIUHCell.
+ *          -# Add variable m_cellFlow to store the flow of each cell in each day between
+ *               min time and max time. Its number of columns equals to the maximum of second
+ *               column of Ol_iuh add 1.
+ *          -# Add function initial to initialize some variables.
+ *          -# Modify function Execute.
+ *   - 3. 2016-07-29 - lj -
+ *        -# Unify the code style.
+ *        -# Replace VAR_SUBBASIN with VAR_SUBBASIN_PARAM, which is common used by several modules.
+ *   - 4. 2018-03-20 - lj - The length of subbasin related array should equal to
+ *                            the count of subbasins, for both mpi version and omp version.
+ * \author Wu hui, Zhiqiang Yu, Liangjun Zhu
+ */
 #ifndef SEIMS_MODULE_IUH_OL_H
 #define SEIMS_MODULE_IUH_OL_H
 
@@ -57,7 +50,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 

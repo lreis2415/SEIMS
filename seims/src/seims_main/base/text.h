@@ -575,11 +575,11 @@
 #define VAR_CHST "CHST" /// m_chStorage, channel storage
 #define VAR_CHT "CHT" /// m_canHgt, canopy height for the day(m)
 #define VAR_CHTMX "CHTMX" /// m_maxCanHgt, maximum canopy height (m)
-#define VAR_CHWTRWIDTH "chwtwidth" /// m_chWtrWth, channel water width
+#define VAR_CHWTRWIDTH "chwtrwidth" /// m_chWtrWth, channel water width
 #define VAR_CHBTMWIDTH "chbtmwidth" // m_chBtmWth, channel bottom width, m
 #define VAR_CHCROSSAREA "chCrossArea" // m_chCrossArea, channel cross-sectional area, m^2
-#define VAR_CHWIDTH "CHWIDTH" // m_chWth, channel width at bankfull
-#define VAR_CHWTRDEPTH "CHWTDEPTH" /// m_chWtrDepth, channel water depth
+#define VAR_CHWIDTH "CH_WIDTH" // m_chWth, channel width at bankfull
+#define VAR_CHWTRDEPTH "CHWTRDEPTH" /// m_chWtrDepth, channel water depth
 #define VAR_CLAY "CLAY" /// m_soilClay, Percent of clay content
 #define VAR_CMN "cmn" /// m_minrlCoef, Rate coefficient for mineralization of the humus active organic nutrients
 #define VAR_CN2 "CN2" /// m_cn2, Curve Number value under moisture condition II
@@ -599,7 +599,6 @@
 #define VAR_DEEPST "deepst"
 #define VAR_DEET "DEET" /// m_deprStoET, evaporation from the depression storage
 #define VAR_DEM "DEM" /// m_dem, Digital Elevation Model
-#define VAR_DEPRATIO "depRatio" /// m_depRatio, deposition ratio
 #define VAR_DEPREIN "Depre_in"                        /// initial depression storage coefficient
 #define VAR_DEPRESSION "Depression"                   /// Depression storage capacity
 #define VAR_DETSPLASH "DETSplash"
@@ -1135,10 +1134,11 @@
 #define VAR_TMIN "TMIN" /// m_minTemp, minimum air temperature
 #define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
+#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0) or new method from RUSLE (1, default)
 #define VAR_USLE_C "USLE_C" /// m_usleC, USLE C factor (land cover)
-#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
 #define VAR_USLE_K "USLE_K" /// m_usleK
-#define VAR_USLE_LS "USLE_LS" /// m_usleLS
+#define VAR_USLE_L "USLE_L" /// m_usleL, USLE slope length factor
+#define VAR_USLE_S "USLE_S" /// m_usleS, USLE slope factor
 #define VAR_USLE_P "USLE_P" /// m_usleP
 #define VAR_VCD "vcd" /// m_vcd, whether change channel dimensions, 0 - do not change (false), 1 - compute channel degredation (true)
 #define VAR_VCRIT "vcrit" /// m_critVelSedDep, critical velocity for sediment deposition
@@ -1367,7 +1367,6 @@
 #define DESC_DEEPST "depth of water in deep aquifer"
 #define DESC_DEET "evaporation from depression storage"
 #define DESC_DEM "Digital Elevation Model"
-#define DESC_DEPRATIO "Deposition ratio of sediment"
 #define DESC_DEPREIN "initial depression storage coefficient"
 #define DESC_DEPRESSION "Depression storage capacity"
 #define DESC_DETSPLASH "distribution of splash detachment"
@@ -1891,10 +1890,11 @@
 #define DESC_TSD_CLIMATE "Climate data of all the stations"
 #define DESC_TSD_DT "Time series data type, e.g., climate data"
 #define DESC_UPSOLDEP "depth of the upper soil layer"
+#define DESC_ICFAC "C-factor calculation using Cmin (0) or new method from RUSLE (1, default)"
 #define DESC_USLE_C "the average annual cover management factor for the land cover"
-#define DESC_ICFAC "C-factor calculation using Cmin (0 as default) or new method from RUSLE (1)"
 #define DESC_USLE_K "The soil erodibility factor used in USLE"
-#define DESC_USLE_LS "USLE LS factor"
+#define DESC_USLE_L "USLE slope length factor"
+#define DESC_USLE_S "USLE slope factor"
 #define DESC_USLE_P "the erosion control practice factor"
 #define DESC_VCD "compute changes in channel dimensions"
 #define DESC_VCRIT "critical velocity for sediment deposition"

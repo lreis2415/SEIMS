@@ -12,7 +12,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
 
     // set the information properties
-    mdi.SetAuthor("Junzhi Liu, Liang-Jun Zhu");
+    mdi.SetAuthor("Junzhi Liu, Liangjun Zhu");
     mdi.SetClass(MCLS_PET, MCLSDESC_PET);
     mdi.SetDescription(MDESC_PET_H);
     mdi.SetEmail(SEIMS_EMAIL);
@@ -20,7 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MID_PET_H);
     mdi.SetVersion("2.0");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("PET_H.html");
+    mdi.SetHelpfile("");
 
     // set the parameters (non-time series)
     mdi.AddParameter(VAR_K_PET, UNIT_NON_DIM, DESC_PET_K, Source_ParameterDB, DT_Single);

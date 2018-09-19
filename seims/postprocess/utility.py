@@ -23,8 +23,12 @@ from preprocess.text import DataValueFields
 def save_png_eps(plot, wp, name):
     """Save figures, both png and eps formats"""
     eps_dir = wp + os.path.sep + 'eps'
+    pdf_dir = wp + os.path.sep + 'pdf'
     UtilClass.mkdir(eps_dir)
-    for figpath in [wp + os.path.sep + name + '.png', eps_dir + os.path.sep + name + '.eps']:
+    UtilClass.mkdir(pdf_dir)
+    for figpath in [wp + os.path.sep + name + '.png',
+                    eps_dir + os.path.sep + name + '.eps',
+                    pdf_dir + os.path.sep + name + '.pdf']:
         plot.savefig(figpath, dpi=300)
 
 
@@ -112,6 +116,8 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
         for sim_i, obs_i in sim_to_obs.items():
             param_name = sim_vars[sim_i]
             obs_values = obs_dict.get(sim_date)
+            if obs_i > len(obs_values) or obs_values[obs_i] is None:
+                continue
             sim_obs_dict[param_name][DataValueFields.utc].append(sim_date)
             sim_obs_dict[param_name]['Obs'].append(obs_values[obs_i])
             sim_obs_dict[param_name]['Sim'].append(sim_values[sim_i])

@@ -50,13 +50,18 @@ class ObsSimData(object):
 
     def efficiency_values(self, varname, effnames):
         values = list()
+        tmpvars = list()
         for name in effnames:
             tmpvar = '%s-%s' % (varname, name)
             if tmpvar not in self.objnames:
                 values.append(-9999.)
             else:
+                if name.upper() == 'PBIAS':
+                    tmpvars.append('%s-abs(PBIAS)' % varname)
+                else:
+                    tmpvars.append(tmpvar)
                 values.append(self.objvalues[self.objnames.index(tmpvar)])
-        return values
+        return values, tmpvars
 
     def output_header(self, varname, effnames, prefix=''):
         concate = ''
@@ -65,7 +70,10 @@ class ObsSimData(object):
             if tmpvar not in self.objnames:
                 concate += '\t'
             else:
-                concate += '%s-%s\t' % (prefix, tmpvar)
+                if name.upper() == 'PBIAS':
+                    concate += '%s-abs(PBIAS)\t' % prefix
+                else:
+                    concate += '%s-%s\t' % (prefix, tmpvar)
         return concate
 
     def output_efficiency(self, varname, effnames):
@@ -188,16 +196,15 @@ def calibration_objectives(cali_obj, ind):
     """
     cali_obj.ID = ind.id
     model_args = cali_obj.model.ConfigDict
+    model_args.setdefault('calibration_id', -1)
     model_args['calibration_id'] = ind.id
     model_obj = MainSEIMS(args_dict=model_args)
 
-    # Copy observation data, no need to query database
-    model_obj.obs_vars = ind.obs.vars[:]
-    model_obj.obs_value = deepcopy(ind.obs.data)
+    # Set observation data to model_obj, no need to query database
+    model_obj.SetOutletObservations(ind.obs.vars, ind.obs.data)
 
-    run_flag = model_obj.run()
-    # if not run_flag:  # DO NOT return according to the run_flag.
-    #     return ind
+    # Execute model
+    model_obj.run()
     time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
 
     # read simulation data of the entire simulation period (include calibration and validation)
@@ -232,6 +239,10 @@ def calibration_objectives(cali_obj, ind):
                                                                 cali_obj.cfg.vali_etime)
         if ind.vali.objnames and ind.vali.objvalues:
             ind.vali.valid = True
+
+    # Get timespan
+    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = model_obj.GetTimespan()
+
     # delete model output directory for saving storage
     shutil.rmtree(model_obj.output_dir)
     return ind

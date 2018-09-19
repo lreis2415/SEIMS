@@ -1,7 +1,7 @@
 # A lightweight, modular, and parallelized watershed modeling framework
 
 
-Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn). All rights reserved.
+Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), and [NJNU](http://en.njnu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations (**Not finished yet!**)

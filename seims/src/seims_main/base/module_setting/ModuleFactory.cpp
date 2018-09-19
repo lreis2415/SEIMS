@@ -415,10 +415,8 @@ void ModuleFactory::ReadParameterSetting(string& moduleID, TiXmlDocument& doc, S
                             param->Name += "_M";
                         }
                     }
-
-                    if (StringMatch(param->Name, Tag_VerticalInterpolation)) //if do the vertical interpolation
-                    {
-                        param->Value = (setting->needDoVerticalInterpolation() ? 1.0f : 0.0f);
+                    if (StringMatch(param->Name, Tag_VerticalInterpolation))  {
+                        param->Value = setting->needDoVerticalInterpolation() ? 1.0f : 0.0f; // Do vertical interpolation?
                     }
                 }
             }

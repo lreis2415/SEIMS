@@ -10,7 +10,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
-    mdi.SetAuthor("Huiran Gao, Liang-Jun Zhu");
+    mdi.SetAuthor("Huiran Gao, Liangjun Zhu");
     mdi.SetClass(MCLS_NUTRSED, MCLSDESC_NUTRSED);
     mdi.SetDescription(MDESC_NUTRSED);
     mdi.SetEmail(SEIMS_EMAIL);

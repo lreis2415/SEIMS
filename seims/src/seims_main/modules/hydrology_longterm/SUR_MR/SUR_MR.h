@@ -1,40 +1,28 @@
-/**
-*	@author    Junzhi Liu
-*	@date	19-January-2011
-*
-*	@brief	Modified Rational Method to calculate infiltration and excess precipitation
-*
-*	Revision:	Zhiqiang Yu
-*   Date:		2011-2-15
-*	Description:
-*	1.	Parameter S_M_frozen would be s_frozen and DT_Single.
-*	2.	Parameter sfrozen would be t_soil and in WaterBalance table.
-*	3.  Delete parameter Moist_in.
-*	4.  Rename the input and output variables. See metadata rules for names.
-*	5.  In function execute, do not change m_pNet[i] directly. This will have influence
-*		on another modules who will use net precipitation. Use local variable to replace it.
-*	6.  Add API function GetValue.
-*
-*	Revision:	Junzhi Liu
-*   Date:		2011-2-19
-*	1.	Rename m_excess to m_pe
-*	2.	Take snowmelt into consideration when calculating PE, PE=P_NET+Snowmelt-F
-*
-*	Revision:	Junzhi Liu
-*   Date:		2013-10-28
-*	1.	Add multi-layers support for soil parameters
-*
-*   Revision: LiangJun Zhu
-*   Date:        2016-5-27
-*   1. Update the support for multi-layers soil parameters
-*
-*   Revision: LiangJun Zhu
-*   Date:       2016-7-14
-*   1. Remove snowmelt as AddInput, because snowmelt is considered into net precipitation in SnowMelt moudule,
-*      by the meantime, this can avoid runtime error when SnowMelt module is not configured.
-*   2. Change the unit of soil moisture from mm H2O/mm Soil to mm H2O, which is more rational.
-*   3. Change soil moisture to soil storage which is coincident with SWAT, and do not include wilting point.
-*/
+/*!
+ * \file SUR_MR.h
+ * \brief Modified Rational Method to calculate infiltration and excess precipitation.
+ *
+ * Changelog:
+ *   - 1. 2011-01-19 - jz - Initial implementation.
+ *   - 2. 2011-02-15 - zq -
+ *        -# Parameter S_M_frozen would be s_frozen and DT_Single.
+ *        -# Parameter sfrozen would be t_soil and in WaterBalance table.
+ *        -# Delete parameter Moist_in.
+ *        -# Rename the input and output variables. See metadata rules for names.
+ *        -# In function execute, do not change m_pNet[i] directly. This will have influence
+ *             on another modules who will use net precipitation. Use local variable to replace it.
+ *        -# Add API function GetValue.
+ *   - 3. 2011-02-19 - jz - Take snowmelt into consideration when calculating PE, PE=P_NET+Snowmelt-F.
+ *   - 4. 2013-10-28 - jz - Add multi-layers support for soil parameters.
+ *   - 5. 2016-05-27 - lj - Update the support for multi-layers soil parameters.
+ *   - 6. 2016-07-14 - lj -
+ *        -# Remove snowmelt as AddInput, because snowmelt is considered into net precipitation in SnowMelt moudule,
+ *             by the meantime, this can avoid runtime error when SnowMelt module is not configured.
+ *        -# Change the unit of soil moisture from mm H2O/mm Soil to mm H2O, which is more rational.
+ *        -# Change soil moisture to soil storage which is coincident with SWAT, and do not include wilting point.
+ *
+ * \author Junzhi Liu, Zhiqiang Yu, Liangjun Zhu
+ */
 #ifndef SEIMS_MODULE_SUR_MR_H
 #define SEIMS_MODULE_SUR_MR_H
 

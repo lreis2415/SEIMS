@@ -1,14 +1,16 @@
 /*!
- * \brief Snow melt by snowpack daily method from SWAT
- * \author Zhiqiang Yu
- * \date May 2011
- * \revised LiangJun Zhu
- * \date 2016-5-29
- *  1. Remove m_isInitial and add initialOutputs(void)
- *  2. Add m_snowCoverMax and m_snowCover50 to adjust for areal extent of snow cover.
- *  3. ReWrite the execute code according to snom.f of SWAT.
- *  4. In this version, snow melt is added to net precipitation.
+ * \file SNO_SP.h
+ * \brief Snow melt by snowpack daily method from SWAT.
  *
+ * Changelog:
+ *   - 1. 2011-05-30 - zq - Initial implementation.
+ *   - 2. 2016-05-29 - lj -
+ *        -# Remove m_isInitial and add initialOutputs(void)
+ *        -# Add m_snowCoverMax and m_snowCover50 to adjust for areal extent of snow cover
+ *        -# ReWrite the execute code according to snom.f of SWAT
+ *        -# In this version, snow melt is added to net precipitation.
+ *
+ * \author Zhiqiang Yu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_SNO_SP_H
 #define SEIMS_MODULE_SNO_SP_H

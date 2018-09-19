@@ -190,6 +190,10 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
         }
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo* param = parameters[j];
+            if (StringMatch(param->Name, Tag_VerticalInterpolation)) {
+                modules[i]->SetValue(param->Name.c_str(), param->Value);
+                continue;
+            }
             SetData(module_settings[id], param, modules[i], vertical_interpolation);
         }
     }
@@ -227,18 +231,22 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
     }
     string remote_filename = oss.str();
 
+    // If the parameters from Database is optional.
+    bool is_opt = false;
+    if (StringMatch(param->Source, Source_ParameterDB_Optional)) is_opt = true;
+
     switch (param->Dimension) {
         case DT_Unknown: throw ModelException("ModuleFactory", "SetData", "Type of " + param->Name + " is unknown.");
         case DT_Single: SetValue(param, p_module);
             break;
-        case DT_Array1D: Set1DData(name, remote_filename, p_module, vertital_itp);
+        case DT_Array1D: Set1DData(name, remote_filename, p_module, vertital_itp, is_opt);
             break;
-        case DT_Array2D: Set2DData(name, remote_filename, p_module);
+        case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt);
             break;
         case DT_Array1DDateValue: break;
-        case DT_Raster1D: SetRaster(name, remote_filename, p_module);
+        case DT_Raster1D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
-        case DT_Raster2D: SetRaster(name, remote_filename, p_module);
+        case DT_Raster2D: SetRaster(name, remote_filename, p_module, is_opt);
             break;
         case DT_Scenario: SetScenario(p_module);
             break;
@@ -280,8 +288,9 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
         if (init_params_.find(GetUpper(param->Name)) != init_params_.end()) {
             param->Value = init_params_[GetUpper(param->Name)]->GetAdjustedValue();
         } else {
-            // cout << "WARNING: Parameter " << param->Name << " is not existed in DB!" << endl;
-            // param->Value = NODATA_VALUE; // NOT existed parameters will be intialized in modules.
+            if (!StringMatch(param->Source, Source_ParameterDB_Optional)) {
+                throw ModelException("ModuleFactory", "SetValue", param->Name + " must be specified!");
+            }
         }
     }
 
@@ -289,7 +298,8 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
 }
 
 void DataCenter::Set1DData(const string& para_name, const string& remote_filename,
-                           SimulationModule* p_module, const bool vertital_itp) {
+                           SimulationModule* p_module, const bool vertital_itp,
+                           const bool is_optional /* = false */) {
     int n;
     float* data = nullptr;
     /// the data has been read before, which stored in m_1DArrayMap
@@ -308,7 +318,8 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
     /// 1. IF FLOWOUT_INDEX_D8
     if (StringMatch(para_name, Tag_FLOWOUT_INDEX_D8)) {
         Read1DArrayData(para_name, remote_filename, n, data);
-        if (mask_raster_->GetCellNumber() != n) {
+        if (nullptr == data || mask_raster_->GetCellNumber() != n) {
+            if (is_optional) return;
             throw ModelException("DataCenter", "Set1DData",
                                  "The data length derived from Read1DArray in " + remote_filename +
                                  " is not the same as the template.");
@@ -316,7 +327,7 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
     }
         /// 2. IF Weight data
     else if (StringMatch(para_name, Tag_Weight)) {
-        ReadItpWeightData(remote_filename, n, data);
+        ReadItpWeightData(remote_filename, n, data); // data will be nullptr if load Weight data failed.
     }
         /// 3. IF Meteorology sites data
     else if (StringMatch(para_name, Tag_Elevation_Meteorology)) {
@@ -350,15 +361,17 @@ void DataCenter::Set1DData(const string& para_name, const string& remote_filenam
         Read1DArrayData(para_name, remote_filename, n, data);
     }
     if (nullptr == data) {
+        if (is_optional) return;
         throw ModelException("ModuleFactory", "Set1DData", "Failed reading file " + remote_filename);
     }
     p_module->Set1DData(para_name.c_str(), n, data);
 }
 
-void DataCenter::Set2DData(const string& para_name, const string& remote_filename, SimulationModule* p_module) {
+void DataCenter::Set2DData(const string& para_name, const string& remote_filename,
+                           SimulationModule* p_module, const bool is_optional /* = false */) {
     int n_rows = 0;
     int n_cols = 1;
-    float** data;
+    float** data = nullptr;
     /// Get ROUTING_LAYERS real file name
     string real_filename = remote_filename;
     if (StringMatch(para_name, Tag_ROUTING_LAYERS)) {
@@ -376,7 +389,7 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     /// Load data from DataCenter
     if (StringMatch(para_name, Tag_ROUTING_LAYERS) || StringMatch(para_name, Tag_ROUTING_LAYERS_DINF)) {
         // Routing layering data based on different flow model
-        Read2DArrayData(real_filename, n_rows, n_cols, data);
+        Read2DArrayData(real_filename, n_rows, n_cols, data); // data will be nullptr if read failed.
     } else if (StringMatch(para_name, Tag_FLOWIN_INDEX_D8) || StringMatch(para_name, Tag_FLOWIN_INDEX_DINF)
         || StringMatch(para_name, Tag_FLOWIN_PERCENTAGE_DINF) || StringMatch(para_name, Tag_FLOWOUT_INDEX_DINF)) {
         // Flow in and flow out data based on different flow model
@@ -390,11 +403,15 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     } else {
         Read2DArrayData(real_filename, n_rows, n_cols, data);
     }
-
+    if (nullptr == data) {
+        if (is_optional) return;
+        throw ModelException("ModuleFactory", "Set2DData", "Failed reading file " + remote_filename);
+    }
     p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
 }
 
-void DataCenter::SetRaster(const string& para_name, const string& remote_filename, SimulationModule* p_module) {
+void DataCenter::SetRaster(const string& para_name, const string& remote_filename,
+                           SimulationModule* p_module, const bool is_optional /* = false */) {
     int n, lyrs;
     float* data = nullptr;
     float** data2d = nullptr;
@@ -402,6 +419,7 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
         raster = ReadRasterData(remote_filename);
         if (nullptr == raster) {
+            if (is_optional) return;
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
         }
         string upper_name = GetUpper(para_name);
@@ -419,6 +437,7 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
         /// 1D or 2D raster data
         if (raster->Is2DRaster()) {
             if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
+                if (is_optional) return;
                 throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
             }
             if (nullptr != data2d && adjust_data) {
@@ -426,6 +445,7 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
             }
         } else {
             if (!raster->GetRasterData(&n, &data)) {
+                if (is_optional) return;
                 throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
             }
             if (nullptr != data && adjust_data) {

@@ -2,7 +2,7 @@
  * \brief A IO test demo of developing module for SEIMS.
  *        Refer https://github.com/lreis2415/SEIMS/wiki/Module-demo for more details.
  * \author Liangjun Zhu
- * \date last updated 2018-02-07
+ * \date 2018-02-07
  */
 
 #ifndef SEIMS_MODULE_IO_TEST_H
@@ -14,7 +14,7 @@
 
 using namespace bmps;
 
-class IO_TEST : public SimulationModule {
+class IO_TEST: public SimulationModule {
 public:
     IO_TEST();
 
@@ -22,17 +22,17 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Set1DData(const char *key, int n, float *data) OVERRIDE;
+    void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Set2DData(const char *key, int n, int col, float **data) OVERRIDE;
+    void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
-    void Get2DData(const char *key, int *n, int *col, float ***data) OVERRIDE;
+    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
-    void SetScenario(Scenario *sce) OVERRIDE;
+    void SetScenario(Scenario* sce) OVERRIDE;
 
-    void SetReaches(clsReaches *reaches) OVERRIDE;
+    void SetReaches(clsReaches* reaches) OVERRIDE;
 
 private:
     /*!
@@ -48,26 +48,26 @@ private:
      * \param[in] n The input data dimension
      * \return bool The validity of the dimension
      */
-    bool CheckInputSize(const char *key, int n);
+    bool CheckInputSize(const char* key, int n);
 
 private:
     /// valid cells number
     int m_nCells;
     /// input 1D raster data
-    float *m_raster1D;
+    float* m_raster1D;
     /// maximum number of soil layers
     int m_soilLayers;
     /// soil layers
-    float *m_nSoilLayrs;
+    float* m_nSoilLayrs;
     /// input 2D raster data
-    float **m_raster2D;
+    float** m_raster2D;
     /// output 1D raster data
-    float *m_output1Draster;
+    float* m_output1Draster;
     /// output 2D raster data
-    float **m_output2Draster;
+    float** m_output2Draster;
     /// BMPs Scenario data
-    Scenario *m_scenario;
+    Scenario* m_scenario;
     /// Reach information
-    clsReaches *m_reaches;
+    clsReaches* m_reaches;
 };
 #endif /* SEIMS_MODULE_IO_TEST_H */

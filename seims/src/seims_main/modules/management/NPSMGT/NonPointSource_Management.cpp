@@ -2,10 +2,11 @@
 
 #include "text.h"
 
-NPS_Management::NPS_Management() : m_nCells(-1), m_cellWth(-1.f), m_cellArea(-1.f), m_timestep(-1.f),
-                                   m_mgtFields(nullptr), m_soilWtrSto(nullptr),
-                                   m_soilNO3(nullptr), m_soilNH4(nullptr), m_soilSolP(nullptr),
-                                   m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr) {
+NPS_Management::NPS_Management() :
+    m_nCells(-1), m_cellWth(-1.f), m_cellArea(-1.f), m_timestep(-1.f),
+    m_mgtFields(nullptr), m_soilWtrSto(nullptr),
+    m_soilNO3(nullptr), m_soilNH4(nullptr), m_soilSolP(nullptr),
+    m_soilStabOrgN(nullptr), m_soilHumOrgP(nullptr) {
     m_arealSrcFactory.clear();
 }
 

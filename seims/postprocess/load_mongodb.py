@@ -145,6 +145,9 @@ class ReadModelData(object):
     def Observation(self, subbsn_id, vars, start_time, end_time):
         """Read observation data of given variables.
 
+        Changelog:
+          - 1. 2018-8-29 Use None when the observation of one variables is absent.
+
         Returns:
             1. Observed variable names, [var1, var2, ...]
             2. Observed data dict of selected plotted variables, with UTCDATETIME.
@@ -192,10 +195,17 @@ class ReadModelData(object):
                 curt = obs[DataValueFields.utc]
                 curv = obs[DataValueFields.value]
                 if curt not in data_dict:
-                    data_dict[curt] = list()
-                data_dict[curt].append(curv)
-        if not data_dict:
+                    data_dict[curt] = [None] * len(vars)
+                data_dict[curt][i] = curv
+        if not vars_existed:
             return None, None
+        # remove the redundant None in data_dict, in case of len(vars_existed) != len(vars)
+        for i, vname in enumerate(vars):
+            if vname in vars_existed:
+                continue
+            for dt, adata in list(data_dict.items()):
+                del adata[i]
+
         print('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),
                                                                    start_time.strftime('%c'),
                                                                    end_time.strftime('%c')))
