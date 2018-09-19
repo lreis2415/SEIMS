@@ -42,7 +42,7 @@ install:
   - cmake -DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver -DBSON_ROOT_DIR=C:\mongo-c-driver -G "Visual Studio 12 2013 Win64"
   - msbuild.exe ALL_BUILD.vcxproj /p:Configuration=Debug
   - msbuild.exe INSTALL.vcxproj /p:Configuration=Debug
-  - "SET MONGOC_ROOT_DIR=C:\\mongo-c-driver"
+  - "SET MONGOC_ROOT=C:\\mongo-c-driver"
   - "SET MONGOC_LIB_DIR=C:\\mongo-c-driver\\bin"
   - "SET PATH=C:\\mongo-c-driver\\bin;%PATH%"
 build_script:
