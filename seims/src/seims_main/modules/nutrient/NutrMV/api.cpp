@@ -24,7 +24,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_CSWAT, UNIT_NON_DIM, DESC_CSWAT, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SUBBSNID_NUM, UNIT_NON_DIM, DESC_SUBBSNID_NUM, Source_ParameterDB, DT_Single);
     mdi.AddParameter(Tag_CellWidth, UNIT_LEN_M, DESC_CellWidth, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_QTILE, UNIT_NON_DIM, DESC_QTILE, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_QTILE, UNIT_NON_DIM, DESC_QTILE, Source_ParameterDB_Optional, DT_Single);
     mdi.AddParameter(VAR_PHOSKD, UNIT_NON_DIM, DESC_PHOSKD, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_PPERCO, UNIT_NON_DIM, DESC_PPERCO, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_NPERCO, UNIT_NON_DIM, DESC_NPERCO, Source_ParameterDB, DT_Single);

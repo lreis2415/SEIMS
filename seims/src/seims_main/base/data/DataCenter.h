@@ -6,6 +6,7 @@
  *
  * Changelog:
  *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from \ref ModuleFactory class.
+ *   - 2. 2018-09-19 - lj - Compatible with optional parameters.
  *
  * \author Liangjun Zhu
  * \date May 2017
@@ -139,13 +140,15 @@ public:
 
     //! Set 1D Data
     void Set1DData(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool vertital_itp);
+                   SimulationModule* p_module, bool vertital_itp, bool is_optional = false);
 
     //! Set 2D Data
-    void Set2DData(const string& para_name, const string& remote_filename, SimulationModule* p_module);
+    void Set2DData(const string& para_name, const string& remote_filename,
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set raster data
-    void SetRaster(const string& para_name, const string& remote_filename, SimulationModule* p_module);
+    void SetRaster(const string& para_name, const string& remote_filename,
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set BMPs Scenario data
     void SetScenario(SimulationModule* p_module);

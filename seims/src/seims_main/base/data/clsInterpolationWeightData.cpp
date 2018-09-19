@@ -10,8 +10,8 @@ using namespace utils_array;
 using namespace utils_string;
 
 ItpWeightData::ItpWeightData(MongoGridFs* gfs, const string& filename) :
-    filename_(filename), itp_weight_data_(nullptr), n_rows_(-1), n_cols_(-1) {
-    ReadFromMongoDB(gfs, filename_);
+filename_(filename), itp_weight_data_(nullptr), n_rows_(-1), n_cols_(-1), initialized_(false) {
+    initialized_ = ReadFromMongoDB(gfs, filename_);
 }
 
 ItpWeightData::~ItpWeightData() {
@@ -44,7 +44,7 @@ void ItpWeightData::Dump(const string& filename) {
     }
 }
 
-void ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
+bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
     string wfilename = filename;
     vector<string> gfilenames;
     gfs->GetFileNames(gfilenames);
@@ -57,13 +57,16 @@ void ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
             wfilename = filename.substr(0, index + 1) + DataType_Meteorology;
         }
     }
-    char* databuf;
+    char* databuf = nullptr;
     size_t datalength;
     gfs->GetStreamData(wfilename, databuf, datalength);
+    if (nullptr == databuf) false;
+
     itp_weight_data_ = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
     /// Get metadata
     bson_t* md = gfs->GetFileMetadata(wfilename);
     /// Get value of given keys
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_CELLS, n_rows_);
     GetNumericFromBson(md, MONG_GRIDFS_WEIGHT_SITES, n_cols_);
+    return true;
 }
