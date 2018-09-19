@@ -23,8 +23,12 @@ from preprocess.text import DataValueFields
 def save_png_eps(plot, wp, name):
     """Save figures, both png and eps formats"""
     eps_dir = wp + os.path.sep + 'eps'
+    pdf_dir = wp + os.path.sep + 'pdf'
     UtilClass.mkdir(eps_dir)
-    for figpath in [wp + os.path.sep + name + '.png', eps_dir + os.path.sep + name + '.eps']:
+    UtilClass.mkdir(pdf_dir)
+    for figpath in [wp + os.path.sep + name + '.png',
+                    eps_dir + os.path.sep + name + '.eps',
+                    pdf_dir + os.path.sep + name + '.pdf']:
         plot.savefig(figpath, dpi=300)
 
 
