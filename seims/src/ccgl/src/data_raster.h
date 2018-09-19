@@ -1935,12 +1935,16 @@ bool clsRasterData<T, MASK_T>::ReadFromMongoDB(MongoGridFs* gfs,
                                                clsRasterData<MASK_T>* mask /* = nullptr */,
                                                const bool use_mask_ext /* = true */,
                                                T default_value /* = static_cast<T>(NODATA_VALUE) */) {
-    InitializeReadFunction(filename, calc_pos, mask, use_mask_ext, default_value);
     // 1. Get stream data and metadata by file name
-    char* buf;
+    char* buf = NULL;
     size_t length;
     gfs->GetStreamData(filename, buf, length);
+    if (NULL == buf) {
+        initialized_ = false;
+        return false;
+    }
     bson_t* bmeta = gfs->GetFileMetadata(filename);
+    InitializeReadFunction(filename, calc_pos, mask, use_mask_ext, default_value);
     // 2. Retrieve raster header values
     const char* raster_headers[8] = {
         HEADER_RS_NCOLS, HEADER_RS_NROWS, HEADER_RS_XLL, HEADER_RS_YLL, HEADER_RS_CELLSIZE,
