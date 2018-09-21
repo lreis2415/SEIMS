@@ -98,16 +98,6 @@ DataCenter::~DataCenter() {
         array2d_map_.erase(it++);
     }
     array2d_map_.clear();
-    StatusMessage("---release Interpolation weight data ...");
-    for (auto it = weight_data_map_.begin(); it != weight_data_map_.end();) {
-        if (nullptr != it->second) {
-            StatusMessage(("-----" + it->first + " ...").c_str());
-            delete it->second;
-            it->second = nullptr;
-        }
-        weight_data_map_.erase(it++);
-    }
-    weight_data_map_.clear();
 }
 
 bool DataCenter::GetFileInStringVector() {
@@ -122,25 +112,15 @@ bool DataCenter::GetFileInStringVector() {
 void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
     int n_rows = 12;
     int n_cols = 5;
-    data = new float *[n_rows];
+    data = new(nothrow) float *[n_rows];
     for (int i = 0; i < n_rows; i++) {
-        data[i] = new float[n_cols];
+        data[i] = new(nothrow) float[n_cols];
         data[i][0] = 4.f;    /// element number
         data[i][1] = 0.03f;  // P
         data[i][2] = -0.65f; // T
         data[i][3] = 0.f;    // PET
         data[i][4] = 0.f;    // other Meteorology variables
     }
-    /// insert to corresponding maps
-#ifdef HAS_VARIADIC_TEMPLATES
-    array2d_map_.emplace(remote_filename, data);
-    array2d_rows_map_.emplace(remote_filename, n_rows);
-    array2d_cols_map_.emplace(remote_filename, n_cols);
-#else
-    array2d_map_.insert(make_pair(remote_filename, data));
-    array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
-    array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
-#endif
 }
 
 void DataCenter::DumpCaliParametersInDB() {
@@ -168,6 +148,139 @@ void DataCenter::DumpCaliParametersInDB() {
     fs.close();
 }
 
+bool DataCenter::CheckAdjustment(const string& para_name) {
+    string upper_name = GetUpper(para_name);
+    auto find_iter = init_params_.find(upper_name);
+    bool adjust_data = false;
+    if (find_iter != init_params_.end()) {
+        ParamInfo* tmp_param = find_iter->second;
+        if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f)) ||
+            (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
+            StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
+            adjust_data = true;
+        }
+    }
+    return adjust_data;
+}
+
+void DataCenter::LoadAdjustRasterData(const string& para_name, const string& remote_filename,
+                                      const bool is_optional /* = false */) {
+    FloatRaster* raster = ReadRasterData(remote_filename);
+    if (nullptr == raster) {
+        if (is_optional) return;
+        throw ModelException("DataCenter", "LoadRasterData", "Load " + remote_filename + " failed!");
+    }
+    string upper_name = GetUpper(para_name);
+    if (!CheckAdjustment(upper_name)) return;
+
+    int n, lyrs;
+    float* data = nullptr;
+    float** data2d = nullptr;
+    /// 1D or 2D raster data
+    if (raster->Is2DRaster()) {
+        if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
+            if (is_optional) return;
+            throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
+        }
+        if (nullptr != data2d) {
+            init_params_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
+        }
+    } else {
+        if (!raster->GetRasterData(&n, &data)) {
+            if (is_optional) return;
+            throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
+        }
+        if (nullptr != data) {
+            init_params_[upper_name]->Adjust1DRaster(n, data);
+        }
+    }
+}
+
+void DataCenter::LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
+                                       const bool is_optional /* = false */) {
+    int n;
+    float* data = nullptr;
+    string upper_name = GetUpper(para_name);
+    if (StringMatch(upper_name, Tag_Weight)) {
+        /// 1. IF Weight data. `data` will be nullptr if load Weight data failed.
+        ReadItpWeightData(remote_filename, n, data);
+    } else if (StringMatch(upper_name, Tag_FLOWOUT_INDEX_D8)) {
+        /// 2. IF FLOWOUT_INDEX_D8
+        Read1DArrayData(remote_filename, n, data);
+        if (nullptr == data && mask_raster_->GetCellNumber() != n && !is_optional) {
+            throw ModelException("DataCenter", "LoadAdjustArrayData",
+                                 "The data length derived from LoadAdjustArrayData in " + remote_filename +
+                                 " is not the same as the template.");
+        }
+    } else if (StringMatch(upper_name, Tag_Elevation_Meteorology)) {
+        /// 3. IF Meteorology sites data
+        n = clim_station_->NumberOfSites(DataType_Meteorology);
+        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Meteorology));
+    } else if (StringMatch(upper_name, Tag_Elevation_Precipitation)) {
+        /// 4. IF Precipitation sites data
+        n = clim_station_->NumberOfSites(DataType_Precipitation);
+        Initialize1DArray(n, data, clim_station_->GetElevation(DataType_Precipitation));
+    } else if (StringMatch(upper_name, Tag_Latitude_Meteorology)) {
+        /// 5. IF Latitude of sites
+        n = clim_station_->NumberOfSites(DataType_Meteorology);
+        Initialize1DArray(n, data, clim_station_->GetLatitude(DataType_Meteorology));
+    } else {
+        /// 6. IF any other 1D arrays, such as Heat units of all simulation years (HUTOT)
+        Read1DArrayData(remote_filename, n, data);
+    }
+    if (nullptr != data) {
+        // Adjust data according to calibration parameters
+        if (CheckAdjustment(upper_name)) {
+            init_params_[upper_name]->Adjust1DArray(n, data);;
+        }
+#ifdef HAS_VARIADIC_TEMPLATES
+        array1d_map_.emplace(remote_filename, data);
+        array1d_len_map_.emplace(remote_filename, n);
+#else
+        array1d_map_.insert(make_pair(remote_filename, data));
+        array1d_len_map_.insert(make_pair(remote_filename, n));
+#endif
+    }
+}
+
+void DataCenter::LoadAdjust2DArrayData(const string& para_name, const string& remote_filename) {
+    int n_rows = 0;
+    int n_cols = 1;
+    float** data = nullptr;
+    string upper_name = GetUpper(para_name);
+    /// Load data from DataCenter
+    if (StringMatch(upper_name, TAG_OUT_OL_IUH)) {
+        // Overland flow IUH
+        ReadIuhData(remote_filename, n_rows, data);
+        n_cols = 1;
+    } else if (StringMatch(upper_name, Tag_LapseRate)) {
+        /// Match to the format of DT_Array2D, By LJ.
+        SetLapseData(remote_filename, n_rows, n_cols, data);
+    } else {
+        // Including: Tag_ROUTING_LAYERS, Tag_ROUTING_LAYERS_DINF,
+        //            Tag_FLOWIN_INDEX_D8, Tag_FLOWIN_INDEX_DINF,
+        //            Tag_FLOWIN_PERCENTAGE_DINF, Tag_FLOWOUT_INDEX_DINF
+        Read2DArrayData(remote_filename, n_rows, n_cols, data);
+    }
+    if (nullptr != data) {
+        // Adjust data according to calibration parameters
+        if (CheckAdjustment(upper_name)) {
+            init_params_[upper_name]->Adjust2DArray(n_rows, data);
+        }
+        /// insert to corresponding maps
+#ifdef HAS_VARIADIC_TEMPLATES
+        array2d_map_.emplace(remote_filename, data);
+        array2d_rows_map_.emplace(remote_filename, n_rows);
+        array2d_cols_map_.emplace(remote_filename, n_cols);
+#else
+        array2d_map_.insert(make_pair(remote_filename, data));
+        array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
+        array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
+#endif
+    }
+}
+
 double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
     double t1 = TimeCounting();
     vector<string>& module_ids = factory_->GetModuleIDs();
@@ -176,25 +289,13 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
     for (size_t i = 0; i < module_ids.size(); i++) {
         string id = module_ids[i];
         vector<ParamInfo*>& parameters = module_parameters[id];
-        bool vertical_interpolation = true;
-        /// Special operation for ITP module
-        if (id.find(MID_ITP) != string::npos) {
-            modules[i]->SetClimateDataType(module_settings[id]->dataType());
-            for (size_t j = 0; j < parameters.size(); j++) {
-                ParamInfo* param = parameters[j];
-                if (StringMatch(param->Name, Tag_VerticalInterpolation)) {
-                    vertical_interpolation = param->Value > 0.f;
-                    break;
-                }
-            }
-        }
         for (size_t j = 0; j < parameters.size(); j++) {
             ParamInfo* param = parameters[j];
             if (StringMatch(param->Name, Tag_VerticalInterpolation)) {
                 modules[i]->SetValue(param->Name.c_str(), param->Value);
                 continue;
             }
-            SetData(module_settings[id], param, modules[i], vertical_interpolation);
+            SetData(module_settings[id], param, modules[i]);
         }
     }
     double timeconsume = TimeCounting() - t1;
@@ -203,7 +304,7 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
 }
 
 void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
-                         SimulationModule* p_module, const bool vertital_itp) {
+                         SimulationModule* p_module) {
 #ifdef _DEBUG
     double stime = TimeCounting();
 #endif
@@ -239,7 +340,7 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         case DT_Unknown: throw ModelException("ModuleFactory", "SetData", "Type of " + param->Name + " is unknown.");
         case DT_Single: SetValue(param, p_module);
             break;
-        case DT_Array1D: Set1DData(name, remote_filename, p_module, vertital_itp, is_opt);
+        case DT_Array1D: Set1DData(name, remote_filename, p_module, is_opt);
             break;
         case DT_Array2D: Set2DData(name, remote_filename, p_module, is_opt);
             break;
@@ -293,78 +394,25 @@ void DataCenter::SetValue(ParamInfo* param, SimulationModule* p_module) {
             }
         }
     }
-
     p_module->SetValue(param->Name.c_str(), param->Value);
 }
 
 void DataCenter::Set1DData(const string& para_name, const string& remote_filename,
-                           SimulationModule* p_module, const bool vertital_itp,
-                           const bool is_optional /* = false */) {
-    int n;
+                           SimulationModule* p_module, const bool is_optional /* = false */) {
     float* data = nullptr;
-    /// the data has been read before, which stored in m_1DArrayMap
+    /// If the data has not been loaded
+    if (array1d_map_.find(remote_filename) == array1d_map_.end()) {
+        LoadAdjust1DArrayData(para_name, remote_filename, is_optional);
+    }
+    /// If the data has been read and stored in `array1d_map_` successfully
     if (array1d_map_.find(remote_filename) != array1d_map_.end()) {
         data = array1d_map_.at(remote_filename);
         p_module->Set1DData(para_name.c_str(), array1d_len_map_.at(remote_filename), data);
         return;
     }
-    if (weight_data_map_.find(remote_filename) != weight_data_map_.end()) {
-        ItpWeightData* weight_data = weight_data_map_.at(remote_filename);
-        weight_data->GetWeightData(&n, &data);
-        p_module->Set1DData(para_name.c_str(), n, data);
-        return;
-    }
-    /// the data has not been read yet.
-    /// 1. IF FLOWOUT_INDEX_D8
-    if (StringMatch(para_name, Tag_FLOWOUT_INDEX_D8)) {
-        Read1DArrayData(para_name, remote_filename, n, data);
-        if (nullptr == data || mask_raster_->GetCellNumber() != n) {
-            if (is_optional) return;
-            throw ModelException("DataCenter", "Set1DData",
-                                 "The data length derived from Read1DArray in " + remote_filename +
-                                 " is not the same as the template.");
-        }
-    }
-        /// 2. IF Weight data
-    else if (StringMatch(para_name, Tag_Weight)) {
-        ReadItpWeightData(remote_filename, n, data); // data will be nullptr if load Weight data failed.
-    }
-        /// 3. IF Meteorology sites data
-    else if (StringMatch(para_name, Tag_Elevation_Meteorology)) {
-        if (vertital_itp) {
-            n = clim_station_->NumberOfSites(DataType_Meteorology);
-            data = clim_station_->GetElevation(DataType_Meteorology);
-        } else {
-            return;
-        }
-    }
-        /// 4. IF Precipitation sites data
-    else if (StringMatch(para_name, Tag_Elevation_Precipitation)) {
-        if (vertital_itp) {
-            n = clim_station_->NumberOfSites(DataType_Precipitation);
-            data = clim_station_->GetElevation(DataType_Precipitation);
-        } else {
-            return;
-        }
-    }
-        /// 5. IF Latitude of sites
-    else if (StringMatch(para_name, Tag_Latitude_Meteorology)) {
-        if (vertital_itp) {
-            n = clim_station_->NumberOfSites(DataType_Meteorology);
-            data = clim_station_->GetLatitude(DataType_Meteorology);
-        } else {
-            return;
-        }
-    }
-        /// 6. IF any other 1D arrays, such as Heat units of all simulation years (HUTOT)
-    else {
-        Read1DArrayData(para_name, remote_filename, n, data);
-    }
-    if (nullptr == data) {
-        if (is_optional) return;
+    if (!is_optional) {
         throw ModelException("ModuleFactory", "Set1DData", "Failed reading file " + remote_filename);
     }
-    p_module->Set1DData(para_name.c_str(), n, data);
 }
 
 void DataCenter::Set2DData(const string& para_name, const string& remote_filename,
@@ -377,6 +425,9 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
     if (StringMatch(para_name, Tag_ROUTING_LAYERS)) {
         real_filename += lyr_method_ == UP_DOWN ? "_UP_DOWN" : "_DOWN_UP";
     }
+    if (array2d_map_.find(real_filename) == array2d_map_.end()) {
+        LoadAdjust2DArrayData(para_name, real_filename);
+    }
     /// Check if the data is already loaded
     if (array2d_map_.find(real_filename) != array2d_map_.end()) {
         data = array2d_map_.at(real_filename);
@@ -386,28 +437,9 @@ void DataCenter::Set2DData(const string& para_name, const string& remote_filenam
         p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
         return;
     }
-    /// Load data from DataCenter
-    if (StringMatch(para_name, Tag_ROUTING_LAYERS) || StringMatch(para_name, Tag_ROUTING_LAYERS_DINF)) {
-        // Routing layering data based on different flow model
-        Read2DArrayData(real_filename, n_rows, n_cols, data); // data will be nullptr if read failed.
-    } else if (StringMatch(para_name, Tag_FLOWIN_INDEX_D8) || StringMatch(para_name, Tag_FLOWIN_INDEX_DINF)
-        || StringMatch(para_name, Tag_FLOWIN_PERCENTAGE_DINF) || StringMatch(para_name, Tag_FLOWOUT_INDEX_DINF)) {
-        // Flow in and flow out data based on different flow model
-        Read2DArrayData(real_filename, n_rows, n_cols, data);
-    } else if (StringMatch(para_name, TAG_OUT_OL_IUH)) {
-        // Overland flow IUH
-        ReadIuhData(remote_filename, n_rows, data);
-    } else if (StringMatch(para_name, Tag_LapseRate)) {
-        /// Match to the format of DT_Array2D, By LJ.
-        SetLapseData(real_filename, n_rows, n_cols, data);
-    } else {
-        Read2DArrayData(real_filename, n_rows, n_cols, data);
-    }
-    if (nullptr == data) {
-        if (is_optional) return;
+    if (!is_optional) {
         throw ModelException("ModuleFactory", "Set2DData", "Failed reading file " + remote_filename);
     }
-    p_module->Set2DData(para_name.c_str(), n_rows, n_cols, data);
 }
 
 void DataCenter::SetRaster(const string& para_name, const string& remote_filename,
@@ -417,45 +449,12 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     float** data2d = nullptr;
     FloatRaster* raster = nullptr;
     if (rs_map_.find(remote_filename) == rs_map_.end()) {
-        raster = ReadRasterData(remote_filename);
-        if (nullptr == raster) {
-            if (is_optional) return;
-            throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
-        }
-        string upper_name = GetUpper(para_name);
-        auto find_iter = init_params_.find(upper_name);
-        bool adjust_data = false;
-        if (find_iter != init_params_.end()) {
-            ParamInfo* tmp_param = find_iter->second;
-            if ((StringMatch(tmp_param->Change, PARAM_CHANGE_RC) && !FloatEqual(tmp_param->Impact, 1.f)) ||
-                (StringMatch(tmp_param->Change, PARAM_CHANGE_AC) && !FloatEqual(tmp_param->Impact, 0.f)) ||
-                (StringMatch(tmp_param->Change, PARAM_CHANGE_VC) && !FloatEqual(tmp_param->Impact, NODATA_VALUE)) ||
-                StringMatch(tmp_param->Change, PARAM_CHANGE_NC)) {
-                adjust_data = true;
-            }
-        }
-        /// 1D or 2D raster data
-        if (raster->Is2DRaster()) {
-            if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
-                if (is_optional) return;
-                throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
-            }
-            if (nullptr != data2d && adjust_data) {
-                init_params_[upper_name]->Adjust2DRaster(n, raster->GetLayers(), data2d);
-            }
-        } else {
-            if (!raster->GetRasterData(&n, &data)) {
-                if (is_optional) return;
-                throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
-            }
-            if (nullptr != data && adjust_data) {
-                init_params_[upper_name]->Adjust1DRaster(n, data);
-            }
-        }
-    } else {
-        raster = rs_map_.at(remote_filename);
-        //cout << remoteFileName << endl;
+        LoadAdjustRasterData(para_name, remote_filename, is_optional);
     }
+    if (rs_map_.find(remote_filename) == rs_map_.end()) {
+        return; // when encounter optional parameters
+    }
+    raster = rs_map_.at(remote_filename);
     if (raster->Is2DRaster()) {
         if (!raster->Get2DRasterData(&n, &lyrs, &data2d)) {
             throw ModelException("DataCenter", "SetRaster", "Load " + remote_filename + " failed!");
@@ -469,7 +468,6 @@ void DataCenter::SetRaster(const string& para_name, const string& remote_filenam
     }
 }
 
-/// Added by Liang-Jun Zhu, 2016-6-22
 void DataCenter::SetScenario(SimulationModule* p_module) {
     if (nullptr == scenario_ && nullptr == GetScenarioData()) {
         throw ModelException("DataCenter", "SetScenario", "Scenarios has not been set!");;
@@ -477,7 +475,6 @@ void DataCenter::SetScenario(SimulationModule* p_module) {
     p_module->SetScenario(scenario_);
 }
 
-/// Added by Liang-Jun Zhu, 2016-7-2
 void DataCenter::SetReaches(SimulationModule* p_module) {
     if (nullptr == reaches_ && nullptr == GetReachesData()) {
         throw ModelException("DataCenter", "SetReaches", "Reaches has not been set!");
@@ -485,7 +482,6 @@ void DataCenter::SetReaches(SimulationModule* p_module) {
     p_module->SetReaches(reaches_);
 }
 
-/// Added by Liang-Jun Zhu, 2016-7-28
 void DataCenter::SetSubbasins(SimulationModule* p_module) {
     if (nullptr == subbasins_ && nullptr == GetSubbasinData()) {
         throw ModelException("DataCenter", "SetSubbasins", "Subbasins data has not been initialized!");
