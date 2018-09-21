@@ -60,7 +60,7 @@ bool ItpWeightData::ReadFromMongoDB(MongoGridFs* gfs, const string& filename) {
     char* databuf = nullptr;
     size_t datalength;
     gfs->GetStreamData(wfilename, databuf, datalength);
-    if (nullptr == databuf) false;
+    if (nullptr == databuf) return false;
 
     itp_weight_data_ = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf
     /// Get metadata

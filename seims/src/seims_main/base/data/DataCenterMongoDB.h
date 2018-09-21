@@ -72,13 +72,11 @@ public:
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
-     * \param[in] param_name \a string parameter name
      * \param[in] remote_filename \a string data file name
      * \param[out] num \a int&, data length
      * \param[out] data \a float*&, returned data
      */
-    void Read1DArrayData(const string& param_name, const string& remote_filename,
-                         int& num, float*& data) OVERRIDE;
+    void Read1DArrayData(const string& remote_filename, int& num, float*& data) OVERRIDE;
     /*!
      * \brief Read 2D array data from MongoDB database
      * \param[in] remote_filename \a string data file name

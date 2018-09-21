@@ -6,7 +6,7 @@
  *
  * Changelog:
  *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from \ref ModuleFactory class.
- *   - 2. 2018-09-19 - lj - Compatible with optional parameters.
+ *   - 2. 2018-09-19 - lj - Separate load data from SetData. Compatible with optional parameters.
  *
  * \author Liangjun Zhu
  * \date May 2017
@@ -39,9 +39,9 @@ public:
      * \brief Constructor
      * \param[in] input_args Input arguments of SEIMS, \ref InputArgs
      * \param[in] factory SEIMS modules factory, \ref ModuleFactory
-     * \param[in] subbsn_id Subbasin ID, 0 is the default for entire watershed
+     * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
-    DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbsn_id = 0);
+    DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbasin_id = 0);
 
     //! Destructor
     ~DataCenter();
@@ -78,13 +78,11 @@ public:
     virtual void ReadItpWeightData(const string& remote_filename, int& num, float*& data) = 0;
     /*!
      * \brief Read 1D array data
-     * \param[in] param_name Parameter name
      * \param[in] remote_filename Data file name
      * \param[out] num Data length
      * \param[out] data returned data
      */
-    virtual void Read1DArrayData(const string& param_name, const string& remote_filename,
-                                 int& num, float*& data) = 0;
+    virtual void Read1DArrayData(const string& remote_filename, int& num, float*& data) = 0;
     /*!
      * \brief Read 2D array data and insert to m_2DArrayMap
      *
@@ -128,19 +126,52 @@ public:
 
 public:
     /**** Load or update data ****/
+    /*!
+     * \brief Check out whether the adjustment is needed.
+     * \param[in] para_name Parameter name which may match one of the parameters in `init_params_`.
+     */
+    bool CheckAdjustment(const string& para_name);
+
+    /*!
+     * \brief Read and adjust (if necessary) 1D/2D raster data from Database.
+     * \param[in] para_name Parameter name, e.g., Slope
+     * \param[in] remote_filename Actual file/data name stored in Database, e.g., 0_SLOPE
+     * \param[in] is_optional Optional parameters won't raise exception when loaded failed
+     */
+    void LoadAdjustRasterData(const string& para_name, const string& remote_filename,
+                              bool is_optional = false);
+
+    /*!
+     * \brief Read and adjust (if necessary) 1D array data from Database.
+     *        Currently, there may no paramters are allowed to be adjusted.
+     * \param[in] para_name Parameter name
+     * \param[in] remote_filename Actual file/data name stored in Database
+     * \param[in] is_optional Optional parameters won't raise exception when loaded failed
+     */
+    void LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
+                               bool is_optional = false);
+
+    /*!
+     * \brief Read and adjust (if necessary) 2D array data from Database.
+     *        Currently, there may no paramters are allowed to be adjusted.
+     * \param[in] para_name Parameter name
+     * \param[in] remote_filename Actual file/data name stored in Database
+     */
+    void LoadAdjust2DArrayData(const string& para_name, const string& remote_filename);
+
     //! Load data for each module, return time span
     double LoadDataForModules(vector<SimulationModule *>& modules);
 
     //! Set data for modules, include all datatype
     void SetData(SEIMSModuleSetting* setting, ParamInfo* param,
-                 SimulationModule* p_module, bool vertital_itp);
+                 SimulationModule* p_module);
 
     //! Set single Value
     void SetValue(ParamInfo* param, SimulationModule* p_module);
 
     //! Set 1D Data
     void Set1DData(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool vertital_itp, bool is_optional = false);
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set 2D Data
     void Set2DData(const string& para_name, const string& remote_filename,
@@ -206,7 +237,6 @@ public:
     map<string, float **>& Get2DArrayMap() { return array2d_map_; }
     map<string, int>& Get2DArrayRowsMap() { return array2d_rows_map_; }
     map<string, int>& Get2DArrayColsMap() { return array2d_cols_map_; }
-    map<string, ItpWeightData *>& GetItpWeightDataMap() { return weight_data_map_; }
     /*!
     * \brief Get file.in configuration
     */
@@ -255,8 +285,6 @@ protected:
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map
     map<string, int> array2d_cols_map_;    ///< Col number of 2D array data map
                                            ///<   CAUTION that nCols may not same for all rows
-
-    map<string, ItpWeightData *> weight_data_map_; ///< Interpolation weight data map
 };
 
 #endif /* SEIMS_DATA_CENTER_H */

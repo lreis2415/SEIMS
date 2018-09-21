@@ -217,81 +217,77 @@ void PrintInfoItem::Flush(string projectPath, MongoGridFs* gfs, FloatRaster* tem
 
 void PrintInfoItem::AggregateData2D(time_t time, int nRows, int nCols, float** data) {
     if (m_AggregationType == AT_SpecificCells) {
-        /*		if(m_specificOutput != NULL)
-                {
-                    m_specificOutput->setData(time,data);
-                }	*/
-    } else {
-        // check to see if there is an aggregate array to add data to
-        if (m_2DData == nullptr) {
-            // create the aggregate array
-            m_nRows = nRows;
-            m_nLayers = nCols;
-            Initialize2DArray(m_nRows, m_nLayers, m_2DData, NODATA_VALUE);
-            m_Counter = 0;
-        }
-
-        switch (m_AggregationType) {
-            case AT_Average:
-#pragma omp parallel for
-                for (int i = 0; i < m_nRows; i++) {
-                    for (int j = 0; j < m_nLayers; j++) {
-                        if (!FloatEqual(data[i][j], NODATA_VALUE)) {
-                            if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                                m_2DData[i][j] = 0.f;
-                            }
-                            m_2DData[i][j] = (m_2DData[i][j] * m_Counter + data[i][j]) / (m_Counter + 1.f);
-                        }
-                    }
-                }
-                break;
-            case AT_Sum:
-#pragma omp parallel for
-                for (int i = 0; i < m_nRows; i++) {
-                    for (int j = 0; j < m_nLayers; j++) {
-                        if (!FloatEqual(data[i][j], NODATA_VALUE)) {
-                            if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                                m_2DData[i][j] = 0.f;
-                            }
-                            m_2DData[i][j] += data[i][j];
-                        }
-                    }
-                }
-                break;
-            case AT_Minimum:
-#pragma omp parallel for
-                for (int i = 0; i < m_nRows; i++) {
-                    for (int j = 0; j < m_nLayers; j++) {
-                        if (!FloatEqual(data[i][j], NODATA_VALUE)) {
-                            if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                                m_2DData[i][j] = MAXIMUMFLOAT;
-                            }
-                            if (data[i][j] <= m_2DData[i][j]) {
-                                m_2DData[i][j] = data[i][j];
-                            }
-                        }
-                    }
-                }
-                break;
-            case AT_Maximum:
-#pragma omp parallel for
-                for (int i = 0; i < m_nRows; i++) {
-                    for (int j = 0; j < m_nLayers; j++) {
-                        if (!FloatEqual(data[i][j], NODATA_VALUE)) {
-                            if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
-                                m_2DData[i][j] = MISSINGFLOAT;
-                            }
-                            if (data[i][j] >= m_2DData[i][j]) {
-                                m_2DData[i][j] = data[i][j];
-                            }
-                        }
-                    }
-                }
-                break;
-            default: break;
-        }
-        m_Counter++;
+        return; // TODO to implement.
     }
+    // check to see if there is an aggregate array to add data to
+    if (m_2DData == nullptr) {
+        // create the aggregate array
+        m_nRows = nRows;
+        m_nLayers = nCols;
+        Initialize2DArray(m_nRows, m_nLayers, m_2DData, NODATA_VALUE);
+        m_Counter = 0;
+    }
+
+    switch (m_AggregationType) {
+        case AT_Average:
+#pragma omp parallel for
+            for (int i = 0; i < m_nRows; i++) {
+                for (int j = 0; j < m_nLayers; j++) {
+                    if (!FloatEqual(data[i][j], NODATA_VALUE)) {
+                        if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
+                            m_2DData[i][j] = 0.f;
+                        }
+                        m_2DData[i][j] = (m_2DData[i][j] * m_Counter + data[i][j]) / (m_Counter + 1.f);
+                    }
+                }
+            }
+            break;
+        case AT_Sum:
+#pragma omp parallel for
+            for (int i = 0; i < m_nRows; i++) {
+                for (int j = 0; j < m_nLayers; j++) {
+                    if (!FloatEqual(data[i][j], NODATA_VALUE)) {
+                        if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
+                            m_2DData[i][j] = 0.f;
+                        }
+                        m_2DData[i][j] += data[i][j];
+                    }
+                }
+            }
+            break;
+        case AT_Minimum:
+#pragma omp parallel for
+            for (int i = 0; i < m_nRows; i++) {
+                for (int j = 0; j < m_nLayers; j++) {
+                    if (!FloatEqual(data[i][j], NODATA_VALUE)) {
+                        if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
+                            m_2DData[i][j] = MAXIMUMFLOAT;
+                        }
+                        if (data[i][j] <= m_2DData[i][j]) {
+                            m_2DData[i][j] = data[i][j];
+                        }
+                    }
+                }
+            }
+            break;
+        case AT_Maximum:
+#pragma omp parallel for
+            for (int i = 0; i < m_nRows; i++) {
+                for (int j = 0; j < m_nLayers; j++) {
+                    if (!FloatEqual(data[i][j], NODATA_VALUE)) {
+                        if (FloatEqual(m_2DData[i][j], NODATA_VALUE)) {
+                            m_2DData[i][j] = MISSINGFLOAT;
+                        }
+                        if (data[i][j] >= m_2DData[i][j]) {
+                            m_2DData[i][j] = data[i][j];
+                        }
+                    }
+                }
+            }
+            break;
+        default: break;
+    }
+    m_Counter++;
 }
 
 void PrintInfoItem::AggregateData(time_t time, int numrows, float* data) {

@@ -226,8 +226,7 @@ public:
     /*!
      * \brief Check input parameters to ensure the successful constructor
      */
-    static clsSubbasins* Init(MongoGridFs* spatial_data,
-                              map<string, FloatRaster *>& rs_map, int prefix_id);
+    static clsSubbasins* Init(map<string, FloatRaster *>& rs_map, int prefix_id);
     /// Destructor
     ~clsSubbasins();
 
