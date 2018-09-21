@@ -93,12 +93,14 @@ void SERO_MUSLE::InitialOutputs() {
             // The calculation of LS factor follows the equation of McCool et al.(1989) used in RUSLE.
             // Also refers to Zhang et al.(2013), C&G, 52, 177-188.
             //                Liu et al.(2015), C&G, 78, 110-122.
-            float sin_slp = sin(atan(m_slope[i]));
-            float beta = sin(atan(m_slope[i]) / 0.0896f) / (3.f * pow(sin_slp, 0.8f) + 0.56f);
+            float slp_rad = atan(m_slope[i]);
+            float slp_deg = slp_rad * 180.f / PI;
+            float sin_slp = sin(slp_rad);
+            float beta = sin_slp / 0.0896f / (3.f * pow(sin_slp, 0.8f) + 0.56f);
             float m = beta / (1.f + beta);
             float S = 0.f;
-            if (m_slope[i] < 0.05f) S = 10.8f * sin_slp + 0.03f;
-            else if (m_slope[i] >= 0.05f && m_slope[i] <= 0.14f) S = 16.8f * sin_slp - 0.5f;
+            if (slp_deg < 5.f) S = 10.8f * sin_slp + 0.03f;
+            else if (slp_deg >= 5.f && slp_deg <= 14.f) S = 16.8f * sin_slp - 0.5f;
             else S = 21.91f * sin_slp - 0.96f;
             // float xm = 0.6f * (1.f - exp(-35.835f * m_slope[i])); // eq. of SWAT
             // float s = 65.41f * sin_slp * sin_slp + 4.56f * sin_slp + 0.065f; // eq. of SWAT
@@ -121,8 +123,6 @@ void SERO_MUSLE::InitialOutputs() {
             m_slopeForPq[i] = pow(m_slope[i] * 1000.f, 0.16f);
             m_usleL[i] = L;
             m_usleS[i] = S;
-            //cout << "id: " << i << ", acc:" << m_flowAccm[i] <<
-            //    ", L: " << L << ", S: " << S << endl;
         }
     }
     if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {

@@ -12,7 +12,7 @@
 #include "invoke.h"
 #include "ModelMain.h"
 
-int main(int argc, const char** argv) {
+int main(const int argc, const char** argv) {
     /// Parse input arguments
     InputArgs* input_args = InputArgs::Init(argc, argv);
     if (nullptr == input_args) { exit(EXIT_FAILURE); }
