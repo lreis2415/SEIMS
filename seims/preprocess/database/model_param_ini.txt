@@ -137,7 +137,7 @@ Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
-Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,AC,10,0
+Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,RC,10,0
 Crop,gsi,Max stomatal conductance (in drough condition),m/s,PET,-9999,1,RC,5,0
 Crop,vpdfr,Vapor pressure deficit corresponding to the fraction maximum stomatal conductance defined by FRGMAX,kPa,PET,-9999,1,RC,6,1.5
 Crop,frgmax,Fraction of maximum stomatla conductance that is achievable at a high vapor pressure deficit,none,PET,-9999,1,RC,1,0
@@ -183,7 +183,7 @@ WaterBalance,Runoff_co,Potential runoff coefficient,none,SUR_MR,-9999,1,RC,1,0.5
 WaterBalance,rv_co,Groundwater revap coefficient,none,GW_RSVR,0,0,AC,0.2,0
 WaterBalance,s_frozen,Frozen moisture relative to porosity with no infiltration,none,ALL,0.5,0,AC,1,0.1
 WaterBalance,Sand,Sand proportion,%,ALL,-9999,1,RC,1.0,0.0
-WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,1.0,0
+WaterBalance,Slope,Slope,%,ALL,-9999,1,RC,-9999,0
 WaterBalance,soil_t10,soil temperature relative to short grass cover,deg C,STP_FP,-9999,1,RC,2,0
 WaterBalance,soil_ta0,Empirical coefficient for estimating soil temperature,deg C,STP_FP,4.768,0,AC,10,0
 WaterBalance,soil_ta1,Empirical coefficient for estimating soil temperature,deg C,STP_FP,0.174,0,AC,1,0
