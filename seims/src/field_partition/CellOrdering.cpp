@@ -690,7 +690,7 @@ void CellOrdering::OutputFieldMap(const char *filename) {
     int degreeRoot = 1;
     reclassfieldid(rootfd, degreeRoot);
     cout << "\t\tFinally, " << m_mapfields.size() << " fields has been build!" << endl;
-    for (auto iter = m_mapfields.begin(); iter != m_mapfields.end(); iter++) {
+    for (auto iter = m_mapfields.begin(); iter != m_mapfields.end(); ++iter) {
         if (nullptr == iter->second) {
             cout << "Err happened in OutputFieldMap, check it first!\n";
             return;
@@ -719,13 +719,12 @@ void CellOrdering::OutputFieldRelationship(const char *filename) {
     //write header
     rasterFile << " Relationship of the fields ---- field number:\n " << m_FieldNum << "\n";
     rasterFile << " FID  " << "downstreamFID  " << "Area(ha)  " << "LanduseID  " << "Degree" << "\n";
-    int FID, ReFID, outFID, ReoutFID, LANDU, degree;//, outLANDU;
+    int FID, ReFID, outFID, ReoutFID, LANDU, degree;
     float Area;
 
     sortReclassedfieldid();
 
-    map<int, int>::iterator it;
-    for (it = m_newoldfidmap.begin(); it != m_newoldfidmap.end(); it++) {
+    for (auto it = m_newoldfidmap.begin(); it != m_newoldfidmap.end(); ++it) {
         ReFID = it->first;
         FID = it->second;
         outFID = m_mapfields[FID]->GetOutFieldID();

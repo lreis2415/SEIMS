@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -228,7 +229,7 @@ class SpatialDelineation(object):
     def field_partition(cfg):
         """Fields partition incorporating spatial topology.
 
-        Refers to: Wu, Hui, A.-Xing Zhu, Jun-Zhi Liu, Yong-Bo Liu, and Jing-Chao Jiang. 2017.
+        Refers to: Wu, Hui, A-Xing Zhu, Junzhi Liu, Yongbo Liu, and Jingchao Jiang. 2017.
                      "Best Management Practices Optimization at Watershed Scale: Incorporating
                       Spatial Topology among Fields." Water Resources Management,
                       doi: 10.1007/s11269-017-1801-8.
@@ -243,9 +244,11 @@ class SpatialDelineation(object):
         threshs = cfg.fields_partition_thresh
         for thresh in threshs:
             # run command
-            UtilClass.run_command('"%s/fieldpartition" -mask %s -stream %s '
-                                  '-flow %s -lu %s -dem %s -t %d' % (cfg.seims_bin, maskf, streamf,
-                                                                     flowf, luf, demf, thresh))
+            # Note that the flowf is currently converted to ArcGIS flow direction code
+            #   by `post_process_of_delineated_data` function.
+            UtilClass.run_command('"%s/fieldpartition" -mask %s -stream %s -flow %s -lu %s -dem %s '
+                                  '-t %d -arcgis' % (cfg.seims_bin, maskf, streamf,
+                                                     flowf, luf, demf, thresh))
 
     @staticmethod
     def workflow(cfg):
