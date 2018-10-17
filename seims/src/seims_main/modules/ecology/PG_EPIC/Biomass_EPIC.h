@@ -103,8 +103,7 @@ private:
 private:
     /// valid cells number
     int m_nCells;
-    /// years of climate data, not used!
-    /// int m_nClimDataYrs;
+
     /**  climate inputs  **/
 
     /// CO2 concentration
@@ -155,6 +154,8 @@ private:
     float* m_rsdCovSoil;
     /// amount of organic matter in the soil layer classified as residue, sol_rsd |kg/ha in SWAT
     float** m_soilRsd;
+    /// biomass target, kg/ha
+    float* m_biomTrgt;
     /// land cover status code, 0 means no crop while 1 means land cover growing
     float* m_igro;
     /// land cover/crop  classification:1-7, i.e., IDC
@@ -219,9 +220,9 @@ private:
     float* m_alb;
     /// initial age of trees (yrs) at the beginning of simulation
     float* m_curYrMat;
-    /// initial dry weight biomass
+    /// initial biomass of transplants, kg/ha
     float* m_initBiom;
-    /// initial LAI
+    /// initial leaf area index of transplants
     float* m_initLai;
     /// total heat units needed to bring plant to maturity
     float* m_phuPlt;

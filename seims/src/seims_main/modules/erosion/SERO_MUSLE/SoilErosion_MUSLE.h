@@ -93,7 +93,7 @@ private:
     //! large aggregate fraction
     float* m_detLgAgg;
 
-    //! C-factor calculation using Cmin (0) or new method from RUSLE (1, default)
+    //! C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
     int m_iCfac;
     //! Average annual USLE C factor for the land cover, or log(aveAnnUsleC) when m_soilRsd is available.
     float* m_aveAnnUsleC;

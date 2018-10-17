@@ -3,7 +3,8 @@
 # Last updated: 2018-8-21
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
-Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,AC,350,300
+Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0
+Climate,CO2HI,Elevated CO2 atmospheric concentration,ppmv,ALL,660,1,AC,1000,300
 Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
 Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
 Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
@@ -109,6 +110,7 @@ PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,PG_EPIC,20,1,RC,
 PlantGrowth,nfixco,Nitrogen fixation coefficient,None,PG_EPIC,0.5,1,RC,1,0
 PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,PG_EPIC,20,1,RC,20,1
 PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
+PlantGrowth,BIO_E,Biomass/Energy Ratio,(kg/ha)/(MJ/m**2),PG_EPIC,-9999,1,RC,90,15
 PlantGrowth,BLAI,Maximum leaf area index,None,PG_EPIC,-9999,1,RC,12,0.5
 PlantGrowth,DLAI,fraction of growing season(PHU) when senescence becomes dominant,None,PG_EPIC,-9999,1,RC,1,0.15
 PlantGrowth,ALAI_MIN,Minimum leaf area index for plant during dormant period,None,PG_EPIC,-9999,1,RC,0.99,0
@@ -130,7 +132,7 @@ Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashE
 Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
-Sediment,icfac,C-factor calculation using Cmin (0) or new method from RUSLE (1 as default),none,SERO_MUSLE,1,0,AC,1,0
+Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
 Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
 Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1

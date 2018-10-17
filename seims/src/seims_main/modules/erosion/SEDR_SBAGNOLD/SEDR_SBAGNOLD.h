@@ -19,7 +19,7 @@
  *   - 6. 2018-06-28 - lj -
  *        -# The initialization of m_sedSto should be done in Set1DData after m_chSto.
  *        -# Bug fixed about code related to the IN/OUTPUT variables.
- *   - 7. 2018-08-15 - lj - Upate from rtsed.f to rtsed_bagnold.f of SWAT.
+ *   - 7. 2018-08-15 - lj - Update from rtsed.f to rtsed_bagnold.f of SWAT.
  *
  * \author Liangjun Zhu, Hui Wu, Junzhi Liu
  */

@@ -256,7 +256,7 @@ private:
     /// Harvest index target, defined in plant operation and used in harvest/kill operation
     float* m_HvstIdxTrgt;
     /// Biomass target
-    float* m_BiomTrgt;
+    float* m_biomTrgt;
     /// current year in rotation to maturity
     float* m_curYrMat;
     /// wsyf(:)     |(kg/ha)/(kg/ha)|Value of harvest index between 0 and HVSTI
