@@ -539,7 +539,7 @@
 #define VAR_BIOINIT "BIO_INIT" /// m_initBiom, initial dry weight biomass
 #define VAR_BIOLEAF "BIO_LEAF" /// m_biomDropFr, fraction of biomass that drops during dormancy (for tree only), bio_leaf
 #define VAR_BIOMASS "BIOMASS" /// m_biomass, land cover/crop biomass (dry weight), bio_ms in SWAT
-#define VAR_BIOTARG "biotarg" /// m_BiomTrgt, Biomass target
+#define VAR_BIOTARG "biotarg" /// m_biomTrgt, Biomass target
 #define VAR_BKST "BKST"                             /// bank storage
 #define VAR_BLAI "BLAI" /// m_maxLai, maximum (potential) leaf area index (BLAI in cropLookup db)
 #define VAR_BMX_TREES "BMX_TREES" /// m_maxBiomTree, Maximum biomass for a forest (metric tons/ha), BMX_TREES in SWAT
@@ -1134,7 +1134,7 @@
 #define VAR_TMIN "TMIN" /// m_minTemp, minimum air temperature
 #define VAR_TREEYRS "CURYR_INIT" /// m_curYrMat, initial age of tress (yrs), or current year in rotation to maturity
 #define VAR_TSD_DT "DATATYPE"                      /// Time series data type
-#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0) or new method from RUSLE (1, default)
+#define VAR_ICFAC "icfac" /// m_iCfac, C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
 #define VAR_USLE_C "USLE_C" /// m_usleC, USLE C factor (land cover)
 #define VAR_USLE_K "USLE_K" /// m_usleK
 #define VAR_USLE_L "USLE_L" /// m_usleL, USLE slope length factor
@@ -1890,7 +1890,7 @@
 #define DESC_TSD_CLIMATE "Climate data of all the stations"
 #define DESC_TSD_DT "Time series data type, e.g., climate data"
 #define DESC_UPSOLDEP "depth of the upper soil layer"
-#define DESC_ICFAC "C-factor calculation using Cmin (0) or new method from RUSLE (1, default)"
+#define DESC_ICFAC "C-factor calculation using Cmin (0, default) or new method from RUSLE (1)"
 #define DESC_USLE_C "the average annual cover management factor for the land cover"
 #define DESC_USLE_K "The soil erodibility factor used in USLE"
 #define DESC_USLE_L "USLE slope length factor"

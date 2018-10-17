@@ -22,7 +22,7 @@ PltOp::PltOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_plantID = CVT_INT(parameters[0]);
     m_curYrMat = parameters[2];
-    m_heatUnits = (parameters[3] < 700.f) ? 1700.f : parameters[3];
+    m_heatUnits = parameters[3] < 700.f ? 1700.f : parameters[3];
     m_laiInit = parameters[4];
     m_bioInit = parameters[5];
     m_hiTarg = parameters[6];
@@ -46,10 +46,10 @@ IrrOp::IrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day
              float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_irrSrc = CVT_INT(parameters[1]);
-    m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
+    m_irrSrc = m_irrSrc <= 0 ? IRR_SRC_OUTWTSD : m_irrSrc;
     m_irrAmt = parameters[3];
     m_irrSalt = parameters[4];
-    m_irrEfm = (parameters[5] < UTIL_ZERO) ? 1.0f : parameters[5];
+    m_irrEfm = parameters[5] < UTIL_ZERO ? 1.0f : parameters[5];
     m_irrSq = parameters[6];
     m_irrNo = CVT_INT(parameters[7]);
 }
@@ -70,7 +70,7 @@ FertOp::FertOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int d
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
     m_fertID = CVT_INT(parameters[0]);
     m_frtKgHa = parameters[3];
-    m_frtSurface = (parameters[4] < UTIL_ZERO) ? 0.2f : parameters[4];
+    m_frtSurface = parameters[4] < UTIL_ZERO ? 0.2f : parameters[4];
 }
 
 void FertOp::dump(ostream* fs) {
@@ -138,7 +138,7 @@ void TillOp::dump(ostream* fs) {
 HvstOnlyOp::HvstOnlyOp(int mgtOp, bool usebaseHU, float husc, int year, int month, int day,
                        float* parameters) :
     PltMgtOp(mgtOp, usebaseHU, husc, year, month, day, parameters) {
-    m_harvEff = (parameters[3] <= 0.) ? 1.0f : parameters[3];
+    m_harvEff = parameters[3] <= 0. ? 1.0f : parameters[3];
     m_hiBms = parameters[4];
     m_hiRsd = parameters[5];
 }
@@ -200,7 +200,7 @@ AutoIrrOp::AutoIrrOp(int mgtOp, bool usebaseHU, float husc, int year, int month,
     m_irrMx = parameters[5];
     m_irrAsq = parameters[6];
     m_irrNoa = CVT_INT(parameters[9]);
-    m_irrSrc = (m_irrSrc <= 0) ? IRR_SRC_OUTWTSD : m_irrSrc;
+    m_irrSrc = m_irrSrc <= 0 ? IRR_SRC_OUTWTSD : m_irrSrc;
     if (m_wstrsID <= 0) m_wstrsID = 1;
     if (m_irrEff > 1.f) m_irrEff = 0.f;
     if (utils_math::FloatEqual(m_irrEff, 0.f)) m_irrEff = 1.f;

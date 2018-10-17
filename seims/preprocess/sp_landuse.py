@@ -143,7 +143,7 @@ class LanduseUtilClass(object):
     @staticmethod
     def reclassify_landcover_parameters(landuse_file, landcover_file, landcover_initial_fields_file,
                                         landcover_lookup_file, attr_names, dst_dir):
-        """relassify landcover_init_param parameters"""
+        """reclassify landcover_init_param parameters"""
         land_cover_codes = LanduseUtilClass.initialize_landcover_parameters(
                 landuse_file, landcover_initial_fields_file, dst_dir)
         attr_map = LanduseUtilClass.read_crop_lookup_table(landcover_lookup_file)
