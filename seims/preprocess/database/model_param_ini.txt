@@ -115,6 +115,7 @@ PlantGrowth,BLAI,Maximum leaf area index,None,PG_EPIC,-9999,1,RC,12,0.5
 PlantGrowth,DLAI,fraction of growing season(PHU) when senescence becomes dominant,None,PG_EPIC,-9999,1,RC,1,0.15
 PlantGrowth,ALAI_MIN,Minimum leaf area index for plant during dormant period,None,PG_EPIC,-9999,1,RC,0.99,0
 PlantGrowth,LAI_INIT,Initial leaf area index,None,PG_EPIC,-9999,1,RC,100,0
+PlantGrowth,rsdin,Initial residue cover,kg/ha,PG_EPIC,-9999,1,RC,10000,0
 Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,0,AC,10,0
 Pothole,evpot,Pothole evaporation coefficient,None,IMP_SWAT,0.5,0,AC,2,0
 Pothole,pot_no3l,Nitrate decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
@@ -142,7 +143,6 @@ Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
-Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,1,RC,10,0
 Crop,gsi,Max stomatal conductance (in drough condition),m/s,PET,-9999,1,RC,5,0
 Crop,vpdfr,Vapor pressure deficit corresponding to the fraction maximum stomatal conductance defined by FRGMAX,kPa,PET,-9999,1,RC,6,1.5
 Crop,frgmax,Fraction of maximum stomatla conductance that is achievable at a high vapor pressure deficit,none,PET,-9999,1,RC,1,0

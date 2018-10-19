@@ -1141,7 +1141,6 @@
 #define VAR_USLE_S "USLE_S" /// m_usleS, USLE slope factor
 #define VAR_USLE_P "USLE_P" /// m_usleP
 #define VAR_VCD "vcd" /// m_vcd, whether change channel dimensions, 0 - do not change (false), 1 - compute channel degredation (true)
-#define VAR_VCRIT "vcrit" /// m_critVelSedDep, critical velocity for sediment deposition
 #define VAR_VDIV "Vdiv"                             /// diversion loss of the river reach
 #define VAR_VP_ACT "avp"                            /// actual vapor pressure
 #define VAR_VP_SAT "svp"                            /// Saturated vapor pressure
@@ -1897,7 +1896,6 @@
 #define DESC_USLE_S "USLE slope factor"
 #define DESC_USLE_P "the erosion control practice factor"
 #define DESC_VCD "compute changes in channel dimensions"
-#define DESC_VCRIT "critical velocity for sediment deposition"
 #define DESC_VDIV "diversion loss of the river reach"
 #define DESC_VER_ITP "Execute vertical interpolation (1) or not (0), defined in config.fig"
 #define DESC_VP_ACT "actual vapor pressure"

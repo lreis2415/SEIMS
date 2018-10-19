@@ -10,7 +10,7 @@ SERO_MUSLE::SERO_MUSLE() :
     m_detSmAgg(nullptr), m_detLgAgg(nullptr), m_iCfac(1),
     m_aveAnnUsleC(nullptr), m_landCover(nullptr), m_rsdCovSoil(nullptr),
     m_rsdCovCoef(NODATA_VALUE), m_canHgt(nullptr), m_lai(nullptr), m_surfRf(nullptr),
-    m_snowAccum(nullptr),m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
+    m_snowAccum(nullptr), m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
     m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE), m_slopeForPq(nullptr),
     m_usleL(nullptr), m_usleS(nullptr), m_usleC(nullptr),
     m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
@@ -169,19 +169,21 @@ int SERO_MUSLE::Execute() {
         // Update C factor
         if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-                if (m_landCover[i] > 0.f && m_landCover[i] != 18) { // exclude WATER
-                    // ln(0.8) = -0.2231435513142097
-                    m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
-                                     exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            if (m_landCover[i] > 0.f && m_landCover[i] != 18) {
+                // exclude WATER
+                // ln(0.8) = -0.2231435513142097
+                m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
+                                 exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            } else {
+                if (m_rsdCovSoil[i] > 1.e-4f) {
+                    m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
                 } else {
-                    if (m_rsdCovSoil[i] > 1.e-4f) {
-                        m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
-                    } else {
-                        m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
-                    }
+                    m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
                 }
+            }
         } else {
-            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) { // exclude WATER
+            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) {
+                // exclude WATER
                 // new calculation method from RUSLE with the minimum C factor value
                 //! fraction of cover by residue
                 float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);

@@ -85,7 +85,6 @@ private:
     float m_peakRateAdj;    ///< the peak rate adjustment factor
     float m_sedTransEqCoef; ///< Coefficient in sediment transport equation, spcon in SWAT
     float m_sedTransEqExp;  ///< Exponent in sediment transport equation, spexp in SWAT
-    float m_critVelSedDep;  ///< critical velocity for sediment deposition
     float m_initChSto;      ///< initial channel storage per meter of reach length (m^3/m)
 
     float* m_reachDownStream; ///< downstream id (The value is 0 if there if no downstream reach)
