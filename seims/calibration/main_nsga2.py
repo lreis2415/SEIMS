@@ -201,11 +201,12 @@ def main(cfg):
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
-            tmpind.fitness.values = tuple()
+            tmpfitnessv = list()
             for k, v in list(multiobj.items()):
                 tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
-                tmpind.fitness.values += tuple(tmpvalues[:])
+                tmpfitnessv += tmpvalues[:]
                 labels += tmplabel[:]
+            tmpind.fitness.values = tuple(tmpfitnessv)
 
         # Filter for a valid solution
         if filter_ind:
