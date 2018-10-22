@@ -6,7 +6,8 @@
                 18-02-09  lj - compatible with Python3.\n
                 18-07-10  lj - Support MPI version of SEIMS.\n
                 18-08-26  lj - Gather the execute time of all model runs. Plot pareto graphs.\n
-                18-08-29  jz,lj,sf - Add Nutrient calibration step.
+                18-08-29  jz,lj,sf - Add Nutrient calibration step.\n
+                18-10-22  lj - Make the customizations of multi-objectives flexible.\n
 """
 from __future__ import absolute_import, division
 
@@ -41,31 +42,60 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 #    when paralleled by SCOOP.
 # Thus, DEAP related operations (initialize, register, etc.) are better defined here.
 
-object_vars = list()
-object_names = ['NSE', 'RSR', 'PBIAS']
-# step can be one of 'Q', 'SED', 'NUTRIENT'.
+# All accepted objective function names from `postprocess::utility::calculate_statistics`
+accepted_objnames = ['NSE', 'RSR', 'PBIAS', 'R-square', 'RMSE', 'lnNSE', 'NSE1', 'NSE3']
+
+# step can be one of 'Q', 'SED', 'QSED', 'NUTRIENT', or 'CUSTOMIZE'.
 step = 'Q'
-filter_NSE = False  # Filter scenarios which NSE less than 0 for the next generation
-# Multiobjects definition:
+filter_ind = False  # Filter for valid population for the next generation
+# Definitions of Multiobjectives:
+multiobj = dict()
 if step == 'Q':
-    # Step 1: Calibrate discharge, max. Nash-Sutcliffe, min. RSR, and min. |PBIAS| (percent)
-    object_vars = ['Q']
-    multi_weight = (2., -1., -1.)  # NSE taken bigger weight (actually used)
-    worse_objects = [-1., 100., 10.]
+    # Step 1: Calibrate streamflow, max. NSE, min. RSR, and min. |PBIAS| (percent)
+    multiobj.setdefault('Q', [['NSE', 1., -100, '>0'], ['RSR', -1., 100], ['PBIAS', -1., 500.]])
 elif step == 'SED':
-    # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min. |PBIAS|-SED, and max. NSE-Q
-    object_vars = ['SED', 'Q']
-    multi_weight = (2., -1., -1., 1.)  # NSE of sediment taken a bigger weight
-    worse_objects = [-100., 100., 100., -100.]
+    # Step 2: Calibration sediment, max. NSE-SED, min. RSR-SED, min., and |PBIAS|-SED
+    multiobj.setdefault('SED', [['NSE', 1., -100, '>0'], ['RSR', -1., 100], ['PBIAS', -1., 500.]])
+elif step == 'QSED':
+    # Step 3: Calibration streamflow and sediment
+    multiobj.setdefault('Q', [['NSE', 1., -100, '>0'], ['RSR', -1., 100, '<1']])
+    multiobj.setdefault('SED', [['NSE', 1., -100, '>0'], ['RSR', -1., 100, '<1']])
 elif step == 'NUTRIENT':
-    # Step 3: Calibration NSE-TN, NSE-TP, NSE-Q, NSE-SED
-    # Or, NSE-TN, RSR-TN, |PBIAS|-TN, NSE-TP, RSR-TP, |PBIAS|-TP, NSE-Q, NSE-SED
-    object_vars = ['CH_TN', 'CH_TP', 'Q', 'SED']
-    multi_weight = (1., 1., 1., 1.)
-    worse_objects = [-100., -100., -100., -100.]
+    # Step 4: Calibration NSE-TN, NSE-TP, NSE-Q, NSE-SED
+    multiobj.setdefault('CH_TN', [['NSE', 1., -100]])
+    multiobj.setdefault('CH_TP', [['NSE', 1., -100]])
+    multiobj.setdefault('Q', [['NSE', 1., -100]])
+    multiobj.setdefault('SED', [['NSE', 1., -100]])
 else:
-    print('The step of calibration should be one of [Q, SED, NUTRIENT]!')
-    exit(0)
+    # Customize your own multiobjective here, such as:
+    multiobj.setdefault('Q', [['NSE', 3., 0., '>0.'],
+                              ['RSR', -1., 2., '<2.'],
+                              ['PBIAS', -1., 50., '<50.']])
+    multiobj.setdefault('SED', [['NSE', 3., 0., '>0.'],
+                                ['RSR', -1., 2., '<2.'],
+                                ['PBIAS', -1., 100., '<100.']])
+    print('Running auto-calibration by customized multiobjectives!')
+
+# Check object variables
+if not multiobj:
+    print('Multiobjective MUST not be Empty!')
+    exit(1)
+for k, v in list(multiobj.items()):
+    for item in v:
+        if len(item) < 3:
+            print('Each item of objective MUST have three elements, '
+                  'i.e., object name, weight, worse value for Hypervolum calculation.')
+            exit(1)
+        if item[0] not in accepted_objnames:
+            print('Object name % is unsupported! '
+                  'Please input one of %s!' % (item[0], ','.join(accepted_objnames)))
+            exit(1)
+# Get parameters from `multiobj`
+object_vars = list(multiobj.keys())
+object_names = dict({k: list(l[0] for l in v) for k, v in list(multiobj.items())})
+multi_weight = list(l[1] for v in multiobj.values() for l in v)
+worse_objects = list(l[2] for v in multiobj.values() for l in v)
+conditions = list(l[3] if (len(l) > 3) else None for v in multiobj.values() for l in v)
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
@@ -151,6 +181,16 @@ def main(cfg):
     pop_select_num = int(cfg.opt.npop * cfg.opt.rsel)
     init_time = time.time() - stime
 
+    def check_validation(fitvalues):
+        """Check the validation of the fitness values of an individual."""
+        flag = True
+        for condidx, condstr in enumerate(conditions):
+            if condstr is None:
+                continue
+            if not eval('%f%s' % (fitvalues[condidx], condstr)):
+                flag = False
+        return flag
+
     def evaluate_parallel(invalid_pops):
         """Evaluate model by SCOOP or map, and set fitness of individuals
          according to calibration step."""
@@ -162,29 +202,20 @@ def main(cfg):
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
-            if step == 'Q':  # Step 1 Calibrating discharge
-                tmpind.fitness.values, labels = tmpind.cali.efficiency_values('Q', object_names)
-            elif step == 'SED':  # Step 2 Calibrating sediment
-                sedobjvs, labels = tmpind.cali.efficiency_values('SED', object_names)
-                qobjvs, qobjlabels = ind.cali.efficiency_values('Q', object_names)
-                labels += [qobjlabels[0]]
-                sedobjvs += [qobjvs[0]]
-                tmpind.fitness.values = sedobjvs[:]
-            elif step == 'NUTRIENT':  # Step 3 Calibrating NUTRIENT,TN,TP
-                tnobjvs, tnobjlabels = tmpind.cali.efficiency_values('CH_TN', object_names)
-                tpobjvs, tpobjlabels = tmpind.cali.efficiency_values('CH_TP', object_names)
-                qobjvs, qobjlabels = ind.cali.efficiency_values('Q', object_names)
-                sedobjvs, sedobjlabels = tmpind.cali.efficiency_values('SED', object_names)
-                objvs = [tnobjvs[0], tpobjvs[0], qobjvs[0], sedobjvs[0]]
-                labels = [tnobjlabels[0], tpobjlabels[0], qobjlabels[0], sedobjlabels[0]]
-                tmpind.fitness.values = objvs[:]
-        # NSE > 0 is the preliminary condition to be a valid solution!
-        if filter_NSE:
-            invalid_pops = [tmpind for tmpind in invalid_pops if tmpind.fitness.values[0] > 0]
+            tmpind.fitness.values = tuple()
+            for k, v in list(multiobj.items()):
+                tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
+                tmpind.fitness.values += tuple(tmpvalues[:])
+                labels += tmplabel[:]
+
+        # Filter for a valid solution
+        if filter_ind:
+            invalid_pops = [tmpind for tmpind in invalid_pops
+                            if check_validation(tmpind.fitness.values)]
             if len(invalid_pops) < 2:
                 print('The initial population should be greater or equal than 2. '
                       'Please check the parameters ranges or change the sampling strategy!')
-                exit(0)
+                exit(2)
         return invalid_pops, labels  # Currently, `invalid_pops` contains evaluated individuals
 
     # Record the count and execute timespan of model runs during the optimization
@@ -270,7 +301,7 @@ def main(cfg):
         for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
             # remove individuals that has a NSE < 0
             if [ind.gen, ind.id] not in gen_idx:
-                if filter_NSE and ind.fitness.values[0] < 0:
+                if filter_ind and ind.fitness.values[0] < 0:
                     continue
                 tmp_pop.append(ind)
                 gen_idx.append([ind.gen, ind.id])
@@ -298,58 +329,22 @@ def main(cfg):
         plot_time += time.time() - stime
 
         # save in file
-        if step == 'Q':  # Step 1 Calibrate discharge
-            output_str += 'generation-calibrationID\t%s' % pop[0].cali.output_header('Q',
-                                                                                     object_names,
-                                                                                     'Cali')
-            if cali_obj.cfg.calc_validation:
-                output_str += pop[0].vali.output_header('Q', object_names, 'Vali')
-        elif step == 'SED':  # Step 2 Calibrate sediment
-            output_str += 'generation-calibrationID\t%s%s' % \
-                          (pop[0].cali.output_header('SED', object_names, 'Cali'),
-                           pop[0].cali.output_header('Q', object_names, 'Cali'))
-            if cali_obj.cfg.calc_validation:
-                output_str += '%s%s' % (pop[0].vali.output_header('SED', object_names, 'Vali'),
-                                        pop[0].vali.output_header('Q', object_names, 'Vali'))
-        elif step == 'NUTRIENT':  # Step 3 Calibrate NUTRIENT,TN,TP
-            output_str += 'generation-calibrationID\t%s%s%s%s' % \
-                          (pop[0].cali.output_header('CH_TN', object_names, 'Cali'),
-                           pop[0].cali.output_header('CH_TP', object_names, 'Cali'),
-                           pop[0].cali.output_header('Q', object_names, 'Cali'),
-                           pop[0].cali.output_header('SED', object_names, 'Cali'))
-            if cali_obj.cfg.calc_validation:
-                output_str += '%s%s%s%s' % (
-                    pop[0].vali.output_header('CH_TN', object_names, 'Vali'),
-                    pop[0].vali.output_header('CH_TP', object_names, 'Vali'),
-                    pop[0].vali.output_header('Q', object_names, 'Vali'),
-                    pop[0].vali.output_header('SED', object_names, 'Vali'))
+        # Header information
+        output_str += 'generation\tcalibrationID\t'
+        for kk, vv in list(object_names.items()):
+            output_str += pop[0].cali.output_header(kk, vv, 'Cali')
+        if cali_obj.cfg.calc_validation:
+            for kkk, vvv in list(object_names.items()):
+                output_str += pop[0].vali.output_header(kkk, vvv, 'Vali')
+
         output_str += 'gene_values\n'
         for ind in pop:
-            if step == 'Q':  # Step 1 Calibrate discharge
-                output_str += '%d-%d\t%s' % (ind.gen, ind.id,
-                                             ind.cali.output_efficiency('Q', object_names))
-                if cali_obj.cfg.calc_validation:
-                    output_str += ind.vali.output_efficiency('Q', object_names)
-            elif step == 'SED':  # Step 2 Calibrate sediment
-                output_str += '%d-%d\t%s%s' % (ind.gen, ind.id,
-                                               ind.cali.output_efficiency('SED', object_names),
-                                               ind.cali.output_efficiency('Q', object_names))
-                if cali_obj.cfg.calc_validation:
-                    output_str += '%s%s' % (ind.vali.output_efficiency('SED', object_names),
-                                            ind.vali.output_efficiency('Q', object_names))
-            elif step == 'NUTRIENT':  # Step 3 Calibrate NUTRIENT, i.e., TN and TP
-                output_str += '%d-%d\t%s%s%s%s' % (ind.gen, ind.id,
-                                                   ind.cali.output_efficiency('CH_TN',
-                                                                              object_names),
-                                                   ind.cali.output_efficiency('CH_TP',
-                                                                              object_names),
-                                                   ind.cali.output_efficiency('Q', object_names),
-                                                   ind.cali.output_efficiency('SED', object_names))
-                if cali_obj.cfg.calc_validation:
-                    output_str += '%s%s%s%s' % (ind.vali.output_efficiency('CH_TN', object_names),
-                                                ind.vali.output_efficiency('CH_TP', object_names),
-                                                ind.vali.output_efficiency('Q', object_names),
-                                                ind.vali.output_efficiency('SED', object_names))
+            output_str += '%d\t%d\t' % (ind.gen, ind.id)
+            for kk, vv in list(object_names.items()):
+                output_str += ind.cali.output_efficiency(kk, vv)
+            if cali_obj.cfg.calc_validation:
+                for kkk, vvv in list(object_names.items()):
+                    output_str += ind.vali.output_efficiency(kkk, vvv)
             output_str += str(ind)
             output_str += '\n'
         UtilClass.writelog(cfg.opt.logfile, output_str, mode='append')

@@ -71,9 +71,11 @@ class ObsSimData(object):
                 concate += '\t'
             else:
                 if name.upper() == 'PBIAS':
-                    concate += '%s-abs(PBIAS)\t' % prefix
-                else:
+                    tmpvar = '%s-abs(PBIAS)' % varname
+                if prefix != '':
                     concate += '%s-%s\t' % (prefix, tmpvar)
+                else:
+                    concate += '%s\t' % tmpvar
         return concate
 
     def output_efficiency(self, varname, effnames):
