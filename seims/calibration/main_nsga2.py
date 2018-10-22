@@ -74,7 +74,6 @@ else:
     multiobj.setdefault('SED', [['NSE', 3., 0., '>0.'],
                                 ['RSR', -1., 2., '<2.'],
                                 ['PBIAS', -1., 100., '<100.']])
-    print('Running auto-calibration by customized multiobjectives!')
 
 # Check object variables
 if not multiobj:
@@ -93,7 +92,7 @@ for k, v in list(multiobj.items()):
 # Get parameters from `multiobj`
 object_vars = list(multiobj.keys())
 object_names = dict({k: list(l[0] for l in v) for k, v in list(multiobj.items())})
-multi_weight = list(l[1] for v in multiobj.values() for l in v)
+multi_weight = tuple(l[1] for v in multiobj.values() for l in v)
 worse_objects = list(l[2] for v in multiobj.values() for l in v)
 conditions = list(l[3] if (len(l) > 3) else None for v in multiobj.values() for l in v)
 
