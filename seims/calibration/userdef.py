@@ -120,29 +120,41 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
                 ylabel_str += ' (g/L)'
             else:
                 ylabel_str += ' (mg/L)'
-        else:  # amount
+        elif 'SED' in var.upper():  # amount
             ylabel_str += ' (kg)'
         cali_obs_dates = sim_obs_data[0][var]['UTCDATETIME'][:]
         if isinstance(cali_obs_dates[0], str) or isinstance(cali_obs_dates[0], text_type):
             cali_obs_dates = [StringClass.get_datetime(s) for s in cali_obs_dates]
         obs_dates = cali_obs_dates[:]
+        order = 1  # By default, the calibration period is before the validation period.
         if plot_validation:
             vali_obs_dates = vali_sim_obs_data[0][var]['UTCDATETIME']
             if isinstance(vali_obs_dates[0], str) or isinstance(vali_obs_dates[0], text_type):
                 vali_obs_dates = [StringClass.get_datetime(s) for s in vali_obs_dates]
-            obs_dates += vali_obs_dates
+            if vali_obs_dates[-1] <= cali_obs_dates[0]:
+                order = 0
+                obs_dates = vali_obs_dates + obs_dates
+            else:
+                obs_dates += vali_obs_dates
         obs_data = sim_obs_data[0][var]['Obs'][:]
         if plot_validation:
-            obs_data += vali_sim_obs_data[0][var]['Obs']
+            if order:
+                obs_data += vali_sim_obs_data[0][var]['Obs']
+            else:
+                obs_data = vali_sim_obs_data[0][var]['Obs'] + obs_data
 
-        sim_dates = list(sim_data[0].keys())
-        if isinstance(sim_dates[0], str) or isinstance(sim_dates[0], text_type):
-            sim_dates = [StringClass.get_datetime(s) for s in sim_dates]
+        cali_sim_dates = list(sim_data[0].keys())
+        if isinstance(cali_sim_dates[0], str) or isinstance(cali_sim_dates[0], text_type):
+            cali_sim_dates = [StringClass.get_datetime(s) for s in cali_sim_dates]
+        sim_dates = cali_sim_dates[:]
         if plot_validation:
             vali_sim_dates = list(vali_sim_data[0].keys())
             if isinstance(vali_sim_dates[0], str) or isinstance(vali_sim_dates[0], text_type):
                 vali_sim_dates = [StringClass.get_datetime(s) for s in vali_sim_dates]
-            sim_dates += vali_sim_dates
+            if order:
+                sim_dates += vali_sim_dates
+            else:
+                sim_dates = vali_sim_dates + sim_dates
         sim_data_list = list()
         caliBestIdx = -1
         caliBestNSE = -9999.
@@ -160,7 +172,11 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         sim_best = numpy.array(list(sim_data[caliBestIdx].values()))[:, idx]
         sim_best = sim_best.tolist()
         if plot_validation:
-            sim_best += numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()
+            if order:
+                sim_best += numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()
+            else:
+                sim_best = numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()\
+                           + sim_best
         sim_data_list = numpy.array(sim_data_list)
         ylows = numpy.percentile(sim_data_list, 2.5, 0, interpolation='nearest')
         yups = numpy.percentile(sim_data_list, 97.5, 0, interpolation='nearest')
@@ -229,17 +245,23 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         plt.xlabel('Date', fontsize='small')
         plt.ylabel(ylabel_str, fontsize='small')
         # plot separate dash line
-        delta_dt = (max(sim_dates) - min(sim_dates)) / 9
-        delta_dt2 = (max(sim_dates) - min(sim_dates)) / 35
-        sep_time = max(sim_dates) - delta_dt
+        delta_dt = (sim_dates[-1] - sim_dates[0]) // 9
+        delta_dt2 = (sim_dates[-1] - sim_dates[0]) // 35
+        sep_time = sim_dates[-1]
+        time_pos = [sep_time - delta_dt]
         ymax, ymin = ax.get_ylim()
         yc = abs(ymax - ymin) * 0.9
         if plot_validation:
-            sep_time = vali_sim_dates[0] if vali_sim_dates[0] > sim_dates[0] else sim_dates[0]
+            sep_time = vali_sim_dates[0] if vali_sim_dates[0] >= cali_sim_dates[-1]\
+                else cali_sim_dates[0]
+            cali_vali_labels = ['Calibration', 'Validation']
+            if not order:
+                cali_vali_labels = ['Validation', 'Calibration']
+            time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
             ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
-            plt.text(sep_time - delta_dt, yc, 'Calibration',
+            plt.text(time_pos[0], yc, cali_vali_labels[0],
                      fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
-            plt.text(sep_time + delta_dt2, yc, 'Validation',
+            plt.text(time_pos[1], yc, cali_vali_labels[1],
                      fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
 
         # add legend
