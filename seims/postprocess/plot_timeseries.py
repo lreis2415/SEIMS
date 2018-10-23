@@ -9,7 +9,6 @@
 """
 from __future__ import absolute_import
 
-
 import os
 import sys
 import datetime
@@ -24,10 +23,13 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from pygeoc.utils import FileClass
+
 from preprocess.text import DataValueFields
 from postprocess.load_mongodb import ReadModelData
-from postprocess.utility import read_simulation_from_txt, match_simulation_observation,\
+from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics, save_png_eps
+from run_seims import MainSEIMS
 
 
 def divtd(td1, td2):
@@ -42,19 +44,22 @@ class TimeSeriesPlots(object):
 
     def __init__(self, cfg):
         """EMPTY"""
-        self.ws = cfg.model_dir
+        self.model = MainSEIMS(args_dict=cfg.model_cfg.ConfigDict)
+        self.ws = self.model.OutputDirectory
+        if not FileClass.is_dir_exists(self.ws):
+            raise ValueError('The output directory %s is not existed!' % self.ws)
         self.plot_vars = cfg.plt_vars
         self.lang_cn = cfg.lang_cn
-        # UTCTIME, simulation period
-        self.stime = cfg.time_start
-        self.etime = cfg.time_end
+        # UTCTIME, calibration period
+        self.stime = cfg.cali_stime
+        self.etime = cfg.cali_etime
         self.subbsnID = cfg.plt_subbsnid
-        # add validation period, lj - 2018-2-1
+        # validation period
         self.vali_stime = cfg.vali_stime
         self.vali_etime = cfg.vali_etime
 
         # Read model data from MongoDB, the time period of simulation is read from FILE_IN.
-        self.readData = ReadModelData(cfg.hostname, cfg.port, cfg.spatial_db)
+        self.readData = ReadModelData(self.model.host, self.model.port, self.model.db_name)
         self.mode = self.readData.Mode
         self.interval = self.readData.Interval
         # check start and end time of calibration
@@ -72,8 +77,9 @@ class TimeSeriesPlots(object):
             self.vali_etime = None
             self.plot_validation = False
         # check validation time period
-        if self.vali_stime is not None and self.vali_etime is not None:
-            if self.vali_stime >= self.vali_etime or st > self.vali_etime > self.vali_stime:
+        if self.vali_stime and self.vali_etime:
+            if self.vali_stime >= self.vali_etime or st > self.vali_etime > self.vali_stime\
+                 or self.vali_stime >= et:
                 self.vali_stime = None
                 self.vali_etime = None
                 self.plot_validation = False
@@ -160,7 +166,7 @@ class TimeSeriesPlots(object):
                     ylabel_str += ' (g/L)'
                 else:
                     ylabel_str += ' (mg/L)'
-            else:  # amount
+            elif 'SED' in param.upper():  # amount
                 ylabel_str += ' (kg)'
 
             obs_dates = None
@@ -225,14 +231,12 @@ class TimeSeriesPlots(object):
             ymax, ymin = ax2.get_ylim()
             yc = abs(ymax - ymin) / 4.
             if self.plot_validation:
-                sep_time = self.vali_stime  # by default, validation period after calibration
+                sep_time = self.vali_stime if self.vali_stime >= self.etime else self.stime
                 cali_vali_labels = [cali_str, vali_str]
                 if self.vali_stime < self.stime:
-                    sep_time = self.stime
                     cali_vali_labels = [vali_str, cali_str]
                     # time_pos = [sep_time + delta_dt2, sep_time - delta_dt]
                 time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
-                sep_time = self.vali_stime if self.vali_stime > self.stime else self.stime
                 ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
                 plt.text(time_pos[0], yc, cali_vali_labels[0],
                          fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
