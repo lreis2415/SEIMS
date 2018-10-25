@@ -206,7 +206,7 @@ class TimeSeriesPlots(object):
             plt.ylabel(ylabel_str)
             # plt.legend(bbox_to_anchor = (0.03, 0.85), loc = 2, shadow = True)
             if obs_values is not None:
-                ymax = max(max(sim_list), max(obs_values)) * 1.8
+                ymax = max(max(sim_list), max(obs_values)) * 1.6
                 ymin = min(min(sim_list), min(obs_values)) * 0.8
             else:
                 ymax = max(sim_list) * 1.8
@@ -230,12 +230,13 @@ class TimeSeriesPlots(object):
             time_pos = [sep_time - delta_dt]
             ymax, ymin = ax2.get_ylim()
             yc = abs(ymax - ymin) / 4.
+            order = 1  # By default, calibration period is before validation period
             if self.plot_validation:
                 sep_time = self.vali_stime if self.vali_stime >= self.etime else self.stime
                 cali_vali_labels = [cali_str, vali_str]
                 if self.vali_stime < self.stime:
+                    order = 0
                     cali_vali_labels = [vali_str, cali_str]
-                    # time_pos = [sep_time + delta_dt2, sep_time - delta_dt]
                 time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
                 ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
                 plt.text(time_pos[0], yc, cali_vali_labels[0],
@@ -262,7 +263,11 @@ class TimeSeriesPlots(object):
                     cali_txt = '$\mathit{NSE}$: %.2f\n$\mathit{RSR}$: %.2f\n' \
                                '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' % \
                                (nse, rsr, pbias, r2)
-                    plt.text(time_pos[0], yc * 2.5, cali_txt, color='red')
+                    print_msg_header = 'Cali-%s-NSE,Cali-%s-RSR,' \
+                                       'Cali-%s-PBIAS,Cali-%s-R2,' % (param, param, param, param)
+                    print_msg = '%.3f,%.3f,%.3f,%.3f,' % (nse, rsr, pbias, r2)
+                    cali_pos = time_pos[0] if order else time_pos[1]
+                    plt.text(cali_pos, yc * 2.5, cali_txt, color='red')
                     if self.plot_validation and self.vali_sim_obs_dict:
                         nse = self.vali_sim_obs_dict[param]['NSE']
                         r2 = self.vali_sim_obs_dict[param]['R-square']
@@ -271,7 +276,13 @@ class TimeSeriesPlots(object):
                         vali_txt = '$\mathit{NSE}$: %.2f\n$\mathit{RSR}$: %.2f\n' \
                                    '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' % \
                                    (nse, rsr, pbias, r2)
-                        plt.text(time_pos[1], yc * 2.5, vali_txt, color='red')
+                        print_msg_header += 'Vali-%s-NSE,Vali-%s-RSR,' \
+                                            'Vali-%s-PBIAS,' \
+                                            'Vali-%s-R2' % (param, param, param, param)
+                        print_msg += '%.3f,%.3f,%.3f,%.3f' % (nse, rsr, pbias, r2)
+                        vali_pos = time_pos[1] if order else time_pos[0]
+                        plt.text(vali_pos, yc * 2.5, vali_txt, color='red')
+                    print('%s\n%s\n' % (print_msg_header, print_msg))
 
                 except ValueError or Exception:
                     pass

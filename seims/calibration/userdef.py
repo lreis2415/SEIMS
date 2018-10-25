@@ -139,9 +139,9 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         obs_data = sim_obs_data[0][var]['Obs'][:]
         if plot_validation:
             if order:
-                obs_data += vali_sim_obs_data[0][var]['Obs']
+                obs_data += vali_sim_obs_data[0][var]['Obs'][:]
             else:
-                obs_data = vali_sim_obs_data[0][var]['Obs'] + obs_data
+                obs_data = vali_sim_obs_data[0][var]['Obs'][:] + obs_data
 
         cali_sim_dates = list(sim_data[0].keys())
         if isinstance(cali_sim_dates[0], str) or isinstance(cali_sim_dates[0], text_type):
@@ -166,7 +166,11 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
                 caliBestIdx = idx2
             tmpsim = tmp.tolist()
             if plot_validation:
-                tmpsim += numpy.array(list(vali_sim_data[idx2].values()))[:, idx].tolist()
+                if order:
+                    tmpsim += numpy.array(list(vali_sim_data[idx2].values()))[:, idx].tolist()
+                else:
+                    tmpsim = numpy.array(list(vali_sim_data[idx2].values()))[:,idx].tolist()\
+                             + tmpsim
             sim_data_list.append(tmpsim)
 
         sim_best = numpy.array(list(sim_data[caliBestIdx].values()))[:, idx]
@@ -175,7 +179,7 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
             if order:
                 sim_best += numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()
             else:
-                sim_best = numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist()\
+                sim_best = numpy.array(list(vali_sim_data[caliBestIdx].values()))[:, idx].tolist() \
                            + sim_best
         sim_data_list = numpy.array(sim_data_list)
         ylows = numpy.percentile(sim_data_list, 2.5, 0, interpolation='nearest')
@@ -249,15 +253,17 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         delta_dt2 = (sim_dates[-1] - sim_dates[0]) // 35
         sep_time = sim_dates[-1]
         time_pos = [sep_time - delta_dt]
+        time_pos2 = [sep_time - 2 * delta_dt]
         ymax, ymin = ax.get_ylim()
         yc = abs(ymax - ymin) * 0.9
         if plot_validation:
-            sep_time = vali_sim_dates[0] if vali_sim_dates[0] >= cali_sim_dates[-1]\
+            sep_time = vali_sim_dates[0] if vali_sim_dates[0] >= cali_sim_dates[-1] \
                 else cali_sim_dates[0]
             cali_vali_labels = ['Calibration', 'Validation']
             if not order:
                 cali_vali_labels = ['Validation', 'Calibration']
             time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
+            time_pos2 = [sep_time - 2 * delta_dt, sep_time + delta_dt2]
             ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
             plt.text(time_pos[0], yc, cali_vali_labels[0],
                      fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
@@ -266,14 +272,16 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
 
         # add legend
         handles, labels = ax.get_legend_handles_labels()
-        order = [labels.index('95PPU'), labels.index('Observed points'),
-                 labels.index('Best simulation')]
-        ax.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
+        figorders = [labels.index('95PPU'), labels.index('Observed points'),
+                     labels.index('Best simulation')]
+        ax.legend([handles[idx] for idx in figorders], [labels[idx] for idx in figorders],
                   fontsize='medium', loc=2, framealpha=0.8)
         # add text
-        plt.text(sep_time - 2 * delta_dt, yc * 0.6, txt, color='red')
+        cali_pos = time_pos[0] if order else time_pos[1]
+        plt.text(cali_pos, yc * 0.6, txt, color='red')
         if plot_validation:
-            plt.text(sep_time + delta_dt2, yc * 0.6, vali_txt, color='red')
+            vali_pos = time_pos[1] if order else time_pos[0]
+            plt.text(vali_pos, yc * 0.6, vali_txt, color='red')
         # fig.autofmt_xdate(rotation=0, ha='center')
         plt.tight_layout()
         save_png_eps(plt, outdir, 'Gen%d_95ppu_%s' % (gen_num, var))
