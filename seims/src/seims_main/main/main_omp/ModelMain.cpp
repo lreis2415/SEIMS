@@ -146,7 +146,7 @@ void ModelMain::Execute() {
         StatusMessage(ConvertToString2(t).c_str());
 #ifdef _DEBUG
         if (StringMatch(ConvertToString(t), "2012-04-30")) {
-            cout << "Debugging..." << endl;
+        //    cout << "Debugging..." << endl;
         }
 #endif
         for (int i = 0; i < nHs; i++) {

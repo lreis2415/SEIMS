@@ -199,11 +199,15 @@ class ReadModelData(object):
                 data_dict[curt][i] = curv
         if not vars_existed:
             return None, None
+
         # remove the redundant None in data_dict, in case of len(vars_existed) != len(vars)
+        delidx = list()
         for i, vname in enumerate(vars):
-            if vname in vars_existed:
-                continue
-            for dt, adata in list(data_dict.items()):
+            if vname not in vars_existed:
+                delidx.append(i)
+        delidx.reverse()
+        for dt, adata in list(data_dict.items()):
+            for i in delidx:
                 del adata[i]
 
         print('Read observation data of %s from %s to %s done.' % (','.join(vars_existed),

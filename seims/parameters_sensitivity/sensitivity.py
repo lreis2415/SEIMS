@@ -98,8 +98,8 @@ class Sensitivity(object):
         client = ConnectMongoDB(self.model.host, self.model.port)
         conn = client.get_conn()
         db = conn[self.model.db_name]
-        stime_str = self.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        stime_str = self.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},

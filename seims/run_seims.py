@@ -23,6 +23,7 @@ from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from preprocess.text import DBTableNames
 from postprocess.load_mongodb import ReadModelData
 from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
     calculate_statistics
@@ -47,6 +48,8 @@ class ParseSEIMSConfig(object):
         self.lyrmtd = 1
         self.scenario_id = 0
         self.calibration_id = -1
+        self.simu_stime = None
+        self.simu_etime = None
         self.config_dict = dict()
 
         if 'SEIMS_Model' not in cf.sections():
@@ -84,21 +87,30 @@ class ParseSEIMSConfig(object):
         if cf.has_option('SEIMS_Model', 'calibrationid'):
             self.calibration_id = cf.getint('SEIMS_Model', 'calibrationid')
 
-        if not (cf.has_option('SEIMS_Model', 'sim_time_start') and
-                cf.has_option('SEIMS_Model', 'sim_time_end')):
-            raise ValueError("Start and end time MUST be specified in [SEIMS_Model].")
+        # The start time and end time should be optional. Currently, UTCTIME are supposed.
+        # if not (cf.has_option('SEIMS_Model', 'sim_time_start') and
+        #         cf.has_option('SEIMS_Model', 'sim_time_end')):
+        #     raise ValueError("Start and end time MUST be specified in [SEIMS_Model].")
 
-        try:
-            # UTCTIME
+        if cf.has_option('SEIMS_Model', 'sim_time_start'):
             tstart = cf.get('SEIMS_Model', 'sim_time_start')
+            try:
+                self.simu_stime = StringClass.get_datetime(tstart)
+            except ValueError:
+                self.simu_stime = None
+                print('Warning: Wrong format of start time %s.'
+                      ' The time format MUST be "YYYY-MM-DD HH:MM:SS".' % tstart)
+        if cf.has_option('SEIMS_Model', 'sim_time_end'):
             tend = cf.get('SEIMS_Model', 'sim_time_end')
-            self.time_start = StringClass.get_datetime(tstart)
-            self.time_end = StringClass.get_datetime(tend)
-        except ValueError:
-            raise ValueError('The time format MUST be "YYYY-MM-DD HH:MM:SS".')
-        if self.time_start >= self.time_end:
+            try:
+                self.simu_etime = StringClass.get_datetime(tend)
+            except ValueError:
+                self.simu_etime = None
+                print('Warning: Wrong format of end time %s.'
+                      ' The time format MUST be "YYYY-MM-DD HH:MM:SS".' % tend)
+        if self.simu_stime and self.simu_etime and self.simu_stime >= self.simu_etime:
             raise ValueError("Wrong time settings in [SEIMS_Model]!")
-        # Running time counted by time.time() of Python, in case of failed of GetTimespan()
+        # Running time counted by time.time() of Python, in case of GetTimespan() function failed,
         self.runtime = 0.
 
     @property
@@ -108,7 +120,7 @@ class ParseSEIMSConfig(object):
         model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
                           'nthread': self.nthread, 'lyrmtd': self.lyrmtd,
                           'host': self.host, 'port': self.port,
-                          'time_start': self.time_start, 'time_end': self.time_end,
+                          'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
                           'scenario_id': self.scenario_id, 'calibration_id': self.calibration_id,
                           'version': self.version,
                           'mpi_bin': self.mpi_bin, 'nprocess': self.nprocess,
@@ -132,11 +144,14 @@ class MainSEIMS(object):
         mpi_bin: Full path of MPI executable file, e.g., `./mpiexec` or `./mpirun`
         hosts_opt: Option for assigning hosts, e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
         hostfile: File containing host names, or file mapping process numbers to machines
+        simu_stime: Start time of simulation
+        simu_etime: End time of simulation
     """
 
     def __init__(self, bin_dir='', model_dir='', nthread=4, lyrmtd=0,
                  host='127.0.0.1', port=27017, scenario_id=-1, calibration_id=-1,
                  version='OMP', nprocess=1, mpi_bin='', hosts_opt='-f', hostfile='',
+                 simu_stime=None, simu_etime=None,
                  **kwargs):  # Allow any other keyword arguments
         #  Derived from input arguments
         args_dict = dict()
@@ -160,12 +175,14 @@ class MainSEIMS(object):
         self.host = args_dict['host'] if 'host' in args_dict else host
         self.port = args_dict['port'] if 'port' in args_dict else port
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
-        self.calibration_id = args_dict[
-            'calibration_id'] if 'calibration_id' in args_dict else calibration_id
+        self.calibration_id = args_dict['calibration_id'] \
+            if 'calibration_id' in args_dict else calibration_id
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
         self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
         self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
+        self.simu_stime = args_dict['simu_stime'] if 'simu_stime' in args_dict else simu_stime
+        self.simu_etime = args_dict['simu_etime'] if 'simu_etime' in args_dict else simu_etime
 
         # Concatenate executable command
         self.cmd = self.Command
@@ -174,7 +191,7 @@ class MainSEIMS(object):
         # Read model data from MongoDB
         self.db_name = os.path.split(self.model_dir)[1]
         self.outlet_id = self.OutletID
-        self.start_time, self.end_time = self.SimulatedPeriod
+        self.start_time, self.end_time = self.SimulatedPeriod  # Note: Times period in FILE_IN.
         # Data maybe used after model run
         self.timespan = dict()
         self.obs_vars = list()  # Observation types at the outlet
@@ -188,6 +205,7 @@ class MainSEIMS(object):
         #         ...
         #         }
         self.sim_obs_dict = dict()
+        self.runtime = 0.
 
     @property
     def OutputDirectory(self):
@@ -374,11 +392,27 @@ class MainSEIMS(object):
             else:
                 self.timespan[titles[1]].setdefault(titles[2], time)
 
+    def ResetSimulationPeriod(self):
+        """Update simulation time range in MongoDB [FILE_IN]."""
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        db = read_model.maindb
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+                                                         {'$set': {'VALUE': stime_str}})
+        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+                                                         {'$set': {'VALUE': etime_str}})
+        self.start_time, self.end_time = read_model.SimulationPeriod
+
     def run(self):
         """Run SEIMS model"""
         stime = time.time()
         if not os.path.isdir(self.OutputDirectory) or not os.path.exists(self.OutputDirectory):
             os.makedirs(self.OutputDirectory)
+        # If the input time period is not consistent with the predefined time period in FILE_IN.
+        if self.simu_stime and self.simu_etime and self.simu_stime != self.start_time \
+            and self.simu_etime != self.end_time:
+            self.ResetSimulationPeriod()
         try:
             run_logs = UtilClass.run_command(self.Command)
             self.ParseTimespan(run_logs)

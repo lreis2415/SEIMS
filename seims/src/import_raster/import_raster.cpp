@@ -284,7 +284,18 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
         int subYSize = subbasin.y_max - subbasin.y_min + 1;
 
         std::ostringstream oss;
-        oss << tmp_folder << "/" << id << "/" << GetUpper(core_name) << ".tif";
+        oss << tmp_folder << "/" << id;
+        string dst_folder = oss.str();
+        if (!DirectoryExists(dst_folder)) {
+            /// create new directory
+#ifdef windows
+            LPSECURITY_ATTRIBUTES att = nullptr;
+            ::CreateDirectory(dst_folder.c_str(), att);
+#else
+            mkdir(dst_folder.c_str(), 0777);
+#endif /* windows */
+        }
+        oss << "/" << GetUpper(core_name) << ".tif";
         string subbasin_file = oss.str();
         //cout << subbasinFile << endl;
         // create a new raster for the subbasin
@@ -331,8 +342,8 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 
 int main(int argc, char** argv) {
     if (argc < 7) {
-        cout << "Usage: " <<
-                "ImportRaster <MaskFile> <DataFolder> <modelName> <GridFSName> <hostIP> <port> [outputFolder]\n";
+        cout << "Usage: import_raster <MaskFile> <DataFolder> <modelName> <GridFSName> "
+                "<hostIP> <port> [outputFolder]\n";
         exit(-1);
     }
 

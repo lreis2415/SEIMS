@@ -3,7 +3,8 @@
 # Last updated: 2018-8-21
 TYPE,NAME,DESCRIPTION,UNIT,MODULE,VALUE,IMPACT,CHANGE,MAX,MIN
 Bacteria,bact_swf,fraction of manure containing active colony forming units (cfu),None,MGT_SWAT,0.15,1,RC,1,0
-Climate,Co2,CO2 Concentration,ppmv,ALL,330,1,AC,350,300
+Climate,CO2,CO2 Concentration,ppmv,ALL,330,1,AC,800,0
+Climate,CO2HI,Elevated CO2 atmospheric concentration,ppmv,ALL,660,1,AC,1000,300
 Climate,Cond_rate,rate of decline in stomatal conductance,m/s/kPa,PET_PM,3.75,0,NC,5,0
 Climate,esco,soil evaporation compensation factor,none,AET_PTH,0.95,1,AC,1,0.01
 Climate,HCoef_pet,Coefficient related to radiation used in Hargreaves method,none,PET_H,0.0023,1,RC,0.0032,0.0019
@@ -42,7 +43,6 @@ InstreamWQ,no2,NO2-N concentration in reach on the first day,mg N/L,ChannelRouti
 InstreamWQ,no3,NO3-N concentration in reach on the first day,mg N/L,ChannelRouting,0,0,AC,30,0
 InstreamWQ,orgn,Organic N concentration in reach on the first day,mg N/L,ChannelRouting,0,1,RC,100,0
 InstreamWQ,orgp,Organic P concentration in reach on the first day,mg P/L,ChannelRouting,0,1,RC,5,0
-Interception,BLAI,Leaf area index,none,PI_STORM,-9999,1,RC,12,0
 Interception,CoverFrac,vegetation cover fraction,none,All,-9999,1,RC,1,0
 Interception,Init_IS,Initial interception storage,mm,ALL,0,0,AC,1,0
 Interception,Interc_max,Maximum Interception Capacity,mm,ALL,-9999,1,RC,100,0
@@ -110,6 +110,12 @@ PlantGrowth,n_updis,nitrogen uptake distribution parameter,None,PG_EPIC,20,1,RC,
 PlantGrowth,nfixco,Nitrogen fixation coefficient,None,PG_EPIC,0.5,1,RC,1,0
 PlantGrowth,nfixmx,Maximum daily-n fixation (kg/ha),kg/ha,PG_EPIC,20,1,RC,20,1
 PlantGrowth,p_updis,phosphorus uptake distribution parameter,None,PG_EPIC,20,1,RC,100,0
+PlantGrowth,BIO_E,Biomass/Energy Ratio,(kg/ha)/(MJ/m**2),PG_EPIC,-9999,1,RC,90,15
+PlantGrowth,BLAI,Maximum leaf area index,None,PG_EPIC,-9999,1,RC,12,0.5
+PlantGrowth,DLAI,fraction of growing season(PHU) when senescence becomes dominant,None,PG_EPIC,-9999,1,RC,1,0.15
+PlantGrowth,ALAI_MIN,Minimum leaf area index for plant during dormant period,None,PG_EPIC,-9999,1,RC,0.99,0
+PlantGrowth,LAI_INIT,Initial leaf area index,None,PG_EPIC,-9999,1,RC,100,0
+PlantGrowth,rsdin,Initial residue cover,kg/ha,PG_EPIC,-9999,1,RC,10000,0
 Pothole,evlai,leaf area index at which no evaporation occurs from water surface,m2/m2,IMP_SWAT,3,0,AC,10,0
 Pothole,evpot,Pothole evaporation coefficient,None,IMP_SWAT,0.5,0,AC,2,0
 Pothole,pot_no3l,Nitrate decay rate in impounded water body,1/day,IMP_SWAT,0,0,AC,1,0
@@ -127,7 +133,7 @@ Sediment,Omega,calibration coefficient of splash detachment erosion,none,SplashE
 Sediment,p_rf,Peak rate adjustment factor ,none,ChannelRouting,1,0,AC,2,0.5
 Sediment,rain_yrs,number of yeares of data used to obtain values for RAINHHMX,none,MUSLE_I30,10,0,AC,10,5
 Sediment,RandRough,The random roughness,cm,SplashEro_KinEen,-9999,0,NC,20,0.05
-Sediment,icfac,C-factor calculation using Cmin (0) or new method from RUSLE (1 as default),none,SERO_MUSLE,1,0,AC,1,0
+Sediment,icfac,C-factor calculation using Cmin (0 as default) or new method from RUSLE (1),none,SERO_MUSLE,0,0,AC,1,0
 Sediment,rsd_covco,residue cover factor for computing fraction of cover,none,SERO_MUSLE,0.3,0,AC,0.5,0.1
 Sediment,spcon,Coefficient in sediment transport equation,none,ChannelRouting,0.0001,1,RC,0.01,0.0001
 Sediment,spexp,Exponent in sediment transport equation,none,ChannelRouting,1.5,0,AC,2,1
@@ -137,7 +143,6 @@ Sediment,USLE_C,the cover management factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_K,the soil erodibility factor,none,ALL,-9999,1,RC,1,0
 Sediment,USLE_P,the erosion control practice factor,none,ALL,-9999,1,RC,1,0
 Sediment,vcd,channel degredation code,None,SEDR,0,0,AC,1,0
-Sediment,vcrit,critical veloctiy for sediment deposition,m/s,ChannelRouting,0.01,0,RC,10,0
 Crop,gsi,Max stomatal conductance (in drough condition),m/s,PET,-9999,1,RC,5,0
 Crop,vpdfr,Vapor pressure deficit corresponding to the fraction maximum stomatal conductance defined by FRGMAX,kPa,PET,-9999,1,RC,6,1.5
 Crop,frgmax,Fraction of maximum stomatla conductance that is achievable at a high vapor pressure deficit,none,PET,-9999,1,RC,1,0
@@ -202,6 +207,7 @@ WaterBalance,Fieldcap,Soil field capacity,m3/m3,ALL,-9999,1,RC,0.9,0.2
 WaterBalance,sw_cap,amount of water capacity in soil layers such as sol_awc sol_ul and wiltingpoint,none,ALL,-9999,1,RC,1000,0.01
 Routing,ch_width,Average width of main channel,m,ChannelRouting,-9999,1,RC,1000,0.5
 Routing,ch_depth,Average depth of main channel,m,ChannelRouting,-9999,1,RC,50,0.15
+Routing,ch_len,Length of main channel,m,ChannelRouting,-9999,1,RC,-9999,0.15
 Routing,ch_slp,Average slope of main channel,m/m,ChannelRouting,-9999,1,RC,10,0.001
 Routing,ch_sslp,Channel side slope,m/m,ChannelRouting,-9999,1,RC,5,0.001
 Routing,ch_n,Manning coefficient n value for the main channel,none,ChannelRouting,-9999,1,RC,0.3,0.0001

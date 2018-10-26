@@ -81,7 +81,7 @@ inline bool IsTree(const int classification) { return classification == 7; }
  */
 inline bool IsAnnual(const int classification) {
     return classification == CROP_IDC_WARM_SEASON_ANNUAL_LEGUME ||
-            classification == CROP_IDC_CODE_SEASON_ANNUAL_LEGUME ||
+            classification == CROP_IDC_COLD_SEASON_ANNUAL_LEGUME ||
             classification == CROP_IDC_WARM_SEASON_ANNUAL ||
             classification == CROP_IDC_COLD_SEASON_ANNUAL;
 }
@@ -106,7 +106,7 @@ inline bool IsPerennial(const int classification) {
  * \brief Is cool seanon annual plant or not
  */
 inline bool IsCoolSeasonAnnual(const int classification) {
-    return classification == CROP_IDC_CODE_SEASON_ANNUAL_LEGUME ||
+    return classification == CROP_IDC_COLD_SEASON_ANNUAL_LEGUME ||
             classification == CROP_IDC_COLD_SEASON_ANNUAL;
 }
 /*!

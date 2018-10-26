@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     cout << "                    Author: Hui Wu, Liang-Jun Zhu                      " << endl;
 
     int Threshod = 50;
-    FlowDirectionMethod flowDirMtd = (FlowDirectionMethod)0;
+    FlowDirectionMethod flowDirMtd = static_cast<FlowDirectionMethod>(0);
     double start = TimeCounting();
     if (argc < 11) {
         cout << "Error: To run this field partition program, please follow the COMMAND." << endl;
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
             } else { PrintUsage(); }
         } else if (strcmp(argv[i], "-arcgis") == 0) {
             i++;
-            flowDirMtd = (FlowDirectionMethod)1;
+            flowDirMtd = static_cast<FlowDirectionMethod>(1);
         } else { PrintUsage(); }
     }
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 }
 
 void PrintUsage() {
-    cout << " Command: fieldpartition -dem <dem> -lu <landuse> -mask <mask> "
+    cout << " Command: fieldpartition -dem <dem> -lu <landuse> -mask <mask> -flow <d8flowdir>"
             " -stream <stream> [-t <threshold>] [-arcgis]" << endl;
     cout << "\t1. Input raster paths include dem, mask, landuse, flow_dir, "
             "stream_link, the format can be ASC or GTIFF; " << endl;

@@ -10,7 +10,7 @@ SERO_MUSLE::SERO_MUSLE() :
     m_detSmAgg(nullptr), m_detLgAgg(nullptr), m_iCfac(1),
     m_aveAnnUsleC(nullptr), m_landCover(nullptr), m_rsdCovSoil(nullptr),
     m_rsdCovCoef(NODATA_VALUE), m_canHgt(nullptr), m_lai(nullptr), m_surfRf(nullptr),
-    m_snowAccum(nullptr),m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
+    m_snowAccum(nullptr), m_usleMult(nullptr), m_cellAreaKM(NODATA_VALUE),
     m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE), m_slopeForPq(nullptr),
     m_usleL(nullptr), m_usleS(nullptr), m_usleC(nullptr),
     m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
@@ -135,9 +135,11 @@ void SERO_MUSLE::InitialOutputs() {
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             if (m_rchID[i] > 0) {
-                m_usleC[i] = 1.f;
+                m_usleC[i] = 0.f;
                 continue;
             }
+            m_usleC[i] = m_aveAnnUsleC[i]; // By default, the m_usleC equals to the annual USLE_C value.
+
             if (m_aveAnnUsleC[i] < 1.e-4f || FloatEqual(m_aveAnnUsleC[i], NODATA_VALUE)) {
                 m_aveAnnUsleC[i] = 0.001f; // line 289 of readplant.f of SWAT source
             }
@@ -145,8 +147,6 @@ void SERO_MUSLE::InitialOutputs() {
                 // Which means dynamic USLE_C will be updated, so, m_aveAnnUsleC store the natural log of
                 //  the minimum value of the USLE_C for the land cover
                 m_aveAnnUsleC[i] = log(m_aveAnnUsleC[i]); // line 290 of readplant.f of SWAT source
-            } else {
-                m_usleC[i] = m_aveAnnUsleC[i];
             }
         }
     }
@@ -167,32 +167,37 @@ int SERO_MUSLE::Execute() {
             continue;
         }
         // Update C factor
-        if (m_iCfac == 0) {
+        if (m_iCfac == 0 && nullptr != m_rsdCovSoil) {
             // Original method as described in section 4:1.1.2 in SWAT Theory 2009
-            if (nullptr != m_rsdCovSoil) {
-                if (m_landCover[i] > 0) {
-                    // ln(0.8) = -0.2231435513142097
-                    m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
-                                     exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            if (m_landCover[i] > 0.f && m_landCover[i] != 18) {
+                // exclude WATER
+                // ln(0.8) = -0.2231435513142097
+                m_usleC[i] = exp((-0.223144f - m_aveAnnUsleC[i]) *
+                                 exp(-0.00115f * m_rsdCovSoil[i]) + m_aveAnnUsleC[i]);
+            } else {
+                if (m_rsdCovSoil[i] > 1.e-4f) {
+                    m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
                 } else {
-                    if (m_rsdCovSoil[i] > 1.e-4) {
-                        m_usleC[i] = exp(-0.223144f * exp(-0.00115f * m_rsdCovSoil[i]));
-                    } else {
-                        m_usleC[i] = 0.8f;
-                    }
+                    m_usleC[i] = 0.f; // In SWAT, this is 0.8. But I think it should be 0.
                 }
             }
         } else {
-            // new calculation method from RUSLE with the minimum C factor value
-            //! fraction of cover by residue
-            float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);
-            //! fraction of cover by biomass as function of lai
-            float grcov_fr = m_lai[i] / (m_lai[i] + exp(1.748f - 1.748f * m_lai[i]));
-            //! fraction of cover by biomass - adjusted for canopy height
-            float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
-            m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
+            if (m_landCover[i] > 0.f && m_landCover[i] != LANDUSE_ID_WATR) {
+                // exclude WATER
+                // new calculation method from RUSLE with the minimum C factor value
+                //! fraction of cover by residue
+                float rsd_frcov = exp(-m_rsdCovCoef * m_rsdCovSoil[i]);
+                //! fraction of cover by biomass as function of lai
+                float grcov_fr = m_lai[i] / (m_lai[i] + exp(1.748f - 1.748f * m_lai[i]));
+                //! fraction of cover by biomass - adjusted for canopy height
+                float bio_frcov = 1.f - grcov_fr * exp(-0.01f * m_canHgt[i]);
+                m_usleC[i] = Max(1.e-10f, rsd_frcov * bio_frcov);
+            } else {
+                m_usleC[i] = 0.f;
+            }
         }
         if (m_usleC[i] > 1.f) m_usleC[i] = 1.f;
+        if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);

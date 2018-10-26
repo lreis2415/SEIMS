@@ -71,9 +71,11 @@ class ObsSimData(object):
                 concate += '\t'
             else:
                 if name.upper() == 'PBIAS':
-                    concate += '%s-abs(PBIAS)\t' % prefix
-                else:
+                    tmpvar = '%s-abs(PBIAS)' % varname
+                if prefix != '':
                     concate += '%s-%s\t' % (prefix, tmpvar)
+                else:
+                    concate += '%s\t' % tmpvar
         return concate
 
     def output_efficiency(self, varname, effnames):
@@ -158,8 +160,8 @@ class Calibration(object):
         client = ConnectMongoDB(self.cfg.model.host, self.cfg.model.port)
         conn = client.get_conn()
         db = conn[self.cfg.model.db_name]
-        stime_str = self.cfg.model.time_start.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.cfg.model.time_end.strftime('%Y-%m-%d %H:%M:%S')
+        stime_str = self.cfg.model.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+        etime_str = self.cfg.model.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
                                                          {'$set': {'VALUE': stime_str}})
         db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},

@@ -141,7 +141,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
 
     /// set the output variables
 
-    ///// outputs of plant operation. NO NEED TO OUTPUT?
+    ///// outputs of plant operation.
     mdi.AddOutput(VAR_BIOTARG, UNIT_CONT_KGHA, DESC_BIOTARG, DT_Raster1D);
     mdi.AddOutput(VAR_HVSTI_TARG, UNIT_NON_DIM, DESC_HVSTI_TARG, DT_Raster1D);
     ///// outputs of irrigation / autoIrrigation operation
