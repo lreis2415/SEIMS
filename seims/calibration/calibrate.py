@@ -21,11 +21,11 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import FileClass
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
-from preprocess.utility import read_data_items_from_txt
 from run_seims import MainSEIMS
-from calibration.config import CaliConfig, get_cali_config
+from calibration.config import CaliConfig, get_optimization_config
 from calibration.sample_lhs import lhs
 
 
@@ -251,7 +251,7 @@ def calibration_objectives(cali_obj, ind):
 
 
 if __name__ == '__main__':
-    cf, method = get_cali_config()
+    cf, method = get_optimization_config()
     cfg = CaliConfig(cf, method=method)
 
     caliobj = Calibration(cfg)

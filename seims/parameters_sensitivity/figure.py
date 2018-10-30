@@ -7,9 +7,12 @@
 """
 from __future__ import absolute_import
 
-import math
 import os
+import sys
+if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
+    sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+import math
 import numpy
 import matplotlib
 
@@ -17,7 +20,8 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
-from postprocess.utility import save_png_eps
+
+from utility import save_png_eps
 
 plt.rcParams['font.family'] = ['Times New Roman']
 plt.rcParams['axes.titlesize'] = 'small'

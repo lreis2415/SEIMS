@@ -16,13 +16,10 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
+from configparser import ConfigParser
 
 from pygeoc.TauDEM import TauDEMFilesUtils
-from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file
+from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_file, is_string
 
 from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
 from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
@@ -118,8 +115,7 @@ class SEIMSConfig(object):
                 # os.mkdir(self.workspace)
             except OSError as exc:
                 self.workspace = self.model_dir + os.path.sep + 'preprocess_output'
-                print('WARNING: Make WORKING_DIR failed: %s. '
-                      'Use the default: %s' % (exc.message, self.workspace))
+                print('WARNING: Make WORKING_DIR failed! Use the default: %s' % self.workspace)
                 if not os.path.exists(self.workspace):
                     UtilClass.mkdir(self.workspace)
 
@@ -203,7 +199,7 @@ class SEIMSConfig(object):
             if cf.has_option('SPATIAL', 'additionalfile'):
                 additional_dict_str = cf.get('SPATIAL', 'additionalfile')
                 tmpdict = json.loads(additional_dict_str)
-                tmpdict = {str(k): (str(v) if isinstance(v, str) else v) for k, v in
+                tmpdict = {str(k): (str(v) if is_string(v) else v) for k, v in
                            list(tmpdict.items())}
                 for k, v in list(tmpdict.items()):
                     # Existence check has been moved to mask_origin_delineated_data()

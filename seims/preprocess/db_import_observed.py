@@ -13,6 +13,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -22,10 +23,10 @@ from datetime import timedelta
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, FileClass
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil, MongoQuery
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import StationFields, DBTableNames, DataValueFields, SubbsnStatsName
-from preprocess.utility import read_data_items_from_txt
 
 
 class ImportObservedData(object):
@@ -87,6 +88,7 @@ class ImportObservedData(object):
             site_flds = site_data_items[0]
             for i in range(1, len(site_data_items)):
                 dic = dict()
+                types = list()
                 for j, v in enumerate(site_data_items[i]):
                     if StringClass.string_match(site_flds[j], StationFields.id):
                         dic[StationFields.id] = int(v)
@@ -126,11 +128,11 @@ class ImportObservedData(object):
                                                                           maindb)
                     if not matched:
                         break
-                    cur_subbsn_id_str = ''
                     if len(cur_sids) == 1:  # if only one subbasin ID, store integer
                         cur_subbsn_id_str = cur_sids[0]
                     else:
-                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids if cur_sids is None)
+                        cur_subbsn_id_str = ','.join(str(cid) for cid in cur_sids
+                                                     if cur_sids is None)
                     site_dic[StationFields.subbsn] = cur_subbsn_id_str
                     curfilter = {StationFields.id: site_dic[StationFields.id],
                                  StationFields.type: site_dic[StationFields.type]}
@@ -152,7 +154,7 @@ class ImportObservedData(object):
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
             if tsysin == 'UTCTIME':
-                tzonein = time.timezone / -3600
+                tzonein = time.timezone // -3600
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == [] or len(obs_data_items) == 1:
@@ -218,7 +220,7 @@ class ImportObservedData(object):
 
                 if cur_unit == 'mg/L' or cur_unit == 'g/L':
                     # update the Type name
-                    dic[StationFields.type] = cur_type + 'Conc'
+                    dic[StationFields.type] = '%sConc' % cur_type
                     curfilter = {StationFields.id: dic[StationFields.id],
                                  DataValueFields.type: cur_type,
                                  DataValueFields.utc: dic[DataValueFields.utc]}
@@ -232,24 +234,22 @@ class ImportObservedData(object):
                               StationFields.id: dic[StationFields.id]}
                 q_dic = hydro_clim_db[DBTableNames.observes].find_one(filter=cur_filter)
 
-                q = -9999.
                 if q_dic is not None:
                     q = q_dic[DataValueFields.value]
                 else:
                     continue
                 if cur_unit == 'mg/L':
                     # convert mg/L to kg
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] * q * 86400. / 1000., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value] *
+                                                       q * 86400. / 1000., 2)
                 elif cur_unit == 'g/L':
                     # convert g/L to kg
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] * q * 86400., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value] * q * 86400., 2)
                 elif cur_unit == 'kg':
-                    dic[StationFields.type] = cur_type + 'Conc'
+                    dic[StationFields.type] = '%sConc' % cur_type
                     # convert kg to mg/L
-                    dic[DataValueFields.value] = round(
-                            dic[DataValueFields.value] / q * 1000. / 86400., 2)
+                    dic[DataValueFields.value] = round(dic[DataValueFields.value]
+                                                       / q * 1000. / 86400., 2)
                 # add new data item
                 added_dics.append(dic)
         # import to MongoDB

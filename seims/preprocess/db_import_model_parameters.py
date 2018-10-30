@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -23,10 +24,10 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass, DEFAULT_NODATA, MathClass
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
 from preprocess.text import ModelParamFields, ModelParamDataUtils, \
     DBTableNames, SubbsnStatsName, ModelCfgFields
-from preprocess.utility import read_data_items_from_txt
 
 
 class ImportParam2Mongo(object):
@@ -172,7 +173,7 @@ class ImportParam2Mongo(object):
                 fdir = flowdir_data[r][c]
                 newr, newc = flow_down_stream_idx(fdir, r, c)
                 if newr < 0 or newc < 0 or newr >= nrows or newc >= ncols \
-                        or streamlink_data[newr][newc] == nodata:
+                    or streamlink_data[newr][newc] == nodata:
                     flag = False
                 else:
                     # print(newr, newc, streamlink_data[newr][newc])

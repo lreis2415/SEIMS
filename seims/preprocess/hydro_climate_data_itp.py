@@ -7,20 +7,22 @@
     @changelog: 17-07-25  lj - initial implementation
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import time
 from collections import OrderedDict
 from datetime import timedelta
+from io import open
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import FileClass, StringClass, MathClass
 
+from utility import read_data_items_from_txt
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
-from preprocess.utility import read_data_items_from_txt
 
 
 def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_time, end_time,
@@ -209,12 +211,13 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
             file_name += '_nonzero'
         file_name += '.txt'
         out_file = work_path + os.path.sep + file_name
-        with open(out_file, 'w') as f:
+        with open(out_file, 'w', encoding='utf-8') as f:
             f.write(header_str + '\n')
             f.write('DATETIME,' + fld + '\n')
             for i, v in list(itp_data.items()):
                 cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
                 f.write(cur_line)
+
 
 def main():
     """TEST CODE"""

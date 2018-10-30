@@ -4,7 +4,7 @@
 /***************************************************************************
  pySEIMS
                              Python APIs for SEIMS
- Scenario Analysis by NSGA-II algorithm of DEAP, parallellized by SCOOP
+ Scenario Analysis by NSGA-II algorithm of DEAP, parallelized by SCOOP
                               -------------------
         author               : Liangjun Zhu, Huiran Gao
         copyright            : (C) 2018 by Lreis, IGSNRR, CAS

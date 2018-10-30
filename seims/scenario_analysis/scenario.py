@@ -6,12 +6,13 @@
                 17-08-18  lj - redesign and rewrite.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
 import random
 from datetime import timedelta
+from io import open
 
 from bson.objectid import ObjectId
 from pygeoc.utils import StringClass, get_config_parser
@@ -152,12 +153,13 @@ class Scenario(object):
         if not self.export_sce_txt:
             return
         ofile = self.scenario_dir + os.path.sep + 'Scenario_%d.txt' % self.ID
-        with open(ofile, 'w') as outfile:
+        with open(ofile, 'w', encoding='utf-8') as outfile:
             outfile.write('Scenario ID: %d\n' % self.ID)
             outfile.write('Gene number: %d\n' % self.gene_num)
             outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
             outfile.write('Scenario items:\n')
             if len(self.bmp_items) > 0:
+                header = list()
                 for obj, item in self.bmp_items.items():
                     header = list(item.keys())
                     break

@@ -6,13 +6,14 @@
                 17-08-18  lj - reorganize.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import array
 import os
 import sys
 import random
 import time
+from io import open
 
 import matplotlib
 
@@ -106,11 +107,11 @@ def main(cfg):
     try:
         # parallel on multiprocesor or clusters using SCOOP
         from scoop import futures
-        fitnesses = futures.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
+        fitnesses = list(futures.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind))
         # print('parallel-fitnesses: ', fitnesses)
     except ImportError or ImportWarning:
         # serial
-        fitnesses = toolbox.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind)
+        fitnesses = list(toolbox.map(toolbox.evaluate, [cfg] * len(invalid_ind), invalid_ind))
         # print('serial-fitnesses: ', fitnesses)
 
     for ind, fit in zip(invalid_ind, fitnesses):
@@ -161,9 +162,9 @@ def main(cfg):
         # print_message('Evaluate pop size: %d' % invalid_ind_size)
         try:
             from scoop import futures
-            fitnesses = futures.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
+            fitnesses = list(futures.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind))
         except ImportError or ImportWarning:
-            fitnesses = toolbox.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind)
+            fitnesses = list(toolbox.map(toolbox.evaluate, [cfg] * invalid_ind_size, invalid_ind))
 
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit[:2]
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     fpop, fstats = main(cfg)
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
-    with open(cfg.logbookfile, 'w') as f:
+    with open(cfg.logbookfile, 'w', encoding='utf-8') as f:
         f.write(fstats.__str__())
 
     endT = time.time()

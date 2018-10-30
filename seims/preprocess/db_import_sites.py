@@ -15,11 +15,11 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from osgeo.ogr import Open as ogr_Open
-from pygeoc.utils import StringClass, text_type
+from pygeoc.utils import StringClass, is_string
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt, DEFAULT_NODATA
 from preprocess.text import StationFields, DBTableNames, VariableDesc, DataType, FieldNames
-from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA
 
 
 class SiteInfo(object):
@@ -132,7 +132,7 @@ class ImportHydroClimateSites(object):
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
             shapely_objects.append(wkt_feat)
-            if isinstance(id_field, text_type):
+            if is_string(id_field):
                 id_field = str(id_field)
             id_index = feat.GetFieldIndex(id_field)
             id_list.append(feat.GetField(id_index))

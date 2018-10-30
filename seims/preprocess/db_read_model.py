@@ -13,7 +13,7 @@ import os
 import sys
 from collections import OrderedDict
 
-from pygeoc.utils import StringClass, text_type
+from pygeoc.utils import StringClass, is_string
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -59,7 +59,7 @@ class ReadModelData(object):
             return self._mode.upper()
         mode_dict = self.filein_tab.find_one({ModelCfgFields.tag: FieldNames.mode})
         self._mode = mode_dict[ModelCfgFields.value]
-        if isinstance(self._mode, text_type):
+        if is_string(self._mode):
             self._mode = str(self._mode)
         return self._mode.upper()
 

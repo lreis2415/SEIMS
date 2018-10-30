@@ -18,15 +18,15 @@ import numpy
 from gridfs import GridFS
 from osgeo import osr
 from pygeoc.raster import RasterUtilClass
-from pygeoc.utils import FileClass, StringClass, get_config_parser, text_type
+from pygeoc.utils import FileClass, StringClass, get_config_parser, is_string
 from pymongo.errors import NetworkTimeout
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
+from utility import read_simulation_from_txt
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
-from postprocess.utility import read_simulation_from_txt
 from scenario_analysis.scenario import Scenario
 from scenario_analysis.slpposunits.config import SASPUConfig
 
@@ -260,7 +260,7 @@ class SPScenario(Scenario):
             cellsize = slpposf['metadata'][RasterMetadata.cellsize]
             nodata_value = slpposf['metadata'][RasterMetadata.nodata]
             srs = slpposf['metadata'][RasterMetadata.srs]
-            if isinstance(srs, text_type):
+            if is_string(srs):
                 srs = str(srs)
             srs = osr.GetUserInputAsWKT(srs)
             geotransform = [0] * 6

@@ -23,8 +23,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from preprocess.utility import status_output, read_data_items_from_txt
+from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):

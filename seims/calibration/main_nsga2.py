@@ -9,14 +9,14 @@
                 18-08-29  jz,lj,sf - Add Nutrient calibration step.\n
                 18-10-22  lj - Make the customizations of multi-objectives flexible.\n
 """
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, unicode_literals
 
 import array
 import os
 import random
 import time
 import sys
-
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -31,7 +31,7 @@ from pygeoc.utils import UtilClass
 from scenario_analysis.utility import print_message
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
-from calibration.config import CaliConfig, get_cali_config
+from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
 
 from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
@@ -388,7 +388,7 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    cf, method = get_cali_config()
+    cf, method = get_optimization_config()
     cali_cfg = CaliConfig(cf, method=method)
 
     print_message('### START TO CALIBRATION OPTIMIZING ###')
@@ -398,7 +398,7 @@ if __name__ == "__main__":
 
     fpop.sort(key=lambda x: x.fitness.values)
     print_message(fstats)
-    with open(cali_cfg.opt.logbookfile, 'w') as f:
+    with open(cali_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         f.write(fstats.__str__())
     endT = time.time()
     print_message('### END OF CALIBRATION OPTIMIZING ###')

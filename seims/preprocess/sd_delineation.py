@@ -7,11 +7,11 @@
                 17-06-23  lj - reorganize as basic class
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
-
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -26,9 +26,9 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
+from utility import DEFAULT_NODATA
 from preprocess.sd_hillslope import DelineateHillslope
 from preprocess.text import FieldNames
-from preprocess.utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -80,7 +80,7 @@ class SpatialDelineation(object):
         # write mask configuration file
         n = len(originalfiles)
         # write mask config file
-        with open(configfile, 'w') as f:
+        with open(configfile, 'w', encoding='utf-8') as f:
             f.write(maskfile + '\n')
             f.write('%d\n' % (n,))
             for i in range(n):
@@ -229,9 +229,9 @@ class SpatialDelineation(object):
     def field_partition(cfg):
         """Fields partition incorporating spatial topology.
 
-        Refers to: Wu, Hui, A-Xing Zhu, Junzhi Liu, Yongbo Liu, and Jingchao Jiang. 2017.
+        Refers to: Wu, Hui, A-Xing Zhu, Junzhi Liu, Yongbo Liu, and Jingchao Jiang. 2018.
                      "Best Management Practices Optimization at Watershed Scale: Incorporating
-                      Spatial Topology among Fields." Water Resources Management,
+                      Spatial Topology among Fields." Water Resources Management, 32(1):155-177,
                       doi: 10.1007/s11269-017-1801-8.
         """
         if not cfg.fields_partition:  # Do field partition

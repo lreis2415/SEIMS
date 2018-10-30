@@ -16,8 +16,8 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
-from preprocess.utility import read_data_items_from_txt
 from preprocess.text import DBTableNames
+from utility import read_data_items_from_txt
 
 
 class ImportScenario2Mongo(object):

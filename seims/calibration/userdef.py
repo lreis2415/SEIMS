@@ -5,17 +5,17 @@
     @changelog: 18-1-22  lj - initial implementation.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import json
 import pickle
 import os
 import sys
-
-import numpy
-
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
+import numpy
 import matplotlib as mpl
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
@@ -23,10 +23,10 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
-from pygeoc.utils import StringClass, text_type
+from pygeoc.utils import StringClass, is_string
 
+from utility import save_png_eps
 from preprocess.db_mongodb import ConnectMongoDB
-from postprocess.utility import save_png_eps
 from parameters_sensitivity.sensitivity import SpecialJsonEncoder
 
 
@@ -48,7 +48,8 @@ def output_population_details(pops, outdir, gen_num):
     # Save as json, which can be loaded by json.load()
     # 1. Save the timeseries simulation data of the entire simulation period
     all_sim_data = list()
-    with open(outdir + os.path.sep + 'gen%d_allSimData.pickle' % gen_num, 'wb') as f:
+    pickle_file = outdir + os.path.sep + 'gen%d_allSimData.pickle' % gen_num
+    with open(pickle_file, 'wb', encoding='utf-8') as f:
         for ind in pops:
             all_sim_data.append(ind.sim.data)
         pickle.dump(all_sim_data, f)
@@ -57,7 +58,8 @@ def output_population_details(pops, outdir, gen_num):
     #      and the simulation data separately.
     cali_sim_obs_data = list()
     cali_sim_data = list()
-    with open(outdir + os.path.sep + 'gen%d_caliObsData.json' % gen_num, 'w') as f:
+    json_file = outdir + os.path.sep + 'gen%d_caliObsData.json' % gen_num
+    with open(json_file, 'w', encoding='utf-8') as f:
         for ind in pops:
             ind.cali.sim_obs_data['Gen'] = ind.gen
             ind.cali.sim_obs_data['ID'] = ind.id
@@ -65,7 +67,8 @@ def output_population_details(pops, outdir, gen_num):
             cali_sim_obs_data.append(ind.cali.sim_obs_data)
         json_data = json.dumps(cali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
         f.write(json_data)
-    with open(outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num, 'wb') as f:
+    pickle_file = outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num
+    with open(pickle_file, 'wb', encoding='utf-8') as f:
         for ind in pops:
             cali_sim_data.append(ind.cali.data)
         pickle.dump(cali_sim_data, f)
@@ -74,7 +77,8 @@ def output_population_details(pops, outdir, gen_num):
     vali_sim_obs_data = list()
     vali_sim_data = list()
     if pops[0].vali.valid:
-        with open(outdir + os.path.sep + 'gen%d_valiObsData.json' % gen_num, 'w') as f:
+        json_file = outdir + os.path.sep + 'gen%d_valiObsData.json' % gen_num
+        with open(json_file, 'w', encoding='utf-8') as f:
             for ind in pops:
                 ind.vali.sim_obs_data['Gen'] = ind.gen
                 ind.vali.sim_obs_data['ID'] = ind.id
@@ -82,7 +86,8 @@ def output_population_details(pops, outdir, gen_num):
                 vali_sim_obs_data.append(ind.vali.sim_obs_data)
             json_data = json.dumps(vali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
             f.write(json_data)
-        with open(outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num, 'wb') as f:
+        pickle_file = outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num
+        with open(pickle_file, 'wb', encoding='utf-8') as f:
             for ind in pops:
                 vali_sim_data.append(ind.vali.data)
             pickle.dump(vali_sim_data, f)
@@ -123,13 +128,13 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
         elif 'SED' in var.upper():  # amount
             ylabel_str += ' (kg)'
         cali_obs_dates = sim_obs_data[0][var]['UTCDATETIME'][:]
-        if isinstance(cali_obs_dates[0], str) or isinstance(cali_obs_dates[0], text_type):
+        if is_string(cali_obs_dates[0]):
             cali_obs_dates = [StringClass.get_datetime(s) for s in cali_obs_dates]
         obs_dates = cali_obs_dates[:]
         order = 1  # By default, the calibration period is before the validation period.
         if plot_validation:
             vali_obs_dates = vali_sim_obs_data[0][var]['UTCDATETIME']
-            if isinstance(vali_obs_dates[0], str) or isinstance(vali_obs_dates[0], text_type):
+            if is_string(vali_obs_dates[0]):
                 vali_obs_dates = [StringClass.get_datetime(s) for s in vali_obs_dates]
             if vali_obs_dates[-1] <= cali_obs_dates[0]:
                 order = 0
@@ -144,12 +149,12 @@ def calculate_95ppu(sim_obs_data, sim_data, outdir, gen_num,
                 obs_data = vali_sim_obs_data[0][var]['Obs'][:] + obs_data
 
         cali_sim_dates = list(sim_data[0].keys())
-        if isinstance(cali_sim_dates[0], str) or isinstance(cali_sim_dates[0], text_type):
+        if is_string(cali_sim_dates[0]):
             cali_sim_dates = [StringClass.get_datetime(s) for s in cali_sim_dates]
         sim_dates = cali_sim_dates[:]
         if plot_validation:
             vali_sim_dates = list(vali_sim_data[0].keys())
-            if isinstance(vali_sim_dates[0], str) or isinstance(vali_sim_dates[0], text_type):
+            if is_string(vali_sim_dates[0]):
                 vali_sim_dates = [StringClass.get_datetime(s) for s in vali_sim_dates]
             if order:
                 sim_dates += vali_sim_dates
@@ -297,14 +302,14 @@ if __name__ == '__main__':
     all_cali_obs_data = list()
     all_cali_data = list()
     gen_cali_id = list()
-    with open(simdir + os.path.sep + 'gen0_caliObsData.json', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_caliObsData.json', 'r', encoding='utf-8') as f:
         cali_obs_data = json.load(f)
-    with open(simdir + os.path.sep + 'gen0_caliSimData.pickle', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_caliSimData.pickle', 'r', encoding='utf-8') as f:
         cali_data = pickle.load(f)
     # validation data
-    with open(simdir + os.path.sep + 'gen0_valiObsData.json', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_valiObsData.json', 'r', encoding='utf-8') as f:
         vali_obs_data = json.load(f)
-    with open(simdir + os.path.sep + 'gen0_valiSimData.pickle', 'r') as f:
+    with open(simdir + os.path.sep + 'gen0_valiSimData.pickle', 'r', encoding='utf-8') as f:
         vali_data = pickle.load(f)
 
     for a, b in zip(cali_obs_data, cali_data):

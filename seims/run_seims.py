@@ -8,25 +8,24 @@
                 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
                 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
 """
-import math
 
 import bisect
+from copy import deepcopy
+from collections import OrderedDict
+import math
 import os
 import sys
 import time
 from subprocess import CalledProcessError
-from copy import deepcopy
-from collections import OrderedDict
-
-from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
+
 from preprocess.text import DBTableNames
-from postprocess.load_mongodb import ReadModelData
-from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
-    calculate_statistics
+from preprocess.db_read_model import ReadModelData
+from utility import read_simulation_from_txt
+from utility import match_simulation_observation, calculate_statistics
 
 
 class ParseSEIMSConfig(object):
@@ -460,7 +459,7 @@ if __name__ == '__main__':
             'version': 'OMP', 'mpi_bin': 'mpiexec', 'nprocess': 2}
     seimsobj = MainSEIMS(args_dict=args)
     seimsobj.run()
-    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimeSpan()))
+    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimespan()))
     # test the picklable of MainSEIMS class.
     import pickle
 

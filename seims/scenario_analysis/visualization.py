@@ -7,13 +7,12 @@
                 18-02-09  lj - compatible with Python3.\n
                 18-08-24  lj - ReDesign pareto graph and hypervolume graph.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
-import sys
 from collections import OrderedDict
-
+from io import open
 import os
-
+import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -28,7 +27,7 @@ import itertools
 from pygeoc.utils import StringClass
 import re
 
-from postprocess.utility import save_png_eps
+from utility import save_png_eps
 
 LFs = ['\r', '\n', '\r\n']
 
@@ -267,7 +266,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
         pareto_points: `OrderedDict`, key is generation ID, value is Pareto front array
         pareto_popnum: `OrderedDict`, key is generation ID, value is newly model runs number
     """
-    with open(txt_file) as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     pareto_points = OrderedDict()
     pareto_popnum = OrderedDict()
@@ -337,7 +336,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
 
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
-    with open(txt_file, 'r') as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     pareto_popnum = OrderedDict()
     found = False
@@ -552,7 +551,7 @@ def read_hypervolume(hypervlog):
     x = list()
     nmodel = list()
     hyperv = list()
-    with open(hypervlog, 'r') as f:
+    with open(hypervlog, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
         values = StringClass.extract_numeric_values_from_string(line)
@@ -637,7 +636,7 @@ def plot_hypervolume(method_paths, ws, cn=False):
         v = v + os.path.sep + 'hypervolume.txt'
         x = list()
         y = list()
-        with open(v, 'r') as f:
+        with open(v, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
             values = StringClass.extract_numeric_values_from_string(line)

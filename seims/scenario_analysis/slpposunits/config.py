@@ -6,13 +6,14 @@
                 17-08-18  lj - reorganize as basic class.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
 import json
 import operator
 from collections import OrderedDict
+from io import open
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
@@ -48,7 +49,7 @@ class SASPUConfig(SAConfig):
         # 2. Slope position units information
         updownf = self.bmps_info.get('UPDOWNJSON')
         FileClass.check_file_exists(updownf)
-        with open(updownf, 'r') as updownfo:
+        with open(updownf, 'r', encoding='utf-8') as updownfo:
             self.units_infos = json.load(updownfo)
         self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
         # 3. Get slope position sequence

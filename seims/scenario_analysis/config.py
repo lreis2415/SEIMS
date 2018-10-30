@@ -5,86 +5,60 @@
     @changelog: 16-12-30  hr - initial implementation.\n
                 17-08-18  lj - reorganize as basic class.\n
                 18-02-09  lj - compatible with Python3.\n
+                18-10-29  lj - Redesign the code structure.\n
 """
 from __future__ import absolute_import
 
+from configparser import ConfigParser
 import json
 import os
 import sys
 
-from pygeoc.utils import FileClass, StringClass, UtilClass, get_config_parser
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
+
+from pygeoc.utils import UtilClass
+from run_seims import ParseSEIMSConfig
+from utility import get_optimization_config, parse_datetime_from_ini
+from utility import ParseNSGA2Config
 
 
 class SAConfig(object):
     """Parse scenario analysis configuration of SEIMS project."""
 
-    def __init__(self, cf):
+    def __init__(self, cf, method='nsga2'):
+        # type: (ConfigParser, str) -> None
         """Initialization."""
-        # 1. NSGA-II related parameters
-        self.nsga2_ngens = 1
-        self.nsga2_npop = 4
-        self.nsga2_rcross = 0.75
-        self.nsga2_pmut = 0.05
-        self.nsga2_rmut = 0.1
-        self.nsga2_rsel = 0.8
-        if 'NSGA2' in cf.sections():
-            self.nsga2_ngens = cf.getint('NSGA2', 'generationsnum')
-            self.nsga2_npop = cf.getint('NSGA2', 'populationsize')
-            self.nsga2_rcross = cf.getfloat('NSGA2', 'crossoverrate')
-            self.nsga2_pmut = cf.getfloat('NSGA2', 'maxmutateperc')
-            self.nsga2_rmut = cf.getfloat('NSGA2', 'mutaterate')
-            self.nsga2_rsel = cf.getfloat('NSGA2', 'selectrate')
-        else:
-            raise ValueError('[NSGA2] section MUST be existed in *.ini file.')
-        if self.nsga2_npop % 4 != 0:
-            raise ValueError('PopulationSize must be a multiple of 4.')
-        # 2. MongoDB
-        self.hostname = '127.0.0.1'  # localhost by default
-        self.port = 27017
-        self.spatial_db = ''
-        self.bmp_scenario_db = ''
-        if 'MONGODB' in cf.sections():
-            self.hostname = cf.get('MONGODB', 'hostname')
-            self.port = cf.getint('MONGODB', 'port')
-            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
-            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
-        else:
-            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
-        if not StringClass.is_valid_ip_addr(self.hostname):
-            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
+        # 1. SEIMS model related
+        self.model = ParseSEIMSConfig(cf)
+        self.spatial_db = self.model.db_name
+        # self.bmp_scenario_db
 
-        # 3. SEIMS_Model
-        self.model_dir = ''
-        self.seims_bin = ''
-        self.seims_nthread = 1
-        self.seims_lyrmethod = 0
-        if 'SEIMS_Model' in cf.sections():
-            self.model_dir = cf.get('SEIMS_Model', 'model_dir')
-            self.seims_bin = cf.get('SEIMS_Model', 'bin_dir')
-            self.seims_nthread = cf.getint('SEIMS_Model', 'threadsnum')
-            self.seims_lyrmethod = cf.getint('SEIMS_Model', 'layeringmethod')
+        # 2. Common settings of BMPs scenario
+        self.eval_stime = None
+        self.eval_etime = None
+        self.worst_econ = 0.
+        self.worst_env = 0.
+        self.runtime_years = 0.
+        if 'Scenario_Common' in cf.sections():
+            self.eval_stime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_start')
+            self.eval_etime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_end')
+            self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
+            self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
+            self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
         else:
-            raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
-        if not (FileClass.is_dir_exists(self.model_dir)
-                and FileClass.is_dir_exists(self.seims_bin)):
-            raise IOError('Please Check Directories defined in [PATH]. '
-                          'BIN_DIR and MODEL_DIR are required!')
+            raise ValueError('[Scenario_Common] section MUST be existed in *.ini file.')
 
-        # 4. Application specific setting section [BMPs]
-        self.bmps_info = dict()
-        self.bmps_rule = False
-        self.rule_method = 1
-        self.bmps_retain = dict()
+        # 3. Application specific setting section [BMPs]
+        self.bmps_info = dict()  # BMP to be evaluated, JSON format
+        self.bmps_retain = dict()  # BMPs to be constant, JSON format
         self.export_sce_txt = False
         self.export_sce_tif = False
+        self.rule_method = 'RDM'
         if 'BMPs' in cf.sections():
             bmpsinfostr = cf.get('BMPs', 'bmps_info')
-            self.bmps_rule = cf.getboolean('BMPs', 'bmps_rule')
-            if cf.has_option('BMPs', 'rule_method'):
-                self.rule_method = cf.getint('BMPs', 'rule_method')
+            self.bmps_info = json.loads(bmpsinfostr)
+            self.bmps_info = UtilClass.decode_strs_in_dict(self.bmps_info)
             if cf.has_option('BMPs', 'bmps_retain'):
                 bmpsretainstr = cf.get('BMPs', 'bmps_retain')
                 self.bmps_retain = json.loads(bmpsretainstr)
@@ -93,37 +67,23 @@ class SAConfig(object):
                 self.export_sce_txt = cf.getboolean('BMPs', 'export_scenario_txt')
             if cf.has_option('BMPs', 'export_scenario_tif'):
                 self.export_sce_tif = cf.getboolean('BMPs', 'export_scenario_tif')
+            if cf.has_option('BMPs', 'bmps_rule_method'):
+                self.rule_method = cf.get('BMPs', 'bmps_rule_method')
         else:
             raise ValueError("[BMPs] section MUST be existed for specific SA.")
-        self.bmps_info = json.loads(bmpsinfostr)
-        self.bmps_info = UtilClass.decode_strs_in_dict(self.bmps_info)
 
-        # 5. Application specific setting section [Effectiveness]
-        self.worst_econ = 0
-        self.worst_env = 0
-        self.runtime_years = 0
-        if 'Effectiveness' in cf.sections():
-            self.worst_econ = cf.getfloat('Effectiveness', 'worst_economy')
-            self.worst_env = cf.getfloat('Effectiveness', 'worst_environment')
-            self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
-            self.runtime_years = cf.getfloat('Effectiveness', 'runtime_years')
-
-        # 6. define gene_values
-        fn = 'Gen_%d_Pop_%d' % (self.nsga2_ngens, self.nsga2_npop)
-        fn += '_rule' if self.bmps_rule else '_random'
-        self.nsga2_dir = self.model_dir + os.path.sep + 'NSGA2_OUTPUT' + os.path.sep + fn
-        self.scenario_dir = self.nsga2_dir + os.path.sep + 'Scenarios'
-        UtilClass.rmmkdir(self.nsga2_dir)
+        # 4. Parameters settings for specific optimization algorithm
+        self.opt_mtd = method
+        self.opt = None
+        if self.opt_mtd == 'nsga2':
+            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'SA_NSGA2_%s' % self.rule_method)
+        self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
-        self.hypervlog = self.nsga2_dir + os.path.sep + 'hypervolume.txt'
-        self.scenariolog = self.nsga2_dir + os.path.sep + 'scenarios_info.txt'
-        self.logfile = self.nsga2_dir + os.path.sep + 'runtime.log'
-        self.logbookfile = self.nsga2_dir + os.path.sep + 'logbook.txt'
 
 
 if __name__ == '__main__':
-    cf = get_config_parser()
-    cfg = SAConfig(cf)
+    cf, method = get_optimization_config("Execute scenario analysis.")
+    cfg = SAConfig(cf, method=method)
 
     # test the picklable of SAConfig class.
     import pickle

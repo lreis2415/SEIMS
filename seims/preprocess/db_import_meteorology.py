@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -21,10 +22,10 @@ from datetime import timedelta
 from pygeoc.utils import DateClass, StringClass
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
-from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 
 
 class ClimateStats(object):
@@ -184,6 +185,7 @@ class ImportMeteoData(object):
         # prepare dic for MongoDB
         for s_id, stats_v in list(hydro_climate_stats.items()):
             for YYYY in list(stats_v.Count.keys()):
+                # import annual mean PHU
                 cur_dic = dict()
                 cur_dic[DataValueFields.value] = stats_v.PHUTOT[YYYY]
                 cur_dic[DataValueFields.id] = s_id
@@ -204,6 +206,7 @@ class ImportMeteoData(object):
                              DataValueFields.y: YYYY}
                 climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
                                                                        upsert=True)
+            # import multi-annual mean PHU
             cur_dic[DataValueFields.value] = stats_v.PHU0
             cur_dic[DataValueFields.id] = s_id
             cur_dic[DataValueFields.y] = DEFAULT_NODATA
@@ -214,7 +217,7 @@ class ImportMeteoData(object):
                          DataValueFields.y: DEFAULT_NODATA}
             climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
                                                                    upsert=True)
-            # import annual mean temperature
+            # import multi-annual mean temperature
             cur_dic[VariableDesc.type] = DataType.mean_tmp0
             cur_dic[VariableDesc.unit] = 'deg C'
             cur_dic[DataValueFields.value] = stats_v.MeanTmp0

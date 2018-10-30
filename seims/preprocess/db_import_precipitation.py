@@ -21,10 +21,10 @@ from datetime import timedelta
 from pygeoc.utils import StringClass
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType
-from preprocess.utility import read_data_items_from_txt
 
 
 class ImportPrecipitation(object):

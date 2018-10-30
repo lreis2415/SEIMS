@@ -6,10 +6,12 @@
                 17-06-26  lj - reorganize according to pylint and google style
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from io import open
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -23,7 +25,7 @@ from numpy import zeros as np_zeros
 from preprocess.db_mongodb import MongoQuery
 from preprocess.text import DBTableNames, RasterMetadata, FieldNames, \
     DataType, StationFields, DataValueFields, SubbsnStatsName
-from preprocess.utility import UTIL_ZERO
+from utility import UTIL_ZERO
 
 
 class ImportWeightData(object):
@@ -254,7 +256,6 @@ class ImportWeightData(object):
 
         for type_i, type_name in enumerate(type_list):
             fname = '%d_WEIGHT_%s' % (subbsn_id, type_name)
-            # print(fname)
             if spatial_gfs.exists(filename=fname):
                 x = spatial_gfs.get_version(filename=fname)
                 spatial_gfs.delete(x._id)
@@ -285,15 +286,14 @@ class ImportWeightData(object):
                 # print('loclist', locList)
                 # interpolate using the locations
                 myfile = spatial_gfs.new_file(filename=fname, metadata=metadic)
-                with open(r'%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id,
-                                                    type_list[type_i]), 'w') as f_test:
+                txtfile = '%s/weight_%d_%s.txt' % (geodata2dbdir, subbsn_id, type_list[type_i])
+                with open(txtfile, 'w', encoding='utf-8') as f_test:
                     for y in range(0, ysize):
                         for x in range(0, xsize):
                             index = int(y * xsize + x)
                             if abs(data[index] - nodata_value) > UTIL_ZERO:
                                 x_coor = xll + x * dx
                                 y_coor = yll + (ysize - y - 1) * dx
-                                near_index = 0
                                 line, near_index = ImportWeightData.thiessen(x_coor, y_coor,
                                                                              loc_list)
                                 myfile.write(line)
