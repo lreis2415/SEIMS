@@ -1,0 +1,38 @@
+## Soil physical properties (required) and chemical properties (optional) lookup table ##
+## Pre-released version prepared by LiangJun Zhu, May., 2016
+## Reference: Arnold, J.G., Kiniry, J.R., Srinivasan, R., Williams, J.R., Haney, E.B., Neitsch, S.L., 2013. SWAT 2012 Input/Output Documentation. Texas Water Resources Institute.
+### Data formate: 1) Each field are splited by COMMA(','); 2) Values are concatenated by DASH('-') in individual field; 3) Values number of multi-values fields should be equal to NLAYERS; 4) Just provide the fields that have values, REQUIRED fields are necessary.
+### Here is a brief description of the variables adopted in SEIMS.
+### Variable Name   Definition
+### SEQN            (required) Sequence number of soil catogory, CAUTION: No need to be consistent with SOIL CLASS.
+### NAME            (required) Soil name, CAUTION: a soil name may have multi SEQN to represent heterogeneity according to LANDUSE or SLOPE, etc.
+### SOILLAYERS      (required) Soil layers number, BE AWARE that NLAYERS may be different in this lookup table.
+### SOL_Z           (required, multi-values) Depth from soil surface to bottom of layer (mm), e.g., 100, 400, 800.
+### SOL_OM          (required, multi-values) Organic matter content (% soil weight)
+### SOL_CLAY        (required, multi-values) Clay content (% soil weight), diameter < 0.002 mm
+### SOL_SILT        (required, multi-values) Silt content (% soil weight), diameter between 0.002 mm and 0.05 mm
+### SOL_SAND        (required, multi-values) Sand content (% soil weight), diameter between 0.05 mm and 2 mm
+### SOL_ROCK        (required, multi-values) Rock fragment content (% total weight), diameter > 2 mm
+### SOL_BD          (required, multi-values) Moist bulk density (Mg/m3 or g/cm3), value should between 1.1 and 1.9
+### SOL_AWC         (required, multi-values) Available water capacity
+### SOL_ZMX         (optional) Maximum rooting depth of soil profile(mm)
+### ANION_EXCL      (optional) Fraction of porosity (void space) from which anions are excluded, default is 0.5.
+### SOL_CRK         (optional) Potential or maximum crack volume of the soil profile expressed as a fraction of the total soil volume.
+### SOL_K           (optional, multi-values) Saturated hydraulic conductivity (mm/hr)
+### SOL_WP          (optional, multi-values) Wilting point
+### SOL_FC          (optional, multi-values) Field capacity
+### SOL_POROSITY    (optional, multi-values) Porosity
+### SOL_USLE_K      (optional, multi-values) USLE K factor
+### SOL_ALB         (optional) Albedo when soil is moist
+### ESCO            (optional) Soil evaporation compensation factor, the default is 0.95
+### SOL_NO3         (optional and can be 0, multi-values) concentration of nitrate in soil layers, g/kg
+### SOL_NH4         (optional and can be 0, multi-values) concentration of ammonium-N in soil layers, g/kg
+### SOL_ORGN        (optional and can be 0, multi-values) concentration of organic nitrogen in soil layers, g/kg
+### SOL_ORGP        (optional and can be 0, multi-values) concentration of organic phosphorus in soil layers, g/kg
+### SOL_SOLP        (optional and can be 0, multi-values) concentration of soluble phosphorus in soil layers, g/kg
+SEQN,SNAM,SOILLAYERS,SOL_ZMX,SOL_Z,SOL_BD,SOL_OM,SOL_CLAY,SOL_SILT,SOL_SAND,SOL_ROCK,SOL_WP,SOL_FC,SOL_POROSITY,SOL_K,SOL_AWC,SOL_NO3,SOL_NH4,SOL_ORGN,SOL_SOLP,SOL_ORGP
+201,WNT,3,600,200-400-600,1.5-1.57-1.45,2.31-0.84-0.84,15.66-17.36-20.94,13.8-17.31-22.23,52.25-44.6-35.9,18.29-20.73-20.93,0.12-0.14-0.18,0.21-0.24-0.31,0.44-0.41-0.45,26.16-11.43-7.87,0.1-0.1-0.13,0.004-0.002-0.002,0-0-0,0.164-0.079-0.077,0.005-0.002-0.001,0.047-0.018-0.012
+202,HSNT,3,600,200-400-600,1.5-1.58-1.6,2.29-0.89-0.63,16.5-17.4-17.09,14.65-13.81-11.51,48.31-49.58-52.38,20.54-19.21-19.02,0.12-0.11-0.09,0.23-0.2-0.17,0.43-0.41-0.4,22.35-20.57-28.19,0.1-0.1-0.09,0.003-0.002-0.001,0-0-0,0.134-0.062-0.051,0.005-0.002-0.001,0.045-0.016-0.013
+203,SXYHR,3,600,200-400-600,1.51-1.56-1.58,1.73-0.67-0.21,15.83-14.97-16.45,23.4-24.99-30.3,41.73-45.32-53.25,19.04-14.72-0,0.18-0.18-0.18,0.29-0.28-0.29,0.43-0.41-0.4,6.1-5.08-4.32,0.11-0.11-0.1,0.002-0.001-0.001,0-0-0,0.097-0.053-0.05,0.002-0.001-0.001,0.017-0.01-0.006
+204,SXYQSHR,3,600,200-400-600,1.57-1.6-1.61,1.1-0.51-0.44,16.92-17.51-16.71,13.11-12.99-9.82,53.73-54.46-56.97,16.24-15.04-16.5,0.1-0.09-0.07,0.19-0.18-0.15,0.41-0.4-0.39,24.64-24.89-35.31,0.09-0.09-0.08,0.002-0.001-0.001,0-0-0,0.072-0.045-0.044,0.001-0.001-0.001,0.011-0.008-0.007
+205,SXYCGXHR,3,600,200-400-600,1.58-1.6-1.61,0.82-0.47-0.31,18.22-17.52-13.59,11.39-12.25-9.5,46.69-44.63-51.48,23.7-25.6-25.43,0.1-0.1-0.08,0.19-0.2-0.16,0.4-0.4-0.39,24.38-20.83-32.51,0.1-0.1-0.08,0.001-0.001-0.001,0-0-0,0.038-0.029-0.027,0-0-0,0.004-0.004-0.004
