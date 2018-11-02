@@ -158,12 +158,11 @@ class MainSEIMS(object):
                  host='127.0.0.1', port=27017, scenario_id=-1, calibration_id=-1,
                  version='OMP', nprocess=1, mpi_bin='', hosts_opt='-f', hostfile='',
                  simu_stime=None, simu_etime=None,
-                 **kwargs):  # Allow any other keyword arguments
-        # type: (str, str, int, int, str, int, int, int, str, int, str, str, str, Optional[datetime], Optional[datetime], **str) -> None
+                 args_dict=None):
+        # type: (str, str, int, int, str, int, int, int, str, int, str, str, str, Optional[datetime], Optional[datetime], Dict[str, Union[str, datetime, int, None]]) -> None
         #  Derived from input arguments
-        args_dict = dict()
-        if 'args_dict' in kwargs:  # Preferred to use 'args_dict' if existed.
-            args_dict = kwargs['args_dict']
+        if args_dict is None:  # Preferred to use 'args_dict' if existed.
+            args_dict = dict()
         bin_dir = args_dict['bin_dir'] if 'bin_dir' in args_dict else bin_dir
         model_dir = args_dict['model_dir'] if 'model_dir' in args_dict else model_dir
         self.version = args_dict['version'] if 'version' in args_dict else version
