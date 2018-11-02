@@ -242,9 +242,15 @@ def main(sceobj):
 
         # Plot 2D near optimal pareto front graphs
         stime = time.time()
-        front = numpy.array([ind.fitness.values for ind in pop])
-        plot_pareto_front(front, ['Economy', 'Environment'],
-                          ws, gen, 'Near Pareto optimal solutions')
+        try:
+            front = numpy.array([ind.fitness.values for ind in pop])
+            plot_pareto_front(front, ['Economy', 'Environment'],
+                              ws, gen, 'Near Pareto optimal solutions')
+        except Exception as e:
+            scoop_log('Exception caught: %s' % str(e))
+        except:
+            scoop_log('Exception caught: %s' % sys.exc_info()[0])
+
         plot_time += time.time() - stime
 
         # save in file
