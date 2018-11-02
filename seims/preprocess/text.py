@@ -71,16 +71,16 @@ class DirNameUtils(object):
 class ModelParamDataUtils(object):
     """Model parameters data file related.
     """
-    _INIT_PARAM_NAME = 'model_param_ini.txt'
-    _INIT_OUTPUTS_NAME = 'AvailableOutputs.txt'
+    _INIT_PARAM_NAME = 'model_param_ini.csv'
+    _INIT_OUTPUTS_NAME = 'AvailableOutputs.csv'
     Tag_Params = 'param'
     Tag_Lookup = 'lookup'
-    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.txt',
-                    'LanduseLookup': 'LanduseLookup.txt',
-                    'TillageLookup': 'TillageLookup.txt',
-                    'UrbanLookup': 'UrbanLookup.txt',
-                    'CropLookup': 'CropLookup.txt',
-                    'FertilizerLookup': 'FertilizerLookup.txt'}
+    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.csv',
+                    'LanduseLookup': 'LanduseLookup.csv',
+                    'TillageLookup': 'TillageLookup.csv',
+                    'UrbanLookup': 'UrbanLookup.csv',
+                    'CropLookup': 'CropLookup.csv',
+                    'FertilizerLookup': 'FertilizerLookup.csv'}
 
     # CROP, LANDUSE attributes(fields)
     # Match to the new lookup table of SWAT 2012 rev.637. lj
@@ -395,3 +395,5 @@ class DBTableNames(object):
     observes = 'MEASUREMENT'
     var_desc = 'VARIABLES'
     sites = 'SITES'
+    # BMPs scenario database
+    scenarios = 'BMP_SCENARIOS'
