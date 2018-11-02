@@ -25,7 +25,7 @@ __description__ = "Scenario Analysis by NSGA-II algorithm"
 __version__ = "1.2"
 __revision__ = "1.2.0"
 
-_DEBUG = True  # type: bool # Print information for debugging
+_DEBUG = False  # type: bool # Print information for debugging
 
 BMPS_RULE_METHODS = ['RDM', 'SUIT', 'UPDOWN', 'SLPPOS']
 """The available rule methods for BMPs configuration.

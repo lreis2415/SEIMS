@@ -17,6 +17,7 @@ import random
 import time
 import sys
 from io import open
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -268,15 +269,15 @@ def main(cfg):
             del offspring[0].fitness.values
 
         # Evaluate the individuals with an invalid fitness
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        valid_ind = [ind for ind in offspring if ind.fitness.valid]
-        if len(invalid_ind) == 0:  # No need to continue
+        invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
+        valid_inds = [ind for ind in offspring if ind.fitness.valid]
+        if len(invalid_inds) == 0:  # No need to continue
             scoop_log('Note: No invalid individuals available, the NSGA2 will be terminated!')
             break
 
         # Write new calibrated parameters to MongoDB
         param_values = list()
-        for idx, ind in enumerate(invalid_ind):
+        for idx, ind in enumerate(invalid_inds):
             ind.gen = gen
             ind.id = idx
             param_values.append(ind[:])
@@ -284,28 +285,19 @@ def main(cfg):
         write_param_values_to_mongodb(cfg.model.host, cfg.model.port, cfg.model.db_name,
                                       cali_obj.ParamDefs, param_values)
         # Count the model runs, and execute models
-        invalid_ind_size = len(invalid_ind)
+        invalid_ind_size = len(invalid_inds)
         modelruns_count.setdefault(gen, invalid_ind_size)
         stime = time.time()
-        invalid_ind, plotlables = evaluate_parallel(invalid_ind)
+        invalid_inds, plotlables = evaluate_parallel(invalid_inds)
         curtimespan = time.time() - stime
         modelruns_time.setdefault(gen, curtimespan)
         modelruns_time_sum.setdefault(gen, 0.)
-        for ind in invalid_ind:
+        for ind in invalid_inds:
             allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
             modelruns_time_sum[gen] += ind.runtime
 
         # Select the next generation population
-        tmp_pop = list()
-        gen_idx = list()
-        for ind in pop + valid_ind + invalid_ind:  # these individuals are all evaluated!
-            # remove individuals that has a NSE < 0
-            if [ind.gen, ind.id] not in gen_idx:
-                if filter_ind and ind.fitness.values[0] < 0:
-                    continue
-                tmp_pop.append(ind)
-                gen_idx.append([ind.gen, ind.id])
-        pop = toolbox.select(tmp_pop, pop_select_num)
+        pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
         output_population_details(pop, cfg.opt.simdata_dir, gen)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
@@ -316,7 +308,7 @@ def main(cfg):
         UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
 
         record = stats.compile(pop)
-        logbook.record(gen=gen, evals=len(invalid_ind), **record)
+        logbook.record(gen=gen, evals=len(invalid_inds), **record)
         scoop_log(logbook.stream)
 
         # Plot 2D near optimal pareto front graphs,
@@ -359,14 +351,14 @@ def main(cfg):
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=' ', fmt='%.4f')
     scoop_log('Running time of all SEIMS models:\n'
-                  '\tIO\tCOMP\tSIMU\tRUNTIME\n'
-                  'MAX\t%s\n'
-                  'MIN\t%s\n'
-                  'AVG\t%s\n'
-                  'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in allmodels_exect.max(0)),
-                                 '\t'.join('%.3f' % v for v in allmodels_exect.min(0)),
-                                 '\t'.join('%.3f' % v for v in allmodels_exect.mean(0)),
-                                 '\t'.join('%.3f' % v for v in allmodels_exect.sum(0))))
+              '\tIO\tCOMP\tSIMU\tRUNTIME\n'
+              'MAX\t%s\n'
+              'MIN\t%s\n'
+              'AVG\t%s\n'
+              'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in allmodels_exect.max(0)),
+                             '\t'.join('%.3f' % v for v in allmodels_exect.min(0)),
+                             '\t'.join('%.3f' % v for v in allmodels_exect.mean(0)),
+                             '\t'.join('%.3f' % v for v in allmodels_exect.sum(0))))
 
     exec_time = 0.
     for genid, tmptime in list(modelruns_time.items()):
@@ -379,10 +371,10 @@ def main(cfg):
         allcount += tmpcount
 
     scoop_log('Initialization timespan: %.4f\n'
-                  'Model execution timespan: %.4f\n'
-                  'Sum of model runs timespan: %.4f\n'
-                  'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
-                                                         exec_time_sum, plot_time))
+              'Model execution timespan: %.4f\n'
+              'Sum of model runs timespan: %.4f\n'
+              'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
+                                                     exec_time_sum, plot_time))
 
     return pop, logbook
 
