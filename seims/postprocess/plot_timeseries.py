@@ -11,7 +11,6 @@ from __future__ import absolute_import
 
 import os
 import sys
-import datetime
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -26,10 +25,10 @@ import matplotlib.pyplot as plt
 from pygeoc.utils import FileClass
 
 from preprocess.text import DataValueFields
-from postprocess.load_mongodb import ReadModelData
-from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
-    calculate_statistics, save_png_eps
+from preprocess.db_read_model import ReadModelData
 from run_seims import MainSEIMS
+from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics
+from utility import save_png_eps
 
 
 def divtd(td1, td2):

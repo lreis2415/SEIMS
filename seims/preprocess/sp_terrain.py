@@ -15,7 +15,6 @@ from __future__ import absolute_import
 from math import exp, sqrt
 import os
 import sys
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -27,8 +26,8 @@ from osgeo.ogr import Open as ogr_Open
 from pygeoc.hydro import FlowModelConst
 from pygeoc.raster import RasterUtilClass
 
+from utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
-from preprocess.utility import status_output, UTIL_ZERO, DEFAULT_NODATA
 
 sys.setrecursionlimit(10000)
 
@@ -430,14 +429,14 @@ class TerrainUtilClass(object):
         ds_reach = ogr_Open(reach_shp_file, update=True)
         layer_reach = ds_reach.GetLayer(0)
         layer_def = layer_reach.GetLayerDefn()
-        i_link = layer_def.GetFieldIndex(ImportReaches2Mongo._LINKNO)
-        i_width = layer_def.GetFieldIndex(ImportReaches2Mongo._WIDTH)
-        i_depth = layer_def.GetFieldIndex(ImportReaches2Mongo._DEPTH)
+        i_link = layer_def.GetFieldIndex(str(ImportReaches2Mongo._LINKNO))
+        i_width = layer_def.GetFieldIndex(str(ImportReaches2Mongo._WIDTH))
+        i_depth = layer_def.GetFieldIndex(str(ImportReaches2Mongo._DEPTH))
         if i_width < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._WIDTH, OFTReal)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._WIDTH), OFTReal)
             layer_reach.CreateField(new_field)
         if i_depth < 0:
-            new_field = ogr_FieldDefn(ImportReaches2Mongo._DEPTH, OFTReal)
+            new_field = ogr_FieldDefn(str(ImportReaches2Mongo._DEPTH), OFTReal)
             layer_reach.CreateField(new_field)
 
         layer_reach.ResetReading()
@@ -450,8 +449,8 @@ class TerrainUtilClass(object):
                 w = ch_width_dic[tmpid]
             if tmpid in ch_depth_dic:
                 d = ch_depth_dic[tmpid]
-            ft.SetField(ImportReaches2Mongo._WIDTH, w)
-            ft.SetField(ImportReaches2Mongo._DEPTH, d)
+            ft.SetField(str(ImportReaches2Mongo._WIDTH), w)
+            ft.SetField(str(ImportReaches2Mongo._DEPTH), d)
             layer_reach.SetFeature(ft)
             ft = layer_reach.GetNextFeature()
 

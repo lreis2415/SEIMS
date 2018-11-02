@@ -11,11 +11,13 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import UtilClass
 
+from utility import status_output
 from preprocess.bmp_import_scenario import ImportScenario2Mongo
 from preprocess.db_import_interpolation_weights import ImportWeightData
 from preprocess.db_import_meteorology import ImportMeteoData
@@ -27,7 +29,6 @@ from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.sp_extraction import extract_spatial_parameters
 from preprocess.text import DBTableNames, SubbsnStatsName
-from preprocess.utility import status_output
 
 
 class ImportMongodbClass(object):
@@ -48,23 +49,14 @@ class ImportMongodbClass(object):
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
         if subbasin_num == 0:  # the whole basin!
-            start_id = 0
             subbasin_file = cfg.spatials.mask
         else:
-            start_id = 1
             subbasin_file = cfg.spatials.subbsn
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
                                                             cfg.dirs.geodata2db,
                                                             cfg.spatial_db,
                                                             DBTableNames.gridfs_spatial,
                                                             cfg.hostname, cfg.port)
-
-        # I recommend not output to directory. lj
-        # UtilClass.mkdir(cfg.dirs.import2db)
-        # for i in range(start_id, subbasin_num + 1):
-        #     subdir = cfg.dirs.import2db + os.path.sep + str(i)
-        #     UtilClass.rmmkdir(subdir)
-        # str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
@@ -75,7 +67,6 @@ class ImportMongodbClass(object):
                                                   cfg.spatial_db,
                                                   DBTableNames.gridfs_spatial,
                                                   dt, n_subbasins)
-        # print(str_cmd)
         UtilClass.run_command(str_cmd)
 
     @staticmethod

@@ -1,39 +1,44 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Run SEIMS model.
+
     @author   : Liangjun Zhu
-    @changelog: 2017-12-07 - lj - Initial implementation.
-                2018-07-04 - lj - Support MPI version.
-                2018-07-07 - lj - Add the outputs of single model run.
-                2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
-                2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
+
+    @changelog:
+    - 2017-12-07 - lj - Initial implementation.
+    - 2018-07-04 - lj - Support MPI version.
+    - 2018-07-07 - lj - Add the outputs of single model run.
+    - 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
+    - 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
 """
-import math
 
 import bisect
+from copy import deepcopy
+from collections import OrderedDict
+from configparser import ConfigParser
+from datetime import datetime
+import math
 import os
 import sys
 import time
+from typing import Optional, Union, Dict
 from subprocess import CalledProcessError
-from copy import deepcopy
-from collections import OrderedDict
-
-from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
+
 from preprocess.text import DBTableNames
-from postprocess.load_mongodb import ReadModelData
-from postprocess.utility import read_simulation_from_txt, match_simulation_observation, \
-    calculate_statistics
+from preprocess.db_read_model import ReadModelData
+from utility import read_simulation_from_txt
+from utility import match_simulation_observation, calculate_statistics
 
 
 class ParseSEIMSConfig(object):
     """Parse SEIMS model related configurations from `ConfigParser` object."""
 
     def __init__(self, cf):
-        # Default arguments
+        # type: (ConfigParser) -> None
         self.host = '127.0.0.1'  # localhost by default
         self.port = 27017
         self.bin_dir = ''
@@ -115,6 +120,7 @@ class ParseSEIMSConfig(object):
 
     @property
     def ConfigDict(self):
+        # type: () -> Dict[str, Union[str, datetime, int, None]]
         if self.config_dict:
             return self.config_dict
         model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
@@ -152,11 +158,11 @@ class MainSEIMS(object):
                  host='127.0.0.1', port=27017, scenario_id=-1, calibration_id=-1,
                  version='OMP', nprocess=1, mpi_bin='', hosts_opt='-f', hostfile='',
                  simu_stime=None, simu_etime=None,
-                 **kwargs):  # Allow any other keyword arguments
+                 args_dict=None):
+        # type: (str, str, int, int, str, int, int, int, str, int, str, str, str, Optional[datetime], Optional[datetime], Dict[str, Union[str, datetime, int, None]]) -> None
         #  Derived from input arguments
-        args_dict = dict()
-        if 'args_dict' in kwargs:  # Preferred to use 'args_dict' if existed.
-            args_dict = kwargs['args_dict']
+        if args_dict is None:  # Preferred to use 'args_dict' if existed.
+            args_dict = dict()
         bin_dir = args_dict['bin_dir'] if 'bin_dir' in args_dict else bin_dir
         model_dir = args_dict['model_dir'] if 'model_dir' in args_dict else model_dir
         self.version = args_dict['version'] if 'version' in args_dict else version
@@ -238,6 +244,11 @@ class MainSEIMS(object):
     def OutletID(self):
         read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.OutletID
+
+    @property
+    def ScenarioDBName(self):
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        return read_model.ScenarioDBName
 
     @property
     def SimulatedPeriod(self):
@@ -395,13 +406,14 @@ class MainSEIMS(object):
     def ResetSimulationPeriod(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
         read_model = ReadModelData(self.host, self.port, self.db_name)
-        stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
-        etime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
-        db = read_model.maindb
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
-                                                         {'$set': {'VALUE': stime_str}})
-        db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
-                                                         {'$set': {'VALUE': etime_str}})
+        if self.simu_stime and self.simu_etime:
+            stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
+            etime_str = self.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
+            db = read_model.maindb
+            db[DBTableNames.main_filein].find_one_and_update({'TAG': 'STARTTIME'},
+                                                             {'$set': {'VALUE': stime_str}})
+            db[DBTableNames.main_filein].find_one_and_update({'TAG': 'ENDTIME'},
+                                                             {'$set': {'VALUE': etime_str}})
         self.start_time, self.end_time = read_model.SimulationPeriod
 
     def run(self):
@@ -460,7 +472,7 @@ if __name__ == '__main__':
             'version': 'OMP', 'mpi_bin': 'mpiexec', 'nprocess': 2}
     seimsobj = MainSEIMS(args_dict=args)
     seimsobj.run()
-    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimeSpan()))
+    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimespan()))
     # test the picklable of MainSEIMS class.
     import pickle
 

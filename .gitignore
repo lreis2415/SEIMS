@@ -72,7 +72,7 @@ seims/nogit
 seims/nogit/*
 
 # temp folders when running demo data
-data/dianbu2/workspace
+data/*/workspace
 **OUTPUT
 OUTPUT/*
 OUTPUT*/

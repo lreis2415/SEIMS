@@ -1,18 +1,23 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Visualization of Scenarios, which is relative independent with SA.
-    @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-09-12  hr - initial implementation.\n
-                17-08-18  lj - reorganization.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-08-24  lj - ReDesign pareto graph and hypervolume graph.\n
+
+    @author   : Liangjun Zhu, Huiran Gao
+
+    @changelog:
+
+    - 16-09-12  hr - initial implementation.
+    - 17-08-18  lj - reorganization.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-08-24  lj - ReDesign pareto graph and hypervolume graph.
+    - 18-10-31  lj - Add type hints based on typing package.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
-import sys
 from collections import OrderedDict
-
+from io import open
 import os
+import sys
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -28,26 +33,32 @@ import itertools
 from pygeoc.utils import StringClass
 import re
 
-from postprocess.utility import save_png_eps
+from typing import List, Optional, Union, Dict
+from utility import save_png_eps
 
 LFs = ['\r', '\n', '\r\n']
 
 
-def plot_2d_scatter(xlist, ylist, title, xlabel, ylabel, ws, filename, subtitle='', cn=False,
-                    xmin=None, xmax=None, xstep=None, ymin=None, ymax=None, ystep=None):
-    """
-    Todo: The size of the point may be vary with the number of points.
+def plot_2d_scatter(xlist,  # type: List[float] # X coordinates
+                    ylist,  # type: List[float] # Y coordinates
+                    title,  # type: str # Main title of the figure
+                    xlabel,  # type: str # X-axis label
+                    ylabel,  # type: str # Y-axis label
+                    ws,  # type: str # Full path of the destination directory
+                    filename,  # type: str # File name without suffix (e.g., jpg, eps)
+                    subtitle='',  # type: str # Subtitle
+                    cn=False,  # type: bool # Use Chinese or not
+                    xmin=None,  # type: Optional[float] # Left min X value
+                    xmax=None,  # type: Optional[float] # Right max X value
+                    xstep=None,  # type: Optional[float] # X interval
+                    ymin=None,  # type: Optional[float] # Bottom min Y value
+                    ymax=None,  # type: Optional[float] # Up max Y value
+                    ystep=None  # type: Optional[float] # Y interval
+                    ):
+    # type: (...) -> None
+    """Scatter plot of 2D points.
 
-    Args:
-        xlist: X coordinate list
-        ylist: Y coordinate list
-        title: Main title of the figure
-        xlabel: X-axis label
-        ylabel: Y-axis label
-        ws: Full path of the destination directory
-        filename: File name without suffix (e.g., jpg, eps)
-        subtitle: (Optional) Subtitle
-        cn: (Optional) Use Chinese
+    Todo: The size of the point may be vary with the number of points.
     """
     if cn:
         plt.rcParams['font.family'] = 'SimSun'  # 宋体
@@ -81,24 +92,29 @@ def plot_2d_scatter(xlist, ylist, title, xlabel, ylabel, ws, filename, subtitle=
     plt.close()
 
 
-def plot_3d_scatter(xlist, ylist, zlist, title, xlabel, ylabel, zlabel,
-                    ws, filename, subtitle='', cn=False,
-                    xmin=None, xmax=None, ymin=None, ymax=None, zmin=None, zmax=None,
-                    xstep=None, ystep=None, zstep=None):
-    """
-
-    Args:
-        xlist: X coordinate list
-        ylist: Y coordinate list
-        zlist: Z coordinate list
-        title: Main title of the figure
-        xlabel: X-axis label
-        ylabel: Y-axis label
-        zlabel: Z-axis label
-        ws: Full path of the destination directory
-        filename: File name without suffix (e.g., jpg, eps)
-        subtitle: (Optional) Subtitle
-        cn: (Optional) Use Chinese
+def plot_3d_scatter(xlist,  # type: List[float] # X coordinates
+                    ylist,  # type: List[float] # Y coordinates
+                    zlist,  # type: List[float] # Z coordinates
+                    title,  # type: str # Main title of the figure
+                    xlabel,  # type: str # X-axis label
+                    ylabel,  # type: str # Y-axis label
+                    zlabel,  # type: str # Z-axis label
+                    ws,  # type: str # Full path of the destination directory
+                    filename,  # type: str # File name without suffix (e.g., jpg, eps)
+                    subtitle='',  # type: str # Subtitle
+                    cn=False,  # type: bool # Use Chinese or not
+                    xmin=None,  # type: Optional[float] # Left min X value
+                    xmax=None,  # type: Optional[float] # Right max X value
+                    ymin=None,  # type: Optional[float] # Bottom min Y value
+                    ymax=None,  # type: Optional[float] # Up max Y value
+                    zmin=None,  # type: Optional[float] # Min Z value
+                    zmax=None,  # type: Optional[float] # Max Z value
+                    xstep=None,  # type: Optional[float] # X interval
+                    ystep=None,  # type: Optional[float] # Y interval
+                    zstep=None  # type: Optional[float] # Z interval
+                    ):
+    # type: (...) -> None
+    """Scatter plot of 3D points.
     """
     if cn:
         plt.rcParams['font.family'] = 'SimSun'  # 宋体
@@ -141,8 +157,17 @@ def plot_3d_scatter(xlist, ylist, zlist, title, xlabel, ylabel, zlabel,
     plt.close()
 
 
-def plot_pareto_front(data, labels, ws, gen_id, title,
-                      lowers=None, uppers=None, steps=None, cn=False):
+def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [nrows * ncols] array
+                      labels,  # type: List[str] # Labels (axis names) with length of ncols
+                      ws,  # type: str # Full path of the destination directory
+                      gen_id,  # type: int # Generation ID
+                      title,  # type: str # Main title of the figure
+                      lowers=None,  # type: Optional[List[float]] # Lower values of each axis
+                      uppers=None,  # type: Optional[List[float]] # Higher values of each axis
+                      steps=None,  # type: Optional[List[float]] # Intervals of each axis
+                      cn=False  # type: bool # Use Chinese or not
+                      ):
+    # type: (...) -> None
     """
     Plot 2D or 3D pareto front graphs.
     Args:
@@ -255,6 +280,7 @@ def plot_pareto_front(data, labels, ws, gen_id, title,
 
 
 def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
+    # type: (str, str, List[str], Optional[List[str]]) -> (Dict[int, Union[List, numpy.ndarray]], Dict[int, int])
     """Read Pareto points from `runtime.log` file.
 
     Args:
@@ -267,7 +293,7 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
         pareto_points: `OrderedDict`, key is generation ID, value is Pareto front array
         pareto_popnum: `OrderedDict`, key is generation ID, value is newly model runs number
     """
-    with open(txt_file) as f:
+    with open(txt_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     pareto_points = OrderedDict()
     pareto_popnum = OrderedDict()
@@ -337,7 +363,9 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
 
 
 def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
-    with open(txt_file, 'r') as f:
+    # type: (str, str) -> (List[int], List[int])
+    """Read the population size of each generations."""
+    with open(txt_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     pareto_popnum = OrderedDict()
     found = False
@@ -384,9 +412,19 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
     return genids, acc_num
 
 
-def plot_pareto_fronts_fromfile(method_paths, sce_name, xname, yname, gens, ws):
+def plot_pareto_fronts_fromfile(method_paths,  # type: Dict[str, str]
+                                sce_name,  # type: str
+                                xname,  # type: List[str, str, Optional[float], Optional[float]]
+                                yname,  # type: List[str, str, Optional[float], Optional[float]]
+                                gens,  # type: List[int]
+                                ws  # type: str
+                                ):
+    # type: (...) -> None
     """
     Plot Pareto fronts of different method at a same generation for comparision.
+
+    TODO: Need to be carefully reviewed!
+
     Args:
         method_paths(OrderedDict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
@@ -400,7 +438,7 @@ def plot_pareto_fronts_fromfile(method_paths, sce_name, xname, yname, gens, ws):
     acc_pop_size = OrderedDict()
     for k, v in method_paths.items():
         v = v + os.path.sep + 'runtime.log'
-        pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname, yname)
+        pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname)
     # print(pareto_data)
     ylabel_str = yname[1]
     xlabel_str = xname[1]
@@ -547,12 +585,14 @@ def plot_pareto_fronts_fromfile(method_paths, sce_name, xname, yname, gens, ws):
 
 
 def read_hypervolume(hypervlog):
+    # type: (str) -> (List[int], List[float], List[float])
+    """Read hypervolume data from file."""
     if not os.path.exists(hypervlog):
         return None, None, None
     x = list()
     nmodel = list()
     hyperv = list()
-    with open(hypervlog, 'r') as f:
+    with open(hypervlog, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
         values = StringClass.extract_numeric_values_from_string(line)
@@ -568,6 +608,7 @@ def read_hypervolume(hypervlog):
 
 
 def plot_hypervolume_single(hypervlog, ws=None, cn=False):
+    # type: (str, Optional[str], bool) -> None
     """Plot hypervolume and the newly executed models of each generation.
 
     Args:
@@ -625,6 +666,7 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
 
 
 def plot_hypervolume(method_paths, ws, cn=False):
+    # type: (Dict[str, str], str, bool) -> None
     """Plot hypervolume of multiple optimization methods
 
     Args:
@@ -637,7 +679,7 @@ def plot_hypervolume(method_paths, ws, cn=False):
         v = v + os.path.sep + 'hypervolume.txt'
         x = list()
         y = list()
-        with open(v, 'r') as f:
+        with open(v, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
             values = StringClass.extract_numeric_values_from_string(line)

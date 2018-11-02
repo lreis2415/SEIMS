@@ -13,10 +13,7 @@ import os
 import sys
 import argparse
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
+from configparser import ConfigParser
 from pygeoc.utils import FileClass, StringClass, UtilClass
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:

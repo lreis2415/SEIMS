@@ -16,8 +16,8 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import MathClass, FileClass, StringClass
 
-from preprocess.utility import read_data_items_from_txt
 from preprocess.text import DBTableNames
+from utility import read_data_items_from_txt
 
 
 class ImportScenario2Mongo(object):
@@ -42,7 +42,7 @@ class ImportScenario2Mongo(object):
         if not cfg.use_scernario:
             return False
         print('Import BMP Scenario Data... ')
-        bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt'])
+        bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt', '.csv'])
         bmp_tabs = list()
         bmp_tabs_path = list()
         for f in bmp_files:

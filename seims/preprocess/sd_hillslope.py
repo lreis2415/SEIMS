@@ -323,7 +323,8 @@ def main():
     import sys
     if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
         sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
-        from preprocess.config import parse_ini_configuration
+
+    from preprocess.config import parse_ini_configuration
 
     seims_cfg = parse_ini_configuration()
     streamf = seims_cfg.spatials.stream_link

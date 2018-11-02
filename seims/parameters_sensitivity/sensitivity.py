@@ -9,8 +9,10 @@
                 18-07-04  lj - support MPI version of SEIMS, and bugs fixed.\n
                 18-08-24  lj - Gather the execute time of all model runs.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
+from builtins import map
+from io import open
 import os
 import sys
 import json
@@ -38,11 +40,10 @@ from SALib.plotting.morris import horizontal_bar_plot, covariance_plot
 from SALib.sample.fast_sampler import sample as fast_spl
 from SALib.analyze.fast import analyze as fast_alz
 
+from utility import read_data_items_from_txt
+from utility import save_png_eps
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
-from preprocess.utility import read_data_items_from_txt
-from postprocess.utility import save_png_eps
-
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
 from run_seims import create_run_model
@@ -130,7 +131,7 @@ class Sensitivity(object):
         # read param_defs.json if already existed
         if not self.param_defs:
             if FileClass.is_file_exists(self.cfg.outfiles.param_defs_json):
-                with open(self.cfg.outfiles.param_defs_json, 'r') as f:
+                with open(self.cfg.outfiles.param_defs_json, 'r', encoding='utf-8') as f:
                     self.param_defs = UtilClass.decode_strs_in_dict(json.load(f))
                 return
         # read param_range_def file and output to json file
@@ -181,7 +182,7 @@ class Sensitivity(object):
 
         # Save as json, which can be loaded by json.load()
         json_data = json.dumps(self.param_defs, indent=4, cls=SpecialJsonEncoder)
-        with open(self.cfg.outfiles.param_defs_json, 'w') as f:
+        with open(self.cfg.outfiles.param_defs_json, 'w', encoding='utf-8') as f:
             f.write(json_data)
 
     def generate_samples(self):
@@ -293,7 +294,7 @@ class Sensitivity(object):
             numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4f')
             # Save as pickle data for further usage. DO not save all models which maybe very large!
             cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
-            with open(cur_model_out_file, 'wb') as f:
+            with open(cur_model_out_file, 'wb', encoding='utf-8') as f:
                 pickle.dump(output_models, f)
         exec_times = numpy.array(exec_times)
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
@@ -309,7 +310,7 @@ class Sensitivity(object):
                              '\t'.join('%.3f' % v for v in exec_times.sum(0))))
         print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
         # Save objective names as pickle data for further usgae
-        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
+        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb', encoding='utf-8') as f:
             pickle.dump(self.objnames, f)
 
         # load the first part of output values
@@ -334,12 +335,12 @@ class Sensitivity(object):
         """
         if not self.psa_si:
             if FileClass.is_file_exists(self.cfg.outfiles.psa_si_json):
-                with open(self.cfg.outfiles.psa_si_json, 'r') as f:
+                with open(self.cfg.outfiles.psa_si_json, 'r', encoding='utf-8') as f:
                     self.psa_si = UtilClass.decode_strs_in_dict(json.load(f))
                     return
         if not self.objnames:
             if FileClass.is_file_exists('%s/objnames.pickle' % self.cfg.psa_outpath):
-                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'r') as f:
+                with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'r', encoding='utf-8') as f:
                     self.objnames = pickle.load(f)
         if self.output_values is None or len(self.output_values) == 0:
             self.evaluate_models()
@@ -367,7 +368,7 @@ class Sensitivity(object):
         # print(self.psa_si)
         # Save as json, which can be loaded by json.load()
         json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
-        with open(self.cfg.outfiles.psa_si_json, 'w') as f:
+        with open(self.cfg.outfiles.psa_si_json, 'w', encoding='utf-8') as f:
             f.write(json_data)
         self.output_psa_si()
 
@@ -406,7 +407,7 @@ class Sensitivity(object):
                 output_str += param_names[i] + ',' + ','.join('{}'.format(i) for i in v) + '\n'
             output_str += '\n'
             print(output_str)
-        with open(psa_sort_txt, 'w') as f:
+        with open(psa_sort_txt, 'w', encoding='utf-8') as f:
             f.write(output_str)
 
     def plot_samples_histogram(self):

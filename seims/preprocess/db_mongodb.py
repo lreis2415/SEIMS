@@ -26,8 +26,8 @@ class ConnectMongoDB(object):
         """initial mongodb client by IP address and port."""
         try:
             self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
-        except ConnectionFailure:
-            sys.stderr.write('Could not connect to MongoDB: %s' % ConnectionFailure.message)
+        except ConnectionFailure as err:
+            sys.stderr.write('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
 
     def get_conn(self):

@@ -6,11 +6,12 @@
                 17-06-23  lj - reformat according to pylint and google style
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import math
 import time
 from datetime import datetime, timedelta
+from io import open
 import os
 import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -84,7 +85,7 @@ class HydroClimateUtilClass(object):
         """
         time_sys = 'LOCALTIME'
         time_zone = time.timezone // -3600
-        with open(in_file, 'r') as f:
+        with open(in_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
             str_line = line.strip()

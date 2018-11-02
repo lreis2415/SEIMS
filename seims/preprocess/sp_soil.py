@@ -23,8 +23,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from preprocess.utility import status_output, read_data_items_from_txt
+from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -574,7 +574,7 @@ class SoilUtilClass(object):
         based on the soil texture triangle developed by USDA.
         The unit is percentage, silt + sand + clay [+ Rock] = 100.
             The corresponding default soil parameters (e.g. Ks, porosity) are stored in
-        `seims/database/SoilLookup.txt`.
+        `seims/database/SoilLookup.csv`.
         Args:
             clay: clay content percentage
             silt: silt content percentage

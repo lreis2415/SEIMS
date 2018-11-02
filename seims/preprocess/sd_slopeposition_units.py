@@ -15,12 +15,13 @@
     @changelog: 17-08-14  lj - initial implementation.\n
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import json
 from collections import OrderedDict
 import os
 import sys
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -348,7 +349,7 @@ class SlopePositionUnits(object):
     def output(self, jfile, unitraster, unitshp):
         """output json file and slope position units raster file"""
         json_updown_data = json.dumps(self.units_updwon, indent=4)
-        with open(jfile, 'w') as f:
+        with open(jfile, 'w', encoding='utf-8') as f:
             f.write(json_updown_data)
         RasterUtilClass.write_gtiff_file(unitraster, self.nrows, self.ncols,
                                          self.slppos_ids, self.geotrans, self.srs,

@@ -9,14 +9,14 @@
                 18-08-29  jz,lj,sf - Add Nutrient calibration step.\n
                 18-10-22  lj - Make the customizations of multi-objectives flexible.\n
 """
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, unicode_literals
 
 import array
 import os
 import random
 import time
 import sys
-
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -28,10 +28,10 @@ from deap.benchmarks.tools import hypervolume
 from copy import deepcopy
 from pygeoc.utils import UtilClass
 
-from scenario_analysis.utility import print_message
+from utility.scoop_func import scoop_log
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
-from calibration.config import CaliConfig, get_cali_config
+from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
 
 from calibration.calibrate import Calibration, initialize_calibrations, calibration_objectives
@@ -129,7 +129,7 @@ toolbox.register('select', tools.selNSGA2)
 def main(cfg):
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
-    print_message('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
+    scoop_log('Population: %d, Generation: %d' % (cfg.opt.npop, cfg.opt.ngens))
 
     # Initial timespan variables
     stime = time.time()
@@ -238,17 +238,17 @@ def main(cfg):
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
-    print_message(logbook.stream)
+    scoop_log(logbook.stream)
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (cfg.opt.ngens,
                                                                            cfg.opt.npop)
-    print_message(output_str)
+    scoop_log(output_str)
     UtilClass.writelog(cfg.opt.logfile, output_str, mode='replace')
 
     for gen in range(1, cfg.opt.ngens + 1):
         output_str = '###### Generation: %d ######\n' % gen
-        print_message(output_str)
+        scoop_log(output_str)
 
         offspring = [toolbox.clone(ind) for ind in pop]
         # method1: use crowding distance (normalized as 0~1) as eta
@@ -271,7 +271,7 @@ def main(cfg):
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         valid_ind = [ind for ind in offspring if ind.fitness.valid]
         if len(invalid_ind) == 0:  # No need to continue
-            print_message('Note: No invalid individuals available, the NSGA2 will be terminated!')
+            scoop_log('Note: No invalid individuals available, the NSGA2 will be terminated!')
             break
 
         # Write new calibrated parameters to MongoDB
@@ -312,12 +312,12 @@ def main(cfg):
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
                                              curtimespan, modelruns_time_sum[gen],
                                              hypervolume(pop, ref_pt))
-        print_message(hyper_str)
+        scoop_log(hyper_str)
         UtilClass.writelog(cfg.opt.hypervlog, hyper_str, mode='append')
 
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
-        print_message(logbook.stream)
+        scoop_log(logbook.stream)
 
         # Plot 2D near optimal pareto front graphs,
         #   i.e., (NSE, RSR), (NSE, PBIAS), and (RSR,PBIAS)
@@ -358,7 +358,7 @@ def main(cfg):
     allmodels_exect = numpy.array(allmodels_exect)
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
                   allmodels_exect, delimiter=' ', fmt='%.4f')
-    print_message('Running time of all SEIMS models:\n'
+    scoop_log('Running time of all SEIMS models:\n'
                   '\tIO\tCOMP\tSIMU\tRUNTIME\n'
                   'MAX\t%s\n'
                   'MIN\t%s\n'
@@ -378,7 +378,7 @@ def main(cfg):
     for genid, tmpcount in list(modelruns_count.items()):
         allcount += tmpcount
 
-    print_message('Initialization timespan: %.4f\n'
+    scoop_log('Initialization timespan: %.4f\n'
                   'Model execution timespan: %.4f\n'
                   'Sum of model runs timespan: %.4f\n'
                   'Plot Pareto graphs timespan: %.4f' % (init_time, exec_time,
@@ -388,18 +388,18 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    cf, method = get_cali_config()
+    cf, method = get_optimization_config()
     cali_cfg = CaliConfig(cf, method=method)
 
-    print_message('### START TO CALIBRATION OPTIMIZING ###')
+    scoop_log('### START TO CALIBRATION OPTIMIZING ###')
     startT = time.time()
 
     fpop, fstats = main(cali_cfg)
 
     fpop.sort(key=lambda x: x.fitness.values)
-    print_message(fstats)
-    with open(cali_cfg.opt.logbookfile, 'w') as f:
+    scoop_log(fstats)
+    with open(cali_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
         f.write(fstats.__str__())
     endT = time.time()
-    print_message('### END OF CALIBRATION OPTIMIZING ###')
-    print_message('Running time: %.2fs' % (endT - startT))
+    scoop_log('### END OF CALIBRATION OPTIMIZING ###')
+    scoop_log('Running time: %.2fs' % (endT - startT))

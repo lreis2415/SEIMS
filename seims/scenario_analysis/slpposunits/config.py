@@ -1,26 +1,33 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Configuration BMPs optimization based on slope position units.
-    @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-12-30  hr - initial implementation.\n
-                17-08-18  lj - reorganize as basic class.\n
-                18-02-09  lj - compatible with Python3.\n
-"""
-from __future__ import absolute_import
 
+    @author   : Liangjun Zhu, Huiran Gao
+
+    @changelog:
+
+    - 16-12-30  hr - initial implementation.
+    - 17-08-18  lj - reorganize as basic class.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-11-01  lj - Config class should not do extra operation, e.g., read database.
+"""
+from __future__ import absolute_import, unicode_literals
+
+from future.utils import viewitems
+from configparser import ConfigParser
 import os
 import sys
 import json
 import operator
 from collections import OrderedDict
+from io import open
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
+from typing import List
+from pygeoc.utils import FileClass, UtilClass, get_config_parser
 
-from pygeoc.utils import FileClass, UtilClass, StringClass, get_config_parser
-
-from preprocess.db_mongodb import ConnectMongoDB
 from scenario_analysis.config import SAConfig
 
 
@@ -36,6 +43,7 @@ class SASPUConfig(SAConfig):
     """
 
     def __init__(self, cf):
+        # type: (ConfigParser) -> None
         """Initialization."""
         SAConfig.__init__(self, cf)  # initialize base class first
         # Handling self.bmps_info for specific application
@@ -44,37 +52,30 @@ class SASPUConfig(SAConfig):
                         'ENVEVAL', 'BASE_ENV']
         for k in requiredkeys:
             if k not in self.bmps_info:
-                raise ValueError('[%s]: MUST be provided!' % k)
+                raise ValueError('[%s]: MUST be provided in BMPs_info!' % k)
         # 2. Slope position units information
-        updownf = self.bmps_info.get('UPDOWNJSON')
+        updown_json = self.bmps_info.get('UPDOWNJSON')
+        updownf = self.model.model_dir + os.sep + updown_json
         FileClass.check_file_exists(updownf)
-        with open(updownf, 'r') as updownfo:
+        with open(updownf, 'r', encoding='utf-8') as updownfo:
             self.units_infos = json.load(updownfo)
         self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
         # 3. Get slope position sequence
+        if not cf.has_option('BMPs', 'slppos_tag_name'):
+            raise ValueError('slppos_tag_name MUST be provided in BMPs section!')
         sptags = cf.get('BMPs', 'slppos_tag_name')
         self.slppos_tags = json.loads(sptags)
         self.slppos_tags = UtilClass.decode_strs_in_dict(self.slppos_tags)
         self.slppos_tagnames = sorted(list(self.slppos_tags.items()), key=operator.itemgetter(0))
-        self.slppos_unit_num = self.units_infos['overview']['all_units']
+        self.slppos_unit_num = self.units_infos['overview']['all_units']  # type: int
+
+        # gene index: 0, 1, 2, ..., n
+        # slppos units: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         self.slppos_to_gene = OrderedDict()
         self.gene_to_slppos = dict()
-
-        # method 1: (deprecated)
-        #     gene index: 0, 1, 2, ..., n
-        #     slppos unit: rdg1, rdg2,..., bks1, bks2,..., vly1, vly2...
-        # idx = 0
-        # for tag, sp in self.slppos_tagnames:
-        #     for uid in self.units_infos[sp]:
-        #         self.gene_to_slppos[idx] = uid
-        #         self.slppos_to_gene[uid] = idx
-        #         idx += 1
-        # method 2:
-        #     gene index: 0, 1, 2, ..., n
-        #     slppos unit: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         idx = 0
         spname = self.slppos_tagnames[0][1]
-        for uid, udict in self.units_infos[spname].items():
+        for uid, udict in viewitems(self.units_infos[spname]):
             spidx = 0
             self.gene_to_slppos[idx] = uid
             self.slppos_to_gene[uid] = idx
@@ -90,67 +91,9 @@ class SASPUConfig(SAConfig):
 
         assert (idx == self.slppos_unit_num)
 
-        # 4. SubScenario IDs and parameters read from MongoDB
-        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')
-        self.bmps_coll = self.bmps_info.get('COLLECTION')
-        self.bmps_params = dict()
-        self.slppos_suit_bmps = dict()
-
-        self.read_bmp_parameters()
-        self.get_suitable_bmps_for_slppos()
-
-    def read_bmp_parameters(self):
-        """Read BMP configuration from MongoDB."""
-        client = ConnectMongoDB(self.hostname, self.port)
-        conn = client.get_conn()
-        scenariodb = conn[self.bmp_scenario_db]
-
-        bmpcoll = scenariodb[self.bmps_coll]
-        findbmps = bmpcoll.find({}, no_cursor_timeout=True)
-        for fb in findbmps:
-            fb = UtilClass.decode_strs_in_dict(fb)
-            if 'SUBSCENARIO' not in fb:
-                continue
-            curid = fb['SUBSCENARIO']
-            if curid not in self.bmps_subids:
-                continue
-            if curid not in self.bmps_params:
-                self.bmps_params[curid] = dict()
-            for k, v in fb.items():
-                if k == 'SUBSCENARIO':
-                    continue
-                elif k == 'LANDUSE':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = None
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                elif k == 'SLPPOS':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = list(self.slppos_tags.keys())
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                else:
-                    self.bmps_params[curid][k] = v
-
-        client.close()
-
-    def get_suitable_bmps_for_slppos(self):
-        """Construct the suitable BMPs for each slope position."""
-        for bid, bdict in self.bmps_params.items():
-            suitsp = bdict['SLPPOS']
-            for sp in suitsp:
-                if sp not in self.slppos_suit_bmps:
-                    self.slppos_suit_bmps[sp] = [bid]
-                elif bid not in self.slppos_suit_bmps[sp]:
-                    self.slppos_suit_bmps[sp].append(bid)
+        # 4. Collection name and subscenario IDs
+        self.bmps_coll = self.bmps_info.get('COLLECTION')  # type: str
+        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')  # type: List[int]
 
 
 if __name__ == '__main__':
@@ -162,5 +105,6 @@ if __name__ == '__main__':
 
     s = pickle.dumps(cfg)
     # print(s)
-    new_cfg = pickle.loads(s)
-    print(new_cfg.bmps_params)
+    new_cfg = pickle.loads(s)  # type: SASPUConfig
+    print(new_cfg.slppos_unit_num)
+    print(new_cfg.slppos_tagnames)
