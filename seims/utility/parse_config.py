@@ -9,6 +9,7 @@ import argparse
 from configparser import ConfigParser
 from datetime import datetime
 
+from typing import Optional
 from pygeoc.utils import FileClass, StringClass, UtilClass
 
 
@@ -52,7 +53,7 @@ def check_config_option(cf, section_name, option_name):
 
 
 def parse_datetime_from_ini(cf, section_name, option_name):
-    # type: (ConfigParser, str, str) -> Union[None, datetime]
+    # type: (ConfigParser, str, str) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
     if not check_config_option(cf, section_name, option_name):
         return None

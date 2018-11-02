@@ -8,12 +8,18 @@ import bisect
 from collections import OrderedDict
 from datetime import datetime
 
+from typing import List, Dict, Optional, Union
 from pygeoc.utils import MathClass
 
 
-def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
-                                 start_time=None, end_time=None):
-    # type: (list, dict, Union[list, None], dict, Union[datetime, None], Union[datetime, None]) -> Union[dict, None]
+def match_simulation_observation(sim_vars,  # type: List[str]
+                                 sim_dict,  # type: Dict[datetime, List[float]]
+                                 obs_vars,  # type: Optional[List[str]]
+                                 obs_dict,  # type: Optional[Dict[datetime, List[float]]]
+                                 start_time=None,  # type: Optional[datetime]
+                                 end_time=None  # type: Optional[datetime]
+                                 ):
+    # type: (...) -> Optional[Dict[str, Dict[str, Union[List[datetime], List[float]]]]]
     """Match the simulation and observation data by UTCDATETIME for each variable.
 
     Args:
@@ -36,7 +42,7 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
     if end_time is None:
         end_time = list(sim_dict.keys())[-1]
     sim_obs_dict = dict()
-    if not obs_vars:  # obs_vars is None or []
+    if not obs_vars:
         return None
     sim_to_obs = OrderedDict()
     for i, param_name in enumerate(sim_vars):
@@ -64,8 +70,11 @@ def match_simulation_observation(sim_vars, sim_dict, obs_vars, obs_dict,
     return sim_obs_dict
 
 
-def calculate_statistics(sim_obs_dict, stime=None, etime=None):
-    # type: (dict, Union[datetime, None], Union[datetime, None]) -> Union[list, None]
+def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[str, Dict[str, Union[List[datetime], List[float], float]]]]
+                         stime=None,  # type: Optional[datetime]
+                         etime=None  # type: Optional[datetime]
+                         ):
+    # type: (...) -> Optional[List[str]]
     """Calculate NSE, R-square, RMSE, PBIAS, and RSR.
     Args:
         sim_obs_dict: {VarName: {'UTCDATETIME': [t1, t2, ..., tn],
@@ -93,7 +102,7 @@ def calculate_statistics(sim_obs_dict, stime=None, etime=None):
         }
         Return name list of the calculated statistics
     """
-    if not sim_obs_dict:  # if None or dict()
+    if not sim_obs_dict:
         return None
     for param, values in sim_obs_dict.items():
         if stime is None and etime is None:
