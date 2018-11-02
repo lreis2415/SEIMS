@@ -1,11 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Base configuration of Scenario Analysis.
-    @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-12-30  hr - initial implementation.\n
-                17-08-18  lj - reorganize as basic class.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-10-29  lj - Redesign the code structure.\n
+
+    @author   : Liangjun Zhu, Huiran Gao
+
+    @changelog:
+
+    - 16-12-30  hr - initial implementation.
+    - 17-08-18  lj - reorganize as basic class.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-10-29  lj - Redesign the code structure.
 """
 from __future__ import absolute_import
 
@@ -21,6 +25,7 @@ from pygeoc.utils import UtilClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
 from utility import ParseNSGA2Config
+from scenario_analysis import BMPS_RULE_METHODS
 
 
 class SAConfig(object):
@@ -31,7 +36,7 @@ class SAConfig(object):
         """Initialization."""
         # 1. SEIMS model related
         self.model = ParseSEIMSConfig(cf)
-        self.spatial_db = self.model.db_name
+        # self.spatial_db = self.model.db_name
         # self.bmp_scenario_db
 
         # 2. Common settings of BMPs scenario
@@ -54,7 +59,7 @@ class SAConfig(object):
         self.bmps_retain = dict()  # BMPs to be constant, JSON format
         self.export_sce_txt = False
         self.export_sce_tif = False
-        self.rule_method = 'RDM'
+        self.bmps_rule_method = 'RDM'
         if 'BMPs' in cf.sections():
             bmpsinfostr = cf.get('BMPs', 'bmps_info')
             self.bmps_info = json.loads(bmpsinfostr)
@@ -68,7 +73,9 @@ class SAConfig(object):
             if cf.has_option('BMPs', 'export_scenario_tif'):
                 self.export_sce_tif = cf.getboolean('BMPs', 'export_scenario_tif')
             if cf.has_option('BMPs', 'bmps_rule_method'):
-                self.rule_method = cf.get('BMPs', 'bmps_rule_method')
+                self.bmps_rule_method = cf.get('BMPs', 'bmps_rule_method')
+                if self.bmps_rule_method not in BMPS_RULE_METHODS:
+                    self.bmps_rule_method = 'RDM'
         else:
             raise ValueError("[BMPs] section MUST be existed for specific SA.")
 
@@ -76,7 +83,7 @@ class SAConfig(object):
         self.opt_mtd = method
         self.opt = None
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'SA_NSGA2_%s' % self.rule_method)
+            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'SA_NSGA2_%s' % self.bmps_rule_method)
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
 
@@ -91,4 +98,4 @@ if __name__ == '__main__':
     s = pickle.dumps(cfg)
     # print(s)
     new_cfg = pickle.loads(s)
-    print(new_cfg.model_dir)
+    print(new_cfg.model.model_dir, new_cfg.bmps_rule_method)

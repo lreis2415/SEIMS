@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -100,7 +101,7 @@ class ImportHydroClimateSites(object):
         var_data_items = read_data_items_from_txt(var_file)
         var_flds = var_data_items[0]
         for i in range(1, len(var_data_items)):
-            dic = {}
+            dic = dict()
             for j in range(len(var_data_items[i])):
                 if StringClass.string_match(var_flds[j], VariableDesc.type):
                     dic[VariableDesc.type] = var_data_items[i][j]
@@ -165,7 +166,7 @@ class ImportHydroClimateSites(object):
             for meteo_id, thiessen_file in enumerate(thissen_file_list):
                 site_type = site_type_list[meteo_id]
                 thiessen_list, thiessen_id_list = ImportHydroClimateSites.ogrwkt2shapely(
-                        thiessen_file, thissen_field_id)
+                    thiessen_file, thissen_field_id)
                 site_list = list()
                 for poly_id, thiessen in enumerate(thiessen_list):
                     if subbasin.intersects(thiessen):
@@ -191,8 +192,8 @@ class ImportHydroClimateSites(object):
 
         # The entire basin, used for OpenMP version
         ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.bsn,
-                                               FieldNames.basin, thiessen_file_list,
-                                               cfg.thiessen_field, type_list)
+                                           FieldNames.basin, thiessen_file_list,
+                                           cfg.thiessen_field, type_list)
         # The subbasins, used for MPI&OpenMP version
         ImportHydroClimateSites.find_sites(main_db, cfg.climate_db, cfg.vecs.subbsn,
                                            FieldNames.subbasin_id, thiessen_file_list,

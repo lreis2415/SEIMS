@@ -32,6 +32,7 @@ class ReadModelData(object):
         self.filein_tab = self.maindb[DBTableNames.main_filein]
         self._climdb_name = self.HydroClimateDBName
         self.climatedb = conn[self._climdb_name]
+        self._scenariodb_name = self.ScenarioDBName
         self._mode = ''
         self._interval = -1
         # UTCTIME
@@ -51,6 +52,19 @@ class ReadModelData(object):
                 self._climdb_name = item.get(FieldNames.db)
                 break
         return self._climdb_name
+
+    @property
+    def ScenarioDBName(self):
+        scentbl = self.maindb[DBTableNames.main_scenario]
+        allitems = scentbl.find()
+        if not allitems.count():
+            raise RuntimeError('%s Collection is not existed or empty!' %
+                               DBTableNames.main_scenario)
+        for item in allitems:
+            if FieldNames.db in item:
+                self._scenariodb_name = item.get(FieldNames.db)
+                break
+        return self._scenariodb_name
 
     @property
     def Mode(self):
