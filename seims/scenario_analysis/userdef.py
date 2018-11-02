@@ -55,4 +55,3 @@ def initIterateWithCfg(container, generator, cf=None):
         return container(generator())
     else:
         return container(generator(cf))
-

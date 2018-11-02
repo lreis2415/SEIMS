@@ -12,6 +12,7 @@
 from __future__ import absolute_import, division
 from future.utils import viewitems
 
+import array
 from copy import deepcopy
 import os
 import sys
@@ -441,20 +442,26 @@ def get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue
 
 
 def initialize_scenario(cf):
+    # type: (SASPUConfig) -> List[int]
+    """Initialize gene values"""
     sce = SPScenario(cf)
     return sce.initialize()
 
 
-def scenario_effectiveness(cf, individual):
+def scenario_effectiveness(cf, ind):
+    # type: (SASPUConfig, array.array) -> (float, float, int)
+    """Run SEIMS-based model and calculate economic and environmental effectiveness."""
     # 1. instantiate the inherited Scenario class.
     sce = SPScenario(cf)
     curid = sce.set_unique_id()
-    setattr(sce, 'gene_values', individual)
+    setattr(sce, 'gene_values', ind)
     # 2. decoding gene values to BMP items and exporting to MongoDB.
     sce.decoding()
     sce.export_to_mongodb()
     # 3. execute SEIMS model
     sce.execute_seims_model()
+    # Get timespan
+    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
     # 4. calculate scenario effectiveness
     sce.calculate_economy()
     sce.calculate_environment()

@@ -246,11 +246,9 @@ class Scenario(object):
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.
         """
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
-        seims_cfg_dict = deepcopy(self.modelcfg_dict)
-        seims_cfg_dict['scenario_id'] = self.ID
-        seims_obj = MainSEIMS(args_dict=seims_cfg_dict)
-        self.modelout_dir = seims_obj.OutputDirectory
-        self.modelrun = seims_obj.run()
+        self.model.scenario_id = self.ID
+        self.modelout_dir = self.model.OutputDirectory
+        self.modelrun = self.model.run()
         return self.modelrun
 
     def initialize(self):

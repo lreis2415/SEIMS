@@ -188,19 +188,19 @@ def mutate_slppos(unitsinfo,  # type: Dict[Union[str, int], Any]
         if sptag < 0:  # this circumstance may not happen, just in case.
             continue
 
-        if _DEBUG:
-            print('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
-                  (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
         # get the potential BMP IDs
-
         bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue,
                                   method, bmpgrades)
         # Get new BMP ID for current unit.
         if oldgenev in bmps:
             bmps.remove(oldgenev)
-        # print('    method: %s, potBMPs: %s' % (method, bmps.__str__()))
         if len(bmps) > 0:
             individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
+            if _DEBUG:
+                print('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d,'
+                      ' , potBMPs: %s, new gene: %d' %
+                      (sptag, unitid, oldgenev, up_gvalue, down_gvalue,
+                       bmps.__str__(),individual[mpoint]))
             muted.append(mpoint)
         else:  # No available BMP
             pass

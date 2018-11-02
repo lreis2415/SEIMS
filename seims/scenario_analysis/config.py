@@ -20,7 +20,7 @@ import sys
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
-
+from typing import Union
 from pygeoc.utils import UtilClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
@@ -81,7 +81,7 @@ class SAConfig(object):
 
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
-        self.opt = None
+        self.opt = None  # type: Union[ParseNSGA2Config]
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'SA_NSGA2_%s' % self.bmps_rule_method)
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
