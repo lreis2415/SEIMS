@@ -278,7 +278,7 @@ class ImportObservedData(object):
         if not StringClass.string_in_list(DBTableNames.var_desc, c_list):
             climdb.create_collection(DBTableNames.var_desc)
 
-        file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt'])
+        file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt', '.csv'])
         meas_file_list = []
         site_loc = []
         for fl in file_list:

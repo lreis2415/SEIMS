@@ -59,7 +59,8 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     Returns:
         The output data files are located in the same directory with the input file.
         The nomenclature is: <field name>_<time system>_<time interval>_<nonzero>, e.g.,
-        pcp_utctime_1440_nonzero.txt, flow_localtime_60.txt
+        pcp_utctime_1440_nonzero.csv, flow_localtime_60.csv.
+        Note that `.txt` format is also supported.
     """
     FileClass.check_file_exists(in_file)
     time_sys_input, time_zone_input = HydroClimateUtilClass.get_time_system_from_data_file(in_file)
@@ -209,7 +210,7 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         file_name = fld + '_' + time_sys_output + '_' + str(time_interval)
         if eliminate_zero:
             file_name += '_nonzero'
-        file_name += '.txt'
+        file_name += '.csv'
         out_file = work_path + os.path.sep + file_name
         with open(out_file, 'w', encoding='utf-8') as f:
             f.write(header_str + '\n')

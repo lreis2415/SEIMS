@@ -42,7 +42,7 @@ class ImportScenario2Mongo(object):
         if not cfg.use_scernario:
             return False
         print('Import BMP Scenario Data... ')
-        bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt'])
+        bmp_files = FileClass.get_filename_by_suffixes(cfg.scenario_dir, ['.txt', '.csv'])
         bmp_tabs = list()
         bmp_tabs_path = list()
         for f in bmp_files:

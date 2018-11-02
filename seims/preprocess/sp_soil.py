@@ -574,7 +574,7 @@ class SoilUtilClass(object):
         based on the soil texture triangle developed by USDA.
         The unit is percentage, silt + sand + clay [+ Rock] = 100.
             The corresponding default soil parameters (e.g. Ks, porosity) are stored in
-        `seims/database/SoilLookup.txt`.
+        `seims/database/SoilLookup.csv`.
         Args:
             clay: clay content percentage
             silt: silt content percentage

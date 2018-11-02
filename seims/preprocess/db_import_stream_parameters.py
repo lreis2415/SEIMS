@@ -3,7 +3,7 @@
 """Generate parameters of reaches.
 
     This script should be updated with the following files/code simultaneously.\n
-      1. seims/preprocess/database/model_param_ini.txt: Emend initial parameters;\n
+      1. seims/preprocess/database/model_param_ini.csv: Emend initial parameters;\n
       2. seims/src/seims_main/base/data/clsReach.h(.cpp): Update the reading and checking of data.
 
     @author   : Liangjun Zhu, Junzhi Liu
