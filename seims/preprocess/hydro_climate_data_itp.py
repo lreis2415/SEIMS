@@ -30,6 +30,9 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
                                                   time_sys_output='UTCTIME', day_divided_hour=0):
     """
     Interpolate not regular observed data to regular time interval data.
+
+    Todo: Not tested yet!
+
     Args:
         in_file: input data file, the basic format is as follows:
                  line 1: #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
@@ -87,11 +90,11 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         return support_flag
 
     ord_data = OrderedDict()
-    time_zone_output = time.timezone / -3600
+    time_zone_output = time.timezone // 3600
     if time_sys_output.lower().find('local') >= 0:
         tmpstrs = StringClass.split_string(time_sys_output, [' '])
         if len(tmpstrs) == 2 and MathClass.isnumerical(tmpstrs[1]):
-            time_zone_output = int(tmpstrs[1])
+            time_zone_output = -1 * int(tmpstrs[1])
         time_sys_output = 'LOCALTIME'
     else:
         time_sys_output = 'UTCTIME'
@@ -99,10 +102,9 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
     for item in data_items:
         org_datetime = StringClass.get_datetime(item[date_idx])
         if time_sys_input == 'LOCALTIME':
-            org_datetime -= timedelta(hours=time_zone_input)
-        # now, org_datetime is UTC time.
+            org_datetime += timedelta(hours=time_zone_input)  # now, org_datetime is UTC time.
         if time_sys_output == 'LOCALTIME':
-            org_datetime += timedelta(hours=time_zone_output)
+            org_datetime -= timedelta(hours=time_zone_output)
         # now, org_datetime is consistent with the output time system
         ord_data[org_datetime] = list()
         for i, v in enumerate(item):
