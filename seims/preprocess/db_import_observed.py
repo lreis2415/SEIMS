@@ -153,8 +153,6 @@ class ImportObservedData(object):
             # print(measDataFile)
             obs_data_items = read_data_items_from_txt(measDataFile)
             tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(measDataFile)
-            if tsysin == 'UTCTIME':
-                tzonein = time.timezone // -3600
             # If the data items is EMPTY or only have one header row, then goto
             # next data file.
             if obs_data_items == [] or len(obs_data_items) == 1:
@@ -182,7 +180,7 @@ class ImportObservedData(object):
                 utc_t = HydroClimateUtilClass.get_utcdatetime_from_field_values(obs_flds,
                                                                                 cur_obs_data_item,
                                                                                 tsysin, tzonein)
-                dic[DataValueFields.local_time] = utc_t + timedelta(minutes=tzonein * 60)
+                dic[DataValueFields.local_time] = utc_t - timedelta(minutes=tzonein * 60)
                 dic[DataValueFields.time_zone] = tzonein
                 dic[DataValueFields.utc] = utc_t
                 # curfilter = {StationFields.id: dic[StationFields.id],
@@ -199,7 +197,7 @@ class ImportObservedData(object):
             MongoUtil.run_bulk(bulk)
         # 3. Add measurement data with unit converted
         # loop variables list
-        added_dics = []
+        added_dics = list()
         for curVar in variable_lists:
             # print(curVar)
             # if the unit is mg/L, then change the Type name with the suffix 'Conc',
@@ -279,8 +277,8 @@ class ImportObservedData(object):
             climdb.create_collection(DBTableNames.var_desc)
 
         file_list = FileClass.get_full_filename_by_suffixes(cfg.observe_dir, ['.txt', '.csv'])
-        meas_file_list = []
-        site_loc = []
+        meas_file_list = list()
+        site_loc = list()
         for fl in file_list:
             if StringClass.is_substring('observed_', fl):
                 meas_file_list.append(fl)

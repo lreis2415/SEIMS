@@ -36,8 +36,6 @@ class ImportPrecipitation(object):
         # delete existed precipitation data
         climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
-        if tsysin == 'UTCTIME':
-            tzonein = time.timezone / -3600
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
@@ -62,7 +60,7 @@ class ImportPrecipitation(object):
             utc_time = HydroClimateUtilClass.get_utcdatetime_from_field_values(clim_flds,
                                                                                clim_data_item,
                                                                                tsysin, tzonein)
-            dic[DataValueFields.local_time] = utc_time + timedelta(minutes=tzonein * 60)
+            dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
 

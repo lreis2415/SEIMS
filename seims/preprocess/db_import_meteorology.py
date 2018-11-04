@@ -79,8 +79,6 @@ class ImportMeteoData(object):
     def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
         """Import climate data table"""
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
-        if tsysin == 'UTCTIME':
-            tzonein = time.timezone / -3600
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
         # PHUCalDic is used for Calculating potential heat units (PHU)
@@ -130,7 +128,7 @@ class ImportMeteoData(object):
             utc_time = HydroClimateUtilClass.get_utcdatetime_from_field_values(clim_flds,
                                                                                cur_clim_data_item,
                                                                                tsysin, tzonein)
-            dic[DataValueFields.local_time] = utc_time + timedelta(minutes=tzonein * 60)
+            dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
             dic[DataValueFields.y] = utc_time.year
@@ -152,8 +150,7 @@ class ImportMeteoData(object):
                 cur_dic = dict()
                 if fld in list(dic.keys()):
                     cur_dic[DataValueFields.value] = dic[fld]
-                    cur_dic[DataValueFields.id] = dic[
-                        DataValueFields.id]
+                    cur_dic[DataValueFields.id] = dic[DataValueFields.id]
                     cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
