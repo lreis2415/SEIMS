@@ -308,6 +308,11 @@ class SPScenario(Scenario):
             soil_erosion_amount = rr.get_sum() / self.timerange  # unit: year
             # reduction rate of soil erosion
             self.environment = (base_amount - soil_erosion_amount) / base_amount
+            # print exception values
+            if self.environment > 1. or self.environment < 0.:
+                print('Exception Information: Scenario ID: %d, '
+                      'SOER: %s' % (self.ID, soil_erosion_amount))
+                self.environment = self.worst_env
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
@@ -480,11 +485,10 @@ def main_multiple(eval_num):
 
     cost = list()
     for _ in range(eval_num):
-        init_gene_values = initialize_scenario(cfg)
         sce = SPScenario(cfg)
+        sce.initialize()
         sceid = sce.set_unique_id()
-        print(sceid, init_gene_values.__str__())
-        setattr(sce, 'gene_values', init_gene_values)
+        print(sceid, sce.gene_values.__str__())
         sce.calculate_economy()
         cost.append(sce.economy)
     print(max(cost), min(cost), sum(cost) / len(cost))
@@ -494,16 +498,45 @@ def main_single():
     """Test of single evaluation of scenario."""
     cf = get_config_parser()
     cfg = SASPUConfig(cf)
-    init_gene_values = initialize_scenario(cfg)
-    import numpy
-    print(numpy.reshape(init_gene_values, (len(init_gene_values) // 3, 3)))
+    sce = SPScenario(cfg)
+    sce.initialize()
+    sceid = sce.set_unique_id()
+    print(sceid, sce.gene_values.__str__())
+    sce.decoding()
+    sce.export_to_mongodb()
+    sce.execute_seims_model()
+    sce.calculate_economy()
+    sce.calculate_environment()
 
-    econ, env, sceid = scenario_effectiveness(cfg, init_gene_values)
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
-    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in init_gene_values)))
-    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (econ, env))
+
+def main_manual():
+    """Test of set scenario manually."""
+    cf = get_config_parser()
+    cfg = SASPUConfig(cf)
+    sce = SPScenario(cfg)
+
+    sceid = 200206028
+    sce.set_unique_id(sceid)
+    gene_values = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 3.0, 0.0, 1.0, 3.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 1.0, 4.0, 1.0, 0.0, 0.0]
+
+    sce.set_gene_values(gene_values)
+
+    sce.decoding()
+    sce.export_to_mongodb()
+    sce.execute_seims_model()
+    sce.export_sce_tif = True
+    sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
+    sce.calculate_economy()
+    sce.calculate_environment()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
 
 if __name__ == '__main__':
-    main_single()
+    main_manual()
+    # main_single()
     # main_multiple(4)

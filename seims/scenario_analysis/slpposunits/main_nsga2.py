@@ -51,9 +51,9 @@ from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
-filter_ind = False  # type: bool # Filter for valid population for the next generation
+filter_ind = True  # type: bool # Filter for valid population for the next generation
 # Specific conditions for multiple objectives, None means no rule.
-conditions = [None, '>1.']
+conditions = [None, '>0.01']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,

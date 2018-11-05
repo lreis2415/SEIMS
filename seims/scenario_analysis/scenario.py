@@ -13,7 +13,6 @@
 """
 from __future__ import absolute_import, unicode_literals
 
-from copy import deepcopy
 from datetime import timedelta
 from io import open
 import os
@@ -28,7 +27,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from bson.objectid import ObjectId
 from pygeoc.utils import MathClass, get_config_parser
 from pymongo.errors import NetworkTimeout
-from typing import List, Iterator
+from typing import List, Iterator, Optional, Union
 
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
@@ -132,11 +131,26 @@ class Scenario(object):
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
         self.modelrun = False
 
-    def set_unique_id(self):
-        # type: () -> int
+    def set_unique_id(self, given_id=None):
+        # type: (Optional[int]) -> int
         """Set unique ID."""
-        self.ID = next(generate_uniqueid())
+        if given_id is None:
+            self.ID = next(generate_uniqueid())
+        else:
+            self.ID = given_id
+        # Update scenario ID for self.modelcfg and self.model
+        self.model.scenario_id = self.ID
+        self.modelcfg.scenario_id = self.ID
+        self.modelcfg_dict['scenario_id'] = self.ID if self.modelcfg_dict else 0
         return self.ID
+
+    def set_gene_values(self, gene_values=None):
+        # type: (Optional[List[Union[int, float]]]) -> None
+        """Set gene values manually or by initialize function."""
+        if gene_values is None:
+            self.initialize()
+        else:
+            self.gene_values = gene_values[:]
 
     def rule_based_config(self, method, conf_rate):
         # type: (float, str) -> None

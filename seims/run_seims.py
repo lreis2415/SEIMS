@@ -429,8 +429,8 @@ class MainSEIMS(object):
             run_logs = UtilClass.run_command(self.Command)
             self.ParseTimespan(run_logs)
             self.run_success = True
-        except CalledProcessError or Exception:
-            print('Run SEIMS model failed!')
+        except CalledProcessError or Exception as err:
+            print('Run SEIMS model failed! %s' % str(err))
             self.run_success = False
         self.runtime = time.time() - stime
         return self.run_success
