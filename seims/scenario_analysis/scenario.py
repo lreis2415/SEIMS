@@ -129,7 +129,7 @@ class Scenario(object):
         dlt = self.model.end_time - self.model.start_time + timedelta(seconds=1)
         self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
-        self.modelrun = False
+        self.modelrun = False  # indicate whether the model has been executed
 
     def set_unique_id(self, given_id=None):
         # type: (Optional[int]) -> int
@@ -262,8 +262,9 @@ class Scenario(object):
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
         self.model.scenario_id = self.ID
         self.modelout_dir = self.model.OutputDirectory
-        self.modelrun = self.model.run()
-        return self.modelrun
+        self.model.run()
+        self.modelrun = True
+        return self.model.run_success
 
     def initialize(self):
         # type: () -> List[int]

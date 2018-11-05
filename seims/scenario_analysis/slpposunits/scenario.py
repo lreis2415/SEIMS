@@ -294,9 +294,9 @@ class SPScenario(Scenario):
         rfile = self.modelout_dir + os.path.sep + self.bmps_info['ENVEVAL']
 
         if not FileClass.is_file_exists(rfile):
-            time.sleep(5)  # sleep 5 seconds wait for the ouput
+            time.sleep(0.5)  # sleep 0.5 seconds wait for the outputs
         if not FileClass.is_file_exists(rfile):
-            print('WARNING: Although SEIMS model runs successfully, the desired output: %s'
+            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ
             self.environment = self.worst_env
@@ -311,7 +311,7 @@ class SPScenario(Scenario):
             # print exception values
             if self.environment > 1. or self.environment < 0.:
                 print('Exception Information: Scenario ID: %d, '
-                      'SOER: %s' % (self.ID, soil_erosion_amount))
+                      'SUM(%s): %s' % (self.ID, rfile, soil_erosion_amount))
                 self.environment = self.worst_env
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
