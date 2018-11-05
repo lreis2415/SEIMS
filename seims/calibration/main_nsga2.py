@@ -391,7 +391,9 @@ if __name__ == "__main__":
     fpop.sort(key=lambda x: x.fitness.values)
     scoop_log(fstats)
     with open(cali_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
-        f.write(fstats.__str__())
+        # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
+        #   when using unicode_literals, please use '%s' to concatenate string!
+        f.write('%s' % fstats.__str__())
     endT = time.time()
     scoop_log('### END OF CALIBRATION OPTIMIZING ###')
     scoop_log('Running time: %.2fs' % (endT - startT))

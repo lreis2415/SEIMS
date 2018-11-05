@@ -234,7 +234,7 @@ class SlopePositionUnits(object):
                         hillslp_elim[cur_hillslp_id] = [unitid]
                 if cur_hillslp_id in hillslp_elim and unitid not in hillslp_elim[cur_hillslp_id]:
                     hillslp_elim[cur_hillslp_id].append(unitid)
-        print('Hillslope with incomplete slope position sequences: ' + hillslp_elim.__str__())
+        print('Hillslope with incomplete slope position sequences: %s' % hillslp_elim.__str__())
         # Basic procedure:
         #   1. if header is incomplete, search left and right;
         #      if left/right is incomplete, search header and right/left;
@@ -289,7 +289,7 @@ class SlopePositionUnits(object):
                             cur_units_pair[_id * hillid] = dst_unit
                 units_pair.update(cur_units_pair)
 
-        print('Slope position unit merge-destination pairs: ' + units_pair.__str__())
+        print('Slope position unit merge-destination pairs: %s' % units_pair.__str__())
 
         # begin to merge
         for srcid, dstid in units_pair.items():
