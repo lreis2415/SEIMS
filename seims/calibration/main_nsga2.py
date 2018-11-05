@@ -349,7 +349,7 @@ def main(cfg):
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
-                  allmodels_exect, delimiter=' ', fmt='%.4f')
+                  allmodels_exect, delimiter=str(' '), fmt=str('%.4f'))
     scoop_log('Running time of all SEIMS models:\n'
               '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
