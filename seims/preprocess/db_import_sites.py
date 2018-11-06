@@ -120,6 +120,7 @@ class ImportHydroClimateSites(object):
         #    must be locally imported here.
         from shapely.wkt import loads as shapely_loads
         shapely_objects = list()
+        shape_area = list()
         id_list = list()
         # print(input_shape)
         shp = ogr_Open(input_shape)
@@ -127,16 +128,25 @@ class ImportHydroClimateSites(object):
             raise RuntimeError('The input ESRI Shapefile: %s is not existed or has '
                                'no read permission!' % input_shape)
         lyr = shp.GetLayer()
+
         for n in range(0, lyr.GetFeatureCount()):
             feat = lyr.GetFeature(n)
             # This function may print Failed `CDLL(/opt/local/lib/libgeos_c.dylib)` in macOS
             # Don't worry about that!
             wkt_feat = shapely_loads(feat.geometry().ExportToWkt())
-            shapely_objects.append(wkt_feat)
             if is_string(id_field):
                 id_field = str(id_field)
             id_index = feat.GetFieldIndex(id_field)
-            id_list.append(feat.GetField(id_index))
+            fldid = feat.GetField(id_index)
+            if fldid not in id_list:
+                id_list.append(fldid)
+                shapely_objects.append(wkt_feat)
+                shape_area.append(wkt_feat.area)
+            else:  # if multipolygon, take the polygon part with largest area.
+                exist_id_idx = id_list.index(fldid)
+                if shape_area[exist_id_idx] < wkt_feat.area:
+                    shape_area[exist_id_idx] = wkt_feat.area
+                    shapely_objects[exist_id_idx] = wkt_feat
         return shapely_objects, id_list
 
     @staticmethod
