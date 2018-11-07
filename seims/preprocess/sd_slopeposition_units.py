@@ -387,7 +387,6 @@ class SlopePositionUnits(object):
 
 def main():
     """Delineation slope position units with the associated information."""
-    # inputs from preprocess
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 
