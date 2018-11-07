@@ -36,14 +36,16 @@ if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
 
 from typing import List
 from utility.scoop_func import scoop_log
-from scenario_analysis.slpposunits.config import SASPUConfig
-from scenario_analysis.slpposunits.scenario import SPScenario
-from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_slppos, \
-    crossover_rdm, mutate_rdm
+from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
+from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.scenario import delete_model_outputs
 from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
+from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.slpposunits.scenario import SUScenario
+from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
+from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_rule, \
+    crossover_rdm, mutate_rdm
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -51,7 +53,7 @@ from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
-filter_ind = True  # type: bool # Filter for valid population for the next generation
+filter_ind = False  # type: bool # Filter for valid population for the next generation
 # Specific conditions for multiple objectives, None means no rule.
 conditions = [None, '>0.01']
 
@@ -68,17 +70,17 @@ toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
 toolbox.register('evaluate', scenario_effectiveness)
 
 # knowledge-rule based mate and mutate
-toolbox.register('mate_rule', crossover_slppos)
-toolbox.register('mutate_rule', mutate_slppos)
+toolbox.register('mate_slppos', crossover_slppos)
+toolbox.register('mutate_rule', mutate_rule)
 # random-based mate and mutate
-toolbox.register('mate_rdn', crossover_rdm)
+toolbox.register('mate_rdm', crossover_rdm)
 toolbox.register('mutate_rdm', mutate_rdm)
 
 toolbox.register('select', tools.selNSGA2)
 
 
 def main(sceobj):
-    # type: (SPScenario) -> ()
+    # type: (SUScenario) -> ()
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
 
@@ -96,7 +98,8 @@ def main(sceobj):
     pop_select_num = int(pop_size * sel_rate)
 
     ws = sceobj.cfg.opt.out_dir
-    rule_mth = sceobj.cfg.bmps_rule_method
+    cfg_unit = sceobj.cfg.bmps_cfg_unit
+    cfg_method = sceobj.cfg.bmps_cfg_method
     worst_econ = sceobj.worst_econ
     worst_env = sceobj.worst_env
     # available gene value list
@@ -104,13 +107,12 @@ def main(sceobj):
     if 0 not in possible_gene_values:
         possible_gene_values.append(0)
     units_info = sceobj.cfg.units_infos
-    slppos_tagnames = sceobj.cfg.slppos_tagnames
     suit_bmps = sceobj.suit_bmps
-    gene_to_unit = sceobj.cfg.gene_to_slppos
-    unit_to_gene = sceobj.cfg.slppos_to_gene
+    gene_to_unit = sceobj.cfg.gene_to_unit
+    unit_to_gene = sceobj.cfg.unit_to_gene
 
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
-    scoop_log('BMPs configure method: %s' % rule_mth)
+    scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
 
     # create reference point for hypervolume
     ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
@@ -172,6 +174,7 @@ def main(sceobj):
     pop = evaluate_parallel(pop)
     modelruns_time[0] = time.time() - stime
     for ind in pop:
+        ind.gen = 0
         allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
         modelruns_time_sum[0] += ind.runtime
 
@@ -193,20 +196,28 @@ def main(sceobj):
         if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
             for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
                 if random.random() <= cx_rate:
-                    if rule_mth == 'RDM':
-                        toolbox.mate_rdn(ind1, ind2)
+                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                        toolbox.mate_slppos(sceobj.cfg.slppos_tagnames, ind1, ind2)
                     else:
-                        toolbox.mate_rule(slppos_tagnames, ind1, ind2)
-                if rule_mth == 'RDM':
+                        toolbox.mate_rdm(ind1, ind2)
+
+                if cfg_method == BMPS_CFG_METHODS[0]:
                     toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
                     toolbox.mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
                 else:
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                    tagnames = None
+                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                        tagnames = sceobj.cfg.slppos_tagnames
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
                                         suit_bmps, ind1,
-                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                                        perc=mut_perc, indpb=mut_rate,
+                                        unit=cfg_unit, method=cfg_method,
+                                        tagnames=tagnames)
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
                                         suit_bmps, ind2,
-                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
+                                        perc=mut_perc, indpb=mut_rate,
+                                        unit=cfg_unit, method=cfg_method,
+                                        tagnames=tagnames)
                 del ind1.fitness.values, ind2.fitness.values
 
         # Evaluate the individuals with an invalid fitness
@@ -223,6 +234,7 @@ def main(sceobj):
         modelruns_time.setdefault(gen, curtimespan)
         modelruns_time_sum.setdefault(gen, 0.)
         for ind in invalid_inds:
+            ind.gen = gen
             allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
             modelruns_time_sum[gen] += ind.runtime
 
@@ -254,11 +266,10 @@ def main(sceobj):
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
-                                                indi.fitness.values[1],
-                                                str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                                                    indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
 
         # Delete SEIMS output files, and BMP Scenario database of current generation
@@ -303,8 +314,17 @@ def main(sceobj):
 
 if __name__ == "__main__":
     in_cf = get_config_parser()
-    sa_cfg = SASPUConfig(in_cf)
-    sce = SPScenario(sa_cfg)
+    base_cfg = SAConfig(in_cf)  # type: SAConfig
+
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        sa_cfg = SASlpPosConfig(in_cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        sa_cfg = SAConnFieldConfig(in_cf)
+    else:  # Common spatial units, e.g., HRU and UNIQHRU
+        sa_cfg = SACommUnitConfig(in_cf)
+    sa_cfg.construct_indexes_units_gene()
+
+    sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()

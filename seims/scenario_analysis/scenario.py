@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSAG-II.
+"""Base class of Scenario for coupling NSGA-II.
 
     @author   : Liangjun Zhu, Huiran Gao
 
@@ -29,6 +29,7 @@ from pygeoc.utils import MathClass, get_config_parser
 from pymongo.errors import NetworkTimeout
 from typing import List, Iterator, Optional, Union
 
+from scenario_analysis import BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
@@ -112,7 +113,7 @@ class Scenario(object):
         self.gene_values = list()  # type: List[int]
         self.bmp_items = dict()
 
-        self.rule_mtd = cfg.bmps_rule_method
+        self.rule_mtd = cfg.bmps_cfg_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
         self.export_sce_txt = cfg.export_sce_txt
@@ -275,7 +276,7 @@ class Scenario(object):
         """
         # Create configuration rate for each location randomly, 0.4 ~ 0.6
         cr = random.randint(40, 60) / 100.
-        if self.rule_mtd == 'RDM':
+        if self.rule_mtd == BMPS_CFG_METHODS[0]:
             self.random_based_config(cr)
         else:
             self.rule_based_config(self.rule_mtd, cr)
@@ -289,8 +290,8 @@ class Scenario(object):
 
 if __name__ == '__main__':
     cf = get_config_parser()
-    cfg = SAConfig(cf)
-    sceobj = Scenario(cfg)
+    cfg = SAConfig(cf)  # type: SAConfig
+    sceobj = Scenario(cfg)  # type: Scenario
 
     # test the picklable of Scenario class.
     import pickle
@@ -299,7 +300,10 @@ if __name__ == '__main__':
     # print(s)
     new_cfg = pickle.loads(s)  # type: Scenario
     print(new_cfg.modelcfg.ConfigDict)
-    print(new_cfg.model.start_time, new_cfg.model.end_time)
-    print(new_cfg.model.scenario_id, new_cfg.ID)
+    print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                                         new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
+    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+                                                                 new_cfg.ID))
     new_cfg.set_unique_id()
-    print(new_cfg.ID)
+    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+                                                                 new_cfg.ID))

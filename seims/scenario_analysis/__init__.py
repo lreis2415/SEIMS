@@ -27,7 +27,15 @@ __revision__ = "1.2.0"
 
 _DEBUG = False  # type: bool # Print information for debugging
 
-BMPS_RULE_METHODS = ['RDM', 'SUIT', 'UPDOWN', 'SLPPOS']
+BMPS_CFG_UNITS = ['HRU', 'UNIQHRU', 'CONNFIELD', 'SLPPOS']
+"""The available spatial units for BMPs configuration.
+- HRU: spatially non-unique hydrologic response units (Arnold et al., 1998)
+- UNIQHRU: spatially unique HRU (Teshager et al., 2016)
+- CONNFIELD: hydrologically connected fields with up-downstream relationships (Wu et al. 2018)
+- SLPPOS: slope position units (Qin et al., 2018)
+"""
+
+BMPS_CFG_METHODS = ['RDM', 'SUIT', 'UPDOWN', 'SLPPOS']
 """The available rule methods for BMPs configuration.
 - RDM: Config all available BMPs on each spatial unit randomly.
 - SUIT: Config the suitable BMPs on each spatial unit randomly, which is the default
@@ -40,3 +48,9 @@ i.e., if a unit has been configured with one BMP, its adjacent upstream units sh
 i.e., the effective grade of the BMP configured on the downslope position should be greater or
  equal to that of the BMP configured on its adjacent upslope position (Qin et al., 2018, JSWC).
 """
+
+BMPS_CFG_PAIR = {'HRU': ['RDM', 'SUIT'],
+                 'UNIQHRU': ['RDM', 'SUIT'],
+                 'CONNFIELD': ['RDM', 'SUIT', 'UPDOWN'],
+                 'SLPPOS': ['RDM', 'SUIT', 'UPDOWN', 'SLPPOS']}
+"""Supported pairs of BMPs configuration unit and methods."""
