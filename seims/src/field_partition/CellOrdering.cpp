@@ -718,7 +718,7 @@ void CellOrdering::OutputFieldRelationship(const char *filename) {
     size_t m_FieldNum = m_mapfields.size();
     //write header
     rasterFile << " Relationship of the fields ---- field number:\n " << m_FieldNum << "\n";
-    rasterFile << " FID  " << "downstreamFID  " << "Area(ha)  " << "LanduseID  " << "Degree" << "\n";
+    rasterFile << " FID\tdownstreamFID\tArea(ha)\tLanduseID\tDegree\n";
     int FID, ReFID, outFID, ReoutFID, LANDU, degree;
     float Area;
 
