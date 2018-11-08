@@ -171,6 +171,8 @@ def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
         if bmps is None or len(bmps) == 0:
             continue
         # Get new BMP ID for current unit.
+        if 0 not in bmps:
+            bmps.append(0)
         if oldgenev in bmps:
             bmps.remove(oldgenev)
         if len(bmps) > 0:
@@ -229,7 +231,7 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
 
 
 def main_test_mutate(perc, indpb, unit, mtd):
-    # type: (float, float, str) -> None
+    # type: (float, float, AnyStr, AnyStr) -> None
     """Test mutate function."""
     from scenario_analysis import BMPS_CFG_UNITS
     from scenario_analysis.config import SAConfig

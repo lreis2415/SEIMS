@@ -167,7 +167,7 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
                       steps=None,  # type: Optional[List[float]] # Intervals of each axis
                       cn=False  # type: bool # Use Chinese or not
                       ):
-    # type: (...) -> None
+    # type: (...) -> bool
     """
     Plot 2D or 3D pareto front graphs.
     Args:
@@ -186,10 +186,10 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
     pop_size, axis_size = data.shape
     if axis_size <= 1:
         print('Error: The size of fitness values MUST >= 2 to plot 2D graphs!')
-        return
+        return False
     if len(labels) != axis_size:
         print('Error: The size of fitness values and labels are not consistent!')
-        return
+        return False
     if lowers is not None and len(lowers) != axis_size:
         print('Warning: The size of fitness values and lowers are not consistent!')
         lowers = None
@@ -277,6 +277,7 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
                             tmpws, filename, subtitle, cn=cn,
                             xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, zmin=z_min, zmax=z_max,
                             xstep=x_step, ystep=y_step, zstep=z_step)
+    return True
 
 
 def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
@@ -608,7 +609,7 @@ def read_hypervolume(hypervlog):
 
 
 def plot_hypervolume_single(hypervlog, ws=None, cn=False):
-    # type: (AnyStr, Optional[AnyStr], bool) -> None
+    # type: (AnyStr, Optional[AnyStr], bool) -> bool
     """Plot hypervolume and the newly executed models of each generation.
 
     Args:
@@ -664,9 +665,11 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     plt.clf()
     plt.close()
 
+    return True
+
 
 def plot_hypervolume(method_paths, ws, cn=False):
-    # type: (Dict[AnyStr, AnyStr], AnyStr, bool) -> None
+    # type: (Dict[AnyStr, AnyStr], AnyStr, bool) -> bool
     """Plot hypervolume of multiple optimization methods
 
     Args:
@@ -727,3 +730,5 @@ def plot_hypervolume(method_paths, ws, cn=False):
     plt.cla()
     plt.clf()
     plt.close()
+
+    return True

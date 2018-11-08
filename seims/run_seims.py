@@ -17,11 +17,12 @@ from copy import deepcopy
 from collections import OrderedDict
 from configparser import ConfigParser
 from datetime import datetime
+from io import open
 import math
 import os
 import sys
 import time
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, List, AnyStr
 from subprocess import CalledProcessError
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -212,6 +213,7 @@ class MainSEIMS(object):
         #         }
         self.sim_obs_dict = dict()
         self.runtime = 0.
+        self.runlogs = list()  # type: List[AnyStr]
 
     @property
     def OutputDirectory(self):
@@ -426,8 +428,10 @@ class MainSEIMS(object):
             and self.simu_etime != self.end_time:
             self.ResetSimulationPeriod()
         try:
-            run_logs = UtilClass.run_command(self.Command)
-            self.ParseTimespan(run_logs)
+            self.runlogs = UtilClass.run_command(self.Command)
+            with open(self.OutputDirectory + os.sep + 'runlogs.txt', 'w', encoding='utf-8') as f:
+                f.write('\n'.join(self.runlogs))
+            self.ParseTimespan(self.runlogs)
             self.run_success = True
         except CalledProcessError or Exception as err:
             print('Run SEIMS model failed! %s' % str(err))

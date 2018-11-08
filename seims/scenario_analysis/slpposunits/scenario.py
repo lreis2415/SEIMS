@@ -159,7 +159,7 @@ class SUScenario(Scenario):
                                                      method=self.cfg.bmps_cfg_method)
                     if cur_bmps is None or len(cur_bmps) == 0:
                         self.gene_values[gene_idx] = 0
-                    elif random.random() > conf_rate and 0 in cur_bmps:
+                    elif random.random() > conf_rate:
                         self.gene_values[gene_idx] = 0
                     else:
                         self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
@@ -185,11 +185,9 @@ class SUScenario(Scenario):
                                                      tagnames=self.cfg.slppos_tagnames)
                     if cur_bmps is None or len(cur_bmps) == 0:
                         self.gene_values[gene_idx] = 0
-                    elif random.random() > conf_rate and 0 in cur_bmps:
+                    elif random.random() > conf_rate:
                         # Do not config BMP according to probability
                         self.gene_values[gene_idx] = 0
-                        # But if no-BMP (i.e., 0) is not allowed for current unit,
-                        #    it is forced to config BMP.
                     else:
                         # config BMP
                         self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
@@ -215,8 +213,8 @@ class SUScenario(Scenario):
         # type: (float) -> None
         """Config BMPs on each spatial unit randomly."""
         pot_bmps = self.cfg.bmps_subids[:]
-        if 0 not in pot_bmps:
-            pot_bmps.append(0)
+        # if 0 not in pot_bmps:
+        #     pot_bmps.append(0)
         for i in range(self.gene_num):
             if random.random() >= conf_rate:
                 continue
@@ -302,7 +300,7 @@ class SUScenario(Scenario):
         rfile = self.modelout_dir + os.path.sep + self.bmps_info['ENVEVAL']
 
         if not FileClass.is_file_exists(rfile):
-            time.sleep(0.5)  # sleep 0.5 seconds wait for the outputs
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
         if not FileClass.is_file_exists(rfile):
             print('WARNING: Although SEIMS model has been executed, the desired output: %s'
                   ' cannot be found!' % rfile)
@@ -431,8 +429,8 @@ def select_potential_bmps(unitid,  # type: int
 
     bmps = suitbmps[suit_bmps_tag][:]
     bmps = list(set(bmps))  # ascending
-    if 0 not in bmps:
-        bmps.append(0)
+    # if 0 not in bmps:
+    #     bmps.append(0)
 
     if method == BMPS_CFG_METHODS[1]:  # SUIT
         return bmps
@@ -522,8 +520,10 @@ def scenario_effectiveness(cf, ind):
     # 5. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
+    # 6. Assign fitness values
+    ind.fitness.values = [sce.economy, sce.environment]
 
-    return sce.economy, sce.environment, curid
+    return ind
 
 
 def main_multiple(eval_num):

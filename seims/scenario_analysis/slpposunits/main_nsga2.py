@@ -12,6 +12,7 @@
     - 18-11-02  lj - Optimization.
 """
 from __future__ import absolute_import, unicode_literals
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 import array
 import os
@@ -29,7 +30,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from pygeoc.utils import UtilClass, get_config_parser
+from pygeoc.utils import UtilClass, MathClass, get_config_parser
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
@@ -55,7 +56,7 @@ from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_rule,
 multi_weight = (-1., 1.)
 filter_ind = False  # type: bool # Filter for valid population for the next generation
 # Specific conditions for multiple objectives, None means no rule.
-conditions = [None, '>0.01']
+conditions = [None, '>0.']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
@@ -130,6 +131,25 @@ def main(sceobj):
     pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
     init_time = time.time() - stime
 
+    def check_individual_diff(old_ind, new_ind):
+        """Check the gene values of two individuals."""
+        diff = False
+        for i in range(len(old_ind)):
+            if not MathClass.floatequal(old_ind[i], new_ind[i]):
+                diff = True
+                break
+        return diff
+
+    def delete_fitness(new_ind):
+        """Delete the fitness and other information of new individual."""
+        del new_ind.fitness.values
+        new_ind.gen = -1
+        new_ind.id = -1
+        new_ind.io_time = 0.
+        new_ind.comp_time = 0.
+        new_ind.simu_time = 0.
+        new_ind.runtime = 0.
+
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
         flag = True
@@ -146,13 +166,10 @@ def main(sceobj):
         try:
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            fitnesses = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
+            invalid_pops = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
         except ImportError or ImportWarning:
             # serial
-            fitnesses = list(toolbox.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
-        for ind, fit in zip(invalid_pops, fitnesses):
-            ind.fitness.values = fit[:2]
-            ind.id = fit[2]
+            invalid_pops = list(toolbox.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
 
         # Filter for a valid solution
         if filter_ind:
@@ -195,6 +212,8 @@ def main(sceobj):
         offspring = [toolbox.clone(ind) for ind in pop]
         if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
             for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+                old_ind1 = toolbox.clone(ind1)
+                old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
                     if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
                         toolbox.mate_slppos(sceobj.cfg.slppos_tagnames, ind1, ind2)
@@ -218,7 +237,10 @@ def main(sceobj):
                                         perc=mut_perc, indpb=mut_rate,
                                         unit=cfg_unit, method=cfg_method,
                                         tagnames=tagnames)
-                del ind1.fitness.values, ind2.fitness.values
+                if check_individual_diff(old_ind1, ind1):
+                    delete_fitness(ind1)
+                if check_individual_diff(old_ind2, ind2):
+                    delete_fitness(ind2)
 
         # Evaluate the individuals with an invalid fitness
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
@@ -254,15 +276,23 @@ def main(sceobj):
 
         # Plot 2D near optimal pareto front graphs
         stime = time.time()
+        front = numpy.array([ind.fitness.values for ind in pop])
+        # save front for further possible use
+        numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
+                      front, delimiter=str(' '), fmt=str('%.4f'))
+
         try:
-            front = numpy.array([ind.fitness.values for ind in pop])
-            plot_pareto_front(front, ['Economy', 'Environment'],
-                              ws, gen, 'Near Pareto optimal solutions')
+            p = ThreadPoolExecutor(1)
+            func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
+                            ws, gen, 'Near Pareto optimal solutions')
+            func.result(timeout=10)
+        except TimeoutError:
+            scoop_log('Plot pareto front timeout for generation %d!' % gen)
+            pass
         except Exception as e:
             scoop_log('Exception caught: %s' % str(e))
         except:
             scoop_log('Exception caught: %s' % sys.exc_info()[0])
-
         plot_time += time.time() - stime
 
         # save in file
@@ -277,7 +307,13 @@ def main(sceobj):
                              sceobj.model.port, sceobj.model.ScenarioDBName)
 
     # Plot hypervolume and newly executed model count
-    plot_hypervolume_single(sceobj.cfg.opt.hypervlog, ws)
+    try:
+        p = ThreadPoolExecutor(1)
+        func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
+        func.result(timeout=5)
+    except TimeoutError:
+        scoop_log('Plot hypervolume timeout!')
+        pass
 
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
