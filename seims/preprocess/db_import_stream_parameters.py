@@ -22,6 +22,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
+from typing import Union, Dict, AnyStr
 import networkx as nx
 from osgeo.ogr import FieldDefn as ogr_FieldDefn
 from osgeo.ogr import OFTInteger
@@ -216,6 +217,7 @@ class ImportReaches2Mongo(object):
 
     @staticmethod
     def read_reach_downstream_info(reach_shp, is_taudem=True):
+        # type: (AnyStr, bool) -> Dict[int, Dict[AnyStr, Union[int, float]]]
         """Read information of subbasin.
         Args:
             reach_shp: reach ESRI shapefile.

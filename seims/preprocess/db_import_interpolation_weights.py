@@ -298,7 +298,7 @@ class ImportWeightData(object):
                                                                              loc_list)
                                 myfile.write(line)
                                 fmt = '%df' % (len(loc_list))
-                                f_test.write('%f %f ' % (x, y) + unpack(fmt, line).__str__() + '\n')
+                                f_test.write('%f %f %s\n' % (x, y, unpack(fmt, line).__str__()))
                 myfile.close()
 
     @staticmethod

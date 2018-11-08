@@ -206,7 +206,7 @@ class Sensitivity(object):
         self.run_count = len(self.param_values)
         # Save as txt file, which can be loaded by numpy.loadtxt()
         numpy.savetxt(self.cfg.outfiles.param_values_txt,
-                      self.param_values, delimiter=' ', fmt='%.4f')
+                      self.param_values, delimiter=str(' '), fmt=str('%.4f'))
 
     def write_param_values_to_mongodb(self):
         """Update Parameters collection in MongoDB.
@@ -291,14 +291,14 @@ class Sensitivity(object):
                 rmtree(mod_obj.output_dir)
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
-            numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4f')
+            numpy.savetxt(cur_out_file, eva_values, delimiter=str(' '), fmt=str('%.4f'))
             # Save as pickle data for further usage. DO not save all models which maybe very large!
             cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
             with open(cur_model_out_file, 'wb', encoding='utf-8') as f:
                 pickle.dump(output_models, f)
         exec_times = numpy.array(exec_times)
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
-                      exec_times, delimiter=' ', fmt='%.4f')
+                      exec_times, delimiter=str(' '), fmt=str('%.4f'))
         print('Running time of all SEIMS models:\n'
               '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
@@ -326,7 +326,7 @@ class Sensitivity(object):
                                                                idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
-                      self.output_values, delimiter=' ', fmt='%.4f')
+                      self.output_values, delimiter=str(' '), fmt=str('%.4f'))
 
     def calculate_sensitivity(self):
         """Calculate Morris elementary effects.

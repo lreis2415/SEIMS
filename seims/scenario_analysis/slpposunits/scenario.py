@@ -13,6 +13,7 @@ from __future__ import absolute_import, division
 from future.utils import viewitems
 
 import array
+from collections import OrderedDict
 from copy import deepcopy
 import os
 import sys
@@ -20,7 +21,6 @@ import random
 import time
 from struct import unpack
 
-from typing import List, Dict, Optional, Any
 import numpy
 from gridfs import GridFS
 from osgeo import osr
@@ -31,31 +31,34 @@ from pymongo.errors import NetworkTimeout
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
+from typing import Union, Dict, List, Tuple, Optional, Any, AnyStr
 from utility import read_simulation_from_txt
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
-from scenario_analysis import _DEBUG
+from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.scenario import Scenario
-from scenario_analysis.slpposunits.config import SASPUConfig
+from scenario_analysis.config import SAConfig
+from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
 
 
-class SPScenario(Scenario):
-    """Scenario analysis based on slope position units."""
+class SUScenario(Scenario):
+    """Scenario analysis using different spatial units as BMPs configuration units."""
 
     def __init__(self, cf):
-        # type: (SASPUConfig) -> None
+        # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]) -> None
         """Initialization."""
         Scenario.__init__(self, cf)
-        self.cfg = cf  # type: SASPUConfig
-        self.gene_num = cf.slppos_unit_num  # type: int
+        self.cfg = cf  # type: Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]
+        self.gene_num = cf.units_num  # type: int
         self.gene_values = [0] * self.gene_num  # type: List[int] # 0 means no BMP
 
         self.bmps_params = dict()  # type: Dict[int, Any] # {bmp_id: {...}}
-        self.suit_bmps = dict()  # type: Dict[int, List[int]] # {slppos_id: [bmp_ids]}
+        self.suit_bmps = dict()  # type: Dict[int, List[int]] # {slppos_id or lucc_id: [bmp_ids]}
         self.bmps_grade = dict()  # type: Dict[int, int] # {slppos_id: effectiveness_grade}
 
         self.read_bmp_parameters()
-        self.get_suitable_bmps_for_slppos()
+        bmps_suit_type = 'SLPPOS' if self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3] else 'LANDUSE'
+        self.get_suitable_bmps(bmps_suit_type)
 
     def read_bmp_parameters(self):
         """Read BMP configuration from MongoDB.
@@ -102,12 +105,12 @@ class SPScenario(Scenario):
                     self.bmps_params[curid][k] = v
         client.close()
 
-    def get_suitable_bmps_for_slppos(self):
+    def get_suitable_bmps(self, type='LANDUSE'):
         """Construct the suitable BMPs for each slope position."""
         for bid, bdict in self.bmps_params.items():
-            if 'SLPPOS' not in bdict:
+            if type not in bdict:
                 continue
-            suitsp = bdict['SLPPOS']
+            suitsp = bdict[type]
             for sp in suitsp:
                 if sp not in self.suit_bmps:
                     self.suit_bmps[sp] = [bid]
@@ -117,99 +120,101 @@ class SPScenario(Scenario):
                 self.bmps_grade[bid] = bdict['EFFECTIVENESS']
 
     def rule_based_config(self, method, conf_rate=0.5):
-        # type: (float, str) -> None
-        """Config available BMPs on each spatial units by rule-based method.
-        From the bottom slope position of each hillslope, trace upslope.
+        # type: (float, AnyStr) -> None
+        """Config available BMPs on each spatial units by knowledge-based rule method.
+        The looping methods vary from different spatial units, e.g., for slope position units,
+        it is from the bottom slope position of each hillslope tracing upslope.
 
         The available rule methods are 'SUIT', 'UPDOWN', and 'SLPPOS'.
 
         See Also:
-            :obj:`scenario_analysis.BMPS_RULE_METHODS`
+            :obj:`scenario_analysis.BMPS_CFG_METHODS`
         """
-
-        def config_bmp_for_unit(unit_id, slppostag, upsid, upgid, downsid, downgid,
-                                method='SUIT', bmpgrades=None):
-            # type: (int, int, int, int, int, int, str, Optional[Dict[int, int]]) -> (bool, int)
-            """Config suitable BMP for the given slope position unit.
-
-            Args:
-                unit_id(int): Slope position unit ID
-                slppostag(int): Slope position tag, e.g. 1, 4, 16
-                upsid(int): Upslope position ID
-                upgid(int): Gene value of upslope position
-                downsid(int): Downslope position ID
-                downgid(int): Gene value of downslope position
-                method(str): Knowledge-based rule method
-                bmpgrades(dict): (Optional) Effectiveness grades of BMPs
-
-            Returns:
-                If configured, return (True, BMPID), otherwise return (False, 0).
-
-            See Also:
-                :func:`scenario_analysis.slpposunits.scenario.get_potential_bmps`
-                :obj:`scenario_analysis.BMPS_RULE_METHODS`
-            """
-            # print('slppos: %d, unit: %d' % (slppostag, unit_id))
-            bmps = get_potential_bmps(self.suit_bmps, slppostag, upsid, upgid,
-                                      downsid, downgid, method, bmpgrades)
-            # print('Config for unit: %d' % unitid)
-            configured = False
-            cfg_bmp = 0
-            if random.random() > conf_rate:
-                # Do not config BMP according to probability
-                # But if no-BMP (i.e., 0) is not allowed for current unit,
-                #    it is forced to config BMP.
-                if 0 in bmps:
-                    return configured, cfg_bmp
-
-            # config BMP
-            if len(bmps) >= 1:
-                cfg_bmp = bmps[random.randint(0, len(bmps) - 1)]
-                genidx = self.cfg.slppos_to_gene[unit_id]
-                self.gene_values[genidx] = cfg_bmp
-                if cfg_bmp != 0:
-                    configured = True
-            if configured and _DEBUG:
-                print('Config for unit: %d, slppos: %d, upgv: %d, downgv: %d,'
-                      ' potBMPs: %s, select: %d' % (unit_id, slppostag, upgid, downgid,
-                                                    bmps.__str__(), cfg_bmp))
-            return configured, cfg_bmp
-
-        spname = self.cfg.slppos_tagnames[-1][1]  # bottom slope position name, e.g., 'valley'
-        for unitid, spdict in viewitems(self.cfg.units_infos[spname]):
-            up_spid = spdict['upslope']
-            down_spid = spdict['downslope']
-            spidx = len(self.cfg.slppos_tagnames) - 1
-            sptag = self.cfg.slppos_tagnames[spidx][0]  # type: int
-            up_gv = 0  # the upslope position has not configured
-            down_gv = -1  # -1 indicate there is no downslope position
-            config_bmp_for_unit(unitid, sptag, up_spid, up_gv, down_spid, down_gv,
-                                self.rule_mtd, self.bmps_grade)
-            while True:  # trace upstream units
-                if up_spid < 0:
+        if self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+            out_id = -1  # the last downstream unit ID
+            for k, v in viewitems(self.cfg.units_infos['units']):
+                if v['downslope'] <= 0:
+                    out_id = k
                     break
-                unitid = up_spid
-                up_gv = -1
-                down_gv = -1
-                spidx -= 1
-                sptag = self.cfg.slppos_tagnames[spidx][0]
-                spname = self.cfg.slppos_tagnames[spidx][1]
-                spdict = self.cfg.units_infos[spname][up_spid]
-                up_spid = spdict['upslope']
-                down_spid = spdict['downslope']
-                if up_spid >= 0:
-                    up_gv = self.gene_values[self.cfg.slppos_to_gene[up_spid]]
-                if down_spid >= 0:
-                    down_gv = self.gene_values[self.cfg.slppos_to_gene[down_spid]]
-                config_bmp_for_unit(unitid, sptag, up_spid, up_gv,
-                                    down_spid, down_gv, self.rule_mtd, self.bmps_grade)
+            if out_id < 0:
+                raise ValueError('The last downstream unit ID is not found!')
+            cur_bmps = select_potential_bmps(out_id, self.suit_bmps, self.cfg.units_infos,
+                                             self.cfg.unit_to_gene, self.gene_values,
+                                             unit=self.cfg.bmps_cfg_unit,
+                                             method=self.cfg.bmps_cfg_method)
+            gene_idx = self.cfg.unit_to_gene[out_id]
+            if cur_bmps is None or len(cur_bmps) == 0:
+                self.gene_values[gene_idx] = 0
+            else:
+                self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
+            up_units = self.cfg.units_infos['units'][out_id]['upslope'][:]
+            unproceed = up_units[:]
+            while len(unproceed) > 0:
+                cur_unpreceed = list()
+                for up_unit in unproceed:
+                    gene_idx = self.cfg.unit_to_gene[up_unit]
+                    cur_bmps = select_potential_bmps(up_unit, self.suit_bmps, self.cfg.units_infos,
+                                                     self.cfg.unit_to_gene, self.gene_values,
+                                                     unit=self.cfg.bmps_cfg_unit,
+                                                     method=self.cfg.bmps_cfg_method)
+                    if cur_bmps is None or len(cur_bmps) == 0:
+                        self.gene_values[gene_idx] = 0
+                    elif random.random() > conf_rate:
+                        self.gene_values[gene_idx] = 0
+                    else:
+                        self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
+                    cur_upunits = self.cfg.units_infos['units'][up_unit]['upslope']
+                    for tmp_unit in cur_upunits:
+                        if tmp_unit > 0:
+                            cur_unpreceed.append(tmp_unit)
+                unproceed = cur_unpreceed[:]
+        elif self.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+            spname = self.cfg.slppos_tagnames[-1][1]  # bottom slope position name, e.g., 'valley'
+            for unitid, spdict in viewitems(self.cfg.units_infos[spname]):
+                spidx = len(self.cfg.slppos_tagnames) - 1
+                while True:  # trace upslope units
+                    sp = self.cfg.slppos_tagnames[spidx][1]
+                    up_spid = self.cfg.units_infos[sp][unitid]['upslope']
+                    gene_idx = self.cfg.unit_to_gene[unitid]
+                    spidx -= 1
+                    cur_bmps = select_potential_bmps(unitid, self.suit_bmps, self.cfg.units_infos,
+                                                     self.cfg.unit_to_gene, self.gene_values,
+                                                     unit=self.cfg.bmps_cfg_unit,
+                                                     method=self.cfg.bmps_cfg_method,
+                                                     bmpgrades=self.bmps_grade,
+                                                     tagnames=self.cfg.slppos_tagnames)
+                    if cur_bmps is None or len(cur_bmps) == 0:
+                        self.gene_values[gene_idx] = 0
+                    elif random.random() > conf_rate:
+                        # Do not config BMP according to probability
+                        self.gene_values[gene_idx] = 0
+                    else:
+                        # config BMP
+                        self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
+                    if up_spid < 0:
+                        break
+                    unitid = up_spid
+        else:
+            # Loop each gene to config one of the suitable BMP
+            for gene_idx in range(self.gene_num):
+                unitid = self.cfg.gene_to_unit[gene_idx]
+                cur_bmps = select_potential_bmps(unitid, self.suit_bmps, self.cfg.units_infos,
+                                                 self.cfg.unit_to_gene, self.gene_values,
+                                                 unit=self.cfg.bmps_cfg_unit,
+                                                 method=self.cfg.bmps_cfg_method,
+                                                 bmpgrades=self.bmps_grade)
+                if cur_bmps is None or len(cur_bmps) == 0:
+                    self.gene_values[gene_idx] = 0
+                    continue
+                # select one randomly
+                self.gene_values[gene_idx] = cur_bmps[random.randint(0, len(cur_bmps) - 1)]
 
     def random_based_config(self, conf_rate=0.5):
         # type: (float) -> None
         """Config BMPs on each spatial unit randomly."""
         pot_bmps = self.cfg.bmps_subids[:]
-        if 0 not in pot_bmps:
-            pot_bmps.append(0)
+        # if 0 not in pot_bmps:
+        #     pot_bmps.append(0)
         for i in range(self.gene_num):
             if random.random() >= conf_rate:
                 continue
@@ -227,7 +232,7 @@ class SPScenario(Scenario):
                 continue
             if gene_v not in bmp_units:
                 bmp_units[gene_v] = list()
-            unit_id = self.cfg.gene_to_slppos[i]
+            unit_id = self.cfg.gene_to_unit[i]
             bmp_units[gene_v].append(unit_id)
         sce_item_count = 0
         for k, v in viewitems(bmp_units):
@@ -262,10 +267,11 @@ class SPScenario(Scenario):
         capex = 0.
         opex = 0.
         income = 0.
+        actual_years = self.cfg.runtime_years  # + self.timerange
         for idx, gene_v in enumerate(self.gene_values):
             if gene_v == 0:
                 continue
-            unit_id = self.cfg.gene_to_slppos[idx]
+            unit_id = self.cfg.gene_to_unit[idx]
             unit_lu = dict()
             for spname, spunits in self.cfg.units_infos.items():
                 if unit_id in spunits:
@@ -275,8 +281,8 @@ class SPScenario(Scenario):
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     capex += luarea * bmpparam['CAPEX']
-                    opex += luarea * bmpparam['OPEX'] * self.cfg.runtime_years
-                    income += luarea * bmpparam['INCOME'] * self.cfg.runtime_years
+                    opex += luarea * bmpparam['OPEX'] * actual_years
+                    income += luarea * bmpparam['INCOME'] * actual_years
 
         # self.economy = capex
         # self.economy = capex + opex
@@ -294,9 +300,9 @@ class SPScenario(Scenario):
         rfile = self.modelout_dir + os.path.sep + self.bmps_info['ENVEVAL']
 
         if not FileClass.is_file_exists(rfile):
-            time.sleep(5)  # sleep 5 seconds wait for the ouput
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
         if not FileClass.is_file_exists(rfile):
-            print('WARNING: Although SEIMS model runs successfully, the desired output: %s'
+            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ
             self.environment = self.worst_env
@@ -311,7 +317,7 @@ class SPScenario(Scenario):
             # print exception values
             if self.environment > 1. or self.environment < 0.:
                 print('Exception Information: Scenario ID: %d, '
-                      'SOER: %s' % (self.ID, soil_erosion_amount))
+                      'SUM(%s): %s' % (self.ID, rfile, soil_erosion_amount))
                 self.environment = self.worst_env
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
@@ -376,7 +382,7 @@ class SPScenario(Scenario):
 
             v_dict = dict()
             for idx, gene_v in enumerate(self.gene_values):
-                v_dict[self.cfg.gene_to_slppos[idx]] = gene_v
+                v_dict[self.cfg.gene_to_unit[idx]] = gene_v
 
             for k, v in v_dict.items():
                 slppos_data[slppos_data == k] = v
@@ -387,77 +393,117 @@ class SPScenario(Scenario):
             client.close()
 
 
-def get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue,
-                       method='SUIT', bmpgrades=None):
-    # type: (Dict[int, List[int]], int, int, int, int, int, str, Optional[Dict[int, int]]) -> List[int]
-    """Get potential BMPs based on the specific knowledge-based rule method.
+def select_potential_bmps(unitid,  # type: int
+                          suitbmps,  # type: Dict[int, List[int]] # key could be SLPPOS or LANDUSE
+                          unitsinfo,  # type: Dict[Union[str, int], Any]
+                          unit2gene,  # type: OrderedDict[int, int]
+                          ind,  # type: Union[array.array, List[int], Tuple[int]] # gene values
+                          unit='SLPPOS',  # type: AnyStr
+                          method='SUIT',  # type: AnyStr
+                          bmpgrades=None,  # type: Optional[Dict[int, int]]
+                          tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # for SLPPOS
+                          ):
+    # type: (...) -> Optional[List[int]]
+    """Select potential BMPs for specific spatial unit."""
+    suit_bmps_tag = -1
+    down_unit = -1
+    up_units = list()
+    if unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        for spid, spdict in viewitems(unitsinfo):
+            if unitid not in spdict:
+                continue
+            down_unit = spdict[unitid].get('downslope')
+            up_units.append(spdict[unitid].get('upslope'))
+            for t, n in tagnames:
+                if spid == n:
+                    suit_bmps_tag = t
+                    break
+    else:  # other spatial units take `LANDUSE` to suit BMPs
+        # ValueError checks should be done in other place
+        suit_bmps_tag = unitsinfo['units'][unitid]['primarylanduse']
+        down_unit = unitsinfo['units'][unitid].get('downslope')
+        up_units = unitsinfo['units'][unitid].get('upslope')
 
-    Args:
-        suitbmps(dict): All available BMPs IDs of each slope position
-        sptag(int): Slope position tag, e.g. 1, 4, 16
-        up_sid(int): Upslope position ID
-        up_gvalue(int): Gene value of upslope position
-        down_sid(int): Downslope position ID
-        down_gvalue(int): Gene value of downslope position
-        method(str): Knowledge-based rule method.
-        bmpgrades(dict): (Optional) Effectiveness grades of BMPs
+    if suit_bmps_tag not in suitbmps:
+        return None
 
-    Returns:
-        Potential BMPs IDs.
-    """
-    bmps = suitbmps[sptag][:]
+    bmps = suitbmps[suit_bmps_tag][:]
     bmps = list(set(bmps))  # ascending
-    if bmpgrades is None:  # By default, the effectiveness grade should be equal for all BMPs.
-        bmpgrades = {bid: 1 for bid in bmps}
-    if 0 not in bmps:
-        bmps.append(0)
-    if 0 not in bmpgrades:
-        bmpgrades[0] = 0
-    if method == 'SUIT':  # Without any special rule
-        pass
-    elif method == 'UPDOWN':
-        # If not bottom slppos and the downslope unit is configured BMP, then remove 0
-        if down_sid > 0 and down_gvalue == 0:
+    # if 0 not in bmps:
+    #     bmps.append(0)
+
+    if method == BMPS_CFG_METHODS[1]:  # SUIT
+        return bmps
+
+    down_position = False
+    down_gvalue = -1
+    if down_unit > 0:
+        down_gvalue = ind[unit2gene[down_unit]]
+    else:
+        down_position = True
+
+    if method == BMPS_CFG_METHODS[2]:  # UPDOWN
+        if down_unit <= 0:  # If downslope unit does not exists
+            return bmps
+        if down_gvalue > 0:
+            # If downslope unit is configured BMP, then this unit should not configure BMP
+            bmps = [0]
+        else:
+            # If downslope unit is not configured BMP, then this unit will be configured one BMP
             bmps.remove(0)
-    elif method == 'SLPPOS':
+        return bmps
+
+    if method == BMPS_CFG_METHODS[3]:  # SLPPOS
+        if bmpgrades is None:  # By default, the effectiveness grade should be equal for all BMPs.
+            bmpgrades = {bid: 1 for bid in bmps}
+        if 0 not in bmpgrades:
+            bmpgrades[0] = 0
+
+        top_position = False
+        up_gvalue = -1
+        if up_units and up_units[0] > 0:
+            up_gvalue = ind[unit2gene[up_units[0]]]
+        else:
+            top_position = True
+
         up_grade = bmpgrades[up_gvalue] if up_gvalue in bmpgrades else 0
         down_grade = bmpgrades[down_gvalue] if down_gvalue in bmpgrades else 0
         new_bmps = list()
-        if up_sid < 0 < down_gvalue:  # 1. the top slppos, and downslope with BMP
+        if top_position and down_gvalue > 0:  # 1. the top slppos, and downslope with BMP
             for _bid, _bgrade in viewitems(bmpgrades):
-                if _bgrade <= down_grade:
+                if _bgrade <= down_grade and _bid in bmps:
                     new_bmps.append(_bid)
-        elif down_sid < 0 < up_gvalue:  # 2. the bottom slppos, and upslope with BMP
+        elif down_position and up_gvalue > 0:  # 2. the bottom slppos, and upslope with BMP
             for _bid, _bgrade in viewitems(bmpgrades):
-                if up_grade <= _bgrade:
+                if up_grade <= _bgrade and _bid in bmps:
                     new_bmps.append(_bid)
-        elif down_sid > 0 and up_sid > 0:  # 3. middle slppos
+        elif not top_position and not down_position:  # 3. middle slppos
             for _bid, _bgrade in viewitems(bmpgrades):
-                if down_gvalue == 0 and up_gvalue <= _bgrade:  # 3.1. downslope no BMP
+                if down_gvalue == 0 and up_gvalue <= _bgrade and _bid in bmps:
+                    # 3.1. downslope no BMP
                     new_bmps.append(_bid)
-                elif up_grade <= _bgrade <= down_grade:  # 3.2. downslope with BMP
+                elif up_grade <= _bgrade <= down_grade and _bid in bmps:
+                    # 3.2. downslope with BMP
                     new_bmps.append(_bid)
         else:  # Do nothing
             pass
         if len(new_bmps) > 0:
             bmps = list(set(new_bmps))
-    else:
-        pass
-    return bmps
+        return bmps
 
 
 def initialize_scenario(cf):
-    # type: (SASPUConfig) -> List[int]
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]) -> List[int]
     """Initialize gene values"""
-    sce = SPScenario(cf)
+    sce = SUScenario(cf)
     return sce.initialize()
 
 
 def scenario_effectiveness(cf, ind):
-    # type: (SASPUConfig, array.array) -> (float, float, int)
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
     """Run SEIMS-based model and calculate economic and environmental effectiveness."""
     # 1. instantiate the inherited Scenario class.
-    sce = SPScenario(cf)
+    sce = SUScenario(cf)
     curid = sce.set_unique_id()
     setattr(sce, 'gene_values', ind)
     # 2. decoding gene values to BMP items and exporting to MongoDB.
@@ -466,6 +512,7 @@ def scenario_effectiveness(cf, ind):
     # 3. execute SEIMS model
     sce.execute_seims_model()
     # Get timespan
+    ind.id = curid
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
     # 4. calculate scenario effectiveness
     sce.calculate_economy()
@@ -473,19 +520,28 @@ def scenario_effectiveness(cf, ind):
     # 5. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
+    # 6. Assign fitness values
+    ind.fitness.values = [sce.economy, sce.environment]
 
-    return sce.economy, sce.environment, curid
+    return ind
 
 
 def main_multiple(eval_num):
     # type: (int) -> None
     """Test of multiple evaluations of scenarios."""
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and UNIQHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
 
     cost = list()
     for _ in range(eval_num):
-        sce = SPScenario(cfg)
+        sce = SUScenario(cfg)
         sce.initialize()
         sceid = sce.set_unique_id()
         print(sceid, sce.gene_values.__str__())
@@ -497,8 +553,16 @@ def main_multiple(eval_num):
 def main_single():
     """Test of single evaluation of scenario."""
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
-    sce = SPScenario(cfg)
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and UNIQHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+
+    sce = SUScenario(cfg)
     sce.initialize()
     sceid = sce.set_unique_id()
     print(sceid, sce.gene_values.__str__())
@@ -515,12 +579,18 @@ def main_single():
 def main_manual():
     """Test of set scenario manually."""
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
-    sce = SPScenario(cfg)
+    cfg = SASlpPosConfig(cf)
+    sce = SUScenario(cfg)
 
     sceid = 200206028
     sce.set_unique_id(sceid)
-    gene_values = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 3.0, 0.0, 1.0, 3.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 1.0, 4.0, 1.0, 0.0, 0.0]
+    gene_values = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 1.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 4.0, 0.0, 3.0, 0.0, 1.0, 3.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 2.0, 1.0, 1.0, 4.0, 1.0, 0.0, 0.0]
 
     sce.set_gene_values(gene_values)
 
@@ -537,6 +607,6 @@ def main_manual():
 
 
 if __name__ == '__main__':
-    main_manual()
-    # main_single()
+    # main_manual()
+    main_single()
     # main_multiple(4)
