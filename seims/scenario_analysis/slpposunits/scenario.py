@@ -450,7 +450,8 @@ def select_potential_bmps(unitid,  # type: int
             bmps = [0]
         else:
             # If downslope unit is not configured BMP, then this unit will be configured one BMP
-            bmps.remove(0)
+            if 0 in bmps:
+                bmps.remove(0)
         return bmps
 
     if method == BMPS_CFG_METHODS[3]:  # SLPPOS
