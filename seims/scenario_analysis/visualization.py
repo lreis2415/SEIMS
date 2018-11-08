@@ -415,8 +415,10 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
 
 def plot_pareto_fronts_fromfile(method_paths,  # type: Dict[AnyStr, AnyStr]
                                 sce_name,  # type: AnyStr
-                                xname,  # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
-                                yname,  # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
+                                xname,
+                                # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
+                                yname,
+                                # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
                                 gens,  # type: List[int]
                                 ws  # type: AnyStr
                                 ):

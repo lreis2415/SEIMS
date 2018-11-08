@@ -280,19 +280,19 @@ def main(sceobj):
         # save front for further possible use
         numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
                       front, delimiter=str(' '), fmt=str('%.4f'))
-
-        try:
-            p = ThreadPoolExecutor(1)
-            func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
-                            ws, gen, 'Near Pareto optimal solutions')
-            func.result(timeout=10)
-        except TimeoutError:
-            scoop_log('Plot pareto front timeout for generation %d!' % gen)
-            pass
-        except Exception as e:
-            scoop_log('Exception caught: %s' % str(e))
-        except:
-            scoop_log('Exception caught: %s' % sys.exc_info()[0])
+        # Comment out since matplotlib is quite often not working.
+        # try:
+        #     p = ThreadPoolExecutor(1)
+        #     func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
+        #                     ws, gen, 'Near Pareto optimal solutions')
+        #     func.result(timeout=10)
+        # except TimeoutError:
+        #     scoop_log('Plot pareto front timeout for generation %d!' % gen)
+        #     pass
+        # except Exception as e:
+        #     scoop_log('Exception caught: %s' % str(e))
+        # except:
+        #     scoop_log('Exception caught: %s' % sys.exc_info()[0])
         plot_time += time.time() - stime
 
         # save in file
@@ -307,13 +307,14 @@ def main(sceobj):
                              sceobj.model.port, sceobj.model.ScenarioDBName)
 
     # Plot hypervolume and newly executed model count
-    try:
-        p = ThreadPoolExecutor(1)
-        func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
-        func.result(timeout=5)
-    except TimeoutError:
-        scoop_log('Plot hypervolume timeout!')
-        pass
+    # Comment out since matplotlib is quite often not working.
+    # try:
+    #     p = ThreadPoolExecutor(1)
+    #     func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
+    #     func.result(timeout=5)
+    # except TimeoutError:
+    #     scoop_log('Plot hypervolume timeout!')
+    #     pass
 
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
