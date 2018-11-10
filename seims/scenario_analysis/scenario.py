@@ -5,7 +5,6 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-10-29  hr - initial implementation.
     - 17-08-18  lj - redesign and rewrite.
     - 18-02-09  lj - compatible with Python3.
@@ -88,7 +87,7 @@ class Scenario(object):
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
-        timerange(float): Simulation time range, read from MongoDB, the unit is year.
+        eval_timerange(float): Simulation time range, read from MongoDB, the unit is year.
         economy(float): Economical effectiveness, e.g., income minus expenses
         environment(float): Environmental effectiveness, e.g., reduction rate of soil erosion
         gene_num(integer): The number of genes of one chromosome, i.e., an individual
@@ -103,7 +102,7 @@ class Scenario(object):
         # type: (SAConfig) -> None
         """Initialize."""
         self.ID = -1
-        self.timerange = 1.  # unit: year
+        self.eval_timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
         self.worst_econ = cfg.worst_econ
@@ -127,8 +126,8 @@ class Scenario(object):
         self.scenario_db = self.model.ScenarioDBName
         # (Re)Calculate timerange in the unit of year
         self.model.ResetSimulationPeriod()
-        dlt = self.model.end_time - self.model.start_time + timedelta(seconds=1)
-        self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
+        self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
         self.modelrun = False  # indicate whether the model has been executed
 

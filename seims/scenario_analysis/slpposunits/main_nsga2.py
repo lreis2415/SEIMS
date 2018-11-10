@@ -5,14 +5,12 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-12-30  hr - initial implementation.
     - 17-08-18  lj - reorganize.
     - 18-02-09  lj - compatible with Python3.
     - 18-11-02  lj - Optimization.
 """
 from __future__ import absolute_import, unicode_literals
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 import array
 import os
@@ -41,7 +39,6 @@ from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.scenario import delete_model_outputs
-from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
 from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
 from scenario_analysis.slpposunits.scenario import SUScenario
 from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
@@ -282,6 +279,8 @@ def main(sceobj):
                       front, delimiter=str(' '), fmt=str('%.4f'))
         # Comment out since matplotlib is quite often not working.
         # try:
+        #     from concurrent.futures import ThreadPoolExecutor, TimeoutError
+        #     from scenario_analysis.visualization import plot_pareto_front
         #     p = ThreadPoolExecutor(1)
         #     func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
         #                     ws, gen, 'Near Pareto optimal solutions')
@@ -309,6 +308,7 @@ def main(sceobj):
     # Plot hypervolume and newly executed model count
     # Comment out since matplotlib is quite often not working.
     # try:
+    #     from scenario_analysis.visualization import plot_hypervolume_single
     #     p = ThreadPoolExecutor(1)
     #     func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
     #     func.result(timeout=5)

@@ -5,7 +5,6 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-09-12  hr - initial implementation.
     - 17-08-18  lj - reorganization.
     - 18-02-09  lj - compatible with Python3.
@@ -162,9 +161,9 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
                       ws,  # type: AnyStr # Full path of the destination directory
                       gen_id,  # type: int # Generation ID
                       title,  # type: AnyStr # Main title of the figure
-                      lowers=None,  # type: Optional[List[float]] # Lower values of each axis
-                      uppers=None,  # type: Optional[List[float]] # Higher values of each axis
-                      steps=None,  # type: Optional[List[float]] # Intervals of each axis
+                      lowers=None,  # type: Optional[numpy.ndarray, List[float]] # Lower values of each axis
+                      uppers=None,  # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
+                      steps=None,  # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
                       cn=False  # type: bool # Use Chinese or not
                       ):
     # type: (...) -> bool
@@ -591,6 +590,7 @@ def read_hypervolume(hypervlog):
     # type: (AnyStr) -> (List[int], List[float], List[float])
     """Read hypervolume data from file."""
     if not os.path.exists(hypervlog):
+        print('Error: The hypervolume log file %s is not existed!' % hypervlog)
         return None, None, None
     x = list()
     nmodel = list()
@@ -620,6 +620,9 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
         cn: (Optional) Use Chinese
     """
     x, hyperv, nmodel = read_hypervolume(hypervlog)
+    if not x or not hyperv:
+        print('Error: No available hypervolume data loaded!')
+        return False
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
@@ -645,6 +648,8 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     legends = p1
 
     plt.tight_layout()
+    if ws is None:
+        ws = os.path.dirname(hypervlog)
     save_png_eps(plt, ws, 'hypervolume')
 
     if nmodel:
