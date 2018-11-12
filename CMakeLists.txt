@@ -185,7 +185,7 @@ IF (UNITTEST STREQUAL 1)
     INCLUDE(DownloadProject)
     download_project(PROJ                googletest
             GIT_REPOSITORY      https://github.com/google/googletest.git
-            GIT_TAG             master
+            GIT_TAG             release-1.8.0
             ${UPDATE_DISCONNECTED_IF_AVAILABLE}
             )
     ADD_SUBDIRECTORY(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
