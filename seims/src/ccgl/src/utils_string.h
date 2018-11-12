@@ -5,9 +5,10 @@
  *
  * Changelog:
  *   - 1. 2018-05-02 - lj - Make part of CCGL.
+ *   - 2. 2018-11-12 - lj - Add check and conversion between string and number (int, float, double)
  *
  * \author Liangjun Zhu (crazyzlj)
- * \version 1.0
+ * \version 1.1
  */
 #ifndef CCGL_UTILS_STRING_H
 #define CCGL_UTILS_STRING_H
@@ -18,6 +19,7 @@
 #include "basic.h"
 
 using std::string;
+using std::wstring;
 using std::vector;
 
 namespace ccgl {
@@ -90,19 +92,296 @@ string ValueToString(const T& val) {
     return oss.str();
 }
 
+#if defined(CPP_GCC) || defined(CPP_ICC)
+inline void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%d", value);
+}
+
+inline void _itow_s(vint32_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%d", value);
+}
+
+inline void _i64toa_s(vint64_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%ld", value);
+}
+
+inline void _i64tow_s(vint64_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%ld", value);
+}
+
+inline void _uitoa_s(vuint32_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%u", value);
+}
+
+void _uitow_s(vuint32_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%u", value);
+}
+
+void _ui64toa_s(vuint64_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%lu", value);
+}
+
+void _ui64tow_s(vuint64_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%lu", value);
+}
+
+void _gcvt_s(char* buffer, size_t size, double value, vint numberOfDigits) {
+    sprintf(buffer, "%f", value);
+    char* point = strchr(buffer, '.');
+    if (!point) return;
+    char* zero = buffer + strlen(buffer);
+    while (zero[-1] == '0') {
+        *--zero = '\0';
+    }
+    if (zero[-1] == '.') *--zero = '\0';
+}
+#endif
+
+/*!
+ * \brief Convert a signed integer to a string
+ * \param[in] number The number to convert
+ * \return The converted string
+ */
+string itoa(vint number);
+
+/*!
+ * \brief Convert a signed interger to an unicode string
+ * \param[in] number The number to convert
+ * \return The converted unicode string
+ */
+wstring itow(vint number);
+
+/*!
+ * \brief Convert a 64-bits signed integer to a string
+ * \param[in] number The number to convert
+ * \return The converted string
+ */
+string i64toa(vint64_t number);
+
+/*!
+ * \brief Convert a 64-bits signed integer to an unicode string
+ * \param[in] number The number to convert
+ * \return The converted unicode string
+ */
+wstring i64tow(vint64_t number);
+
+/*!
+ * \brief Convert an unsigned integer to a string
+ * \param[in] number The number to convert
+ * \return The converted string
+ */
+string utoa(vuint number);
+
+/*!
+ * \brief Convert an unsigned integer to an unicode string
+ * \param[in] number The number to convert
+ * \return The converted unicode string
+ */
+wstring utow(vuint number);
+
+/*!
+ * \brief Convert a 64-bits unsigned integer to a string
+ * \param[in] number The number to convert
+ * \return The converted string
+ */
+string u64toa(vuint64_t number);
+
+/*!
+* \brief Convert a 64-bits unsigned integer to an unicode string
+* \param[in] number The number to convert
+* \return The converted unicode string
+*/
+wstring u64tow(vuint64_t number);
+
+/*!
+ * \brief Convert a 64-bits floating pointer number to a string
+ * \param[in] number The number to convert
+ * \return The converted string
+ */
+string ftoa(double number);
+
+/*!
+* \brief Convert a 64-bits floating pointer number to an unicode string
+* \param[in] number The number to convert
+* \return The converted unicode string
+*/
+wstring ftow(double number);
+
+/*!
+ * \brief Convert an unicode string to an Ansi string
+ * \param[in] wstr The unicode string to convert
+ * \return The converted ansi string
+ */
+string wtoa(const wstring& wstr);
+vint _wtoa(const wchar_t* w, char* a, vint chars);
+
+/*!
+ * \brief Convert an Ansi string to an unicode string
+ * \param[in] wstr The Ansi string to convert
+ * \return The converted unicode string
+ */
+wstring atow(const string& astr);
+vint _atow(const char* a, wchar_t* w, vint chars);
+
 /*!
  * \brief Get numeric values by splitting the given string based on the given delimiter
  */
 template <typename T>
 bool SplitStringForValues(const string& items, const char delimiter, vector<T>& values);
 
+/*!
+ * \brief Check if a string is an signed integer, if ture, return the converted integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vint IsInt(const string& num_str, bool& success);
 
+/*!
+ * \brief Check if an unicode string is an signed integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vint IsInt(const wstring& num_str, bool& success);
+
+/*!
+ * \brief Convert a string to an signed 64-bits integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vint64_t IsInt64(const string& num_str, bool& success);
+
+/*!
+ * \brief Convert an unicode string to an signed 64-bits integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vint64_t IsInt64(const wstring& num_str, bool& success);
+
+/*!
+ * \brief Convert an Ansi string to an unsigned integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vuint IsUInt(const string& num_str, bool& success);
+
+/*!
+ * \brief Convert an Unicode string to an unsigned integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vuint IsUInt(const wstring& num_str, bool& success);
+
+/*!
+ * \brief Convert an Ansi string to a 64-bits unsigned integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vuint64_t IsUInt64(const string& num_str, bool& success);
+
+/*!
+ * \brief Convert an Unicode string to a 64-bits unsigned integer
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+vuint64_t IsUInt64(const wstring& num_str, bool& success);
+
+/*!
+ * \brief Convert an Ansi string to 64-bits floating point number
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+double IsDouble(const string& num_str, bool& success);
+
+/*!
+ * \brief Convert an Ansi string to 64-bits floating point number
+ * \param[in] num_str The string to convert
+ * \param[out] success Return true if succeed
+ * \return The converted number if succeed, otherwise the result is undefined.
+ */
+double IsDouble(const wstring& num_str, bool& success);
+
+
+/*!
+ * \brief Check if a string is a number (integer or float)
+ */
+template <typename STRING_T>
+bool IsNumber(const STRING_T& num_str);
+
+/*!
+ * \brief Convert an Ansi or Unicode string to an integer
+ */
+template <typename STRING_T>
+vint ToInt(const STRING_T& num_str);
+
+/*!
+ * \brief Convert an Ansi or Unicode string to an signed 64-bits integer
+ */
+template <typename STRING_T>
+vint64_t ToInt64(const STRING_T& num_str);
+
+/*!
+ * \brief Convert an Ansi or Unicode string to an unsigned integer
+ */
+template <typename STRING_T>
+vuint ToUInt(const STRING_T& num_str);
+
+/*!
+ * \brief Convert an Ansi or Unicode string to a 64-bits unsigned integer
+ */
+template <typename STRING_T>
+vuint64_t ToUInt64(const STRING_T& num_str);
+
+/*!
+ * \brief Convert an Ansi or Unicode string to a 64-bits floating point number
+ */
+template <typename STRING_T>
+double ToDouble(const STRING_T& num_str);
+
+
+template <typename STRING_T>
+vint ToInt(const STRING_T& num_str) {
+    bool success = false;
+    return IsInt(num_str, success);
+}
+
+template <typename STRING_T>
+vint64_t ToInt64(const STRING_T& num_str) {
+    bool success = false;
+    return IsInt64(num_str, success);
+}
+
+template <typename STRING_T>
+vuint ToUInt(const STRING_T& num_str) {
+    bool success = false;
+    return IsUInt(num_str, success);
+}
+
+template <typename STRING_T>
+vuint64_t ToUInt64(const STRING_T& num_str) {
+    bool success = false;
+    return IsUInt64(num_str, success);
+}
+
+template <typename STRING_T>
+double ToDouble(const STRING_T& num_str) {
+    bool success = false;
+    return IsDouble(num_str, success);
+}
 /************ Implementation of template functions ******************/
 template <typename T>
 bool SplitStringForValues(const string& items, const char delimiter, vector<T>& values) {
     vector<string> value_strs = SplitString(items, delimiter);
     char* end = nullptr;
-    for (vector<string>::iterator it = value_strs.begin(); it != value_strs.end(); ++it) {
+    for (auto it = value_strs.begin(); it != value_strs.end(); ++it) {
         if ((*it).find_first_of("0123456789") == string::npos) {
             continue;
         }
@@ -112,6 +391,13 @@ bool SplitStringForValues(const string& items, const char delimiter, vector<T>& 
     return true;
 }
 
+template <typename STRING_T>
+bool IsNumber(const STRING_T& num_str) {
+    bool is_double = false;
+    IsDouble(num_str, is_double);
+    if (is_double) return true;
+    return false;
+}
 } /* namespace: utils_string */
 } /* namespace: ccgl */
 
