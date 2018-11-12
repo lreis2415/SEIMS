@@ -18,9 +18,11 @@
  *   - 6. Dec. 2017 lj Add Unittest based on Google Test.
  *   - 7. Mar. 2018 lj Make part of CCGL, and make GDAL optional. Follows Google C++ Code Style.
  *   - 8. Jun. 2018 lj Use emplace and emplace_back rather than insert and push_back whenever possible.
+ *   - 9. Nov. 2018 lj Add specific field-value for GridFS in `OutputToMongoDB`.
  *
  * \author Liangjun Zhu
- * \version 2.2
+ * \email zlj@lreis.ac.cn
+ * \version 2.3
  */
 #ifndef CCGL_DATA_RASTER_H
 #define CCGL_DATA_RASTER_H
@@ -365,8 +367,10 @@ public:
      * \brief Write raster data (matrix raster data) into MongoDB
      * \param[in] filename \a string, output file name
      * \param[in] gfs \a mongoc_gridfs_t
+     * \param[in] kv (optional) Key-value map for user-specific metadata
      */
-    void OutputToMongoDB(const string& filename, MongoGridFs* gfs);
+    void OutputToMongoDB(const string& filename, MongoGridFs* gfs,
+                         map<string, string> kv = map<string, string>());
 
 #endif /* USE_MONGODB */
 
@@ -824,9 +828,11 @@ private:
      * \param[in] srs Coordinate system string
      * \param[in] values float raster data array
      * \param[in] datalength
+     * \param[in] kv (optional) Key-value map for user-specific metadata
      */
     static void WriteStreamDataAsGridfs(MongoGridFs* gfs, const string& filename, map<string, double>& header,
-                                        const string& srs, T* values, int datalength);
+                                        const string& srs, T* values, int datalength,
+                                        map<string, string> kv = map<string, string>());
 
 #endif /* USE_MONGODB */
 
@@ -1827,7 +1833,8 @@ bool clsRasterData<T, MASK_T>::OutputFileByGdal(const string& filename) {
 
 #ifdef USE_MONGODB
 template <typename T, typename MASK_T>
-void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGridFs* gfs) {
+void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGridFs* gfs,
+                                               map<string, string> kv /* = map<string, string>() */) {
     // 1. Is there need to calculate valid position index?
     int cnt;
     int** pos;
@@ -1867,7 +1874,7 @@ void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGrid
                 }
             }
         }
-        WriteStreamDataAsGridfs(gfs, core_name, headers_, srs_, data_1d, datalength);
+        WriteStreamDataAsGridfs(gfs, core_name, headers_, srs_, data_1d, datalength, kv);
         Release1DArray(data_1d);
     } else {
         // 3.2 1D raster data
@@ -1889,7 +1896,7 @@ void clsRasterData<T, MASK_T>::OutputToMongoDB(const string& filename, MongoGrid
                 }
             }
         }
-        WriteStreamDataAsGridfs(gfs, core_name, headers_, srs_, data_1d, datalength);
+        WriteStreamDataAsGridfs(gfs, core_name, headers_, srs_, data_1d, datalength, kv);
         if (outputdirectly) { data_1d = nullptr; } else
             Release1DArray(data_1d);
     }
@@ -1901,12 +1908,33 @@ void clsRasterData<T, MASK_T>::WriteStreamDataAsGridfs(MongoGridFs* gfs,
                                                        map<string, double>& header,
                                                        const string& srs,
                                                        T* values,
-                                                       const int datalength) {
+                                                       const int datalength,
+                                                       map<string, string> kv /* = map<string, string>() */) {
     bson_t p = BSON_INITIALIZER;
-    for (map<string, double>::iterator iter = header.begin(); iter != header.end(); ++iter) {
-        BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
+    for (auto iter = header.begin(); iter != header.end(); ++iter) {
+        if (std::fmod(iter->second, 1.) == 0) {
+            BSON_APPEND_INT32(&p, iter->first.c_str(), CVT_INT(iter->second));
+        } else {
+            BSON_APPEND_DOUBLE(&p, iter->first.c_str(), iter->second);
+        }
     }
     BSON_APPEND_UTF8(&p, HEADER_RS_SRS, srs.c_str());
+    // Add user-specific key-values into metadata
+    if (!kv.empty()) {
+        for (auto kviter = kv.begin(); kviter != kv.end(); ++kviter) {
+            bool is_dbl = false;
+            double dbl_value = IsDouble(kviter->second, is_dbl);
+            if (!is_dbl) {
+                BSON_APPEND_UTF8(&p, kviter->first.c_str(), kviter->second.c_str());
+            } else {
+                if (std::fmod(dbl_value, 1.) == 0) {
+                    BSON_APPEND_INT32(&p, kviter->first.c_str(), CVT_INT(dbl_value));
+                } else {
+                    BSON_APPEND_DOUBLE(&p, kviter->first.c_str(), dbl_value);
+                }
+            }
+        }
+    }
     char* buf = reinterpret_cast<char *>(values);
     int buflength = datalength * sizeof(T);
     gfs->WriteStreamData(filename, buf, buflength, &p);

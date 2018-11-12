@@ -238,7 +238,11 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         string gfsfilename = "dem_1d-nopos_incst-mask-pos-ext_" + GetSuffix(oldfullname);
         MongoGridFs* gfs = new MongoGridFs(conn->GetGridFs("test", "spatial"));
         gfs->RemoveFile(gfsfilename);
-        rs_->OutputToMongoDB(gfsfilename, gfs);
+        // Add additional metadata key-values
+        map<string, string> opts;
+        opts.emplace("Author", "Liangjun");
+        opts.emplace("Grade", "5.0");
+        rs_->OutputToMongoDB(gfsfilename, gfs, opts);
         clsRasterData<float, int>* mongors = clsRasterData<float, int>::
                 Init(gfs, gfsfilename.c_str(), false, maskrs_, true);
         // test mongors data

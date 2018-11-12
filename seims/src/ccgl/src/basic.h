@@ -71,7 +71,7 @@
 using std::string;
 
 // define some macro for string related built-in functions
-#ifdef MSVC
+#ifdef CPP_MSVC
 #define stringcat strcat_s
 #define stringcpy strcpy_s
 #define strprintf sprintf_s
@@ -83,7 +83,7 @@ using std::string;
 #define strprintf snprintf
 #define strtok strtok_r
 #define stringscanf sscanf
-#endif /* MSVC */
+#endif /* CPP_MSVC */
 
 #if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR) || defined(_MSC_VER)
 #define strcasecmp _stricmp
@@ -119,7 +119,7 @@ using std::string;
 #define HAS_OVERRIDE
 #define HAS_VARIADIC_TEMPLATES
 #endif /* Intel C++ */
-#elif defined(__GNUC__)
+#elif defined(CPP_GCC)
 // GNU GCC
 #if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406 && (__cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X__) && __GXX_EXPERIMENTAL_CXX0X__))
 #define HAS_NOEXCEPT
@@ -320,6 +320,27 @@ typedef vint64_t pos_t;
 #define CVT_VUINT(param) static_cast<vuint>((param))
 /*! Convert to 8-byte (64-bit) unsigned integer `vuint64_t` */
 #define CVT_VUINT64(param) static_cast<vuint64_t>((param))
+
+
+#ifdef CPP_64
+#define ITOA_S		_i64toa_s
+#define ITOW_S		_i64tow_s
+#define I64TOA_S	_i64toa_s
+#define I64TOW_S	_i64tow_s
+#define UITOA_S		_ui64toa_s
+#define UITOW_S		_ui64tow_s
+#define UI64TOA_S	_ui64toa_s
+#define UI64TOW_S	_ui64tow_s
+#else
+#define ITOA_S		_itoa_s
+#define ITOW_S		_itow_s
+#define I64TOA_S	_i64toa_s
+#define I64TOW_S	_i64tow_s
+#define UITOA_S		_ui64toa_s
+#define UITOW_S		_ui64tow_s
+#define UI64TOA_S	_ui64toa_s
+#define UI64TOW_S	_ui64tow_s
+#endif
 
 /*!
  * \class NotCopyable
