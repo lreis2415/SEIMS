@@ -190,7 +190,7 @@ vint _wtoa(const wchar_t* w, char* a, vint chars);
 
 /*!
  * \brief Convert an Ansi string to an unicode string
- * \param[in] wstr The Ansi string to convert
+ * \param[in] astr The Ansi string to convert
  * \return The converted unicode string
  */
 wstring atow(const string& astr);
@@ -349,6 +349,7 @@ double ToDouble(const STRING_T& num_str) {
     bool success = false;
     return IsDouble(num_str, success);
 }
+
 /************ Implementation of template functions ******************/
 template <typename T>
 bool SplitStringForValues(const string& items, const char delimiter, vector<T>& values) {
