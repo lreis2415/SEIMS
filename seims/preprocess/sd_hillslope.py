@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Delineate hillslopes for each subbasin, include header, left, and right hillslope.
+
     @author   : Liangjun Zhu
-    @changelog: 17-05-15  lj - initial version modified from Whitebox GAT.
-                17-06-29  lj - reorganized according to pylint and google style
-                17-07-20  lj - bug fixed of downstream_method_whitebox() method of Whitebox GAT
-                               see details at https://github.com/lreis2415/SEIMS/issues/1
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-05-15  lj - initial version modified from Whitebox GAT.
+    - 17-06-29  lj - reorganized according to pylint and google style
+    - 17-07-20  lj - bug fixed of downstream_method_whitebox() method of Whitebox GAT
+                     see details at https://github.com/lreis2415/SEIMS/issues/1
+    - 18-02-08  lj - compatible with Python3.
 """
 from __future__ import absolute_import
 

@@ -51,7 +51,7 @@ e.g.,
 ssh-keygen -t rsa -C crazyzlj@gmail.com
 ```
 
-一路回车，如果顺利的话，在用户目录（如`C:\Users\ZhuLJ`）里能找到`.ssh`目录，里面有`id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的密钥对，前者是私钥，后者是公钥。
+一路回车，如果顺利的话，在用户目录（如`C:/Users/ZhuLJ`）里能找到`.ssh`目录，里面有`id_rsa`和`id_rsa.pub`两个文件，这两个就是SSH Key的密钥对，前者是私钥，后者是公钥。
 + 然后，登录Github，打开 Account Settings，SSH key页面，点Add SSH Key，Title任意填，在Key文本框里填上`id_rsa.pub`的内容，点击Add key就好啦。
 + 打开[SEIMS模型的首页](https://github.com/lreis2415/SEIMS)， 点击`Fork`，来创建自己账户下的SEIMS克隆，克隆结束之后，复制克隆库的**SSH**地址。下一步，我们将克隆一份代码库到本地计算机。
 

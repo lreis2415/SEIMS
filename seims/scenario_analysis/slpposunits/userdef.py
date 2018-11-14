@@ -8,9 +8,9 @@
     - 16-11-08  hr - initial implementation.
     - 17-08-18  lj - reorganization.
     - 18-02-09  lj - compatible with Python3.
+    - 18-11-07  lj - support multiple BMPs configuration methods.
 """
 from __future__ import absolute_import
-from future.utils import viewitems
 
 import array
 from collections import OrderedDict
@@ -19,13 +19,13 @@ import sys
 import random
 
 from pygeoc.utils import get_config_parser
-from typing import List, Tuple, Dict, Union, Any, Optional
+from typing import List, Tuple, Dict, Union, Any, Optional, AnyStr
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
 from scenario_analysis import _DEBUG
-from scenario_analysis.slpposunits.scenario import get_potential_bmps
+from scenario_analysis.slpposunits.scenario import select_potential_bmps
 
 
 #                                       #
@@ -109,17 +109,18 @@ def crossover_rdm(ind1,  # type: Union[array.array, List[int], Tuple[int]]
 #               Mutate                  #
 #                                       #
 
-def mutate_slppos(unitsinfo,  # type: Dict[Union[str, int], Any]
-                  gene2unit,  # type: OrderedDict[int, int]
-                  unit2gene,  # type: OrderedDict[int, int]
-                  tagnames,  # type: List[Tuple[int, str]]
-                  suitbmps,  # type: Dict[int, List[int]]
-                  individual,  # type: Union[array.array, List[int], Tuple[int]]
-                  perc,  # type: float
-                  indpb,  # type: float
-                  method='SUIT',  # type: str
-                  bmpgrades=None  # type: Optional[Dict[int, int]]
-                  ):
+def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
+                gene2unit,  # type: Dict[int, int]
+                unit2gene,  # type: OrderedDict[int, int]
+                suitbmps,  # type: Dict[int, List[int]]
+                individual,  # type: Union[array.array, List[int], Tuple[int]]
+                perc,  # type: float
+                indpb,  # type: float
+                unit='SLPPOS',  # type: AnyStr
+                method='SUIT',  # type: AnyStr
+                bmpgrades=None,  # type: Optional[Dict[int, int]]
+                tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # For slope position units
+                ):
     # type: (...) -> Union[array.array, List[int], Tuple[int]]
     """
     Mutation Gene values based on slope position rules.
@@ -135,6 +136,7 @@ def mutate_slppos(unitsinfo,  # type: Dict[Union[str, int], Any]
         individual(list or tuple): Individual to be mutated.
         perc(float): percent of gene length for mutate, default is 0.02
         indpb(float): Independent probability for each attribute to be mutated.
+        unit(str): BMPs configuration unit type.
         method(str): Domain knowledge-based rule method.
         bmpgrades(dict): (Optional) Effectiveness grades of BMPs.
 
@@ -162,45 +164,22 @@ def mutate_slppos(unitsinfo,  # type: Dict[Union[str, int], Any]
         oldgenev = individual[mpoint]
         unitid = gene2unit[mpoint]
         # begin to mutate on unitid
-        # 1. get slope position tag, and upslope and downslope unit IDs
-        sptag = -1
-        down_sid = -1  # slppos unit ID
-        down_gid = -1  # gene index
-        down_gvalue = -1  # gene value
-        up_sid = -1
-        up_gid = -1
-        up_gvalue = -1
-        for spid, spdict in viewitems(unitsinfo):
-            if unitid not in spdict:
-                continue
-            for t, n in tagnames:
-                if spid == n:
-                    sptag = t
-                    break
-            down_sid = spdict[unitid]['downslope']
-            up_sid = spdict[unitid]['upslope']
-            if down_sid > 0:
-                down_gid = unit2gene[down_sid]
-                down_gvalue = individual[down_gid]
-            if up_sid > 0:
-                up_gid = unit2gene[up_sid]
-                up_gvalue = individual[up_gid]
-        if sptag < 0:  # this circumstance may not happen, just in case.
-            continue
-
         # get the potential BMP IDs
-        bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue,
-                                  method, bmpgrades)
+        bmps = select_potential_bmps(unitid, suitbmps, unitsinfo, unit2gene, individual,
+                                     unit=unit, method=method,
+                                     bmpgrades=bmpgrades, tagnames=tagnames)
+        if bmps is None or len(bmps) == 0:
+            continue
         # Get new BMP ID for current unit.
+        if 0 not in bmps:
+            bmps.append(0)
         if oldgenev in bmps:
             bmps.remove(oldgenev)
         if len(bmps) > 0:
             individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
             if _DEBUG:
-                print('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d,'
-                      ' , potBMPs: %s, new gene: %d' %
-                      (sptag, unitid, oldgenev, up_gvalue, down_gvalue,
-                       bmps.__str__(),individual[mpoint]))
+                print('  Mutate on unit: %d, oldgene: %d, potBMPs: %s, new gene: %d' %
+                      (unitid, oldgenev, bmps.__str__(), individual[mpoint]))
             muted.append(mpoint)
         else:  # No available BMP
             pass
@@ -251,14 +230,26 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
     return individual
 
 
-def main_test_mutate(perc, indpb, mtd):
-    # type: (float, float, str) -> None
+def main_test_mutate(perc, indpb, unit, mtd):
+    # type: (float, float, AnyStr, AnyStr) -> None
     """Test mutate function."""
-    from scenario_analysis.slpposunits.config import SASPUConfig
-    from scenario_analysis.slpposunits.scenario import SPScenario
+    from scenario_analysis import BMPS_CFG_UNITS
+    from scenario_analysis.config import SAConfig
+    from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, \
+        SACommUnitConfig
+    from scenario_analysis.slpposunits.scenario import SUScenario
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
-    sce = SPScenario(cfg)
+
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and UNIQHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+
+    sce = SUScenario(cfg)
 
     # Initialize gene values for one individual population
     init_gene_values = sce.initialize()
@@ -269,9 +260,9 @@ def main_test_mutate(perc, indpb, mtd):
     inicost = sce.calculate_economy()
 
     # Mutate
-    mutate_slppos(sce.cfg.units_infos, sce.cfg.gene_to_slppos, sce.cfg.slppos_to_gene,
-                  sce.cfg.slppos_tagnames, sce.suit_bmps,
-                  init_gene_values, perc, indpb, method=mtd, bmpgrades=sce.bmps_grade)
+    mutate_rule(sce.cfg.units_infos, sce.cfg.gene_to_unit, sce.cfg.unit_to_gene,
+                sce.suit_bmps, init_gene_values, perc, indpb, unit=unit,
+                method=mtd, bmpgrades=sce.bmps_grade, tagnames=sce.cfg.slppos_tagnames)
     print('Mutated genes: %s' % init_gene_values.__str__())
 
     # Calculate economic benefit after mutate
@@ -281,4 +272,4 @@ def main_test_mutate(perc, indpb, mtd):
 
 
 if __name__ == '__main__':
-    main_test_mutate(0.2, 0.3, 'SLPPOS')
+    main_test_mutate(0.2, 0.3, 'SLPPOS', 'SLPPOS')

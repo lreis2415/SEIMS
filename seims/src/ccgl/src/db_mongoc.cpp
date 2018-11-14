@@ -1,7 +1,7 @@
 #include "db_mongoc.h"
 
 #include <cassert>
-
+#include <utility>
 #include "basic.h"
 #include "utils_string.h"
 #include "utils_math.h"
@@ -12,6 +12,9 @@ using std::endl;
 
 #ifdef USE_MONGODB
 namespace ccgl {
+using namespace utils_string;
+using namespace utils_time;
+
 namespace db_mongoc {
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
@@ -33,14 +36,21 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
     mongoc_init();
     mongoc_uri_t* uri = mongoc_uri_new_for_host_port(host, port);
     mongoc_client_t* conn = mongoc_client_new_from_uri(uri);
-    /// Check the connection to MongoDB is success or not
-    bson_t* reply = bson_new();
-    bson_error_t* err = NULL;
-    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
-        cout << "Failed to connect to MongoDB!" << endl;
+    if (!conn) {
+        mongoc_uri_destroy(uri);
+        mongoc_client_destroy(conn);
         return nullptr;
     }
-    bson_destroy(reply);
+    /// Deprecated usage!
+    /// Check the connection to MongoDB is success or not
+    //    bson_t* reply = bson_new();
+    //    bson_error_t* err = NULL;
+    //    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
+    //        cout << "Failed to connect to MongoDB!" << endl;
+    //        return nullptr;
+    //    }
+    //    bson_destroy(reply);
+
     mongoc_uri_destroy(uri);
     mongoc_client_destroy(conn);
 
@@ -102,8 +112,14 @@ mongoc_gridfs_t* MongoClient::GetGridFs(string const& dbname, string const& gfsn
     bson_error_t err;
     mongoc_gridfs_t* gfs = mongoc_client_get_gridfs(conn_, dbname.c_str(), gfsname.c_str(), &err);
     if (gfs == NULL) {
-        cout << "Failed to connect to " + gfsname + " GridFS!" << endl;
-        return NULL;
+        // The database may not exist, create it first.
+        mongoc_database_t* db = mongoc_client_get_database(conn_, dbname.c_str());
+        gfs = mongoc_client_get_gridfs(conn_, dbname.c_str(), gfsname.c_str(), &err);
+        mongoc_database_destroy(db);
+        if (gfs == NULL) {
+            cout << "Failed to connect to " + gfsname + " GridFS! Error: " << err.message << endl;
+            return NULL;
+        }
     }
     return gfs;
 }
@@ -124,7 +140,7 @@ MongoDatabase::MongoDatabase(mongoc_database_t* db) : db_(db) {
     dbname_ = string(mongoc_database_get_name(db_));
 }
 
-MongoDatabase::MongoDatabase(mongoc_client_t* conn, string const& dbname) : dbname_(dbname) {
+MongoDatabase::MongoDatabase(mongoc_client_t* conn, string& dbname) : dbname_(dbname) {
     db_ = mongoc_client_get_database(conn, dbname_.c_str());
 }
 
@@ -144,7 +160,7 @@ void MongoDatabase::GetCollectionNames(vector<string>& collnames) {
     while (mongoc_cursor_next(cursor, &doc)) {
         if (bson_iter_init(&iter, doc) && bson_iter_find(&iter, "name")) {
             string tmp = GetStringFromBsonIterator(&iter);
-            vector<string> tmp_list = utils_string::SplitString(tmp, '.');
+            vector<string> tmp_list = SplitString(tmp, '.');
             auto tmp_iter = find(collnames.begin(), collnames.end(), tmp_list[0]);
             if (tmp_iter == collnames.end()) {
                 collnames.emplace_back(tmp_list[0]);
@@ -203,7 +219,8 @@ MongoGridFs::~MongoGridFs() {
     }
 }
 
-mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */) {
+mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */,
+                                           STRING_MAP opts /* = STRING_MAP() */) {
     if (gfs_ != NULL) gfs = gfs_;
     if (gfs == NULL) {
         cout << "mongoc_gridfs_t must be provided for MongoGridFs!" << endl;
@@ -211,10 +228,13 @@ mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridf
     }
     mongoc_gridfs_file_t* gfile = NULL;
     bson_error_t err;
-    // mongoc_gridfs_find_one_by_filename may failed even though the file exists
+    bson_t filter = BSON_INITIALIZER;
+    BSON_APPEND_UTF8(&filter, "filename", gfilename.c_str());
+    AppendStringOptionsToBson(&filter, opts);
+    // Replace `mongoc_gridfs_find_one_by_filename` by `mongoc_gridfs_find_one_with_opts`
     int count = 0;
     while (count < 10) {
-        gfile = mongoc_gridfs_find_one_by_filename(gfs, gfilename.c_str(), &err);
+        gfile = mongoc_gridfs_find_one_with_opts(gfs, &filter, NULL, &err);
         if (gfile == NULL) {
             SleepMs(1); // Sleep for one millisecond, in case of network blocking. By lj.
             count++;
@@ -224,6 +244,7 @@ mongoc_gridfs_file_t* MongoGridFs::GetFile(string const& gfilename, mongoc_gridf
         cout << "The file " << gfilename << " does not exist." << endl;
         return NULL;
     }
+    bson_destroy(&filter);
     return gfile;
 }
 
@@ -258,13 +279,14 @@ void MongoGridFs::GetFileNames(vector<string>& files_existed, mongoc_gridfs_t* g
     vector<string>(files_existed).swap(files_existed);
 }
 
-bson_t* MongoGridFs::GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */) {
+bson_t* MongoGridFs::GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs /* = NULL */,
+                                     STRING_MAP opts /* = STRING_MAP() */) {
     if (gfs_ != NULL) gfs = gfs_;
     if (gfs == NULL) {
         cout << "mongoc_gridfs_t must be provided for MongoGridFs!" << endl;
         return NULL;
     }
-    mongoc_gridfs_file_t* gfile = this->GetFile(gfilename, gfs);
+    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, opts);
     if (gfile == NULL) {
         cout << gfilename << " is not existed or get file timed out!" << endl;
         return NULL;
@@ -276,13 +298,14 @@ bson_t* MongoGridFs::GetFileMetadata(string const& gfilename, mongoc_gridfs_t* g
 }
 
 void MongoGridFs::GetStreamData(string const& gfilename, char*& databuf,
-                                size_t& datalength, mongoc_gridfs_t* gfs /* = NULL */) {
+                                size_t& datalength, mongoc_gridfs_t* gfs /* = NULL */,
+                                STRING_MAP opts /* = STRING_MAP() */) {
     if (gfs_ != NULL) gfs = gfs_;
     if (gfs == NULL) {
         cout << "mongoc_gridfs_t must be provided for MongoGridFs!" << endl;
         return;
     }
-    mongoc_gridfs_file_t* gfile = this->GetFile(gfilename, gfs);
+    mongoc_gridfs_file_t* gfile = GetFile(gfilename, gfs, opts);
     if (gfile == NULL) {
         databuf = NULL;
         cout << gfilename << " is not existed or get file timed out!" << endl;
@@ -327,19 +350,39 @@ void MongoGridFs::WriteStreamData(const string& gfilename, char*& buf, const siz
 ///////////////////////////////////////////////////
 /////////  bson related utilities   ///////////////
 ///////////////////////////////////////////////////
+
+void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts) {
+    if (!opts.empty()) {
+        for (auto iter = opts.begin(); iter != opts.end(); ++iter) {
+            string meta_field = "metadata." + iter->first;
+            bool is_dbl = false;
+            double dbl_value = IsDouble(iter->second, is_dbl);
+            if (StringMatch("", iter->second) || !is_dbl) {
+                BSON_APPEND_UTF8(bson_opts, meta_field.c_str(), iter->second.c_str());
+            } else {
+                if (std::fmod(dbl_value, 1.) == 0) {
+                    BSON_APPEND_INT32(bson_opts, meta_field.c_str(), CVT_INT(dbl_value));
+                } else {
+                    BSON_APPEND_DOUBLE(bson_opts, meta_field.c_str(), dbl_value);
+                }
+            }
+        }
+    }
+}
+
 string GetStringFromBsonIterator(bson_iter_t* iter) {
     const bson_value_t* vv = bson_iter_value(iter);
     if (vv->value_type == BSON_TYPE_UTF8) {
         return vv->value.v_utf8.str;
     }
     if (vv->value_type == BSON_TYPE_INT32) {
-        return utils_string::ValueToString(vv->value.v_int32);
+        return ValueToString(vv->value.v_int32);
     }
     if (vv->value_type == BSON_TYPE_INT64) {
-        return utils_string::ValueToString(vv->value.v_int64);
+        return ValueToString(vv->value.v_int64);
     }
     if (vv->value_type == BSON_TYPE_DOUBLE) {
-        return utils_string::ValueToString(vv->value.v_double);
+        return ValueToString(vv->value.v_double);
     }
     cout << "bson iterator did not contain or can not convert to string." << endl;
     return "";
@@ -365,7 +408,7 @@ bool GetBoolFromBsonIterator(bson_iter_t* iter) {
         fltvalue = CVT_FLT(vv->value.v_double);
     } else if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp = vv->value.v_utf8.str;
-        return utils_string::StringMatch(tmp.c_str(), "TRUE");
+        return StringMatch(tmp.c_str(), "TRUE");
     } else {
         cout << "Failed in get Boolean value." << endl;
         return false;
@@ -390,9 +433,9 @@ time_t GetDatetimeFromBsonIterator(bson_iter_t* iter) {
     if (vv->value_type == BSON_TYPE_UTF8) {
         string tmp_time_str = vv->value.v_utf8.str;
         if (tmp_time_str.size() > 12) {
-            return utils_time::ConvertToTime(tmp_time_str, "%4d-%2d-%2d %2d:%2d:%2d", true);
+            return ConvertToTime(tmp_time_str, "%4d-%2d-%2d %2d:%2d:%2d", true);
         }
-        return utils_time::ConvertToTime(tmp_time_str, "%4d-%2d-%2d", false);
+        return ConvertToTime(tmp_time_str, "%4d-%2d-%2d", false);
     }
     cout << "Failed in get Date Time value." << endl;
     return -1;

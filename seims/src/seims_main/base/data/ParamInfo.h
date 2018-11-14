@@ -47,7 +47,7 @@ public:
     //! Adjust 1D array
     void Adjust1DArray(int n, float* data);
 
-    //! Adjust 1D Raster, \ref Adjust1DArray()
+    //! Adjust 1D Raster, \sa Adjust1DArray()
     void Adjust1DRaster(int n, float* data);
 
     //! Adjust 1D Raster on selected area

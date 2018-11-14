@@ -97,7 +97,6 @@ TEST_P(clsRasterDataTestNoPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(1.f, rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs_->GetCellWidth());
     EXPECT_EQ(1, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/

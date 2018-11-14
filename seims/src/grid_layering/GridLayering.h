@@ -76,7 +76,7 @@ public:
      */
     virtual bool OutputFlowIn();
     /*!
-     * \brief Count each cell's downstream number by bitwise AND operator, \sa CountFlowInCells
+     * \brief Count each cell's downstream number by bitwise AND operator, CountFlowInCells
      */
     void CountFlowOutCells();
     /*!
@@ -151,7 +151,7 @@ protected:
     float* flow_in_cells_;
     int* flow_out_num_;         ///< Flow out cells number
     int flow_out_count_;        ///< Flow out times
-    float* flow_out_cells_;     ///< \sa m_flowInCells
+    float* flow_out_cells_;     ///< #m_flowInCells
     int* layers_updown_;        ///< the value of layering number from source, length is nRows * nCols
     int* layers_downup_;        ///< the value of layering number from outlet
     float* layer_cells_updown_; ///< store cell indexes in each layers, length is ValidNum + layerNum + 1

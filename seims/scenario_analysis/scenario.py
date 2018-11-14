@@ -1,11 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Base class of Scenario for coupling NSAG-II.
+"""Base class of Scenario for coupling NSGA-II.
 
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-10-29  hr - initial implementation.
     - 17-08-18  lj - redesign and rewrite.
     - 18-02-09  lj - compatible with Python3.
@@ -13,7 +12,6 @@
 """
 from __future__ import absolute_import, unicode_literals
 
-from copy import deepcopy
 from datetime import timedelta
 from io import open
 import os
@@ -28,8 +26,9 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from bson.objectid import ObjectId
 from pygeoc.utils import MathClass, get_config_parser
 from pymongo.errors import NetworkTimeout
-from typing import List, Iterator
+from typing import List, Iterator, Optional, Union
 
+from scenario_analysis import BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
@@ -88,7 +87,7 @@ class Scenario(object):
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
-        timerange(float): Simulation time range, read from MongoDB, the unit is year.
+        eval_timerange(float): Simulation time range, read from MongoDB, the unit is year.
         economy(float): Economical effectiveness, e.g., income minus expenses
         environment(float): Environmental effectiveness, e.g., reduction rate of soil erosion
         gene_num(integer): The number of genes of one chromosome, i.e., an individual
@@ -103,7 +102,7 @@ class Scenario(object):
         # type: (SAConfig) -> None
         """Initialize."""
         self.ID = -1
-        self.timerange = 1.  # unit: year
+        self.eval_timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
         self.worst_econ = cfg.worst_econ
@@ -113,7 +112,7 @@ class Scenario(object):
         self.gene_values = list()  # type: List[int]
         self.bmp_items = dict()
 
-        self.rule_mtd = cfg.bmps_rule_method
+        self.rule_mtd = cfg.bmps_cfg_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
         self.export_sce_txt = cfg.export_sce_txt
@@ -127,16 +126,31 @@ class Scenario(object):
         self.scenario_db = self.model.ScenarioDBName
         # (Re)Calculate timerange in the unit of year
         self.model.ResetSimulationPeriod()
-        dlt = self.model.end_time - self.model.start_time + timedelta(seconds=1)
-        self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
+        self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
-        self.modelrun = False
+        self.modelrun = False  # indicate whether the model has been executed
 
-    def set_unique_id(self):
-        # type: () -> int
+    def set_unique_id(self, given_id=None):
+        # type: (Optional[int]) -> int
         """Set unique ID."""
-        self.ID = next(generate_uniqueid())
+        if given_id is None:
+            self.ID = next(generate_uniqueid())
+        else:
+            self.ID = given_id
+        # Update scenario ID for self.modelcfg and self.model
+        self.model.scenario_id = self.ID
+        self.modelcfg.scenario_id = self.ID
+        self.modelcfg_dict['scenario_id'] = self.ID if self.modelcfg_dict else 0
         return self.ID
+
+    def set_gene_values(self, gene_values=None):
+        # type: (Optional[List[Union[int, float]]]) -> None
+        """Set gene values manually or by initialize function."""
+        if gene_values is None:
+            self.initialize()
+        else:
+            self.gene_values = gene_values[:]
 
     def rule_based_config(self, method, conf_rate):
         # type: (float, str) -> None
@@ -248,8 +262,9 @@ class Scenario(object):
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
         self.model.scenario_id = self.ID
         self.modelout_dir = self.model.OutputDirectory
-        self.modelrun = self.model.run()
-        return self.modelrun
+        self.model.run()
+        self.modelrun = True
+        return self.model.run_success
 
     def initialize(self):
         # type: () -> List[int]
@@ -260,7 +275,7 @@ class Scenario(object):
         """
         # Create configuration rate for each location randomly, 0.4 ~ 0.6
         cr = random.randint(40, 60) / 100.
-        if self.rule_mtd == 'RDM':
+        if self.rule_mtd == BMPS_CFG_METHODS[0]:
             self.random_based_config(cr)
         else:
             self.rule_based_config(self.rule_mtd, cr)
@@ -274,8 +289,8 @@ class Scenario(object):
 
 if __name__ == '__main__':
     cf = get_config_parser()
-    cfg = SAConfig(cf)
-    sceobj = Scenario(cfg)
+    cfg = SAConfig(cf)  # type: SAConfig
+    sceobj = Scenario(cfg)  # type: Scenario
 
     # test the picklable of Scenario class.
     import pickle
@@ -284,7 +299,10 @@ if __name__ == '__main__':
     # print(s)
     new_cfg = pickle.loads(s)  # type: Scenario
     print(new_cfg.modelcfg.ConfigDict)
-    print(new_cfg.model.start_time, new_cfg.model.end_time)
-    print(new_cfg.model.scenario_id, new_cfg.ID)
+    print('Model time range: %s - %s' % (new_cfg.model.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                                         new_cfg.model.end_time.strftime('%Y-%m-%d %H:%M:%S')))
+    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+                                                                 new_cfg.ID))
     new_cfg.set_unique_id()
-    print(new_cfg.ID)
+    print('model scenario ID: %d, configured scenario ID: %d' % (new_cfg.model.scenario_id,
+                                                                 new_cfg.ID))

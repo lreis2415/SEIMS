@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 
 from configparser import ConfigParser
+from future.utils import viewitems
 import json
 import os
 import sys
@@ -25,7 +26,7 @@ from pygeoc.utils import UtilClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
 from utility import ParseNSGA2Config
-from scenario_analysis import BMPS_RULE_METHODS
+from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS, BMPS_CFG_PAIR
 
 
 class SAConfig(object):
@@ -36,8 +37,6 @@ class SAConfig(object):
         """Initialization."""
         # 1. SEIMS model related
         self.model = ParseSEIMSConfig(cf)
-        # self.spatial_db = self.model.db_name
-        # self.bmp_scenario_db
 
         # 2. Common settings of BMPs scenario
         self.eval_stime = None
@@ -45,57 +44,80 @@ class SAConfig(object):
         self.worst_econ = 0.
         self.worst_env = 0.
         self.runtime_years = 0.
-        if 'Scenario_Common' in cf.sections():
-            self.eval_stime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_start')
-            self.eval_etime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_end')
-            self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
-            self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
-            self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
-        else:
+        self.export_sce_txt = False
+        self.export_sce_tif = False
+        if 'Scenario_Common' not in cf.sections():
             raise ValueError('[Scenario_Common] section MUST be existed in *.ini file.')
+        self.eval_stime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_start')
+        self.eval_etime = parse_datetime_from_ini(cf, 'Scenario_Common', 'eval_time_end')
+        self.worst_econ = cf.getfloat('Scenario_Common', 'worst_economy')
+        self.worst_env = cf.getfloat('Scenario_Common', 'worst_environment')
+        self.runtime_years = cf.getfloat('Scenario_Common', 'runtime_years')
+        if cf.has_option('Scenario_Common', 'export_scenario_txt'):
+            self.export_sce_txt = cf.getboolean('Scenario_Common', 'export_scenario_txt')
+        if cf.has_option('Scenario_Common', 'export_scenario_tif'):
+            self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
 
         # 3. Application specific setting section [BMPs]
         self.bmps_info = dict()  # BMP to be evaluated, JSON format
         self.bmps_retain = dict()  # BMPs to be constant, JSON format
-        self.export_sce_txt = False
-        self.export_sce_tif = False
-        self.bmps_rule_method = 'RDM'
-        if 'BMPs' in cf.sections():
-            bmpsinfostr = cf.get('BMPs', 'bmps_info')
-            self.bmps_info = json.loads(bmpsinfostr)
-            self.bmps_info = UtilClass.decode_strs_in_dict(self.bmps_info)
-            if cf.has_option('BMPs', 'bmps_retain'):
-                bmpsretainstr = cf.get('BMPs', 'bmps_retain')
-                self.bmps_retain = json.loads(bmpsretainstr)
-                self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
-            if cf.has_option('BMPs', 'export_scenario_txt'):
-                self.export_sce_txt = cf.getboolean('BMPs', 'export_scenario_txt')
-            if cf.has_option('BMPs', 'export_scenario_tif'):
-                self.export_sce_tif = cf.getboolean('BMPs', 'export_scenario_tif')
-            if cf.has_option('BMPs', 'bmps_rule_method'):
-                self.bmps_rule_method = cf.get('BMPs', 'bmps_rule_method')
-                if self.bmps_rule_method not in BMPS_RULE_METHODS:
-                    self.bmps_rule_method = 'RDM'
-        else:
-            raise ValueError("[BMPs] section MUST be existed for specific SA.")
+        self.bmps_cfg_unit = 'SLPPOS'
+        self.bmps_cfg_method = 'RDM'
+        if 'BMPs' not in cf.sections():
+            raise ValueError('[BMPs] section MUST be existed for specific scenario analysis.')
+
+        bmpsinfostr = cf.get('BMPs', 'bmps_info')
+        self.bmps_info = UtilClass.decode_strs_in_dict(json.loads(bmpsinfostr))
+        if cf.has_option('BMPs', 'bmps_retain'):
+            bmpsretainstr = cf.get('BMPs', 'bmps_retain')
+            self.bmps_retain = json.loads(bmpsretainstr)
+            self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
+
+        bmpscfgunitstr = cf.get('BMPs', 'bmps_cfg_units')
+        bmpscfgunitdict = UtilClass.decode_strs_in_dict(json.loads(bmpscfgunitstr))
+        for unitname, unitcfg in viewitems(bmpscfgunitdict):
+            self.bmps_cfg_unit = unitname
+            if self.bmps_cfg_unit not in BMPS_CFG_UNITS:
+                raise ValueError('BMPs configuration unit MUST be '
+                                 'one of %s' % BMPS_CFG_UNITS.__str__())
+            if not isinstance(unitcfg, dict):
+                raise ValueError('The value of BMPs configuration unit MUST be dict value!')
+            for cfgname, cfgvalue in viewitems(unitcfg):
+                self.bmps_info[cfgname] = cfgvalue
+            break
+
+        if cf.has_option('BMPs', 'bmps_cfg_method'):
+            self.bmps_cfg_method = cf.get('BMPs', 'bmps_cfg_method')
+            if self.bmps_cfg_method not in BMPS_CFG_METHODS:
+                print('BMPs configuration method MUST be one of %s' % BMPS_CFG_METHODS.__str__())
+                self.bmps_cfg_method = 'RDM'
+
+        # Check the validation of configuration unit and method
+        if self.bmps_cfg_method not in BMPS_CFG_PAIR.get(self.bmps_cfg_unit):
+            raise ValueError('BMPs configuration method %s '
+                             'is not supported on unit %s' % (self.bmps_cfg_method,
+                                                              self.bmps_cfg_unit))
 
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config]
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'SA_NSGA2_%s' % self.bmps_rule_method)
+            self.opt = ParseNSGA2Config(cf, self.model.model_dir,
+                                        'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
+                                                            self.bmps_cfg_method))
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
 
 
 if __name__ == '__main__':
-    cf, method = get_optimization_config("Execute scenario analysis.")
-    cfg = SAConfig(cf, method=method)
+    cf, method = get_optimization_config('Execute scenario analysis.')
+    cfg = SAConfig(cf, method=method)  # type: SAConfig
 
     # test the picklable of SAConfig class.
     import pickle
 
     s = pickle.dumps(cfg)
-    # print(s)
-    new_cfg = pickle.loads(s)
-    print(new_cfg.model.model_dir, new_cfg.bmps_rule_method)
+    new_cfg = pickle.loads(s)  # type: SAConfig
+    print(new_cfg.model.model_dir)
+    print('BMPs configuration unit %s, method %s' % (new_cfg.bmps_cfg_unit,
+                                                     new_cfg.bmps_cfg_method))

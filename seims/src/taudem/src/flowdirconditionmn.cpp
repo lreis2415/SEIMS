@@ -1,8 +1,8 @@
-/*  TauDEM D8FlowDir main program to compute flow direction based on d8 flow model.
-     
-  David G Tarboton, Teklu K Tesfa
-  Utah State University     
-  May 23, 2010
+/*  TauDEM Flow direction conditioning main program to condition DEM based on input flow directions
+
+  David Tarboton, Nazmus Sazib
+  Utah State University
+  May 10, 2016
   
 */
 
@@ -45,8 +45,9 @@ email:  dtarb@usu.edu
 #include "commonLib.h"
 #include "d8.h"
 
-int flowdircond(char *pfile, char *zfile, char *zfdcfile);
-int main(int argc, char **argv) {
+int flowdircond(char* pfile, char* zfile, char* zfdcfile);
+
+int main(int argc, char** argv) {
     char pfile[MAXLN], zfile[MAXLN], zfdcfile[MAXLN];
     int err, i;
     short useflowfile = 0;
@@ -57,10 +58,10 @@ int main(int argc, char **argv) {
         goto errexit;
     } else if (argc > 2) {
         i = 1;
-//		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
+        //		printf("You are running %s with the Specific File Names Usage option.\n", argv[0]);
     } else {
         i = 2;
-//		printf("You are running %s with the Simple Usage option.\n", argv[0]);
+        //		printf("You are running %s with the Simple Usage option.\n", argv[0]);
     }
     while (argc > i) {
         if (strcmp(argv[i], "-z") == 0) {
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
 
     return 0;
 
-    errexit:
+errexit:
     printf("Usage TODO\n", argv[0]);
     /* printf("Simple Usage:\n %s <basefilename>\n",argv[0]);
      printf("Usage with specific file names:\n %s -fel <demfile>\n",argv[0]);
@@ -114,5 +115,4 @@ int main(int argc, char **argv) {
      printf("sd8    D8 slope file (output)\n");
      printf("p   D8 flow direction output file\n");*/
     exit(0);
-}    
-
+}

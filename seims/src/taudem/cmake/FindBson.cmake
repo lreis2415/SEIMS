@@ -1,3 +1,7 @@
+# This module accepts the following environment variables:
+#
+#   BSON_DIR, BSON_ROOT, or BSON_ROOT_DIR - Specify the location of BSON
+#
 # Read-Only variables:
 #  BSON_FOUND - system has the BSON library
 #  BSON_INCLUDE_DIR - the BSON include directory
@@ -15,9 +19,10 @@ find_path(BSON_INCLUDE_DIR
         libbson-1.0/bson.h
         HINTS
         CMAKE_PREFIX_PATH
-        $ENV{MONGOC_ROOT_DIR}
-        $ENV{BSON_ROOT_DIR}
-        ${_BSON_INCLUDEDIR}
+        ENV BSON_DIR
+        ENV BSON_ROOT
+        ENV BSON_ROOT_DIR
+        ENV MONGOC_ROOT
         PATH_SUFFIXES
         include
         )
@@ -32,8 +37,10 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                 "bson-1.0"
                 HINTS
                 CMAKE_PREFIX_PATH
-                $ENV{MONGOC_ROOT_DIR}
-                $ENV{BSON_ROOT_DIR}
+                ENV BSON_DIR
+                ENV BSON_ROOT
+                ENV BSON_ROOT_DIR
+                ENV MONGOC_ROOT
                 PATH_SUFFIXES
                 bin
                 lib
@@ -45,8 +52,11 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                     NAMES
                     "libbson-1.0.dll"
                     HINTS
-                    $ENV{MONGOC_ROOT_DIR}
-                    $ENV{BSON_ROOT_DIR}
+                    CMAKE_PREFIX_PATH
+                    ENV BSON_DIR
+                    ENV BSON_ROOT
+                    ENV BSON_ROOT_DIR
+                    ENV MONGOC_ROOT
                     PATH_SUFFIXES
                     bin
                     )
@@ -55,12 +65,16 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
         # bother supporting this?
     endif ()
 else ()
-
     find_library(BSON_LIBRARY
             NAMES
-            bson-1.0
+            "bson-1.0"
+            "libbson-1.0"
             HINTS
-            ${_BSON_LIBDIR}
+            CMAKE_PREFIX_PATH
+            ENV BSON_DIR
+            ENV BSON_ROOT
+            ENV BSON_ROOT_DIR
+            ENV MONGOC_ROOT
             PATH_SUFFIXES
             lib
             )

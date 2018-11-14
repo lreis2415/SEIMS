@@ -35,7 +35,7 @@ protected:
 private:
     FloatRaster* flow_angle_; ///< Flow direction in radiation
     float* angle_;            ///< Flow angle array
-    float* flow_in_angle_;    ///< Flow in partition, \sa m_flowInCells
+    float* flow_in_angle_;    ///< Flow in partition, #m_flowInCells
 
     string flow_angle_name_;   ///< Dinf flow direction name
     string flowin_angle_name_; ///< Output of flow in partition

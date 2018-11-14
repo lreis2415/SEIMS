@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Base class of parameters sensitivity analysis.
+
     @author   : Liangjun Zhu
-    @changelog: 17-12-22  lj - initial implementation.\n
-                18-1-11   lj - integration of screening method and variant-based method.\n
-                18-1-16   lj - split tasks when the run_count is very very large.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-07-04  lj - support MPI version of SEIMS, and bugs fixed.\n
-                18-08-24  lj - Gather the execute time of all model runs.\n
+
+    @changelog:
+    - 17-12-22  lj - initial implementation.
+    - 18-1-11   lj - integration of screening method and variant-based method.
+    - 18-1-16   lj - split tasks when the run_count is very very large.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-07-04  lj - support MPI version of SEIMS, and bugs fixed.
+    - 18-08-24  lj - Gather the execute time of all model runs.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -42,20 +45,12 @@ from SALib.analyze.fast import analyze as fast_alz
 
 from utility import read_data_items_from_txt
 from utility import save_png_eps
+from utility import SpecialJsonEncoder
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames
 from parameters_sensitivity.config import PSAConfig
 from parameters_sensitivity.figure import sample_histograms, empirical_cdf
 from run_seims import create_run_model
-
-
-class SpecialJsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, datetime.datetime):
-            return obj.strftime('%Y-%m-%d %H:%M:%S')
-        return json.JSONEncoder.default(self, obj)
 
 
 class Sensitivity(object):
@@ -206,7 +201,7 @@ class Sensitivity(object):
         self.run_count = len(self.param_values)
         # Save as txt file, which can be loaded by numpy.loadtxt()
         numpy.savetxt(self.cfg.outfiles.param_values_txt,
-                      self.param_values, delimiter=' ', fmt='%.4f')
+                      self.param_values, delimiter=str(' '), fmt=str('%.4f'))
 
     def write_param_values_to_mongodb(self):
         """Update Parameters collection in MongoDB.
@@ -291,14 +286,14 @@ class Sensitivity(object):
                 rmtree(mod_obj.output_dir)
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
-            numpy.savetxt(cur_out_file, eva_values, delimiter=' ', fmt='%.4f')
+            numpy.savetxt(cur_out_file, eva_values, delimiter=str(' '), fmt=str('%.4f'))
             # Save as pickle data for further usage. DO not save all models which maybe very large!
             cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
             with open(cur_model_out_file, 'wb', encoding='utf-8') as f:
                 pickle.dump(output_models, f)
         exec_times = numpy.array(exec_times)
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
-                      exec_times, delimiter=' ', fmt='%.4f')
+                      exec_times, delimiter=str(' '), fmt=str('%.4f'))
         print('Running time of all SEIMS models:\n'
               '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
@@ -326,7 +321,7 @@ class Sensitivity(object):
                                                                idx))
             self.output_values = numpy.concatenate((self.output_values, tmp_outputs))
         numpy.savetxt(self.cfg.outfiles.output_values_txt,
-                      self.output_values, delimiter=' ', fmt='%.4f')
+                      self.output_values, delimiter=str(' '), fmt=str('%.4f'))
 
     def calculate_sensitivity(self):
         """Calculate Morris elementary effects.

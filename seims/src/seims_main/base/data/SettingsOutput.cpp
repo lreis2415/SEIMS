@@ -6,14 +6,16 @@
 using namespace utils_time;
 
 SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const int subbasinID,
-                               vector<OrgOutItem>& outputItems) :
-    m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID) {
+                               vector<OrgOutItem>& outputItems,
+                               int scenarioID /* = 0 */, int calibrationID /* = -1 */) :
+    m_nSubbasins(subbasinNum), m_outletID(outletID), m_subbasinID(subbasinID),
+    m_scenarioID(scenarioID), m_calibrationID(calibrationID){
     for (auto iter = outputItems.begin(); iter != outputItems.end(); ++iter) {
         string coreFileName = GetCoreFileName((*iter).outFileName);
         string suffix = GetSuffix((*iter).outFileName);
         /// First, if OutputID does not existed in m_printInfos, then create a new one.
         if (m_printInfosMap.find((*iter).outputID) == m_printInfosMap.end()) {
-            m_printInfosMap[(*iter).outputID] = new PrintInfo();
+            m_printInfosMap[(*iter).outputID] = new PrintInfo(m_scenarioID, m_calibrationID);
             m_printInfosMap[(*iter).outputID]->setOutputID((*iter).outputID); /// set the OUTPUTID for the new PrintInfo
         }
         PrintInfo* pi = m_printInfosMap[(*iter).outputID];
@@ -77,11 +79,12 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
 }
 
 SettingsOutput* SettingsOutput::Init(const int subbasinNum, const int outletID, const int subbasinID,
-                                     vector<OrgOutItem>& outputItems) {
+                                     vector<OrgOutItem>& outputItems,
+                                     int scenarioID /* = 0 */, int calibrationID /* = -1 */) {
     if (outputItems.empty()) {
         return nullptr;
     }
-    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems);
+    return new SettingsOutput(subbasinNum, outletID, subbasinID, outputItems, scenarioID, calibrationID);
 }
 
 SettingsOutput::~SettingsOutput() {

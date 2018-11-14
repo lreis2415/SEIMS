@@ -76,16 +76,14 @@ int FindBoundingBox(IntRaster* rs_subbasin, map<int, SubBasin>& bbox_map) {
 
 /*!
  * \brief Decomposite single layer raster data as 1D array, and import to MongoDB as GridFS
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] dst_file Input raster full file path
- * \param[in] conn MongoDB client object
  * \param[in] gfs MongoDB GridFS object
  * \return True if import successfully, otherwise return false.
  */
 bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
-                                const char* dst_file,
-                                mongoc_client_t* conn, mongoc_gridfs_t* gfs) {
+                                const char* dst_file, mongoc_gridfs_t* gfs) {
     bool flag = true;
     FloatRaster* rs = FloatRaster::Init(dst_file, false); // Do not calculate positions data
     if (nullptr == rs) exit(1);
@@ -164,8 +162,8 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
 
 /*!
  * \brief Decomposite multi-layers raster data as 1D array, and import to MongoDB as GridFS
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] core_name Core name of raster
  * \param[in] dst_files Vector of raster full file paths
  * \param[in] conn MongoDB client object
@@ -252,8 +250,8 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
 /*!
  * \brief Decomposite raster to separate files named suffixed by subbasin ID.
  *        If not for MPI version SEIMS, the whole basin data will be generated named suffixed by 0.
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] dst_file Input raster full file path
  * \param[in] tmp_folder Folder to store the separated raster data file
  */
@@ -462,7 +460,7 @@ int main(int argc, char** argv) {
         }
         int loop = 1;
         while (loop < 3) {
-            if (!DecompositeRasterToMongoDB(bbox_map, rs_subbasin, array1d_files[i].c_str(), conn, gfs)) {
+            if (!DecompositeRasterToMongoDB(bbox_map, rs_subbasin, array1d_files[i].c_str(), gfs)) {
                 cout << "Import " << array1d_files[i] << " failed, try time: " << loop << endl;
                 loop++;
             } else {

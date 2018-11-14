@@ -157,6 +157,7 @@ int hdisttostreamgrd(char *angfile, char *wfile, char *srcfile, char *dtsfile, i
             tiffIO w(wfile, FLOAT_TYPE);
             if (!ang.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -167,6 +168,7 @@ int hdisttostreamgrd(char *angfile, char *wfile, char *srcfile, char *dtsfile, i
         tiffIO src(srcfile, SHORT_TYPE);
         if (!ang.compareTiff(src)) {
             printf("File sizes do not match\n%s\n", srcfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -236,7 +238,7 @@ int hdisttostreamgrd(char *angfile, char *wfile, char *srcfile, char *dtsfile, i
 /*	 short smv = MISSINGSHORT;
 	char nfile[50];
 	sprintf(nfile,"neighbor.tif");
-	tiffIO ntio(nfile, SHORT_TYPE, &smv, ang);
+	tiffIO ntio(nfile, SHORT_TYPE, smv, ang);
 	ntio.write(xstart, ystart, ny, nx, neighbor->getGridPointer()); */
 
 
@@ -352,7 +354,7 @@ int hdisttostreamgrd(char *angfile, char *wfile, char *srcfile, char *dtsfile, i
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(dtsfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(dtsfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -411,12 +413,12 @@ int vdroptostreamgrd(char *angfile, char *felfile, char *srcfile, char *dtsfile,
         double dyA = ang.getdyA();
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -434,6 +436,7 @@ int vdroptostreamgrd(char *angfile, char *felfile, char *srcfile, char *dtsfile,
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
             printf("File sizes do not match\n%s\n", felfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -445,6 +448,7 @@ int vdroptostreamgrd(char *angfile, char *felfile, char *srcfile, char *dtsfile,
         tiffIO src(srcfile, SHORT_TYPE);
         if (!ang.compareTiff(src)) {
             printf("File sizes do not match\n%s\n", srcfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -515,7 +519,7 @@ int vdroptostreamgrd(char *angfile, char *felfile, char *srcfile, char *dtsfile,
 /*	 short smv = MISSINGSHORT;
 	char nfile[50];
 	sprintf(nfile,"neighbor.tif");
-	tiffIO ntio(nfile, SHORT_TYPE, &smv, ang);
+	tiffIO ntio(nfile, SHORT_TYPE, smv, ang);
 	ntio.write(xstart, ystart, ny, nx, neighbor->getGridPointer()); */
 
 
@@ -642,7 +646,7 @@ int vdroptostreamgrd(char *angfile, char *felfile, char *srcfile, char *dtsfile,
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(dtsfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(dtsfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -701,12 +705,12 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         double dyA = ang.getdyA();
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //  Calculate horizontal distances in each direction
@@ -742,6 +746,7 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
             printf("File sizes do not match\n%s\n", felfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -755,6 +760,7 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
             tiffIO w(wfile, FLOAT_TYPE);
             if (!ang.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -766,6 +772,7 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         tiffIO src(srcfile, SHORT_TYPE);
         if (!ang.compareTiff(src)) {
             printf("File sizes do not match\n%s\n", srcfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -840,7 +847,7 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
 /*	 short smv = MISSINGSHORT;
 	char nfile[50];
 	sprintf(nfile,"neighbor.tif");
-	tiffIO ntio(nfile, SHORT_TYPE, &smv, ang);
+	tiffIO ntio(nfile, SHORT_TYPE, smv, ang);
 	ntio.write(xstart, ystart, ny, nx, neighbor->getGridPointer()); */
 
 
@@ -997,7 +1004,7 @@ int pdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(dtsfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(dtsfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dtsh->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -1056,12 +1063,12 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         double dyA = ang.getdyA();
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //  Calculate horizontal distances in each direction
@@ -1098,6 +1105,7 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
             printf("File sizes do not match\n%s\n", felfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -1111,6 +1119,7 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
             tiffIO w(wfile, FLOAT_TYPE);
             if (!ang.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -1122,6 +1131,7 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
         tiffIO src(srcfile, SHORT_TYPE);
         if (!ang.compareTiff(src)) {
             printf("File sizes do not match\n%s\n", srcfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -1192,7 +1202,7 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
 /*	 short smv = MISSINGSHORT;
 	char nfile[50];
 	sprintf(nfile,"neighbor.tif");
-	tiffIO ntio(nfile, SHORT_TYPE, &smv, ang);
+	tiffIO ntio(nfile, SHORT_TYPE, smv, ang);
 	ntio.write(xstart, ystart, ny, nx, neighbor->getGridPointer()); */
 
 
@@ -1323,7 +1333,7 @@ int sdisttostreamgrd(char *angfile, char *felfile, char *wfile, char *srcfile, c
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(dtsfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(dtsfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();

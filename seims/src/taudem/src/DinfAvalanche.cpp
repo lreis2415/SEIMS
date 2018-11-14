@@ -88,12 +88,12 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
         double xllcentr = ang.getXllcenter();
         double yllcentr = ang.getYllcenter();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -110,8 +110,9 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
         tdpartition *felData;
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
-            printf("File sizes do not match\n%s\n", felfile);
-            MPI_Abort(MCW, 5);
+            printf("File sizes do not match\n%s\n%s\n", felfile, angfile);
+            fflush(stdout);
+            //MPI_Abort(MCW, 5);
             return 1;
         }
         felData = CreateNewPartition(fel.getDatatype(), totalX, totalY, dxA, dyA, fel.getNodata());
@@ -120,8 +121,9 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
         tdpartition *assData;
         tiffIO ass(assfile, SHORT_TYPE);
         if (!ang.compareTiff(ass)) {
-            printf("File sizes do not match\n%s\n", assfile);
-            MPI_Abort(MCW, 5);
+            printf("File sizes do not match\n%s\n%s\n", assfile, angfile);
+            fflush(stdout);
+            //MPI_Abort(MCW, 5);
             return 1;
         }
         assData = CreateNewPartition(ass.getDatatype(), totalX, totalY, dxA, dyA, ass.getNodata());
@@ -190,7 +192,7 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
         short tempShort = 0;
 
         tdpartition *neighbor;
-        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, (int16_t)-32768);
 
         //Share information and set borders to zero
         flowData->share();
@@ -350,10 +352,10 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
 
         //Create and write TIFF file
         float scaNodata = MISSINGFLOAT;
-        tiffIO rrz(rzfile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO rrz(rzfile, FLOAT_TYPE, scaNodata, ang);
         rrz.write(xstart, ystart, ny, nx, rz->getGridPointer());
 
-        tiffIO ddm(dmfile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO ddm(dmfile, FLOAT_TYPE, scaNodata, ang);
         ddm.write(xstart, ystart, ny, nx, dm->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -376,7 +378,6 @@ int avalancherunoutgrd(char *angfile, char *felfile, char *assfile, char *rzfile
             printf("Processors: %d\nRead time: %f\nCompute time: %f\nWrite time: %f\nTotal time: %f\n",
                    size, dataRead, compute, write, total);
         }
-
 
         //Brackets force MPI-dependent objects to go out of scope before Finalize is called
     }

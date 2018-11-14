@@ -5,7 +5,6 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-12-30  hr - initial implementation.
     - 17-08-18  lj - reorganize.
     - 18-02-09  lj - compatible with Python3.
@@ -29,21 +28,22 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from pygeoc.utils import UtilClass, get_config_parser
+from pygeoc.utils import UtilClass, MathClass, get_config_parser
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
 from typing import List
 from utility.scoop_func import scoop_log
-from scenario_analysis.slpposunits.config import SASPUConfig
-from scenario_analysis.slpposunits.scenario import SPScenario
-from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_slppos, \
-    crossover_rdm, mutate_rdm
+from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
+from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.scenario import delete_model_outputs
-from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
+from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.slpposunits.scenario import SUScenario
+from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
+from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_rule, \
+    crossover_rdm, mutate_rdm
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -53,7 +53,7 @@ from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_
 multi_weight = (-1., 1.)
 filter_ind = False  # type: bool # Filter for valid population for the next generation
 # Specific conditions for multiple objectives, None means no rule.
-conditions = [None, '>1.']
+conditions = [None, '>0.']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
@@ -68,17 +68,17 @@ toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
 toolbox.register('evaluate', scenario_effectiveness)
 
 # knowledge-rule based mate and mutate
-toolbox.register('mate_rule', crossover_slppos)
-toolbox.register('mutate_rule', mutate_slppos)
+toolbox.register('mate_slppos', crossover_slppos)
+toolbox.register('mutate_rule', mutate_rule)
 # random-based mate and mutate
-toolbox.register('mate_rdn', crossover_rdm)
+toolbox.register('mate_rdm', crossover_rdm)
 toolbox.register('mutate_rdm', mutate_rdm)
 
 toolbox.register('select', tools.selNSGA2)
 
 
 def main(sceobj):
-    # type: (SPScenario) -> ()
+    # type: (SUScenario) -> ()
     """Main workflow of NSGA-II based Scenario analysis."""
     random.seed()
 
@@ -96,7 +96,8 @@ def main(sceobj):
     pop_select_num = int(pop_size * sel_rate)
 
     ws = sceobj.cfg.opt.out_dir
-    rule_mth = sceobj.cfg.bmps_rule_method
+    cfg_unit = sceobj.cfg.bmps_cfg_unit
+    cfg_method = sceobj.cfg.bmps_cfg_method
     worst_econ = sceobj.worst_econ
     worst_env = sceobj.worst_env
     # available gene value list
@@ -104,13 +105,12 @@ def main(sceobj):
     if 0 not in possible_gene_values:
         possible_gene_values.append(0)
     units_info = sceobj.cfg.units_infos
-    slppos_tagnames = sceobj.cfg.slppos_tagnames
     suit_bmps = sceobj.suit_bmps
-    gene_to_unit = sceobj.cfg.gene_to_slppos
-    unit_to_gene = sceobj.cfg.slppos_to_gene
+    gene_to_unit = sceobj.cfg.gene_to_unit
+    unit_to_gene = sceobj.cfg.unit_to_gene
 
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
-    scoop_log('BMPs configure method: %s' % rule_mth)
+    scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
 
     # create reference point for hypervolume
     ref_pt = numpy.array([worst_econ, worst_env]) * multi_weight * -1
@@ -128,6 +128,25 @@ def main(sceobj):
     pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
     init_time = time.time() - stime
 
+    def check_individual_diff(old_ind, new_ind):
+        """Check the gene values of two individuals."""
+        diff = False
+        for i in range(len(old_ind)):
+            if not MathClass.floatequal(old_ind[i], new_ind[i]):
+                diff = True
+                break
+        return diff
+
+    def delete_fitness(new_ind):
+        """Delete the fitness and other information of new individual."""
+        del new_ind.fitness.values
+        new_ind.gen = -1
+        new_ind.id = -1
+        new_ind.io_time = 0.
+        new_ind.comp_time = 0.
+        new_ind.simu_time = 0.
+        new_ind.runtime = 0.
+
     def check_validation(fitvalues):
         """Check the validation of the fitness values of an individual."""
         flag = True
@@ -144,13 +163,10 @@ def main(sceobj):
         try:
             # parallel on multiprocesor or clusters using SCOOP
             from scoop import futures
-            fitnesses = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
+            invalid_pops = list(futures.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
         except ImportError or ImportWarning:
             # serial
-            fitnesses = list(toolbox.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
-        for ind, fit in zip(invalid_pops, fitnesses):
-            ind.fitness.values = fit[:2]
-            ind.id = fit[2]
+            invalid_pops = list(toolbox.map(toolbox.evaluate, [sceobj.cfg] * popnum, invalid_pops))
 
         # Filter for a valid solution
         if filter_ind:
@@ -172,6 +188,7 @@ def main(sceobj):
     pop = evaluate_parallel(pop)
     modelruns_time[0] = time.time() - stime
     for ind in pop:
+        ind.gen = 0
         allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
         modelruns_time_sum[0] += ind.runtime
 
@@ -192,22 +209,35 @@ def main(sceobj):
         offspring = [toolbox.clone(ind) for ind in pop]
         if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
             for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+                old_ind1 = toolbox.clone(ind1)
+                old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
-                    if rule_mth == 'RDM':
-                        toolbox.mate_rdn(ind1, ind2)
+                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                        toolbox.mate_slppos(sceobj.cfg.slppos_tagnames, ind1, ind2)
                     else:
-                        toolbox.mate_rule(slppos_tagnames, ind1, ind2)
-                if rule_mth == 'RDM':
+                        toolbox.mate_rdm(ind1, ind2)
+
+                if cfg_method == BMPS_CFG_METHODS[0]:
                     toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
                     toolbox.mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
                 else:
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                    tagnames = None
+                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                        tagnames = sceobj.cfg.slppos_tagnames
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
                                         suit_bmps, ind1,
-                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
-                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene, slppos_tagnames,
+                                        perc=mut_perc, indpb=mut_rate,
+                                        unit=cfg_unit, method=cfg_method,
+                                        tagnames=tagnames)
+                    toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
                                         suit_bmps, ind2,
-                                        perc=mut_perc, indpb=mut_rate, method=rule_mth)
-                del ind1.fitness.values, ind2.fitness.values
+                                        perc=mut_perc, indpb=mut_rate,
+                                        unit=cfg_unit, method=cfg_method,
+                                        tagnames=tagnames)
+                if check_individual_diff(old_ind1, ind1):
+                    delete_fitness(ind1)
+                if check_individual_diff(old_ind2, ind2):
+                    delete_fitness(ind2)
 
         # Evaluate the individuals with an invalid fitness
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
@@ -223,6 +253,7 @@ def main(sceobj):
         modelruns_time.setdefault(gen, curtimespan)
         modelruns_time_sum.setdefault(gen, 0.)
         for ind in invalid_inds:
+            ind.gen = gen
             allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
             modelruns_time_sum[gen] += ind.runtime
 
@@ -242,23 +273,32 @@ def main(sceobj):
 
         # Plot 2D near optimal pareto front graphs
         stime = time.time()
-        try:
-            front = numpy.array([ind.fitness.values for ind in pop])
-            plot_pareto_front(front, ['Economy', 'Environment'],
-                              ws, gen, 'Near Pareto optimal solutions')
-        except Exception as e:
-            scoop_log('Exception caught: %s' % str(e))
-        except:
-            scoop_log('Exception caught: %s' % sys.exc_info()[0])
-
+        front = numpy.array([ind.fitness.values for ind in pop])
+        # save front for further possible use
+        numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
+                      front, delimiter=str(' '), fmt=str('%.4f'))
+        # Comment out since matplotlib is quite often not working.
+        # try:
+        #     from concurrent.futures import ThreadPoolExecutor, TimeoutError
+        #     from scenario_analysis.visualization import plot_pareto_front
+        #     p = ThreadPoolExecutor(1)
+        #     func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
+        #                     ws, gen, 'Near Pareto optimal solutions')
+        #     func.result(timeout=10)
+        # except TimeoutError:
+        #     scoop_log('Plot pareto front timeout for generation %d!' % gen)
+        #     pass
+        # except Exception as e:
+        #     scoop_log('Exception caught: %s' % str(e))
+        # except:
+        #     scoop_log('Exception caught: %s' % sys.exc_info()[0])
         plot_time += time.time() - stime
 
         # save in file
-        output_str += 'scenario\teconomy\tenvironment\tgene_values\n'
+        output_str += 'generation\tscenario\teconomy\tenvironment\tgene_values\n'
         for indi in pop:
-            output_str += '%d\t%f\t%f\t%s\n' % (indi.id, indi.fitness.values[0],
-                                                indi.fitness.values[1],
-                                                str(indi))
+            output_str += '%d\t%d\t%f\t%f\t%s\n' % (indi.gen, indi.id, indi.fitness.values[0],
+                                                    indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
 
         # Delete SEIMS output files, and BMP Scenario database of current generation
@@ -266,11 +306,20 @@ def main(sceobj):
                              sceobj.model.port, sceobj.model.ScenarioDBName)
 
     # Plot hypervolume and newly executed model count
-    plot_hypervolume_single(sceobj.cfg.opt.hypervlog, ws)
+    # Comment out since matplotlib is quite often not working.
+    # try:
+    #     from scenario_analysis.visualization import plot_hypervolume_single
+    #     p = ThreadPoolExecutor(1)
+    #     func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
+    #     func.result(timeout=5)
+    # except TimeoutError:
+    #     scoop_log('Plot hypervolume timeout!')
+    #     pass
 
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
-    numpy.savetxt('%s/exec_time_allmodelruns.txt' % ws, allmodels_exect, delimiter=' ', fmt='%.4f')
+    numpy.savetxt('%s/exec_time_allmodelruns.txt' % ws, allmodels_exect,
+                  delimiter=str(' '), fmt=str('%.4f'))
     scoop_log('Running time of all SEIMS models:\n'
               '\tIO\tCOMP\tSIMU\tRUNTIME\n'
               'MAX\t%s\n'
@@ -302,8 +351,17 @@ def main(sceobj):
 
 if __name__ == "__main__":
     in_cf = get_config_parser()
-    sa_cfg = SASPUConfig(in_cf)
-    sce = SPScenario(sa_cfg)
+    base_cfg = SAConfig(in_cf)  # type: SAConfig
+
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        sa_cfg = SASlpPosConfig(in_cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        sa_cfg = SAConnFieldConfig(in_cf)
+    else:  # Common spatial units, e.g., HRU and UNIQHRU
+        sa_cfg = SACommUnitConfig(in_cf)
+    sa_cfg.construct_indexes_units_gene()
+
+    sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     startT = time.time()
@@ -312,7 +370,9 @@ if __name__ == "__main__":
     fpop.sort(key=lambda x: x.fitness.values)
     scoop_log(fstats)
     with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
-        f.write(fstats.__str__())
+        # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
+        #   when using unicode_literals, please use '%s' to concatenate string!
+        f.write('%s' % fstats.__str__())
 
     endT = time.time()
     scoop_log('Running time: %.2fs' % (endT - startT))
