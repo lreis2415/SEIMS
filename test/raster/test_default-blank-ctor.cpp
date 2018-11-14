@@ -137,5 +137,7 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     /** Output to new file **/
     string newfullname = ccgl::utils_filesystem::GetAppPath() + SEP + "no_output.tif";
     EXPECT_FALSE(rs->OutputToFile(newfullname));
+
+    delete rs;
 }
 } /* namespace */

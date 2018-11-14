@@ -239,8 +239,13 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         gfs->RemoveFile(gfsfilename);
         // Add additional metadata key-values
         map<string, string> opts;
+#ifdef HAS_VARIADIC_TEMPLATES
         opts.emplace("Author", "Liangjun");
         opts.emplace("Grade", "5.0");
+#else
+        opts.insert(make_pair("Author", "Liangjun"));
+        opts.emplace(make_pair("Grade", "5.0"));
+#endif
         rs_->OutputToMongoDB(gfsfilename, gfs, opts);
         clsRasterData<float, int>* mongors = clsRasterData<float, int>::
                 Init(gfs, gfsfilename.c_str(), false, maskrs_, true, NODATA_VALUE, opts);

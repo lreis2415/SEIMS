@@ -258,5 +258,8 @@ TEST(clsRasterDataTestMultiNoPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(9.43f, rs->GetValueByIndex(30));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(29, 0));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(-1, 2));
+
+    // Release resources
+    delete rs;
 }
 } /* namespace */

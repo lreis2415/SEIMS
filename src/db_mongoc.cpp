@@ -1,6 +1,7 @@
 #include "db_mongoc.h"
 
 #include <cassert>
+#include <utility>
 #include "basic.h"
 #include "utils_string.h"
 #include "utils_math.h"
@@ -35,14 +36,21 @@ MongoClient* MongoClient::Init(const char* host, const vuint16_t port) {
     mongoc_init();
     mongoc_uri_t* uri = mongoc_uri_new_for_host_port(host, port);
     mongoc_client_t* conn = mongoc_client_new_from_uri(uri);
-    /// Check the connection to MongoDB is success or not
-    bson_t* reply = bson_new();
-    bson_error_t* err = NULL;
-    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
-        cout << "Failed to connect to MongoDB!" << endl;
+    if (!conn) {
+        mongoc_uri_destroy(uri);
+        mongoc_client_destroy(conn);
         return nullptr;
     }
-    bson_destroy(reply);
+    /// Deprecated usage!
+    /// Check the connection to MongoDB is success or not
+    //    bson_t* reply = bson_new();
+    //    bson_error_t* err = NULL;
+    //    if (!mongoc_client_get_server_status(conn, NULL, reply, err)) {
+    //        cout << "Failed to connect to MongoDB!" << endl;
+    //        return nullptr;
+    //    }
+    //    bson_destroy(reply);
+
     mongoc_uri_destroy(uri);
     mongoc_client_destroy(conn);
 
@@ -104,8 +112,14 @@ mongoc_gridfs_t* MongoClient::GetGridFs(string const& dbname, string const& gfsn
     bson_error_t err;
     mongoc_gridfs_t* gfs = mongoc_client_get_gridfs(conn_, dbname.c_str(), gfsname.c_str(), &err);
     if (gfs == NULL) {
-        cout << "Failed to connect to " + gfsname + " GridFS!" << endl;
-        return NULL;
+        // The database may not exist, create it first.
+        mongoc_database_t* db = mongoc_client_get_database(conn_, dbname.c_str());
+        gfs = mongoc_client_get_gridfs(conn_, dbname.c_str(), gfsname.c_str(), &err);
+        mongoc_database_destroy(db);
+        if (gfs == NULL) {
+            cout << "Failed to connect to " + gfsname + " GridFS! Error: " << err.message << endl;
+            return NULL;
+        }
     }
     return gfs;
 }
@@ -126,7 +140,7 @@ MongoDatabase::MongoDatabase(mongoc_database_t* db) : db_(db) {
     dbname_ = string(mongoc_database_get_name(db_));
 }
 
-MongoDatabase::MongoDatabase(mongoc_client_t* conn, string const& dbname) : dbname_(dbname) {
+MongoDatabase::MongoDatabase(mongoc_client_t* conn, string& dbname) : dbname_(dbname) {
     db_ = mongoc_client_get_database(conn, dbname_.c_str());
 }
 
