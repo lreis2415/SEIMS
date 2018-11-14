@@ -902,7 +902,7 @@ private:
     };
 
 private:
-    /*! cell number of raster data, i.e. the data length of \ref raster_data_ or \ref raster_2d_
+    /*! cell number of raster data, i.e. the data length of \sa raster_data_ or \sa raster_2d_
      * 1. all grid cell number, i.e., ncols * nrows, when m_calcPositions is False
      * 2. valid cell number excluding NoDATA, when m_calcPositions is True and m_useMaskExtent is False.
      * 3. including NoDATA when mask is valid and m_useMaskExtent is True.
@@ -1313,13 +1313,6 @@ bool clsRasterData<T, MASK_T>::ConstructFromSingleFile(const string& filename,
     default_value_ = default_value;
 
     CopyStringMap(opts, options_);
-    if (options_.find(HEADER_RS_SRS) == options_.end()) {
-#ifdef HAS_VARIADIC_TEMPLATES
-        options_.emplace(HEADER_RS_SRS, "");
-#else
-        options_.insert(make_pair(HEADER_RS_SRS, ""));
-#endif
-    }
 
     bool readflag = false;
     if (StringMatch(GetUpper(GetSuffix(filename)), ASCIIExtension)) {
@@ -1331,6 +1324,14 @@ bool clsRasterData<T, MASK_T>::ConstructFromSingleFile(const string& filename,
         cout << "Warning: Only ASC format is supported without GDAL!" << endl;
         return false;
 #endif /* USE_GDAL */
+    }
+    // After read raster data from ASCII file or GeoTiff.
+    if (options_.find(HEADER_RS_SRS) == options_.end()) {
+#ifdef HAS_VARIADIC_TEMPLATES
+        options_.emplace(HEADER_RS_SRS, "");
+#else
+        options_.insert(make_pair(HEADER_RS_SRS, ""));
+#endif
     }
     CheckDefaultValue();
     if (readflag) {
