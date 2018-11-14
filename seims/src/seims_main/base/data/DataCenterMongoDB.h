@@ -14,16 +14,16 @@
 /*!
  * \ingroup data
  * \class DataCenterMongoDB
- * \brief Class of Data center inherited from \ref DataCenter based on MongoDB
+ * \brief Class of Data center inherited from \sa DataCenter based on MongoDB
  * \version 1.2
  */
 class DataCenterMongoDB: public DataCenter {
 public:
     /*!
      * \brief Constructor based on MongoDB
-     * \param[in] input_args Input arguments of SEIMS, \ref InputArgs
-     * \param[in] client MongoDB connection client, \ref MongoClient
-     * \param[in] factory SEIMS modules factory, \ref ModuleFactory
+     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
+     * \param[in] client MongoDB connection client, \sa MongoClient
+     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,

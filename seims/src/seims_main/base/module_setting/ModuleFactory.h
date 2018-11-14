@@ -102,7 +102,7 @@ public:
      * \brief Read configuration file
      * \param[in] configFileName Configuration full file path
      * \param[out] moduleIDs Unique module IDs (name)
-     * \param[out] moduleSettings Map of \ref SEIMSModuleSetting
+     * \param[out] moduleSettings Map of \sa SEIMSModuleSetting
      * \return True if succeed.
      */
     static bool ReadConfigFile(const char* configFileName, vector<string>& moduleIDs,
@@ -180,7 +180,7 @@ private:
     vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
     map<string, SEIMSModuleSetting *> m_settings;
-    //! Parameters of modules, from \ref m_parametersInDB
+    //! Parameters of modules, from \sa m_parametersInDB
     map<string, vector<ParamInfo *> > m_moduleParameters;
     //! Input of modules, from other modules
     map<string, vector<ParamInfo *> > m_moduleInputs;

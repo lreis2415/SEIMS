@@ -161,7 +161,7 @@ private:
     int m_inputSubbsnID;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    //! All subbasins information,\ref clsSubbasins, \ref Subbasin
+    //! All subbasins information,\sa clsSubbasins, \sa Subbasin
     clsSubbasins* m_subbasinsInfo;
 
 };

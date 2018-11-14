@@ -115,7 +115,7 @@ private:
     vector<vector<int> > m_reachUpStream;
     /*!
      * reach layers
-     * key: computing order, \ref LayeringMethod
+     * key: computing order, \sa LayeringMethod
      * value: reach ID
      */
     map<int, vector<int> > m_rteLyrs;

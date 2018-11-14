@@ -5,7 +5,7 @@
  *        All interaction with database should be implemented here.
  *
  * Changelog:
- *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from \ref ModuleFactory class.
+ *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from \sa ModuleFactory class.
  *   - 2. 2018-09-19 - lj - Separate load data from SetData. Compatible with optional parameters.
  *
  * \author Liangjun Zhu
@@ -37,8 +37,8 @@ class DataCenter: Interface {
 public:
     /*!
      * \brief Constructor
-     * \param[in] input_args Input arguments of SEIMS, \ref InputArgs
-     * \param[in] factory SEIMS modules factory, \ref ModuleFactory
+     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
+     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbasin_id = 0);
