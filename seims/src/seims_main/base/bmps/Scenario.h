@@ -29,17 +29,17 @@ namespace bmps {
  * \brief Main class of scenario in BMP database
  *
  * Scenario contains a collection of BMPFactory.
- * Each \sa BMPFactory is corresponding to one type of BMP.
+ * Each BMPFactory is corresponding to one type of BMP.
  *
  * Usage:
  *   - 1. Instantiate the class.
- *   - 2. Invoke \sa DataCenter::SetRasterForScenario() function to set raster data if needed.
- *   - 3. Invoke \sa setRasterForEachBMP().
+ *   - 2. Invoke DataCenter::SetRasterForScenario() function to set raster data if needed.
+ *   - 3. Invoke setRasterForEachBMP().
  *   - 4. Set as an input parameter for module use.
  *
  * Revised:
  *   - 1. Replaced SQLite by MongoDB, 2016-6-16.
- *   - 2. Add \sa setRasterForEachBMP() function, 2017-7-12.
+ *   - 2. Add setRasterForEachBMP() function, 2017-7-12.
  */
 class Scenario: Interface {
 public:
@@ -77,7 +77,7 @@ public:
 private:
     /*!
      * \brief Map of BMPs Factory
-     *        the Key is unique BMP ID, and the value is \sa BMPFactory
+     *        the Key is unique BMP ID, and the value is BMPFactory
      */
     map<int, BMPFactory *> m_bmpFactories;
     /*!
@@ -94,7 +94,7 @@ private:
     /// Load each BMP in current scenario
     void loadBMPs();
 
-    /// Load a single BMP information via \sa BMPFactory
+    /// Load a single BMP information via BMPFactory
     void loadBMPDetail();
 
 private:

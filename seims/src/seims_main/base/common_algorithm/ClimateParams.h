@@ -50,7 +50,8 @@ float MeanBarometricPressure(float elev);
  * \brief Calculate psychrometric constant
  * \param[in] elev elevation of current cell or site
  * \param[in] tmean Mean temperature
- * \sa MeanBarometricPressure(), LatentHeatVapor()
+ * \sa MeanBarometricPressure()
+ * \sa LatentHeatVapor()
  * \return Psychrometric constant
  */
 float PsychrometricConst(float tmean, float elev);

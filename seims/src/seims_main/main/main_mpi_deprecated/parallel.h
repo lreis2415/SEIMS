@@ -66,7 +66,7 @@ public:
     int transfer_count;     ///< count of transferred values
     float* transfer_values; ///< transferred values
 
-    SubbasinStruct* down_stream;         ///< down stream subbasin \sa SubbasinStruct
+    SubbasinStruct* down_stream;         ///< down stream subbasin
     vector<SubbasinStruct *> up_streams; ///< up stream subbasins
 };
 
@@ -90,7 +90,7 @@ int MasterProcess(map<int, SubbasinStruct *>& subbasin_map, set<int>& group_set)
  * \param numprocs Number of all processors, including one management rank and N-1 slave ranks
  * \param nslaves Number of calculation processors (also called slave ranks)
  * \param slave_comm MPI communicator used in slave group
- * \param input_args Input arguments, \sa InputArgs
+ * \param input_args Input arguments
  */
 void CalculateProcess(int world_rank, int numprocs, int nslaves, MPI_Comm slave_comm,
                       InputArgs* input_args);

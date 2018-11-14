@@ -42,7 +42,8 @@ struct OrgOutItem {
 /*!
  * \ingroup data
  * \class SettingsOutput
- * \brief Setting outputs, \sa Settings
+ * \brief Setting outputs
+ * \sa Settings
  */
 class SettingsOutput: public Settings {
 public:
@@ -78,7 +79,8 @@ public:
     /*!
      * \brief All the output settings
      * key: OutputID
-     * value: \sa PrintInfo instance
+     * value: PrintInfo instance
+     * \sa PrintInfo
      */
     map<string, PrintInfo *> m_printInfosMap;
 

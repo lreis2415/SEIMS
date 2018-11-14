@@ -183,14 +183,14 @@ public:
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn \sa MongoClient instance
+     * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
     void ReadArealSourceManagements(MongoClient* conn, const string& bmpDBName);
 
     /*!
      * \brief Load areal BMP location related parameters from MongoDB
-     * \param[in] conn \sa MongoClient instance
+     * \param[in] conn MongoClient instance
      * \param[in] bmpDBName BMP Scenario database
      */
     void ReadArealSourceLocations(MongoClient* conn, const string& bmpDBName);

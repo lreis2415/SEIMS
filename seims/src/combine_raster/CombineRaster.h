@@ -26,7 +26,7 @@ using namespace data_raster;
 #endif
 
 /*!
- * \brief Combine rasters as one, for both 1D and 2D raster data, \sa clsRasterData
+ * \brief Combine rasters as one, for both 1D and 2D raster data, clsRasterData
  * \param[in] all_raster_data Key is subbasinID (start from 1), value is clsRasterData<float>
  * \return Combined raster data
  */
@@ -60,7 +60,7 @@ void CombineRasterResults(const string& folder, const string& s_var,
  *        - 1_SED_OL_SUM__ means ScenarioID is -1 and Calibration ID is -1
  *        - 1_SED_OL_SUM_0_2 means ScenarioID is 0 and Calibration ID is 2
  *
- * \param[in] gfs \sa MongoGridFs
+ * \param[in] gfs MongoGridFs
  * \param[in] s_var Core file name, e.g., lai
  * \param[in] n_subbasins Subbasin count, e.g., 5 means 1_lai, ..., 5_lai will be combined as lai
  * \param[in] folder Optional. If specified, the combined raster will be outputed as file simultaneously.

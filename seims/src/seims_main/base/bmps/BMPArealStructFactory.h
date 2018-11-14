@@ -4,7 +4,7 @@
  *
  * Changelog:
  *   - 1. 2017-07-13 - lj - Partially rewrite this class, Scenario data only read from MongoDB.
- *                          \sa DataCenter will perform the data updating.
+ *                          DataCenter will perform the data updating.
  *   - 2. 2017-11-29 - lj - Code style review.
  *   - 3. 2018-04-12 - lj - Code reformat.
  *
@@ -26,7 +26,7 @@ using namespace bmps;
 namespace bmps {
 /*!
  * \class bmps::BMPArealStruct
- * \brief Manage areal Structural BMP data, inherited from \sa ParamInfo
+ * \brief Manage areal Structural BMP data, inherited from ParamInfo
  */
 class BMPArealStruct: Interface {
 public:
@@ -48,7 +48,7 @@ private:
     vector<int> m_landuse; ///< suitable placement landuse
     /*!
      * \key the parameter name, remember to add subbasin number as prefix when use GridFS file in MongoDB
-     * \value the \sa ParamInfo class
+     * \value the ParamInfo class
      */
     map<string, ParamInfo*> m_parameters;
 };
@@ -95,7 +95,7 @@ private:
     vector<int> m_unitIDs;
     /*!
      *\key The unique areal BMP ID
-     *\value Instance of \sa BMPArealStruct
+     *\value Instance of BMPArealStruct
      */
     map<int, BMPArealStruct*> m_bmpStructMap;
 };

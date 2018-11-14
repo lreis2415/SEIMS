@@ -61,10 +61,10 @@ public:
     map<time_t, float> TimeSeriesData;
     //! For time series data of a single subbasin, DT_Raster1D or DT_Array1D
     map<time_t, float *> TimeSeriesDataForSubbasin;
-    //! Count of \sa TimeSeriesDataForSubbasin
+    //! Count of #TimeSeriesDataForSubbasin
     int TimeSeriesDataForSubbasinCount;
 
-    //! Add 1D time series data result to \sa TimeSeriesDataForSubbasin
+    //! Add 1D time series data result to #TimeSeriesDataForSubbasin
     void add1DTimeSeriesResult(time_t, int n, const float* data);
 
     //! used only by PET_TS???
@@ -149,7 +149,8 @@ private:
 /*!
  * \ingroup module_setting
  * \class PrintInfo
- * \brief Outputs of one variable, which may contain one or more \sa PrintInfoItem
+ * \brief Outputs of one variable, which may contain one or more `PrintInfoItem`
+ * \sa PrintInfoItem
  */
 class PrintInfo {
 public:

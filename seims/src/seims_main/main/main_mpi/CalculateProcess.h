@@ -15,7 +15,7 @@
 /*!
  * \brief Calculation process
  * \ingroup seims_mpi
- * \param input_args Input arguments, \sa InputArgs
+ * \param input_args Input arguments
  * \param rank Rank number
  * \param size Number of all processors, including one management rank and N-1 slave ranks
  */
