@@ -487,7 +487,7 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
         }
 
         //Create and write TIFF file
-        tiffIO fel(felfile, FLOAT_TYPE, &felNodata, dem);
+        tiffIO fel(felfile, FLOAT_TYPE, felNodata, dem);
         fel.write(xstart, ystart, ny, nx, planchon->getGridPointer());
 
         if (verbose)printf("Partition: %d, written\n", rank);

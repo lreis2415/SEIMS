@@ -6,7 +6,7 @@
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2010/2013, MSMPI-v8, GDAL-1.11.4
-#     2. Windows 10 with mingw64 (GCC-4.9.3), MSMPI-v8, GDAL-1.11.5
+#     2. Windows 10 with mingw64 (GCC-8.2.0), MSMPI-v8, GDAL-2.3.2
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, MPICH-3.1.4, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, Intel MPI 4.0.3, GDAL-1.11.5
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), OpenMPI-1.10.4, GDAL-1.11.4 (Framework)
@@ -22,6 +22,17 @@ FATAL: In-source builds are not allowed.
 )
 ENDIF()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
+
+if(POLICY CMP0015)
+  cmake_policy(SET CMP0015 NEW)
+endif()
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 PROJECT(TauDEM_ext CXX C)
 
 ### Set cmake find path

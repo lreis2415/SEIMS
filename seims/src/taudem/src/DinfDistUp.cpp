@@ -84,7 +84,7 @@ int dinfdistup(char *angfile, char *felfile, char *slpfile, char *wfile, char *r
                                  statmethod, usew, concheck, thresh);
             break;
     }
-    return (er);
+    return er;
 }
 
 //*****************************//
@@ -94,7 +94,6 @@ int hdisttoridgegrd(char *angfile, char *wfile, char *rtrfile, int statmethod,
                     int concheck, float thresh, int usew) {
     MPI_Init(NULL, NULL);
     {
-
         //Only used for timing
         int rank, size;
         MPI_Comm_rank(MCW, &rank);
@@ -114,12 +113,12 @@ int hdisttoridgegrd(char *angfile, char *wfile, char *rtrfile, int statmethod,
         double dxA = ang.getdxA();
         double dyA = ang.getdyA();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //  Calculate horizontal distances in each direction
@@ -161,6 +160,7 @@ int hdisttoridgegrd(char *angfile, char *wfile, char *rtrfile, int statmethod,
             tiffIO w(wfile, FLOAT_TYPE);
             if (!ang.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -313,7 +313,7 @@ int hdisttoridgegrd(char *angfile, char *wfile, char *rtrfile, int statmethod,
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(rtrfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(rtrfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -371,12 +371,12 @@ int vrisetoridgegrd(char *angfile, char *felfile, char *rtrfile, int statmethod,
         double dxA = ang.getdxA();
         double dyA = ang.getdyA();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -394,6 +394,7 @@ int vrisetoridgegrd(char *angfile, char *felfile, char *rtrfile, int statmethod,
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
             printf("File sizes do not match\n%s\n", felfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -550,7 +551,7 @@ int vrisetoridgegrd(char *angfile, char *felfile, char *rtrfile, int statmethod,
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(rtrfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(rtrfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -608,12 +609,12 @@ int pdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
         double dxA = ang.getdxA();
         double dyA = ang.getdyA();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //  Calculate horizontal distances in each direction
@@ -650,6 +651,7 @@ int pdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
         tiffIO fel(felfile, FLOAT_TYPE);
         if (!ang.compareTiff(fel)) {
             printf("File sizes do not match\n%s\n", felfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -859,7 +861,7 @@ int pdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(rtrfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(rtrfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dtsh->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -917,12 +919,12 @@ int sdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
         double dxA = ang.getdxA();
         double dyA = ang.getdyA();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //  Calculate horizontal distances in each direction
@@ -970,6 +972,7 @@ int sdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
             tiffIO w(wfile, FLOAT_TYPE);
             if (!ang.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -1137,7 +1140,7 @@ int sdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
 
         //Create and write TIFF file
         float ddNodata = MISSINGFLOAT;
-        tiffIO dd(rtrfile, FLOAT_TYPE, &ddNodata, ang);
+        tiffIO dd(rtrfile, FLOAT_TYPE, ddNodata, ang);
         dd.write(xstart, ystart, ny, nx, dts->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -1167,9 +1170,3 @@ int sdisttoridgegrd(char *angfile, char *felfile, char *wfile, char *rtrfile,
 
     return 0;
 }
-
-
-
-
- 
-   
