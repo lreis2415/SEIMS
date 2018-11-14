@@ -13,6 +13,7 @@ using std::endl;
 namespace ccgl {
 using namespace utils_string;
 using namespace utils_time;
+
 namespace db_mongoc {
 ///////////////////////////////////////////////////
 ////////////////  MongoClient    //////////////////
@@ -344,8 +345,7 @@ void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts) {
             double dbl_value = IsDouble(iter->second, is_dbl);
             if (StringMatch("", iter->second) || !is_dbl) {
                 BSON_APPEND_UTF8(bson_opts, meta_field.c_str(), iter->second.c_str());
-            }
-            else {
+            } else {
                 if (std::fmod(dbl_value, 1.) == 0) {
                     BSON_APPEND_INT32(bson_opts, meta_field.c_str(), CVT_INT(dbl_value));
                 } else {
@@ -355,6 +355,7 @@ void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts) {
         }
     }
 }
+
 string GetStringFromBsonIterator(bson_iter_t* iter) {
     const bson_value_t* vv = bson_iter_value(iter);
     if (vv->value_type == BSON_TYPE_UTF8) {

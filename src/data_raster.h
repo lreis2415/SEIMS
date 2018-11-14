@@ -193,7 +193,7 @@ public:
      * \deprecated The input parameter `srs` is highly recommended replaced by `map<string, string>`.
      */
     clsRasterData(T* data, int cols, int rows, T nodata, double dx, double xll,
-                  double yll, const string& srs = "");
+                  double yll, const string& srs);
 
     /*!
     * \brief Construtor 1D raster from necessary data
@@ -206,7 +206,7 @@ public:
      * \deprecated The input parameter `srs` is highly recommended replaced by `map<string, string>`.
      */
     clsRasterData(T** data2d, int cols, int rows, int nlayers, T nodata,
-                  double dx, double xll, double yll, const string& srs = "");
+                  double dx, double xll, double yll, const string& srs);
 
     /*!
      * \brief Constructor of clsRasterData instance from TIFF, ASCII, or other GDAL supported format
@@ -625,6 +625,9 @@ public:
     //! Get option by key, including the spatial reference by "SRS"
     string GetOption(const char* key);
 
+    //! Get options
+    const STRING_MAP& GetOptions() { return options_; }
+
     /*!
      * \brief Get raster data at the valid cell index
      * The default lyr is 1, which means the 1D raster data, or the first layer of 2D data.
@@ -1026,7 +1029,7 @@ clsRasterData<T, MASK_T>::clsRasterData() {
 template <typename T, typename MASK_T>
 clsRasterData<T, MASK_T>::clsRasterData(T* data, int cols, int rows, T nodata,
                                         double dx, double xll, double yll,
-                                        const string& srs /* = "" */) {
+                                        const string& srs) {
     STRING_MAP opts;
 #ifdef HAS_VARIADIC_TEMPLATES
     opts.emplace(HEADER_RS_SRS, srs);
@@ -1060,7 +1063,7 @@ clsRasterData<T, MASK_T>::clsRasterData(T* data, const int cols, const int rows,
 template <typename T, typename MASK_T>
 clsRasterData<T, MASK_T>::clsRasterData(T** data2d, const int cols, const int rows, const int nlayers,
                                         T nodata, const double dx, const double xll, const double yll,
-                                        const string& srs /* = "" */) {
+                                        const string& srs) {
     STRING_MAP opts;
 #ifdef HAS_VARIADIC_TEMPLATES
     opts.emplace(HEADER_RS_SRS, srs);
