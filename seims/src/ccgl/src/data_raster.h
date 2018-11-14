@@ -1843,7 +1843,12 @@ bool clsRasterData<T, MASK_T>::WriteSingleGeotiff(const string& filename,
     if (nullptr == po_dst_ds) return false;
     // 2. Write raster data
     GDALRasterBand* po_dst_band = po_dst_ds->GetRasterBand(1);
-    po_dst_band->RasterIO(GF_Write, 0, 0, n_cols, n_rows, values, n_cols, n_rows, GDT_Float32, 0, 0);
+    CPLErr result = po_dst_band->RasterIO(GF_Write, 0, 0, n_cols, n_rows, values,
+                                          n_cols, n_rows, GDT_Float32, 0, 0);
+    if (result != CE_None) {
+        cout << "RaterIO Error: " << CPLGetLastErrorMsg() << endl;
+        return false;
+    }
     if (nullptr == po_dst_band) return false;
     po_dst_band->SetNoDataValue(header.at(HEADER_RS_NODATA));
     // 3. Writer header information
@@ -2303,6 +2308,7 @@ bool clsRasterData<T, MASK_T>::ReadRasterFileByGdal(const string& filename,
     vint32_t* int32_data = nullptr;   // 32-bit signed integer
     float* float_data = nullptr;
     double* double_data = nullptr;
+    CPLErr result;
     switch (data_type) {
         case GDT_Byte:
             // For GDAL, GDT_Byte is 8-bit unsigned interger, ranges from 0 to 255.
@@ -2315,46 +2321,86 @@ bool clsRasterData<T, MASK_T>::ReadRasterFileByGdal(const string& filename,
             if (no_data_value_ < 0) {
                 // commonly -128
                 char_data = static_cast<char *>(CPLMalloc(sizeof(char) * n_cols * n_rows));
-                po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, char_data, n_cols, n_rows, GDT_Byte, 0, 0);
-                Copy2DRasterDataTo1DArray(tmprasterdata, char_data, n_rows, n_cols);
-                CPLFree(char_data);
+                result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, char_data,
+                                           n_cols, n_rows, GDT_Byte, 0, 0);
+                if (result != CE_None) {
+                    cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+                } else {
+                    Copy2DRasterDataTo1DArray(tmprasterdata, char_data, n_rows, n_cols);
+                    CPLFree(char_data);
+                }
             } else {
                 // commonly 255
                 uchar_data = static_cast<unsigned char *>(CPLMalloc(sizeof(unsigned char) * n_cols * n_rows));
-                po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uchar_data, n_cols, n_rows, GDT_Byte, 0, 0);
-                Copy2DRasterDataTo1DArray(tmprasterdata, uchar_data, n_rows, n_cols);
-                CPLFree(uchar_data);
+                result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uchar_data,
+                                           n_cols, n_rows, GDT_Byte, 0, 0);
+                if (result != CE_None) {
+                    cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+                } else {
+                    Copy2DRasterDataTo1DArray(tmprasterdata, uchar_data, n_rows, n_cols);
+                    CPLFree(uchar_data);
+                }
             }
             break;
         case GDT_UInt16: uint16_data = static_cast<vuint16_t *>(CPLMalloc(sizeof(vuint16_t) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uint16_data, n_cols, n_rows, GDT_UInt16, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, uint16_data, n_rows, n_cols);
-            CPLFree(uint16_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uint16_data,
+                                       n_cols, n_rows, GDT_UInt16, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, uint16_data, n_rows, n_cols);
+                CPLFree(uint16_data);
+            }
             break;
         case GDT_Int16: int16_data = static_cast<vint16_t *>(CPLMalloc(sizeof(vint16_t) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, int16_data, n_cols, n_rows, GDT_Int16, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, int16_data, n_rows, n_cols);
-            CPLFree(int16_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, int16_data,
+                                       n_cols, n_rows, GDT_Int16, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, int16_data, n_rows, n_cols);
+                CPLFree(int16_data);
+            }
             break;
         case GDT_UInt32: uint32_data = static_cast<vuint32_t *>(CPLMalloc(sizeof(vuint32_t) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uint32_data, n_cols, n_rows, GDT_UInt32, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, uint32_data, n_rows, n_cols);
-            CPLFree(uint32_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, uint32_data,
+                                       n_cols, n_rows, GDT_UInt32, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, uint32_data, n_rows, n_cols);
+                CPLFree(uint32_data);
+            }
             break;
         case GDT_Int32: int32_data = static_cast<vint32_t *>(CPLMalloc(sizeof(vint32_t) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, int32_data, n_cols, n_rows, GDT_Int32, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, int32_data, n_rows, n_cols);
-            CPLFree(int32_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, int32_data,
+                                       n_cols, n_rows, GDT_Int32, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, int32_data, n_rows, n_cols);
+                CPLFree(int32_data);
+            }
             break;
         case GDT_Float32: float_data = static_cast<float *>(CPLMalloc(sizeof(float) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, float_data, n_cols, n_rows, GDT_Float32, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, float_data, n_rows, n_cols);
-            CPLFree(float_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, float_data,
+                                       n_cols, n_rows, GDT_Float32, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, float_data, n_rows, n_cols);
+                CPLFree(float_data);
+            }
             break;
         case GDT_Float64: double_data = static_cast<double *>(CPLMalloc(sizeof(double) * n_cols * n_rows));
-            po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, double_data, n_cols, n_rows, GDT_Float64, 0, 0);
-            Copy2DRasterDataTo1DArray(tmprasterdata, double_data, n_rows, n_cols);
-            CPLFree(double_data);
+            result = po_band->RasterIO(GF_Read, 0, 0, n_cols, n_rows, double_data,
+                                       n_cols, n_rows, GDT_Float64, 0, 0);
+            if (result != CE_None) {
+                cout << "RaterIO trouble: " << CPLGetLastErrorMsg() << endl;
+            } else {
+                Copy2DRasterDataTo1DArray(tmprasterdata, double_data, n_rows, n_cols);
+                CPLFree(double_data);
+            }
             break;
         default: cout << "Unexpected GDALDataType: " << GDALGetDataTypeName(data_type) << endl;
             exit(-1);
