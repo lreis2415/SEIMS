@@ -42,7 +42,7 @@ struct OrgOutItem {
 /*!
  * \ingroup data
  * \class SettingsOutput
- * \brief Setting outputs, \ref Settings
+ * \brief Setting outputs, \sa Settings
  */
 class SettingsOutput: public Settings {
 public:
@@ -52,14 +52,19 @@ public:
      * \param[in] outletID The subbasin ID of outlet
      * \param[in] subbasinID Current subbasin ID, 0 for OMP version
      * \param[in] outputItems Vector of original output items read from FILE_OUT file (or table)
+     * \param[in] scenarioID Scenario ID, -1 means no scenario is used, default is 0
+     * \param[in] calibrationID Calibration ID, -1 means no calibration from calibration sequence is used
      */
-    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
+    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems,
+                   int scenarioID = 0, int calibrationID = -1);
 
     //! Destructor
     ~SettingsOutput();
 
     //! Init function
-    static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
+    static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID,
+                                vector<OrgOutItem>& outputItems,
+                                int scenarioID = 0, int calibrationID = -1);
 
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;
@@ -73,7 +78,7 @@ public:
     /*!
      * \brief All the output settings
      * key: OutputID
-     * value: \ref PrintInfo instance
+     * value: \sa PrintInfo instance
      */
     map<string, PrintInfo *> m_printInfosMap;
 
@@ -84,5 +89,9 @@ private:
     int m_outletID;
     //! current subbasin ID, 0 for OMP version
     int m_subbasinID;
+    //! Scenario ID, -1 means no scenario is used
+    int m_scenarioID;
+    //! Calibration ID, -1 means no calibration from calibration sequence is used
+    int m_calibrationID;
 };
 #endif /* SEIMS_SETTING_OUTPUT_H */

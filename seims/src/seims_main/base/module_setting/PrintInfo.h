@@ -41,7 +41,7 @@ enum AggregationType {
 class PrintInfoItem {
 public:
     //! Constructor
-    PrintInfoItem();
+    PrintInfoItem(int scenario_id = 0, int calibration_id = -1);
 
     //! Destructor
     ~PrintInfoItem();
@@ -61,10 +61,10 @@ public:
     map<time_t, float> TimeSeriesData;
     //! For time series data of a single subbasin, DT_Raster1D or DT_Array1D
     map<time_t, float *> TimeSeriesDataForSubbasin;
-    //! Count of \ref TimeSeriesDataForSubbasin
+    //! Count of \sa TimeSeriesDataForSubbasin
     int TimeSeriesDataForSubbasinCount;
 
-    //! Add 1D time series data result to \ref TimeSeriesDataForSubbasin
+    //! Add 1D time series data result to \sa TimeSeriesDataForSubbasin
     void add1DTimeSeriesResult(time_t, int n, const float* data);
 
     //! used only by PET_TS???
@@ -110,7 +110,7 @@ public:
     string AggType;
 
     //! create "output" folder to store all results
-    void Flush(string projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header);
+    void Flush(const string& projectPath, MongoGridFs* gfs, FloatRaster* templateRaster, string header);
 
     //! Determine if the given date is within the date range for this item
     bool IsDateInRange(time_t dt);
@@ -136,6 +136,10 @@ public:
     static AggregationType MatchAggregationType(string type);
 
 private:
+    //! Scenario ID
+    int m_scenarioID;
+    //! Calibration ID
+    int m_calibrationID;
     //! Counter of time series data, i.e., how many data has been aggregated.
     int m_Counter;
     //! Aggregation type of current print item
@@ -145,17 +149,20 @@ private:
 /*!
  * \ingroup module_setting
  * \class PrintInfo
- * \brief
+ * \brief Outputs of one variable, which may contain one or more \sa PrintInfoItem
  */
 class PrintInfo {
 public:
+    //! Scenario ID
+    int m_scenarioID;
+    //! Calibration ID
+    int m_calibrationID;
     //! Time interval of output
     int m_Interval;
     //! Unit of time interval, which can only be DAY, HR, SEC.
     string m_IntervalUnits;
     //! Module index of the OutputID
     int m_moduleIndex;
-
     //! Unique Output ID, which should be one of "VAR_" defined in text.h and Output of any modules.
     string m_OutputID;
     //! The calibration parameters corresponding to the output id, if stated.
@@ -170,7 +177,7 @@ private:
     float* m_subbasinSelectedArray;
 public:
     //! Constructor, initialize an empty instance
-    PrintInfo();
+    PrintInfo(int scenario_id = 0, int calibration_id = -1);
 
     //! Destructor
     ~PrintInfo();
