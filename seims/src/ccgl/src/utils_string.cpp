@@ -141,8 +141,7 @@ string ftoa(double number) {
     char buffer[320];
     _gcvt_s(buffer, 320, number, 30);
     vint len = vint(strlen(buffer));
-    if (buffer[len - 1] == '.')
-    {
+    if (buffer[len - 1] == '.') {
         buffer[len - 1] = '\0';
     }
     return buffer;
@@ -163,7 +162,7 @@ vint _wtoa(const wchar_t* w, char* a, vint chars) {
 string wtoa(const wstring& wstr) {
     vint len = _wtoa(wstr.c_str(), 0, 0);
     char* buffer = new char[len];
-    memset(buffer, 0, len*sizeof(*buffer));
+    memset(buffer, 0, len * sizeof(*buffer));
     _wtoa(wstr.c_str(), buffer, int(len));
     string s = buffer;
     delete[] buffer;
@@ -181,7 +180,7 @@ vint _atow(const char* a, wchar_t* w, vint chars) {
 wstring atow(const string& astr) {
     vint len = _atow(astr.c_str(), 0, 0);
     wchar_t* buffer = new wchar_t[len];
-    memset(buffer, 0, len*sizeof(*buffer));
+    memset(buffer, 0, len * sizeof(*buffer));
     _atow(astr.c_str(), buffer, int(len));
     wstring s = buffer;
     delete[] buffer;
@@ -293,8 +292,7 @@ void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts) {
     for (auto it = in_opts.begin(); it != in_opts.end(); ++it) {
         if (out_opts.find(it->first) != out_opts.end()) {
             out_opts[it->first] = it->second;
-        }
-        else {
+        } else {
 #ifdef HAS_VARIADIC_TEMPLATES
             out_opts.emplace(it->first, it->second);
 #else
