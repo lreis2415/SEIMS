@@ -1233,7 +1233,11 @@ clsRasterData<T, MASK_T>::clsRasterData(clsRasterData<MASK_T>* mask, T* const va
     n_cells_ = mask_->GetCellNumber();
     Initialize1DArray(n_cells_, raster_, values); // DO NOT ASSIGN ARRAY DIRECTLY, IN CASE OF MEMORY ERROR!
     CopyHeader(mask_->GetRasterHeader());
+#ifdef HAS_VARIADIC_TEMPLATES
     options_.emplace(HEADER_RS_SRS, mask_->GetSrsString());
+#else
+    options_.insert(make_pair(HEADER_RS_SRS, mask_->GetSrsString()));
+#endif
     default_value_ = mask_->GetDefaultValue();
     calc_pos_ = false;
     if (mask->PositionsCalculated()) {
@@ -1250,7 +1254,11 @@ clsRasterData<T, MASK_T>::clsRasterData(clsRasterData<MASK_T>* mask, T** const v
     n_lyrs_ = lyrs;
     CopyHeader(mask_->GetRasterHeader());
     headers_.at(HEADER_RS_LAYERS) = n_lyrs_;
+#ifdef HAS_VARIADIC_TEMPLATES
     options_.emplace(HEADER_RS_SRS, mask_->GetSrsString());
+#else
+    options_.insert(make_pair(HEADER_RS_SRS, mask_->GetSrsString()));
+#endif
     n_cells_ = mask_->GetCellNumber();
     Initialize2DArray(n_cells_, n_lyrs_, raster_2d_, values); // DO NOT ASSIGN ARRAY DIRECTLY!
     default_value_ = mask_->GetDefaultValue();
@@ -2579,7 +2587,6 @@ void clsRasterData<T, MASK_T>::CalculateValidPositionsFromGridDate() {
     }
 
     // raster_pos_data_ is nullptr till now.
-    //raster_pos_data_ = new int *[n_cells_];
     Initialize2DArray(n_cells_, 2, raster_pos_data_, 0);
     store_pos_ = true;
 #pragma omp parallel for
