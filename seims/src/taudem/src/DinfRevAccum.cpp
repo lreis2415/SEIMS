@@ -52,7 +52,6 @@ int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
 
     MPI_Init(NULL, NULL);
     {
-
         //Only used for timing
         int rank, size;
         MPI_Comm_rank(MCW, &rank);
@@ -73,12 +72,12 @@ int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
         double dyA = ang.getdyA();
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -96,6 +95,7 @@ int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
         tiffIO wg(wgfile, FLOAT_TYPE);
         if (!ang.compareTiff(wg)) {
             printf("File sizes do not match\n%s\n", wgfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -164,7 +164,7 @@ int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
         /* short smv = MISSINGSHORT;
         char nfile[50];
         sprintf(nfile,"neighbor.tif");
-        tiffIO ntio(nfile, SHORT_TYPE, &smv, ang);
+        tiffIO ntio(nfile, SHORT_TYPE, smv, ang);
         ntio.write(xstart, ystart, ny, nx, neighbor->getGridPointer()); */
 
 
@@ -251,10 +251,10 @@ int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
 
         //Create and write TIFF file
         float raccNodata = MISSINGFLOAT;
-        tiffIO rrac(raccfile, FLOAT_TYPE, &raccNodata, ang);
+        tiffIO rrac(raccfile, FLOAT_TYPE, raccNodata, ang);
         rrac.write(xstart, ystart, ny, nx, racc->getGridPointer());
 
-        tiffIO ddmax(dmaxfile, FLOAT_TYPE, &raccNodata, ang);
+        tiffIO ddmax(dmaxfile, FLOAT_TYPE, raccNodata, ang);
         ddmax.write(xstart, ystart, ny, nx, dmax->getGridPointer());
 
         double writet = MPI_Wtime();

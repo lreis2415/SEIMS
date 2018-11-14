@@ -63,8 +63,7 @@ int peukerdouglas(char *felfile, char *ssfile, float *p) {
 
         long x, y;
         int k, ik, jk, jomax, iomax, bound;
-        float ndve, emax;
-        float *ndveptr;
+        float emax;
         /* Read elevation headers */
         tiffIO felev(felfile, FLOAT_TYPE);            //input	 elevation
         long totalX = felev.getTotalX();            //Globabl x and y
@@ -72,15 +71,13 @@ int peukerdouglas(char *felfile, char *ssfile, float *p) {
         double dxA = felev.getdxA();                //cell x and y
         double dyA = felev.getdyA();
         if (rank == 0) {
-            float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate = (1e-7 * totalX * totalY / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
-
-        ndveptr = (float *) felev.getNodata();
-        ndve = *ndveptr;
+        
         //Create partition and read data
         tdpartition *elev;
         elev = CreateNewPartition(felev.getDatatype(), totalX, totalY, dxA, dyA, felev.getNodata());
@@ -105,8 +102,8 @@ int peukerdouglas(char *felfile, char *ssfile, float *p) {
 
 //Create empty partition to store new information
         tdpartition *ss;
-        short ssnodata = -2;
-        ss = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, ssnodata);//-2 nodata value
+        int16_t ssnodata = -2;
+        ss = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, ssnodata); // -2 nodata value
 
 // SHARE elev to populate the borders
         elev->share();
@@ -207,7 +204,7 @@ int peukerdouglas(char *felfile, char *ssfile, float *p) {
         }
         //Stop timer
         double computet = MPI_Wtime();
-        tiffIO outelev(ssfile, SHORT_TYPE, &ssnodata, felev);
+        tiffIO outelev(ssfile, SHORT_TYPE, ssnodata, felev);
 
         outelev.write((long) globalxstart, (long) globalystart, (long) elevny, (long) elevnx, ss->getGridPointer());
         double writet = MPI_Wtime();
@@ -235,5 +232,3 @@ int peukerdouglas(char *felfile, char *ssfile, float *p) {
     MPI_Finalize();
     return 0;
 }
-
-

@@ -63,7 +63,6 @@ int aread8(char *pfile,
 
     MPI_Init(NULL, NULL);
     {
-
         int rank, size;
         MPI_Comm_rank(MCW, &rank);
         MPI_Comm_size(MCW, &size);
@@ -89,6 +88,7 @@ int aread8(char *pfile,
                     MPI_Bcast(y, numOutlets, MPI_DOUBLE, 0, MCW);
                 } else {
                     printf("Error opening shapefile. Exiting \n");
+                    fflush(stdout);
                     MPI_Abort(MCW, 5);
                 }
             } else {
@@ -112,7 +112,6 @@ int aread8(char *pfile,
             //fflush(stderr);
         }
 
-
         //Create partition and read data
         tdpartition *flowData;
         flowData = CreateNewPartition(p.getDatatype(), totalX, totalY, dxA, dyA, p.getNodata());
@@ -128,6 +127,7 @@ int aread8(char *pfile,
             tiffIO w(wfile, FLOAT_TYPE);
             if (!p.compareTiff(w)) {
                 printf("File sizes do not match\n%s\n", wfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -273,7 +273,7 @@ int aread8(char *pfile,
 
         //Create and write TIFF file
         float aNodata = -1.0f;
-        tiffIO a(afile, FLOAT_TYPE, &aNodata, p);
+        tiffIO a(afile, FLOAT_TYPE, aNodata, p);
         a.write(xstart, ystart, ny, nx, aread8->getGridPointer());
         double writet = MPI_Wtime();
         if (rank == 0) {

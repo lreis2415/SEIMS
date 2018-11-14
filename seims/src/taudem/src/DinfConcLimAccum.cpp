@@ -100,7 +100,8 @@ int dsllArea(char *angfile,
         if (useOutlets == 1) {
             if (rank == 0) {
                 if (readoutlets(datasrc, lyrname, uselyrname, lyrno, hSRSRaster, &numOutlets, x, y) != 0) {
-                    printf("Exiting \n");
+                    printf("Read outlets error. Exiting \n");
+                    fflush(stdout);
                     MPI_Abort(MCW, 5);
                 } else {
                     MPI_Bcast(&numOutlets, 1, MPI_INT, 0, MCW);
@@ -128,12 +129,12 @@ int dsllArea(char *angfile,
 
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -151,6 +152,7 @@ int dsllArea(char *angfile,
         tiffIO dm(dmfile, FLOAT_TYPE);
         if (!ang.compareTiff(dm)) {
             printf("File sizes do not match\n%s\n", dmfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -162,6 +164,7 @@ int dsllArea(char *angfile,
         tiffIO dg(dgfile, SHORT_TYPE);
         if (!ang.compareTiff(dg)) {
             printf("File sizes do not match\n%s\n", dgfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -172,6 +175,7 @@ int dsllArea(char *angfile,
         tiffIO q(qfile, FLOAT_TYPE);
         if (!ang.compareTiff(q)) {
             printf("File sizes do not match\n%s\n", qfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -321,7 +325,7 @@ int dsllArea(char *angfile,
 
         //Create and write TIFF file
         float scaNodata = MISSINGFLOAT;
-        tiffIO cctpt(ctptfile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO cctpt(ctptfile, FLOAT_TYPE, scaNodata, ang);
         cctpt.write(xstart, ystart, ny, nx, ctpt->getGridPointer());
 
         double writet = MPI_Wtime();

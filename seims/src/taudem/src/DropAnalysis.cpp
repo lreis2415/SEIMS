@@ -46,12 +46,23 @@ email:  dtarb@usu.edu
 #include <queue>
 #include <iostream>
 #include "commonLib.h"
+#include "tiffIO.h"
 #include "linearpart.h"
 #include "createpart.h"
-#include "tiffIO.h"
 #include "DropAnalysis.h"
 
 using namespace std;
+
+//returns true iff cell at [nrow][ncol] points to cell at [row][col]
+bool pointsToMe(long col, long row, long ncol, long nrow, tdpartition *dirData){
+    short d;
+    if (!dirData->hasAccess(ncol, nrow) || dirData->isNodata(ncol, nrow)){ return false; }
+    d = dirData->getData(ncol, nrow, d);
+    if (nrow + d2[d] == row && ncol + d1[d] == col){
+        return true;
+    }
+    return false;
+}
 
 //does the appropriate updates when a junction is found
 void updateAtJunction(short oOut, long i, long ni, long j, long nj, long nx, long ny, tdpartition *dirData,
@@ -258,10 +269,12 @@ int dropan(char *areafile,
 
         if (!dir.compareTiff(ssa)) {
             printf("dir and ssa files not the same size. Exiting \n");
+            fflush(stdout);
             MPI_Abort(MCW, 4);
         }
         if (!ssa.compareTiff(area)) {
             printf("ssa and area files not the same size. Exiting \n");
+            fflush(stdout);
             MPI_Abort(MCW, 4);
         }
 
@@ -277,6 +290,7 @@ int dropan(char *areafile,
                 MPI_Bcast(ynode, nxy, MPI_DOUBLE, 0, MCW);
             } else {
                 printf("Error opening shapefile. Exiting \n");
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
             }
         } else {
@@ -343,6 +357,7 @@ int dropan(char *areafile,
         // compare to ssa size
         if (!elev.compareTiff(ssa)) {
             printf("elev and ssa files not the same size. Exiting \n");
+            fflush(stdout);
             MPI_Abort(MCW, 5);
         }
 
@@ -357,6 +372,7 @@ int dropan(char *areafile,
         float thresh;
         if (nthresh < 2) {
             printf("Number of thresholds must be greater than 1. \n");
+            fflush(stdout);
             MPI_Abort(MCW, 7);
         }
         // *** loop over all thresholds
@@ -683,14 +699,10 @@ int dropan(char *areafile,
         // *** free memory and go home
         delete ssaData;
         delete dirData;
-        delete xnode;
-        delete ynode;
+        delete[] xnode;
+        delete[] ynode;
         delete elevData;
-
     }
     MPI_Finalize();
-
     return 0;
 }
-
-
