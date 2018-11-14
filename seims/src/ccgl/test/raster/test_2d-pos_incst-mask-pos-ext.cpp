@@ -241,6 +241,8 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskPosExt, RasterIO) {
         EXPECT_FLOAT_EQ(8.43900000f, mongors->GetAverage(3));
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+
+        delete mongors;
     }
 #endif
     delete copyrs;

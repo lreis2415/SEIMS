@@ -136,6 +136,9 @@ TEST_P(clsRasterDataTestIncstMaskPos, RasterIO) {
 
     Release1DArray(vs);
     Release2DArray(validmaskcells, vs2);
+
+    delete new1draster;
+    delete new2draster;
 }
 #ifdef USE_GDAL
 INSTANTIATE_TEST_CASE_P(MaskLayer, clsRasterDataTestIncstMaskPos,

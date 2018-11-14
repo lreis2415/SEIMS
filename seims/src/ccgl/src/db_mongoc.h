@@ -143,7 +143,7 @@ public:
     /*!
      * \brief Constructor, initialized by mongodb client and database name
      */
-    MongoDatabase(mongoc_client_t* conn, string const& dbname);
+    MongoDatabase(mongoc_client_t* conn, string& dbname);
 
     /*!
      * \brief Destructor by Destroy function

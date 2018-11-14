@@ -285,7 +285,11 @@ TEST(clsRasterDataTestMultiPosNoMask, RasterIO) {
         EXPECT_FLOAT_EQ(1.42141729f, rs->GetStd(3));
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+
+        delete mongors;
     }
 #endif
+
+    delete rs;
 }
 } /* namespace */
