@@ -46,12 +46,11 @@ email:  dtarb@usu.edu
 //As of VS 2010 MS provides stdint.h so can now use <> rather than "" and use system stdint.h 
 // See http://en.wikipedia.org/wiki/Stdint.h for details.
 //  See http://msdn.microsoft.com/en-us/library/36k2cdd4(v=vs.71).aspx for explanation of difference
-#include "commonLib.h"
 #include <gdal.h>
 #include <cpl_conv.h>
 #include <cpl_string.h>
 #include <ogr_spatialref.h>
-
+#include "commonLib.h" // DGT 5/27/18
 
 //Assumptions when using BIGTIFF - The BIGTIFF specification does not have these limitations, however this implementation does:
 // - The width and the height of the grid will be no more than 2^32 (4G) cells in either dimension
@@ -109,17 +108,13 @@ private:
     uint32_t totalY;        //DGT	// unsigned long BT - ??length of entire grid in number of cells (all partitions)
     //double dx;				//??width of each cell
     //double dy;				//??length of each cell
-    double
-        xllcenter;        //horizontal center point of lower left grid cell in grographic coordinates, not grid coordinates
-    double
-        yllcenter;        //vertical center point of lower left grid cell in geographic coordinates, not grid coordinates
-    double
-        xleftedge;        //horizontal coordinate of left edge of grid in geographic coordinates, not grid coordinates
+    double xllcenter;        //horizontal center point of lower left grid cell in grographic coordinates, not grid coordinates
+    double yllcenter;        //vertical center point of lower left grid cell in geographic coordinates, not grid coordinates
+    double xleftedge;        //horizontal coordinate of left edge of grid in geographic coordinates, not grid coordinates
     double ytopedge;        //vertical coordinate of top edge of grid in geographic coordinates, not grid coordinates
     DATA_TYPE datatype;        //datatype of the grid values and the nodata value: short, long, or float
-    void *nodata;            //pointer to the nodata value, the nodata value type is indicated by datatype
-    void *
-        filenodata;       //pointer to no data value from the file.  This may be different from nodata because filedatatype and datatype are not equivalent
+    double nodata;            // noDatarefactor 11/18/17
+    void * filenodata;       //pointer to no data value from the file.  This may be different from nodata because filedatatype and datatype are not equivalent
     char filename[MAXLN];  //  Save filename for error or warning writes
     const char *valueUnit; //value units
     double *Yp;
@@ -133,7 +128,8 @@ private:
 
 public:
     tiffIO(char *fname, DATA_TYPE newtype);
-    tiffIO(char *fname, DATA_TYPE newtype, void *nd, const tiffIO &copy);
+    tiffIO(char *fname, DATA_TYPE newtype, double nodata, const tiffIO &copy); // noDatarefactor 11/18/17
+    // tiffIO(char *fname, DATA_TYPE newtype, void *nd, const tiffIO &copy);
     ~tiffIO();
 
     //BT void read(unsigned long long xstart, unsigned long long ystart, unsigned long long numRows, unsigned long long numCols, void* dest);
@@ -184,7 +180,7 @@ public:
     double getXLeftEdge() { return xleftedge; }
     double getYTopEdge() { return ytopedge; }
     DATA_TYPE getDatatype() { return datatype; }
-    void *getNodata() { return nodata; }
+    double getNodata() { return nodata; }
 };
 
 #endif

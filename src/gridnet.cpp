@@ -87,6 +87,7 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
                 }//5
                 else {
                     printf("Error opening shapefile. Exiting \n");
+                    fflush(stdout);
                     MPI_Abort(MCW, 5);
                 }
             }//4
@@ -117,12 +118,12 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
         //double dxA = p.getdxA();
         //double dyA = p.getdyA();
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr, "This estimate is very approximate. \nRun time is highly uncertain as it depends "
+            //    "on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //printf("After header read %d\n",rank);   fflush(stdout);
@@ -144,15 +145,16 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
             tiffIO mask(maskfile, LONG_TYPE);
             if (!p.compareTiff(mask)) {
                 printf("File sizes do not match\n%s\n", maskfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
             maskData = CreateNewPartition(mask.getDatatype(), totalX, totalY, dxA, dyA, mask.getNodata());
             mask.read(xstart, ystart, maskData->getny(), maskData->getnx(), maskData->getGridPointer());
         } else {
-            maskData = CreateNewPartition(LONG_TYPE, totalX, totalY, dxA, dyA, 1);
-            thresh =
-                0;  //  Here we have a partition filled with ones and a 0 threshold so mask condition is always satisfied
+            maskData = CreateNewPartition(LONG_TYPE, totalX, totalY, dxA, dyA, (int32_t)1);
+            thresh = 0;  
+            //  Here we have a partition filled with ones and a 0 threshold so mask condition is always satisfied
         }
         //Begin timer
         double readt = MPI_Wtime();
@@ -175,7 +177,7 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
         tdpartition *gord;
         plen = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, -1.0f);
         tlen = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, -1.0f);
-        gord = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -1);
+        gord = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, (int16_t)-1);
 
         // con is used to check for contamination at the edges
         long i, j;
@@ -206,7 +208,7 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
         }
 
         tdpartition *neighbor;
-        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, (int16_t)-32768);
 
         //Share information and set borders to zero
         flowData->share();
@@ -290,6 +292,7 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
             //TODO - consider copying this statement into other memory allocations
             if (bufferAbove == NULL || bufferBelow == NULL) {
                 printf("Error allocating memory\n");
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
             }
 
@@ -472,11 +475,11 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
         //Create and write TIFF file
         short sNodata = -1;
         float fNodata = -1.0f;
-        tiffIO gordIO(gordfile, SHORT_TYPE, &sNodata, p);
+        tiffIO gordIO(gordfile, SHORT_TYPE, sNodata, p);
         gordIO.write(xstart, ystart, ny, nx, gord->getGridPointer());
-        tiffIO plenIO(plenfile, FLOAT_TYPE, &fNodata, p);
+        tiffIO plenIO(plenfile, FLOAT_TYPE, fNodata, p);
         plenIO.write(xstart, ystart, ny, nx, plen->getGridPointer());
-        tiffIO tlenIO(tlenfile, FLOAT_TYPE, &fNodata, p);
+        tiffIO tlenIO(tlenfile, FLOAT_TYPE, fNodata, p);
         tlenIO.write(xstart, ystart, ny, nx, tlen->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -506,7 +509,3 @@ int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *m
 
     return 0;
 }
-
-
-
-

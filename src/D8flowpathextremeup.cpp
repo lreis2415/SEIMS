@@ -88,7 +88,8 @@ int d8flowpathextremeup(char *pfile,
         if (useOutlets == 1) {
             if (rank == 0) {
                 if (readoutlets(datasrc, lyrname, uselyrname, lyrno, hSRSRaster, &numOutlets, x, y) != 0) {
-                    printf("Exiting \n");
+                    printf("Read outlets error. Exiting \n");
+                    fflush(stdout);
                     MPI_Abort(MCW, 5);
                 } else {
                     MPI_Bcast(&numOutlets, 1, MPI_INT, 0, MCW);
@@ -110,12 +111,12 @@ int d8flowpathextremeup(char *pfile,
         //Read Flow Direction header using tiffIO
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Read flow direction data into partition
@@ -132,6 +133,7 @@ int d8flowpathextremeup(char *pfile,
         tiffIO sa(safile, FLOAT_TYPE);
         if (!p.compareTiff(sa)) {
             printf("File sizes do not match\n%s\n", safile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -165,7 +167,7 @@ int d8flowpathextremeup(char *pfile,
         short tempShort = 0;
 
         tdpartition *neighbor;
-        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, (int16_t)-32768);
 
         //Share information and set borders to zero
         flowData->share();
@@ -203,15 +205,11 @@ int d8flowpathextremeup(char *pfile,
                                     float nFloat;  // Variable to hold neighbor value
                                     if (usemax == 1) {
                                         if (ssa->getData(in, jn, nFloat) > ssa->getData(i, j, tempFloat)) {
-                                            ssa->setData(i,
-                                                         j,
-                                                         nFloat);
+                                            ssa->setData(i, j, nFloat);
                                         }
                                     } else {
                                         if (ssa->getData(in, jn, nFloat) < ssa->getData(i, j, tempFloat)) {
-                                            ssa->setData(i,
-                                                         j,
-                                                         nFloat);
+                                            ssa->setData(i, j, nFloat);
                                         }
                                     }
                                 }
@@ -265,7 +263,7 @@ int d8flowpathextremeup(char *pfile,
 
         //Create and write TIFF file
         float aNodata = MISSINGFLOAT;
-        tiffIO a(ssafile, FLOAT_TYPE, &aNodata, p);
+        tiffIO a(ssafile, FLOAT_TYPE, aNodata, p);
         a.write(xstart, ystart, ny, nx, ssa->getGridPointer());
         double writet = MPI_Wtime();
         double dataRead, compute, write, total, tempd;

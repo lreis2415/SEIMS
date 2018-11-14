@@ -1,3 +1,7 @@
+# This module accepts the following environment variables:
+#
+#   MONGOC_DIR, MONGOC_ROOT, or MONGOC_ROOT_DIR - Specify the location of MONGOC
+#
 # Read-Only variables:
 #  MONGOC_FOUND - system has the MONGOC library
 #  MONGOC_INCLUDE_DIR - the MONGOC include directory
@@ -15,9 +19,9 @@ find_path(MONGOC_INCLUDE_DIR
         libmongoc-1.0/mongoc.h
         HINTS
         CMAKE_PREFIX_PATH
-        $ENV{MONGOC_ROOT_DIR}
-        $ENV{BSON_ROOT_DIR}
-        ${_MONGOC_INCLUDEDIR}
+        ENV MONGOC_DIR
+        ENV MONGOC_ROOT
+        ENV MONGOC_ROOT_DIR
         PATH_SUFFIXES
         include
         )
@@ -32,8 +36,9 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                 "mongoc-1.0"
                 HINTS
                 CMAKE_PREFIX_PATH
-                $ENV{MONGOC_ROOT_DIR}
-                $ENV{BSON_ROOT_DIR}
+                ENV MONGOC_DIR
+                ENV MONGOC_ROOT
+                ENV MONGOC_ROOT_DIR
                 PATH_SUFFIXES
                 bin
                 lib
@@ -45,8 +50,10 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
                     NAMES
                     "libmongoc-1.0.dll"
                     HINTS
-                    $ENV{MONGOC_ROOT_DIR}
-                    $ENV{BSON_ROOT_DIR}
+                    CMAKE_PREFIX_PATH
+                    ENV MONGOC_DIR
+                    ENV MONGOC_ROOT
+                    ENV MONGOC_ROOT_DIR
                     PATH_SUFFIXES
                     bin
                     )
@@ -57,10 +64,13 @@ if (WIN32 AND NOT CYGWIN AND NOT MINGW)
 else ()
     find_library(MONGOC_LIBRARY
             NAMES
-            mongoc-1.0
+            "mongoc-1.0"
+            "libmongoc-1.0"
             HINTS
             CMAKE_PREFIX_PATH
-            ${_MONGOC_LIBDIR}
+            ENV MONGOC_DIR
+            ENV MONGOC_ROOT
+            ENV MONGOC_ROOT_DIR
             PATH_SUFFIXES
             lib
             )

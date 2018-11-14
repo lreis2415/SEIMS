@@ -110,11 +110,11 @@ int connectdown(char *pfile,
         OGRSpatialReferenceH hSRSRaster;
         hSRSRaster = wIO.getspatialref();
         if (rank == 0) {
-            float timeestimate =
-                (2e-7 * wTotalX * wTotalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            //fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
-            //fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (2e-7 * wTotalX * wTotalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            ////fprintf(stderr,"This run may take on the order of %.0f minutes to complete.\n",timeestimate);
+            ////fprintf(stderr,"This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
 
@@ -178,13 +178,9 @@ int connectdown(char *pfile,
 
         if (!ad8IO.compareTiff(wIO)) {
             printf("ad8 and w files not the same size. Exiting \n");
+            fflush(stdout);
             MPI_Abort(MCW, 4);
         }
-
-
-
-
-
         // Parse to find maximum
         int32_t wmax = 0;  // This assumes that the maximum will be positive
         long i, j;
@@ -197,8 +193,6 @@ int connectdown(char *pfile,
                 }
             }
         }
-
-
 
         //total up all the nodes and all the finished nodes
         int maxall;
@@ -689,8 +683,11 @@ int connectdown(char *pfile,
 
                 // layer name is file name without extension
                 if (strlen(outletlyr) == 0) {
-                    char *outletlayername;
-                    outletlayername = getLayername(outletdatasrc); // get layer name if the layer name is not provided
+                    // Chris George Suggestion
+                    char outletlayername[MAXLN];
+                    getLayername(outletdatasrc, outletlayername); // get layer name if the layer name is not provided
+                    // char *outletlayername;
+                    // outletlayername=getLayername( outletdatasrc); // get layer name if the layer name is not provided
                     hLayersh = OGR_DS_CreateLayer(hDSsh, outletlayername, hSRSRaster, wkbPoint, NULL);
                 } else {
                     hLayersh = OGR_DS_CreateLayer(hDSsh, outletlyr, hSRSRaster, wkbPoint, NULL);
@@ -759,9 +756,11 @@ int connectdown(char *pfile,
                     //hLayer1 = OGR_DS_GetLayerByName( hDS1,layername );
                     //OGR_L_ResetReading(hLayer1);
                     if (strlen(movedoutletlyr) == 0) {
-                        char *mvoutletlayername;
-                        mvoutletlayername =
-                            getLayername(movedoutletdatasrc); // get layer name if the layer name is not provided
+                        // Chris George Suggestion
+                        char mvoutletlayername[MAXLN];
+                        getLayername(movedoutletdatasrc, mvoutletlayername); // get layer name if the layer name is not provided
+                        //char *mvoutletlayername;
+                        //mvoutletlayername=getLayername( movedoutletdatasrc); // get layer name if the layer name is not provided
                         hLayershmoved = OGR_DS_CreateLayer(hDSshmoved, mvoutletlayername, hSRSRaster, wkbPoint, NULL);
                     }
                     else {
@@ -770,13 +769,10 @@ int connectdown(char *pfile,
 
                     //printf("hDSsh after: %d\n",hDSsh); fflush(stdout);
 
-
                     if (hLayershmoved == NULL) {
                         printf("warning: Layer creation failed.\n");
                         //exit( 1 );
                     }
-
-
 
                     /* Add a few fields to the layer defn */
                     hFieldDefnshmoved = OGR_Fld_Create("id", OFTInteger);
@@ -793,14 +789,10 @@ int connectdown(char *pfile,
                         double y = ynode[i];  // DGT +pdy/2.0;
 
 
-
-
                         hFeatureshmoved = OGR_F_Create(OGR_L_GetLayerDefn(hLayershmoved));
                         OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id"), wid[i]);
                         OGR_F_SetFieldInteger(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "id_down"), widdown[i]);
-                        OGR_F_SetFieldDouble(hFeatureshmoved,
-                            OGR_F_GetFieldIndex(hFeatureshmoved, "ad8"),
-                            (double)ad8max[i]);
+                        OGR_F_SetFieldDouble(hFeatureshmoved, OGR_F_GetFieldIndex(hFeatureshmoved, "ad8"), (double)ad8max[i]);
 
                         hGeometryshmoved = OGR_G_CreateGeometry(wkbPoint);
                         OGR_G_SetPoint_2D(hGeometryshmoved, 0, x, y);
@@ -845,5 +837,3 @@ int connectdown(char *pfile,
 
     return 0;
 }
-
-

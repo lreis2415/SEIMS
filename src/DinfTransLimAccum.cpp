@@ -97,7 +97,8 @@ int tlaccum(char *angfile,
         if (useOutlets == 1) {
             if (rank == 0) {
                 if (readoutlets(datasrc, lyrname, uselyrname, lyrno, hSRSRaster, &numOutlets, x, y) != 0) {
-                    printf("Exiting \n");
+                    printf("Read outlets error. Exiting \n");
+                    fflush(stdout);
                     MPI_Abort(MCW, 5);
                 } else {
                     MPI_Bcast(&numOutlets, 1, MPI_INT, 0, MCW);
@@ -129,12 +130,12 @@ int tlaccum(char *angfile,
         double dyA = ang.getdyA();*/
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
@@ -152,6 +153,7 @@ int tlaccum(char *angfile,
         tiffIO tsup(tsupfile, FLOAT_TYPE);
         if (!ang.compareTiff(tsup)) {
             printf("File sizes do not match\n%s\n", tsupfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -163,6 +165,7 @@ int tlaccum(char *angfile,
         tiffIO tc(tcfile, FLOAT_TYPE);
         if (!ang.compareTiff(tc)) {
             printf("File sizes do not match\n%s\n", tcfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -175,6 +178,7 @@ int tlaccum(char *angfile,
             tiffIO cin(cinfile, FLOAT_TYPE);
             if (!ang.compareTiff(cin)) {
                 printf("File sizes do not match\n%s\n", cinfile);
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
                 return 1;
             }
@@ -359,14 +363,14 @@ int tlaccum(char *angfile,
 
         //Create and write TIFF file
         float scaNodata = MISSINGFLOAT;
-        tiffIO ttla(tlafile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO ttla(tlafile, FLOAT_TYPE, scaNodata, ang);
         ttla.write(xstart, ystart, ny, nx, tla->getGridPointer());
 
-        tiffIO ddep(depfile, FLOAT_TYPE, &scaNodata, ang);
+        tiffIO ddep(depfile, FLOAT_TYPE, scaNodata, ang);
         ddep.write(xstart, ystart, ny, nx, dep->getGridPointer());
 
         if (usec == 1) {
-            tiffIO ccsout(coutfile, FLOAT_TYPE, &scaNodata, ang);
+            tiffIO ccsout(coutfile, FLOAT_TYPE, scaNodata, ang);
             ccsout.write(xstart, ystart, ny, nx, csout->getGridPointer());
         }
 
