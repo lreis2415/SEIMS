@@ -315,9 +315,9 @@ class SUScenario(Scenario):
             # reduction rate of soil erosion
             self.environment = (base_amount - soil_erosion_amount) / base_amount
             # print exception values
-            if self.environment > 1. or self.environment < 0.:
+            if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
-                      'SUM(%s): %s' % (self.ID, rfile, soil_erosion_amount))
+                      'SUM(%s): %s' % (self.ID, rfile, repr(soil_erosion_amount)))
                 self.environment = self.worst_env
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
