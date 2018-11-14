@@ -44,6 +44,51 @@ vector<string> SplitString(const string& item, const char delimiter) {
     return tokens;
 }
 
+#if defined(CPP_GCC) || defined(CPP_ICC)
+void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%d", value);
+}
+
+void _itow_s(vint32_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%d", value);
+}
+
+void _i64toa_s(vint64_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%ld", value);
+}
+
+void _i64tow_s(vint64_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%ld", value);
+}
+
+void _uitoa_s(vuint32_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%u", value);
+}
+
+void _uitow_s(vuint32_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%u", value);
+}
+
+void _ui64toa_s(vuint64_t value, char* buffer, size_t size, vint radix) {
+    strprintf(buffer, size, "%lu", value);
+}
+
+void _ui64tow_s(vuint64_t value, wchar_t* buffer, size_t size, vint radix) {
+    swprintf(buffer, size - 1, L"%lu", value);
+}
+
+void _gcvt_s(char* buffer, size_t size, double value, vint numberOfDigits) {
+    sprintf(buffer, "%f", value);
+    char* point = strchr(buffer, '.');
+    if (!point) return;
+    char* zero = buffer + strlen(buffer);
+    while (zero[-1] == '0') {
+        *--zero = '\0';
+    }
+    if (zero[-1] == '.') *--zero = '\0';
+}
+#endif
+
 string itoa(vint number) {
     char buffer[100];
     ITOA_S(number, buffer, sizeof(buffer) / sizeof(*buffer), 10);
@@ -241,6 +286,22 @@ string& Trim(string& s) {
     }
     s.erase(0, s.find_first_not_of(" \n\r\t"));
     return s.erase(s.find_last_not_of(" \n\r\t") + 1);
+}
+
+void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts) {
+    if (in_opts.empty()) return;
+    for (auto it = in_opts.begin(); it != in_opts.end(); ++it) {
+        if (out_opts.find(it->first) != out_opts.end()) {
+            out_opts[it->first] = it->second;
+        }
+        else {
+#ifdef HAS_VARIADIC_TEMPLATES
+            out_opts.emplace(it->first, it->second);
+#else
+            out_opts.insert(make_pair(it->first, it->second));
+#endif
+        }
+    }
 }
 } /* namespace: utils_string */
 

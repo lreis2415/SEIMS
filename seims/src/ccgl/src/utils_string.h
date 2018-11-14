@@ -92,49 +92,22 @@ string ValueToString(const T& val) {
     return oss.str();
 }
 
+
+/*!
+ * \brief Copy string map
+ */
+void CopyStringMap(const STRING_MAP& in_opts, STRING_MAP& out_opts);
+
 #if defined(CPP_GCC) || defined(CPP_ICC)
-inline void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%d", value);
-}
-
-inline void _itow_s(vint32_t value, wchar_t* buffer, size_t size, vint radix) {
-    swprintf(buffer, size - 1, L"%d", value);
-}
-
-inline void _i64toa_s(vint64_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%ld", value);
-}
-
-inline void _i64tow_s(vint64_t value, wchar_t* buffer, size_t size, vint radix) {
-    swprintf(buffer, size - 1, L"%ld", value);
-}
-
-inline void _uitoa_s(vuint32_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%u", value);
-}
-
-void _uitow_s(vuint32_t value, wchar_t* buffer, size_t size, vint radix) {
-    swprintf(buffer, size - 1, L"%u", value);
-}
-
-void _ui64toa_s(vuint64_t value, char* buffer, size_t size, vint radix) {
-    strprintf(buffer, size, "%lu", value);
-}
-
-void _ui64tow_s(vuint64_t value, wchar_t* buffer, size_t size, vint radix) {
-    swprintf(buffer, size - 1, L"%lu", value);
-}
-
-void _gcvt_s(char* buffer, size_t size, double value, vint numberOfDigits) {
-    sprintf(buffer, "%f", value);
-    char* point = strchr(buffer, '.');
-    if (!point) return;
-    char* zero = buffer + strlen(buffer);
-    while (zero[-1] == '0') {
-        *--zero = '\0';
-    }
-    if (zero[-1] == '.') *--zero = '\0';
-}
+extern void _itoa_s(vint32_t value, char* buffer, size_t size, vint radix);
+extern void _itow_s(vint32_t value, wchar_t* buffer, size_t size, vint radix);
+extern void _i64toa_s(vint64_t value, char* buffer, size_t size, vint radix);
+extern void _i64tow_s(vint64_t value, wchar_t* buffer, size_t size, vint radix);
+extern void _uitoa_s(vuint32_t value, char* buffer, size_t size, vint radix);
+extern void _uitow_s(vuint32_t value, wchar_t* buffer, size_t size, vint radix);
+extern void _ui64toa_s(vuint64_t value, char* buffer, size_t size, vint radix);
+extern void _ui64tow_s(vuint64_t value, wchar_t* buffer, size_t size, vint radix);
+extern void _gcvt_s(char* buffer, size_t size, double value, vint numberOfDigits);
 #endif
 
 /*!

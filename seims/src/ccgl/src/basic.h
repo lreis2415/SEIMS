@@ -48,6 +48,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cfloat>
+#include <map>
 #include <string>
 #include <cstring> // strcasecmp in GCC
 /// platform
@@ -321,6 +322,8 @@ typedef vint64_t pos_t;
 /*! Convert to 8-byte (64-bit) unsigned integer `vuint64_t` */
 #define CVT_VUINT64(param) static_cast<vuint64_t>((param))
 
+
+typedef std::map<string, string> STRING_MAP;
 
 #ifdef CPP_64
 #define ITOA_S		_i64toa_s

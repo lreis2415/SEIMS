@@ -120,7 +120,6 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(25.f, rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs_->GetCellWidth());
     EXPECT_EQ(1, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/
@@ -244,13 +243,15 @@ TEST_P(clsRasterDataTestNoPosIncstMaskPosExt, RasterIO) {
         opts.emplace("Grade", "5.0");
         rs_->OutputToMongoDB(gfsfilename, gfs, opts);
         clsRasterData<float, int>* mongors = clsRasterData<float, int>::
-                Init(gfs, gfsfilename.c_str(), false, maskrs_, true);
+                Init(gfs, gfsfilename.c_str(), false, maskrs_, true, NODATA_VALUE, opts);
         // test mongors data
         EXPECT_EQ(90, mongors->GetCellNumber()); // m_nCells
         EXPECT_EQ(1, mongors->GetLayers());
         EXPECT_EQ(61, mongors->GetValidNumber());
-        EXPECT_EQ(22, rs_->GetPosition(22.05f, 37.95f)); // row 2, col 2
-        EXPECT_FLOAT_EQ(9.95683607f, rs_->GetAverage());
+        EXPECT_EQ(22, mongors->GetPosition(22.05f, 37.95f)); // row 2, col 2
+        EXPECT_FLOAT_EQ(9.95683607f, mongors->GetAverage());
+        EXPECT_EQ("5.0", mongors->GetOption("Grade"));
+        EXPECT_EQ("Liangjun", mongors->GetOption("Author"));
         // output to asc/tif file for comparison
         EXPECT_TRUE(rs_->OutputToFile(newfullname4mongo));
         EXPECT_TRUE(FileExists(newfullname4mongo));

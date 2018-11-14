@@ -48,7 +48,6 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     EXPECT_FLOAT_EQ(-9999.f, rs->GetYllCenter());
     EXPECT_FLOAT_EQ(-9999.f, rs->GetCellWidth());
     EXPECT_EQ(-1, rs->GetLayers());
-    EXPECT_STREQ("", rs->GetSrs());
     EXPECT_EQ("", rs->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/
