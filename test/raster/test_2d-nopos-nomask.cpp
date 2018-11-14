@@ -71,7 +71,6 @@ TEST(clsRasterDataTestMultiNoPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(1.f, rs->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs->GetCellWidth());
     EXPECT_EQ(3, rs->GetLayers());
-    EXPECT_STREQ("", rs->GetSrs());
     EXPECT_EQ("", rs->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap2D **/
