@@ -17,6 +17,7 @@
 #ifdef USE_MONGODB
 
 #include <vector>
+#include <map>
 #include <iostream>
 
 #include <mongoc.h>
@@ -25,6 +26,7 @@
 
 using std::string;
 using std::vector;
+using std::map;
 using std::cout;
 using std::endl;
 
@@ -202,7 +204,8 @@ public:
     /*!
      * \brief Get GridFS file by name
      */
-    mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
+    mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
+                                  STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Remove GridFS file by name
@@ -217,13 +220,15 @@ public:
     /*!
      * \brief Get metadata of a given GridFS file name
      */
-    bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
+    bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
+                            STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Get stream data of a given GridFS file name
      */
     void GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
-                       mongoc_gridfs_t* gfs = NULL);
+                       mongoc_gridfs_t* gfs = NULL,
+                       STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Write stream data to a GridFS file
@@ -234,6 +239,11 @@ public:
 private:
     mongoc_gridfs_t* gfs_;
 };
+
+/*!
+ * \brief Append options to bson
+ */
+void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts);
 
 /*!
  * \brief Get numeric value from \a bson_iter_t according to a given key
