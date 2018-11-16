@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Main function entrance for preprocessing
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-29  lj - reformat according to pylint and google style
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-29  lj - reformat according to pylint and google style
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import time
 import sys

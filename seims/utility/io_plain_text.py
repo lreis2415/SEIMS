@@ -7,7 +7,7 @@
     @changelog:
     - 18-10-29 - lj - Extract from other packages.
 """
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import json
 from io import open

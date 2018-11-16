@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import model calibration parameters, model configuration information etc.
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0\n
-                17-06-23  lj - reorganize as basic class\n
-                18-01-30  lj - clean up calibration settings before import a new one\n
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 18-01-30  lj - clean up calibration settings before import a new one
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys

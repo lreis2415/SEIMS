@@ -1,9 +1,14 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Handle time series data.
+
     @author   : Liangjun Zhu
-    @changelog: 18-10-29 - lj - Extract from other packages.
+
+    @changelog:
+    - 18-10-29 - lj - Extract from other packages.
 """
+from __future__ import absolute_import, unicode_literals
+
 import bisect
 from collections import OrderedDict
 from datetime import datetime

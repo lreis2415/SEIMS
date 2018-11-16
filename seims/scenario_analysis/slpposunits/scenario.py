@@ -9,7 +9,7 @@
     - 17-08-18  lj - redesign and rewrite.
     - 18-02-09  lj - compatible with Python3.
 """
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, unicode_literals
 from future.utils import viewitems
 
 import array
@@ -306,6 +306,8 @@ class SUScenario(Scenario):
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ
             self.environment = self.worst_env
+            # model clean
+            self.model.clean(delete_scenario=True)
             return
 
         base_amount = self.bmps_info['BASE_ENV']
@@ -327,7 +329,8 @@ class SUScenario(Scenario):
         else:
             self.economy = self.worst_econ
             self.environment = self.worst_env
-            return
+        # model clean
+        self.model.clean(delete_scenario=True)
 
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None

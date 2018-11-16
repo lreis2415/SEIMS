@@ -6,7 +6,7 @@
                 17-06-23  lj - reorganize as basic class other than Global variables
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
 
@@ -384,6 +384,7 @@ class DBTableNames(object):
     """Predefined MongoDB database collection names."""
     # Main model database
     gridfs_spatial = 'SPATIAL'
+    gridfs_output = 'OUTPUT'
     main_sitelist = 'SITELIST'
     main_parameter = 'PARAMETERS'
     main_filein = 'FILE_IN'
