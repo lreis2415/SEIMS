@@ -59,7 +59,11 @@ tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, do
             printf("Nodata value recast to int16_t used in partition raster: %d\n", ndinit);
             fflush(stdout);
         }
+#ifdef MPI_INT16_T
         ptr->init(totalx, totaly, dxA, dyA, MPI_INT16_T, ndinit);
+#else
+        ptr->init(totalx, totaly, dxA, dyA, MPI_SHORT, ndinit);
+#endif
     }
     else if (datatype == LONG_TYPE){
         int32_t ndinit = (int32_t)nodata;
@@ -100,7 +104,11 @@ tdpartition *CreateNewPartition(DATA_TYPE datatype, long totalx, long totaly, do
     tdpartition *ptr = NULL;
     if (datatype == SHORT_TYPE) {
         ptr = new linearpart<int16_t>;
+#ifdef MPI_INT16_T
         ptr->init(totalx, totaly, dxA, dyA, MPI_INT16_T, nodata);
+#else
+        ptr->init(totalx, totaly, dxA, dyA, MPI_SHORT, nodata);
+#endif
     } else if (datatype == LONG_TYPE) {
 #ifdef MPI_INT32_T
         ptr = new linearpart<int32_t>;
