@@ -2,11 +2,16 @@
 #include <utility>
 
 void Usage(const string& appname, const string& error_msg = "") {
+    if (!error_msg.empty()) {
+        cout << "FAILURE: " << error_msg << endl;
+    }
     cout << "Simple Usage:\n    " << appname <<
             // Common arguments
             " <modelPath> [<threadsNum> <layeringMethod> <IP> <port> <scenarioID> <calibrationID>"
             // MPI version arguments
-            " <subbasinID> <groupMethod> <scheduleMethod> <timeSlices>]" << endl;
+            " <subbasinID>"
+            // " <groupMethod> <scheduleMethod> <timeSlices>"
+            "]" << endl;
     cout << "\t<modelPath> is the path of the configuration of the Model." << endl;
     cout << "\t<threadsNum> is thread or processor number, which must be greater or equal than 1 (default)." << endl;
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively." << endl;
@@ -19,18 +24,17 @@ void Usage(const string& appname, const string& error_msg = "") {
 
     cout << "\tMPI version specific arguments are as follows: " << endl;
     cout << "\t<subbasinID> is the subbasin that will be executed." << endl;
-    cout << "\t<groupMethod> can be 0 and 1, which means KMETIS (default) and PMETIS, respectively." << endl;
-    cout << "\t<scheduleMethod> can be 0 and 1, which means "
-            "SPATIAL (default) and TEMPOROSPATIAL, respectively." << endl;
-    cout << "\t<timeSlices> should be greater than 1, required when <scheduleMethod> is 1." << endl;
+    // cout << "\t<groupMethod> can be 0 and 1, which means KMETIS (default) and PMETIS, respectively." << endl;
+    // cout << "\t<scheduleMethod> can be 0 and 1, which means "
+    //         "SPATIAL (default) and TEMPOROSPATIAL, respectively." << endl;
+    // cout << "\t<timeSlices> should be greater than 1, required when <scheduleMethod> is 1." << endl;
     cout << endl;
     cout << "Complete and recommended Usage:\n    " << appname <<
             " -wp <modelPath> [-thread <threadsNum> -lyr <layeringMethod> -host <IP> -port <port>"
             " -sce <scenarioID> -cali <calibrationID>"
-            " -id <subbasinID> -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>]" << endl;
-    if (!error_msg.empty()) {
-        cout << "FAILURE: " << error_msg << endl;
-    }
+            " -id <subbasinID>"
+            // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"
+            "]" << endl;
     exit(1);
 }
 
@@ -52,7 +56,8 @@ InputArgs* InputArgs::Init(const int argc, const char** argv) {
     char* strend = nullptr;
     errno = 0;
     if (argc < 2) {
-        Usage(argv[0], "To run the program, use either the Simple Usage option or Usage option as below.");
+        Usage(argv[0], "To run the program, use either the Simple Usage option or "
+              "the Complete Usage option as below.");
         return nullptr;
     }
 
