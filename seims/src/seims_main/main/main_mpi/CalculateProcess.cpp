@@ -402,7 +402,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     StatusMessage(("Combining raster: " + item->Corename).c_str());
                     CombineRasterResultsMongo(gfs, item->Corename,
                                               data_center_map.begin()->second->GetSubbasinsCount(),
-                                              data_center_map.begin()->second->GetOutputScenePath());
+                                              data_center_map.begin()->second->GetOutputScenePath(),
+                                              input_args->scenario_id, input_args->calibration_id);
                 }
             }
         }
