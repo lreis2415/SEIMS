@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Calibration by NSGA-II algorithm.
+
     @author   : Liangjun Zhu
-    @changelog: 18-01-22  lj - initial implementation.\n
-                18-02-09  lj - compatible with Python3.\n
-                18-07-10  lj - Support MPI version of SEIMS.\n
-                18-08-26  lj - Gather the execute time of all model runs. Plot pareto graphs.\n
-                18-08-29  jz,lj,sf - Add Nutrient calibration step.\n
-                18-10-22  lj - Make the customizations of multi-objectives flexible.\n
+
+    @changelog:
+    - 18-01-22  lj - initial implementation.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-07-10  lj - Support MPI version of SEIMS.
+    - 18-08-26  lj - Gather the execute time of all model runs. Plot pareto graphs.
+    - 18-08-29  jz,lj,sf - Add Nutrient calibration step.
+    - 18-10-22  lj - Make the customizations of multi-objectives flexible.
 """
 from __future__ import absolute_import, division, unicode_literals
 
@@ -21,6 +24,7 @@ from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from typing import Dict
 import numpy
 from deap import base
 from deap import creator
@@ -247,6 +251,8 @@ def main(cfg):
     scoop_log(output_str)
     UtilClass.writelog(cfg.opt.logfile, output_str, mode='replace')
 
+    modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
+
     for gen in range(1, cfg.opt.ngens + 1):
         output_str = '###### Generation: %d ######\n' % gen
         scoop_log(output_str)
@@ -311,6 +317,13 @@ def main(cfg):
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
         scoop_log(logbook.stream)
 
+        # Count the newly generated near Pareto fronts
+        new_count = 0
+        for ind in pop:
+            if ind.gen == gen:
+                new_count += 1
+        modelsel_count.setdefault(gen, new_count)
+
         # Plot 2D near optimal pareto front graphs,
         #   i.e., (NSE, RSR), (NSE, PBIAS), and (RSR,PBIAS)
         # And 3D near optimal pareto front graphs, i.e., (NSE, RSR, PBIAS)
@@ -346,6 +359,11 @@ def main(cfg):
     # Plot hypervolume and newly executed model count
     plot_hypervolume_single(cfg.opt.hypervlog, cfg.opt.out_dir)
 
+    # Save newly added Pareto fronts of each generations
+    new_fronts_count = numpy.array(list(modelsel_count.items()))
+    numpy.savetxt('%s/new_pareto_fronts_count.txt' % cfg.opt.out_dir,
+                  new_fronts_count, delimiter=str(','), fmt=str('%d'))
+
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
     numpy.savetxt('%s/exec_time_allmodelruns.txt' % cfg.opt.out_dir,
@@ -355,10 +373,10 @@ def main(cfg):
               'MAX\t%s\n'
               'MIN\t%s\n'
               'AVG\t%s\n'
-              'SUM\t%s\n' % ('\t'.join('%.3f' % v for v in allmodels_exect.max(0)),
-                             '\t'.join('%.3f' % v for v in allmodels_exect.min(0)),
-                             '\t'.join('%.3f' % v for v in allmodels_exect.mean(0)),
-                             '\t'.join('%.3f' % v for v in allmodels_exect.sum(0))))
+              'SUM\t%s\n' % ('\t'.join('%.3f' % t for t in allmodels_exect.max(0)),
+                             '\t'.join('%.3f' % t for t in allmodels_exect.min(0)),
+                             '\t'.join('%.3f' % t for t in allmodels_exect.mean(0)),
+                             '\t'.join('%.3f' % t for t in allmodels_exect.sum(0))))
 
     exec_time = 0.
     for genid, tmptime in list(modelruns_time.items()):

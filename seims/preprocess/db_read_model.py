@@ -1,14 +1,21 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Load data from MongoDB.
-   Note that, the ReadModelData class is not picklable,
-     since MongoClient returns thread.lock objects.
-    @author   : Liangjun Zhu
-    @changelog: 18-01-02  - lj - separated from plot_timeseries.\n
-                18-02-09  - lj - compatible with Python3.\n
-"""
-from __future__ import absolute_import
 
+    @Note:
+    - The ReadModelData class is not picklable,
+       since MongoClient returns thread.lock objects.
+
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-01-02  - lj - separated from plot_timeseries.
+    - 18-02-09  - lj - compatible with Python3.
+"""
+from __future__ import absolute_import, unicode_literals
+from future.utils import viewitems
+
+from datetime import datetime
 import os
 import sys
 from collections import OrderedDict
@@ -18,6 +25,8 @@ from pygeoc.utils import StringClass, is_string
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from gridfs import GridFS
+from typing import Dict, List, Tuple, Union, AnyStr
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStatsName, \
     DataValueFields, DataType, StationFields
@@ -25,23 +34,29 @@ from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStat
 
 class ReadModelData(object):
     def __init__(self, host, port, dbname):
+        # type: (AnyStr, int, AnyStr) -> None
         """Initialization."""
         client = ConnectMongoDB(host, port)
         conn = client.get_conn()
         self.maindb = conn[dbname]
         self.filein_tab = self.maindb[DBTableNames.main_filein]
+        self.fileout_tab = self.maindb[DBTableNames.main_fileout]
         self._climdb_name = self.HydroClimateDBName
         self.climatedb = conn[self._climdb_name]
         self._scenariodb_name = self.ScenarioDBName
+        self.scenariodb = conn[self._scenariodb_name]
         self._mode = ''
         self._interval = -1
         # UTCTIME
         self._stime = None
         self._etime = None
         self._outletid = -1
+        # OUTPUT items
+        self._output_items = dict()  # type: Dict[AnyStr, Union[List[AnyStr]]]
 
     @property
     def HydroClimateDBName(self):
+        # type: (...) -> AnyStr
         climtbl = self.maindb[DBTableNames.main_sitelist]
         allitems = climtbl.find()
         if not allitems.count():
@@ -55,6 +70,7 @@ class ReadModelData(object):
 
     @property
     def ScenarioDBName(self):
+        # type: (...) -> AnyStr
         scentbl = self.maindb[DBTableNames.main_scenario]
         allitems = scentbl.find()
         if not allitems.count():
@@ -68,6 +84,7 @@ class ReadModelData(object):
 
     @property
     def Mode(self):
+        # type: (...) -> AnyStr
         """Get simulation mode."""
         if self._mode != '':
             return self._mode.upper()
@@ -79,6 +96,7 @@ class ReadModelData(object):
 
     @property
     def Interval(self):
+        # type: (...) -> int
         if self._interval > 0:
             return self._interval
         findinterval = self.filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.interval})
@@ -87,6 +105,7 @@ class ReadModelData(object):
 
     @property
     def OutletID(self):
+        # type: (...) -> int
         if self._outletid > 0:
             return self._outletid
         self._outletid = int(MongoQuery.get_init_parameter_value(self.maindb,
@@ -95,12 +114,13 @@ class ReadModelData(object):
 
     @property
     def SimulationPeriod(self):
+        # type: (...) -> (datetime, datetime)
         if self._stime is not None and self._etime is not None:
             return self._stime, self._etime
-        st = self.filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.stime})[
-            ModelCfgFields.value]
-        et = self.filein_tab.find_one({ModelCfgFields.tag: ModelCfgFields.etime})[
-            ModelCfgFields.value]
+        st = self.filein_tab.find_one({ModelCfgFields.tag:
+                                           ModelCfgFields.stime})[ModelCfgFields.value]
+        et = self.filein_tab.find_one({ModelCfgFields.tag:
+                                           ModelCfgFields.etime})[ModelCfgFields.value]
         st = StringClass.get_datetime(st)
         et = StringClass.get_datetime(et)
         if self._stime is None or st > self._stime:
@@ -112,7 +132,27 @@ class ReadModelData(object):
             self._etime = et
         return self._stime, self._etime
 
+    @property
+    def OutputItems(self):
+        # type: (...) -> Dict[AnyStr, Union[List[AnyStr]]]
+        """Read output items from database."""
+        if self._output_items:
+            return self._output_items
+        cursor = self.fileout_tab.find({'$or': [{ModelCfgFields.use: '1'},
+                                                {ModelCfgFields.use: 1}]})
+        if cursor is not None:
+            for item in cursor:
+                name = item[ModelCfgFields.filename]
+                corename = StringClass.split_string(name, '.')[0]
+                types = item[ModelCfgFields.type]
+                if StringClass.string_match(types, 'NONE'):
+                    self._output_items.setdefault(corename, None)
+                else:
+                    self._output_items.setdefault(corename, StringClass.split_string(types, '-'))
+        return self._output_items
+
     def Precipitation(self, subbsn_id, start_time, end_time):
+        # type: (int, datetime, datetime) -> List[List[Union[datetime, float]]]
         """
         The precipitation is read according to the subbasin ID.
             Especially when plot a specific subbasin (such as ID 3).
@@ -137,9 +177,9 @@ class ReadModelData(object):
         pcp_dict = OrderedDict()
 
         for pdata in self.climatedb[DBTableNames.data_values].find(
-                {DataValueFields.utc: {"$gte": start_time, '$lte': end_time},
-                 DataValueFields.type: DataType.p,
-                 DataValueFields.id: {"$in": site_list}}).sort([(DataValueFields.utc, 1)]):
+            {DataValueFields.utc: {"$gte": start_time, '$lte': end_time},
+             DataValueFields.type: DataType.p,
+             DataValueFields.id: {"$in": site_list}}).sort([(DataValueFields.utc, 1)]):
             curt = pdata[DataValueFields.utc]
             curv = pdata[DataValueFields.value]
             if curt not in pcp_dict:
@@ -157,6 +197,7 @@ class ReadModelData(object):
         return pcp_date_value
 
     def Observation(self, subbsn_id, vars, start_time, end_time):
+        # type: (int, List[AnyStr], datetime, datetime) -> (List[AnyStr], Dict[datetime, List[float]])
         """Read observation data of given variables.
 
         Changelog:
@@ -228,6 +269,38 @@ class ReadModelData(object):
                                                                    start_time.strftime('%c'),
                                                                    end_time.strftime('%c')))
         return vars_existed, data_dict
+
+    def CleanOutputGridFs(self, scenario_id=-1, calibration_id=-1):
+        # type: (int, int) -> None
+        """Delete Output GridFS files in OUTPUT collection."""
+        if not self.OutputItems:  # No outputs
+            return
+        output_gfs = GridFS(self.maindb, DBTableNames.gridfs_output)
+        for corename, types in viewitems(self.OutputItems):
+            if types is None:
+                continue
+            # The format of filename of OUPUT by SEIMS MPI version is:
+            #   <SubbasinID>_CoreFileName_ScenarioID_CalibrationID
+            #   If no ScenarioID or CalibrationID, i.e., with a value of -1, just left blank.
+            #  e.g.,
+            #    - 1_SED_OL_SUM_1_ means ScenarioID is 1 and Calibration ID is -1
+            #    - 1_SED_OL_SUM__ means ScenarioID is -1 and Calibration ID is -1
+            #    - 1_SED_OL_SUM_0_2 means ScenarioID is 0 and Calibration ID is 2
+            regex_str = '(|\\d+_)%s(|_\\S+)' % corename
+            regex_str += '_' if scenario_id < 0 else '_%d' % scenario_id
+            regex_str += '_' if calibration_id < 0 else '_%d' % calibration_id
+            for i in output_gfs.find({'filename': {'$regex': regex_str}}):
+                output_gfs.delete(i._id)
+
+    def CleanScenariosConfiguration(self, scenario_ids):
+        # type: (Union[int, List[int], Tuple[int]]) -> None
+        """Delete scenario data by IDs in MongoDB."""
+        if not isinstance(scenario_ids, list) or not isinstance(scenario_ids, tuple):
+            scenario_ids = [scenario_ids]
+        collection = self.scenariodb[DBTableNames.scenarios]
+        for _id in scenario_ids:
+            collection.remove({'ID': _id})
+            print('Delete scenario: %d in MongoDB completed!' % _id)
 
 
 def main():

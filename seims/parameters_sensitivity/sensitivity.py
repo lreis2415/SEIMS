@@ -19,10 +19,8 @@ from io import open
 import os
 import sys
 import json
-import datetime
 import time
 import pickle
-from shutil import rmtree
 from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -178,7 +176,7 @@ class Sensitivity(object):
         # Save as json, which can be loaded by json.load()
         json_data = json.dumps(self.param_defs, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.param_defs_json, 'w', encoding='utf-8') as f:
-            f.write(json_data)
+            f.write('%s' % json_data)
 
     def generate_samples(self):
         """Sampling and write to a single file and MongoDB 'PARAMETERS' collection"""
@@ -282,14 +280,14 @@ class Sensitivity(object):
                 # Calculate NSE, R2, RMSE, PBIAS, RSR, ln(NSE), NSE1, and NSE3
                 self.objnames, obj_values = mod_obj.CalcTimeseriesStatistics(mod_obj.sim_obs_dict)
                 eva_values.append(obj_values)
-                # delete model output directory for saving storage
-                rmtree(mod_obj.output_dir)
+                # delete model output directory and GridFS files for saving storage
+                mod_obj.clean()
             if not isinstance(eva_values, numpy.ndarray):
                 eva_values = numpy.array(eva_values)
             numpy.savetxt(cur_out_file, eva_values, delimiter=str(' '), fmt=str('%.4f'))
             # Save as pickle data for further usage. DO not save all models which maybe very large!
             cur_model_out_file = '%s/models_%d.pickle' % (self.cfg.outfiles.output_values_dir, idx)
-            with open(cur_model_out_file, 'wb', encoding='utf-8') as f:
+            with open(cur_model_out_file, 'wb') as f:
                 pickle.dump(output_models, f)
         exec_times = numpy.array(exec_times)
         numpy.savetxt('%s/exec_time_allmodelruns.txt' % self.cfg.psa_outpath,
@@ -305,7 +303,7 @@ class Sensitivity(object):
                              '\t'.join('%.3f' % v for v in exec_times.sum(0))))
         print('Running time of executing SEIMS models: %.2fs' % (time.time() - run_model_stime))
         # Save objective names as pickle data for further usgae
-        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb', encoding='utf-8') as f:
+        with open('%s/objnames.pickle' % self.cfg.psa_outpath, 'wb') as f:
             pickle.dump(self.objnames, f)
 
         # load the first part of output values

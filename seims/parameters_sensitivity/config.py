@@ -7,7 +7,7 @@
                 18-02-09  lj - compatible with Python3.\n
                 18-07-10  lj - Extract a common parse class for SEIMS model, `ParseSEIMSConfig`.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
@@ -161,11 +161,11 @@ class PSAConfig(object):
         self.fast = None
         if self.method == 'fast':
             self.fast = FASTConfig(cf)
-            self.psa_outpath = '%s/PSA-FAST-N%dM%d' % (self.model.model_dir,
+            self.psa_outpath = '%s/PSA_FAST_N%dM%d' % (self.model.model_dir,
                                                        self.fast.N, self.fast.M)
         elif self.method == 'morris':
             self.morris = MorrisConfig(cf)
-            self.psa_outpath = '%s/PSA-Morris-N%dL%dJ%d' % (self.model.model_dir,
+            self.psa_outpath = '%s/PSA_Morris_N%dL%dJ%d' % (self.model.model_dir,
                                                             self.morris.N,
                                                             self.morris.num_levels,
                                                             self.morris.grid_jump)

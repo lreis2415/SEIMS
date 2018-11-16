@@ -4,17 +4,19 @@
     @author   : Liangjun Zhu
     @changelog: 18-10-29 - lj - Extract from other packages.
 """
+from __future__ import absolute_import, unicode_literals
+
 import os
 import argparse
 from configparser import ConfigParser
 from datetime import datetime
 
-from typing import Optional
+from typing import Optional, AnyStr
 from pygeoc.utils import FileClass, StringClass, UtilClass
 
 
 def get_optimization_config(desc='The help information is supposed not be empty.'):
-    # type: (str) -> (ConfigParser, str)
+    # type: (AnyStr) -> (ConfigParser, AnyStr)
     """Parse arguments.
     Returns:
         cf: ConfigParse object of *.ini file
@@ -40,7 +42,7 @@ def get_optimization_config(desc='The help information is supposed not be empty.
 
 
 def check_config_option(cf, section_name, option_name):
-    # type: (ConfigParser, str, str) -> bool
+    # type: (ConfigParser, AnyStr, AnyStr) -> bool
     if not isinstance(cf, ConfigParser):
         raise IOError('ErrorInput: The first argument cf MUST be the object of `ConfigParser`!')
     if section_name not in cf.sections():
@@ -53,7 +55,7 @@ def check_config_option(cf, section_name, option_name):
 
 
 def parse_datetime_from_ini(cf, section_name, option_name):
-    # type: (ConfigParser, str, str) -> Optional[datetime]
+    # type: (ConfigParser, AnyStr, AnyStr) -> Optional[datetime]
     """Parse datetime from the `ConfigParser` object."""
     if not check_config_option(cf, section_name, option_name):
         return None
@@ -70,7 +72,7 @@ class ParseNSGA2Config(object):
     """NSGA-II related parameters"""
 
     def __init__(self, cf, wp, dir_template='NSGA2_Gen_%d_Pop_%d'):
-        # type: (ConfigParser, str, str) -> None
+        # type: (ConfigParser, AnyStr, AnyStr) -> None
         """Initialization."""
         self.ngens = cf.getint('NSGA2', 'generationsnum') if \
             cf.has_option('NSGA2', 'generationsnum') else 1

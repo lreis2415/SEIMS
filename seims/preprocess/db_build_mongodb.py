@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import all model parameters and spatial datasets to MongoDB
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reformat according to pylint and google style
-                17-07-07  lj - remove sqlite3 database file as intermediate data
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-26  lj - reformat according to pylint and google style
+    - 17-07-07  lj - remove sqlite3 database file as intermediate data
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys

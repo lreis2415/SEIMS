@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Plot time-series variables.
+
     @author   : Liangjun Zhu
-    @changelog: 17-08-17  lj - redesign and rewrite the plotting program.\n
-                18-01-04  lj - separate load data from MongoDB operations.\n
-                18-02-01  lj - add plot of validation period.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+    - 17-08-17  lj - redesign and rewrite the plotting program.
+    - 18-01-04  lj - separate load data from MongoDB operations.
+    - 18-02-01  lj - add plot of validation period.
+    - 18-02-09  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys

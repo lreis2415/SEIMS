@@ -5,7 +5,7 @@
     @changelog: 18-1-20  lj - initial implementation.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from configparser import ConfigParser
 import os
@@ -56,7 +56,7 @@ class CaliConfig(object):
         self.opt_mtd = method
         self.opt = None
         if self.opt_mtd == 'nsga2':
-            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'Cali_NSGA2_Gen_%d_Pop_%d')
+            self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
 
 
 if __name__ == '__main__':

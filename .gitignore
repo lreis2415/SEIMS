@@ -76,6 +76,9 @@ data/*/workspace
 **OUTPUT
 OUTPUT/*
 OUTPUT*/
+CALI_*/
+PSA_*/
+SA_*/
 
 # VSCode configuration folder
 .vscode

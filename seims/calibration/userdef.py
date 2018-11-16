@@ -1,9 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """User defined functions.
+
     @author   : Liangjun Zhu
-    @changelog: 18-1-22  lj - initial implementation.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+    - 18-1-22  lj - initial implementation.
+    - 18-02-09  lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -49,7 +52,7 @@ def output_population_details(pops, outdir, gen_num):
     # 1. Save the timeseries simulation data of the entire simulation period
     all_sim_data = list()
     pickle_file = outdir + os.path.sep + 'gen%d_allSimData.pickle' % gen_num
-    with open(pickle_file, 'wb', encoding='utf-8') as f:
+    with open(pickle_file, 'wb') as f:
         for ind in pops:
             all_sim_data.append(ind.sim.data)
         pickle.dump(all_sim_data, f)
@@ -66,9 +69,9 @@ def output_population_details(pops, outdir, gen_num):
             ind.cali.sim_obs_data['var_name'] = ind.cali.vars
             cali_sim_obs_data.append(ind.cali.sim_obs_data)
         json_data = json.dumps(cali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
-        f.write(json_data)
+        f.write('%s' % json_data)
     pickle_file = outdir + os.path.sep + 'gen%d_caliSimData.pickle' % gen_num
-    with open(pickle_file, 'wb', encoding='utf-8') as f:
+    with open(pickle_file, 'wb') as f:
         for ind in pops:
             cali_sim_data.append(ind.cali.data)
         pickle.dump(cali_sim_data, f)
@@ -85,9 +88,9 @@ def output_population_details(pops, outdir, gen_num):
                 ind.vali.sim_obs_data['var_name'] = ind.vali.vars
                 vali_sim_obs_data.append(ind.vali.sim_obs_data)
             json_data = json.dumps(vali_sim_obs_data, indent=4, cls=SpecialJsonEncoder)
-            f.write(json_data)
+            f.write('%s' % json_data)
         pickle_file = outdir + os.path.sep + 'gen%d_valiSimData.pickle' % gen_num
-        with open(pickle_file, 'wb', encoding='utf-8') as f:
+        with open(pickle_file, 'wb') as f:
             for ind in pops:
                 vali_sim_data.append(ind.vali.data)
             pickle.dump(vali_sim_data, f)

@@ -11,7 +11,7 @@
     - 18-02-09  lj - compatible with Python3.
     - 18-10-29  lj - Redesign the code structure.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from configparser import ConfigParser
 from future.utils import viewitems

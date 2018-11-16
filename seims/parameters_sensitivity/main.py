@@ -6,7 +6,7 @@
                 18-1-11   lj - code refactor to support multiple psa methods.\n
                 18-02-09  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import time
 import os
