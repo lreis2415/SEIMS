@@ -49,39 +49,6 @@ def generate_uniqueid():
         uid += 1
 
 
-def delete_scenarios_by_ids(hostname, port, dbname, sids):
-    # type: (str, int, str, List[int]) -> None
-    """Delete scenario data by ID in MongoDB."""
-    client = ConnectMongoDB(hostname, port)
-    conn = client.get_conn()
-    db = conn[dbname]
-    collection = db[DBTableNames.scenarios]
-    for _id in sids:
-        collection.remove({'ID': _id})
-        print('Delete scenario: %d in MongoDB completed!' % _id)
-    client.close()
-
-
-def delete_model_outputs(model_workdir, hostname, port, dbname):
-    # type: (str, str, int, str) -> None
-    """Delete model outputs and scenario in MongoDB."""
-    f_list = os.listdir(model_workdir)
-    sids = list()
-    for f in f_list:
-        outfilename = model_workdir + os.path.sep + f
-        if os.path.isdir(outfilename):
-            if len(f) > 9:
-                if MathClass.isnumerical(f[-9:]):
-                    shutil.rmtree(outfilename)
-                    try:
-                        sid = int(f[-9:])
-                        sids.append(sid)
-                    except ValueError:
-                        pass
-    if len(sids) > 0:
-        delete_scenarios_by_ids(hostname, port, dbname, sids)
-
-
 class Scenario(object):
     """Base class of Scenario Analysis.
 

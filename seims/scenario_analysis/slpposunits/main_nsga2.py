@@ -23,6 +23,7 @@ import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg', warn=False)
+from typing import Dict
 import numpy
 from deap import base
 from deap import creator
@@ -38,7 +39,6 @@ from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from scenario_analysis.scenario import delete_model_outputs
 from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
 from scenario_analysis.slpposunits.scenario import SUScenario
 from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
@@ -203,6 +203,8 @@ def main(sceobj):
     scoop_log(output_str)
     UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='replace')
 
+    modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
+
     for gen in range(1, gen_num + 1):
         output_str = '###### Generation: %d ######\n' % gen
         scoop_log(output_str)
@@ -271,6 +273,13 @@ def main(sceobj):
         logbook.record(gen=gen, evals=len(invalid_inds), **record)
         scoop_log(logbook.stream)
 
+        # Count the newly generated near Pareto fronts
+        new_count = 0
+        for ind in pop:
+            if ind.gen == gen:
+                new_count += 1
+        modelsel_count.setdefault(gen, new_count)
+
         # Plot 2D near optimal pareto front graphs
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
@@ -301,10 +310,6 @@ def main(sceobj):
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
 
-        # Delete SEIMS output files, and BMP Scenario database of current generation
-        delete_model_outputs(sceobj.model.model_dir, sceobj.model.host,
-                             sceobj.model.port, sceobj.model.ScenarioDBName)
-
     # Plot hypervolume and newly executed model count
     # Comment out since matplotlib is quite often not working.
     # try:
@@ -315,6 +320,11 @@ def main(sceobj):
     # except TimeoutError:
     #     scoop_log('Plot hypervolume timeout!')
     #     pass
+
+    # Save newly added Pareto fronts of each generations
+    new_fronts_count = numpy.array(list(modelsel_count.items()))
+    numpy.savetxt('%s/new_pareto_fronts_count.txt' % ws,
+                  new_fronts_count, delimiter=str(','), fmt=str('%d'))
 
     # Save and print timespan information
     allmodels_exect = numpy.array(allmodels_exect)
