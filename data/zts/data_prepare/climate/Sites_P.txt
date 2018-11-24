@@ -1,0 +1,2 @@
+StationID	Name	LocalX	LocalY	Lon	Lat	Elevation	isOutlet
+111	LianYuQiao	40441876.06	3455526.4	119.39	31.22	29.2	1

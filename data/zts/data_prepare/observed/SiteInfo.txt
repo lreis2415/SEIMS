@@ -1,0 +1,4 @@
+StationID	Name	Type	Lon	Lat	LocalX	LocalY	Unit	Elevation	isOutlet
+1	LianYuQiao	TN,TP	119.39	31.22	40441876.06	3455526.400	mg/L	29.2	1
+1	LianYuQiao	Q	119.39	31.22	40441876.06	3455526.400	m3/s	29.2	1
+1	LianYuQiao	SED	119.39	31.22	40441876.06	3455526.400	kg	29.2	1

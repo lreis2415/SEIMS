@@ -1,0 +1,3 @@
+StationID	Name	LocalX	LocalY	Lon	Lat	Elevation	isOutlet
+58345	LiYang	40443003.08	3462421.93	119.483	31.433	7.7	0
+
