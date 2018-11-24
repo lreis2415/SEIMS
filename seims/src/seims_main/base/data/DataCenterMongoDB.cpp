@@ -40,7 +40,8 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (DataCenterMongoDB::GetFileOutVector()) {
-        output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_);
+        output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
+                                       scenario_id_, calibration_id_);
         if (nullptr == output_) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
         }

@@ -3,7 +3,7 @@
 
    Read a tiff, calculate log, and write to another tiff file.
 
-   Liangjun, Zhu
+   Liangjun Zhu
    zlj@lreis.ac.cn
    LREIS, IGSNRR, CAS
    Apr 4, 2015
@@ -20,9 +20,11 @@ int main(int argc, char **argv) {
         printf("Error: To run the program, use either the Simple Usage option or\n");
         printf("the Usage with Specific file names option\n");
         goto errexit;
-    } else if (argc > 2) {
+    }
+    if (argc > 2) {
         i = 1;
-    } else {
+    }
+    else {
         i = 2;
     }
     while (argc > i) {
@@ -31,14 +33,10 @@ int main(int argc, char **argv) {
             if (argc > i) {
                 strcpy(infile, argv[i]);
                 i++;
-            } else { goto errexit; }
         } else if (strcmp(argv[i], "-out") == 0) {
-            i++;
-            if (argc > i) {
-                strcpy(outfile, argv[i]);
                 i++;
-            } else { goto errexit; }
-        } else { goto errexit; }
+            } else goto errexit;
+        } else goto errexit;
     }
     if (argc == 2) {
         strcpy(infile, argv[1]);

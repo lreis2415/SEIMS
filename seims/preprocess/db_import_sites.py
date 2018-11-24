@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import hydroClimate sites information and variables
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-07-04  lj - reorganize according to pylint and google style
-                17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
-                18-02-08  lj - remove cluster related and compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-07-04  lj - reorganize according to pylint and google style
+    - 17-07-05  lj - integrate hydro_find_sites.py, i.e. SITELIST in workflow database
+    - 18-02-08  lj - remove cluster related and compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys

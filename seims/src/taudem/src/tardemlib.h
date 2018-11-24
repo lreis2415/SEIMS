@@ -406,3 +406,5 @@ int sindexcombined(char *slopefile,
                    double Rminter,
                    double Rmaxter,
                    double *par);
+//This function calculates catchment hydraulic properties from HAND
+int catchhydrogeo(char *handfile, char*catchfile, char*catchlistfile, char *slpfile, char *hfile, char *hpfile);

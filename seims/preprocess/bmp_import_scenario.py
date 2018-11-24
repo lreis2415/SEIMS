@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import BMP Scenario related parameters to MongoDB
+
     @author   : Liangjun Zhu
-    @changelog: 16-06-16  lj - first implementation version.\n
-                17-06-22  lj - improve according to pylint and google style.\n
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-06-16  lj - first implementation version.
+    - 17-06-22  lj - improve according to pylint and google style.
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys

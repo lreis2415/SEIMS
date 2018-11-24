@@ -10,7 +10,7 @@
     - 17-08-18  lj - move the original code to slpposunits module.
     - 18-02-09  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 
 # Initial tool functions supplemented to DEAP.tools

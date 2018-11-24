@@ -17,10 +17,10 @@
  * \brief Management process.
  *        Read reach topology data and scatter to each ranks
  * \ingroup seims_mpi
- * \param[in] mclient MongoDB client, \ref MongoClient
- * \param[in] input_args Input arguments, \ref InputArgs
+ * \param[in] mclient MongoDB client
+ * \param[in] input_args Input arguments
  * \param[in] size Number of process
- * \param[out] task Task information, \ref TaskInfo
+ * \param[out] task Task information
  * \return 0 for success
  */
 int ManagementProcess(MongoClient* mclient, InputArgs* input_args, int size, TaskInfo* task);
@@ -28,11 +28,11 @@ int ManagementProcess(MongoClient* mclient, InputArgs* input_args, int size, Tas
 /*!
  * \brief Read reach topology data by master rank and scatter to each ranks.
  * \ingroup seims_mpi
- * \param[in] client MongoDB client, \ref MongoClient
- * \param[in] input_args Input arguments, \ref InputArgs
+ * \param[in] client MongoDB client
+ * \param[in] input_args Input arguments
  * \param[in] size Number of process
  * \param[in] rank Process ID
- * \param[out] task Task information, \ref TaskInfo
+ * \param[out] task Task information
  * \return 0 for success
  */
 int LoadTasks(MongoClient* client, InputArgs* input_args, int size, int rank, TaskInfo* task);

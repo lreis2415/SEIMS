@@ -1,16 +1,19 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Extract spatial soil parameters
+
     @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen
-    @changelog: 13-01-10  jz - initial implementation
-                16-07-22  lj - Names and units of soil physical parameter are referred to
-                               readsol.f, soil_par.f, and soil_phys.f in SWAT
-                             - Data validation checking is also conducted.
-                16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 13-01-10  jz - initial implementation
+    - 16-07-22  lj - Names and units of soil physical parameter are referred to
+                     readsol.f, soil_par.f, and soil_phys.f in SWAT.
+                     Data validation checking is also conducted.
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import math
 import os

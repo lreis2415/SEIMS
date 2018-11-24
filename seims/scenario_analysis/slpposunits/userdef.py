@@ -10,7 +10,7 @@
     - 18-02-09  lj - compatible with Python3.
     - 18-11-07  lj - support multiple BMPs configuration methods.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import array
 from collections import OrderedDict

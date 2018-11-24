@@ -298,7 +298,7 @@ int setdird8(char *demfile, char *pointfile, char *slopefile, char *flowfile, in
             //Stop timer
             computeSlopet = MPI_Wtime();
 
-            tiffIO slopeIO(slopefile, FLOAT_TYPE, &slopeNodata, dem);
+            tiffIO slopeIO(slopefile, FLOAT_TYPE, slopeNodata, dem);
             slopeIO.write(xstart, ystart, ny, nx, slope->getGridPointer());
         }  // This bracket intended to destruct slope partition and release memory
 
@@ -329,7 +329,7 @@ int setdird8(char *demfile, char *pointfile, char *slopefile, char *flowfile, in
         //Timing info
         double computeFlatt = MPI_Wtime();
 
-        tiffIO pointIO(pointfile, SHORT_TYPE, &flowDirNodata, dem);
+        tiffIO pointIO(pointfile, SHORT_TYPE, flowDirNodata, dem);
         pointIO.write(xstart, ystart, ny, nx, flowDir->getGridPointer());
         double writet = MPI_Wtime();
         double headerRead, dataRead, computeSlope, writeSlope, computeFlat, writeFlat, write, total, temp;
@@ -447,21 +447,18 @@ void setFlow2(int i, int j, tdpartition *flowDir, tdpartition *elevDEM, tdpartit
     short tempShort;
     float tempFloat;
     short order[8] = {1, 3, 5, 7, 2, 4, 6, 8};
-    for (int ii = 0; ii < 8; ii++)  //k=1; k<=8; k=k+1)
-    {
+    for (int ii = 0; ii < 8; ii++) { //k=1; k<=8; k=k+1)
         k = order[ii];
         jn = j + d2[k];  //y
         in = i + d1[k];  //x
         dn->getData(in, jn, tempShort);
-        if (tempShort > 0)  // In flat
-        {
+        if (tempShort > 0) { // In flat
             slope = fact[j][k] * (elev2->getData(i, j, tempShort) - elev2->getData(in, jn, tempShort));
             if (slope > smax) {
                 flowDir->setData(i, j, k);
                 smax = slope;
             }
-        } else   // neighbor is not in flat
-        {
+        } else {  // neighbor is not in flat
             ed = elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat);
             if (ed >= 0) {
                 flowDir->setData(i, j, k);
@@ -498,10 +495,10 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
 
     //create and initialize temporary storage for Garbrecht and Martz
     tdpartition *elev2, *dn, *s;
-    elev2 = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 1);
+    elev2 = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)1);
     //  The assumption here is that resolving a flat does not increment a cell value
     //  more than fits in a short
-    dn = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 0);
+    dn = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)0);
 
     node temp;
     long nflat = 0, iflat;
@@ -555,14 +552,14 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
                     in = i + d1[k];
                     elevDiff = elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat);
                     tempShort = flowDir->getData(in, jn, tempShort);
-                    if (elevDiff >= 0 && tempShort > 0 && tempShort
-                        < 9) { //adjacent cell drains and is equal or lower in elevation so this is a low boundary
-                            doNothing = true;
+                    if (elevDiff >= 0 && tempShort > 0 && tempShort < 9) { 
+                        //adjacent cell drains and is equal or lower in elevation so this is a low boundary
+                        doNothing = true;
                     } else if (elevDiff == 0) { //if neighbor is in flat
-                            if (elev2->getData(in, jn, tempShort) >= 0
-                                && elev2->getData(in, jn, tempShort) < st) { //neighbor is not being incremented
-                                doNothing = true;
-                            }
+                        if (elev2->getData(in, jn, tempShort) >= 0
+                            && elev2->getData(in, jn, tempShort) < st) { //neighbor is not being incremented
+                            doNothing = true;
+                        }
                     }
                 }
             }
@@ -580,9 +577,8 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
             fflush(stderr);
         }
     }
-    if (numIncTotal > 0)  // Not all grid cells were resolved - pits remain
+    if (numIncTotal > 0) { // Not all grid cells were resolved - pits remain
         // Remaining grid cells are unresolvable pits
-    {
         //There are pits remaining - set direction to no data
         for (iflat = 0; iflat < nflat; iflat++) {
             temp = que->front();
@@ -597,14 +593,14 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
                     in = i + d1[k];
                     elevDiff = elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat);
                     tempShort = flowDir->getData(in, jn, tempShort);
-                    if (elevDiff >= 0 && tempShort > 0 && tempShort
-                        < 9) { //adjacent cell drains and is equal or lower in elevation so this is a low boundary
-                            doNothing = true;
+                    if (elevDiff >= 0 && tempShort > 0 && tempShort < 9) { 
+                        //adjacent cell drains and is equal or lower in elevation so this is a low boundary
+                        doNothing = true;
                     } else if (elevDiff == 0) { //if neighbor is in flat
-                            if (elev2->getData(in, jn, tempShort) >= 0
-                                && elev2->getData(in, jn, tempShort) < st) { //neighbor is not being incremented
-                                doNothing = true;
-                            }
+                        if (elev2->getData(in, jn, tempShort) >= 0
+                            && elev2->getData(in, jn, tempShort) < st) { //neighbor is not being incremented
+                            doNothing = true;
+                        }
                     }
                 }
             }
@@ -624,7 +620,7 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
         //	done = true;
     }
     //  DGT moved from above - write directly into elev2
-    s = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, 0);  //  Use 0 as no data to avoid need to initialize
+    s = CreateNewPartition(SHORT_TYPE, totalx, totaly, dxA, dyA, (int16_t)0);  //  Use 0 as no data to avoid need to initialize
 
     //incrise - drain away from higher ground
     done = false;
@@ -645,13 +641,13 @@ long resolveflats(tdpartition *elevDEM, tdpartition *flowDir, queue <node> *que,
             for (k = 1; k <= 8; k++) {
                 jn = j + d2[k];
                 in = i + d1[k];
-                if (elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat)
-                    < 0) {    //adjacent cell is higher
-                        dn->setData(i, j, short(1));
+                if (elevDEM->getData(i, j, tempFloat) - elevDEM->getData(in, jn, tempFloat) < 0) {
+                    //adjacent cell is higher
+                    dn->setData(i, j, short(1));
                 }
-                if (dn->getData(in, jn, tempShort) > 0
-                    && s->getData(in, jn, tempShort) > 0) { //adjacent cell has been marked already
-                        dn->setData(i, j, short(1));
+                if (dn->getData(in, jn, tempShort) > 0 && s->getData(in, jn, tempShort) > 0) {
+                    //adjacent cell has been marked already
+                    dn->setData(i, j, short(1));
                 }
             }
         }

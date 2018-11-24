@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Scenario for optimizing BMPs based on slope position units.
+
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-10-29  hr - initial implementation.
     - 17-08-18  lj - redesign and rewrite.
     - 18-02-09  lj - compatible with Python3.
 """
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, unicode_literals
 from future.utils import viewitems
 
 import array
@@ -267,7 +267,7 @@ class SUScenario(Scenario):
         capex = 0.
         opex = 0.
         income = 0.
-        actual_years = self.cfg.runtime_years  # + self.timerange
+        actual_years = self.cfg.runtime_years
         for idx, gene_v in enumerate(self.gene_values):
             if gene_v == 0:
                 continue
@@ -306,18 +306,20 @@ class SUScenario(Scenario):
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ
             self.environment = self.worst_env
+            # model clean
+            self.model.clean(delete_scenario=True)
             return
 
         base_amount = self.bmps_info['BASE_ENV']
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             rr = RasterUtilClass.read_raster(rfile)
-            soil_erosion_amount = rr.get_sum() / self.timerange  # unit: year
+            soil_erosion_amount = rr.get_sum() / self.eval_timerange  # unit: year
             # reduction rate of soil erosion
             self.environment = (base_amount - soil_erosion_amount) / base_amount
             # print exception values
-            if self.environment > 1. or self.environment < 0.:
+            if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
                 print('Exception Information: Scenario ID: %d, '
-                      'SUM(%s): %s' % (self.ID, rfile, soil_erosion_amount))
+                      'SUM(%s): %s' % (self.ID, rfile, repr(soil_erosion_amount)))
                 self.environment = self.worst_env
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
@@ -327,7 +329,8 @@ class SUScenario(Scenario):
         else:
             self.economy = self.worst_econ
             self.environment = self.worst_env
-            return
+        # model clean
+        self.model.clean(delete_scenario=True)
 
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None

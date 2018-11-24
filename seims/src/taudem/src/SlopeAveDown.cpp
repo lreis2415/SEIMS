@@ -73,12 +73,12 @@ int sloped(char *pfile, char *felfile, char *slpdfile, double dn) {
         double dyA = dem.getdyA();
 
         if (rank == 0) {
-            float timeestimate =
-                (1e-6 * totalX * totalY * (dn / dxA) / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1e-6 * totalX * totalY * (dn / dxA) / pow((double) size, 1)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
 
@@ -96,6 +96,7 @@ int sloped(char *pfile, char *felfile, char *slpdfile, double dn) {
         tiffIO pIO(pfile, SHORT_TYPE);
         if (!dem.compareTiff(pIO)) {
             printf("File sizes do not match\n%s\n", pfile);
+            fflush(stdout);
             MPI_Abort(MCW, 5);
             return 1;
         }
@@ -165,20 +166,41 @@ int sloped(char *pfile, char *felfile, char *slpdfile, double dn) {
         bool finished = false;
 
         int niter = dn / min(dxA, dyA) + 1;
+        if (rank == 0) {
+            fprintf(stderr, "Number of slope down interations to do %d\n", niter);
+            fflush(stderr);
+        }
         int iter;
         //  Now need to repeat as many times as necessary
         //  until down elevations have been pulled up far enough to evaluate distance down.  Calculate
         //  the number of iterations apriori as keeping track of not changing is not reliable
         //  as there are unresolvable grid cells at the edge
+
+        //  Set up neighbor partition outside loop 
+        tdpartition *neighbor;
+        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, MISSINGSHORT);
+        neighbor->clearBorders();
+        //  Set up dependence que
+        queue<node> que;
+
         for (iter = 0; iter < niter; iter++) {
-            //  Set up neighbor partition inside this loop to reinforce its destruction and refreshing for each iteration
-            tdpartition *neighbor;
-            neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, MISSINGSHORT);
+            ////  Set up neighbor partition inside this loop to reinforce its destruction and refreshing for each iteration
+            //tdpartition *neighbor;
+            //neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, MISSINGSHORT);
+            //  Reset the neighbor grid to no data.  And reuse it, rather than rely on destruction and refreshing that may be unreliable
+            for (i = 0; i<nx; i++)
+            {
+                for (j = 0; j<ny; j++)
+                {
+                    short sval = MISSINGSHORT;
+                    neighbor->setData(i, j, sval);
+                }
+            }
             neighbor->clearBorders();
 
-            //  Set up dependence que
+            ////  Set up dependence que
             node temp;
-            queue <node> que;
+            //queue <node> que;
             int useOutlets = 0;
             long numOutlets = 0;
             int *outletsX = 0, *outletsY = 0;
@@ -254,6 +276,10 @@ int sloped(char *pfile, char *felfile, char *slpdfile, double dn) {
                 finished = sd->ringTerm(finished);
             }
             //  This ends the internal loop for one iteration.
+            if (rank == 0) {
+                fprintf(stderr, "Done iteration %d\n", iter);
+                fflush(stderr);
+            }
         }
 
         //Stop timer
@@ -261,7 +287,7 @@ int sloped(char *pfile, char *felfile, char *slpdfile, double dn) {
 
         //Create and write TIFF file
         float slpnd = MISSINGFLOAT;
-        tiffIO slpIO(slpdfile, FLOAT_TYPE, &slpnd, pIO);
+        tiffIO slpIO(slpdfile, FLOAT_TYPE, slpnd, pIO);
         slpIO.write(xstart, ystart, ny, nx, sd->getGridPointer());
 
         double writet = MPI_Wtime();

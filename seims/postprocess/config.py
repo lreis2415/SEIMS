@@ -6,7 +6,7 @@
                 18-02-09  lj - compatible with Python3.
                 18-10-23  lj - Use `ParseSEIMSConfig` class.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from configparser import ConfigParser
 import os

@@ -5,7 +5,6 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-
     - 16-10-29  hr - initial implementation.
     - 17-08-18  lj - redesign and rewrite.
     - 18-02-09  lj - compatible with Python3.
@@ -50,45 +49,12 @@ def generate_uniqueid():
         uid += 1
 
 
-def delete_scenarios_by_ids(hostname, port, dbname, sids):
-    # type: (str, int, str, List[int]) -> None
-    """Delete scenario data by ID in MongoDB."""
-    client = ConnectMongoDB(hostname, port)
-    conn = client.get_conn()
-    db = conn[dbname]
-    collection = db[DBTableNames.scenarios]
-    for _id in sids:
-        collection.remove({'ID': _id})
-        print('Delete scenario: %d in MongoDB completed!' % _id)
-    client.close()
-
-
-def delete_model_outputs(model_workdir, hostname, port, dbname):
-    # type: (str, str, int, str) -> None
-    """Delete model outputs and scenario in MongoDB."""
-    f_list = os.listdir(model_workdir)
-    sids = list()
-    for f in f_list:
-        outfilename = model_workdir + os.path.sep + f
-        if os.path.isdir(outfilename):
-            if len(f) > 9:
-                if MathClass.isnumerical(f[-9:]):
-                    shutil.rmtree(outfilename)
-                    try:
-                        sid = int(f[-9:])
-                        sids.append(sid)
-                    except ValueError:
-                        pass
-    if len(sids) > 0:
-        delete_scenarios_by_ids(hostname, port, dbname, sids)
-
-
 class Scenario(object):
     """Base class of Scenario Analysis.
 
     Attributes:
         ID(integer): Unique ID in BMPScenario database -> BMP_SCENARIOS collection
-        timerange(float): Simulation time range, read from MongoDB, the unit is year.
+        eval_timerange(float): Simulation time range, read from MongoDB, the unit is year.
         economy(float): Economical effectiveness, e.g., income minus expenses
         environment(float): Environmental effectiveness, e.g., reduction rate of soil erosion
         gene_num(integer): The number of genes of one chromosome, i.e., an individual
@@ -103,7 +69,7 @@ class Scenario(object):
         # type: (SAConfig) -> None
         """Initialize."""
         self.ID = -1
-        self.timerange = 1.  # unit: year
+        self.eval_timerange = 1.  # unit: year
         self.economy = 0.
         self.environment = 0.
         self.worst_econ = cfg.worst_econ
@@ -127,8 +93,8 @@ class Scenario(object):
         self.scenario_db = self.model.ScenarioDBName
         # (Re)Calculate timerange in the unit of year
         self.model.ResetSimulationPeriod()
-        dlt = self.model.end_time - self.model.start_time + timedelta(seconds=1)
-        self.timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
+        dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
+        self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
         self.modelrun = False  # indicate whether the model has been executed
 

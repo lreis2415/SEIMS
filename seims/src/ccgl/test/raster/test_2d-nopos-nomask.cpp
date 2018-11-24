@@ -71,7 +71,6 @@ TEST(clsRasterDataTestMultiNoPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(1.f, rs->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs->GetCellWidth());
     EXPECT_EQ(3, rs->GetLayers());
-    EXPECT_STREQ("", rs->GetSrs());
     EXPECT_EQ("", rs->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap2D **/
@@ -259,5 +258,8 @@ TEST(clsRasterDataTestMultiNoPosNoMask, RasterIO) {
     EXPECT_FLOAT_EQ(9.43f, rs->GetValueByIndex(30));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(29, 0));
     EXPECT_FLOAT_EQ(-9999.f, rs->GetValueByIndex(-1, 2));
+
+    // Release resources
+    delete rs;
 }
 } /* namespace */

@@ -10,7 +10,9 @@
     - 2018-07-07 - lj - Add the outputs of single model run.
     - 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
     - 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
+    - 2018-11-15 - lj - Add model clean function.
 """
+from __future__ import absolute_import, unicode_literals
 
 import bisect
 from copy import deepcopy
@@ -21,13 +23,15 @@ from io import open
 import math
 import os
 import sys
+from shutil import rmtree
 import time
 from typing import Optional, Union, Dict, List, AnyStr
 from subprocess import CalledProcessError
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr
+from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string
 
 from preprocess.text import DBTableNames
 from preprocess.db_read_model import ReadModelData
@@ -121,7 +125,7 @@ class ParseSEIMSConfig(object):
 
     @property
     def ConfigDict(self):
-        # type: () -> Dict[str, Union[str, datetime, int, None]]
+        # type: () -> Dict[AnyStr, Union[AnyStr, datetime, int, None]]
         if self.config_dict:
             return self.config_dict
         model_cfg_dict = {'bin_dir': self.bin_dir, 'model_dir': self.model_dir,
@@ -136,31 +140,28 @@ class ParseSEIMSConfig(object):
 
 
 class MainSEIMS(object):
-    """Main entrance to SEIMS model.
-    Args:
-        bin_dir: The directory of SEIMS binary.
-        model_dir: The directory of SEIMS model, the directory name MUST existed as one database name.
-        nthread: Thread number for OpenMP.
-        lyrmtd: Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP).
-        host: MongoDB host address, default is `localhost`
-        port: MongoDB port, default is 27017
-        scenario_id: Scenario ID, which corresponding items in `<model>_Scenario` database
-        calibration_id: Calibration ID used for model auto-calibration
-        version: SEIMS version, can be `MPI` or `OMP` (default)
-        nprocess: Process number for MPI
-        mpi_bin: Full path of MPI executable file, e.g., `./mpiexec` or `./mpirun`
-        hosts_opt: Option for assigning hosts, e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
-        hostfile: File containing host names, or file mapping process numbers to machines
-        simu_stime: Start time of simulation
-        simu_etime: End time of simulation
-    """
+    """Main entrance to SEIMS model."""
 
-    def __init__(self, bin_dir='', model_dir='', nthread=4, lyrmtd=0,
-                 host='127.0.0.1', port=27017, scenario_id=-1, calibration_id=-1,
-                 version='OMP', nprocess=1, mpi_bin='', hosts_opt='-f', hostfile='',
-                 simu_stime=None, simu_etime=None,
-                 args_dict=None):
-        # type: (str, str, int, int, str, int, int, int, str, int, str, str, str, Optional[datetime], Optional[datetime], Dict[str, Union[str, datetime, int, None]]) -> None
+    def __init__(self, bin_dir='',  # type: AnyStr # The directory of SEIMS binary
+                 model_dir='',  # type: AnyStr # The directory of SEIMS model
+                 nthread=4,  # type: int # Thread number for OpenMP
+                 lyrmtd=0,  # type: int # Layering method, can be 0 (UP_DOWN) or 1 (DOWN_UP)
+                 host='127.0.0.1',  # type: AnyStr # MongoDB host address, default is `localhost`
+                 port=27017,  # type: int # MongoDB port, default is 27017
+                 scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
+                 calibration_id=-1,  # type: int # Calibration ID used for model auto-calibration
+                 version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
+                 nprocess=1,  # type: int # Process number for MPI
+                 mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
+                 hosts_opt='-f',  # type: AnyStr # Option for assigning hosts,
+                 # e.g., `-f`, `-hostfile`, `-machine`, `-machinefile`
+                 hostfile='',  # type: AnyStr # File containing host names,
+                 # or file mapping process numbers to machines
+                 simu_stime=None,  # type: Optional[datetime, AnyStr] # Start time of simulation
+                 simu_etime=None,  # type: Optional[datetime, AnyStr] # End time of simulation
+                 args_dict=None  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
+                 ):
+        # type: (...) -> None
         #  Derived from input arguments
         if args_dict is None:  # Preferred to use 'args_dict' if existed.
             args_dict = dict()
@@ -169,11 +170,11 @@ class MainSEIMS(object):
         self.version = args_dict['version'] if 'version' in args_dict else version
         suffix = '.exe' if sysstr == 'Windows' else ''
         if self.version == 'MPI':
-            self.seims_exec = bin_dir + os.path.sep + 'seims_mpi' + suffix
+            self.seims_exec = '%s/seims_mpi%s' % (bin_dir, suffix)
         else:
-            self.seims_exec = bin_dir + os.path.sep + 'seims_omp' + suffix
+            self.seims_exec = '%s/seims_omp%s' % (bin_dir, suffix)
             if not FileClass.is_file_exists(self.seims_exec):  # If not support OpenMP, use `seims`!
-                self.seims_exec = bin_dir + os.path.sep + 'seims' + suffix
+                self.seims_exec = '%s/seims%s' % (bin_dir, suffix)
         self.seims_exec = os.path.abspath(self.seims_exec)
         self.model_dir = os.path.abspath(model_dir)
 
@@ -190,6 +191,10 @@ class MainSEIMS(object):
         self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
         self.simu_stime = args_dict['simu_stime'] if 'simu_stime' in args_dict else simu_stime
         self.simu_etime = args_dict['simu_etime'] if 'simu_etime' in args_dict else simu_etime
+        if is_string(self.simu_stime) and not isinstance(self.simu_stime, datetime):
+            self.simu_stime = StringClass.get_datetime(self.simu_stime)
+        if is_string(self.simu_etime) and not isinstance(self.simu_etime, datetime):
+            self.simu_etime = StringClass.get_datetime(self.simu_etime)
 
         # Concatenate executable command
         self.cmd = self.Command
@@ -199,24 +204,34 @@ class MainSEIMS(object):
         self.db_name = os.path.split(self.model_dir)[1]
         self.outlet_id = self.OutletID
         self.start_time, self.end_time = self.SimulatedPeriod  # Note: Times period in FILE_IN.
+        self.output_items = dict()  # type: Dict[AnyStr, Union[List[AnyStr]]]
         # Data maybe used after model run
-        self.timespan = dict()
-        self.obs_vars = list()  # Observation types at the outlet
-        self.obs_value = dict()  # Observation value, key: DATETIME, value: value list of obs_vars
-        self.sim_vars = list()  # Simulation types at the outlet, which is part of obs_vars
-        self.sim_value = dict()  # Simulation value, same as obs_value
+        self.timespan = dict()  # type: Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]
+        self.obs_vars = list()  # type: List[AnyStr]  # Observation types at the outlet
+        self.obs_value = dict()  # type: Dict[datetime, List[float]] # Observation value
+        self.sim_vars = list()  # type: List[AnyStr]  # Simulation types, part of `obs_vars`
+        self.sim_value = dict()  # type: Dict[datetime, List[float]] # Simulation value
         # The format of sim_obs_dict:
         #         {VarName: {'UTCDATETIME': [t1, t2, ..., tn],
         #                    'Obs': [o1, o2, ..., on],
         #                    'Sim': [s1, s2, ..., sn]},
         #         ...
         #         }
-        self.sim_obs_dict = dict()
+        self.sim_obs_dict = dict()  # type: Dict[AnyStr, Dict[AnyStr, Union[float, List[Union[datetime, float]]]]]
         self.runtime = 0.
         self.runlogs = list()  # type: List[AnyStr]
 
     @property
     def OutputDirectory(self):
+        # type: (...) -> AnyStr
+        """The format of OUTPUT directory is: OUTPUT<ScenarioID>-<CalibrationID>
+        - OUTPUT-1 means no scenario, calibration ID is 1
+        - OUTPUT100 means scenario ID is 100, no calibration
+        - OUTPUT100-2 means scenario ID is 100, calibration ID is 2
+
+        Returns:
+            The fullpath of output directory
+        """
         self.output_dir = os.path.join(self.model_dir, 'OUTPUT')
         if self.scenario_id >= 0:
             self.output_dir += str(self.scenario_id)
@@ -226,6 +241,7 @@ class MainSEIMS(object):
 
     @property
     def Command(self):
+        # type: (...) -> List[AnyStr]
         """Concatenate command to run SEIMS."""
         self.cmd = list()
         if self.version == 'MPI':
@@ -244,31 +260,49 @@ class MainSEIMS(object):
 
     @property
     def OutletID(self):
+        # type: (...) -> int
         read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.OutletID
 
     @property
     def ScenarioDBName(self):
+        # type: (...) -> AnyStr
         read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.ScenarioDBName
 
     @property
     def SimulatedPeriod(self):
+        # type: (...) -> (datetime, datetime)
         read_model = ReadModelData(self.host, self.port, self.db_name)
         return read_model.SimulationPeriod
 
+    @property
+    def OutputItems(self):
+        # type: (...) -> Dict[AnyStr, Union[List[AnyStr]]]
+        """Read output items from database."""
+        if self.output_items:
+            return self.output_items
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        return read_model.OutputItems
+
     def ReadOutletObservations(self, vars_list):
+        # type: (List[AnyStr]) -> (List[AnyStr], Dict[datetime, List[float]])
         read_model = ReadModelData(self.host, self.port, self.db_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
                                                                self.start_time, self.end_time)
         return self.obs_vars, self.obs_value
 
     def SetOutletObservations(self, vars_list, vars_value):
+        # type: (List[AnyStr], Dict[datetime, List[float]]) -> None
         """Set observation data from the inputs."""
         self.obs_vars = vars_list[:]
         self.obs_value = deepcopy(vars_value)
 
     def ReadTimeseriesSimulations(self, stime=None, etime=None):
+        # type: (Optional[datetime], Optional[datetime]) -> bool
+        """Read time series simulation results from OUTPUT directory.
+        If no start time or end time are specified, the time ranges from `FILE_IN` will be used.
+        """
         if not self.obs_vars:
             return False
         if stime is None:
@@ -286,6 +320,7 @@ class MainSEIMS(object):
         return True
 
     def ExtractSimData(self, stime=None, etime=None):
+        # type: (Optional[datetime], Optional[datetime]) -> (List[AnyStr], Dict[datetime, List[float]])
         if stime is None and etime is None:
             return self.sim_vars, self.sim_value
 
@@ -299,6 +334,7 @@ class MainSEIMS(object):
         return self.sim_vars, slice_odict(self.sim_value, sidx, eidx)
 
     def ExtractSimObsData(self, stime=None, etime=None):
+        # type: (Optional[datetime], Optional[datetime]) -> Dict[AnyStr, Dict[AnyStr, List[Union[datetime, float]]]]
         if stime is None and etime is None:
             return deepcopy(self.sim_obs_dict)
         ext_dict = dict()
@@ -312,7 +348,11 @@ class MainSEIMS(object):
         return ext_dict
 
     @staticmethod
-    def CalcTimeseriesStatistics(sim_obs_dict, stime=None, etime=None):
+    def CalcTimeseriesStatistics(sim_obs_dict,  # type: Dict[AnyStr, Dict[AnyStr, Union[float, List[Union[datetime, float]]]]]
+                                 stime=None,  # type: Optional[datetime]
+                                 etime=None  # type: Optional[datetime]
+                                 ):
+        # type: (...) -> (List[AnyStr], List[float])
         objnames = calculate_statistics(sim_obs_dict, stime, etime)
         if objnames is None:
             return None, None
@@ -328,6 +368,7 @@ class MainSEIMS(object):
         return comb_vars, obj_values
 
     def GetTimespan(self):
+        # type: (...) -> List[float]
         """Get summarized timespan, format is [IO, COMP, SIMU, RUNTIME]."""
         time_list = [0., 0., 0., self.runtime]
         # Do not use self.run_success to check if the timespan data is available or not! By lj.
@@ -360,6 +401,7 @@ class MainSEIMS(object):
         return time_list
 
     def ParseTimespan(self, items):
+        # type: (List[AnyStr]) -> Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]
         """The format of self.timespan is different for OpenMP version and MPI&OpenMP version.
         For OpenMP version:
            {'IO': {'Input': 0.2,
@@ -404,6 +446,7 @@ class MainSEIMS(object):
                 self.timespan[titles[1]][titles[2]].setdefault(titles[3], time)
             else:
                 self.timespan[titles[1]].setdefault(titles[2], time)
+            return self.timespan
 
     def ResetSimulationPeriod(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
@@ -439,6 +482,20 @@ class MainSEIMS(object):
         self.runtime = time.time() - stime
         return self.run_success
 
+    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False):
+        """Clean model outputs in OUTPUT<ScenarioID>-<CalibrationID> directory and/or
+        GridFS files in OUTPUT collection.
+        """
+        rmtree(self.OutputDirectory, ignore_errors=True)
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        if scenario_id is None:
+            scenario_id = self.scenario_id
+        if calibration_id is None:
+            calibration_id = self.calibration_id
+        read_model.CleanOutputGridFs(scenario_id, calibration_id)
+        if delete_scenario:
+            read_model.CleanScenariosConfiguration(scenario_id)
+
 
 def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
     """Create, Run, and return SEIMS model object.
@@ -461,28 +518,32 @@ def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
 
 if __name__ == '__main__':
     bindir = r'D:\compile\bin\seims_mpi_omp'
-    modeldir = r'D:\test\demo_dianbu2_model'
+    modeldir = r'C:\z_code\Hydro\SEIMS\data\youwuzhen\demo_youwuzhen30m_longterm_model'
     # Method 1
-    # seimsobj = MainSEIMS(bindir, modeldir,
-    #                      nthread=2, lyrmtd=1,
-    #                      host='127.0.0.1', port=27017,
-    #                      scenario_id=0, calibration_id=-1,
-    #                      version='MPI', mpi_bin='mpiexec', nprocess=2)
+    seimsobj = MainSEIMS(bindir, modeldir,
+                         nthread=2, lyrmtd=1,
+                         host='127.0.0.1', port=27017,
+                         scenario_id=0, calibration_id=-1,
+                         version='MPI', mpi_bin='mpiexec', nprocess=2)
     # Method 2
-    args = {'bin_dir': bindir, 'model_dir': modeldir,
-            'nthread': 2, 'lyrmtd': 1,
-            'host': '127.0.0.1', 'port': 27017,
-            'scenario_id': 0, 'calibration_id': -1,
-            'version': 'OMP', 'mpi_bin': 'mpiexec', 'nprocess': 2}
-    seimsobj = MainSEIMS(args_dict=args)
-    seimsobj.run()
-    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimespan()))
+    # args = {'bin_dir': bindir, 'model_dir': modeldir,
+    #         'nthread': 2, 'lyrmtd': 1,
+    #         'host': '127.0.0.1', 'port': 27017,
+    #         'scenario_id': 0, 'calibration_id': -1,
+    #         'version': 'MPI', 'mpi_bin': 'mpiexec', 'nprocess': 2}
+    # seimsobj = MainSEIMS(args_dict=args)
+
     # test the picklable of MainSEIMS class.
     import pickle
 
     s = pickle.dumps(seimsobj)
-    new_s = pickle.loads(s)
-    print(new_s.cmd)
-    print(new_s.output_dir)
+    new_s = pickle.loads(s)  # type: MainSEIMS
+    print(new_s.Command)
+    print(new_s.OutputDirectory)
     print(new_s.OutletID)
+    print(new_s.OutputItems)
     print(str(new_s.start_time), str(new_s.end_time))
+
+    seimsobj.run()
+    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimespan()))
+    seimsobj.clean()

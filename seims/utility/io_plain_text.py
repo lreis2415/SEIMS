@@ -1,17 +1,30 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Read and write of plain text file.
-    @author   : Liangjun Zhu
-    @changelog: 18-10-29 - lj - Extract from other packages.
-"""
-from __future__ import unicode_literals
 
+    @author   : Liangjun Zhu
+
+    @changelog:
+    - 18-10-29 - lj - Extract from other packages.
+"""
+from __future__ import absolute_import, unicode_literals
+
+import json
 from io import open
 import os
 from collections import OrderedDict
 from datetime import datetime
-
+from numpy import ndarray as np_array
 from pygeoc.utils import StringClass, UtilClass, FileClass
+
+
+class SpecialJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np_array):
+            return obj.tolist()
+        elif isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        return json.JSONEncoder.default(self, obj)
 
 
 def status_output(status_msg, percent, file_name):

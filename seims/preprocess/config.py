@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Configuration of SEIMS project.
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                17-12-18  lj - add field partition parameters
-                18-02-08  lj - combine serial and cluster versions and compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 17-12-18  lj - add field partition parameters
+    - 18-02-08  lj - combine serial and cluster versions and compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import json
 import os
