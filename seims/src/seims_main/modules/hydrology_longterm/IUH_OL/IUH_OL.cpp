@@ -6,7 +6,8 @@ IUH_OL::IUH_OL() :
     m_TimeStep(-1), m_nCells(-1), m_CellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
     m_nSubbsns(-1), m_inputSubbsnID(-1), m_subbsnID(nullptr),
     m_iuhCell(nullptr), m_iuhCols(-1), m_surfRf(nullptr),
-    m_cellFlow(nullptr), m_cellFlowCols(-1), m_Q_SBOF(nullptr), m_OL_Flow(nullptr) {
+    m_cellFlow(nullptr), m_cellFlowCols(-1), m_Q_SBOF(nullptr), m_OL_Flow(nullptr),
+    m_unitArea(nullptr), m_landUse(nullptr), m_flowPond(nullptr), m_pondSort(nullptr){
 }
 
 IUH_OL::~IUH_OL() {
@@ -25,13 +26,19 @@ bool IUH_OL::CheckInputData() {
     CHECK_POINTER(MID_IUH_OL, m_subbsnID);
     CHECK_POINTER(MID_IUH_OL, m_iuhCell);
     CHECK_POINTER(MID_IUH_OL, m_surfRf);
+    if (m_inputSubbsnID == 9999){
+        CHECK_POINTER(MID_IUH_OL, m_landUse);
+        CHECK_POINTER(MID_IUH_OL, m_flowPond);
+        CHECK_POINTER(MID_IUH_OL, m_pondSort);
+        CHECK_POINTER(MID_IUH_OL, m_unitArea);
+    }
     return true;
 }
 
 void IUH_OL::InitialOutputs() {
     CHECK_POSITIVE(MID_IUH_OL, m_nSubbsns);
 
-    if (m_cellArea <= 0.f) m_cellArea = m_CellWth * m_CellWth;
+    //if (m_cellArea <= 0.f) m_cellArea = m_CellWth * m_CellWth;
     if (nullptr == m_Q_SBOF) {
         Initialize1DArray(m_nSubbsns + 1, m_Q_SBOF, 0.f);
         for (int i = 0; i < m_nCells; i++) {
@@ -54,6 +61,7 @@ int IUH_OL::Execute() {
     }
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+        // if (m_inputSubbsnID == 9999 && FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_POND))  continue;
         //forward one time step
         for (int j = 0; j < m_cellFlowCols - 1; j++) {
             m_cellFlow[i][j] = m_cellFlow[i][j + 1];
@@ -66,7 +74,7 @@ int IUH_OL::Execute() {
         int max = CVT_INT(m_iuhCell[i][1]);
         int col = 2;
         for (int k = min; k <= max; k++) {
-            m_cellFlow[i][k] += m_surfRf[i] * 0.001f * m_iuhCell[i][col] * m_cellArea / m_TimeStep;
+            m_cellFlow[i][k] += m_surfRf[i] * 0.001f * m_iuhCell[i][col] * GetUnitArea(i) / m_TimeStep;
             col++;
         }
     }
@@ -79,9 +87,45 @@ int IUH_OL::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
-            m_OL_Flow[i] = m_cellFlow[i][0];
-            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / m_cellArea; // m3/s -> mm
+            if (m_inputSubbsnID == 9999){ // field version
+                // skip ponds in this step and process them later
+                if (FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_POND)) { continue; }
+
+                // judge whether the overland flow of one cell flow to a river or a pond
+                if (m_flowPond[i] < 0) // to river 
+                    {
+                        tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
+                    }
+                else // to pond, add to down pond flow
+                    {
+                        m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
+                        continue; //???
+                    }
+                }
+            else { // raster version
+                tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
+                m_OL_Flow[i] = m_cellFlow[i][0];
+                m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
+            }
+        }
+        if (m_inputSubbsnID == 9999){
+            for (int i = 0; i < m_nCells; i++) {
+                // process the ponds if their water volume exceeds their capacity
+                // the upstream and downstream topology among ponds should be considered here
+                if (m_pondSort[i] > 0){ // since pond topological sort has been read, calculate the cellflow directly
+                    int pondId = CVT_INT(m_pondSort[i]);
+                    float pond_area = m_unitArea[pondId];
+                    float excCap = m_cellFlow[pondId][0] - pond_area * 2.f / m_TimeStep; // suppose the capacity of the pond is area*2m.
+                    if (excCap > 0){ // if their water volume exceed their capacity
+                        if (m_flowPond[pondId] < 0) tmp_qsSub[pondId] += m_cellFlow[pondId][0]; // the down is river
+                        else { // the down is pond
+                            m_cellFlow[CVT_INT(m_flowPond[pondId])][0] += excCap;
+                        }
+                    }
+                    m_OL_Flow[pondId] = m_cellFlow[pondId][0];
+                    m_OL_Flow[pondId] = m_OL_Flow[pondId] * m_TimeStep * 1000.f / pond_area; // m3/s -> mm
+                }
+            }
         }
 #pragma omp critical
         {
@@ -133,6 +177,10 @@ void IUH_OL::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) m_subbsnID = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
+    else if (StringMatch(sk, VAR_LANDUSE)) m_landUse = data;
+    else if (StringMatch(sk, VAR_FLOWPOND)) m_flowPond = data;
+    else if (StringMatch(sk, VAR_FIELDAREA)) m_unitArea = data;
+    else if (StringMatch(sk, VAR_PONDSORT)) m_pondSort = data;
     else {
         throw ModelException(MID_IUH_OL, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -172,4 +220,9 @@ void IUH_OL::Get1DData(const char* key, int* n, float** data) {
     } else {
         throw ModelException(MID_IUH_OL, "Get1DData", "Result " + sk + " does not exist.");
     }
+}
+
+float IUH_OL::GetUnitArea(int i) {
+    if (m_inputSubbsnID == 9999) return m_unitArea[i];
+    else return m_CellWth * m_CellWth;
 }

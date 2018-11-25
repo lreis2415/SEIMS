@@ -10,7 +10,7 @@ ReservoirMethod::ReservoirMethod() :
     m_soilET(nullptr), m_actPltET(nullptr), m_pet(nullptr),
     m_revap(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
     m_petSubbsn(nullptr), m_gwSto(nullptr), m_slope(nullptr), m_soilWtrSto(nullptr),
-    m_soilDepth(nullptr),
+    m_soilDepth(nullptr), m_unitArea(nullptr),
     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
     /// intermediate
     m_T_PerDep(nullptr), m_T_RG(nullptr),
@@ -48,7 +48,8 @@ void ReservoirMethod::InitialOutputs() {
 int ReservoirMethod::Execute() {
     CheckInputData();
     InitialOutputs();
-    float QGConvert = 1.f * m_cellWth * m_cellWth / m_dt * 0.001f; // mm ==> m3/s
+    float QGConvert = 1.f;
+    if (m_inputSubbsnID != 9999) QGConvert = 1.f * m_cellWth * m_cellWth / m_dt * 0.001f; // mm ==> m3/s
     for (auto it = m_subbasinIDs.begin(); it != m_subbasinIDs.end(); ++it) {
         int subID = *it;
         Subbasin* curSub = m_subbasinsInfo->GetSubbasinByID(subID);
@@ -58,26 +59,28 @@ int ReservoirMethod::Execute() {
         float perco = 0.f;
         float fPET = 0.f;
         float revap = 0.f;
+        float sum_area = 0.f; // the sum area of the subbsain
 #pragma omp parallel for reduction(+:perco, fPET, revap)
         for (int i = 0; i < curCellsNum; i++) {
             int index = curCells[i];
+            sum_area += GetUnitArea(index);
             float tmp_perc = m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1];
             if (tmp_perc > 0) {
-                perco += tmp_perc;
+                perco += tmp_perc * GetUnitArea(index); // add area weight
             } else {
                 m_soilPerco[index][CVT_INT(m_nSoilLyrs[index]) - 1] = 0.f;
             }
             if (m_pet[index] > 0.f) {
-                fPET += m_pet[index];
+                fPET += m_pet[index] * GetUnitArea(index); // add area weight
             }
             m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
             m_revap[index] = Max(m_revap[index], 0.f);
             m_revap[index] = m_revap[index] * m_gwSto[subID] / m_GWMAX;
-            revap += m_revap[index];
+            revap += m_revap[index] * GetUnitArea(index); // add area weight
         }
-        perco /= curCellsNum; // mean mm
-        fPET /= curCellsNum;
-        revap /= curCellsNum;
+        perco /= sum_area; // curCellsNum; // mean mm
+        fPET /= sum_area; // curCellsNum;
+        revap /= sum_area; // curCellsNum;
         /// percolated water ==> vadose zone ==> shallow aquifer ==> deep aquifer
         /// currently, for convenience, we assume a small portion of the percolated water
         /// will enter groundwater. By LJ. 2016-9-2
@@ -99,6 +102,7 @@ int ReservoirMethod::Execute() {
         float kg = m_Kg * slopeCoef;
         float groundRunoff = kg * pow(m_gwSto[subID], m_Base_ex); // mm
         float groundQ = groundRunoff * curCellsNum * QGConvert;     // groundwater discharge (m3/s)
+        if (m_inputSubbsnID == 9999) groundQ = groundRunoff * sum_area / m_dt * 0.001f; // field version, the area is the sum area
         float groundStorage = m_gwSto[subID];
         groundStorage += perco - revap - percoDeep - groundRunoff;
 
@@ -114,6 +118,7 @@ int ReservoirMethod::Execute() {
         if (groundStorage > m_GWMAX) {
             groundRunoff += groundStorage - m_GWMAX;
             groundQ = groundRunoff * curCellsNum * QGConvert; // groundwater discharge (m3/s)
+            if (m_inputSubbsnID == 9999) groundQ = groundRunoff * sum_area / m_dt * 0.001f; // field version, the area is the sum area
             groundStorage = m_GWMAX;
         }
 
@@ -204,6 +209,7 @@ bool ReservoirMethod::CheckInputData() {
     CHECK_POINTER(MID_GWA_RE, m_nSoilLyrs);
     CHECK_POINTER(MID_GWA_RE, m_soilThk);
     CHECK_POINTER(MID_GWA_RE, m_subbasinsInfo);
+    if (m_inputSubbsnID == 9999) CHECK_POINTER(MID_GWA_RE, m_unitArea);
     return true;
 }
 
@@ -262,6 +268,8 @@ void ReservoirMethod::Set1DData(const char* key, const int n, float* data) {
         m_pet = data;
     } else if (StringMatch(sk, VAR_SLOPE)) {
         m_slope = data;
+    } else if (m_inputSubbsnID == 9999 && StringMatch(sk, VAR_FIELDAREA)) { // only the field version add unitarea
+        m_unitArea = data;
     } else if (StringMatch(sk, VAR_SOILLAYERS)) {
         m_nSoilLyrs = data;
     } else {
@@ -340,4 +348,9 @@ void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float**
     } else {
         throw ModelException(MID_GWA_RE, "Get2DData", "Parameter " + sk + " does not exist in current module.");
     }
+}
+
+float ReservoirMethod::GetUnitArea(int i) {
+    if (m_inputSubbsnID == 9999) return m_unitArea[i];
+    else return m_cellWth * m_cellWth;
 }

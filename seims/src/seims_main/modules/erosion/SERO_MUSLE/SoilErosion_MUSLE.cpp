@@ -302,3 +302,9 @@ void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
     }
     *n = m_nCells;
 }
+
+float SERO_MUSLE::GetUnitArea(int i) {
+    /*if (m_inputSubbsnID == 9999) return m_unitArea[i];
+    else return m_cellWth * m_cellWth;*/
+    return 0.f;
+}

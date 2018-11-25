@@ -54,6 +54,8 @@ public:
 
     bool CheckInputData();
 
+    float GetUnitArea(int index);
+
 private:
     void InitialOutputs();
 

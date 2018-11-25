@@ -64,6 +64,8 @@ public:
 
     bool CheckInputData();
 
+    float IUH_OL::GetUnitArea(int i);
+
 private:
     void InitialOutputs();
 
@@ -89,6 +91,17 @@ private:
     int m_iuhCols;
     /// surface runoff from depression module
     float* m_surfRf;
+
+    // field version
+
+    /// field version, the area of each field
+    float* m_unitArea;
+    /// landuse code
+    float* m_landUse;
+    /// flow pond
+    float* m_flowPond;
+    /// pond topological sort
+    float* m_pondSort;
 
     //temporary
 

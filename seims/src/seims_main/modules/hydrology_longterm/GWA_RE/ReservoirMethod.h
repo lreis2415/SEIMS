@@ -64,6 +64,8 @@ public:
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
+    float ReservoirMethod::GetUnitArea(int i);
+
 private:
 
     /**
@@ -133,6 +135,9 @@ private:
 
     /// slope (percent, or drop/distance, or tan) of each cell
     float* m_slope;
+
+    /// field version, the area of each field
+    float* m_unitArea;
 
     //! soil storage
     float** m_soilWtrSto;
