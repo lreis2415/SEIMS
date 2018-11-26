@@ -421,7 +421,7 @@ def select_potential_bmps(unitid,  # type: int
                 if spid == n:
                     suit_bmps_tag = t
                     break
-    else:  # other spatial units take `LANDUSE` to suit BMPs
+    else:  # other spatial units only take `LANDUSE` to suit BMPs
         # ValueError checks should be done in other place
         suit_bmps_tag = unitsinfo['units'][unitid]['primarylanduse']
         down_unit = unitsinfo['units'][unitid].get('downslope')
@@ -539,7 +539,7 @@ def main_multiple(eval_num):
         cfg = SASlpPosConfig(cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         cfg = SACommUnitConfig(cf)
     cfg.construct_indexes_units_gene()
 
@@ -562,7 +562,7 @@ def main_single():
         cfg = SASlpPosConfig(cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         cfg = SACommUnitConfig(cf)
     cfg.construct_indexes_units_gene()
 
@@ -580,37 +580,39 @@ def main_single():
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
 
-def main_manual():
+def main_manual(sceid, gene_values):
     """Test of set scenario manually."""
     cf = get_config_parser()
-    cfg = SASlpPosConfig(cf)
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
     sce = SUScenario(cfg)
 
-    sceid = 200206028
     sce.set_unique_id(sceid)
-    gene_values = [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                   0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0,
-                   0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,
-                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0, 1.0,
-                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                   0.0, 0.0, 0.0, 4.0, 0.0, 3.0, 0.0, 1.0, 3.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0,
-                   0.0, 0.0, 2.0, 1.0, 1.0, 4.0, 1.0, 0.0, 0.0]
-
     sce.set_gene_values(gene_values)
 
     sce.decoding()
     sce.export_to_mongodb()
-    sce.execute_seims_model()
+    # sce.execute_seims_model()
     sce.export_sce_tif = True
     sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
-    sce.calculate_economy()
-    sce.calculate_environment()
+    # sce.calculate_economy()
+    # sce.calculate_environment()
 
-    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+    # print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    # print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
 
 if __name__ == '__main__':
-    # main_manual()
     main_single()
     # main_multiple(4)
+
+    # CONNFIELD
+    # sid = 199321751
+    # gvalues = [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 3.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 4.0, 2.0, 2.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 4.0, 0.0, 2.0, 0.0]
+    # main_manual(sid, gvalues)

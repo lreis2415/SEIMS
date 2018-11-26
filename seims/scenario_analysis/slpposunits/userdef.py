@@ -245,7 +245,7 @@ def main_test_mutate(perc, indpb, unit, mtd):
         cfg = SASlpPosConfig(cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         cfg = SACommUnitConfig(cf)
     cfg.construct_indexes_units_gene()
 
