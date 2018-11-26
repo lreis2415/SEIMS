@@ -195,7 +195,7 @@ class SUScenario(Scenario):
                     sp_suit_bmps = self.suit_bmps['SLPPOS'][sptag][:]
                     new_sp_suit_bmps = list()
                     for unit_luid, unit_luarea in viewitems(unit_luids):
-                        if unit_luarea / unit_area < 0.2:
+                        if unit_luarea / unit_area < 0.1:
                             continue
                         for lu_suit_bmp in lu_suit_bmps:
                             if lu_suit_bmp in sp_suit_bmps and lu_suit_bmp not in new_sp_suit_bmps:
