@@ -261,7 +261,7 @@ def main_test_mutate(perc, indpb, unit, mtd):
 
     # Mutate
     mutate_rule(sce.cfg.units_infos, sce.cfg.gene_to_unit, sce.cfg.unit_to_gene,
-                sce.suit_bmps, init_gene_values, perc, indpb, unit=unit,
+                sce.suit_bmps['LANDUSE'], init_gene_values, perc, indpb, unit=unit,
                 method=mtd, bmpgrades=sce.bmps_grade, tagnames=sce.cfg.slppos_tagnames)
     print('Mutated genes: %s' % init_gene_values.__str__())
 
