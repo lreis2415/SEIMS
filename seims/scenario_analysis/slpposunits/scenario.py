@@ -197,7 +197,9 @@ class SUScenario(Scenario):
                     for unit_luid, unit_luarea in viewitems(unit_luids):
                         if unit_luarea / unit_area < 0.1:
                             continue
-                        for lu_suit_bmp in lu_suit_bmps:
+                        if unit_luid not in lu_suit_bmps:
+                            continue
+                        for lu_suit_bmp in lu_suit_bmps[unit_luid]:
                             if lu_suit_bmp in sp_suit_bmps and lu_suit_bmp not in new_sp_suit_bmps:
                                 new_sp_suit_bmps.append(lu_suit_bmp)
                     cur_suit_bmps[sptag] = new_sp_suit_bmps[:]
@@ -458,6 +460,8 @@ def select_potential_bmps(unitid,  # type: int
 
     bmps = suitbmps[suit_bmps_tag][:]
     bmps = list(set(bmps))  # ascending
+    # Config or not is controlled by Random probability outside this function,
+    #  thus, there is no need to append 0 (i.e., no BMP)!
     # if 0 not in bmps:
     #     bmps.append(0)
 

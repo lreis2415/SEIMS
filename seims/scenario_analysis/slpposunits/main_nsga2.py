@@ -197,6 +197,10 @@ def main(sceobj):
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
     scoop_log(logbook.stream)
+    front = numpy.array([ind.fitness.values for ind in pop])
+    # save front for further possible use
+    numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen0.txt',
+                  front, delimiter=str(' '), fmt=str('%.4f'))
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
