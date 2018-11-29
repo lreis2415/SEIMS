@@ -245,7 +245,7 @@ def main_test_mutate(perc, indpb, unit, mtd):
         cfg = SASlpPosConfig(cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         cfg = SACommUnitConfig(cf)
     cfg.construct_indexes_units_gene()
 
@@ -261,7 +261,7 @@ def main_test_mutate(perc, indpb, unit, mtd):
 
     # Mutate
     mutate_rule(sce.cfg.units_infos, sce.cfg.gene_to_unit, sce.cfg.unit_to_gene,
-                sce.suit_bmps, init_gene_values, perc, indpb, unit=unit,
+                sce.suit_bmps['LANDUSE'], init_gene_values, perc, indpb, unit=unit,
                 method=mtd, bmpgrades=sce.bmps_grade, tagnames=sce.cfg.slppos_tagnames)
     print('Mutated genes: %s' % init_gene_values.__str__())
 

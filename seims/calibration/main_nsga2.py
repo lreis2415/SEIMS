@@ -35,7 +35,7 @@ from pygeoc.utils import UtilClass
 
 from utility.scoop_func import scoop_log
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from scenario_analysis.visualization import plot_pareto_front, plot_hypervolume_single
+from scenario_analysis.visualization import plot_pareto_front_single, plot_hypervolume_single
 from calibration.config import CaliConfig, get_optimization_config
 from run_seims import MainSEIMS
 
@@ -329,8 +329,8 @@ def main(cfg):
         # And 3D near optimal pareto front graphs, i.e., (NSE, RSR, PBIAS)
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
-        plot_pareto_front(front, plotlables, cfg.opt.out_dir,
-                          gen, 'Near Pareto optimal solutions')
+        plot_pareto_front_single(front, plotlables, cfg.opt.out_dir,
+                                 gen, 'Near Pareto optimal solutions')
         plot_time += time.time() - stime
 
         # save in file

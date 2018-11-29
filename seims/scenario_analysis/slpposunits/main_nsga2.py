@@ -197,6 +197,10 @@ def main(sceobj):
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
     scoop_log(logbook.stream)
+    front = numpy.array([ind.fitness.values for ind in pop])
+    # save front for further possible use
+    numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen0.txt',
+                  front, delimiter=str(' '), fmt=str('%.4f'))
 
     # Begin the generational process
     output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
@@ -289,9 +293,9 @@ def main(sceobj):
         # Comment out since matplotlib is quite often not working.
         # try:
         #     from concurrent.futures import ThreadPoolExecutor, TimeoutError
-        #     from scenario_analysis.visualization import plot_pareto_front
+        #     from scenario_analysis.visualization import plot_pareto_front_single
         #     p = ThreadPoolExecutor(1)
-        #     func = p.submit(plot_pareto_front, front, ['Economy', 'Environment'],
+        #     func = p.submit(plot_pareto_front_single, front, ['Economy', 'Environment'],
         #                     ws, gen, 'Near Pareto optimal solutions')
         #     func.result(timeout=10)
         # except TimeoutError:
@@ -367,7 +371,7 @@ if __name__ == "__main__":
         sa_cfg = SASlpPosConfig(in_cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         sa_cfg = SAConnFieldConfig(in_cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
 
