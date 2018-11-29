@@ -87,7 +87,7 @@ int IUH_OL::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            if (m_inputSubbsnID == 9999){ // field version
+            if (m_inputSubbsnID == 9999){ // field version 
                 // skip ponds in this step and process them later
                 if (FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_POND)) { continue; }
 
@@ -99,7 +99,9 @@ int IUH_OL::Execute() {
                 else // to pond, add to down pond flow
                     {
                         m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
-                        continue; //???
+                        // if a field flow to pond, should update its m_OL_Flow???
+                        // m_OL_Flow[i] = m_cellFlow[i][0]  
+                        // m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
                     }
                 }
             else { // raster version

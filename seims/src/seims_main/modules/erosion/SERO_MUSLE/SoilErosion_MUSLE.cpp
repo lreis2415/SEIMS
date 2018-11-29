@@ -14,7 +14,8 @@ SERO_MUSLE::SERO_MUSLE() :
     m_cellAreaKM1(NODATA_VALUE), m_cellAreaKM2(NODATA_VALUE), m_slopeForPq(nullptr),
     m_usleL(nullptr), m_usleS(nullptr), m_usleC(nullptr),
     m_eroSed(nullptr), m_eroSand(nullptr), m_eroSilt(nullptr), m_eroClay(nullptr),
-    m_eroSmAgg(nullptr), m_eroLgAgg(nullptr) {
+    m_eroSmAgg(nullptr), m_eroLgAgg(nullptr),
+    m_inputSubbsnID(-1), m_unitArea(nullptr){
 }
 
 SERO_MUSLE::~SERO_MUSLE() {
@@ -46,6 +47,9 @@ bool SERO_MUSLE::CheckInputData() {
     CHECK_POINTER(MID_SERO_MUSLE, m_detClay);
     CHECK_POINTER(MID_SERO_MUSLE, m_detSmAgg);
     CHECK_POINTER(MID_SERO_MUSLE, m_detLgAgg);
+    if (m_inputSubbsnID == 9999){
+        CHECK_POINTER(MID_IUH_OL, m_unitArea);
+    }
 
     CHECK_NONNEGATIVE(MID_SERO_MUSLE, m_iCfac);
     CHECK_POINTER(MID_SERO_MUSLE, m_aveAnnUsleC);
@@ -125,11 +129,11 @@ void SERO_MUSLE::InitialOutputs() {
             m_usleS[i] = S;
         }
     }
-    if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {
+    /*if (FloatEqual(m_cellAreaKM, NODATA_VALUE)) {
         m_cellAreaKM = m_cellWth * m_cellWth * 0.000001f;
         m_cellAreaKM1 = 3.79f * pow(m_cellAreaKM, 0.7f);
         m_cellAreaKM2 = 0.903f * pow(m_cellAreaKM, 0.017f);
-    }
+    }*/
     if (nullptr == m_usleC) {
         m_usleC = new(nothrow) float[m_nCells];
 #pragma omp parallel for
@@ -200,6 +204,9 @@ int SERO_MUSLE::Execute() {
         if (m_usleC[i] < 0.f) m_usleC[i] = 0.f;
         // TODO, use pkq.f of SWAT to calculate peak runoff rate? LJ.
         // peak flow, 1. / 25.4 = 0.03937007874015748
+        m_cellAreaKM = GetUnitArea(i) * 0.000001f;
+        m_cellAreaKM1 = 3.79f * pow(m_cellAreaKM, 0.7f);
+        m_cellAreaKM2 = 0.903f * pow(m_cellAreaKM, 0.017f);
         float q = m_cellAreaKM1 * m_slopeForPq[i] * pow(m_surfRf[i] * 0.03937007874015748f, m_cellAreaKM2);
         // sediment yield, unit: tons, eq. 4:1.1.1 in SWAT theory 2009.
         float sed_yld = m_usleMult[i] * m_usleC[i] * pow(m_surfRf[i] * m_cellAreaKM * 1000.0f * q, 0.56f);
@@ -243,6 +250,8 @@ void SERO_MUSLE::SetValue(const char* key, const float value) {
         m_rsdCovCoef = value;
     } else if (StringMatch(sk, VAR_ICFAC)) {
         m_iCfac = CVT_INT(value);
+    } else if (StringMatch(sk, Tag_SubbasinId)) {
+        m_inputSubbsnID = CVT_INT(value);
     } else {
         throw ModelException(MID_SERO_MUSLE, "SetValue", "Parameter " + sk + " does not exist in current module.");
     }
@@ -268,6 +277,7 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(s, VAR_DETACH_CLAY)) m_detClay = data;
     else if (StringMatch(s, VAR_DETACH_SAG)) m_detSmAgg = data;
     else if (StringMatch(s, VAR_DETACH_LAG)) m_detLgAgg = data;
+    else if (StringMatch(s, VAR_FIELDAREA)) m_unitArea = data;
     else {
         throw ModelException(MID_SERO_MUSLE, "Set1DData", "Parameter " + s + " does not exist.");
     }
@@ -304,7 +314,6 @@ void SERO_MUSLE::Get1DData(const char* key, int* n, float** data) {
 }
 
 float SERO_MUSLE::GetUnitArea(int i) {
-    /*if (m_inputSubbsnID == 9999) return m_unitArea[i];
-    else return m_cellWth * m_cellWth;*/
-    return 0.f;
+    if (m_inputSubbsnID == 9999) return m_unitArea[i];
+    else return m_cellWth * m_cellWth;
 }

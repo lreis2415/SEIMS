@@ -30,6 +30,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_SLPLEN, UNIT_LEN_M, DESC_SLPLEN, Source_ParameterDB_Optional, DT_Raster1D);
     mdi.AddParameter(VAR_STREAM_LINK, UNIT_NON_DIM, DESC_STREAM_LINK, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_FIELDAREA, UNIT_AREA_M2, DESC_UNITAREA, Source_ParameterDB_Optional, DT_Raster1D);
 
     mdi.AddParameter(VAR_DETACH_SAND, UNIT_NON_DIM, DESC_DETACH_SAND, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_DETACH_SILT, UNIT_NON_DIM, DESC_DETACH_SILT, Source_ParameterDB, DT_Raster1D);
