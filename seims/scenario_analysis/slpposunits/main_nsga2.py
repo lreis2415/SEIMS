@@ -9,6 +9,7 @@
     - 17-08-18  lj - reorganize.
     - 18-02-09  lj - compatible with Python3.
     - 18-11-02  lj - Optimization.
+    - 18-12-04  lj - Updates of crossover operation of UPDOWN method.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -29,7 +30,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from pygeoc.utils import UtilClass, MathClass, get_config_parser
+from pygeoc.utils import UtilClass, get_config_parser
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
@@ -42,8 +43,8 @@ from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
 from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
 from scenario_analysis.slpposunits.scenario import SUScenario
 from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.slpposunits.userdef import crossover_slppos, mutate_rule, \
-    crossover_rdm, mutate_rdm
+from scenario_analysis.slpposunits.userdef import crossover_slppos, crossover_updown, mutate_rule, \
+    crossover_rdm, mutate_rdm, check_individual_diff
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -69,6 +70,7 @@ toolbox.register('evaluate', scenario_effectiveness)
 
 # knowledge-rule based mate and mutate
 toolbox.register('mate_slppos', crossover_slppos)
+toolbox.register('mate_updown', crossover_updown)
 toolbox.register('mutate_rule', mutate_rule)
 # random-based mate and mutate
 toolbox.register('mate_rdm', crossover_rdm)
@@ -108,6 +110,7 @@ def main(sceobj):
     suit_bmps = sceobj.suit_bmps
     gene_to_unit = sceobj.cfg.gene_to_unit
     unit_to_gene = sceobj.cfg.unit_to_gene
+    updown_units = sceobj.cfg.updown_units
 
     scoop_log('Population: %d, Generation: %d' % (pop_size, gen_num))
     scoop_log('BMPs configure unit: %s, configuration method: %s' % (cfg_unit, cfg_method))
@@ -127,15 +130,6 @@ def main(sceobj):
     # Initialize population
     pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
     init_time = time.time() - stime
-
-    def check_individual_diff(old_ind, new_ind):
-        """Check the gene values of two individuals."""
-        diff = False
-        for i in range(len(old_ind)):
-            if not MathClass.floatequal(old_ind[i], new_ind[i]):
-                diff = True
-                break
-        return diff
 
     def delete_fitness(new_ind):
         """Delete the fitness and other information of new individual."""
@@ -218,8 +212,10 @@ def main(sceobj):
                 old_ind1 = toolbox.clone(ind1)
                 old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
-                    if sceobj.cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                    if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
                         toolbox.mate_slppos(sceobj.cfg.slppos_tagnames, ind1, ind2)
+                    elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
+                        toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
                     else:
                         toolbox.mate_rdm(ind1, ind2)
 
