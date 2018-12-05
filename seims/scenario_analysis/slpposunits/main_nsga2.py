@@ -260,7 +260,22 @@ def main(sceobj):
             modelruns_time_sum[gen] += ind.runtime
 
         # Select the next generation population
-        pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
+        # Previous version may result in duplications of the same scenario in one Pareto front,
+        #   thus, I decided to check and remove the duplications first.
+        # pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
+        tmppop = pop + valid_inds + invalid_inds
+        pop = list()
+        unique_sces = dict()
+        for tmpind in tmppop:
+            if tmpind.gen in unique_sces and tmpind.id in unique_sces[tmpind.gen]:
+                continue
+            if tmpind.gen not in unique_sces:
+                unique_sces.setdefault(tmpind.gen, [tmpind.id])
+            elif tmpind.id not in unique_sces[tmpind.gen]:
+                unique_sces[tmpind.gen].append(tmpind.id)
+            pop.append(tmpind)
+        pop = toolbox.select(pop, pop_select_num)
+
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
