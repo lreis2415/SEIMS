@@ -1,8 +1,11 @@
 # All calibrated parameters
-gw0,-38.037,AC
-gwrq,0.009,AC
-Kg,0.051,AC
-Ki,-2.597,AC
-K_pet,0.3,AC
-Runoff_co,0.388,RC
-sw_cap,1.637,RC
+Kg,0,AC
+gw0,0,AC
+sw_cap,1.0,RC
+df_coef,0,AC
+ch_n,1.0,RC
+Ki,0,AC
+Runoff_co,1.0,RC
+K_pet,0,AC
+spcon,0,AC
+spexp,0,AC

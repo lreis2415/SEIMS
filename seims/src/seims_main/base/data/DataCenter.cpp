@@ -26,7 +26,7 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int 
         output_scene_ += "-" + ValueToString(calibration_id_);
     }
     output_path_ = model_path_ + SEP + output_scene_ + SEP;
-    if (subbasin_id_ <= 1) CleanDirectory(output_path_); // avoid repeat operation in mpi version
+    if (subbasin_id_ <= 1 || subbasin_id_ == 9999) CleanDirectory(output_path_); // avoid repeat operation in mpi version
 }
 
 DataCenter::~DataCenter() {

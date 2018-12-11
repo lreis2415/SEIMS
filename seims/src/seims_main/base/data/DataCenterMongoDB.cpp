@@ -119,7 +119,12 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     assert(nullptr != subbasins_);
 
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
-    reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
+    string db_tab_reach_suf = DB_TAB_REACH;
+    /// if the field version, read REACHES_FLD collection
+    if (subbasin_id_ == 9999) {
+        db_tab_reach_suf = DB_TAB_REACH_FLD;
+    }
+    reaches_ = new clsReaches(mongo_client_, model_name_, db_tab_reach_suf, lyr_method_);
     reaches_->Update(init_params_);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {

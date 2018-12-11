@@ -95,12 +95,14 @@ int IUH_OL::Execute() {
                 if (m_flowPond[i] < 0) // to river 
                     {
                         tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
+                        m_OL_Flow[i] = m_cellFlow[i][0];
+                        m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
                     }
                 else // to pond, add to down pond flow
                     {
                         m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
                         // if a field flow to pond, should update its m_OL_Flow???
-                        // m_OL_Flow[i] = m_cellFlow[i][0]  
+                        // m_OL_Flow[i] = m_cellFlow[i][0];  
                         // m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
                     }
                 }
