@@ -809,11 +809,12 @@ def plot_hypervolume_multiple(method_paths, ws, cn=False):
 
 
 def plot_hypervolumes(hyperv, ws, cn=False):
-    # type: (Dict[AnyStr, List[List[int], List[float]]], AnyStr, bool) -> bool
+    # type: (Dict[AnyStr, Optional[int, float, List[List[int], List[float]]]], AnyStr, bool) -> bool
     """Plot hypervolume of multiple optimization methods
 
     Args:
         hyperv: Dict, key is method name and value is generation IDs list and hypervolumes list
+                      Optionally, key-values of 'bottom' and 'top' are allowed.
         ws: Full path of the destination directory
         cn: (Optional) Use Chinese
     """
@@ -832,12 +833,14 @@ def plot_hypervolumes(hyperv, ws, cn=False):
     fig, ax = plt.subplots(figsize=(9, 8))
     mark_idx = 0
     for method, gen_hyperv in viewitems(hyperv):
+        if not isinstance(gen_hyperv, list):
+            continue
         xdata = gen_hyperv[0]
         ydata = gen_hyperv[1]
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
         mark_idx += 1
-    plt.legend(fontsize=16, loc=0)
+    plt.legend(fontsize=16, loc=4)
     xaxis = plt.gca().xaxis
     yaxis = plt.gca().yaxis
     for xlebal in xaxis.get_ticklabels():
@@ -847,6 +850,10 @@ def plot_hypervolumes(hyperv, ws, cn=False):
     plt.xlabel(generation_str, fontsize=20)
     plt.ylabel(hyperv_str, fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
+    if 'bottom' in hyperv:
+        ax.set_ylim(bottom=hyperv['bottom'])
+    if 'top' in hyperv:
+        ax.set_ylim(top=hyperv['top'])
     plt.tight_layout()
     save_png_eps(plt, ws, 'hypervolume')
     # close current plot in case of 'figure.max_open_warning'
