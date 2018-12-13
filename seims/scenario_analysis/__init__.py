@@ -27,10 +27,10 @@ __revision__ = "1.2.0"
 
 _DEBUG = False  # type: bool # Print information for debugging
 
-BMPS_CFG_UNITS = ['HRU', 'UNIQHRU', 'CONNFIELD', 'SLPPOS']
+BMPS_CFG_UNITS = ['HRU', 'EXPLICITHRU', 'CONNFIELD', 'SLPPOS']
 """The available spatial units for BMPs configuration.
-- HRU: spatially non-unique hydrologic response units (Arnold et al., 1998)
-- UNIQHRU: spatially unique HRU (Teshager et al., 2016)
+- HRU: spatially discrete hydrologic response units (Arnold et al., 1998)
+- EXPLICITHRU: spatially explicit HRU (Teshager et al., 2016)
 - CONNFIELD: hydrologically connected fields with up-downstream relationships (Wu et al. 2018)
 - SLPPOS: slope position units (Qin et al., 2018)
 """
@@ -50,7 +50,7 @@ i.e., the effective grade of the BMP configured on the downslope position should
 """
 
 BMPS_CFG_PAIR = {'HRU': ['RDM', 'SUIT'],
-                 'UNIQHRU': ['RDM', 'SUIT'],
+                 'EXPLICITHRU': ['RDM', 'SUIT'],
                  'CONNFIELD': ['RDM', 'SUIT', 'UPDOWN'],
                  'SLPPOS': ['RDM', 'SUIT', 'UPDOWN', 'SLPPOS']}
 """Supported pairs of BMPs configuration unit and methods."""

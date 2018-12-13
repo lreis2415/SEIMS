@@ -12,6 +12,7 @@
     - 18-10-31  lj - Add type hints based on typing package.
 """
 from __future__ import absolute_import, unicode_literals
+from future.utils import viewitems
 
 from collections import OrderedDict
 from io import open
@@ -27,13 +28,14 @@ from mpl_toolkits.mplot3d import Axes3D  # Do not delete this import
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy
 import itertools
 from pygeoc.utils import StringClass
 import re
 
-from typing import List, Optional, Union, Dict, AnyStr
-from utility import save_png_eps
+from typing import List, Optional, Union, Dict, AnyStr, Any
+from utility import save_png_eps, get_optimal_bounds
 
 LFs = ['\r', '\n', '\r\n']
 
@@ -156,16 +158,21 @@ def plot_3d_scatter(xlist,  # type: List[float] # X coordinates
     plt.close()
 
 
-def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [nrows * ncols] array
-                      labels,  # type: List[AnyStr] # Labels (axis names) with length of ncols
-                      ws,  # type: AnyStr # Full path of the destination directory
-                      gen_id,  # type: int # Generation ID
-                      title,  # type: AnyStr # Main title of the figure
-                      lowers=None,  # type: Optional[numpy.ndarray, List[float]] # Lower values of each axis
-                      uppers=None,  # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
-                      steps=None,  # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
-                      cn=False  # type: bool # Use Chinese or not
-                      ):
+def plot_pareto_front_single(data,
+                             # type: Union[numpy.ndarray, List[List[float]]] # [nrows * ncols] array
+                             labels,
+                             # type: List[AnyStr] # Labels (axis names) with length of ncols
+                             ws,  # type: AnyStr # Full path of the destination directory
+                             gen_id,  # type: Union[int, AnyStr] # Generation ID
+                             title,  # type: AnyStr # Main title of the figure
+                             lowers=None,
+                             # type: Optional[numpy.ndarray, List[float]] # Lower values of each axis
+                             uppers=None,
+                             # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
+                             steps=None,
+                             # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
+                             cn=False  # type: bool # Use Chinese or not
+                             ):
     # type: (...) -> bool
     """
     Plot 2D or 3D pareto front graphs.
@@ -199,9 +206,14 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
         print('Warning: The size of fitness values and steps are not consistent!')
         steps = None
 
-    subtitle = '\nGeneration: %d, Population: %d' % (gen_id, pop_size)
-    if cn:
-        subtitle = u'\n代数: %d, 个体数: %d' % (gen_id, pop_size)
+    if isinstance(gen_id, int):
+        subtitle = '\nGeneration: %d, Population: %d' % (gen_id, pop_size)
+        if cn:
+            subtitle = u'\n代数: %d, 个体数: %d' % (gen_id, pop_size)
+    else:
+        subtitle = '\nAll generations, Population: %d' % pop_size
+        if cn:
+            subtitle = u'\n所有进化代数, 个体数: %d' % pop_size
     # 2D plot
     comb_2d = list(itertools.combinations(range(axis_size), 2))
     for comb in comb_2d:
@@ -227,7 +239,7 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
         tmpws = ws + os.sep + dirname
         if not os.path.exists(tmpws):
             os.mkdir(tmpws)
-        filename = 'Pareto_Gen_%d_Pop_%d_%s-%s' % (gen_id, pop_size, labels[x_idx], labels[y_idx])
+        filename = 'Pareto_Gen_%s_Pop_%d' % (str(gen_id), pop_size)
         if cn:
             filename += '_cn'
         plot_2d_scatter(data[:, x_idx], data[:, y_idx], maintitle,
@@ -267,8 +279,7 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
             tmpws = ws + os.sep + dirname
             if not os.path.exists(tmpws):
                 os.mkdir(tmpws)
-            filename = 'Pareto_Gen_%d_Pop_%d_%s-%s-%s' % (gen_id, pop_size, labels[x_idx],
-                                                          labels[y_idx], labels[z_idx])
+            filename = 'Pareto_Gen_%s_Pop_%d' % (str(gen_id), pop_size)
             if cn:
                 filename += '_cn'
             plot_3d_scatter(data[:, x_idx], data[:, y_idx], data[:, z_idx], maintitle,
@@ -277,6 +288,69 @@ def plot_pareto_front(data,  # type: Union[numpy.ndarray, List[List[float]]] # [
                             xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, zmin=z_min, zmax=z_max,
                             xstep=x_step, ystep=y_step, zstep=z_step)
     return True
+
+
+def plot_pareto_fronts_multigenerations(data,
+                                        # type: Dict[Union[AnyStr, int], Union[List[List[float]], numpy.ndarray]]
+                                        labels,
+                                        # type: List[AnyStr] # Labels (axis names) with length of ncols
+                                        ws,  # type: AnyStr # Full path of the destination directory
+                                        gen_ids,  # type: List[int] # Selected generation IDs
+                                        title,  # type: AnyStr # Main title of the figure
+                                        lowers=None,
+                                        # type: Optional[numpy.ndarray, List[float]] # Lower values of each axis
+                                        uppers=None,
+                                        # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
+                                        steps=None,
+                                        # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
+                                        cn=False  # type: bool # Use Chinese or not
+                                        ):
+    # type: (...) -> None
+    """Plot Pareto fronts of selected generations."""
+    filename = 'Pareto_Generations_%s' % ('-'.join(repr(i) for i in gen_ids))
+    if cn:
+        filename += '_cn'
+        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    fig, ax = plt.subplots(figsize=(9, 8))
+    # ColorMaps: https://matplotlib.org/tutorials/colors/colormaps.html
+    cmap = cm.get_cmap('gist_heat')  # one of the sequential colormaps
+    for idx, gen in enumerate(gen_ids):
+        if gen not in data:
+            continue
+        xdata = numpy.array(data[gen])[:, 0]  # first column
+        ydata = numpy.array(data[gen])[:, 1]  # second column
+        plt.scatter(xdata, ydata, marker='.', s=100,
+                    color=cmap(0.8 * (len(gen_ids) - idx) / len(gen_ids)),
+                    label='Generation %d' % gen)
+    xaxis = plt.gca().xaxis
+    yaxis = plt.gca().yaxis
+    for xlebal in xaxis.get_ticklabels():
+        xlebal.set_fontsize(20)
+    for ylebal in yaxis.get_ticklabels():
+        ylebal.set_fontsize(20)
+    plt.xlabel(labels[0], fontsize=20)
+    plt.ylabel(labels[1], fontsize=20)
+    # set xy axis limit
+    if lowers is not None:
+        ax.set_xlim(left=lowers[0])
+        ax.set_ylim(bottom=lowers[1])
+    if uppers is not None:
+        ax.set_xlim(right=uppers[0])
+        ax.set_ylim(top=uppers[1])
+    if steps is not None:
+        xmin, xmax = plt.xlim()
+        plt.xticks(numpy.arange(xmin, xmax + steps[0] * 0.99, step=steps[0]))
+        ymin, ymax = plt.ylim()
+        plt.yticks(numpy.arange(ymin, ymax + steps[1] * 0.99, step=steps[1]))
+
+    plt.legend(fontsize=16, loc=2)  # loc 2: upper left, 4: lower right, 0: best
+    plt.tight_layout()
+    save_png_eps(plt, ws, filename)
+
+    # close current plot in case of 'figure.max_open_warning'
+    plt.cla()
+    plt.clf()
+    plt.close()
 
 
 def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
@@ -412,7 +486,7 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
     return genids, acc_num
 
 
-def plot_pareto_fronts_fromfile(method_paths,  # type: Dict[AnyStr, AnyStr]
+def plot_pareto_fronts_multiple(method_paths,  # type: Dict[AnyStr, AnyStr]
                                 sce_name,  # type: AnyStr
                                 xname,
                                 # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
@@ -423,126 +497,173 @@ def plot_pareto_fronts_fromfile(method_paths,  # type: Dict[AnyStr, AnyStr]
                                 ):
     # type: (...) -> None
     """
-    Plot Pareto fronts of different method at a same generation for comparision.
-
-    TODO: Need to be carefully reviewed!
+    Plot Pareto fronts of different methods at a same generation for comparision.
 
     Args:
         method_paths(OrderedDict): key is method name (which also displayed in legend), value is file path.
         sce_name(str): Scenario ID field name.
         xname(list): the first is x field name in log file, and the second is for plot,
-                     the third and forth values are low and high limit (optional).
+                     the third and forth values are low and high limits (optional).
         yname(list): see xname
         gens(list): generation to be plotted
         ws: workspace for output files
     """
-    pareto_data = OrderedDict()
-    acc_pop_size = OrderedDict()
-    for k, v in method_paths.items():
+    pareto_data = OrderedDict()  # type: OrderedDict[int, Union[List, numpy.ndarray]]
+    acc_pop_size = OrderedDict()  # type: Dict[int, int]
+    for k, v in viewitems(method_paths):
         v = v + os.path.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname)
     # print(pareto_data)
-    ylabel_str = yname[1]
-    xlabel_str = xname[1]
+    plot_pareto_fronts(pareto_data, xname[1:], yname[1:], gens, ws)
+
+
+def plot_pareto_fronts(pareto_data,
+                       # type: Dict[AnyStr, Dict[Union[AnyStr, int], Union[List[List[float]], numpy.ndarray]]]
+                       xname,  # type: List[AnyStr, Optional[float], Optional[float]]
+                       yname,  # type: List[AnyStr, Optional[float], Optional[float]]
+                       gens,  # type: List[int]
+                       ws  # type: AnyStr
+                       ):
+    # type: (...) -> None
+    """
+    Plot Pareto fronts of different methods at a same generation for comparision.
+
+    Args:
+        pareto_data(OrderedDict)
+        xname(list): the first is x-axis name of plot,
+                     the second and third values are low and high limits (optional).
+        yname(list): see xname
+        gens(list): generation to be plotted
+        ws: workspace for output files
+    """
+    if len(xname) < 1 or len(yname) < 1:
+        xname = ['x-axis']
+        yname = ['y-axis']
+    ylabel_str = yname[0]
+    xlabel_str = xname[0]
     file_name = '-'.join(list(pareto_data.keys()))
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
 
     # Check if xname or yname contains Chinese characters
     zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
-    if zhPattern.search(xname[1]) or zhPattern.search(yname[1]):
+    if zhPattern.search(xname[0]) or zhPattern.search(yname[0]):
         plt.rcParams['font.family'] = 'SimSun'  # 宋体
 
-    markers = ['.', '+', '*', 'x', 'd', 'h', 's', '<', '>']
+    markers = ['.', '*', '+', 'x', 'd', 'h', 's', '<', '>']
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'k', 'k']
-    linestyles = ['-', '--', '-.', ':']
-    # plot accumulate pop size
-    fig, ax = plt.subplots(figsize=(9, 8))
-    mark_idx = 0
-    for method, gen_popsize in acc_pop_size.items():
-        xdata = gen_popsize[0]
-        ydata = gen_popsize[1]
-        print(ydata)
-        print('Evaluated pop size: %s - %d' % (method, ydata[-1]))
-        plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
-                 label=method, linewidth=2)
-        mark_idx += 1
-    plt.legend(fontsize=24, loc=2)
-    xaxis = plt.gca().xaxis
-    yaxis = plt.gca().yaxis
-    for xlebal in xaxis.get_ticklabels():
-        xlebal.set_fontsize(20)
-    for ylebal in yaxis.get_ticklabels():
-        ylebal.set_fontsize(20)
-    plt.xlabel('Generation count', fontsize=20)
-    plt.ylabel('Total number of simulated individuals', fontsize=20)
-    ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
-    plt.tight_layout()
-    fpath = ws + os.path.sep + file_name + '_popsize'
-    plt.savefig(fpath + '.png', dpi=300)
-    plt.savefig(fpath + '.eps', dpi=300)
-    print('%s saved!' % fpath)
-    # close current plot in case of 'figure.max_open_warning'
-    plt.cla()
-    plt.clf()
-    plt.close()
+    # linestyles = ['-', '--', '-.', ':']
+    # # plot accumulate pop size
+    # fig, ax = plt.subplots(figsize=(9, 8))
+    # mark_idx = 0
+    # for method, gen_popsize in acc_pop_size.items():
+    #     xdata = gen_popsize[0]
+    #     ydata = gen_popsize[1]
+    #     print(ydata)
+    #     print('Evaluated pop size: %s - %d' % (method, ydata[-1]))
+    #     plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
+    #              label=method, linewidth=2)
+    #     mark_idx += 1
+    # plt.legend(fontsize=24, loc=2)
+    # xaxis = plt.gca().xaxis
+    # yaxis = plt.gca().yaxis
+    # for xlebal in xaxis.get_ticklabels():
+    #     xlebal.set_fontsize(20)
+    # for ylebal in yaxis.get_ticklabels():
+    #     ylebal.set_fontsize(20)
+    # plt.xlabel('Generation count', fontsize=20)
+    # plt.ylabel('Total number of simulated individuals', fontsize=20)
+    # ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
+    # plt.tight_layout()
+    # fpath = ws + os.path.sep + file_name + '_popsize'
+    # plt.savefig(fpath + '.png', dpi=300)
+    # plt.savefig(fpath + '.eps', dpi=300)
+    # print('%s saved!' % fpath)
+    # # close current plot in case of 'figure.max_open_warning'
+    # plt.cla()
+    # plt.clf()
+    # plt.close()
 
     # plot Pareto points of all generations
-    mark_idx = 0
-    for method, gen_popsize in pareto_data.items():
-        fig, ax = plt.subplots(figsize=(9, 8))
-        xdata = list()
-        ydata = list()
-        for gen, gendata in gen_popsize.items():
-            xdata += gen_popsize[gen][xname[0]]
-            ydata += gen_popsize[gen][yname[0]]
-        plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
-                    color=colors[mark_idx], label=method)
-        mark_idx += 1
-        xaxis = plt.gca().xaxis
-        yaxis = plt.gca().yaxis
-        for xlebal in xaxis.get_ticklabels():
-            xlebal.set_fontsize(20)
-        for ylebal in yaxis.get_ticklabels():
-            ylebal.set_fontsize(20)
-        plt.xlabel(xlabel_str, fontsize=20)
-        plt.ylabel(ylabel_str, fontsize=20)
-        # set xy axis limit
-        curxlim = ax.get_xlim()
-        if len(xname) >= 3:
-            if curxlim[0] < xname[2]:
-                ax.set_xlim(left=xname[2])
-            if len(xname) >= 4 and curxlim[1] > xname[3]:
-                ax.set_xlim(right=xname[3])
-        curylim = ax.get_ylim()
-        if len(yname) >= 3:
-            if curylim[0] < yname[2]:
-                ax.set_ylim(bottom=yname[2])
-            if len(yname) >= 4 and curylim[1] > yname[3]:
-                ax.set_ylim(top=yname[3])
-        plt.tight_layout()
-        fpath = ws + os.path.sep + method + '-Pareto'
-        plt.savefig(fpath + '.png', dpi=300)
-        plt.savefig(fpath + '.eps', dpi=300)
-        print('%s saved!' % fpath)
-        # close current plot in case of 'figure.max_open_warning'
-        plt.cla()
-        plt.clf()
-        plt.close()
+    # mark_idx = 0
+    # for method, gen_popsize in pareto_data.items():
+    #     fig, ax = plt.subplots(figsize=(9, 8))
+    #     xdata = list()
+    #     ydata = list()
+    #     for gen, gendata in gen_popsize.items():
+    #         xdata += gen_popsize[gen][xname[0]]
+    #         ydata += gen_popsize[gen][yname[0]]
+    #     plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
+    #                 color=colors[mark_idx], label=method)
+    #     mark_idx += 1
+    #     xaxis = plt.gca().xaxis
+    #     yaxis = plt.gca().yaxis
+    #     for xlebal in xaxis.get_ticklabels():
+    #         xlebal.set_fontsize(20)
+    #     for ylebal in yaxis.get_ticklabels():
+    #         ylebal.set_fontsize(20)
+    #     plt.xlabel(xlabel_str, fontsize=20)
+    #     plt.ylabel(ylabel_str, fontsize=20)
+    #     # set xy axis limit
+    #     curxlim = ax.get_xlim()
+    #     if len(xname) >= 3:
+    #         if curxlim[0] < xname[2]:
+    #             ax.set_xlim(left=xname[2])
+    #         if len(xname) >= 4 and curxlim[1] > xname[3]:
+    #             ax.set_xlim(right=xname[3])
+    #     curylim = ax.get_ylim()
+    #     if len(yname) >= 3:
+    #         if curylim[0] < yname[2]:
+    #             ax.set_ylim(bottom=yname[2])
+    #         if len(yname) >= 4 and curylim[1] > yname[3]:
+    #             ax.set_ylim(top=yname[3])
+    #     plt.tight_layout()
+    #     fpath = ws + os.path.sep + method + '-Pareto'
+    #     plt.savefig(fpath + '.png', dpi=300)
+    #     plt.savefig(fpath + '.eps', dpi=300)
+    #     print('%s saved!' % fpath)
+    #     # close current plot in case of 'figure.max_open_warning'
+    #     plt.cla()
+    #     plt.clf()
+    #     plt.close()
 
     # plot comparision of Pareto fronts
+
+    # Get max. and mix. values
+    max_x = None
+    min_x = None
+    max_y = None
+    min_y = None
+    for method, cur_pareto_data in viewitems(pareto_data):
+        if 'min' in cur_pareto_data:
+            if min_x is None or min_x > cur_pareto_data['min'][0]:
+                min_x = cur_pareto_data['min'][0]
+            if min_y is None or min_y > cur_pareto_data['min'][1]:
+                min_y = cur_pareto_data['min'][1]
+        if 'max' in cur_pareto_data:
+            if max_x is None or max_x < cur_pareto_data['max'][0]:
+                max_x = cur_pareto_data['max'][0]
+            if max_y is None or max_y < cur_pareto_data['max'][1]:
+                max_y = cur_pareto_data['max'][1]
+    newxname = xname[:]
+    newyname = yname[:]
+    if min_x is not None and max_x is not None and len(newxname) < 2:
+        newxname += get_optimal_bounds(min_x, max_x)
+    if min_y is not None and max_y is not None and len(newyname) < 2:
+        newyname += get_optimal_bounds(min_y, max_y)
+
     for gen in gens:
         fig, ax = plt.subplots(figsize=(9, 8))
         mark_idx = 0
         gen_existed = True
-        for method, gen_popsize in pareto_data.items():
-            if gen not in gen_popsize:
+        for method, gen_data in viewitems(pareto_data):
+            if gen not in gen_data:
                 gen_existed = False
                 break
-            xdata = gen_popsize[gen][xname[0]]
-            ydata = gen_popsize[gen][yname[0]]
+            xdata = numpy.array(gen_data[gen])[:, 0]  # first column
+            ydata = numpy.array(gen_data[gen])[:, 1]  # second column
             plt.scatter(xdata, ydata, marker=markers[mark_idx], s=100,
                         color=colors[mark_idx], label=method)
             mark_idx += 1
@@ -562,24 +683,19 @@ def plot_pareto_fronts_fromfile(method_paths,  # type: Dict[AnyStr, AnyStr]
         plt.ylabel(ylabel_str, fontsize=20)
         # set xy axis limit
         curxlim = ax.get_xlim()
-        if len(xname) >= 3:
-            if curxlim[0] < xname[2]:
-                ax.set_xlim(left=xname[2])
-            if len(xname) >= 4:  # and curxlim[1] > xname[3]:
-                ax.set_xlim(right=xname[3])
-        curylim = ax.get_ylim()
-        if len(yname) >= 3:
-            if curylim[0] < yname[2]:
-                ax.set_ylim(bottom=yname[2])
-            if len(yname) >= 4:  # and curylim[1] > yname[3]:
-                ax.set_ylim(top=yname[3])
+        if len(newxname) >= 3:
+            ax.set_xlim(left=newxname[1])
+            ax.set_xlim(right=newxname[2])
 
-        plt.legend(fontsize=24, loc=4)  # loc 2: upper left, 4: lower right
+        curylim = ax.get_ylim()
+        if len(newyname) >= 3:
+            ax.set_ylim(bottom=newyname[1])
+            ax.set_ylim(top=newyname[2])
+
+        plt.legend(fontsize=16, loc=4)  # loc 2: upper left, 4: lower right
         plt.tight_layout()
-        fpath = ws + os.path.sep + file_name + '-gen' + str(gen)
-        plt.savefig(fpath + '.png', dpi=300)
-        plt.savefig(fpath + '.eps', dpi=300)
-        print('%s saved!' % fpath)
+        save_png_eps(plt, ws, 'gen%d' % gen)
+
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
         plt.clf()
@@ -592,9 +708,9 @@ def read_hypervolume(hypervlog):
     if not os.path.exists(hypervlog):
         print('Error: The hypervolume log file %s is not existed!' % hypervlog)
         return None, None, None
-    x = list()
-    nmodel = list()
-    hyperv = list()
+    x = list()  # Generation No.
+    nmodel = list()  # Newly executed models count
+    hyperv = list()  # Hypervolume value
     with open(hypervlog, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
@@ -626,7 +742,7 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
     generation_str = 'Generation'
     hyperv_str = 'Hypervolume index'
     nmodel_str = 'New model evaluations'
@@ -663,7 +779,7 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
         legends += p2
 
     legends_label = [l.get_label() for l in legends]
-    ax.legend(legends, legends_label, loc='center right')
+    ax.legend(legends, legends_label, fontsize=16, loc='center right')
 
     plt.tight_layout()
     save_png_eps(plt, ws, 'hypervolume_modelruns')
@@ -675,7 +791,7 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     return True
 
 
-def plot_hypervolume(method_paths, ws, cn=False):
+def plot_hypervolume_multiple(method_paths, ws, cn=False):
     # type: (Dict[AnyStr, AnyStr], AnyStr, bool) -> bool
     """Plot hypervolume of multiple optimization methods
 
@@ -684,44 +800,47 @@ def plot_hypervolume(method_paths, ws, cn=False):
         ws: Full path of the destination directory
         cn: (Optional) Use Chinese
     """
-    hyperv = OrderedDict()
-    for k, v in list(method_paths.items()):
+    hyperv = OrderedDict()  # type: Dict[AnyStr, List[List[int], List[float]]]
+    for k, v in viewitems(method_paths):
         v = v + os.path.sep + 'hypervolume.txt'
-        x = list()
-        y = list()
-        with open(v, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        for line in lines:
-            values = StringClass.extract_numeric_values_from_string(line)
-            if values is None:
-                continue
-            if len(values) < 2:
-                continue
-            x.append(int(values[0]))
-            y.append(values[-1])
+        genids, nmodels, hv = read_hypervolume(v)
+        hyperv[k] = [genids[:], hv[:]]
+    return plot_hypervolumes(hyperv, ws, cn)
 
-        if len(x) == len(y) > 0:
-            hyperv[k] = [x[:], y[:]]
+
+def plot_hypervolumes(hyperv, ws, cn=False):
+    # type: (Dict[AnyStr, Optional[int, float, List[List[int], List[float]]]], AnyStr, bool) -> bool
+    """Plot hypervolume of multiple optimization methods
+
+    Args:
+        hyperv: Dict, key is method name and value is generation IDs list and hypervolumes list
+                      Optionally, key-values of 'bottom' and 'top' are allowed.
+        ws: Full path of the destination directory
+        cn: (Optional) Use Chinese
+    """
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
     generation_str = 'Generation'
     hyperv_str = 'Hypervolume index'
     if cn:
         plt.rcParams['font.family'] = 'SimSun'  # 宋体
         generation_str = u'进化代数'
         hyperv_str = u'Hypervolume 指数'
+    # Line styles: https://matplotlib.org/gallery/lines_bars_and_markers/line_styles_reference.html
     linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(9, 8))
     mark_idx = 0
-    for method, gen_hyperv in hyperv.items():
+    for method, gen_hyperv in viewitems(hyperv):
+        if not isinstance(gen_hyperv, list):
+            continue
         xdata = gen_hyperv[0]
         ydata = gen_hyperv[1]
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
         mark_idx += 1
-    plt.legend(fontsize=24, loc=2)
+    plt.legend(fontsize=16, loc=4)
     xaxis = plt.gca().xaxis
     yaxis = plt.gca().yaxis
     for xlebal in xaxis.get_ticklabels():
@@ -731,6 +850,10 @@ def plot_hypervolume(method_paths, ws, cn=False):
     plt.xlabel(generation_str, fontsize=20)
     plt.ylabel(hyperv_str, fontsize=20)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
+    if 'bottom' in hyperv:
+        ax.set_ylim(bottom=hyperv['bottom'])
+    if 'top' in hyperv:
+        ax.set_ylim(top=hyperv['top'])
     plt.tight_layout()
     save_png_eps(plt, ws, 'hypervolume')
     # close current plot in case of 'figure.max_open_warning'

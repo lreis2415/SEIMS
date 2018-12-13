@@ -11,6 +11,7 @@
     - 18-02-09  lj - compatible with Python3.
     - 18-11-01  lj - Config class should not do extra operation, e.g., read database.
     - 18-11-06  lj - Add supports of other BMPs configuration units.
+    - 18-12-04  lj - Add `updown_units` for `SAConnFieldConfig` and `SASlpPosConfig`
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -31,6 +32,21 @@ from pygeoc.utils import FileClass, UtilClass, get_config_parser
 
 from scenario_analysis import BMPS_CFG_UNITS
 from scenario_analysis.config import SAConfig
+
+
+def trace_upslope_units(uid, updownunits):
+    allupids = list()
+    if uid not in updownunits:
+        return allupids
+    for upid in updownunits[uid]['all_upslope']:
+        if upid not in allupids and upid > 0:
+            allupids.append(upid)
+        if upid not in updownunits:
+            continue
+        for curupid in trace_upslope_units(upid, updownunits):
+            if curupid not in allupids and curupid > 0:
+                allupids.append(curupid)
+    return allupids
 
 
 class SACommUnitConfig(SAConfig):
@@ -69,6 +85,8 @@ class SACommUnitConfig(SAConfig):
         # 4. Construct the dict of gene index to unit ID, and unit ID to gene index
         self.unit_to_gene = OrderedDict()  # type: OrderedDict[int, int]
         self.gene_to_unit = dict()  # type: Dict[int, int]
+        # 5. Construct the upstream-downstream units of each unit if necessary
+        self.updown_units = dict()  # type: Dict[int, Dict[AnyStr, List[int]]]
 
     def construct_indexes_units_gene(self):
         """Construct the indexes between spatial units ID and gene index.
@@ -91,6 +109,27 @@ class SAConnFieldConfig(SACommUnitConfig):
         # type: (ConfigParser) -> None
         """Initialization."""
         SACommUnitConfig.__init__(self, cf)  # initialize base class
+
+    def construct_indexes_units_gene(self):
+        """Construct the indexes between spatial units ID and gene index.
+        """
+        if 'units' not in self.units_infos:
+            raise ValueError('units MUST be existed in the UNITJSON file.')
+        idx = 0
+        for uid, udict in viewitems(self.units_infos['units']):
+            self.gene_to_unit[idx] = uid
+            self.unit_to_gene[uid] = idx
+            idx += 1
+            if uid not in self.updown_units:
+                self.updown_units.setdefault(uid, {'all_upslope': list(),
+                                                   'downslope': list()})
+            self.updown_units[uid]['downslope'].append(udict['downslope'])
+            self.updown_units[uid]['all_upslope'] = udict['upslope'][:]
+        assert (idx == self.units_num)
+        # Trace upslope and append their unit IDs
+        for cuid in self.updown_units:
+            self.updown_units[cuid]['all_upslope'] = trace_upslope_units(cuid, self.updown_units)[:]
+        # print(self.updown_units)
 
 
 class SASlpPosConfig(SACommUnitConfig):
@@ -132,15 +171,29 @@ class SASlpPosConfig(SACommUnitConfig):
             self.unit_to_gene[uid] = idx
             idx += 1
             next_uid = udict['downslope']
-            while next_uid > 0:
+            while True:
+                if next_uid <= 0:
+                    break
                 self.gene_to_unit[idx] = next_uid
+                if uid not in self.updown_units:
+                    self.updown_units.setdefault(uid, {'all_upslope': list(),
+                                                       'downslope': list()})
+                self.updown_units[uid]['downslope'].append(next_uid)
                 self.unit_to_gene[next_uid] = idx
+                if next_uid not in self.updown_units:
+                    self.updown_units.setdefault(next_uid, {'all_upslope': list(),
+                                                            'downslope': list()})
+                self.updown_units[next_uid]['all_upslope'].append(uid)
+
                 idx += 1
                 spidx += 1
                 spname = self.slppos_tagnames[spidx][1]
+                uid = next_uid
                 next_uid = self.units_infos[spname][next_uid]['downslope']
-
         assert (idx == self.units_num)
+        # Trace upslope and append their unit IDs
+        for cuid in self.updown_units:
+            self.updown_units[cuid]['all_upslope'] = trace_upslope_units(cuid, self.updown_units)[:]
 
 
 if __name__ == '__main__':
@@ -150,7 +203,7 @@ if __name__ == '__main__':
         cfg = SASlpPosConfig(cf)
     elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
         cfg = SAConnFieldConfig(cf)
-    else:  # Common spatial units, e.g., HRU and UNIQHRU
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
         cfg = SACommUnitConfig(cf)
     cfg.construct_indexes_units_gene()
 
