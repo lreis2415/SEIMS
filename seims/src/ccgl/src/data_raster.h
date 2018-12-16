@@ -626,7 +626,7 @@ public:
     string GetOption(const char* key);
 
     //! Get options
-    const STRING_MAP& GetOptions() { return options_; }
+    const STRING_MAP& GetOptions() const { return options_; }
 
     /*!
      * \brief Get raster data at the valid cell index
@@ -2493,6 +2493,7 @@ void clsRasterData<T, MASK_T>::Copy(const clsRasterData<T, MASK_T>* orgraster) {
         }
     }
     CopyHeader(orgraster->GetRasterHeader());
+    CopyStringMap(orgraster->GetOptions(), options_);
 }
 
 template <typename T, typename MASK_T>
