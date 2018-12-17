@@ -658,20 +658,35 @@ def plot_pareto_fronts(pareto_data,
         fig, ax = plt.subplots(figsize=(9, 8))
         mark_idx = 0
         gen_existed = True
+        xdata_list = list()
+        ydata_list = list()
+        marker_list = list()
+        method_list = list()
         for method, gen_data in viewitems(pareto_data):
             if gen not in gen_data:
                 gen_existed = False
                 break
-            xdata = numpy.array(gen_data[gen])[:, 0]  # first column
-            ydata = numpy.array(gen_data[gen])[:, 1]  # second column
-            plt.scatter(xdata, ydata, marker=markers[mark_idx], s=100,
-                        color=colors[mark_idx], label=method)
+            # xdata = numpy.array(gen_data[gen])[:, 0]  # first column
+            # ydata = numpy.array(gen_data[gen])[:, 1]  # second column
+            xdata_list.append(numpy.array(gen_data[gen])[:, 0])
+            ydata_list.append(numpy.array(gen_data[gen])[:, 1])
+            marker_list.append(mark_idx)
+            method_list.append(method)
+            # plt.scatter(xdata, ydata, marker=markers[mark_idx], s=100,
+            #             color=colors[mark_idx], label=method)
             mark_idx += 1
         if not gen_existed:
             plt.cla()
             plt.clf()
             plt.close()
             continue
+        xdata_list.reverse()
+        ydata_list.reverse()
+        marker_list.reverse()
+        method_list.reverse()
+        for xdata, ydata, markeridx, method in zip(xdata_list, ydata_list, marker_list, method_list):
+            plt.scatter(xdata, ydata, marker=markers[markeridx], s=100,
+                        color=colors[markeridx], label=method)
 
         xaxis = plt.gca().xaxis
         yaxis = plt.gca().yaxis
@@ -692,7 +707,10 @@ def plot_pareto_fronts(pareto_data,
             ax.set_ylim(bottom=newyname[1])
             ax.set_ylim(top=newyname[2])
 
-        plt.legend(fontsize=16, loc=4)  # loc 2: upper left, 4: lower right
+        handles, labels = ax.get_legend_handles_labels()
+        handles.reverse()
+        labels.reverse()
+        plt.legend(handles, labels, fontsize=16, loc=4)  # loc 2: upper left, 4: lower right
         plt.tight_layout()
         save_png_eps(plt, ws, 'gen%d' % gen)
 
