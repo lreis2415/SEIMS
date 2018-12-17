@@ -476,7 +476,10 @@ class MainSEIMS(object):
                 f.write('\n'.join(self.runlogs))
             self.ParseTimespan(self.runlogs)
             self.run_success = True
-        except CalledProcessError or Exception as err:
+        except CalledProcessError or IOError or Exception as err:
+            # 1. SEIMS-based model running failed
+            # 2. The OUTPUT directory was not been created successfully by SEIMS-based model
+            # 3. Other unpredictable errors
             print('Run SEIMS model failed! %s' % str(err))
             self.run_success = False
         self.runtime = time.time() - stime
