@@ -1,0 +1,22 @@
+# Please download the proper compiled version of numpy and gdal
+#   from https://www.lfd.uci.edu/~gohlke/pythonlibs/
+# numpy>=1.10
+# gdal>=1.9.0
+
+Shapely>=1.5.0
+matplotlib>=1.5.0
+pymongo>=3.0
+networkx>=1.10
+pathlib2>=2.0.0
+future
+six
+typing
+
+# Python 2.7.x only
+configparser;python_version<'3'
+
+scoop>=0.7.1.1
+# If any errors caused by DEAP occurred, please (re)install the latest version of DEAP by:
+# pip install git+https://github.com/DEAP/deap@master
+deap>=1.2.2
+SALib>=1.2
