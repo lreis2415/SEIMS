@@ -64,6 +64,8 @@ public:
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
+    TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
+
 private:
 
     /**

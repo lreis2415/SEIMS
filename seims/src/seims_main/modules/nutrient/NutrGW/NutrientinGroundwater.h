@@ -47,6 +47,8 @@ public:
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
+    TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
+
 private:
     /*!
     * \brief check the input data. Make sure all the input data is available.

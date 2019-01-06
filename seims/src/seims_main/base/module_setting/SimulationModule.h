@@ -33,7 +33,6 @@ using namespace bmps;
 enum TimeStepType {
     TIMESTEP_HILLSLOPE, ///< Hillslope scale
     TIMESTEP_CHANNEL,   ///< Channel scale
-    TIMESTEP_ECOLOGY,   ///< Ecology scale, currently not necessary?
     TIMESTEP_SIMULATION ///< Whole simulation scale
 };
 
