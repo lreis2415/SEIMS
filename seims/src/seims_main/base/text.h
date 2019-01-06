@@ -164,6 +164,7 @@
 #define File_Input                             "file.in"
 #define File_Output                            "file.out"
 #define Source_HydroClimateDB                  "HydroClimateDB"
+#define Source_HydroClimateDB_Optional         "HydroClimateDB_Optional"
 #define Source_ParameterDB                     "ParameterDB"
 #define Source_ParameterDB_Optional            "ParameterDB_Optional"
 #define Source_Module                          "Module"
