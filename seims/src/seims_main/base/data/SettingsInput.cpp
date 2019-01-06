@@ -14,8 +14,8 @@ SettingsInput::SettingsInput(vector<string>& stringvector)
     }
     if (!readSimulationPeriodDate()) {
         throw ModelException("SettingInput", "Constructor",
-                             "The start time and end time in file.in is invalid or missing.\
-            The format would be YYYY/MM/DD/HH. Please check it.");
+                             "The start time and end time in file.in is invalid or missing."
+                             "The format would be YYYY/MM/DD/HH. Please check it.");
     }
 }
 

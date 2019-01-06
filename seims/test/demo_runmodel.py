@@ -30,6 +30,8 @@ def main():
     scenario_id = 0
     seims_obj = MainSEIMS(model_paths.bin_dir, model_paths.model_dir, scenario_id=scenario_id)
     seims_obj.run()
+    for l in seims_obj.runlogs:
+        print(l)
 
 
 if __name__ == "__main__":
