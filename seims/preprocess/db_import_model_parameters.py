@@ -229,7 +229,6 @@ class ImportParam2Mongo(object):
             else:
                 maindb.drop_collection(item)
         file_in_items = read_data_items_from_txt(file_in_path)
-        file_out_items = read_data_items_from_txt(file_out_path)
 
         for item in file_in_items:
             file_in_dict = dict()
@@ -242,13 +241,14 @@ class ImportParam2Mongo(object):
             maindb[DBTableNames.main_filein].insert(file_in_dict)
 
         # begin to import initial outputs settings
+        file_out_items = read_data_items_from_txt(file_out_path)
         bulk = maindb[DBTableNames.main_fileout].initialize_unordered_bulk_op()
         out_field_array = file_out_items[0]
-        out_data_array = file_out_items[1:]
         # print(out_data_array)
-        for item in out_data_array:
+
+        def read_output_item(output_fields, item):
             file_out_dict = dict()
-            for i, v in enumerate(out_field_array):
+            for i, v in enumerate(output_fields):
                 if StringClass.string_match(ModelCfgFields.mod_cls, v):
                     file_out_dict[ModelCfgFields.mod_cls] = item[i]
                 elif StringClass.string_match(ModelCfgFields.output_id, v):
@@ -275,8 +275,14 @@ class ImportParam2Mongo(object):
                     file_out_dict[ModelCfgFields.subbsn] = item[i]
             if not list(file_out_dict.keys()):
                 raise ValueError('There are not any valid output item stored in file.out!')
-            bulk.insert(file_out_dict)
-        MongoUtil.run_bulk(bulk, 'No operations to excute when import initial outputs settings.')
+            return file_out_dict
+
+        for idx, iitem in enumerate(file_out_items):
+            if idx == 0:
+                continue
+            iitem_dict = read_output_item(out_field_array, iitem)
+            bulk.insert(iitem_dict)
+        MongoUtil.run_bulk(bulk, 'No operations to execute when import initial outputs settings.')
 
         # begin to import the desired outputs
         # initialize bulk operator
@@ -284,24 +290,24 @@ class ImportParam2Mongo(object):
         # read initial parameters from txt file
         data_items = read_data_items_from_txt(cfg.modelcfgs.fileout)
         # print(field_names)
-        for i, cur_data_item in enumerate(data_items):
-            data_import = dict()
-            cur_filter = dict()
-            # print(cur_data_item)
-            if len(cur_data_item) == 7:
-                data_import[ModelCfgFields.output_id] = cur_data_item[0]
-                data_import[ModelCfgFields.type] = cur_data_item[1]
-                data_import[ModelCfgFields.stime] = cur_data_item[2]
-                data_import[ModelCfgFields.etime] = cur_data_item[3]
-                data_import[ModelCfgFields.interval] = cur_data_item[4]
-                data_import[ModelCfgFields.interval_unit] = cur_data_item[5]
-                data_import[ModelCfgFields.subbsn] = cur_data_item[6]
-                data_import[ModelCfgFields.use] = 1
-                cur_filter[ModelCfgFields.output_id] = cur_data_item[0]
-            else:
-                raise RuntimeError('Items in file.out must have 7 columns, i.e., OUTPUTID,'
-                                   'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.')
+        user_out_field_array = data_items[0]
+        if ModelCfgFields.output_id not in user_out_field_array:
+            if len(data_items[0]) != 7:  # For the compatibility of old code!
+                raise RuntimeError('If header information is not provided,'
+                                   'items in file.out must have 7 columns, i.e., OUTPUTID,'
+                                   'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
+                                   'Otherwise, the OUTPUTID MUST existed in the header!')
+            user_out_field_array = ['OUTPUTID','TYPE','STARTTIME','ENDTIME','INTERVAL',
+                                    'INTERVAL_UNIT','SUBBASIN']
+            data_items.insert(0, user_out_field_array)
 
+        for idx, iitem in enumerate(data_items):
+            if idx == 0:
+                continue
+            data_import = read_output_item(user_out_field_array, iitem)
+            data_import[ModelCfgFields.use] = 1
+            cur_filter = dict()
+            cur_filter[ModelCfgFields.output_id] = data_import[ModelCfgFields.output_id]
             bulk.find(cur_filter).update({'$set': data_import})
         # execute import operators
         MongoUtil.run_bulk(bulk, 'No operations to excute when import the desired outputs.')
