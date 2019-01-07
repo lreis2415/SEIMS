@@ -19,25 +19,68 @@ import matplotlib as mpl
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
     mpl.use('Agg', warn=False)
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from typing import AnyStr, Union, List
-from pygeoc.utils import UtilClass
+from configparser import ConfigParser
+from typing import AnyStr, Union, List, Optional
+from pygeoc.utils import UtilClass, StringClass
 
 
-def save_png_eps(plot, wp, name):
-    # type: (plt, AnyStr, AnyStr) -> None
+class PlotConfig(object):
+    """Configuration for plots based on matplotlib."""
+
+    def __init__(self, cf=None):
+        # type: (Optional[ConfigParser]) -> None
+        """Get parameters from ConfigParser object."""
+        self.fmts = ['png']
+        self.font_name = 'Times New Roman'
+        self.plot_cn = False
+        self.dpi = 300
+        section_name = 'OPTIONAL_MATPLOT_SETTINGS'
+        if cf is None or not cf.has_section(section_name):
+            return
+        if cf.has_option(section_name, 'figure_formats'):
+            fmts_strings = cf.get(section_name, 'figure_formats')
+            fmts_strings = fmts_strings.lower()
+            fmts_list = StringClass.split_string(fmts_strings, [',', ';', '-'])
+            for fmt in fmts_list:
+                if fmt not in ['png', 'tif', 'jpg', 'pdf', 'eps', 'svg', 'ps']:
+                    continue
+                if fmt not in self.fmts:
+                    self.fmts.append(fmt)
+        if cf.has_option(section_name, 'font_title'):
+            font_name = cf.get(section_name, 'font_title')
+            if font_manager.findfont(font_manager.FontProperties(family=font_name)):
+                self.font_name = font_name
+            else:
+                print('Warning: The specified font title %s can not be found!'
+                      'Please copy the .ttf font file to the directory of'
+                      'Lib/site-packages/matplotlib/mpl-data/fonts/ttf, '
+                      'rebuild the font cache by font_manager._rebuild(), '
+                      'and rerun this script.' % font_name)
+        if cf.has_option(section_name, 'lang_cn'):
+            self.plot_cn = cf.getboolean(section_name, 'lang_cn')
+        if cf.has_option(section_name, 'dpi'):
+            self.dpi = cf.getint(section_name, 'dpi')
+
+
+def save_png_eps(plot, wp, name, plot_cfg=None):
+    # type: (plt, AnyStr, AnyStr, Optional[PlotConfig]) -> None
     """Save figures, both png and eps formats"""
-    eps_dir = wp + os.path.sep + 'eps'
-    pdf_dir = wp + os.path.sep + 'pdf'
-    UtilClass.mkdir(eps_dir)
-    UtilClass.mkdir(pdf_dir)
-    for figpath in [wp + os.path.sep + name + '.png',
-                    eps_dir + os.path.sep + name + '.eps',
-                    pdf_dir + os.path.sep + name + '.pdf']:
-        plot.savefig(figpath, dpi=300)
+    plot.tight_layout()
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    if plot_cfg.plot_cn:
+        wp = wp + os.path.sep + 'cn'
+        UtilClass.mkdir(wp)
+    for fmt in plot_cfg.fmts:
+        fmt_dir = wp + os.path.sep + fmt
+        UtilClass.mkdir(fmt_dir)
+        figpath = fmt_dir + os.path.sep + name + '.' + fmt
+        plot.savefig(figpath, dpi=plot_cfg.dpi)
 
 
 def round_half_up(value, ndigit=0):

@@ -31,7 +31,7 @@ from preprocess.text import DataValueFields
 from preprocess.db_read_model import ReadModelData
 from run_seims import MainSEIMS
 from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics
-from utility import save_png_eps
+from utility import PlotConfig, save_png_eps
 
 
 def divtd(td1, td2):
@@ -51,7 +51,7 @@ class TimeSeriesPlots(object):
         if not FileClass.is_dir_exists(self.ws):
             raise ValueError('The output directory %s is not existed!' % self.ws)
         self.plot_vars = cfg.plt_vars
-        self.lang_cn = cfg.lang_cn
+        self.plot_cfg = cfg.plot_cfg  # type: PlotConfig
         # UTCTIME, calibration period
         self.stime = cfg.cali_stime
         self.etime = cfg.cali_etime
@@ -80,8 +80,8 @@ class TimeSeriesPlots(object):
             self.plot_validation = False
         # check validation time period
         if self.vali_stime and self.vali_etime:
-            if self.vali_stime >= self.vali_etime or st > self.vali_etime > self.vali_stime\
-                 or self.vali_stime >= et:
+            if self.vali_stime >= self.vali_etime or st > self.vali_etime > self.vali_stime \
+                or self.vali_stime >= et:
                 self.vali_stime = None
                 self.vali_etime = None
                 self.plot_validation = False
@@ -135,24 +135,24 @@ class TimeSeriesPlots(object):
         # set ticks direction, in or out
         plt.rcParams['xtick.direction'] = 'out'
         plt.rcParams['ytick.direction'] = 'out'
-        if self.lang_cn:
-            plt.rcParams['font.family'] = 'SimSun'  # 宋体
+        plt.rcParams['font.family'] = self.plot_cfg.font_name
+        if self.plot_cfg.plot_cn:
+            plt.rcParams['axes.unicode_minus'] = False
             obs_str = u'观测值'
             sim_str = u'模拟值'
             cali_str = u'率定期'
             vali_str = u'验证期'
             pcp_str = u'降水'
             pcpaxis_str = u'降水 (mm)'
-            xaxis_str = u'日期'
+            xaxis_str = u'时间'
         else:
-            plt.rcParams['font.family'] = 'Times New Roman'
             obs_str = 'Observation'
             sim_str = 'Simulation'
             cali_str = 'Calibration'
             vali_str = 'Validation'
             pcp_str = 'Precipitation'
             pcpaxis_str = 'Precipitation (mm)'
-            xaxis_str = 'Date'
+            xaxis_str = 'Date time'
         plt.rcParams['mathtext.fontset'] = 'custom'
         plt.rcParams['mathtext.it'] = 'STIXGeneral:italic'
         plt.rcParams['mathtext.bf'] = 'STIXGeneral:italic:bold'
@@ -215,7 +215,7 @@ class TimeSeriesPlots(object):
                 ymin = min(sim_list) * 0.8
             ax.set_ylim(float(ymin), float(ymax))
             ax2 = ax.twinx()
-            ax.tick_params(axis='x', which='both', bottom='on', top='off')
+            ax.tick_params(axis='x', which='both', bottom=True, top=False)
             ax2.tick_params(axis='y', length=5, width=2, which='major')
             ax2.set_ylabel(pcpaxis_str)
 
@@ -293,4 +293,4 @@ class TimeSeriesPlots(object):
             # plt.title(param, color='#aa0903')
             timerange = '%s-%s' % (self.sim_data_value[0][0].strftime('%Y-%m-%d'),
                                    self.sim_data_value[-1][0].strftime('%Y-%m-%d'))
-            save_png_eps(plt, self.ws, param + '-' + timerange)
+            save_png_eps(plt, self.ws, param + '-' + timerange, self.plot_cfg)
