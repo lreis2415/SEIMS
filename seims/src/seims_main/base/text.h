@@ -1975,4 +1975,7 @@
 #define HEADER_RS_LAYERS                       "LAYERS"
 #define HEADER_RS_SRS                          "SRS"
 
+// define the field version's input subbasinid
+#define FLD_IN_SUBID                           9999
+
 #endif

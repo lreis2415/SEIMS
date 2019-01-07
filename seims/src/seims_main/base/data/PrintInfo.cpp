@@ -209,12 +209,14 @@ void PrintInfoItem::Flush(const string& projectPath, MongoGridFs* gfs, FloatRast
             fs.open(filename.c_str(), std::ios::out);
             if (fs.is_open()) {
                 int valid_num = templateRaster->GetValidNumber();
-                int nlyrs = templateRaster->GetLayers();
+                // int nlyrs = templateRaster->GetLayers();
+                int nlyrs = m_nLayers;
                 for (int idx = 0; idx < valid_num; idx++) {
                     fs << idx;
                     for (int ilyr = 0; ilyr < nlyrs; ilyr++) {
                         fs << ", " << setprecision(8) << m_2DData[idx][ilyr];
                     }
+                    //fs << "; " << nlyrs;
                     fs << endl;
                 }
                 fs.close();

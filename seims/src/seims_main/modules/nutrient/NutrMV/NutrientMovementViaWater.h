@@ -99,6 +99,8 @@ private:
     float m_cellArea;
     /// number of cells
     int m_nCells;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnID;
     /// soil layers
     float* m_nSoilLyrs;
     /// maximum soil layers

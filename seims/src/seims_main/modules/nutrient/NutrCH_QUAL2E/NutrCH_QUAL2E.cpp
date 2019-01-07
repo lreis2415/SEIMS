@@ -556,7 +556,7 @@ int NutrCH_QUAL2E::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i];
-            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
+            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex || m_inputSubbsnID == FLD_IN_SUBID) {
                 NutrientTransform(reachIndex);
                 AddInputNutrient(reachIndex);
                 RouteOut(reachIndex);
@@ -654,8 +654,9 @@ void NutrCH_QUAL2E::RouteOut(const int i) {
     m_chOutAlgae[i] = m_chAlgae[i] * outFraction;
     m_chOutChlora[i] = m_chChlora[i] * outFraction;
     m_chOutTN[i] = m_chOutOrgN[i] + m_chOutNH4[i] + m_chOutNO2[i] + m_chOutNO3[i];
+    //if(i == 4) cout << "m_chOutOrgN: " << m_chOutOrgN[i] << ", m_chOutNH4: " << m_chOutNH4[i] << ", m_chOutNO2:" << m_chOutNO2[i] << ", m_chOutNO3:" << m_chOutNO3[i] << ", outFrac: "<<outFraction<<endl;
     m_chOutTP[i] = m_chOutOrgP[i] + m_chOutSolP[i];
-    //if(i == 12) cout << "m_chOutOrgP: " << m_chOutOrgP[i] << ", m_chOrgP: " << m_chOrgP[i] << ", outFrac: "<<outFraction<<endl;
+    //if(i == 4) cout << "m_chOutOrgP: " << m_chOutOrgP[i] << ", m_chOrgP: " << m_chOrgP[i] << ", outFrac: "<<outFraction<<endl;
     // kg ==> mg/L
     float cvt = 1000.f / m_rteWtrOut[i];
     m_chOutOrgNConc[i] = m_chOutOrgN[i] * cvt;

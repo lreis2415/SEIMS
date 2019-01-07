@@ -84,6 +84,8 @@ private:
     void ReleaseWater(int id);
 
 private:
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnID;
     /// conversion factor (mm/ha => m^3)
     float m_cnv;
     /// valid cells number

@@ -260,7 +260,8 @@ void ModelMain::AppendOutputData(const time_t time) {
                     int index = item->SubbasinID;
                     //time series data for some time series data for subbasins
                     if (index < 0) index = 0;
-
+                    //if field version, index = 0
+                    if (index == FLD_IN_SUBID) index = 0;
                     int n;
                     float* data;
                     module->Get1DData(keyName, &n, &data);
