@@ -11,6 +11,7 @@
     - 2018-07-10 - lj - Add ParseSEIMSConfig for all SEIMS tools.
     - 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
     - 2018-11-15 - lj - Add model clean function.
+    - 2019-01-08 - lj - Add output time period setting.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -35,7 +36,7 @@ from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string
 
 from preprocess.text import DBTableNames
 from preprocess.db_read_model import ReadModelData
-from utility import read_simulation_from_txt
+from utility import read_simulation_from_txt, parse_datetime_from_ini
 from utility import match_simulation_observation, calculate_statistics
 
 
@@ -60,67 +61,58 @@ class ParseSEIMSConfig(object):
         self.calibration_id = -1
         self.simu_stime = None
         self.simu_etime = None
+        self.out_stime = None
+        self.out_etime = None
         self.config_dict = dict()
 
-        if 'SEIMS_Model' not in cf.sections():
-            raise ValueError("[SEIMS_Model] section MUST be existed in *.ini file.")
-
-        self.host = cf.get('SEIMS_Model', 'hostname')
-        self.port = cf.getint('SEIMS_Model', 'port')
+        sec_name = 'SEIMS_Model'
+        if sec_name not in cf.sections():
+            raise ValueError('[%s] section MUST be existed in *.ini file.' % sec_name)
+        if cf.has_option(sec_name, 'hostname'):
+            self.host = cf.get(sec_name, 'hostname')
+        if cf.has_option(sec_name, 'port'):
+            self.port = cf.getint(sec_name, 'port')
         if not StringClass.is_valid_ip_addr(self.host):
-            raise ValueError('HOSTNAME defined in [SEIMS_Model] is illegal!')
+            raise ValueError('HOSTNAME defined in [%s] is illegal!' % sec_name)
 
-        self.bin_dir = cf.get('SEIMS_Model', 'bin_dir')
-        self.model_dir = cf.get('SEIMS_Model', 'model_dir')
+        self.bin_dir = cf.get(sec_name, 'bin_dir')
+        self.model_dir = cf.get(sec_name, 'model_dir')
         if not (FileClass.is_dir_exists(self.model_dir)
                 and FileClass.is_dir_exists(self.bin_dir)):
-            raise IOError('Please Check Directories defined in [SEIMS_Model]. '
-                          'BIN_DIR and MODEL_DIR are required!')
+            raise IOError('Please Check Directories defined in [%s]. '
+                          'BIN_DIR and MODEL_DIR are required!' % sec_name)
         self.db_name = os.path.split(self.model_dir)[1]
 
-        if cf.has_option('SEIMS_Model', 'version'):
-            self.version = cf.get('SEIMS_Model', 'version')
-        if cf.has_option('SEIMS_Model', 'mpi_bin'):  # full path of the executable MPI program
-            self.mpi_bin = cf.get('SEIMS_Model', 'mpi_bin')
-        if cf.has_option('SEIMS_Model', 'hostopt'):
-            self.hosts_opt = cf.get('SEIMS_Model', 'hostopt')
-        if cf.has_option('SEIMS_Model', 'hostfile'):
-            self.hostfile = cf.get('SEIMS_Model', 'hostfile')
-        if cf.has_option('SEIMS_Model', 'processnum'):
-            self.nprocess = cf.getint('SEIMS_Model', 'processnum')
-        if cf.has_option('SEIMS_Model', 'threadsnum'):
-            self.nthread = cf.getint('SEIMS_Model', 'threadsnum')
-        if cf.has_option('SEIMS_Model', 'layeringmethod'):
-            self.lyrmtd = cf.getint('SEIMS_Model', 'layeringmethod')
-        if cf.has_option('SEIMS_Model', 'scenarioid'):
-            self.scenario_id = cf.getint('SEIMS_Model', 'scenarioid')
-        if cf.has_option('SEIMS_Model', 'calibrationid'):
-            self.calibration_id = cf.getint('SEIMS_Model', 'calibrationid')
+        if cf.has_option(sec_name, 'version'):
+            self.version = cf.get(sec_name, 'version')
+        if cf.has_option(sec_name, 'mpi_bin'):  # full path of the executable MPI program
+            self.mpi_bin = cf.get(sec_name, 'mpi_bin')
+        if cf.has_option(sec_name, 'hostopt'):
+            self.hosts_opt = cf.get(sec_name, 'hostopt')
+        if cf.has_option(sec_name, 'hostfile'):
+            self.hostfile = cf.get(sec_name, 'hostfile')
+        if cf.has_option(sec_name, 'processnum'):
+            self.nprocess = cf.getint(sec_name, 'processnum')
+        if cf.has_option(sec_name, 'threadsnum'):
+            self.nthread = cf.getint(sec_name, 'threadsnum')
+        if cf.has_option(sec_name, 'layeringmethod'):
+            self.lyrmtd = cf.getint(sec_name, 'layeringmethod')
+        if cf.has_option(sec_name, 'scenarioid'):
+            self.scenario_id = cf.getint(sec_name, 'scenarioid')
+        if cf.has_option(sec_name, 'calibrationid'):
+            self.calibration_id = cf.getint(sec_name, 'calibrationid')
 
-        # The start time and end time should be optional. Currently, UTCTIME are supposed.
-        # if not (cf.has_option('SEIMS_Model', 'sim_time_start') and
-        #         cf.has_option('SEIMS_Model', 'sim_time_end')):
-        #     raise ValueError("Start and end time MUST be specified in [SEIMS_Model].")
-
-        if cf.has_option('SEIMS_Model', 'sim_time_start'):
-            tstart = cf.get('SEIMS_Model', 'sim_time_start')
-            try:
-                self.simu_stime = StringClass.get_datetime(tstart)
-            except ValueError:
-                self.simu_stime = None
-                print('Warning: Wrong format of start time %s.'
-                      ' The time format MUST be "YYYY-MM-DD HH:MM:SS".' % tstart)
-        if cf.has_option('SEIMS_Model', 'sim_time_end'):
-            tend = cf.get('SEIMS_Model', 'sim_time_end')
-            try:
-                self.simu_etime = StringClass.get_datetime(tend)
-            except ValueError:
-                self.simu_etime = None
-                print('Warning: Wrong format of end time %s.'
-                      ' The time format MUST be "YYYY-MM-DD HH:MM:SS".' % tend)
+        self.simu_stime = parse_datetime_from_ini(cf, sec_name, 'sim_time_start')
+        self.simu_etime = parse_datetime_from_ini(cf, sec_name, 'sim_time_end')
         if self.simu_stime and self.simu_etime and self.simu_stime >= self.simu_etime:
-            raise ValueError("Wrong time settings in [SEIMS_Model]!")
-        # Running time counted by time.time() of Python, in case of GetTimespan() function failed,
+            raise ValueError('Wrong simulation time settings in [%s]!' % sec_name)
+
+        self.out_stime = parse_datetime_from_ini(cf, sec_name, 'output_time_start')
+        self.out_etime = parse_datetime_from_ini(cf, sec_name, 'output_time_end')
+        if self.out_stime and self.out_etime and self.out_stime >= self.out_etime:
+            raise ValueError('Wrong output time settings in [%s]!' % sec_name)
+
+        # Running time counted by time.time() of Python, in case of GetTimespan() function failed
         self.runtime = 0.
 
     @property
@@ -132,6 +124,7 @@ class ParseSEIMSConfig(object):
                           'nthread': self.nthread, 'lyrmtd': self.lyrmtd,
                           'host': self.host, 'port': self.port,
                           'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
+                          'out_stime': self.out_stime, 'out_etime': self.out_etime,
                           'scenario_id': self.scenario_id, 'calibration_id': self.calibration_id,
                           'version': self.version,
                           'mpi_bin': self.mpi_bin, 'nprocess': self.nprocess,
@@ -159,6 +152,8 @@ class MainSEIMS(object):
                  # or file mapping process numbers to machines
                  simu_stime=None,  # type: Optional[datetime, AnyStr] # Start time of simulation
                  simu_etime=None,  # type: Optional[datetime, AnyStr] # End time of simulation
+                 out_stime=None,  # type: Optional[datetime, AnyStr] # Start time of outputs
+                 out_etime=None,  # type: Optional[datetime, AnyStr] # End time of outputs
                  args_dict=None  # type: Dict[AnyStr, Optional[AnyStr, datetime, int]]
                  ):
         # type: (...) -> None
@@ -191,10 +186,16 @@ class MainSEIMS(object):
         self.hostfile = args_dict['hostfile'] if 'hostfile' in args_dict else hostfile
         self.simu_stime = args_dict['simu_stime'] if 'simu_stime' in args_dict else simu_stime
         self.simu_etime = args_dict['simu_etime'] if 'simu_etime' in args_dict else simu_etime
+        self.out_stime = args_dict['out_stime'] if 'out_stime' in args_dict else out_stime
+        self.out_etime = args_dict['out_etime'] if 'out_etime' in args_dict else out_etime
         if is_string(self.simu_stime) and not isinstance(self.simu_stime, datetime):
             self.simu_stime = StringClass.get_datetime(self.simu_stime)
         if is_string(self.simu_etime) and not isinstance(self.simu_etime, datetime):
             self.simu_etime = StringClass.get_datetime(self.simu_etime)
+        if is_string(self.out_stime) and not isinstance(self.out_stime, datetime):
+            self.out_stime = StringClass.get_datetime(self.out_stime)
+        if is_string(self.out_etime) and not isinstance(self.out_etime, datetime):
+            self.out_etime = StringClass.get_datetime(self.out_etime)
 
         # Concatenate executable command
         self.cmd = self.Command
@@ -204,6 +205,7 @@ class MainSEIMS(object):
         self.db_name = os.path.split(self.model_dir)[1]
         self.outlet_id = self.OutletID
         self.start_time, self.end_time = self.SimulatedPeriod  # Note: Times period in FILE_IN.
+        self.output_ids = list()  # type: List[AnyStr]
         self.output_items = dict()  # type: Dict[AnyStr, Union[List[AnyStr]]]
         # Data maybe used after model run
         self.timespan = dict()  # type: Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]
@@ -242,7 +244,7 @@ class MainSEIMS(object):
     @property
     def Command(self):
         # type: (...) -> List[AnyStr]
-        """Concatenate command to run SEIMS."""
+        """Concatenate command to run SEIMS-based model."""
         self.cmd = list()
         if self.version == 'MPI':
             self.cmd += [self.mpi_bin]
@@ -277,13 +279,24 @@ class MainSEIMS(object):
         return read_model.SimulationPeriod
 
     @property
+    def OutputIDs(self):
+        # type: (...) -> List[AnyStr]
+        """Read output items from database."""
+        if self.output_ids:
+            return self.output_ids
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        self.output_ids, self.output_items = read_model.OutputItems()
+        return self.output_ids
+
+    @property
     def OutputItems(self):
-        # type: (...) -> Dict[AnyStr, Union[List[AnyStr]]]
+        # type: (...) -> Dict[AnyStr, Optional[List[AnyStr]]]
         """Read output items from database."""
         if self.output_items:
             return self.output_items
         read_model = ReadModelData(self.host, self.port, self.db_name)
-        return read_model.OutputItems
+        self.output_ids, self.output_items = read_model.OutputItems()
+        return self.output_items
 
     def ReadOutletObservations(self, vars_list):
         # type: (List[AnyStr]) -> (List[AnyStr], Dict[datetime, List[float]])
@@ -348,7 +361,8 @@ class MainSEIMS(object):
         return ext_dict
 
     @staticmethod
-    def CalcTimeseriesStatistics(sim_obs_dict,  # type: Dict[AnyStr, Dict[AnyStr, Union[float, List[Union[datetime, float]]]]]
+    def CalcTimeseriesStatistics(sim_obs_dict,
+                                 # type: Dict[AnyStr, Dict[AnyStr, Union[float, List[Union[datetime, float]]]]]
                                  stime=None,  # type: Optional[datetime]
                                  etime=None  # type: Optional[datetime]
                                  ):
@@ -461,6 +475,33 @@ class MainSEIMS(object):
                                                              {'$set': {'VALUE': etime_str}})
         self.start_time, self.end_time = read_model.SimulationPeriod
 
+    def ResetOutputsPeriod(self, output_ids,  # type: Union[AnyStr, List[AnyStr]]
+                           stime,  # type: Union[datetime, List[datetime]]
+                           etime  # type: Union[datetime, List[datetime]]
+                           ):
+        # type: (...) -> None
+        """Reset the STARTTIME and ENDTIME of OUTPUTID(s)."""
+        if not isinstance(output_ids, list):
+            output_ids = [output_ids]
+        if not isinstance(stime, list):
+            stime = [stime]
+        if not isinstance(etime, list):
+            etime = [etime]
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        for idx, outputid in enumerate(output_ids):
+            cur_stime = stime[0]
+            if idx < len(stime):
+                cur_stime = stime[idx]
+            cur_etime = etime[0]
+            if idx < len(etime):
+                cur_etime = etime[idx]
+            cur_stime_str = cur_stime.strftime('%Y-%m-%d %H:%M:%S')
+            cur_etime_str = cur_etime.strftime('%Y-%m-%d %H:%M:%S')
+            db = read_model.maindb
+            db[DBTableNames.main_fileout].find_one_and_update({'OUTPUTID': outputid},
+                                                              {'$set': {'STARTTIME': cur_stime_str,
+                                                                        'ENDTIME': cur_etime_str}})
+
     def run(self):
         """Run SEIMS model"""
         stime = time.time()
@@ -470,6 +511,9 @@ class MainSEIMS(object):
         if self.simu_stime and self.simu_etime and self.simu_stime != self.start_time \
             and self.simu_etime != self.end_time:
             self.ResetSimulationPeriod()
+        # If the output time period is specified, reset the time period of all output IDs
+        if self.out_stime and self.out_etime:
+            self.ResetOutputsPeriod(self.OutputIDs, self.out_stime, self.out_etime)
         try:
             self.runlogs = UtilClass.run_command(self.Command)
             with open(self.OutputDirectory + os.sep + 'runlogs.txt', 'w', encoding='utf-8') as f:

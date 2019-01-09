@@ -14,6 +14,8 @@ from io import open
 import os
 from collections import OrderedDict
 from datetime import datetime
+
+from typing import List, Dict, Union, AnyStr
 from numpy import ndarray as np_array
 from pygeoc.utils import StringClass, UtilClass, FileClass
 
@@ -28,16 +30,18 @@ class SpecialJsonEncoder(json.JSONEncoder):
 
 
 def status_output(status_msg, percent, file_name):
+    # type: (AnyStr, Union[int, float], AnyStr) -> None
     """Print status and flush to file.
     Args:
         status_msg: status message
         percent: percentage rate of progress
-        file_name: file handler
+        file_name: file name
     """
     UtilClass.writelog(file_name, "[Output] %d..., %s" % (percent, status_msg), 'a')
 
 
 def read_data_items_from_txt(txt_file):
+    # type: (AnyStr) -> List[List[AnyStr]]
     """Read data items include title from text file, each data element are split by TAB or COMMA.
        Be aware, the separator for each line can only be TAB or COMMA, and COMMA is the recommended.
     Args:
@@ -57,8 +61,13 @@ def read_data_items_from_txt(txt_file):
     return data_items
 
 
-def read_simulation_from_txt(ws, plot_vars, subbsnID, stime, etime):
-    # type: (str, list, int, datetime, datetime) -> (list, dict)
+def read_simulation_from_txt(ws,  # type: AnyStr
+                             plot_vars,  # type: List[AnyStr]
+                             subbsnID,  # type: int
+                             stime,  # type: datetime
+                             etime  # type: datetime
+                             ):
+    # type: (...) -> (List[AnyStr], Dict[datetime, List[float]])
     """
     Read simulation data from text file according to subbasin ID.
     Returns:

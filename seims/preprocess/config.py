@@ -28,7 +28,7 @@ from preprocess.text import ModelCfgUtils, DirNameUtils, LogNameUtils
 from preprocess.text import VectorNameUtils, SpatialNamesUtils, ModelParamDataUtils
 
 
-class SEIMSConfig(object):
+class PreprocessConfig(object):
     """Parse SEIMS project configuration."""
 
     def __init__(self, cf):
@@ -202,7 +202,7 @@ class SEIMSConfig(object):
         else:
             raise ValueError('Spatial input file names MUST be provided in [SPATIAL]!')
 
-        # 5. Option parameters
+        # 5. Optional parameters
         if 'OPTIONAL_PARAMETERS' in cf.sections():
             self.d8acc_threshold = cf.getfloat('OPTIONAL_PARAMETERS', 'd8accthreshold')
             self.np = cf.getint('OPTIONAL_PARAMETERS', 'np')
@@ -232,7 +232,7 @@ def parse_ini_configuration():
     cf = ConfigParser()
     ini_file = get_config_file()
     cf.read(ini_file)
-    return SEIMSConfig(cf)
+    return PreprocessConfig(cf)
 
 
 if __name__ == '__main__':

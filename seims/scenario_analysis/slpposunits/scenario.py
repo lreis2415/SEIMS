@@ -356,22 +356,24 @@ class SUScenario(Scenario):
         base_amount = self.bmps_info['BASE_ENV']
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             rr = RasterUtilClass.read_raster(rfile)
-            soil_erosion_amount = rr.get_sum() / self.eval_timerange  # unit: year
-            # reduction rate of soil erosion
-            self.environment = (base_amount - soil_erosion_amount) / base_amount
-            # print exception values
-            if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
-                print('Exception Information: Scenario ID: %d, '
-                      'SUM(%s): %s' % (self.ID, rfile, repr(soil_erosion_amount)))
-                self.environment = self.worst_env
+            sed_sum = rr.get_sum() / self.eval_timerange  # unit: year
         elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
             sed_sum = read_simulation_from_txt(self.modelout_dir,
                                                ['SED'], self.model.OutletID,
                                                self.cfg.eval_stime, self.cfg.eval_etime)
-            self.environment = (base_amount - sed_sum) / base_amount
         else:
-            self.economy = self.worst_econ
-            self.environment = self.worst_env
+            raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+
+        if base_amount < 0:  # indicates a base scenario
+            self.environment = sed_sum
+        else:
+            # reduction rate of soil erosion
+            self.environment = (base_amount - sed_sum) / base_amount
+            # print exception values
+            if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
+                print('Exception Information: Scenario ID: %d, '
+                      'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                self.environment = self.worst_env
         # model clean
         self.model.clean(delete_scenario=True)
 
@@ -575,7 +577,7 @@ def scenario_effectiveness(cf, ind):
     # 2. decoding gene values to BMP items and exporting to MongoDB.
     sce.decoding()
     sce.export_to_mongodb()
-    # 3. execute SEIMS model
+    # 3. execute SEIMS-base watershed model
     sce.execute_seims_model()
     # Get timespan
     ind.id = curid

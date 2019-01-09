@@ -17,14 +17,13 @@ from io import open
 import os
 import sys
 import random
-import shutil
 import uuid
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from bson.objectid import ObjectId
-from pygeoc.utils import MathClass, get_config_parser
+from pygeoc.utils import get_config_parser
 from pymongo.errors import NetworkTimeout
 from typing import List, Iterator, Optional, Union
 
@@ -91,8 +90,15 @@ class Scenario(object):
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
         self.scenario_db = self.model.ScenarioDBName
+        self.model.ResetSimulationPeriod()  # Reset the simulation period
+        # Reset the starttime and endtime of the desired outputs according to evaluation period
+        if 'OUTPUTID' in self.bmps_info:
+            self.model.ResetOutputsPeriod(self.bmps_info['OUTPUTID'],
+                                          cfg.eval_stime, cfg.eval_etime)
+        else:
+            print('Warning: No OUTPUTID is defined in BMPs_info. Please make sure the '
+                  'STARTTIME and ENDTIME of ENVEVAL are consistent with Evaluation period!')
         # (Re)Calculate timerange in the unit of year
-        self.model.ResetSimulationPeriod()
         dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
         self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID

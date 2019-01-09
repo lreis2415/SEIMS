@@ -23,7 +23,7 @@
 __author__ = "Liangjun Zhu, Huiran Gao"
 __description__ = "Scenario Analysis by NSGA-II algorithm"
 __version__ = "1.2"
-__revision__ = "1.2.0"
+__revision__ = "1.2.1"
 
 _DEBUG = False  # type: bool # Print information for debugging
 

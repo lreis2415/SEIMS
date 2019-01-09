@@ -25,7 +25,7 @@ from typing import Union
 from pygeoc.utils import UtilClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
-from utility import ParseNSGA2Config
+from utility import ParseNSGA2Config, PlotConfig
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS, BMPS_CFG_PAIR
 
 
@@ -107,6 +107,9 @@ class SAConfig(object):
                                                             self.bmps_cfg_method))
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
+
+        # 5. (Optional) Plot settings for matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
 
 if __name__ == '__main__':

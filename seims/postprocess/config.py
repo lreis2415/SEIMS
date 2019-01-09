@@ -29,7 +29,7 @@ class PostConfig(object):
         self.model_cfg = ParseSEIMSConfig(cf)
         # 2. Parameters
         self.plt_subbsnid = -1
-        self.plt_vars = list()
+        self.plot_vars = list()
         if 'PARAMETERS' in cf.sections():
             self.plt_subbsnid = cf.getint('PARAMETERS', 'plot_subbasinid')
             plt_vars_str = cf.get('PARAMETERS', 'plot_variables')
@@ -38,7 +38,7 @@ class PostConfig(object):
         if self.plt_subbsnid < 0:
             raise ValueError("PLOT_SUBBASINID must be greater or equal than 0.")
         if plt_vars_str != '':
-            self.plt_vars = StringClass.split_string(plt_vars_str, [',', ' '])
+            self.plot_vars = StringClass.split_string(plt_vars_str, [',', ' '])
         else:
             raise ValueError("PLOT_VARIABLES illegal defined in [PARAMETERS]!")
 

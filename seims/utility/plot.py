@@ -7,6 +7,7 @@
     @changelog:
     - 18-10-29 - lj - Extract from other packages.
     - 18-11-18 - lj - Add getting value bounds related functions.
+    = 19-01-07 - lj - Add PlotConfig for basic plot settings for matplotlib
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -38,6 +39,11 @@ class PlotConfig(object):
         self.fmts = ['png']
         self.font_name = 'Times New Roman'
         self.plot_cn = False
+        self.title_fsize = 18
+        self.legend_fsize = 14
+        self.tick_fsize = 12
+        self.axislabel_fsize = 14
+        self.label_fsize = 16
         self.dpi = 300
         section_name = 'OPTIONAL_MATPLOT_SETTINGS'
         if cf is None or not cf.has_section(section_name):
@@ -63,6 +69,16 @@ class PlotConfig(object):
                       'and rerun this script.' % font_name)
         if cf.has_option(section_name, 'lang_cn'):
             self.plot_cn = cf.getboolean(section_name, 'lang_cn')
+        if cf.has_option(section_name, 'title_fontsize'):
+            self.title_fsize = cf.getint(section_name, 'title_fontsize')
+        if cf.has_option(section_name, 'legend_fontsize'):
+            self.legend_fsize = cf.getint(section_name, 'legend_fontsize')
+        if cf.has_option(section_name, 'ticklabel_fontsize'):
+            self.tick_fsize = cf.getint(section_name, 'ticklabel_fontsize')
+        if cf.has_option(section_name, 'axislabel_fontsize'):
+            self.axislabel_fsize = cf.getint(section_name, 'axislabel_fontsize')
+        if cf.has_option(section_name, 'label_fontsize'):
+            self.label_fsize = cf.getint(section_name, 'label_fontsize')
         if cf.has_option(section_name, 'dpi'):
             self.dpi = cf.getint(section_name, 'dpi')
 
@@ -70,7 +86,7 @@ class PlotConfig(object):
 def save_png_eps(plot, wp, name, plot_cfg=None):
     # type: (plt, AnyStr, AnyStr, Optional[PlotConfig]) -> None
     """Save figures, both png and eps formats"""
-    plot.tight_layout()
+    # plot.tight_layout()
     if plot_cfg is None:
         plot_cfg = PlotConfig()
     if plot_cfg.plot_cn:

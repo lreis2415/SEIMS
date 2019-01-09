@@ -127,7 +127,6 @@ toolbox.register('evaluate', calibration_objectives)
 # mate and mutate
 toolbox.register('mate', tools.cxSimulatedBinaryBounded)
 toolbox.register('mutate', tools.mutPolynomialBounded)
-
 toolbox.register('select', tools.selNSGA2)
 
 
@@ -206,6 +205,7 @@ def main(cfg):
         except ImportError or ImportWarning:  # Python build-in map (serial)
             invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
+            labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
             for k, v in list(multiobj.items()):
                 tmpvalues, tmplabel = tmpind.cali.efficiency_values(k, object_names[k])
@@ -239,7 +239,7 @@ def main(cfg):
     # currently, len(pop) may less than pop_select_num
     pop = toolbox.select(pop, pop_select_num)
     # Output simulated data to json or pickle files for future use.
-    output_population_details(pop, cfg.opt.simdata_dir, 0)
+    output_population_details(pop, cfg.opt.simdata_dir, 0, plot_cfg=cali_obj.cfg.plot_cfg)
 
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(pop), **record)
@@ -319,7 +319,7 @@ def main(cfg):
             pop.append(tmpind)
         pop = toolbox.select(pop, pop_select_num)
 
-        output_population_details(pop, cfg.opt.simdata_dir, gen)
+        output_population_details(pop, cfg.opt.simdata_dir, gen, plot_cfg=cali_obj.cfg.plot_cfg)
         hyper_str = 'Gen: %d, New model runs: %d, ' \
                     'Execute timespan: %.4f, Sum of model run timespan: %.4f, ' \
                     'Hypervolume: %.4f\n' % (gen, invalid_ind_size,
@@ -344,8 +344,11 @@ def main(cfg):
         # And 3D near optimal pareto front graphs, i.e., (NSE, RSR, PBIAS)
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
+        title = (u'近似最优Pareto解集' if cali_obj.cfg.plot_cfg.plot_cn else
+                 'Near Pareto optimal solutions')
+
         plot_pareto_front_single(front, plotlables, cfg.opt.out_dir,
-                                 gen, 'Near Pareto optimal solutions')
+                                 gen, title, plot_cfg=cali_obj.cfg.plot_cfg)
         plot_time += time.time() - stime
 
         # save in file
@@ -372,7 +375,7 @@ def main(cfg):
         # TODO: Figure out if we should terminate the evolution
 
     # Plot hypervolume and newly executed model count
-    plot_hypervolume_single(cfg.opt.hypervlog, cfg.opt.out_dir)
+    plot_hypervolume_single(cfg.opt.hypervlog, cfg.opt.out_dir, plot_cfg=cali_obj.cfg.plot_cfg)
 
     # Save newly added Pareto fronts of each generations
     new_fronts_count = numpy.array(list(modelsel_count.items()))

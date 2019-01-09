@@ -9,11 +9,13 @@
     - 18-01-04  lj - separate load data from MongoDB operations.
     - 18-02-01  lj - add plot of validation period.
     - 18-02-09  lj - compatible with Python3.
+    - 19-01-09  lj - use PlotConfig for plot settings.
 """
 from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from datetime import datetime
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
@@ -25,10 +27,12 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from typing import List, Union
 from pygeoc.utils import FileClass
 
 from preprocess.text import DataValueFields
 from preprocess.db_read_model import ReadModelData
+from postprocess.config import PostConfig
 from run_seims import MainSEIMS
 from utility import read_simulation_from_txt, match_simulation_observation, calculate_statistics
 from utility import PlotConfig, save_png_eps
@@ -45,12 +49,13 @@ class TimeSeriesPlots(object):
     """
 
     def __init__(self, cfg):
-        """EMPTY"""
+        # type: (PostConfig) -> None
+        """Constructor"""
         self.model = MainSEIMS(args_dict=cfg.model_cfg.ConfigDict)
         self.ws = self.model.OutputDirectory
         if not FileClass.is_dir_exists(self.ws):
             raise ValueError('The output directory %s is not existed!' % self.ws)
-        self.plot_vars = cfg.plt_vars
+        self.plot_vars = cfg.plot_vars
         self.plot_cfg = cfg.plot_cfg  # type: PlotConfig
         # UTCTIME, calibration period
         self.stime = cfg.cali_stime
@@ -104,7 +109,7 @@ class TimeSeriesPlots(object):
         self.plot_vars, self.sim_data_dict = read_simulation_from_txt(self.ws, self.plot_vars,
                                                                       self.outletid,
                                                                       start, end)
-        self.sim_data_value = list()
+        self.sim_data_value = list()  # type: List[List[Union[datetime, float]]]
         for d, vs in self.sim_data_dict.items():
             self.sim_data_value.append([d] + vs[:])
         # reset start time and end time
@@ -136,6 +141,17 @@ class TimeSeriesPlots(object):
         plt.rcParams['xtick.direction'] = 'out'
         plt.rcParams['ytick.direction'] = 'out'
         plt.rcParams['font.family'] = self.plot_cfg.font_name
+        plt.rcParams['mathtext.fontset'] = 'custom'
+        plt.rcParams['mathtext.it'] = 'STIXGeneral:italic'
+        plt.rcParams['mathtext.bf'] = 'STIXGeneral:italic:bold'
+
+        obs_str = 'Observation'
+        sim_str = 'Simulation'
+        cali_str = 'Calibration'
+        vali_str = 'Validation'
+        pcp_str = 'Precipitation'
+        pcpaxis_str = 'Precipitation (mm)'
+        xaxis_str = 'Date time'
         if self.plot_cfg.plot_cn:
             plt.rcParams['axes.unicode_minus'] = False
             obs_str = u'观测值'
@@ -145,17 +161,7 @@ class TimeSeriesPlots(object):
             pcp_str = u'降水'
             pcpaxis_str = u'降水 (mm)'
             xaxis_str = u'时间'
-        else:
-            obs_str = 'Observation'
-            sim_str = 'Simulation'
-            cali_str = 'Calibration'
-            vali_str = 'Validation'
-            pcp_str = 'Precipitation'
-            pcpaxis_str = 'Precipitation (mm)'
-            xaxis_str = 'Date time'
-        plt.rcParams['mathtext.fontset'] = 'custom'
-        plt.rcParams['mathtext.it'] = 'STIXGeneral:italic'
-        plt.rcParams['mathtext.bf'] = 'STIXGeneral:italic:bold'
+
         sim_date = list(self.sim_data_dict.keys())
         for i, param in enumerate(self.plot_vars):
             # plt.figure(i)
@@ -171,8 +177,8 @@ class TimeSeriesPlots(object):
             elif 'SED' in param.upper():  # amount
                 ylabel_str += ' (kg)'
 
-            obs_dates = None
-            obs_values = None
+            obs_dates = None  # type: List[datetime]
+            obs_values = None  # type: List[float]
             if self.sim_obs_dict and param in self.sim_obs_dict:
                 obs_dates = self.sim_obs_dict[param][DataValueFields.utc]
                 obs_values = self.sim_obs_dict[param]['Obs']
@@ -181,6 +187,7 @@ class TimeSeriesPlots(object):
                 obs_dates += self.vali_sim_obs_dict[param][DataValueFields.utc]
                 obs_values += self.vali_sim_obs_dict[param]['Obs']
             if obs_values is not None:
+                # TODO: if the observed data is continuous with datetime, plot line, otherwise, bar.
                 # bar graph
                 p1 = ax.bar(obs_dates, obs_values, label=obs_str, color='none',
                             edgecolor='black',
@@ -191,7 +198,7 @@ class TimeSeriesPlots(object):
             sim_list = [v[i + 1] for v in self.sim_data_value]
             p2, = ax.plot(sim_date, sim_list, label=sim_str, color='red',
                           marker='+', markersize=2, linewidth=0.8)
-            plt.xlabel(xaxis_str)
+            plt.xlabel(xaxis_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # format the ticks date axis
             date_fmt = mdates.DateFormatter('%m-%d-%y')
             # autodates = mdates.AutoDateLocator()
@@ -200,12 +207,14 @@ class TimeSeriesPlots(object):
             # ax.xaxis.set_major_locator(months)
             ax.xaxis.set_major_formatter(date_fmt)
             # ax.xaxis.set_minor_locator(days)
-            ax.tick_params('both', length=5, width=2, which='major')
-            ax.tick_params('both', length=3, width=1, which='minor')
+            ax.tick_params('both', length=5, width=2, which='major',
+                           labelsize=self.plot_cfg.tick_fsize)
+            ax.tick_params('both', length=3, width=1, which='minor',
+                           labelsize=self.plot_cfg.tick_fsize)
             ax.set_xlim(left=self.sim_data_value[0][0], right=self.sim_data_value[-1][0])
             fig.autofmt_xdate(rotation=0, ha='center')
 
-            plt.ylabel(ylabel_str)
+            plt.ylabel(ylabel_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
             # plt.legend(bbox_to_anchor = (0.03, 0.85), loc = 2, shadow = True)
             if obs_values is not None:
                 ymax = max(max(sim_list), max(obs_values)) * 1.6
@@ -215,9 +224,11 @@ class TimeSeriesPlots(object):
                 ymin = min(sim_list) * 0.8
             ax.set_ylim(float(ymin), float(ymax))
             ax2 = ax.twinx()
-            ax.tick_params(axis='x', which='both', bottom=True, top=False)
-            ax2.tick_params(axis='y', length=5, width=2, which='major')
-            ax2.set_ylabel(pcpaxis_str)
+            ax.tick_params(axis='x', which='both', bottom=True, top=False,
+                           labelsize=self.plot_cfg.tick_fsize)
+            ax2.tick_params(axis='y', length=5, width=2, which='major',
+                            labelsize=self.plot_cfg.tick_fsize)
+            ax2.set_ylabel(pcpaxis_str, fontdict={'size': self.plot_cfg.axislabel_fsize})
 
             pcp_date = [v[0] for v in self.pcp_date_value]
             preci = [v[1] for v in self.pcp_date_value]
@@ -242,26 +253,31 @@ class TimeSeriesPlots(object):
                 time_pos = [sep_time - delta_dt, sep_time + delta_dt2]
                 ax.axvline(sep_time, color='black', linestyle='dashed', linewidth=2)
                 plt.text(time_pos[0], yc, cali_vali_labels[0],
-                         fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
+                         fontdict={'style': 'italic', 'weight': 'bold',
+                                   'size': self.plot_cfg.label_fsize},
+                         color='black')
                 plt.text(time_pos[1], yc, cali_vali_labels[1],
-                         fontdict={'style': 'italic', 'weight': 'bold'}, color='black')
+                         fontdict={'style': 'italic', 'weight': 'bold',
+                                   'size': self.plot_cfg.label_fsize},
+                         color='black')
             # set legend and labels
             if obs_values is None or len(obs_values) < 2:
                 leg = ax.legend([p3, p2], [pcp_str, sim_str], ncol=2,
                                 bbox_to_anchor=(0., 1.02, 1., 0.102),
                                 borderaxespad=0.2,
-                                loc='lower left', fancybox=True)
-                # plt.tight_layout(rect=(0, 0, 1, 0.93))
+                                loc='lower left', fancybox=True,
+                                fontsize=self.plot_cfg.legend_fsize)
             else:
                 leg = ax.legend([p3, p1, p2], [pcp_str, obs_str, sim_str],
                                 bbox_to_anchor=(0., 1.02, 1., 0.102),
                                 borderaxespad=0.,
-                                ncol=3, loc='lower left', fancybox=True)
+                                ncol=3, loc='lower left', fancybox=True,
+                                fontsize=self.plot_cfg.legend_fsize)
                 try:
-                    nse = self.sim_obs_dict[param]['NSE']
-                    r2 = self.sim_obs_dict[param]['R-square']
-                    pbias = self.sim_obs_dict[param]['PBIAS']
-                    rsr = self.sim_obs_dict[param]['RSR']
+                    nse = self.sim_obs_dict[param]['NSE']  # type: float
+                    r2 = self.sim_obs_dict[param]['R-square']  # type: float
+                    pbias = self.sim_obs_dict[param]['PBIAS']  # type: float
+                    rsr = self.sim_obs_dict[param]['RSR']  # type: float
                     cali_txt = '$\mathit{NSE}$: %.2f\n$\mathit{RSR}$: %.2f\n' \
                                '$\mathit{PBIAS}$: %.2f%%\n$\mathit{R^2}$: %.2f' % \
                                (nse, rsr, pbias, r2)
@@ -269,7 +285,8 @@ class TimeSeriesPlots(object):
                                        'Cali-%s-PBIAS,Cali-%s-R2,' % (param, param, param, param)
                     print_msg = '%.3f,%.3f,%.3f,%.3f,' % (nse, rsr, pbias, r2)
                     cali_pos = time_pos[0] if order else time_pos[1]
-                    plt.text(cali_pos, yc * 2.5, cali_txt, color='red')
+                    plt.text(cali_pos, yc * 2.5, cali_txt, color='red',
+                             fontsize=self.plot_cfg.label_fsize - 1)
                     if self.plot_validation and self.vali_sim_obs_dict:
                         nse = self.vali_sim_obs_dict[param]['NSE']
                         r2 = self.vali_sim_obs_dict[param]['R-square']
@@ -283,14 +300,14 @@ class TimeSeriesPlots(object):
                                             'Vali-%s-R2' % (param, param, param, param)
                         print_msg += '%.3f,%.3f,%.3f,%.3f' % (nse, rsr, pbias, r2)
                         vali_pos = time_pos[1] if order else time_pos[0]
-                        plt.text(vali_pos, yc * 2.5, vali_txt, color='red')
+                        plt.text(vali_pos, yc * 2.5, vali_txt, color='red',
+                                 fontsize=self.plot_cfg.label_fsize - 1)
                     print('%s\n%s\n' % (print_msg_header, print_msg))
 
                 except ValueError or Exception:
                     pass
-            plt.tight_layout(rect=(0, 0, 1, 0.93))
+            plt.tight_layout()
             leg.get_frame().set_alpha(0.5)
-            # plt.title(param, color='#aa0903')
             timerange = '%s-%s' % (self.sim_data_value[0][0].strftime('%Y-%m-%d'),
                                    self.sim_data_value[-1][0].strftime('%Y-%m-%d'))
             save_png_eps(plt, self.ws, param + '-' + timerange, self.plot_cfg)

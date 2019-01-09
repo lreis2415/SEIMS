@@ -79,9 +79,23 @@ toolbox.register('mutate_rdm', mutate_rdm)
 toolbox.register('select', tools.selNSGA2)
 
 
+def run_base_scenario(sceobj):
+    """Run base scenario to get the environment effectiveness value."""
+    base_ind = creator.Individual(initialize_scenario(sceobj.cfg))
+    for i in list(range(len(base_ind))):
+        base_ind[i] = 0
+    base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
+    sceobj.cfg.bmps_info['BASE_ENV'] = base_ind.fitness.values[1]
+
+
 def main(sceobj):
     # type: (SUScenario) -> ()
     """Main workflow of NSGA-II based Scenario analysis."""
+    if sceobj.cfg.bmps_info['BASE_ENV'] < 0:
+        run_base_scenario(sceobj)
+        print('The environment effectiveness value of the '
+              'base scenario is %.2f' % sceobj.cfg.bmps_info['BASE_ENV'])
+
     random.seed()
 
     # Initial timespan variables
@@ -301,21 +315,22 @@ def main(sceobj):
         # save front for further possible use
         numpy.savetxt(sceobj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
                       front, delimiter=str(' '), fmt=str('%.4f'))
-        # Comment out since matplotlib is quite often not working.
-        # try:
-        #     from concurrent.futures import ThreadPoolExecutor, TimeoutError
-        #     from scenario_analysis.visualization import plot_pareto_front_single
-        #     p = ThreadPoolExecutor(1)
-        #     func = p.submit(plot_pareto_front_single, front, ['Economy', 'Environment'],
-        #                     ws, gen, 'Near Pareto optimal solutions')
-        #     func.result(timeout=10)
-        # except TimeoutError:
-        #     scoop_log('Plot pareto front timeout for generation %d!' % gen)
-        #     pass
-        # except Exception as e:
-        #     scoop_log('Exception caught: %s' % str(e))
-        # except:
-        #     scoop_log('Exception caught: %s' % sys.exc_info()[0])
+
+        # Comment out the following plot code if matplotlib does not work.
+        try:
+            from scenario_analysis.visualization import plot_pareto_front_single
+            pareto_title = 'Near Pareto optimal solutions'
+            xlabel = 'Economy'
+            ylabel = 'Environment'
+            if sceobj.cfg.plot_cfg.plot_cn:
+                xlabel = r'经济净投入'
+                ylabel = r'环境效益'
+                pareto_title = r'近似最优Pareto解集'
+            plot_pareto_front_single(front, [xlabel, ylabel],
+                                     ws, gen, pareto_title,
+                                     plot_cfg=sceobj.cfg.plot_cfg)
+        except Exception as e:
+            scoop_log('Exception caught: %s' % str(e))
         plot_time += time.time() - stime
 
         # save in file
@@ -326,15 +341,12 @@ def main(sceobj):
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
 
     # Plot hypervolume and newly executed model count
-    # Comment out since matplotlib is quite often not working.
-    # try:
-    #     from scenario_analysis.visualization import plot_hypervolume_single
-    #     p = ThreadPoolExecutor(1)
-    #     func = p.submit(plot_hypervolume_single, sceobj.cfg.opt.hypervlog, ws)
-    #     func.result(timeout=5)
-    # except TimeoutError:
-    #     scoop_log('Plot hypervolume timeout!')
-    #     pass
+    # Comment out the following plot code if matplotlib does not work.
+    try:
+        from scenario_analysis.visualization import plot_hypervolume_single
+        plot_hypervolume_single(sceobj.cfg.opt.hypervlog, ws, plot_cfg=sceobj.cfg.plot_cfg)
+    except Exception as e:
+        scoop_log('Exception caught: %s' % str(e))
 
     # Save newly added Pareto fronts of each generations
     new_fronts_count = numpy.array(list(modelsel_count.items()))
