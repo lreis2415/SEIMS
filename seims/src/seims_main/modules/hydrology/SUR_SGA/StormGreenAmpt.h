@@ -25,7 +25,7 @@ public:
 
     //! Destructor
     ~StormGreenAmpt(void);
-
+	
 	virtual int Execute(void);
 
 	virtual void SetValue(const char *key, float data);
