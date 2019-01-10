@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "IKW_CH.h"
+#include "text.h"
 
 using namespace std;
 
@@ -131,7 +132,7 @@ bool ImplicitKinematicWave_CH::CheckInputData(void) {
     return true;
 }
 
-void ImplicitKinematicWave_CH:: InitialOutputs() {
+void ImplicitKinematicWave_CH:: initialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(MID_IKW_CH, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -370,20 +371,24 @@ bool ImplicitKinematicWave_CH::CheckInputSizeChannel(const char *key, int n) {
 
 void ImplicitKinematicWave_CH::GetValue(const char *key, float *value) {
     string sk(key);
-    if (StringMatch(sk, VAR_QOUTLET)) {
-        auto it = m_reachLayers.end();
-        it--;
-        int reachId = it->second[0];
-        int iLastCell = m_reachs[reachId].size() - 1;
-        *value = m_qCh[reachId][iLastCell];
-    } else if (StringMatch(sk, VAR_QTOTAL)) {
+    //if (StringMatch(sk, VAR_QOUTLET)) {
+        //auto it = m_reachLayers.end();
+        //it--;
+        //int reachId = it->second[0];
+        //int iLastCell = m_reachs[reachId].size() - 1;
+        //*value = m_qCh[reachId][iLastCell];
+    //} 
+    if (StringMatch(sk, VAR_QTOTAL)) {
         auto it = m_reachLayers.end();
         it--;
         int reachId = it->second[0];
         int iLastCell = m_reachs[reachId].size() - 1;
         *value = m_qCh[reachId][iLastCell] + m_qgDeep;
     }
-
+    else {
+		throw ModelException(MID_IKW_CH, "GetValue", "Output " + sk
+			+ " does not exist in current module. Please contact the module developer.");
+	}
 }
 
 void ImplicitKinematicWave_CH::SetValue(const char *key, float data) {
@@ -443,9 +448,15 @@ void ImplicitKinematicWave_CH::Set1DData(const char *key, int n, float *data) {
 void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);
     *n = m_chNumber;
-    if (StringMatch(sk, VAR_QRECH)) {
+    if (StringMatch(sk, VAR_QSUBBASIN)) { //Previously this was QRECH but also need to get QSUBBASIN?
         *data = m_qSubbasin;
     }
+    else if (StringMatch(sk, VAR_QRECH)) {
+		auto it = m_reachLayers.end();
+		it--;
+		int reachId = it->second[0];
+		*data = m_qCh[reachId];
+	}
     else {
         throw ModelException(MID_IKW_CH, "Get1DData", "Output " + sk
             + " does not exist in current module. Please contact the module developer.");
@@ -454,14 +465,15 @@ void ImplicitKinematicWave_CH::Get1DData(const char *key, int *n, float **data) 
 }
 
 void ImplicitKinematicWave_CH::Get2DData(const char *key, int *nRows, int *nCols, float ***data) {
-    if (m_hCh == NULL || m_qCh == NULL) {
-        InitialOutputs();
+    if (m_hCh == NULL) { //|| m_qCh == NULL
+        initialOutputs();
     }
     string sk(key);
     *nRows = m_chNumber;
-    if (StringMatch(sk, VAR_QRECH)) {  //TODO QRECH is DT_array1D? LJ
-        *data = m_qCh;
-    } else if (StringMatch(sk, VAR_HCH)) {
+    //if (StringMatch(sk, VAR_QRECH)) {  //TODO QRECH is DT_array1D? LJ
+        //*data = m_qCh;
+    //} 
+    if (StringMatch(sk, VAR_HCH)) {
         *data = m_hCh;
     } else {
         throw ModelException(MID_IKW_CH, "Get2DData", "Output " + sk
