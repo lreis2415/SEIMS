@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "GWaterReservoir.h"
+#include "text.h"
 
 using namespace std;
 
