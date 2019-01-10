@@ -4,13 +4,14 @@
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
-                                   m_sd(NULL), m_sr(NULL), m_checkInput(true) {
+                                   m_sd(NULL), m_sr(NULL), m_ed(NULL), m_checkInput(true) {
 }
 
 DepressionFS::~DepressionFS(void) {
     Release1DArray(m_sd);
     Release1DArray(m_sr);
     Release1DArray(m_storageCapSurplus);
+    Release1DArray(m_ed);
 }
 
 bool DepressionFS::CheckInputData(void) {
@@ -36,6 +37,10 @@ bool DepressionFS::CheckInputData(void) {
         throw ModelException(MID_DEP_FS, "CheckInputData",
                              "The parameter: evaporation from the interception storage has not been set.");
     }
+  	if (m_ed == NULL) {
+		throw ModelException(MID_DEP_FS, "CheckInputData",
+                             "The parameter: DEET from the interception storage has not been set.");
+	}
 #endif /* not STORM_MODE */
     return true;
 }
@@ -48,6 +53,7 @@ void DepressionFS:: initialOutputs() {
         m_sd = new float[m_nCells];
         m_sr = new float[m_nCells];
         m_storageCapSurplus = new float[m_nCells];
+        m_ed = new float[m_nCells];
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; ++i) {
             m_sd[i] = m_depCo * m_depCap[i];
@@ -75,6 +81,17 @@ int DepressionFS::Execute() {
             m_sr[i] = hWater - m_depCap[i];
         }
         m_storageCapSurplus[i] = m_depCap[i] - m_sd[i];
+        if (m_sd[i] > 0) { //This section is taken from DEP_LINSLEY 
+			if (m_pet[i] - m_ei[i] < m_sd[i]) {
+				m_ed[i] = m_pet[i] - m_ei[i];
+			}
+			else {
+				m_ed[i] = m_sd[i];
+			}
+		}
+		else {
+			m_ed[i] = 0.f;
+		}
     }
     return 0;
 }
@@ -115,6 +132,8 @@ void DepressionFS::Set1DData(const char *key, int n, float *data) {
         m_depCap = data;
     } else if (StringMatch(sk, VAR_PET)) {
         m_pet = data;
+    } else if (StringMatch(sk, VAR_INLO)) {
+		m_ei = data;
     } else {
         throw ModelException(MID_DEP_FS, "Set1DData", "Parameter " + sk
             + " does not exist in current module. Please contact the module developer.");
@@ -131,6 +150,8 @@ void DepressionFS::Get1DData(const char *key, int *n, float **data) {
         *data = m_sr;
     } else if (StringMatch(sk, VAR_STCAPSURPLUS)) {
         *data = m_storageCapSurplus;
+    } else if (StringMatch(sk, VAR_DEET)) {
+		*data = m_ed;
     } else {
         throw ModelException(MID_DEP_FS, "Get1DData", "Output " + sk
             + " does not exist in current module. Please contact the module developer.");
