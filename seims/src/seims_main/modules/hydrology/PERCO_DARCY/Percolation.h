@@ -26,13 +26,13 @@ private:
     //! Width of cell (m)
     float m_CellWidth;
 
-    float *m_Conductivity;
-    float *m_Porosity;
+    float **m_Conductivity;
+    float **m_Porosity;
     //float* m_Residual;
-    float *m_Poreindex;
-    float *m_Moisture;
-    float *m_FieldCapacity;
-    float *m_rootDepth;
+    float **m_Poreindex;
+    float **m_Moisture;
+    float **m_FieldCapacity;
+    float **m_rootDepth;
     //float* m_SoilT;
     //float  m_ForzenT;
 
