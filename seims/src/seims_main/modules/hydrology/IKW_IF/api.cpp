@@ -1,5 +1,6 @@
 #include "InterFlow_IKW.h"
-
+#include "MetadataInfo.h"
+#include "text.h"
 #include "api.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
