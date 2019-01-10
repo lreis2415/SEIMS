@@ -67,6 +67,10 @@ private:
     void clearInputs(void);
     
 private:
+	/// number of soil layers of each cell
+	float m_nSoilLyrs;
+	/// max number of soil layers
+	int m_maxSoilLyrs;
 
     /// time step(seconds)
     float m_dt;
