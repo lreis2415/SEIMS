@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "DepressionFS.h"
+#include "text.h"
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),
@@ -39,7 +40,7 @@ bool DepressionFS::CheckInputData(void) {
     return true;
 }
 
-void DepressionFS:: InitialOutputs() {
+void DepressionFS:: initialOutputs() {
     if (m_nCells <= 0) {
         throw ModelException(MID_DEP_FS, "initialOutputs", "The cell number of the input can not be less than zero.");
     }
@@ -56,7 +57,7 @@ void DepressionFS:: InitialOutputs() {
 }
 
 int DepressionFS::Execute() {
-    InitialOutputs();
+    initialOutputs();
     if (m_checkInput) {
         CheckInputData();
         m_checkInput = false;
