@@ -18,23 +18,25 @@ StormGreenAmpt::~StormGreenAmpt(void) {
     if (m_infilCapacitySurplus != NULL) Release1DArray(m_infilCapacitySurplus);
     if (m_capillarySuction != NULL) Release1DArray(m_capillarySuction);
     if (m_accumuDepth != NULL) Release1DArray(m_accumuDepth);
-    if (m_soilMoisture != NULL) Release1DArray(m_soilMoisture);
+    if (m_soilMoisture != NULL) Release2DArray(m_nCells, m_soilMoisture);
 }
 
-void StormGreenAmpt:: InitialOutputs() {
+void StormGreenAmpt:: initialOutputs() {
     // allocate the output variable
     if (m_infil == NULL) {
         CheckInputData();
 
         m_infil = new float[m_nCells];
         m_infilCapacitySurplus = new float[m_nCells];
-        m_soilMoisture = new float[m_nCells];
+        m_soilMoisture = new float*[m_nCells];
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; i++) {
-            m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i];
-            m_soilMoisture[i] = m_initSoilMoisture[i];
-        }
-    }
+		for (int i = 0; i < m_nCells; i++) {
+			for (int j = 0; j < m_nSoilLyrs; j++) {
+				m_initSoilMoisture[i] = m_initSoilMoisture[i] * m_fieldCap[i][j];
+				m_soilMoisture[i][j] = m_initSoilMoisture[i];
+			}
+		}
+	}
 }
 
 void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
@@ -49,19 +51,34 @@ void StormGreenAmpt::Get1DData(const char *key, int *n, float **data) {
         *data = m_infilCapacitySurplus;
     } else if (StringMatch(sk, VAR_ACC_INFIL)) {
         *data = m_accumuDepth;
-    } else if (StringMatch(sk, VAR_SOL_ST)) // soil moisture
-    {
-        *data = m_soilMoisture;
-    } else {
+    } //else if (StringMatch(sk, VAR_SOL_ST)) // soil moisture -> move to Get2DData
+    //{
+        //*data = m_soilMoisture;
+    //} 
+    else {
         throw ModelException(MID_SUR_SGA, "Get1DData",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
 
     }
 }
 
-void StormGreenAmpt::clearInputs() {
-    //m_date = -1;
+void StormGreenAmpt::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+	initialOutputs();
+	string sk(key);
+	*nRows = m_nCells;
+	*nCols = m_maxSoilLyrs;
+
+	if (StringMatch(sk, VAR_SOL_ST)) {
+		*data = m_soilMoisture;
+	}
+	else {
+		throw ModelException("MID_SUR_SGA", "Get2DData", "Output " + sk + " does not exist.");
+	}
 }
+
+//void StormGreenAmpt::clearInputs() {
+    //m_date = -1;
+//}
 
 bool StormGreenAmpt::CheckInputData() {
     if (m_date < 0) {
@@ -160,7 +177,7 @@ bool StormGreenAmpt::CheckInputSize(const char *key, int n) {
 }
 
 int StormGreenAmpt::Execute(void) {
-    InitialOutputs();
+    initialOutputs();
 
 
     // allocate intermediate variables
@@ -169,98 +186,105 @@ int StormGreenAmpt::Execute(void) {
         m_accumuDepth = new float[m_nCells];
 
 #pragma omp parallel for
-        for (int i = 0; i < m_nCells; ++i) {
-            m_accumuDepth[i] = 0.0f;
-            m_capillarySuction[i] = CalculateCapillarySuction(m_porosity[i], m_clay[i] * 100, m_sand[i] * 100);
-        }
-    }
+		for (int i = 0; i < m_nCells; ++i) {
+			for (int j = 0; j < m_nSoilLyrs; j++) {
+				m_accumuDepth[i] = 0.0f;
+				m_capillarySuction[i] = CalculateCapillarySuction(m_porosity[i][j], m_clay[i][j] * 100, m_sand[i][j] * 100);
+			}
+		}
+	}
 
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        float t = 10.f;
-        /// TODO change to m_tMean
-        if (m_tMax != NULL && m_tMin != NULL) {
-            t = (m_tMax[i] + m_tMin[i]) / 2.f;
-        }
-        float snowMelt = 0.f;
-        float snowAcc = 0.f;
-        if (m_snowMelt != NULL) {
-            snowMelt = m_snowMelt[i];
-        }
-        if (m_snowAccu != NULL) {
-            snowAcc = m_snowAccu[i];
-        }
+	for (int i = 0; i < m_nCells; i++) {
+		for (int j = 0; j < m_nSoilLyrs; j++) {
+			float t = 10.f;
+			/// TODO change to m_tMean
+			if (m_tMax != NULL && m_tMin != NULL) {
+				t = (m_tMax[i] + m_tMin[i]) / 2.f;
+			}
+			float snowMelt = 0.f;
+			float snowAcc = 0.f;
+			if (m_snowMelt != NULL) {
+				snowMelt = m_snowMelt[i];
+			}
+			if (m_snowAccu != NULL) {
+				snowAcc = m_snowAccu[i];
+			}
 
-        float hWater = m_pNet[i];
-        //account for the effects of snow melt and soil temperature
-        // snow, without snow melt
-        if (t <= m_tSnow) {
-            hWater = 0.0f;
-        }
-            // rain on snow, no snow melt
-        else if (t > m_tSnow && t <= m_t0 && snowAcc > hWater) {
-            hWater = 0.0f;
-        } else {
-            hWater = m_pNet[i] + m_sd[i] + snowMelt;
-        }
+			float hWater = m_pNet[i];
+			//account for the effects of snow melt and soil temperature
+			// snow, without snow melt
+			if (t <= m_tSnow) {
+				hWater = 0.0f;
+			}
+			// rain on snow, no snow melt
+			else if (t > m_tSnow && t <= m_t0 && snowAcc > hWater) {
+				hWater = 0.0f;
+			}
+			else {
+				hWater = m_pNet[i] + m_sd[i] + snowMelt;
+			}
 
-        hWater += m_sr[i];
+			hWater += m_sr[i];
 
-        // effective matric potential (m)
-        float matricPotential = (m_porosity[i] - m_initSoilMoisture[i]) * m_capillarySuction[i] / 1000.f;
-        // algorithm of Li, 1996, uesd in C2SC2D
-        float ks = m_ks[i] / 1000.f / 3600.f; // mm/h -> m/s
-        float dt = m_dt;
-        float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
+			// effective matric potential (m)
+			float matricPotential = (m_porosity[i][j] - m_initSoilMoisture[i]) * m_capillarySuction[i] / 1000.f;
+			// algorithm of Li, 1996, uesd in C2SC2D
+			float ks = m_ks[i][j] / 1000.f / 3600.f; // mm/h -> m/s
+			float dt = m_dt;
+			float infilDepth = m_accumuDepth[i] / 1000.f; // mm ->m
 
-        float p1 = (float) (ks * dt - 2.0 * infilDepth);
-        float p2 = ks * (infilDepth + matricPotential);
-        // infiltration rate (m/s)
-        float infilRate = (float) ((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
+			float p1 = (float)(ks * dt - 2.0 * infilDepth);
+			float p2 = ks * (infilDepth + matricPotential);
+			// infiltration rate (m/s)
+			float infilRate = (float)((p1 + sqrt(pow(p1, 2.0f) + 8.0f * p2 * dt)) / (2.0f * dt));
 
-        float infilCap = (m_porosity[i] - m_soilMoisture[i]) * m_rootDepth[i];
+			float infilCap = (m_porosity[i] - m_soilMoisture[i]) * m_rootDepth[i][j];
 
-        if (hWater > 0) {
-            // for frozen soil
-            //if (m_soilTemp[i] <= m_tSoilFrozen && m_soilMoisture[i] >= m_sFrozen*m_porosity[i])
-            //{
-            //	m_pe[i] = pNet;
-            //	m_infil[i] = 0.0f;
-            //}
-            //for saturation overland flow
-            if (m_soilMoisture[i] > m_porosity[i]) {
-                m_infil[i] = 0.0f;
-                m_infilCapacitySurplus[i] = 0.f;
-            } else {
-                m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
+			if (hWater > 0) {
+				// for frozen soil
+				//if (m_soilTemp[i] <= m_tSoilFrozen && m_soilMoisture[i] >= m_sFrozen*m_porosity[i])
+				//{
+				//	m_pe[i] = pNet;
+				//	m_infil[i] = 0.0f;
+				//}
+				//for saturation overland flow
+				if (m_soilMoisture[i] > m_porosity[i]) {
+					m_infil[i] = 0.0f;
+					m_infilCapacitySurplus[i] = 0.f;
+				}
+				else {
+					m_infil[i] = min(infilRate * dt * 1000.f, infilCap); // mm
 
-                //cout << m_infil[i] << endl;
-                //check if the infiltration potential exceeds the available water
-                if (m_infil[i] > hWater) {
-                    m_infilCapacitySurplus[i] = m_infil[i] - hWater;
-                    //limit infiltration rate to available water supply
-                    m_infil[i] = hWater;
-                } else {
-                    m_infilCapacitySurplus[i] = 0.f;
-                }
+					//cout << m_infil[i] << endl;
+					//check if the infiltration potential exceeds the available water
+					if (m_infil[i] > hWater) {
+						m_infilCapacitySurplus[i] = m_infil[i] - hWater;
+						//limit infiltration rate to available water supply
+						m_infil[i] = hWater;
+					}
+					else {
+						m_infilCapacitySurplus[i] = 0.f;
+					}
 
-                //Compute the cumulative depth of infiltration
-                m_accumuDepth[i] += m_infil[i];
-                m_sr[i] = hWater -
-                    m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
+					//Compute the cumulative depth of infiltration
+					m_accumuDepth[i] += m_infil[i];
+					m_sr[i] = hWater -
+						m_infil[i];  // sr is temporarily used to stored the water depth including the depression storage
 
-                if (m_rootDepth != NULL) {
-                    m_soilMoisture[i] += m_infil[i] / m_rootDepth[i];
-                }
-            }
-        } else {
-            m_sr[i] = 0.0f;
-            m_infil[i] = 0.0f;
-            m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
-        }
-    }
-
-    return 0;
+					if (m_rootDepth != NULL) {
+						m_soilMoisture[i][j] += m_infil[i] / m_rootDepth[i][j];
+					}
+				}
+			}
+			else {
+				m_sr[i] = 0.0f;
+				m_infil[i] = 0.0f;
+				m_infilCapacitySurplus[i] = min(infilRate * dt * 1000.f, infilCap);
+			}
+		}
+	}
+	return 0;
 }
 
 //this function calculated the wetting front matric potential (mm)
@@ -328,11 +352,11 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         m_sd = data;
     } else if (StringMatch(sk, VAR_SURU)) {
         m_sr = data;
-    } else if (StringMatch(sk, VAR_SOILDEPTH)) {
-        m_rootDepth = data;
-    } else if (StringMatch(sk, VAR_FIELDCAP)) {
-        m_fieldCap = data;
-    }
+    } //else if (StringMatch(sk, VAR_SOILDEPTH)) {
+        //m_rootDepth = data;
+    //} else if (StringMatch(sk, VAR_FIELDCAP)) {
+        //m_fieldCap = data;
+    //}
         //else if (StringMatch(sk,"D_SOTE"))
         //{
         //	m_soilTemp = data;
@@ -347,16 +371,54 @@ void StormGreenAmpt::Set1DData(const char *key, int n, float *data) {
         //}
     else if (StringMatch(sk, VAR_MOIST_IN)) {
         m_initSoilMoisture = data;
-    } else if (StringMatch(sk, VAR_POROST)) {
-        m_porosity = data;
-    } else if (StringMatch(sk, VAR_CONDUCT)) {
-        m_ks = data;
-    } else if (StringMatch(sk, VAR_CLAY)) {
-        m_clay = data;
-    } else if (StringMatch(sk, VAR_SAND)) {
-        m_sand = data;
-    } else {
+    } //else if (StringMatch(sk, VAR_POROST)) {
+        //m_porosity = data;
+    //} else if (StringMatch(sk, VAR_CONDUCT)) {
+        //m_ks = data;
+    //} else if (StringMatch(sk, VAR_CLAY)) {
+        //m_clay = data;
+    //} else if (StringMatch(sk, VAR_SAND)) {
+        //m_sand = data;
+    //} 
+    else {
         throw ModelException(MID_SUR_SGA, "SetValue",
                              "Parameter " + sk + " does not exist. Please contact the module developer.");
     }
+}
+
+void StormGreenAmpt::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+	string sk(key);
+	if (StringMatch(sk, VAR_CONDUCT)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_ks = data;
+	}
+	else if (StringMatch(sk, VAR_CLAY)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_clay = data;
+	}
+	else if (StringMatch(sk, VAR_SAND)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_sand = data;
+	}
+	else if (StringMatch(sk, VAR_FIELDCAP)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_fieldCap = data;
+	}
+	else if (StringMatch(sk, VAR_POROST)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_porosity = data;
+	}
+	else if (StringMatch(sk, VAR_SOILDEPTH)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_rootDepth = data;
+	}
+	else {
+		throw ModelException(MID_SUR_SGA, "Set2DData", "Parameter " + sk + " does not exist in setting 2D.");
+	}
 }
