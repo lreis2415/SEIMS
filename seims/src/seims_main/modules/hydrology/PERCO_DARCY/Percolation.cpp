@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "Percolation.h"
+#include "text.h"
 
 Percolation_DARCY::Percolation_DARCY(void) {
     // set default values for member variables
@@ -25,6 +26,7 @@ Percolation_DARCY::~Percolation_DARCY(void) {
     if (m_recharge == NULL) Release1DArray(m_recharge);
 }
 
+
 //Execute module
 int Percolation_DARCY::Execute() {
 
@@ -34,41 +36,43 @@ int Percolation_DARCY::Execute() {
     }
 
 #pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        //if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
-        //{
-        //	m_recharge[i] = 0.0f;
-        //	continue;
-        //}
+	for (int i = 0; i < m_nCells; i++) {
+		for (int j = 0; j < m_nSoilLyrs; j++) {
+			//if(this->m_SoilT[i] <= this->m_ForzenT)	//if the soil temperature is lower than tFrozen, then PERC = 0.
+			//{
+			//	m_recharge[i] = 0.0f;
+			//	continue;
+			//}
 
-        float moisture = m_Moisture[i];
+			float moisture = m_Moisture[i][j];
 
-        //float temp = m_Porosity[i] - m_Residual[i];
-        //if(temp <= 0.0f)
-        //	temp = 0.001f;
+			//float temp = m_Porosity[i] - m_Residual[i];
+			//if(temp <= 0.0f)
+			//	temp = 0.001f;
 
-        m_recharge[i] = 0.f;
-        if (moisture > m_FieldCapacity[i]) {
-            // the water exceeds the porosity is added to percolation directly
-            if (moisture > m_Porosity[i]) {
-                m_recharge[i] += (moisture - m_Porosity[i]) * m_rootDepth[i];
-                m_Moisture[i] = m_Porosity[i];
-            }
+			m_recharge[i] = 0.f;
+			if (moisture > m_FieldCapacity[i][j]) {
+				// the water exceeds the porosity is added to percolation directly
+				if (moisture > m_Porosity[i][j]) {
+					m_recharge[i] += (moisture - m_Porosity[i][j]) * m_rootDepth[i][j];
+					m_Moisture[i][j] = m_Porosity[i][j];
+				}
 
-            // recharge capacity (mm)
-            float dcIndex = 3.f + 2.f / m_Poreindex[i]; // pore disconnectedness index
-            //float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * pow((moisture - m_Residual[i])/temp, dcIndex);
-            float rechargeCap =
-                m_Conductivity[i] / 3600.f * m_timestep * pow(moisture / m_Porosity[i], dcIndex); //Campbell, 1974
-            float availableWater = (m_Moisture[i] - m_FieldCapacity[i]) * m_rootDepth[i];
-            if (rechargeCap >= availableWater) {
-                rechargeCap = availableWater;
-            }
+				// recharge capacity (mm)
+				float dcIndex = 3.f + 2.f / m_Poreindex[i][j]; // pore disconnectedness index
+				//float rechargeCap = m_Conductivity[i] / 3600.f * m_timestep * pow((moisture - m_Residual[i])/temp, dcIndex);
+				float rechargeCap =
+					m_Conductivity[i][j] / 3600.f * m_timestep * pow(moisture / m_Porosity[i][j], dcIndex); //Campbell, 1974
+				float availableWater = (m_Moisture[i][j] - m_FieldCapacity[i][j]) * m_rootDepth[i][j];
+				if (rechargeCap >= availableWater) {
+					rechargeCap = availableWater;
+				}
 
-            m_recharge[i] += rechargeCap;
-            m_Moisture[i] -= m_recharge[i] / m_rootDepth[i];
-        }
-    }
+				m_recharge[i] += rechargeCap;
+				m_Moisture[i][j] -= m_recharge[i] / m_rootDepth[i][j]; 
+			}
+		}
+	}
 
     return true;
 
@@ -84,25 +88,62 @@ void Percolation_DARCY::Get1DData(const char *key, int *nRows, float **data) {
     *nRows = m_nCells;
 }
 
-void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
-    string s(key);
+//void Percolation_DARCY::Set1DData(const char *key, int nRows, float *data) {
+    //string s(key);
 
-    this->CheckInputSize(key, nRows);
+    //this->CheckInputSize(key, nRows);
 
-    if (StringMatch(s, VAR_CONDUCT)) { this->m_Conductivity = data; }
-    else if (StringMatch(s, VAR_POROST)) { this->m_Porosity = data; }
-    else if (StringMatch(s, VAR_POREIDX)) { this->m_Poreindex = data; }
-    else if (StringMatch(s, VAR_SOL_ST)) { this->m_Moisture = data; }
-    else if (StringMatch(s, VAR_FIELDCAP)) { this->m_FieldCapacity = data; }
-    else if (StringMatch(s, VAR_SOILDEPTH)) {
-        this->m_rootDepth = data;
+    //if (StringMatch(s, VAR_CONDUCT)) { this->m_Conductivity = data; }
+    //else if (StringMatch(s, VAR_POROST)) { this->m_Porosity = data; }
+    //else if (StringMatch(s, VAR_POREIDX)) { this->m_Poreindex = data; }
+    //else if (StringMatch(s, VAR_SOL_ST)) { this->m_Moisture = data; }
+    //else if (StringMatch(s, VAR_FIELDCAP)) { this->m_FieldCapacity = data; }
+    //else if (StringMatch(s, VAR_SOILDEPTH)) {
+        //this->m_rootDepth = data;
         //else if(StringMatch(s,"D_ES"))			this->m_ES = data;
         //else if(StringMatch(s,"D_SOTE"))		this->m_SoilT = data;
-    } else {
-        throw ModelException(MID_PERCO_DARCY, "SetValue", "Parameter " + s +
-            " does not exist in current module. Please contact the module developer.");
-    }
+   // } else {
+        //throw ModelException(MID_PERCO_DARCY, "SetValue", "Parameter " + s +
+            //" does not exist in current module. Please contact the module developer.");
+    //}
 
+//}
+
+void Percolation_DARCY::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+	string sk(key);
+	if (StringMatch(sk, VAR_CONDUCT)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_Conductivity = data;
+	}
+	else if (StringMatch(sk, VAR_FIELDCAP)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_FieldCapacity = data;
+	}
+	else if (StringMatch(sk, VAR_POREIDX)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_Poreindex = data;
+	}
+	else if (StringMatch(sk, VAR_POROST)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_Porosity = data;
+	}
+	else if (StringMatch(sk, VAR_SOILDEPTH)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_rootDepth = data;
+	}
+	else if (StringMatch(sk, VAR_SOL_ST)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_Moisture = data;
+	}
+	else {
+		throw ModelException(MID_PERCO_DARCY, "Set2DData", "Parameter " + sk + " does not exist.");
+	}
 }
 
 void Percolation_DARCY::SetValue(const char *key, float data) {
