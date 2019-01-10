@@ -37,6 +37,9 @@ private:
     //float  m_ForzenT;
 
     float *m_recharge;
+    //soil layers 
+    int m_maxSoilLyrs;
+    float m_nSoilLyrs;
 
 public:
     //! Constructor
@@ -46,6 +49,8 @@ public:
     ~Percolation_DARCY(void);
 
     virtual void Set1DData(const char *key, int n, float *data);
+    
+    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get1DData(const char *key, int *n, float **data);
 
@@ -69,6 +74,7 @@ private:
     *	@return bool The validity of the dimension
     */
     bool CheckInputSize(const char *, int);
+    void InitialOutputs();
 
 };
 
