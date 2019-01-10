@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "StormGreenAmpt.h"
+#include "text.h"
 
 using namespace std;
 
