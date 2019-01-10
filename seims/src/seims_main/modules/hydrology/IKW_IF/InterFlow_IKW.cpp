@@ -1,5 +1,6 @@
 #include "seims.h"
 #include "InterFlow_IKW.h"
+#include "text.h" 
 
 using namespace std;
 
@@ -224,20 +225,20 @@ void InterFlow_IKW::Set1DData(const char *key, int n, float *data) {
     string s(key);
     if (StringMatch(s, VAR_SLOPE)) {
         m_s0 = data;
-    } else if (StringMatch(s, VAR_SOILDEPTH)) {
-        m_soilDepth = data;
-    } else if (StringMatch(s, VAR_FIELDCAP)) {
-        this->m_fieldCapacity = data;
-    } else if (StringMatch(s, VAR_SOILDEPTH)) {
-        this->m_rootDepth = data;
-    } else if (StringMatch(s, VAR_CONDUCT)) {
-        this->m_ks = data;
-    } else if (StringMatch(s, VAR_POROST)) {
-        this->m_porosity = data;
-    } else if (StringMatch(s, VAR_POREIDX)) {
-        this->m_poreIndex = data;
-    } else if (StringMatch(s, VAR_SOL_ST)) {
-        this->m_soilMoistrue = data;
+    //} else if (StringMatch(s, VAR_SOILDEPTH)) {
+        //m_soilDepth = data;
+    //} else if (StringMatch(s, VAR_FIELDCAP)) {
+        //this->m_fieldCapacity = data;
+    //} else if (StringMatch(s, VAR_SOILDEPTH)) {
+       // this->m_rootDepth = data;
+    //} else if (StringMatch(s, VAR_CONDUCT)) {
+        //this->m_ks = data;
+    //} else if (StringMatch(s, VAR_POROST)) {
+        //this->m_porosity = data;
+    //} else if (StringMatch(s, VAR_POREIDX)) {
+        //this->m_poreIndex = data;
+    //} else if (StringMatch(s, VAR_SOL_ST)) {
+        //this->m_soilMoistrue = data;
     } else if (StringMatch(s, VAR_CHWIDTH)) {
         m_chWidth = data;
     } else if (StringMatch(s, VAR_SURU)) {
@@ -275,8 +276,40 @@ void InterFlow_IKW::Set2DData(const char *key, int nrows, int ncols, float **dat
         m_nLayers = nrows;
         m_routingLayers = data;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
-        m_flowInIndex = data;
-    } else {
+		CheckInputSize(key, nrows);
+		m_flowInIndex = data;
+	}
+	else if (StringMatch(sk, VAR_SOILDEPTH)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_rootDepth = data;
+    } 
+	else if (StringMatch(sk, VAR_SOL_ST)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_soilMoisture = data;
+	}
+	else if (StringMatch(sk, VAR_FIELDCAP)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_fieldCapacity = data;
+	}
+	else if (StringMatch(sk, VAR_POROST)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_porosity = data;
+	}
+	else if (StringMatch(sk, VAR_POREIDX)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_poreIndex = data;
+	}
+	else if (StringMatch(sk, VAR_CONDUCT)) {
+		CheckInputSize(key, nrows);
+		m_maxSoilLyrs = ncols;
+		m_ks = data;
+	}
+	else {
         throw ModelException(MID_IKW_IF, "Set2DData", "Parameter " + sk
             + " does not exist. Please contact the module developer.");
     }
