@@ -51,7 +51,7 @@ private:
     //		return -pow(-a, n);
     //}
 
-    void FlowInSoil(int id);
+    bool FlowInSoil(int id);
 
     void initialOutputs(void);
 
