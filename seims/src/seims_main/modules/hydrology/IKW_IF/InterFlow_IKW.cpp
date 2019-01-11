@@ -102,7 +102,7 @@ void InterFlow_IKW:: initialOutputs() {
     }
 }
 
-bool InterFlow_IKW::FlowInSoil(int id) {
+bool InterFlow_IKW::FlowInSoil(const int id) {
     //sum the upstream overland flow
     float qUp = 0.0f;
     for (int k = 1; k <= (int) m_flowInIndex[id][0]; ++k) {
@@ -124,46 +124,46 @@ bool InterFlow_IKW::FlowInSoil(int id) {
         //return;
     }
 
-   		// adjust soil moisture
-			for (int j = 0; j < m_nSoilLyrs; j++) {
-				//float s0 = m_s0[id];
-				float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
-				m_soilMoisture[id][j] += qUp * m_dt / soilVolumn;
+   	// adjust soil moisture
+	for (int j = 0; j < (int)m_nSoilLyrs; j++) {
+		//float s0 = m_s0[id];
+		float soilVolumn = m_rootDepth[id][j] / 1000 * m_CellWidth * flowWidth / cos(atan(s0)); //m3
+		m_soilMoisture[id][j] += qUp * m_dt / soilVolumn;
 	
-				// the water exceeds the porosity is added to storage (return flow)
-				if (m_soilMoisture[id][j] > m_porosity[id][j]) {
-					m_hReturnFlow[id] = (m_soilMoisture[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
-					m_sr[id] += m_hReturnFlow[id];
-					m_soilMoisture[id][j] = m_porosity[id][j];
-				}
-	
-				// if soil moisture is below the field capacity, no interflow will be generated
-				if (m_soilMoisture[id][j] < m_fieldCapacity[id][j]) {
-					m_q[id] = 0.f;
-					m_h[id] = 0.f;
-					//return;
-				}
-	
-				// calculate effective hydraulic conductivity (mm/h -> m/s)
-				//float k = m_ks[id]/1000/3600 * pow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
-				float k = m_ks[id][j] / 1000 / 3600 * pow(m_soilMoisture[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
-				// calculate interflow (m3/s)
-				m_q[id] = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
-	
-				// available water
-				float availableWater = (m_soilMoisture[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
-				float interFlow = m_q[id] * (int)m_dt; // m3
-				if (interFlow > availableWater) {
-					m_q[id] = availableWater / (int)m_dt;
-					interFlow = availableWater;
-				}
-				m_h[id] = 1000 * interFlow / (m_CellWidth * m_CellWidth);
-	
-				// adjust soil moisture
-				m_soilMoisture[id][j] -= interFlow / soilVolumn;
-			}
-			return true;
+		// the water exceeds the porosity is added to storage (return flow)
+		if (m_soilMoisture[id][j] > m_porosity[id][j]) {
+			m_hReturnFlow[id] = (m_soilMoisture[id][j] - m_porosity[id][j]) * m_rootDepth[id][j];
+			m_sr[id] += m_hReturnFlow[id];
+			m_soilMoisture[id][j] = m_porosity[id][j];
 		}
+	
+		// if soil moisture is below the field capacity, no interflow will be generated
+		if (m_soilMoisture[id][j] < m_fieldCapacity[id][j]) {
+			m_q[id] = 0.f;
+			m_h[id] = 0.f;
+			//return;
+		}
+	
+		// calculate effective hydraulic conductivity (mm/h -> m/s)
+		//float k = m_ks[id]/1000/3600 * pow((m_soilMoistrue[id] - m_residual[id])/(m_porosity[id] - m_residual[id]), m_poreIndex[id]);
+		float k = m_ks[id][j] / 1000 / 3600 * pow(m_soilMoisture[id][j] / m_porosity[id][j], m_poreIndex[id][j]);
+		// calculate interflow (m3/s)
+		m_q[id] = m_landuseFactor * m_rootDepth[id][j] / 1000 * s0 * k * m_CellWidth;
+	
+		// available water
+		float availableWater = (m_soilMoisture[id][j] - m_fieldCapacity[id][j]) * soilVolumn;
+		float interFlow = m_q[id] * (int)m_dt; // m3
+		if (interFlow > availableWater) {
+			m_q[id] = availableWater / (int)m_dt;
+			interFlow = availableWater;
+		}
+		m_h[id] = 1000 * interFlow / (m_CellWidth * m_CellWidth);
+	
+		// adjust soil moisture
+		m_soilMoisture[id][j] -= interFlow / soilVolumn;
+	}
+	return true;
+}
 
 int InterFlow_IKW::Execute() {
 
