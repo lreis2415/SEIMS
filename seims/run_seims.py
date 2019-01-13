@@ -103,7 +103,7 @@ class ParseSEIMSConfig(object):
         if cf.has_option(sec_name, 'calibrationid'):
             self.calibration_id = cf.getint(sec_name, 'calibrationid')
         if cf.has_option(sec_name, 'subbasinid'):
-            self.subbasin_id = cf.getint(sec_name, 'subbasin_id')
+            self.subbasin_id = cf.getint(sec_name, 'subbasinid')
 
         self.simu_stime = parse_datetime_from_ini(cf, sec_name, 'sim_time_start')
         self.simu_etime = parse_datetime_from_ini(cf, sec_name, 'sim_time_end')
