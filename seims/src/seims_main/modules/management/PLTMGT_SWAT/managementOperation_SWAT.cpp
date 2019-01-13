@@ -1841,7 +1841,7 @@ void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) tmp_rtfr[i][j] = 0.f;
+    if (nullptr == tmp_rtfr) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_rtfr, 0.f);
     RootFraction(i, tmp_rtfr[i]);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
