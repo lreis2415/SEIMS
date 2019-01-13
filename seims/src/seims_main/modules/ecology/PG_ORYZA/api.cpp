@@ -174,11 +174,11 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddOutput(VAR_LAIDAY, UNIT_AREA_RATIO, DESC_LAIDAY, DT_Raster1D);
     mdi.AddOutput(VAR_PLANT_N, UNIT_CONT_KGHA, DESC_PLANT_N, DT_Raster1D);
     mdi.AddOutput(VAR_PLANT_P, UNIT_CONT_KGHA, DESC_PLANT_P, DT_Raster1D);
-    mdi.AddOutput(VAR_FR_PLANT_N, UNIT_NON_DIM, DESC_FR_PLANT_N, DT_Raster1D);
+    //mdi.AddOutput(VAR_FR_PLANT_N, UNIT_NON_DIM, DESC_FR_PLANT_N, DT_Raster1D);
     mdi.AddOutput(VAR_FR_PLANT_P, UNIT_NON_DIM, DESC_FR_PLANT_P, DT_Raster1D);
     mdi.AddOutput(VAR_FR_STRSWTR, UNIT_NON_DIM, DESC_FR_STRSWTR, DT_Raster1D);
     mdi.AddOutput(VAR_BIOMASS, UNIT_CONT_KGHA, DESC_BIOMASS, DT_Raster1D);
-    mdi.AddOutput(VAR_FR_ROOT, UNIT_NON_DIM, DESC_FR_ROOT, DT_Raster1D);
+    //mdi.AddOutput(VAR_FR_ROOT, UNIT_NON_DIM, DESC_FR_ROOT, DT_Raster1D);
 
     /// write out the XML file.
     string res = mdi.GetXMLDocument();

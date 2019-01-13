@@ -60,14 +60,25 @@ bool IMP_SWAT::CheckInputSize(const char* key, const int n) {
         throw ModelException(MID_IMP_SWAT, "CheckInputSize",
                              "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
     }
-    if (m_nCells != n) {
+    if (m_nReaches != n - 1){
+        if (m_nCells != n) {
+            if (m_nCells <= 0) {
+                m_nCells = n;
+            }
+            else {
+                throw ModelException(MID_IMP_SWAT, "CheckInputSize", "Input data for " + string(key) +
+                    " is invalid. All the input data should have same size.");
+            }
+        }
+    }
+    /*if (m_nCells != n) {
         if (m_nCells <= 0) {
             m_nCells = n;
         } else {
             throw ModelException(MID_IMP_SWAT, "CheckInputSize", "Input data for " + string(key) +
                                  " is invalid. All the input data should have same size.");
         }
-    }
+    }*/
     return true;
 }
 
@@ -173,7 +184,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_SOL_SUMAWC)) m_sol_sumfc = data;
     else if (StringMatch(sk, VAR_IMPOUND_TRIG)) m_impoundTrig = data;
     else if (StringMatch(sk, VAR_POT_VOLMAXMM)) m_potVolMax = data;
-    else if (StringMatch(sk, VAR_POT_VOLUPMM)) { m_potVolUp = data; }
+    else if (StringMatch(sk, VAR_POT_VOLUPMM)) m_potVolUp = data; 
     else if (StringMatch(sk, VAR_POT_VOLLOWMM)) m_potVolMin = data;
     else if (StringMatch(sk, VAR_SEDYLD)) m_sedYield = data;
     else if (StringMatch(sk, VAR_SANDYLD)) m_sandYield = data;
@@ -281,10 +292,14 @@ void IMP_SWAT::SetPonds(clsPonds *ponds){
         for (vector<int>::iterator it = m_paddyIDs.begin(); it != m_paddyIDs.end(); it++){
             int i = *it;
             clsPond* tmpPond = ponds->GetPondByID(i);
-            m_pondID1[i] = tmpPond->GetPondID1();
+            m_pondID1[i] = tmpPond->Get(POND_PONDID1);
+            m_pondID2[i] = tmpPond->Get(POND_PONDID2);
+            m_pondID3[i] = tmpPond->Get(POND_PONDID3);
+            m_reachID[i] = tmpPond->Get(POND_REACHID);
+            /*m_pondID1[i] = tmpPond->GetPondID1(); 
             m_pondID2[i] = tmpPond->GetPondID2();
             m_pondID3[i] = tmpPond->GetPondID3();
-            m_reachID[i] = tmpPond->GetReachID();
+            m_reachID[i] = tmpPond->GetReachID();*/
         }
     }
 }
@@ -351,7 +366,7 @@ int IMP_SWAT::Execute() {
                     // the water need to auto-irrigation, the source are from nearst pond and subbasin reach
                     m_irrDepth[id] = m_potVolUp[id] - m_potVol[id];
                     irrigateFromPond(id);
-                    m_potVol[id] = m_potVolUp[id] - m_irrDepth[id];
+                    m_potVol[id] = m_potVolUp[id];
                 }
             } else {
                 ReleaseWater(id);

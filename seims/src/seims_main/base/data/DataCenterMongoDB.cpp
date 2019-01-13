@@ -109,6 +109,8 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
     reaches_->Update(init_params_);
+    ponds_ = new clsPonds(mongo_client_, model_name_, DB_TAB_POND, lyr_method_);
+    ponds_->Update(init_params_);
     /// 8. Check if Scenario will be applied, Get scenario database if necessary
     if (ValueInVector(string(DB_TAB_SCENARIO), existed_main_db_tabs) && scenario_id_ >= 0) {
         bson_t* query = bson_new();

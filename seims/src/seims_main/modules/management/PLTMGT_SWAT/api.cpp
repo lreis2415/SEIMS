@@ -31,7 +31,8 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
 
     /// rice
-    mdi.AddInput(VAR_CROPSTA, UNIT_NON_DIM, DESC_CROPSTA, Source_Module, DT_Raster1D);
+    mdi.AddParameter(VAR_CROPSTA, UNIT_NON_DIM, DESC_CROPSTA, Source_ParameterDB, DT_Raster1D);
+    //mdi.AddInput(VAR_CROPSTA, UNIT_NON_DIM, DESC_CROPSTA, Source_Module, DT_Raster1D);
     mdi.AddParameter(VAR_LAPE, UNIT_LAPE, DESC_LAPE, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_NPLSB, UNIT_SOW_SEEDBED, DESC_NPLSB, Source_ParameterDB, DT_Single);
     mdi.AddInput(VAR_WRR, UNIT_CONT_KGHA, DESC_WRR, Source_Module, DT_Raster1D);

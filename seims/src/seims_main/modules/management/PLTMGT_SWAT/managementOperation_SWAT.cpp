@@ -1841,8 +1841,8 @@ void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
 
     /// call rootfr.f to distributes dead root mass through the soil profile
     /// i.e., derive fraction of roots in each layer
-    if (nullptr == tmp_rtfr) Initialize1DArray(CVT_INT(m_maxSoilLyrs), tmp_rtfr, 0.f);
-    RootFraction(i, tmp_rtfr);
+    for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) tmp_rtfr[i][j] = 0.f;
+    RootFraction(i, tmp_rtfr[i]);
 
     /// fraction of N, P in residue (ff1) or roots (ff2)
     float hi = yield / m_biomass[i];
@@ -1859,8 +1859,8 @@ void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
     /// allocate dead roots, N, P to soil layers
     for (int l = 0; l < m_nSoilLyrs[i]; l++)
     {
-        m_soilRsd[i][l] += tmp_rtfr[l] * rtresnew;
-        m_soilFrshOrgN[i][l] += tmp_rtfr[l] * ff2 * (m_plantN[i] - yieldn);
+        m_soilRsd[i][l] += tmp_rtfr[i][l] * rtresnew;
+        m_soilFrshOrgN[i][l] += tmp_rtfr[i][l] * ff2 * (m_plantN[i] - yieldn);
         // m_soilFrshOrgP[i][l] += rtfr[l] * ff2 * (m_plantP[i] - yieldp);
     }
 

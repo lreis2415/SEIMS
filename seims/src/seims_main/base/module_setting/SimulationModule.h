@@ -148,7 +148,7 @@ public:
     }
 
     //! Set pointer of clsPonds class which contains all ponds information. 
-    virtual void SetPonds(clsPonds* )
+    virtual void SetPonds(clsPonds* ponds)
     {
         throw ModelException("SimulationModule", "SetPonds", "Set ponds function is not implemented.");
     }

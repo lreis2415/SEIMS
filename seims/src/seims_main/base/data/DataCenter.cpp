@@ -14,7 +14,7 @@ DataCenter::DataCenter(InputArgs* input_args, ModuleFactory* factory, const int 
     output_path_(""),
     model_mode_(""), n_subbasins_(-1), outlet_id_(-1), factory_(factory),
     input_(nullptr), output_(nullptr), clim_station_(nullptr), scenario_(nullptr),
-    reaches_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
+    reaches_(nullptr), ponds_(nullptr), subbasins_(nullptr), mask_raster_(nullptr) {
     /// Clean output folder
     if (scenario_id_ >= 0) {
         // -1 means no BMPs scenario will be simulated
@@ -55,6 +55,11 @@ DataCenter::~DataCenter() {
         StatusMessage("---release reaches data ...");
         delete reaches_;
         reaches_ = nullptr;
+    }
+    if (nullptr != ponds_) {
+        StatusMessage("---release ponds data ...");
+        delete ponds_;
+        ponds_ = nullptr;
     }
     if (nullptr != subbasins_) {
         StatusMessage("---release subbasins data ...");
@@ -189,6 +194,9 @@ double DataCenter::LoadDataForModules(vector<SimulationModule *>& modules) {
             }
         }
         for (size_t j = 0; j < parameters.size(); j++) {
+            if (id == "IMP_SWATd" && j == 18){
+                bool flag = true;
+            }
             ParamInfo* param = parameters[j];
             SetData(module_settings[id], param, modules[i], vertical_interpolation);
         }
@@ -245,6 +253,8 @@ void DataCenter::SetData(SEIMSModuleSetting* setting, ParamInfo* param,
         case DT_Reach: SetReaches(p_module);
             break;
         case DT_Subbasin: SetSubbasins(p_module);
+            break;
+        case DT_Pond: SetPonds(p_module);
             break;
         default: break;
     }
@@ -463,6 +473,18 @@ void DataCenter::SetReaches(SimulationModule* p_module) {
         throw ModelException("DataCenter", "SetReaches", "Reaches has not been set!");
     }
     p_module->SetReaches(reaches_);
+}
+
+/// Added by shen fang, 2017-12-15
+void DataCenter::SetPonds(SimulationModule* p_module)
+{
+    if (nullptr == ponds_ && nullptr == GetPondsData()) {
+        throw ModelException("DataCenter", "SetPonds", "Ponds has not been set!");
+    }
+    p_module->SetPonds(ponds_);
+    /*if (NULL == m_ponds)
+        m_ponds = new clsPonds(m_conn, m_dbName, DB_TAB_POND);
+    pModule->SetPonds(m_ponds);*/
 }
 
 /// Added by Liang-Jun Zhu, 2016-7-28

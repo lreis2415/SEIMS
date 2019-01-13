@@ -259,11 +259,11 @@ Rice,bSLA,SLA function parameters,none,PG_ORYZA,0.0025,0,AC,0.1,0
 Rice,cSLA,SLA function parameters,none,PG_ORYZA,-4.5,0,AC,-10,0
 Rice,dSLA,SLA function parameters,none,PG_ORYZA,0.14,0,AC,1,0
 Rice,slaMX,maximum value of SLA,ha/kg,PG_ORYZA,0.0045,0,AC,0.1,0
-Rice,fcRT,Carbon balance parameters, Mass fraction carbon:Roots,kg/kg,PG_ORYZA,0.431,0,AC,1,0
-Rice,fcLV,Carbon balance parameters, Mass fraction carbon:Leaves,kg/kg,PG_ORYZA,0.419,0,AC,1,0
-Rice,fcST,Carbon balance parameters, Mass fraction carbon:Stems,kg/kg,PG_ORYZA,0.431,0,AC,1,0
-Rice,fcSTR,Carbon balance parameters, Mass fraction carbon:Stem reserves,kg/kg,PG_ORYZA,0.444,0,AC,1,0
-Rice,fcSO,Carbon balance parameters, Mass fraction carbon:Storage organs (panicles),kg/kg,PG_ORYZA,0.487,0,AC,1,0
+Rice,fcRT,Carbon balance parameters Mass fraction carbon:Roots,kg/kg,PG_ORYZA,0.431,0,AC,1,0
+Rice,fcLV,Carbon balance parameters Mass fraction carbon:Leaves,kg/kg,PG_ORYZA,0.419,0,AC,1,0
+Rice,fcST,Carbon balance parameters Mass fraction carbon:Stems,kg/kg,PG_ORYZA,0.431,0,AC,1,0
+Rice,fcSTR,Carbon balance parameters Mass fraction carbon:Stem reserves,kg/kg,PG_ORYZA,0.444,0,AC,1,0
+Rice,fcSO,Carbon balance parameters Mass fraction carbon:Storage organs (panicles),kg/kg,PG_ORYZA,0.487,0,AC,1,0
 Rice,wgrMX,Maximum individual grain weight,kg/grain,PG_ORYZA,0.0000249,0,AC,0.001,0
 Rice,gzrt,Growth rate of roots,m/d,PG_ORYZA,0.01,0,AC,0.1,0
 Rice,zrtMCD,Maximum depth of roots if drought,m,PG_ORYZA,0.4,0,AC,1,0

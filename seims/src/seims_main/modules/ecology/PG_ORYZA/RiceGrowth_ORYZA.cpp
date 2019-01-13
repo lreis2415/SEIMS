@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "PlantGrowthCommon.h"
 #include "text.h"
 
 ORYZA::ORYZA() :
@@ -59,7 +60,9 @@ ORYZA::ORYZA() :
     gst(NODATA_VALUE), gso(NODATA_VALUE), m_wst(nullptr),
     m_wso(nullptr), m_wlvg(nullptr), m_wrt(nullptr), m_soilNO3(nullptr), m_pltN(nullptr), m_anst(nullptr),
     // parameter related to the N of plant and soil
-    m_plantUpTkN(nullptr), m_ancrf(nullptr), m_anlv(nullptr),
+    m_plantUpTkN(nullptr), m_ancrf(nullptr), m_anlv(nullptr), m_upTkDistP(NODATA_VALUE), m_frPltP(nullptr),
+    m_biomPFr1(nullptr), m_biomPFr2(nullptr), m_biomPFr3(nullptr), m_pltP(nullptr), m_frStrsP(nullptr),
+    m_plantUpTkP(nullptr), m_soilSolP(nullptr), m_phuAccum(nullptr),
     // rice related parameters, output
     sowDay(-1), m_dvs(nullptr), m_lai(nullptr), m_wrr(nullptr) {
 }
@@ -71,13 +74,17 @@ ORYZA::~ORYZA() {
     if (m_stoSoilRootD != nullptr) Release1DArray(m_stoSoilRootD);
     if (m_actPltET != nullptr) Release1DArray(m_actPltET);
     if (m_plantUpTkN != nullptr) Release1DArray(m_plantUpTkN);
+    if (m_plantUpTkP != nullptr) Release1DArray(m_plantUpTkP);
     if (m_pltN != nullptr) Release1DArray(m_pltN);
+    if (m_pltP != nullptr) Release1DArray(m_pltP);
     if (m_frStrsN != nullptr) Release1DArray(m_frStrsN);
+    if (m_frStrsP != nullptr) Release1DArray(m_frStrsP);
     if (m_frStrsWtr != nullptr) Release1DArray(m_frStrsWtr);
     if (m_biomass != nullptr) Release1DArray(m_biomass);
     if (m_wagt != nullptr) Release1DArray(m_wagt);
     if (m_dvs != nullptr) Release1DArray(m_dvs);
     if (m_wrr != nullptr) Release1DArray(m_wrr);
+    if (m_phuAccum != nullptr) Release1DArray(m_phuAccum);
 }
 
 void ORYZA::SetValue(const char* key, float value) {
@@ -156,6 +163,7 @@ void ORYZA::SetValue(const char* key, float value) {
     else if (StringMatch(sk, VAR_ULLE)) m_ulle = value;
     else if (StringMatch(sk, VAR_LLDL)) m_lldl = value;
     else if (StringMatch(sk, VAR_ULDL)) m_uldl = value;
+    else if (StringMatch(sk, VAR_PUPDIS)) m_upTkDistP = value;
     else
         throw ModelException(MID_PG_ORYZA, "SetValue", "Parameter " + sk + " does not exist.");
 }
@@ -200,6 +208,9 @@ void ORYZA::Set1DData(const char* key, int n, float* data) {
     else if (StringMatch(sk, VAR_CELL_LAT)) m_celllat = data;
     else if (StringMatch(sk, VAR_LAIDAY)) m_lai = data;
     else if (StringMatch(sk, VAR_ANCRF)) m_ancrf = data;
+    else if (StringMatch(sk, VAR_BP1)) m_biomPFr1 = data;
+    else if (StringMatch(sk, VAR_BP2)) m_biomPFr2 = data;
+    else if (StringMatch(sk, VAR_BP3)) m_biomPFr3 = data;
     else
         throw ModelException(MID_PG_ORYZA, "Set1DData", "Parameter " + sk + " does not exist.");
 }
@@ -230,6 +241,7 @@ void ORYZA::Set2DData(const char* key, int nRows, int nCols, float** data) {
     else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_UL)) m_sol_sat = data;
     else if (StringMatch(sk, VAR_SOL_WPMM)) m_soilWP = data;
+    else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
     else {
         throw ModelException(MID_PG_ORYZA, "Set2DData", "Parameter " + sk + " does not exist.");
     }
@@ -868,9 +880,45 @@ void ORYZA::CalPlantNUptake(int i) {
     m_frStrsN[i] = Min(m_frStrsN[i], 1.f);
 }
 
+void ORYZA::CalPlantPUptake(int i) {
+    float uobp = GetNormalization(m_upTkDistP);
+    //// determine shape parameters for plant phosphorus uptake equation, from readplant.f
+    m_frPltP[i] = NPBiomassFraction(m_biomPFr1[i], m_biomPFr2[i], m_biomPFr3[i], m_phuAccum[i]);
+    float up2 = 0.f;  /// optimal plant phosphorus content
+    float uapd = 0.f; /// plant demand of phosphorus
+    float upmx = 0.f; /// maximum amount of phosphorus that can be removed from the soil layer
+    float uapl = 0.f; /// amount of phosphorus removed from layer
+    float gx = 0.f;   /// lowest depth in layer from which phosphorus may be removed
+    up2 = m_frPltP[i] * m_biomass[i];
+    if (up2 < m_pltP[i]) up2 = m_pltP[i];
+    uapd = up2 - m_pltP[i];
+    uapd *= 1.5f; /// luxury p uptake
+    m_frStrsP[i] = 1.f;
+    int ir = 0;
+    if (uapd < UTIL_ZERO) return;
+    for (int l = 0; l < m_nSoilLayers[i]; l++) {
+        if (ir > 0) break;
+        if (m_zrt[i] <= m_soilDepth[i][l]) {
+            gx = m_zrt[i];
+            ir = 1;
+        }
+        else {
+            gx = m_soilDepth[i][l];
+        }
+        upmx = uapd * (1.f - exp(-m_upTkDistP * gx / m_zrt[i])) / uobp;
+        uapl = Min(upmx - m_plantUpTkP[i], m_soilSolP[i][l]);
+        m_plantUpTkP[i] += uapl;
+        m_soilSolP[i][l] -= uapl;
+    }
+    if (m_plantUpTkP[i] < 0.f) m_plantUpTkP[i] = 0.f;
+    m_pltP[i] += m_plantUpTkP[i];
+    /// compute phosphorus stress
+    CalPlantStressByLimitedNP(m_pltP[i], up2, &m_frStrsP[i]);
+}
+
 int ORYZA::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -964,7 +1012,7 @@ bool ORYZA::CheckInputData() {
     return true;
 }
 
-void ORYZA::initialOutputs() {
+void ORYZA::InitialOutputs() {
     if (m_alb == nullptr) Initialize1DArray(m_nCells, m_alb, 0.f);
     if (m_rsdCovSoil == nullptr || m_soilRsd == nullptr) {
         Initialize1DArray(m_nCells, m_rsdCovSoil, m_sol_rsdin);
@@ -1082,15 +1130,35 @@ void ORYZA::initialOutputs() {
         Initialize1DArray(m_nCells, m_plantUpTkN, 0.f);
     if (m_rwlvg == nullptr)
         Initialize1DArray(m_nCells, m_rwlvg, 0.f);
-
+    if (m_frPltP == nullptr) {
+        Initialize1DArray(m_nCells, m_frPltP, 0.f);
+    }
+    if (m_pltP == nullptr) {
+        Initialize1DArray(m_nCells, m_pltP, 0.f);
+    }
+    if (m_frStrsP == nullptr) {
+        Initialize1DArray(m_nCells, m_frStrsP, 1.f);
+    }
+    if (m_plantUpTkP == nullptr) {
+        Initialize1DArray(m_nCells, m_plantUpTkP, 0.f);
+    }
+    if (m_phuAccum == nullptr) {
+        Initialize1DArray(m_nCells, m_phuAccum, 0.f);
+    }
+    if (m_stoSoilRootD == nullptr) {
+        Initialize1DArray(m_nCells, m_stoSoilRootD, 10.f);
+    }
 }
 
 void ORYZA::Get1DData(const char* key, int* n, float** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_LAST_SOILRD)) *data = m_stoSoilRootD;
     else if (StringMatch(sk, VAR_PLANT_N)) *data = m_pltN;
+    else if (StringMatch(sk, VAR_PLANT_P)) *data = m_pltP;
+    //else if (StringMatch(sk, VAR_FR_PLANT_N)) *data = m_frPltN;
+    else if (StringMatch(sk, VAR_FR_PLANT_P)) *data = m_frPltP;
     else if (StringMatch(sk, VAR_FR_STRSWTR)) *data = m_frStrsWtr;
     else if (StringMatch(sk, VAR_SOL_COV)) *data = m_rsdCovSoil;
     else if (StringMatch(sk, VAR_SOL_SW)) *data = m_soilWtrStoPrfl;
@@ -1115,13 +1183,16 @@ void ORYZA::Get1DData(const char* key, int* n, float** data) {
     else if (StringMatch(sk, VAR_BIOMASS)) *data = m_biomass;
     else if (StringMatch(sk, VAR_DVS)) *data = m_dvs;
     else if (StringMatch(sk, VAR_ANCRF)) *data = m_ancrf;
+    else if (StringMatch(sk, VAR_LAIDAY)) *data = m_lai;
+    else if (StringMatch(sk, VAR_FR_PHU_ACC)) *data = m_phuAccum;
+    else if (StringMatch(sk, VAR_LAST_SOILRD)) *data = m_zrt;
     else {
         throw ModelException(MID_PG_ORYZA, "Get1DData", "Result " + sk + " does not exist.");
     }
 }
 
 void ORYZA::Get2DData(const char* key, int* n, int* col, float*** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     *col = m_soilLayers;

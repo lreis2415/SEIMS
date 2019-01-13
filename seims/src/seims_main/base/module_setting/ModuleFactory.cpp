@@ -333,6 +333,7 @@ dimensionTypes ModuleFactory::MatchType(string strType) {
     if (StringMatch(strType, Type_Raster2D)) typ = DT_Raster2D;
     if (StringMatch(strType, Type_Scenario)) typ = DT_Scenario;
     if (StringMatch(strType, Type_Reach)) typ = DT_Reach;
+    if (StringMatch(strType, Type_Pond)) typ = DT_Pond;
     if (StringMatch(strType, Type_Subbasin)) typ = DT_Subbasin;
     //if (StringMatch(strType, Type_SiteInformation)) typ = DT_SiteInformation;
     //if (StringMatch(strType, Type_LapseRateArray)) typ = DT_LapseRateArray;

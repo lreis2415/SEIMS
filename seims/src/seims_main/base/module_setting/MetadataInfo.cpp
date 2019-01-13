@@ -89,6 +89,8 @@ void MetadataInfo::DimensionTag(string tag, int indent, dimensionTypes dimType, 
             break;
         case DT_Subbasin: strTmp = Type_Subbasin;
             break;
+        case DT_Pond: strTmp = Type_Pond;
+            break;
         default: break;
     }
 

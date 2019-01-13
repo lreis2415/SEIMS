@@ -177,6 +177,7 @@
 #define DB_TAB_SITELIST                        "SITELIST"
 #define DB_TAB_SCENARIO                        "BMPDATABASE"
 #define DB_TAB_REACH                           "REACHES"
+#define DB_TAB_POND                            "PONDS"
 #define DB_TAB_SPATIAL                         "SPATIAL"  /// i.e., spatial.files
 #define DB_TAB_SITES                           "SITES"
 #define DB_TAB_DATAVALUES                      "DATA_VALUES" // hydroClimate data values
@@ -249,6 +250,7 @@
 
 #define Type_Scenario                          "SCENARIO"
 #define Type_Reach                             "REACH"
+#define Type_Pond                              "POND"
 #define Type_Subbasin                          "SUBBASIN"
 #define Type_Raster1D                          "RASTER1D"
 #define Type_Raster2D                          "RASTER2D"

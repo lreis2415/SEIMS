@@ -164,6 +164,9 @@ void POND::initialOutputs()
 			for(vector<int>::iterator i = m_pondIdInfo[id].begin(); i != m_pondIdInfo[id].end(); i++){
 				int cellId = *i;
 				int flowOutId = findFlowOutPond(id, cellId);
+                if (flowOutId < UTIL_ZERO){
+                    continue;
+                }
 				// for a pond, if the pond is over flow, and if it has downstream pond, then it will flow out to the down stream pond
 				// if the pond area is large, maybe itself will be contained in the finding of downstream pond ,so should remove it
 				if (m_landuse[flowOutId] == LANDUSE_ID_POND && m_pond[flowOutId] != id){
@@ -268,6 +271,9 @@ void POND::findFlowInCell(int id, int cellId){
 
 int POND::findFlowOutPond(int id, int cellId){
 	int flowOutId = (int)m_flowOutIndex[cellId];
+    if (flowOutId < UTIL_ZERO){
+        return flowOutId;
+    }
 	// if the flow out cell is a pond cell or a reach  cell, then return the flow cell id
 	if(m_landuse[flowOutId] != LANDUSE_ID_POND){
 		if( m_landuse[flowOutId] != LANDUSE_ID_WATR){

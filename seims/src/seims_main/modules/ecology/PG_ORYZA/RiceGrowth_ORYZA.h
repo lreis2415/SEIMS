@@ -230,6 +230,26 @@ private:
     float* m_cropsta;
     /// Temperature sum
     float* m_ts;
+    /// Phosphorus uptake distribution parameter
+    float m_upTkDistP;
+    /// fraction of plant biomass that is phosphorus, pltfr_p in SWAT
+    float* m_frPltP;
+    /// phosphorus uptake parameter #1: normal fraction of P in crop biomass at emergence
+    float* m_biomPFr1;
+    /// phosphorus uptake parameter #2: normal fraction of P in crop biomass at 50% maturity
+    float* m_biomPFr2;
+    /// phosphorus uptake parameter #3: normal fraction of P in crop biomass at maturity
+    float* m_biomPFr3;
+    /// amount of phosphorus in plant biomass (kg/ha), plantp in SWAT
+    float* m_pltP;
+    /// fraction of potential plant growth achieved where the reduction is caused by phosphorus stress, strsp in SWAT
+    float* m_frStrsP;
+    /// plant uptake of phosphorus, pplnt in SWAT
+    float* m_plantUpTkP;
+    /// amount of phosphorus stored in solution
+    float** m_soilSolP;
+    /// fraction of plant heat units (PHU) accumulated, also as output, phuacc in SWAT
+    float* m_phuAccum;
 
     /*   parameters related to the current day and latitude, to describe the sun */
 
@@ -443,7 +463,7 @@ private:
     //////////////////////////////////////////////////////////////////////////
     void CalRiceGrowth(int i);
 
-    void initialOutputs();
+    void InitialOutputs();
     //////////////////////////////////////////////////////////////////////////
     //  Distribute potential plant evaporation through
     //	the root zone and calculates actual plant water use based on soil
@@ -454,5 +474,9 @@ private:
     //  Calculates plant nitrogen uptake
     //////////////////////////////////////////////////////////////////////////
     void CalPlantNUptake(int i);
+    //////////////////////////////////////////////////////////////////////////
+    //  Calculates plant nitrogen uptake
+    //////////////////////////////////////////////////////////////////////////
+    void CalPlantPUptake(int i);
 };
 #endif /* SEIMS_MODULE_PG_ORYZA_H */

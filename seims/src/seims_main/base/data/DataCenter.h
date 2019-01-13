@@ -21,6 +21,7 @@
 #include "clsSubbasin.h"
 #include "Scenario.h"
 #include "clsInterpolationWeightData.h"
+#include "clsPond.h"
 
 /*!
  * \ingroup data
@@ -146,6 +147,9 @@ public:
     //! Set Reaches information
     void SetReaches(SimulationModule* p_module);
 
+    //! Set Ponds information
+    void SetPonds(SimulationModule* pModule);
+
     //! Set Subbasins information
     void SetSubbasins(SimulationModule* p_module);
 
@@ -181,6 +185,7 @@ public:
     InputStation* GetClimateStation() { return clim_station_; }
     clsSubbasins* GetSubbasinData() { return subbasins_; }
     clsReaches* GetReachesData() { return reaches_; }
+    clsPonds* GetPondsData() { return ponds_; }
     Scenario* GetScenarioData() { return use_scenario_ ? scenario_ : nullptr; }
     FloatRaster* GetMaskData() { return mask_raster_; }
     map<string, FloatRaster *>& GetRasterDataMap() { return rs_map_; }
@@ -229,6 +234,7 @@ protected:
     InputStation* clim_station_;           ///< data of input HydroClimate stations
     Scenario* scenario_;                   ///< BMPs Scenario data
     clsReaches* reaches_;                  ///< Reaches information
+    clsPonds* ponds_;                      ///< Ponds information
     clsSubbasins* subbasins_;              ///< Subbasins information
     FloatRaster* mask_raster_;             ///< Mask data
     map<string, FloatRaster *> rs_map_;    ///< Map of spatial data, both 1D and 2D

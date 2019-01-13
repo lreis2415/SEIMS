@@ -301,7 +301,7 @@ void SEDR_SBAGNOLD::SedChannelRouting(const int i) {
         allSediment += m_ptSub[i];
     }
     // initialize water in reach during time step
-    // qOutV = m_qRchOut[i] * m_dt; // m^3
+    qOutV = m_qRchOut[i] * m_dt; // m^3
     allWater = m_preChStorage[i];
     allWater = m_chStorage[i] + qOutV;
     if (((m_qRchOut[i] < UTIL_ZERO) && (m_chWtrDepth[i] < UTIL_ZERO)) || (allWater < 0.01f)) {
