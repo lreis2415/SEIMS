@@ -270,7 +270,7 @@ Rice,nMaxL,function parameters of maximum leaf N fraction,none,PG_ORYZA,0.02,0,A
 Rice,nMinL,function parameters of minimum leaf N fraction,none,PG_ORYZA,0.009,0,AC,1,0
 Rice,rfnlv,Residual N fraction of leaves,kg/kg,PG_ORYZA,0.004,0,AC,1,0
 Rice,rfnst,Residual N fraction of stems,kg/kg,PG_ORYZA,0.0015,0,AC,1,0
-Rice,fntrt,Fraction N translocation from roots as (additonal) fraction of total N translocation from stems and leaves,none,PG_ORYZA,0.15,0,AC,1,0
+Rice,rfnrt,Fraction N translocation from roots as (additonal) fraction of total N translocation from stems and leaves,none,PG_ORYZA,0.15,0,AC,1,0
 Rice,tcntrf,Time coefficient for N translocation to grains,day,PG_ORYZA,10,0,AC,20,0
 Rice,nMaxSO,Maximum N concentration in storage organs,kg/kg,PG_ORYZA,0.0175,0,AC,1,0
 Rice,anMinSO,function parameters of minimum N concentration in storage organs,none,PG_ORYZA,0.0001,0,AC,1,0

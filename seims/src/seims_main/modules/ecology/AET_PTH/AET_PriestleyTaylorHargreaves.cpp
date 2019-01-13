@@ -7,7 +7,7 @@ using namespace utils_math;
 
 AET_PT_H::AET_PT_H() :
 
-    m_nCells(-1), m_lai(nullptr), m_pet(nullptr), m_IntcpET(nullptr),
+    m_nCells(-1),
     m_esco(nullptr), m_nSoilLyrs(nullptr),
     m_landuse(nullptr), m_cropsta(nullptr),
     m_impoundTrig(nullptr), m_potVol(nullptr),

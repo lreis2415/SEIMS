@@ -958,7 +958,7 @@
 #define VAR_SHCKD "shckd"
 #define VAR_KNF "knf"
 #define VAR_RGRLMX "rgrlMX"
-#define VAR_RGRLMN "rgrgMN"
+#define VAR_RGRLMN "rgrlMN"
 #define VAR_NH "nh"
 #define VAR_NPLH "nplh"
 #define VAR_NPLSB "nplsb"

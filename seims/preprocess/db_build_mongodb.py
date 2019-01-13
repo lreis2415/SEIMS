@@ -122,7 +122,7 @@ class ImportMongodbClass(object):
         # Import grid layering data
         status_output('Generating and importing grid layering....', 70, f)
         ImportMongodbClass.grid_layering(cfg, 0)
-        # ImportMongodbClass.grid_layering(cfg, n_subbasins)
+        ImportMongodbClass.grid_layering(cfg, n_subbasins)
 
         # Import hydro-climate data
         status_output('Import climate data....', 80, f)
