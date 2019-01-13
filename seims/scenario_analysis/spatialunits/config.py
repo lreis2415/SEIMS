@@ -61,13 +61,21 @@ class SACommUnitConfig(SAConfig):
         """Initialization."""
         SAConfig.__init__(self, cf)  # initialize base class first
         # 1. Check the required key and values
-        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO',
-                        'ENVEVAL', 'BASE_ENV', 'UNITJSON']
-        for k in requiredkeys:
-            if k not in self.bmps_info:
-                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info!' % k)
-        # 2. Slope position units information
-        units_json = self.bmps_info.get('UNITJSON')
+        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO', 'UNITJSON']
+        self.bmpid = -1
+        units_json = ''
+        for cbmpid, cbmpdict in viewitems(self.bmps_info):
+            for k in requiredkeys:
+                if k not in cbmpdict:
+                    raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info!' % k)
+            # In current version, only one type of BMP and one type of spatial units are allowed
+            self.bmpid = cbmpid
+            units_json = cbmpdict.get('UNITJSON')
+            break
+        for k in ['ENVEVAL', 'BASE_ENV']:
+            if k not in self.eval_info:
+                raise ValueError('%s: MUST be provided in Eval_info!' % k)
+        # 2. Spatial units information
         unitsf = self.model.model_dir + os.sep + units_json
         if not FileClass.is_file_exists(unitsf):
             raise Exception('UNITJSON file %s is not existed!' % unitsf)
@@ -80,8 +88,8 @@ class SACommUnitConfig(SAConfig):
             raise ValueError('all_units MUST be existed in overview dict of UNITJSON.')
         self.units_num = self.units_infos['overview']['all_units']  # type: int
         # 3. Collection name and subscenario IDs
-        self.bmps_coll = self.bmps_info.get('COLLECTION')  # type: str
-        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')  # type: List[int]
+        self.bmps_coll = self.bmps_info[self.bmpid].get('COLLECTION')  # type: str
+        self.bmps_subids = self.bmps_info[self.bmpid].get('SUBSCENARIO')  # type: List[int]
         # 4. Construct the dict of gene index to unit ID, and unit ID to gene index
         self.unit_to_gene = OrderedDict()  # type: OrderedDict[int, int]
         self.gene_to_unit = dict()  # type: Dict[int, int]
@@ -150,12 +158,13 @@ class SASlpPosConfig(SACommUnitConfig):
         SACommUnitConfig.__init__(self, cf)
         # 2. Check additional required key and values
         requiredkeys = ['SLPPOS_TAG_NAME']
-        for k in requiredkeys:
-            if k not in self.bmps_info:
-                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info '
-                                 'for SLPPOS method!' % k)
+        for cbmpid, cbmpdict in viewitems(self.bmps_info):
+            for k in requiredkeys:
+                if k not in cbmpdict:
+                    raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info '
+                                     'for SLPPOS method!' % k)
         # 3. Get slope position sequence
-        self.slppos_tags = self.bmps_info.get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
+        self.slppos_tags = self.bmps_info[self.bmpid].get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
         self.slppos_tagnames = sorted(list(self.slppos_tags.items()),
                                       key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
 

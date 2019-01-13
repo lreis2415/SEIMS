@@ -11,6 +11,7 @@
     - 18-10-30  lj - Update according to new config parser structure.
 """
 from __future__ import absolute_import, unicode_literals
+from future.utils import viewitems
 
 from datetime import timedelta
 from io import open
@@ -30,7 +31,7 @@ from typing import List, Iterator, Optional, Union
 from scenario_analysis import BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
-from preprocess.text import DBTableNames
+from preprocess.text import DBTableNames, ModelCfgFields
 from run_seims import MainSEIMS
 from utility.scoop_func import scoop_log
 
@@ -81,6 +82,7 @@ class Scenario(object):
         self.rule_mtd = cfg.bmps_cfg_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
+        self.eval_info = cfg.eval_info
         self.export_sce_txt = cfg.export_sce_txt
         self.export_sce_tif = cfg.export_sce_tif
         self.scenario_dir = cfg.scenario_dir  # predefined directories to store scenarios related
@@ -92,8 +94,8 @@ class Scenario(object):
         self.scenario_db = self.model.ScenarioDBName
         self.model.ResetSimulationPeriod()  # Reset the simulation period
         # Reset the starttime and endtime of the desired outputs according to evaluation period
-        if 'OUTPUTID' in self.bmps_info:
-            self.model.ResetOutputsPeriod(self.bmps_info['OUTPUTID'],
+        if ModelCfgFields.output_id in self.eval_info:
+            self.model.ResetOutputsPeriod(self.eval_info[ModelCfgFields.output_id],
                                           cfg.eval_stime, cfg.eval_etime)
         else:
             print('Warning: No OUTPUTID is defined in BMPs_info. Please make sure the '
@@ -163,7 +165,7 @@ class Scenario(object):
         except NetworkTimeout or Exception:
             # In case of unexpected raise
             pass
-        for objid, bmp_item in self.bmp_items.items():
+        for objid, bmp_item in viewitems(self.bmp_items):
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
         client.close()
@@ -184,12 +186,12 @@ class Scenario(object):
             outfile.write('Scenario items:\n')
             if len(self.bmp_items) > 0:
                 header = list()
-                for obj, item in self.bmp_items.items():
+                for obj, item in viewitems(self.bmp_items):
                     header = list(item.keys())
                     break
                 outfile.write('\t'.join(header))
                 outfile.write('\n')
-                for obj, item in self.bmp_items.items():
+                for obj, item in viewitems(self.bmp_items):
                     outfile.write('\t'.join(str(v) for v in list(item.values())))
                     outfile.write('\n')
             outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
