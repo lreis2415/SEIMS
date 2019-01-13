@@ -1,10 +1,12 @@
 /*!
+ * \file ModuleFactory.h
  * \brief Constructor of ModuleFactory from config file
+ *
+ * Changelog:
+ *   - 1. 2017-05-30 - lj - Refactor and DeCoupling with Database I/O.
  *
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
- * \date May 2017
- * \revised LJ - Refactor and DeCoupling with Database I/O
  */
 #ifndef SEIMS_MODULE_FACTORY_H
 #define SEIMS_MODULE_FACTORY_H
@@ -29,6 +31,11 @@ typedef const char*(*MetadataFunction)();
 
 using namespace bmps;
 
+/*!
+ * \class ModuleFactory
+ * \ingroup module_setting
+ * \brief Linking user-defined modules to create the modeling workflow.
+ */
 class ModuleFactory: NotCopyable {
 public:
     /*!
@@ -95,7 +102,7 @@ public:
      * \brief Read configuration file
      * \param[in] configFileName Configuration full file path
      * \param[out] moduleIDs Unique module IDs (name)
-     * \param[out] moduleSettings Map of \sa SEIMSModuleSetting
+     * \param[out] moduleSettings Map of SEIMSModuleSetting
      * \return True if succeed.
      */
     static bool ReadConfigFile(const char* configFileName, vector<string>& moduleIDs,
@@ -173,7 +180,7 @@ private:
     vector<DLLINSTANCE> m_dllHandles;
     //! Module settings
     map<string, SEIMSModuleSetting *> m_settings;
-    //! Parameters of modules, from \sa m_parametersInDB
+    //! Parameters of modules, from #m_parametersInDB
     map<string, vector<ParamInfo *> > m_moduleParameters;
     //! Input of modules, from other modules
     map<string, vector<ParamInfo *> > m_moduleInputs;

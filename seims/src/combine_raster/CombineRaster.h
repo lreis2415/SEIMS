@@ -26,7 +26,7 @@ using namespace data_raster;
 #endif
 
 /*!
- * \brief Combine rasters as one, for both 1D and 2D raster data, \sa clsRasterData
+ * \brief Combine rasters as one, for both 1D and 2D raster data, clsRasterData
  * \param[in] all_raster_data Key is subbasinID (start from 1), value is clsRasterData<float>
  * \return Combined raster data
  */
@@ -46,13 +46,30 @@ void CombineRasterResults(const string& folder, const string& s_var,
 /*!
  * \brief Combine rasters of each subbasin store as GridFs in MongoDB and output to MongoDB as GridFs
  *        And, if output as file if `folder` is specified.
- * \param[in] gfs \sa MongoGridFs
+ *
+ *        Currently, I cannot find a way to store GridFS files with the same filename but with
+ *        different metadata information by mongo-c-driver, which can be done by pymongo.
+ *        So, temporarily, I decided to append scenario ID and calibration ID to the filename.
+ *
+ *        The format of filename of OUPUT by SEIMS MPI version is:
+ *
+ *        <SubbasinID>_CoreFileName_ScenarioID_CalibrationID
+ *
+ *        If no ScenarioID or CalibrationID, i.e., with a value of -1, just left blank. e.g.,
+ *        - 1_SED_OL_SUM_1_ means ScenarioID is 1 and Calibration ID is -1
+ *        - 1_SED_OL_SUM__ means ScenarioID is -1 and Calibration ID is -1
+ *        - 1_SED_OL_SUM_0_2 means ScenarioID is 0 and Calibration ID is 2
+ *
+ * \param[in] gfs MongoGridFs
  * \param[in] s_var Core file name, e.g., lai
  * \param[in] n_subbasins Subbasin count, e.g., 5 means 1_lai, ..., 5_lai will be combined as lai
  * \param[in] folder Optional. If specified, the combined raster will be outputed as file simultaneously.
+ * \param[in] scenario_id Scenario ID stored in metadata, 0 by default
+ * \param[in] calibration_id Calibration ID stored in metadata, -1 by default
  */
 void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
-                               int n_subbasins, const string& folder = "");
+                               int n_subbasins, const string& folder = "",
+                               int scenario_id = 0, int calibration_id = -1);
 #endif /* USE_MONGODB */
 
 #endif /* COMBINE_RASTER_H */

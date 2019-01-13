@@ -1,12 +1,13 @@
 /*!
+ * \file PER_STR.h
  * \brief Percolation calculated by storage routing method
  * reference SWAT theory manual, p151-152
- * \author Junzhi Liu
- * \date May 2011
- * \revised LiangJun Zhu
- * \date 2016-5-29
- * \date 2016-9-8
- * \description: 1. ReWrite according to percmain.f and sat_excess.f of SWAT
+ *
+ * Changelog:
+ *   - 1. 2011-05-30 - jz - Initial implementation.
+ *   - 2. 2016-09-08 - lj - ReWrite according to percmain.f and sat_excess.f of SWAT
+ *
+ * \author Liangjun Zhu, Junzhi Liu
  */
 #ifndef SEIMS_MODULE_PER_STR_H
 #define SEIMS_MODULE_PER_STR_H

@@ -1,11 +1,14 @@
 /*!
+ * \file clsReach.h
  * \brief Class to store reach related parameters from REACHES table
+ *
+ * Changelog:
+ *   - 1. 2017-05-30 - lj - Update MongoDB functions.
+ *                          Get 1D arrays of reach properties to keep synchronization among modules.
+ *   - 2. 2017-12-26 - lj - Code refactor.
+ *
  * \author LiangJun Zhu
  * \version 1.1
- * \date May. 2017
- * \revised LJ - Update MongoDB functions
- *             - Get 1D arrays of reach properties to keep synchronization among modules
- *             - Code refactor. 2017-12-26
  */
 #ifndef SEIMS_REACH_CLS_H
 #define SEIMS_REACH_CLS_H
@@ -40,6 +43,11 @@ public:
 
     //! Set parameters by name
     void Set(const string& key, float value);
+
+    /*!
+    * \brief Calculate derived parameters after updating the input parameters.
+    */
+    void DerivedParameters();
 
 private:
     /*!

@@ -1,8 +1,11 @@
 /*!
+ * \file ReadReachTopology.h
  * \brief Read and create reach (i.e., subbasin) topology data.
+ *
+ * Changelog:
+ *   - 1. 2018-03-20  - lj -  Refactor as a more flexible framework to support various transferred variables.
+ *
  * \author Junzhi Liu, Liangjun Zhu
- * \changelog  2018-03-20  - lj -  Refactor as a more flexible framework to
- *                                 support various transferred variables.
  */
 #ifndef SEIMS_MPI_READ_REACH_TOPOLOGY_H
 #define SEIMS_MPI_READ_REACH_TOPOLOGY_H
@@ -24,7 +27,9 @@ using std::map;
 using std::set;
 
 /*!
+ * \class SubbasinStruct
  * \brief Simple struct of subbasin information for task allocation
+ * \ingroup seims_mpi
  */
 class SubbasinStruct: NotCopyable {
 public:
@@ -41,17 +46,18 @@ public:
     int transfer_count;     ///< count of transferred values
     float* transfer_values; ///< transferred values
 
-    SubbasinStruct* down_stream;         ///< down stream subbasin \sa SubbasinStruct
+    SubbasinStruct* down_stream;         ///< down stream subbasin, SubbasinStruct
     vector<SubbasinStruct *> up_streams; ///< up stream subbasins
 };
 
 /*!
  * \brief Read reach table from MongoDB and create reach topology for task allocation.
- * \param[in] client \sa MongoClient
+ * \ingroup seims_mpi
+ * \param[in] client MongoClient
  * \param[in] dbname database name which stored the reach collection
- * \param[in] group_method \sa GroupMethod
- * \param[in] group_size \sa number of parallel tasks, i.e., number of processes
- * \param[out] subbasins Map of subbasin data struct, \sa SubbasinStruct
+ * \param[in] group_method GroupMethod
+ * \param[in] group_size number of parallel tasks, i.e., number of processes
+ * \param[out] subbasins Map of subbasin data struct, SubbasinStruct
  * \param[out] group_set Group ID set, e.g., 1, 2, 3, 4
  */
 int CreateReachTopology(MongoClient* client, const string& dbname,

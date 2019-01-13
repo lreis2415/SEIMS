@@ -211,7 +211,7 @@ void Scenario::Dump(string& fileName) {
     }
 }
 
-void Scenario::Dump(ostream* fs) {
+void Scenario::Dump(std::ostream* fs) {
     if (fs == nullptr) return;
     *fs << "Scenario ID:" << m_sceneID << endl;
     *fs << "Name:" << m_name << endl;

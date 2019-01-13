@@ -11,7 +11,7 @@ extern "C" SEIMS_MODULE_API SimulationModule* GetInstance() {
 extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     MetadataInfo mdi;
     string res;
-    mdi.SetAuthor("LiangJun Zhu");
+    mdi.SetAuthor("Liangjun Zhu");
     mdi.SetClass(MCLS_AET, MCLSDESC_AET);
     mdi.SetDescription(MDESC_AET_PTH);
     mdi.SetID(MID_AET_PTH);
@@ -31,7 +31,6 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_CROPSTA, UNIT_NON_DIM, DESC_CROPSTA, Source_ParameterDB, DT_Raster1D);
     mdi.AddInput(VAR_POT_VOL, UNIT_DEPTH_MM, DESC_POT_VOL, Source_Module_Optional, DT_Raster1D);
     mdi.AddInput(VAR_IMPOUND_TRIG, UNIT_NON_DIM, DESC_IMPOUND_TRIG, Source_Module_Optional, DT_Raster1D);
-
     mdi.AddParameter(VAR_SOL_NO3, UNIT_CONT_KGHA, DESC_SOL_NO3, Source_Module, DT_Raster2D);
     /// set input from other modules
     mdi.AddInput(DataType_MeanTemperature, UNIT_TEMP_DEG, DESC_TMEAN, Source_Module, DT_Raster1D);

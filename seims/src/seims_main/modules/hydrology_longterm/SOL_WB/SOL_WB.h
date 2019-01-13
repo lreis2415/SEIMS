@@ -1,9 +1,11 @@
 /*!
- * Revision:    Liang-Jun Zhu
- * Date:        2016-7-28
- * Description: 1. Move subbasin class to base/data/clsSubbasin, to keep consistent with other modules
- *              2. Code cleanup
+ * \file SOL_WB.h
+ * \brief Check soil water balance.
  *
+ * Changelog:
+ *   - 1. 2016-07-28 - lj - Move subbasin class to base/data/clsSubbasin, to keep consistent with other modules.
+ *
+ * \author Chunping Ou, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_SOL_WB_H
 #define SEIMS_MODULE_SOL_WB_H
@@ -31,7 +33,7 @@ public:
 
     ~SOL_WB();
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
@@ -117,7 +119,7 @@ private:
     int m_nSubbsns;
     //! subbasin IDs
     vector<int> m_subbasinIDs;
-    //! All subbasins information,\sa clsSubbasins, \sa Subbasin
+    //! All subbasins information
     clsSubbasins* m_subbasinsInfo;
     /* soil water balance, time series result
     * the row index is subbasinID

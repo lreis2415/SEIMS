@@ -20,7 +20,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.SetName(MID_PER_STR);
     mdi.SetVersion("0.5");
     mdi.SetWebsite(SEIMS_SITE);
-    mdi.SetHelpfile("PER_STR.chm");
+    mdi.SetHelpfile("");
 
     mdi.AddParameter(Tag_TimeStep, UNIT_SECOND, UNIT_NON_DIM, File_Input, DT_Single);
     mdi.AddParameter(VAR_T_SOIL, UNIT_TEMP_DEG, DESC_T_SOIL, Source_ParameterDB, DT_Single);

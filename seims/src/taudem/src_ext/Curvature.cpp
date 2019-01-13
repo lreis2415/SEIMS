@@ -213,32 +213,39 @@ int Curvature(char *demfile, char *profcfile, char *plancfile, char *horizcfile,
         double computet = MPI_Wtime(); // record computing time
         // create and write TIFF file
         float nodata = MISSINGFLOAT;
-        if (calprof) {
-            tiffIO profTIFF(profcfile, FLOAT_TYPE, &nodata, demf);
+        if (calprof)
+        {
+            tiffIO profTIFF(profcfile, FLOAT_TYPE, nodata, demf);
             profTIFF.write(xstart, ystart, ny, nx, prof->getGridPointer());
         }
-        if (calplan) {
-            tiffIO planTIFF(plancfile, FLOAT_TYPE, &nodata, demf);
+        if (calplan)
+        {
+            tiffIO planTIFF(plancfile, FLOAT_TYPE, nodata, demf);
             planTIFF.write(xstart, ystart, ny, nx, plan->getGridPointer());
         }
-        if (calhoriz) {
-            tiffIO horizTIFF(horizcfile, FLOAT_TYPE, &nodata, demf);
+        if (calhoriz)
+        {
+            tiffIO horizTIFF(horizcfile, FLOAT_TYPE, nodata, demf);
             horizTIFF.write(xstart, ystart, ny, nx, horiz->getGridPointer());
         }
-        if (calunspher) {
-            tiffIO unspherTIFF(unspherfile, FLOAT_TYPE, &nodata, demf);
+        if (calunspher)
+        {
+            tiffIO unspherTIFF(unspherfile, FLOAT_TYPE, nodata, demf);
             unspherTIFF.write(xstart, ystart, ny, nx, unspher->getGridPointer());
         }
-        if (calmeanc) {
-            tiffIO meancTIFF(meancfile, FLOAT_TYPE, &nodata, demf);
+        if (calmeanc)
+        {
+            tiffIO meancTIFF(meancfile, FLOAT_TYPE, nodata, demf);
             meancTIFF.write(xstart, ystart, ny, nx, meanc->getGridPointer());
         }
-        if (calmaxc) {
-            tiffIO maxcTIFF(maxcfile, FLOAT_TYPE, &nodata, demf);
+        if (calmaxc)
+        {
+            tiffIO maxcTIFF(maxcfile, FLOAT_TYPE, nodata, demf);
             maxcTIFF.write(xstart, ystart, ny, nx, maxc->getGridPointer());
         }
-        if (calminc) {
-            tiffIO mincTIFF(mincfile, FLOAT_TYPE, &nodata, demf);
+        if (calminc)
+        {
+            tiffIO mincTIFF(mincfile, FLOAT_TYPE, nodata, demf);
             mincTIFF.write(xstart, ystart, ny, nx, minc->getGridPointer());
         }
 

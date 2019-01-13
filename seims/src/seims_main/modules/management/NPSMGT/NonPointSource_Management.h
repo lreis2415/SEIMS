@@ -1,7 +1,11 @@
-/*
- * \brief Non point source management
- * \author Liang-Jun Zhu
- * \date Jul. 2016
+/*!
+ * \file NonPointSource_Management.h
+ * \brief Non point source management.
+ *
+ * Changelog:
+ *   - 1. 2016-07-30 - lj - Initial implementation.
+ *
+ * \author Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_NPSMGT_H
 #define SEIMS_MODULE_NPSMGT_H

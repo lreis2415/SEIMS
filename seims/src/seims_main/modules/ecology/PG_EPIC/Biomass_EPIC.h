@@ -1,11 +1,14 @@
 /*!
+ * \file Biomass_EPIC.h
  * \brief Predicts daily potential growth of total plant biomass and roots and calculates leaf area index
  * incorporated a simplified version of the EPIC plant growth model as in SWAT rev. 637, plantmod.f
- * \author LiangJun Zhu
- * \changelog: 2016-06-15 - lj - Initial implementation.\n
- *             2016-10-07 - lj - Add some code of CENTURY model calculation.\n
- *             2018-05-14 - lj - Code review and reformat code style.\n
  *
+ * Changelog:
+ *   - 1. 2016-06-15 - lj - Initial implementation.
+ *   - 2. 2016-10-07 - lj - Add some code of CENTURY model calculation.
+ *   - 3. 2018-05-14 - lj - Code review and reformat code style.
+ *
+ * \author Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_PG_EPIC_H
 #define SEIMS_MODULE_PG_EPIC_H
@@ -100,7 +103,6 @@ private:
 private:
     /// valid cells number
     int m_nCells;
-
     /// rice grow flag
     /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
     float* m_cropsta;
@@ -156,6 +158,8 @@ private:
     float* m_rsdCovSoil;
     /// amount of organic matter in the soil layer classified as residue, sol_rsd |kg/ha in SWAT
     float** m_soilRsd;
+    /// biomass target, kg/ha
+    float* m_biomTrgt;
     /// land cover status code, 0 means no crop while 1 means land cover growing
     float* m_igro;
     /// land cover/crop  classification:1-7, i.e., IDC
@@ -220,9 +224,9 @@ private:
     float* m_alb;
     /// initial age of trees (yrs) at the beginning of simulation
     float* m_curYrMat;
-    /// initial dry weight biomass
+    /// initial biomass of transplants, kg/ha
     float* m_initBiom;
-    /// initial LAI
+    /// initial leaf area index of transplants
     float* m_initLai;
     /// total heat units needed to bring plant to maturity
     float* m_phuPlt;

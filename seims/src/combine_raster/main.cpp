@@ -7,10 +7,11 @@
 void Usage(const string& error_msg = "") {
     cout << " Usage: combine_raster -var <variable name> -n <subbasin count> "
             "[-file <dirpath> <suffix>] "
-            "[-mongo <ip> <port> <database name> <gridfs name> [dirpath]]" << endl << endl;
+            "[-mongo <ip> <port> <database name> <gridfs name> [dirpath]] "
+            "[-sce <scenario id>] [-cali <calibration id>]" << endl << endl;
     cout << "Example.1. combine_raster -var lai -n 5 -file d:/test/split_rasters tif" << endl;
     cout << "Example.2. combine_raster -var lai -n 5 -mongo 127.0.0.1 27017 "
-            "model_dianbu2_30m_demo OUTPUT d:/test/combined_raster" << endl << endl;
+            "model_dianbu2_30m_demo OUTPUT d:/test/combined_raster -sce 12 -cali -1" << endl << endl;
     if (!error_msg.empty()) {
         cout << "FAILURE: " << error_msg << endl;
     }
@@ -31,13 +32,13 @@ int main(int argc, char** argv) {
     int port = -1;
     string db_name;
     string gridfs_name;
+    int scenario_id = 0;
+    int calibration_id = -1;
     /// Parse input arguments.
     if (argc < 7) {
         Usage("Too few arguments to run this program.");
     }
     int i = 1;
-    char* end = nullptr;
-    errno = 0;
     while (argc > i) {
         if (StringMatch(argv[i], "-var")) {
             i++;
@@ -48,7 +49,7 @@ int main(int argc, char** argv) {
         } else if (StringMatch(argv[i], "-n")) {
             i++;
             if (argc > i) {
-                n_subbasins = strtol(argv[i], &end, 10);
+                n_subbasins = ToInt(argv[i]);
                 i++;
             } else { Usage("No argument followed '-n'!"); }
         } else if (StringMatch(argv[i], "-file")) {
@@ -69,13 +70,25 @@ int main(int argc, char** argv) {
             if (!IsIpAddress(mongodb_ip.c_str())) {
                 Usage("The input MongoDB Host is not a valid IP address!");
             }
-            port = strtol(argv[i + 2], &end, 10);
+            port = ToInt(argv[i + 2]);
             db_name = argv[i + 3];
             gridfs_name = argv[i + 4];
             i += 5;
             if (argc >= i && argv[i][0] != '-') {
                 // folder is specified
                 folder = argv[i];
+                i++;
+            }
+        } else if (StringMatch(argv[i], "-sce")) {
+            i++;
+            if (argc > i) {
+                scenario_id = ToInt(argv[i]);
+                i++;
+            }
+        } else if (StringMatch(argv[i], "-cali")) {
+            i++;
+            if (argc > i) {
+                calibration_id = ToInt(argv[i]);
                 i++;
             }
         }
@@ -92,7 +105,7 @@ int main(int argc, char** argv) {
             Usage("Unable to connect to MongoDB!");
         }
         MongoGridFs* gfs = new MongoGridFs(client->GetGridFs(db_name, gridfs_name));
-        CombineRasterResultsMongo(gfs, s_var, n_subbasins, folder);
+        CombineRasterResultsMongo(gfs, s_var, n_subbasins, folder, scenario_id, calibration_id);
         // clean up
         delete gfs;
         delete client;

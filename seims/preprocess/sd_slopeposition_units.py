@@ -2,29 +2,37 @@
 # -*- coding: utf-8 -*-
 """Construct hillslope-slope position units.
 
-    The main procedure:\n
-      1. Assign unique ID to each type of slope position unit with hillslopes, and
-         assign the up-down relationships according to the slope position sequence.\n
-      2. Statistics the landuse types and areas within each slope position units.\n
-      3. Merge hillslope with incomplete slope position sequences to other hillslopes
-         of the same subbasin.\n
-      4. Merge subbasin with incomplete slope position sequences to its downstream,
-         for the outlet subbasin merge to its upstream.
+The main procedure:
+- 1. Assign unique ID to each type of slope position unit with hillslopes, and
+   assign the up-down relationships according to the slope position sequence.
+- 2. Statistics the landuse types and areas within each slope position units.
+- 3. Merge hillslope with incomplete slope position sequences to other hillslopes
+   of the same subbasin.
+- 4. Merge subbasin with incomplete slope position sequences to its downstream,
+   for the outlet subbasin merge to its upstream.
 
     @author   : Liangjun Zhu, Huiran Gao
-    @changelog: 17-08-14  lj - initial implementation.\n
-                18-02-08  lj - compatible with Python3.\n
-"""
-from __future__ import absolute_import
 
+    @changelog:
+    - 17-08-14  lj - initial implementation.
+    - 18-02-08  lj - compatible with Python3.
+    - 18-11-05  lj - update according to :func:`ImportReaches2Mongo:read_reach_downstream_info`.
+                     Add type hints based on typing.
+"""
+from __future__ import absolute_import, unicode_literals, division
+
+from future.utils import viewitems
 import json
 from collections import OrderedDict
 import os
 import sys
+from io import open
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
+from typing import List, Tuple, Dict, Union, AnyStr
 from pygeoc.raster import RasterUtilClass, DEFAULT_NODATA
 from pygeoc.utils import FileClass
 from pygeoc.vector import VectorUtilClass
@@ -37,12 +45,18 @@ class SlopePositionUnits(object):
     """Construct hillslope-slope position units.
     """
 
-    def __init__(self, tag_names, slpposf, reach_shp, hillslpf, landusef):
+    def __init__(self, tag_names,  # type: List[Tuple[int, AnyStr]]
+                 slpposf,  # type: AnyStr
+                 reach_shp,  # type: AnyStr
+                 hillslpf,  # type: AnyStr
+                 landusef  # type: AnyStr
+                 ):
+        # type: (...) -> None
         """Initialization.
 
         Args:
             tag_names: [tag(integer), name(str)], tag should be ascending from up to bottom.
-            slpposf: Crisp classification of slope position.
+            slpposf: Crisp classification of slope position full filename.
             reach_shp: Reach shapefile used to extract the up-down relationships of subbasins
             hillslpf: Delineated hillslope file by sd_hillslope.py.
             landusef: Landuse, used to statistics areas of each landuse types within
@@ -52,7 +66,7 @@ class SlopePositionUnits(object):
             slppos_tags(OrderedDict): {tag: name}
             subbsin_tree: up-down stream relationships of subbasins.
                           {subbsnID: {'upstream': [], 'downstream': []}}
-            units_updown_info: Output json data of slope position units.
+            units_updwon: Output json data of slope position units.
                 {"slppos_1": {id:{"downslope": [ids], "upslope": [ids], "landuse": {luID: area}
                                   "hillslope": [hillslpID], "subbasin": [subbsnID], "area": area
                                  }
@@ -60,7 +74,7 @@ class SlopePositionUnits(object):
                  "slppos_2": ...
                 }
         """
-        # Check the file existance
+        # Check the file existence
         FileClass.check_file_exists(slpposf)
         FileClass.check_file_exists(reach_shp)
         FileClass.check_file_exists(hillslpf)
@@ -69,7 +83,7 @@ class SlopePositionUnits(object):
         self.ws = os.path.dirname(slpposf)
         tag_names = sorted(tag_names, key=lambda x: x[0])
         # initialize slope position dict with up-down relationships
-        self.slppos_tags = OrderedDict()
+        self.slppos_tags = OrderedDict()  # type: Dict[int, Dict[AnyStr, Union[int, AnyStr]]]
         for idx, tagname in enumerate(tag_names):
             tag, name = tagname
             if len(tag_names) > 1:
@@ -111,12 +125,12 @@ class SlopePositionUnits(object):
 
         # Set intermediate data
         self.subbsin_num = -1
-        self.subbsin_tree = dict()
-        self.units_updwon = OrderedDict()
+        self.subbsin_tree = dict()  # type: Dict[int, int]  # {subbsnID: dst_subbsnID}
+        self.units_updwon = OrderedDict()  # type: Dict[AnyStr, Dict[int, Dict[AnyStr, Union[List[float], AnyStr]]]]
         for tag in self.slppos_tags:
             self.units_updwon[self.slppos_tags.get(tag).get('name')] = dict()
         self.slppos_ids = numpy.ones((self.nrows, self.ncols)) * DEFAULT_NODATA
-        self.hierarchy_units = dict()
+        self.hierarchy_units = dict()  # type: Dict[int, Dict[int, Dict[AnyStr, int]]]
 
         # Set gene_values of outputs
         self.outf_units_origin = self.ws + os.path.sep + 'slppos_units_origin_uniqueid.tif'
@@ -128,15 +142,17 @@ class SlopePositionUnits(object):
 
     def extract_subbasin_updown(self):
         """Extract the up-down relationship of subbasins."""
-        self.subbsin_tree = ImportReaches2Mongo.read_reach_downstream_info(self.reach)
-        self.subbsin_num = len(self.subbsin_tree)
+        subbsn_info = ImportReaches2Mongo.read_reach_downstream_info(self.reach)
+        for k, v in viewitems(subbsn_info):
+            self.subbsin_tree.setdefault(k, v['downstream'])
+        self.subbsin_num = len(self.subbsin_tree)  # type: int
 
     def assign_uniqueid_slppos_units(self):
         """Get unique ID by multiply slope position value and hillslope ID"""
         for m in range(self.nrows):
             for n in range(self.ncols):
                 if self.data_slppos[m][n] == self.nodata_slppos or \
-                                self.data_hillslp[m][n] == self.nodata_hillslp:
+                    self.data_hillslp[m][n] == self.nodata_hillslp:
                     continue
                 cur_slppos = int(self.data_slppos[m][n])
                 cur_spname = self.slppos_tags.get(cur_slppos).get('name')
@@ -203,6 +219,7 @@ class SlopePositionUnits(object):
 
     @staticmethod
     def check_slppos_sequence(seqs, slppos_tags):
+        # type: (List[int], Dict[int, AnyStr]) -> bool
         """Check the slope position sequence is complete or not."""
         flag = True
         for tag in slppos_tags:
@@ -233,7 +250,7 @@ class SlopePositionUnits(object):
                         hillslp_elim[cur_hillslp_id] = [unitid]
                 if cur_hillslp_id in hillslp_elim and unitid not in hillslp_elim[cur_hillslp_id]:
                     hillslp_elim[cur_hillslp_id].append(unitid)
-        print('Hillslope with incomplete slope position sequences: ' + hillslp_elim.__str__())
+        print('Hillslope with incomplete slope position sequences: %s' % hillslp_elim.__str__())
         # Basic procedure:
         #   1. if header is incomplete, search left and right;
         #      if left/right is incomplete, search header and right/left;
@@ -249,7 +266,7 @@ class SlopePositionUnits(object):
             # slope positions that existed in current hillslope
             sp_seq = list()
             for _id in unitids:
-                _id /= hillid
+                _id //= hillid
                 if _id not in sp_seq:
                     sp_seq.append(_id)
 
@@ -279,7 +296,8 @@ class SlopePositionUnits(object):
                         if v == subbsnid:
                             dst_subbsn = k
                             break
-                if dst_subbsn > 0:  # although dst_subbsn may not less than 0, just make sure that!
+                # although dst_subbsn may not less than 0, just make sure that!
+                if dst_subbsn > 0:
                     dst_hillids = DelineateHillslope.cal_hs_codes(self.subbsin_num, dst_subbsn)
                     dst_downstream_hs = dst_hillids[downstream_merge_idx[idx]]
                     for _id in sp_seq:
@@ -288,7 +306,7 @@ class SlopePositionUnits(object):
                             cur_units_pair[_id * hillid] = dst_unit
                 units_pair.update(cur_units_pair)
 
-        print('Slope position unit merge-destination pairs: ' + units_pair.__str__())
+        print('Slope position unit merge-destination pairs: %s' % units_pair.__str__())
 
         # begin to merge
         for srcid, dstid in units_pair.items():
@@ -348,8 +366,8 @@ class SlopePositionUnits(object):
     def output(self, jfile, unitraster, unitshp):
         """output json file and slope position units raster file"""
         json_updown_data = json.dumps(self.units_updwon, indent=4)
-        with open(jfile, 'w') as f:
-            f.write(json_updown_data)
+        with open(jfile, 'w', encoding='utf-8') as f:
+            f.write('%s' % json_updown_data)
         RasterUtilClass.write_gtiff_file(unitraster, self.nrows, self.ncols,
                                          self.slppos_ids, self.geotrans, self.srs,
                                          DEFAULT_NODATA, self.datatype)
@@ -369,7 +387,6 @@ class SlopePositionUnits(object):
 
 def main():
     """Delineation slope position units with the associated information."""
-    # inputs from preprocess
     from preprocess.config import parse_ini_configuration
     seims_cfg = parse_ini_configuration()
 

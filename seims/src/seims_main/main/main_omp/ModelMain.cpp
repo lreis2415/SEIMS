@@ -55,10 +55,6 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
                 m_channelModules.emplace_back(i);
                 break;
             }
-            case TIMESTEP_ECOLOGY: {
-                m_ecoModules.emplace_back(i);
-                break;
-            }
             case TIMESTEP_SIMULATION: {
                 m_overallModules.emplace_back(i);
                 break;
@@ -69,7 +65,7 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
     /// Check the validation of settings of output files, i.e. available of parameter and time ranges
     CheckAvailableOutput();
     /// Update model data if the scenario has requested.
-    m_dataCenter->UpdateParametersByScenario(m_dataCenter->GetSubbasinID()); /// TODO
+    m_dataCenter->UpdateParametersByScenario(m_dataCenter->GetSubbasinID());
 }
 
 void ModelMain::StepHillSlope(const time_t t, const int year_idx, const int sub_index) {
@@ -144,11 +140,6 @@ void ModelMain::Execute() {
             cout << "Simulation year: " << startYear + yearIdx << endl;
         }
         StatusMessage(ConvertToString2(t).c_str());
-#ifdef _DEBUG
-        if (StringMatch(ConvertToString(t), "2014-03-30")) {
-            cout << "Debugging..." << endl;
-        }
-#endif
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }

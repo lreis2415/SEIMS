@@ -141,7 +141,6 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskNoPosExt, RasterIO) {
     EXPECT_FLOAT_EQ(25.f, rs_->GetYllCenter());
     EXPECT_FLOAT_EQ(2.f, rs_->GetCellWidth());
     EXPECT_EQ(3, rs_->GetLayers());
-    EXPECT_STREQ("", rs_->GetSrs());
     EXPECT_EQ("", rs_->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap2D **/
@@ -232,6 +231,8 @@ TEST_P(clsRasterDataTestMultiPosIncstMaskNoPosExt, RasterIO) {
         EXPECT_FLOAT_EQ(8.43900000f, mongors->GetAverage(3));
         // output to asc/tif file for comparison
         EXPECT_TRUE(mongors->OutputToFile(newfullname4mongo));
+
+        delete gfs;
     }
 #endif
 

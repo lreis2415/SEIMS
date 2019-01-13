@@ -1,8 +1,8 @@
 /*!
+ * \file BMPPointSourceFactory.h
  * \brief Point source pollution and BMP factory
  * \author Liang-Jun Zhu
  * \date July 2016
- *
  */
 #ifndef SEIMS_BMP_POINTSOURCE_H
 #define SEIMS_BMP_POINTSOURCE_H
@@ -15,9 +15,7 @@ using namespace bmps;
 
 namespace bmps {
 /*!
- * \class PointSourceLocations
- * \ingroup MainBMP
- *
+ * \class bmps::PointSourceLocations
  * \brief Base class of point BMP, mainly store location related parameters
  *
  */
@@ -85,9 +83,7 @@ private:
 };
 
 /*!
- * \class PointSourceMgtParams
- * \ingroup MainBMP
- *
+ * \class bmps::PointSourceMgtParams
  * \brief Point source management parameters
  *
  */
@@ -180,9 +176,7 @@ private:
 };
 
 /*!
- * \class BMPPointSrcFactory
- * \ingroup MainBMP
- *
+ * \class bmps::BMPPointSrcFactory
  * \brief Base class of point source BMPs.
  * Actually, include point pollution sources, such as sewage outlet of animal farm.
  *

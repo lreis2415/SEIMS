@@ -1,16 +1,19 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Extract spatial soil parameters
+
     @author   : Liangjun Zhu, Junzhi Liu, Huiran Gao, Fang Shen
-    @changelog: 13-01-10  jz - initial implementation
-                16-07-22  lj - Names and units of soil physical parameter are referred to
-                               readsol.f, soil_par.f, and soil_phys.f in SWAT
-                             - Data validation checking is also conducted.
-                16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize as basic class
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 13-01-10  jz - initial implementation
+    - 16-07-22  lj - Names and units of soil physical parameter are referred to
+                     readsol.f, soil_par.f, and soil_phys.f in SWAT.
+                     Data validation checking is also conducted.
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize as basic class
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import math
 import os
@@ -23,8 +26,8 @@ from osgeo.gdal import GDT_Float32
 from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import StringClass
 
-from preprocess.utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
-from preprocess.utility import status_output, read_data_items_from_txt
+from utility import DEFAULT_NODATA, UTIL_ZERO, MINI_SLOPE
+from utility import status_output, read_data_items_from_txt
 
 
 class SoilProperty(object):
@@ -234,7 +237,8 @@ class SoilProperty(object):
                 self.SOILTHICK.append(self.SOILDEPTH[lyr])
             else:
                 self.SOILTHICK.append(self.SOILDEPTH[lyr] - self.SOILDEPTH[lyr - 1])
-        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]:
+        if self.SOL_ZMX == DEFAULT_NODATA or self.SOL_ZMX > self.SOILDEPTH[-1]\
+            or self.SOL_ZMX < self.SOILDEPTH[-1]:
             self.SOL_ZMX = self.SOILDEPTH[-1]
         if self.ANION_EXCL == DEFAULT_NODATA:
             self.ANION_EXCL = 0.5
@@ -336,8 +340,8 @@ class SoilProperty(object):
             elif not self.FIELDCAP:
                 self.FIELDCAP = tmp_fc_bdeffect[:]
         if self.AWC and len(self.AWC) != self.SOILLAYERS:
-            raise IndexError(
-                    "Available water capacity must have the size equal to soil layers number!")
+            raise IndexError("Available water capacity must have the size equal to"
+                             " soil layers number!")
         elif not self.AWC:
             for i in range(self.SOILLAYERS):
                 self.AWC.append(self.FIELDCAP[i] - self.WILTINGPOINT[i])
@@ -573,7 +577,7 @@ class SoilUtilClass(object):
         based on the soil texture triangle developed by USDA.
         The unit is percentage, silt + sand + clay [+ Rock] = 100.
             The corresponding default soil parameters (e.g. Ks, porosity) are stored in
-        `seims/database/SoilLookup.txt`.
+        `seims/database/SoilLookup.csv`.
         Args:
             clay: clay content percentage
             silt: silt content percentage

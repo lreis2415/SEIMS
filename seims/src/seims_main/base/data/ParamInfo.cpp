@@ -64,8 +64,8 @@ float ParamInfo::GetAdjustedValue(const float pre_value /* = NODATA_VALUE */) {
         //don't change
         return res;
     }
-    if (res > Maximum) res = Maximum;
-    if (res < Minimun) res = Minimun;
+    if (!FloatEqual(Maximum, NODATA_VALUE) && res > Maximum) res = Maximum;
+    if (!FloatEqual(Minimun, NODATA_VALUE) && res < Minimun) res = Minimun;
     return res;
 }
 

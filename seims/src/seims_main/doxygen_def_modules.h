@@ -2,6 +2,7 @@
  * \brief Base modules, e.g., data, util, module_setting
  *
  */
+
 /** \defgroup data
  * \ingroup Base
  * \brief Include data related classes, e.g. Measurement, HydroClimateData etc.
@@ -9,17 +10,21 @@
  */
 /** \defgroup util
  * \ingroup Base
- * \brief Include classes of MetadataInfo, ModelException and SimulationModule et al.
+ * \brief Utility class for module metadata information, parameter information, etc.
  *
  */
 /** \defgroup module_setting
  * \ingroup Base
- * \brief Setting for SEIMS
+ * \brief Module settings for SEIMS
  *
  */
-/** \defgroup bmps
+/** \defgroup common_algorithm
  * \ingroup Base
- * \brief BMPs related settings
+ * \brief Common used algorithms.
+ */
+/** \defgroup scenarios
+ * \ingroup Base
+ * \brief BMPs scenarios related.
  *
  */
 
@@ -27,6 +32,7 @@
  * \brief Entrance for SEIMS
  *
  */
+
 /** \defgroup seims_omp
  * \ingroup Main
  * \brief SEIMS OpenMP version
@@ -34,7 +40,7 @@
  */
 /** \defgroup seims_mpi
  * \ingroup Main
- * \brief SEIMS MPI version
+ * \brief SEIMS MPI&OpenMP version
  *
  */
 
@@ -51,13 +57,7 @@
 
 /** \defgroup Hydrology
  * \ingroup Modules
- * \brief Hydrology related modules, include storm processes.
- *
- */
-
-/** \defgroup Hydrology_longterm
- * \ingroup Modules
- * \brief Longterm hydrology related modules
+ * \brief Hydrology related modules
  *
  */
 
@@ -78,6 +78,7 @@
  * \brief Ecology related modules
  *
  */
+
 /** \defgroup Management
  * \ingroup Modules
  * \brief BMPs or NPS related modules

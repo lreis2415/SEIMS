@@ -42,9 +42,8 @@ void Subbasin::SetCellList(const int n_cells, int* cells) {
     cells_ = cells;
 }
 
-// Note: Since slope is calculated by drop divided by distance in TauDEM,
-//		 the average should be calculated after doing atan().
-//		 By LJ, 2016-7-27
+// Note: Since slope is calculated by drop/distance in TauDEM,
+//		 the average should be calculated after doing atan(). By LJ, 2016-7-27
 void Subbasin::SetSlope(float* slope) {
     float slope_sum = 0.f;
 #pragma omp parallel for reduction(+: slope_sum)
@@ -111,8 +110,7 @@ clsSubbasins::clsSubbasins(map<string, FloatRaster *>& rs_map, const int prefix_
     SetSlopeCoefficient(slope_data);
 }
 
-clsSubbasins* clsSubbasins::Init(MongoGridFs* spatial_data, map<string,FloatRaster *>& rs_map,
-                                 const int prefix_id) {
+clsSubbasins* clsSubbasins::Init(map<string,FloatRaster *>& rs_map, const int prefix_id) {
     /// Mask raster data is prerequisite.
     vector<string> rs_names;
     std::ostringstream oss;
@@ -131,21 +129,10 @@ clsSubbasins* clsSubbasins::Init(MongoGridFs* spatial_data, map<string,FloatRast
     rs_names.emplace_back(GetUpper(oss.str()));
 
     for (auto it = rs_names.begin(); it != rs_names.end(); ++it) {
-        if (rs_map.find(*it) != rs_map.end()) continue;
-        FloatRaster* tmp_raster = nullptr;
-        tmp_raster = FloatRaster::Init(spatial_data, (*it).c_str(), true, rs_map[mask_file_name]);
-        assert(nullptr != tmp_raster);
-        int n_cells = -1;
-        float* rs_values = nullptr;
-        if (!tmp_raster->GetRasterData(&n_cells, &rs_values)) {
-            cout << "Subbasin data loaded failed!" << endl;
+        if (rs_map.find(*it) == rs_map.end()) {
+            cout << *it << " data is required to build clsSubbasins!" << endl;
             return nullptr;
         }
-#ifdef HAS_VARIADIC_TEMPLATES
-        rs_map.emplace(*it, tmp_raster);
-#else
-        rs_map.insert(make_pair(*it, tmp_raster));
-#endif
     }
     return new clsSubbasins(rs_map, prefix_id);
 }

@@ -1,22 +1,27 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import all model parameters and spatial datasets to MongoDB
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reformat according to pylint and google style
-                17-07-07  lj - remove sqlite3 database file as intermediate data
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-26  lj - reformat according to pylint and google style
+    - 17-07-07  lj - remove sqlite3 database file as intermediate data
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from pygeoc.utils import UtilClass
 
-from preprocess.bmp_import_scenario import ImportScenario2Mongo
+from utility import status_output
+from preprocess.db_import_bmpscenario import ImportScenario2Mongo
 from preprocess.db_import_interpolation_weights import ImportWeightData
 from preprocess.db_import_meteorology import ImportMeteoData
 from preprocess.db_import_model_parameters import ImportParam2Mongo
@@ -27,7 +32,6 @@ from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from preprocess.db_mongodb import ConnectMongoDB, MongoQuery
 from preprocess.sp_extraction import extract_spatial_parameters
 from preprocess.text import DBTableNames, SubbsnStatsName
-from preprocess.utility import status_output
 
 
 class ImportMongodbClass(object):
@@ -48,36 +52,25 @@ class ImportMongodbClass(object):
     def spatial_rasters(cfg, subbasin_num):
         """Import spatial raster data."""
         if subbasin_num == 0:  # the whole basin!
-            start_id = 0
             subbasin_file = cfg.spatials.mask
         else:
-            start_id = 1
             subbasin_file = cfg.spatials.subbsn
         str_cmd = '"%s/import_raster" %s %s %s %s %s %d' % (cfg.seims_bin, subbasin_file,
                                                             cfg.dirs.geodata2db,
                                                             cfg.spatial_db,
                                                             DBTableNames.gridfs_spatial,
                                                             cfg.hostname, cfg.port)
-
-        # I recommend not output to directory. lj
-        # UtilClass.mkdir(cfg.dirs.import2db)
-        # for i in range(start_id, subbasin_num + 1):
-        #     subdir = cfg.dirs.import2db + os.path.sep + str(i)
-        #     UtilClass.rmmkdir(subdir)
-        # str_cmd = '%s %s' % (str_cmd, cfg.dirs.import2db)
         UtilClass.run_command(str_cmd)
 
     @staticmethod
     def iuh(cfg, n_subbasins):
         """Invoke IUH program"""
-        if cfg.gen_iuh:
-            dt = 24
-            str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
-                                                      cfg.spatial_db,
-                                                      DBTableNames.gridfs_spatial,
-                                                      dt, n_subbasins)
-            # print(str_cmd)
-            UtilClass.run_command(str_cmd)
+        dt = 24
+        str_cmd = '"%s/iuh" %s %d %s %s %s %d' % (cfg.seims_bin, cfg.hostname, cfg.port,
+                                                  cfg.spatial_db,
+                                                  DBTableNames.gridfs_spatial,
+                                                  dt, n_subbasins)
+        UtilClass.run_command(str_cmd)
 
     @staticmethod
     def grid_layering(cfg, n_subbasins):

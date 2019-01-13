@@ -46,27 +46,6 @@ bool SEIMSModuleSetting::needDoVerticalInterpolation() {
     return iIsDoVerticalInterpolation != 0;
 }
 
-string SEIMSModuleSetting::channelRoutingMethod(int methodIndex) {
-    if (!StringMatch(m_moduleId, "ChannelRouting")) { return ""; }
-    if (CVT_INT(m_settings.size()) < methodIndex + 1) {
-        throw ModelException("SEIMSModuleSetting", "needDoVerticalInterpolation", "Module " + m_moduleId +
-                             " does not appoint vertical interpolation in the third column.");
-    }
-    return m_settings.at(methodIndex);
-}
-
-string SEIMSModuleSetting::channelFlowRoutingMethod() {
-    return channelRoutingMethod(1);
-}
-
-string SEIMSModuleSetting::channelSedimentRoutingMethod() {
-    return channelRoutingMethod(2);
-}
-
-string SEIMSModuleSetting::channelNutrientRoutingMethod() {
-    return channelRoutingMethod(3);
-}
-
 float SEIMSModuleSetting::dataTypeString2Float(const string& data_type) {
     if (StringMatch(data_type, DataType_Precipitation)) return 1.0f;
     if (StringMatch(data_type, DataType_MeanTemperature)) return 2.0f;

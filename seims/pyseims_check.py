@@ -1,7 +1,9 @@
 """
    This file is part of SEIMS and for checking the dependent packages.
-
+   TODO: Update accordingly!
 """
+from __future__ import absolute_import, unicode_literals
+
 # 1. pygeoc
 try:
     import pygeoc

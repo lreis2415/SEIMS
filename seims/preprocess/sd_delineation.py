@@ -7,10 +7,11 @@
                 17-06-23  lj - reorganize as basic class
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+from io import open
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -25,9 +26,10 @@ from pygeoc.raster import RasterUtilClass
 from pygeoc.utils import FileClass, UtilClass
 from pygeoc.vector import VectorUtilClass
 
+from utility import DEFAULT_NODATA
+from preprocess.sd_connected_field import connected_field_partition_wu2018
 from preprocess.sd_hillslope import DelineateHillslope
 from preprocess.text import FieldNames
-from preprocess.utility import DEFAULT_NODATA
 
 
 class SpatialDelineation(object):
@@ -79,12 +81,12 @@ class SpatialDelineation(object):
         # write mask configuration file
         n = len(originalfiles)
         # write mask config file
-        with open(configfile, 'w') as f:
-            f.write(maskfile + '\n')
+        with open(configfile, 'w', encoding='utf-8') as f:
+            f.write('%s\n' % maskfile)
             f.write('%d\n' % (n,))
             for i in range(n):
                 s = '%s\t%d\t%s\n' % (originalfiles[i], default_values[i], outputfiles[i])
-                f.write(s)
+                f.write('%s' % s)
         # run command
         UtilClass.run_command('"%s/mask_raster" %s' % (bin_dir, configfile))
 
@@ -225,29 +227,6 @@ class SpatialDelineation(object):
                                          ds.noDataValue, GDT_Float32)
 
     @staticmethod
-    def field_partition(cfg):
-        """Fields partition incorporating spatial topology.
-
-        Refers to: Wu, Hui, A.-Xing Zhu, Jun-Zhi Liu, Yong-Bo Liu, and Jing-Chao Jiang. 2017.
-                     "Best Management Practices Optimization at Watershed Scale: Incorporating
-                      Spatial Topology among Fields." Water Resources Management,
-                      doi: 10.1007/s11269-017-1801-8.
-        """
-        if not cfg.fields_partition:  # Do field partition
-            return
-        maskf = cfg.spatials.mask
-        streamf = cfg.spatials.stream_link
-        flowf = cfg.spatials.d8flow
-        luf = cfg.spatials.landuse
-        demf = cfg.spatials.filldem
-        threshs = cfg.fields_partition_thresh
-        for thresh in threshs:
-            # run command
-            UtilClass.run_command('"%s/fieldpartition" -mask %s -stream %s '
-                                  '-flow %s -lu %s -dem %s -t %d' % (cfg.seims_bin, maskf, streamf,
-                                                                     flowf, luf, demf, thresh))
-
-    @staticmethod
     def workflow(cfg):
         """Subbasin delineation workflow"""
         # 1. Originally delineated by TauDEM
@@ -257,11 +236,13 @@ class SpatialDelineation(object):
         # 3. Post processing, such as serialize stream ID, mask dataset etc.
         SpatialDelineation.post_process_of_delineated_data(cfg)
         # 4. Convert current coordinate to WGS84 and convert shapefile to GeoJson.
-        SpatialDelineation.output_wgs84_geojson(cfg)
+        # todo: convert to geojson may failed in Windows for some reason caused by compiled GDAL.
+        #       since the geojson is not used for further purpose, comment it!
+        # SpatialDelineation.output_wgs84_geojson(cfg)
         # 5. Convert to WGS84 coordinate and output latitude raster.
         SpatialDelineation.generate_lat_raster(cfg)
         # 6. Field partition based on spatial topology
-        SpatialDelineation.field_partition(cfg)
+        connected_field_partition_wu2018(cfg)
 
 
 def main():

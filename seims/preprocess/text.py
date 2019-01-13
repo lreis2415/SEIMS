@@ -6,40 +6,28 @@
                 17-06-23  lj - reorganize as basic class other than Global variables
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from os import sep as SEP
 
 
-class ModelNameUtils(object):
-    """Simulation Model related tags"""
-    Model = 'model'
-    # Cluster = 'cluster'
-    Mode = 'MODE'
-    Storm = 'STORM'
-    Daily = 'DAILY'
-    StormClimateDBSuffix = 'storm'
-
-    # @staticmethod
-    # def standardize_spatial_dbname(is4cluster, is4storm, spatialdbname):
-    #     """standardize spatial database name"""
-    #     if is4cluster and ModelNameUtils.Cluster not in spatialdbname.lower():
-    #         spatialdbname = ModelNameUtils.Cluster + '_' + spatialdbname
-    #     if is4storm:
-    #         if not ModelNameUtils.Storm.lower() in spatialdbname.lower():
-    #             spatialdbname = spatialdbname + '_' + ModelNameUtils.Storm.lower()
-    #     if not ModelNameUtils.Model in spatialdbname.lower():
-    #         spatialdbname = ModelNameUtils.Model + '_' + spatialdbname
-    #     if is4cluster and (not ModelNameUtils.Cluster.lower() in spatialdbname.lower()):
-    #         spatialdbname = ModelNameUtils.Cluster.lower() + '_' + spatialdbname
-    #     return spatialdbname
-
-    @staticmethod
-    def standardize_climate_dbname(climatedbname):
-        """standardize climate database name"""
-        if climatedbname is not None:
-            climatedbname = climatedbname + '_' + ModelNameUtils.StormClimateDBSuffix
-        return climatedbname
+# This is intended to be deprecated, since one database is desirable
+#   for both storm and daily models. By lj. 2018-8-23
+# class ModelNameUtils(object):
+#     """Simulation Model related tags"""
+#     Model = 'model'
+#     # Cluster = 'cluster'
+#     Mode = 'MODE'
+#     Storm = 'STORM'
+#     Daily = 'DAILY'
+#     StormClimateDBSuffix = 'storm'
+#
+#     @staticmethod
+#     def standardize_climate_dbname(climatedbname):
+#         """standardize climate database name"""
+#         if climatedbname is not None:
+#             climatedbname = climatedbname + '_' + ModelNameUtils.StormClimateDBSuffix
+#         return climatedbname
 
 
 class ModelCfgUtils(object):
@@ -83,16 +71,16 @@ class DirNameUtils(object):
 class ModelParamDataUtils(object):
     """Model parameters data file related.
     """
-    _INIT_PARAM_NAME = 'model_param_ini.txt'
-    _INIT_OUTPUTS_NAME = 'AvailableOutputs.txt'
+    _INIT_PARAM_NAME = 'model_param_ini.csv'
+    _INIT_OUTPUTS_NAME = 'AvailableOutputs.csv'
     Tag_Params = 'param'
     Tag_Lookup = 'lookup'
-    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.txt',
-                    'LanduseLookup': 'LanduseLookup.txt',
-                    'TillageLookup': 'TillageLookup.txt',
-                    'UrbanLookup': 'UrbanLookup.txt',
-                    'CropLookup': 'CropLookup.txt',
-                    'FertilizerLookup': 'FertilizerLookup.txt'}
+    _LOOKUP_DICT = {'SoilLookup': 'SoilLookup.csv',
+                    'LanduseLookup': 'LanduseLookup.csv',
+                    'TillageLookup': 'TillageLookup.csv',
+                    'UrbanLookup': 'UrbanLookup.csv',
+                    'CropLookup': 'CropLookup.csv',
+                    'FertilizerLookup': 'FertilizerLookup.csv'}
 
     # CROP, LANDUSE attributes(fields)
     # Match to the new lookup table of SWAT 2012 rev.637. lj
@@ -270,7 +258,8 @@ class SpatialNamesUtils(object):
     _DAYLMIN = 'dayLenMin.tif'
     _DORMHR = 'dormhr.tif'
     _DIST2STREAMD8M = 'dist2Stream.tif'
-    _CHWIDTH = 'chwidth.tif'
+    _CHWIDTH = 'ch_width.tif'
+    _CHDEPTH = 'ch_depth.tif'
     _LANDUSEMFILE = 'landuse.tif'
     _CROPMFILE = 'LANDCOVER.tif'  # added by LJ.
     _SOILTYPEMFILE = 'soiltype.tif'
@@ -311,6 +300,7 @@ class SpatialNamesUtils(object):
         self.dorm_hr = spa_dir + SEP + self._DORMHR
         self.dist2stream_d8 = spa_dir + SEP + self._DIST2STREAMD8M
         self.chwidth = spa_dir + SEP + self._CHWIDTH
+        self.chdepth = spa_dir + SEP + self._CHDEPTH
         self.landuse = spa_dir + SEP + self._LANDUSEMFILE
         self.crop = spa_dir + SEP + self._CROPMFILE
         self.soil_type = spa_dir + SEP + self._SOILTYPEMFILE
@@ -394,6 +384,7 @@ class DBTableNames(object):
     """Predefined MongoDB database collection names."""
     # Main model database
     gridfs_spatial = 'SPATIAL'
+    gridfs_output = 'OUTPUT'
     main_sitelist = 'SITELIST'
     main_parameter = 'PARAMETERS'
     main_filein = 'FILE_IN'
@@ -405,3 +396,5 @@ class DBTableNames(object):
     observes = 'MEASUREMENT'
     var_desc = 'VARIABLES'
     sites = 'SITES'
+    # BMPs scenario database
+    scenarios = 'BMP_SCENARIOS'

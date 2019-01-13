@@ -1,13 +1,19 @@
 /*!
+ * \file AET_PriestleyTaylorHargreaves.h
  * \brief Potential plant transpiration for Priestley-Taylor and Hargreaves ET methods
  * and potential and actual soil evaporation.
- * Code from SWAT, etact.f
+ *
+ * Code from etact.f of SWAT source.
+ *
+ * Changelog:
+ *   - 1. 2016-07-15 - lj -
+ *      -# Code reformat with common functions, such as Release1DArray.
+ *      -# VAR_SNSB should be output other than input.
+ *   - 2. 2018-05-07 - lj - Reformat code style.
+ *   - 3. 2018-06-26 - lj - Bug fixed when pet less than intercept ET.
+ *
  * \author Liang-Jun Zhu
  * \date May 2016
- * \changelog: 2016-07-15 - lj - 1. Code reformat with common functions, such as Release1DArray.\n
- *                               2. VAR_SNSB should be output other than input.\n
- *             2018-05-07 - lj - Reformat code style.\n
- *             2018-06-26 - lj - Bug fixed when pet less than intercept ET.\n
  */
 #ifndef SEIMS_MODULE_AET_PTH_H
 #define SEIMS_MODULE_AET_PTH_H
@@ -65,6 +71,7 @@ private:
     //! initialize outputs
     void InitialOutputs();
 private:
+
     /// landuse
     float* m_landuse;
     /// Crop stage,0=before sowing; 1=sowing; 2=in seedbed; 3=day of transplanting; 4=main growth period, should be get value at PLTMGT_SWAT
@@ -73,48 +80,31 @@ private:
     float* m_impoundTrig;
     /// pothole volume, mm
     float* m_potVol;
-    /// valid cells number
-    int m_nCells;
-    /// leaf area index(m^2/m^2)
-    float* m_lai;
-    /// potential evapotranspiration on current day
-    float* m_pet;
-    /// Evaporation loss from canopy storage
-    float* m_IntcpET;
-    /// depression storage capacity, not used!
-    ///float* m_depSt;
-    /// soil evaporation compensation factor, if not set or existed, it will be assigned 0.95 as default.
-    /// esco should be vary from 0.01 to 1.0
-    float* m_esco;
-    /// soil layers
-    float* m_nSoilLyrs;
-    /// maximum soil layers, mlyr in SWAT
-    int m_maxSoilLyrs;
-    /// soil depth
-    float** m_soilDepth;
-    /// soil thickness
-    float** m_soilThk;
-    /// amount of water available to plants in soil layer at field capacity (FC-WP)
-    float** m_solFC;
-    /// amount of residue on soil surface (kg/ha)
-    float* m_rsdCovSoil;
-    /// amount of nitrogen stored in the nitrate pool
-    float** m_solNo3;
-    /// mean air temperature (deg C)
-    float* m_tMean;
-    /// amount of water in snow on current day
-    float* m_snowAccum;
-    /// snow sublimation on current day
-    float* m_snowSublim;
-    /// soil storage of each soil layer, mm H2O
-    float** m_soilWtrSto;
-    /// soil water storage in soil profile (mm)
-    float* m_soilWtrStoPrfl;
-    /// add output variables
 
-    /// maximum amount of transpiration (plant et) that can occur on current day, ep_max in SWAT
-    float* m_maxPltET;
-    /// actual amount of evaporation (soil et) that occurs on day, es_day in SWAT
-    float* m_soilET;
+    // Parameters from database
+    int m_nCells;      ///< valid cells number
+    int m_maxSoilLyrs; ///< maximum soil layers, mlyr in SWAT
+
+    float* m_esco;       ///< soil evaporation compensation factor, 0.01-1.0, default of 0.9
+    float* m_nSoilLyrs;  ///< soil layers
+    float** m_soilDepth; ///< soil depth
+    float** m_soilThk;   ///< soil thickness
+    float** m_solFC;     ///< amount of water available to plants in soil layer at field capacity (FC-WP)
+    float* m_rsdCovSoil; ///< amount of residue on soil surface (kg/ha)
+    float** m_solNo3;    ///< amount of nitrogen stored in the nitrate pool
+
+    // Inputs from other modules
+    float* m_tMean;          ///< mean air temperature (deg C)
+    float* m_lai;            ///< leaf area index(m^2/m^2)
+    float* m_pet;            ///< potential evapotranspiration
+    float* m_IntcpET;        ///< Evaporation loss from canopy storage
+    float* m_snowAccum;      ///< amount of water in snow
+    float* m_snowSublim;     ///< snow sublimation
+    float** m_soilWtrSto;    ///< soil storage of each soil layer (mm), sol_st in SWAT
+    float* m_soilWtrStoPrfl; ///< soil water storage in soil profile (mm), sol_sw in SWAT
+
+    // Outputs
+    float* m_maxPltET; ///< maximum amount of transpiration (plant et), ep_max in SWAT
+    float* m_soilET;   ///< actual amount of evaporation (soil et), es_day in SWAT
 };
 #endif /* SEIMS_MODULE_AET_PTH_H */

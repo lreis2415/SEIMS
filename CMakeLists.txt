@@ -7,15 +7,15 @@
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2010/2013, mongo-c-driver-1.5.5, GDAL-1.11.4
-#     2. Windows 10 with mingw64 (GCC-4.9.3), mongo-c-driver-1.8.1, GDAL-1.11.5
+#     2. Windows 10 with mingw64 (GCC-8.2.0), mongo-c-driver-1.6.1, GDAL-2.3.2
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.6.1, GDAL-1.11.5 (Without UnitTest)
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 4, 2018
+#  Latest updated: Nov. 14, 2018
 #
-#  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS
+#  Copyright (C) 2013-2018 Lreis, IGSNRR, CAS, and NJNU
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -31,6 +31,10 @@ endif()
 if(POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
+
 ### Set coding language
 PROJECT(SEIMS_ALL CXX C)
 ### SEIMS Version.
@@ -84,6 +88,7 @@ ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc" CACHE PATH "Path to the documentation")
 
 ### In case of Makefiles if the user does not setup CMAKE_BUILD_TYPE, assume it's Release.
 IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -117,6 +122,8 @@ ENDIF()
 option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
+# Build documatation by doxygen
+option(SEIMS_BUILD_DOC "Build SEIMS documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -146,12 +153,28 @@ INCLUDE(SetFlagOpenMP)
 INCLUDE(SetFlagGDAL)
 
 ### Bson and MongoC.
+IF(BSON_ROOT)
+  SET(ENV{BSON_ROOT} ${BSON_ROOT})
+  SET(ENV{BSON_DIR} ${BSON_ROOT})
+  SET(ENV{BSON_ROOT_DIR} ${BSON_ROOT})
+ENDIF()
+IF(MONGOC_ROOT)
+  SET(ENV{MONGOC_ROOT} ${MONGOC_ROOT})
+  SET(ENV{MONGOC_DIR} ${MONGOC_ROOT})
+  SET(ENV{MONGOC_ROOT_DIR} ${MONGOC_ROOT})
+ENDIF()
 INCLUDE(FindBson)
 INCLUDE(FindMongoC)
 
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
+IF(SEIMS_BUILD_DOC)
+  ADD_SUBDIRECTORY(./doc)
+  ADD_CUSTOM_TARGET(travis_doc)
+  ADD_CUSTOM_COMMAND(TARGET travis_doc
+                     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/doc/travis-doxygen.sh)
+ENDIF()
 
 ### Build platform.
 STATUS("")

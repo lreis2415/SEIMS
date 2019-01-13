@@ -13,7 +13,7 @@
 
 #include "parallel.h"
 #include "TaskInformation.h"
-#include "LoadParallTasks.h"
+#include "LoadParallelTasks.h"
 
 using namespace utils_time;
 using namespace utils_array;
@@ -163,9 +163,9 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
         sim_loop_num += 1;
         act_loop_num += 1;
 #ifdef _DEBUG
-        cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
+        //cout << ConvertToString2(ts) << ", sim_loop_num: " << sim_loop_num << endl;
         if (StringMatch(ConvertToString(ts), "2014-03-30")) {
-            cout << "Debugging..." << endl;
+        //    cout << "Debugging..." << endl;
         }
 #endif
         int year_idx = GetYear(ts) - start_year;
@@ -402,7 +402,8 @@ void CalculateProcess(InputArgs* input_args, const int rank, const int size) {
                     StatusMessage(("Combining raster: " + item->Corename).c_str());
                     CombineRasterResultsMongo(gfs, item->Corename,
                                               data_center_map.begin()->second->GetSubbasinsCount(),
-                                              data_center_map.begin()->second->GetOutputScenePath());
+                                              data_center_map.begin()->second->GetOutputScenePath(),
+                                              input_args->scenario_id, input_args->calibration_id);
                 }
             }
         }

@@ -1,17 +1,21 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Meteorological daily data import, and calculate related statistical values
+
     @author   : Liangjun Zhu, Junzhi Liu, Fang Shen
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-26  lj - reorganize according to pylint and google style
-                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
-                17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-26  lj - reorganize according to pylint and google style
+    - 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
+    - 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
+
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
@@ -21,10 +25,10 @@ from datetime import timedelta
 from pygeoc.utils import DateClass, StringClass
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType, VariableDesc
-from preprocess.utility import read_data_items_from_txt, DEFAULT_NODATA, PI
 
 
 class ClimateStats(object):
@@ -78,8 +82,6 @@ class ImportMeteoData(object):
     def daily_data_from_txt(climdb, data_txt_file, sites_info_dict):
         """Import climate data table"""
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_txt_file)
-        if tsysin == 'UTCTIME':
-            tzonein = time.timezone / -3600
         clim_data_items = read_data_items_from_txt(data_txt_file)
         clim_flds = clim_data_items[0]
         # PHUCalDic is used for Calculating potential heat units (PHU)
@@ -129,7 +131,7 @@ class ImportMeteoData(object):
             utc_time = HydroClimateUtilClass.get_utcdatetime_from_field_values(clim_flds,
                                                                                cur_clim_data_item,
                                                                                tsysin, tzonein)
-            dic[DataValueFields.local_time] = utc_time + timedelta(minutes=tzonein * 60)
+            dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
             dic[DataValueFields.y] = utc_time.year
@@ -151,8 +153,7 @@ class ImportMeteoData(object):
                 cur_dic = dict()
                 if fld in list(dic.keys()):
                     cur_dic[DataValueFields.value] = dic[fld]
-                    cur_dic[DataValueFields.id] = dic[
-                        DataValueFields.id]
+                    cur_dic[DataValueFields.id] = dic[DataValueFields.id]
                     cur_dic[DataValueFields.utc] = dic[DataValueFields.utc]
                     cur_dic[DataValueFields.time_zone] = dic[DataValueFields.time_zone]
                     cur_dic[DataValueFields.local_time] = dic[DataValueFields.local_time]
@@ -184,6 +185,7 @@ class ImportMeteoData(object):
         # prepare dic for MongoDB
         for s_id, stats_v in list(hydro_climate_stats.items()):
             for YYYY in list(stats_v.Count.keys()):
+                # import annual mean PHU
                 cur_dic = dict()
                 cur_dic[DataValueFields.value] = stats_v.PHUTOT[YYYY]
                 cur_dic[DataValueFields.id] = s_id
@@ -204,6 +206,7 @@ class ImportMeteoData(object):
                              DataValueFields.y: YYYY}
                 climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
                                                                        upsert=True)
+            # import multi-annual mean PHU
             cur_dic[DataValueFields.value] = stats_v.PHU0
             cur_dic[DataValueFields.id] = s_id
             cur_dic[DataValueFields.y] = DEFAULT_NODATA
@@ -214,7 +217,7 @@ class ImportMeteoData(object):
                          DataValueFields.y: DEFAULT_NODATA}
             climdb[DBTableNames.annual_stats].find_one_and_replace(curfilter, cur_dic,
                                                                    upsert=True)
-            # import annual mean temperature
+            # import multi-annual mean temperature
             cur_dic[VariableDesc.type] = DataType.mean_tmp0
             cur_dic[VariableDesc.unit] = 'deg C'
             cur_dic[DataValueFields.value] = stats_v.MeanTmp0

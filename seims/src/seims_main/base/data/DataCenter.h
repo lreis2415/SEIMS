@@ -1,10 +1,15 @@
 /*!
+ * \file DataCenter.h
  * \brief Data center for running SEIMS
  *        including configuration, input data, output data, etc.
  *        All interaction with database should be implemented here.
+ *
+ * Changelog:
+ *   - 1. 2018-03-01 - lj - Refactor the constructor and move SetData from ModuleFactory class.
+ *   - 2. 2018-09-19 - lj - Separate load data from SetData. Compatible with optional parameters.
+ *
  * \author Liangjun Zhu
  * \date May 2017
- * \revision  2018-03-01  lj - refactor the constructor and move SetData from \sa ModuleFactory class
  */
 #ifndef SEIMS_DATA_CENTER_H
 #define SEIMS_DATA_CENTER_H
@@ -33,11 +38,11 @@ class DataCenter: Interface {
 public:
     /*!
      * \brief Constructor
-     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
-     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
-     * \param[in] subbsn_id Subbasin ID, 0 is the default for entire watershed
+     * \param[in] input_args Input arguments of SEIMS
+     * \param[in] factory SEIMS modules factory
+     * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
-    DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbsn_id = 0);
+    DataCenter(InputArgs* input_args, ModuleFactory* factory, int subbasin_id = 0);
 
     //! Destructor
     ~DataCenter();
@@ -67,50 +72,51 @@ public:
     virtual FloatRaster* ReadRasterData(const string& remote_filename) = 0;
     /*!
      * \brief Read interpolated weight data and insert to m_weightDataMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename Data file name
+     * \param[out] num Data length
+     * \param[out] data returned data
      */
     virtual void ReadItpWeightData(const string& remote_filename, int& num, float*& data) = 0;
     /*!
      * \brief Read 1D array data
-     * \param[in] param_name \string parameter name
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename Data file name
+     * \param[out] num Data length
+     * \param[out] data returned data
      */
-    virtual void Read1DArrayData(const string& param_name, const string& remote_filename,
-                                 int& num, float*& data) = 0;
+    virtual void Read1DArrayData(const string& remote_filename, int& num, float*& data) = 0;
     /*!
      * \brief Read 2D array data and insert to m_2DArrayMap
-     * The matrix format is as follows:
-     *                           5  (Row number)
-     *          RowIdx\ColIdx    0  1  2  3  4
-     *                  0        1  9.
-     *                  1        2  8. 1.
-     *                  2        2  5. 2.
-     *                  3        1  2.
-     *                  4        4  2. 5. 1. 8.
+     *
+     * The matrix format is as follows:\n
+     *                           5  (Row number)        \n
+     *               RowIdx      0  1  2  3  4 (ColIdx) \n
+     *                  0        1  9.                  \n
+     *                  1        2  8. 1.               \n
+     *                  2        2  5. 2.               \n
+     *                  3        1  2.                  \n
+     *                  4        4  2. 5. 1. 8.         \n
+     *
      * i.e., the first element in each row is the valid number of the current row.
-     * \param[in] remote_filename \string data file name
-     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
-     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
-     * \param[out] data \float**&, returned data
+     *
+     * \param[in] remote_filename data file name
+     * \param[out] rows first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
+     * \param[out] data returned data
      */
     virtual void Read2DArrayData(const string& remote_filename, int& rows, int& cols, float**& data) = 0;
     /*!
      * \brief Read IUH data and insert to m_2DArrayMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] n \int&, valid cell number
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename data file name
+     * \param[out] n valid cell number
+     * \param[out] data returned data
      */
     virtual void ReadIuhData(const string& remote_filename, int& n, float**& data) = 0;
     /*!
      * \brief Make lapse 2D array data and insert to m_2DArrayMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
-     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols
-     * \param[out] data \float**&, returned data
+     * \param[in] remote_filename data file name
+     * \param[out] rows first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols second dimension of the 2D Array, i.e., Cols
+     * \param[out] data returned data
      */
     virtual void SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data);
     /*!
@@ -121,25 +127,60 @@ public:
 
 public:
     /**** Load or update data ****/
+    /*!
+     * \brief Check out whether the adjustment is needed.
+     * \param[in] para_name Parameter name which may match one of the parameters in `init_params_`.
+     */
+    bool CheckAdjustment(const string& para_name);
+
+    /*!
+     * \brief Read and adjust (if necessary) 1D/2D raster data from Database.
+     * \param[in] para_name Parameter name, e.g., Slope
+     * \param[in] remote_filename Actual file/data name stored in Database, e.g., 0_SLOPE
+     * \param[in] is_optional Optional parameters won't raise exception when loaded failed
+     */
+    void LoadAdjustRasterData(const string& para_name, const string& remote_filename,
+                              bool is_optional = false);
+
+    /*!
+     * \brief Read and adjust (if necessary) 1D array data from Database.
+     *        Currently, there may no paramters are allowed to be adjusted.
+     * \param[in] para_name Parameter name
+     * \param[in] remote_filename Actual file/data name stored in Database
+     * \param[in] is_optional Optional parameters won't raise exception when loaded failed
+     */
+    void LoadAdjust1DArrayData(const string& para_name, const string& remote_filename,
+                               bool is_optional = false);
+
+    /*!
+     * \brief Read and adjust (if necessary) 2D array data from Database.
+     *        Currently, there may no paramters are allowed to be adjusted.
+     * \param[in] para_name Parameter name
+     * \param[in] remote_filename Actual file/data name stored in Database
+     */
+    void LoadAdjust2DArrayData(const string& para_name, const string& remote_filename);
+
     //! Load data for each module, return time span
     double LoadDataForModules(vector<SimulationModule *>& modules);
 
     //! Set data for modules, include all datatype
     void SetData(SEIMSModuleSetting* setting, ParamInfo* param,
-                 SimulationModule* p_module, bool vertital_itp);
+                 SimulationModule* p_module);
 
     //! Set single Value
     void SetValue(ParamInfo* param, SimulationModule* p_module);
 
     //! Set 1D Data
     void Set1DData(const string& para_name, const string& remote_filename,
-                   SimulationModule* p_module, bool vertital_itp);
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set 2D Data
-    void Set2DData(const string& para_name, const string& remote_filename, SimulationModule* p_module);
+    void Set2DData(const string& para_name, const string& remote_filename,
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set raster data
-    void SetRaster(const string& para_name, const string& remote_filename, SimulationModule* p_module);
+    void SetRaster(const string& para_name, const string& remote_filename,
+                   SimulationModule* p_module, bool is_optional = false);
 
     //! Set BMPs Scenario data
     void SetScenario(SimulationModule* p_module);
@@ -157,8 +198,14 @@ public:
     void UpdateInput(vector<SimulationModule *>& modules, time_t t);
 
     /*!
-    *\brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
-    * \sa BMPArealStructFactory, and \sa BMPArealStruct
+    * \brief Update model parameters (value, 1D raster, and 2D raster, etc.) by Scenario, e.g., areal BMPs.
+    *
+    * changelog:
+    *   - 1. Added by Huiran GAO, Feb. 2017
+    *   - 2. Redesigned by Liangjun Zhu, 08/16/17
+    *
+    * \sa BMPArealStructFactory
+    * \sa BMPArealStruct
     */
     void UpdateParametersByScenario(int subbsn_id);
 
@@ -195,7 +242,6 @@ public:
     map<string, float **>& Get2DArrayMap() { return array2d_map_; }
     map<string, int>& Get2DArrayRowsMap() { return array2d_rows_map_; }
     map<string, int>& Get2DArrayColsMap() { return array2d_cols_map_; }
-    map<string, ItpWeightData *>& GetItpWeightDataMap() { return weight_data_map_; }
     /*!
     * \brief Get file.in configuration
     */
@@ -244,9 +290,7 @@ protected:
     map<string, float **> array2d_map_;    ///< 2D array data map, e.g. ROUTING_LAYERS
     map<string, int> array2d_rows_map_;    ///< Row number of 2D array data map
     map<string, int> array2d_cols_map_;    ///< Col number of 2D array data map
-                                                   ///<   CAUTION that nCols may not same for all rows
-
-    map<string, ItpWeightData *> weight_data_map_; ///< Interpolation weight data map
+                                           ///<   CAUTION that nCols may not same for all rows
 };
 
 #endif /* SEIMS_DATA_CENTER_H */

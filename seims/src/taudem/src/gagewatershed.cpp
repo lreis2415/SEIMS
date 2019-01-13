@@ -95,17 +95,19 @@ int gagewatershed(char *pfile,
                 MPI_Bcast(y, numOutlets, MPI_DOUBLE, 0, MCW);
                 MPI_Bcast(ids, numOutlets, MPI_INT, 0, MCW);
                 //  Find the minimum id to use it - 1 for no data
-                idnodata = ids[0];
-                for (int i = 1; i < numOutlets; i++) {
-                    if (ids[i] < idnodata)idnodata = ids[i];
-                }
-                idnodata = idnodata - 1;
+                //idnodata = ids[0];
+                //for (int i = 1; i < numOutlets; i++) {
+                //    if (ids[i] < idnodata)idnodata = ids[i];
+                //}
+                //idnodata = idnodata - 1;
+                idnodata = -1;  // Use - 1 for no data
                 MPI_Bcast(&idnodata, 1, MPI_INT, 0, MCW);
 
                 //printf("after bcast\n"); fflush(stdout);
             }//5
             else {
                 printf("Error opening shapefile. Exiting \n");
+                fflush(stdout);
                 MPI_Abort(MCW, 5);
             }
         }//4
@@ -134,12 +136,12 @@ int gagewatershed(char *pfile,
         //Create tiff object, read and store header info
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //    (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //printf("After header read %d\n",rank);   fflush(stdout);
@@ -166,24 +168,30 @@ int gagewatershed(char *pfile,
 
         //Convert geo coords to grid coords
         int *outletsX, *outletsY;
-        short outletpointswgrid;
-        long tempSubwgrid;
+        //short outletpointswgrid; // Not used variables.
+        //long tempSubwgrid;
         outletsX = new int[numOutlets];
         outletsY = new int[numOutlets];
 
         node temp;
         queue <node> que;
+        int *towriteids;
+        towriteids = new int[numOutlets];
 
         for (int i = 0; i < numOutlets; i++) {
             p.geoToGlobalXY(x[i], y[i], outletsX[i], outletsY[i]);
             int xlocal, ylocal;
             wshed->globalToLocal(outletsX[i], outletsY[i], xlocal, ylocal);
+            towriteids[i] = 0;
             if (wshed->isInPartition(xlocal, ylocal)) {   //xOutlets[i], yOutlets[i])){
-                wshed->setData(xlocal, ylocal, (int32_t) ids[i]);  //xOutlets[i], yOutlets[i], (long)ids[i]);
-                //Push outlet cells on to que
-                temp.x = xlocal;
-                temp.y = ylocal;
-                que.push(temp);
+                if (wshed->isNodata(xlocal, ylocal)) {
+                    wshed->setData(xlocal, ylocal, (int32_t)ids[i]);  //xOutlets[i], yOutlets[i], (long)ids[i]);
+                    //Push outlet cells on to que
+                    temp.x = xlocal;
+                    temp.y = ylocal;
+                    que.push(temp);
+                    towriteids[i] = 1; // Indicator that this gageid needs to be output
+                }
             }
             dsids[i] = idnodata;
         }
@@ -308,9 +316,11 @@ int gagewatershed(char *pfile,
 
 
         //  Reduce all values to the 0 process
-        int *dsidsr;
+        int *dsidsr, *towriteidsr;
         dsidsr = new int[numOutlets];
+        towriteidsr = new int[numOutlets];
         MPI_Reduce(dsids, dsidsr, numOutlets, MPI_INT, MPI_MAX, 0, MCW);
+        MPI_Reduce(towriteids, towriteidsr, numOutlets, MPI_INT, MPI_MAX, 0, MCW);
 
         //Stop timer
         double computet = MPI_Wtime();
@@ -322,8 +332,9 @@ int gagewatershed(char *pfile,
                 fidout = fopen(idfile, "w");// process 0 writes
                 fprintf(fidout, "id iddown\n");
                 for (i = 0; i < numOutlets; i++) {
-
-                    fprintf(fidout, "%d %d\n", ids[i], dsidsr[i]);
+                    if (towriteidsr[i] > 0) {
+                        fprintf(fidout, "%d %d\n", ids[i], dsidsr[i]);
+                    }
                 }
             }
         }
@@ -331,7 +342,7 @@ int gagewatershed(char *pfile,
 
         //Create and write TIFF file
         long lNodata = MISSINGLONG;
-        tiffIO wshedIO(wfile, LONG_TYPE, &lNodata, p);
+        tiffIO wshedIO(wfile, LONG_TYPE, lNodata, p);
         wshedIO.write(xstart, ystart, ny, nx, wshed->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -339,16 +350,9 @@ int gagewatershed(char *pfile,
             printf("Size: %d\nRead time: %f\nCompute time: %f\nWrite time: %f\nTotal time: %f\n",
                    size, readt - begint, computet - readt, writet - computet, writet - begint);
         }
-
-
-
-
         //Brackets force MPI-dependent objects to go out of scope before Finalize is called
     }
     MPI_Finalize();
 
     return 0;
 }
-
-
-

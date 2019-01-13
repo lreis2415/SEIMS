@@ -1,14 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Import precipitation data, daily or storm
+
     @author   : Liangjun Zhu, Junzhi Liu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-07-04  lj - reorganize according to pylint and google style
-                17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
-                17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-07-04  lj - reorganize according to pylint and google style
+    - 17-07-05  lj - Using bulk operation interface to improve MongoDB efficiency.
+    - 17-08-05  lj - Add Timezone preprocessor statement in the first line of data file.
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
@@ -21,10 +24,10 @@ from datetime import timedelta
 from pygeoc.utils import StringClass
 from pymongo import ASCENDING
 
+from utility import read_data_items_from_txt
 from preprocess.db_mongodb import MongoUtil
 from preprocess.hydro_climate_utility import HydroClimateUtilClass
 from preprocess.text import DBTableNames, DataValueFields, DataType
-from preprocess.utility import read_data_items_from_txt
 
 
 class ImportPrecipitation(object):
@@ -36,8 +39,6 @@ class ImportPrecipitation(object):
         # delete existed precipitation data
         climdb[DBTableNames.data_values].remove({DataValueFields.type: DataType.p})
         tsysin, tzonein = HydroClimateUtilClass.get_time_system_from_data_file(data_file)
-        if tsysin == 'UTCTIME':
-            tzonein = time.timezone / -3600
         clim_data_items = read_data_items_from_txt(data_file)
         clim_flds = clim_data_items[0]
         station_id = list()
@@ -62,7 +63,7 @@ class ImportPrecipitation(object):
             utc_time = HydroClimateUtilClass.get_utcdatetime_from_field_values(clim_flds,
                                                                                clim_data_item,
                                                                                tsysin, tzonein)
-            dic[DataValueFields.local_time] = utc_time + timedelta(minutes=tzonein * 60)
+            dic[DataValueFields.local_time] = utc_time - timedelta(minutes=tzonein * 60)
             dic[DataValueFields.time_zone] = tzonein
             dic[DataValueFields.utc] = utc_time
 

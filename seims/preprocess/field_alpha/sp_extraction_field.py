@@ -25,7 +25,7 @@ def extract_spatial_parameters(cfg, maindb):
     # 2. Landuse/Landcover related
     LanduseUtilClass.parameters_extraction(cfg, maindb)
     # 3. Terrain related and other spatial parameters
-    TerrainUtilClass.parameters_extration(cfg, maindb)
+    TerrainUtilClass.parameters_extraction(cfg, maindb)
 
 
 def main():

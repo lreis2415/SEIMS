@@ -10,19 +10,22 @@ IO_TEST::IO_TEST() :
 }
 
 IO_TEST::~IO_TEST() {
-    if (m_output1Draster != nullptr) { Release1DArray(m_output1Draster); }
-    if (m_output2Draster != nullptr) { Release2DArray(m_nCells, m_output2Draster); }
+    if (m_output1Draster != nullptr) Release1DArray(m_output1Draster);
+    if (m_output2Draster != nullptr) Release2DArray(m_nCells, m_output2Draster);
     // NOTE: m_scenario and m_reaches will be released in DataCenter!
 }
 
-void IO_TEST::Set1DData(const char* key, int n, float* data) {
+void IO_TEST::Set1DData(const char* key, const int n, float* data) {
     if (!CheckInputSize(key, n)) return;
     string sk(key);
-    if (StringMatch(sk, VAR_CN2)) { m_raster1D = data; }
-    if (StringMatch(sk, VAR_SOILLAYERS)) { m_nSoilLayrs = data; }
+    if (StringMatch(sk, VAR_CN2)) m_raster1D = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLayrs = data;
+    else {
+        throw ModelException("IO_TEST", "Set1DData", "Parameter " + string(key) + " is not exist");
+    }
 }
 
-void IO_TEST::Set2DData(const char* key, int n, int col, float** data) {
+void IO_TEST::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     if (!CheckInputSize(key, n)) return;
     if (StringMatch(sk, VAR_CONDUCT)) {
@@ -32,17 +35,18 @@ void IO_TEST::Set2DData(const char* key, int n, int col, float** data) {
 }
 
 void IO_TEST::SetScenario(bmps::Scenario* sce) {
-    if (nullptr != sce) { m_scenario = sce; }
+    if (nullptr != sce) m_scenario = sce;
 }
 
 void IO_TEST::SetReaches(clsReaches* reaches) {
-    if (nullptr != reaches) { m_reaches = reaches; }
+    if (nullptr != reaches) m_reaches = reaches;
 }
 
-bool IO_TEST::CheckInputSize(const char* key, int n) {
+bool IO_TEST::CheckInputSize(const char* key, const int n) {
     CHECK_POSITIVE("IO_TEST", n);
     if (m_nCells != n) {
-        if (m_nCells <= 0) { m_nCells = n; } else {
+        if (m_nCells <= 0) m_nCells = n;
+        else {
             throw ModelException("IO_TEST", "CheckInputSize", "Input data for " + string(key) +
                                  " is invalid. All the input data should have same size.");
         }
@@ -62,9 +66,9 @@ bool IO_TEST::CheckInputData() {
 
 int IO_TEST::Execute() {
     /// Initialize output variables
-    if (nullptr == m_output1Draster) { Initialize1DArray(m_nCells, m_output1Draster, 0.f); }
+    if (nullptr == m_output1Draster) Initialize1DArray(m_nCells, m_output1Draster, 0.f);
 
-    if (nullptr == m_output2Draster) { Initialize2DArray(m_nCells, m_soilLayers, m_output2Draster, NODATA_VALUE); }
+    if (nullptr == m_output2Draster) Initialize2DArray(m_nCells, m_soilLayers, m_output2Draster, NODATA_VALUE);
 
     /// Execute function
 #pragma omp parallel for

@@ -1,9 +1,12 @@
 /*!
+ * \file Interpolate.h
  * \brief Interpolate function for site based data, e.g. precipitation
- * \author Junzhi Liu, LiangJun Zhu
- * \date Jan. 2010
- * \revised 2018-05-07 - lj - Reformat.\n
  *
+ * Changelog:
+ *   - 1. 2018-05-07 - lj - Code reformat.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
+ * \date Jan. 2010
  */
 #ifndef SEIMS_MODULE_ITP_H
 #define SEIMS_MODULE_ITP_H

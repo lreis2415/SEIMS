@@ -1,9 +1,12 @@
 /*!
+ * \file RegularMeasurement.h
  * \brief Regular hydroclimate data, e.g., daily data
- * \author Junzhi Liu, LiangJun Zhu
+ *
+ * Changelog:
+ *   - 1. 2016-05-30 - lj - Replace mongoc_client_t by MongoClient interface.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
- * \date May 2016
- * \revised LJ - Replace mongoc_client_t by MongoClient interface
  */
 #ifndef SEIMS_REGULAR_MEASUREMENT_H
 #define SEIMS_REGULAR_MEASUREMENT_H
@@ -40,9 +43,7 @@ public:
     float* GetSiteDataByTime(time_t t) OVERRIDE;
 
 private:
-    //! site data : the first dimension is time, and the second dimension is data by sites
-    vector<float *> m_siteData;
-    //! data record interval
-    time_t m_interval;
+    vector<float *> m_siteData; ///< data array ordered by sites
+    time_t m_interval;          ///< data record interval
 };
 #endif /* SEIMS_REGULAR_MEASUREMENT_H */

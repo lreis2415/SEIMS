@@ -1,9 +1,12 @@
 /*!
+ * \file MetadataInfo.h
  * \brief Define MetadataInfo class used by modules
+ *
+ * Changelog:
+ *   - 1. 2018-3-16 - lj - Simplify code, and add In/Output parameters related for MPI version.
+ *
  * \author Junzhi Liu, Liangjun Zhu
  * \version 1.1
- * \date June 2010
- * \revision 2018-3-16 lj Simplify code, and add In/Output parameters related for MPI version.
  */
 #ifndef SEIMS_METADATA_INFO_H
 #define SEIMS_METADATA_INFO_H
@@ -17,7 +20,7 @@ using namespace ccgl;
 using std::vector;
 
 /*!
- * \ingroup util
+ * \ingroup module_setting
  * \struct ModelClass
  * \brief Module basic description
  */
@@ -30,7 +33,7 @@ struct ModelClass {
 };
 
 /*!
- * \ingroup util
+ * \ingroup module_setting
  * \struct Information
  *
  * \brief Module development information class
@@ -51,7 +54,7 @@ struct Information {
 };
 
 /*!
- * \ingroup util
+ * \ingroup module_setting
  * \struct baseParameter
  *
  * \brief Basic model parameter information
@@ -67,7 +70,7 @@ struct baseParameter {
 };
 
 /*!
- * \ingroup util
+ * \ingroup module_setting
  * \struct Parameter
  *
  * \brief Model parameter information class
@@ -80,7 +83,7 @@ struct Parameter: baseParameter {
 };
 
 /*!
- * \ingroup util
+ * \ingroup module_setting
  * \struct InputVariable
  *
  * \brief Input variable information class
@@ -93,7 +96,7 @@ struct InputVariable: Parameter {
 };
 
 /*!
- * \ingroup Util
+ * \ingroup module_setting
  * \struct OutputVariable
  * \brief Output variable information class
  */
@@ -105,7 +108,7 @@ struct OutputVariable: baseParameter {
 };
 
 /*!
- * \ingroup Util
+ * \ingroup module_setting
  * \struct InOutputVariable
  * \brief Input and output variable information class
  */
@@ -115,7 +118,7 @@ struct InOutputVariable: InputVariable {
 };
 
 /*!
- * \ingroup Util
+ * \ingroup module_setting
  * \class MetadataInfo
  * \brief Metadata information of module
  */

@@ -1,31 +1,139 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Configuration BMPs optimization based on slope position units.
-    @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-12-30  hr - initial implementation.\n
-                17-08-18  lj - reorganize as basic class.\n
-                18-02-09  lj - compatible with Python3.\n
-"""
-from __future__ import absolute_import
+"""Configuration BMPs optimization based on various configuration units.
 
+    @author   : Liangjun Zhu, Huiran Gao
+
+    @changelog:
+
+    - 16-12-30  hr - initial implementation.
+    - 17-08-18  lj - reorganize as basic class.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-11-01  lj - Config class should not do extra operation, e.g., read database.
+    - 18-11-06  lj - Add supports of other BMPs configuration units.
+    - 18-12-04  lj - Add `updown_units` for `SAConnFieldConfig` and `SASlpPosConfig`
+"""
+from __future__ import absolute_import, unicode_literals
+
+from future.utils import viewitems
+from configparser import ConfigParser
 import os
 import sys
 import json
 import operator
 from collections import OrderedDict
+from io import open
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
+from typing import List, Tuple, Union, Dict, AnyStr
+from pygeoc.utils import FileClass, UtilClass, get_config_parser
 
-from pygeoc.utils import FileClass, UtilClass, StringClass, get_config_parser
-
-from preprocess.db_mongodb import ConnectMongoDB
+from scenario_analysis import BMPS_CFG_UNITS
 from scenario_analysis.config import SAConfig
 
 
-class SASPUConfig(SAConfig):
-    """Configuration of scenario analysis based on slope position units.
+def trace_upslope_units(uid, updownunits):
+    allupids = list()
+    if uid not in updownunits:
+        return allupids
+    for upid in updownunits[uid]['all_upslope']:
+        if upid not in allupids and upid > 0:
+            allupids.append(upid)
+        if upid not in updownunits:
+            continue
+        for curupid in trace_upslope_units(upid, updownunits):
+            if curupid not in allupids and curupid > 0:
+                allupids.append(curupid)
+    return allupids
+
+
+class SACommUnitConfig(SAConfig):
+    """Configuration of scenario analysis based on common spatial units without topology info.
+
+    Attributes:
+        units_num(int): Spatial units number.
+    """
+
+    def __init__(self, cf):
+        # type: (ConfigParser) -> None
+        """Initialization."""
+        SAConfig.__init__(self, cf)  # initialize base class first
+        # 1. Check the required key and values
+        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO',
+                        'ENVEVAL', 'BASE_ENV', 'UNITJSON']
+        for k in requiredkeys:
+            if k not in self.bmps_info:
+                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info!' % k)
+        # 2. Slope position units information
+        units_json = self.bmps_info.get('UNITJSON')
+        unitsf = self.model.model_dir + os.sep + units_json
+        if not FileClass.is_file_exists(unitsf):
+            raise Exception('UNITJSON file %s is not existed!' % unitsf)
+        with open(unitsf, 'r', encoding='utf-8') as updownfo:
+            self.units_infos = json.load(updownfo)
+        self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
+        if 'overview' not in self.units_infos:
+            raise ValueError('overview MUST be existed in the UNITJSON file.')
+        if 'all_units' not in self.units_infos['overview']:
+            raise ValueError('all_units MUST be existed in overview dict of UNITJSON.')
+        self.units_num = self.units_infos['overview']['all_units']  # type: int
+        # 3. Collection name and subscenario IDs
+        self.bmps_coll = self.bmps_info.get('COLLECTION')  # type: str
+        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')  # type: List[int]
+        # 4. Construct the dict of gene index to unit ID, and unit ID to gene index
+        self.unit_to_gene = OrderedDict()  # type: OrderedDict[int, int]
+        self.gene_to_unit = dict()  # type: Dict[int, int]
+        # 5. Construct the upstream-downstream units of each unit if necessary
+        self.updown_units = dict()  # type: Dict[int, Dict[AnyStr, List[int]]]
+
+    def construct_indexes_units_gene(self):
+        """Construct the indexes between spatial units ID and gene index.
+        This function can be override by inherited class.
+        """
+        if 'units' not in self.units_infos:
+            raise ValueError('units MUST be existed in the UNITJSON file.')
+        idx = 0
+        for uid, udict in viewitems(self.units_infos['units']):
+            self.gene_to_unit[idx] = uid
+            self.unit_to_gene[uid] = idx
+            idx += 1
+        assert (idx == self.units_num)
+
+
+class SAConnFieldConfig(SACommUnitConfig):
+    """Configuration of scenario analysis based on hydrologically connected fields."""
+
+    def __init__(self, cf):
+        # type: (ConfigParser) -> None
+        """Initialization."""
+        SACommUnitConfig.__init__(self, cf)  # initialize base class
+
+    def construct_indexes_units_gene(self):
+        """Construct the indexes between spatial units ID and gene index.
+        """
+        if 'units' not in self.units_infos:
+            raise ValueError('units MUST be existed in the UNITJSON file.')
+        idx = 0
+        for uid, udict in viewitems(self.units_infos['units']):
+            self.gene_to_unit[idx] = uid
+            self.unit_to_gene[uid] = idx
+            idx += 1
+            if uid not in self.updown_units:
+                self.updown_units.setdefault(uid, {'all_upslope': list(),
+                                                   'downslope': list()})
+            self.updown_units[uid]['downslope'].append(udict['downslope'])
+            self.updown_units[uid]['all_upslope'] = udict['upslope'][:]
+        assert (idx == self.units_num)
+        # Trace upslope and append their unit IDs
+        for cuid in self.updown_units:
+            self.updown_units[cuid]['all_upslope'] = trace_upslope_units(cuid, self.updown_units)[:]
+        # print(self.updown_units)
+
+
+class SASlpPosConfig(SACommUnitConfig):
+    """Configuration of scenario analysis based on Slope Position Units.
 
     Attributes:
         slppos_tags(dict): Slope position tags and names read from config file.
@@ -36,131 +144,72 @@ class SASPUConfig(SAConfig):
     """
 
     def __init__(self, cf):
+        # type: (ConfigParser) -> None
         """Initialization."""
-        SAConfig.__init__(self, cf)  # initialize base class first
-        # Handling self.bmps_info for specific application
-        # 1. Check the required key and values
-        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO', 'UPDOWNJSON',
-                        'ENVEVAL', 'BASE_ENV']
+        # 1. initialize base class
+        SACommUnitConfig.__init__(self, cf)
+        # 2. Check additional required key and values
+        requiredkeys = ['SLPPOS_TAG_NAME']
         for k in requiredkeys:
             if k not in self.bmps_info:
-                raise ValueError('[%s]: MUST be provided!' % k)
-        # 2. Slope position units information
-        updownf = self.bmps_info.get('UPDOWNJSON')
-        FileClass.check_file_exists(updownf)
-        with open(updownf, 'r') as updownfo:
-            self.units_infos = json.load(updownfo)
-        self.units_infos = UtilClass.decode_strs_in_dict(self.units_infos)
+                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info '
+                                 'for SLPPOS method!' % k)
         # 3. Get slope position sequence
-        sptags = cf.get('BMPs', 'slppos_tag_name')
-        self.slppos_tags = json.loads(sptags)
-        self.slppos_tags = UtilClass.decode_strs_in_dict(self.slppos_tags)
-        self.slppos_tagnames = sorted(list(self.slppos_tags.items()), key=operator.itemgetter(0))
-        self.slppos_unit_num = self.units_infos['overview']['all_units']
-        self.slppos_to_gene = OrderedDict()
-        self.gene_to_slppos = dict()
+        self.slppos_tags = self.bmps_info.get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
+        self.slppos_tagnames = sorted(list(self.slppos_tags.items()),
+                                      key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
 
-        # method 1: (deprecated)
-        #     gene index: 0, 1, 2, ..., n
-        #     slppos unit: rdg1, rdg2,..., bks1, bks2,..., vly1, vly2...
-        # idx = 0
-        # for tag, sp in self.slppos_tagnames:
-        #     for uid in self.units_infos[sp]:
-        #         self.gene_to_slppos[idx] = uid
-        #         self.slppos_to_gene[uid] = idx
-        #         idx += 1
-        # method 2:
-        #     gene index: 0, 1, 2, ..., n
-        #     slppos unit: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
+    def construct_indexes_units_gene(self):
+        """Override this function for slope position units."""
+        # gene index: 0, 1, 2, ..., n
+        # slppos units: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
         idx = 0
-        spname = self.slppos_tagnames[0][1]
-        for uid, udict in self.units_infos[spname].items():
+        spname = self.slppos_tagnames[0][1]  # the top slope position name
+        for uid, udict in viewitems(self.units_infos[spname]):
             spidx = 0
-            self.gene_to_slppos[idx] = uid
-            self.slppos_to_gene[uid] = idx
+            self.gene_to_unit[idx] = uid
+            self.unit_to_gene[uid] = idx
             idx += 1
             next_uid = udict['downslope']
-            while next_uid > 0:
-                self.gene_to_slppos[idx] = next_uid
-                self.slppos_to_gene[next_uid] = idx
+            while True:
+                if next_uid <= 0:
+                    break
+                self.gene_to_unit[idx] = next_uid
+                if uid not in self.updown_units:
+                    self.updown_units.setdefault(uid, {'all_upslope': list(),
+                                                       'downslope': list()})
+                self.updown_units[uid]['downslope'].append(next_uid)
+                self.unit_to_gene[next_uid] = idx
+                if next_uid not in self.updown_units:
+                    self.updown_units.setdefault(next_uid, {'all_upslope': list(),
+                                                            'downslope': list()})
+                self.updown_units[next_uid]['all_upslope'].append(uid)
+
                 idx += 1
                 spidx += 1
                 spname = self.slppos_tagnames[spidx][1]
+                uid = next_uid
                 next_uid = self.units_infos[spname][next_uid]['downslope']
-
-        assert (idx == self.slppos_unit_num)
-
-        # 4. SubScenario IDs and parameters read from MongoDB
-        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')
-        self.bmps_coll = self.bmps_info.get('COLLECTION')
-        self.bmps_params = dict()
-        self.slppos_suit_bmps = dict()
-
-        self.read_bmp_parameters()
-        self.get_suitable_bmps_for_slppos()
-
-    def read_bmp_parameters(self):
-        """Read BMP configuration from MongoDB."""
-        client = ConnectMongoDB(self.hostname, self.port)
-        conn = client.get_conn()
-        scenariodb = conn[self.bmp_scenario_db]
-
-        bmpcoll = scenariodb[self.bmps_coll]
-        findbmps = bmpcoll.find({}, no_cursor_timeout=True)
-        for fb in findbmps:
-            fb = UtilClass.decode_strs_in_dict(fb)
-            if 'SUBSCENARIO' not in fb:
-                continue
-            curid = fb['SUBSCENARIO']
-            if curid not in self.bmps_subids:
-                continue
-            if curid not in self.bmps_params:
-                self.bmps_params[curid] = dict()
-            for k, v in fb.items():
-                if k == 'SUBSCENARIO':
-                    continue
-                elif k == 'LANDUSE':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = None
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                elif k == 'SLPPOS':
-                    if isinstance(v, int):
-                        v = [v]
-                    elif v == 'ALL' or v == '':
-                        v = list(self.slppos_tags.keys())
-                    else:
-                        v = StringClass.extract_numeric_values_from_string(v)
-                        v = [int(abs(nv)) for nv in v]
-                    self.bmps_params[curid][k] = v[:]
-                else:
-                    self.bmps_params[curid][k] = v
-
-        client.close()
-
-    def get_suitable_bmps_for_slppos(self):
-        """Construct the suitable BMPs for each slope position."""
-        for bid, bdict in self.bmps_params.items():
-            suitsp = bdict['SLPPOS']
-            for sp in suitsp:
-                if sp not in self.slppos_suit_bmps:
-                    self.slppos_suit_bmps[sp] = [bid]
-                elif bid not in self.slppos_suit_bmps[sp]:
-                    self.slppos_suit_bmps[sp].append(bid)
+        assert (idx == self.units_num)
+        # Trace upslope and append their unit IDs
+        for cuid in self.updown_units:
+            self.updown_units[cuid]['all_upslope'] = trace_upslope_units(cuid, self.updown_units)[:]
 
 
 if __name__ == '__main__':
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
 
     # test the picklable of SASPUConfig class.
     import pickle
 
     s = pickle.dumps(cfg)
-    # print(s)
-    new_cfg = pickle.loads(s)
-    print(new_cfg.bmps_params)
+    new_cfg = pickle.loads(s)  # type: Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]
+    print('BMPs configuration units number: %d ' % new_cfg.units_num)

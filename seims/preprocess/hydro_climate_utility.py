@@ -6,11 +6,12 @@
                 17-06-23  lj - reformat according to pylint and google style
                 18-02-08  lj - compatible with Python3.\n
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import math
 import time
 from datetime import datetime, timedelta
+from io import open
 import os
 import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
@@ -79,12 +80,17 @@ class HydroClimateUtilClass(object):
 
     @staticmethod
     def get_time_system_from_data_file(in_file):
+        # type: (str) -> (str, int)
         """Get the time system from the data file. The basic format is:
-           #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #UTCTIME
+           #<time_system> [<time_zone>], e.g., #LOCALTIME 8, #LOCALTIME -2, #UTCTIME
+
+        Returns:
+            time_sys: 'UTCTIME' or 'LOCALTIME'
+            time_zone(int): Positive for West time zone, and negative for East.
         """
         time_sys = 'LOCALTIME'
-        time_zone = time.timezone // -3600
-        with open(in_file, 'r') as f:
+        time_zone = time.timezone // 3600
+        with open(in_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in lines:
             str_line = line.strip()
@@ -99,7 +105,7 @@ class HydroClimateUtilClass(object):
                 time_zone = 0
                 break
             if str_line.lower().find('local') >= 0:
-                line_list = StringClass.split_string(str_line, [','])
+                line_list = StringClass.split_string(str_line, [' ', ','])
                 if len(line_list) == 2 and MathClass.isnumerical(line_list[1]):
                     time_zone = -1 * int(line_list[1])
                 break
@@ -143,8 +149,8 @@ class HydroClimateUtilClass(object):
                 dt = datetime(cur_y, cur_m, cur_d, cur_hh, cur_mm, cur_ss)
         if not StringClass.string_match(tsys, 'UTCTIME'):
             if tzone is None:
-                tzone = time.timezone // -3600  # positive value for EAST
-            dt -= timedelta(minutes=tzone * 60)
+                tzone = time.timezone // 3600  # positive value for WEST
+            dt += timedelta(minutes=tzone * 60)
         return dt
 
 

@@ -1,4 +1,5 @@
 /*!
+ * \file clsInterpolationWeightData.h
  * \brief Methods for clsITPWeightData class
  * \author Junzhi Liu, LiangJun Zhu
  * \version 2.0
@@ -54,6 +55,9 @@ public:
      */
     void Dump(const string& filename);
 
+    //! Initialized successful?
+    bool Initialized() { return initialized_; }
+
 private:
     /*!
      * \brief Read GridFS from MongoDB
@@ -61,7 +65,7 @@ private:
      * \param[in] gfs MongoGridFs
      * \param[in] filename
      */
-    void ReadFromMongoDB(MongoGridFs* gfs, const string& filename);
+    bool ReadFromMongoDB(MongoGridFs* gfs, const string& filename);
 
 private:
     //! file name
@@ -72,5 +76,7 @@ private:
     int n_rows_;
     //! column of weight data, i.e., number of stations
     int n_cols_;
+    //! load data success?
+    bool initialized_;
 };
 #endif /* SEIMS_ITP_WEIGHTDATA_H */

@@ -1,16 +1,21 @@
 /*!
+ * \file NutrientTransportSediment.h
  * \brief Nutrient removed and lost in surface runoff.
- *        Support three carbon model, static method (orgn.f), C-FARM one carbon model (orgncswat.f), and CENTURY C/N cycling model (NCsed_leach.f90) from SWAT
+ *
+ *        Support three carbon model, static method (orgn.f), C-FARM one carbon model (orgncswat.f),
+ *        and CENTURY C/N cycling model (NCsed_leach.f90) from SWAT
  *        As for phosphorus, psed.f of SWAT calculates the attached to sediment in surface runoff.
+ *
+ * Changelog:
+ *   - 1. 2016-04-30 - hr - Initial implementation.
+ *   - 2. 2016-09-28 - lj - Add CENTURY model of calculating organic nitrogen removed in surface runoff.
+ *   - 3. 2017-08-23 - lj -  Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.
+ *   - 4. 2018-05-08 - lj -
+ *        -# Reformat, especially naming style (sync update in "text.h").
+ *        -# Code optimization, e.g., use multiply instead of divide.
+ *
+ * \todo Ammonian adsorbed to soil should be considered.
  * \author Huiran Gao, Liangjun Zhu
- * \date April 2016
- * \changelog: 2016-04-30 - hr - Initial implementation.\n
- *             2016-09-28 - lj - 1. Code revision.\n
- *                               2. Add CENTURY model of calculating organic nitrogen removed in surface runoff.\n
- *             2017-08-23 - lj -  Solve inconsistent results when using openmp to reducing raster data according to subbasin ID.\n
- *             2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
- *                               2. Code optimization, e.g., use multiply instead of divide.\n
- * \TODO       1. Ammonian adsorbed to soil should be considered.
  */
 #ifndef SEIMS_MODULE_NUTRSED_H
 #define SEIMS_MODULE_NUTRSED_H
@@ -36,11 +41,11 @@ public:
 
     ~NutrientTransportSediment();
 
+    void SetValue(const char* key, float value) OVERRIDE;
+
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
-
-    void SetValue(const char* key, float value) OVERRIDE;
 
     void SetSubbasins(clsSubbasins*) OVERRIDE;
 
@@ -212,10 +217,10 @@ private:
     float** m_soilPerco;
     float** m_subSurfRf;
     /// outputs
-    float** m_soilIfluCbn;     /// lateral flow Carbon loss in each soil layer
-    float** m_soilPercoCbn;    /// percolation Carbon loss in each soil layer
-    float* m_soilIfluCbnPrfl;  /// lateral flow Carbon loss in soil profile
-    float* m_soilPercoCbnPrfl; /// percolation Carbon loss in soil profile
-    float* m_sedLossCbn;       /// amount of C lost with sediment pools
+    float** m_soilIfluCbn;     ///< lateral flow Carbon loss in each soil layer
+    float** m_soilPercoCbn;    ///< percolation Carbon loss in each soil layer
+    float* m_soilIfluCbnPrfl;  ///< lateral flow Carbon loss in soil profile
+    float* m_soilPercoCbnPrfl; ///< percolation Carbon loss in soil profile
+    float* m_sedLossCbn;       ///< amount of C lost with sediment pools
 };
 #endif /* SEIMS_MODULE_NUTRSED_H */

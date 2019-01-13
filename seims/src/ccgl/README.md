@@ -8,7 +8,7 @@ Common Cross-platform Geographic-computing Library
 + Code coverage: [![codecov](https://codecov.io/gh/crazyzlj/CCGL/branch/master/graph/badge.svg)](https://codecov.io/gh/crazyzlj/CCGL)
 
 ## UnitTest
-+ [Google Test](https://github.com/google/googletest) is adopted as UnitTest framework.
++ [Google Test](https://github.com/google/googletest) Tag-[release-1.8.0](https://github.com/google/googletest/tree/release-1.8.0) is adopted as UnitTest framework. Note that other versions that higher than `release-1.8.0` will cause error C2220: warning treated as error - no 'object' file generated on MSVS 2013.
 + Unittest code should named like `test_xx.cpp` in the `test` directory.
 + To run UnitTest, use the common commands:
     ```shell

@@ -3,22 +3,21 @@
 """Configuration of Postprocess for SEIMS.
     @author   : Liangjun Zhu, Huiran Gao
     @changelog: 17-08-17  lj - reorganize as basic class
-                18-02-09  lj - compatible with Python3.\n
+                18-02-09  lj - compatible with Python3.
+                18-10-23  lj - Use `ParseSEIMSConfig` class.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
+from configparser import ConfigParser
 import os
 import sys
-
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-try:
-    from ConfigParser import ConfigParser  # py2
-except ImportError:
-    from configparser import ConfigParser  # py3
+from pygeoc.utils import StringClass, get_config_file
 
-from pygeoc.utils import FileClass, StringClass, get_config_file
+from utility import parse_datetime_from_ini, PlotConfig
+from run_seims import ParseSEIMSConfig
 
 
 class PostConfig(object):
@@ -26,41 +25,11 @@ class PostConfig(object):
 
     def __init__(self, cf):
         """Initialization."""
-        # 1. Directories
-        self.model_dir = None
-        self.scenario_id = -1
-        if 'PATH' in cf.sections():
-            self.model_dir = cf.get('PATH', 'model_dir')
-            self.scenario_id = cf.getint('PATH', 'scenarioid')
-            if self.scenario_id < 0:
-                self.model_dir = self.model_dir + os.path.sep + 'OUTPUT'
-            else:
-                self.model_dir = self.model_dir + os.path.sep + 'OUTPUT' + str(self.scenario_id)
-        else:
-            raise ValueError("[PATH] section MUST be existed in *.ini file.")
-        if not FileClass.is_dir_exists(self.model_dir):
-            raise ValueError("Please Check Directories defined in [PATH]")
-
-        # 2. MongoDB configuration and database, collation, GridFS names
-        self.hostname = '127.0.0.1'  # localhost by default
-        self.port = 27017
-        self.climate_db = ''
-        self.bmp_scenario_db = ''
-        self.spatial_db = ''
-        if 'MONGODB' in cf.sections():
-            self.hostname = cf.get('MONGODB', 'hostname')
-            self.port = cf.getint('MONGODB', 'port')
-            self.climate_db = cf.get('MONGODB', 'climatedbname')
-            self.bmp_scenario_db = cf.get('MONGODB', 'bmpscenariodbname')
-            self.spatial_db = cf.get('MONGODB', 'spatialdbname')
-        else:
-            raise ValueError('[MONGODB] section MUST be existed in *.ini file.')
-        if not StringClass.is_valid_ip_addr(self.hostname):
-            raise ValueError('HOSTNAME illegal defined in [MONGODB]!')
-
-        # 3. Parameters
+        # 1. SEIMS model related
+        self.model_cfg = ParseSEIMSConfig(cf)
+        # 2. Parameters
         self.plt_subbsnid = -1
-        self.plt_vars = list()
+        self.plot_vars = list()
         if 'PARAMETERS' in cf.sections():
             self.plt_subbsnid = cf.getint('PARAMETERS', 'plot_subbasinid')
             plt_vars_str = cf.get('PARAMETERS', 'plot_variables')
@@ -69,37 +38,25 @@ class PostConfig(object):
         if self.plt_subbsnid < 0:
             raise ValueError("PLOT_SUBBASINID must be greater or equal than 0.")
         if plt_vars_str != '':
-            self.plt_vars = StringClass.split_string(plt_vars_str)
+            self.plot_vars = StringClass.split_string(plt_vars_str, [',', ' '])
         else:
             raise ValueError("PLOT_VARIABLES illegal defined in [PARAMETERS]!")
 
-        # 4. Optional_Parameters
-        if 'OPTIONAL_PARAMETERS' in cf.sections():
-            tstart = cf.get('OPTIONAL_PARAMETERS', 'time_start')
-            tend = cf.get('OPTIONAL_PARAMETERS', 'time_end')
-        else:
+        # 3. Optional_Parameters
+        if 'OPTIONAL_PARAMETERS' not in cf.sections():
             raise ValueError("[OPTIONAL_PARAMETERS] section MUST be existed in *.ini file.")
-        try:
-            # UTCTIME
-            self.time_start = StringClass.get_datetime(tstart)
-            self.time_end = StringClass.get_datetime(tend)
-            if cf.has_option('OPTIONAL_PARAMETERS', 'vali_time_start') and \
-                    cf.has_option('OPTIONAL_PARAMETERS', 'vali_time_end'):
-                tstart = cf.get('OPTIONAL_PARAMETERS', 'vali_time_start')
-                tend = cf.get('OPTIONAL_PARAMETERS', 'vali_time_end')
-                self.vali_stime = StringClass.get_datetime(tstart)
-                self.vali_etime = StringClass.get_datetime(tend)
-            else:
-                self.vali_stime = None
-                self.vali_etime = None
-        except ValueError:
-            raise ValueError('The time format MUST be "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS".')
-        if self.time_start >= self.time_end:
-            raise ValueError("Wrong time setted in [OPTIONAL_PARAMETERS]!")
-        # 5. Switches
-        self.lang_cn = False
-        if 'SWITCH' in cf.sections():
-            self.lang_cn = cf.getboolean('SWITCH', 'lang_cn')
+        # UTCTIME
+        self.cali_stime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'cali_time_start')
+        self.cali_etime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'cali_time_end')
+        self.vali_stime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'vali_time_start')
+        self.vali_etime = parse_datetime_from_ini(cf, 'OPTIONAL_PARAMETERS', 'vali_time_end')
+
+        if not self.cali_stime or not self.cali_etime or self.cali_stime >= self.cali_etime:
+            raise ValueError("Wrong time settings of calibration in [OPTIONAL_PARAMETERS]!")
+        if self.vali_stime and self.vali_etime and self.vali_stime >= self.vali_etime:
+            raise ValueError("Wrong time settings of validation in [OPTIONAL_PARAMETERS]!")
+        # 4. Plot settings based on matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
 
 def parse_ini_configuration():

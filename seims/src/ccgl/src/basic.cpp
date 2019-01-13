@@ -131,7 +131,7 @@ void SetOpenMPThread(const int n) {
 }
 
 void StatusMessage(const char* msg) {
-    /// Just for debugging ///
+    /// Just for debugging
 #ifdef _DEBUG
     std::cout << msg << std::endl;
 #endif /* DEBUG */

@@ -1,11 +1,14 @@
 /*!
-* \brief Template functions to initialize and release arrays.
-*        Part of the Common Cross-platform Geographic Library (CCGL)
-*
-* \author Liangjun Zhu (crazyzlj)
-* \version 1.0
-* \changelog  2018-05-02 - lj - Make part of CCGL.\n
-*/
+ * \file utils_array.h
+ * \brief Template functions to initialize and release arrays.
+ *        Part of the Common Cross-platform Geographic Library (CCGL)
+ *
+ * Changelog:
+ *   - 1. 2018-05-02 - lj - Make part of CCGL.
+ *
+ * \author Liangjun Zhu (crazyzlj)
+ * \version 1.0
+ */
 #ifndef CCGL_UTILS_ARRAY_H
 #define CCGL_UTILS_ARRAY_H
 
@@ -23,7 +26,7 @@ using std::nothrow;
 
 namespace ccgl {
 /*!
- * \namespace utils_array
+ * \namespace ccgl::utils_array
  * \brief Array related functions include vector and pointer array.
  */
 namespace utils_array {
@@ -87,12 +90,19 @@ void Release2DArray(int row, T**& data);
 
 /*!
  * \brief Batch release of 1D array
- *        Variable arguments with the end of nullptr.
- * \param[in] data, data2, ... , dataN, nullptr
- * \usage BatchRelease1DArray(array1, array2, array3, nullptr);
- * \caution After batch release, the variable will not be set to nullptr.
+ *        Variable arguments with the end of `nullptr`.
+ *
+ *        The input parameters are listed as `data`, `data2`, ... , `dataN`, and ended with `nullptr`.
+ *
+ * Example:
+ * \code
+ *   BatchRelease1DArray(array1, array2, array3, nullptr);
+ * \endcode
+ *
+ * \warning After batch release, the variable will not be set to nullptr.
  *          So, do not use these variables any more.
  *          BTW, this function will not cause memory leak.
+ *
  *          USE WITH ALL CAUTIONS CLEARLY AWARED.
  */
 template <typename T>
@@ -101,10 +111,15 @@ void BatchRelease1DArray(T*& data, ...);
 /*!
  * \brief Batch release of 2D array, \sa BatchRelease1DArray
  *        Variable arguments with the end of nullptr.
+ *
+ * Example:
+ * \code
+ *   BatchRelease2DArray(rows, array1, array2, array3, nullptr);
+ * \endcode
+ *
  * \param[in] nrows Rows
- * \param[in] data, data2, ... , dataN, nullptr
- * \usage BatchRelease2DArray(rows, array1, array2, array3, nullptr);
- * \caution USE WITH ALL CAUTIONS CLEARLY AWARED.
+ * \param[in] data The input parameters are listed as `data`, `data2`, ... , `dataN`, and ended with `nullptr`.
+ * \warning USE WITH ALL CAUTIONS CLEARLY AWARED.
  */
 template <typename T>
 void BatchRelease2DArray(int nrows, T**& data, ...);
@@ -127,7 +142,9 @@ void Output2DArrayToTxtFile(int rows, int cols, const float** data, const char* 
  * \brief Read 1D array from file
  *        The input file should follow the format:
  *           a 1D array sized rows * 1
+ *
  *        The size of data is rows
+ *
  * \sa Read2DArrayFromTxtFile(), Output1DArrayToTxtFile(), Output2DArrayToTxtFile()
  * \param[in] filename
  * \param[out] rows, data
@@ -139,7 +156,9 @@ void Read1DArrayFromTxtFile(const char* filename, int& rows, T*& data);
  * \brief Read 2D array from file
  *        The input file should follow the format:
  *            a 2D array sized rows * rows
+ *
  *        The size of data is rows * (rows + 1), the first element of each row is the rows
+ *
  * \sa Read1DArrayFromTxtFile(), Output1DArrayToTxtFile(), Output2DArrayToTxtFile()
  * \param[in] filename
  * \param[out] rows, data
@@ -151,7 +170,9 @@ void Read2DArrayFromTxtFile(const char* filename, int rows, T**& data);
  * \brief Read 2D array from string
  *        The input string should follow the format:
  *            float value, total number is rows * rows
+ *
  *        The size of data is rows * (rows + 1), the first element of each row is the rows.
+ *
  * \param[in] s
  * \param[out] rows, data
  */

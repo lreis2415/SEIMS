@@ -1,32 +1,60 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """User defined operation for optimizing BMPs based on slope position units.
-    @author   : Huiran Gao, Liangjun Zhu
-    @changelog: 16-11-08  hr - initial implementation.\n
-                17-08-18  lj - reorganization.\n
-                18-02-09  lj - compatible with Python3.\n
-"""
-from __future__ import absolute_import
+    @author   : Liangjun Zhu, Huiran Gao
 
+    @changelog:
+
+    - 16-11-08  hr - initial implementation.
+    - 17-08-18  lj - reorganization.
+    - 18-02-09  lj - compatible with Python3.
+    - 18-11-07  lj - support multiple BMPs configuration methods.
+    - 18-12-04  lj - add func:`crossover_updown` according to Wu et al. (2018).
+"""
+from __future__ import absolute_import, unicode_literals
+
+from future.utils import viewitems
+import array
+from collections import OrderedDict
 import os
 import sys
 import random
 
-from pygeoc.utils import get_config_parser
+from pygeoc.utils import get_config_parser, MathClass
+from typing import List, Tuple, Dict, Union, Any, Optional, AnyStr
 
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-from scenario_analysis.slpposunits.config import SASPUConfig
-from scenario_analysis.slpposunits.scenario import SPScenario, initialize_scenario, get_potential_bmps
+from scenario_analysis import _DEBUG
+from scenario_analysis.slpposunits.scenario import select_potential_bmps
+
+
+def check_individual_diff(old_ind,  # type: Union[array.array, List[int], Tuple[int]]
+                          new_ind  # type: Union[array.array, List[int], Tuple[int]]
+                          ):
+    # type: (...) -> bool
+    """Check the gene values of two individuals."""
+    diff = False
+    for i in range(len(old_ind)):
+        if not MathClass.floatequal(old_ind[i], new_ind[i]):
+            diff = True
+            break
+    return diff
 
 
 #                                       #
 #          Crossover (Mate)             #
 #                                       #
 
-def crossover_slppos(tagnames, ind1, ind2):
+def crossover_slppos(tagnames,  # type: List[Tuple[int, str]]
+                     ind1,  # type: Union[array.array, List[int], Tuple[int]]
+                     ind2  # type: Union[array.array, List[int], Tuple[int]]
+                     ):
+    # type: (...) -> (Union[array.array, List[int], Tuple[int]], Union[array.array, List[int], Tuple[int]])
     """Crossover operator based on slope position units.
+    Each individual can keep the domain knowledge based rules after crossover operation.
+
     Args:
         tagnames(list): slope position tags and names, from up to bottom of hillslope.
                         The format is [(tag, name),...].
@@ -60,20 +88,158 @@ def crossover_slppos(tagnames, ind1, ind2):
     ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
         = ind2[cxpoint1:cxpoint2], ind1[cxpoint1:cxpoint2]
 
-    # Check the validation according to spatial configuration rules.
-
     return ind1, ind2
 
 
-def crossover_rdm(ind1, ind2):
-    """Crossover randomly.
-        Args:
-            ind1: The first individual participating in the crossover.
-            ind2: The second individual participating in the crossover.
+def crossover_updown(updownunits,  # type: Dict[int, Dict[AnyStr, List[int]]]
+                     gene2unit,  # type: Dict[int, int]
+                     unit2gene,  # type: OrderedDict[int, int]
+                     ind1,  # type: Union[array.array, List[int], Tuple[int]]
+                     ind2  # type: Union[array.array, List[int], Tuple[int]]
+                     ):
+    """Crossover operator based on hydrologically connected fields with
+    upstream-downstream relationships.
 
-        Returns:
-            A tuple of two individuals.
-        """
+    A subtree exchange method introduced in Wu et al. (2018) is adapted and extended.
+
+    - 1. A node (gene) is chosen randomly.
+    - 2. If the pattern of 'downslope-current' of each individual after
+         crossover is accord with the UPDOWN rules, then exchange the subtrees with
+         the selected gene as root node.
+    - 3. If not, check the downslope gene one by one, until a eligible gene is reached.
+    - 4. If no eligible gene is found until the last gene is reached:
+      - 4.1. If the number of the subtree with the last gene as root equals to all genes, return;
+      - 4.2. Else, exchange the subtree like step 2.
+    """
+
+    def check_validation(geneidx, genevalue, ind):
+        """Check if the gene value is valid according to UPDOWN method."""
+        if geneidx <= 0:
+            return True
+        unitid = gene2unit[geneidx]
+        downids = updownunits[unitid]['downslope']
+        valid = True
+        if _DEBUG:
+            print('---- Check validation of crossover gene %d (field ID %d)'
+                  ' with value %s' % (geneidx, unitid, repr(genevalue)))
+        for downid in downids:
+            if downid <= 0:
+                if _DEBUG:
+                    print('----   The field unit is the most downstream unit.')
+                continue
+            downgeneidx = unit2gene[downid]
+            downgenevalue = ind[downgeneidx]
+            if _DEBUG:
+                print('----   Downstream field ID: %d, gene value: %s' % (downid,
+                                                                          repr(downgenevalue)))
+            if downgenevalue > 0 and genevalue > 0:
+                # Only when the planned gene and its downslope gene are both configured BMP,
+                #   is considered invalid.
+                valid = False
+                break
+        if _DEBUG:
+            print('---- Validation check %s!' % ('PASSED' if valid else 'FAILED'))
+        return valid
+
+    def check_validation_individual(ind):
+        """Check the validation of the individual."""
+        valid = True
+        for k, v in viewitems(updownunits):
+            if isinstance(v['downslope'], list) and len(v['downslope']) == 0:
+                continue
+            if isinstance(v['downslope'], list):
+                downslope_id = v['downslope'][0]
+            else:
+                downslope_id = v['downslope']
+            if downslope_id <= 0:
+                continue
+            downslope_value = ind[unit2gene[downslope_id]]
+            if ind[unit2gene[k]] > 0 and downslope_value > 0:
+                valid = False
+                if _DEBUG:
+                    print('---- Field ID %d with value %s is invalid!' % (k,
+                                                                          repr(ind[unit2gene[k]])))
+                    print('----   The downstream field ID %d is with %s' % (downslope_id,
+                                                                            repr(downslope_value)))
+                return valid
+        return valid
+
+    if _DEBUG:
+        print('-- Before crossover operation:')
+        print('-- Individual 1 validation check %s' % ('PASSED' if check_validation_individual(ind1)
+              else 'FAILED'))
+        print('-- Individual 2 validation check %s' % ('PASSED' if check_validation_individual(ind2)
+              else 'FAILED'))
+    size = min(len(ind1), len(ind2))
+    # 1. Chose a node (gene) randomly.
+    cxpoint = random.randint(0, size - 1)
+    if _DEBUG:
+        print('-- Randomly selected crossover gene index: %d, field ID %d' % (cxpoint,
+                                                                              gene2unit[cxpoint]))
+    # 2. Whether it is valid after crossover
+    untested = [cxpoint]
+    while len(untested) > 0:
+        cxp = untested[0]
+        if check_validation(cxp, ind2[cxp], ind1) and check_validation(cxp, ind1[cxp], ind2):
+            cxpoint = cxp
+            break
+        else:
+            untested.remove(cxp)
+            for i in updownunits[gene2unit[cxp]]['downslope']:
+                if i > 0:
+                    untested.append(unit2gene[i])
+    if cxpoint < 0:
+        return ind1, ind2
+    upids = updownunits[gene2unit[cxpoint]]['all_upslope']
+    if gene2unit[cxpoint] not in upids:
+        upids.insert(0, gene2unit[cxpoint])  # contain the crossover point itself
+
+    if len(upids) >= len(gene2unit):  # avoid exchange the entire genes
+        if _DEBUG:
+            print('-- No need to crossover since the entire genes is selected!')
+        return ind1, ind2
+    if len(upids) >= 1:
+        same_subtree = True
+        for sub in upids:
+            if ind1[unit2gene[sub]] != ind2[unit2gene[sub]]:
+                same_subtree = False
+                break
+        if _DEBUG and same_subtree:
+            print('-- No need to crossover since the gene values of the subtree'
+                  ' with the same values is selected!')
+        if same_subtree:
+            return ind1, ind2
+    if _DEBUG:
+        print('-- Adjusted crossover field ID: %d,'
+              ' exchanged length: %d,'
+              ' exchange field IDs: %s' % (gene2unit[cxpoint], len(upids), upids.__str__()))
+    for upunitid in upids:
+        upgeneidx = unit2gene[upunitid]
+        tmpvalue = ind1[upgeneidx]
+        ind1[upgeneidx] = ind2[upgeneidx]
+        ind2[upgeneidx] = tmpvalue
+    if _DEBUG:
+        print('-- After crossover operation:')
+        print('-- Individual 1 validation check %s' % ('PASSED' if check_validation_individual(ind1)
+              else 'FAILED'))
+        print('-- Individual 2 validation check %s' % ('PASSED' if check_validation_individual(ind2)
+              else 'FAILED'))
+    return ind1, ind2
+
+
+def crossover_rdm(ind1,  # type: Union[array.array, List[int], Tuple[int]]
+                  ind2  # type: Union[array.array, List[int], Tuple[int]]
+                  ):
+    # type: (...) -> (Union[array.array, List[int], Tuple[int]], Union[array.array, List[int], Tuple[int]])
+    """Crossover randomly.
+
+    Args:
+        ind1: The first individual participating in the crossover.
+        ind2: The second individual participating in the crossover.
+
+    Returns:
+        A tuple of two individuals.
+    """
     size = min(len(ind1), len(ind2))
 
     while True:
@@ -95,8 +261,19 @@ def crossover_rdm(ind1, ind2):
 #               Mutate                  #
 #                                       #
 
-def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individual,
-                  perc, indpb, method=1):
+def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
+                gene2unit,  # type: Dict[int, int]
+                unit2gene,  # type: OrderedDict[int, int]
+                suitbmps,  # type: Dict[int, List[int]]
+                individual,  # type: Union[array.array, List[int], Tuple[int]]
+                perc,  # type: float
+                indpb,  # type: float
+                unit='SLPPOS',  # type: AnyStr
+                method='SUIT',  # type: AnyStr
+                bmpgrades=None,  # type: Optional[Dict[int, int]]
+                tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # For slope position units
+                ):
+    # type: (...) -> Union[array.array, List[int], Tuple[int]]
     """
     Mutation Gene values based on slope position rules.
     Old gene value is excluded from target values.
@@ -111,7 +288,9 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         individual(list or tuple): Individual to be mutated.
         perc(float): percent of gene length for mutate, default is 0.02
         indpb(float): Independent probability for each attribute to be mutated.
-        method(int): Domain knowledge based rule method.
+        unit(str): BMPs configuration unit type.
+        method(str): Domain knowledge-based rule method.
+        bmpgrades(dict): (Optional) Effectiveness grades of BMPs.
 
     Returns:
         A tuple of one individual.
@@ -124,7 +303,8 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         mut_num = random.randint(1, int(len(individual) * perc))
     except ValueError or Exception:
         return individual
-    # print('Max mutate num: %d' % mut_num)
+    if _DEBUG:
+        print('  Max mutate num: %d' % mut_num)
     muted = list()
     for m in range(mut_num):
         if random.random() > indpb:
@@ -137,52 +317,37 @@ def mutate_slppos(unitsinfo, gene2unit, unit2gene, tagnames, suitbmps, individua
         oldgenev = individual[mpoint]
         unitid = gene2unit[mpoint]
         # begin to mutate on unitid
-        # 1. get slope position tag, and upslope and downslope unit IDs
-        sptag = -1
-        down_sid = -1  # slppos unit ID
-        down_gid = -1  # gene index
-        down_gvalue = -1  # gene value
-        up_sid = -1
-        up_gid = -1
-        up_gvalue = -1
-        for spid, spdict in unitsinfo.items():
-            if unitid not in spdict:
-                continue
-            for t, n in tagnames:
-                if spid == n:
-                    sptag = t
-                    break
-            down_sid = spdict[unitid]['downslope']
-            up_sid = spdict[unitid]['upslope']
-            if down_sid > 0:
-                down_gid = unit2gene[down_sid]
-                down_gvalue = individual[down_gid]
-            if up_sid > 0:
-                up_gid = unit2gene[up_sid]
-                up_gvalue = individual[up_gid]
-        if sptag < 0:  # this circumstance may not happen, just in case.
-            continue
-
-        # print('  Mutate on slppos: %d (unit: %d, oldgene: %d), upgene: %d, downgene: %d' %
-        #       (sptag, unitid, oldgenev, up_gvalue, down_gvalue))
         # get the potential BMP IDs
-
-        bmps = get_potential_bmps(suitbmps, sptag, up_sid, up_gvalue, down_sid, down_gvalue, method)
+        bmps = select_potential_bmps(unitid, suitbmps, unitsinfo, unit2gene, individual,
+                                     unit=unit, method=method,
+                                     bmpgrades=bmpgrades, tagnames=tagnames)
+        if bmps is None or len(bmps) == 0:
+            continue
         # Get new BMP ID for current unit.
+        if 0 not in bmps:
+            bmps.append(0)
         if oldgenev in bmps:
             bmps.remove(oldgenev)
-        # print('    method: %d, potBMPs: %s' % (method, bmps.__str__()))
         if len(bmps) > 0:
             individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
+            if _DEBUG:
+                print('  Mutate on unit: %d, oldgene: %d, potBMPs: %s, new gene: %d' %
+                      (unitid, oldgenev, bmps.__str__(), individual[mpoint]))
             muted.append(mpoint)
         else:  # No available BMP
             pass
     return individual
 
 
-def mutate_rdm(bmps_mut_target, individual, perc, indpb):
+def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
+               individual,  # type: Union[array.array, List[int], Tuple[int]]
+               perc,  # type: float
+               indpb  # type: float
+               ):
+    # type: (...) -> (Union[array.array, List[int], Tuple[int]], Union[array.array, List[int], Tuple[int]])
     """
     Mutation Gene values randomly, old gene value is excluded from target values.
+
     Args:
         bmps_mut_target(list or tuple): All available gene values.
         individual(list or tuple): Individual to be mutated.
@@ -218,29 +383,113 @@ def mutate_rdm(bmps_mut_target, individual, perc, indpb):
     return individual
 
 
-if __name__ == '__main__':
+def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
+    # type: (int, float, float, float) -> None
+    """Test mutate function."""
+    from deap import base
+    from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
+    from scenario_analysis.config import SAConfig
+    from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, \
+        SACommUnitConfig
+    from scenario_analysis.slpposunits.scenario import SUScenario
     cf = get_config_parser()
-    cfg = SASPUConfig(cf)
 
-    # print(cfg.gene_to_slppos)
-    # print(cfg.slppos_suit_bmps)
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
 
-    units_info = cfg.units_infos
-    slppos_tagnames = cfg.slppos_tagnames
-    suit_bmps = cfg.slppos_suit_bmps
-    gene_to_unit = cfg.gene_to_slppos
-    unit_to_gene = cfg.slppos_to_gene
-    init_gene_values = initialize_scenario(cfg)
-    # print('Initial genes: %s' % init_gene_values.__str__())sce = SPScenario(cfg)
-    sce = SPScenario(cfg)
-    curid = sce.set_unique_id()
-    setattr(sce, 'gene_values', init_gene_values)
-    sce.calculate_economy()
-    inicost = sce.economy
-    mutate_slppos(units_info, gene_to_unit, unit_to_gene, slppos_tagnames, suit_bmps,
-                  init_gene_values, 0.2, 0.3, method=1)
-    # print('Mutated genes: %s' % init_gene_values.__str__())
-    setattr(sce, 'gene_values', init_gene_values)
-    sce.calculate_economy()
-    mutcost = sce.economy
-    print('%.2f, %.2f' % (inicost, mutcost))
+    # Initialize gene values for individual 1 and 2
+    sce1 = SUScenario(cfg)
+    ind1 = sce1.initialize()
+    sceid1 = sce1.set_unique_id()
+    print('Scenario1-ID: %d\n  Initial genes: %s' % (sceid1, ind1.__str__()))
+    sce2 = SUScenario(cfg)
+    ind2 = sce2.initialize()
+    sceid2 = sce2.set_unique_id()
+    print('Scenario2-ID: %d\n  Initial genes: %s' % (sceid2, ind2.__str__()))
+
+    # Clone old individuals
+    toolbox = base.Toolbox()
+
+    for gen_id in list(range(gen_num)):
+        # Calculate initial economic benefit
+        inicost1 = sce1.calculate_economy()
+        inicost2 = sce2.calculate_economy()
+        print('## Generation %d ##' % gen_id)
+        # Crossover
+        print('Crossover:')
+        old_ind1 = toolbox.clone(ind1)
+        old_ind2 = toolbox.clone(ind2)
+        if random.random() <= cx_rate:
+            if base_cfg.bmps_cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
+                crossover_slppos(sce1.cfg.slppos_tagnames, ind1, ind2)
+            elif base_cfg.bmps_cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
+                crossover_updown(sce1.cfg.updown_units, sce1.cfg.gene_to_unit,
+                                 sce1.cfg.unit_to_gene, ind1, ind2)
+            else:
+                crossover_rdm(ind1, ind2)
+        if not check_individual_diff(old_ind1, ind1) and not check_individual_diff(old_ind2, ind2):
+            print('  No crossover occurred on Scenario1 and Scenario2!')
+        else:
+            print('  Crossover genes:\n    Scenario1: %s\n'
+                  '    Scenario2: %s' % (ind1.__str__(), ind2.__str__()))
+        # Calculate economic benefit after crossover
+        setattr(sce1, 'gene_values', ind1)
+        cxcost1 = sce1.calculate_economy()
+        setattr(sce2, 'gene_values', ind2)
+        cxcost2 = sce2.calculate_economy()
+
+        # Mutate
+        print('Mutate:')
+        old_ind1 = toolbox.clone(ind1)
+        old_ind2 = toolbox.clone(ind2)
+        if base_cfg.bmps_cfg_method == BMPS_CFG_METHODS[0]:
+            possible_gene_values = list(sce1.bmps_params.keys())
+            if 0 not in possible_gene_values:
+                possible_gene_values.append(0)
+            mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
+            mutate_rdm(possible_gene_values, ind2, perc=mut_perc, indpb=mut_rate)
+        else:
+            tagnames = None
+            if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:
+                tagnames = sce1.cfg.slppos_tagnames
+            mutate_rule(sce1.cfg.units_infos, sce1.cfg.gene_to_unit, sce1.cfg.unit_to_gene,
+                        sce1.suit_bmps['LANDUSE'], ind1, mut_perc, mut_rate,
+                        unit=base_cfg.bmps_cfg_unit, method=base_cfg.bmps_cfg_method,
+                        bmpgrades=sce1.bmps_grade, tagnames=tagnames)
+            mutate_rule(sce2.cfg.units_infos, sce2.cfg.gene_to_unit, sce2.cfg.unit_to_gene,
+                        sce2.suit_bmps['LANDUSE'], ind2, mut_perc, mut_rate,
+                        unit=base_cfg.bmps_cfg_unit, method=base_cfg.bmps_cfg_method,
+                        bmpgrades=sce2.bmps_grade, tagnames=tagnames)
+        if not check_individual_diff(old_ind1, ind1):
+            print('  No mutation occurred on Scenario1!')
+        else:
+            print('    Mutated genes of Scenario1: %s' % ind1.__str__())
+        if not check_individual_diff(old_ind2, ind2):
+            print('  No mutation occurred on Scenario2!')
+        else:
+            print('    Mutated genes of Scenario2: %s' % ind2.__str__())
+
+        # Calculate economic benefit after mutate
+        setattr(sce1, 'gene_values', ind1)
+        mutcost1 = sce1.calculate_economy()
+        setattr(sce2, 'gene_values', ind2)
+        mutcost2 = sce2.calculate_economy()
+
+        print('Initial cost: \n'
+              '  Scenario1: %.3f, Scenario2: %.3f\n'
+              'Crossover:\n'
+              '  Scenario1: %.3f, Scenario2: %.3f\n'
+              'Mutation:\n'
+              '  Scenario1: %.3f, Scenario2: %.3f\n' % (inicost1, inicost2,
+                                                        cxcost1, cxcost2,
+                                                        mutcost1, mutcost2))
+
+
+if __name__ == '__main__':
+    main_test_crossover_mutate(100, 0.8, 0.2, 0.1)

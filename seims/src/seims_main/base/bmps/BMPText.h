@@ -1,6 +1,7 @@
 /*!
+ * \file BMPText.h
  * \brief BMP related const strings
- * \revised Liang-Jun Zhu
+ * \author Liang-Jun Zhu
  * \date 2016-6-16
  */
 #ifndef SEIMS_BMP_TEXT_H
@@ -198,7 +199,7 @@
 
 //Crop classification
 #define CROP_IDC_WARM_SEASON_ANNUAL_LEGUME    1
-#define CROP_IDC_CODE_SEASON_ANNUAL_LEGUME    2
+#define CROP_IDC_COLD_SEASON_ANNUAL_LEGUME    2
 #define CROP_IDC_PERENNIAL_LEGUME             3
 #define CROP_IDC_WARM_SEASON_ANNUAL           4
 #define CROP_IDC_COLD_SEASON_ANNUAL           5

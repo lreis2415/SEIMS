@@ -9,7 +9,7 @@ ReservoirMethod::ReservoirMethod() :
     m_soilPerco(nullptr), m_IntcpET(nullptr), m_deprStoET(nullptr),
     m_soilET(nullptr), m_actPltET(nullptr), m_pet(nullptr),
     m_revap(nullptr), m_GW0(NODATA_VALUE), m_GWMAX(NODATA_VALUE),
-    m_petSubbasin(nullptr), m_gwStore(nullptr), m_slope(nullptr), m_soilWtrSto(nullptr),
+    m_petSubbsn(nullptr), m_gwSto(nullptr), m_slope(nullptr), m_soilWtrSto(nullptr),
     m_soilDepth(nullptr),
     m_VgroundwaterFromBankStorage(nullptr), m_T_Perco(nullptr),
     /// intermediate
@@ -26,8 +26,8 @@ ReservoirMethod::~ReservoirMethod() {
     if (m_T_Revap != nullptr) Release1DArray(m_T_Revap);
     if (m_T_RG != nullptr) Release1DArray(m_T_RG);
     if (m_T_QG != nullptr) Release1DArray(m_T_QG);
-    if (m_petSubbasin != nullptr) Release1DArray(m_petSubbasin);
-    if (m_gwStore != nullptr) Release1DArray(m_gwStore);
+    if (m_petSubbsn != nullptr) Release1DArray(m_petSubbsn);
+    if (m_gwSto != nullptr) Release1DArray(m_gwSto);
     if (m_T_GWWB != nullptr) Release2DArray(m_nSubbsns + 1, m_T_GWWB);
 }
 
@@ -39,8 +39,8 @@ void ReservoirMethod::InitialOutputs() {
     if (m_T_PerDep == nullptr) Initialize1DArray(nLen, m_T_PerDep, 0.f);
     if (m_T_RG == nullptr) Initialize1DArray(nLen, m_T_RG, 0.f);
     if (m_T_QG == nullptr) Initialize1DArray(nLen, m_T_QG, 0.f);
-    if (m_petSubbasin == nullptr) Initialize1DArray(nLen, m_petSubbasin, 0.f);
-    if (m_gwStore == nullptr) Initialize1DArray(nLen, m_gwStore, m_GW0);
+    if (m_petSubbsn == nullptr) Initialize1DArray(nLen, m_petSubbsn, 0.f);
+    if (m_gwSto == nullptr) Initialize1DArray(nLen, m_gwSto, m_GW0);
     if (m_revap == nullptr) Initialize1DArray(m_nCells, m_revap, 0.f);
     if (m_T_GWWB == nullptr) Initialize2DArray(nLen, 6, m_T_GWWB, 0.f);
 }
@@ -72,7 +72,7 @@ int ReservoirMethod::Execute() {
             }
             m_revap[index] = m_pet[index] - m_IntcpET[index] - m_deprStoET[index] - m_soilET[index] - m_actPltET[index];
             m_revap[index] = Max(m_revap[index], 0.f);
-            m_revap[index] = m_revap[index] * m_gwStore[subID] / m_GWMAX;
+            m_revap[index] = m_revap[index] * m_gwSto[subID] / m_GWMAX;
             revap += m_revap[index];
         }
         perco /= curCellsNum; // mean mm
@@ -85,21 +85,21 @@ int ReservoirMethod::Execute() {
         perco *= ratio2gw;
         float percoDeep = perco * m_dp_co; ///< deep percolation
 
-        if (revap > m_gwStore[subID]) {
+        if (revap > m_gwSto[subID]) {
             for (int i = 0; i < curCellsNum; i++) {
                 int index = 0;
                 index = curCells[i];
-                m_revap[index] *= m_gwStore[subID] / revap;
+                m_revap[index] *= m_gwSto[subID] / revap;
             }
-            revap = m_gwStore[subID];
+            revap = m_gwSto[subID];
         }
 
         // groundwater runoff (mm)
         float slopeCoef = curSub->GetSlopeCoef();
         float kg = m_Kg * slopeCoef;
-        float groundRunoff = kg * pow(m_gwStore[subID], m_Base_ex); // mm
+        float groundRunoff = kg * pow(m_gwSto[subID], m_Base_ex); // mm
         float groundQ = groundRunoff * curCellsNum * QGConvert;     // groundwater discharge (m3/s)
-        float groundStorage = m_gwStore[subID];
+        float groundStorage = m_gwSto[subID];
         groundStorage += perco - revap - percoDeep - groundRunoff;
 
         //add the ground water from bank storage, 2011-3-14
@@ -128,7 +128,7 @@ int ReservoirMethod::Execute() {
 
         if (groundStorage != groundStorage) {
             std::ostringstream oss;
-            oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwStore[subID]
+            oss << perco << "\t" << revap << "\t" << percoDeep << "\t" << groundRunoff << "\t" << m_gwSto[subID]
                     << "\t" << m_Kg << "\t" << m_Base_ex << "\t" << slopeCoef << endl;
             throw ModelException("Subbasin", "setInputs", oss.str());
         }
@@ -142,13 +142,13 @@ int ReservoirMethod::Execute() {
                 ", groundQ: " << std::fixed << setprecision(6) << groundQ <<
                 ", gwStore: " << std::fixed << setprecision(6) << groundStorage << endl;
 #endif
-        m_petSubbasin[subID] = curSub->GetPet();
+        m_petSubbsn[subID] = curSub->GetPet();
         m_T_Perco[subID] = curSub->GetPerco();
         m_T_PerDep[subID] = curSub->GetPerde();
         m_T_Revap[subID] = curSub->GetEg();
         m_T_RG[subID] = curSub->GetRg(); //get rg of specific subbasin
         m_T_QG[subID] = curSub->GetQg(); //get qg of specific subbasin
-        m_gwStore[subID] = curSub->GetGw();
+        m_gwSto[subID] = curSub->GetGw();
     }
 
     m_T_Perco[0] = m_subbasinsInfo->Subbasin2Basin(VAR_PERCO);
@@ -156,7 +156,7 @@ int ReservoirMethod::Execute() {
     m_T_Revap[0] = m_subbasinsInfo->Subbasin2Basin(VAR_REVAP);
     m_T_RG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_RG); // get rg of entire watershed
     m_T_QG[0] = m_subbasinsInfo->Subbasin2Basin(VAR_QG); // get qg of entire watershed
-    m_gwStore[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
+    m_gwSto[0] = m_subbasinsInfo->Subbasin2Basin(VAR_GW_Q);
 
     // output to GWWB, the sequence is coincident with the header information defined in PrintInfo.cpp, line 528.
     for (int i = 0; i <= m_nSubbsns; i++) {
@@ -164,7 +164,7 @@ int ReservoirMethod::Execute() {
         m_T_GWWB[i][1] = m_T_Revap[i];
         m_T_GWWB[i][2] = m_T_PerDep[i];
         m_T_GWWB[i][3] = m_T_RG[i];
-        m_T_GWWB[i][4] = m_gwStore[i];
+        m_T_GWWB[i][4] = m_gwSto[i];
         m_T_GWWB[i][5] = m_T_QG[i];
     }
 
@@ -300,8 +300,8 @@ void ReservoirMethod::GetValue(const char* key, float* value) {
     string sk(key);
     if (StringMatch(sk, VAR_RG) && m_inputSubbsnID > 0) *value = m_T_RG[m_inputSubbsnID];
     else if (StringMatch(sk, VAR_SBQG) && m_inputSubbsnID > 0) *value = m_T_QG[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SBGS) && m_inputSubbsnID > 0) *value = m_gwStore[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SBPET) && m_inputSubbsnID > 0) *value = m_petSubbasin[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SBGS) && m_inputSubbsnID > 0) *value = m_gwSto[m_inputSubbsnID];
+    else if (StringMatch(sk, VAR_SBPET) && m_inputSubbsnID > 0) *value = m_petSubbsn[m_inputSubbsnID];
     else {
         throw ModelException(MID_GWA_RE, "GetValue", "Parameter " + sk + " does not exist.");
     }
@@ -320,10 +320,10 @@ void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
         *data = m_T_QG;
         *nRows = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SBGS)) {
-        *data = m_gwStore;
+        *data = m_gwSto;
         *nRows = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SBPET)) {
-        *data = m_petSubbasin;
+        *data = m_petSubbsn;
         *nRows = m_nSubbsns + 1;
     } else {
         throw ModelException(MID_GWA_RE, "Get1DData", "Parameter " + sk + " does not exist.");

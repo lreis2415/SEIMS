@@ -1,7 +1,8 @@
 /*!
+ * \file DataCenterMongoDB.h
  * \brief Data center for running SEIMS based on MongoDB.
  *        including configuration, input data, output data, etc.
- *        All interaction with database should be implemented here.
+ *
  * \author Liangjun Zhu
  * \date May 2017
  */
@@ -13,16 +14,16 @@
 /*!
  * \ingroup data
  * \class DataCenterMongoDB
- * \brief Class of Data center inherited from \sa DataCenter based on MongoDB
+ * \brief Class of Data center inherited from DataCenter based on MongoDB
  * \version 1.2
  */
 class DataCenterMongoDB: public DataCenter {
 public:
     /*!
      * \brief Constructor based on MongoDB
-     * \param[in] input_args Input arguments of SEIMS, \sa InputArgs
-     * \param[in] client MongoDB connection client, \sa MongoClient
-     * \param[in] factory SEIMS modules factory, \sa ModuleFactory
+     * \param[in] input_args Input arguments of SEIMS
+     * \param[in] client MongoDB connection client
+     * \param[in] factory SEIMS modules factory
      * \param[in] subbasin_id Subbasin ID, 0 is the default for entire watershed
      */
     DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
@@ -51,7 +52,9 @@ public:
     void ReadClimateSiteList() OVERRIDE;
     /*!
      * \brief Read initial and calibrated parameters
-     * \version 2017.12.23  lj - read parameters (Impact value) according to calibration ID
+     *
+     * Changlog:
+     *   - 1. 2017-12-23 - lj - Read parameters (Impact value) according to calibration ID.
      */
     bool ReadParametersInDB() OVERRIDE;
     /*!
@@ -61,34 +64,32 @@ public:
     FloatRaster* ReadRasterData(const string& remote_filename) OVERRIDE;
     /*!
      * \brief Read interpolated weight data from MongoDB and insert to m_weightDataMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename \a string data file name
+     * \param[out] num \a int&, data length
+     * \param[out] data \a float*&, returned data
      */
     void ReadItpWeightData(const string& remote_filename, int& num, float*& data) OVERRIDE;
     /*!
      * \brief Read 1D array data from MongoDB and insert to m_1DArrayMap
      *        CAUTION: Value data type stored in MongoDB MUST be float
-     * \param[in] param_name \string parameter name
-     * \param[in] remote_filename \string data file name
-     * \param[out] num \int&, data length
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename \a string data file name
+     * \param[out] num \a int&, data length
+     * \param[out] data \a float*&, returned data
      */
-    void Read1DArrayData(const string& param_name, const string& remote_filename,
-                         int& num, float*& data) OVERRIDE;
+    void Read1DArrayData(const string& remote_filename, int& num, float*& data) OVERRIDE;
     /*!
      * \brief Read 2D array data from MongoDB database
-     * \param[in] remote_filename \string data file name
-     * \param[out] rows \int&, first dimension of the 2D Array, i.e., Rows
-     * \param[out] cols \int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
-     * \param[out] data \float**&, returned data
+     * \param[in] remote_filename \a string data file name
+     * \param[out] rows \a int&, first dimension of the 2D Array, i.e., Rows
+     * \param[out] cols \a int&, second dimension of the 2D Array, i.e., Cols. If each col are different, set cols to 1.
+     * \param[out] data \a float**&, returned data
      */
     void Read2DArrayData(const string& remote_filename, int& rows, int& cols, float**& data) OVERRIDE;
     /*!
      * \brief Read IUH data from MongoDB and insert to m_2DArrayMap
-     * \param[in] remote_filename \string data file name
-     * \param[out] n \int&, valid cell number
-     * \param[out] data \float*&, returned data
+     * \param[in] remote_filename \a string data file name
+     * \param[out] n \a int&, valid cell number
+     * \param[out] data \a float*&, returned data
      */
     void ReadIuhData(const string& remote_filename, int& n, float**& data) OVERRIDE;
     /*!

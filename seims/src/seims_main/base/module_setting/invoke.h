@@ -1,8 +1,12 @@
 /*!
+ * \file invoke.h
  * \brief Parse the input arguments as a class which can be easily extended.
+ *
+ * Changelog:
+ *   - 1. 2018-02-01 - lj - Initial implementation.
+ *   - 2. 2018-06-06 - lj - Add parameters related to MPI version, e.g., group method.
+ *
  * \author Liangjun Zhu
- * \changelog 2018-02-01 - lj - Initial implementation.\n
- *            2018-06-06 - lj - Add parameters related to MPI version, e.g., group method.\n
  */
 #ifndef SEIMS_INPUT_ARGUMENTS_H
 #define SEIMS_INPUT_ARGUMENTS_H
@@ -14,16 +18,37 @@
 using namespace ccgl;
 
 /*!
+ * \class InputArgs
+ * \ingroup module_setting
  * \brief Parse the input arguments of SEIMS.
  */
 class InputArgs: Interface {
 public:
+    /*!
+     * \brief Constructor by detailed parameters
+     * \param[in] model_path path of the configuration of the Model
+     * \param[in] thread_num thread or processor number, which must be greater or equal than 1 (default)
+     * \param[in] lyr_mtd can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively
+     * \param[in] host the address of MongoDB database, by default, MongoDB IP is 127.0.0.1 (i.e., localhost)
+     * \param[in] port port number, default is 27017
+     * \param[in] scenario_id the ID of BMPs Scenario which has been defined in BMPs database
+     * \param[in] calibration_id the ID of Calibration which has been defined in PARAMETERS table
+     * \param[in] subbasin_id the subbasin that will be executed, default is 0 which means the whole watershed
+     * \param[in] grp_mtd can be 0 and 1, which means KMETIS (default) and PMETIS, respectively
+     * \param[in] skd_mtd (TESTED) can be 0 and 1, which means SPATIAL (default) and TEMPOROSPATIAL, respectively
+     * \param[in] time_slices (TESTED) should be greater than 1, required when <skd_mtd> is 1
+     */
     InputArgs(const string& model_path, int thread_num, LayeringMethod lyr_mtd,
               const string& host, uint16_t port,
               int scenario_id, int calibration_id,
               int subbasin_id, GroupMethod grp_mtd,
               ScheduleMethod skd_mtd, int time_slices);
 
+    /*!
+     * \brief Initializer.
+     * \param[in] argc Number of arguments
+     * \param[in] argv \a char* Arguments
+     */
     static InputArgs* Init(int argc, const char** argv);
 
 public:

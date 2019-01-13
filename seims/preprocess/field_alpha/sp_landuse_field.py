@@ -293,30 +293,27 @@ class LanduseUtilClass(object):
                                                        ModelParamDataUtils.landuse_fields,
                                                        cfg.default_landuse)
         # 3. Generate crop parameters
-        if cfg.gen_crop:
-            status_output("Generating crop/landcover_init_param attributes...", 30, f)
-            crop_lookup_file = cfg.paramcfgs.crop_file
-            LanduseUtilClass.reclassify_landcover_parameters(cfg.spatials.landuse,
-                                                             cfg.spatials.crop,
-                                                             cfg.landcover_init_param,
-                                                             crop_lookup_file,
-                                                             ModelParamDataUtils.crop_fields,
-                                                             cfg.dirs.geodata2db, landuse_shp)
+        status_output("Generating crop/landcover_init_param attributes...", 30, f)
+        crop_lookup_file = cfg.paramcfgs.crop_file
+        LanduseUtilClass.reclassify_landcover_parameters(cfg.spatials.landuse,
+                                                         cfg.spatials.crop,
+                                                         cfg.landcover_init_param,
+                                                         crop_lookup_file,
+                                                         ModelParamDataUtils.crop_fields,
+                                                         cfg.dirs.geodata2db, landuse_shp)
         # 4. Generate Curve Number according to landuse
-        if cfg.gen_cn:
-            status_output("Calculating CN numbers...", 40, f)
-            hg_file = cfg.spatials.hydro_group
-            cn2_filename = cfg.spatials.cn2
-            LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename, landuse_shp)
+        status_output("Calculating CN numbers...", 40, f)
+        hg_file = cfg.spatials.hydro_group
+        cn2_filename = cfg.spatials.cn2
+        LanduseUtilClass.generate_cn2(maindb, cfg.spatials.landuse, hg_file, cn2_filename, landuse_shp)
         # 5. Generate runoff coefficient
-        if cfg.gen_runoff_coef:
-            status_output("Calculating potential runoff coefficient...", 50, f)
-            slope_file = cfg.spatials.slope
-            soil_texture_raster = cfg.spatials.soil_texture
-            runoff_coef_file = cfg.spatials.runoff_coef
-            LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
-                                                        soil_texture_raster,
-                                                        runoff_coef_file, landuse_shp, cfg.imper_perc_in_urban)
+        status_output("Calculating potential runoff coefficient...", 50, f)
+        slope_file = cfg.spatials.slope
+        soil_texture_raster = cfg.spatials.soil_texture
+        runoff_coef_file = cfg.spatials.runoff_coef
+        LanduseUtilClass.generate_runoff_coefficent(maindb, cfg.spatials.landuse, slope_file,
+                                                    soil_texture_raster,
+                                                    runoff_coef_file, landuse_shp, cfg.imper_perc_in_urban)
         status_output("Landuse/Landcover related spatial parameters extracted done!", 100, f)
 
 

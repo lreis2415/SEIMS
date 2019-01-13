@@ -1,11 +1,16 @@
 /*!
+ * \file NutrientMovementViaWater.h
  * \brief Simulates the loss of nitrate and phosphorus via surface runoff,
  *        lateral flow, tile flow, and percolation out of the profile.
- *        Method of SWAT
+ *        Method of SWAT.
+ *
+ * Changelog:
+ *   - 1. 2016-05-30 - hr - Initial implementation.
+ *   - 2. 2018-05-10 - lj -
+ *        -# Reformat, especially naming style (sync update in "text.h").
+ *        -# Code optimization, e.g., use multiply instead of divide.
+ *
  * \author Huiran Gao, Liangjun Zhu
- * \changelog: 2016-05-30 - hr - Initial implementation.\n
- *             2018-05-10 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
- *                               2. Code optimization, e.g., use multiply instead of divide.\n
  */
 #ifndef SEIMS_MODULE_NUTRMV_H
 #define SEIMS_MODULE_NUTRMV_H
@@ -30,11 +35,11 @@ public:
 
     ~NutrientMovementViaWater();
 
+    void SetValue(const char* key, float value) OVERRIDE;
+
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
-
-    void SetValue(const char* key, float value) OVERRIDE;
 
     int Execute() OVERRIDE;
 
@@ -193,13 +198,13 @@ private:
     //float* m_soxy;
 
     // N and P to channel
-    float* m_latNO3ToCh;     // amount of nitrate transported with lateral flow to channel, kg
-    float* m_surfRfNO3ToCh;  // amount of nitrate transported with surface runoff to channel, kg
-    float* m_surfRfNH4ToCh;  // amount of ammonian transported with surface runoff to channel, kg
-    float* m_surfRfSolPToCh; // amount of soluble phosphorus in surface runoff to channel, kg
-    float* m_percoNGw;       // amount of nitrate percolating past bottom of soil profile sum by sub-basin, kg
-    float* m_percoPGw;       // amount of solute P percolating past bottom of soil profile sum by sub-basin, kg
-    float* m_surfRfCodToCh;  // amount of COD to reach in surface runoff (kg)
+    float* m_latNO3ToCh;     ///< amount of nitrate transported with lateral flow to channel, kg
+    float* m_surfRfNO3ToCh;  ///< amount of nitrate transported with surface runoff to channel, kg
+    float* m_surfRfNH4ToCh;  ///< amount of ammonian transported with surface runoff to channel, kg
+    float* m_surfRfSolPToCh; ///< amount of soluble phosphorus in surface runoff to channel, kg
+    float* m_percoNGw;       ///< amount of nitrate percolating past bottom of soil profile sum by sub-basin, kg
+    float* m_percoPGw;       ///< amount of solute P percolating past bottom of soil profile sum by sub-basin, kg
+    float* m_surfRfCodToCh;  ///< amount of COD to reach in surface runoff (kg)
 
     /// subbasin related
     /// the total number of subbasins

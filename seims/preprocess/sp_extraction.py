@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Extract spatial parameters for soil, landuse, and terrain related.
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-23  lj - reorganize according to pylint and google style
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-23  lj - reorganize according to pylint and google style
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
@@ -25,7 +28,7 @@ def extract_spatial_parameters(cfg, maindb):
     # 2. Landuse/Landcover related
     LanduseUtilClass.parameters_extraction(cfg, maindb)
     # 3. Terrain related and other spatial parameters
-    TerrainUtilClass.parameters_extration(cfg, maindb)
+    TerrainUtilClass.parameters_extraction(cfg, maindb)
 
 
 def main():

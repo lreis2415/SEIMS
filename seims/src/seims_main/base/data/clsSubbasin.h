@@ -1,8 +1,8 @@
 /*!
+ * \file clsSubbasin.h
  * \brief Class for managing subbasin data
  * \author Junzhi Liu, Liang-Jun Zhu
  * \date May 2017
- * \revised
  */
 #ifndef SEIMS_SUBBASIN_CLS_H
 #define SEIMS_SUBBASIN_CLS_H
@@ -17,11 +17,12 @@ using namespace ccgl;
 
 /*!
  * \class Subbasin
- * \ingroup base
+ * \ingroup data
  * \brief Subbasin related parameters and methods.
  *
- * \Revision:   1. Remove isOutput, since the output is handled in printInfo class
- *              2. Add soil water balance related. 2016-7-28
+ * Changelog:
+ *   - 1. Remove isOutput, since the output is handled in printInfo class
+ *   - 2. Add soil water balance related. 2016-7-28
  */
 class Subbasin: Interface {
 public:
@@ -131,8 +132,8 @@ private:
     int n_cells_;
     //! index of valid cells
     int* cells_;
-    //! area of one cell, TODO, cell_areas_ should be float* when irregular polygon is supported. lj.
-    float cell_area_;
+    float cell_area_; ///< area of the cell(s)
+                      ///< todo This should be float* when irregular polygon is supported. By lj.
     //! area of current Subbasin
     float area_;
 
@@ -207,8 +208,8 @@ private:
 };
 
 /*!
- *\class clsSubbasins
- * \ingroup base
+ * \class clsSubbasins
+ * \ingroup data
  * \brief Manager all Subbasin related parameters and methods.
  */
 class clsSubbasins: Interface {
@@ -225,8 +226,7 @@ public:
     /*!
      * \brief Check input parameters to ensure the successful constructor
      */
-    static clsSubbasins* Init(MongoGridFs* spatial_data,
-                              map<string, FloatRaster *>& rs_map, int prefix_id);
+    static clsSubbasins* Init(map<string, FloatRaster *>& rs_map, int prefix_id);
     /// Destructor
     ~clsSubbasins();
 
@@ -244,7 +244,7 @@ public:
 
     /*!
      * \brief Set slope coefficient for each subbasin according to the basin slope
-     * \TODO This function will set slope_coef_ to 1.f in MPI version.
+     * \todo This function will set slope_coef_ to 1.f in MPI version.
      *       Currently, the real slope_coef_ is calculated in `seims_mpi/CalculateProcess.cpp/line 77~`.
      *       In the future, we should think of an elegant way to deal with this issue. By lj. 06/28/18
      */

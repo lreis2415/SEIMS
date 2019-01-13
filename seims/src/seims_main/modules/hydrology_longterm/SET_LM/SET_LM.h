@@ -1,8 +1,12 @@
 /*!
+ * \file SET_LM.h
  * \brief The method of soil actual ET linearly with actual soil moisture developed by
-            Thornthwaite and Mather (1955), which was also adapted by WetSpa Extension.
+ *          Thornthwaite and Mather (1955), which was also adapted by WetSpa Extension.
+ *
+ * Changelog:
+ *   - 1. 2018-06-26 - lj - Remove Wilting point since SOL_AWC is preprocessed by FC-WP.
+ *
  * \author Chunping Ou, Liangjun Zhu
- * \changelog 2018-06-26 - lj - Remove Wilting point since SOL_AWC is preprocessed by FC-WP.
  */
 #ifndef SEIMS_MODULE_SET_LM_H
 #define SEIMS_MODULE_SET_LM_H

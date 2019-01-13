@@ -1,19 +1,23 @@
 /*!
+ * \file managementOperation_SWAT.h
  * \brief Plant management operations in SWAT, e.g., plantop, killop, harvestop, etc.
  *        Source code of SWAT include: readmgt.f, operatn.f, sched_mgt.f, plantop.f,
  *        harvkillop.f, harvestop.f, killop.f, newtillmix.f, etc.
- * \author Liang-Jun Zhu
+ *
+ * Changelog:
+ *   - 1. 2016-06-06 - lj - Preliminary implemented version, not include grazing,
+ *                            auto fertilizer, etc. See detail please find the TODOs.
+ *   - 2. 2016-09-29 - lj -
+ *        -# Add the CENTURY model related code, mainly include fert.f, newtillmix.f, and harvestop.f.
+ *        -# Update fertilizer operation for paddy rice, i.e., ExecuteFertilizerOperation().
+ *   - 3. 2018-05-08 - lj -
+ *        -# Reformat, especially naming style (sync update in "text.h").
+ *        -# Fixed bugs of the time-consuming function GetOperationCode().
+ *   - 4. 2018-06-27 - lj - Change the temporary variables (e.g., tmp_rtfr) to 2d array to
+ *                            avoid nested omp for loop issue.
+ *
+ * \author Liangjun Zhu
  * \version 1.3
- * \changelog 2016-06-06 - lj - Preliminary implemented version, not include grazing,
- *                                auto fertilizer, etc. See detail please find the TODOs.\n
- *            2016-09-29 - lj - 1. Add the CENTURY model related code, mainly include fert.f,
- *                                 newtillmix.f, and harvestop.f.\n
- *                              2. Update fertilizer operation for paddy rice,
- *                                 i.e., ExecuteFertilizerOperation().\n
- *            2018-05-08 - lj - 1. Reformat, especially naming style (sync update in "text.h").\n
- *                              2. Fixed bugs of the time-consuming function GetOperationCode().\n
- *            2018-06-27 - lj - Change the temporary variables (e.g., tmp_rtfr) to 2d array to
- *                                 avoid nested omp for loop issue.\n
  */
 #ifndef SEIMS_MODULE_PLTMGT_SWAT_H
 #define SEIMS_MODULE_PLTMGT_SWAT_H
@@ -280,7 +284,7 @@ private:
     /// Harvest index target, defined in plant operation and used in harvest/kill operation
     float* m_HvstIdxTrgt;
     /// Biomass target
-    float* m_BiomTrgt;
+    float* m_biomTrgt;
     /// current year in rotation to maturity
     float* m_curYrMat;
     /// wsyf(:)     |(kg/ha)/(kg/ha)|Value of harvest index between 0 and HVSTI
@@ -367,25 +371,25 @@ private:
     /// manure organic phosphorus in soil, kg/ha
     float** m_soilManP;
     /**** 2 - CENTURY model ****/
-    float** m_soilHSN;   /// slow Nitrogen pool in soil, equals to soil active organic n pool in SWAT
-    float** m_soilLM;    /// metabolic litter SOM pool
-    float** m_soilLMC;   /// metabolic litter C pool
-    float** m_soilLMN;   /// metabolic litter N pool
-    float** m_soilLSC;   /// structural litter C pool
-    float** m_soilLSN;   /// structural litter N pool
-    float** m_soilLS;    /// structural litter SOM pool
-    float** m_soilLSL;   /// lignin weight in structural litter
-    float** m_soilLSLC;  /// lignin amount in structural litter pool
-    float** m_soilLSLNC; /// non-lignin part of the structural litter C
+    float** m_soilHSN;   ///< slow Nitrogen pool in soil, equals to soil active organic n pool in SWAT
+    float** m_soilLM;    ///< metabolic litter SOM pool
+    float** m_soilLMC;   ///< metabolic litter C pool
+    float** m_soilLMN;   ///< metabolic litter N pool
+    float** m_soilLSC;   ///< structural litter C pool
+    float** m_soilLSN;   ///< structural litter N pool
+    float** m_soilLS;    ///< structural litter SOM pool
+    float** m_soilLSL;   ///< lignin weight in structural litter
+    float** m_soilLSLC;  ///< lignin amount in structural litter pool
+    float** m_soilLSLNC; ///< non-lignin part of the structural litter C
 
     /// tillage factor on SOM decomposition, used by CENTURY model
 
-    float* m_tillSwitch; /// switch of whether to tillage
-    float* m_tillDepth;  /// days from tillage
-    float* m_tillDays;   /// tillage depth
-    float* m_tillFactor; /// influence factor of tillage operation
-    float** m_soilBMN;   ///
-    float** m_soilHPN;   ///
+    float* m_tillSwitch; ///< switch of whether to tillage
+    float* m_tillDepth;  ///< days from tillage
+    float* m_tillDays;   ///< tillage depth
+    float* m_tillFactor; ///< influence factor of tillage operation
+    float** m_soilBMN;   ///<
+    float** m_soilHPN;   ///<
 
     /** Irrigation operation related **/
 

@@ -1,9 +1,7 @@
 /*!
+ * \file PER_PI.h
  * \brief Percolation calculated by Darcy's law and Brooks-Corey equation.
- * \author Junzhi Liu
- * \date May 2011
- * \revised LiangJun Zhu
- * \date 2016-5-29
+ * \author Junzhi Liu, Liangjun Zhu
  */
 #ifndef SEIMS_MODULE_PER_PI_H
 #define SEIMS_MODULE_PER_PI_H
@@ -30,7 +28,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void SetValue(const char* key, float data) OVERRIDE;
+    void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 

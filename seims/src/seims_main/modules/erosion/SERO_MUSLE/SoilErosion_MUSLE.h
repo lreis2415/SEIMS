@@ -1,18 +1,22 @@
 /*!
+ * \file SoilErosion_MUSLE.h
  * \brief MUSLE (Modified Universal Soil Loss Equation, Williams, 1995) method to
  *          calculate sediment yield of each cell.
- *          Refers to the source code part of SWAT
- *             - soil_phys.f Initialization of usle_mult (i.e., K*P*LS*11.8*exp(ROCK))
- *             - cfactor.f   Calculate daily USLE_C factor.
- *             - ysed.f      Actually calculation of daily soil loss caused by water erosion.
- * \author Liangjun Zhu, Zhiqiang Yu
- * \changelog 2012-02-01 - zq - Initial implementation.\
- *            2016-05-30 - lj - Code reformat.\n
- *            2018-05-14 - lj - Code review and reformat.\n
- *            2018-07-09 - lj - 1. Change module ID from MUSLE_AS to SERO_MUSLE.\n
- *                              2. Updates USLE_C factor during the growth cycle of the plant.\n
- *                              3. Change the calculation of LS factor.\n
  *
+ * Refers to the source code part of SWAT
+ *   - soil_phys.f Initialization of usle_mult (i.e., K*P*LS*11.8*exp(ROCK))
+ *   - cfactor.f   Calculate daily USLE_C factor.
+ *   - ysed.f      Actually calculation of daily soil loss caused by water erosion.
+ *
+ * Changelog:
+ *   - 1. 2012-02-01 - zq - Initial implementation.
+ *   - 2. 2018-05-14 - lj - Code review and reformat.
+ *   - 3. 2018-07-09 - lj -
+ *        -# Change module ID from MUSLE_AS to SERO_MUSLE.
+ *        -# Updates USLE_C factor during the growth cycle of the plant.
+ *        -# Change the calculation of LS factor, and add USLE_L and USLE_S as outputs.
+ *
+ * \author Liangjun Zhu, Zhiqiang Yu
  */
 #ifndef SEIMS_MODULE_SERO_MUSLE_H
 #define SEIMS_MODULE_SERO_MUSLE_H
@@ -60,11 +64,24 @@ private:
     float m_cellWth;
     //! soil layer number
     int m_nSoilLayers;
+
+    // grid from parameter
+
     //! percent of rock content
     float** m_soilRock;
-    //! deposition ratio
-    float m_depRatio;
-    //grid from parameter
+    //! USLE K factor (erodibility), multi-layer paramters.
+    float** m_usleK;
+    //! USLE P factor (Practice)
+    float* m_usleP;
+    //! flow accumulation (number of accumulated cells)
+    float* m_flowAccm;
+    //! Slope gradient (drop/distance)
+    float* m_slope;
+    //! Slope length (optional)
+    float* m_slpLen;
+    //! stream link
+    float* m_rchID;
+
     //! sand fraction
     float* m_detSand;
     //! silt fraction
@@ -76,34 +93,29 @@ private:
     //! large aggregate fraction
     float* m_detLgAgg;
 
-    //! landcover, which can be used as same as `idplt` in SWAT
-    float* m_landCover;
-    //! USLE P factor (Practice)
-    float* m_usleP;
-    //! USLE K factor (erodibility), multi-layer paramters.
-    float** m_usleK;
-    //! Daily updated USLE C factor
-    float* m_usleC;
     //! C-factor calculation using Cmin (0, default) or new method from RUSLE (1)
     int m_iCfac;
     //! Average annual USLE C factor for the land cover, or log(aveAnnUsleC) when m_soilRsd is available.
     float* m_aveAnnUsleC;
+    //! landcover, which can be used as same as `idplt` in SWAT
+    float* m_landCover;
     //! Amount of organic matter in the soil classified as residue(kg/ha)
     float* m_rsdCovSoil;
     //! Residue cover factor for computing fraction of cover
     float m_rsdCovCoef;
     //! Canopy height, m
     float* m_canHgt;
+
+    // grid from other modules
+
     //! LAI of current day
     float* m_lai;
-    //! Slope gradient (drop/distance)
-    float* m_slope;
-    //! Slope length
-    float* m_slpLen;
-    //! flow accumulation (number of accumulated cells)
-    float* m_flowAccm;
-    //! stream link
-    float* m_rchID;
+    //! surface runoff (mm)
+    float* m_surfRf;
+    //! snow accumulation
+    float* m_snowAccum;
+
+    // temporary variables
 
     //! product of USLE K,P,LS,exp(rock)
     float* m_usleMult;
@@ -116,15 +128,14 @@ private:
     //! Slope^0.16
     float* m_slopeForPq;
 
-    //grid from other modules
-
-    //! snow accumulation
-    float* m_snowAccum;
-    //! surface runoff (mm)
-    float* m_surfRf;
-
     // Outputs
 
+    //! USLE L factor
+    float* m_usleL;
+    //! USLE S factor
+    float* m_usleS;
+    //! Daily updated USLE C factor
+    float* m_usleC;
     //! sediment yield on each cell
     float* m_eroSed;
     //! sand yield

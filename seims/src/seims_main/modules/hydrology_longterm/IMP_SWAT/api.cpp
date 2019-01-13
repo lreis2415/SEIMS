@@ -27,7 +27,7 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(Tag_TimeStep, UNIT_DAY, DESC_TIMESTEP, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SUBBSN, UNIT_NON_DIM, DESC_SUBBSN, Source_ParameterDB, DT_Raster1D);
     mdi.AddParameter(VAR_EVLAI, UNIT_AREA_RATIO, DESC_EVLAI, Source_ParameterDB, DT_Single);
-    mdi.AddParameter(VAR_POT_TILEMM, UNIT_DEPTH_MM, DESC_POT_TILEMM, Source_ParameterDB, DT_Single);
+    mdi.AddParameter(VAR_POT_TILEMM, UNIT_DEPTH_MM, DESC_POT_TILEMM, Source_ParameterDB_Optional, DT_Single);
     mdi.AddParameter(VAR_POT_NO3DECAY, UNIT_PER_DAY, DESC_POT_NO3DECAY, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_POT_SOLPDECAY, UNIT_PER_DAY, DESC_POT_SOLPDECAY, Source_ParameterDB, DT_Single);
     mdi.AddParameter(VAR_SLOPE, UNIT_PERCENT, DESC_SLOPE, Source_ParameterDB, DT_Raster1D);

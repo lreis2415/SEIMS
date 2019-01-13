@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """MongoDB utility
+
     @author   : Liangjun Zhu
-    @changelog: 16-12-07  lj - rewrite for version 2.0
-                17-06-27  lj - reorganize as basic class other than Global variables
-                18-02-08  lj - compatible with Python3.\n
+
+    @changelog:
+    - 16-12-07  lj - rewrite for version 2.0
+    - 17-06-27  lj - reorganize as basic class other than Global variables
+    - 18-02-08  lj - compatible with Python3.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
@@ -26,8 +29,8 @@ class ConnectMongoDB(object):
         """initial mongodb client by IP address and port."""
         try:
             self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
-        except ConnectionFailure:
-            sys.stderr.write('Could not connect to MongoDB: %s' % ConnectionFailure.message)
+        except ConnectionFailure as err:
+            sys.stderr.write('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
 
     def get_conn(self):

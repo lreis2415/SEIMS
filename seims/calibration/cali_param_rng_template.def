@@ -1,6 +1,6 @@
 # According to the results of Morris screening method, the following
 # most sensitivity parameters are selected for automatic calibration.
-# 2018-7-10
+
 ### Evapotranspiration, PET_PM
 K_pet,-0.3,0.3
 ### Surface runoff, SUR_MR

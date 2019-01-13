@@ -48,7 +48,6 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     EXPECT_FLOAT_EQ(-9999.f, rs->GetYllCenter());
     EXPECT_FLOAT_EQ(-9999.f, rs->GetCellWidth());
     EXPECT_EQ(-1, rs->GetLayers());
-    EXPECT_STREQ("", rs->GetSrs());
     EXPECT_EQ("", rs->GetSrsString());
 
     /** Calc and get basic statistics, m_statsMap **/
@@ -138,5 +137,7 @@ TEST(clsRasterDataTestBlankCtor, ValidateAccess) {
     /** Output to new file **/
     string newfullname = ccgl::utils_filesystem::GetAppPath() + SEP + "no_output.tif";
     EXPECT_FALSE(rs->OutputToFile(newfullname));
+
+    delete rs;
 }
 } /* namespace */

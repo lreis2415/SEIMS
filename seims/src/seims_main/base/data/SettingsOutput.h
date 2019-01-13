@@ -1,9 +1,12 @@
 /*!
+ * \file SettingsOutput.h
  * \brief Setting Outputs for SEIMS
- * \author Junzhi Liu, LiangJun Zhu
+ *
+ * Changelog:
+ *   - 1. 2017-05-20 - lj - Refactor, decoupling with database IO.
+ *
+ * \author Junzhi Liu, Liangjun Zhu
  * \version 2.0
- * \date May 2017
- * \revised LJ - Refactor, decoupling with database IO
  */
 #ifndef SEIMS_SETTING_OUTPUT_H
 #define SEIMS_SETTING_OUTPUT_H
@@ -12,8 +15,9 @@
 #include "PrintInfo.h"
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \struct OrgOutItem
+ * \brief Original output item
  */
 struct OrgOutItem {
     OrgOutItem() : modCls(""), outputID(""), descprition(""), outFileName(""),
@@ -36,9 +40,10 @@ struct OrgOutItem {
 };
 
 /*!
- * \ingroup module_setting
+ * \ingroup data
  * \class SettingsOutput
- * \brief
+ * \brief Setting outputs
+ * \sa Settings
  */
 class SettingsOutput: public Settings {
 public:
@@ -48,14 +53,19 @@ public:
      * \param[in] outletID The subbasin ID of outlet
      * \param[in] subbasinID Current subbasin ID, 0 for OMP version
      * \param[in] outputItems Vector of original output items read from FILE_OUT file (or table)
+     * \param[in] scenarioID Scenario ID, -1 means no scenario is used, default is 0
+     * \param[in] calibrationID Calibration ID, -1 means no calibration from calibration sequence is used
      */
-    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
+    SettingsOutput(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems,
+                   int scenarioID = 0, int calibrationID = -1);
 
     //! Destructor
     ~SettingsOutput();
 
     //! Init function
-    static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID, vector<OrgOutItem>& outputItems);
+    static SettingsOutput* Init(int subbasinNum, int outletID, int subbasinID,
+                                vector<OrgOutItem>& outputItems,
+                                int scenarioID = 0, int calibrationID = -1);
 
     //! Write output information to log file
     void Dump(const string& filename) OVERRIDE;
@@ -69,7 +79,8 @@ public:
     /*!
      * \brief All the output settings
      * key: OutputID
-     * value: \sa PrintInfo instance
+     * value: PrintInfo instance
+     * \sa PrintInfo
      */
     map<string, PrintInfo *> m_printInfosMap;
 
@@ -80,5 +91,9 @@ private:
     int m_outletID;
     //! current subbasin ID, 0 for OMP version
     int m_subbasinID;
+    //! Scenario ID, -1 means no scenario is used
+    int m_scenarioID;
+    //! Calibration ID, -1 means no calibration from calibration sequence is used
+    int m_calibrationID;
 };
 #endif /* SEIMS_SETTING_OUTPUT_H */

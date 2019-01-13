@@ -98,7 +98,7 @@ RegularMeasurement::RegularMeasurement(MongoClient* conn, const string& hydroDBN
         std::ostringstream oss;
         oss << "There are no adequate data of " << siteType << " for sites:[" << sitesList << "] in database:" <<
                 hydroDBName << " during " << ConvertToString2(m_startTime) << " to " << ConvertToString2(m_endTime) <<
-                "You may want to check the database or the input simulation period!";
+                ". You may want to check the database or the input simulation period!";
         throw ModelException("RegularMeasurement", "Constructor", oss.str());
     }
     if (iSite + 1 != nSites) {

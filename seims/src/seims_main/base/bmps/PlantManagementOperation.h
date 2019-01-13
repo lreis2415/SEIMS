@@ -1,4 +1,5 @@
 /*!
+ * \file PlantManagementOperation.h
  * \brief Plant management operation class
  * \author Liang-Jun Zhu
  * \date June 2016
@@ -14,14 +15,12 @@ using std::ostream;
 
 namespace bmps {
 /*!
- * \ingroup MainBMP
+ * \namespace bmps::plant_management
  * \brief Base namespace for Plant management related operations
- * \author Liang-Jun Zhu
  */
 namespace plant_management {
 /*!
  * \class PltMgtOp
- * \ingroup PlantManagement
  * \brief Base class of plant management operation
  */
 class PltMgtOp: Interface {
@@ -75,7 +74,6 @@ protected:
 
 /*!
  * \class PltOp
- * \ingroup PlantManagement
  * \brief Plant management operation
  */
 class PltOp: public PltMgtOp {
@@ -114,7 +112,6 @@ private:
 
 /*!
  * \class IrrOp
- * \ingroup PlantManagement
  * \brief Irrigation operation
  */
 class IrrOp: public PltMgtOp {
@@ -147,7 +144,6 @@ private:
 
 /*!
  * \class FertOp
- * \ingroup PlantManagement
  * \brief Fertilizer operation
  */
 class FertOp: public PltMgtOp {
@@ -173,7 +169,6 @@ private:
 
 /*!
  * \class PestOp
- * \ingroup PlantManagement
  * \brief Pesticide operation
  */
 class PestOp: public PltMgtOp {
@@ -197,7 +192,6 @@ private:
 
 /*!
  * \class HvstKillOp
- * \ingroup PlantManagement
  * \brief HarvestKill operation
  */
 class HvstKillOp: public PltMgtOp {
@@ -222,7 +216,6 @@ private:
 
 /*!
  * \class TillOp
- * \ingroup PlantManagement
  * \brief Tillage operation
  */
 class TillOp: public PltMgtOp {
@@ -243,7 +236,6 @@ private:
 
 /*!
  * \class HvstOnlyOp
- * \ingroup PlantManagement
  * \brief HarvestOnly operation
  */
 class HvstOnlyOp: public PltMgtOp {
@@ -268,7 +260,6 @@ private:
 
 /*!
  * \class KillOp
- * \ingroup PlantManagement
  * \brief Kill operation
  */
 class KillOp: public PltMgtOp {
@@ -281,7 +272,6 @@ public:
 
 /*!
  * \class GrazOp
- * \ingroup PlantManagement
  * \brief Grazing operation
  */
 class GrazOp: public PltMgtOp {
@@ -311,7 +301,6 @@ private:
 
 /*!
  * \class AutoIrrOp
- * \ingroup PlantManagement
  * \brief Auto irrigation operation
  */
 class AutoIrrOp: public PltMgtOp {
@@ -348,7 +337,6 @@ private:
 
 /*!
  * \class AutoFertOp
- * \ingroup PlantManagement
  * \brief Auto Fertilizer operation
  */
 class AutoFertOp: public PltMgtOp {
@@ -385,7 +373,6 @@ private:
 
 /*!
  * \class RelImpndOp
- * \ingroup PlantManagement
  * \brief ReleaseImpound operation
  */
 class RelImpndOp: public PltMgtOp {
@@ -414,7 +401,6 @@ private:
 
 /*!
  * \class ContFertOp
- * \ingroup PlantManagement
  * \brief Continuous Fertilizer operation
  */
 class ContFertOp: public PltMgtOp {
@@ -442,7 +428,6 @@ private:
 
 /*!
  * \class ContPestOp
- * \ingroup PlantManagement
  * \brief Continuous Pesticide operation
  */
 class ContPestOp: public PltMgtOp {
@@ -470,7 +455,6 @@ private:
 
 /*!
  * \class BurnOp
- * \ingroup PlantManagement
  * \brief Burning operation
  */
 class BurnOp: public PltMgtOp {
@@ -486,7 +470,7 @@ private:
     float m_burnFrlb;
 };
 
-} /* PlantManagement */
-} /* MainBMP */
+} /* plant_management */
+} /* bmps */
 
 #endif /* SEIMS_PLANT_MANAGEMENT_OPERATION_H */

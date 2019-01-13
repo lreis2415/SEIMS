@@ -1,19 +1,23 @@
 /*!
+ * \file db_mongoc.h
  * \brief Utility functions of MongoDB
  *        Currently, mongo-c-driver 1.3.5 or later is supported.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
+ * Changelog:
+ *   - 1. 2017-12-02 - lj - Add unittest based on gtest/gmock.
+ *   - 2. 2018-05-02 - lj - Make part of CCGL.
+ *
  * \note No exceptions will be thrown.
  * \author Liangjun Zhu (crazyzlj)
  * \version 1.0
- * \changelog 2017-12-02 - lj - Add unittest based on gtest/gmock.\n
- *            2018-05-02 - lj - Make part of CCGL.\n
  */
 #ifndef CCGL_DB_MONGOC_H
 #define CCGL_DB_MONGOC_H
 #ifdef USE_MONGODB
 
 #include <vector>
+#include <map>
 #include <iostream>
 
 #include <mongoc.h>
@@ -22,12 +26,13 @@
 
 using std::string;
 using std::vector;
+using std::map;
 using std::cout;
 using std::endl;
 
 namespace ccgl {
 /*!
- * \namespace db_mongoc
+ * \namespace ccgl::db_mongoc
  * \brief Utility functions of MongoDB
  */
 namespace db_mongoc {
@@ -53,12 +58,15 @@ public:
      * \brief Validation check before the constructor of MongoClient.
      *        1. Check IP address
      *        2. Check database status
-     * \usage
+     *
+     * Examples:
+     * \code
      *       MongoClient *client = MongoClient::Init(host, port)
      *       if (nullptr == client) {
      *           throw exception("MongoClient initialization failed!");
      *           // or other error handling code.
      *       }
+     * \endcode
      */
     static MongoClient* Init(const char* host, vuint16_t port);
     /*!
@@ -102,15 +110,15 @@ public:
 
     /*!
      * \brief Get collection names in MongoDB database
-     * \param[in] dbname \string database name
+     * \param[in] dbname \a string database name
      * \param[out] collnames Collection names in the database
      */
     void GetCollectionNames(string const& dbname, vector<string>& collnames);
 
     /*!
      * \brief Get GridFs file names in MongoDB database
-     * \param[in] dbname \string database name
-     * \param[in] gfsname \string GridFS name
+     * \param[in] dbname \a string database name
+     * \param[in] gfsname \a string GridFS name
      * \param[out] gfs_exists Existed GridFS file names
      */
     void GetGridFsFileNames(string const& dbname, string const& gfsname, vector<string>& gfs_exists);
@@ -135,7 +143,7 @@ public:
     /*!
      * \brief Constructor, initialized by mongodb client and database name
      */
-    MongoDatabase(mongoc_client_t* conn, string const& dbname);
+    MongoDatabase(mongoc_client_t* conn, string& dbname);
 
     /*!
      * \brief Destructor by Destroy function
@@ -196,7 +204,8 @@ public:
     /*!
      * \brief Get GridFS file by name
      */
-    mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
+    mongoc_gridfs_file_t* GetFile(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
+                                  STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Remove GridFS file by name
@@ -211,13 +220,15 @@ public:
     /*!
      * \brief Get metadata of a given GridFS file name
      */
-    bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL);
+    bson_t* GetFileMetadata(string const& gfilename, mongoc_gridfs_t* gfs = NULL,
+                            STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Get stream data of a given GridFS file name
      */
     void GetStreamData(string const& gfilename, char*& databuf, size_t& datalength,
-                       mongoc_gridfs_t* gfs = NULL);
+                       mongoc_gridfs_t* gfs = NULL,
+                       STRING_MAP opts = STRING_MAP());
 
     /*!
      * \brief Write stream data to a GridFS file
@@ -230,9 +241,14 @@ private:
 };
 
 /*!
+ * \brief Append options to bson
+ */
+void AppendStringOptionsToBson(bson_t* bson_opts, STRING_MAP& opts);
+
+/*!
  * \brief Get numeric value from \a bson_iter_t according to a given key
  * \param[in] iter \a bson_iter_t
- * \param[out] numericvalue \int, \float, or \double
+ * \param[out] numericvalue \a int, \a float, or \a double
  * \return True if succeed, otherwise false.
  */
 template <typename T>
@@ -263,7 +279,7 @@ bool GetNumericFromBsonIterator(bson_iter_t* iter, T& numericvalue) {
  * \brief Get numeric value from \a bson_t according to a given key
  * \param[in] bmeta \a bson_t
  * \param[in] key
- * \param[out] numericvalue \int, \float, or \double
+ * \param[out] numericvalue \a int, \a float, or \a double
  * \return True if succeed, otherwise false.
  */
 template <typename T>

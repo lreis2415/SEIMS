@@ -49,15 +49,17 @@ email:  dtarb@usu.edu
 
 using namespace std;
 
-int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
+int flowdircond(char* pfile, char* zfile, char* zfdcfile) {
 
     MPI_Init(NULL, NULL);
     {
-
         int rank, size;
-        MPI_Comm_rank(MCW, &rank);//returns the rank of the calling processes in a communicator
-        MPI_Comm_size(MCW, &size);//returns the number of processes in a communicator
-        if (rank == 0)printf("FlowDirCond version %s\n", TDVERSION);
+        MPI_Comm_rank(MCW, &rank); //returns the rank of the calling processes in a communicator
+        MPI_Comm_size(MCW, &size); //returns the number of processes in a communicator
+        if (rank == 0) {
+            printf("FlowDirCond version %s\n", TDVERSION);
+            fflush(stdout);
+        }
 
         double begint = MPI_Wtime();
         tiffIO p(pfile, SHORT_TYPE);
@@ -69,16 +71,16 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
         hSRSRaster = p.getspatialref();
 
         if (rank == 0) {
-            float timeestimate =
-                (1.2e-6 * totalX * totalY / pow((double) size, 0.65)) / 60 + 1;  // Time estimate in minutes
-            fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
-            fflush(stderr);
+            //float timeestimate =
+            //        (1.2e-6 * totalX * totalY / pow((double)size, 0.65)) / 60 + 1; // Time estimate in minutes
+            //fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
+            //fprintf(stderr,
+            //        "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            //fflush(stderr);
         }
 
         //Create partition and read data
-        tdpartition *flowData;
+        tdpartition* flowData;
         flowData = CreateNewPartition(p.getDatatype(), totalX, totalY, dxA, dyA, p.getNodata());
         int nx = flowData->getnx();
         int ny = flowData->getny();
@@ -89,7 +91,7 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
         //printf("Pfile read");  fflush(stdout);
 
         //Read the DEM
-        tdpartition *zData;
+        tdpartition* zData;
         tiffIO zIO(zfile, FLOAT_TYPE);
         if (!p.compareTiff(zIO)) {
             printf("File sizes do not match\n%s\n", zfile);
@@ -112,13 +114,14 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
         short tempShort = 0;
         int32_t tempLong = 0;
         int numOutlets = 0;
-        int *outletsX;
-        int *outletsY;
+        int* outletsX;
+        int* outletsY;
         int useOutlets = 0;
         outletsX = new int[numOutlets];
         outletsY = new int[numOutlets];
-        tdpartition *neighbor;
-        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, -32768);
+        tdpartition* neighbor;
+        double sNoData = (double)MISSINGSHORT;
+        neighbor = CreateNewPartition(SHORT_TYPE, totalX, totalY, dxA, dyA, MISSINGSHORT);
 
         //Share information and set borders to zero
         flowData->share();
@@ -126,11 +129,10 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
         neighbor->clearBorders();
 
         node temp;
-        queue <node> que;
+        queue<node> que;
 
         initNeighborD8up(neighbor, flowData, &que, nx, ny, useOutlets, outletsX, outletsY, numOutlets);
-//TODO  Assumption - need to check that this handles no data flow directions OK for how we are using it	
-
+        
         finished = false;
         //Ring terminating while loop
         while (!finished) {
@@ -148,7 +150,7 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
                         jn = j + d2[k];
                         /* test if neighbor drains towards cell excluding boundaries */
                         short sdir = flowData->getData(in, jn, tempShort);
-                        if (sdir > 0) {
+                        if (sdir >= 1 && sdir <= 8) { // Only do for valid neighbor flow directions
                             if (!zData->isNodata(in, jn)) {
                                 if (zData->getData(in, jn, tempFloat) < zval && (sdir - k == 4 || sdir - k == -4)) {
                                     zval = tempFloat;
@@ -164,13 +166,16 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
                 in = i + d1[k];
                 jn = j + d2[k];
                 if (flowData->hasAccess(in, jn) && !flowData->isNodata(in, jn)) {
-                    //Decrement the number of contributing neighbors in neighbor
-                    neighbor->addToData(in, jn, (short) -1);
-                    //Check if neighbor needs to be added to que
-                    if (flowData->isInPartition(in, jn) && neighbor->getData(in, jn, tempShort) == 0) {
-                        temp.x = in;
-                        temp.y = jn;
-                        que.push(temp);
+                    flowData->getData(in, jn, tempShort);
+                    if (tempShort >= 0 && tempShort <= 8) { // Flow direction data outside the range 1 to 8 effectively no data
+                        //Decrement the number of contributing neighbors in neighbor
+                        neighbor->addToData(in, jn, (short)-1);
+                        //Check if neighbor needs to be added to que
+                        if (flowData->isInPartition(in, jn) && neighbor->getData(in, jn, tempShort) == 0) {
+                            temp.x = in;
+                            temp.y = jn;
+                            que.push(temp);
+                        }
                     }
                 }
             }
@@ -204,7 +209,7 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
 
         //Create and write TIFF file
         float fNodata = -1.0f;
-        tiffIO zfdcIO(zfdcfile, FLOAT_TYPE, &fNodata, p);
+        tiffIO zfdcIO(zfdcfile, FLOAT_TYPE, fNodata, p);
         zfdcIO.write(xstart, ystart, ny, nx, zData->getGridPointer());
 
         double writet = MPI_Wtime();
@@ -235,7 +240,3 @@ int flowdircond(char *pfile, char *zfile, char *zfdcfile) {
 
     return 0;
 }
-
-
-
-

@@ -18,7 +18,7 @@ FloatRaster* CombineRasters(map<int, FloatRaster *>& all_raster_data) {
     double xll = 0.f, yll = 0.f, dx = 0.f, xur = 0.f, yur = 0.f;
     int n_rows = 0, n_cols = 0;
     int n_subbasins = CVT_INT(all_raster_data.size());
-    string srs;
+    STRING_MAP opts;
     // loop to get global extent
     for (int i = 1; i <= n_subbasins; i++) {
         FloatRaster* rs = all_raster_data.at(i);
@@ -30,7 +30,7 @@ FloatRaster* CombineRasters(map<int, FloatRaster *>& all_raster_data) {
         xur = xll + n_cols * dx;
         yur = yll + n_rows * dx;
         if (i == 1) {
-            srs = rs->GetSrsString();
+            CopyStringMap(rs->GetOptions(), opts);
             x_min = xll;
             y_min = yll;
             x_max = xur;
@@ -87,10 +87,10 @@ FloatRaster* CombineRasters(map<int, FloatRaster *>& all_raster_data) {
     }
     if (nlayers > 1) {
         return new FloatRaster(data2d, n_cols_total, n_rows_total, nlayers, NODATA_VALUE, dx,
-                               x_min + 0.5 * dx, y_min + 0.5 * dx, srs);
+                               x_min + 0.5 * dx, y_min + 0.5 * dx, opts);
     }
     return new FloatRaster(data, n_cols_total, n_rows_total, NODATA_VALUE, dx,
-                           x_min + 0.5 * dx, y_min + 0.5 * dx, srs);
+                           x_min + 0.5 * dx, y_min + 0.5 * dx, opts);
 }
 
 void CombineRasterResults(const string& folder, const string& s_var,
@@ -103,7 +103,8 @@ void CombineRasterResults(const string& folder, const string& s_var,
         filename = s_var + file_type;
     }
     for (int i = 1; i <= n_subbasins; i++) {
-        string cur_file_name = folder + SEP + ValueToString(i) + "_" + filename;
+        string cur_file_name = folder + SEP + itoa(i) + "_";
+        cur_file_name += filename;
         FloatRaster* rs = FloatRaster::Init(cur_file_name, true);
         if (nullptr == rs) {
             exit(-1);
@@ -129,11 +130,26 @@ void CombineRasterResults(const string& folder, const string& s_var,
 
 #ifdef USE_MONGODB
 void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
-                               const int n_subbasins, const string& folder /* = "" */) {
+                               const int n_subbasins, const string& folder /* = "" */,
+                               int scenario_id /* = 0 */, int calibration_id /* = -1 */) {
+    map<string, string> opts;
+#ifdef HAS_VARIADIC_TEMPLATES
+    opts.emplace("SCENARIO_ID", itoa(scenario_id));
+    opts.emplace("CALIBRATION_ID", itoa(calibration_id));
+#else
+    opts.insert(make_pair("SCENARIO_ID", itoa(scenario_id)));
+    opts.insert(make_pair("CALIBRATION_ID", itoa(calibration_id)));
+#endif
     map<int, FloatRaster *> all_raster_data;
+    // Concatenate real filename
+    string real_name = s_var + "_";
+    if (scenario_id >= 0) real_name += itoa(scenario_id);
+    real_name += "_";
+    if (calibration_id >= 0) real_name += itoa(calibration_id);
     for (int i = 1; i <= n_subbasins; i++) {
-        string cur_file_name = ValueToString(i) + "_" + s_var;
-        FloatRaster* rs = FloatRaster::Init(gfs, cur_file_name.c_str(), true);
+        string cur_file_name = itoa(i) + "_" + real_name;
+        FloatRaster* rs = FloatRaster::Init(gfs, cur_file_name.c_str(), true,
+                                            nullptr, true, NODATA_VALUE, opts);
         if (nullptr == rs) {
             exit(-1);
         }
@@ -144,9 +160,10 @@ void CombineRasterResultsMongo(MongoGridFs* gfs, const string& s_var,
 #endif
     }
     FloatRaster* combined_rs = CombineRasters(all_raster_data);
-    gfs->RemoveFile(s_var);
-    combined_rs->OutputToMongoDB(s_var, gfs);
+    gfs->RemoveFile(real_name);
+    combined_rs->OutputToMongoDB(real_name, gfs);
     if (!folder.empty()) {
+        // Ouput as gtiff file will not contain ScenarioID and CalibrationID information
         combined_rs->OutputToFile(folder + SEP + s_var + "." + GTiffExtension);
     }
     // clean up

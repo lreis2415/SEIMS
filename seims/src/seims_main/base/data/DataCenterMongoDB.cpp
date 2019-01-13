@@ -40,7 +40,8 @@ DataCenterMongoDB::DataCenterMongoDB(InputArgs* input_args, MongoClient* client,
         throw ModelException("DataCenterMongoDB", "Constructor", "Query subbasin number and outlet ID failed!");
     }
     if (DataCenterMongoDB::GetFileOutVector()) {
-        output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_);
+        output_ = SettingsOutput::Init(n_subbasins_, outlet_id_, subbasin_id_, origin_out_items_,
+                                       scenario_id_, calibration_id_);
         if (nullptr == output_) {
             throw ModelException("DataCenterMongoDB", "Constructor", "Failed to initialize m_output!");
         }
@@ -87,7 +88,13 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
     clim_station_ = new InputStation(mongo_client_, input_->getDtHillslope(), input_->getDtChannel());
     ReadClimateSiteList();
 
-    /// 4. Read Mask raster data
+    /// 4. Read initial parameters
+    if (!ReadParametersInDB()) {
+        return false;
+    }
+    DumpCaliParametersInDB();
+
+    /// 5. Read Mask raster data
     std::ostringstream oss;
     oss << subbasin_id_ << "_" << Tag_Mask;
     string mask_filename = GetUpper(oss.str());
@@ -98,14 +105,19 @@ bool DataCenterMongoDB::CheckModelPreparedData() {
 #else
     rs_map_.insert(make_pair(mask_filename, mask_raster_));
 #endif
-    /// 5. Constructor Subbasin data
-    subbasins_ = clsSubbasins::Init(spatial_gridfs_, rs_map_, subbasin_id_);
+
+    /// 6. Constructor Subbasin data. Subbasin and slope data are required!
+    oss.str("");
+    oss << subbasin_id_ << "_" << VAR_SUBBSN;
+    LoadAdjustRasterData(VAR_SUBBSN, GetUpper(oss.str()));
+
+    oss.str("");
+    oss << subbasin_id_ << "_" << VAR_SLOPE;
+    LoadAdjustRasterData(VAR_SLOPE, GetUpper(oss.str()));
+
+    subbasins_ = clsSubbasins::Init(rs_map_, subbasin_id_);
     assert(nullptr != subbasins_);
-    /// 6. Read initial parameters
-    if (!ReadParametersInDB()) {
-        return false;
-    }
-    DumpCaliParametersInDB();
+
     /// 7. Read Reaches data, all reaches will be read for both MPI and OMP version
     reaches_ = new clsReaches(mongo_client_, model_name_, DB_TAB_REACH, lyr_method_);
     reaches_->Update(init_params_);
@@ -414,6 +426,11 @@ bool DataCenterMongoDB::ReadParametersInDB() {
 FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
     FloatRaster* raster_data = FloatRaster::Init(spatial_gridfs_, remote_filename.c_str(),
                                                  true, mask_raster_, true);
+    // When load from MongoDB failed (i.e., file not existed), the Initialized() will return false!
+    if (!raster_data->Initialized()) {
+        delete raster_data;
+        return nullptr;
+    }
     assert(nullptr != raster_data);
     /// using emplace() if possible or insert() to make sure the successful insertion.
 #ifdef HAS_VARIADIC_TEMPLATES
@@ -429,33 +446,25 @@ FloatRaster* DataCenterMongoDB::ReadRasterData(const string& remote_filename) {
 
 void DataCenterMongoDB::ReadItpWeightData(const string& remote_filename, int& num, float*& data) {
     ItpWeightData* weight_data = new ItpWeightData(spatial_gridfs_, remote_filename);
-    weight_data->GetWeightData(&num, &data);
-#ifdef HAS_VARIADIC_TEMPLATES
-    if (!weight_data_map_.emplace(remote_filename, weight_data).second) {
-#else
-    if (!weight_data_map_.insert(make_pair(remote_filename, weight_data)).second) {
-#endif
-        /// if insert data failed, release clsITPWeightData in case of memory leak
+    if (!weight_data->Initialized()) {
         delete weight_data;
+        data = nullptr;
+        return;
     }
+    float* tmpdata = nullptr;
+    weight_data->GetWeightData(&num, &tmpdata);
+    Initialize1DArray(num, data, tmpdata);
+    delete weight_data;
 }
 
-void DataCenterMongoDB::Read1DArrayData(const string& param_name, const string& remote_filename,
-                                        int& num, float*& data) {
+void DataCenterMongoDB::Read1DArrayData(const string& remote_filename, int& num, float*& data) {
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) return;
+
     num = CVT_INT(datalength / 4);
     data = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
-    if (!StringMatch(param_name, Tag_Weight)) {
-#ifdef HAS_VARIADIC_TEMPLATES
-        array1d_map_.emplace(remote_filename, data);
-        array1d_len_map_.emplace(remote_filename, num);
-#else
-        array1d_map_.insert(make_pair(remote_filename, data));
-        array1d_len_map_.insert(make_pair(remote_filename, num));
-#endif
-    }
 }
 
 void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows, int& cols,
@@ -463,12 +472,17 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) {
+        data = nullptr;
+        return;
+    }
+
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     int n_rows = CVT_INT(float_values[0]);
     int n_cols = -1;
     rows = n_rows;
-    data = new float *[rows];
+    data = new(nothrow) float*[rows];
     //cout<<n<<endl;
     int index = 1;
     for (int i = 0; i < rows; i++) {
@@ -479,7 +493,7 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
             n_cols = 1;
         }
         int n_sub = col + 1;
-        data[i] = new float[n_sub];
+        data[i] = new(nothrow) float[n_sub];
         data[i][0] = CVT_FLT(col);
         //cout<<"index: "<<index<<",";
         for (int j = 1; j < n_sub; j++) {
@@ -492,26 +506,20 @@ void DataCenterMongoDB::Read2DArrayData(const string& remote_filename, int& rows
     cols = n_cols;
     /// release memory
     Release1DArray(float_values);
-
     if (nullptr != databuf) {
         databuf = nullptr;
     }
-    /// insert to corresponding maps
-#ifdef HAS_VARIADIC_TEMPLATES
-    array2d_map_.emplace(remote_filename, data);
-    array2d_rows_map_.emplace(remote_filename, n_rows);
-    array2d_cols_map_.emplace(remote_filename, n_cols);
-#else
-    array2d_map_.insert(make_pair(remote_filename, data));
-    array2d_rows_map_.insert(make_pair(remote_filename, n_rows));
-    array2d_cols_map_.insert(make_pair(remote_filename, n_cols));
-#endif
 }
 
 void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float**& data) {
     char* databuf = nullptr;
     size_t datalength;
     spatial_gridfs_->GetStreamData(remote_filename, databuf, datalength);
+    if (nullptr == databuf) {
+        data = nullptr;
+        return;
+    }
+
     float* float_values = reinterpret_cast<float *>(databuf); // deprecate C-style: (float *) databuf;
 
     n = CVT_INT(float_values[0]);
@@ -535,16 +543,6 @@ void DataCenterMongoDB::ReadIuhData(const string& remote_filename, int& n, float
     if (nullptr != databuf) {
         databuf = nullptr;
     }
-    /// insert to corresponding maps
-#ifdef HAS_VARIADIC_TEMPLATES
-    array2d_map_.emplace(remote_filename, data);
-    array2d_rows_map_.emplace(remote_filename, n);
-    array2d_cols_map_.emplace(remote_filename, 1);
-#else
-    array2d_map_.insert(make_pair(remote_filename, data));
-    array2d_rows_map_.insert(make_pair(remote_filename, n));
-    array2d_cols_map_.insert(make_pair(remote_filename, 1));
-#endif
 }
 
 bool DataCenterMongoDB::SetRasterForScenario() {

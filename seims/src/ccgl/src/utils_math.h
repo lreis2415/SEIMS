@@ -1,11 +1,14 @@
 /*!
-* \brief Useful equations.
-*        Part of the Common Cross-platform Geographic Library (CCGL)
-*
-* \author Liangjun Zhu (crazyzlj)
-* \version 1.0
-* \changelog  2018-05-02 - lj - Make part of CCGL.\n
-*/
+ * \file utils_math.h
+ * \brief Useful equations.
+ *        Part of the Common Cross-platform Geographic Library (CCGL)
+ *
+ * Changelog:
+ *   - 1. 2018-05-02 - lj - Make part of CCGL.
+ *
+ * \author Liangjun Zhu (crazyzlj)
+ * \version 1.0
+ */
 #ifndef CCGL_UTILS_MATH_H
 #define CCGL_UTILS_MATH_H
 
@@ -16,19 +19,19 @@
 
 namespace ccgl {
 /*!
- * \namespace utils_math
+ * \namespace ccgl::utils_math
  * \brief Basic mathematics related functions
  */
 namespace utils_math {
-/*
- * Useful commands
- */
+/*! Return maximum value */
 #ifndef Max
 #define Max(a, b) ((a) >= (b) ? (a) : (b))
 #endif
+/*! Return minimum value */
 #ifndef Min
 #define Min(a, b) ((a) >= (b) ? (b) : (a))
 #endif
+/*! Return absoulte value */
 #ifndef Abs
 #define Abs(x) ((x) >= 0 ? (x) : -(x))
 #endif
@@ -95,7 +98,7 @@ T Sum(int row, int*& idx, const T* data);
  * \brief calculate basic statistics at one time_funcs
  * \param[in] values data array
  * \param[in] num data length
- * \param[out] derivedvalues \double array, value number, mean, max, min, std, range
+ * \param[out] derivedvalues \a double array, value number, mean, max, min, std, range
  * \param[in] exclude optional, excluded value, e.g. NoDATA, the default is -9999
  */
 template <typename T>
@@ -107,7 +110,7 @@ void BasicStatistics(const T* values, int num, double** derivedvalues,
  * \param[in] values data array
  * \param[in] num data length
  * \param[in] lyrs layer number
- * \param[out] derivedvalues \double array, value number, mean, max, min, std, range
+ * \param[out] derivedvalues \a double array, value number, mean, max, min, std, range
  * \param[in] exclude optional, excluded value, e.g. NoDATA, the default is -9999
  */
 template <typename T>

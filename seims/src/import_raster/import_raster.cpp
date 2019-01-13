@@ -76,23 +76,20 @@ int FindBoundingBox(IntRaster* rs_subbasin, map<int, SubBasin>& bbox_map) {
 
 /*!
  * \brief Decomposite single layer raster data as 1D array, and import to MongoDB as GridFS
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] dst_file Input raster full file path
- * \param[in] conn MongoDB client object
  * \param[in] gfs MongoDB GridFS object
  * \return True if import successfully, otherwise return false.
  */
 bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
-                                const char* dst_file,
-                                mongoc_client_t* conn, mongoc_gridfs_t* gfs) {
+                                const char* dst_file, mongoc_gridfs_t* gfs) {
     bool flag = true;
     FloatRaster* rs = FloatRaster::Init(dst_file, false); // Do not calculate positions data
     if (nullptr == rs) exit(1);
     int n_xsize = rs->GetCols();
     // int nYSize = rs.getRows();
     float nodata_value = rs->GetNoDataValue();
-    const char* srs = rs->GetSrs();
     //cout << nXSize << "\t" << nYSize << endl;
     float* rs_data = rs->GetRasterDataPointer();
     int* subbasin_data = rs_subbasin->GetRasterDataPointer();
@@ -143,7 +140,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
         BSON_APPEND_DOUBLE(&p, "YLLCENTER", rs->GetYllCenter() + (rs->GetRows() - subbasin.y_max - 1) * cell_size);
         BSON_APPEND_DOUBLE(&p, "LAYERS", rs->GetLayers());
         BSON_APPEND_DOUBLE(&p, "CELLSNUM", subbasin.cell_count);
-        BSON_APPEND_UTF8(&p, "SRS", srs);
+        BSON_APPEND_UTF8(&p, "SRS", rs->GetSrsString().c_str());
 
         char* databuf = reinterpret_cast<char *>(sub_data);
         size_t datalength = sizeof(float) * sub_xsize * sub_ysize;
@@ -164,8 +161,8 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
 
 /*!
  * \brief Decomposite multi-layers raster data as 1D array, and import to MongoDB as GridFS
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] core_name Core name of raster
  * \param[in] dst_files Vector of raster full file paths
  * \param[in] conn MongoDB client object
@@ -182,7 +179,6 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
     int n_xsize = rss->GetCols();
     // int nYSize = rss.getRows();
     float nodata_value = rss->GetNoDataValue();
-    const char* srs = rss->GetSrs();
     ///cout << nXSize << "\t" << nYSize << endl;
     float** rss_data = rss->Get2DRasterDataPointer();
     int* subbasin_data = rs_subbasin->GetRasterDataPointer();
@@ -228,7 +224,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
         BSON_APPEND_DOUBLE(&p, "YLLCENTER", rss->GetYllCenter() + (rss->GetRows() - subbasin.y_max - 1) * cell_size);
         BSON_APPEND_DOUBLE(&p, "LAYERS", rss->GetLayers());
         BSON_APPEND_DOUBLE(&p, "CELLSNUM", subbasin.cell_count);
-        BSON_APPEND_UTF8(&p, "SRS", srs);
+        BSON_APPEND_UTF8(&p, "SRS", rss->GetSrsString().c_str());
 
         char* databuf = reinterpret_cast<char *>(sub_2ddata);
         size_t datalength = sizeof(float) * sub_cell_num * col_num;
@@ -242,7 +238,6 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
         databuf = nullptr;
         Release1DArray(sub_2ddata);
     }
-    srs = nullptr;
     rss_data = nullptr;
     subbasin_data = nullptr;
     delete rss;
@@ -252,8 +247,8 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
 /*!
  * \brief Decomposite raster to separate files named suffixed by subbasin ID.
  *        If not for MPI version SEIMS, the whole basin data will be generated named suffixed by 0.
- * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is \sa SubBasin object
- * \param[in] rs_subbasin Subbasin raster object, \sa clsRasterData
+ * \param[in] bbox_map Map of subbasin extent box, key is subbasin id, value is SubBasin object
+ * \param[in] rs_subbasin Subbasin raster object, clsRasterData
  * \param[in] dst_file Input raster full file path
  * \param[in] tmp_folder Folder to store the separated raster data file
  */
@@ -284,7 +279,18 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
         int subYSize = subbasin.y_max - subbasin.y_min + 1;
 
         std::ostringstream oss;
-        oss << tmp_folder << "/" << id << "/" << GetUpper(core_name) << ".tif";
+        oss << tmp_folder << "/" << id;
+        string dst_folder = oss.str();
+        if (!DirectoryExists(dst_folder)) {
+            /// create new directory
+#ifdef windows
+            LPSECURITY_ATTRIBUTES att = nullptr;
+            ::CreateDirectory(dst_folder.c_str(), att);
+#else
+            mkdir(dst_folder.c_str(), 0777);
+#endif /* windows */
+        }
+        oss << "/" << GetUpper(core_name) << ".tif";
         string subbasin_file = oss.str();
         //cout << subbasinFile << endl;
         // create a new raster for the subbasin
@@ -331,8 +337,8 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
 
 int main(int argc, char** argv) {
     if (argc < 7) {
-        cout << "Usage: " <<
-                "ImportRaster <MaskFile> <DataFolder> <modelName> <GridFSName> <hostIP> <port> [outputFolder]\n";
+        cout << "Usage: import_raster <MaskFile> <DataFolder> <modelName> <GridFSName> "
+                "<hostIP> <port> [outputFolder]\n";
         exit(-1);
     }
 
@@ -451,7 +457,7 @@ int main(int argc, char** argv) {
         }
         int loop = 1;
         while (loop < 3) {
-            if (!DecompositeRasterToMongoDB(bbox_map, rs_subbasin, array1d_files[i].c_str(), conn, gfs)) {
+            if (!DecompositeRasterToMongoDB(bbox_map, rs_subbasin, array1d_files[i].c_str(), gfs)) {
                 cout << "Import " << array1d_files[i] << " failed, try time: " << loop << endl;
                 loop++;
             } else {

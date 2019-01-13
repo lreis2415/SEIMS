@@ -1,11 +1,13 @@
 /*!
+ * \file Interception_MCS.h
  * \brief Precipitation interception based on Maximum Canopy Storage
  *        Equation given by Aston(1979), Code adapted from openLISEM
  *        file: lisInterception.cpp
+ *
  *        This module is STORM_MODE and LONGTERM_MODE compatibility.
+ *
  * \author Liangjun Zhu
  * \date Apr 2017
- *
  */
 #ifndef SEIMS_MODULE_PI_MCS_H
 #define SEIMS_MODULE_PI_MCS_H

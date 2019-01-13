@@ -1,10 +1,13 @@
 /*!
+ * \file utils_time.h
  * \brief Time and datetime related functions.
  *        Part of the Common Cross-platform Geographic Library (CCGL)
  *
+ * Changelog:
+ *   - 1. 2018-05-01 - lj - Make part of CCGL.
+ *   - 2. 2018-05-23 - lj - Add DateTime struct which combines date and time.
+ *
  * \author Liangjun Zhu (crazyzlj)
- * \changelog  2018-05-01 - lj - Make part of CCGL.\n
- *             2018-05-23 - lj - Add DateTime struct which combines date and time.\n
  */
 #ifndef CCGL_UTILS_TIME_H
 #define CCGL_UTILS_TIME_H
@@ -13,7 +16,7 @@
 
 namespace ccgl {
 /*!
- * \namespace utils_time
+ * \namespace ccgl::utils_time
  * \brief Time related functions
  */
 namespace utils_time {
@@ -37,7 +40,7 @@ inline bool IsLeapYear(const int yr) { return !(yr % 4) && (yr % 100 || !(yr % 4
 string ConvertToString(const time_t date, bool utc_time = true);
 
 /*!
- * \brief  Convert date time to string as the format of "YYYY-MM-DD HH"
+ * \brief Convert date time to string as the format of "YYYY-MM-DD HH"
  * \param[in] date \a time_t data type
  * \param[in] utc_time By default, the input date is under UTC+00:00 timezone.
  * \return Date time \a string
@@ -46,9 +49,12 @@ string ConvertToString2(const time_t date, bool utc_time = true);
 
 /*!
  * \brief Convert string to date time, string format could be %4d%2d%2d or %d-%d-%d
- *        e.g., str_date => 20000323, format=> %4d%2d%2d
- *              str_date => 2000-03-23, format => %d-%d-%d
- *              str_date => 2000-03-23 18:01:30, => %d-%d-%d %d:%d:%d or %4d-%2d-%2d %2d:%2d:%2d
+ *
+ *  Example:
+ *    - 1. str_date => 20000323, format=> %4d%2d%2d
+ *    - 2. str_date => 2000-03-23, format => %d-%d-%d
+ *    - 3. str_date => 2000-03-23 18:01:30, => %d-%d-%d %d:%d:%d or %4d-%2d-%2d %2d:%2d:%2d
+ *
  * \param[in] str_date \a string date
  * \param[in] format \a string format
  * \param[in] include_hour \a bool Include Hour?
@@ -138,21 +144,22 @@ int JulianDay(time_t date, bool utc_time = true);
 int JulianDay(int year, int month, int day);
 
 /*!
+ * \struct DateTime
  * \brief A type representing the combination of date and time.
  *        Refers to the DateTime struct implemented in Vlpp by vczh.
  */
 struct DateTime {
-    int year;                     /// Year
-    int month;                    /// Month since January - [1, 12]
-    int day;                      /// Day of the month - [1, 31]
-    int day_of_week;              /// Day of the week since Sunday - [0, 6]
-    int day_of_year;              /// Day of the year - [0, 365]
-    int hour;                     /// Hour of the day since midnight - [0, 23]
-    int minute;                   /// Minutes after the hour - [0, 59]
-    int second;                   /// Seconds after the minute - [0, 59]
-    int milliseconds;             /// Milliseconds after the second - [0, 999]
-    vuint64_t total_milliseconds; /// Total milliseconds of the time
-    vuint64_t filetime;           /// The number of 100-nanosecond intervals since January 1, 1601 (UTC).
+    int year;                     ///< Year
+    int month;                    ///< Month since January - [1, 12]
+    int day;                      ///< Day of the month - [1, 31]
+    int day_of_week;              ///< Day of the week since Sunday - [0, 6]
+    int day_of_year;              ///< Day of the year - [0, 365]
+    int hour;                     ///< Hour of the day since midnight - [0, 23]
+    int minute;                   ///< Minutes after the hour - [0, 59]
+    int second;                   ///< Seconds after the minute - [0, 59]
+    int milliseconds;             ///< Milliseconds after the second - [0, 999]
+    vuint64_t total_milliseconds; ///< Total milliseconds of the time
+    vuint64_t filetime;           ///< The number of 100-nanosecond intervals since January 1, 1601 (UTC).
 
     /*!
      * \brief Get the current local time.

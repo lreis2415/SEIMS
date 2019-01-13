@@ -16,8 +16,8 @@ GridLayeringDinf::GridLayeringDinf(const int id, MongoGridFs* gfs, const char* o
 }
 
 GridLayeringDinf::~GridLayeringDinf() {
-    if (nullptr != flow_angle_) delete flow_angle_;
-    if (nullptr != flow_in_angle_) delete flow_in_angle_;
+    delete flow_angle_;
+    if (nullptr != flow_in_angle_) Release1DArray(flow_in_angle_);
 }
 
 bool GridLayeringDinf::LoadData() {
