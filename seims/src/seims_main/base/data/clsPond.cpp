@@ -33,7 +33,11 @@ clsPond::clsPond(const bson_t*& bson_table)
         if (bson_iter_init_find(&iterator, bson_table, POND_PARAM_NAME[i])){
             if (GetNumericFromBsonIterator(&iterator, tmp_param)) {
                 //if (tmp_param < 1.e-6f) tmp_param = 1.e-6f;
+#ifdef HAS_VARIADIC_TEMPLATES
                 param_map_.emplace(POND_PARAM_NAME[i], tmp_param);
+#else
+                param_map_.insert(make_pair(POND_PARAM_NAME[i], tmp_param));
+#endif
             }
         }
     }
@@ -104,7 +108,12 @@ clsPonds::clsPonds(MongoClient* conn, const string& db_name, const string& colle
     while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &bson_table)) {
         clsPond* cur_pond = new clsPond(bson_table);
         int paddy_id = CVT_INT(cur_pond->Get(POND_PADDYID));
-        pondsInfo_.emplace(paddy_id, cur_pond);
+        //pondsInfo_.emplace(paddy_id, cur_pond);
+#ifdef HAS_VARIADIC_TEMPLATES
+        pondsInfo_.emplace(paddy_id, cur_pond)
+#else
+        pondsInfo_.insert(make_pair(paddy_id, cur_pond));
+#endif
         paddyIDs_.push_back(paddy_id);
     }
 
