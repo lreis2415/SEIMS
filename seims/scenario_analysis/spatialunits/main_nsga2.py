@@ -57,7 +57,10 @@ filter_ind = False  # type: bool # Filter for valid population for the next gene
 conditions = [None, '>0.']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
-creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
+# NOTE that to maintain the compatibility with Python2 and Python3,
+#      the com typecode=str('d') MUST NOT changed to typecode='d', since
+#      the latter will raise TypeError that 'must be char, not unicode'!
+creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
                gen=-1, id=-1,
                io_time=0., comp_time=0., simu_time=0., runtime=0.)
 
