@@ -91,10 +91,10 @@
   <rdf:Description about="time step">
     <hydro:hasValues>
       <rdf:Alt>
-	    <rdf:li>year</rdf:li>
-		<rdf:li>month</rdf:li>
-        <rdf:li>day</rdf:li>
-        <rdf:li>hour</rdf:li>
+	    <rdf:li>yearly</rdf:li>
+		<rdf:li>monthly</rdf:li>
+        <rdf:li>daily</rdf:li>
+        <rdf:li>hourly</rdf:li>
         <rdf:li>minute</rdf:li>
       </rdf:Alt>
     </hydro:hasValues>
