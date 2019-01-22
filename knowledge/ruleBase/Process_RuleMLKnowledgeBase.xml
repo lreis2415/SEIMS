@@ -12,7 +12,7 @@
 					</Atom>
 					<Atom>
 						<op>
-							<Rel>is day</Rel>
+							<Rel>is daily</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
