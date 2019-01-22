@@ -130,6 +130,8 @@ void NutrientMovementViaWater::SumBySubbasin() {
         m_latNO3ToCh[0] += m_latNO3ToCh[i];
         m_percoNGw[0] += m_percoNGw[i];
         m_percoPGw[0] += m_percoPGw[i];
+        //TESTIND
+        //if (m_percoNGw[i] > 1e8) cout<<"i:"<<i<<",m_percoNGw[i]:"<<m_percoNGw[i]<<endl;
     }
 }
 
@@ -404,10 +406,11 @@ void NutrientMovementViaWater::NitrateLoss(const int i) {
         percnlyr = con * m_soilPerco[i][k];
         percnlyr = Min(percnlyr, m_soilNO3[i][k]);
         m_soilNO3[i][k] -= percnlyr;
+        //TESTIND
+        //if (i == 407) cout<<"m_soilNO3:"<<m_soilNO3[i][k]<<",percnlyr:"<<percnlyr<<",con:"<<con<<",m_soilPerco:"<<m_soilPerco[i][k]<<endl;
     }
     // calculate nitrate leaching from soil profile
     m_percoN[i] = percnlyr; // percolation of the last soil layer, kg/ha
-
     // I think these should be removed, because the lost nitrate
     //   have been added to it's downslope cell. by LJ
     // float nloss = (2.18f * m_distToRch[i] - 8.63f) / 100.f;

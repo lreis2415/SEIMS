@@ -289,7 +289,7 @@ int NutrientTransportSediment::Execute() {
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             /// TESTIND
-           /* if (_isnan(m_surfRfSedOrgN[i])) {
+            /*if (_isnan(m_surfRfSedOrgN[i])) {
                 cout<< m_nCells << " : " << i << " : " << m_surfRfSedOrgN[i] << endl;
             }*/
             tmp_orgn2ch[CVT_INT(m_subbsnID[i])] += m_surfRfSedOrgN[i];
@@ -394,7 +394,7 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
     conc = totOrgN_lyr0 * er / wt1;
     m_surfRfSedOrgN[i] = 0.001f * conc * m_olWtrEroSed[i] * 0.001f / m_cellArea;
     /// TESTIND
-    if (i == 33826) cout<< m_sol_LSN[i][0] << m_sol_LMN[i][0] << m_sol_HPN[i][0] << m_sol_HSN[i][0] << endl;
+    //if (i == 33826) cout<< m_sol_LSN[i][0] << m_sol_LMN[i][0] << m_sol_HPN[i][0] << m_sol_HSN[i][0] << endl;
     /*if (i == 33826) cout<< "wt1:" << wt1 << ", surfsedoN:" << m_surfRfSedOrgN[i] <<
         ", conc:" << conc << ", m_olWtrE:" << m_olWtrEroSed[i] << ", area:" << m_cellArea << endl;*/
     /// update soil nitrogen pools

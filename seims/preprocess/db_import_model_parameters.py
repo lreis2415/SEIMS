@@ -379,8 +379,8 @@ class ImportParam2Mongo(object):
     def workflow(cfg, maindb):
         """Workflow"""
         ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
-        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
-        ImportParam2Mongo.model_io_configuration(cfg, maindb)
+        # ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
+        # ImportParam2Mongo.model_io_configuration(cfg, maindb)
         ImportParam2Mongo.subbasin_statistics(cfg, maindb)
         ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
 

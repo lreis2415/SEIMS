@@ -64,7 +64,7 @@ public:
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
-    float ReservoirMethod::GetUnitArea(int i);
+    float GetUnitArea(int i);
 
 private:
 
