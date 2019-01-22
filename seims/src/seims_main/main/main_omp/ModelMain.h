@@ -137,7 +137,6 @@ private:
     vector<SimulationModule *> m_simulationModules; ///< Modules list in the model run
     vector<int> m_hillslopeModules;                 ///< Hillslope modules index list
     vector<int> m_channelModules;                   ///< Channel modules index list
-    vector<int> m_ecoModules;                       ///< Ecology modules index list
     vector<int> m_overallModules;                   ///< Whole simulation scale modules index list
     vector<double> m_executeTime;                   ///< Execute time list of each module
 

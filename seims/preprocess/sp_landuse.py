@@ -70,7 +70,7 @@ class LanduseUtilClass(object):
                 for prop_id in property_map:
                     s = '%d %f\n' % (int(property_map[prop_id]['LANDUSE_ID']),
                                      property_map[prop_id][propertyName])
-                    f.write(s)
+                    f.write('%s' % s)
 
     @staticmethod
     def reclassify_landuse_parameters(bin_dir, config_file, dst_dir, landuse_file, lookup_dir,

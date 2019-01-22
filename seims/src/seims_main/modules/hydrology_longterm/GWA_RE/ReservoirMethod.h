@@ -66,6 +66,9 @@ public:
 
     float GetUnitArea(int i);
 
+    TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
+
+
 private:
 
     /**

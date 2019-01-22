@@ -94,6 +94,7 @@ class ImportObservedData(object):
             for i in range(1, len(site_data_items)):
                 dic = dict()
                 types = list()
+                units = list()
                 for j, v in enumerate(site_data_items[i]):
                     if StringClass.string_match(site_flds[j], StationFields.id):
                         dic[StationFields.id] = int(v)
@@ -111,7 +112,7 @@ class ImportObservedData(object):
                     elif StringClass.string_match(site_flds[j], StationFields.y):
                         dic[StationFields.y] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.unit):
-                        dic[StationFields.unit] = v.strip()
+                        units = StringClass.split_string(v.strip(), '-')
                     elif StringClass.string_match(site_flds[j], StationFields.elev):
                         dic[StationFields.elev] = float(v)
                     elif StringClass.string_match(site_flds[j], StationFields.outlet):
@@ -126,6 +127,7 @@ class ImportObservedData(object):
                     site_dic[StationFields.lon] = dic[StationFields.lon]
                     site_dic[StationFields.x] = dic[StationFields.x]
                     site_dic[StationFields.y] = dic[StationFields.y]
+                    site_dic[StationFields.unit] = units[j]
                     site_dic[StationFields.elev] = dic[StationFields.elev]
                     site_dic[StationFields.outlet] = dic[StationFields.outlet]
                     # Add SubbasinID field
@@ -147,7 +149,7 @@ class ImportObservedData(object):
 
                     var_dic = dict()
                     var_dic[StationFields.type] = types[j]
-                    var_dic[StationFields.unit] = dic[StationFields.unit]
+                    var_dic[StationFields.unit] = units[j]
                     if var_dic not in variable_lists:
                         variable_lists.append(var_dic)
         site_ids = list(set(site_ids))
@@ -266,7 +268,7 @@ class ImportObservedData(object):
     def workflow(cfg, maindb, climdb):
         """
         This function mainly to import measurement data to MongoDB
-        data type may include Q (discharge, m3/s), SED (mg/L), tn (mg/L), tp (mg/L), etc.
+        data type may include Q (discharge, m3/s), SED (mg/L), TN (mg/L), TP (mg/L), etc.
         the required parameters that defined in configuration file (*.ini)
         """
         if not cfg.use_observed:

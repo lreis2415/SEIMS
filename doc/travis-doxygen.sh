@@ -4,9 +4,12 @@
 
 set -e
 
-DOXYGEN_VER=doxygen-1.8.13
+DOXYGEN_VERSION=1.8.13
+DOXYGEN_VER=doxygen-${DOXYGEN_VERSION}
 DOXYGEN_TAR=${DOXYGEN_VER}.linux.bin.tar.gz
-DOXYGEN_URL="http://ftp.stack.nl/pub/users/dimitri/${DOXYGEN_TAR}"
+# ftp.stack.nl has been shutdown, so I changed to sourceforge.net.
+# DOXYGEN_URL="http://ftp.stack.nl/pub/users/dimitri/${DOXYGEN_TAR}"
+DOXYGEN_URL="https://sourceforge.net/projects/doxygen/files/rel-${DOXYGEN_VERSION}/${DOXYGEN_TAR}/download"
 
 : ${GITHUB_REPO:="lreis2415/SEIMS"}
 GITHUB_HOST="github.com"

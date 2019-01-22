@@ -13,18 +13,18 @@ import bisect
 from collections import OrderedDict
 from datetime import datetime
 
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional, Union, AnyStr
 from pygeoc.utils import MathClass
 
 
-def match_simulation_observation(sim_vars,  # type: List[str]
+def match_simulation_observation(sim_vars,  # type: List[AnyStr]
                                  sim_dict,  # type: Dict[datetime, List[float]]
-                                 obs_vars,  # type: Optional[List[str]]
+                                 obs_vars,  # type: Optional[List[AnyStr]]
                                  obs_dict,  # type: Optional[Dict[datetime, List[float]]]
                                  start_time=None,  # type: Optional[datetime]
                                  end_time=None  # type: Optional[datetime]
                                  ):
-    # type: (...) -> Optional[Dict[str, Dict[str, Union[List[datetime], List[float]]]]]
+    # type: (...) -> Optional[Dict[AnyStr, Dict[AnyStr, Union[List[datetime], List[float]]]]]
     """Match the simulation and observation data by UTCDATETIME for each variable.
 
     Args:
@@ -75,11 +75,11 @@ def match_simulation_observation(sim_vars,  # type: List[str]
     return sim_obs_dict
 
 
-def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[str, Dict[str, Union[List[datetime], List[float], float]]]]
+def calculate_statistics(sim_obs_dict,  # type: Optional[Dict[AnyStr, Dict[AnyStr, Union[List[datetime], List[float], float]]]]
                          stime=None,  # type: Optional[datetime]
                          etime=None  # type: Optional[datetime]
                          ):
-    # type: (...) -> Optional[List[str]]
+    # type: (...) -> Optional[List[AnyStr]]
     """Calculate NSE, R-square, RMSE, PBIAS, and RSR.
     Args:
         sim_obs_dict: {VarName: {'UTCDATETIME': [t1, t2, ..., tn],

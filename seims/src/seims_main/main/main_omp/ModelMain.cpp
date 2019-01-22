@@ -55,10 +55,6 @@ ModelMain::ModelMain(DataCenterMongoDB* data_center, ModuleFactory* factory) :
                 m_channelModules.emplace_back(i);
                 break;
             }
-            case TIMESTEP_ECOLOGY: {
-                m_ecoModules.emplace_back(i);
-                break;
-            }
             case TIMESTEP_SIMULATION: {
                 m_overallModules.emplace_back(i);
                 break;
@@ -144,11 +140,6 @@ void ModelMain::Execute() {
             cout << "Simulation year: " << startYear + yearIdx << endl;
         }
         StatusMessage(ConvertToString2(t).c_str());
-#ifdef _DEBUG
-        if (StringMatch(ConvertToString(t), "2012-04-30")) {
-        //    cout << "Debugging..." << endl;
-        }
-#endif
         for (int i = 0; i < nHs; i++) {
             StepHillSlope(t + i * m_dtHs, yearIdx, i);
         }

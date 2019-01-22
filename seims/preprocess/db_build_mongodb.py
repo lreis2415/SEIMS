@@ -21,7 +21,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from pygeoc.utils import UtilClass
 
 from utility import status_output
-from preprocess.bmp_import_scenario import ImportScenario2Mongo
+from preprocess.db_import_bmpscenario import ImportScenario2Mongo
 from preprocess.db_import_interpolation_weights import ImportWeightData
 from preprocess.db_import_meteorology import ImportMeteoData
 from preprocess.db_import_model_parameters import ImportParam2Mongo

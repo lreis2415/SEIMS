@@ -16,12 +16,12 @@ import time
 from collections import OrderedDict
 import os
 import sys
-import shutil
 from copy import deepcopy
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from typing import Optional
 from pygeoc.utils import FileClass
 
 from utility import read_data_items_from_txt
@@ -101,6 +101,7 @@ class Calibration(object):
     """
 
     def __init__(self, cali_cfg, id=-1):
+        # type: (CaliConfig, Optional[int]) -> None
         """Initialize."""
         self.cfg = cali_cfg
         self.model = cali_cfg.model

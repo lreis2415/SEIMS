@@ -21,7 +21,7 @@ using std::vector;
  */
 class SEIMSModuleSetting: Interface {
 public:
-    SEIMSModuleSetting(string& moduleId, string& setting);
+    SEIMSModuleSetting(string& module_id, string& setting);
 
     ///< data type
     float dataType();
@@ -38,7 +38,7 @@ public:
 
 private:
     string m_moduleId;         ///< module's ID
-    string m_settingString;    ///< module setting string
+    string m_settingString;    ///< PROCESS NAME with suffix, e.g., Interpolation_P_0 and TimeSeries_M
     vector<string> m_settings; ///< module settings
 };
 

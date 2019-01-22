@@ -22,4 +22,4 @@
 
 __author__ = "Liangjun Zhu, Huiran Gao"
 __version__ = "1.1"
-__revision__ = "1.1.1"
+__revision__ = "1.1.2"

@@ -21,4 +21,4 @@
 """
 __author__ = "SEIMS Team"
 __version__ = "2.2"
-__revision__ = "2.2.0"
+__revision__ = "2.2.1"
