@@ -5,7 +5,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -23,7 +23,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -95,7 +95,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -113,7 +113,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -164,7 +164,7 @@
 					</Atom>
 					<Atom>
 						<op>
-							<Rel>is hour</Rel>
+							<Rel>is hourly</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
@@ -184,13 +184,13 @@
 				<Or>
 					<Atom>
 						<op>
-							<Rel>is hour</Rel>
+							<Rel>is hourly</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
 					<Atom>
 						<op>
-							<Rel>is day</Rel>
+							<Rel>is daily</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
@@ -209,7 +209,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -227,7 +227,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -246,7 +246,7 @@
 				<Or>
 					<Atom>
 						<op>
-							<Rel>is hour</Rel>
+							<Rel>is hourly</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
@@ -272,13 +272,13 @@
 				<Or>
 					<Atom>
 						<op>
-							<Rel>is hour</Rel>
+							<Rel>is hourly</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
 					<Atom>
 						<op>
-							<Rel>is day</Rel>
+							<Rel>is daily</Rel>
 						</op>
 						<Var>time step</Var>
 					</Atom>
@@ -297,7 +297,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -315,7 +315,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -333,7 +333,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -351,7 +351,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -369,7 +369,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -387,7 +387,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -405,7 +405,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -423,7 +423,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is hour</Rel>
+						<Rel>is hourly</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -441,7 +441,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
@@ -459,7 +459,7 @@
 			<if>
 				<Atom>
 					<op>
-						<Rel>is day</Rel>
+						<Rel>is daily</Rel>
 					</op>
 					<Var>time step</Var>
 				</Atom>
