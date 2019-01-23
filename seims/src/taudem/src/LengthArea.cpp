@@ -47,7 +47,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int lengtharea(char *plenfile, char *ad8file, char *ssfile, float *p) {
     MPI_Init(NULL, NULL);

@@ -47,7 +47,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int slopearea(char *slopefile, char *scafile, char *safile, float *p) {
     MPI_Init(NULL, NULL);

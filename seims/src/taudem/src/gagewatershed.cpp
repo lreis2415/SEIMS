@@ -49,7 +49,7 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include "ogrsf_frmts.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int gagewatershed(char *pfile,
                   char *wfile,

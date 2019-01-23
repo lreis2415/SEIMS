@@ -47,7 +47,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int gridnet(char *pfile, char *plenfile, char *tlenfile, char *gordfile, char *maskfile,
             char *datasrc, char *lyrname, int uselyrname, int lyrno, int useMask, int useOutlets, int thresh) {//1
