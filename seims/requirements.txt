@@ -1,10 +1,13 @@
-# Please download the proper compiled version of numpy and gdal
-#   from https://www.lfd.uci.edu/~gohlke/pythonlibs/
+# 1. Please download the proper compiled version of numpy, gdal, and matplotlib
+#     from https://www.lfd.uci.edu/~gohlke/pythonlibs/
 # numpy>=1.10
 # gdal>=1.9.0
+# matplotlib>=1.5.0
+# 2. Please install pygeoc from the github repo for the latest version
+#      https://github.com/lreis2415/PyGeoC
+# pygeoc > 0.3
 
 Shapely>=1.5.0
-matplotlib>=1.5.0
 pymongo>=3.0
 networkx>=1.10
 pathlib2>=2.0.0
