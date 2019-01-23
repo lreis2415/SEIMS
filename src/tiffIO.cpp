@@ -50,7 +50,7 @@ email:  dtarb@usu.edu
 //#include "commonLib.h"  //Part of tiffIO.h
 #include <iostream>
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 tiffIO::tiffIO(char *fname, DATA_TYPE newtype) {
     MPI_Status status;

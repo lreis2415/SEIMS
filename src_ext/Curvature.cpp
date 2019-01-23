@@ -12,7 +12,7 @@
 // include algorithm header file
 #include "Curvature.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int Curvature(char *demfile, char *profcfile, char *plancfile, char *horizcfile, char *unspherfile, char *meancfile,
               char *maxcfile, char *mincfile, bool calprof, bool calplan, bool calhoriz, bool calunspher, bool calmeanc,
@@ -169,16 +169,16 @@ int Curvature(char *demfile, char *profcfile, char *plancfile, char *horizcfile,
                             }
                         } else {
                             if (calprof) {
-                                prof->setData(i, j, -(r * p * p + t * q * q + 2.f * p * q * s) /
-                                    ((p * p + q * q) * pow((1.f + p * p + q * q), 1.5f)));
+                                prof->setData(i, j, float(-(r * p * p + t * q * q + 2.f * p * q * s) /
+                                    ((p * p + q * q) * pow((1.f + p * p + q * q), 1.5f))));
                             }
                             if (calplan) {
-                                plan->setData(i, j, -(r * q * q + t * p * p - 2.f * p * q * s) /
-                                    (pow((p * p + q * q), (float) 1.5)));
+                                plan->setData(i, j, float(-(r * q * q + t * p * p - 2.f * p * q * s) /
+                                    (pow((p * p + q * q), (float) 1.5))));
                             }
                             if (calhoriz) {
-                                horiz->setData(i, j, -(q * q * r - 2.f * p * q * s + p * p * t) /
-                                    ((p * p + q * q) * pow((1.f + p * p + q * q), 1.5f)));
+                                horiz->setData(i, j, float(-(q * q * r - 2.f * p * q * s + p * p * t) /
+                                    ((p * p + q * q) * pow((1.f + p * p + q * q), 1.5f))));
                             }
                         }
                         if (calunspher || calmeanc || calmaxc || calminc) {

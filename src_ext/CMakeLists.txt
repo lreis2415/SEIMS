@@ -7,20 +7,37 @@ geo_include_directories(${TAUDEM_SRC})
 set(CURVATURE Curvature.cpp Curvaturemn.cpp ${common_srcs})
 set(LOGOP demoLogOperatormn.cpp demoLogOperator.cpp ${common_srcs})
 set(D8DISTDOWN D8DistDownToStream.cpp D8DistDownToStreammn.cpp ${common_srcs})
+# Integrated from AutoFuzSlpPos project by Liangjun Zhu, 2019/01/23
+set(D8DISTUP D8DistUpToRidge.cpp D8DistUpToRidgemn.cpp ${common_srcs})
+## TODO, TauDEM also implemented a similar function named dinfdistup, we need to find if they can be merged!
+set(DINFDISTUPRDG DinfDistUpToRidge.cpp DinfDistUpToRidgemn.cpp ${common_srcs})
+set(CALCULATOR SimpleCalculator.cpp SimpleCalculatormn.cpp ${common_srcs})
+set(RPISKIDMORE RPISkidmore.cpp RPISkidmoremn.cpp ${common_srcs})
 
 add_executable(curvature ${CURVATURE})
 add_executable(logop ${LOGOP})
 add_executable(d8distdowntostream ${D8DISTDOWN})
+add_executable(d8distuptoridge ${D8DISTUP})
+add_executable(dinfdistuptoridge ${DINFDISTUPRDG})
+add_executable(simplecalculator ${CALCULATOR})
+add_executable(rpiskidmore ${RPISKIDMORE})
 
 set(TAUDEM_EXT_APP curvature
                    logop
                    d8distdowntostream
+                   d8distuptoridge
+                   dinfdistuptoridge
+                   simplecalculator
+                   rpiskidmore
         )
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
-    IF (MSVC)
+    IF (MSVC OR XCODE)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM_EXT")
     ENDIF ()
 endforeach (c_target ${TAUDEM_EXT_APP})
+
+# add other directories
+ADD_SUBDIRECTORY(${TAUDEM_EXT_SRC}/autofuzslppos)

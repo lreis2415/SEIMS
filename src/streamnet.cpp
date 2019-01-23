@@ -59,7 +59,7 @@ email:  dtarb@usu.edu
 #include "ogr_api.h"
 #include <limits>
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 OGRSFDriverH driver;
 OGRDataSourceH hDS1;

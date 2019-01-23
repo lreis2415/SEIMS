@@ -47,7 +47,9 @@ email:  dtarb@usu.edu
 #include "linearpart.h"
 #include "createpart.h"
 #include "tiffIO.h"
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+
+using std::unordered_map;
 
 int readline(FILE *fp, char *fline)
 {

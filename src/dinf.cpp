@@ -47,7 +47,8 @@ email:  dtarb@usu.edu
 #include <math.h>
 #include "Node.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::max;
 
 //double fact[9];
 double **fact;

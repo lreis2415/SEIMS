@@ -49,7 +49,7 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include "DinfDistDown.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 
 // The old program was written in column major order.

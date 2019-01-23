@@ -12,7 +12,7 @@
 #     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), OpenMPI-1.10.4, GDAL-1.11.4 (Framework)
 #
 #  Created and maintained by Liang-Jun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Mar. 4, 2018
+#  Latest updated: Jan. 23, 2019
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -33,7 +33,26 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# Set initial project name with coding languages
 PROJECT(TauDEM_ext CXX C)
+### TauDEM_ext compilation version.
+SET(PRJNAME "TauDEM_ext")
+### Build Postfix
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default Debug postfix")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Default Release postfix")
+SET(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "Default RelWithDebInfo postfix")
+SET(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "Default MinSizeRel postfix")
+IF (CMAKE_BUILD_TYPE MATCHES "Release")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELEASE_POSTFIX}")
+ELSEIF (CMAKE_BUILD_TYPE MATCHES "MinSizeRel")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_MINSIZEREL_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_RELWITHDEBINFO_POSTFIX}")
+ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  SET(CMAKE_BUILD_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+ELSE()
+  SET(CMAKE_BUILD_POSTFIX "")
+ENDIF()
 
 ### Set cmake find path
 set(CMAKE_MODULE_PATH
@@ -79,6 +98,7 @@ INCLUDE(AddFindPaths)
 FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
   SET(WITH_MPI 1)
+  SET(PRJNAME ${PRJNAME}_MPI)
   MESSAGE(STATUS "Compiling with MPI...")
 ELSE()
   MESSAGE(FATAL_ERROR "FATAL: Could not find MPI, which is required for TauDEM and SEIMS!")
@@ -89,8 +109,10 @@ FIND_PACKAGE(OpenMP)
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
+  SET(PRJNAME ${PRJNAME}_OMP)
   MESSAGE(STATUS "Compiling with OpenMP...")
 ENDIF()
+PROJECT(${PRJNAME})
 
 ### Find GDAL which is required.
 FIND_PACKAGE(GDAL REQUIRED)
