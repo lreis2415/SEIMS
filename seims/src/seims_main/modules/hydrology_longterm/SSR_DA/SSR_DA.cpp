@@ -271,16 +271,6 @@ void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, float*
     }
 }
 
-void SSR_DA::GetValue(const char* key, float* value) {
-    InitialOutputs();
-    string sk(key);
-    /// For MPI version to transfer data across subbasins
-    if (StringMatch(sk, VAR_SBIF) && m_inputSubbsnID > 0) *value = m_ifluQ2Rch[m_inputSubbsnID];
-    else {
-        throw ModelException(MID_SSR_DA, "GetValue", "Result " + sk + " does not exist.");
-    }
-}
-
 void SSR_DA::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);

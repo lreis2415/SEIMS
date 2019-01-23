@@ -102,7 +102,7 @@ private:
     float* m_chBnkErod;   ///< channel bank erodibility factor, cm^3/N/s
     float* m_chBedErod;   ///< channel bed erodibility factor, cm^3/N/s
     float* m_chBnkTc;     ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBedTc;     ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBedTc;     ///< Critical shear stress of channel bed, N/m^2
     float* m_chBnkSand;   ///< Fraction of sand in channel bank sediment
     float* m_chBnkSilt;   ///< Fraction of silt in channel bank sediment
     float* m_chBnkClay;   ///< Fraction of clay in channel bank sediment

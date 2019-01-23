@@ -295,18 +295,6 @@ void ReservoirMethod::SetSubbasins(clsSubbasins* subbasins) {
     }
 }
 
-void ReservoirMethod::GetValue(const char* key, float* value) {
-    InitialOutputs();
-    string sk(key);
-    if (StringMatch(sk, VAR_RG) && m_inputSubbsnID > 0) *value = m_T_RG[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SBQG) && m_inputSubbsnID > 0) *value = m_T_QG[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SBGS) && m_inputSubbsnID > 0) *value = m_gwSto[m_inputSubbsnID];
-    else if (StringMatch(sk, VAR_SBPET) && m_inputSubbsnID > 0) *value = m_petSubbsn[m_inputSubbsnID];
-    else {
-        throw ModelException(MID_GWA_RE, "GetValue", "Parameter " + sk + " does not exist.");
-    }
-}
-
 void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
     InitialOutputs();
     string sk(key);

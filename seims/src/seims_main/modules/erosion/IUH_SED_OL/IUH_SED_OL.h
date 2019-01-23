@@ -42,8 +42,6 @@ public:
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     bool CheckInputSize(const char* key, int n);

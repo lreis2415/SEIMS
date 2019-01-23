@@ -147,17 +147,6 @@ void IUH_SED_OL::Set2DData(const char* key, int nRows, int nCols, float** data) 
     }
 }
 
-void IUH_SED_OL::GetValue(const char* key, float* value) {
-    InitialOutputs();
-    string sk(key);
-    if (StringMatch(sk, VAR_SED_TO_CH) && m_inputSubbsnID > 0) {
-        /// For MPI version to transfer data across subbasins
-        *value = m_sedtoCh[m_inputSubbsnID];
-    } else {
-        throw ModelException(MID_IUH_SED_OL, "GetValue", "Result " + sk + " does not exist.");
-    }
-}
-
 void IUH_SED_OL::Get1DData(const char* key, int* n, float** data) {
     InitialOutputs();
     string sk(key);
