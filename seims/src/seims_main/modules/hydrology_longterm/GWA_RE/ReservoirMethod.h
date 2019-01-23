@@ -58,8 +58,6 @@ public:
 
     int Execute() OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
     void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
