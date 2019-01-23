@@ -49,7 +49,7 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include "ctime"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int peukerdouglas(char *felfile, char *ssfile, float *p) {
     MPI_Init(NULL, NULL);

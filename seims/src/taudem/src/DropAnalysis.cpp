@@ -51,7 +51,8 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "DropAnalysis.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::setprecision;
 
 //returns true iff cell at [nrow][ncol] points to cell at [row][col]
 bool pointsToMe(long col, long row, long ncol, long nrow, tdpartition *dirData){

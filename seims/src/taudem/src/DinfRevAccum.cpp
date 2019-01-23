@@ -46,7 +46,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int dsaccum(char *angfile, char *wgfile, char *raccfile, char *dmaxfile) {
 

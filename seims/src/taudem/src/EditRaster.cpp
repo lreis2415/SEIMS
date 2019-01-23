@@ -45,7 +45,8 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 #include <stack>
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::stack;
 
 /*********************************************************************/
 int readline(FILE* fp, char* fline) {

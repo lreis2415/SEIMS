@@ -46,7 +46,8 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include <stack>
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::stack;
 
 int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbose,
           bool is_4Point, bool use_mask, char *maskfile)  // these three added by arb, 5/31/11

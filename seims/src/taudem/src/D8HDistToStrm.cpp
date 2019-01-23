@@ -52,7 +52,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int distgrid(char *pfile, char *srcfile, char *distfile, int thresh) {
     MPI_Init(NULL, NULL);
