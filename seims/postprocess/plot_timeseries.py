@@ -312,4 +312,4 @@ class TimeSeriesPlots(object):
                                    self.sim_data_value[-1][0].strftime('%Y-%m-%d'))
 
             save_png_eps(plt, self.ws, param + '-' + timerange, self.plot_cfg)
-			plt.show()
+            plt.show()

@@ -64,7 +64,7 @@ public:
 
     bool CheckInputData();
 
-    float IUH_OL::GetUnitArea(int i);
+    float GetUnitArea(int i);
 
 private:
     void InitialOutputs();

@@ -59,7 +59,7 @@ class ParseSEIMSConfig(object):
         self.lyrmtd = 1
         self.scenario_id = 0
         self.calibration_id = -1
-        self.subbasin_id = 0
+        self.subbasin_id = 9999
         self.simu_stime = None
         self.simu_etime = None
         self.out_stime = None

@@ -38,7 +38,7 @@ def get_psa_config():
     # parse arguments
     args = parser.parse_args()
     ini_file = args.ini
-    psa_mtd = 'morris'  # Default
+    psa_mtd = 'fast'  # Default
     if args.fast:
         psa_mtd = 'fast'
     elif args.morris:

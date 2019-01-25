@@ -79,6 +79,7 @@ int IUH_OL::Execute() {
         }
     }
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
+    if (m_inputSubbsnID != 99999) { //raster version
 #pragma omp parallel
     {
         float* tmp_qsSub = new float[m_nSubbsns + 1];
@@ -87,49 +88,9 @@ int IUH_OL::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
-            if (m_inputSubbsnID == 9999){ // field version 
-                // skip ponds in this step and process them later
-                if (FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_POND)) { continue; }
-
-                // judge whether the overland flow of one cell flow to a river or a pond
-                if (m_flowPond[i] < 0) // to river 
-                    {
-                        tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
-                        m_OL_Flow[i] = m_cellFlow[i][0];
-                        m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
-                    }
-                else // to pond, add to down pond flow
-                    {
-                        m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
-                        // if a field flow to pond, should update its m_OL_Flow???
-                        // m_OL_Flow[i] = m_cellFlow[i][0];  
-                        // m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
-                    }
-                }
-            else { // raster version
-                tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
-                m_OL_Flow[i] = m_cellFlow[i][0];
-                m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
-            }
-        }
-        if (m_inputSubbsnID == 9999){
-            for (int i = 0; i < m_nCells; i++) {
-                // process the ponds if their water volume exceeds their capacity
-                // the upstream and downstream topology among ponds should be considered here
-                if (m_pondSort[i] > 0){ // since pond topological sort has been read, calculate the cellflow directly
-                    int pondId = CVT_INT(m_pondSort[i]);
-                    float pond_area = m_unitArea[pondId];
-                    float excCap = m_cellFlow[pondId][0] - pond_area * 2.f / m_TimeStep; // suppose the capacity of the pond is area*2m.
-                    if (excCap > 0){ // if their water volume exceed their capacity
-                        if (m_flowPond[pondId] < 0) tmp_qsSub[pondId] += m_cellFlow[pondId][0]; // the down is river
-                        else { // the down is pond
-                            m_cellFlow[CVT_INT(m_flowPond[pondId])][0] += excCap;
-                        }
-                    }
-                    m_OL_Flow[pondId] = m_cellFlow[pondId][0];
-                    m_OL_Flow[pondId] = m_OL_Flow[pondId] * m_TimeStep * 1000.f / pond_area; // m3/s -> mm
-                }
-            }
+            tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
+            m_OL_Flow[i] = m_cellFlow[i][0];
+            m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
         }
 #pragma omp critical
         {
@@ -140,6 +101,50 @@ int IUH_OL::Execute() {
         delete[] tmp_qsSub;
         tmp_qsSub = nullptr;
     } /* END of #pragma omp parallel */
+    }
+    else { //field version
+        float* tmp_qsSub = new float[m_nSubbsns + 1];
+        for (int i = 0; i <= m_nSubbsns; i++) {
+            tmp_qsSub[i] = 0.f;
+        }
+#pragma omp parallel for
+        for (int i = 0; i < m_nCells; i++) {
+            // skip ponds in this step and process them later
+            if (FloatEqual(CVT_INT(m_landUse[i]), LANDUSE_ID_POND)) { continue; }
+
+            // judge whether the overland flow of one cell flow to a river or a pond
+            if (m_flowPond[i] < 0) // to river 
+                {
+                    tmp_qsSub[CVT_INT(m_subbsnID[i])] += m_cellFlow[i][0]; //get new value
+                    m_OL_Flow[i] = m_cellFlow[i][0];
+                    m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
+                }
+            else // to pond, add to down pond flow
+                {
+                    m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
+                    // if a field flow to pond, should update its m_OL_Flow???
+                    // m_OL_Flow[i] = m_cellFlow[i][0];  
+                    // m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
+                }
+        }
+        for (int i = 0; i < m_nCells; i++) {
+            // process the ponds if their water volume exceeds their capacity
+            // the upstream and downstream topology among ponds should be considered here
+            if (m_pondSort[i] > 0){ // since pond topological sort has been read, calculate the cellflow directly
+                int pondId = CVT_INT(m_pondSort[i]);
+                float pond_area = m_unitArea[pondId];
+                float excCap = m_cellFlow[pondId][0] - pond_area * 2.f / m_TimeStep; // suppose the capacity of the pond is area*2m.
+                if (excCap > 0){ // if their water volume exceed their capacity
+                    if (m_flowPond[pondId] < 0) tmp_qsSub[CVT_INT(m_subbsnID[pondId])] += m_cellFlow[pondId][0]; // the down is river
+                    else { // the down is pond
+                        m_cellFlow[CVT_INT(m_flowPond[pondId])][0] += excCap;
+                    }
+                }
+                m_OL_Flow[pondId] = m_cellFlow[pondId][0];
+                m_OL_Flow[pondId] = m_OL_Flow[pondId] * m_TimeStep * 1000.f / pond_area; // m3/s -> mm
+            }
+        }
+    }
 
     for (int n = 1; n <= m_nSubbsns; n++) {
         //get overland flow routing for entire watershed.
