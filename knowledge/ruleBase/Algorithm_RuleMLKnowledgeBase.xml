@@ -455,7 +455,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Subsurface Runoff-Darcy formula">
+		<Implies node = "Subsurface-Darcy formula">
 			<if>
 				<Atom>
 					<op>
@@ -469,7 +469,7 @@
 					<op>
 						<Rel>is selected</Rel>
 					</op>
-					<Ind>Subsurface Runoff-Darcy formula</Ind>
+					<Ind>Subsurface-Darcy formula</Ind>
 				</Atom>
 			</then>
 		</Implies>
