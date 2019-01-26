@@ -447,7 +447,6 @@ void Nutrient_Transformation::InitialOutputs() {
                     m_sol_LSLC[i][k] = 0.8f * m_sol_LSC[i][k];
                     m_sol_LSLNC[i][k] = 0.2f * m_sol_LSC[i][k];
                     m_sol_LSN[i][k] = m_sol_LSC[i][k] * 0.006666666666666667f; // * 1.f / 150.f;
-
                     m_sol_WOC[i][k] += m_sol_LSC[i][k] + m_sol_LMC[i][k];
                     m_sol_WON[i][k] += m_sol_LSN[i][k] + m_sol_LMN[i][k];
 
@@ -478,6 +477,8 @@ int Nutrient_Transformation::Execute() {
     InitialOutputs();
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+        // TESTIND
+        // if (i == 33826) cout<< "LM:" << m_sol_LM[i][0] << ", HP:" << m_sol_HP[i][0] << ", HS:" << m_sol_HS[i][0] <<endl;
         // compute nitrogen and phosphorus mineralization
         if (m_cbnModel == 0) {
             MineralizationStaticCarbonMethod(i);
@@ -1023,13 +1024,22 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             if (cdg > 0.f && voidfr <= 0.1f) {
                 // call ndenit(k,j,cdg,wdn,void);
                 // rewrite from ndenit.f of SWAT
+
+                //if (abs(voidfr + 0.04f) < 1e-3) {voidfr = -0.043; /*cout<<"------------------------------------"<<endl;*/}
+
                 float vof = 1.f / (1.f + pow(voidfr * 25.f, 5.f));
+                // TESTIND
+                //if (i == 4487)
+                //    //cout<<", vof:"<<vof<<", voidfr:"<<voidfr<<endl;
+                //    cout<<"m_soilNO3:"<<m_soilNO3[i][k]<<", EXP:"<<exp(-m_denitCoef * cdg * vof * m_soilCbn[i][k])<<", VOF:"<<vof<<", voidfr:"<<voidfr<<endl;
                 wdn = m_soilNO3[i][k] * (1.f - exp(-m_denitCoef * cdg * vof * m_soilCbn[i][k]));
                 m_soilNO3[i][k] -= wdn;
+                // TESTIND
+                //if (i == 407 && k == 2) cout<<"after wdn---m_soilNO3[i][k]:"<<m_soilNO3[i][k]<<", -wdn:"<<-wdn<<endl;
             }
             m_wshd_dnit += wdn * m_cellAreaFr;
             m_wdntl[i] += wdn;
-
+            
             float sol_min_n = m_soilNO3[i][k] + m_soilNH4[i][k];
             //if(i == 100 && k == 0) cout << m_sol_LSL[i][k] << m_sol_LS[i][k] << endl;
             // lignin content in structural litter (fraction)
@@ -1095,6 +1105,8 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             LSLCTP = LSCTP * RLR;
             LSLNCTP = LSCTP * (1.f - RLR);
             LSNTP = x1 * m_sol_LSN[i][k];
+            //TESTIND
+            // if (i == 33826) cout<<"                         m_sol_LSC:"<<m_sol_LSC[i][k]<<",                    x1:"<<x1<<endl;
             // POTENTIAL TRANSFORMATIONS METABOLIC LITTER
             x1 = LMR * cs;
             LMCTP = m_sol_LMC[i][k] * x1;
@@ -1219,6 +1231,8 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
 
             // supply - demand
             m_sol_RNMN[i][k] = SUM - DMDN;
+            //TESTIND
+            //if (i == 407 && k == 2) cout<<"before RNMN m_soilNO3:"<<m_soilNO3[i][k]<<endl;
             // UPDATE
             if (m_sol_RNMN[i][k] > 0.f) {
                 m_soilNH4[i][k] += m_sol_RNMN[i][k];
@@ -1231,7 +1245,8 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
                     m_soilNO3[i][k] = x1;
                 }
             }
-
+            //TESTIND
+            //if (i == 407 && k == 2) cout<<"after RNMN m_soilNO3:"<<m_soilNO3[i][k]<<",m_sol_RNMN[i][k]:"<<m_sol_RNMN[i][k]<<endl;
             DF1 = LSNTA;
             DF2 = LMNTA;
             // DF represents Demand from
@@ -1299,14 +1314,22 @@ void Nutrient_Transformation::MineralizationCenturyModel(const int i) {
             ADF5 = Abs(DF5);
             TOT = ADF1 + ADF2 + ADF3 + ADF4 + ADF5;
             xx = ADD / (TOT + 1.e-10f);
+            // TESTIND
+            // if (i == 33826) cout<< "x1:"<<x1<<",x3:"<<x3<<","<<LSNTP<<","<<LMNTP<<","<<BMNTP<<","<<HSNTP<<","<<HPNTP<<endl;
+            // if (i == 4487) cout<<"PRE-m_sol_LSN:"<<m_sol_LSN[i][k]<<", sol_min_n:"<<sol_min_n<<", m_soilNO3[i][k]:"<<m_soilNO3[i][k]<<", m_soilNH4[i][k]:"<<m_soilNH4[i][k]<<", DF6:"<<DF6<<endl;
             m_sol_LSN[i][k] = Max(.001f, m_sol_LSN[i][k] - DF1 + xx * ADF1);
             m_sol_LMN[i][k] = Max(.001f, m_sol_LMN[i][k] - DF2 + xx * ADF2);
+            
             m_sol_BMN[i][k] = m_sol_BMN[i][k] - DF3 + xx * ADF3;
+
             m_sol_HSN[i][k] = m_sol_HSN[i][k] - DF4 + xx * ADF4;
             m_sol_HPN[i][k] = m_sol_HPN[i][k] - DF5 + xx * ADF5;
+            // TESTIND
+            //if (i == 4487 && _isnan(m_sol_LSN[i][k])) cout<<"              m_sol_LSN:"<<m_sol_LSN[i][k]<<"  the pre:"<<LSNTP<<","<<LMNTP<<","<<BMNTP<<","<<HSNTP<<","<<HPNTP<<endl;
             m_sol_RSPC[i][k] = .3f * LSLCTA + A1CO2 * (LSLNCTA + LMCTA) +
                     ABCO2 * BMCTA + ASCO2 * HSCTA + APCO2 * HPCTA;
-
+            // TESTIND
+            // if (i == 33826) cout<< "nutrtf" << m_sol_LSN[i][k] << m_sol_LMN[i][k] << m_sol_HSN[i][k] << m_sol_HPN[i][k] << endl;
             m_soilRsd[i][k] = m_sol_LS[i][k] + m_sol_LM[i][k];
             m_soilStabOrgN[i][k] = m_sol_HPN[i][k];
             m_soilActvOrgN[i][k] = m_sol_HSN[i][k];

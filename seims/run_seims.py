@@ -32,7 +32,7 @@ from subprocess import CalledProcessError
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string
+from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string, get_config_parser
 
 from preprocess.text import DBTableNames
 from preprocess.db_read_model import ReadModelData
@@ -59,6 +59,7 @@ class ParseSEIMSConfig(object):
         self.lyrmtd = 1
         self.scenario_id = 0
         self.calibration_id = -1
+        self.subbasin_id = 9999
         self.simu_stime = None
         self.simu_etime = None
         self.out_stime = None
@@ -101,6 +102,8 @@ class ParseSEIMSConfig(object):
             self.scenario_id = cf.getint(sec_name, 'scenarioid')
         if cf.has_option(sec_name, 'calibrationid'):
             self.calibration_id = cf.getint(sec_name, 'calibrationid')
+        if cf.has_option(sec_name, 'subbasinid'):
+            self.subbasin_id = cf.getint(sec_name, 'subbasinid')
 
         self.simu_stime = parse_datetime_from_ini(cf, sec_name, 'sim_time_start')
         self.simu_etime = parse_datetime_from_ini(cf, sec_name, 'sim_time_end')
@@ -126,6 +129,7 @@ class ParseSEIMSConfig(object):
                           'simu_stime': self.simu_stime, 'simu_etime': self.simu_etime,
                           'out_stime': self.out_stime, 'out_etime': self.out_etime,
                           'scenario_id': self.scenario_id, 'calibration_id': self.calibration_id,
+                          'subbasin_id': self.subbasin_id,
                           'version': self.version,
                           'mpi_bin': self.mpi_bin, 'nprocess': self.nprocess,
                           'hosts_opt': self.hosts_opt, 'hostfile': self.hostfile}
@@ -143,6 +147,7 @@ class MainSEIMS(object):
                  port=27017,  # type: int # MongoDB port, default is 27017
                  scenario_id=-1,  # type: int # Scenario ID defined in `<model>_Scenario` database
                  calibration_id=-1,  # type: int # Calibration ID used for model auto-calibration
+                 subbasin_id=0,  # type: int # Subbasin ID, 0 for whole watershed, 9999 for field version
                  version='OMP',  # type: AnyStr # SEIMS version, can be `MPI` or `OMP` (default)
                  nprocess=1,  # type: int # Process number for MPI
                  mpi_bin='',  # type: AnyStr # Full path of MPI executable file, e.g., './mpirun`
@@ -180,6 +185,7 @@ class MainSEIMS(object):
         self.scenario_id = args_dict['scenario_id'] if 'scenario_id' in args_dict else scenario_id
         self.calibration_id = args_dict['calibration_id'] \
             if 'calibration_id' in args_dict else calibration_id
+        self.subbasin_id = args_dict['subbasin_id'] if 'subbasin_id' in args_dict else subbasin_id
         self.nprocess = args_dict['nprocess'] if 'nprocess' in args_dict else nprocess
         self.mpi_bin = args_dict['mpi_bin'] if 'mpi_bin' in args_dict else mpi_bin
         self.hosts_opt = args_dict['hosts_opt'] if 'hosts_opt' in args_dict else hosts_opt
@@ -258,6 +264,8 @@ class MainSEIMS(object):
             self.cmd += ['-sce', str(self.scenario_id)]
         if self.calibration_id >= 0:
             self.cmd += ['-cali', str(self.calibration_id)]
+        if self.subbasin_id >= 0:
+            self.cmd += ['-id', str(self.subbasin_id)]
         return self.cmd
 
     @property
@@ -544,53 +552,39 @@ class MainSEIMS(object):
             read_model.CleanScenariosConfiguration(scenario_id)
 
 
-def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1):
-    """Create, Run, and return SEIMS model object.
+def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1, subbasin_id=0):
+    """Create, Run, and return SEIMS-based watershed model object.
 
     Args:
-        modelcfg_dict: Dict of arguments for SEIMS model
+        modelcfg_dict: Dict of arguments for SEIMS-based watershed model
         scenario_id: Scenario ID which can override the scenario_id in modelcfg_dict
         calibration_id: Calibration ID which can override the calibration_id in modelcfg_dict
+        subbasin_id: Subbasin ID (0 for the whole watershed, 9999 for the field version) which
+                     can override the subbasin_id in modelcfg_dict
     Returns:
-        The instance of SEIMS model.
+        The instance of SEIMS-based watershed model.
     """
     if 'scenario_id' not in modelcfg_dict:
         modelcfg_dict['scenario_id'] = scenario_id
     if 'calibration_id' not in modelcfg_dict:
         modelcfg_dict['calibration_id'] = calibration_id
+    if 'subbasin_id' not in modelcfg_dict:
+        modelcfg_dict['subbasin_id'] = subbasin_id
     model_obj = MainSEIMS(args_dict=modelcfg_dict)
     model_obj.run()
     return model_obj
 
 
+def main():
+    """Run SEIMS-based watershed model with configuration file."""
+    cf = get_config_parser()
+    runmodel_cfg = ParseSEIMSConfig(cf)
+    seims_obj = MainSEIMS(args_dict=runmodel_cfg.ConfigDict)
+    seims_obj.run()
+
+    for l in seims_obj.runlogs:
+        print(l)
+
+
 if __name__ == '__main__':
-    bindir = r'D:\compile\bin\seims_mpi_omp'
-    modeldir = r'C:\z_code\Hydro\SEIMS\data\youwuzhen\demo_youwuzhen30m_longterm_model'
-    # Method 1
-    seimsobj = MainSEIMS(bindir, modeldir,
-                         nthread=2, lyrmtd=1,
-                         host='127.0.0.1', port=27017,
-                         scenario_id=0, calibration_id=-1,
-                         version='MPI', mpi_bin='mpiexec', nprocess=2)
-    # Method 2
-    # args = {'bin_dir': bindir, 'model_dir': modeldir,
-    #         'nthread': 2, 'lyrmtd': 1,
-    #         'host': '127.0.0.1', 'port': 27017,
-    #         'scenario_id': 0, 'calibration_id': -1,
-    #         'version': 'MPI', 'mpi_bin': 'mpiexec', 'nprocess': 2}
-    # seimsobj = MainSEIMS(args_dict=args)
-
-    # test the picklable of MainSEIMS class.
-    import pickle
-
-    s = pickle.dumps(seimsobj)
-    new_s = pickle.loads(s)  # type: MainSEIMS
-    print(new_s.Command)
-    print(new_s.OutputDirectory)
-    print(new_s.OutletID)
-    print(new_s.OutputItems)
-    print(str(new_s.start_time), str(new_s.end_time))
-
-    seimsobj.run()
-    print('timespan: %s' % ','.join(str(v) for v in seimsobj.GetTimespan()))
-    seimsobj.clean()
+    main()

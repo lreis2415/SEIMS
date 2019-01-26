@@ -105,7 +105,10 @@ creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # The FitnessMulti class equals to (as an example):
 # class FitnessMulti(base.Fitness):
 #     weights = (2., -1., -1.)
-creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
+# NOTE that to maintain the compatibility with Python2 and Python3,
+#      the com typecode=str('d') MUST NOT changed to typecode='d', since
+#      the latter will raise TypeError that 'must be char, not unicode'!
+creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
                gen=-1, id=-1,
                obs=TimeseriesData, sim=TimeseriesData,
                cali=ObsSimData, vali=ObsSimData,

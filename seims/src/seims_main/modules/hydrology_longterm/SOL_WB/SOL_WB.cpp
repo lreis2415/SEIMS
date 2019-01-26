@@ -53,7 +53,8 @@ void SOL_WB::SetValueToSubbasins() {
                 ri = 0.f;
                 sm = 0.f;
                 for (int j = 0; j < CVT_INT(m_nSoilLyrs[cell]); j++) {
-                    ri += m_subSurfRf[cell][j] * ratio;
+                    if(m_subSurfRf != nullptr)
+                        ri += m_subSurfRf[cell][j] * ratio;
                     sm += m_soilWtrSto[cell][j] * ratio;
                 }
                 pcp += m_PCP[cell] * ratio;
@@ -187,7 +188,7 @@ void SOL_WB::CheckInputData() {
     CHECK_POINTER(MID_SOL_WB, m_infil);
     CHECK_POINTER(MID_SOL_WB, m_soilET);
     CHECK_POINTER(MID_SOL_WB, m_Revap);
-    CHECK_POINTER(MID_SOL_WB, m_subSurfRf);
+    //CHECK_POINTER(MID_SOL_WB, m_subSurfRf);
     CHECK_POINTER(MID_SOL_WB, m_soilPerco);
     CHECK_POINTER(MID_SOL_WB, m_soilWtrSto);
     CHECK_POINTER(MID_SOL_WB, m_PCP);

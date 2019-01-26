@@ -197,7 +197,7 @@ int SEDR_SBAGNOLD::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < nReaches; i++) {
             int reachIndex = it->second[i]; // index in the array, which is equal to reach ID
-            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
+            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex || m_inputSubbsnID == 9999) {
                 // for OpenMP version, all reaches will be executed,
                 // for MPI version, only the current reach will be executed.
                 SedChannelRouting(reachIndex);

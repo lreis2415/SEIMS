@@ -5,7 +5,7 @@
 
 NutrientMovementViaWater::NutrientMovementViaWater() :
     m_cellWth(-1.f), m_cellArea(-1.f), m_nCells(-1), m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
-    m_rchID(nullptr), m_cbnModel(-1),
+    m_rchID(nullptr), m_cbnModel(-1), m_inputSubbsnID(-1),
     m_cvtWt(nullptr), m_qtile(-1.f), m_phoskd(-1.f),
     m_pperco(-1.f), m_nperco(-1.f), m_cod_n(-1.f), m_cod_k(-1.f),
     m_olWtrEroSed(nullptr), m_anionExclFr(nullptr),
@@ -130,6 +130,8 @@ void NutrientMovementViaWater::SumBySubbasin() {
         m_latNO3ToCh[0] += m_latNO3ToCh[i];
         m_percoNGw[0] += m_percoNGw[i];
         m_percoPGw[0] += m_percoPGw[i];
+        //TESTIND
+        //if (m_percoNGw[i] > 1e8) cout<<"i:"<<i<<",m_percoNGw[i]:"<<m_percoNGw[i]<<endl;
     }
 }
 
@@ -167,7 +169,12 @@ bool NutrientMovementViaWater::CheckInputData() {
     CHECK_POSITIVE(MID_NUTRMV, m_nperco);
     CHECK_POSITIVE(MID_NUTRMV, m_cod_n);
     CHECK_POSITIVE(MID_NUTRMV, m_cod_k);
-    CHECK_POINTER(MID_NUTRMV, m_subSurfRf);
+    // field version has removed subsurface runoff
+    if (m_inputSubbsnID != FLD_IN_SUBID && m_inputSubbsnID != 0) {
+        CHECK_POINTER(MID_NUTRMV, m_subSurfRf);   
+        CHECK_POINTER(MID_NUTRMV, m_flowOutIdxD8);
+    }
+    // CHECK_POINTER(MID_NUTRMV, m_subSurfRf);
     CHECK_POINTER(MID_NUTRMV, m_soilPerco);
     CHECK_POINTER(MID_NUTRMV, m_soilSat);
     CHECK_POSITIVE(MID_NUTRMV, m_phoskd);
@@ -176,7 +183,7 @@ bool NutrientMovementViaWater::CheckInputData() {
     CHECK_POINTER(MID_NUTRMV, m_soilCrk);
     CHECK_POINTER(MID_NUTRMV, m_soilBD);
     CHECK_POINTER(MID_NUTRMV, m_soilDepth);
-    CHECK_POINTER(MID_NUTRMV, m_flowOutIdxD8);
+    // CHECK_POINTER(MID_NUTRMV, m_flowOutIdxD8);
     CHECK_POINTER(MID_NUTRMV, m_soilThk);
     CHECK_POINTER(MID_NUTRMV, m_subbasinsInfo);
     if (m_cbnModel == 2)
@@ -196,6 +203,7 @@ void NutrientMovementViaWater::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSNID_NUM)) m_nSubbsns = CVT_INT(value);
     else if (StringMatch(sk, Tag_CellWidth)) m_cellWth = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else if (StringMatch(sk, VAR_QTILE)) m_qtile = value;
     else if (StringMatch(sk, VAR_NPERCO)) m_nperco = value;
     else if (StringMatch(sk, VAR_PPERCO)) m_pperco = value;
@@ -245,7 +253,7 @@ void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* da
 
 void NutrientMovementViaWater::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS) && m_inputSubbsnID != FLD_IN_SUBID) {
         m_nRteLyrs = nRows;
         m_rteLyrs = data;
         return;
@@ -293,28 +301,47 @@ void NutrientMovementViaWater::InitialOutputs() {
     if (m_wshdLchP < 0.f) m_wshdLchP = 0.f;
 
     // input variables
-    if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.0001f);
+    if (nullptr == m_subSurfRf) {
+        if (m_inputSubbsnID != FLD_IN_SUBID)
+            Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.0001f);
+        else
+            Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.f);
+    }
     if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.0001f);
     if (nullptr == m_drainLyr) Initialize1DArray(m_nCells, m_drainLyr, -1.f);
     if (m_qtile < 0.f) m_qtile = 0.0001f;
+    // if no flowout index in field version, init this array to -1
+    if (nullptr == m_flowOutIdxD8) Initialize1DArray(m_nCells, m_flowOutIdxD8, -1.f);
 }
 
 int NutrientMovementViaWater::Execute() {
     CheckInputData();
     InitialOutputs();
-    // reset variables for the new timestep
-#pragma omp parallel for
-    for (int i = 0; i < m_nCells; i++) {
-        m_latNO3[i] = 0.f;
-    }
 
-    for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
-        // There are not any flow relationship within each routing layer.
-        // So parallelization can be done here.
-        int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
-#pragma omp parallel for
-        for (int icell = 1; icell <= ncells; icell++) {
-            int i = CVT_INT(m_rteLyrs[ilyr][icell]); // cell ID
+    if (m_inputSubbsnID != FLD_IN_SUBID && m_inputSubbsnID != 0) {
+        // reset variables for the new timestep
+        #pragma omp parallel for
+            for (int i = 0; i < m_nCells; i++) {
+                m_latNO3[i] = 0.f;
+            }
+        for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
+            // There are not any flow relationship within each routing layer.
+            // So parallelization can be done here.
+            int ncells = CVT_INT(m_rteLyrs[ilyr][0]);
+    #pragma omp parallel for
+            for (int icell = 1; icell <= ncells; icell++) {
+                int i = CVT_INT(m_rteLyrs[ilyr][icell]); // cell ID
+                if (m_rchID[i] > 0) continue;            // Skip the reach (stream) cells
+                NitrateLoss(i);
+                PhosphorusLoss(i);
+                SubbasinWaterQuality(i); // compute chl-a, CBOD and dissolved oxygen loadings
+            }
+        }
+    } else {
+        for (int i = 0; i < m_nCells; i++) {
+                m_latNO3[i] = 0.f;
+        }
+        for (int i = 0; i < m_nCells; i++) {
             if (m_rchID[i] > 0) continue;            // Skip the reach (stream) cells
             NitrateLoss(i);
             PhosphorusLoss(i);
@@ -379,10 +406,11 @@ void NutrientMovementViaWater::NitrateLoss(const int i) {
         percnlyr = con * m_soilPerco[i][k];
         percnlyr = Min(percnlyr, m_soilNO3[i][k]);
         m_soilNO3[i][k] -= percnlyr;
+        //TESTIND
+        //if (i == 407) cout<<"m_soilNO3:"<<m_soilNO3[i][k]<<",percnlyr:"<<percnlyr<<",con:"<<con<<",m_soilPerco:"<<m_soilPerco[i][k]<<endl;
     }
     // calculate nitrate leaching from soil profile
     m_percoN[i] = percnlyr; // percolation of the last soil layer, kg/ha
-
     // I think these should be removed, because the lost nitrate
     //   have been added to it's downslope cell. by LJ
     // float nloss = (2.18f * m_distToRch[i] - 8.63f) / 100.f;

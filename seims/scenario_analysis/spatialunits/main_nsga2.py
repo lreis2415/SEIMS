@@ -40,10 +40,10 @@ from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
-from scenario_analysis.slpposunits.scenario import SUScenario
-from scenario_analysis.slpposunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.slpposunits.userdef import crossover_slppos, crossover_updown, mutate_rule, \
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.spatialunits.scenario import SUScenario
+from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness
+from scenario_analysis.spatialunits.userdef import crossover_slppos, crossover_updown, mutate_rule, \
     crossover_rdm, mutate_rdm, check_individual_diff
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
@@ -57,7 +57,10 @@ filter_ind = False  # type: bool # Filter for valid population for the next gene
 conditions = [None, '>0.']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
-creator.create('Individual', array.array, typecode='d', fitness=creator.FitnessMulti,
+# NOTE that to maintain the compatibility with Python2 and Python3,
+#      the com typecode=str('d') MUST NOT changed to typecode='d', since
+#      the latter will raise TypeError that 'must be char, not unicode'!
+creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
                gen=-1, id=-1,
                io_time=0., comp_time=0., simu_time=0., runtime=0.)
 
@@ -85,16 +88,16 @@ def run_base_scenario(sceobj):
     for i in list(range(len(base_ind))):
         base_ind[i] = 0
     base_ind = scenario_effectiveness(sceobj.cfg, base_ind)
-    sceobj.cfg.bmps_info['BASE_ENV'] = base_ind.fitness.values[1]
+    sceobj.cfg.eval_info['BASE_ENV'] = base_ind.fitness.values[1]
 
 
 def main(sceobj):
     # type: (SUScenario) -> ()
     """Main workflow of NSGA-II based Scenario analysis."""
-    if sceobj.cfg.bmps_info['BASE_ENV'] < 0:
+    if sceobj.cfg.eval_info['BASE_ENV'] < 0:
         run_base_scenario(sceobj)
         print('The environment effectiveness value of the '
-              'base scenario is %.2f' % sceobj.cfg.bmps_info['BASE_ENV'])
+              'base scenario is %.2f' % sceobj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 

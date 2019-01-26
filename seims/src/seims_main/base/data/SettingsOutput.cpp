@@ -33,7 +33,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
         /// Check Tag_OutputSubbsn first
         if (StringMatch((*iter).subBsn, Tag_Outlet)) {
             /// Output of outlet, such as Qoutlet, SEDoutlet, etc.
-            if (m_subbasinID == 0 || m_subbasinID == m_outletID) {
+            if (m_subbasinID == 0 || m_subbasinID == m_outletID || m_subbasinID == 9999) {
                 /// Only added as print item when running omp version or the current subbasin is outlet for mpi version
                 pi->setInterval((*iter).interval);
                 pi->setIntervalUnits((*iter).intervalUnit);
@@ -65,7 +65,7 @@ SettingsOutput::SettingsOutput(const int subbasinNum, const int outletID, const 
                 if (m_subbasinID > 0 && m_subbasinID != 9999) {
                     newCoreFileName += "_" + ValueToString(m_subbasinID);
                 }
-                if (m_subbasinID == 0 || StringMatch(*it, ValueToString(m_subbasinID))) {
+                if (m_subbasinID == 0 || StringMatch(*it, ValueToString(m_subbasinID)) || m_subbasinID == 9999) {
                     pi->AddPrintItem((*iter).sTimeStr, (*iter).eTimeStr, newCoreFileName, *it, suffix, true);
                 }
             }

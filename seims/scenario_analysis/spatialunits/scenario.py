@@ -38,7 +38,7 @@ from preprocess.text import DBTableNames, RasterMetadata
 from scenario_analysis import _DEBUG, BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.scenario import Scenario
 from scenario_analysis.config import SAConfig
-from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
 
 
 class SUScenario(Scenario):
@@ -132,7 +132,7 @@ class SUScenario(Scenario):
         The looping methods vary from different spatial units, e.g., for slope position units,
         it is from the bottom slope position of each hillslope tracing upslope.
 
-        The available rule methods are 'SUIT', 'UPDOWN', and 'SLPPOS'.
+        The available rule methods are 'SUIT', 'UPDOWN', and 'HILLSLP'.
 
         See Also:
             :obj:`scenario_analysis.BMPS_CFG_METHODS`
@@ -280,10 +280,10 @@ class SUScenario(Scenario):
         sce_item_count = 0
         for k, v in viewitems(bmp_units):
             curd = dict()
-            curd['BMPID'] = self.bmps_info['BMPID']
+            curd['BMPID'] = self.cfg.bmpid
             curd['NAME'] = 'S%d' % self.ID
-            curd['COLLECTION'] = self.bmps_info['COLLECTION']
-            curd['DISTRIBUTION'] = self.bmps_info['DISTRIBUTION']
+            curd['COLLECTION'] = self.bmps_info[self.cfg.bmpid]['COLLECTION']
+            curd['DISTRIBUTION'] = self.bmps_info[self.cfg.bmpid]['DISTRIBUTION']
             curd['LOCATION'] = '-'.join(repr(uid) for uid in v)
             curd['SUBSCENARIO'] = k
             curd['ID'] = self.ID
@@ -291,8 +291,9 @@ class SUScenario(Scenario):
             sce_item_count += 1
         # if BMPs_retain is not empty, append it.
         if len(self.bmps_retain) > 0:
-            for k, v in self.bmps_retain.items():
+            for k, v in viewitems(self.bmps_retain):
                 curd = deepcopy(v)
+                curd['BMPID'] = k
                 curd['NAME'] = 'S%d' % self.ID
                 curd['ID'] = self.ID
                 self.bmp_items[sce_item_count] = curd
@@ -340,7 +341,7 @@ class SUScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             return
-        rfile = self.modelout_dir + os.path.sep + self.bmps_info['ENVEVAL']
+        rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
 
         if not FileClass.is_file_exists(rfile):
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
@@ -353,7 +354,7 @@ class SUScenario(Scenario):
             self.model.clean(delete_scenario=True)
             return
 
-        base_amount = self.bmps_info['BASE_ENV']
+        base_amount = self.eval_info['BASE_ENV']
         if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
             rr = RasterUtilClass.read_raster(rfile)
             sed_sum = rr.get_sum() / self.eval_timerange  # unit: year
@@ -385,7 +386,7 @@ class SUScenario(Scenario):
         """
         if not self.export_sce_tif:
             return
-        dist = self.bmps_info['DISTRIBUTION']
+        dist = self.bmps_info[self.cfg.bmpid]['DISTRIBUTION']
         dist_list = StringClass.split_string(dist, '|')
         if len(dist_list) >= 2 and dist_list[0] == 'RASTER':
             dist_name = '0_' + dist_list[1]  # prefix 0_ means the whole basin

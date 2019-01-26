@@ -64,7 +64,10 @@ public:
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
+    float GetUnitArea(int i);
+
     TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
+
 
 private:
 
@@ -135,6 +138,9 @@ private:
 
     /// slope (percent, or drop/distance, or tan) of each cell
     float* m_slope;
+
+    /// field version, the area of each field
+    float* m_unitArea;
 
     //! soil storage
     float** m_soilWtrSto;

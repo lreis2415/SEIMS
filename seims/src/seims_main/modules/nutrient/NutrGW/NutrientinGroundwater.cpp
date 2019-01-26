@@ -151,6 +151,8 @@ int NutrientinGroundwater::Execute() {
         /// 3. thirdly, calculate nutrient in groundwater runoff
         //cout<<"subID: "<<id<<", gwQ: "<<m_gw_q[id] << ", ";
         m_gwNO3ToCh[id] = m_gwNO3Conc[id] * gwqVol * 0.001f; // g/m3 * m3 / 1000 = kg
+        //TESTIND
+        //if (id == 6 && m_perco_no3_gw[id] > 1e6) cout<<"NGW:m_gwNO3[id]:"<<m_gwNO3[id]<<",m_perco_no3_gw[id]:"<<m_perco_no3_gw[id]<<",m_gwStor[id]:"<<m_gwStor[id]<<endl;
         m_gwSolPToCh[id] = m_gwSolPConc[id] * gwqVol * 0.001f;
         //cout<<"subID: "<<id<<", gwno3Con: "<<m_gwno3Con[id] << ", no3gwToCh: "<<m_no3gwToCh[id] << ", ";
         /// 4. fourthly, calculate nutrient loss loss through revep and update no3 in the bottom soil layer

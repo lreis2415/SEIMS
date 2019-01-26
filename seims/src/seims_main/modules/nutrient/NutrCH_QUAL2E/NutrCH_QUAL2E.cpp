@@ -556,7 +556,7 @@ int NutrCH_QUAL2E::Execute() {
 #pragma omp parallel for
         for (int i = 0; i < reachNum; i++) {
             int reachIndex = it->second[i];
-            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex) {
+            if (m_inputSubbsnID == 0 || m_inputSubbsnID == reachIndex || m_inputSubbsnID == FLD_IN_SUBID) {
                 NutrientTransform(reachIndex);
                 AddInputNutrient(reachIndex);
                 RouteOut(reachIndex);
@@ -568,10 +568,13 @@ int NutrCH_QUAL2E::Execute() {
 
 void NutrCH_QUAL2E::AddInputNutrient(const int i) {
     /// nutrient amount from upstream routing will be accumulated to current storage
+    //TESTIND
+    //if (i == 1) cout<<"     AddN-Before m_chNO3:"<<m_chNO3[i]<<endl;
     for (auto upRchID = m_reachUpStream.at(i).begin(); upRchID != m_reachUpStream.at(i).end(); ++upRchID) {
         int upReachId = *upRchID;
         m_chOrgN[i] += m_chOutOrgN[upReachId];
         m_chNO3[i] += m_chOutNO3[upReachId];
+        //cout<<",upReachId:"<<upReachId<<":"<<m_chOutNO3[upReachId];
         m_chNO2[i] += m_chOutNO2[upReachId];
         m_chNH4[i] += m_chOutNH4[upReachId];
         m_chOrgP[i] += m_chOutOrgP[upReachId];
@@ -581,6 +584,7 @@ void NutrCH_QUAL2E::AddInputNutrient(const int i) {
         m_chChlora[i] += m_chOutChlora[upReachId];
         m_chAlgae[i] += m_chOutAlgae[upReachId];
     }
+    //cout<<endl;
     /// absorbed organic N, P from overland sediment routing
     m_chOrgN[i] += m_surfRfSedOrgNToCh[i];
     m_chOrgP[i] += m_surfRfSedOrgPToCh[i];
@@ -591,6 +595,8 @@ void NutrCH_QUAL2E::AddInputNutrient(const int i) {
     }
     /// dissolved N, P from overland surface flow routing and groundwater
     m_chNO3[i] += m_surfRfNO3ToCh[i] + m_latNO3ToCh[i] + m_gwNO3ToCh[i];
+    //TESTIND
+    //if (i == 6) cout<<"AddN-ADD m_chNO3:"<<m_chNO3[i]<<",,,"<<m_surfRfNO3ToCh[i]<<","<<m_latNO3ToCh[i]<<",m_gwNO3ToCh:"<<m_gwNO3ToCh[i]<<endl;
     if (nullptr != m_surfRfNH4ToCh && m_surfRfNH4ToCh[i] > 0.f) m_chNH4[i] += m_surfRfNH4ToCh[i];
     m_chSolP[i] += m_surfRfSolPToCh[i] + m_gwSolPToCh[i];
 
@@ -605,6 +611,8 @@ void NutrCH_QUAL2E::AddInputNutrient(const int i) {
     if (nullptr != m_ptSolPToCh && m_ptSolPToCh[i] > 0.f) m_chSolP[i] += m_ptSolPToCh[i];
     if (nullptr != m_ptOrgPToCh && m_ptOrgPToCh[i] > 0.f) m_chOrgP[i] += m_ptOrgPToCh[i];
     if (nullptr != m_ptCODToCh && m_ptCODToCh[i] > 0.f) m_chCOD[i] += m_ptCODToCh[i];
+    //TESTIND
+    //if (i == 6) cout<<"     AddInputNutrient m_chNO3:"<<m_chNO3[i]<<",m_ptNO3ToCh[i]:"<<m_ptNO3ToCh[i]<<endl;
 }
 
 void NutrCH_QUAL2E::RouteOut(const int i) {
@@ -635,6 +643,8 @@ void NutrCH_QUAL2E::RouteOut(const int i) {
     m_chOutTPConc[i] = 0.f;
     //get out flow water fraction
     float wtrTotal = m_chStorage[i] + m_rteWtrOut[i]; // m^3
+    //TESTIND
+    //if (i == 1) cout<<"m_chStorage:"<<m_chStorage[i]<<",m_rteWtrOut:"<<m_rteWtrOut[i]<<",wtrTotal:"<<wtrTotal<<endl;
     if (wtrTotal <= UTIL_ZERO || m_rteWtrOut[i] <= UTIL_ZERO || m_chWtrDepth[i] <= UTIL_ZERO) {
         // return with initialized values directly
         return;
@@ -654,8 +664,10 @@ void NutrCH_QUAL2E::RouteOut(const int i) {
     m_chOutAlgae[i] = m_chAlgae[i] * outFraction;
     m_chOutChlora[i] = m_chChlora[i] * outFraction;
     m_chOutTN[i] = m_chOutOrgN[i] + m_chOutNH4[i] + m_chOutNO2[i] + m_chOutNO3[i];
+    //TESTIND
+    //if(i == 6) cout <<"     RouteOut m_chNO3:" << m_chNO3[i]<<",m_chOutNO3:" <<m_chOutNO3[i]<<endl;
     m_chOutTP[i] = m_chOutOrgP[i] + m_chOutSolP[i];
-    //if(i == 12) cout << "m_chOutOrgP: " << m_chOutOrgP[i] << ", m_chOrgP: " << m_chOrgP[i] << ", outFrac: "<<outFraction<<endl;
+    //if(i == 4) cout << "m_chOutOrgP: " << m_chOutOrgP[i] << ", m_chOrgP: " << m_chOrgP[i] << ", outFrac: "<<outFraction<<endl;
     // kg ==> mg/L
     float cvt = 1000.f / m_rteWtrOut[i];
     m_chOutOrgNConc[i] = m_chOutOrgN[i] * cvt;
@@ -755,6 +767,8 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     float no2con = cvt_amout2conc * m_chNO2[i];
     // initial nitrate concentration in reach (no3con mg/L)
     float no3con = cvt_amout2conc * m_chNO3[i];
+    //TESTIND
+    //if (m_chNO3[i] > 1e5) cout<<"-------------------------------------------------------m_chNO3:"<<m_chNO3[i]<<",i:"<<i<<",cvt:"<<cvt_amout2conc<<endl;
     // initial organic P concentration in reach (orgpcon  mg/L)
     float orgpcon = cvt_amout2conc * m_chOrgP[i];
     // initial soluble P concentration in reach (solpcon mg/L)
@@ -1028,6 +1042,9 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     dno3 = 0.f;
     dno3 = no3con + (yy - zz) * tday;
     if (dno3 < 1.e-6) dno3 = 0.f;
+    //TESTIND
+    //if (i == 1) cout<<",dno3:"<<dno3<<",wtrTotal:"<<wtrTotal<<endl;
+    //if (i == 1) cout<<"dno3:"<<dno3<<",no3con:"<<no3con<<",yy:"<<yy<<",zz:"<<zz<<",wtrTotal:"<<wtrTotal<<endl;
     /////end nitrogen calculations//////
     // phosphorus calculations
     // calculate organic phosphorus concentration at end of day
@@ -1065,6 +1082,8 @@ void NutrCH_QUAL2E::NutrientTransform(const int i) {
     m_chNH4[i] = dnh4 * wtrTotal * 0.001f;
     m_chNO2[i] = dno2 * wtrTotal * 0.001f;
     m_chNO3[i] = dno3 * wtrTotal * 0.001f;
+    //TESTIND   
+    //if (i == 6) cout<<"     NutrientTransform m_chNO3:"<<m_chNO3[i]<<",no3con:"<<no3con<<",wtrTotal:"<<wtrTotal<<endl;
     m_chOrgP[i] = dorgp * wtrTotal * 0.001f;
     m_chSolP[i] = dsolp * wtrTotal * 0.001f;
     m_chCOD[i] = dbod * wtrTotal * 0.001f;

@@ -54,6 +54,8 @@ public:
 
     bool CheckInputData();
 
+    float GetUnitArea(int index);
+
 private:
     void InitialOutputs();
 
@@ -81,6 +83,11 @@ private:
     float* m_slpLen;
     //! stream link
     float* m_rchID;
+
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnID;
+    /// field version, the area of each field
+    float* m_unitArea;
 
     //! sand fraction
     float* m_detSand;

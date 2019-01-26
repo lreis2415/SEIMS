@@ -179,6 +179,7 @@
 #define DB_TAB_SCENARIO                        "BMPDATABASE"
 #define DB_TAB_REACH                           "REACHES"
 #define DB_TAB_POND                            "PONDS"
+#define DB_TAB_REACH_FLD                       "REACHES_FLD"
 #define DB_TAB_SPATIAL                         "SPATIAL"  /// i.e., spatial.files
 #define DB_TAB_SITES                           "SITES"
 #define DB_TAB_DATAVALUES                      "DATA_VALUES" // hydroClimate data values
@@ -724,6 +725,8 @@
 #define VAR_LAMBDA2 "lambda2"
 #define VAR_LANDCOVER "landcover" /// m_landCover, raster data of land cover code, idplt in SWAT
 #define VAR_LANDUSE "landuse" /// m_landUse, raster data of landuse
+#define VAR_FLOWPOND "flowpond" /// m_flowPond, field flow to pond or river
+#define VAR_PONDSORT "pondsort" /// the topological sort of the ponds
 #define VAR_LANDUSE_LOOKUP "LanduseLookup" /// m_landuseLookup, lookup table of landuse
 #define VAR_LAST_SOILRD "lastSoilRD" /// m_stoSoilRootD, storing last soil root depth for use in harvestkillop/killop
 #define VAR_LATNO3 "latno3" /// m_latNO3, amount of nitrate transported with lateral flow, kg/ha
@@ -914,6 +917,7 @@
 #define VAR_SHALLST "shallst"
 #define VAR_SILT "silt" /// m_soilSilt, Percent of silt content
 #define VAR_SLOPE "slope" /// m_slope, Slope gradient (drop/distance, i.e., tan, or percent)
+#define VAR_FIELDAREA "cellArea" /// field version, the area of each field
 #define VAR_SLPLEN "slope_length" // m_slpLen, Slope length (unit: m)
 #define VAR_SNAC "SNAC" /// m_snowAccum
 #define VAR_SNME "SNME" /// m_snowMelt, snow melt amount
@@ -1495,6 +1499,8 @@
 #define DESC_LAMBDA2 "nonlinear algal self-shading coefficient"
 #define DESC_LANDCOVER "landcover code"
 #define DESC_LANDUSE "landuse code"
+#define DESC_FLOWPOND "flow to pond or river"
+#define DESC_POND_SORT "topological sort of ponds"
 #define DESC_LANDUSE_LOOKUP "lookup table of landuse"
 #define DESC_LAST_SOILRD "storing last soil root depth for use in harvestkillop/killop"
 #define DESC_LATNO3 "amount of nitrate transported with lateral flow"
@@ -1674,6 +1680,7 @@
 #define DESC_SHALLST "depth of water in shallow aquifer"
 #define DESC_SILT "Percent of silt content"
 #define DESC_SLOPE "Slope gradient (drop/distance, i.e., tan, or percent)"
+#define DESC_UNITAREA "the area of each field in field version"
 #define DESC_SLPLEN "Slope length"
 #define DESC_SNAC "snow accumulation"
 #define DESC_SNME "snow melt"
@@ -1984,5 +1991,8 @@
 #define HEADER_RS_CELLSIZE                     "CELLSIZE"
 #define HEADER_RS_LAYERS                       "LAYERS"
 #define HEADER_RS_SRS                          "SRS"
+
+// define the field version's input subbasinid
+#define FLD_IN_SUBID                           9999
 
 #endif

@@ -108,7 +108,10 @@ bool NutrientTransportSediment::CheckInputDataCenturyModel() {
     CHECK_POINTER(MID_NUTRSED, m_sol_BMC);
     CHECK_POINTER(MID_NUTRSED, m_sol_WOC);
     CHECK_POINTER(MID_NUTRSED, m_soilPerco);
-    CHECK_POINTER(MID_NUTRSED, m_subSurfRf);
+    // field version has removed subsurface runoff
+    if (m_inputSubbsnID != FLD_IN_SUBID && m_inputSubbsnID != 0) {
+        CHECK_POINTER(MID_NUTRSED, m_subSurfRf);   
+    }
     return true;
 }
 
@@ -223,6 +226,8 @@ void NutrientTransportSediment::InitialOutputs() {
         Initialize1DArray(m_nCells, m_soilPercoCbnPrfl, 0.f);
         Initialize1DArray(m_nCells, m_sedLossCbn, 0.f);
     }
+    // if field version, m_subSurfRf set to 0.f
+    if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.f);
 }
 
 void NutrientTransportSediment::SetSubbasins(clsSubbasins* subbasins) {
@@ -283,6 +288,10 @@ int NutrientTransportSediment::Execute() {
         }
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
+            /// TESTIND
+            /*if (_isnan(m_surfRfSedOrgN[i])) {
+                cout<< m_nCells << " : " << i << " : " << m_surfRfSedOrgN[i] << endl;
+            }*/
             tmp_orgn2ch[CVT_INT(m_subbsnID[i])] += m_surfRfSedOrgN[i];
             tmp_orgp2ch[CVT_INT(m_subbsnID[i])] += m_surfRfSedOrgP[i];
             tmp_minpa2ch[CVT_INT(m_subbsnID[i])] += m_surfRfSedAbsorbMinP[i];
@@ -317,6 +326,11 @@ int NutrientTransportSediment::Execute() {
         m_surfRfSedAbsorbMinPToCh[0] += m_surfRfSedAbsorbMinPToCh[i];
         m_surfRfSedSorbMinPToCh[0] += m_surfRfSedSorbMinPToCh[i];
     }
+    /// TESTIND
+    /*if (_isnan(m_surfRfSedOrgNToCh[0])) {
+        for (int i = 1; i < m_nSubbsns + 1; i++)
+            cout<< i << " : " << m_surfRfSedOrgNToCh[i] << endl;
+    }*/
     return 0;
 }
 
@@ -379,6 +393,10 @@ void NutrientTransportSediment::OrgNRemovedInRunoffCenturyModel(const int i) {
     er = m_enratio[i];
     conc = totOrgN_lyr0 * er / wt1;
     m_surfRfSedOrgN[i] = 0.001f * conc * m_olWtrEroSed[i] * 0.001f / m_cellArea;
+    /// TESTIND
+    //if (i == 33826) cout<< m_sol_LSN[i][0] << m_sol_LMN[i][0] << m_sol_HPN[i][0] << m_sol_HSN[i][0] << endl;
+    /*if (i == 33826) cout<< "wt1:" << wt1 << ", surfsedoN:" << m_surfRfSedOrgN[i] <<
+        ", conc:" << conc << ", m_olWtrE:" << m_olWtrEroSed[i] << ", area:" << m_cellArea << endl;*/
     /// update soil nitrogen pools
     if (totOrgN_lyr0 > UTIL_ZERO) {
         float xx1 = 1.f - m_surfRfSedOrgN[i] / totOrgN_lyr0;

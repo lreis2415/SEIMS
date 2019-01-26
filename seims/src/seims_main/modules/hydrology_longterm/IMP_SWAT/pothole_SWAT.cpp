@@ -5,7 +5,7 @@
 IMP_SWAT::IMP_SWAT() :
     m_cnv(NODATA_VALUE), m_nCells(-1), m_cellWidth(NODATA_VALUE), m_cellArea(NODATA_VALUE), m_timestep(-1),
     m_soilLayers(nullptr), m_nMaxSoilLayers(-1), m_subbasin(nullptr), m_nSubbasins(-1),
-    m_rteLyrs(nullptr), m_nRteLyrs(-1),
+    m_rteLyrs(nullptr), m_nRteLyrs(-1), m_inputSubbsnID(-1),
     m_evLAI(NODATA_VALUE), m_slope(nullptr), m_ks(nullptr), m_sol_sat(nullptr), m_sol_sumfc(nullptr),
     m_soilThick(nullptr),
     m_sol_por(nullptr), m_potTilemm(0.f), m_potNo3Decay(NODATA_VALUE),
@@ -105,7 +105,8 @@ bool IMP_SWAT::CheckInputData() {
     CHECK_POSITIVE(MID_IMP_SWAT, m_nCells);
     CHECK_POSITIVE(MID_IMP_SWAT, m_cellWidth);
     CHECK_POSITIVE(MID_IMP_SWAT, m_nMaxSoilLayers);
-    CHECK_POSITIVE(MID_IMP_SWAT, m_nRteLyrs);
+    if (m_inputSubbsnID != FLD_IN_SUBID) // field version may not has routing layers currently
+        CHECK_POSITIVE(MID_IMP_SWAT, m_nRteLyrs);
     CHECK_POSITIVE(MID_IMP_SWAT, m_evLAI);
     CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potTilemm);
     CHECK_NONNEGATIVE(MID_IMP_SWAT, m_potNo3Decay);
@@ -122,6 +123,7 @@ void IMP_SWAT::SetValue(const char* key, const float value) {
     } else if (StringMatch(sk, Tag_TimeStep)) m_timestep = value;
     else if (StringMatch(sk, VAR_EVLAI)) m_evLAI = value;
     else if (StringMatch(sk, VAR_POT_TILEMM)) m_potTilemm = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = CVT_INT(value);
     else if (StringMatch(sk, VAR_POT_NO3DECAY)) m_potNo3Decay = value;
     else if (StringMatch(sk, VAR_POT_SOLPDECAY)) m_potSolPDecay = value;
     else if (StringMatch(sk, VAR_KV_PADDY)) m_kVolat = value;
@@ -217,7 +219,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
 
 void IMP_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
-    if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
+    if (StringMatch(sk, Tag_ROUTING_LAYERS) && m_inputSubbsnID != FLD_IN_SUBID) {
         m_nRteLyrs = n;
         m_rteLyrs = data;
         return;
@@ -372,7 +374,7 @@ int IMP_SWAT::Execute() {
                 ReleaseWater(id);
             }
         }
-    }
+    } 
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
 #pragma omp parallel for
     for (int i = 0; i <= m_nSubbasins; i++) {

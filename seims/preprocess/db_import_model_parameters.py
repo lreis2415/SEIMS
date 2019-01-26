@@ -297,8 +297,8 @@ class ImportParam2Mongo(object):
                                    'items in file.out must have 7 columns, i.e., OUTPUTID,'
                                    'TYPE,STARTTIME,ENDTIME,INTERVAL,INTERVAL_UNIT,SUBBASIN.'
                                    'Otherwise, the OUTPUTID MUST existed in the header!')
-            user_out_field_array = ['OUTPUTID','TYPE','STARTTIME','ENDTIME','INTERVAL',
-                                    'INTERVAL_UNIT','SUBBASIN']
+            user_out_field_array = ['OUTPUTID', 'TYPE', 'STARTTIME', 'ENDTIME', 'INTERVAL',
+                                    'INTERVAL_UNIT', 'SUBBASIN']
             data_items.insert(0, user_out_field_array)
 
         for idx, iitem in enumerate(data_items):
@@ -385,8 +385,8 @@ class ImportParam2Mongo(object):
     def workflow(cfg, maindb):
         """Workflow"""
         ImportParam2Mongo.initial_params_from_txt(cfg, maindb)
-        ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
-        ImportParam2Mongo.model_io_configuration(cfg, maindb)
+        # ImportParam2Mongo.calibrated_params_from_txt(cfg, maindb)
+        # ImportParam2Mongo.model_io_configuration(cfg, maindb)
         ImportParam2Mongo.subbasin_statistics(cfg, maindb)
         ImportParam2Mongo.lookup_tables_as_collection_and_gridfs(cfg, maindb)
 

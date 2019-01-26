@@ -295,3 +295,76 @@ Routing,ch_bnk_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,
 Routing,ch_bed_erod,Channel bank erodibility factor,none,ChannelRouting,-9999,1,RC,3.75,0.001
 Routing,ch_bnk_d50,D50(median) particle size diameter of channel bank sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001
 Routing,ch_bed_d50,D50(median) particle size diameter of channel bed sediment,micrometer,ChannelRouting,-9999,1,RC,20,0.001
+Rice,tbd,Base temperature for development,deg C,PG_ORYZA,8,0,AC,10,0
+Rice,tod,Optimum temperature for development,deg C,PG_ORYZA,42,0,AC,45,35
+Rice,tmd,Maximum temperature for development,deg C,PG_ORYZA,30,0,AC,35,25
+Rice,dvrj,Development rate during juvenile phase,deg C/d,PG_ORYZA,0.000773,0,AC,0.01,0
+Rice,dvri,Development rate during photoperiod-sensitive phase,deg C/d,PG_ORYZA,0.000758,0,AC,0.01,0
+Rice,dvrp,Development rate during panicle development phase,deg C/d,PG_ORYZA,0.001744,0,AC,0.01,0
+Rice,dvrr,Development rate in reproductive phase (post anthesis),deg C/d,PG_ORYZA,0.001566,0,AC,0.01,0
+Rice,ppse,Photoperiod sensitivity,1/h,PG_ORYZA,0,0,AC,10,0
+Rice,mopp,Maximum optimum photoperiod,hr,PG_ORYZA,11.5,0,AC,20,0
+Rice,shckd,Relation between seedling age and delay in phenological development,none,PG_ORYZA,0.4,0,AC,1,0
+Rice,knf,extinction coefficient of N profile in the canopy as a function of development stage,none,PG_ORYZA,0.4,0,AC,1,0
+Rice,rgrlMX,Maximum relative growth rate of leaf area,deg C/d,PG_ORYZA,0.0085,0,AC,0.01,0
+Rice,rgrlMN,Minimum relative growth rate of leaf area,deg C/d,PG_ORYZA,0.004,0,AC,0.01,0
+Rice,nh,Number of hills,hill/m2,PG_ORYZA,2,0,AC,100,0
+Rice,nplh,Number of plants per hill,pl/hill,PG_ORYZA,10,0,AC,100,0
+Rice,nplsb,Number of plants in seedbed,pl/m2,PG_ORYZA,100,0,AC,2000,0
+Rice,lape,Leaf area per plant at emergence,m2/pl,PG_ORYZA,0.0001,0,AC,0.0005,0
+Rice,zrttr,Root length/depth at transplanting,m,PG_ORYZA,0.05,0,AC,0.1,0.01
+Rice,tmpsb,Temperature increase caused by greenhouse use (over seedbed),deg C,PG_ORYZA,0,0,AC,9.5,0
+Rice,aFsh,function parameters of fraction total dry matter partitioned to the shoot according to DVS,none,PG_ORYZA,0.5,0,AC,0.8,0.2
+Rice,bFsh,function parameters of fraction total dry matter partitioned to the shoot according to DVS,none,PG_ORYZA,0.5,0,AC,0.8,0.2
+Rice,aFlv,function parameters of fraction shoot dry matter partitioned to the leaves according to DVS,none,PG_ORYZA,0.6,0,AC,0.8,0.2
+Rice,bFlv,function parameters of fraction shoot dry matter partitioned to the leaves according to DVS,none,PG_ORYZA,1.2,0,AC,1.5,1
+Rice,aFso,function parameters of fraction shoot dry matter partitioned to the panicles according to DVS,none,PG_ORYZA,0.6,0,AC,0.8,0.2
+Rice,bFso,function parameters of fraction shoot dry matter partitioned to the panicles according to DVS,none,PG_ORYZA,2,0,AC,5,0
+Rice,aDrlv,function parameters of leaf death coefficient according to DVS,none,PG_ORYZA,0.015,0,AC,0.1,0.01
+Rice,bDrlv,function parameters of leaf death coefficient according to DVS,none,PG_ORYZA,0.016,0,AC,0.1,0.01
+Rice,tclstr,Time coefficient for loss of stem reserves,1/day,PG_ORYZA,10,0,AC,20,0
+Rice,q10,Factor accounting for increase in maintenance respiration with a 10 oC rise in temperature,none,PG_ORYZA,2,0,AC,5,0
+Rice,tref,Reference temperature,deg C,PG_ORYZA,25,0,AC,40,0
+Rice,mainLV,Maintenance respiration coefficient:Leaves,kg/kg/d,PG_ORYZA,0.02,0,AC,0.1,0
+Rice,mainST,Maintenance respiration coefficient:Stems,kg/kg/d,PG_ORYZA,0.015,0,AC,0.1,0
+Rice,mainSO,Maintenance respiration coefficient:Storage organs (panicles),kg/kg/d,PG_ORYZA,0.003,0,AC,0.1,0
+Rice,mainRT,Maintenance respiration coefficient:Roots,kg/kg/d,PG_ORYZA,0.01,0,AC,0.1,0
+Rice,crgLV,Carbohydrate requirement for dry matter production:Leaves,kg/kg,PG_ORYZA,1.326,0,AC,2,0
+Rice,crgST,Carbohydrate requirement for dry matter production:Stems,kg/kg,PG_ORYZA,1.326,0,AC,2,0
+Rice,crgSTR,Carbohydrate requirement for dry matter production:Stem reserves,kg/kg,PG_ORYZA,1.11,0,AC,2,0
+Rice,crgSO,Carbohydrate requirement for dry matter production:Storage organs (panicles),kg/kg,PG_ORYZA,1.426,0,AC,2,0
+Rice,crgRT,Carbohydrate requirement for dry matter production:Roots,kg/kg,PG_ORYZA,1.326,0,AC,2,0
+Rice,fstr,Fraction of carbohydrates allocated to stems that is stored as reserves,none,PG_ORYZA,0.2,0,AC,1,0
+Rice,lrstr,Fraction of allocated stem reserves that is available for growth,none,PG_ORYZA,0.947,0,AC,1,0
+Rice,aSLA,SLA function parameters,none,PG_ORYZA,0.0024,0,AC,0.1,0
+Rice,bSLA,SLA function parameters,none,PG_ORYZA,0.0025,0,AC,0.1,0
+Rice,cSLA,SLA function parameters,none,PG_ORYZA,-4.5,0,AC,-10,0
+Rice,dSLA,SLA function parameters,none,PG_ORYZA,0.14,0,AC,1,0
+Rice,slaMX,maximum value of SLA,ha/kg,PG_ORYZA,0.0045,0,AC,0.1,0
+Rice,fcRT,Carbon balance parameters Mass fraction carbon:Roots,kg/kg,PG_ORYZA,0.431,0,AC,1,0
+Rice,fcLV,Carbon balance parameters Mass fraction carbon:Leaves,kg/kg,PG_ORYZA,0.419,0,AC,1,0
+Rice,fcST,Carbon balance parameters Mass fraction carbon:Stems,kg/kg,PG_ORYZA,0.431,0,AC,1,0
+Rice,fcSTR,Carbon balance parameters Mass fraction carbon:Stem reserves,kg/kg,PG_ORYZA,0.444,0,AC,1,0
+Rice,fcSO,Carbon balance parameters Mass fraction carbon:Storage organs (panicles),kg/kg,PG_ORYZA,0.487,0,AC,1,0
+Rice,wgrMX,Maximum individual grain weight,kg/grain,PG_ORYZA,0.0000249,0,AC,0.001,0
+Rice,gzrt,Growth rate of roots,m/d,PG_ORYZA,0.01,0,AC,0.1,0
+Rice,zrtMCD,Maximum depth of roots if drought,m,PG_ORYZA,0.4,0,AC,1,0
+Rice,frpar,fraction of sunlight energy that is photosynthetically active,none,PG_ORYZA,0.5,0,AC,1,0
+Rice,spgf,Spikelet growth factor,none,PG_ORYZA,64900,0,AC,100000,60000
+Rice,nMaxL,function parameters of maximum leaf N fraction,none,PG_ORYZA,0.02,0,AC,1,0
+Rice,nMinL,function parameters of minimum leaf N fraction,none,PG_ORYZA,0.009,0,AC,1,0
+Rice,rfnlv,Residual N fraction of leaves,kg/kg,PG_ORYZA,0.004,0,AC,1,0
+Rice,rfnst,Residual N fraction of stems,kg/kg,PG_ORYZA,0.0015,0,AC,1,0
+Rice,rfnrt,Fraction N translocation from roots as (additonal) fraction of total N translocation from stems and leaves,none,PG_ORYZA,0.15,0,AC,1,0
+Rice,tcntrf,Time coefficient for N translocation to grains,day,PG_ORYZA,10,0,AC,20,0
+Rice,nMaxSO,Maximum N concentration in storage organs,kg/kg,PG_ORYZA,0.0175,0,AC,1,0
+Rice,anMinSO,function parameters of minimum N concentration in storage organs,none,PG_ORYZA,0.0001,0,AC,1,0
+Rice,bnMinSO,function parameters of minimum N concentration in storage organs,none,PG_ORYZA,0.00002,0,AC,1,0
+Rice,shckl,Relation between seedling age and delay in leaf area development,none,PG_ORYZA,0.25,0,AC,1,0
+Rice,sbdur,Duration of seedbed,day,PG_ORYZA,22,0,AC,50,5
+Rice,llls,Upper limit leaf rolling,kPa,PG_ORYZA,794.33,0,AC,1000,500
+Rice,ulls,Lower limit leaf rolling,kPa,PG_ORYZA,74.13,0,AC,100,50
+Rice,llle,Lower limit leaf expansion,kPa,PG_ORYZA,1404,0,AC,1500,1000
+Rice,ulle,Upper limit leaf expansion,kPa,PG_ORYZA,1.45,0,AC,2,1
+Rice,lldl,Lower limit death of leaves,kPa,PG_ORYZA,1584.89,0,AC,2000,1000
+Rice,uldl,Upper limit death of leaves,kPa,PG_ORYZA,630.95,0,AC,1000,500

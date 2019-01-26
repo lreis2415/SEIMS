@@ -92,6 +92,7 @@ private:
     float pondSurfaceArea(int id);
 
 private:
+
     /*   for paddy   */
     /// paddy number
     int m_paddyNum;
@@ -131,6 +132,9 @@ private:
     float* m_dvs;
     // The embankment area ratio of paddy rice HRU
     float m_embnkfr_pr;
+
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnID;
 
     /// conversion factor (mm/ha => m^3)
     float m_cnv;

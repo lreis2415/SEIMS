@@ -27,7 +27,7 @@ if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
 from scenario_analysis import _DEBUG
-from scenario_analysis.slpposunits.scenario import select_potential_bmps
+from scenario_analysis.spatialunits.scenario import select_potential_bmps
 
 
 def check_individual_diff(old_ind,  # type: Union[array.array, List[int], Tuple[int]]
@@ -389,9 +389,9 @@ def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
     from deap import base
     from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
     from scenario_analysis.config import SAConfig
-    from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, \
+    from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
         SACommUnitConfig
-    from scenario_analysis.slpposunits.scenario import SUScenario
+    from scenario_analysis.spatialunits.scenario import SUScenario
     cf = get_config_parser()
 
     base_cfg = SAConfig(cf)  # type: SAConfig

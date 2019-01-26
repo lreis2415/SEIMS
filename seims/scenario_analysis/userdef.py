@@ -7,7 +7,7 @@
     @changelog:
 
     - 16-11-08  hr - initial implementation.
-    - 17-08-18  lj - move the original code to slpposunits module.
+    - 17-08-18  lj - move the original code to spatialunits module.
     - 18-02-09  lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals

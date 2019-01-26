@@ -23,9 +23,10 @@ from pygeoc.utils import UtilClass
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS
 from scenario_analysis.config import SAConfig
-from scenario_analysis.slpposunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
-from scenario_analysis.slpposunits.scenario import SUScenario
-from scenario_analysis.slpposunits import main_nsga2 as sa_nsga2
+from scenario_analysis.spatialunits.config import SASlpPosConfig,\
+    SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.spatialunits.scenario import SUScenario
+from scenario_analysis.spatialunits import main_nsga2 as sa_nsga2
 from test.demo_config import ModelPaths, write_scenario_analysis_config_file
 from test.demo_config import DEMO_MODELS, get_watershed_name
 

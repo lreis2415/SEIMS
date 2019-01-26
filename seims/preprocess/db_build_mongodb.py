@@ -96,22 +96,23 @@ class ImportMongodbClass(object):
             scenariodb = conn[cfg.bmp_scenario_db]
 
         # import model parameters information to MongoDB
-        status_output('Import model parameters', 10, f)
-        ImportParam2Mongo.workflow(cfg, maindb)
-        n_subbasins = MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.subbsn_num)
-        print('Number of subbasins: %d' % n_subbasins)
-
-        # Extract spatial parameters for reaches, landuse, soil, etc.
-        status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
-        extract_spatial_parameters(cfg, maindb)
-
-        # import stream parameters
-        status_output('Generating reach table with initialized parameters...', 40, f)
-        ImportReaches2Mongo.generate_reach_table(cfg, maindb)
+        # status_output('Import model parameters', 10, f)
+        # ImportParam2Mongo.workflow(cfg, maindb)
+        # n_subbasins = MongoQuery.get_init_parameter_value(maindb, SubbsnStatsName.subbsn_num)
+        # print('Number of subbasins: %d' % n_subbasins)
+        #
+        # # Extract spatial parameters for reaches, landuse, soil, etc.
+        # status_output('Extract spatial parameters for reaches, landuse, soil, etc...', 20, f)
+        # extract_spatial_parameters(cfg, maindb)
+        #
+        # # import stream parameters
+        # status_output('Generating reach table with initialized parameters...', 40, f)
+        # ImportReaches2Mongo.generate_reach_table(cfg, maindb)
 
         # import raster data to MongoDB
         status_output('Importing raster to MongoDB....', 50, f)
         ImportMongodbClass.spatial_rasters(cfg, 0)
+        return
         ImportMongodbClass.spatial_rasters(cfg, n_subbasins)
 
         # Import IUH
