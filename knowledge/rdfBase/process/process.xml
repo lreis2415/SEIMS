@@ -30,7 +30,7 @@
   <rdf:Description about="Interception">
 	<hydro:means>interception(植被截留)</hydro:means>
   </rdf:Description>
-  <rdf:Description about="Subsurface Runoff">
+  <rdf:Description about="Subsurface">
 	<hydro:means>subsurface runoff,inter flow routing(壤中流模块，包括产流和汇流)</hydro:means>
   </rdf:Description> 
 </rdf:RDF>
