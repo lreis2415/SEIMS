@@ -95,7 +95,7 @@
 					<op>
 						<Rel>are selected</Rel>
 					</op>
-					<Ind>Subsurface Runoff</Ind>
+					<Ind>Subsurface</Ind>
 				</Atom>
 			</then>
 		</Implies>
