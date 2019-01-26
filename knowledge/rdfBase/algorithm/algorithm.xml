@@ -92,8 +92,8 @@
 	<hydro:shortfor>Thornthwaite Mather formula</hydro:shortfor>
 	<hydro:process>Soil Evaporation</hydro:process>
   </rdf:Description>
-  <rdf:Description about="Subsurface Runoff-Darcy formula">
+  <rdf:Description about="Subsurface-Darcy formula">
 	<hydro:shortfor>Darcy formula</hydro:shortfor>
-	<hydro:process>Subsurface Runoff</hydro:process>
+	<hydro:process>Subsurface</hydro:process>
   </rdf:Description>   
 </rdf:RDF>
