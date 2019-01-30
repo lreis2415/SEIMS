@@ -869,7 +869,7 @@ void ORYZA::CalPlantNUptake(int i) {
 
 int ORYZA::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -963,7 +963,7 @@ bool ORYZA::CheckInputData() {
     return true;
 }
 
-void ORYZA::initialOutputs() {
+void ORYZA::InitialOutputs() {
     if (m_alb == nullptr) Initialize1DArray(m_nCells, m_alb, 0.f);
     if (m_rsdCovSoil == nullptr || m_soilRsd == nullptr) {
         Initialize1DArray(m_nCells, m_rsdCovSoil, m_sol_rsdin);
@@ -1085,7 +1085,7 @@ void ORYZA::initialOutputs() {
 }
 
 void ORYZA::Get1DData(const char* key, int* n, float** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_LAST_SOILRD)) *data = m_stoSoilRootD;
@@ -1120,7 +1120,7 @@ void ORYZA::Get1DData(const char* key, int* n, float** data) {
 }
 
 void ORYZA::Get2DData(const char* key, int* n, int* col, float*** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     *col = m_soilLayers;

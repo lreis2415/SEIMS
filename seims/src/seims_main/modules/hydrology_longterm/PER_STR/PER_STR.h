@@ -32,24 +32,21 @@ public:
 
     ~PER_STR();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float data) OVERRIDE;
 
     void Set1DData(const char* key, int nRows, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
     /**
     *	@brief check the input size. Make sure all the input data have same dimension.
     *
@@ -59,7 +56,6 @@ private:
     */
     bool CheckInputSize(const char* key, int n);
 
-    void InitialOutputs();
 private:
     /// number of soil layers
     int m_nSoilLayers;

@@ -40,17 +40,15 @@ public:
 
     void Set1DData(const char* key, int n, float* value) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;
 
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
+private:
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
      * \param[in] key The key of the input data
@@ -58,9 +56,6 @@ private:
      * \return bool The validity of the dimension
      */
     bool CheckInputSize(const char* key, int n);
-
-    //! Initialize of output variables
-    void InitialOutputs();
 
 private:
     /// mean air temperature for a given day(degree)

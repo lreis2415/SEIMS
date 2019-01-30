@@ -27,21 +27,17 @@ public:
 
     ~NPS_Management();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
 
+    int Execute() OVERRIDE;
+
+private:
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
      * \param[in] key The key of the input data

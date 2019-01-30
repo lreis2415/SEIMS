@@ -35,15 +35,16 @@ public:
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
 
+    void InitialOutputs() OVERRIDE;
+
+    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
+
+private:
     bool CheckInputSize(const char* key, int n);
 
     bool CheckInputSize2D(const char* key, int n, int col);
-
-    bool CheckInputData();
-
-private:
     /// valid cells number
     int m_nCells;
 
@@ -445,7 +446,6 @@ private:
     //////////////////////////////////////////////////////////////////////////
     void CalRiceGrowth(int i);
 
-    void initialOutputs();
     //////////////////////////////////////////////////////////////////////////
     //  Distribute potential plant evaporation through
     //	the root zone and calculates actual plant water use based on soil

@@ -38,31 +38,23 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;
 
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
 private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    *
-    *	@return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
     /*!
-    * \brief Initialize output variables for the first run of the entire simulation
-    */
-    void InitialOutputs();
+     * \brief check the input size. Make sure all the input data have same dimension.
+     *
+     * \param key The key of the input data
+     * \param n The input data dimension
+     * \return bool The validity of the dimension
+     */
+    bool CheckInputSize(const char* key, int n);
 
 private:
     /// from parameter database

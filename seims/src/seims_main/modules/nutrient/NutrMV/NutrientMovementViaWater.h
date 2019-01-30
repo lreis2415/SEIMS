@@ -41,6 +41,10 @@ public:
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void GetValue(const char* key, float* value) OVERRIDE;
@@ -50,12 +54,6 @@ public:
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
 private:
-    /*!
-    * \brief check the input data. Make sure all the input data is available.
-    * \return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
     /*!
     * \brief check the input size. Make sure all the input data have same dimension.
     *
@@ -88,8 +86,6 @@ private:
     *        rewrite from subwq.f of SWAT
     */
     void SubbasinWaterQuality(int i);
-
-    void InitialOutputs();
 
     void SumBySubbasin();
 private:

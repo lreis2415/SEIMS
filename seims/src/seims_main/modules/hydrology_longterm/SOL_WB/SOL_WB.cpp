@@ -177,7 +177,7 @@ void SOL_WB::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     }
 }
 
-void SOL_WB::CheckInputData() {
+bool SOL_WB::CheckInputData() {
     CHECK_POSITIVE(MID_SOL_WB, m_nCells);
     CHECK_POSITIVE(MID_SOL_WB, m_nSubbsns);
     CHECK_POINTER(MID_SOL_WB, m_nSoilLyrs);
@@ -200,6 +200,7 @@ void SOL_WB::CheckInputData() {
     CHECK_POINTER(MID_SOL_WB, m_meanTemp);
     CHECK_POINTER(MID_SOL_WB, m_soilTemp);
     CHECK_POINTER(MID_SOL_WB, m_subbasinsInfo);
+    return true;
 }
 
 bool SOL_WB::CheckInputSize(const char* key, const int n) {

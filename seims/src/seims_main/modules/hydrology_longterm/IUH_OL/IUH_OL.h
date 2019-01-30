@@ -48,24 +48,24 @@ public:
 
     ~IUH_OL();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
     void GetValue(const char* key, float* value) OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputData();
+    int Execute() OVERRIDE;
 
 private:
-    void InitialOutputs();
+    bool CheckInputSize(const char* key, int n);
 
 private:
     /// time step (sec)

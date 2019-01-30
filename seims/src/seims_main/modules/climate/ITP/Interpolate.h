@@ -38,6 +38,8 @@ public:
 
     void Set2DData(const char* key, int n_rows, int n_cols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     /*!
@@ -48,7 +50,6 @@ public:
      */
     static bool CheckInputSize(string& key, int n, int& m_n);
 
-    void CheckInputData();
 
 private:
     // This is the climate data type. It is used to get the specific lapse rate from lapse_rate table.

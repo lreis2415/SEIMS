@@ -31,17 +31,19 @@ public:
 
     ~AtmosphericDeposition();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
+private:
     bool CheckInputSize(const char* key, int n);
 
-    bool CheckInputData();
 
 private:
     /// size of array

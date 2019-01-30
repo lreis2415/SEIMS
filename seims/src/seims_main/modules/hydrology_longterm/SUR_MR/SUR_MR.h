@@ -46,24 +46,25 @@ public:
 
     ~SUR_MR();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
+
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
+private:
     bool CheckInputSize(const char* key, int n);
 
-    void CheckInputData();
-
-    /// initial output for the first run
-    void InitialOutputs();
 private:
     /// Hillslope time step (second)
     float m_dt;

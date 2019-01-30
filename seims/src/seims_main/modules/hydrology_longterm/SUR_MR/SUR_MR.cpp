@@ -19,7 +19,7 @@ SUR_MR::~SUR_MR() {
     if (m_soilWtrStoPrfl != nullptr) Release1DArray(m_soilWtrStoPrfl);
 }
 
-void SUR_MR::CheckInputData() {
+bool SUR_MR::CheckInputData() {
     CHECK_POSITIVE(MID_SUR_MR, m_date);
     CHECK_POSITIVE(MID_SUR_MR, m_dt);
     CHECK_POSITIVE(MID_SUR_MR, m_nCells);
@@ -34,6 +34,7 @@ void SUR_MR::CheckInputData() {
     CHECK_POINTER(MID_SUR_MR, m_soilTemp);
     CHECK_POINTER(MID_SUR_MR, m_netPcp);
     CHECK_POINTER(MID_SUR_MR, m_deprSto);
+    return true;
 }
 
 void SUR_MR::InitialOutputs() {

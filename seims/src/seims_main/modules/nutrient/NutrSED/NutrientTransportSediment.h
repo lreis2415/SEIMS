@@ -49,6 +49,10 @@ public:
 
     void SetSubbasins(clsSubbasins*) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
@@ -56,12 +60,6 @@ public:
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
 private:
-    /*!
-    * \brief check the input data. Make sure all the input data is available.
-    * \return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
     /*!
     * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
     * \return bool The validity of the inputs data.
@@ -112,8 +110,6 @@ private:
     */
     void OrgPAttachedtoSed(int i);
 
-    /// initial outputs
-    void InitialOutputs();
 private:
     /// subbasins number
     int m_nSubbsns;

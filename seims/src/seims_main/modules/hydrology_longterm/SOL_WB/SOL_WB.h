@@ -41,26 +41,23 @@ public:
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;
 
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
+
 private:
-    /**
-    *	@brief check the input data. Make sure all the input data is available.
-    */
-    void CheckInputData();
-
-    /**
-    *	@brief check the input size. Make sure all the input data have same dimension.
-    *
-    *	@param key The key of the input data
-    *	@param n The input data dimension
-    *	@return bool The validity of the dimension
-    */
+    /*!
+     * \brief check the input size. Make sure all the input data have same dimension.
+     *
+     * \param key The key of the input data
+     * \param n The input data dimension
+     * \return bool The validity of the dimension
+     */
     bool CheckInputSize(const char* key, int n);
-
-    void InitialOutputs();
 
     /*!
      * \brief Set parameter values to subbasins

@@ -1,32 +1,68 @@
-#include "seims.h"
 #include "template.h"
 
-ModulesTest::ModulesTest() : m_nCells(-1) {
+ModuleTemplate::ModuleTemplate() :
+    m_nCells(-1) {
 }
 
-ModulesTest::~ModulesTest() {
+ModuleTemplate::~ModuleTemplate() {
 }
 
-void ModulesTest::Set1DData(const char *key, int n, float *data) {
+void ModuleTemplate::SetValue(const char* key, float value) {
 }
 
-void ModulesTest::Set2DData(const char *key, int n, int col, float **data) {
+void ModuleTemplate::SetValueByIndex(const char* key, int index, float value) {
 }
 
-bool ModulesTest::CheckInputData() {
+void ModuleTemplate::Set1DData(const char* key, int n, float* data) {
+}
+
+void ModuleTemplate::Set2DData(const char* key, int n, int col, float** data) {
+}
+
+void ModuleTemplate::SetReaches(clsReaches* rches) {
+}
+
+void ModuleTemplate::SetSubbasins(clsSubbasins* subbsns) {
+}
+
+void ModuleTemplate::SetScenario(Scenario* sce) {
+}
+
+bool ModuleTemplate::CheckInputData() {
     return true;
 }
 
-bool ModulesTest::CheckInputSize(const char *, int) {
+void ModuleTemplate::InitialOutputs() {
+}
+
+
+bool ModuleTemplate::CheckInputSize(const char* key, const int n) {
+    if (n <= 0) return false;
+    if (m_nCells == n) return true;
+    if (m_nCells <= 0) {
+        m_nCells = n;
+    } else {
+        throw ModelException("ModuleTemplate", "CheckInputSize", "Input data for "
+                             + string(key) + " is invalid with size: " + ValueToString(n)
+                             + ". The origin size is " + ValueToString(m_nCells) + ".\n");
+    }
     return true;
 }
 
-int ModulesTest::Execute() {
-    return true;
+int ModuleTemplate::Execute() {
+    return 0;
 }
 
-void ModulesTest::Get1DData(const char *key, int *n, float **data) {
+TimeStepType ModuleTemplate::GetTimeStepType() {
+    return TIMESTEP_HILLSLOPE;
 }
 
-void ModulesTest::Get2DData(const char *key, int *n, int *col, float ***data) {
+
+void ModuleTemplate::GetValue(const char* key, float* value) {
+}
+
+void ModuleTemplate::Get1DData(const char* key, int* n, float** data) {
+}
+
+void ModuleTemplate::Get2DData(const char* key, int* n, int* col, float*** data) {
 }

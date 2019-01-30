@@ -125,7 +125,7 @@ bool Interpolate::CheckInputSize(string& key, const int n, int& m_n) {
     return true;
 }
 
-void Interpolate::CheckInputData() {
+bool Interpolate::CheckInputData() {
     CHECK_NONNEGATIVE(MID_ITP, m_dataType);
     CHECK_NONNEGATIVE(MID_ITP, m_month);
     CHECK_POINTER(MID_ITP, m_itpWeights);
@@ -135,6 +135,7 @@ void Interpolate::CheckInputData() {
         CHECK_POINTER(MID_ITP, m_hStations);
     }
     CHECK_POINTER(MID_ITP, m_stationData);
+    return true;
 }
 
 void Interpolate::Get1DData(const char* key, int* n, float** data) {

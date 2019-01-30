@@ -1,6 +1,6 @@
 /*!
  * \brief A IO test demo of developing module for SEIMS.
- *        Refer https://github.com/lreis2415/SEIMS/wiki/Module-demo for more details.
+ *
  * \author Liangjun Zhu
  * \date 2018-02-07
  */
@@ -20,27 +20,23 @@ public:
 
     virtual ~IO_TEST();
 
-    int Execute() OVERRIDE;
-
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
-
-    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
 
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
+
+private:
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
      *

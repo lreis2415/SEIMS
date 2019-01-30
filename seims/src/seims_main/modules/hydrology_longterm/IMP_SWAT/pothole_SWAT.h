@@ -25,22 +25,21 @@ public:
 
     ~IMP_SWAT();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
 private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
 
     /*!
      * \brief check the input size. Make sure all the input data have same dimension.
@@ -62,9 +61,6 @@ private:
      * \return bool The validity of the dimension
      */
     bool CheckInputSize2D(const char* key, int n, int col);
-
-    /// initialize all possible outputs
-    void InitialOutputs();
 
     /*!
      * \brief Simulates depressional areas that do not

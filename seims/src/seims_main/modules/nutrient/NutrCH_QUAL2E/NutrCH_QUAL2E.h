@@ -49,6 +49,10 @@ public:
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void GetValue(const char* key, float* value) OVERRIDE;
@@ -58,12 +62,6 @@ public:
     TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
 
 private:
-    /*!
-    * \brief check the input data. Make sure all the input data is available.
-    * \return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
     /*!
     * \brief check the input size. Make sure all the input data have same dimension.
     *
@@ -94,8 +92,6 @@ private:
 
     /// Calculate average day length, solar radiation, and temperature for each channel
     void ParametersSubbasinForChannel();
-
-    void InitialOutputs();
 
     void PointSourceLoading();
 private:

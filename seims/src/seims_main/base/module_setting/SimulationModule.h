@@ -48,7 +48,7 @@ public:
                         m_tsCounter(1), m_inputsSetDone(false) {
     }
 
-    //! Execute the simulation
+    //! Execute the simulation. Return 0 for success.
     virtual int Execute() { return -1; }
 
     //! Set date time, as well as the sequence number of the entire simulation. Added by LJ for statistics convenient.
@@ -97,19 +97,6 @@ public:
                              "Set function of parameter " + string(key) + " is not implemented.");
     }
 
-    /* Seems to be useless, should be removed in the near future. By lj.
-    //! Set 1D array data, DT_Array1D
-    virtual void Set1DArrayData(const char* key, int n, float* data) {
-        throw ModelException("SimulationModule", "Set1DArrayData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
-    }
-
-    //! Set 2D array data, by default, DT_Array2D
-    virtual void Set2DArrayData(const char* key, int nrows, int ncols, float** data) {
-        throw ModelException("SimulationModule", "Set2DArrayData",
-                             "Set function of parameter " + string(key) + " is not implemented.");
-    }
-    */
     //! Get value, DT_Single
     virtual void GetValue(const char* key, float* value) {
         throw ModelException("SimulationModule", "GetValue",
@@ -128,19 +115,6 @@ public:
                              "Get function of parameter " + string(key) + " is not implemented.");
     }
 
-    /* Seems to be useless, should be removed in the near future. By lj.
-    //! Get 1D Array data, by default, DT_Array1D
-    virtual void Get1DArrayData(const char* key, int* n, float** data) {
-        throw ModelException("SimulationModule", "Get1DArrayData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
-    }
-
-    //! Get 2D Array data, by default, DT_Array2D
-    virtual void Get2DArrayData(const char* key, int* nRows, int* nCols, float*** data) {
-        throw ModelException("SimulationModule", "Get2DArrayData",
-                             "Get function of parameter " + string(key) + " is not implemented.");
-    }
-    */
     //! Set pointer of Scenario class which contains all BMP information. Added by LJ, 2016-6-14
     virtual void SetScenario(Scenario* sce) {
         throw ModelException("SimulationModule", "SetScenario", "Set scenario function is not implemented.");
@@ -155,6 +129,22 @@ public:
     virtual void SetSubbasins(clsSubbasins* subbsns) {
         throw ModelException("SimulationModule", "SetSubbasins", "Set subbasins function is not implemented.");
     }
+
+    /*!
+     * \brief Check the input data. Make sure all the input data is available.
+     *
+     *        This function is optional to be overridden.
+     *
+     * \return bool The validity of the input data.
+     */
+    virtual bool CheckInputData() { return true; }
+
+    /*!
+     * \brief Initialize output variables.
+     *
+     *        This function is optional to be overridden.
+     */
+    virtual void InitialOutputs() {}
 
     /*!
      * \brief Get time step type, default is hillslope process.

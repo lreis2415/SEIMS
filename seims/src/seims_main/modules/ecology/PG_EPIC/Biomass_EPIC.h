@@ -32,25 +32,26 @@ public:
 
     ~Biomass_EPIC();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
     void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
 
+private:
     bool CheckInputSize(const char* key, int n);
 
     bool CheckInputSize2D(const char* key, int n, int col);
-
-    bool CheckInputData();
-
-private:
     //////////////////////////////////////////////////////////////////////////
     //  The following code is transferred from swu.f of SWAT rev. 637
     //  Distribute potential plant evaporation through
@@ -96,9 +97,6 @@ private:
     //  Check the dormant status of the different plant types
     //////////////////////////////////////////////////////////////////////////
     void CheckDormantStatus(int i);
-
-    /// initialize output variables
-    void InitialOutputs();
 
 private:
     /// valid cells number
