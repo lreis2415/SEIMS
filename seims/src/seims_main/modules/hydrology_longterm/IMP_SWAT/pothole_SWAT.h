@@ -91,6 +91,8 @@ private:
 
     float pondSurfaceArea(int id);
 
+    float GetUnitArea(int i);
+
 private:
 
     /*   for paddy   */
@@ -135,6 +137,8 @@ private:
 
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
+    /// field version, the area of each field
+    float *m_unitArea;
 
     /// conversion factor (mm/ha => m^3)
     float m_cnv;

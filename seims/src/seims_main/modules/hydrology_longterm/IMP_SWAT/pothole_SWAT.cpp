@@ -29,7 +29,7 @@ IMP_SWAT::IMP_SWAT() :
     m_pondID3(nullptr), m_reachID(nullptr), m_paddyNum(-1), m_pondVol(nullptr), m_embnkfr_pr(0.15f),
     /// overland to channel
     m_surfqToCh(nullptr), m_sedToCh(nullptr), m_surNO3ToCh(nullptr), m_surNH4ToCh(nullptr),
-    m_surSolPToCh(nullptr), m_surCodToCh(nullptr),
+    m_surSolPToCh(nullptr), m_surCodToCh(nullptr), m_unitArea(nullptr),
     m_sedOrgNToCh(nullptr), m_sedOrgPToCh(nullptr), m_sedMinPAToCh(nullptr), m_sedMinPSToCh(nullptr) {
     //m_potSedIn(nullptr), m_potSandIn(nullptr), m_potSiltIn(nullptr), m_potClayIn(nullptr), m_potSagIn(nullptr), m_potLagIn(nullptr),
 }
@@ -212,6 +212,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_POND)) { m_pond = data; }
     else if (StringMatch(sk, VAR_CHST)) { m_chStorage = data; }
     else if (StringMatch(sk, VAR_POND_VOL)) { m_pondVol = data; }
+    else if (StringMatch(sk, VAR_FIELDAREA)) { m_unitArea = data; }
     else {
         throw ModelException(MID_IMP_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -315,7 +316,8 @@ float IMP_SWAT::pondSurfaceArea(int id)
 }
 
 void IMP_SWAT::irrigateFromPond(int id){
-    float irrWater = m_irrDepth[id] * m_cellArea * (1.f - m_embnkfr_pr) * 1000.f; // mm * m2
+    // float irrWater = m_irrDepth[id] * m_cellArea * (1.f - m_embnkfr_pr) * 1000.f; // mm * m2
+    float irrWater = m_irrDepth[id] * GetUnitArea(id) * (1.f - m_embnkfr_pr) * 1000.f; // mm * m2
     int tmp[] = { m_pondID1[id], m_pondID2[id], m_pondID3[id] };
     vector<int> irrSource;
     // remove -9999 from irrigation source
@@ -351,7 +353,7 @@ void IMP_SWAT::irrigateFromPond(int id){
 int IMP_SWAT::Execute() {
     CheckInputData();
     InitialOutputs();
-
+    if (m_inputSubbsnID != FLD_IN_SUBID) {
     for (int ilyr = 0; ilyr < m_nRteLyrs; ilyr++) {
         // There are not any flow relationship within each routing layer.
         // So parallelization can be done here.
@@ -374,7 +376,26 @@ int IMP_SWAT::Execute() {
                 ReleaseWater(id);
             }
         }
-    } 
+    }
+    }
+    else { // field version, no routinglayers currently
+        for (int id = 0; id <= m_nCells; id++) {
+            if (FloatEqual(m_impoundTrig[id], 0.f)) {
+                /// if impounding trigger on
+                PotholeSimulate(id);
+                // force to auto-irrigation at the end of the day, added by SF.
+                if (m_potVol[id] < m_potVolMin[id])
+                {
+                    // the water need to auto-irrigation, the source are from nearst pond and subbasin reach
+                    m_irrDepth[id] = m_potVolUp[id] - m_potVol[id];
+                    irrigateFromPond(id);
+                    m_potVol[id] = m_potVolUp[id];
+                }
+            } else {
+                ReleaseWater(id);
+            }
+        }
+    } // end of the field version execute
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
 #pragma omp parallel for
     for (int i = 0; i <= m_nSubbasins; i++) {
@@ -417,30 +438,32 @@ int IMP_SWAT::Execute() {
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             int subi = CVT_INT(m_subbasin[i]);
-            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
+            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f * GetUnitArea(i) / m_timestep; /// (* m_cellArea, later) mm -> m3/s
+            //tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f * GetUnitArea(i) / m_timestep; /// (* m_cellArea, later) mm -> m3/s 
             tmp_sed2ch[subi] += m_sedYield[i];
-            tmp_sno32ch[subi] += m_surqNo3[i];
-            tmp_snh42ch[subi] += m_surqNH4[i];
-            tmp_solp2ch[subi] += m_surqSolP[i];
-            tmp_cod2ch[subi] += m_surqCOD[i];
-            tmp_orgn2ch[subi] += m_sedOrgN[i];
-            tmp_orgp2ch[subi] += m_sedOrgP[i];
-            tmp_minpa2ch[subi] += m_sedActiveMinP[i];
-            tmp_minps2ch[subi] += m_sedStableMinP[i];
+            tmp_sno32ch[subi] += m_surqNo3[i] * GetUnitArea(i); //for field version, calculate the unitarea in each field, instead of in subbsain
+            tmp_snh42ch[subi] += m_surqNH4[i] * GetUnitArea(i);
+            tmp_solp2ch[subi] += m_surqSolP[i] * GetUnitArea(i);
+            tmp_cod2ch[subi] += m_surqCOD[i] * GetUnitArea(i);
+            tmp_orgn2ch[subi] += m_sedOrgN[i] * GetUnitArea(i);
+            tmp_orgp2ch[subi] += m_sedOrgP[i] * GetUnitArea(i);
+            tmp_minpa2ch[subi] += m_sedActiveMinP[i] * GetUnitArea(i);
+            tmp_minps2ch[subi] += m_sedStableMinP[i] * GetUnitArea(i);
         }
 #pragma omp critical
         {
             for (int i = 1; i <= m_nSubbasins; i++) {
-                m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
+                m_surfqToCh[i] += tmp_surfq2ch[i]; // * m_cellArea;
+                //m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
                 m_sedToCh[i] += tmp_sed2ch[i];
-                m_surNO3ToCh[i] += tmp_sno32ch[i] * m_cellArea;
-                m_surNH4ToCh[i] += tmp_snh42ch[i] * m_cellArea;
-                m_surSolPToCh[i] += tmp_solp2ch[i] * m_cellArea;
-                m_surCodToCh[i] += tmp_cod2ch[i] * m_cellArea;
-                m_sedOrgNToCh[i] += tmp_orgn2ch[i] * m_cellArea;
-                m_sedOrgPToCh[i] += tmp_orgp2ch[i] * m_cellArea;
-                m_sedMinPAToCh[i] += tmp_minpa2ch[i] * m_cellArea;
-                m_sedMinPSToCh[i] += tmp_minps2ch[i] * m_cellArea;
+                m_surNO3ToCh[i] += tmp_sno32ch[i]; //  * m_cellArea;
+                m_surNH4ToCh[i] += tmp_snh42ch[i]; //  * m_cellArea;
+                m_surSolPToCh[i] += tmp_solp2ch[i]; //  * m_cellArea;
+                m_surCodToCh[i] += tmp_cod2ch[i]; //  * m_cellArea;
+                m_sedOrgNToCh[i] += tmp_orgn2ch[i]; //  * m_cellArea;
+                m_sedOrgPToCh[i] += tmp_orgp2ch[i]; //  * m_cellArea;
+                m_sedMinPAToCh[i] += tmp_minpa2ch[i]; //  * m_cellArea;
+                m_sedMinPSToCh[i] += tmp_minps2ch[i]; //  * m_cellArea;
             }
         }
         delete[] tmp_surfq2ch;
@@ -539,7 +562,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
      * i.e., potholeSurfaceArea(id);
      * However, currently, we assume it is cell area, and all the grid-cell is covered by paddy rice
      */
-    m_potArea[id] = m_cellArea;
+    m_potArea[id] = GetUnitArea(id);
     //potvol_ini = m_potVol[id];
     //potsa_ini = m_potSurfaceArea[id];
 
@@ -568,7 +591,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
     // if(id == 46364) cout<<"pre surq no3: "<<m_surqNo3[id];
     // if(id == 46364) cout<<"pre orgp: "<<m_sedOrgP[id];
     /// update forms of N and P in pothole
-    float xx = pot_fr * m_cellArea;
+    float xx = pot_fr * GetUnitArea(id);
     m_potNo3[id] += m_surqNo3[id] * xx; // kg/ha * ha ==> kg
     m_potNH4[id] += m_surqNH4[id] * xx;
     m_potOrgN[id] += m_sedOrgN[id] * xx;
@@ -626,20 +649,20 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         m_potStaMinP[id] -= potmpso;
         m_potActMinP[id] -= potmpao;
 
-        m_sedYield[id] += potsedo / m_cellArea;
-        m_sandYield[id] += potsano / m_cellArea;
-        m_siltYield[id] += potsilo / m_cellArea;
-        m_clayYield[id] += potclao / m_cellArea;
-        m_smaggreYield[id] += potsago / m_cellArea;
-        m_lgaggreYield[id] += potlago / m_cellArea;
-        m_surqNo3[id] += potno3o / m_cellArea;
+        m_sedYield[id] += potsedo / GetUnitArea(id);//m_cellArea;
+        m_sandYield[id] += potsano / GetUnitArea(id);//m_cellArea;
+        m_siltYield[id] += potsilo / GetUnitArea(id);//m_cellArea;
+        m_clayYield[id] += potclao / GetUnitArea(id);//m_cellArea;
+        m_smaggreYield[id] += potsago / GetUnitArea(id);//m_cellArea;
+        m_lgaggreYield[id] += potlago / GetUnitArea(id);//m_cellArea;
+        m_surqNo3[id] += potno3o / GetUnitArea(id);//m_cellArea;
         // if (id == 46364) cout<<", +=potno3o: "<<m_surqNo3[id];
-        m_surqNH4[id] += potnh4o / m_cellArea;
-        m_sedOrgN[id] += potorgno / m_cellArea;
-        m_surqSolP[id] += potsolpo / m_cellArea;
-        m_sedOrgP[id] += potorgpo / m_cellArea;
-        m_sedStableMinP[id] += potmpso / m_cellArea;
-        m_sedActiveMinP[id] += potmpao / m_cellArea;
+        m_surqNH4[id] += potnh4o / GetUnitArea(id);//m_cellArea;
+        m_sedOrgN[id] += potorgno / GetUnitArea(id);//m_cellArea;
+        m_surqSolP[id] += potsolpo / GetUnitArea(id);//m_cellArea;
+        m_sedOrgP[id] += potorgpo / GetUnitArea(id);//m_cellArea;
+        m_sedStableMinP[id] += potmpso / GetUnitArea(id);//m_cellArea;
+        m_sedActiveMinP[id] += potmpao / GetUnitArea(id);//m_cellArea;
     } /// end if overflow
 
     /// if no overflow, compute settling and losses, surface inlet tile
@@ -718,7 +741,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
             yy = m_ks[id][0];
         }
         /// calculate seepage into soil
-        potsep = yy * m_potArea[id] * 240.f / m_cnv; /// mm/hr*ha/240=m3/cnv=mm
+        potsep = yy * m_potArea[id] * 240.f / (GetUnitArea(id) * 10.f); //m_cnv; /// mm/hr*ha/240=m3/cnv=mm
         potsep = Min(potsep, m_potVol[id]);
         float potvol_sep = m_potVol[id];
         m_potVol[id] -= potsep;
@@ -761,37 +784,37 @@ void IMP_SWAT::PotholeSimulate(const int id) {
             no3loss = m_potNo3[id] * tileo / potvol_tile;
             no3loss = Min(no3loss, m_potNo3[id]);
             m_potNo3[id] -= no3loss;
-            m_surqNo3[id] += no3loss / m_cellArea;
+            m_surqNo3[id] += no3loss / GetUnitArea(id); // /m_cellArea;
             // if (id == 46364) cout<<", += tile loss: "<<m_surqNo3[id];
             nh4loss = m_potNH4[id] * tileo / potvol_tile;
             nh4loss = Min(nh4loss, m_potNH4[id]);
             m_potNH4[id] -= nh4loss;
-            m_surqNH4[id] += nh4loss / m_cellArea;
+            m_surqNH4[id] += nh4loss / GetUnitArea(id);
 
             solploss = m_potSolP[id] * tileo / potvol_tile;
             solploss = Min(solploss, m_potSolP[id]);
             m_potSolP[id] -= solploss;
-            m_surqSolP[id] += solploss / m_cellArea;
+            m_surqSolP[id] += solploss / GetUnitArea(id);
 
             orgnloss = m_potOrgN[id] * tileo / potvol_tile;
             orgnloss = Min(orgnloss, m_potOrgN[id]);
             m_potOrgN[id] -= orgnloss;
-            m_sedOrgN[id] += orgnloss / m_cellArea;
+            m_sedOrgN[id] += orgnloss / GetUnitArea(id);
 
             orgploss = m_potOrgP[id] * tileo / potvol_tile;
             orgploss = Min(orgploss, m_potOrgP[id]);
             m_potOrgP[id] -= orgploss;
-            m_sedOrgP[id] += orgploss / m_cellArea;
+            m_sedOrgP[id] += orgploss / GetUnitArea(id);
 
             minpsloss = m_potStaMinP[id] * tileo / potvol_tile;
             minpsloss = Min(minpsloss, m_potStaMinP[id]);
             m_potStaMinP[id] -= minpsloss;
-            m_sedStableMinP[id] += minpsloss / m_cellArea;
+            m_sedStableMinP[id] += minpsloss / GetUnitArea(id);
 
             minpaloss = m_potActMinP[id] * tileo / potvol_tile;
             minpaloss = Min(minpaloss, m_potActMinP[id]);
             m_potActMinP[id] -= minpaloss;
-            m_sedActiveMinP[id] += minpaloss / m_cellArea;
+            m_sedActiveMinP[id] += minpaloss / GetUnitArea(id);
 
             sanloss = m_potSand[id] * tileo / potvol_tile;
             m_potSand[id] -= sanloss;
@@ -886,20 +909,20 @@ void IMP_SWAT::PotholeSimulate(const int id) {
 
 void IMP_SWAT::PotholeSurfaceArea(const int id) {
     /// compute surface area assuming a cone shape, ha
-    float potVol_m3 = m_potVol[id] * m_cnv;
+    float potVol_m3 = m_potVol[id] * (GetUnitArea(id) * 10.f); //m_cnv;
     m_potArea[id] = PI * pow(3.f * potVol_m3 / (PI * m_slope[id]), 0.6666f);
     m_potArea[id] *= 0.0001f; /// convert to ha
     if (m_potArea[id] <= UTIL_ZERO) {
         m_potArea[id] = 0.001f;
     }
-    if (m_potArea[id] > m_cellArea) {
-        m_potArea[id] = m_cellArea;
+    if (m_potArea[id] > GetUnitArea(id)) {
+        m_potArea[id] = GetUnitArea(id);
     }
 }
 
 void IMP_SWAT::ReleaseWater(const int id) {
     float proption = 1.f;
-    float xx = proption * m_cellArea;
+    float xx = proption * GetUnitArea(id);
     if (m_potVol[id] < UTIL_ZERO) {
         return;
     }
@@ -985,4 +1008,9 @@ void IMP_SWAT::Get1DData(const char* key, int* n, float** data) {
         throw ModelException(MID_IMP_SWAT, "Get1DData", "Parameter" + sk + "does not exist.");
     }
     *n = m_nCells;
+}
+
+float IMP_SWAT::GetUnitArea(int i) {
+    if (m_inputSubbsnID == 9999) return m_unitArea[i] * 1.e-4f;
+    else return m_cellWidth * m_cellWidth * 1.e-4f;
 }

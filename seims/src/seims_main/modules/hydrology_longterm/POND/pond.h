@@ -34,7 +34,9 @@ private:
 	///
 	float *m_pondCellSeep;
 	/// conversion factor (mm/ha => m^3)
-	float m_cnv; 
+	float m_cnv;
+    /// current subbasin ID, 0 for the entire watershed
+    int m_inputSubbsnID;
     /// valid cells number
     int m_nCells;	
 	/// cell width, m
@@ -65,6 +67,8 @@ private:
 	float *m_reachID;
 	/// the irrigate depth
 	float *m_irrDepth;
+    /// flow pond, -1 means to reach, else to pond
+    float* m_flowPond;
 	/// 
 	float m_embnkfr_pr;
 	/// pet
@@ -170,6 +174,8 @@ private:
 	float m_kNitri;
 	/// time step (second)
 	float m_timestep;
+    /// field version, the area of each field
+    float* m_unitArea;
 	 
 public:
     //! Constructor
@@ -222,6 +228,8 @@ private:
 	void POND::pondSimulate(int id, int cellId);
 	
 	void POND::findFlowInCell(int id, int cellId);
+    // the field version can find in cell by parameter flowpond
+    void POND::findFlowInCellFld();
 
 	int POND::findFlowOutPond(int id, int cellId);
 

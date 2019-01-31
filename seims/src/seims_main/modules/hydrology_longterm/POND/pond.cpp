@@ -15,7 +15,8 @@ POND::POND(void) : m_nCells(-1), m_npond(-1), m_pond(NULL), m_pondVolMax(NULL), 
 				   m_pondStaMinP(NULL),
 				   m_surqNo3(NULL), m_surqNH4(NULL), m_surqSolP(NULL), m_surqCOD(NULL), m_sedOrgN(NULL), m_sedOrgP(NULL), 
 				   m_sedActiveMinP(NULL), m_sedStableMinP(NULL),
-				   m_pondSolPDecay(0.f), m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_timestep(-1.f)
+				   m_pondSolPDecay(0.f), m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_timestep(-1.f), m_inputSubbsnID(0), m_flowPond(NULL),
+                   m_unitArea(NULL)
 {
 	
 }
@@ -62,6 +63,7 @@ void POND::SetValue(const char *key, float value)
 	else if (StringMatch(sk, VAR_KV_PADDY)) m_kVolat = value;
 	else if (StringMatch(sk, VAR_KN_PADDY)) m_kNitri = value;
 	else if (StringMatch(sk, Tag_TimeStep)) m_timestep = value;
+    else if (StringMatch(sk, Tag_SubbasinId)) m_inputSubbsnID = value;
 	else
 		throw ModelException(MID_POND, "SetValue", "Parameter " + sk + " does not exist.");
 	
@@ -94,6 +96,8 @@ void POND::Set1DData(const char *key, int n, float *data)
 	else if (StringMatch(sk, VAR_SEDORGP)) m_sedOrgP = data;
 	else if (StringMatch(sk, VAR_SEDMINPA)) m_sedActiveMinP = data;
 	else if (StringMatch(sk, VAR_SEDMINPS)) m_sedStableMinP = data;
+    else if (StringMatch(sk, VAR_FLOWPOND)) m_flowPond = data;
+    else if (StringMatch(sk, VAR_FIELDAREA)) m_unitArea = data;
 	else
 		throw ModelException(MID_POND, "Set1DData","Parameter " + sk +" does not exist.");
 }
@@ -123,7 +127,7 @@ void POND::initialOutputs()
 	// count all the pond id according to the pond raster and the grid cell of each pond
 	if(m_pondIds.empty()){
 		for (int i = 0; i < m_nCells; ++i){
-			if(m_pond[i] != NODATA_POND){
+			if ((m_inputSubbsnID != FLD_IN_SUBID && m_pond[i] != NODATA_POND) || (m_inputSubbsnID == FLD_IN_SUBID && CVT_INT(m_pond[i]) >= 0)){
 				m_pondIds.push_back(m_pond[i]);
 				m_pondIdInfo[m_pond[i]].push_back(i);
 			}
@@ -158,12 +162,13 @@ void POND::initialOutputs()
 	if (m_pondActMinP == NULL) Initialize1DArray(m_nCells, m_pondActMinP, 0.f);
 	if (m_pondStaMinP == NULL) Initialize1DArray(m_nCells, m_pondStaMinP, 0.f);
 
-	if (m_pondDownPond.empty() || m_pondFlowInCell.empty()){
+	if (m_pondDownPond.empty() || m_pondFlowInCell.empty()){ // only the raster version execute
 		for (vector<int>::iterator it = m_pondIds.begin(); it != m_pondIds.end(); it++){					
 			int id = *it;
 			for(vector<int>::iterator i = m_pondIdInfo[id].begin(); i != m_pondIdInfo[id].end(); i++){
 				int cellId = *i;
 				int flowOutId = findFlowOutPond(id, cellId);
+                if (m_inputSubbsnID == FLD_IN_SUBID) flowOutId = m_flowPond[cellId];
                 if (flowOutId < UTIL_ZERO){
                     continue;
                 }
@@ -173,13 +178,15 @@ void POND::initialOutputs()
 					m_pondDownPond[id].push_back(m_pond[flowOutId]);
 				}
 				// find flow in cell
-				findFlowInCell(id, cellId);
+				if (m_inputSubbsnID != FLD_IN_SUBID) findFlowInCell(id, cellId);
 			}
 			if (m_pondDownPond[id].empty()){
 				// if it has no pond,it will direct add to reach
 				m_pondDownPond[id].push_back(NODATA_POND);
 			}			
 		}
+        // field version to find the flowincell
+        if (m_inputSubbsnID == FLD_IN_SUBID) findFlowInCellFld();
 	}
 }
 
@@ -269,6 +276,16 @@ void POND::findFlowInCell(int id, int cellId){
 	}
 }
 
+void POND::findFlowInCellFld() {
+    // for a field version, the upstream fieldid can be get in parameter flowpond
+//#pragma omp parallel for
+    for (int i = 0; i < m_nCells; i++) { // if current field is a pond, or the down is river, not add.
+        if (m_flowPond[i] < 0 || m_landuse[i] == LANDUSE_ID_POND) continue;
+        //cout<<i<<m_flowPond[i]<<endl;
+        m_pondFlowInCell[CVT_INT(m_flowPond[i])].push_back(i);
+    }
+}
+
 int POND::findFlowOutPond(int id, int cellId){
 	int flowOutId = (int)m_flowOutIndex[cellId];
     if (flowOutId < UTIL_ZERO){
@@ -344,6 +361,7 @@ void POND::pondSimulate(int id, int cellId)
 
 	/// update forms of N and P in pond
 	float xx = pond_fr * m_cellArea * 1.e-4f;
+    if (m_inputSubbsnID == FLD_IN_SUBID) xx = pond_fr * m_unitArea[cellId] * 1.e-4f;
 	m_pondNo3[cellId] += m_surqNo3[cellId] * xx; // kg/ha * ha ==> kg
 	m_pondNH4[cellId] += m_surqNH4[cellId] * xx;
 	m_pondOrgN[cellId] += m_sedOrgN[cellId] * xx;
@@ -367,7 +385,7 @@ void POND::pondSimulate(int id, int cellId)
 	// 2. add surface runoff from upstream cell
 	if(m_pondFlowInCell[cellId].size() != 0){
 		// compute the surface runoff from upstream cell to the pond cell
-		for (vector<int>::iterator iter = m_pondFlowInCell[cellId].begin(); iter !=m_pondFlowInCell[cellId].end(); iter++){
+		for (vector<int>::iterator iter = m_pondFlowInCell[cellId].begin(); iter != m_pondFlowInCell[cellId].end(); iter++){
 			int k = *iter;
 			qIn += m_surfaceRunoff[k];
 			m_surfaceRunoff[k] = 0.f;
@@ -414,6 +432,7 @@ void POND::pondSimulate(int id, int cellId)
 
 		// update sediment and forms of N and P in surface runoff
 		float area = m_cellArea * 1.e-4f;
+        if (m_inputSubbsnID == FLD_IN_SUBID) area = m_unitArea[cellId] * 1.e-4f;
 		m_sedYield[cellId] += pondsedo / area;
 		m_sandYield[cellId] += pondsano / area;
 		m_siltYield[cellId] += pondsilo / area;
@@ -552,10 +571,15 @@ void POND::pondSimulate(int id, int cellId)
 
 void POND::pondSurfaceArea(int id)
 {
-	// now, we assume if the cell is pond, then the cell area is pond area, the whole pond area is the sun of all cell area
-	float cellArea = m_cellWidth * m_cellWidth;
-	float cellNum = m_pondIdInfo[id].size();
-	m_pondSurfaceArea[id] = cellNum * cellArea;	
+    if (m_inputSubbsnID != FLD_IN_SUBID){
+	    // now, we assume if the cell is pond, then the cell area is pond area, the whole pond area is the sun of all cell area
+	    float cellArea = m_cellWidth * m_cellWidth;
+	    float cellNum = m_pondIdInfo[id].size();
+        m_pondSurfaceArea[id] = cellNum * cellArea;	
+    }
+    else { // if the field version, read unitarea parameter directly
+        m_pondSurfaceArea[id] = m_unitArea[id];	
+    }
 }
 
 void POND::Get1DData(const char *key, int *n, float **data)

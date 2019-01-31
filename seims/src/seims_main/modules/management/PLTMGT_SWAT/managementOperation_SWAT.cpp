@@ -619,22 +619,33 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     if (m_month == tmpOperation->GetMonth() && m_day == tmpOperation->GetDay()) {
         dateDepent = true;
     }
+    if(i == 63054){
+	                    std::ofstream fout;
+				        fout.open("D:\\m_phuAccum.txt", std::ios::app);
+				        fout << m_phuAccum[i] << "\n";
+				        fout << std::flush;
+				        fout.close();
+                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			        }
     /// If husc is defined
     if (tmpOperation->GetHUFraction() > 0.f) {
         float aphu = NODATA_VALUE; /// fraction of total heat units accumulated
         if (!FloatEqual(m_dormFlag[i], 1.f)) {
-            if (tmpOperation->UseBaseHUSC() && FloatEqual(m_igro[i], 0.f)) {
+            if (!tmpOperation->UseBaseHUSC() && FloatEqual(m_igro[i], 0.f)) {
                 // use base hu
                 aphu = m_phuBase[i];
                 if (aphu >= tmpOperation->GetHUFraction()) {
                     huscDepent = true;
                 }
+                //cout<<"phubase:"<<m_phuBase[i]<<endl;
             } else {
                 // use accumulated plant hu
                 aphu = m_phuAccum[i];
                 if (aphu >= tmpOperation->GetHUFraction()) {
                     huscDepent = true;
                 }
+                if(i == 63054)
+                    cout<<"m_phuAccum:"<<m_phuAccum[i]<<",,,GetHUFraction:"<<tmpOperation->GetHUFraction()<<endl;
             }
         }
     }
@@ -1948,6 +1959,7 @@ int MGTOpt_SWAT::Execute() {
         /// 3. Check if there are suitable operations, and execute them.
         vector<int> curOps;
         if (GetOperationCode(i, curFactoryID, curOps)) {
+            //cout<<"GetOperationCode:"<<i<<endl;
             for (auto it = curOps.begin(); it != curOps.end(); ++it) {
                 ScheduledManagement(i, curFactoryID, *it);
             }
