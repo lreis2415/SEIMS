@@ -23,7 +23,7 @@ AET_PT_H::~AET_PT_H() {
 }
 
 void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_AET_PTH, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_ESCO)) m_esco = data;
     else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
@@ -41,9 +41,8 @@ void AET_PT_H::Set1DData(const char* key, const int n, float* data) {
 }
 
 void AET_PT_H::Set2DData(const char* key, const int n, const int col, float** data) {
-    CheckInputSize(key, n);
+    CheckInputSize2D(MID_AET_PTH, key, n, col, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_maxSoilLyrs = col;
     if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_AWC)) m_solFC = data;
@@ -52,22 +51,6 @@ void AET_PT_H::Set2DData(const char* key, const int n, const int col, float** da
     else {
         throw ModelException(MID_AET_PTH, "Set2DData", "Parameter " + sk + " does not exist.");
     }
-}
-
-bool AET_PT_H::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_AET_PTH, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_AET_PTH, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
 }
 
 bool AET_PT_H::CheckInputData() {

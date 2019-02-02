@@ -38,15 +38,6 @@ public:
     int Execute() OVERRIDE;
 
 private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
-
-private:
     /// valid cells number
     int m_nCells;
     /// cell width (m)

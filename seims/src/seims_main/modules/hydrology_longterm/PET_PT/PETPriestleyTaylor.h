@@ -49,15 +49,6 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
-
-private:
     /// mean air temperature for a given day(degree)
     float* m_meanTemp;
     /// maximum air temperature for a given day(degree)

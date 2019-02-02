@@ -60,10 +60,7 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
-
-private:
-    bool CheckInputSize(const char* key, int n);
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
     /// Hillslope time step (second)

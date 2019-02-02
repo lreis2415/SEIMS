@@ -59,19 +59,6 @@ public:
     void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
 private:
-    ///////////// Module specific functions /////////////
-
-    /*!
-    * \brief Check the input size of the first dimension of array-based data.
-    *        Make sure all the input data have same first dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char *key, int n);
-
-private:
     int m_nCells; ///< valid cells number
 };
 

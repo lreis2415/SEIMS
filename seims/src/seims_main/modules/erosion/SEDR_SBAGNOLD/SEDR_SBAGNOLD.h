@@ -68,8 +68,6 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
     void PointSourceLoading();
 
     void SedChannelRouting(int i);

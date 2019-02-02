@@ -35,7 +35,7 @@ public:
 
     void SetValue(const char *key, float value) OVERRIDE;
 
-    void Set1DData(const char *key, int nRows, float *data) OVERRIDE;
+    void Set1DData(const char *key, int nrows, float *data) OVERRIDE;
 
     void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
@@ -47,19 +47,9 @@ public:
 
     void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
+    void Get2DData(const char *key, int *nrows, int *ncols, float ***data) OVERRIDE;
 
 private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param key The key of the input data
-     * \param n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char *key, int n);
-
-
     bool FlowInSoil(int id);
 private:
     /// current subbasin ID, 0 for the entire watershed

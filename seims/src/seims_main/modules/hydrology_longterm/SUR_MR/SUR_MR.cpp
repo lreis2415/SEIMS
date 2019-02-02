@@ -123,22 +123,6 @@ int SUR_MR::Execute() {
     return 0;
 }
 
-bool SUR_MR::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SUR_MR, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SUR_MR, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void SUR_MR::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_HillSlopeTimeStep)) m_dt = value;
@@ -152,7 +136,7 @@ void SUR_MR::SetValue(const char* key, const float value) {
 }
 
 void SUR_MR::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SUR_MR, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_RUNOFF_CO)) m_potRfCoef = data;
     else if (StringMatch(sk, VAR_NEPR)) m_netPcp = data;
@@ -171,8 +155,7 @@ void SUR_MR::Set1DData(const char* key, const int n, float* data) {
 
 void SUR_MR::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize(key, nrows);
-    m_maxSoilLyrs = ncols;
+    CheckInputSize2D(MID_SUR_MR, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOL_AWC)) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
     else {

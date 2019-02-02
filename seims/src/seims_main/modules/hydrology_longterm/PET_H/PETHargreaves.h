@@ -47,44 +47,23 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
+    // Parameters from Database
+    int m_nCells; ///< valid units number
+    float m_HCoef_pet; ///< coefficient related to radiation used in Hargreaves method
+    float m_petFactor; ///< Correction Factor for PET
+    float* m_cellLat; ///< latitude of each valid units
+    float* m_phuAnn; ///< annual PHU of each valid units
 
-private:
-    /// Parameters from Database
-    /// mean air temperature for a given day(degree)
-    float* m_meanTemp;
-    /// maximum air temperature for a given day(degree)
-    float* m_maxTemp;
-    /// minimum air temperature for a given day(degree)
-    float* m_minTemp;
-    /// relative humidity(%)
-    float* m_rhd;
-    /// latitude of each valid cells
-    float* m_cellLat;
-    /// annual PHU
-    float* m_phuAnn;
-    /// valid cell number
-    int m_nCells;
-    /// coefficient related to radiation used in Hargreaves method
-    float m_HCoef_pet;
-    /// Correction Factor for PET
-    float m_petFactor;
+    // Inputs from the output of other modules
+    float* m_meanTemp; ///< mean air temperature for a given day (deg C)
+    float* m_maxTemp; ///< maximum air temperature for a given day (deg C)
+    float* m_minTemp; ///< minimum air temperature for a given day (deg C)
+    float* m_rhd = nullptr; ///< relative humidity (%)
 
-    /// output
-
-    /// day length (hr)
-    float* m_dayLen;
-    /// base zero total heat units (used when no land cover is growing)
-    float* m_phuBase;
-    /// pet
-    float* m_pet;
-    /// vapor pressure deficit
-    float* m_vpd;
+    // Output variables
+    float* m_dayLen; ///< day length (hr)
+    float* m_phuBase; ///< base zero total heat units (used when no land cover is growing)
+    float* m_pet; ///< potential evapotranspiration on the day
+    float* m_vpd; ///< vapor pressure deficit
 };
 #endif /* SEIMS_MODULE_PET_H_H */

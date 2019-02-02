@@ -208,9 +208,9 @@ void SSR_DA::SetValue(const char* key, const float value) {
     }
 }
 
-void SSR_DA::Set1DData(const char* key, const int nRows, float* data) {
+void SSR_DA::Set1DData(const char* key, const int nrows, float* data) {
     string s(key);
-    CheckInputSize(key, nRows);
+    CheckInputSize(MID_SSR_DA, key, nrows, m_nCells);
     if (StringMatch(s, VAR_SLOPE)) {
         m_slope = data;
     } else if (StringMatch(s, VAR_CHWIDTH)) {
@@ -233,38 +233,31 @@ void SSR_DA::Set1DData(const char* key, const int nRows, float* data) {
 void SSR_DA::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
     if (StringMatch(sk, VAR_SOILTHICK)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilThk = data;
     } else if (StringMatch(sk, VAR_CONDUCT)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_ks = data;
     } else if (StringMatch(sk, VAR_SOL_UL)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilSat = data;
     } else if (StringMatch(sk, VAR_SOL_AWC)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilFC = data;
     } else if (StringMatch(sk, VAR_SOL_WPMM)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilWP = data;
     } else if (StringMatch(sk, VAR_POREIDX)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_poreIdx = data;
     } else if (StringMatch(sk, VAR_SOL_ST)) {
-        CheckInputSize(key, nrows);
-        m_maxSoilLyrs = ncols;
+        CheckInputSize2D(MID_SSR_DA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
         m_soilWtrSto = data;
     } else if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
-        m_nRteLyrs = nrows;
+        CheckInputSize(MID_SSR_DA, key, nrows, m_nRteLyrs);
         m_rteLyrs = data;
     } else if (StringMatch(sk, Tag_FLOWIN_INDEX_D8)) {
-        CheckInputSize(key, nrows);
+        CheckInputSize(MID_SSR_DA, key, nrows, m_nCells);
         m_flowInIdxD8 = data;
     } else {
         throw ModelException(MID_SSR_DA, "Set2DData", "Parameter " + sk + " does not exist.");
@@ -281,11 +274,11 @@ void SSR_DA::Get1DData(const char* key, int* n, float** data) {
     *n = m_nSubbsns + 1;
 }
 
-void SSR_DA::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void SSR_DA::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    *nRows = m_nCells;
-    *nCols = m_maxSoilLyrs;
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
 
     if (StringMatch(sk, VAR_SSRU)) {
         *data = m_subSurfRf;
@@ -330,20 +323,4 @@ void SSR_DA::InitialOutputs() {
     if (nullptr == m_ifluQ2Rch) Initialize1DArray(m_nSubbsns + 1, m_ifluQ2Rch, 0.f);
     if (nullptr == m_subSurfRf) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRf, 0.f);
     if (nullptr == m_subSurfRfVol) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_subSurfRfVol, 0.f);
-}
-
-bool SSR_DA::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SSR_DA, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SSR_DA, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
 }

@@ -7,7 +7,7 @@ NutrientinGroundwater::NutrientinGroundwater() :
     m_gwNO3Conc(nullptr), m_gwNO3(nullptr),
     m_gwSolPConc(nullptr), m_gwSolP(nullptr), m_gw_q(nullptr), m_gwStor(nullptr),
     m_perco_no3_gw(nullptr), m_perco_solp_gw(nullptr), m_soilNO3(nullptr),
-    m_soilSolP(nullptr), m_nSoilLayers(-1),
+    m_soilSolP(nullptr), m_maxSoilLyrs(-1),
     m_nSoilLyrs(nullptr), m_gwNO3ToCh(nullptr), m_gwSolPToCh(nullptr), m_nSubbsns(-1),
     m_subbsnID(nullptr), m_subbasinsInfo(nullptr) {
 
@@ -25,24 +25,6 @@ void NutrientinGroundwater::SetSubbasins(clsSubbasins* subbasins) {
         // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
     }
-}
-
-bool NutrientinGroundwater::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_NUTRGW, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
-                    ". The origin size is " << m_nCells << ".\n";
-            throw ModelException(MID_NUTRGW, "CheckInputSize", oss.str());
-        }
-    }
-    return true;
 }
 
 bool NutrientinGroundwater::CheckInputData() {
@@ -74,24 +56,23 @@ void NutrientinGroundwater::SetValue(const char* key, const float value) {
 void NutrientinGroundwater::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_NUTRGW, key, n, m_nCells);
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_SBQG)) m_gw_q = data;
     else if (StringMatch(sk, VAR_SBGS)) m_gwStor = data;
     else if (StringMatch(sk, VAR_PERCO_N_GW)) m_perco_no3_gw = data;
     else if (StringMatch(sk, VAR_PERCO_P_GW)) m_perco_solp_gw = data;
     else if (StringMatch(sk, VAR_SOILLAYERS)) {
-        CheckInputSize(key, n);
+        CheckInputSize(MID_NUTRGW, key, n, m_nCells);
         m_nSoilLyrs = data;
     } else {
         throw ModelException(MID_NUTRGW, "Set1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void NutrientinGroundwater::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void NutrientinGroundwater::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_NUTRGW, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_nSoilLayers = nCols;
     if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_SOLP)) m_soilSolP = data;
     else {

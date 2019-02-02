@@ -46,22 +46,6 @@ bool PETPenmanMonteith::CheckInputData() {
     return true;
 }
 
-bool PETPenmanMonteith::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PET_PM, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PET_PM, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void PETPenmanMonteith::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_CO2)) m_co2Conc = value;
@@ -74,7 +58,7 @@ void PETPenmanMonteith::SetValue(const char* key, const float value) {
 }
 
 void PETPenmanMonteith::Set1DData(const char* key, const int n, float* value) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PET_PM, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = value;
     else if (StringMatch(sk, VAR_TMAX)) m_maxTemp = value;

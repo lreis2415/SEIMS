@@ -42,15 +42,6 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    /*!
-     * \brief Check length of the input variable
-     * \param[in] key the key to identify the requested data
-     * \param[in] n size of the input 1D data
-     * \param[out] m_n the corresponding member variable of length
-     */
-    static bool CheckInputSize(string& key, int n, int& m_n);
-
-
 private:
     // This is the climate data type. It is used to get the specific lapse rate from lapse_rate table.
     // It is also used to create a string which can match the output id.

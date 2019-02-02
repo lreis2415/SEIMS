@@ -33,7 +33,7 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -42,9 +42,6 @@ public:
     void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputSize2D(const char* key, int n, int col);
     /// valid cells number
     int m_nCells;
 
@@ -62,9 +59,9 @@ private:
 
     /**  soil properties  **/
     /// soil layers,used to compute the water stress
-    float* m_nSoilLayers;
+    float* m_nSoilLyrs;
     /// maximum soil layers
-    int m_soilLayers;
+    int m_maxSoilLyrs;
     /// maximum root depth
     float* m_soilZMX;
     /// albedo when soil is moist

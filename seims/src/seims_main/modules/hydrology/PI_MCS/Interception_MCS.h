@@ -40,16 +40,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
-
-private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     * \param key The key of the input data
-     * \param n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
+    void Get1DData(const char* key, int* nrows, float** data) OVERRIDE;
 
 private:
     /* Parameters from database */

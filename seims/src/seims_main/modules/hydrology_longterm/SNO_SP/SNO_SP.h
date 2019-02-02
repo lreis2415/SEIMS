@@ -51,9 +51,6 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-private:
     //! Valid cells number
     int m_nCells;
     //! Mean air temperature at which snow melt will occur, sub_smtmp

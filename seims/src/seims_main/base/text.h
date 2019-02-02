@@ -1,4 +1,5 @@
 /*!
+ * \file text.h
  * \brief Predefined string constants used in the code
  *        BE CAUTION, constant value must be aligned by SPACE, not TAB!
  * \author Junzhi Liu, LiangJun Zhu, Huiran Gao
@@ -9,7 +10,7 @@
 #define SEIMS_TEXT_H
 
 #define MODEL_NAME                             "SEIMS"
-#define MODEL_VERSION                          "2018"
+#define MODEL_VERSION                          "2019"
 #define SEIMS_EMAIL                            "zlj@lreis.ac.cn"
 #define SEIMS_SITE                             "https://github.com/lreis2415/SEIMS"
 
@@ -298,7 +299,7 @@
 #define MCLSDESC_INTERC                        "Precipation interception module"
 #define MID_PI_SVSC                            "PI_SVSC"
 #define MDESC_PI_SVSC                          "Precipitation interception by seasonal variation of storage capacity method"
-#define MID_PI_MSC                             "PI_MSC"
+#define MID_PI_MCS                             "PI_MCS"
 #define MDESC_PI_MCS                           "Precipitation interception based on Maximum Canopy Storage"
 /// Snow redistribution
 #define MCLS_SNO_RD                            "Snow redistribution"

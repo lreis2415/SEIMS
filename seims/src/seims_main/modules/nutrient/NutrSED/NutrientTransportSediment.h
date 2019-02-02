@@ -45,7 +45,7 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins*) OVERRIDE;
 
@@ -57,7 +57,7 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
     /*!
@@ -71,15 +71,6 @@ private:
     * \return bool The validity of the inputs data.
     */
     bool CheckInputDataCFarmModel();
-
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
 
     /*!
     * \brief calculates the amount of organic nitrogen removed in surface runoff.

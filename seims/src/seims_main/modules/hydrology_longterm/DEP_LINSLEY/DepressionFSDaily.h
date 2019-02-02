@@ -66,9 +66,6 @@ public:
     void InitialOutputs() OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-private:
     /// valid cells number
     int m_nCells;
     /// impound/release

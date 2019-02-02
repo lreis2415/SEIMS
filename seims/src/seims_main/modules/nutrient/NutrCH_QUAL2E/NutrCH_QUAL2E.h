@@ -62,15 +62,6 @@ public:
     TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
 
 private:
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
     bool CheckInputCellSize(const char* key, int n);
 
     void AddInputNutrient(int i);

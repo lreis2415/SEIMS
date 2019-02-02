@@ -42,10 +42,6 @@ public:
     int Execute() OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-
-private:
     /// size of array
     int m_nCells;
     /// maximum soil layers

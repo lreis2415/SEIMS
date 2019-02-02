@@ -133,24 +133,6 @@ void NutrientMovementViaWater::SumBySubbasin() {
     }
 }
 
-bool NutrientMovementViaWater::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_NUTRMV, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
-                    ". The origin size is " << m_nCells << ".\n";
-            throw ModelException(MID_NUTRMV, "CheckInputSize", oss.str());
-        }
-    }
-    return true;
-}
-
 bool NutrientMovementViaWater::CheckInputData() {
     CHECK_POSITIVE(MID_NUTRMV, m_nSubbsns);
     CHECK_POSITIVE(MID_NUTRMV, m_nCells);
@@ -210,7 +192,7 @@ void NutrientMovementViaWater::SetValue(const char* key, const float value) {
 }
 
 void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* data) {
-    if (!CheckInputSize(key, n)) return;
+    if (!CheckInputSize(MID_NUTRMV, key, n, m_nCells)) return;
     string sk(key);
     if (StringMatch(sk, VAR_OLFLOW)) {
         m_surfRf = data;
@@ -243,15 +225,15 @@ void NutrientMovementViaWater::Set1DData(const char* key, const int n, float* da
     }
 }
 
-void NutrientMovementViaWater::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
+void NutrientMovementViaWater::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
     if (StringMatch(sk, Tag_ROUTING_LAYERS)) {
-        m_nRteLyrs = nRows;
+        m_nRteLyrs = nrows;
         m_rteLyrs = data;
         return;
     }
-    if (!CheckInputSize(key, nRows)) return;
-    m_maxSoilLyrs = nCols;
+    if (!CheckInputSize2D(MID_NUTRMV, key, nrows, ncols, m_nCells, m_maxSoilLyrs)) return;
+
     if (StringMatch(sk, VAR_SSRU)) m_subSurfRf = data;
     else if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_BD)) m_soilBD = data;

@@ -44,7 +44,7 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -55,15 +55,12 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-private:
     //! valid cell number
     int m_nCells;
     //! cell width (m)
     float m_cellWth;
     //! soil layer number
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
 
     // grid from parameter
 

@@ -78,22 +78,6 @@ bool SoilTemperatureFINPL::CheckInputData() {
     return true;
 }
 
-bool SoilTemperatureFINPL::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_STP_FP, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_STP_FP, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-        }
-    }
-    return true;
-}
-
 void SoilTemperatureFINPL::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_SOL_TA0)) m_a0 = value;
@@ -108,7 +92,7 @@ void SoilTemperatureFINPL::SetValue(const char* key, const float value) {
 }
 
 void SoilTemperatureFINPL::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_STP_FP, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOIL_T10)) m_soilTempRelFactor10 = data;
     else if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = data;

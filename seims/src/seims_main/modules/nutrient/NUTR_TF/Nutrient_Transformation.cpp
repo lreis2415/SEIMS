@@ -74,24 +74,6 @@ Nutrient_Transformation::~Nutrient_Transformation() {
     if (m_conv_wt != nullptr) Release2DArray(m_nCells, m_conv_wt);
 }
 
-bool Nutrient_Transformation::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_NUTR_TF, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_NUTR_TF, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid with size: " + ValueToString(n) +
-                                 ". The origin size is " + ValueToString(m_nCells) + ".\n");
-        }
-    }
-    if (m_cellAreaFr < 0.f) m_cellAreaFr = 1.f / m_nCells;
-    return true;
-}
-
 bool Nutrient_Transformation::CheckInputData() {
     CHECK_POSITIVE(MID_NUTR_TF, m_nCells);
     CHECK_POSITIVE(MID_NUTR_TF, m_cellAreaFr);
@@ -150,7 +132,7 @@ void Nutrient_Transformation::SetValue(const char* key, const float value) {
 }
 
 void Nutrient_Transformation::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_NUTR_TF, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_LANDCOVER)) {
         m_landCover = data;
@@ -186,10 +168,9 @@ void Nutrient_Transformation::Set1DData(const char* key, const int n, float* dat
     }
 }
 
-void Nutrient_Transformation::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void Nutrient_Transformation::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_NUTR_TF, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_maxSoilLyrs = nCols;
     if (StringMatch(sk, VAR_SOL_CBN)) {
         m_soilCbn = data;
     } else if (StringMatch(sk, VAR_SOL_BD)) {
@@ -233,6 +214,7 @@ void Nutrient_Transformation::Set2DData(const char* key, const int nRows, const 
 
 void Nutrient_Transformation::InitialOutputs() {
     CHECK_POSITIVE(MID_NUTR_TF, m_nCells);
+    if (m_cellAreaFr < 0.f) m_cellAreaFr = 1.f / m_nCells;
     CHECK_POSITIVE(MID_NUTR_TF, m_maxSoilLyrs);
     if (m_hmntl == nullptr) Initialize1DArray(m_nCells, m_hmntl, 0.f);
     if (m_hmptl == nullptr) Initialize1DArray(m_nCells, m_hmptl, 0.f);

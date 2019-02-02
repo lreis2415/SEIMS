@@ -38,17 +38,7 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
-
-private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param key The key of the input data
-     * \param n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
     /// maximum number of soil layers

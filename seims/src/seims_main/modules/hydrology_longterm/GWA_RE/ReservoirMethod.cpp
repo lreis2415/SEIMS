@@ -3,7 +3,7 @@
 #include "text.h"
 
 ReservoirMethod::ReservoirMethod() :
-    m_dt(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_nMaxSoilLayers(-1),
+    m_dt(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_maxSoilLyrs(-1),
     m_nSoilLyrs(nullptr), m_soilThk(nullptr),
     m_dp_co(NODATA_VALUE), m_Kg(NODATA_VALUE), m_Base_ex(NODATA_VALUE),
     m_soilPerco(nullptr), m_IntcpET(nullptr), m_deprStoET(nullptr),
@@ -189,7 +189,7 @@ bool ReservoirMethod::CheckInputData() {
     CHECK_POSITIVE(MID_GWA_RE, m_nSubbsns);
     CHECK_POSITIVE(MID_GWA_RE, m_cellWth);
     CHECK_POSITIVE(MID_GWA_RE, m_dt);
-    CHECK_POSITIVE(MID_GWA_RE, m_nMaxSoilLayers);
+    CHECK_POSITIVE(MID_GWA_RE, m_maxSoilLyrs);
     CHECK_NODATA(MID_GWA_RE, m_dp_co);
     CHECK_NODATA(MID_GWA_RE, m_Kg);
     CHECK_NODATA(MID_GWA_RE, m_Base_ex);
@@ -204,22 +204,6 @@ bool ReservoirMethod::CheckInputData() {
     CHECK_POINTER(MID_GWA_RE, m_nSoilLyrs);
     CHECK_POINTER(MID_GWA_RE, m_soilThk);
     CHECK_POINTER(MID_GWA_RE, m_subbasinsInfo);
-    return true;
-}
-
-bool ReservoirMethod::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_GWA_RE, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_GWA_RE, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }
 
@@ -247,7 +231,7 @@ void ReservoirMethod::Set1DData(const char* key, const int n, float* data) {
         return;
     }
     //check the input data
-    if (!CheckInputSize(key, n)) return;
+    if (!CheckInputSize(MID_GWA_RE, key, n, m_nCells)) return;
 
     //set the value
     if (StringMatch(sk, VAR_INET)) {
@@ -271,8 +255,7 @@ void ReservoirMethod::Set1DData(const char* key, const int n, float* data) {
 
 void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize(key, nrows);
-    m_nMaxSoilLayers = ncols;
+    CheckInputSize2D(MID_GWA_RE, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
 
     if (StringMatch(sk, VAR_PERCO)) {
         m_soilPerco = data;
@@ -287,44 +270,44 @@ void ReservoirMethod::Set2DData(const char* key, const int nrows, const int ncol
     }
 }
 
-void ReservoirMethod::SetSubbasins(clsSubbasins* subbasins) {
+void ReservoirMethod::SetSubbasins(clsSubbasins* subbsns) {
     if (m_subbasinsInfo == nullptr) {
-        m_subbasinsInfo = subbasins;
+        m_subbasinsInfo = subbsns;
         // m_nSubbasins = m_subbasinsInfo->GetSubbasinNumber(); // Set in SetValue()! lj
         m_subbasinIDs = m_subbasinsInfo->GetSubbasinIDs();
     }
 }
 
-void ReservoirMethod::Get1DData(const char* key, int* nRows, float** data) {
+void ReservoirMethod::Get1DData(const char* key, int* nrows, float** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_REVAP)) {
         *data = m_revap;
-        *nRows = m_nCells;
+        *nrows = m_nCells;
     } else if (StringMatch(sk, VAR_RG)) {
         *data = m_T_RG;
-        *nRows = m_nSubbsns + 1;
+        *nrows = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SBQG)) {
         *data = m_T_QG;
-        *nRows = m_nSubbsns + 1;
+        *nrows = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SBGS)) {
         *data = m_gwSto;
-        *nRows = m_nSubbsns + 1;
+        *nrows = m_nSubbsns + 1;
     } else if (StringMatch(sk, VAR_SBPET)) {
         *data = m_petSubbsn;
-        *nRows = m_nSubbsns + 1;
+        *nrows = m_nSubbsns + 1;
     } else {
         throw ModelException(MID_GWA_RE, "Get1DData", "Parameter " + sk + " does not exist.");
     }
 }
 
-void ReservoirMethod::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void ReservoirMethod::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
     if (StringMatch(sk, VAR_GWWB)) {
         *data = m_T_GWWB;
-        *nRows = m_nSubbsns + 1;
-        *nCols = 6;
+        *nrows = m_nSubbsns + 1;
+        *ncols = 6;
     } else {
         throw ModelException(MID_GWA_RE, "Get2DData", "Parameter " + sk + " does not exist in current module.");
     }

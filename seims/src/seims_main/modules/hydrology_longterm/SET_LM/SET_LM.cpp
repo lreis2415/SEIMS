@@ -3,7 +3,7 @@
 #include "text.h"
 
 SET_LM::SET_LM() :
-    m_nCells(-1), m_nSoilLyrs(nullptr),
+    m_nCells(-1), m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr),
     m_soilThk(nullptr), m_soilWtrSto(nullptr), m_soilFC(nullptr),
     m_pet(nullptr), m_IntcpET(nullptr),
     m_deprStoET(nullptr), m_maxPltET(nullptr), m_soilTemp(nullptr),
@@ -73,9 +73,9 @@ void SET_LM::SetValue(const char* key, const float value) {
     }
 }
 
-void SET_LM::Set1DData(const char* key, const int nRows, float* data) {
+void SET_LM::Set1DData(const char* key, const int nrows, float* data) {
     string s(key);
-    CheckInputSize(key, nRows);
+    CheckInputSize(MID_SET_LM, key, nrows, m_nCells);
     if (StringMatch(s, VAR_SOILLAYERS)) m_nSoilLyrs = data;
     else if (StringMatch(s, VAR_INET)) m_IntcpET = data;
     else if (StringMatch(s, VAR_PET)) m_pet = data;
@@ -89,7 +89,7 @@ void SET_LM::Set1DData(const char* key, const int nRows, float* data) {
 
 void SET_LM::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize(key, nrows);
+    CheckInputSize2D(MID_SET_LM, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOL_AWC)) m_soilFC = data;
     else if (StringMatch(sk, VAR_SOL_ST)) m_soilWtrSto = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
@@ -108,22 +108,6 @@ bool SET_LM::CheckInputData() {
     CHECK_POINTER(MID_SET_LM, m_soilWtrSto);
     CHECK_POINTER(MID_SET_LM, m_soilTemp);
     CHECK_NODATA(MID_SET_LM, m_soilFrozenTemp);
-    return true;
-}
-
-bool SET_LM::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SET_LM, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SET_LM, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }
 

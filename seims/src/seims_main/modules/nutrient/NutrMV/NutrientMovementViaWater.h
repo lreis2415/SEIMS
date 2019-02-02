@@ -39,7 +39,7 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -54,15 +54,6 @@ public:
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
 private:
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
     /*!
     * \brief Calculate the loss of nitrate via surface runoff, lateral flow, tile flow,
     *          and percolation out of the profile.

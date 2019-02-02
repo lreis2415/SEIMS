@@ -68,8 +68,6 @@ public:
 
 private:
 
-    bool CheckInputSize(const char* key, int n);
-
     void PointSourceLoading();
 
     bool ChannelFlow(int i);

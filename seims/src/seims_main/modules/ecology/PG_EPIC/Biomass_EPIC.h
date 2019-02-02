@@ -36,7 +36,7 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -46,12 +46,9 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputSize2D(const char* key, int n, int col);
     //////////////////////////////////////////////////////////////////////////
     //  The following code is transferred from swu.f of SWAT rev. 637
     //  Distribute potential plant evaporation through

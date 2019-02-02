@@ -54,16 +54,6 @@ public:
     TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
 
 private:
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
-private:
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
     /// cell width of grid map (m)
@@ -99,7 +89,7 @@ private:
     /// amount of soluble phosphorus stored in the soil layer
     float** m_soilSolP;
     /// max number of soil layers
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
     /// number of soil layers of each cell
     float* m_nSoilLyrs;
 

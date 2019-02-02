@@ -54,7 +54,7 @@ public:
 
     void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void SetSubbasins(clsSubbasins*) OVERRIDE;
+    void SetSubbasins(clsSubbasins* subbsns) OVERRIDE;
 
     bool CheckInputData() OVERRIDE;
 
@@ -62,22 +62,11 @@ public:
 
     int Execute() OVERRIDE;
 
-    void Get1DData(const char* key, int* nRows, float** data) OVERRIDE;
+    void Get1DData(const char* key, int* nrows, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
     TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
-
-private:
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param key: The key of the input data
-     * \param n: The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
 
 private:
     //inputs
@@ -89,7 +78,7 @@ private:
     //! cell size of the grid (m)
     float m_cellWth;
     //! maximum soil layers number
-    int m_nMaxSoilLayers;
+    int m_maxSoilLyrs;
     //! soil layers number of each cell
     float* m_nSoilLyrs;
     //! soil thickness of each layer

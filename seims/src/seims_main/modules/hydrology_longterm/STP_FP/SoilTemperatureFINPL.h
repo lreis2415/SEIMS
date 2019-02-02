@@ -47,16 +47,6 @@ public:
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
 private:
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     * \param key The key of the input data
-     * \param n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
-
-private:
     /// from parameter database
     /// coefficients in the Equation
     float m_a0, m_a1, m_a2, m_a3, m_b1, m_b2, m_d1, m_d2;

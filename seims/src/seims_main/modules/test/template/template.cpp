@@ -35,20 +35,6 @@ bool ModuleTemplate::CheckInputData() {
 void ModuleTemplate::InitialOutputs() {
 }
 
-
-bool ModuleTemplate::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) return false;
-    if (m_nCells == n) return true;
-    if (m_nCells <= 0) {
-        m_nCells = n;
-    } else {
-        throw ModelException("ModuleTemplate", "CheckInputSize", "Input data for "
-                             + string(key) + " is invalid with size: " + ValueToString(n)
-                             + ". The origin size is " + ValueToString(m_nCells) + ".\n");
-    }
-    return true;
-}
-
 int ModuleTemplate::Execute() {
     return 0;
 }
