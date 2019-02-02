@@ -13,6 +13,7 @@
 
 ## BMPs scenario analysis {#BMPsScenarioAnalysis}
 
++ Zhu, L.-J., Qin, C.-Z., Zhu, A-X., Liu, J., Wu, H., 2019. [Effects of different spatial configuration units for the spatial optimization of watershed best management practice scenarios](https://doi.org/10.3390/w11020262). Water, 11(2), 262.
 + Qin, C.-Z., Gao, H.-R., Zhu, L.-J., Zhu, A-X., Liu, J.-Z., Wu, H., 2018. [Spatial optimization of watershed best management practices based on slope position units](https://doi.org/10.2489/jswc.73.5.504). Journal of Soil and Water Conservation 73(5), 504-517.
 + 高会然, 秦承志, 朱良君, 朱阿兴, 刘军志, 吴辉, 2018. [以坡位为空间配置单元的流域管理措施情景优化方法](http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=DQXX201806010&v=MDk2MjV4WVM3RGgxVDNxVHJXTTFGckNVUkxLZllPZG1GeXpoVUx2TUlUelRkckc0SDluTXFZOUVaSVI4ZVgxTHU=). 地球信息科学学报 20(6), 781–790. (Chinese with English Abstract.)
 + Wu, H., Zhu, A-X., Liu, J., Liu, Y., Jiang, J., 2018. [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8). Water Resource Management 32, 155–177.

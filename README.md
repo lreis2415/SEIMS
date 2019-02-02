@@ -35,7 +35,7 @@ SEIMS is still being developing and any constructive feedback (issues or push re
 
 ### BMPs scenario analysis
 
-+ Zhu, L.-J., Qin, C.-Z., Zhu, A-X., Liu, J., Wu, H., 2019. Effects of different spatial configuration units for spatial optimization of watershed best management practices scenarios. Water, under review.
++ Zhu, L.-J., Qin, C.-Z., Zhu, A-X., Liu, J., Wu, H., 2019. [Effects of different spatial configuration units for the spatial optimization of watershed best management practice scenarios](https://doi.org/10.3390/w11020262). Water, 11(2), 262.
 + Qin, C.-Z., Gao, H.-R., Zhu, L.-J., Zhu, A-X., Liu, J.-Z., Wu, H., 2018. [Spatial optimization of watershed best management practices based on slope position units](https://doi.org/10.2489/jswc.73.5.504). Journal of Soil and Water Conservation 73(5), 504-517.
 + Wu, H., Zhu, A-X., Liu, J., Liu, Y., Jiang, J., 2018. [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8). Water Resource Management 32, 155–177.
 
