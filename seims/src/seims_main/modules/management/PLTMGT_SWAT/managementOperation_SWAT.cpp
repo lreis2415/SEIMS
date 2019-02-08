@@ -5,10 +5,10 @@
 
 MGTOpt_SWAT::MGTOpt_SWAT() :
     m_subSceneID(-1), m_nCells(-1), m_cellWth(NODATA_VALUE), m_cellArea(NODATA_VALUE),
-    m_nSubbsns(-1), m_subbsnID(nullptr),
+    m_nSubbsns(-1), m_subbsnID(nullptr), m_inputSubbsnID(-1),
     /// add parameters from MongoDB
     m_landUse(nullptr), m_landCover(nullptr), m_mgtFields(nullptr),
-    m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1),
+    m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1), m_unitArea(nullptr),
     /// Soil related parameters from MongoDB
     m_soilDepth(nullptr), m_soilThick(nullptr), m_soilMaxRootD(nullptr), m_soilBD(nullptr),
     m_soilSumFC(nullptr), m_soilN(nullptr), m_soilCbn(nullptr), m_soilRock(nullptr),
@@ -173,6 +173,11 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (nullptr != tmp_soilMixedMass) Release2DArray(m_nCells, tmp_soilMixedMass);
     if (nullptr != tmp_soilNotMixedMass) Release2DArray(m_nCells, tmp_soilNotMixedMass);
     if (nullptr != tmp_smix) Release2DArray(m_nCells, tmp_smix);
+
+	if (m_phuAcc != nullptr) Release1DArray(m_phuAcc);
+	if (m_LAIDay != nullptr) Release1DArray(m_LAIDay);
+	if (m_plantN != nullptr) Release1DArray(m_plantN);
+	if (m_plantP != nullptr) Release1DArray(m_plantP);
 }
 
 void MGTOpt_SWAT::SetValue(const char* key, const float value) {
@@ -187,7 +192,10 @@ void MGTOpt_SWAT::SetValue(const char* key, const float value) {
         m_nplsb = value; 
     } else if (StringMatch(sk, VAR_LAPE)) { 
         m_lape = value; 
-    } else {
+	} else if (StringMatch(sk, Tag_SubbasinId)) { 
+		m_inputSubbsnID = CVT_INT(value);
+	}
+	else {
         throw ModelException(MID_PLTMGT_SWAT, "SetValue", "Parameter " + sk + " does not exist.");
     }
 }
@@ -219,6 +227,8 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     CheckInputSize(key, n);
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = data;
+    } else if (StringMatch(sk, VAR_FIELDAREA)) {
+        m_unitArea = data;
     } else if (StringMatch(sk, VAR_LANDUSE)) {
         m_landUse = data;
     } else if (StringMatch(sk, VAR_LANDCOVER)) {
@@ -596,6 +606,7 @@ bool MGTOpt_SWAT::CheckInputData() {
 }
 
 bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>& nOps) {
+	//if (i == 63054) cout<<"-----GetOperationCode!"<<endl;
     /// Figure out if any management operation should be applied, i.e., find sequence IDs (nOps)
     vector<int>& tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
     map<int, PltMgtOp *>& tmpOperations = m_mgtFactory[factoryID]->GetOperations();
@@ -607,6 +618,10 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
         nextSeq = m_doneOpSequence[i] + 1;
     }
     int opCode = tmpOpSeqences[nextSeq];
+	//debug, why not get the release code?
+	/*if (i == 63054){
+		cout<<"release!"<<opCode<<endl;
+	}*/
     // figure out the nextSeq is satisfied or not.
     if (tmpOperations.find(opCode) == tmpOperations.end()) {
         return false;
@@ -615,18 +630,23 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     bool dateDepent = false;
     bool huscDepent = false;
     bool dvsDepent = false;
+	if (m_year == 2013 && m_month == 6 && m_day == 1 && i == 63054)
+	{
+		cout<<"ccccccccccccccccccccccccccccccccc"<<endl;
+	}
     /// If operation applied date (month and day) are defined
     if (m_month == tmpOperation->GetMonth() && m_day == tmpOperation->GetDay()) {
         dateDepent = true;
+		if(i == 63054) cout<<tmpOperation->GetMonth()<<", day:"<<tmpOperation->GetDay()<<endl;
     }
-    if(i == 63054){
-	                    std::ofstream fout;
-				        fout.open("D:\\m_phuAccum.txt", std::ios::app);
-				        fout << m_phuAccum[i] << "\n";
-				        fout << std::flush;
-				        fout.close();
-                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
-			        }
+    //if(i == 63054){
+	   //                 std::ofstream fout;
+				//        fout.open("D:\\m_phuAccum.txt", std::ios::app);
+				//        fout << m_phuAccum[i] << "\n";
+				//        fout << std::flush;
+				//        fout.close();
+    //                    //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			 //       }
     /// If husc is defined
     if (tmpOperation->GetHUFraction() > 0.f) {
         float aphu = NODATA_VALUE; /// fraction of total heat units accumulated
@@ -644,8 +664,8 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
                 if (aphu >= tmpOperation->GetHUFraction()) {
                     huscDepent = true;
                 }
-                if(i == 63054)
-                    cout<<"m_phuAccum:"<<m_phuAccum[i]<<",,,GetHUFraction:"<<tmpOperation->GetHUFraction()<<endl;
+                //if(i == 63054)
+                //    cout<<"m_phuAccum:"<<m_phuAccum[i]<<",,,GetHUFraction:"<<tmpOperation->GetHUFraction()<<endl;
             }
         }
     }
@@ -850,7 +870,8 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
         }
         /// if water available from source, proceed with irrigation
         if (vmm > 0.f) {
-            cnv = m_cellArea * 10.f;
+            //cnv = m_cellArea * 10.f;
+			cnv = GetUnitArea(i) * 10.f;
             vmxi = m_irrApplyDepth < UTIL_ZERO ? m_soilSumFC[i] : m_irrApplyDepth;
             if (vmm > vmxi) vmm = vmxi;
             vol = vmm * cnv;
@@ -862,7 +883,8 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
                 if (m_potArea != nullptr) {
                     m_potVol[i] += vol / (10.f * m_potArea[i]);
                 } else {
-                    m_potVol[i] += vol / (10.f * m_cellArea);
+                    //m_potVol[i] += vol / (10.f * m_cellArea);
+					m_potVol[i] += vol / (10.f * GetUnitArea(i));
                 }
                 m_irrWtrAmt[i] = vmm; ///added rice irrigation 11/10/11
             } else {
@@ -972,9 +994,10 @@ void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, c
         if (FloatEqual(CVT_INT(m_landCover[i]), CROP_PADDYRICE) && fertype == 0 && m_potVol[i] > 0.f) {
             lyrs = 1;
             xx = 1.f - fertilizerSurfFrac;
-            m_potNo3[i] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN * m_cellArea; /// kg/ha * ha ==> kg
-            m_potNH4[i] += xx * fertilizerKgHa * fertNH4N * fertMinN * m_cellArea;
-            m_potSolP[i] += xx * fertilizerKgHa * fertMinP * m_cellArea;
+            //m_potNo3[i] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN * m_cellArea; /// kg/ha * ha ==> kg
+			m_potNo3[i] += xx * fertilizerKgHa * (1.f - fertNH4N) * fertMinN * GetUnitArea(i); /// kg/ha * ha ==> kg
+            m_potNH4[i] += xx * fertilizerKgHa * fertNH4N * fertMinN * GetUnitArea(i);
+            m_potSolP[i] += xx * fertilizerKgHa * fertMinP * GetUnitArea(i);
         }
     }
     for (int l = 0; l < lyrs; l++) {
@@ -1741,7 +1764,8 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(const int i, const int factoryI
     m_autoIrrWtrD[i] = curOperation->IrrigationWaterApplied();
     m_autoIrrWtr2SurfqR[i] = curOperation->SurfaceRunoffRatio();
     m_irrFlag[i] = 1;
-    /// call autoirr.f
+    if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
+	/// call autoirr.f
     /// TODO, this will be implemented as an isolated module in the near future.
 }
 
@@ -1771,6 +1795,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
     /// No more executable code here.
     RelImpndOp* curOperation = static_cast<RelImpndOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_impndTrig[i] = CVT_FLT(curOperation->ImpoundTriger());
+	if (i == 63054) cout<<"i:"<<i<<", m_impndTrig:"<<m_impndTrig[i]<<endl;
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ
     if (m_potVol == nullptr) {
@@ -1829,8 +1854,9 @@ void MGTOpt_SWAT::ExecuteRicePlantOperation(int i, int factoryID, int nOp)
 {
     m_cropsta[i] = 1.f;
     m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
-    m_phuAcc[i] = 0.f;
+    //m_phuAcc[i] = 0.f;
     m_plantN[i] = 0.f;
+	if (i == 63054) cout<<"ExecuteRicePlantOperation"<<endl;
 }
 
 void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
@@ -1880,8 +1906,9 @@ void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
     m_frRoot[i] = 0.f;
     m_plantN[i] = 0.f;
     m_plantP[i] = 0.f;
-    m_frStrsWa[i] = 1.f;
-    m_LAIDay[i] = 0.f;
+	// those var are not initial, so not use them cuuently.
+    /*m_frStrsWa[i] = 1.f;
+    m_LAIDay[i] = 0.f;*/
     m_dvs[i] = 0.f;
 }
 
@@ -2146,6 +2173,10 @@ void MGTOpt_SWAT::InitialOutputs() {
     if (nullptr == tmp_soilMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMixedMass, 0.f);
     if (nullptr == tmp_soilNotMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilNotMixedMass, 0.f);
     if (nullptr == tmp_smix) Initialize2DArray(m_nCells, 22 + 12, tmp_smix, 0.f);
+	if (nullptr == m_LAIDay) Initialize1DArray(m_nCells, m_LAIDay, 0.f);
+	if (nullptr == m_phuAcc) Initialize1DArray(m_nCells, m_phuAcc, 0.f);
+	if (nullptr == m_plantN) Initialize1DArray(m_nCells, m_plantN, 0.f);
+	if (nullptr == m_plantP) Initialize1DArray(m_nCells, m_plantP, 0.f);
     m_initialized = true;
 }
 
@@ -2158,4 +2189,9 @@ float MGTOpt_SWAT::Erfc(const float xx) {
     if (xx < 0.f) erf = -erf;
     erfc = 1.f - erf;
     return erfc;
+}
+
+float MGTOpt_SWAT::GetUnitArea(int i) {
+    if (m_inputSubbsnID == 9999) return m_unitArea[i] * 1.e-4f;
+    else return m_cellWth * m_cellWth * 1.e-4f;
 }

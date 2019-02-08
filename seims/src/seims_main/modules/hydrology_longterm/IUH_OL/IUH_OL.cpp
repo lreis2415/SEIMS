@@ -123,8 +123,8 @@ int IUH_OL::Execute() {
                 {
                     m_cellFlow[CVT_INT(m_flowPond[i])][0] += m_cellFlow[i][0];
                     // if a field flow to pond, should update its m_OL_Flow???
-                    // m_OL_Flow[i] = m_cellFlow[i][0];  
-                    // m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
+                    m_OL_Flow[i] = m_cellFlow[i][0];  
+                    m_OL_Flow[i] = m_OL_Flow[i] * m_TimeStep * 1000.f / GetUnitArea(i); // m3/s -> mm
                 }
         }
         for (int i = 0; i < m_nCells; i++) {

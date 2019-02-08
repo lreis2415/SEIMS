@@ -136,6 +136,8 @@ private:
     */
     bool CheckInputSize2D(const char* key, int n, int col);
 
+	float GetUnitArea(int i);
+
     /// initialize all possible outputs
     void InitialOutputs();
 
@@ -161,6 +163,8 @@ private:
 private:
     /// SubScenario ID
     int m_subSceneID;
+
+	int m_inputSubbsnID;
     /*
     * Plant management factory derived from BMPs Scenario
     * Key is  uniqueBMPID, which is calculated by Landuse_ID * 100 + subScenario;
@@ -175,6 +179,8 @@ private:
     float m_cellWth;
     /// cell area (ha)
     float m_cellArea;
+	/// unit(for field version) area (ha)
+	float *m_unitArea;
     /// the total number of subbasins
     int m_nSubbsns;
     /// valid cell numbers in each subbasin
