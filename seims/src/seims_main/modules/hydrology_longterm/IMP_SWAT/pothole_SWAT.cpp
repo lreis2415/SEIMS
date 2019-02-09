@@ -347,7 +347,6 @@ void IMP_SWAT::irrigateFromPond(int id){
         m_chStorage[reachId] = max(0.f, m_chStorage[reachId]);
         m_irrDepth[id] = 0.f;
     }
-	cout<<"irrigateFromPond"<<endl;
 }
 
 
@@ -381,11 +380,16 @@ int IMP_SWAT::Execute() {
     }
     else { // field version, no routinglayers currently
         for (int id = 0; id <= m_nCells; id++) {
+			if ((m_day == 30 || m_day == 31) && id == 63054 && m_month == 5){
+				cout<<"ccccccccccccccccccccccccccccccccc,"<<m_potVol[id]<<endl;
+			}
+			//if (id == 63054) cout<<"BEFORE, m_potVol:"<<m_potVol[id]<<endl;
             if (FloatEqual(m_impoundTrig[id], 0.f)) {
-				// if (id == 63054) cout<<"m_impoundTrig, m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<", m_surfaceRunoff:"<<m_surfaceRunoff[id]<<endl;
+				if (id == 63054) cout<<"BEFORE, m_potVol:"<<m_potVol[id]<<endl;
+				// if (id == 63054) cout<<"BEFORE, m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 /// if impounding trigger on
                 PotholeSimulate(id);
-				//if (id == 63054) cout<<"m_impoundTrig, m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
+				if (id == 63054) cout<<"AFTER, m_potVol:"<<m_potVol[id]<<endl;
                 // force to auto-irrigation at the end of the day, added by SF.
                 if (m_potVol[id] < m_potVolMin[id])
                 {
@@ -398,17 +402,17 @@ int IMP_SWAT::Execute() {
 					//cout<<"m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<", m_potVolUp:"<<m_potVolUp[id]<<endl;
                 }
             } else {
-				//if (id == 63054) cout<<"        release! m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
+				if (id == 63054) cout<<"        release! m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 ReleaseWater(id);
             }
-			if(id == 63054){
-	                    std::ofstream fout;
-				        fout.open("D:\\paddyWater.txt", std::ios::app);
-				        fout << m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
-				        fout << std::flush;
-				        fout.close();
-                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
-			        }
+			//if(id == 63054){
+	  //                  std::ofstream fout;
+			//	        fout.open("D:\\paddyWater.txt", std::ios::app);
+			//	        fout << m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
+			//	        fout << std::flush;
+			//	        fout.close();
+   //                     //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			//        }
         }
     } // end of the field version execute
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
@@ -453,8 +457,8 @@ int IMP_SWAT::Execute() {
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             int subi = CVT_INT(m_subbasin[i]);
-            //tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
-            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f * GetUnitArea(i) / m_timestep; /// (* m_cellArea, later) mm -> m3/s 
+            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
+            //tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f * GetUnitArea(i) / m_timestep; /// (* m_cellArea, later) mm -> m3/s 
             tmp_sed2ch[subi] += m_sedYield[i];
             tmp_sno32ch[subi] += m_surqNo3[i] * GetUnitArea(i); //for field version, calculate the unitarea in each field, instead of in subbsain
             tmp_snh42ch[subi] += m_surqNH4[i] * GetUnitArea(i);
@@ -468,8 +472,8 @@ int IMP_SWAT::Execute() {
 #pragma omp critical
         {
             for (int i = 1; i <= m_nSubbasins; i++) {
-                m_surfqToCh[i] += tmp_surfq2ch[i];
-                //m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
+                //m_surfqToCh[i] += tmp_surfq2ch[i];
+                m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
                 m_sedToCh[i] += tmp_sed2ch[i];
                 m_surNO3ToCh[i] += tmp_sno32ch[i]; //  * m_cellArea;
                 m_surNH4ToCh[i] += tmp_snh42ch[i]; //  * m_cellArea;
@@ -785,7 +789,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         if (m_LAIDay[id] < m_evLAI) {
             potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
             // if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
-			//if (id == 63054) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", "<<endl;
+			//if (id == 63054) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", m_evLAI: "<<m_evLAI<<endl;
             potev = Min(potev, m_potVol[id]);
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;

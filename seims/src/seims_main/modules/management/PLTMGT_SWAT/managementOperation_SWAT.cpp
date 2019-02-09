@@ -630,14 +630,14 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     bool dateDepent = false;
     bool huscDepent = false;
     bool dvsDepent = false;
-	if (m_year == 2013 && m_month == 6 && m_day == 1 && i == 63054)
+	/*if (m_year == 2013 && m_month == 6 && m_day == 10 && i == 63054)
 	{
 		cout<<"ccccccccccccccccccccccccccccccccc"<<endl;
-	}
+	}*/
     /// If operation applied date (month and day) are defined
     if (m_month == tmpOperation->GetMonth() && m_day == tmpOperation->GetDay()) {
         dateDepent = true;
-		if(i == 63054) cout<<tmpOperation->GetMonth()<<", day:"<<tmpOperation->GetDay()<<endl;
+		//if(i == 63054) cout<<tmpOperation->GetMonth()<<", day:"<<tmpOperation->GetDay()<<endl;
     }
     //if(i == 63054){
 	   //                 std::ofstream fout;
@@ -648,27 +648,28 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     //                    //cout<<"phubase:"<<m_phuBase[i]<<endl;
 			 //       }
     /// If husc is defined
-    if (tmpOperation->GetHUFraction() > 0.f) {
-        float aphu = NODATA_VALUE; /// fraction of total heat units accumulated
-        if (!FloatEqual(m_dormFlag[i], 1.f)) {
-            if (!tmpOperation->UseBaseHUSC() && FloatEqual(m_igro[i], 0.f)) {
-                // use base hu
-                aphu = m_phuBase[i];
-                if (aphu >= tmpOperation->GetHUFraction()) {
-                    huscDepent = true;
-                }
-                //cout<<"phubase:"<<m_phuBase[i]<<endl;
-            } else {
-                // use accumulated plant hu
-                aphu = m_phuAccum[i];
-                if (aphu >= tmpOperation->GetHUFraction()) {
-                    huscDepent = true;
-                }
-                //if(i == 63054)
-                //    cout<<"m_phuAccum:"<<m_phuAccum[i]<<",,,GetHUFraction:"<<tmpOperation->GetHUFraction()<<endl;
-            }
-        }
-    }
+	/// for zts which has actual time shecdule, now not use this method
+    //if (tmpOperation->GetHUFraction() > 0.f) {
+    //    float aphu = NODATA_VALUE; /// fraction of total heat units accumulated
+    //    if (!FloatEqual(m_dormFlag[i], 1.f)) {
+    //        if (!tmpOperation->UseBaseHUSC() && FloatEqual(m_igro[i], 0.f)) {
+    //            // use base hu
+    //            aphu = m_phuBase[i];
+    //            if (aphu >= tmpOperation->GetHUFraction()) {
+    //                huscDepent = true;
+    //            }
+    //            //cout<<"phubase:"<<m_phuBase[i]<<endl;
+    //        } else {
+    //            // use accumulated plant hu
+    //            aphu = m_phuAccum[i];
+    //            if (aphu >= tmpOperation->GetHUFraction()) {
+    //                huscDepent = true;
+    //            }
+    //            //if(i == 63054)
+    //            //    cout<<"m_phuAccum:"<<m_phuAccum[i]<<",,,GetHUFraction:"<<tmpOperation->GetHUFraction()<<endl;
+    //        }
+    //    }
+    //}
     /// if dvs is defined
     if (tmpOperation->GetDVS() > 0.f){
         if (m_dvs[i] >= tmpOperation->GetDVS()){
@@ -680,7 +681,12 @@ bool MGTOpt_SWAT::GetOperationCode(const int i, const int factoryID, vector<int>
     if (dvsDepent || dateDepent || huscDepent) {
         nOps.emplace_back(opCode);
         m_doneOpSequence[i] = nextSeq; /// update value
+		if (m_doneOpSequence[i] == 23 && i == 63054){
+			cout<<"ccccccccccccccccccccccccccccccccc"<<endl;
+		}
     }
+
+
     return !nOps.empty();
 }
 
@@ -816,6 +822,7 @@ void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const 
 }
 
 void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, const int nOp) {
+	if (id == 63054) cout<<"BEFORE,ExecuteIrrigationOperation, m_potVol:"<<m_potVol[id]<<endl;
     IrrOp* curOperation = static_cast<IrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     /// irrigation source
@@ -928,6 +935,7 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
             }
         }
     }
+	if (id == 63054) cout<<"AFTER,ExecuteIrrigationOperation, m_potVol:"<<m_potVol[id]<<endl;
 }
 
 void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, const int nOp) {
@@ -1764,7 +1772,7 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(const int i, const int factoryI
     m_autoIrrWtrD[i] = curOperation->IrrigationWaterApplied();
     m_autoIrrWtr2SurfqR[i] = curOperation->SurfaceRunoffRatio();
     m_irrFlag[i] = 1;
-    if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
+    //if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
 	/// call autoirr.f
     /// TODO, this will be implemented as an isolated module in the near future.
 }
@@ -1795,7 +1803,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
     /// No more executable code here.
     RelImpndOp* curOperation = static_cast<RelImpndOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_impndTrig[i] = CVT_FLT(curOperation->ImpoundTriger());
-	if (i == 63054) cout<<"i:"<<i<<", m_impndTrig:"<<m_impndTrig[i]<<endl;
+	//if (i == 63054) cout<<"i:"<<i<<", m_impndTrig:"<<m_impndTrig[i]<<endl;
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ
     if (m_potVol == nullptr) {
@@ -1856,7 +1864,7 @@ void MGTOpt_SWAT::ExecuteRicePlantOperation(int i, int factoryID, int nOp)
     m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
     //m_phuAcc[i] = 0.f;
     m_plantN[i] = 0.f;
-	if (i == 63054) cout<<"ExecuteRicePlantOperation"<<endl;
+	//if (i == 63054) cout<<"ExecuteRicePlantOperation"<<endl;
 }
 
 void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
@@ -1960,7 +1968,7 @@ int MGTOpt_SWAT::Execute() {
     CheckInputData(); /// essential input data, other inputs for specific management operation will be check separately.
     InitialOutputs(); /// all possible outputs will be initialized to avoid nullptr pointer problems.
     /// initialize arrays at the beginning of the current day, derived from sim_initday.f of SWAT
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         if (m_grainc_d != nullptr) m_grainc_d[i] = 0.f;
         if (m_stoverc_d != nullptr) m_stoverc_d[i] = 0.f;
@@ -1969,7 +1977,7 @@ int MGTOpt_SWAT::Execute() {
 
     if (m_mgtFactory.empty()) return 0; /// Nothing to do
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         int curLanduseID = CVT_INT(m_landUse[i]);
         int curMgtField = CVT_INT(m_mgtFields[i]);
