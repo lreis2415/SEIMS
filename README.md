@@ -3,13 +3,11 @@
 Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), and [NJNU](http://en.njnu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
-* SEIMS Documentations (**Not finished yet!**)
-  * Online versions
-    * [English (powered by Doxygen)](https://lreis2415.github.io/SEIMS/), [English without API references (powered by Gitbook)](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/en/)
-    * [简体中文（由Doxygen驱动）](https://lreis2415.github.io/SEIMS/zh-cn/), [简体中文，不含 API 参考手册（由Gitbook驱动）](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/zh-cn/)
-  * Download PDF versions without API references (powered by [Gitbook](https://www.gitbook.com/))
-    * [English](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=en)
-    * [简体中文](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=zh-cn)
+* SEIMS Documentations
+  * [PDF version](SEIMS-UserManual.pdf)
+  * Online versions (**Will coming soon!**)
+    * [English (powered by Doxygen)](https://lreis2415.github.io/SEIMS/), [English without API references (powered by Gitbook)](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/en/), and [Gitbook PDF](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=en)
+    * [简体中文（由Doxygen驱动）](https://lreis2415.github.io/SEIMS/zh-cn/), [简体中文，不含 API 参考手册（由Gitbook驱动）](https://crazyzlj.gitbooks.io/seims-documentation-version-2018/content/zh-cn/), and [Gitbook PDF](https://legacy.gitbook.com/download/pdf/book/crazyzlj/seims-documentation-version-2018?lang=zh-cn)
 
 ## Build Status
 
@@ -28,15 +26,16 @@ SEIMS is still being developing and any constructive feedback (issues or push re
 
 ## Selected peer-reviewed papers
 
-### Modeling framework related
+### Watershed modeling framework
 
-+ Zhu, L.-J., Liu, J., Qin, C.-Z., Zhu, A-X., 2018. A modular and parallelized watershed modeling framework. (Under review)
++ Zhu, L.-J., Liu, J., Qin, C.-Z., Zhu, A-X., 2019. A modular and parallelized watershed modeling framework. Environmental Modelling & Software, Under review.
 + Liu, J., Zhu, A-X., Qin, C.-Z., Wu, H., Jiang, J., 2016. [A two-level parallelization method for distributed hydrological models](http://dx.doi.org/10.1016/j.envsoft.2016.02.032). Environmental Modelling & Software 80, 175-184.
 + Liu, J., Zhu, A-X., Liu, Y., Zhu, T., Qin, C.-Z., 2014. [A layered approach to parallel computing for spatially distributed hydrological modeling](http://dx.doi.org/10.1016/j.envsoft.2013.10.005). Environmental Modelling & Software 51, 221-227.
 + Liu, J., Zhu, A-X., Qin, C.-Z., 2013. [Estimation of theoretical maximum speedup ratio for parallel computing of grid-based distributed hydrological models](https://doi.org/10.1016/j.cageo.2013.04.030). Computers & Geosciences 60, 58–62.
 
 ### BMPs scenario analysis
 
++ Zhu, L.-J., Qin, C.-Z., Zhu, A-X., Liu, J., Wu, H., 2019. [Effects of different spatial configuration units for the spatial optimization of watershed best management practice scenarios](https://doi.org/10.3390/w11020262). Water, 11(2), 262.
 + Qin, C.-Z., Gao, H.-R., Zhu, L.-J., Zhu, A-X., Liu, J.-Z., Wu, H., 2018. [Spatial optimization of watershed best management practices based on slope position units](https://doi.org/10.2489/jswc.73.5.504). Journal of Soil and Water Conservation 73(5), 504-517.
 + Wu, H., Zhu, A-X., Liu, J., Liu, Y., Jiang, J., 2018. [Best Management Practices Optimization at Watershed Scale: Incorporating Spatial Topology among Fields](https://doi.org/10.1007/s11269-017-1801-8). Water Resource Management 32, 155–177.
 

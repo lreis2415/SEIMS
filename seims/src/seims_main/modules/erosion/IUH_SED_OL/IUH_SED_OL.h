@@ -40,18 +40,13 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputData();
-
-private:
-    void InitialOutputs();
 
 private:
     /// time step (sec)

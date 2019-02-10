@@ -115,8 +115,8 @@ void PER_PI::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
     }
 }
 
-void PER_PI::Set1DData(const char* key, const int nRows, float* data) {
-    CheckInputSize(key, nRows);
+void PER_PI::Set1DData(const char* key, const int nrows, float* data) {
+    CheckInputSize(MID_PER_PI, key, nrows, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE)) m_soilTemp = data;
     else if (StringMatch(sk, VAR_INFIL)) m_infil = data;
@@ -129,9 +129,8 @@ void PER_PI::Set1DData(const char* key, const int nRows, float* data) {
 }
 
 void PER_PI::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize(key, nrows);
+    CheckInputSize2D(MID_PER_PI, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_maxSoilLyrs = ncols;
     if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_AWC)) m_soilFC = data;
@@ -168,21 +167,5 @@ bool PER_PI::CheckInputData() {
     CHECK_NODATA(MID_PER_PI, m_soilFrozenTemp);
     CHECK_POINTER(MID_PER_PI, m_soilWtrSto);
     CHECK_POINTER(MID_PER_PI, m_soilWtrStoPrfl);
-    return true;
-}
-
-bool PER_PI::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PER_PI, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }

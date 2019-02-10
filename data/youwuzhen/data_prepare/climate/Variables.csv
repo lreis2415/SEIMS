@@ -5,4 +5,6 @@ TMIN,deg C
 RM,%
 WS,m/s
 SR,MJ/m2/day
+SSD,hr
+PET,mm
 P,mm

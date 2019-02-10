@@ -48,7 +48,7 @@ email:  dtarb@usu.edu
 #include "tiffIO.h"
 #include "initneighbor.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int area(char *angfile,
          char *scafile,

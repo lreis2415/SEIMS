@@ -22,6 +22,6 @@
 
 __author__ = "SEIMS Team"
 __version__ = "2.1"
-__revision__ = "2.1.1"
+__revision__ = "2.1.2"
 __all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
            "parameters_sensitivity", "test"]

@@ -33,15 +33,13 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    bool CheckInputData() OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
+    void InitialOutputs() OVERRIDE;
 
-    bool CheckInputSize2D(const char* key, int n, int col);
-
-    bool CheckInputData();
+    void Get2DData(const char* key, int* n, int* col, float*** data) OVERRIDE;
 
 private:
     /// valid cells number
@@ -61,9 +59,9 @@ private:
 
     /**  soil properties  **/
     /// soil layers,used to compute the water stress
-    float* m_nSoilLayers;
+    float* m_nSoilLyrs;
     /// maximum soil layers
-    int m_soilLayers;
+    int m_maxSoilLyrs;
     /// maximum root depth
     float* m_soilZMX;
     /// albedo when soil is moist
@@ -445,7 +443,6 @@ private:
     //////////////////////////////////////////////////////////////////////////
     void CalRiceGrowth(int i);
 
-    void initialOutputs();
     //////////////////////////////////////////////////////////////////////////
     //  Distribute potential plant evaporation through
     //	the root zone and calculates actual plant water use based on soil

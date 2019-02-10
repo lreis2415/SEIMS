@@ -1,9 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """Plot figures based on matplotlib for parameters sensitivity analysis.
+
     @author   : Liangjun Zhu
-    @changelog: 18-1-15  lj - initial implementation.\n
-                18-02-09  lj - compatible with Python3.\n
+
+    @changelog:
+    - 18-01-15  lj - initial implementation.
+    - 18-02-09  lj - compatible with Python3.
+    - 19-01-07  lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -21,7 +25,7 @@ if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
 
-from utility import save_png_eps
+from utility import save_png_eps, PlotConfig
 
 plt.rcParams['font.family'] = ['Times New Roman']
 plt.rcParams['axes.titlesize'] = 'small'
@@ -51,7 +55,9 @@ def cal_row_col_num(tot):
     return row, col
 
 
-def sample_histograms(input_sample, names, levels, outpath, outname, param_dict):
+def sample_histograms(input_sample, names, levels, outpath, outname, param_dict,
+                      plot_cfg=None  # type: PlotConfig
+                      ):
     """Plot histograms as subplot.
 
     Args:
@@ -61,11 +67,14 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
         outpath:
         outname:
         param_dict:
+        plot_cfg:
 
     Returns:
         subplot list.
     """
     fig = plt.figure()
+    if plot_cfg is not None:
+        plt.rcParams['font.family'] = plot_cfg.font_name
     num_vars = len(names)
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):
@@ -73,23 +82,24 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
         print('%s: %.3f - %.3f, mean: %.3f' % (names[var_idx], min(input_sample[:, var_idx]),
                                                max(input_sample[:, var_idx]),
                                                numpy.average(input_sample[:, var_idx])))
-        ax.hist(input_sample[:, var_idx], bins=levels, normed=False, label=None, **param_dict)
+        ax.hist(input_sample[:, var_idx], bins=levels, density=False, label=None, **param_dict)
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
         ax.get_xaxis().set_major_locator(LinearLocator(numticks=5))
-        ax.set_title('%s' % (names[var_idx]))
+        ax.set_title('%s' % (names[var_idx]), fontsize=plot_cfg.title_fsize)
         ax.tick_params(axis='x',  # changes apply to the x-axis
                        which='both',  # both major and minor ticks are affected
-                       bottom='on',  # ticks along the bottom edge are off
-                       top='off',  # ticks along the top edge are off
-                       labelbottom='on')  # labels along the bottom edge are off)
+                       bottom=True,  # ticks along the bottom edge are off
+                       top=False,  # ticks along the top edge are off
+                       labelbottom=True  # labels along the bottom edge are off
+                       )
         ax.tick_params(axis='y',  # changes apply to the y-axis
                        which='major',  # both major and minor ticks are affected
                        length=3,
-                       right='off')
+                       right=False)
         if var_idx % col:  # labels along the left edge are off
-            ax.tick_params(axis='y', labelleft='off')
+            ax.tick_params(axis='y', labelleft=False)
     plt.tight_layout()
-    save_png_eps(plt, outpath, outname)
+    save_png_eps(plt, outpath, outname, plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
@@ -97,7 +107,7 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict)
 
 
 def empirical_cdf(out_values, subsections, input_sample, names, levels,
-                  outpath, outname, param_dict):
+                  outpath, outname, param_dict, plot_cfg=None):
     """Visualize the empirical cumulative distribution function(CDF)
     of the given variable (x) and subsections of y.
 
@@ -139,35 +149,40 @@ def empirical_cdf(out_values, subsections, input_sample, names, levels,
             zone = numpy.where((subsections[i - 1] <= out_values) & (out_values < subsections[i]))
         new_input_sample.append(input_sample[zone, :][0])
 
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    plt.rcParams['font.family'] = plot_cfg.font_name
     fig = plt.figure()
+
     num_vars = len(names)
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):
         ax = fig.add_subplot(row, col, var_idx + 1)
         for ii in range(len(labels) - 1, -1, -1):
-            ax.hist(new_input_sample[ii][:, var_idx], bins=levels, normed=True,
+            ax.hist(new_input_sample[ii][:, var_idx], bins=levels, density=True,
                     cumulative=True, label=labels[ii], **param_dict)
         ax.get_yaxis().set_major_locator(LinearLocator(numticks=5))
         ax.set_ylim(0, 1)
-        ax.set_title('%s' % (names[var_idx]))
+        ax.set_title('%s' % (names[var_idx]), fontsize=plot_cfg.title_fsize)
         ax.get_xaxis().set_major_locator(LinearLocator(numticks=3))
         ax.tick_params(axis='x',  # changes apply to the x-axis
                        which='both',  # both major and minor ticks are affected
-                       bottom='on',  # ticks along the bottom edge are off
-                       top='off',  # ticks along the top edge are off
-                       labelbottom='on')  # labels along the bottom edge are off)
+                       bottom=True,  # ticks along the bottom edge are off
+                       top=False,  # ticks along the top edge are off
+                       labelbottom=True  # labels along the bottom edge are off
+                       )
         ax.tick_params(axis='y',  # changes apply to the y-axis
                        which='major',  # both major and minor ticks are affected
                        length=3,
-                       right='off')
+                       right=False)
         if var_idx % col:  # labels along the left edge are off
-            ax.tick_params(axis='y', labelleft='off')
+            ax.tick_params(axis='y', labelleft=False)
         if var_idx == 0:
-            ax.legend(loc='lower right', fontsize='xx-small', framealpha=0.8,
+            ax.legend(loc='lower right', fontsize=plot_cfg.legend_fsize, framealpha=0.8,
                       bbox_to_anchor=(1, 0),
                       borderaxespad=0.2, fancybox=True)
     plt.tight_layout()
-    save_png_eps(plt, outpath, outname)
+    save_png_eps(plt, outpath, outname, plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()

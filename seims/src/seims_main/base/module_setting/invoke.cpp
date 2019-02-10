@@ -5,32 +5,40 @@ void Usage(const string& appname, const string& error_msg = "") {
     if (!error_msg.empty()) {
         cout << "FAILURE: " << error_msg << endl;
     }
+    string corename = GetCoreFileName(appname);
+    bool mpi_version = corename.find("mpi") != string::npos;
     cout << "Simple Usage:\n    " << appname <<
             // Common arguments
             " <modelPath> [<threadsNum> <layeringMethod> <IP> <port> <scenarioID> <calibrationID>"
-            // MPI version arguments
+            // For MPI version or Field version
             " <subbasinID>"
+            // MPI version arguments,
             // " <groupMethod> <scheduleMethod> <timeSlices>"
             "]" << endl;
-    cout << "\t<modelPath> is the path of the configuration of the Model." << endl;
-    cout << "\t<threadsNum> is thread or processor number, which must be greater or equal than 1 (default)." << endl;
+    cout << "\t<modelPath> is the path of the SEIMS-based watershed model." << endl;
+    cout << "\t<threadsNum> is the number of thread used by OpenMP, which must be greater or equal than 1 (default)." << endl;
     cout << "\t<layeringMethod> can be 0 and 1, which means UP_DOWN (default) and DOWN_UP, respectively." << endl;
     cout << "\t<IP> is the address of MongoDB database, and <port> is its port number." << endl;
     cout << "\t\tBy default, MongoDB IP is 127.0.0.1 (i.e., localhost), and the port is 27017." << endl;
     cout << "\t<scenarioID> is the ID of BMPs Scenario which has been defined in BMPs database." << endl;
-    cout << "\t\tBy default, the Scenario ID is -1, which means not used." << endl << endl;
+    cout << "\t\tBy default, the Scenario ID is -1, which means no scenarios will be simulated." << endl;
     cout << "\t<calibrationID> is the ID of Calibration which has been defined in PARAMETERS table." << endl;
-    cout << "\t\tBy default, the Calibration ID is -1, which means not used." << endl;
-
-    cout << "\tMPI version specific arguments are as follows: " << endl;
-    cout << "\t<subbasinID> is the subbasin that will be executed." << endl;
+    cout << "\t\tBy default, the Calibration ID is -1, which means no calibration will be applied." << endl;
+    cout << "\t<subbasinID> is the subbasin that will be executed. "
+            "0 means the whole watershed. 9999 is reserved for Field version." << endl;
     // cout << "\t<groupMethod> can be 0 and 1, which means KMETIS (default) and PMETIS, respectively." << endl;
     // cout << "\t<scheduleMethod> can be 0 and 1, which means "
     //         "SPATIAL (default) and TEMPOROSPATIAL, respectively." << endl;
     // cout << "\t<timeSlices> should be greater than 1, required when <scheduleMethod> is 1." << endl;
     cout << endl;
-    cout << "Complete and recommended Usage:\n    " << appname <<
-            " -wp <modelPath> [-thread <threadsNum> -lyr <layeringMethod> -host <IP> -port <port>"
+    cout << "Complete and recommended Usage:\n    ";
+    if (mpi_version) {
+        cout << "<executable of MPI (e.g., mpiexec and mpirun)> -hosts(or machinefile, configfile, etc) "
+                "<hosts_list_file> -n <process numbers> " << appname;
+    } else {
+        cout << appname;
+    }
+    cout << " -wp <modelPath> [-thread <threadsNum> -lyr <layeringMethod> -host <IP> -port <port>"
             " -sce <scenarioID> -cali <calibrationID>"
             " -id <subbasinID>"
             // " -grp <groupMethod> -skd <scheduleMethdo> -ts <timeSlices>"

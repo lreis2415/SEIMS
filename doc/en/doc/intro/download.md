@@ -10,13 +10,12 @@ Coming soon...
 
 ## Install Git {#InstallGit}
 
-Windows下推荐使用[msysgit](http://msysgit.github.io/)的Git工具，直接下载安装即可，安装完成后，`开始 -> Git -> Git Bash`，打开一个类似命令行的窗口，说明Git安装成功了。
+Windows下推荐使用[msysgit](https://gitforwindows.org/)的Git工具，直接下载安装即可，安装完成后，`开始 -> Git -> Git Bash`，打开一个类似命令行的窗口，说明Git安装成功了。
 安装完成后，在git bash 命令行里输入：
 
 ```sh
 $ git config --global user.name "Your Name"
 $ git config --global user.email "email@example.com"
-
 e.g.,
 $ git config --global user.name "crazyzlj"
 $ git config --global user.email "crazyzlj@gmail.com"

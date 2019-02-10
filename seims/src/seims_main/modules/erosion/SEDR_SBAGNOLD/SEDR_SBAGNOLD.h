@@ -45,30 +45,29 @@ public:
 
     ~SEDR_SBAGNOLD();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
+    void InitialOutputs() OVERRIDE;
 
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
+
+    int Execute() OVERRIDE;
 
     TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
-private:
-    void InitialOutputs();
 
+    void GetValue(const char* key, float* value) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
+private:
     void PointSourceLoading();
 
     void SedChannelRouting(int i);
@@ -102,7 +101,7 @@ private:
     float* m_chBnkErod;   ///< channel bank erodibility factor, cm^3/N/s
     float* m_chBedErod;   ///< channel bed erodibility factor, cm^3/N/s
     float* m_chBnkTc;     ///< Critical shear stress of channel bank, N/m^2
-    float* m_chBedTc;     ///< Critical shear stress of channel bank, N/m^2
+    float* m_chBedTc;     ///< Critical shear stress of channel bed, N/m^2
     float* m_chBnkSand;   ///< Fraction of sand in channel bank sediment
     float* m_chBnkSilt;   ///< Fraction of silt in channel bank sediment
     float* m_chBnkClay;   ///< Fraction of clay in channel bank sediment

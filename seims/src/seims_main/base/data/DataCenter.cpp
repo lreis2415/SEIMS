@@ -110,11 +110,11 @@ bool DataCenter::GetFileInStringVector() {
 }
 
 void DataCenter::SetLapseData(const string& remote_filename, int& rows, int& cols, float**& data) {
-    int n_rows = 12;
-    int n_cols = 5;
-    data = new(nothrow) float *[n_rows];
-    for (int i = 0; i < n_rows; i++) {
-        data[i] = new(nothrow) float[n_cols];
+    rows = 12;
+    cols = 5;
+    data = new(nothrow) float *[rows];
+    for (int i = 0; i < rows; i++) {
+        data[i] = new(nothrow) float[cols];
         data[i][0] = 4.f;    /// element number
         data[i][1] = 0.03f;  // P
         data[i][2] = -0.65f; // T

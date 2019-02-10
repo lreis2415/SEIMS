@@ -53,7 +53,7 @@ email:  dtarb@usu.edu
 //#include "shapelib/shapefil.h"
 //#ifndef LINKLIB_H
 //#define LINKLIB_H
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 long LAST_ID = -1;
 

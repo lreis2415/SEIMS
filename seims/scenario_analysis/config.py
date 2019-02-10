@@ -15,17 +15,18 @@ from __future__ import absolute_import, unicode_literals
 
 from configparser import ConfigParser
 from future.utils import viewitems
+from datetime import datetime
 import json
 import os
 import sys
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
-from typing import Union
+from typing import Union, Optional, Dict, List, AnyStr
 from pygeoc.utils import UtilClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
-from utility import ParseNSGA2Config
+from utility import ParseNSGA2Config, PlotConfig
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS, BMPS_CFG_PAIR
 
 
@@ -36,11 +37,11 @@ class SAConfig(object):
         # type: (ConfigParser, str) -> None
         """Initialization."""
         # 1. SEIMS model related
-        self.model = ParseSEIMSConfig(cf)
+        self.model = ParseSEIMSConfig(cf)  # type: ParseSEIMSConfig
 
         # 2. Common settings of BMPs scenario
-        self.eval_stime = None
-        self.eval_etime = None
+        self.eval_stime = None  # type: Optional[datetime]
+        self.eval_etime = None  # type: Optional[datetime]
         self.worst_econ = 0.
         self.worst_env = 0.
         self.runtime_years = 0.
@@ -59,10 +60,13 @@ class SAConfig(object):
             self.export_sce_tif = cf.getboolean('Scenario_Common', 'export_scenario_tif')
 
         # 3. Application specific setting section [BMPs]
-        self.bmps_info = dict()  # BMP to be evaluated, JSON format
-        self.bmps_retain = dict()  # BMPs to be constant, JSON format
-        self.bmps_cfg_unit = 'SLPPOS'
-        self.bmps_cfg_method = 'RDM'
+        # Selected BMPs, the key is BMPID, and value is the BMP information dict
+        self.bmps_info = dict()  # type: Dict[int, Dict[AnyStr, Union[int, float, AnyStr, List[Union[int, float, AnyStr]]]]]
+        # BMPs to be constant for generated scenarios during optimization, same format with bmps_info
+        self.bmps_retain = dict()  # type: Dict[int, Dict[AnyStr, Union[int, float, AnyStr, List[Union[int, float, AnyStr]]]]]
+        self.eval_info = dict()  # type: Dict[AnyStr, Union[int, float, AnyStr]]
+        self.bmps_cfg_unit = 'CONNFIELD'  # type: AnyStr
+        self.bmps_cfg_method = 'RAND'  # type: AnyStr
         if 'BMPs' not in cf.sections():
             raise ValueError('[BMPs] section MUST be existed for specific scenario analysis.')
 
@@ -72,7 +76,8 @@ class SAConfig(object):
             bmpsretainstr = cf.get('BMPs', 'bmps_retain')
             self.bmps_retain = json.loads(bmpsretainstr)
             self.bmps_retain = UtilClass.decode_strs_in_dict(self.bmps_retain)
-
+        evalinfostr = cf.get('BMPs', 'eval_info')
+        self.eval_info = UtilClass.decode_strs_in_dict(json.loads(evalinfostr))
         bmpscfgunitstr = cf.get('BMPs', 'bmps_cfg_units')
         bmpscfgunitdict = UtilClass.decode_strs_in_dict(json.loads(bmpscfgunitstr))
         for unitname, unitcfg in viewitems(bmpscfgunitdict):
@@ -83,14 +88,17 @@ class SAConfig(object):
             if not isinstance(unitcfg, dict):
                 raise ValueError('The value of BMPs configuration unit MUST be dict value!')
             for cfgname, cfgvalue in viewitems(unitcfg):
-                self.bmps_info[cfgname] = cfgvalue
+                for bmpid, bmpdict in viewitems(self.bmps_info):
+                    if cfgname in bmpdict:
+                        continue
+                    self.bmps_info[bmpid][cfgname] = cfgvalue
             break
 
         if cf.has_option('BMPs', 'bmps_cfg_method'):
             self.bmps_cfg_method = cf.get('BMPs', 'bmps_cfg_method')
             if self.bmps_cfg_method not in BMPS_CFG_METHODS:
                 print('BMPs configuration method MUST be one of %s' % BMPS_CFG_METHODS.__str__())
-                self.bmps_cfg_method = 'RDM'
+                self.bmps_cfg_method = 'RAND'
 
         # Check the validation of configuration unit and method
         if self.bmps_cfg_method not in BMPS_CFG_PAIR.get(self.bmps_cfg_unit):
@@ -107,6 +115,9 @@ class SAConfig(object):
                                                             self.bmps_cfg_method))
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
+
+        # 5. (Optional) Plot settings for matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
 
 if __name__ == '__main__':

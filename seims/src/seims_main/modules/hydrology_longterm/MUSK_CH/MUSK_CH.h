@@ -44,30 +44,29 @@ public:
 
     virtual ~MUSK_CH();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void SetValueByIndex(const char* key, int index, float value) OVERRIDE;
 
-    void GetValue(const char* key, float* value) OVERRIDE;
-
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
-
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void SetScenario(Scenario* sce) OVERRIDE;
 
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
+    bool CheckInputData() OVERRIDE;
 
-    bool CheckInputData();
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
 
     TimeStepType GetTimeStepType() OVERRIDE { return TIMESTEP_CHANNEL; }
 
+    void GetValue(const char* key, float* value) OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
 private:
-    void InitialOutputs();
 
     void PointSourceLoading();
 

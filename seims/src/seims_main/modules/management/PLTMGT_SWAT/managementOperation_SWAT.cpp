@@ -183,22 +183,6 @@ void MGTOpt_SWAT::SetValue(const char* key, const float value) {
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-        }
-    }
-    return true;
-}
-
 void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
     if (StringMatch(sk, VAR_SBGS)) {
@@ -207,7 +191,7 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
         m_shallowWaterDepth = data;
         return;
     }
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PLTMGT_SWAT, key, n, m_nCells);
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = data;
     } else if (StringMatch(sk, VAR_LANDUSE)) {
@@ -297,25 +281,6 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool MGTOpt_SWAT::CheckInputSize2D(const char* key, const int n, const int col) {
-    CheckInputSize(key, n);
-    if (col <= 0) {
-        throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    }
-    if (m_maxSoilLyrs != col) {
-        if (m_maxSoilLyrs <= 0) {
-            m_maxSoilLyrs = col;
-        } else {
-            throw ModelException(MID_PLTMGT_SWAT, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size of " +
-                                 ValueToString(m_maxSoilLyrs) + " instead of " +
-                                 ValueToString(col) + ".");
-        }
-    }
-    return true;
-}
-
 void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float** data) {
     string sk(key);
     /// lookup tables
@@ -364,7 +329,7 @@ void MGTOpt_SWAT::Set2DData(const char* key, const int n, const int col, float**
         return;
     }
     /// 2D raster data
-    CheckInputSize2D(key, n, col);
+    CheckInputSize2D(MID_PLTMGT_SWAT, key, n, col, m_nCells, m_maxSoilLyrs);
     /// Soil related parameters from MongoDB
     if (StringMatch(sk, VAR_SOILDEPTH)) {
         m_soilDepth = data;

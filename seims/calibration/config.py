@@ -16,7 +16,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 from pygeoc.utils import FileClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
-from utility import ParseNSGA2Config
+from utility import ParseNSGA2Config, PlotConfig
 
 
 class CaliConfig(object):
@@ -57,6 +57,9 @@ class CaliConfig(object):
         self.opt = None
         if self.opt_mtd == 'nsga2':
             self.opt = ParseNSGA2Config(cf, self.model.model_dir, 'CALI_NSGA2_Gen_%d_Pop_%d')
+
+        # 4. (Optional) Plot settings for matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
 
 if __name__ == '__main__':

@@ -55,6 +55,13 @@ ELSEIF(CMAKE_BUILD_TYPE MATCHES "Debug")
 ELSE()
   SET(CMAKE_BUILD_POSTFIX "")
 ENDIF()
+
+### Set cmake find path
+set(CMAKE_MODULE_PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+        ${CMAKE_MODULE_PATH}
+   )
+
 ### Find MPI which is required
 FIND_PACKAGE(MPI REQUIRED)
 IF(MPI_FOUND)
@@ -75,12 +82,6 @@ ENDIF()
 SET(PRJNAME ${PRJNAME}_ALL)
 PROJECT(${PRJNAME})
 
-### Set cmake find path
-set(CMAKE_MODULE_PATH
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake
-        ${CMAKE_MODULE_PATH}
-   )
-
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
@@ -95,7 +96,7 @@ IF(CMAKE_GENERATOR MATCHES "Makefiles|Ninja" AND "${CMAKE_BUILD_TYPE}" STREQUAL 
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
 
-### Allow project folders in MSVC.
+### Allow project folders in MSVC and Xcode.
 IF(MSVC OR XCODE)
     SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()

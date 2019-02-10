@@ -51,7 +51,8 @@ email:  dtarb@usu.edu
 
 #ifndef LINEARPART_H
 #define LINEARPART_H
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
+using std::bad_alloc;
 
 template<class datatype>
 class linearpart : public tdpartition {

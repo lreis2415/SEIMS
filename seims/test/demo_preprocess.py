@@ -1,12 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  Preprecessing for SEIMS. Demo watershed named dianbu2.
-                18-02-09  lj - compatible with Python3.\n
+  Data preprocessing of SEIMS-based watershed model.
+  The invoking format is:
+
+  python demo_preprocess.py -name <demo_watershed_name>
+
+  - 18-02-09 - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 
-import argparse
 import os
 import sys
 

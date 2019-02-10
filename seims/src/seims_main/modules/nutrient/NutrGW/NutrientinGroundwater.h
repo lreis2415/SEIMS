@@ -41,30 +41,18 @@ public:
 
     void SetReaches(clsReaches* reaches) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins* subbasins) OVERRIDE;
 
-private:
-    /*!
-    * \brief check the input data. Make sure all the input data is available.
-    * \return bool The validity of the input data.
-    */
-    bool CheckInputData();
+    TimeStepType GetTimeStepType() OVERRIDE{ return TIMESTEP_CHANNEL; }
 
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
-
-    /// initial outputs
-    void InitialOutputs();
 private:
     /// current subbasin ID, 0 for the entire watershed
     int m_inputSubbsnID;
@@ -101,7 +89,7 @@ private:
     /// amount of soluble phosphorus stored in the soil layer
     float** m_soilSolP;
     /// max number of soil layers
-    int m_nSoilLayers;
+    int m_maxSoilLyrs;
     /// number of soil layers of each cell
     float* m_nSoilLyrs;
 

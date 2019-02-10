@@ -59,7 +59,7 @@ email:  dtarb@usu.edu
 //#include "shapelib/shapefil.h"
 #include "CatchOutlets.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 OGRSFDriverH    driver;
 //OGRDataSourceH  hDSsh, hDSshmoved;
 //OGRLayerH       hLayersh, hLayershmoved;

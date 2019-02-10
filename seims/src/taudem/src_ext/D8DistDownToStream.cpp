@@ -24,7 +24,7 @@
 #include "createpart.h"
 #include "tiffIO.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 // header definition
 int distgrid(char *pfile, char *felfile, char *srcfile, char *distfile, int typemethod, int thresh);
@@ -659,7 +659,7 @@ int pdisttostrmgrd(char *pfile, char *felfile, char *srcfile, char *distfile, in
                     fdv->getData(i, j, fdvv);
                     //fdhv=sqrt(fdhv*fdhv+fdvv*fdvv);
                     //float tempff;
-                    fdh->setData(i, j, sqrt(fdhv * fdhv + fdvv * fdvv));
+                    fdh->setData(i, j, (float) sqrt(fdhv * fdhv + fdvv * fdvv));
                     //printf("%f,%f:%f\n",fdhv,fdvv,fdh->getData(i,j,tempff));
                 }
             }

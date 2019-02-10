@@ -4,7 +4,7 @@
 // include algorithm header file
 #include "demoLogOperator.h"
 
-using namespace std;
+// using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 int logOperator(char *srcfile, char *destfile) {
     // Initialize MPI
@@ -51,7 +51,7 @@ int logOperator(char *srcfile, char *destfile) {
                     continue;
                 }
                 src->getData(i, j, tempV);
-                dest->setData(i, j, log(tempV));
+                dest->setData(i, j, (float)log(tempV));
             }
         }
         // END COMPUTING CODE BLOCK

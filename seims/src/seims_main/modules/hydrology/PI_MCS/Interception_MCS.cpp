@@ -26,9 +26,8 @@ clsPI_MCS::~clsPI_MCS() {
 #endif
 }
 
-void clsPI_MCS::Set1DData(const char* key, int nRows, float* data) {
-    CheckInputSize(key, nRows);
-
+void clsPI_MCS::Set1DData(const char* key, int nrows, float* data) {
+    CheckInputSize(MID_PI_MCS, key, nrows, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_PCP)) m_pcp = data;
     else if (StringMatch(s, VAR_PET)) {
@@ -39,7 +38,7 @@ void clsPI_MCS::Set1DData(const char* key, int nRows, float* data) {
     else if (StringMatch(s, VAR_INTERC_MIN)) m_minIntcpStoCap = data;
     else if (StringMatch(s, VAR_LANDUSE)) m_landUse = data;
     else {
-        throw ModelException(MID_PI_SVSC, "Set1DData", "Parameter " + s + " does not exist.");
+        throw ModelException(MID_PI_MCS, "Set1DData", "Parameter " + s + " does not exist.");
     }
 }
 
@@ -53,7 +52,7 @@ void clsPI_MCS::SetValue(const char* key, const float value) {
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) m_hilldt = data;
 #endif // STORM_MODE
     else {
-        throw ModelException(MID_PI_SVSC, "SetValue", "Parameter " + s + " does not exist.");
+        throw ModelException(MID_PI_MCS, "SetValue", "Parameter " + s + " does not exist.");
     }
 }
 
@@ -71,7 +70,7 @@ void clsPI_MCS::Get1DData(const char* key, int* nRows, float** data) {
     } else if (StringMatch(s, VAR_NEPR)) {
         *data = m_netPcp;
     } else {
-        throw ModelException(MID_PI_SVSC, "Get1DData", "Result " + s + " does not exist.");
+        throw ModelException(MID_PI_MCS, "Get1DData", "Result " + s + " does not exist.");
     }
     *nRows = m_nCells;
 }
@@ -155,37 +154,21 @@ int clsPI_MCS::Execute() {
 }
 
 bool clsPI_MCS::CheckInputData() {
-    CHECK_POSITIVE(MID_PI_MSC, m_date);
-    CHECK_POSITIVE(MID_PI_MSC, m_nCells);
-    CHECK_POINTER(MID_PI_MSC, m_pcp);
+    CHECK_POSITIVE(MID_PI_MCS, m_date);
+    CHECK_POSITIVE(MID_PI_MCS, m_nCells);
+    CHECK_POINTER(MID_PI_MCS, m_pcp);
 #ifndef STORM_MODE
-    CHECK_POINTER(MID_PI_MSC, m_pet);
+    CHECK_POINTER(MID_PI_MCS, m_pet);
 #else
-    CHECK_POINTER(MID_PI_MSC, m_slope);
-    CHECK_POINTER(MID_PI_MSC, m_hilldt);
+    CHECK_POINTER(MID_PI_MCS, m_slope);
+    CHECK_POINTER(MID_PI_MCS, m_hilldt);
 #endif
-    CHECK_POINTER(MID_PI_MSC, m_maxIntcpStoCap);
-    CHECK_POINTER(MID_PI_MSC, m_minIntcpStoCap);
-    CHECK_DATA(MID_PI_MSC, m_intcpStoCapExp > 1.5f || m_intcpStoCapExp < 0.5f,
+    CHECK_POINTER(MID_PI_MCS, m_maxIntcpStoCap);
+    CHECK_POINTER(MID_PI_MCS, m_minIntcpStoCap);
+    CHECK_DATA(MID_PI_MCS, m_intcpStoCapExp > 1.5f || m_intcpStoCapExp < 0.5f,
         "The interception storage capacity exponent "
         "can not be " + ValueToString(m_intcpStoCapExp) + ". It should between 0.5 and 1.5.");
-    CHECK_DATA(MID_PI_MSC, m_initIntcpSto > 1.f || m_initIntcpSto < 0.f, "The Initial interception storage cannot "
+    CHECK_DATA(MID_PI_MCS, m_initIntcpSto > 1.f || m_initIntcpSto < 0.f, "The Initial interception storage cannot "
         "be " + ValueToString(m_initIntcpSto) + ". It should between 0 and 1.");
-    return true;
-}
-
-bool clsPI_MCS::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PI_SVSC, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PI_SVSC, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }

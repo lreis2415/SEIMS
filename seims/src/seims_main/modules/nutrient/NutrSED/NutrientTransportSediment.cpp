@@ -50,23 +50,6 @@ NutrientTransportSediment::~NutrientTransportSediment() {
     if (m_sedLossCbn != nullptr) Release1DArray(m_sedLossCbn);
 }
 
-bool NutrientTransportSediment::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_NUTRSED, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_NUTRSED, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid with size: " + ValueToString(n) +
-                                 ". The origin size is " + ValueToString(m_nCells));
-        }
-    }
-    return true;
-}
-
 bool NutrientTransportSediment::CheckInputData() {
     CHECK_POSITIVE(MID_NUTRSED, m_nCells);
     CHECK_POSITIVE(MID_NUTRSED, m_nSubbsns);
@@ -129,7 +112,7 @@ void NutrientTransportSediment::SetValue(const char* key, const float value) {
 }
 
 void NutrientTransportSediment::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_NUTRSED, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SUBBSN)) {
         m_subbsnID = data;
@@ -144,10 +127,9 @@ void NutrientTransportSediment::Set1DData(const char* key, const int n, float* d
     }
 }
 
-void NutrientTransportSediment::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void NutrientTransportSediment::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_NUTRSED, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_maxSoilLyrs = nCols;
     if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_BD)) m_soilBD = data;
     else if (StringMatch(sk, VAR_SOL_AORGN)) m_soilActvOrgN = data;
@@ -566,11 +548,11 @@ void NutrientTransportSediment::Get1DData(const char* key, int* n, float** data)
     }
 }
 
-void NutrientTransportSediment::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void NutrientTransportSediment::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    *nRows = m_nCells;
-    *nCols = m_maxSoilLyrs;
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_AORGN)) *data = m_soilActvOrgN;
     else if (StringMatch(sk, VAR_SOL_FORGN)) *data = m_soilFrshOrgN;
     else if (StringMatch(sk, VAR_SOL_SORGN)) *data = m_soilStabOrgN;

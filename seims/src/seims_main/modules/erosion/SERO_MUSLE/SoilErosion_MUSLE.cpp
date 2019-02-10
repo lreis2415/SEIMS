@@ -3,7 +3,7 @@
 #include "text.h"
 
 SERO_MUSLE::SERO_MUSLE() :
-    m_nCells(-1), m_cellWth(-1.f), m_nSoilLayers(-1), m_soilRock(nullptr),
+    m_nCells(-1), m_cellWth(-1.f), m_maxSoilLyrs(-1), m_soilRock(nullptr),
     m_usleK(nullptr), m_usleP(nullptr),
     m_flowAccm(nullptr), m_slope(nullptr), m_slpLen(nullptr),
     m_rchID(nullptr), m_detSand(nullptr), m_detSilt(nullptr), m_detClay(nullptr),
@@ -219,22 +219,6 @@ int SERO_MUSLE::Execute() {
     return 0;
 }
 
-bool SERO_MUSLE::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_SERO_MUSLE, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_SERO_MUSLE, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void SERO_MUSLE::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, Tag_CellWidth)) {
@@ -249,7 +233,7 @@ void SERO_MUSLE::SetValue(const char* key, const float value) {
 }
 
 void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SERO_MUSLE, key, n, m_nCells);
     string s(key);
     if (StringMatch(s, VAR_USLE_C)) m_aveAnnUsleC = data;
     else if (StringMatch(s, VAR_LANDCOVER)) m_landCover = data;
@@ -273,10 +257,10 @@ void SERO_MUSLE::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-void SERO_MUSLE::Set2DData(const char* key, int nRows, int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void SERO_MUSLE::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_SERO_MUSLE, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string s(key);
-    m_nSoilLayers = nCols;
+    m_maxSoilLyrs = ncols;
     if (StringMatch(s, VAR_USLE_K)) m_usleK = data;
     else if (StringMatch(s, VAR_ROCK)) m_soilRock = data;
     else {

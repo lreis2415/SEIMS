@@ -25,47 +25,21 @@ public:
 
     ~IMP_SWAT();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float value) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
 private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
-
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
-
-    /*!
-     * \brief check the input size of 2D data. Make sure all the input data have same dimension.
-     *
-     *
-     * \param[in] key The key of the input data
-     * \param[in] n The first dimension input data
-     * \param[in] col The second dimension of input data
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize2D(const char* key, int n, int col);
-
-    /// initialize all possible outputs
-    void InitialOutputs();
-
     /*!
      * \brief Simulates depressional areas that do not
      * drain to the stream network (pothole) and impounded areas such as rice paddies
@@ -95,9 +69,9 @@ private:
     /// timestep, sec
     float m_timestep;
     /// soil layers
-    float* m_soilLayers;
+    float* m_nSoilLyrs;
     /// max soil layers
-    int m_nMaxSoilLayers;
+    int m_maxSoilLyrs;
     /// subbasin ID
     float* m_subbasin;
     /// subbasin number
