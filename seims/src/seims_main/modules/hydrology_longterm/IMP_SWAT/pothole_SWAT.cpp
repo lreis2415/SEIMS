@@ -380,16 +380,24 @@ int IMP_SWAT::Execute() {
     }
     else { // field version, no routinglayers currently
         for (int id = 0; id <= m_nCells; id++) {
-			if ((m_day == 30 || m_day == 31) && id == 63054 && m_month == 5){
+			if ((m_day == 7) && id == 63054 && m_month == 6){
 				cout<<"ccccccccccccccccccccccccccccccccc,"<<m_potVol[id]<<endl;
 			}
 			//if (id == 63054) cout<<"BEFORE, m_potVol:"<<m_potVol[id]<<endl;
             if (FloatEqual(m_impoundTrig[id], 0.f)) {
-				if (id == 63054) cout<<"BEFORE, m_potVol:"<<m_potVol[id]<<endl;
 				// if (id == 63054) cout<<"BEFORE, m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 /// if impounding trigger on
+				if (id == 63054) cout<<"                           BEFORE m_potVol:"<<m_potVol[id]<<", srunoff:"<<m_surfaceRunoff[id]<<endl;
                 PotholeSimulate(id);
-				if (id == 63054) cout<<"AFTER, m_potVol:"<<m_potVol[id]<<endl;
+				if (id == 63054) cout<<"                           AFTER m_potVol:"<<m_potVol[id]<<endl;
+				if(id == 63054){
+	                    std::ofstream fout;
+				        fout.open("D:\\paddyWater.txt", std::ios::app);
+				        fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
+				        fout << std::flush;
+				        fout.close();
+                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			        }
                 // force to auto-irrigation at the end of the day, added by SF.
                 if (m_potVol[id] < m_potVolMin[id])
                 {
@@ -402,13 +410,21 @@ int IMP_SWAT::Execute() {
 					//cout<<"m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<", m_potVolUp:"<<m_potVolUp[id]<<endl;
                 }
             } else {
-				if (id == 63054) cout<<"        release! m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
+				//if (id == 63054) cout<<"        release! m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 ReleaseWater(id);
+				if(id == 63054){
+	                    std::ofstream fout;
+				        fout.open("D:\\paddyWater.txt", std::ios::app);
+				        fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
+				        fout << std::flush;
+				        fout.close();
+                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			        }
             }
 			//if(id == 63054){
 	  //                  std::ofstream fout;
 			//	        fout.open("D:\\paddyWater.txt", std::ios::app);
-			//	        fout << m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
+			//	        fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
 			//	        fout << std::flush;
 			//	        fout.close();
    //                     //cout<<"phubase:"<<m_phuBase[i]<<endl;
@@ -572,6 +588,8 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         qIn += m_depEvapor[id]; /// since the evaporation will be calculated below, the m_depEvapor should be added
         m_depEvapor[id] = 0.f;
     }
+	if (id == 63054) cout<<"sim qIn:"<<qIn<<endl;
+	if (id == 63054) cout<<"sim m_potVol:"<<m_potVol[id]<<endl;
     /// update volume of water in pothole
     m_potVol[id] += qIn;
     //m_potFlowIn[id] += qIn; // TODO, this should be routing cell by cell. by lj
@@ -766,7 +784,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         m_potVol[id] -= potsep;
         m_potSeep[id] += potsep;
         m_soilStorage[id][0] += potsep; /// this will be handled in the next time step, added by LJ
-
+		//if (id == 63054) cout<<"seepage:"<<potsep<<endl;
         ///// force the soil water storage to field capacity
         //for (int ly = 0; ly < (int)m_soilLayers[id]; ly++)
         //{
@@ -786,14 +804,17 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         //	m_soilStorageProfile[id] += m_soilStorage[id][ly];
 
         /// compute evaporation from water surface
-        if (m_LAIDay[id] < m_evLAI) {
-            potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
+        if (m_dvs[id] > UTIL_ZERO) {
+			//if (m_LAIDay[id] < m_evLAI) {
+            ///potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
+			potev = (1.f - 0 / m_evLAI) * m_pet[id];
             // if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
-			//if (id == 63054) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", m_evLAI: "<<m_evLAI<<endl;
+			//if (id == 63054) cout<<"-----------------------pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", m_evLAI: "<<m_evLAI<<endl;
             potev = Min(potev, m_potVol[id]);
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;
         }
+		//if (id == 63054) cout<<"PET:"<<potev<<endl;
         if (potvol_tile > UTIL_ZERO) {
             sedloss = m_potSed[id] * tileo / potvol_tile;
             sedloss = Min(sedloss, m_potSed[id]);
@@ -913,9 +934,10 @@ void IMP_SWAT::PotholeSimulate(const int id) {
     }
     // force to auto-irrigation at the end of the day
     // if the pot volumn < min fit depth, then irrigate to max fit depth
-    if (m_potVol[id] <  m_potVolMin[id]) {
+    /*if (m_potVol[id] <  m_potVolMin[id]) {
         m_potVol[id] = m_potVolUp[id];
-    }
+    }*/
+
     //// force to auto-irrigation at the end of the day, added by LJ.
     //if (m_potVol[id] < UTIL_ZERO) {
     //    m_potVol[id] = m_potVolMin[id];

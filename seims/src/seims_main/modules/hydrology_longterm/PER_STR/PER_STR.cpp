@@ -89,6 +89,9 @@ int PER_STR::Execute() {
                                 // add ul_excess to depressional storage and then to surfq
                                 if (m_potVol != nullptr && FloatEqual(m_impoundTrig[i], 0.f)) {
                                     m_potVol[i] += ul_excess;
+									if (i == 63054) {
+										cout<<"PER_STR, ul_excess:"<<ul_excess<<endl;
+									}
                                 } else {
                                     m_surfRf[i] += ul_excess;
                                 }

@@ -91,6 +91,7 @@ int DepressionFSDaily::Execute() {
             if (m_potVol != nullptr) {
                 m_potVol[i] += m_sr[i];
                 m_potVol[i] += m_sd[i];
+				if (i == 63054) cout<<"DEP_LINSLEY, msr:"<<m_sr[i]<<", msd:"<<m_sd[i]<<endl;
                 m_sr[i] = 0.f;
                 m_sd[i] = 0.f;
             }

@@ -822,7 +822,6 @@ void MGTOpt_SWAT::ExecutePlantOperation(const int i, const int factoryID, const 
 }
 
 void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, const int nOp) {
-	if (id == 63054) cout<<"BEFORE,ExecuteIrrigationOperation, m_potVol:"<<m_potVol[id]<<endl;
     IrrOp* curOperation = static_cast<IrrOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     /// initialize parameters
     /// irrigation source
@@ -889,9 +888,11 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
                 pot_fr = 1.f;
                 if (m_potArea != nullptr) {
                     m_potVol[i] += vol / (10.f * m_potArea[i]);
+					if (i == 63054) cout<<"ExecuteIrrigationOperation, addvalue:"<<vol / (10.f * m_potArea[i])<<endl;
                 } else {
                     //m_potVol[i] += vol / (10.f * m_cellArea);
 					m_potVol[i] += vol / (10.f * GetUnitArea(i));
+					if (i == 63054) cout<<"ExecuteIrrigationOperation, addvalue:"<<vol / (10.f * GetUnitArea(i))<<endl;
                 }
                 m_irrWtrAmt[i] = vmm; ///added rice irrigation 11/10/11
             } else {
@@ -935,7 +936,6 @@ void MGTOpt_SWAT::ExecuteIrrigationOperation(const int i, const int factoryID, c
             }
         }
     }
-	if (id == 63054) cout<<"AFTER,ExecuteIrrigationOperation, m_potVol:"<<m_potVol[id]<<endl;
 }
 
 void MGTOpt_SWAT::ExecuteFertilizerOperation(const int i, const int factoryID, const int nOp) {
@@ -1772,7 +1772,7 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(const int i, const int factoryI
     m_autoIrrWtrD[i] = curOperation->IrrigationWaterApplied();
     m_autoIrrWtr2SurfqR[i] = curOperation->SurfaceRunoffRatio();
     m_irrFlag[i] = 1;
-    //if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
+    if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
 	/// call autoirr.f
     /// TODO, this will be implemented as an isolated module in the near future.
 }
@@ -1803,7 +1803,6 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
     /// No more executable code here.
     RelImpndOp* curOperation = static_cast<RelImpndOp *>(m_mgtFactory[factoryID]->GetOperations().at(nOp));
     m_impndTrig[i] = CVT_FLT(curOperation->ImpoundTriger());
-	//if (i == 63054) cout<<"i:"<<i<<", m_impndTrig:"<<m_impndTrig[i]<<endl;
     /// pothole.f and potholehr.f for sub-daily timestep simulation, TODO
     /// IF IMP_SWAT module is not configured, then this operation will be ignored. By LJ
     if (m_potVol == nullptr) {
@@ -1818,6 +1817,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
         m_potVol[i] = curOperation->MaxPondDepth();
+		if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxPondDepth()<<endl;
         /// force the soil water storage to field capacity
         for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
@@ -1826,10 +1826,12 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
                 dep2cap = Min(dep2cap, m_potVol[i]);
                 m_soilWtrSto[i][ly] += dep2cap;
                 m_potVol[i] -= dep2cap;
+				if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, -dep2cap:"<<dep2cap<<endl;
             }
         }
         if (m_potVol[i] < curOperation->MaxFitDepth()) {
             m_potVol[i] = curOperation->MaxFitDepth();
+			if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxFitDepth()<<endl;
         } /// force to reach the up depth.
         /// recompute total soil water storage
         m_soilWtrStoPrfl[i] = 0.f;

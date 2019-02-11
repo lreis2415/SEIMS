@@ -221,10 +221,10 @@ int POND::Execute()
 		if (m_pondVol[id] > m_pondVolMax[id]){
 			pondRelease(id, qOut);
 		}
-		if(id == 1){
+		if(id == 122){
 				std::ofstream fout;
 				fout.open("d:\\pond.txt", std::ios::app);
-				fout << m_pondVol[1] << "\n";
+				fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_pondVol[122] << "\n";
 				fout << std::flush;
 				fout.close();
 			}
