@@ -76,9 +76,17 @@ int SUR_MR::Execute() {
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
         float hWater = 0.f;
+        if(i == 63054){
+				std::ofstream fout;
+				fout.open("d:\\pnetpre.txt", std::ios::app);
+				fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_netPcp[i] << "\n";
+				fout << std::flush;
+				fout.close();
+			}
         hWater = m_netPcp[i] + m_deprSto[i];
-        if (m_potVol != nullptr)
-            hWater += m_potVol[i];
+        // ?
+        /*if (m_potVol != nullptr)
+            hWater += m_potVol[i];*/
         if (hWater > 0.f) {
             /// update total soil water content
             m_soilWtrStoPrfl[i] = 0.f;

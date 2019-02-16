@@ -175,7 +175,7 @@ MGTOpt_SWAT::~MGTOpt_SWAT() {
     if (nullptr != tmp_smix) Release2DArray(m_nCells, tmp_smix);
 
 	if (m_phuAcc != nullptr) Release1DArray(m_phuAcc);
-	if (m_LAIDay != nullptr) Release1DArray(m_LAIDay);
+	//if (m_LAIDay != nullptr) Release1DArray(m_LAIDay);
 	if (m_plantN != nullptr) Release1DArray(m_plantN);
 	if (m_plantP != nullptr) Release1DArray(m_plantP);
 }
@@ -1863,7 +1863,8 @@ void MGTOpt_SWAT::ExecuteBurningOperation(const int i, const int factoryID, cons
 void MGTOpt_SWAT::ExecuteRicePlantOperation(int i, int factoryID, int nOp)
 {
     m_cropsta[i] = 1.f;
-    m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
+    // m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
+    m_lai[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
     //m_phuAcc[i] = 0.f;
     m_plantN[i] = 0.f;
 	//if (i == 63054) cout<<"ExecuteRicePlantOperation"<<endl;
@@ -2183,7 +2184,7 @@ void MGTOpt_SWAT::InitialOutputs() {
     if (nullptr == tmp_soilMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilMixedMass, 0.f);
     if (nullptr == tmp_soilNotMixedMass) Initialize2DArray(m_nCells, m_maxSoilLyrs, tmp_soilNotMixedMass, 0.f);
     if (nullptr == tmp_smix) Initialize2DArray(m_nCells, 22 + 12, tmp_smix, 0.f);
-	if (nullptr == m_LAIDay) Initialize1DArray(m_nCells, m_LAIDay, 0.f);
+	//if (nullptr == m_LAIDay) Initialize1DArray(m_nCells, m_LAIDay, 0.f);
 	if (nullptr == m_phuAcc) Initialize1DArray(m_nCells, m_phuAcc, 0.f);
 	if (nullptr == m_plantN) Initialize1DArray(m_nCells, m_plantN, 0.f);
 	if (nullptr == m_plantP) Initialize1DArray(m_nCells, m_plantP, 0.f);

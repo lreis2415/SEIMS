@@ -23,7 +23,7 @@ IMP_SWAT::IMP_SWAT() :
     m_potSag(nullptr), m_potLag(nullptr),
     m_potVol(nullptr), m_potVolMax(nullptr), m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
     m_potArea(nullptr), m_potVolUp(nullptr),
-    m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE),
+    m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE), exMaxvol(-1.f),
     /// irr
     m_irrDepth(nullptr), m_pond(nullptr), m_chStorage(nullptr), m_pondID1(nullptr), m_pondID2(nullptr),
     m_pondID3(nullptr), m_reachID(nullptr), m_paddyNum(-1), m_pondVol(nullptr), m_embnkfr_pr(0.15f),
@@ -380,17 +380,24 @@ int IMP_SWAT::Execute() {
     }
     else { // field version, no routinglayers currently
         for (int id = 0; id <= m_nCells; id++) {
-			if ((m_day == 7) && id == 63054 && m_month == 6){
+			/*if ((m_day == 7) && id == 63054 && m_month == 6){
 				cout<<"ccccccccccccccccccccccccccccccccc,"<<m_potVol[id]<<endl;
-			}
+			}*/
 			//if (id == 63054) cout<<"BEFORE, m_potVol:"<<m_potVol[id]<<endl;
+            if(id == 63054){
+	                    std::ofstream fout;
+				        fout.open("D:\\paddyWaterbefore.txt", std::ios::app);
+				        fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
+				        fout << std::flush;
+				        fout.close();
+                        //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			        }
             if (FloatEqual(m_impoundTrig[id], 0.f)) {
-				// if (id == 63054) cout<<"BEFORE, m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 /// if impounding trigger on
-				if (id == 63054) cout<<"                           BEFORE m_potVol:"<<m_potVol[id]<<", srunoff:"<<m_surfaceRunoff[id]<<endl;
+				//if (id == 63054) cout<<"                           BEFORE m_potVol:"<<m_potVol[id]<<", srunoff:"<<m_surfaceRunoff[id]<<endl;
                 PotholeSimulate(id);
-				if (id == 63054) cout<<"                           AFTER m_potVol:"<<m_potVol[id]<<endl;
-				if(id == 63054){
+				//if (id == 63054) cout<<"                           AFTER m_potVol:"<<m_potVol[id]<<endl;
+                if(id == 63054){
 	                    std::ofstream fout;
 				        fout.open("D:\\paddyWater.txt", std::ios::app);
 				        fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_potVolMax[id]<<","<< m_potVolUp[id]<<"," << m_potVol[id]<<"," << m_potVolMin[id] << "\n";
@@ -409,6 +416,7 @@ int IMP_SWAT::Execute() {
                     m_potVol[id] = m_potVolUp[id];
 					//cout<<"m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<", m_potVolUp:"<<m_potVolUp[id]<<endl;
                 }
+                
             } else {
 				//if (id == 63054) cout<<"        release! m_potVolUp:"<<m_potVolUp[id]<<", m_potVol:"<<m_potVol[id]<<", m_potVolMin:"<<m_potVolMin[id]<<endl;
                 ReleaseWater(id);
@@ -430,6 +438,7 @@ int IMP_SWAT::Execute() {
    //                     //cout<<"phubase:"<<m_phuBase[i]<<endl;
 			//        }
         }
+        //cout<<"-----------------------pothole_SWAT,m_surfaceRunoff: "<<m_surfaceRunoff[63054]<<endl;
     } // end of the field version execute
     /// reCalculate the surface runoff, sediment, nutrient etc. that into the channel
 #pragma omp parallel for
@@ -779,6 +788,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         }
         /// calculate seepage into soil
         potsep = yy * m_potArea[id] * 240.f / (GetUnitArea(id) * 10.f); //m_cnv; /// mm/hr*ha/240=m3/cnv=mm
+        // potsep = yy * m_potArea[id] * 240.f / m_cnv; /// mm/hr*ha/240=m3/cnv=mm
         potsep = Min(potsep, m_potVol[id]);
         float potvol_sep = m_potVol[id];
         m_potVol[id] -= potsep;
@@ -807,14 +817,25 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         if (m_dvs[id] > UTIL_ZERO) {
 			//if (m_LAIDay[id] < m_evLAI) {
             ///potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
-			potev = (1.f - 0 / m_evLAI) * m_pet[id];
-            // if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
+			potev = (1.f - 2.f / m_evLAI) * m_pet[id];
+            //if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
 			//if (id == 63054) cout<<"-----------------------pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", m_evLAI: "<<m_evLAI<<endl;
             potev = Min(potev, m_potVol[id]);
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;
         }
+        //if (id == 63054) cout<<"-----------------------LAI: "<<m_LAIDay[id]<<endl;
 		//if (id == 63054) cout<<"PET:"<<potev<<endl;
+
+        //if(id == 63054){
+	       //             std::ofstream fout;
+				    //    fout.open("D:\\petseep.txt", std::ios::app);
+				    //    fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<<potsep<<","<<m_pet[id]<< "\n";
+				    //    fout << std::flush;
+				    //    fout.close();
+        //                //cout<<"phubase:"<<m_phuBase[i]<<endl;
+			     //   }
+
         if (potvol_tile > UTIL_ZERO) {
             sedloss = m_potSed[id] * tileo / potvol_tile;
             sedloss = Min(sedloss, m_potSed[id]);

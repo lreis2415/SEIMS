@@ -90,7 +90,9 @@ private:
     * For LONGTERM_MODE model, the unit is mm
     */
     float* m_pcp;
-
+    
+    /// 
+    float* m_netPcp;
     /// pet
     float* m_pet;
     /// evaporation from the interception storage

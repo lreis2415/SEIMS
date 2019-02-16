@@ -140,6 +140,8 @@ private:
     /// field version, the area of each field
     float *m_unitArea;
 
+    // the potvol excess the maxvol
+    float exMaxvol;
     /// conversion factor (mm/ha => m^3)
     float m_cnv;
     /// valid cells number

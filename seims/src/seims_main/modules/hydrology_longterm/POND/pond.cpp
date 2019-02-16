@@ -142,12 +142,12 @@ void POND::initialOutputs()
 		throw ModelException(MID_POND, "initialOutputs", "The pond number can not be less than zero.");
 
 	// initialize some parameters,such as pond depth, max depth ...(mm)
-	if (m_pondVolMax == NULL) Initialize1DArray(m_npond + 1, m_pondVolMax, 5000.f);
-	if (m_pondVol == NULL) Initialize1DArray(m_npond + 1, m_pondVol, 3000.f);
+	if (m_pondVolMax == NULL) Initialize1DArray(m_npond + 1, m_pondVolMax, 2000.f);
+	if (m_pondVol == NULL) Initialize1DArray(m_npond + 1, m_pondVol, 1500.f);
 	if (m_pondSurfaceArea == NULL) Initialize1DArray(m_npond + 1, m_pondSurfaceArea, 0.f);
 	if (m_pondCellEvap == NULL) Initialize1DArray(m_nCells, m_pondCellEvap, 0.f);
 	if (m_pondCellSeep == NULL) Initialize1DArray(m_nCells, m_pondCellSeep, 0.f);
-	if (m_pondCellVol == NULL) Initialize1DArray(m_nCells, m_pondCellVol, 3000.f);
+	if (m_pondCellVol == NULL) Initialize1DArray(m_nCells, m_pondCellVol, 1500.f);
 	if (m_pondSed == NULL) Initialize1DArray(m_nCells, m_pondSed, 0.f);
 	if (m_pondSand == NULL) Initialize1DArray(m_nCells, m_pondSand, 0.f);
 	if (m_pondSilt == NULL) Initialize1DArray(m_nCells, m_pondSilt, 0.f);
@@ -221,14 +221,15 @@ int POND::Execute()
 		if (m_pondVol[id] > m_pondVolMax[id]){
 			pondRelease(id, qOut);
 		}
-		if(id == 122){
+		/*if(id == 122){
 				std::ofstream fout;
 				fout.open("d:\\pond.txt", std::ios::app);
 				fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_pondVol[122] << "\n";
 				fout << std::flush;
 				fout.close();
-			}
-	}				
+			}*/
+	}	
+    //cout<<"-----------------------POND,m_surfaceRunoff: "<<m_surfaceRunoff[63054]<<endl;
     return true;
 } 
 

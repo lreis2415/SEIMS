@@ -89,9 +89,16 @@ int PER_STR::Execute() {
                                 // add ul_excess to depressional storage and then to surfq
                                 if (m_potVol != nullptr && FloatEqual(m_impoundTrig[i], 0.f)) {
                                     m_potVol[i] += ul_excess;
-									if (i == 63054) {
+									/*if (i == 63054) {
 										cout<<"PER_STR, ul_excess:"<<ul_excess<<endl;
-									}
+									}*/
+                                    if(i == 63054){
+				                    std::ofstream fout;
+				                    fout.open("d:\\p-ul_excess.txt", std::ios::app);
+				                    fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< ul_excess << "\n";
+				                    fout << std::flush;
+				                    fout.close();
+			                    }
                                 } else {
                                     m_surfRf[i] += ul_excess;
                                 }
