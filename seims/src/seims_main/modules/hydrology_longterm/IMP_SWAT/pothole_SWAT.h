@@ -139,6 +139,8 @@ private:
     int m_inputSubbsnID;
     /// field version, the area of each field
     float *m_unitArea;
+    /// calculate paddy infil
+    float* m_infil;
 
     // the potvol excess the maxvol
     float exMaxvol;

@@ -23,7 +23,7 @@ IMP_SWAT::IMP_SWAT() :
     m_potSag(nullptr), m_potLag(nullptr),
     m_potVol(nullptr), m_potVolMax(nullptr), m_potVolMin(nullptr), m_potSeep(nullptr), m_potEvap(nullptr),
     m_potArea(nullptr), m_potVolUp(nullptr),
-    m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE), exMaxvol(-1.f),
+    m_kVolat(NODATA_VALUE), m_kNitri(NODATA_VALUE), m_pot_k(NODATA_VALUE), exMaxvol(-1.f), m_infil(nullptr),
     /// irr
     m_irrDepth(nullptr), m_pond(nullptr), m_chStorage(nullptr), m_pondID1(nullptr), m_pondID2(nullptr),
     m_pondID3(nullptr), m_reachID(nullptr), m_paddyNum(-1), m_pondVol(nullptr), m_embnkfr_pr(0.15f),
@@ -213,6 +213,7 @@ void IMP_SWAT::Set1DData(const char* key, const int n, float* data) {
     else if (StringMatch(sk, VAR_CHST)) { m_chStorage = data; }
     else if (StringMatch(sk, VAR_POND_VOL)) { m_pondVol = data; }
     else if (StringMatch(sk, VAR_FIELDAREA)) { m_unitArea = data; }
+    else if (StringMatch(sk, VAR_INFIL)) m_infil = data;
     else {
         throw ModelException(MID_IMP_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
     }
@@ -482,7 +483,7 @@ int IMP_SWAT::Execute() {
 #pragma omp for
         for (int i = 0; i < m_nCells; i++) {
             int subi = CVT_INT(m_subbasin[i]);
-            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
+            tmp_surfq2ch[subi] += m_surfaceRunoff[i] * m_cellArea * 10.f / m_timestep; /// (* m_cellArea, later) mm -> m3/s
             //tmp_surfq2ch[subi] += m_surfaceRunoff[i] * 10.f * GetUnitArea(i) / m_timestep; /// (* m_cellArea, later) mm -> m3/s 
             tmp_sed2ch[subi] += m_sedYield[i];
             tmp_sno32ch[subi] += m_surqNo3[i] * GetUnitArea(i); //for field version, calculate the unitarea in each field, instead of in subbsain
@@ -497,8 +498,8 @@ int IMP_SWAT::Execute() {
 #pragma omp critical
         {
             for (int i = 1; i <= m_nSubbasins; i++) {
-                //m_surfqToCh[i] += tmp_surfq2ch[i];
-                m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
+                m_surfqToCh[i] += tmp_surfq2ch[i];
+                //m_surfqToCh[i] += tmp_surfq2ch[i] * m_cellArea;
                 m_sedToCh[i] += tmp_sed2ch[i];
                 m_surNO3ToCh[i] += tmp_sno32ch[i]; //  * m_cellArea;
                 m_surNH4ToCh[i] += tmp_snh42ch[i]; //  * m_cellArea;
@@ -597,8 +598,8 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         qIn += m_depEvapor[id]; /// since the evaporation will be calculated below, the m_depEvapor should be added
         m_depEvapor[id] = 0.f;
     }
-	if (id == 63054) cout<<"sim qIn:"<<qIn<<endl;
-	if (id == 63054) cout<<"sim m_potVol:"<<m_potVol[id]<<endl;
+	//if (id == 63054) cout<<"sim qIn:"<<qIn<<endl;
+	//if (id == 63054) cout<<"sim m_potVol:"<<m_potVol[id]<<endl;
     /// update volume of water in pothole
     m_potVol[id] += qIn;
     //m_potFlowIn[id] += qIn; // TODO, this should be routing cell by cell. by lj
@@ -793,6 +794,8 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         float potvol_sep = m_potVol[id];
         m_potVol[id] -= potsep;
         m_potSeep[id] += potsep;
+        // add seepage to infil from other modules.
+        m_infil[id] += potsep;
         m_soilStorage[id][0] += potsep; /// this will be handled in the next time step, added by LJ
 		//if (id == 63054) cout<<"seepage:"<<potsep<<endl;
         ///// force the soil water storage to field capacity
@@ -824,7 +827,7 @@ void IMP_SWAT::PotholeSimulate(const int id) {
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;
         }
-        //if (id == 63054) cout<<"-----------------------LAI: "<<m_LAIDay[id]<<endl;
+        if (id == 63054) cout<<"-----------------------LAI: "<<m_LAIDay[id]<<endl;
 		//if (id == 63054) cout<<"PET:"<<potev<<endl;
 
         //if(id == 63054){

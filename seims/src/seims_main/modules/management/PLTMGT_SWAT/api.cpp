@@ -37,6 +37,23 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(VAR_NPLSB, UNIT_SOW_SEEDBED, DESC_NPLSB, Source_ParameterDB, DT_Single);
     mdi.AddInput(VAR_WRR, UNIT_CONT_KGHA, DESC_WRR, Source_Module, DT_Raster1D);
     mdi.AddInput(VAR_DVS, UNIT_NON_DIM, DESC_DVS, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_TS, UNIT_PHENOLOGY, DESC_TS, Source_Module, DT_Raster1D);
+    mdi.AddInput(VAR_WLVG, UNIT_CONT_KGHA, DESC_WLVG, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WLVD, UNIT_CONT_KGHA, DESC_WLVD, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WSTS, UNIT_CONT_KGHA, DESC_WSTS, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WSTR, UNIT_CONT_KGHA, DESC_WSTR, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WSO, UNIT_CONT_KGHA, DESC_WSO, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WRT, UNIT_CONT_KGHA, DESC_WRT, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WRR, UNIT_CONT_KGHA, DESC_WRR, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_NGR, UNIT_NUMBERHA, DESC_NGR, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_NSP, UNIT_NUMBERHA, DESC_NSP, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_TNASS, UNIT_CONT_KGHA, DESC_TNASS, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WST, UNIT_CONT_KGHA, DESC_WST, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WLV, UNIT_CONT_KGHA, DESC_WLV, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_WAGT, UNIT_CONT_KGHA, DESC_WAGT, Source_Module,DT_Raster1D);
+    mdi.AddInput(VAR_ZRT, UNIT_LEN_M, DESC_ZRT, Source_Module,DT_Raster1D);
+    //mdi.AddInput(VAR_DVS, UNIT_NON_DIM, DESC_DVS, Source_Module,DT_Raster1D);
+    //mdi.AddInput(VAR_ANCRF, UNIT_CONT_KGHA, DESC_ANCRF, Source_Module,DT_Raster1D);
 
     /// soil
     mdi.AddParameter(VAR_SOILLAYERS, UNIT_NON_DIM, DESC_SOILLAYERS, Source_ParameterDB, DT_Raster1D);

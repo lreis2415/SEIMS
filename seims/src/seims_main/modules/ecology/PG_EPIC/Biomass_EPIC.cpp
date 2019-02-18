@@ -853,6 +853,7 @@ int Biomass_EPIC::Execute() {
             }
             CheckDormantStatus(i); /// dormant.f
         }
+        //if (i == 63054) cout<<"EPIC  LAI:"<<m_lai[i]<<endl;
     }
     return 0;
 }

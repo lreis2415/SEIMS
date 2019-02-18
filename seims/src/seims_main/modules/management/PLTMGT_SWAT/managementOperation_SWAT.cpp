@@ -72,7 +72,10 @@ MGTOpt_SWAT::MGTOpt_SWAT() :
     /// rice related variables
     m_cropsta(nullptr), m_nplsb(NODATA_VALUE), m_lape(NODATA_VALUE), m_wrr(nullptr),
     m_dvs(nullptr), m_LAIDay(nullptr), m_phuAcc(nullptr), m_plantN(nullptr), 
-    m_plantP(nullptr), m_frStrsWa(nullptr),
+    m_plantP(nullptr), m_frStrsWa(nullptr), m_ts(nullptr), m_wlvg(nullptr),
+    m_wlvd(nullptr), m_wsts(nullptr), m_wstr(nullptr), m_wso(nullptr), m_wrt(nullptr),
+    m_ngr(nullptr), m_nsp(nullptr), m_tnass(nullptr), m_wst(nullptr),
+    m_wlv(nullptr), m_wagt(nullptr), m_zrt(nullptr),
     /// Temporary parameters
     m_soilWtrStoPrfl(nullptr), m_initialized(false),
     tmp_rtfr(nullptr), tmp_soilMass(nullptr), tmp_soilMixedMass(nullptr),
@@ -317,7 +320,36 @@ void MGTOpt_SWAT::Set1DData(const char* key, const int n, float* data) {
         m_cropsta = data; 
     } else if (StringMatch(sk, VAR_WRR)) { 
         m_wrr = data; 
-    } else if (StringMatch(sk, VAR_DVS)) { 
+    } else if (StringMatch(sk, VAR_TS)) { 
+        m_ts = data; 
+    } else if (StringMatch(sk, VAR_WLVG)) { 
+        m_wlvg = data; 
+    } else if (StringMatch(sk, VAR_WLVD)) { 
+        m_wlvd = data; 
+    } else if (StringMatch(sk, VAR_WSTS)) { 
+        m_wsts = data; 
+    } else if (StringMatch(sk, VAR_WSTR)) { 
+        m_wstr = data; 
+    } else if (StringMatch(sk, VAR_WSO)) { 
+        m_wso = data; 
+    } else if (StringMatch(sk, VAR_WRT)) { 
+        m_wrt = data; 
+    } else if (StringMatch(sk, VAR_NGR)) { 
+        m_ngr = data; 
+    } else if (StringMatch(sk, VAR_NSP)) { 
+        m_nsp = data; 
+    } else if (StringMatch(sk, VAR_TNASS)) { 
+        m_tnass = data; 
+    } else if (StringMatch(sk, VAR_WST)) { 
+        m_wst = data; 
+    } else if (StringMatch(sk, VAR_WLV)) { 
+        m_wlv = data; 
+    } else if (StringMatch(sk, VAR_WAGT)) { 
+        m_wagt = data; 
+    } else if (StringMatch(sk, VAR_ZRT)) { 
+        m_zrt = data; 
+    }
+    else if (StringMatch(sk, VAR_DVS)) { 
         m_dvs = data; 
     } else {
         throw ModelException(MID_PLTMGT_SWAT, "Set1DData", "Parameter " + sk + " does not exist.");
@@ -1772,7 +1804,7 @@ void MGTOpt_SWAT::ExecuteAutoIrrigationOperation(const int i, const int factoryI
     m_autoIrrWtrD[i] = curOperation->IrrigationWaterApplied();
     m_autoIrrWtr2SurfqR[i] = curOperation->SurfaceRunoffRatio();
     m_irrFlag[i] = 1;
-    if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
+    //if (i == 63054) cout<<"ExecuteAutoIrrigationOperation"<<endl;
 	/// call autoirr.f
     /// TODO, this will be implemented as an isolated module in the near future.
 }
@@ -1817,7 +1849,7 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
         /// Currently, add pothole volume (mm) to the max depth directly (in case of infiltration).
         /// TODO, autoirrigation operations should be triggered. BY lj
         m_potVol[i] = curOperation->MaxPondDepth();
-		if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxPondDepth()<<endl;
+		//if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxPondDepth()<<endl;
         /// force the soil water storage to field capacity
         for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             // float dep2cap = m_sol_sat[i][ly] - m_soilStorage[i][ly];
@@ -1826,12 +1858,12 @@ void MGTOpt_SWAT::ExecuteReleaseImpoundOperation(const int i, const int factoryI
                 dep2cap = Min(dep2cap, m_potVol[i]);
                 m_soilWtrSto[i][ly] += dep2cap;
                 m_potVol[i] -= dep2cap;
-				if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, -dep2cap:"<<dep2cap<<endl;
+				//if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, -dep2cap:"<<dep2cap<<endl;
             }
         }
         if (m_potVol[i] < curOperation->MaxFitDepth()) {
             m_potVol[i] = curOperation->MaxFitDepth();
-			if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxFitDepth()<<endl;
+			//if (i == 63054) cout<<"MGTOpt_SWAT::ExecuteReleaseImpoundOperation, value:"<<curOperation->MaxFitDepth()<<endl;
         } /// force to reach the up depth.
         /// recompute total soil water storage
         m_soilWtrStoPrfl[i] = 0.f;
@@ -1862,12 +1894,13 @@ void MGTOpt_SWAT::ExecuteBurningOperation(const int i, const int factoryID, cons
 
 void MGTOpt_SWAT::ExecuteRicePlantOperation(int i, int factoryID, int nOp)
 {
+
     m_cropsta[i] = 1.f;
     // m_LAIDay[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
     m_lai[i] = m_lape * m_nplsb; //re-initialize LAI at day of emergence
     //m_phuAcc[i] = 0.f;
     m_plantN[i] = 0.f;
-	//if (i == 63054) cout<<"ExecuteRicePlantOperation"<<endl;
+	if (i == 63054) cout<<"ExecuteRicePlantOperation, LAI:"<<m_lai[i]<<endl;
 }
 
 void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
@@ -1912,15 +1945,35 @@ void MGTOpt_SWAT::ExecuteRiceHarvestOperation(int i, int factoryID, int nOp)
         // m_soilFrshOrgP[i][l] += rtfr[l] * ff2 * (m_plantP[i] - yieldp);
     }
 
+    //when rice is haverst,then set these vars to 0
     m_cropsta[i] = 0.f;
     m_biomass[i] = 0.f;
     m_frRoot[i] = 0.f;
-    m_plantN[i] = 0.f;
-    m_plantP[i] = 0.f;
+    m_pltN[i] = 0.f;
+    m_pltP[i] = 0.f;
 	// those var are not initial, so not use them cuuently.
     /*m_frStrsWa[i] = 1.f;
     m_LAIDay[i] = 0.f;*/
     m_dvs[i] = 0.f;
+    m_lai[i] = 0.f;
+    m_ts[i] = 0.f;
+    m_wlvg[i] = 0.01f;
+    m_wlvd[i] = 0.f;
+    m_wsts[i] = 0.01f;
+    m_wstr[i] = 0.f;
+    m_wso[i] = 0.f; // storage organs
+    m_wrt[i] = 0.f; // root
+    m_wrr[i] = 0.f; // final yield
+    m_ngr[i] = 0.f;
+    m_nsp[i] = 0.f;
+    m_tnass[i] = 0.f;
+    m_wst[i] = 0.f;           // stem
+    m_wlv[i] = 0.f;           // leaf
+    m_wagt[i] = 0.f; // dry weight above ground
+    //m_biomass[i] = 0.f];
+    //m_frRoot[i] = 0.f;
+    // Root length
+    m_zrt[i] = 0.f;
 }
 
 
@@ -1928,9 +1981,13 @@ void MGTOpt_SWAT::ScheduledManagement(const int cellIdx, const int factoryID, co
     /// nOp is seqNo. * 1000 + operationCode
     int mgtCode = nOp % 1000;
     int landuse_id = CVT_INT(m_landUse[cellIdx]);
+    // judge if the crop is rice
+    vector<int>& tmpOpSeqences = m_mgtFactory[factoryID]->GetOperationSequence();
+    map<int, PltMgtOp *>& tmpOperations = m_mgtFactory[factoryID]->GetOperations();
+    PltMgtOp* tmpOperation = tmpOperations.at(nOp);
     switch (mgtCode) {
         case BMP_PLTOP_Plant: 
-            if (landuse_id == 33) ExecuteRicePlantOperation(cellIdx, factoryID, nOp);
+            if (landuse_id == 33 && tmpOperation->GetDVS() != -1) ExecuteRicePlantOperation(cellIdx, factoryID, nOp);
             else ExecutePlantOperation(cellIdx, factoryID, nOp);
             break;
         case BMP_PLTOP_Irrigation: ExecuteIrrigationOperation(cellIdx, factoryID, nOp);
@@ -1940,7 +1997,7 @@ void MGTOpt_SWAT::ScheduledManagement(const int cellIdx, const int factoryID, co
         case BMP_PLTOP_Pesticide: ExecutePesticideOperation(cellIdx, factoryID, nOp);
             break;
         case BMP_PLTOP_HarvestKill: 
-            if (landuse_id == 33) ExecuteRiceHarvestOperation(cellIdx, factoryID, nOp);
+            if (landuse_id == 33 && tmpOperation->GetDVS() != -1) ExecuteRiceHarvestOperation(cellIdx, factoryID, nOp);
             else ExecuteHarvestKillOperation(cellIdx, factoryID, nOp);
             break;
         case BMP_PLTOP_Tillage: ExecuteTillageOperation(cellIdx, factoryID, nOp);
@@ -1994,6 +2051,13 @@ int MGTOpt_SWAT::Execute() {
             ValueInVector(curMgtField, m_mgtFactory[curFactoryID]->GetLocations()))) {
             continue;
         }
+
+        if (i == 63054 && m_day == 2 && m_month == 6){
+            
+        //cout<<"ORYZA  m_gLai(LAI() start):"<<m_gLai<<endl;
+        cout<<"ORYZA  LAI(line506):"<<m_lai[i]<<endl;
+    }
+
         /// 3. Check if there are suitable operations, and execute them.
         vector<int> curOps;
         if (GetOperationCode(i, curFactoryID, curOps)) {

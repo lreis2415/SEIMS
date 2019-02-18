@@ -9,7 +9,7 @@ DepressionFSDaily::DepressionFSDaily() :
     m_potVol(nullptr),
     m_depCo(NODATA_VALUE), m_depCap(nullptr), m_pet(nullptr),
     m_ei(nullptr), m_pe(nullptr), m_sd(nullptr),
-    m_ed(nullptr), m_sr(nullptr) {
+    m_ed(nullptr), m_sr(nullptr), m_netPcp(nullptr) {
 }
 
 DepressionFSDaily::~DepressionFSDaily() {

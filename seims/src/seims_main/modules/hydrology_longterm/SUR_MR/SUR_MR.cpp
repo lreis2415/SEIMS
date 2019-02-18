@@ -95,7 +95,9 @@ int SUR_MR::Execute() {
             }
             float smFraction = Min(m_soilWtrStoPrfl[i] / m_soilSumSat[i], 1.f);
             // for frozen soil, no infiltration will occur
-            if (m_soilTemp[i] <= m_soilFrozenTemp && smFraction >= m_soilFrozenWtrRatio) {
+            if ((m_soilTemp[i] <= m_soilFrozenTemp && smFraction >= m_soilFrozenWtrRatio) ||
+                (m_potVol != nullptr && FloatEqual(m_impndTrig[i], 0.f))) { 
+                // if paddy is impounding, calculate infil and surface runoff in pothole_SWAT module.
                 m_exsPcp[i] = m_netPcp[i];
                 m_infil[i] = 0.f;
             } else {

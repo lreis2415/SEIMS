@@ -436,6 +436,12 @@ void ORYZA::CalCanopyAssimilationRate(int i) {
     float gsw[3] = {0.277778, 0.444444, 0.277778};
     m_gai[i] = m_aLAI;
 
+    //for gpc,rapc,gpcdt,rapcdt, they should be initialized 0 at the day begainning
+   /* Initialize1DArray(m_nCells, m_gpc, 0.f);
+    Initialize1DArray(m_nCells, m_rapc, 0.f);*/
+    m_gpc[i] = 0;
+    m_rapc[i] = 0;
+
     for (int k = 0; k < 3; k++) {
         m_gaid[i] = m_gai[i] * gsx[k];
         Sgpl(i);
@@ -453,6 +459,12 @@ void ORYZA::CalDailyCanopyPhotosynthesisRate(int i) {
     float gsw[3] = {0.277778, 0.444444, 0.277778};
 
     //CalDayLengthAndSINB(i);
+
+    /*Initialize1DArray(m_nCells, m_gpcdt, 0.f);
+    Initialize1DArray(m_nCells, m_rapcdt, 0.f);*/
+
+    m_gpcdt[i] = 0;
+    m_rapcdt[i] = 0;
 
     for (int k = 0; k < 3; k++) {
         m_hour = 12.f + m_dayL[i] * 0.5f * gsx[k];
@@ -503,6 +515,10 @@ void ORYZA::CalSpikeletAndGrainRate(int i) {
 }
 
 void ORYZA::LAI(int i) {
+    //if (i == 63054){
+    //    cout<<"ORYZA  m_gLai(LAI() start):"<<m_gLai<<endl;
+    //    //cout<<"ORYZA  LAI(line506):"<<m_lai[i]<<endl;
+    //}
     // Actual relative growth rate of leaves ((oCd)-1)
     float rgrl = m_rgrlMX - (1.f - m_frStrsN[i]) * (m_rgrlMX - m_rgrlMN);
     float x = 1.f, testSet = 0.0001f;
@@ -538,6 +554,7 @@ void ORYZA::LAI(int i) {
         m_gLai = m_lai[i] * m_nh * m_nplh / m_nplsb - m_lai[i];
     } else if (m_cropsta[i] == 4) {
         // After transplanting: main crop growth
+        //if (i == 63054) cout<<"ORYZA  LAI(line543):"<<m_gLai<<endl;
         if (m_ts[i] < tslvtr + tshckl) m_gLai = 0;
         else {
             if (m_lai[i] < 0.f && m_dvs[i] < 1.f) {
@@ -557,6 +574,9 @@ void ORYZA::LAI(int i) {
             }
         }
     }
+    /*if (i == 63054){
+        cout<<"ORYZA  m_gLai(LAI() last):"<<m_gLai<<endl;
+    }*/
 }
 
 void ORYZA::CalRiceGrowth(int i) {
@@ -579,7 +599,7 @@ void ORYZA::CalRiceGrowth(int i) {
         if (0.f < m_tavD && m_tavD <= 10.f) {
             m_eff = 0.54f * m_co2EFF; // compute eff use linear_interp
         } else {
-            m_eff = (0.54f - 0.06f * (m_tavD - 10.f)) * m_co2EFF;
+            m_eff = (0.54f - 0.006f * (m_tavD - 10.f)) * m_co2EFF;
         }
 
         // Leaf rolling under drought stress (only for photosynthesis)
@@ -599,7 +619,7 @@ void ORYZA::CalRiceGrowth(int i) {
         // Unrolling of ALAI again
         m_aLAI = m_lai[i] + 0.5f * m_sai;
         // drought stress will decreases the rate
-        m_dtga[i] = m_dtga[i] * m_frStrsWtr[i];
+        //m_dtga[i] = m_dtga[i] * m_frStrsWtr[i];
         //compute the fraction of dry matter to the shoot(FSH), leave(FLV), stems(FST), panicle(FSO), root(FRT), leaf death(DRLV)
         if (m_dvs[i] > 0.f && m_dvs[i] <= 1.f) {
             m_fsh = m_aFsh + m_bFsh * m_dvs[i];
@@ -699,6 +719,13 @@ void ORYZA::CalRiceGrowth(int i) {
         // Integrate rate variables
         m_ts[i] += hu;
         m_wlvg[i] += rwlvg;
+
+        //if (i == 63054){
+        //cout<<"ORYZA  leaf growth every day):"<<rwlvg<<endl;
+        //cout<<"ORYZA  dtga every day):"<<m_dtga[i]<<endl;
+        ////cout<<"ORYZA  LAI(line506):"<<m_lai[i]<<endl;
+        //}
+
         m_wlvd[i] += llv;
         m_wsts[i] += gst;
         m_wstr[i] += rwstr;
@@ -716,10 +743,16 @@ void ORYZA::CalRiceGrowth(int i) {
         m_frRoot[i] = m_wrt[i] / m_biomass[i];
         // Leaf area index and total area index (leaves + stems)
         m_lai[i] += m_gLai;
+        //if (i == 63054) cout<<"ORYZA  LAI:"<<m_lai[i]<<", m_gLai:"<<m_gLai<<endl;
         m_aLAI = m_lai[i] + 0.5f * m_sai;
         // Root length
         m_zrt[i] += m_gzrt;
         m_zrt[i] = Min(m_zrt[i], m_zrtMCD);
+        /*if (i == 63054){
+        cout<<"ORYZA  lai every day):"<<m_lai[i]<<endl;*/
+        //cout<<"ORYZA  dtga every day):"<<m_dtga[i]<<endl;
+        //cout<<"ORYZA  LAI(line506):"<<m_lai[i]<<endl;
+    //}
     }
 }
 
@@ -763,15 +796,15 @@ void ORYZA::CalPlantETAndWStress(int i) {
             mskpa[j] = musc[j] / 10.f;
             // Leaf-rolling factor
             float lr = (log10(mskpa[j]) - log10(m_llls)) / (log10(m_ulls) - log10(m_llls));
-            lr = Min(0.f, Max(1.f, lr));
+            lr = Max(0.f, Min(1.f, lr));
             lrav = lrav + zrtl / m_zrt[i] * lr;
             // Relative leaf expansion rate factor
             float le = (log10(mskpa[j]) - log10(m_llle)) / (log10(m_ulle) - log10(m_llle));
-            le = Min(0.f, Max(1.f, le));
+            le = Max(0.f, Min(1.f, le));
             leav = leav + zrtl / m_zrt[i] * le;
             // Relative death rate factor
             float ld = (log10(mskpa[j]) - log10(m_lldl)) / (log10(m_uldl) - log10(m_lldl));
-            ld = Min(0.f, Max(1.f, ld));
+            ld = Max(0.f, Min(1.f, ld));
             ldav = ldav + zrtl / m_zrt[i] * ld;
 
             // Relative transpiration ratio (actual/potential)
@@ -780,7 +813,7 @@ void ORYZA::CalPlantETAndWStress(int i) {
             } else {
                 trr = 2.f / (1.f + exp(0.003297f * mskpa[j]));
             }
-            trr = Min(0.f, Max(1.f, trr));
+            trr = Max(0.f, Min(1.f, trr));
 
             float wla = Max(0.f, (m_soilStorage[i][j] - m_soilWP[i][j]) * zrtl * 1000.f);
             float trwl = Min(wla, trr * zrtl * trrm);
@@ -920,8 +953,12 @@ int ORYZA::Execute() {
     CheckInputData();
     InitialOutputs();
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
+        //if (i == 63054) {
+        //    cout<<"ORYZA  m_gLai(execute start):"<<m_gLai<<", m_lai:"<<m_lai[i]<<endl;
+        //    //cout<<"ORYZA  LAI(26 execute start):"<<m_lai[i]<<endl;
+        //}
         /// calculate albedo in current day
         float cej = -5.e-5f, eaj = 0.f;
         eaj = exp(cej * (m_rsdCovSoil[i] + 0.1f));
@@ -937,7 +974,12 @@ int ORYZA::Execute() {
         m_cellLat = m_celllat[i];
         CalDayLengthAndSINB(i);
 
+        /*if (i == 63054 && m_day == 20 && m_month == 10){
+        cout<<"ORYZA  m_gLai(LAI() start):"<<m_gLai<<endl;*/
+        //cout<<"ORYZA  LAI(line506):"<<m_lai[i]<<endl;
+        //}
         if (m_cropsta[i] > 0.f && m_dvs[i] < 2.f) {
+
             /// rice growing
             CalPlantETAndWStress(i);
             CalRiceGrowth(i);
@@ -954,6 +996,9 @@ int ORYZA::Execute() {
                 m_cropsta[i] = 4.f;
             }
         }
+      /*  if (i == 63054){
+        cout<<"ORYZA  m_gLai(execute last):"<<m_gLai<<", m_lai:"<<m_lai[i]<<endl;
+        }*/
     }
     return true;
 }

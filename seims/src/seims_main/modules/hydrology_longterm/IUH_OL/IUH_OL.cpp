@@ -79,7 +79,7 @@ int IUH_OL::Execute() {
         }
     }
     // See https://github.com/lreis2415/SEIMS/issues/36 for more descriptions. By lj
-    if (m_inputSubbsnID != 99999) { //raster version
+    if (m_inputSubbsnID != 9999) { //raster version
 #pragma omp parallel
     {
         float* tmp_qsSub = new float[m_nSubbsns + 1];

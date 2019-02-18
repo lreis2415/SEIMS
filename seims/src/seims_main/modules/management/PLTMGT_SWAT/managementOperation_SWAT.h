@@ -210,6 +210,34 @@ private:
     float* m_wrr;
     /// Development stage of the crop
     float* m_dvs;
+    /// Temperature sum
+    float* m_ts;
+    /// Dry weight of green leaves  kg / ha
+    float* m_wlvg;
+    /// Dry weight of dead leaves
+    float* m_wlvd;
+    /// dry weight of stems reserves
+    float* m_wsts;
+    /// dry weight of structural stems
+    float* m_wstr;
+    /// dry weight of storage organs
+    float* m_wso;
+    /// Dry weight of roots
+    float* m_wrt;
+    /// Number of grains
+    float* m_ngr;
+    /// Number of spikelets
+    float* m_nsp;
+    /// Total net CO2 assimilation  kg CO2 ha-1
+    float* m_tnass;
+    /// dry weight of stems
+    float* m_wst;
+    /// Dry weight of leaves
+    float* m_wlv;
+    /// Total aboveground dry matter
+    float* m_wagt;
+    /// root length or root depth
+    float* m_zrt;
     /// the leaf area indices for day i
     float* m_LAIDay;
     /// phu accumulated
