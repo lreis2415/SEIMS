@@ -92,13 +92,6 @@ int DepressionFSDaily::Execute() {
                 m_potVol[i] += m_sr[i];
                 m_potVol[i] += m_sd[i];
 				//if (i == 63054) cout<<"DEP_LINSLEY, msr:"<<m_sr[i]<<", pe:"<<m_pe[i]<<endl;
-                if(i == 63054){
-				std::ofstream fout;
-				fout.open("d:\\p-m_sr.txt", std::ios::app);
-				fout <<m_year<<"-"<<m_month<<"-"<<m_day<<","<< m_sr[i] << "\n";
-				fout << std::flush;
-				fout.close();
-			}
                 m_sr[i] = 0.f;
                 m_sd[i] = 0.f;
             }

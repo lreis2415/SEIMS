@@ -817,17 +817,17 @@ void IMP_SWAT::PotholeSimulate(const int id) {
         //	m_soilStorageProfile[id] += m_soilStorage[id][ly];
 
         /// compute evaporation from water surface
-        if (m_dvs[id] > UTIL_ZERO) {
+        if (m_LAIDay[id] < m_evLAI) {
 			//if (m_LAIDay[id] < m_evLAI) {
-            ///potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
-			potev = (1.f - 2.f / m_evLAI) * m_pet[id];
+            potev = (1.f - m_LAIDay[id] / m_evLAI) * m_pet[id];
+			///potev = (1.f - 2.f / m_evLAI) * m_pet[id];
             //if (id == 46364) cout<<"pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", ";
-			//if (id == 63054) cout<<"-----------------------pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<", m_evLAI: "<<m_evLAI<<endl;
+			if (id == 63054) cout<<"-----------------------pet: "<<m_pet[id]<<", laiday: "<<m_LAIDay[id]<<", potEvap: "<<potev<<endl;
             potev = Min(potev, m_potVol[id]);
             m_potVol[id] -= potev;
             m_potEvap[id] += potev;
         }
-        if (id == 63054) cout<<"-----------------------LAI: "<<m_LAIDay[id]<<endl;
+        //if (id == 63054) cout<<"-----------------------LAI: "<<m_LAIDay[id]<<endl;
 		//if (id == 63054) cout<<"PET:"<<potev<<endl;
 
         //if(id == 63054){
