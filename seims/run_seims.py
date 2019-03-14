@@ -43,8 +43,8 @@ from utility import match_simulation_observation, calculate_statistics
 class ParseSEIMSConfig(object):
     """Parse SEIMS model related configurations from `ConfigParser` object."""
 
-    def __init__(self, cf):
-        # type: (ConfigParser) -> None
+    def __init__(self, cf=None):
+        # type: (Optional[ConfigParser]) -> None
         self.host = '127.0.0.1'  # localhost by default
         self.port = 27017
         self.bin_dir = ''
@@ -65,6 +65,11 @@ class ParseSEIMSConfig(object):
         self.out_stime = None
         self.out_etime = None
         self.config_dict = dict()
+        # Running time counted by time.time() of Python, in case of GetTimespan() function failed
+        self.runtime = 0.
+
+        if cf is None:
+            return
 
         sec_name = 'SEIMS_Model'
         if sec_name not in cf.sections():
@@ -115,8 +120,6 @@ class ParseSEIMSConfig(object):
         if self.out_stime and self.out_etime and self.out_stime >= self.out_etime:
             raise ValueError('Wrong output time settings in [%s]!' % sec_name)
 
-        # Running time counted by time.time() of Python, in case of GetTimespan() function failed
-        self.runtime = 0.
 
     @property
     def ConfigDict(self):
@@ -537,7 +540,8 @@ class MainSEIMS(object):
         self.runtime = time.time() - stime
         return self.run_success
 
-    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False):
+    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False,
+              delete_spatial_gfs=False):
         """Clean model outputs in OUTPUT<ScenarioID>-<CalibrationID> directory and/or
         GridFS files in OUTPUT collection.
         """
@@ -550,6 +554,8 @@ class MainSEIMS(object):
         read_model.CleanOutputGridFs(scenario_id, calibration_id)
         if delete_scenario:
             read_model.CleanScenariosConfiguration(scenario_id)
+            if delete_spatial_gfs:
+                read_model.CleanSpatialGridFs(scenario_id)
 
 
 def create_run_model(modelcfg_dict, scenario_id=0, calibration_id=-1, subbasin_id=0):

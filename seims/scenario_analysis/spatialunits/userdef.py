@@ -47,26 +47,24 @@ def check_individual_diff(old_ind,  # type: Union[array.array, List[int], Tuple[
 #          Crossover (Mate)             #
 #                                       #
 
-def crossover_slppos(tagnames,  # type: List[Tuple[int, str]]
-                     ind1,  # type: Union[array.array, List[int], Tuple[int]]
-                     ind2  # type: Union[array.array, List[int], Tuple[int]]
+def crossover_slppos(ind1,  # type: Union[array.array, List[int], Tuple[int]]
+                     ind2,  # type: Union[array.array, List[int], Tuple[int]]
+                     hillslp_values_num  # type: int
                      ):
     # type: (...) -> (Union[array.array, List[int], Tuple[int]], Union[array.array, List[int], Tuple[int]])
     """Crossover operator based on slope position units.
     Each individual can keep the domain knowledge based rules after crossover operation.
 
     Args:
-        tagnames(list): slope position tags and names, from up to bottom of hillslope.
-                        The format is [(tag, name),...].
         ind1: The first individual participating in the crossover.
         ind2: The second individual participating in the crossover.
+        hillslp_values_num: Gene values number of each hillslope.
 
     Returns:
         A tuple of two individuals.
     """
-    sp_num = len(tagnames)
     size = min(len(ind1), len(ind2))
-    assert (size > sp_num * 2)
+    assert (size > hillslp_values_num * 2)
 
     while True:
         cxpoint1 = random.randint(0, size - 1)
@@ -74,14 +72,14 @@ def crossover_slppos(tagnames,  # type: List[Tuple[int, str]]
         if cxpoint2 < cxpoint1:  # Swap the two cx points
             cxpoint1, cxpoint2 = cxpoint2, cxpoint1
         # print(cxpoint1, cxpoint2)
-        cs1 = cxpoint1 // sp_num
-        cs2 = cxpoint2 // sp_num
+        cs1 = cxpoint1 // hillslp_values_num
+        cs2 = cxpoint2 // hillslp_values_num
         # print(cs1, cs2)
-        cxpoint1 = cs1 * sp_num
-        if cxpoint2 % sp_num != 0:
-            cxpoint2 = sp_num * (cs2 + 1)
+        cxpoint1 = cs1 * hillslp_values_num
+        if cxpoint2 % hillslp_values_num != 0:
+            cxpoint2 = hillslp_values_num * (cs2 + 1)
         if cxpoint1 == cxpoint2:
-            cxpoint2 += sp_num
+            cxpoint2 += hillslp_values_num
         # print(cxpoint1, cxpoint2)
         if not (cxpoint1 == 0 and cxpoint2 == size):
             break  # avoid change the entire genes
@@ -167,9 +165,9 @@ def crossover_updown(updownunits,  # type: Dict[int, Dict[AnyStr, List[int]]]
     if _DEBUG:
         print('-- Before crossover operation:')
         print('-- Individual 1 validation check %s' % ('PASSED' if check_validation_individual(ind1)
-              else 'FAILED'))
+                                                       else 'FAILED'))
         print('-- Individual 2 validation check %s' % ('PASSED' if check_validation_individual(ind2)
-              else 'FAILED'))
+                                                       else 'FAILED'))
     size = min(len(ind1), len(ind2))
     # 1. Chose a node (gene) randomly.
     cxpoint = random.randint(0, size - 1)
@@ -221,9 +219,9 @@ def crossover_updown(updownunits,  # type: Dict[int, Dict[AnyStr, List[int]]]
     if _DEBUG:
         print('-- After crossover operation:')
         print('-- Individual 1 validation check %s' % ('PASSED' if check_validation_individual(ind1)
-              else 'FAILED'))
+                                                       else 'FAILED'))
         print('-- Individual 2 validation check %s' % ('PASSED' if check_validation_individual(ind2)
-              else 'FAILED'))
+                                                       else 'FAILED'))
     return ind1, ind2
 
 
@@ -271,19 +269,18 @@ def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
                 unit='SLPPOS',  # type: AnyStr
                 method='SUIT',  # type: AnyStr
                 bmpgrades=None,  # type: Optional[Dict[int, int]]
-                tagnames=None  # type: Optional[List[Tuple[int, AnyStr]]] # For slope position units
+                tagnames=None,  # type: Optional[List[Tuple[int, AnyStr]]] # Slope position units
+                thresholds=None  # type: Optional[List[float]] # Only for slope position
                 ):
     # type: (...) -> Union[array.array, List[int], Tuple[int]]
     """
-    Mutation Gene values based on slope position rules.
+    Mutation Gene values for rule-based BMP configuration strategies.
     Old gene value is excluded from target values.
 
     Args:
-        unitsinfo(dict): Slope position units information, see more detail on `SASPUConfig`.
+        unitsinfo(dict): Spatial units information, see more detail on `SASPUConfig`.
         gene2unit(dict): Gene index to slope position unit ID.
         unit2gene(dict): Slope position unit ID to gene index.
-        tagnames(list): slope position tags and names, from up to bottom of hillslope.
-                        The format is [(tag, name),...].
         suitbmps(dict): key is slope position tag, and value is available BMPs IDs list.
         individual(list or tuple): Individual to be mutated.
         perc(float): percent of gene length for mutate, default is 0.02
@@ -291,6 +288,9 @@ def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
         unit(str): BMPs configuration unit type.
         method(str): Domain knowledge-based rule method.
         bmpgrades(dict): (Optional) Effectiveness grades of BMPs.
+        tagnames(list): (Optional) slope position tags and names, from up to bottom of hillslope.
+                        The format is [(tag, name),...].
+        thresholds(list): (Optional) Available thresholds for boundary adaptive
 
     Returns:
         A tuple of one individual.
@@ -300,22 +300,25 @@ def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
     elif perc < 0.01:
         perc = 0.01
     try:
-        mut_num = random.randint(1, int(len(individual) * perc))
+        mut_num = random.randint(1, int(len(unit2gene) * perc))
     except ValueError or Exception:
         return individual
     if _DEBUG:
-        print('  Max mutate num: %d' % mut_num)
+        print('  Max mutate num of BMP configuration units: %d' % mut_num)
     muted = list()
+    # Step 1: Mutate on BMP configuration units
+    unit2gene_list = list(viewitems(unit2gene))
     for m in range(mut_num):
         if random.random() > indpb:
             continue
         # mutate will happen
-        mpoint = random.randint(0, len(individual) - 1)
+        mpoint = random.randint(0, len(unit2gene) - 1)
         while mpoint in muted:
-            mpoint = random.randint(0, len(individual) - 1)
+            mpoint = random.randint(0, len(unit2gene) - 1)
 
-        oldgenev = individual[mpoint]
-        unitid = gene2unit[mpoint]
+        unitid = unit2gene_list[mpoint][0]
+        geneidx = unit2gene_list[mpoint][1]
+        oldgenev = individual[geneidx]
         # begin to mutate on unitid
         # get the potential BMP IDs
         bmps = select_potential_bmps(unitid, suitbmps, unitsinfo, unit2gene, individual,
@@ -329,13 +332,52 @@ def mutate_rule(unitsinfo,  # type: Dict[Union[str, int], Any]
         if oldgenev in bmps:
             bmps.remove(oldgenev)
         if len(bmps) > 0:
-            individual[mpoint] = bmps[random.randint(0, len(bmps) - 1)]
+            individual[geneidx] = bmps[random.randint(0, len(bmps) - 1)]
             if _DEBUG:
                 print('  Mutate on unit: %d, oldgene: %d, potBMPs: %s, new gene: %d' %
-                      (unitid, oldgenev, bmps.__str__(), individual[mpoint]))
+                      (unitid, oldgenev, bmps.__str__(), individual[geneidx]))
             muted.append(mpoint)
         else:  # No available BMP
             pass
+    # Step 2: Mutate on thresholds of boundary adaptive
+    #         Only available for Slope position units
+    if unit == 'SLPPOS' and len(individual) > len(unit2gene):
+        muted_thresh = list()
+        potmute_threshs = list()  # potential gene index for threshold mutation
+        for tagidx, (tag, tagname) in enumerate(tagnames):
+            for spid in unitsinfo[tagname]:
+                if individual[unit2gene[spid]] <= 0:
+                    continue  # No BMP configured
+                if tagidx == 0:
+                    potmute_threshs.append(unit2gene[spid] + len(tagnames))
+                elif 0 < tagidx < len(tagnames) - 1:
+                    potmute_threshs.append(unit2gene[spid] + len(tagnames) - 1)
+                    potmute_threshs.append(unit2gene[spid] + len(tagnames))
+                else:
+                    potmute_threshs.append(unit2gene[spid] + len(tagnames) - 1)
+        potmute_threshs = list(set(potmute_threshs))
+        boundarymut_num = random.randint(0, int(len(potmute_threshs) * perc))
+        if _DEBUG and boundarymut_num > 0:
+            print('  Max mutate num for boundary adaptive: %d' % boundarymut_num)
+        for m in range(boundarymut_num):
+            if random.random() > indpb:
+                continue
+            # mutate will happen
+            mpoint = random.randint(0, len(potmute_threshs) - 1)
+            while potmute_threshs[mpoint] in muted_thresh:
+                mpoint = random.randint(0, len(potmute_threshs) - 1)
+            newgenevs = thresholds[:]
+            oldgenev = individual[potmute_threshs[mpoint]]
+            if oldgenev in newgenevs:
+                newgenevs.remove(oldgenev)
+            if len(newgenevs) == 0:
+                continue
+            individual[potmute_threshs[mpoint]] = newgenevs[random.randint(0, len(newgenevs) - 1)]
+            muted_thresh.append(potmute_threshs[mpoint])
+            if _DEBUG:
+                print('  Mutate on thresh index: %d, oldgene: %s, potThresh: %s, new gene: %s' %
+                      (potmute_threshs[mpoint], repr(oldgenev), newgenevs.__str__(),
+                       repr(individual[potmute_threshs[mpoint]])))
     return individual
 
 
@@ -427,7 +469,7 @@ def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
         old_ind2 = toolbox.clone(ind2)
         if random.random() <= cx_rate:
             if base_cfg.bmps_cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
-                crossover_slppos(sce1.cfg.slppos_tagnames, ind1, ind2)
+                crossover_slppos(ind1, ind2, sce1.cfg.hillslp_genes_num)
             elif base_cfg.bmps_cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
                 crossover_updown(sce1.cfg.updown_units, sce1.cfg.gene_to_unit,
                                  sce1.cfg.unit_to_gene, ind1, ind2)
@@ -461,11 +503,13 @@ def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
             mutate_rule(sce1.cfg.units_infos, sce1.cfg.gene_to_unit, sce1.cfg.unit_to_gene,
                         sce1.suit_bmps['LANDUSE'], ind1, mut_perc, mut_rate,
                         unit=base_cfg.bmps_cfg_unit, method=base_cfg.bmps_cfg_method,
-                        bmpgrades=sce1.bmps_grade, tagnames=tagnames)
+                        bmpgrades=sce1.bmps_grade, tagnames=tagnames,
+                        thresholds=sce1.cfg.boundary_adaptive_threshs)
             mutate_rule(sce2.cfg.units_infos, sce2.cfg.gene_to_unit, sce2.cfg.unit_to_gene,
                         sce2.suit_bmps['LANDUSE'], ind2, mut_perc, mut_rate,
                         unit=base_cfg.bmps_cfg_unit, method=base_cfg.bmps_cfg_method,
-                        bmpgrades=sce2.bmps_grade, tagnames=tagnames)
+                        bmpgrades=sce2.bmps_grade, tagnames=tagnames,
+                        thresholds=sce2.cfg.boundary_adaptive_threshs)
         if not check_individual_diff(old_ind1, ind1):
             print('  No mutation occurred on Scenario1!')
         else:

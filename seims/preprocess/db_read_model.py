@@ -287,7 +287,7 @@ class ReadModelData(object):
         for corename, types in viewitems(self._output_items):
             if types is None:
                 continue
-            # The format of filename of OUPUT by SEIMS MPI version is:
+            # The format of filename of OUTPUT by SEIMS MPI version is:
             #   <SubbasinID>_CoreFileName_ScenarioID_CalibrationID
             #   If no ScenarioID or CalibrationID, i.e., with a value of -1, just left blank.
             #  e.g.,
@@ -299,6 +299,17 @@ class ReadModelData(object):
             regex_str += '_' if calibration_id < 0 else '_%d' % calibration_id
             for i in output_gfs.find({'filename': {'$regex': regex_str}}):
                 output_gfs.delete(i._id)
+
+    def CleanSpatialGridFs(self, scenario_id):
+        # type: (int) -> None
+        """Delete Spatial GridFS files in Main database."""
+        spatial_gfs = GridFS(self.maindb, DBTableNames.gridfs_spatial)
+        # If there are any GridFS in Sptial collection are generated during scenario analysis,
+        #   the format of such GridFS file is: <SubbasinID>_<CoreFileName>_<ScenarioID>
+        # e.g., SLPPOS_UNITS_12345678
+        regex_str = '\\d+_\\S+_%d' % scenario_id
+        for i in spatial_gfs.find({'filename': {'$regex': regex_str}}):
+            spatial_gfs.delete(i._id)
 
     def CleanScenariosConfiguration(self, scenario_ids):
         # type: (Union[int, List[int], Tuple[int]]) -> None

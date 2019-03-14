@@ -27,18 +27,28 @@ from collections import OrderedDict
 import os
 import sys
 from io import open
+from struct import unpack, pack
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 import numpy
+from gridfs import GridFS
+from osgeo import osr
+from pygeoc.raster import RasterUtilClass
+from pygeoc.utils import FileClass, StringClass, MathClass, get_config_parser, is_string
+from pymongo.errors import NetworkTimeout
+
 from typing import List, Tuple, Dict, Union, AnyStr
-from pygeoc.raster import RasterUtilClass, DEFAULT_NODATA
+from pygeoc.raster import Raster, RasterUtilClass, DEFAULT_NODATA
 from pygeoc.utils import FileClass
 from pygeoc.vector import VectorUtilClass
-
+from preprocess.text import DBTableNames, RasterMetadata
 from preprocess.db_import_stream_parameters import ImportReaches2Mongo
 from preprocess.sd_hillslope import DelineateHillslope
+from preprocess.db_mongodb import ConnectMongoDB
+
+from run_seims import ParseSEIMSConfig
 
 
 class SlopePositionUnits(object):
@@ -188,9 +198,8 @@ class SlopePositionUnits(object):
                 if cur_lu != self.nodata_landuse and cur_lu > 0:
                     cur_lu = int(cur_lu)
                     if cur_lu not in self.units_updwon.get(cur_spname)[cur_unit]['landuse']:
-                        self.units_updwon.get(cur_spname)[cur_unit]['landuse'][cur_lu] = 1
-                    else:
-                        self.units_updwon.get(cur_spname)[cur_unit]['landuse'][cur_lu] += 1
+                        self.units_updwon.get(cur_spname)[cur_unit]['landuse'][cur_lu] = 0
+                    self.units_updwon.get(cur_spname)[cur_unit]['landuse'][cur_lu] += 1
 
     def check_unit_id(self):
         """check the existence of upslope and downslope units."""
@@ -258,6 +267,7 @@ class SlopePositionUnits(object):
         #   3. if still not satisfied, merge the left and right to the left or right of downstream
         #      (or upstream for outlet subbasin). The header always with the left hillslope.
         hillslope_merge_order = {0: [1, 2], 1: [0, 2], 2: [0, 1]}
+        hillslopes_pair = dict()  # TODO. ljzhu.
         units_pair = dict()  # unit id pairs, key is merged unit, value is destination unit.
         for hillid, unitids in hillslp_elim.items():
             subbsnid = DelineateHillslope.get_subbasin_from_hillslope_id(hillid, self.subbsin_num)
@@ -385,6 +395,229 @@ class SlopePositionUnits(object):
         self.output(self.json_units_merged, self.outf_units_merged, self.outshp_units_merged)
 
 
+def ReadRasterFromMongoDB(ip, port, db_name, gfsname, gfilename):
+    client = ConnectMongoDB(ip, port)
+    conn = client.get_conn()
+    maindb = conn[db_name]
+    spatial_gfs = GridFS(maindb, gfsname)
+    if not spatial_gfs.exists(filename=gfilename):
+        raise ValueError('WARNING: %s is not existed in %s:%s!' % (gfilename, db_name, gfsname))
+    try:
+        gfsdata = maindb[DBTableNames.gridfs_spatial].files.find({'filename': gfilename},
+                                                                 no_cursor_timeout=True)[0]
+    except NetworkTimeout or Exception:
+        # In case of unexpected raise
+        client.close()
+        return None
+
+    ysize = int(gfsdata['metadata'][RasterMetadata.nrows])
+    xsize = int(gfsdata['metadata'][RasterMetadata.ncols])
+    xll = gfsdata['metadata'][RasterMetadata.xll]
+    yll = gfsdata['metadata'][RasterMetadata.yll]
+    cellsize = gfsdata['metadata'][RasterMetadata.cellsize]
+    nodata = gfsdata['metadata'][RasterMetadata.nodata]
+    srs = gfsdata['metadata'][RasterMetadata.srs]
+    if is_string(srs):
+        srs = str(srs)
+    srs = osr.GetUserInputAsWKT(srs)
+    geotransform = [0] * 6
+    geotransform[0] = xll - 0.5 * cellsize
+    geotransform[1] = cellsize
+    geotransform[3] = yll + (ysize - 0.5) * cellsize  # yMax
+    geotransform[5] = -cellsize
+
+    array_data = spatial_gfs.get(gfsdata['_id'])
+    total_len = xsize * ysize
+    fmt = '%df' % (total_len,)
+    array_data = unpack(fmt, array_data.read())
+    array_data = numpy.reshape(array_data, (ysize, xsize))
+    return Raster(ysize, xsize, array_data, nodata, geotransform, srs)
+
+
+def DelinateSlopePositionByThreshold(modelcfg,  # type: ParseSEIMSConfig
+                                     thresholds,  # type: Dict[int, List]
+                                     fuzzyslppos_fnames,  # type: List[Tuple[int, AnyStr, AnyStr]]
+                                     outfname,  # type: AnyStr
+                                     subbsn_id=0  # type: int
+                                     ):
+    # type: (...) -> Dict
+    """
+
+    Args:
+        model_cfg: Configuration of SEIMS-based model
+        thresholds: {HillslopeID: {rdgID, bksID, vlyID, T_bks2rdg, T_bks2vly}, ...}
+        fuzzyslppos_fnames: [(1, 'summit', 'rdgInf'), ...]
+        outfname: output GridFS name
+        subbsn_id: By default use the whole watershed data
+    Returns:
+        hillslp_data(dict): {}
+    """
+    # 1. Read raster data from MongoDB
+    hillslpr = ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
+                                     modelcfg.db_name, DBTableNames.gridfs_spatial,
+                                     '%d_HILLSLOPE_MERGED' % subbsn_id)
+    landuser = ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
+                                     modelcfg.db_name, DBTableNames.gridfs_spatial,
+                                     '%d_LANDUSE' % subbsn_id)
+    fuzslppos_rs = list()
+    for tag, tagname, gfsname in fuzzyslppos_fnames:
+        fuzslppos_rs.append(ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
+                                                  modelcfg.db_name, DBTableNames.gridfs_spatial,
+                                                  '%d_%s' % (subbsn_id, gfsname.upper())))
+
+    # Output for test
+    out_dir = r'D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\tmp'
+    # out_hillslp = out_dir + os.sep + 'hillslope.tif'
+    # RasterUtilClass.write_gtiff_file(out_hillslp, hillslpr.nRows, hillslpr.nCols,
+    #                                  hillslpr.data, hillslpr.geotrans, hillslpr.srs,
+    #                                  hillslpr.noDataValue)
+    # out_landuse = out_dir + os.sep + 'landuse.tif'
+    # RasterUtilClass.write_gtiff_file(out_landuse, landuser.nRows, landuser.nCols,
+    #                                  landuser.data, landuser.geotrans, landuser.srs,
+    #                                  landuser.noDataValue)
+    # for i, (tag, tagname, gfsname) in enumerate(fuzzyslppos_fnames):
+    #     curname = out_dir + os.sep + '%s.tif' % gfsname
+    #     RasterUtilClass.write_gtiff_file(curname, fuzslppos_rs[i].nRows, fuzslppos_rs[i].nCols,
+    #                                      fuzslppos_rs[i].data, fuzslppos_rs[i].geotrans,
+    #                                      fuzslppos_rs[i].srs,
+    #                                      fuzslppos_rs[i].noDataValue)
+
+    # 2. Initialize output
+    outgfsname = '%d_%s' % (subbsn_id, outfname.upper())
+    outdict = dict()  # type: Dict[AnyStr, Dict[int, Dict[AnyStr, Union[float, Dict[int, float]]]]]
+    slppos_cls = numpy.ones((hillslpr.nRows, hillslpr.nCols)) * hillslpr.noDataValue
+    valid_cells = 0
+
+    # Get the fuzzy slope position values from up to bottom
+    def GetFuzzySlopePositionValues(i_row, i_col):
+        seqvalues = [-9999] * len(fuzslppos_rs)
+        for iseq, fuzdata in enumerate(fuzslppos_rs):
+            curv = fuzdata.data[i_row][i_col]
+            if MathClass.floatequal(curv, fuzdata.noDataValue):
+                return None
+            if curv < 0:
+                return None
+            seqvalues[iseq] = curv
+        return seqvalues
+
+    # ACTUAL ALGORITHM
+    for row in range(hillslpr.nRows):
+        for col in range(hillslpr.nCols):
+            # Exclude invalid situation
+            hillslp_id = hillslpr.data[row][col]
+            if MathClass.floatequal(hillslp_id, hillslpr.noDataValue):
+                continue
+            if hillslp_id not in thresholds:
+                continue
+            landuse_id = landuser.data[row][col]
+            if MathClass.floatequal(landuse_id, landuser.noDataValue):
+                continue
+            fuzzyvalues = GetFuzzySlopePositionValues(row, col)
+            if fuzzyvalues is None:
+                continue
+
+            # THIS PART SHOULD BE REVIEWED CAREFULLY LATER! --START
+            # Step 1. Get the index of slope position with maximum similarity
+            max_fuz = max(fuzzyvalues)
+            max_idx = fuzzyvalues.index(max_fuz)
+            tmpfuzzyvalues = fuzzyvalues[:]
+            tmpfuzzyvalues.remove(max_fuz)
+            sec_fuz = max(tmpfuzzyvalues)
+            sec_idx = fuzzyvalues.index(sec_fuz)
+
+            sel_idx = max_idx  # Select the maximum by default
+
+            cur_threshs = thresholds[hillslp_id][1 - len(fuzzyvalues):]
+
+            if max_idx == len(fuzzyvalues) - 1:  # the bottom position
+                if sec_idx == len(fuzzyvalues) - 2 and 0 < max_fuz - sec_fuz < cur_threshs[-1]:
+                    sel_idx = sec_idx  # change valley to backslope
+            elif max_idx == 0:  # the upper position
+                if sec_idx == 1 and 0 < max_fuz - sec_fuz < cur_threshs[0]:
+                    sel_idx = sec_idx  # change ridge to backslope
+            else:  # the middle positions
+                # Two thresholds could be applied,
+                #     i.e., cur_threshs[max_idx-1] and cur_threshs[max_idx]
+                if sec_idx == max_idx - 1 and 0. > sec_fuz - max_fuz > cur_threshs[max_idx - 1]:
+                    sel_idx = sec_idx
+                elif sec_idx == max_idx + 1 and 0. > sec_fuz - max_fuz > cur_threshs[max_idx]:
+                    sel_idx = sec_idx
+
+            # Exception:
+            if sec_fuz < 0.1 and sel_idx == sec_idx:
+                sel_idx = max_idx
+
+            # if sel_idx != max_idx:  # boundary has been adapted
+            #     print('fuzzy values: %s, thresholds: %s, '
+            #           'sel_idx: %d' % (fuzzyvalues.__str__(), cur_threshs.__str__(), sel_idx))
+
+            slppos_id = thresholds[hillslp_id][sel_idx]
+            # THIS PART SHOULD BE REVIEWED CAREFULLY LATER! --END
+
+            slppos_cls[row][col] = slppos_id
+            sel_tagname = fuzzyslppos_fnames[sel_idx][1]
+            if sel_tagname not in outdict:
+                outdict[sel_tagname] = dict()
+            if slppos_id not in outdict[sel_tagname]:
+                outdict[sel_tagname][slppos_id] = {'area': 0, 'landuse': dict()}
+            outdict[sel_tagname][slppos_id]['area'] += 1
+            if landuse_id not in outdict[sel_tagname][slppos_id]['landuse']:
+                outdict[sel_tagname][slppos_id]['landuse'][landuse_id] = 0.
+            outdict[sel_tagname][slppos_id]['landuse'][landuse_id] += 1.
+
+            valid_cells += 1
+    # Change cell counts to area
+    area_km2 = hillslpr.dx * hillslpr.dx * 1.e-6
+    for tagname, slpposdict in viewitems(outdict):
+        for sid, datadict in viewitems(slpposdict):
+            outdict[tagname][sid]['area'] *= area_km2
+            for luid in outdict[tagname][sid]['landuse']:
+                outdict[tagname][sid]['landuse'][luid] *= area_km2
+
+    # 3. Write the classified slope positions data back to mongodb
+    metadata = dict()
+    metadata[RasterMetadata.subbasin] = subbsn_id
+    metadata['ID'] = outgfsname
+    metadata['TYPE'] = outfname.upper()
+    metadata[RasterMetadata.cellsize] = hillslpr.dx
+    metadata[RasterMetadata.nodata] = hillslpr.noDataValue
+    metadata[RasterMetadata.ncols] = hillslpr.nCols
+    metadata[RasterMetadata.nrows] = hillslpr.nRows
+    metadata[RasterMetadata.xll] = hillslpr.xMin + 0.5 * hillslpr.dx
+    metadata[RasterMetadata.yll] = hillslpr.yMin + 0.5 * hillslpr.dx
+    metadata['LAYERS'] = 1.
+    metadata[RasterMetadata.cellnum] = valid_cells
+    metadata[RasterMetadata.srs] = hillslpr.srs
+
+    client = ConnectMongoDB(modelcfg.host, modelcfg.port)
+    conn = client.get_conn()
+    maindb = conn[modelcfg.db_name]
+    spatial_gfs = GridFS(maindb, DBTableNames.gridfs_spatial)
+    # delete if the tablename gridfs file existed
+    if spatial_gfs.exists(filename=outgfsname):
+        x = spatial_gfs.get_version(filename=outgfsname)
+        spatial_gfs.delete(x._id)
+    # create and write new GridFS file
+    new_gridfs = spatial_gfs.new_file(filename=outgfsname, metadata=metadata)
+    new_gridfs_array = slppos_cls.reshape((1, hillslpr.nCols * hillslpr.nRows)).tolist()[0]
+
+    fmt = '%df' % hillslpr.nCols * hillslpr.nRows
+    s = pack(fmt, *new_gridfs_array)
+    new_gridfs.write(s)
+    new_gridfs.close()
+
+    # Read and output for test
+    slpposcls_r = ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
+                                        modelcfg.db_name, DBTableNames.gridfs_spatial, outgfsname)
+    out_slpposcls = out_dir + os.sep + '%s.tif' % outgfsname
+    RasterUtilClass.write_gtiff_file(out_slpposcls, slpposcls_r.nRows, slpposcls_r.nCols,
+                                     slpposcls_r.data, slpposcls_r.geotrans, slpposcls_r.srs,
+                                     slpposcls_r.noDataValue)
+    client.close()
+
+    return outdict
+
+
 def main():
     """Delineation slope position units with the associated information."""
     from preprocess.config import parse_ini_configuration
@@ -396,11 +629,25 @@ def main():
 
     # additional inputs
     slppos_tag_name = [(1, 'summit'), (4, 'backslope'), (16, 'valley')]
-    slppos_file = r'C:\z_data_m\SEIMS2017\fuzslppos_ywz10m\slope_position_units\SLOPEPOSITION.tif'
+    slppos_file = r'D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\SLOPEPOSITION.tif'
 
     obj = SlopePositionUnits(slppos_tag_name, slppos_file, reach_shp, hillslp_file, landuse_file)
     obj.run()
 
 
+def main2():
+    seims_cfg = ParseSEIMSConfig()
+    seims_cfg.db_name = 'youwuzhen10m_longterm_model'
+    thresholds = {18: [18, 72, 288, 0.1, -0.1]}
+    fuzzyslppos_fnames = [(1, 'summit', 'rdgInf'),
+                          (4, 'backslope', 'bksInf'),
+                          (16, 'valley', 'vlyInf')]
+    outfname = 'SLPPOS_UNITS_10121314'
+    hillslp_data = DelinateSlopePositionByThreshold(seims_cfg, thresholds,
+                                                    fuzzyslppos_fnames, outfname)
+    print(hillslp_data)
+
+
 if __name__ == '__main__':
     main()
+    # main2()
