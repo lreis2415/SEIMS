@@ -466,7 +466,7 @@ def DelinateSlopePositionByThreshold(modelcfg,  # type: ParseSEIMSConfig
                                                   '%d_%s' % (subbsn_id, gfsname.upper())))
 
     # Output for test
-    out_dir = r'D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\tmp'
+    # out_dir = r'D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\tmp'
     # out_hillslp = out_dir + os.sep + 'hillslope.tif'
     # RasterUtilClass.write_gtiff_file(out_hillslp, hillslpr.nRows, hillslpr.nCols,
     #                                  hillslpr.data, hillslpr.geotrans, hillslpr.srs,
@@ -607,12 +607,12 @@ def DelinateSlopePositionByThreshold(modelcfg,  # type: ParseSEIMSConfig
     new_gridfs.close()
 
     # Read and output for test
-    slpposcls_r = ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
-                                        modelcfg.db_name, DBTableNames.gridfs_spatial, outgfsname)
-    out_slpposcls = out_dir + os.sep + '%s.tif' % outgfsname
-    RasterUtilClass.write_gtiff_file(out_slpposcls, slpposcls_r.nRows, slpposcls_r.nCols,
-                                     slpposcls_r.data, slpposcls_r.geotrans, slpposcls_r.srs,
-                                     slpposcls_r.noDataValue)
+    # slpposcls_r = ReadRasterFromMongoDB(modelcfg.host, modelcfg.port,
+    #                                     modelcfg.db_name, DBTableNames.gridfs_spatial, outgfsname)
+    # out_slpposcls = out_dir + os.sep + '%s.tif' % outgfsname
+    # RasterUtilClass.write_gtiff_file(out_slpposcls, slpposcls_r.nRows, slpposcls_r.nCols,
+    #                                  slpposcls_r.data, slpposcls_r.geotrans, slpposcls_r.srs,
+    #                                  slpposcls_r.noDataValue)
     client.close()
 
     return outdict
