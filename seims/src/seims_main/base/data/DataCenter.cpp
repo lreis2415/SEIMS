@@ -574,16 +574,21 @@ void DataCenter::UpdateParametersByScenario(const int subbsn_id) {
                             " will not work as expected." << endl;
                     continue;
                 }
+                int count = 0;
                 if (rs_map_[remote_filename]->Is2DRaster()) {
                     int lyr = -1;
                     float** data2d = nullptr;
                     rs_map_[remote_filename]->Get2DRasterData(&nsize, &lyr, &data2d);
-                    iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits, sel_ids, ludata, suitablelu);
+                    count = iter3->second->Adjust2DRaster(nsize, lyr, data2d, mgtunits,
+                                                          sel_ids, ludata, suitablelu);
                 } else {
                     float* data = nullptr;
                     rs_map_[remote_filename]->GetRasterData(&nsize, &data);
-                    iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids, ludata, suitablelu);
+                    count = iter3->second->Adjust1DRaster(nsize, data, mgtunits, sel_ids,
+                                                          ludata, suitablelu);
                 }
+                cout << "      A total of "  << count << " has been updated for " <<
+                    remote_filename << endl;
             }
         }
     }
