@@ -51,6 +51,7 @@ class ReadModelData(object):
         self._stime = None
         self._etime = None
         self._outletid = -1
+        self._subbasincount = -1
         # OUTPUT items
         self._output_ids = list()  # type: List[AnyStr]
         self._output_items = dict()  # type: Dict[AnyStr, Union[List[AnyStr]]]
@@ -112,6 +113,15 @@ class ReadModelData(object):
         self._outletid = int(MongoQuery.get_init_parameter_value(self.maindb,
                                                                  SubbsnStatsName.outlet))
         return self._outletid
+
+    @property
+    def SubbasinCount(self):
+        # type: (...) -> int
+        if self._subbasincount > 0:
+            return self._subbasincount
+        self._subbasincount = int(MongoQuery.get_init_parameter_value(self.maindb,
+                                                                      SubbsnStatsName.subbsn_num))
+        return self._subbasincount
 
     @property
     def SimulationPeriod(self):

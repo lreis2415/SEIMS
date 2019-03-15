@@ -278,6 +278,12 @@ class MainSEIMS(object):
         return read_model.OutletID
 
     @property
+    def SubbasinCount(self):
+        # type: (...) -> int
+        read_model = ReadModelData(self.host, self.port, self.db_name)
+        return read_model.SubbasinCount
+
+    @property
     def ScenarioDBName(self):
         # type: (...) -> AnyStr
         read_model = ReadModelData(self.host, self.port, self.db_name)

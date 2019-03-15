@@ -222,6 +222,14 @@ class Scenario(object):
         """Calculate environment effectiveness, which is application specified."""
         pass
 
+    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False,
+              delete_spatial_gfs=False):
+        """Clean the intermediate data."""
+        # model clean
+        self.model.clean(scenario_id=scenario_id, calibration_id=calibration_id,
+                         delete_scenario=delete_scenario,
+                         delete_spatial_gfs=delete_spatial_gfs)
+
     def execute_seims_model(self):
         """Run SEIMS for evaluating environmental effectiveness.
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.

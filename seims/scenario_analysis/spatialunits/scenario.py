@@ -147,6 +147,7 @@ class SUScenario(Scenario):
                 for idx, gv in enumerate(input_genes):
                     gidx = idx // typenum * (typenum + tnum) + idx % self.cfg.slppos_types_num
                     self.gene_values[gidx] = gv
+            return self.gene_values
         else:
             if self.rule_mtd == BMPS_CFG_METHODS[0]:
                 self.random_based_config(cr)
@@ -330,16 +331,34 @@ class SUScenario(Scenario):
                 thresh_idxend = thresh_idx + self.cfg.thresh_num
                 slppos_threshs[hillslpid] += self.gene_values[thresh_idx: thresh_idxend]
         # 3. Delineate slope position and get the updated information (landuse area, etc.)
+        # 3.1 Erase current data in units_info
+        for itag, iname in self.cfg.slppos_tagnames:
+            if iname not in self.cfg.units_infos:
+                continue
+            for sid, datadict in viewitems(self.cfg.units_infos[iname]):
+                self.cfg.units_infos[iname][sid]['area'] = 0.
+                for luid in self.cfg.units_infos[iname][sid]['landuse']:
+                    self.cfg.units_infos[iname][sid]['landuse'][luid] = 0.
+        # 3.2 Delineate slope position and get data by subbasin
+        # The whole watershed will be generateed for both version
         hillslp_data = DelinateSlopePositionByThreshold(self.modelcfg, slppos_threshs,
                                                         self.cfg.slppos_tag_gfs,
-                                                        spfilename)
-        # 4. Update units_infos
+                                                        spfilename, subbsn_id=0)
+        # 3.3 Update units_infos
         for tagname, slpposdict in viewitems(hillslp_data):
             for sid, datadict in viewitems(slpposdict):
-                self.cfg.units_infos[tagname][sid]['area'] = hillslp_data[tagname][sid]['area']
+                self.cfg.units_infos[tagname][sid]['area'] += hillslp_data[tagname][sid]['area']
                 for luid in hillslp_data[tagname][sid]['landuse']:
+                    if luid not in self.cfg.units_infos[tagname][sid]['landuse']:
+                        self.cfg.units_infos[tagname][sid]['landuse'][luid] = 0.
                     newlanduse_area = hillslp_data[tagname][sid]['landuse'][luid]
-                    self.cfg.units_infos[tagname][sid]['landuse'][luid] = newlanduse_area
+                    self.cfg.units_infos[tagname][sid]['landuse'][luid] += newlanduse_area
+        if self.modelcfg.version.upper() == 'MPI':
+            for tmp_subbsnid in range(1, self.model.SubbasinCount + 1):
+                DelinateSlopePositionByThreshold(self.modelcfg, slppos_threshs,
+                                                 self.cfg.slppos_tag_gfs,
+                                                 spfilename, subbsn_id=tmp_subbsnid)
+        # print(self.cfg.units_infos)
 
     def decoding(self):
         """Decode gene values to Scenario item, i.e., `self.bmp_items`."""
@@ -453,8 +472,6 @@ class SUScenario(Scenario):
                 print('Exception Information: Scenario ID: %d, '
                       'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
                 self.environment = self.worst_env
-        # model clean
-        self.model.clean(delete_scenario=True, delete_spatial_gfs=True)
 
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None
@@ -665,13 +682,15 @@ def scenario_effectiveness(cf, ind):
     # 4. execute the SEIMS-based watershed model and get the timespan
     sce.execute_seims_model()
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
-    # 5. Export scenarios information
-    sce.export_scenario_to_txt()
-    sce.export_scenario_to_gtiff()
-    # 6. calculate scenario effectiveness and delete intermediate data
+    # 5. calculate scenario effectiveness and delete intermediate data
     sce.calculate_economy()
     sce.calculate_environment()
-    # 7. Assign fitness values
+    # 6. Export scenarios information
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
+    # 7. Clean the intermediate data of current scenario
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
 
     return ind
@@ -715,6 +734,7 @@ def main_single():
 
     sce = SUScenario(cfg)
     sce.initialize()
+    sce.boundary_adjustment()
     sceid = sce.set_unique_id()
     print(sceid, sce.gene_values.__str__())
     sce.decoding()
@@ -742,30 +762,39 @@ def main_manual(sceid, gene_values):
 
     sce.set_unique_id(sceid)
     sce.initialize(input_genes=gene_values)
+    sce.boundary_adjustment()
 
     sce.decoding()
     sce.export_to_mongodb()
-    # sce.execute_seims_model()
+    sce.execute_seims_model()
     sce.export_sce_tif = True
     sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
-    # sce.calculate_economy()
-    # sce.calculate_environment()
+    sce.calculate_economy()
+    sce.calculate_environment()
 
-    # print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    # print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 if __name__ == '__main__':
     # main_single()
     # main_multiple(4)
 
-    sid = 221680603
-    gvalues = [0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 1.0, 0.0, 3.0, 0.0, 3.0, 2.0,
-               4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 3.0, 1.0, 3.0, 4.0, 4.0, 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 2.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 2.0, 0.0, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,
-               0.0]
+    sid = 210213956
+    gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
+               2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+               -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
+               0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
+               0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
+               0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
+               0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
+               0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+               0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
+    # sid = 10000000
+    # gvalues = [0.] * 175
 
     main_manual(sid, gvalues)
