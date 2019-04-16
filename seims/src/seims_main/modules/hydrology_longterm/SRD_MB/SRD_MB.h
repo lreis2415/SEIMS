@@ -5,7 +5,8 @@
  * \revised LiangJun Zhu
  * \date 2016-5-29
  */
-#pragma once
+#ifndef SEIMS_SRD_MB_H
+#define SEIMS_SRD_MB_H
 
 #include "SimulationModule.h"
 
@@ -88,6 +89,6 @@ private:
     float *m_w;
     float *m_wt;
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 };
-
+#endif /* SEIMS_SRD_MB_H */

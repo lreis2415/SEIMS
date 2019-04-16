@@ -7,9 +7,10 @@
  *  1. Remove m_isInitial and add initialOutputs(void)
  *  2. Add VAR_SWE as output, so this module will be not dependent on others
  *  3. Add net precipitation as output, and added water amount of snow melt
- * 
+ *
  */
-#pragma once
+#ifndef SEIMS_SNO_DD_H
+#define SEIMS_SNO_DD_H
 
 #include "SimulationModule.h"
 
@@ -26,7 +27,7 @@ using namespace std;
  * \class SNO_DD
  * \ingroup SNO_DD
  * \brief Calculate snow melt by Degree-Day method
- * 
+ *
  */
 class SNO_DD : public SimulationModule {
 public:
@@ -48,7 +49,7 @@ public:
 
     bool CheckInputData(void);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
 private:
     //! Valid cells number
@@ -84,4 +85,4 @@ private:
     /// Snow accumulation
     float *m_SA;
 };
-
+#endif /* SEIMS_SNO_DD_H */

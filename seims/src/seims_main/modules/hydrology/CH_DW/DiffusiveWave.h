@@ -30,32 +30,33 @@ public:
     //! Destructor
     ~DiffusiveWave();
 
-    virtual int Execute();
+    int Execute() OVERRIDE;
 
-    virtual void SetReaches(clsReaches *reaches);
+    void SetReaches(clsReaches *reaches) OVERRIDE;
 
-    virtual void SetValue(const char *key, float data);
+    void SetValue(const char *key, float data) OVERRIDE;
 
-    virtual void GetValue(const char *key, float *value);
+    // void GetValue(const char *key, float *value) OVERRIDE;
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void Set2DData(const char *key, int nrows, int ncols, float **data) OVERRIDE;
 
-    virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
+    void Get2DData(const char *key, int *nRows, int *nCols, float ***data) OVERRIDE;
 
+    // TODO: CheckInputSize and CheckInputSizeChannel should be overrided from SimulationModule, by zhulj.
     bool CheckInputSize(const char *key, int n);
 
     bool CheckInputSizeChannel(const char *key, int n);
 
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
+
+    void  InitialOutputs() OVERRIDE;
 
 private:
     void ChannelFlow(int iReach, int iCell, int id);
-
-    void  InitialOutputs();
 
     ///< Valid cells number
     int m_nCells;

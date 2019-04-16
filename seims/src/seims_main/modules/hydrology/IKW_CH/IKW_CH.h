@@ -2,17 +2,12 @@
  * \brief Routing in the channel cells using implicit finite difference method
  * kinematic wave method in LISEM model
  * \author Junzhi Liu
- * \date Feb. 2011 
+ * \date Feb. 2011
  */
 
-#pragma once
+#ifndef SEIMS_IKW_CH_H
+#define SEIMS_IKW_CH_H
 
-/*!
- * \brief 1-Dimensional kinematic wave method in LISEM model
- * \author Junzhi Liu
- * \date Feb. 2011 
- */
-#pragma once
 #include "SimulationModule.h"
 
 using namespace std;
@@ -50,7 +45,7 @@ public:
     virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
 
     virtual void Get2DData(const char *key, int *nRows, int *nCols, float ***data);
-    
+
     virtual void SetReaches(clsReaches *reaches);
 
     bool CheckInputSize(const char *key, int n);
@@ -77,7 +72,7 @@ private:
 
     void ChannelFlow(int iReach, int iCell, int id, float qgEachCell);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
     void initialOutputs2(void);
 
@@ -185,4 +180,4 @@ private:
     /// id of source cells of reaches
     int *m_sourceCellIds;
 };
-
+#endif /* SEIMS_IKW_CH_H */

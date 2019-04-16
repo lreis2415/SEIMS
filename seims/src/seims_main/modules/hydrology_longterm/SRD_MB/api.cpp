@@ -1,6 +1,8 @@
-#include "SRD_MB.h"
-
 #include "api.h"
+
+#include "SRD_MB.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SRD_MB();

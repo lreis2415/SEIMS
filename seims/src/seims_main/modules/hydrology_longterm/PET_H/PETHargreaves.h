@@ -58,7 +58,7 @@ private:
     float* m_meanTemp; ///< mean air temperature for a given day (deg C)
     float* m_maxTemp; ///< maximum air temperature for a given day (deg C)
     float* m_minTemp; ///< minimum air temperature for a given day (deg C)
-    float* m_rhd = nullptr; ///< relative humidity (%)
+    float* m_rhd; ///< relative humidity (%)
 
     // Output variables
     float* m_dayLen; ///< day length (hr)

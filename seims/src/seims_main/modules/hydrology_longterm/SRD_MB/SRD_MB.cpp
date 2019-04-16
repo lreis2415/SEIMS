@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "SRD_MB.h"
-
+#include "text.h"
 
 SRD_MB::SRD_MB(void) {
     // set default values for member variables

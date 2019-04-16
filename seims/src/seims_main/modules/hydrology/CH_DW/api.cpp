@@ -1,7 +1,8 @@
-#include "DiffusiveWave.h"
-
 #include "api.h"
 
+#include "DiffusiveWave.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 //! Get instance of SimulationModule class
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
@@ -46,7 +47,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 
     // output
     mdi.AddOutput(VAR_QCH, UNIT_FLOW_CMS, DESC_QCH, DT_Array2D);
-    mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single);
     mdi.AddOutput(VAR_QSUBBASIN, UNIT_FLOW_CMS, DESC_QSUBBASIN, DT_Array1D);
     mdi.AddOutput(VAR_HCH, UNIT_DEPTH_MM, DESC_HCH, DT_Array2D);
 
@@ -69,4 +69,6 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 //mdi.AddInput("D_ID_OUTLET", "", "ID of watershed outlet", "Module", DT_Single);
 //test output
 /*mdi.AddOutput("CHWATH", "mm", "Water depth in the downslope boundary of cells", DT_Raster1D);
-mdi.AddOutput("CHQCH", "m3/s", "Flux in the downslope boundary of cells", DT_Raster1D);*/
+mdi.AddOutput("CHQCH", "m3/s", "Flux in the downslope boundary of cells", DT_Raster1D);
+mdi.AddOutput(VAR_QOUTLET, UNIT_FLOW_CMS, DESC_QOUTLET, DT_Single);
+*/

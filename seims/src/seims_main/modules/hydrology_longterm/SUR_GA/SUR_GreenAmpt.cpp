@@ -1,5 +1,5 @@
-#include "seims.h"
 #include "SUR_GreenAmpt.h"
+#include "text.h"
 
 SUR_GreenAmpt::SUR_GreenAmpt(void) : m_TimeStep(NODATA_VALUE), m_Conductivity(NULL), m_porosity(NULL), m_clay(NULL), m_sand(NULL),
                        m_rootDepth(NULL),
@@ -158,7 +158,7 @@ bool SUR_GreenAmpt::CheckInputData(void) {
     return true;
 }
 
-void SUR_GreenAmpt::initalOutputs() {
+void SUR_GreenAmpt::InitalOutputs() {
     if (m_cellSize <= 0) {
         throw ModelException("SUR_GreenAmpt", "CheckInputData", "The dimension of the input data can not be less than zero.");
     }
@@ -188,7 +188,7 @@ void SUR_GreenAmpt::initalOutputs() {
 int SUR_GreenAmpt::Execute() {
     this->CheckInputData();
 
-    this->initalOutputs();
+    this->InitalOutputs();
 
     // define local variables
     float sol_por, dthet, SW;

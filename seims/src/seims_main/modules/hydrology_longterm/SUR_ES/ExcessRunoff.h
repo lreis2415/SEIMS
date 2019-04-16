@@ -6,8 +6,8 @@
 *	@brief	Calculate infiltration and excess precipitation
 *
 */
-
-#pragma once
+#ifndef SEIMS_SUR_ES_H
+#define SEIMS_SUR_ES_H
 
 #include "SimulationModule.h"
 
@@ -123,3 +123,4 @@ private:
     float *m_infil;
 
 };
+#endif /* SEIMS_SUR_ES_H */

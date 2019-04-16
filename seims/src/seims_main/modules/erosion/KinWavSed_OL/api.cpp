@@ -1,6 +1,8 @@
-#include "KinWavSed_OL.h"
-
 #include "api.h"
+
+#include "KinWavSed_OL.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new KinWavSed_OL();
@@ -8,8 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res;
-
     MetadataInfo mdi;
 
     // set the information properties
@@ -60,7 +60,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddDependency("Soil Detachment", "Rain and overland soil detachment erosion module");          // for DETSplash
 
     // write out the XML file.
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     //return res;
 
