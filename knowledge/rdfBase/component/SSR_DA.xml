@@ -16,6 +16,6 @@
 		<rdf:li>SSRUVOL</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-	<hydro:algorithm>Subsurface-Darcy formula</hydro:algorithm>
+	<hydro:algorithm>Subsurface Runoff-Darcy formula</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>

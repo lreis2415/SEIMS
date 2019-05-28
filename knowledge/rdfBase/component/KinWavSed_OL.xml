@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="KinWavSed_OL">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <rdf:li>CELLH</rdf:li>
+        <rdf:li>SURU</rdf:li>
+        <rdf:li>FLOWWIDTH</rdf:li>
+        <rdf:li>DETSPLASH</rdf:li>
+        <rdf:li>CELLQ</rdf:li>
+        <rdf:li>HTOCH</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>DETOVERLAND</rdf:li>
+        <rdf:li>SEDDEP</rdf:li>
+        <rdf:li>TESTV</rdf:li>
+        <rdf:li>TESTQV</rdf:li>
+        <rdf:li>SEDTOCH</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+    <hydro:algorithm>Overland Erosion-Govers method</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>

@@ -12,6 +12,6 @@
         <rdf:li>NEPR</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-	<hydro:algorithm>Interception-hour Maximum storage method</hydro:algorithm>
+	<hydro:algorithm>Interception-Hourly interception algorithm in WetSpa</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>

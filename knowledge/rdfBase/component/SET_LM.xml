@@ -18,6 +18,6 @@
         <rdf:li>SOET</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-	<hydro:algorithm>Soil Evaporation-Thornthwaite Mather formula</hydro:algorithm>
+	<hydro:algorithm>Soil Evaporation-Evaporation method in WetSpa</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>
