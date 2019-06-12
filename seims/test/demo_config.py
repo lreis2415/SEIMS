@@ -37,8 +37,7 @@ def get_watershed_name(desc='Specify watershed name to run this script.'):
     # type: (AnyStr) -> (ConfigParser, AnyStr)
     """Parse arguments.
     Returns:
-        cf: ConfigParse object of *.ini file
-        mtd: Method name, e.g., 'nsga2' for optimization, 'morris' for sensitivity analysis.
+        name: Watershed name, 'youwuzhen' by default.
     """
     # define input arguments
     parser = argparse.ArgumentParser(description=desc)

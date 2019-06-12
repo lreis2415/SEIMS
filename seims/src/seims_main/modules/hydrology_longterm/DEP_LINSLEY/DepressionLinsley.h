@@ -1,6 +1,6 @@
 /*!
- * \file DepressionFSDaily.h
- * \brief A simple fill and spill method method to calculate depression storage.
+ * \file DepressionLinsley.h
+ * \brief Linsley(1982) method to calculate depression storage.
  *
  * Changelog:
  *   - 1. 2011-02-14 - jz - Initial implementation.
