@@ -79,8 +79,8 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
             depmask = new tiffIO(maskfile, SHORT_TYPE); // arb added, 5/31/11
             if (!dem.compareTiff(*depmask)) {
                 if (rank == 0) {
-                    printf(
-                        "Error: depression mask and input DEM are not similar. Files must have the same number of rows/columns.\n");
+                    printf("Error: depression mask and input DEM are not similar. "
+                           "Files must have the same number of rows/columns.\n");
                     fflush(stdout);
                 }
                 return 1;
@@ -110,13 +110,15 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
             float timeestimate =
                 (1.5e-6 * totalX * totalY / pow((double) size, 0.5)) / 60 + 1;  // Time estimate in minutes
             fprintf(stderr, "This run may take on the order of %.0f minutes to complete.\n", timeestimate);
-            fprintf(stderr,
-                    "This estimate is very approximate. \nRun time is highly uncertain as it depends on the complexity of the input data \nand speed and memory of the computer. This estimate is based on our testing on \na dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
+            fprintf(stderr, "This estimate is very approximate. \n"
+                            "Run time is highly uncertain as it depends on the complexity of the input data \n"
+                            "and speed and memory of the computer. This estimate is based on our testing on \n"
+                            "a dual quad core Dell Xeon E5405 2.0GHz PC with 16GB RAM.\n");
             fflush(stderr);
         }
 
-        if (verbose)  // debug writes
-        {
+        if (verbose) { // debug writes
+
             printf("Header read\n");
             printf("Process: %d, totalX: %ld, totalY: %ld\n", rank, totalX, totalY);
             printf("Process: %d, nx: %d, ny: %d\n", rank, nx, ny);
@@ -138,8 +140,7 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
 
         //Create empty partition to store new information
         tdpartition *planchon;
-        float felNodata = -3.0e38;
-        planchon = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, felNodata);
+        planchon = CreateNewPartition(FLOAT_TYPE, totalX, totalY, dxA, dyA, DEFAULTNODATA);
 
         long i, j;
         short k;
@@ -250,17 +251,16 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
                 //If elevDEM has no data, planchon has no data.
                 if (elevDEM->isNodata(i, j)) {
                     planchon->setToNodata(i, j);
-                } else if (use_mask && maskPartition->getData(i, j, tmpshort)
-                    == 1) { // logic for setting the elevation when using a depression mask
-                        planchon->setData(i, j, elevDEM->getData(i, j, tempFloat));
-
-                        //If i,j is on the border, set planchon(i,j) to elevDEM(i,j)
-                    } else if (!elevDEM->hasAccess(i - 1, j) || !elevDEM->hasAccess(i + 1, j) ||
+                } else if (use_mask && maskPartition->getData(i, j, tmpshort) == 1) {
+                    // logic for setting the elevation when using a depression mask
+                    planchon->setData(i, j, elevDEM->getData(i, j, tempFloat));
+                    //If i,j is on the border, set planchon(i,j) to elevDEM(i,j)
+                } else if (!elevDEM->hasAccess(i - 1, j) || !elevDEM->hasAccess(i + 1, j) ||
                     !elevDEM->hasAccess(i, j - 1) || !elevDEM->hasAccess(i, j + 1)) {
-                        planchon->setData(i, j, elevDEM->getData(i, j, tempFloat));
-                        //Check if cell is "contaminated" (neighbors have no data)
-                        //  set planchon to elevDEM(i,j) if it is, else set to FLT_MAX
-                    } else {
+                    planchon->setData(i, j, elevDEM->getData(i, j, tempFloat));
+                    //Check if cell is "contaminated" (neighbors have no data)
+                    //  set planchon to elevDEM(i,j) if it is, else set to FLT_MAX
+                } else {
                     con = false;
                     for (k = 1; k <= 8 && !con; k += step) {
                         in = i + d1[k];
@@ -488,7 +488,7 @@ int flood(char *demfile, char *felfile, char *sfdrfile, int usesfdr, bool verbos
         }
 
         //Create and write TIFF file
-        tiffIO fel(felfile, FLOAT_TYPE, felNodata, dem);
+        tiffIO fel(felfile, FLOAT_TYPE, DEFAULTNODATA, dem);
         fel.write(xstart, ystart, ny, nx, planchon->getGridPointer());
 
         if (verbose)printf("Partition: %d, written\n", rank);

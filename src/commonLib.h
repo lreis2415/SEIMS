@@ -83,6 +83,10 @@ using std::vector;
 using std::ifstream;
 using std::ios;
 
+using std::abs;
+using std::fabs;
+using std::sqrt;
+
 //TODO: revisit these to see if they are used/needed
 //#define ABOVE 1
 //#define BELOW 2
