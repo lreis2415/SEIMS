@@ -88,13 +88,11 @@ int main(int argc, char **argv) {
         } else if (strcmp(argv[i], "-v") == 0) {
             i++;
             verbose = true;
-        } else if (strcmp(argv[i], "-4way") == 0)   // arb added, 5/31/11. This is the flag for 4-point pour method
-        {
+        } else if (strcmp(argv[i], "-4way") == 0) { // arb added, 5/31/11. This is the flag for 4-point pour method
             i++;
             is_4p = true;
-        } else if (strcmp(argv[i], "-depmask")
-            == 0) // arb added, 5/31/11. This is to input the optional depression mask file
-        {
+        } else if (strcmp(argv[i], "-depmask") == 0) {
+            // arb added, 5/31/11. This is to input the optional depression mask file
             i++;
             if (argc > i) {
                 strcpy(maskfile, argv[i]);

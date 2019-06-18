@@ -6,7 +6,7 @@ For more information on the development of TauDEM please refer to the wiki https
 
 For the latest release and detailed documentation please refer to the website: http://hydrology.usu.edu/taudem.
 
-Update to v5.3.9 at dev branch, commit [f927ca639a1834565a76cb3df5acbcd2909d6d0d](https://github.com/dtarb/TauDEM/commit/f927ca639a1834565a76cb3df5acbcd2909d6d0d) on 29 May 2018
+Update to v5.3.9 at dev branch, commit [bf9417172225a9ce2462f11138c72c569c253a1a](https://github.com/dtarb/TauDEM/commit/bf9417172225a9ce2462f11138c72c569c253a1a) on 8 Jan 2019
 
 
 TauDEM采用C/C++编写，矢栅数据读写基于GDAL库，因此可以跨平台编译。
