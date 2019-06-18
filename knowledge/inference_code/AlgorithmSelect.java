@@ -23,62 +23,62 @@ import constant.Constant;
 
 public class AlgorithmSelect {
     
-	//ÖªÊ¶¿âÂ·¾¶ knowledge base path
+	//ÖªÊ¶ï¿½ï¿½Â·ï¿½ï¿½ knowledge base path
     private  String algorithmSelectBasePath = Constant.algorithm_ruleml_path;
     private  String componentRdfBasePath =  Constant.component_rdf_folder_path;
 	private  String algorithmRdfPath = Constant.algorithm_rdf_path;
     
-    //Ëã·¨Ñ¡Ôñ³¡¾° algortihm scenario
+    //ï¿½ã·¨Ñ¡ï¿½ñ³¡¾ï¿½ algortihm scenario
     private AlgorithmScenario algorithmSc = new AlgorithmScenario();
     
-    //²ÎÓëË®ÎÄÄ£ÄâµÄ×Ó¹ý³ÌÃû³Æ¼¯ºÏ selected processes
+    //ï¿½ï¿½ï¿½ï¿½Ë®ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ selected processes
     private List<String> processes = new ArrayList<String>();
 
-    //Ã¿¸öËã·¨Ãû³Æ¶ÔÓ¦µÄ×Ó¹ý³ÌÃû³Æ£¬HashMap <Ëã·¨Ãû³Æ£¬¹ý³ÌÃû³Æ>
+    //Ã¿ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½Æ¶ï¿½Ó¦ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½HashMap <ï¿½ã·¨ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½>
     //HashMap <algorithme_name, process_name>
     private HashMap<String,String> all_algorithm_process = new HashMap<String,String>();
     
-    //Ã¿¸ö×Ó¹ý³ÌÃû³ÆËù¶ÔÓ¦µÄÍÆ¼öËã·¨µÄÃû³Æ
+    //Ã¿ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     //HashMap <process_name, names of identified algorithms>
     ////private HashMap<String,HashSet<String>> process_identifying_algorithm = new HashMap<String,HashSet<String>>();
     private HashMap<String,List<String>> process_identifying_algorithm = new HashMap<String,List<String>>();
-    //¹æÔò¼¯ºÏ rule list
+    //ï¿½ï¿½ï¿½ò¼¯ºï¿½ rule list
     private List<RuleML> rules = null;
     
-    //×é¼þrdf¼¯ºÏ£¬½ö½öÊÇÍÆ¼öËã·¨Ëù¶ÔÓ¦µÄ×é¼þ rdf of components of identified algorithms
+    //ï¿½ï¿½ï¿½rdfï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ rdf of components of identified algorithms
     //HashMap<algorithm name, ComponentMeta>
     private HashMap<String, ComponentMeta> componentMetas = new HashMap<String, ComponentMeta>(); 
     
-    //×é¼þÃû³ÆÊý×é£¬½ö½öÊÇËùÍÆ¼öËã·¨¶ÔÓ¦µÄ×é¼þÃû³Æ names of components of identified algorithms
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ã·¨ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ names of components of identified algorithms
     ////private  List<String> comnames = new ArrayList<String>();
     private  List<List<String>> comnames = new ArrayList<List<String>>();
     
-    //ÏÖÓÐÄ£ÐÍÊäÈë existing model input data
+    //ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ existing model input data
     private List<String> existingData = new ArrayList<String>();
     
     
-    //HashMap<String,String><Ëã·¨Ãû³Æ£¬×é¼þÃû³Æ>£¬Õë¶ÔËùÓÐ×é¼þ// for all components
+    //HashMap<String,String><ï¿½ã·¨ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½// for all components
     //HashMap<algorithm_name,component_name>
     private HashMap<String,String> algorithm_component = new HashMap<String,String>();
     
     
-    //HashMap<String,String><×é¼þÃû³Æ£¬Ëã·¨Ãû³Æ>£¬Õë¶ÔËùÓÐ×é¼þ// for all components
+    //HashMap<String,String><ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½// for all components
     //HashMap<component_name, algorithm_name>
     private HashMap<String,String> component_algorithm = new HashMap<String,String>();
     
-    //HashMap<String,String><Ëã·¨Ãû³Æ£¬Ëã·¨¼ò³Æ>£¬Õë¶ÔËùÓÐËã·¨ // for all algorithms
+    //HashMap<String,String><ï¿½ã·¨ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã·¨ // for all algorithms
     //HashMap<algorithm_fullname, algorithm_shortname>
     private HashMap<String,String> algorithm_shortname = new HashMap<String,String>();
     
     
-    //ÅÅÐò¹ýºóµÄ×é¼þID IDs of sorted components
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID IDs of sorted components
     private List<String> sorted_componentIDs = new ArrayList<String>();
-    //ÅÅÐò¹ýºóµÄËã·¨Ãû³Æ names of sorted algorithms
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ names of sorted algorithms
     private List<String> sorted_algorithmNames = new ArrayList<String>();
-    //ÅÅÐò¹ýºóµÄ¹ý³ÌÃû³Æ names of sorted processes
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ names of sorted processes
     private List<String> sorted_processNames = new ArrayList<String>();
     
-    //¼ÓÔØ×Ó¹ý³Ì¼¯ºÏÖÐÃ¿¸ö×Ó¹ý³Ì¶ÔÓ¦µÄËã·¨
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½Ì¶ï¿½Ó¦ï¿½ï¿½ï¿½ã·¨
     //load algorithms for each process
     public void load_all_algorithms(){
     	
@@ -112,7 +112,7 @@ public class AlgorithmSelect {
 
     }
     
-    //³õÊ¼»¯³¡¾°  initialization scenario
+    //ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  initialization scenario
     private void initializeScenario(){
     	/*
     	this.processes.add("Interception");
@@ -494,7 +494,7 @@ public class AlgorithmSelect {
    }	
 
    
-   //¶ÁÈ¡Ã¿¸ö×é¼þËù¶ÔÓ¦µÄËã·¨Ãû³Æ  Read the algorithm name of each component
+   //ï¿½ï¿½È¡Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½  Read the algorithm name of each component
    public void setAlgorithmName4component(){
 	   
 	    List<String> components = new ArrayList<String>();
