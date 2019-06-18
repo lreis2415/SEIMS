@@ -51,8 +51,10 @@ email:  dtarb@usu.edu
 
 #ifndef LINEARPART_H
 #define LINEARPART_H
+
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 using std::bad_alloc;
+using std::abs;
 
 template<class datatype>
 class linearpart : public tdpartition {
@@ -350,13 +352,13 @@ int linearpart<datatype>::ringTerm(int isFinished) {
         if (rank == 0) {
             //	cout << rank << " sending..." << endl;
             MPI_Send(&ringBool, 1, MPI_INT, rank + 1, 1, MCW);
-            //cout << rank << " reciving..." << endl;
+            //cout << rank << " receiving..." << endl;
             MPI_Recv(&ringBool, 1, MPI_INT, size - 1, 1, MCW, &status);
             //cout << rank << " finished ..." << endl;
         }
             //The rest of the processors recv, if they are not finished, they change the token to NOTFINISHED
         else {
-            //cout << rank << " reciving ..." << endl;
+            //cout << rank << " receiving ..." << endl;
             MPI_Recv(&ringBool, 1, MPI_INT, rank - 1, 1, MCW, &status);
             //cout << rank << " sending ..." << endl;
             if (isFinished == NOTFINISHED) ringBool = NOTFINISHED;
@@ -370,7 +372,7 @@ int linearpart<datatype>::ringTerm(int isFinished) {
             //cout << " distribute results" << endl;
             MPI_Send(&ringBool, 1, MPI_INT, rank + 1, 1, MCW);
         } else {
-            //cout << " recive results" << endl;
+            //cout << " receive results" << endl;
             MPI_Recv(&ringBool, 1, MPI_INT, rank - 1, 1, MCW, &status);
             if (rank != size - 1) {
                 MPI_Send(&ringBool, 1, MPI_INT, (rank + 1) % size, 1, MCW);
@@ -476,13 +478,12 @@ void linearpart<datatype>::transferPack(int *countA, int *bufferAbove, int *coun
 //Returns true if grid element (x,y) is equal to noData.
 template<class datatype>
 bool linearpart<datatype>::isNodata(long inx, long iny) {
-    int64_t x, y;//int64 because it oculd be -1.
+    int64_t x, y;//int64 because it could be -1.
     x = inx;
     y = iny;
-//DGT to avoid nested calls and type inconsistency
+    //DGT to avoid nested calls and type inconsistency
     if (x >= 0 && x < nx && y >= 0 && y < ny) {
         return (abs((float) (gridData[x + y * nx] - noData)) < MINEPS);
-//	if(isInPartition(x,y)) return (abs(gridData[x+y*nx]-noData)<MINEPS);
     } else if (x >= 0 && x < nx) {
         if (y == -1) { return (abs((float) (topBorder[x] - noData)) < MINEPS); }
         else if (y == ny) return (abs((float) (bottomBorder[x] - noData)) < MINEPS);
@@ -498,7 +499,6 @@ void linearpart<datatype>::setToNodata(long inx, long iny) {
     y = iny;
     if (x >= 0 && x < nx && y >= 0 && y < ny) {
         gridData[x + y * nx] = noData;
-//	if(isInPartition(x,y)) gridData[x+y*nx] = noData;
     } else if (x >= 0 && x < nx) {
         if (y == -1) { topBorder[x] = noData; }
         else if (y == ny) bottomBorder[x] = noData;
@@ -511,7 +511,6 @@ datatype linearpart<datatype>::getData(long inx, long iny, datatype &val) {
     int64_t x, y;
     x = inx;
     y = iny;
-//	if(isInPartition(x,y)) val = gridData[x+y*nx];
     if (x >= 0 && x < nx && y >= 0 && y < ny) { val = gridData[x + y * nx]; }
     else if (x >= 0 && x < nx) {
         if (y == -1) { val = topBorder[x]; }
@@ -548,7 +547,6 @@ void linearpart<datatype>::setData(long inx, long iny, datatype val) {
     int64_t x, y;
     x = inx;
     y = iny;
-//	if(isInPartition(x,y)) gridData[x+y*nx] = val;
     if (x >= 0 && x < nx && y >= 0 && y < ny) { gridData[x + y * nx] = val; }
     else if (x >= 0 && x < nx) {
         if (y == -1) { topBorder[x] = val; }
@@ -562,7 +560,6 @@ void linearpart<datatype>::addToData(long inx, long iny, datatype val) {
     int64_t x, y;
     x = inx;
     y = iny;
-//	if(isInPartition(x,y)) gridData[x+y*nx] += val;
     if (x >= 0 && x < nx && y >= 0 && y < ny) { gridData[x + y * nx] += val; }
     else if (x >= 0 && x < nx) {
         if (y == -1) { topBorder[x] += val; }

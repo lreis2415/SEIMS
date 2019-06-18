@@ -53,6 +53,8 @@ email:  dtarb@usu.edu
 
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 using std::setprecision;
+using std::fabs;
+using std::sqrt;
 
 //returns true iff cell at [nrow][ncol] points to cell at [row][col]
 bool pointsToMe(long col, long row, long ncol, long nrow, tdpartition *dirData){
