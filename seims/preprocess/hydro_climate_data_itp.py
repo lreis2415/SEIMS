@@ -215,11 +215,11 @@ def interpolate_observed_data_to_regular_interval(in_file, time_interval, start_
         file_name += '.csv'
         out_file = work_path + os.path.sep + file_name
         with open(out_file, 'w', encoding='utf-8') as f:
-            f.write(header_str + '\n')
-            f.write('DATETIME,' + fld + '\n')
+            f.write('%s\n' % header_str)
+            f.write('DATETIME,%s\n' % fld)
             for i, v in list(itp_data.items()):
                 cur_line = i.strftime('%Y-%m-%d %H:%M:%S') + ',' + str(v[idx]) + '\n'
-                f.write(cur_line)
+                f.write('%s' % cur_line)
 
 
 def main():

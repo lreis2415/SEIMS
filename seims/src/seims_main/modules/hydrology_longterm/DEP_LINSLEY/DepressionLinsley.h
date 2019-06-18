@@ -1,6 +1,6 @@
 /*!
- * \file DepressionFSDaily.h
- * \brief A simple fill and spill method method to calculate depression storage.
+ * \file DepressionLinsley.h
+ * \brief Linsley(1982) method to calculate depression storage.
  *
  * Changelog:
  *   - 1. 2011-02-14 - jz - Initial implementation.
@@ -51,11 +51,7 @@ public:
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputData();
-
-private:
+    bool CheckInputData() OVERRIDE;
     /*!
      * \brief Initialize output variables
      * This module will be called by infiltration module to get the
@@ -67,7 +63,8 @@ private:
      *		variables should be initial in the Get1DData function. This
      *		initialization is realized by function initalOutputs.
      */
-    void InitialOutputs();
+    void InitialOutputs() OVERRIDE;
+
 private:
     /// valid cells number
     int m_nCells;

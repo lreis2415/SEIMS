@@ -31,17 +31,15 @@ public:
     //! Destructor
     ~GWaterReservoir(void);
 
-    virtual void Set1DData(const char *key, int n, float *data);
+    void Set1DData(const char *key, int n, float *data) OVERRIDE;
 
-//    virtual void Set2DData(const char *key, int nrows, int ncols, float **data);
+    void SetValue(const char *key, float value) OVERRIDE;
 
-    virtual void SetValue(const char *key, float value);
-    
-    virtual void Get1DData(const char *key, int *n, float **data);
+    void Get1DData(const char *key, int *n, float **data) OVERRIDE;
 
-    virtual void SetReaches(clsReaches *reaches);
+    void SetReaches(clsReaches *reaches) OVERRIDE;
 
-    virtual int Execute(void);
+    int Execute(void) OVERRIDE;
 
     //virtual TimeStepType GetTimeStepType()
     //{

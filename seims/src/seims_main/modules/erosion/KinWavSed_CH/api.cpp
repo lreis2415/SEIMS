@@ -1,6 +1,8 @@
-#include "KinWavSed_CH.h"
-
 #include "api.h"
+
+#include "KinWavSed_CH.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new KinWavSed_CH();
@@ -9,8 +11,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 // function to return the XML Metadata document string
 //Set up metadata information
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res;
-
     MetadataInfo mdi;
 
     // set the information properties
@@ -49,7 +49,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddInput("QRECH", "m3/s", "Flux in the downslope boundary of cells", "Module", DT_Array2D);
     /// set the output variables
 
-    mdi.AddOutput(VAR_SED_OUTLET, UNIT_KGM3, DESC_SED_OUTLET, DT_Single);
+    //mdi.AddOutput(VAR_SED_OUTLET, UNIT_KGM3, DESC_SED_OUTLET, DT_Single);
     mdi.AddOutput(VAR_CH_DEP, UNIT_KG, DESC_CH_DEP, DT_Raster1D);
     mdi.AddOutput(VAR_CH_DET, UNIT_KG, DESC_CH_DET, DT_Raster1D);
     mdi.AddOutput(VAR_CH_SEDRATE, UNIT_KG_S, DESC_CH_SEDRATE, DT_Raster1D);
@@ -61,7 +61,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddDependency(MCLS_CH_ROUTING, MCLSDESC_CH_ROUTING);
 
     // write out the XML file.
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     //return res;
 
@@ -81,4 +81,4 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
 mdi.AddOutput("CHSEDDEP","kg", "distribution of channel sediment deposition", DT_Raster);
 mdi.AddOutput("CHSEDCONC","kg/m^3", "distribution of sediment concentration in channel flow", DT_Raster);
 mdi.AddOutput("CHSEDINFLOW","kg", "distribution of sediment content in channel flow", DT_Raster);*/
-	
+

@@ -20,7 +20,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from run_seims import ParseSEIMSConfig
-
+from utility import PlotConfig
 
 def get_psa_config():
     """Parse arguments.
@@ -54,10 +54,10 @@ class MorrisConfig(object):
     """Configuration for Morris screening method."""
 
     def __init__(self, cf):
+        # type: (ConfigParser) -> None
         """Get parameters from ConfigParser object."""
         self.N = 100
         self.num_levels = 10
-        self.grid_jump = 2
         self.optimal_t = None
         self.local_opt = True
         section_name = 'Morris_Method'
@@ -68,8 +68,6 @@ class MorrisConfig(object):
             self.N = cf.getint(section_name, 'n')
         if cf.has_option(section_name, 'num_levels'):
             self.num_levels = cf.getint(section_name, 'num_levels')
-        if cf.has_option(section_name, 'grid_jump'):
-            self.grid_jump = cf.getint(section_name, 'grid_jump')
         if cf.has_option(section_name, 'optimal_trajectories'):
             tmp_opt_t = cf.get(section_name, 'optimal_trajectories')
             if not StringClass.string_match(tmp_opt_t, 'none'):
@@ -165,10 +163,11 @@ class PSAConfig(object):
                                                        self.fast.N, self.fast.M)
         elif self.method == 'morris':
             self.morris = MorrisConfig(cf)
-            self.psa_outpath = '%s/PSA_Morris_N%dL%dJ%d' % (self.model.model_dir,
-                                                            self.morris.N,
-                                                            self.morris.num_levels,
-                                                            self.morris.grid_jump)
+            self.psa_outpath = '%s/PSA_Morris_N%dL%d' % (self.model.model_dir,
+                                                         self.morris.N,
+                                                         self.morris.num_levels)
+        # 4. (Optional) Plot settings for matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
         # Do not remove psa_outpath if already existed
         UtilClass.mkdir(self.psa_outpath)
@@ -182,8 +181,7 @@ if __name__ == '__main__':
     print(cfg.param_range_def)
     if cfg.method == 'morris':
         print('Morris sceening method:')
-        print('  N: %d, num_levels: %d, grid_jump: %d' % (cfg.morris.N, cfg.morris.num_levels,
-                                                          cfg.morris.grid_jump))
+        print('  N: %d, num_levels: %d' % (cfg.morris.N, cfg.morris.num_levels))
     elif cfg.method == 'fast':
         print('FAST variant-based method')
         print('  N: %d, M: %d' % (cfg.fast.N, cfg.fast.M))

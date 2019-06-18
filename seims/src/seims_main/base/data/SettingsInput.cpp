@@ -5,15 +5,17 @@
 
 using namespace utils_time;
 
-SettingsInput::SettingsInput(vector<string>& stringvector) : m_isStormModel(false) {
+SettingsInput::SettingsInput(vector<string>& stringvector)
+    : m_startDate(0), m_endDate(0), m_dtHs(3600), m_dtCh(86400),
+      m_isStormModel(false) {
     Settings::SetSettingTagStrings(stringvector);
     if (StringMatch(GetValue(Tag_Mode), Tag_Mode_Storm)) {
         m_isStormModel = true;
     }
     if (!readSimulationPeriodDate()) {
         throw ModelException("SettingInput", "Constructor",
-            "The start time and end time in file.in is invalid or missing.\
-            The format would be YYYY/MM/DD/HH. Please check it.");
+                             "The start time and end time in file.in is invalid or missing."
+                             "The format would be YYYY/MM/DD/HH. Please check it.");
     }
 }
 
@@ -51,8 +53,8 @@ bool SettingsInput::readSimulationPeriodDate() {
     }
     // convert the time interval to seconds to conform to time_t struct
     if (StringMatch(m_mode, Tag_Mode_Daily)) {
-        m_dtHs = 86400; // 86400 secs is 1 day
-        m_dtCh = 86400;
+        m_dtHs *= 86400; // 86400 secs is 1 day
+        m_dtCh *= 86400;
     }
     return true;
 }

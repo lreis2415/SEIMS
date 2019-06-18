@@ -4,7 +4,7 @@ include_directories(.)
 file(GLOB metis_sources *.c)
 # Build libmetis.
 add_library(metis ${METIS_LIBRARY_TYPE} ${GKlib_sources} ${metis_sources})
-IF (MSVC)
+IF (MSVC OR XCODE)
     SET_PROPERTY(TARGET metis PROPERTY FOLDER "METIS_PACKAGE")
 ENDIF ()
 if (UNIX)

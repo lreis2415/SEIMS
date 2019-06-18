@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  Postprecessing for SEIMS. Demo watershed named dianbu2.
-                18-02-09  lj - compatible with Python3.\n
+  Postprocessing of SEIMS-based watershed model.
+  The invoking format is:
+
+  python demo_postprocess.py -name <demo_watershed_name>
+
+  - 18-02-09 - lj - compatible with Python3.
 """
 from __future__ import absolute_import, unicode_literals
 

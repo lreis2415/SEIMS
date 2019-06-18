@@ -7,7 +7,8 @@
  *  1. Remove m_isInitial and add initialOutputs(void)
  *  2. Wind speed is DT_Raster1D
  */
-#pragma once
+#ifndef SEIMS_SNO_WB_H
+#define SEIMS_SNO_WB_H
 
 #include "SimulationModule.h"
 
@@ -23,7 +24,7 @@ using namespace std;
  * \class SNO_WB
  * \ingroup SNO_WB
  * \brief Calculate snow water balance
- * 
+ *
  */
 class SNO_WB : public SimulationModule {
 public:
@@ -83,10 +84,10 @@ private:
     /// removed by LJ
     ///bool m_isInitial;
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
     //void setValueToSubbasin(void);
 
     //void getSubbasinList(int cellCount, float* subbasinGrid, int subbasinSelectedCount, float* subbasinSelected);
 };
-
+#endif /* SEIMS_SNO_WB_H */

@@ -189,7 +189,7 @@ class Sensitivity(object):
             self.read_param_ranges()
         if self.cfg.method == 'morris':
             self.param_values = morris_spl(self.param_defs, self.cfg.morris.N,
-                                           self.cfg.morris.num_levels, self.cfg.morris.grid_jump,
+                                           self.cfg.morris.num_levels,
                                            optimal_trajectories=self.cfg.morris.optimal_t,
                                            local_optimization=self.cfg.morris.local_opt)
         elif self.cfg.method == 'fast':
@@ -350,8 +350,7 @@ class Sensitivity(object):
                                     self.param_values,
                                     self.output_values[:, i],
                                     conf_level=0.95, print_to_console=True,
-                                    num_levels=self.cfg.morris.num_levels,
-                                    grid_jump=self.cfg.morris.grid_jump)
+                                    num_levels=self.cfg.morris.num_levels)
             elif self.cfg.method == 'fast':
                 tmp_Si = fast_alz(self.param_defs, self.output_values[:, i],
                                   print_to_console=True)
@@ -362,7 +361,7 @@ class Sensitivity(object):
         # Save as json, which can be loaded by json.load()
         json_data = json.dumps(self.psa_si, indent=4, cls=SpecialJsonEncoder)
         with open(self.cfg.outfiles.psa_si_json, 'w', encoding='utf-8') as f:
-            f.write(json_data)
+            f.write('%s' % json_data)
         self.output_psa_si()
 
     def output_psa_si(self):
@@ -401,7 +400,7 @@ class Sensitivity(object):
             output_str += '\n'
             print(output_str)
         with open(psa_sort_txt, 'w', encoding='utf-8') as f:
-            f.write(output_str)
+            f.write('%s' % output_str)
 
     def plot_samples_histogram(self):
         """Save plot as png(300 dpi) and eps (vector)."""
@@ -412,7 +411,7 @@ class Sensitivity(object):
             self.generate_samples()
         sample_histograms(self.param_values, self.param_defs.get('names'),
                           self.cfg.morris.num_levels, self.cfg.psa_outpath, 'samples_histgram',
-                          {'color': 'black', 'histtype': 'step'})
+                          {'color': 'black', 'histtype': 'step'}, self.cfg.plot_cfg)
 
     def plot_morris(self):
         """Save plot as png(300 dpi) and eps (vector)."""
@@ -442,17 +441,17 @@ class Sensitivity(object):
                 empirical_cdf(values, [0], self.param_values, param_names,
                               self.cfg.morris.num_levels,
                               self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
-                              {'histtype': 'step'})
+                              {'histtype': 'step'}, self.cfg.plot_cfg)
             elif 'R-square' in objn:  # R-square, equally divided as two classes
                 empirical_cdf(values, 2, self.param_values, param_names,
                               self.cfg.morris.num_levels,
                               self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
-                              {'histtype': 'step'})
+                              {'histtype': 'step'}, self.cfg.plot_cfg)
             elif 'RSR' in objn:  # RSR
                 empirical_cdf(values, [1], self.param_values, param_names,
                               self.cfg.morris.num_levels,
                               self.cfg.psa_outpath, 'cdf_%s' % self.objnames[i],
-                              {'histtype': 'step'})
+                              {'histtype': 'step'}, self.cfg.plot_cfg)
 
 
 if __name__ == '__main__':

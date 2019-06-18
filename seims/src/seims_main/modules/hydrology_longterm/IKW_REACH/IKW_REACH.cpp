@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "IKW_REACH.h"
-
+#include "text.h"
 
 using namespace std;
 
@@ -171,9 +170,10 @@ bool IKW_REACH::CheckInputSize(const char *key, int n) {
 void IKW_REACH::SetValue(const char *key, float value) {
     string sk(key);
 
-    if (StringMatch(sk, VAR_QUPREACH)) {
-        m_qUpReach = value;
-    } else if (StringMatch(sk, Tag_LayeringMethod)) {
+    //if (StringMatch(sk, VAR_QUPREACH)) {
+    //    m_qUpReach = value;
+    //} else
+    if (StringMatch(sk, Tag_LayeringMethod)) {
         m_layeringMethod = (LayeringMethod) int(value);
     } else if (StringMatch(sk, Tag_ChannelTimeStep)) {
         m_dt = int(value);
@@ -224,18 +224,18 @@ void IKW_REACH::Set1DData(const char *key, int n, float *value) {
 
 }
 
-void IKW_REACH::GetValue(const char *key, float *value) {
-    string sk(key);
-    int iOutlet = m_reachLayers.rbegin()->second[0];
-    if (StringMatch(sk, VAR_QOUTLET)) {
-        //*value = m_qsCh[iOutlet];
-        m_qOut[0] = m_qOut[iOutlet] + m_deepGroudwater;
-        *value = m_qOut[0];
-    } else if (StringMatch(sk, VAR_QSOUTLET)) {
-        *value = m_qsCh[iOutlet];
-    }
-
-}
+//void IKW_REACH::GetValue(const char *key, float *value) {
+//    string sk(key);
+//    int iOutlet = m_reachLayers.rbegin()->second[0];
+//    if (StringMatch(sk, VAR_QOUTLET)) {
+//        //*value = m_qsCh[iOutlet];
+//        m_qOut[0] = m_qOut[iOutlet] + m_deepGroudwater;
+//        *value = m_qOut[0];
+//    } else if (StringMatch(sk, VAR_QSOUTLET)) {
+//        *value = m_qsCh[iOutlet];
+//    }
+//
+//}
 
 void IKW_REACH::Get1DData(const char *key, int *n, float **data) {
     string sk(key);

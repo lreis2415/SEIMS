@@ -1,11 +1,13 @@
-/** 
+/**
 *	@version	1.0
 *	@author    Junzhi Liu
 *	@date	31-Octobor-2011
 *	@brief	calculate infiltration and excess precipitation
 *
 */
-#pragma once
+#ifndef SEIMS_SUR_EXCESS_H
+#define SEIMS_SUR_EXCESS_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -99,3 +101,4 @@ private:
     float *m_infilCapacitySurplus;
 
 };
+#endif /* SEIMS_SUR_EXCESS_H */

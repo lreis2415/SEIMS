@@ -16,7 +16,7 @@ if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
 
 from pygeoc.utils import StringClass, get_config_file
 
-from utility import parse_datetime_from_ini
+from utility import parse_datetime_from_ini, PlotConfig
 from run_seims import ParseSEIMSConfig
 
 
@@ -29,7 +29,7 @@ class PostConfig(object):
         self.model_cfg = ParseSEIMSConfig(cf)
         # 2. Parameters
         self.plt_subbsnid = -1
-        self.plt_vars = list()
+        self.plot_vars = list()
         if 'PARAMETERS' in cf.sections():
             self.plt_subbsnid = cf.getint('PARAMETERS', 'plot_subbasinid')
             plt_vars_str = cf.get('PARAMETERS', 'plot_variables')
@@ -38,7 +38,7 @@ class PostConfig(object):
         if self.plt_subbsnid < 0:
             raise ValueError("PLOT_SUBBASINID must be greater or equal than 0.")
         if plt_vars_str != '':
-            self.plt_vars = StringClass.split_string(plt_vars_str)
+            self.plot_vars = StringClass.split_string(plt_vars_str, [',', ' '])
         else:
             raise ValueError("PLOT_VARIABLES illegal defined in [PARAMETERS]!")
 
@@ -55,10 +55,8 @@ class PostConfig(object):
             raise ValueError("Wrong time settings of calibration in [OPTIONAL_PARAMETERS]!")
         if self.vali_stime and self.vali_etime and self.vali_stime >= self.vali_etime:
             raise ValueError("Wrong time settings of validation in [OPTIONAL_PARAMETERS]!")
-        # 4. Switches
-        self.lang_cn = False
-        if 'SWITCH' in cf.sections():
-            self.lang_cn = cf.getboolean('SWITCH', 'lang_cn')
+        # 4. Plot settings based on matplotlib
+        self.plot_cfg = PlotConfig(cf)
 
 
 def parse_ini_configuration():

@@ -38,31 +38,18 @@ public:
 
     ~AET_PT_H();
 
-    int Execute() OVERRIDE;
-
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
-
-    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
     void Set2DData(const char* key, int n, int col, float** data) OVERRIDE;
 
-private:
-    /*!
-     * \brief check the input data. Make sure all the input data is available.
-     * \return bool The validity of the input data.
-     */
-    bool CheckInputData();
+    bool CheckInputData() OVERRIDE;
 
-    /*!
-     * \brief check the input size. Make sure all the input data have same dimension.
-     * \param[in] key The key of the input data
-     * \param[in] n The input data dimension
-     * \return bool The validity of the dimension
-     */
-    bool CheckInputSize(const char* key, int n);
+    void InitialOutputs() OVERRIDE;
 
-    //! initialize outputs
-    void InitialOutputs();
+    int Execute() OVERRIDE;
+
+    void Get1DData(const char* key, int* n, float** data) OVERRIDE;
+
 private:
     // Parameters from database
     int m_nCells;      ///< valid cells number

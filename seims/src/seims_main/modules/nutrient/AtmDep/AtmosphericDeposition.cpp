@@ -23,25 +23,8 @@ bool AtmosphericDeposition::CheckInputData() {
     return true;
 }
 
-bool AtmosphericDeposition::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_ATMDEP, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_ATMDEP, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid with size: " + ValueToString(n) +
-                                 ". The origin size is " + ValueToString(m_nCells) + ".\n");
-        }
-    }
-    return true;
-}
-
 void AtmosphericDeposition::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_ATMDEP, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_PCP)) m_pcp = data;
     else {
@@ -60,10 +43,10 @@ void AtmosphericDeposition::SetValue(const char* key, const float value) {
     }
 }
 
-void AtmosphericDeposition::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
-    CheckInputSize(key, nRows);
+void AtmosphericDeposition::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
+    CheckInputSize2D(MID_ATMDEP, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_maxSoilLyrs = nCols;
+    m_maxSoilLyrs = ncols;
     if (StringMatch(sk, VAR_SOL_NO3)) m_soilNO3 = data;
     else if (StringMatch(sk, VAR_SOL_NH4)) m_soilNH4 = data;
     else {

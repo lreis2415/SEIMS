@@ -38,19 +38,17 @@ public:
     //! Destructor
     ~SNO_SP();
 
-    int Execute() OVERRIDE;
-
     void SetValue(const char* key, float data) OVERRIDE;
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
+
+    int Execute() OVERRIDE;
+
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
-
-    bool CheckInputSize(const char* key, int n);
-
-    bool CheckInputData();
-
-    void InitialOutputs();
 
 private:
     //! Valid cells number

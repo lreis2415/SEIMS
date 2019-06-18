@@ -176,23 +176,6 @@ bool NutrCH_QUAL2E::CheckInputCellSize(const char* key, const int n) {
     return true;
 }
 
-bool NutrCH_QUAL2E::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_NUTRCH_QUAL2E, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nReaches != n - 1) {
-        if (m_nReaches <= 0) {
-            m_nReaches = n - 1;
-        } else {
-            throw ModelException(MID_NUTRCH_QUAL2E, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid with size: " + ValueToString(n) + ". The origin size is " +
-                                 ValueToString(m_nReaches));
-        }
-    }
-    return true;
-}
-
 bool NutrCH_QUAL2E::CheckInputData() {
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_dt);
     CHECK_POSITIVE(MID_NUTRCH_QUAL2E, m_nReaches);
@@ -337,7 +320,7 @@ void NutrCH_QUAL2E::Set1DData(const char* key, const int n, float* data) {
         return;
     }
 
-    CheckInputSize(key, n);
+    CheckInputSize(MID_NUTRCH_QUAL2E, key, n - 1, m_nReaches);
     if (StringMatch(sk, VAR_QRECH)) m_qRchOut = data;
     else if (StringMatch(sk, VAR_CHST)) {
         m_chStorage = data;

@@ -10,6 +10,7 @@
     - 18-02-09  lj - compatible with Python3.
     - 18-08-24  lj - ReDesign pareto graph and hypervolume graph.
     - 18-10-31  lj - Add type hints based on typing package.
+    - 19-01-07  lj - incorporated with PlotConfig
 """
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems
@@ -34,8 +35,8 @@ import itertools
 from pygeoc.utils import StringClass
 import re
 
-from typing import List, Optional, Union, Dict, AnyStr, Any
-from utility import save_png_eps, get_optimal_bounds
+from typing import List, Optional, Union, Dict, AnyStr
+from utility import save_png_eps, get_optimal_bounds, PlotConfig
 
 LFs = ['\r', '\n', '\r\n']
 
@@ -48,25 +49,27 @@ def plot_2d_scatter(xlist,  # type: List[float] # X coordinates
                     ws,  # type: AnyStr # Full path of the destination directory
                     filename,  # type: AnyStr # File name without suffix (e.g., jpg, eps)
                     subtitle='',  # type: AnyStr # Subtitle
-                    cn=False,  # type: bool # Use Chinese or not
+                    cn=False,  # type: bool # Use Chinese or not. Deprecated!
                     xmin=None,  # type: Optional[float] # Left min X value
                     xmax=None,  # type: Optional[float] # Right max X value
                     xstep=None,  # type: Optional[float] # X interval
                     ymin=None,  # type: Optional[float] # Bottom min Y value
                     ymax=None,  # type: Optional[float] # Up max Y value
-                    ystep=None  # type: Optional[float] # Y interval
+                    ystep=None,  # type: Optional[float] # Y interval
+                    plot_cfg=None  # type: Optional[PlotConfig]
                     ):
     # type: (...) -> None
     """Scatter plot of 2D points.
 
     Todo: The size of the point may be vary with the number of points.
     """
-    if cn:
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    plt.rcParams['font.family'] = plot_cfg.font_name
     plt.figure()
-    plt.title('%s\n' % title, color='red')
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    plt.title('%s\n' % title, color='red', fontsize=plot_cfg.title_fsize)
+    plt.xlabel(xlabel, fontsize=plot_cfg.axislabel_fsize)
+    plt.ylabel(ylabel, fontsize=plot_cfg.axislabel_fsize)
     plt.scatter(xlist, ylist, c='r', alpha=0.8, s=12)
     if xmax is not None:
         plt.xlim(xmax=xmax)
@@ -74,19 +77,21 @@ def plot_2d_scatter(xlist,  # type: List[float] # X coordinates
         plt.xlim(xmin=xmin)
     if xstep is not None:
         xmin, xmax = plt.xlim()
-        plt.xticks(numpy.arange(xmin, xmax + xstep * 0.99, step=xstep))
+        plt.xticks(numpy.arange(xmin, xmax + xstep * 0.99, step=xstep),
+                   fontsize=plot_cfg.tick_fsize)
     if ymax is not None:
         plt.ylim(ymax=ymax)
     if ymin is not None:
         plt.ylim(ymin=ymin)
     if ystep is not None:
         ymin, ymax = plt.ylim()
-        plt.yticks(numpy.arange(ymin, ymax + ystep * 0.99, step=ystep))
+        plt.yticks(numpy.arange(ymin, ymax + ystep * 0.99, step=ystep),
+                   fontsize=plot_cfg.tick_fsize)
 
     if subtitle != '':
-        plt.title(subtitle, color='green', fontsize=9, loc='right')
+        plt.title(subtitle, color='green', fontsize=plot_cfg.label_fsize, loc='right')
     plt.tight_layout()
-    save_png_eps(plt, ws, filename)
+    save_png_eps(plt, ws, filename, plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
@@ -112,20 +117,28 @@ def plot_3d_scatter(xlist,  # type: List[float] # X coordinates
                     zmax=None,  # type: Optional[float] # Max Z value
                     xstep=None,  # type: Optional[float] # X interval
                     ystep=None,  # type: Optional[float] # Y interval
-                    zstep=None  # type: Optional[float] # Z interval
+                    zstep=None,  # type: Optional[float] # Z interval
+                    plot_cfg=None  # type: Optional[PlotConfig]
                     ):
     # type: (...) -> None
     """Scatter plot of 3D points.
     """
-    if cn:
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    plt.rcParams['font.family'] = plot_cfg.font_name
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    plt.suptitle('%s\n' % title, color='red')
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_zlabel(zlabel)
+    plt.suptitle('%s\n' % title, color='red', fontsize=plot_cfg.title_fsize)
+    ax.set_xlabel(xlabel, fontsize=plot_cfg.axislabel_fsize)
+    ax.set_ylabel(ylabel, fontsize=plot_cfg.axislabel_fsize)
+    ax.set_zlabel(zlabel, fontsize=plot_cfg.axislabel_fsize)
     ax.scatter(xlist, ylist, zlist, c='r', s=12)
+    for xticklabel in ax.xaxis.get_ticklabels():
+        xticklabel.set_fontsize(plot_cfg.tick_fsize)
+    for yticklabel in ax.yaxis.get_ticklabels():
+        yticklabel.set_fontsize(plot_cfg.tick_fsize)
+    for zticklabel in ax.zaxis.get_ticklabels():
+        zticklabel.set_fontsize(plot_cfg.tick_fsize)
     if xmax is not None:
         ax.set_xlim(right=xmax)
     if xmin is not None:
@@ -149,9 +162,9 @@ def plot_3d_scatter(xlist,  # type: List[float] # X coordinates
         ax.set_zticks(numpy.arange(zmin, zmax + zstep * 0.99, step=zstep))
 
     if subtitle != '':
-        plt.title(subtitle, color='green', fontsize=9, loc='right')
+        plt.title(subtitle, color='green', fontsize=plot_cfg.label_fsize, loc='right')
     plt.tight_layout()
-    save_png_eps(plt, ws, filename)
+    save_png_eps(plt, ws, filename, plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
@@ -171,7 +184,8 @@ def plot_pareto_front_single(data,
                              # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
                              steps=None,
                              # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
-                             cn=False  # type: bool # Use Chinese or not
+                             cn=False,  # type: bool # Use Chinese or not. Deprecated!
+                             plot_cfg=None  # type: Optional[PlotConfig]
                              ):
     # type: (...) -> bool
     """
@@ -185,7 +199,8 @@ def plot_pareto_front_single(data,
         lowers: (Optional) Lower values of each axis. Default is None.
         uppers: (Optional) Upper values of each axis. Default is None.
         steps: (Optional) Major ticks of each axis. Default is None.
-        cn: (Optional) Use Chinese
+        cn: (Optional) Use Chinese. Deprecated. Please use plot_cfg=PlotConfig instead.
+        plot_cfg: (Optional) Plot settings for matplotlib.
     """
     if not isinstance(data, numpy.ndarray):
         data = numpy.array(data)
@@ -205,7 +220,9 @@ def plot_pareto_front_single(data,
     if steps is not None and len(steps) != axis_size:
         print('Warning: The size of fitness values and steps are not consistent!')
         steps = None
-
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    cn = plot_cfg.plot_cn
     if isinstance(gen_id, int):
         subtitle = '\nGeneration: %d, Population: %d' % (gen_id, pop_size)
         if cn:
@@ -234,7 +251,7 @@ def plot_pareto_front_single(data,
         if steps is not None:
             x_step = steps[x_idx]
             y_step = steps[y_idx]
-        maintitle = '%s of (%s, %s)' % (title, labels[x_idx], labels[y_idx])
+        maintitle = '%s (%s, %s)' % (title, labels[x_idx], labels[y_idx])
         dirname = 'Pareto_%s-%s' % (labels[x_idx], labels[y_idx])
         tmpws = ws + os.sep + dirname
         if not os.path.exists(tmpws):
@@ -243,9 +260,9 @@ def plot_pareto_front_single(data,
         if cn:
             filename += '_cn'
         plot_2d_scatter(data[:, x_idx], data[:, y_idx], maintitle,
-                        labels[x_idx], labels[y_idx], tmpws, filename, subtitle, cn=cn,
+                        labels[x_idx], labels[y_idx], tmpws, filename, subtitle,
                         xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max,
-                        xstep=x_step, ystep=y_step)
+                        xstep=x_step, ystep=y_step, plot_cfg=plot_cfg)
     if axis_size >= 3:
         # 3D plot
         comb_3d = list(itertools.combinations(range(axis_size), 3))
@@ -274,7 +291,7 @@ def plot_pareto_front_single(data,
                 x_step = steps[x_idx]
                 y_step = steps[y_idx]
                 z_step = steps[z_idx]
-            maintitle = '%s of (%s, %s, %s)' % (title, labels[x_idx], labels[y_idx], labels[z_idx])
+            maintitle = '%s (%s, %s, %s)' % (title, labels[x_idx], labels[y_idx], labels[z_idx])
             dirname = 'Pareto_%s-%s-%s' % (labels[x_idx], labels[y_idx], labels[z_idx])
             tmpws = ws + os.sep + dirname
             if not os.path.exists(tmpws):
@@ -284,9 +301,9 @@ def plot_pareto_front_single(data,
                 filename += '_cn'
             plot_3d_scatter(data[:, x_idx], data[:, y_idx], data[:, z_idx], maintitle,
                             labels[x_idx], labels[y_idx], labels[z_idx],
-                            tmpws, filename, subtitle, cn=cn,
+                            tmpws, filename, subtitle,
                             xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, zmin=z_min, zmax=z_max,
-                            xstep=x_step, ystep=y_step, zstep=z_step)
+                            xstep=x_step, ystep=y_step, zstep=z_step, plot_cfg=plot_cfg)
     return True
 
 
@@ -303,14 +320,18 @@ def plot_pareto_fronts_multigenerations(data,
                                         # type: Optional[numpy.ndarray, List[float]] # Higher values of each axis
                                         steps=None,
                                         # type: Optional[numpy.ndarray, List[float]] # Intervals of each axis
-                                        cn=False  # type: bool # Use Chinese or not
+                                        cn=False,  # type: bool # Use Chinese or not. Deprecated!
+                                        plot_cfg=None  # type: Optional[PlotConfig] # Plot settings for matplotlib
                                         ):
     # type: (...) -> None
     """Plot Pareto fronts of selected generations."""
     filename = 'Pareto_Generations_%s' % ('-'.join(repr(i) for i in gen_ids))
-    if cn:
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    plt.rcParams['font.family'] = plot_cfg.font_name
+    if plot_cfg.plot_cn:
         filename += '_cn'
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+
     fig, ax = plt.subplots(figsize=(9, 8))
     # ColorMaps: https://matplotlib.org/tutorials/colors/colormaps.html
     cmap = cm.get_cmap('gist_heat')  # one of the sequential colormaps
@@ -321,15 +342,15 @@ def plot_pareto_fronts_multigenerations(data,
         ydata = numpy.array(data[gen])[:, 1]  # second column
         plt.scatter(xdata, ydata, marker='.', s=100,
                     color=cmap(0.8 * (len(gen_ids) - idx) / len(gen_ids)),
-                    label='Generation %d' % gen)
+                    label=(u'第 %d 代' if plot_cfg.plot_cn else 'Generation %d') % gen)
     xaxis = plt.gca().xaxis
     yaxis = plt.gca().yaxis
-    for xlebal in xaxis.get_ticklabels():
-        xlebal.set_fontsize(20)
-    for ylebal in yaxis.get_ticklabels():
-        ylebal.set_fontsize(20)
-    plt.xlabel(labels[0], fontsize=20)
-    plt.ylabel(labels[1], fontsize=20)
+    for xticklabel in xaxis.get_ticklabels():
+        xticklabel.set_fontsize(plot_cfg.tick_fsize)
+    for yticklabel in yaxis.get_ticklabels():
+        yticklabel.set_fontsize(plot_cfg.tick_fsize)
+    plt.xlabel(labels[0], fontsize=plot_cfg.axislabel_fsize)
+    plt.ylabel(labels[1], fontsize=plot_cfg.axislabel_fsize)
     # set xy axis limit
     if lowers is not None:
         ax.set_xlim(left=lowers[0])
@@ -343,9 +364,9 @@ def plot_pareto_fronts_multigenerations(data,
         ymin, ymax = plt.ylim()
         plt.yticks(numpy.arange(ymin, ymax + steps[1] * 0.99, step=steps[1]))
 
-    plt.legend(fontsize=16, loc=2)  # loc 2: upper left, 4: lower right, 0: best
+    plt.legend(fontsize=plot_cfg.legend_fsize, loc=2)  # loc 2: upper left, 4: lower right, 0: best
     plt.tight_layout()
-    save_png_eps(plt, ws, filename)
+    save_png_eps(plt, ws, filename, plot_cfg)
 
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
@@ -390,6 +411,8 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
             if LF in line:
                 str_line = line.split(LF)[0]
                 break
+        if str_line == '':
+            continue
         values = StringClass.extract_numeric_values_from_string(str_line)
         # Check generation
         if str_line[0] == '#' and 'Generation' in str_line:
@@ -451,6 +474,8 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
             if LF in line:
                 str_line = line.split(LF)[0]
                 break
+        if str_line == '':
+            continue
         values = StringClass.extract_numeric_values_from_string(str_line)
         # Check generation
         if str_line[0] == '#' and 'Generation' in str_line:
@@ -493,7 +518,8 @@ def plot_pareto_fronts_multiple(method_paths,  # type: Dict[AnyStr, AnyStr]
                                 yname,
                                 # type: List[AnyStr, AnyStr, Optional[float], Optional[float]]
                                 gens,  # type: List[int]
-                                ws  # type: AnyStr
+                                ws,  # type: AnyStr
+                                plot_cfg=None  # type: Optional[PlotConfig]
                                 ):
     # type: (...) -> None
     """
@@ -506,7 +532,8 @@ def plot_pareto_fronts_multiple(method_paths,  # type: Dict[AnyStr, AnyStr]
                      the third and forth values are low and high limits (optional).
         yname(list): see xname
         gens(list): generation to be plotted
-        ws: workspace for output files
+        ws(string): workspace for output files
+        plot_cfg(PlotConfig): Plot settings for matplotlib
     """
     pareto_data = OrderedDict()  # type: OrderedDict[int, Union[List, numpy.ndarray]]
     acc_pop_size = OrderedDict()  # type: Dict[int, int]
@@ -514,7 +541,9 @@ def plot_pareto_fronts_multiple(method_paths,  # type: Dict[AnyStr, AnyStr]
         v = v + os.path.sep + 'runtime.log'
         pareto_data[k], acc_pop_size[k] = read_pareto_points_from_txt(v, sce_name, xname)
     # print(pareto_data)
-    plot_pareto_fronts(pareto_data, xname[1:], yname[1:], gens, ws)
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    plot_pareto_fronts(pareto_data, xname[1:], yname[1:], gens, ws, plot_cfg=plot_cfg)
 
 
 def plot_pareto_fronts(pareto_data,
@@ -522,7 +551,8 @@ def plot_pareto_fronts(pareto_data,
                        xname,  # type: List[AnyStr, Optional[float], Optional[float]]
                        yname,  # type: List[AnyStr, Optional[float], Optional[float]]
                        gens,  # type: List[int]
-                       ws  # type: AnyStr
+                       ws,  # type: AnyStr
+                       plot_cfg=None  # type: Optional[PlotConfig]
                        ):
     # type: (...) -> None
     """
@@ -534,8 +564,11 @@ def plot_pareto_fronts(pareto_data,
                      the second and third values are low and high limits (optional).
         yname(list): see xname
         gens(list): generation to be plotted
-        ws: workspace for output files
+        ws(string): workspace for output files
+        plot_cfg(PlotConfig): Plot settings for matplotlib
     """
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
     if len(xname) < 1 or len(yname) < 1:
         xname = ['x-axis']
         yname = ['y-axis']
@@ -545,89 +578,16 @@ def plot_pareto_fronts(pareto_data,
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
+    plt.rcParams['font.family'] = plot_cfg.font_name
 
-    # Check if xname or yname contains Chinese characters
-    zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
-    if zhPattern.search(xname[0]) or zhPattern.search(yname[0]):
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
+    # Deprecated code for detecting Chinese characters.
+    # # Check if xname or yname contains Chinese characters
+    # zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+    # if zhPattern.search(xname[0]) or zhPattern.search(yname[0]):
+    #     plt.rcParams['font.family'] = 'SimSun'  # 宋体
 
     markers = ['.', '*', '+', 'x', 'd', 'h', 's', '<', '>']
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'k', 'k']
-    # linestyles = ['-', '--', '-.', ':']
-    # # plot accumulate pop size
-    # fig, ax = plt.subplots(figsize=(9, 8))
-    # mark_idx = 0
-    # for method, gen_popsize in acc_pop_size.items():
-    #     xdata = gen_popsize[0]
-    #     ydata = gen_popsize[1]
-    #     print(ydata)
-    #     print('Evaluated pop size: %s - %d' % (method, ydata[-1]))
-    #     plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
-    #              label=method, linewidth=2)
-    #     mark_idx += 1
-    # plt.legend(fontsize=24, loc=2)
-    # xaxis = plt.gca().xaxis
-    # yaxis = plt.gca().yaxis
-    # for xlebal in xaxis.get_ticklabels():
-    #     xlebal.set_fontsize(20)
-    # for ylebal in yaxis.get_ticklabels():
-    #     ylebal.set_fontsize(20)
-    # plt.xlabel('Generation count', fontsize=20)
-    # plt.ylabel('Total number of simulated individuals', fontsize=20)
-    # ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
-    # plt.tight_layout()
-    # fpath = ws + os.path.sep + file_name + '_popsize'
-    # plt.savefig(fpath + '.png', dpi=300)
-    # plt.savefig(fpath + '.eps', dpi=300)
-    # print('%s saved!' % fpath)
-    # # close current plot in case of 'figure.max_open_warning'
-    # plt.cla()
-    # plt.clf()
-    # plt.close()
-
-    # plot Pareto points of all generations
-    # mark_idx = 0
-    # for method, gen_popsize in pareto_data.items():
-    #     fig, ax = plt.subplots(figsize=(9, 8))
-    #     xdata = list()
-    #     ydata = list()
-    #     for gen, gendata in gen_popsize.items():
-    #         xdata += gen_popsize[gen][xname[0]]
-    #         ydata += gen_popsize[gen][yname[0]]
-    #     plt.scatter(xdata, ydata, marker=markers[mark_idx], s=20,
-    #                 color=colors[mark_idx], label=method)
-    #     mark_idx += 1
-    #     xaxis = plt.gca().xaxis
-    #     yaxis = plt.gca().yaxis
-    #     for xlebal in xaxis.get_ticklabels():
-    #         xlebal.set_fontsize(20)
-    #     for ylebal in yaxis.get_ticklabels():
-    #         ylebal.set_fontsize(20)
-    #     plt.xlabel(xlabel_str, fontsize=20)
-    #     plt.ylabel(ylabel_str, fontsize=20)
-    #     # set xy axis limit
-    #     curxlim = ax.get_xlim()
-    #     if len(xname) >= 3:
-    #         if curxlim[0] < xname[2]:
-    #             ax.set_xlim(left=xname[2])
-    #         if len(xname) >= 4 and curxlim[1] > xname[3]:
-    #             ax.set_xlim(right=xname[3])
-    #     curylim = ax.get_ylim()
-    #     if len(yname) >= 3:
-    #         if curylim[0] < yname[2]:
-    #             ax.set_ylim(bottom=yname[2])
-    #         if len(yname) >= 4 and curylim[1] > yname[3]:
-    #             ax.set_ylim(top=yname[3])
-    #     plt.tight_layout()
-    #     fpath = ws + os.path.sep + method + '-Pareto'
-    #     plt.savefig(fpath + '.png', dpi=300)
-    #     plt.savefig(fpath + '.eps', dpi=300)
-    #     print('%s saved!' % fpath)
-    #     # close current plot in case of 'figure.max_open_warning'
-    #     plt.cla()
-    #     plt.clf()
-    #     plt.close()
 
     # plot comparision of Pareto fronts
 
@@ -658,29 +618,41 @@ def plot_pareto_fronts(pareto_data,
         fig, ax = plt.subplots(figsize=(9, 8))
         mark_idx = 0
         gen_existed = True
+        xdata_list = list()
+        ydata_list = list()
+        marker_list = list()
+        method_list = list()
         for method, gen_data in viewitems(pareto_data):
             if gen not in gen_data:
                 gen_existed = False
                 break
-            xdata = numpy.array(gen_data[gen])[:, 0]  # first column
-            ydata = numpy.array(gen_data[gen])[:, 1]  # second column
-            plt.scatter(xdata, ydata, marker=markers[mark_idx], s=100,
-                        color=colors[mark_idx], label=method)
+            xdata_list.append(numpy.array(gen_data[gen])[:, 0])
+            ydata_list.append(numpy.array(gen_data[gen])[:, 1])
+            marker_list.append(mark_idx)
+            method_list.append(method)
             mark_idx += 1
         if not gen_existed:
             plt.cla()
             plt.clf()
             plt.close()
             continue
+        xdata_list.reverse()
+        ydata_list.reverse()
+        marker_list.reverse()
+        method_list.reverse()
+        for xdata, ydata, markeridx, method in zip(xdata_list, ydata_list,
+                                                   marker_list, method_list):
+            plt.scatter(xdata, ydata, marker=markers[markeridx], s=100,
+                        color=colors[markeridx], label=method)
 
         xaxis = plt.gca().xaxis
         yaxis = plt.gca().yaxis
-        for xlebal in xaxis.get_ticklabels():
-            xlebal.set_fontsize(20)
-        for ylebal in yaxis.get_ticklabels():
-            ylebal.set_fontsize(20)
-        plt.xlabel(xlabel_str, fontsize=20)
-        plt.ylabel(ylabel_str, fontsize=20)
+        for xticklabel in xaxis.get_ticklabels():
+            xticklabel.set_fontsize(plot_cfg.tick_fsize)
+        for yticklabel in yaxis.get_ticklabels():
+            yticklabel.set_fontsize(plot_cfg.tick_fsize)
+        plt.xlabel(xlabel_str, fontsize=plot_cfg.axislabel_fsize)
+        plt.ylabel(ylabel_str, fontsize=plot_cfg.axislabel_fsize)
         # set xy axis limit
         curxlim = ax.get_xlim()
         if len(newxname) >= 3:
@@ -692,9 +664,13 @@ def plot_pareto_fronts(pareto_data,
             ax.set_ylim(bottom=newyname[1])
             ax.set_ylim(top=newyname[2])
 
-        plt.legend(fontsize=16, loc=4)  # loc 2: upper left, 4: lower right
+        handles, labels = ax.get_legend_handles_labels()
+        handles.reverse()
+        labels.reverse()
+        plt.legend(handles, labels, fontsize=plot_cfg.legend_fsize, loc=4)
+        # loc 2: upper left, 4: lower right
         plt.tight_layout()
-        save_png_eps(plt, ws, 'gen%d' % gen)
+        save_png_eps(plt, ws, 'gen%d' % gen, plot_cfg)
 
         # close current plot in case of 'figure.max_open_warning'
         plt.cla()
@@ -726,31 +702,30 @@ def read_hypervolume(hypervlog):
     return x, hyperv, nmodel
 
 
-def plot_hypervolume_single(hypervlog, ws=None, cn=False):
-    # type: (AnyStr, Optional[AnyStr], bool) -> bool
+def plot_hypervolume_single(hypervlog, ws=None, cn=False, plot_cfg=None):
+    # type: (AnyStr, Optional[AnyStr], bool, Optional[PlotConfig]) -> bool
     """Plot hypervolume and the newly executed models of each generation.
 
     Args:
         hypervlog: Full path of the hypervolume log.
         ws: (Optional) Full path of the destination directory
-        cn: (Optional) Use Chinese
+        cn: (Optional) Use Chinese. Deprecated!
+        plot_cfg: (Optional) Plot settings for matplotlib
     """
     x, hyperv, nmodel = read_hypervolume(hypervlog)
     if not x or not hyperv:
         print('Error: No available hypervolume data loaded!')
         return False
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
-    generation_str = 'Generation'
-    hyperv_str = 'Hypervolume index'
-    nmodel_str = 'New model evaluations'
-    if cn:
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
-        generation_str = u'进化代数'
-        hyperv_str = u'Hypervolume 指数'
-        nmodel_str = u'新运行模型次数'
+    plt.rcParams['font.family'] = plot_cfg.font_name
+    generation_str = (u'进化代数' if plot_cfg.plot_cn else 'Generation')
+    hyperv_str = (u'Hypervolume 指数' if plot_cfg.plot_cn else 'Hypervolume index')
+    nmodel_str = (u'新运行模型次数' if plot_cfg.plot_cn else 'New model evaluations')
+
     linestyles = ['-', '--', '-.', ':']
     markers = ['o', 's', 'v', '*']
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -758,31 +733,33 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     p1 = ax.plot(x, hyperv, linestyle=linestyles[0], marker=markers[mark_idx],
                  color='black', label=hyperv_str, linewidth=2, markersize=4)
     mark_idx += 1
-    plt.xlabel(generation_str)
-    plt.ylabel(hyperv_str)
+    plt.xlabel(generation_str, fontsize=plot_cfg.axislabel_fsize)
+    plt.ylabel(hyperv_str, fontsize=plot_cfg.axislabel_fsize)
     ax.set_xlim(left=0, right=ax.get_xlim()[1])
     legends = p1
 
     plt.tight_layout()
     if ws is None:
         ws = os.path.dirname(hypervlog)
-    save_png_eps(plt, ws, 'hypervolume')
+    save_png_eps(plt, ws, 'hypervolume', plot_cfg)
 
     if nmodel:
         # Add right Y-axis
         ax2 = ax.twinx()
-        ax.tick_params(axis='x', which='both', bottom='on', top='off')
-        ax2.tick_params(axis='y', length=5, width=2, which='major')
-        ax2.set_ylabel(nmodel_str)
+        ax.tick_params(axis='x', which='both', bottom=True, top=False,
+                       labelsize=plot_cfg.tick_fsize)
+        ax2.tick_params(axis='y', length=5, width=2, which='major',
+                        labelsize=plot_cfg.tick_fsize)
+        ax2.set_ylabel(nmodel_str, fontsize=plot_cfg.axislabel_fsize)
         p2 = ax2.plot(x, nmodel, linestyle=linestyles[0], marker=markers[mark_idx],
                       color='black', label=nmodel_str, linewidth=2, markersize=4)
         legends += p2
 
     legends_label = [l.get_label() for l in legends]
-    ax.legend(legends, legends_label, fontsize=16, loc='center right')
+    ax.legend(legends, legends_label, fontsize=plot_cfg.legend_fsize, loc='center right')
 
     plt.tight_layout()
-    save_png_eps(plt, ws, 'hypervolume_modelruns')
+    save_png_eps(plt, ws, 'hypervolume_modelruns', plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
@@ -791,42 +768,49 @@ def plot_hypervolume_single(hypervlog, ws=None, cn=False):
     return True
 
 
-def plot_hypervolume_multiple(method_paths, ws, cn=False):
-    # type: (Dict[AnyStr, AnyStr], AnyStr, bool) -> bool
+def plot_hypervolume_multiple(method_paths, ws, cn=False, plot_cfg=None):
+    # type: (Dict[AnyStr, AnyStr], AnyStr, bool, Optional[PlotConfig]) -> bool
     """Plot hypervolume of multiple optimization methods
 
     Args:
         method_paths: Dict, key is method name and value is full path of the directory
         ws: Full path of the destination directory
-        cn: (Optional) Use Chinese
+        cn: (Optional) Use Chinese. Deprecated!
+        plot_cfg: (Optional) Plot settings for matplotlib
     """
     hyperv = OrderedDict()  # type: Dict[AnyStr, List[List[int], List[float]]]
     for k, v in viewitems(method_paths):
         v = v + os.path.sep + 'hypervolume.txt'
         genids, nmodels, hv = read_hypervolume(v)
         hyperv[k] = [genids[:], hv[:]]
-    return plot_hypervolumes(hyperv, ws, cn)
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
+    return plot_hypervolumes(hyperv, ws, cn, plot_cfg=plot_cfg)
 
 
-def plot_hypervolumes(hyperv, ws, cn=False):
-    # type: (Dict[AnyStr, Optional[int, float, List[List[int], List[float]]]], AnyStr, bool) -> bool
+def plot_hypervolumes(hyperv,  # type: Dict[AnyStr, Optional[int, float, List[List[int], List[float]]]]
+                      ws,  # type: AnyStr
+                      cn=False,  # type: bool # Deprecated! Please use plot_cfg=PlotConfig instead.
+                      plot_cfg=None  # type: Optional[PlotConfig]
+                      ):
+    # type: (...) -> bool
     """Plot hypervolume of multiple optimization methods
 
     Args:
         hyperv: Dict, key is method name and value is generation IDs list and hypervolumes list
                       Optionally, key-values of 'bottom' and 'top' are allowed.
         ws: Full path of the destination directory
-        cn: (Optional) Use Chinese
+        cn: (Optional) Use Chinese. Deprecated!
+        plot_cfg: (Optional) Plot settings for matplotlib
     """
+    if plot_cfg is None:
+        plot_cfg = PlotConfig()
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.family'] = 'Palatino Linotype'  # 'Times New Roman'
-    generation_str = 'Generation'
-    hyperv_str = 'Hypervolume index'
-    if cn:
-        plt.rcParams['font.family'] = 'SimSun'  # 宋体
-        generation_str = u'进化代数'
-        hyperv_str = u'Hypervolume 指数'
+    plt.rcParams['font.family'] = plot_cfg.font_name
+    generation_str = (u'进化代数' if plot_cfg.plot_cn else 'Generation')
+    hyperv_str = (u'Hypervolume 指数' if plot_cfg.plot_cn else 'Hypervolume index')
+
     # Line styles: https://matplotlib.org/gallery/lines_bars_and_markers/line_styles_reference.html
     linestyles = ['-', '--', '-.', ':']
     # plot accumulate pop size
@@ -840,25 +824,83 @@ def plot_hypervolumes(hyperv, ws, cn=False):
         plt.plot(xdata, ydata, linestyle=linestyles[mark_idx], color='black',
                  label=method, linewidth=2)
         mark_idx += 1
-    plt.legend(fontsize=16, loc=4)
+    plt.legend(fontsize=plot_cfg.legend_fsize, loc=4)
     xaxis = plt.gca().xaxis
     yaxis = plt.gca().yaxis
-    for xlebal in xaxis.get_ticklabels():
-        xlebal.set_fontsize(20)
-    for ylebal in yaxis.get_ticklabels():
-        ylebal.set_fontsize(20)
-    plt.xlabel(generation_str, fontsize=20)
-    plt.ylabel(hyperv_str, fontsize=20)
+    for xticklabel in xaxis.get_ticklabels():
+        xticklabel.set_fontsize(plot_cfg.tick_fsize)
+    for yticklabel in yaxis.get_ticklabels():
+        yticklabel.set_fontsize(plot_cfg.tick_fsize)
+    plt.xlabel(generation_str, fontsize=plot_cfg.axislabel_fsize)
+    plt.ylabel(hyperv_str, fontsize=plot_cfg.axislabel_fsize)
     ax.set_xlim(left=0, right=ax.get_xlim()[1] + 2)
     if 'bottom' in hyperv:
         ax.set_ylim(bottom=hyperv['bottom'])
     if 'top' in hyperv:
         ax.set_ylim(top=hyperv['top'])
     plt.tight_layout()
-    save_png_eps(plt, ws, 'hypervolume')
+    save_png_eps(plt, ws, 'hypervolume', plot_cfg)
     # close current plot in case of 'figure.max_open_warning'
     plt.cla()
     plt.clf()
     plt.close()
 
     return True
+
+
+def read_pareto_solutions_from_txt(txt_file, sce_name='scenario', field_name='gene_values'):
+    # type: (AnyStr, AnyStr, AnyStr) -> (Dict[int, List[List[float]]])
+    """Read Pareto points from `runtime.log` file.
+
+    Args:
+        txt_file: Full file path of `runtime.log` output by NSGA2 algorithm.
+        sce_name: Field name followed by `generation`, e.g., 'calibrationID', 'scenario', etc.
+        field_name: Filed name in header for gene values, 'gene_values' by default
+
+    Returns:
+        pareto_solutions: `OrderedDict`, key is generation ID, value is arrays of Pareto solutions
+    """
+    with open(txt_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    pareto_solutions = OrderedDict()
+    found = False
+    cur_gen = -1
+    field_idx = -1
+
+    for lno, line in enumerate(lines):
+        str_line = line
+        for LF in LFs:
+            if LF in line:
+                str_line = line.split(LF)[0]
+                break
+        if str_line == '':
+            continue
+        values = StringClass.extract_numeric_values_from_string(str_line)
+        # Check generation
+        if str_line[0] == '#' and 'Generation' in str_line:
+            if len(values) != 1:
+                continue
+            # e.g., ###### Generation: 23 ######
+            gen = int(values[0])
+            found = True
+            cur_gen = gen
+            pareto_solutions[cur_gen] = list()
+            continue
+        if not found:  # If the first "###### Generation: 1 ######" has not been found.
+            continue
+        line_list = StringClass.split_string(str_line.upper(), ['\t'])
+        if values is None:  # means header line
+            if field_idx >= 0:
+                continue
+            for idx, v in enumerate(line_list):
+                if field_name.upper() in v.upper():
+                    field_idx = idx
+                    break
+            continue
+        if field_idx < 0:
+            continue
+        # now append the real Pareto solutions data
+        tmpvalues = StringClass.extract_numeric_values_from_string(line_list[field_idx])
+        pareto_solutions[cur_gen].append(tmpvalues[:])
+
+    return pareto_solutions

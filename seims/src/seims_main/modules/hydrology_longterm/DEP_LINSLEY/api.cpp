@@ -1,6 +1,6 @@
 #include "api.h"
 
-#include "DepressionFSDaily.h"
+#include "DepressionLinsley.h"
 #include "MetadataInfo.h"
 #include "text.h"
 

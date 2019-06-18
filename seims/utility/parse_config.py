@@ -41,15 +41,16 @@ def get_optimization_config(desc='The help information is supposed not be empty.
     return cf, psa_mtd
 
 
-def check_config_option(cf, section_name, option_name):
-    # type: (ConfigParser, AnyStr, AnyStr) -> bool
+def check_config_option(cf, section_name, option_name, print_warn=False):
+    # type: (ConfigParser, AnyStr, AnyStr, bool) -> bool
     if not isinstance(cf, ConfigParser):
         raise IOError('ErrorInput: The first argument cf MUST be the object of `ConfigParser`!')
     if section_name not in cf.sections():
         print('Warning: %s is NOT defined!' % section_name)
         return False
     if not (cf.has_option(section_name, option_name)):
-        print('Warning: %s is NOT defined in %s!' % (option_name, section_name))
+        if print_warn:
+            print('Warning: %s is NOT defined in %s!' % (option_name, section_name))
         return False
     return True
 

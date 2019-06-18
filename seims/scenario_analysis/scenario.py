@@ -11,27 +11,27 @@
     - 18-10-30  lj - Update according to new config parser structure.
 """
 from __future__ import absolute_import, unicode_literals
+from future.utils import viewitems
 
 from datetime import timedelta
 from io import open
 import os
 import sys
 import random
-import shutil
 import uuid
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from bson.objectid import ObjectId
-from pygeoc.utils import MathClass, get_config_parser
+from pygeoc.utils import get_config_parser
 from pymongo.errors import NetworkTimeout
 from typing import List, Iterator, Optional, Union
 
 from scenario_analysis import BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from preprocess.db_mongodb import ConnectMongoDB
-from preprocess.text import DBTableNames
+from preprocess.text import DBTableNames, ModelCfgFields
 from run_seims import MainSEIMS
 from utility.scoop_func import scoop_log
 
@@ -82,6 +82,7 @@ class Scenario(object):
         self.rule_mtd = cfg.bmps_cfg_method
         self.bmps_info = cfg.bmps_info
         self.bmps_retain = cfg.bmps_retain
+        self.eval_info = cfg.eval_info
         self.export_sce_txt = cfg.export_sce_txt
         self.export_sce_tif = cfg.export_sce_tif
         self.scenario_dir = cfg.scenario_dir  # predefined directories to store scenarios related
@@ -91,8 +92,15 @@ class Scenario(object):
         self.modelcfg_dict = self.modelcfg.ConfigDict
         self.model = MainSEIMS(args_dict=self.modelcfg_dict)
         self.scenario_db = self.model.ScenarioDBName
+        self.model.ResetSimulationPeriod()  # Reset the simulation period
+        # Reset the starttime and endtime of the desired outputs according to evaluation period
+        if ModelCfgFields.output_id in self.eval_info:
+            self.model.ResetOutputsPeriod(self.eval_info[ModelCfgFields.output_id],
+                                          cfg.eval_stime, cfg.eval_etime)
+        else:
+            print('Warning: No OUTPUTID is defined in BMPs_info. Please make sure the '
+                  'STARTTIME and ENDTIME of ENVEVAL are consistent with Evaluation period!')
         # (Re)Calculate timerange in the unit of year
-        self.model.ResetSimulationPeriod()
         dlt = cfg.eval_etime - cfg.eval_stime + timedelta(seconds=1)
         self.eval_timerange = (dlt.days * 86400. + dlt.seconds) / 86400. / 365.
         self.modelout_dir = None  # determined in `execute_seims_model` based on unique scenario ID
@@ -110,14 +118,6 @@ class Scenario(object):
         self.modelcfg.scenario_id = self.ID
         self.modelcfg_dict['scenario_id'] = self.ID if self.modelcfg_dict else 0
         return self.ID
-
-    def set_gene_values(self, gene_values=None):
-        # type: (Optional[List[Union[int, float]]]) -> None
-        """Set gene values manually or by initialize function."""
-        if gene_values is None:
-            self.initialize()
-        else:
-            self.gene_values = gene_values[:]
 
     def rule_based_config(self, method, conf_rate):
         # type: (float, str) -> None
@@ -157,7 +157,7 @@ class Scenario(object):
         except NetworkTimeout or Exception:
             # In case of unexpected raise
             pass
-        for objid, bmp_item in self.bmp_items.items():
+        for objid, bmp_item in viewitems(self.bmp_items):
             bmp_item['_id'] = ObjectId()
             collection.insert_one(bmp_item)
         client.close()
@@ -174,16 +174,16 @@ class Scenario(object):
         with open(ofile, 'w', encoding='utf-8') as outfile:
             outfile.write('Scenario ID: %d\n' % self.ID)
             outfile.write('Gene number: %d\n' % self.gene_num)
-            outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+            outfile.write('Gene values: %s\n' % ', '.join((repr(v) for v in self.gene_values)))
             outfile.write('Scenario items:\n')
             if len(self.bmp_items) > 0:
                 header = list()
-                for obj, item in self.bmp_items.items():
+                for obj, item in viewitems(self.bmp_items):
                     header = list(item.keys())
                     break
                 outfile.write('\t'.join(header))
                 outfile.write('\n')
-                for obj, item in self.bmp_items.items():
+                for obj, item in viewitems(self.bmp_items):
                     outfile.write('\t'.join(str(v) for v in list(item.values())))
                     outfile.write('\n')
             outfile.write('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (self.economy,
@@ -222,6 +222,14 @@ class Scenario(object):
         """Calculate environment effectiveness, which is application specified."""
         pass
 
+    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False,
+              delete_spatial_gfs=False):
+        """Clean the intermediate data."""
+        # model clean
+        self.model.clean(scenario_id=scenario_id, calibration_id=calibration_id,
+                         delete_scenario=delete_scenario,
+                         delete_spatial_gfs=delete_spatial_gfs)
+
     def execute_seims_model(self):
         """Run SEIMS for evaluating environmental effectiveness.
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.
@@ -233,25 +241,14 @@ class Scenario(object):
         self.modelrun = True
         return self.model.run_success
 
-    def initialize(self):
-        # type: () -> List[int]
+    def initialize(self, input_genes=None):
+        # type: (Optional[List]) -> List
         """Initialize a scenario.
 
         Returns:
             A list contains BMPs identifier of each gene location.
         """
-        # Create configuration rate for each location randomly, 0.4 ~ 0.6
-        cr = random.randint(40, 60) / 100.
-        if self.rule_mtd == BMPS_CFG_METHODS[0]:
-            self.random_based_config(cr)
-        else:
-            self.rule_based_config(self.rule_mtd, cr)
-        if len(self.gene_values) == self.gene_num > 0:
-            return self.gene_values
-        else:
-            raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
-                               ' class, especially the overwritten rule_based_config and'
-                               ' random_based_config!')
+        pass
 
 
 if __name__ == '__main__':

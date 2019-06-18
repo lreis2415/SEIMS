@@ -12,6 +12,7 @@
     - 18-11-01  lj - Config class should not do extra operation, e.g., read database.
     - 18-11-06  lj - Add supports of other BMPs configuration units.
     - 18-12-04  lj - Add `updown_units` for `SAConnFieldConfig` and `SASlpPosConfig`
+    - 19-03-13  lj - Add boundary adaptive thresholds for slope position units
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -54,6 +55,7 @@ class SACommUnitConfig(SAConfig):
 
     Attributes:
         units_num(int): Spatial units number.
+        genes_num(int): Gene values number which is equal to units_num by default.
     """
 
     def __init__(self, cf):
@@ -61,13 +63,22 @@ class SACommUnitConfig(SAConfig):
         """Initialization."""
         SAConfig.__init__(self, cf)  # initialize base class first
         # 1. Check the required key and values
-        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO',
-                        'ENVEVAL', 'BASE_ENV', 'UNITJSON']
-        for k in requiredkeys:
-            if k not in self.bmps_info:
-                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info!' % k)
-        # 2. Slope position units information
-        units_json = self.bmps_info.get('UNITJSON')
+        requiredkeys = ['COLLECTION', 'DISTRIBUTION', 'SUBSCENARIO', 'UNITJSON']
+        self.bmpid = -1
+        units_json = ''
+        for cbmpid, cbmpdict in viewitems(self.bmps_info):
+            for k in requiredkeys:
+                if k not in cbmpdict:
+                    raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info!' % k)
+            # In current version, only one type of BMP and one type of spatial units are allowed
+            self.bmpid = cbmpid
+            units_json = cbmpdict.get('UNITJSON')
+            break
+        for k in ['ENVEVAL', 'BASE_ENV']:
+            if k not in self.eval_info:
+                raise ValueError('%s: MUST be provided in Eval_info!' % k)
+        self.orignal_dist = self.bmps_info[self.bmpid]['DISTRIBUTION']
+        # 2. Spatial units information
         unitsf = self.model.model_dir + os.sep + units_json
         if not FileClass.is_file_exists(unitsf):
             raise Exception('UNITJSON file %s is not existed!' % unitsf)
@@ -79,9 +90,10 @@ class SACommUnitConfig(SAConfig):
         if 'all_units' not in self.units_infos['overview']:
             raise ValueError('all_units MUST be existed in overview dict of UNITJSON.')
         self.units_num = self.units_infos['overview']['all_units']  # type: int
+        self.genes_num = self.units_num
         # 3. Collection name and subscenario IDs
-        self.bmps_coll = self.bmps_info.get('COLLECTION')  # type: str
-        self.bmps_subids = self.bmps_info.get('SUBSCENARIO')  # type: List[int]
+        self.bmps_coll = self.bmps_info[self.bmpid].get('COLLECTION')  # type: str
+        self.bmps_subids = self.bmps_info[self.bmpid].get('SUBSCENARIO')  # type: List[int]
         # 4. Construct the dict of gene index to unit ID, and unit ID to gene index
         self.unit_to_gene = OrderedDict()  # type: OrderedDict[int, int]
         self.gene_to_unit = dict()  # type: Dict[int, int]
@@ -149,20 +161,42 @@ class SASlpPosConfig(SACommUnitConfig):
         # 1. initialize base class
         SACommUnitConfig.__init__(self, cf)
         # 2. Check additional required key and values
-        requiredkeys = ['SLPPOS_TAG_NAME']
-        for k in requiredkeys:
-            if k not in self.bmps_info:
-                raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info '
-                                 'for SLPPOS method!' % k)
+        requiredkeys = ['SLPPOS_TAG_NAME', 'SLPPOS_GFS_NAME']
+        for cbmpid, cbmpdict in viewitems(self.bmps_info):
+            for k in requiredkeys:
+                if k not in cbmpdict:
+                    raise ValueError('%s: MUST be provided in BMPs_cfg_units or BMPs_info '
+                                     'for SLPPOS method!' % k)
         # 3. Get slope position sequence
-        self.slppos_tags = self.bmps_info.get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
+        self.slppos_tags = self.bmps_info[self.bmpid].get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
         self.slppos_tagnames = sorted(list(self.slppos_tags.items()),
                                       key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
+        self.slppos_gfs = self.bmps_info[self.bmpid].get('SLPPOS_GFS_NAME')  # type: Dict[int, AnyStr]
+        self.slppos_gfsnames = sorted(list(self.slppos_gfs.items()),
+                                      key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
+        self.slppos_tag_gfs = list()
+        for (itag, tag), (igfs, gfs) in zip(self.slppos_tagnames, self.slppos_gfsnames):
+            if itag != igfs:
+                raise ValueError('Keys provided in SLPPOS_TAG_NAME and SLPPOS_GFS_NAME'
+                                 'MUST be consistent!')
+            self.slppos_tag_gfs.append((itag, tag, gfs))
+        # 4. Boundary adaptive related
+        self.hillslp_num = len(self.units_infos[self.slppos_tagnames[0][1]])
+        self.slppos_types_num = len(self.slppos_tagnames)
+        self.thresh_num = 0
+        self.genes_num = self.units_num
+        self.hillslp_genes_num = self.slppos_types_num
+        if self.boundary_adaptive:
+            self.thresh_num = self.slppos_types_num - 1
+            self.genes_num = self.units_num + self.hillslp_num * self.thresh_num
+            self.hillslp_genes_num = self.slppos_types_num + self.thresh_num
 
     def construct_indexes_units_gene(self):
         """Override this function for slope position units."""
         # gene index: 0, 1, 2, ..., n
-        # slppos units: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
+        # Situation 1 - slppos units: rdg1, bks2, vly1,..., rdgn, bksn, vlyn
+        # Situation 2 - boundary adaptive:
+        #                 rdg1, bks2, vly1, upT1, downT1, ..., rdgn, bksn, vlyn, upTn, downTn
         idx = 0
         spname = self.slppos_tagnames[0][1]  # the top slope position name
         for uid, udict in viewitems(self.units_infos[spname]):
@@ -190,7 +224,8 @@ class SASlpPosConfig(SACommUnitConfig):
                 spname = self.slppos_tagnames[spidx][1]
                 uid = next_uid
                 next_uid = self.units_infos[spname][next_uid]['downslope']
-        assert (idx == self.units_num)
+            idx += self.thresh_num
+        assert (idx == self.units_num + self.thresh_num * self.hillslp_num)
         # Trace upslope and append their unit IDs
         for cuid in self.updown_units:
             self.updown_units[cuid]['all_upslope'] = trace_upslope_units(cuid, self.updown_units)[:]

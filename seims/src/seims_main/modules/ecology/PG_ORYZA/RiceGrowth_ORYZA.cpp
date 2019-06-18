@@ -7,7 +7,7 @@
 ORYZA::ORYZA() :
     m_nCells(-1), m_co2(NODATA_VALUE), m_meanTemp(nullptr), m_tMax(nullptr), m_tMin(nullptr), m_SR(nullptr),
     //rice related parameters,they are all read from DB, single
-    m_nSoilLayers(nullptr), m_soilLayers(-1), m_soilZMX(nullptr), m_soilALB(nullptr),
+    m_nSoilLyrs(nullptr), m_maxSoilLyrs(-1), m_soilZMX(nullptr), m_soilALB(nullptr),
     m_soilDepth(nullptr), m_soilThick(nullptr), m_soilAWC(nullptr), m_sol_sat(nullptr), m_soilWP(nullptr),
     m_totSoilAWC(nullptr), m_totSoilSat(nullptr), m_soilStorage(nullptr), m_soilWtrStoPrfl(nullptr),
     m_stoSoilRootD(nullptr),
@@ -160,30 +160,16 @@ void ORYZA::SetValue(const char* key, float value) {
         throw ModelException(MID_PG_ORYZA, "SetValue", "Parameter " + sk + " does not exist.");
 }
 
-bool ORYZA::CheckInputSize(const char* key, int n) {
-    if (n <= 0)
-        throw ModelException(MID_PG_ORYZA, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    if (m_nCells != n) {
-        if (m_nCells <= 0)
-            m_nCells = n;
-        else
-            throw ModelException(MID_PG_ORYZA, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-    }
-    return true;
-}
-
 void ORYZA::Set1DData(const char* key, int n, float* data) {
     string sk(key);
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PG_ORYZA, key, n, m_nCells);
     //// climate
     if (StringMatch(sk, DataType_MeanTemperature)) m_meanTemp = data;
     else if (StringMatch(sk, DataType_MinimumTemperature)) m_tMin = data;
     else if (StringMatch(sk, DataType_MaximumTemperature)) m_tMax = data;
     else if (StringMatch(sk, DataType_SolarRadiation)) m_SR = data;
         //// soil properties and water related
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLayers = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_SOL_ZMX)) m_soilZMX = data;
     else if (StringMatch(sk, VAR_SOL_ALB)) m_soilALB = data;
     else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
@@ -204,24 +190,9 @@ void ORYZA::Set1DData(const char* key, int n, float* data) {
         throw ModelException(MID_PG_ORYZA, "Set1DData", "Parameter " + sk + " does not exist.");
 }
 
-bool ORYZA::CheckInputSize2D(const char* key, int n, int col) {
-    CheckInputSize(key, n);
-    if (col <= 0)
-        throw ModelException(MID_PG_ORYZA, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    if (m_soilLayers != col) {
-        if (m_soilLayers <= 0)
-            m_soilLayers = col;
-        else
-            throw ModelException(MID_PG_ORYZA, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size.");
-    }
-    return true;
-}
-
-void ORYZA::Set2DData(const char* key, int nRows, int nCols, float** data) {
+void ORYZA::Set2DData(const char* key, int nrows, int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(key, nRows, nCols);
+    CheckInputSize2D(MID_PG_ORYZA, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThick = data;
     else if (StringMatch(sk, VAR_SOL_RSD)) m_soilRsd = data;
@@ -719,19 +690,19 @@ void ORYZA::CalPlantETAndWStress(int i) {
         float trrm = m_ppt[i] / (m_zrt[i] + 1.0e-10f);
         float trw = 0.f, lrav = 0.f, zll = 0.f, leav = 0.f, ldav = 0.f;
         float *fact(nullptr), *musc(nullptr), *mskpa(nullptr);
-        Initialize1DArray((int)m_nSoilLayers[i], fact, 0.f);
-        Initialize1DArray((int)m_nSoilLayers[i], musc, 0.f);
-        Initialize1DArray((int)m_nSoilLayers[i], mskpa, 0.f);
+        Initialize1DArray((int)m_nSoilLyrs[i], fact, 0.f);
+        Initialize1DArray((int)m_nSoilLyrs[i], musc, 0.f);
+        Initialize1DArray((int)m_nSoilLyrs[i], mskpa, 0.f);
         float trr;
 
-        for (int j = 0; j < CVT_INT(m_nSoilLayers[i]); j++) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             // Root length in each soil layer, the unit should be m
             float zrtl = Min(m_soilThick[i][j] / 1000.f, Max(m_zrt[i] - zll, 0.f));
 
 
             /// update total soil water in profile
             m_soilWtrStoPrfl[i] = 0.f;
-            for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
+            for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
                 m_soilWtrStoPrfl[i] += m_soilStorage[i][ly];
             }
             if (m_soilStorage[i][j] >= m_soilAWC[i][j]) {
@@ -780,7 +751,7 @@ void ORYZA::CalPlantETAndWStress(int i) {
         }
         /// update total soil water in profile
         m_soilWtrStoPrfl[i] = 0.f;
-        for (int ly = 0; ly < CVT_INT(m_nSoilLayers[i]); ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             m_soilWtrStoPrfl[i] += m_soilStorage[i][ly];
         }
         m_frStrsWtr[i] = trw / m_ppt[i];
@@ -837,7 +808,7 @@ void ORYZA::CalPlantNUptake(int i) {
     // Calculate nitrogen uptake
     // float n_reduc = 300.f; /// nitrogen uptake reduction factor (not currently used; defaulted 300.)
     float tnsoil = 0.f;
-    for (int k = 0; k < m_nSoilLayers[i]; k++) {
+    for (int k = 0; k < m_nSoilLyrs[i]; k++) {
         tnsoil += m_soilNO3[i][k];
     }
     // Available N uptake is mimimum of soil supply and maximum crop uptake
@@ -850,7 +821,7 @@ void ORYZA::CalPlantNUptake(int i) {
     m_plantUpTkN[i] = naLV + naST + naSO;
     if (m_plantUpTkN[i] < 0.f) m_plantUpTkN[i] = 0.f;
     m_pltN[i] += m_plantUpTkN[i];
-    for (int l = 0; l < CVT_INT(m_nSoilLayers[i]); l++) {
+    for (int l = 0; l < CVT_INT(m_nSoilLyrs[i]); l++) {
         float uno3l = Min(m_plantUpTkN[i], m_soilNO3[i][l]);
         m_soilNO3[i][l] -= uno3l;
     }
@@ -869,7 +840,7 @@ void ORYZA::CalPlantNUptake(int i) {
 
 int ORYZA::Execute() {
     CheckInputData();
-    initialOutputs();
+    InitialOutputs();
 
 #pragma omp parallel for
     for (int i = 0; i < m_nCells; i++) {
@@ -915,7 +886,7 @@ bool ORYZA::CheckInputData() {
     if (m_nCells <= 0)
         throw ModelException(MID_PG_ORYZA, "CheckInputData",
                              "The dimension of the input data can not be less than zero.");
-    if (m_soilLayers <= 0)
+    if (m_maxSoilLyrs <= 0)
         throw ModelException(MID_PG_ORYZA, "CheckInputData",
                              "The layer number of the input 2D raster data can not be less than zero.");
     if (FloatEqual(m_co2, NODATA_VALUE))
@@ -931,7 +902,7 @@ bool ORYZA::CheckInputData() {
     if (m_SR == nullptr)
         throw ModelException(MID_PG_ORYZA, "CheckInputData",
                              "The solar radiation data can not be NULL.");
-    if (m_nSoilLayers == nullptr)
+    if (m_nSoilLyrs == nullptr)
         throw ModelException(MID_PG_ORYZA, "CheckInputData", "The soil layers data can not be NULL.");
     if (m_soilZMX == nullptr)
         throw ModelException(MID_PG_ORYZA, "CheckInputData",
@@ -963,11 +934,11 @@ bool ORYZA::CheckInputData() {
     return true;
 }
 
-void ORYZA::initialOutputs() {
+void ORYZA::InitialOutputs() {
     if (m_alb == nullptr) Initialize1DArray(m_nCells, m_alb, 0.f);
     if (m_rsdCovSoil == nullptr || m_soilRsd == nullptr) {
         Initialize1DArray(m_nCells, m_rsdCovSoil, m_sol_rsdin);
-        Initialize2DArray(m_nCells, m_soilLayers, m_soilRsd, 0.f);
+        Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilRsd, 0.f);
 #pragma omp parallel for
         for (int i = 0; i < m_nCells; i++) {
             m_soilRsd[i][0] = m_rsdCovSoil[i];
@@ -1085,7 +1056,7 @@ void ORYZA::initialOutputs() {
 }
 
 void ORYZA::Get1DData(const char* key, int* n, float** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
     if (StringMatch(sk, VAR_LAST_SOILRD)) *data = m_stoSoilRootD;
@@ -1120,10 +1091,10 @@ void ORYZA::Get1DData(const char* key, int* n, float** data) {
 }
 
 void ORYZA::Get2DData(const char* key, int* n, int* col, float*** data) {
-    initialOutputs();
+    InitialOutputs();
     string sk(key);
     *n = m_nCells;
-    *col = m_soilLayers;
+    *col = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_RSD)) *data = m_soilRsd;
     else {
         throw ModelException(MID_PG_ORYZA, "Get2DData", "Result " + sk + " does not exist.");

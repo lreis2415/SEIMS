@@ -90,7 +90,6 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
     int n_xsize = rs->GetCols();
     // int nYSize = rs.getRows();
     float nodata_value = rs->GetNoDataValue();
-    const char* srs = rs->GetSrs();
     //cout << nXSize << "\t" << nYSize << endl;
     float* rs_data = rs->GetRasterDataPointer();
     int* subbasin_data = rs_subbasin->GetRasterDataPointer();
@@ -141,7 +140,7 @@ bool DecompositeRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_subb
         BSON_APPEND_DOUBLE(&p, "YLLCENTER", rs->GetYllCenter() + (rs->GetRows() - subbasin.y_max - 1) * cell_size);
         BSON_APPEND_DOUBLE(&p, "LAYERS", rs->GetLayers());
         BSON_APPEND_DOUBLE(&p, "CELLSNUM", subbasin.cell_count);
-        BSON_APPEND_UTF8(&p, "SRS", srs);
+        BSON_APPEND_UTF8(&p, "SRS", rs->GetSrsString().c_str());
 
         char* databuf = reinterpret_cast<char *>(sub_data);
         size_t datalength = sizeof(float) * sub_xsize * sub_ysize;
@@ -180,7 +179,6 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
     int n_xsize = rss->GetCols();
     // int nYSize = rss.getRows();
     float nodata_value = rss->GetNoDataValue();
-    const char* srs = rss->GetSrs();
     ///cout << nXSize << "\t" << nYSize << endl;
     float** rss_data = rss->Get2DRasterDataPointer();
     int* subbasin_data = rs_subbasin->GetRasterDataPointer();
@@ -226,7 +224,7 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
         BSON_APPEND_DOUBLE(&p, "YLLCENTER", rss->GetYllCenter() + (rss->GetRows() - subbasin.y_max - 1) * cell_size);
         BSON_APPEND_DOUBLE(&p, "LAYERS", rss->GetLayers());
         BSON_APPEND_DOUBLE(&p, "CELLSNUM", subbasin.cell_count);
-        BSON_APPEND_UTF8(&p, "SRS", srs);
+        BSON_APPEND_UTF8(&p, "SRS", rss->GetSrsString().c_str());
 
         char* databuf = reinterpret_cast<char *>(sub_2ddata);
         size_t datalength = sizeof(float) * sub_cell_num * col_num;
@@ -240,7 +238,6 @@ bool Decomposite2DRasterToMongoDB(map<int, SubBasin>& bbox_map, IntRaster* rs_su
         databuf = nullptr;
         Release1DArray(sub_2ddata);
     }
-    srs = nullptr;
     rss_data = nullptr;
     subbasin_data = nullptr;
     delete rss;

@@ -1,4 +1,4 @@
-#include "DepressionFSDaily.h"
+#include "DepressionLinsley.h"
 
 #include "text.h"
 
@@ -92,21 +92,6 @@ int DepressionFSDaily::Execute() {
     return true;
 }
 
-bool DepressionFSDaily::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        return false;
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_DEP_LINSLEY, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
-    return true;
-}
-
 void DepressionFSDaily::SetValue(const char* key, const float value) {
     string sk(key);
     if (StringMatch(sk, VAR_DEPREIN)) m_depCo = value;
@@ -116,7 +101,7 @@ void DepressionFSDaily::SetValue(const char* key, const float value) {
 }
 
 void DepressionFSDaily::Set1DData(const char* key, const int n, float* data) {
-    CheckInputSize(key, n);
+    CheckInputSize(MID_DEP_LINSLEY, key, n, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_DEPRESSION)) {
         m_depCap = data;

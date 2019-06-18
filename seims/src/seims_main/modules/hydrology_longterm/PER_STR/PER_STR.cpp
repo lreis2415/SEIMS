@@ -3,7 +3,7 @@
 #include "text.h"
 
 PER_STR::PER_STR() :
-    m_nSoilLayers(-1), m_soilLyrs(nullptr), m_soilThk(nullptr), m_dt(-1),
+    m_maxSoilLyrs(-1), m_nSoilLyrs(nullptr), m_soilThk(nullptr), m_dt(-1),
     m_nCells(-1), m_soilFrozenTemp(NODATA_VALUE), m_ks(nullptr),
     m_soilSat(nullptr), m_soilFC(nullptr),
     m_soilWtrSto(nullptr), m_soilWtrStoPrfl(nullptr), m_soilTemp(nullptr), m_infil(nullptr),
@@ -17,7 +17,7 @@ PER_STR::~PER_STR() {
 
 void PER_STR::InitialOutputs() {
     CHECK_POSITIVE(MID_PER_STR, m_nCells);
-    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_nSoilLayers, m_soilPerco, 0.f);
+    if (nullptr == m_soilPerco) Initialize2DArray(m_nCells, m_maxSoilLyrs, m_soilPerco, 0.f);
 }
 
 int PER_STR::Execute() {
@@ -28,7 +28,7 @@ int PER_STR::Execute() {
         // Note that, infiltration, pothole seepage, irrigation etc. have been added to
         // the first soil layer in other modules. By LJ
         float excessWater = 0.f, maxSoilWater = 0.f, fcSoilWater = 0.f;
-        for (int j = 0; j < CVT_INT(m_soilLyrs[i]); j++) {
+        for (int j = 0; j < CVT_INT(m_nSoilLyrs[i]); j++) {
             excessWater = 0.f;
             maxSoilWater = m_soilSat[i][j];
             fcSoilWater = m_soilFC[i][j];
@@ -57,7 +57,7 @@ int PER_STR::Execute() {
                 m_soilWtrSto[i][j] = Max(UTIL_ZERO, m_soilWtrSto[i][j]);
                 // redistribute soil water if above field capacity (high water table), rewrite from sat_excess.f of SWAT
                 //float qlyr = m_soilStorage[i][j];
-                if (j < CVT_INT(m_soilLyrs[i]) - 1) {
+                if (j < CVT_INT(m_nSoilLyrs[i]) - 1) {
                     m_soilWtrSto[i][j + 1] += m_soilPerco[i][j];
                     if (m_soilWtrSto[i][j] - m_soilSat[i][j] > 1.e-4f) {
                         m_soilWtrSto[i][j + 1] += m_soilWtrSto[i][j] - m_soilSat[i][j];
@@ -68,7 +68,7 @@ int PER_STR::Execute() {
                     if (m_soilWtrSto[i][j] - m_soilSat[i][j] > 1.e-4f) {
                         float ul_excess = m_soilWtrSto[i][j] - m_soilSat[i][j];
                         m_soilWtrSto[i][j] = m_soilSat[i][j];
-                        for (int ly = CVT_INT(m_soilLyrs[i]) - 2; ly >= 0; ly--) {
+                        for (int ly = CVT_INT(m_nSoilLyrs[i]) - 2; ly >= 0; ly--) {
                             m_soilWtrSto[i][ly] += ul_excess;
                             if (m_soilWtrSto[i][ly] > m_soilSat[i][ly]) {
                                 ul_excess = m_soilWtrSto[i][ly] - m_soilSat[i][ly];
@@ -95,7 +95,7 @@ int PER_STR::Execute() {
         }
         /// update soil profile water
         m_soilWtrStoPrfl[i] = 0.f;
-        for (int ly = 0; ly < CVT_INT(m_soilLyrs[i]); ly++) {
+        for (int ly = 0; ly < CVT_INT(m_nSoilLyrs[i]); ly++) {
             m_soilWtrStoPrfl[i] += m_soilWtrSto[i][ly];
         }
     }
@@ -108,23 +108,23 @@ int PER_STR::Execute() {
     return 0;
 }
 
-void PER_STR::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void PER_STR::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    *nRows = m_nCells;
-    *nCols = m_nSoilLayers;
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_PERCO)) *data = m_soilPerco;
     else {
         throw ModelException(MID_PER_STR, "Get2DData", "Output " + sk + " does not exist.");
     }
 }
 
-void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
-    CheckInputSize(key, nRows);
+void PER_STR::Set1DData(const char* key, const int nrows, float* data) {
+    CheckInputSize(MID_PER_STR, key, nrows, m_nCells);
     string sk(key);
     if (StringMatch(sk, VAR_SOTE)) m_soilTemp = data;
     else if (StringMatch(sk, VAR_INFIL)) m_infil = data;
-    else if (StringMatch(sk, VAR_SOILLAYERS)) m_soilLyrs = data;
+    else if (StringMatch(sk, VAR_SOILLAYERS)) m_nSoilLyrs = data;
     else if (StringMatch(sk, VAR_SOL_SW)) m_soilWtrStoPrfl = data;
     else if (StringMatch(sk, VAR_POT_VOL)) m_potVol = data;
     else if (StringMatch(sk, VAR_SURU)) m_surfRf = data;
@@ -135,9 +135,8 @@ void PER_STR::Set1DData(const char* key, const int nRows, float* data) {
 }
 
 void PER_STR::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
-    CheckInputSize(key, nrows);
+    CheckInputSize2D(MID_PER_STR, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     string sk(key);
-    m_nSoilLayers = ncols;
     if (StringMatch(sk, VAR_CONDUCT)) m_ks = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_UL)) m_soilSat = data;
@@ -171,21 +170,5 @@ bool PER_STR::CheckInputData() {
     CHECK_POINTER(MID_PER_STR, m_soilThk);
     CHECK_POINTER(MID_PER_STR, m_soilTemp);
     CHECK_POINTER(MID_PER_STR, m_infil);
-    return true;
-}
-
-bool PER_STR::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PER_STR, "CheckInputSize",
-                             "Input data for " + string(key) + " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PER_STR, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input data should have same size.");
-        }
-    }
     return true;
 }

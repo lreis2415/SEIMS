@@ -92,25 +92,9 @@ void Biomass_EPIC::SetValue(const char* key, const float value) {
     }
 }
 
-bool Biomass_EPIC::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) {
-        throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
-                             " is invalid. The size could not be less than zero.");
-    }
-    if (m_nCells != n) {
-        if (m_nCells <= 0) {
-            m_nCells = n;
-        } else {
-            throw ModelException(MID_PG_EPIC, "CheckInputSize", "Input data for " + string(key) +
-                                 " is invalid. All the input raster data should have same size.");
-        }
-    }
-    return true;
-}
-
 void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    CheckInputSize(key, n);
+    CheckInputSize(MID_PG_EPIC, key, n, m_nCells);
     //// climate
     if (StringMatch(sk, VAR_TMEAN)) m_meanTemp = data;
     else if (StringMatch(sk, VAR_TMIN)) m_minTemp = data;
@@ -173,26 +157,9 @@ void Biomass_EPIC::Set1DData(const char* key, const int n, float* data) {
     }
 }
 
-bool Biomass_EPIC::CheckInputSize2D(const char* key, const int n, const int col) {
-    CheckInputSize(key, n);
-    if (col <= 0) {
-        throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
-                             " is invalid. The layer number could not be less than zero.");
-    }
-    if (m_maxSoilLyrs != col) {
-        if (m_maxSoilLyrs <= 0) {
-            m_maxSoilLyrs = col;
-        } else {
-            throw ModelException(MID_PG_EPIC, "CheckInputSize2D", "Input data for " + string(key) +
-                                 " is invalid. All the layers of input 2D raster data should have same size.");
-        }
-    }
-    return true;
-}
-
-void Biomass_EPIC::Set2DData(const char* key, const int nRows, const int nCols, float** data) {
+void Biomass_EPIC::Set2DData(const char* key, const int nrows, const int ncols, float** data) {
     string sk(key);
-    CheckInputSize2D(key, nRows, nCols);
+    CheckInputSize2D(MID_PG_EPIC, key, nrows, ncols, m_nCells, m_maxSoilLyrs);
     if (StringMatch(sk, VAR_SOILDEPTH)) m_soilDepth = data;
     else if (StringMatch(sk, VAR_SOILTHICK)) m_soilThk = data;
     else if (StringMatch(sk, VAR_SOL_RSD)) m_soilRsd = data;
@@ -886,11 +853,11 @@ void Biomass_EPIC::Get1DData(const char* key, int* n, float** data) {
     }
 }
 
-void Biomass_EPIC::Get2DData(const char* key, int* nRows, int* nCols, float*** data) {
+void Biomass_EPIC::Get2DData(const char* key, int* nrows, int* ncols, float*** data) {
     InitialOutputs();
     string sk(key);
-    *nRows = m_nCells;
-    *nCols = m_maxSoilLyrs;
+    *nrows = m_nCells;
+    *ncols = m_maxSoilLyrs;
     if (StringMatch(sk, VAR_SOL_RSD)) *data = m_soilRsd;
     else {
         throw ModelException(MID_PG_EPIC, "Get2DData", "Result " + sk + " does not exist.");

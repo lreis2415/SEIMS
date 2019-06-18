@@ -45,23 +45,21 @@ public:
 
     void Set1DData(const char* key, int n, float* data) OVERRIDE;
 
-    void Set2DData(const char* key, int nRows, int nCols, float** data) OVERRIDE;
+    void Set2DData(const char* key, int nrows, int ncols, float** data) OVERRIDE;
 
     void SetSubbasins(clsSubbasins*) OVERRIDE;
+
+    bool CheckInputData() OVERRIDE;
+
+    void InitialOutputs() OVERRIDE;
 
     int Execute() OVERRIDE;
 
     void Get1DData(const char* key, int* n, float** data) OVERRIDE;
 
-    void Get2DData(const char* key, int* nRows, int* nCols, float*** data) OVERRIDE;
+    void Get2DData(const char* key, int* nrows, int* ncols, float*** data) OVERRIDE;
 
 private:
-    /*!
-    * \brief check the input data. Make sure all the input data is available.
-    * \return bool The validity of the input data.
-    */
-    bool CheckInputData();
-
     /*!
     * \brief check the input data for running CENTURY model. Make sure all the inputs data is available.
     * \return bool The validity of the inputs data.
@@ -73,15 +71,6 @@ private:
     * \return bool The validity of the inputs data.
     */
     bool CheckInputDataCFarmModel();
-
-    /*!
-    * \brief check the input size. Make sure all the input data have same dimension.
-    *
-    * \param[in] key The key of the input data
-    * \param[in] n The input data dimension
-    * \return bool The validity of the dimension
-    */
-    bool CheckInputSize(const char* key, int n);
 
     /*!
     * \brief calculates the amount of organic nitrogen removed in surface runoff.
@@ -112,8 +101,6 @@ private:
     */
     void OrgPAttachedtoSed(int i);
 
-    /// initial outputs
-    void InitialOutputs();
 private:
     /// subbasins number
     int m_nSubbsns;

@@ -1,5 +1,5 @@
-#include "seims.h"
 #include "DepressionFS.h"
+#include "text.h"
 
 DepressionFS::DepressionFS(void) : m_nCells(-1),
                                    m_depCo(NODATA_VALUE), m_depCap(NULL), m_pet(NULL), m_ei(NULL),

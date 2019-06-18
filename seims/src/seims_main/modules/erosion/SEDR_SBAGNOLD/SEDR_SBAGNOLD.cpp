@@ -209,21 +209,6 @@ int SEDR_SBAGNOLD::Execute() {
     return 0;
 }
 
-bool SEDR_SBAGNOLD::CheckInputSize(const char* key, const int n) {
-    if (n <= 0) return false;
-    if (m_nreach != n - 1) {
-        if (m_nreach <= 0) {
-            m_nreach = n - 1;
-        } else {
-            std::ostringstream oss;
-            oss << "Input data for " + string(key) << " is invalid with size: " << n <<
-                    ". The origin size is " << m_nreach + 1 << ".\n";
-            throw ModelException(MID_SEDR_SBAGNOLD, "CheckInputSize", oss.str());
-        }
-    }
-    return true;
-}
-
 void SEDR_SBAGNOLD::GetValue(const char* key, float* value) {
     InitialOutputs();
     string sk(key);
@@ -280,7 +265,7 @@ void SEDR_SBAGNOLD::SetValueByIndex(const char* key, const int index, const floa
 
 void SEDR_SBAGNOLD::Set1DData(const char* key, const int n, float* data) {
     string sk(key);
-    CheckInputSize(key, n);
+    CheckInputSize(MID_SEDR_SBAGNOLD, key, n - 1, m_nreach);
     if (StringMatch(sk, VAR_SED_TO_CH)) m_sedtoCh = data; // for longterm model
     else if (StringMatch(sk, VAR_SAND_TO_CH)) m_sandtoCh = data;
     else if (StringMatch(sk, VAR_SILT_TO_CH)) m_silttoCh = data;

@@ -1,6 +1,8 @@
-#include "InterFlow_IKW.h"
-
 #include "api.h"
+
+#include "InterFlow_IKW.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new InterFlow_IKW();
@@ -8,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
     // set the information properties
     mdi.SetAuthor("Junzhi Liu");
@@ -47,7 +48,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput(VAR_QSOIL, UNIT_FLOW_CMS, DESC_QSOIL, DT_Raster1D);
     mdi.AddOutput(VAR_RETURNFLOW, UNIT_DEPTH_MM, DESC_RETURNFLOW, DT_Raster1D);
 
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

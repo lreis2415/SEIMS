@@ -27,12 +27,11 @@ extern "C" SEIMS_MODULE_API const char* MetadataInformation() {
     mdi.AddParameter(Tag_VerticalInterpolation, UNIT_NON_DIM, DESC_VER_ITP, File_Config, DT_Single);
     // these three parameters are just read when it will do vertical interpolation
     //  from spatial database
-    mdi.AddParameter(VAR_DEM, UNIT_LEN_M, DESC_DEM, Source_ParameterDB, DT_Raster1D);
+    mdi.AddParameter(VAR_DEM, UNIT_LEN_M, DESC_DEM, Source_ParameterDB_Optional, DT_Raster1D);
     /// from stations table
-    mdi.AddParameter(Tag_StationElevation, UNIT_LEN_M, Tag_StationElevation, Source_HydroClimateDB, DT_Array1D);
-    // Lapse_rate is the combined lapse rate table name in HydroClimate database.
-    // TODO, currently, LapseRate is defined in ModuleFactory.cpp and not imported into MongoDB. By LJ
-    //mdi.AddParameter(Tag_LapseRate, UNIT_LAP_RATE, Tag_LapseRate, Source_HydroClimateDB, DT_Array2D);
+    mdi.AddParameter(Tag_StationElevation, UNIT_LEN_M, Tag_StationElevation, Source_HydroClimateDB_Optional, DT_Array1D);
+    // TODO, Lapse_rate should be prepared by users according to the study area and imported into HydroClimate database.
+    mdi.AddParameter(Tag_LapseRate, UNIT_LAP_RATE, Tag_LapseRate, Source_HydroClimateDB_Optional, DT_Array2D);
 
     // This is the climate data of all sites.
     // T means time series and it is same with first part of output id, e.g T_P. It may be P,PET,TMean, TMin or TMax data.
