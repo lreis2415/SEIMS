@@ -1,6 +1,5 @@
-#include "seims.h"
 #include "SNO_WB.h"
-
+#include "text.h"
 
 SNO_WB::SNO_WB(void) {
     // set default values for member variables

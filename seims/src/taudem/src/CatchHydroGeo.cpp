@@ -50,6 +50,8 @@ email:  dtarb@usu.edu
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 
 using std::unordered_map;
+using std::fabs;
+using std::sqrt;
 
 int readline(FILE *fp, char *fline)
 {

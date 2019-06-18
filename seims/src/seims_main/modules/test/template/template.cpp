@@ -1,4 +1,5 @@
 #include "template.h"
+#include "text.h"
 
 ModuleTemplate::ModuleTemplate() :
     m_nCells(-1) {

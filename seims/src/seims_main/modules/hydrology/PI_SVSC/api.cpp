@@ -1,6 +1,8 @@
-#include "Interception_SVSC.h"
-
 #include "api.h"
+
+#include "Interception_SVSC.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new clsPI_SVSC();

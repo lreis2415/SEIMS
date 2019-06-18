@@ -411,6 +411,8 @@ def read_pareto_points_from_txt(txt_file, sce_name, headers, labels=None):
             if LF in line:
                 str_line = line.split(LF)[0]
                 break
+        if str_line == '':
+            continue
         values = StringClass.extract_numeric_values_from_string(str_line)
         # Check generation
         if str_line[0] == '#' and 'Generation' in str_line:
@@ -472,6 +474,8 @@ def read_pareto_popsize_from_txt(txt_file, sce_name='scenario'):
             if LF in line:
                 str_line = line.split(LF)[0]
                 break
+        if str_line == '':
+            continue
         values = StringClass.extract_numeric_values_from_string(str_line)
         # Check generation
         if str_line[0] == '#' and 'Generation' in str_line:
@@ -842,3 +846,61 @@ def plot_hypervolumes(hyperv,  # type: Dict[AnyStr, Optional[int, float, List[Li
     plt.close()
 
     return True
+
+
+def read_pareto_solutions_from_txt(txt_file, sce_name='scenario', field_name='gene_values'):
+    # type: (AnyStr, AnyStr, AnyStr) -> (Dict[int, List[List[float]]])
+    """Read Pareto points from `runtime.log` file.
+
+    Args:
+        txt_file: Full file path of `runtime.log` output by NSGA2 algorithm.
+        sce_name: Field name followed by `generation`, e.g., 'calibrationID', 'scenario', etc.
+        field_name: Filed name in header for gene values, 'gene_values' by default
+
+    Returns:
+        pareto_solutions: `OrderedDict`, key is generation ID, value is arrays of Pareto solutions
+    """
+    with open(txt_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    pareto_solutions = OrderedDict()
+    found = False
+    cur_gen = -1
+    field_idx = -1
+
+    for lno, line in enumerate(lines):
+        str_line = line
+        for LF in LFs:
+            if LF in line:
+                str_line = line.split(LF)[0]
+                break
+        if str_line == '':
+            continue
+        values = StringClass.extract_numeric_values_from_string(str_line)
+        # Check generation
+        if str_line[0] == '#' and 'Generation' in str_line:
+            if len(values) != 1:
+                continue
+            # e.g., ###### Generation: 23 ######
+            gen = int(values[0])
+            found = True
+            cur_gen = gen
+            pareto_solutions[cur_gen] = list()
+            continue
+        if not found:  # If the first "###### Generation: 1 ######" has not been found.
+            continue
+        line_list = StringClass.split_string(str_line.upper(), ['\t'])
+        if values is None:  # means header line
+            if field_idx >= 0:
+                continue
+            for idx, v in enumerate(line_list):
+                if field_name.upper() in v.upper():
+                    field_idx = idx
+                    break
+            continue
+        if field_idx < 0:
+            continue
+        # now append the real Pareto solutions data
+        tmpvalues = StringClass.extract_numeric_values_from_string(line_list[field_idx])
+        pareto_solutions[cur_gen].append(tmpvalues[:])
+
+    return pareto_solutions

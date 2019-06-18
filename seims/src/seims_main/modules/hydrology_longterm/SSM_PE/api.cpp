@@ -1,6 +1,8 @@
-#include "SSM_PE.h"
-
 #include "api.h"
+
+#include "SSM_PE.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SSM_PE();

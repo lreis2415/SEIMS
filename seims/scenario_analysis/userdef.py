@@ -15,6 +15,13 @@ from __future__ import absolute_import, unicode_literals
 
 # Initial tool functions supplemented to DEAP.tools
 
+def initRepeatWithCfgFromList(container, func, cf, inlist):
+    return container(func(cf, l) for l in inlist)
+
+
+def initIterateWithCfgWithInput(container, generator, cf, input_genes):
+    return container(generator(cf, input_genes))
+
 
 def initRepeatWithCfg(container, func, cf, n=2):
     """Call the function `container` with a generator function corresponding

@@ -1,5 +1,5 @@
-#include "seims.h"
 #include "KinWavSed_CH.h"
+#include "text.h"
 
 using namespace std;
 
@@ -51,7 +51,7 @@ KinWavSed_CH::~KinWavSed_CH() {
 void KinWavSed_CH::SetValue(const char *key, float data) {
     string s(key);
     if (StringMatch(s, Tag_CellWidth)) { m_CellWith = data; }
-    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(value); }
+    else if (StringMatch(s, Tag_CellSize)) { m_nCells = int(data); }
     else if (StringMatch(s, Tag_HillSlopeTimeStep)) { m_TimeStep = data; }
     else if (StringMatch(s, VAR_CH_TCCO)) { m_ChTcCo = data; }
     else if (StringMatch(s, VAR_CH_DETCO)) { m_ChDetCo = data; }
@@ -61,20 +61,20 @@ void KinWavSed_CH::SetValue(const char *key, float data) {
     }
 }
 
-void KinWavSed_CH::GetValue(const char *key, float *value) {
-    string sk(key);
-    if (StringMatch(sk, VAR_SED_OUTLET)) {
-        auto it = m_reachLayers.end();
-        it--;
-        int reachId = it->second[0];
-        int iLastCell = (int) m_reachs[reachId].size() - 1;
-        *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
-        //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
-    } else {
-        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk +
-                             " does not exist in the current module. Please contact the module developer.");
-    }
-}
+//void KinWavSed_CH::GetValue(const char *key, float *value) {
+//    string sk(key);
+//    if (StringMatch(sk, VAR_SED_OUTLET)) {
+//        auto it = m_reachLayers.end();
+//        it--;
+//        int reachId = it->second[0];
+//        int iLastCell = (int) m_reachs[reachId].size() - 1;
+//        *value = m_Qsn[reachId][iLastCell];                  ///1000;    //kg -> ton
+//        //*value = m_CHSedConc[reachId][iLastCell];  //kg/m3
+//    } else {
+//        throw ModelException(MID_KINWAVSED_CH, "GetValue", "Output " + sk +
+//                             " does not exist in the current module. Please contact the module developer.");
+//    }
+//}
 
 void KinWavSed_CH::Set1DData(const char *key, int nRows, float *data) {
     string s(key);

@@ -1,12 +1,8 @@
-#include <stdio.h>
-#include <string>
 #include "api.h"
-#include "utilities.h"
+
 #include "UnsaturatedFlow.h"
-#include <iostream>
-#include "SimulationModule.h"
+#include "text.h"
 #include "MetadataInfo.h"
-#include "MetadataInfoConst.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new UnsaturatedFlow();
@@ -14,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res;
     MetadataInfo mdi;
 
     // set the information properties
@@ -58,7 +53,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput("SOET", "mm", "Distribution of soil evapotranspiration for a user defined period.", DT_Raster1D);
 
     // write out the XML file.
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

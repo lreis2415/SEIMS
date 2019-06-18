@@ -23,7 +23,7 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 from typing import Union, Optional, Dict, List, AnyStr
-from pygeoc.utils import UtilClass
+from pygeoc.utils import UtilClass, StringClass
 from run_seims import ParseSEIMSConfig
 from utility import get_optimization_config, parse_datetime_from_ini
 from utility import ParseNSGA2Config, PlotConfig
@@ -106,6 +106,20 @@ class SAConfig(object):
                              'is not supported on unit %s' % (self.bmps_cfg_method,
                                                               self.bmps_cfg_unit))
 
+        # Optimize boundary of BMP configuration unit
+        self.boundary_adaptive = False
+        self.boundary_adaptive_threshs = None
+        if cf.has_option('BMPs', 'bmps_cfg_units_opt'):
+            self.boundary_adaptive = cf.getboolean('BMPs', 'bmps_cfg_units_opt')
+        if cf.has_option('BMPs', 'boundary_adaptive_threshold'):
+            tstr = cf.get('BMPs', 'boundary_adaptive_threshold')
+            self.boundary_adaptive_threshs = StringClass.extract_numeric_values_from_string(tstr)
+            if 0 not in self.boundary_adaptive_threshs:
+                self.boundary_adaptive_threshs.append(0)  # 0 means no adjustment of boundary
+            for tmp_thresh in self.boundary_adaptive_threshs:
+                if -1 * tmp_thresh not in self.boundary_adaptive_threshs:
+                    self.boundary_adaptive_threshs.append(-1 * tmp_thresh)
+
         # 4. Parameters settings for specific optimization algorithm
         self.opt_mtd = method
         self.opt = None  # type: Union[ParseNSGA2Config]
@@ -113,6 +127,16 @@ class SAConfig(object):
             self.opt = ParseNSGA2Config(cf, self.model.model_dir,
                                         'SA_NSGA2_%s_%s' % (self.bmps_cfg_unit,
                                                             self.bmps_cfg_method))
+        # Using the existed population derived from previous scenario optimization
+        self.initial_byinput = cf.getboolean(self.opt_mtd.upper(), 'inputpopulation') if \
+            cf.has_option(self.opt_mtd.upper(), 'inputpopulation') else False
+        self.input_pareto_file = None
+        self.input_pareto_gen = -1
+        if cf.has_option(self.opt_mtd.upper(), 'paretofrontsfile'):
+            self.input_pareto_file = cf.get(self.opt_mtd.upper(), 'paretofrontsfile')
+        if cf.has_option(self.opt_mtd.upper(), 'generationselected'):
+            self.input_pareto_gen = cf.getint(self.opt_mtd.upper(), 'generationselected')
+
         self.scenario_dir = self.opt.out_dir + os.path.sep + 'Scenarios'
         UtilClass.rmmkdir(self.scenario_dir)
 

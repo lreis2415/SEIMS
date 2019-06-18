@@ -1,4 +1,4 @@
-#include "DepressionFSDaily.h"
+#include "DepressionLinsley.h"
 
 #include "text.h"
 

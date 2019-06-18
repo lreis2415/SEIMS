@@ -1,5 +1,6 @@
-#include "seims.h"
 #include "DiffusiveWave.h"
+
+#include "text.h"
 
 using namespace std;
 
@@ -317,20 +318,20 @@ bool DiffusiveWave::CheckInputSizeChannel(const char *key, int n) {
     return true;
 }
 
-//! Get value of Qoutlet
-void DiffusiveWave::GetValue(const char *key, float *value) {
-    string sk(key);
-    if (StringMatch(sk, VAR_QOUTLET)) {
-        auto it = m_reachLayers.end();
-        it--;
-        int reachId = it->second[0];
-        int iLastCell = m_reachs[reachId].size() - 1;
-        *value = m_qCh[reachId][iLastCell];
-        //*value = m_hToChannel[m_idOutlet];
-        //*value = m_qs[m_idOutlet];
-        //*value = m_qs[m_idOutlet] + m_qCh[reachId][iLastCell];
-    }
-}
+//! Get value of Qoutlet. Deprecated. The Metadata function may need to be updated!
+//void DiffusiveWave::GetValue(const char *key, float *value) {
+//    string sk(key);
+//    if (StringMatch(sk, VAR_QOUTLET)) {
+//        auto it = m_reachLayers.end();
+//        it--;
+//        int reachId = it->second[0];
+//        int iLastCell = m_reachs[reachId].size() - 1;
+//        *value = m_qCh[reachId][iLastCell];
+//        //*value = m_hToChannel[m_idOutlet];
+//        //*value = m_qs[m_idOutlet];
+//        //*value = m_qs[m_idOutlet] + m_qCh[reachId][iLastCell];
+//    }
+//}
 
 //! Set value
 void DiffusiveWave::SetValue(const char *key, float data) {

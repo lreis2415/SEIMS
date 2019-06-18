@@ -1,4 +1,4 @@
-/** 
+/**
 *	@file
 *	@version	1.0
 *	@author    Wu Hui
@@ -6,7 +6,7 @@
 *
 *	@brief	SCS Curve Number Method to calculate infiltration and excess precipitation
 *
-*	Revision: Zhiqiang Yu	
+*	Revision: Zhiqiang Yu
 *   Date:     2011-2-14
 *   1. Because w1 and w2 in equation 2:1.1.6 is fixed, add two variable to store these
 *      two coefficients to avoid repeating calculation.
@@ -15,8 +15,8 @@
 *	   And the unit conversion of rootdepth would be from m to mm.
 *   3. Overload the function Calculate_CN to calculate the CN of one cell.
 *   4. Delete some parameters and input variables. They are Depre_in,Moist_in and Depression.
-*      D_SOMO from soil water balance module and D_DPST from depression module is enough. The 
-*      initialization of soil moisture and depression storage is the task of soil water balance 
+*      D_SOMO from soil water balance module and D_DPST from depression module is enough. The
+*      initialization of soil moisture and depression storage is the task of soil water balance
 *	   module and depression module.
 *	5. Modify the name of input and output variables to make it consistent with other modules.
 *
@@ -24,8 +24,8 @@
 *	1. Add the support of dynamic multi-layers soil, rather than the fixed 2 layers in previous version.
 *   2.The unit of soil depth and root depth (from crop.dat) are both mm.
 */
-
-#pragma once
+#ifndef SEIMS_SUR_CN_H
+#define SEIMS_SUR_CN_H
 
 #include "SimulationModule.h"
 
@@ -42,7 +42,7 @@ using namespace std;
  * \class SUR_CN
  * \ingroup SUR_CN
  * \brief SCS Curve Number Method to calculate infiltration and excess precipitation
- * 
+ *
  */
 class SUR_CN : public SimulationModule {
 public:
@@ -141,5 +141,6 @@ private:
     float Calculate_CN(float sm, int cell);
 
     /// initial outputs before execute main function
-    void initialOutputs(void);
+    void InitialOutputs(void);
 };
+#endif /* SEIMS_SUR_CN_H */

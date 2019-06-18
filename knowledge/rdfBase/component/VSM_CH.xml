@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="VSM_CH">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <rdf:li>SBOF</rdf:li>
+        <rdf:li>SBIF</rdf:li>
+        <rdf:li>SBQG</rdf:li>
+        <rdf:li>SBPET</rdf:li>
+        <rdf:li>SBGS</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>QRECH</rdf:li>
+        <rdf:li>QS</rdf:li>
+        <rdf:li>QI</rdf:li>
+        <rdf:li>QG</rdf:li>
+        <rdf:li>CHST</rdf:li>
+        <rdf:li>BKST</rdf:li>
+        <rdf:li>SEEPAGE</rdf:li>
+        <rdf:li>C_WABA</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+    <hydro:algorithm>Channel Flow-Variable storage method</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>

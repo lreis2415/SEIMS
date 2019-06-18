@@ -22,7 +22,7 @@ matrix:
   #   - DETAILS="libtool"
   #   - ENABLE_CXX11=1
   - os: linux
-    dist: trusty
+    dist: xenial
     compiler: gcc
     language: cpp
     sudo: required
@@ -37,7 +37,7 @@ matrix:
           packages:
             - doxygen
     env:
-    - BUILD_NAME=linux_gcc48
+    - BUILD_NAME=linux_gcc
     - DETAILS=""
     - ENABLE_CXX11=1
 before_install:

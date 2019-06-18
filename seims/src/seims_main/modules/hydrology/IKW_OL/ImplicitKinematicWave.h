@@ -1,9 +1,11 @@
 /*!
  * \brief Routing in the overland cells using 1D kinematic wave method in LISEM model
  * \author Junzhi Liu
- * \date Feb. 2011 
+ * \date Feb. 2011
  */
-#pragma once
+#ifndef SEIMS_IKW_OL_H
+#define SEIMS_IKW_OL_H
+
 #include "SimulationModule.h"
 
 using namespace std;
@@ -49,7 +51,7 @@ private:
 
     void OverlandFlow(int id);
 
-    void initialOutputs(void);
+    void InitialOutputs(void);
 
     //! valid cells number
     int m_nCells;
@@ -131,4 +133,4 @@ private:
     /// slope (radian)
     float *m_sRadian;
 };
-
+#endif /* SEIMS_IKW_OL_H */

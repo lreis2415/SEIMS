@@ -1,5 +1,5 @@
-#include "seims.h"
 #include "ExcessRunoff.h"
+#include "text.h"
 
 using namespace std;
 
@@ -258,7 +258,7 @@ int ExcessRunoff::Execute(void) {
         // check the output data
         if (m_infil[i] < 0.f) {
             //string datestr = getDate(&m_date);
-            string datestr = ConvertToString(&m_date);
+            string datestr = ConvertToString(m_date);
             ostringstream oss;
             oss << "Date: " << datestr << "\n Precipitation(mm) = " << m_pNet[i] << "\n Infiltration(mm) = " <<
                 m_infil[i] << "\n";

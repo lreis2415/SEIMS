@@ -35,7 +35,7 @@ public:
 
     virtual void SetValue(const char *key, float value);
 
-    virtual void GetValue(const char *key, float *value);
+    //virtual void GetValue(const char *key, float *value);
 
     virtual void Set1DData(const char *key, int n, float *data);
 

@@ -35,10 +35,12 @@ from typing import Union, Dict, List, Tuple, Optional, Any, AnyStr
 from utility import read_simulation_from_txt
 from preprocess.db_mongodb import ConnectMongoDB
 from preprocess.text import DBTableNames, RasterMetadata
+from preprocess.sd_slopeposition_units import DelinateSlopePositionByThreshold
 from scenario_analysis import _DEBUG, BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.scenario import Scenario
 from scenario_analysis.config import SAConfig
-from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
+    SACommUnitConfig
 
 
 class SUScenario(Scenario):
@@ -49,8 +51,8 @@ class SUScenario(Scenario):
         """Initialization."""
         Scenario.__init__(self, cf)
         self.cfg = cf  # type: Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]
-        self.gene_num = cf.units_num  # type: int
-        self.gene_values = [0] * self.gene_num  # type: List[int] # 0 means no BMP
+        self.gene_num = cf.genes_num  # type: int
+        self.gene_values = [0] * self.gene_num  # type: List[int, float] # 0 means no BMP
 
         self.bmps_params = dict()  # type: Dict[int, Any] # {bmp_id: {...}}
         self.suit_bmps = dict()  # type: Dict[AnyStr, Dict[int, List[int]]] # {type:{id: [bmp_ids]}}
@@ -125,6 +127,47 @@ class SUScenario(Scenario):
                         self.suit_bmps[type][sp].append(bid)
             if 'EFFECTIVENESS' in bdict:
                 self.bmps_grade[bid] = bdict['EFFECTIVENESS']
+
+    def initialize(self, input_genes=None):
+        # type: (Optional[List]) -> List
+        """Initialize a scenario.
+
+        Returns:
+            A list contains BMPs identifier of each gene location.
+        """
+        # Create configuration rate for each location randomly, 0.4 ~ 0.6
+        cr = random.randint(40, 60) / 100.
+
+        if input_genes is not None:  # Using the input genes
+            if len(input_genes) == self.gene_num:
+                self.gene_values = input_genes[:]
+            else:  # Only usable for slope position units when optimizing unit boundary
+                typenum = self.cfg.slppos_types_num
+                tnum = self.cfg.thresh_num
+                for idx, gv in enumerate(input_genes):
+                    gidx = idx // typenum * (typenum + tnum) + idx % self.cfg.slppos_types_num
+                    self.gene_values[gidx] = gv
+            return self.gene_values
+        else:
+            if self.rule_mtd == BMPS_CFG_METHODS[0]:
+                self.random_based_config(cr)
+            else:
+                self.rule_based_config(self.rule_mtd, cr)
+        if self.cfg.boundary_adaptive and self.gene_num > self.cfg.units_num:
+            # Randomly select boundary adaptive threshold
+            thresholds = self.cfg.boundary_adaptive_threshs[:]
+            for ti in range(self.gene_num):
+                if ti in self.cfg.gene_to_unit:
+                    continue
+                if random.random() >= cr:
+                    continue
+                self.gene_values[ti] = thresholds[random.randint(0, len(thresholds) - 1)]
+        if len(self.gene_values) == self.gene_num > 0:
+            return self.gene_values
+        else:
+            raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
+                               ' class, especially the overwritten rule_based_config and'
+                               ' random_based_config!')
 
     def rule_based_config(self, method, conf_rate=0.5):
         # type: (float, AnyStr) -> None
@@ -256,12 +299,66 @@ class SUScenario(Scenario):
         # type: (float) -> None
         """Config BMPs on each spatial unit randomly."""
         pot_bmps = self.cfg.bmps_subids[:]
-        # if 0 not in pot_bmps:
-        #     pot_bmps.append(0)
-        for i in range(self.gene_num):
+        for uid, i in viewitems(self.cfg.unit_to_gene):
             if random.random() >= conf_rate:
                 continue
             self.gene_values[i] = pot_bmps[random.randint(0, len(pot_bmps) - 1)]
+
+    def boundary_adjustment(self):
+        """
+        Update BMP configuration units and related data according to gene_values,
+          i.e., bmps_info and units_infos
+        """
+        if not self.cfg.boundary_adaptive:
+            return
+        if self.gene_num == self.cfg.units_num:
+            return
+        # 1. New filename of BMP configuration unit
+        dist = '%s_%d' % (self.cfg.orignal_dist, self.ID)
+        self.bmps_info[self.cfg.bmpid]['DISTRIBUTION'] = dist
+        spfilename = StringClass.split_string(dist, '|')[1]
+        # 2. Organize the slope position IDs and thresholds by hillslope ID
+        #    Format: {HillslopeID: {rdgID, bksID, vlyID, T_bks2rdg, T_bks2vly}, ...}
+        slppos_threshs = dict()  # type: Dict[int, List]
+        upperslppos = self.cfg.slppos_tagnames[0][1]  # Most upper slope position name
+        for subbsnid, subbsndict in viewitems(self.cfg.units_infos['hierarchy_units']):
+            for hillslpid, hillslpdict in viewitems(subbsndict):
+                slppos_threshs[hillslpid] = list()
+                for slppostag, slpposname in self.cfg.slppos_tagnames:
+                    slppos_threshs[hillslpid].append(hillslpdict[slpposname])
+                upper_geneidx = self.cfg.unit_to_gene[hillslpdict[upperslppos]]
+                thresh_idx = upper_geneidx + len(hillslpdict)
+                thresh_idxend = thresh_idx + self.cfg.thresh_num
+                slppos_threshs[hillslpid] += self.gene_values[thresh_idx: thresh_idxend]
+        # 3. Delineate slope position and get the updated information (landuse area, etc.)
+        # 3.1 Erase current data in units_info
+        for itag, iname in self.cfg.slppos_tagnames:
+            if iname not in self.cfg.units_infos:
+                continue
+            for sid, datadict in viewitems(self.cfg.units_infos[iname]):
+                self.cfg.units_infos[iname][sid]['area'] = 0.
+                for luid in self.cfg.units_infos[iname][sid]['landuse']:
+                    self.cfg.units_infos[iname][sid]['landuse'][luid] = 0.
+        # 3.2 Delineate slope position and get data by subbasin
+        # The whole watershed will be generateed for both version
+        hillslp_data = DelinateSlopePositionByThreshold(self.modelcfg, slppos_threshs,
+                                                        self.cfg.slppos_tag_gfs,
+                                                        spfilename, subbsn_id=0)
+        # 3.3 Update units_infos
+        for tagname, slpposdict in viewitems(hillslp_data):
+            for sid, datadict in viewitems(slpposdict):
+                self.cfg.units_infos[tagname][sid]['area'] += hillslp_data[tagname][sid]['area']
+                for luid in hillslp_data[tagname][sid]['landuse']:
+                    if luid not in self.cfg.units_infos[tagname][sid]['landuse']:
+                        self.cfg.units_infos[tagname][sid]['landuse'][luid] = 0.
+                    newlanduse_area = hillslp_data[tagname][sid]['landuse'][luid]
+                    self.cfg.units_infos[tagname][sid]['landuse'][luid] += newlanduse_area
+        if self.modelcfg.version.upper() == 'MPI':
+            for tmp_subbsnid in range(1, self.model.SubbasinCount + 1):
+                DelinateSlopePositionByThreshold(self.modelcfg, slppos_threshs,
+                                                 self.cfg.slppos_tag_gfs,
+                                                 spfilename, subbsn_id=tmp_subbsnid)
+        # print(self.cfg.units_infos)
 
     def decoding(self):
         """Decode gene values to Scenario item, i.e., `self.bmp_items`."""
@@ -270,12 +367,12 @@ class SUScenario(Scenario):
         if self.bmp_items:
             self.bmp_items.clear()
         bmp_units = dict()  # type: Dict[int, List[int]] # {BMPs_ID: [units list]}
-        for i, gene_v in enumerate(self.gene_values):
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
                 continue
             if gene_v not in bmp_units:
                 bmp_units[gene_v] = list()
-            unit_id = self.cfg.gene_to_unit[i]
             bmp_units[gene_v].append(unit_id)
         sce_item_count = 0
         for k, v in viewitems(bmp_units):
@@ -312,10 +409,10 @@ class SUScenario(Scenario):
         opex = 0.
         income = 0.
         actual_years = self.cfg.runtime_years
-        for idx, gene_v in enumerate(self.gene_values):
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
                 continue
-            unit_id = self.cfg.gene_to_unit[idx]
             unit_lu = dict()
             for spname, spunits in self.cfg.units_infos.items():
                 if unit_id in spunits:
@@ -375,8 +472,6 @@ class SUScenario(Scenario):
                 print('Exception Information: Scenario ID: %d, '
                       'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
                 self.environment = self.worst_env
-        # model clean
-        self.model.clean(delete_scenario=True)
 
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None
@@ -430,8 +525,11 @@ class SUScenario(Scenario):
             slppos_data = numpy.reshape(slppos_data, (ysize, xsize))
 
             v_dict = dict()
-            for idx, gene_v in enumerate(self.gene_values):
-                v_dict[self.cfg.gene_to_unit[idx]] = gene_v
+            for unitidx, geneidx in viewitems(self.cfg.unit_to_gene):
+                v_dict[unitidx] = self.gene_values[geneidx]
+            # Deprecated and replaced by using self.cfg.unit_to_gene. 03/14/2019. ljzhu.
+            # for idx, gene_v in enumerate(self.gene_values):
+            #     v_dict[self.cfg.gene_to_unit[idx]] = gene_v
 
             for k, v in v_dict.items():
                 slppos_data[slppos_data == k] = v
@@ -444,7 +542,7 @@ class SUScenario(Scenario):
 
 def select_potential_bmps(unitid,  # type: int
                           suitbmps,  # type: Dict[int, List[int]] # key could be SLPPOS or LANDUSE
-                          unitsinfo,  # type: Dict[Union[str, int], Any]
+                          unitsinfo,  # type: Dict[Union[AnyStr, int], Any]
                           unit2gene,  # type: OrderedDict[int, int]
                           ind,  # type: Union[array.array, List[int], Tuple[int]] # gene values
                           unit='SLPPOS',  # type: AnyStr
@@ -561,11 +659,11 @@ def select_potential_bmps(unitid,  # type: int
     return bmps  # for other BMP configuration methods, return without modification
 
 
-def initialize_scenario(cf):
-    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig]) -> List[int]
+def initialize_scenario(cf, input_genes=None):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
     """Initialize gene values"""
     sce = SUScenario(cf)
-    return sce.initialize()
+    return sce.initialize(input_genes=input_genes)
 
 
 def scenario_effectiveness(cf, ind):
@@ -573,23 +671,26 @@ def scenario_effectiveness(cf, ind):
     """Run SEIMS-based model and calculate economic and environmental effectiveness."""
     # 1. instantiate the inherited Scenario class.
     sce = SUScenario(cf)
-    curid = sce.set_unique_id()
+    ind.id = sce.set_unique_id()
     setattr(sce, 'gene_values', ind)
-    # 2. decoding gene values to BMP items and exporting to MongoDB.
+    # 2. update BMP configuration units and related data according to gene_values,
+    #      i.e., bmps_info and units_infos
+    sce.boundary_adjustment()
+    # 3. decode gene values to BMP items and exporting to MongoDB.
     sce.decoding()
     sce.export_to_mongodb()
-    # 3. execute SEIMS-base watershed model
+    # 4. execute the SEIMS-based watershed model and get the timespan
     sce.execute_seims_model()
-    # Get timespan
-    ind.id = curid
     ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
-    # 4. calculate scenario effectiveness
+    # 5. calculate scenario effectiveness and delete intermediate data
     sce.calculate_economy()
     sce.calculate_environment()
-    # 5. Export scenarios information
+    # 6. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
-    # 6. Assign fitness values
+    # 7. Clean the intermediate data of current scenario
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 8. Assign fitness values
     ind.fitness.values = [sce.economy, sce.environment]
 
     return ind
@@ -633,6 +734,7 @@ def main_single():
 
     sce = SUScenario(cfg)
     sce.initialize()
+    sce.boundary_adjustment()
     sceid = sce.set_unique_id()
     print(sceid, sce.gene_values.__str__())
     sce.decoding()
@@ -659,25 +761,40 @@ def main_manual(sceid, gene_values):
     sce = SUScenario(cfg)
 
     sce.set_unique_id(sceid)
-    sce.set_gene_values(gene_values)
+    sce.initialize(input_genes=gene_values)
+    sce.boundary_adjustment()
 
     sce.decoding()
     sce.export_to_mongodb()
-    # sce.execute_seims_model()
+    sce.execute_seims_model()
     sce.export_sce_tif = True
     sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
-    # sce.calculate_economy()
-    # sce.calculate_environment()
+    sce.calculate_economy()
+    sce.calculate_environment()
 
-    # print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
-    # print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
 
 
 if __name__ == '__main__':
     # main_single()
     # main_multiple(4)
 
-    sid = 221680603
-    gvalues = [0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 1.0, 0.0, 3.0, 0.0, 3.0, 2.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 1.0, 3.0, 4.0, 4.0, 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 2.0, 0.0, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0]
+    sid = 210213956
+    gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
+               2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+               -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
+               0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
+               0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
+               0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
+               0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
+               0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+               0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
+    # sid = 10000000
+    # gvalues = [0.] * 175
 
     main_manual(sid, gvalues)

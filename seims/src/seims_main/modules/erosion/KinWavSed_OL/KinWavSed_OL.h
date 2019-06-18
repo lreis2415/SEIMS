@@ -5,8 +5,8 @@
  * \revised LiangJun Zhu
  * \revised date May. 2016
  */
-
-#pragma once
+#ifndef KINWAVESED_OL_H
+#define KINWAVESED_OL_H
 
 #include "SimulationModule.h"
 
@@ -217,3 +217,4 @@ private:
     float *m_fract;
 
 };
+#endif /* KINWAVESED_OL_H */

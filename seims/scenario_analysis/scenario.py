@@ -119,14 +119,6 @@ class Scenario(object):
         self.modelcfg_dict['scenario_id'] = self.ID if self.modelcfg_dict else 0
         return self.ID
 
-    def set_gene_values(self, gene_values=None):
-        # type: (Optional[List[Union[int, float]]]) -> None
-        """Set gene values manually or by initialize function."""
-        if gene_values is None:
-            self.initialize()
-        else:
-            self.gene_values = gene_values[:]
-
     def rule_based_config(self, method, conf_rate):
         # type: (float, str) -> None
         """Config available BMPs to each gene of the chromosome by rule-based method.
@@ -182,7 +174,7 @@ class Scenario(object):
         with open(ofile, 'w', encoding='utf-8') as outfile:
             outfile.write('Scenario ID: %d\n' % self.ID)
             outfile.write('Gene number: %d\n' % self.gene_num)
-            outfile.write('Gene values: %s\n' % ', '.join((str(v) for v in self.gene_values)))
+            outfile.write('Gene values: %s\n' % ', '.join((repr(v) for v in self.gene_values)))
             outfile.write('Scenario items:\n')
             if len(self.bmp_items) > 0:
                 header = list()
@@ -230,6 +222,14 @@ class Scenario(object):
         """Calculate environment effectiveness, which is application specified."""
         pass
 
+    def clean(self, scenario_id=None, calibration_id=None, delete_scenario=False,
+              delete_spatial_gfs=False):
+        """Clean the intermediate data."""
+        # model clean
+        self.model.clean(scenario_id=scenario_id, calibration_id=calibration_id,
+                         delete_scenario=delete_scenario,
+                         delete_spatial_gfs=delete_spatial_gfs)
+
     def execute_seims_model(self):
         """Run SEIMS for evaluating environmental effectiveness.
         If execution fails, the `self.economy` and `self.environment` will be set the worst values.
@@ -241,25 +241,14 @@ class Scenario(object):
         self.modelrun = True
         return self.model.run_success
 
-    def initialize(self):
-        # type: () -> List[int]
+    def initialize(self, input_genes=None):
+        # type: (Optional[List]) -> List
         """Initialize a scenario.
 
         Returns:
             A list contains BMPs identifier of each gene location.
         """
-        # Create configuration rate for each location randomly, 0.4 ~ 0.6
-        cr = random.randint(40, 60) / 100.
-        if self.rule_mtd == BMPS_CFG_METHODS[0]:
-            self.random_based_config(cr)
-        else:
-            self.rule_based_config(self.rule_mtd, cr)
-        if len(self.gene_values) == self.gene_num > 0:
-            return self.gene_values
-        else:
-            raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
-                               ' class, especially the overwritten rule_based_config and'
-                               ' random_based_config!')
+        pass
 
 
 if __name__ == '__main__':

@@ -43,7 +43,7 @@ email:  dtarb@usu.edu
 #include "createpart.h"
 #include "commonLib.h"
 #include "d8.h"
-//#include "tiffIO.h"    Part of Commonlib
+//#include "tiffIO.h"    Part of CommonLib
 #include "Node.h"
 
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19

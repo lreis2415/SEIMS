@@ -1,6 +1,8 @@
-#include "ExcessRunoff.h"
-
 #include "api.h"
+
+#include "ExcessRunoff.h"
+#include "text.h"
+#include "MetadataInfo.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new ExcessRunoff();
@@ -8,7 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res = "";
     MetadataInfo mdi;
 
     // set the information properties
@@ -49,7 +50,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddOutput("EXCP", "mm", "The excess precipitation", DT_Raster1D);
     mdi.AddOutput("INFIL", "mm", "Infiltration map of watershed", DT_Raster1D);
 
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
 
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());

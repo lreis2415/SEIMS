@@ -1,9 +1,9 @@
-/** 
+/**
 *	@file
 *	@version	1.0
 *	@author		Wu Hui
 *	@date	30-December-2010
-*	
+*
 *	@brief	Green-Ampt Method to calculate infiltration and excess precipitation
 *
 *	Revision: Wu Hui
@@ -15,8 +15,8 @@
 *	   And the unit conversion of rootdepth would be from m to mm.
 *   3. Overload the funtion Calculate_CN to calculate the CN of one cell.
 *   4. Delete some parameters and input variables. They are Depre_in,Moist_in and Depression.
-*      D_SOMO from soil water balance module and D_DPST from depression module is enough. The 
-*      initalization of soil moisture and depression storage is the task of soil water balance 
+*      D_SOMO from soil water balance module and D_DPST from depression module is enough. The
+*      initalization of soil moisture and depression storage is the task of soil water balance
 *	   module and depression module.
 *	5. Modify the name of input and output variables to make it consistent with other modules.
 *
@@ -36,8 +36,8 @@
 *	6.	Delete three local variables: m_julianDay, m_Depre_in, m_Depression.
 *	7.	Correct the logic of function Get1DData.
 */
-
-#pragma once
+#ifndef SEIMS_SUR_GA_H
+#define SEIMS_SUR_GA_H
 
 #include "SimulationModule.h"
 
@@ -167,6 +167,6 @@ private:
 
     void initialWFMP(void);
 
-    void initalOutputs(void);
+    void InitalOutputs(void);
 };
-
+#endif /* SEIMS_SUR_GA_H */

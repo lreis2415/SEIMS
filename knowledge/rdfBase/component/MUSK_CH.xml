@@ -29,6 +29,6 @@
         <rdf:li>C_WABA</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-	<hydro:algorithm>Channel Flow-Muskingum</hydro:algorithm>
+    <hydro:algorithm>Channel Flow-Muskingum</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>

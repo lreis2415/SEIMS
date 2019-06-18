@@ -10,6 +10,7 @@
     - 18-02-09  lj - compatible with Python3.
     - 18-11-02  lj - Optimization.
     - 18-12-04  lj - Updates of crossover operation of UPDOWN method.
+    - 19-03-13  lj - Support using input Pareto fronts to initialize population.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -39,12 +40,15 @@ from typing import List
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
-from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg
-from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig
+from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg,\
+    initRepeatWithCfgFromList, initIterateWithCfgWithInput
+from scenario_analysis.visualization import read_pareto_solutions_from_txt
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig,\
+    SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness
-from scenario_analysis.spatialunits.userdef import crossover_slppos, crossover_updown, mutate_rule, \
-    crossover_rdm, mutate_rdm, check_individual_diff
+from scenario_analysis.spatialunits.userdef import check_individual_diff,\
+    crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
 
 # Definitions, assignments, operations, etc. that will be executed by each worker
 #    when paralleled by SCOOP.
@@ -58,7 +62,7 @@ conditions = [None, '>0.']
 
 creator.create('FitnessMulti', base.Fitness, weights=multi_weight)
 # NOTE that to maintain the compatibility with Python2 and Python3,
-#      the com typecode=str('d') MUST NOT changed to typecode='d', since
+#      the typecode=str('d') MUST NOT changed to typecode='d', since
 #      the latter will raise TypeError that 'must be char, not unicode'!
 creator.create('Individual', array.array, typecode=str('d'), fitness=creator.FitnessMulti,
                gen=-1, id=-1,
@@ -69,6 +73,11 @@ toolbox = base.Toolbox()
 toolbox.register('gene_values', initialize_scenario)
 toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
 toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+
+toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
+                 toolbox.gene_values)
+toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
+
 toolbox.register('evaluate', scenario_effectiveness)
 
 # knowledge-rule based mate and mutate
@@ -145,7 +154,21 @@ def main(sceobj):
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
     # Initialize population
-    pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
+    initialize_byinputs = False
+    if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
+        sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
+        inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
+        if os.path.isfile(inpareto_file):
+            inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
+                                                                sce_name='scenario',
+                                                                field_name='gene_values')
+            if sceobj.cfg.input_pareto_gen in inpareto_solutions:
+                pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
+                pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
+                initialize_byinputs = True
+    if not initialize_byinputs:
+        pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
+
     init_time = time.time() - stime
 
     def delete_fitness(new_ind):
@@ -230,7 +253,7 @@ def main(sceobj):
                 old_ind2 = toolbox.clone(ind2)
                 if random.random() <= cx_rate:
                     if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
-                        toolbox.mate_slppos(sceobj.cfg.slppos_tagnames, ind1, ind2)
+                        toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num)
                     elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
                         toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
                     else:
@@ -247,12 +270,14 @@ def main(sceobj):
                                         suit_bmps, ind1,
                                         perc=mut_perc, indpb=mut_rate,
                                         unit=cfg_unit, method=cfg_method,
-                                        tagnames=tagnames)
+                                        tagnames=tagnames,
+                                        thresholds=sceobj.cfg.boundary_adaptive_threshs)
                     toolbox.mutate_rule(units_info, gene_to_unit, unit_to_gene,
                                         suit_bmps, ind2,
                                         perc=mut_perc, indpb=mut_rate,
                                         unit=cfg_unit, method=cfg_method,
-                                        tagnames=tagnames)
+                                        tagnames=tagnames,
+                                        thresholds=sceobj.cfg.boundary_adaptive_threshs)
                 if check_individual_diff(old_ind1, ind1):
                     delete_fitness(ind1)
                 if check_individual_diff(old_ind2, ind2):

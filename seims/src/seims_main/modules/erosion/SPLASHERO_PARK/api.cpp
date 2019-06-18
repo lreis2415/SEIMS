@@ -1,6 +1,8 @@
-#include "SplashEro_Park.h"
-
 #include "api.h"
+
+#include "SplashEro_Park.h"
+#include "MetadataInfo.h"
+#include "text.h"
 
 extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
     return new SplashEro_Park();
@@ -8,8 +10,6 @@ extern "C" SEIMS_MODULE_API SimulationModule *GetInstance() {
 
 // function to return the XML Metadata document string
 extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
-    string res;
-
     MetadataInfo mdi;
 
     // set the information properties
@@ -42,7 +42,7 @@ extern "C" SEIMS_MODULE_API const char *MetadataInformation() {
     mdi.AddDependency(MCLS_OL_ROUTING, MCLSDESC_OL_ROUTING);
 
     // write out the XML file.
-    res = mdi.GetXMLDocument();
+    string res = mdi.GetXMLDocument();
     char *tmp = new char[res.size() + 1];
     strprintf(tmp, res.size() + 1, "%s", res.c_str());
     return tmp;
