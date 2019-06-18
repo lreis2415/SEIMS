@@ -4,9 +4,13 @@
     <hydro:hasInputs>
       <rdf:Bag>
 	   <rdf:li>INLO</rdf:li>
-       <rdf:li>PET</rdf:li>
       </rdf:Bag>
     </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>PET</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
     <hydro:hasOutputs>
       <rdf:Bag>
         <rdf:li>DEET</rdf:li>

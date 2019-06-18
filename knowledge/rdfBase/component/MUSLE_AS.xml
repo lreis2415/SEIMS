@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:hydro="http://www.cas.ac.cn/hydrology#">
+  <rdf:Description about="MUSLE_AS">
+    <hydro:hasInputs>
+      <rdf:Bag>
+        <rdf:li>SURU</rdf:li>
+      </rdf:Bag>
+    </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+        <rdf:li>SNAC</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
+    <hydro:hasOutputs>
+      <rdf:Bag>
+        <rdf:li>SOER</rdf:li>
+        <rdf:li>USLE_LS</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOutputs>
+    <hydro:algorithm>Sediment Yield-MUSLE</hydro:algorithm>
+  </rdf:Description>
+</rdf:RDF>
