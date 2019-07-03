@@ -309,7 +309,11 @@ DateTime DateTime::LocalTime() {
 #elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = time(nullptr);
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
 }
@@ -322,7 +326,11 @@ DateTime DateTime::UTCTime() {
 #elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = time(nullptr);
     struct tm* time_info = new tm();
+#if defined MINGW
+    gmtime_s(time_info, &timer);
+#else
     gmtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, GetCurrentMilliseconds());
 #endif /* CPP_MSVC */
 }
@@ -373,7 +381,11 @@ DateTime DateTime::FromFileTime(const vuint64_t ifiletime) {
 #elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = static_cast<time_t>(ifiletime / 1000);
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
+#endif
     return ConvertTMToDateTime(time_info, ifiletime % 1000);
 #endif
 }
@@ -396,8 +408,11 @@ DateTime DateTime::ToLocalTime() {
     time_t utc_timer = mktime(gmtime(&local_timer));
     time_t timer = static_cast<time_t>(filetime / 1000) + local_timer - utc_timer;
     struct tm* time_info = new tm();
+#if defined MINGW
+    localtime_s(time_info, &timer);
+#else
     localtime_r(&timer, time_info);
-
+#endif
     return ConvertTMToDateTime(time_info, milliseconds);
 #endif
 }
@@ -411,7 +426,11 @@ DateTime DateTime::ToUTCTime() {
 #elif (defined CPP_GCC) || (defined CPP_ICC)
     time_t timer = static_cast<time_t>(filetime / 1000);
     struct tm* time_info = new tm();
+#if defined MINGW
+    gmtime_s(time_info, &timer);
+#else
     gmtime_r(&timer, time_info);
+#endif
 
     return ConvertTMToDateTime(time_info, milliseconds);
 #endif
