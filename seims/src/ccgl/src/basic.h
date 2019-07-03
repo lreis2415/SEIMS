@@ -59,6 +59,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #endif /* windows */
+
 #if defined CPP_GCC
 #include <dirent.h>
 #include <unistd.h>
@@ -86,7 +87,11 @@ using std::string;
 #define stringscanf sscanf
 #endif /* CPP_MSVC */
 
-#if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR) || defined(_MSC_VER)
+#if defined(__MINGW32_MAJOR_VERSION) || defined(__MINGW64_VERSION_MAJOR)
+#define MINGW
+#endif
+
+#if defined(MINGW) || defined(_MSC_VER)
 #define strcasecmp _stricmp
 #endif /* MINGW or MSVC */
 
