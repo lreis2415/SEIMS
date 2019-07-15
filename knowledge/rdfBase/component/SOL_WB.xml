@@ -11,17 +11,25 @@
         <rdf:li>DEET</rdf:li>
         <rdf:li>INFIL</rdf:li>
         <rdf:li>SOET</rdf:li>
-        <rdf:li>GRRE</rdf:li>
-        <rdf:li>REVAP</rdf:li>
+        <!--<rdf:li>GRRE</rdf:li> -->
+        <!--<rdf:li>REVAP</rdf:li> -->
         <rdf:li>SURU</rdf:li>
-        <rdf:li>SSRU</rdf:li>
-        <rdf:li>RG</rdf:li>
+        <!--<rdf:li>SSRU</rdf:li> -->
+        <!--<rdf:li>RG</rdf:li> -->
         <rdf:li>SOMO</rdf:li>
         <rdf:li>TMIN</rdf:li>
         <rdf:li>TMAX</rdf:li>
         <rdf:li>SOTE</rdf:li>
       </rdf:Bag>
     </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>RG</rdf:li>
+       <rdf:li>GRRE</rdf:li>
+       <rdf:li>REVAP</rdf:li>
+       <rdf:li>SSRU</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
     <hydro:hasOutputs>
       <rdf:Bag>
         <rdf:li>SOWB</rdf:li>

@@ -3,12 +3,18 @@
   <rdf:Description about="CH_MSK">
     <hydro:hasInputs>
       <rdf:Bag>
-        <rdf:li>SBQG</rdf:li>
-        <rdf:li>QSOIL</rdf:li>
+        <!-- <rdf:li>SBQG</rdf:li> -->
+        <!-- <rdf:li>QSOIL</rdf:li> -->
         <rdf:li>QOVERLAND</rdf:li>
         <rdf:li>P</rdf:li>
       </rdf:Bag>
     </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>QSOIL</rdf:li>
+       <rdf:li>SBQG</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
     <hydro:hasOutputs>
       <rdf:Bag>
         <rdf:li>QCH</rdf:li>

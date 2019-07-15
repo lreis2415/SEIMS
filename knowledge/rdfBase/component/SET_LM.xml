@@ -8,11 +8,17 @@
         <rdf:li>DEET</rdf:li>
         <rdf:li>SOMO</rdf:li>
         <rdf:li>SOTE</rdf:li>
-        <rdf:li>GRRE</rdf:li>
+        <!--<rdf:li>GRRE</rdf:li>-->
         <rdf:li>INFIL</rdf:li>
-        <rdf:li>SSRU</rdf:li>
+        <!--<rdf:li>SSRU</rdf:li>-->
       </rdf:Bag>
     </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>GRRE</rdf:li>
+       <rdf:li>SSRU</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
     <hydro:hasOutputs>
       <rdf:Bag>
         <rdf:li>SOET</rdf:li>
