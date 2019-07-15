@@ -1,241 +1,1 @@
-<?xml version="1.0"?>
-<RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">
-	<Assert mapClosure="universal">
-		<Implies node = "Process rule1">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is total runoff simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is day</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule2">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is total runoff simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is medium-sized/large-sized/small-sized</Rel>
-						</op>
-						<Var>spatial scale</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Percolation,Ground Water</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule3">
-			<if>
-				<Atom>
-					<op>
-						<Rel>is snow</Rel>
-					</op>
-					<Var>particular process</Var>
-				</Atom>
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>is selected</Rel>
-					</op>
-					<Ind>Snow Melt</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule4">
-			<if>
-				<Atom>
-					<op>
-						<Rel>is rural</Rel>
-					</op>
-					<Var>underlying surface type</Var>
-				</Atom>
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>is selected</Rel>
-					</op>
-					<Ind>Interception</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule5">
-			<if>
-				<Atom>
-					<op>
-						<Rel>is humid</Rel>
-					</op>
-					<Var>climate type</Var>
-				</Atom>
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Subsurface Runoff</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule6">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is evapotranspiration simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is day</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Infiltration,Depression,Soil Evaporation,PET,Soil Temperature,Percolation</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule7">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is soil erosion simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is day</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Sediment Yield,Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule8">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is soil erosion simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is medium-sized</Rel>
-						</op>
-						<Var>spatial scale</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Percolation,Ground Water</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule9">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is soil erosion simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is hour</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Interception,Infiltration,Depression,Overland Flow,Subsurface Runoff,Channel Flow,Percolation,Ground Water,Splash Erosion,Overland Erosion,Channel Erosion</Ind>
-				</Atom>
-			</then>
-		</Implies>
-		<Implies node = "Process rule10">
-			<if>
-				<And>
-					<Atom>
-						<op>
-							<Rel>is total runoff simulation</Rel>
-						</op>
-						<Var>application purpose</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is hour</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</And>	
-			</if>
-			<then>
-				<Atom>
-					<op>
-						<Rel>are selected</Rel>
-					</op>
-					<Ind>Interception,Infiltration,Depression,Overland Flow,Subsurface Runoff,Channel Flow,Percolation</Ind>
-				</Atom>
-			</then>
-		</Implies>
-	</Assert>
-</RuleML>
+<?xml version="1.0"?><RuleML xmlns="http://ruleml.org/spec" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ruleml.org/spec http://www.ruleml.org/1.0/xsd/datalog.xsd">	<Assert mapClosure="universal">		<Implies node = "Process rule1">			<if>				<And>					<Atom>						<op>							<Rel>is total runoff simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule2">			<if>				<And>					<Atom>						<op>							<Rel>is total runoff simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is medium-sized/large-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Percolation,Ground Water</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule2_1">			<if>				<And>					<Atom>						<op>							<Rel>is total runoff simulation/soil erosion simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is small-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>					<Atom>						<op>							<Rel>is humid/semi-humid</Rel>						</op>						<Var>climate type</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Percolation,Ground Water</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule3">			<if>				<Atom>					<op>						<Rel>is snow</Rel>					</op>					<Var>particular process</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>is selected</Rel>					</op>					<Ind>Snow Melt</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule4">			<if>				<Atom>					<op>						<Rel>is rural</Rel>					</op>					<Var>underlying surface type</Var>				</Atom>			</if>			<then>				<Atom>					<op>						<Rel>is selected</Rel>					</op>					<Ind>Interception</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule5">			<if>				<And>					<Atom>						<op>							<Rel>is humid/semi-humid/arid/semi-arid</Rel>						</op>						<Var>climate type</Var>					</Atom>					<Atom>						<op>							<Rel>is large-sized/medium-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Subsurface Flow</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule5_1">			<if>				<And>					<Atom>						<op>							<Rel>is humid/semi-humid</Rel>						</op>						<Var>climate type</Var>					</Atom>					<Atom>						<op>							<Rel>is small-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>				</And>			</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Subsurface Flow</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule6">			<if>				<And>					<Atom>						<op>							<Rel>is evapotranspiration simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>					<Atom>						<op>							<Rel>is medium-sized/large-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Infiltration,Depression,Soil Evaporation,PET,Soil Temperature,Percolation</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule6_1">			<if>				<And>					<Atom>						<op>							<Rel>is evapotranspiration simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>					<Atom>						<op>							<Rel>is small-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>					<Atom>						<op>							<Rel>is humid/semi-humid</Rel>						</op>						<Var>climate type</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Infiltration,Depression,Soil Evaporation,PET,Soil Temperature,Percolation</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule6_2">			<if>				<And>					<Atom>						<op>							<Rel>is evapotranspiration simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>					<Atom>						<op>							<Rel>is small-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>					<Atom>						<op>							<Rel>is aird/semi-arid</Rel>						</op>						<Var>climate type</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Infiltration,Depression,Soil Evaporation,PET,Soil Temperature</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule7">			<if>				<And>					<Atom>						<op>							<Rel>is soil erosion simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is day</Rel>						</op>						<Var>time step</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Sediment Yield,Infiltration,Depression,Soil Evaporation,PET,Overland Flow,Channel Flow,Water Balance,Soil Temperature</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule8">			<if>				<And>					<Atom>						<op>							<Rel>is soil erosion simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is medium-sized/large-sized</Rel>						</op>						<Var>spatial scale</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Percolation,Ground Water</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule9">			<if>				<And>					<Atom>						<op>							<Rel>is soil erosion simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is hour</Rel>						</op>						<Var>time step</Var>					</Atom>					<Atom>						<op>							<Rel>is event</Rel>						</op>						<Var>time scale</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Interception,Infiltration,Depression,Overland Flow,Channel Flow,Splash Erosion,Overland Erosion,Channel Erosion</Ind>				</Atom>			</then>		</Implies>		<Implies node = "Process rule10">			<if>				<And>					<Atom>						<op>							<Rel>is total runoff simulation</Rel>						</op>						<Var>application purpose</Var>					</Atom>					<Atom>						<op>							<Rel>is hour</Rel>						</op>						<Var>time step</Var>					</Atom>					<Atom>						<op>							<Rel>is event</Rel>						</op>						<Var>time scale</Var>					</Atom>				</And>				</if>			<then>				<Atom>					<op>						<Rel>are selected</Rel>					</op>					<Ind>Interception,Infiltration,Depression,Overland Flow,Channel Flow</Ind>				</Atom>			</then>		</Implies>	</Assert></RuleML>
