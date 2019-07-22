@@ -38,10 +38,6 @@ matrix:
         - mongodb
       env:
         - BUILD_NAME=linux_gcc
-<<<<<<< HEAD
-        - DETAILS=""
-=======
->>>>>>> 14171a5df4d23638ecf03b92975857da0ee2090e
         - ENABLE_CXX11=1
         - RUN_TESTS=true
         - COVERAGE=false

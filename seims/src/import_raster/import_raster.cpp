@@ -283,12 +283,12 @@ int DecompositeRaster(map<int, SubBasin>& bbox_map, IntRaster* rs_subbasin,
         string dst_folder = oss.str();
         if (!DirectoryExists(dst_folder)) {
             /// create new directory
-#ifdef windows
+#ifdef WINDOWS
             LPSECURITY_ATTRIBUTES att = nullptr;
             ::CreateDirectory(dst_folder.c_str(), att);
 #else
             mkdir(dst_folder.c_str(), 0777);
-#endif /* windows */
+#endif /* WINDOWS */
         }
         oss << "/" << GetUpper(core_name) << ".tif";
         string subbasin_file = oss.str();
