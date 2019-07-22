@@ -33,6 +33,13 @@ set(TAUDEM_EXT_APP curvature
 # third-party programs based on TauDEM framework
 foreach (c_target ${TAUDEM_EXT_APP})
     target_link_libraries(${c_target} ${MPI_LIBRARIES} ${GDAL_LIBRARIES})
+    ### Forr Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
+    IF(XCODE AND LLVM_FOUND)
+        TARGET_LINK_LIBRARIES(${c_target} ${OpenMP_LIBRARY})
+        SET_TARGET_PROPERTIES(${c_target} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
+        SET_TARGET_PROPERTIES(${c_target} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
+        SET_TARGET_PROPERTIES(${c_target} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
+    ENDIF()
     install(TARGETS ${c_target} DESTINATION ${INSTALL_DIR})
     IF (MSVC OR XCODE)
         SET_PROPERTY(TARGET ${c_target} PROPERTY FOLDER "TauDEM_EXT")
