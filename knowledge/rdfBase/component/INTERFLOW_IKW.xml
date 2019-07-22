@@ -13,6 +13,6 @@
         <rdf:li>RETURNFLOW</rdf:li>
       </rdf:Bag>
     </hydro:hasOutputs>
-    <hydro:algorithm>Subsurface Runoff-Kinematic wave</hydro:algorithm>
+    <hydro:algorithm>Subsurface Flow-Kinematic wave</hydro:algorithm>
   </rdf:Description>
 </rdf:RDF>

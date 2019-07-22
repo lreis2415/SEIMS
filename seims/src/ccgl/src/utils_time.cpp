@@ -11,7 +11,7 @@ using std::endl;
 namespace ccgl {
 namespace utils_time {
 double TimeCounting() {
-#ifdef windows
+#ifdef WINDOWS
     LARGE_INTEGER li;
     if (QueryPerformanceFrequency(&li)) {
         /// CPU supported
@@ -24,7 +24,7 @@ double TimeCounting() {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     return CVT_DBL(tv.tv_sec) + CVT_DBL(tv.tv_usec) / 1000000.;
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 string ConvertToString(const time_t date, const bool utc_time /* = true */) {
@@ -101,7 +101,7 @@ time_t ConvertToTime(const string& str_date, string const& format, const bool in
         time_info->tm_sec = sec;
         time_info->tm_isdst = false;
         if (utc_time) {
-#ifdef windows
+#ifdef WINDOWS
             t = _mkgmtime(time_info);
 #else
             t = timegm(time_info);
@@ -126,7 +126,7 @@ time_t ConvertYMDToTime(int& year, int& month, int& day, const bool utc_time /* 
         time_info->tm_mday = day;
         time_info->tm_isdst = false;
         if (utc_time) {
-#ifdef windows
+#ifdef WINDOWS
             t = _mkgmtime(time_info);
 #else
             t = timegm(time_info);
@@ -158,19 +158,19 @@ int GetDateInfoFromTimet(const time_t t, int* year, int* month, int* day, const 
 }
 
 void LocalTime(time_t date, struct tm* t) {
-#ifdef windows
+#ifdef WINDOWS
     localtime_s(t, &date);
 #else
     localtime_r(&date, t);
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 void UTCTime(const time_t date, struct tm* t) {
-#ifdef windows
+#ifdef WINDOWS
     gmtime_s(t, &date);
 #else
     gmtime_r(&date, t);
-#endif /* windows */
+#endif /* WINDOWS */
 }
 
 void GetDateTime(const time_t date, struct tm* t, const bool utc_time /* = true */) {

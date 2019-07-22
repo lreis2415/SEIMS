@@ -205,7 +205,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Ground Water-hour linear reservoir method">
+		<!--<Implies node = "Ground Water-hour linear reservoir method">
 			<if>
 				<Atom>
 					<op>
@@ -222,7 +222,7 @@
 					<Ind>Ground Water-hour linear reservoir method</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Ground Water-day linear reservoir method">
 			<if>
 				<Atom>
@@ -241,7 +241,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Channel Flow-one-dimension kinetic wave formula">
+		<!--<Implies node = "Channel Flow-one-dimension kinetic wave formula">
 			<if>
 				<Or>
 					<Atom>
@@ -266,23 +266,15 @@
 					<Ind>Channel Flow-one-dimension kinetic wave formula</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Channel Flow-Muskingum">
 			<if>
-				<Or>
-					<Atom>
-						<op>
-							<Rel>is hour</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-					<Atom>
-						<op>
-							<Rel>is day</Rel>
-						</op>
-						<Var>time step</Var>
-					</Atom>
-				</Or>
+				<Atom>
+					<op>
+						<Rel>is day</Rel>
+					</op>
+					<Var>time step</Var>
+				</Atom>
 			</if>
 			<then>
 				<Atom>
@@ -365,7 +357,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Depression-Fill and Spill method">
+		<!--<Implies node = "Depression-Fill and Spill method">
 			<if>
 				<Atom>
 					<op>
@@ -382,7 +374,7 @@
 					<Ind>Depression-Fill and Spill method</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Depression-LINSLEY">
 			<if>
 				<Atom>
@@ -419,7 +411,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Percolation-DARCY">
+		<!--<Implies node = "Percolation-DARCY">
 			<if>
 				<Atom>
 					<op>
@@ -436,7 +428,7 @@
 					<Ind>Percolation-DARCY</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Soil Evaporation-Evaporation method in WetSpa">
 			<if>
 				<Atom>
@@ -455,7 +447,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Subsurface Runoff-Darcy formula">
+		<Implies node = "Subsurface Flow-Darcy formula">
 			<if>
 				<Atom>
 					<op>
@@ -469,7 +461,7 @@
 					<op>
 						<Rel>is selected</Rel>
 					</op>
-					<Ind>Subsurface Runoff-Darcy formula</Ind>
+					<Ind>Subsurface Flow-Darcy formula</Ind>
 				</Atom>
 			</then>
 		</Implies>
@@ -509,7 +501,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Interception-Hourly interception algorithm in WetSpa">
+		<!--<Implies node = "Interception-Hourly interception algorithm in WetSpa">
 			<if>
 				<Atom>
 					<op>
@@ -526,7 +518,7 @@
 					<Ind>Interception-Hourly interception algorithm in WetSpa</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Infiltration-Storm-Green-Ampt">
 			<if>
 				<Atom>
@@ -563,7 +555,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Overland Flow-One-dimension kinetic wave formula">
+		<!--<Implies node = "Overland Flow-One-dimension kinetic wave formula">
 			<if>
 				<Atom>
 					<op>
@@ -580,7 +572,7 @@
 					<Ind>Overland Flow-One-dimension kinetic wave formula</Ind>
 				</Atom>
 			</then>
-		</Implies>
+		</Implies> -->
 		<Implies node = "Percolation-DARCY">
 			<if>
 				<Atom>
@@ -599,7 +591,7 @@
 				</Atom>
 			</then>
 		</Implies>
-		<Implies node = "Subsurface Runoff-Kinematic wave">
+		<Implies node = "Subsurface Flow-Kinematic wave">
 			<if>
 				<Atom>
 					<op>
@@ -613,7 +605,7 @@
 					<op>
 						<Rel>is selected</Rel>
 					</op>
-					<Ind>Subsurface Runoff-Kinematic wave</Ind>
+					<Ind>Subsurface Flow-Kinematic wave</Ind>
 				</Atom>
 			</then>
 		</Implies>

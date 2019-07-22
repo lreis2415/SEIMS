@@ -12,18 +12,19 @@
 #     Optional cmake options:
 #       -DUNITTEST=1  means run unittest based gtest/gmock
 #       -DRUNCOV=1    means run code coverage based gcov and lcov
+#       -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /usr/local/opt/llvm
 #
 #  Routine testing platforms and compilers include:
-#     1. Windows 10 with Visual Studio 2010/2013, mongo-c-driver-1.5.5, GDAL-1.11.4
+#     1. Windows 10 with Visual Studio 2010/2015, mongo-c-driver-1.5.5, GDAL-1.11.4/2.4.1
 #     2. Windows 10 with msys2/mingw64 (GCC-8.2.0), mongo-c-driver-1.6.1, GDAL-2.3.2
 #     3. CentOS 6.2 (cluster) with GCC-4.8.4, mongo-c-driver-1.5.5, GDAL-1.9.0
 #     4. Red Hat Server 6.2 (cluster) with ICC-12.1.0, mongo-c-driver-1.6.1, GDAL-1.11.5 (Without UnitTest)
-#     5. macOS 10.12.6 with Clang-8.0 (or GCC-4.9.3), mongo-c-driver-1.5.5, GDAL-1.11.4
+#     5. macOS 10.14.5 with Clang-10.0 with Xcode, mongo-c-driver-1.14.0, GDAL-2.4.2 (brew installed)
 #     6. Windows 10 with Visual Studio 2013+Intel C++ Compiler 17.0, mongo-c-driver-1.5.5, GDAL-1.11.4
 #
 #  Created and maintained by Liangjun Zhu (zlj@lreis.ac.cn)
-#  Latest updated: Sep. 13, 2018
-#  Copyright (C) 2017-2018 Lreis, IGSNRR, CAS
+#  Latest updated: Jul. 20, 2019
+#  Copyright (C) 2017-2019 Lreis, IGSNRR, CAS
 # ----------------------------------------------------------------------------
 ### Disable in-source builds to prevent source tree corruption.
 IF (" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -59,7 +60,7 @@ set(CMAKE_MODULE_PATH
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
-ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+ELSE()
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
@@ -76,18 +77,27 @@ ENDIF()
 
 ### OS platform.
 if (WIN32)
-    add_definitions(-Dwindows)
+    add_definitions(-DWINDOWS)
     if (MSVC)
         add_definitions(-DMSVC)
     endif ()
 elseif (APPLE)
-    add_definitions(-Dmacos)
+    add_definitions(-DMACOSX)
     if (XCODE)
         add_definitions(-DXCODE)
     endif ()
 else ()
-    add_definitions(-Dlinux)
+    add_definitions(-DLINUX)
 endif ()
+
+### Assume built-in pthreads on macOS X
+IF(APPLE)
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
 
 ### Break in case of popular CMake configuration mistakes.
 IF(NOT CMAKE_SIZEOF_VOID_P GREATER 0)
@@ -128,13 +138,61 @@ IF (hasParent)
     SET(CCGLNAME "${CCGLNAME}" PARENT_SCOPE)
 ENDIF ()
 
+### unittest based on gtest/gmock, which is optional.
+SET(GTestTAG release-1.8.1)
+IF(MSVC_VERSION LESS 1900)
+    SET(GTestTAG release-1.8.0)
+ENDIF()
+### Find or build Googletest if UNITTEST is set as True or 1
+IF (UNITTEST STREQUAL 1)
+    MESSAGE(STATUS "GoogleTest Version: ${GTestTAG}")
+    ADD_DEFINITIONS(-DUNITTEST)
+    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    ### Download and compile googletest
+    INCLUDE(DownloadProject)
+    download_project(PROJ                googletest
+            GIT_REPOSITORY      https://github.com/google/googletest.git
+            GIT_TAG             ${GTestTAG}
+            ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+            )
+    ADD_SUBDIRECTORY(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    geo_include_directories(${gtest_SOURCE_DIR}/include)
+    geo_include_directories(${gmock_SOURCE_DIR}/include)
+ENDIF ()    
+
 ### Find OMP which is optional
-FIND_PACKAGE(OpenMP)
+IF(XCODE)
+  # To use OpenMP in Xcode built by CMake, the recommended way is to 
+  #   install llvm by 'brew install llvm', which has builtin 'libomp'
+  IF (NOT LLVM_ROOT_DIR)
+    SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
+  ENDIF ()
+  FIND_PACKAGE(LLVM)
+  IF(LLVM_FOUND)
+    geo_include_directories(${LLVM_LIBRARY_DIRS}/clang/${LLVM_VERSION_BASE_STRING}/include)
+	SET(OpenMP_CXX_FLAGS "-fopenmp")
+    SET(OpenMP_C_FLAGS "-fopenmp")
+	FIND_LIBRARY(OpenMP_LIBRARY
+		NAMES "omp"
+		HINTS ${LLVM_LIBRARY_DIRS})
+    SET(OPENMP_FOUND 1)
+  ENDIF ()
+ELSE ()  
+  FIND_PACKAGE(OpenMP)
+ENDIF ()
 IF(OPENMP_FOUND)
   SET(WITH_OPENMP 1)
   ADD_DEFINITIONS(-DSUPPORT_OMP)
   INCLUDE(SetFlagOpenMP)
   MESSAGE(STATUS "Compiling with OpenMP...")
+ENDIF()
+
+### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
+IF(XCODE AND LLVM_FOUND)
+    TARGET_LINK_LIBRARIES(${CCGLNAME} ${OpenMP_LIBRARY})
+	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
+	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
+	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
 ENDIF()
 
 ### Find GDAL which is optional.
@@ -177,27 +235,8 @@ IF (RUNCOV STREQUAL 1)
     SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES LINK_FLAGS "-coverage -lgcov")
 ENDIF ()
 
-### unittest based on gtest/gmock, which is optional.
-SET(GTestTAG release-1.8.1)
-IF(MSVC_VERSION LESS 1900)
-    SET(GTestTAG release-1.8.0)
-ENDIF()
 IF (UNITTEST STREQUAL 1)
-    MESSAGE(STATUS "GoogleTest Version: ${GTestTAG}")
-    ADD_DEFINITIONS(-DUNITTEST)
-    geo_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    ### Download and compile googletest
-    INCLUDE(DownloadProject)
-    download_project(PROJ                googletest
-            GIT_REPOSITORY      https://github.com/google/googletest.git
-            GIT_TAG             ${GTestTAG}
-            ${UPDATE_DISCONNECTED_IF_AVAILABLE}
-            )
-    ADD_SUBDIRECTORY(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-    geo_include_directories(${gtest_SOURCE_DIR}/include)
-    geo_include_directories(${gmock_SOURCE_DIR}/include)
     ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test)
-
     ### Copy test data to build directory for UnitTest Only!
     MAKE_DIRECTORY(${INSTALL_DIR})
     FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${INSTALL_DIR})
