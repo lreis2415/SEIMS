@@ -12,7 +12,8 @@ Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsn
 ## Build Status
 
 + Windows-MSVC 2013-64bit with MSMPI-v8: [![Build status](https://ci.appveyor.com/api/projects/status/i3mxjy0wjgphcyu1/branch/master?svg=true)](https://ci.appveyor.com/project/lreis-2415/seims/branch/master)
-+ Linux(Ubuntu xenial)-GCC-5.4.0 with OpenMPI-1.10.2: [![Build Status](https://travis-ci.org/lreis2415/SEIMS.svg?branch=master)](https://travis-ci.org/lreis2415/SEIMS)
++ Linux(Ubuntu xenial)-GCC-5.4.0 with OpenMPI-1.10.2: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=linux_gcc&label=linux_gcc)](https://travis-ci.org/lreis2415/SEIMS)
++ macOS(10.13.3)_AppleClang-10.0 with GDAL-2.3.1, mongo-c-driver-1.14.0, and OpenMPI-4.0.1: [![Build Status](http://badges.herokuapp.com/travis/lreis2415/SEIMS?branch=master&env=BUILD_NAME=osx_clang&label=osx_clang)](https://travis-ci.org/crazyzlj/CCGL)
 
 ## Brief Introduction
 
