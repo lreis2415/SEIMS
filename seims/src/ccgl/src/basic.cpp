@@ -76,13 +76,13 @@ void Log(const string& msg, const string& logpath /* = "debugInfo.log" */) {
     time_t now;
     char buffer[32];
     time(&now);
-#ifdef windows
+#ifdef WINDOWS
     localtime_s(timeptr, &now);
     asctime_s(buffer, 32, timeptr);
 #else
     localtime_r(&now, timeptr);
     asctime_r(timeptr, buffer);
-#endif /* windows */
+#endif /* WINDOWS */
     string timestamp = buffer;
     timestamp = timestamp.substr(0, timestamp.length() - 1);
     std::fstream fs(logpath.c_str(), std::ios::app);
@@ -97,15 +97,15 @@ void Log(const string& msg, const string& logpath /* = "debugInfo.log" */) {
 }
 
 int GetAvailableThreadNum() {
-#ifdef windows
+#ifdef WINDOWS
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     return sysinfo.dwNumberOfProcessors;
-#endif /* windows */
-#ifdef linux
+#endif /* WINDOWS */
+#ifdef LINUX
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
-#endif /* linux */
-#ifdef macos
+#endif /* LINUX */
+#ifdef MACOSX
     return CVT_INT(sysconf(_SC_NPROCESSORS_ONLN));
 #endif /* macOS X 10.5 and later */
 }

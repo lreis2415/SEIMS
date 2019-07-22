@@ -53,6 +53,7 @@ email:  dtarb@usu.edu
 
 // using namespace std; // Avoid to using the entire namespace of std. Comment by Liangjun, 01/23/19
 using std::setprecision;
+using std::setiosflags;
 using std::fabs;
 using std::sqrt;
 

@@ -4,12 +4,20 @@
     <hydro:hasInputs>
       <rdf:Bag>
         <rdf:li>SBOF</rdf:li>
-        <rdf:li>SBIF</rdf:li>
-        <rdf:li>SBQG</rdf:li>
-        <rdf:li>SBPET</rdf:li>
-        <rdf:li>SBGS</rdf:li>
+        <!--<rdf:li>SBIF</rdf:li>-->
+        <!--<rdf:li>SBQG</rdf:li>-->
+        <!--<rdf:li>SBPET</rdf:li>-->
+        <!--<rdf:li>SBGS</rdf:li>-->
       </rdf:Bag>
     </hydro:hasInputs>
+    <hydro:hasOptionalInputs>
+      <rdf:Bag>
+       <rdf:li>SBGS</rdf:li>
+       <rdf:li>SBPET</rdf:li>
+       <rdf:li>SBIF</rdf:li>
+       <rdf:li>SBQG</rdf:li>
+      </rdf:Bag>
+    </hydro:hasOptionalInputs>
 	<hydro:neededInputsForExtractingParameters>
       <rdf:Bag>
         <rdf:li>DEM</rdf:li>

@@ -84,9 +84,9 @@
 	<hydro:shortfor>Evaporation method in WetSpa</hydro:shortfor>
 	<hydro:process>Soil Evaporation</hydro:process>
   </rdf:Description>
-  <rdf:Description about="Subsurface Runoff-Darcy formula">
+  <rdf:Description about="Subsurface Flow-Darcy formula">
 	<hydro:shortfor>Darcy formula</hydro:shortfor>
-	<hydro:process>Subsurface Runoff</hydro:process>
+	<hydro:process>Subsurface Flow</hydro:process>
   </rdf:Description>
   <rdf:Description about="Snow Melt-Snowpack Daily in SWAT">
 	<hydro:shortfor>Snowpack Daily in SWAT</hydro:shortfor>
@@ -132,13 +132,13 @@
 	<hydro:shortfor>Kinematic wave</hydro:shortfor>
 	<hydro:process>Channel Flow</hydro:process>
   </rdf:Description>
-  <rdf:Description about="Subsurface Runoff-Kinematic wave">
+  <rdf:Description about="Subsurface Flow-Kinematic wave">
 	<hydro:shortfor>Kinematic wave</hydro:shortfor>
-	<hydro:process>Subsurface Runoff</hydro:process>
+	<hydro:process>Subsurface Flow</hydro:process>
   </rdf:Description>
-  <rdf:Description about="Subsurface Runoff-IUH">
+  <rdf:Description about="Subsurface Flow-IUH">
 	<hydro:shortfor>IUH</hydro:shortfor>
-	<hydro:process>Subsurface Runoff</hydro:process>
+	<hydro:process>Subsurface Flow</hydro:process>
   </rdf:Description>
   <rdf:Description about="Channel Erosion-Srinivasan Galvao function">
 	<hydro:shortfor>Srinivasan Galvao function</hydro:shortfor>
