@@ -60,7 +60,7 @@ set(CMAKE_MODULE_PATH
 ### Set default or specified installation directory.
 IF (INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Set specified install path" FORCE)
-ELSEIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+ELSE()
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Set default install path" FORCE)
 ENDIF ()
 SET(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
@@ -187,7 +187,7 @@ IF(OPENMP_FOUND)
   MESSAGE(STATUS "Compiling with OpenMP...")
 ENDIF()
 
-### Forr Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
+### For Xcode generator, specific LLVM-Clang installed by brew, and add link library of OpenMP explicitly.
 IF(XCODE AND LLVM_FOUND)
     TARGET_LINK_LIBRARIES(${CCGLNAME} ${OpenMP_LIBRARY})
 	SET_TARGET_PROPERTIES(${CCGLNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
