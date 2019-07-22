@@ -7,13 +7,14 @@ file(GLOB_RECURSE TEST_SRC_FILES *.cpp)
 set(APPNAME UnitTests_CCGL)
 add_executable(${APPNAME} ${TEST_SRC_FILES})
 target_link_libraries(${APPNAME} gtest gtest_main ${CCGLNAME})
+IF(XCODE AND LLVM_FOUND)
+    TARGET_LINK_LIBRARIES(${APPNAME} ${OpenMP_LIBRARY})
+	SET_TARGET_PROPERTIES(${APPNAME} PROPERTIES XCODE_ATTRIBUTE_CC ${LLVM_ROOT_DIR}/bin/clang)
+	SET_TARGET_PROPERTIES(${APPNAME} PROPERTIES XCODE_ATTRIBUTE_CXX ${LLVM_ROOT_DIR}/bin/clang++)
+	SET_TARGET_PROPERTIES(${APPNAME} PROPERTIES XCODE_ATTRIBUTE_COMPILER_INDEX_STORE_ENABLE "No")
+ENDIF ()
 
 install(TARGETS ${APPNAME} DESTINATION ${INSTALL_DIR})
-###
-## This is so you can do 'make test' to see all your tests run, instead of
-## manually running the executable runUnitTests to see those specific tests.
-add_test(NAME test
-         COMMAND ${APPNAME})
 
 if (RUNCOV STREQUAL 1)
     include(CodeCoverage)
