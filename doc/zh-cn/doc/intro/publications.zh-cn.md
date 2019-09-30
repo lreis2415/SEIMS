@@ -5,6 +5,7 @@
 # 期刊文章 {#PeerReviewedJournalPapers}
 ## 流域建模框架相关 {#ModelingFramework}
 
++ Zhu, L.-J., Liu, J., Qin, C.-Z., Zhu, A-X., 2019. [A modular and parallelized watershed modeling framework](http://www.sciencedirect.com/science/article/pii/S1364815218309241). Environmental Modelling & Software, in press. doi:10.1016/j.envsoft.2019.104526
 + Liu, J., Zhu, A-X., Qin, C.-Z., Wu, H., Jiang, J., 2016. [A two-level parallelization method for distributed hydrological models](http://dx.doi.org/10.1016/j.envsoft.2016.02.032). Environmental Modelling & Software 80, 175-184.
 + Liu, J., Zhu, A-X., Liu, Y., Zhu, T., Qin, C.-Z., 2014. [A layered approach to parallel computing for spatially distributed hydrological modeling](http://dx.doi.org/10.1016/j.envsoft.2013.10.005). Environmental Modelling & Software 51, 221-227.
 + Liu, J., Zhu, A-X., Qin, C.-Z., 2013. [Estimation of theoretical maximum speedup ratio for parallel computing of grid-based distributed hydrological models](https://doi.org/10.1016/j.cageo.2013.04.030). Computers & Geosciences 60, 58–62.
@@ -23,6 +24,7 @@
 
 ## 流域过程模拟与情景分析相关综述 {#ReviewsWatershedModelingScenarioAnalysis}
 
++ 朱阿兴, 朱良君, 史亚星, 秦承志, 刘军志, 2019. [流域系统综合模拟与情景分析——自然地理综合研究的新范式?](http://kns.cnki.net/kcms/detail/11.3858.p.20190822.1325.002.html) 地理科学进展 38(8), 1111–1122.  (Chinese with English Abstract.)
 + 高会然, 沈琳, 刘军志, 朱阿兴, 秦承志, 朱良君, 2017. [中国南方丘陵区非点源污染过程模拟研究进展](https://doi.org/10.3724/SP.J.1047.2017.01080). 地球信息科学学报 19(8), 1080–1088.
 + 刘军志, 朱阿兴, 秦承志, 江净超, 朱良君, 沈琳, 2015. [论地理规律对流域过程模拟并行计算的指导作用](https://doi.org/10.3724/SP.J.1047.2015.00506). 地球信息科学学报 17(5), 506–514.
 + 吴辉, 刘永波, 朱阿兴, 杨典华, 刘军志, 2013. [流域最佳管理措施空间配置优化研究进展](https://doi.org/10.11820/dlkxjz.2013.04.009). 地理科学进展 32(4), 570–579.
@@ -30,6 +32,7 @@
 
 # 学位论文 {#Dissertations}
 
++ 朱良君, 2019. 基于边界自适应配置单元的流域管理措施空间配置优化方法. 地理科学与资源研究所,中国科学院大学, 北京. (博士)
 + 高会然, 2017. 坡位功能特征指导下的 BMPs 空间配置方法. 地理科学与资源研究所,中国科学院大学, 北京. (硕士)
 + 谢军, 2015. 福建红壤区流域水土流失治理措施的情景分析--以朱溪河小流域为例. 福州大学, 福州. (硕士)
 + 吴辉, 2014. 流域最佳管理措施空间配置优化研究. 地理科学与资源研究所,中国科学院大学, 北京. (博士)
