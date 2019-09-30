@@ -8,6 +8,7 @@
 #       Optional cmake options:
 #         -DINSTALL_PREFIX=<path/to/install>
 #         -DLLVM_ROOT_DIR Specific the root directory of brew installed LLVM, e.g., /usr/local/opt/llvm
+#         -DBUILD_DOC=1 means build SEIMS documentation based on doxygen
 #
 #  Routine testing platforms and compilers include:
 #     1. Windows 10 with Visual Studio 2010/2013/2015, MSMPI-v8.1, GDAL-1.11.4
@@ -71,7 +72,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs)." OFF)
 # libraries built with hunter link against the dynamic CRT on windows
 option(BUILD_WITH_STATIC_CRT "Build against dynamic CRT on windows." ON)
 # Build documatation by doxygen
-option(SEIMS_BUILD_DOC "Build SEIMS documentation." OFF)
+option(BUILD_DOC "Build SEIMS documentation." OFF)
 
 ### Detect compiler and target platform architecture.
 INCLUDE(Utils)
@@ -143,7 +144,7 @@ ENDIF()
 
 ### Find OMP which is optional
 IF(XCODE)
-  # To use OpenMP in Xcode built by CMake, the recommended way is to 
+  # To use OpenMP in Xcode built by CMake, the recommended way is to
   #   install llvm by 'brew install llvm', which has builtin 'libomp'
   IF (NOT LLVM_ROOT_DIR)
     SET(LLVM_ROOT_DIR "/usr/local/opt/llvm")
@@ -155,10 +156,10 @@ IF(XCODE)
     SET(OpenMP_C_FLAGS "-fopenmp")
 	FIND_LIBRARY(OpenMP_LIBRARY
 		NAMES "omp"
-		HINTS ${LLVM_LIBRARY_DIRS}) 
+		HINTS ${LLVM_LIBRARY_DIRS})
     SET(OPENMP_FOUND 1)
   ENDIF ()
-ELSE ()  
+ELSE ()
   FIND_PACKAGE(OpenMP)
 ENDIF ()
 IF(OPENMP_FOUND)
@@ -202,7 +203,7 @@ INCLUDE(FindMongoC)
 ### Add subdirectories.
 ADD_SUBDIRECTORY(./seims)
 # ADD_SUBDIRECTORY(./gui)  # TODO
-IF(SEIMS_BUILD_DOC)
+IF(BUILD_DOC)
   ADD_SUBDIRECTORY(./doc)
   ADD_CUSTOM_TARGET(travis_doc)
   ADD_CUSTOM_COMMAND(TARGET travis_doc
