@@ -14,6 +14,7 @@ echo "Installing and starting mongodb"
 # The follow dependencies will be automatically installed by mongodb, i.e., automake autoconf libtool openssl
 # brew install mongodb # deprecated 2019-9-30, use new installation method according to the official instrument
 # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+brew tap mongodb/brew
 brew install mongodb-community@4.2
 # Install openmpi, of course mpich2 is OK as well.
 #brew install mpich2
