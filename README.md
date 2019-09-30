@@ -1,6 +1,6 @@
 ## SEIMS: A modular and parallelized watershed modeling framework
 
-Copyright (C) 2018 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), and [NJNU](http://en.njnu.edu.cn). All rights reserved.
+Copyright (C) 2013-2019 [Lreis](http://www.lreis.ac.cn), [IGSNRR](http://english.igsnrr.cas.cn), [CAS](http://english.cas.cn), and [NJNU](http://en.njnu.edu.cn). All rights reserved.
 
 * [SEIMS GitHub](https://github.com/lreis2415/SEIMS)
 * SEIMS Documentations
@@ -29,7 +29,7 @@ SEIMS is still being developing and any constructive feedback (issues or push re
 
 ### Watershed modeling framework
 
-+ Zhu, L.-J., Liu, J., Qin, C.-Z., Zhu, A-X., 2019. A modular and parallelized watershed modeling framework. Environmental Modelling & Software, Under review.
++ Zhu, L.-J., Liu, J., Qin, C.-Z., Zhu, A-X., 2019. [A modular and parallelized watershed modeling framework](http://www.sciencedirect.com/science/article/pii/S1364815218309241). Environmental Modelling & Software, *in press*. doi:10.1016/j.envsoft.2019.104526
 + Liu, J., Zhu, A-X., Qin, C.-Z., Wu, H., Jiang, J., 2016. [A two-level parallelization method for distributed hydrological models](http://dx.doi.org/10.1016/j.envsoft.2016.02.032). Environmental Modelling & Software 80, 175-184.
 + Liu, J., Zhu, A-X., Liu, Y., Zhu, T., Qin, C.-Z., 2014. [A layered approach to parallel computing for spatially distributed hydrological modeling](http://dx.doi.org/10.1016/j.envsoft.2013.10.005). Environmental Modelling & Software 51, 221-227.
 + Liu, J., Zhu, A-X., Qin, C.-Z., 2013. [Estimation of theoretical maximum speedup ratio for parallel computing of grid-based distributed hydrological models](https://doi.org/10.1016/j.cageo.2013.04.030). Computers & Geosciences 60, 58–62.
