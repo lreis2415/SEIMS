@@ -130,7 +130,7 @@ def main(sceobj):
     worst_env = sceobj.worst_env
     # available gene value list
     possible_gene_values = list(sceobj.bmps_params.keys())
-    if 0 not in possible_gene_values:
+    if 0 not in possible_gene_values: # 0不配置BMP
         possible_gene_values.append(0)
     units_info = sceobj.cfg.units_infos
     suit_bmps = sceobj.suit_bmps
@@ -154,6 +154,7 @@ def main(sceobj):
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
     # Initialize population
+    # 通过指定文件初始化种群，避免优化过程中途失败需再重新开始
     initialize_byinputs = False
     if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
         sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
@@ -166,6 +167,7 @@ def main(sceobj):
                 pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
                 pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
                 initialize_byinputs = True
+
     if not initialize_byinputs:
         pop = toolbox.population(sceobj.cfg, n=pop_size)  # type: List
 
