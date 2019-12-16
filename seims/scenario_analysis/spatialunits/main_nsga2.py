@@ -445,5 +445,6 @@ if __name__ == "__main__":
     scoop_log('Running time: %.2fs' % (endT - startT))
 
     import pickle
-    with open(sa_cfg.opt.out_dir + 'pop_out', 'wb') as fp:
+    with open(sa_cfg.model.model_dir + os.path.sep + 'pop_out', 'wb') as fp:
         pickle.dump(fpop, fp)
+
