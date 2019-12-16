@@ -59,6 +59,28 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
                gen=-1, id=-1,
                io_time=0., comp_time=0., simu_time=0., runtime=0.)
 
+# Register NSGA-II related operations
+toolbox = base.Toolbox()
+toolbox.register('gene_values', initialize_scenario)
+toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
+toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+
+toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
+                 toolbox.gene_values)
+toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
+
+toolbox.register('evaluate', scenario_effectiveness)
+
+# knowledge-rule based mate and mutate
+toolbox.register('mate_slppos', crossover_slppos)
+toolbox.register('mate_updown', crossover_updown)
+toolbox.register('mutate_rule', mutate_rule)
+# random-based mate and mutate
+toolbox.register('mate_rdm', crossover_rdm)
+toolbox.register('mutate_rdm', mutate_rdm)
+
+toolbox.register('select', tools.selNSGA2)
+
 
 def main(scenario_obj, pareto_pop_obj):
     # type: (SUScenario, [Individuals]) -> ()
@@ -110,6 +132,7 @@ def main(scenario_obj, pareto_pop_obj):
     logbook = tools.Logbook()
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
+    pop = toolbox.population(scenario_obj, n=pop_size)
 
 if __name__ == "__main__":
     in_cf = get_config_parser()
