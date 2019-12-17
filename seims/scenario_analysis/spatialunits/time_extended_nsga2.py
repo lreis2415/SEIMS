@@ -35,13 +35,13 @@ from typing import List
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
-from scenario_analysis.userdef import initIterateWithCfg, initRepeatWithCfg,\
+from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv,\
     initRepeatWithCfgFromList, initIterateWithCfgWithInput
 from scenario_analysis.visualization import read_pareto_solutions_from_txt
 from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig,\
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
-from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness
+from scenario_analysis.spatialunits.scenario import initialize_time_extended_scenario, scenario_effectiveness
 from scenario_analysis.spatialunits.userdef import check_individual_diff,\
     crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
 
@@ -61,13 +61,13 @@ creator.create('Individual', array.array, typecode=str('d'), fitness=creator.Fit
 
 # Register NSGA-II related operations
 toolbox = base.Toolbox()
-toolbox.register('gene_values', initialize_scenario)
-toolbox.register('individual', initIterateWithCfg, creator.Individual, toolbox.gene_values)
-toolbox.register('population', initRepeatWithCfg, list, toolbox.individual)
+toolbox.register('gene_values', initialize_time_extended_scenario)
+toolbox.register('individual', initIterateWithCfgIndv, creator.Individual, toolbox.gene_values)
+toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
 
-toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
-                 toolbox.gene_values)
-toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
+# toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
+#                  toolbox.gene_values)
+# toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
 toolbox.register('evaluate', scenario_effectiveness)
 
@@ -82,8 +82,8 @@ toolbox.register('mutate_rdm', mutate_rdm)
 toolbox.register('select', tools.selNSGA2)
 
 
-def main(scenario_obj, pareto_pop_obj):
-    # type: (SUScenario, [Individuals]) -> ()
+def main(scenario_obj, pareto_indv_obj):
+    # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
     # no need to run base scenario first
     random.seed()
@@ -132,7 +132,27 @@ def main(scenario_obj, pareto_pop_obj):
     logbook = tools.Logbook()
     logbook.header = 'gen', 'evals', 'min', 'max', 'avg', 'std'
 
-    pop = toolbox.population(scenario_obj, n=pop_size)
+    # Initialize population
+    # 通过指定文件初始化种群，避免优化过程中途失败需再重新开始
+    initialize_byinputs = False
+    # if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
+    #     sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
+    #     inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
+    #     if os.path.isfile(inpareto_file):
+    #         inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
+    #                                                             sce_name='scenario',
+    #                                                             field_name='gene_values')
+    #         if sceobj.cfg.input_pareto_gen in inpareto_solutions:
+    #             pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
+    #             pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
+    #             initialize_byinputs = True
+
+    if not initialize_byinputs:
+        pop = toolbox.population(scenario_obj.cfg, pareto_indv_obj, n=pop_size)  # type: List
+        print(pop)
+
+    init_time = time.time() - stime
+
 
 if __name__ == "__main__":
     in_cf = get_config_parser()
@@ -155,7 +175,7 @@ if __name__ == "__main__":
     # scoop_log('### START TO SCENARIOS OPTIMIZING ###')
     # startT = time.time()
 
-    time_pareto_pop, time_pareto_stats = main(sce, pareto_pop)
+    time_pareto_pop, time_pareto_stats = main(sce, pareto_pop[0])
     # fpop.sort(key=lambda x: x.fitness.values)
     # scoop_log(fstats)
     # with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:

@@ -169,6 +169,54 @@ class SUScenario(Scenario):
                                ' class, especially the overwritten rule_based_config and'
                                ' random_based_config!')
 
+    def initialize_time_extended(self, opt_genes, input_genes=None):
+        # type: (List, Optional[List]) -> List
+        """Initialize a time extended scenario.
+
+        Returns:
+            A list contains BMPs identifier of each gene location.
+        """
+        for idx, gene in enumerate(opt_genes):
+            if numpy.isclose(gene, 0.):
+                self.gene_values[idx] = 0
+            else:
+                rand_bit = random.randint(1, self.cfg.runtime_years)
+                self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
+        return self.gene_values
+        # # Create configuration rate for each location randomly, 0.4 ~ 0.6
+        # cr = random.randint(40, 60) / 100.
+        #
+        # if input_genes is not None:  # Using the input genes
+        #     if len(input_genes) == self.gene_num:
+        #         self.gene_values = input_genes[:]
+        #     else:  # Only usable for slope position units when optimizing unit boundary
+        #         typenum = self.cfg.slppos_types_num
+        #         tnum = self.cfg.thresh_num
+        #         for idx, gv in enumerate(input_genes):
+        #             gidx = idx // typenum * (typenum + tnum) + idx % self.cfg.slppos_types_num
+        #             self.gene_values[gidx] = gv
+        #     return self.gene_values
+        # else:
+        #     if self.rule_mtd == BMPS_CFG_METHODS[0]:
+        #         self.random_based_config(cr)
+        #     else:
+        #         self.rule_based_config(self.rule_mtd, cr)
+        # if self.cfg.boundary_adaptive and self.gene_num > self.cfg.units_num:
+        #     # Randomly select boundary adaptive threshold
+        #     thresholds = self.cfg.boundary_adaptive_threshs[:]
+        #     for ti in range(self.gene_num):
+        #         if ti in self.cfg.gene_to_unit:
+        #             continue
+        #         if random.random() >= cr:
+        #             continue
+        #         self.gene_values[ti] = thresholds[random.randint(0, len(thresholds) - 1)]
+        # if len(self.gene_values) == self.gene_num > 0:
+        #     return self.gene_values
+        # else:
+        #     raise RuntimeError('Initialize Scenario failed, please check the inherited scenario'
+        #                        ' class, especially the overwritten rule_based_config and'
+        #                        ' random_based_config!')
+
     def rule_based_config(self, method, conf_rate=0.5):
         # type: (float, AnyStr) -> None
         """Config available BMPs on each spatial units by knowledge-based rule method.
@@ -664,6 +712,13 @@ def initialize_scenario(cf, input_genes=None):
     """Initialize gene values"""
     sce = SUScenario(cf)
     return sce.initialize(input_genes=input_genes)
+
+
+def initialize_time_extended_scenario(cf, opt_genes, input_genes=None):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
+    """Initialize gene values"""
+    sce = SUScenario(cf)
+    return sce.initialize_time_extended(opt_genes, input_genes=input_genes)
 
 
 def scenario_effectiveness(cf, ind):

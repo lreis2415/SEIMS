@@ -62,3 +62,14 @@ def initIterateWithCfg(container, generator, cf=None):
         return container(generator())
     else:
         return container(generator(cf))
+
+
+def initRepeatWithCfgIndv(container, func, cf, indv, n=2):
+    return container(func(cf,indv) for _ in range(n))
+
+
+def initIterateWithCfgIndv(container, generator, cf, indv):
+    if cf is None:
+        return container(generator(indv))
+    else:
+        return container(generator(cf, indv))
