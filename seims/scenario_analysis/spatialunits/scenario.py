@@ -169,7 +169,7 @@ class SUScenario(Scenario):
                                ' class, especially the overwritten rule_based_config and'
                                ' random_based_config!')
 
-    def initialize_time_extended(self, opt_genes, input_genes=None):
+    def initialize_timeext(self, opt_genes, input_genes=None):
         # type: (List, Optional[List]) -> List
         """Initialize a time extended scenario.
 
@@ -478,10 +478,82 @@ class SUScenario(Scenario):
         self.economy = capex + opex - income
         return self.economy
 
+    def calculate_timeext_economy(self):
+        """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
+        self.economy = 0.
+        capex = 0. #初始投入
+        opex = 0. #年维护成本
+        income = 0. #收入
+        for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
+            gene_v = self.gene_values[gene_idx]
+            if gene_v == 0:
+                continue
+            unit_lu = dict()
+            for spname, spunits in self.cfg.units_infos.items():
+                if unit_id in spunits:
+                    unit_lu = spunits[unit_id]['landuse']
+                    break
+            bmpparam = self.bmps_params[gene_v]
+            for luid, luarea in unit_lu.items():
+                if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
+                    # get the years the bmp actually implemented
+                    actual_years = self.cfg.runtime_years + 1 - int(gene_v) % 10
+                    capex += luarea * bmpparam['CAPEX']
+                    opex += luarea * bmpparam['OPEX'] * actual_years
+                    income += luarea * bmpparam['INCOME'] * actual_years
+
+        # self.economy = capex
+        # self.economy = capex + opex
+        self.economy = capex + opex - income
+        return self.economy
+
     def calculate_environment(self):
         """Calculate environment benefit based on the output and base values predefined in
         configuration file.
         """
+        if not self.modelrun:  # no evaluate done
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            return
+        rfile = self.modelout_dir + os.path.sep + self.eval_info['ENVEVAL']
+
+        if not FileClass.is_file_exists(rfile):
+            time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
+        if not FileClass.is_file_exists(rfile):
+            print('WARNING: Although SEIMS model has been executed, the desired output: %s'
+                  ' cannot be found!' % rfile)
+            self.economy = self.worst_econ
+            self.environment = self.worst_env
+            # model clean
+            self.model.clean(delete_scenario=True)
+            return
+
+        base_amount = self.eval_info['BASE_ENV']
+        if StringClass.string_match(rfile.split('.')[-1], 'tif'):  # Raster data
+            rr = RasterUtilClass.read_raster(rfile)
+            sed_sum = rr.get_sum() / self.eval_timerange  # unit: year
+        elif StringClass.string_match(rfile.split('.')[-1], 'txt'):  # Time series data
+            sed_sum = read_simulation_from_txt(self.modelout_dir,
+                                               ['SED'], self.model.OutletID,
+                                               self.cfg.eval_stime, self.cfg.eval_etime)
+        else:
+            raise ValueError('The file format of ENVEVAL MUST be tif or txt!')
+
+        if base_amount < 0:  # indicates a base scenario
+            self.environment = sed_sum
+        else:
+            # reduction rate of soil erosion
+            self.environment = (base_amount - sed_sum) / base_amount
+            # print exception values
+            if self.environment > 1. or self.environment < 0. or self.environment is numpy.nan:
+                print('Exception Information: Scenario ID: %d, '
+                      'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
+                self.environment = self.worst_env
+
+    def calculate_timeext_environment(self):
+        """Calculate environment benefit based on the output and base values predefined in
+                configuration file.
+                """
         if not self.modelrun:  # no evaluate done
             self.economy = self.worst_econ
             self.environment = self.worst_env
@@ -714,11 +786,11 @@ def initialize_scenario(cf, input_genes=None):
     return sce.initialize(input_genes=input_genes)
 
 
-def initialize_time_extended_scenario(cf, opt_genes, input_genes=None):
+def initialize_timeext_scenario(cf, opt_genes, input_genes=None):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
     """Initialize gene values"""
     sce = SUScenario(cf)
-    return sce.initialize_time_extended(opt_genes, input_genes=input_genes)
+    return sce.initialize_timeext(opt_genes, input_genes=input_genes)
 
 
 def scenario_effectiveness(cf, ind):
@@ -740,6 +812,36 @@ def scenario_effectiveness(cf, ind):
     # 5. calculate scenario effectiveness and delete intermediate data
     sce.calculate_economy()
     sce.calculate_environment()
+    # 6. Export scenarios information
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
+    # 7. Clean the intermediate data of current scenario
+    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    # 8. Assign fitness values
+    ind.fitness.values = [sce.economy, sce.environment]
+
+    return ind
+
+
+def timeext_scenario_effectiveness(cf, ind):
+    # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], array.array) -> (float, float, int)
+    """Run SEIMS-based model and calculate time extended economic and environmental effectiveness."""
+    # 1. instantiate the inherited Scenario class.
+    sce = SUScenario(cf)
+    ind.id = sce.set_unique_id()
+    setattr(sce, 'gene_values', ind)
+    # 2. update BMP configuration units and related data according to gene_values,
+    #      i.e., bmps_info and units_infos
+    sce.boundary_adjustment()
+    # 3. decode gene values to BMP items and exporting to MongoDB.
+    sce.decoding()
+    sce.export_to_mongodb()
+    # 4. execute the SEIMS-based watershed model and get the timespan
+    sce.execute_seims_model()
+    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+    # 5. calculate scenario effectiveness and delete intermediate data
+    sce.calculate_timeext_economy()
+    sce.calculate_timeext_environment()
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
