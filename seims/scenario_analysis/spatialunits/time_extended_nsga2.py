@@ -43,8 +43,7 @@ from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldCon
 from scenario_analysis.spatialunits.scenario import SUScenario
 from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness,\
     initialize_timeext_scenario, timeext_scenario_effectiveness
-from scenario_analysis.spatialunits.userdef import check_individual_diff,\
-    crossover_rdm, crossover_slppos, crossover_updown, mutate_rule, mutate_rdm
+from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_rdm_timeext
 
 # Multiobjects: Minimum the economical cost, and maximum reduction rate of soil erosion
 multi_weight = (-1., 1.)
@@ -71,15 +70,8 @@ toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
 # toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
 toolbox.register('evaluate', timeext_scenario_effectiveness)
-
-# knowledge-rule based mate and mutate
-toolbox.register('mate_slppos', crossover_slppos)
-toolbox.register('mate_updown', crossover_updown)
-toolbox.register('mutate_rule', mutate_rule)
-# random-based mate and mutate
-toolbox.register('mate_rdm', crossover_rdm)
-toolbox.register('mutate_rdm', mutate_rdm)
-
+toolbox.register('crossover', tools.cxTwoPoint)
+toolbox.register('mutate_rdm', mutate_rdm_timeext)
 toolbox.register('select', tools.selNSGA2)
 
 def run_base_scenario(sceobj):
@@ -222,38 +214,33 @@ def main(scenario_obj, pareto_indv_obj):
         allmodels_exect.append([ind.io_time, ind.comp_time, ind.simu_time, ind.runtime])
         modelruns_time_sum[0] += ind.runtime
 
-    # # Currently, len(pop) may less than pop_select_num
-    # pop = toolbox.select(pop, pop_select_num)
-    # record = stats.compile(pop)
-    # logbook.record(gen=0, evals=len(pop), **record)
-    # scoop_log(logbook.stream)
-    # front = numpy.array([ind.fitness.values for ind in pop])
-    # # save front for further possible use
-    # numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'timeext_pareto_front_gen0.txt',
-    #               front, delimiter=str(' '), fmt=str('%.4f'))
+    # Currently, len(pop) may less than pop_select_num
+    pop = toolbox.select(pop, pop_select_num)
+    record = stats.compile(pop)
+    logbook.record(gen=0, evals=len(pop), **record)
+    scoop_log(logbook.stream)
+    front = numpy.array([ind.fitness.values for ind in pop])
+    # save front for further possible use
+    numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'timeext_pareto_front_gen0.txt',
+                  front, delimiter=str(' '), fmt=str('%.4f'))
 
-    # # Begin the generational process
-    # output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
-    # scoop_log(output_str)
-    # UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='replace')
-    #
-    # modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
-    #
-    # for gen in range(1, gen_num + 1):
-    #     output_str = '###### Generation: %d ######\n' % gen
-    #     scoop_log(output_str)
-    #     offspring = [toolbox.clone(ind) for ind in pop]
-    #     if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
-    #         for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
-    #             old_ind1 = toolbox.clone(ind1)
-    #             old_ind2 = toolbox.clone(ind2)
-    #             if random.random() <= cx_rate:
-    #                 if cfg_method == BMPS_CFG_METHODS[3]:  # SLPPOS method
-    #                     toolbox.mate_slppos(ind1, ind2, sceobj.cfg.hillslp_genes_num)
-    #                 elif cfg_method == BMPS_CFG_METHODS[2]:  # UPDOWN method
-    #                     toolbox.mate_updown(updown_units, gene_to_unit, unit_to_gene, ind1, ind2)
-    #                 else:
-    #                     toolbox.mate_rdm(ind1, ind2)
+    # Begin the generational process
+    output_str = '### Generation number: %d, Population size: %d ###\n' % (gen_num, pop_size)
+    scoop_log(output_str)
+    UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='replace')
+
+    modelsel_count = {0: len(pop)}  # type: Dict[int, int] # newly added Pareto fronts
+
+    for gen in range(1, gen_num + 1):
+        output_str = '###### Generation: %d ######\n' % gen
+        scoop_log(output_str)
+        offspring = [toolbox.clone(ind) for ind in pop]
+        if len(offspring) >= 2:  # when offspring size greater than 2, mate can be done
+            for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+                old_ind1 = toolbox.clone(ind1)
+                old_ind2 = toolbox.clone(ind2)
+                if random.random() <= cx_rate:
+                    toolbox.mate_rdm(ind1, ind2)
     #
     #             if cfg_method == BMPS_CFG_METHODS[0]:
     #                 toolbox.mutate_rdm(possible_gene_values, ind1, perc=mut_perc, indpb=mut_rate)
