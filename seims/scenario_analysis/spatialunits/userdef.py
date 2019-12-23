@@ -425,21 +425,17 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
     return individual
 
 
-def mutate_uniform_timeext(indv, low, up, indpb):
-    # size = len(individual)
-    # if not isinstance(low, Sequence):
-    #     low = repeat(low, size)
-    # elif len(low) < size:
-    #     raise IndexError("low must be at least the size of individual: %d < %d" % (len(low), size))
-    # if not isinstance(up, Sequence):
-    #     up = repeat(up, size)
-    # elif len(up) < size:
-    #     raise IndexError("up must be at least the size of individual: %d < %d" % (len(up), size))
-    #
-    # for i, xl, xu in zip(xrange(size), low, up):
-    #     if random.random() < indpb:
-    #         individual[i] = random.randint(xl, xu)
-    return indv,
+def mutate_timeext(indv, low, up, indpb):
+    for i,bit in enumerate(indv):
+        if random.random() < indpb:
+            bit = int(bit)  # float -> int
+            if bit != 0:  # 0 does not need mutate
+                ints = list(map(int, str(bit)))
+                # random change the last int
+                ints[len(ints)-1] = random.randint(low, up)
+                # list -> str -> float
+                indv[i] = float(''.join(map(str, ints)))
+    return indv
 
 
 def main_test_crossover_mutate(gen_num, cx_rate, mut_perc, mut_rate):
