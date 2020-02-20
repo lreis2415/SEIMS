@@ -1,0 +1,32 @@
+####### Discharge #######
+### Evapotranspiration, PET_PM
+K_pet,-0.3,0.3
+#gsi,0.8,2.0
+### Interception,PI_MCS
+#Interc_max,0.5,2.0
+#Interc_min,0.5,2.0
+#Pi_b,-0.15,0.15
+### Surface runoff, SUR_MR
+#K_run,-1.5,1.5
+#P_max,-20,10
+Runoff_co,0.8,2
+sw_cap,0.9,1.5
+### Depression, DEP_LINSLEY
+#Depression,0.8,1.5
+### Percolation, PER_STR
+Conductivity,0.6,1.2
+### Subsurface, SSR_DA
+Ki,-2,-1
+#Poreindex,0.5,2
+### Groundwater, GWA_RE
+Base_ex,0.8,1.2
+df_coef,0.2,0.5
+#gwmax,0,500
+Kg,-0.004,0
+### Channel parameters
+#ep_ch,-0.5,0
+#ch_width,1,4
+#ch_depth,0.8,2
+#MSK_co1,0,0.25
+#MSK_X,-0.1,0.1
+ch_n,0.4,1

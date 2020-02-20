@@ -1,0 +1,60 @@
+#!/bin/sh
+#BSUB -o run_ywz_30m.out
+#BSUB -J run_ywz_30m_mpi_proc12_thread4
+# BSUB -n 12
+# BSUB -R "span[ptile=3]"
+# BSUB -q rhel6normal
+
+source ~/.bash_profile
+
+ws=/wps/home/zhulj/seims_phd
+
+bindir=/wps/home/zhulj/seims_phd/SEIMS/bin
+modeldir=$ws/demo_youwuzhen30m_longterm_model
+stdout=$modeldir/stdout.log
+nproc=12
+nthread=2
+sceID=0
+caliID=-1
+# start a new host file from scratch
+HOST_FILE=$modeldir/hosts_$LSB_JOBID
+rm -f $HOST_FILE
+touch $HOST_FILE
+echo "# Hostfile created by LSF on `date`
+"# check if we were able to start writing the conf file
+if [ -f $HOST_FILE ]; then
+    :
+else
+    echo "$0: can not create $HOST_FILE"
+    exit 1
+fi
+HOST=""
+NUM_PROC=""
+FLAG=""
+TOTAL_CPUS=0
+echo $LSB_MCPU_HOSTS
+for TOKEN in $LSB_MCPU_HOSTS
+    do
+        if [ -z "$FLAG" ]; then # -z means string is empty
+            HOST="$TOKEN"
+            FLAG="0"
+        else
+            NUM_PROC="$TOKEN"
+            FLAG="1"
+        fi
+        if [ "$FLAG" = "1" ]; then
+            _x=0
+            if [ $_x -lt $NUM_PROC ]; then
+                TOTAL_CPUS=`expr "$TOTAL_CPUS" + "$NUM_PROC"`
+                echo "$HOST:$NUM_PROC" >> $HOST_FILE
+            fi
+            # get ready for the next host
+            FLAG=""
+            HOST=""
+            NUM_PROC=""
+        fi
+    done
+echo "Your machine file looks like:"
+cat $HOST_FILE
+# Run SEIMS model
+mpirun -machinefile $HOST_FILE -n $nproc $bindir/seims_mpi -wp $modeldir -host 172.20.0.205 -port 27018 -thread $nthread -lyr 1 -sce $sceID -cali $caliID > $stdout

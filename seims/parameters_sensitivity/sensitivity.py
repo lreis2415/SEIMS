@@ -139,6 +139,7 @@ class Sensitivity(object):
         dists = list()
         num_vars = 0
         items = read_data_items_from_txt(self.cfg.param_range_def)
+        print(items)
         for item in items:
             if len(item) < 3:
                 continue

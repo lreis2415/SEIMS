@@ -51,7 +51,7 @@ from calibration.userdef import write_param_values_to_mongodb, output_population
 accepted_objnames = ['NSE', 'RSR', 'PBIAS', 'R-square', 'RMSE', 'lnNSE', 'NSE1', 'NSE3']
 
 # step can be one of 'Q', 'SED', 'QSED', 'NUTRIENT', or 'CUSTOMIZE'.
-step = 'Q'
+step = 'CUSTOMIZE'
 filter_ind = False  # Filter for valid population for the next generation
 # Definitions of Multiobjectives:
 multiobj = dict()
@@ -73,12 +73,12 @@ elif step == 'NUTRIENT':
     multiobj.setdefault('SED', [['NSE', 1., -100]])
 else:
     # Customize your own multiobjective here, such as:
-    multiobj.setdefault('Q', [['NSE', 3., 0., '>0.'],
-                              ['RSR', -1., 2., '<2.'],
-                              ['PBIAS', -1., 50., '<50.']])
-    multiobj.setdefault('SED', [['NSE', 3., 0., '>0.'],
-                                ['RSR', -1., 2., '<2.'],
-                                ['PBIAS', -1., 100., '<100.']])
+    multiobj.setdefault('Q', [['NSE', 1., -100, '>0.3'],
+                              ['RSR', -1., 100, '<0.9'],
+                              ['PBIAS', -1., 500., '<30.']])
+    multiobj.setdefault('SED', [['NSE', 1., -100, '>0.3'],
+                                ['RSR', -1., 100, '<0.9'],
+                                ['PBIAS', -1., 500., '<30.']])
 
 # Check object variables
 if not multiobj:

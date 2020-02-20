@@ -1,0 +1,14 @@
+使用import_raster程序将这些空间单元栅格导入数据库中
+
+Usage: ImportRaster <MaskFile> <DataFolder> <modelName> <GridFSName> <hostIP> <port> [outputFolder]
+
+> cd D:\compile\bin\seims_mpi_omp
+# 整个流域导入
+> import_raster C:\z_data_m\SEIMS2018\youwuzhen_10m\spatial_raster\mask.tif D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units youwuzhen10m_longterm_model SPATIAL 127.0.0.1 27017 D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\outputs_for_mongodb
+# 分子流域导入
+> import_raster C:\z_data_m\SEIMS2018\youwuzhen_10m\spatial_raster\subbasin.tif D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units youwuzhen10m_longterm_model SPATIAL 127.0.0.1 27017 D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\outputs_for_mongodb
+
+# 整个流域导入
+> import_raster C:\z_data_m\SEIMS2018\youwuzhen_10m\spatial_raster\mask.tif D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units youwuzhen10m_longterm_model SPATIAL 192.168.253.203 27018 D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\outputs_for_mongodb
+# 分子流域导入
+> import_raster C:\z_data_m\SEIMS2018\youwuzhen_10m\spatial_raster\subbasin.tif D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units youwuzhen10m_longterm_model SPATIAL 192.168.253.203 27018 D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\outputs_for_mongodb

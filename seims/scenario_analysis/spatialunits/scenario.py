@@ -520,6 +520,7 @@ class SUScenario(Scenario):
         if not FileClass.is_file_exists(rfile):
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
         if not FileClass.is_file_exists(rfile):
+            #print(os.listdir(self.modelout_dir))
             print('WARNING: Although SEIMS model has been executed, the desired output: %s'
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ

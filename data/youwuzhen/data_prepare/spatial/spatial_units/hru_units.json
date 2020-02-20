@@ -1,0 +1,2522 @@
+{
+    "units": {
+        "1": {
+            "landuse": {
+                "6": 0.003
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.003
+        }, 
+        "2": {
+            "landuse": {
+                "6": 0.011099999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.011099999999999999
+        }, 
+        "3": {
+            "landuse": {
+                "6": 0.016
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.016
+        }, 
+        "4": {
+            "landuse": {
+                "6": 0.017499999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.017499999999999998
+        }, 
+        "5": {
+            "landuse": {
+                "6": 0.0075
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0075
+        }, 
+        "6": {
+            "landuse": {
+                "6": 0.0231
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0231
+        }, 
+        "7": {
+            "landuse": {
+                "6": 0.0385
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0385
+        }, 
+        "8": {
+            "landuse": {
+                "6": 0.047599999999999996
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.047599999999999996
+        }, 
+        "9": {
+            "landuse": {
+                "33": 0.017599999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.017599999999999998
+        }, 
+        "10": {
+            "landuse": {
+                "33": 0.0149
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0149
+        }, 
+        "11": {
+            "landuse": {
+                "33": 0.005699999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.005699999999999999
+        }, 
+        "12": {
+            "landuse": {
+                "33": 0.0025
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0025
+        }, 
+        "13": {
+            "landuse": {
+                "8": 0.0123
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0123
+        }, 
+        "14": {
+            "landuse": {
+                "8": 0.0372
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0372
+        }, 
+        "15": {
+            "landuse": {
+                "8": 0.0572
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0572
+        }, 
+        "16": {
+            "landuse": {
+                "8": 0.0795
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0795
+        }, 
+        "17": {
+            "landuse": {
+                "8": 0.0667
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0667
+        }, 
+        "18": {
+            "landuse": {
+                "8": 0.0021
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0021
+        }, 
+        "19": {
+            "landuse": {
+                "8": 0.0157
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0157
+        }, 
+        "20": {
+            "landuse": {
+                "8": 0.0301
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0301
+        }, 
+        "21": {
+            "landuse": {
+                "8": 0.0411
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0411
+        }, 
+        "22": {
+            "landuse": {
+                "8": 0.07909999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.07909999999999999
+        }, 
+        "23": {
+            "landuse": {
+                "6": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.00019999999999999998
+        }, 
+        "24": {
+            "landuse": {
+                "6": 0.0010999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0010999999999999998
+        }, 
+        "25": {
+            "landuse": {
+                "6": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.00019999999999999998
+        }, 
+        "26": {
+            "landuse": {
+                "6": 0.0003
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0003
+        }, 
+        "27": {
+            "landuse": {
+                "6": 0.0007
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007
+        }, 
+        "28": {
+            "landuse": {
+                "6": 0.0009
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0009
+        }, 
+        "29": {
+            "landuse": {
+                "33": 0.0272
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0272
+        }, 
+        "30": {
+            "landuse": {
+                "33": 0.026799999999999997
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.026799999999999997
+        }, 
+        "31": {
+            "landuse": {
+                "33": 0.003
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.003
+        }, 
+        "32": {
+            "landuse": {
+                "33": 0.0012
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0012
+        }, 
+        "33": {
+            "landuse": {
+                "33": 0.0017
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0017
+        }, 
+        "34": {
+            "landuse": {
+                "33": 0.0009
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0009
+        }, 
+        "35": {
+            "landuse": {
+                "4": 0.0081
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0081
+        }, 
+        "36": {
+            "landuse": {
+                "8": 9.999999999999999e-05, 
+                "33": 9.999999999999999e-05, 
+                "4": 0.0516
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0518
+        }, 
+        "37": {
+            "landuse": {
+                "4": 0.045399999999999996
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.045399999999999996
+        }, 
+        "38": {
+            "landuse": {
+                "4": 0.0334
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0334
+        }, 
+        "39": {
+            "landuse": {
+                "4": 0.0207, 
+                "6": 9.999999999999999e-05
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0208
+        }, 
+        "40": {
+            "landuse": {
+                "8": 0.012799999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.012799999999999999
+        }, 
+        "41": {
+            "landuse": {
+                "8": 0.045399999999999996
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.045399999999999996
+        }, 
+        "42": {
+            "landuse": {
+                "8": 0.0824
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0824
+        }, 
+        "43": {
+            "landuse": {
+                "8": 0.10779999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.10779999999999999
+        }, 
+        "44": {
+            "landuse": {
+                "8": 0.0696
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0696
+        }, 
+        "45": {
+            "landuse": {
+                "6": 0.0052
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0052
+        }, 
+        "46": {
+            "landuse": {
+                "8": 0.0003, 
+                "33": 0.0007999999999999999, 
+                "6": 0.0269, 
+                "104": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0282
+        }, 
+        "47": {
+            "landuse": {
+                "8": 0.00039999999999999996, 
+                "33": 0.0007999999999999999, 
+                "6": 0.052899999999999996, 
+                "104": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.054299999999999994
+        }, 
+        "48": {
+            "landuse": {
+                "8": 0.00019999999999999998, 
+                "33": 0.0003, 
+                "6": 0.039099999999999996
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.039599999999999996
+        }, 
+        "49": {
+            "landuse": {
+                "8": 0.00019999999999999998, 
+                "33": 9.999999999999999e-05, 
+                "6": 0.022699999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.023
+        }, 
+        "50": {
+            "landuse": {
+                "33": 0.0247
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0247
+        }, 
+        "51": {
+            "landuse": {
+                "33": 0.0069
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0069
+        }, 
+        "52": {
+            "landuse": {
+                "33": 0.0007
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0007
+        }, 
+        "53": {
+            "landuse": {
+                "33": 0.016399999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.016399999999999998
+        }, 
+        "54": {
+            "landuse": {
+                "33": 0.0109
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0109
+        }, 
+        "55": {
+            "landuse": {
+                "33": 0.0017
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0017
+        }, 
+        "56": {
+            "landuse": {
+                "104": 0.0009
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0009
+        }, 
+        "57": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "58": {
+            "landuse": {
+                "8": 0.0009
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0009
+        }, 
+        "59": {
+            "landuse": {
+                "8": 0.0026
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0026
+        }, 
+        "60": {
+            "landuse": {
+                "8": 0.0040999999999999995
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0040999999999999995
+        }, 
+        "61": {
+            "landuse": {
+                "8": 0.0047
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0047
+        }, 
+        "62": {
+            "landuse": {
+                "8": 0.005
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.005
+        }, 
+        "63": {
+            "landuse": {
+                "33": 0.003
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.003
+        }, 
+        "64": {
+            "landuse": {
+                "18": 0.0013
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0013
+        }, 
+        "65": {
+            "landuse": {
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007999999999999999
+        }, 
+        "66": {
+            "landuse": {
+                "6": 0.0029
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0029
+        }, 
+        "67": {
+            "landuse": {
+                "6": 0.0135
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0135
+        }, 
+        "68": {
+            "landuse": {
+                "6": 0.0224
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0224
+        }, 
+        "69": {
+            "landuse": {
+                "6": 0.024
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.024
+        }, 
+        "70": {
+            "landuse": {
+                "33": 0.0052
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0052
+        }, 
+        "71": {
+            "landuse": {
+                "33": 0.006699999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.006699999999999999
+        }, 
+        "72": {
+            "landuse": {
+                "33": 0.004399999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.004399999999999999
+        }, 
+        "73": {
+            "landuse": {
+                "33": 0.0023
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0023
+        }, 
+        "74": {
+            "landuse": {
+                "33": 0.00039999999999999996
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.00039999999999999996
+        }, 
+        "75": {
+            "landuse": {
+                "8": 0.005
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.005
+        }, 
+        "76": {
+            "landuse": {
+                "8": 0.0115
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0115
+        }, 
+        "77": {
+            "landuse": {
+                "8": 0.0188
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0188
+        }, 
+        "78": {
+            "landuse": {
+                "8": 0.0272
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0272
+        }, 
+        "79": {
+            "landuse": {
+                "8": 0.036199999999999996
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.036199999999999996
+        }, 
+        "80": {
+            "landuse": {
+                "6": 0.0019
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0019
+        }, 
+        "81": {
+            "landuse": {
+                "6": 0.0098
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0098
+        }, 
+        "82": {
+            "landuse": {
+                "8": 0.0005, 
+                "33": 0.0009, 
+                "6": 0.0368
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0382
+        }, 
+        "83": {
+            "landuse": {
+                "6": 0.032
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.032
+        }, 
+        "84": {
+            "landuse": {
+                "6": 0.0347
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0347
+        }, 
+        "85": {
+            "landuse": {
+                "6": 0.0012
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0012
+        }, 
+        "86": {
+            "landuse": {
+                "6": 0.0078
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0078
+        }, 
+        "87": {
+            "landuse": {
+                "6": 0.0207
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0207
+        }, 
+        "88": {
+            "landuse": {
+                "6": 0.024399999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.024399999999999998
+        }, 
+        "89": {
+            "landuse": {
+                "6": 0.0236
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0236
+        }, 
+        "90": {
+            "landuse": {
+                "33": 0.0177
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0177
+        }, 
+        "91": {
+            "landuse": {
+                "33": 0.0405
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0405
+        }, 
+        "92": {
+            "landuse": {
+                "33": 0.007699999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.007699999999999999
+        }, 
+        "93": {
+            "landuse": {
+                "33": 0.0005
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0005
+        }, 
+        "94": {
+            "landuse": {
+                "8": 0.0028
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0028
+        }, 
+        "95": {
+            "landuse": {
+                "8": 0.013999999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.013999999999999999
+        }, 
+        "96": {
+            "landuse": {
+                "8": 0.0287
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0287
+        }, 
+        "97": {
+            "landuse": {
+                "8": 0.035199999999999995
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.035199999999999995
+        }, 
+        "98": {
+            "landuse": {
+                "8": 0.050699999999999995
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.050699999999999995
+        }, 
+        "99": {
+            "landuse": {
+                "8": 0.0018
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0018
+        }, 
+        "100": {
+            "landuse": {
+                "8": 0.0078
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0078
+        }, 
+        "101": {
+            "landuse": {
+                "8": 0.0742
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0742
+        }, 
+        "102": {
+            "landuse": {
+                "104": 0.0025
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0025
+        }, 
+        "103": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "104": {
+            "landuse": {
+                "104": 0.0026999999999999997
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0026999999999999997
+        }, 
+        "105": {
+            "landuse": {
+                "104": 0.0157
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0157
+        }, 
+        "106": {
+            "landuse": {
+                "104": 0.0019
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0019
+        }, 
+        "107": {
+            "landuse": {
+                "33": 0.0401
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0401
+        }, 
+        "108": {
+            "landuse": {
+                "33": 0.0063
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0063
+        }, 
+        "109": {
+            "landuse": {
+                "33": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.00019999999999999998
+        }, 
+        "110": {
+            "landuse": {
+                "18": 0.0014
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0014
+        }, 
+        "111": {
+            "landuse": {
+                "18": 0.0003
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0003
+        }, 
+        "112": {
+            "landuse": {
+                "4": 0.0007
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0007
+        }, 
+        "113": {
+            "landuse": {
+                "4": 0.0062
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0062
+        }, 
+        "114": {
+            "landuse": {
+                "4": 0.0429
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0429
+        }, 
+        "115": {
+            "landuse": {
+                "4": 0.0649
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0649
+        }, 
+        "116": {
+            "landuse": {
+                "4": 0.0263
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0263
+        }, 
+        "117": {
+            "landuse": {
+                "4": 0.007899999999999999
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.007899999999999999
+        }, 
+        "118": {
+            "landuse": {
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007999999999999999
+        }, 
+        "119": {
+            "landuse": {
+                "6": 0.0031999999999999997
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0031999999999999997
+        }, 
+        "120": {
+            "landuse": {
+                "6": 0.0025
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0025
+        }, 
+        "121": {
+            "landuse": {
+                "6": 0.001
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.001
+        }, 
+        "122": {
+            "landuse": {
+                "6": 0.0065
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0065
+        }, 
+        "123": {
+            "landuse": {
+                "6": 0.0301
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0301
+        }, 
+        "124": {
+            "landuse": {
+                "6": 0.0373
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0373
+        }, 
+        "125": {
+            "landuse": {
+                "6": 0.0208
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0208
+        }, 
+        "126": {
+            "landuse": {
+                "33": 0.012
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.012
+        }, 
+        "127": {
+            "landuse": {
+                "33": 0.0033
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0033
+        }, 
+        "128": {
+            "landuse": {
+                "33": 0.013
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.013
+        }, 
+        "129": {
+            "landuse": {
+                "33": 0.0143
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0143
+        }, 
+        "130": {
+            "landuse": {
+                "33": 0.0045
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0045
+        }, 
+        "131": {
+            "landuse": {
+                "33": 0.0015
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0015
+        }, 
+        "132": {
+            "landuse": {
+                "4": 0.0009
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0009
+        }, 
+        "133": {
+            "landuse": {
+                "8": 9.999999999999999e-05, 
+                "33": 9.999999999999999e-05, 
+                "4": 0.0059
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0060999999999999995
+        }, 
+        "134": {
+            "landuse": {
+                "4": 0.0048
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0048
+        }, 
+        "135": {
+            "landuse": {
+                "4": 0.0063999999999999994
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0063999999999999994
+        }, 
+        "136": {
+            "landuse": {
+                "8": 0.0009
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0009
+        }, 
+        "137": {
+            "landuse": {
+                "8": 0.0024
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0024
+        }, 
+        "138": {
+            "landuse": {
+                "8": 0.0031
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0031
+        }, 
+        "139": {
+            "landuse": {
+                "8": 0.0031
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0031
+        }, 
+        "140": {
+            "landuse": {
+                "8": 0.0062
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0062
+        }, 
+        "141": {
+            "landuse": {
+                "8": 0.004
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.004
+        }, 
+        "142": {
+            "landuse": {
+                "8": 0.014199999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.014199999999999999
+        }, 
+        "143": {
+            "landuse": {
+                "8": 0.0263
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0263
+        }, 
+        "144": {
+            "landuse": {
+                "8": 0.0426, 
+                "4": 0.0007999999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0434
+        }, 
+        "145": {
+            "landuse": {
+                "8": 0.0561, 
+                "33": 9.999999999999999e-05, 
+                "4": 0.0005
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0567
+        }, 
+        "146": {
+            "landuse": {
+                "6": 0.0033
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0033
+        }, 
+        "147": {
+            "landuse": {
+                "6": 0.0075
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0075
+        }, 
+        "148": {
+            "landuse": {
+                "6": 0.0026999999999999997
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0026999999999999997
+        }, 
+        "149": {
+            "landuse": {
+                "6": 0.0003
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0003
+        }, 
+        "150": {
+            "landuse": {
+                "104": 0.0003, 
+                "6": 0.0031
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0034
+        }, 
+        "151": {
+            "landuse": {
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007999999999999999
+        }, 
+        "152": {
+            "landuse": {
+                "104": 0.005399999999999999
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.005399999999999999
+        }, 
+        "153": {
+            "landuse": {
+                "104": 0.0007
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0007
+        }, 
+        "154": {
+            "landuse": {
+                "104": 0.0024
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0024
+        }, 
+        "155": {
+            "landuse": {
+                "104": 0.0015
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0015
+        }, 
+        "156": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "157": {
+            "landuse": {
+                "104": 0.0018
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0018
+        }, 
+        "158": {
+            "landuse": {
+                "104": 0.0012
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0012
+        }, 
+        "159": {
+            "landuse": {
+                "104": 0.0009
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0009
+        }, 
+        "160": {
+            "landuse": {
+                "18": 0.0006
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0006
+        }, 
+        "161": {
+            "landuse": {
+                "8": 0.0014
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0014
+        }, 
+        "162": {
+            "landuse": {
+                "8": 0.012799999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.012799999999999999
+        }, 
+        "163": {
+            "landuse": {
+                "8": 0.0107
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0107
+        }, 
+        "164": {
+            "landuse": {
+                "8": 0.0031999999999999997
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0031999999999999997
+        }, 
+        "165": {
+            "landuse": {
+                "33": 0.0163
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0163
+        }, 
+        "166": {
+            "landuse": {
+                "33": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.00019999999999999998
+        }, 
+        "167": {
+            "landuse": {
+                "33": 0.0299
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0299
+        }, 
+        "168": {
+            "landuse": {
+                "33": 0.0005
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0005
+        }, 
+        "169": {
+            "landuse": {
+                "33": 0.0073
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0073
+        }, 
+        "170": {
+            "landuse": {
+                "33": 0.0003
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0003
+        }, 
+        "171": {
+            "landuse": {
+                "106": 0.0050999999999999995
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0050999999999999995
+        }, 
+        "172": {
+            "landuse": {
+                "106": 0.0068
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0068
+        }, 
+        "173": {
+            "landuse": {
+                "106": 0.0081
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0081
+        }, 
+        "174": {
+            "landuse": {
+                "106": 0.0072
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0072
+        }, 
+        "175": {
+            "landuse": {
+                "106": 0.0144
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0144
+        }, 
+        "176": {
+            "landuse": {
+                "8": 0.0070999999999999995
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0070999999999999995
+        }, 
+        "177": {
+            "landuse": {
+                "8": 0.0225
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0225
+        }, 
+        "178": {
+            "landuse": {
+                "8": 0.051699999999999996
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.051699999999999996
+        }, 
+        "179": {
+            "landuse": {
+                "8": 0.06989999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.06989999999999999
+        }, 
+        "180": {
+            "landuse": {
+                "8": 0.06409999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.06409999999999999
+        }, 
+        "181": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "182": {
+            "landuse": {
+                "104": 0.00019999999999999998
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.00019999999999999998
+        }, 
+        "183": {
+            "landuse": {
+                "33": 0.0029
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0029
+        }, 
+        "184": {
+            "landuse": {
+                "33": 0.0056
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0056
+        }, 
+        "185": {
+            "landuse": {
+                "18": 0.0012
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0012
+        }, 
+        "186": {
+            "landuse": {
+                "6": 0.004399999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.004399999999999999
+        }, 
+        "187": {
+            "landuse": {
+                "6": 0.016
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.016
+        }, 
+        "188": {
+            "landuse": {
+                "6": 0.0236
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0236
+        }, 
+        "189": {
+            "landuse": {
+                "6": 0.0312
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0312
+        }, 
+        "190": {
+            "landuse": {
+                "6": 0.0021
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0021
+        }, 
+        "191": {
+            "landuse": {
+                "6": 0.0191
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0191
+        }, 
+        "192": {
+            "landuse": {
+                "6": 0.0353
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0353
+        }, 
+        "193": {
+            "landuse": {
+                "6": 0.0225
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0225
+        }, 
+        "194": {
+            "landuse": {
+                "6": 0.013699999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.013699999999999999
+        }, 
+        "195": {
+            "landuse": {
+                "33": 0.0013
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0013
+        }, 
+        "196": {
+            "landuse": {
+                "33": 0.0005
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0005
+        }, 
+        "197": {
+            "landuse": {
+                "33": 0.10819999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.10819999999999999
+        }, 
+        "198": {
+            "landuse": {
+                "33": 0.057499999999999996
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.057499999999999996
+        }, 
+        "199": {
+            "landuse": {
+                "33": 0.0115
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0115
+        }, 
+        "200": {
+            "landuse": {
+                "33": 0.0015999999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0015999999999999999
+        }, 
+        "201": {
+            "landuse": {
+                "33": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.00019999999999999998
+        }, 
+        "202": {
+            "landuse": {
+                "33": 0.0033
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0033
+        }, 
+        "203": {
+            "landuse": {
+                "33": 0.0036
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0036
+        }, 
+        "204": {
+            "landuse": {
+                "33": 0.0010999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0010999999999999998
+        }, 
+        "205": {
+            "landuse": {
+                "33": 0.0024
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0024
+        }, 
+        "206": {
+            "landuse": {
+                "33": 0.0017
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0017
+        }, 
+        "207": {
+            "landuse": {
+                "8": 0.00039999999999999996
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.00039999999999999996
+        }, 
+        "208": {
+            "landuse": {
+                "8": 0.0013
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0013
+        }, 
+        "209": {
+            "landuse": {
+                "8": 0.00019999999999999998
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.00019999999999999998
+        }, 
+        "210": {
+            "landuse": {
+                "8": 0.009
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.009
+        }, 
+        "211": {
+            "landuse": {
+                "8": 0.0497, 
+                "6": 9.999999999999999e-05
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.049800000000000004
+        }, 
+        "212": {
+            "landuse": {
+                "8": 0.1016, 
+                "33": 9.999999999999999e-05
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.1017
+        }, 
+        "213": {
+            "landuse": {
+                "8": 0.1049
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.1049
+        }, 
+        "214": {
+            "landuse": {
+                "8": 0.1782
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.1782
+        }, 
+        "215": {
+            "landuse": {
+                "8": 0.00019999999999999998
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.00019999999999999998
+        }, 
+        "216": {
+            "landuse": {
+                "8": 0.0007999999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0007999999999999999
+        }, 
+        "217": {
+            "landuse": {
+                "8": 0.0038
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0038
+        }, 
+        "218": {
+            "landuse": {
+                "8": 0.0047
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0047
+        }, 
+        "219": {
+            "landuse": {
+                "8": 0.0096
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0096
+        }, 
+        "220": {
+            "landuse": {
+                "104": 0.0003, 
+                "33": 0.093, 
+                "18": 0.00019999999999999998, 
+                "8": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0937
+        }, 
+        "221": {
+            "landuse": {
+                "33": 0.002
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.002
+        }, 
+        "222": {
+            "landuse": {
+                "33": 0.07769999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.07769999999999999
+        }, 
+        "223": {
+            "landuse": {
+                "33": 0.0034999999999999996
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0034999999999999996
+        }, 
+        "224": {
+            "landuse": {
+                "4": 0.0116
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0116
+        }, 
+        "225": {
+            "landuse": {
+                "4": 0.0481
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0481
+        }, 
+        "226": {
+            "landuse": {
+                "4": 0.024399999999999998
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.024399999999999998
+        }, 
+        "227": {
+            "landuse": {
+                "4": 0.0058
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0058
+        }, 
+        "228": {
+            "landuse": {
+                "8": 0.0006
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0006
+        }, 
+        "229": {
+            "landuse": {
+                "8": 0.0019
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0019
+        }, 
+        "230": {
+            "landuse": {
+                "8": 0.0010999999999999998
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0010999999999999998
+        }, 
+        "231": {
+            "landuse": {
+                "104": 0.0009
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0009
+        }, 
+        "232": {
+            "landuse": {
+                "104": 0.0003
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0003
+        }, 
+        "233": {
+            "landuse": {
+                "104": 0.0009
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0009
+        }, 
+        "234": {
+            "landuse": {
+                "8": 0.0017
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0017
+        }, 
+        "235": {
+            "landuse": {
+                "8": 0.0153
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0153
+        }, 
+        "236": {
+            "landuse": {
+                "8": 0.0215
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0215
+        }, 
+        "237": {
+            "landuse": {
+                "8": 0.006699999999999999, 
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0075
+        }, 
+        "238": {
+            "landuse": {
+                "8": 0.0005
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0005
+        }, 
+        "239": {
+            "landuse": {
+                "104": 0.0089
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0089
+        }, 
+        "240": {
+            "landuse": {
+                "104": 0.005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.005
+        }, 
+        "241": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "242": {
+            "landuse": {
+                "104": 0.0063999999999999994
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0063999999999999994
+        }, 
+        "243": {
+            "landuse": {
+                "104": 0.0025
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0025
+        }, 
+        "244": {
+            "landuse": {
+                "104": 0.0063999999999999994
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0063999999999999994
+        }, 
+        "245": {
+            "landuse": {
+                "104": 0.0259
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0259
+        }, 
+        "246": {
+            "landuse": {
+                "104": 0.0006
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0006
+        }, 
+        "247": {
+            "landuse": {
+                "104": 0.004399999999999999
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.004399999999999999
+        }, 
+        "248": {
+            "landuse": {
+                "104": 0.0143
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0143
+        }, 
+        "249": {
+            "landuse": {
+                "104": 0.0059
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0059
+        }, 
+        "250": {
+            "landuse": {
+                "104": 0.0010999999999999998
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0010999999999999998
+        }, 
+        "251": {
+            "landuse": {
+                "6": 0.0010999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0010999999999999998
+        }, 
+        "252": {
+            "landuse": {
+                "6": 0.0070999999999999995
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0070999999999999995
+        }, 
+        "253": {
+            "landuse": {
+                "6": 0.0063
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0063
+        }, 
+        "254": {
+            "landuse": {
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007999999999999999
+        }, 
+        "255": {
+            "landuse": {
+                "18": 0.019
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.019
+        }, 
+        "256": {
+            "landuse": {
+                "18": 0.0005
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0005
+        }, 
+        "257": {
+            "landuse": {
+                "33": 0.1266, 
+                "18": 9.999999999999999e-05
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.12669999999999998
+        }, 
+        "258": {
+            "landuse": {
+                "33": 0.0169
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0169
+        }, 
+        "259": {
+            "landuse": {
+                "33": 0.0005
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0005
+        }, 
+        "260": {
+            "landuse": {
+                "33": 0.020999999999999998
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.020999999999999998
+        }, 
+        "261": {
+            "landuse": {
+                "33": 0.0094
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0094
+        }, 
+        "262": {
+            "landuse": {
+                "33": 0.0009
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0009
+        }, 
+        "263": {
+            "landuse": {
+                "33": 0.0047
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0047
+        }, 
+        "264": {
+            "landuse": {
+                "33": 0.0014
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0014
+        }, 
+        "265": {
+            "landuse": {
+                "4": 0.0161
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0161
+        }, 
+        "266": {
+            "landuse": {
+                "4": 0.0654
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0654
+        }, 
+        "267": {
+            "landuse": {
+                "4": 0.053099999999999994
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.053099999999999994
+        }, 
+        "268": {
+            "landuse": {
+                "4": 0.012799999999999999
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.012799999999999999
+        }, 
+        "269": {
+            "landuse": {
+                "4": 0.0014
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0014
+        }, 
+        "270": {
+            "landuse": {
+                "104": 0.001
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.001
+        }, 
+        "271": {
+            "landuse": {
+                "8": 0.0021999999999999997
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0021999999999999997
+        }, 
+        "272": {
+            "landuse": {
+                "8": 0.0007
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0007
+        }, 
+        "273": {
+            "landuse": {
+                "104": 0.00039999999999999996
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.00039999999999999996
+        }, 
+        "274": {
+            "landuse": {
+                "8": 0.00019999999999999998, 
+                "104": 0.001
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0012000000000000001
+        }, 
+        "275": {
+            "landuse": {
+                "8": 0.0056
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0056
+        }, 
+        "276": {
+            "landuse": {
+                "8": 0.0301
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0301
+        }, 
+        "277": {
+            "landuse": {
+                "8": 0.0513
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.0513
+        }, 
+        "278": {
+            "landuse": {
+                "8": 0.035699999999999996
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.035699999999999996
+        }, 
+        "279": {
+            "landuse": {
+                "8": 0.026699999999999998
+            }, 
+            "primarylanduse": 8, 
+            "area": 0.026699999999999998
+        }, 
+        "280": {
+            "landuse": {
+                "104": 0.0093
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0093
+        }, 
+        "281": {
+            "landuse": {
+                "104": 0.0014
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0014
+        }, 
+        "282": {
+            "landuse": {
+                "104": 0.0112
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0112
+        }, 
+        "283": {
+            "landuse": {
+                "104": 0.0135
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0135
+        }, 
+        "284": {
+            "landuse": {
+                "104": 0.0026
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0026
+        }, 
+        "285": {
+            "landuse": {
+                "104": 0.0003
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0003
+        }, 
+        "286": {
+            "landuse": {
+                "104": 0.0005
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0005
+        }, 
+        "287": {
+            "landuse": {
+                "106": 0.0040999999999999995
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0040999999999999995
+        }, 
+        "288": {
+            "landuse": {
+                "106": 0.0138
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0138
+        }, 
+        "289": {
+            "landuse": {
+                "106": 0.0254
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0254
+        }, 
+        "290": {
+            "landuse": {
+                "106": 0.024999999999999998
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.024999999999999998
+        }, 
+        "291": {
+            "landuse": {
+                "106": 0.0083
+            }, 
+            "primarylanduse": 106, 
+            "area": 0.0083
+        }, 
+        "292": {
+            "landuse": {
+                "6": 0.0007999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007999999999999999
+        }, 
+        "293": {
+            "landuse": {
+                "6": 0.001
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.001
+        }, 
+        "294": {
+            "landuse": {
+                "6": 0.0021999999999999997
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0021999999999999997
+        }, 
+        "295": {
+            "landuse": {
+                "6": 0.001
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.001
+        }, 
+        "296": {
+            "landuse": {
+                "6": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.00019999999999999998
+        }, 
+        "297": {
+            "landuse": {
+                "6": 0.013999999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.013999999999999999
+        }, 
+        "298": {
+            "landuse": {
+                "6": 0.0387
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0387
+        }, 
+        "299": {
+            "landuse": {
+                "6": 0.0354
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0354
+        }, 
+        "300": {
+            "landuse": {
+                "6": 0.0206
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0206
+        }, 
+        "301": {
+            "landuse": {
+                "6": 0.0104
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0104
+        }, 
+        "302": {
+            "landuse": {
+                "6": 0.0013
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0013
+        }, 
+        "303": {
+            "landuse": {
+                "6": 0.0009
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0009
+        }, 
+        "304": {
+            "landuse": {
+                "6": 0.0010999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0010999999999999998
+        }, 
+        "305": {
+            "landuse": {
+                "6": 0.002
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.002
+        }, 
+        "306": {
+            "landuse": {
+                "18": 0.0135
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.0135
+        }, 
+        "307": {
+            "landuse": {
+                "18": 0.00039999999999999996
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.00039999999999999996
+        }, 
+        "308": {
+            "landuse": {
+                "6": 0.006
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.006
+        }, 
+        "309": {
+            "landuse": {
+                "6": 0.009
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.009
+        }, 
+        "310": {
+            "landuse": {
+                "6": 0.0093
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0093
+        }, 
+        "311": {
+            "landuse": {
+                "6": 0.0031999999999999997
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0031999999999999997
+        }, 
+        "312": {
+            "landuse": {
+                "33": 0.014799999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.014799999999999999
+        }, 
+        "313": {
+            "landuse": {
+                "33": 0.0096
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0096
+        }, 
+        "314": {
+            "landuse": {
+                "33": 0.0012
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0012
+        }, 
+        "315": {
+            "landuse": {
+                "33": 0.0017
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0017
+        }, 
+        "316": {
+            "landuse": {
+                "33": 0.0018
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0018
+        }, 
+        "317": {
+            "landuse": {
+                "33": 0.0007
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0007
+        }, 
+        "318": {
+            "landuse": {
+                "6": 0.00019999999999999998
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.00019999999999999998
+        }, 
+        "319": {
+            "landuse": {
+                "6": 0.0013
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0013
+        }, 
+        "320": {
+            "landuse": {
+                "33": 9.999999999999999e-05, 
+                "6": 0.0017
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0018
+        }, 
+        "321": {
+            "landuse": {
+                "6": 0.00039999999999999996
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.00039999999999999996
+        }, 
+        "322": {
+            "landuse": {
+                "6": 0.0007
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0007
+        }, 
+        "323": {
+            "landuse": {
+                "6": 0.0014
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0014
+        }, 
+        "324": {
+            "landuse": {
+                "6": 0.0006
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0006
+        }, 
+        "325": {
+            "landuse": {
+                "33": 0.0177
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0177
+        }, 
+        "326": {
+            "landuse": {
+                "33": 0.0048
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0048
+        }, 
+        "327": {
+            "landuse": {
+                "33": 0.0006
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0006
+        }, 
+        "328": {
+            "landuse": {
+                "33": 0.0572
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0572
+        }, 
+        "329": {
+            "landuse": {
+                "33": 0.0174
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0174
+        }, 
+        "330": {
+            "landuse": {
+                "33": 0.0024
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0024
+        }, 
+        "331": {
+            "landuse": {
+                "33": 0.0007999999999999999
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0007999999999999999
+        }, 
+        "332": {
+            "landuse": {
+                "33": 0.0031
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0031
+        }, 
+        "333": {
+            "landuse": {
+                "33": 0.0042
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0042
+        }, 
+        "334": {
+            "landuse": {
+                "33": 0.0026
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0026
+        }, 
+        "335": {
+            "landuse": {
+                "33": 0.0038
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0038
+        }, 
+        "336": {
+            "landuse": {
+                "33": 0.0014
+            }, 
+            "primarylanduse": 33, 
+            "area": 0.0014
+        }, 
+        "337": {
+            "landuse": {
+                "4": 0.005399999999999999
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.005399999999999999
+        }, 
+        "338": {
+            "landuse": {
+                "4": 0.025599999999999998
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.025599999999999998
+        }, 
+        "339": {
+            "landuse": {
+                "4": 0.0448
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0448
+        }, 
+        "340": {
+            "landuse": {
+                "4": 0.030699999999999998
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.030699999999999998
+        }, 
+        "341": {
+            "landuse": {
+                "4": 0.0165
+            }, 
+            "primarylanduse": 4, 
+            "area": 0.0165
+        }, 
+        "342": {
+            "landuse": {
+                "104": 0.022199999999999998
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.022199999999999998
+        }, 
+        "343": {
+            "landuse": {
+                "104": 0.013399999999999999
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.013399999999999999
+        }, 
+        "344": {
+            "landuse": {
+                "104": 0.00019999999999999998
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.00019999999999999998
+        }, 
+        "345": {
+            "landuse": {
+                "104": 0.0009
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0009
+        }, 
+        "346": {
+            "landuse": {
+                "104": 0.0043
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0043
+        }, 
+        "347": {
+            "landuse": {
+                "104": 0.00019999999999999998
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.00019999999999999998
+        }, 
+        "348": {
+            "landuse": {
+                "104": 0.0021999999999999997
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0021999999999999997
+        }, 
+        "349": {
+            "landuse": {
+                "104": 0.0012
+            }, 
+            "primarylanduse": 104, 
+            "area": 0.0012
+        }, 
+        "350": {
+            "landuse": {
+                "6": 0.0017
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0017
+        }, 
+        "351": {
+            "landuse": {
+                "6": 0.008199999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.008199999999999999
+        }, 
+        "352": {
+            "landuse": {
+                "6": 0.0147
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0147
+        }, 
+        "353": {
+            "landuse": {
+                "6": 0.012799999999999999
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.012799999999999999
+        }, 
+        "354": {
+            "landuse": {
+                "6": 0.0024
+            }, 
+            "primarylanduse": 6, 
+            "area": 0.0024
+        }, 
+        "355": {
+            "landuse": {
+                "18": 0.008799999999999999
+            }, 
+            "primarylanduse": 18, 
+            "area": 0.008799999999999999
+        }
+    }, 
+    "overview": {
+        "all_units": 355
+    }
+}

@@ -1,0 +1,5 @@
+C:\z_data_m\SEIMS2018\youwuzhen_10m\spatial_raster\mask.tif
+3
+D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\original\rdgInf.tif	-9999	D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\rdgInf.tif
+D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\original\bksInf.tif	-9999	D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\bksInf.tif
+D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\original\vlyInf.tif	-9999	D:\data_m\youwuzhen\seims_models_phd\data_prepare\spatial\spatial_units\fuzzy_slope_positions\vlyInf.tif

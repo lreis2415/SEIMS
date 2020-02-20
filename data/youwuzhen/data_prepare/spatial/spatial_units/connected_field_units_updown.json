@@ -1,0 +1,1448 @@
+{
+    "units": {
+        "1": {
+            "degree": 1.0, 
+            "area": 0.2472, 
+            "upslope": [
+                2, 
+                6, 
+                7, 
+                44, 
+                45, 
+                48, 
+                50, 
+                51, 
+                83, 
+                84, 
+                85, 
+                103
+            ], 
+            "downslope": -1, 
+            "landuse": {
+                "33": 0.11259999999999999, 
+                "4": 0.018, 
+                "6": 0.030699999999999998, 
+                "104": 0.0399, 
+                "8": 0.0014, 
+                "18": 0.0446
+            }, 
+            "primarylanduse": 33
+        }, 
+        "2": {
+            "degree": 2.0, 
+            "area": 0.0161, 
+            "upslope": [
+                3, 
+                4, 
+                5
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 0.0015999999999999999, 
+                "33": 0.005, 
+                "6": 0.0095
+            }, 
+            "primarylanduse": 6
+        }, 
+        "3": {
+            "degree": 3.0, 
+            "area": 0.027399999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 2, 
+            "landuse": {
+                "6": 0.027399999999999997
+            }, 
+            "primarylanduse": 6
+        }, 
+        "4": {
+            "degree": 3.0, 
+            "area": 0.0075, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 2, 
+            "landuse": {
+                "6": 0.0075
+            }, 
+            "primarylanduse": 6
+        }, 
+        "5": {
+            "degree": 3.0, 
+            "area": 0.0072, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 2, 
+            "landuse": {
+                "104": 0.002, 
+                "6": 0.0052
+            }, 
+            "primarylanduse": 6
+        }, 
+        "6": {
+            "degree": 2.0, 
+            "area": 0.0083, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 0.0050999999999999995, 
+                "33": 0.0023, 
+                "4": 0.0009
+            }, 
+            "primarylanduse": 104
+        }, 
+        "7": {
+            "degree": 2.0, 
+            "area": 0.3812999999999999, 
+            "upslope": [
+                8, 
+                9, 
+                10, 
+                11, 
+                18, 
+                31, 
+                33, 
+                34, 
+                35, 
+                41, 
+                42
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "33": 0.26999999999999996, 
+                "4": 0.0157, 
+                "6": 0.0166, 
+                "104": 0.047, 
+                "8": 0.0318, 
+                "18": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33
+        }, 
+        "8": {
+            "degree": 3.0, 
+            "area": 0.022299999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "8": 0.0087, 
+                "104": 0.012199999999999999, 
+                "6": 0.0014
+            }, 
+            "primarylanduse": 104
+        }, 
+        "9": {
+            "degree": 3.0, 
+            "area": 0.0121, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "104": 0.0058, 
+                "8": 0.0039, 
+                "6": 0.0023, 
+                "33": 9.999999999999999e-05
+            }, 
+            "primarylanduse": 104
+        }, 
+        "10": {
+            "degree": 3.0, 
+            "area": 0.036, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "33": 0.0005, 
+                "6": 0.0355
+            }, 
+            "primarylanduse": 6
+        }, 
+        "11": {
+            "degree": 3.0, 
+            "area": 0.0297, 
+            "upslope": [
+                12
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "33": 0.0034, 
+                "6": 0.0263
+            }, 
+            "primarylanduse": 6
+        }, 
+        "12": {
+            "degree": 4.0, 
+            "area": 0.0073, 
+            "upslope": [
+                13, 
+                14
+            ], 
+            "downslope": 11, 
+            "landuse": {
+                "33": 0.003, 
+                "6": 0.0043
+            }, 
+            "primarylanduse": 6
+        }, 
+        "13": {
+            "degree": 5.0, 
+            "area": 0.0155, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 12, 
+            "landuse": {
+                "6": 0.0155
+            }, 
+            "primarylanduse": 6
+        }, 
+        "14": {
+            "degree": 5.0, 
+            "area": 0.013099999999999999, 
+            "upslope": [
+                15
+            ], 
+            "downslope": 12, 
+            "landuse": {
+                "33": 0.0017, 
+                "6": 0.011399999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "15": {
+            "degree": 6.0, 
+            "area": 0.0417, 
+            "upslope": [
+                16, 
+                17
+            ], 
+            "downslope": 14, 
+            "landuse": {
+                "8": 0.0049, 
+                "33": 0.0097, 
+                "6": 0.0271
+            }, 
+            "primarylanduse": 6
+        }, 
+        "16": {
+            "degree": 7.0, 
+            "area": 0.0095, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 15, 
+            "landuse": {
+                "6": 0.0095
+            }, 
+            "primarylanduse": 6
+        }, 
+        "17": {
+            "degree": 7.0, 
+            "area": 0.021699999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 15, 
+            "landuse": {
+                "8": 0.0135, 
+                "6": 0.008199999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "18": {
+            "degree": 3.0, 
+            "area": 0.0073999999999999995, 
+            "upslope": [
+                19
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "8": 0.0072, 
+                "33": 0.00019999999999999998
+            }, 
+            "primarylanduse": 8
+        }, 
+        "19": {
+            "degree": 4.0, 
+            "area": 0.23109999999999997, 
+            "upslope": [
+                20, 
+                27, 
+                28, 
+                29, 
+                30
+            ], 
+            "downslope": 18, 
+            "landuse": {
+                "8": 0.061, 
+                "33": 0.1382, 
+                "6": 0.0319
+            }, 
+            "primarylanduse": 33
+        }, 
+        "20": {
+            "degree": 5.0, 
+            "area": 0.0075, 
+            "upslope": [
+                21
+            ], 
+            "downslope": 19, 
+            "landuse": {
+                "33": 0.0006, 
+                "6": 0.0069
+            }, 
+            "primarylanduse": 6
+        }, 
+        "21": {
+            "degree": 6.0, 
+            "area": 0.0426, 
+            "upslope": [
+                22, 
+                26
+            ], 
+            "downslope": 20, 
+            "landuse": {
+                "8": 0.0124, 
+                "33": 0.0169, 
+                "6": 0.0133
+            }, 
+            "primarylanduse": 33
+        }, 
+        "22": {
+            "degree": 7.0, 
+            "area": 0.0117, 
+            "upslope": [
+                23
+            ], 
+            "downslope": 21, 
+            "landuse": {
+                "8": 0.002, 
+                "6": 0.0097
+            }, 
+            "primarylanduse": 6
+        }, 
+        "23": {
+            "degree": 8.0, 
+            "area": 0.0419, 
+            "upslope": [
+                24, 
+                25
+            ], 
+            "downslope": 22, 
+            "landuse": {
+                "8": 0.0235, 
+                "33": 0.0012, 
+                "6": 0.0172
+            }, 
+            "primarylanduse": 8
+        }, 
+        "24": {
+            "degree": 9.0, 
+            "area": 0.0089, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 23, 
+            "landuse": {
+                "8": 0.0018, 
+                "33": 0.0010999999999999998, 
+                "6": 0.006
+            }, 
+            "primarylanduse": 6
+        }, 
+        "25": {
+            "degree": 9.0, 
+            "area": 0.047, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 23, 
+            "landuse": {
+                "8": 0.0129, 
+                "6": 0.0341
+            }, 
+            "primarylanduse": 6
+        }, 
+        "26": {
+            "degree": 7.0, 
+            "area": 0.2423, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 21, 
+            "landuse": {
+                "8": 0.2165, 
+                "6": 0.0258
+            }, 
+            "primarylanduse": 8
+        }, 
+        "27": {
+            "degree": 5.0, 
+            "area": 0.0454, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 19, 
+            "landuse": {
+                "8": 0.0407, 
+                "33": 0.0006, 
+                "6": 0.0040999999999999995
+            }, 
+            "primarylanduse": 8
+        }, 
+        "28": {
+            "degree": 5.0, 
+            "area": 0.0101, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 19, 
+            "landuse": {
+                "8": 0.0101
+            }, 
+            "primarylanduse": 8
+        }, 
+        "29": {
+            "degree": 5.0, 
+            "area": 0.0708, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 19, 
+            "landuse": {
+                "8": 0.0501, 
+                "6": 0.0207
+            }, 
+            "primarylanduse": 8
+        }, 
+        "30": {
+            "degree": 5.0, 
+            "area": 0.0215, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 19, 
+            "landuse": {
+                "8": 0.0215
+            }, 
+            "primarylanduse": 8
+        }, 
+        "31": {
+            "degree": 3.0, 
+            "area": 0.009099999999999999, 
+            "upslope": [
+                32
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "104": 0.0026, 
+                "8": 0.0056, 
+                "6": 0.0009
+            }, 
+            "primarylanduse": 8
+        }, 
+        "32": {
+            "degree": 4.0, 
+            "area": 0.018099999999999998, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 31, 
+            "landuse": {
+                "8": 0.0093, 
+                "6": 0.008799999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "33": {
+            "degree": 3.0, 
+            "area": 0.016300000000000002, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "104": 0.0078, 
+                "8": 0.0005, 
+                "6": 0.008
+            }, 
+            "primarylanduse": 6
+        }, 
+        "34": {
+            "degree": 3.0, 
+            "area": 0.0077, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "8": 0.0053, 
+                "6": 0.0024
+            }, 
+            "primarylanduse": 8
+        }, 
+        "35": {
+            "degree": 3.0, 
+            "area": 0.0341, 
+            "upslope": [
+                36
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "104": 0.0192, 
+                "33": 0.0007999999999999999, 
+                "4": 0.0141
+            }, 
+            "primarylanduse": 104
+        }, 
+        "36": {
+            "degree": 4.0, 
+            "area": 0.031299999999999994, 
+            "upslope": [
+                37, 
+                40
+            ], 
+            "downslope": 35, 
+            "landuse": {
+                "104": 0.0042, 
+                "33": 0.0208, 
+                "18": 9.999999999999999e-05, 
+                "4": 0.0062
+            }, 
+            "primarylanduse": 33
+        }, 
+        "37": {
+            "degree": 5.0, 
+            "area": 0.07039999999999999, 
+            "upslope": [
+                38
+            ], 
+            "downslope": 36, 
+            "landuse": {
+                "104": 0.00019999999999999998, 
+                "33": 0.0006, 
+                "18": 0.0015999999999999999, 
+                "4": 0.06799999999999999
+            }, 
+            "primarylanduse": 4
+        }, 
+        "38": {
+            "degree": 6.0, 
+            "area": 0.0184, 
+            "upslope": [
+                39
+            ], 
+            "downslope": 37, 
+            "landuse": {
+                "33": 0.0042, 
+                "4": 0.014199999999999999
+            }, 
+            "primarylanduse": 4
+        }, 
+        "39": {
+            "degree": 7.0, 
+            "area": 0.0568, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 38, 
+            "landuse": {
+                "33": 9.999999999999999e-05, 
+                "4": 0.0567
+            }, 
+            "primarylanduse": 4
+        }, 
+        "40": {
+            "degree": 5.0, 
+            "area": 0.008, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 36, 
+            "landuse": {
+                "104": 0.0073, 
+                "4": 0.0007
+            }, 
+            "primarylanduse": 104
+        }, 
+        "41": {
+            "degree": 3.0, 
+            "area": 0.024, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "4": 0.024
+            }, 
+            "primarylanduse": 4
+        }, 
+        "42": {
+            "degree": 3.0, 
+            "area": 0.008199999999999999, 
+            "upslope": [
+                43
+            ], 
+            "downslope": 7, 
+            "landuse": {
+                "104": 0.0059, 
+                "4": 0.0023
+            }, 
+            "primarylanduse": 104
+        }, 
+        "43": {
+            "degree": 4.0, 
+            "area": 0.039099999999999996, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 42, 
+            "landuse": {
+                "104": 0.0034, 
+                "4": 0.035699999999999996
+            }, 
+            "primarylanduse": 4
+        }, 
+        "44": {
+            "degree": 2.0, 
+            "area": 0.0387, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "8": 0.0084, 
+                "33": 0.0254, 
+                "6": 0.0005, 
+                "104": 0.004399999999999999
+            }, 
+            "primarylanduse": 33
+        }, 
+        "45": {
+            "degree": 2.0, 
+            "area": 0.08469999999999998, 
+            "upslope": [
+                46, 
+                47
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 0.019799999999999998, 
+                "33": 0.060399999999999995, 
+                "18": 0.0003, 
+                "4": 0.0042
+            }, 
+            "primarylanduse": 33
+        }, 
+        "46": {
+            "degree": 3.0, 
+            "area": 0.0074, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 45, 
+            "landuse": {
+                "104": 0.0021, 
+                "4": 0.0053
+            }, 
+            "primarylanduse": 4
+        }, 
+        "47": {
+            "degree": 3.0, 
+            "area": 0.007, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 45, 
+            "landuse": {
+                "104": 0.004, 
+                "4": 0.003
+            }, 
+            "primarylanduse": 104
+        }, 
+        "48": {
+            "degree": 2.0, 
+            "area": 0.0286, 
+            "upslope": [
+                49
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 0.001, 
+                "6": 0.0276
+            }, 
+            "primarylanduse": 6
+        }, 
+        "49": {
+            "degree": 3.0, 
+            "area": 0.0114, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 48, 
+            "landuse": {
+                "104": 0.0033, 
+                "6": 0.0081
+            }, 
+            "primarylanduse": 6
+        }, 
+        "50": {
+            "degree": 2.0, 
+            "area": 0.0116, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 9.999999999999999e-05, 
+                "4": 0.0115
+            }, 
+            "primarylanduse": 4
+        }, 
+        "51": {
+            "degree": 2.0, 
+            "area": 0.426, 
+            "upslope": [
+                52, 
+                53, 
+                54, 
+                55, 
+                56, 
+                57, 
+                58, 
+                59, 
+                60, 
+                61, 
+                66, 
+                67, 
+                80, 
+                81, 
+                82
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "33": 0.23759999999999998, 
+                "4": 0.0453, 
+                "6": 0.0916, 
+                "8": 0.0465, 
+                "104": 0.0048, 
+                "18": 0.00019999999999999998
+            }, 
+            "primarylanduse": 33
+        }, 
+        "52": {
+            "degree": 3.0, 
+            "area": 0.0155, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "4": 0.0155
+            }, 
+            "primarylanduse": 4
+        }, 
+        "53": {
+            "degree": 3.0, 
+            "area": 0.008799999999999999, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 9.999999999999999e-05, 
+                "33": 0.0005, 
+                "6": 0.008199999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "54": {
+            "degree": 3.0, 
+            "area": 0.0581, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 0.0347, 
+                "33": 0.0009, 
+                "4": 0.008499999999999999, 
+                "6": 0.013999999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "55": {
+            "degree": 3.0, 
+            "area": 0.0092, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 0.007699999999999999, 
+                "4": 0.0015
+            }, 
+            "primarylanduse": 8
+        }, 
+        "56": {
+            "degree": 3.0, 
+            "area": 0.027899999999999998, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "6": 0.027899999999999998
+            }, 
+            "primarylanduse": 6
+        }, 
+        "57": {
+            "degree": 3.0, 
+            "area": 0.018299999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 0.015099999999999999, 
+                "6": 0.0031999999999999997
+            }, 
+            "primarylanduse": 8
+        }, 
+        "58": {
+            "degree": 3.0, 
+            "area": 0.019299999999999998, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "6": 0.019299999999999998
+            }, 
+            "primarylanduse": 6
+        }, 
+        "59": {
+            "degree": 3.0, 
+            "area": 0.0104, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "6": 0.0104
+            }, 
+            "primarylanduse": 6
+        }, 
+        "60": {
+            "degree": 3.0, 
+            "area": 0.0087, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 9.999999999999999e-05, 
+                "6": 0.0086
+            }, 
+            "primarylanduse": 6
+        }, 
+        "61": {
+            "degree": 3.0, 
+            "area": 0.0428, 
+            "upslope": [
+                62, 
+                63
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 0.0025, 
+                "33": 0.0028, 
+                "6": 0.0375
+            }, 
+            "primarylanduse": 6
+        }, 
+        "62": {
+            "degree": 4.0, 
+            "area": 0.023899999999999998, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 61, 
+            "landuse": {
+                "8": 0.013099999999999999, 
+                "6": 0.010799999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "63": {
+            "degree": 4.0, 
+            "area": 0.018799999999999997, 
+            "upslope": [
+                64
+            ], 
+            "downslope": 61, 
+            "landuse": {
+                "8": 0.0007, 
+                "33": 0.0073, 
+                "6": 0.010799999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "64": {
+            "degree": 5.0, 
+            "area": 0.054799999999999995, 
+            "upslope": [
+                65
+            ], 
+            "downslope": 63, 
+            "landuse": {
+                "8": 0.0116, 
+                "6": 0.043199999999999995
+            }, 
+            "primarylanduse": 6
+        }, 
+        "65": {
+            "degree": 6.0, 
+            "area": 0.21749999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 64, 
+            "landuse": {
+                "8": 0.18769999999999998, 
+                "6": 0.0298
+            }, 
+            "primarylanduse": 8
+        }, 
+        "66": {
+            "degree": 3.0, 
+            "area": 0.010199999999999999, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "6": 0.010199999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "67": {
+            "degree": 3.0, 
+            "area": 0.5911, 
+            "upslope": [
+                68, 
+                69, 
+                70, 
+                74, 
+                76
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 0.4178, 
+                "33": 0.014799999999999999, 
+                "6": 0.1585
+            }, 
+            "primarylanduse": 8
+        }, 
+        "68": {
+            "degree": 4.0, 
+            "area": 0.0094, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 67, 
+            "landuse": {
+                "8": 0.0038, 
+                "6": 0.0056
+            }, 
+            "primarylanduse": 6
+        }, 
+        "69": {
+            "degree": 4.0, 
+            "area": 0.013099999999999999, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 67, 
+            "landuse": {
+                "6": 0.013099999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "70": {
+            "degree": 4.0, 
+            "area": 0.0116, 
+            "upslope": [
+                71, 
+                72, 
+                73
+            ], 
+            "downslope": 67, 
+            "landuse": {
+                "8": 0.0058, 
+                "33": 0.002, 
+                "6": 0.0038
+            }, 
+            "primarylanduse": 8
+        }, 
+        "71": {
+            "degree": 5.0, 
+            "area": 0.0209, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 70, 
+            "landuse": {
+                "8": 0.0135, 
+                "6": 0.0073999999999999995
+            }, 
+            "primarylanduse": 8
+        }, 
+        "72": {
+            "degree": 5.0, 
+            "area": 0.037, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 70, 
+            "landuse": {
+                "8": 0.019799999999999998, 
+                "33": 0.002, 
+                "6": 0.0152
+            }, 
+            "primarylanduse": 8
+        }, 
+        "73": {
+            "degree": 5.0, 
+            "area": 0.0107, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 70, 
+            "landuse": {
+                "8": 0.0060999999999999995, 
+                "6": 0.0046
+            }, 
+            "primarylanduse": 8
+        }, 
+        "74": {
+            "degree": 4.0, 
+            "area": 0.008899999999999998, 
+            "upslope": [
+                75
+            ], 
+            "downslope": 67, 
+            "landuse": {
+                "8": 0.0010999999999999998, 
+                "33": 0.0026999999999999997, 
+                "6": 0.0050999999999999995
+            }, 
+            "primarylanduse": 6
+        }, 
+        "75": {
+            "degree": 5.0, 
+            "area": 0.0201, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 74, 
+            "landuse": {
+                "8": 0.015, 
+                "6": 0.0050999999999999995
+            }, 
+            "primarylanduse": 8
+        }, 
+        "76": {
+            "degree": 4.0, 
+            "area": 0.0213, 
+            "upslope": [
+                77, 
+                78, 
+                79
+            ], 
+            "downslope": 67, 
+            "landuse": {
+                "8": 0.0139, 
+                "33": 0.0065, 
+                "6": 0.0009
+            }, 
+            "primarylanduse": 8
+        }, 
+        "77": {
+            "degree": 5.0, 
+            "area": 0.0113, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 76, 
+            "landuse": {
+                "8": 0.0113
+            }, 
+            "primarylanduse": 8
+        }, 
+        "78": {
+            "degree": 5.0, 
+            "area": 0.075, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 76, 
+            "landuse": {
+                "8": 0.061599999999999995, 
+                "33": 0.0005, 
+                "6": 0.0129
+            }, 
+            "primarylanduse": 8
+        }, 
+        "79": {
+            "degree": 5.0, 
+            "area": 0.0070999999999999995, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 76, 
+            "landuse": {
+                "8": 0.0048, 
+                "6": 0.0023
+            }, 
+            "primarylanduse": 8
+        }, 
+        "80": {
+            "degree": 3.0, 
+            "area": 0.0255, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "4": 0.0255
+            }, 
+            "primarylanduse": 4
+        }, 
+        "81": {
+            "degree": 3.0, 
+            "area": 0.010499999999999999, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "4": 0.010499999999999999
+            }, 
+            "primarylanduse": 4
+        }, 
+        "82": {
+            "degree": 3.0, 
+            "area": 0.0224, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 51, 
+            "landuse": {
+                "8": 9.999999999999999e-05, 
+                "4": 0.0223
+            }, 
+            "primarylanduse": 4
+        }, 
+        "83": {
+            "degree": 2.0, 
+            "area": 0.0236, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "6": 0.0236
+            }, 
+            "primarylanduse": 6
+        }, 
+        "84": {
+            "degree": 2.0, 
+            "area": 0.0078, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "8": 0.0073999999999999995, 
+                "6": 0.00039999999999999996
+            }, 
+            "primarylanduse": 8
+        }, 
+        "85": {
+            "degree": 2.0, 
+            "area": 0.2721, 
+            "upslope": [
+                86, 
+                87, 
+                90, 
+                98, 
+                99
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "33": 0.1484, 
+                "4": 0.025699999999999997, 
+                "6": 0.0135, 
+                "8": 0.0774, 
+                "106": 0.0021999999999999997, 
+                "104": 0.0046, 
+                "18": 0.0003
+            }, 
+            "primarylanduse": 33
+        }, 
+        "86": {
+            "degree": 3.0, 
+            "area": 0.010499999999999999, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 85, 
+            "landuse": {
+                "6": 0.010499999999999999
+            }, 
+            "primarylanduse": 6
+        }, 
+        "87": {
+            "degree": 3.0, 
+            "area": 0.0484, 
+            "upslope": [
+                88, 
+                89
+            ], 
+            "downslope": 85, 
+            "landuse": {
+                "8": 0.0121, 
+                "106": 0.0359, 
+                "6": 0.00039999999999999996
+            }, 
+            "primarylanduse": 106
+        }, 
+        "88": {
+            "degree": 4.0, 
+            "area": 0.0105, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 87, 
+            "landuse": {
+                "8": 0.0097, 
+                "104": 0.0007999999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "89": {
+            "degree": 4.0, 
+            "area": 0.0092, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 87, 
+            "landuse": {
+                "8": 0.0072, 
+                "6": 0.002
+            }, 
+            "primarylanduse": 8
+        }, 
+        "90": {
+            "degree": 3.0, 
+            "area": 0.06670000000000001, 
+            "upslope": [
+                91, 
+                95, 
+                96
+            ], 
+            "downslope": 85, 
+            "landuse": {
+                "8": 0.0579, 
+                "33": 9.999999999999999e-05, 
+                "106": 0.0087
+            }, 
+            "primarylanduse": 8
+        }, 
+        "91": {
+            "degree": 4.0, 
+            "area": 0.0654, 
+            "upslope": [
+                92, 
+                93, 
+                94
+            ], 
+            "downslope": 90, 
+            "landuse": {
+                "8": 0.0298, 
+                "106": 0.0356
+            }, 
+            "primarylanduse": 106
+        }, 
+        "92": {
+            "degree": 5.0, 
+            "area": 0.1349, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 91, 
+            "landuse": {
+                "8": 0.1349
+            }, 
+            "primarylanduse": 8
+        }, 
+        "93": {
+            "degree": 5.0, 
+            "area": 0.0231, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 91, 
+            "landuse": {
+                "8": 0.0215, 
+                "106": 0.0015999999999999999
+            }, 
+            "primarylanduse": 8
+        }, 
+        "94": {
+            "degree": 5.0, 
+            "area": 0.015799999999999998, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 91, 
+            "landuse": {
+                "8": 0.011899999999999999, 
+                "106": 0.0039
+            }, 
+            "primarylanduse": 8
+        }, 
+        "95": {
+            "degree": 4.0, 
+            "area": 0.0089, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 90, 
+            "landuse": {
+                "8": 0.0046, 
+                "106": 0.0043
+            }, 
+            "primarylanduse": 8
+        }, 
+        "96": {
+            "degree": 4.0, 
+            "area": 0.0326, 
+            "upslope": [
+                97
+            ], 
+            "downslope": 90, 
+            "landuse": {
+                "8": 0.0069, 
+                "106": 0.025699999999999997
+            }, 
+            "primarylanduse": 106
+        }, 
+        "97": {
+            "degree": 5.0, 
+            "area": 0.029500000000000002, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 96, 
+            "landuse": {
+                "8": 0.0292, 
+                "106": 0.0003
+            }, 
+            "primarylanduse": 8
+        }, 
+        "98": {
+            "degree": 3.0, 
+            "area": 0.15499999999999997, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 85, 
+            "landuse": {
+                "33": 9.999999999999999e-05, 
+                "4": 0.15489999999999998
+            }, 
+            "primarylanduse": 4
+        }, 
+        "99": {
+            "degree": 3.0, 
+            "area": 0.2235, 
+            "upslope": [
+                100
+            ], 
+            "downslope": 85, 
+            "landuse": {
+                "8": 0.218, 
+                "33": 0.0012, 
+                "4": 0.0043
+            }, 
+            "primarylanduse": 8
+        }, 
+        "100": {
+            "degree": 4.0, 
+            "area": 0.0070999999999999995, 
+            "upslope": [
+                101
+            ], 
+            "downslope": 99, 
+            "landuse": {
+                "8": 0.003, 
+                "33": 0.0009, 
+                "4": 0.0031999999999999997
+            }, 
+            "primarylanduse": 4
+        }, 
+        "101": {
+            "degree": 5.0, 
+            "area": 0.05739999999999999, 
+            "upslope": [
+                102
+            ], 
+            "downslope": 100, 
+            "landuse": {
+                "8": 0.056999999999999995, 
+                "4": 0.00039999999999999996
+            }, 
+            "primarylanduse": 8
+        }, 
+        "102": {
+            "degree": 6.0, 
+            "area": 0.0162, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 101, 
+            "landuse": {
+                "8": 0.0048, 
+                "4": 0.007899999999999999, 
+                "6": 0.0034999999999999996
+            }, 
+            "primarylanduse": 4
+        }, 
+        "103": {
+            "degree": 2.0, 
+            "area": 0.086, 
+            "upslope": [
+                -1
+            ], 
+            "downslope": 1, 
+            "landuse": {
+                "104": 0.0015, 
+                "33": 0.0014, 
+                "4": 0.0831
+            }, 
+            "primarylanduse": 4
+        }
+    }, 
+    "overview": {
+        "all_units": 103
+    }
+}
