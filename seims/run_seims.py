@@ -551,6 +551,7 @@ class MainSEIMS(object):
         """Clean model outputs in OUTPUT<ScenarioID>-<CalibrationID> directory and/or
         GridFS files in OUTPUT collection.
         """
+        # pass
         rmtree(self.OutputDirectory, ignore_errors=True)
         read_model = ReadModelData(self.host, self.port, self.db_name)
         if scenario_id is None:

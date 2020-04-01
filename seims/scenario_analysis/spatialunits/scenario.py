@@ -481,9 +481,9 @@ class SUScenario(Scenario):
     def calculate_timeext_economy(self):
         """Calculate economic benefit by simple cost-benefit model, see Qin et al. (2018)."""
         self.economy = 0.
-        capex = 0. #初始投入
-        opex = 0. #年维护成本
-        income = 0. #收入
+        capex = 0.  # 初始投入
+        opex = 0.  # 年维护成本
+        income = 0.  # 收入
         for unit_id, gene_idx in viewitems(self.cfg.unit_to_gene):
             gene_v = self.gene_values[gene_idx]
             if gene_v == 0:
@@ -520,7 +520,7 @@ class SUScenario(Scenario):
         if not FileClass.is_file_exists(rfile):
             time.sleep(0.1)  # Wait a moment in case of unpredictable file system error
         if not FileClass.is_file_exists(rfile):
-            #print(os.listdir(self.modelout_dir))
+            # print(os.listdir(self.modelout_dir))
             print('WARNING: Although SEIMS model has been executed, the desired output: %s'
                   ' cannot be found!' % rfile)
             self.economy = self.worst_econ
@@ -933,26 +933,26 @@ def main_manual(sceid, gene_values):
     print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
     print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
 
-    sce.clean(delete_scenario=True, delete_spatial_gfs=True)
+    sce.clean(delete_scenario=False, delete_spatial_gfs=False)
 
 
 if __name__ == '__main__':
     # main_single()
     # main_multiple(4)
 
-    sid = 210213956
-    gvalues = [1.0, 2.0, 0.0, 0.0, 0.2, 0.0, 0.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 2.0, 0.0,
-               2.0, 0.1, 0.0, 0.0, 3.0, 2.0, 0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-               -0.15, -0.2, 2.0, 0.0, 0.0, -0.1, 0.2, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, -0.15,
-               0.15, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.0, 0.0, 4.0, -0.05, 0.05,
-               0.0, 3.0, 0.0, -0.1, -0.05, 0.0, 2.0, 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.2, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, -0.1, 0.0, 2.0, 0.0, 0.0, -0.1, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.1, 1.0, 3.0, 2.0, 0.0, -0.2, 0.0, 0.0, 0.0, -0.2, 0.0, 1.0, 0.0, 0.0,
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2, 0.0, 3.0, 0.0, 0.0, -0.15, 0.0, 0.0, 2.0, 0.15,
-               0.05, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, -0.15, 0.0,
-               0.0, 0.0, 0.0, 0.05, 0.0, 0.0, 1.0, 4.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-               0.0, 0.0, 0.0, 2.0, 0.0, 0.0, -0.2, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
-    # sid = 10000000
-    # gvalues = [0.] * 175
+    # sid = 170751706
+    # gvalues = [0.0, 0.0, 4.0, 1.0, 0.0, 4.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+    #            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+    #            2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 4.0,
+    #            0.0, 3.0, 4.0, 1.0, 1.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 4.0, 2.0, 0.0, 0.0,
+    #            2.0, 0.0, 4.0, 0.0, 2.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.]
+    # sid = 144457864
+    # gvalues = [0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 0.0,
+    #            2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 4.0, 0.0, 0.0, 0.0,
+    #            2.0, 2.0, 0.0, 0.0, 1.0, 4.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 0.0,
+    #            1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 3.0, 0.0,
+    #            1.0, 1.0, 0.0, 2.0, 0.0, 4.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+    sid = 100000000
+    gvalues = [0.] * 105
 
     main_manual(sid, gvalues)

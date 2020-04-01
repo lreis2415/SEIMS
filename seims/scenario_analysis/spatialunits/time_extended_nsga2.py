@@ -35,13 +35,13 @@ from typing import List
 from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
-from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv,\
+from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv, \
     initRepeatWithCfgFromList, initIterateWithCfgWithInput
 from scenario_analysis.visualization import read_pareto_solutions_from_txt
-from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig,\
+from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
     SACommUnitConfig
 from scenario_analysis.spatialunits.scenario import SUScenario
-from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness,\
+from scenario_analysis.spatialunits.scenario import initialize_scenario, scenario_effectiveness, \
     initialize_timeext_scenario, timeext_scenario_effectiveness
 from scenario_analysis.spatialunits.userdef import check_individual_diff, mutate_timeext
 
@@ -73,6 +73,7 @@ toolbox.register('evaluate', timeext_scenario_effectiveness)
 toolbox.register('crossover', tools.cxTwoPoint)
 toolbox.register('mutate', tools.mutate_timeext)
 toolbox.register('select', tools.selNSGA2)
+
 
 def run_base_scenario(sceobj):
     """Run base scenario to get the environment effectiveness value."""
@@ -115,7 +116,7 @@ def main(scenario_obj, pareto_indv_obj):
 
     # available gene value list
     possible_gene_values = list(scenario_obj.bmps_params.keys())
-    if 0 not in possible_gene_values: # 0不配置BMP
+    if 0 not in possible_gene_values:  # 0不配置BMP
         possible_gene_values.append(0)
     units_info = scenario_obj.cfg.units_infos
     suit_bmps = scenario_obj.suit_bmps
@@ -412,5 +413,3 @@ if __name__ == "__main__":
     #
     # endT = time.time()
     # scoop_log('Running time: %.2fs' % (endT - startT))
-
-

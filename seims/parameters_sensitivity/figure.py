@@ -39,19 +39,21 @@ def cal_row_col_num(tot):
     """determine the appropriate row and col number.
     Cols number decreases from 8 to 5 to figure out the most uniform row and col num.
     """
-    col = 8
-    if tot < col:
-        col = tot
-        return 1, col
-    row = int(math.ceil(tot / 8.))
-    for i in range(8, 4, -1):
-        if tot % i == 0:
-            return tot / i, i
-    for i in range(8, 4, -1):
-        divide = tot / i
-        if tot % i > i / 2:
-            row = divide + 1
-            col = i
+    # col = 8
+    # if tot < col:
+    #     col = tot
+    #     return 1, col
+    # row = int(math.ceil(tot / 8.))
+    # for i in range(8, 4, -1):
+    #     if tot % i == 0:
+    #         return tot / i, i
+    # for i in range(8, 4, -1):
+    #     divide = tot / i
+    #     if tot % i > i / 2:
+    #         row = divide + 1
+    #         col = i
+    col = 4
+    row = int(math.ceil(tot/float(col)))
     return row, col
 
 
@@ -73,6 +75,9 @@ def sample_histograms(input_sample, names, levels, outpath, outname, param_dict,
         subplot list.
     """
     fig = plt.figure()
+    # set fig size
+    fig.set_figheight(15)
+    fig.set_figwidth(15)
     if plot_cfg is not None:
         plt.rcParams['font.family'] = plot_cfg.font_name
     num_vars = len(names)
@@ -153,7 +158,8 @@ def empirical_cdf(out_values, subsections, input_sample, names, levels,
         plot_cfg = PlotConfig()
     plt.rcParams['font.family'] = plot_cfg.font_name
     fig = plt.figure()
-
+    fig.set_figwidth(15)
+    fig.set_figheight(15)
     num_vars = len(names)
     row, col = cal_row_col_num(num_vars)
     for var_idx in range(num_vars):

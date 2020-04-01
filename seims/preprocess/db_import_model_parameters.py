@@ -403,7 +403,6 @@ def main():
     ImportParam2Mongo.workflow(seims_cfg, main_db)
 
     client.close()
-    print('import model parameters successfully!')
 
 
 if __name__ == "__main__":
