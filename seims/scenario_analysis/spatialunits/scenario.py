@@ -497,7 +497,7 @@ class SUScenario(Scenario):
             for luid, luarea in unit_lu.items():
                 if luid in bmpparam['LANDUSE'] or bmpparam['LANDUSE'] is None:
                     # get the years the bmp actually implemented
-                    actual_years = self.cfg.runtime_years + 1 - int(gene_v) % 10
+                    actual_years = int(gene_v) % 10  # 该BMP实际实施的年限
                     capex += luarea * bmpparam['CAPEX']
                     opex += luarea * bmpparam['OPEX'] * actual_years
                     income += luarea * bmpparam['INCOME'] * actual_years

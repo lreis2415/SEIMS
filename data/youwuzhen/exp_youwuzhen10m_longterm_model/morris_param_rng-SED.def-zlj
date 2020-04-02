@@ -1,0 +1,10 @@
+USLE_K,0.8,2.0
+USLE_P,0.8,1.2
+USLE_C,0.8,2.5
+acc,0.8,1.5
+BLAI,1,5
+DLAI,1,5
+ALAI_MIN,1,5
+p_rf,-0.5,1.5
+spcon,1,50
+spexp,-0.5,0.5

@@ -71,7 +71,7 @@ toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
 
 toolbox.register('evaluate', timeext_scenario_effectiveness)
 toolbox.register('crossover', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutate_timeext)
+toolbox.register('mutate', mutate_timeext)
 toolbox.register('select', tools.selNSGA2)
 
 
@@ -87,11 +87,14 @@ def run_base_scenario(sceobj):
 def main(scenario_obj, pareto_indv_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
-    # Base场景还保持和原来一致的评价方法
-    if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-        run_base_scenario(scenario_obj)
-        print('The environment effectiveness value of the '
-              'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
+    # # Base场景还保持和原来一致的评价方法
+    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+    #     run_base_scenario(scenario_obj)
+    #     print('The environment effectiveness value of the '
+    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
+
+    print(pareto_indv_obj)
+    print(pareto_indv_obj.fitness)
 
     random.seed()
 
@@ -244,14 +247,14 @@ def main(scenario_obj, pareto_indv_obj):
                     toolbox.crossover(ind1, ind2)
 
                 toolbox.mutate(ind1, 1, scenario_obj.cfg.runtime_years, mut_rate)
-                toolbox.mutate(ind2, 2, scenario_obj.cfg.runtime_years, mut_rate)
+                toolbox.mutate(ind2, 1, scenario_obj.cfg.runtime_years, mut_rate)
 
                 if check_individual_diff(old_ind1, ind1):
-                    delete_fitness(ind1)
+                    delete_fitness(ind1) # 删除适应度，valid变为false
                 if check_individual_diff(old_ind2, ind2):
                     delete_fitness(ind2)
 
-        # Evaluate the individuals with an invalid fitness
+        # 只评估无效适应度的个体
         invalid_inds = [ind for ind in offspring if not ind.fitness.valid]
         valid_inds = [ind for ind in offspring if ind.fitness.valid]
         invalid_ind_size = len(invalid_inds)
@@ -273,6 +276,7 @@ def main(scenario_obj, pareto_indv_obj):
         # Previous version may result in duplications of the same scenario in one Pareto front,
         #   thus, I decided to check and remove the duplications first.
         # pop = toolbox.select(pop + valid_inds + invalid_inds, pop_select_num)
+        # 删除代数重复、id也重复的个体
         tmppop = pop + valid_inds + invalid_inds
         pop = list()
         unique_sces = dict()
@@ -309,7 +313,7 @@ def main(scenario_obj, pareto_indv_obj):
         stime = time.time()
         front = numpy.array([ind.fitness.values for ind in pop])
         # save front for further possible use
-        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'pareto_front_gen%d.txt' % gen,
+        numpy.savetxt(scenario_obj.scenario_dir + os.sep + 'timeext_pareto_front_gen%d.txt' % gen,
                       front, delimiter=str(' '), fmt=str('%.4f'))
 
         # Comment out the following plot code if matplotlib does not work.
@@ -400,16 +404,25 @@ if __name__ == "__main__":
         print(pareto_pop)
     sce = SUScenario(sa_cfg)
 
-    # scoop_log('### START TO SCENARIOS OPTIMIZING ###')
-    # startT = time.time()
+    scoop_log('### START TO SCENARIOS OPTIMIZING ###')
+    startT = time.time()
 
-    time_pareto_pop, time_pareto_stats = main(sce, pareto_pop[0])
-    # fpop.sort(key=lambda x: x.fitness.values)
-    # scoop_log(fstats)
-    # with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
-    #     # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
-    #     #   when using unicode_literals, please use '%s' to concatenate string!
-    #     f.write('%s' % fstats.__str__())
-    #
-    # endT = time.time()
-    # scoop_log('Running time: %.2fs' % (endT - startT))
+    # 这里需要从pareto前沿中选一个个体，作为优化基准
+    selected_indv = pareto_pop[0]
+    sce.set_unique_id(selected_indv.id)
+    sce.gene_values = selected_indv.tolist()
+    sce.economy = selected_indv.fitness.values[0]
+    sce.environment = selected_indv.fitness.values[1]
+    sce.export_scenario_to_txt()
+
+    time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
+
+    time_pareto_pop.sort(key=lambda x: x.fitness.values)
+    scoop_log(time_pareto_stats)
+    with open(sa_cfg.opt.logbookfile, 'w', encoding='utf-8') as f:
+        # In case of 'TypeError: write() argument 1 must be unicode, not str' in Python2.7
+        #   when using unicode_literals, please use '%s' to concatenate string!
+        f.write('%s' % time_pareto_stats.__str__())
+
+    endT = time.time()
+    scoop_log('Running time: %.2fs' % (endT - startT))

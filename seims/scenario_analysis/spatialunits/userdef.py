@@ -426,15 +426,16 @@ def mutate_rdm(bmps_mut_target,  # type: Union[List[int], Tuple[int]]
 
 
 def mutate_timeext(indv, low, up, indpb):
-    for i,bit in enumerate(indv):
+    for i, bit in enumerate(indv):
+        bit = int(bit)  # float -> int
+        if bit == 0:
+            continue  # 不配置BMP的位不进行变异
         if random.random() < indpb:
-            bit = int(bit)  # float -> int
-            if bit != 0:  # 0 does not need mutate
-                ints = list(map(int, str(bit)))
-                # random change the last int
-                ints[len(ints)-1] = random.randint(low, up)
-                # list -> str -> float
-                indv[i] = float(''.join(map(str, ints)))
+            ints = list(map(int, str(bit)))
+            # 把最后一位修改为[low,up]之间的一个随机整数
+            ints[len(ints) - 1] = random.randint(low, up)
+            # list -> str -> float
+            indv[i] = float(''.join(map(str, ints)))
     return indv
 
 
