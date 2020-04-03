@@ -397,8 +397,8 @@ if __name__ == "__main__":
 
     with open(sa_cfg.model.model_dir + os.path.sep + 'pop_out', 'rb') as fp:
         pareto_pop = pickle.load(fp)
-        print(type(pareto_pop))
-        print(pareto_pop)
+        # print(type(pareto_pop))
+        # print(pareto_pop)
     sce = SUScenario(sa_cfg)
 
     scoop_log('### START TO SCENARIOS OPTIMIZING ###')
@@ -406,7 +406,8 @@ if __name__ == "__main__":
 
     # 这里需要从pareto前沿中选一个个体，作为优化基准
     selected_indv = pareto_pop[0]
-    print('Basic optimization scenario ID: '+selected_indv.id)
+    print('Basic opt scenario ID: '+ str(selected_indv.id))
+    print('Basic opt scenario genes: ' + str(selected_indv.tolist()))
     # sce.set_unique_id(selected_indv.id)
     # sce.gene_values = selected_indv.tolist()
     # sce.economy = selected_indv.fitness.values[0]
