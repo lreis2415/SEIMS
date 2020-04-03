@@ -3,10 +3,10 @@
 #SBATCH --time=72:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --job-name="manual_tuning"
+#SBATCH --job-name="reimport_run_post"
 
 cd /GPUFS/igsnrr_czqin_2/shenshen/SEIMS/seims/preprocess
-python db_import_model_parameters.py -ini /GPUFS/igsnrr_czqin_2/shenshen/SEIMS/data/youwuzhen/workspace/preprocess.ini
+python main.py -ini /GPUFS/igsnrr_czqin_2/shenshen/SEIMS/data/youwuzhen/workspace/preprocess.ini
 echo "preprocess finished!"
 
 cd /GPUFS/igsnrr_czqin_2/shenshen/SEIMS/seims

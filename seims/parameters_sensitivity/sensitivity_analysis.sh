@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -p work
 #SBATCH --time=72:00:00
-#SBATCH --nodes=4
-#SBATCH --ntasks=24
+#SBATCH --nodes=8
+#SBATCH --ntasks=48
 #SBATCH --job-name="sensitivity_analysis"
 
-N_NODES=4
-N_TASKS=24
+N_NODES=8
+N_TASKS=48
 python write_hostsfile.py -N $N_NODES  -n $N_TASKS
 
 # check if we were able to start writing the conf file

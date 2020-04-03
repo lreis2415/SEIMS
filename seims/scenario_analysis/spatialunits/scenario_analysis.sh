@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -p work
 #SBATCH --time=5-00:00:00
-#SBATCH --nodes=16
-#SBATCH --ntasks=96
+#SBATCH --nodes=8
+#SBATCH --ntasks=48
 #SBATCH --job-name="scenario_analysis"
 
-N_NODES=16
-N_TASKS=96
+N_NODES=8
+N_TASKS=48
 python write_hostsfile.py -N $N_NODES -n $N_TASKS
 
 # check if we were able to start writing the conf file
