@@ -87,14 +87,11 @@ def run_base_scenario(sceobj):
 def main(scenario_obj, pareto_indv_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
-    # # Base场景还保持和原来一致的评价方法
-    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-    #     run_base_scenario(scenario_obj)
-    #     print('The environment effectiveness value of the '
-    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
-
-    print(pareto_indv_obj)
-    print(pareto_indv_obj.fitness)
+    # Base场景还保持和原来一致的评价方法
+    if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+        run_base_scenario(scenario_obj)
+        print('The environment effectiveness value of the '
+              'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 
@@ -409,11 +406,12 @@ if __name__ == "__main__":
 
     # 这里需要从pareto前沿中选一个个体，作为优化基准
     selected_indv = pareto_pop[0]
-    sce.set_unique_id(selected_indv.id)
-    sce.gene_values = selected_indv.tolist()
-    sce.economy = selected_indv.fitness.values[0]
-    sce.environment = selected_indv.fitness.values[1]
-    sce.export_scenario_to_txt()
+    print('Basic optimization scenario ID: '+selected_indv.id)
+    # sce.set_unique_id(selected_indv.id)
+    # sce.gene_values = selected_indv.tolist()
+    # sce.economy = selected_indv.fitness.values[0]
+    # sce.environment = selected_indv.fitness.values[1]
+    # sce.export_scenario_to_txt()
 
     time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
 
