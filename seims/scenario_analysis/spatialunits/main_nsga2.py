@@ -446,5 +446,5 @@ if __name__ == "__main__":
 
     import pickle
     with open(sa_cfg.opt.out_dir + os.path.sep + 'pop_out', 'wb') as fp:
-        pickle.dump(fpop, fp, protocol=2)
+        pickle.dump(fpop, fp)
 
