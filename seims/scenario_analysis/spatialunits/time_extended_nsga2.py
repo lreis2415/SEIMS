@@ -87,11 +87,11 @@ def run_base_scenario(sceobj):
 def main(scenario_obj, pareto_indv_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
-    # # Base场景还保持和原来一致的评价方法
-    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-    #     run_base_scenario(scenario_obj)
-    #     print('The environment effectiveness value of the '
-    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
+    # Base场景还保持和原来一致的评价方法
+    if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+        run_base_scenario(scenario_obj)
+        print('The environment effectiveness value of the '
+              'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 
