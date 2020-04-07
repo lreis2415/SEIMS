@@ -141,6 +141,7 @@ def main(scenario_obj, pareto_indv_obj):
 
     # Initialize population
     # 通过指定文件初始化种群，避免优化过程中途失败需再重新开始
+    # PopulationSize请与原来保持一致
     initialize_byinputs = False
     if scenario_obj.cfg.initial_byinput and scenario_obj.cfg.input_pareto_file is not None and \
         scenario_obj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
@@ -399,7 +400,7 @@ if __name__ == "__main__":
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
 
-    with open(sa_cfg.model.model_dir + os.path.sep + 'pop_out', 'rb') as fp:
+    with open(sa_cfg.model.model_dir + os.path.sep + 'selected_pop', 'rb') as fp:
         pareto_pop = pickle.load(fp)
         # print(type(pareto_pop))
         # print(pareto_pop)
