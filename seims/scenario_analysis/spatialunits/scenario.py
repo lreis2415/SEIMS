@@ -169,19 +169,22 @@ class SUScenario(Scenario):
                                ' class, especially the overwritten rule_based_config and'
                                ' random_based_config!')
 
-    def initialize_timeext(self, opt_genes, input_genes=None):
+    def initialize_timeext(self, opt_genes, input_genes=False):
         # type: (List, Optional[List]) -> List
         """Initialize a time extended scenario.
 
         Returns:
             A list contains BMPs identifier of each gene location.
         """
-        for idx, gene in enumerate(opt_genes):
-            if numpy.isclose(gene, 0.):
-                self.gene_values[idx] = 0
-            else:
-                rand_bit = random.randint(1, self.cfg.runtime_years)
-                self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
+        if input_genes:
+            self.gene_values = opt_genes
+        else:
+            for idx, gene in enumerate(opt_genes):
+                if numpy.isclose(gene, 0.):
+                    self.gene_values[idx] = 0
+                else:
+                    rand_bit = random.randint(1, self.cfg.runtime_years)
+                    self.gene_values[idx] = int(str(numpy.int(gene)) + str(rand_bit))
         return self.gene_values
         # # Create configuration rate for each location randomly, 0.4 ~ 0.6
         # cr = random.randint(40, 60) / 100.
@@ -787,7 +790,7 @@ def initialize_scenario(cf, input_genes=None):
     return sce.initialize(input_genes=input_genes)
 
 
-def initialize_timeext_scenario(cf, opt_genes, input_genes=None):
+def initialize_timeext_scenario(cf, opt_genes, input_genes=False):
     # type: (Union[SASlpPosConfig, SAConnFieldConfig, SACommUnitConfig], Optional[List]) -> List[int]
     """Initialize gene values"""
     sce = SUScenario(cf)

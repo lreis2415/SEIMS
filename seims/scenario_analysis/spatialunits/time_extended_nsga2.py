@@ -18,7 +18,7 @@ from io import open
 import matplotlib
 
 if os.name != 'nt':  # Force matplotlib to not use any Xwindows backend.
-    matplotlib.use('Agg', warn=False)
+    matplotlib.use('Agg')
 
 from typing import Dict
 import numpy
@@ -36,7 +36,7 @@ from utility.scoop_func import scoop_log
 from scenario_analysis import BMPS_CFG_UNITS, BMPS_CFG_METHODS
 from scenario_analysis.config import SAConfig
 from scenario_analysis.userdef import initIterateWithCfgIndv, initRepeatWithCfgIndv, \
-    initRepeatWithCfgFromList, initIterateWithCfgWithInput
+    initRepeatWithCfgFromList, initIterateWithCfgIndvInput
 from scenario_analysis.visualization import read_pareto_solutions_from_txt
 from scenario_analysis.spatialunits.config import SASlpPosConfig, SAConnFieldConfig, \
     SACommUnitConfig
@@ -65,9 +65,9 @@ toolbox.register('gene_values', initialize_timeext_scenario)
 toolbox.register('individual', initIterateWithCfgIndv, creator.Individual, toolbox.gene_values)
 toolbox.register('population', initRepeatWithCfgIndv, list, toolbox.individual)
 
-# toolbox.register('individual_byinput', initIterateWithCfgWithInput, creator.Individual,
-#                  toolbox.gene_values)
-# toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
+toolbox.register('individual_byinput', initIterateWithCfgIndvInput, creator.Individual,
+                 toolbox.gene_values)
+toolbox.register('population_byinputs', initRepeatWithCfgFromList, list, toolbox.individual_byinput)
 
 toolbox.register('evaluate', timeext_scenario_effectiveness)
 toolbox.register('crossover', tools.cxTwoPoint)
@@ -87,11 +87,11 @@ def run_base_scenario(sceobj):
 def main(scenario_obj, pareto_indv_obj):
     # type: (SUScenario, Individual) -> ()
     """Main workflow of NSGA-II based Time Extended Scenario analysis."""
-    # Base场景还保持和原来一致的评价方法
-    if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
-        run_base_scenario(scenario_obj)
-        print('The environment effectiveness value of the '
-              'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
+    # # Base场景还保持和原来一致的评价方法
+    # if scenario_obj.cfg.eval_info['BASE_ENV'] < 0:
+    #     run_base_scenario(scenario_obj)
+    #     print('The environment effectiveness value of the '
+    #           'base scenario is %.2f' % scenario_obj.cfg.eval_info['BASE_ENV'])
 
     random.seed()
 
@@ -142,17 +142,17 @@ def main(scenario_obj, pareto_indv_obj):
     # Initialize population
     # 通过指定文件初始化种群，避免优化过程中途失败需再重新开始
     initialize_byinputs = False
-    # if sceobj.cfg.initial_byinput and sceobj.cfg.input_pareto_file is not None and \
-    #     sceobj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
-    #     inpareto_file = sceobj.modelcfg.model_dir + os.sep + sceobj.cfg.input_pareto_file
-    #     if os.path.isfile(inpareto_file):
-    #         inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
-    #                                                             sce_name='scenario',
-    #                                                             field_name='gene_values')
-    #         if sceobj.cfg.input_pareto_gen in inpareto_solutions:
-    #             pareto_solutions = inpareto_solutions[sceobj.cfg.input_pareto_gen]
-    #             pop = toolbox.population_byinputs(sceobj.cfg, pareto_solutions)  # type: List
-    #             initialize_byinputs = True
+    if scenario_obj.cfg.initial_byinput and scenario_obj.cfg.input_pareto_file is not None and \
+        scenario_obj.cfg.input_pareto_gen > 0:  # Initial by input Pareto solutions
+        inpareto_file = scenario_obj.modelcfg.model_dir + os.sep + scenario_obj.cfg.input_pareto_file
+        if os.path.isfile(inpareto_file):
+            inpareto_solutions = read_pareto_solutions_from_txt(inpareto_file,
+                                                                sce_name='scenario',
+                                                                field_name='gene_values')
+            if scenario_obj.cfg.input_pareto_gen in inpareto_solutions:
+                pareto_solutions = inpareto_solutions[scenario_obj.cfg.input_pareto_gen]
+                pop = toolbox.population_byinputs(scenario_obj.cfg, pareto_solutions)  # type: List
+                initialize_byinputs = True
 
     if not initialize_byinputs:
         pop = toolbox.population(scenario_obj.cfg, pareto_indv_obj, n=pop_size)  # type: List
