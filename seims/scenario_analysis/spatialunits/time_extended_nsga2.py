@@ -247,7 +247,7 @@ def main(scenario_obj, pareto_indv_obj):
                 toolbox.mutate(ind2, 1, scenario_obj.cfg.runtime_years, mut_rate)
 
                 if check_individual_diff(old_ind1, ind1):
-                    delete_fitness(ind1) # 删除适应度，valid变为false
+                    delete_fitness(ind1)  # 删除适应度，valid变为false
                 if check_individual_diff(old_ind2, ind2):
                     delete_fitness(ind2)
 
@@ -337,6 +337,10 @@ def main(scenario_obj, pareto_indv_obj):
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(scenario_obj.cfg.opt.logfile, output_str, mode='append')
 
+        pklfile_str = 'gen%d.pickle' % (gen,)
+        with open(scenario_obj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
+            pickle.dump(pop, pklfp)
+
     # Plot hypervolume and newly executed model count
     # Comment out the following plot code if matplotlib does not work.
     try:
@@ -406,7 +410,7 @@ if __name__ == "__main__":
 
     # 这里需要从pareto前沿中选一个个体，作为优化基准
     selected_indv = pareto_pop[0]
-    print('Basic opt scenario ID: '+ str(selected_indv.id))
+    print('Basic opt scenario ID: ' + str(selected_indv.id))
     print('Basic opt scenario genes: ' + str(selected_indv.tolist()))
     # sce.set_unique_id(selected_indv.id)
     # sce.gene_values = selected_indv.tolist()

@@ -19,6 +19,7 @@ import os
 import sys
 import random
 import time
+import pickle
 from io import open
 
 import matplotlib
@@ -370,6 +371,10 @@ def main(sceobj):
                                                     indi.fitness.values[1], str(indi))
         UtilClass.writelog(sceobj.cfg.opt.logfile, output_str, mode='append')
 
+        pklfile_str = 'gen%d.pickle' % (gen,)
+        with open(sceobj.cfg.opt.simdata_dir + os.path.sep + pklfile_str, 'wb') as pklfp:
+            pickle.dump(pop, pklfp)
+
     # Plot hypervolume and newly executed model count
     # Comment out the following plot code if matplotlib does not work.
     try:
@@ -444,7 +449,6 @@ if __name__ == "__main__":
     endT = time.time()
     scoop_log('Running time: %.2fs' % (endT - startT))
 
-    import pickle
     with open(sa_cfg.opt.out_dir + os.path.sep + 'pop_out', 'wb') as fp:
         pickle.dump(fpop, fp)
 
