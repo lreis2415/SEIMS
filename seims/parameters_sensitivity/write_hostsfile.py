@@ -10,7 +10,7 @@ def main(n_nodes, n_tasks):
     args = cmd.split(' ')
     # print(args)
     outputs = subprocess.check_output(args)
-    lines = outputs.strip().split(os.linesep)
+    lines = outputs.decode().strip().split(os.linesep)
     print(lines)  # ['cpn206', 'cpn213', 'cpn216', 'cpn223']
     print(len(lines))
 

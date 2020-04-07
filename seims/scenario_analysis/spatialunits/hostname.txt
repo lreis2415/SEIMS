@@ -1,8 +1,8 @@
-cpn39 6
-cpn240 6
-cpn276 6
-cpn201 6
-cpn42 6
-cpn235 6
-cpn207 6
-cpn217 6
+cpn18 6.0
+cpn40 6.0
+cpn235 6.0
+cpn207 6.0
+cpn224 6.0
+cpn262 6.0
+cpn102 6.0
+cpn251 6.0
