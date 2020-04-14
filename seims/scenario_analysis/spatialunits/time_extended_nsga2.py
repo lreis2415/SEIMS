@@ -413,11 +413,12 @@ if __name__ == "__main__":
     selected_indv = pareto_pop[0]
     print('Basic opt scenario ID: ' + str(selected_indv.id))
     print('Basic opt scenario genes: ' + str(selected_indv.tolist()))
-    # sce.set_unique_id(selected_indv.id)
-    # sce.gene_values = selected_indv.tolist()
-    # sce.economy = selected_indv.fitness.values[0]
-    # sce.environment = selected_indv.fitness.values[1]
-    # sce.export_scenario_to_txt()
+    sce.set_unique_id(selected_indv.id)
+    sce.gene_values = selected_indv.tolist()
+    sce.economy = selected_indv.fitness.values[0]
+    sce.environment = selected_indv.fitness.values[1]
+    sce.export_scenario_to_txt()
+    sce.export_scenario_to_gtiff()
 
     time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
 

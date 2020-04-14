@@ -597,6 +597,10 @@ class SUScenario(Scenario):
                       'SUM(%s): %s' % (self.ID, rfile, repr(sed_sum)))
                 self.environment = self.worst_env
 
+    def check_custom_constraints(self):
+        pass
+        # for gene in self.gene_values:
+
     def export_scenario_to_gtiff(self, outpath=None):
         # type: (Optional[str]) -> None
         """Export scenario to GTiff.
@@ -840,12 +844,18 @@ def timeext_scenario_effectiveness(cf, ind):
     # 3. decode gene values to BMP items and exporting to MongoDB.
     sce.decoding()
     sce.export_to_mongodb()
-    # 4. execute the SEIMS-based watershed model and get the timespan
-    sce.execute_seims_model()
-    ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
-    # 5. calculate scenario effectiveness and delete intermediate data
-    sce.calculate_timeext_economy()
-    sce.calculate_timeext_environment()
+    if True:  # sce.check_custom_constraints():
+        # 4. execute the SEIMS-based watershed model and get the timespan
+        sce.execute_seims_model()
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = sce.model.GetTimespan()
+        # 5. calculate scenario effectiveness and delete intermediate data
+        sce.calculate_timeext_economy()
+        sce.calculate_timeext_environment()
+    else:
+        # worst conditions
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.]*4
+        sce.economy = sce.worst_econ
+        sce.environment = sce.worst_env
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
     sce.export_scenario_to_gtiff()
