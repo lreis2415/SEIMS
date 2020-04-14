@@ -400,7 +400,7 @@ if __name__ == "__main__":
         sa_cfg = SACommUnitConfig(in_cf)
     sa_cfg.construct_indexes_units_gene()
 
-    with open(sa_cfg.model.model_dir + os.path.sep + 'selected_pop', 'rb') as fp:
+    with open(sa_cfg.model.model_dir + os.path.sep + 'gen60.pickle', 'rb') as fp:
         pareto_pop = pickle.load(fp)
         # print(type(pareto_pop))
         # print(pareto_pop)
@@ -410,7 +410,12 @@ if __name__ == "__main__":
     startT = time.time()
 
     # 这里需要从pareto前沿中选一个个体，作为优化基准
-    selected_indv = pareto_pop[0]
+    target_indv_id = 107852387
+    for indv in pareto_pop:
+        if indv.id == target_indv_id:
+            selected_indv = indv
+            break
+
     print('Basic opt scenario ID: ' + str(selected_indv.id))
     print('Basic opt scenario genes: ' + str(selected_indv.tolist()))
     sce.set_unique_id(selected_indv.id)
@@ -418,7 +423,7 @@ if __name__ == "__main__":
     sce.economy = selected_indv.fitness.values[0]
     sce.environment = selected_indv.fitness.values[1]
     sce.export_scenario_to_txt()
-    sce.export_scenario_to_gtiff()
+    # sce.export_scenario_to_gtiff()
 
     time_pareto_pop, time_pareto_stats = main(sce, selected_indv)
 

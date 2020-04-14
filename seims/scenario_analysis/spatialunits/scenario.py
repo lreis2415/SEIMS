@@ -822,7 +822,7 @@ def scenario_effectiveness(cf, ind):
     sce.calculate_environment()
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
-    sce.export_scenario_to_gtiff()
+    # sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
@@ -858,7 +858,7 @@ def timeext_scenario_effectiveness(cf, ind):
         sce.environment = sce.worst_env
     # 6. Export scenarios information
     sce.export_scenario_to_txt()
-    sce.export_scenario_to_gtiff()
+    # sce.export_scenario_to_gtiff()
     # 7. Clean the intermediate data of current scenario
     sce.clean(delete_scenario=True, delete_spatial_gfs=True)
     # 8. Assign fitness values
