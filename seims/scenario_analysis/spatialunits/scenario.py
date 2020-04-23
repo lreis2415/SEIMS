@@ -851,9 +851,10 @@ def timeext_scenario_effectiveness(cf, ind):
         # 5. calculate scenario effectiveness and delete intermediate data
         sce.calculate_timeext_economy()
         sce.calculate_timeext_environment()
+        sce.environment *= 100.0
     else:
         # worst conditions
-        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.]*4
+        ind.io_time, ind.comp_time, ind.simu_time, ind.runtime = [0.] * 4
         sce.economy = sce.worst_econ
         sce.environment = sce.worst_env
     # 6. Export scenarios information
@@ -949,6 +950,37 @@ def main_manual(sceid, gene_values):
     sce.clean(delete_scenario=False, delete_spatial_gfs=False)
 
 
+def main_manual_timeext(sceid, gene_values):
+    """Test of set scenario manually."""
+    cf = get_config_parser()
+    base_cfg = SAConfig(cf)  # type: SAConfig
+    if base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[3]:  # SLPPOS
+        cfg = SASlpPosConfig(cf)
+    elif base_cfg.bmps_cfg_unit == BMPS_CFG_UNITS[2]:  # CONNFIELD
+        cfg = SAConnFieldConfig(cf)
+    else:  # Common spatial units, e.g., HRU and EXPLICITHRU
+        cfg = SACommUnitConfig(cf)
+    cfg.construct_indexes_units_gene()
+    sce = SUScenario(cfg)
+
+    sce.set_unique_id(sceid)
+    sce.initialize(input_genes=gene_values)
+    sce.boundary_adjustment()
+
+    sce.decoding()
+    sce.export_to_mongodb()
+    sce.execute_seims_model()
+    # sce.export_sce_tif = True
+    # sce.export_scenario_to_gtiff(sce.model.OutputDirectory + os.sep + 'scenario_%d.tif' % sceid)
+    sce.calculate_timeext_economy()
+    sce.calculate_timeext_environment()
+
+    print('Scenario %d: %s\n' % (sceid, ', '.join(repr(v) for v in sce.gene_values)))
+    print('Effectiveness:\n\teconomy: %f\n\tenvironment: %f\n' % (sce.economy, sce.environment))
+
+    sce.clean(delete_scenario=False, delete_spatial_gfs=False)
+
+
 if __name__ == '__main__':
     # main_single()
     # main_multiple(4)
@@ -965,7 +997,25 @@ if __name__ == '__main__':
     #            2.0, 2.0, 0.0, 0.0, 1.0, 4.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 0.0,
     #            1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 2.0, 0.0, 0.0, 3.0, 0.0,
     #            1.0, 1.0, 0.0, 2.0, 0.0, 4.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0]
-    sid = 100000000
-    gvalues = [0.] * 105
 
-    main_manual(sid, gvalues)
+    # sid = 100000000
+    # gvalues = [0.] * 105
+
+    sid = 122893958
+    gvalues = [18.0, 38.0, 48.0, 28.0, 28.0, 0.0, 0.0, 13.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 28.0, 0.0, 16.0,
+               0.0, 0.0, 12.0, 38.0, 46.0, 17.0, 28.0, 27.0, 0.0, 38.0, 27.0, 0.0, 0.0, 0.0, 0.0, 28.0, 0.0, 21.0, 28.0,
+               0.0, 17.0, 28.0, 0.0, 28.0, 28.0, 0.0, 0.0, 0.0, 0.0, 28.0, 27.0, 0.0, 0.0, 38.0, 0.0, 21.0, 0.0, 0.0,
+               0.0, 0.0, 0.0, 28.0, 0.0, 0.0, 22.0, 0.0, 48.0, 0.0, 0.0, 48.0, 13.0, 38.0, 0.0, 0.0, 28.0, 0.0, 0.0,
+               0.0, 26.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 28.0, 28.0, 0.0, 28.0, 28.0, 0.0, 0.0, 0.0, 27.0, 0.0, 0.0, 0.0,
+               0.0, 13.0, 0.0, 0.0, 28.0, 0.0, 0.0, 0.0, 0.0]
+
+    # sid = 100000001
+    # gvalues = [18.0, 38.0, 48.0, 28.0, 28.0, 0.0, 0.0, 18.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 28.0, 0.0, 18.0,
+    #            0.0, 0.0, 18.0, 38.0, 48.0, 18.0, 28.0, 28.0, 0.0, 38.0, 28.0, 0.0, 0.0, 0.0, 0.0, 28.0, 0.0, 28.0, 28.0,
+    #            0.0, 18.0, 28.0, 0.0, 28.0, 28.0, 0.0, 0.0, 0.0, 0.0, 28.0, 28.0, 0.0, 0.0, 38.0, 0.0, 28.0, 0.0, 0.0,
+    #            0.0, 0.0, 0.0, 28.0, 0.0, 0.0, 28.0, 0.0, 48.0, 0.0, 0.0, 48.0, 18.0, 38.0, 0.0, 0.0, 28.0, 0.0, 0.0,
+    #            0.0, 28.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 28.0, 28.0, 0.0, 28.0, 28.0, 0.0, 0.0, 0.0, 28.0, 0.0, 0.0, 0.0,
+    #            0.0, 18.0, 0.0, 0.0, 28.0, 0.0, 0.0, 0.0, 0.0]
+
+    # main_manual(sid, gvalues)
+    main_manual_timeext(sid, gvalues)
