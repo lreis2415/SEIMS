@@ -12,6 +12,7 @@
     - 2018-08-28 - lj - Add GetTimespan function and timespan counted by time.time().
     - 2018-11-15 - lj - Add model clean function.
     - 2019-01-08 - lj - Add output time period setting.
+    - 2020-07-20 - lj - Read data from MongoDB once for currently used properties.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -32,9 +33,12 @@ from subprocess import CalledProcessError
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from preprocess import db_mongodb as MongoDBObj
+
 from pygeoc.utils import UtilClass, FileClass, StringClass, sysstr, is_string, get_config_parser
 
 from preprocess.text import DBTableNames
+from preprocess.db_mongodb import MongoClient, ConnectMongoDB
 from preprocess.db_read_model import ReadModelData
 from utility import read_simulation_from_txt, parse_datetime_from_ini
 from utility import match_simulation_observation, calculate_statistics
@@ -210,12 +214,21 @@ class MainSEIMS(object):
         self.cmd = self.Command
         self.run_success = False
         self.output_dir = self.OutputDirectory
-        # Read model data from MongoDB
+
+        # Read model data from MongoDB (Moved to function ReadMongoDBData, by lj)
         self.db_name = os.path.split(self.model_dir)[1]
-        self.outlet_id = self.OutletID
-        self.start_time, self.end_time = self.SimulatedPeriod  # Note: Times period in FILE_IN.
+        # self.outlet_id = self.OutletID
+        # self.start_time, self.end_time = self.SimulatedPeriod  # Note: Times period in FILE_IN.
+
+        # Move previous designed Property here
+        self.outlet_id = -1
+        self.subbasin_count = -1
+        self.scenario_dbname = ''
+        self.start_time = None
+        self.end_time = None
         self.output_ids = list()  # type: List[AnyStr]
         self.output_items = dict()  # type: Dict[AnyStr, Union[List[AnyStr]]]
+
         # Data maybe used after model run
         self.timespan = dict()  # type: Dict[AnyStr, Dict[AnyStr, Union[float, Dict[AnyStr, float]]]]
         self.obs_vars = list()  # type: List[AnyStr]  # Observation types at the outlet
@@ -231,6 +244,8 @@ class MainSEIMS(object):
         self.sim_obs_dict = dict()  # type: Dict[AnyStr, Dict[AnyStr, Union[float, List[Union[datetime, float]]]]]
         self.runtime = 0.
         self.runlogs = list()  # type: List[AnyStr]
+
+        self.mongoclient = None  # Be careful! Set to None after use.
 
     @property
     def OutputDirectory(self):
@@ -271,53 +286,100 @@ class MainSEIMS(object):
             self.cmd += ['-id', str(self.subbasin_id)]
         return self.cmd
 
+    def SetMongoClient(self):
+        if self.mongoclient is None:
+            self.mongoclient = MongoDBObj.client
+
+    def ConnectMongoDB(self):
+        """Connect to MongoDB if no connected MongoClient is available
+        """
+        if self.mongoclient is not None:
+            return
+        # Currently, ConnectMongoDB will terminate the program if the connection is failed
+        self.mongoclient = ConnectMongoDB(self.host, self.port)
+
+    def UnsetMongoClient(self):
+        self.mongoclient = None
+
+    def ReadMongoDBData(self):
+        if self.outlet_id >= 0:
+            return
+
+        self.ConnectMongoDB()
+        read_model = ReadModelData(self.mongoclient, self.db_name)
+
+        self.outlet_id = read_model.OutletID
+        self.subbasin_count = read_model.SubbasinCount
+        self.scenario_dbname = read_model.ScenarioDBName
+        self.start_time, self.end_time = read_model.SimulationPeriod
+        self.output_ids, self.output_items = read_model.OutputItems()
+
+        # self.UnsetMongoClient()  # Should be invoked by developers
+
     @property
     def OutletID(self):
         # type: (...) -> int
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        return read_model.OutletID
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # return read_model.OutletID
+        self.ReadMongoDBData()
+        return self.outlet_id
 
     @property
     def SubbasinCount(self):
         # type: (...) -> int
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        return read_model.SubbasinCount
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # return read_model.SubbasinCount
+        self.ReadMongoDBData()
+        return self.subbasin_count
 
     @property
     def ScenarioDBName(self):
         # type: (...) -> AnyStr
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        return read_model.ScenarioDBName
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # return read_model.ScenarioDBName
+        self.ReadMongoDBData()
+        return self.scenario_dbname
 
     @property
     def SimulatedPeriod(self):
         # type: (...) -> (datetime, datetime)
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        return read_model.SimulationPeriod
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # return read_model.SimulationPeriod
+        self.ReadMongoDBData()
+        return self.start_time, self.end_time
 
     @property
     def OutputIDs(self):
         # type: (...) -> List[AnyStr]
         """Read output items from database."""
-        if self.output_ids:
-            return self.output_ids
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        self.output_ids, self.output_items = read_model.OutputItems()
+        # if self.output_ids:
+        #     return self.output_ids
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # self.output_ids, self.output_items = read_model.OutputItems()
+        self.ReadMongoDBData()
         return self.output_ids
 
     @property
     def OutputItems(self):
         # type: (...) -> Dict[AnyStr, Optional[List[AnyStr]]]
         """Read output items from database."""
-        if self.output_items:
-            return self.output_items
-        read_model = ReadModelData(self.host, self.port, self.db_name)
-        self.output_ids, self.output_items = read_model.OutputItems()
+        # if self.output_items:
+        #     return self.output_items
+        # self.ConnectMongoDB()
+        # read_model = ReadModelData(self.mongoclient, self.db_name)
+        # self.output_ids, self.output_items = read_model.OutputItems()
+        self.ReadMongoDBData()
         return self.output_items
 
     def ReadOutletObservations(self, vars_list):
         # type: (List[AnyStr]) -> (List[AnyStr], Dict[datetime, List[float]])
-        read_model = ReadModelData(self.host, self.port, self.db_name)
+        self.ConnectMongoDB()
+        read_model = ReadModelData(self.mongoclient, self.db_name)
         self.obs_vars, self.obs_value = read_model.Observation(self.outlet_id, vars_list,
                                                                self.start_time, self.end_time)
         return self.obs_vars, self.obs_value
@@ -481,7 +543,8 @@ class MainSEIMS(object):
 
     def ResetSimulationPeriod(self):
         """Update simulation time range in MongoDB [FILE_IN]."""
-        read_model = ReadModelData(self.host, self.port, self.db_name)
+        self.ConnectMongoDB()
+        read_model = ReadModelData(self.mongoclient, self.db_name)
         if self.simu_stime and self.simu_etime:
             stime_str = self.simu_stime.strftime('%Y-%m-%d %H:%M:%S')
             etime_str = self.simu_etime.strftime('%Y-%m-%d %H:%M:%S')
@@ -504,7 +567,8 @@ class MainSEIMS(object):
             stime = [stime]
         if not isinstance(etime, list):
             etime = [etime]
-        read_model = ReadModelData(self.host, self.port, self.db_name)
+        self.ConnectMongoDB()
+        read_model = ReadModelData(self.mongoclient, self.db_name)
         for idx, outputid in enumerate(output_ids):
             cur_stime = stime[0]
             if idx < len(stime):
@@ -552,7 +616,8 @@ class MainSEIMS(object):
         GridFS files in OUTPUT collection.
         """
         rmtree(self.OutputDirectory, ignore_errors=True)
-        read_model = ReadModelData(self.host, self.port, self.db_name)
+        self.ConnectMongoDB()
+        read_model = ReadModelData(self.mongoclient, self.db_name)
         if scenario_id is None:
             scenario_id = self.scenario_id
         if calibration_id is None:
@@ -594,8 +659,8 @@ def main():
     seims_obj = MainSEIMS(args_dict=runmodel_cfg.ConfigDict)
     seims_obj.run()
 
-    for l in seims_obj.runlogs:
-        print(l)
+    for log in seims_obj.runlogs:
+        print(log)
 
 
 if __name__ == '__main__':

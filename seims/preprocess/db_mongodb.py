@@ -16,6 +16,8 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
+from preprocess import db_mongodb
+
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
 
@@ -26,9 +28,18 @@ class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
 
     def __init__(self, ip, port, maxPoolSize=None):
-        """initial mongodb client by IP address and port."""
+        """initial mongodb client by IP address and port.
+
+        Starting with version 3.0 the MongoClient constructor no longer blocks while connecting to
+         the server or servers, and it no longer raises ConnectionFailure if they are unavailable,
+         nor ConfigurationError if the user’s credentials are wrong.
+         Instead, the constructor returns immediately and launches the connection process on
+          background threads.
+        --https://api.mongodb.com/python/current/api/pymongo/mongo_client.html
+        """
+        self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
         try:
-            self.conn = MongoClient(ip, port, maxPoolSize=maxPoolSize)
+            self.conn.admin.command('ismaster')
         except ConnectionFailure as err:
             sys.stderr.write('Could not connect to MongoDB: %s' % err)
             sys.exit(1)
@@ -38,8 +49,16 @@ class ConnectMongoDB(object):
         return self.conn
 
     def close(self):
-        """Close collection."""
-        self.conn.close()
+        """Close collection.
+
+        Create this client once for each process, and reuse it for all operations.
+        It is a common mistake to create a new client for each request, which is very inefficient.
+        --https://stackoverflow.com/questions/41015490/how-can-i-force-pymongo-to-close-sockets
+
+        So, for now, I will comment the close operation. By lj.
+        """
+        # self.conn.close()
+        pass
 
 
 class MongoQuery(object):
@@ -67,3 +86,12 @@ class MongoUtil(object):
             bulk.execute()
         except InvalidOperation:
             print('WARNING: %s' % errmsg)
+
+
+# Temporary solution for running SEIMS-based applications on Linux cluster
+# Before running such applications such as scenarios_analysis/spatialunits/main_nsga2.py,
+#   users must update the host and port!
+db_mongodb.host = '127.0.0.1'
+db_mongodb.port = 27017
+db_mongodb.client = ConnectMongoDB(ip=db_mongodb.host,
+                                   port=db_mongodb.port).get_conn()

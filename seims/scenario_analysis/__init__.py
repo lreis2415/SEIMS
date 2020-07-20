@@ -7,7 +7,7 @@
  Scenario Analysis by NSGA-II algorithm of DEAP, parallelized by SCOOP
                               -------------------
         author               : Liangjun Zhu, Huiran Gao
-        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -19,11 +19,11 @@
  *                                                                            *
  ******************************************************************************/
 """
+from __future__ import absolute_import
 
 __author__ = "Liangjun Zhu, Huiran Gao"
 __description__ = "Scenario Analysis by NSGA-II algorithm"
-__version__ = "1.2"
-__revision__ = "1.2.2"
+
 
 _DEBUG = False  # type: bool # Print information for debugging
 

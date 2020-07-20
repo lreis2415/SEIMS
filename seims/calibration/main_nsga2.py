@@ -206,7 +206,7 @@ def main(cfg):
             from scoop import futures
             invalid_pops = list(futures.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         except ImportError or ImportWarning:  # Python build-in map (serial)
-            invalid_pops = list(toolbox.map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
+            invalid_pops = list(map(toolbox.evaluate, [cali_obj] * popnum, invalid_pops))
         for tmpind in invalid_pops:
             labels = list()  # TODO, find an elegant way to get labels.
             tmpfitnessv = list()
