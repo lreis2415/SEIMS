@@ -16,13 +16,18 @@ import sys
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from preprocess import db_mongodb
-
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
-
 from preprocess.text import DBTableNames, ModelParamFields
 
+# Explicit access to module level variables by accessing them explicity on the module
+# refers to https://stackoverflow.com/a/35904211/4837280
+
+# this is a pointer to the module object instance itself
+this = sys.modules[__name__]
+
+# we can explicitly make assignments on it
+this.client = None
 
 class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
@@ -32,7 +37,7 @@ class ConnectMongoDB(object):
 
         Starting with version 3.0 the MongoClient constructor no longer blocks while connecting to
          the server or servers, and it no longer raises ConnectionFailure if they are unavailable,
-         nor ConfigurationError if the user’s credentials are wrong.
+         nor ConfigurationError if the user's credentials are wrong.
          Instead, the constructor returns immediately and launches the connection process on
           background threads.
         --https://api.mongodb.com/python/current/api/pymongo/mongo_client.html
@@ -91,7 +96,6 @@ class MongoUtil(object):
 # Temporary solution for running SEIMS-based applications on Linux cluster
 # Before running such applications such as scenarios_analysis/spatialunits/main_nsga2.py,
 #   users must update the host and port!
-db_mongodb.host = '127.0.0.1'
-db_mongodb.port = 27017
-db_mongodb.client = ConnectMongoDB(ip=db_mongodb.host,
-                                   port=db_mongodb.port).get_conn()
+this.host = '127.0.0.1'
+this.port = 27017
+this.client = ConnectMongoDB(ip=this.host, port=this.port).get_conn()
