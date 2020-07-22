@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 """Load data from MongoDB.
 
-    @Note:
-    - The ReadModelData class is not picklable,
-       since MongoClient returns thread.lock objects.
-
     @author   : Liangjun Zhu
 
     @changelog:
@@ -16,17 +12,16 @@
 from __future__ import absolute_import, unicode_literals
 from future.utils import viewitems
 
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 from collections import OrderedDict
-
-from pygeoc.utils import StringClass, is_string
 
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
 from gridfs import GridFS
+from pygeoc.utils import StringClass, is_string
 from typing import Dict, List, Tuple, Union, AnyStr, Optional
 from preprocess.db_mongodb import MongoClient, MongoQuery
 from preprocess.text import DBTableNames, ModelCfgFields, FieldNames, SubbsnStatsName, \
@@ -341,8 +336,8 @@ def main():
     import datetime
     from preprocess.db_mongodb import ConnectMongoDB
 
-    host = '192.168.253.203'
-    port = 27018
+    host = '127.0.0.1'
+    port = 27017
     dbname = 'youwuzhen10m_longterm_model'
     stime = datetime.datetime(2013, 1, 1, 0, 0)
     etime = datetime.datetime(2013, 12, 31, 0, 0)

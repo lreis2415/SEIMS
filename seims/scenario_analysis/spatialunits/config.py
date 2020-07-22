@@ -161,7 +161,9 @@ class SASlpPosConfig(SACommUnitConfig):
         # 1. initialize base class
         SACommUnitConfig.__init__(self, cf)
         # 2. Check additional required key and values
-        requiredkeys = ['SLPPOS_TAG_NAME', 'SLPPOS_GFS_NAME']
+        requiredkeys = ['SLPPOS_TAG_NAME']
+        if self.boundary_adaptive:
+            requiredkeys.append('SLPPOS_GFS_NAME')
         for cbmpid, cbmpdict in viewitems(self.bmps_info):
             for k in requiredkeys:
                 if k not in cbmpdict:
@@ -171,15 +173,7 @@ class SASlpPosConfig(SACommUnitConfig):
         self.slppos_tags = self.bmps_info[self.bmpid].get('SLPPOS_TAG_NAME')  # type: Dict[int, AnyStr]
         self.slppos_tagnames = sorted(list(self.slppos_tags.items()),
                                       key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
-        self.slppos_gfs = self.bmps_info[self.bmpid].get('SLPPOS_GFS_NAME')  # type: Dict[int, AnyStr]
-        self.slppos_gfsnames = sorted(list(self.slppos_gfs.items()),
-                                      key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
-        self.slppos_tag_gfs = list()
-        for (itag, tag), (igfs, gfs) in zip(self.slppos_tagnames, self.slppos_gfsnames):
-            if itag != igfs:
-                raise ValueError('Keys provided in SLPPOS_TAG_NAME and SLPPOS_GFS_NAME'
-                                 'MUST be consistent!')
-            self.slppos_tag_gfs.append((itag, tag, gfs))
+
         # 4. Boundary adaptive related
         self.hillslp_num = len(self.units_infos[self.slppos_tagnames[0][1]])
         self.slppos_types_num = len(self.slppos_tagnames)
@@ -187,6 +181,15 @@ class SASlpPosConfig(SACommUnitConfig):
         self.genes_num = self.units_num
         self.hillslp_genes_num = self.slppos_types_num
         if self.boundary_adaptive:
+            self.slppos_gfs = self.bmps_info[self.bmpid].get('SLPPOS_GFS_NAME')  # type: Dict[int, AnyStr]
+            self.slppos_gfsnames = sorted(list(self.slppos_gfs.items()),
+                                          key=operator.itemgetter(0))  # type: List[Tuple[int, AnyStr]]
+            self.slppos_tag_gfs = list()
+            for (itag, tag), (igfs, gfs) in zip(self.slppos_tagnames, self.slppos_gfsnames):
+                if itag != igfs:
+                    raise ValueError('Keys provided in SLPPOS_TAG_NAME and SLPPOS_GFS_NAME'
+                                     'MUST be consistent!')
+                self.slppos_tag_gfs.append((itag, tag, gfs))
             self.thresh_num = self.slppos_types_num - 1
             self.genes_num = self.units_num + self.hillslp_num * self.thresh_num
             self.hillslp_genes_num = self.slppos_types_num + self.thresh_num

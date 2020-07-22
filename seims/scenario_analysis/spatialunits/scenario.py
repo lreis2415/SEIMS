@@ -5,9 +5,9 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-10-29  hr - initial implementation.
-    - 17-08-18  lj - redesign and rewrite.
-    - 18-02-09  lj - compatible with Python3.
+    - 16-10-29  - hr - initial implementation.
+    - 17-08-18  - lj - redesign and rewrite.
+    - 18-02-09  - lj - compatible with Python3.
 """
 from __future__ import absolute_import, division, unicode_literals
 from future.utils import viewitems
@@ -33,7 +33,7 @@ from pymongo.errors import NetworkTimeout
 if os.path.abspath(os.path.join(sys.path[0], '../..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '../..')))
 
-from preprocess import db_mongodb as MongoDBObj
+import global_mongoclient as MongoDBObj
 
 from utility import read_simulation_from_txt
 from preprocess.text import DBTableNames, RasterMetadata
@@ -451,7 +451,9 @@ class SUScenario(Scenario):
             self.economy = self.worst_econ
             self.environment = self.worst_env
             # model clean
+            self.model.SetMongoClient()
             self.model.clean(delete_scenario=True)
+            self.model.UnsetMongoClient()
             return
 
         base_amount = self.eval_info['BASE_ENV']

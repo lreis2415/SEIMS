@@ -5,9 +5,10 @@
     @author   : Liangjun Zhu
 
     @changelog:
-    - 16-12-07  lj - rewrite for version 2.0
-    - 17-06-27  lj - reorganize as basic class other than Global variables
-    - 18-02-08  lj - compatible with Python3.
+    - 16-12-07  - lj - rewrite for version 2.0
+    - 17-06-27  - lj - reorganize as basic class other than Global variables
+    - 18-02-08  - lj - compatible with Python3.
+    - 20-07-20  - lj - no need to invoke close() of MongoClient after use
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -20,14 +21,6 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, InvalidOperation
 from preprocess.text import DBTableNames, ModelParamFields
 
-# Explicit access to module level variables by accessing them explicity on the module
-# refers to https://stackoverflow.com/a/35904211/4837280
-
-# this is a pointer to the module object instance itself
-this = sys.modules[__name__]
-
-# we can explicitly make assignments on it
-this.client = None
 
 class ConnectMongoDB(object):
     """Connect to MongoDB, and close when finished."""
@@ -91,11 +84,3 @@ class MongoUtil(object):
             bulk.execute()
         except InvalidOperation:
             print('WARNING: %s' % errmsg)
-
-
-# Temporary solution for running SEIMS-based applications on Linux cluster
-# Before running such applications such as scenarios_analysis/spatialunits/main_nsga2.py,
-#   users must update the host and port!
-this.host = '127.0.0.1'
-this.port = 27017
-this.client = ConnectMongoDB(ip=this.host, port=this.port).get_conn()

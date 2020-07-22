@@ -5,10 +5,10 @@
     @author   : Liangjun Zhu, Huiran Gao
 
     @changelog:
-    - 16-10-29  hr - initial implementation.
-    - 17-08-18  lj - redesign and rewrite.
-    - 18-02-09  lj - compatible with Python3.
-    - 18-10-30  lj - Update according to new config parser structure.
+    - 16-10-29  - hr - initial implementation.
+    - 17-08-18  - lj - redesign and rewrite.
+    - 18-02-09  - lj - compatible with Python3.
+    - 18-10-30  - lj - Update according to new config parser structure.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -23,7 +23,7 @@ from future.utils import viewitems
 if os.path.abspath(os.path.join(sys.path[0], '..')) not in sys.path:
     sys.path.insert(0, os.path.abspath(os.path.join(sys.path[0], '..')))
 
-from preprocess import db_mongodb as MongoDBObj
+import global_mongoclient as MongoDBObj
 
 from bson.objectid import ObjectId
 from pygeoc.utils import get_config_parser
@@ -247,7 +247,11 @@ class Scenario(object):
         scoop_log('Scenario ID: %d, running SEIMS model...' % self.ID)
         self.model.scenario_id = self.ID
         self.modelout_dir = self.model.OutputDirectory
+
+        self.model.SetMongoClient()
         self.model.run()
+        self.model.UnsetMongoClient()
+
         self.modelrun = True
         return self.model.run_success
 

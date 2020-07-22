@@ -23,6 +23,6 @@ from __future__ import absolute_import
 
 __author__ = "SEIMS Team"
 __version__ = "2.1"
-__revision__ = "2.1.3"
+__revision__ = "2.1.4"
 __all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
            "parameters_sensitivity", "test"]
