@@ -19,9 +19,9 @@
  *                                                                            *
  ******************************************************************************/
 """
+from __future__ import absolute_import
+
 __author__ = "SEIMS Team"
-__version__ = "1.0"
-__revision__ = "1.0.0"
 
 # Global variables
 UTIL_ZERO = 1.e-6

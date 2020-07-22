@@ -7,7 +7,7 @@
  Preprocess, postprocess, calibration, and scenario_analysis
                               -------------------
         author               : Liangjun Zhu, Junzhi Liu
-        copyright            : (C) 2018 by Lreis, IGSNRR, CAS
+        copyright            : (C) 2018-2020 by Lreis, IGSNRR, CAS
         email                : zlj@lreis.ac.cn
  ******************************************************************************
  *                                                                            *
@@ -19,9 +19,10 @@
  *                                                                            *
  ******************************************************************************/
 """
+from __future__ import absolute_import
 
 __author__ = "SEIMS Team"
 __version__ = "2.1"
-__revision__ = "2.1.2"
+__revision__ = "2.1.4"
 __all__ = ["preprocess", "postprocess", "calibration", "scenario_analysis",
            "parameters_sensitivity", "test"]
